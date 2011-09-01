@@ -1,0 +1,171 @@
+============================================================
+【ソフト名】　ＦＴＰクライアント　ＦＦＦＴＰ  Ver 1.97b
+【動作確認環境】　Windows 7, Vista, XP, 2000
+【サポート】　http://www2.biglobe.ne.jp/~sota/
+============================================================
+
+マスターパスワードについて
+--------------------------
+
+Ver.1.96d+009以降でマスターパスワードを導入しました。
+
+FFFTP Ver.1.96d+009以降を最初に起動した時、接続メニューの設定→
+マスターパスワードの設定でマスターパスワードを設定して使用してください。
+マスターパスワードを設定すると、FFFTP起動時にマスターパスワードの入力が
+求められますので、入力してください。
+
+
+Ver 1.97bでの変更点
+-------------------
+
+・ホスト側からエクスプローラにドラッグ＆ドロップした時、ファイルやフォルダを
+　2つ以上選択していた場合に、正常に動作しない場合があるのを修正しました。
+　（Windows 7とVistaでは、ファイルがないというエラーが表示されます。
+　Widnows XPでは、エクスプローラが無反応になります。）
+
+
+Ver 1.96d以前へ戻す場合
+-----------------------
+
+このバージョンを使用したあとで1.96d以前のバージョンに戻した場合、
+ホストの設定のパスワードは入力し直す必要があります。
+
+
+FFFTPの概要
+-----------
+
+ＧＵＩなＦＴＰクライアントソフトです。
+
+☆ファイルリストの部分とファイル転送が別スレッドなので、ファイル転送を
+　しながら新たなファイル操作ができます。
+
+☆ミラーリングアップロード機能により、ローカルのファイル構成と同じ物を
+　ホスト側に作ることが出来ます。
+
+☆漢字コードの変換ができます。
+
+☆漢字のファイル名を扱うことができます。
+
+☆サブディレクトリを含めたファイルの転送ができます。
+
+☆ファイルの転送を、いつでも中断できます。
+　また、以前ダウンロードを中断したファイルがある時、その続きをダウン
+　ロードできます。
+
+☆各種FireWall、SOCKS、ワンタイムパスワードに対応しています。
+
+
+ファイル構成
+------------
+
+ffftp.exe -------- 実行ファイル
+ffftp.hlp -------- ヘルプファイル
+ffftp.cnt -------- 　〃
+ffftp.txt -------- このファイル
+history.txt ------ 改版履歴
+jre32.dll -------- 正規表現検索ＤＬＬ
+
+
+アンインストール方法
+--------------------
+
+■Windows Vista
+コントロールパネルの「プログラムと機能」でアンインストールしてください。
+
+■Windows XP, 2000, 98, Me
+コントロールパネルの「アプリケーションの追加と削除」でアンインストール
+してください。
+
+
+ご利用にあたり
+--------------
+
+・FFFTPはフリー・ソフトウエアです。個人使用、業務使用のいずれでも、
+　ご自由にご利用ください。
+
+・ソフトウエアは十分にテストをしていますが、お使いのパソコン環境や、
+　プログラムの不具合などによって問題が生じる場合があります。それにより
+　損害が生じても、損害に対する保証は出来かねますので、あらかじめご了承
+　ください。
+
+・詳細はライセンスをご覧ください。
+
+
+ライセンス
+----------
+
+本ソフトウエアおよびそのソースコードは、修正BSDライセンスに従うものと
+します。
+
+Copyright(C) 1997-2010, Sota & cooperators. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions 
+are met:
+
+ 1. Redistributions of source code must retain the above copyright 
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright 
+    notice, this list of conditions and the following disclaimer in the 
+    documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR 
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF 
+USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+*** 以下は日本語訳(参考) ***
+
+Copyright(C) 1997-2010 Sota & ご協力いただいた方々. All rights reserved.
+
+ソースコード形式でもバイナリ形式でも、変更の有無に関わらず、以下の条件を
+満たす場合に、再配布および使用を許可します。
+
+ 1. ソースコード形式で再配布する場合、上記著作権表示、本条件および下記
+    責任限定規定を必ず含めてください。
+ 2. バイナリ形式で再配布する場合、上記著作権表示、本条件および下記責任
+    限定規定を、配布物と共に提供される文書および/または他の資料に必ず
+    含めてください。
+
+本ソフトウェアは、著作権者によって「現状のまま」提供されるものとし、 
+明示黙示を問わず、商品として通常期待される品質を備えているという保証や、
+特定の目的に適合するとの保証を含め、何の保証もなされません。
+事由や損害発生の原因の如何を問わず、且つ責任の根拠が契約、厳格責任、
+不法行為（過失などを含む）であるかを問わず、仮にそのような損害が発生する
+可能性を知らされていたとしても、本ソフトウェアの使用から発生した直接損害、
+間接損害、偶発的な損害、特別損害、懲罰的損害または結果損害のいずれに
+対しても（代替品またはサービスの調達、使用機会やデータ、利益の損失の
+補償、または業務の中断に対する補償を含め）、著作権者は責任をいっさい負い
+ません。
+
+
+AES暗号化のコードについては、以下のライセンスとなります。
+
+Copyright (c) 1998-2008, Brian Gladman, Worcester, UK. All rights reserved.
+
+LICENSE TERMS
+
+The redistribution and use of this software (with or without changes)
+is allowed without the payment of fees or royalties provided that:
+
+1. source code distributions include the above copyright notice, this
+list of conditions and the following disclaimer;
+
+2. binary distributions include the above copyright notice, this list
+of conditions and the following disclaimer in their documentation;
+
+3. the name of the copyright holder is not used to endorse products
+built using this software without specific written permission.
+
+DISCLAIMER
+
+This software is provided 'as is' with no explicit or implied warranties
+in respect of its properties, including, but not limited to, correctness
+and/or fitness for purpose.
+

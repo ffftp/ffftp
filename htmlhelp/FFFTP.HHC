@@ -1,0 +1,267 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<!-- Sitemap 1.0 -->
+</HEAD><BODY>
+<OBJECT type="text/site properties">
+	<param name="Window Styles" value="0x800025">
+</OBJECT>
+<UL>
+	<LI><OBJECT type="text/sitemap">
+		<param name="Name" value="はじめに">
+		<param name="Local" value="HTML\H0000001.HTM">
+		</OBJECT>
+	<LI><OBJECT type="text/sitemap">
+		<param name="Name" value="使い方">
+		<param name="Local" value="HTML\H0000002.HTM">
+		</OBJECT>
+	<UL>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="マスターパスワード">
+			<param name="Local" value="HTML\H0000064.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="画面の説明">
+			<param name="Local" value="HTML\H0000003.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ホストへの接続と切断">
+			<param name="Local" value="HTML\H0000005.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ファイル一覧">
+			<param name="Local" value="HTML\H0000006.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="転送モード">
+			<param name="Local" value="HTML\H0000007.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ダウンロード">
+			<param name="Local" value="HTML\H0000008.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ダウンロードの確認">
+			<param name="Local" value="HTML\H0000009.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="アップロード">
+			<param name="Local" value="HTML\H0000010.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="アップロードの確認">
+			<param name="Local" value="HTML\H0000011.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ミラーリングアップロード">
+			<param name="Local" value="HTML\H0000012.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ミラーリングダウンロード">
+			<param name="Local" value="HTML\H0000013.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ファイルを開く">
+			<param name="Local" value="HTML\H0000014.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ファイル削除">
+			<param name="Local" value="HTML\H0000015.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ファイル名変更">
+			<param name="Local" value="HTML\H0000016.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="属性変更">
+			<param name="Local" value="HTML\H0000017.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="フォルダ作成">
+			<param name="Local" value="HTML\H0000018.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ブックマーク">
+			<param name="Local" value="HTML\H0000019.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ファイルの検索">
+			<param name="Local" value="HTML\H0000020.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ファイルの選択">
+			<param name="Local" value="HTML\H0000061.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="フィルタ">
+			<param name="Local" value="HTML\H0000021.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="フォルダの同時移動">
+			<param name="Local" value="HTML\H0000022.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="任意のコマンド">
+			<param name="Local" value="HTML\H0000023.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="コマンドライン">
+			<param name="Local" value="HTML\H0000024.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="インポート">
+			<param name="Local" value="HTML\H0000025.HTM">
+			</OBJECT>
+	</UL>
+	<LI><OBJECT type="text/sitemap">
+		<param name="Name" value="ホストの登録">
+		</OBJECT>
+	<UL>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ホスト一覧">
+			<param name="Local" value="HTML\H0000027.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="基本">
+			<param name="Local" value="HTML\H0000028.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="拡張">
+			<param name="Local" value="HTML\H0000029.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="文字コード">
+			<param name="Local" value="HTML\H0000030.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ダイアルアップ">
+			<param name="Local" value="HTML\H0000031.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="高度">
+			<param name="Local" value="HTML\H0000032.HTM">
+			</OBJECT>
+	</UL>
+	<LI><OBJECT type="text/sitemap">
+		<param name="Name" value="メニュー">
+		</OBJECT>
+	<UL>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="接続">
+			<param name="Local" value="HTML\H0000034.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="コマンド">
+			<param name="Local" value="HTML\H0000035.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ブックマーク">
+			<param name="Local" value="HTML\H0000062.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="表示">
+			<param name="Local" value="HTML\H0000036.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ツール">
+			<param name="Local" value="HTML\H0000037.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="オプション">
+			<param name="Local" value="HTML\H0000038.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ヘルプ">
+			<param name="Local" value="HTML\H0000039.HTM">
+			</OBJECT>
+	</UL>
+	<LI><OBJECT type="text/sitemap">
+		<param name="Name" value="環境設定">
+		<param name="Local" value="HTML\H0000040.HTM">
+		</OBJECT>
+	<UL>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ユーザ">
+			<param name="Local" value="HTML\H0000041.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="転送１">
+			<param name="Local" value="HTML\H0000042.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="転送２">
+			<param name="Local" value="HTML\H0000043.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="転送３">
+			<param name="Local" value="HTML\H0000044.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ミラーリング">
+			<param name="Local" value="HTML\H0000045.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="操作">
+			<param name="Local" value="HTML\H0000046.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="表示">
+			<param name="Local" value="HTML\H0000047.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="接続/切断">
+			<param name="Local" value="HTML\H0000048.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="FireWall">
+			<param name="Local" value="HTML\H0000049.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="ツール">
+			<param name="Local" value="HTML\H0000050.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="サウンド">
+			<param name="Local" value="HTML\H0000051.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="その他">
+			<param name="Local" value="HTML\H0000052.HTM">
+			</OBJECT>
+	</UL>
+	<LI><OBJECT type="text/sitemap">
+		<param name="Name" value="その他">
+		</OBJECT>
+	<UL>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="JIS漢字コードについて">
+			<param name="Local" value="HTML\H0000054.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="漢字のファイル名について">
+			<param name="Local" value="HTML\H0000055.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="パスワードの取り扱いについて">
+			<param name="Local" value="HTML\H0000056.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="jre32.dllについて">
+			<param name="Local" value="HTML\H0000057.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="バージョンアップについて">
+			<param name="Local" value="HTML\H0000058.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="アンインストールについて">
+			<param name="Local" value="HTML\H0000059.HTM">
+			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="作成">
+			<param name="Local" value="HTML\H0000060.HTM">
+			</OBJECT>
+	</UL>
+</UL>
+</BODY></HTML>

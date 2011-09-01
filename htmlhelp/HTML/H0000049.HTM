@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>FireWall</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=shift_jis">
+<META content="MSHTML 6.00.6000.16397" name=GENERATOR></HEAD>
+<BODY>
+<P><IMG src="..\pic\dlg_opt_fwall.png"></P>
+<P><STRONG>■タイプ</STRONG></P>
+<P>次の中からタイプを選びます。</P>
+<BLOCKQUOTE dir=ltr style="MARGIN-RIGHT: 0px">
+  <P><STRONG>タイプ１：　FWユーザ名→FWパスワード→SITE ホスト名</STRONG></P>
+  <P>次の手順でホストに接続します。</P>
+  <P>　　FireWallに接続→<BR>　　　　FireWallの<FONT color=#ff0000>ユーザ名</FONT>と<FONT 
+  color=#ff0000>パスワード</FONT>でログイン→<BR>　　　　　　"SITE <FONT 
+  color=#0000ff>ホスト名</FONT>"を送信→<BR>　　　　　　　　　ホストの<FONT 
+  color=#0000ff>ユーザ名</FONT>と<FONT color=#0000ff>パスワード</FONT>でログイン</P>
+  <P><STRONG>タイプ２：　FWユーザ名→FWパスワード→USER ユーザ名@ホスト名</STRONG></P>
+  <P>次の手順でホストに接続します。</P>
+  <P>　　FireWallに接続→<BR>　　　　FireWallの<FONT color=#ff0000>ユーザ名</FONT>と<FONT 
+  color=#ff0000>パスワード</FONT>でログイン→<BR>　　　　　　ホストの<FONT 
+  color=#0000ff>ユーザ名@ホスト名</FONT>と、ホストの<FONT color=#0000ff>パスワード</FONT>でログイン</P>
+  <P><STRONG>タイプ３：　FWユーザ名→FWパスワード</STRONG></P>
+  <P>次の手順でホストに接続します。</P>
+  <P>　　FireWallに接続→<BR>　　　　FireWallの<FONT color=#ff0000>ユーザ名</FONT>と<FONT 
+  color=#ff0000>パスワード</FONT>でログイン→<BR>　　　　　　　ホストの<FONT 
+  color=#0000ff>ユーザ名</FONT>と<FONT color=#0000ff>パスワード</FONT>でログイン</P>
+  <P><STRONG>タイプ４：　USER ユーザ名@ホスト名</STRONG></P>
+  <P>次の手順でホストに接続します。</P>
+  <P>　　FireWallに接続→<BR>　　　　ホストの<FONT color=#0000ff>ユーザ名@ホスト名</FONT>と、ホストの<FONT 
+  color=#0000ff>パスワード</FONT>でログイン</P>
+  <P><STRONG>タイプ５：　OPEN ホスト名</STRONG></P>
+  <P>次の手順でホストに接続します。</P>
+  <P>　　FireWallに接続→<BR>　　　　"OPEN <FONT 
+  color=#0000ff>ホスト名</FONT>"を送信→<BR>　　　　　　　ホストの<FONT 
+  color=#0000ff>ユーザ名</FONT>と<FONT color=#0000ff>パスワード</FONT>でログイン</P>
+  <P><STRONG>タイプ６：　SOCKS4</STRONG></P>
+  <P>SOCKS(Ver.4)を使用してホストに接続します。</P>
+  <P><STRONG>タイプ７：　SOCKS５ (認証なし)</STRONG></P>
+  <P>SOCKS(Ver.5)を使用してホストに接続します。<BR>認証は行いません。</P>
+  <P><STRONG>タイプ８：　SOCKS５ (ユーザ名、パスワード認証)</STRONG></P>
+  <P>SOCKS(Ver.5)を使用してホストに接続します。<BR>認証のための<FONT color=#0000ff>ユーザ名</FONT>と<FONT 
+  color=#0000ff>パスワード</FONT>を入力してください。</P>
+  <P><STRONG>タイプ９：　USER FWユーザ名：FWパスワード@ホスト名</STRONG></P>
+  <P>次の手順でホストに接続します。</P>
+  <P>　　FireWallに接続→<BR>　　　　"USER 
+  FWユーザ名：FWパスワード@ホスト名"を送信→<BR>　　　　　　ホストのユーザ名とパスワードでログイン</P>
+  <P>※SOCKSの標準のポート番号は 1080 です。<BR><FONT 
+  color=#ff0000>※SOCKS5のGSS-API認証はサポートしていません。</FONT></P></BLOCKQUOTE>
+<P><STRONG>■FireWallホスト</STRONG></P>
+<P>ＦｉｒｅＷａｌｌのホストのアドレスを設定します。</P>
+<P><STRONG>■ポート</STRONG></P>
+<P>FireWallのポート番号を設定します。</P>
+<P><STRONG>■FireWallユーザ名</STRONG></P>
+<P>FireWallにログインする時のユーザ名を設定します。<BR>上記のタイプのうち、<STRONG>タイプ１</STRONG>、<STRONG>タイプ２</STRONG>、<STRONG>タイプ５</STRONG>を使用するときにのみ必要です。</P>
+<P><STRONG>■FireWallパスワード</STRONG></P>
+<P>FireWallにログインする時のパスワードを設定します。<BR>タイプ１またはタイプ２のFireWallを使用するときにのみ必要です。</P>
+<P><STRONG>■@の変更</STRONG></P>
+<P>FWのタイプがタイプ２，４、９の時に、「＠」を別の文字に置き換えることができます。<BR>初期値は「＠」です。</P>
+<P><STRONG>■セキュリティ</STRONG></P>
+<P>ワンタイムパスワードの設定をします。初期設定は<STRONG>自動認識</STRONG>です。<BR>ワンタイムパスワードの形式をFFFTPが間違って認識していると思われる時は、使用している形式を設定してください。<STRONG>MD4(S/KEY)</STRONG>、<STRONG>MD5</STRONG>, 
+<STRONG>SHA-1</STRONG>のいずれかを選ぶことができます。</P>
+<P><STRONG>■ホストの検索はSOCKSサーバに任せる</STRONG></P>
+<P>FFFTPはホストを検索せず、SOCKSサーバに検索を任せます。</P>
+<P>この項目にチェックマークを付けない時（デフォルト）は、まずFFFTPがホストを検索し、見つからなければSOCKSサーバに検索を任せます。</P>
+<P><STRONG>■ホスト一覧に未登録のホストはFireWallを使って接続</STRONG></P>
+<P>クイック接続、あるいはコマンドラインでホストを指定して接続するとき、FireWallを使うかどうかを設定します。</P>
+<P><STRONG>■ホスト一覧に未登録のホストはPASVモードを使う</STRONG></P>
+<P>クイック接続、あるいはコマンドラインでホストを指定して接続するとき、PASVモードを使うかどうかを設定します。<BR></P></BODY></HTML>

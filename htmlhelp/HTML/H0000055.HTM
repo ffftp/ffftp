@@ -1,0 +1,18 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>漢字のファイル名について</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=shift_jis">
+<META content="MSHTML 6.00.6000.16397" name=GENERATOR></HEAD>
+<BODY>
+<P><STRONG><FONT color=#ff0000>基本的には、漢字のファイル名を使うことはお勧めできません。</FONT></STRONG></P>
+<P>ファイル名にどの漢字コードが使えるか、ホストの管理者に聞いて、正しく設定してください。あるいは下記の方法を目安に設定してください。</P>
+<P>ホストで使えない漢字コードを設定してファイルを書き込むと、以下のような問題が起こる事があります。</P>
+<BLOCKQUOTE dir=ltr style="MARGIN-RIGHT: 0px">
+  <P>●間違ったファイル名になってしまうことがあります。<BR>●FTPの操作ではアクセスできなくなってしまうことがあります。<BR>●ファイル一覧が一部しか表示されない、乱れるなどの現象が起こる事があります。</P></BLOCKQUOTE>
+<P>ファイル名の漢字コードは十分に注意して設定してください。</P>
+<P><STRONG>■Unix系のホストの場合</STRONG></P>
+<P><STRONG>EUC</STRONG>が使えるかもしれません。既に漢字のファイル名のファイルがあるときは、そのファイル名が正しく表示されるように設定してください。<BR><STRONG>JIS</STRONG>は使えないと思います。</P>
+<P>UnixにSambaを入れてWindowsからアクセスできるようにしているときは<STRONG>Samba-HEX</STRONG>か<STRONG>Samba-CAP</STRONG>が使われているかもしれません。</P>
+<P><STRONG>EUC</STRONG>、<STRONG>SHIFT-JIS</STRONG>、<STRONG>JIS</STRONG>のいずれも使えないときでもSamba-CAP（あるいは 
+Samba-HEX）が使えると思います。ただし、この時はFFFTPとSamba以外のソフトでは、漢字のファイル名として表示されません。</P>
+<P><STRONG>■Windows系のホストの場合</STRONG></P>
+<P>FTPサーバソフトが日本語に対応しているならば、<STRONG>SHIFT-JIS</STRONG>が使えるかもしれません。<BR>EUC、JIS、Samba-HEX、Samba-CAPは設定しないでください。<BR></P></BODY></HTML>

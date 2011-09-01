@@ -1,0 +1,36 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>高度</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=shift_jis">
+<META content="MSHTML 6.00.6000.16546" name=GENERATOR></HEAD>
+<BODY>
+<P><FONT 
+color=#ff0000>ホストへの接続、ファイル一覧、アップロード、ダウンロードなどに問題が起きた時にのみ設定を変更してください。</FONT></P>
+<P><IMG src="..\pic\dlg_hset_adv2.png"></P>
+<P><STRONG>■LISTコマンドでファイル一覧を取得</STRONG></P>
+<P>ホストのファイル一覧を取得するとき、"<STRONG>LIST</STRONG>"コマンドを使用します。<BR>通常は "<STRONG>NLST 
+-alL</STRONG>" コマンドを使用しています。</P>
+<P><STRONG>■NLST -R を使って高速に再帰検索</STRONG></P>
+<P>サブフォルダを含むファイルのダウンロードやミラーリングアップロードを行う時に、"<STRONG>NLST -alLR</STRONG>" 
+コマンドを使って、ファイル一覧を高速に取得します。<BR>サブフォルダを含むファイルのダウンロードやミラーリングアップロードがうまくいかない時は、この項目のチェックマークを外してみてください。</P>
+<P><STRONG>■フルパスでファイルをアクセスしない</STRONG></P>
+<P>フルパスは /home/sota/public_html/index.html 
+のように、フォルダ名＋ファイル名の形式です。この形式ではファイル名と、そのファイルのある場所を一度に指定できますが、ホストによってはこの形式でアクセスできない場合があります。<BR>そのような時は、この設定を変更してください。</P>
+<P><STRONG>■属性変更コマンド</STRONG></P>
+<P>ファイルの属性を変更するときに使用するコマンドを設定します。標準は"<STRONG>SITE CHMOD</STRONG>"コマンドを使用します。</P>
+<P><STRONG>■ホストの種類</STRONG></P>
+<P>ホストの種類を設定します。</P>
+<BLOCKQUOTE dir=ltr style="MARGIN-RIGHT: 0px">
+  <P><STRONG>自動認識<BR></STRONG>通常はこの設定で使用します。</P>
+  <P><STRONG>ACOS<BR></STRONG>待機結合ファイルを指定する必要のあるACOSに接続する時に指定します。待機結合ファイルは、NLSTファイル名／オプションの部分で指定します。<BR>ACOSモードでは、いくつかの機能が使えません。</P>
+  <P><STRONG>VAX VMS<BR></STRONG>VAXに接続する時に指定します。</P>
+  <P><STRONG>IRMX<BR></STRONG>IRMXに接続する時に指定します。</P>
+  <P><STRONG>ACOS-4<BR></STRONG>ACOSモードとほぼ同じですが、ファイル名を（）で括らないようにします。<BR>NLSTファイル名／オプションの項目は、通常は空白にしておいてください。</P>
+  <P><STRONG>Stratus<BR></STRONG>Stratusに接続する時に指定します。<BR>Stratusでは、ファイルの種類（stm,seqなど）をオーナ名の欄に表示します。</P>
+  <P><STRONG>Agilent Logic 
+Analyzer<BR></STRONG>アジレント社のロジックアナライザに接続する時に指定します。</P>
+  <P><STRONG>シバソク 
+WL<BR></STRONG>シバソクのLSIテストシステムWLシリーズに接続するときに指定します。</P></BLOCKQUOTE>
+<P><STRONG>■NLSTファイル名／オプション</STRONG></P>
+<P>ホスト側のファイル一覧を取得する時のNLSTコマンドに付加するオプション、ファイル名を設定します。</P>
+<P>ホストがACOSの時は、待機結合ファイル名をここで指定してください。<BR></P>
+<P>&nbsp;</P></BODY></HTML>

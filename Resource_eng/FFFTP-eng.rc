@@ -1,0 +1,2152 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// ì˙ñ{åÍ resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_OLEDRAG DIALOGEX 0, 0, 30, 13
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Transfering"
+FONT 9, "ÇlÇr ÇoÉSÉVÉbÉN", 400, 0, 0x80
+BEGIN
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_OLEDRAG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 23
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 6
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // ì˙ñ{åÍ resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// âpåÍ (ïƒçë) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+down_exist_dlg DIALOG  0, 0, 234, 109
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
+CAPTION "Download"
+FONT 9, "MS Sans Serif"
+BEGIN
+    CONTROL         "&Overwrite existing file",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,39,99,10
+    CONTROL         "Overwrite if download file is &newer",DOWN_EXIST_NEW,
+                    "Button",BS_AUTORADIOBUTTON,7,51,123,10
+    CONTROL         "&Resume",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,63,99,10
+    CONTROL         "&Skip",DOWN_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,75,99,10
+    LTEXT           "To download with a different name, modify the filename and click Overwrite existing file.",-1,133,38,94,39
+    DEFPUSHBUTTON   "OK",IDOK,13,91,50,14,WS_GROUP
+    PUSHBUTTON      "&Do All",IDOK_ALL,68,91,50,14
+    PUSHBUTTON      "&Cancel All",IDCANCEL,123,91,50,14
+    PUSHBUTTON      "&Help",9,178,91,41,14
+    LTEXT           "Filename already exists on local disk. Download?",-1,7,7,184,8
+    EDITTEXT        DOWN_EXIST_NAME,7,20,220,12,ES_AUTOHSCROLL
+END
+
+chmod_dlg DIALOG  0, 0, 171, 109
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Permission"
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "Current Permission :",-1,61,74,61,8
+    EDITTEXT        PERM_NOW,124,72,25,12,ES_AUTOHSCROLL | ES_NUMBER
+    GROUPBOX        "Owner",-1,7,7,48,58
+    CONTROL         "Read",PERM_O_READ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,21,31,10
+    CONTROL         "Write",PERM_O_WRITE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,35,31,10
+    CONTROL         "Execute",PERM_O_EXEC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,50,39,10
+    GROUPBOX        "Group",-1,61,7,48,58
+    CONTROL         "Read",PERM_G_READ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,66,21,31,10
+    CONTROL         "Write",PERM_G_WRITE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,66,35,31,10
+    CONTROL         "Execute",PERM_G_EXEC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,66,49,39,10
+    GROUPBOX        "Others",-1,116,8,48,58
+    CONTROL         "Read",PERM_A_READ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,22,31,10
+    CONTROL         "Write",PERM_A_WRITE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,36,31,10
+    CONTROL         "Execute",PERM_A_EXEC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,120,51,39,10
+    CONTROL         "",-1,"Static",SS_BLACKFRAME,57,69,106,18
+    DEFPUSHBUTTON   "OK",IDOK,7,92,48,14
+    PUSHBUTTON      "Cancel",IDCANCEL,61,92,48,14
+    PUSHBUTTON      "Help",9,116,92,48,14
+END
+
+about_dlg DIALOGEX 0, 0, 195, 209
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About FFFTP"
+FONT 9, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,72,188,50,14
+    ICON            ffftp,-1,7,4,20,20
+    CTEXT           "FFFTP  Ver 1.97b",-1,50,11,90,8
+    CTEXT           "FFFTP is freeware",-1,7,173,181,8
+    CTEXT           "Copyright(C) 1997-2010 Sota && cooperators",-1,7,25,181,8
+    CTEXT           "",ABOUT_JRE,7,57,181,8
+    EDITTEXT        ABOUT_URL,7,40,181,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
+    CTEXT           "OLE D&&D by Yutaka Hirata-san, nakka-san\nIn site file mover by Hirata-san\nAny issues by miau-san\nMaster Password by Gengen-san\nAES encryption by Moca-san\n\nI had cooperation of many other one.",-1,7,106,181,59
+    CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,74,181,27
+END
+
+bmark_dlg DIALOG  0, 0, 222, 109
+STYLE DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Bookmarks"
+FONT 9, "MS Sans Serif"
+BEGIN
+    LISTBOX         BMARK_LIST,7,7,152,75,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "&Close",IDOK,91,90,50,14
+    PUSHBUTTON      "Chan&ge",BMARK_JUMP,27,90,50,14
+    PUSHBUTTON      "&New...",BMARK_NEW,165,7,50,14
+    PUSHBUTTON      "&Modify...",BMARK_SET,165,26,50,14
+    PUSHBUTTON      "&Delete...",BMARK_DEL,165,45,50,14
+    PUSHBUTTON      "U&p",BMARK_UP,165,65,23,14
+    PUSHBUTTON      "Do&wn",BMARK_DOWN,192,65,23,14
+    SCROLLBAR       BMARK_SIZEGRIP,212,96,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
+    PUSHBUTTON      "&Help",9,165,90,50,14
+END
+
+def_attr_dlg DIALOG  0, 0, 123, 69
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Default Permission"
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "&Filename",-1,7,7,49,8
+    EDITTEXT        DEFATTR_FNAME,7,18,47,12,ES_AUTOHSCROLL
+    LTEXT           "->",-1,58,20,8,8
+    LTEXT           "&Permission",-1,71,7,40,8
+    EDITTEXT        DEFATTR_ATTR,71,18,31,12,ES_AUTOHSCROLL | ES_NUMBER
+    PUSHBUTTON      "...",DEFATTR_ATTR_BR,102,18,13,12
+    LTEXT           "(example: 644)",-1,53,35,51,8
+    DEFPUSHBUTTON   "OK",IDOK,7,48,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,66,48,50,14
+END
+
+opt_fire_dlg DIALOG  0, 0, 211, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "Firewall &Type",-1,7,7,90,8
+    COMBOBOX        FIRE_TYPE,7,16,197,104,CBS_DROPDOWNLIST | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Firewall &Hostname",-1,7,32,80,8
+    EDITTEXT        FIRE_HOST,7,42,150,12,ES_AUTOHSCROLL
+    LTEXT           "&Port",-1,168,32,36,8
+    EDITTEXT        FIRE_PORT,169,41,35,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Firewall &Username",-1,7,56,72,8
+    EDITTEXT        FIRE_USER,7,65,70,12,ES_AUTOHSCROLL
+    LTEXT           "Firewall P&assword",-1,81,56,70,8
+    EDITTEXT        FIRE_PASS,81,65,70,12,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "&Security",-1,7,80,63,8
+    COMBOBOX        FIRE_SECURITY,7,89,57,75,CBS_DROPDOWNLIST | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Use SOCKS se&rver to search for hosts",FIRE_RESOLV,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,71,83,139,10
+    CONTROL         "Use l&owercase OPEN/SITE commands",FIRE_LOWER,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,71,96,139,10
+    CONTROL         "Us&e the firewall for undefined hosts",FIRE_USEIT,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,109,197,10
+    CONTROL         "Use PAS&V mode for undefined hosts",FIRE_PASV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,122,197,10
+    LTEXT           "Replace @ by",-1,154,55,50,8
+    EDITTEXT        FIRE_DELIMIT,154,65,35,12,ES_AUTOHSCROLL
+END
+
+hostlist_dlg DIALOG  0, 0, 222, 120
+STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Host List"
+FONT 9, "MS Sans Serif"
+BEGIN
+    CONTROL         "Tree1",HOST_LIST,"SysTreeView32",TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS | TVS_FULLROWSELECT | WS_BORDER | WS_TABSTOP,7,6,152,89
+    DEFPUSHBUTTON   "&Connect",IDOK,27,102,50,14
+    PUSHBUTTON      "C&lose",IDCANCEL,91,102,50,14
+    PUSHBUTTON      "New &Host...",HOST_NEW,165,6,50,14
+    PUSHBUTTON      "New &Group...",HOST_FOLDER,165,22,50,14
+    PUSHBUTTON      "&Modify...",HOST_SET,165,38,50,14
+    PUSHBUTTON      "Co&py",HOST_COPY,165,54,50,14
+    PUSHBUTTON      "&Delete...",HOST_DEL,165,70,50,14
+    PUSHBUTTON      "Up",HOST_UP,165,86,22,14
+    PUSHBUTTON      "Down",HOST_DOWN,193,86,22,14
+    SCROLLBAR       HOST_SIZEGRIP,212,106,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
+    PUSHBUTTON      "Help",9,165,102,50,14
+END
+
+hostname_dlg DIALOG  0, 0, 187, 93
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Quick Connect"
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "&Host Name/Address",-1,7,6,130,8
+    COMBOBOX        QHOST_HOST,7,16,173,86,CBS_DROPDOWN | CBS_AUTOHSCROLL | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Username",-1,7,34,57,8
+    EDITTEXT        QHOST_USER,7,44,80,12,ES_AUTOHSCROLL
+    LTEXT           "&Password/Phrase",-1,99,34,87,8
+    EDITTEXT        QHOST_PASS,99,44,80,12,ES_PASSWORD | ES_AUTOHSCROLL
+    CONTROL         "Use &Firewall",QHOST_FWALL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,61,75,10
+    CONTROL         "Use PAS&V mode",QHOST_PASV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,84,61,83,10
+    DEFPUSHBUTTON   "OK",IDOK,36,75,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,101,75,50,14
+END
+
+hset_adv2_dlg DIALOG  0, 0, 207, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    CONTROL         "Use &LIST command to get file list",HSET_LISTCMD,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,131,10
+    CONTROL         "Use &NLST -R for high-speed recursive search",HSET_NLST_R,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,167,10
+    CONTROL         "&Do not use full path to access files",HSET_FULLPATH,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
+    LTEXT           "&Permissions Change Command",-1,7,51,110,8
+    EDITTEXT        HSET_CHMOD_CMD,7,61,62,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Default",HSET_CHMOD_NOR,70,61,28,13
+    LTEXT           "&Host Type",-1,7,80,69,8
+    COMBOBOX        HSET_HOSTTYPE,7,90,71,75,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "NLST &Filename/Option",-1,7,109,89,8
+    EDITTEXT        HSET_LS_FNAME,7,119,62,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Delault",HSET_LS_FNAME_NOR,70,119,28,13
+END
+
+hset_adv_dlg DIALOG  0, 0, 207, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    CONTROL         "Use &Firewall",HSET_FIREWALL,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,92,10
+    CONTROL         "Use PAS&V mode",HSET_PASV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,22,92,10
+    CONTROL         "S&ync. folder movement",HSET_SYNCMOVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,37,93,10
+    LTEXT           "&Port",-1,7,56,54,8
+    EDITTEXT        HSET_PORT,7,66,22,12,ES_AUTOHSCROLL | ES_NUMBER
+    PUSHBUTTON      "Default",HSET_PORT_NOR,30,66,28,13
+    LTEXT           "&Account",-1,7,87,65,8
+    EDITTEXT        HSET_ACCOUNT,7,97,62,12,ES_AUTOHSCROLL
+    LTEXT           "Host &Timezone",-1,103,7,81,8
+    COMBOBOX        HSET_TIMEZONE,103,17,83,102,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Security",-1,103,35,72,8
+    COMBOBOX        HSET_SECURITY,103,45,83,75,CBS_DROPDOWNLIST | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Commands After Connection",-1,103,65,97,8
+    EDITTEXT        HSET_INITCMD,103,76,92,30,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN
+END
+
+hset_code_dlg DIALOGEX 0, 0, 207, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    GROUPBOX        "&Japanese Kanji Code",-1,7,7,98,70,WS_GROUP
+    CONTROL         "No conversion (S-JIS)",HSET_NO_CNV,"Button",BS_AUTORADIOBUTTON | WS_GROUP,12,21,91,10
+    CONTROL         "JIS",HSET_JIS_CNV,"Button",BS_AUTORADIOBUTTON,12,33,41,10
+    CONTROL         "EUC",HSET_EUC_CNV,"Button",BS_AUTORADIOBUTTON,12,45,41,10
+    CONTROL         "Hankaku to Zenkaku",HSET_HANCNV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,12,62,90,10
+    GROUPBOX        "&Filename Kanji Code",-1,107,7,97,104,WS_GROUP
+    CONTROL         "SHIFT-JIS",HSET_FN_NO_CNV,"Button",BS_AUTORADIOBUTTON | WS_GROUP,111,21,65,10
+    CONTROL         "JIS",HSET_FN_JIS_CNV,"Button",BS_AUTORADIOBUTTON,111,33,70,10
+    CONTROL         "EUC",HSET_FN_EUC_CNV,"Button",BS_AUTORADIOBUTTON,111,45,41,10
+    CONTROL         "Samba-HEX",HSET_FN_SMH_CNV,"Button",BS_AUTORADIOBUTTON,111,57,66,10
+    CONTROL         "Samba-CAP",HSET_FN_SMC_CNV,"Button",BS_AUTORADIOBUTTON,111,69,64,10
+    CONTROL         "UTF-8N",HSET_FN_UTF8N_CNV,"Button",BS_AUTORADIOBUTTON,111,81,63,10
+    CONTROL         "Hankaku to Zenkaku",HSET_FN_HANCNV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,111,96,91,10
+END
+
+hset_dialup_dlg DIALOG  0, 0, 207, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    CONTROL         "&Use Dialup Connection",HSET_DIALUP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,110,10
+    LTEXT           "&Dialup Setting",-1,19,23,97,8
+    COMBOBOX        HSET_DIALENTRY,19,33,181,101,CBS_DROPDOWNLIST | CBS_SORT | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Reconnect if another dialup is active",HSET_DIALUSETHIS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,53,181,10
+    CONTROL         "&Notify before reconnecting",HSET_DIALNOTIFY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,31,67,116,10
+END
+
+hset_main_dlg DIALOG  0, 0, 207, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "Profile &Name",-1,7,7,94,8
+    EDITTEXT        HSET_HOST,7,17,94,12,ES_AUTOHSCROLL
+    LTEXT           "&Host Name/Address",-1,107,7,73,8
+    EDITTEXT        HSET_ADRS,106,17,94,12,ES_AUTOHSCROLL
+    LTEXT           "&Username",-1,7,35,60,8
+    EDITTEXT        HSET_USER,7,45,66,12,ES_AUTOHSCROLL
+    LTEXT           "&Password/Phrase",-1,79,35,94,8
+    EDITTEXT        HSET_PASS,79,45,64,12,ES_PASSWORD | ES_AUTOHSCROLL
+    CONTROL         "An&onymous",HSET_ANONYMOUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,150,47,50,10
+    LTEXT           "Initial &Local Folder",-1,7,63,89,8
+    EDITTEXT        HSET_LOCAL,7,73,137,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",HSET_LOCAL_BR,145,73,12,14
+    LTEXT           "Initial Ho&st Folder",-1,7,91,94,8
+    EDITTEXT        HSET_REMOTE,7,101,137,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Current Folder",HSET_REMOTE_CUR,145,101,55,14
+    CONTROL         "Use last &accessed folder as default",HSET_LASTDIR,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,193,10
+END
+
+account_dlg DIALOG  0, 0, 187, 42
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Account"
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,24,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,101,24,50,14
+    CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,164,30,16,8
+END
+
+chdir_br_dlg DIALOG  0, 0, 187, 43
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Folder"
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        INP_INPSTR,7,8,159,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",INP_BROUSE,167,7,13,14
+    DEFPUSHBUTTON   "OK",IDOK,36,25,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,101,25,50,14
+END
+
+bmark_edit_dlg DIALOG  0, 0, 187, 83
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Bookmark"
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "&Local Folder",-1,7,7,173,8
+    EDITTEXT        BEDIT_LOCAL,7,17,173,12,ES_AUTOHSCROLL
+    LTEXT           "&Host Folder",-1,7,37,173,8
+    EDITTEXT        BEDIT_REMOTE,7,47,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,65,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,101,65,50,14
+END
+
+chdir_dlg DIALOG  0, 0, 187, 43
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Folder"
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,25,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,101,25,50,14
+    CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,164,31,16,8
+END
+
+cwderr_dlg DIALOG  0, 0, 155, 57
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Error"
+FONT 9, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "STOP",IDCANCEL,51,36,50,14
+    CTEXT           "Cannot move to subfolder.",-1,7,7,141,8
+    CTEXT           "Stop processing.",-1,7,20,141,8
+END
+
+delete_dlg DIALOG  0, 0, 209, 55
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "&Delete",IDOK,7,37,45,14
+    PUSHBUTTON      "&Cancel",DELETE_NO,57,37,44,14
+    PUSHBUTTON      "Delete &All",DELETE_ALL,107,37,45,14
+    PUSHBUTTON      "Ca&ncel All",IDCANCEL,157,37,45,14
+    LTEXT           "",DELETE_TEXT,7,19,195,8,SS_NOPREFIX
+    LTEXT           "Delete following file?",-1,7,7,167,8
+END
+
+dial_dlg DIALOG  0, 0, 159, 37
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Cancel",IDCANCEL,54,19,50,14
+    CTEXT           "",DIAL_STATUS,7,6,145,8,SS_NOPREFIX
+END
+
+dial_password_dlg DIALOG  0, 0, 171, 85
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "Enter Username and Password for Dialup",-1,7,4,157,9
+    RTEXT           "&Username",-1,14,23,45,8
+    EDITTEXT        RASPASS_USER,62,19,95,14,ES_AUTOHSCROLL
+    RTEXT           "&Password",-1,14,43,45,8
+    EDITTEXT        RASPASS_PASS,62,41,95,14,ES_PASSWORD | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,24,63,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,96,63,50,14
+END
+
+diskfull_dlg DIALOG  0, 0, 159, 42
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "FFFTP:Error"
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Cencal this File",IDOK,13,24,66,14
+    PUSHBUTTON      "Cencel All",IDCANCEL,95,24,50,14
+    CTEXT           "Disk is full",-1,7,6,145,10
+END
+
+downerr_dlg DIALOGEX 0, 0, 159, 65
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
+CAPTION "FFFTP:Error"
+FONT 9, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Cancel this File",IDOK,7,47,82,14
+    PUSHBUTTON      "Cancel All",IDCANCEL,102,47,50,14
+    LTEXT           "Cannot download following file :",-1,7,4,138,10
+    LTEXT           "",UPDOWN_ERR_FNAME,7,16,145,8,SS_NOPREFIX
+    EDITTEXT        UPDOWN_ERR_MSG,7,29,145,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER,WS_EX_STATICEDGE
+END
+
+opt_misc_dlg DIALOG  0, 0, 211, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    CONTROL         "&Save window position",MISC_WINPOS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
+    CONTROL         "&Cache file list (activate on next start)",MISC_CACHE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,196,10
+    RTEXT           "&No. of cache files",IDC_STATIC,23,35,87,8
+    EDITTEXT        MISC_BUFNUM,115,33,24,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",MISC_BUFNUM_SPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS,139,33,9,14
+    LTEXT           "(1 to 99)",IDC_STATIC,152,37,28,8
+    CONTROL         "S&ave cache",MISC_CACHE_SAVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,23,51,116,10
+    LTEXT           "&Folder for cache files / temporary files",IDC_STATIC,7,64,158,8
+    EDITTEXT        MISC_CACHEDIR,7,74,155,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",MISC_CACHEDIR_BR,163,74,13,13
+    PUSHBUTTON      "Default",MISC_CACHEDIR_DEF,177,74,26,13
+    CONTROL         "Sa&ve settings to the ffftp.ini file, instead of the registry",MISC_REGTYPE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,92,173,10
+    CONTROL         "Debug",MISC_DEBUG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,123,40,10
+END
+
+downname_dlg DIALOG  0, 0, 187, 42
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Download File"
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        INP_INPSTR,7,6,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,24,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,101,24,50,14
+    CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,164,30,16,8
+END
+
+exit_dlg DIALOG  0, 0, 143, 64
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Exit"
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Cancel",IDCANCEL,14,46,50,14
+    PUSHBUTTON      "Force Exit",IDOK,78,46,50,14
+    LTEXT           "File transfer is now in progress.\n\nPlease quit FFFTP after the file transfer done.",-1,7,7,129,35
+END
+
+FILEOPENORD_1 DIALOG  109, 35, 165, 134
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Open"
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "&Folder",-1,7,6,92,9
+    LISTBOX         lst2,7,32,92,68,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Drive",stc4,7,104,92,9
+    COMBOBOX        cmb2,7,114,92,68,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | CBS_AUTOHSCROLL | CBS_SORT | CBS_HASSTRINGS | WS_BORDER | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,105,6,50,14,WS_GROUP
+    PUSHBUTTON      "Cancel",IDCANCEL,105,24,50,14,WS_GROUP
+    PUSHBUTTON      "&Help",psh15,105,46,50,14,WS_GROUP
+    CONTROL         "&Read Only",chx1,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,105,68,50,12
+    LISTBOX         lst1,102,99,20,20,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_DISABLENOSCROLL | NOT WS_VISIBLE | WS_VSCROLL
+    LTEXT           "File &Name:",stc3,121,83,12,10,NOT WS_VISIBLE
+    EDITTEXT        edt1,104,83,12,12,ES_AUTOHSCROLL | ES_OEMCONVERT | NOT WS_VISIBLE | NOT WS_TABSTOP
+    LTEXT           "List Files of &Type:",stc2,127,99,12,9,NOT WS_VISIBLE
+    COMBOBOX        cmb1,107,115,16,36,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | NOT WS_VISIBLE | WS_BORDER | WS_VSCROLL
+    LTEXT           "",stc1,9,18,88,8
+END
+
+filesize_dlg DIALOG  0, 0, 131, 76
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "File Size"
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,42,55,50,14
+    CTEXT           "",FSIZE_SIZE,7,18,117,8
+    CTEXT           "",FSIZE_TITLE,7,7,117,8
+    CTEXT           "Including all files in subfolder.",-1,7,30,117,19,SS_CENTERIMAGE | SS_SUNKEN
+END
+
+filesize_notify_dlg DIALOG  0, 0, 155, 70
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "File Size"
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,23,49,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,82,49,50,14
+    CONTROL         "&Calcualte only the selected files.",FSNOTIFY_SEL_ONLY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,33,141,10
+    CTEXT           "",FSNOTIFY_TITLE,7,7,142,8
+    CTEXT           "( This may take a few minutes. )",FSNOTIFY_TITLE,7,19,141,8
+END
+
+filter_dlg DIALOG  0, 0, 187, 79
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Filter"
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "Use semicolons to delineate multiple filters.\n (Example *.txt;*.log)\nFile transfer is also affected by this filter setting.",-1,13,29,167,27
+    EDITTEXT        FILTER_STR,7,8,147,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,7,61,41,14
+    PUSHBUTTON      "All",FILTER_NOR,51,61,41,14
+    PUSHBUTTON      "Cancel",IDCANCEL,95,61,41,14
+    PUSHBUTTON      "Help",9,139,61,41,14
+END
+
+find_dlg DIALOG  0, 0, 187, 56
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
+    CONTROL         "Regular Expression",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,24,121,10
+    DEFPUSHBUTTON   "OK",IDOK,36,38,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,101,38,50,14
+END
+
+forcerename_dlg DIALOG  0, 0, 187, 67
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Download"
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        INP_INPSTR,7,29,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,31,49,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,104,49,50,14
+    LTEXT           "Invalid character specified in filename.\nRename the file.",IDC_STATIC,7,7,173,16
+    CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,172,55,8,8
+END
+
+fname_in_dlg DIALOG  0, 0, 86, 44
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,72,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,7,26,33,14
+    PUSHBUTTON      "Cancel",IDCANCEL,46,26,33,14
+    CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,71,23,8,10
+END
+
+group_dlg DIALOG  0, 0, 187, 42
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Group Name"
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,24,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,101,24,50,14
+    CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,164,30,16,8
+END
+
+hostconnect_dlg DIALOG  0, 0, 166, 106
+STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Host List"
+FONT 9, "MS Sans Serif"
+BEGIN
+    CONTROL         "Tree1",HOST_LIST,"SysTreeView32",TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS | TVS_FULLROWSELECT | WS_BORDER | WS_TABSTOP,7,6,152,75
+    DEFPUSHBUTTON   "&Connect",IDOK,20,88,50,14
+    PUSHBUTTON      "Cl&ose",IDCANCEL,96,88,50,14
+    SCROLLBAR       HOST_SIZEGRIP,156,92,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
+    PUSHBUTTON      "?????(&N)...",HOST_NEW,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "????????(&G)...",HOST_FOLDER,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "????(&M)...",HOST_SET,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "???(&C)",HOST_COPY,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "??(&D)...",HOST_DEL,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "?",HOST_UP,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "?",HOST_DOWN,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+END
+
+hostdel_dlg DIALOG  0, 0, 134, 39
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Delete Host"
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "&Yes",IDOK,11,21,50,14
+    PUSHBUTTON      "&No",IDCANCEL,73,21,50,14
+    LTEXT           "Delete this host?",-1,7,6,120,10
+END
+
+groupdel_dlg DIALOG  0, 0, 135, 47
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Delete Group"
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "&Yes",IDOK,11,29,50,14
+    PUSHBUTTON      "&No",IDCANCEL,73,29,50,14
+    LTEXT           "Delete this group and all hosts in the group?",-1,7,6,121,18
+END
+
+mailadrs_dlg DIALOG  0, 0, 187, 89
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "FFFTP"
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,13,71,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,68,71,50,14
+    PUSHBUTTON      "Help",9,123,71,50,14
+    CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,172,61,8,8
+    LTEXT           "Enter ypur mail address.\nThis address is used for the anonymous FTP password.",-1,16,25,164,26
+    LTEXT           "You can reenter mail address at the Option dialog.",-1,16,54,164,10
+END
+
+mirror_down_dlg DIALOG  0, 0, 215, 155
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Mirroring Download"
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "&Display Transfer Files",MIRRORUP_DISP,9,134,85,14
+    PUSHBUTTON      "Cancel",IDCANCEL,106,134,50,14
+    PUSHBUTTON      "Help",9,168,134,36,14
+    LTEXT           "",-1,7,19,201,78,SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "The following processes are required:\n\n  *Copy some files from the host to the local disk.\n\n  *Delete some files from the local disk.",-1,35,26,166,64
+    CTEXT           "Mirror Download",-1,7,7,201,8
+    CTEXT           "*** DOWNLOAD ***",-1,7,105,201,8
+    LTEXT           "Confirm?",-1,42,121,166,8
+    ICON            notify,-1,12,34,20,20
+END
+
+mirror_notify_dlg DIALOG  0, 0, 174, 171
+STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Mirror Upload"
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "Copy/Delete following files",-1,7,6,160,8
+    LISTBOX         MIRROR_LIST,7,16,160,78,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "Start Now",IDOK,7,153,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,62,153,50,14
+    SCROLLBAR       MIRROR_SIZEGRIP,164,158,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
+    PUSHBUTTON      "Help",9,117,153,50,14
+    PUSHBUTTON      "Remove from List",MIRROR_DEL,111,96,56,14,NOT WS_TABSTOP
+    LTEXT           "",MIRROR_COPYNUM,7,115,160,8
+    LTEXT           "",MIRROR_MAKENUM,7,126,160,8
+    LTEXT           "",MIRROR_DELNUM,7,137,160,8
+END
+
+mirror_up_dlg DIALOG  0, 0, 215, 135
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Mirror Upload"
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Display Transfer Files",MIRRORUP_DISP,54,114,82,14
+    PUSHBUTTON      "Start Now",IDOK,7,114,43,14
+    PUSHBUTTON      "Cancel",IDCANCEL,140,114,36,14
+    PUSHBUTTON      "Help",9,180,114,27,14
+    LTEXT           "",-1,7,20,201,76,SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "The following processes are required:\n\n  *Copy some files from the local disk to the host.\n\n  *Delete some files from the host.\n\nClick Display Transfer Files to confirm the files copied/deleted.",-1,35,26,166,66
+    CTEXT           "Mirror Upload",-1,7,7,201,8
+    LTEXT           "Confirm?",-1,37,102,171,8
+    ICON            notify,-1,12,46,20,20
+END
+
+mirrordown_notify_dlg DIALOG  0, 0, 174, 171
+STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Mirror Download"
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "Copy/Delete following files",-1,7,6,92,8
+    LISTBOX         MIRROR_LIST,7,16,160,78,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "Start Now",IDOK,7,153,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,62,153,50,14
+    SCROLLBAR       MIRROR_SIZEGRIP,164,158,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
+    PUSHBUTTON      "Help",9,117,153,50,14
+    PUSHBUTTON      "Remove from List",MIRROR_DEL,111,96,56,14,NOT WS_TABSTOP
+    LTEXT           "",MIRROR_COPYNUM,7,115,160,8
+    LTEXT           "",MIRROR_MAKENUM,7,126,160,8
+    LTEXT           "",MIRROR_DELNUM,7,137,160,8
+END
+
+mkdir_dlg DIALOG  0, 0, 187, 58
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        INP_INPSTR,7,21,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,40,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,102,40,50,14
+    CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,167,40,13,10
+    LTEXT           "Enter new folder name:",-1,7,7,160,8
+END
+
+noresume_dlg DIALOG  0, 0, 191, 47
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
+CAPTION "FFFTP:Error"
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Yes",IDOK,10,29,45,14
+    PUSHBUTTON      "Cancel This File",IDCANCEL,65,29,59,14
+    PUSHBUTTON      "Cancel All",RESUME_CANCEL_ALL,134,29,45,14
+    LTEXT           "This host doesn't support Resume command.\nOverwrite existing file?",-1,7,4,177,17
+END
+
+opt_connect_dlg DIALOG  0, 0, 211, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    CONTROL         "&Display Host List dialog at startup",CONNECT_CONNECT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
+    CONTROL         "Show &Edit button in Host List dialog",CONNECT_OLDDLG,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,22,173,10
+    CONTROL         "&Close dialup connection (RAS) at program exit",CONNECT_RASCLOSE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,37,196,10
+    CONTROL         "Co&nfirm before closing dialup connection",CONNECT_CLOSE_NOTIFY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,27,52,161,10
+    RTEXT           "Recently connected &host list",-1,17,68,93,8
+    EDITTEXT        CONNECT_HIST,113,66,17,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",CONNECT_HIST_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,130,65,9,14
+    LTEXT           "(0 to 20 entries)",-1,143,68,53,8
+    CONTROL         "&Save password in history",CONNECT_HIST_PASS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,82,129,10
+    CONTROL         "&Use anonymous FTP for quick connect",CONNECT_QUICK_ANONY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,95,196,10
+    CONTROL         "Send &QUIT command at disconnect",CONNECT_SENDQUIT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,109,173,10
+    CONTROL         "Do not control dialup (&RAS) connection",CONNECT_NORAS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,173,10
+END
+
+opt_disp_dlg DIALOG  0, 0, 211, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "&Change",DISP_FONT_BR,167,7,36,14,WS_GROUP
+    LTEXT           "",-1,7,7,159,14,SS_NOPREFIX | SS_SUNKEN
+    LTEXT           "Font :",-1,9,11,29,8
+    LTEXT           "",DISP_FONT,40,11,123,8,SS_NOPREFIX
+    CONTROL         "Do not display &hidden files/folders",DISP_HIDE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,30,172,10
+    LTEXT           "If this box is checked, hidden files/folders are not transferred during Mirror operations.",-1,29,44,167,27,SS_SUNKEN
+    CONTROL         "&Display drives in the file list",DISP_DRIVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,76,172,10
+END
+
+opt_mirror_dlg DIALOG  0, 0, 211, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "Files Not Transferred",-1,7,7,95,85,WS_GROUP
+    LISTBOX         MIRROR_NOTRN_LIST,12,20,50,69,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Add...",MIRROR_NOTRN_ADD,66,20,31,14
+    PUSHBUTTON      "Delete",MIRROR_NOTRN_DEL,66,37,31,14
+    LTEXT           "Folder names are also  OK",-1,65,56,33,33,SS_SUNKEN
+    GROUPBOX        "Files Not Deleted",-1,108,7,95,86,WS_GROUP
+    LISTBOX         MIRROR_NODEL_LIST,113,20,50,69,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Add...",MIRROR_NODEL_ADD,167,20,31,14
+    PUSHBUTTON      "Delete...",MIRROR_NODEL_DEL,167,37,31,14
+    LTEXT           "Folder names are also  OK",-1,166,56,33,33,SS_SUNKEN
+    CONTROL         "&Convert filenames to lowercase",MIRROR_LOW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,97,174,10
+    CONTROL         "Confirm deletions during Mirror &Upload",MIRROR_UPDEL_NOTIFY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,111,174,10
+    CONTROL         "Confirm deletions during Mirror &Download",MIRROR_DOWNDEL_NOTIFY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,125,174,10
+END
+
+opt_notify_dlg DIALOGEX 0, 0, 211, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    GROUPBOX        "If File Already Exists",-1,7,7,196,67,WS_GROUP
+    GROUPBOX        "Download",-1,11,20,188,24,WS_GROUP
+    CONTROL         "&Overwrite",NOTIFY_D_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,30,50,10
+    CONTROL         "&Confirm",NOTIFY_D_DLG,"Button",BS_AUTORADIOBUTTON,80,30,94,10
+    GROUPBOX        "Upload",-1,11,47,188,23,WS_GROUP
+    CONTROL         "O&verwrite",NOTIFY_U_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,57,48,10
+    CONTROL         "Co&nfirm",NOTIFY_U_DLG,"Button",BS_AUTORADIOBUTTON,80,57,106,10
+    GROUPBOX        "On Double-click",-1,7,78,196,23,WS_GROUP
+    CONTROL         "O&pen",NOTIFY_OPEN,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,88,53,10
+    CONTROL         "Down&load",NOTIFY_DOWNLOAD,"Button",BS_AUTORADIOBUTTON,80,88,102,10
+    GROUPBOX        "In Server File Move function",-1,7,106,196,26,WS_GROUP
+    CONTROL         "No Confirm",NOTIFY_M_NODLG,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,118,56,10
+    CONTROL         "Confirm",NOTIFY_M_DLG,"Button",BS_AUTORADIOBUTTON,80,118,56,10
+    CONTROL         "Disable",NOTIFY_M_DISABLE,"Button",BS_AUTORADIOBUTTON,141,118,56,10
+END
+
+opt_sound_dlg DIALOG  0, 0, 211, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    CONTROL         "Play *.wav file at successful &connection",SOUND_CONNECT,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,9,196,10
+    EDITTEXT        SOUND_CONNECT_WAV,31,22,116,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",SOUND_CONNECT_BR,148,21,13,13
+    PUSHBUTTON      "Test",SOUND_CONNECT_TEST,166,21,37,13
+    CONTROL         "Play *.wav file when &transfer is complete",SOUND_TRANS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,196,10
+    EDITTEXT        SOUND_TRANS_WAV,31,55,116,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",SOUND_TRANS_BR,148,55,13,13
+    PUSHBUTTON      "Test",SOUND_TRANS_TEST,166,55,37,13
+    CONTROL         "Play *.wav file at &error",SOUND_ERROR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,75,196,10
+    EDITTEXT        SOUND_ERROR_WAV,31,88,116,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",SOUND_ERROR_BR,148,88,13,13
+    PUSHBUTTON      "Test",SOUND_ERROR_TEST,166,88,37,13
+END
+
+opt_tool_dlg DIALOG  0, 0, 211, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "Viewer &1",-1,7,7,39,8
+    EDITTEXT        TOOL_EDITOR1,7,18,183,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",TOOL_EDITOR1_BR,191,18,12,13
+    LTEXT           "Viewer &2",-1,7,63,39,8
+    EDITTEXT        TOOL_EDITOR2,7,74,183,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",TOOL_EDITOR2_BR,191,74,12,13
+    LTEXT           "Viewer &3",-1,7,93,39,8
+    EDITTEXT        TOOL_EDITOR3,7,104,183,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",TOOL_EDITOR3_BR,191,104,12,13
+    LTEXT           "Unassociated files will be opened in Viewer 1.",-1,19,33,184,27,SS_SUNKEN
+    LTEXT           "Use Viewer 2 and 3 by right-clicking with the mouse.",-1,14,124,184,8
+END
+
+opt_trmode1_dlg DIALOG  0, 0, 211, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "Transfer mode",-1,7,7,93,56
+    CONTROL         "Always &ASCII mode",TRMODE_ASCII,"Button",BS_AUTORADIOBUTTON | WS_GROUP,13,19,85,10
+    CONTROL         "Always &BINARY mode",TRMODE_BIN,"Button",BS_AUTORADIOBUTTON,13,33,84,10
+    CONTROL         "&Filename dependent",TRMODE_AUTO,"Button",BS_AUTORADIOBUTTON,13,47,78,10
+    GROUPBOX        "ASCII mode Filenames",-1,104,7,99,84,WS_GROUP
+    LISTBOX         TRMODE_EXT_LIST,109,19,53,67,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "A&dd...",TRMODE_ADD,167,19,31,14
+    PUSHBUTTON      "Delete",TRMODE_DEL,167,38,31,14
+    CONTROL         "&Remove EOF for ASCII mode upload",TRMODE_EOF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,94,196,10
+    CONTROL         "Re&tain file date/time on download",TRMODE_TIME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,196,10
+    LTEXT           "->",-1,98,49,8,8
+    CONTROL         "Truncate filename before &semicolon on download",TRMODE_SEMICOLON,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,196,10
+END
+
+forcepasschange_dlg DIALOG  0, 0, 211, 64
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Force reset of master password"
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "All the registered FTP passwords will be invalidated if you forcely set a new master password.\r\nAre you sure you want to set a new password?",-1,7,7,196,36
+    DEFPUSHBUTTON   "Yes",IDOK,48,42,50,14
+    PUSHBUTTON      "No",IDCANCEL,112,42,50,14
+END
+
+opt_trmode2_dlg DIALOG  0, 0, 211, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "Filename",-1,7,7,196,69
+    CONTROL         "Convert to &lowercase",TRMODE2_LOWER,"Button",BS_AUTORADIOBUTTON | WS_GROUP,13,18,143,10
+    CONTROL         "Convert to &uppercase",TRMODE2_UPPER,"Button",BS_AUTORADIOBUTTON,13,30,143,10
+    CONTROL         "&No conversion",TRMODE2_NOCNV,"Button",BS_AUTORADIOBUTTON,13,42,143,10
+    LTEXT           "&Timeout",-1,7,80,131,8
+    EDITTEXT        TRMODE2_TIMEOUT,7,90,26,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",TRMODE2_TIMEOUT_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,33,90,9,14
+    LTEXT           "(0 to 300sec: 0=No timeout)",-1,45,94,107,8
+    LTEXT           "&Default local folder",-1,7,108,196,8
+    EDITTEXT        TRMODE2_LOCAL,7,118,182,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",TRMODE2_LOCAL_BR,190,118,13,13
+    LTEXT           "Mirror Upload/Download settings are on the Mirror tab.",-1,18,56,181,17,SS_SUNKEN
+END
+
+opt_trmode3_dlg DIALOG  0, 0, 211, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",TRMODE3_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,13,20,78,78
+    PUSHBUTTON      "&Add",TRMODE3_ADD,95,20,31,14
+    PUSHBUTTON      "Delete",TRMODE3_DEL,95,38,31,14
+    GROUPBOX        "Default Upload File Permission",-1,7,7,124,96
+    CONTROL         "Set default upload &folder permission",TRMODE3_FOLDER,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,109,182,10
+    EDITTEXT        TRMODE3_FOLDER_ATTR,60,123,29,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Permission",-1,23,123,33,8
+END
+
+opt_user_dlg DIALOG  0, 0, 211, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "&Mail address",-1,7,7,59,8
+    EDITTEXT        USER_ADRS,7,18,196,12,ES_AUTOHSCROLL
+    LTEXT           "This address is used for the anonymous FTP password.",-1,28,36,169,18,SS_SUNKEN
+END
+
+otp_calc_dlg DIALOG  0, 0, 187, 104
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Generate One-time Password"
+FONT 9, "MS Sans Serif"
+BEGIN
+    RTEXT           "&Challenge",-1,7,10,50,8
+    EDITTEXT        OTPCALC_KEY,61,7,119,12,ES_AUTOHSCROLL
+    RTEXT           "&Pass phrase",-1,7,26,50,8
+    EDITTEXT        OTPCALC_PASS,61,23,119,12,ES_PASSWORD | ES_AUTOHSCROLL
+    RTEXT           "&Response",-1,7,42,50,8
+    EDITTEXT        OTPCALC_RES,61,39,119,12,ES_AUTOHSCROLL | ES_READONLY
+    GROUPBOX        "Algorithm",-1,37,54,143,23
+    CONTROL         "MD&4, S/KEY",OTPCALC_MD4,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,44,64,56,10
+    CONTROL         "MD&5",OTPCALC_MD5,"Button",BS_AUTORADIOBUTTON,103,64,32,10
+    CONTROL         "SHA-&1",OTPCALC_SHA1,"Button",BS_AUTORADIOBUTTON,140,64,37,10
+    DEFPUSHBUTTON   "Generate",IDOK,10,83,50,14,WS_GROUP
+    PUSHBUTTON      "Exit",IDCANCEL,68,83,50,14
+    PUSHBUTTON      "Help",9,126,83,50,14
+END
+
+otp_notify_dlg DIALOG  0, 0, 141, 60
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "One-time Password"
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,45,39,50,14
+    LTEXT           "Sequence number becomes less than 10. Please change sequence.",-1,7,7,127,24
+END
+
+passwd_dlg DIALOG  0, 0, 187, 43
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Password/Pass phrase"
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_PASSWORD | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,25,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,101,25,50,14
+    CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,164,31,16,8
+END
+
+newmasterpasswd_dlg DIALOGEX 0, 0, 187, 43
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Enter new master password"
+FONT 9, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,25,25,43,14
+    PUSHBUTTON      "Cancel",IDCANCEL,72,25,43,14
+    CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,172,31,8,8
+    PUSHBUTTON      "Help",IDHELP,118,25,43,14
+END
+
+rasnotify_dlg DIALOG  0, 0, 158, 46
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "FFFTP"
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Yes",IDOK,23,25,50,14
+    PUSHBUTTON      "No",IDCANCEL,86,25,50,14
+    CTEXT           "Disconnect dialup?",-1,7,7,144,8
+END
+
+rasreconnect_dlg DIALOG  0, 0, 159, 67
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "FFFTP"
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Yes",IDOK,16,46,50,14
+    PUSHBUTTON      "Keep Connection",IDCANCEL,76,46,66,14
+    LTEXT           "Disconnect current connection and reconnect dialup?",-1,7,7,145,16
+END
+
+re_passwd_dlg DIALOG  0, 0, 187, 62
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Password"
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        INP_INPSTR,7,27,173,12,ES_PASSWORD | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,44,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,101,44,50,14
+    CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,164,50,16,8
+    LTEXT           "Cannot login.\nEnter correct password.",-1,7,7,173,19
+END
+
+reginit_dlg DIALOG  0, 0, 155, 83
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Erase All Settings"
+FONT 9, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "No",IDCANCEL,41,45,71,31
+    PUSHBUTTON      "Yes",IDOK,125,62,23,14,NOT WS_TABSTOP
+    LTEXT           "Erase ALL settings including Host settings.",-1,7,7,141,17
+    CTEXT           "Are you sure?",-1,7,29,141,8
+END
+
+rename_dlg DIALOG  0, 0, 187, 69
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        RENAME_NEW,7,34,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,9,51,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,68,51,50,14
+    PUSHBUTTON      "&Stop",RENAME_STOP,128,51,50,14
+    LTEXT           "",RENAME_TEXT,7,21,173,8,SS_NOPREFIX
+    LTEXT           "Enter new name",-1,7,7,133,8
+END
+
+savepass_dlg DIALOG  0, 0, 146, 50
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Save Password"
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "Save correct password to host setting?",-1,7,7,132,17
+    DEFPUSHBUTTON   "Yes",IDOK,17,29,50,14
+    PUSHBUTTON      "No",IDCANCEL,78,29,50,14
+END
+
+sel_local_dlg DIALOG  0, 0, 187, 106
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Select File (Local)"
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "&File to select",-1,7,7,109,8
+    EDITTEXT        SEL_FNAME,7,17,173,12,ES_AUTOHSCROLL
+    CONTROL         "&Regular expression",SEL_REGEXP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,34,160,10
+    CONTROL         "Do not select if the host file is &newer.",SEL_NOOLD,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,47,160,10
+    CONTROL         "Do not select if the host file is &older.",SEL_NONEW,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,60,160,10
+    CONTROL         "Do not select if the same file &resides in the host.",SEL_NOEXIST,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,73,160,10
+    DEFPUSHBUTTON   "OK",IDOK,10,88,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,68,88,50,14
+    PUSHBUTTON      "Help",9,126,88,50,14
+END
+
+sel_remote_dlg DIALOG  0, 0, 187, 106
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Select File (Host)"
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "&File to select",-1,7,7,109,8
+    EDITTEXT        SEL_FNAME,7,17,173,12,ES_AUTOHSCROLL
+    CONTROL         "&Regular expression",SEL_REGEXP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,34,160,10
+    CONTROL         "Do not select if the local file is &newer.",SEL_NOOLD,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,47,160,10
+    CONTROL         "Do not select if the local file is &older.",SEL_NONEW,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,60,160,10
+    CONTROL         "Do not select if the same file &resides in the local.",SEL_NOEXIST,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,73,160,10
+    DEFPUSHBUTTON   "OK",IDOK,10,88,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,68,88,50,14
+    PUSHBUTTON      "Help",9,126,88,50,14
+END
+
+somecmd_dlg DIALOG  0, 0, 187, 61
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "Specify Command"
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,10,43,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,68,43,50,14
+    PUSHBUTTON      "Help",9,126,43,50,14
+    LTEXT           "Some commands cannot be specified here. See help for details.",-1,7,24,173,15
+    CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,171,30,9,8
+END
+
+sort_dlg DIALOG  0, 0, 187, 197
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Sort"
+FONT 9, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "Local",-1,7,7,81,150
+    GROUPBOX        "&File",-1,10,17,74,80,WS_GROUP
+    CONTROL         "Name order",SORT_LFILE_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,15,30,66,10
+    CONTROL         "Extension order",SORT_LFILE_EXT,"Button",BS_AUTORADIOBUTTON,15,42,66,10
+    CONTROL         "Size order",SORT_LFILE_SIZE,"Button",BS_AUTORADIOBUTTON,15,55,66,10
+    CONTROL         "Date order",SORT_LFILE_DATE,"Button",BS_AUTORADIOBUTTON,15,68,66,10
+    CONTROL         "Reverse",SORT_LFILE_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,81,66,10
+    GROUPBOX        "F&older",-1,10,100,74,52,WS_GROUP
+    CONTROL         "Name order",SORT_LDIR_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,15,112,66,10
+    CONTROL         "Date order",SORT_LDIR_DATE,"Button",BS_AUTORADIOBUTTON,15,124,66,10
+    CONTROL         "Reverse",SORT_LDIR_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,137,66,10
+    GROUPBOX        "Host",-1,98,7,82,150
+    GROUPBOX        "F&ile",-1,102,17,74,80,WS_GROUP
+    CONTROL         "Name order",SORT_RFILE_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,107,30,66,10
+    CONTROL         "Extension order",SORT_RFILE_EXT,"Button",BS_AUTORADIOBUTTON,107,42,66,10
+    CONTROL         "Size order",SORT_RFILE_SIZE,"Button",BS_AUTORADIOBUTTON,107,55,66,10
+    CONTROL         "Date order",SORT_RFILE_DATE,"Button",BS_AUTORADIOBUTTON,107,68,66,10
+    CONTROL         "Reverse",SORT_RFILE_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,107,81,66,10
+    GROUPBOX        "Fo&lder",-1,102,100,74,52,WS_GROUP
+    CONTROL         "Name order",SORT_RDIR_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,107,112,66,10
+    CONTROL         "Extention order",SORT_RDIR_DATE,"Button",BS_AUTORADIOBUTTON,107,124,66,10
+    CONTROL         "Reverse",SORT_RDIR_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,107,137,66,10
+    CONTROL         "Save sort setting on each host",SORT_SAVEHOST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,164,156,10
+    DEFPUSHBUTTON   "OK",IDOK,11,179,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,69,179,50,14
+    PUSHBUTTON      "Help",9,127,179,50,14
+END
+
+transfer_dlg DIALOG  0, 0, 199, 91
+STYLE DS_SETFONT | DS_MODALFRAME | WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU
+FONT 9, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Cancel this File",IDCANCEL,7,73,62,14
+    PUSHBUTTON      "Cancel from Next",TRANS_STOP_NEXT,78,73,62,14
+    PUSHBUTTON      "Cancel All",TRANS_STOP_ALL,150,73,42,14
+    LTEXT           "Host :",-1,7,5,27,8
+    LTEXT           "",TRANS_REMOTE,45,5,147,8,SS_NOPREFIX
+    LTEXT           "Local :",-1,7,18,27,8
+    LTEXT           "",TRANS_LOCAL,45,18,147,8,SS_NOPREFIX
+    LTEXT           "Status :",-1,7,44,27,8
+    LTEXT           "",TRANS_STATUS,45,44,147,8
+    CONTROL         "Progress1",TRANS_TIME_BAR,"msctls_progress32",0x0,7,58,185,9
+    LTEXT           "Mode :",-1,7,31,27,8
+    LTEXT           "",TRANS_MODE,45,31,51,8
+    LTEXT           "Kanji Code :",-1,98,31,39,8
+    LTEXT           "",TRANS_KANJI,140,31,52,8
+END
+
+up_exist_dlg DIALOG  0, 0, 234, 119
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
+CAPTION "Upload"
+FONT 9, "MS Sans Serif"
+BEGIN
+    CONTROL         "&Overwrite existing file",UP_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,8,38,99,10
+    CONTROL         "Overwrite if upload file is &newer",UP_EXIST_NEW,"Button",BS_AUTORADIOBUTTON,7,50,118,10
+    CONTROL         "&Resume",UP_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,62,99,10
+    CONTROL         "Rename &by the host",UP_EXIST_UNIQUE,"Button",BS_AUTORADIOBUTTON,7,74,99,10
+    CONTROL         "&Skip",UP_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,86,99,10
+    LTEXT           "To upload with a different name, modify the filename and click Overwrite existing file.",-1,129,39,98,41
+    DEFPUSHBUTTON   "OK",IDOK,13,101,50,14,WS_GROUP
+    PUSHBUTTON      "&Do All",IDOK_ALL,68,101,50,14
+    PUSHBUTTON      "&Cancel All",IDCANCEL,123,101,50,14
+    PUSHBUTTON      "&Help",9,178,101,41,14
+    LTEXT           "Filename already exists on host. Upload?",-1,7,7,184,8
+    EDITTEXT        UP_EXIST_NAME,7,20,220,12,ES_AUTOHSCROLL
+END
+
+updown_as_dlg DIALOG  0, 0, 187, 69
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        UPDOWNAS_NEW,7,34,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,35,51,50,14
+    PUSHBUTTON      "Cancel",UPDOWNAS_STOP,101,51,50,14
+    LTEXT           "",UPDOWNAS_TEXT,7,21,173,8,SS_NOPREFIX
+    LTEXT           "Enter new name",-1,7,7,133,8
+END
+
+uperr_dlg DIALOGEX 0, 0, 159, 67
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
+CAPTION "FFFTP:Error"
+FONT 9, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Cancel this File",IDOK,7,49,82,14
+    PUSHBUTTON      "Cancel All",IDCANCEL,102,49,50,14
+    LTEXT           "Cannot upload following file.",-1,7,4,137,10
+    LTEXT           "",UPDOWN_ERR_FNAME,7,17,145,8,SS_NOPREFIX
+    EDITTEXT        UPDOWN_ERR_MSG,7,32,153,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER,WS_EX_STATICEDGE
+END
+
+username_dlg DIALOG  0, 0, 187, 58
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "User Name"
+FONT 9, "MS Sans Serif"
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
+    CONTROL         "Anonymous(&A)",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,25,73,10
+    DEFPUSHBUTTON   "OK",IDOK,36,40,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,101,40,50,14
+END
+
+move_notify_dlg DIALOGEX 0, 0, 201, 82
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Move Files/Folders"
+FONT 9, "MS Sans Serif", 400, 0, 0x0
+BEGIN
+    DEFPUSHBUTTON   "Yes",IDOK,44,61,50,14
+    PUSHBUTTON      "No",IDCANCEL,107,61,50,14
+    LTEXT           "Move selected files/folders to the",-1,7,7,187,8
+    LTEXT           "static",COMMON_TEXT,7,20,187,8
+    LTEXT           "folder. Are you sure?",-1,7,33,187,8
+    LTEXT           "(Not a copy. It's a move.)",-1,7,47,187,8
+END
+
+masterpasswd_dlg DIALOGEX 65535, 65535, 187, 56
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "FFFTP"
+FONT 9, "ÇlÇr ÇoÉSÉVÉbÉN", 0, 0, 0x0
+BEGIN
+    LTEXT           "Enter master password",-1,7,7,153,8
+    EDITTEXT        INP_INPSTR,7,19,173,12,ES_PASSWORD | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,13,36,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,68,36,50,14
+    PUSHBUTTON      "Help",IDHELP,123,36,50,14
+    CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,173,39,8,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    down_exist_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 227
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 105
+    END
+
+    chmod_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 164
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 106
+    END
+
+    about_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 188
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 202
+    END
+
+    bmark_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 215
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 104
+    END
+
+    def_attr_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 116
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 62
+    END
+
+    opt_fire_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    hostlist_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 215
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 116
+    END
+
+    hostname_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 89
+    END
+
+    hset_adv2_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    hset_adv_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    hset_code_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    hset_dialup_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    hset_main_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    account_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 38
+    END
+
+    chdir_br_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 39
+    END
+
+    bmark_edit_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 79
+    END
+
+    chdir_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 39
+    END
+
+    cwderr_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 148
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 50
+    END
+
+    delete_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 202
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 51
+    END
+
+    dial_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 152
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 33
+    END
+
+    dial_password_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 164
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 78
+    END
+
+    diskfull_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 152
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 38
+    END
+
+    downerr_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 152
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 61
+    END
+
+    opt_misc_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    downname_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 38
+    END
+
+    exit_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 136
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 60
+    END
+
+    filesize_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 124
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 69
+    END
+
+    filesize_notify_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 148
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 63
+    END
+
+    filter_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 75
+    END
+
+    find_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 52
+    END
+
+    forcerename_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 63
+    END
+
+    fname_in_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 79
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 40
+    END
+
+    group_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 38
+    END
+
+    hostconnect_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 159
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 102
+    END
+
+    hostdel_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 127
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 35
+    END
+
+    groupdel_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 128
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 43
+    END
+
+    mailadrs_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 85
+    END
+
+    mirror_down_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 208
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    mirror_notify_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 167
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 167
+    END
+
+    mirror_up_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 208
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 128
+    END
+
+    mirrordown_notify_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 167
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 167
+    END
+
+    mkdir_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 54
+    END
+
+    noresume_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 184
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 43
+    END
+
+    opt_connect_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    opt_disp_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    opt_mirror_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 135
+    END
+
+    opt_notify_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    opt_sound_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    opt_tool_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    opt_trmode1_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 135
+    END
+
+    forcepasschange_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 139
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 43
+    END
+
+    opt_trmode2_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 135
+    END
+
+    opt_trmode3_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 135
+    END
+
+    opt_user_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 134
+    END
+
+    otp_calc_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 97
+    END
+
+    otp_notify_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 134
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 53
+    END
+
+    passwd_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 39
+    END
+
+    newmasterpasswd_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 39
+    END
+
+    rasnotify_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 151
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 39
+    END
+
+    rasreconnect_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 152
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 60
+    END
+
+    re_passwd_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 58
+    END
+
+    reginit_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 148
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 76
+    END
+
+    rename_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 65
+    END
+
+    savepass_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 139
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 43
+    END
+
+    sel_local_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 102
+    END
+
+    sel_remote_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 102
+    END
+
+    somecmd_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 57
+    END
+
+    sort_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 193
+    END
+
+    transfer_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 192
+        TOPMARGIN, 5
+        BOTTOMMARGIN, 87
+    END
+
+    up_exist_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 227
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 115
+    END
+
+    updown_as_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 65
+    END
+
+    uperr_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 152
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 63
+    END
+
+    username_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 54
+    END
+
+    move_notify_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 194
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 75
+    END
+
+    masterpasswd_dlg, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 50
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RT_MANIFEST
+//
+
+1                       RT_MANIFEST             "ffftp.exe.manifest"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+ffftp                   ICON                    "icon1.ico"
+notify                  ICON                    "icon2.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+main_toolbar_bmp        BITMAP                  "toolbar1.bmp"
+remote_toolbar_bmp      BITMAP                  "main_too.bmp"
+dirattr_bmp             BITMAP                  "list_bmp.bmp"
+hlist_bmp               BITMAP                  "bitmap1.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+main_menu MENU 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&Connect...\tCtrl+C",         MENU_CONNECT
+        MENUITEM "&Quick Connect...\tCtrl+Q",   MENU_QUICK
+        MENUITEM "&Disconnect",                 MENU_DISCONNECT
+        MENUITEM SEPARATOR
+        MENUITEM "&Host Setting...",            MENU_SET_CONNECT
+        POPUP "&Settings"
+        BEGIN
+            MENUITEM "Import Settings from &WS_FTP.INI...", MENU_IMPORT_WS
+            MENUITEM "&Save Settings to File...",   MENU_REGSAVE
+            MENUITEM "&Load Settings from File...", MENU_REGLOAD
+            MENUITEM "Change &Master password...",  MENU_CHANGEPASSWD
+            MENUITEM SEPARATOR
+            MENUITEM "Clear All Settings...",       MENU_REGINIT
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       MENU_EXIT
+    END
+    POPUP "&Commands"
+    BEGIN
+        MENUITEM "&Download\tCtrl+D",           MENU_DOWNLOAD
+        MENUITEM "&Upload\tCtrl+U",             MENU_UPLOAD
+        MENUITEM "D&ownload As...",             MENU_DOWNLOAD_AS
+        MENUITEM "U&pload As...",               MENU_UPLOAD_AS
+        MENUITEM "Change &Filename && Download...", MENU_DOWNLOAD_NAME
+        MENUITEM "Download &as File",           MENU_DOWNLOAD_AS_FILE
+        MENUITEM SEPARATOR
+        MENUITEM "&Mirror Upload...\tCtrl+Shift+U", MENU_MIRROR_UPLOAD
+        MENUITEM "File &size...",               MENU_FILESIZE
+        MENUITEM "Mirror Down&load...\tCtrl+Shift+D", MENU_MIRROR_DOWNLOAD
+        MENUITEM SEPARATOR
+        MENUITEM "D&elete\tDel",                MENU_DELETE
+        MENUITEM "&Rename...\tCtrl+N",          MENU_RENAME
+        MENUITEM "Permissio&ns...\tCtrl+T",     MENU_CHMOD
+        MENUITEM "Ne&w Folder...\tCtrl+K",      MENU_MKDIR
+        MENUITEM "Specify &command...",         MENU_SOMECMD
+        MENUITEM SEPARATOR
+        MENUITEM "Synchronize Folder Mo&vement", MENU_SYNC
+    END
+    POPUP "&Bookmarks"
+    BEGIN
+        MENUITEM "Add &Host folder",            MENU_BMARK_ADD
+        MENUITEM "Add &Local folder",           MENU_BMARK_ADD_LOCAL
+        MENUITEM "Add &Both Host && Local folders", MENU_BMARK_ADD_BOTH
+        MENUITEM "&Edit Bookmarks...\tCtrl+B",  MENU_BMARK_EDIT
+        MENUITEM SEPARATOR
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "F&ilter...\tCtrl+Y",          MENU_FILTER
+        MENUITEM SEPARATOR
+        MENUITEM "&Find...\tCtrl+F",            MENU_FIND
+        MENUITEM "Find &Next\tF3",              MENU_FINDNEXT
+        MENUITEM SEPARATOR
+        MENUITEM "&Select...\tCtrl+S",          MENU_SELECT
+        MENUITEM "Select &All/None\tCtrl+A",    MENU_SELECT_ALL
+        MENUITEM SEPARATOR
+        POPUP "Displa&y"
+        BEGIN
+            MENUITEM "&List",                       MENU_LIST
+            MENUITEM "&Details",                    MENU_REPORT
+        END
+        MENUITEM "S&ort...",                    MENU_SORT
+        MENUITEM "Display files with leading &dot", MENU_DOTFILE
+        MENUITEM SEPARATOR
+        MENUITEM "Display File &List in Viewer", MENU_DIRINFO
+        MENUITEM "Display Lo&g in Viewer",      MENU_TASKINFO
+        MENUITEM SEPARATOR
+        MENUITEM "&Refresh\tF5",                MENU_REFRESH
+    END
+    POPUP "&Tools"
+    BEGIN
+        MENUITEM "&One-Time Password Calculation...", MENU_OTPCALC
+    END
+    POPUP "&Options"
+    BEGIN
+        MENUITEM "&Settings...",                MENU_OPTION
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Contents\tF1",               MENU_HELP
+        MENUITEM "&Q&&A (Connect to Internet)", MENU_HELP_TROUBLE
+        MENUITEM SEPARATOR
+        MENUITEM "&About FFFTP...",             MENU_ABOUT
+    END
+END
+
+dummy_menu MENU 
+BEGIN
+    POPUP "dummy"
+    BEGIN
+        MENUITEM "Go up (host)",                MENU_REMOTE_UPDIR
+        MENUITEM "Go up (local)",               MENU_LOCAL_UPDIR
+        MENUITEM "Go up (both)",                MENU_UPDIR
+        MENUITEM "COMBO_LOCAL",                 COMBO_LOCAL
+        MENUITEM "COMBO REMOTE",                COMBO_REMOTE
+        MENUITEM "Text Mode",                   MENU_TEXT
+        MENUITEM "Binary Mode",                 MENU_BINARY
+        MENUITEM "Auto Mode",                   MENU_AUTO
+        MENUITEM "Refresh (local)",             REFRESH_LOCAL
+        MENUITEM "Refresh (remote)",            REFRESH_REMOTE
+        MENUITEM "CHDIR(remote)",               MENU_REMOTE_CHDIR
+        MENUITEM "CHDIR(local)",                MENU_LOCAL_CHDIR
+        MENUITEM "KANJI EUC",                   MENU_KNJ_EUC
+        MENUITEM "KANJI JIS",                   MENU_KNJ_JIS
+        MENUITEM "KANJI NONE",                  MENU_KNJ_NONE
+        MENUITEM "Double click",                MENU_DCLICK
+        MENUITEM "Kana henkan",                 MENU_KANACNV
+        MENUITEM "Open 1",                      MENU_OPEN1
+        MENUITEM "Open 2",                      MENU_OPEN2
+        MENUITEM "Open 3",                      MENU_OPEN3
+        MENUITEM "Connect",                     MENU_CONNECT_NUM
+        MENUITEM "HIst 1",                      MENU_HIST_1
+        MENUITEM "Hist 2",                      MENU_HIST_2
+        MENUITEM "Hist 3",                      MENU_HIST_3
+        MENUITEM "Hist 4",                      MENU_HIST_4
+        MENUITEM "Hist 5",                      MENU_HIST_5
+        MENUITEM "Hist 6",                      MENU_HIST_6
+        MENUITEM "Hist 7",                      MENU_HIST_7
+        MENUITEM "Hist 8",                      MENU_HIST_8
+        MENUITEM "Hist 9",                      MENU_HIST_9
+        MENUITEM "Hist 10 ",                    MENU_HIST_10
+        MENUITEM "Hist 11",                     MENU_HIST_11
+        MENUITEM "Hist 12",                     MENU_HIST_12
+        MENUITEM "Hist 13",                     MENU_HIST_13
+        MENUITEM "Hist 14",                     MENU_HIST_14
+        MENUITEM "Hist 15",                     MENU_HIST_15
+        MENUITEM "Hist 16",                     MENU_HIST_16
+        MENUITEM "Hist 17",                     MENU_HIST_17
+        MENUITEM "Hist 18",                     MENU_HIST_18
+        MENUITEM "Hist 19",                     MENU_HIST_19
+        MENUITEM "Hist 20",                     MENU_HIST_20
+        MENUITEM "Auto exit",                   MENU_AUTO_EXIT
+        MENUITEM "Stop",                        MENU_ABORT
+        MENUITEM "URL to clipboard",            MENU_URL_COPY
+        MENUITEM "Download all",                MENU_DOWNLOAD_ALL
+        MENUITEM "Upload all",                  MENU_UPLOAD_ALL
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+resize_lr_csr           CURSOR                  "cursor1.cur"
+resize_ud_csr           CURSOR                  "cursor2.cur"
+drag_csr                CURSOR                  "drag_csr.cur"
+nodrop_csr              CURSOR                  "nodrop_c.cur"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,97,2,0
+ PRODUCTVERSION 1,97,2,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "041104b0"
+        BEGIN
+            VALUE "Comments", "This software is Free Software"
+            VALUE "CompanyName", " Sota"
+            VALUE "FileDescription", "FFFTP"
+            VALUE "FileVersion", "1, 97, 2, 0"
+            VALUE "InternalName", "FFFTP"
+            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & cooperators"
+            VALUE "OriginalFilename", "FFFTP.exe"
+            VALUE "ProductName", "FFFTP"
+            VALUE "ProductVersion", "1, 97, 2, 0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x411, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+ffftp_accel ACCELERATORS 
+BEGIN
+    VK_APPS,        MENU_APPKEY,            VIRTKEY, NOINVERT
+    "B",            MENU_BMARK_EDIT,        VIRTKEY, CONTROL, NOINVERT
+    "T",            MENU_CHMOD,             VIRTKEY, CONTROL, NOINVERT
+    VK_RETURN,      MENU_CHMOD,             VIRTKEY, ALT, NOINVERT
+    "C",            MENU_CONNECT,           VIRTKEY, CONTROL, NOINVERT
+    VK_RETURN,      MENU_DCLICK,            VIRTKEY, NOINVERT
+    VK_DELETE,      MENU_DELETE,            VIRTKEY, NOINVERT
+    "D",            MENU_DOWNLOAD,          VIRTKEY, CONTROL, NOINVERT
+    "Y",            MENU_FILTER,            VIRTKEY, CONTROL, NOINVERT
+    "F",            MENU_FIND,              VIRTKEY, CONTROL, NOINVERT
+    VK_F3,          MENU_FINDNEXT,          VIRTKEY, NOINVERT
+    VK_F1,          MENU_HELP,              VIRTKEY, NOINVERT
+    "D",            MENU_MIRROR_DOWNLOAD,   VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "U",            MENU_MIRROR_UPLOAD,     VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "K",            MENU_MKDIR,             VIRTKEY, CONTROL, NOINVERT
+    "Q",            MENU_QUICK,             VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          MENU_REFRESH,           VIRTKEY, NOINVERT
+    "N",            MENU_RENAME,            VIRTKEY, CONTROL, NOINVERT
+    VK_F2,          MENU_RENAME,            VIRTKEY, NOINVERT
+    "S",            MENU_SELECT,            VIRTKEY, CONTROL, NOINVERT
+    "A",            MENU_SELECT_ALL,        VIRTKEY, CONTROL, NOINVERT
+    VK_BACK,        MENU_UPDIR,             VIRTKEY, NOINVERT
+    "U",            MENU_UPLOAD,            VIRTKEY, CONTROL, NOINVERT
+    "M",            MENU_XFRMODE,           VIRTKEY, CONTROL, NOINVERT
+    VK_F10,         MENU_APPKEY,            VIRTKEY, SHIFT, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+main_toolbar_bmp TOOLBAR  16, 16
+BEGIN
+    BUTTON      ID_BUTTON40084
+    BUTTON      ID_BUTTON40085
+    BUTTON      ID_BUTTON40086
+    BUTTON      ID_BUTTON40087
+    BUTTON      ID_BUTTON40088
+    BUTTON      ID_BUTTON40089
+    BUTTON      ID_BUTTON40090
+    BUTTON      ID_BUTTON40091
+    BUTTON      ID_BUTTON40092
+    BUTTON      ID_BUTTON40093
+    BUTTON      ID_BUTTON40094
+    BUTTON      ID_BUTTON40095
+    BUTTON      ID_BUTTON40096
+    BUTTON      ID_BUTTON40097
+    BUTTON      ID_BUTTON40098
+    BUTTON      ID_BUTTON40099
+    BUTTON      ID_BUTTON40100
+    BUTTON      ID_BUTTON40101
+    BUTTON      ID_BUTTON40102
+    BUTTON      ID_BUTTON40103
+    BUTTON      ID_BUTTON40104
+    BUTTON      ID_BUTTON40105
+    BUTTON      ID_BUTTON40106
+    BUTTON      ID_BUTTON40107
+    BUTTON      ID_BUTTON40122
+    BUTTON      ID_BUTTON40125
+    BUTTON      ID_BUTTON40156
+END
+
+remote_toolbar_bmp TOOLBAR  16, 16
+BEGIN
+    BUTTON      ID_BUTTON40108
+    BUTTON      ID_BUTTON40109
+END
+
+#endif    // âpåÍ (ïƒçë) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

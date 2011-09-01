@@ -1,0 +1,85 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>コマンドライン</TITLE>
+<META content="text/html; charset=shift_jis" http-equiv=Content-Type>
+<META name=GENERATOR content="MSHTML 8.00.7600.16490"></HEAD>
+<BODY>
+<P>コマンドラインにホスト名やファイル名を指定して、FFFTP起動後直ちにホストへの接続、ファイルのダウンロードを行うことができます。</P>
+<P>●マスターパスワードに関して</P><FONT face="ＭＳ ゴシック">
+<P>次のオプションが指定できます。</P>
+<P>-z または --mpasswd&nbsp;&nbsp;&nbsp; ＝ マスターパスワードを指定する</P>
+<P><STRONG>使用例</STRONG>（マスターパスワードがmymasterpasswordの場合）</P>
+<P><FONT color=#0000ff>-z mymasterpassword</FONT></P>
+<P>-zの前後には半角スペースを入れてください。</P>
+<P>マスターパスワードがスペースを含む場合はパスワード全体をダブルクォーテーションで囲んでください。</P>
+<P></FONT>&nbsp;</P>
+<P>●登録してあるホストの設定名を指定する方法</P>
+<P>接続するホストがホスト一覧に登録してある時は、その名前を指定して接続できます。<BR>また、接続後にミラーリングアップロードを開始することができます。</P>
+<P>次の書式で指定してください。[ ]で囲まれた部分は省略可能です。</P>
+<P><FONT face="ＭＳ ゴシック">-s 設定名 [[-m | -d] [-f] [-q]]</FONT></P>
+<P>次のオプションが指定できます。</P>
+<P><FONT face="ＭＳ ゴシック">-s または --set&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ＝ 
+接続するホストの設定名を指定する<BR>-m または --mirror&nbsp;&nbsp;&nbsp;&nbsp; ＝ 
+接続後ミラーリングアップロードを行う<BR>-d または --mirrordown ＝ 接続後ミラーリングダウンロードを行う<BR>-f または 
+--force&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ＝ ミラーリング開始の確認をしない<BR>-q または 
+--quit&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ＝ ミラーリング終了後、FFFTPを閉じる</FONT></P>
+<P><STRONG>使用例</STRONG></P>
+<P>■設定済みのホスト"My Home Page"に接続し、ミラーリングアップロードを開始する。<BR><FONT color=#ff0000>&nbsp; 
+-sと設定名の間には空白が必要です。</FONT></P>
+<BLOCKQUOTE style="MARGIN-RIGHT: 0px" dir=ltr>
+  <P><FONT color=#0000ff face="ＭＳ ゴシック">-s "My Home Page" 
+-m</FONT></P></BLOCKQUOTE>
+<P>&nbsp;</P>
+<P>●ホスト名、URLを指定する方法</P>
+<P>接続するホスト名、URLなどを指定して接続できます。</P>
+<P>次の書式で指定してください。[ ]で囲まれた部分は省略可能です。</P>
+<P><FONT 
+face="ＭＳ ゴシック">[ftp://][[userID][:password]@]hostname[:][port#][filename]</FONT></P>
+<P>次のオプションが指定できます。</P>
+<P><FONT face="ＭＳ ゴシック">-e または --euc&nbsp;&nbsp;&nbsp;&nbsp; ＝ 
+ホストの漢字コードはEUC<BR>-j または --jis&nbsp;&nbsp;&nbsp;&nbsp; ＝ ホストの漢字コードはJIS<BR>-k または 
+--kana&nbsp;&nbsp;&nbsp; ＝ 半角カナを全角に変換しない<BR>-u または --eucname ＝ 
+ホストのファイル名の漢字コードはEUC<BR>-i または --jisname ＝ ホストのファイル名の漢字コードはJIS<BR>-a または 
+--ascii&nbsp;&nbsp; ＝ アスキーモードで転送<BR>-b または --binary&nbsp; ＝ バイナリモードで転送<BR>-x または 
+--auto&nbsp;&nbsp;&nbsp; ＝ ファイル名でアスキー／バイナリモードを切替えて転送<BR>-q または 
+--quit&nbsp;&nbsp;&nbsp; ＝ ファイル転送終了後、FFFTPを閉じる</FONT></P>
+<P><STRONG>使用例</STRONG></P>
+<P>■ホスト"host.co.jp"のポート69に、ユーザ名"sota"、パスワード"password"でログインし、"/pub/readme.txt"をダウンロードする。</P>
+<BLOCKQUOTE style="MARGIN-RIGHT: 0px" dir=ltr>
+  <P><FONT color=#0000ff 
+  face="ＭＳ ゴシック">ftp://sota:password@host.co.jp:69/pub/readme.txt</FONT></P></BLOCKQUOTE>
+<P>■最初の"ftp://"や、ホスト名の後ろの":"は無くても良い。</P>
+<BLOCKQUOTE style="MARGIN-RIGHT: 0px" dir=ltr>
+  <P><FONT color=#0000ff 
+  face="ＭＳ ゴシック">sota:password@host.co.jp/pub/readme.txt</FONT></P></BLOCKQUOTE>
+<P>■ホスト"host.co.jp"に、ユーザ名"sota"でログインし、"/pub/readme.txt"をダウンロードする。（パスワードが必要なら後で聞いてきます）</P>
+<BLOCKQUOTE style="MARGIN-RIGHT: 0px" dir=ltr>
+  <P><FONT color=#0000ff 
+  face="ＭＳ ゴシック">ftp://sota@host.co.jp/pub/readme.txt</FONT></P></BLOCKQUOTE>
+<P>■ホスト"host.co.jp"に、anonymousでログインし、"/pub/readme.txt"をダウンロードする。</P>
+<BLOCKQUOTE style="MARGIN-RIGHT: 0px" dir=ltr>
+  <P><FONT color=#0000ff 
+  face="ＭＳ ゴシック">ftp://host.co.jp/pub/readme.txt</FONT></P></BLOCKQUOTE>
+<P>■ホスト"host.co.jp"に、anonymousでログインし、"/pub"にディレクトリを移動する。</P>
+<BLOCKQUOTE style="MARGIN-RIGHT: 0px" dir=ltr>
+  <P><FONT color=#0000ff 
+face="ＭＳ ゴシック">ftp://host.co.jp/pub/</FONT></P></BLOCKQUOTE>
+<P>■ホスト"host.co.jp"に、anonymousでログインする。</P>
+<BLOCKQUOTE style="MARGIN-RIGHT: 0px" dir=ltr>
+  <P><FONT color=#0000ff face="ＭＳ ゴシック">host.co.jp</FONT></P></BLOCKQUOTE>
+<P>&nbsp;</P>
+<P>●その他のオプション</P>
+<P><FONT face="ＭＳ ゴシック">-h または --help&nbsp;&nbsp; ＝ この画面を表示する</FONT></P>
+<P><FONT 
+face="ＭＳ ゴシック">--saveoff&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ＝ 
+今後、設定を変更しても保存しないようにする<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+（毎回 --saveoff 
+を指定する必要はありません）<BR>--saveon&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+＝ --saveoff を解除する</FONT></P>
+<P><FONT face="ＭＳ ゴシック">-n または --ini&nbsp;&nbsp;&nbsp; ＝ 
+-nのあとに指定したINIファイルの設定で起動する<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+(指定しない場合は、FFFTP.exeと同じフォルダのFFFTP.iniを使用)<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+<FONT 
+color=#ff0000>INIファイルは必ずフルパスで指定してください。<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+-nとINIファイル名の間には空白が必要です。</FONT><BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+<FONT color=#0000ff>(使用例：-n "c:\tool\ffftp-set2.ini")</FONT></FONT></P>
+<P>&nbsp;</P></BODY></HTML>
