@@ -57,6 +57,12 @@
 #define SOCKBUF_SIZE	(256 * 1024)
 /* End */
 
+#ifdef DISABLE_NETWORK_BUFFERS
+#undef BUFSIZE
+#define BUFSIZE			(63 * 1024)	// RWIN値以下で充分な大きさが望ましいと思われる。
+#undef SET_BUFFER_SIZE
+#endif
+
 #define TIMER_DISPLAY		1		/* 表示更新用タイマのID */
 #define DISPLAY_TIMING		500		/* 表示更新時間 0.5秒 */
 
@@ -1149,6 +1155,12 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 /* End */
 #endif
 
+#ifdef DISABLE_NETWORK_BUFFERS
+	// 念のため受信バッファを無効にする。
+	int buf_size = 0;
+	setsockopt(dSkt, SOL_SOCKET, SO_RCVBUF, (char *)&buf_size, sizeof(buf_size));
+#endif
+
 	Pkt->Abort = ABORT_NONE;
 
 	Sec.nLength = sizeof(SECURITY_ATTRIBUTES);
@@ -1807,6 +1819,14 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 			break;
 /* End */
 #endif
+
+// Written by Suguru Kawamoto
+#ifdef DISABLE_NETWORK_BUFFERS
+	// 念のため送信バッファを無効にする。
+	int buf_size = 0;
+	setsockopt(dSkt, SOL_SOCKET, SO_SNDBUF, (char *)&buf_size, sizeof(buf_size));
+#endif
+// End Written by Suguru Kawamoto
 
 	Pkt->Abort = ABORT_NONE;
 

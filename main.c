@@ -224,6 +224,10 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	int Ret;
 	BOOL Sts;
 
+#ifdef DISABLE_MULTI_CPUS
+	SetProcessAffinityMask(GetCurrentProcess(), 1);
+#endif
+
 	// yutaka
 	if(OleInitialize(NULL) != S_OK){
 		MessageBox(NULL, MSGJPN298, "FFFTP", MB_OK | MB_ICONERROR);
