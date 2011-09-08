@@ -59,7 +59,7 @@
 
 #ifdef DISABLE_NETWORK_BUFFERS
 #undef BUFSIZE
-#define BUFSIZE			(63 * 1024)	// RWIN値以下で充分な大きさが望ましいと思われる。
+#define BUFSIZE			(64 * 1024)	// RWIN値以下で充分な大きさが望ましいと思われる。
 #undef SET_BUFFER_SIZE
 #endif
 
@@ -1178,6 +1178,8 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 
 	if((iFileHandle = CreateFile(Pkt->LocalFile, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, &Sec, CreateMode, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
 	{
+		// UTF-8対応
+		int ProcessedBOM = NO;
 		if(CreateMode == OPEN_ALWAYS)
 			SetFilePointer(iFileHandle, 0, 0, FILE_END);
 
@@ -1246,11 +1248,154 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 				cInfo.BufSize = BUFSIZE+3;
 				do
 				{
-					if(Pkt->KanjiCode == KANJI_JIS)
-						Continue = ConvJIStoSJIS(&cInfo);
-					else
-						Continue = ConvEUCtoSJIS(&cInfo);
-					if(WriteFile(iFileHandle, Buf2, cInfo.OutLen, &Writed, NULL) == FALSE)
+					// ここで全てUTF-8へ変換する
+					// TODO: SJIS以外も直接UTF-8へ変換
+//					if(Pkt->KanjiCode == KANJI_JIS)
+//						Continue = ConvJIStoSJIS(&cInfo);
+//					else
+//						Continue = ConvEUCtoSJIS(&cInfo);
+					char Buf3[(BUFSIZE + 3) * 4];
+					CODECONVINFO cInfo2;
+					switch(Pkt->KanjiCode)
+					{
+					case KANJI_SJIS:
+						switch(Pkt->KanjiCodeDesired)
+						{
+						case KANJI_SJIS:
+							memcpy(Buf3, cInfo.Str, cInfo.StrLen);
+							cInfo2.OutLen = cInfo.StrLen;
+							Continue = NO;
+							break;
+						case KANJI_JIS:
+							break;
+						case KANJI_EUC:
+							break;
+						case KANJI_UTF8N:
+							if(ProcessedBOM == NO)
+							{
+								memcpy(Buf3, "\xEF\xBB\xBF", 3);
+								cInfo2.OutLen = 3;
+								Continue = YES;
+								ProcessedBOM = YES;
+								break;
+							}
+							Continue = ConvSJIStoUTF8N(&cInfo);
+							memcpy(Buf3, Buf2, cInfo.OutLen);
+							cInfo2.OutLen = cInfo.OutLen;
+							break;
+						}
+						break;
+					case KANJI_JIS:
+						switch(Pkt->KanjiCodeDesired)
+						{
+						case KANJI_SJIS:
+							Continue = ConvJIStoSJIS(&cInfo);
+							memcpy(Buf3, Buf2, cInfo.OutLen);
+							cInfo2.OutLen = cInfo.OutLen;
+							break;
+						case KANJI_JIS:
+							memcpy(Buf3, cInfo.Str, cInfo.StrLen);
+							cInfo2.OutLen = cInfo.StrLen;
+							Continue = NO;
+							break;
+						case KANJI_EUC:
+							break;
+						case KANJI_UTF8N:
+							if(ProcessedBOM == NO)
+							{
+								memcpy(Buf3, "\xEF\xBB\xBF", 3);
+								cInfo2.OutLen = 3;
+								Continue = YES;
+								ProcessedBOM = YES;
+								break;
+							}
+							Continue = ConvJIStoSJIS(&cInfo);
+							InitCodeConvInfo(&cInfo2);
+							cInfo2.KanaCnv = NO;
+							cInfo2.Str = cInfo.Buf;
+							cInfo2.StrLen = cInfo.OutLen;
+							cInfo2.Buf = Buf3;
+							cInfo2.BufSize = (BUFSIZE + 3) * 4;
+							ConvSJIStoUTF8N(&cInfo2);
+							break;
+						}
+						break;
+					case KANJI_EUC:
+						switch(Pkt->KanjiCodeDesired)
+						{
+						case KANJI_SJIS:
+							Continue = ConvEUCtoSJIS(&cInfo);
+							memcpy(Buf3, Buf2, cInfo.OutLen);
+							cInfo2.OutLen = cInfo.OutLen;
+							break;
+						case KANJI_JIS:
+							break;
+						case KANJI_EUC:
+							memcpy(Buf3, cInfo.Str, cInfo.StrLen);
+							cInfo2.OutLen = cInfo.StrLen;
+							Continue = NO;
+							break;
+						case KANJI_UTF8N:
+							if(ProcessedBOM == NO)
+							{
+								memcpy(Buf3, "\xEF\xBB\xBF", 3);
+								cInfo2.OutLen = 3;
+								Continue = YES;
+								ProcessedBOM = YES;
+								break;
+							}
+							Continue = ConvEUCtoSJIS(&cInfo);
+							InitCodeConvInfo(&cInfo2);
+							cInfo2.KanaCnv = NO;
+							cInfo2.Str = cInfo.Buf;
+							cInfo2.StrLen = cInfo.OutLen;
+							cInfo2.Buf = Buf3;
+							cInfo2.BufSize = (BUFSIZE + 3) * 4;
+							ConvSJIStoUTF8N(&cInfo2);
+							break;
+						}
+						break;
+					case KANJI_UTF8N:
+						if(ProcessedBOM == NO)
+						{
+							if(memcmp(Buf, "\xEF\xBB\xBF", 3) == 0)
+							{
+								cInfo.Str += 3;
+								cInfo.StrLen -= 3;
+							}
+							cInfo2.OutLen = 0;
+							switch(Pkt->KanjiCodeDesired)
+							{
+							case KANJI_UTF8N:
+								memcpy(Buf3, "\xEF\xBB\xBF", 3);
+								cInfo2.OutLen = 3;
+								break;
+							}
+							Continue = YES;
+							ProcessedBOM = YES;
+							break;
+						}
+						switch(Pkt->KanjiCodeDesired)
+						{
+						case KANJI_SJIS:
+							Continue = ConvUTF8NtoSJIS(&cInfo);
+							memcpy(Buf3, Buf2, cInfo.OutLen);
+							cInfo2.OutLen = cInfo.OutLen;
+							break;
+						case KANJI_JIS:
+							break;
+						case KANJI_EUC:
+							break;
+						case KANJI_UTF8N:
+							memcpy(Buf3, cInfo.Str, cInfo.StrLen);
+							cInfo2.OutLen = cInfo.StrLen;
+							Continue = NO;
+							break;
+						}
+						break;
+					}
+//					if(WriteFile(iFileHandle, Buf2, cInfo.OutLen, &Writed, NULL) == FALSE)
+					if(WriteFile(iFileHandle, Buf3, cInfo2.OutLen, &Writed, NULL) == FALSE)
 						Pkt->Abort = ABORT_DISKFULL;
 				}
 				while((Continue == YES) && (Pkt->Abort == ABORT_NONE));
@@ -1820,13 +1965,11 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 /* End */
 #endif
 
-// Written by Suguru Kawamoto
 #ifdef DISABLE_NETWORK_BUFFERS
 	// 念のため送信バッファを無効にする。
 	int buf_size = 0;
 	setsockopt(dSkt, SOL_SOCKET, SO_SNDBUF, (char *)&buf_size, sizeof(buf_size));
 #endif
-// End Written by Suguru Kawamoto
 
 	Pkt->Abort = ABORT_NONE;
 
@@ -1837,6 +1980,8 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 	if((iFileHandle = CreateFile(Pkt->LocalFile, GENERIC_READ,
 		FILE_SHARE_READ|FILE_SHARE_WRITE, &Sec, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
 	{
+		// UTF-8対応
+		int ProcessedBOM = NO;
 		if(Pkt->hWndTrans != NULL)
 		{
 			Low = GetFileSize(iFileHandle, &High);
@@ -1880,12 +2025,155 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 				cInfo.BufSize = BUFSIZE+3;
 				do
 				{
-					if(Pkt->KanjiCode == KANJI_JIS)
-						Continue = ConvSJIStoJIS(&cInfo);
-					else
-						Continue = ConvSJIStoEUC(&cInfo);
+					// ここで全てUTF-8へ変換する
+					// TODO: SJIS以外も直接UTF-8へ変換
+//					if(Pkt->KanjiCode == KANJI_JIS)
+//						Continue = ConvSJIStoJIS(&cInfo);
+//					else
+//						Continue = ConvSJIStoEUC(&cInfo);
+					char Buf3[(BUFSIZE + 3) * 4];
+					CODECONVINFO cInfo2;
+					switch(Pkt->KanjiCodeDesired)
+					{
+					case KANJI_SJIS:
+						switch(Pkt->KanjiCode)
+						{
+						case KANJI_SJIS:
+							memcpy(Buf3, cInfo.Str, cInfo.StrLen);
+							cInfo2.OutLen = cInfo.StrLen;
+							Continue = NO;
+							break;
+						case KANJI_JIS:
+							break;
+						case KANJI_EUC:
+							break;
+						case KANJI_UTF8N:
+							if(ProcessedBOM == NO)
+							{
+								memcpy(Buf3, "\xEF\xBB\xBF", 3);
+								cInfo2.OutLen = 3;
+								Continue = YES;
+								ProcessedBOM = YES;
+								break;
+							}
+							Continue = ConvSJIStoUTF8N(&cInfo);
+							memcpy(Buf3, cInfo.Str, cInfo.OutLen);
+							cInfo2.OutLen = cInfo.OutLen;
+							break;
+						}
+						break;
+					case KANJI_JIS:
+						switch(Pkt->KanjiCode)
+						{
+						case KANJI_SJIS:
+							Continue = ConvJIStoSJIS(&cInfo);
+							memcpy(Buf3, Buf2, cInfo.OutLen);
+							cInfo2.OutLen = cInfo.OutLen;
+							break;
+						case KANJI_JIS:
+							memcpy(Buf3, cInfo.Str, cInfo.StrLen);
+							cInfo2.OutLen = cInfo.StrLen;
+							Continue = NO;
+							break;
+						case KANJI_EUC:
+							break;
+						case KANJI_UTF8N:
+							if(ProcessedBOM == NO)
+							{
+								memcpy(Buf3, "\xEF\xBB\xBF", 3);
+								cInfo2.OutLen = 3;
+								Continue = YES;
+								ProcessedBOM = YES;
+								break;
+							}
+							Continue = ConvJIStoSJIS(&cInfo);
+							InitCodeConvInfo(&cInfo2);
+							cInfo2.KanaCnv = NO;
+							cInfo2.Str = cInfo.Buf;
+							cInfo2.StrLen = cInfo.OutLen;
+							cInfo2.Buf = Buf3;
+							cInfo2.BufSize = (BUFSIZE + 3) * 4;
+							ConvSJIStoUTF8N(&cInfo2);
+							break;
+						}
+						break;
+					case KANJI_EUC:
+						switch(Pkt->KanjiCode)
+						{
+						case KANJI_SJIS:
+							Continue = ConvEUCtoSJIS(&cInfo);
+							memcpy(Buf3, Buf2, cInfo.OutLen);
+							cInfo2.OutLen = cInfo.OutLen;
+							break;
+						case KANJI_JIS:
+							break;
+						case KANJI_EUC:
+							memcpy(Buf3, cInfo.Str, cInfo.StrLen);
+							cInfo2.OutLen = cInfo.StrLen;
+							Continue = NO;
+							break;
+						case KANJI_UTF8N:
+							if(ProcessedBOM == NO)
+							{
+								memcpy(Buf3, "\xEF\xBB\xBF", 3);
+								cInfo2.OutLen = 3;
+								Continue = YES;
+								ProcessedBOM = YES;
+								break;
+							}
+							Continue = ConvEUCtoSJIS(&cInfo);
+							InitCodeConvInfo(&cInfo2);
+							cInfo2.KanaCnv = NO;
+							cInfo2.Str = cInfo.Buf;
+							cInfo2.StrLen = cInfo.OutLen;
+							cInfo2.Buf = Buf3;
+							cInfo2.BufSize = (BUFSIZE + 3) * 4;
+							ConvSJIStoUTF8N(&cInfo2);
+							break;
+						}
+						break;
+					case KANJI_UTF8N:
+						if(ProcessedBOM == NO)
+						{
+							if(memcmp(Buf, "\xEF\xBB\xBF", 3) == 0)
+							{
+								cInfo.Str += 3;
+								cInfo.StrLen -= 3;
+							}
+							cInfo2.OutLen = 0;
+							switch(Pkt->KanjiCode)
+							{
+							case KANJI_UTF8N:
+								memcpy(Buf3, "\xEF\xBB\xBF", 3);
+								cInfo2.OutLen = 3;
+								break;
+							}
+							Continue = YES;
+							ProcessedBOM = YES;
+							break;
+						}
+						switch(Pkt->KanjiCode)
+						{
+						case KANJI_SJIS:
+							Continue = ConvUTF8NtoSJIS(&cInfo);
+							memcpy(Buf3, Buf2, cInfo.OutLen);
+							cInfo2.OutLen = cInfo.OutLen;
+							break;
+						case KANJI_JIS:
+							break;
+						case KANJI_EUC:
+							break;
+						case KANJI_UTF8N:
+							memcpy(Buf3, cInfo.Str, cInfo.StrLen);
+							cInfo2.OutLen = cInfo.StrLen;
+							Continue = NO;
+							break;
+						}
+						break;
+					}
 
-					if(TermCodeConvAndSend(&tInfo, dSkt, Buf2, cInfo.OutLen, Pkt->Type) == FAIL)
+//					if(TermCodeConvAndSend(&tInfo, dSkt, Buf2, cInfo.OutLen, Pkt->Type) == FAIL)
+					if(TermCodeConvAndSend(&tInfo, dSkt, Buf3, cInfo2.OutLen, Pkt->Type) == FAIL)
 					{
 						Pkt->Abort = ABORT_ERROR;
 							break;

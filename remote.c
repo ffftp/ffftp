@@ -1307,10 +1307,36 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 		cInfo.Buf = Buf;
 		cInfo.BufSize = Max - 1;
 
+		// ここで全てUTF-8へ変換する
+		// TODO: SJIS以外も直接UTF-8へ変換
 		switch(AskHostNameKanji())
 		{
+			case KANJI_SJIS :
+				ConvSJIStoUTF8N(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Fname, Buf);
+				Pos = strchr(Fname, NUL);
+				FlushRestData(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Pos, Buf);
+				break;
+
 			case KANJI_JIS :
 				ConvJIStoSJIS(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Fname, Buf);
+				Pos = strchr(Fname, NUL);
+				FlushRestData(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Pos, Buf);
+				// TODO
+				InitCodeConvInfo(&cInfo);
+				cInfo.KanaCnv = NO;
+				cInfo.Str = Pos;
+				cInfo.StrLen = strlen(Pos);
+				cInfo.Buf = Buf;
+				cInfo.BufSize = Max - 1;
+				ConvSJIStoUTF8N(&cInfo);
 				*(Buf + cInfo.OutLen) = NUL;
 				strcpy(Fname, Buf);
 				Pos = strchr(Fname, NUL);
@@ -1321,6 +1347,20 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 
 			case KANJI_EUC :
 				ConvEUCtoSJIS(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Fname, Buf);
+				Pos = strchr(Fname, NUL);
+				FlushRestData(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Pos, Buf);
+				// TODO
+				InitCodeConvInfo(&cInfo);
+				cInfo.KanaCnv = NO;
+				cInfo.Str = Pos;
+				cInfo.StrLen = strlen(Pos);
+				cInfo.Buf = Buf;
+				cInfo.BufSize = Max - 1;
+				ConvSJIStoUTF8N(&cInfo);
 				*(Buf + cInfo.OutLen) = NUL;
 				strcpy(Fname, Buf);
 				Pos = strchr(Fname, NUL);
@@ -1338,10 +1378,14 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 				FlushRestData(&cInfo);
 				*(Buf + cInfo.OutLen) = NUL;
 				strcpy(Pos, Buf);
-				break;
-
-			case KANJI_UTF8N :
-				ConvUTF8NtoSJIS(&cInfo);
+				// TODO
+				InitCodeConvInfo(&cInfo);
+				cInfo.KanaCnv = NO;
+				cInfo.Str = Pos;
+				cInfo.StrLen = strlen(Pos);
+				cInfo.Buf = Buf;
+				cInfo.BufSize = Max - 1;
+				ConvSJIStoUTF8N(&cInfo);
 				*(Buf + cInfo.OutLen) = NUL;
 				strcpy(Fname, Buf);
 				Pos = strchr(Fname, NUL);
@@ -1349,6 +1393,16 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 				*(Buf + cInfo.OutLen) = NUL;
 				strcpy(Pos, Buf);
 				break;
+
+//			case KANJI_UTF8N :
+//				ConvUTF8NtoSJIS(&cInfo);
+//				*(Buf + cInfo.OutLen) = NUL;
+//				strcpy(Fname, Buf);
+//				Pos = strchr(Fname, NUL);
+//				FlushRestData(&cInfo);
+//				*(Buf + cInfo.OutLen) = NUL;
+//				strcpy(Pos, Buf);
+//				break;
 		}
 		free(Buf);
 		Sts = SUCCESS;
@@ -1385,9 +1439,35 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 		cInfo.Buf = Buf;
 		cInfo.BufSize = Max - 1;
 
+		// ここで全てUTF-8から変換する
+		// TODO: SJIS以外も直接UTF-8から変換
 		switch(AskHostNameKanji())
 		{
+			case KANJI_SJIS :
+				ConvUTF8NtoSJIS(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Fname, Buf);
+				Pos = strchr(Fname, NUL);
+				FlushRestData(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Pos, Buf);
+				break;
+
 			case KANJI_JIS :
+				ConvUTF8NtoSJIS(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Fname, Buf);
+				Pos = strchr(Fname, NUL);
+				FlushRestData(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Pos, Buf);
+				// TODO
+				InitCodeConvInfo(&cInfo);
+				cInfo.KanaCnv = NO;
+				cInfo.Str = Pos;
+				cInfo.StrLen = strlen(Pos);
+				cInfo.Buf = Buf;
+				cInfo.BufSize = Max - 1;
 				ConvSJIStoJIS(&cInfo);
 				*(Buf + cInfo.OutLen) = NUL;
 				strcpy(Fname, Buf);
@@ -1398,6 +1478,20 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 				break;
 
 			case KANJI_EUC :
+				ConvUTF8NtoSJIS(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Fname, Buf);
+				Pos = strchr(Fname, NUL);
+				FlushRestData(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Pos, Buf);
+				// TODO
+				InitCodeConvInfo(&cInfo);
+				cInfo.KanaCnv = NO;
+				cInfo.Str = Pos;
+				cInfo.StrLen = strlen(Pos);
+				cInfo.Buf = Buf;
+				cInfo.BufSize = Max - 1;
 				ConvSJIStoEUC(&cInfo);
 				*(Buf + cInfo.OutLen) = NUL;
 				strcpy(Fname, Buf);
@@ -1408,6 +1502,20 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 				break;
 
 			case KANJI_SMB_HEX :
+				ConvUTF8NtoSJIS(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Fname, Buf);
+				Pos = strchr(Fname, NUL);
+				FlushRestData(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Pos, Buf);
+				// TODO
+				InitCodeConvInfo(&cInfo);
+				cInfo.KanaCnv = NO;
+				cInfo.Str = Pos;
+				cInfo.StrLen = strlen(Pos);
+				cInfo.Buf = Buf;
+				cInfo.BufSize = Max - 1;
 				ConvSJIStoSMB_HEX(&cInfo);
 				*(Buf + cInfo.OutLen) = NUL;
 				strcpy(Fname, Buf);
@@ -1418,6 +1526,20 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 				break;
 
 			case KANJI_SMB_CAP :
+				ConvUTF8NtoSJIS(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Fname, Buf);
+				Pos = strchr(Fname, NUL);
+				FlushRestData(&cInfo);
+				*(Buf + cInfo.OutLen) = NUL;
+				strcpy(Pos, Buf);
+				// TODO
+				InitCodeConvInfo(&cInfo);
+				cInfo.KanaCnv = NO;
+				cInfo.Str = Pos;
+				cInfo.StrLen = strlen(Pos);
+				cInfo.Buf = Buf;
+				cInfo.BufSize = Max - 1;
 				ConvSJIStoSMB_CAP(&cInfo);
 				*(Buf + cInfo.OutLen) = NUL;
 				strcpy(Fname, Buf);
@@ -1427,15 +1549,15 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 				strcpy(Pos, Buf);
 				break;
 
-			case KANJI_UTF8N :
-				ConvSJIStoUTF8N(&cInfo);
-				*(Buf + cInfo.OutLen) = NUL;
-				strcpy(Fname, Buf);
-				Pos = strchr(Fname, NUL);
-				FlushRestData(&cInfo);
-				*(Buf + cInfo.OutLen) = NUL;
-				strcpy(Pos, Buf);
-				break;
+//			case KANJI_UTF8N :
+//				ConvSJIStoUTF8N(&cInfo);
+//				*(Buf + cInfo.OutLen) = NUL;
+//				strcpy(Fname, Buf);
+//				Pos = strchr(Fname, NUL);
+//				FlushRestData(&cInfo);
+//				*(Buf + cInfo.OutLen) = NUL;
+//				strcpy(Pos, Buf);
+//				break;
 		}
 		free(Buf);
 		Sts = SUCCESS;

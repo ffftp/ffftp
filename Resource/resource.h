@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by FFFTP.rc
+// Used by ffftp.rc
 //
 #define DELETE_ALL                      3
 #define DELETE_NO                       4
@@ -272,7 +272,7 @@
 #define HSET_FIREWAL                    1061
 #define HSET_FIREWALL                   1061
 #define FIRE_TYPE1                      1062
-#define HSET_FN_NO_CNV                  1062
+#define HSET_FN_AUTO_CNV                1062
 #define FIRE_TYPE4                      1063
 #define HSET_FN_JIS_CNV                 1063
 #define FIRE_TYPE3                      1064
@@ -416,6 +416,9 @@
 #define IDC_EDIT1                       1191
 #define MOVE_NOTIFY_TEXT                1194
 #define COMMON_TEXT                     1194
+#define HSET_SJIS_CNV                   1195
+#define HSET_UTF8N_CNV                  1196
+#define HSET_FN_SJIS_CNV                1197
 #define MENU_END                        40001
 #define MENU_EXIT                       40001
 #define MENU_CONNECT                    40003
@@ -467,19 +470,23 @@
 #define MENU_HELP                       40040
 #define MENU_BMARK_ADD                  40041
 #define MENU_BMARK_EDIT                 40042
-#define MENU_KNJ_EUC                    40043
-#define MENU_KNJ_JIS                    40044
-#define MENU_KNJ_NONE                   40045
-#define MENU_UPDIR                      40046
-#define MENU_DCLICK                     40047
-#define MENU_SELECT                     40049
-#define MENU_SELECT_ALL                 40050
-#define MENU_FIND                       40051
-#define MENU_FINDNEXT                   40052
-#define MENU_DOTFILE                    40054
-#define MENU_IMPORT_WS                  40056
-#define ID_BUTTON40058                  40058
-#define ID_BUTTON40059                  40059
+#define MENU_KNJ_SJIS                   40043
+#define MENU_KNJ_EUC                    40044
+#define MENU_KNJ_JIS                    40045
+#define MENU_KNJ_UTF8N                  40046
+#define MENU_KNJ_NONE                   40047
+#define MENU_L_KNJ_SJIS                 40048
+#define MENU_L_KNJ_EUC                  40049
+#define MENU_L_KNJ_JIS                  40050
+#define MENU_L_KNJ_UTF8N                40051
+#define MENU_UPDIR                      40052
+#define MENU_DCLICK                     40053
+#define MENU_SELECT                     40054
+#define MENU_SELECT_ALL                 40055
+#define MENU_FIND                       40056
+#define MENU_FINDNEXT                   40057
+#define MENU_DOTFILE                    40058
+#define MENU_IMPORT_WS                  40059
 #define ID_BUTTON40060                  40060
 #define ID_BUTTON40061                  40061
 #define ID_BUTTON40062                  40062
@@ -586,6 +593,8 @@
 #define MENU_REGLOAD                    40170
 #define MENU_XFRMODE                    40171
 #define MENU_CHANGEPASSWD               40172
+#define ID_BUTTON40173                  40173
+#define ID_BUTTON40174                  40174
 #define FSNOTIFY_TITLE                  65535
 #define HOST_SIZEGRIP                   65535
 
@@ -594,8 +603,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        189
-#define _APS_NEXT_COMMAND_VALUE         40173
-#define _APS_NEXT_CONTROL_VALUE         1195
+#define _APS_NEXT_COMMAND_VALUE         40175
+#define _APS_NEXT_CONTROL_VALUE         1198
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

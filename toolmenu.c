@@ -90,6 +90,9 @@ static int TmpTransMode;
 static int TmpHostKanjiCode;
 static int TmpHostKanaCnv;
 
+// TODO: ローカルの漢字コードをShift_JIS以外にも対応
+static int TmpLocalKanjiCode;
+
 static int TmpLocalFileSort;
 static int TmpLocalDirSort;
 static int TmpRemoteFileSort;
@@ -133,8 +136,15 @@ static TBBUTTON TbarDataMain[] = {
 	{ 8,  MENU_BINARY, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
 	{ 17, MENU_AUTO, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
 	{ 0,  0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0 },
+	{ 27, MENU_L_KNJ_SJIS, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
+	{ 20, MENU_L_KNJ_EUC, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
+	{ 21, MENU_L_KNJ_JIS, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
+	{ 28, MENU_L_KNJ_UTF8N, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
+	{ 0,  0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0 },
+	{ 27, MENU_KNJ_SJIS, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
 	{ 20, MENU_KNJ_EUC, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
 	{ 21, MENU_KNJ_JIS, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
+	{ 28, MENU_KNJ_UTF8N, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
 	{ 22, MENU_KNJ_NONE, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
 	{ 0,  0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0 },
 	{ 23, MENU_KANACNV, TBSTATE_ENABLED, TBSTYLE_CHECK, 0, 0 },
@@ -185,7 +195,8 @@ static const int HideMenus[] = {
 	MENU_HELP,			MENU_HELP_TROUBLE,	MENU_ABOUT,
 	MENU_REGINIT,
 	MENU_TEXT,			MENU_BINARY,		MENU_AUTO,
-	MENU_KNJ_EUC,		MENU_KNJ_JIS,		MENU_KNJ_NONE,
+	MENU_KNJ_SJIS,		MENU_KNJ_EUC,		MENU_KNJ_JIS,		MENU_KNJ_UTF8N,		MENU_KNJ_NONE,
+	MENU_L_KNJ_SJIS,	MENU_L_KNJ_EUC,		MENU_L_KNJ_JIS,		MENU_L_KNJ_UTF8N,
 	MENU_KANACNV,
 	MENU_LOCAL_UPDIR,	MENU_LOCAL_CHDIR,
 	MENU_REMOTE_UPDIR,	MENU_REMOTE_CHDIR,
@@ -821,6 +832,7 @@ void SetTransferTypeImm(int Mode)
 {
 	TmpTransMode = Mode;
 	HideHostKanjiButton();
+	HideLocalKanjiButton();
 	return;
 }
 
@@ -851,6 +863,7 @@ void SetTransferType(int Type)
 			break;
 	}
 	HideHostKanjiButton();
+	HideLocalKanjiButton();
 	return;
 }
 
@@ -992,12 +1005,21 @@ void SetHostKanjiCode(int Type)
 {
 	switch(Type)
 	{
+		// UTF-8対応
+		case MENU_KNJ_SJIS :
+			TmpHostKanjiCode = KANJI_SJIS;
+			break;
+
 		case MENU_KNJ_EUC :
 			TmpHostKanjiCode = KANJI_EUC;
 			break;
 
 		case MENU_KNJ_JIS :
 			TmpHostKanjiCode = KANJI_JIS;
+			break;
+
+		case MENU_KNJ_UTF8N :
+			TmpHostKanjiCode = KANJI_UTF8N;
 			break;
 
 		default :
@@ -1023,12 +1045,21 @@ void DispHostKanjiCode(void)
 {
 	switch(TmpHostKanjiCode)
 	{
+		// UTF-8対応
+		case KANJI_SJIS :
+			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_SJIS, MAKELONG(TRUE, 0));
+			break;
+
 		case KANJI_EUC :
 			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_EUC, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_JIS :
 			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_JIS, MAKELONG(TRUE, 0));
+			break;
+
+		case KANJI_UTF8N :
+			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_UTF8N, MAKELONG(TRUE, 0));
 			break;
 
 		default :
@@ -1067,21 +1098,119 @@ void HideHostKanjiButton(void)
 {
 	switch(TmpTransMode)
 	{
+		// UTF-8対応
 		case TYPE_I : 
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_SJIS, MAKELONG(FALSE, 0));
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_EUC, MAKELONG(FALSE, 0));
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_JIS, MAKELONG(FALSE, 0));
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_UTF8N, MAKELONG(FALSE, 0));
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_NONE, MAKELONG(FALSE, 0));
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
 			break;
 
 		default :
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_SJIS, MAKELONG(TRUE, 0));
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_EUC, MAKELONG(TRUE, 0));
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_JIS, MAKELONG(TRUE, 0));
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_UTF8N, MAKELONG(TRUE, 0));
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_NONE, MAKELONG(TRUE, 0));
 			if(TmpHostKanjiCode != KANJI_NOCNV)
 				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
 			else
 				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
+			break;
+	}
+	return;
+}
+
+
+// ローカルの漢字コード
+// テキストモード転送時に使用
+// ホスト側が無変換の時はローカルも無変換
+
+void SetLocalKanjiCodeImm(int Mode)
+{
+	TmpLocalKanjiCode = Mode;
+	DispLocalKanjiCode();
+	HideLocalKanjiButton();
+	return;
+}
+
+void SetLocalKanjiCode(int Type)
+{
+	switch(Type)
+	{
+		// UTF-8対応
+		case MENU_L_KNJ_SJIS :
+			TmpLocalKanjiCode = KANJI_SJIS;
+			break;
+
+		case MENU_L_KNJ_EUC :
+//			TmpLocalKanjiCode = KANJI_EUC;
+			break;
+
+		case MENU_L_KNJ_JIS :
+//			TmpLocalKanjiCode = KANJI_JIS;
+			break;
+
+		case MENU_L_KNJ_UTF8N :
+			TmpLocalKanjiCode = KANJI_UTF8N;
+			break;
+	}
+	DispLocalKanjiCode();
+	HideLocalKanjiButton();
+	return;
+}
+
+void DispLocalKanjiCode(void)
+{
+	switch(TmpLocalKanjiCode)
+	{
+		// UTF-8対応
+		case KANJI_SJIS :
+			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_SJIS, MAKELONG(TRUE, 0));
+			break;
+
+		case KANJI_EUC :
+//			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_EUC, MAKELONG(TRUE, 0));
+			break;
+
+		case KANJI_JIS :
+//			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_JIS, MAKELONG(TRUE, 0));
+			break;
+
+		case KANJI_UTF8N :
+			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(TRUE, 0));
+			break;
+	}
+	return;
+}
+
+int AskLocalKanjiCode(void)
+{
+	return(TmpLocalKanjiCode);
+}
+
+void HideLocalKanjiButton(void)
+{
+	switch(TmpTransMode)
+	{
+		// UTF-8対応
+		case TYPE_I : 
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_SJIS, MAKELONG(FALSE, 0));
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_EUC, MAKELONG(FALSE, 0));
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_JIS, MAKELONG(FALSE, 0));
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(FALSE, 0));
+			break;
+
+		default :
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_SJIS, MAKELONG(TRUE, 0));
+//			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_EUC, MAKELONG(TRUE, 0));
+//			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_JIS, MAKELONG(TRUE, 0));
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(TRUE, 0));
+			// TODO: 現在EUCとJISは非対応
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_EUC, MAKELONG(FALSE, 0));
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_JIS, MAKELONG(FALSE, 0));
 			break;
 	}
 	return;

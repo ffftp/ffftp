@@ -397,6 +397,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 				DispTransferType();
 				SetHostKanaCnvImm(YES);
 				SetHostKanjiCodeImm(KANJI_NOCNV);
+				SetLocalKanjiCodeImm(KANJI_UTF8N);
 				DispListType();
 				DispDotFileMode();
 				DispSyncMoveMode();
@@ -1025,10 +1026,20 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					DispTransferType();
 					break;
 
+				// UTF-8‘Î‰ž
+				case MENU_KNJ_SJIS :
 				case MENU_KNJ_EUC :
 				case MENU_KNJ_JIS :
+				case MENU_KNJ_UTF8N :
 				case MENU_KNJ_NONE :
 					SetHostKanjiCode(LOWORD(wParam));
+					break;
+
+				case MENU_L_KNJ_SJIS :
+				case MENU_L_KNJ_EUC :
+				case MENU_L_KNJ_JIS :
+				case MENU_L_KNJ_UTF8N :
+					SetLocalKanjiCode(LOWORD(wParam));
 					break;
 
 				case MENU_KANACNV :
@@ -1296,6 +1307,10 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 							lpttt->lpszText = MSGJPN170;
 							break;
 
+						case MENU_KNJ_SJIS :
+							lpttt->lpszText = MSGJPN305;
+							break;
+
 						case MENU_KNJ_EUC :
 							lpttt->lpszText = MSGJPN171;
 							break;
@@ -1304,8 +1319,28 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 							lpttt->lpszText = MSGJPN172;
 							break;
 
+						case MENU_KNJ_UTF8N :
+							lpttt->lpszText = MSGJPN306;
+							break;
+
 						case MENU_KNJ_NONE :
 							lpttt->lpszText = MSGJPN173;
+							break;
+
+						case MENU_L_KNJ_SJIS :
+							lpttt->lpszText = MSGJPN307;
+							break;
+
+						case MENU_L_KNJ_EUC :
+							lpttt->lpszText = MSGJPN308;
+							break;
+
+						case MENU_L_KNJ_JIS :
+							lpttt->lpszText = MSGJPN309;
+							break;
+
+						case MENU_L_KNJ_UTF8N :
+							lpttt->lpszText = MSGJPN310;
 							break;
 
 						case MENU_KANACNV :
@@ -1319,6 +1354,17 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						case MENU_ABORT :
 							lpttt->lpszText = MSGJPN176;
 							break;
+					}
+					// UTF-8‚©‚çShift_JIS‚Ö•ÏŠ·
+					{
+						static wchar_t StringBufferUTF16[1024];
+						static char StringBufferSJIS[1024];
+						if(lpttt->lpszText)
+						{
+							MtoW(StringBufferUTF16, sizeof(StringBufferUTF16)/ sizeof(wchar_t), lpttt->lpszText, -1);
+							WtoA(StringBufferSJIS, sizeof(StringBufferSJIS)/ sizeof(char), StringBufferUTF16, -1);
+							lpttt->lpszText = StringBufferSJIS;
+						}
 					}
 					break;
 

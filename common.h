@@ -669,14 +669,16 @@ LIST_UNIX_70
 
 /*===== 漢字コード変換 =====*/
 
-#define KANJI_SJIS		0		/* SJIS */
-#define KANJI_JIS		1		/* JIS */
-#define KANJI_EUC		2		/* EUC */
-#define KANJI_SMB_HEX	3		/* Samba-HEX */
-#define KANJI_SMB_CAP	4		/* Samba-CAP */
-#define KANJI_UTF8N		5		/* UTF-8N */
+#define KANJI_SJIS		1		/* SJIS */
+#define KANJI_JIS		2		/* JIS */
+#define KANJI_EUC		3		/* EUC */
+#define KANJI_SMB_HEX	4		/* Samba-HEX */
+#define KANJI_SMB_CAP	5		/* Samba-CAP */
+#define KANJI_UTF8N		6		/* UTF-8N */
 
 #define KANJI_NOCNV		0		/* 漢字コード変換なし */
+
+#define KANJI_AUTO		0
 
 /*===== サウンド =====*/
 
@@ -960,6 +962,7 @@ typedef struct transpacket {
 	FILETIME Time;					/* ファイルの時間(UTC) */
 	int Attr;						/* ファイルの属性 */
 	int KanjiCode;					/* 漢字コード (KANJI_xxx) */
+	int KanjiCodeDesired;			/* 変換先の漢字コード (KANJI_xxx) */
 	int KanaCnv;					/* 半角カナを全角に変換(YES/NO) */
 	int Mode;						/* 転送モード (EXIST_xxx) */
 	HWND hWndTrans;					/* 転送中ダイアログのウインドウハンドル */
@@ -1235,6 +1238,13 @@ void SetHostKanaCnvImm(int Mode);
 void SetHostKanaCnv(void);
 void DispHostKanaCnv(void);
 int AskHostKanaCnv(void);
+// ローカルの漢字コード
+void SetLocalKanjiCodeImm(int Mode);
+void SetLocalKanjiCode(int Type);
+void DispLocalKanjiCode(void);
+int AskLocalKanjiCode(void);
+void HideLocalKanjiButton(void);
+// ここまで
 void SetSortTypeImm(int LFsort, int LDsort, int RFsort, int RDsort);
 void SetSortTypeByColumn(int Win, int Tab);
 int AskSortType(int Name);

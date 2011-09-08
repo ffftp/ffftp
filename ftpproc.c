@@ -200,6 +200,7 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 				Pkt.Size = Pos->Size;
 				Pkt.Time = Pos->Time;
 				Pkt.KanjiCode = AskHostKanjiCode();
+				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 				Pkt.KanaCnv = AskHostKanaCnv();
 
 				Pkt.Mode = CheckLocalFile(&Pkt);	/* Pkt.ExistSize がセットされる */
@@ -301,6 +302,7 @@ void DirectDownLoadProc(char *Fname)
 				/* サイズと日付は転送側スレッドで取得し、セットする */
 
 				Pkt.KanjiCode = AskHostKanjiCode();
+				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 				Pkt.KanaCnv = AskHostKanaCnv();
 
 				Pkt.Mode = CheckLocalFile(&Pkt);	/* Pkt.ExistSize がセットされる */
@@ -551,6 +553,7 @@ void MirrorDownloadProc(int Notify)
 						Pkt.Time = RemotePos->Time;
 //						Pkt.Attr = 0;
 						Pkt.KanjiCode = AskHostKanjiCode();
+						Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 						Pkt.KanaCnv = AskHostKanaCnv();
 						Pkt.Mode = EXIST_OVW;
 						AddTmpTransFileList(&Pkt, &Base);
@@ -944,6 +947,7 @@ void UpLoadListProc(int ChName, int All)
 				Pkt.Time = Pos->Time;
 				Pkt.Attr = AskUpLoadFileAttr(Pkt.RemoteFile);
 				Pkt.KanjiCode = AskHostKanjiCode();
+				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 				Pkt.KanaCnv = AskHostKanaCnv();
 				Pkt.Mode = CheckRemoteFile(&Pkt, RemoteList);
 				if(Pkt.Mode == EXIST_ABORT)
@@ -1094,6 +1098,7 @@ void UpLoadDragProc(WPARAM wParam)
 				Pkt.Time = Pos->Time;
 				Pkt.Attr = AskUpLoadFileAttr(Pkt.RemoteFile);
 				Pkt.KanjiCode = AskHostKanjiCode();
+				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 				Pkt.KanaCnv = AskHostKanaCnv();
 				Pkt.Mode = CheckRemoteFile(&Pkt, RemoteList);
 				if(Pkt.Mode == EXIST_ABORT)
@@ -1360,6 +1365,7 @@ void MirrorUploadProc(int Notify)
 						Pkt.Time = LocalPos->Time;
 						Pkt.Attr = AskUpLoadFileAttr(Pkt.RemoteFile);
 						Pkt.KanjiCode = AskHostKanjiCode();
+						Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 						Pkt.KanaCnv = AskHostKanaCnv();
 						Pkt.Mode = EXIST_OVW;
 						AddTmpTransFileList(&Pkt, &Base);

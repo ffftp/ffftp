@@ -1790,15 +1790,19 @@ static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 {
 	NMHDR *pnmhdr;
 
+	// UTF-8‘Î‰ž
 	static const RADIOBUTTON KanjiButton[] = {
 		{ HSET_NO_CNV, KANJI_NOCNV },
+		{ HSET_SJIS_CNV, KANJI_SJIS },
 		{ HSET_JIS_CNV, KANJI_JIS },
-		{ HSET_EUC_CNV, KANJI_EUC }
+		{ HSET_EUC_CNV, KANJI_EUC },
+		{ HSET_UTF8N_CNV, KANJI_UTF8N }
 	};
 	#define KANJIBUTTONS	(sizeof(KanjiButton)/sizeof(RADIOBUTTON))
 
 	static const RADIOBUTTON NameKanjiButton[] = {
-		{ HSET_FN_NO_CNV, KANJI_NOCNV },
+		{ HSET_FN_AUTO_CNV, KANJI_AUTO },
+		{ HSET_FN_SJIS_CNV, KANJI_SJIS },
 		{ HSET_FN_JIS_CNV, KANJI_JIS },
 		{ HSET_FN_EUC_CNV, KANJI_EUC },
 		{ HSET_FN_SMH_CNV, KANJI_SMB_HEX },
@@ -1845,7 +1849,10 @@ static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 					EnableWindow(GetDlgItem(hDlg, HSET_HANCNV), TRUE);
 					break;
 
+				// UTF-8‘Î‰ž
 				case HSET_NO_CNV :
+				case HSET_SJIS_CNV :
+				case HSET_UTF8N_CNV :
 					EnableWindow(GetDlgItem(hDlg, HSET_HANCNV), FALSE);
 					break;
 
@@ -1854,7 +1861,8 @@ static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 					EnableWindow(GetDlgItem(hDlg, HSET_FN_HANCNV), TRUE);
 					break;
 
-				case HSET_FN_NO_CNV :
+				case HSET_FN_AUTO_CNV :
+				case HSET_FN_SJIS_CNV :
 				case HSET_FN_SMH_CNV :
 				case HSET_FN_SMC_CNV :
 				case HSET_FN_UTF8N_CNV :	// UTF-8N‘Î‰ž
