@@ -366,6 +366,8 @@ void InitCodeConvInfo(CODECONVINFO *cInfo)
 	cInfo->KanjiFst = 0;
 	cInfo->KanaPrev = 0;
 	cInfo->KanaProc = NULL;
+	// UTF-8対応
+	cInfo->EscUTF8Len = 0;
 	return;
 }
 
@@ -397,6 +399,9 @@ int FlushRestData(CODECONVINFO *cInfo)
 		*Put++ = cInfo->EscCode[0];
 	if(cInfo->EscProc == 2)
 		*Put++ = cInfo->EscCode[1];
+	// UTF-8対応
+	memcpy(Put, cInfo->EscUTF8, sizeof(char) * cInfo->EscUTF8Len);
+	Put += cInfo->EscUTF8Len;
 
 	cInfo->OutLen = Put - cInfo->Buf;
 
@@ -1478,75 +1483,133 @@ int ConvUTF8NtoSJIS(CODECONVINFO *cInfo)
 {
 	int Continue;
 
-	char temp_string[2048];
+//	char temp_string[2048];
 	int string_length;
+
+	// 大きいサイズに対応
+	// 終端のNULLを含むバグを修正
+	int SrcLength;
+	char* pSrc;
+	wchar_t* pUTF16;
+	int UTF16Length;
+	int Count;
 
 	Continue = NO;
 
 	// 生成される中間コードのサイズを調べる
-	string_length = MultiByteToWideChar(
-						CP_UTF8,		// 変換先文字コード
-						0,				// フラグ(0:なし)
-						cInfo->Str,		// 変換元文字列
-						-1,				// 変換元文字列バイト数(-1:自動)
-						NULL,			// 変換した文字列の格納先
-						0				// 格納先サイズ
-					);
+//	string_length = MultiByteToWideChar(
+//						CP_UTF8,		// 変換先文字コード
+//						0,				// フラグ(0:なし)
+//						cInfo->Str,		// 変換元文字列
+//						-1,				// 変換元文字列バイト数(-1:自動)
+//						NULL,			// 変換した文字列の格納先
+//						0				// 格納先サイズ
+//					);
+	// 前回の変換不能な残りの文字列を入力の先頭に結合
+	SrcLength = cInfo->StrLen + cInfo->EscUTF8Len;
+	if(!(pSrc = (char*)malloc(sizeof(char) * (SrcLength + 1))))
+	{
+		*(cInfo->Buf) = '\0';
+		cInfo->BufSize = 0;
+		return Continue;
+	}
+	memcpy(pSrc, cInfo->EscUTF8, sizeof(char) * cInfo->EscUTF8Len);
+	memcpy(pSrc + cInfo->EscUTF8Len, cInfo->Str, sizeof(char) * cInfo->StrLen);
+	*(pSrc + SrcLength) = '\0';
+	// UTF-8の場合、不完全な文字は常に変換されない
+	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pSrc, SrcLength, NULL, 0);
 
 	// サイズ0 or バッファサイズより大きい場合は
 	// cInfo->Bufの最初に'\0'を入れて、
 	// cInfo->BufSizeに0を入れて返す。
-	if( string_length == 0 ||
-		string_length >= 1024 ){
+//	if( string_length == 0 ||
+//		string_length >= 1024 ){
+//		*(cInfo->Buf) = '\0';
+//		cInfo->BufSize = 0;
+//		return(Continue);
+//	}
+	if(!(pUTF16 = (wchar_t*)malloc(sizeof(wchar_t) * UTF16Length)))
+	{
+		free(pSrc);
 		*(cInfo->Buf) = '\0';
 		cInfo->BufSize = 0;
-		return(Continue);
+		return Continue;
 	}
 
 	// 中間コード(unicode)に変換
-	MultiByteToWideChar(
-		CP_UTF8,						// 変換先文字コード
-		0,								// フラグ(0:なし)
-		cInfo->Str,						// 変換元文字列
-		-1,								// 変換元文字列バイト数(-1:自動)
-		(unsigned short *)temp_string,	// 変換した文字列の格納先
-		1024							// 格納先サイズ
-	);
+//	MultiByteToWideChar(
+//		CP_UTF8,						// 変換先文字コード
+//		0,								// フラグ(0:なし)
+//		cInfo->Str,						// 変換元文字列
+//		-1,								// 変換元文字列バイト数(-1:自動)
+//		(unsigned short *)temp_string,	// 変換した文字列の格納先
+//		1024							// 格納先サイズ
+//	);
+	MultiByteToWideChar(CP_UTF8, 0, pSrc, SrcLength, pUTF16, UTF16Length);
 
 	// 生成されるUTF-8コードのサイズを調べる
-	string_length = WideCharToMultiByte(
-						CP_ACP,			// 変換先文字コード
-						0,				// フラグ(0:なし)
-						(unsigned short *)temp_string,	// 変換元文字列
-						-1,				// 変換元文字列バイト数(-1:自動)
-						NULL,			// 変換した文字列の格納先
-						0,				// 格納先サイズ
-						NULL,NULL
-					);
+//	string_length = WideCharToMultiByte(
+//						CP_ACP,			// 変換先文字コード
+//						0,				// フラグ(0:なし)
+//						(unsigned short *)temp_string,	// 変換元文字列
+//						-1,				// 変換元文字列バイト数(-1:自動)
+//						NULL,			// 変換した文字列の格納先
+//						0,				// 格納先サイズ
+//						NULL,NULL
+//					);
+	string_length = WideCharToMultiByte(CP_ACP, 0, pUTF16, UTF16Length, NULL, 0, NULL, NULL);
 
 	// サイズ0 or 出力バッファサイズより大きい場合は、
 	// cInfo->Bufの最初に'\0'を入れて、
 	// cInfo->BufSizeに0を入れて返す。
-	if( string_length == 0 ||
-		string_length >= cInfo->BufSize ){
-		*(cInfo->Buf) = '\0';
-		cInfo->BufSize = 0;
-		return(Continue);
-	}
+//	if( string_length == 0 ||
+//		string_length >= cInfo->BufSize ){
+//		*(cInfo->Buf) = '\0';
+//		cInfo->BufSize = 0;
+//		return(Continue);
+//	}
 
 	// 出力サイズを設定
-	cInfo->OutLen = string_length;
+//	cInfo->OutLen = string_length;
 
 	// UTF-8コードに変換
-	WideCharToMultiByte(
-		CP_ACP,							// 変換先文字コード
-		0,								// フラグ(0:なし)
-		(unsigned short *)temp_string,	// 変換元文字列
-		-1,								// 変換元文字列バイト数(-1:自動)
-		cInfo->Buf,						// 変換した文字列の格納先(BOM:3bytes)
-		cInfo->BufSize,					// 格納先サイズ
-		NULL,NULL
-	);
+//	WideCharToMultiByte(
+//		CP_ACP,							// 変換先文字コード
+//		0,								// フラグ(0:なし)
+//		(unsigned short *)temp_string,	// 変換元文字列
+//		-1,								// 変換元文字列バイト数(-1:自動)
+//		cInfo->Buf,						// 変換した文字列の格納先(BOM:3bytes)
+//		cInfo->BufSize,					// 格納先サイズ
+//		NULL,NULL
+//	);
+	cInfo->OutLen = WideCharToMultiByte(CP_ACP, 0, pUTF16, UTF16Length, cInfo->Buf, cInfo->BufSize, NULL, NULL);
+	// バッファに収まらないため変換文字数を半減
+	while(cInfo->OutLen == 0 && UTF16Length > 0)
+	{
+		UTF16Length = UTF16Length / 2;
+		cInfo->OutLen = WideCharToMultiByte(CP_ACP, 0, pUTF16, UTF16Length, cInfo->Buf, cInfo->BufSize, NULL, NULL);
+	}
+	// 変換された元の文字列での文字数を取得
+	Count = WideCharToMultiByte(CP_UTF8, 0, pUTF16, UTF16Length, NULL, 0, NULL, NULL);
+	// 変換可能な残りの文字数を取得
+	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pSrc + Count, SrcLength - Count, NULL, 0);
+	cInfo->Str += Count - cInfo->EscUTF8Len;
+	cInfo->StrLen -= Count - cInfo->EscUTF8Len;
+	cInfo->EscUTF8Len = 0;
+	if(UTF16Length > 0)
+		Continue = YES;
+	else
+	{
+		// 変換不能なため次の入力の先頭に結合
+		memcpy(cInfo->EscUTF8, cInfo->Str, sizeof(char) * cInfo->StrLen);
+		cInfo->EscUTF8Len = cInfo->StrLen;
+		cInfo->Str += cInfo->StrLen;
+		cInfo->StrLen = 0;
+		Continue = NO;
+	}
+
+	free(pSrc);
+	free(pUTF16);
 
 	return(Continue);
 }
@@ -1566,64 +1629,112 @@ int ConvSJIStoUTF8N(CODECONVINFO *cInfo)
 {
 	int Continue;
 
-	char temp_string[2048];
+//	char temp_string[2048];
 	int string_length;
+
+	// 大きいサイズに対応
+	// 終端のNULLを含むバグを修正
+	int SrcLength;
+	char* pSrc;
+	wchar_t* pUTF16;
+	int UTF16Length;
+	int Count;
 
 	Continue = NO;
 
 	// 生成される中間コードのサイズを調べる
-	string_length = MultiByteToWideChar(
-						CP_ACP,			// 変換先文字コード
-						0,				// フラグ(0:なし)
-						cInfo->Str,		// 変換元文字列
-						-1,				// 変換元文字列バイト数(-1:自動)
-						NULL,			// 変換した文字列の格納先
-						0				// 格納先サイズ
-					);
+//	string_length = MultiByteToWideChar(
+//						CP_ACP,			// 変換先文字コード
+//						0,				// フラグ(0:なし)
+//						cInfo->Str,		// 変換元文字列
+//						-1,				// 変換元文字列バイト数(-1:自動)
+//						NULL,			// 変換した文字列の格納先
+//						0				// 格納先サイズ
+//					);
+	// 前回の変換不能な残りの文字列を入力の先頭に結合
+	SrcLength = cInfo->StrLen + cInfo->EscUTF8Len;
+	if(!(pSrc = (char*)malloc(sizeof(char) * (SrcLength + 1))))
+	{
+		*(cInfo->Buf) = '\0';
+		cInfo->BufSize = 0;
+		return Continue;
+	}
+	memcpy(pSrc, cInfo->EscUTF8, sizeof(char) * cInfo->EscUTF8Len);
+	memcpy(pSrc + cInfo->EscUTF8Len, cInfo->Str, sizeof(char) * cInfo->StrLen);
+	*(pSrc + SrcLength) = '\0';
+	// Shift_JISの場合、不完全な文字でも変換されることがあるため、末尾の不完全な部分を削る
+	Count = 0;
+	while(Count < SrcLength)
+	{
+		if(((unsigned char)*(pSrc + Count) >= 0x81 && (unsigned char)*(pSrc + Count) <= 0x9f) || (unsigned char)*(pSrc + Count) >= 0xe0)
+		{
+			if((unsigned char)*(pSrc + Count + 1) >= 0x40)
+				Count += 2;
+			else
+			{
+				if(Count + 2 > SrcLength)
+					break;
+				Count += 1;
+			}
+		}
+		else
+			Count += 1;
+	}
+	SrcLength = Count;
+	UTF16Length = MultiByteToWideChar(CP_ACP, 0, pSrc, SrcLength, NULL, 0);
 
 	// サイズ0 or バッファサイズより大きい場合は、
 	// cInfo->Bufの最初に'\0'を入れて、
 	// cInfo->BufSizeに0を入れて返す。
-	if( string_length == 0 ||
-		string_length >= 1024 ){
+//	if( string_length == 0 ||
+//		string_length >= 1024 ){
+//		*(cInfo->Buf) = '\0';
+//		cInfo->BufSize = 0;
+//		return(Continue);
+//	}
+	if(!(pUTF16 = (wchar_t*)malloc(sizeof(wchar_t) * UTF16Length)))
+	{
+		free(pSrc);
 		*(cInfo->Buf) = '\0';
 		cInfo->BufSize = 0;
-		return(Continue);
+		return Continue;
 	}
 
 	// 中間コード(unicode)に変換
-	MultiByteToWideChar(
-		CP_ACP,							// 変換先文字コード
-		0,								// フラグ(0:なし)
-		cInfo->Str,						// 変換元文字列
-		-1,								// 変換元文字列バイト数(-1:自動)
-		(unsigned short *)temp_string,	// 変換した文字列の格納先
-		1024							// 格納先サイズ
-	);
+//	MultiByteToWideChar(
+//		CP_ACP,							// 変換先文字コード
+//		0,								// フラグ(0:なし)
+//		cInfo->Str,						// 変換元文字列
+//		-1,								// 変換元文字列バイト数(-1:自動)
+//		(unsigned short *)temp_string,	// 変換した文字列の格納先
+//		1024							// 格納先サイズ
+//	);
+	MultiByteToWideChar(CP_ACP, 0, pSrc, SrcLength, pUTF16, UTF16Length);
 
 	// 生成されるUTF-8コードのサイズを調べる
-	string_length = WideCharToMultiByte(
-						CP_UTF8,		// 変換先文字コード
-						0,				// フラグ(0:なし)
-						(unsigned short *)temp_string,	// 変換元文字列
-						-1,				// 変換元文字列バイト数(-1:自動)
-						NULL,			// 変換した文字列の格納先
-						0,				// 格納先サイズ
-						NULL,NULL
-					);
+//	string_length = WideCharToMultiByte(
+//						CP_UTF8,		// 変換先文字コード
+//						0,				// フラグ(0:なし)
+//						(unsigned short *)temp_string,	// 変換元文字列
+//						-1,				// 変換元文字列バイト数(-1:自動)
+//						NULL,			// 変換した文字列の格納先
+//						0,				// 格納先サイズ
+//						NULL,NULL
+//					);
+	string_length = WideCharToMultiByte(CP_UTF8, 0, pUTF16, UTF16Length, NULL, 0, NULL, NULL);
 
 	// サイズ0 or 出力バッファサイズより大きい場合は、
 	// cInfo->Bufの最初に'\0'を入れて、
 	// cInfo->BufSizeに0を入れて返す。
-	if( string_length == 0 ||
-		string_length >= cInfo->BufSize ){
-		*(cInfo->Buf) = '\0';
-		cInfo->BufSize = 0;
-		return(Continue);
-	}
+//	if( string_length == 0 ||
+//		string_length >= cInfo->BufSize ){
+//		*(cInfo->Buf) = '\0';
+//		cInfo->BufSize = 0;
+//		return(Continue);
+//	}
 
 	// 出力サイズを設定
-	cInfo->OutLen = string_length;
+//	cInfo->OutLen = string_length;
 
 	/*
 	// ↓付けちゃだめ コマンドにも追加されてしまう
@@ -1634,15 +1745,43 @@ int ConvSJIStoUTF8N(CODECONVINFO *cInfo)
 	*/
 
 	// UTF-8コードに変換
-	WideCharToMultiByte(
-		CP_UTF8,						// 変換先文字コード
-		0,								// フラグ(0:なし)
-		(unsigned short *)temp_string,	// 変換元文字列
-		-1,								// 変換元文字列バイト数(-1:自動)
-		cInfo->Buf,					// 変換した文字列の格納先(BOM:3bytes)
-		cInfo->BufSize,					// 格納先サイズ
-		NULL,NULL
-	);
+//	WideCharToMultiByte(
+//		CP_UTF8,						// 変換先文字コード
+//		0,								// フラグ(0:なし)
+//		(unsigned short *)temp_string,	// 変換元文字列
+//		-1,								// 変換元文字列バイト数(-1:自動)
+//		cInfo->Buf,					// 変換した文字列の格納先(BOM:3bytes)
+//		cInfo->BufSize,					// 格納先サイズ
+//		NULL,NULL
+//	);
+	cInfo->OutLen = WideCharToMultiByte(CP_UTF8, 0, pUTF16, UTF16Length, cInfo->Buf, cInfo->BufSize, NULL, NULL);
+	// バッファに収まらないため変換文字数を半減
+	while(cInfo->OutLen == 0 && UTF16Length > 0)
+	{
+		UTF16Length = UTF16Length / 2;
+		cInfo->OutLen = WideCharToMultiByte(CP_UTF8, 0, pUTF16, UTF16Length, cInfo->Buf, cInfo->BufSize, NULL, NULL);
+	}
+	// 変換された元の文字列での文字数を取得
+	Count = WideCharToMultiByte(CP_ACP, 0, pUTF16, UTF16Length, NULL, 0, NULL, NULL);
+	// 変換可能な残りの文字数を取得
+	UTF16Length = MultiByteToWideChar(CP_ACP, 0, pSrc + Count, SrcLength - Count, NULL, 0);
+	cInfo->Str += Count - cInfo->EscUTF8Len;
+	cInfo->StrLen -= Count - cInfo->EscUTF8Len;
+	cInfo->EscUTF8Len = 0;
+	if(UTF16Length > 0)
+		Continue = YES;
+	else
+	{
+		// 変換不能なため次の入力の先頭に結合
+		memcpy(cInfo->EscUTF8, cInfo->Str, sizeof(char) * cInfo->StrLen);
+		cInfo->EscUTF8Len = cInfo->StrLen;
+		cInfo->Str += cInfo->StrLen;
+		cInfo->StrLen = 0;
+		Continue = NO;
+	}
+
+	free(pSrc);
+	free(pUTF16);
 
 	return(Continue);
 }

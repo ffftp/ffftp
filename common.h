@@ -669,16 +669,16 @@ LIST_UNIX_70
 
 /*===== 漢字コード変換 =====*/
 
-#define KANJI_SJIS		1		/* SJIS */
-#define KANJI_JIS		2		/* JIS */
-#define KANJI_EUC		3		/* EUC */
-#define KANJI_SMB_HEX	4		/* Samba-HEX */
-#define KANJI_SMB_CAP	5		/* Samba-CAP */
-#define KANJI_UTF8N		6		/* UTF-8N */
+#define KANJI_SJIS		0		/* SJIS */
+#define KANJI_JIS		1		/* JIS */
+#define KANJI_EUC		2		/* EUC */
+#define KANJI_SMB_HEX	3		/* Samba-HEX */
+#define KANJI_SMB_CAP	4		/* Samba-CAP */
+#define KANJI_UTF8N		5		/* UTF-8N */
 
-#define KANJI_NOCNV		0		/* 漢字コード変換なし */
+#define KANJI_NOCNV		-1		/* 漢字コード変換なし */
 
-#define KANJI_AUTO		0
+#define KANJI_AUTO		-1
 
 /*===== サウンド =====*/
 
@@ -1003,6 +1003,8 @@ typedef struct codeconvinfo {
 	char KanjiFst;		/* 漢字コード１バイト目保存用 (内部処理用ワーク) */
 	char KanaPrev;		/* 半角カタカナ保存用 (内部処理用ワーク) */
 	funcptr KanaProc;	/* 半角カタカナ処理ルーチン (内部処理用ワーク) */
+	char EscUTF8[8];
+	int EscUTF8Len;
 } CODECONVINFO;
 
 
@@ -1234,10 +1236,6 @@ void SetHostKanjiCode(int Type);
 void DispHostKanjiCode(void);
 int AskHostKanjiCode(void);
 void HideHostKanjiButton(void);
-void SetHostKanaCnvImm(int Mode);
-void SetHostKanaCnv(void);
-void DispHostKanaCnv(void);
-int AskHostKanaCnv(void);
 // ローカルの漢字コード
 void SetLocalKanjiCodeImm(int Mode);
 void SetLocalKanjiCode(int Type);
@@ -1245,6 +1243,10 @@ void DispLocalKanjiCode(void);
 int AskLocalKanjiCode(void);
 void HideLocalKanjiButton(void);
 // ここまで
+void SetHostKanaCnvImm(int Mode);
+void SetHostKanaCnv(void);
+void DispHostKanaCnv(void);
+int AskHostKanaCnv(void);
 void SetSortTypeImm(int LFsort, int LDsort, int RFsort, int RDsort);
 void SetSortTypeByColumn(int Win, int Tab);
 int AskSortType(int Name);

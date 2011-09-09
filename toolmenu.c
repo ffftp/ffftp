@@ -791,6 +791,10 @@ void EnableUserOpe(void)
 		EnableWindow(hWndDirLocal, TRUE);
 		EnableWindow(hWndDirRemote, TRUE);
 
+		// 選択不可な漢字コードのボタンが表示されるバグを修正
+		HideHostKanjiButton();
+		HideLocalKanjiButton();
+
 		HideUI = NO;
 
 		MakeButtonsFocus();
@@ -1114,11 +1118,28 @@ void HideHostKanjiButton(void)
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_JIS, MAKELONG(TRUE, 0));
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_UTF8N, MAKELONG(TRUE, 0));
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_NONE, MAKELONG(TRUE, 0));
-			if(TmpHostKanjiCode != KANJI_NOCNV)
-				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
-			else
-				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
-			break;
+//			if(TmpHostKanjiCode != KANJI_NOCNV)
+//				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
+//			else
+//				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
+//			break;
+			// 現在カナ変換はShift_JIS、JIS、EUC間でのみ機能する
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
+			switch(TmpHostKanjiCode)
+			{
+			case KANJI_SJIS:
+			case KANJI_JIS:
+			case KANJI_EUC:
+				switch(TmpLocalKanjiCode)
+				{
+				case KANJI_SJIS:
+				case KANJI_JIS:
+				case KANJI_EUC:
+					SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
+					break;
+				}
+				break;
+			}
 	}
 	return;
 }
@@ -1146,11 +1167,11 @@ void SetLocalKanjiCode(int Type)
 			break;
 
 		case MENU_L_KNJ_EUC :
-//			TmpLocalKanjiCode = KANJI_EUC;
+			TmpLocalKanjiCode = KANJI_EUC;
 			break;
 
 		case MENU_L_KNJ_JIS :
-//			TmpLocalKanjiCode = KANJI_JIS;
+			TmpLocalKanjiCode = KANJI_JIS;
 			break;
 
 		case MENU_L_KNJ_UTF8N :
@@ -1172,11 +1193,11 @@ void DispLocalKanjiCode(void)
 			break;
 
 		case KANJI_EUC :
-//			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_EUC, MAKELONG(TRUE, 0));
+			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_EUC, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_JIS :
-//			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_JIS, MAKELONG(TRUE, 0));
+			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_JIS, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_UTF8N :
@@ -1205,12 +1226,26 @@ void HideLocalKanjiButton(void)
 
 		default :
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_SJIS, MAKELONG(TRUE, 0));
-//			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_EUC, MAKELONG(TRUE, 0));
-//			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_JIS, MAKELONG(TRUE, 0));
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_EUC, MAKELONG(TRUE, 0));
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_JIS, MAKELONG(TRUE, 0));
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(TRUE, 0));
-			// TODO: 現在EUCとJISは非対応
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_EUC, MAKELONG(FALSE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_JIS, MAKELONG(FALSE, 0));
+			// 現在カナ変換はShift_JIS、JIS、EUC間でのみ機能する
+			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
+			switch(TmpHostKanjiCode)
+			{
+			case KANJI_SJIS:
+			case KANJI_JIS:
+			case KANJI_EUC:
+				switch(TmpLocalKanjiCode)
+				{
+				case KANJI_SJIS:
+				case KANJI_JIS:
+				case KANJI_EUC:
+					SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
+					break;
+				}
+				break;
+			}
 			break;
 	}
 	return;

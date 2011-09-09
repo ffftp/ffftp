@@ -393,7 +393,7 @@ START_ROUTINE
 		break;
 	default:
 		GetClassNameW(hWnd, ClassName, sizeof(ClassName) / sizeof(wchar_t));
-		if(wcsicmp(ClassName, WC_EDITW) == 0)
+		if(_wcsicmp(ClassName, WC_EDITW) == 0)
 		{
 			switch(Msg)
 			{
@@ -406,7 +406,7 @@ START_ROUTINE
 				break;
 			}
 		}
-		else if(wcsicmp(ClassName, WC_COMBOBOXW) == 0)
+		else if(_wcsicmp(ClassName, WC_COMBOBOXW) == 0)
 		{
 			switch(Msg)
 			{
@@ -427,7 +427,7 @@ START_ROUTINE
 				break;
 			}
 		}
-		else if(wcsicmp(ClassName, WC_LISTBOXW) == 0)
+		else if(_wcsicmp(ClassName, WC_LISTBOXW) == 0)
 		{
 			switch(Msg)
 			{
@@ -452,7 +452,7 @@ START_ROUTINE
 				break;
 			}
 		}
-		else if(wcsicmp(ClassName, WC_LISTVIEWW) == 0)
+		else if(_wcsicmp(ClassName, WC_LISTVIEWW) == 0)
 		{
 			switch(Msg)
 			{
@@ -568,7 +568,7 @@ START_ROUTINE
 				break;
 			}
 		}
-		else if(wcsicmp(ClassName, STATUSCLASSNAMEW) == 0)
+		else if(_wcsicmp(ClassName, STATUSCLASSNAMEW) == 0)
 		{
 			switch(Msg)
 			{
@@ -733,13 +733,36 @@ LSTATUS RegQueryValueExM(HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDW
 {
 	LSTATUS r = 0;
 	wchar_t* pw0 = NULL;
+	wchar_t* pw1 = NULL;
+	DWORD dwType;
+	DWORD wcbData;
 START_ROUTINE
 	pw0 = DuplicateMtoW(lpValueName, -1);
-	// TODO: レジストリはUTF-8で保存されてしまう（以前のバージョンと互換性なし）
-	// UTF-16で保存するべき
-	r = RegQueryValueExW(hKey, pw0, lpReserved, lpType, lpData, lpcbData);
+	if(RegQueryValueExW(hKey, pw0, NULL, &dwType, NULL, 0) == ERROR_SUCCESS)
+	{
+		switch(dwType)
+		{
+		case REG_SZ:
+		case REG_EXPAND_SZ:
+		case REG_MULTI_SZ:
+			if(lpData && lpcbData)
+			{
+				pw1 = AllocateStringW(*lpcbData / sizeof(char) * 4);
+				wcbData = *lpcbData / sizeof(char) * 4;
+				r = RegQueryValueExW(hKey, pw0, lpReserved, lpType, (LPBYTE)pw1, &wcbData);
+				*lpcbData = sizeof(char) * WtoM((char*)lpData, *lpcbData / sizeof(char), pw1, wcbData / sizeof(wchar_t));
+			}
+			break;
+		default:
+			r = RegQueryValueExW(hKey, pw0, lpReserved, lpType, lpData, lpcbData);
+			break;
+		}
+	}
+	else
+		r = RegQueryValueExW(hKey, pw0, lpReserved, lpType, lpData, lpcbData);
 END_ROUTINE
 	FreeDuplicatedString(pw0);
+	FreeDuplicatedString(pw1);
 	return r;
 }
 
@@ -747,13 +770,27 @@ LSTATUS RegSetValueExM(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwTy
 {
 	LSTATUS r = 0;
 	wchar_t* pw0 = NULL;
+	wchar_t* pw1 = NULL;
+	DWORD wcbData;
 START_ROUTINE
 	pw0 = DuplicateMtoW(lpValueName, -1);
-	// TODO: レジストリはUTF-8で保存されてしまう（以前のバージョンと互換性なし）
-	// UTF-16で保存するべき
+	switch(dwType)
+	{
+	case REG_SZ:
+	case REG_EXPAND_SZ:
+	case REG_MULTI_SZ:
+		wcbData = MtoW(NULL, 0, (char*)lpData, cbData / sizeof(char));
+		pw1 = AllocateStringW(wcbData);
+		MtoW(pw1, wcbData, (char*)lpData, cbData / sizeof(char));
+		wcbData = sizeof(wchar_t) * wcbData;
+		lpData = (BYTE*)pw1;
+		cbData = wcbData;
+		break;
+	}
 	r = RegSetValueExW(hKey, pw0, Reserved, dwType, lpData, cbData);
 END_ROUTINE
 	FreeDuplicatedString(pw0);
+	FreeDuplicatedString(pw1);
 	return r;
 }
 
@@ -974,13 +1011,83 @@ END_ROUTINE
 
 HWND HtmlHelpM(HWND hwndCaller, LPCSTR pszFile, UINT uCommand, DWORD_PTR dwData)
 {
-	HINSTANCE r = NULL;
+	HWND r = NULL;
 	wchar_t* pw0 = NULL;
 START_ROUTINE
 	pw0 = DuplicateMtoW(pszFile, -1);
 	r = HtmlHelpW(hwndCaller, pw0, uCommand, dwData);
 END_ROUTINE
 	FreeDuplicatedString(pw0);
+	return r;
+}
+
+BOOL CreateProcessM(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation)
+{
+	BOOL r = FALSE;
+	wchar_t* pw0 = NULL;
+	wchar_t* pw1 = NULL;
+	wchar_t* pw2 = NULL;
+	wchar_t* pw3 = NULL;
+	wchar_t* pw4 = NULL;
+	wchar_t* pw5 = NULL;
+	STARTUPINFOW wStartupInfo;
+START_ROUTINE
+	pw0 = DuplicateMtoW(lpApplicationName, -1);
+	pw1 = DuplicateMtoWBuffer(lpCommandLine, -1, (strlen(lpCommandLine) + 1) * 4);
+	pw2 = DuplicateMtoW(lpCurrentDirectory, -1);
+	wStartupInfo.cb = sizeof(LPSTARTUPINFOW);
+	pw3 = DuplicateMtoW(lpStartupInfo->lpReserved, -1);
+	wStartupInfo.lpReserved = pw3;
+	pw4 = DuplicateMtoW(lpStartupInfo->lpDesktop, -1);
+	wStartupInfo.lpDesktop = pw4;
+	pw5 = DuplicateMtoW(lpStartupInfo->lpTitle, -1);
+	wStartupInfo.lpTitle = pw5;
+	wStartupInfo.dwX = lpStartupInfo->dwX;
+	wStartupInfo.dwY = lpStartupInfo->dwY;
+	wStartupInfo.dwXSize = lpStartupInfo->dwXSize;
+	wStartupInfo.dwYSize = lpStartupInfo->dwYSize;
+	wStartupInfo.dwXCountChars = lpStartupInfo->dwXCountChars;
+	wStartupInfo.dwYCountChars = lpStartupInfo->dwYCountChars;
+	wStartupInfo.dwFillAttribute = lpStartupInfo->dwFillAttribute;
+	wStartupInfo.dwFlags = lpStartupInfo->dwFlags;
+	wStartupInfo.wShowWindow = lpStartupInfo->wShowWindow;
+	wStartupInfo.cbReserved2 = lpStartupInfo->cbReserved2;
+	wStartupInfo.lpReserved2 = lpStartupInfo->lpReserved2;
+	wStartupInfo.hStdInput = lpStartupInfo->hStdInput;
+	wStartupInfo.hStdOutput = lpStartupInfo->hStdOutput;
+	wStartupInfo.hStdError = lpStartupInfo->hStdError;
+	r = CreateProcessW(pw0, pw1, lpProcessAttributes, lpThreadAttributes, bInheritHandles, dwCreationFlags, lpEnvironment, pw2, &wStartupInfo, lpProcessInformation);
+	WtoM(lpCommandLine, strlen(lpCommandLine) + 1, pw1, -1);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	FreeDuplicatedString(pw1);
+	FreeDuplicatedString(pw2);
+	FreeDuplicatedString(pw3);
+	FreeDuplicatedString(pw4);
+	FreeDuplicatedString(pw5);
+	return r;
+}
+
+HINSTANCE FindExecutableM(LPCSTR lpFile, LPCSTR lpDirectory, LPSTR lpResult)
+{
+	HINSTANCE r = NULL;
+	wchar_t* pw0 = NULL;
+	wchar_t* pw1 = NULL;
+	wchar_t* pw2 = NULL;
+	wchar_t* pw3 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(lpFile, -1);
+	pw1 = DuplicateMtoW(lpDirectory, -1);
+	pw2 = AllocateStringW(MAX_PATH * 4);
+	r = FindExecutableW(pw0, pw1, pw2);
+	// バッファ長不明のためオーバーランの可能性あり
+	WtoM(lpResult, MAX_PATH, pw2, -1);
+	TerminateStringM(lpResult, MAX_PATH);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	FreeDuplicatedString(pw1);
+	FreeDuplicatedString(pw2);
+	FreeDuplicatedString(pw3);
 	return r;
 }
 
@@ -1224,7 +1331,17 @@ END_ROUTINE
 	return r;
 }
 
-
+INT_PTR DialogBoxParamM(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam)
+{
+	INT_PTR r = 0;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(lpTemplateName, -1);
+	r = DialogBoxParamW(hInstance, pw0, hWndParent, lpDialogFunc, dwInitParam);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
 
 
 

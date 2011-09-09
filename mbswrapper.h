@@ -59,6 +59,10 @@
 #define GetSaveFileName GetSaveFileNameM
 #undef HtmlHelp
 #define HtmlHelp HtmlHelpM
+#undef CreateProcess
+#define CreateProcess CreateProcessM
+#undef FindExecutable
+#define FindExecutable FindExecutableM
 #undef ShellExecute
 #define ShellExecute ShellExecuteM
 #undef SHBrowseForFolder
@@ -75,6 +79,8 @@
 #define CreateFontIndirect CreateFontIndirectM
 #undef ChooseFont
 #define ChooseFont ChooseFontM
+#undef DialogBoxParam
+#define DialogBoxParam DialogBoxParamM
 
 #undef CreateWindow
 #define CreateWindow(lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam) CreateWindowEx(0L, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam)

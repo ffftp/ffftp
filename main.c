@@ -1308,7 +1308,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 							break;
 
 						case MENU_KNJ_SJIS :
-							lpttt->lpszText = MSGJPN305;
+							lpttt->lpszText = MSGJPN307;
 							break;
 
 						case MENU_KNJ_EUC :
@@ -1320,7 +1320,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 							break;
 
 						case MENU_KNJ_UTF8N :
-							lpttt->lpszText = MSGJPN306;
+							lpttt->lpszText = MSGJPN308;
 							break;
 
 						case MENU_KNJ_NONE :
@@ -1328,19 +1328,19 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 							break;
 
 						case MENU_L_KNJ_SJIS :
-							lpttt->lpszText = MSGJPN307;
-							break;
-
-						case MENU_L_KNJ_EUC :
-							lpttt->lpszText = MSGJPN308;
-							break;
-
-						case MENU_L_KNJ_JIS :
 							lpttt->lpszText = MSGJPN309;
 							break;
 
-						case MENU_L_KNJ_UTF8N :
+						case MENU_L_KNJ_EUC :
 							lpttt->lpszText = MSGJPN310;
+							break;
+
+						case MENU_L_KNJ_JIS :
+							lpttt->lpszText = MSGJPN311;
+							break;
+
+						case MENU_L_KNJ_UTF8N :
+							lpttt->lpszText = MSGJPN312;
 							break;
 
 						case MENU_KANACNV :
@@ -1937,6 +1937,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							MainTransPkt.Type = AskTransferTypeAssoc(MainTransPkt.RemoteFile, AskTransferType());
 							MainTransPkt.Size = 1;
 							MainTransPkt.KanjiCode = AskHostKanjiCode();
+							MainTransPkt.KanjiCodeDesired = AskLocalKanjiCode();
 							MainTransPkt.KanaCnv = AskHostKanaCnv();
 							MainTransPkt.Mode = EXIST_OVW;
 							MainTransPkt.ExistSize = 0;
