@@ -223,6 +223,10 @@ static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
 	New->DialupAlways = Host->DialupAlways;
 	New->DialupNotify = Host->DialupNotify;
 	strcpy(New->DialEntry, Host->DialEntry);
+	// ˆÃ†‰»’ÊM‘Î‰ž
+	New->UseFTPES = Host->UseFTPES;
+	New->UseFTPIS = Host->UseFTPIS;
+	New->UseSFTP = Host->UseSFTP;
 	return;
 }
 
@@ -272,6 +276,10 @@ void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
 	Host->DialupAlways = Hist->DialupAlways;
 	Host->DialupNotify = Hist->DialupNotify;
 	strcpy(Host->DialEntry, Hist->DialEntry);
+	// ˆÃ†‰»’ÊM‘Î‰ž
+	Host->UseFTPES = Hist->UseFTPES;
+	Host->UseFTPIS = Hist->UseFTPIS;
+	Host->UseSFTP = Hist->UseSFTP;
 	return;
 }
 

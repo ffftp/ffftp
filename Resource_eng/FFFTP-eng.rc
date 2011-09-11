@@ -1201,6 +1201,15 @@ BEGIN
     CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,173,39,8,8
 END
 
+hset_crypt_dlg DIALOG  0, 0, 207, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "‚l‚r ‚oƒSƒVƒbƒN"
+BEGIN
+    CONTROL         "Connect with FTPS (Explicit)",HSET_FTPES,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,148,10
+    CONTROL         "Connect with FTPS (Inplicit)",HSET_FTPIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
+    CONTROL         "Connect with SFTP",HSET_SFTP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

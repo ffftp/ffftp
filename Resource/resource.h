@@ -108,6 +108,7 @@
 #define forcepasschange_dlg             186
 #define newmasterpasswd_dlg             187
 #define masterpasswd_dlg                188
+#define hset_crypt_dlg                  189
 #define TRANS_TIME_BAR                  1002
 #define TRANS_TEXT                      1003
 #define TRANS_REMOTE                    1003
@@ -419,6 +420,9 @@
 #define HSET_SJIS_CNV                   1195
 #define HSET_UTF8N_CNV                  1196
 #define HSET_FN_SJIS_CNV                1197
+#define HSET_FTPES                      1198
+#define HSET_FTPIS                      1199
+#define HSET_SFTP                       1200
 #define MENU_END                        40001
 #define MENU_EXIT                       40001
 #define MENU_CONNECT                    40003
@@ -602,9 +606,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        189
+#define _APS_NEXT_RESOURCE_VALUE        190
 #define _APS_NEXT_COMMAND_VALUE         40175
-#define _APS_NEXT_CONTROL_VALUE         1198
+#define _APS_NEXT_CONTROL_VALUE         1201
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

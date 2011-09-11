@@ -1025,7 +1025,15 @@ static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
 			memset(Buf, 0, Max);
 
 			if((SizeOnce == -2) || (AskTransferNow() == YES))
-				DisconnectSet();
+			// 転送中に全て中止を行うと不正なデータが得られる場合のバグ修正
+			// エラーの種類によっては無限ループとスタックオーバーフローの可能性あり
+//				DisconnectSet();
+			{
+				if(SizeOnce == -1)
+					ReConnectCmdSkt();
+				else
+					DisconnectSet();
+			}
 		}
 		else
 		{

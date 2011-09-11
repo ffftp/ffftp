@@ -73,8 +73,11 @@ typedef struct {
 } ASYNCSIGNALDATABASE;
 
 
-#define MAX_SIGNAL_ENTRY		10
-#define MAX_SIGNAL_ENTRY_DBASE	5
+// スレッド衝突のバグ修正
+//#define MAX_SIGNAL_ENTRY		10
+//#define MAX_SIGNAL_ENTRY_DBASE	5
+#define MAX_SIGNAL_ENTRY		100
+#define MAX_SIGNAL_ENTRY_DBASE	50
 
 
 
@@ -104,6 +107,8 @@ static ASYNCSIGNAL Signal[MAX_SIGNAL_ENTRY];
 static ASYNCSIGNALDATABASE SignalDbase[MAX_SIGNAL_ENTRY_DBASE];
 
 //static HANDLE hAsyncTblAccMutex;
+// スレッド衝突のバグ修正
+static HANDLE hAsyncTblAccMutex;
 
 
 
@@ -148,10 +153,18 @@ int MakeSocketWin(HWND hWnd, HINSTANCE hInst)
 	{
 //		hAsyncTblAccMutex = CreateMutex(NULL, FALSE, NULL);
 
-		for(i = 0; i < MAX_SIGNAL_ENTRY; i++)
-			Signal[i].Socket = INVALID_SOCKET;
-		for(i = 0; i < MAX_SIGNAL_ENTRY_DBASE; i++)
-			SignalDbase[i].Async = 0;
+		// スレッド衝突のバグ修正
+//		for(i = 0; i < MAX_SIGNAL_ENTRY; i++)
+//			Signal[i].Socket = INVALID_SOCKET;
+//		for(i = 0; i < MAX_SIGNAL_ENTRY_DBASE; i++)
+//			SignalDbase[i].Async = 0;
+		if(hAsyncTblAccMutex = CreateMutex(NULL, FALSE, NULL))
+		{
+			for(i = 0; i < MAX_SIGNAL_ENTRY; i++)
+				Signal[i].Socket = INVALID_SOCKET;
+			for(i = 0; i < MAX_SIGNAL_ENTRY_DBASE; i++)
+				SignalDbase[i].Async = 0;
+		}
 		Sts = SUCCESS;
 	}
 	return(Sts);
@@ -170,6 +183,9 @@ int MakeSocketWin(HWND hWnd, HINSTANCE hInst)
 void DeleteSocketWin(void)
 {
 //	CloseHandle(hAsyncTblAccMutex);
+	// スレッド衝突のバグ修正
+	CloseHandle(hAsyncTblAccMutex);
+	hAsyncTblAccMutex = NULL;
 
 	if(hWndSocket != NULL)
 		DestroyWindow(hWndSocket);
@@ -196,6 +212,8 @@ static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 	switch(message)
 	{
 		case WM_ASYNC_SOCKET :
+			// スレッド衝突のバグ修正
+			WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 			for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
 			{
 				if(Signal[Pos].Socket == (SOCKET)wParam)
@@ -247,9 +265,13 @@ static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 					break;
 				}
 			}
+			// スレッド衝突のバグ修正
+			ReleaseMutex(hAsyncTblAccMutex);
 			break;
 
 		case WM_ASYNC_DBASE :
+			// スレッド衝突のバグ修正
+			WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 			for(Pos = 0; Pos < MAX_SIGNAL_ENTRY_DBASE; Pos++)
 			{
 				if(SignalDbase[Pos].Async == (HANDLE)wParam)
@@ -268,6 +290,8 @@ static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 					break;
 				}
 			}
+			// スレッド衝突のバグ修正
+			ReleaseMutex(hAsyncTblAccMutex);
 			break;
 
 		default :
@@ -293,6 +317,8 @@ static int AskAsyncDone(SOCKET s, int *Error, int Mask)
 	int Sts;
 	int Pos;
 
+	// スレッド衝突のバグ修正
+	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 	Sts = NO;
 	*Error = 0;
 	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
@@ -344,6 +370,8 @@ static int AskAsyncDone(SOCKET s, int *Error, int Mask)
 			break;
 		}
 	}
+	// スレッド衝突のバグ修正
+	ReleaseMutex(hAsyncTblAccMutex);
 
 	if(Pos == MAX_SIGNAL_ENTRY)
 	{
@@ -375,6 +403,8 @@ static int AskAsyncDoneDbase(HANDLE Async, int *Error)
 	int Sts;
 	int Pos;
 
+	// スレッド衝突のバグ修正
+	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 	Sts = NO;
 	*Error = 0;
 	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY_DBASE; Pos++)
@@ -392,6 +422,8 @@ static int AskAsyncDoneDbase(HANDLE Async, int *Error)
 			break;
 		}
 	}
+	// スレッド衝突のバグ修正
+	ReleaseMutex(hAsyncTblAccMutex);
 
 	if(Pos == MAX_SIGNAL_ENTRY_DBASE)
 	{
@@ -417,6 +449,8 @@ static int RegistAsyncTable(SOCKET s)
 	int Sts;
 	int Pos;
 
+	// スレッド衝突のバグ修正
+	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 	Sts = NO;
 	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
 	{
@@ -426,9 +460,13 @@ static int RegistAsyncTable(SOCKET s)
 			break;
 		}
 	}
+	// スレッド衝突のバグ修正
+	ReleaseMutex(hAsyncTblAccMutex);
 
 	if(Pos == MAX_SIGNAL_ENTRY)
 	{
+		// スレッド衝突のバグ修正
+		WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 		for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
 		{
 			if(Signal[Pos].Socket == INVALID_SOCKET)
@@ -447,6 +485,8 @@ static int RegistAsyncTable(SOCKET s)
 				break;
 			}
 		}
+		// スレッド衝突のバグ修正
+		ReleaseMutex(hAsyncTblAccMutex);
 
 		if(Pos == MAX_SIGNAL_ENTRY)
 		{
@@ -473,6 +513,8 @@ static int RegistAsyncTableDbase(HANDLE Async)
 	int Sts;
 	int Pos;
 
+	// スレッド衝突のバグ修正
+	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 	Sts = NO;
 	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY_DBASE; Pos++)
 	{
@@ -482,9 +524,13 @@ static int RegistAsyncTableDbase(HANDLE Async)
 			break;
 		}
 	}
+	// スレッド衝突のバグ修正
+	ReleaseMutex(hAsyncTblAccMutex);
 
 	if(Pos == MAX_SIGNAL_ENTRY_DBASE)
 	{
+		// スレッド衝突のバグ修正
+		WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 		for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
 		{
 			if(SignalDbase[Pos].Async == 0)
@@ -499,6 +545,8 @@ static int RegistAsyncTableDbase(HANDLE Async)
 				break;
 			}
 		}
+		// スレッド衝突のバグ修正
+		ReleaseMutex(hAsyncTblAccMutex);
 
 		if(Pos == MAX_SIGNAL_ENTRY_DBASE)
 		{
@@ -525,6 +573,8 @@ static int UnRegistAsyncTable(SOCKET s)
 	int Sts;
 	int Pos;
 
+	// スレッド衝突のバグ修正
+	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 	Sts = NO;
 	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
 	{
@@ -538,6 +588,8 @@ static int UnRegistAsyncTable(SOCKET s)
 			break;
 		}
 	}
+	// スレッド衝突のバグ修正
+	ReleaseMutex(hAsyncTblAccMutex);
 	return(Sts);
 }
 
@@ -556,6 +608,8 @@ static int UnRegistAsyncTableDbase(HANDLE Async)
 	int Sts;
 	int Pos;
 
+	// スレッド衝突のバグ修正
+	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 	Sts = NO;
 	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY_DBASE; Pos++)
 	{
@@ -569,6 +623,8 @@ static int UnRegistAsyncTableDbase(HANDLE Async)
 			break;
 		}
 	}
+	// スレッド衝突のバグ修正
+	ReleaseMutex(hAsyncTblAccMutex);
 	return(Sts);
 }
 
@@ -652,7 +708,12 @@ int do_closesocket(SOCKET s)
 #endif
 	CancelCheckWork = NO;
 
-	Ret = closesocket(s);
+	// FTPS対応
+//	Ret = closesocket(s);
+	if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
+		Ret = closesocketS(s);
+	else
+		Ret = closesocket(s);
 	if(Ret == SOCKET_ERROR)
 	{
 		Error = 0;
@@ -703,7 +764,12 @@ int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCh
 	Ret = WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT | FD_READ | FD_WRITE);
 	if(Ret != SOCKET_ERROR)
 	{
-		Ret = connect(s, name, namelen);
+		// FTPS対応
+//		Ret = connect(s, name, namelen);
+		if(AskCryptMode() == CRYPT_FTPIS)
+			Ret = connectS(s, name, namelen);
+		else
+			Ret = connect(s, name, namelen);
 		if(Ret == SOCKET_ERROR)
 		{
 			do
@@ -797,7 +863,12 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 	{
 		do
 		{
-			Ret2 = accept(s, addr, addrlen);
+			// FTPS対応
+//			Ret2 = accept(s, addr, addrlen);
+			if(AskCryptMode() == CRYPT_FTPIS)
+				Ret2 = acceptS(s, addr, addrlen);
+			else
+				Ret2 = accept(s, addr, addrlen);
 			if(Ret2 != INVALID_SOCKET)
 			{
 #if DBG_MSG
@@ -866,7 +937,10 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 	if(TimeOut != 0)
 		time(&StartTime);
 
-	while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_READ_BIT) != YES))
+	// FTPS対応
+	// OpenSSLでは受信確認はFD_READが複数回受信される可能性がある
+//	while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_READ_BIT) != YES))
+	while(AskCryptMode() == CRYPT_NONE && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_READ_BIT) != YES))
 	{
 		if(AskAsyncDone(s, &Error, FD_CLOSE_BIT) == YES)
 		{
@@ -897,12 +971,37 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 			DoPrintf("## recv()");
 #endif
 
-			Ret = recv(s, buf, len, flags);
+			// FTPS対応
+//			Ret = recv(s, buf, len, flags);
+			if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
+				Ret = recvS(s, buf, len, flags);
+			else
+				Ret = recv(s, buf, len, flags);
 			if(Ret != SOCKET_ERROR)
 				break;
 			Error = WSAGetLastError();
 			Sleep(1);
 			if(BackgrndMessageProc() == YES)
+				break;
+			// FTPS対応
+			// 受信確認をバイパスしたためここでタイムアウトの確認
+			if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
+			{
+				if(BackgrndMessageProc() == YES)
+					*CancelCheckWork = YES;
+			}
+			else if(TimeOut != 0)
+			{
+				time(&ElapseTime);
+				ElapseTime -= StartTime;
+				if(ElapseTime >= TimeOut)
+				{
+					DoPrintf("do_recv timed out");
+					*TimeOutErr = YES;
+					*CancelCheckWork = YES;
+				}
+			}
+			if(*CancelCheckWork == YES)
 				break;
 		}
 		while(Error == WSAEWOULDBLOCK);
@@ -948,7 +1047,10 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 	if(BackgrndMessageProc() == YES)
 		*CancelCheckWork = YES;
 
-	while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE_BIT) != YES))
+	// FTPS対応
+	// 送信バッファの空き確認には影響しないが念のため
+//	while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE_BIT) != YES))
+	while(AskCryptMode() == CRYPT_NONE && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE_BIT) != YES))
 	{
 		if(AskAsyncDone(s, &Error, FD_CLOSE_BIT) == YES)
 		{
@@ -980,7 +1082,12 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 			DoPrintf("## send()");
 #endif
 
-			Ret = send(s, buf, len, flags);
+			// FTPS対応
+//			Ret = send(s, buf, len, flags);
+			if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
+				Ret = sendS(s, buf, len, flags);
+			else
+				Ret = send(s, buf, len, flags);
 			if(Ret != SOCKET_ERROR)
 			{
 #if DBG_MSG
@@ -991,6 +1098,26 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 			Error = WSAGetLastError();
 			Sleep(1);
 			if(BackgrndMessageProc() == YES)
+				break;
+			// FTPS対応
+			// 送信バッファ確認をバイパスしたためここでタイムアウトの確認
+			if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
+			{
+				if(BackgrndMessageProc() == YES)
+					*CancelCheckWork = YES;
+			}
+			else if(TimeOut != 0)
+			{
+				time(&ElapseTime);
+				ElapseTime -= StartTime;
+				if(ElapseTime >= TimeOut)
+				{
+					DoPrintf("do_recv timed out");
+					*TimeOutErr = YES;
+					*CancelCheckWork = YES;
+				}
+			}
+			if(*CancelCheckWork == YES)
 				break;
 		}
 		while(Error == WSAEWOULDBLOCK);

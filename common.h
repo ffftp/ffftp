@@ -853,6 +853,12 @@ LIST_UNIX_70
 #define DEFAULT_PASSWORD	"DefaultPassword"
 #define MAX_PASSWORD_LEN	128
 
+// 暗号化通信対応
+#define CRYPT_NONE			0
+#define CRYPT_FTPES			1
+#define CRYPT_FTPIS			2
+#define CRYPT_SFTP			3
+
 
 /*=================================================
 *		ストラクチャ
@@ -896,6 +902,11 @@ typedef struct {
 	int DialupAlways;					/* 常にこのエントリへ接続するかどうか (YES/NO) */
 	int DialupNotify;					/* 再接続の際に確認する (YES/NO) */
 	char DialEntry[RAS_NAME_LEN+1];		/* ダイアルアップエントリ */
+	// 暗号化通信対応
+	int CryptMode;						/* 暗号化通信モード (CRYPT_xxx) */
+	int UseFTPES;						/* FTPESで接続する (YES/NO) */
+	int UseFTPIS;						/* FTPISで接続する (YES/NO) */
+	int UseSFTP;						/* SFTPで接続する (YES/NO) */
 } HOSTDATA;
 
 
@@ -942,6 +953,10 @@ typedef struct historydata {
 	int DialupAlways;					/* 常にこのエントリへ接続するかどうか (YES/NO) */
 	int DialupNotify;					/* 再接続の際に確認する (YES/NO) */
 	char DialEntry[RAS_NAME_LEN+1];		/* ダイアルアップエントリ */
+	// 暗号化通信対応
+	int UseFTPES;						/* FTPESで接続する (YES/NO) */
+	int UseFTPIS;						/* FTPISで接続する (YES/NO) */
+	int UseSFTP;						/* SFTPで接続する (YES/NO) */
 	struct historydata *Next;
 } HISTORYDATA;
 
@@ -962,11 +977,14 @@ typedef struct transpacket {
 	FILETIME Time;					/* ファイルの時間(UTC) */
 	int Attr;						/* ファイルの属性 */
 	int KanjiCode;					/* 漢字コード (KANJI_xxx) */
-	int KanjiCodeDesired;			/* 変換先の漢字コード (KANJI_xxx) */
+	// UTF-8対応
+	int KanjiCodeDesired;			/* ローカルの漢字コード (KANJI_xxx) */
 	int KanaCnv;					/* 半角カナを全角に変換(YES/NO) */
 	int Mode;						/* 転送モード (EXIST_xxx) */
 	HWND hWndTrans;					/* 転送中ダイアログのウインドウハンドル */
 	int Abort;						/* 転送中止フラグ (ABORT_xxx) */
+	// 暗号化通信対応
+	int CryptMode;					/* 暗号化通信モード (CRYPT_xxx) */
 	struct transpacket *Next;
 } TRANSPACKET;
 
@@ -1169,6 +1187,8 @@ int AskForceIni(void);
 int BackgrndMessageProc(void);
 void ResetAutoExitFlg(void);
 int AskAutoExit(void);
+// 暗号化通信対応
+BOOL __stdcall SSLTimeoutCallback();
 
 /*===== filelist.c =====*/
 
@@ -1340,6 +1360,11 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork);
 SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
 int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data);
+// 暗号化通信対応
+int AskCryptMode(void);
+int AskUseFTPES(void);
+int AskUseFTPIS(void);
+int AskUseSFTP(void);
 
 /*===== cache.c =====*/
 

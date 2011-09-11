@@ -236,6 +236,10 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
 	InitCommonControls();
 
+#ifdef USE_OPENSSL
+	LoadOpenSSL();
+#endif
+
 	Ret = FALSE;
 	hWndFtp = NULL;
 	hInstFtp = hInstance;
@@ -265,6 +269,9 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		Ret = Msg.wParam;
 	}
     UnregisterClass(FtpClassStr, hInstFtp);
+#ifdef USE_OPENSSL
+	FreeOpenSSL();
+#endif
 	OleUninitialize();
 	return(Ret);
 }
@@ -375,6 +382,9 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		{
 			LoadRegistory();
 
+			// 暗号化通信対応
+			SetSSLTimeoutCallback(TimeOut * 1000, SSLTimeoutCallback);
+
 			LoadJre();
 			if(NoRasControl == NO)
 				LoadRasLib();
@@ -457,6 +467,14 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			}
 		}
 	}
+
+	// 暗号化通信対応
+#ifdef USE_OPENSSL
+	if(IsOpenSSLLoaded())
+		SetTaskMsg(MSGJPN318);
+	else
+		SetTaskMsg(MSGJPN319);
+#endif
 
 	if(sts == FAIL)
 		DeleteAllObject();
@@ -969,6 +987,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					DispTransferType();
 					CheckHistoryNum(0);
 					SetAllHistoryToMenu();
+					// 暗号化通信対応
+					SetSSLTimeoutCallback(TimeOut * 1000, SSLTimeoutCallback);
 					break;
 
 				case MENU_FILTER :
@@ -2577,6 +2597,7 @@ int BackgrndMessageProc(void)
 	int Ret;
 
 	Ret = NO;
+	SendMessage(GetMainHwnd(), WM_NULL, 0, 0);
 	while(PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE))
 	{
 		if(!HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
@@ -2669,3 +2690,19 @@ int EnterMasterPasswordAndSet( int Res, HWND hWnd )
 	}
 	return 0;
 }
+
+// 暗号化通信対応
+BOOL __stdcall SSLTimeoutCallback()
+{
+	Sleep(1);
+	if(BackgrndMessageProc() == YES)
+		return TRUE;
+	// 念のためツールバーのMENU_ABORTも確認
+//	if(MainTransPkt.Abort != ABORT_NONE)
+//	{
+//		MainTransPkt.Abort = ABORT_NONE;
+//		return TRUE;
+//	}
+	return FALSE;
+}
+

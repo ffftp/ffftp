@@ -1213,6 +1213,12 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 	{
 		if((ContSock = connectsock(Tmp, Port, "", &CancelFlg)) != INVALID_SOCKET)
 		{
+			// バッファを無効
+#ifdef DISABLE_CONTROL_NETWORK_BUFFERS
+			int BufferSize = 0;
+			setsockopt(ContSock, SOL_SOCKET, SO_SNDBUF, (char*)&BufferSize, sizeof(int));
+			setsockopt(ContSock, SOL_SOCKET, SO_RCVBUF, (char*)&BufferSize, sizeof(int));
+#endif
 			while((Sts = ReadReplyMessage(ContSock, Buf, 1024, &CancelFlg, TmpBuf) / 100) == FTP_PRELIM)
 				;
 
@@ -1220,6 +1226,8 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 			{
 				Flg = 1;
 				if(setsockopt(ContSock, SOL_SOCKET, SO_OOBINLINE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
+					ReportWSError("setsockopt", WSAGetLastError());
+				if(setsockopt(ContSock, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					ReportWSError("setsockopt", WSAGetLastError());
 #pragma aaa
 				Flg = 1;
@@ -1298,6 +1306,39 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 							}
 							else
 								strcpy(Buf, User);
+
+							// FTPES対応
+							// 2回以上呼ばれる事があるため既にFTPESで接続していても再確認
+							if(CurHost.CryptMode == CRYPT_NONE || CurHost.CryptMode == CRYPT_FTPES)
+							{
+								if(IsOpenSSLLoaded() && CurHost.UseFTPES == YES && (Sts = command(ContSock, Reply, &CancelFlg, "AUTH TLS")) == 234)
+								{
+									// SSLに切り替え
+									SetTaskMsg(MSGJPN315);
+									CurHost.CryptMode = CRYPT_FTPES;
+									if(AttachSSL(ContSock))
+									{
+										if((Sts = command(ContSock, Reply, &CancelFlg, "PBSZ 0")) == 200)
+										{
+											if((Sts = command(ContSock, Reply, &CancelFlg, "PROT P")) == 200)
+											{
+											}
+											else
+												Sts = FTP_ERROR;
+										}
+										else
+											Sts = FTP_ERROR;
+									}
+									else
+										Sts = FTP_ERROR;
+								}
+								else
+								{
+									// 暗号化なし
+									CurHost.CryptMode = CRYPT_NONE;
+									SetTaskMsg(MSGJPN314);
+								}
+							}
 
 							ReInPass = NO;
 							do
@@ -2122,4 +2163,25 @@ int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data)
 }
 
 
+
+// 暗号化通信対応
+int AskCryptMode(void)
+{
+	return(CurHost.CryptMode);
+}
+
+int AskUseFTPES(void)
+{
+	return(CurHost.UseFTPES);
+}
+
+int AskUseFTPIS(void)
+{
+	return(CurHost.UseFTPIS);
+}
+
+int AskUseSFTP(void)
+{
+	return(CurHost.UseSFTP);
+}
 

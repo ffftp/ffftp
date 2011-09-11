@@ -335,6 +335,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\socketwrapper.c"
+				>
+			</File>
+			<File
 				RelativePath=".\statuswin.c"
 				>
 			</File>
@@ -373,6 +377,10 @@
 			</File>
 			<File
 				RelativePath=".\Resource_eng\resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\socketwrapper.h"
 				>
 			</File>
 		</Filter>

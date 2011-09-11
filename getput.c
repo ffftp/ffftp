@@ -57,7 +57,7 @@
 #define SOCKBUF_SIZE	(256 * 1024)
 /* End */
 
-#ifdef DISABLE_NETWORK_BUFFERS
+#ifdef DISABLE_TRANSFER_NETWORK_BUFFERS
 #undef BUFSIZE
 #define BUFSIZE			(64 * 1024)	// RWIN値以下で充分な大きさが望ましいと思われる。
 #undef SET_BUFFER_SIZE
@@ -1017,7 +1017,17 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 
 				if(data_socket != INVALID_SOCKET)
 				{
-					iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+					// FTPS対応
+//					iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+					if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
+					{
+						if(AttachSSL(data_socket))
+							iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+						else
+							iRetCode = FTP_ERROR;
+					}
+					else
+						iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 //					data_socket = DoClose(data_socket);
 				}
 			}
@@ -1070,6 +1080,8 @@ static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 		{
 			if((data_socket = connectsock(Adrs, Port, MSGJPN091, CancelCheckWork)) != INVALID_SOCKET)
 			{
+				// 変数が未初期化のバグ修正
+				Flg = 1;
 				if(setsockopt(data_socket, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					ReportWSError("setsockopt", WSAGetLastError());
 
@@ -1079,7 +1091,17 @@ static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					iRetCode = command(Pkt->ctrl_skt, Reply, CancelCheckWork, "%s", Buf);
 					if(iRetCode/100 == FTP_PRELIM)
 					{
-						iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+						// FTPS対応
+//						iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+						if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
+						{
+							if(AttachSSL(data_socket))
+								iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+							else
+								iRetCode = FTP_ERROR;
+						}
+						else
+							iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 //						data_socket = DoClose(data_socket);
 					}
 					else
@@ -1155,8 +1177,8 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 /* End */
 #endif
 
-#ifdef DISABLE_NETWORK_BUFFERS
-	// 念のため受信バッファを無効にする。
+	// 念のため受信バッファを無効にする
+#ifdef DISABLE_TRANSFER_NETWORK_BUFFERS
 	int buf_size = 0;
 	setsockopt(dSkt, SOL_SOCKET, SO_RCVBUF, (char *)&buf_size, sizeof(buf_size));
 #endif
@@ -2002,7 +2024,17 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 
 			if(data_socket != INVALID_SOCKET)
 			{
-				iRetCode = UpLoadFile(Pkt, data_socket);
+				// FTPS対応
+//				iRetCode = UpLoadFile(Pkt, data_socket);
+				if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
+				{
+					if(AttachSSL(data_socket))
+						iRetCode = UpLoadFile(Pkt, data_socket);
+					else
+						iRetCode = FTP_ERROR;
+				}
+				else
+					iRetCode = UpLoadFile(Pkt, data_socket);
 				data_socket = DoClose(data_socket);
 			}
 		}
@@ -2052,6 +2084,8 @@ static int UpLoadPassive(TRANSPACKET *Pkt)
 		{
 			if((data_socket = connectsock(Adrs, Port, MSGJPN109, &Canceled)) != INVALID_SOCKET)
 			{
+				// 変数が未初期化のバグ修正
+				Flg = 1;
 				if(setsockopt(data_socket, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					ReportWSError("setsockopt", WSAGetLastError());
 
@@ -2064,7 +2098,17 @@ static int UpLoadPassive(TRANSPACKET *Pkt)
 				iRetCode = command(Pkt->ctrl_skt, Reply, &Canceled, "%s", Buf);
 				if(iRetCode/100 == FTP_PRELIM)
 				{
-					iRetCode = UpLoadFile(Pkt, data_socket);
+					// FTPS対応
+//					iRetCode = UpLoadFile(Pkt, data_socket);
+					if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
+					{
+						if(AttachSSL(data_socket))
+							iRetCode = UpLoadFile(Pkt, data_socket);
+						else
+							iRetCode = FTP_ERROR;
+					}
+					else
+						iRetCode = UpLoadFile(Pkt, data_socket);
 
 					data_socket = DoClose(data_socket);
 				}
@@ -2140,8 +2184,8 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 /* End */
 #endif
 
-#ifdef DISABLE_NETWORK_BUFFERS
-	// 念のため送信バッファを無効にする。
+	// 念のため送信バッファを無効にする
+#ifdef DISABLE_TRANSFER_NETWORK_BUFFERS
 	int buf_size = 0;
 	setsockopt(dSkt, SOL_SOCKET, SO_SNDBUF, (char *)&buf_size, sizeof(buf_size));
 #endif
@@ -3021,7 +3065,7 @@ static int IsSpecialDevice(char *Fname)
 	int Sts;
 
 	Sts = NO;
-	// バグ修正
+	// 比較が不完全なバグ修正
 //	if((_stricmp(Fname, "CON") == 0) ||
 //	   (_stricmp(Fname, "PRN") == 0) ||
 //	   (_stricmp(Fname, "AUX") == 0) ||

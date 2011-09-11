@@ -462,6 +462,10 @@ void SaveRegistory(void)
 							SaveIntNum(hKey5, "UseIt", Hist.DialupAlways, DefaultHist.DialupAlways);
 							SaveIntNum(hKey5, "Notify", Hist.DialupNotify, DefaultHist.DialupNotify);
 							SaveStr(hKey5, "DialTo", Hist.DialEntry, DefaultHist.DialEntry);
+							// 暗号化通信対応
+							SaveIntNum(hKey5, "FTPES", Hist.UseFTPES, DefaultHist.UseFTPES);
+							SaveIntNum(hKey5, "FTPIS", Hist.UseFTPIS, DefaultHist.UseFTPIS);
+							SaveIntNum(hKey5, "SFTP", Hist.UseSFTP, DefaultHist.UseSFTP);
 
 							CloseSubKey(hKey5);
 							n++;
@@ -530,6 +534,10 @@ void SaveRegistory(void)
 							SaveIntNum(hKey5, "UseIt", Host.DialupAlways, DefaultHost.DialupAlways);
 							SaveIntNum(hKey5, "Notify", Host.DialupNotify, DefaultHost.DialupNotify);
 							SaveStr(hKey5, "DialTo", Host.DialEntry, DefaultHost.DialEntry);
+							// 暗号化通信対応
+							SaveIntNum(hKey5, "FTPES", Host.UseFTPES, DefaultHost.UseFTPES);
+							SaveIntNum(hKey5, "FTPIS", Host.UseFTPIS, DefaultHost.UseFTPIS);
+							SaveIntNum(hKey5, "SFTP", Host.UseSFTP, DefaultHost.UseSFTP);
 						}
 						CloseSubKey(hKey5);
 					}
@@ -780,6 +788,10 @@ int LoadRegistory(void)
 					ReadIntValueFromReg(hKey5, "UseIt", &Hist.DialupAlways);
 					ReadIntValueFromReg(hKey5, "Notify", &Hist.DialupNotify);
 					ReadStringFromReg(hKey5, "DialTo", Hist.DialEntry, RAS_NAME_LEN+1);
+					// 暗号化通信対応
+					ReadIntValueFromReg(hKey5, "FTPES", &Hist.UseFTPES);
+					ReadIntValueFromReg(hKey5, "FTPIS", &Hist.UseFTPIS);
+					ReadIntValueFromReg(hKey5, "SFTP", &Hist.UseSFTP);
 
 					CloseSubKey(hKey5);
 					AddHistoryToHistory(&Hist);
@@ -845,6 +857,10 @@ int LoadRegistory(void)
 					ReadIntValueFromReg(hKey5, "UseIt", &Host.DialupAlways);
 					ReadIntValueFromReg(hKey5, "Notify", &Host.DialupNotify);
 					ReadStringFromReg(hKey5, "DialTo", Host.DialEntry, RAS_NAME_LEN+1);
+					// 暗号化通信対応
+					ReadIntValueFromReg(hKey5, "FTPES", &Host.UseFTPES);
+					ReadIntValueFromReg(hKey5, "FTPIS", &Host.UseFTPIS);
+					ReadIntValueFromReg(hKey5, "SFTP", &Host.UseSFTP);
 
 					CloseSubKey(hKey5);
 

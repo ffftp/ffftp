@@ -284,6 +284,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mbswrapper.c"
+				>
+			</File>
+			<File
 				RelativePath=".\md4.c"
 				>
 			</File>
@@ -332,6 +336,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\socketwrapper.c"
+				>
+			</File>
+			<File
 				RelativePath=".\statuswin.c"
 				>
 			</File>
@@ -365,7 +373,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mbswrapper.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Resource_eng\resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\socketwrapper.h"
 				>
 			</File>
 		</Filter>

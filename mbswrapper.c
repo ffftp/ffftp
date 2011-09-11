@@ -414,6 +414,20 @@ START_ROUTINE
 				pw0 = DuplicateMtoW((LPCSTR)lParam, -1);
 				r = SendMessageW(hWnd, CB_ADDSTRING, wParam, (LPARAM)pw0);
 				break;
+			case CB_GETLBTEXT:
+				Size = SendMessageW(hWnd, CB_GETLBTEXTLEN, wParam, 0) + 1;
+				pw0 = AllocateStringW(Size);
+				SendMessageW(hWnd, CB_GETLBTEXT, wParam, (LPARAM)pw0);
+				// バッファ長不明のためオーバーランの可能性あり
+				WtoM((LPSTR)lParam, Size * 4, pw0, -1);
+				r = TerminateStringM((LPSTR)lParam, Size * 4);
+				break;
+			case CB_GETLBTEXTLEN:
+				Size = SendMessageW(hWnd, CB_GETLBTEXTLEN, wParam, 0) + 1;
+				pw0 = AllocateStringW(Size);
+				SendMessageW(hWnd, WM_GETTEXT, wParam, (LPARAM)pw0);
+				r = WtoM(NULL, 0, pw0, -1) - 1;
+				break;
 			case CB_INSERTSTRING:
 				pw0 = DuplicateMtoW((LPCSTR)lParam, -1);
 				r = SendMessageW(hWnd, CB_INSERTSTRING, wParam, (LPARAM)pw0);
@@ -441,11 +455,17 @@ START_ROUTINE
 				break;
 			case LB_GETTEXT:
 				Size = SendMessageW(hWnd, LB_GETTEXTLEN, wParam, 0) + 1;
-				pw0 = AllocateStringW(Size * 4);
+				pw0 = AllocateStringW(Size);
 				SendMessageW(hWnd, LB_GETTEXT, wParam, (LPARAM)pw0);
 				// バッファ長不明のためオーバーランの可能性あり
 				WtoM((LPSTR)lParam, Size * 4, pw0, -1);
 				r = TerminateStringM((LPSTR)lParam, Size * 4);
+				break;
+			case LB_GETTEXTLEN:
+				Size = SendMessageW(hWnd, LB_GETTEXTLEN, wParam, 0) + 1;
+				pw0 = AllocateStringW(Size);
+				SendMessageW(hWnd, WM_GETTEXT, wParam, (LPARAM)pw0);
+				r = WtoM(NULL, 0, pw0, -1) - 1;
 				break;
 			default:
 				r = SendMessageW(hWnd, Msg, wParam, lParam);
@@ -1342,9 +1362,4 @@ END_ROUTINE
 	FreeDuplicatedString(pw0);
 	return r;
 }
-
-
-
-
-
 

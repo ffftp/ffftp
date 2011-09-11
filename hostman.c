@@ -63,6 +63,8 @@ static BOOL CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPA
 static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+// 暗号化通信対応
+static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 /*===== 外部参照 =====*/
 
@@ -1015,6 +1017,10 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 		Set->UseNLST_R = Pos->Set.UseNLST_R;
 		Set->LastDir = Pos->Set.LastDir;
 		Set->TimeZone = Pos->Set.TimeZone;
+		// 暗号化通信対応
+		Set->UseFTPES = Pos->Set.UseFTPES;
+		Set->UseFTPIS = Pos->Set.UseFTPIS;
+		Set->UseSFTP = Pos->Set.UseSFTP;
 		Sts = SUCCESS;
 	}
 	return(Sts);
@@ -1288,6 +1294,11 @@ void CopyDefaultHost(HOSTDATA *Set)
 	Set->DialupAlways = NO;
 	Set->DialupNotify = YES;
 	strcpy(Set->DialEntry, "");
+	// 暗号化通信対応
+	Set->CryptMode = CRYPT_NONE;
+	Set->UseFTPES = YES;
+	Set->UseFTPIS = YES;
+	Set->UseSFTP = YES;
 	return;
 }
 
@@ -1499,7 +1510,9 @@ void ImportFromWSFTP(void)
 
 static int DispHostSetDlg(HWND hDlg)
 {
-	PROPSHEETPAGE psp[5];
+// SFTP、FTPES、FTPIS対応
+//	PROPSHEETPAGE psp[5];
+	PROPSHEETPAGE psp[6];
 	PROPSHEETHEADER psh;
 
 	psp[0].dwSize = sizeof(PROPSHEETPAGE);
@@ -1551,6 +1564,17 @@ static int DispHostSetDlg(HWND hDlg)
 	psp[4].pszTitle = MSGJPN131;
 	psp[4].lParam = 0;
 	psp[4].pfnCallback = NULL;
+
+// SFTP、FTPES、FTPIS対応
+	psp[5].dwSize = sizeof(PROPSHEETPAGE);
+	psp[5].dwFlags = PSP_USETITLE | PSP_HASHELP;
+	psp[5].hInstance = GetFtpInst();
+	psp[5].pszTemplate = MAKEINTRESOURCE(hset_crypt_dlg);
+	psp[5].pszIcon = NULL;
+	psp[5].pfnDlgProc = CryptSettingProc;
+	psp[5].pszTitle = MSGJPN313;
+	psp[5].lParam = 0;
+	psp[5].pfnCallback = NULL;
 
 	psh.dwSize = sizeof(PROPSHEETHEADER);
 	psh.dwFlags = PSH_HASHELP | PSH_NOAPPLYNOW | PSH_PROPSHEETPAGE;
@@ -1851,11 +1875,11 @@ static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 
 				// UTF-8対応
 				case HSET_NO_CNV :
-				case HSET_SJIS_CNV :
 				case HSET_UTF8N_CNV :
 					EnableWindow(GetDlgItem(hDlg, HSET_HANCNV), FALSE);
 					break;
 
+				case HSET_SJIS_CNV :
 				case HSET_FN_JIS_CNV :
 				case HSET_FN_EUC_CNV :
 					EnableWindow(GetDlgItem(hDlg, HSET_FN_HANCNV), TRUE);
@@ -2066,6 +2090,68 @@ static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 					break;
 			}
 			return(TRUE);
+	}
+	return(FALSE);
+}
+
+
+// 暗号化通信対応
+static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+	NMHDR *pnmhdr;
+	int Num;
+
+	switch (iMessage)
+	{
+		case WM_INITDIALOG :
+			if(IsOpenSSLLoaded())
+			{
+				SendDlgItemMessage(hDlg, HSET_FTPES, BM_SETCHECK, TmpHost.UseFTPES, 0);
+				SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, TmpHost.UseFTPIS, 0);
+				SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, TmpHost.UseSFTP, 0);
+			}
+			else
+			{
+				SendDlgItemMessage(hDlg, HSET_FTPES, BM_SETCHECK, BST_UNCHECKED, 0);
+				EnableWindow(GetDlgItem(hDlg, HSET_FTPES), FALSE);
+				SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, BST_UNCHECKED, 0);
+				EnableWindow(GetDlgItem(hDlg, HSET_FTPIS), FALSE);
+				SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, BST_UNCHECKED, 0);
+				EnableWindow(GetDlgItem(hDlg, HSET_SFTP), FALSE);
+			}
+			// TODO: FTPIS対応
+			SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, BST_UNCHECKED, 0);
+			EnableWindow(GetDlgItem(hDlg, HSET_FTPIS), FALSE);
+			// TODO: SFTP対応
+			SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, BST_UNCHECKED, 0);
+			EnableWindow(GetDlgItem(hDlg, HSET_SFTP), FALSE);
+			return(TRUE);
+
+		case WM_NOTIFY:
+			pnmhdr = (NMHDR FAR *)lParam;
+			switch(pnmhdr->code)
+			{
+				case PSN_APPLY :
+					if(IsOpenSSLLoaded())
+					{
+						TmpHost.UseFTPES = SendDlgItemMessage(hDlg, HSET_FTPES, BM_GETCHECK, 0, 0);
+						// TODO: FTPIS対応
+//						TmpHost.UseFTPIS = SendDlgItemMessage(hDlg, HSET_FTPIS, BM_GETCHECK, 0, 0);
+						// TODO: SFTP対応
+//						TmpHost.UseSFTP = SendDlgItemMessage(hDlg, HSET_SFTP, BM_GETCHECK, 0, 0);
+					}
+					Apply = YES;
+					break;
+
+				case PSN_RESET :
+					break;
+
+				case PSN_HELP :
+					// TODO: ヘルプトピック
+//					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000032);
+					break;
+			}
+			break;
 	}
 	return(FALSE);
 }
