@@ -86,7 +86,8 @@ BOOL LoadOpenSSL()
 		|| !(pSSL_read = (_SSL_read)GetProcAddress(g_hOpenSSL, "SSL_read"))
 		|| !(pSSL_get_error = (_SSL_get_error)GetProcAddress(g_hOpenSSL, "SSL_get_error")))
 	{
-		FreeLibrary(g_hOpenSSL);
+		if(g_hOpenSSL)
+			FreeLibrary(g_hOpenSSL);
 		g_hOpenSSL = NULL;
 		return FALSE;
 	}
@@ -155,6 +156,8 @@ SSL** FindSSLPointerFromSocket(SOCKET s)
 
 void SetSSLTimeoutCallback(DWORD Timeout, LPSSLTIMEOUTCALLBACK pCallback)
 {
+	if(!g_bOpenSSLLoaded)
+		return;
 	EnterCriticalSection(&g_OpenSSLLock);
 	g_OpenSSLTimeout = Timeout;
 	g_pOpenSSLTimeoutCallback = pCallback;
@@ -166,6 +169,8 @@ BOOL AttachSSL(SOCKET s)
 	BOOL r;
 	DWORD Time;
 	SSL** ppSSL;
+	if(!g_bOpenSSLLoaded)
+		return FALSE;
 	r = FALSE;
 	Time = timeGetTime();
 	EnterCriticalSection(&g_OpenSSLLock);
@@ -207,6 +212,8 @@ BOOL DetachSSL(SOCKET s)
 {
 	BOOL r;
 	SSL** ppSSL;
+	if(!g_bOpenSSLLoaded)
+		return FALSE;
 	r = FALSE;
 	EnterCriticalSection(&g_OpenSSLLock);
 	if(ppSSL = FindSSLPointerFromSocket(s))
@@ -223,6 +230,8 @@ BOOL DetachSSL(SOCKET s)
 BOOL IsSSLAttached(SOCKET s)
 {
 	SSL** ppSSL;
+	if(!g_bOpenSSLLoaded)
+		return FALSE;
 	EnterCriticalSection(&g_OpenSSLLock);
 	ppSSL = FindSSLPointerFromSocket(s);
 	LeaveCriticalSection(&g_OpenSSLLock);
@@ -276,6 +285,8 @@ int closesocketS(SOCKET s)
 int sendS(SOCKET s, const char * buf, int len, int flags)
 {
 	SSL** ppSSL;
+	if(!g_bOpenSSLLoaded)
+		return send(s, buf, len, flags);
 	EnterCriticalSection(&g_OpenSSLLock);
 	ppSSL = FindSSLPointerFromSocket(s);
 	LeaveCriticalSection(&g_OpenSSLLock);
@@ -287,6 +298,8 @@ int sendS(SOCKET s, const char * buf, int len, int flags)
 int recvS(SOCKET s, char * buf, int len, int flags)
 {
 	SSL** ppSSL;
+	if(!g_bOpenSSLLoaded)
+		return recv(s, buf, len, flags);
 	EnterCriticalSection(&g_OpenSSLLock);
 	ppSSL = FindSSLPointerFromSocket(s);
 	LeaveCriticalSection(&g_OpenSSLLock);
