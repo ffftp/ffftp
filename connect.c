@@ -45,6 +45,10 @@
 #include <htmlhelp.h>
 #include "helpid.h"
 
+// UTF-8対応
+#undef __MBSWRAPPER_H__
+#include "mbswrapper.h"
+
 
 /*===== プロトタイプ =====*/
 
@@ -1227,6 +1231,7 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 				Flg = 1;
 				if(setsockopt(ContSock, SOL_SOCKET, SO_OOBINLINE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					ReportWSError("setsockopt", WSAGetLastError());
+				// データ転送用ソケットのTCP遅延転送が無効されているので念のため
 				if(setsockopt(ContSock, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					ReportWSError("setsockopt", WSAGetLastError());
 #pragma aaa

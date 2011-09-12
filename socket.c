@@ -74,6 +74,7 @@ typedef struct {
 
 
 // スレッド衝突のバグ修正
+// 念のためテーブルを増量
 //#define MAX_SIGNAL_ENTRY		10
 //#define MAX_SIGNAL_ENTRY_DBASE	5
 #define MAX_SIGNAL_ENTRY		100

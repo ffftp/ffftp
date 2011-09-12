@@ -45,6 +45,10 @@
 #include <htmlhelp.h>
 #include "helpid.h"
 
+// UTF-8対応
+#undef __MBSWRAPPER_H__
+#include "mbswrapper.h"
+
 
 /*===== プロトタイプ =====*/
 

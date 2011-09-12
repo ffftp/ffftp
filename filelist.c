@@ -54,6 +54,10 @@
 #include "OleDragDrop.h"
 #include "common.h"
 
+// UTF-8対応
+#undef __MBSWRAPPER_H__
+#include "mbswrapper.h"
+
 #define BUF_SIZE		256
 #define CF_CNT 2
 #define WM_DRAGDROP		(WM_APP + 100)
@@ -603,14 +607,19 @@ static HDROP APIPRIVATE CreateDropFileMem(char **FileName,int cnt,BOOL fWide)
 	if(fWide == TRUE){
 		/* ワイドキャラ */
 		for(i = 0;i < cnt;i++){
-			MultiByteToWideChar(CP_ACP,0,FileName[i],-1,wbuf,BUF_SIZE);
-			flen += (wcslen(wbuf) + 1) * sizeof(wchar_t);
+			// UTF-8対応
+//			MultiByteToWideChar(CP_ACP,0,FileName[i],-1,wbuf,BUF_SIZE);
+//			flen += (wcslen(wbuf) + 1) * sizeof(wchar_t);
+			flen += sizeof(wchar_t) * MtoW(NULL, 0, FileName[i], -1);
 		}
 		flen++;
 	}else{
 		/* マルチバイト */
 		for(i = 0;i < cnt;i++){
-			flen += lstrlen(FileName[i]) + 1;
+			// UTF-8対応
+//			flen += lstrlen(FileName[i]) + 1;
+			MtoW(wbuf, BUF_SIZE, FileName[i], -1);
+			flen += sizeof(char) * WtoA(NULL, 0, wbuf, -1);
 		}
 	}
 
@@ -633,9 +642,11 @@ static HDROP APIPRIVATE CreateDropFileMem(char **FileName,int cnt,BOOL fWide)
 
 		buf = (wchar_t *)(&lpDropFile[1]);
 		for(i = 0;i < cnt;i++){
-			MultiByteToWideChar(CP_ACP,0,FileName[i],-1,wbuf,BUF_SIZE);
-			wcscpy(buf,wbuf);
-			buf += wcslen(wbuf) + 1;
+			// UTF-8対応
+//			MultiByteToWideChar(CP_ACP,0,FileName[i],-1,wbuf,BUF_SIZE);
+//			wcscpy(buf,wbuf);
+//			buf += wcslen(wbuf) + 1;
+			buf += MtoW(buf, BUF_SIZE, FileName[i], -1);
 		}
 	}else{
 		/* マルチバイト */
@@ -643,8 +654,11 @@ static HDROP APIPRIVATE CreateDropFileMem(char **FileName,int cnt,BOOL fWide)
 
 		buf = (char *)(&lpDropFile[1]);
 		for(i = 0;i < cnt;i++){
-			lstrcpy(buf,FileName[i]);
-			buf += lstrlen(FileName[i]) + 1;
+			// UTF-8対応
+//			lstrcpy(buf,FileName[i]);
+//			buf += lstrlen(FileName[i]) + 1;
+			MtoW(wbuf, BUF_SIZE, FileName[i], -1);
+			buf += WtoA(buf, BUF_SIZE, wbuf, -1);
 		}
 	}
 
@@ -829,6 +843,8 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  					char LocDir[FMAX_PATH+1];
  					char *PathDir;
  
+					// 変数が未初期化のバグ修正
+					FileListBaseNoExpand = NULL;
  					// ローカル側で選ばれているファイルをFileListBaseに登録
  					if (hWndDragStart == hWndListLocal) {
  						AskLocalCurDir(LocDir, FMAX_PATH);
@@ -868,6 +884,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  					}
  					
  					/* ファイル名の配列を作成する */
+					// TODO: GlobalAllocが返すのはメモリポインタではなくハンドルだが実際は同じ値
  					FileNameList = (char **)GlobalAlloc(GPTR,sizeof(char *) * filenum);
  					if(FileNameList == NULL){
  						abort();
@@ -4922,9 +4939,11 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day)
 		{
 			if(!IsDigit(*Pos))
 			{
-				if((_mbsncmp(Pos, "月", 1) == 0) ||
-				   (memcmp(Pos, "\xB7\xEE", 2) == 0) ||	/* EUCの「月」 */
-				   (memcmp(Pos, "\xD4\xC2", 2) == 0))	/* GBコードの「月」 */
+				// UTF-8対応
+//				if((_mbsncmp(Pos, "月", 1) == 0) ||
+//				   (memcmp(Pos, "\xB7\xEE", 2) == 0) ||	/* EUCの「月」 */
+//				   (memcmp(Pos, "\xD4\xC2", 2) == 0))	/* GBコードの「月」 */
+				if(memcmp(Pos, "\xE6\x9C\x88", 3) == 0 || memcmp(Pos, "\x8C\x8E", 2) == 0 || memcmp(Pos, "\xB7\xEE", 2) == 0 || memcmp(Pos, "\xD4\xC2", 2) == 0)
 				{
 					Pos += 2;
 					*Month = atoi(Str);
@@ -5053,8 +5072,10 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 				{
 					if(IsDigit(*Pos) == 0)
 					{
-						if((_mbsncmp(Pos, "時", 1) == 0) ||
-						   (memcmp(Pos, "\xBB\xFE", 2) == 0))	/* EUCの「時」 */
+						// UTF-8対応
+//						if((_mbsncmp(Pos, "時", 1) == 0) ||
+//						   (memcmp(Pos, "\xBB\xFE", 2) == 0))	/* EUCの「時」 */
+						if(memcmp(Pos, "\xE6\x99\x82", 3) == 0 || memcmp(Pos, "\x8E\x9E", 2) == 0 || memcmp(Pos, "\xBB\xFE", 2) == 0)
 						{
 							Pos += 2;
 							if(*Pos != NUL)

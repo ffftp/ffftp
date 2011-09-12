@@ -13,4 +13,6 @@
 //#define DISABLE_TRANSFER_NETWORK_BUFFERS
 // コントロール用のネットワークバッファを無効にする（フリーズ対策）
 #define DISABLE_CONTROL_NETWORK_BUFFERS
+// JRE32.DLLを無効にする（UTF-8に非対応のため）
+#define DISABLE_JRE32DLL
 

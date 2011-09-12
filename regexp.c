@@ -64,6 +64,11 @@ int LoadJre(void)
 {
 	int Sts;
 
+	// UTF-8‘Î‰ž
+	// JRE32.DLL‚ÍUTF-8‚É”ñ‘Î‰ž
+#ifdef DISABLE_JRE32DLL
+	return FALSE;
+#endif
 	Sts = FALSE;
 	if((m_hDll = LoadLibrary("jre32.dll")) != NULL)
 	{

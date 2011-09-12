@@ -5,11 +5,13 @@
 // 全ての制御用の文字はASCIIの範囲であるため、Shift_JISとUTF-8間の変換は不要
 
 #define UNICODE
+#define _UNICODE
 #define _WIN32_WINNT 0x0600
 #undef _WIN32_IE
 #define _WIN32_IE 0x0400
 
 #include <tchar.h>
+#include <direct.h>
 #include <windows.h>
 #include <commctrl.h>
 #include <shlobj.h>
@@ -21,8 +23,8 @@
 // マルチバイト文字列からワイド文字列へ変換
 int MtoW(LPWSTR pDst, int size, LPCSTR pSrc, int count)
 {
-	if(pSrc < (LPCSTR)0x00010000 || !((char*)pSrc + 1))
-		return 0;
+	if(pSrc < (LPCSTR)0x00010000 || pSrc == (LPCSTR)~0)
+		return pSrc;
 	if(pDst)
 		return MultiByteToWideChar(CP_UTF8, 0, pSrc, count, pDst, size);
 	return MultiByteToWideChar(CP_UTF8, 0, pSrc, count, NULL, 0);
@@ -31,8 +33,8 @@ int MtoW(LPWSTR pDst, int size, LPCSTR pSrc, int count)
 // ワイド文字列からマルチバイト文字列へ変換
 int WtoM(LPSTR pDst, int size, LPCWSTR pSrc, int count)
 {
-	if(pSrc < (LPCWSTR)0x00010000 || !((char*)pSrc + 1))
-		return 0;
+	if(pSrc < (LPCWSTR)0x00010000 || pSrc == (LPCWSTR)~0)
+		return pSrc;
 	if(pDst)
 		return WideCharToMultiByte(CP_UTF8, 0, pSrc, count, pDst, size, NULL, NULL);
 	return WideCharToMultiByte(CP_UTF8, 0, pSrc, count, NULL, 0, NULL, NULL);
@@ -41,8 +43,8 @@ int WtoM(LPSTR pDst, int size, LPCWSTR pSrc, int count)
 // ワイド文字列からShift_JIS文字列へ変換
 int WtoA(LPSTR pDst, int size, LPCWSTR pSrc, int count)
 {
-	if(pSrc < (LPCWSTR)0x00010000 || !((char*)pSrc + 1))
-		return 0;
+	if(pSrc < (LPCWSTR)0x00010000 || pSrc == (LPCWSTR)~0)
+		return pSrc;
 	if(pDst)
 		return WideCharToMultiByte(CP_ACP, 0, pSrc, count, pDst, size, NULL, NULL);
 	return WideCharToMultiByte(CP_ACP, 0, pSrc, count, NULL, 0, NULL, NULL);
@@ -52,7 +54,7 @@ int WtoA(LPSTR pDst, int size, LPCWSTR pSrc, int count)
 int TerminateStringM(LPSTR lpString, int size)
 {
 	int i;
-	if(lpString < (LPSTR)0x00010000 || !((char*)lpString + 1))
+	if(lpString < (LPSTR)0x00010000 || lpString == (LPSTR)~0)
 		return 0;
 	for(i = 0; i < size; i++)
 	{
@@ -68,7 +70,7 @@ int TerminateStringM(LPSTR lpString, int size)
 int TerminateStringW(LPWSTR lpString, int size)
 {
 	int i;
-	if(lpString < (LPWSTR)0x00010000 || !((char*)lpString + 1))
+	if(lpString < (LPWSTR)0x00010000 || lpString == (LPWSTR)~0)
 		return 0;
 	for(i = 0; i < size; i++)
 	{
@@ -84,7 +86,7 @@ int TerminateStringW(LPWSTR lpString, int size)
 size_t GetMultiStringLengthM(LPCSTR lpString)
 {
 	size_t i;
-	if(lpString < (LPCSTR)0x00010000 || !((char*)lpString + 1))
+	if(lpString < (LPCSTR)0x00010000 || lpString == (LPCSTR)~0)
 		return 0;
 	i = 0;
 	while(lpString[i] != '\0' || lpString[i + 1] != '\0')
@@ -99,7 +101,7 @@ size_t GetMultiStringLengthM(LPCSTR lpString)
 size_t GetMultiStringLengthW(LPCWSTR lpString)
 {
 	size_t i;
-	if(lpString < (LPCWSTR)0x00010000 || !((char*)lpString + 1))
+	if(lpString < (LPCWSTR)0x00010000 || lpString == (LPCWSTR)~0)
 		return 0;
 	i = 0;
 	while(lpString[i] != L'\0' || lpString[i + 1] != L'\0')
@@ -114,7 +116,9 @@ size_t GetMultiStringLengthW(LPCWSTR lpString)
 char* AllocateStringM(int size)
 {
 	char* p;
-	p = (char*)malloc(sizeof(char) * size);
+	// 0が指定される場合があるため1文字分追加
+	p = (char*)malloc(sizeof(char) * (size + 1));
+	// 念のため先頭にNULL文字を代入
 	if(p)
 		*p = '\0';
 	return p;
@@ -124,7 +128,9 @@ char* AllocateStringM(int size)
 wchar_t* AllocateStringW(int size)
 {
 	wchar_t* p;
-	p = (wchar_t*)malloc(sizeof(wchar_t) * size);
+	// 0が指定される場合があるため1文字分追加
+	p = (wchar_t*)malloc(sizeof(wchar_t) * (size + 1));
+	// 念のため先頭にNULL文字を代入
 	if(p)
 		*p = L'\0';
 	return p;
@@ -134,7 +140,9 @@ wchar_t* AllocateStringW(int size)
 char* AllocateStringA(int size)
 {
 	char* p;
-	p = (char*)malloc(sizeof(char) * size);
+	// 0が指定される場合があるため1文字分追加
+	p = (char*)malloc(sizeof(char) * (size + 1));
+	// 念のため先頭にNULL文字を代入
 	if(p)
 		*p = '\0';
 	return p;
@@ -145,7 +153,7 @@ wchar_t* DuplicateMtoW(LPCSTR lpString, int c)
 {
 	wchar_t* p;
 	int i;
-	if(lpString < (LPCSTR)0x00010000 || !((char*)lpString + 1))
+	if(lpString < (LPCSTR)0x00010000 || lpString == (LPCSTR)~0)
 		return (wchar_t*)lpString;
 	if(c < 0)
 		c = strlen(lpString);
@@ -163,7 +171,7 @@ wchar_t* DuplicateMtoWBuffer(LPCSTR lpString, int c, int size)
 {
 	wchar_t* p;
 	int i;
-	if(lpString < (LPCSTR)0x00010000 || !((char*)lpString + 1))
+	if(lpString < (LPCSTR)0x00010000 || lpString == (LPCSTR)~0)
 		return (wchar_t*)lpString;
 	if(c < 0)
 		c = strlen(lpString);
@@ -181,7 +189,7 @@ wchar_t* DuplicateMtoWMultiString(LPCSTR lpString)
 {
 	int count;
 	wchar_t* p;
-	if(lpString < (LPCSTR)0x00010000 || !((char*)lpString + 1))
+	if(lpString < (LPCSTR)0x00010000 || lpString == (LPCSTR)~0)
 		return (wchar_t*)lpString;
 	count = GetMultiStringLengthM(lpString) + 1;
 	p = AllocateStringW(count);
@@ -195,7 +203,7 @@ wchar_t* DuplicateMtoWMultiStringBuffer(LPCSTR lpString, int size)
 {
 	int count;
 	wchar_t* p;
-	if(lpString < (LPCSTR)0x00010000 || !((char*)lpString + 1))
+	if(lpString < (LPCSTR)0x00010000 || lpString == (LPCSTR)~0)
 		return (wchar_t*)lpString;
 	count = GetMultiStringLengthM(lpString) + 1;
 	p = AllocateStringW(size);
@@ -213,7 +221,7 @@ char* DuplicateWtoM(LPCWSTR lpString, int c)
 {
 	char* p;
 	int i;
-	if(lpString < (LPCWSTR)0x00010000 || !((char*)lpString + 1))
+	if(lpString < (LPCWSTR)0x00010000 || lpString == (LPCWSTR)~0)
 		return (char*)lpString;
 	if(c < 0)
 		c = wcslen(lpString);
@@ -231,7 +239,7 @@ char* DuplicateWtoA(LPCWSTR lpString, int c)
 {
 	char* p;
 	int i;
-	if(lpString < (LPCWSTR)0x00010000 || !((char*)lpString + 1))
+	if(lpString < (LPCWSTR)0x00010000 || lpString == (LPCWSTR)~0)
 		return (char*)lpString;
 	if(c < 0)
 		c = wcslen(lpString);
@@ -247,7 +255,7 @@ char* DuplicateWtoA(LPCWSTR lpString, int c)
 // 文字列用に確保したメモリを開放
 void FreeDuplicatedString(void* p)
 {
-	if(p < (void*)0x00010000 || !((char*)p + 1))
+	if(p < (void*)0x00010000 || p == (void*)~0)
 		return;
 	free(p);
 }
@@ -340,8 +348,26 @@ END_ROUTINE
 
 DWORD GetLogicalDriveStringsM(DWORD nBufferLength, LPSTR lpBuffer)
 {
-	// TODO: 本来は変換が必要だが半角英数のみと思われるので省略
-	return GetLogicalDriveStringsA(nBufferLength, lpBuffer);
+	DWORD r = 0;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = AllocateStringW(nBufferLength * 4);
+	GetLogicalDriveStringsW(nBufferLength * 4, pw0);
+	WtoM(lpBuffer, nBufferLength, pw0, -1);
+	r = TerminateStringM(lpBuffer, nBufferLength);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+ATOM RegisterClassExM(CONST WNDCLASSEXA * v0)
+{
+	LRESULT r = 0;
+START_ROUTINE
+	// WNDPROCがShift_JIS用であるため
+	r = RegisterClassExA(v0);
+END_ROUTINE
+	return r;
 }
 
 HWND CreateWindowExM(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
@@ -356,6 +382,58 @@ START_ROUTINE
 END_ROUTINE
 	FreeDuplicatedString(pw0);
 	FreeDuplicatedString(pw1);
+	return r;
+}
+
+LONG GetWindowLongM(HWND hWnd, int nIndex)
+{
+	LRESULT r = 0;
+START_ROUTINE
+	// WNDPROCがShift_JIS用であるため
+	if(IsWindowUnicode(hWnd))
+		r = GetWindowLongW(hWnd, nIndex);
+	else
+		r = GetWindowLongA(hWnd, nIndex);
+END_ROUTINE
+	return r;
+}
+
+LONG SetWindowLongM(HWND hWnd, int nIndex, LONG dwNewLong)
+{
+	LRESULT r = 0;
+START_ROUTINE
+	// WNDPROCがShift_JIS用であるため
+	if(IsWindowUnicode(hWnd))
+		r = SetWindowLongW(hWnd, nIndex, dwNewLong);
+	else
+		r = SetWindowLongA(hWnd, nIndex, dwNewLong);
+END_ROUTINE
+	return r;
+}
+
+LRESULT DefWindowProcM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+	LRESULT r = 0;
+START_ROUTINE
+	// WNDPROCがShift_JIS用であるため
+	if(IsWindowUnicode(hWnd))
+		r = DefWindowProcW(hWnd, Msg, wParam, lParam);
+	else
+		r = DefWindowProcA(hWnd, Msg, wParam, lParam);
+END_ROUTINE
+	return r;
+}
+
+LRESULT CallWindowProcM(WNDPROC lpPrevWndFunc, HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+	LRESULT r = 0;
+START_ROUTINE
+	// WNDPROCがShift_JIS用であるため
+	if(IsWindowUnicode(hWnd))
+		r = CallWindowProcW(lpPrevWndFunc, hWnd, Msg, wParam, lParam);
+	else
+		r = CallWindowProcA(lpPrevWndFunc, hWnd, Msg, wParam, lParam);
+END_ROUTINE
 	return r;
 }
 
@@ -544,6 +622,28 @@ START_ROUTINE
 				wLVFindInfo.vkDirection = pmLVFindInfo->vkDirection;
 				r = SendMessageW(hWnd, LVM_FINDITEMW, wParam, (LPARAM)&wLVItem);
 				break;
+			case LVM_GETCOLUMNA:
+				pmLVColumn = (LVCOLUMNA*)lParam;
+				wLVColumn.mask = pmLVColumn->mask;
+				wLVColumn.fmt = pmLVColumn->fmt;
+				wLVColumn.cx = pmLVColumn->cx;
+				Size = pmLVColumn->cchTextMax * 4;
+				pw0 = AllocateStringW(Size);
+				wLVColumn.pszText = pw0;
+				wLVColumn.cchTextMax = Size;
+				wLVColumn.iSubItem = pmLVColumn->iSubItem;
+				wLVColumn.iImage = pmLVColumn->iImage;
+				wLVColumn.iOrder = pmLVColumn->iOrder;
+				r = SendMessageW(hWnd, LVM_GETCOLUMNW, wParam, (LPARAM)&wLVColumn);
+				pmLVColumn->mask = wLVColumn.mask;
+				pmLVColumn->fmt = wLVColumn.fmt;
+				pmLVColumn->cx = wLVColumn.cx;
+				WtoM(pmLVColumn->pszText, pmLVColumn->cchTextMax, wLVColumn.pszText, -1);
+				TerminateStringM(pmLVColumn->pszText, pmLVColumn->cchTextMax);
+				pmLVColumn->iSubItem = wLVColumn.iSubItem;
+				pmLVColumn->iImage = wLVColumn.iImage;
+				pmLVColumn->iOrder = wLVColumn.iOrder;
+				break;
 			case LVM_INSERTCOLUMNA:
 				pmLVColumn = (LVCOLUMNA*)lParam;
 				wLVColumn.mask = pmLVColumn->mask;
@@ -551,6 +651,7 @@ START_ROUTINE
 				wLVColumn.cx = pmLVColumn->cx;
 				pw0 = DuplicateMtoW(pmLVColumn->pszText, -1);
 				wLVColumn.pszText = pw0;
+				// TODO: cchTextMaxの確認
 				wLVColumn.cchTextMax = pmLVColumn->cchTextMax;
 				wLVColumn.iSubItem = pmLVColumn->iSubItem;
 				wLVColumn.iImage = pmLVColumn->iImage;
@@ -611,6 +712,19 @@ END_ROUTINE
 	return r;
 }
 
+LRESULT DefDlgProcM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+	LRESULT r = 0;
+START_ROUTINE
+	// WNDPROCがShift_JIS用であるため
+	if(IsWindowUnicode(hWnd))
+		r = DefDlgProcW(hWnd, Msg, wParam, lParam);
+	else
+		r = DefDlgProcA(hWnd, Msg, wParam, lParam);
+END_ROUTINE
+	return r;
+}
+
 LRESULT SendDlgItemMessageM(HWND hDlg, int nIDDlgItem, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT r = 0;
@@ -637,10 +751,15 @@ UINT DragQueryFileM(HDROP hDrop, UINT iFile, LPSTR lpszFile, UINT cch)
 	UINT r = 0;
 	wchar_t* pw0 = NULL;
 START_ROUTINE
-	pw0 = AllocateStringW(cch * 4);
-	DragQueryFileW(hDrop, iFile, pw0, cch * 4);
-	WtoM(lpszFile, cch, pw0, -1);
-	r = TerminateStringM(lpszFile, cch);
+	if(iFile == (UINT)-1)
+		r = DragQueryFileW(hDrop, iFile, lpszFile, cch);
+	else
+	{
+		pw0 = AllocateStringW(cch * 4);
+		DragQueryFileW(hDrop, iFile, pw0, cch * 4);
+		WtoM(lpszFile, cch, pw0, -1);
+		r = TerminateStringM(lpszFile, cch);
+	}
 END_ROUTINE
 	FreeDuplicatedString(pw0);
 	return r;
@@ -679,6 +798,20 @@ BOOL SetDllDirectoryM(LPCSTR lpPathName)
 START_ROUTINE
 	pw0 = DuplicateMtoW(lpPathName, -1);
 	r = SetDllDirectoryW(pw0);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+DWORD GetTempPathM(DWORD nBufferLength, LPSTR lpBuffer)
+{
+	DWORD r = 0;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = AllocateStringW(nBufferLength * 4);
+	GetTempPathW(nBufferLength * 4, pw0);
+	WtoM(lpBuffer, nBufferLength, pw0, -1);
+	r = TerminateStringM(lpBuffer, nBufferLength);
 END_ROUTINE
 	FreeDuplicatedString(pw0);
 	return r;
@@ -1358,6 +1491,229 @@ INT_PTR DialogBoxParamM(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndPar
 START_ROUTINE
 	pw0 = DuplicateMtoW(lpTemplateName, -1);
 	r = DialogBoxParamW(hInstance, pw0, hWndParent, lpDialogFunc, dwInitParam);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+HWND CreateDialogParamM(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam)
+{
+	HWND r = NULL;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(lpTemplateName, -1);
+	r = CreateDialogParamW(hInstance, pw0, hWndParent, lpDialogFunc, dwInitParam);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+int mkdirM(const char * _Path)
+{
+	int r = 0;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_Path, -1);
+	r = _wmkdir(pw0);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+int _mkdirM(const char * _Path)
+{
+	int r = 0;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_Path, -1);
+	r = _wmkdir(pw0);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+int rmdirM(const char * _Path)
+{
+	int r = 0;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_Path, -1);
+	r = _wrmdir(pw0);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+int _rmdirM(const char * _Path)
+{
+	int r = 0;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_Path, -1);
+	r = _wrmdir(pw0);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+size_t _mbslenM(const unsigned char * _Str)
+{
+	size_t r = 0;
+	wchar_t* pw0 = NULL;
+	wchar_t* wr;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_Str, -1);
+	r = wcslen(pw0);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+unsigned char * _mbschrM(const unsigned char * _Str, unsigned int _Ch)
+{
+	unsigned char* r = NULL;
+	wchar_t* pw0 = NULL;
+	wchar_t* wr;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_Str, -1);
+	// TODO: 非ASCII文字の対応
+	wr = wcschr(pw0, _Ch);
+	if(wr)
+	{
+		*wr = L'\0';
+		r = _Str + WtoM(NULL, 0, pw0, -1) - 1;
+	}
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+unsigned char * _mbsrchrM(const unsigned char * _Str, unsigned int _Ch)
+{
+	unsigned char* r = NULL;
+	wchar_t* pw0 = NULL;
+	wchar_t* wr;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_Str, -1);
+	// TODO: 非ASCII文字の対応
+	wr = wcsrchr(pw0, _Ch);
+	if(wr)
+	{
+		*wr = L'\0';
+		r = _Str + WtoM(NULL, 0, pw0, -1) - 1;
+	}
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+unsigned char * _mbsstrM(const unsigned char * _Str, const unsigned char * _Substr)
+{
+	unsigned char* r = NULL;
+	wchar_t* pw0 = NULL;
+	wchar_t* pw1 = NULL;
+	wchar_t* wr;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_Str, -1);
+	pw1 = DuplicateMtoW(_Substr, -1);
+	wr = wcsstr(pw0, pw1);
+	if(wr)
+	{
+		*wr = L'\0';
+		r = _Str + WtoM(NULL, 0, pw0, -1) - 1;
+	}
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	FreeDuplicatedString(pw1);
+	return r;
+}
+
+int _mbscmpM(const unsigned char * _Str1, const unsigned char * _Str2)
+{
+	int r = 0;
+	wchar_t* pw0 = NULL;
+	wchar_t* pw1 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_Str1, -1);
+	pw1 = DuplicateMtoW(_Str2, -1);
+	r = wcscmp(pw0, pw1);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	FreeDuplicatedString(pw1);
+	return r;
+}
+
+int _mbsicmpM(const unsigned char * _Str1, const unsigned char * _Str2)
+{
+	int r = 0;
+	wchar_t* pw0 = NULL;
+	wchar_t* pw1 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_Str1, -1);
+	pw1 = DuplicateMtoW(_Str2, -1);
+	r = _wcsicmp(pw0, pw1);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	FreeDuplicatedString(pw1);
+	return r;
+}
+
+int _mbsncmpM(const unsigned char * _Str1, const unsigned char * _Str2, size_t _MaxCount)
+{
+	int r = 0;
+	wchar_t* pw0 = NULL;
+	wchar_t* pw1 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_Str1, -1);
+	pw1 = DuplicateMtoW(_Str2, -1);
+	r = wcsncmp(pw0, pw1, _MaxCount);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	FreeDuplicatedString(pw1);
+	return r;
+}
+
+unsigned char * _mbslwrM(unsigned char * _String)
+{
+	unsigned char* r = NULL;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_String, -1);
+	_wcslwr(pw0);
+	r = _String;
+	WtoM(_String, strlen(_String) + 1, pw0, -1);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+unsigned char * _mbsuprM(unsigned char * _String)
+{
+	unsigned char* r = NULL;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_String, -1);
+	_wcsupr(pw0);
+	r = _String;
+	WtoM(_String, strlen(_String) + 1, pw0, -1);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+unsigned char * _mbsnincM(const unsigned char * _Str, size_t _Count)
+{
+	unsigned char* r = NULL;
+	wchar_t* pw0 = NULL;
+	wchar_t* wr;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_Str, -1);
+	wr = _wcsninc(pw0, _Count);
+	if(wr)
+	{
+		*wr = L'\0';
+		r = _Str + WtoM(NULL, 0, pw0, -1) - 1;
+	}
 END_ROUTINE
 	FreeDuplicatedString(pw0);
 	return r;

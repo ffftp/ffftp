@@ -46,6 +46,10 @@
 #include <htmlhelp.h>
 #include "helpid.h"
 
+// UTF-8対応
+#undef __MBSWRAPPER_H__
+#include "mbswrapper.h"
+
 
 #define RESIZE_OFF		0		/* ウインドウの区切り位置変更していない */
 #define RESIZE_ON		1		/* ウインドウの区切り位置変更中 */
@@ -152,7 +156,9 @@ int RecvMode = TRANS_DLG;
 int SendMode = TRANS_DLG;
 int MoveMode = MOVE_DLG;
 int ListType = LVS_REPORT;
-int CacheEntry = 10;
+// LISTのキャッシュを無効にする（リモートのディレクトリの表示が更新されないバグ対策）
+//int CacheEntry = 10;
+int CacheEntry = -10;
 int CacheSave = NO;
 char DefaultLocalPath[FMAX_PATH+1] = { "" };
 int SaveTimeStamp = YES;
