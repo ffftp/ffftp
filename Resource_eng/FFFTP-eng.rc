@@ -228,20 +228,21 @@ END
 // Dialog
 //
 
-about_dlg DIALOGEX 0, 0, 195, 209
+about_dlg DIALOGEX 0, 0, 315, 293
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About FFFTP"
 FONT 9, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,72,188,50,14
+    DEFPUSHBUTTON   "OK",IDOK,132,272,50,14
     ICON            ffftp,-1,7,4,20,20
-    CTEXT           "FFFTP  Ver 1.97b",-1,50,11,90,8
-    CTEXT           "FFFTP is freeware",-1,7,173,181,8
-    CTEXT           "Copyright(C) 1997-2010 Sota && cooperators",-1,7,25,181,8
-    CTEXT           "",ABOUT_JRE,7,57,181,8
-    EDITTEXT        ABOUT_URL,7,40,181,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
-    CTEXT           "OLE D&&D by Yutaka Hirata-san, nakka-san\nIn site file mover by Hirata-san\nAny issues by miau-san\nMaster Password by Gengen-san\nAES encryption by Moca-san\n\nI had cooperation of many other one.",-1,7,106,181,59
-    CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,74,181,27
+    CTEXT           "FFFTP  Ver 1.98",-1,110,11,90,8
+    CTEXT           "FFFTP is freeware",-1,7,257,301,8
+    CTEXT           "Copyright(C) 1997-2010 Sota && cooperators\nCopyright (C) 2011 Hiromichi Matsushima, Suguru Kawamoto.",-1,7,25,301,20
+    CTEXT           "",ABOUT_JRE,7,69,301,8
+    EDITTEXT        ABOUT_URL,7,52,301,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
+    CTEXT           "OLE D&&D by Yutaka Hirata-san, nakka-san\nIn site file mover by Hirata-san\nAny issues by miau-san\nMaster Password by Gengen-san\nAES encryption by Moca-san\n\nI had cooperation of many other one.",-1,7,118,301,59
+    CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,86,301,27
+    CTEXT           "OpenSSL is used for implementation of FTP over SSL/TLS.\nCopyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.",-1,7,185,305,60
 END
 
 transfer_dlg DIALOG  0, 0, 199, 91
@@ -1387,9 +1388,9 @@ BEGIN
     about_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 188
+        RIGHTMARGIN, 308
         TOPMARGIN, 4
-        BOTTOMMARGIN, 202
+        BOTTOMMARGIN, 286
     END
 
     transfer_dlg, DIALOG
@@ -2015,8 +2016,8 @@ nodrop_csr              CURSOR                  "nodrop_c.cur"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,97,2,0
- PRODUCTVERSION 1,97,2,0
+ FILEVERSION 1,98,0,0
+ PRODUCTVERSION 1,98,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2034,12 +2035,12 @@ BEGIN
             VALUE "Comments", "This software is Free Software"
             VALUE "CompanyName", " Sota"
             VALUE "FileDescription", "FFFTP"
-            VALUE "FileVersion", "1, 97, 2, 0"
+            VALUE "FileVersion", "1, 98, 0, 0"
             VALUE "InternalName", "FFFTP"
-            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & cooperators"
+            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & cooperators\nCopyright (C) 2011 Hiromichi Matsushima, Suguru Kawamoto."
             VALUE "OriginalFilename", "FFFTP.exe"
             VALUE "ProductName", "FFFTP"
-            VALUE "ProductVersion", "1, 97, 2, 0"
+            VALUE "ProductVersion", "1, 98, 0, 0"
         END
     END
     BLOCK "VarFileInfo"

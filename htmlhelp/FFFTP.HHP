@@ -1,20 +1,21 @@
 [OPTIONS]
-Auto Index = Yes
-Binary Index = No
-Binary TOC = No
-Compatibility = 1.1 or later
-Title = FFFTP
-Compiled file = FFFTP.CHM
-Contents file = FFFTP.HHC
-Index file = FFFTP.HHK
-Error log file = FFFTP.LOG
-Display compile progress = Yes
-Language = 0x411 日本語
-Full-text search = Yes
-Default Window = DefaultWindow
+Auto Index=Yes
+Binary Index=No
+Compatibility=1.1 or later
+Compiled file=FFFTP.CHM
+Contents file=FFFTP.HHC
+Default Window=DefaultWindow
+Default topic=HTML\H0000001.HTM
+Display compile progress=Yes
+Error log file=FFFTP.LOG
+Full-text search=Yes
+Index file=FFFTP.HHK
+Language=0x411 日本語
+Title=FFFTP
 
 [WINDOWS]
-DefaultWindow="","FFFTP.HHC","FFFTP.HHK","","","","","","",0x2420,0,0x3006,[0,0,0,0],0x0,0x0,,0,0,,0
+DefaultWindow=,"FFFTP.HHC","FFFTP.HHK",,,,,,,0x2420,,0x3006,,0x0,0x0,,0,0,,0
+
 
 [FILES]
 HTML\H0000001.HTM
@@ -76,6 +77,7 @@ HTML\H0000060.HTM
 HTML\H0000061.HTM
 HTML\H0000062.HTM
 HTML\H0000064.HTM
+HTML\H0000065.HTM
 
 [ALIAS]
 IDH_HELP_TOPIC_0000001 = HTML\H0000001.HTM ; はじめに
@@ -137,6 +139,10 @@ IDH_HELP_TOPIC_0000060 = HTML\H0000060.HTM ; 作成
 IDH_HELP_TOPIC_0000061 = HTML\H0000061.HTM ; ファイルの選択
 IDH_HELP_TOPIC_0000062 = HTML\H0000062.HTM ; ブックマーク
 IDH_HELP_TOPIC_0000064 = HTML\H0000064.HTM ; マスターパスワード
+IDH_HELP_TOPIC_0000065 = HTML\H0000065.HTM ; 暗号化
 
 [MAP]
 #include helpid.h
+
+[INFOTYPES]
+

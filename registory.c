@@ -809,7 +809,9 @@ int LoadRegistory(void)
 				{
 					CopyDefaultHost(&Host);
 					/* 下位互換性のため */
-					if(Version < VER_NUM)
+					// SourceForge.JPによるフォーク
+//					if(Version < VER_NUM)
+					if(Version < 1921)
 					{
 						Host.Pasv = NO;
 						Host.ListCmdOnly = NO;

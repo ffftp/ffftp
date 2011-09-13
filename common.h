@@ -63,9 +63,13 @@
 
 /*===== バージョン ======*/
 
-#define VER_STR					"1.97b"
-#define VER_NUM					1921		/* 設定バージョン */
-#define PROGRAM_VERSION_NUM		1972		/* バージョン */
+// SourceForge.JPによるフォーク
+//#define VER_STR					"1.97b"
+//#define VER_NUM					1921		/* 設定バージョン */
+//#define PROGRAM_VERSION_NUM		1972		/* バージョン */
+#define VER_STR					"1.98"
+#define VER_NUM					1980		/* 設定バージョン */
+#define PROGRAM_VERSION_NUM		1980		/* バージョン */
 
 
 #define MYWEB_URL	"http://www2.biglobe.ne.jp/~sota/ffftp-qa.html"

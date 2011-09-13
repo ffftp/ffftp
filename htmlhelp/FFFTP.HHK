@@ -319,5 +319,10 @@
 		<param name="Name" value="マスターパスワード">
 		<param name="Local" value="HTML\H0000064.HTM">
 		</OBJECT>
+	<LI><OBJECT type="text/sitemap">
+		<param name="Name" value="暗号化">
+		<param name="Name" value="暗号化">
+		<param name="Local" value="HTML\H0000065.HTM">
+		</OBJECT>
 </UL>
 </BODY></HTML>

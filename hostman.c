@@ -2151,8 +2151,7 @@ static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, L
 					break;
 
 				case PSN_HELP :
-					// TODO: ヘルプトピック
-//					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000032);
+					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000065);
 					break;
 			}
 			break;

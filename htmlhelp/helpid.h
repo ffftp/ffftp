@@ -57,3 +57,4 @@
 #define	IDH_HELP_TOPIC_0000061	61	/* ファイルの選択 */
 #define	IDH_HELP_TOPIC_0000062	62	/* ブックマーク */
 #define	IDH_HELP_TOPIC_0000064	64	/* マスターパスワード */
+#define	IDH_HELP_TOPIC_0000065	65	/* 暗号化 */

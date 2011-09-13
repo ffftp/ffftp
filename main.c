@@ -427,7 +427,9 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					DoPrintf("DEBUG MESSAGE ON ! ##");
 
 					DispWindowTitle();
-					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.");
+					// SourceForge.JPによるフォーク
+//					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.");
+					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011 Hiromichi Matsushima, Suguru Kawamoto.");
 
 					if(ForceIni)
 						SetTaskMsg("%s%s", MSGJPN283, IniPath);

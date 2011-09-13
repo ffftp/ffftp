@@ -228,20 +228,21 @@ END
 // Dialog
 //
 
-about_dlg DIALOGEX 0, 0, 199, 207
+about_dlg DIALOGEX 0, 0, 319, 291
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "FFFTPについて"
 FONT 9, "ＭＳ Ｐゴシック", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,73,186,50,14
+    DEFPUSHBUTTON   "OK",IDOK,133,270,50,14
     ICON            ffftp,-1,7,4,20,20
-    CTEXT           "FFFTP  Ver 1.97b",-1,53,11,90,8
-    CTEXT           "FFFTPはfreewareです",-1,7,171,185,8
-    CTEXT           "Copyright(C) 1997-2010 Sota & ご協力いただいた方々",-1,7,25,185,8,SS_NOPREFIX
-    CTEXT           "",ABOUT_JRE,7,60,185,8
-    EDITTEXT        ABOUT_URL,7,40,185,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
-    CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,107,185,60
-    CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,75,185,27
+    CTEXT           "FFFTP  Ver 1.98",-1,113,11,90,8
+    CTEXT           "FFFTPはfreewareです",-1,7,255,305,8
+    CTEXT           "Copyright(C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011 Hiromichi Matsushima, Suguru Kawamoto.",-1,7,25,305,20,SS_NOPREFIX
+    CTEXT           "",ABOUT_JRE,7,72,305,8
+    EDITTEXT        ABOUT_URL,7,52,305,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
+    CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,119,305,60
+    CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,87,305,27
+    CTEXT           "FTP over SSL/TLSの実装にはOpenSSLが使用されています。\nCopyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.",-1,7,183,305,60
 END
 
 transfer_dlg DIALOG  0, 0, 199, 91
@@ -1362,9 +1363,9 @@ BEGIN
     about_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 192
+        RIGHTMARGIN, 312
         TOPMARGIN, 4
-        BOTTOMMARGIN, 200
+        BOTTOMMARGIN, 284
     END
 
     transfer_dlg, DIALOG
@@ -1993,8 +1994,8 @@ nodrop_csr              CURSOR                  "nodrop_c.cur"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,97,2,0
- PRODUCTVERSION 1,97,2,0
+ FILEVERSION 1,98,0,0
+ PRODUCTVERSION 1,98,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2012,12 +2013,12 @@ BEGIN
             VALUE "Comments", "これはフリーソフトウエアです。"
             VALUE "CompanyName", " "
             VALUE "FileDescription", "FFFTP"
-            VALUE "FileVersion", "1, 97, 2, 0"
+            VALUE "FileVersion", "1, 98, 0, 0"
             VALUE "InternalName", "FFFTP"
-            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & ご協力いただいた方々"
+            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011 Hiromichi Matsushima, Suguru Kawamoto."
             VALUE "OriginalFilename", "FFFTP.exe"
             VALUE "ProductName", "FFFTP"
-            VALUE "ProductVersion", "1, 97, 2, 0"
+            VALUE "ProductVersion", "1, 98, 0, 0"
         END
     END
     BLOCK "VarFileInfo"
