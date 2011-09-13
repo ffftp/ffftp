@@ -15,9 +15,9 @@
 	</ToolFiles>
 	<Configurations>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory=".\FFFTP_Eng_Release"
-			IntermediateDirectory=".\FFFTP_Eng_Release"
+			Name="Debug|Win32"
+			OutputDirectory=".\FFFTP_Eng_Debug"
+			IntermediateDirectory=".\FFFTP_Eng_Debug"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
@@ -37,33 +37,33 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
+				PreprocessorDefinitions="_DEBUG"
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\FFFTP_Eng_Release/FFFTP_English.tlb"
+				TypeLibraryName=".\FFFTP_Eng_Debug\FFFTP_English.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				InlineFunctionExpansion="1"
+				Optimization="0"
 				AdditionalIncludeDirectories="Resource_eng"
-				PreprocessorDefinitions="WIN32,NDEBUG,_WINDOWS,_WIN32_IE=0x300,_CRT_SECURE_NO_WARNINGS,ENGLISH"
-				StringPooling="true"
-				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\FFFTP_Eng_Release/FFFTP_English.pch"
-				AssemblerListingLocation=".\FFFTP_Eng_Release/"
-				ObjectFile=".\FFFTP_Eng_Release/"
-				ProgramDataBaseFileName=".\FFFTP_Eng_Release/"
+				PreprocessorDefinitions="WIN32,_DEBUG,_WINDOWS,_WIN32_IE=0x300,_CRT_SECURE_NO_WARNINGS,ENGLISH"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				PrecompiledHeaderFile=".\FFFTP_Eng_Debug\FFFTP_English.pch"
+				AssemblerListingLocation=".\FFFTP_Eng_Debug\"
+				ObjectFile=".\FFFTP_Eng_Debug\"
+				ProgramDataBaseFileName=".\FFFTP_Eng_Debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
+				DebugInformationFormat="4"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
+				PreprocessorDefinitions="_DEBUG"
 				Culture="1033"
 			/>
 			<Tool
@@ -73,10 +73,12 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="wsock32.lib comctl32.lib winmm.lib htmlhelp.lib"
-				OutputFile="FFFTP_Eng_Release/FFFTP.exe"
-				LinkIncremental="1"
+				OutputFile=".\FFFTP_Eng_Debug\FFFTP.exe"
+				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				ProgramDatabaseFile=".\FFFTP_Eng_Release/FFFTP.pdb"
+				GenerateManifest="false"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile=".\FFFTP_Eng_Debug\FFFTP.pdb"
 				SubSystem="2"
 			/>
 			<Tool
@@ -105,9 +107,9 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory=".\FFFTP_Eng_Debug"
-			IntermediateDirectory=".\FFFTP_Eng_Debug"
+			Name="Release|Win32"
+			OutputDirectory=".\FFFTP_Eng_Release"
+			IntermediateDirectory=".\FFFTP_Eng_Release"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
@@ -127,33 +129,33 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
+				PreprocessorDefinitions="NDEBUG"
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName=".\FFFTP_Eng_Debug/FFFTP_English.tlb"
+				TypeLibraryName=".\FFFTP_Eng_Release\FFFTP_English.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="0"
+				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="Resource_eng"
-				PreprocessorDefinitions="WIN32,_DEBUG,_WINDOWS,_WIN32_IE=0x300,_CRT_SECURE_NO_WARNINGS,ENGLISH"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\FFFTP_Eng_Debug/FFFTP_English.pch"
-				AssemblerListingLocation=".\FFFTP_Eng_Debug/"
-				ObjectFile=".\FFFTP_Eng_Debug/"
-				ProgramDataBaseFileName=".\FFFTP_Eng_Debug/"
+				PreprocessorDefinitions="WIN32,NDEBUG,_WINDOWS,_WIN32_IE=0x300,_CRT_SECURE_NO_WARNINGS,ENGLISH"
+				StringPooling="true"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="true"
+				PrecompiledHeaderFile=".\FFFTP_Eng_Release\FFFTP_English.pch"
+				AssemblerListingLocation=".\FFFTP_Eng_Release\"
+				ObjectFile=".\FFFTP_Eng_Release\"
+				ProgramDataBaseFileName=".\FFFTP_Eng_Release\"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
-				DebugInformationFormat="4"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
+				PreprocessorDefinitions="NDEBUG"
 				Culture="1033"
 			/>
 			<Tool
@@ -163,11 +165,11 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="wsock32.lib comctl32.lib winmm.lib htmlhelp.lib"
-				OutputFile="FFFTP_Eng_Debug/FFFTP.exe"
-				LinkIncremental="2"
+				OutputFile=".\FFFTP_Eng_Release\FFFTP.exe"
+				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\FFFTP_Eng_Debug/FFFTP.pdb"
+				GenerateManifest="false"
+				ProgramDatabaseFile=".\FFFTP_Eng_Release\FFFTP.pdb"
 				SubSystem="2"
 			/>
 			<Tool

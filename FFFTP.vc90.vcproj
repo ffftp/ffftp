@@ -16,8 +16,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="."
-			IntermediateDirectory=".\debug"
+			OutputDirectory=".\Debug"
+			IntermediateDirectory=".\Debug"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
@@ -41,7 +41,7 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName="./FFFTP.tlb"
+				TypeLibraryName=".\Debug\FFFTP.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -49,10 +49,10 @@
 				AdditionalIncludeDirectories="Resource"
 				PreprocessorDefinitions="WIN32,_DEBUG,_WINDOWS,_WIN32_IE=0x300,_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\debug/FFFTP.pch"
-				AssemblerListingLocation=".\debug/"
-				ObjectFile=".\debug/"
-				ProgramDataBaseFileName=".\debug/"
+				PrecompiledHeaderFile=".\Debug\FFFTP.pch"
+				AssemblerListingLocation=".\Debug\"
+				ObjectFile=".\Debug\"
+				ProgramDataBaseFileName=".\Debug\"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
@@ -72,11 +72,12 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="wsock32.lib comctl32.lib winmm.lib htmlhelp.lib"
-				OutputFile="./FFFTP.exe"
+				OutputFile=".\Debug\FFFTP.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="./FFFTP.pdb"
+				ProgramDatabaseFile=".\Debug\FFFTP.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -105,7 +106,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="."
+			OutputDirectory=".\Release"
 			IntermediateDirectory=".\Release"
 			ConfigurationType="1"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
@@ -130,7 +131,7 @@
 				MkTypLibCompatible="true"
 				SuppressStartupBanner="true"
 				TargetEnvironment="1"
-				TypeLibraryName="./FFFTP.tlb"
+				TypeLibraryName=".\Release\FFFTP.tlb"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -140,10 +141,10 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\Release/FFFTP.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
-				ProgramDataBaseFileName=".\Release/"
+				PrecompiledHeaderFile=".\Release\FFFTP.pch"
+				AssemblerListingLocation=".\Release\"
+				ObjectFile=".\Release\"
+				ProgramDataBaseFileName=".\Release\"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="0"
@@ -163,11 +164,11 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="wsock32.lib comctl32.lib winmm.lib RASAPI32.LIB htmlhelp.lib"
-				OutputFile="./FFFTP.exe"
+				OutputFile=".\Release\FFFTP.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				GenerateDebugInformation="false"
-				ProgramDatabaseFile="./FFFTP.pdb"
+				GenerateManifest="false"
+				ProgramDatabaseFile=".\Release\FFFTP.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -402,10 +403,6 @@
 			</File>
 			<File
 				RelativePath=".\Resource\drag_csr.cur"
-				>
-			</File>
-			<File
-				RelativePath=".\Resource\ico00001.ico"
 				>
 			</File>
 			<File

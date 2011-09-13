@@ -535,7 +535,13 @@ static int MakeAllWindows(int cmdShow)
 		WinPosX = CW_USEDEFAULT;
 		WinPosY = 0;
 	}
-	hWndFtp = CreateWindow(FtpClassStr, "FFFTP",
+	// UTF-8対応
+	// ユーザー定義のクラスはデフォルトのWNDPROCがShift_JIS専用のため
+//	hWndFtp = CreateWindow(FtpClassStr, "FFFTP",
+//				WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
+//				WinPosX, WinPosY, WinWidth, WinHeight,
+//				HWND_DESKTOP, 0, hInstFtp, NULL);
+	hWndFtp = CreateWindowA(FtpClassStr, "FFFTP",
 				WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
 				WinPosX, WinPosY, WinWidth, WinHeight,
 				HWND_DESKTOP, 0, hInstFtp, NULL);

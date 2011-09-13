@@ -11,22 +11,22 @@
 
 #include "socketwrapper.h"
 
-typedef void (__stdcall* _SSL_load_error_strings)();
-typedef int (__stdcall* _SSL_library_init)();
-typedef SSL_METHOD* (__stdcall* _SSLv23_method)();
-typedef SSL_CTX* (__stdcall* _SSL_CTX_new)(SSL_METHOD*);
-typedef void (__stdcall* _SSL_CTX_free)(SSL_CTX*);
-typedef SSL* (__stdcall* _SSL_new)(SSL_CTX*);
-typedef void (__stdcall* _SSL_free)(SSL*);
-typedef int (__stdcall* _SSL_shutdown)(SSL*);
-typedef int (__stdcall* _SSL_get_fd)(SSL*);
-typedef int (__stdcall* _SSL_set_fd)(SSL*, int);
-typedef int (__stdcall* _SSL_accept)(SSL*);
-typedef int (__stdcall* _SSL_connect)(SSL*);
-typedef int (__stdcall* _SSL_write)(SSL*, const void*, int);
-typedef int (__stdcall* _SSL_peek)(SSL*, void*, int);
-typedef int (__stdcall* _SSL_read)(SSL*, void*, int);
-typedef int (__stdcall* _SSL_get_error)(SSL*, int);
+typedef void (__cdecl* _SSL_load_error_strings)();
+typedef int (__cdecl* _SSL_library_init)();
+typedef SSL_METHOD* (__cdecl* _SSLv23_method)();
+typedef SSL_CTX* (__cdecl* _SSL_CTX_new)(SSL_METHOD*);
+typedef void (__cdecl* _SSL_CTX_free)(SSL_CTX*);
+typedef SSL* (__cdecl* _SSL_new)(SSL_CTX*);
+typedef void (__cdecl* _SSL_free)(SSL*);
+typedef int (__cdecl* _SSL_shutdown)(SSL*);
+typedef int (__cdecl* _SSL_get_fd)(SSL*);
+typedef int (__cdecl* _SSL_set_fd)(SSL*, int);
+typedef int (__cdecl* _SSL_accept)(SSL*);
+typedef int (__cdecl* _SSL_connect)(SSL*);
+typedef int (__cdecl* _SSL_write)(SSL*, const void*, int);
+typedef int (__cdecl* _SSL_peek)(SSL*, void*, int);
+typedef int (__cdecl* _SSL_read)(SSL*, void*, int);
+typedef int (__cdecl* _SSL_get_error)(SSL*, int);
 
 _SSL_load_error_strings pSSL_load_error_strings;
 _SSL_library_init pSSL_library_init;

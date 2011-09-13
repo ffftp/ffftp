@@ -24,7 +24,7 @@
 int MtoW(LPWSTR pDst, int size, LPCSTR pSrc, int count)
 {
 	if(pSrc < (LPCSTR)0x00010000 || pSrc == (LPCSTR)~0)
-		return pSrc;
+		return 0;
 	if(pDst)
 		return MultiByteToWideChar(CP_UTF8, 0, pSrc, count, pDst, size);
 	return MultiByteToWideChar(CP_UTF8, 0, pSrc, count, NULL, 0);
@@ -34,7 +34,7 @@ int MtoW(LPWSTR pDst, int size, LPCSTR pSrc, int count)
 int WtoM(LPSTR pDst, int size, LPCWSTR pSrc, int count)
 {
 	if(pSrc < (LPCWSTR)0x00010000 || pSrc == (LPCWSTR)~0)
-		return pSrc;
+		return 0;
 	if(pDst)
 		return WideCharToMultiByte(CP_UTF8, 0, pSrc, count, pDst, size, NULL, NULL);
 	return WideCharToMultiByte(CP_UTF8, 0, pSrc, count, NULL, 0, NULL, NULL);
@@ -44,7 +44,7 @@ int WtoM(LPSTR pDst, int size, LPCWSTR pSrc, int count)
 int WtoA(LPSTR pDst, int size, LPCWSTR pSrc, int count)
 {
 	if(pSrc < (LPCWSTR)0x00010000 || pSrc == (LPCWSTR)~0)
-		return pSrc;
+		return 0;
 	if(pDst)
 		return WideCharToMultiByte(CP_ACP, 0, pSrc, count, pDst, size, NULL, NULL);
 	return WideCharToMultiByte(CP_ACP, 0, pSrc, count, NULL, 0, NULL, NULL);
@@ -109,6 +109,60 @@ size_t GetMultiStringLengthW(LPCWSTR lpString)
 		i++;
 	}
 	i++;
+	return i;
+}
+
+// NULL区切りマルチバイト文字列からワイド文字列へ変換
+int MtoWMultiString(LPWSTR pDst, int size, LPCSTR pSrc)
+{
+	int i;
+	if(pSrc < (LPCSTR)0x00010000 || pSrc == (LPCSTR)~0)
+		return 0;
+	if(!pDst)
+		return GetMultiStringLengthM(pSrc);
+	i = 0;
+	while(*pSrc != '\0')
+	{
+		i += MultiByteToWideChar(CP_UTF8, 0, pSrc, -1, pDst + i, size - i - 1);
+		pSrc += strlen(pSrc) + 1;
+	}
+	pDst[i] = L'\0';
+	return i;
+}
+
+// NULL区切りワイド文字列からマルチバイト文字列へ変換
+int WtoMMultiString(LPSTR pDst, int size, LPCWSTR pSrc)
+{
+	int i;
+	if(pSrc < (LPCWSTR)0x00010000 || pSrc == (LPCWSTR)~0)
+		return 0;
+	if(!pDst)
+		return GetMultiStringLengthW(pSrc);
+	i = 0;
+	while(*pSrc != L'\0')
+	{
+		i += WideCharToMultiByte(CP_UTF8, 0, pSrc, -1, pDst + i, size - i - 1, NULL, NULL);
+		pSrc += wcslen(pSrc) + 1;
+	}
+	pDst[i] = '\0';
+	return i;
+}
+
+// NULL区切りワイド文字列からマルチバイト文字列へ変換
+int WtoAMultiString(LPSTR pDst, int size, LPCWSTR pSrc)
+{
+	int i;
+	if(pSrc < (LPCWSTR)0x00010000 || pSrc == (LPCWSTR)~0)
+		return 0;
+	if(!pDst)
+		return GetMultiStringLengthW(pSrc);
+	i = 0;
+	while(*pSrc != L'\0')
+	{
+		i += WideCharToMultiByte(CP_ACP, 0, pSrc, -1, pDst + i, size - i - 1, NULL, NULL);
+		pSrc += wcslen(pSrc) + 1;
+	}
+	pDst[i] = '\0';
 	return i;
 }
 
@@ -353,7 +407,7 @@ DWORD GetLogicalDriveStringsM(DWORD nBufferLength, LPSTR lpBuffer)
 START_ROUTINE
 	pw0 = AllocateStringW(nBufferLength * 4);
 	GetLogicalDriveStringsW(nBufferLength * 4, pw0);
-	WtoM(lpBuffer, nBufferLength, pw0, -1);
+	WtoMMultiString(lpBuffer, nBufferLength, pw0);
 	r = TerminateStringM(lpBuffer, nBufferLength);
 END_ROUTINE
 	FreeDuplicatedString(pw0);
@@ -362,7 +416,7 @@ END_ROUTINE
 
 ATOM RegisterClassExM(CONST WNDCLASSEXA * v0)
 {
-	LRESULT r = 0;
+	ATOM r = 0;
 START_ROUTINE
 	// WNDPROCがShift_JIS用であるため
 	r = RegisterClassExA(v0);
@@ -561,10 +615,13 @@ START_ROUTINE
 				wLVItem.iSubItem = pmLVItem->iSubItem;
 				wLVItem.state = pmLVItem->state;
 				wLVItem.stateMask = pmLVItem->stateMask;
-				Size = pmLVItem->cchTextMax * 4;
-				pw0 = AllocateStringW(Size);
-				wLVItem.pszText = pw0;
-				wLVItem.cchTextMax = Size;
+				if(pmLVItem->mask & LVIF_TEXT)
+				{
+					Size = pmLVItem->cchTextMax * 4;
+					pw0 = AllocateStringW(Size);
+					wLVItem.pszText = pw0;
+					wLVItem.cchTextMax = Size;
+				}
 				wLVItem.iImage = pmLVItem->iImage;
 				wLVItem.lParam = pmLVItem->lParam;
 				wLVItem.iIndent = pmLVItem->iIndent;
@@ -574,8 +631,11 @@ START_ROUTINE
 				pmLVItem->iSubItem = wLVItem.iSubItem;
 				pmLVItem->state = wLVItem.state;
 				pmLVItem->stateMask = wLVItem.stateMask;
-				WtoM(pmLVItem->pszText, pmLVItem->cchTextMax, wLVItem.pszText, -1);
-				TerminateStringM(pmLVItem->pszText, pmLVItem->cchTextMax);
+				if(pmLVItem->mask & LVIF_TEXT)
+				{
+					WtoM(pmLVItem->pszText, pmLVItem->cchTextMax, wLVItem.pszText, -1);
+					TerminateStringM(pmLVItem->pszText, pmLVItem->cchTextMax);
+				}
 				pmLVItem->iImage = wLVItem.iImage;
 				pmLVItem->lParam = wLVItem.lParam;
 				pmLVItem->iIndent = wLVItem.iIndent;
@@ -587,10 +647,13 @@ START_ROUTINE
 				wLVItem.iSubItem = pmLVItem->iSubItem;
 				wLVItem.state = pmLVItem->state;
 				wLVItem.stateMask = pmLVItem->stateMask;
-				pw0 = DuplicateMtoW(pmLVItem->pszText, -1);
-				wLVItem.pszText = pw0;
-				// TODO: cchTextMaxの確認
-				wLVItem.cchTextMax = pmLVItem->cchTextMax;
+				if(pmLVItem->mask & LVIF_TEXT)
+				{
+					pw0 = DuplicateMtoW(pmLVItem->pszText, -1);
+					wLVItem.pszText = pw0;
+					// TODO: cchTextMaxの確認
+					wLVItem.cchTextMax = pmLVItem->cchTextMax;
+				}
 				wLVItem.iImage = pmLVItem->iImage;
 				wLVItem.lParam = pmLVItem->lParam;
 				wLVItem.iIndent = pmLVItem->iIndent;
@@ -603,10 +666,13 @@ START_ROUTINE
 				wLVItem.iSubItem = pmLVItem->iSubItem;
 				wLVItem.state = pmLVItem->state;
 				wLVItem.stateMask = pmLVItem->stateMask;
-				pw0 = DuplicateMtoW(pmLVItem->pszText, -1);
-				wLVItem.pszText = pw0;
-				// TODO: cchTextMaxの確認
-				wLVItem.cchTextMax = pmLVItem->cchTextMax;
+				if(pmLVItem->mask & LVIF_TEXT)
+				{
+					pw0 = DuplicateMtoW(pmLVItem->pszText, -1);
+					wLVItem.pszText = pw0;
+					// TODO: cchTextMaxの確認
+					wLVItem.cchTextMax = pmLVItem->cchTextMax;
+				}
 				wLVItem.iImage = pmLVItem->iImage;
 				wLVItem.lParam = pmLVItem->lParam;
 				wLVItem.iIndent = pmLVItem->iIndent;
@@ -615,8 +681,11 @@ START_ROUTINE
 			case LVM_FINDITEMA:
 				pmLVFindInfo = (LVFINDINFOA*)lParam;
 				wLVFindInfo.flags = pmLVFindInfo->flags;
-				pw0 = DuplicateMtoW(pmLVFindInfo->psz, -1);
-				wLVFindInfo.psz = pw0;
+				if(pmLVFindInfo->flags & (LVFI_STRING | LVFI_PARTIAL))
+				{
+					pw0 = DuplicateMtoW(pmLVFindInfo->psz, -1);
+					wLVFindInfo.psz = pw0;
+				}
 				wLVFindInfo.lParam = pmLVFindInfo->lParam;
 				wLVFindInfo.pt = pmLVFindInfo->pt;
 				wLVFindInfo.vkDirection = pmLVFindInfo->vkDirection;
@@ -628,9 +697,12 @@ START_ROUTINE
 				wLVColumn.fmt = pmLVColumn->fmt;
 				wLVColumn.cx = pmLVColumn->cx;
 				Size = pmLVColumn->cchTextMax * 4;
-				pw0 = AllocateStringW(Size);
-				wLVColumn.pszText = pw0;
-				wLVColumn.cchTextMax = Size;
+				if(pmLVColumn->mask & LVCF_TEXT)
+				{
+					pw0 = AllocateStringW(Size);
+					wLVColumn.pszText = pw0;
+					wLVColumn.cchTextMax = Size;
+				}
 				wLVColumn.iSubItem = pmLVColumn->iSubItem;
 				wLVColumn.iImage = pmLVColumn->iImage;
 				wLVColumn.iOrder = pmLVColumn->iOrder;
@@ -638,8 +710,11 @@ START_ROUTINE
 				pmLVColumn->mask = wLVColumn.mask;
 				pmLVColumn->fmt = wLVColumn.fmt;
 				pmLVColumn->cx = wLVColumn.cx;
-				WtoM(pmLVColumn->pszText, pmLVColumn->cchTextMax, wLVColumn.pszText, -1);
-				TerminateStringM(pmLVColumn->pszText, pmLVColumn->cchTextMax);
+				if(pmLVColumn->mask & LVCF_TEXT)
+				{
+					WtoM(pmLVColumn->pszText, pmLVColumn->cchTextMax, wLVColumn.pszText, -1);
+					TerminateStringM(pmLVColumn->pszText, pmLVColumn->cchTextMax);
+				}
 				pmLVColumn->iSubItem = wLVColumn.iSubItem;
 				pmLVColumn->iImage = wLVColumn.iImage;
 				pmLVColumn->iOrder = wLVColumn.iOrder;
@@ -649,10 +724,13 @@ START_ROUTINE
 				wLVColumn.mask = pmLVColumn->mask;
 				wLVColumn.fmt = pmLVColumn->fmt;
 				wLVColumn.cx = pmLVColumn->cx;
-				pw0 = DuplicateMtoW(pmLVColumn->pszText, -1);
-				wLVColumn.pszText = pw0;
-				// TODO: cchTextMaxの確認
-				wLVColumn.cchTextMax = pmLVColumn->cchTextMax;
+				if(pmLVColumn->mask & LVCF_TEXT)
+				{
+					pw0 = DuplicateMtoW(pmLVColumn->pszText, -1);
+					wLVColumn.pszText = pw0;
+					// TODO: cchTextMaxの確認
+					wLVColumn.cchTextMax = pmLVColumn->cchTextMax;
+				}
 				wLVColumn.iSubItem = pmLVColumn->iSubItem;
 				wLVColumn.iImage = pmLVColumn->iImage;
 				wLVColumn.iOrder = pmLVColumn->iOrder;
@@ -752,7 +830,7 @@ UINT DragQueryFileM(HDROP hDrop, UINT iFile, LPSTR lpszFile, UINT cch)
 	wchar_t* pw0 = NULL;
 START_ROUTINE
 	if(iFile == (UINT)-1)
-		r = DragQueryFileW(hDrop, iFile, lpszFile, cch);
+		r = DragQueryFileW(hDrop, iFile, (LPWSTR)lpszFile, cch);
 	else
 	{
 		pw0 = AllocateStringW(cch * 4);
@@ -1560,7 +1638,6 @@ size_t _mbslenM(const unsigned char * _Str)
 {
 	size_t r = 0;
 	wchar_t* pw0 = NULL;
-	wchar_t* wr;
 START_ROUTINE
 	pw0 = DuplicateMtoW(_Str, -1);
 	r = wcslen(pw0);
