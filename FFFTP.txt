@@ -173,6 +173,7 @@ and/or fitness for purpose.
 
 
 FTP over SSL/TLS‚ÌÀ‘•‚É‚ÍOpenSSL‚ªg—p‚³‚ê‚Ä‚¢‚Ü‚·B
+This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit.
 
   OpenSSL License
   ---------------
