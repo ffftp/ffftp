@@ -1466,8 +1466,8 @@ static int CheckOnEUC(uchar *Pos, uchar *Btm)
 }
 
 
-// UTF-8N対応 ここから↓
-/*----- UTF-8N漢字コードをSHIFT-JIS漢字コードに変換 ------------------------------
+// UTF-8対応 ここから↓
+/*----- UTF-8漢字コードをSHIFT-JIS漢字コードに変換 ------------------------------
 *
 *	Parameter
 *		CODECONVINFO *cInfo : 漢字コード変換情報
@@ -1614,7 +1614,7 @@ int ConvUTF8NtoSJIS(CODECONVINFO *cInfo)
 	return(Continue);
 }
 
-/*----- SHIFT-JIS漢字コードをUTF-8N漢字コードに変換 ------------------------------
+/*----- SHIFT-JIS漢字コードをUTF-8漢字コードに変換 ------------------------------
 *
 *	Parameter
 *		CODECONVINFO *cInfo : 漢字コード変換情報
@@ -1785,7 +1785,7 @@ int ConvSJIStoUTF8N(CODECONVINFO *cInfo)
 
 	return(Continue);
 }
-// UTF-8N対応 ここまで↑
+// UTF-8対応 ここまで↑
 
 
 /*----- IBM拡張漢字をNEC選定IBM拡張漢字等に変換 -------------------------------

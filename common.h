@@ -678,7 +678,7 @@ LIST_UNIX_70
 #define KANJI_EUC		2		/* EUC */
 #define KANJI_SMB_HEX	3		/* Samba-HEX */
 #define KANJI_SMB_CAP	4		/* Samba-CAP */
-#define KANJI_UTF8N		5		/* UTF-8N */
+#define KANJI_UTF8N		5		/* UTF-8 */
 
 #define KANJI_NOCNV		-1		/* äøéöÉRÅ[Éhïœä∑Ç»Çµ */
 
@@ -1484,12 +1484,12 @@ int FlushRestData(CODECONVINFO *cInfo);
 int ConvEUCtoSJIS(CODECONVINFO *cInfo);
 int ConvJIStoSJIS(CODECONVINFO *cInfo);
 int ConvSMBtoSJIS(CODECONVINFO *cInfo);
-int ConvUTF8NtoSJIS(CODECONVINFO *cInfo); // UTF-8NëŒâû
+int ConvUTF8NtoSJIS(CODECONVINFO *cInfo); // UTF-8ëŒâû
 int ConvSJIStoEUC(CODECONVINFO *cInfo);
 int ConvSJIStoJIS(CODECONVINFO *cInfo);
 int ConvSJIStoSMB_HEX(CODECONVINFO *cInfo);
 int ConvSJIStoSMB_CAP(CODECONVINFO *cInfo);
-int ConvSJIStoUTF8N(CODECONVINFO *cInfo); // UTF-8NëŒâû
+int ConvSJIStoUTF8N(CODECONVINFO *cInfo); // UTF-8ëŒâû
 void ConvAutoToSJIS(char *Text, int Pref);
 int CheckKanjiCode(char *Text, int Size, int Pref);
 
