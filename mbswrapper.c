@@ -82,6 +82,22 @@ int TerminateStringW(LPWSTR lpString, int size)
 	return i;
 }
 
+// Shift_JIS文字列バッファ終端を強制的にNULLで置換
+int TerminateStringA(LPSTR lpString, int size)
+{
+	int i;
+	if(lpString < (LPSTR)0x00010000 || lpString == (LPSTR)~0)
+		return 0;
+	for(i = 0; i < size; i++)
+	{
+		if(lpString[i] == '\0')
+			return i;
+	}
+	i--;
+	lpString[i] = '\0';
+	return i;
+}
+
 // NULL区切り複数マルチバイト文字列の長さを取得
 size_t GetMultiStringLengthM(LPCSTR lpString)
 {
@@ -105,6 +121,21 @@ size_t GetMultiStringLengthW(LPCWSTR lpString)
 		return 0;
 	i = 0;
 	while(lpString[i] != L'\0' || lpString[i + 1] != L'\0')
+	{
+		i++;
+	}
+	i++;
+	return i;
+}
+
+// NULL区切り複数Shift_JIS文字列の長さを取得
+size_t GetMultiStringLengthA(LPCSTR lpString)
+{
+	size_t i;
+	if(lpString < (LPCSTR)0x00010000 || lpString == (LPCSTR)~0)
+		return 0;
+	i = 0;
+	while(lpString[i] != '\0' || lpString[i + 1] != '\0')
 	{
 		i++;
 	}
@@ -148,7 +179,7 @@ int WtoMMultiString(LPSTR pDst, int size, LPCWSTR pSrc)
 	return i;
 }
 
-// NULL区切りワイド文字列からマルチバイト文字列へ変換
+// NULL区切りワイド文字列からShift_JIS文字列へ変換
 int WtoAMultiString(LPSTR pDst, int size, LPCWSTR pSrc)
 {
 	int i;

@@ -200,7 +200,11 @@ BOOL AttachSSL(SOCKET s)
 					}
 				}
 				else
+				{
+					LeaveCriticalSection(&g_OpenSSLLock);
 					DetachSSL(s);
+					EnterCriticalSection(&g_OpenSSLLock);
+				}
 			}
 		}
 	}

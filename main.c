@@ -413,7 +413,9 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 				DispTransferType();
 				SetHostKanaCnvImm(YES);
 				SetHostKanjiCodeImm(KANJI_NOCNV);
-				SetLocalKanjiCodeImm(KANJI_UTF8N);
+				// 本当はローカルのデフォルトをUTF-8にしたいが旧バージョンとの互換性のためShift_JISに設定
+//				SetLocalKanjiCodeImm(KANJI_UTF8N);
+				SetLocalKanjiCodeImm(KANJI_SJIS);
 				DispListType();
 				DispDotFileMode();
 				DispSyncMoveMode();

@@ -1340,8 +1340,8 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 				// TODO
 				InitCodeConvInfo(&cInfo);
 				cInfo.KanaCnv = NO;
-				cInfo.Str = Pos;
-				cInfo.StrLen = strlen(Pos);
+				cInfo.Str = Fname;
+				cInfo.StrLen = strlen(Fname);
 				cInfo.Buf = Buf;
 				cInfo.BufSize = Max - 1;
 				ConvSJIStoUTF8N(&cInfo);
@@ -1364,8 +1364,8 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 				// TODO
 				InitCodeConvInfo(&cInfo);
 				cInfo.KanaCnv = NO;
-				cInfo.Str = Pos;
-				cInfo.StrLen = strlen(Pos);
+				cInfo.Str = Fname;
+				cInfo.StrLen = strlen(Fname);
 				cInfo.Buf = Buf;
 				cInfo.BufSize = Max - 1;
 				ConvSJIStoUTF8N(&cInfo);
@@ -1389,8 +1389,8 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 				// TODO
 				InitCodeConvInfo(&cInfo);
 				cInfo.KanaCnv = NO;
-				cInfo.Str = Pos;
-				cInfo.StrLen = strlen(Pos);
+				cInfo.Str = Fname;
+				cInfo.StrLen = strlen(Fname);
 				cInfo.Buf = Buf;
 				cInfo.BufSize = Max - 1;
 				ConvSJIStoUTF8N(&cInfo);
@@ -1472,8 +1472,8 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 				// TODO
 				InitCodeConvInfo(&cInfo);
 				cInfo.KanaCnv = NO;
-				cInfo.Str = Pos;
-				cInfo.StrLen = strlen(Pos);
+				cInfo.Str = Fname;
+				cInfo.StrLen = strlen(Fname);
 				cInfo.Buf = Buf;
 				cInfo.BufSize = Max - 1;
 				ConvSJIStoJIS(&cInfo);
@@ -1496,8 +1496,8 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 				// TODO
 				InitCodeConvInfo(&cInfo);
 				cInfo.KanaCnv = NO;
-				cInfo.Str = Pos;
-				cInfo.StrLen = strlen(Pos);
+				cInfo.Str = Fname;
+				cInfo.StrLen = strlen(Fname);
 				cInfo.Buf = Buf;
 				cInfo.BufSize = Max - 1;
 				ConvSJIStoEUC(&cInfo);
@@ -1520,8 +1520,8 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 				// TODO
 				InitCodeConvInfo(&cInfo);
 				cInfo.KanaCnv = NO;
-				cInfo.Str = Pos;
-				cInfo.StrLen = strlen(Pos);
+				cInfo.Str = Fname;
+				cInfo.StrLen = strlen(Fname);
 				cInfo.Buf = Buf;
 				cInfo.BufSize = Max - 1;
 				ConvSJIStoSMB_HEX(&cInfo);
@@ -1544,8 +1544,8 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 				// TODO
 				InitCodeConvInfo(&cInfo);
 				cInfo.KanaCnv = NO;
-				cInfo.Str = Pos;
-				cInfo.StrLen = strlen(Pos);
+				cInfo.Str = Fname;
+				cInfo.StrLen = strlen(Fname);
 				cInfo.Buf = Buf;
 				cInfo.BufSize = Max - 1;
 				ConvSJIStoSMB_CAP(&cInfo);
