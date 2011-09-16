@@ -235,7 +235,7 @@ int ValidateMasterPassword(void)
 	int i;
 
 	SetRegType(REGTYPE_INI);
-	if((i = OpenReg("FFFTP", &hKey3)) != SUCCESS)
+	if((i = OpenReg("FFFTP", &hKey3)) != FFFTP_SUCCESS)
 	{
 		if(AskForceIni() == NO)
 		{
@@ -243,14 +243,14 @@ int ValidateMasterPassword(void)
 			i = OpenReg("FFFTP", &hKey3);
 		}
 	}
-	if(i == SUCCESS){
+	if(i == FFFTP_SUCCESS){
 		char checkbuf[48];
 		int salt = 0;
 
 		if( ReadIntValueFromReg(hKey3, "CredentialSalt", &salt)){
 			SetHashSalt( salt );
 		}
-		if( ReadStringFromReg(hKey3, "CredentialCheck", checkbuf, sizeof( checkbuf )) == SUCCESS ){
+		if( ReadStringFromReg(hKey3, "CredentialCheck", checkbuf, sizeof( checkbuf )) == FFFTP_SUCCESS ){
 			switch( CheckPasswordValidity( SecretKey, SecretKeyLength, checkbuf ) ){
 			case 0: /* not match */
 				IsMasterPasswordError = PASSWORD_UNMATCH;
@@ -298,7 +298,7 @@ void SaveRegistory(void)
 	}
 
 	SetRegType(RegType);
-	if(CreateReg("FFFTP", &hKey3) == SUCCESS)
+	if(CreateReg("FFFTP", &hKey3) == FFFTP_SUCCESS)
 	{
 		char buf[48];
 		int salt = GetTickCount();
@@ -311,7 +311,7 @@ void SaveRegistory(void)
 		CreatePasswordHash( SecretKey, SecretKeyLength, buf );
 		WriteStringToReg(hKey3, "CredentialCheck", buf);
 
-		if(CreateSubKey(hKey3, "Options", &hKey4) == SUCCESS)
+		if(CreateSubKey(hKey3, "Options", &hKey4) == FFFTP_SUCCESS)
 		{
 			WriteIntValueToReg(hKey4, "NoSave", SuppressSave);
 
@@ -427,10 +427,10 @@ void SaveRegistory(void)
 				n = 0;
 				for(i = AskHistoryNum(); i > 0; i--)
 				{
-					if(GetHistoryByNum(i-1, &Hist) == SUCCESS)
+					if(GetHistoryByNum(i-1, &Hist) == FFFTP_SUCCESS)
 					{
 						sprintf(Str, "History%d", n);
-						if(CreateSubKey(hKey4, Str, &hKey5) == SUCCESS)
+						if(CreateSubKey(hKey4, Str, &hKey5) == FFFTP_SUCCESS)
 						{
 							SaveStr(hKey5, "HostAdrs", Hist.HostAdrs, DefaultHist.HostAdrs);
 							SaveStr(hKey5, "UserName", Hist.UserName, DefaultHist.UserName);
@@ -474,17 +474,17 @@ void SaveRegistory(void)
 				for(; n < 999; n++)
 				{
 					sprintf(Str, "History%d", n);
-					if(DeleteSubKey(hKey4, Str) != SUCCESS)
+					if(DeleteSubKey(hKey4, Str) != FFFTP_SUCCESS)
 						break;
 				}
 
 				/* ホストの設定を保存 */
 				CopyDefaultHost(&DefaultHost);
 				i = 0;
-				while(CopyHostFromList(i, &Host) == SUCCESS)
+				while(CopyHostFromList(i, &Host) == FFFTP_SUCCESS)
 				{
 					sprintf(Str, "Host%d", i);
-					if(CreateSubKey(hKey4, Str, &hKey5) == SUCCESS)
+					if(CreateSubKey(hKey4, Str, &hKey5) == FFFTP_SUCCESS)
 					{
 //						SaveIntNum(hKey5, "Set", Host.Level, DefaultHost.Level);
 						WriteIntValueToReg(hKey5, "Set", Host.Level);
@@ -541,7 +541,7 @@ void SaveRegistory(void)
 				for(; i < 998; i++)
 				{
 					sprintf(Str, "Host%d", i);
-					if(DeleteSubKey(hKey4, Str) != SUCCESS)
+					if(DeleteSubKey(hKey4, Str) != FFFTP_SUCCESS)
 						break;
 				}
 
@@ -586,7 +586,7 @@ int LoadRegistory(void)
 	Sts = NO;
 
 	SetRegType(REGTYPE_INI);
-	if((i = OpenReg("FFFTP", &hKey3)) != SUCCESS)
+	if((i = OpenReg("FFFTP", &hKey3)) != FFFTP_SUCCESS)
 	{
 		if(AskForceIni() == NO)
 		{
@@ -595,15 +595,15 @@ int LoadRegistory(void)
 		}
 	}
 
-	if(i == SUCCESS)
+	if(i == FFFTP_SUCCESS)
 	{
-		char checkbuf[48];
+		/* char checkbuf[48]; */
 		int salt = 0;
 		Sts = YES;
 
 		ReadIntValueFromReg(hKey3, "Version", &Version);
 
-		if(OpenSubKey(hKey3, "Options", &hKey4) == SUCCESS)
+		if(OpenSubKey(hKey3, "Options", &hKey4) == FFFTP_SUCCESS)
 		{
 			ReadIntValueFromReg(hKey4, "WinPosX", &WinPosX);
 			ReadIntValueFromReg(hKey4, "WinPosY", &WinPosY);
@@ -662,7 +662,7 @@ int LoadRegistory(void)
 			ReadIntValueFromReg(hKey4, "RegExp", &FindMode);
 			ReadIntValueFromReg(hKey4, "Reg", &RegType);
 
-			if(ReadMultiStringFromReg(hKey4, "AsciiFile", AsciiExt, ASCII_EXT_LEN+1) == FAIL)
+			if(ReadMultiStringFromReg(hKey4, "AsciiFile", AsciiExt, ASCII_EXT_LEN+1) == FFFTP_FAIL)
 			{
 				/* 旧ASCIIモードの拡張子の設定を新しいものに変換 */
 				ReadStringFromReg(hKey4, "Ascii", Str, ASCII_EXT_LEN+1);
@@ -694,9 +694,9 @@ int LoadRegistory(void)
 			ReadIntValueFromReg(hKey4, "MirUNot", &MirUpDelNotify);
 			ReadIntValueFromReg(hKey4, "MirDNot", &MirDownDelNotify);
 
-			if(ReadStringFromReg(hKey4, "ListFont", Str, 256) == SUCCESS)
+			if(ReadStringFromReg(hKey4, "ListFont", Str, 256) == FFFTP_SUCCESS)
 			{
-				if(RestoreFontData(Str, &ListLogFont) == SUCCESS)
+				if(RestoreFontData(Str, &ListLogFont) == FFFTP_SUCCESS)
 					ListFont = CreateFontIndirect(&ListLogFont);
 			}
 			ReadIntValueFromReg(hKey4, "ListHide", &DispIgnoreHide);
@@ -745,7 +745,7 @@ int LoadRegistory(void)
 			for(i = 0; i < Sets; i++)
 			{
 				sprintf(Str, "History%d", i);
-				if(OpenSubKey(hKey4, Str, &hKey5) == SUCCESS)
+				if(OpenSubKey(hKey4, Str, &hKey5) == FFFTP_SUCCESS)
 				{
 					CopyDefaultHistory(&Hist);
 
@@ -793,7 +793,7 @@ int LoadRegistory(void)
 			for(i = 0; i < Sets; i++)
 			{
 				sprintf(Str, "Host%d", i);
-				if(OpenSubKey(hKey4, Str, &hKey5) == SUCCESS)
+				if(OpenSubKey(hKey4, Str, &hKey5) == FFFTP_SUCCESS)
 				{
 					CopyDefaultHost(&Host);
 					/* 下位互換性のため */
@@ -1156,7 +1156,7 @@ static void MakeFontData(LOGFONT Font, HFONT hFont, char *Buf)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL=変換できない
+*			FFFTP_SUCCESS/FFFTP_FAIL=変換できない
 *----------------------------------------------------------------------------*/
 
 static int RestoreFontData(char *Str, LOGFONT *Font)
@@ -1164,7 +1164,7 @@ static int RestoreFontData(char *Str, LOGFONT *Font)
 	int i;
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(sscanf(Str, "%d %d %d %d %d %d %d %d %d %d %d %d %d",
 			&(Font->lfHeight), &(Font->lfWidth), &(Font->lfEscapement), &(Font->lfOrientation),
 			&(Font->lfWeight), &(Font->lfItalic), &(Font->lfUnderline), &(Font->lfStrikeOut),
@@ -1180,11 +1180,11 @@ static int RestoreFontData(char *Str, LOGFONT *Font)
 		if(i == 0)
 		{
 			strcpy(Font->lfFaceName, Str);
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 
-	if(Sts == FAIL)
+	if(Sts == FFFTP_FAIL)
 		memset(Font, NUL, sizeof(LOGFONT));
 
 	return(Sts);
@@ -1390,7 +1390,7 @@ static void EncodePassword3(char *Str, char *Buf, const char *Key)
 			}
 			*Put++ = ':';
 
-			if(CreateAesKey(AesKey, Key) == SUCCESS)
+			if(CreateAesKey(AesKey, Key) == FFFTP_SUCCESS)
 			{
 				aes_encrypt_key(AesKey, 32, &Ctx);
 
@@ -1578,7 +1578,7 @@ static void DecodePassword3(char *Str, char *Buf, const char *Key)
 
 			if(*Get++ == ':')
 			{
-				if(CreateAesKey(AesKey, Key) == SUCCESS)
+				if(CreateAesKey(AesKey, Key) == FFFTP_SUCCESS)
 				{
 					aes_decrypt_key(AesKey, 32, &Ctx);
 
@@ -1606,7 +1606,7 @@ static void DecodePassword3(char *Str, char *Buf, const char *Key)
 *		const char *Key : 暗号化キー
 *
 *	Return Value
-*		int ステータス (SUCCESS/FAIL)
+*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
 *	Note
 *		SHA-1をもちいて32Byte鍵を生成する
 *----------------------------------------------------------------------------*/
@@ -1622,7 +1622,7 @@ static int CreateAesKey(unsigned char *AesKey, const char* Key)
 
 	HashKeyLen = strlen(Key) + 16;
 	if((HashKey = malloc(HashKeyLen + 1)) == NULL){
-		return (FAIL);
+		return (FFFTP_FAIL);
 	}
 
 	strcpy(HashKey, Key);
@@ -1643,7 +1643,7 @@ static int CreateAesKey(unsigned char *AesKey, const char* Key)
 	}
 	free(HashKey);
 
-	return (SUCCESS);
+	return (FFFTP_SUCCESS);
 }
 
 
@@ -1682,7 +1682,7 @@ static int TmpRegType;
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static void SetRegType(int Type)
@@ -1700,7 +1700,7 @@ static void SetRegType(int Type)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int OpenReg(char *Name, void **Handle)
@@ -1708,17 +1708,17 @@ static int OpenReg(char *Name, void **Handle)
 	int Sts;
 	char Tmp[FMAX_PATH+1];
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
 		strcpy(Tmp, "Software\\Sota\\");
 		strcat(Tmp, Name);
 		if(RegOpenKeyEx(HKEY_CURRENT_USER, Tmp, 0, KEY_READ, (HKEY *)Handle) == ERROR_SUCCESS)
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 	}
 	else
 	{
-		if((Sts = ReadInReg(Name, (REGDATATBL **)Handle)) == SUCCESS)
+		if((Sts = ReadInReg(Name, (REGDATATBL **)Handle)) == FFFTP_SUCCESS)
 			((REGDATATBL *)(*Handle))->Mode = 0;
 	}
 	return(Sts);
@@ -1733,7 +1733,7 @@ static int OpenReg(char *Name, void **Handle)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int CreateReg(char *Name, void **Handle)
@@ -1742,13 +1742,13 @@ static int CreateReg(char *Name, void **Handle)
 	char Tmp[FMAX_PATH+1];
 	DWORD Dispos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
 		strcpy(Tmp, "Software\\Sota\\");
 		strcat(Tmp, Name);
 		if(RegCreateKeyEx(HKEY_CURRENT_USER, Tmp, 0, "", REG_OPTION_NON_VOLATILE, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, NULL, (HKEY *)Handle, &Dispos) == ERROR_SUCCESS)
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 	}
 	else
 	{
@@ -1758,7 +1758,7 @@ static int CreateReg(char *Name, void **Handle)
 			((REGDATATBL *)(*Handle))->ValLen = 0;
 			((REGDATATBL *)(*Handle))->Next = NULL;
 			((REGDATATBL *)(*Handle))->Mode = 1;
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	return(Sts);
@@ -1772,7 +1772,7 @@ static int CreateReg(char *Name, void **Handle)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int CloseReg(void *Handle)
@@ -1811,7 +1811,7 @@ static int CloseReg(void *Handle)
 			Pos = Next;
 		}
 	}
-	return(SUCCESS);
+	return(FFFTP_SUCCESS);
 }
 
 
@@ -1864,7 +1864,7 @@ static BOOL WriteOutRegToFile(REGDATATBL *Pos)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int ReadInReg(char *Name, REGDATATBL **Handle)
@@ -1877,7 +1877,7 @@ static int ReadInReg(char *Name, REGDATATBL **Handle)
 	REGDATATBL *Pos;
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	*Handle = NULL;
 
 	if((Strm = fopen(AskIniFilePath(), "rt")) != NULL)
@@ -1920,7 +1920,7 @@ static int ReadInReg(char *Name, REGDATATBL **Handle)
 					}
 				}
 			}
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 			free(Buf);
 		}
 		fclose(Strm);
@@ -1938,7 +1938,7 @@ static int ReadInReg(char *Name, REGDATATBL **Handle)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int OpenSubKey(void *Parent, char *Name, void **Handle)
@@ -1947,11 +1947,11 @@ static int OpenSubKey(void *Parent, char *Name, void **Handle)
 	char Key[80];
 	REGDATATBL *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
 		if(RegOpenKeyEx(Parent, Name, 0, KEY_READ, (HKEY *)Handle) == ERROR_SUCCESS)
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 	}
 	else
 	{
@@ -1964,7 +1964,7 @@ static int OpenSubKey(void *Parent, char *Name, void **Handle)
 			if(strcmp(Pos->KeyName, Key) == 0)
 			{
 				*Handle = Pos;
-				Sts = SUCCESS;
+				Sts = FFFTP_SUCCESS;
 				break;
 			}
 			Pos = Pos->Next;
@@ -1983,7 +1983,7 @@ static int OpenSubKey(void *Parent, char *Name, void **Handle)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int CreateSubKey(void *Parent, char *Name, void **Handle)
@@ -1992,11 +1992,11 @@ static int CreateSubKey(void *Parent, char *Name, void **Handle)
 	DWORD Dispos;
 	REGDATATBL *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
 		if(RegCreateKeyEx(Parent, Name, 0, "", REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, (HKEY *)Handle, &Dispos) == ERROR_SUCCESS)
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 	}
 	else
 	{
@@ -2013,7 +2013,7 @@ static int CreateSubKey(void *Parent, char *Name, void **Handle)
 			while(Pos->Next != NULL)
 				Pos = Pos->Next;
 			Pos->Next = *Handle;
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	return(Sts);
@@ -2027,7 +2027,7 @@ static int CreateSubKey(void *Parent, char *Name, void **Handle)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int CloseSubKey(void *Handle)
@@ -2038,7 +2038,7 @@ static int CloseSubKey(void *Handle)
 	{
 		/* Nothing */
 	}
-	return(SUCCESS);
+	return(FFFTP_SUCCESS);
 }
 
 
@@ -2050,22 +2050,22 @@ static int CloseSubKey(void *Handle)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int DeleteSubKey(void *Handle, char *Name)
 {
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
 		if(RegDeleteKey(Handle, Name) == ERROR_SUCCESS)
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 	}
 	else
 	{
-		Sts = FAIL;
+		Sts = FFFTP_FAIL;
 	}
 	return(Sts);
 }
@@ -2079,22 +2079,22 @@ static int DeleteSubKey(void *Handle, char *Name)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int DeleteValue(void *Handle, char *Name)
 {
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
 		if(RegDeleteValue(Handle, Name) == ERROR_SUCCESS)
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 	}
 	else
 	{
-		Sts = FAIL;
+		Sts = FFFTP_FAIL;
 	}
 	return(Sts);
 }
@@ -2109,7 +2109,7 @@ static int DeleteValue(void *Handle, char *Name)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
@@ -2118,19 +2118,19 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 	DWORD Size;
 	char *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
 		Size = sizeof(int);
 		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Value, &Size) == ERROR_SUCCESS)
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 	}
 	else
 	{
 		if((Pos = ScanValue(Handle, Name)) != NULL)
 		{
 			*Value = atoi(Pos);
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	return(Sts);
@@ -2146,7 +2146,7 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int WriteIntValueToReg(void *Handle, char *Name, int Value)
@@ -2167,7 +2167,7 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 		strcat(Data, Tmp);
 		Pos->ValLen += strlen(Data) + 1;
 	}
-	return(SUCCESS);
+	return(FFFTP_SUCCESS);
 }
 
 
@@ -2181,7 +2181,7 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
@@ -2189,14 +2189,14 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 	int Sts;
 	char *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
 		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
 		{
 			if(*(Str + Size - 1) != NUL)
 				*(Str + Size) = NUL;
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	else
@@ -2206,7 +2206,7 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 			Size = min1(Size-1, strlen(Pos));
 			Size = StrReadIn(Pos, Size, Str);
 			*(Str + Size) = NUL;
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	return(Sts);
@@ -2222,7 +2222,7 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int WriteStringToReg(void *Handle, char *Name, char *Str)
@@ -2242,7 +2242,7 @@ static int WriteStringToReg(void *Handle, char *Name, char *Str)
 		Data = Pos->ValTbl + Pos->ValLen;
 		Pos->ValLen += StrCatOut(Str, strlen(Str), Data) + 1;
 	}
-	return(SUCCESS);
+	return(FFFTP_SUCCESS);
 }
 
 
@@ -2256,7 +2256,7 @@ static int WriteStringToReg(void *Handle, char *Name, char *Str)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
@@ -2264,14 +2264,14 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 	int Sts;
 	char *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
 		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
 		{
 			if(*(Str + Size - 1) != NUL)
 				*(Str + Size) = NUL;
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	else
@@ -2281,7 +2281,7 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 			Size = min1(Size-1, strlen(Pos));
 			Size = StrReadIn(Pos, Size, Str);
 			*(Str + Size) = NUL;
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	return(Sts);
@@ -2297,7 +2297,7 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
@@ -2317,7 +2317,7 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 		Data = Pos->ValTbl + Pos->ValLen;
 		Pos->ValLen += StrCatOut(Str, StrMultiLen(Str), Data) + 1;
 	}
-	return(SUCCESS);
+	return(FFFTP_SUCCESS);
 }
 
 
@@ -2331,7 +2331,7 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
@@ -2339,11 +2339,11 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 	int Sts;
 	char *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
 		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Bin, &Size) == ERROR_SUCCESS)
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 	}
 	else
 	{
@@ -2351,7 +2351,7 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 		{
 			Size = min1(Size, strlen(Pos));
 			Size = StrReadIn(Pos, Size, Bin);
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	return(Sts);
@@ -2368,7 +2368,7 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
@@ -2388,7 +2388,7 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 		Data = Pos->ValTbl + Pos->ValLen;
 		Pos->ValLen += StrCatOut(Bin, Len, Data) + 1;
 	}
-	return(SUCCESS);
+	return(FFFTP_SUCCESS);
 }
 
 

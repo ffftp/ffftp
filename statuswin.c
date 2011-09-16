@@ -58,14 +58,14 @@ static int SbarColWidth[5] = { 70, 230, 410, 570, -1 };
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int MakeStatusBarWindow(HWND hWnd, HINSTANCE hInst)
 {
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	hWndSbar = CreateWindowEx(0,
 			STATUSCLASSNAME, NULL,
 			WS_CHILD | SBS_SIZEGRIP | WS_CLIPSIBLINGS | SBT_NOBORDERS,
@@ -76,7 +76,7 @@ int MakeStatusBarWindow(HWND hWnd, HINSTANCE hInst)
 	{
 		SendMessage(hWndSbar, SB_SETPARTS, sizeof(SbarColWidth)/sizeof(int), (LPARAM)SbarColWidth);
 		ShowWindow(hWndSbar, SW_SHOW);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }

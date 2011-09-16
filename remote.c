@@ -652,7 +652,7 @@ int CommandProcCmd(char *Reply, char *fmt, ...)
 
 //	if((Sts = command(AskCmdCtrlSkt(), Reply, "%s", Cmd)) == 429)
 //	{
-//		if(ReConnectCmdSkt() == SUCCESS)
+//		if(ReConnectCmdSkt() == FFFTP_SUCCESS)
 //		{
 			Sts = command(AskCmdCtrlSkt(), Reply, &CheckCancelFlg, "%s", Cmd);
 //		}
@@ -690,7 +690,7 @@ int CommandProcTrn(char *Reply, char *fmt, ...)
 
 //	if((Sts = command(AskTrnCtrlSkt(), Reply, "%s", Cmd)) == 429)
 //	{
-//		if(ReConnectTrnSkt() == SUCCESS)
+//		if(ReConnectTrnSkt() == FFFTP_SUCCESS)
 			Sts = command(AskTrnCtrlSkt(), Reply, &CheckCancelFlg, "%s", Cmd);
 //	}
 	return(Sts);
@@ -749,7 +749,7 @@ int command(SOCKET cSkt, char *Reply, int *CancelCheckWork, char *fmt, ...)
 			strcpy(Reply, "");
 
 		Sts = 429;
-		if(SendData(cSkt, Cmd, strlen(Cmd), 0, CancelCheckWork) == SUCCESS)
+		if(SendData(cSkt, Cmd, strlen(Cmd), 0, CancelCheckWork) == FFFTP_SUCCESS)
 		{
 			Sts = ReadReplyMessage(cSkt, Reply, 1024, CancelCheckWork, TmpBuf);
 		}
@@ -779,7 +779,7 @@ int command(SOCKET cSkt, char *Reply, int *CancelCheckWork, char *fmt, ...)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int SendData(SOCKET Skt, char *Data, int Size, int Mode, int *CancelCheckWork)
@@ -791,10 +791,10 @@ int SendData(SOCKET Skt, char *Data, int Size, int Mode, int *CancelCheckWork)
 //	struct timeval *ToutPtr;
 	int TimeOutErr;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(Skt != INVALID_SOCKET)
 	{
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 		while(Size > 0)
 		{
 //			FD_ZERO(&SendFds);
@@ -809,13 +809,13 @@ int SendData(SOCKET Skt, char *Data, int Size, int Mode, int *CancelCheckWork)
 //			Tmp = select(0, NULL, &SendFds, NULL, ToutPtr);
 //			if(Tmp == SOCKET_ERROR)
 //			{
-//				Sts = FAIL;
+//				Sts = FFFTP_FAIL;
 //				ReportWSError("select", WSAGetLastError());
 //				break;
 //			}
 //			else if(Tmp == 0)
 //			{
-//				Sts = FAIL;
+//				Sts = FFFTP_FAIL;
 //				SetTaskMsg(MSGJPN241);
 //				break;
 //			}
@@ -823,13 +823,13 @@ int SendData(SOCKET Skt, char *Data, int Size, int Mode, int *CancelCheckWork)
 			Tmp = do_send(Skt, Data, Size, Mode, &TimeOutErr, CancelCheckWork);
 			if(TimeOutErr == YES)
 			{
-				Sts = FAIL;
+				Sts = FFFTP_FAIL;
 				SetTaskMsg(MSGJPN241);
 				break;
 			}
 			else if(Tmp == SOCKET_ERROR)
 			{
-				Sts = FAIL;
+				Sts = FFFTP_FAIL;
 				ReportWSError("send", WSAGetLastError());
 				break;
 			}
@@ -1056,7 +1056,7 @@ static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
@@ -1069,10 +1069,10 @@ int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
 	int Sts;
 	int TimeOutErr;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(cSkt != INVALID_SOCKET)
 	{
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 		while(Size > 0)
 		{
 //			FD_ZERO(&ReadFds);
@@ -1088,13 +1088,13 @@ int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
 //			if(i == SOCKET_ERROR)
 //			{
 //				ReportWSError("select", WSAGetLastError());
-//				Sts = FAIL;
+//				Sts = FFFTP_FAIL;
 //				break;
 //			}
 //			else if(i == 0)
 //			{
 //				SetTaskMsg(MSGJPN243);
-//				Sts = FAIL;
+//				Sts = FFFTP_FAIL;
 //				break;
 //			}
 
@@ -1102,7 +1102,7 @@ int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
 			{
 				if(TimeOutErr == YES)
 					SetTaskMsg(MSGJPN243);
-				Sts = FAIL;
+				Sts = FFFTP_FAIL;
 				break;
 			}
 
@@ -1111,7 +1111,7 @@ int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
 		}
 	}
 
-	if(Sts == FAIL)
+	if(Sts == FFFTP_FAIL)
 		SetTaskMsg(MSGJPN244);
 
 	return(Sts);
@@ -1287,7 +1287,7 @@ void ReportWSError(char *Msg, UINT Error)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int ChangeFnameRemote2Local(char *Fname, int Max)
@@ -1297,7 +1297,7 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 	char *Pos;
 	CODECONVINFO cInfo;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Buf = malloc(Max)) != NULL)
 	{
 		InitCodeConvInfo(&cInfo);
@@ -1351,7 +1351,7 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 				break;
 		}
 		free(Buf);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
@@ -1365,7 +1365,7 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int ChangeFnameLocal2Remote(char *Fname, int Max)
@@ -1375,7 +1375,7 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 	char *Pos;
 	CODECONVINFO cInfo;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Buf = malloc(Max)) != NULL)
 	{
 		InitCodeConvInfo(&cInfo);
@@ -1438,7 +1438,7 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 				break;
 		}
 		free(Buf);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }

@@ -47,19 +47,19 @@
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int DoLocalCWD(char *Path)
 {
 	int Sts;
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	SetTaskMsg(">>CD %s", Path);
 	if(SetCurrentDirectory(Path) != TRUE)
 	{
 		SetTaskMsg(MSGJPN145);
-		Sts = FAIL;
+		Sts = FFFTP_FAIL;
 	}
 	return(Sts);
 }

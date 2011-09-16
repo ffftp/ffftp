@@ -52,8 +52,9 @@
 #define ushort			unsigned short
 #define ulong			unsigned long
 
-#define FAIL			0
-#define SUCCESS			1
+#define FFFTP_FAIL			0
+#define FFFTP_SUCCESS			1
+#undef SUCCESS
 
 #define NO				0
 #define YES				1

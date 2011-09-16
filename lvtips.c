@@ -61,7 +61,7 @@ static HWND hWndTips;	/* tipsのウインドウハンドル */
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int InitListViewTips(HWND hWnd, HINSTANCE hInst)
@@ -69,7 +69,7 @@ int InitListViewTips(HWND hWnd, HINSTANCE hInst)
 	WNDCLASSEX wClass;
 	int Ret;
 
-	Ret = FAIL;
+	Ret = FFFTP_FAIL;
 
 	wClass.cbSize = sizeof(WNDCLASSEX);
 	wClass.style         = 0;
@@ -92,7 +92,7 @@ int InitListViewTips(HWND hWnd, HINSTANCE hInst)
 				hWnd, NULL, hInst, NULL);
 
 	if(hWndTips != NULL)
-		Ret = SUCCESS;
+		Ret = FFFTP_SUCCESS;
 
 	return(Ret);
 }

@@ -122,7 +122,7 @@ static BOOL CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 						/* Seed */
 						if((Pos = GetNextField(Pos)) != NULL)
 						{
-							if(GetOneField(Pos, Seed, MAX_SEED_LEN) == SUCCESS)
+							if(GetOneField(Pos, Seed, MAX_SEED_LEN) == FFFTP_SUCCESS)
 							{
 								Make6WordPass(Seq, Seed, Pass, Type, Tmp);
 							}

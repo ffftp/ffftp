@@ -125,7 +125,7 @@ void AddCurDirToBookMark(int Win)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int AddBookMark(char *Path)
@@ -134,11 +134,11 @@ static int AddBookMark(char *Path)
 	int MarkID;
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	hMenu = GetSubMenu(GetMenu(GetMainHwnd()), BMARK_SUB_MENU);
 	MarkID = (GetMenuItemCount(hMenu) - DEFAULT_BMARK_ITEM) + MENU_BMARK_TOP;
 	if(AppendMenu(hMenu, MF_STRING, MarkID, Path) == TRUE)
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	return(Sts);
 }
 

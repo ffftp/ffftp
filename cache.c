@@ -74,7 +74,7 @@ static int ProgNum;						/* FFFTPの起動番号 */
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int MakeCacheBuf(int Num)
@@ -82,16 +82,16 @@ int MakeCacheBuf(int Num)
 	int Sts;
 	int i;
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if(Num > 0)
 	{
-		Sts = FAIL;
+		Sts = FFFTP_FAIL;
 		if((RemoteCache = malloc(sizeof(CACHELIST) * Num)) != NULL)
 		{
 			TmpCacheEntry = Num;
 			for(i = 0; i < TmpCacheEntry; i++)
 				ClearCache(i);
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	return(Sts);

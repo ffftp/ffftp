@@ -54,7 +54,7 @@ int CopyStrToClipBoard(char *Str)
 	void *gBuf;
 	HGLOBAL hGlobal;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(OpenClipboard(GetMainHwnd()))
 	{
 		if(EmptyClipboard())
@@ -67,7 +67,7 @@ int CopyStrToClipBoard(char *Str)
 
 					GlobalUnlock(hGlobal);
 					SetClipboardData(CF_TEXT, hGlobal);
-					Sts = SUCCESS;
+					Sts = FFFTP_SUCCESS;
 				}
 			}
 		}

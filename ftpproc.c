@@ -118,7 +118,7 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 	FILELIST *Pos;
 	TRANSPACKET Pkt;
 
-	if(CheckClosedAndReconnect() == SUCCESS)
+	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
@@ -148,7 +148,7 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 				else if(FnameCnv == FNAME_UPPER)
 					_mbsupr(TmpString);
 				RemoveAfterSemicolon(TmpString);
-				if(RenameUnuseableName(TmpString) == FAIL)
+				if(RenameUnuseableName(TmpString) == FFFTP_FAIL)
 					break;
 			}
 			else
@@ -156,7 +156,7 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 				CurWin = WIN_REMOTE;
 				if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(updown_as_dlg), GetMainHwnd(), UpDownAsDialogCallBack) == YES)
 				{
-					if(RenameUnuseableName(TmpString) == FAIL)
+					if(RenameUnuseableName(TmpString) == FFFTP_FAIL)
 						break;
 				}
 				else
@@ -244,7 +244,7 @@ void DirectDownLoadProc(char *Fname)
 {
 	TRANSPACKET Pkt;
 
-	if(CheckClosedAndReconnect() == SUCCESS)
+	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
@@ -269,7 +269,7 @@ void DirectDownLoadProc(char *Fname)
 				_mbsupr(TmpString);
 			RemoveAfterSemicolon(TmpString);
 
-			if(RenameUnuseableName(TmpString) == SUCCESS)
+			if(RenameUnuseableName(TmpString) == FFFTP_SUCCESS)
 			{
 				strcat(Pkt.LocalFile, TmpString);
 				ReplaceAll(Pkt.LocalFile, '/', '\\');
@@ -378,7 +378,7 @@ void MirrorDownloadProc(int Notify)
 	int Level;
 	int Mode;
 
-	if(CheckClosedAndReconnect() == SUCCESS)
+	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
@@ -844,7 +844,7 @@ void UpLoadListProc(int ChName, int All)
 	char Tmp[FMAX_PATH+1];
 	int FirstAdd;
 
-	if(CheckClosedAndReconnect() == SUCCESS)
+	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
@@ -1007,7 +1007,7 @@ void UpLoadDragProc(WPARAM wParam)
 	int FirstAdd;
 	char Cur[FMAX_PATH+1];
 
-	if(CheckClosedAndReconnect() == SUCCESS)
+	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
@@ -1161,7 +1161,7 @@ void MirrorUploadProc(int Notify)
 	FILETIME TmpFtimeL;
 	FILETIME TmpFtimeR;
 
-	if(CheckClosedAndReconnect() == SUCCESS)
+	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
@@ -1570,7 +1570,7 @@ static BOOL CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wPa
 						Num = SendDlgItemMessage(hDlg, MIRROR_LIST, LB_GETSELITEMS, Num, (LPARAM)List);
 						for(Num--; Num >= 0; Num--)
 						{
-							if(RemoveTmpTransFileListItem(Base, List[Num]) == SUCCESS)
+							if(RemoveTmpTransFileListItem(Base, List[Num]) == FFFTP_SUCCESS)
 								SendDlgItemMessage(hDlg, MIRROR_LIST, LB_DELETESTRING, List[Num], 0);
 							else
 								MessageBeep(-1);
@@ -1698,7 +1698,7 @@ static int AskMirrorNoTrn(char *Fname, int Mode)
 		Fname = GetFileName(Fname);
 		while(*Tbl != NUL)
 		{
-			if(CheckFname(Fname, Tbl) == SUCCESS)
+			if(CheckFname(Fname, Tbl) == FFFTP_SUCCESS)
 			{
 				Ret = YES;
 				break;
@@ -1733,7 +1733,7 @@ static int AskUpLoadFileAttr(char *Fname)
 		Sts = CheckFname(Fname, Tbl);
 		Tbl += strlen(Tbl) + 1;
 
-		if((Sts == SUCCESS) && (*Tbl != NUL))
+		if((Sts == FFFTP_SUCCESS) && (*Tbl != NUL))
 		{
 			Ret = xtoi(Tbl);
 			break;
@@ -1937,7 +1937,7 @@ void DeleteProc(void)
 	else
 	{
 		Win = WIN_REMOTE;
-		if(CheckClosedAndReconnect() == SUCCESS)
+		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 			MakeSelectedFileList(Win, YES, NO, &FileListBase, &CancelFlg);
 		else
 			Sts = NO;
@@ -2075,7 +2075,7 @@ static void DelNotifyAndDo(FILELIST *Dt, int Win, int *Sw, int *Flg, char *CurDi
 		else
 		{
 			/* フルパスを使わない時のための処理 */
-			if(ProcForNonFullpath(Path, CurDir, GetMainHwnd(), 0) == FAIL)
+			if(ProcForNonFullpath(Path, CurDir, GetMainHwnd(), 0) == FFFTP_FAIL)
 				*Sw = NO_ALL;
 
 			if(*Sw != NO_ALL)
@@ -2159,7 +2159,7 @@ void RenameProc(void)
 	int RenFlg;
 	int Sts;
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if(GetFocus() == GetLocalHwnd())
 		Win = WIN_LOCAL;
 	else
@@ -2168,7 +2168,7 @@ void RenameProc(void)
 		Sts = CheckClosedAndReconnect();
 	}
 
-	if(Sts == SUCCESS)
+	if(Sts == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
@@ -2252,7 +2252,7 @@ void MoveRemoteFileProc(int drop_index)
 		}
 	}
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 #if 0
 	if(GetFocus() == GetLocalHwnd())
 		Win = WIN_LOCAL;
@@ -2266,7 +2266,7 @@ void MoveRemoteFileProc(int drop_index)
 		Sts = CheckClosedAndReconnect();
 #endif
 
-	if(Sts == SUCCESS)
+	if(Sts == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
@@ -2428,7 +2428,7 @@ void MkdirProc(void)
 		}
 		else
 		{
-			if(CheckClosedAndReconnect() == SUCCESS)
+			if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 			{
 				DisableUserOpe();
 				DoMKD(Path);
@@ -2468,7 +2468,7 @@ void ChangeDirComboProc(HWND hWnd)
 		}
 		else
 		{
-			if(CheckClosedAndReconnect() == SUCCESS)
+			if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 			{
 				DisableUserOpe();
 				if(DoCWD(Tmp, YES, NO, YES) < FTP_RETRY)
@@ -2500,14 +2500,14 @@ void ChangeDirBmarkProc(int MarkID)
 	if((Sts == BMARK_TYPE_LOCAL) || (Sts == BMARK_TYPE_BOTH))
 	{
 		DisableUserOpe();
-		if(DoLocalCWD(Local) == SUCCESS)
+		if(DoLocalCWD(Local) == FFFTP_SUCCESS)
 			GetLocalDirForWnd();
 		EnableUserOpe();
 	}
 
 	if((Sts == BMARK_TYPE_REMOTE) || (Sts == BMARK_TYPE_BOTH))
 	{
-		if(CheckClosedAndReconnect() == SUCCESS)
+		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 		{
 			DisableUserOpe();
 			if(DoCWD(Remote, YES, NO, YES) < FTP_RETRY)
@@ -2557,7 +2557,7 @@ void ChangeDirDirectProc(int Win)
 		}
 		else
 		{
-			if(CheckClosedAndReconnect() == SUCCESS)
+			if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 			{
 				DisableUserOpe();
 				if(DoCWD(Path, YES, NO, YES) < FTP_RETRY)
@@ -2613,7 +2613,7 @@ void ChmodProc(void)
 
 	if(GetFocus() == GetRemoteHwnd())
 	{
-		if(CheckClosedAndReconnect() == SUCCESS)
+		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 		{
 			DisableUserOpe();
 			FileListBase = NULL;
@@ -2836,7 +2836,7 @@ void SomeCmdProc(void)
 
 	if(GetFocus() == GetRemoteHwnd())
 	{
-		if(CheckClosedAndReconnect() == SUCCESS)
+		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 		{
 			DisableUserOpe();
 			FileListBase = NULL;
@@ -2880,7 +2880,7 @@ void CalcFileSizeProc(void)
 
 	if((All = DialogBox(GetFtpInst(), MAKEINTRESOURCE(filesize_notify_dlg), GetMainHwnd(), SizeNotifyDlgWndProc)) != NO_ALL)
 	{
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 		if(GetFocus() == GetLocalHwnd())
 			Win = WIN_LOCAL;
 		else
@@ -2889,7 +2889,7 @@ void CalcFileSizeProc(void)
 			Sts = CheckClosedAndReconnect();
 		}
 
-		if(Sts == SUCCESS)
+		if(Sts == FFFTP_SUCCESS)
 		{
 			ListBase = NULL;
 			MakeSelectedFileList(Win, YES, All, &ListBase, &CancelFlg);
@@ -3093,7 +3093,7 @@ void CopyURLtoClipBoard(void)
 *			0=コマンドソケット, 1=転送ソケット
 *
 *	Return Value
-*		int ステータス(SUCCESS/FAIL)
+*		int ステータス(FFFTP_SUCCESS/FFFTP_FAIL)
 *
 *	Note
 *		フルパスを使わない時は、
@@ -3107,7 +3107,7 @@ int ProcForNonFullpath(char *Path, char *CurDir, HWND hWnd, int Type)
 	int Cmd;
 	char Tmp[FMAX_PATH+1];
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if(AskNoFullPathMode() == YES)
 	{
 		strcpy(Tmp, Path);
@@ -3131,7 +3131,7 @@ int ProcForNonFullpath(char *Path, char *CurDir, HWND hWnd, int Type)
 			if(Cmd/100 != FTP_COMPLETE)
 			{
 				DispCWDerror(hWnd);
-				Sts = FAIL;
+				Sts = FFFTP_FAIL;
 			}
 			else
 				strcpy(CurDir, Tmp);
@@ -3245,7 +3245,7 @@ void ReformVMSDirName(char *DirName, int Flg)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL=中止する
+*			FFFTP_SUCCESS/FFFTP_FAIL=中止する
 *
 *	Note
 *		Fnameを直接書きかえる
@@ -3256,7 +3256,7 @@ static int RenameUnuseableName(char *Fname)
 	int Tmp;
 	int Ret;
 
-	Ret = SUCCESS;
+	Ret = FFFTP_SUCCESS;
 	while(1)
 	{
 		if((_mbschr(Fname, ':') != NULL) ||
@@ -3270,7 +3270,7 @@ static int RenameUnuseableName(char *Fname)
 		{
 			if(InputDialogBox(forcerename_dlg, GetMainHwnd(), NULL, Fname, FMAX_PATH+1, &Tmp, IDH_HELP_TOPIC_0000001) == NO)
 			{
-				Ret = FAIL;
+				Ret = FFFTP_FAIL;
 				break;
 			}
 		}

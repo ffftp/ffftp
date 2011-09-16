@@ -296,7 +296,7 @@ static const char Wp[2048][4] = {
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int Make6WordPass(int seq, char *seed, char *pass, int type, char *buf)
@@ -305,13 +305,13 @@ int Make6WordPass(int seq, char *seed, char *pass, int type, char *buf)
 	int i;
 	int Sts;
 
-	Sts = FAIL;
-	if(keycrunch(key, seed, pass, type) != FAIL)
+	Sts = FFFTP_FAIL;
+	if(keycrunch(key, seed, pass, type) != FFFTP_FAIL)
 	{
 		for(i = 0; i < seq; i++)
 			secure_hash(key, type);
 		btoe(key, buf);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
@@ -328,7 +328,7 @@ static int keycrunch(char *result, char *seed, char *passwd, int Type)
 
 	buflen = strlen(seed) + strlen(passwd);
 	if((buf = malloc(buflen + 1)) == NULL)
-		return(FAIL);
+		return(FFFTP_FAIL);
 	strcpy(buf, seed);
 	strcat(buf, passwd);
 
@@ -361,7 +361,7 @@ static int keycrunch(char *result, char *seed, char *passwd, int Type)
 	/* Only works on byte-addressed little-endian machines!! */
 	memcpy(result, (char *)results, 8);
 
-	return(SUCCESS);
+	return(FFFTP_SUCCESS);
 }
 
 

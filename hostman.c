@@ -757,7 +757,7 @@ static int SetNodeLevelAll(void)
 		Pos->Set.Level |= GetNodeLevelByData(Pos);
 		Pos = GetNextNode(Pos);
 	}
-	return(SUCCESS);
+	return(FFFTP_SUCCESS);
 }
 
 
@@ -770,7 +770,7 @@ static int SetNodeLevelAll(void)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int AddHostToList(HOSTDATA *Set, int Pos, int Level)
@@ -780,7 +780,7 @@ int AddHostToList(HOSTDATA *Set, int Pos, int Level)
 	HOSTLISTDATA *Last;
 	int Cur;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Pos >= -1) && (Pos <= Hosts))
 	{
 		if(Pos == -1)
@@ -838,7 +838,7 @@ int AddHostToList(HOSTDATA *Set, int Pos, int Level)
 				}
 			}
 			Hosts++;
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	return(Sts);
@@ -853,7 +853,7 @@ int AddHostToList(HOSTDATA *Set, int Pos, int Level)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int UpdateHostToList(int Num, HOSTDATA *Set)
@@ -861,12 +861,12 @@ static int UpdateHostToList(int Num, HOSTDATA *Set)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		Pos = GetNodeByNum(Num);
 		memcpy(&Pos->Set, Set, sizeof(HOSTDATA));
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
@@ -879,7 +879,7 @@ static int UpdateHostToList(int Num, HOSTDATA *Set)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int DelHostFromList(int Num)
@@ -887,7 +887,7 @@ static int DelHostFromList(int Num)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		if(Num == 0)
@@ -912,7 +912,7 @@ static int DelHostFromList(int Num)
 		}
 		free(Pos);
 		Hosts--;
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
@@ -925,7 +925,7 @@ static int DelHostFromList(int Num)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *
 *	Note
 *		Pos->Next, Pos->Childの全てのノードを削除する
@@ -945,7 +945,7 @@ static int DeleteChildAndNext(HOSTLISTDATA *Pos)
 		Hosts--;
 		Pos = Next;
 	}
-	return(SUCCESS);
+	return(FFFTP_SUCCESS);
 }
 
 
@@ -957,7 +957,7 @@ static int DeleteChildAndNext(HOSTLISTDATA *Pos)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *
 *	Note
 *		現在ホストに接続中の時は、CopyHostFromListInConnect() を使う事
@@ -968,12 +968,12 @@ int CopyHostFromList(int Num, HOSTDATA *Set)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		Pos = GetNodeByNum(Num);
 		memcpy(Set, &Pos->Set, sizeof(HOSTDATA));
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
@@ -987,7 +987,7 @@ int CopyHostFromList(int Num, HOSTDATA *Set)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *
 *	Note
 *		現在ホストに接続中の時に使う
@@ -998,7 +998,7 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		Pos = GetNodeByNum(Num);
@@ -1015,7 +1015,7 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 		Set->UseNLST_R = Pos->Set.UseNLST_R;
 		Set->LastDir = Pos->Set.LastDir;
 		Set->TimeZone = Pos->Set.TimeZone;
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
@@ -1030,7 +1030,7 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int SetHostBookMark(int Num, char *Bmask, int Len)
@@ -1038,12 +1038,12 @@ int SetHostBookMark(int Num, char *Bmask, int Len)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		Pos = GetNodeByNum(Num);
 		memcpy(Pos->Set.BookMark, Bmask, Len);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
@@ -1082,7 +1082,7 @@ char *AskHostBookMark(int Num)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int SetHostDir(int Num, char *LocDir, char *HostDir)
@@ -1090,13 +1090,13 @@ int SetHostDir(int Num, char *LocDir, char *HostDir)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		Pos = GetNodeByNum(Num);
 		strcpy(Pos->Set.LocalInitDir, LocDir);
 		strcpy(Pos->Set.RemoteInitDir, HostDir);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
@@ -1110,7 +1110,7 @@ int SetHostDir(int Num, char *LocDir, char *HostDir)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int SetHostPassword(int Num, char *Pass)
@@ -1118,12 +1118,12 @@ int SetHostPassword(int Num, char *Pass)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		Pos = GetNodeByNum(Num);
 		strcpy(Pos->Set.PassWord, Pass);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
@@ -1171,7 +1171,7 @@ int SearchHostName(char *Name)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int SetHostSort(int Num, int LFSort, int LDSort, int RFSort, int RDSort)
@@ -1179,12 +1179,12 @@ int SetHostSort(int Num, int LFSort, int LDSort, int RFSort, int RDSort)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		Pos = GetNodeByNum(Num);
 		Pos->Set.Sort = LFSort * 0x1000000 | LDSort * 0x10000 | RFSort * 0x100 | RDSort;
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }

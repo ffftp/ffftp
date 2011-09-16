@@ -500,7 +500,7 @@ char *GetNextField(char *Str)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL=長さが長すぎる
+*			FFFTP_SUCCESS/FFFTP_FAIL=長さが長すぎる
 *----------------------------------------------------------------------------*/
 
 int GetOneField(char *Str, char *Buf, int Max)
@@ -508,13 +508,13 @@ int GetOneField(char *Str, char *Buf, int Max)
 	int Sts;
 	char *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Pos = strchr(Str, ' ')) == NULL)
 	{
 		if((int)strlen(Str) <= Max)
 		{
 			strcpy(Buf, Str);
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	else
@@ -523,7 +523,7 @@ int GetOneField(char *Str, char *Buf, int Max)
 		{
 			strncpy(Buf, Str, Pos - Str);
 			*(Buf + (Pos - Str)) = NUL;
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	return(Sts);
@@ -942,7 +942,7 @@ int hex2bin(char Ch)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *
 *	"\"は全て"/"に置き換える
 *----------------------------------------------------------------------------*/
@@ -1011,9 +1011,9 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 		strncpy(Host, Pos1, HOST_ADRS_LEN);
 	}
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(strlen(Host) > 0)
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 
 	return(Sts);
 }
@@ -1479,7 +1479,7 @@ int xtoi(char *Str)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int CheckFileReadable(char *Fname)
@@ -1488,7 +1488,7 @@ int CheckFileReadable(char *Fname)
 	HANDLE iFileHandle;
 	SECURITY_ATTRIBUTES Sec;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 
 	Sec.nLength = sizeof(SECURITY_ATTRIBUTES);
 	Sec.lpSecurityDescriptor = NULL;
@@ -1497,7 +1497,7 @@ int CheckFileReadable(char *Fname)
 	if((iFileHandle = CreateFile(Fname, GENERIC_READ,
 		FILE_SHARE_READ|FILE_SHARE_WRITE, &Sec, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
 	{
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 		CloseHandle(iFileHandle);
 	}
 	return(Sts);

@@ -206,7 +206,7 @@ static const int HideMenus[] = {
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
@@ -351,14 +351,14 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 		}
 	}
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if((hWndTbarMain == NULL) ||
 	   (hWndTbarLocal == NULL) ||
 	   (hWndTbarRemote == NULL) ||
 	   (hWndDirLocal == NULL) ||
 	   (hWndDirRemote == NULL))
 	{
-		Sts = FAIL;
+		Sts = FFFTP_FAIL;
 	}
 	return(Sts);
 }
@@ -385,7 +385,7 @@ static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wPara
 				else
 				{
 					SendMessage(hWndDirRemoteEdit, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Tmp);
-					if(CheckClosedAndReconnect() == SUCCESS)
+					if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 					{
 						if(DoCWD(Tmp, YES, NO, YES) < FTP_RETRY)
 							GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
@@ -925,7 +925,7 @@ int AskTransferTypeAssoc(char *Fname, int Type)
 			Pos = AsciiExt;
 			while(*Pos != NUL)
 			{
-				if(CheckFname(Name, Pos) == SUCCESS)
+				if(CheckFname(Name, Pos) == FFFTP_SUCCESS)
 				{
 					Ret = TYPE_A;
 					break;

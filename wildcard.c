@@ -51,7 +51,7 @@ static int CheckNameMatch(char *str, char *regexp);
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *
 *	Note
 *		VAX VMSの時は ; 以降は無視する
@@ -84,14 +84,14 @@ int CheckFname(char *str, char *regexp)
 	if((strcmp(p1, "*.*") == 0) || (strcmp(p1, "????????.???") == 0))
 		strcpy(p1, "*");
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if(strcmp(p1, "*") != 0)
 	{
 		if(strcmp(p1, "*.") == 0)
 		{
 			p = strchr(p2, '.');
 			if((p != NULL) && (*(p+1) != NUL))
-				Sts = FAIL;
+				Sts = FFFTP_FAIL;
 		}
 		else
 			Sts = CheckNameMatch(p2, p1);
@@ -108,7 +108,7 @@ int CheckFname(char *str, char *regexp)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int CheckNameMatch(char *str, char *regexp)
@@ -128,23 +128,23 @@ static int CheckNameMatch(char *str, char *regexp)
 				/* Look for a character matching the one after the '*' */
 				p++;
 				if(*p == NUL)
-					return SUCCESS; /* Automatic match */
+					return FFFTP_SUCCESS; /* Automatic match */
 				while(*str != NUL)
 				{
 					while((*str != NUL) && (toupper(*p)!=toupper(*str)))
 						str++;
 					if(CheckNameMatch(str, p))
-						return SUCCESS;
+						return FFFTP_SUCCESS;
 					if(*str == NUL)
-						return FAIL;
+						return FFFTP_FAIL;
 					else
 						str++;
 				}
-				return FAIL;
+				return FFFTP_FAIL;
 
 			default:
 				if(toupper(*str) != toupper(*p))
-					return FAIL;
+					return FFFTP_FAIL;
 				str++;
 				p++;
 				break;
@@ -152,10 +152,10 @@ static int CheckNameMatch(char *str, char *regexp)
 	}
 
 	if((*p == NUL) && (*str == NUL))
-		return SUCCESS;
+		return FFFTP_SUCCESS;
 
 	if ((*p != NUL) && (str[0] == '.') && (str[1] == 0))
-		return(SUCCESS);
+		return(FFFTP_SUCCESS);
   
 	if ((*str == NUL) && (*p == '?'))
 	{
@@ -165,8 +165,8 @@ static int CheckNameMatch(char *str, char *regexp)
 	}
 
 	if((*str == NUL) && (*p == '*') && (p[1] == '\0'))
-		return SUCCESS;
+		return FFFTP_SUCCESS;
 
-	return FAIL;
+	return FFFTP_FAIL;
 }
 

@@ -389,7 +389,7 @@ static void RemoveAllHistoryFromMenu(void)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int GetHistoryByCmd(int MenuCmd, HISTORYDATA *Buf)
@@ -398,14 +398,14 @@ int GetHistoryByCmd(int MenuCmd, HISTORYDATA *Buf)
 	int i;
 	HISTORYDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	Pos = HistoryBase;
 	for(i = 0; i < HistoryNum; i++)
 	{
 		if(MenuHistId[i] == MenuCmd)
 		{
 			memcpy(Buf, Pos, sizeof(HISTORYDATA));
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 		Pos = Pos->Next;
 	}
@@ -421,7 +421,7 @@ int GetHistoryByCmd(int MenuCmd, HISTORYDATA *Buf)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int GetHistoryByNum(int Num, HISTORYDATA *Buf)

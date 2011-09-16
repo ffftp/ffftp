@@ -235,7 +235,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	Ret = FALSE;
 	hWndFtp = NULL;
 	hInstFtp = hInstance;
-	if(InitApp(lpszCmdLine, cmdShow) == SUCCESS)
+	if(InitApp(lpszCmdLine, cmdShow) == FFFTP_SUCCESS)
 	{
 		for(;;)
 		{
@@ -276,7 +276,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int InitApp(LPSTR lpszCmdLine, int cmdShow)
@@ -288,7 +288,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 	int useDefautPassword = 0; /* 警告文表示用 */
 	int masterpass;
 
-	sts = FAIL;
+	sts = FFFTP_FAIL;
 
 	aes_init();
 	srand(GetTickCount());
@@ -381,7 +381,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 
 			CountPrevFfftpWindows();
 
-			if(MakeAllWindows(cmdShow) == SUCCESS)
+			if(MakeAllWindows(cmdShow) == FFFTP_SUCCESS)
 			{
 				hWndCurFocus = GetLocalHwnd();
 
@@ -401,7 +401,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 				if(CacheSave == YES)
 					LoadCache();
 
-				if(MakeTransferThread() == SUCCESS)
+				if(MakeTransferThread() == FFFTP_SUCCESS)
 				{
 					DoPrintf("DEBUG MESSAGE ON ! ##");
 
@@ -430,7 +430,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					DispTransferFiles();
 
 					StartupProc(lpszCmdLine);
-					sts = SUCCESS;
+					sts = FFFTP_SUCCESS;
 
 					/* セキュリティ警告文の表示 */
 					if( useDefautPassword ){
@@ -453,7 +453,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		}
 	}
 
-	if(sts == FAIL)
+	if(sts == FFFTP_FAIL)
 		DeleteAllObject();
 
 	return(sts);
@@ -467,7 +467,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int MakeAllWindows(int cmdShow)
@@ -552,19 +552,19 @@ static int MakeAllWindows(int cmdShow)
 		StsLvtips = InitListViewTips(hWndFtp, hInstFtp);
 	}
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if((hWndFtp == NULL) ||
-	   (StsTbar == FAIL) ||
-	   (StsList == FAIL) ||
-	   (StsSbar == FAIL) ||
-	   (StsTask == FAIL) ||
-	   (StsLvtips == FAIL) ||
-	   (StsSocket == FAIL))
+	   (StsTbar == FFFTP_FAIL) ||
+	   (StsList == FFFTP_FAIL) ||
+	   (StsSbar == FFFTP_FAIL) ||
+	   (StsTask == FFFTP_FAIL) ||
+	   (StsLvtips == FFFTP_FAIL) ||
+	   (StsSocket == FFFTP_FAIL))
 	{
-		Sts = FAIL;
+		Sts = FFFTP_FAIL;
 	}
 
-	if(Sts == SUCCESS)
+	if(Sts == FFFTP_SUCCESS)
 		SetListViewType();
 
 	return(Sts);
@@ -1034,7 +1034,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				case MENU_REFRESH :
 					SuppressRefresh = 1;
 					GetLocalDirForWnd();
-					if(CheckClosedAndReconnect() == SUCCESS)
+					if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 						GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
 					SuppressRefresh = 0;
 					break;
@@ -1057,7 +1057,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 				case REFRESH_REMOTE :
 					SuppressRefresh = 1;
-					if(CheckClosedAndReconnect() == SUCCESS)
+					if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 						GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
 					SuppressRefresh = 0;
 					break;
@@ -1842,7 +1842,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 					else
 						ChangeDir(WIN_LOCAL, Tmp);
 				}
-				else if(CheckClosedAndReconnect() == SUCCESS)
+				else if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 				{
 					if((App != -1) || (Type == NODE_FILE))
 					{
@@ -1967,13 +1967,13 @@ static void ChangeDir(int Win, char *Path)
 
 	if((Win == WIN_LOCAL) || (Sync == YES))
 	{
-		if(DoLocalCWD(Path) == SUCCESS)
+		if(DoLocalCWD(Path) == FFFTP_SUCCESS)
 			GetLocalDirForWnd();
 	}
 
 	if((Win == WIN_REMOTE) || (Sync == YES))
 	{
-		if(CheckClosedAndReconnect() == SUCCESS)
+		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 		{
 #if defined(HAVE_OPENVMS)
 			/* OpenVMSの場合、".DIR;?"を取る */

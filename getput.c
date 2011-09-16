@@ -161,9 +161,9 @@ int MakeTransferThread(void)
 	fTransferThreadExit = FALSE;
 	hTransferThread = (HANDLE)_beginthreadex(NULL, 0, TransferThread, 0, 0, &dwID);
 	if (hTransferThread == NULL)
-		return(FAIL); /* XXX */
+		return(FFFTP_FAIL); /* XXX */
 
-	return(SUCCESS);
+	return(FFFTP_SUCCESS);
 }
 
 
@@ -206,7 +206,7 @@ void CloseTransferThread(void)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int AddTmpTransFileList(TRANSPACKET *Pkt, TRANSPACKET **Base)
@@ -215,7 +215,7 @@ int AddTmpTransFileList(TRANSPACKET *Pkt, TRANSPACKET **Base)
 	TRANSPACKET *Prev;
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Pos = malloc(sizeof(TRANSPACKET))) != NULL)
 	{
 		memcpy(Pos, Pkt, sizeof(TRANSPACKET));
@@ -230,7 +230,7 @@ int AddTmpTransFileList(TRANSPACKET *Pkt, TRANSPACKET **Base)
 				Prev = Prev->Next;
 			Prev->Next = Pos;
 		}
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
@@ -270,7 +270,7 @@ void EraseTmpTransFileList(TRANSPACKET **Base)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int RemoveTmpTransFileListItem(TRANSPACKET **Base, int Num)
@@ -279,13 +279,13 @@ int RemoveTmpTransFileListItem(TRANSPACKET **Base, int Num)
 	TRANSPACKET *Prev;
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	Pos = *Base;
 	if(Num == 0)
 	{
 		*Base = Pos->Next;
 		free(Pos);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	else
 	{
@@ -297,7 +297,7 @@ int RemoveTmpTransFileListItem(TRANSPACKET **Base, int Num)
 			{
 				Prev->Next = Pos->Next;
 				free(Pos);
-				Sts = SUCCESS;
+				Sts = FFFTP_SUCCESS;
 				break;
 			}
 		}
@@ -321,7 +321,7 @@ void AddTransFileList(TRANSPACKET *Pkt)
 
 	WaitForSingleObject(hListAccMutex, INFINITE);
 
-	if(AddTmpTransFileList(Pkt, &TransPacketBase) == SUCCESS)
+	if(AddTmpTransFileList(Pkt, &TransPacketBase) == FFFTP_SUCCESS)
 	{
 		if((strncmp(Pkt->Cmd, "RETR", 4) == 0) ||
 		   (strncmp(Pkt->Cmd, "STOR", 4) == 0))
@@ -615,7 +615,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				if(CheckPathViolation(TransPacketBase) == NO)
 				{
 					/* フルパスを使わないための処理 */
-					if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == SUCCESS)
+					if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == FFFTP_SUCCESS)
 					{
 						if(strncmp(TransPacketBase->Cmd, "RETR-S", 6) == 0)
 						{
@@ -628,7 +628,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 						Down = YES;
 //						if(DoDownLoad(AskTrnCtrlSkt(), TransPacketBase, NO) == 429)
 //						{
-//							if(ReConnectTrnSkt() == SUCCESS)
+//							if(ReConnectTrnSkt() == FFFTP_SUCCESS)
 								DoDownLoad(AskTrnCtrlSkt(), TransPacketBase, NO, &Canceled);
 //						}
 					}
@@ -638,12 +638,12 @@ static ULONG WINAPI TransferThread(void *Dummy)
 			else if(strncmp(TransPacketBase->Cmd, "STOR", 4) == 0)
 			{
 				/* フルパスを使わないための処理 */
-				if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == SUCCESS)
+				if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == FFFTP_SUCCESS)
 				{
 					Up = YES;
 //					if(DoUpLoad(AskTrnCtrlSkt(), TransPacketBase) == 429)
 //					{
-//						if(ReConnectTrnSkt() == SUCCESS)
+//						if(ReConnectTrnSkt() == FFFTP_SUCCESS)
 							DoUpLoad(AskTrnCtrlSkt(), TransPacketBase);
 //					}
 				}
@@ -659,7 +659,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					CwdSts = FTP_COMPLETE;
 
 					strcpy(Tmp, TransPacketBase->RemoteFile);
-					if(ProcForNonFullpath(Tmp, CurDir, hWndTrans, 1) == FAIL)
+					if(ProcForNonFullpath(Tmp, CurDir, hWndTrans, 1) == FFFTP_FAIL)
 					{
 						ClearAll = YES;
 						CwdSts = FTP_ERROR;
@@ -688,7 +688,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				DispTransFileInfo(TransPacketBase, MSGJPN079, FALSE, YES);
 
 				/* フルパスを使わないための処理 */
-				if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == SUCCESS)
+				if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == FFFTP_SUCCESS)
 				{
 					Up = YES;
 					CommandProcTrn(NULL, "%s%s", TransPacketBase->Cmd+2, TransPacketBase->RemoteFile);
@@ -706,7 +706,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
 				{
 					/* フルパスを使わないための処理 */
-					if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == SUCCESS)
+					if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == FFFTP_SUCCESS)
 					{
 						Up = YES;
 						CommandProcTrn(NULL, "%s%s", TransPacketBase->Cmd+2, TransPacketBase->RemoteFile);
@@ -722,7 +722,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
 				{
 					/* フルパスを使わないための処理 */
-					if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == SUCCESS)
+					if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == FFFTP_SUCCESS)
 					{
 						Up = YES;
 						CommandProcTrn(NULL, "%s%s", TransPacketBase->Cmd+2, TransPacketBase->RemoteFile);
@@ -872,7 +872,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 *		char *Tmp : 作業用エリア
 *
 *	Return Value
-*		int ステータス(SUCCESS/FAIL)
+*		int ステータス(FFFTP_SUCCESS/FFFTP_FAIL)
 *
 *	Note
 *		フルパスを使わない時は、
@@ -885,7 +885,7 @@ static int MakeNonFullPath(TRANSPACKET *Pkt, char *Cur, char *Tmp)
 	int Sts;
 
 	Sts = ProcForNonFullpath(Pkt->RemoteFile, Cur, Pkt->hWndTrans, 1);
-	if(Sts == FAIL)
+	if(Sts == FFFTP_FAIL)
 		ClearAll = YES;
 
 	return(Sts);
@@ -990,7 +990,7 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 			iRetCode = command(Pkt->ctrl_skt, Reply, CancelCheckWork, "%s", Buf);
 			if(iRetCode/100 == FTP_PRELIM)
 			{
-				if(SocksGet2ndBindReply(listen_socket, &data_socket) == FAIL)
+				if(SocksGet2ndBindReply(listen_socket, &data_socket) == FFFTP_FAIL)
 				{
 					iLength = sizeof(saSockAddr1);
 					data_socket = do_accept(listen_socket, (struct sockaddr *)&saSockAddr1, (int *)&iLength);
@@ -1060,7 +1060,7 @@ static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	iRetCode = command(Pkt->ctrl_skt, Buf, CancelCheckWork, "PASV");
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
-		if(GetAdrsAndPort(Buf, Adrs, &Port, 19) == SUCCESS)
+		if(GetAdrsAndPort(Buf, Adrs, &Port, 19) == FFFTP_SUCCESS)
 		{
 			if((data_socket = connectsock(Adrs, Port, MSGJPN091, CancelCheckWork)) != INVALID_SOCKET)
 			{
@@ -1568,7 +1568,7 @@ static int DoUpLoad(SOCKET cSkt, TRANSPACKET *Pkt)
 
 	if(Pkt->Mode != EXIST_IGNORE)
 	{
-		if(CheckFileReadable(Pkt->LocalFile) == SUCCESS)
+		if(CheckFileReadable(Pkt->LocalFile) == FFFTP_SUCCESS)
 		{
 			if(Pkt->Type == TYPE_I)
 				Pkt->KanjiCode = KANJI_NOCNV;
@@ -1649,7 +1649,7 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 		iRetCode = command(Pkt->ctrl_skt, Reply, &Canceled, "%s", Buf);
 		if((iRetCode/100) == FTP_PRELIM)
 		{
-			if(SocksGet2ndBindReply(listen_socket, &data_socket) == FAIL)
+			if(SocksGet2ndBindReply(listen_socket, &data_socket) == FFFTP_FAIL)
 			{
 				iLength=sizeof(saSockAddr1);
 				data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddr1, (int *)&iLength);
@@ -1716,7 +1716,7 @@ static int UpLoadPassive(TRANSPACKET *Pkt)
 	iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled, "PASV");
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
-		if(GetAdrsAndPort(Buf, Adrs, &Port, 19) == SUCCESS)
+		if(GetAdrsAndPort(Buf, Adrs, &Port, 19) == FFFTP_SUCCESS)
 		{
 			if((data_socket = connectsock(Adrs, Port, MSGJPN109, &Canceled)) != INVALID_SOCKET)
 			{
@@ -1865,7 +1865,7 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 					else
 						Continue = ConvSJIStoEUC(&cInfo);
 
-					if(TermCodeConvAndSend(&tInfo, dSkt, Buf2, cInfo.OutLen, Pkt->Type) == FAIL)
+					if(TermCodeConvAndSend(&tInfo, dSkt, Buf2, cInfo.OutLen, Pkt->Type) == FFFTP_FAIL)
 					{
 						Pkt->Abort = ABORT_ERROR;
 							break;
@@ -1875,7 +1875,7 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 			}
 			else
 			{
-				if(TermCodeConvAndSend(&tInfo, dSkt, Buf, iNumBytes, Pkt->Type) == FAIL)
+				if(TermCodeConvAndSend(&tInfo, dSkt, Buf, iNumBytes, Pkt->Type) == FFFTP_FAIL)
 					Pkt->Abort = ABORT_ERROR;
 			}
 
@@ -1899,14 +1899,14 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 				cInfo.BufSize = BUFSIZE+3;
 				FlushRestData(&cInfo);
 
-				if(TermCodeConvAndSend(&tInfo, dSkt, Buf2, cInfo.OutLen, Pkt->Type) == FAIL)
+				if(TermCodeConvAndSend(&tInfo, dSkt, Buf2, cInfo.OutLen, Pkt->Type) == FFFTP_FAIL)
 					Pkt->Abort = ABORT_ERROR;
 			}
 
 			tInfo.Buf = Buf2;
 			tInfo.BufSize = BUFSIZE+3;
 			FlushRestTermCodeConvData(&tInfo);
-			if(SendData(dSkt, Buf2, tInfo.OutLen, 0, &Canceled) == FAIL)
+			if(SendData(dSkt, Buf2, tInfo.OutLen, 0, &Canceled) == FFFTP_FAIL)
 				Pkt->Abort = ABORT_ERROR;
 		}
 
@@ -1969,7 +1969,7 @@ static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, 
 	int Continue;
 	int Ret;
 
-	Ret = SUCCESS;
+	Ret = FFFTP_SUCCESS;
 
 // CR-LF以外の改行コードを変換しないモードはここへ追加
 	if(Ascii == TYPE_A)
@@ -1981,7 +1981,7 @@ static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, 
 		do
 		{
 			Continue = ConvTermCodeToCRLF(tInfo);
-			if((Ret = SendData(Skt, Buf3, tInfo->OutLen, 0, &Canceled)) == FAIL)
+			if((Ret = SendData(Skt, Buf3, tInfo->OutLen, 0, &Canceled)) == FFFTP_FAIL)
 				break;
 		}
 		while(Continue == YES);
@@ -2292,7 +2292,7 @@ static void DispTransFileInfo(TRANSPACKET *Pkt, char *Title, int SkipButton, int
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int GetAdrsAndPort(char *Str, char *Adrs, int *Port, int Max)
@@ -2301,7 +2301,7 @@ static int GetAdrsAndPort(char *Str, char *Adrs, int *Port, int Max)
 	char *Btm;
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 
 	Pos = strchr(Str, '(');
 	if(Pos != NULL)
@@ -2334,7 +2334,7 @@ static int GetAdrsAndPort(char *Str, char *Adrs, int *Port, int Max)
 							{
 								Btm++;
 								*Port = (atoi(Pos) * 0x100) + atoi(Btm);
-								Sts = SUCCESS;
+								Sts = FFFTP_SUCCESS;
 							}
 						}
 					}

@@ -115,7 +115,7 @@ static ASYNCSIGNALDATABASE SignalDbase[MAX_SIGNAL_ENTRY_DBASE];
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int MakeSocketWin(HWND hWnd, HINSTANCE hInst)
@@ -138,7 +138,7 @@ int MakeSocketWin(HWND hWnd, HINSTANCE hInst)
 	wClass.hIconSm       = NULL;
 	RegisterClassEx(&wClass);
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	hWndSocket = CreateWindowEx(0, SocketWndClass, NULL,
 			WS_BORDER | WS_POPUP,
 			0, 0, 0, 0,
@@ -152,7 +152,7 @@ int MakeSocketWin(HWND hWnd, HINSTANCE hInst)
 			Signal[i].Socket = INVALID_SOCKET;
 		for(i = 0; i < MAX_SIGNAL_ENTRY_DBASE; i++)
 			SignalDbase[i].Async = 0;
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
@@ -1015,7 +1015,7 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int CheckClosedAndReconnect(void)
@@ -1025,7 +1025,7 @@ int CheckClosedAndReconnect(void)
 
 //SetTaskMsg("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if(AskAsyncDone(AskCmdCtrlSkt(), &Error, FD_CLOSE_BIT) == YES)
 	{
 		Sts = ReConnectCmdSkt();

@@ -74,14 +74,14 @@ static HANDLE DispLogSemaphore2;
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int MakeTaskWindow(HWND hWnd, HINSTANCE hInst)
 {
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	hWndTask = CreateWindowEx(/*WS_EX_STATICEDGE*/WS_EX_CLIENTEDGE,
 			"EDIT", NULL,
 			WS_CHILD | WS_BORDER | ES_AUTOVSCROLL | WS_VSCROLL | ES_MULTILINE | ES_READONLY | WS_CLIPSIBLINGS,
@@ -96,7 +96,7 @@ int MakeTaskWindow(HWND hWnd, HINSTANCE hInst)
 			SendMessage(hWndTask, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
 
 		ShowWindow(hWndTask, SW_SHOW);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 
 		DispLogSemaphore = CreateSemaphore(NULL, 1, 1, NULL);
 		DispLogSemaphore2 = CreateSemaphore(NULL, 1, 1, NULL);
@@ -211,7 +211,7 @@ void SetTaskMsg(char *szFormat, ...)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int SaveTaskMsg(char *Fname)
@@ -222,7 +222,7 @@ int SaveTaskMsg(char *Fname)
 	int Sts;
 
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	Size = SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
 	if((Buf = malloc(Size)) != NULL)
 	{
@@ -230,10 +230,10 @@ int SaveTaskMsg(char *Fname)
 		{
 			SendMessage(GetTaskWnd(), WM_GETTEXT, Size, (LPARAM)Buf);
 			if(fwrite(Buf, strlen(Buf), 1, Strm) == 1)
-				Sts = SUCCESS;
+				Sts = FFFTP_SUCCESS;
 			fclose(Strm);
 
-			if(Sts == FAIL)
+			if(Sts == FFFTP_FAIL)
 				_unlink(Fname);
 		}
 		free(Buf);
@@ -259,7 +259,7 @@ void DispTaskMsg(void)
 	SetYenTail(Buf);
 	strcat(Buf, "_ffftp.tsk");
 
-	if(SaveTaskMsg(Buf) == SUCCESS)
+	if(SaveTaskMsg(Buf) == FFFTP_SUCCESS)
 	{
 		AddTempFileList(Buf);
 		ExecViewer(Buf, 0);

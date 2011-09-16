@@ -268,7 +268,7 @@ static DWORD RasHangUpWait(HRASCONN hRasConn)
 *		int Num : 個数
 *
 *	Return Value
-*		int ステータス (SUCCESS/FAIL)
+*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
 static int DoDisconnect(RASCONN *RasConn, int Num)
@@ -276,14 +276,14 @@ static int DoDisconnect(RASCONN *RasConn, int Num)
 	int i;
 	int Sts;
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if(Num > 0)
 	{
 		SetTaskMsg(MSGJPN220);
 		for(i = 0; i < Num; i++)
 		{
 			if(RasHangUpWait(RasConn[i].hrasconn) != 0)
-				Sts = FAIL;
+				Sts = FFFTP_FAIL;
 		}
 	}
 	return(Sts);
@@ -383,7 +383,7 @@ int SetRasEntryToComboBox(HWND hDlg, int Item, char *CurName)
 *		char *Name : 接続先
 *
 *	Return Value
-*		int ステータス (SUCCESS/FAIL)
+*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
 int ConnectRas(int Dialup, int UseThis, int Notify, char *Name)
@@ -398,7 +398,7 @@ int ConnectRas(int Dialup, int UseThis, int Notify, char *Name)
 	BOOL Flg;
 	OSVERSIONINFO VerInfo;
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if(Dialup == YES)
 	{
 		if(m_hDll != NULL)
@@ -438,7 +438,7 @@ int ConnectRas(int Dialup, int UseThis, int Notify, char *Name)
 			{
 				/* 接続する */
 				SetTaskMsg(MSGJPN221);
-				Sts = FAIL;
+				Sts = FFFTP_FAIL;
 
 				Num = 0;
 				VerInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
@@ -460,7 +460,7 @@ int ConnectRas(int Dialup, int UseThis, int Notify, char *Name)
 						DlgParam.reserved = 0;
 						DlgParam.reserved2 = 0;
 						if((*m_RasDialDlg)(NULL, Name, NULL, &DlgParam) != 0)
-							Sts = SUCCESS;
+							Sts = FFFTP_SUCCESS;
 					}
 					else
 						SetTaskMsg(MSGJPN222);
@@ -478,7 +478,7 @@ int ConnectRas(int Dialup, int UseThis, int Notify, char *Name)
 					   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(dial_password_dlg), GetMainHwnd(), (DLGPROC)DialPassCallBackProc, (LPARAM)&Param) == YES))
 					{
 						if(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(dial_dlg), GetMainHwnd(), (DLGPROC)DialCallBackProc, (LPARAM)&Param) == YES)
-							Sts = SUCCESS;
+							Sts = FFFTP_SUCCESS;
 					}
 				}
 			}

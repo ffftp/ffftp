@@ -69,8 +69,8 @@
 #define TRUE  1
 #define FALSE 0
 
-#define SUCCESS 0
-#define FAILURE -1
+#define FFFTP_SUCCESS 0
+#define FFFTP_FAILURE -1
 
 int sha_file();                         /* External entries */
 void sha_stream(), sha_memory();
@@ -121,7 +121,7 @@ char **argv;
 	    if (verbose) printf("%s:", *argv);
 	    file_args = TRUE;           /* Whether or not we could read it */
 
-	    if (sha_file(*argv, hbuf) == FAILURE)
+	    if (sha_file(*argv, hbuf) == FFFTP_FAILURE)
 		printf("Can't open file %s.\n", *argv);
 	    else
 		if (terse) printf("%08lx%08lx%08lx%08lx%08lx\n",
@@ -187,11 +187,11 @@ uint32 *buffer;
 
 	for (i = 0; i < 5; i++)
 	    buffer[i] = 0xdeadbeef;
-	return FAILURE;
+	return FFFTP_FAILURE;
     }
     (void) sha_stream(infile, buffer);
     fclose(infile);
-    return SUCCESS;
+    return FFFTP_SUCCESS;
 }
 
 void sha_memory(mem, length, buffer)    /* Hash a memory block */

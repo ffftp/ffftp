@@ -1,0 +1,8 @@
+*~
+Release
+Debug
+FFFTP_Eng_Release
+FFFTP_Eng_Debug
+*.ncb
+*.suo
+*.user

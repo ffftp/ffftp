@@ -137,7 +137,7 @@ void ConnectProc(int Type, int Num)
 		InitPWDcommand();
 		CopyHostFromList(AskCurrentHost(), &CurHost);
 
-		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == SUCCESS)
+		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == FFFTP_SUCCESS)
 		{
 			SetHostKanaCnvImm(CurHost.KanaCnv);
 			SetHostKanjiCodeImm(CurHost.KanjiCode);
@@ -216,7 +216,7 @@ void QuickConnectProc(void)
 
 		InitPWDcommand();
 		CopyDefaultHost(&CurHost);
-		if(SplitUNCpath(Tmp, CurHost.HostAdrs, CurHost.RemoteInitDir, File, CurHost.UserName, CurHost.PassWord, &CurHost.Port) == SUCCESS)
+		if(SplitUNCpath(Tmp, CurHost.HostAdrs, CurHost.RemoteInitDir, File, CurHost.UserName, CurHost.PassWord, &CurHost.Port) == FFFTP_SUCCESS)
 		{
 			if(strlen(CurHost.UserName) == 0)
 			{
@@ -304,7 +304,7 @@ static BOOL CALLBACK QuickConDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wPa
 			SendDlgItemMessage(hDlg, QHOST_PASV, BM_SETCHECK, PasvDefault, 0);
 			for(i = 0; i < HISTORY_MAX; i++)
 			{
-				if(GetHistoryByNum(i, &Tmp) == SUCCESS)
+				if(GetHistoryByNum(i, &Tmp) == FFFTP_SUCCESS)
 				{
 //sprintf(Str, "%s (%s) %s", Tmp.HostAdrs, Tmp.UserName, Tmp.RemoteInitDir);
 //SendDlgItemMessage(hDlg, QHOST_HOST, CB_ADDSTRING, 0, (LPARAM)Str);
@@ -373,7 +373,7 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 	SetTaskMsg("----------------------------");
 
 	InitPWDcommand();
-	if(SplitUNCpath(unc, Host, Path, File, User, Pass, &Port) == SUCCESS)
+	if(SplitUNCpath(unc, Host, Path, File, User, Pass, &Port) == FFFTP_SUCCESS)
 	{
 		if(strlen(User) == 0)
 		{
@@ -453,7 +453,7 @@ void HistoryConnectProc(int MenuCmd)
 	int RFSort;
 	int RDSort;
 
-	if(GetHistoryByCmd(MenuCmd, &Hist) == SUCCESS)
+	if(GetHistoryByCmd(MenuCmd, &Hist) == FFFTP_SUCCESS)
 	{
 		SaveBookMark();
 		SaveCurrentSetToHost();
@@ -467,7 +467,7 @@ void HistoryConnectProc(int MenuCmd)
 		InitPWDcommand();
 		CopyHistoryToHost(&Hist, &CurHost);
 
-		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == SUCCESS)
+		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == FFFTP_SUCCESS)
 		{
 			SetCurrentHost(HOSTNUM_NOENTRY);
 			SetHostKanaCnvImm(CurHost.KanaCnv);
@@ -574,7 +574,7 @@ static void AskUseFireWall(char *Host, int *Fire, int *Pasv, int *List)
 	*List = NO;
 
 	i = 0;
-	while(CopyHostFromList(i, &Tmp) == SUCCESS)
+	while(CopyHostFromList(i, &Tmp) == FFFTP_SUCCESS)
 	{
 		if(strcmp(Host, Tmp.HostAdrs) == 0)
 		{
@@ -905,7 +905,7 @@ static void SaveCurrentSetToHistory(void)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int ReConnectCmdSkt(void)
@@ -931,7 +931,7 @@ int ReConnectCmdSkt(void)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 //int ReConnectTrnSkt(void)
@@ -947,7 +947,7 @@ int ReConnectCmdSkt(void)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int ReConnectSkt(SOCKET *Skt)
@@ -955,7 +955,7 @@ static int ReConnectSkt(SOCKET *Skt)
 	char Path[FMAX_PATH+1];
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 
 	SetTaskMsg(MSGJPN003);
 
@@ -968,7 +968,7 @@ static int ReConnectSkt(SOCKET *Skt)
 	{
 		AskRemoteCurDir(Path, FMAX_PATH);
 		DoCWD(Path, YES, YES, YES);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	else
 		SoundPlay(SND_ERROR);
@@ -1221,7 +1221,7 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 				Flg = 1;
 				if(setsockopt(ContSock, SOL_SOCKET, SO_OOBINLINE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					ReportWSError("setsockopt", WSAGetLastError());
-#pragma aaa
+/* #pragma aaa */
 				Flg = 1;
 				if(setsockopt(ContSock, SOL_SOCKET, SO_KEEPALIVE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					ReportWSError("setsockopt", WSAGetLastError());
@@ -1402,7 +1402,7 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *
 *	Note
 *		ワンタイムパスワードでない時はPassをそのままReplyにコピー
@@ -1416,7 +1416,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 	char Seed[MAX_SEED_LEN+1];
 	int i;
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	Pos = NULL;
 
 	if(Type == SECURITY_AUTO)
@@ -1445,7 +1445,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 		/* シーケンス番号を見つけるループ */
 		DoPrintf("Analize OTP");
 		DoPrintf("%s", Pos);
-		Sts = FAIL;
+		Sts = FFFTP_FAIL;
 		while((Pos = GetNextField(Pos)) != NULL)
 		{
 			if(IsDigit(*Pos))
@@ -1456,7 +1456,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 				/* Seed */
 				if((Pos = GetNextField(Pos)) != NULL)
 				{
-					if(GetOneField(Pos, Seed, MAX_SEED_LEN) == SUCCESS)
+					if(GetOneField(Pos, Seed, MAX_SEED_LEN) == FFFTP_SUCCESS)
 					{
 						/* Seedは英数字のみ有効とする */
 						for(i = strlen(Seed)-1; i >= 0; i--)
@@ -1474,7 +1474,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 							if(Seq <= 10)
 								DialogBox(GetFtpInst(), MAKEINTRESOURCE(otp_notify_dlg), GetMainHwnd(), ExeEscDialogProc);
 
-							Sts = SUCCESS;
+							Sts = FFFTP_SUCCESS;
 						}
 					}
 				}
@@ -1482,7 +1482,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 			}
 		}
 
-		if(Sts == FAIL)
+		if(Sts == FFFTP_FAIL)
 			SetTaskMsg(MSGJPN015);
 	}
 	else
@@ -1636,8 +1636,8 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			if(Fwall == FWALL_SOCKS4)
 			{
 				Socks4Reply.Result = -1;
-				if((SocksSendCmd(sSocket, &Socks4Cmd, Len, CancelCheckWork) != SUCCESS) ||
-				   (Socks4GetCmdReply(sSocket, &Socks4Reply) != SUCCESS) || 
+				if((SocksSendCmd(sSocket, &Socks4Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
+				   (Socks4GetCmdReply(sSocket, &Socks4Reply) != FFFTP_SUCCESS) || 
 				   (Socks4Reply.Result != SOCKS4_RES_OK))
 				{
 					SetTaskMsg(MSGJPN023, Socks4Reply.Result);
@@ -1647,15 +1647,15 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			}
 			else if((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
 			{
-				if(Socks5SelMethod(sSocket, CancelCheckWork) == FAIL)
+				if(Socks5SelMethod(sSocket, CancelCheckWork) == FFFTP_FAIL)
 				{
 					DoClose(sSocket);
 					sSocket = INVALID_SOCKET;
 				}
 
 				Socks5Reply.Result = -1;
-				if((SocksSendCmd(sSocket, &Socks5Cmd, Len, CancelCheckWork) != SUCCESS) ||
-				   (Socks5GetCmdReply(sSocket, &Socks5Reply) != SUCCESS) || 
+				if((SocksSendCmd(sSocket, &Socks5Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
+				   (Socks5GetCmdReply(sSocket, &Socks5Reply) != FFFTP_SUCCESS) || 
 				   (Socks5Reply.Result != SOCKS5_RES_OK))
 				{
 					SetTaskMsg(MSGJPN024, Socks5Reply.Result);
@@ -1727,8 +1727,8 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 				Len = offsetof(SOCKS4CMD, UserID) + strlen(FwallUser) + 1;
 
 				Socks4Reply.Result = -1;
-				if((SocksSendCmd(listen_skt, &Socks4Cmd, Len, CancelCheckWork) != SUCCESS) ||
-				   (Socks4GetCmdReply(listen_skt, &Socks4Reply) != SUCCESS) || 
+				if((SocksSendCmd(listen_skt, &Socks4Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
+				   (Socks4GetCmdReply(listen_skt, &Socks4Reply) != FFFTP_SUCCESS) || 
 				   (Socks4Reply.Result != SOCKS4_RES_OK))
 				{
 					SetTaskMsg(MSGJPN028, Socks4Reply.Result);
@@ -1749,7 +1749,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 			DoPrintf("Use SOCKS5 BIND");
 			if(do_connect(listen_skt, (struct sockaddr *)&SocksSockAddr, sizeof(SocksSockAddr), CancelCheckWork) != SOCKET_ERROR)
 			{
-				if(Socks5SelMethod(listen_skt, CancelCheckWork) == FAIL)
+				if(Socks5SelMethod(listen_skt, CancelCheckWork) == FFFTP_FAIL)
 				{
 					DoClose(listen_skt);
 					listen_skt = INVALID_SOCKET;
@@ -1759,8 +1759,8 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 				Len = Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, UseIPadrs, CurSockAddr.sin_addr.s_addr, DomainName, CurSockAddr.sin_port);
 
 				Socks5Reply.Result = -1;
-				if((SocksSendCmd(listen_skt, &Socks5Cmd, Len, CancelCheckWork) != SUCCESS) ||
-				   (Socks5GetCmdReply(listen_skt, &Socks5Reply) != SUCCESS) || 
+				if((SocksSendCmd(listen_skt, &Socks5Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
+				   (Socks5GetCmdReply(listen_skt, &Socks5Reply) != FFFTP_SUCCESS) || 
 				   (Socks5Reply.Result != SOCKS5_RES_OK))
 				{
 					SetTaskMsg(MSGJPN029, Socks5Reply.Result);
@@ -1945,7 +1945,7 @@ static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, int ValidIP, ulo
 *		int Size : サイズ
 *
 *	Return Value
-*		int ステータス (SUCCESS/FAIL)
+*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
 static int SocksSendCmd(SOCKET Socket, void *Data, int Size, int *CancelCheckWork)
@@ -1954,7 +1954,7 @@ static int SocksSendCmd(SOCKET Socket, void *Data, int Size, int *CancelCheckWor
 
 	Ret = SendData(Socket, (char *)Data, Size, 0, CancelCheckWork);
 
-	if(Ret != SUCCESS)
+	if(Ret != FFFTP_SUCCESS)
 		SetTaskMsg(MSGJPN033, *((short *)Data));
 
 	return(Ret);
@@ -1968,7 +1968,7 @@ static int SocksSendCmd(SOCKET Socket, void *Data, int Size, int *CancelCheckWor
 *		SOCKS5REPLY *Packet : パケット
 *
 *	Return Value
-*		int ステータス (SUCCESS/FAIL)
+*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
 static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet)
@@ -1980,7 +1980,7 @@ static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet)
 	Pos = (uchar *)Packet;
 	Pos += SOCKS5REPLY_SIZE;
 
-	if((Ret = ReadNchar(Socket, (char *)Packet, SOCKS5REPLY_SIZE, &CancelFlg)) == SUCCESS)
+	if((Ret = ReadNchar(Socket, (char *)Packet, SOCKS5REPLY_SIZE, &CancelFlg)) == FFFTP_SUCCESS)
 	{
 		if(Packet->Type == SOCKS5_ADRS_IPV4)
 			Len = 4 + 2;
@@ -1988,18 +1988,18 @@ static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet)
 			Len = 6 + 2;
 		else
 		{
-			if((Ret = ReadNchar(Socket, (char *)Pos, 1, &CancelFlg)) == SUCCESS)
+			if((Ret = ReadNchar(Socket, (char *)Pos, 1, &CancelFlg)) == FFFTP_SUCCESS)
 			{
 				Len = *Pos + 2;
 				Pos++;
 			}
 		}
 
-		if(Ret == SUCCESS)
+		if(Ret == FFFTP_SUCCESS)
 			Ret = ReadNchar(Socket, (char *)Pos, Len, &CancelFlg);
 	}
 
-	if(Ret != SUCCESS)
+	if(Ret != FFFTP_SUCCESS)
 		SetTaskMsg(MSGJPN034);
 
 	return(Ret);
@@ -2013,7 +2013,7 @@ static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet)
 *		SOCKS5REPLY *Packet : パケット
 *
 *	Return Value
-*		int ステータス (SUCCESS/FAIL)
+*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
 static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet)
@@ -2022,7 +2022,7 @@ static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet)
 
 	Ret = ReadNchar(Socket, (char *)Packet, SOCKS4REPLY_SIZE, &CancelFlg);
 
-	if(Ret != SUCCESS)
+	if(Ret != FFFTP_SUCCESS)
 		DoPrintf(MSGJPN035);
 
 	return(Ret);
@@ -2035,7 +2035,7 @@ static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet)
 *		SOCKET Socket : ソケット
 *
 *	Return Value
-*		int ステータス (SUCCESS/FAIL)
+*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
 static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork)
@@ -2048,7 +2048,7 @@ static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork)
 	int Len;
 	int Len2;
 
-	Ret = SUCCESS;
+	Ret = FFFTP_SUCCESS;
 	Socks5Method.Ver = SOCKS5_VER;
 	Socks5Method.Num = 1;
 	if(FwallType == FWALL_SOCKS5_NOAUTH)
@@ -2056,12 +2056,12 @@ static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork)
 	else
 		Socks5Method.Methods[0] = SOCKS5_AUTH_USER;
 
-	if((SocksSendCmd(Socket, &Socks5Method, SOCKS5METHODREQUEST_SIZE, CancelCheckWork) != SUCCESS) ||
-	   (ReadNchar(Socket, (char *)&Socks5MethodReply, SOCKS5METHODREPLY_SIZE, &CancelFlg) != SUCCESS) ||
+	if((SocksSendCmd(Socket, &Socks5Method, SOCKS5METHODREQUEST_SIZE, CancelCheckWork) != FFFTP_SUCCESS) ||
+	   (ReadNchar(Socket, (char *)&Socks5MethodReply, SOCKS5METHODREPLY_SIZE, &CancelFlg) != FFFTP_SUCCESS) ||
 	   (Socks5MethodReply.Method == (uchar)0xFF))
 	{
 		SetTaskMsg(MSGJPN036);
-		Ret = FAIL;
+		Ret = FFFTP_FAIL;
 	}
 	else if(Socks5MethodReply.Method == SOCKS5_AUTH_USER)
 	{
@@ -2074,12 +2074,12 @@ static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork)
 		Buf[2 + Len] = Len2;
 		strcpy(Buf+3+Len, FwallPass);
 
-		if((SocksSendCmd(Socket, &Buf, Len+Len2+3, CancelCheckWork) != SUCCESS) ||
-		   (ReadNchar(Socket, (char *)&Socks5Status, SOCKS5USERPASSSTATUS_SIZE, &CancelFlg) != SUCCESS) ||
+		if((SocksSendCmd(Socket, &Buf, Len+Len2+3, CancelCheckWork) != FFFTP_SUCCESS) ||
+		   (ReadNchar(Socket, (char *)&Socks5Status, SOCKS5USERPASSSTATUS_SIZE, &CancelFlg) != FFFTP_SUCCESS) ||
 		   (Socks5Status.Status != 0))
 		{
 			SetTaskMsg(MSGJPN037);
-			Ret = FAIL;
+			Ret = FFFTP_FAIL;
 		}
 	}
 	else
@@ -2096,7 +2096,7 @@ static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork)
 *		SOCKET *Data : データソケットを返すワーク
 *
 *	Return Value
-*		int ステータス (SUCCESS/FAIL)
+*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
 int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data)
@@ -2104,19 +2104,19 @@ int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data)
 	int Ret;
 	char Buf[300];
 
-	Ret = FAIL;
+	Ret = FFFTP_FAIL;
 	if((AskHostFireWall() == YES) && (FwallType == FWALL_SOCKS4))
 	{
 		Socks4GetCmdReply(Socket, (SOCKS4REPLY *)Buf);
 		*Data = Socket;
-		Ret = SUCCESS;
+		Ret = FFFTP_SUCCESS;
 	}
 	else if((AskHostFireWall() == YES) &&
 			((FwallType == FWALL_SOCKS5_NOAUTH) || (FwallType == FWALL_SOCKS5_USER)))
 	{
 		Socks5GetCmdReply(Socket, (SOCKS5REPLY *)Buf);
 		*Data = Socket;
-		Ret = SUCCESS;
+		Ret = FFFTP_SUCCESS;
 	}
 	return(Ret);
 }

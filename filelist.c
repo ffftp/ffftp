@@ -157,7 +157,7 @@ static char remoteFileDir[FMAX_PATH + 1];
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int MakeListWin(HWND hWnd, HINSTANCE hInst)
@@ -275,11 +275,11 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 		SendMessage(hWndListRemote, LVM_INSERTCOLUMN, 5, (LPARAM)&LvCol);
 	}
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if((hWndListLocal == NULL) ||
 	   (hWndListRemote == NULL))
 	{
-		Sts = FAIL;
+		Sts = FFFTP_FAIL;
 	}
 	return(Sts);
 }
@@ -1198,7 +1198,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork)
 			{
 				ListType = LIST_UNKNOWN;
 
-				while(GetListOneLine(Str, FMAX_PATH, fd) == SUCCESS)
+				while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
 				{
 					if((ListType = AnalizeFileInfo(Str)) != LIST_UNKNOWN)
 					{
@@ -1705,7 +1705,7 @@ void SelectFileInList(HWND hWnd, int Type)
 						LvItem.state = 0;
 						if(GetNodeType(Win, i) != NODE_DRIVE)
 						{
-							if(((FindMode == 0) && (CheckFname(Name, RegExp) == SUCCESS)) ||
+							if(((FindMode == 0) && (CheckFname(Name, RegExp) == FFFTP_SUCCESS)) ||
 							   ((FindMode != 0) && (JreGetStrMatchInfo(Name, 0) != NULL)))
 							{
 								LvItem.state = LVIS_SELECTED;
@@ -1859,7 +1859,7 @@ void FindFileInList(HWND hWnd, int Type)
 						_mbslwr(Name);
 
 						LvItem.state = 0;
-						if(((FindMode == 0) && (CheckFname(Name, RegExp) == SUCCESS)) ||
+						if(((FindMode == 0) && (CheckFname(Name, RegExp) == FFFTP_SUCCESS)) ||
 						   ((FindMode != 0) && (JreGetStrMatchInfo(Name, 0) != NULL)))
 						{
 							LvItem.mask = LVIF_STATE;
@@ -1883,7 +1883,7 @@ void FindFileInList(HWND hWnd, int Type)
 				_mbslwr(Name);
 
 				LvItem.state = 0;
-				if(((FindMode == 0) && (CheckFname(Name, RegExp) == SUCCESS)) ||
+				if(((FindMode == 0) && (CheckFname(Name, RegExp) == FFFTP_SUCCESS)) ||
 				   ((FindMode != 0) && (JreGetStrMatchInfo(Name, 0) != NULL)))
 				{
 					LvItem.mask = LVIF_STATE;
@@ -2775,11 +2775,11 @@ void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base)
 
 		ListType = LIST_UNKNOWN;
 
-		while(GetListOneLine(Str, FMAX_PATH, fd) == SUCCESS)
+		while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
 		{
 			if((ListType = AnalizeFileInfo(Str)) == LIST_UNKNOWN)
 			{
-				if(MakeDirPath(Str, ListType, Path, Dir) == SUCCESS)
+				if(MakeDirPath(Str, ListType, Path, Dir) == FFFTP_SUCCESS)
 				{
 					if(IncDir == RDIR_NLST)
 					{
@@ -2830,7 +2830,7 @@ void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base)
 *		FILE *Fd : ストリーム
 *
 *	Return Value
-*		int ステータス (SUCCESS/FAIL)
+*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
 *
 *	Note
 *		VAX VMS以外の時は fgets(Buf, Max, Fd) と同じ
@@ -2842,10 +2842,10 @@ static int GetListOneLine(char *Buf, int Max, FILE *Fd)
 	char Tmp[FMAX_PATH+1];
 	int Sts;
 
-	Sts = FAIL;
-	while((Sts == FAIL) && (fgets(Buf, Max, Fd) != NULL))
+	Sts = FFFTP_FAIL;
+	while((Sts == FFFTP_FAIL) && (fgets(Buf, Max, Fd) != NULL))
 	{
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 		RemoveReturnCode(Buf);
 		ReplaceAll(Buf, '\x08', ' ');
 
@@ -2854,7 +2854,7 @@ static int GetListOneLine(char *Buf, int Max, FILE *Fd)
 		if(AskHostType() == HTYPE_VMS)
 		{
 			if(strchr(Buf, ';') == NULL)	/* ファイル名以外の行 */
-				Sts = FAIL;
+				Sts = FFFTP_FAIL;
 			else
 			{
 				Max -= strlen(Buf);
@@ -2892,14 +2892,14 @@ static int GetListOneLine(char *Buf, int Max, FILE *Fd)
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL=ディレクトリ情報でない
+*			FFFTP_SUCCESS/FFFTP_FAIL=ディレクトリ情報でない
 *----------------------------------------------------------------------------*/
 
 static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir)
 {
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	switch(ListType)
 	{
 		case LIST_ACOS :
@@ -2929,7 +2929,7 @@ static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir)
 						ReplaceAll(Dir, '\\', '/');
 					}
 				}
-				Sts = SUCCESS;
+				Sts = FFFTP_SUCCESS;
 			}
 			break;
 	}
@@ -3177,13 +3177,13 @@ static int AnalizeFileInfo(char *Str)
 		/* LIST_UNIX_10, LIST_UNIX_20, LIST_UNIX_12, LIST_UNIX_22, LIST_UNIX_50, LIST_UNIX_60 */
 		/* MELCOM80 */
 
-		if(FindField(Str, Tmp, 0, NO) == SUCCESS)
+		if(FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS)
 		{
 			/* MELCOM80は "d rwxrwxrwx" のようにスペースが空いている */
 			Flag1 = NO;
 			if((strlen(Tmp) == 1) && (strchr("-dDlL", Tmp[0]) != NULL))
 			{
-				if(FindField(Str, Tmp, 1, NO) == SUCCESS)
+				if(FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS)
 				{
 					if((strlen(Tmp) == 9) ||
 					   ((strlen(Tmp) > 9) && (IsDigit(Tmp[9]) != 0)))
@@ -3207,7 +3207,7 @@ static int AnalizeFileInfo(char *Str)
 
 ////////////
 // LIST_UNIX_60 support
-				if(FindField(Str, Tmp, 7+Add1, NO) == SUCCESS)
+				if(FindField(Str, Tmp, 7+Add1, NO) == FFFTP_SUCCESS)
 				{
 					GetMonth(Tmp, &Month, &Day);
 					if(Month != 0)
@@ -3220,7 +3220,7 @@ static int AnalizeFileInfo(char *Str)
 ////////////
 // LIST_UNIX_12 support
 				if((Ret == LIST_UNKNOWN) &&
-				   (FindField(Str, Tmp, 6+Add1, NO) == SUCCESS))
+				   (FindField(Str, Tmp, 6+Add1, NO) == FFFTP_SUCCESS))
 				{
 					GetMonth(Tmp, &Month, &Day);
 					if(Month != 0)
@@ -3233,7 +3233,7 @@ static int AnalizeFileInfo(char *Str)
 ////////////
 // LIST_UNIX_70 support
 				if((Ret == LIST_UNKNOWN) &&
-				   (FindField(Str, Tmp, 6+Add1, NO) == SUCCESS))
+				   (FindField(Str, Tmp, 6+Add1, NO) == FFFTP_SUCCESS))
 				{
 					GetMonth(Tmp, &Month, &Day);
 					if(Month != 0)
@@ -3244,7 +3244,7 @@ static int AnalizeFileInfo(char *Str)
 ///////////
 
 				if((Ret == LIST_UNKNOWN) &&
-				   (FindField(Str, Tmp, 5+Add1, NO) == SUCCESS))
+				   (FindField(Str, Tmp, 5+Add1, NO) == FFFTP_SUCCESS))
 				{
 					GetMonth(Tmp, &Month, &Day);
 					if(Month != 0)
@@ -3254,7 +3254,7 @@ static int AnalizeFileInfo(char *Str)
 				}
 
 				if((Ret == LIST_UNKNOWN) &&
-				   (FindField(Str, Tmp, 4+Add1, NO) == SUCCESS))
+				   (FindField(Str, Tmp, 4+Add1, NO) == FFFTP_SUCCESS))
 				{
 					GetMonth(Tmp, &Month, &Day);
 					if(Month != 0)
@@ -3264,7 +3264,7 @@ static int AnalizeFileInfo(char *Str)
 				}
 
 				if((Ret == LIST_UNKNOWN) &&
-				   (FindField(Str, Tmp, 3+Add1, NO) == SUCCESS))
+				   (FindField(Str, Tmp, 3+Add1, NO) == FFFTP_SUCCESS))
 				{
 					GetMonth(Tmp, &Month, &Day);
 					if(Month != 0)
@@ -3283,16 +3283,16 @@ static int AnalizeFileInfo(char *Str)
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 			   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 			{
-				if((FindField(Str, Tmp, 3, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS) &&
 				   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 				{
-					if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 					   (IsDigit(Tmp[0]) != 0))
 					{
-						if(FindField(Str, Tmp, 5, NO) == SUCCESS)
+						if(FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS)
 						{
 							Ret = LIST_AS400;
 						}
@@ -3306,19 +3306,19 @@ static int AnalizeFileInfo(char *Str)
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 5, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
 			   (CheckYYMMDDformat(Tmp, '*', NO) != 0))
 			{
-				if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 				   ((IsDigit(Tmp[0]) != 0) || (StrAllSameChar(Tmp, '*') == YES)))
 				{
-					if((FindField(Str, Tmp, 3, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS) &&
 					   ((IsDigit(Tmp[0]) != 0) || (StrAllSameChar(Tmp, '*') == YES)))
 					{
-						if((FindField(Str, Tmp, 0, NO) == SUCCESS) &&
+						if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
 						   (strlen(Tmp) == 4))
 						{
-							if(FindField(Str, Tmp, 6, NO) == SUCCESS)
+							if(FindField(Str, Tmp, 6, NO) == FFFTP_SUCCESS)
 							{
 								Ret = LIST_M1800;
 							}
@@ -3333,16 +3333,16 @@ static int AnalizeFileInfo(char *Str)
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 			   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 			{
-				if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 				   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 				{
-					if((FindField(Str, Tmp, 5, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
 					   (IsDigit(Tmp[0]) != 0))
 					{
-						if(FindField(Str, Tmp, 6, NO) == SUCCESS)
+						if(FindField(Str, Tmp, 6, NO) == FFFTP_SUCCESS)
 						{
 							Ret = LIST_GP6000;
 						}
@@ -3356,15 +3356,15 @@ static int AnalizeFileInfo(char *Str)
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 			   (CheckHHMMformat(Tmp) == YES))
 			{
-				if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 				   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
 				{
-					if(FindField(Str, Tmp, 3, NO) == SUCCESS)
+					if(FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS)
 					{
-						if((FindField(Str, Tmp, 0, NO) == SUCCESS) &&
+						if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
 						   (CheckYYMMDDformat(Tmp, NUL, YES) != 0))
 						{
 							TmpInt = atoi(Tmp);
@@ -3383,13 +3383,13 @@ static int AnalizeFileInfo(char *Str)
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 3, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS) &&
 			   (CheckHHMMformat(Tmp) == YES))
 			{
-				if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 				   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
 				{
-					if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 					   (CheckYYMMDDformat(Tmp, NUL, YES) != 0))
 					{
 						Ret = LIST_DOS_3;
@@ -3403,16 +3403,16 @@ static int AnalizeFileInfo(char *Str)
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 0, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
 			   (CheckYYYYMMDDformat(Tmp, NUL) == YES))
 			{
-				if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 				   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 				{
-					if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 					   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
 					{
-						if(FindField(Str, Tmp, 3, NO) == SUCCESS)
+						if(FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS)
 						{
 							Ret = LIST_DOS_4;
 						}
@@ -3426,15 +3426,15 @@ static int AnalizeFileInfo(char *Str)
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if(FindField(Str, Tmp, 2, NO) == SUCCESS)
+			if(FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS)
 			{
 				GetMonth(Tmp, &Month, &Day);
 				if((Month != 0) && (Day == 0))
 				{
-					if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 					   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
 					{
-						if((FindField(Str, Tmp, 5, NO) == SUCCESS) &&
+						if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
 						   (CheckHHMMformat(Tmp) == YES))
 						{
 							Ret = LIST_CHAMELEON;
@@ -3449,16 +3449,16 @@ static int AnalizeFileInfo(char *Str)
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 3, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS) &&
 			   (CheckHHMMformat(Tmp) == YES))
 			{
-				if((FindField(Str, Tmp, 0, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
 				   (IsDigit(Tmp[0]) != 0))
 				{
-					if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 					   (CheckYYMMDDformat(Tmp, NUL, YES) != 0))
 					{
-						if(FindField(Str, Tmp, 4, NO) == SUCCESS)
+						if(FindField(Str, Tmp, 4, NO) == FFFTP_SUCCESS)
 						{
 							Ret = LIST_OS2;
 						}
@@ -3472,32 +3472,32 @@ static int AnalizeFileInfo(char *Str)
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 0, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
 			   (strlen(Tmp) == 10))
 			{
-				if((FindField(Str, Tmp, 3, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS) &&
 				   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 				{
-					if((FindField(Str, Tmp, 4, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 4, NO) == FFFTP_SUCCESS) &&
 					   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 					{
-						if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+						if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 						   (IsDigit(Tmp[0]) != 0))
 						{
-							if(FindField(Str, Tmp, 5, NO) == SUCCESS)
+							if(FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS)
 							{
 								Ret = LIST_OS7_2;
 							}
 						}
 					}
 				}
-				else if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+				else if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 						(CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 				{
-					if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 					   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 					{
-						if(FindField(Str, Tmp, 3, NO) == SUCCESS)
+						if(FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS)
 						{
 							Ret = LIST_OS7_1;
 						}
@@ -3511,18 +3511,18 @@ static int AnalizeFileInfo(char *Str)
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 0, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
 			   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
 			{
-				if((FindField(Str, Tmp, 5, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
 				   (CheckHHMMformat(Tmp) == YES))
 				{
-					if(FindField(Str, Tmp, 3, NO) == SUCCESS)
+					if(FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS)
 					{
 						GetMonth(Tmp, &Month, &Day);
 						if(Month != 0)
 						{
-							if((FindField(Str, Tmp, 6, NO) == SUCCESS) &&
+							if((FindField(Str, Tmp, 6, NO) == FFFTP_SUCCESS) &&
 							   (IsDigit(Tmp[0]) != 0))
 							{
 								Ret = LIST_ALLIED;
@@ -3538,16 +3538,16 @@ static int AnalizeFileInfo(char *Str)
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 			   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 			{
-				if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 				   (IsDigit(Tmp[0]) != 0) && (strlen(Tmp) == 4))
 				{
-					if((FindField(Str, Tmp, 5, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
 					   (IsDigit(Tmp[0]) != 0))
 					{
-						if(FindField(Str, Tmp, 6, NO) == SUCCESS)
+						if(FindField(Str, Tmp, 6, NO) == FFFTP_SUCCESS)
 						{
 							Ret = LIST_OS9;
 						}
@@ -3561,14 +3561,14 @@ static int AnalizeFileInfo(char *Str)
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 			   (CheckYYYYMMDDformat(Tmp, NUL) == YES))
 			{
-				if((FindField(Str, Tmp, 1, NO) == SUCCESS) && IsDigit(Tmp[0]))
+				if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) && IsDigit(Tmp[0]))
 				{
-					if((FindField(Str, Tmp, 7, NO) == SUCCESS) && IsDigit(Tmp[0]))
+					if((FindField(Str, Tmp, 7, NO) == FFFTP_SUCCESS) && IsDigit(Tmp[0]))
 					{
-						if(FindField(Str, Tmp, 9, NO) == SUCCESS)
+						if(FindField(Str, Tmp, 9, NO) == FFFTP_SUCCESS)
 						{
 							Ret = LIST_IBM;
 						}
@@ -3617,13 +3617,13 @@ static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day)
 
 	// unix系チェック
 	if((Day != 0) ||
-	   ((FindField(Str, Tmp, 6+Add1+Add2+Add3, NO) == SUCCESS) &&
+	   ((FindField(Str, Tmp, 6+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
 		((atoi(Tmp) >= 1) && (atoi(Tmp) <= 31))))
 	{
-		if((FindField(Str, Tmp, 7+Add1+Add2+Add3, NO) == SUCCESS) &&
-		   ((atoi(Tmp) >= 1900) || (GetHourAndMinute(Tmp, &Hour, &Minute) == SUCCESS)))
+		if((FindField(Str, Tmp, 7+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
+		   ((atoi(Tmp) >= 1900) || (GetHourAndMinute(Tmp, &Hour, &Minute) == FFFTP_SUCCESS)))
 		{
-			if(FindField(Str, Tmp, 8+Add1+Add2+Add3, NO) == SUCCESS)
+			if(FindField(Str, Tmp, 8+Add1+Add2+Add3, NO) == FFFTP_SUCCESS)
 			{
 				Flag = 1;
 			}
@@ -3633,13 +3633,13 @@ static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day)
 	// 中国語Solaris専用
 	if(Flag == 0)
 	{
-	   if((FindField(Str, Tmp, 7+Add1+Add2+Add3, NO) == SUCCESS) &&
+	   if((FindField(Str, Tmp, 7+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
 		  ((atoi(Tmp) >= 1) && (atoi(Tmp) <= 31)))
 		{
-			if((FindField(Str, Tmp, 5+Add1+Add2+Add3, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 5+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
 			   (atoi(Tmp) >= 1900))
 			{
-				if((FindField(Str, Tmp, 6+Add1+Add2+Add3, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 6+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
 				   (((atoi(Tmp) >= 1) && (atoi(Tmp) <= 9) && 
 					 ((unsigned char)Tmp[1] == 0xD4) &&
 					 ((unsigned char)Tmp[2] == 0xC2)) ||
@@ -3647,7 +3647,7 @@ static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day)
 					 ((unsigned char)Tmp[2] == 0xD4) && 
 					 ((unsigned char)Tmp[3] == 0xC2))))
 				{
-					if(FindField(Str, Tmp, 8+Add1+Add2+Add3, NO) == SUCCESS)
+					if(FindField(Str, Tmp, 8+Add1+Add2+Add3, NO) == FFFTP_SUCCESS)
 					{
 						Flag = 2;
 					}
@@ -3967,7 +3967,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			*Size = _atoi64(Buf);
 
 			/* 名前 */
-			if(FindField(Str, Fname, DosPos[offs][3], DosLongFname[offs]) == SUCCESS)
+			if(FindField(Str, Fname, DosPos[offs][3], DosLongFname[offs]) == FFFTP_SUCCESS)
 			{
 				Ret = NODE_FILE;
 				if(Buf[0] == '<')
@@ -3999,7 +3999,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			*Size = _atoi64(Buf);
 
 			/* 名前 */
-			if(FindField(Str, Fname, 3, YES) == SUCCESS)
+			if(FindField(Str, Fname, 3, YES) == FFFTP_SUCCESS)
 			{
 				Ret = NODE_FILE;
 				if(Buf[0] == '<')
@@ -4034,7 +4034,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			*Size = _atoi64(Buf);
 
 			/* 名前 */
-			if(FindField(Str, Fname, 4, YES) == SUCCESS)
+			if(FindField(Str, Fname, 4, YES) == FFFTP_SUCCESS)
 			{
 				FindField(Str, Buf, 1, NO);
 				Ret = NODE_FILE;
@@ -4073,7 +4073,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			*Size = _atoi64(Buf);
 
 			/* 名前 */
-			if(FindField(Str, Fname, 0, NO) == SUCCESS)
+			if(FindField(Str, Fname, 0, NO) == FFFTP_SUCCESS)
 			{
 				Ret = NODE_FILE;
 				if(Buf[0] == '<')
@@ -4108,7 +4108,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			*Size = _atoi64(Buf);
 
 			/* 名前 */
-			if(FindField(Str, Fname, 5, YES) == SUCCESS)
+			if(FindField(Str, Fname, 5, YES) == FFFTP_SUCCESS)
 			{
 				Ret = NODE_FILE;
 				if((Pos = strchr(Fname, '/')) != NULL)
@@ -4147,7 +4147,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			}
 
 			/* 名前 */
-			if(FindField(Str, Fname, 6, YES) == SUCCESS)
+			if(FindField(Str, Fname, 6, YES) == FFFTP_SUCCESS)
 			{
 				RemoveTailingSpaces(Fname);
 				Ret = NODE_FILE;
@@ -4190,7 +4190,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			*Attr = AttrString2Value(Buf+1);
 
 			/* 名前 */
-			if(FindField(Str, Fname, 6, YES) == SUCCESS)
+			if(FindField(Str, Fname, 6, YES) == FFFTP_SUCCESS)
 			{
 				Ret = NODE_FILE;
 				if(strchr("dl", Buf[0]) != NULL)
@@ -4274,7 +4274,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			*Attr = AttrString2Value(Buf+1);
 
 			/* 名前 */
-			if(FindField(Str, Fname, 3+offs, YES) == SUCCESS)
+			if(FindField(Str, Fname, 3+offs, YES) == FFFTP_SUCCESS)
 			{
 				RemoveTailingSpaces(Fname);
 				Ret = NODE_FILE;
@@ -4284,7 +4284,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			break;
 
 		case LIST_STRATUS :
-			if(FindField(Str, Buf, 0, NO) != SUCCESS)
+			if(FindField(Str, Buf, 0, NO) != FFFTP_SUCCESS)
 				break;
 			if(_strnicmp(Buf, "Files:", 6) == 0)
 				StratusMode = 0;
@@ -4304,14 +4304,14 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 				*InfoExist |= (FINFO_TIME | FINFO_DATE);
 
 				/* 日付 */
-				if(FindField(Str, Buf, 2+offs, NO) != SUCCESS)
+				if(FindField(Str, Buf, 2+offs, NO) != FFFTP_SUCCESS)
 					break;
 				sTime.wYear = Assume1900or2000(atoi(Buf));
 				sTime.wMonth = atoi(Buf + 3);
 				sTime.wDay = atoi(Buf + 6);
 
 				/* 時刻 */
-				if(FindField(Str, Buf, 3+offs, NO) != SUCCESS)
+				if(FindField(Str, Buf, 3+offs, NO) != FFFTP_SUCCESS)
 					break;
 				sTime.wHour = atoi(Buf);
 				sTime.wMinute = atoi(Buf+3);
@@ -4321,7 +4321,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 				SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
 				/* 名前 */
-				if(FindField(Str, Fname, 4+offs, YES) != SUCCESS)
+				if(FindField(Str, Fname, 4+offs, YES) != FFFTP_SUCCESS)
 					break;
 
 				if(StratusMode == 0)
@@ -4329,12 +4329,12 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 					*InfoExist |= FINFO_SIZE;
 
 					/* サイズ */
-					if(FindField(Str, Buf, 1, NO) != SUCCESS)
+					if(FindField(Str, Buf, 1, NO) != FFFTP_SUCCESS)
 						break;
 					*Size = _atoi64(Buf) * 4096;
 
 					/* 種類（オーナ名のフィールドにいれる） */
-					if(FindField(Str, Buf, 2, NO) != SUCCESS)
+					if(FindField(Str, Buf, 2, NO) != FFFTP_SUCCESS)
 						break;
 					strncpy(Owner, Buf, OWNER_NAME_LEN);
 
@@ -4351,18 +4351,18 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			/* 日付 */
 			for(offs = 11; offs > 7; offs--)
 			{
-				if((err = FindField(Str, Buf, offs, NO)) == SUCCESS)
+				if((err = FindField(Str, Buf, offs, NO)) == FFFTP_SUCCESS)
 					break;
 			}
-			if(err != SUCCESS)
+			if(err != FFFTP_SUCCESS)
 				break;
 			if(IsDigit(*Buf) == 0)
 				break;
 			sTime.wYear = Assume1900or2000(atoi(Buf));
-			if(FindField(Str, Buf, --offs, NO) != SUCCESS)
+			if(FindField(Str, Buf, --offs, NO) != FFFTP_SUCCESS)
 				break;
 			GetMonth(Buf, &sTime.wMonth, &sTime.wDay);
-			if(FindField(Str, Buf, --offs, NO) != SUCCESS)
+			if(FindField(Str, Buf, --offs, NO) != FFFTP_SUCCESS)
 				break;
 			if(IsDigit(*Buf) == 0)
 				break;
@@ -4375,35 +4375,35 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
 			/* オーナ名 */
-			if(FindField(Str, Buf, --offs, NO) != SUCCESS)
+			if(FindField(Str, Buf, --offs, NO) != FFFTP_SUCCESS)
 				break;
 			strncpy(Owner, Buf, OWNER_NAME_LEN);
 
 			/* サイズ */
 			do
 			{
-				if((err = FindField(Str, Buf, --offs, NO)) != SUCCESS)
+				if((err = FindField(Str, Buf, --offs, NO)) != FFFTP_SUCCESS)
 					break;
 			}
 			while(IsDigit(*Buf) == 0);
 			--offs;
-			if((err = FindField(Str, Buf, --offs, NO)) != SUCCESS)
+			if((err = FindField(Str, Buf, --offs, NO)) != FFFTP_SUCCESS)
 				break;
 			RemoveComma(Buf);
 			*Size = _atoi64(Buf);
-			if((err = FindField(Str, Buf, --offs, NO)) != SUCCESS)
+			if((err = FindField(Str, Buf, --offs, NO)) != FFFTP_SUCCESS)
 				break;
 			if(IsDigit(*Buf) == 0)
 				break;
 			/* 名前 */
-			if(FindField(Str, Fname, 0, NO) != SUCCESS)
+			if(FindField(Str, Fname, 0, NO) != FFFTP_SUCCESS)
 				break;
 			/* 種類 */
 			if(offs == 0)
 				Ret = NODE_FILE;
 			else
 			{
-				if((FindField(Str, Buf, 1, NO) == SUCCESS) &&
+				if((FindField(Str, Buf, 1, NO) == FFFTP_SUCCESS) &&
 				   (strcmp(Buf, "DR") == 0))
 					Ret = NODE_DIR;
 				else
@@ -4436,7 +4436,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			*Size = _atoi64(Buf);
 
 			/* 名前 */
-			if(FindField(Str, Fname, 1, NO) == SUCCESS)
+			if(FindField(Str, Fname, 1, NO) == FFFTP_SUCCESS)
 			{
 				Ret = NODE_FILE;
 				if(Buf[0] == '<')
@@ -4476,7 +4476,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			FindField(Str, Buf, 3, NO);
 
 			/* 名前 */
-			if(FindField(Str, Fname, 6, NO) == SUCCESS)
+			if(FindField(Str, Fname, 6, NO) == FFFTP_SUCCESS)
 			{
 				if((Buf[0] == 'd') || (Buf[0] == 'D'))
 					Ret = NODE_DIR;
@@ -4503,7 +4503,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 
 			/* 名前 */
 			FindField(Str, Buf, 8, NO);
-			if(FindField(Str, Fname, 9, NO) == SUCCESS)
+			if(FindField(Str, Fname, 9, NO) == FFFTP_SUCCESS)
 			{
 				if(strcmp(Buf, "PO") == 0)
 					Ret = NODE_DIR;
@@ -4528,7 +4528,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			*Attr = AttrString2Value(Buf+1);
 
 			/* 名前 */
-			if(FindField(Str, Fname, 5, YES) == SUCCESS)
+			if(FindField(Str, Fname, 5, YES) == FFFTP_SUCCESS)
 			{
 				Ret = NODE_FILE;
 				if(strchr("dl", Buf[0]) != NULL)
@@ -4566,7 +4566,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 
 				/* 種類 */
 				Ret = NODE_FILE;
-				if(FindField(Str, Buf, 4, NO) == SUCCESS)
+				if(FindField(Str, Buf, 4, NO) == FFFTP_SUCCESS)
 				{
 					if(strcmp(Buf, "<DIR>") == 0)
 						Ret = NODE_DIR;
@@ -4715,12 +4715,12 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 
 				FindField(Str, Buf, 5+offs, NO);
 				/* 日付が yy/mm/dd の場合に対応 */
-				if(GetYearMonthDay(Buf, &sTime.wYear, &sTime.wMonth, &sTime.wDay) == SUCCESS)
+				if(GetYearMonthDay(Buf, &sTime.wYear, &sTime.wMonth, &sTime.wDay) == FFFTP_SUCCESS)
 				{
 					sTime.wYear = Assume1900or2000(sTime.wYear);
 
 					FindField(Str, Buf, 7+offs+offs2, NO);
-					if(GetHourAndMinute(Buf, &sTime.wHour, &sTime.wMinute) == SUCCESS)
+					if(GetHourAndMinute(Buf, &sTime.wHour, &sTime.wMinute) == FFFTP_SUCCESS)
 						*InfoExist |= FINFO_TIME;
 				}
 				else
@@ -4733,7 +4733,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 					}
 
 					FindField(Str, Buf, 7+offs+offs2, NO);
-					if(GetHourAndMinute(Buf, &sTime.wHour, &sTime.wMinute) == FAIL)
+					if(GetHourAndMinute(Buf, &sTime.wHour, &sTime.wMinute) == FFFTP_FAIL)
 					{
 						sTime.wYear = atoi(Buf);
 					}
@@ -4780,7 +4780,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
 			/* 名前 */
-			if(FindField(Str, Fname, 8+offs+offs2, YES) == SUCCESS)
+			if(FindField(Str, Fname, 8+offs+offs2, YES) == FFFTP_SUCCESS)
 			{
 				Flag = 'B';
 				if(OrgListType & LIST_MELCOM)
@@ -4836,7 +4836,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 *
 *	Return Value
 *		int ステータス
-*			SUCCESS/FAIL
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int FindField(char *Str, char *Buf, int Num, int ToLast)
@@ -4844,7 +4844,7 @@ static int FindField(char *Str, char *Buf, int Num, int ToLast)
 	char *Pos;
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	*Buf = NUL;
 	if(Num >= 0)
 	{
@@ -4879,7 +4879,7 @@ static int FindField(char *Str, char *Buf, int Num, int ToLast)
 			strncpy(Buf, Str, Pos - Str);
 			*(Buf + (Pos - Str)) = NUL;
 		}
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
@@ -4977,18 +4977,18 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day)
 *		WORD *Day : 日
 *
 *	Return Value
-*		int ステータス (SUCCESS/FAIL=日付を表す文字ではない)
+*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL=日付を表す文字ではない)
 *
 *	Note
 *		以下の形式をサポート
 *			01/07/25
-*		FAILを返す時は *Year = 0; *Month = 0; *Day = 0
+*		FFFTP_FAILを返す時は *Year = 0; *Month = 0; *Day = 0
 *----------------------------------------------------------------------------*/
 static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day)
 {
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(strlen(Str) == 8)
 	{
 		if(IsDigit(Str[0]) && IsDigit(Str[1]) && !IsDigit(Str[2]) &&
@@ -4998,7 +4998,7 @@ static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day)
 			*Year = atoi(&Str[0]);
 			*Month = atoi(&Str[3]);
 			*Day = atoi(&Str[6]);
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	return(Sts);
@@ -5013,13 +5013,13 @@ static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day)
 *		WORD *Minute : 分
 *
 *	Return Value
-*		int ステータス (SUCCESS/FAIL=時刻を表す文字ではない)
+*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL=時刻を表す文字ではない)
 *
 *	Note
 *		以下の形式をサポート
 *			HH:MM
 *			HH時MM分
-*		FAILを返す時は *Hour = 0; *Minute = 0
+*		FFFTP_FAILを返す時は *Hour = 0; *Minute = 0
 *----------------------------------------------------------------------------*/
 
 static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
@@ -5027,7 +5027,7 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 	int Ret;
 	char *Pos;
 
-	Ret = FAIL;
+	Ret = FFFTP_FAIL;
 	if((_mbslen(Str) >= 3) && (isdigit(Str[0]) != 0))
 	{
 		*Hour = atoi(Str);
@@ -5040,7 +5040,7 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 				{
 					*Minute = atoi(Pos);
 					if(*Minute < 60)
-						Ret = SUCCESS;
+						Ret = FFFTP_SUCCESS;
 				}
 			}
 			else
@@ -5061,7 +5061,7 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 							{
 								*Minute = atoi(Pos);
 								if(*Minute < 60)
-									Ret = SUCCESS;
+									Ret = FFFTP_SUCCESS;
 							}
 						}
 						break;
@@ -5075,10 +5075,10 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 	{
 		*Hour = 0;
 		*Minute = 0;
-		Ret = SUCCESS;
+		Ret = FFFTP_SUCCESS;
 	}
 
-	if(Ret == FAIL)
+	if(Ret == FFFTP_FAIL)
 	{
 		*Hour = 0;
 		*Minute = 0;
@@ -5096,12 +5096,12 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 *		WORD *Day : 日
 *
 *	Return Value
-*		int ステータス (SUCCESS/FAIL=日付を表す文字ではない)
+*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL=日付を表す文字ではない)
 *
 *	Note
 *		以下の形式をサポート
 *			18-SEP-1998
-*		FAILを返す時は *Year = 0; *Month = 0; *Day = 0
+*		FFFTP_FAILを返す時は *Year = 0; *Month = 0; *Day = 0
 *----------------------------------------------------------------------------*/
 
 static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day)
@@ -5111,7 +5111,7 @@ static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day)
 	WORD Tmp;
 	char Buf[4];
 
-	Ret = FAIL;
+	Ret = FFFTP_FAIL;
 	*Day = atoi(Str);
 	if((Pos = strchr(Str, '-')) != NULL)
 	{
@@ -5123,11 +5123,11 @@ static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day)
 		{
 			Pos++;
 			*Year = atoi(Pos);
-			Ret = SUCCESS;
+			Ret = FFFTP_SUCCESS;
 		}
 	}
 
-	if(Ret == FAIL)
+	if(Ret == FFFTP_FAIL)
 	{
 		*Year = 0;
 		*Month = 0;
@@ -5216,7 +5216,7 @@ static int AskFilterStr(char *Fname, int Type)
 			if((Pos = strchr(Tmp, ';')) != NULL)
 				*Pos = NUL;
 
-			if(CheckFname(Fname, Tmp) == SUCCESS)
+			if(CheckFname(Fname, Tmp) == FFFTP_SUCCESS)
 			{
 				Ret = YES;
 				break;
