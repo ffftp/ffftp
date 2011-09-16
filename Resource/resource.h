@@ -1,6 +1,6 @@
-﻿//{{NO_DEPENDENCIES}}
+//{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by FFFTP.rc
+// Used by ffftp.rc
 //
 #define DELETE_ALL                      3
 #define DELETE_NO                       4
