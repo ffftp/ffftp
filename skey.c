@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*							‚»‚Ì‘¼‚Ì”Ä—pƒTƒuƒ‹[ƒ`ƒ“
+*							ãã®ä»–ã®æ±ç”¨ã‚µãƒ–ãƒ«ãƒ¼ãƒãƒ³
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -27,7 +27,7 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-/* ‚±‚ÌƒvƒƒOƒ‰ƒ€‚Í skey ‚Ìƒ\[ƒX‚ğQl‚É‚µ‚Ü‚µ‚½B */
+/* ã“ã®ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã¯ skey ã®ã‚½ãƒ¼ã‚¹ã‚’å‚è€ƒã«ã—ã¾ã—ãŸã€‚ */
 
 #define	STRICT
 #include <stdlib.h>
@@ -41,7 +41,7 @@
 #include "sha.h"
 
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static int keycrunch(char *result, char *seed, char *passwd, int Type);
 static void secure_hash(char *x, int Type);
@@ -49,7 +49,7 @@ static char *btoe(char *c, char *buf);
 static ulong extract(char *s, int start, int length);
 
 
-/*===== ƒ[ƒJƒ‹‚Èƒ[ƒN =====*/
+/*===== ãƒ­ãƒ¼ã‚«ãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
 /* Dictionary for integer-word translations */
 static const char Wp[2048][4] = {
@@ -285,18 +285,18 @@ static const char Wp[2048][4] = {
 
 
 
-/*----- ‚Uƒ[ƒhƒpƒXƒ[ƒh‚ğì¬‚·‚é ------------------------------------------
+/*----- ï¼–ãƒ¯ãƒ¼ãƒ‰ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’ä½œæˆã™ã‚‹ ------------------------------------------
 *
 *	Parameter
-*		int seq : ƒV[ƒPƒ“ƒX”Ô†
-*		char *seed : ƒV[ƒh
-*		char *pass : ƒpƒXƒtƒŒ[ƒY
-*		int type : ƒ^ƒCƒv (MDx)
-*		char *buf : ‚Uƒ[ƒhƒpƒXƒ[ƒh‚ğ•Ô‚·ƒoƒbƒtƒ@
+*		int seq : ã‚·ãƒ¼ã‚±ãƒ³ã‚¹ç•ªå·
+*		char *seed : ã‚·ãƒ¼ãƒ‰
+*		char *pass : ãƒ‘ã‚¹ãƒ•ãƒ¬ãƒ¼ã‚º
+*		int type : ã‚¿ã‚¤ãƒ— (MDx)
+*		char *buf : ï¼–ãƒ¯ãƒ¼ãƒ‰ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’è¿”ã™ãƒãƒƒãƒ•ã‚¡
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int Make6WordPass(int seq, char *seed, char *pass, int type, char *buf)
@@ -305,13 +305,13 @@ int Make6WordPass(int seq, char *seed, char *pass, int type, char *buf)
 	int i;
 	int Sts;
 
-	Sts = FAIL;
-	if(keycrunch(key, seed, pass, type) != FAIL)
+	Sts = FFFTP_FAIL;
+	if(keycrunch(key, seed, pass, type) != FFFTP_FAIL)
 	{
 		for(i = 0; i < seq; i++)
 			secure_hash(key, type);
 		btoe(key, buf);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
@@ -328,7 +328,7 @@ static int keycrunch(char *result, char *seed, char *passwd, int Type)
 
 	buflen = strlen(seed) + strlen(passwd);
 	if((buf = malloc(buflen + 1)) == NULL)
-		return(FAIL);
+		return(FFFTP_FAIL);
 	strcpy(buf, seed);
 	strcat(buf, passwd);
 
@@ -361,7 +361,7 @@ static int keycrunch(char *result, char *seed, char *passwd, int Type)
 	/* Only works on byte-addressed little-endian machines!! */
 	memcpy(result, (char *)results, 8);
 
-	return(SUCCESS);
+	return(FFFTP_SUCCESS);
 }
 
 

@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*								ƒzƒXƒgˆê——
+*								ãƒ›ã‚¹ãƒˆä¸€è¦§
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -41,12 +41,12 @@
 #include <htmlhelp.h>
 #include "helpid.h"
 
-// UTF-8‘Î‰
+// UTF-8å¯¾å¿œ
 #undef __MBSWRAPPER_H__
 #include "mbswrapper.h"
 
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static LRESULT CALLBACK HostListWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -67,39 +67,39 @@ static BOOL CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPA
 static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-// ˆÃ†‰»’ÊM‘Î‰
+// æš—å·åŒ–é€šä¿¡å¯¾å¿œ
 static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
-/*===== ŠO•”QÆ =====*/
+/*===== å¤–éƒ¨å‚ç…§ =====*/
 
 extern HWND hHelpWin;
 
-/* İ’è’l */
+/* è¨­å®šå€¤ */
 extern char UserMailAdrs[USER_MAIL_LEN+1];
 extern HFONT ListFont;
 extern char DefaultLocalPath[FMAX_PATH+1];
 extern int ConnectAndSet;
 extern SIZE HostDlgSize;
 
-/*===== ƒ[ƒJƒ‹‚Èƒ[ƒN =====*/
+/*===== ãƒ­ãƒ¼ã‚«ãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
-static int Hosts = 0;						/* ƒzƒXƒg” */
-static int ConnectingHost;					/* Ú‘±’†‚ÌƒzƒXƒg */
-static int CurrentHost;						/* ƒJ[ƒ\ƒ‹ˆÊ’u‚ÌƒzƒXƒg */
-static HOSTLISTDATA *HostListTop = NULL;	/* ƒzƒXƒgˆê——ƒf[ƒ^ */
-static HOSTDATA TmpHost;					/* ƒzƒXƒgî•ñƒRƒs[—p */
-static int Apply;							/* ƒvƒƒpƒeƒBƒV[ƒg‚ÅOK‚ğ‰Ÿ‚µ‚½ƒtƒ‰ƒO */
+static int Hosts = 0;						/* ãƒ›ã‚¹ãƒˆæ•° */
+static int ConnectingHost;					/* æ¥ç¶šä¸­ã®ãƒ›ã‚¹ãƒˆ */
+static int CurrentHost;						/* ã‚«ãƒ¼ã‚½ãƒ«ä½ç½®ã®ãƒ›ã‚¹ãƒˆ */
+static HOSTLISTDATA *HostListTop = NULL;	/* ãƒ›ã‚¹ãƒˆä¸€è¦§ãƒ‡ãƒ¼ã‚¿ */
+static HOSTDATA TmpHost;					/* ãƒ›ã‚¹ãƒˆæƒ…å ±ã‚³ãƒ”ãƒ¼ç”¨ */
+static int Apply;							/* ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚·ãƒ¼ãƒˆã§OKã‚’æŠ¼ã—ãŸãƒ•ãƒ©ã‚° */
 static WNDPROC HostListProcPtr;
 
 
 
-/*----- ƒzƒXƒgˆê——ƒEƒCƒ“ƒhƒE --------------------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆä¸€è¦§ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ --------------------------------------------------
 *
 *	Parameter
-*		int Type : ƒ_ƒCƒAƒƒO‚Ìƒ^ƒCƒv (DLG_TYPE_xxx)
+*		int Type : ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚¿ã‚¤ãƒ— (DLG_TYPE_xxx)
 *
 *	Return Value
-*		ƒXƒe[ƒ^ƒX (YES=Às/NO=æÁ)
+*		ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (YES=å®Ÿè¡Œ/NO=å–æ¶ˆ)
 *----------------------------------------------------------------------------*/
 
 int SelectHost(int Type)
@@ -113,7 +113,7 @@ int SelectHost(int Type)
 
 	Sts = DialogBox(GetFtpInst(), MAKEINTRESOURCE(Dlg), GetMainHwnd(), SelectHostProc);
 
-	/* ƒzƒXƒgİ’è‚ğ•Û‘¶ */
+	/* ãƒ›ã‚¹ãƒˆè¨­å®šã‚’ä¿å­˜ */
 	SetNodeLevelAll();
 	SaveRegistory();
 
@@ -121,13 +121,13 @@ int SelectHost(int Type)
 }
 
 
-/*----- ƒzƒXƒgˆê——ƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆä¸€è¦§ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -156,7 +156,7 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 	switch (message)
 	{
 		case WM_INITDIALOG :
-			/* TreeView‚Å‚Ìƒ_ƒuƒ‹ƒNƒŠƒbƒN‚ğ‚Â‚©‚Ü‚¦‚é‚½‚ß */
+			/* TreeViewã§ã®ãƒ€ãƒ–ãƒ«ã‚¯ãƒªãƒƒã‚¯ã‚’ã¤ã‹ã¾ãˆã‚‹ãŸã‚ */
 			HostListProcPtr = (WNDPROC)SetWindowLong(GetDlgItem(hDlg, HOST_LIST), GWL_WNDPROC, (LONG)HostListWndProc);
 
 
@@ -164,7 +164,7 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 
 			if(AskConnecting() == YES)
 			{
-				/* Ú‘±’†‚Íu•ÏXv‚Ì‚İ‹–‰Â */
+				/* æ¥ç¶šä¸­ã¯ã€Œå¤‰æ›´ã€ã®ã¿è¨±å¯ */
 				EnableWindow(GetDlgItem(hDlg, HOST_NEW), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HOST_FOLDER), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HOST_COPY), FALSE);
@@ -199,7 +199,7 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 						EndDialog(hDlg, YES);
 						break;
 					}
-					/* ‚±‚±‚Ébreak‚Í‚È‚¢ */
+					/* ã“ã“ã«breakã¯ãªã„ */
 
 				case IDCANCEL :
 					AskDlgSize(hDlg, &DlgSize, &HostDlgSize);
@@ -334,7 +334,7 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 
 							if((Level1 == Level2) && (Data2->Set.Level & SET_LEVEL_GROUP))
 							{
-								//Data2‚Ìchild‚Ö
+								//Data2ã®childã¸
 								if(Data1->Next != NULL)
 									Data1->Next->Prev = Data1->Prev;
 								if(Data1->Prev != NULL)
@@ -351,7 +351,7 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 							}
 							else if(Level1 < Level2)
 							{
-								//Data1‚ÌPrev‚ÌChild‚ÌNext‚Ì––”ö‚Ö
+								//Data1ã®Prevã®Childã®Nextã®æœ«å°¾ã¸
 								Data2 = Data1->Prev->Child;
 								while(Data2->Next != NULL)
 									Data2 = Data2->Next;
@@ -372,7 +372,7 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 							}
 							else
 							{
-								//Data2‚Ìprev‚Ö
+								//Data2ã®prevã¸
 								if(Data1->Next != NULL)
 									Data1->Next->Prev = Data1->Prev;
 								if(Data1->Prev != NULL)
@@ -427,7 +427,7 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 							{
 								if(Data1->Next != NULL)
 								{
-									//Data2 = Data1‚ÌNext
+									//Data2 = Data1ã®Next
 									Data2 = Data1->Next;
 									Level2 = GetNodeLevelByData(Data2);
 								}
@@ -442,7 +442,7 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 						if(((Data2 == NULL) && (Level1 > 0)) ||
 						   (Level1 > Level2))
 						{
-							//Data1‚ÌParent‚ÌNext‚Ö
+							//Data1ã®Parentã®Nextã¸
 							Data2 = Data1->Parent;
 
 							if(Data1->Next != NULL)
@@ -470,7 +470,7 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 						{
 							if(Data2->Set.Level & SET_LEVEL_GROUP)
 							{
-								//Data2‚ÌChild‚Ö
+								//Data2ã®Childã¸
 								if(Data1->Next != NULL)
 									Data1->Next->Prev = Data1->Prev;
 								if(Data1->Prev != NULL)
@@ -489,7 +489,7 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 							}
 							else
 							{
-								//Data2‚ÌNext‚Ö
+								//Data2ã®Nextã¸
 								if(Data1->Next != NULL)
 									Data1->Next->Prev = Data1->Prev;
 								if(Data1->Prev != NULL)
@@ -557,7 +557,7 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 					switch(tView->hdr.code)
 					{
 						case TVN_SELCHANGED :
-							/* ƒtƒHƒ‹ƒ_‚ª‘I‚Î‚ê‚½‚Æ‚«‚ÍÚ‘±AƒRƒs[ƒ{ƒ^ƒ“‚Í‹Ö~ */
+							/* ãƒ•ã‚©ãƒ«ãƒ€ãŒé¸ã°ã‚ŒãŸã¨ãã¯æ¥ç¶šã€ã‚³ãƒ”ãƒ¼ãƒœã‚¿ãƒ³ã¯ç¦æ­¢ */
 							Item.hItem = hItem;
 							Item.mask = TVIF_PARAM;
 							SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
@@ -582,16 +582,16 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 }
 
 
-/*----- ƒzƒXƒgˆê——TreeView‚ÌƒƒbƒZ[ƒWˆ— ------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆä¸€è¦§TreeViewã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡¦ç† ------------------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message  : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message  : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
-*		ƒƒbƒZ[ƒW‚É‘Î‰‚·‚é–ß‚è’l
+*		ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã«å¯¾å¿œã™ã‚‹æˆ»ã‚Šå€¤
 *----------------------------------------------------------------------------*/
 
 static LRESULT CALLBACK HostListWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -606,14 +606,14 @@ static LRESULT CALLBACK HostListWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 }
 
 
-/*----- Ÿ‚Ìİ’è”Ô†‚Ìƒm[ƒh‚ğ•Ô‚· --------------------------------------------
+/*----- æ¬¡ã®è¨­å®šç•ªå·ã®ãƒãƒ¼ãƒ‰ã‚’è¿”ã™ --------------------------------------------
 *
 *	Parameter
-*		HOSTLISTDATA *Pos : ƒm[ƒhƒf[ƒ^
+*		HOSTLISTDATA *Pos : ãƒãƒ¼ãƒ‰ãƒ‡ãƒ¼ã‚¿
 *
 *	Return Value
-*		HOSTLISTDATA *Ÿ‚Ìƒm[ƒh
-*			NULL=Ÿ‚Í‚È‚¢
+*		HOSTLISTDATA *æ¬¡ã®ãƒãƒ¼ãƒ‰
+*			NULL=æ¬¡ã¯ãªã„
 *----------------------------------------------------------------------------*/
 
 static HOSTLISTDATA *GetNextNode(HOSTLISTDATA *Pos)
@@ -644,13 +644,13 @@ static HOSTLISTDATA *GetNextNode(HOSTLISTDATA *Pos)
 }
 
 
-/*----- ƒm[ƒh‚ÌƒŒƒxƒ‹”‚ğ•Ô‚·iİ’è”Ô†w’èj --------------------------------
+/*----- ãƒãƒ¼ãƒ‰ã®ãƒ¬ãƒ™ãƒ«æ•°ã‚’è¿”ã™ï¼ˆè¨­å®šç•ªå·æŒ‡å®šï¼‰ --------------------------------
 *
 *	Parameter
-*		int Num : İ’è’l†”Ô†
+*		int Num : è¨­å®šå€¤å·ç•ªå·
 *
 *	Return Value
-*		int ƒŒƒxƒ‹” (-1=İ’è‚ª‚È‚¢j
+*		int ãƒ¬ãƒ™ãƒ«æ•° (-1=è¨­å®šãŒãªã„ï¼‰
 *----------------------------------------------------------------------------*/
 
 static int GetNodeLevel(int Num)
@@ -673,13 +673,13 @@ static int GetNodeLevel(int Num)
 }
 
 
-/*----- ƒm[ƒh‚ÌƒŒƒxƒ‹”‚ğ•Ô‚·iƒm[ƒhƒf[ƒ^w’èj-----------------------------
+/*----- ãƒãƒ¼ãƒ‰ã®ãƒ¬ãƒ™ãƒ«æ•°ã‚’è¿”ã™ï¼ˆãƒãƒ¼ãƒ‰ãƒ‡ãƒ¼ã‚¿æŒ‡å®šï¼‰-----------------------------
 *
 *	Parameter
-*		HOSTLISTDATA *Data : İ’è’l
+*		HOSTLISTDATA *Data : è¨­å®šå€¤
 *
 *	Return Value
-*		int ƒŒƒxƒ‹”
+*		int ãƒ¬ãƒ™ãƒ«æ•°
 *----------------------------------------------------------------------------*/
 
 static int GetNodeLevelByData(HOSTLISTDATA *Data)
@@ -696,13 +696,13 @@ static int GetNodeLevelByData(HOSTLISTDATA *Data)
 }
 
 
-/*----- ƒm[ƒh‚Ìİ’è”Ô†‚ğ•Ô‚· ------------------------------------------------
+/*----- ãƒãƒ¼ãƒ‰ã®è¨­å®šç•ªå·ã‚’è¿”ã™ ------------------------------------------------
 *
 *	Parameter
-*		HOSTLISTDATA *Data : İ’è’l
+*		HOSTLISTDATA *Data : è¨­å®šå€¤
 *
 *	Return Value
-*		int İ’è”Ô†
+*		int è¨­å®šç•ªå·
 *----------------------------------------------------------------------------*/
 
 static int GetNodeNumByData(HOSTLISTDATA *Data)
@@ -721,13 +721,13 @@ static int GetNodeNumByData(HOSTLISTDATA *Data)
 }
 
 
-/*----- w’è”Ô†‚Ìƒm[ƒh‚ğ•Ô‚· ------------------------------------------------
+/*----- æŒ‡å®šç•ªå·ã®ãƒãƒ¼ãƒ‰ã‚’è¿”ã™ ------------------------------------------------
 *
 *	Parameter
-*		int Num : İ’è”Ô†
+*		int Num : è¨­å®šç•ªå·
 *
 *	Return Value
-*		HOSTLISTDATA * : İ’è’l
+*		HOSTLISTDATA * : è¨­å®šå€¤
 *----------------------------------------------------------------------------*/
 
 static HOSTLISTDATA *GetNodeByNum(int Num)
@@ -742,13 +742,13 @@ static HOSTLISTDATA *GetNodeByNum(int Num)
 }
 
 
-/*----- İ’è’lƒŠƒXƒg‚ÌŠeƒm[ƒh‚ÌƒŒƒxƒ‹”Ô†‚ğƒZƒbƒg ----------------------------
+/*----- è¨­å®šå€¤ãƒªã‚¹ãƒˆã®å„ãƒãƒ¼ãƒ‰ã®ãƒ¬ãƒ™ãƒ«ç•ªå·ã‚’ã‚»ãƒƒãƒˆ ----------------------------
 *
 *	Parameter
-*		int Num : İ’è”Ô†
+*		int Num : è¨­å®šç•ªå·
 *
 *	Return Value
-*		HOSTLISTDATA * : İ’è’l
+*		HOSTLISTDATA * : è¨­å®šå€¤
 *----------------------------------------------------------------------------*/
 
 static int SetNodeLevelAll(void)
@@ -763,20 +763,20 @@ static int SetNodeLevelAll(void)
 		Pos->Set.Level |= GetNodeLevelByData(Pos);
 		Pos = GetNextNode(Pos);
 	}
-	return(SUCCESS);
+	return(FFFTP_SUCCESS);
 }
 
 
-/*----- İ’è’lƒŠƒXƒg‚É’Ç‰Á ----------------------------------------------------
+/*----- è¨­å®šå€¤ãƒªã‚¹ãƒˆã«è¿½åŠ  ----------------------------------------------------
 *
 *	Parameter
-*		HOSTDATA *Set : ’Ç‰Á‚·‚éİ’è’l
-*		int Pos : ’Ç‰Á‚·‚éˆÊ’u (0` : -1=ÅŒã)
-*		int Level : ƒŒƒxƒ‹” (SET_LEVEL_SAME=’Ç‰ÁˆÊ’u‚Ì‚à‚Ì‚Æ“¯ƒŒƒxƒ‹)
+*		HOSTDATA *Set : è¿½åŠ ã™ã‚‹è¨­å®šå€¤
+*		int Pos : è¿½åŠ ã™ã‚‹ä½ç½® (0ï½ : -1=æœ€å¾Œ)
+*		int Level : ãƒ¬ãƒ™ãƒ«æ•° (SET_LEVEL_SAME=è¿½åŠ ä½ç½®ã®ã‚‚ã®ã¨åŒãƒ¬ãƒ™ãƒ«)
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int AddHostToList(HOSTDATA *Set, int Pos, int Level)
@@ -786,7 +786,7 @@ int AddHostToList(HOSTDATA *Set, int Pos, int Level)
 	HOSTLISTDATA *Last;
 	int Cur;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Pos >= -1) && (Pos <= Hosts))
 	{
 		if(Pos == -1)
@@ -844,22 +844,22 @@ int AddHostToList(HOSTDATA *Set, int Pos, int Level)
 				}
 			}
 			Hosts++;
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	return(Sts);
 }
 
 
-/*----- İ’è’lƒŠƒXƒg‚ğXV‚·‚é ------------------------------------------------
+/*----- è¨­å®šå€¤ãƒªã‚¹ãƒˆã‚’æ›´æ–°ã™ã‚‹ ------------------------------------------------
 *
 *	Parameter
-*		int Num : İ’è’l†”Ô†
-*		HOSTDATA *Set : İ’è’l‚ğƒRƒs[‚·‚éƒ[ƒN
+*		int Num : è¨­å®šå€¤å·ç•ªå·
+*		HOSTDATA *Set : è¨­å®šå€¤ã‚’ã‚³ãƒ”ãƒ¼ã™ã‚‹ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int UpdateHostToList(int Num, HOSTDATA *Set)
@@ -867,25 +867,25 @@ static int UpdateHostToList(int Num, HOSTDATA *Set)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		Pos = GetNodeByNum(Num);
 		memcpy(&Pos->Set, Set, sizeof(HOSTDATA));
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
 
 
-/*----- İ’è’lƒŠƒXƒg‚©‚çíœ --------------------------------------------------
+/*----- è¨­å®šå€¤ãƒªã‚¹ãƒˆã‹ã‚‰å‰Šé™¤ --------------------------------------------------
 *
 *	Parameter
-*		int Num : íœ‚·‚é”Ô†
+*		int Num : å‰Šé™¤ã™ã‚‹ç•ªå·
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int DelHostFromList(int Num)
@@ -893,7 +893,7 @@ static int DelHostFromList(int Num)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		if(Num == 0)
@@ -918,23 +918,23 @@ static int DelHostFromList(int Num)
 		}
 		free(Pos);
 		Hosts--;
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
 
 
-/*----- İ’è’lƒŠƒXƒg‚©‚çƒm[ƒhƒf[ƒ^‚ğíœ ------------------------------------
+/*----- è¨­å®šå€¤ãƒªã‚¹ãƒˆã‹ã‚‰ãƒãƒ¼ãƒ‰ãƒ‡ãƒ¼ã‚¿ã‚’å‰Šé™¤ ------------------------------------
 *
 *	Parameter
-*		HOSTLISTDATA *Pos : íœ‚·‚éƒm[ƒh
+*		HOSTLISTDATA *Pos : å‰Šé™¤ã™ã‚‹ãƒãƒ¼ãƒ‰
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *
 *	Note
-*		Pos->Next, Pos->Child‚Ì‘S‚Ä‚Ìƒm[ƒh‚ğíœ‚·‚é
+*		Pos->Next, Pos->Childã®å…¨ã¦ã®ãƒãƒ¼ãƒ‰ã‚’å‰Šé™¤ã™ã‚‹
 *----------------------------------------------------------------------------*/
 
 static int DeleteChildAndNext(HOSTLISTDATA *Pos)
@@ -951,22 +951,22 @@ static int DeleteChildAndNext(HOSTLISTDATA *Pos)
 		Hosts--;
 		Pos = Next;
 	}
-	return(SUCCESS);
+	return(FFFTP_SUCCESS);
 }
 
 
-/*----- İ’è’lƒŠƒXƒg‚©‚çİ’è’l‚ğæ‚èo‚· --------------------------------------
+/*----- è¨­å®šå€¤ãƒªã‚¹ãƒˆã‹ã‚‰è¨­å®šå€¤ã‚’å–ã‚Šå‡ºã™ --------------------------------------
 *
 *	Parameter
-*		int Num : İ’è’l†”Ô†
-*		HOSTDATA *Set : İ’è’l‚ğƒRƒs[‚·‚éƒ[ƒN
+*		int Num : è¨­å®šå€¤å·ç•ªå·
+*		HOSTDATA *Set : è¨­å®šå€¤ã‚’ã‚³ãƒ”ãƒ¼ã™ã‚‹ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *
 *	Note
-*		Œ»İƒzƒXƒg‚ÉÚ‘±’†‚Ì‚ÍACopyHostFromListInConnect() ‚ğg‚¤–
+*		ç¾åœ¨ãƒ›ã‚¹ãƒˆã«æ¥ç¶šä¸­ã®æ™‚ã¯ã€CopyHostFromListInConnect() ã‚’ä½¿ã†äº‹
 *----------------------------------------------------------------------------*/
 
 int CopyHostFromList(int Num, HOSTDATA *Set)
@@ -974,29 +974,29 @@ int CopyHostFromList(int Num, HOSTDATA *Set)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		Pos = GetNodeByNum(Num);
 		memcpy(Set, &Pos->Set, sizeof(HOSTDATA));
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
 
 
-/*----- İ’è’lƒŠƒXƒg‚©‚çİ’è’l‚ğæ‚èo‚· --------------------------------------
+/*----- è¨­å®šå€¤ãƒªã‚¹ãƒˆã‹ã‚‰è¨­å®šå€¤ã‚’å–ã‚Šå‡ºã™ --------------------------------------
 *
 *	Parameter
-*		int Num : İ’è’l†”Ô†
-*		HOSTDATA *Set : İ’è’l‚ğƒRƒs[‚·‚éƒ[ƒN
+*		int Num : è¨­å®šå€¤å·ç•ªå·
+*		HOSTDATA *Set : è¨­å®šå€¤ã‚’ã‚³ãƒ”ãƒ¼ã™ã‚‹ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *
 *	Note
-*		Œ»İƒzƒXƒg‚ÉÚ‘±’†‚Ì‚Ég‚¤
+*		ç¾åœ¨ãƒ›ã‚¹ãƒˆã«æ¥ç¶šä¸­ã®æ™‚ã«ä½¿ã†
 *----------------------------------------------------------------------------*/
 
 int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
@@ -1004,7 +1004,7 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		Pos = GetNodeByNum(Num);
@@ -1021,26 +1021,26 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 		Set->UseNLST_R = Pos->Set.UseNLST_R;
 		Set->LastDir = Pos->Set.LastDir;
 		Set->TimeZone = Pos->Set.TimeZone;
-		// ˆÃ†‰»’ÊM‘Î‰
+		// æš—å·åŒ–é€šä¿¡å¯¾å¿œ
 		Set->UseFTPES = Pos->Set.UseFTPES;
 		Set->UseFTPIS = Pos->Set.UseFTPIS;
 		Set->UseSFTP = Pos->Set.UseSFTP;
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
 
 
-/*----- İ’è’lƒŠƒXƒg‚ÌƒuƒbƒNƒ}[ƒN‚ğXV --------------------------------------
+/*----- è¨­å®šå€¤ãƒªã‚¹ãƒˆã®ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯ã‚’æ›´æ–° --------------------------------------
 *
 *	Parameter
-*		int Num : İ’è’l†”Ô†
-*		char *Bmask : ƒuƒbƒNƒ}[ƒN•¶š—ñ
-*		int Len : ƒuƒbƒNƒ}[ƒN•¶š—ñ‚Ì’·‚³
+*		int Num : è¨­å®šå€¤å·ç•ªå·
+*		char *Bmask : ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯æ–‡å­—åˆ—
+*		int Len : ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯æ–‡å­—åˆ—ã®é•·ã•
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int SetHostBookMark(int Num, char *Bmask, int Len)
@@ -1048,24 +1048,24 @@ int SetHostBookMark(int Num, char *Bmask, int Len)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		Pos = GetNodeByNum(Num);
 		memcpy(Pos->Set.BookMark, Bmask, Len);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
 
 
-/*----- İ’è’lƒŠƒXƒg‚ÌƒuƒbƒNƒ}[ƒN•¶š—ñ‚ğ•Ô‚· --------------------------------
+/*----- è¨­å®šå€¤ãƒªã‚¹ãƒˆã®ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯æ–‡å­—åˆ—ã‚’è¿”ã™ --------------------------------
 *
 *	Parameter
-*		int Num : İ’è’l†”Ô†
+*		int Num : è¨­å®šå€¤å·ç•ªå·
 *
 *	Return Value
-*		char *ƒuƒbƒNƒ}[ƒN•¶š—ñ
+*		char *ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯æ–‡å­—åˆ—
 *----------------------------------------------------------------------------*/
 
 char *AskHostBookMark(int Num)
@@ -1083,16 +1083,16 @@ char *AskHostBookMark(int Num)
 }
 
 
-/*----- İ’è’lƒŠƒXƒg‚ÌƒfƒBƒŒƒNƒgƒŠ‚ğXV --------------------------------------
+/*----- è¨­å®šå€¤ãƒªã‚¹ãƒˆã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æ›´æ–° --------------------------------------
 *
 *	Parameter
-*		int Num : İ’è’l†”Ô†
-*		char *LocDir : ƒ[ƒJƒ‹‚ÌƒfƒBƒŒƒNƒgƒŠ
-*		char *HostDir : ƒzƒXƒg‚ÌƒfƒBƒŒƒNƒgƒŠ
+*		int Num : è¨­å®šå€¤å·ç•ªå·
+*		char *LocDir : ãƒ­ãƒ¼ã‚«ãƒ«ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
+*		char *HostDir : ãƒ›ã‚¹ãƒˆã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int SetHostDir(int Num, char *LocDir, char *HostDir)
@@ -1100,27 +1100,27 @@ int SetHostDir(int Num, char *LocDir, char *HostDir)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		Pos = GetNodeByNum(Num);
 		strcpy(Pos->Set.LocalInitDir, LocDir);
 		strcpy(Pos->Set.RemoteInitDir, HostDir);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
 
 
-/*----- İ’è’lƒŠƒXƒg‚ÌƒpƒXƒ[ƒh‚ğXV ----------------------------------------
+/*----- è¨­å®šå€¤ãƒªã‚¹ãƒˆã®ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’æ›´æ–° ----------------------------------------
 *
 *	Parameter
-*		int Num : İ’è’l†”Ô†
-*		char *Pass : ƒpƒXƒ[ƒh
+*		int Num : è¨­å®šå€¤å·ç•ªå·
+*		char *Pass : ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int SetHostPassword(int Num, char *Pass)
@@ -1128,25 +1128,25 @@ int SetHostPassword(int Num, char *Pass)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		Pos = GetNodeByNum(Num);
 		strcpy(Pos->Set.PassWord, Pass);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
 
 
-/*----- w’è‚Ìİ’è–¼‚ğ‚Âİ’è‚Ì”Ô†‚ğ•Ô‚· ------------------------------------
+/*----- æŒ‡å®šã®è¨­å®šåã‚’æŒã¤è¨­å®šã®ç•ªå·ã‚’è¿”ã™ ------------------------------------
 *
 *	Parameter
-*		char *Name : İ’è–¼
+*		char *Name : è¨­å®šå
 *
 *	Return Value
-*		int İ’è”Ô† (0`)
-*			-1=Œ©‚Â‚©‚ç‚È‚¢
+*		int è¨­å®šç•ªå· (0ï½)
+*			-1=è¦‹ã¤ã‹ã‚‰ãªã„
 *----------------------------------------------------------------------------*/
 
 int SearchHostName(char *Name)
@@ -1170,18 +1170,18 @@ int SearchHostName(char *Name)
 }
 
 
-/*----- İ’è’lƒŠƒXƒg‚Ìƒ\[ƒg•û–@‚ğXV ----------------------------------------
+/*----- è¨­å®šå€¤ãƒªã‚¹ãƒˆã®ã‚½ãƒ¼ãƒˆæ–¹æ³•ã‚’æ›´æ–° ----------------------------------------
 *
 *	Parameter
-*		int Num : İ’è’l†”Ô†
-*		int LFSort : ƒ[ƒJƒ‹‚Ìƒtƒ@ƒCƒ‹‚Ìƒ\[ƒg•û–@
-*		int LDSort : ƒ[ƒJƒ‹‚ÌƒtƒHƒ‹ƒ_‚Ìƒ\[ƒg•û–@
-*		int RFSort : ƒŠƒ‚[ƒg‚Ìƒtƒ@ƒCƒ‹‚Ìƒ\[ƒg•û–@
-*		int RDSort : ƒŠƒ‚[ƒg‚ÌƒtƒHƒ‹ƒ_‚Ìƒ\[ƒg•û–@
+*		int Num : è¨­å®šå€¤å·ç•ªå·
+*		int LFSort : ãƒ­ãƒ¼ã‚«ãƒ«ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚½ãƒ¼ãƒˆæ–¹æ³•
+*		int LDSort : ãƒ­ãƒ¼ã‚«ãƒ«ã®ãƒ•ã‚©ãƒ«ãƒ€ã®ã‚½ãƒ¼ãƒˆæ–¹æ³•
+*		int RFSort : ãƒªãƒ¢ãƒ¼ãƒˆã®ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚½ãƒ¼ãƒˆæ–¹æ³•
+*		int RDSort : ãƒªãƒ¢ãƒ¼ãƒˆã®ãƒ•ã‚©ãƒ«ãƒ€ã®ã‚½ãƒ¼ãƒˆæ–¹æ³•
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int SetHostSort(int Num, int LFSort, int LDSort, int RFSort, int RDSort)
@@ -1189,28 +1189,28 @@ int SetHostSort(int Num, int LFSort, int LDSort, int RFSort, int RDSort)
 	int Sts;
 	HOSTLISTDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if((Num >= 0) && (Num < Hosts))
 	{
 		Pos = GetNodeByNum(Num);
 		Pos->Set.Sort = LFSort * 0x1000000 | LDSort * 0x10000 | RFSort * 0x100 | RDSort;
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
 
 
-/*----- “o˜^‚³‚ê‚Ä‚¢‚éƒ\[ƒg•û–@‚ğ•ª‰ğ‚·‚é ------------------------------------
+/*----- ç™»éŒ²ã•ã‚Œã¦ã„ã‚‹ã‚½ãƒ¼ãƒˆæ–¹æ³•ã‚’åˆ†è§£ã™ã‚‹ ------------------------------------
 *
 *	Parameter
-*		ulong Sort : ƒ\[ƒg•û–@ 
-*		int *LFSort : ƒ[ƒJƒ‹‚Ìƒtƒ@ƒCƒ‹‚Ìƒ\[ƒg•û–@‚ğŠi”[‚·‚éƒ[ƒN
-*		int *LDSort : ƒ[ƒJƒ‹‚ÌƒtƒHƒ‹ƒ_‚Ìƒ\[ƒg•û–@‚ğŠi”[‚·‚éƒ[ƒN
-*		int *RFSort : ƒŠƒ‚[ƒg‚Ìƒtƒ@ƒCƒ‹‚Ìƒ\[ƒg•û–@‚ğŠi”[‚·‚éƒ[ƒN
-*		int *RDSort : ƒŠƒ‚[ƒg‚ÌƒtƒHƒ‹ƒ_‚Ìƒ\[ƒg•û–@‚ğŠi”[‚·‚éƒ[ƒN
+*		ulong Sort : ã‚½ãƒ¼ãƒˆæ–¹æ³• 
+*		int *LFSort : ãƒ­ãƒ¼ã‚«ãƒ«ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚½ãƒ¼ãƒˆæ–¹æ³•ã‚’æ ¼ç´ã™ã‚‹ãƒ¯ãƒ¼ã‚¯
+*		int *LDSort : ãƒ­ãƒ¼ã‚«ãƒ«ã®ãƒ•ã‚©ãƒ«ãƒ€ã®ã‚½ãƒ¼ãƒˆæ–¹æ³•ã‚’æ ¼ç´ã™ã‚‹ãƒ¯ãƒ¼ã‚¯
+*		int *RFSort : ãƒªãƒ¢ãƒ¼ãƒˆã®ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚½ãƒ¼ãƒˆæ–¹æ³•ã‚’æ ¼ç´ã™ã‚‹ãƒ¯ãƒ¼ã‚¯
+*		int *RDSort : ãƒªãƒ¢ãƒ¼ãƒˆã®ãƒ•ã‚©ãƒ«ãƒ€ã®ã‚½ãƒ¼ãƒˆæ–¹æ³•ã‚’æ ¼ç´ã™ã‚‹ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DecomposeSortType(ulong Sort, int *LFSort, int *LDSort, int *RFSort, int *RDSort)
@@ -1223,13 +1223,13 @@ void DecomposeSortType(ulong Sort, int *LFSort, int *LDSort, int *RFSort, int *R
 }
 
 
-/*----- Œ»İÚ‘±’†‚Ìİ’è”Ô†‚ğ•Ô‚· --------------------------------------------
+/*----- ç¾åœ¨æ¥ç¶šä¸­ã®è¨­å®šç•ªå·ã‚’è¿”ã™ --------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int İ’è”Ô†
+*		int è¨­å®šç•ªå·
 *----------------------------------------------------------------------------*/
 
 int AskCurrentHost(void)
@@ -1238,13 +1238,13 @@ int AskCurrentHost(void)
 }
 
 
-/*----- Œ»İÚ‘±’†‚Ìİ’è”Ô†‚ğƒZƒbƒg‚·‚é --------------------------------------
+/*----- ç¾åœ¨æ¥ç¶šä¸­ã®è¨­å®šç•ªå·ã‚’ã‚»ãƒƒãƒˆã™ã‚‹ --------------------------------------
 *
 *	Parameter
-*		int Num : İ’è”Ô†
+*		int Num : è¨­å®šç•ªå·
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetCurrentHost(int Num)
@@ -1254,13 +1254,13 @@ void SetCurrentHost(int Num)
 }
 
 
-/*----- ƒfƒtƒHƒ‹ƒgİ’è’l‚ğæ‚èo‚· --------------------------------------------
+/*----- ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆè¨­å®šå€¤ã‚’å–ã‚Šå‡ºã™ --------------------------------------------
 *
 *	Parameter
-*		HOSTDATA *Set : İ’è’l‚ğƒRƒs[‚·‚éƒ[ƒN
+*		HOSTDATA *Set : è¨­å®šå€¤ã‚’ã‚³ãƒ”ãƒ¼ã™ã‚‹ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void CopyDefaultHost(HOSTDATA *Set)
@@ -1298,7 +1298,7 @@ void CopyDefaultHost(HOSTDATA *Set)
 	Set->DialupAlways = NO;
 	Set->DialupNotify = YES;
 	strcpy(Set->DialEntry, "");
-	// ˆÃ†‰»’ÊM‘Î‰
+	// æš—å·åŒ–é€šä¿¡å¯¾å¿œ
 	Set->CryptMode = CRYPT_NONE;
 	Set->UseFTPES = YES;
 	Set->UseFTPIS = YES;
@@ -1307,14 +1307,14 @@ void CopyDefaultHost(HOSTDATA *Set)
 }
 
 
-/*----- İ’è–¼ˆê——‚ğƒEƒBƒ“ƒhƒE‚É‘—‚é ------------------------------------------
+/*----- è¨­å®šåä¸€è¦§ã‚’ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã«é€ã‚‹ ------------------------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *		int Cur : 
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void SendAllHostNames(HWND hWnd, int Cur)
@@ -1329,10 +1329,10 @@ static void SendAllHostNames(HWND hWnd, int Cur)
 
 	hItemCur = NULL;
 
-	/* ‚¿‚ç‚Â‚­‚Ì‚ÅÄ•`‰æ‹Ö~ */
+	/* ã¡ã‚‰ã¤ãã®ã§å†æç”»ç¦æ­¢ */
 	SendMessage(hWnd, WM_SETREDRAW, (WPARAM)FALSE, 0);
 
-	SendMessage(hWnd, TVM_DELETEITEM, 0, (LPARAM)TVI_ROOT);		/* ‘S‚Ä‚ğíœ */
+	SendMessage(hWnd, TVM_DELETEITEM, 0, (LPARAM)TVI_ROOT);		/* å…¨ã¦ã‚’å‰Šé™¤ */
 
 	if((Level = malloc(sizeof(HTREEITEM*) * Hosts + 1)) != NULL)
 	{
@@ -1380,7 +1380,7 @@ static void SendAllHostNames(HWND hWnd, int Cur)
 		free(Level);
 	}
 
-	/* Ä•`‰æ */
+	/* å†æç”» */
 	SendMessage(hWnd, WM_SETREDRAW, (WPARAM)TRUE, 0);
 
 	if(hItemCur != NULL)
@@ -1394,14 +1394,14 @@ static void SendAllHostNames(HWND hWnd, int Cur)
 }
 
 
-/*----- İ’è’l‚ªƒOƒ‹[ƒv‚©‚Ç‚¤‚©‚ğ•Ô‚· ----------------------------------------
+/*----- è¨­å®šå€¤ãŒã‚°ãƒ«ãƒ¼ãƒ—ã‹ã©ã†ã‹ã‚’è¿”ã™ ----------------------------------------
 *
 *	Parameter
-*		int Num : İ’è’l†”Ô†
+*		int Num : è¨­å®šå€¤å·ç•ªå·
 *
 *	Return Value
-*		int ƒOƒ‹[ƒv‚©‚Ç‚¤‚©
-*			YES/NO/-1=İ’è’l‚ª‚È‚¢
+*		int ã‚°ãƒ«ãƒ¼ãƒ—ã‹ã©ã†ã‹
+*			YES/NO/-1=è¨­å®šå€¤ãŒãªã„
 *----------------------------------------------------------------------------*/
 
 static int IsNodeGroup(int Num)
@@ -1419,13 +1419,13 @@ static int IsNodeGroup(int Num)
 }
 
 
-/*----- WS_FTP.INI‚©‚ç‚ÌƒCƒ“ƒ|[ƒg --------------------------------------------
+/*----- WS_FTP.INIã‹ã‚‰ã®ã‚¤ãƒ³ãƒãƒ¼ãƒˆ --------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void ImportFromWSFTP(void)
@@ -1503,18 +1503,18 @@ void ImportFromWSFTP(void)
 
 
 
-/*----- ƒzƒXƒgİ’è‚ÌƒvƒƒpƒeƒBƒV[ƒg ------------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆè¨­å®šã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚·ãƒ¼ãƒˆ ------------------------------------------
 *
 *	Parameter
-*		HWND hDlg : eƒEƒCƒ“ƒhƒE‚Ìƒnƒ“ƒhƒ‹
+*		HWND hDlg : è¦ªã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ãƒãƒ³ãƒ‰ãƒ«
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static int DispHostSetDlg(HWND hDlg)
 {
-// SFTPAFTPESAFTPIS‘Î‰
+// SFTPã€FTPESã€FTPISå¯¾å¿œ
 //	PROPSHEETPAGE psp[5];
 	PROPSHEETPAGE psp[6];
 	PROPSHEETHEADER psh;
@@ -1569,7 +1569,7 @@ static int DispHostSetDlg(HWND hDlg)
 	psp[4].lParam = 0;
 	psp[4].pfnCallback = NULL;
 
-// SFTPAFTPESAFTPIS‘Î‰
+// SFTPã€FTPESã€FTPISå¯¾å¿œ
 	psp[5].dwSize = sizeof(PROPSHEETPAGE);
 	psp[5].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[5].hInstance = GetFtpInst();
@@ -1598,13 +1598,13 @@ static int DispHostSetDlg(HWND hDlg)
 }
 
 
-/*----- Šî–{İ’èƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN --------------------------------------
+/*----- åŸºæœ¬è¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ --------------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1711,13 +1711,13 @@ static BOOL CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 }
 
 
-/*----- Šg’£İ’èƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN --------------------------------------
+/*----- æ‹¡å¼µè¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ --------------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1802,13 +1802,13 @@ static BOOL CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPA
 }
 
 
-/*----- •¶šƒR[ƒhİ’èƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN --------------------------------
+/*----- æ–‡å­—ã‚³ãƒ¼ãƒ‰è¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ --------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1818,7 +1818,7 @@ static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 {
 	NMHDR *pnmhdr;
 
-	// UTF-8‘Î‰
+	// UTF-8å¯¾å¿œ
 	static const RADIOBUTTON KanjiButton[] = {
 		{ HSET_NO_CNV, KANJI_NOCNV },
 		{ HSET_SJIS_CNV, KANJI_SJIS },
@@ -1835,7 +1835,7 @@ static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 		{ HSET_FN_EUC_CNV, KANJI_EUC },
 		{ HSET_FN_SMH_CNV, KANJI_SMB_HEX },
 		{ HSET_FN_SMC_CNV, KANJI_SMB_CAP },
-		{ HSET_FN_UTF8N_CNV, KANJI_UTF8N }		// UTF-8‘Î‰
+		{ HSET_FN_UTF8N_CNV, KANJI_UTF8N }		// UTF-8å¯¾å¿œ
 	};
 	#define NAMEKANJIBUTTONS	(sizeof(NameKanjiButton)/sizeof(RADIOBUTTON))
 
@@ -1877,7 +1877,7 @@ static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 					EnableWindow(GetDlgItem(hDlg, HSET_HANCNV), TRUE);
 					break;
 
-				// UTF-8‘Î‰
+				// UTF-8å¯¾å¿œ
 				case HSET_NO_CNV :
 				case HSET_UTF8N_CNV :
 					EnableWindow(GetDlgItem(hDlg, HSET_HANCNV), FALSE);
@@ -1893,7 +1893,7 @@ static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 				case HSET_FN_SJIS_CNV :
 				case HSET_FN_SMH_CNV :
 				case HSET_FN_SMC_CNV :
-				case HSET_FN_UTF8N_CNV :	// UTF-8‘Î‰
+				case HSET_FN_UTF8N_CNV :	// UTF-8å¯¾å¿œ
 					EnableWindow(GetDlgItem(hDlg, HSET_FN_HANCNV), FALSE);
 					break;
 			}
@@ -1903,13 +1903,13 @@ static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 }
 
 
-/*----- ƒ_ƒCƒAƒ‹ƒAƒbƒvİ’èƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ----------------------------
+/*----- ãƒ€ã‚¤ã‚¢ãƒ«ã‚¢ãƒƒãƒ—è¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ----------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1975,7 +1975,7 @@ static BOOL CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, 
 						EnableWindow(GetDlgItem(hDlg, HSET_DIALENTRY), TRUE);
 						EnableWindow(GetDlgItem(hDlg, HSET_DIALUSETHIS), TRUE);
 					}
-					/* ‚±‚±‚Ébreak‚Í‚È‚¢ */
+					/* ã“ã“ã«breakã¯ãªã„ */
 
 				case HSET_DIALUSETHIS :
 					if(SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0) == 0)
@@ -1990,13 +1990,13 @@ static BOOL CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, 
 }
 
 
-/*----- ‚“xİ’èƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN --------------------------------------
+/*----- é«˜åº¦è¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ --------------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -2099,7 +2099,7 @@ static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 }
 
 
-// ˆÃ†‰»’ÊM‘Î‰
+// æš—å·åŒ–é€šä¿¡å¯¾å¿œ
 static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
@@ -2123,10 +2123,10 @@ static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, L
 				SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, BST_UNCHECKED, 0);
 				EnableWindow(GetDlgItem(hDlg, HSET_SFTP), FALSE);
 			}
-			// TODO: FTPIS‘Î‰
+			// TODO: FTPISå¯¾å¿œ
 			SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, BST_UNCHECKED, 0);
 			EnableWindow(GetDlgItem(hDlg, HSET_FTPIS), FALSE);
-			// TODO: SFTP‘Î‰
+			// TODO: SFTPå¯¾å¿œ
 			SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, BST_UNCHECKED, 0);
 			EnableWindow(GetDlgItem(hDlg, HSET_SFTP), FALSE);
 			return(TRUE);
@@ -2139,9 +2139,9 @@ static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, L
 					if(IsOpenSSLLoaded())
 					{
 						TmpHost.UseFTPES = SendDlgItemMessage(hDlg, HSET_FTPES, BM_GETCHECK, 0, 0);
-						// TODO: FTPIS‘Î‰
+						// TODO: FTPISå¯¾å¿œ
 //						TmpHost.UseFTPIS = SendDlgItemMessage(hDlg, HSET_FTPIS, BM_GETCHECK, 0, 0);
-						// TODO: SFTP‘Î‰
+						// TODO: SFTPå¯¾å¿œ
 //						TmpHost.UseSFTP = SendDlgItemMessage(hDlg, HSET_SFTP, BM_GETCHECK, 0, 0);
 					}
 					Apply = YES;

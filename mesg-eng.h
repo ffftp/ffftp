@@ -1,4 +1,4 @@
-#define MSGJPN001		"Connection cancelled."
+﻿#define MSGJPN001		"Connection cancelled."
 #define MSGJPN002		"Connection cancelled."
 #define MSGJPN003		"\r\nReconnect.\r\n"
 #define MSGJPN004		"Disconnect."

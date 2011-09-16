@@ -1,5 +1,5 @@
-/*=============================================================================
-*							‚e‚e‚e‚s‚o‹¤’Ê’è‹`ƒtƒ@ƒCƒ‹
+ï»¿/*=============================================================================
+*							ï¼¦ï¼¦ï¼¦ï¼´ï¼°å…±é€šå®šç¾©ãƒ•ã‚¡ã‚¤ãƒ«
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -26,12 +26,12 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-/* ƒTƒ“ƒvƒ‹ƒzƒXƒg’è‹`ƒtƒ@ƒCƒ‹ */
+/* ã‚µãƒ³ãƒ—ãƒ«ãƒ›ã‚¹ãƒˆå®šç¾©ãƒ•ã‚¡ã‚¤ãƒ« */
 
 typedef struct {
-	int Level;							/* İ’è‚ÌƒŒƒxƒ‹ */
-	char HostName[HOST_NAME_LEN+1];		/* İ’è–¼ */
-	char HostAdrs[HOST_ADRS_LEN+1];		/* ƒzƒXƒg–¼ */
+	int Level;							/* è¨­å®šã®ãƒ¬ãƒ™ãƒ« */
+	char HostName[HOST_NAME_LEN+1];		/* è¨­å®šå */
+	char HostAdrs[HOST_ADRS_LEN+1];		/* ãƒ›ã‚¹ãƒˆå */
 } SAMPLEHOSTDATA;
 
 
@@ -41,7 +41,7 @@ typedef struct {
 static const SAMPLEHOSTDATA Sample[SAMPLE_HOSTS] = {
 	{ 32768,"anonymous FTP site",				"" },
 	{ 1,	"Vector",					"ftp.vector.co.jp" },
-	{ 1,	"‘‹‚Ì“m(Forest)",			"ftp.forest.impress.co.jp" },
+	{ 1,	"çª“ã®æœ(Forest)",			"ftp.forest.impress.co.jp" },
 	{ 1,	"Ring server",				"ftp.ring.gr.jp" },
 	{ 1,	"BIGLOBE",					"ftp.biglobe.ne.jp" },
 	{ 1,	"IIJ",						"ftp.iij.ad.jp" },

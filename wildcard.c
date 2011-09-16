@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*							ƒƒCƒ‹ƒhƒJ[ƒhŒŸõ
+*							ãƒ¯ã‚¤ãƒ«ãƒ‰ã‚«ãƒ¼ãƒ‰æ¤œç´¢
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -37,24 +37,24 @@
 #include "jreusr.h"
 
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static int CheckNameMatch(char *str, char *regexp);
 
 
 
-/*----- ƒƒCƒ‹ƒhƒJ[ƒh‚Éƒ}ƒbƒ`‚·‚é‚©‚Ç‚¤‚©‚ğ•Ô‚· ------------------------------
+/*----- ãƒ¯ã‚¤ãƒ«ãƒ‰ã‚«ãƒ¼ãƒ‰ã«ãƒãƒƒãƒã™ã‚‹ã‹ã©ã†ã‹ã‚’è¿”ã™ ------------------------------
 *
 *	Parameter
-*		char *str : •¶š—ñ
-*		char *regexp : ƒƒCƒ‹ƒhƒJ[ƒhŒŸõ®
+*		char *str : æ–‡å­—åˆ—
+*		char *regexp : ãƒ¯ã‚¤ãƒ«ãƒ‰ã‚«ãƒ¼ãƒ‰æ¤œç´¢å¼
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *
 *	Note
-*		VAX VMS‚Ì‚Í ; ˆÈ~‚Í–³‹‚·‚é
+*		VAX VMSã®æ™‚ã¯ ; ä»¥é™ã¯ç„¡è¦–ã™ã‚‹
 *----------------------------------------------------------------------------*/
 
 int CheckFname(char *str, char *regexp)
@@ -67,14 +67,14 @@ int CheckFname(char *str, char *regexp)
 	strcpy(p1, regexp);
 	strcpy(p2, str);
 
-	/* VAX VMS‚Ì‚Ì‚½‚ß‚Ìˆ— */
+	/* VAX VMSã®æ™‚ã®ãŸã‚ã®å‡¦ç† */
 	if(AskHostType() == HTYPE_VMS)
 	{
 		if((p = strchr(p2, ';')) != NULL)
 			*p = NUL;
 	}
 
-	/* *? ‚Æ‚© ** ‚Æ‚©‚ğíœ */
+	/* *? ã¨ã‹ ** ã¨ã‹ã‚’å‰Šé™¤ */
 	for(p = p1; *p != NUL; p++)
 	{
 		while((*p == '*') && ((*(p+1) == '?') || (*(p+1) == '*')))
@@ -84,14 +84,14 @@ int CheckFname(char *str, char *regexp)
 	if((strcmp(p1, "*.*") == 0) || (strcmp(p1, "????????.???") == 0))
 		strcpy(p1, "*");
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if(strcmp(p1, "*") != 0)
 	{
 		if(strcmp(p1, "*.") == 0)
 		{
 			p = strchr(p2, '.');
 			if((p != NULL) && (*(p+1) != NUL))
-				Sts = FAIL;
+				Sts = FFFTP_FAIL;
 		}
 		else
 			Sts = CheckNameMatch(p2, p1);
@@ -100,15 +100,15 @@ int CheckFname(char *str, char *regexp)
 }
 
 
-/*----- ƒƒCƒ‹ƒhƒJ[ƒhŒŸõƒTƒuƒ‹[ƒ`ƒ“ ----------------------------------------
+/*----- ãƒ¯ã‚¤ãƒ«ãƒ‰ã‚«ãƒ¼ãƒ‰æ¤œç´¢ã‚µãƒ–ãƒ«ãƒ¼ãƒãƒ³ ----------------------------------------
 *
 *	Parameter
-*		char *str : •¶š—ñ
-*		char *regexp : ƒƒCƒ‹ƒhƒJ[ƒhŒŸõ®
+*		char *str : æ–‡å­—åˆ—
+*		char *regexp : ãƒ¯ã‚¤ãƒ«ãƒ‰ã‚«ãƒ¼ãƒ‰æ¤œç´¢å¼
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int CheckNameMatch(char *str, char *regexp)
@@ -128,23 +128,23 @@ static int CheckNameMatch(char *str, char *regexp)
 				/* Look for a character matching the one after the '*' */
 				p++;
 				if(*p == NUL)
-					return SUCCESS; /* Automatic match */
+					return FFFTP_SUCCESS; /* Automatic match */
 				while(*str != NUL)
 				{
 					while((*str != NUL) && (toupper(*p)!=toupper(*str)))
 						str++;
 					if(CheckNameMatch(str, p))
-						return SUCCESS;
+						return FFFTP_SUCCESS;
 					if(*str == NUL)
-						return FAIL;
+						return FFFTP_FAIL;
 					else
 						str++;
 				}
-				return FAIL;
+				return FFFTP_FAIL;
 
 			default:
 				if(toupper(*str) != toupper(*p))
-					return FAIL;
+					return FFFTP_FAIL;
 				str++;
 				p++;
 				break;
@@ -152,10 +152,10 @@ static int CheckNameMatch(char *str, char *regexp)
 	}
 
 	if((*p == NUL) && (*str == NUL))
-		return SUCCESS;
+		return FFFTP_SUCCESS;
 
 	if ((*p != NUL) && (str[0] == '.') && (str[1] == 0))
-		return(SUCCESS);
+		return(FFFTP_SUCCESS);
   
 	if ((*str == NUL) && (*p == '?'))
 	{
@@ -165,8 +165,8 @@ static int CheckNameMatch(char *str, char *regexp)
 	}
 
 	if((*str == NUL) && (*p == '*') && (p[1] == '\0'))
-		return SUCCESS;
+		return FFFTP_SUCCESS;
 
-	return FAIL;
+	return FFFTP_FAIL;
 }
 

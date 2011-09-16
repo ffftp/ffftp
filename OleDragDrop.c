@@ -1,4 +1,4 @@
-/**************************************************************************
+﻿/**************************************************************************
 
 	OleDragDrop.c
 
@@ -22,7 +22,7 @@
 #include "OleDragDrop.h"
 
 
-/* Clipboard format ���� Type of storage medium ���擾 */
+/* Clipboard format から Type of storage medium を取得 */
 static DWORD FormatToTymed(const UINT cfFormat)
 {
 	switch(cfFormat)
@@ -78,7 +78,7 @@ typedef struct _IDROPTARGET_INTERNAL{
 	IDROPTARGET_NOTIFY dtn;
 }IDROPTARGET_INTERNAL , *LPIDROPTARGET_INTERNAL;
 
-/* OLE�̃h���b�v�^�[�Q�b�g�Ƃ��ēo�^���� */
+/* OLEのドロップターゲットとして登録する */
 BOOL APIPRIVATE OLE_IDropTarget_RegisterDragDrop(HWND hWnd, UINT uCallbackMessage, UINT *cFormat, int cfcnt)
 {
 	static IDROPTARGET_INTERNAL *pdti;
@@ -89,19 +89,19 @@ BOOL APIPRIVATE OLE_IDropTarget_RegisterDragDrop(HWND hWnd, UINT uCallbackMessag
 	}
 	pdti->lpVtbl = (LPVOID)&dtv;
 	pdti->m_refCnt = 0;
-	pdti->hWnd = hWnd;													/* ���b�Z�[�W���󂯎��E�B���h�E */
-	pdti->uCallbackMessage = uCallbackMessage;							/* ���b�Z�[�W */
-	pdti->cFormat = (UINT *)GlobalAlloc(GPTR, sizeof(UINT) * cfcnt);		/* �Ή����Ă���N���b�v�{�[�h�t�H�[�}�b�g */
+	pdti->hWnd = hWnd;													/* メッセージを受け取るウィンドウ */
+	pdti->uCallbackMessage = uCallbackMessage;							/* メッセージ */
+	pdti->cFormat = (UINT *)GlobalAlloc(GPTR, sizeof(UINT) * cfcnt);		/* 対応しているクリップボードフォーマット */
 	if(pdti->cFormat == NULL){
 		GlobalFree(pdti);
 		return FALSE;
 	}
 	CopyMemory(pdti->cFormat, cFormat, sizeof(UINT) * cfcnt);
-	pdti->cfcnt = cfcnt;												/* �N���b�v�{�[�h�t�H�[�}�b�g�̐� */
+	pdti->cfcnt = cfcnt;												/* クリップボードフォーマットの数 */
 	return (S_OK == RegisterDragDrop(hWnd, (LPDROPTARGET)pdti));
 }
 
-/* OLE�̃h���b�v�^�[�Q�b�g���������� */
+/* OLEのドロップターゲットを解除する */
 void APIPRIVATE OLE_IDropTarget_RevokeDragDrop(HWND hWnd)
 {
 	RevokeDragDrop(hWnd);
@@ -109,7 +109,7 @@ void APIPRIVATE OLE_IDropTarget_RevokeDragDrop(HWND hWnd)
 
 static HRESULT STDMETHODCALLTYPE OLE_IDropTarget_QueryInterface(LPDROPTARGET pThis, REFIID riid, PVOID *ppvObject)
 {
-	//�v�����ꂽIID�Ɠ����ꍇ�̓I�u�W�F�N�g��Ԃ�
+	//要求されたIIDと同じ場合はオブジェクトを返す
 	if(IsEqualIID(riid, &IID_IUnknown) || IsEqualIID(riid, &IID_IDropTarget)){
 		*ppvObject = (LPVOID)pThis;
 		((LPUNKNOWN)*ppvObject)->lpVtbl->AddRef((LPUNKNOWN)*ppvObject);
@@ -123,7 +123,7 @@ static ULONG STDMETHODCALLTYPE OLE_IDropTarget_AddRef(LPDROPTARGET pThis)
 {
 	CONST LPIDROPTARGET_INTERNAL pdti = (LPIDROPTARGET_INTERNAL)pThis;
 
-	/* reference count���C���N�������g���� */
+	/* reference countをインクリメントする */
 	pdti->m_refCnt++;
 	return pdti->m_refCnt;
 }
@@ -132,10 +132,10 @@ static ULONG STDMETHODCALLTYPE OLE_IDropTarget_Release(LPDROPTARGET pThis)
 {
 	CONST LPIDROPTARGET_INTERNAL pdti = (LPIDROPTARGET_INTERNAL)pThis;
 
-	/* reference count���f�N�������g���� */
+	/* reference countをデクリメントする */
 	pdti->m_refCnt--;
 
-	/* reference count�� 0 �ɂȂ����ꍇ�̓I�u�W�F�N�g�̉�����s�� */
+	/* reference countが 0 になった場合はオブジェクトの解放を行う */
 	if(pdti->m_refCnt == 0L){
 		if(pdti->cFormat != NULL){
 			GlobalFree(pdti->cFormat);
@@ -175,35 +175,35 @@ static HRESULT APIPRIVATE OLE_IDropTarget_Internal_SendMessage(LPDROPTARGET pThi
 	int i;
 
 	if(pdo){
-		/* �Ή����Ă���N���b�v�{�[�h�t�H�[�}�b�g�����邩���ׂ� */
+		/* 対応しているクリップボードフォーマットがあるか調べる */
 		for(i = 0;i < pdti->cfcnt;i++){
 			if(DropTarget_QueryGetData(pdo, pdti->cFormat[i]) == S_OK){
 				cfFormat = pdti->cFormat[i];
 				break;
 			}
 		}
-		/* �N���b�v�{�[�h�t�H�[�}�b�g����f�[�^���擾���� */
+		/* クリップボードフォーマットからデータを取得する */
 		if(cfFormat != 0){
 			if (DropTarget_GetData(pdo, cfFormat, &sm) != S_OK){
 				cfFormat = 0;
 			}
 		}
 	}
-	pdtn->ppt = ppt;					/* �}�E�X�|�C���^�̈ʒu */
-	pdtn->grfKeyState = grfKeyState;	/* �L�[�A�}�E�X�{�^���̏�� */
-	pdtn->cfFormat = cfFormat;			/* �N���b�v�{�[�h�t�H�[�}�b�g */
-	pdtn->hMem = sm.hGlobal;			/* ���f�[�^ */
+	pdtn->ppt = ppt;					/* マウスポインタの位置 */
+	pdtn->grfKeyState = grfKeyState;	/* キー、マウスボタンの状態 */
+	pdtn->cfFormat = cfFormat;			/* クリップボードフォーマット */
+	pdtn->hMem = sm.hGlobal;			/* 実データ */
 	pdtn->pdo = pdo;					/* IDataObject */
 
-	/* �E�B���h�E�ɃC�x���g��ʒm���� */
+	/* ウィンドウにイベントを通知する */
 	SendMessage(pdti->hWnd, pdti->uCallbackMessage, (WPARAM)uNotify, (LPARAM)pdtn);
 
-	/* �N���b�v�{�[�h�`���̃f�[�^�̉�� */
+	/* クリップボード形式のデータの解放 */
 	if(cfFormat){
 		ReleaseStgMedium(&sm);
 	}
 
-	/* ���ʂ̐ݒ� */
+	/* 効果の設定 */
 	if(pdwEffect){
 		*pdwEffect &= pdtn->dwEffect;
 
@@ -219,7 +219,7 @@ static HRESULT APIPRIVATE DropTarget_GetData(LPDATAOBJECT pdo, UINT cfFormat, LP
 {
 	FORMATETC fmt;
 
-	/* IDataObject�ɃN���b�v�{�[�h�`���̃f�[�^��v������ */
+	/* IDataObjectにクリップボード形式のデータを要求する */
 	fmt.cfFormat = cfFormat;
 	fmt.ptd = NULL;
 	fmt.dwAspect = DVASPECT_CONTENT;
@@ -232,7 +232,7 @@ static HRESULT APIPRIVATE DropTarget_QueryGetData(LPDATAOBJECT pdo, UINT cfForma
 {
 	FORMATETC fmt;
 
-	/* IDataObject�Ɏw��̃N���b�v�{�[�h�t�H�[�}�b�g�����݂��邩�₢���킹�� */
+	/* IDataObjectに指定のクリップボードフォーマットが存在するか問い合わせる */
 	fmt.cfFormat = cfFormat;
 	fmt.ptd = NULL;
 	fmt.dwAspect = DVASPECT_CONTENT;
@@ -278,7 +278,7 @@ typedef struct _IENUMFORMATETC_INTERNAL{
 
 static HRESULT STDMETHODCALLTYPE OLE_IEnumFORMATETC_QueryInterface(LPENUMFORMATETC lpThis, REFIID riid, LPVOID FAR* lplpvObj)
 {
-	//�v�����ꂽIID�Ɠ����ꍇ�̓I�u�W�F�N�g��Ԃ�
+	//要求されたIIDと同じ場合はオブジェクトを返す
 	if(IsEqualIID(riid, &IID_IUnknown) || IsEqualIID(riid, &IID_IEnumFORMATETC)){
 		*lplpvObj = (LPVOID) lpThis;
 		 ((LPUNKNOWN)*lplpvObj)->lpVtbl->AddRef(((LPUNKNOWN)*lplpvObj));
@@ -292,9 +292,9 @@ static ULONG STDMETHODCALLTYPE OLE_IEnumFORMATETC_AddRef(LPENUMFORMATETC lpThis)
 {
 	CONST LPIENUMFORMATETC_INTERNAL pefi = (LPIENUMFORMATETC_INTERNAL)lpThis;
 
-	/* reference count���C���N�������g���� */
+	/* reference countをインクリメントする */
 	pefi->m_refCnt++;
-	/* �e�I�u�W�F�N�g��reference count�������� */
+	/* 親オブジェクトのreference countを加える */
 	pefi->m_pUnknownObj->lpVtbl->AddRef(pefi->m_pUnknownObj);
 	return pefi->m_refCnt;
 }
@@ -303,12 +303,12 @@ static ULONG STDMETHODCALLTYPE OLE_IEnumFORMATETC_Release(LPENUMFORMATETC lpThis
 {
 	CONST LPIENUMFORMATETC_INTERNAL pefi = (LPIENUMFORMATETC_INTERNAL)lpThis;
 
-	/* reference count���f�N�������g���� */
+	/* reference countをデクリメントする */
 	pefi->m_refCnt--;
-	/* �e�I�u�W�F�N�g��reference count�����炷 */
+	/* 親オブジェクトのreference countを減らす */
 	pefi->m_pUnknownObj->lpVtbl->Release(pefi->m_pUnknownObj);
 
-	/* reference count�� 0 �ɂȂ����ꍇ�̓I�u�W�F�N�g�̉�����s�� */
+	/* reference countが 0 になった場合はオブジェクトの解放を行う */
 	if(pefi->m_refCnt == 0L){
 		if(pefi->m_formatList != NULL){
 			GlobalFree(pefi->m_formatList);
@@ -383,7 +383,7 @@ static HRESULT STDMETHODCALLTYPE OLE_IEnumFORMATETC_Clone(LPENUMFORMATETC lpThis
 	LPIENUMFORMATETC_INTERNAL lpefi = ((LPIENUMFORMATETC_INTERNAL)lpThis);
 	UINT i;
 
-	/* IEnumFORMATETC���쐬���� */
+	/* IEnumFORMATETCを作成する */
 	pNew = GlobalAlloc(GPTR, sizeof(IENUMFORMATETC_INTERNAL));
 	if(pNew == NULL){
 		return ResultFromScode(E_OUTOFMEMORY);
@@ -395,7 +395,7 @@ static HRESULT STDMETHODCALLTYPE OLE_IEnumFORMATETC_Clone(LPENUMFORMATETC lpThis
 	pNew->m_pUnknownObj = lpefi->m_pUnknownObj;
 	pNew->m_numFormats = lpefi->m_numFormats;
 
-	/* �N���b�v�{�[�h�t�H�[�}�b�g�̃��X�g���R�s�[���� */
+	/* クリップボードフォーマットのリストをコピーする */
 	pNew->m_formatList = GlobalAlloc(GPTR, sizeof(FORMATETC) * pNew->m_numFormats);
 	if(pNew->m_formatList != NULL){
 		for(i = 0;i < pNew->m_numFormats;i++){
@@ -461,7 +461,7 @@ typedef struct _IDATAOBJECT_INTERNAL{
 
 static HRESULT STDMETHODCALLTYPE OLE_IDataObject_QueryInterface(LPDATAOBJECT lpThis, REFIID riid, LPVOID FAR *lplpvObj)
 {
-	//�v�����ꂽIID�Ɠ����ꍇ�̓I�u�W�F�N�g��Ԃ�
+	//要求されたIIDと同じ場合はオブジェクトを返す
 	if(IsEqualIID(riid, &IID_IUnknown) || IsEqualIID(riid, &IID_IDataObject)){
 		*lplpvObj = lpThis;
 		 ((LPUNKNOWN)*lplpvObj)->lpVtbl->AddRef(((LPUNKNOWN)*lplpvObj));
@@ -475,7 +475,7 @@ static ULONG STDMETHODCALLTYPE OLE_IDataObject_AddRef(LPDATAOBJECT lpThis)
 {
 	CONST LPIDATAOBJECT_INTERNAL pdoi = (LPIDATAOBJECT_INTERNAL)lpThis;
 
-	/* reference count���C���N�������g���� */
+	/* reference countをインクリメントする */
 	pdoi->m_refCnt++;
 	return pdoi->m_refCnt;
 }
@@ -484,10 +484,10 @@ static ULONG STDMETHODCALLTYPE OLE_IDataObject_Release(LPDATAOBJECT lpThis)
 {
 	CONST LPIDATAOBJECT_INTERNAL pdoi = (LPIDATAOBJECT_INTERNAL)lpThis;
 
-	/* reference count���f�N�������g���� */
+	/* reference countをデクリメントする */
 	pdoi->m_refCnt--;
 
-	/* reference count�� 0 �ɂȂ����ꍇ�̓I�u�W�F�N�g�̉�����s�� */
+	/* reference countが 0 になった場合はオブジェクトの解放を行う */
 	if(pdoi->m_refCnt == 0L){
 		if(pdoi->m_typeList != NULL){
 			GlobalFree(pdoi->m_typeList);
@@ -504,24 +504,24 @@ static HRESULT STDMETHODCALLTYPE OLE_IDataObject_GetData(LPDATAOBJECT lpThis, FO
 	HGLOBAL hMem;
 	UINT i;
 
-	/* �v�����ꂽ�N���b�v�{�[�h�t�H�[�}�b�g�����݂��邩���ׂ� */
+	/* 要求されたクリップボードフォーマットが存在するか調べる */
 	for(i = 0;i < pdoi->m_numTypes;i++){
 		if(pdoi->m_typeList[i].cfFormat == pFormatetc->cfFormat){
 			break;
 		}
 	}
 	if(i == pdoi->m_numTypes){
-		/* �v�����ꂽ�N���b�v�{�[�h�t�H�[�}�b�g���T�|�[�g���ĂȂ��ꍇ */
+		/* 要求されたクリップボードフォーマットをサポートしてない場合 */
 		return ResultFromScode(DV_E_FORMATETC);
 	}
 
-	// �}�E�X�̃h���b�O���� WM_GETDATA �𑗂�Ȃ��悤�ɂ���B(2007.9.3 yutaka)
+	// マウスのドラッグ中は WM_GETDATA を送らないようにする。(2007.9.3 yutaka)
 	if (GetAsyncKeyState(VK_LBUTTON) & 0x8000 ||
 		GetAsyncKeyState(VK_RBUTTON) & 0x8000) {
 		return ResultFromScode(DV_E_FORMATETC);
 	}
 
-	/* �E�B���h�E�Ƀf�[�^�̗v�����s�� */
+	/* ウィンドウにデータの要求を行う */
 	SendMessage(pdoi->hWnd, pdoi->uCallbackMessage, (WPARAM)pdoi->m_typeList[i].cfFormat, (LPARAM)&hMem);
 	if(hMem == NULL){
 		return ResultFromScode(STG_E_MEDIUMFULL);
@@ -542,7 +542,7 @@ static HRESULT STDMETHODCALLTYPE OLE_IDataObject_QueryGetData(LPDATAOBJECT lpThi
 	CONST LPIDATAOBJECT_INTERNAL pdoi = (LPIDATAOBJECT_INTERNAL)lpThis;
 	UINT i;
 
-	/* �v�����ꂽ�N���b�v�{�[�h�t�H�[�}�b�g�����݂��邩���ׂ� */
+	/* 要求されたクリップボードフォーマットが存在するか調べる */
 	for(i = 0;i < pdoi->m_numTypes;i++){
 		if(pdoi->m_typeList[i].cfFormat == pFormatetc->cfFormat){
 			return S_OK;
@@ -576,7 +576,7 @@ static HRESULT STDMETHODCALLTYPE OLE_IDataObject_EnumFormatEtc(LPDATAOBJECT lpTh
 		return ResultFromScode(E_NOTIMPL);
 	}
 
-	/* IEnumFORMATETC���쐬���� */
+	/* IEnumFORMATETCを作成する */
 	pefi = GlobalAlloc(GPTR, sizeof(IENUMFORMATETC_INTERNAL));
 	if(pefi == NULL){
 		return E_OUTOFMEMORY;
@@ -587,7 +587,7 @@ static HRESULT STDMETHODCALLTYPE OLE_IDataObject_EnumFormatEtc(LPDATAOBJECT lpTh
 	pefi->m_pUnknownObj = (struct IUnknown *)lpThis;
 	pefi->m_numFormats = pdoi->m_numTypes;
 
-	/* �N���b�v�{�[�h�t�H�[�}�b�g�̃��X�g���R�s�[���� */
+	/* クリップボードフォーマットのリストをコピーする */
 	pefi->m_formatList = GlobalAlloc(GPTR, sizeof(FORMATETC) * pefi->m_numFormats);
 	if(pefi->m_formatList != NULL){
 		for(i = 0;i < pefi->m_numFormats;i++){
@@ -652,7 +652,7 @@ typedef struct _IDROPSOURCE_INTERNAL{
 
 static HRESULT STDMETHODCALLTYPE OLE_IDropSource_QueryInterface(LPDROPSOURCE lpThis, REFIID riid, LPVOID FAR *lplpvObj)
 {
-	//�v�����ꂽIID�Ɠ����ꍇ�̓I�u�W�F�N�g��Ԃ�
+	//要求されたIIDと同じ場合はオブジェクトを返す
 	if(IsEqualIID(riid, &IID_IUnknown) || IsEqualIID(riid, &IID_IDropSource)){
 		*lplpvObj = (LPVOID) lpThis;
 		((LPUNKNOWN)*lplpvObj)->lpVtbl->AddRef(((LPUNKNOWN)*lplpvObj));
@@ -667,7 +667,7 @@ static ULONG STDMETHODCALLTYPE OLE_IDropSource_AddRef(LPDROPSOURCE lpThis)
 {
 	CONST LPIDROPSOURCE_INTERNAL pdsi = (LPIDROPSOURCE_INTERNAL)lpThis;
 
-	/* reference count���C���N�������g���� */
+	/* reference countをインクリメントする */
 	pdsi->m_refCnt++;
 	return pdsi->m_refCnt;
 }
@@ -676,10 +676,10 @@ static ULONG STDMETHODCALLTYPE OLE_IDropSource_Release(LPDROPSOURCE lpThis)
 {
 	CONST LPIDROPSOURCE_INTERNAL pdsi = (LPIDROPSOURCE_INTERNAL)lpThis;
 
-	/* reference count���f�N�������g���� */
+	/* reference countをデクリメントする */
 	pdsi->m_refCnt--;
 
-	/* reference count�� 0 �ɂȂ����ꍇ�̓I�u�W�F�N�g�̉�����s�� */
+	/* reference countが 0 になった場合はオブジェクトの解放を行う */
 	if(pdsi->m_refCnt == 0L){
 		GlobalFree(pdsi);
 		return 0L;
@@ -692,14 +692,14 @@ static HRESULT STDMETHODCALLTYPE OLE_IDropSource_QueryContinueDrag(LPDROPSOURCE 
 	CONST LPIDROPSOURCE_INTERNAL pdsi = (LPIDROPSOURCE_INTERNAL)lpThis;
 
 	if(fEscapePressed){
-		/* �G�X�P�[�v�������ꂽ�ꍇ�̓L�����Z���ɂ��� */
+		/* エスケープが押された場合はキャンセルにする */
 		return ResultFromScode(DRAGDROP_S_CANCEL);
 	}
 
-	// Mouse over�̒ʒm (yutaka)
+	// Mouse overの通知 (yutaka)
 	SendMessage(pdsi->m_hWnd, pdsi->m_uCallbackDragOverMessage, 0, 0);
 
-	/* �w��̃L�[��}�E�X�������ꂽ�ꍇ�̓h���b�v�ɂ��� */
+	/* 指定のキーやマウスが離された場合はドロップにする */
 	if(pdsi->m_button == 0){
 		if(grfKeyState != pdsi->m_keyState){
 			return ResultFromScode(DRAGDROP_S_DROP);
@@ -717,7 +717,7 @@ static HRESULT STDMETHODCALLTYPE OLE_IDropSource_GiveFeedback(LPDROPSOURCE lpThi
 	return ResultFromScode(DRAGDROP_S_USEDEFAULTCURSORS);
 }
 
-/* �h���b�O���h���b�v�̊J�n */
+/* ドラッグ＆ドロップの開始 */
 int APIPRIVATE OLE_IDropSource_Start(HWND hWnd, UINT uCallbackMessage, UINT uCallbackDragOverMessage, UINT *ClipFormtList, int cfcnt, int Effect)
 {
 	static IDATAOBJECT_INTERNAL *pdoi;
@@ -727,7 +727,7 @@ int APIPRIVATE OLE_IDropSource_Start(HWND hWnd, UINT uCallbackMessage, UINT uCal
 	int i;
 	int ret;
 
-	/* IDataObject�̍쐬 */
+	/* IDataObjectの作成 */
 	pdoi = GlobalAlloc(GPTR, sizeof(IDATAOBJECT_INTERNAL));
 	if(pdoi == NULL){
 		return -1;
@@ -736,7 +736,7 @@ int APIPRIVATE OLE_IDropSource_Start(HWND hWnd, UINT uCallbackMessage, UINT uCal
 	pdoi->m_refCnt = 0;
 	pdoi->m_numTypes = cfcnt;
 	pdoi->m_maxTypes = cfcnt;
-	/* �L���ȃN���b�v�{�[�h�t�H�[�}�b�g��ݒ肷�� */
+	/* 有効なクリップボードフォーマットを設定する */
 	pdoi->m_typeList = GlobalAlloc(GPTR, sizeof(FORMATETC) * cfcnt);
 	if(pdoi->m_typeList == NULL){
 		GlobalFree(pdoi);
@@ -753,10 +753,10 @@ int APIPRIVATE OLE_IDropSource_Start(HWND hWnd, UINT uCallbackMessage, UINT uCal
 	pdoi->uCallbackMessage = uCallbackMessage;
 	((LPDATAOBJECT)pdoi)->lpVtbl->AddRef((LPDATAOBJECT)pdoi);
 
-	/* IDropSource�̍쐬 */
+	/* IDropSourceの作成 */
 	pdsi = GlobalAlloc(GPTR, sizeof(IDROPSOURCE_INTERNAL));
 	if(pdsi == NULL){
-		/* IDataObject��������� */
+		/* IDataObjectを解放する */
 		((LPDATAOBJECT)pdoi)->lpVtbl->Release((LPDATAOBJECT)pdoi);
 		return -1;
 	}
@@ -765,14 +765,14 @@ int APIPRIVATE OLE_IDropSource_Start(HWND hWnd, UINT uCallbackMessage, UINT uCal
 	pdsi->m_hWnd = hWnd; // yutaka
 	pdsi->m_uCallbackDragOverMessage = uCallbackDragOverMessage;
 
-	/* �L���ȃL�[�ƃ}�E�X�̏�� */
+	/* 有効なキーとマウスの状態 */
 	if(GetKeyState(VK_RBUTTON) & 0x8000){
 		pdsi->m_button = MK_RBUTTON;
 	}else{
 		pdsi->m_button = MK_LBUTTON;
 	}
 
-	/* ���݂̃L�[�ƃ}�E�X�̏�� */
+	/* 現在のキーとマウスの状態 */
 	keyState = 0;
 	if(GetKeyState(VK_SHIFT) & 0x8000){
 		keyState |= MK_SHIFT;
@@ -797,16 +797,16 @@ int APIPRIVATE OLE_IDropSource_Start(HWND hWnd, UINT uCallbackMessage, UINT uCal
 
 	lpdwEffect = 0;
 
-	/* �h���b�O&�h���b�v�̊J�n */
+	/* ドラッグ&ドロップの開始 */
 	ret = DoDragDrop((LPDATAOBJECT)pdoi, (LPDROPSOURCE)pdsi, Effect, &lpdwEffect);
 
-	/* IDataObject��������� */
+	/* IDataObjectを解放する */
 	((LPDATAOBJECT)pdoi)->lpVtbl->Release((LPDATAOBJECT)pdoi);
-	/* IDropSource��������� */
+	/* IDropSourceを解放する */
 	((LPDROPSOURCE)pdsi)->lpVtbl->Release((LPDROPSOURCE)pdsi);
 
 	if(ret == DRAGDROP_S_DROP){
-		/* �h���b�v��̃A�v���P�[�V�������ݒ肵�����ʂ�Ԃ� */
+		/* ドロップ先のアプリケーションが設定した効果を返す */
 		return lpdwEffect;
 	}
 	return -1;

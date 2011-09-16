@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*								ƒNƒŠƒbƒvƒ{[ƒhŠÖŒW
+*								ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰é–¢ä¿‚
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -39,13 +39,13 @@
 
 
 
-/*----- •¶š—ñ‚ğƒNƒŠƒbƒvƒ{[ƒh‚ÉƒRƒs[ ----------------------------------------
+/*----- æ–‡å­—åˆ—ã‚’ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã«ã‚³ãƒ”ãƒ¼ ----------------------------------------
 *
 *	Parameter
-*		char *Str : •¶š—ñ
+*		char *Str : æ–‡å­—åˆ—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 int CopyStrToClipBoard(char *Str)
@@ -54,7 +54,7 @@ int CopyStrToClipBoard(char *Str)
 	void *gBuf;
 	HGLOBAL hGlobal;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(OpenClipboard(GetMainHwnd()))
 	{
 		if(EmptyClipboard())
@@ -67,7 +67,7 @@ int CopyStrToClipBoard(char *Str)
 
 					GlobalUnlock(hGlobal);
 					SetClipboardData(CF_TEXT, hGlobal);
-					Sts = SUCCESS;
+					Sts = FFFTP_SUCCESS;
 				}
 			}
 		}

@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*								ƒc[ƒ‹ƒo[‚Æƒƒjƒ…[
+*								ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã¨ãƒ¡ãƒ‹ãƒ¥ãƒ¼
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -43,26 +43,26 @@
 #include "resource.h"
 
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static void AddOpenMenu(HMENU hMenu, UINT Flg);
 static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-/* 2007/09/21 sunasunamix  ‚±‚±‚©‚ç *********************/
+/* 2007/09/21 sunasunamix  ã“ã“ã‹ã‚‰ *********************/
 static LRESULT CALLBACK CountermeasureTbarMainProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam);
 static LRESULT CALLBACK CountermeasureTbarLocalProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam);
 static LRESULT CALLBACK CountermeasureTbarRemoteProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam);
-/********************************************* ‚±‚±‚Ü‚Å */
+/********************************************* ã“ã“ã¾ã§ */
 
 
-/*===== ŠO•”QÆ =====*/
+/*===== å¤–éƒ¨å‚ç…§ =====*/
 
 extern int SepaWidth;
 extern int RemoteWidth;
 
 extern int CancelFlg;
 
-/* İ’è’l */
+/* è¨­å®šå€¤ */
 extern int DotFile;
 extern char AsciiExt[ASCII_EXT_LEN+1];
 extern int TransMode;
@@ -72,7 +72,7 @@ extern char ViewerName[VIEWERS][FMAX_PATH+1];
 extern int TransMode;
 extern int SortSave;
 
-/*===== ƒ[ƒJƒ‹‚Èƒ[ƒN =====*/
+/*===== ãƒ­ãƒ¼ã‚«ãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
 static HWND hWndTbarMain = NULL;
 static HWND hWndTbarLocal = NULL;
@@ -90,7 +90,7 @@ static int TmpTransMode;
 static int TmpHostKanjiCode;
 static int TmpHostKanaCnv;
 
-// TODO: ƒ[ƒJƒ‹‚ÌŠ¿šƒR[ƒh‚ğShift_JISˆÈŠO‚É‚à‘Î‰
+// TODO: ãƒ­ãƒ¼ã‚«ãƒ«ã®æ¼¢å­—ã‚³ãƒ¼ãƒ‰ã‚’Shift_JISä»¥å¤–ã«ã‚‚å¯¾å¿œ
 static int TmpLocalKanjiCode;
 
 static int TmpLocalFileSort;
@@ -103,20 +103,20 @@ static int SyncMove = NO;
 static int HideUI = NO;
 
 
-/* 2007/09/21 sunasunamix  ‚±‚±‚©‚ç *********************/
+/* 2007/09/21 sunasunamix  ã“ã“ã‹ã‚‰ *********************/
 static WNDPROC pOldTbarMainProc   = NULL;
 static WNDPROC pOldTbarLocalProc  = NULL;
 static WNDPROC pOldTbarRemoteProc = NULL;
-/********************************************* ‚±‚±‚Ü‚Å */
+/********************************************* ã“ã“ã¾ã§ */
 
 
-/* ˆÈ‘OAƒRƒ“ƒ{ƒ{ƒbƒNƒX‚ÉƒJƒŒƒ“ƒgƒtƒHƒ‹ƒ_‚ğ‰¯‚¦‚³‚¹‚Ä‚¢‚½—¬‚ê‚Å */
-/* ‚±‚Ìƒtƒ@ƒCƒ‹‚ÅƒJƒŒƒ“ƒgƒtƒHƒ‹ƒ_‚ğ‰¯‚¦‚³‚¹‚é */
+/* ä»¥å‰ã€ã‚³ãƒ³ãƒœãƒœãƒƒã‚¯ã‚¹ã«ã‚«ãƒ¬ãƒ³ãƒˆãƒ•ã‚©ãƒ«ãƒ€ã‚’æ†¶ãˆã•ã›ã¦ã„ãŸæµã‚Œã§ */
+/* ã“ã®ãƒ•ã‚¡ã‚¤ãƒ«ã§ã‚«ãƒ¬ãƒ³ãƒˆãƒ•ã‚©ãƒ«ãƒ€ã‚’æ†¶ãˆã•ã›ã‚‹ */
 static char LocalCurDir[FMAX_PATH+1];
 static char RemoteCurDir[FMAX_PATH+1];
 
 
-/* ƒƒCƒ“‚Ìƒc[ƒ‹ƒo[ */
+/* ãƒ¡ã‚¤ãƒ³ã®ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ */
 static TBBUTTON TbarDataMain[] = {
 	{ 0,  0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0 },
 	{ 0,  MENU_CONNECT, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
@@ -159,7 +159,7 @@ static TBBUTTON TbarDataMain[] = {
 	{ 26, MENU_ABORT, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 }
 };
 
-/* ƒ[ƒJƒ‹‘¤‚Ìƒc[ƒ‹ƒo[ */
+/* ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ */
 static TBBUTTON TbarDataLocal[] = {
 	{ 0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0 },
 	{ 0, MENU_LOCAL_UPDIR, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
@@ -167,7 +167,7 @@ static TBBUTTON TbarDataLocal[] = {
 	{ 0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0 }
 };
 
-/* ƒzƒXƒg‘¤‚Ìƒc[ƒ‹ƒo[ */
+/* ãƒ›ã‚¹ãƒˆå´ã®ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ */
 static TBBUTTON TbarDataRemote[] = {
 	{ 0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0 },
 	{ 0, MENU_REMOTE_UPDIR, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
@@ -175,7 +175,7 @@ static TBBUTTON TbarDataRemote[] = {
 	{ 0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0 }
 };
 
-/* ‘Sƒ{ƒ^ƒ“^ƒƒjƒ…[€–Ú */
+/* å…¨ãƒœã‚¿ãƒ³ï¼ãƒ¡ãƒ‹ãƒ¥ãƒ¼é …ç›® */
 static const int HideMenus[] = {
 	MENU_CONNECT,		MENU_QUICK,			MENU_DISCONNECT,
 	MENU_SET_CONNECT,	MENU_IMPORT_WS,		MENU_EXIT,
@@ -209,15 +209,15 @@ static const int HideMenus[] = {
 
 
 
-/*----- ƒc[ƒ‹ƒo[‚ğì¬‚·‚é --------------------------------------------------
+/*----- ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã‚’ä½œæˆã™ã‚‹ --------------------------------------------------
 *
 *	Parameter
-*		HWND hWnd : eƒEƒCƒ“ƒhƒE‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		HINSTANCE hInst : ƒCƒ“ƒXƒ^ƒ“ƒXƒnƒ“ƒhƒ‹
+*		HWND hWnd : è¦ªã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		HINSTANCE hInst : ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ãƒãƒ³ãƒ‰ãƒ«
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
@@ -229,7 +229,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 	int Tmp2;
 	DWORD NoDrives;
 
-	/*===== ƒƒCƒ“‚Ìƒc[ƒ‹ƒo[ =====*/
+	/*===== ãƒ¡ã‚¤ãƒ³ã®ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ =====*/
 
 	hWndTbarMain = CreateToolbarEx(
 				hWnd,
@@ -246,15 +246,15 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	if(hWndTbarMain != NULL)
 	{
-		/* 2007/09/21 sunasunamix  ‚±‚±‚©‚ç *********************/
+		/* 2007/09/21 sunasunamix  ã“ã“ã‹ã‚‰ *********************/
 		pOldTbarMainProc = (WNDPROC)SetWindowLong(hWndTbarMain, GWL_WNDPROC, (DWORD)CountermeasureTbarMainProc);
-		/********************************************* ‚±‚±‚Ü‚Å */
+		/********************************************* ã“ã“ã¾ã§ */
 
 		GetClientRect(hWnd, &Rect1);
 		MoveWindow(hWndTbarMain, 0, 0, Rect1.right, TOOLWIN_HEIGHT, FALSE);
 	}
 
-	/*===== ƒ[ƒJƒ‹‚Ìƒc[ƒ‹ƒo[ =====*/
+	/*===== ãƒ­ãƒ¼ã‚«ãƒ«ã®ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ =====*/
 
 	hWndTbarLocal = CreateToolbarEx(
 				hWnd,
@@ -271,13 +271,13 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	if(hWndTbarLocal != NULL)
 	{
-		/* 2007/09/21 sunasunamix  ‚±‚±‚©‚ç *********************/
+		/* 2007/09/21 sunasunamix  ã“ã“ã‹ã‚‰ *********************/
 		pOldTbarLocalProc = (WNDPROC)SetWindowLong(hWndTbarLocal, GWL_WNDPROC, (DWORD)CountermeasureTbarLocalProc);
-		/********************************************* ‚±‚±‚Ü‚Å */
+		/********************************************* ã“ã“ã¾ã§ */
 
 		MoveWindow(hWndTbarLocal, 0, TOOLWIN_HEIGHT, LocalWidth, TOOLWIN_HEIGHT, FALSE);
 
-		/*===== ƒ[ƒJƒ‹‚ÌƒfƒBƒŒƒNƒgƒŠ–¼ƒEƒCƒ“ƒhƒE =====*/
+		/*===== ãƒ­ãƒ¼ã‚«ãƒ«ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ =====*/
 
 		SendMessage(hWndTbarLocal, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
 #ifndef ENGLISH
@@ -294,7 +294,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 		if(hWndDirLocal != NULL)
 		{
-			/* ƒGƒfƒBƒbƒgƒRƒ“ƒgƒ[ƒ‹‚ğ’T‚· */
+			/* ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚’æ¢ã™ */
 			hWndDirLocalEdit = GetWindow(hWndDirLocal, GW_CHILD);
 			if(hWndDirLocalEdit != NULL)
 				HistEditBoxProcPtr = (WNDPROC)SetWindowLong(hWndDirLocalEdit, GWL_WNDPROC, (LONG)HistEditBoxWndProc);
@@ -302,7 +302,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 			SendMessage(hWndDirLocal, WM_SETFONT, (WPARAM)DlgFont, MAKELPARAM(TRUE, 0));
 			SendMessage(hWndDirLocal, CB_LIMITTEXT, FMAX_PATH, 0);
 
-			/* ƒhƒ‰ƒCƒu–¼‚ğƒZƒbƒg‚µ‚Ä‚¨‚­ */
+			/* ãƒ‰ãƒ©ã‚¤ãƒ–åã‚’ã‚»ãƒƒãƒˆã—ã¦ãŠã */
 			GetLogicalDriveStrings(FMAX_PATH, Tmp);
 			NoDrives = LoadHideDriveListRegistory();
 			Pos = Tmp;
@@ -317,7 +317,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 		}
 	}
 
-	/*===== ƒzƒXƒg‚Ìƒc[ƒ‹ƒo[ =====*/
+	/*===== ãƒ›ã‚¹ãƒˆã®ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ =====*/
 
 	hWndTbarRemote = CreateToolbarEx(
 				hWnd,
@@ -334,13 +334,13 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	if(hWndTbarRemote != NULL)
 	{
-		/* 2007/09/21 sunasunamix  ‚±‚±‚©‚ç *********************/
+		/* 2007/09/21 sunasunamix  ã“ã“ã‹ã‚‰ *********************/
 		pOldTbarRemoteProc = (WNDPROC)SetWindowLong(hWndTbarRemote, GWL_WNDPROC, (DWORD)CountermeasureTbarRemoteProc);
-		/********************************************* ‚±‚±‚Ü‚Å */
+		/********************************************* ã“ã“ã¾ã§ */
 
 		MoveWindow(hWndTbarRemote, LocalWidth + SepaWidth, TOOLWIN_HEIGHT, RemoteWidth, TOOLWIN_HEIGHT, FALSE);
 
-		/*===== ƒzƒXƒg‚ÌƒfƒBƒŒƒNƒgƒŠ–¼ƒEƒCƒ“ƒhƒE =====*/
+		/*===== ãƒ›ã‚¹ãƒˆã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ =====*/
 
 		SendMessage(hWndTbarRemote, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
 		hWndDirRemote = CreateWindowEx(WS_EX_CLIENTEDGE,
@@ -351,7 +351,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 		if(hWndDirRemote != NULL)
 		{
-			/* ƒGƒfƒBƒbƒgƒRƒ“ƒgƒ[ƒ‹‚ğ’T‚· */
+			/* ã‚¨ãƒ‡ã‚£ãƒƒãƒˆã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚’æ¢ã™ */
 			hWndDirRemoteEdit = GetWindow(hWndDirRemote, GW_CHILD);
 			if(hWndDirRemoteEdit != NULL)
 				HistEditBoxProcPtr = (WNDPROC)SetWindowLong(hWndDirRemoteEdit, GWL_WNDPROC, (LONG)HistEditBoxWndProc);
@@ -362,14 +362,14 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 		}
 	}
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if((hWndTbarMain == NULL) ||
 	   (hWndTbarLocal == NULL) ||
 	   (hWndTbarRemote == NULL) ||
 	   (hWndDirLocal == NULL) ||
 	   (hWndDirRemote == NULL))
 	{
-		Sts = FAIL;
+		Sts = FFFTP_FAIL;
 	}
 	return(Sts);
 }
@@ -385,7 +385,7 @@ static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wPara
 	switch (message)
 	{
 		case WM_CHAR :
-			if(wParam == 0x0D)		/* ƒŠƒ^[ƒ“ƒL[‚ª‰Ÿ‚³‚ê‚½ */
+			if(wParam == 0x0D)		/* ãƒªã‚¿ãƒ¼ãƒ³ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸ */
 			{
 				if(hWnd == hWndDirLocalEdit)
 				{
@@ -396,14 +396,14 @@ static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wPara
 				else
 				{
 					SendMessage(hWndDirRemoteEdit, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Tmp);
-					if(CheckClosedAndReconnect() == SUCCESS)
+					if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 					{
 						if(DoCWD(Tmp, YES, NO, YES) < FTP_RETRY)
 							GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 					}
 				}
 			}
-			else if(wParam == 0x09)		/* TABƒL[‚ª‰Ÿ‚³‚ê‚½ */
+			else if(wParam == 0x09)		/* TABã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸ */
 			{
 				if(hWnd == hWndDirLocalEdit)
 				{
@@ -427,13 +427,13 @@ static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wPara
 
 
 
-/*----- ƒc[ƒ‹ƒo[‚ğíœ ------------------------------------------------------
+/*----- ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã‚’å‰Šé™¤ ------------------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DeleteToolBarWindow(void)
@@ -455,13 +455,13 @@ void DeleteToolBarWindow(void)
 }
 
 
-/*----- ƒƒCƒ“‚Ìƒc[ƒ‹ƒo[‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹‚ğ•Ô‚· --------------------------
+/*----- ãƒ¡ã‚¤ãƒ³ã®ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«ã‚’è¿”ã™ --------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		HWND ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *----------------------------------------------------------------------------*/
 
 HWND GetMainTbarWnd(void)
@@ -470,13 +470,13 @@ HWND GetMainTbarWnd(void)
 }
 
 
-/*----- ƒ[ƒJƒ‹‘¤‚ÌƒqƒXƒgƒŠƒEƒCƒ“ƒhƒE‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹‚ğ•Ô‚· --------------
+/*----- ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒ’ã‚¹ãƒˆãƒªã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«ã‚’è¿”ã™ --------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		HWND ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *----------------------------------------------------------------------------*/
 
 HWND GetLocalHistHwnd(void)
@@ -485,13 +485,13 @@ HWND GetLocalHistHwnd(void)
 }
 
 
-/*----- ƒzƒXƒg‘¤‚ÌƒqƒXƒgƒŠƒEƒCƒ“ƒhƒE‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹‚ğ•Ô‚· ----------------
+/*----- ãƒ›ã‚¹ãƒˆå´ã®ãƒ’ã‚¹ãƒˆãƒªã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«ã‚’è¿”ã™ ----------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		HWND ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *----------------------------------------------------------------------------*/
 
 HWND GetRemoteHistHwnd(void)
@@ -500,13 +500,13 @@ HWND GetRemoteHistHwnd(void)
 }
 
 
-/*----- ƒ[ƒJƒ‹‘¤‚ÌƒqƒXƒgƒŠƒGƒfƒBƒbƒg‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹‚ğ•Ô‚· --------------
+/*----- ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒ’ã‚¹ãƒˆãƒªã‚¨ãƒ‡ã‚£ãƒƒãƒˆã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«ã‚’è¿”ã™ --------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		HWND ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *----------------------------------------------------------------------------*/
 
 HWND GetLocalHistEditHwnd(void)
@@ -515,13 +515,13 @@ HWND GetLocalHistEditHwnd(void)
 }
 
 
-/*----- ƒzƒXƒg‘¤‚ÌƒqƒXƒgƒŠƒGƒfƒBƒbƒg‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹‚ğ•Ô‚· ----------------
+/*----- ãƒ›ã‚¹ãƒˆå´ã®ãƒ’ã‚¹ãƒˆãƒªã‚¨ãƒ‡ã‚£ãƒƒãƒˆã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«ã‚’è¿”ã™ ----------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		HWND ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *----------------------------------------------------------------------------*/
 
 HWND GetRemoteHistEditHwnd(void)
@@ -530,13 +530,13 @@ HWND GetRemoteHistEditHwnd(void)
 }
 
 
-/*----- ƒ[ƒJƒ‹‘¤‚Ìƒc[ƒ‹ƒo[‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹‚ğ•Ô‚· ----------------------
+/*----- ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«ã‚’è¿”ã™ ----------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		HWND ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *----------------------------------------------------------------------------*/
 
 HWND GetLocalTbarWnd(void)
@@ -545,13 +545,13 @@ HWND GetLocalTbarWnd(void)
 }
 
 
-/*----- ƒzƒXƒg‘¤‚Ìƒc[ƒ‹ƒo[‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹‚ğ•Ô‚· ------------------------
+/*----- ãƒ›ã‚¹ãƒˆå´ã®ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«ã‚’è¿”ã™ ------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		HWND ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *----------------------------------------------------------------------------*/
 
 HWND GetRemoteTbarWnd(void)
@@ -560,13 +560,13 @@ HWND GetRemoteTbarWnd(void)
 }
 
 
-/*----- HideUI ‚Ìó‘Ô‚ğ•Ô‚· ---------------------------------------------------
+/*----- HideUI ã®çŠ¶æ…‹ã‚’è¿”ã™ ---------------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int HideUI ‚Ìó‘Ô
+*		int HideUI ã®çŠ¶æ…‹
 *----------------------------------------------------------------------------*/
 
 int GetHideUI(void)
@@ -575,13 +575,13 @@ int GetHideUI(void)
 }
 
 
-/*----- ƒc[ƒ‹ƒ{ƒ^ƒ“^ƒƒjƒ…[‚ÌƒnƒCƒhˆ— ------------------------------------
+/*----- ãƒ„ãƒ¼ãƒ«ãƒœã‚¿ãƒ³ï¼ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®ãƒã‚¤ãƒ‰å‡¦ç† ------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void MakeButtonsFocus(void)
@@ -736,13 +736,13 @@ void MakeButtonsFocus(void)
 }
 
 
-/*----- ƒ†[ƒU‚Ì‘€ì‚ğ‹Ö~‚·‚é ------------------------------------------------
+/*----- ãƒ¦ãƒ¼ã‚¶ã®æ“ä½œã‚’ç¦æ­¢ã™ã‚‹ ------------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DisableUserOpe(void)
@@ -766,13 +766,13 @@ void DisableUserOpe(void)
 }
 
 
-/*----- ƒ†[ƒU‚Ì‘€ì‚ğ‹–‰Â‚·‚é ------------------------------------------------
+/*----- ãƒ¦ãƒ¼ã‚¶ã®æ“ä½œã‚’è¨±å¯ã™ã‚‹ ------------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void EnableUserOpe(void)
@@ -791,7 +791,7 @@ void EnableUserOpe(void)
 		EnableWindow(hWndDirLocal, TRUE);
 		EnableWindow(hWndDirRemote, TRUE);
 
-		// ‘I‘ğ•s‰Â‚ÈŠ¿šƒR[ƒh‚Ìƒ{ƒ^ƒ“‚ª•\¦‚³‚ê‚éƒoƒO‚ğC³
+		// é¸æŠä¸å¯ãªæ¼¢å­—ã‚³ãƒ¼ãƒ‰ã®ãƒœã‚¿ãƒ³ãŒè¡¨ç¤ºã•ã‚Œã‚‹ãƒã‚°ã‚’ä¿®æ­£
 		HideHostKanjiButton();
 		HideLocalKanjiButton();
 
@@ -803,14 +803,14 @@ void EnableUserOpe(void)
 }
 
 
-/*----- ƒ†[ƒU‚Ì‘€ì‚ª‹Ö~‚³‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ğ•Ô‚· ----------------------------
+/*----- ãƒ¦ãƒ¼ã‚¶ã®æ“ä½œãŒç¦æ­¢ã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹ã‚’è¿”ã™ ----------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			YES=‹Ö~‚³‚ê‚Ä‚¢‚é/NO
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			YES=ç¦æ­¢ã•ã‚Œã¦ã„ã‚‹/NO
 *----------------------------------------------------------------------------*/
 
 int AskUserOpeDisabled(void)
@@ -820,16 +820,16 @@ int AskUserOpeDisabled(void)
 
 
 /*===================================================
-*			“]‘—ƒ‚[ƒh
+*			è»¢é€ãƒ¢ãƒ¼ãƒ‰
 *===================================================*/
 
-/*----- “]‘—ƒ‚[ƒh‚ğİ’è‚·‚é --------------------------------------------------
+/*----- è»¢é€ãƒ¢ãƒ¼ãƒ‰ã‚’è¨­å®šã™ã‚‹ --------------------------------------------------
 *
 *	Parameter
-*		int Mode : “]‘—ƒ‚[ƒh (TYPE_xx)
+*		int Mode : è»¢é€ãƒ¢ãƒ¼ãƒ‰ (TYPE_xx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetTransferTypeImm(int Mode)
@@ -841,13 +841,13 @@ void SetTransferTypeImm(int Mode)
 }
 
 
-/*----- ƒƒjƒ…[‚É‚æ‚è“]‘—ƒ‚[ƒh‚ğİ’è‚·‚é ------------------------------------
+/*----- ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã«ã‚ˆã‚Šè»¢é€ãƒ¢ãƒ¼ãƒ‰ã‚’è¨­å®šã™ã‚‹ ------------------------------------
 *
 *	Parameter
-*		int Type : “]‘—ƒ‚[ƒh (MENU_xxxx)
+*		int Type : è»¢é€ãƒ¢ãƒ¼ãƒ‰ (MENU_xxxx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetTransferType(int Type)
@@ -872,13 +872,13 @@ void SetTransferType(int Type)
 }
 
 
-/*----- “]‘—ƒ‚[ƒh‚É‚µ‚½‚ª‚Á‚Äƒ{ƒ^ƒ“‚ğ•\¦‚·‚é --------------------------------
+/*----- è»¢é€ãƒ¢ãƒ¼ãƒ‰ã«ã—ãŸãŒã£ã¦ãƒœã‚¿ãƒ³ã‚’è¡¨ç¤ºã™ã‚‹ --------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DispTransferType(void)
@@ -901,13 +901,13 @@ void DispTransferType(void)
 }
 
 
-/*----- İ’èã‚Ì“]‘—ƒ‚[ƒh‚ğ•Ô‚· ----------------------------------------------
+/*----- è¨­å®šä¸Šã®è»¢é€ãƒ¢ãƒ¼ãƒ‰ã‚’è¿”ã™ ----------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int “]‘—ƒ‚[ƒh (TYPE_xx)
+*		int è»¢é€ãƒ¢ãƒ¼ãƒ‰ (TYPE_xx)
 *----------------------------------------------------------------------------*/
 
 int AskTransferType(void)
@@ -916,14 +916,14 @@ int AskTransferType(void)
 }
 
 
-/*----- ÀÛ‚Ì“]‘—ƒ‚[ƒh‚ğ•Ô‚· ------------------------------------------------
+/*----- å®Ÿéš›ã®è»¢é€ãƒ¢ãƒ¼ãƒ‰ã‚’è¿”ã™ ------------------------------------------------
 *
 *	Parameter
-*		char Fname : ƒtƒ@ƒCƒ‹–¼
-*		int Type : İ’èã‚Ì“]‘—ƒ‚[ƒh (TYPE_xx)
+*		char Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
+*		int Type : è¨­å®šä¸Šã®è»¢é€ãƒ¢ãƒ¼ãƒ‰ (TYPE_xx)
 *
 *	Return Value
-*		int “]‘—ƒ‚[ƒh (TYPE_xx)
+*		int è»¢é€ãƒ¢ãƒ¼ãƒ‰ (TYPE_xx)
 *----------------------------------------------------------------------------*/
 
 int AskTransferTypeAssoc(char *Fname, int Type)
@@ -942,7 +942,7 @@ int AskTransferTypeAssoc(char *Fname, int Type)
 			Pos = AsciiExt;
 			while(*Pos != NUL)
 			{
-				if(CheckFname(Name, Pos) == SUCCESS)
+				if(CheckFname(Name, Pos) == FFFTP_SUCCESS)
 				{
 					Ret = TYPE_A;
 					break;
@@ -955,16 +955,16 @@ int AskTransferTypeAssoc(char *Fname, int Type)
 }
 
 
-/*----- “]‘—ƒ‚[ƒh‚ğ•Û‘¶‚·‚é --------------------------------------------------
+/*----- è»¢é€ãƒ¢ãƒ¼ãƒ‰ã‚’ä¿å­˜ã™ã‚‹ --------------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *
 *	Note
-*		Œ»İ‚Ì“]‘—ƒ‚[ƒh‚ªƒŒƒWƒXƒgƒŠ‚É•Û‘¶‚³‚ê‚é
+*		ç¾åœ¨ã®è»¢é€ãƒ¢ãƒ¼ãƒ‰ãŒãƒ¬ã‚¸ã‚¹ãƒˆãƒªã«ä¿å­˜ã•ã‚Œã‚‹
 *----------------------------------------------------------------------------*/
 
 void SaveTransferType(void)
@@ -975,16 +975,16 @@ void SaveTransferType(void)
 
 
 /*===================================================
-*			Š¿šƒ‚[ƒh
+*			æ¼¢å­—ãƒ¢ãƒ¼ãƒ‰
 *===================================================*/
 
-/*----- ƒzƒXƒg‚ÌŠ¿šƒ‚[ƒh‚ğƒZƒbƒg‚·‚é ----------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆã®æ¼¢å­—ãƒ¢ãƒ¼ãƒ‰ã‚’ã‚»ãƒƒãƒˆã™ã‚‹ ----------------------------------------
 *
 *	Parameter
-*		int Mode : Š¿šƒ‚[ƒh (KANJI_xxxx)
+*		int Mode : æ¼¢å­—ãƒ¢ãƒ¼ãƒ‰ (KANJI_xxxx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetHostKanjiCodeImm(int Mode)
@@ -996,20 +996,20 @@ void SetHostKanjiCodeImm(int Mode)
 }
 
 
-/*----- ƒƒjƒ…[‚É‚æ‚èƒzƒXƒg‚ÌŠ¿šƒ‚[ƒh‚ğİ’è‚·‚é -----------------------------
+/*----- ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã«ã‚ˆã‚Šãƒ›ã‚¹ãƒˆã®æ¼¢å­—ãƒ¢ãƒ¼ãƒ‰ã‚’è¨­å®šã™ã‚‹ -----------------------------
 *
 *	Parameter
-*		int Type : Š¿šƒ‚[ƒh (MENU_xxxx)
+*		int Type : æ¼¢å­—ãƒ¢ãƒ¼ãƒ‰ (MENU_xxxx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetHostKanjiCode(int Type)
 {
 	switch(Type)
 	{
-		// UTF-8‘Î‰
+		// UTF-8å¯¾å¿œ
 		case MENU_KNJ_SJIS :
 			TmpHostKanjiCode = KANJI_SJIS;
 			break;
@@ -1036,20 +1036,20 @@ void SetHostKanjiCode(int Type)
 }
 
 
-/*----- ƒzƒXƒg‚ÌŠ¿šƒ‚[ƒh‚É‚µ‚½‚ª‚Á‚Äƒ{ƒ^ƒ“‚ğ•\¦‚·‚é ------------------------
+/*----- ãƒ›ã‚¹ãƒˆã®æ¼¢å­—ãƒ¢ãƒ¼ãƒ‰ã«ã—ãŸãŒã£ã¦ãƒœã‚¿ãƒ³ã‚’è¡¨ç¤ºã™ã‚‹ ------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DispHostKanjiCode(void)
 {
 	switch(TmpHostKanjiCode)
 	{
-		// UTF-8‘Î‰
+		// UTF-8å¯¾å¿œ
 		case KANJI_SJIS :
 			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_SJIS, MAKELONG(TRUE, 0));
 			break;
@@ -1074,13 +1074,13 @@ void DispHostKanjiCode(void)
 }
 
 
-/*----- ƒzƒXƒg‚ÌŠ¿šƒ‚[ƒh‚ğ•Ô‚· ----------------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆã®æ¼¢å­—ãƒ¢ãƒ¼ãƒ‰ã‚’è¿”ã™ ----------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int Š¿šƒ‚[ƒh (KANJI_xxxx)
+*		int æ¼¢å­—ãƒ¢ãƒ¼ãƒ‰ (KANJI_xxxx)
 *----------------------------------------------------------------------------*/
 
 int AskHostKanjiCode(void)
@@ -1089,20 +1089,20 @@ int AskHostKanjiCode(void)
 }
 
 
-/*----- Š¿šƒ‚[ƒhƒ{ƒ^ƒ“‚ÌƒnƒCƒhˆ—‚ğs‚¤ ------------------------------------
+/*----- æ¼¢å­—ãƒ¢ãƒ¼ãƒ‰ãƒœã‚¿ãƒ³ã®ãƒã‚¤ãƒ‰å‡¦ç†ã‚’è¡Œã† ------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void HideHostKanjiButton(void)
 {
 	switch(TmpTransMode)
 	{
-		// UTF-8‘Î‰
+		// UTF-8å¯¾å¿œ
 		case TYPE_I : 
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_SJIS, MAKELONG(FALSE, 0));
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_EUC, MAKELONG(FALSE, 0));
@@ -1123,7 +1123,7 @@ void HideHostKanjiButton(void)
 //			else
 //				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
 //			break;
-			// Œ»İƒJƒi•ÏŠ·‚ÍShift_JISAJISAEUCŠÔ‚Å‚Ì‚İ‹@”\‚·‚é
+			// ç¾åœ¨ã‚«ãƒŠå¤‰æ›ã¯Shift_JISã€JISã€EUCé–“ã§ã®ã¿æ©Ÿèƒ½ã™ã‚‹
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
 			switch(TmpHostKanjiCode)
 			{
@@ -1145,9 +1145,9 @@ void HideHostKanjiButton(void)
 }
 
 
-// ƒ[ƒJƒ‹‚ÌŠ¿šƒR[ƒh
-// ƒeƒLƒXƒgƒ‚[ƒh“]‘—‚Ég—p
-// ƒzƒXƒg‘¤‚ª–³•ÏŠ·‚Ì‚Íƒ[ƒJƒ‹‚à–³•ÏŠ·
+// ãƒ­ãƒ¼ã‚«ãƒ«ã®æ¼¢å­—ã‚³ãƒ¼ãƒ‰
+// ãƒ†ã‚­ã‚¹ãƒˆãƒ¢ãƒ¼ãƒ‰è»¢é€æ™‚ã«ä½¿ç”¨
+// ãƒ›ã‚¹ãƒˆå´ãŒç„¡å¤‰æ›ã®æ™‚ã¯ãƒ­ãƒ¼ã‚«ãƒ«ã‚‚ç„¡å¤‰æ›
 
 void SetLocalKanjiCodeImm(int Mode)
 {
@@ -1161,7 +1161,7 @@ void SetLocalKanjiCode(int Type)
 {
 	switch(Type)
 	{
-		// UTF-8‘Î‰
+		// UTF-8å¯¾å¿œ
 		case MENU_L_KNJ_SJIS :
 			TmpLocalKanjiCode = KANJI_SJIS;
 			break;
@@ -1187,7 +1187,7 @@ void DispLocalKanjiCode(void)
 {
 	switch(TmpLocalKanjiCode)
 	{
-		// UTF-8‘Î‰
+		// UTF-8å¯¾å¿œ
 		case KANJI_SJIS :
 			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_SJIS, MAKELONG(TRUE, 0));
 			break;
@@ -1216,7 +1216,7 @@ void HideLocalKanjiButton(void)
 {
 	switch(TmpTransMode)
 	{
-		// UTF-8‘Î‰
+		// UTF-8å¯¾å¿œ
 		case TYPE_I : 
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_SJIS, MAKELONG(FALSE, 0));
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_EUC, MAKELONG(FALSE, 0));
@@ -1229,7 +1229,7 @@ void HideLocalKanjiButton(void)
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_EUC, MAKELONG(TRUE, 0));
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_JIS, MAKELONG(TRUE, 0));
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(TRUE, 0));
-			// Œ»İƒJƒi•ÏŠ·‚ÍShift_JISAJISAEUCŠÔ‚Å‚Ì‚İ‹@”\‚·‚é
+			// ç¾åœ¨ã‚«ãƒŠå¤‰æ›ã¯Shift_JISã€JISã€EUCé–“ã§ã®ã¿æ©Ÿèƒ½ã™ã‚‹
 			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
 			switch(TmpHostKanjiCode)
 			{
@@ -1253,16 +1253,16 @@ void HideLocalKanjiButton(void)
 
 
 /*===================================================
-*			”¼Šp•ÏŠ·ƒ‚[ƒh
+*			åŠè§’å¤‰æ›ãƒ¢ãƒ¼ãƒ‰
 *===================================================*/
 
-/*----- ƒzƒXƒg‚Ì”¼Šp•ÏŠ·ƒ‚[ƒh‚ğİ’è‚·‚é --------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆã®åŠè§’å¤‰æ›ãƒ¢ãƒ¼ãƒ‰ã‚’è¨­å®šã™ã‚‹ --------------------------------------
 *
 *	Parameter
-*		int Mode : ”¼Šp•ÏŠ·ƒ‚[ƒh(YES/NO)
+*		int Mode : åŠè§’å¤‰æ›ãƒ¢ãƒ¼ãƒ‰(YES/NO)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetHostKanaCnvImm(int Mode)
@@ -1273,13 +1273,13 @@ void SetHostKanaCnvImm(int Mode)
 }
 
 
-/*----- ƒzƒXƒg‚Ì”¼Šp•ÏŠ·ƒ‚[ƒh‚ğ”½“]‚·‚é --------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆã®åŠè§’å¤‰æ›ãƒ¢ãƒ¼ãƒ‰ã‚’åè»¢ã™ã‚‹ --------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetHostKanaCnv(void)
@@ -1290,13 +1290,13 @@ void SetHostKanaCnv(void)
 }
 
 
-/*----- ƒzƒXƒg‚Ì”¼Šp•ÏŠ·ƒ‚[ƒh‚É‚µ‚½‚ª‚Á‚Äƒ{ƒ^ƒ“‚ğ•\¦‚·‚é --------------------
+/*----- ãƒ›ã‚¹ãƒˆã®åŠè§’å¤‰æ›ãƒ¢ãƒ¼ãƒ‰ã«ã—ãŸãŒã£ã¦ãƒœã‚¿ãƒ³ã‚’è¡¨ç¤ºã™ã‚‹ --------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DispHostKanaCnv(void)
@@ -1309,13 +1309,13 @@ void DispHostKanaCnv(void)
 }
 
 
-/*----- ƒzƒXƒg‚Ì”¼Šp•ÏŠ·ƒ‚[ƒh‚ğ•Ô‚· ------------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆã®åŠè§’å¤‰æ›ãƒ¢ãƒ¼ãƒ‰ã‚’è¿”ã™ ------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ”¼Šp•ÏŠ·ƒ‚[ƒh
+*		int åŠè§’å¤‰æ›ãƒ¢ãƒ¼ãƒ‰
 *----------------------------------------------------------------------------*/
 
 int AskHostKanaCnv(void)
@@ -1325,19 +1325,19 @@ int AskHostKanaCnv(void)
 
 
 /*===================================================
-*			ƒ\[ƒg•û–@
+*			ã‚½ãƒ¼ãƒˆæ–¹æ³•
 *===================================================*/
 
-/*----- ƒ\[ƒg•û–@‚ğƒZƒbƒg‚·‚é ------------------------------------------------
+/*----- ã‚½ãƒ¼ãƒˆæ–¹æ³•ã‚’ã‚»ãƒƒãƒˆã™ã‚‹ ------------------------------------------------
 *
 *	Parameter
-*		int LFsort : ƒ[ƒJƒ‹‘¤‚Ìƒtƒ@ƒCƒ‹‚Ìƒ\[ƒg•û–@ (SORT_xxx)
-*		int LDsort : ƒ[ƒJƒ‹‘¤‚ÌƒfƒBƒŒƒNƒgƒŠ‚Ìƒ\[ƒg•û–@ (SORT_xxx)
-*		int RFsort : ƒzƒXƒg‘¤‚Ìƒtƒ@ƒCƒ‹‚Ìƒ\[ƒg•û–@ (SORT_xxx)
-*		int RDsort : ƒzƒXƒg‘¤‚ÌƒfƒBƒŒƒNƒgƒŠ‚Ìƒ\[ƒg•û–@ (SORT_xxx)
+*		int LFsort : ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚½ãƒ¼ãƒˆæ–¹æ³• (SORT_xxx)
+*		int LDsort : ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ã‚½ãƒ¼ãƒˆæ–¹æ³• (SORT_xxx)
+*		int RFsort : ãƒ›ã‚¹ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚½ãƒ¼ãƒˆæ–¹æ³• (SORT_xxx)
+*		int RDsort : ãƒ›ã‚¹ãƒˆå´ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ã‚½ãƒ¼ãƒˆæ–¹æ³• (SORT_xxx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetSortTypeImm(int LFsort, int LDsort, int RFsort, int RDsort)
@@ -1350,14 +1350,14 @@ void SetSortTypeImm(int LFsort, int LDsort, int RFsort, int RDsort)
 }
 
 
-/*----- ƒŠƒXƒgƒrƒ…[‚Ìƒ^ƒuƒNƒŠƒbƒN‚É‚æ‚éƒ\[ƒg•û–@‚ÌƒZƒbƒg --------------------
+/*----- ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®ã‚¿ãƒ–ã‚¯ãƒªãƒƒã‚¯ã«ã‚ˆã‚‹ã‚½ãƒ¼ãƒˆæ–¹æ³•ã®ã‚»ãƒƒãƒˆ --------------------
 *
 *	Parameter
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô†
-*		int Tab : ƒJƒ‰ƒ€”Ô†
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå·
+*		int Tab : ã‚«ãƒ©ãƒ ç•ªå·
 *
 *	Return Value
-*		int ƒ\[ƒg•û–@ (SORT_xxx)
+*		int ã‚½ãƒ¼ãƒˆæ–¹æ³• (SORT_xxx)
 *----------------------------------------------------------------------------*/
 
 void SetSortTypeByColumn(int Win, int Tab)
@@ -1393,13 +1393,13 @@ void SetSortTypeByColumn(int Win, int Tab)
 }
 
 
-/*----- ƒ\[ƒg•û–@‚ğ•Ô‚· ------------------------------------------------------
+/*----- ã‚½ãƒ¼ãƒˆæ–¹æ³•ã‚’è¿”ã™ ------------------------------------------------------
 *
 *	Parameter
-*		int Name : ‚Ç‚Ì•”•ª‚© (ITEM_xxx)
+*		int Name : ã©ã®éƒ¨åˆ†ã‹ (ITEM_xxx)
 *
 *	Return Value
-*		int ƒ\[ƒg•û–@ (SORT_xxx)
+*		int ã‚½ãƒ¼ãƒˆæ–¹æ³• (SORT_xxx)
 *----------------------------------------------------------------------------*/
 
 int AskSortType(int Name)
@@ -1428,13 +1428,13 @@ int AskSortType(int Name)
 }
 
 
-/*----- ƒzƒXƒg‚²‚Æ‚Éƒ\[ƒg‚ğ•Û‘¶‚·‚é‚©‚Ç‚¤‚©‚ğƒZƒbƒg‚·‚é-----------------------
+/*----- ãƒ›ã‚¹ãƒˆã”ã¨ã«ã‚½ãƒ¼ãƒˆã‚’ä¿å­˜ã™ã‚‹ã‹ã©ã†ã‹ã‚’ã‚»ãƒƒãƒˆã™ã‚‹-----------------------
 *
 *	Parameter
-*		int Sw : ƒXƒCƒbƒ` (YES/NO)
+*		int Sw : ã‚¹ã‚¤ãƒƒãƒ (YES/NO)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetSaveSortToHost(int Sw)
@@ -1444,13 +1444,13 @@ void SetSaveSortToHost(int Sw)
 }
 
 
-/*----- ƒzƒXƒg‚²‚Æ‚Éƒ\[ƒg‚ğ•Û‘¶‚·‚é‚©‚Ç‚¤‚©‚ğ•Ô‚· ----------------------------
+/*----- ãƒ›ã‚¹ãƒˆã”ã¨ã«ã‚½ãƒ¼ãƒˆã‚’ä¿å­˜ã™ã‚‹ã‹ã©ã†ã‹ã‚’è¿”ã™ ----------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ƒXƒCƒbƒ` (YES/NO)
+*		int ã‚¹ã‚¤ãƒƒãƒ (YES/NO)
 *----------------------------------------------------------------------------*/
 
 int AskSaveSortToHost(void)
@@ -1461,16 +1461,16 @@ int AskSaveSortToHost(void)
 
 
 /*===================================================
-*			ƒŠƒXƒgƒ‚[ƒh
+*			ãƒªã‚¹ãƒˆãƒ¢ãƒ¼ãƒ‰
 *===================================================*/
 
-/*----- ƒŠƒXƒgƒ‚[ƒh‚É‚µ‚½‚ª‚Á‚Äƒ{ƒ^ƒ“‚ğ•\¦‚·‚é ------------------------------
+/*----- ãƒªã‚¹ãƒˆãƒ¢ãƒ¼ãƒ‰ã«ã—ãŸãŒã£ã¦ãƒœã‚¿ãƒ³ã‚’è¡¨ç¤ºã™ã‚‹ ------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DispListType(void)
@@ -1497,16 +1497,16 @@ void DispListType(void)
 
 
 /*===================================================
-*			ƒtƒHƒ‹ƒ_“¯ˆÚ“®ƒ‚[ƒh
+*			ãƒ•ã‚©ãƒ«ãƒ€åŒæ™‚ç§»å‹•ãƒ¢ãƒ¼ãƒ‰
 *===================================================*/
 
-/*----- “]‘—ƒ‚[ƒh‚ğİ’è‚·‚é --------------------------------------------------
+/*----- è»¢é€ãƒ¢ãƒ¼ãƒ‰ã‚’è¨­å®šã™ã‚‹ --------------------------------------------------
 *
 *	Parameter
-*		int Mode : “]‘—ƒ‚[ƒh (TYPE_xx)
+*		int Mode : è»¢é€ãƒ¢ãƒ¼ãƒ‰ (TYPE_xx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetSyncMoveMode(int Mode)
@@ -1517,13 +1517,13 @@ void SetSyncMoveMode(int Mode)
 }
 
 
-/*----- ƒtƒHƒ‹ƒ_“¯ˆÚ“®ƒ‚[ƒh‚ğØ‚è‘Ö‚¦‚é ------------------------------------
+/*----- ãƒ•ã‚©ãƒ«ãƒ€åŒæ™‚ç§»å‹•ãƒ¢ãƒ¼ãƒ‰ã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹ ------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void ToggleSyncMoveMode(void)
@@ -1534,13 +1534,13 @@ void ToggleSyncMoveMode(void)
 }
 
 
-/*----- ƒtƒHƒ‹ƒ_“¯ˆÚ“®‚ğs‚¤‚©‚Ç‚¤‚©‚ğ‚É‚æ‚Á‚Äƒƒjƒ…[^ƒ{ƒ^ƒ“‚ğ•\¦ --------
+/*----- ãƒ•ã‚©ãƒ«ãƒ€åŒæ™‚ç§»å‹•ã‚’è¡Œã†ã‹ã©ã†ã‹ã‚’ã«ã‚ˆã£ã¦ãƒ¡ãƒ‹ãƒ¥ãƒ¼ï¼ãƒœã‚¿ãƒ³ã‚’è¡¨ç¤º --------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DispSyncMoveMode(void)
@@ -1559,13 +1559,13 @@ void DispSyncMoveMode(void)
 }
 
 
-/*----- ƒtƒHƒ‹ƒ_“¯ˆÚ“®ƒ‚[ƒh‚ğ•Ô‚· ------------------------------------------
+/*----- ãƒ•ã‚©ãƒ«ãƒ€åŒæ™‚ç§»å‹•ãƒ¢ãƒ¼ãƒ‰ã‚’è¿”ã™ ------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ”¼Šp•ÏŠ·ƒ‚[ƒh
+*		int åŠè§’å¤‰æ›ãƒ¢ãƒ¼ãƒ‰
 *----------------------------------------------------------------------------*/
 
 int AskSyncMoveMode(void)
@@ -1575,16 +1575,16 @@ int AskSyncMoveMode(void)
 
 
 /*===================================================
-*			ƒfƒBƒŒƒNƒgƒŠƒqƒXƒgƒŠ
+*			ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒ’ã‚¹ãƒˆãƒª
 *===================================================*/
 
-/*----- ƒzƒXƒg‘¤‚ÌƒqƒXƒgƒŠˆê——ƒEƒCƒ“ƒhƒE‚É“o˜^ --------------------------------
+/*----- ãƒ›ã‚¹ãƒˆå´ã®ãƒ’ã‚¹ãƒˆãƒªä¸€è¦§ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã«ç™»éŒ² --------------------------------
 *
 *	Parameter
-*		char *Path : ƒpƒX
+*		char *Path : ãƒ‘ã‚¹
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetRemoteDirHist(char *Path)
@@ -1603,13 +1603,13 @@ void SetRemoteDirHist(char *Path)
 }
 
 
-/*----- ƒ[ƒJƒ‹‘¤‚ÌƒqƒXƒgƒŠˆê——ƒEƒCƒ“ƒhƒE‚É“o˜^ -------------------------------
+/*----- ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒ’ã‚¹ãƒˆãƒªä¸€è¦§ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã«ç™»éŒ² -------------------------------
 *
 *	Parameter
-*		char *Path : ƒpƒX
+*		char *Path : ãƒ‘ã‚¹
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetLocalDirHist(char *Path)
@@ -1626,14 +1626,14 @@ void SetLocalDirHist(char *Path)
 }
 
 
-/*----- ƒ[ƒJƒ‹‚ÌƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚ğ•Ô‚· ----------------------------------
+/*----- ãƒ­ãƒ¼ã‚«ãƒ«ã®ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’è¿”ã™ ----------------------------------
 *
 *	Parameter
-*		char *Buf : ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ–¼‚ğ•Ô‚·ƒoƒbƒtƒ@
-*		int Max : ƒoƒbƒtƒ@‚ÌƒTƒCƒY
+*		char *Buf : ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåã‚’è¿”ã™ãƒãƒƒãƒ•ã‚¡
+*		int Max : ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void AskLocalCurDir(char *Buf, int Max)
@@ -1644,14 +1644,14 @@ void AskLocalCurDir(char *Buf, int Max)
 }
 
 
-/*----- ƒzƒXƒg‚ÌƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚ğ•Ô‚· ------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆã®ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’è¿”ã™ ------------------------------------
 *
 *	Parameter
-*		char *Buf : ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ–¼‚ğ•Ô‚·ƒoƒbƒtƒ@
-*		int Max : ƒoƒbƒtƒ@‚ÌƒTƒCƒY
+*		char *Buf : ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåã‚’è¿”ã™ãƒãƒƒãƒ•ã‚¡
+*		int Max : ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void AskRemoteCurDir(char *Buf, int Max)
@@ -1662,13 +1662,13 @@ void AskRemoteCurDir(char *Buf, int Max)
 }
 
 
-/*----- ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚ğİ’è‚·‚é ----------------------------------------
+/*----- ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’è¨­å®šã™ã‚‹ ----------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetCurrentDirAsDirHist(void)
@@ -1679,16 +1679,16 @@ void SetCurrentDirAsDirHist(void)
 
 
 /*===================================================
-*			ƒƒjƒ…[
+*			ãƒ¡ãƒ‹ãƒ¥ãƒ¼
 *===================================================*/
 
-/*----- ƒhƒbƒgƒtƒ@ƒCƒ‹‚ğ•\¦‚·‚é‚©‚Ç‚¤‚©‚ğƒƒjƒ…[‚É•\¦‚·‚é ------------------
+/*----- ãƒ‰ãƒƒãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‚’è¡¨ç¤ºã™ã‚‹ã‹ã©ã†ã‹ã‚’ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã«è¡¨ç¤ºã™ã‚‹ ------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DispDotFileMode(void)
@@ -1700,15 +1700,15 @@ void DispDotFileMode(void)
 }
 
 
-/*----- ƒ[ƒJƒ‹‘¤‚Ì‰Eƒ{ƒ^ƒ“ƒƒjƒ…[‚ğ•\¦ ------------------------------------------------
+/*----- ãƒ­ãƒ¼ã‚«ãƒ«å´ã®å³ãƒœã‚¿ãƒ³ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’è¡¨ç¤º ------------------------------------------------
 *
 *	Parameter
-*		int Pos : ƒƒjƒ…[‚ÌˆÊ’u
-*					0=ƒ}ƒEƒXƒJ[ƒ\ƒ‹‚ÌˆÊ’u
-*					1=ƒEƒCƒ“ƒhƒE‚Ì¶ã
+*		int Pos : ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®ä½ç½®
+*					0=ãƒã‚¦ã‚¹ã‚«ãƒ¼ã‚½ãƒ«ã®ä½ç½®
+*					1=ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®å·¦ä¸Š
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void LocalRbuttonMenu(int Pos)
@@ -1765,15 +1765,15 @@ void LocalRbuttonMenu(int Pos)
 }
 
 
-/*----- ƒzƒXƒg‘¤‚Ì‰Eƒ{ƒ^ƒ“ƒƒjƒ…[‚ğ•\¦ --------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆå´ã®å³ãƒœã‚¿ãƒ³ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚’è¡¨ç¤º --------------------------------------
 *
 *	Parameter
-*		int Pos : ƒƒjƒ…[‚ÌˆÊ’u
-*					0=ƒ}ƒEƒXƒJ[ƒ\ƒ‹‚ÌˆÊ’u
-*					1=ƒEƒCƒ“ƒhƒE‚Ì¶ã
+*		int Pos : ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®ä½ç½®
+*					0=ãƒã‚¦ã‚¹ã‚«ãƒ¼ã‚½ãƒ«ã®ä½ç½®
+*					1=ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®å·¦ä¸Š
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void RemoteRbuttonMenu(int Pos)
@@ -1834,14 +1834,14 @@ void RemoteRbuttonMenu(int Pos)
 }
 
 
-/*----- ‰Eƒ{ƒ^ƒ“ƒƒjƒ…[‚ÉuŠJ‚­v‚ğ’Ç‰Á  -------------------------------------
+/*----- å³ãƒœã‚¿ãƒ³ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã«ã€Œé–‹ãã€ã‚’è¿½åŠ   -------------------------------------
 *
 *	Parameter
-*		HMENU hMenu : ƒƒjƒ…[ƒnƒ“ƒhƒ‹
-*		UINT Flg : ƒtƒ‰ƒO
+*		HMENU hMenu : ãƒ¡ãƒ‹ãƒ¥ãƒ¼ãƒãƒ³ãƒ‰ãƒ«
+*		UINT Flg : ãƒ•ãƒ©ã‚°
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void AddOpenMenu(HMENU hMenu, UINT Flg)
@@ -1863,10 +1863,10 @@ static void AddOpenMenu(HMENU hMenu, UINT Flg)
 	return;
 }
 
-/* 2007/09/21 sunasunamix  ‚±‚±‚©‚ç *********************/
+/* 2007/09/21 sunasunamix  ã“ã“ã‹ã‚‰ *********************/
 
-/*----- CreateToolbarEx ‚Ìƒ}ƒEƒXƒNƒŠƒbƒNŠÖ˜A‚ğ–³‹‚·‚é(TbarMain—p) -----------
-*       (ƒTƒuƒNƒ‰ƒX‰»‚ğs‚¤‚½‚ß‚ÌƒEƒCƒ“ƒhƒEƒvƒƒV[ƒWƒƒ)
+/*----- CreateToolbarEx ã®ãƒã‚¦ã‚¹ã‚¯ãƒªãƒƒã‚¯é–¢é€£ã‚’ç„¡è¦–ã™ã‚‹(TbarMainç”¨) -----------
+*       (ã‚µãƒ–ã‚¯ãƒ©ã‚¹åŒ–ã‚’è¡Œã†ãŸã‚ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£)
 *----------------------------------------------------------------------------*/
 static LRESULT CALLBACK CountermeasureTbarMainProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam)
 {
@@ -1882,8 +1882,8 @@ static LRESULT CALLBACK CountermeasureTbarMainProc(HWND hWnd,UINT uMessage,WPARA
 	return CallWindowProc(pOldTbarMainProc, hWnd, uMessage, wParam, lParam);
 }
 
-/*----- CreateToolbarEx ‚Ìƒ}ƒEƒXƒNƒŠƒbƒNŠÖ˜A‚ğ–³‹‚·‚é(TbarLocal—p) ----------
-*       (ƒTƒuƒNƒ‰ƒX‰»‚ğs‚¤‚½‚ß‚ÌƒEƒCƒ“ƒhƒEƒvƒƒV[ƒWƒƒ)
+/*----- CreateToolbarEx ã®ãƒã‚¦ã‚¹ã‚¯ãƒªãƒƒã‚¯é–¢é€£ã‚’ç„¡è¦–ã™ã‚‹(TbarLocalç”¨) ----------
+*       (ã‚µãƒ–ã‚¯ãƒ©ã‚¹åŒ–ã‚’è¡Œã†ãŸã‚ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£)
 *----------------------------------------------------------------------------*/
 static LRESULT CALLBACK CountermeasureTbarLocalProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam)
 {
@@ -1899,8 +1899,8 @@ static LRESULT CALLBACK CountermeasureTbarLocalProc(HWND hWnd,UINT uMessage,WPAR
 	return CallWindowProc(pOldTbarLocalProc, hWnd, uMessage, wParam, lParam);
 }
 
-/*----- CreateToolbarEx ‚Ìƒ}ƒEƒXƒNƒŠƒbƒNŠÖ˜A‚ğ–³‹‚·‚é(TbarRemote—p) ---------
-*       (ƒTƒuƒNƒ‰ƒX‰»‚ğs‚¤‚½‚ß‚ÌƒEƒCƒ“ƒhƒEƒvƒƒV[ƒWƒƒ)
+/*----- CreateToolbarEx ã®ãƒã‚¦ã‚¹ã‚¯ãƒªãƒƒã‚¯é–¢é€£ã‚’ç„¡è¦–ã™ã‚‹(TbarRemoteç”¨) ---------
+*       (ã‚µãƒ–ã‚¯ãƒ©ã‚¹åŒ–ã‚’è¡Œã†ãŸã‚ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£)
 *----------------------------------------------------------------------------*/
 static LRESULT CALLBACK CountermeasureTbarRemoteProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam)
 {
@@ -1915,4 +1915,4 @@ static LRESULT CALLBACK CountermeasureTbarRemoteProc(HWND hWnd,UINT uMessage,WPA
 	}
 	return CallWindowProc(pOldTbarRemoteProc, hWnd, uMessage, wParam, lParam);
 }
-/********************************************* ‚±‚±‚Ü‚Å */
+/********************************************* ã“ã“ã¾ã§ */

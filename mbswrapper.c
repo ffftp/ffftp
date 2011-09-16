@@ -1,8 +1,8 @@
-// mbswrapper.cpp
+﻿// mbswrapper.cpp
 // Copyright (C) 2011 Suguru Kawamoto
-// �}���`�o�C�g�������C�h����API���b�p�[
-// �}���`�o�C�g������UTF-8�A���C�h������UTF-16�ł�����̂Ƃ���
-// �S�Ă̐���p�̕�����ASCII�͈̔͂ł��邽�߁AShift_JIS��UTF-8�Ԃ̕ϊ��͕s�v
+// マルチバイト文字ワイド文字APIラッパー
+// マルチバイト文字はUTF-8、ワイド文字はUTF-16であるものとする
+// 全ての制御用の文字はASCIIの範囲であるため、Shift_JISとUTF-8間の変換は不要
 
 #define UNICODE
 #define _UNICODE
@@ -20,7 +20,7 @@
 #define DO_NOT_REPLACE
 #include "mbswrapper.h"
 
-// �}���`�o�C�g�����񂩂烏�C�h������֕ϊ�
+// マルチバイト文字列からワイド文字列へ変換
 int MtoW(LPWSTR pDst, int size, LPCSTR pSrc, int count)
 {
 	if(pSrc < (LPCSTR)0x00010000 || pSrc == (LPCSTR)~0)
@@ -30,7 +30,7 @@ int MtoW(LPWSTR pDst, int size, LPCSTR pSrc, int count)
 	return MultiByteToWideChar(CP_UTF8, 0, pSrc, count, NULL, 0);
 }
 
-// ���C�h�����񂩂�}���`�o�C�g������֕ϊ�
+// ワイド文字列からマルチバイト文字列へ変換
 int WtoM(LPSTR pDst, int size, LPCWSTR pSrc, int count)
 {
 	if(pSrc < (LPCWSTR)0x00010000 || pSrc == (LPCWSTR)~0)
@@ -40,7 +40,7 @@ int WtoM(LPSTR pDst, int size, LPCWSTR pSrc, int count)
 	return WideCharToMultiByte(CP_UTF8, 0, pSrc, count, NULL, 0, NULL, NULL);
 }
 
-// ���C�h�����񂩂�Shift_JIS������֕ϊ�
+// ワイド文字列からShift_JIS文字列へ変換
 int WtoA(LPSTR pDst, int size, LPCWSTR pSrc, int count)
 {
 	if(pSrc < (LPCWSTR)0x00010000 || pSrc == (LPCWSTR)~0)
@@ -50,7 +50,7 @@ int WtoA(LPSTR pDst, int size, LPCWSTR pSrc, int count)
 	return WideCharToMultiByte(CP_ACP, 0, pSrc, count, NULL, 0, NULL, NULL);
 }
 
-// �}���`�o�C�g������o�b�t�@�I�[�������I��NULL�Œu��
+// マルチバイト文字列バッファ終端を強制的にNULLで置換
 int TerminateStringM(LPSTR lpString, int size)
 {
 	int i;
@@ -66,7 +66,7 @@ int TerminateStringM(LPSTR lpString, int size)
 	return i;
 }
 
-// ���C�h������o�b�t�@�I�[�������I��NULL�Œu��
+// ワイド文字列バッファ終端を強制的にNULLで置換
 int TerminateStringW(LPWSTR lpString, int size)
 {
 	int i;
@@ -82,7 +82,7 @@ int TerminateStringW(LPWSTR lpString, int size)
 	return i;
 }
 
-// Shift_JIS������o�b�t�@�I�[�������I��NULL�Œu��
+// Shift_JIS文字列バッファ終端を強制的にNULLで置換
 int TerminateStringA(LPSTR lpString, int size)
 {
 	int i;
@@ -98,7 +98,7 @@ int TerminateStringA(LPSTR lpString, int size)
 	return i;
 }
 
-// NULL��؂蕡���}���`�o�C�g������̒������擾
+// NULL区切り複数マルチバイト文字列の長さを取得
 size_t GetMultiStringLengthM(LPCSTR lpString)
 {
 	size_t i;
@@ -113,7 +113,7 @@ size_t GetMultiStringLengthM(LPCSTR lpString)
 	return i;
 }
 
-// NULL��؂蕡�����C�h������̒������擾
+// NULL区切り複数ワイド文字列の長さを取得
 size_t GetMultiStringLengthW(LPCWSTR lpString)
 {
 	size_t i;
@@ -128,7 +128,7 @@ size_t GetMultiStringLengthW(LPCWSTR lpString)
 	return i;
 }
 
-// NULL��؂蕡��Shift_JIS������̒������擾
+// NULL区切り複数Shift_JIS文字列の長さを取得
 size_t GetMultiStringLengthA(LPCSTR lpString)
 {
 	size_t i;
@@ -143,7 +143,7 @@ size_t GetMultiStringLengthA(LPCSTR lpString)
 	return i;
 }
 
-// NULL��؂�}���`�o�C�g�����񂩂烏�C�h������֕ϊ�
+// NULL区切りマルチバイト文字列からワイド文字列へ変換
 int MtoWMultiString(LPWSTR pDst, int size, LPCSTR pSrc)
 {
 	int i;
@@ -161,7 +161,7 @@ int MtoWMultiString(LPWSTR pDst, int size, LPCSTR pSrc)
 	return i;
 }
 
-// NULL��؂胏�C�h�����񂩂�}���`�o�C�g������֕ϊ�
+// NULL区切りワイド文字列からマルチバイト文字列へ変換
 int WtoMMultiString(LPSTR pDst, int size, LPCWSTR pSrc)
 {
 	int i;
@@ -179,7 +179,7 @@ int WtoMMultiString(LPSTR pDst, int size, LPCWSTR pSrc)
 	return i;
 }
 
-// NULL��؂胏�C�h�����񂩂�Shift_JIS������֕ϊ�
+// NULL区切りワイド文字列からShift_JIS文字列へ変換
 int WtoAMultiString(LPSTR pDst, int size, LPCWSTR pSrc)
 {
 	int i;
@@ -197,43 +197,43 @@ int WtoAMultiString(LPSTR pDst, int size, LPCWSTR pSrc)
 	return i;
 }
 
-// �}���`�o�C�g������p�̃��������m��
+// マルチバイト文字列用のメモリを確保
 char* AllocateStringM(int size)
 {
 	char* p;
-	// 0���w�肳���ꍇ�����邽��1�������ǉ�
+	// 0が指定される場合があるため1文字分追加
 	p = (char*)malloc(sizeof(char) * (size + 1));
-	// �O�̂��ߐ擪��NULL��������
+	// 念のため先頭にNULL文字を代入
 	if(p)
 		*p = '\0';
 	return p;
 }
 
-// ���C�h������p�̃��������m��
+// ワイド文字列用のメモリを確保
 wchar_t* AllocateStringW(int size)
 {
 	wchar_t* p;
-	// 0���w�肳���ꍇ�����邽��1�������ǉ�
+	// 0が指定される場合があるため1文字分追加
 	p = (wchar_t*)malloc(sizeof(wchar_t) * (size + 1));
-	// �O�̂��ߐ擪��NULL��������
+	// 念のため先頭にNULL文字を代入
 	if(p)
 		*p = L'\0';
 	return p;
 }
 
-// Shift_JIS������p�̃��������m��
+// Shift_JIS文字列用のメモリを確保
 char* AllocateStringA(int size)
 {
 	char* p;
-	// 0���w�肳���ꍇ�����邽��1�������ǉ�
+	// 0が指定される場合があるため1文字分追加
 	p = (char*)malloc(sizeof(char) * (size + 1));
-	// �O�̂��ߐ擪��NULL��������
+	// 念のため先頭にNULL文字を代入
 	if(p)
 		*p = '\0';
 	return p;
 }
 
-// ���������m�ۂ��ă}���`�o�C�g�����񂩂烏�C�h������֕ϊ�
+// メモリを確保してマルチバイト文字列からワイド文字列へ変換
 wchar_t* DuplicateMtoW(LPCSTR lpString, int c)
 {
 	wchar_t* p;
@@ -251,7 +251,7 @@ wchar_t* DuplicateMtoW(LPCSTR lpString, int c)
 	return p;
 }
 
-// �w�肵���T�C�Y�̃��������m�ۂ��ă}���`�o�C�g�����񂩂烏�C�h������֕ϊ�
+// 指定したサイズのメモリを確保してマルチバイト文字列からワイド文字列へ変換
 wchar_t* DuplicateMtoWBuffer(LPCSTR lpString, int c, int size)
 {
 	wchar_t* p;
@@ -269,7 +269,7 @@ wchar_t* DuplicateMtoWBuffer(LPCSTR lpString, int c, int size)
 	return p;
 }
 
-// ���������m�ۂ���NULL��؂�}���`�o�C�g�����񂩂烏�C�h������֕ϊ�
+// メモリを確保してNULL区切りマルチバイト文字列からワイド文字列へ変換
 wchar_t* DuplicateMtoWMultiString(LPCSTR lpString)
 {
 	int count;
@@ -283,7 +283,7 @@ wchar_t* DuplicateMtoWMultiString(LPCSTR lpString)
 	return p;
 }
 
-// �w�肵���T�C�Y�̃��������m�ۂ���NULL��؂�}���`�o�C�g�����񂩂烏�C�h������֕ϊ�
+// 指定したサイズのメモリを確保してNULL区切りマルチバイト文字列からワイド文字列へ変換
 wchar_t* DuplicateMtoWMultiStringBuffer(LPCSTR lpString, int size)
 {
 	int count;
@@ -301,7 +301,7 @@ wchar_t* DuplicateMtoWMultiStringBuffer(LPCSTR lpString, int size)
 	return p;
 }
 
-// ���������m�ۂ��ă��C�h�����񂩂�}���`�o�C�g������֕ϊ�
+// メモリを確保してワイド文字列からマルチバイト文字列へ変換
 char* DuplicateWtoM(LPCWSTR lpString, int c)
 {
 	char* p;
@@ -319,7 +319,7 @@ char* DuplicateWtoM(LPCWSTR lpString, int c)
 	return p;
 }
 
-// ���������m�ۂ��ă��C�h�����񂩂�Shift_JIS������֕ϊ�
+// メモリを確保してワイド文字列からShift_JIS文字列へ変換
 char* DuplicateWtoA(LPCWSTR lpString, int c)
 {
 	char* p;
@@ -337,7 +337,7 @@ char* DuplicateWtoA(LPCWSTR lpString, int c)
 	return p;
 }
 
-// ������p�Ɋm�ۂ������������J��
+// 文字列用に確保したメモリを開放
 void FreeDuplicatedString(void* p)
 {
 	if(p < (void*)0x00010000 || p == (void*)~0)
@@ -345,11 +345,11 @@ void FreeDuplicatedString(void* p)
 	free(p);
 }
 
-// �ȉ����b�p�[
-// �߂�l�o�b�t�@ r
-// ���C�h�����o�b�t�@ pw%d
-// �}���`�o�C�g�����o�b�t�@ pm%d
-// �����o�b�t�@ a%d
+// 以下ラッパー
+// 戻り値バッファ r
+// ワイド文字バッファ pw%d
+// マルチバイト文字バッファ pm%d
+// 引数バッファ a%d
 
 #define START_ROUTINE					do{
 #define END_ROUTINE						}while(0);end_of_routine:
@@ -449,7 +449,7 @@ ATOM RegisterClassExM(CONST WNDCLASSEXA * v0)
 {
 	ATOM r = 0;
 START_ROUTINE
-	// WNDPROC��Shift_JIS�p�ł��邽��
+	// WNDPROCがShift_JIS用であるため
 	r = RegisterClassExA(v0);
 END_ROUTINE
 	return r;
@@ -474,7 +474,7 @@ LONG GetWindowLongM(HWND hWnd, int nIndex)
 {
 	LRESULT r = 0;
 START_ROUTINE
-	// WNDPROC��Shift_JIS�p�ł��邽��
+	// WNDPROCがShift_JIS用であるため
 	if(IsWindowUnicode(hWnd))
 		r = GetWindowLongW(hWnd, nIndex);
 	else
@@ -487,7 +487,7 @@ LONG SetWindowLongM(HWND hWnd, int nIndex, LONG dwNewLong)
 {
 	LRESULT r = 0;
 START_ROUTINE
-	// WNDPROC��Shift_JIS�p�ł��邽��
+	// WNDPROCがShift_JIS用であるため
 	if(IsWindowUnicode(hWnd))
 		r = SetWindowLongW(hWnd, nIndex, dwNewLong);
 	else
@@ -500,7 +500,7 @@ LRESULT DefWindowProcM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT r = 0;
 START_ROUTINE
-	// WNDPROC��Shift_JIS�p�ł��邽��
+	// WNDPROCがShift_JIS用であるため
 	if(IsWindowUnicode(hWnd))
 		r = DefWindowProcW(hWnd, Msg, wParam, lParam);
 	else
@@ -513,7 +513,7 @@ LRESULT CallWindowProcM(WNDPROC lpPrevWndFunc, HWND hWnd, UINT Msg, WPARAM wPara
 {
 	LRESULT r = 0;
 START_ROUTINE
-	// WNDPROC��Shift_JIS�p�ł��邽��
+	// WNDPROCがShift_JIS用であるため
 	if(IsWindowUnicode(hWnd))
 		r = CallWindowProcW(lpPrevWndFunc, hWnd, Msg, wParam, lParam);
 	else
@@ -581,7 +581,7 @@ START_ROUTINE
 				Size = SendMessageW(hWnd, CB_GETLBTEXTLEN, wParam, 0) + 1;
 				pw0 = AllocateStringW(Size);
 				SendMessageW(hWnd, CB_GETLBTEXT, wParam, (LPARAM)pw0);
-				// �o�b�t�@���s���̂��߃I�[�o�[�����̉\������
+				// バッファ長不明のためオーバーランの可能性あり
 				WtoM((LPSTR)lParam, Size * 4, pw0, -1);
 				r = TerminateStringM((LPSTR)lParam, Size * 4);
 				break;
@@ -620,7 +620,7 @@ START_ROUTINE
 				Size = SendMessageW(hWnd, LB_GETTEXTLEN, wParam, 0) + 1;
 				pw0 = AllocateStringW(Size);
 				SendMessageW(hWnd, LB_GETTEXT, wParam, (LPARAM)pw0);
-				// �o�b�t�@���s���̂��߃I�[�o�[�����̉\������
+				// バッファ長不明のためオーバーランの可能性あり
 				WtoM((LPSTR)lParam, Size * 4, pw0, -1);
 				r = TerminateStringM((LPSTR)lParam, Size * 4);
 				break;
@@ -682,7 +682,7 @@ START_ROUTINE
 				{
 					pw0 = DuplicateMtoW(pmLVItem->pszText, -1);
 					wLVItem.pszText = pw0;
-					// TODO: cchTextMax�̊m�F
+					// TODO: cchTextMaxの確認
 					wLVItem.cchTextMax = pmLVItem->cchTextMax;
 				}
 				wLVItem.iImage = pmLVItem->iImage;
@@ -701,7 +701,7 @@ START_ROUTINE
 				{
 					pw0 = DuplicateMtoW(pmLVItem->pszText, -1);
 					wLVItem.pszText = pw0;
-					// TODO: cchTextMax�̊m�F
+					// TODO: cchTextMaxの確認
 					wLVItem.cchTextMax = pmLVItem->cchTextMax;
 				}
 				wLVItem.iImage = pmLVItem->iImage;
@@ -759,7 +759,7 @@ START_ROUTINE
 				{
 					pw0 = DuplicateMtoW(pmLVColumn->pszText, -1);
 					wLVColumn.pszText = pw0;
-					// TODO: cchTextMax�̊m�F
+					// TODO: cchTextMaxの確認
 					wLVColumn.cchTextMax = pmLVColumn->cchTextMax;
 				}
 				wLVColumn.iSubItem = pmLVColumn->iSubItem;
@@ -825,7 +825,7 @@ LRESULT DefDlgProcM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT r = 0;
 START_ROUTINE
-	// WNDPROC��Shift_JIS�p�ł��邽��
+	// WNDPROCがShift_JIS用であるため
 	if(IsWindowUnicode(hWnd))
 		r = DefDlgProcW(hWnd, Msg, wParam, lParam);
 	else
@@ -1342,7 +1342,7 @@ START_ROUTINE
 	pw1 = DuplicateMtoW(lpDirectory, -1);
 	pw2 = AllocateStringW(MAX_PATH * 4);
 	r = FindExecutableW(pw0, pw1, pw2);
-	// �o�b�t�@���s���̂��߃I�[�o�[�����̉\������
+	// バッファ長不明のためオーバーランの可能性あり
 	WtoM(lpResult, MAX_PATH, pw2, -1);
 	TerminateStringM(lpResult, MAX_PATH);
 END_ROUTINE
@@ -1393,7 +1393,7 @@ START_ROUTINE
 	wbi.lParam = lpbi->lParam;
 	wbi.iImage = lpbi->iImage;
 	r = SHBrowseForFolderW(&wbi);
-	// �o�b�t�@���s���̂��߃I�[�o�[�����̉\������
+	// バッファ長不明のためオーバーランの可能性あり
 	WtoM(lpbi->pszDisplayName, MAX_PATH, wbi.pszDisplayName, -1);
 	lpbi->iImage = wbi.iImage;
 END_ROUTINE
@@ -1409,7 +1409,7 @@ BOOL SHGetPathFromIDListM(PCIDLIST_ABSOLUTE pidl, LPSTR pszPath)
 START_ROUTINE
 	pw0 = AllocateStringW(MAX_PATH * 4);
 	r = SHGetPathFromIDListW(pidl, pw0);
-	// �o�b�t�@���s���̂��߃I�[�o�[�����̉\������
+	// バッファ長不明のためオーバーランの可能性あり
 	WtoM(pszPath, MAX_PATH, pw0, -1);
 	TerminateStringM(pszPath, MAX_PATH);
 END_ROUTINE
@@ -1684,7 +1684,7 @@ unsigned char * _mbschrM(const unsigned char * _Str, unsigned int _Ch)
 	wchar_t* wr;
 START_ROUTINE
 	pw0 = DuplicateMtoW(_Str, -1);
-	// TODO: ��ASCII�����̑Ή�
+	// TODO: 非ASCII文字の対応
 	wr = wcschr(pw0, _Ch);
 	if(wr)
 	{
@@ -1703,7 +1703,7 @@ unsigned char * _mbsrchrM(const unsigned char * _Str, unsigned int _Ch)
 	wchar_t* wr;
 START_ROUTINE
 	pw0 = DuplicateMtoW(_Str, -1);
-	// TODO: ��ASCII�����̑Ή�
+	// TODO: 非ASCII文字の対応
 	wr = wcsrchr(pw0, _Ch);
 	if(wr)
 	{

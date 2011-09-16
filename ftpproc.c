@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*								‚e‚s‚oƒRƒ}ƒ“ƒh‘€ì
+*								ï¼¦ï¼´ï¼°ã‚³ãƒãƒ³ãƒ‰æ“ä½œ
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -42,12 +42,12 @@
 #include <htmlhelp.h>
 #include "helpid.h"
 
-// UTF-8‘Î‰
+// UTF-8å¯¾å¿œ
 #undef __MBSWRAPPER_H__
 #include "mbswrapper.h"
 
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static int CheckRemoteFile(TRANSPACKET *Pkt, FILELIST *ListList);
 static BOOL CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
@@ -74,11 +74,11 @@ static LRESULT CALLBACK SizeNotifyDlgWndProc(HWND hDlg, UINT message, WPARAM wPa
 static LRESULT CALLBACK SizeDlgWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static int RenameUnuseableName(char *Fname);
 
-/*===== ŠO•”QÆ ====*/
+/*===== å¤–éƒ¨å‚ç…§ ====*/
 
 extern HWND hHelpWin;
 
-/* İ’è’l */
+/* è¨­å®šå€¤ */
 extern int FnameCnv;
 extern int RecvMode;
 extern int SendMode;
@@ -92,28 +92,28 @@ extern int VaxSemicolon;
 extern int DebugConsole;
 extern int CancelFlg;
 
-/*===== ƒ[ƒJƒ‹‚Èƒ[ƒN =====*/
+/*===== ãƒ­ãƒ¼ã‚«ãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
-static char TmpString[FMAX_PATH+80];		/* ƒeƒ“ƒ|ƒ‰ƒŠ */
-static int CurWin;						/* ƒEƒCƒ“ƒhƒE”Ô† */
+static char TmpString[FMAX_PATH+80];		/* ãƒ†ãƒ³ãƒãƒ©ãƒª */
+static int CurWin;						/* ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· */
 
-int UpExistMode = EXIST_OVW;		/* ƒAƒbƒvƒ[ƒh‚Å“¯‚¶–¼‘O‚Ìƒtƒ@ƒCƒ‹‚ª‚ ‚é‚Ìˆµ‚¢•û EXIST_xxx */
-int ExistMode = EXIST_OVW;		/* “¯‚¶–¼‘O‚Ìƒtƒ@ƒCƒ‹‚ª‚ ‚é‚Ìˆµ‚¢•û EXIST_xxx */
-static int ExistNotify;		/* Šm”Fƒ_ƒCƒAƒƒO‚ğo‚·‚©‚Ç‚¤‚© YES/NO */
+int UpExistMode = EXIST_OVW;		/* ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ã§åŒã˜åå‰ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒã‚ã‚‹æ™‚ã®æ‰±ã„æ–¹ EXIST_xxx */
+int ExistMode = EXIST_OVW;		/* åŒã˜åå‰ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒã‚ã‚‹æ™‚ã®æ‰±ã„æ–¹ EXIST_xxx */
+static int ExistNotify;		/* ç¢ºèªãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’å‡ºã™ã‹ã©ã†ã‹ YES/NO */
 
-static double FileSize;		/* ƒtƒ@ƒCƒ‹‘—e—Ê */
+static double FileSize;		/* ãƒ•ã‚¡ã‚¤ãƒ«ç·å®¹é‡ */
 
 
 
-/*----- ƒtƒ@ƒCƒ‹ˆê——‚Åw’è‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ğƒ_ƒEƒ“ƒ[ƒh‚·‚é --------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã§æŒ‡å®šã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã™ã‚‹ --------------------
 *
 *	Parameter
-*		int ChName : –¼‘O‚ğ•Ï‚¦‚é‚©‚Ç‚¤‚© (YES/NO)
-*		int ForceFile : ƒfƒBƒŒƒNƒgƒŠ‚ğƒtƒ@ƒCƒ‹Œ©‚È‚·‚©‚Ç‚¤‚© (YES/NO)
-*		int All : ‘S‚Ä‚ª‘I‚Î‚ê‚Ä‚¢‚é•¨‚Æ‚µ‚Äˆµ‚¤‚©‚Ç‚¤‚© (YES/NO)
+*		int ChName : åå‰ã‚’å¤‰ãˆã‚‹ã‹ã©ã†ã‹ (YES/NO)
+*		int ForceFile : ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ãƒ•ã‚¡ã‚¤ãƒ«è¦‹ãªã™ã‹ã©ã†ã‹ (YES/NO)
+*		int All : å…¨ã¦ãŒé¸ã°ã‚Œã¦ã„ã‚‹ç‰©ã¨ã—ã¦æ‰±ã†ã‹ã©ã†ã‹ (YES/NO)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DownLoadProc(int ChName, int ForceFile, int All)
@@ -122,7 +122,7 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 	FILELIST *Pos;
 	TRANSPACKET Pkt;
 
-	if(CheckClosedAndReconnect() == SUCCESS)
+	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
@@ -152,7 +152,7 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 				else if(FnameCnv == FNAME_UPPER)
 					_mbsupr(TmpString);
 				RemoveAfterSemicolon(TmpString);
-				if(RenameUnuseableName(TmpString) == FAIL)
+				if(RenameUnuseableName(TmpString) == FFFTP_FAIL)
 					break;
 			}
 			else
@@ -160,7 +160,7 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 				CurWin = WIN_REMOTE;
 				if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(updown_as_dlg), GetMainHwnd(), UpDownAsDialogCallBack) == YES)
 				{
-					if(RenameUnuseableName(TmpString) == FAIL)
+					if(RenameUnuseableName(TmpString) == FFFTP_FAIL)
 						break;
 				}
 				else
@@ -204,11 +204,11 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 				Pkt.Size = Pos->Size;
 				Pkt.Time = Pos->Time;
 				Pkt.KanjiCode = AskHostKanjiCode();
-				// UTF-8‘Î‰
+				// UTF-8å¯¾å¿œ
 				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 				Pkt.KanaCnv = AskHostKanaCnv();
 
-				Pkt.Mode = CheckLocalFile(&Pkt);	/* Pkt.ExistSize ‚ªƒZƒbƒg‚³‚ê‚é */
+				Pkt.Mode = CheckLocalFile(&Pkt);	/* Pkt.ExistSize ãŒã‚»ãƒƒãƒˆã•ã‚Œã‚‹ */
 				if(Pkt.Mode == EXIST_ABORT)
 					break;
 				else if(Pkt.Mode != EXIST_IGNORE)
@@ -237,20 +237,20 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 }
 
 
-/*----- w’è‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ğˆê‚Âƒ_ƒEƒ“ƒ[ƒh‚·‚é ------------------------------
+/*----- æŒ‡å®šã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä¸€ã¤ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã™ã‚‹ ------------------------------
 *
 *	Parameter
-*		char *Fname : ƒtƒ@ƒCƒ‹–¼
+*		char *Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DirectDownLoadProc(char *Fname)
 {
 	TRANSPACKET Pkt;
 
-	if(CheckClosedAndReconnect() == SUCCESS)
+	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
@@ -275,7 +275,7 @@ void DirectDownLoadProc(char *Fname)
 				_mbsupr(TmpString);
 			RemoveAfterSemicolon(TmpString);
 
-			if(RenameUnuseableName(TmpString) == SUCCESS)
+			if(RenameUnuseableName(TmpString) == FFFTP_SUCCESS)
 			{
 				strcat(Pkt.LocalFile, TmpString);
 				ReplaceAll(Pkt.LocalFile, '/', '\\');
@@ -304,14 +304,14 @@ void DirectDownLoadProc(char *Fname)
 				strcpy(Pkt.Cmd, "RETR-S ");
 				Pkt.Type = AskTransferTypeAssoc(Pkt.RemoteFile, AskTransferType());
 
-				/* ƒTƒCƒY‚Æ“ú•t‚Í“]‘—‘¤ƒXƒŒƒbƒh‚Åæ“¾‚µAƒZƒbƒg‚·‚é */
+				/* ã‚µã‚¤ã‚ºã¨æ—¥ä»˜ã¯è»¢é€å´ã‚¹ãƒ¬ãƒƒãƒ‰ã§å–å¾—ã—ã€ã‚»ãƒƒãƒˆã™ã‚‹ */
 
 				Pkt.KanjiCode = AskHostKanjiCode();
-				// UTF-8‘Î‰
+				// UTF-8å¯¾å¿œ
 				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 				Pkt.KanaCnv = AskHostKanaCnv();
 
-				Pkt.Mode = CheckLocalFile(&Pkt);	/* Pkt.ExistSize ‚ªƒZƒbƒg‚³‚ê‚é */
+				Pkt.Mode = CheckLocalFile(&Pkt);	/* Pkt.ExistSize ãŒã‚»ãƒƒãƒˆã•ã‚Œã‚‹ */
 				if((Pkt.Mode != EXIST_ABORT) && (Pkt.Mode != EXIST_IGNORE))
 					AddTransFileList(&Pkt);
 			}
@@ -336,13 +336,13 @@ void DirectDownLoadProc(char *Fname)
 }
 
 
-/*----- “ü—Í‚³‚ê‚½ƒtƒ@ƒCƒ‹–¼‚Ìƒtƒ@ƒCƒ‹‚ğˆê‚Âƒ_ƒEƒ“ƒ[ƒh‚·‚é ------------------
+/*----- å…¥åŠ›ã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«åã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä¸€ã¤ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã™ã‚‹ ------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void InputDownLoadProc(void)
@@ -364,13 +364,13 @@ void InputDownLoadProc(void)
 }
 
 
-/*----- ƒ~ƒ‰[ƒŠƒ“ƒOƒ_ƒEƒ“ƒ[ƒh‚ğs‚¤ ----------------------------------------
+/*----- ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã‚’è¡Œã† ----------------------------------------
 *
 *	Parameter
-*		int Notify : Šm”F‚ğs‚¤‚©‚Ç‚¤‚© (YES/NO)
+*		int Notify : ç¢ºèªã‚’è¡Œã†ã‹ã©ã†ã‹ (YES/NO)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void MirrorDownloadProc(int Notify)
@@ -386,7 +386,7 @@ void MirrorDownloadProc(int Notify)
 	int Level;
 	int Mode;
 
-	if(CheckClosedAndReconnect() == SUCCESS)
+	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
@@ -399,7 +399,7 @@ void MirrorDownloadProc(int Notify)
 
 		if((Notify == YES) || (Notify == YES_LIST))
 		{
-			/*===== ƒtƒ@ƒCƒ‹ƒŠƒXƒgæ“¾ =====*/
+			/*===== ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆå–å¾— =====*/
 
 			LocalListBase = NULL;
 			MakeSelectedFileList(WIN_LOCAL, YES, YES, &LocalListBase, &CancelFlg);
@@ -409,7 +409,7 @@ void MirrorDownloadProc(int Notify)
 			RemotePos = RemoteListBase;
 			while(RemotePos != NULL)
 			{
-				RemotePos->Attr = YES;		/* RemotePos->Attr‚Í“]‘—‚·‚é‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO‚Ég—p (YES/NO) */
+				RemotePos->Attr = YES;		/* RemotePos->Attrã¯è»¢é€ã™ã‚‹ã‹ã©ã†ã‹ã®ãƒ•ãƒ©ã‚°ã«ä½¿ç”¨ (YES/NO) */
 				RemotePos = RemotePos->Next;
 			}
 
@@ -423,7 +423,7 @@ void MirrorDownloadProc(int Notify)
 				}
 				else
 				{
-					LocalPos->Attr = NO;	/* LocalPos->Attr‚Ííœ‚·‚é‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO‚Ég—p (YES/NO) */
+					LocalPos->Attr = NO;	/* LocalPos->Attrã¯å‰Šé™¤ã™ã‚‹ã‹ã©ã†ã‹ã®ãƒ•ãƒ©ã‚°ã«ä½¿ç”¨ (YES/NO) */
 
 					if(LocalPos->Node == NODE_DIR)
 					{
@@ -445,7 +445,7 @@ void MirrorDownloadProc(int Notify)
 				}
 			}
 
-			/*===== ƒtƒ@ƒCƒ‹ƒŠƒXƒg”äŠr =====*/
+			/*===== ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆæ¯”è¼ƒ =====*/
 
 			RemotePos = RemoteListBase;
 			while(RemotePos != NULL)
@@ -504,7 +504,7 @@ void MirrorDownloadProc(int Notify)
 
 			DispMirrorFiles(LocalListBase, RemoteListBase);
 
-			/*===== íœ^ƒAƒbƒvƒ[ƒh =====*/
+			/*===== å‰Šé™¤ï¼ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ =====*/
 
 			LocalPos = LocalListBase;
 			while(LocalPos != NULL)
@@ -559,7 +559,7 @@ void MirrorDownloadProc(int Notify)
 						Pkt.Time = RemotePos->Time;
 //						Pkt.Attr = 0;
 						Pkt.KanjiCode = AskHostKanjiCode();
-						// UTF-8‘Î‰
+						// UTF-8å¯¾å¿œ
 						Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 						Pkt.KanaCnv = AskHostKanaCnv();
 						Pkt.Mode = EXIST_OVW;
@@ -605,14 +605,14 @@ void MirrorDownloadProc(int Notify)
 }
 
 
-/*----- ƒ~ƒ‰[ƒŠƒ“ƒO‚Ìƒtƒ@ƒCƒ‹ˆê——‚ğ•\¦ --------------------------------------
+/*----- ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°ã®ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚’è¡¨ç¤º --------------------------------------
 *
 *	Parameter
-*		FILELIST *Local : ƒ[ƒJƒ‹‘¤
-*		FILELIST *Remote : ƒŠƒ‚[ƒg‘¤
+*		FILELIST *Local : ãƒ­ãƒ¼ã‚«ãƒ«å´
+*		FILELIST *Remote : ãƒªãƒ¢ãƒ¼ãƒˆå´
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void DispMirrorFiles(FILELIST *Local, FILELIST *Remote)
@@ -648,15 +648,15 @@ static void DispMirrorFiles(FILELIST *Local, FILELIST *Remote)
 }
 
 
-/*----- ƒ~ƒ‰[ƒŠƒ“ƒO‚Ìƒ[ƒJƒ‹‘¤‚ÌƒtƒHƒ‹ƒ_íœ ------------------------------
+/*----- ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°æ™‚ã®ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒ•ã‚©ãƒ«ãƒ€å‰Šé™¤ ------------------------------
 *
 *	Parameter
-*		FILELIST *Local : ƒtƒ@ƒCƒ‹ƒŠƒXƒg
+*		FILELIST *Local : ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆ
 *		TRANSPACKET *Pkt : 
 *		TRANSPACKET **Base : 
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void MirrorDeleteAllLocalDir(FILELIST *Local, TRANSPACKET *Pkt, TRANSPACKET **Base)
@@ -685,17 +685,17 @@ static void MirrorDeleteAllLocalDir(FILELIST *Local, TRANSPACKET *Pkt, TRANSPACK
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹–¼‚ÌƒZƒ~ƒRƒƒ“ˆÈ~‚ğæ‚èœ‚­ ----------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«åã®ã‚»ãƒŸã‚³ãƒ­ãƒ³ä»¥é™ã‚’å–ã‚Šé™¤ã ----------------------------------
 *
 *	Parameter
-*		char *Path : ƒtƒ@ƒCƒ‹–¼
+*		char *Path : ãƒ•ã‚¡ã‚¤ãƒ«å
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *
 *	Note
-*		Path‚Ì“à—e‚ª‘‚«Š·‚¦‚ç‚ê‚é
-*		ƒIƒvƒVƒ‡ƒ“İ’è‚É‚æ‚Á‚Äˆ—‚ğØ‘Ö‚¦‚é
+*		Pathã®å†…å®¹ãŒæ›¸ãæ›ãˆã‚‰ã‚Œã‚‹
+*		ã‚ªãƒ—ã‚·ãƒ§ãƒ³è¨­å®šã«ã‚ˆã£ã¦å‡¦ç†ã‚’åˆ‡æ›¿ãˆã‚‹
 *----------------------------------------------------------------------------*/
 
 static void RemoveAfterSemicolon(char *Path)
@@ -711,17 +711,17 @@ static void RemoveAfterSemicolon(char *Path)
 }
 
 
-/*----- ƒ[ƒJƒ‹‚É“¯‚¶–¼‘O‚Ìƒtƒ@ƒCƒ‹‚ª‚È‚¢‚©ƒ`ƒFƒbƒN --------------------------
+/*----- ãƒ­ãƒ¼ã‚«ãƒ«ã«åŒã˜åå‰ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒãªã„ã‹ãƒã‚§ãƒƒã‚¯ --------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
 *
 *	Return Value
-*		int ˆ—•û–@
+*		int å‡¦ç†æ–¹æ³•
 *			EXIST_OVW/EXIST_RESUME/EXIST_IGNORE
 *
 *	Note
-*		Pkt.ExistSize, ExistModeAExistNotify ‚ª•ÏX‚³‚ê‚é
+*		Pkt.ExistSize, ExistModeã€ExistNotify ãŒå¤‰æ›´ã•ã‚Œã‚‹
 *----------------------------------------------------------------------------*/
 
 static int CheckLocalFile(TRANSPACKET *Pkt)
@@ -753,7 +753,7 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 
 			if(Ret == EXIST_NEW)
 			{
-				/*ƒtƒ@ƒCƒ‹“ú•tƒ`ƒFƒbƒN */
+				/*ãƒ•ã‚¡ã‚¤ãƒ«æ—¥ä»˜ãƒã‚§ãƒƒã‚¯ */
 				if(CompareFileTime(&Find.ftLastWriteTime, &Pkt->Time) < 0)
 					Ret = EXIST_OVW;
 				else
@@ -765,13 +765,13 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 }
 
 
-/*----- ƒ[ƒJƒ‹‚É“¯‚¶–¼‘O‚Ìƒtƒ@ƒCƒ‹‚ª‚ ‚é‚ÌŠm”Fƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒN ----
+/*----- ãƒ­ãƒ¼ã‚«ãƒ«ã«åŒã˜åå‰ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒã‚ã‚‹æ™‚ã®ç¢ºèªãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ----
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -806,7 +806,7 @@ static BOOL CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wP
 			{
 				case IDOK_ALL :
 					ExistNotify = NO;
-					/* ‚±‚±‚É break ‚Í‚È‚¢ */
+					/* ã“ã“ã« break ã¯ãªã„ */
 
 				case IDOK :
 					ExistMode = AskRadioButtonValue(hDlg, DownExistButton, DOWNEXISTBUTTONS);
@@ -833,14 +833,14 @@ static BOOL CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wP
 
 
 
-/*----- ƒtƒ@ƒCƒ‹ˆê——‚Åw’è‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ğƒAƒbƒvƒ[ƒh‚·‚é --------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã§æŒ‡å®šã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ã™ã‚‹ --------------------
 *
 *	Parameter
-*		int ChName : –¼‘O‚ğ•Ï‚¦‚é‚©‚Ç‚¤‚© (YES/NO)
-*		int All : ‘S‚Ä‚ª‘I‚Î‚ê‚Ä‚¢‚é•¨‚Æ‚µ‚Äˆµ‚¤‚©‚Ç‚¤‚© (YES/NO)
+*		int ChName : åå‰ã‚’å¤‰ãˆã‚‹ã‹ã©ã†ã‹ (YES/NO)
+*		int All : å…¨ã¦ãŒé¸ã°ã‚Œã¦ã„ã‚‹ç‰©ã¨ã—ã¦æ‰±ã†ã‹ã©ã†ã‹ (YES/NO)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void UpLoadListProc(int ChName, int All)
@@ -854,16 +854,16 @@ void UpLoadListProc(int ChName, int All)
 	char Tmp[FMAX_PATH+1];
 	int FirstAdd;
 
-	if(CheckClosedAndReconnect() == SUCCESS)
+	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
-		// ƒ[ƒJƒ‹‘¤‚Å‘I‚Î‚ê‚Ä‚¢‚éƒtƒ@ƒCƒ‹‚ğFileListBase‚É“o˜^
+		// ãƒ­ãƒ¼ã‚«ãƒ«å´ã§é¸ã°ã‚Œã¦ã„ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã‚’FileListBaseã«ç™»éŒ²
 		FileListBase = NULL;
 		MakeSelectedFileList(WIN_LOCAL, YES, All, &FileListBase, &CancelFlg);
 
-		// Œ»İƒzƒXƒg‘¤‚Ìƒtƒ@ƒCƒ‹ˆê——‚É•\¦‚³‚ê‚Ä‚¢‚é‚à‚Ì‚ğRemoteList‚É“o˜^
-		// “¯–¼ƒtƒ@ƒCƒ‹ƒ`ƒFƒbƒN—p
+		// ç¾åœ¨ãƒ›ã‚¹ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã«è¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹ã‚‚ã®ã‚’RemoteListã«ç™»éŒ²
+		// åŒåãƒ•ã‚¡ã‚¤ãƒ«ãƒã‚§ãƒƒã‚¯ç”¨
 		RemoteList = NULL;
 		AddRemoteTreeToFileList(AskCurrentFileListNum(), "", RDIR_NONE, &RemoteList);
 
@@ -886,7 +886,7 @@ void UpLoadListProc(int ChName, int All)
 			}
 			else
 			{
-				// –¼‘O‚ğ•ÏX‚·‚é
+				// åå‰ã‚’å¤‰æ›´ã™ã‚‹
 				strcpy(TmpString, Pos->File);
 				CurWin = WIN_LOCAL;
 				if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(updown_as_dlg), GetMainHwnd(), UpDownAsDialogCallBack) == YES)
@@ -910,10 +910,10 @@ void UpLoadListProc(int ChName, int All)
 
 			if(Pos->Node == NODE_DIR)
 			{
-				// ƒtƒHƒ‹ƒ_‚Ìê‡
+				// ãƒ•ã‚©ãƒ«ãƒ€ã®å ´åˆ
 
-				// ƒzƒXƒg‘¤‚Ìƒtƒ@ƒCƒ‹ˆê——‚ğRemoteList‚É“o˜^
-				// “¯–¼ƒtƒ@ƒCƒ‹ƒ`ƒFƒbƒN—p
+				// ãƒ›ã‚¹ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚’RemoteListã«ç™»éŒ²
+				// åŒåãƒ•ã‚¡ã‚¤ãƒ«ãƒã‚§ãƒƒã‚¯ç”¨
 				if(RemoteList != NULL)
 					DeleteFileList(&RemoteList);
 				RemoteList = NULL;
@@ -927,7 +927,7 @@ void UpLoadListProc(int ChName, int All)
 				}
 				else
 				{
-					// ƒtƒHƒ‹ƒ_‚ğì¬
+					// ãƒ•ã‚©ãƒ«ãƒ€ã‚’ä½œæˆ
 					if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
 					{
 						strcpy(Pkt1.Cmd, "SETCUR");
@@ -942,7 +942,7 @@ void UpLoadListProc(int ChName, int All)
 			}
 			else if(Pos->Node == NODE_FILE)
 			{
-				// ƒtƒ@ƒCƒ‹‚Ìê‡
+				// ãƒ•ã‚¡ã‚¤ãƒ«ã®å ´åˆ
 				AskLocalCurDir(Pkt.LocalFile, FMAX_PATH);
 				SetYenTail(Pkt.LocalFile);
 				strcat(Pkt.LocalFile, Pos->File);
@@ -954,7 +954,7 @@ void UpLoadListProc(int ChName, int All)
 				Pkt.Time = Pos->Time;
 				Pkt.Attr = AskUpLoadFileAttr(Pkt.RemoteFile);
 				Pkt.KanjiCode = AskHostKanjiCode();
-				// UTF-8‘Î‰
+				// UTF-8å¯¾å¿œ
 				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 				Pkt.KanaCnv = AskHostKanaCnv();
 				Pkt.Mode = CheckRemoteFile(&Pkt, RemoteList);
@@ -998,13 +998,13 @@ void UpLoadListProc(int ChName, int All)
 }
 
 
-/*----- ƒhƒ‰ƒbƒO•ƒhƒƒbƒv‚Åw’è‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ğƒAƒbƒvƒ[ƒh‚·‚é --------------
+/*----- ãƒ‰ãƒ©ãƒƒã‚°ï¼†ãƒ‰ãƒ­ãƒƒãƒ—ã§æŒ‡å®šã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ã™ã‚‹ --------------
 *
 *	Parameter
-*		WPARAM wParam : ƒhƒƒbƒv‚³‚ê‚½ƒtƒ@ƒCƒ‹‚Ìî•ñ
+*		WPARAM wParam : ãƒ‰ãƒ­ãƒƒãƒ—ã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã®æƒ…å ±
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void UpLoadDragProc(WPARAM wParam)
@@ -1019,16 +1019,16 @@ void UpLoadDragProc(WPARAM wParam)
 	int FirstAdd;
 	char Cur[FMAX_PATH+1];
 
-	if(CheckClosedAndReconnect() == SUCCESS)
+	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
-		// ƒ[ƒJƒ‹‘¤‚Å‘I‚Î‚ê‚Ä‚¢‚éƒtƒ@ƒCƒ‹‚ğFileListBase‚É“o˜^
+		// ãƒ­ãƒ¼ã‚«ãƒ«å´ã§é¸ã°ã‚Œã¦ã„ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã‚’FileListBaseã«ç™»éŒ²
 		FileListBase = NULL;
 		MakeDroppedFileList(wParam, Cur, &FileListBase);
 
-		// Œ»İƒzƒXƒg‘¤‚Ìƒtƒ@ƒCƒ‹ˆê——‚É•\¦‚³‚ê‚Ä‚¢‚é‚à‚Ì‚ğRemoteList‚É“o˜^
-		// “¯–¼ƒtƒ@ƒCƒ‹ƒ`ƒFƒbƒN—p
+		// ç¾åœ¨ãƒ›ã‚¹ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã«è¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹ã‚‚ã®ã‚’RemoteListã«ç™»éŒ²
+		// åŒåãƒ•ã‚¡ã‚¤ãƒ«ãƒã‚§ãƒƒã‚¯ç”¨
 		RemoteList = NULL;
 		AddRemoteTreeToFileList(AskCurrentFileListNum(), "", RDIR_NONE, &RemoteList);
 
@@ -1063,10 +1063,10 @@ void UpLoadDragProc(WPARAM wParam)
 
 			if(Pos->Node == NODE_DIR)
 			{
-				// ƒtƒHƒ‹ƒ_‚Ìê‡
+				// ãƒ•ã‚©ãƒ«ãƒ€ã®å ´åˆ
 
-				// ƒzƒXƒg‘¤‚Ìƒtƒ@ƒCƒ‹ˆê——‚ğRemoteList‚É“o˜^
-				// “¯–¼ƒtƒ@ƒCƒ‹ƒ`ƒFƒbƒN—p
+				// ãƒ›ã‚¹ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚’RemoteListã«ç™»éŒ²
+				// åŒåãƒ•ã‚¡ã‚¤ãƒ«ãƒã‚§ãƒƒã‚¯ç”¨
 				if(RemoteList != NULL)
 					DeleteFileList(&RemoteList);
 				RemoteList = NULL;
@@ -1094,7 +1094,7 @@ void UpLoadDragProc(WPARAM wParam)
 			}
 			else if(Pos->Node == NODE_FILE)
 			{
-				// ƒtƒ@ƒCƒ‹‚Ìê‡
+				// ãƒ•ã‚¡ã‚¤ãƒ«ã®å ´åˆ
 				strcpy(Pkt.LocalFile, Cur);
 				SetYenTail(Pkt.LocalFile);
 				strcat(Pkt.LocalFile, Pos->File);
@@ -1106,7 +1106,7 @@ void UpLoadDragProc(WPARAM wParam)
 				Pkt.Time = Pos->Time;
 				Pkt.Attr = AskUpLoadFileAttr(Pkt.RemoteFile);
 				Pkt.KanjiCode = AskHostKanjiCode();
-				// UTF-8‘Î‰
+				// UTF-8å¯¾å¿œ
 				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 				Pkt.KanaCnv = AskHostKanaCnv();
 				Pkt.Mode = CheckRemoteFile(&Pkt, RemoteList);
@@ -1150,13 +1150,13 @@ void UpLoadDragProc(WPARAM wParam)
 }
 
 
-/*----- ƒ~ƒ‰[ƒŠƒ“ƒOƒAƒbƒvƒ[ƒh‚ğs‚¤ ----------------------------------------
+/*----- ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ã‚’è¡Œã† ----------------------------------------
 *
 *	Parameter
-*		int Notify : Šm”F‚ğs‚¤‚©‚Ç‚¤‚© (YES/NO)
+*		int Notify : ç¢ºèªã‚’è¡Œã†ã‹ã©ã†ã‹ (YES/NO)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void MirrorUploadProc(int Notify)
@@ -1175,7 +1175,7 @@ void MirrorUploadProc(int Notify)
 	FILETIME TmpFtimeL;
 	FILETIME TmpFtimeR;
 
-	if(CheckClosedAndReconnect() == SUCCESS)
+	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
@@ -1188,7 +1188,7 @@ void MirrorUploadProc(int Notify)
 
 		if((Notify == YES) || (Notify == YES_LIST))
 		{
-			/*===== ƒtƒ@ƒCƒ‹ƒŠƒXƒgæ“¾ =====*/
+			/*===== ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆå–å¾— =====*/
 
 			LocalListBase = NULL;
 			MakeSelectedFileList(WIN_LOCAL, YES, YES, &LocalListBase, &CancelFlg);
@@ -1198,7 +1198,7 @@ void MirrorUploadProc(int Notify)
 			LocalPos = LocalListBase;
 			while(LocalPos != NULL)
 			{
-				LocalPos->Attr = YES;		/* LocalPos->Attr‚Í“]‘—‚·‚é‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO‚Ég—p (YES/NO) */
+				LocalPos->Attr = YES;		/* LocalPos->Attrã¯è»¢é€ã™ã‚‹ã‹ã©ã†ã‹ã®ãƒ•ãƒ©ã‚°ã«ä½¿ç”¨ (YES/NO) */
 				LocalPos = LocalPos->Next;
 			}
 
@@ -1212,7 +1212,7 @@ void MirrorUploadProc(int Notify)
 				}
 				else
 				{
-					RemotePos->Attr = NO;	/* RemotePos->Attr‚Ííœ‚·‚é‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO‚Ég—p (YES/NO) */
+					RemotePos->Attr = NO;	/* RemotePos->Attrã¯å‰Šé™¤ã™ã‚‹ã‹ã©ã†ã‹ã®ãƒ•ãƒ©ã‚°ã«ä½¿ç”¨ (YES/NO) */
 
 					if(RemotePos->Node == NODE_DIR)
 					{
@@ -1234,7 +1234,7 @@ void MirrorUploadProc(int Notify)
 				}
 			}
 
-			/*===== ƒtƒ@ƒCƒ‹ƒŠƒXƒg”äŠr =====*/
+			/*===== ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆæ¯”è¼ƒ =====*/
 
 			LocalPos = LocalListBase;
 			while(LocalPos != NULL)
@@ -1321,7 +1321,7 @@ void MirrorUploadProc(int Notify)
 
 			DispMirrorFiles(LocalListBase, RemoteListBase);
 
-			/*===== íœ^ƒAƒbƒvƒ[ƒh =====*/
+			/*===== å‰Šé™¤ï¼ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ =====*/
 
 			RemotePos = RemoteListBase;
 			while(RemotePos != NULL)
@@ -1374,7 +1374,7 @@ void MirrorUploadProc(int Notify)
 						Pkt.Time = LocalPos->Time;
 						Pkt.Attr = AskUpLoadFileAttr(Pkt.RemoteFile);
 						Pkt.KanjiCode = AskHostKanjiCode();
-						// UTF-8‘Î‰
+						// UTF-8å¯¾å¿œ
 						Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 						Pkt.KanaCnv = AskHostKanaCnv();
 						Pkt.Mode = EXIST_OVW;
@@ -1420,15 +1420,15 @@ void MirrorUploadProc(int Notify)
 }
 
 
-/*----- ƒ~ƒ‰[ƒŠƒ“ƒO‚ÌƒzƒXƒg‘¤‚ÌƒtƒHƒ‹ƒ_íœ --------------------------------
+/*----- ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°æ™‚ã®ãƒ›ã‚¹ãƒˆå´ã®ãƒ•ã‚©ãƒ«ãƒ€å‰Šé™¤ --------------------------------
 *
 *	Parameter
-*		FILELIST *Base : ƒtƒ@ƒCƒ‹ƒŠƒXƒg
+*		FILELIST *Base : ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆ
 *		TRANSPACKET *Pkt : 
 *		TRANSPACKET **Base : 
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void MirrorDeleteAllDir(FILELIST *Remote, TRANSPACKET *Pkt, TRANSPACKET **Base)
@@ -1457,13 +1457,13 @@ static void MirrorDeleteAllDir(FILELIST *Remote, TRANSPACKET *Pkt, TRANSPACKET *
 }
 
 
-/*----- ƒ~ƒ‰[ƒŠƒ“ƒOƒAƒbƒvƒ[ƒhŠJnŠm”FƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN --------------
+/*----- ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰é–‹å§‹ç¢ºèªã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ --------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1506,13 +1506,13 @@ static BOOL CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wPara
 }
 
 
-/*----- ƒ~ƒ‰[ƒŠƒ“ƒOƒAƒbƒvƒ[ƒhˆ—“à—eŠm”FƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ----------
+/*----- ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰å‡¦ç†å†…å®¹ç¢ºèªã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ----------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1586,7 +1586,7 @@ static BOOL CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wPa
 						Num = SendDlgItemMessage(hDlg, MIRROR_LIST, LB_GETSELITEMS, Num, (LPARAM)List);
 						for(Num--; Num >= 0; Num--)
 						{
-							if(RemoveTmpTransFileListItem(Base, List[Num]) == SUCCESS)
+							if(RemoveTmpTransFileListItem(Base, List[Num]) == FFFTP_SUCCESS)
 								SendDlgItemMessage(hDlg, MIRROR_LIST, LB_DELETESTRING, List[Num], 0);
 							else
 								MessageBeep(-1);
@@ -1621,14 +1621,14 @@ static BOOL CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wPa
 }
 
 
-/*----- ƒ~ƒ‰[ƒŠƒ“ƒO‚Å“]‘—^íœ‚·‚éƒtƒ@ƒCƒ‹‚Ì”‚ğ”‚¦ƒ_ƒCƒAƒƒO‚É•\¦---------
+/*----- ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°ã§è»¢é€ï¼å‰Šé™¤ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®æ•°ã‚’æ•°ãˆãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã«è¡¨ç¤º---------
 *
 *	Parameter
 *		HWND hWnd : 
 *		TRANSPACKET *Pkt : 
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void CountMirrorFiles(HWND hDlg, TRANSPACKET *Pkt)
@@ -1687,16 +1687,16 @@ static void CountMirrorFiles(HWND hDlg, TRANSPACKET *Pkt)
 
 
 
-/*----- ƒ~ƒ‰[ƒŠƒ“ƒO‚Å“]‘—^íœ‚µ‚È‚¢ƒtƒ@ƒCƒ‹‚©‚Ç‚¤‚©‚ğ•Ô‚· ------------------
+/*----- ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°ã§è»¢é€ï¼å‰Šé™¤ã—ãªã„ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã©ã†ã‹ã‚’è¿”ã™ ------------------
 *
 *	Parameter
-*		char Fname : ƒtƒ@ƒCƒ‹–¼
-*		int Mode : ƒ‚[ƒh
-*			0=“]‘—‚µ‚È‚¢ƒtƒ@ƒCƒ‹, 1=íœ‚µ‚È‚¢ƒtƒ@ƒCƒ‹
+*		char Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
+*		int Mode : ãƒ¢ãƒ¼ãƒ‰
+*			0=è»¢é€ã—ãªã„ãƒ•ã‚¡ã‚¤ãƒ«, 1=å‰Šé™¤ã—ãªã„ãƒ•ã‚¡ã‚¤ãƒ«
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			YES=“]‘—Eíœ‚µ‚È‚¢/NO
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			YES=è»¢é€ãƒ»å‰Šé™¤ã—ãªã„/NO
 *----------------------------------------------------------------------------*/
 
 static int AskMirrorNoTrn(char *Fname, int Mode)
@@ -1714,7 +1714,7 @@ static int AskMirrorNoTrn(char *Fname, int Mode)
 		Fname = GetFileName(Fname);
 		while(*Tbl != NUL)
 		{
-			if(CheckFname(Fname, Tbl) == SUCCESS)
+			if(CheckFname(Fname, Tbl) == FFFTP_SUCCESS)
 			{
 				Ret = YES;
 				break;
@@ -1726,13 +1726,13 @@ static int AskMirrorNoTrn(char *Fname, int Mode)
 }
 
 
-/*----- ƒAƒbƒvƒ[ƒh‚·‚éƒtƒ@ƒCƒ‹‚Ì‘®«‚ğ•Ô‚· ----------------------------------
+/*----- ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®å±æ€§ã‚’è¿”ã™ ----------------------------------
 *
 *	Parameter
-*		char Fname : ƒtƒ@ƒCƒ‹–¼
+*		char Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
 *
 *	Return Value
-*		int ‘®« (-1=İ’è‚È‚µ)
+*		int å±æ€§ (-1=è¨­å®šãªã—)
 *----------------------------------------------------------------------------*/
 
 static int AskUpLoadFileAttr(char *Fname)
@@ -1749,7 +1749,7 @@ static int AskUpLoadFileAttr(char *Fname)
 		Sts = CheckFname(Fname, Tbl);
 		Tbl += strlen(Tbl) + 1;
 
-		if((Sts == SUCCESS) && (*Tbl != NUL))
+		if((Sts == FFFTP_SUCCESS) && (*Tbl != NUL))
 		{
 			Ret = xtoi(Tbl);
 			break;
@@ -1760,18 +1760,18 @@ static int AskUpLoadFileAttr(char *Fname)
 }
 
 
-/*----- ƒzƒXƒg‚É“¯‚¶–¼‘O‚Ìƒtƒ@ƒCƒ‹‚ª‚È‚¢‚©ƒ`ƒFƒbƒN- ---------------------------a
+/*----- ãƒ›ã‚¹ãƒˆã«åŒã˜åå‰ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒãªã„ã‹ãƒã‚§ãƒƒã‚¯- ---------------------------a
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
 *		FILELIST *ListList : 
 *
 *	Return Value
-*		int ˆ—•û–@
+*		int å‡¦ç†æ–¹æ³•
 *			EXIST_OVW/EXIST_UNIQUE/EXIST_IGNORE
 *
 *	Note
-*		Pkt.ExistSize, UpExistModeAExistNotify ‚ª•ÏX‚³‚ê‚é
+*		Pkt.ExistSize, UpExistModeã€ExistNotify ãŒå¤‰æ›´ã•ã‚Œã‚‹
 *----------------------------------------------------------------------------*/
 
 static int CheckRemoteFile(TRANSPACKET *Pkt, FILELIST *ListList)
@@ -1800,7 +1800,7 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, FILELIST *ListList)
 
 			if(Ret == EXIST_NEW)
 			{
-				/*ƒtƒ@ƒCƒ‹“ú•tƒ`ƒFƒbƒN */
+				/*ãƒ•ã‚¡ã‚¤ãƒ«æ—¥ä»˜ãƒã‚§ãƒƒã‚¯ */
 				if(CompareFileTime(&Exist->Time, &Pkt->Time) < 0)
 					Ret = EXIST_OVW;
 				else
@@ -1812,13 +1812,13 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, FILELIST *ListList)
 }
 
 
-/*----- ƒzƒXƒg‚É“¯‚¶–¼‘O‚Ìƒtƒ@ƒCƒ‹‚ª‚ ‚é‚ÌŠm”Fƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒN ------
+/*----- ãƒ›ã‚¹ãƒˆã«åŒã˜åå‰ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒã‚ã‚‹æ™‚ã®ç¢ºèªãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1854,7 +1854,7 @@ static BOOL CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wPar
 			{
 				case IDOK_ALL :
 					ExistNotify = NO;
-					/* ‚±‚±‚É break ‚Í‚È‚¢ */
+					/* ã“ã“ã« break ã¯ãªã„ */
 
 				case IDOK :
 					UpExistMode = AskRadioButtonValue(hDlg, UpExistButton, UPEXISTBUTTONS);
@@ -1878,13 +1878,13 @@ static BOOL CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wPar
 }
 
 
-/*----- ƒAƒbƒvƒ[ƒh^ƒ_ƒEƒ“ƒ[ƒhƒtƒ@ƒCƒ‹–¼“ü—Íƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒN ------
+/*----- ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ï¼ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ãƒ•ã‚¡ã‚¤ãƒ«åå…¥åŠ›ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1923,13 +1923,13 @@ static BOOL CALLBACK UpDownAsDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wPa
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ˆê——‚Åw’è‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ğíœ‚·‚é ----------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã§æŒ‡å®šã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤ã™ã‚‹ ----------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DeleteProc(void)
@@ -1953,7 +1953,7 @@ void DeleteProc(void)
 	else
 	{
 		Win = WIN_REMOTE;
-		if(CheckClosedAndReconnect() == SUCCESS)
+		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 			MakeSelectedFileList(Win, YES, NO, &FileListBase, &CancelFlg);
 		else
 			Sts = NO;
@@ -2003,17 +2003,17 @@ void DeleteProc(void)
 }
 
 
-/*----- ƒTƒuƒfƒBƒŒƒNƒgƒŠˆÈ‰º‚ğ‘S‚Äíœ‚·‚é ------------------------------------
+/*----- ã‚µãƒ–ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªä»¥ä¸‹ã‚’å…¨ã¦å‰Šé™¤ã™ã‚‹ ------------------------------------
 *
 *	Parameter
-*		FILELIST *Dt : íœ‚·‚éƒtƒ@ƒCƒ‹‚ÌƒŠƒXƒg
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô† (WIN_xxx)
-*		int *Sw : ‘€ì•û–@ (YES/NO/YES_ALL/NO_ALL)
-*		int *Flg : ƒtƒ@ƒCƒ‹‚ğíœ‚µ‚½‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO (YES/NO)
-*		char *CurDir : ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ
+*		FILELIST *Dt : å‰Šé™¤ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒªã‚¹ãƒˆ
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxx)
+*		int *Sw : æ“ä½œæ–¹æ³• (YES/NO/YES_ALL/NO_ALL)
+*		int *Flg : ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤ã—ãŸã‹ã©ã†ã‹ã®ãƒ•ãƒ©ã‚° (YES/NO)
+*		char *CurDir : ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void DeleteAllDir(FILELIST *Dt, int Win, int *Sw, int *Flg, char *CurDir)
@@ -2035,17 +2035,17 @@ static void DeleteAllDir(FILELIST *Dt, int Win, int *Sw, int *Flg, char *CurDir)
 }
 
 
-/*----- íœ‚·‚é‚©‚Ç‚¤‚©‚ÌŠm”F‚ÆíœÀs --------------------------------------
+/*----- å‰Šé™¤ã™ã‚‹ã‹ã©ã†ã‹ã®ç¢ºèªã¨å‰Šé™¤å®Ÿè¡Œ --------------------------------------
 *
 *	Parameter
-*		FILELIST *Dt : íœ‚·‚éƒtƒ@ƒCƒ‹‚ÌƒŠƒXƒg
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô† (WIN_xxx)
-*		int *Sw : ‘€ì•û–@ (YES/NO/YES_ALL/NO_ALL)
-*		int *Flg : ƒtƒ@ƒCƒ‹‚ğíœ‚µ‚½‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO (YES/NO)
-*		char *CurDir : ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ
+*		FILELIST *Dt : å‰Šé™¤ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒªã‚¹ãƒˆ
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxx)
+*		int *Sw : æ“ä½œæ–¹æ³• (YES/NO/YES_ALL/NO_ALL)
+*		int *Flg : ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤ã—ãŸã‹ã©ã†ã‹ã®ãƒ•ãƒ©ã‚° (YES/NO)
+*		char *CurDir : ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void DelNotifyAndDo(FILELIST *Dt, int Win, int *Sw, int *Flg, char *CurDir)
@@ -2090,8 +2090,8 @@ static void DelNotifyAndDo(FILELIST *Dt, int Win, int *Sw, int *Flg, char *CurDi
 		}
 		else
 		{
-			/* ƒtƒ‹ƒpƒX‚ğg‚í‚È‚¢‚Ì‚½‚ß‚Ìˆ— */
-			if(ProcForNonFullpath(Path, CurDir, GetMainHwnd(), 0) == FAIL)
+			/* ãƒ•ãƒ«ãƒ‘ã‚¹ã‚’ä½¿ã‚ãªã„æ™‚ã®ãŸã‚ã®å‡¦ç† */
+			if(ProcForNonFullpath(Path, CurDir, GetMainHwnd(), 0) == FFFTP_FAIL)
 				*Sw = NO_ALL;
 
 			if(*Sw != NO_ALL)
@@ -2108,13 +2108,13 @@ static void DelNotifyAndDo(FILELIST *Dt, int Win, int *Sw, int *Flg, char *CurDi
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹íœƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒN ----------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ----------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -2157,13 +2157,13 @@ static BOOL CALLBACK DeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wPara
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ˆê——‚Åw’è‚³‚ê‚½ƒtƒ@ƒCƒ‹‚Ì–¼‘O‚ğ•ÏX‚·‚é ----------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã§æŒ‡å®šã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã®åå‰ã‚’å¤‰æ›´ã™ã‚‹ ----------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void RenameProc(void)
@@ -2175,7 +2175,7 @@ void RenameProc(void)
 	int RenFlg;
 	int Sts;
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if(GetFocus() == GetLocalHwnd())
 		Win = WIN_LOCAL;
 	else
@@ -2184,7 +2184,7 @@ void RenameProc(void)
 		Sts = CheckClosedAndReconnect();
 	}
 
-	if(Sts == SUCCESS)
+	if(Sts == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
@@ -2234,9 +2234,9 @@ void RenameProc(void)
 
 
 //
-// ƒŠƒ‚[ƒg‘¤‚Å‚Ìƒtƒ@ƒCƒ‹‚ÌˆÚ“®iƒŠƒl[ƒ€j‚ğs‚¤
+// ãƒªãƒ¢ãƒ¼ãƒˆå´ã§ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®ç§»å‹•ï¼ˆãƒªãƒãƒ¼ãƒ ï¼‰ã‚’è¡Œã†
 //  
-// RenameProc()‚ğƒx[ƒX‚É‰ü‘¢B(2007.9.5 yutaka)
+// RenameProc()ã‚’ãƒ™ãƒ¼ã‚¹ã«æ”¹é€ ã€‚(2007.9.5 yutaka)
 //
 void MoveRemoteFileProc(int drop_index)
 {
@@ -2257,7 +2257,7 @@ void MoveRemoteFileProc(int drop_index)
 
 	AskRemoteCurDir(HostDir, FMAX_PATH);
 
-	// ƒhƒƒbƒvæ‚ÌƒtƒHƒ‹ƒ_–¼‚ğ“¾‚é
+	// ãƒ‰ãƒ­ãƒƒãƒ—å…ˆã®ãƒ•ã‚©ãƒ«ãƒ€åã‚’å¾—ã‚‹
 	GetNodeName(WIN_REMOTE, drop_index, Pkt.File, FMAX_PATH);
 
 	if(MoveMode == MOVE_DLG)
@@ -2268,7 +2268,7 @@ void MoveRemoteFileProc(int drop_index)
 		}
 	}
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 #if 0
 	if(GetFocus() == GetLocalHwnd())
 		Win = WIN_LOCAL;
@@ -2282,7 +2282,7 @@ void MoveRemoteFileProc(int drop_index)
 		Sts = CheckClosedAndReconnect();
 #endif
 
-	if(Sts == SUCCESS)
+	if(Sts == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
 
@@ -2309,12 +2309,12 @@ void MoveRemoteFileProc(int drop_index)
 
 				if((Sts == YES) && (strlen(TmpString) != 0))
 				{
-					// ƒpƒX‚Ìİ’è(local)
+					// ãƒ‘ã‚¹ã®è¨­å®š(local)
 					strncpy_s(Old, sizeof(Old), HostDir, _TRUNCATE);
 					strncat_s(Old, sizeof(Old), "/", _TRUNCATE);
 					strncat_s(Old, sizeof(Old), Pos->File, _TRUNCATE);
 
-					// ƒpƒX‚Ìİ’è(remote)
+					// ãƒ‘ã‚¹ã®è¨­å®š(remote)
 					strncpy_s(New, sizeof(New), HostDir, _TRUNCATE);
 					strncat_s(New, sizeof(New), "/", _TRUNCATE);
 					strncat_s(New, sizeof(New), Pkt.File, _TRUNCATE);
@@ -2354,13 +2354,13 @@ void MoveRemoteFileProc(int drop_index)
 
 
 
-/*----- Vƒtƒ@ƒCƒ‹–¼“ü—Íƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒN ------------------------------
+/*----- æ–°ãƒ•ã‚¡ã‚¤ãƒ«åå…¥åŠ›ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -2402,13 +2402,13 @@ static BOOL CALLBACK RenameDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wPara
 }
 
 
-/*----- V‚µ‚¢ƒfƒBƒŒƒNƒgƒŠ‚ğì¬‚·‚é ------------------------------------------
+/*----- æ–°ã—ã„ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ä½œæˆã™ã‚‹ ------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void MkdirProc(void)
@@ -2444,7 +2444,7 @@ void MkdirProc(void)
 		}
 		else
 		{
-			if(CheckClosedAndReconnect() == SUCCESS)
+			if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 			{
 				DisableUserOpe();
 				DoMKD(Path);
@@ -2457,13 +2457,13 @@ void MkdirProc(void)
 }
 
 
-/*----- ƒqƒXƒgƒŠƒŠƒXƒg‚ğg‚Á‚½ƒfƒBƒŒƒNƒgƒŠ‚ÌˆÚ“® ------------------------------
+/*----- ãƒ’ã‚¹ãƒˆãƒªãƒªã‚¹ãƒˆã‚’ä½¿ã£ãŸãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ç§»å‹• ------------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒRƒ“ƒ{ƒ{ƒbƒNƒX‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND hWnd : ã‚³ãƒ³ãƒœãƒœãƒƒã‚¯ã‚¹ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void ChangeDirComboProc(HWND hWnd)
@@ -2484,7 +2484,7 @@ void ChangeDirComboProc(HWND hWnd)
 		}
 		else
 		{
-			if(CheckClosedAndReconnect() == SUCCESS)
+			if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 			{
 				DisableUserOpe();
 				if(DoCWD(Tmp, YES, NO, YES) < FTP_RETRY)
@@ -2497,13 +2497,13 @@ void ChangeDirComboProc(HWND hWnd)
 }
 
 
-/*----- ƒuƒbƒNƒ}[ƒN‚ğg‚Á‚½ƒfƒBƒŒƒNƒgƒŠ‚ÌˆÚ“® --------------------------------
+/*----- ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯ã‚’ä½¿ã£ãŸãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ç§»å‹• --------------------------------
 *
 *	Parameter
-*		int MarkID : ƒuƒbƒNƒ}[ƒN‚Ìƒƒjƒ…[ID
+*		int MarkID : ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯ã®ãƒ¡ãƒ‹ãƒ¥ãƒ¼ID
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void ChangeDirBmarkProc(int MarkID)
@@ -2516,14 +2516,14 @@ void ChangeDirBmarkProc(int MarkID)
 	if((Sts == BMARK_TYPE_LOCAL) || (Sts == BMARK_TYPE_BOTH))
 	{
 		DisableUserOpe();
-		if(DoLocalCWD(Local) == SUCCESS)
+		if(DoLocalCWD(Local) == FFFTP_SUCCESS)
 			GetLocalDirForWnd();
 		EnableUserOpe();
 	}
 
 	if((Sts == BMARK_TYPE_REMOTE) || (Sts == BMARK_TYPE_BOTH))
 	{
-		if(CheckClosedAndReconnect() == SUCCESS)
+		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 		{
 			DisableUserOpe();
 			if(DoCWD(Remote, YES, NO, YES) < FTP_RETRY)
@@ -2535,13 +2535,13 @@ void ChangeDirBmarkProc(int MarkID)
 }
 
 
-/*----- ƒfƒBƒŒƒNƒgƒŠ–¼‚ğ“ü—Í‚µ‚ÄƒfƒBƒŒƒNƒgƒŠ‚ÌˆÚ“® ----------------------------
+/*----- ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåã‚’å…¥åŠ›ã—ã¦ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ç§»å‹• ----------------------------
 *
 *	Parameter
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô† (WIN_xxx)
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void ChangeDirDirectProc(int Win)
@@ -2573,7 +2573,7 @@ void ChangeDirDirectProc(int Win)
 		}
 		else
 		{
-			if(CheckClosedAndReconnect() == SUCCESS)
+			if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 			{
 				DisableUserOpe();
 				if(DoCWD(Path, YES, NO, YES) < FTP_RETRY)
@@ -2586,13 +2586,13 @@ void ChangeDirDirectProc(int Win)
 }
 
 
-/*----- Drop‚³‚ê‚½ƒtƒ@ƒCƒ‹‚É‚æ‚éƒfƒBƒŒƒNƒgƒŠ‚ÌˆÚ“® ----------------------------
+/*----- Dropã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã«ã‚ˆã‚‹ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ç§»å‹• ----------------------------
 *
 *	Parameter
-*		WPARAM wParam : ƒhƒƒbƒv‚³‚ê‚½ƒtƒ@ƒCƒ‹‚Ìî•ñ
+*		WPARAM wParam : ãƒ‰ãƒ­ãƒƒãƒ—ã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã®æƒ…å ±
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void ChangeDirDropFileProc(WPARAM wParam)
@@ -2608,13 +2608,13 @@ void ChangeDirDropFileProc(WPARAM wParam)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹‚Ì‘®«•ÏX ----------------------------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ã®å±æ€§å¤‰æ›´ ----------------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void ChmodProc(void)
@@ -2629,7 +2629,7 @@ void ChmodProc(void)
 
 	if(GetFocus() == GetRemoteHwnd())
 	{
-		if(CheckClosedAndReconnect() == SUCCESS)
+		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 		{
 			DisableUserOpe();
 			FileListBase = NULL;
@@ -2693,13 +2693,13 @@ void ChmodProc(void)
 }
 
 
-/*----- ‘®«•ÏXƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒN --------------------------------------
+/*----- å±æ€§å¤‰æ›´ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ --------------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -2756,14 +2756,14 @@ BOOL CALLBACK ChmodDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARA
 }
 
 
-/*----- ‘®«‚ğƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX‚Éİ’è ----------------------------------------
+/*----- å±æ€§ã‚’ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹ã«è¨­å®š ----------------------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		int Attr : ‘®«
+*		HWND hWnd : ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		int Attr : å±æ€§
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void SetAttrToDialog(HWND hDlg, int Attr)
@@ -2793,13 +2793,13 @@ static void SetAttrToDialog(HWND hDlg, int Attr)
 }
 
 
-/*----- ƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX‚Ì“à—e‚©‚ç‘®«‚ğæ“¾ --------------------------------
+/*----- ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹ã®å†…å®¹ã‹ã‚‰å±æ€§ã‚’å–å¾— --------------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND hWnd : ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *
 *	Return Value
-*		int ‘®«
+*		int å±æ€§
 *----------------------------------------------------------------------------*/
 
 static int GetAttrFromDialog(HWND hDlg)
@@ -2835,13 +2835,13 @@ static int GetAttrFromDialog(HWND hDlg)
 
 
 
-/*----- ”CˆÓ‚ÌƒRƒ}ƒ“ƒh‚ğ‘—‚é --------------------------------------------------
+/*----- ä»»æ„ã®ã‚³ãƒãƒ³ãƒ‰ã‚’é€ã‚‹ --------------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SomeCmdProc(void)
@@ -2852,7 +2852,7 @@ void SomeCmdProc(void)
 
 	if(GetFocus() == GetRemoteHwnd())
 	{
-		if(CheckClosedAndReconnect() == SUCCESS)
+		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 		{
 			DisableUserOpe();
 			FileListBase = NULL;
@@ -2877,13 +2877,13 @@ void SomeCmdProc(void)
 
 
 
-/*----- ƒtƒ@ƒCƒ‹‘—e—Ê‚ÌŒvZ‚ğs‚¤ --------------------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ç·å®¹é‡ã®è¨ˆç®—ã‚’è¡Œã† --------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void CalcFileSizeProc(void)
@@ -2896,7 +2896,7 @@ void CalcFileSizeProc(void)
 
 	if((All = DialogBox(GetFtpInst(), MAKEINTRESOURCE(filesize_notify_dlg), GetMainHwnd(), SizeNotifyDlgWndProc)) != NO_ALL)
 	{
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 		if(GetFocus() == GetLocalHwnd())
 			Win = WIN_LOCAL;
 		else
@@ -2905,7 +2905,7 @@ void CalcFileSizeProc(void)
 			Sts = CheckClosedAndReconnect();
 		}
 
-		if(Sts == SUCCESS)
+		if(Sts == FFFTP_SUCCESS)
 		{
 			ListBase = NULL;
 			MakeSelectedFileList(Win, YES, All, &ListBase, &CancelFlg);
@@ -2926,16 +2926,16 @@ void CalcFileSizeProc(void)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹—e—ÊŒŸõŠm”Fƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒN --------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«å®¹é‡æ¤œç´¢ç¢ºèªãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ --------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message  : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message  : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
-*		ƒƒbƒZ[ƒW‚É‘Î‰‚·‚é–ß‚è’l
+*		ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã«å¯¾å¿œã™ã‚‹æˆ»ã‚Šå€¤
 *----------------------------------------------------------------------------*/
 
 static LRESULT CALLBACK SizeNotifyDlgWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -2969,16 +2969,16 @@ static LRESULT CALLBACK SizeNotifyDlgWndProc(HWND hDlg, UINT message, WPARAM wPa
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹—e—ÊŒŸõƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒN ------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«å®¹é‡æ¤œç´¢ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message  : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message  : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
-*		ƒƒbƒZ[ƒW‚É‘Î‰‚·‚é–ß‚è’l
+*		ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã«å¯¾å¿œã™ã‚‹æˆ»ã‚Šå€¤
 *----------------------------------------------------------------------------*/
 
 static LRESULT CALLBACK SizeDlgWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -3012,13 +3012,13 @@ static LRESULT CALLBACK SizeDlgWndProc(HWND hDlg, UINT message, WPARAM wParam, L
 }
 
 
-/*----- ƒfƒBƒŒƒNƒgƒŠˆÚ“®¸”s‚ÌƒGƒ‰[‚ğ•\¦ ----------------------------------
+/*----- ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªç§»å‹•å¤±æ•—æ™‚ã®ã‚¨ãƒ©ãƒ¼ã‚’è¡¨ç¤º ----------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DispCWDerror(HWND hWnd)
@@ -3028,13 +3028,13 @@ void DispCWDerror(HWND hWnd)
 }
 
 
-/*----- URL‚ğƒNƒŠƒbƒvƒ{[ƒh‚ÉƒRƒs[ -------------------------------------------
+/*----- URLã‚’ã‚¯ãƒªãƒƒãƒ—ãƒœãƒ¼ãƒ‰ã«ã‚³ãƒ”ãƒ¼ -------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void CopyURLtoClipBoard(void)
@@ -3072,7 +3072,7 @@ void CopyURLtoClipBoard(void)
 					sprintf(Port, ":%d", AskHostPort());
 
 				Set = Total;
-				Total += strlen(Path) + strlen(Host) + strlen(Port) + 8;	/* 8‚Í "ftp://\r\n" ‚Ì‚Ô‚ñ */
+				Total += strlen(Path) + strlen(Host) + strlen(Port) + 8;	/* 8ã¯ "ftp://\r\n" ã®ã¶ã‚“ */
 				if(AskHostType() == HTYPE_VMS)
 					Total++;
 
@@ -3099,22 +3099,22 @@ void CopyURLtoClipBoard(void)
 }
 
 
-/*----- ƒtƒ‹ƒpƒX‚ğg‚í‚È‚¢ƒtƒ@ƒCƒ‹ƒAƒNƒZƒX‚Ì€”õ ------------------------------
+/*----- ãƒ•ãƒ«ãƒ‘ã‚¹ã‚’ä½¿ã‚ãªã„ãƒ•ã‚¡ã‚¤ãƒ«ã‚¢ã‚¯ã‚»ã‚¹ã®æº–å‚™ ------------------------------
 *
 *	Parameter
-*		char *Path : ƒpƒX–¼
-*		char *CurDir : ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ
-*		HWND hWnd : ƒGƒ‰[ƒEƒCƒ“ƒhƒE‚ğ•\¦‚·‚éÛ‚ÌeƒEƒCƒ“ƒhƒE
-*		int Type : g—p‚·‚éƒ\ƒPƒbƒg‚Ìí—Ş
-*			0=ƒRƒ}ƒ“ƒhƒ\ƒPƒbƒg, 1=“]‘—ƒ\ƒPƒbƒg
+*		char *Path : ãƒ‘ã‚¹å
+*		char *CurDir : ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
+*		HWND hWnd : ã‚¨ãƒ©ãƒ¼ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚’è¡¨ç¤ºã™ã‚‹éš›ã®è¦ªã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦
+*		int Type : ä½¿ç”¨ã™ã‚‹ã‚½ã‚±ãƒƒãƒˆã®ç¨®é¡
+*			0=ã‚³ãƒãƒ³ãƒ‰ã‚½ã‚±ãƒƒãƒˆ, 1=è»¢é€ã‚½ã‚±ãƒƒãƒˆ
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX(SUCCESS/FAIL)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹(FFFTP_SUCCESS/FFFTP_FAIL)
 *
 *	Note
-*		ƒtƒ‹ƒpƒX‚ğg‚í‚È‚¢‚ÍA
-*			‚±‚Ìƒ‚ƒWƒ…[ƒ‹“à‚Å CWD ‚ğs‚È‚¢A
-*			Path ‚Éƒtƒ@ƒCƒ‹–¼‚Ì‚İc‚·BiƒpƒX–¼‚ÍÁ‚·j
+*		ãƒ•ãƒ«ãƒ‘ã‚¹ã‚’ä½¿ã‚ãªã„æ™‚ã¯ã€
+*			ã“ã®ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«å†…ã§ CWD ã‚’è¡Œãªã„ã€
+*			Path ã«ãƒ•ã‚¡ã‚¤ãƒ«åã®ã¿æ®‹ã™ã€‚ï¼ˆãƒ‘ã‚¹åã¯æ¶ˆã™ï¼‰
 *----------------------------------------------------------------------------*/
 
 int ProcForNonFullpath(char *Path, char *CurDir, HWND hWnd, int Type)
@@ -3123,7 +3123,7 @@ int ProcForNonFullpath(char *Path, char *CurDir, HWND hWnd, int Type)
 	int Cmd;
 	char Tmp[FMAX_PATH+1];
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if(AskNoFullPathMode() == YES)
 	{
 		strcpy(Tmp, Path);
@@ -3147,7 +3147,7 @@ int ProcForNonFullpath(char *Path, char *CurDir, HWND hWnd, int Type)
 			if(Cmd/100 != FTP_COMPLETE)
 			{
 				DispCWDerror(hWnd);
-				Sts = FAIL;
+				Sts = FFFTP_FAIL;
 			}
 			else
 				strcpy(CurDir, Tmp);
@@ -3158,13 +3158,13 @@ int ProcForNonFullpath(char *Path, char *CurDir, HWND hWnd, int Type)
 }
 
 
-/*----- ƒfƒBƒŒƒNƒgƒŠ–¼‚ğVAX VMSƒXƒ^ƒCƒ‹‚É•ÏŠ·‚·‚é -----------------------------
+/*----- ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåã‚’VAX VMSã‚¹ã‚¿ã‚¤ãƒ«ã«å¤‰æ›ã™ã‚‹ -----------------------------
 *
 *	Parameter
-*		char *Path : ƒpƒX–¼
+*		char *Path : ãƒ‘ã‚¹å
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *
 *	Note
 *		ddd:[xxx.yyy]/rrr/ppp  --> ddd:[xxx.yyy.rrr.ppp]
@@ -3194,13 +3194,13 @@ void ReformToVMSstyleDirName(char *Path)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹–¼‚ğVAX VMSƒXƒ^ƒCƒ‹‚É•ÏŠ·‚·‚é ---------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«åã‚’VAX VMSã‚¹ã‚¿ã‚¤ãƒ«ã«å¤‰æ›ã™ã‚‹ ---------------------------------
 *
 *	Parameter
-*		char *Path : ƒpƒX–¼
+*		char *Path : ãƒ‘ã‚¹å
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *
 *	Note
 *		ddd:[xxx.yyy]/rrr/ppp  --> ddd:[xxx.yyy.rrr]ppp
@@ -3222,17 +3222,17 @@ void ReformToVMSstylePathName(char *Path)
 
 
 #if defined(HAVE_OPENVMS)
-/*----- VMS‚Ì"HOGE.DIR;?"‚Æ‚¢‚¤ƒfƒBƒŒƒNƒgƒŠ–¼‚©‚ç"HOGE"‚ğæ‚èo‚· ---------------
+/*----- VMSã®"HOGE.DIR;?"ã¨ã„ã†ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåã‹ã‚‰"HOGE"ã‚’å–ã‚Šå‡ºã™ ---------------
 *
 *	Parameter
-*		char *DirName : "HOGE.DIR;?"Œ`®‚ÌƒfƒBƒŒƒNƒgƒŠ–¼
-*		int Flg       : ";"‚Ìƒ`ƒFƒbƒN‚ğ‚·‚é(TRUE)‚©‚µ‚È‚¢(FALSE)‚©
+*		char *DirName : "HOGE.DIR;?"å½¢å¼ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå
+*		int Flg       : ";"ã®ãƒã‚§ãƒƒã‚¯ã‚’ã™ã‚‹(TRUE)ã‹ã—ãªã„(FALSE)ã‹
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *
 *	Note
-*		DirName‚ğ’¼Ú‘‚«‚©‚¦‚é
+*		DirNameã‚’ç›´æ¥æ›¸ãã‹ãˆã‚‹
 *----------------------------------------------------------------------------*/
 
 void ReformVMSDirName(char *DirName, int Flg)
@@ -3240,12 +3240,12 @@ void ReformVMSDirName(char *DirName, int Flg)
 	char *p;
 
 	if (Flg == TRUE) {
-		/* ';'‚ª‚È‚¢ê‡‚ÍVMSŒ`®‚¶‚á‚È‚³‚»‚¤‚È‚Ì‚Å‰½‚à‚µ‚È‚¢ */
+		/* ';'ãŒãªã„å ´åˆã¯VMSå½¢å¼ã˜ã‚ƒãªã•ãã†ãªã®ã§ä½•ã‚‚ã—ãªã„ */
 		if ((p = strrchr(DirName, ';')) == NULL)
 			return;
 	}
 
-	/* ".DIR"‚ª‚ ‚Á‚½‚ç‚Â‚Ô‚· */
+	/* ".DIR"ãŒã‚ã£ãŸã‚‰ã¤ã¶ã™ */
 	if ((p = strrchr(DirName, '.'))) {
 		if (memcmp(p + 1, "DIR", 3) == 0)
 			*p = '\0';
@@ -3254,17 +3254,17 @@ void ReformVMSDirName(char *DirName, int Flg)
 #endif
 
 
-/*----- ƒtƒ@ƒCƒ‹–¼‚Ég‚¦‚È‚¢•¶š‚ª‚È‚¢‚©ƒ`ƒFƒbƒN‚µ–¼‘O‚ğ•ÏX‚·‚é --------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«åã«ä½¿ãˆãªã„æ–‡å­—ãŒãªã„ã‹ãƒã‚§ãƒƒã‚¯ã—åå‰ã‚’å¤‰æ›´ã™ã‚‹ --------------
 *
 *	Parameter
-*		char *Fname : ƒtƒ@ƒCƒ‹–¼
+*		char *Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL=’†~‚·‚é
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL=ä¸­æ­¢ã™ã‚‹
 *
 *	Note
-*		Fname‚ğ’¼Ú‘‚«‚©‚¦‚é
+*		Fnameã‚’ç›´æ¥æ›¸ãã‹ãˆã‚‹
 *----------------------------------------------------------------------------*/
 
 static int RenameUnuseableName(char *Fname)
@@ -3272,7 +3272,7 @@ static int RenameUnuseableName(char *Fname)
 	int Tmp;
 	int Ret;
 
-	Ret = SUCCESS;
+	Ret = FFFTP_SUCCESS;
 	while(1)
 	{
 		if((_mbschr(Fname, ':') != NULL) ||
@@ -3286,7 +3286,7 @@ static int RenameUnuseableName(char *Fname)
 		{
 			if(InputDialogBox(forcerename_dlg, GetMainHwnd(), NULL, Fname, FMAX_PATH+1, &Tmp, IDH_HELP_TOPIC_0000001) == NO)
 			{
-				Ret = FAIL;
+				Ret = FFFTP_FAIL;
 				break;
 			}
 		}

@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*								ƒzƒXƒg‚Ö‚ÌÚ‘±^Ø’f
+*								ãƒ›ã‚¹ãƒˆã¸ã®æ¥ç¶šï¼åˆ‡æ–­
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -45,12 +45,12 @@
 #include <htmlhelp.h>
 #include "helpid.h"
 
-// UTF-8‘Î‰
+// UTF-8å¯¾å¿œ
 #undef __MBSWRAPPER_H__
 #include "mbswrapper.h"
 
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static BOOL CALLBACK QuickConDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static int SendInitCommand(char *Cmd);
@@ -66,13 +66,13 @@ static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet);
 static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet);
 static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork);
 
-/*===== ŠO•”QÆ =====*/
+/*===== å¤–éƒ¨å‚ç…§ =====*/
 
 extern char FilterStr[FILTER_EXT_LEN+1];
 extern char TitleHostName[HOST_ADRS_LEN+1];
 extern int CancelFlg;
 
-/* İ’è’l */
+/* è¨­å®šå€¤ */
 extern char UserMailAdrs[USER_MAIL_LEN+1];
 extern char FwallHost[HOST_ADRS_LEN+1];
 extern char FwallUser[USER_NAME_LEN+1];
@@ -87,7 +87,7 @@ extern int FwallDelimiter;
 extern int PasvDefault;
 extern int QuickAnonymous;
 
-/*===== ƒ[ƒJƒ‹‚Èƒ[ƒN =====*/
+/*===== ãƒ­ãƒ¼ã‚«ãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
 static int Anonymous;
 static int TryConnect = NO;
@@ -95,10 +95,10 @@ static SOCKET CmdCtrlSocket = INVALID_SOCKET;
 static SOCKET TrnCtrlSocket = INVALID_SOCKET;
 static HOSTDATA CurHost;
 
-/* Ú‘±’†‚ÌÚ‘±æASOCKSƒT[ƒo‚ÌƒAƒhƒŒƒXî•ñ‚ğ•Û‘¶‚µ‚Ä‚¨‚­ */
-/* ‚±‚Ìî•ñ‚Ílistenƒ\ƒPƒbƒg‚ğæ“¾‚·‚éÛ‚É—p‚¢‚é */
-static struct sockaddr_in SocksSockAddr;	/* SOCKSƒT[ƒo‚ÌƒAƒhƒŒƒXî•ñ */
-static struct sockaddr_in CurSockAddr;		/* Ú‘±æƒzƒXƒg‚ÌƒAƒhƒŒƒXî•ñ */
+/* æ¥ç¶šä¸­ã®æ¥ç¶šå…ˆã€SOCKSã‚µãƒ¼ãƒã®ã‚¢ãƒ‰ãƒ¬ã‚¹æƒ…å ±ã‚’ä¿å­˜ã—ã¦ãŠã */
+/* ã“ã®æƒ…å ±ã¯listenã‚½ã‚±ãƒƒãƒˆã‚’å–å¾—ã™ã‚‹éš›ã«ç”¨ã„ã‚‹ */
+static struct sockaddr_in SocksSockAddr;	/* SOCKSã‚µãƒ¼ãƒã®ã‚¢ãƒ‰ãƒ¬ã‚¹æƒ…å ± */
+static struct sockaddr_in CurSockAddr;		/* æ¥ç¶šå…ˆãƒ›ã‚¹ãƒˆã®ã‚¢ãƒ‰ãƒ¬ã‚¹æƒ…å ± */
 
 static int UseIPadrs;
 static char DomainName[HOST_ADRS_LEN+1];
@@ -106,14 +106,14 @@ static char DomainName[HOST_ADRS_LEN+1];
 
 
 
-/*----- ƒzƒXƒgˆê——‚ğg‚Á‚ÄƒzƒXƒg‚ÖÚ‘± ----------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆä¸€è¦§ã‚’ä½¿ã£ã¦ãƒ›ã‚¹ãƒˆã¸æ¥ç¶š ----------------------------------------
 *
 *	Parameter
-*		int Type : ƒ_ƒCƒAƒƒO‚Ìƒ^ƒCƒv (DLG_TYPE_xxx)
-*		int Num : Ú‘±‚·‚éƒzƒXƒg”Ô†(0`, -1=ƒ_ƒCƒAƒƒO‚ğo‚·)
+*		int Type : ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚¿ã‚¤ãƒ— (DLG_TYPE_xxx)
+*		int Num : æ¥ç¶šã™ã‚‹ãƒ›ã‚¹ãƒˆç•ªå·(0ï½, -1=ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’å‡ºã™)
 
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void ConnectProc(int Type, int Num)
@@ -132,7 +132,7 @@ void ConnectProc(int Type, int Num)
 		if(Num >= 0)
 			SetCurrentHost(Num);
 
-		/* Ú‘±’†‚È‚çØ’f‚·‚é */
+		/* æ¥ç¶šä¸­ãªã‚‰åˆ‡æ–­ã™ã‚‹ */
 		if(CmdCtrlSocket != INVALID_SOCKET)
 			DisconnectProc();
 
@@ -141,7 +141,7 @@ void ConnectProc(int Type, int Num)
 		InitPWDcommand();
 		CopyHostFromList(AskCurrentHost(), &CurHost);
 
-		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == SUCCESS)
+		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == FFFTP_SUCCESS)
 		{
 			SetHostKanaCnvImm(CurHost.KanaCnv);
 			SetHostKanjiCodeImm(CurHost.KanjiCode);
@@ -193,13 +193,13 @@ void ConnectProc(int Type, int Num)
 }
 
 
-/*----- ƒzƒXƒg–¼‚ğ“ü—Í‚µ‚ÄƒzƒXƒg‚ÖÚ‘± ----------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆåã‚’å…¥åŠ›ã—ã¦ãƒ›ã‚¹ãƒˆã¸æ¥ç¶š ----------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void QuickConnectProc(void)
@@ -212,7 +212,7 @@ void QuickConnectProc(void)
 
 	if(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(hostname_dlg), GetMainHwnd(), QuickConDialogCallBack, (LPARAM)Tmp) == YES)
 	{
-		/* Ú‘±’†‚È‚çØ’f‚·‚é */
+		/* æ¥ç¶šä¸­ãªã‚‰åˆ‡æ–­ã™ã‚‹ */
 		if(CmdCtrlSocket != INVALID_SOCKET)
 			DisconnectProc();
 
@@ -220,7 +220,7 @@ void QuickConnectProc(void)
 
 		InitPWDcommand();
 		CopyDefaultHost(&CurHost);
-		if(SplitUNCpath(Tmp, CurHost.HostAdrs, CurHost.RemoteInitDir, File, CurHost.UserName, CurHost.PassWord, &CurHost.Port) == SUCCESS)
+		if(SplitUNCpath(Tmp, CurHost.HostAdrs, CurHost.RemoteInitDir, File, CurHost.UserName, CurHost.PassWord, &CurHost.Port) == FFFTP_SUCCESS)
 		{
 			if(strlen(CurHost.UserName) == 0)
 			{
@@ -267,13 +267,13 @@ void QuickConnectProc(void)
 }
 
 
-/*----- ƒNƒCƒbƒNÚ‘±ƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒN ----------------------------------
+/*----- ã‚¯ã‚¤ãƒƒã‚¯æ¥ç¶šãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ----------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -308,7 +308,7 @@ static BOOL CALLBACK QuickConDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wPa
 			SendDlgItemMessage(hDlg, QHOST_PASV, BM_SETCHECK, PasvDefault, 0);
 			for(i = 0; i < HISTORY_MAX; i++)
 			{
-				if(GetHistoryByNum(i, &Tmp) == SUCCESS)
+				if(GetHistoryByNum(i, &Tmp) == FFFTP_SUCCESS)
 				{
 //sprintf(Str, "%s (%s) %s", Tmp.HostAdrs, Tmp.UserName, Tmp.RemoteInitDir);
 //SendDlgItemMessage(hDlg, QHOST_HOST, CB_ADDSTRING, 0, (LPARAM)Str);
@@ -345,17 +345,17 @@ static BOOL CALLBACK QuickConDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wPa
 }
 
 
-/*----- w’è‚µ‚½ƒzƒXƒg–¼‚ÅƒzƒXƒg‚ÖÚ‘± ----------------------------------------
+/*----- æŒ‡å®šã—ãŸãƒ›ã‚¹ãƒˆåã§ãƒ›ã‚¹ãƒˆã¸æ¥ç¶š ----------------------------------------
 *
 *	Parameter
-*		char *unc : UNC•¶š—ñ
-*		int Kanji : ƒzƒXƒg‚ÌŠ¿šƒR[ƒh (KANJI_xxx)
-*		int Kana : ”¼Šp‚©‚È¨‘SŠp•ÏŠ·ƒ‚[ƒh (YES/NO)
-*		int Fkanji : ƒtƒ@ƒCƒ‹–¼‚ÌŠ¿šƒR[ƒh (KANJI_xxx)
-*		int TrMode : “]‘—ƒ‚[ƒh (TYPE_xx)
+*		char *unc : UNCæ–‡å­—åˆ—
+*		int Kanji : ãƒ›ã‚¹ãƒˆã®æ¼¢å­—ã‚³ãƒ¼ãƒ‰ (KANJI_xxx)
+*		int Kana : åŠè§’ã‹ãªâ†’å…¨è§’å¤‰æ›ãƒ¢ãƒ¼ãƒ‰ (YES/NO)
+*		int Fkanji : ãƒ•ã‚¡ã‚¤ãƒ«åã®æ¼¢å­—ã‚³ãƒ¼ãƒ‰ (KANJI_xxx)
+*		int TrMode : è»¢é€ãƒ¢ãƒ¼ãƒ‰ (TYPE_xx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
@@ -370,14 +370,14 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 	SaveBookMark();
 	SaveCurrentSetToHost();
 
-	/* Ú‘±’†‚È‚çØ’f‚·‚é */
+	/* æ¥ç¶šä¸­ãªã‚‰åˆ‡æ–­ã™ã‚‹ */
 	if(CmdCtrlSocket != INVALID_SOCKET)
 		DisconnectProc();
 
 	SetTaskMsg("----------------------------");
 
 	InitPWDcommand();
-	if(SplitUNCpath(unc, Host, Path, File, User, Pass, &Port) == SUCCESS)
+	if(SplitUNCpath(unc, Host, Path, File, User, Pass, &Port) == FFFTP_SUCCESS)
 	{
 		if(strlen(User) == 0)
 		{
@@ -397,7 +397,7 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 		CurHost.KanjiCode = Kanji;
 		CurHost.KanaCnv = Kana;
 		CurHost.NameKanjiCode = Fkanji;
-		CurHost.KanaCnv = YES;			/* ‚Æ‚è‚ ‚¦‚¸ */
+		CurHost.KanaCnv = YES;			/* ã¨ã‚Šã‚ãˆãš */
 
 		SetHostKanaCnvImm(CurHost.KanaCnv);
 		SetHostKanjiCodeImm(CurHost.KanjiCode);
@@ -440,13 +440,13 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 }
 
 
-/*----- ƒzƒXƒg‚ÌƒqƒXƒgƒŠ‚Åw’è‚³‚ê‚½ƒzƒXƒg‚ÖÚ‘± ------------------------------
+/*----- ãƒ›ã‚¹ãƒˆã®ãƒ’ã‚¹ãƒˆãƒªã§æŒ‡å®šã•ã‚ŒãŸãƒ›ã‚¹ãƒˆã¸æ¥ç¶š ------------------------------
 *
 *	Parameter
-*		int MenuCmd : æ‚èo‚·ƒqƒXƒgƒŠ‚ÉŠ„‚è“–‚Ä‚ç‚ê‚½ƒƒjƒ…[ƒRƒ}ƒ“ƒh
+*		int MenuCmd : å–ã‚Šå‡ºã™ãƒ’ã‚¹ãƒˆãƒªã«å‰²ã‚Šå½“ã¦ã‚‰ã‚ŒãŸãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚³ãƒãƒ³ãƒ‰
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void HistoryConnectProc(int MenuCmd)
@@ -457,12 +457,12 @@ void HistoryConnectProc(int MenuCmd)
 	int RFSort;
 	int RDSort;
 
-	if(GetHistoryByCmd(MenuCmd, &Hist) == SUCCESS)
+	if(GetHistoryByCmd(MenuCmd, &Hist) == FFFTP_SUCCESS)
 	{
 		SaveBookMark();
 		SaveCurrentSetToHost();
 
-		/* Ú‘±’†‚È‚çØ’f‚·‚é */
+		/* æ¥ç¶šä¸­ãªã‚‰åˆ‡æ–­ã™ã‚‹ */
 		if(CmdCtrlSocket != INVALID_SOCKET)
 			DisconnectProc();
 
@@ -471,7 +471,7 @@ void HistoryConnectProc(int MenuCmd)
 		InitPWDcommand();
 		CopyHistoryToHost(&Hist, &CurHost);
 
-		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == SUCCESS)
+		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == FFFTP_SUCCESS)
 		{
 			SetCurrentHost(HOSTNUM_NOENTRY);
 			SetHostKanaCnvImm(CurHost.KanaCnv);
@@ -520,16 +520,16 @@ void HistoryConnectProc(int MenuCmd)
 }
 
 
-/*----- ƒzƒXƒg‚Ì‰Šú‰»ƒRƒ}ƒ“ƒh‚ğ‘—‚é ------------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆã®åˆæœŸåŒ–ã‚³ãƒãƒ³ãƒ‰ã‚’é€ã‚‹ ------------------------------------------
 *
 *	Parameter
-*		int Cmd : ‰Šú‰»ƒRƒ}ƒ“ƒhƒX
+*		int Cmd : åˆæœŸåŒ–ã‚³ãƒãƒ³ãƒ‰ã‚¹
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *
 *	NOte
-*		‰Šú‰»ƒRƒ}ƒ“ƒh‚ÍˆÈ‰º‚Ì‚æ‚¤‚ÈƒtƒH[ƒ}ƒbƒg‚Å‚ ‚é‚±‚Æ
+*		åˆæœŸåŒ–ã‚³ãƒãƒ³ãƒ‰ã¯ä»¥ä¸‹ã®ã‚ˆã†ãªãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã§ã‚ã‚‹ã“ã¨
 *			cmd1\0
 *			cmd1\r\ncmd2\r\n\0
 *----------------------------------------------------------------------------*/
@@ -556,16 +556,16 @@ static int SendInitCommand(char *Cmd)
 }
 
 
-/*----- w’è‚ÌƒzƒXƒg‚ÍFireWall‚ğg‚¤İ’è‚©‚Ç‚¤‚©‚ğ•Ô‚· ------------------------
+/*----- æŒ‡å®šã®ãƒ›ã‚¹ãƒˆã¯FireWallã‚’ä½¿ã†è¨­å®šã‹ã©ã†ã‹ã‚’è¿”ã™ ------------------------
 *
 *	Parameter
-*		char *Hots : ƒzƒXƒg–¼
-*		int *Fire : FireWall‚ğg‚¤‚©‚Ç‚¤‚©‚ğ•Ô‚·ƒ[ƒN
-*		int *Pasv : PASVƒ‚[ƒh‚ğ•Ô‚·ƒ[ƒN
-*		int *List : LISTƒRƒ}ƒ“ƒh‚Ì‚İg—pƒtƒ‰ƒO
+*		char *Hots : ãƒ›ã‚¹ãƒˆå
+*		int *Fire : FireWallã‚’ä½¿ã†ã‹ã©ã†ã‹ã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
+*		int *Pasv : PASVãƒ¢ãƒ¼ãƒ‰ã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
+*		int *List : LISTã‚³ãƒãƒ³ãƒ‰ã®ã¿ä½¿ç”¨ãƒ•ãƒ©ã‚°
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void AskUseFireWall(char *Host, int *Fire, int *Pasv, int *List)
@@ -578,7 +578,7 @@ static void AskUseFireWall(char *Host, int *Fire, int *Pasv, int *List)
 	*List = NO;
 
 	i = 0;
-	while(CopyHostFromList(i, &Tmp) == SUCCESS)
+	while(CopyHostFromList(i, &Tmp) == FFFTP_SUCCESS)
 	{
 		if(strcmp(Host, Tmp.HostAdrs) == 0)
 		{
@@ -593,13 +593,13 @@ static void AskUseFireWall(char *Host, int *Fire, int *Pasv, int *List)
 }
 
 
-/*----- Ú‘±‚µ‚Ä‚¢‚éƒzƒXƒg‚ÌƒAƒhƒŒƒX‚ğ•Ô‚· ------------------------------------
+/*----- æ¥ç¶šã—ã¦ã„ã‚‹ãƒ›ã‚¹ãƒˆã®ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’è¿”ã™ ------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		char *ƒzƒXƒg‚ÌƒAƒhƒŒƒX
+*		char *ãƒ›ã‚¹ãƒˆã®ã‚¢ãƒ‰ãƒ¬ã‚¹
 *----------------------------------------------------------------------------*/
 
 char *AskHostAdrs(void)
@@ -608,13 +608,13 @@ char *AskHostAdrs(void)
 }
 
 
-/*----- Ú‘±‚µ‚Ä‚¢‚éƒzƒXƒg‚Ìƒ|[ƒg‚ğ•Ô‚· --------------------------------------
+/*----- æ¥ç¶šã—ã¦ã„ã‚‹ãƒ›ã‚¹ãƒˆã®ãƒãƒ¼ãƒˆã‚’è¿”ã™ --------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ƒzƒXƒg‚Ìƒ|[ƒg
+*		int ãƒ›ã‚¹ãƒˆã®ãƒãƒ¼ãƒˆ
 *----------------------------------------------------------------------------*/
 
 int AskHostPort(void)
@@ -622,13 +622,13 @@ int AskHostPort(void)
 	return(CurHost.Port);
 }
 
-/*----- Ú‘±‚µ‚Ä‚¢‚éƒzƒXƒg‚Ìƒtƒ@ƒCƒ‹–¼‚ÌŠ¿šƒR[ƒh‚ğ•Ô‚· ----------------------
+/*----- æ¥ç¶šã—ã¦ã„ã‚‹ãƒ›ã‚¹ãƒˆã®ãƒ•ã‚¡ã‚¤ãƒ«åã®æ¼¢å­—ã‚³ãƒ¼ãƒ‰ã‚’è¿”ã™ ----------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int Š¿šƒR[ƒh (KANJI_xxx)
+*		int æ¼¢å­—ã‚³ãƒ¼ãƒ‰ (KANJI_xxx)
 *----------------------------------------------------------------------------*/
 
 int AskHostNameKanji(void)
@@ -640,13 +640,13 @@ int AskHostNameKanji(void)
 }
 
 
-/*----- Ú‘±‚µ‚Ä‚¢‚éƒzƒXƒg‚Ìƒtƒ@ƒCƒ‹–¼‚Ì”¼ŠpƒJƒi•ÏŠ·ƒtƒ‰ƒO‚ğ•Ô‚· --------------
+/*----- æ¥ç¶šã—ã¦ã„ã‚‹ãƒ›ã‚¹ãƒˆã®ãƒ•ã‚¡ã‚¤ãƒ«åã®åŠè§’ã‚«ãƒŠå¤‰æ›ãƒ•ãƒ©ã‚°ã‚’è¿”ã™ --------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ”¼ŠpƒJƒi‚ğ‘SŠp‚É•ÏŠ·‚·‚é‚©‚Ç‚¤‚© (YES/NO)
+*		int åŠè§’ã‚«ãƒŠã‚’å…¨è§’ã«å¤‰æ›ã™ã‚‹ã‹ã©ã†ã‹ (YES/NO)
 *----------------------------------------------------------------------------*/
 
 int AskHostNameKana(void)
@@ -658,13 +658,13 @@ int AskHostNameKana(void)
 }
 
 
-/*----- Ú‘±‚µ‚Ä‚¢‚éƒzƒXƒg‚ÌLISTƒRƒ}ƒ“ƒhƒ‚[ƒh‚ğ•Ô‚· --------------------------
+/*----- æ¥ç¶šã—ã¦ã„ã‚‹ãƒ›ã‚¹ãƒˆã®LISTã‚³ãƒãƒ³ãƒ‰ãƒ¢ãƒ¼ãƒ‰ã‚’è¿”ã™ --------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int LISTƒRƒ}ƒ“ƒhƒ‚[ƒh (YES/NO)
+*		int LISTã‚³ãƒãƒ³ãƒ‰ãƒ¢ãƒ¼ãƒ‰ (YES/NO)
 *----------------------------------------------------------------------------*/
 
 int AskListCmdMode(void)
@@ -680,13 +680,13 @@ int AskListCmdMode(void)
 }
 
 
-/*----- Ú‘±‚µ‚Ä‚¢‚éƒzƒXƒg‚ÅNLST -R‚ğg‚¤‚©‚Ç‚¤‚©‚ğ•Ô‚· ------------------------
+/*----- æ¥ç¶šã—ã¦ã„ã‚‹ãƒ›ã‚¹ãƒˆã§NLST -Rã‚’ä½¿ã†ã‹ã©ã†ã‹ã‚’è¿”ã™ ------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int NLST -R‚ğg‚¤‚©‚Ç‚¤‚© (YES/NO)
+*		int NLST -Rã‚’ä½¿ã†ã‹ã©ã†ã‹ (YES/NO)
 *----------------------------------------------------------------------------*/
 
 int AskUseNLST_R(void)
@@ -698,13 +698,13 @@ int AskUseNLST_R(void)
 }
 
 
-/*----- Ú‘±‚µ‚Ä‚¢‚éƒzƒXƒg‚ÌChmodƒRƒ}ƒ“ƒh‚ğ•Ô‚· -------------------------------
+/*----- æ¥ç¶šã—ã¦ã„ã‚‹ãƒ›ã‚¹ãƒˆã®Chmodã‚³ãƒãƒ³ãƒ‰ã‚’è¿”ã™ -------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		char *ChmodƒRƒ}ƒ“ƒh
+*		char *Chmodã‚³ãƒãƒ³ãƒ‰
 *----------------------------------------------------------------------------*/
 
 char *AskHostChmodCmd(void)
@@ -716,13 +716,13 @@ char *AskHostChmodCmd(void)
 }
 
 
-/*----- Ú‘±‚µ‚Ä‚¢‚éƒzƒXƒg‚Ìƒ^ƒCƒ€ƒ][ƒ“‚ğ•Ô‚· --------------------------------
+/*----- æ¥ç¶šã—ã¦ã„ã‚‹ãƒ›ã‚¹ãƒˆã®ã‚¿ã‚¤ãƒ ã‚¾ãƒ¼ãƒ³ã‚’è¿”ã™ --------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ƒ^ƒCƒ€ƒ][ƒ“
+*		int ã‚¿ã‚¤ãƒ ã‚¾ãƒ¼ãƒ³
 *----------------------------------------------------------------------------*/
 
 int AskHostTimeZone(void)
@@ -734,13 +734,13 @@ int AskHostTimeZone(void)
 }
 
 
-/*----- Ú‘±‚µ‚Ä‚¢‚éƒzƒXƒg‚ÌPASVƒ‚[ƒh‚ğ•Ô‚· ----------------------------------
+/*----- æ¥ç¶šã—ã¦ã„ã‚‹ãƒ›ã‚¹ãƒˆã®PASVãƒ¢ãƒ¼ãƒ‰ã‚’è¿”ã™ ----------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int PASVƒ‚[ƒh‚©‚Ç‚¤‚© (YES/NO)
+*		int PASVãƒ¢ãƒ¼ãƒ‰ã‹ã©ã†ã‹ (YES/NO)
 *----------------------------------------------------------------------------*/
 
 int AskPasvMode(void)
@@ -749,13 +749,13 @@ int AskPasvMode(void)
 }
 
 
-/*----- Ú‘±‚µ‚Ä‚¢‚éƒzƒXƒg‚ÌLNSTƒtƒ@ƒCƒ‹–¼‚ğ•Ô‚· ------------------------------
+/*----- æ¥ç¶šã—ã¦ã„ã‚‹ãƒ›ã‚¹ãƒˆã®LNSTãƒ•ã‚¡ã‚¤ãƒ«åã‚’è¿”ã™ ------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		char *ƒtƒ@ƒCƒ‹–¼^ƒIƒvƒVƒ‡ƒ“
+*		char *ãƒ•ã‚¡ã‚¤ãƒ«åï¼ã‚ªãƒ—ã‚·ãƒ§ãƒ³
 *----------------------------------------------------------------------------*/
 
 char *AskHostLsName(void)
@@ -767,13 +767,13 @@ char *AskHostLsName(void)
 }
 
 
-/*----- Ú‘±‚µ‚Ä‚¢‚éƒzƒXƒg‚ÌƒzƒXƒgƒ^ƒCƒv‚ğ•Ô‚· --------------------------------
+/*----- æ¥ç¶šã—ã¦ã„ã‚‹ãƒ›ã‚¹ãƒˆã®ãƒ›ã‚¹ãƒˆã‚¿ã‚¤ãƒ—ã‚’è¿”ã™ --------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		char *ƒtƒ@ƒCƒ‹–¼^ƒIƒvƒVƒ‡ƒ“
+*		char *ãƒ•ã‚¡ã‚¤ãƒ«åï¼ã‚ªãƒ—ã‚·ãƒ§ãƒ³
 *----------------------------------------------------------------------------*/
 
 int AskHostType(void)
@@ -785,13 +785,13 @@ int AskHostType(void)
 }
 
 
-/*----- Ú‘±‚µ‚Ä‚¢‚éƒzƒXƒg‚ÍFireWall‚ğg‚¤ƒzƒXƒg‚©‚Ç‚¤‚©‚ğ•Ô‚· ----------------
+/*----- æ¥ç¶šã—ã¦ã„ã‚‹ãƒ›ã‚¹ãƒˆã¯FireWallã‚’ä½¿ã†ãƒ›ã‚¹ãƒˆã‹ã©ã†ã‹ã‚’è¿”ã™ ----------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int FireWall‚ğg‚¤‚©‚Ç‚¤‚© (YES/NO)
+*		int FireWallã‚’ä½¿ã†ã‹ã©ã†ã‹ (YES/NO)
 *----------------------------------------------------------------------------*/
 
 int AskHostFireWall(void)
@@ -800,13 +800,13 @@ int AskHostFireWall(void)
 }
 
 
-/*----- Ú‘±‚µ‚Ä‚¢‚éƒzƒXƒg‚Åƒtƒ‹ƒpƒX‚Åƒtƒ@ƒCƒ‹ƒAƒNƒZƒX‚µ‚È‚¢‚©‚Ç‚¤‚©‚ğ•Ô‚· ----
+/*----- æ¥ç¶šã—ã¦ã„ã‚‹ãƒ›ã‚¹ãƒˆã§ãƒ•ãƒ«ãƒ‘ã‚¹ã§ãƒ•ã‚¡ã‚¤ãƒ«ã‚¢ã‚¯ã‚»ã‚¹ã—ãªã„ã‹ã©ã†ã‹ã‚’è¿”ã™ ----
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ƒtƒ‹ƒpƒX‚ÅƒAƒNƒZƒX‚µ‚È‚¢ (YES=ƒtƒ‹ƒpƒX‹Ö~/NO)
+*		int ãƒ•ãƒ«ãƒ‘ã‚¹ã§ã‚¢ã‚¯ã‚»ã‚¹ã—ãªã„ (YES=ãƒ•ãƒ«ãƒ‘ã‚¹ç¦æ­¢/NO)
 *----------------------------------------------------------------------------*/
 
 int AskNoFullPathMode(void)
@@ -818,13 +818,13 @@ int AskNoFullPathMode(void)
 }
 
 
-/*----- Ú‘±‚µ‚Ä‚¢‚éƒ†[ƒU–¼‚ğ•Ô‚· --------------------------------------------
+/*----- æ¥ç¶šã—ã¦ã„ã‚‹ãƒ¦ãƒ¼ã‚¶åã‚’è¿”ã™ --------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		char *ƒ†[ƒU–¼
+*		char *ãƒ¦ãƒ¼ã‚¶å
 *----------------------------------------------------------------------------*/
 
 char *AskHostUserName(void)
@@ -833,16 +833,16 @@ char *AskHostUserName(void)
 }
 
 
-/*----- Œ»İ‚Ìİ’è‚ğƒzƒXƒg‚Ìİ’è‚ÉƒZƒbƒg‚·‚é ----------------------------------
+/*----- ç¾åœ¨ã®è¨­å®šã‚’ãƒ›ã‚¹ãƒˆã®è¨­å®šã«ã‚»ãƒƒãƒˆã™ã‚‹ ----------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *
 *	Note
-*		ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠAƒ\[ƒg•û–@‚ğƒzƒXƒg‚Ìİ’è‚ÉƒZƒbƒg‚·‚é
+*		ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã€ã‚½ãƒ¼ãƒˆæ–¹æ³•ã‚’ãƒ›ã‚¹ãƒˆã®è¨­å®šã«ã‚»ãƒƒãƒˆã™ã‚‹
 *----------------------------------------------------------------------------*/
 
 void SaveCurrentSetToHost(void)
@@ -869,13 +869,13 @@ void SaveCurrentSetToHost(void)
 }
 
 
-/*----- Œ»İ‚Ìİ’è‚ğƒqƒXƒgƒŠ‚ÉƒZƒbƒg‚·‚é --------------------------------------
+/*----- ç¾åœ¨ã®è¨­å®šã‚’ãƒ’ã‚¹ãƒˆãƒªã«ã‚»ãƒƒãƒˆã™ã‚‹ --------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void SaveCurrentSetToHistory(void)
@@ -902,14 +902,14 @@ static void SaveCurrentSetToHistory(void)
 }
 
 
-/*----- ƒRƒ}ƒ“ƒhƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg‚ÌÄÚ‘± ----------------------------------
+/*----- ã‚³ãƒãƒ³ãƒ‰ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆã®å†æ¥ç¶š ----------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int ReConnectCmdSkt(void)
@@ -928,14 +928,14 @@ int ReConnectCmdSkt(void)
 }
 
 
-/*----- “]‘—ƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg‚ÌÄÚ‘± --------------------------------------
+/*----- è»¢é€ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆã®å†æ¥ç¶š --------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 //int ReConnectTrnSkt(void)
@@ -944,14 +944,14 @@ int ReConnectCmdSkt(void)
 //}
 
 
-/*----- ‰ñü‚ÌÄÚ‘± ----------------------------------------------------------
+/*----- å›ç·šã®å†æ¥ç¶š ----------------------------------------------------------
 *
 *	Parameter
-*		SOCKET *Skt : Ú‘±‚µ‚½ƒ\ƒPƒbƒg‚ğ•Ô‚·ƒ[ƒN
+*		SOCKET *Skt : æ¥ç¶šã—ãŸã‚½ã‚±ãƒƒãƒˆã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int ReConnectSkt(SOCKET *Skt)
@@ -959,20 +959,20 @@ static int ReConnectSkt(SOCKET *Skt)
 	char Path[FMAX_PATH+1];
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 
 	SetTaskMsg(MSGJPN003);
 
 	DisableUserOpe();
-	/* Œ»İ‚Ìƒ\ƒPƒbƒg‚ÍØ’f */
+	/* ç¾åœ¨ã®ã‚½ã‚±ãƒƒãƒˆã¯åˆ‡æ–­ */
 	if(*Skt != INVALID_SOCKET)
 		do_closesocket(*Skt);
-	/* ÄÚ‘± */
+	/* å†æ¥ç¶š */
 	if((*Skt = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
 	{
 		AskRemoteCurDir(Path, FMAX_PATH);
 		DoCWD(Path, YES, YES, YES);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	else
 		SoundPlay(SND_ERROR);
@@ -982,13 +982,13 @@ static int ReConnectSkt(SOCKET *Skt)
 }
 
 
-/*----- ƒRƒ}ƒ“ƒhƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg‚ğ•Ô‚· ------------------------------------
+/*----- ã‚³ãƒãƒ³ãƒ‰ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆã‚’è¿”ã™ ------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		SOCKET ƒRƒ}ƒ“ƒhƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg
+*		SOCKET ã‚³ãƒãƒ³ãƒ‰ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆ
 *----------------------------------------------------------------------------*/
 
 SOCKET AskCmdCtrlSkt(void)
@@ -997,13 +997,13 @@ SOCKET AskCmdCtrlSkt(void)
 }
 
 
-/*----- “]‘—ƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg‚ğ•Ô‚· ----------------------------------------
+/*----- è»¢é€ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆã‚’è¿”ã™ ----------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		SOCKET “]‘—ƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg
+*		SOCKET è»¢é€ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆ
 *----------------------------------------------------------------------------*/
 
 SOCKET AskTrnCtrlSkt(void)
@@ -1012,13 +1012,13 @@ SOCKET AskTrnCtrlSkt(void)
 }
 
 
-/*----- ƒRƒ}ƒ“ƒh^“]‘—ƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg‚Ì‹¤—L‚ğ‰ğœ ------------------------
+/*----- ã‚³ãƒãƒ³ãƒ‰ï¼è»¢é€ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆã®å…±æœ‰ã‚’è§£é™¤ ------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SktShareProh(void)
@@ -1035,14 +1035,14 @@ void SktShareProh(void)
 }
 
 
-/*----- ƒRƒ}ƒ“ƒh^“]‘—ƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg‚Ì‹¤—L‚ª‰ğœ‚³‚ê‚Ä‚¢‚é‚©ƒ`ƒFƒbƒN ----
+/*----- ã‚³ãƒãƒ³ãƒ‰ï¼è»¢é€ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆã®å…±æœ‰ãŒè§£é™¤ã•ã‚Œã¦ã„ã‚‹ã‹ãƒã‚§ãƒƒã‚¯ ----
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			YES=‹¤—L‰ğœ/NO=‹¤—L
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			YES=å…±æœ‰è§£é™¤/NO=å…±æœ‰
 *----------------------------------------------------------------------------*/
 
 int AskShareProh(void)
@@ -1057,13 +1057,13 @@ int AskShareProh(void)
 }
 
 
-/*----- ƒzƒXƒg‚©‚çØ’f --------------------------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆã‹ã‚‰åˆ‡æ–­ --------------------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DisconnectProc(void)
@@ -1099,13 +1099,13 @@ void DisconnectProc(void)
 }
 
 
-/*----- ƒ\ƒPƒbƒg‚ª‹­§Ø’f‚³‚ê‚½‚Æ‚«‚Ìˆ— ------------------------------------
+/*----- ã‚½ã‚±ãƒƒãƒˆãŒå¼·åˆ¶åˆ‡æ–­ã•ã‚ŒãŸã¨ãã®å‡¦ç† ------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DisconnectSet(void)
@@ -1121,13 +1121,13 @@ void DisconnectSet(void)
 }
 
 
-/*----- ƒzƒXƒg‚ÉÚ‘±’†‚©‚Ç‚¤‚©‚ğ•Ô‚· ------------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆã«æ¥ç¶šä¸­ã‹ã©ã†ã‹ã‚’è¿”ã™ ------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (YES/NO)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (YES/NO)
 *----------------------------------------------------------------------------*/
 
 int AskConnecting(void)
@@ -1142,36 +1142,36 @@ int AskConnecting(void)
 }
 
 
-/*----- ƒzƒXƒg‚ÖÚ‘±‚·‚é ------------------------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆã¸æ¥ç¶šã™ã‚‹ ------------------------------------------------------
 *
 *	Parameter
-*		char *Host : ƒzƒXƒg–¼
-*		char *User : ƒ†[ƒU–¼
-*		char *Pass : ƒpƒXƒ[ƒh
-*		char *Acct : ƒAƒJƒEƒ“ƒg
-*		int Port : ƒ|[ƒg
-*		int Fwall : FireWall‚ğg‚¤‚©‚Ç‚¤‚© (YES/NO)
-*		int SavePass : ƒpƒXƒ[ƒh‚ğÄ“ü—Í‚µ‚½‚É•Û‘¶‚·‚é‚©‚Ç‚¤‚© (YES/NO)
-*		int Security : ƒZƒLƒ…ƒŠƒeƒB (SECURITY_xxx, MDx)
+*		char *Host : ãƒ›ã‚¹ãƒˆå
+*		char *User : ãƒ¦ãƒ¼ã‚¶å
+*		char *Pass : ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰
+*		char *Acct : ã‚¢ã‚«ã‚¦ãƒ³ãƒˆ
+*		int Port : ãƒãƒ¼ãƒˆ
+*		int Fwall : FireWallã‚’ä½¿ã†ã‹ã©ã†ã‹ (YES/NO)
+*		int SavePass : ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’å†å…¥åŠ›ã—ãŸæ™‚ã«ä¿å­˜ã™ã‚‹ã‹ã©ã†ã‹ (YES/NO)
+*		int Security : ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£ (SECURITY_xxx, MDx)
 *
 *	Return Value
-*		SOCKET ƒ\ƒPƒbƒg
+*		SOCKET ã‚½ã‚±ãƒƒãƒˆ
 *
 *	Note
-*		ƒzƒXƒg–¼Aƒ†[ƒU–¼AƒpƒXƒ[ƒh‚ªw’è‚³‚ê‚Ä‚¢‚È‚©‚Á‚½‚Æ‚«‚ÍAÚ‘±‚Ég—p
-*		‚µ‚½‚à‚Ì‚ğƒRƒs[‚µ‚Ä‚©‚¦‚·
-*			char *Host : ƒzƒXƒg–¼
-*			char *User : ƒ†[ƒU–¼
-*			char *Pass : ƒpƒXƒ[ƒh
-*			char *Acct : ƒAƒJƒEƒ“ƒg
+*		ãƒ›ã‚¹ãƒˆåã€ãƒ¦ãƒ¼ã‚¶åã€ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ãŒæŒ‡å®šã•ã‚Œã¦ã„ãªã‹ã£ãŸã¨ãã¯ã€æ¥ç¶šã«ä½¿ç”¨
+*		ã—ãŸã‚‚ã®ã‚’ã‚³ãƒ”ãƒ¼ã—ã¦ã‹ãˆã™
+*			char *Host : ãƒ›ã‚¹ãƒˆå
+*			char *User : ãƒ¦ãƒ¼ã‚¶å
+*			char *Pass : ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰
+*			char *Acct : ã‚¢ã‚«ã‚¦ãƒ³ãƒˆ
 *
-*		FireWall‚ÍŸ‚Ì‚æ‚¤‚É“®ì‚·‚é
-*			TYPE1	Connect fire ¨ USER user(f) ¨ PASS pass(f) ¨ SITE host ¨ USER user(h) ¨      PASS pass(h) ¨ ACCT acct
-*			TYPE2	Connect fire ¨ USER user(f) ¨ PASS pass(f) ¨              USER user(h)@host ¨ PASS pass(h) ¨ ACCT acct
-*			TYPE3	Connect fire ¨                                              USER user(h)@host ¨ PASS pass(h) ¨ ACCT acct
-*			TYPE4	Connect fire ¨                                 OPEN host ¨ USER user(h) ¨      PASS pass(h) ¨ ACCT acct
+*		FireWallã¯æ¬¡ã®ã‚ˆã†ã«å‹•ä½œã™ã‚‹
+*			TYPE1	Connect fire â†’ USER user(f) â†’ PASS pass(f) â†’ SITE host â†’ USER user(h) â†’      PASS pass(h) â†’ ACCT acct
+*			TYPE2	Connect fire â†’ USER user(f) â†’ PASS pass(f) â†’              USER user(h)@host â†’ PASS pass(h) â†’ ACCT acct
+*			TYPE3	Connect fire â†’                                              USER user(h)@host â†’ PASS pass(h) â†’ ACCT acct
+*			TYPE4	Connect fire â†’                                 OPEN host â†’ USER user(h) â†’      PASS pass(h) â†’ ACCT acct
 *			TYPE5	SOCKS4
-*			none	Connect host ¨                                              USER user(h) ¨      PASS pass(h) ¨ ACCT acct
+*			none	Connect host â†’                                              USER user(h) â†’      PASS pass(h) â†’ ACCT acct
 *----------------------------------------------------------------------------*/
 
 static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security)
@@ -1217,7 +1217,7 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 	{
 		if((ContSock = connectsock(Tmp, Port, "", &CancelFlg)) != INVALID_SOCKET)
 		{
-			// ƒoƒbƒtƒ@‚ğ–³Œø
+			// ãƒãƒƒãƒ•ã‚¡ã‚’ç„¡åŠ¹
 #ifdef DISABLE_CONTROL_NETWORK_BUFFERS
 			int BufferSize = 0;
 			setsockopt(ContSock, SOL_SOCKET, SO_SNDBUF, (char*)&BufferSize, sizeof(int));
@@ -1231,7 +1231,7 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 				Flg = 1;
 				if(setsockopt(ContSock, SOL_SOCKET, SO_OOBINLINE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					ReportWSError("setsockopt", WSAGetLastError());
-				// ƒf[ƒ^“]‘——pƒ\ƒPƒbƒg‚ÌTCP’x‰„“]‘—‚ª–³Œø‚³‚ê‚Ä‚¢‚é‚Ì‚Å”O‚Ì‚½‚ß
+				// ãƒ‡ãƒ¼ã‚¿è»¢é€ç”¨ã‚½ã‚±ãƒƒãƒˆã®TCPé…å»¶è»¢é€ãŒç„¡åŠ¹ã•ã‚Œã¦ã„ã‚‹ã®ã§å¿µã®ãŸã‚
 				if(setsockopt(ContSock, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					ReportWSError("setsockopt", WSAGetLastError());
 #pragma aaa
@@ -1245,7 +1245,7 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 ///////
 
 
-				/*===== ”FØ‚ğs‚È‚¤ =====*/
+				/*===== èªè¨¼ã‚’è¡Œãªã† =====*/
 
 				Sts = FTP_COMPLETE;
 				if((Fwall == FWALL_FU_FP_SITE) ||
@@ -1312,13 +1312,13 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 							else
 								strcpy(Buf, User);
 
-							// FTPES‘Î‰
-							// 2‰ñˆÈãŒÄ‚Î‚ê‚é–‚ª‚ ‚é‚½‚ßŠù‚ÉFTPES‚ÅÚ‘±‚µ‚Ä‚¢‚Ä‚àÄŠm”F
+							// FTPESå¯¾å¿œ
+							// 2å›ä»¥ä¸Šå‘¼ã°ã‚Œã‚‹äº‹ãŒã‚ã‚‹ãŸã‚æ—¢ã«FTPESã§æ¥ç¶šã—ã¦ã„ã¦ã‚‚å†ç¢ºèª
 							if(CurHost.CryptMode == CRYPT_NONE || CurHost.CryptMode == CRYPT_FTPES)
 							{
 								if(IsOpenSSLLoaded() && CurHost.UseFTPES == YES && (Sts = command(ContSock, Reply, &CancelFlg, "AUTH TLS")) == 234)
 								{
-									// SSL‚ÉØ‚è‘Ö‚¦
+									// SSLã«åˆ‡ã‚Šæ›¿ãˆ
 									SetTaskMsg(MSGJPN315);
 									CurHost.CryptMode = CRYPT_FTPES;
 									if(AttachSSL(ContSock))
@@ -1339,7 +1339,7 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 								}
 								else
 								{
-									// ˆÃ†‰»‚È‚µ
+									// æš—å·åŒ–ãªã—
 									CurHost.CryptMode = CRYPT_NONE;
 									SetTaskMsg(MSGJPN314);
 								}
@@ -1356,7 +1356,7 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 									{
 										CheckOneTimePassword(Pass, Reply, Security);
 
-										/* ƒpƒXƒ[ƒh‚ªƒXƒy[ƒX1ŒÂ‚Ì‚ÍƒpƒXƒ[ƒh‚ÌÀ‘Ì‚È‚µ‚Æ‚·‚é */
+										/* ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ãŒã‚¹ãƒšãƒ¼ã‚¹1å€‹ã®æ™‚ã¯ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã®å®Ÿä½“ãªã—ã¨ã™ã‚‹ */
 										if(strcmp(Reply, " ") == 0)
 											strcpy(Reply, "");
 
@@ -1413,7 +1413,7 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 			else
 			{
 //#pragma aaa
-				SetTaskMsg(MSGJPN009/*"Ú‘±‚Å‚«‚Ü‚¹‚ñ(1) %x", ContSock*/);
+				SetTaskMsg(MSGJPN009/*"æ¥ç¶šã§ãã¾ã›ã‚“(1) %x", ContSock*/);
 				DoClose(ContSock);
 				ContSock = INVALID_SOCKET;
 			}
@@ -1438,20 +1438,20 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 }
 
 
-/*----- ƒƒ“ƒ^ƒCƒ€ƒpƒXƒ[ƒh‚Ìƒ`ƒFƒbƒN ----------------------------------------
+/*----- ãƒ¯ãƒ³ã‚¿ã‚¤ãƒ ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã®ãƒã‚§ãƒƒã‚¯ ----------------------------------------
 *
 *	Parameter
-*		chat *Pass : ƒpƒXƒ[ƒh^ƒpƒXƒtƒŒ[ƒY
-*		char *Reply : USERƒRƒ}ƒ“ƒh‚ğ‘—‚Á‚½‚ ‚Æ‚ÌƒŠƒvƒ‰ƒC•¶š—ñ
-*						^PASSƒRƒ}ƒ“ƒh‚Å‘—‚éƒpƒXƒ[ƒh‚ğ•Ô‚·ƒoƒbƒtƒ@
-*		int Type : ƒ^ƒCƒv (SECURITY_xxx, MDx)
+*		chat *Pass : ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ï¼ãƒ‘ã‚¹ãƒ•ãƒ¬ãƒ¼ã‚º
+*		char *Reply : USERã‚³ãƒãƒ³ãƒ‰ã‚’é€ã£ãŸã‚ã¨ã®ãƒªãƒ—ãƒ©ã‚¤æ–‡å­—åˆ—
+*						ï¼PASSã‚³ãƒãƒ³ãƒ‰ã§é€ã‚‹ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’è¿”ã™ãƒãƒƒãƒ•ã‚¡
+*		int Type : ã‚¿ã‚¤ãƒ— (SECURITY_xxx, MDx)
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *
 *	Note
-*		ƒƒ“ƒ^ƒCƒ€ƒpƒXƒ[ƒh‚Å‚È‚¢‚ÍPass‚ğ‚»‚Ì‚Ü‚ÜReply‚ÉƒRƒs[
+*		ãƒ¯ãƒ³ã‚¿ã‚¤ãƒ ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã§ãªã„æ™‚ã¯Passã‚’ãã®ã¾ã¾Replyã«ã‚³ãƒ”ãƒ¼
 *----------------------------------------------------------------------------*/
 
 static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
@@ -1462,7 +1462,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 	char Seed[MAX_SEED_LEN+1];
 	int i;
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	Pos = NULL;
 
 	if(Type == SECURITY_AUTO)
@@ -1488,10 +1488,10 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 
 	if((Type == MD4) || (Type == MD5) || (Type == SHA1))
 	{
-		/* ƒV[ƒPƒ“ƒX”Ô†‚ğŒ©‚Â‚¯‚éƒ‹[ƒv */
+		/* ã‚·ãƒ¼ã‚±ãƒ³ã‚¹ç•ªå·ã‚’è¦‹ã¤ã‘ã‚‹ãƒ«ãƒ¼ãƒ— */
 		DoPrintf("Analize OTP");
 		DoPrintf("%s", Pos);
-		Sts = FAIL;
+		Sts = FFFTP_FAIL;
 		while((Pos = GetNextField(Pos)) != NULL)
 		{
 			if(IsDigit(*Pos))
@@ -1502,9 +1502,9 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 				/* Seed */
 				if((Pos = GetNextField(Pos)) != NULL)
 				{
-					if(GetOneField(Pos, Seed, MAX_SEED_LEN) == SUCCESS)
+					if(GetOneField(Pos, Seed, MAX_SEED_LEN) == FFFTP_SUCCESS)
 					{
-						/* Seed‚Í‰p”š‚Ì‚İ—LŒø‚Æ‚·‚é */
+						/* Seedã¯è‹±æ•°å­—ã®ã¿æœ‰åŠ¹ã¨ã™ã‚‹ */
 						for(i = strlen(Seed)-1; i >= 0; i--)
 						{
 							if((IsAlpha(Seed[i]) == 0) && (IsDigit(Seed[i]) == 0))
@@ -1516,11 +1516,11 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 							Make6WordPass(Seq, Seed, Pass, Type, Reply);
 							DoPrintf("Response=%s", Reply);
 
-							/* ƒV[ƒPƒ“ƒX”Ô†‚Ìƒ`ƒFƒbƒN‚ÆŒx */
+							/* ã‚·ãƒ¼ã‚±ãƒ³ã‚¹ç•ªå·ã®ãƒã‚§ãƒƒã‚¯ã¨è­¦å‘Š */
 							if(Seq <= 10)
 								DialogBox(GetFtpInst(), MAKEINTRESOURCE(otp_notify_dlg), GetMainHwnd(), ExeEscDialogProc);
 
-							Sts = SUCCESS;
+							Sts = FFFTP_SUCCESS;
 						}
 					}
 				}
@@ -1528,7 +1528,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 			}
 		}
 
-		if(Sts == FAIL)
+		if(Sts == FFFTP_FAIL)
 			SetTaskMsg(MSGJPN015);
 	}
 	else
@@ -1552,15 +1552,15 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 
 
 
-/*----- ƒ\ƒPƒbƒg‚ğÚ‘±‚·‚é ----------------------------------------------------
+/*----- ã‚½ã‚±ãƒƒãƒˆã‚’æ¥ç¶šã™ã‚‹ ----------------------------------------------------
 *
 *	Parameter
-*		char *host : ƒzƒXƒg–¼
-*		int port : ƒ|[ƒg”Ô†
-*		char *PreMsg : ƒƒbƒZ[ƒW‚Ì‘O”¼•”•ª
+*		char *host : ãƒ›ã‚¹ãƒˆå
+*		int port : ãƒãƒ¼ãƒˆç•ªå·
+*		char *PreMsg : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®å‰åŠéƒ¨åˆ†
 *
 *	Return Value
-*		SOCKET ƒ\ƒPƒbƒg
+*		SOCKET ã‚½ã‚±ãƒƒãƒˆ
 *----------------------------------------------------------------------------*/
 
 SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
@@ -1577,7 +1577,7 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 	SOCKS5REPLY Socks5Reply;
 
 	//////////////////////////////
-	// ƒzƒXƒg–¼‰ğŒˆ‚ÆÚ‘±‚Ì€”õ
+	// ãƒ›ã‚¹ãƒˆåè§£æ±ºã¨æ¥ç¶šã®æº–å‚™
 	//////////////////////////////
 
 	Fwall = FWALL_NONE;
@@ -1593,17 +1593,17 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 	CurSockAddr.sin_family = AF_INET;
 	if((CurSockAddr.sin_addr.s_addr = inet_addr(host)) == INADDR_NONE)
 	{
-		// ƒzƒXƒg–¼‚ªw’è‚³‚ê‚½
-		// ƒzƒXƒg–¼‚©‚çƒAƒhƒŒƒX‚ğ‹‚ß‚é
+		// ãƒ›ã‚¹ãƒˆåãŒæŒ‡å®šã•ã‚ŒãŸ
+		// ãƒ›ã‚¹ãƒˆåã‹ã‚‰ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’æ±‚ã‚ã‚‹
 		if(((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER)) &&
 		   (FwallResolv == YES))
 		{
-			// ƒzƒXƒg–¼‰ğŒˆ‚ÍSOCKSƒT[ƒo‚É”C‚¹‚é
+			// ãƒ›ã‚¹ãƒˆåè§£æ±ºã¯SOCKSã‚µãƒ¼ãƒã«ä»»ã›ã‚‹
 			pHostEntry = NULL;
 		}
 		else
 		{
-			// ƒAƒhƒŒƒX‚ğæ“¾
+			// ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å–å¾—
 			SetTaskMsg(MSGJPN016, DomainName);
 			pHostEntry = do_gethostbyname(host, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork);
 		}
@@ -1632,8 +1632,8 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 
 	if((Fwall == FWALL_SOCKS4) || (Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
 	{
-		// SOCKS‚ğg‚¤
-		// SOCKS‚ÉÚ‘±‚·‚é€”õ
+		// SOCKSã‚’ä½¿ã†
+		// SOCKSã«æ¥ç¶šã™ã‚‹æº–å‚™
 		if(Fwall == FWALL_SOCKS4)
 		{
 			Socks4Cmd.Ver = SOCKS4_VER;
@@ -1662,17 +1662,17 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 		SocksSockAddr.sin_port = htons((u_short)FwallPort);
 		SocksSockAddr.sin_family = AF_INET;
 		SetTaskMsg(MSGJPN022, inet_ntoa(SocksSockAddr.sin_addr), ntohs(SocksSockAddr.sin_port));
-		// connect‚ÅÚ‘±‚·‚éæ‚ÍSOCKSƒT[ƒo
+		// connectã§æ¥ç¶šã™ã‚‹å…ˆã¯SOCKSã‚µãƒ¼ãƒ
 		memcpy(&saSockAddr, &SocksSockAddr, sizeof(SocksSockAddr));
 	}
 	else
 	{
-		// connect‚ÅÚ‘±‚·‚é‚Ì‚ÍÚ‘±æ‚ÌƒzƒXƒg
+		// connectã§æ¥ç¶šã™ã‚‹ã®ã¯æ¥ç¶šå…ˆã®ãƒ›ã‚¹ãƒˆ
 		memcpy(&saSockAddr, &CurSockAddr, sizeof(CurSockAddr));
 	}
 
 	/////////////
-	// Ú‘±Às
+	// æ¥ç¶šå®Ÿè¡Œ
 	/////////////
 
 	if((sSocket = do_socket(AF_INET, SOCK_STREAM, TCP_PORT)) != INVALID_SOCKET)
@@ -1682,8 +1682,8 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			if(Fwall == FWALL_SOCKS4)
 			{
 				Socks4Reply.Result = -1;
-				if((SocksSendCmd(sSocket, &Socks4Cmd, Len, CancelCheckWork) != SUCCESS) ||
-				   (Socks4GetCmdReply(sSocket, &Socks4Reply) != SUCCESS) || 
+				if((SocksSendCmd(sSocket, &Socks4Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
+				   (Socks4GetCmdReply(sSocket, &Socks4Reply) != FFFTP_SUCCESS) || 
 				   (Socks4Reply.Result != SOCKS4_RES_OK))
 				{
 					SetTaskMsg(MSGJPN023, Socks4Reply.Result);
@@ -1693,15 +1693,15 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			}
 			else if((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
 			{
-				if(Socks5SelMethod(sSocket, CancelCheckWork) == FAIL)
+				if(Socks5SelMethod(sSocket, CancelCheckWork) == FFFTP_FAIL)
 				{
 					DoClose(sSocket);
 					sSocket = INVALID_SOCKET;
 				}
 
 				Socks5Reply.Result = -1;
-				if((SocksSendCmd(sSocket, &Socks5Cmd, Len, CancelCheckWork) != SUCCESS) ||
-				   (Socks5GetCmdReply(sSocket, &Socks5Reply) != SUCCESS) || 
+				if((SocksSendCmd(sSocket, &Socks5Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
+				   (Socks5GetCmdReply(sSocket, &Socks5Reply) != FFFTP_SUCCESS) || 
 				   (Socks5Reply.Result != SOCKS5_RES_OK))
 				{
 					SetTaskMsg(MSGJPN024, Socks5Reply.Result);
@@ -1717,7 +1717,7 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 		else
 		{
 //#pragma aaa
-			SetTaskMsg(MSGJPN026/*"Ú‘±‚Å‚«‚Ü‚¹‚ñ(2) %x", sSocket*/);
+			SetTaskMsg(MSGJPN026/*"æ¥ç¶šã§ãã¾ã›ã‚“(2) %x", sSocket*/);
 			DoClose(sSocket);
 			sSocket = INVALID_SOCKET;
 		}
@@ -1729,13 +1729,13 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 }
 
 
-/*----- ƒŠƒbƒXƒ“ƒ\ƒPƒbƒg‚ğæ“¾ ------------------------------------------------
+/*----- ãƒªãƒƒã‚¹ãƒ³ã‚½ã‚±ãƒƒãƒˆã‚’å–å¾— ------------------------------------------------
 *
 *	Parameter
-*		SOCKET ctrl_skt : ƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg
+*		SOCKET ctrl_skt : ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆ
 *
 *	Return Value
-*		SOCKET ƒŠƒbƒXƒ“ƒ\ƒPƒbƒg
+*		SOCKET ãƒªãƒƒã‚¹ãƒ³ã‚½ã‚±ãƒƒãƒˆ
 *----------------------------------------------------------------------------*/
 
 SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
@@ -1761,7 +1761,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 	{
 		if(Fwall == FWALL_SOCKS4)
 		{
-			/*===== SOCKS4‚ğg‚¤ =====*/
+			/*===== SOCKS4ã‚’ä½¿ã† =====*/
 			DoPrintf("Use SOCKS4 BIND");
 			if(do_connect(listen_skt, (struct sockaddr *)&SocksSockAddr, sizeof(SocksSockAddr), CancelCheckWork) != SOCKET_ERROR)
 			{
@@ -1773,8 +1773,8 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 				Len = offsetof(SOCKS4CMD, UserID) + strlen(FwallUser) + 1;
 
 				Socks4Reply.Result = -1;
-				if((SocksSendCmd(listen_skt, &Socks4Cmd, Len, CancelCheckWork) != SUCCESS) ||
-				   (Socks4GetCmdReply(listen_skt, &Socks4Reply) != SUCCESS) || 
+				if((SocksSendCmd(listen_skt, &Socks4Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
+				   (Socks4GetCmdReply(listen_skt, &Socks4Reply) != FFFTP_SUCCESS) || 
 				   (Socks4Reply.Result != SOCKS4_RES_OK))
 				{
 					SetTaskMsg(MSGJPN028, Socks4Reply.Result);
@@ -1791,11 +1791,11 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 		}
 		else if((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
 		{
-			/*===== SOCKS5‚ğg‚¤ =====*/
+			/*===== SOCKS5ã‚’ä½¿ã† =====*/
 			DoPrintf("Use SOCKS5 BIND");
 			if(do_connect(listen_skt, (struct sockaddr *)&SocksSockAddr, sizeof(SocksSockAddr), CancelCheckWork) != SOCKET_ERROR)
 			{
-				if(Socks5SelMethod(listen_skt, CancelCheckWork) == FAIL)
+				if(Socks5SelMethod(listen_skt, CancelCheckWork) == FFFTP_FAIL)
 				{
 					DoClose(listen_skt);
 					listen_skt = INVALID_SOCKET;
@@ -1805,8 +1805,8 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 				Len = Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, UseIPadrs, CurSockAddr.sin_addr.s_addr, DomainName, CurSockAddr.sin_port);
 
 				Socks5Reply.Result = -1;
-				if((SocksSendCmd(listen_skt, &Socks5Cmd, Len, CancelCheckWork) != SUCCESS) ||
-				   (Socks5GetCmdReply(listen_skt, &Socks5Reply) != SUCCESS) || 
+				if((SocksSendCmd(listen_skt, &Socks5Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
+				   (Socks5GetCmdReply(listen_skt, &Socks5Reply) != FFFTP_SUCCESS) || 
 				   (Socks5Reply.Result != SOCKS5_RES_OK))
 				{
 					SetTaskMsg(MSGJPN029, Socks5Reply.Result);
@@ -1823,7 +1823,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 		}
 		else
 		{
-			/*===== SOCKS‚ğg‚í‚È‚¢ =====*/
+			/*===== SOCKSã‚’ä½¿ã‚ãªã„ =====*/
 			DoPrintf("Use normal BIND");
 			saCtrlAddr.sin_port = htons(0);
 			saCtrlAddr.sin_family = AF_INET;
@@ -1890,13 +1890,13 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 }
 
 
-/*----- ƒzƒXƒg‚ÖÚ‘±ˆ—’†‚©‚Ç‚¤‚©‚ğ•Ô‚·---------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆã¸æ¥ç¶šå‡¦ç†ä¸­ã‹ã©ã†ã‹ã‚’è¿”ã™---------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 *			YES/NO
 *----------------------------------------------------------------------------*/
 
@@ -1907,10 +1907,10 @@ int AskTryingConnect(void)
 
 
 #if 0
-///*----- ƒuƒƒbƒLƒ“ƒOƒR[ƒ‹‚ÌƒtƒbƒNƒR[ƒ‹ƒoƒbƒN --------------------------------
+///*----- ãƒ–ãƒ­ãƒƒã‚­ãƒ³ã‚°ã‚³ãƒ¼ãƒ«ã®ãƒ•ãƒƒã‚¯ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ --------------------------------
 //*
 //*	Parameter
-//*		‚È‚µ
+//*		ãªã—
 //*
 //*	Return Value
 //*		BOOL FALSE
@@ -1932,18 +1932,18 @@ int AskTryingConnect(void)
 
 
 
-/*----- SOCKS5‚ÌƒRƒ}ƒ“ƒhƒpƒPƒbƒg‚ğì¬‚·‚é ------------------------------------
+/*----- SOCKS5ã®ã‚³ãƒãƒ³ãƒ‰ãƒ‘ã‚±ãƒƒãƒˆã‚’ä½œæˆã™ã‚‹ ------------------------------------
 *
 *	Parameter
-*		SOCKS5REQUEST *Packet : ƒpƒPƒbƒg‚ğì¬‚·‚éƒ[ƒN
-*		char Cmd : ƒRƒ}ƒ“ƒh
-*		int ValidIP : IPƒAƒhƒŒƒX‚ğg‚¤‚©‚Ç‚¤‚©(YES/NO)
-*		ulong IP : IPƒAƒhƒŒƒX
-*		char *Host : ƒzƒXƒg–¼
-*		ushort Port : ƒ|[ƒg
+*		SOCKS5REQUEST *Packet : ãƒ‘ã‚±ãƒƒãƒˆã‚’ä½œæˆã™ã‚‹ãƒ¯ãƒ¼ã‚¯
+*		char Cmd : ã‚³ãƒãƒ³ãƒ‰
+*		int ValidIP : IPã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’ä½¿ã†ã‹ã©ã†ã‹(YES/NO)
+*		ulong IP : IPã‚¢ãƒ‰ãƒ¬ã‚¹
+*		char *Host : ãƒ›ã‚¹ãƒˆå
+*		ushort Port : ãƒãƒ¼ãƒˆ
 *
 *	Return Value
-*		int ƒRƒ}ƒ“ƒhƒpƒPƒbƒg‚Ì’·‚³
+*		int ã‚³ãƒãƒ³ãƒ‰ãƒ‘ã‚±ãƒƒãƒˆã®é•·ã•
 *----------------------------------------------------------------------------*/
 
 static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, int ValidIP, ulong IP, char *Host, ushort Port)
@@ -1954,14 +1954,14 @@ static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, int ValidIP, ulo
 
 	Pos = (uchar *)Packet;
 	Pos += SOCKS5REQUEST_SIZE;
-	TotalLen = SOCKS5REQUEST_SIZE + 2;	/* +2‚Íƒ|[ƒg‚Ì•ª */
+	TotalLen = SOCKS5REQUEST_SIZE + 2;	/* +2ã¯ãƒãƒ¼ãƒˆã®åˆ† */
 
 	Packet->Ver = SOCKS5_VER;
 	Packet->Cmd = Cmd;
 	Packet->Rsv = 0;
 	if(ValidIP == YES)
 	{
-		/* IPƒAƒhƒŒƒX‚ğw’è */
+		/* IPã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’æŒ‡å®š */
 		Packet->Type = SOCKS5_ADRS_IPV4;
 		*((ulong *)Pos) = IP;
 		Pos += 4;
@@ -1969,7 +1969,7 @@ static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, int ValidIP, ulo
 	}
 	else
 	{
-		/* ƒzƒXƒg–¼‚ğw’è */
+		/* ãƒ›ã‚¹ãƒˆåã‚’æŒ‡å®š */
 		Packet->Type = SOCKS5_ADRS_NAME;
 		Len = strlen(Host);
 		*Pos++ = Len;
@@ -1983,15 +1983,15 @@ static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, int ValidIP, ulo
 }
 
 
-/*----- SOCKS‚ÌƒRƒ}ƒ“ƒh‚ğ‘—‚é -------------------------------------------------
+/*----- SOCKSã®ã‚³ãƒãƒ³ãƒ‰ã‚’é€ã‚‹ -------------------------------------------------
 *
 *	Parameter
-*		SOCKET Socket : ƒ\ƒPƒbƒg
-*		void *Data : ‘—‚éƒf[ƒ^
-*		int Size : ƒTƒCƒY
+*		SOCKET Socket : ã‚½ã‚±ãƒƒãƒˆ
+*		void *Data : é€ã‚‹ãƒ‡ãƒ¼ã‚¿
+*		int Size : ã‚µã‚¤ã‚º
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (SUCCESS/FAIL)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
 static int SocksSendCmd(SOCKET Socket, void *Data, int Size, int *CancelCheckWork)
@@ -2000,21 +2000,21 @@ static int SocksSendCmd(SOCKET Socket, void *Data, int Size, int *CancelCheckWor
 
 	Ret = SendData(Socket, (char *)Data, Size, 0, CancelCheckWork);
 
-	if(Ret != SUCCESS)
+	if(Ret != FFFTP_SUCCESS)
 		SetTaskMsg(MSGJPN033, *((short *)Data));
 
 	return(Ret);
 }
 
 
-/*----- SOCKS5‚ÌƒRƒ}ƒ“ƒh‚É‘Î‚·‚éƒŠƒvƒ‰ƒCƒpƒPƒbƒg‚ğóM‚·‚é --------------------
+/*----- SOCKS5ã®ã‚³ãƒãƒ³ãƒ‰ã«å¯¾ã™ã‚‹ãƒªãƒ—ãƒ©ã‚¤ãƒ‘ã‚±ãƒƒãƒˆã‚’å—ä¿¡ã™ã‚‹ --------------------
 *
 *	Parameter
-*		SOCKET Socket : ƒ\ƒPƒbƒg
-*		SOCKS5REPLY *Packet : ƒpƒPƒbƒg
+*		SOCKET Socket : ã‚½ã‚±ãƒƒãƒˆ
+*		SOCKS5REPLY *Packet : ãƒ‘ã‚±ãƒƒãƒˆ
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (SUCCESS/FAIL)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
 static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet)
@@ -2026,7 +2026,7 @@ static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet)
 	Pos = (uchar *)Packet;
 	Pos += SOCKS5REPLY_SIZE;
 
-	if((Ret = ReadNchar(Socket, (char *)Packet, SOCKS5REPLY_SIZE, &CancelFlg)) == SUCCESS)
+	if((Ret = ReadNchar(Socket, (char *)Packet, SOCKS5REPLY_SIZE, &CancelFlg)) == FFFTP_SUCCESS)
 	{
 		if(Packet->Type == SOCKS5_ADRS_IPV4)
 			Len = 4 + 2;
@@ -2034,32 +2034,32 @@ static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet)
 			Len = 6 + 2;
 		else
 		{
-			if((Ret = ReadNchar(Socket, (char *)Pos, 1, &CancelFlg)) == SUCCESS)
+			if((Ret = ReadNchar(Socket, (char *)Pos, 1, &CancelFlg)) == FFFTP_SUCCESS)
 			{
 				Len = *Pos + 2;
 				Pos++;
 			}
 		}
 
-		if(Ret == SUCCESS)
+		if(Ret == FFFTP_SUCCESS)
 			Ret = ReadNchar(Socket, (char *)Pos, Len, &CancelFlg);
 	}
 
-	if(Ret != SUCCESS)
+	if(Ret != FFFTP_SUCCESS)
 		SetTaskMsg(MSGJPN034);
 
 	return(Ret);
 }
 
 
-/*----- SOCKS4‚ÌƒRƒ}ƒ“ƒh‚É‘Î‚·‚éƒŠƒvƒ‰ƒCƒpƒPƒbƒg‚ğóM‚·‚é --------------------
+/*----- SOCKS4ã®ã‚³ãƒãƒ³ãƒ‰ã«å¯¾ã™ã‚‹ãƒªãƒ—ãƒ©ã‚¤ãƒ‘ã‚±ãƒƒãƒˆã‚’å—ä¿¡ã™ã‚‹ --------------------
 *
 *	Parameter
-*		SOCKET Socket : ƒ\ƒPƒbƒg
-*		SOCKS5REPLY *Packet : ƒpƒPƒbƒg
+*		SOCKET Socket : ã‚½ã‚±ãƒƒãƒˆ
+*		SOCKS5REPLY *Packet : ãƒ‘ã‚±ãƒƒãƒˆ
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (SUCCESS/FAIL)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
 static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet)
@@ -2068,20 +2068,20 @@ static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet)
 
 	Ret = ReadNchar(Socket, (char *)Packet, SOCKS4REPLY_SIZE, &CancelFlg);
 
-	if(Ret != SUCCESS)
+	if(Ret != FFFTP_SUCCESS)
 		DoPrintf(MSGJPN035);
 
 	return(Ret);
 }
 
 
-/*----- SOCKS5‚Ì”FØ‚ğs‚¤ ----------------------------------------------------
+/*----- SOCKS5ã®èªè¨¼ã‚’è¡Œã† ----------------------------------------------------
 *
 *	Parameter
-*		SOCKET Socket : ƒ\ƒPƒbƒg
+*		SOCKET Socket : ã‚½ã‚±ãƒƒãƒˆ
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (SUCCESS/FAIL)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
 static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork)
@@ -2094,7 +2094,7 @@ static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork)
 	int Len;
 	int Len2;
 
-	Ret = SUCCESS;
+	Ret = FFFTP_SUCCESS;
 	Socks5Method.Ver = SOCKS5_VER;
 	Socks5Method.Num = 1;
 	if(FwallType == FWALL_SOCKS5_NOAUTH)
@@ -2102,12 +2102,12 @@ static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork)
 	else
 		Socks5Method.Methods[0] = SOCKS5_AUTH_USER;
 
-	if((SocksSendCmd(Socket, &Socks5Method, SOCKS5METHODREQUEST_SIZE, CancelCheckWork) != SUCCESS) ||
-	   (ReadNchar(Socket, (char *)&Socks5MethodReply, SOCKS5METHODREPLY_SIZE, &CancelFlg) != SUCCESS) ||
+	if((SocksSendCmd(Socket, &Socks5Method, SOCKS5METHODREQUEST_SIZE, CancelCheckWork) != FFFTP_SUCCESS) ||
+	   (ReadNchar(Socket, (char *)&Socks5MethodReply, SOCKS5METHODREPLY_SIZE, &CancelFlg) != FFFTP_SUCCESS) ||
 	   (Socks5MethodReply.Method == (uchar)0xFF))
 	{
 		SetTaskMsg(MSGJPN036);
-		Ret = FAIL;
+		Ret = FFFTP_FAIL;
 	}
 	else if(Socks5MethodReply.Method == SOCKS5_AUTH_USER)
 	{
@@ -2120,12 +2120,12 @@ static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork)
 		Buf[2 + Len] = Len2;
 		strcpy(Buf+3+Len, FwallPass);
 
-		if((SocksSendCmd(Socket, &Buf, Len+Len2+3, CancelCheckWork) != SUCCESS) ||
-		   (ReadNchar(Socket, (char *)&Socks5Status, SOCKS5USERPASSSTATUS_SIZE, &CancelFlg) != SUCCESS) ||
+		if((SocksSendCmd(Socket, &Buf, Len+Len2+3, CancelCheckWork) != FFFTP_SUCCESS) ||
+		   (ReadNchar(Socket, (char *)&Socks5Status, SOCKS5USERPASSSTATUS_SIZE, &CancelFlg) != FFFTP_SUCCESS) ||
 		   (Socks5Status.Status != 0))
 		{
 			SetTaskMsg(MSGJPN037);
-			Ret = FAIL;
+			Ret = FFFTP_FAIL;
 		}
 	}
 	else
@@ -2135,14 +2135,14 @@ static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork)
 }
 
 
-/*----- SOCKS‚ÌBIND‚Ì‘æ‚QƒŠƒvƒ‰ƒCƒƒbƒZ[ƒW‚ğó‚¯æ‚é -------------------------
+/*----- SOCKSã®BINDã®ç¬¬ï¼’ãƒªãƒ—ãƒ©ã‚¤ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ã‘å–ã‚‹ -------------------------
 *
 *	Parameter
-*		SOCKET Socket : ƒ\ƒPƒbƒg
-*		SOCKET *Data : ƒf[ƒ^ƒ\ƒPƒbƒg‚ğ•Ô‚·ƒ[ƒN
+*		SOCKET Socket : ã‚½ã‚±ãƒƒãƒˆ
+*		SOCKET *Data : ãƒ‡ãƒ¼ã‚¿ã‚½ã‚±ãƒƒãƒˆã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (SUCCESS/FAIL)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
 int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data)
@@ -2150,26 +2150,26 @@ int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data)
 	int Ret;
 	char Buf[300];
 
-	Ret = FAIL;
+	Ret = FFFTP_FAIL;
 	if((AskHostFireWall() == YES) && (FwallType == FWALL_SOCKS4))
 	{
 		Socks4GetCmdReply(Socket, (SOCKS4REPLY *)Buf);
 		*Data = Socket;
-		Ret = SUCCESS;
+		Ret = FFFTP_SUCCESS;
 	}
 	else if((AskHostFireWall() == YES) &&
 			((FwallType == FWALL_SOCKS5_NOAUTH) || (FwallType == FWALL_SOCKS5_USER)))
 	{
 		Socks5GetCmdReply(Socket, (SOCKS5REPLY *)Buf);
 		*Data = Socket;
-		Ret = SUCCESS;
+		Ret = FFFTP_SUCCESS;
 	}
 	return(Ret);
 }
 
 
 
-// ˆÃ†‰»’ÊM‘Î‰
+// æš—å·åŒ–é€šä¿¡å¯¾å¿œ
 int AskCryptMode(void)
 {
 	return(CurHost.CryptMode);

@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*									ƒ\ƒPƒbƒg
+*									ã‚½ã‚±ãƒƒãƒˆ
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -73,8 +73,8 @@ typedef struct {
 } ASYNCSIGNALDATABASE;
 
 
-// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
-// ”O‚Ì‚½‚ßƒe[ƒuƒ‹‚ğ‘—Ê
+// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
+// å¿µã®ãŸã‚ãƒ†ãƒ¼ãƒ–ãƒ«ã‚’å¢—é‡
 //#define MAX_SIGNAL_ENTRY		10
 //#define MAX_SIGNAL_ENTRY_DBASE	5
 #define MAX_SIGNAL_ENTRY		100
@@ -83,7 +83,7 @@ typedef struct {
 
 
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static int AskAsyncDone(SOCKET s, int *Error, int Mask);
@@ -94,12 +94,12 @@ static int UnRegistAsyncTable(SOCKET s);
 static int UnRegistAsyncTableDbase(HANDLE Async);
 
 
-/*===== ŠO•”QÆ =====*/
+/*===== å¤–éƒ¨å‚ç…§ =====*/
 
 extern int TimeOut;
 
 
-/*===== ƒ[ƒJƒ‹‚Èƒ[ƒN =====*/
+/*===== ãƒ­ãƒ¼ã‚«ãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
 static const char SocketWndClass[] = "FFFTPSocketWnd";
 static HWND hWndSocket;
@@ -108,7 +108,7 @@ static ASYNCSIGNAL Signal[MAX_SIGNAL_ENTRY];
 static ASYNCSIGNALDATABASE SignalDbase[MAX_SIGNAL_ENTRY_DBASE];
 
 //static HANDLE hAsyncTblAccMutex;
-// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 static HANDLE hAsyncTblAccMutex;
 
 
@@ -120,8 +120,8 @@ static HANDLE hAsyncTblAccMutex;
 *	Parameter
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int MakeSocketWin(HWND hWnd, HINSTANCE hInst)
@@ -144,7 +144,7 @@ int MakeSocketWin(HWND hWnd, HINSTANCE hInst)
 	wClass.hIconSm       = NULL;
 	RegisterClassEx(&wClass);
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	hWndSocket = CreateWindowEx(0, SocketWndClass, NULL,
 			WS_BORDER | WS_POPUP,
 			0, 0, 0, 0,
@@ -154,7 +154,7 @@ int MakeSocketWin(HWND hWnd, HINSTANCE hInst)
 	{
 //		hAsyncTblAccMutex = CreateMutex(NULL, FALSE, NULL);
 
-		// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+		// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 //		for(i = 0; i < MAX_SIGNAL_ENTRY; i++)
 //			Signal[i].Socket = INVALID_SOCKET;
 //		for(i = 0; i < MAX_SIGNAL_ENTRY_DBASE; i++)
@@ -166,7 +166,7 @@ int MakeSocketWin(HWND hWnd, HINSTANCE hInst)
 			for(i = 0; i < MAX_SIGNAL_ENTRY_DBASE; i++)
 				SignalDbase[i].Async = 0;
 		}
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
@@ -175,16 +175,16 @@ int MakeSocketWin(HWND hWnd, HINSTANCE hInst)
 /*----- 
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DeleteSocketWin(void)
 {
 //	CloseHandle(hAsyncTblAccMutex);
-	// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+	// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 	CloseHandle(hAsyncTblAccMutex);
 	hAsyncTblAccMutex = NULL;
 
@@ -197,10 +197,10 @@ void DeleteSocketWin(void)
 /*----- 
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -213,7 +213,7 @@ static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 	switch(message)
 	{
 		case WM_ASYNC_SOCKET :
-			// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+			// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 			WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 			for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
 			{
@@ -266,12 +266,12 @@ static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 					break;
 				}
 			}
-			// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+			// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 			ReleaseMutex(hAsyncTblAccMutex);
 			break;
 
 		case WM_ASYNC_DBASE :
-			// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+			// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 			WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 			for(Pos = 0; Pos < MAX_SIGNAL_ENTRY_DBASE; Pos++)
 			{
@@ -291,7 +291,7 @@ static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 					break;
 				}
 			}
-			// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+			// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 			ReleaseMutex(hAsyncTblAccMutex);
 			break;
 
@@ -318,7 +318,7 @@ static int AskAsyncDone(SOCKET s, int *Error, int Mask)
 	int Sts;
 	int Pos;
 
-	// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+	// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 	Sts = NO;
 	*Error = 0;
@@ -371,7 +371,7 @@ static int AskAsyncDone(SOCKET s, int *Error, int Mask)
 			break;
 		}
 	}
-	// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+	// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 	ReleaseMutex(hAsyncTblAccMutex);
 
 	if(Pos == MAX_SIGNAL_ENTRY)
@@ -404,7 +404,7 @@ static int AskAsyncDoneDbase(HANDLE Async, int *Error)
 	int Sts;
 	int Pos;
 
-	// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+	// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 	Sts = NO;
 	*Error = 0;
@@ -423,7 +423,7 @@ static int AskAsyncDoneDbase(HANDLE Async, int *Error)
 			break;
 		}
 	}
-	// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+	// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 	ReleaseMutex(hAsyncTblAccMutex);
 
 	if(Pos == MAX_SIGNAL_ENTRY_DBASE)
@@ -450,7 +450,7 @@ static int RegistAsyncTable(SOCKET s)
 	int Sts;
 	int Pos;
 
-	// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+	// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 	Sts = NO;
 	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
@@ -461,12 +461,12 @@ static int RegistAsyncTable(SOCKET s)
 			break;
 		}
 	}
-	// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+	// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 	ReleaseMutex(hAsyncTblAccMutex);
 
 	if(Pos == MAX_SIGNAL_ENTRY)
 	{
-		// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+		// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 		WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 		for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
 		{
@@ -486,7 +486,7 @@ static int RegistAsyncTable(SOCKET s)
 				break;
 			}
 		}
-		// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+		// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 		ReleaseMutex(hAsyncTblAccMutex);
 
 		if(Pos == MAX_SIGNAL_ENTRY)
@@ -514,7 +514,7 @@ static int RegistAsyncTableDbase(HANDLE Async)
 	int Sts;
 	int Pos;
 
-	// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+	// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 	Sts = NO;
 	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY_DBASE; Pos++)
@@ -525,12 +525,12 @@ static int RegistAsyncTableDbase(HANDLE Async)
 			break;
 		}
 	}
-	// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+	// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 	ReleaseMutex(hAsyncTblAccMutex);
 
 	if(Pos == MAX_SIGNAL_ENTRY_DBASE)
 	{
-		// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+		// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 		WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 		for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
 		{
@@ -546,7 +546,7 @@ static int RegistAsyncTableDbase(HANDLE Async)
 				break;
 			}
 		}
-		// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+		// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 		ReleaseMutex(hAsyncTblAccMutex);
 
 		if(Pos == MAX_SIGNAL_ENTRY_DBASE)
@@ -574,7 +574,7 @@ static int UnRegistAsyncTable(SOCKET s)
 	int Sts;
 	int Pos;
 
-	// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+	// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 	Sts = NO;
 	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
@@ -589,7 +589,7 @@ static int UnRegistAsyncTable(SOCKET s)
 			break;
 		}
 	}
-	// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+	// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 	ReleaseMutex(hAsyncTblAccMutex);
 	return(Sts);
 }
@@ -609,7 +609,7 @@ static int UnRegistAsyncTableDbase(HANDLE Async)
 	int Sts;
 	int Pos;
 
-	// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+	// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 	Sts = NO;
 	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY_DBASE; Pos++)
@@ -624,7 +624,7 @@ static int UnRegistAsyncTableDbase(HANDLE Async)
 			break;
 		}
 	}
-	// ƒXƒŒƒbƒhÕ“Ë‚ÌƒoƒOC³
+	// ã‚¹ãƒ¬ãƒƒãƒ‰è¡çªã®ãƒã‚°ä¿®æ­£
 	ReleaseMutex(hAsyncTblAccMutex);
 	return(Sts);
 }
@@ -709,7 +709,7 @@ int do_closesocket(SOCKET s)
 #endif
 	CancelCheckWork = NO;
 
-	// FTPS‘Î‰
+	// FTPSå¯¾å¿œ
 //	Ret = closesocket(s);
 	if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
 		Ret = closesocketS(s);
@@ -765,7 +765,7 @@ int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCh
 	Ret = WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT | FD_READ | FD_WRITE);
 	if(Ret != SOCKET_ERROR)
 	{
-		// FTPS‘Î‰
+		// FTPSå¯¾å¿œ
 //		Ret = connect(s, name, namelen);
 		if(AskCryptMode() == CRYPT_FTPIS)
 			Ret = connectS(s, name, namelen);
@@ -864,7 +864,7 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 	{
 		do
 		{
-			// FTPS‘Î‰
+			// FTPSå¯¾å¿œ
 //			Ret2 = accept(s, addr, addrlen);
 			if(AskCryptMode() == CRYPT_FTPIS)
 				Ret2 = acceptS(s, addr, addrlen);
@@ -904,20 +904,20 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 
 
 
-/*----- recv‘Š“–‚ÌŠÖ” --------------------------------------------------------
+/*----- recvç›¸å½“ã®é–¢æ•° --------------------------------------------------------
 *
 *	Parameter
-*		SOCKET s : ƒ\ƒPƒbƒg
-*		char *buf : ƒf[ƒ^‚ğ“Ç‚İ‚Şƒoƒbƒtƒ@
-*		int len : ’·‚³
-*		int flags : recv‚É—^‚¦‚éƒtƒ‰ƒO
-*		int *TimeOutErr : ƒ^ƒCƒ€ƒAƒEƒg‚µ‚½‚©‚Ç‚¤‚©‚ğ•Ô‚·ƒ[ƒN
+*		SOCKET s : ã‚½ã‚±ãƒƒãƒˆ
+*		char *buf : ãƒ‡ãƒ¼ã‚¿ã‚’èª­ã¿è¾¼ã‚€ãƒãƒƒãƒ•ã‚¡
+*		int len : é•·ã•
+*		int flags : recvã«ä¸ãˆã‚‹ãƒ•ãƒ©ã‚°
+*		int *TimeOutErr : ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ãŸã‹ã©ã†ã‹ã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int : recv‚Ì–ß‚è’l‚Æ“¯‚¶
+*		int : recvã®æˆ»ã‚Šå€¤ã¨åŒã˜
 *
 *	Note
-*		ƒ^ƒCƒ€ƒAƒEƒg‚Ì‚Í TimeOut=YESARet=SOCKET_ERROR ‚É‚È‚é
+*		ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã®æ™‚ã¯ TimeOut=YESã€Ret=SOCKET_ERROR ã«ãªã‚‹
 *----------------------------------------------------------------------------*/
 int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *CancelCheckWork)
 {
@@ -938,8 +938,8 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 	if(TimeOut != 0)
 		time(&StartTime);
 
-	// FTPS‘Î‰
-	// OpenSSL‚Å‚ÍóMŠm”F‚ÍFD_READ‚ª•¡”‰ñóM‚³‚ê‚é‰Â”\«‚ª‚ ‚é
+	// FTPSå¯¾å¿œ
+	// OpenSSLã§ã¯å—ä¿¡ç¢ºèªã¯FD_READãŒè¤‡æ•°å›å—ä¿¡ã•ã‚Œã‚‹å¯èƒ½æ€§ãŒã‚ã‚‹
 //	while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_READ_BIT) != YES))
 	while(AskCryptMode() == CRYPT_NONE && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_READ_BIT) != YES))
 	{
@@ -972,7 +972,7 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 			DoPrintf("## recv()");
 #endif
 
-			// FTPS‘Î‰
+			// FTPSå¯¾å¿œ
 //			Ret = recv(s, buf, len, flags);
 			if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
 				Ret = recvS(s, buf, len, flags);
@@ -984,8 +984,8 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 			Sleep(1);
 			if(BackgrndMessageProc() == YES)
 				break;
-			// FTPS‘Î‰
-			// óMŠm”F‚ğƒoƒCƒpƒX‚µ‚½‚½‚ß‚±‚±‚Åƒ^ƒCƒ€ƒAƒEƒg‚ÌŠm”F
+			// FTPSå¯¾å¿œ
+			// å—ä¿¡ç¢ºèªã‚’ãƒã‚¤ãƒ‘ã‚¹ã—ãŸãŸã‚ã“ã“ã§ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã®ç¢ºèª
 			if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
 			{
 				if(BackgrndMessageProc() == YES)
@@ -1048,8 +1048,8 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 	if(BackgrndMessageProc() == YES)
 		*CancelCheckWork = YES;
 
-	// FTPS‘Î‰
-	// ‘—Mƒoƒbƒtƒ@‚Ì‹ó‚«Šm”F‚É‚Í‰e‹¿‚µ‚È‚¢‚ª”O‚Ì‚½‚ß
+	// FTPSå¯¾å¿œ
+	// é€ä¿¡ãƒãƒƒãƒ•ã‚¡ã®ç©ºãç¢ºèªã«ã¯å½±éŸ¿ã—ãªã„ãŒå¿µã®ãŸã‚
 //	while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE_BIT) != YES))
 	while(AskCryptMode() == CRYPT_NONE && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE_BIT) != YES))
 	{
@@ -1083,7 +1083,7 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 			DoPrintf("## send()");
 #endif
 
-			// FTPS‘Î‰
+			// FTPSå¯¾å¿œ
 //			Ret = send(s, buf, len, flags);
 			if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
 				Ret = sendS(s, buf, len, flags);
@@ -1100,8 +1100,8 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 			Sleep(1);
 			if(BackgrndMessageProc() == YES)
 				break;
-			// FTPS‘Î‰
-			// ‘—Mƒoƒbƒtƒ@Šm”F‚ğƒoƒCƒpƒX‚µ‚½‚½‚ß‚±‚±‚Åƒ^ƒCƒ€ƒAƒEƒg‚ÌŠm”F
+			// FTPSå¯¾å¿œ
+			// é€ä¿¡ãƒãƒƒãƒ•ã‚¡ç¢ºèªã‚’ãƒã‚¤ãƒ‘ã‚¹ã—ãŸãŸã‚ã“ã“ã§ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã®ç¢ºèª
 			if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
 			{
 				if(BackgrndMessageProc() == YES)
@@ -1142,8 +1142,8 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 *	Parameter
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int CheckClosedAndReconnect(void)
@@ -1153,7 +1153,7 @@ int CheckClosedAndReconnect(void)
 
 //SetTaskMsg("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if(AskAsyncDone(AskCmdCtrlSkt(), &Error, FD_CLOSE_BIT) == YES)
 	{
 		Sts = ReConnectCmdSkt();

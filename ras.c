@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*									‚q‚`‚rŠÖŒW
+*									ï¼²ï¼¡ï¼³é–¢ä¿‚
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -67,7 +67,7 @@ static void MakeRasConnMsg(char *Phone, RASCONNSTATE rasconn, char *Buf);
 static BOOL CALLBACK DialPassCallBackProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 
-/*===== ƒ[ƒJƒ‹‚Èƒ[ƒN =====*/
+/*===== ãƒ­ãƒ¼ã‚«ãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
 static HINSTANCE m_hDll = NULL;
 static HINSTANCE m_hDll2 = NULL;
@@ -86,17 +86,17 @@ static HWND hWndDial;
 
 
 
-/*----- RASƒ‰ƒCƒuƒ‰ƒŠ‚ğƒ[ƒh‚·‚é ---------------------------------------------
+/*----- RASãƒ©ã‚¤ãƒ–ãƒ©ãƒªã‚’ãƒ­ãƒ¼ãƒ‰ã™ã‚‹ ---------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *
 *	Note
-*		RASƒ‰ƒCƒuƒ‰ƒŠ‚Í•K‚¸ƒCƒ“ƒXƒg[ƒ‹‚³‚ê‚é‚à‚Ì‚Å‚Í‚È‚¢‚Ì‚ÅAƒXƒ^ƒeƒBƒbƒN‚É
-*		ƒŠƒ“ƒN‚µ‚È‚¢B
+*		RASãƒ©ã‚¤ãƒ–ãƒ©ãƒªã¯å¿…ãšã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã•ã‚Œã‚‹ã‚‚ã®ã§ã¯ãªã„ã®ã§ã€ã‚¹ã‚¿ãƒ†ã‚£ãƒƒã‚¯ã«
+*		ãƒªãƒ³ã‚¯ã—ãªã„ã€‚
 *----------------------------------------------------------------------------*/
 
 void LoadRasLib(void)
@@ -141,13 +141,13 @@ void LoadRasLib(void)
 }
 
 
-/*----- RASƒ‰ƒCƒuƒ‰ƒŠ‚ğƒŠƒŠ[ƒX‚·‚é -------------------------------------------
+/*----- RASãƒ©ã‚¤ãƒ–ãƒ©ãƒªã‚’ãƒªãƒªãƒ¼ã‚¹ã™ã‚‹ -------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void ReleaseRasLib(void)
@@ -164,13 +164,13 @@ void ReleaseRasLib(void)
 }
 
 
-/*----- RAS‚ªg‚¦‚é‚©‚Ç‚¤‚©‚ğ•Ô‚· ---------------------------------------------
+/*----- RASãŒä½¿ãˆã‚‹ã‹ã©ã†ã‹ã‚’è¿”ã™ ---------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int RAS‚ªg‚¦‚é‚©‚Ç‚¤‚©
+*		int RASãŒä½¿ãˆã‚‹ã‹ã©ã†ã‹
 *			YES/NO
 *----------------------------------------------------------------------------*/
 
@@ -186,16 +186,16 @@ int AskRasUsable(void)
 }
 
 
-/*----- Œ»İ‚ÌRASƒRƒlƒNƒVƒ‡ƒ“ˆê——‚ğ•Ô‚· ---------------------------------------
+/*----- ç¾åœ¨ã®RASã‚³ãƒã‚¯ã‚·ãƒ§ãƒ³ä¸€è¦§ã‚’è¿”ã™ ---------------------------------------
 *
 *	Parameter
-*		RASCONN **Buf : ˆê——‚Ö‚Ìƒ|ƒCƒ“ƒ^‚ğ•Ô‚·ƒ[ƒN
+*		RASCONN **Buf : ä¸€è¦§ã¸ã®ãƒã‚¤ãƒ³ã‚¿ã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int ŒÂ” (-1=ƒGƒ‰[)
+*		int å€‹æ•° (-1=ã‚¨ãƒ©ãƒ¼)
 *
 *	Note
-*		Buf‚Ì—Ìˆæ‚ÍŒÄo‘¤‚ÅŠJ•ú‚·‚é‚±‚Æ
+*		Bufã®é ˜åŸŸã¯å‘¼å‡ºå´ã§é–‹æ”¾ã™ã‚‹ã“ã¨
 *----------------------------------------------------------------------------*/
 
 static int GetCurConnections(RASCONN **Buf)
@@ -237,13 +237,13 @@ static int GetCurConnections(RASCONN **Buf)
 /*----- RasHangUp()------------------------------------------------------------
 *
 *	Parameter
-*		HRASCONN hRasConn : ƒnƒ“ƒhƒ‹
+*		HRASCONN hRasConn : ãƒãƒ³ãƒ‰ãƒ«
 *
 *	Return Value
-*		DWORD ƒXƒe[ƒ^ƒX
+*		DWORD ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 *
 *	Note
-*		Ø’f‚ªŠ®—¹‚·‚é‚Ü‚Å‘Ò‚Â
+*		åˆ‡æ–­ãŒå®Œäº†ã™ã‚‹ã¾ã§å¾…ã¤
 *----------------------------------------------------------------------------*/
 
 static DWORD RasHangUpWait(HRASCONN hRasConn)
@@ -261,14 +261,14 @@ static DWORD RasHangUpWait(HRASCONN hRasConn)
 }
 
 
-/*----- Œ»İ‚ÌRASƒRƒlƒNƒVƒ‡ƒ“‚ğØ’f‚·‚é ---------------------------------------
+/*----- ç¾åœ¨ã®RASã‚³ãƒã‚¯ã‚·ãƒ§ãƒ³ã‚’åˆ‡æ–­ã™ã‚‹ ---------------------------------------
 *
 *	Parameter
-*		RASCONN *RasConn : Ú‘±ˆê——
-*		int Num : ŒÂ”
+*		RASCONN *RasConn : æ¥ç¶šä¸€è¦§
+*		int Num : å€‹æ•°
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (SUCCESS/FAIL)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
 static int DoDisconnect(RASCONN *RasConn, int Num)
@@ -276,27 +276,27 @@ static int DoDisconnect(RASCONN *RasConn, int Num)
 	int i;
 	int Sts;
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if(Num > 0)
 	{
 		SetTaskMsg(MSGJPN220);
 		for(i = 0; i < Num; i++)
 		{
 			if(RasHangUpWait(RasConn[i].hrasconn) != 0)
-				Sts = FAIL;
+				Sts = FFFTP_FAIL;
 		}
 	}
 	return(Sts);
 }
 
 
-/*----- RAS‚ğØ’f‚·‚é ---------------------------------------------------------
+/*----- RASã‚’åˆ‡æ–­ã™ã‚‹ ---------------------------------------------------------
 *
 *	Parameter
-*		int Notify : Šm”F‚·‚é‚©‚Ç‚¤‚© (YES/NO)
+*		int Notify : ç¢ºèªã™ã‚‹ã‹ã©ã†ã‹ (YES/NO)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DisconnectRas(int Notify)
@@ -323,15 +323,15 @@ void DisconnectRas(int Notify)
 }
 
 
-/*----- RAS‚ÌƒGƒ“ƒgƒŠˆê——‚ğƒRƒ“ƒ{ƒ{ƒbƒNƒX‚ÉƒZƒbƒg‚·‚é -------------------------
+/*----- RASã®ã‚¨ãƒ³ãƒˆãƒªä¸€è¦§ã‚’ã‚³ãƒ³ãƒœãƒœãƒƒã‚¯ã‚¹ã«ã‚»ãƒƒãƒˆã™ã‚‹ -------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX‚Ìƒnƒ“ƒhƒ‹
-*		int Item : ƒRƒ“ƒ{ƒ{ƒbƒNƒX‚ÌƒŠƒ\[ƒX”Ô†
-*		char *CurName : ‰Šú’l
+*		HWND hDlg : ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹ã®ãƒãƒ³ãƒ‰ãƒ«
+*		int Item : ã‚³ãƒ³ãƒœãƒœãƒƒã‚¯ã‚¹ã®ãƒªã‚½ãƒ¼ã‚¹ç•ªå·
+*		char *CurName : åˆæœŸå€¤
 *
 *	Return Value
-*		int ƒGƒ“ƒgƒŠ”
+*		int ã‚¨ãƒ³ãƒˆãƒªæ•°
 *----------------------------------------------------------------------------*/
 
 int SetRasEntryToComboBox(HWND hDlg, int Item, char *CurName)
@@ -374,16 +374,16 @@ int SetRasEntryToComboBox(HWND hDlg, int Item, char *CurName)
 }
 
 
-/*----- RAS‚ÌÚ‘±‚ğs‚¤ -------------------------------------------------------
+/*----- RASã®æ¥ç¶šã‚’è¡Œã† -------------------------------------------------------
 *
 *	Parameter
-*		int Dialup : ƒ_ƒCƒAƒ‹ƒAƒbƒv‚·‚é‚©‚Ç‚¤‚© (YES/NO)
-*		int UseThis : •K‚¸‚±‚ÌƒGƒ“ƒgƒŠ‚ÉÚ‘±‚·‚é‚©‚Ç‚¤‚© (YES/NO)
-*		int Notify : ÄÚ‘±‘O‚ÉŠm”F‚·‚é‚©‚Ç‚¤‚© (YES/NO)
-*		char *Name : Ú‘±æ
+*		int Dialup : ãƒ€ã‚¤ã‚¢ãƒ«ã‚¢ãƒƒãƒ—ã™ã‚‹ã‹ã©ã†ã‹ (YES/NO)
+*		int UseThis : å¿…ãšã“ã®ã‚¨ãƒ³ãƒˆãƒªã«æ¥ç¶šã™ã‚‹ã‹ã©ã†ã‹ (YES/NO)
+*		int Notify : å†æ¥ç¶šå‰ã«ç¢ºèªã™ã‚‹ã‹ã©ã†ã‹ (YES/NO)
+*		char *Name : æ¥ç¶šå…ˆ
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (SUCCESS/FAIL)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
 int ConnectRas(int Dialup, int UseThis, int Notify, char *Name)
@@ -398,12 +398,12 @@ int ConnectRas(int Dialup, int UseThis, int Notify, char *Name)
 	BOOL Flg;
 	OSVERSIONINFO VerInfo;
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if(Dialup == YES)
 	{
 		if(m_hDll != NULL)
 		{
-			/* Œ»İ‚ÌÚ‘±‚ğŠm”F */
+			/* ç¾åœ¨ã®æ¥ç¶šã‚’ç¢ºèª */
 			DoDial = 1;
 			if((Num = GetCurConnections(&RasConn)) != -1)
 			{
@@ -436,9 +436,9 @@ int ConnectRas(int Dialup, int UseThis, int Notify, char *Name)
 
 			if(DoDial != 0)
 			{
-				/* Ú‘±‚·‚é */
+				/* æ¥ç¶šã™ã‚‹ */
 				SetTaskMsg(MSGJPN221);
-				Sts = FAIL;
+				Sts = FFFTP_FAIL;
 
 				Num = 0;
 				VerInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
@@ -460,7 +460,7 @@ int ConnectRas(int Dialup, int UseThis, int Notify, char *Name)
 						DlgParam.reserved = 0;
 						DlgParam.reserved2 = 0;
 						if((*m_RasDialDlg)(NULL, Name, NULL, &DlgParam) != 0)
-							Sts = SUCCESS;
+							Sts = FFFTP_SUCCESS;
 					}
 					else
 						SetTaskMsg(MSGJPN222);
@@ -478,7 +478,7 @@ int ConnectRas(int Dialup, int UseThis, int Notify, char *Name)
 					   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(dial_password_dlg), GetMainHwnd(), (DLGPROC)DialPassCallBackProc, (LPARAM)&Param) == YES))
 					{
 						if(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(dial_dlg), GetMainHwnd(), (DLGPROC)DialCallBackProc, (LPARAM)&Param) == YES)
-							Sts = SUCCESS;
+							Sts = FFFTP_SUCCESS;
 					}
 				}
 			}
@@ -488,13 +488,13 @@ int ConnectRas(int Dialup, int UseThis, int Notify, char *Name)
 }
 
 
-/*----- RASƒ_ƒCƒAƒ‹ƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN -----------------------------------
+/*----- RASãƒ€ã‚¤ã‚¢ãƒ«ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ -----------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -533,7 +533,7 @@ static BOOL CALLBACK DialCallBackProc(HWND hDlg, UINT message, WPARAM wParam, LP
 		case WM_DIAL_MSG :
 			if(lParam != 0)
 			{
-				/* ƒGƒ‰[”­¶ */
+				/* ã‚¨ãƒ©ãƒ¼ç™ºç”Ÿ */
 				if((*m_RasGetErrorString)((UINT)lParam, (LPTSTR)Tmp, RAS_NAME_LEN+25) != 0)
 					sprintf(Tmp, MSGJPN224);
 				RasHangUpWait(hRasConn);
@@ -542,12 +542,12 @@ static BOOL CALLBACK DialCallBackProc(HWND hDlg, UINT message, WPARAM wParam, LP
 			}
 			else if(wParam & RASCS_DONE)
 			{
-				/* I—¹ */
+				/* çµ‚äº† */
 				EndDialog(hDlg, YES);
 			}
 			else
 			{
-				/* ƒXƒe[ƒ^ƒX•ÏX */
+				/* ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹å¤‰æ›´ */
 				MakeRasConnMsg(Param->szPhoneNumber, wParam, Tmp);
 				SendDlgItemMessage(hDlg, DIAL_STATUS, WM_SETTEXT, 0, (LPARAM)Tmp);
 			}
@@ -557,15 +557,15 @@ static BOOL CALLBACK DialCallBackProc(HWND hDlg, UINT message, WPARAM wParam, LP
 }
 
 
-/*----- RasDial()‚ÌƒR[ƒ‹ƒoƒbƒN -----------------------------------------------
+/*----- RasDial()ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ -----------------------------------------------
 *
 *	Parameter
-*		UINT unMsg : ƒƒbƒZ[ƒW
-*		RASCONNSTATE rasconnstate : ƒXƒe[ƒ^ƒX
-*		DWORD dwError : ƒGƒ‰[
+*		UINT unMsg : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸
+*		RASCONNSTATE rasconnstate : ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*		DWORD dwError : ã‚¨ãƒ©ãƒ¼
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static VOID WINAPI RasDialFunc(UINT unMsg, RASCONNSTATE rasconnstate, DWORD dwError)
@@ -574,15 +574,15 @@ static VOID WINAPI RasDialFunc(UINT unMsg, RASCONNSTATE rasconnstate, DWORD dwEr
 }
 
 
-/*----- RasDial()‚ÌƒXƒe[ƒ^ƒXƒƒbƒZ[ƒW‚ğì¬‚·‚é -----------------------------
+/*----- RasDial()ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ä½œæˆã™ã‚‹ -----------------------------
 *
 *	Parameter
-*		char *Phone : “d˜b”Ô†
-*		RASCONNSTATE rasconn : ƒXƒe[ƒ^ƒX
-*		char *Buf : •¶š—ñ‚ğƒZƒbƒg‚·‚éƒoƒbƒtƒ@
+*		char *Phone : é›»è©±ç•ªå·
+*		RASCONNSTATE rasconn : ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*		char *Buf : æ–‡å­—åˆ—ã‚’ã‚»ãƒƒãƒˆã™ã‚‹ãƒãƒƒãƒ•ã‚¡
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void MakeRasConnMsg(char *Phone, RASCONNSTATE rasconn, char *Buf)
@@ -643,13 +643,13 @@ static void MakeRasConnMsg(char *Phone, RASCONNSTATE rasconn, char *Buf)
 }
 
 
-/*----- ƒ†[ƒU–¼AƒpƒXƒ[ƒh“ü—ÍƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ----------------------
+/*----- ãƒ¦ãƒ¼ã‚¶åã€ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰å…¥åŠ›ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ----------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE

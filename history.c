@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*										ƒqƒXƒgƒŠ
+*										ãƒ’ã‚¹ãƒˆãƒª
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -43,24 +43,24 @@
 #include "resource.h"
 
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New);
 static void AddOneFnameToMenu(char *Host, char *User, char *Remote, int Num);
 static void RemoveAllHistoryFromMenu(void);
 
-/*===== ŠO•”QÆ =====*/
+/*===== å¤–éƒ¨å‚ç…§ =====*/
 
-/* İ’è’l */
+/* è¨­å®šå€¤ */
 extern int FileHist;
 extern int PassToHist;
 
-/*===== ƒ[ƒJƒ‹‚Èƒ[ƒN =====*/
+/*===== ãƒ­ãƒ¼ã‚«ãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
 static HISTORYDATA *HistoryBase = NULL;
 static int HistoryNum = 0;
 
-/* ƒqƒXƒgƒŠ‚Ìƒƒjƒ…[€–Ú‚ÌID */
+/* ãƒ’ã‚¹ãƒˆãƒªã®ãƒ¡ãƒ‹ãƒ¥ãƒ¼é …ç›®ã®ID */
 static int MenuHistId[HISTORY_MAX] = {
 	MENU_HIST_1,  MENU_HIST_2,  MENU_HIST_3,  MENU_HIST_4,  MENU_HIST_5,
 	MENU_HIST_6,  MENU_HIST_7,  MENU_HIST_8,  MENU_HIST_9,  MENU_HIST_10,
@@ -70,14 +70,14 @@ static int MenuHistId[HISTORY_MAX] = {
 
 
 
-/*----- ƒzƒXƒgî•ñ‚ğƒqƒXƒgƒŠƒŠƒXƒg‚Ìæ“ª‚É’Ç‰Á‚·‚é ----------------------------
+/*----- ãƒ›ã‚¹ãƒˆæƒ…å ±ã‚’ãƒ’ã‚¹ãƒˆãƒªãƒªã‚¹ãƒˆã®å…ˆé ­ã«è¿½åŠ ã™ã‚‹ ----------------------------
 *
 *	Parameter
-*		HOSTDATA *Host : ƒzƒXƒgƒf[ƒ^
-*		int TrMode : “]‘—ƒ‚[ƒh
+*		HOSTDATA *Host : ãƒ›ã‚¹ãƒˆãƒ‡ãƒ¼ã‚¿
+*		int TrMode : è»¢é€ãƒ¢ãƒ¼ãƒ‰
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void AddHostToHistory(HOSTDATA *Host, int TrMode)
@@ -91,13 +91,13 @@ void AddHostToHistory(HOSTDATA *Host, int TrMode)
 }
 
 
-/*----- ƒqƒXƒgƒŠ‚ğƒqƒXƒgƒŠƒŠƒXƒg‚Ìæ“ª‚É’Ç‰Á‚·‚é ------------------------------
+/*----- ãƒ’ã‚¹ãƒˆãƒªã‚’ãƒ’ã‚¹ãƒˆãƒªãƒªã‚¹ãƒˆã®å…ˆé ­ã«è¿½åŠ ã™ã‚‹ ------------------------------
 *
 *	Parameter
-*		HISTORYDATA *Hist : ƒqƒXƒgƒŠƒf[ƒ^
+*		HISTORYDATA *Hist : ãƒ’ã‚¹ãƒˆãƒªãƒ‡ãƒ¼ã‚¿
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void AddHistoryToHistory(HISTORYDATA *Hist)
@@ -120,13 +120,13 @@ void AddHistoryToHistory(HISTORYDATA *Hist)
 }
 
 
-/*----- ƒqƒXƒgƒŠ‚Ì”‚ğ•Ô‚· ----------------------------------------------------
+/*----- ãƒ’ã‚¹ãƒˆãƒªã®æ•°ã‚’è¿”ã™ ----------------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ƒqƒXƒgƒŠ‚Ì”
+*		int ãƒ’ã‚¹ãƒˆãƒªã®æ•°
 *----------------------------------------------------------------------------*/
 
 int AskHistoryNum(void)
@@ -135,13 +135,13 @@ int AskHistoryNum(void)
 }
 
 
-/*----- ƒqƒXƒgƒŠ‚Ì”‚ğƒ`ƒFƒbƒN‚µ‘½‚·‚¬‚½‚çíœ --------------------------------
+/*----- ãƒ’ã‚¹ãƒˆãƒªã®æ•°ã‚’ãƒã‚§ãƒƒã‚¯ã—å¤šã™ããŸã‚‰å‰Šé™¤ --------------------------------
 *
 *	Parameter
-*		int Space : ‹ó‚¯‚Ä‚¨‚­ŒÂ” (0`)
+*		int Space : ç©ºã‘ã¦ãŠãå€‹æ•° (0ï½)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void CheckHistoryNum(int Space)
@@ -153,7 +153,7 @@ void CheckHistoryNum(int Space)
 
 	if(HistoryNum > FileHist-Space)
 	{
-		/* c‚·‚×‚«ƒqƒXƒgƒŠ‚ğ’T‚· */
+		/* æ®‹ã™ã¹ããƒ’ã‚¹ãƒˆãƒªã‚’æ¢ã™ */
 		Pos = HistoryBase;
 		Prev = NULL;
 		for(i = 0; i < FileHist-Space; i++)
@@ -162,7 +162,7 @@ void CheckHistoryNum(int Space)
 			Pos = Pos->Next;
 		}
 
-		/* ‚¢‚ç‚È‚¢ƒqƒXƒgƒŠ‚ğÁ‚· */
+		/* ã„ã‚‰ãªã„ãƒ’ã‚¹ãƒˆãƒªã‚’æ¶ˆã™ */
 		if(Prev == NULL)
 			HistoryBase = NULL;
 		else
@@ -180,14 +180,14 @@ void CheckHistoryNum(int Space)
 }
 
 
-/*----- ƒzƒXƒgî•ñ‚ğƒqƒXƒgƒŠ‚ÉƒZƒbƒg ------------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆæƒ…å ±ã‚’ãƒ’ã‚¹ãƒˆãƒªã«ã‚»ãƒƒãƒˆ ------------------------------------------
 *
 *	Parameter
-*		HOSTDATA *Host : ƒzƒXƒgƒf[ƒ^
-*		HISTORYDATA *New : ƒqƒXƒgƒŠ‚ğƒZƒbƒg‚·‚éƒ[ƒN
+*		HOSTDATA *Host : ãƒ›ã‚¹ãƒˆãƒ‡ãƒ¼ã‚¿
+*		HISTORYDATA *New : ãƒ’ã‚¹ãƒˆãƒªã‚’ã‚»ãƒƒãƒˆã™ã‚‹ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
@@ -223,7 +223,7 @@ static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
 	New->DialupAlways = Host->DialupAlways;
 	New->DialupNotify = Host->DialupNotify;
 	strcpy(New->DialEntry, Host->DialEntry);
-	// ˆÃ†‰»’ÊM‘Î‰
+	// æš—å·åŒ–é€šä¿¡å¯¾å¿œ
 	New->UseFTPES = Host->UseFTPES;
 	New->UseFTPIS = Host->UseFTPIS;
 	New->UseSFTP = Host->UseSFTP;
@@ -231,14 +231,14 @@ static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
 }
 
 
-/*----- ƒqƒXƒgƒŠî•ñ‚ğƒzƒXƒgî•ñ‚ÉƒZƒbƒg --------------------------------------
+/*----- ãƒ’ã‚¹ãƒˆãƒªæƒ…å ±ã‚’ãƒ›ã‚¹ãƒˆæƒ…å ±ã«ã‚»ãƒƒãƒˆ --------------------------------------
 *
 *	Parameter
-*		HISTORYDATA *Hist : ƒqƒXƒgƒŠ
-*		HOSTDATA *Host : ƒzƒXƒgƒf[ƒ^‚ğƒZƒbƒg‚·‚éƒ[ƒN
+*		HISTORYDATA *Hist : ãƒ’ã‚¹ãƒˆãƒª
+*		HOSTDATA *Host : ãƒ›ã‚¹ãƒˆãƒ‡ãƒ¼ã‚¿ã‚’ã‚»ãƒƒãƒˆã™ã‚‹ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
@@ -276,7 +276,7 @@ void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
 	Host->DialupAlways = Hist->DialupAlways;
 	Host->DialupNotify = Hist->DialupNotify;
 	strcpy(Host->DialEntry, Hist->DialEntry);
-	// ˆÃ†‰»’ÊM‘Î‰
+	// æš—å·åŒ–é€šä¿¡å¯¾å¿œ
 	Host->UseFTPES = Hist->UseFTPES;
 	Host->UseFTPIS = Hist->UseFTPIS;
 	Host->UseSFTP = Hist->UseSFTP;
@@ -284,13 +284,13 @@ void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
 }
 
 
-/*----- ƒqƒXƒgƒŠî•ñ‚Ì‰Šú’l‚ğæ“¾ --------------------------------------------
+/*----- ãƒ’ã‚¹ãƒˆãƒªæƒ…å ±ã®åˆæœŸå€¤ã‚’å–å¾— --------------------------------------------
 *
 *	Parameter
-*		HISTORYDATA *Set : ƒqƒXƒgƒŠ‚ğƒZƒbƒg‚·‚éƒ[ƒN
+*		HISTORYDATA *Set : ãƒ’ã‚¹ãƒˆãƒªã‚’ã‚»ãƒƒãƒˆã™ã‚‹ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void CopyDefaultHistory(HISTORYDATA *Set)
@@ -303,13 +303,13 @@ void CopyDefaultHistory(HISTORYDATA *Set)
 }
 
 
-/*----- ‘SƒqƒXƒgƒŠ‚ğƒƒjƒ…[‚ÉƒZƒbƒg ------------------------------------------
+/*----- å…¨ãƒ’ã‚¹ãƒˆãƒªã‚’ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã«ã‚»ãƒƒãƒˆ ------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetAllHistoryToMenu(void)
@@ -329,16 +329,16 @@ void SetAllHistoryToMenu(void)
 }
 
 
-/*----- ƒqƒXƒgƒŠ‚ğƒƒjƒ…[‚É’Ç‰Á ----------------------------------------------
+/*----- ãƒ’ã‚¹ãƒˆãƒªã‚’ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã«è¿½åŠ  ----------------------------------------------
 *
 *	Parameter
-*		char *Host : ƒzƒXƒg–¼
-*		char *User : ƒ†[ƒU–¼
-*		char *Remote : ƒzƒXƒg‚ÌƒtƒHƒ‹ƒ_
-*		int Num : ”Ô†
+*		char *Host : ãƒ›ã‚¹ãƒˆå
+*		char *User : ãƒ¦ãƒ¼ã‚¶å
+*		char *Remote : ãƒ›ã‚¹ãƒˆã®ãƒ•ã‚©ãƒ«ãƒ€
+*		int Num : ç•ªå·
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void AddOneFnameToMenu(char *Host, char *User, char *Remote, int Num)
@@ -364,13 +364,13 @@ static void AddOneFnameToMenu(char *Host, char *User, char *Remote, int Num)
 }
 
 
-/*----- ‘SƒqƒXƒgƒŠ‚ğƒƒjƒ…[‚©‚çíœ ------------------------------------------
+/*----- å…¨ãƒ’ã‚¹ãƒˆãƒªã‚’ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‹ã‚‰å‰Šé™¤ ------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void RemoveAllHistoryFromMenu(void)
@@ -389,15 +389,15 @@ static void RemoveAllHistoryFromMenu(void)
 }
 
 
-/*----- w’èƒƒjƒ…[ƒRƒ}ƒ“ƒh‚É‘Î‰‚·‚éƒqƒXƒgƒŠ‚ğ•Ô‚· --------------------------
+/*----- æŒ‡å®šãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚³ãƒãƒ³ãƒ‰ã«å¯¾å¿œã™ã‚‹ãƒ’ã‚¹ãƒˆãƒªã‚’è¿”ã™ --------------------------
 *
 *	Parameter
-*		int MenuCmd : æ‚èo‚·ƒqƒXƒgƒŠ‚ÉŠ„‚è“–‚Ä‚ç‚ê‚½ƒƒjƒ…[ƒRƒ}ƒ“ƒh (MENU_xxx)
-*		HISTORYDATA *Buf : ƒqƒXƒgƒŠƒf[ƒ^‚ğ•Ô‚·ƒoƒbƒtƒ@
+*		int MenuCmd : å–ã‚Šå‡ºã™ãƒ’ã‚¹ãƒˆãƒªã«å‰²ã‚Šå½“ã¦ã‚‰ã‚ŒãŸãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚³ãƒãƒ³ãƒ‰ (MENU_xxx)
+*		HISTORYDATA *Buf : ãƒ’ã‚¹ãƒˆãƒªãƒ‡ãƒ¼ã‚¿ã‚’è¿”ã™ãƒãƒƒãƒ•ã‚¡
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int GetHistoryByCmd(int MenuCmd, HISTORYDATA *Buf)
@@ -406,14 +406,14 @@ int GetHistoryByCmd(int MenuCmd, HISTORYDATA *Buf)
 	int i;
 	HISTORYDATA *Pos;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	Pos = HistoryBase;
 	for(i = 0; i < HistoryNum; i++)
 	{
 		if(MenuHistId[i] == MenuCmd)
 		{
 			memcpy(Buf, Pos, sizeof(HISTORYDATA));
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 		Pos = Pos->Next;
 	}
@@ -421,15 +421,15 @@ int GetHistoryByCmd(int MenuCmd, HISTORYDATA *Buf)
 }
 
 
-/*----- w’è”Ô†‚É‘Î‰‚·‚éƒqƒXƒgƒŠ‚ğ•Ô‚· --------------------------------------
+/*----- æŒ‡å®šç•ªå·ã«å¯¾å¿œã™ã‚‹ãƒ’ã‚¹ãƒˆãƒªã‚’è¿”ã™ --------------------------------------
 *
 *	Parameter
-*		int Num : ”Ô†(0`)
-*		HISTORYDATA *Buf : ƒqƒXƒgƒŠƒf[ƒ^‚ğ•Ô‚·ƒoƒbƒtƒ@
+*		int Num : ç•ªå·(0ï½)
+*		HISTORYDATA *Buf : ãƒ’ã‚¹ãƒˆãƒªãƒ‡ãƒ¼ã‚¿ã‚’è¿”ã™ãƒãƒƒãƒ•ã‚¡
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int GetHistoryByNum(int Num, HISTORYDATA *Buf)

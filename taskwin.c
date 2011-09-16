@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*								ƒ^ƒXƒNƒEƒCƒ“ƒhƒE
+*								ã‚¿ã‚¹ã‚¯ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -47,18 +47,18 @@
 
 
 
-/*===== ŠO•”QÆ =====*/
+/*===== å¤–éƒ¨å‚ç…§ =====*/
 
 extern int ClientWidth;
 extern int SepaWidth;
 extern int ListHeight;
 
-/* İ’è’l */
+/* è¨­å®šå€¤ */
 extern int TaskHeight;
 extern HFONT ListFont;
 extern int DebugConsole;
 
-/*===== ƒ[ƒJƒ‹‚Èƒ[ƒN =====*/
+/*===== ãƒ­ãƒ¼ã‚«ãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
 static HWND hWndTask = NULL;
 static HANDLE DispLogSemaphore;
@@ -66,22 +66,22 @@ static HANDLE DispLogSemaphore2;
 
 
 
-/*----- ƒ^ƒXƒNƒEƒCƒ“ƒhƒE‚ğì¬‚·‚é --------------------------------------------
+/*----- ã‚¿ã‚¹ã‚¯ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚’ä½œæˆã™ã‚‹ --------------------------------------------
 *
 *	Parameter
-*		HWND hWnd : eƒEƒCƒ“ƒhƒE‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		HINSTANCE hInst : ƒCƒ“ƒXƒ^ƒ“ƒXƒnƒ“ƒhƒ‹
+*		HWND hWnd : è¦ªã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		HINSTANCE hInst : ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ãƒãƒ³ãƒ‰ãƒ«
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int MakeTaskWindow(HWND hWnd, HINSTANCE hInst)
 {
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	hWndTask = CreateWindowEx(/*WS_EX_STATICEDGE*/WS_EX_CLIENTEDGE,
 			"EDIT", NULL,
 			WS_CHILD | WS_BORDER | ES_AUTOVSCROLL | WS_VSCROLL | ES_MULTILINE | ES_READONLY | WS_CLIPSIBLINGS,
@@ -96,7 +96,7 @@ int MakeTaskWindow(HWND hWnd, HINSTANCE hInst)
 			SendMessage(hWndTask, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
 
 		ShowWindow(hWndTask, SW_SHOW);
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 
 		DispLogSemaphore = CreateSemaphore(NULL, 1, 1, NULL);
 		DispLogSemaphore2 = CreateSemaphore(NULL, 1, 1, NULL);
@@ -106,13 +106,13 @@ int MakeTaskWindow(HWND hWnd, HINSTANCE hInst)
 }
 
 
-/*----- ƒ^ƒXƒNƒEƒCƒ“ƒhƒE‚ğíœ ------------------------------------------------
+/*----- ã‚¿ã‚¹ã‚¯ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚’å‰Šé™¤ ------------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DeleteTaskWindow(void)
@@ -125,13 +125,13 @@ void DeleteTaskWindow(void)
 }
 
 
-/*----- ƒ^ƒXƒNƒEƒCƒ“ƒhƒE‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹‚ğ•Ô‚· ----------------------------
+/*----- ã‚¿ã‚¹ã‚¯ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«ã‚’è¿”ã™ ----------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		HWND ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *----------------------------------------------------------------------------*/
 
 HWND GetTaskWnd(void)
@@ -140,14 +140,14 @@ HWND GetTaskWnd(void)
 }
 
 
-/*----- ƒ^ƒXƒNƒƒbƒZ[ƒW‚ğ•\¦‚·‚é --------------------------------------------
+/*----- ã‚¿ã‚¹ã‚¯ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’è¡¨ç¤ºã™ã‚‹ --------------------------------------------
 *
 *	Parameter
-*		char *szFormat : ƒtƒH[ƒ}ƒbƒg•¶š—ñ
-*		... : ƒpƒ‰ƒ[ƒ^
+*		char *szFormat : ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæ–‡å­—åˆ—
+*		... : ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetTaskMsg(char *szFormat, ...)
@@ -176,10 +176,10 @@ void SetTaskMsg(char *szFormat, ...)
 				strcat(szBuf, "\r\n");
 				Pos = SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
 
-				/* ƒeƒLƒXƒgƒTƒCƒY‚ÌƒŠƒ~ƒbƒg’l‚ğƒ`ƒFƒbƒN */
+				/* ãƒ†ã‚­ã‚¹ãƒˆã‚µã‚¤ã‚ºã®ãƒªãƒŸãƒƒãƒˆå€¤ã‚’ãƒã‚§ãƒƒã‚¯ */
 				if((Pos + strlen(szBuf)) >= TASK_BUFSIZE)
 				{
-					/* ƒŠƒ~ƒbƒg‚ğ‰z‚¦‚»‚¤‚È‚çAæ“ª•”•ª‚ğØ‚èÌ‚Ä‚é */
+					/* ãƒªãƒŸãƒƒãƒˆã‚’è¶Šãˆãã†ãªã‚‰ã€å…ˆé ­éƒ¨åˆ†ã‚’åˆ‡ã‚Šæ¨ã¦ã‚‹ */
 					Pos = SendMessage(GetTaskWnd(), EM_LINEFROMCHAR, TASK_BUFSIZE/10, 0) + 1;
 					Pos = SendMessage(GetTaskWnd(), EM_LINEINDEX, Pos, 0);
 					SendMessage(GetTaskWnd(), EM_SETSEL, 0, Pos);
@@ -204,14 +204,14 @@ void SetTaskMsg(char *szFormat, ...)
 }
 
 
-/*----- ƒ^ƒXƒNƒƒbƒZ[ƒW‚ğƒtƒ@ƒCƒ‹‚É•Û‘¶‚·‚é ----------------------------------
+/*----- ã‚¿ã‚¹ã‚¯ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’ãƒ•ã‚¡ã‚¤ãƒ«ã«ä¿å­˜ã™ã‚‹ ----------------------------------
 *
 *	Parameter
-*		char *Fname : ƒtƒ@ƒCƒ‹–¼
+*		char *Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int SaveTaskMsg(char *Fname)
@@ -222,7 +222,7 @@ int SaveTaskMsg(char *Fname)
 	int Sts;
 
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	Size = SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
 	if((Buf = malloc(Size)) != NULL)
 	{
@@ -230,10 +230,10 @@ int SaveTaskMsg(char *Fname)
 		{
 			SendMessage(GetTaskWnd(), WM_GETTEXT, Size, (LPARAM)Buf);
 			if(fwrite(Buf, strlen(Buf), 1, Strm) == 1)
-				Sts = SUCCESS;
+				Sts = FFFTP_SUCCESS;
 			fclose(Strm);
 
-			if(Sts == FAIL)
+			if(Sts == FFFTP_FAIL)
 				_unlink(Fname);
 		}
 		free(Buf);
@@ -242,13 +242,13 @@ int SaveTaskMsg(char *Fname)
 }
 
 
-/*----- ƒ^ƒXƒN“à—e‚ğƒrƒ…[ƒ‚Å•\¦ --------------------------------------------
+/*----- ã‚¿ã‚¹ã‚¯å†…å®¹ã‚’ãƒ“ãƒ¥ãƒ¼ãƒ¯ã§è¡¨ç¤º --------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DispTaskMsg(void)
@@ -259,7 +259,7 @@ void DispTaskMsg(void)
 	SetYenTail(Buf);
 	strcat(Buf, "_ffftp.tsk");
 
-	if(SaveTaskMsg(Buf) == SUCCESS)
+	if(SaveTaskMsg(Buf) == FFFTP_SUCCESS)
 	{
 		AddTempFileList(Buf);
 		ExecViewer(Buf, 0);
@@ -268,14 +268,14 @@ void DispTaskMsg(void)
 }
 
 
-/*----- ƒfƒoƒbƒOƒRƒ“ƒ\[ƒ‹‚ÉƒƒbƒZ[ƒW‚ğ•\¦‚·‚é ------------------------------
+/*----- ãƒ‡ãƒãƒƒã‚°ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’è¡¨ç¤ºã™ã‚‹ ------------------------------
 *
 *	Parameter
-*		char *szFormat : ƒtƒH[ƒ}ƒbƒg•¶š—ñ
-*		... : ƒpƒ‰ƒ[ƒ^
+*		char *szFormat : ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæ–‡å­—åˆ—
+*		... : ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DoPrintf(char *szFormat, ...)
@@ -315,14 +315,14 @@ void DoPrintf(char *szFormat, ...)
 }
 
 
-/*----- ƒfƒoƒbƒOƒRƒ“ƒ\[ƒ‹‚ÉƒƒbƒZ[ƒW‚ğ•\¦‚·‚é ------------------------------
+/*----- ãƒ‡ãƒãƒƒã‚°ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’è¡¨ç¤ºã™ã‚‹ ------------------------------
 *
 *	Parameter
-*		char *szFormat : ƒtƒH[ƒ}ƒbƒg•¶š—ñ
-*		... : ƒpƒ‰ƒ[ƒ^
+*		char *szFormat : ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæ–‡å­—åˆ—
+*		... : ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DoPrintf2(char *szFormat, ...)

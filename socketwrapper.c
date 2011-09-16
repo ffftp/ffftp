@@ -1,9 +1,9 @@
-// socketwrapper.cpp
+﻿// socketwrapper.cpp
 // Copyright (C) 2011 Suguru Kawamoto
-// �\�P�b�g���b�p�[
-// socket�֘A�֐���OpenSSL�p�ɒu��
-// �R���p�C���ɂ�OpenSSL�̃w�b�_�[�t�@�C�����K�v
-// ���s�ɂ�OpenSSL��DLL���K�v
+// ソケットラッパー
+// socket関連関数をOpenSSL用に置換
+// コンパイルにはOpenSSLのヘッダーファイルが必要
+// 実行にはOpenSSLのDLLが必要
 
 #include <windows.h>
 #include <mmsystem.h>
@@ -185,7 +185,7 @@ BOOL AttachSSL(SOCKET s)
 				if(pSSL_set_fd(*ppSSL, s) != 0)
 				{
 					r = TRUE;
-					// SSL�̃l�S�V�G�[�V�����ɂ͎��Ԃ�������ꍇ������
+					// SSLのネゴシエーションには時間がかかる場合がある
 					while(pSSL_connect(*ppSSL) != 1)
 					{
 						LeaveCriticalSection(&g_OpenSSLLock);

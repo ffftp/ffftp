@@ -1,18 +1,18 @@
-
-/* OPENVMS�p�̃R�[�h��L���ɂ���B����a�쐬�̃p�b�`��g�ݍ��݂܂����B */
+﻿
+/* OPENVMS用のコードを有効にする。樋口殿作成のパッチを組み込みました。 */
 #define HAVE_OPENVMS
 
-// �S�̂ɉe������ݒ�͂����ɋL�q����\��
-// ������UTF-8�Ƃ��Ĉ����}���`�o�C�g�������C�h����API���b�p�[���g�p����
+// 全体に影響する設定はここに記述する予定
+// 内部をUTF-8として扱いマルチバイト文字ワイド文字APIラッパーを使用する
 #include "mbswrapper.h"
-// OpenSSL�p�\�P�b�g���b�p�[���g�p����
+// OpenSSL用ソケットラッパーを使用する
 #include "socketwrapper.h"
-// �g�p����CPU��1�Ɍ��肷��i�}���`�R�ACPU�̓�������Ńt�@�C���ʐM���ɃN���b�V������o�O�΍�j
+// 使用するCPUを1個に限定する（マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策）
 #define DISABLE_MULTI_CPUS
-// �t�@�C���]���p�̃l�b�g���[�N�o�b�t�@�𖳌��ɂ���i�ʐM���~��Ƀ����[�g�̃f�B���N�g�����\������Ȃ��o�O�΍�j
+// ファイル転送用のネットワークバッファを無効にする（通信中止後にリモートのディレクトリが表示されないバグ対策）
 //#define DISABLE_TRANSFER_NETWORK_BUFFERS
-// �R���g���[���p�̃l�b�g���[�N�o�b�t�@�𖳌��ɂ���i�t���[�Y�΍�j
+// コントロール用のネットワークバッファを無効にする（フリーズ対策）
 #define DISABLE_CONTROL_NETWORK_BUFFERS
-// JRE32.DLL�𖳌��ɂ���iUTF-8�ɔ�Ή��̂��߁j
+// JRE32.DLLを無効にする（UTF-8に非対応のため）
 #define DISABLE_JRE32DLL
 

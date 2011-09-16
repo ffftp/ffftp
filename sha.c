@@ -1,4 +1,4 @@
-/* Implementation of NIST's Secure Hash Algorithm (FIPS 180)
+﻿/* Implementation of NIST's Secure Hash Algorithm (FIPS 180)
  * Lightly bummed for execution efficiency.
  *
  * Jim Gillogly 3 May 1993
@@ -69,7 +69,7 @@
 #define TRUE  1
 #define FALSE 0
 
-#define SUCCESS 0
+#define FFFTP_SUCCESS 0
 #define FAILURE -1
 
 int sha_file();                         /* External entries */
@@ -191,7 +191,7 @@ uint32 *buffer;
     }
     (void) sha_stream(infile, buffer);
     fclose(infile);
-    return SUCCESS;
+    return FFFTP_SUCCESS;
 }
 
 void sha_memory(mem, length, buffer)    /* Hash a memory block */

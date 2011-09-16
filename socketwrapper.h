@@ -1,6 +1,6 @@
-// socketwrapper.h
+ï»¿// socketwrapper.h
 // Copyright (C) 2011 Suguru Kawamoto
-// ƒ\ƒPƒbƒgƒ‰ƒbƒp[
+// ã‚½ã‚±ãƒƒãƒˆãƒ©ãƒƒãƒ‘ãƒ¼
 
 #ifndef __SOCKETWRAPPER_H__
 #define __SOCKETWRAPPER_H__

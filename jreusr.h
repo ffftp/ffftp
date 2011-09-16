@@ -1,5 +1,5 @@
-// begin of jreusr.h
-// ���C�u�����̎g�p�җp�w�b�_�t�@�C��
+﻿// begin of jreusr.h
+// ライブラリの使用者用ヘッダファイル
 
 #ifndef		JREUSR
 #define		JREUSR
@@ -7,14 +7,14 @@
 // ---------------------------------------------------
 // Prevent multiple includes.
 
-// _os_os2�͂���(jreusr.h)���C���N���[�h���郆�[�U�[����`����
+// _os_os2はこれ(jreusr.h)をインクルードするユーザーが定義する
 #if defined(_OS_OS2)
 // in case of os/2
 	// __OS2_H__ is for bc 2.0 e
 	// __OS2_H__ is for bc 1.5 e
 	#if !defined(__IBMC__) || !defined(__OS2_H__)
-		// ���̃N���X��type.h���C���N���[�h�����Ȃ��悤�ɐ��include����.
-		// INCL_???�ȂǕK�v�Ȓ萔�͐�ɒ�`���Ă���.
+		// 他のクラスでtype.hをインクルードさせないように先にincludeする.
+		// INCL_???など必要な定数は先に定義しておく.
 		#include <os2.h>
 	#endif	// defined(__IBMC__) || defined(__OS2_H__)
 
@@ -37,7 +37,7 @@
 		#ifndef STRICT
 			#define STRICT
 		#endif	// STRICT
-		// ���̃N���X��type.h���C���N���[�h�����Ȃ��悤�ɐ��include����.
+		// 他のクラスでtype.hをインクルードさせないように先にincludeする.
 		#include <windows.h>
 	#endif	// !defined(__WINDOWS_H) && !defined(_INC_WINDOWS)
 
@@ -56,7 +56,7 @@
 // ---------------------------------------------------
 #if defined(JRE_BUILDTYPE_OS2PM)
 	// in case of JRE_BUILDTYPE_OS2PM
-	// �ȉ��Cjre/os2���[�J���̒�`
+	// 以下，jre/os2ローカルの定義
 	#if !defined(EXTAPI)
 		#define EXTAPI _export EXPENTRY
 	#endif	// !defined(EXTAPI)
@@ -64,23 +64,23 @@
 		typedef void* MEMID;
 	#endif	// !defined(MEMID)
 
-	// os2�ɂ�PSZ������.
+	// os2にはPSZがある.
 	typedef PSZ PSTR, LPSTR;
 	typedef int (*FARPROC)(void);	// farproc
-	//os2�ɂ�USHORT�CULONG������.
+	//os2にはUSHORT，ULONGがある.
 	typedef USHORT WORD;
 	typedef ULONG DWORD;
-	// OS/2�ɂ�SHANDLE��LHANDLE������.
-	typedef LHANDLE HANDLE;	// �ėp�n���h��������Ă����āc�c
+	// OS/2にはSHANDLEとLHANDLEがある.
+	typedef LHANDLE HANDLE;	// 汎用ハンドルを作っておいて……
 	typedef HANDLE GLOBALHANDLE;
 	typedef HANDLE*PHANDLE, *LPHANDLE;
 
 #else
 	// in case of JRE_BUILDTYPE_WIN32 or JRE_BUILDTYPE_WIN16 (= JRE_BUILDTYPE_WINDOWS)
-	// �ȉ��Cjre/win���[�J���̒�`
+	// 以下，jre/winローカルの定義
 	#if !defined(EXTAPI)
 		#if defined(_MSC_VER)
-			#define EXTAPI WINAPI	// VC2�ł�_export���ʂ�Ȃ��̂Œ���.
+			#define EXTAPI WINAPI	// VC2では_exportが通らないので注意.
 		#endif
 		#if defined(__BORLANDC__)
 			#if defined(_TEST_EXE)
@@ -93,7 +93,7 @@
 
 	#if !defined(MEMID)
 		#if defined(JRE_BUILDTYPE_WIN32)
-			typedef void*MEMID;	// �����I�Ƀ|�C���^�ɂ��܂���.
+			typedef void*MEMID;	// 明示的にポインタにしました.
 		#else
 			typedef HGLOBAL MEMID;
 		#endif	// __WIN32__
@@ -101,114 +101,114 @@
 
 #endif
 
-// --------------------------------------------------- �O���[�o���ϐ�
+// --------------------------------------------------- グローバル変数
 
 
 
-// ------------------------------------------------------------- �萔
-// _JRE_ERR_CODE��_JRE_WARN_CODE�̃V���{���͎R�c���f�o�b�O���Ɏg�p���Ă��܂�.
+// ------------------------------------------------------------- 定数
+// _JRE_ERR_CODEと_JRE_WARN_CODEのシンボルは山田がデバッグ時に使用しています.
 
 #define _JRE_ERR_CODE
-// �G���[�R�[�h.nError��1�`63�܂�. int�^
-#define		CantAllocate	( 1)	//	�������̊m�ۂ��ł��Ȃ�.��ΓI�ȃ������s��.
-#define		MemoryTooFew1	( 2)	//	������������Ȃ�1.(���s���Ɍ��܂����.�������T�C�Y�̗\���Ɏ��s����)
-#define		MemoryTooFew2	( 3)	//  ������������Ȃ�2.(DLL�쐬���Ɍ��܂����)
-#define		ReTooLong		(10)	//	���K�\������������.
-#define		TooComplex		(13)	//	�����ƊȒP�ȕ\���ɂ��ĉ�����.����DLL�̎ア�p�^�[����,�������Ȃ�.�������ő��Ȏ��ł͔������Ȃ�.
-#define		MismatchBracket	(20)	//	���ʂ̑Ή����������Ȃ�.
-#define		InvalidChClass	(21)	//	�L�����N�^�N���X�̓��e�����߂ł��Ȃ�.�w�ǂ̏ꍇ�͈͎w�肪�������Ȃ�.
-#define		EscErr			(24)	//	�G�X�P�[�v�V�[�N�F���X�����߂ł��Ȃ�.
-#define		Unknown			(31)	//  �Ȃ񂾂��ǂ��킩��Ȃ��G���[.�����I�ȗv���Ŕ�������G���[.�w�ǂ��������T�C�Y�̗\���Ɏ��s.
-#define		NoReString		(32)	//  �����p�^�[�����w�肵�ĉ�����.���K�\������0�o�C�g.
-#define		IncorrectUsing	(33)	//  �p�����[�^����������.DLL�̕s���Ȏg�p�@.
-#define		ReNotExist		(34)	//	��������O�ɃR���p�C�����ĉ�����.
-#define		InternalErr		(35)	//  DLL�̃o�O�����o����.���ꂪ�����������҂ɘA�����ė~����.
-#define		UsrAbort		(36)	//  ���[�U�[(�A�v���P�[�V����)�ɂ�钆�f.
-#define		OldVersion		(37)	//	�Â�(���߂ł��Ȃ�)�o�[�W�����̌Ăяo���菇���g�p����.
-// CantAllocate, TooComplex, MemoryTooFew2, ReNotExist, IncorrectUsing, UsrAbort�͌������ɂ������������
+// エラーコード.nErrorが1～63まで. int型
+#define		CantAllocate	( 1)	//	メモリの確保ができない.絶対的なメモリ不足.
+#define		MemoryTooFew1	( 2)	//	メモリが足りない1.(実行時に決まるもの.メモリサイズの予測に失敗した)
+#define		MemoryTooFew2	( 3)	//  メモリが足りない2.(DLL作成時に決まるもの)
+#define		ReTooLong		(10)	//	正規表現が長すぎる.
+#define		TooComplex		(13)	//	もっと簡単な表現にして下さい.このDLLの弱いパターンで,見つけられない.ただし滅多な事では発生しない.
+#define		MismatchBracket	(20)	//	括弧の対応が正しくない.
+#define		InvalidChClass	(21)	//	キャラクタクラスの内容が解釈できない.殆どの場合範囲指定が正しくない.
+#define		EscErr			(24)	//	エスケープシークェンスが解釈できない.
+#define		Unknown			(31)	//  なんだか良くわからないエラー.複合的な要因で発生するエラー.殆どがメモリサイズの予測に失敗.
+#define		NoReString		(32)	//  検索パターンを指定して下さい.正規表現長が0バイト.
+#define		IncorrectUsing	(33)	//  パラメータがおかしい.DLLの不正な使用法.
+#define		ReNotExist		(34)	//	検索する前にコンパイルして下さい.
+#define		InternalErr		(35)	//  DLLのバグを検出した.これが発生したら作者に連絡して欲しい.
+#define		UsrAbort		(36)	//  ユーザー(アプリケーション)による中断.
+#define		OldVersion		(37)	//	古い(解釈できない)バージョンの呼び出し手順を使用した.
+// CantAllocate, TooComplex, MemoryTooFew2, ReNotExist, IncorrectUsing, UsrAbortは検索時にも発生するもの
 
 #define _JRE_WARN_CODE
-// �x���R�[�h. ���|�[�g�R�[�h. jre2�\���̂�nWarning�����o.
-// ����͂��ꂼ��̃r�b�g�Ƀ}�b�s���O����\���������̂ŁC
+// 警告コード. レポートコード. jre2構造体のnWarningメンバ.
+// これはそれぞれのビットにマッピングする可能性が高いので，
 // if (CwInlinePattern | jre2.nWarning){
 // }
-// �ŕ]�����Ă�������.
-#define		CwInlinePattern	(2)	// �s���̏����ɂ��C�ČĂяo���̕K�v�͂Ȃ�.
+// で評価してください.
+#define		CwInlinePattern	(2)	// 行内の処理につき，再呼び出しの必要はない.
 
 #define JGC_SHORT (1)
 #define JGC_LONG (2)
 
-// jre.dll�Ŏg�p���郁�b�Z�[�W�̍ő咷(�ۏ�).���̃T�C�Y�̃o�b�t�@�Ɏ��܂�Ȃ�������͓n���܂���(null�܂Ŋ܂߂Ă��̃T�C�Y).
+// jre.dllで使用するメッセージの最大長(保証).このサイズのバッファに収まらない文字列は渡しません(nullまで含めてこのサイズ).
 #define JRE_MAXLEN (128)
 
-// GetJreMessage�̌���ԍ�.
+// GetJreMessageの言語番号.
 #define GJM_JPN (0)
 #define GJM_ENG (1)
 
-// ----------------------------------------------------------- �\����
-// JRE�\����. �o�[�W�����ɂ�����炸jre�\���̂̃A���C�������g��8bit(1byte)�ł��B
+// ----------------------------------------------------------- 構造体
+// JRE構造体. バージョンにかかわらずjre構造体のアラインメントは8bit(1byte)です。
 #pragma pack(1)
-// JRE�\���̂͋ɗ͎g�p���Ȃ��ł�������.������ް�ޮ݂Ŕp�~���܂�(�o�[�W����2.xx�܂łŻ�߰Ă��~�߂܂�).
-// ����ɑ���\���̂�JRE2�\���̂ł�.
+// JRE構造体は極力使用しないでください.今後のﾊﾞｰｼﾞｮﾝで廃止します(バージョン2.xxまででｻﾎﾟｰﾄを止めます).
+// これに代わる構造体はJRE2構造体です.
 typedef struct tagJRE{
-	BOOL bConv;						// ���̍\���̂̎g�p���������t���O.
-	int nStart;						// �����J�n�ʒu.�o�C�g��.�擪��0.
-	int nWarning;					// �E�H�[�j���O�R�[�h.
-	int nError;						// �G���[�R�[�h.
-	int nLength;					// �}�b�`��.�o�C�g��.
-	int nPosition;					// �}�b�`�ʒu.�擪��0.(���p��������)
-	WORD wTranslate;				// �ϊ��e�[�u���ԍ�.
-	LPSTR lpszTable;				// �ϊ��e�[�u��.
-	FARPROC lpfnUsrFunc;			// �R�[���o�b�N�֐��ւ�FAR�|�C���^.
-	int nCompData1;					// �R���p�C���f�[�^1.
-	MEMID hCompData2;		// �R���p�C���f�[�^2.�n���h��.
-	MEMID hCompData3;		// �R���p�C���f�[�^3.�n���h��.
-	MEMID hCompData4;		// �R���p�C���f�[�^4.�n���h��.
+	BOOL bConv;						// この構造体の使用中を示すフラグ.
+	int nStart;						// 検索開始位置.バイト数.先頭は0.
+	int nWarning;					// ウォーニングコード.
+	int nError;						// エラーコード.
+	int nLength;					// マッチ長.バイト数.
+	int nPosition;					// マッチ位置.先頭は0.(お恥ずかしい)
+	WORD wTranslate;				// 変換テーブル番号.
+	LPSTR lpszTable;				// 変換テーブル.
+	FARPROC lpfnUsrFunc;			// コールバック関数へのFARポインタ.
+	int nCompData1;					// コンパイルデータ1.
+	MEMID hCompData2;		// コンパイルデータ2.ハンドル.
+	MEMID hCompData3;		// コンパイルデータ3.ハンドル.
+	MEMID hCompData4;		// コンパイルデータ4.ハンドル.
 } JRE, *PJRE, NEAR*NPJRE, FAR*LPJRE;
 #pragma pack()
 
 
 #pragma pack(1)
-// �o�[�W����1.06�ȍ~�͂��̍\���̂��g�p���Ă�������.
-// ������,�o�[�W����1.xx�ł͎d�l�������I�ł�(�ǂȂ����[���イ�˂�).
+// バージョン1.06以降はこの構造体を使用してください.
+// ただし,バージョン1.xxでは仕様が流動的です(どないせーちゅうねん).
 typedef struct tagJRE2{
-	DWORD dwSize;					// ���̍\���̂̃T�C�Y.
-	BOOL bConv;						// ���̍\���̂̎g�p���������t���O.
-	UINT nStart;					// �����J�n�ʒu.�o�C�g��.�擪��0.
-	UINT nWarning;					// �E�H�[�j���O�R�[�h. (v1.11����UINT�ɕύX)
-	int nError;						// �G���[�R�[�h.
-	UINT nLength;					// �}�b�`��.�o�C�g��.
-	UINT nPosition;					// �}�b�`�ʒu.�擪��0.(���p��������)
-	WORD wTranslate;				// �ϊ��e�[�u���ԍ�.
-	LPSTR lpszTable;				// �ϊ��e�[�u��.
-	FARPROC lpfnUsrFunc;			// �R�[���o�b�N�֐��ւ�FAR�|�C���^(�g��Ȃ��悤��).
-	UINT nCompData1;					// �R���p�C���f�[�^1.
-	MEMID hCompData2;		// �R���p�C���f�[�^2.�n���h��.
-	MEMID hCompData3;		// �R���p�C���f�[�^3.�n���h��.
-	MEMID hCompData4;		// �R���p�C���f�[�^4.�n���h��.
+	DWORD dwSize;					// この構造体のサイズ.
+	BOOL bConv;						// この構造体の使用中を示すフラグ.
+	UINT nStart;					// 検索開始位置.バイト数.先頭は0.
+	UINT nWarning;					// ウォーニングコード. (v1.11からUINTに変更)
+	int nError;						// エラーコード.
+	UINT nLength;					// マッチ長.バイト数.
+	UINT nPosition;					// マッチ位置.先頭は0.(お恥ずかしい)
+	WORD wTranslate;				// 変換テーブル番号.
+	LPSTR lpszTable;				// 変換テーブル.
+	FARPROC lpfnUsrFunc;			// コールバック関数へのFARポインタ(使わないように).
+	UINT nCompData1;					// コンパイルデータ1.
+	MEMID hCompData2;		// コンパイルデータ2.ハンドル.
+	MEMID hCompData3;		// コンパイルデータ3.ハンドル.
+	MEMID hCompData4;		// コンパイルデータ4.ハンドル.
 } JRE2, *PJRE2, NEAR*NPJRE2, FAR*LPJRE2;
 #pragma pack()
 
-// ------------------------------------------------ �������߂����ϸ�
+// ------------------------------------------------ ﾌﾟﾛﾄﾀｲﾌﾟおよびﾏｸﾛ
 #ifdef __cplusplus	// caution! it's NOT cpulspuls!!!
 	extern "C"{
 #endif	// __cplusplus
 
-// �o�[�W�����Ɋ֌W�Ȃ�API
+// バージョンに関係ないAPI
 BOOL EXTAPI IsMatch(LPSTR lpszStr, LPSTR lpszRe);
 int EXTAPI GlobalReplace(LPSTR lpszRe, LPSTR lpszObj, LPSTR lpszStr, LPHANDLE lphGMemTo);
 WORD EXTAPI JreGetVersion(void);
 #if defined(JRE_BUILDTYPE_WIN16)
-	MEMID EXTAPI DecodeEscSeqAlloc2(LPSTR lpszRe);	// 16bit Windows�̈╨.
+	MEMID EXTAPI DecodeEscSeqAlloc2(LPSTR lpszRe);	// 16bit Windowsの遺物.
 #endif	// defined(JRE_BUILDTYPE_WIN16)
 UINT EXTAPI DecodeEscSeq(LPSTR lpszRe, LPSTR lpszBuff, UINT uiSize);	// new!
 int EXTAPI GetJreMessage(int nMessageType, int nLanguage, LPSTR lpszBuff, int cbBuff);
-// �o�[�W����1API
+// バージョン1API
 BOOL EXTAPI JreOpen(LPJRE lpjreJre);
 BOOL EXTAPI JreCompile(LPJRE lpjreJre, LPSTR lpszRe);
 BOOL EXTAPI JreGetMatchInfo(LPJRE lpjreJre, LPSTR lpszStr);
 BOOL EXTAPI JreClose(LPJRE lpjreJre);
-// �o�[�W����2API
+// バージョン2API
 BOOL EXTAPI Jre2Open(LPJRE2 lpjreJre);
 BOOL EXTAPI Jre2Compile(LPJRE2 lpjreJre, LPSTR lpszRe);
 BOOL EXTAPI Jre2GetMatchInfo(LPJRE2 lpjreJre, LPSTR lpszStr);
@@ -219,8 +219,8 @@ BOOL EXTAPI Jre2Close(LPJRE2 lpjreJre);
 	}
 #endif	// __cplusplus
 
-// ----------------------------------------------------------- �^��`
-// GetProcAddress���g�p����ۂ̃|�C���^�ϐ���錾���₷�����Ă���.
+// ----------------------------------------------------------- 型定義
+// GetProcAddressを使用する際のポインタ変数を宣言しやすくしておく.
 typedef BOOL (EXTAPI*LPISMATCH) (LPSTR, LPSTR);
 typedef int (EXTAPI*LPGLOBALREPLACE) (LPSTR, LPSTR, LPSTR, LPHANDLE);
 typedef WORD (EXTAPI*LPJREGETVERSION) (VOID);

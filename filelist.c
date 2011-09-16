@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*								ƒtƒ@ƒCƒ‹ˆê——
+*								ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -54,7 +54,7 @@
 #include "OleDragDrop.h"
 #include "common.h"
 
-// UTF-8‘Î‰
+// UTF-8å¯¾å¿œ
 #undef __MBSWRAPPER_H__
 #include "mbswrapper.h"
 
@@ -65,14 +65,14 @@
 #define WM_DRAGOVER		(WM_APP + 102)
 
 
-/*===== ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚ÌƒŠƒXƒg—pƒXƒgƒ‰ƒNƒ`ƒƒ =====*/
+/*===== ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®ãƒªã‚¹ãƒˆç”¨ã‚¹ãƒˆãƒ©ã‚¯ãƒãƒ£ =====*/
 
 typedef struct {
-	FILELIST *Top;			/* ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìæ“ª */
-	int Files;				/* ƒtƒ@ƒCƒ‹‚Ì” */
+	FILELIST *Top;			/* ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å…ˆé ­ */
+	int Files;				/* ãƒ•ã‚¡ã‚¤ãƒ«ã®æ•° */
 } FLISTANCHOR;
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static LRESULT CALLBACK LocalWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -106,7 +106,7 @@ static int AskFilterStr(char *Fname, int Type);
 static BOOL CALLBACK FilterWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static int atoi_n(const char *Str, int Len);
 
-/*===== ŠO•”QÆ =====*/
+/*===== å¤–éƒ¨å‚ç…§ =====*/
 
 extern int SepaWidth;
 extern int RemoteWidth;
@@ -114,7 +114,7 @@ extern int ListHeight;
 extern char FilterStr[FILTER_EXT_LEN+1];
 extern HWND hHelpWin;
 
-/* İ’è’l */
+/* è¨­å®šå€¤ */
 extern int LocalWidth;
 extern int LocalTabWidth[4];
 extern int RemoteTabWidth[6];
@@ -127,7 +127,7 @@ extern int DispIgnoreHide;
 extern int DispDrives;
 extern int MoveMode;
 
-/*===== ƒ[ƒJƒ‹‚Èƒ[ƒN =====*/
+/*===== ãƒ­ãƒ¼ã‚«ãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
 static HWND hWndListLocal = NULL;
 static HWND hWndListRemote = NULL;
@@ -137,31 +137,31 @@ static WNDPROC RemoteProcPtr;
 
 static HIMAGELIST ListImg = NULL;
 
-static char FindStr[40+1] = { "*" };		/* ŒŸõ•¶š—ñ */
+static char FindStr[40+1] = { "*" };		/* æ¤œç´¢æ–‡å­—åˆ— */
 static int IgnoreNew = NO;
 static int IgnoreOld = NO;
 static int IgnoreExist = NO;
 
 static int Dragging = NO;
 
-static int StratusMode;			/* 0=ƒtƒ@ƒCƒ‹, 1=ƒfƒBƒŒƒNƒgƒŠ, 2=ƒŠƒ“ƒN */
+static int StratusMode;			/* 0=ãƒ•ã‚¡ã‚¤ãƒ«, 1=ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª, 2=ãƒªãƒ³ã‚¯ */
 
 
-// ƒŠƒ‚[ƒgƒtƒ@ƒCƒ‹ƒŠƒXƒg (2007.9.3 yutaka)
+// ãƒªãƒ¢ãƒ¼ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆ (2007.9.3 yutaka)
 static FILELIST *remoteFileListBase;
 static FILELIST *remoteFileListBaseNoExpand;
 static char remoteFileDir[FMAX_PATH + 1];
 
 
-/*----- ƒtƒ@ƒCƒ‹ƒŠƒXƒgƒEƒCƒ“ƒhƒE‚ğì¬‚·‚é ------------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚’ä½œæˆã™ã‚‹ ------------------------------------
 *
 *	Parameter
-*		HWND hWnd : eƒEƒCƒ“ƒhƒE‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		HINSTANCE hInst : ƒCƒ“ƒXƒ^ƒ“ƒXƒnƒ“ƒhƒ‹
+*		HWND hWnd : è¦ªã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		HINSTANCE hInst : ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ãƒãƒ³ãƒ‰ãƒ«
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 int MakeListWin(HWND hWnd, HINSTANCE hInst)
@@ -170,7 +170,7 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 	LV_COLUMN LvCol;
 	long Tmp;
 
-	/*===== ƒ[ƒJƒ‹‘¤‚ÌƒŠƒXƒgƒrƒ…[ =====*/
+	/*===== ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ =====*/
 
 	hWndListLocal = CreateWindowEx(/*WS_EX_STATICEDGE*/WS_EX_CLIENTEDGE,
 			WC_LISTVIEWA, NULL,
@@ -219,7 +219,7 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 		SendMessage(hWndListLocal, LVM_INSERTCOLUMN, 3, (LPARAM)&LvCol);
 	}
 
-	/*===== ƒzƒXƒg‘¤‚ÌƒŠƒXƒgƒrƒ…[ =====*/
+	/*===== ãƒ›ã‚¹ãƒˆå´ã®ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ =====*/
 
 	hWndListRemote = CreateWindowEx(/*WS_EX_STATICEDGE*/WS_EX_CLIENTEDGE,
 			WC_LISTVIEWA, NULL,
@@ -279,23 +279,23 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 		SendMessage(hWndListRemote, LVM_INSERTCOLUMN, 5, (LPARAM)&LvCol);
 	}
 
-	Sts = SUCCESS;
+	Sts = FFFTP_SUCCESS;
 	if((hWndListLocal == NULL) ||
 	   (hWndListRemote == NULL))
 	{
-		Sts = FAIL;
+		Sts = FFFTP_FAIL;
 	}
 	return(Sts);
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ƒŠƒXƒgƒEƒCƒ“ƒhƒE‚ğíœ ----------------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚’å‰Šé™¤ ----------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DeleteListWin(void)
@@ -310,13 +310,13 @@ void DeleteListWin(void)
 }
 
 
-/*----- ƒ[ƒJƒ‹‘¤‚Ìƒtƒ@ƒCƒ‹ƒŠƒXƒg‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹‚ğ•Ô‚· ------------------
+/*----- ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«ã‚’è¿”ã™ ------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		HWND ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *----------------------------------------------------------------------------*/
 
 HWND GetLocalHwnd(void)
@@ -325,13 +325,13 @@ HWND GetLocalHwnd(void)
 }
 
 
-/*----- ƒzƒXƒg‘¤‚Ìƒtƒ@ƒCƒ‹ƒŠƒXƒg‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹‚ğ•Ô‚· --------------------
+/*----- ãƒ›ã‚¹ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«ã‚’è¿”ã™ --------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		HWND ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *----------------------------------------------------------------------------*/
 
 HWND GetRemoteHwnd(void)
@@ -340,16 +340,16 @@ HWND GetRemoteHwnd(void)
 }
 
 
-/*----- ƒ[ƒJƒ‹‘¤‚Ìƒtƒ@ƒCƒ‹ƒŠƒXƒgƒEƒCƒ“ƒhƒE‚ÌƒƒbƒZ[ƒWˆ— ------------------
+/*----- ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡¦ç† ------------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message  : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message  : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
-*		ƒƒbƒZ[ƒW‚É‘Î‰‚·‚é–ß‚è’l
+*		ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã«å¯¾å¿œã™ã‚‹æˆ»ã‚Šå€¤
 *----------------------------------------------------------------------------*/
 
 static LRESULT CALLBACK LocalWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -358,16 +358,16 @@ static LRESULT CALLBACK LocalWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 }
 
 
-/*----- ƒzƒXƒg‘¤‚Ìƒtƒ@ƒCƒ‹ƒŠƒXƒgƒEƒCƒ“ƒhƒE‚ÌƒƒbƒZ[ƒWˆ— --------------------
+/*----- ãƒ›ã‚¹ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡¦ç† --------------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message  : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message  : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
-*		ƒƒbƒZ[ƒW‚É‘Î‰‚·‚é–ß‚è’l
+*		ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã«å¯¾å¿œã™ã‚‹æˆ»ã‚Šå€¤
 *----------------------------------------------------------------------------*/
 
 static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -376,20 +376,20 @@ static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 }
 
 
-// ƒ_ƒCƒAƒƒOƒvƒƒV[ƒWƒƒ
+// ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒ—ãƒ­ã‚·ãƒ¼ã‚¸ãƒ£
 static BOOL CALLBACK doOleDlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 {
-#define TIMER_ID     (100)      // ì¬‚·‚éƒ^ƒCƒ}‚Ì¯•ÊID
-#define TIMER_ELAPSE (100)       // WM_TIMER‚Ì”­¶ŠÔŠu
+#define TIMER_ID     (100)      // ä½œæˆã™ã‚‹ã‚¿ã‚¤ãƒã®è­˜åˆ¥ID
+#define TIMER_ELAPSE (100)       // WM_TIMERã®ç™ºç”Ÿé–“éš”
 	MSG message;
 
 	switch( msg ){
-	case WM_INITDIALOG:  // ƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX‚ªì¬‚³‚ê‚½‚Æ‚«
+	case WM_INITDIALOG:  // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹ãŒä½œæˆã•ã‚ŒãŸã¨ã
 		SetTimer( hDlg, TIMER_ID, 0, NULL);
 		return TRUE;
 
 	case WM_TIMER:
-		ShowWindow(hDlg, SW_HIDE);  // ƒ_ƒCƒAƒƒO‚Í‰B‚·
+		ShowWindow(hDlg, SW_HIDE);  // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã¯éš ã™
 
 		if (wp != TIMER_ID)
 			break;
@@ -408,18 +408,18 @@ static BOOL CALLBACK doOleDlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 		SetTimer( hDlg, TIMER_ID, TIMER_ELAPSE, NULL );
 		return TRUE;
 
-	case WM_COMMAND:     // ƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX“à‚Ì‰½‚©‚ª‘I‘ğ‚³‚ê‚½‚Æ‚«
+	case WM_COMMAND:     // ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹å†…ã®ä½•ã‹ãŒé¸æŠã•ã‚ŒãŸã¨ã
 		switch( LOWORD( wp ) ){
-//		case IDOK:       // uOKvƒ{ƒ^ƒ“‚ª‘I‘ğ‚³‚ê‚½
-		case IDCANCEL:   // uƒLƒƒƒ“ƒZƒ‹vƒ{ƒ^ƒ“‚ª‘I‘ğ‚³‚ê‚½
-			// ƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX‚ğÁ‚·
+//		case IDOK:       // ã€ŒOKã€ãƒœã‚¿ãƒ³ãŒé¸æŠã•ã‚ŒãŸ
+		case IDCANCEL:   // ã€Œã‚­ãƒ£ãƒ³ã‚»ãƒ«ã€ãƒœã‚¿ãƒ³ãŒé¸æŠã•ã‚ŒãŸ
+			// ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹ã‚’æ¶ˆã™
 			EndDialog( hDlg, 0 );
 			break;
 		}
 		return TRUE;
 	}
 
-	return FALSE;  // DefWindowProc()‚Å‚Í‚È‚­AFALSE‚ğ•Ô‚·‚±‚ÆI
+	return FALSE;  // DefWindowProc()ã§ã¯ãªãã€FALSEã‚’è¿”ã™ã“ã¨ï¼
 #undef TIMER_ID     
 #undef TIMER_ELAPSE 
 }
@@ -435,7 +435,7 @@ static void doTransferRemoteFile(void)
 	int i;
 	DWORD pid;
 
-	// ‚·‚Å‚ÉƒŠƒ‚[ƒg‚©‚ç“]‘—Ï‚İ‚È‚ç‰½‚à‚µ‚È‚¢B(2007.9.3 yutaka)
+	// ã™ã§ã«ãƒªãƒ¢ãƒ¼ãƒˆã‹ã‚‰è»¢é€æ¸ˆã¿ãªã‚‰ä½•ã‚‚ã—ãªã„ã€‚(2007.9.3 yutaka)
 	if (remoteFileListBase != NULL)
 		return;
 
@@ -447,8 +447,8 @@ static void doTransferRemoteFile(void)
 	// set temporary folder
 	AskLocalCurDir(LocDir, FMAX_PATH);
 
-	// ƒAƒvƒŠ‚ğ‘½d‹N“®‚µ‚Ä‚àƒRƒ“ƒtƒŠƒNƒg‚µ‚È‚¢‚æ‚¤‚ÉAƒeƒ“ƒ|ƒ‰ƒŠƒtƒHƒ‹ƒ_–¼‚ÉƒvƒƒZƒXID
-	// ‚ğ•t‰Á‚·‚éB(2007.9.13 yutaka)
+	// ã‚¢ãƒ—ãƒªã‚’å¤šé‡èµ·å‹•ã—ã¦ã‚‚ã‚³ãƒ³ãƒ•ãƒªã‚¯ãƒˆã—ãªã„ã‚ˆã†ã«ã€ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚©ãƒ«ãƒ€åã«ãƒ—ãƒ­ã‚»ã‚¹ID
+	// ã‚’ä»˜åŠ ã™ã‚‹ã€‚(2007.9.13 yutaka)
 	GetTempPath(sizeof(TmpDir), TmpDir);
 	pid = GetCurrentProcessId();
 	_snprintf_s(buf, sizeof(buf), _TRUNCATE, "ffftp%d", pid);
@@ -460,7 +460,7 @@ static void doTransferRemoteFile(void)
 	}
 #endif
 
-	// Šù‘¶‚Ìƒtƒ@ƒCƒ‹‚ğíœ‚·‚é
+	// æ—¢å­˜ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å‰Šé™¤ã™ã‚‹
 	for (pf = FileListBase ; pf ; pf = pf->Next) {
 		char fn[FMAX_PATH+1];
 
@@ -471,10 +471,10 @@ static void doTransferRemoteFile(void)
 		remove(fn);
 	}
 
-	// ƒ_ƒEƒ“ƒ[ƒhæ‚ğƒeƒ“ƒ|ƒ‰ƒŠ‚Éİ’è
+	// ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰å…ˆã‚’ãƒ†ãƒ³ãƒãƒ©ãƒªã«è¨­å®š
 	SetLocalDirHist(TmpDir);
 
-	// FFFTP‚Éƒ_ƒEƒ“ƒ[ƒh—v‹‚ğo‚µAƒ_ƒEƒ“ƒ[ƒh‚ÌŠ®—¹‚ğ‘Ò‚ÂB
+	// FFFTPã«ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰è¦æ±‚ã‚’å‡ºã—ã€ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã®å®Œäº†ã‚’å¾…ã¤ã€‚
 	PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
 
 	for (i = 0 ; i < 10 ; i++) {
@@ -485,7 +485,7 @@ static void doTransferRemoteFile(void)
 			DispatchMessage(&msg);
 
 		} else {
-			// “]‘—ƒXƒŒƒbƒh‚ª“®‚«o‚µ‚½‚ç”²‚¯‚éB
+			// è»¢é€ã‚¹ãƒ¬ãƒƒãƒ‰ãŒå‹•ãå‡ºã—ãŸã‚‰æŠœã‘ã‚‹ã€‚
 			if (AskTransferNow() == YES)
 				break;
 		}
@@ -493,17 +493,17 @@ static void doTransferRemoteFile(void)
 		Sleep(10);
 	}
 
-	// OLE D&D’†‚ÉƒƒCƒ“ƒEƒBƒ“ƒhƒE‚ğƒ†[ƒU‚É‘€ì‚³‚¹‚é‚ÆA‚¨‚©‚µ‚­‚È‚é‚Ì‚ÅA
-	// ‰B‚µƒ‚[ƒ_ƒ‹ƒ_ƒCƒAƒƒO‚ğì‚éB
+	// OLE D&Dä¸­ã«ãƒ¡ã‚¤ãƒ³ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ãƒ¦ãƒ¼ã‚¶ã«æ“ä½œã•ã›ã‚‹ã¨ã€ãŠã‹ã—ããªã‚‹ã®ã§ã€
+	// éš ã—ãƒ¢ãƒ¼ãƒ€ãƒ«ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’ä½œã‚‹ã€‚
 	// (2007.9.11 yutaka)
 	DialogBox(GetFtpInst(), MAKEINTRESOURCE(IDD_OLEDRAG), GetMainHwnd(), (DLGPROC)doOleDlgProc);
 
-	// ƒ_ƒEƒ“ƒ[ƒhæ‚ğŒ³‚É–ß‚·
+	// ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰å…ˆã‚’å…ƒã«æˆ»ã™
 	SetLocalDirHist(LocDir);
 	SetCurrentDirAsDirHist();
 
-	remoteFileListBase = FileListBase;  // ‚ ‚Æ‚ÅƒtƒŠ[‚·‚é‚±‚Æ
-	remoteFileListBaseNoExpand = FileListBaseNoExpand;  // ‚ ‚Æ‚ÅƒtƒŠ[‚·‚é‚±‚Æ
+	remoteFileListBase = FileListBase;  // ã‚ã¨ã§ãƒ•ãƒªãƒ¼ã™ã‚‹ã“ã¨
+	remoteFileListBaseNoExpand = FileListBaseNoExpand;  // ã‚ã¨ã§ãƒ•ãƒªãƒ¼ã™ã‚‹ã“ã¨
 	strncpy_s(remoteFileDir, sizeof(remoteFileDir), TmpDir, _TRUNCATE);
 
 #if 0
@@ -535,7 +535,7 @@ int isDirectory(char *fn)
 	return 0;
 }
 
-// ƒeƒ“ƒ|ƒ‰ƒŠ‚Ìƒtƒ@ƒCƒ‹‚¨‚æ‚ÑƒtƒHƒ‹ƒ_‚ğíœ‚·‚éB
+// ãƒ†ãƒ³ãƒãƒ©ãƒªã®ãƒ•ã‚¡ã‚¤ãƒ«ãŠã‚ˆã³ãƒ•ã‚©ãƒ«ãƒ€ã‚’å‰Šé™¤ã™ã‚‹ã€‚
 void doDeleteRemoteFile(void)
 {
 	if (remoteFileListBase != NULL) {
@@ -564,9 +564,9 @@ void doDeleteRemoteFile(void)
 				strncat_s(fn, sizeof(fn), "\\", _TRUNCATE);
 				strncat_s(fn, sizeof(fn), pf->File, _TRUNCATE);
 				if (isDirectory(fn)) {
-					if (_rmdir(fn) == 0) { // ƒfƒBƒŒƒNƒgƒŠ‚ğÁ‚¹‚½‚çƒJƒEƒ“ƒgƒAƒbƒv
+					if (_rmdir(fn) == 0) { // ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æ¶ˆã›ãŸã‚‰ã‚«ã‚¦ãƒ³ãƒˆã‚¢ãƒƒãƒ—
 						count++;
-						if (count >= dirs)  // ‚·‚×‚ÄÁ‚¹‚½‚çI‚í‚è
+						if (count >= dirs)  // ã™ã¹ã¦æ¶ˆã›ãŸã‚‰çµ‚ã‚ã‚Š
 							goto skip;
 					}
 				}
@@ -574,7 +574,7 @@ void doDeleteRemoteFile(void)
 			}
 		}
 skip:
-		_rmdir(remoteFileDir);  // ©•ª‚Åì‚Á‚½ƒfƒBƒŒƒNƒgƒŠ‚àÁ‚·
+		_rmdir(remoteFileDir);  // è‡ªåˆ†ã§ä½œã£ãŸãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚‚æ¶ˆã™
 #else
 		SHFILEOPSTRUCT FileOp = { NULL, FO_DELETE, remoteFileDir, NULL, 
 			FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI, 
@@ -595,7 +595,7 @@ skip:
 
 // yutaka
 // cf. http://www.nakka.com/lib/
-/* ƒhƒƒbƒvƒtƒ@ƒCƒ‹‚Ìì¬ */
+/* ãƒ‰ãƒ­ãƒƒãƒ—ãƒ•ã‚¡ã‚¤ãƒ«ã®ä½œæˆ */
 static HDROP APIPRIVATE CreateDropFileMem(char **FileName,int cnt,BOOL fWide)
 {
 	HDROP hDrop;
@@ -605,18 +605,18 @@ static HDROP APIPRIVATE CreateDropFileMem(char **FileName,int cnt,BOOL fWide)
 	int i;
 	
 	if(fWide == TRUE){
-		/* ƒƒCƒhƒLƒƒƒ‰ */
+		/* ãƒ¯ã‚¤ãƒ‰ã‚­ãƒ£ãƒ© */
 		for(i = 0;i < cnt;i++){
-			// UTF-8‘Î‰
+			// UTF-8å¯¾å¿œ
 //			MultiByteToWideChar(CP_ACP,0,FileName[i],-1,wbuf,BUF_SIZE);
 //			flen += (wcslen(wbuf) + 1) * sizeof(wchar_t);
 			flen += sizeof(wchar_t) * MtoW(NULL, 0, FileName[i], -1);
 		}
 		flen++;
 	}else{
-		/* ƒ}ƒ‹ƒ`ƒoƒCƒg */
+		/* ãƒãƒ«ãƒãƒã‚¤ãƒˆ */
 		for(i = 0;i < cnt;i++){
-			// UTF-8‘Î‰
+			// UTF-8å¯¾å¿œ
 //			flen += lstrlen(FileName[i]) + 1;
 			MtoW(wbuf, BUF_SIZE, FileName[i], -1);
 			flen += sizeof(char) * WtoA(NULL, 0, wbuf, -1);
@@ -629,32 +629,32 @@ static HDROP APIPRIVATE CreateDropFileMem(char **FileName,int cnt,BOOL fWide)
 	}
 
 	lpDropFile = (LPDROPFILES) GlobalLock(hDrop);
-	lpDropFile->pFiles = sizeof(DROPFILES);		/* ƒtƒ@ƒCƒ‹–¼‚ÌƒŠƒXƒg‚Ü‚Å‚ÌƒIƒtƒZƒbƒg */
+	lpDropFile->pFiles = sizeof(DROPFILES);		/* ãƒ•ã‚¡ã‚¤ãƒ«åã®ãƒªã‚¹ãƒˆã¾ã§ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ */
 	lpDropFile->pt.x = 0;
 	lpDropFile->pt.y = 0;
 	lpDropFile->fNC = FALSE;
-	lpDropFile->fWide = fWide;					/* ƒƒCƒhƒLƒƒƒ‰‚Ìê‡‚Í TRUE */
+	lpDropFile->fWide = fWide;					/* ãƒ¯ã‚¤ãƒ‰ã‚­ãƒ£ãƒ©ã®å ´åˆã¯ TRUE */
 
-	/* \‘¢‘Ì‚ÌŒã‚ë‚Éƒtƒ@ƒCƒ‹–¼‚ÌƒŠƒXƒg‚ğƒRƒs[‚·‚éB(ƒtƒ@ƒCƒ‹–¼\0ƒtƒ@ƒCƒ‹–¼\0ƒtƒ@ƒCƒ‹–¼\0\0) */
+	/* æ§‹é€ ä½“ã®å¾Œã‚ã«ãƒ•ã‚¡ã‚¤ãƒ«åã®ãƒªã‚¹ãƒˆã‚’ã‚³ãƒ”ãƒ¼ã™ã‚‹ã€‚(ãƒ•ã‚¡ã‚¤ãƒ«å\0ãƒ•ã‚¡ã‚¤ãƒ«å\0ãƒ•ã‚¡ã‚¤ãƒ«å\0\0) */
 	if(fWide == TRUE){
-		/* ƒƒCƒhƒLƒƒƒ‰ */
+		/* ãƒ¯ã‚¤ãƒ‰ã‚­ãƒ£ãƒ© */
 		wchar_t *buf;
 
 		buf = (wchar_t *)(&lpDropFile[1]);
 		for(i = 0;i < cnt;i++){
-			// UTF-8‘Î‰
+			// UTF-8å¯¾å¿œ
 //			MultiByteToWideChar(CP_ACP,0,FileName[i],-1,wbuf,BUF_SIZE);
 //			wcscpy(buf,wbuf);
 //			buf += wcslen(wbuf) + 1;
 			buf += MtoW(buf, BUF_SIZE, FileName[i], -1);
 		}
 	}else{
-		/* ƒ}ƒ‹ƒ`ƒoƒCƒg */
+		/* ãƒãƒ«ãƒãƒã‚¤ãƒˆ */
 		char *buf;
 
 		buf = (char *)(&lpDropFile[1]);
 		for(i = 0;i < cnt;i++){
-			// UTF-8‘Î‰
+			// UTF-8å¯¾å¿œ
 //			lstrcpy(buf,FileName[i]);
 //			buf += lstrlen(FileName[i]) + 1;
 			MtoW(wbuf, BUF_SIZE, FileName[i], -1);
@@ -667,7 +667,7 @@ static HDROP APIPRIVATE CreateDropFileMem(char **FileName,int cnt,BOOL fWide)
 }
 
 
-// OLE D&D‚ğŠJn‚·‚é 
+// OLE D&Dã‚’é–‹å§‹ã™ã‚‹ 
 // (2007.8.30 yutaka)
 static void doDragDrop(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -675,16 +675,16 @@ static void doDragDrop(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	POINT pt;
 	int ret;
 
-	// ƒeƒ“ƒ|ƒ‰ƒŠ‚ğ‚«‚ê‚¢‚É‚·‚é (2007.9.3 yutaka)
+	// ãƒ†ãƒ³ãƒãƒ©ãƒªã‚’ãã‚Œã„ã«ã™ã‚‹ (2007.9.3 yutaka)
 	doDeleteRemoteFile();
 
-	/* ƒhƒ‰ƒbƒO&ƒhƒƒbƒv‚ÌŠJn */
+	/* ãƒ‰ãƒ©ãƒƒã‚°&ãƒ‰ãƒ­ãƒƒãƒ—ã®é–‹å§‹ */
 	cf[0] = CF_HDROP;
-	cf[1] = CF_HDROP;	/* ƒtƒ@ƒCƒ‹ */
+	cf[1] = CF_HDROP;	/* ãƒ•ã‚¡ã‚¤ãƒ« */
 	if((ret = OLE_IDropSource_Start(hWnd,WM_GETDATA, WM_DRAGOVER, cf,1,DROPEFFECT_COPY | DROPEFFECT_MOVE | DROPEFFECT_LINK)) == DROPEFFECT_MOVE){
 	}
 
-	// ƒhƒƒbƒvæ‚ÌƒAƒvƒŠ‚É WM_LBUTTONUP ‚ğ”ò‚Î‚·B
+	// ãƒ‰ãƒ­ãƒƒãƒ—å…ˆã®ã‚¢ãƒ—ãƒªã« WM_LBUTTONUP ã‚’é£›ã°ã™ã€‚
 	GetCursorPos(&pt);
 	ScreenToClient(hWnd, &pt);
 	PostMessage(hWnd,WM_LBUTTONUP,0,MAKELPARAM(pt.x,pt.y));
@@ -692,16 +692,16 @@ static void doDragDrop(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 
-/*----- ƒtƒ@ƒCƒ‹ˆê——ƒEƒCƒ“ƒhƒE‚Ì‹¤’ÊƒƒbƒZ[ƒWˆ— ----------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®å…±é€šãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡¦ç† ----------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message  : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message  : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
-*		ƒƒbƒZ[ƒW‚É‘Î‰‚·‚é–ß‚è’l
+*		ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã«å¯¾å¿œã™ã‚‹æˆ»ã‚Šå€¤
 *----------------------------------------------------------------------------*/
 
 static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -764,7 +764,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
 
 		case WM_DROPFILES :
-			// ƒhƒ‰ƒbƒO’†‚Íˆ—‚µ‚È‚¢Bƒhƒ‰ƒbƒOŒã‚ÉWM_LBUTTONDOWN‚ª”ò‚ñ‚Å‚­‚é‚½‚ßA‚»‚±‚Åˆ—‚·‚éB
+			// ãƒ‰ãƒ©ãƒƒã‚°ä¸­ã¯å‡¦ç†ã—ãªã„ã€‚ãƒ‰ãƒ©ãƒƒã‚°å¾Œã«WM_LBUTTONDOWNãŒé£›ã‚“ã§ãã‚‹ãŸã‚ã€ãã“ã§å‡¦ç†ã™ã‚‹ã€‚
 			if (Dragging == YES) 
 				return (FALSE);
 
@@ -807,9 +807,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					} else if(hWndPnt == hWndListLocal) {
 						PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
 					}
-				} else { // “¯ˆêƒEƒBƒ“ƒhƒE“à‚Ìê‡ (yutaka)
+				} else { // åŒä¸€ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦å†…ã®å ´åˆ (yutaka)
 					if (hWndDragStart == hWndListRemote && hWndPnt == hWndListRemote) {
-						// remote <-> remote‚Ìê‡‚ÍAƒT[ƒo‚Å‚Ìƒtƒ@ƒCƒ‹‚ÌˆÚ“®‚ğs‚¤B(2007.9.5 yutaka)
+						// remote <-> remoteã®å ´åˆã¯ã€ã‚µãƒ¼ãƒã§ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®ç§»å‹•ã‚’è¡Œã†ã€‚(2007.9.5 yutaka)
 						if (RemoteDropFileIndex != -1) {
 							ListView_SetItemState(hWnd, RemoteDropFileIndex, 0, LVIS_DROPHILITED);
 							MoveRemoteFileProc(RemoteDropFileIndex);
@@ -822,15 +822,15 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
 
  		case WM_DRAGDROP:  
- 			// OLE D&D‚ğŠJn‚·‚é (yutaka)
+ 			// OLE D&Dã‚’é–‹å§‹ã™ã‚‹ (yutaka)
  			doDragDrop(hWnd, message, wParam, lParam);
  			return (TRUE);
  			break;
  
- 		case WM_GETDATA:  // ƒtƒ@ƒCƒ‹‚ÌƒpƒX‚ğD&Dæ‚ÌƒAƒvƒŠ‚Ö•Ô‚· (yutaka)
+ 		case WM_GETDATA:  // ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹ã‚’D&Då…ˆã®ã‚¢ãƒ—ãƒªã¸è¿”ã™ (yutaka)
  			switch(wParam)
  			{
- 			case CF_HDROP:		/* ƒtƒ@ƒCƒ‹ */
+ 			case CF_HDROP:		/* ãƒ•ã‚¡ã‚¤ãƒ« */
  				{
  					OSVERSIONINFO os_info;
  					BOOL NTFlag = FALSE;
@@ -843,9 +843,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  					char LocDir[FMAX_PATH+1];
  					char *PathDir;
  
-					// •Ï”‚ª–¢‰Šú‰»‚ÌƒoƒOC³
+					// å¤‰æ•°ãŒæœªåˆæœŸåŒ–ã®ãƒã‚°ä¿®æ­£
 					FileListBaseNoExpand = NULL;
- 					// ƒ[ƒJƒ‹‘¤‚Å‘I‚Î‚ê‚Ä‚¢‚éƒtƒ@ƒCƒ‹‚ğFileListBase‚É“o˜^
+ 					// ãƒ­ãƒ¼ã‚«ãƒ«å´ã§é¸ã°ã‚Œã¦ã„ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã‚’FileListBaseã«ç™»éŒ²
  					if (hWndDragStart == hWndListLocal) {
  						AskLocalCurDir(LocDir, FMAX_PATH);
  						PathDir = LocDir;
@@ -862,8 +862,8 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  							FileListBase = NULL;
  
  						} else {
- 							// ‘I‘ğ‚³‚ê‚Ä‚¢‚éƒŠƒ‚[ƒgƒtƒ@ƒCƒ‹‚ÌƒŠƒXƒgƒAƒbƒv
- 							// ‚±‚Ìƒ^ƒCƒ~ƒ“ƒO‚ÅƒŠƒ‚[ƒg‚©‚çƒ[ƒJƒ‹‚ÌˆêƒtƒHƒ‹ƒ_‚Öƒ_ƒEƒ“ƒ[ƒh‚·‚é
+ 							// é¸æŠã•ã‚Œã¦ã„ã‚‹ãƒªãƒ¢ãƒ¼ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒªã‚¹ãƒˆã‚¢ãƒƒãƒ—
+ 							// ã“ã®ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã§ãƒªãƒ¢ãƒ¼ãƒˆã‹ã‚‰ãƒ­ãƒ¼ã‚«ãƒ«ã®ä¸€æ™‚ãƒ•ã‚©ãƒ«ãƒ€ã¸ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã™ã‚‹
  							// (2007.8.31 yutaka)
  							doTransferRemoteFile();
  							PathDir = remoteFileDir;
@@ -877,14 +877,14 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  					for (filenum = 0; pf ; filenum++) {
  						pf = pf->Next;
  					}
- 					// ƒtƒ@ƒCƒ‹‚ª–¢‘I‘ğ‚Ìê‡‚Í‰½‚à‚µ‚È‚¢B(yutaka)
+ 					// ãƒ•ã‚¡ã‚¤ãƒ«ãŒæœªé¸æŠã®å ´åˆã¯ä½•ã‚‚ã—ãªã„ã€‚(yutaka)
  					if (filenum <= 0) {
  						*((HANDLE *)lParam) = NULL;
  						return (FALSE);
  					}
  					
- 					/* ƒtƒ@ƒCƒ‹–¼‚Ì”z—ñ‚ğì¬‚·‚é */
-					// TODO: GlobalAlloc‚ª•Ô‚·‚Ì‚Íƒƒ‚ƒŠƒ|ƒCƒ“ƒ^‚Å‚Í‚È‚­ƒnƒ“ƒhƒ‹‚¾‚ªÀÛ‚Í“¯‚¶’l
+ 					/* ãƒ•ã‚¡ã‚¤ãƒ«åã®é…åˆ—ã‚’ä½œæˆã™ã‚‹ */
+					// TODO: GlobalAllocãŒè¿”ã™ã®ã¯ãƒ¡ãƒ¢ãƒªãƒã‚¤ãƒ³ã‚¿ã§ã¯ãªããƒãƒ³ãƒ‰ãƒ«ã ãŒå®Ÿéš›ã¯åŒã˜å€¤
  					FileNameList = (char **)GlobalAlloc(GPTR,sizeof(char *) * filenum);
  					if(FileNameList == NULL){
  						abort();
@@ -899,7 +899,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  						pf = pf->Next;
 #if 0
 						if (FileListBase->Node == NODE_DIR) { 
- 							// ƒtƒHƒ‹ƒ_‚ğ’Í‚ñ‚¾ê‡‚Í‚»‚êˆÈ~“WŠJ‚µ‚È‚¢
+ 							// ãƒ•ã‚©ãƒ«ãƒ€ã‚’æ´ã‚“ã å ´åˆã¯ãã‚Œä»¥é™å±•é–‹ã—ãªã„
  							filenum = 1;
  							break;
  						}
@@ -912,11 +912,11 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  						NTFlag = TRUE;
  					}
  
- 					/* ƒhƒƒbƒvƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìì¬ */
- 					/* NT‚Ìê‡‚ÍUNICODE‚É‚È‚é‚æ‚¤‚É‚·‚é */
+ 					/* ãƒ‰ãƒ­ãƒƒãƒ—ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®ä½œæˆ */
+ 					/* NTã®å ´åˆã¯UNICODEã«ãªã‚‹ã‚ˆã†ã«ã™ã‚‹ */
  					*((HANDLE *)lParam) = CreateDropFileMem(FileNameList, filenum, NTFlag);
  
- 					/* ƒtƒ@ƒCƒ‹–¼‚Ì”z—ñ‚ğ‰ğ•ú‚·‚é */
+ 					/* ãƒ•ã‚¡ã‚¤ãƒ«åã®é…åˆ—ã‚’è§£æ”¾ã™ã‚‹ */
  					for (i = 0; i < filenum ; i++) {
  						GlobalFree(FileNameList[i]);
  					}
@@ -925,7 +925,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  					if (hWndDragStart == hWndListLocal) {
  						DeleteFileList(&FileListBase);
  					} else {
- 						// ‚ ‚Æ‚Åƒtƒ@ƒCƒ‹íœ‚µ‚ÄƒtƒŠ[‚·‚é
+ 						// ã‚ã¨ã§ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤ã—ã¦ãƒ•ãƒªãƒ¼ã™ã‚‹
  					}
  
  					return (TRUE);
@@ -945,7 +945,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 				int Node, index;
 				static int prev_index = -1;
 
-				// “¯ˆêƒEƒBƒ“ƒhƒE“à‚Å‚ÌD&D‚ÍƒŠƒ‚[ƒg‘¤‚Ì‚İ
+				// åŒä¸€ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦å†…ã§ã®D&Dã¯ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ã¿
 				if (Win != WIN_REMOTE)
 					break;
 
@@ -960,7 +960,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 
 				hi.pt = Point;
 
-				// ˆÈ‘O‚Ì‘I‘ğ‚ğÁ‚·
+				// ä»¥å‰ã®é¸æŠã‚’æ¶ˆã™
 				ListView_SetItemState(hWnd, prev_index, 0, LVIS_DROPHILITED);
 				RemoteDropFileIndex = -1;
 
@@ -981,7 +981,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			break;
 
 		case WM_RBUTTONDOWN :
-			/* ‚±‚±‚Åƒtƒ@ƒCƒ‹‚ğ‘I‚Ô */
+			/* ã“ã“ã§ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é¸ã¶ */
 			CallWindowProc(ProcPtr, hWnd, message, wParam, lParam);
 
 			EraseListViewTips();
@@ -1021,13 +1021,13 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					if((hWndPnt == hWndListRemote) || (hWndPnt == hWndListLocal))
 						SetCursor(hCsrDrg);
 					else {
-						// ƒ}ƒEƒXƒ|ƒCƒ“ƒ^‚Ì~•\¦‚ğ‚â‚ß‚é (yutaka)
+						// ãƒã‚¦ã‚¹ãƒã‚¤ãƒ³ã‚¿ã®Ã—è¡¨ç¤ºã‚’ã‚„ã‚ã‚‹ (yutaka)
 #if 0
 						SetCursor(hCsrNoDrg);
 #endif
 					}
 
-					// OLE D&D‚ÌŠJn‚ğw¦‚·‚é
+					// OLE D&Dã®é–‹å§‹ã‚’æŒ‡ç¤ºã™ã‚‹
 					PostMessage(hWnd, WM_DRAGDROP, MAKEWPARAM(wParam, lParam), 0);
 
 				}
@@ -1073,13 +1073,13 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìƒ^ƒu•‚ğæ“¾‚·‚é --------------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®ã‚¿ãƒ–å¹…ã‚’å–å¾—ã™ã‚‹ --------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void GetListTabWidth(void)
@@ -1104,13 +1104,13 @@ void GetListTabWidth(void)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ˆê——•û–@‚É‚µ‚½‚ª‚Á‚ÄƒŠƒXƒgƒrƒ…[‚ğİ’è‚·‚é --------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§æ–¹æ³•ã«ã—ãŸãŒã£ã¦ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã‚’è¨­å®šã™ã‚‹ --------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetListViewType(void)
@@ -1147,13 +1147,13 @@ void SetListViewType(void)
 }
 
 
-/*----- ƒzƒXƒg‘¤‚Ìƒtƒ@ƒCƒ‹ˆê——ƒEƒCƒ“ƒhƒE‚Éƒtƒ@ƒCƒ‹–¼‚ğƒZƒbƒg ------------------
+/*----- ãƒ›ã‚¹ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã«ãƒ•ã‚¡ã‚¤ãƒ«åã‚’ã‚»ãƒƒãƒˆ ------------------
 *
 *	Parameter
-*		int Mode : ƒLƒƒƒbƒVƒ…ƒ‚[ƒh (CACHE_xxx)
+*		int Mode : ã‚­ãƒ£ãƒƒã‚·ãƒ¥ãƒ¢ãƒ¼ãƒ‰ (CACHE_xxx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void GetRemoteDirForWnd(int Mode, int *CancelCheckWork)
@@ -1215,7 +1215,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork)
 			{
 				ListType = LIST_UNKNOWN;
 
-				while(GetListOneLine(Str, FMAX_PATH, fd) == SUCCESS)
+				while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
 				{
 					if((ListType = AnalizeFileInfo(Str)) != LIST_UNKNOWN)
 					{
@@ -1236,7 +1236,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork)
 				DispFileList2View(GetRemoteHwnd(), &Anchor);
 				EraseDispFileList(&Anchor);
 
-				// æ“ª‚ÌƒAƒCƒeƒ€‚ğ‘I‘ğ
+				// å…ˆé ­ã®ã‚¢ã‚¤ãƒ†ãƒ ã‚’é¸æŠ
 				ListView_SetItemState(GetRemoteHwnd(), 0, LVIS_FOCUSED, LVIS_FOCUSED);
 			}
 			else
@@ -1248,8 +1248,8 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork)
 		else
 		{
 #if defined(HAVE_OPENVMS)
-			/* OpenVMS‚Ìê‡‹óƒfƒBƒŒƒNƒgƒŠˆÚ“®‚Ì‚Éo‚é‚Ì‚ÅAƒƒbƒZ[ƒW‚¾‚¯o‚³‚È‚¢
-			 * ‚æ‚¤‚É‚·‚é(VIEW‚ÍƒNƒŠƒA‚µ‚Ä—Ç‚¢) */
+			/* OpenVMSã®å ´åˆç©ºãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªç§»å‹•ã®æ™‚ã«å‡ºã‚‹ã®ã§ã€ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã ã‘å‡ºã•ãªã„
+			 * ã‚ˆã†ã«ã™ã‚‹(VIEWã¯ã‚¯ãƒªã‚¢ã—ã¦è‰¯ã„) */
 			if (AskHostType() != HTYPE_VMS)
 #endif
 			SetTaskMsg(MSGJPN049);
@@ -1268,13 +1268,13 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork)
 }
 
 
-/*----- ƒ[ƒJƒ‹‘¤‚Ìƒtƒ@ƒCƒ‹ˆê——ƒEƒCƒ“ƒhƒE‚Éƒtƒ@ƒCƒ‹–¼‚ğƒZƒbƒg ----------------
+/*----- ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã«ãƒ•ã‚¡ã‚¤ãƒ«åã‚’ã‚»ãƒƒãƒˆ ----------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void GetLocalDirForWnd(void)
@@ -1296,7 +1296,7 @@ void GetLocalDirForWnd(void)
 	SetLocalDirHist(Scan);
 	DispLocalFreeSpace(Scan);
 
-	/* ƒfƒBƒŒƒNƒgƒŠ^ƒtƒ@ƒCƒ‹ */
+	/* ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªï¼ãƒ•ã‚¡ã‚¤ãƒ« */
 
 	SetYenTail(Scan);
 	strcat(Scan, "*");
@@ -1325,7 +1325,7 @@ void GetLocalDirForWnd(void)
 		FindClose(fHnd);
 	}
 
-	/* ƒhƒ‰ƒCƒu */
+	/* ãƒ‰ãƒ©ã‚¤ãƒ– */
 	if(DispDrives)
 	{
 		GetLogicalDriveStrings(FMAX_PATH, Scan);
@@ -1348,29 +1348,29 @@ void GetLocalDirForWnd(void)
 	DispFileList2View(GetLocalHwnd(), &Anchor);
 	EraseDispFileList(&Anchor);
 
-	// æ“ª‚ÌƒAƒCƒeƒ€‚ğ‘I‘ğ
+	// å…ˆé ­ã®ã‚¢ã‚¤ãƒ†ãƒ ã‚’é¸æŠ
 	ListView_SetItemState(GetLocalHwnd(), 0, LVIS_FOCUSED, LVIS_FOCUSED);
 
 	return;
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹î•ñ‚ğƒtƒ@ƒCƒ‹ˆê———pƒŠƒXƒg‚É“o˜^‚·‚é --------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ã‚’ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ç”¨ãƒªã‚¹ãƒˆã«ç™»éŒ²ã™ã‚‹ --------------------------
 *
 *	Parameter
-*		FLISTANCHOR *Anchor : ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìæ“ª
-*		char *Name : ƒtƒ@ƒCƒ‹–¼
-*		FILETIME *Time : “ú•t
-*		LONGLONG Size : ƒTƒCƒY
-*		int Attr : ‘®«
-*		int Type : ƒ^ƒCƒv (NODE_xxxx)
-*		int Link : ƒŠƒ“ƒN‚©‚Ç‚¤‚© (YES/NO)
-*		char *Owner : ƒI[ƒi–¼
-*		int InfoExist : î•ñ‚ª‚ ‚é‚©‚Ç‚¤‚© (FINFO_xxx)
-*		int Win : ƒEƒBƒ“ƒhƒE”Ô† (WIN_xxxx)
+*		FLISTANCHOR *Anchor : ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å…ˆé ­
+*		char *Name : ãƒ•ã‚¡ã‚¤ãƒ«å
+*		FILETIME *Time : æ—¥ä»˜
+*		LONGLONG Size : ã‚µã‚¤ã‚º
+*		int Attr : å±æ€§
+*		int Type : ã‚¿ã‚¤ãƒ— (NODE_xxxx)
+*		int Link : ãƒªãƒ³ã‚¯ã‹ã©ã†ã‹ (YES/NO)
+*		char *Owner : ã‚ªãƒ¼ãƒŠå
+*		int InfoExist : æƒ…å ±ãŒã‚ã‚‹ã‹ã©ã†ã‹ (FINFO_xxx)
+*		int Win : ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxxx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LONGLONG Size, int Attr, int Type, int Link, char *Owner, int InfoExist, int Win)
@@ -1475,13 +1475,13 @@ static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LON
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ˆê———pƒŠƒXƒg‚ğƒNƒŠƒA‚·‚é --------------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ç”¨ãƒªã‚¹ãƒˆã‚’ã‚¯ãƒªã‚¢ã™ã‚‹ --------------------------------------
 *
 *	Parameter
-*		FLISTANCHOR *Anchor : ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìæ“ª
+*		FLISTANCHOR *Anchor : ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å…ˆé ­
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void EraseDispFileList(FLISTANCHOR *Anchor)
@@ -1503,14 +1503,14 @@ static void EraseDispFileList(FLISTANCHOR *Anchor)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ˆê———pƒŠƒXƒg‚Ì“à—e‚ğƒtƒ@ƒCƒ‹ˆê——ƒEƒCƒ“ƒhƒE‚ÉƒZƒbƒg ------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ç”¨ãƒªã‚¹ãƒˆã®å†…å®¹ã‚’ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã«ã‚»ãƒƒãƒˆ ------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		FLISTANCHOR *Anchor : ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìæ“ª
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		FLISTANCHOR *Anchor : ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å…ˆé ­
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void DispFileList2View(HWND hWnd, FLISTANCHOR *Anchor)
@@ -1536,22 +1536,22 @@ static void DispFileList2View(HWND hWnd, FLISTANCHOR *Anchor)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ˆê——ƒEƒCƒ“ƒhƒEiƒŠƒXƒgƒrƒ…[j‚É’Ç‰Á --------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ï¼ˆãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ï¼‰ã«è¿½åŠ  --------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		int Pos : ‘}“üˆÊ’u
-*		char *Name : –¼‘O
-*		int Type : ƒ^ƒCƒv (NIDE_xxxx)
-*		LONGLONG Size : ƒTƒCƒY
-*		FILETIME *Time : “ú•t
-*		int Attr : ‘®«
-*		char Owner : ƒI[ƒi–¼
-*		int Link : ƒŠƒ“ƒN‚©‚Ç‚¤‚©
-*		int InfoExist : î•ñ‚ª‚ ‚é‚©‚Ç‚¤‚© (FINFO_xxx)
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		int Pos : æŒ¿å…¥ä½ç½®
+*		char *Name : åå‰
+*		int Type : ã‚¿ã‚¤ãƒ— (NIDE_xxxx)
+*		LONGLONG Size : ã‚µã‚¤ã‚º
+*		FILETIME *Time : æ—¥ä»˜
+*		int Attr : å±æ€§
+*		char Owner : ã‚ªãƒ¼ãƒŠå
+*		int Link : ãƒªãƒ³ã‚¯ã‹ã©ã†ã‹
+*		int InfoExist : æƒ…å ±ãŒã‚ã‚‹ã‹ã©ã†ã‹ (FINFO_xxx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist)
@@ -1562,7 +1562,7 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 	if(Pos == -1)
 		Pos = SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0);
 
-	/* ƒAƒCƒRƒ“/ƒtƒ@ƒCƒ‹–¼ */
+	/* ã‚¢ã‚¤ã‚³ãƒ³/ãƒ•ã‚¡ã‚¤ãƒ«å */
 	LvItem.mask = LVIF_TEXT | LVIF_IMAGE;
 	LvItem.iItem = Pos;
 	LvItem.iSubItem = 0;
@@ -1575,7 +1575,7 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 		LvItem.iImage = 4;
 	LvItem.iItem = SendMessage(hWnd, LVM_INSERTITEM, 0, (LPARAM)&LvItem);
 
-	/* “ú•t/ */
+	/* æ—¥ä»˜/æ™‚åˆ» */
 	FileTime2TimeString(Time, Tmp, DISPFORM_LEGACY, InfoExist);
 	LvItem.mask = LVIF_TEXT;
 	LvItem.iItem = Pos;
@@ -1583,7 +1583,7 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 	LvItem.pszText = Tmp;
 	LvItem.iItem = SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
 
-	/* ƒTƒCƒY */
+	/* ã‚µã‚¤ã‚º */
 	if(Type == NODE_DIR)
 		strcpy(Tmp, "<DIR>");
 	else if(Type == NODE_DRIVE)
@@ -1598,7 +1598,7 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 	LvItem.pszText = Tmp;
 	LvItem.iItem = SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
 
-	/* Šg’£q */
+	/* æ‹¡å¼µå­ */
 	LvItem.mask = LVIF_TEXT;
 	LvItem.iItem = Pos;
 	LvItem.iSubItem = 3;
@@ -1607,7 +1607,7 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 
 	if(hWnd == GetRemoteHwnd())
 	{
-		/* ‘®« */
+		/* å±æ€§ */
 		strcpy(Tmp, "");
 		if(InfoExist & FINFO_ATTR)
 			AttrValue2String(Attr, Tmp);
@@ -1617,7 +1617,7 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 		LvItem.pszText = Tmp;
 		LvItem.iItem = SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
 
-		/* ƒI[ƒi–¼ */
+		/* ã‚ªãƒ¼ãƒŠå */
 		LvItem.mask = LVIF_TEXT;
 		LvItem.iItem = Pos;
 		LvItem.iSubItem = 5;
@@ -1628,13 +1628,13 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹–¼ˆê——ƒEƒCƒ“ƒhƒE‚ğƒ\[ƒg‚µ’¼‚· --------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«åä¸€è¦§ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚’ã‚½ãƒ¼ãƒˆã—ç›´ã™ --------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒBƒ“ƒhƒE”Ô† (WIN_xxxx)
+*		int Win : ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxxx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void ReSortDispList(int Win, int *CancelCheckWork)
@@ -1647,14 +1647,14 @@ void ReSortDispList(int Win, int *CancelCheckWork)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ˆê——ƒEƒCƒ“ƒhƒE‚Ìƒtƒ@ƒCƒ‹‚ğ‘I‘ğ‚·‚é ----------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é¸æŠã™ã‚‹ ----------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		int Type : ‘I‘ğ•û–@ (SELECT_xxx)
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		int Type : é¸æŠæ–¹æ³• (SELECT_xxx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SelectFileInList(HWND hWnd, int Type)
@@ -1722,7 +1722,7 @@ void SelectFileInList(HWND hWnd, int Type)
 						LvItem.state = 0;
 						if(GetNodeType(Win, i) != NODE_DRIVE)
 						{
-							if(((FindMode == 0) && (CheckFname(Name, RegExp) == SUCCESS)) ||
+							if(((FindMode == 0) && (CheckFname(Name, RegExp) == FFFTP_SUCCESS)) ||
 							   ((FindMode != 0) && (JreGetStrMatchInfo(Name, 0) != NULL)))
 							{
 								LvItem.state = LVIS_SELECTED;
@@ -1778,13 +1778,13 @@ void SelectFileInList(HWND hWnd, int Type)
 }
 
 
-/*----- ‘I‘ğƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒN ------------------------------------------
+/*----- é¸æŠãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------------------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1829,14 +1829,14 @@ static BOOL CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wPara
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ˆê——ƒEƒCƒ“ƒhƒE‚Ìƒtƒ@ƒCƒ‹‚ğŒŸõ‚·‚é ----------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’æ¤œç´¢ã™ã‚‹ ----------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		int Type : ŒŸõ•û–@ (FIND_xxx)
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		int Type : æ¤œç´¢æ–¹æ³• (FIND_xxx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void FindFileInList(HWND hWnd, int Type)
@@ -1876,7 +1876,7 @@ void FindFileInList(HWND hWnd, int Type)
 						_mbslwr(Name);
 
 						LvItem.state = 0;
-						if(((FindMode == 0) && (CheckFname(Name, RegExp) == SUCCESS)) ||
+						if(((FindMode == 0) && (CheckFname(Name, RegExp) == FFFTP_SUCCESS)) ||
 						   ((FindMode != 0) && (JreGetStrMatchInfo(Name, 0) != NULL)))
 						{
 							LvItem.mask = LVIF_STATE;
@@ -1900,7 +1900,7 @@ void FindFileInList(HWND hWnd, int Type)
 				_mbslwr(Name);
 
 				LvItem.state = 0;
-				if(((FindMode == 0) && (CheckFname(Name, RegExp) == SUCCESS)) ||
+				if(((FindMode == 0) && (CheckFname(Name, RegExp) == FFFTP_SUCCESS)) ||
 				   ((FindMode != 0) && (JreGetStrMatchInfo(Name, 0) != NULL)))
 				{
 					LvItem.mask = LVIF_STATE;
@@ -1920,13 +1920,13 @@ void FindFileInList(HWND hWnd, int Type)
 
 
 #if 0
-/*----- ƒƒCƒ‹ƒhƒJ[ƒh‚ğ³‹K•\Œ»‚É•ÏŠ·‚·‚é ------------------------------------
+/*----- ãƒ¯ã‚¤ãƒ«ãƒ‰ã‚«ãƒ¼ãƒ‰ã‚’æ­£è¦è¡¨ç¾ã«å¤‰æ›ã™ã‚‹ ------------------------------------
 *
 *	Parameter
-*		char *Str : •¶š—ñ
+*		char *Str : æ–‡å­—åˆ—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void WildCard2RegExp(char *Str)
@@ -1986,13 +1986,13 @@ void WildCard2RegExp(char *Str)
 #endif
 
 
-/*----- ƒJ[ƒ\ƒ‹ˆÊ’u‚ÌƒAƒCƒeƒ€”Ô†‚ğ•Ô‚· --------------------------------------
+/*----- ã‚«ãƒ¼ã‚½ãƒ«ä½ç½®ã®ã‚¢ã‚¤ãƒ†ãƒ ç•ªå·ã‚’è¿”ã™ --------------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒBƒ“ƒhƒE”Ô† (WIN_xxxx)
+*		int Win : ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxxx)
 *
 *	Return Value
-*		int ƒAƒCƒeƒ€”Ô†
+*		int ã‚¢ã‚¤ãƒ†ãƒ ç•ªå·
 *----------------------------------------------------------------------------*/
 
 int GetCurrentItem(int Win)
@@ -2011,13 +2011,13 @@ int GetCurrentItem(int Win)
 }
 
 
-/*----- ƒAƒCƒeƒ€”‚ğ•Ô‚· ------------------------------------------------------
+/*----- ã‚¢ã‚¤ãƒ†ãƒ æ•°ã‚’è¿”ã™ ------------------------------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒBƒ“ƒhƒE”Ô† (WIN_xxxx)
+*		int Win : ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxxx)
 *
 *	Return Value
-*		int ƒAƒCƒeƒ€”
+*		int ã‚¢ã‚¤ãƒ†ãƒ æ•°
 *----------------------------------------------------------------------------*/
 
 int GetItemCount(int Win)
@@ -2032,13 +2032,13 @@ int GetItemCount(int Win)
 }
 
 
-/*----- ‘I‘ğ‚³‚ê‚Ä‚¢‚éƒAƒCƒeƒ€”‚ğ•Ô‚· ----------------------------------------
+/*----- é¸æŠã•ã‚Œã¦ã„ã‚‹ã‚¢ã‚¤ãƒ†ãƒ æ•°ã‚’è¿”ã™ ----------------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒBƒ“ƒhƒE”Ô† (WIN_xxxx)
+*		int Win : ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxxx)
 *
 *	Return Value
-*		int ‘I‘ğ‚³‚ê‚Ä‚¢‚éƒAƒCƒeƒ€”
+*		int é¸æŠã•ã‚Œã¦ã„ã‚‹ã‚¢ã‚¤ãƒ†ãƒ æ•°
 *----------------------------------------------------------------------------*/
 
 int GetSelectedCount(int Win)
@@ -2053,15 +2053,15 @@ int GetSelectedCount(int Win)
 }
 
 
-/*----- ‘I‘ğ‚³‚ê‚Ä‚¢‚éÅ‰‚ÌƒAƒCƒeƒ€”Ô†‚ğ•Ô‚· --------------------------------
+/*----- é¸æŠã•ã‚Œã¦ã„ã‚‹æœ€åˆã®ã‚¢ã‚¤ãƒ†ãƒ ç•ªå·ã‚’è¿”ã™ --------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒBƒ“ƒhƒE”Ô† (WIN_xxxx)
-*		int All : ‘I‚Î‚ê‚Ä‚¢‚È‚¢‚à‚Ì‚ğŠÜ‚ß‚é
+*		int Win : ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxxx)
+*		int All : é¸ã°ã‚Œã¦ã„ãªã„ã‚‚ã®ã‚’å«ã‚ã‚‹
 *
 *	Return Value
-*		int ƒAƒCƒeƒ€”Ô†
-*			-1 = ‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¢
+*		int ã‚¢ã‚¤ãƒ†ãƒ ç•ªå·
+*			-1 = é¸æŠã•ã‚Œã¦ã„ãªã„
 *----------------------------------------------------------------------------*/
 
 int GetFirstSelected(int Win, int All)
@@ -2081,16 +2081,16 @@ int GetFirstSelected(int Win, int All)
 }
 
 
-/*----- ‘I‘ğ‚³‚ê‚Ä‚¢‚éŸ‚ÌƒAƒCƒeƒ€”Ô†‚ğ•Ô‚· ----------------------------------
+/*----- é¸æŠã•ã‚Œã¦ã„ã‚‹æ¬¡ã®ã‚¢ã‚¤ãƒ†ãƒ ç•ªå·ã‚’è¿”ã™ ----------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒBƒ“ƒhƒE”Ô† (WIN_xxxx)
-*		int Pos : ¡‚ÌƒAƒCƒeƒ€”Ô†
-*		int All : ‘I‚Î‚ê‚Ä‚¢‚È‚¢‚à‚Ì‚àŠÜ‚ß‚é
+*		int Win : ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxxx)
+*		int Pos : ä»Šã®ã‚¢ã‚¤ãƒ†ãƒ ç•ªå·
+*		int All : é¸ã°ã‚Œã¦ã„ãªã„ã‚‚ã®ã‚‚å«ã‚ã‚‹
 *
 *	Return Value
-*		int ƒAƒCƒeƒ€”Ô†
-*			-1 = ‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¢
+*		int ã‚¢ã‚¤ãƒ†ãƒ ç•ªå·
+*			-1 = é¸æŠã•ã‚Œã¦ã„ãªã„
 *----------------------------------------------------------------------------*/
 
 int GetNextSelected(int Win, int Pos, int All)
@@ -2110,15 +2110,15 @@ int GetNextSelected(int Win, int Pos, int All)
 }
 
 
-/*----- w’è‚³‚ê‚½–¼‘O‚ÌƒAƒCƒeƒ€‚ğ’T‚· ----------------------------------------
+/*----- æŒ‡å®šã•ã‚ŒãŸåå‰ã®ã‚¢ã‚¤ãƒ†ãƒ ã‚’æ¢ã™ ----------------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô† (WIN_xxx)
-*		char *Name : –¼‘O
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxx)
+*		char *Name : åå‰
 *
 *	Return Value
-*		int ƒAƒCƒeƒ€”Ô†
-*			-1=Œ©‚Â‚©‚ç‚È‚©‚Á‚½
+*		int ã‚¢ã‚¤ãƒ†ãƒ ç•ªå·
+*			-1=è¦‹ã¤ã‹ã‚‰ãªã‹ã£ãŸ
 *----------------------------------------------------------------------------*/
 
 int FindNameNode(int Win, char *Name)
@@ -2136,16 +2136,16 @@ int FindNameNode(int Win, char *Name)
 }
 
 
-/*----- w’èˆÊ’u‚ÌƒAƒCƒeƒ€‚Ì–¼‘O‚ğ•Ô‚· ----------------------------------------
+/*----- æŒ‡å®šä½ç½®ã®ã‚¢ã‚¤ãƒ†ãƒ ã®åå‰ã‚’è¿”ã™ ----------------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô† (WIN_xxx)
-*		int Pos : ˆÊ’u
-*		char *Buf : –¼‘O‚ğ•Ô‚·ƒoƒbƒtƒ@
-*		int Max : ƒoƒbƒtƒ@‚ÌƒTƒCƒY
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxx)
+*		int Pos : ä½ç½®
+*		char *Buf : åå‰ã‚’è¿”ã™ãƒãƒƒãƒ•ã‚¡
+*		int Max : ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void GetNodeName(int Win, int Pos, char *Buf, int Max)
@@ -2167,16 +2167,16 @@ void GetNodeName(int Win, int Pos, char *Buf, int Max)
 }
 
 
-/*----- w’èˆÊ’u‚ÌƒAƒCƒeƒ€‚Ì“ú•t‚ğ•Ô‚· ----------------------------------------
+/*----- æŒ‡å®šä½ç½®ã®ã‚¢ã‚¤ãƒ†ãƒ ã®æ—¥ä»˜ã‚’è¿”ã™ ----------------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô† (WIN_xxx)
-*		int Pos : ˆÊ’u
-*		FILETIME *Buf : “ú•t‚ğ•Ô‚·ƒoƒbƒtƒ@
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxx)
+*		int Pos : ä½ç½®
+*		FILETIME *Buf : æ—¥ä»˜ã‚’è¿”ã™ãƒãƒƒãƒ•ã‚¡
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			YES/NO=“ú•tî•ñ‚ª‚È‚©‚Á‚½
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			YES/NO=æ—¥ä»˜æƒ…å ±ãŒãªã‹ã£ãŸ
 *----------------------------------------------------------------------------*/
 
 int GetNodeTime(int Win, int Pos, FILETIME *Buf)
@@ -2201,16 +2201,16 @@ int GetNodeTime(int Win, int Pos, FILETIME *Buf)
 }
 
 
-/*----- w’èˆÊ’u‚ÌƒAƒCƒeƒ€‚ÌƒTƒCƒY‚ğ•Ô‚· --------------------------------------
+/*----- æŒ‡å®šä½ç½®ã®ã‚¢ã‚¤ãƒ†ãƒ ã®ã‚µã‚¤ã‚ºã‚’è¿”ã™ --------------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô† (WIN_xxx)
-*		int Pos : ˆÊ’u
-*		int *Buf : ƒTƒCƒY‚ğ•Ô‚·ƒ[ƒN
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxx)
+*		int Pos : ä½ç½®
+*		int *Buf : ã‚µã‚¤ã‚ºã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			YES/NO=ƒTƒCƒYî•ñ‚ª‚È‚©‚Á‚½
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			YES/NO=ã‚µã‚¤ã‚ºæƒ…å ±ãŒãªã‹ã£ãŸ
 *----------------------------------------------------------------------------*/
 
 int GetNodeSize(int Win, int Pos, LONGLONG *Buf)
@@ -2242,16 +2242,16 @@ int GetNodeSize(int Win, int Pos, LONGLONG *Buf)
 }
 
 
-/*----- w’èˆÊ’u‚ÌƒAƒCƒeƒ€‚Ì‘®«‚ğ•Ô‚· ----------------------------------------
+/*----- æŒ‡å®šä½ç½®ã®ã‚¢ã‚¤ãƒ†ãƒ ã®å±æ€§ã‚’è¿”ã™ ----------------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô† (WIN_xxx)
-*		int Pos : ˆÊ’u
-*		int *Buf : ‘®«‚ğ•Ô‚·ƒ[ƒN
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxx)
+*		int Pos : ä½ç½®
+*		int *Buf : å±æ€§ã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			YES/NO=ƒTƒCƒYî•ñ‚ª‚È‚©‚Á‚½
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			YES/NO=ã‚µã‚¤ã‚ºæƒ…å ±ãŒãªã‹ã£ãŸ
 *----------------------------------------------------------------------------*/
 
 int GetNodeAttr(int Win, int Pos, int *Buf)
@@ -2280,14 +2280,14 @@ int GetNodeAttr(int Win, int Pos, int *Buf)
 }
 
 
-/*----- w’èˆÊ’u‚ÌƒAƒCƒeƒ€‚Ìƒ^ƒCƒv‚ğ•Ô‚· --------------------------------------
+/*----- æŒ‡å®šä½ç½®ã®ã‚¢ã‚¤ãƒ†ãƒ ã®ã‚¿ã‚¤ãƒ—ã‚’è¿”ã™ --------------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô† (WIN_xxx)
-*		int Pos : ˆÊ’u
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxx)
+*		int Pos : ä½ç½®
 *
 *	Return Value
-*		int ƒ^ƒCƒv (NODE_xxx)
+*		int ã‚¿ã‚¤ãƒ— (NODE_xxx)
 *----------------------------------------------------------------------------*/
 
 int GetNodeType(int Win, int Pos)
@@ -2319,16 +2319,16 @@ int GetNodeType(int Win, int Pos)
 }
 
 
-/*----- w’èˆÊ’u‚ÌƒAƒCƒeƒ€‚ÌƒI[ƒi–¼‚ğ•Ô‚· ------------------------------------
+/*----- æŒ‡å®šä½ç½®ã®ã‚¢ã‚¤ãƒ†ãƒ ã®ã‚ªãƒ¼ãƒŠåã‚’è¿”ã™ ------------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô† (WIN_xxx)
-*		int Pos : ˆÊ’u
-*		char *Buf : ƒI[ƒi–¼‚ğ•Ô‚·ƒoƒbƒtƒ@
-*		int Max : ƒoƒbƒtƒ@‚ÌƒTƒCƒY
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxx)
+*		int Pos : ä½ç½®
+*		char *Buf : ã‚ªãƒ¼ãƒŠåã‚’è¿”ã™ãƒãƒƒãƒ•ã‚¡
+*		int Max : ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void GetNodeOwner(int Win, int Pos, char *Buf, int Max)
@@ -2349,13 +2349,13 @@ void GetNodeOwner(int Win, int Pos, char *Buf, int Max)
 }
 
 
-/*----- ƒzƒXƒg‘¤‚Ìƒtƒ@ƒCƒ‹ˆê——ƒEƒCƒ“ƒhƒE‚ğƒNƒŠƒA ------------------------------
+/*----- ãƒ›ã‚¹ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚’ã‚¯ãƒªã‚¢ ------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void EraseRemoteDirForWnd(void)
@@ -2366,13 +2366,13 @@ void EraseRemoteDirForWnd(void)
 }
 
 
-/*----- ‘I‘ğ‚³‚ê‚Ä‚¢‚éƒtƒ@ƒCƒ‹‚Ì‘ƒTƒCƒY‚ğ•Ô‚· --------------------------------
+/*----- é¸æŠã•ã‚Œã¦ã„ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®ç·ã‚µã‚¤ã‚ºã‚’è¿”ã™ --------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô† (WIN_xxx)
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxx)
 *
 *	Return Value
-*		double ƒTƒCƒY
+*		double ã‚µã‚¤ã‚º
 *----------------------------------------------------------------------------*/
 
 double GetSelectedTotalSize(int Win)
@@ -2404,16 +2404,16 @@ double GetSelectedTotalSize(int Win)
 
 
 
-/*----- ƒtƒ@ƒCƒ‹ˆê——‚Å‘I‚Î‚ê‚Ä‚¢‚éƒtƒ@ƒCƒ‹‚ğƒŠƒXƒg‚É“o˜^‚·‚é ------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã§é¸ã°ã‚Œã¦ã„ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒªã‚¹ãƒˆã«ç™»éŒ²ã™ã‚‹ ------------------
 *
 *	Parameter
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô† (WIN_xxx)
-*		int Expand : ƒTƒuƒfƒBƒŒƒNƒgƒŠ‚ğ“WŠJ‚·‚é (YES/NO)
-*		int All : ‘I‚Î‚ê‚Ä‚¢‚È‚¢‚à‚Ì‚à‚·‚×‚Ä“o˜^‚·‚é (YES/NO)
-*		FILELIST **Base : ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìæ“ª
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxx)
+*		int Expand : ã‚µãƒ–ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å±•é–‹ã™ã‚‹ (YES/NO)
+*		int All : é¸ã°ã‚Œã¦ã„ãªã„ã‚‚ã®ã‚‚ã™ã¹ã¦ç™»éŒ²ã™ã‚‹ (YES/NO)
+*		FILELIST **Base : ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å…ˆé ­
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *CancelCheckWork)
@@ -2428,7 +2428,7 @@ void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Ca
 
 	if((All == YES) || (GetSelectedCount(Win) > 0))
 	{
-		/*===== ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚Ìƒtƒ@ƒCƒ‹ =====*/
+		/*===== ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ãƒ•ã‚¡ã‚¤ãƒ« =====*/
 
 		Pos = GetFirstSelected(Win, All);
 		while(Pos != -1)
@@ -2466,7 +2466,7 @@ void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Ca
 
 		if(Expand == YES)
 		{
-			/*===== ƒfƒBƒŒƒNƒgƒŠƒcƒŠ[ =====*/
+			/*===== ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒ„ãƒªãƒ¼ =====*/
 
 			Pos = GetFirstSelected(Win, All);
 			while(Pos != -1)
@@ -2523,8 +2523,8 @@ void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Ca
 }
 
 
-/* ƒfƒoƒbƒO—p */
-/* ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ì“à—e‚ğ•\¦ */
+/* ãƒ‡ãƒãƒƒã‚°ç”¨ */
+/* ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å†…å®¹ã‚’è¡¨ç¤º */
 static void DispListList(FILELIST *Pos, char *Title)
 {
 	DoPrintf("############ %s ############", Title);
@@ -2538,15 +2538,15 @@ static void DispListList(FILELIST *Pos, char *Title)
 }
 
 
-/*----- Drag&Drop‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ğƒŠƒXƒg‚É“o˜^‚·‚é -----------------------------
+/*----- Drag&Dropã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒªã‚¹ãƒˆã«ç™»éŒ²ã™ã‚‹ -----------------------------
 *
 *	Parameter
-*		WPARAM wParam : ƒhƒƒbƒv‚³‚ê‚½ƒtƒ@ƒCƒ‹‚Ìî•ñ
-*		char *Cur : ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚ğ•Ô‚·ƒoƒbƒtƒ@
-*		FILELIST **Base : ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìæ“ª
+*		WPARAM wParam : ãƒ‰ãƒ­ãƒƒãƒ—ã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã®æƒ…å ±
+*		char *Cur : ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’è¿”ã™ãƒãƒƒãƒ•ã‚¡
+*		FILELIST **Base : ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å…ˆé ­
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
@@ -2606,14 +2606,14 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
 }
 
 
-/*----- Drag&Drop‚³‚ê‚½ƒtƒ@ƒCƒ‹‚ª‚ ‚éƒtƒHƒ‹ƒ_‚ğæ“¾‚·‚é -----------------------
+/*----- Drag&Dropã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ãŒã‚ã‚‹ãƒ•ã‚©ãƒ«ãƒ€ã‚’å–å¾—ã™ã‚‹ -----------------------
 *
 *	Parameter
-*		WPARAM wParam : ƒhƒƒbƒv‚³‚ê‚½ƒtƒ@ƒCƒ‹‚Ìî•ñ
-*		char *Cur : ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚ğ•Ô‚·ƒoƒbƒtƒ@
+*		WPARAM wParam : ãƒ‰ãƒ­ãƒƒãƒ—ã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«ã®æƒ…å ±
+*		char *Cur : ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’è¿”ã™ãƒãƒƒãƒ•ã‚¡
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void MakeDroppedDir(WPARAM wParam, char *Cur)
@@ -2629,18 +2629,18 @@ void MakeDroppedDir(WPARAM wParam, char *Cur)
 }
 
 
-/*----- ƒzƒXƒg‘¤‚ÌƒTƒuƒfƒBƒŒƒNƒgƒŠˆÈ‰º‚Ìƒtƒ@ƒCƒ‹‚ğƒŠƒXƒg‚É“o˜^‚·‚éi‚Pj-------
+/*----- ãƒ›ã‚¹ãƒˆå´ã®ã‚µãƒ–ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªä»¥ä¸‹ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒªã‚¹ãƒˆã«ç™»éŒ²ã™ã‚‹ï¼ˆï¼‘ï¼‰-------
 *
 *	Parameter
-*		char *Path : ƒpƒX–¼
-*		char *Cur : ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ
-*		FILELIST **Base : ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìæ“ª
+*		char *Path : ãƒ‘ã‚¹å
+*		char *Cur : ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
+*		FILELIST **Base : ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å…ˆé ­
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *
 *	Note
-*		NLST -alLR ‚ğg‚¤
+*		NLST -alLR ã‚’ä½¿ã†
 *----------------------------------------------------------------------------*/
 
 static void MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork)
@@ -2649,7 +2649,7 @@ static void MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelC
 
 	if(DoCWD(Path, NO, NO, NO) == FTP_COMPLETE)
 	{
-		/* ƒTƒuƒtƒHƒ‹ƒ_‚àŠÜ‚ß‚½ƒŠƒXƒg‚ğæ“¾ */
+		/* ã‚µãƒ–ãƒ•ã‚©ãƒ«ãƒ€ã‚‚å«ã‚ãŸãƒªã‚¹ãƒˆã‚’å–å¾— */
 		Sts = DoDirListCmdSkt("R", "", 999, CancelCheckWork);	/* NLST -alLR*/
 		DoCWD(Cur, NO, NO, NO);
 
@@ -2660,18 +2660,18 @@ static void MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelC
 }
 
 
-/*----- ƒzƒXƒg‘¤‚ÌƒTƒuƒfƒBƒŒƒNƒgƒŠˆÈ‰º‚Ìƒtƒ@ƒCƒ‹‚ğƒŠƒXƒg‚É“o˜^‚·‚éi‚Qj-------
+/*----- ãƒ›ã‚¹ãƒˆå´ã®ã‚µãƒ–ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªä»¥ä¸‹ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒªã‚¹ãƒˆã«ç™»éŒ²ã™ã‚‹ï¼ˆï¼’ï¼‰-------
 *
 *	Parameter
-*		char *Path : ƒpƒX–¼
-*		char *Cur : ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ
-*		FILELIST **Base : ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìæ“ª
+*		char *Path : ãƒ‘ã‚¹å
+*		char *Cur : ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
+*		FILELIST **Base : ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å…ˆé ­
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *
 *	Note
-*		ŠeƒtƒHƒ‹ƒ_‚ÉˆÚ“®‚µ‚ÄƒŠƒXƒg‚ğæ“¾
+*		å„ãƒ•ã‚©ãƒ«ãƒ€ã«ç§»å‹•ã—ã¦ãƒªã‚¹ãƒˆã‚’å–å¾—
 *----------------------------------------------------------------------------*/
 
 static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork)
@@ -2681,14 +2681,14 @@ static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelC
 	FILELIST *Pos;
 	FILELIST Pkt;
 
-	/* VAX VMS ‚Í CWD xxx/yyy ‚Æ‚¢‚¤w’è‚ª‚Å‚«‚È‚¢‚Ì‚Å	*/
-	/* CWD xxx, Cwd yyy ‚Æ•¡”‚É•ª‚¯‚é					*/
+	/* VAX VMS ã¯ CWD xxx/yyy ã¨ã„ã†æŒ‡å®šãŒã§ããªã„ã®ã§	*/
+	/* CWD xxx, Cwd yyy ã¨è¤‡æ•°ã«åˆ†ã‘ã‚‹					*/
 	if(AskHostType() != HTYPE_VMS)
 		Sts = DoCWD(Path, NO, NO, NO);
 	else
 	{
 #if defined(HAVE_OPENVMS)
-		/* OpenVMS‚Ìê‡AƒfƒBƒŒƒNƒgƒŠˆÚ“®‚Í"HOGE.DIR;1"‚ğ"HOGE"‚É‚·‚é */
+		/* OpenVMSã®å ´åˆã€ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªç§»å‹•æ™‚ã¯"HOGE.DIR;1"ã‚’"HOGE"ã«ã™ã‚‹ */
 		ReformVMSDirName(Path, TRUE);
 #endif
 		Sts = DoCWDStepByStep(Path, Cur);
@@ -2710,7 +2710,7 @@ static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelC
 			{
 				if(Pos->Node == NODE_DIR)
 				{
-					/* ‚Ü‚¸ƒfƒBƒŒƒNƒgƒŠ–¼‚ğƒZƒbƒg */
+					/* ã¾ãšãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåã‚’ã‚»ãƒƒãƒˆ */
 					strcpy(Pkt.File, Pos->File);
 					Pkt.Node = NODE_DIR;
 					Pkt.Size = 0;
@@ -2718,7 +2718,7 @@ static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelC
 					memset(&Pkt.Time, 0, sizeof(FILETIME));
 					AddFileList(&Pkt, Base);
 
-					/* ‚»‚ÌƒfƒBƒŒƒNƒgƒŠ‚Ì’†‚ğŒŸõ */
+					/* ãã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ä¸­ã‚’æ¤œç´¢ */
 					MakeRemoteTree2(Pos->File, Cur, Base, CancelCheckWork);
 				}
 				Pos = Pos->Next;
@@ -2730,18 +2730,18 @@ static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelC
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ì“à—e‚ğ•Ê‚Ìƒtƒ@ƒCƒ‹ƒŠƒXƒg‚ÉƒRƒs[ ----------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å†…å®¹ã‚’åˆ¥ã®ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã«ã‚³ãƒ”ãƒ¼ ----------------------
 *
 *	Parameter
-*		FILELIST **Base : ƒRƒs[æ
-*		FILELIST *List : ƒRƒs[Œ³
+*		FILELIST **Base : ã‚³ãƒ”ãƒ¼å…ˆ
+*		FILELIST *List : ã‚³ãƒ”ãƒ¼å…ƒ
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *
 *	Note
-*		ƒRƒs[‚·‚é‚Ì‚Íƒtƒ@ƒCƒ‹‚Ìî•ñ‚¾‚¯
-*		ƒfƒBƒŒƒNƒgƒŠ‚Ìî•ñ‚ÍƒRƒs[‚µ‚È‚¢
+*		ã‚³ãƒ”ãƒ¼ã™ã‚‹ã®ã¯ãƒ•ã‚¡ã‚¤ãƒ«ã®æƒ…å ±ã ã‘
+*		ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®æƒ…å ±ã¯ã‚³ãƒ”ãƒ¼ã—ãªã„
 *----------------------------------------------------------------------------*/
 
 static void CopyTmpListToFileList(FILELIST **Base, FILELIST *List)
@@ -2757,16 +2757,16 @@ static void CopyTmpListToFileList(FILELIST **Base, FILELIST *List)
 }
 
 
-/*----- ƒzƒXƒg‘¤‚Ìƒtƒ@ƒCƒ‹î•ñ‚ğƒtƒ@ƒCƒ‹ƒŠƒXƒg‚É“o˜^ --------------------------
+/*----- ãƒ›ã‚¹ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ã‚’ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã«ç™»éŒ² --------------------------
 *
 *	Parameter
-*		int Num : ƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹‚Ìƒtƒ@ƒCƒ‹–¼”Ô† (_ffftp.???)
-*		char *Path : ƒpƒX–¼
-*		int IncDir : Ä‹AŒŸõ‚Ì•û–@ (RDIR_xxx)
-*		FILELIST **Base : ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìæ“ª
+*		int Num : ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ•ã‚¡ã‚¤ãƒ«åç•ªå· (_ffftp.???)
+*		char *Path : ãƒ‘ã‚¹å
+*		int IncDir : å†å¸°æ¤œç´¢ã®æ–¹æ³• (RDIR_xxx)
+*		FILELIST **Base : ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å…ˆé ­
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base)
@@ -2792,11 +2792,11 @@ void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base)
 
 		ListType = LIST_UNKNOWN;
 
-		while(GetListOneLine(Str, FMAX_PATH, fd) == SUCCESS)
+		while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
 		{
 			if((ListType = AnalizeFileInfo(Str)) == LIST_UNKNOWN)
 			{
-				if(MakeDirPath(Str, ListType, Path, Dir) == SUCCESS)
+				if(MakeDirPath(Str, ListType, Path, Dir) == FFFTP_SUCCESS)
 				{
 					if(IncDir == RDIR_NLST)
 					{
@@ -2839,19 +2839,19 @@ void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ˆê——î•ñ‚Ì‚Ps‚ğæ“¾ ------------------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§æƒ…å ±ã®ï¼‘è¡Œã‚’å–å¾— ------------------------------------------
 *
 *	Parameter
-*		char *Buf : ‚Ps‚Ìî•ñ‚ğƒZƒbƒg‚·‚éƒoƒbƒtƒ@
-*		int Max : Å‘å•¶š”
-*		FILE *Fd : ƒXƒgƒŠ[ƒ€
+*		char *Buf : ï¼‘è¡Œã®æƒ…å ±ã‚’ã‚»ãƒƒãƒˆã™ã‚‹ãƒãƒƒãƒ•ã‚¡
+*		int Max : æœ€å¤§æ–‡å­—æ•°
+*		FILE *Fd : ã‚¹ãƒˆãƒªãƒ¼ãƒ 
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (SUCCESS/FAIL)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (FFFTP_SUCCESS/FFFTP_FAIL)
 *
 *	Note
-*		VAX VMSˆÈŠO‚Ì‚Í fgets(Buf, Max, Fd) ‚Æ“¯‚¶
-*		Vax VMS‚Ì‚ÍA•¡”s‚Ìƒtƒ@ƒCƒ‹î•ñ‚ğ‚Ps‚É‚Ü‚Æ‚ß‚é
+*		VAX VMSä»¥å¤–ã®æ™‚ã¯ fgets(Buf, Max, Fd) ã¨åŒã˜
+*		Vax VMSã®æ™‚ã¯ã€è¤‡æ•°è¡Œã®ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ã‚’ï¼‘è¡Œã«ã¾ã¨ã‚ã‚‹
 *----------------------------------------------------------------------------*/
 
 static int GetListOneLine(char *Buf, int Max, FILE *Fd)
@@ -2859,19 +2859,19 @@ static int GetListOneLine(char *Buf, int Max, FILE *Fd)
 	char Tmp[FMAX_PATH+1];
 	int Sts;
 
-	Sts = FAIL;
-	while((Sts == FAIL) && (fgets(Buf, Max, Fd) != NULL))
+	Sts = FFFTP_FAIL;
+	while((Sts == FFFTP_FAIL) && (fgets(Buf, Max, Fd) != NULL))
 	{
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 		RemoveReturnCode(Buf);
 		ReplaceAll(Buf, '\x08', ' ');
 
-		/* VAX VMS‚Å‚Íƒtƒ@ƒCƒ‹î•ñ‚ª•¡”s‚É‚í‚©‚ê‚Ä‚¢‚é	*/
-		/* ‚»‚ê‚ğ‚Ps‚É‚Ü‚Æ‚ß‚é								*/
+		/* VAX VMSã§ã¯ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ãŒè¤‡æ•°è¡Œã«ã‚ã‹ã‚Œã¦ã„ã‚‹	*/
+		/* ãã‚Œã‚’ï¼‘è¡Œã«ã¾ã¨ã‚ã‚‹								*/
 		if(AskHostType() == HTYPE_VMS)
 		{
-			if(strchr(Buf, ';') == NULL)	/* ƒtƒ@ƒCƒ‹–¼ˆÈŠO‚Ìs */
-				Sts = FAIL;
+			if(strchr(Buf, ';') == NULL)	/* ãƒ•ã‚¡ã‚¤ãƒ«åä»¥å¤–ã®è¡Œ */
+				Sts = FFFTP_FAIL;
 			else
 			{
 				Max -= strlen(Buf);
@@ -2899,24 +2899,24 @@ static int GetListOneLine(char *Buf, int Max, FILE *Fd)
 }
 
 
-/*----- ƒTƒuƒfƒBƒŒƒNƒgƒŠî•ñ‚Ì‰ğÍ --------------------------------------------
+/*----- ã‚µãƒ–ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªæƒ…å ±ã®è§£æ --------------------------------------------
 *
 *	Parameter
-*		char *Str : ƒtƒ@ƒCƒ‹î•ñi‚Psj
-*		int ListType : ƒŠƒXƒg‚Ìƒ^ƒCƒv
-*		char *Path : æ“ª‚©‚ç‚ÌƒpƒX–¼
-*		char *Dir : ƒfƒBƒŒƒNƒgƒŠ–¼
+*		char *Str : ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ï¼ˆï¼‘è¡Œï¼‰
+*		int ListType : ãƒªã‚¹ãƒˆã®ã‚¿ã‚¤ãƒ—
+*		char *Path : å…ˆé ­ã‹ã‚‰ã®ãƒ‘ã‚¹å
+*		char *Dir : ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL=ƒfƒBƒŒƒNƒgƒŠî•ñ‚Å‚È‚¢
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL=ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªæƒ…å ±ã§ãªã„
 *----------------------------------------------------------------------------*/
 
 static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir)
 {
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	switch(ListType)
 	{
 		case LIST_ACOS :
@@ -2924,7 +2924,7 @@ static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir)
 			break;
 
 		default:
-			if(*(Str + strlen(Str) - 1) == ':')		/* ÅŒã‚ª : ‚È‚çƒTƒuƒfƒBƒŒƒNƒgƒŠ */
+			if(*(Str + strlen(Str) - 1) == ':')		/* æœ€å¾ŒãŒ : ãªã‚‰ã‚µãƒ–ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª */
 			{
 				if(strcmp(Str, ".:") != 0)
 				{
@@ -2946,7 +2946,7 @@ static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir)
 						ReplaceAll(Dir, '\\', '/');
 					}
 				}
-				Sts = SUCCESS;
+				Sts = FFFTP_SUCCESS;
 			}
 			break;
 	}
@@ -2954,14 +2954,14 @@ static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir)
 }
 
 
-/*----- ƒ[ƒJƒ‹‘¤‚ÌƒTƒuƒfƒBƒŒƒNƒgƒŠˆÈ‰º‚Ìƒtƒ@ƒCƒ‹‚ğƒŠƒXƒg‚É“o˜^‚·‚é ----------
+/*----- ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ã‚µãƒ–ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªä»¥ä¸‹ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒªã‚¹ãƒˆã«ç™»éŒ²ã™ã‚‹ ----------
 *
 *	Parameter
-*		char *Path : ƒpƒX–¼
-*		FILELIST **Base : ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìæ“ª
+*		char *Path : ãƒ‘ã‚¹å
+*		FILELIST **Base : ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å…ˆé ­
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void MakeLocalTree(char *Path, FILELIST **Base)
@@ -3034,14 +3034,14 @@ static void MakeLocalTree(char *Path, FILELIST **Base)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Éî•ñ‚ğ“o˜^‚·‚é ----------------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã«æƒ…å ±ã‚’ç™»éŒ²ã™ã‚‹ ----------------------------------------
 *
 *	Parameter
-*		FILELIST *Pkt : “o˜^‚·‚éƒtƒ@ƒCƒ‹î•ñ
-*		FILELIST **Base : ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìæ“ª
+*		FILELIST *Pkt : ç™»éŒ²ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
+*		FILELIST **Base : ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å…ˆé ­
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void AddFileList(FILELIST *Pkt, FILELIST **Base)
@@ -3051,7 +3051,7 @@ static void AddFileList(FILELIST *Pkt, FILELIST **Base)
 
 	DoPrintf("FileList : NODE=%d : %s", Pkt->Node, Pkt->File);
 
-	/* ƒŠƒXƒg‚Ìd•¡‚ğæ‚èœ‚­ */
+	/* ãƒªã‚¹ãƒˆã®é‡è¤‡ã‚’å–ã‚Šé™¤ã */
 	Pos = *Base;
 	while(Pos != NULL)
 	{
@@ -3064,7 +3064,7 @@ static void AddFileList(FILELIST *Pkt, FILELIST **Base)
 		Pos = Pos->Next;
 	}
 
-	if(Pos == NULL)		/* d•¡‚µ‚Ä‚¢‚È‚¢‚Ì‚Å“o˜^‚·‚é */
+	if(Pos == NULL)		/* é‡è¤‡ã—ã¦ã„ãªã„ã®ã§ç™»éŒ²ã™ã‚‹ */
 	{
 		if((Pos = malloc(sizeof(FILELIST))) != NULL)
 		{
@@ -3081,13 +3081,13 @@ static void AddFileList(FILELIST *Pkt, FILELIST **Base)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚ğƒNƒŠƒA‚·‚é --------------------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã‚’ã‚¯ãƒªã‚¢ã™ã‚‹ --------------------------------------------
 *
 *	Parameter
-*		FILELIST **Base : ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìæ“ª
+*		FILELIST **Base : ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å…ˆé ­
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DeleteFileList(FILELIST **Base)
@@ -3107,16 +3107,16 @@ void DeleteFileList(FILELIST **Base)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Éw’è‚Ìƒtƒ@ƒCƒ‹‚ª‚ ‚é‚©ƒ`ƒFƒbƒN ------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã«æŒ‡å®šã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒã‚ã‚‹ã‹ãƒã‚§ãƒƒã‚¯ ------------------------
 *
 *	Parameter
-*		char *Fname : ƒtƒ@ƒCƒ‹–¼
-*		FILELIST *Base : ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìæ“ª
-*		int Caps : ‘å•¶š/¬•¶š‚Ì‹æ•Êƒ‚[ƒh (COMP_xxx)
+*		char *Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
+*		FILELIST *Base : ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å…ˆé ­
+*		int Caps : å¤§æ–‡å­—/å°æ–‡å­—ã®åŒºåˆ¥ãƒ¢ãƒ¼ãƒ‰ (COMP_xxx)
 *
 *	Return Value
-*		FILELIST *Œ©‚Â‚©‚Á‚½ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìƒf[ƒ^
-*			NULL=Œ©‚Â‚©‚ç‚È‚¢
+*		FILELIST *è¦‹ã¤ã‹ã£ãŸãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®ãƒ‡ãƒ¼ã‚¿
+*			NULL=è¦‹ã¤ã‹ã‚‰ãªã„
 *----------------------------------------------------------------------------*/
 
 FILELIST *SearchFileList(char *Fname, FILELIST *Base, int Caps)
@@ -3151,13 +3151,13 @@ FILELIST *SearchFileList(char *Fname, FILELIST *Base, int Caps)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹î•ñ‚©‚çƒŠƒXƒgƒ^ƒCƒv‚ğ‹‚ß‚é ----------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ã‹ã‚‰ãƒªã‚¹ãƒˆã‚¿ã‚¤ãƒ—ã‚’æ±‚ã‚ã‚‹ ----------------------------------
 *
 *	Parameter
-*		char *Str : ƒtƒ@ƒCƒ‹î•ñi‚Psj
+*		char *Str : ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ï¼ˆï¼‘è¡Œï¼‰
 *
 *	Return Value
-*		int ƒŠƒXƒgƒ^ƒCƒv (LIST_xxx)
+*		int ãƒªã‚¹ãƒˆã‚¿ã‚¤ãƒ— (LIST_xxx)
 *----------------------------------------------------------------------------*/
 
 static int AnalizeFileInfo(char *Str)
@@ -3190,17 +3190,17 @@ static int AnalizeFileInfo(char *Str)
 		Ret = LIST_SHIBASOKU;
 	else
 	{
-		/* ˆÈ‰º‚ÌƒtƒH[ƒ}ƒbƒg‚ğƒ`ƒFƒbƒN */
+		/* ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã‚’ãƒã‚§ãƒƒã‚¯ */
 		/* LIST_UNIX_10, LIST_UNIX_20, LIST_UNIX_12, LIST_UNIX_22, LIST_UNIX_50, LIST_UNIX_60 */
 		/* MELCOM80 */
 
-		if(FindField(Str, Tmp, 0, NO) == SUCCESS)
+		if(FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS)
 		{
-			/* MELCOM80‚Í "d rwxrwxrwx" ‚Ì‚æ‚¤‚ÉƒXƒy[ƒX‚ª‹ó‚¢‚Ä‚¢‚é */
+			/* MELCOM80ã¯ "d rwxrwxrwx" ã®ã‚ˆã†ã«ã‚¹ãƒšãƒ¼ã‚¹ãŒç©ºã„ã¦ã„ã‚‹ */
 			Flag1 = NO;
 			if((strlen(Tmp) == 1) && (strchr("-dDlL", Tmp[0]) != NULL))
 			{
-				if(FindField(Str, Tmp, 1, NO) == SUCCESS)
+				if(FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS)
 				{
 					if((strlen(Tmp) == 9) ||
 					   ((strlen(Tmp) > 9) && (IsDigit(Tmp[9]) != 0)))
@@ -3217,14 +3217,14 @@ static int AnalizeFileInfo(char *Str)
 				Add1 = 0;
 				if((strlen(Tmp) > 10) && (IsDigit(Tmp[10]) != 0))
 				{
-					/* ‚±‚¤‚¢‚¤ */
+					/* ã“ã†ã„ã†æ™‚ */
 					/*   drwxr-xr-x1234  owner group  1024  Nov 6 14:21 Linux/    */
 					Add1 = -1;
 				}
 
 ////////////
 // LIST_UNIX_60 support
-				if(FindField(Str, Tmp, 7+Add1, NO) == SUCCESS)
+				if(FindField(Str, Tmp, 7+Add1, NO) == FFFTP_SUCCESS)
 				{
 					GetMonth(Tmp, &Month, &Day);
 					if(Month != 0)
@@ -3237,7 +3237,7 @@ static int AnalizeFileInfo(char *Str)
 ////////////
 // LIST_UNIX_12 support
 				if((Ret == LIST_UNKNOWN) &&
-				   (FindField(Str, Tmp, 6+Add1, NO) == SUCCESS))
+				   (FindField(Str, Tmp, 6+Add1, NO) == FFFTP_SUCCESS))
 				{
 					GetMonth(Tmp, &Month, &Day);
 					if(Month != 0)
@@ -3250,7 +3250,7 @@ static int AnalizeFileInfo(char *Str)
 ////////////
 // LIST_UNIX_70 support
 				if((Ret == LIST_UNKNOWN) &&
-				   (FindField(Str, Tmp, 6+Add1, NO) == SUCCESS))
+				   (FindField(Str, Tmp, 6+Add1, NO) == FFFTP_SUCCESS))
 				{
 					GetMonth(Tmp, &Month, &Day);
 					if(Month != 0)
@@ -3261,7 +3261,7 @@ static int AnalizeFileInfo(char *Str)
 ///////////
 
 				if((Ret == LIST_UNKNOWN) &&
-				   (FindField(Str, Tmp, 5+Add1, NO) == SUCCESS))
+				   (FindField(Str, Tmp, 5+Add1, NO) == FFFTP_SUCCESS))
 				{
 					GetMonth(Tmp, &Month, &Day);
 					if(Month != 0)
@@ -3271,7 +3271,7 @@ static int AnalizeFileInfo(char *Str)
 				}
 
 				if((Ret == LIST_UNKNOWN) &&
-				   (FindField(Str, Tmp, 4+Add1, NO) == SUCCESS))
+				   (FindField(Str, Tmp, 4+Add1, NO) == FFFTP_SUCCESS))
 				{
 					GetMonth(Tmp, &Month, &Day);
 					if(Month != 0)
@@ -3281,7 +3281,7 @@ static int AnalizeFileInfo(char *Str)
 				}
 
 				if((Ret == LIST_UNKNOWN) &&
-				   (FindField(Str, Tmp, 3+Add1, NO) == SUCCESS))
+				   (FindField(Str, Tmp, 3+Add1, NO) == FFFTP_SUCCESS))
 				{
 					GetMonth(Tmp, &Month, &Day);
 					if(Month != 0)
@@ -3295,21 +3295,21 @@ static int AnalizeFileInfo(char *Str)
 			}
 		}
 
-		/* ˆÈ‰º‚ÌƒtƒH[ƒ}ƒbƒg‚ğƒ`ƒFƒbƒN */
+		/* ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã‚’ãƒã‚§ãƒƒã‚¯ */
 		/* LIST_AS400 */
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 			   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 			{
-				if((FindField(Str, Tmp, 3, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS) &&
 				   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 				{
-					if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 					   (IsDigit(Tmp[0]) != 0))
 					{
-						if(FindField(Str, Tmp, 5, NO) == SUCCESS)
+						if(FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS)
 						{
 							Ret = LIST_AS400;
 						}
@@ -3318,24 +3318,24 @@ static int AnalizeFileInfo(char *Str)
 			}
 		}
 
-		/* ˆÈ‰º‚ÌƒtƒH[ƒ}ƒbƒg‚ğƒ`ƒFƒbƒN */
+		/* ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã‚’ãƒã‚§ãƒƒã‚¯ */
 		/* LIST_M1800 */
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 5, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
 			   (CheckYYMMDDformat(Tmp, '*', NO) != 0))
 			{
-				if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 				   ((IsDigit(Tmp[0]) != 0) || (StrAllSameChar(Tmp, '*') == YES)))
 				{
-					if((FindField(Str, Tmp, 3, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS) &&
 					   ((IsDigit(Tmp[0]) != 0) || (StrAllSameChar(Tmp, '*') == YES)))
 					{
-						if((FindField(Str, Tmp, 0, NO) == SUCCESS) &&
+						if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
 						   (strlen(Tmp) == 4))
 						{
-							if(FindField(Str, Tmp, 6, NO) == SUCCESS)
+							if(FindField(Str, Tmp, 6, NO) == FFFTP_SUCCESS)
 							{
 								Ret = LIST_M1800;
 							}
@@ -3345,21 +3345,21 @@ static int AnalizeFileInfo(char *Str)
 			}
 		}
 
-		/* ˆÈ‰º‚ÌƒtƒH[ƒ}ƒbƒg‚ğƒ`ƒFƒbƒN */
+		/* ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã‚’ãƒã‚§ãƒƒã‚¯ */
 		/* LIST_GP6000 */
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 			   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 			{
-				if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 				   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 				{
-					if((FindField(Str, Tmp, 5, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
 					   (IsDigit(Tmp[0]) != 0))
 					{
-						if(FindField(Str, Tmp, 6, NO) == SUCCESS)
+						if(FindField(Str, Tmp, 6, NO) == FFFTP_SUCCESS)
 						{
 							Ret = LIST_GP6000;
 						}
@@ -3368,20 +3368,20 @@ static int AnalizeFileInfo(char *Str)
 			}
 		}
 
-		/* ˆÈ‰º‚ÌƒtƒH[ƒ}ƒbƒg‚ğƒ`ƒFƒbƒN */
+		/* ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã‚’ãƒã‚§ãƒƒã‚¯ */
 		/* LIST_DOS_1, LIST_DOS_2 */
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 			   (CheckHHMMformat(Tmp) == YES))
 			{
-				if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 				   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
 				{
-					if(FindField(Str, Tmp, 3, NO) == SUCCESS)
+					if(FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS)
 					{
-						if((FindField(Str, Tmp, 0, NO) == SUCCESS) &&
+						if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
 						   (CheckYYMMDDformat(Tmp, NUL, YES) != 0))
 						{
 							TmpInt = atoi(Tmp);
@@ -3395,18 +3395,18 @@ static int AnalizeFileInfo(char *Str)
 			}
 		}
 
-		/* ˆÈ‰º‚ÌƒtƒH[ƒ}ƒbƒg‚ğƒ`ƒFƒbƒN */
+		/* ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã‚’ãƒã‚§ãƒƒã‚¯ */
 		/* LIST_DOS_3 */
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 3, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS) &&
 			   (CheckHHMMformat(Tmp) == YES))
 			{
-				if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 				   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
 				{
-					if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 					   (CheckYYMMDDformat(Tmp, NUL, YES) != 0))
 					{
 						Ret = LIST_DOS_3;
@@ -3415,21 +3415,21 @@ static int AnalizeFileInfo(char *Str)
 			}
 		}
 
-		/* ˆÈ‰º‚ÌƒtƒH[ƒ}ƒbƒg‚ğƒ`ƒFƒbƒN */
+		/* ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã‚’ãƒã‚§ãƒƒã‚¯ */
 		/* LIST_DOS_4 */
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 0, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
 			   (CheckYYYYMMDDformat(Tmp, NUL) == YES))
 			{
-				if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 				   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 				{
-					if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 					   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
 					{
-						if(FindField(Str, Tmp, 3, NO) == SUCCESS)
+						if(FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS)
 						{
 							Ret = LIST_DOS_4;
 						}
@@ -3438,20 +3438,20 @@ static int AnalizeFileInfo(char *Str)
 			}
 		}
 
-		/* ˆÈ‰º‚ÌƒtƒH[ƒ}ƒbƒg‚ğƒ`ƒFƒbƒN */
+		/* ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã‚’ãƒã‚§ãƒƒã‚¯ */
 		/* LIST_CHAMELEON */
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if(FindField(Str, Tmp, 2, NO) == SUCCESS)
+			if(FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS)
 			{
 				GetMonth(Tmp, &Month, &Day);
 				if((Month != 0) && (Day == 0))
 				{
-					if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 					   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
 					{
-						if((FindField(Str, Tmp, 5, NO) == SUCCESS) &&
+						if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
 						   (CheckHHMMformat(Tmp) == YES))
 						{
 							Ret = LIST_CHAMELEON;
@@ -3461,21 +3461,21 @@ static int AnalizeFileInfo(char *Str)
 			}
 		}
 
-		/* ˆÈ‰º‚ÌƒtƒH[ƒ}ƒbƒg‚ğƒ`ƒFƒbƒN */
+		/* ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã‚’ãƒã‚§ãƒƒã‚¯ */
 		/* LIST_OS2 */
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 3, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS) &&
 			   (CheckHHMMformat(Tmp) == YES))
 			{
-				if((FindField(Str, Tmp, 0, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
 				   (IsDigit(Tmp[0]) != 0))
 				{
-					if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 					   (CheckYYMMDDformat(Tmp, NUL, YES) != 0))
 					{
-						if(FindField(Str, Tmp, 4, NO) == SUCCESS)
+						if(FindField(Str, Tmp, 4, NO) == FFFTP_SUCCESS)
 						{
 							Ret = LIST_OS2;
 						}
@@ -3484,37 +3484,37 @@ static int AnalizeFileInfo(char *Str)
 			}
 		}
 
-		/* ˆÈ‰º‚ÌƒtƒH[ƒ}ƒbƒg‚ğƒ`ƒFƒbƒN */
+		/* ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã‚’ãƒã‚§ãƒƒã‚¯ */
 		/* LIST_OS7 */
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 0, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
 			   (strlen(Tmp) == 10))
 			{
-				if((FindField(Str, Tmp, 3, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS) &&
 				   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 				{
-					if((FindField(Str, Tmp, 4, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 4, NO) == FFFTP_SUCCESS) &&
 					   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 					{
-						if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+						if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 						   (IsDigit(Tmp[0]) != 0))
 						{
-							if(FindField(Str, Tmp, 5, NO) == SUCCESS)
+							if(FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS)
 							{
 								Ret = LIST_OS7_2;
 							}
 						}
 					}
 				}
-				else if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+				else if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 						(CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 				{
-					if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 					   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 					{
-						if(FindField(Str, Tmp, 3, NO) == SUCCESS)
+						if(FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS)
 						{
 							Ret = LIST_OS7_1;
 						}
@@ -3523,23 +3523,23 @@ static int AnalizeFileInfo(char *Str)
 			}
 		}
 
-		/* ˆÈ‰º‚ÌƒtƒH[ƒ}ƒbƒg‚ğƒ`ƒFƒbƒN */
+		/* ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã‚’ãƒã‚§ãƒƒã‚¯ */
 		/* LIST_ALLIED */
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 0, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
 			   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
 			{
-				if((FindField(Str, Tmp, 5, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
 				   (CheckHHMMformat(Tmp) == YES))
 				{
-					if(FindField(Str, Tmp, 3, NO) == SUCCESS)
+					if(FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS)
 					{
 						GetMonth(Tmp, &Month, &Day);
 						if(Month != 0)
 						{
-							if((FindField(Str, Tmp, 6, NO) == SUCCESS) &&
+							if((FindField(Str, Tmp, 6, NO) == FFFTP_SUCCESS) &&
 							   (IsDigit(Tmp[0]) != 0))
 							{
 								Ret = LIST_ALLIED;
@@ -3550,21 +3550,21 @@ static int AnalizeFileInfo(char *Str)
 			}
 		}
 
-		/* ˆÈ‰º‚ÌƒtƒH[ƒ}ƒbƒg‚ğƒ`ƒFƒbƒN */
+		/* ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã‚’ãƒã‚§ãƒƒã‚¯ */
 		/* LIST_OS9 */
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 1, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 			   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
 			{
-				if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 				   (IsDigit(Tmp[0]) != 0) && (strlen(Tmp) == 4))
 				{
-					if((FindField(Str, Tmp, 5, NO) == SUCCESS) &&
+					if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
 					   (IsDigit(Tmp[0]) != 0))
 					{
-						if(FindField(Str, Tmp, 6, NO) == SUCCESS)
+						if(FindField(Str, Tmp, 6, NO) == FFFTP_SUCCESS)
 						{
 							Ret = LIST_OS9;
 						}
@@ -3573,19 +3573,19 @@ static int AnalizeFileInfo(char *Str)
 			}
 		}
 
-		/* ˆÈ‰º‚ÌƒtƒH[ƒ}ƒbƒg‚ğƒ`ƒFƒbƒN */
+		/* ä»¥ä¸‹ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã‚’ãƒã‚§ãƒƒã‚¯ */
 		/* LIST_IBM */
 
 		if(Ret == LIST_UNKNOWN)
 		{
-			if((FindField(Str, Tmp, 2, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 			   (CheckYYYYMMDDformat(Tmp, NUL) == YES))
 			{
-				if((FindField(Str, Tmp, 1, NO) == SUCCESS) && IsDigit(Tmp[0]))
+				if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) && IsDigit(Tmp[0]))
 				{
-					if((FindField(Str, Tmp, 7, NO) == SUCCESS) && IsDigit(Tmp[0]))
+					if((FindField(Str, Tmp, 7, NO) == FFFTP_SUCCESS) && IsDigit(Tmp[0]))
 					{
-						if(FindField(Str, Tmp, 9, NO) == SUCCESS)
+						if(FindField(Str, Tmp, 9, NO) == FFFTP_SUCCESS)
 						{
 							Ret = LIST_IBM;
 						}
@@ -3602,17 +3602,17 @@ DoPrintf("ListType=%d", Ret);
 }
 
 
-/*----- UNIXŒnƒŠƒXƒgƒ^ƒCƒv‚Ìƒ`ƒFƒbƒN‚ğs‚È‚¤ ----------------------------------
+/*----- UNIXç³»ãƒªã‚¹ãƒˆã‚¿ã‚¤ãƒ—ã®ãƒã‚§ãƒƒã‚¯ã‚’è¡Œãªã† ----------------------------------
 *
 *	Parameter
-*		char *Str : ƒtƒ@ƒCƒ‹î•ñi‚Psj
-*		char *Tmp : ˆêƒ[ƒN
-*		int Add1 : ‰ÁZƒpƒ‰ƒ[ƒ^1
-*		int Add2 : ‰ÁZƒpƒ‰ƒ[ƒ^2
-*		int Day : “ú (0=‚±‚±‚Åæ“¾‚·‚é)
+*		char *Str : ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ï¼ˆï¼‘è¡Œï¼‰
+*		char *Tmp : ä¸€æ™‚ãƒ¯ãƒ¼ã‚¯
+*		int Add1 : åŠ ç®—ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿1
+*		int Add2 : åŠ ç®—ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿2
+*		int Day : æ—¥ (0=ã“ã“ã§å–å¾—ã™ã‚‹)
 *
 *	Return Value
-*		int ƒŠƒXƒgƒ^ƒCƒv (LIST_xxx)
+*		int ãƒªã‚¹ãƒˆã‚¿ã‚¤ãƒ— (LIST_xxx)
 *----------------------------------------------------------------------------*/
 
 static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day)
@@ -3626,37 +3626,37 @@ static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day)
 	Flag = 0;
 	Ret = LIST_UNKNOWN;
 
-//Day‚É‚æ‚Á‚ÄAdd3‚ğ•Ï‚¦‚é
+//Dayã«ã‚ˆã£ã¦Add3ã‚’å¤‰ãˆã‚‹
 
 	Add3 = 0;
 	if(Day != 0)
 		Add3 = -1;
 
-	// unixŒnƒ`ƒFƒbƒN
+	// unixç³»ãƒã‚§ãƒƒã‚¯
 	if((Day != 0) ||
-	   ((FindField(Str, Tmp, 6+Add1+Add2+Add3, NO) == SUCCESS) &&
+	   ((FindField(Str, Tmp, 6+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
 		((atoi(Tmp) >= 1) && (atoi(Tmp) <= 31))))
 	{
-		if((FindField(Str, Tmp, 7+Add1+Add2+Add3, NO) == SUCCESS) &&
-		   ((atoi(Tmp) >= 1900) || (GetHourAndMinute(Tmp, &Hour, &Minute) == SUCCESS)))
+		if((FindField(Str, Tmp, 7+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
+		   ((atoi(Tmp) >= 1900) || (GetHourAndMinute(Tmp, &Hour, &Minute) == FFFTP_SUCCESS)))
 		{
-			if(FindField(Str, Tmp, 8+Add1+Add2+Add3, NO) == SUCCESS)
+			if(FindField(Str, Tmp, 8+Add1+Add2+Add3, NO) == FFFTP_SUCCESS)
 			{
 				Flag = 1;
 			}
 		}
 	}
 
-	// ’†‘ŒêSolarisê—p
+	// ä¸­å›½èªSolariså°‚ç”¨
 	if(Flag == 0)
 	{
-	   if((FindField(Str, Tmp, 7+Add1+Add2+Add3, NO) == SUCCESS) &&
+	   if((FindField(Str, Tmp, 7+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
 		  ((atoi(Tmp) >= 1) && (atoi(Tmp) <= 31)))
 		{
-			if((FindField(Str, Tmp, 5+Add1+Add2+Add3, NO) == SUCCESS) &&
+			if((FindField(Str, Tmp, 5+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
 			   (atoi(Tmp) >= 1900))
 			{
-				if((FindField(Str, Tmp, 6+Add1+Add2+Add3, NO) == SUCCESS) &&
+				if((FindField(Str, Tmp, 6+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
 				   (((atoi(Tmp) >= 1) && (atoi(Tmp) <= 9) && 
 					 ((unsigned char)Tmp[1] == 0xD4) &&
 					 ((unsigned char)Tmp[2] == 0xC2)) ||
@@ -3664,7 +3664,7 @@ static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day)
 					 ((unsigned char)Tmp[2] == 0xD4) && 
 					 ((unsigned char)Tmp[3] == 0xC2))))
 				{
-					if(FindField(Str, Tmp, 8+Add1+Add2+Add3, NO) == SUCCESS)
+					if(FindField(Str, Tmp, 8+Add1+Add2+Add3, NO) == FFFTP_SUCCESS)
 					{
 						Flag = 2;
 					}
@@ -3756,18 +3756,18 @@ static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day)
 }
 
 
-/*----- HH:MM Œ`®‚Ì•¶š—ñ‚©‚Ç‚¤‚©‚ğƒ`ƒFƒbƒN ----------------------------------
+/*----- HH:MM å½¢å¼ã®æ–‡å­—åˆ—ã‹ã©ã†ã‹ã‚’ãƒã‚§ãƒƒã‚¯ ----------------------------------
 *
 *	Parameter
-*		char *Str : •¶š—ñ
+*		char *Str : æ–‡å­—åˆ—
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (YES/NO)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (YES/NO)
 *
 *	Note
-*		‹æØ‚è•¶š‚Í‰½‚Å‚à‚æ‚¢
-*		•ª‚Å‚È‚­‚Ä‚à‚æ‚¢
-*		Œã‚ë‚É—]•ª‚È•¶š‚ª•t‚¢‚Ä‚¢‚Ä‚à‚æ‚¢
+*		åŒºåˆ‡ã‚Šæ–‡å­—ã¯ä½•ã§ã‚‚ã‚ˆã„
+*		æ™‚åˆ†ã§ãªãã¦ã‚‚ã‚ˆã„
+*		å¾Œã‚ã«ä½™åˆ†ãªæ–‡å­—ãŒä»˜ã„ã¦ã„ã¦ã‚‚ã‚ˆã„
 *----------------------------------------------------------------------------*/
 
 static int CheckHHMMformat(char *Str)
@@ -3788,22 +3788,22 @@ static int CheckHHMMformat(char *Str)
 }
 
 
-/*----- YY/MM/DD Œ`®‚Ì•¶š—ñ‚©‚Ç‚¤‚©‚ğƒ`ƒFƒbƒN -------------------------------
+/*----- YY/MM/DD å½¢å¼ã®æ–‡å­—åˆ—ã‹ã©ã†ã‹ã‚’ãƒã‚§ãƒƒã‚¯ -------------------------------
 *
 *	Parameter
-*		char *Str : •¶š—ñ
-*		char Sym : ”š‚Ì‘ã‚í‚è‚Ég‚¦‚é‹L† (NUL=”šˆÈŠOg‚¦‚È‚¢)
-*		int Dig3 : 3Œ…‚Ì”N‚ğ‹–‰Â
+*		char *Str : æ–‡å­—åˆ—
+*		char Sym : æ•°å­—ã®ä»£ã‚ã‚Šã«ä½¿ãˆã‚‹è¨˜å· (NUL=æ•°å­—ä»¥å¤–ä½¿ãˆãªã„)
+*		int Dig3 : 3æ¡ã®å¹´ã‚’è¨±å¯
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			0 = ŠY“–‚µ‚È‚¢
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			0 = è©²å½“ã—ãªã„
 *			1 = ??/??/??, ??/??/???
 *			2 = ???/??/??
 *
 *	Note
-*		‹æØ‚è•¶š‚Í‰½‚Å‚à‚æ‚¢
-*		”NŒ“ú‚Å‚È‚­‚Ä‚à‚æ‚¢
+*		åŒºåˆ‡ã‚Šæ–‡å­—ã¯ä½•ã§ã‚‚ã‚ˆã„
+*		å¹´æœˆæ—¥ã§ãªãã¦ã‚‚ã‚ˆã„
 *----------------------------------------------------------------------------*/
 
 static int CheckYYMMDDformat(char *Str, char Sym, int Dig3)
@@ -3845,18 +3845,18 @@ static int CheckYYMMDDformat(char *Str, char Sym, int Dig3)
 }
 
 
-/*----- YYYY/MM/DD Œ`®‚Ì•¶š—ñ‚©‚Ç‚¤‚©‚ğƒ`ƒFƒbƒN -----------------------------
+/*----- YYYY/MM/DD å½¢å¼ã®æ–‡å­—åˆ—ã‹ã©ã†ã‹ã‚’ãƒã‚§ãƒƒã‚¯ -----------------------------
 *
 *	Parameter
-*		char *Str : •¶š—ñ
-*		char Sym : ”š‚Ì‘ã‚í‚è‚Ég‚¦‚é‹L† (NUL=”šˆÈŠOg‚¦‚È‚¢)
+*		char *Str : æ–‡å­—åˆ—
+*		char Sym : æ•°å­—ã®ä»£ã‚ã‚Šã«ä½¿ãˆã‚‹è¨˜å· (NUL=æ•°å­—ä»¥å¤–ä½¿ãˆãªã„)
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (YES/NO)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (YES/NO)
 *
 *	Note
-*		‹æØ‚è•¶š‚Í‰½‚Å‚à‚æ‚¢
-*		”NŒ“ú‚Å‚È‚­‚Ä‚à‚æ‚¢
+*		åŒºåˆ‡ã‚Šæ–‡å­—ã¯ä½•ã§ã‚‚ã‚ˆã„
+*		å¹´æœˆæ—¥ã§ãªãã¦ã‚‚ã‚ˆã„
 *----------------------------------------------------------------------------*/
 
 static int CheckYYYYMMDDformat(char *Str, char Sym)
@@ -3878,21 +3878,21 @@ static int CheckYYYYMMDDformat(char *Str, char Sym)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹î•ñ‚©‚çƒtƒ@ƒCƒ‹–¼AƒTƒCƒY‚È‚Ç‚ğæ‚èo‚· ----------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ã‹ã‚‰ãƒ•ã‚¡ã‚¤ãƒ«åã€ã‚µã‚¤ã‚ºãªã©ã‚’å–ã‚Šå‡ºã™ ----------------------
 *
 *	Parameter
-*		char *Str : ƒtƒ@ƒCƒ‹î•ñi‚Psj
-*		int ListType : ƒŠƒXƒg‚Ìƒ^ƒCƒv
-*		char *Name : ƒtƒ@ƒCƒ‹–¼‚ÌƒRƒs[æ
-*		LONGLONG *Size : ƒTƒCƒY‚ÌƒRƒs[æ
-*		FILETIME *Time : “ú•t‚ÌƒRƒs[æ
-*		int *Attr : ‘®«‚ÌƒRƒs[æ
-*		char *Owner : ƒI[ƒi–¼
-*		int *Link : ƒŠƒ“ƒN‚©‚Ç‚¤‚© (YES/NO)
-*		int *InfoExist : ‚Ìî•ñ‚ª‚ ‚Á‚½‚©‚Ç‚¤‚© (YES/NO)
+*		char *Str : ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ï¼ˆï¼‘è¡Œï¼‰
+*		int ListType : ãƒªã‚¹ãƒˆã®ã‚¿ã‚¤ãƒ—
+*		char *Name : ãƒ•ã‚¡ã‚¤ãƒ«åã®ã‚³ãƒ”ãƒ¼å…ˆ
+*		LONGLONG *Size : ã‚µã‚¤ã‚ºã®ã‚³ãƒ”ãƒ¼å…ˆ
+*		FILETIME *Time : æ—¥ä»˜ã®ã‚³ãƒ”ãƒ¼å…ˆ
+*		int *Attr : å±æ€§ã®ã‚³ãƒ”ãƒ¼å…ˆ
+*		char *Owner : ã‚ªãƒ¼ãƒŠå
+*		int *Link : ãƒªãƒ³ã‚¯ã‹ã©ã†ã‹ (YES/NO)
+*		int *InfoExist : æ™‚åˆ»ã®æƒ…å ±ãŒã‚ã£ãŸã‹ã©ã†ã‹ (YES/NO)
 *
 *	Return Value
-*		int í—Ş (NODE_xxxx)
+*		int ç¨®é¡ (NODE_xxxx)
 *----------------------------------------------------------------------------*/
 
 static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, FILETIME *Time, int *Attr, char *Owner, int *Link, int *InfoExist)
@@ -3914,7 +3914,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 	static const int DosDate[3][3][2] = { { {0, 0}, {3, 4}, {6, 7} }, { {6, 7}, {0, 0}, {3, 4} }, { {6, 7}, {0, 0}, {3, 4} } };
 	static const int DosLongFname[3] = { YES, YES, NO };
 
-	/* ‚Ü‚¸ƒNƒŠƒA‚µ‚Ä‚¨‚­ */
+	/* ã¾ãšã‚¯ãƒªã‚¢ã—ã¦ãŠã */
 	Ret = NODE_NONE;
 	*Size = -1;
 	*Attr = 0;
@@ -3943,7 +3943,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 
 			*InfoExist |= (FINFO_DATE | FINFO_SIZE);
 
-			/*  */
+			/* æ™‚åˆ» */
 			FindField(Str, Buf, DosPos[offs][0], NO);
 			if((Pos = strchr(Buf, ':')) != NULL)
 			{
@@ -3968,7 +3968,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 				}
 			}
 
-			/* “ú•t */
+			/* æ—¥ä»˜ */
 			FindField(Str, Buf, DosPos[offs][1], NO);
 			if((offs2 = CheckYYMMDDformat(Buf, NUL, YES)) == 0)
 				break;
@@ -3979,12 +3979,12 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-			/* ƒTƒCƒY */
+			/* ã‚µã‚¤ã‚º */
 			FindField(Str, Buf, DosPos[offs][2], NO);
 			*Size = _atoi64(Buf);
 
-			/* –¼‘O */
-			if(FindField(Str, Fname, DosPos[offs][3], DosLongFname[offs]) == SUCCESS)
+			/* åå‰ */
+			if(FindField(Str, Fname, DosPos[offs][3], DosLongFname[offs]) == FFFTP_SUCCESS)
 			{
 				Ret = NODE_FILE;
 				if(Buf[0] == '<')
@@ -3995,13 +3995,13 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 		case LIST_DOS_4 :
 			*InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE);
 
-			/* “ú•t */
+			/* æ—¥ä»˜ */
 			FindField(Str, Buf, 0, NO);
 			sTime.wYear = atoi(Buf);
 			sTime.wMonth = atoi(Buf+5);
 			sTime.wDay = atoi(Buf+8);
 
-			/*  */
+			/* æ™‚åˆ» */
 			*InfoExist |= FINFO_TIME;
 			FindField(Str, Buf, 1, NO);
 			sTime.wHour = atoi(Buf);
@@ -4011,12 +4011,12 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-			/* ƒTƒCƒY */
+			/* ã‚µã‚¤ã‚º */
 			FindField(Str, Buf, 2, NO);
 			*Size = _atoi64(Buf);
 
-			/* –¼‘O */
-			if(FindField(Str, Fname, 3, YES) == SUCCESS)
+			/* åå‰ */
+			if(FindField(Str, Fname, 3, YES) == FFFTP_SUCCESS)
 			{
 				Ret = NODE_FILE;
 				if(Buf[0] == '<')
@@ -4027,7 +4027,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 		case LIST_OS2 :
 			*InfoExist |= (FINFO_DATE | FINFO_SIZE);
 
-			/*  */
+			/* æ™‚åˆ» */
 			FindField(Str, Buf, 3, NO);
 			if((Pos = strchr(Buf, ':')) != NULL)
 			{
@@ -4038,7 +4038,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 				sTime.wMilliseconds = 0;
 			}
 
-			/* “ú•t */
+			/* æ—¥ä»˜ */
 			FindField(Str, Buf, 2, NO);
 			sTime.wYear = Assume1900or2000(atoi(Buf+6));
 			sTime.wMonth = atoi(Buf+0);
@@ -4046,12 +4046,12 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-			/* ƒTƒCƒY */
+			/* ã‚µã‚¤ã‚º */
 			FindField(Str, Buf, 0, NO);
 			*Size = _atoi64(Buf);
 
-			/* –¼‘O */
-			if(FindField(Str, Fname, 4, YES) == SUCCESS)
+			/* åå‰ */
+			if(FindField(Str, Fname, 4, YES) == FFFTP_SUCCESS)
 			{
 				FindField(Str, Buf, 1, NO);
 				Ret = NODE_FILE;
@@ -4063,20 +4063,20 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 		case LIST_CHAMELEON :
 			*InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE | FINFO_ATTR);
 
-			/* ‘®« */
+			/* å±æ€§ */
 			FindField(Str, Buf, 6, NO);
 			strcat(Buf, "------");
 			*Attr = AttrString2Value(Buf+1);
 
-			/* “ú•t */
+			/* æ—¥ä»˜ */
 			FindField(Str, Buf, 2, NO);
-			GetMonth(Buf, &sTime.wMonth, &sTime.wDay);	/* wDay‚Íí‚É0 */
+			GetMonth(Buf, &sTime.wMonth, &sTime.wDay);	/* wDayã¯å¸¸ã«0 */
 			FindField(Str, Buf, 3, NO);
 			sTime.wDay = atoi(Buf);
 			FindField(Str, Buf, 4, NO);
 			sTime.wYear = atoi(Buf);
 
-			/*  */
+			/* æ™‚åˆ» */
 			FindField(Str, Buf, 5, NO);
 			sTime.wHour = atoi(Buf);
 			sTime.wMinute = atoi(Buf+3);
@@ -4085,12 +4085,12 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-			/* ƒTƒCƒY */
+			/* ã‚µã‚¤ã‚º */
 			FindField(Str, Buf, 1, NO);
 			*Size = _atoi64(Buf);
 
-			/* –¼‘O */
-			if(FindField(Str, Fname, 0, NO) == SUCCESS)
+			/* åå‰ */
+			if(FindField(Str, Fname, 0, NO) == FFFTP_SUCCESS)
 			{
 				Ret = NODE_FILE;
 				if(Buf[0] == '<')
@@ -4101,18 +4101,18 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 		case LIST_AS400 :
 			*InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE);
 
-			/* ƒI[ƒi–¼ */
+			/* ã‚ªãƒ¼ãƒŠå */
 			FindField(Str, Buf, 0, NO);
 			strncpy(Owner, Buf, OWNER_NAME_LEN);
 
-			/*  */
+			/* æ™‚åˆ» */
 			FindField(Str, Buf, 3, NO);
 			sTime.wHour = atoi(Buf);
 			sTime.wMinute = atoi(Buf+3);
 			sTime.wSecond = 0;
 			sTime.wMilliseconds = 0;
 
-			/* “ú•t */
+			/* æ—¥ä»˜ */
 			FindField(Str, Buf, 2, NO);
 			sTime.wYear = Assume1900or2000(atoi(Buf));
 			sTime.wMonth = atoi(Buf + 3);
@@ -4120,12 +4120,12 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-			/* ƒTƒCƒY */
+			/* ã‚µã‚¤ã‚º */
 			FindField(Str, Buf, 1, NO);
 			*Size = _atoi64(Buf);
 
-			/* –¼‘O */
-			if(FindField(Str, Fname, 5, YES) == SUCCESS)
+			/* åå‰ */
+			if(FindField(Str, Fname, 5, YES) == FFFTP_SUCCESS)
 			{
 				Ret = NODE_FILE;
 				if((Pos = strchr(Fname, '/')) != NULL)
@@ -4139,12 +4139,12 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 		case LIST_M1800 :
 			*InfoExist |= FINFO_ATTR;
 
-			/* ‘®« */
+			/* å±æ€§ */
 			FindField(Str, Buf, 0, NO);
 			strcat(Buf, "------");
 			*Attr = AttrString2Value(Buf+1);
 
-			/* “ú•t */
+			/* æ—¥ä»˜ */
 			Time->dwLowDateTime = 0;
 			Time->dwHighDateTime = 0;
 			FindField(Str, Buf, 5, NO);
@@ -4163,8 +4163,8 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 				SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 			}
 
-			/* –¼‘O */
-			if(FindField(Str, Fname, 6, YES) == SUCCESS)
+			/* åå‰ */
+			if(FindField(Str, Fname, 6, YES) == FFFTP_SUCCESS)
 			{
 				RemoveTailingSpaces(Fname);
 				Ret = NODE_FILE;
@@ -4179,18 +4179,18 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 		case LIST_GP6000 :
 			*InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE | FINFO_ATTR);
 
-			/* ƒI[ƒi–¼ */
+			/* ã‚ªãƒ¼ãƒŠå */
 			FindField(Str, Buf, 3, NO);
 			strncpy(Owner, Buf, OWNER_NAME_LEN);
 
-			/*  */
+			/* æ™‚åˆ» */
 			FindField(Str, Buf, 2, NO);
 			sTime.wHour = atoi(Buf);
 			sTime.wMinute = atoi(Buf+3);
 			sTime.wSecond = 0;
 			sTime.wMilliseconds = 0;
 
-			/* “ú•t */
+			/* æ—¥ä»˜ */
 			FindField(Str, Buf, 1, NO);
 			sTime.wYear = Assume1900or2000(atoi(Buf));
 			sTime.wMonth = atoi(Buf + 3);
@@ -4198,16 +4198,16 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-			/* ƒTƒCƒY */
+			/* ã‚µã‚¤ã‚º */
 			FindField(Str, Buf, 5, NO);
 			*Size = _atoi64(Buf);
 
-			/* ‘®« */
+			/* å±æ€§ */
 			FindField(Str, Buf, 0, NO);
 			*Attr = AttrString2Value(Buf+1);
 
-			/* –¼‘O */
-			if(FindField(Str, Fname, 6, YES) == SUCCESS)
+			/* åå‰ */
+			if(FindField(Str, Fname, 6, YES) == FFFTP_SUCCESS)
 			{
 				Ret = NODE_FILE;
 				if(strchr("dl", Buf[0]) != NULL)
@@ -4217,7 +4217,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 
 		case LIST_ACOS :
 		case LIST_ACOS_4 :
-			/* –¼‘O */
+			/* åå‰ */
 			FindField(Str, Fname, 0, NO);
 			Ret = NODE_FILE;
 			break;
@@ -4225,11 +4225,11 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 		case LIST_VMS :
 			*InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE);
 
-			/* ƒTƒCƒY */
+			/* ã‚µã‚¤ã‚º */
 			FindField(Str, Buf, 1, NO);
 			*Size = _atoi64(Buf) * BLOCK_SIZE;
 
-			/* ^“ú•t */
+			/* æ™‚åˆ»ï¼æ—¥ä»˜ */
 			FindField(Str, Buf, 2, NO);
 			GetVMSdate(Buf, &sTime.wYear, &sTime.wMonth, &sTime.wDay);
 
@@ -4241,7 +4241,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-			/* –¼‘O */
+			/* åå‰ */
 			FindField(Str, Fname, 0, NO);
 
 			Ret = NODE_FILE;
@@ -4249,8 +4249,8 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			{
 				if(_strnicmp(Pos, ".DIR;", 5) == 0)
 				{
-					/* OpenVMS‚Ìê‡Aƒtƒ@ƒCƒ‹/ƒfƒBƒŒƒNƒgƒŠíœ‚É‚Í".DIR;?"‚Ü‚Å‚È‚¢‚Æ
-					 * íœ‚Å‚«‚È‚¢‚Ì‚ÅA‚±‚±‚Å‚Í‚Â‚Ô‚³‚È‚¢ */
+					/* OpenVMSã®å ´åˆã€ãƒ•ã‚¡ã‚¤ãƒ«/ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå‰Šé™¤æ™‚ã«ã¯".DIR;?"ã¾ã§ãªã„ã¨
+					 * å‰Šé™¤ã§ããªã„ã®ã§ã€ã“ã“ã§ã¯ã¤ã¶ã•ãªã„ */
 #if !defined(HAVE_OPENVMS)
 					*Pos = NUL;
 #endif
@@ -4263,21 +4263,21 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			*InfoExist |= FINFO_SIZE;
 			offs = 2;
 
-			/* ƒTƒCƒY */
+			/* ã‚µã‚¤ã‚º */
 			FindField(Str, Buf, 2, NO);
 			*Size = _atoi64(Buf);
-			/* ‚±‚±‚Ébreak‚Í‚È‚¢ */
+			/* ã“ã“ã«breakã¯ãªã„ */
 
 		case LIST_OS7_1 :
 			*InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_ATTR);
 
-			/* “ú•t */
+			/* æ—¥ä»˜ */
 			FindField(Str, Buf, 1+offs, NO);
 			sTime.wYear = Assume1900or2000(atoi(Buf));
 			sTime.wMonth = atoi(Buf + 3);
 			sTime.wDay = atoi(Buf + 6);
 
-			/*  */
+			/* æ™‚åˆ» */
 			FindField(Str, Buf, 2+offs, NO);
 			sTime.wHour = atoi(Buf);
 			sTime.wMinute = atoi(Buf+3);
@@ -4286,12 +4286,12 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-			/* ‘®« */
+			/* å±æ€§ */
 			FindField(Str, Buf, 0, NO);
 			*Attr = AttrString2Value(Buf+1);
 
-			/* –¼‘O */
-			if(FindField(Str, Fname, 3+offs, YES) == SUCCESS)
+			/* åå‰ */
+			if(FindField(Str, Fname, 3+offs, YES) == FFFTP_SUCCESS)
 			{
 				RemoveTailingSpaces(Fname);
 				Ret = NODE_FILE;
@@ -4301,7 +4301,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			break;
 
 		case LIST_STRATUS :
-			if(FindField(Str, Buf, 0, NO) != SUCCESS)
+			if(FindField(Str, Buf, 0, NO) != FFFTP_SUCCESS)
 				break;
 			if(_strnicmp(Buf, "Files:", 6) == 0)
 				StratusMode = 0;
@@ -4320,15 +4320,15 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 
 				*InfoExist |= (FINFO_TIME | FINFO_DATE);
 
-				/* “ú•t */
-				if(FindField(Str, Buf, 2+offs, NO) != SUCCESS)
+				/* æ—¥ä»˜ */
+				if(FindField(Str, Buf, 2+offs, NO) != FFFTP_SUCCESS)
 					break;
 				sTime.wYear = Assume1900or2000(atoi(Buf));
 				sTime.wMonth = atoi(Buf + 3);
 				sTime.wDay = atoi(Buf + 6);
 
-				/*  */
-				if(FindField(Str, Buf, 3+offs, NO) != SUCCESS)
+				/* æ™‚åˆ» */
+				if(FindField(Str, Buf, 3+offs, NO) != FFFTP_SUCCESS)
 					break;
 				sTime.wHour = atoi(Buf);
 				sTime.wMinute = atoi(Buf+3);
@@ -4337,21 +4337,21 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 				SystemTimeToFileTime(&sTime, Time);
 				SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-				/* –¼‘O */
-				if(FindField(Str, Fname, 4+offs, YES) != SUCCESS)
+				/* åå‰ */
+				if(FindField(Str, Fname, 4+offs, YES) != FFFTP_SUCCESS)
 					break;
 
 				if(StratusMode == 0)
 				{
 					*InfoExist |= FINFO_SIZE;
 
-					/* ƒTƒCƒY */
-					if(FindField(Str, Buf, 1, NO) != SUCCESS)
+					/* ã‚µã‚¤ã‚º */
+					if(FindField(Str, Buf, 1, NO) != FFFTP_SUCCESS)
 						break;
 					*Size = _atoi64(Buf) * 4096;
 
-					/* í—ŞiƒI[ƒi–¼‚ÌƒtƒB[ƒ‹ƒh‚É‚¢‚ê‚éj */
-					if(FindField(Str, Buf, 2, NO) != SUCCESS)
+					/* ç¨®é¡ï¼ˆã‚ªãƒ¼ãƒŠåã®ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã«ã„ã‚Œã‚‹ï¼‰ */
+					if(FindField(Str, Buf, 2, NO) != FFFTP_SUCCESS)
 						break;
 					strncpy(Owner, Buf, OWNER_NAME_LEN);
 
@@ -4365,21 +4365,21 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 		case LIST_IRMX :
 			*InfoExist |= (FINFO_DATE | FINFO_SIZE);
 
-			/* “ú•t */
+			/* æ—¥ä»˜ */
 			for(offs = 11; offs > 7; offs--)
 			{
-				if((err = FindField(Str, Buf, offs, NO)) == SUCCESS)
+				if((err = FindField(Str, Buf, offs, NO)) == FFFTP_SUCCESS)
 					break;
 			}
-			if(err != SUCCESS)
+			if(err != FFFTP_SUCCESS)
 				break;
 			if(IsDigit(*Buf) == 0)
 				break;
 			sTime.wYear = Assume1900or2000(atoi(Buf));
-			if(FindField(Str, Buf, --offs, NO) != SUCCESS)
+			if(FindField(Str, Buf, --offs, NO) != FFFTP_SUCCESS)
 				break;
 			GetMonth(Buf, &sTime.wMonth, &sTime.wDay);
-			if(FindField(Str, Buf, --offs, NO) != SUCCESS)
+			if(FindField(Str, Buf, --offs, NO) != FFFTP_SUCCESS)
 				break;
 			if(IsDigit(*Buf) == 0)
 				break;
@@ -4391,36 +4391,36 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-			/* ƒI[ƒi–¼ */
-			if(FindField(Str, Buf, --offs, NO) != SUCCESS)
+			/* ã‚ªãƒ¼ãƒŠå */
+			if(FindField(Str, Buf, --offs, NO) != FFFTP_SUCCESS)
 				break;
 			strncpy(Owner, Buf, OWNER_NAME_LEN);
 
-			/* ƒTƒCƒY */
+			/* ã‚µã‚¤ã‚º */
 			do
 			{
-				if((err = FindField(Str, Buf, --offs, NO)) != SUCCESS)
+				if((err = FindField(Str, Buf, --offs, NO)) != FFFTP_SUCCESS)
 					break;
 			}
 			while(IsDigit(*Buf) == 0);
 			--offs;
-			if((err = FindField(Str, Buf, --offs, NO)) != SUCCESS)
+			if((err = FindField(Str, Buf, --offs, NO)) != FFFTP_SUCCESS)
 				break;
 			RemoveComma(Buf);
 			*Size = _atoi64(Buf);
-			if((err = FindField(Str, Buf, --offs, NO)) != SUCCESS)
+			if((err = FindField(Str, Buf, --offs, NO)) != FFFTP_SUCCESS)
 				break;
 			if(IsDigit(*Buf) == 0)
 				break;
-			/* –¼‘O */
-			if(FindField(Str, Fname, 0, NO) != SUCCESS)
+			/* åå‰ */
+			if(FindField(Str, Fname, 0, NO) != FFFTP_SUCCESS)
 				break;
-			/* í—Ş */
+			/* ç¨®é¡ */
 			if(offs == 0)
 				Ret = NODE_FILE;
 			else
 			{
-				if((FindField(Str, Buf, 1, NO) == SUCCESS) &&
+				if((FindField(Str, Buf, 1, NO) == FFFTP_SUCCESS) &&
 				   (strcmp(Buf, "DR") == 0))
 					Ret = NODE_DIR;
 				else
@@ -4431,15 +4431,15 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 		case LIST_ALLIED :
 			*InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE);
 
-			/* “ú•t */
+			/* æ—¥ä»˜ */
 			FindField(Str, Buf, 3, NO);
-			GetMonth(Buf, &sTime.wMonth, &sTime.wDay);	/* wDay‚Íí‚É0 */
+			GetMonth(Buf, &sTime.wMonth, &sTime.wDay);	/* wDayã¯å¸¸ã«0 */
 			FindField(Str, Buf, 4, NO);
 			sTime.wDay = atoi(Buf);
 			FindField(Str, Buf, 6, NO);
 			sTime.wYear = atoi(Buf);
 
-			/*  */
+			/* æ™‚åˆ» */
 			FindField(Str, Buf, 5, NO);
 			sTime.wHour = atoi(Buf);
 			sTime.wMinute = atoi(Buf+3);
@@ -4448,12 +4448,12 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-			/* ƒTƒCƒY */
+			/* ã‚µã‚¤ã‚º */
 			FindField(Str, Buf, 0, NO);
 			*Size = _atoi64(Buf);
 
-			/* –¼‘O */
-			if(FindField(Str, Fname, 1, NO) == SUCCESS)
+			/* åå‰ */
+			if(FindField(Str, Fname, 1, NO) == FFFTP_SUCCESS)
 			{
 				Ret = NODE_FILE;
 				if(Buf[0] == '<')
@@ -4464,7 +4464,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 		case LIST_OS9 :
 			*InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE);
 
-			/* “ú•t */
+			/* æ—¥ä»˜ */
 			FindField(Str, Buf, 1, NO);
 			sTime.wYear = Assume1900or2000(atoi(Buf));
 			sTime.wMonth = atoi(Buf + 3);
@@ -4472,7 +4472,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-			/*  */
+			/* æ™‚åˆ» */
 			FindField(Str, Buf, 2, NO);
 			sTime.wHour = atoi_n(Buf, 2);
 			sTime.wMinute = atoi(Buf+2);
@@ -4481,19 +4481,19 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-			/* ƒTƒCƒY */
+			/* ã‚µã‚¤ã‚º */
 			FindField(Str, Buf, 5, NO);
 			*Size = _atoi64(Buf);
 
-			/* ƒI[ƒi–¼ */
+			/* ã‚ªãƒ¼ãƒŠå */
 			FindField(Str, Buf, 0, NO);
 			strncpy(Owner, Buf, OWNER_NAME_LEN);
 
-			/* ƒI[ƒi–¼ */
+			/* ã‚ªãƒ¼ãƒŠå */
 			FindField(Str, Buf, 3, NO);
 
-			/* –¼‘O */
-			if(FindField(Str, Fname, 6, NO) == SUCCESS)
+			/* åå‰ */
+			if(FindField(Str, Fname, 6, NO) == FFFTP_SUCCESS)
 			{
 				if((Buf[0] == 'd') || (Buf[0] == 'D'))
 					Ret = NODE_DIR;
@@ -4506,7 +4506,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			*InfoExist |= FINFO_DATE;
 
 
-			/* “ú•t */
+			/* æ—¥ä»˜ */
 			FindField(Str, Buf, 2, NO);
 			sTime.wYear = atoi(Buf);
 			sTime.wMonth = atoi(Buf + 5);
@@ -4518,9 +4518,9 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-			/* –¼‘O */
+			/* åå‰ */
 			FindField(Str, Buf, 8, NO);
-			if(FindField(Str, Fname, 9, NO) == SUCCESS)
+			if(FindField(Str, Fname, 9, NO) == FFFTP_SUCCESS)
 			{
 				if(strcmp(Buf, "PO") == 0)
 					Ret = NODE_DIR;
@@ -4532,20 +4532,20 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 		case LIST_AGILENT :
 			*InfoExist |= (FINFO_SIZE | FINFO_ATTR);
 
-			/* ƒI[ƒi–¼ */
+			/* ã‚ªãƒ¼ãƒŠå */
 			FindField(Str, Buf, 2, NO);
 			strncpy(Owner, Buf, OWNER_NAME_LEN);
 
-			/* ƒTƒCƒY */
+			/* ã‚µã‚¤ã‚º */
 			FindField(Str, Buf, 4, NO);
 			*Size = _atoi64(Buf);
 
-			/* ‘®« */
+			/* å±æ€§ */
 			FindField(Str, Buf, 0, NO);
 			*Attr = AttrString2Value(Buf+1);
 
-			/* –¼‘O */
-			if(FindField(Str, Fname, 5, YES) == SUCCESS)
+			/* åå‰ */
+			if(FindField(Str, Fname, 5, YES) == FFFTP_SUCCESS)
 			{
 				Ret = NODE_FILE;
 				if(strchr("dl", Buf[0]) != NULL)
@@ -4556,20 +4556,20 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 		case LIST_SHIBASOKU :
 			*InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE);
 
-			/* ƒTƒCƒY */
+			/* ã‚µã‚¤ã‚º */
 			FindField(Str, Buf, 0, NO);
 			if(IsDigit(Buf[0]))
 			{
 				*Size = _atoi64(Buf);
 
-				/* “ú•t */
+				/* æ—¥ä»˜ */
 				FindField(Str, Buf, 1, NO);
 				Buf[3] = '\0';
 				GetMonth(Buf, &sTime.wMonth, &sTime.wDay);
 				sTime.wDay = atoi(Buf+4);
 				sTime.wYear = atoi(Buf+7);
 
-				/*  */
+				/* æ™‚åˆ» */
 				FindField(Str, Buf, 2, NO);
 				sTime.wHour = atoi(Buf);
 				sTime.wMinute = atoi(Buf+3);
@@ -4578,12 +4578,12 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 				SystemTimeToFileTime(&sTime, Time);
 				SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-				/* –¼‘O */
+				/* åå‰ */
 				FindField(Str, Fname, 3, NO);
 
-				/* í—Ş */
+				/* ç¨®é¡ */
 				Ret = NODE_FILE;
-				if(FindField(Str, Buf, 4, NO) == SUCCESS)
+				if(FindField(Str, Buf, 4, NO) == FFFTP_SUCCESS)
 				{
 					if(strcmp(Buf, "<DIR>") == 0)
 						Ret = NODE_DIR;
@@ -4618,10 +4618,10 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 		case LIST_UNIX_73 :
 		case LIST_UNIX_74 :
 		case LIST_UNIX_75 :
-// MELCOM‚Íƒrƒbƒgƒtƒ‰ƒO‚É‚È‚Á‚Ä‚¢‚é
+// MELCOMã¯ãƒ“ãƒƒãƒˆãƒ•ãƒ©ã‚°ã«ãªã£ã¦ã„ã‚‹
 //		case LIST_MELCOM :
 		default:
-			/* offs‚ÍƒTƒCƒY‚ÌˆÊ’u, offs=0‚ÍƒJƒ‰ƒ€4 */
+			/* offsã¯ã‚µã‚¤ã‚ºã®ä½ç½®, offs=0ã¯ã‚«ãƒ©ãƒ 4 */
 			offs = 0;
 			if((ListType == LIST_UNIX_12) ||
 			   (ListType == LIST_UNIX_13) ||
@@ -4652,7 +4652,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			   (ListType == LIST_UNIX_74))
 				offs = 1;
 
-			/* offs2‚ÍŠÔ(‚à‚µ‚­‚Í”N)‚ÌˆÊ’u */
+			/* offs2ã¯æ™‚é–“(ã‚‚ã—ãã¯å¹´)ã®ä½ç½® */
 			offs2 = 0;
 			if((ListType == LIST_UNIX_11) ||
 			   (ListType == LIST_UNIX_13) ||
@@ -4665,7 +4665,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			   (ListType == LIST_UNIX_73))
 				offs2 = -1;
 
-			/* offs3‚ÍƒI[ƒi–¼‚ÌˆÊ’u */
+			/* offs3ã¯ã‚ªãƒ¼ãƒŠåã®ä½ç½® */
 			offs3 = 0;
 			if((ListType == LIST_UNIX_12) ||
 			   (ListType == LIST_UNIX_13) ||
@@ -4697,15 +4697,15 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 
 			*InfoExist |= (FINFO_DATE | FINFO_SIZE | FINFO_ATTR);
 
-			/* ‘®« */
+			/* å±æ€§ */
 			FindField(Str, Buf, 0, NO);
 			*Attr = AttrString2Value(Buf+1);
 
-			/* ƒI[ƒi–¼ */
+			/* ã‚ªãƒ¼ãƒŠå */
 			FindField(Str, Buf, 2+offs3, NO);
 			strncpy(Owner, Buf, OWNER_NAME_LEN);
 
-			/* ƒTƒCƒY */
+			/* ã‚µã‚¤ã‚º */
 			FindField(Str, Buf, 4+offs, NO);
 			Pos = Buf;
 			if((*Pos != NUL) && (IsDigit(*Pos) == 0))
@@ -4724,20 +4724,20 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 
 			if(Flag2 == 0)
 			{
-				/* ^“ú•t */
+				/* æ™‚åˆ»ï¼æ—¥ä»˜ */
 				GetLocalTime(&sTime);
 				memcpy(&sTimeNow, &sTime, sizeof(SYSTEMTIME));
 				sTime.wSecond = 0;
 				sTime.wMilliseconds = 0;
 
 				FindField(Str, Buf, 5+offs, NO);
-				/* “ú•t‚ª yy/mm/dd ‚Ìê‡‚É‘Î‰ */
-				if(GetYearMonthDay(Buf, &sTime.wYear, &sTime.wMonth, &sTime.wDay) == SUCCESS)
+				/* æ—¥ä»˜ãŒ yy/mm/dd ã®å ´åˆã«å¯¾å¿œ */
+				if(GetYearMonthDay(Buf, &sTime.wYear, &sTime.wMonth, &sTime.wDay) == FFFTP_SUCCESS)
 				{
 					sTime.wYear = Assume1900or2000(sTime.wYear);
 
 					FindField(Str, Buf, 7+offs+offs2, NO);
-					if(GetHourAndMinute(Buf, &sTime.wHour, &sTime.wMinute) == SUCCESS)
+					if(GetHourAndMinute(Buf, &sTime.wHour, &sTime.wMinute) == FFFTP_SUCCESS)
 						*InfoExist |= FINFO_TIME;
 				}
 				else
@@ -4750,7 +4750,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 					}
 
 					FindField(Str, Buf, 7+offs+offs2, NO);
-					if(GetHourAndMinute(Buf, &sTime.wHour, &sTime.wMinute) == FAIL)
+					if(GetHourAndMinute(Buf, &sTime.wHour, &sTime.wMinute) == FFFTP_FAIL)
 					{
 						sTime.wYear = atoi(Buf);
 					}
@@ -4758,8 +4758,8 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 					{
 						*InfoExist |= FINFO_TIME;
 
-						/* ”N‚ª‚È‚¢ */
-						/* Œ»İ‚Ì“ú•t‚©‚ç„’è */
+						/* å¹´ãŒãªã„ */
+						/* ç¾åœ¨ã®æ—¥ä»˜ã‹ã‚‰æ¨å®š */
 						if((sTimeNow.wMonth == 12) && (sTime.wMonth == 1))
 							sTime.wYear++;
 						else if(sTimeNow.wMonth+1 == sTime.wMonth)
@@ -4769,7 +4769,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 
 
 //#################
-						/* ¡”N‚Ì¡“úˆÈ~‚Ìƒtƒ@ƒCƒ‹‚ÍAÀ‚Í‹”N‚Ìƒtƒ@ƒCƒ‹ */
+						/* ä»Šå¹´ã®ä»Šæ—¥ä»¥é™ã®ãƒ•ã‚¡ã‚¤ãƒ«ã¯ã€å®Ÿã¯å»å¹´ã®ãƒ•ã‚¡ã‚¤ãƒ« */
 						if((sTime.wYear == sTimeNow.wYear) &&
 						   ((sTime.wMonth > sTimeNow.wMonth) ||
 							((sTime.wMonth == sTimeNow.wMonth) && (sTime.wDay > sTimeNow.wDay))))
@@ -4781,7 +4781,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			}
 			else
 			{
-				/* LIST_UNIX_?4, LIST_UNIX_?5 ‚Ì */
+				/* LIST_UNIX_?4, LIST_UNIX_?5 ã®æ™‚ */
 				FindField(Str, Buf, 5+offs, NO);
 				sTime.wYear = atoi(Buf);
 				FindField(Str, Buf, 6+offs, NO);
@@ -4796,8 +4796,8 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
-			/* –¼‘O */
-			if(FindField(Str, Fname, 8+offs+offs2, YES) == SUCCESS)
+			/* åå‰ */
+			if(FindField(Str, Fname, 8+offs+offs2, YES) == FFFTP_SUCCESS)
 			{
 				Flag = 'B';
 				if(OrgListType & LIST_MELCOM)
@@ -4843,17 +4843,17 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 }
 
 
-/*----- w’è‚Ì”Ô†‚ÌƒtƒB[ƒ‹ƒh‚ğ‹‚ß‚é ----------------------------------------
+/*----- æŒ‡å®šã®ç•ªå·ã®ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ã‚’æ±‚ã‚ã‚‹ ----------------------------------------
 *
 *	Parameter
-*		char *Str : •¶š—ñ
-*		char *Buf : •¶š—ñ‚ÌƒRƒs[æ
-*		int Num : ƒtƒB[ƒ‹ƒh”Ô†
-*		int ToLast : •¶š—ñ‚ÌÅŒã‚Ü‚ÅƒRƒs[ (YES/NO)
+*		char *Str : æ–‡å­—åˆ—
+*		char *Buf : æ–‡å­—åˆ—ã®ã‚³ãƒ”ãƒ¼å…ˆ
+*		int Num : ãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰ç•ªå·
+*		int ToLast : æ–‡å­—åˆ—ã®æœ€å¾Œã¾ã§ã‚³ãƒ”ãƒ¼ (YES/NO)
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			SUCCESS/FAIL
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
 static int FindField(char *Str, char *Buf, int Num, int ToLast)
@@ -4861,7 +4861,7 @@ static int FindField(char *Str, char *Buf, int Num, int ToLast)
 	char *Pos;
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	*Buf = NUL;
 	if(Num >= 0)
 	{
@@ -4896,21 +4896,21 @@ static int FindField(char *Str, char *Buf, int Num, int ToLast)
 			strncpy(Buf, Str, Pos - Str);
 			*(Buf + (Pos - Str)) = NUL;
 		}
-		Sts = SUCCESS;
+		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
 
 
-/*----- •¶š—ñ‚©‚çŒ‚ğ‹‚ß‚é --------------------------------------------------
+/*----- æ–‡å­—åˆ—ã‹ã‚‰æœˆã‚’æ±‚ã‚ã‚‹ --------------------------------------------------
 *
 *	Parameter
-*		char *Str : •¶š—ñ
-*		WORD *Month : Œ (0=Œ‚ğ•\‚·•¶š—ñ‚Å‚Í‚È‚¢)
-*		WORD *Day : “ú (0=“ú‚ÍŠÜ‚Ü‚ê‚Ä‚¢‚È‚¢)
+*		char *Str : æ–‡å­—åˆ—
+*		WORD *Month : æœˆ (0=æœˆã‚’è¡¨ã™æ–‡å­—åˆ—ã§ã¯ãªã„)
+*		WORD *Day : æ—¥ (0=æ—¥ã¯å«ã¾ã‚Œã¦ã„ãªã„)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void GetMonth(char *Str, WORD *Month, WORD *Day)
@@ -4930,8 +4930,8 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day)
 	}
 	else
 	{
-		/* u10Œv‚Ì‚æ‚¤‚È“ú•t‚ğ•Ô‚·‚à‚Ì‚ª‚ ‚é */
-		/* Š¿š‚ªJIS‚Ì‚Ì‚İSJIS‚É•ÏŠ· */
+		/* ã€Œ10æœˆã€ã®ã‚ˆã†ãªæ—¥ä»˜ã‚’è¿”ã™ã‚‚ã®ãŒã‚ã‚‹ */
+		/* æ¼¢å­—ãŒJISã®æ™‚ã®ã¿SJISã«å¤‰æ› */
 		ConvAutoToSJIS(Str, KANJI_NOCNV);
 
 		Pos = Str;
@@ -4939,10 +4939,10 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day)
 		{
 			if(!IsDigit(*Pos))
 			{
-				// UTF-8‘Î‰
-//				if((_mbsncmp(Pos, "Œ", 1) == 0) ||
-//				   (memcmp(Pos, "\xB7\xEE", 2) == 0) ||	/* EUC‚ÌuŒv */
-//				   (memcmp(Pos, "\xD4\xC2", 2) == 0))	/* GBƒR[ƒh‚ÌuŒv */
+				// UTF-8å¯¾å¿œ
+//				if((_mbsncmp(Pos, "æœˆ", 1) == 0) ||
+//				   (memcmp(Pos, "\xB7\xEE", 2) == 0) ||	/* EUCã®ã€Œæœˆã€ */
+//				   (memcmp(Pos, "\xD4\xC2", 2) == 0))	/* GBã‚³ãƒ¼ãƒ‰ã®ã€Œæœˆã€ */
 				if(memcmp(Pos, "\xE6\x9C\x88", 3) == 0 || memcmp(Pos, "\x8C\x8E", 2) == 0 || memcmp(Pos, "\xB7\xEE", 2) == 0 || memcmp(Pos, "\xD4\xC2", 2) == 0)
 				{
 					Pos += 2;
@@ -4951,7 +4951,7 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day)
 						*Month = 0;
 					else
 					{
-						/* u10Œ11“úv‚Ì‚æ‚¤‚É“ú‚ª‚­‚Á‚Â‚¢‚Ä‚¢‚é–‚ª‚ ‚é */
+						/* ã€Œ10æœˆ11æ—¥ã€ã®ã‚ˆã†ã«æ—¥ãŒãã£ã¤ã„ã¦ã„ã‚‹äº‹ãŒã‚ã‚‹ */
 						if(*Pos != NUL)
 						{
 							*Day = atoi(Pos);
@@ -4962,14 +4962,14 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day)
 				}
 				else if(_mbsncmp(Pos, "/", 1) == 0)
 				{
-					/* u10/v‚Ì‚æ‚¤‚È“ú•t‚ğ•Ô‚·‚à‚Ì‚ª‚ ‚é */
+					/* ã€Œ10/ã€ã®ã‚ˆã†ãªæ—¥ä»˜ã‚’è¿”ã™ã‚‚ã®ãŒã‚ã‚‹ */
 					Pos += 1;
 					*Month = atoi(Str);
 					if((*Month < 1) || (*Month > 12))
 						*Month = 0;
 					else
 					{
-						/* u10/11v‚Ì‚æ‚¤‚É“ú‚ª‚­‚Á‚Â‚¢‚Ä‚¢‚é–‚ª‚ ‚é */
+						/* ã€Œ10/11ã€ã®ã‚ˆã†ã«æ—¥ãŒãã£ã¤ã„ã¦ã„ã‚‹äº‹ãŒã‚ã‚‹ */
 						if(*Pos != NUL)
 						{
 							*Day = atoi(Pos);
@@ -4987,27 +4987,27 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day)
 }
 
 
-/*----- •¶š—ñ‚©‚ç”NŒ“ú‚ğ‹‚ß‚é ----------------------------------------------
+/*----- æ–‡å­—åˆ—ã‹ã‚‰å¹´æœˆæ—¥ã‚’æ±‚ã‚ã‚‹ ----------------------------------------------
 *
 *	Parameter
-*		char *Str : •¶š—ñ
-*		WORD *Year : ”N
-*		WORD *Month : Œ
-*		WORD *Day : “ú
+*		char *Str : æ–‡å­—åˆ—
+*		WORD *Year : å¹´
+*		WORD *Month : æœˆ
+*		WORD *Day : æ—¥
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (SUCCESS/FAIL=“ú•t‚ğ•\‚·•¶š‚Å‚Í‚È‚¢)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (FFFTP_SUCCESS/FFFTP_FAIL=æ—¥ä»˜ã‚’è¡¨ã™æ–‡å­—ã§ã¯ãªã„)
 *
 *	Note
-*		ˆÈ‰º‚ÌŒ`®‚ğƒTƒ|[ƒg
+*		ä»¥ä¸‹ã®å½¢å¼ã‚’ã‚µãƒãƒ¼ãƒˆ
 *			01/07/25
-*		FAIL‚ğ•Ô‚·‚Í *Year = 0; *Month = 0; *Day = 0
+*		FFFTP_FAILã‚’è¿”ã™æ™‚ã¯ *Year = 0; *Month = 0; *Day = 0
 *----------------------------------------------------------------------------*/
 static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day)
 {
 	int Sts;
 
-	Sts = FAIL;
+	Sts = FFFTP_FAIL;
 	if(strlen(Str) == 8)
 	{
 		if(IsDigit(Str[0]) && IsDigit(Str[1]) && !IsDigit(Str[2]) &&
@@ -5017,28 +5017,28 @@ static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day)
 			*Year = atoi(&Str[0]);
 			*Month = atoi(&Str[3]);
 			*Day = atoi(&Str[6]);
-			Sts = SUCCESS;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	return(Sts);
 }
 
 
-/*----- •¶š—ñ‚©‚ç‚ğæ‚èo‚· ----------------------------------------------
+/*----- æ–‡å­—åˆ—ã‹ã‚‰æ™‚åˆ»ã‚’å–ã‚Šå‡ºã™ ----------------------------------------------
 *
 *	Parameter
-*		char *Str : •¶š—ñ
-*		WORD *Hour : 
-*		WORD *Minute : •ª
+*		char *Str : æ–‡å­—åˆ—
+*		WORD *Hour : æ™‚
+*		WORD *Minute : åˆ†
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (SUCCESS/FAIL=‚ğ•\‚·•¶š‚Å‚Í‚È‚¢)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (FFFTP_SUCCESS/FFFTP_FAIL=æ™‚åˆ»ã‚’è¡¨ã™æ–‡å­—ã§ã¯ãªã„)
 *
 *	Note
-*		ˆÈ‰º‚ÌŒ`®‚ğƒTƒ|[ƒg
+*		ä»¥ä¸‹ã®å½¢å¼ã‚’ã‚µãƒãƒ¼ãƒˆ
 *			HH:MM
-*			HHMM•ª
-*		FAIL‚ğ•Ô‚·‚Í *Hour = 0; *Minute = 0
+*			HHæ™‚MMåˆ†
+*		FFFTP_FAILã‚’è¿”ã™æ™‚ã¯ *Hour = 0; *Minute = 0
 *----------------------------------------------------------------------------*/
 
 static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
@@ -5046,7 +5046,7 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 	int Ret;
 	char *Pos;
 
-	Ret = FAIL;
+	Ret = FFFTP_FAIL;
 	if((_mbslen(Str) >= 3) && (isdigit(Str[0]) != 0))
 	{
 		*Hour = atoi(Str);
@@ -5059,12 +5059,12 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 				{
 					*Minute = atoi(Pos);
 					if(*Minute < 60)
-						Ret = SUCCESS;
+						Ret = FFFTP_SUCCESS;
 				}
 			}
 			else
 			{
-				/* Š¿š‚ªJIS‚Ì‚Ì‚İSJIS‚É•ÏŠ· */
+				/* æ¼¢å­—ãŒJISã®æ™‚ã®ã¿SJISã«å¤‰æ› */
 				ConvAutoToSJIS(Str, KANJI_NOCNV);
 
 				Pos = Str;
@@ -5072,9 +5072,9 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 				{
 					if(IsDigit(*Pos) == 0)
 					{
-						// UTF-8‘Î‰
-//						if((_mbsncmp(Pos, "", 1) == 0) ||
-//						   (memcmp(Pos, "\xBB\xFE", 2) == 0))	/* EUC‚Ìuv */
+						// UTF-8å¯¾å¿œ
+//						if((_mbsncmp(Pos, "æ™‚", 1) == 0) ||
+//						   (memcmp(Pos, "\xBB\xFE", 2) == 0))	/* EUCã®ã€Œæ™‚ã€ */
 						if(memcmp(Pos, "\xE6\x99\x82", 3) == 0 || memcmp(Pos, "\x8E\x9E", 2) == 0 || memcmp(Pos, "\xBB\xFE", 2) == 0)
 						{
 							Pos += 2;
@@ -5082,7 +5082,7 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 							{
 								*Minute = atoi(Pos);
 								if(*Minute < 60)
-									Ret = SUCCESS;
+									Ret = FFFTP_SUCCESS;
 							}
 						}
 						break;
@@ -5096,10 +5096,10 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 	{
 		*Hour = 0;
 		*Minute = 0;
-		Ret = SUCCESS;
+		Ret = FFFTP_SUCCESS;
 	}
 
-	if(Ret == FAIL)
+	if(Ret == FFFTP_FAIL)
 	{
 		*Hour = 0;
 		*Minute = 0;
@@ -5108,21 +5108,21 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 }
 
 
-/*----- VAX VMS‚Ì“ú•t•¶š—ñ‚©‚ç“ú•t‚ğæ‚èo‚· ---------------------------------
+/*----- VAX VMSã®æ—¥ä»˜æ–‡å­—åˆ—ã‹ã‚‰æ—¥ä»˜ã‚’å–ã‚Šå‡ºã™ ---------------------------------
 *
 *	Parameter
-*		char *Str : •¶š—ñ
-*		WORD *Year : ”N
-*		WORD *Month : Œ
-*		WORD *Day : “ú
+*		char *Str : æ–‡å­—åˆ—
+*		WORD *Year : å¹´
+*		WORD *Month : æœˆ
+*		WORD *Day : æ—¥
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (SUCCESS/FAIL=“ú•t‚ğ•\‚·•¶š‚Å‚Í‚È‚¢)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (FFFTP_SUCCESS/FFFTP_FAIL=æ—¥ä»˜ã‚’è¡¨ã™æ–‡å­—ã§ã¯ãªã„)
 *
 *	Note
-*		ˆÈ‰º‚ÌŒ`®‚ğƒTƒ|[ƒg
+*		ä»¥ä¸‹ã®å½¢å¼ã‚’ã‚µãƒãƒ¼ãƒˆ
 *			18-SEP-1998
-*		FAIL‚ğ•Ô‚·‚Í *Year = 0; *Month = 0; *Day = 0
+*		FFFTP_FAILã‚’è¿”ã™æ™‚ã¯ *Year = 0; *Month = 0; *Day = 0
 *----------------------------------------------------------------------------*/
 
 static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day)
@@ -5132,7 +5132,7 @@ static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day)
 	WORD Tmp;
 	char Buf[4];
 
-	Ret = FAIL;
+	Ret = FFFTP_FAIL;
 	*Day = atoi(Str);
 	if((Pos = strchr(Str, '-')) != NULL)
 	{
@@ -5144,11 +5144,11 @@ static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day)
 		{
 			Pos++;
 			*Year = atoi(Pos);
-			Ret = SUCCESS;
+			Ret = FFFTP_SUCCESS;
 		}
 	}
 
-	if(Ret == FAIL)
+	if(Ret == FFFTP_FAIL)
 	{
 		*Year = 0;
 		*Month = 0;
@@ -5158,13 +5158,13 @@ static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day)
 }
 
 
-/*----- 1900”N‘ã‚©2000”N‘ã‚©‚ğŒˆ‚ß‚é ------------------------------------------
+/*----- 1900å¹´ä»£ã‹2000å¹´ä»£ã‹ã‚’æ±ºã‚ã‚‹ ------------------------------------------
 *
 *	Parameter
-*		int Year : ”Ni‚QŒ…j
+*		int Year : å¹´ï¼ˆï¼’æ¡ï¼‰
 *
 *	Return Value
-*		int ”N
+*		int å¹´
 *----------------------------------------------------------------------------*/
 
 int Assume1900or2000(int Year)
@@ -5178,13 +5178,13 @@ int Assume1900or2000(int Year)
 
 
 
-/*----- "."‚â".."‚©‚Ç‚¤‚©‚ğ•Ô‚· -----------------------------------------------
+/*----- "."ã‚„".."ã‹ã©ã†ã‹ã‚’è¿”ã™ -----------------------------------------------
 *
 *	Parameter
-*		char *Fname : ƒtƒ@ƒCƒ‹–¼
+*		char *Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (YES="."‚©".."‚Ì‚Ç‚¿‚ç‚©/NO)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (YES="."ã‹".."ã®ã©ã¡ã‚‰ã‹/NO)
 *----------------------------------------------------------------------------*/
 
 static int CheckSpecialDirName(char *Fname)
@@ -5199,18 +5199,18 @@ static int CheckSpecialDirName(char *Fname)
 }
 
 
-/*----- ƒtƒBƒ‹ƒ^‚Éw’è‚³‚ê‚½ƒtƒ@ƒCƒ‹–¼‚©‚Ç‚¤‚©‚ğ•Ô‚· --------------------------
+/*----- ãƒ•ã‚£ãƒ«ã‚¿ã«æŒ‡å®šã•ã‚ŒãŸãƒ•ã‚¡ã‚¤ãƒ«åã‹ã©ã†ã‹ã‚’è¿”ã™ --------------------------
 *
 *	Parameter
-*		char Fname : ƒtƒ@ƒCƒ‹–¼
-*		int Type : ƒtƒ@ƒCƒ‹‚Ìƒ^ƒCƒv (NODE_xxx)
+*		char Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
+*		int Type : ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚¿ã‚¤ãƒ— (NODE_xxx)
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			YES/NO=•\¦‚µ‚È‚¢
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			YES/NO=è¡¨ç¤ºã—ãªã„
 *
 *	Note
-*		ƒtƒBƒ‹ƒ^•¶š—ñ‚ÍˆÈ‰º‚ÌŒ`®
+*		ãƒ•ã‚£ãƒ«ã‚¿æ–‡å­—åˆ—ã¯ä»¥ä¸‹ã®å½¢å¼
 *			*.txt;*.log
 *----------------------------------------------------------------------------*/
 
@@ -5237,7 +5237,7 @@ static int AskFilterStr(char *Fname, int Type)
 			if((Pos = strchr(Tmp, ';')) != NULL)
 				*Pos = NUL;
 
-			if(CheckFname(Fname, Tmp) == SUCCESS)
+			if(CheckFname(Fname, Tmp) == FFFTP_SUCCESS)
 			{
 				Ret = YES;
 				break;
@@ -5250,13 +5250,13 @@ static int AskFilterStr(char *Fname, int Type)
 }
 
 
-/*----- ƒtƒBƒ‹ƒ^‚ğİ’è‚·‚é ----------------------------------------------------
+/*----- ãƒ•ã‚£ãƒ«ã‚¿ã‚’è¨­å®šã™ã‚‹ ----------------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetFilter(int *CancelCheckWork)
@@ -5271,13 +5271,13 @@ void SetFilter(int *CancelCheckWork)
 }
 
 
-/*----- ƒtƒBƒ‹ƒ^“ü—Íƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒN ----------------------------------
+/*----- ãƒ•ã‚£ãƒ«ã‚¿å…¥åŠ›ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ----------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE

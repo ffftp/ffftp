@@ -1,6 +1,6 @@
-// mbswrapper.h
+ï»¿// mbswrapper.h
 // Copyright (C) 2011 Suguru Kawamoto
-// ƒ}ƒ‹ƒ`ƒoƒCƒg•¶šƒƒCƒh•¶šAPIƒ‰ƒbƒp[
+// ãƒãƒ«ãƒãƒã‚¤ãƒˆæ–‡å­—ãƒ¯ã‚¤ãƒ‰æ–‡å­—APIãƒ©ãƒƒãƒ‘ãƒ¼
 
 #ifndef __MBSWRAPPER_H__
 #define __MBSWRAPPER_H__

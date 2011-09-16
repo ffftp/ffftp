@@ -1,53 +1,53 @@
-<html>
+﻿<html>
 <head>
-<title>SourceForge.JP��FFFTP�̃r���h����ъJ���̎菇�ɂ���</title>
+<title>SourceForge.JP版FFFTPのビルドおよび開発の手順について</title>
 <style type="text/css">
 .filename {font-weight:bold}
 </style>
 </head>
 <body>
-SourceForge.JP��<span style="font-weight:bold"><span style="color:yellow;vertical-align:super">F</span><span style="color:green">F</span><span style="color:red;vertical-align:sub">F</span><span style="color:green">TP</span></span>�̃r���h����ъJ���̎菇�ɂ���<br>
+SourceForge.JP版<span style="font-weight:bold"><span style="color:yellow;vertical-align:super">F</span><span style="color:green">F</span><span style="color:red;vertical-align:sub">F</span><span style="color:green">TP</span></span>のビルドおよび開発の手順について<br>
 <ol>
-	<li>�r���h�̎菇<br>
-	FFFTP���r���h����ɂ͈ȉ��̎菇�ɏ]���Ă��������B
+	<li>ビルドの手順<br>
+	FFFTPをビルドするには以下の手順に従ってください。
 	<ol>
-		<li>Visual C++ 2005���g�p����ꍇ
+		<li>Visual C++ 2005を使用する場合
 		<ol>
-			<li><span class="filename">"FFFTP.sln"</span>���J���B
-			<li>�K�v�ɉ����ă\�[�X�R�[�h��ҏW����B
+			<li><span class="filename">"FFFTP.sln"</span>を開く。
+			<li>必要に応じてソースコードを編集する。
 			<ol>
-				<li>�v���W�F�N�g�̓}���`�o�C�g�����iShift_JIS�j�p�ɐݒ肳��Ă��邪�A�t�@�C������UTF-8�Ή��ɔ����A���ۂ̓����`����UTF-8�Ƃ��Ĉ����Ă���i�\���ɂ��Ă�<span class="filename">"mbswrapper.c"</span>����т��̑��̃\�[�X�R�[�h���̃R�����g���Q�Ɓj�B
-				<li>���b�Z�[�W������ɂ��Ă�<span class="filename">"mesg-jpn.h"</span>�����<span class="filename">"mesg-eng.h"</span>�ɋL�q����Ă��邪�A�ҏW����ۂ�<span class="filename">"mesg-jpn.old.h"</span>�����<span class="filename">"mesg-eng.old.h"</span>��Shift_JIS�ŕۑ����A<span class="filename">"mbtoutf8.bat"</span>�����s���ĕ����񃊃e������UTF-8�ɕϊ�����B
+				<li>プロジェクトはマルチバイト文字（Shift_JIS）用に設定されているが、ファイル名のUTF-8対応に伴い、実際の内部形式はUTF-8として扱っている（構造については<span class="filename">"mbswrapper.c"</span>およびその他のソースコード内のコメントを参照）。
+				<li>メッセージ文字列については<span class="filename">"mesg-jpn.h"</span>および<span class="filename">"mesg-eng.h"</span>に記述されているが、編集する際は<span class="filename">"mesg-jpn.old.h"</span>および<span class="filename">"mesg-eng.old.h"</span>をShift_JISで保存し、<span class="filename">"mbtoutf8.bat"</span>を実行して文字列リテラルをUTF-8に変換する。
 			</ol>
-			<li>�K�v�ɉ����ă��\�[�X��ҏW����B
+			<li>必要に応じてリソースを編集する。
 			<ol>
-				<li>�ǉ��̈ˑ����C�u�����̒��쌠���́A�_�C�A���Oabout_dlg�́uFFFTP��freeware�ł��v�̏�̃e�L�X�g�ɒǋL���Ă��������B<br>
-				����̋@�\�ǉ��ɔ������쌠��񂪑����錩���݂̂��߁A�e�L�X�g�͈̔͂�傫�߂ɐݒ肵�Ă���܂��B
+				<li>追加の依存ライブラリの著作権情報は、ダイアログabout_dlgの「FFFTPはfreewareです」の上のテキストに追記してください。<br>
+				今後の機能追加に伴い著作権情報が増える見込みのため、テキストの範囲を大きめに設定してあります。
 			</ol>
-			<li>�\�����[�V�����\������uDebug�v�܂��́uRelease�v��I������B
-			<li>���j���[����u�\�����[�V�����̃r���h�v��I������B
-			<li>��肪�������<span class="filename">"Debug\FFFTP.exe"</span>�܂���<span class="filename">"Release\FFFTP.exe"</span>�����������B
+			<li>ソリューション構成から「Debug」または「Release」を選択する。
+			<li>メニューから「ソリューションのビルド」を選択する。
+			<li>問題が無ければ<span class="filename">"Debug\FFFTP.exe"</span>または<span class="filename">"Release\FFFTP.exe"</span>が生成される。
 		</ol>
-		<li>Visual C++ 2008���g�p����ꍇ
+		<li>Visual C++ 2008を使用する場合
 		<ol>
-			<li><span class="filename">"FFFTP.vc90.sln"</span>���J���B
-			<li>�K�v�ɉ����ă\�[�X�R�[�h��ҏW����B
+			<li><span class="filename">"FFFTP.vc90.sln"</span>を開く。
+			<li>必要に応じてソースコードを編集する。
 			<ol>
-				<li>�v���W�F�N�g�̓}���`�o�C�g�����iShift_JIS�j�p�ɐݒ肳��Ă��邪�A�t�@�C������UTF-8�Ή��ɔ����A���ۂ̓����`����UTF-8�Ƃ��Ĉ����Ă���i�\���ɂ��Ă�<span class="filename">"mbswrapper.c"</span>����т��̑��̃\�[�X�R�[�h���̃R�����g���Q�Ɓj�B
-				<li>���b�Z�[�W������ɂ��Ă�<span class="filename">"mesg-jpn.h"</span>�����<span class="filename">"mesg-eng.h"</span>�ɋL�q����Ă��邪�A�ҏW����ۂ�<span class="filename">"mesg-jpn.old.h"</span>�����<span class="filename">"mesg-eng.old.h"</span>��Shift_JIS�ŕۑ����A<span class="filename">"mbtoutf8.bat"</span>�����s���ĕ����񃊃e������UTF-8�ɕϊ�����B
+				<li>プロジェクトはマルチバイト文字（Shift_JIS）用に設定されているが、ファイル名のUTF-8対応に伴い、実際の内部形式はUTF-8として扱っている（構造については<span class="filename">"mbswrapper.c"</span>およびその他のソースコード内のコメントを参照）。
+				<li>メッセージ文字列については<span class="filename">"mesg-jpn.h"</span>および<span class="filename">"mesg-eng.h"</span>に記述されているが、編集する際は<span class="filename">"mesg-jpn.old.h"</span>および<span class="filename">"mesg-eng.old.h"</span>をShift_JISで保存し、<span class="filename">"mbtoutf8.bat"</span>を実行して文字列リテラルをUTF-8に変換する。
 			</ol>
-			<li>�K�v�ɉ����ă��\�[�X��ҏW����B
+			<li>必要に応じてリソースを編集する。
 			<ol>
-				<li>�ǉ��̈ˑ����C�u�����̒��쌠���́A�_�C�A���Oabout_dlg�́uFFFTP��freeware�ł��v�̏�̃e�L�X�g�ɒǋL���Ă��������B<br>
-				����̋@�\�ǉ��ɔ������쌠��񂪑����錩���݂̂��߁A�e�L�X�g�͈̔͂�傫�߂ɐݒ肵�Ă���܂��B
+				<li>追加の依存ライブラリの著作権情報は、ダイアログabout_dlgの「FFFTPはfreewareです」の上のテキストに追記してください。<br>
+				今後の機能追加に伴い著作権情報が増える見込みのため、テキストの範囲を大きめに設定してあります。
 			</ol>
-			<li>�\�����[�V�����\������uDebug�v�܂��́uRelease�v��I������B
-			<li>���j���[����u�\�����[�V�����̃r���h�v��I������B
-			<li>��肪�������<span class="filename">"Debug\FFFTP.exe"</span>�܂���<span class="filename">"Release\FFFTP.exe"</span>�����������B
+			<li>ソリューション構成から「Debug」または「Release」を選択する。
+			<li>メニューから「ソリューションのビルド」を選択する。
+			<li>問題が無ければ<span class="filename">"Debug\FFFTP.exe"</span>または<span class="filename">"Release\FFFTP.exe"</span>が生成される。
 		</ol>
 	</ol>
 </ol>
-�����T�|�[�g�͂�����܂ŁB<br>
+質問やサポートはこちらまで。<br>
 <a href="http://sourceforge.jp/projects/ffftp/">http://sourceforge.jp/projects/ffftp/</a>
 
 </body>
