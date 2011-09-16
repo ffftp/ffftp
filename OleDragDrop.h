@@ -1,4 +1,4 @@
-/**************************************************************************
+﻿/**************************************************************************
 
 	OleDragDrop.h
 
@@ -17,11 +17,11 @@
 #define IDROPTARGET_NOTIFY_DROP 		3
 
 typedef struct _IDROPTARGET_NOTIFY{
-	POINTL *ppt;					//�}�E�X�̈ʒu
-	DWORD dwEffect;					//�h���b�O����ŁA�h���b�O�����Ώۂŋ���������
-	DWORD grfKeyState;				//�L�[�̏��
-	UINT cfFormat;					//�h���b�v�����f�[�^�̃N���b�v�{�[�h�t�H�[�}�b�g
-	HANDLE hMem;					//�h���b�v�����f�[�^
+	POINTL *ppt;					//マウスの位置
+	DWORD dwEffect;					//ドラッグ操作で、ドラッグされる対象で許される効果
+	DWORD grfKeyState;				//キーの状態
+	UINT cfFormat;					//ドロップされるデータのクリップボードフォーマット
+	HANDLE hMem;					//ドロップされるデータ
 	LPVOID pdo;						//IDataObject
 }IDROPTARGET_NOTIFY , *LPIDROPTARGET_NOTIFY;
 
@@ -31,19 +31,19 @@ typedef struct _IDROPTARGET_NOTIFY{
 //DragTarget
 BOOL APIPRIVATE OLE_IDropTarget_RegisterDragDrop(HWND hWnd, UINT uCallbackMessage, UINT *cFormat, int cfcnt);
 
-//�h���b�O&�h���b�v�̃^�[�Q�b�g�Ƃ��ēo�^���܂��B
+//ドラッグ&ドロップのターゲットとして登録します。
 
-//[����]
-//	�h���b�O&�h���b�v���삪�s��ꂽ�Ƃ��Ɏw��̃E�B���h�E�̎w��̃��b�Z�[�W�ɒʒm����܂��B
-//	wParam �ɑ���̎��(IDROPTARGET_NOTIFY_)���ݒ肳��Ă��܂��B
-//	lParam �� IDROPTARGET_NOTIFY �\���̂ւ̃|�C���^���ݒ肳��Ă��܂��B
+//[引数]
+//	ドラッグ&ドロップ操作が行われたときに指定のウィンドウの指定のメッセージに通知されます。
+//	wParam に操作の種類(IDROPTARGET_NOTIFY_)が設定されています。
+//	lParam に IDROPTARGET_NOTIFY 構造体へのポインタが設定されています。
 
-//	cFormat �� �󂯎�邱�Ƃ��\�ȃN���b�v�{�[�h�t�H�[�}�b�g�̃��X�g���w�肵�܂��B
-//	cfcnt �̓N���b�v�{�[�h�t�H�[�}�b�g�̔z��̗v�f�����w�肵�܂��B
+//	cFormat は 受け取ることが可能なクリップボードフォーマットのリストを指定します。
+//	cfcnt はクリップボードフォーマットの配列の要素数を指定します。
 
 void APIPRIVATE OLE_IDropTarget_RevokeDragDrop(HWND hWnd);
 
-//�h���b�O���h���b�v�̃^�[�Q�b�g���������܂��B
+//ドラッグ＆ドロップのターゲットを解除します。
 
 
 
@@ -51,22 +51,22 @@ void APIPRIVATE OLE_IDropTarget_RevokeDragDrop(HWND hWnd);
 //DropSource
 int APIPRIVATE OLE_IDropSource_Start(HWND hWnd, UINT uCallbackMessage, UINT uCallbackDragOverMessage, UINT *ClipFormtList, int cfcnt, int Effect);
 
-//�h���b�O���h���b�v���J�n����Ƃ��Ɏw�肵�܂��B
-//�h���b�O���h���b�v����͎����I�ɍs���܂����A�f�[�^���K�v�Ȏ��́A�w��̃E�B���h�E���b�Z�[�W�Ńf�[�^�v�����s���܂��B
+//ドラッグ＆ドロップを開始するときに指定します。
+//ドラッグ＆ドロップ操作は自動的に行われますが、データが必要な時は、指定のウィンドウメッセージでデータ要求を行います。
 
-//[����]
-//	hWnd �� uCallbackMessage �𑗂��ăf�[�^�̗v�����s���܂��B
-//	���̎� wParam �ɗv������N���b�v�{�[�h�t�H�[�}�b�g�̒l�������Ă��܂��B
-//	�v���O������ *(HANDLE *)lParam �Ƀf�[�^��ݒ肵�ĕԂ��܂��B(NULL�ł���)
+//[引数]
+//	hWnd に uCallbackMessage を送ってデータの要求を行います。
+//	この時 wParam に要求するクリップボードフォーマットの値が入っています。
+//	プログラムは *(HANDLE *)lParam にデータを設定して返します。(NULLでも可)
 
-//	ClipFormtList �̓T�|�[�g���Ă���N���b�v�{�[�h�t�H�[�}�b�g�̔z����w�肵�܂��B
-//	cfcnt �̓N���b�v�{�[�h�t�H�[�}�b�g�̔z��̗v�f�����w�肵�܂��B
+//	ClipFormtList はサポートしているクリップボードフォーマットの配列を指定します。
+//	cfcnt はクリップボードフォーマットの配列の要素数を指定します。
 
-//	Effect �� �h���b�O����Ńh���b�O�����Ώۂŋ��������ʂ̑g�ݍ��킹���w�肵�܂��B
+//	Effect は ドラッグ操作でドラッグされる対象で許される効果の組み合わせを指定します。
 
-//[�߂�l]
-//�h���b�v���s��ꂽ�ꍇ�́A�h���b�v��̃A�v���P�[�V�������ݒ肵�����ʂ�Ԃ��܂��B
-//�L�����Z����G���[�̏ꍇ�� -1 ��Ԃ��܂��B
+//[戻り値]
+//ドロップが行われた場合は、ドロップ先のアプリケーションが設定した効果を返します。
+//キャンセルやエラーの場合は -1 を返します。
 
 
 #endif

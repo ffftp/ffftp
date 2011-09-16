@@ -1,4 +1,4 @@
-/* Implementation of NIST's Secure Hash Algorithm (FIPS 180)
+﻿/* Implementation of NIST's Secure Hash Algorithm (FIPS 180)
  * Lightly bummed for execution efficiency.
  *
  * Jim Gillogly 3 May 1993

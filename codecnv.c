@@ -1,6 +1,6 @@
-/*=============================================================================
+﻿/*=============================================================================
 *
-*							�����R�[�h�ϊ��^���s�R�[�h�ϊ�
+*							漢字コード変換／改行コード変換
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -40,12 +40,12 @@
 
 
 
-#define CONV_ASCII		0		/* ASCII���������� */
-#define CONV_KANJI		1		/* ���������� */
-#define CONV_KANA		2		/* ���p�J�^�J�i������ */
+#define CONV_ASCII		0		/* ASCII文字処理中 */
+#define CONV_KANJI		1		/* 漢字処理中 */
+#define CONV_KANA		2		/* 半角カタカナ処理中 */
 
 
-/*===== �v���g�^�C�v =====*/
+/*===== プロトタイプ =====*/
 
 static char *ConvEUCtoSJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put);
 static char *ConvJIStoSJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put);
@@ -61,7 +61,7 @@ static int ConvertIBMExtendedChar(int code);
 
 
 #if 0
-/*----- �����R�[�h�ϊ��̃e�X�g�v���O���� ------------------------------------*/
+/*----- 漢字コード変換のテストプログラム ------------------------------------*/
 
 void CodeCnvTest(void)
 {
@@ -174,7 +174,7 @@ void CodeCnvTest(void)
 
 
 #if 0
-/*----- ���s�R�[�h�ϊ��̃e�X�g�v���O���� ------------------------------------*/
+/*----- 改行コード変換のテストプログラム ------------------------------------*/
 
 void TermCodeCnvTest(void)
 {
@@ -242,13 +242,13 @@ void TermCodeCnvTest(void)
 
 
 
-/*----- ���s�R�[�h�ϊ����������� --------------------------------------------
+/*----- 改行コード変換情報を初期化 --------------------------------------------
 *
 *	Parameter
-*		TERMCODECONVINFO *cInfo : ���s�R�[�h�ϊ����
+*		TERMCODECONVINFO *cInfo : 改行コード変換情報
 *
 *	Return Value
-*		�Ȃ�
+*		なし
 *----------------------------------------------------------------------------*/
 
 void InitTermCodeConvInfo(TERMCODECONVINFO *cInfo)
@@ -258,16 +258,16 @@ void InitTermCodeConvInfo(TERMCODECONVINFO *cInfo)
 }
 
 
-/*----- ���s�R�[�h�ϊ��̎c������o�� ----------------------------------------
+/*----- 改行コード変換の残り情報を出力 ----------------------------------------
 *
 *	Parameter
-*		TERMCODECONVINFO *cInfo : ���s�R�[�h�ϊ����
+*		TERMCODECONVINFO *cInfo : 改行コード変換情報
 *
 *	Return Value
-*		int ����Ԃ��t���O (=NO)
+*		int くり返しフラグ (=NO)
 *
 *	Note
-*		���s�R�[�h�ϊ��̍Ō�ɌĂԎ�
+*		改行コード変換の最後に呼ぶ事
 *----------------------------------------------------------------------------*/
 
 int FlushRestTermCodeConvData(TERMCODECONVINFO *cInfo)
@@ -285,16 +285,16 @@ int FlushRestTermCodeConvData(TERMCODECONVINFO *cInfo)
 }
 
 
-/*----- ���s�R�[�h��CRLF�ɕϊ� -------------------------------------------------
+/*----- 改行コードをCRLFに変換 -------------------------------------------------
 *
 *	Parameter
-*		TERMCODECONVINFO *cInfo : ���s�R�[�h�ϊ����
+*		TERMCODECONVINFO *cInfo : 改行コード変換情報
 *
 *	Return Value
-*		int ����Ԃ��t���O (YES/NO)
+*		int くり返しフラグ (YES/NO)
 *
 *	Note
-*		����Ԃ��t���O��YES�̎��́AcInfo�̓��e��ς����ɂ�����x�ĂԂ���
+*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
 *----------------------------------------------------------------------------*/
 
 int ConvTermCodeToCRLF(TERMCODECONVINFO *cInfo)
@@ -348,13 +348,13 @@ int ConvTermCodeToCRLF(TERMCODECONVINFO *cInfo)
 }
 
 
-/*----- �����R�[�h�ϊ����������� --------------------------------------------
+/*----- 漢字コード変換情報を初期化 --------------------------------------------
 *
 *	Parameter
-*		CODECONVINFO *cInfo : �����R�[�h�ϊ����
+*		CODECONVINFO *cInfo : 漢字コード変換情報
 *
 *	Return Value
-*		�Ȃ�
+*		なし
 *----------------------------------------------------------------------------*/
 
 void InitCodeConvInfo(CODECONVINFO *cInfo)
@@ -370,16 +370,16 @@ void InitCodeConvInfo(CODECONVINFO *cInfo)
 }
 
 
-/*----- �����R�[�h�ϊ��̎c������o�� ----------------------------------------
+/*----- 漢字コード変換の残り情報を出力 ----------------------------------------
 *
 *	Parameter
-*		CODECONVINFO *cInfo : �����R�[�h�ϊ����
+*		CODECONVINFO *cInfo : 漢字コード変換情報
 *
 *	Return Value
-*		int ����Ԃ��t���O (=NO)
+*		int くり返しフラグ (=NO)
 *
 *	Note
-*		�����R�[�h�ϊ��̍Ō�ɌĂԎ�
+*		漢字コード変換の最後に呼ぶ事
 *----------------------------------------------------------------------------*/
 
 int FlushRestData(CODECONVINFO *cInfo)
@@ -404,16 +404,16 @@ int FlushRestData(CODECONVINFO *cInfo)
 }
 
 
-/*----- EUC�����R�[�h��SHIFT-JIS�����R�[�h�ɕϊ� ------------------------------
+/*----- EUC漢字コードをSHIFT-JIS漢字コードに変換 ------------------------------
 *
 *	Parameter
-*		CODECONVINFO *cInfo : �����R�[�h�ϊ����
+*		CODECONVINFO *cInfo : 漢字コード変換情報
 *
 *	Return Value
-*		int ����Ԃ��t���O (YES/NO)
+*		int くり返しフラグ (YES/NO)
 *
 *	Note
-*		����Ԃ��t���O��YES�̎��́AcInfo�̓��e��ς����ɂ�����x�ĂԂ���
+*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
 *----------------------------------------------------------------------------*/
 
 int ConvEUCtoSJIS(CODECONVINFO *cInfo)
@@ -445,7 +445,7 @@ int ConvEUCtoSJIS(CODECONVINFO *cInfo)
 				cInfo->KanjiFst = *Str++;
 			else
 			{
-				if((uchar)cInfo->KanjiFst == (uchar)0x8E)	/* ���p�J�^�J�i */
+				if((uchar)cInfo->KanjiFst == (uchar)0x8E)	/* 半角カタカナ */
 				{
 					Put = ConvEUCtoSJISkanaProc(cInfo, *Str++, Put);
 				}
@@ -480,15 +480,15 @@ int ConvEUCtoSJIS(CODECONVINFO *cInfo)
 }
 
 
-/*----- EUC-->SHIFT-JIS�����R�[�h�ɕϊ��̔��p�J�^�J�i�̏��� -------------------
+/*----- EUC-->SHIFT-JIS漢字コードに変換の半角カタカナの処理 -------------------
 *
 *	Parameter
-*		CODECONVINFO *cInfo : �����R�[�h�ϊ����
-*		char Dt : ����
-*		char *Put : �f�[�^�Z�b�g�ʒu
+*		CODECONVINFO *cInfo : 漢字コード変換情報
+*		char Dt : 文字
+*		char *Put : データセット位置
 *
 *	Return Value
-*		char *���̃f�[�^�Z�b�g�ʒu
+*		char *次のデータセット位置
 *----------------------------------------------------------------------------*/
 
 static char *ConvEUCtoSJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put)
@@ -523,21 +523,21 @@ static char *ConvEUCtoSJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put)
 }
 
 
-/*----- JIS�����R�[�h��SHIFT-JIS�����R�[�h�ɕϊ� ------------------------------
+/*----- JIS漢字コードをSHIFT-JIS漢字コードに変換 ------------------------------
 *
 *	Parameter
-*		CODECONVINFO *cInfo : �����R�[�h�ϊ����
+*		CODECONVINFO *cInfo : 漢字コード変換情報
 *
 *	Return Value
-*		int ����Ԃ��t���O (YES/NO)
+*		int くり返しフラグ (YES/NO)
 *
 *	Note
-*		����Ԃ��t���O��YES�̎��́AcInfo�̓��e��ς����ɂ�����x�ĂԂ���
+*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
 *
-*		�G�X�P�[�v�R�[�h�́A���̂��̂ɑΉ����Ă���
-*			�����J�n		<ESC>$B		<ESC>$@
-*			���p�J�i�J�n	<ESC>(I
-*			�����I��		<ESC>(B		<ESC>(J		<ESC>(H
+*		エスケープコードは、次のものに対応している
+*			漢字開始		<ESC>$B		<ESC>$@
+*			半角カナ開始	<ESC>(I
+*			漢字終了		<ESC>(B		<ESC>(J		<ESC>(H
 *----------------------------------------------------------------------------*/
 
 int ConvJIStoSJIS(CODECONVINFO *cInfo)
@@ -674,15 +674,15 @@ int ConvJIStoSJIS(CODECONVINFO *cInfo)
 }
 
 
-/*----- JIS-->SHIFT-JIS�����R�[�h�ɕϊ��̔��p�J�^�J�i�̏��� -------------------
+/*----- JIS-->SHIFT-JIS漢字コードに変換の半角カタカナの処理 -------------------
 *
 *	Parameter
-*		CODECONVINFO *cInfo : �����R�[�h�ϊ����
-*		char Dt : ����
-*		char *Put : �f�[�^�Z�b�g�ʒu
+*		CODECONVINFO *cInfo : 漢字コード変換情報
+*		char Dt : 文字
+*		char *Put : データセット位置
 *
 *	Return Value
-*		char *���̃f�[�^�Z�b�g�ʒu
+*		char *次のデータセット位置
 *----------------------------------------------------------------------------*/
 
 static char *ConvJIStoSJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put)
@@ -717,18 +717,18 @@ static char *ConvJIStoSJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put)
 }
 
 
-/*----- Samba-HEX/Samba-CAP�����R�[�h��SHIFT-JIS�����R�[�h�ɕϊ� --------------
+/*----- Samba-HEX/Samba-CAP漢字コードをSHIFT-JIS漢字コードに変換 --------------
 *
 *	Parameter
-*		CODECONVINFO *cInfo : �����R�[�h�ϊ����
+*		CODECONVINFO *cInfo : 漢字コード変換情報
 *
 *	Return Value
-*		int ����Ԃ��t���O (YES/NO)
+*		int くり返しフラグ (YES/NO)
 *
 *	Note
-*		����Ԃ��t���O��YES�̎��́AcInfo�̓��e��ς����ɂ�����x�ĂԂ���
-*		�������ꂽ���͕�����̕ϊ��̓T�|�[�g���Ă��Ȃ�
-*		���p�J�^�J�i�̕ϊ��ݒ�ɂ͑Ή����Ă��Ȃ�
+*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
+*		分割された入力文字列の変換はサポートしていない
+*		半角カタカナの変換設定には対応していない
 *----------------------------------------------------------------------------*/
 
 int ConvSMBtoSJIS(CODECONVINFO *cInfo)
@@ -773,16 +773,16 @@ int ConvSMBtoSJIS(CODECONVINFO *cInfo)
 }
 
 
-/*----- SHIFT-JIS�����R�[�h��EUC�����R�[�h�ɕϊ� ------------------------------
+/*----- SHIFT-JIS漢字コードをEUC漢字コードに変換 ------------------------------
 *
 *	Parameter
-*		CODECONVINFO *cInfo : �����R�[�h�ϊ����
+*		CODECONVINFO *cInfo : 漢字コード変換情報
 *
 *	Return Value
-*		int ����Ԃ��t���O (YES/NO)
+*		int くり返しフラグ (YES/NO)
 *
 *	Note
-*		����Ԃ��t���O��YES�̎��́AcInfo�̓��e��ς����ɂ�����x�ĂԂ���
+*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
 *----------------------------------------------------------------------------*/
 
 int ConvSJIStoEUC(CODECONVINFO *cInfo)
@@ -851,15 +851,15 @@ int ConvSJIStoEUC(CODECONVINFO *cInfo)
 }
 
 
-/*----- SHIFT-JIS-->EUC�����R�[�h�ɕϊ��̔��p�J�^�J�i�̏��� -------------------
+/*----- SHIFT-JIS-->EUC漢字コードに変換の半角カタカナの処理 -------------------
 *
 *	Parameter
-*		CODECONVINFO *cInfo : �����R�[�h�ϊ����
-*		char Dt : ����
-*		char *Put : �f�[�^�Z�b�g�ʒu
+*		CODECONVINFO *cInfo : 漢字コード変換情報
+*		char Dt : 文字
+*		char *Put : データセット位置
 *
 *	Return Value
-*		char *���̃f�[�^�Z�b�g�ʒu
+*		char *次のデータセット位置
 *----------------------------------------------------------------------------*/
 
 static char *ConvSJIStoEUCkanaProc(CODECONVINFO *cInfo, char Dt, char *Put)
@@ -897,21 +897,21 @@ static char *ConvSJIStoEUCkanaProc(CODECONVINFO *cInfo, char Dt, char *Put)
 }
 
 
-/*----- SHIFT-JIS�����R�[�h��JIS�����R�[�h�ɕϊ� ------------------------------
+/*----- SHIFT-JIS漢字コードをJIS漢字コードに変換 ------------------------------
 *
 *	Parameter
-*		CODECONVINFO *cInfo : �����R�[�h�ϊ����
+*		CODECONVINFO *cInfo : 漢字コード変換情報
 *
 *	Return Value
-*		int ����Ԃ��t���O (YES/NO)
+*		int くり返しフラグ (YES/NO)
 *
 *	Note
-*		����Ԃ��t���O��YES�̎��́AcInfo�̓��e��ς����ɂ�����x�ĂԂ���
+*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
 *
-*		�G�X�P�[�v�R�[�h�́A���̂��̂��g�p����
-*			�����J�n		<ESC>$B
-*			���p�J�i�J�n	<ESC>(I
-*			�����I��		<ESC>(B
+*		エスケープコードは、次のものを使用する
+*			漢字開始		<ESC>$B
+*			半角カナ開始	<ESC>(I
+*			漢字終了		<ESC>(B
 *----------------------------------------------------------------------------*/
 
 int ConvSJIStoJIS(CODECONVINFO *cInfo)
@@ -1003,15 +1003,15 @@ int ConvSJIStoJIS(CODECONVINFO *cInfo)
 }
 
 
-/*----- SHIFT-JIS-->JIS�����R�[�h�ɕϊ��̔��p�J�^�J�i�̏��� -------------------
+/*----- SHIFT-JIS-->JIS漢字コードに変換の半角カタカナの処理 -------------------
 *
 *	Parameter
-*		CODECONVINFO *cInfo : �����R�[�h�ϊ����
-*		char Dt : ����
-*		char *Put : �f�[�^�Z�b�g�ʒu
+*		CODECONVINFO *cInfo : 漢字コード変換情報
+*		char Dt : 文字
+*		char *Put : データセット位置
 *
 *	Return Value
-*		char *���̃f�[�^�Z�b�g�ʒu
+*		char *次のデータセット位置
 *----------------------------------------------------------------------------*/
 
 static char *ConvSJIStoJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put)
@@ -1061,18 +1061,18 @@ static char *ConvSJIStoJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put)
 }
 
 
-/*----- SHIFT-JIS�����R�[�h��Samba-HEX�����R�[�h�ɕϊ� ------------------------
+/*----- SHIFT-JIS漢字コードをSamba-HEX漢字コードに変換 ------------------------
 *
 *	Parameter
-*		CODECONVINFO *cInfo : �����R�[�h�ϊ����
+*		CODECONVINFO *cInfo : 漢字コード変換情報
 *
 *	Return Value
-*		int ����Ԃ��t���O (YES/NO)
+*		int くり返しフラグ (YES/NO)
 *
 *	Note
-*		����Ԃ��t���O��YES�̎��́AcInfo�̓��e��ς����ɂ�����x�ĂԂ���
-*		�������ꂽ���͕�����̕ϊ��̓T�|�[�g���Ă��Ȃ�
-*		���p�J�^�J�i�̕ϊ��ݒ�ɂ͑Ή����Ă��Ȃ�
+*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
+*		分割された入力文字列の変換はサポートしていない
+*		半角カタカナの変換設定には対応していない
 *----------------------------------------------------------------------------*/
 
 int ConvSJIStoSMB_HEX(CODECONVINFO *cInfo)
@@ -1120,17 +1120,17 @@ int ConvSJIStoSMB_HEX(CODECONVINFO *cInfo)
 }
 
 
-/*----- SHIFT-JIS�����R�[�h��Samba-CAP�����R�[�h�ɕϊ� ------------------------
+/*----- SHIFT-JIS漢字コードをSamba-CAP漢字コードに変換 ------------------------
 *
 *	Parameter
-*		CODECONVINFO *cInfo : �����R�[�h�ϊ����
+*		CODECONVINFO *cInfo : 漢字コード変換情報
 *
 *	Return Value
-*		int ����Ԃ��t���O (YES/NO)
+*		int くり返しフラグ (YES/NO)
 *
 *	Note
-*		����Ԃ��t���O��YES�̎��́AcInfo�̓��e��ς����ɂ�����x�ĂԂ���
-*		�������ꂽ���͕�����̕ϊ��̓T�|�[�g���Ă��Ȃ�
+*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
+*		分割された入力文字列の変換はサポートしていない
 *----------------------------------------------------------------------------*/
 
 int ConvSJIStoSMB_CAP(CODECONVINFO *cInfo)
@@ -1169,13 +1169,13 @@ int ConvSJIStoSMB_CAP(CODECONVINFO *cInfo)
 }
 
 
-/*----- �P�o�C�g�J�^�J�i��JIS�����R�[�h�ɕϊ� ---------------------------------
+/*----- １バイトカタカナをJIS漢字コードに変換 ---------------------------------
 *
 *	Parameter
-*		char Ch : �P�o�C�g�J�^�J�i�R�[�h
+*		char Ch : １バイトカタカナコード
 *
 *	Return Value
-*		int JIS�����R�[�h
+*		int JIS漢字コード
 *----------------------------------------------------------------------------*/
 
 static int HanKataToZen(char Ch)
@@ -1195,14 +1195,14 @@ static int HanKataToZen(char Ch)
 }
 
 
-/*----- �����^�������ɂȂ镶�����`�F�b�N --------------------------------------
+/*----- 濁音／半濁音になる文字かチェック --------------------------------------
 *
 *	Parameter
-*		char Ch : �P�o�C�g�J�^�J�i�R�[�h
-*		char Daku : ���_�^�����_
+*		char Ch : １バイトカタカナコード
+*		char Daku : 濁点／半濁点
 *
 *	Return Value
-*		int �����R�[�h�ɉ�����l (0=�����^�������ɂȂ�Ȃ�)
+*		int 文字コードに加える値 (0=濁音／半濁音にならない)
 *----------------------------------------------------------------------------*/
 
 static int AskDakuon(char Ch, char Daku)
@@ -1239,15 +1239,15 @@ static int AskDakuon(char Ch, char Daku)
 
 
 
-/*----- ������̊����R�[�h�𒲂ׁAShift-JIS�ɕϊ� -----------------------------
+/*----- 文字列の漢字コードを調べ、Shift-JISに変換 -----------------------------
 *
 *	Parameter
-*		char *Text : ������
-*		int Pref : SJIS/EUC�̗D��w��
-��			KANJI_SJIS / KANJI_EUC / KANJI_NOCNV=SJIS/EUC�̃`�F�b�N�͂��Ȃ�
+*		char *Text : 文字列
+*		int Pref : SJIS/EUCの優先指定
+＊			KANJI_SJIS / KANJI_EUC / KANJI_NOCNV=SJIS/EUCのチェックはしない
 *
 *	Return Value
-*		�Ȃ�
+*		なし
 *----------------------------------------------------------------------------*/
 
 void ConvAutoToSJIS(char *Text, int Pref)
@@ -1289,16 +1289,16 @@ void ConvAutoToSJIS(char *Text, int Pref)
 }
 
 
-/*----- �g���Ă��銿���R�[�h�𒲂ׂ� ----------------------------------------
+/*----- 使われている漢字コードを調べる ----------------------------------------
 *
 *	Parameter
-*		char *Text : ������
-*		int Size : ������̒���
-*		int Pref : SJIS/EUC�̗D��w��
-��			KANJI_SJIS / KANJI_EUC / KANJI_NOCNV=SJIS/EUC�̃`�F�b�N�͂��Ȃ�
+*		char *Text : 文字列
+*		int Size : 文字列の長さ
+*		int Pref : SJIS/EUCの優先指定
+＊			KANJI_SJIS / KANJI_EUC / KANJI_NOCNV=SJIS/EUCのチェックはしない
 *
 *	Return Value
-*		int �����R�[�h (KANJI_xxx)
+*		int 漢字コード (KANJI_xxx)
 *----------------------------------------------------------------------------*/
 
 int CheckKanjiCode(char *Text, int Size, int Pref)
@@ -1315,7 +1315,7 @@ int CheckKanjiCode(char *Text, int Size, int Pref)
 		Ret = -1;
 		Btm = Text + Size;
 
-		/* JIS�����R�[�h�̃`�F�b�N */
+		/* JIS漢字コードのチェック */
 		Pos = Text;
 		while((Pos = memchr(Pos, 0x1b, Btm-Pos-2)) != NULL)
 		{
@@ -1329,7 +1329,7 @@ int CheckKanjiCode(char *Text, int Size, int Pref)
 			}
 		}
 
-		/* EUC��SHIFT-JIS�����R�[�h�̃`�F�b�N */
+		/* EUCとSHIFT-JIS漢字コードのチェック */
 		if(Ret == -1)
 		{
 			if(Pref != KANJI_NOCNV)
@@ -1363,17 +1363,17 @@ int CheckKanjiCode(char *Text, int Size, int Pref)
 }
 
 
-/*----- SHIFT-JIS�R�[�h�̉\�������邩�`�F�b�N --------------------------------
+/*----- SHIFT-JISコードの可能性があるかチェック --------------------------------
 *
 *	Parameter
-*		uchar *Pos : ������
-*		uchar *Btm : ������̖���
+*		uchar *Pos : 文字列
+*		uchar *Btm : 文字列の末尾
 *
 *	Return Value
-*		int ���_
+*		int 得点
 *
 *	Note
-*		High	81-FF (A0-DF�͔��p)	(EB�ȍ~�͂قƂ�ǖ���)
+*		High	81-FF (A0-DFは半角)	(EB以降はほとんど無い)
 *		Low		40-FC
 *----------------------------------------------------------------------------*/
 
@@ -1388,36 +1388,36 @@ static int CheckOnSJIS(uchar *Pos, uchar *Btm)
 	{
 		if(FstOnTwo == YES)
 		{
-			if((*Pos < 0x40) || (*Pos > 0xFC))	/* 2�o�C�g�ڂ� 0x40�`0xFC */
+			if((*Pos < 0x40) || (*Pos > 0xFC))	/* 2バイト目は 0x40～0xFC */
 				Point = 0;
 			FstOnTwo = NO;
 		}
 		else if(*Pos >= 0x81)
 		{
-			if((*Pos < 0xA0) || (*Pos > 0xDF))	/* ���p�J�i�łȂ���� */
+			if((*Pos < 0xA0) || (*Pos > 0xDF))	/* 半角カナでなければ */
 			{
-				if(*Pos >= 0xEB)		/* 1�o�C�g�ڂ�0xEB�ȍ~�͂قƂ�ǖ��� */
+				if(*Pos >= 0xEB)		/* 1バイト目は0xEB以降はほとんど無い */
 					Point -= 50;
 				FstOnTwo = YES;
 			}
 		}
 		Pos++;
 	}
-	if(FstOnTwo == YES)		/* �P�o�C�g�ڂŏI����Ă���̂͂�������  */
+	if(FstOnTwo == YES)		/* １バイト目で終わっているのはおかしい  */
 		Point = 0;
 
 	return(Point);
 }
 
 
-/*----- EUC�R�[�h�̉\�������邩�`�F�b�N -------------------------------------
+/*----- EUCコードの可能性があるかチェック -------------------------------------
 *
 *	Parameter
-*		uchar *Pos : ������
-*		uchar *Btm : ������̖���
+*		uchar *Pos : 文字列
+*		uchar *Btm : 文字列の末尾
 *
 *	Return Value
-*		int ���_
+*		int 得点
 *
 *	Note
 *		High	A1-FE , 8E
@@ -1435,43 +1435,43 @@ static int CheckOnEUC(uchar *Pos, uchar *Btm)
 	{
 		if(FstOnTwo == 1)
 		{
-			if((*Pos < 0xA1) || (*Pos > 0xFE))	/* 2�o�C�g�ڂ� 0xA1�`0xFE */
+			if((*Pos < 0xA1) || (*Pos > 0xFE))	/* 2バイト目は 0xA1～0xFE */
 				Point = 0;
 			FstOnTwo = 0;
 		}
-		else if(FstOnTwo == 2)		/* ���p�J�i */
+		else if(FstOnTwo == 2)		/* 半角カナ */
 		{
-			if((*Pos < 0xA0) || (*Pos > 0xDF))	/* 2�o�C�g�ڂ� 0xA0�`0xDF */
+			if((*Pos < 0xA0) || (*Pos > 0xDF))	/* 2バイト目は 0xA0～0xDF */
 				Point = 0;
 			FstOnTwo = 0;
 		}
 		else
 		{
-			if(*Pos == 0x8E)		/* 0x8E??�͔��p�J�i */
+			if(*Pos == 0x8E)		/* 0x8E??は半角カナ */
 				FstOnTwo = 2;
 			else if((*Pos >= 0xA1) && (*Pos <= 0xFE))
 				FstOnTwo = 1;
 		}
 		Pos++;
 	}
-	if(FstOnTwo != 0)		/* �P�o�C�g�ڂŏI����Ă���̂͂�������  */
+	if(FstOnTwo != 0)		/* １バイト目で終わっているのはおかしい  */
 		Point = 0;
 
 	return(Point);
 }
 
 
-// UTF-8N�Ή� �������火
-/*----- UTF-8N�����R�[�h��SHIFT-JIS�����R�[�h�ɕϊ� ------------------------------
+// UTF-8N対応 ここから↓
+/*----- UTF-8N漢字コードをSHIFT-JIS漢字コードに変換 ------------------------------
 *
 *	Parameter
-*		CODECONVINFO *cInfo : �����R�[�h�ϊ����
+*		CODECONVINFO *cInfo : 漢字コード変換情報
 *
 *	Return Value
-*		int ����Ԃ��t���O (YES/NO)
+*		int くり返しフラグ (YES/NO)
 *
 *	Note
-*		����Ԃ��t���O��YES�̎��́AcInfo�̓��e��ς����ɂ�����x�ĂԂ���
+*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
 *----------------------------------------------------------------------------*/
 
 int ConvUTF8NtoSJIS(CODECONVINFO *cInfo)
@@ -1483,19 +1483,19 @@ int ConvUTF8NtoSJIS(CODECONVINFO *cInfo)
 
 	Continue = NO;
 
-	// ��������钆�ԃR�[�h�̃T�C�Y�𒲂ׂ�
+	// 生成される中間コードのサイズを調べる
 	string_length = MultiByteToWideChar(
-						CP_UTF8,		// �ϊ��敶���R�[�h
-						0,				// �t���O(0:�Ȃ�)
-						cInfo->Str,		// �ϊ���������
-						-1,				// �ϊ���������o�C�g��(-1:����)
-						NULL,			// �ϊ�����������̊i�[��
-						0				// �i�[��T�C�Y
+						CP_UTF8,		// 変換先文字コード
+						0,				// フラグ(0:なし)
+						cInfo->Str,		// 変換元文字列
+						-1,				// 変換元文字列バイト数(-1:自動)
+						NULL,			// 変換した文字列の格納先
+						0				// 格納先サイズ
 					);
 
-	// �T�C�Y0 or �o�b�t�@�T�C�Y���傫���ꍇ��
-	// cInfo->Buf�̍ŏ���'\0'�����āA
-	// cInfo->BufSize��0�����ĕԂ��B
+	// サイズ0 or バッファサイズより大きい場合は
+	// cInfo->Bufの最初に'\0'を入れて、
+	// cInfo->BufSizeに0を入れて返す。
 	if( string_length == 0 ||
 		string_length >= 1024 ){
 		*(cInfo->Buf) = '\0';
@@ -1503,30 +1503,30 @@ int ConvUTF8NtoSJIS(CODECONVINFO *cInfo)
 		return(Continue);
 	}
 
-	// ���ԃR�[�h(unicode)�ɕϊ�
+	// 中間コード(unicode)に変換
 	MultiByteToWideChar(
-		CP_UTF8,						// �ϊ��敶���R�[�h
-		0,								// �t���O(0:�Ȃ�)
-		cInfo->Str,						// �ϊ���������
-		-1,								// �ϊ���������o�C�g��(-1:����)
-		(unsigned short *)temp_string,	// �ϊ�����������̊i�[��
-		1024							// �i�[��T�C�Y
+		CP_UTF8,						// 変換先文字コード
+		0,								// フラグ(0:なし)
+		cInfo->Str,						// 変換元文字列
+		-1,								// 変換元文字列バイト数(-1:自動)
+		(unsigned short *)temp_string,	// 変換した文字列の格納先
+		1024							// 格納先サイズ
 	);
 
-	// ���������UTF-8�R�[�h�̃T�C�Y�𒲂ׂ�
+	// 生成されるUTF-8コードのサイズを調べる
 	string_length = WideCharToMultiByte(
-						CP_ACP,			// �ϊ��敶���R�[�h
-						0,				// �t���O(0:�Ȃ�)
-						(unsigned short *)temp_string,	// �ϊ���������
-						-1,				// �ϊ���������o�C�g��(-1:����)
-						NULL,			// �ϊ�����������̊i�[��
-						0,				// �i�[��T�C�Y
+						CP_ACP,			// 変換先文字コード
+						0,				// フラグ(0:なし)
+						(unsigned short *)temp_string,	// 変換元文字列
+						-1,				// 変換元文字列バイト数(-1:自動)
+						NULL,			// 変換した文字列の格納先
+						0,				// 格納先サイズ
 						NULL,NULL
 					);
 
-	// �T�C�Y0 or �o�̓o�b�t�@�T�C�Y���傫���ꍇ�́A
-	// cInfo->Buf�̍ŏ���'\0'�����āA
-	// cInfo->BufSize��0�����ĕԂ��B
+	// サイズ0 or 出力バッファサイズより大きい場合は、
+	// cInfo->Bufの最初に'\0'を入れて、
+	// cInfo->BufSizeに0を入れて返す。
 	if( string_length == 0 ||
 		string_length >= cInfo->BufSize ){
 		*(cInfo->Buf) = '\0';
@@ -1534,33 +1534,33 @@ int ConvUTF8NtoSJIS(CODECONVINFO *cInfo)
 		return(Continue);
 	}
 
-	// �o�̓T�C�Y��ݒ�
+	// 出力サイズを設定
 	cInfo->OutLen = string_length;
 
-	// UTF-8�R�[�h�ɕϊ�
+	// UTF-8コードに変換
 	WideCharToMultiByte(
-		CP_ACP,							// �ϊ��敶���R�[�h
-		0,								// �t���O(0:�Ȃ�)
-		(unsigned short *)temp_string,	// �ϊ���������
-		-1,								// �ϊ���������o�C�g��(-1:����)
-		cInfo->Buf,						// �ϊ�����������̊i�[��(BOM:3bytes)
-		cInfo->BufSize,					// �i�[��T�C�Y
+		CP_ACP,							// 変換先文字コード
+		0,								// フラグ(0:なし)
+		(unsigned short *)temp_string,	// 変換元文字列
+		-1,								// 変換元文字列バイト数(-1:自動)
+		cInfo->Buf,						// 変換した文字列の格納先(BOM:3bytes)
+		cInfo->BufSize,					// 格納先サイズ
 		NULL,NULL
 	);
 
 	return(Continue);
 }
 
-/*----- SHIFT-JIS�����R�[�h��UTF-8N�����R�[�h�ɕϊ� ------------------------------
+/*----- SHIFT-JIS漢字コードをUTF-8N漢字コードに変換 ------------------------------
 *
 *	Parameter
-*		CODECONVINFO *cInfo : �����R�[�h�ϊ����
+*		CODECONVINFO *cInfo : 漢字コード変換情報
 *
 *	Return Value
-*		int ����Ԃ��t���O (YES/NO)
+*		int くり返しフラグ (YES/NO)
 *
 *	Note
-*		����Ԃ��t���O��YES�̎��́AcInfo�̓��e��ς����ɂ�����x�ĂԂ���
+*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
 *----------------------------------------------------------------------------*/
 int ConvSJIStoUTF8N(CODECONVINFO *cInfo)
 {
@@ -1571,19 +1571,19 @@ int ConvSJIStoUTF8N(CODECONVINFO *cInfo)
 
 	Continue = NO;
 
-	// ��������钆�ԃR�[�h�̃T�C�Y�𒲂ׂ�
+	// 生成される中間コードのサイズを調べる
 	string_length = MultiByteToWideChar(
-						CP_ACP,			// �ϊ��敶���R�[�h
-						0,				// �t���O(0:�Ȃ�)
-						cInfo->Str,		// �ϊ���������
-						-1,				// �ϊ���������o�C�g��(-1:����)
-						NULL,			// �ϊ�����������̊i�[��
-						0				// �i�[��T�C�Y
+						CP_ACP,			// 変換先文字コード
+						0,				// フラグ(0:なし)
+						cInfo->Str,		// 変換元文字列
+						-1,				// 変換元文字列バイト数(-1:自動)
+						NULL,			// 変換した文字列の格納先
+						0				// 格納先サイズ
 					);
 
-	// �T�C�Y0 or �o�b�t�@�T�C�Y���傫���ꍇ�́A
-	// cInfo->Buf�̍ŏ���'\0'�����āA
-	// cInfo->BufSize��0�����ĕԂ��B
+	// サイズ0 or バッファサイズより大きい場合は、
+	// cInfo->Bufの最初に'\0'を入れて、
+	// cInfo->BufSizeに0を入れて返す。
 	if( string_length == 0 ||
 		string_length >= 1024 ){
 		*(cInfo->Buf) = '\0';
@@ -1591,30 +1591,30 @@ int ConvSJIStoUTF8N(CODECONVINFO *cInfo)
 		return(Continue);
 	}
 
-	// ���ԃR�[�h(unicode)�ɕϊ�
+	// 中間コード(unicode)に変換
 	MultiByteToWideChar(
-		CP_ACP,							// �ϊ��敶���R�[�h
-		0,								// �t���O(0:�Ȃ�)
-		cInfo->Str,						// �ϊ���������
-		-1,								// �ϊ���������o�C�g��(-1:����)
-		(unsigned short *)temp_string,	// �ϊ�����������̊i�[��
-		1024							// �i�[��T�C�Y
+		CP_ACP,							// 変換先文字コード
+		0,								// フラグ(0:なし)
+		cInfo->Str,						// 変換元文字列
+		-1,								// 変換元文字列バイト数(-1:自動)
+		(unsigned short *)temp_string,	// 変換した文字列の格納先
+		1024							// 格納先サイズ
 	);
 
-	// ���������UTF-8�R�[�h�̃T�C�Y�𒲂ׂ�
+	// 生成されるUTF-8コードのサイズを調べる
 	string_length = WideCharToMultiByte(
-						CP_UTF8,		// �ϊ��敶���R�[�h
-						0,				// �t���O(0:�Ȃ�)
-						(unsigned short *)temp_string,	// �ϊ���������
-						-1,				// �ϊ���������o�C�g��(-1:����)
-						NULL,			// �ϊ�����������̊i�[��
-						0,				// �i�[��T�C�Y
+						CP_UTF8,		// 変換先文字コード
+						0,				// フラグ(0:なし)
+						(unsigned short *)temp_string,	// 変換元文字列
+						-1,				// 変換元文字列バイト数(-1:自動)
+						NULL,			// 変換した文字列の格納先
+						0,				// 格納先サイズ
 						NULL,NULL
 					);
 
-	// �T�C�Y0 or �o�̓o�b�t�@�T�C�Y���傫���ꍇ�́A
-	// cInfo->Buf�̍ŏ���'\0'�����āA
-	// cInfo->BufSize��0�����ĕԂ��B
+	// サイズ0 or 出力バッファサイズより大きい場合は、
+	// cInfo->Bufの最初に'\0'を入れて、
+	// cInfo->BufSizeに0を入れて返す。
 	if( string_length == 0 ||
 		string_length >= cInfo->BufSize ){
 		*(cInfo->Buf) = '\0';
@@ -1622,40 +1622,40 @@ int ConvSJIStoUTF8N(CODECONVINFO *cInfo)
 		return(Continue);
 	}
 
-	// �o�̓T�C�Y��ݒ�
+	// 出力サイズを設定
 	cInfo->OutLen = string_length;
 
 	/*
-	// ���t�����Ⴞ�� �R�}���h�ɂ��ǉ�����Ă��܂�
-	// �o�͕�����̐擪��BOM(byte order mark)������
+	// ↓付けちゃだめ コマンドにも追加されてしまう
+	// 出力文字列の先頭にBOM(byte order mark)をつける
 	*(cInfo->Buf) = (char)0xef;
 	*(cInfo->Buf+1) = (char)0xbb;
 	*(cInfo->Buf+2) = (char)0xbf;
 	*/
 
-	// UTF-8�R�[�h�ɕϊ�
+	// UTF-8コードに変換
 	WideCharToMultiByte(
-		CP_UTF8,						// �ϊ��敶���R�[�h
-		0,								// �t���O(0:�Ȃ�)
-		(unsigned short *)temp_string,	// �ϊ���������
-		-1,								// �ϊ���������o�C�g��(-1:����)
-		cInfo->Buf,					// �ϊ�����������̊i�[��(BOM:3bytes)
-		cInfo->BufSize,					// �i�[��T�C�Y
+		CP_UTF8,						// 変換先文字コード
+		0,								// フラグ(0:なし)
+		(unsigned short *)temp_string,	// 変換元文字列
+		-1,								// 変換元文字列バイト数(-1:自動)
+		cInfo->Buf,					// 変換した文字列の格納先(BOM:3bytes)
+		cInfo->BufSize,					// 格納先サイズ
 		NULL,NULL
 	);
 
 	return(Continue);
 }
-// UTF-8N�Ή� �����܂Ł�
+// UTF-8N対応 ここまで↑
 
 
-/*----- IBM�g��������NEC�I��IBM�g���������ɕϊ� -------------------------------
+/*----- IBM拡張漢字をNEC選定IBM拡張漢字等に変換 -------------------------------
 *
 *	Parameter
-*		code	�����R�[�h
+*		code	漢字コード
 *
 *	Return Value
-*		int �����R�[�h
+*		int 漢字コード
 *----------------------------------------------------------------------------*/
 static int ConvertIBMExtendedChar(int code)
 {

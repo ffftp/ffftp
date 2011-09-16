@@ -1,4 +1,4 @@
-/* MD4.H - header file for MD4C.C
+﻿/* MD4.H - header file for MD4C.C
  */
 
 /* Copyright (C) 1991-2, RSA Data Security, Inc. Created 1991. All

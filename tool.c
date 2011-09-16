@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*									ƒc[ƒ‹
+*									ãƒ„ãƒ¼ãƒ«
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -42,23 +42,23 @@
 #include "helpid.h"
 
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static BOOL CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 
-/*===== ŠO•”ŽQÆ =====*/
+/*===== å¤–éƒ¨å‚ç…§ =====*/
 
 extern HWND hHelpWin;
 
 
-/*----- ƒƒ“ƒ^ƒCƒ€ƒpƒXƒ[ƒhŒvŽZ ----------------------------------------------
+/*----- ãƒ¯ãƒ³ã‚¿ã‚¤ãƒ ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰è¨ˆç®— ----------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void OtpCalcTool(void)
@@ -68,13 +68,13 @@ void OtpCalcTool(void)
 }
 
 
-/*----- ƒƒ“ƒ^ƒCƒ€ƒpƒXƒ[ƒhŒvŽZƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ----------------------
+/*----- ãƒ¯ãƒ³ã‚¿ã‚¤ãƒ ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰è¨ˆç®—ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ----------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE

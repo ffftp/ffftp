@@ -1,4 +1,4 @@
-/* MD5.H - header file for MD5C.C
+﻿/* MD5.H - header file for MD5C.C
  */
 
 /* Copyright (C) 1991-2, RSA Data Security, Inc. Created 1991. All

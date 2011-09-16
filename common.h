@@ -1,5 +1,5 @@
-/*=============================================================================
-*							‚e‚e‚e‚s‚o‹¤’Ê’è‹`ƒtƒ@ƒCƒ‹
+ï»¿/*=============================================================================
+*							ï¼¦ï¼¦ï¼¦ï¼´ï¼°å…±é€šå®šç¾©ãƒ•ã‚¡ã‚¤ãƒ«
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -61,37 +61,37 @@
 #define YES_ALL			3
 #define YES_LIST		4
 
-/*===== ƒo[ƒWƒ‡ƒ“ ======*/
+/*===== ãƒãƒ¼ã‚¸ãƒ§ãƒ³ ======*/
 
 #define VER_STR					"1.97b"
-#define VER_NUM					1921		/* Ý’èƒo[ƒWƒ‡ƒ“ */
-#define PROGRAM_VERSION_NUM		1972		/* ƒo[ƒWƒ‡ƒ“ */
+#define VER_NUM					1921		/* è¨­å®šãƒãƒ¼ã‚¸ãƒ§ãƒ³ */
+#define PROGRAM_VERSION_NUM		1972		/* ãƒãƒ¼ã‚¸ãƒ§ãƒ³ */
 
 
 #define MYWEB_URL	"http://www2.biglobe.ne.jp/~sota/ffftp-qa.html"
 
 
 
-/*===== ’ÊMŠÖŒW ======*/
+/*===== é€šä¿¡é–¢ä¿‚ ======*/
 
 #define TCP_PORT		6
 
-/*===== ƒEƒCƒ“ƒhƒEƒTƒCƒY ======*/
+/*===== ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚µã‚¤ã‚º ======*/
 
-#define TOOLWIN_HEIGHT	28		/* ƒc[ƒ‹ƒo[‚Ì‚‚³ */
+#define TOOLWIN_HEIGHT	28		/* ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã®é«˜ã• */
 
-/*===== “ÁŽê‚ÈƒLƒƒƒbƒVƒ…ƒf[ƒ^”Ô† =====*/
-/* iƒtƒ@ƒCƒ‹ˆê——Žæ“¾‚ÅŽg—p‚·‚éƒ[ƒJƒ‹ƒtƒ@ƒCƒ‹–¼ _ffftp.??? ‚Ì”Ô†•”•ªj */
+/*===== ç‰¹æ®Šãªã‚­ãƒ£ãƒƒã‚·ãƒ¥ãƒ‡ãƒ¼ã‚¿ç•ªå· =====*/
+/* ï¼ˆãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§å–å¾—ã§ä½¿ç”¨ã™ã‚‹ãƒ­ãƒ¼ã‚«ãƒ«ãƒ•ã‚¡ã‚¤ãƒ«å _ffftp.??? ã®ç•ªå·éƒ¨åˆ†ï¼‰ */
 
-#define CACHE_FILE_TMP1	999		/* ƒzƒXƒg‚Ìƒtƒ@ƒCƒ‹ƒcƒŠ[Žæ“¾—p */
-#define CACHE_FILE_TMP2	998		/* ƒAƒbƒvƒ[ƒh’†‚ÌƒzƒXƒg‚Ìƒtƒ@ƒCƒ‹ˆê——Žæ“¾—p */
+#define CACHE_FILE_TMP1	999		/* ãƒ›ã‚¹ãƒˆã®ãƒ•ã‚¡ã‚¤ãƒ«ãƒ„ãƒªãƒ¼å–å¾—ç”¨ */
+#define CACHE_FILE_TMP2	998		/* ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ä¸­ã®ãƒ›ã‚¹ãƒˆã®ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§å–å¾—ç”¨ */
 
-/*===== ƒ†[ƒU’è‹`ƒRƒ}ƒ“ƒh =====*/
+/*===== ãƒ¦ãƒ¼ã‚¶å®šç¾©ã‚³ãƒžãƒ³ãƒ‰ =====*/
 
-#define WM_CHANGE_COND	(WM_USER+1)	/* ƒtƒ@ƒCƒ‹ˆê——‚ð•ÏX‚·‚éƒRƒ}ƒ“ƒh */
-#define WM_SET_PACKET	(WM_USER+2)	/* Œ»ÝŽg—p‚µ‚Ä‚¢‚é“]‘—ƒpƒPƒbƒg‚ÌƒAƒhƒŒƒX‚ð’Ê’m */
-#define WM_SELECT_HOST	(WM_USER+3)	/* ƒzƒXƒg‚ðƒ_ƒuƒ‹ƒNƒŠƒbƒN‚Å‘I‘ð‚µ‚½ */
-#define WM_DIAL_MSG		(WM_USER+4)	/* ƒ_ƒCƒAƒ‹’†‚ÌƒXƒe[ƒ^ƒX’Ê’m */
+#define WM_CHANGE_COND	(WM_USER+1)	/* ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã‚’å¤‰æ›´ã™ã‚‹ã‚³ãƒžãƒ³ãƒ‰ */
+#define WM_SET_PACKET	(WM_USER+2)	/* ç¾åœ¨ä½¿ç”¨ã—ã¦ã„ã‚‹è»¢é€ãƒ‘ã‚±ãƒƒãƒˆã®ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’é€šçŸ¥ */
+#define WM_SELECT_HOST	(WM_USER+3)	/* ãƒ›ã‚¹ãƒˆã‚’ãƒ€ãƒ–ãƒ«ã‚¯ãƒªãƒƒã‚¯ã§é¸æŠžã—ãŸ */
+#define WM_DIAL_MSG		(WM_USER+4)	/* ãƒ€ã‚¤ã‚¢ãƒ«ä¸­ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹é€šçŸ¥ */
 
 #define WM_ASYNC_SOCKET	(WM_USER+5)
 #define WM_ASYNC_DBASE	(WM_USER+6)
@@ -99,62 +99,62 @@
 #define WM_REFRESH_LOCAL_FLG	(WM_USER+7)
 #define WM_REFRESH_REMOTE_FLG	(WM_USER+8)
 
-/*===== ƒzƒXƒg”Ô† =====*/
-/* ƒzƒXƒg”Ô†‚Í 0` ‚Ì’l‚ðŽæ‚é */
+/*===== ãƒ›ã‚¹ãƒˆç•ªå· =====*/
+/* ãƒ›ã‚¹ãƒˆç•ªå·ã¯ 0ï½ž ã®å€¤ã‚’å–ã‚‹ */
 
-#define HOSTNUM_NOENTRY	(-1)	/* ƒzƒXƒgˆê——‚É–³‚¢‚Æ‚«‚ÌƒzƒXƒg”Ô† */
+#define HOSTNUM_NOENTRY	(-1)	/* ãƒ›ã‚¹ãƒˆä¸€è¦§ã«ç„¡ã„ã¨ãã®ãƒ›ã‚¹ãƒˆç•ªå· */
 
-/*===== ƒoƒbƒtƒ@ƒTƒCƒY =====*/
+/*===== ãƒãƒƒãƒ•ã‚¡ã‚µã‚¤ã‚º =====*/
 
-#define BUFSIZE			4096	/* ƒtƒ@ƒCƒ‹“]‘—ƒoƒbƒtƒ@‚ÌƒTƒCƒY(4kˆÈã) */
+#define BUFSIZE			4096	/* ãƒ•ã‚¡ã‚¤ãƒ«è»¢é€ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º(4kä»¥ä¸Š) */
 
-#define HOST_NAME_LEN	40		/* ˆê——‚É•\Ž¦‚·‚éƒzƒXƒg‚Ì–¼‘O */
-#define HOST_ADRS_LEN	80		/* ƒzƒXƒg–¼ */
-#define USER_NAME_LEN	80		/* ƒ†[ƒU–¼ */
-#define PASSWORD_LEN	80		/* ƒpƒXƒ[ƒh */
-#define ACCOUNT_LEN		80		/* ƒAƒJƒEƒ“ƒg */
-#define HOST_TYPE_LEN	1		/* ƒzƒXƒg‚ÌŽí—Þ */
-#define INIT_DIR_LEN	(FMAX_PATH-40)	/* ‰ŠúƒfƒBƒŒƒNƒgƒŠ */
-#define USER_MAIL_LEN	80		/* ƒ†[ƒU‚Ìƒ[ƒ‹ƒAƒhƒŒƒX */
-								/*   PASSWORD_LEN ‚Æ“¯‚¶‚É‚·‚é‚±‚Æ */
-#define ASCII_EXT_LEN	400		/* ƒAƒXƒL[ƒ‚[ƒh“]‘—‚Ìƒtƒ@ƒCƒ‹–¼—ñ */
-#define FILTER_EXT_LEN	400		/* ƒtƒBƒ‹ƒ^‚Ìƒtƒ@ƒCƒ‹–¼—ñ */
-#define BOOKMARK_SIZE	2048	/* ƒuƒbƒNƒ}[ƒN */
-#define CHMOD_CMD_LEN	40		/* ‘®«•ÏXƒRƒ}ƒ“ƒh */
-#define MIRROR_LEN		400		/* ƒ~ƒ‰[ƒŠƒ“ƒO‚ÌÝ’è—p */
-#define NLST_NAME_LEN	40		/* NLST‚É•t‚¯‚éƒtƒ@ƒCƒ‹–¼^ƒIƒvƒVƒ‡ƒ“ */
-#define DEFATTRLIST_LEN	800		/* ‘®«ƒŠƒXƒg‚Ì’·‚³ */
-#define INITCMD_LEN		256		/* ‰Šú‰»ƒRƒ}ƒ“ƒh */
-#define OWNER_NAME_LEN	40		/* ƒI[ƒi–¼ */
-#define RAS_NAME_LEN	256		/* RAS‚ÌƒGƒ“ƒgƒŠ–¼‚Ì’·‚³ */
+#define HOST_NAME_LEN	40		/* ä¸€è¦§ã«è¡¨ç¤ºã™ã‚‹ãƒ›ã‚¹ãƒˆã®åå‰ */
+#define HOST_ADRS_LEN	80		/* ãƒ›ã‚¹ãƒˆå */
+#define USER_NAME_LEN	80		/* ãƒ¦ãƒ¼ã‚¶å */
+#define PASSWORD_LEN	80		/* ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ */
+#define ACCOUNT_LEN		80		/* ã‚¢ã‚«ã‚¦ãƒ³ãƒˆ */
+#define HOST_TYPE_LEN	1		/* ãƒ›ã‚¹ãƒˆã®ç¨®é¡ž */
+#define INIT_DIR_LEN	(FMAX_PATH-40)	/* åˆæœŸãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª */
+#define USER_MAIL_LEN	80		/* ãƒ¦ãƒ¼ã‚¶ã®ãƒ¡ãƒ¼ãƒ«ã‚¢ãƒ‰ãƒ¬ã‚¹ */
+								/*   PASSWORD_LEN ã¨åŒã˜ã«ã™ã‚‹ã“ã¨ */
+#define ASCII_EXT_LEN	400		/* ã‚¢ã‚¹ã‚­ãƒ¼ãƒ¢ãƒ¼ãƒ‰è»¢é€ã®ãƒ•ã‚¡ã‚¤ãƒ«ååˆ— */
+#define FILTER_EXT_LEN	400		/* ãƒ•ã‚£ãƒ«ã‚¿ã®ãƒ•ã‚¡ã‚¤ãƒ«ååˆ— */
+#define BOOKMARK_SIZE	2048	/* ãƒ–ãƒƒã‚¯ãƒžãƒ¼ã‚¯ */
+#define CHMOD_CMD_LEN	40		/* å±žæ€§å¤‰æ›´ã‚³ãƒžãƒ³ãƒ‰ */
+#define MIRROR_LEN		400		/* ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°ã®è¨­å®šç”¨ */
+#define NLST_NAME_LEN	40		/* NLSTã«ä»˜ã‘ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«åï¼ã‚ªãƒ—ã‚·ãƒ§ãƒ³ */
+#define DEFATTRLIST_LEN	800		/* å±žæ€§ãƒªã‚¹ãƒˆã®é•·ã• */
+#define INITCMD_LEN		256		/* åˆæœŸåŒ–ã‚³ãƒžãƒ³ãƒ‰ */
+#define OWNER_NAME_LEN	40		/* ã‚ªãƒ¼ãƒŠå */
+#define RAS_NAME_LEN	256		/* RASã®ã‚¨ãƒ³ãƒˆãƒªåã®é•·ã• */
 
 #define FMAX_PATH		1024
 
 #define ONELINE_BUF_SIZE	(10*1024)
 
-/*===== ‰Šú’l =====*/
+/*===== åˆæœŸå€¤ =====*/
 
-#define SAMBA_HEX_TAG	':'				/* Samba-HEX ‚Ì‹æØ‚è•¶Žš */
-#define CHMOD_CMD_NOR	"SITE CHMOD"	/* ‘®«•ÏXƒRƒ}ƒ“ƒh */
-#define PORT_NOR		21				/* ƒ|[ƒg”Ô† */
-#define LS_FNAME		"-alL"			/* NLST‚É•t‚¯‚é‚à‚Ì */
+#define SAMBA_HEX_TAG	':'				/* Samba-HEX ã®åŒºåˆ‡ã‚Šæ–‡å­— */
+#define CHMOD_CMD_NOR	"SITE CHMOD"	/* å±žæ€§å¤‰æ›´ã‚³ãƒžãƒ³ãƒ‰ */
+#define PORT_NOR		21				/* ãƒãƒ¼ãƒˆç•ªå· */
+#define LS_FNAME		"-alL"			/* NLSTã«ä»˜ã‘ã‚‹ã‚‚ã® */
 
-/*===== “¯‚¶–¼‘O‚Ìƒtƒ@ƒCƒ‹‚ª‚ ‚Á‚½Žž‚Ìˆ— =====*/
+/*===== åŒã˜åå‰ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒã‚ã£ãŸæ™‚ã®å‡¦ç† =====*/
 
-#define EXIST_OVW		0		/* ã‘‚« */
-#define EXIST_NEW		1		/* V‚µ‚¯‚ê‚Îã‘‚« */
-#define EXIST_RESUME	2		/* ƒŒƒWƒ…[ƒ€ */
-#define EXIST_IGNORE	3		/* –³Ž‹ */
-#define EXIST_UNIQUE	4		/* ƒzƒXƒg‚ª–¼‘O‚ð•t‚¯‚é */
-#define EXIST_ABORT		5		/* ‘S‚Ä’†Ž~ */
+#define EXIST_OVW		0		/* ä¸Šæ›¸ã */
+#define EXIST_NEW		1		/* æ–°ã—ã‘ã‚Œã°ä¸Šæ›¸ã */
+#define EXIST_RESUME	2		/* ãƒ¬ã‚¸ãƒ¥ãƒ¼ãƒ  */
+#define EXIST_IGNORE	3		/* ç„¡è¦– */
+#define EXIST_UNIQUE	4		/* ãƒ›ã‚¹ãƒˆãŒåå‰ã‚’ä»˜ã‘ã‚‹ */
+#define EXIST_ABORT		5		/* å…¨ã¦ä¸­æ­¢ */
 
-/*===== ƒtƒ@ƒCƒ‹–¼‚Ì”äŠrƒ‚[ƒh =====*/
+/*===== ãƒ•ã‚¡ã‚¤ãƒ«åã®æ¯”è¼ƒãƒ¢ãƒ¼ãƒ‰ =====*/
 
-#define COMP_IGNORE		0		/* ‘å•¶Žš/¬•¶Žš‚Í‹æ•Ê‚µ‚È‚¢ */
-#define COMP_STRICT		1		/* ‘å•¶Žš/¬•¶Žš‚ð‹æ•Ê‚·‚é */
-#define COMP_LOWERMATCH	2		/* ‘å•¶Žš/¬•¶Žš‚ð‹æ•Ê‚µ‚È‚¢i•Ð‘¤‚Í‘S‚Ä¬•¶Žšj */
+#define COMP_IGNORE		0		/* å¤§æ–‡å­—/å°æ–‡å­—ã¯åŒºåˆ¥ã—ãªã„ */
+#define COMP_STRICT		1		/* å¤§æ–‡å­—/å°æ–‡å­—ã‚’åŒºåˆ¥ã™ã‚‹ */
+#define COMP_LOWERMATCH	2		/* å¤§æ–‡å­—/å°æ–‡å­—ã‚’åŒºåˆ¥ã—ãªã„ï¼ˆç‰‡å´ã¯å…¨ã¦å°æ–‡å­—ï¼‰ */
 
-/*===== FTP‚Ì‰ž“šƒR[ƒh‚Ì“ª‚PŒ… =====*/
+/*===== FTPã®å¿œç­”ã‚³ãƒ¼ãƒ‰ã®é ­ï¼‘æ¡ =====*/
 
 #define FTP_PRELIM		1		/* */
 #define FTP_COMPLETE	2		/* */
@@ -162,80 +162,80 @@
 #define FTP_RETRY		4		/* */
 #define FTP_ERROR		5		/* */
 
-/*===== ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ìƒm[ƒh‘®« =====*/
+/*===== ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®ãƒŽãƒ¼ãƒ‰å±žæ€§ =====*/
 
-#define NODE_DIR		0		/* ƒfƒBƒŒƒNƒgƒŠ */
-#define NODE_FILE		1		/* ƒtƒ@ƒCƒ‹ */
-#define NODE_DRIVE		2		/* ƒhƒ‰ƒCƒu */
-#define NODE_NONE		(-1)	/* ‚È‚µ */
+#define NODE_DIR		0		/* ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª */
+#define NODE_FILE		1		/* ãƒ•ã‚¡ã‚¤ãƒ« */
+#define NODE_DRIVE		2		/* ãƒ‰ãƒ©ã‚¤ãƒ– */
+#define NODE_NONE		(-1)	/* ãªã— */
 
-/*===== ã‘‚«Šm”F•û–@‚ÌÝ’è’l =====*/
+/*===== ä¸Šæ›¸ãç¢ºèªæ–¹æ³•ã®è¨­å®šå€¤ =====*/
 
-#define TRANS_OVW		0		/* ã‘‚« */
-#define TRANS_DLG		1		/* ƒ_ƒCƒAƒƒO‚ðo‚· */
+#define TRANS_OVW		0		/* ä¸Šæ›¸ã */
+#define TRANS_DLG		1		/* ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’å‡ºã™ */
 
-/*===== ƒzƒXƒg“àƒtƒ@ƒCƒ‹ˆÚ“®Šm”F•û–@‚ÌÝ’è’l =====*/
+/*===== ãƒ›ã‚¹ãƒˆå†…ãƒ•ã‚¡ã‚¤ãƒ«ç§»å‹•ç¢ºèªæ–¹æ³•ã®è¨­å®šå€¤ =====*/
 
-#define MOVE_NODLG		0		/* ƒ_ƒCƒAƒƒO‚ðo‚³‚È‚¢ */
-#define MOVE_DLG		1		/* ƒ_ƒCƒAƒƒO‚ðo‚· */
-#define MOVE_DISABLE	2		/* ‹@”\Žg—p‹ÖŽ~ */
+#define MOVE_NODLG		0		/* ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’å‡ºã•ãªã„ */
+#define MOVE_DLG		1		/* ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’å‡ºã™ */
+#define MOVE_DISABLE	2		/* æ©Ÿèƒ½ä½¿ç”¨ç¦æ­¢ */
 
-/*===== “]‘—•û–@ =====*/
+/*===== è»¢é€æ–¹æ³• =====*/
 
-#define TYPE_I			'I'		/* ƒoƒCƒiƒŠƒ‚[ƒh */
-#define TYPE_A			'A'		/* ƒAƒXƒL[ƒ‚[ƒh */
-#define TYPE_X			'X'		/* Ž©“®”»•Ê */
+#define TYPE_I			'I'		/* ãƒã‚¤ãƒŠãƒªãƒ¢ãƒ¼ãƒ‰ */
+#define TYPE_A			'A'		/* ã‚¢ã‚¹ã‚­ãƒ¼ãƒ¢ãƒ¼ãƒ‰ */
+#define TYPE_X			'X'		/* è‡ªå‹•åˆ¤åˆ¥ */
 
-#define TYPE_DEFAULT	NUL		/* Ý’è‚µ‚È‚¢ DirectConnectProc()‚Ìˆø”‚Æ‚µ‚Ä—LŒø */
+#define TYPE_DEFAULT	NUL		/* è¨­å®šã—ãªã„ DirectConnectProc()ã®å¼•æ•°ã¨ã—ã¦æœ‰åŠ¹ */
 
-/*===== ƒ\[ƒg•û–@ =====*/
-/* ”Ô†‚ÍListView‚ÌƒJƒ‰ƒ€”Ô†‚Æ‡‚í‚¹‚Ä‚ ‚é */
+/*===== ã‚½ãƒ¼ãƒˆæ–¹æ³• =====*/
+/* ç•ªå·ã¯ListViewã®ã‚«ãƒ©ãƒ ç•ªå·ã¨åˆã‚ã›ã¦ã‚ã‚‹ */
 
-#define SORT_NAME		0		/* –¼‘O‡ */
-#define SORT_DATE		1		/* “ú•t‡ */
-#define SORT_SIZE		2		/* ƒTƒCƒY‡ */
-#define SORT_EXT		3		/* Šg’£Žq‡ */
+#define SORT_NAME		0		/* åå‰é † */
+#define SORT_DATE		1		/* æ—¥ä»˜é † */
+#define SORT_SIZE		2		/* ã‚µã‚¤ã‚ºé † */
+#define SORT_EXT		3		/* æ‹¡å¼µå­é † */
 
-#define SORT_ASCENT		0x00	/* ¸‡ */
-#define SORT_DESCENT	0x80	/* ~‡ */
+#define SORT_ASCENT		0x00	/* æ˜‡é † */
+#define SORT_DESCENT	0x80	/* é™é † */
 
-#define SORT_MASK_ORD	0x7F	/* ‚˜‚˜‡‚ðŽæ‚èo‚·ƒ}ƒXƒN */
-#define SORT_GET_ORD	0x80	/* ¸‡^~‡‚ðŽæ‚èo‚·ƒ}ƒXƒN */
+#define SORT_MASK_ORD	0x7F	/* ï½˜ï½˜é †ã‚’å–ã‚Šå‡ºã™ãƒžã‚¹ã‚¯ */
+#define SORT_GET_ORD	0x80	/* æ˜‡é †ï¼é™é †ã‚’å–ã‚Šå‡ºã™ãƒžã‚¹ã‚¯ */
 
-#define SORT_NOTSAVED	((ulong)0xFFFFFFFF)	/* ƒzƒXƒg–ˆ‚ÌƒZ[ƒu•û–@‚ð•Û‘¶‚µ‚Ä‚¢‚È‚¢Žž‚Ì’l */
+#define SORT_NOTSAVED	((ulong)0xFFFFFFFF)	/* ãƒ›ã‚¹ãƒˆæ¯Žã®ã‚»ãƒ¼ãƒ–æ–¹æ³•ã‚’ä¿å­˜ã—ã¦ã„ãªã„æ™‚ã®å€¤ */
 
-/*===== ƒ\[ƒg‚·‚éêŠ =====*/
+/*===== ã‚½ãƒ¼ãƒˆã™ã‚‹å ´æ‰€ =====*/
 
-#define ITEM_LFILE		0		/* ƒ[ƒJƒ‹‚Ì–¼‘O */
-#define ITEM_LDIR		1		/* ƒ[ƒJƒ‹‚ÌƒfƒBƒŒƒNƒgƒŠ */
-#define ITEM_RFILE		2		/* ƒzƒXƒg‚Ì–¼‘O */
-#define ITEM_RDIR		3		/* ƒzƒXƒg‚ÌƒfƒBƒŒƒNƒgƒŠ */
+#define ITEM_LFILE		0		/* ãƒ­ãƒ¼ã‚«ãƒ«ã®åå‰ */
+#define ITEM_LDIR		1		/* ãƒ­ãƒ¼ã‚«ãƒ«ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª */
+#define ITEM_RFILE		2		/* ãƒ›ã‚¹ãƒˆã®åå‰ */
+#define ITEM_RDIR		3		/* ãƒ›ã‚¹ãƒˆã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª */
 
-/*===== ƒEƒCƒ“ƒhƒE”Ô† =====*/
+/*===== ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· =====*/
 
-#define WIN_LOCAL		0		/* ƒ[ƒJƒ‹ */
-#define WIN_REMOTE		1		/* ƒzƒXƒg */
-#define WIN_BOTH		2		/* —¼•û */
+#define WIN_LOCAL		0		/* ãƒ­ãƒ¼ã‚«ãƒ« */
+#define WIN_REMOTE		1		/* ãƒ›ã‚¹ãƒˆ */
+#define WIN_BOTH		2		/* ä¸¡æ–¹ */
 
-/*===== ƒtƒ@ƒCƒ‹‘I‘ð•û–@ =====*/
+/*===== ãƒ•ã‚¡ã‚¤ãƒ«é¸æŠžæ–¹æ³• =====*/
 
-#define SELECT_ALL		0		/* ‘S‘I‘ð */
-#define SELECT_REGEXP	1		/* ŒŸõŽ®‚ð“ü—Í‚µ‚Ä‘I‘ð */
+#define SELECT_ALL		0		/* å…¨é¸æŠž */
+#define SELECT_REGEXP	1		/* æ¤œç´¢å¼ã‚’å…¥åŠ›ã—ã¦é¸æŠž */
 
-/*===== ŒŸõ•û–@ =====*/
+/*===== æ¤œç´¢æ–¹æ³• =====*/
 
-#define FIND_FIRST		0		/* Å‰‚ÌŒŸõ */
-#define FIND_NEXT		1		/* ŽŸ‚ðŒŸõ */
+#define FIND_FIRST		0		/* æœ€åˆã®æ¤œç´¢ */
+#define FIND_NEXT		1		/* æ¬¡ã‚’æ¤œç´¢ */
 
-/*===== ƒtƒ@ƒCƒ‹–¼‚Ì‘å•¶Žš^¬•¶Žš•ÏŠ· =====*/
+/*===== ãƒ•ã‚¡ã‚¤ãƒ«åã®å¤§æ–‡å­—ï¼å°æ–‡å­—å¤‰æ› =====*/
 
-#define FNAME_NOCNV		0		/* •ÏŠ·‚µ‚È‚¢ */
-#define FNAME_LOWER		1		/* ¬•¶Žš‚É•ÏŠ· */
-#define FNAME_UPPER		2		/* ‘å•¶Žš‚É•ÏŠ· */
+#define FNAME_NOCNV		0		/* å¤‰æ›ã—ãªã„ */
+#define FNAME_LOWER		1		/* å°æ–‡å­—ã«å¤‰æ› */
+#define FNAME_UPPER		2		/* å¤§æ–‡å­—ã«å¤‰æ› */
 
-/*===== ƒtƒ@ƒCƒ‹ˆê——‚ÌŒ`Ž® =====*/
+/*===== ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã®å½¢å¼ =====*/
 
-#define LIST_UNKNOWN	(-1)	/* •s–¾ */
+#define LIST_UNKNOWN	(-1)	/* ä¸æ˜Ž */
 
 #define LIST_UNIX_10	0		/* UNIX 10 */
 #define LIST_UNIX_11	1		/* UNIX 11 */
@@ -265,7 +265,7 @@
 #define LIST_ACOS		25		/* ACOS */
 #define LIST_AS400		26		/* AS/400 */
 #define LIST_M1800		27		/* Fujitu M1800 (OS IV/MSP E20) */
-#define LIST_CHAMELEON	28		/* Win3.1—p Chameleon FTP server */
+#define LIST_CHAMELEON	28		/* Win3.1ç”¨ Chameleon FTP server */
 #define LIST_GP6000		29		/* Fujitu GP6000 Model 900 */
 #define LIST_OS2		30		/* OS/2 */
 #define LIST_VMS		31		/* VAX VMS */
@@ -290,48 +290,48 @@
 
 #define LIST_MASKFLG	0xFF
 
-/* ƒtƒ@ƒCƒ‹ˆê——î•ñ—á ---------------
+/* ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§æƒ…å ±ä¾‹ ---------------
 
 *LIST_UNIX_10
 	0          1   2     3      4    5    6   7         8
 	-------------------------------------------------------
 	drwxr-xr-x 15  owner group  1024 Nov  6   14:21     Linux/
 	-rwxrwx---  5  owner group    12 Nov  6   1996      test.txt
-	drwxr-xr-x 15  owner group  1024 11ŒŽ 6“ú 14:21     Linux/
-	drwxr-xr-x 15  owner group  1024 11ŒŽ 6“ú 14Žž21•ª  Linux/
-	-rwxrwx---  5  owner group    12 11ŒŽ 6“ú 1996”N    test.txt
-	drwxrwxr-x 6   root  sys     512  1ŒŽ 26  03:10     adm		(ŒŽ‚ÍGBƒR[ƒh‚Å0xD4C2)
+	drwxr-xr-x 15  owner group  1024 11æœˆ 6æ—¥ 14:21     Linux/
+	drwxr-xr-x 15  owner group  1024 11æœˆ 6æ—¥ 14æ™‚21åˆ†  Linux/
+	-rwxrwx---  5  owner group    12 11æœˆ 6æ—¥ 1996å¹´    test.txt
+	drwxrwxr-x 6   root  sys     512  1æœˆ 26  03:10     adm		(æœˆã¯GBã‚³ãƒ¼ãƒ‰ã§0xD4C2)
 
 *LIST_UNIX_11
 	0          1   2     3      4    5        6         7
 	-------------------------------------------------------
-	drwxr-xr-x 15  owner group  1024 11ŒŽ12“ú 14Žž21•ª  Linux/
-	-rwxrwx---  5  owner group    12 11ŒŽ12“ú 1996”N    test.txt
+	drwxr-xr-x 15  owner group  1024 11æœˆ12æ—¥ 14æ™‚21åˆ†  Linux/
+	-rwxrwx---  5  owner group    12 11æœˆ12æ—¥ 1996å¹´    test.txt
 
 *LIST_UNIX_12
 	0              1     2      3    4    5   6         7
 	-------------------------------------------------------
 	drwxr-xr-x123  owner group  1024 Nov  6   14:21     Linux/
 	-rwxrwx---132  owner group    12 Nov  6   1996      test.txt
-	drwxr-xr-x123  owner group  1024 11ŒŽ 6“ú 14:21     Linux/
-	drwxr-xr-x123  owner group  1024 11ŒŽ 6“ú 14Žž21•ª  Linux/
-	-rwxrwx---132  owner group    12 11ŒŽ 6“ú 1996”N    test.txt
+	drwxr-xr-x123  owner group  1024 11æœˆ 6æ—¥ 14:21     Linux/
+	drwxr-xr-x123  owner group  1024 11æœˆ 6æ—¥ 14æ™‚21åˆ†  Linux/
+	-rwxrwx---132  owner group    12 11æœˆ 6æ—¥ 1996å¹´    test.txt
 
 *LIST_UNIX_13
 	0              1     2      3    4        5         6
 	-------------------------------------------------------
-	drwxr-xr-x123  owner group  1024 11ŒŽ12“ú 14Žž21•ª  Linux/
-	-rwxrwx---132  owner group    12 11ŒŽ12“ú 1996”N    test.txt
+	drwxr-xr-x123  owner group  1024 11æœˆ12æ—¥ 14æ™‚21åˆ†  Linux/
+	-rwxrwx---132  owner group    12 11æœˆ12æ—¥ 1996å¹´    test.txt
 
 *LIST_UNIX_14
 	0          1   2     3      4    5    6   7         8
 	-------------------------------------------------------
-	drwxr-xr-x 15  owner group  512  2001 6ŒŽ 18        audit	(ŒŽ‚ÍGBƒR[ƒh‚Å0xD4C2)
+	drwxr-xr-x 15  owner group  512  2001 6æœˆ 18        audit	(æœˆã¯GBã‚³ãƒ¼ãƒ‰ã§0xD4C2)
 
 *LIST_UNIX_15
 	0              1     2      3    4    5   6         7
 	-------------------------------------------------------
-	drwxr-xr-x15   owner group  512  2001 6ŒŽ 18        audit	(ŒŽ‚ÍGBƒR[ƒh‚Å0xD4C2)
+	drwxr-xr-x15   owner group  512  2001 6æœˆ 18        audit	(æœˆã¯GBã‚³ãƒ¼ãƒ‰ã§0xD4C2)
 
 
 
@@ -342,40 +342,40 @@
 	-------------------------------------------------------
 	drwxr-xr-x 15  owner        1024 Nov  6   14:21     Linux/
 	-rwxrwx---  5  owner          12 Nov  6   1996      test.txt
-	drwxr-xr-x 15  owner        1024 11ŒŽ 6“ú 14:21     Linux/
-	drwxr-xr-x 15  owner        1024 11ŒŽ 6“ú 14Žž21•ª  Linux/
-	-rwxrwx---  5  owner          12 11ŒŽ 6“ú 1996”N    test.txt
+	drwxr-xr-x 15  owner        1024 11æœˆ 6æ—¥ 14:21     Linux/
+	drwxr-xr-x 15  owner        1024 11æœˆ 6æ—¥ 14æ™‚21åˆ†  Linux/
+	-rwxrwx---  5  owner          12 11æœˆ 6æ—¥ 1996å¹´    test.txt
 
 *LIST_UNIX_21
 	0          1   2            3    4        5         6
 	-------------------------------------------------------
-	drwxr-xr-x 15  owner        1024 11ŒŽ12“ú 14Žž21•ª  Linux/
-	-rwxrwx---  5  owner          12 11ŒŽ12“ú 1996”N    test.txt
+	drwxr-xr-x 15  owner        1024 11æœˆ12æ—¥ 14æ™‚21åˆ†  Linux/
+	-rwxrwx---  5  owner          12 11æœˆ12æ—¥ 1996å¹´    test.txt
 
 *LIST_UNIX_22
 	0              1            2    3    4   5         6
 	-------------------------------------------------------
 	drwxr-xr-x123  owner        1024 Nov  6   14:21     Linux/
 	-rwxrwx---132  owner          12 Nov  6   1996      test.txt
-	drwxr-xr-x123  owner        1024 11ŒŽ 6“ú 14:21     Linux/
-	drwxr-xr-x123  owner        1024 11ŒŽ 6“ú 14Žž21•ª  Linux/
-	-rwxrwx---132  owner          12 11ŒŽ 6“ú 1996”N    test.txt
+	drwxr-xr-x123  owner        1024 11æœˆ 6æ—¥ 14:21     Linux/
+	drwxr-xr-x123  owner        1024 11æœˆ 6æ—¥ 14æ™‚21åˆ†  Linux/
+	-rwxrwx---132  owner          12 11æœˆ 6æ—¥ 1996å¹´    test.txt
 
 *LIST_UNIX_23
 	0              1            2    3        4         5
 	-------------------------------------------------------
-	drwxr-xr-x123  owner        1024 11ŒŽ12“ú 14Žž21•ª  Linux/
-	-rwxrwx---132  owner          12 11ŒŽ12“ú 1996”N    test.txt
+	drwxr-xr-x123  owner        1024 11æœˆ12æ—¥ 14æ™‚21åˆ†  Linux/
+	-rwxrwx---132  owner          12 11æœˆ12æ—¥ 1996å¹´    test.txt
 
 *LIST_UNIX_24
 	0          1   2            3    4    5   6         7
 	-------------------------------------------------------
-	drwxr-xr-x 15  owner        512  2001 6ŒŽ 18        audit	(ŒŽ‚ÍGBƒR[ƒh‚Å0xD4C2)
+	drwxr-xr-x 15  owner        512  2001 6æœˆ 18        audit	(æœˆã¯GBã‚³ãƒ¼ãƒ‰ã§0xD4C2)
 
 *LIST_UNIX_25
 	0              1            2    3    4   5         6
 	-------------------------------------------------------
-	drwxr-xr-x15   owner        512  2001 6ŒŽ 18        audit	(ŒŽ‚ÍGBƒR[ƒh‚Å0xD4C2)
+	drwxr-xr-x15   owner        512  2001 6æœˆ 18        audit	(æœˆã¯GBã‚³ãƒ¼ãƒ‰ã§0xD4C2)
 
 
 
@@ -388,15 +388,15 @@
 	-------------------------------------------------------
 	drwxr-xr-x     owner        1024 Nov  6   14:21     Linux/
 	-rwxrwx---     owner          12 Nov  6   1996      test.txt
-	drwxr-xr-x     owner        1024 11ŒŽ 6“ú 14:21     Linux/
-	drwxr-xr-x     owner        1024 11ŒŽ 6“ú 14Žž21•ª  Linux/
-	-rwxrwx---     owner          12 11ŒŽ 6“ú 1996”N    test.txt
+	drwxr-xr-x     owner        1024 11æœˆ 6æ—¥ 14:21     Linux/
+	drwxr-xr-x     owner        1024 11æœˆ 6æ—¥ 14æ™‚21åˆ†  Linux/
+	-rwxrwx---     owner          12 11æœˆ 6æ—¥ 1996å¹´    test.txt
 
 *LIST_UNIX_51
 	0              1            2    3        4         5
 	-------------------------------------------------------
-	drwxr-xr-x     owner        1024 11ŒŽ12“ú 14Žž21•ª  Linux/
-	-rwxrwx---     owner          12 11ŒŽ12“ú 1996”N    test.txt
+	drwxr-xr-x     owner        1024 11æœˆ12æ—¥ 14æ™‚21åˆ†  Linux/
+	-rwxrwx---     owner          12 11æœˆ12æ—¥ 1996å¹´    test.txt
 
 	0          1   2        3        4        5
 	-------------------------------------------------------
@@ -406,7 +406,7 @@
 *LIST_UNIX_54
 	0              1            2    3    4   5         6
 	-------------------------------------------------------
-	drwxr-xr-x     owner        512  2001 6ŒŽ 18        audit	(ŒŽ‚ÍGBƒR[ƒh‚Å0xD4C2)
+	drwxr-xr-x     owner        512  2001 6æœˆ 18        audit	(æœˆã¯GBã‚³ãƒ¼ãƒ‰ã§0xD4C2)
 
 
 
@@ -423,8 +423,8 @@
 *LIST_UNIX_61
 	0          1    2     3 4     5 6    7         8     9
 	-------------------------------------------------------
-	drwxr-xr-x 123  owner m group g 1024 11ŒŽ12“ú  14:21 Linux/
-	-rwxrwx--- 132  owner m group g   12 11ŒŽ12“ú  1996  test.txt
+	drwxr-xr-x 123  owner m group g 1024 11æœˆ12æ—¥  14:21 Linux/
+	-rwxrwx--- 132  owner m group g   12 11æœˆ12æ—¥  1996  test.txt
 
 *LIST_UNIX_62
 	0              1     2 3     4 5    6    7  8     9
@@ -435,18 +435,18 @@
 *LIST_UNIX_63
 	0              1     2 3     4 5    6         7     8
 	-------------------------------------------------------
-	drwxr-xr-x123  owner m group g 1024 11ŒŽ12“ú  14:21 Linux/
-	-rwxrwx---132  owner m group g   12 11ŒŽ12“ú  1996  test.txt
+	drwxr-xr-x123  owner m group g 1024 11æœˆ12æ—¥  14:21 Linux/
+	-rwxrwx---132  owner m group g   12 11æœˆ12æ—¥  1996  test.txt
 
 *LIST_UNIX_64
 	0          1   2     3 4     5  6    7    8   9    10
 	-------------------------------------------------------
-	drwxr-xr-x 15  owner m group g  512  2001 6ŒŽ 18   audit	(ŒŽ‚ÍGBƒR[ƒh‚Å0xD4C2)
+	drwxr-xr-x 15  owner m group g  512  2001 6æœˆ 18   audit	(æœˆã¯GBã‚³ãƒ¼ãƒ‰ã§0xD4C2)
 
 *LIST_UNIX_65
 	0              1     2 3     4  5    6    7   8    9
 	-------------------------------------------------------
-	drwxr-xr-x15   owner m group g  512  2001 6ŒŽ 18   audit	(ŒŽ‚ÍGBƒR[ƒh‚Å0xD4C2)
+	drwxr-xr-x15   owner m group g  512  2001 6æœˆ 18   audit	(æœˆã¯GBã‚³ãƒ¼ãƒ‰ã§0xD4C2)
 
 
 
@@ -460,8 +460,8 @@ LIST_UNIX_70
 *LIST_UNIX_71
 	0          1    2       3     4 5    6         7     8
 	-------------------------------------------------------
-	drwxr-xr-x 123  owner   group g 1024 11ŒŽ12“ú  14:21 Linux/
-	-rwxrwx--- 132  owner   group g   12 11ŒŽ12“ú  1996  test.txt
+	drwxr-xr-x 123  owner   group g 1024 11æœˆ12æ—¥  14:21 Linux/
+	-rwxrwx--- 132  owner   group g   12 11æœˆ12æ—¥  1996  test.txt
 
 *LIST_UNIX_72
 	0              1       2     3 4    5    6  7     8
@@ -472,25 +472,25 @@ LIST_UNIX_70
 *LIST_UNIX_73
 	0              1       2     3 4    5         6     7
 	-------------------------------------------------------
-	drwxr-xr-x123  owner   group g 1024 11ŒŽ12“ú  14:21 Linux/
-	-rwxrwx---132  owner   group g   12 11ŒŽ12“ú  1996  test.txt
+	drwxr-xr-x123  owner   group g 1024 11æœˆ12æ—¥  14:21 Linux/
+	-rwxrwx---132  owner   group g   12 11æœˆ12æ—¥  1996  test.txt
 
 *LIST_UNIX_74
 	0          1   2       3     4  5    6    7   8    9
 	-------------------------------------------------------
-	drwxr-xr-x 15  owner   group g  512  2001 6ŒŽ 18   audit	(ŒŽ‚ÍGBƒR[ƒh‚Å0xD4C2)
+	drwxr-xr-x 15  owner   group g  512  2001 6æœˆ 18   audit	(æœˆã¯GBã‚³ãƒ¼ãƒ‰ã§0xD4C2)
 
 *LIST_UNIX_75
 	0              1       2     3  4    5    6   7    8
 	-------------------------------------------------------
-	drwxr-xr-x15   owner   group g  512  2001 6ŒŽ 18   audit	(ŒŽ‚ÍGBƒR[ƒh‚Å0xD4C2)
+	drwxr-xr-x15   owner   group g  512  2001 6æœˆ 18   audit	(æœˆã¯GBã‚³ãƒ¼ãƒ‰ã§0xD4C2)
 
 
 
 
 
 
-*unixŒn‚ÅˆÈ‰º‚Ì‚æ‚¤‚È“ú•t
+*unixç³»ã§ä»¥ä¸‹ã®ã‚ˆã†ãªæ—¥ä»˜
 	0              1            2    3   4    5         6
 	-------------------------------------------------------
 	drwxr-xr-x123  owner        1024 11/ 6    14:21     Linux/
@@ -544,7 +544,7 @@ LIST_UNIX_70
 	0
 	-------------------------------------------------------
 	test.txt
-@@ƒfƒBƒŒƒNƒgƒŠ‚È‚µA
+ã€€ã€€ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãªã—ã€
 
 *LIST_AS400
 	0           1     2        3        4        5
@@ -555,7 +555,7 @@ LIST_UNIX_70
 	QSECOFR         0 98/05/15 16:01:15 *STMF    WWWTEST.BAK
 
 *LIST_M1800
-	0     1     2       3       4     5         6 (ƒtƒ@ƒCƒ‹–¼‚ÌŒã‚ë‚ÉƒXƒy[ƒX‚ ‚èj
+	0     1     2       3       4     5         6 (ãƒ•ã‚¡ã‚¤ãƒ«åã®å¾Œã‚ã«ã‚¹ãƒšãƒ¼ã‚¹ã‚ã‚Šï¼‰
 	-------------------------------------------------------
 	drwx  F        400     400  PO    93.10.27  COMMON.PDL.EXCEL/       
 	-rw-  F      10000   10000  DA    97.03.04  DTSLOG1.FNA             
@@ -579,8 +579,8 @@ LIST_UNIX_70
 	   0        1          2          3      4
 	-------------------------------------------------------
        345      A          12-02-98   10:59  VirtualDevice.java
-         0           DIR   12-09-98   09:43  ƒfƒBƒŒƒNƒgƒŠ
-         0           DIR   12-09-100  09:43  ƒfƒBƒŒƒNƒgƒŠ
+         0           DIR   12-09-98   09:43  ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
+         0           DIR   12-09-100  09:43  ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
 
 *LIST_MELCOM
 	0 1           2   3          4  5    6  7    8
@@ -596,7 +596,7 @@ LIST_UNIX_70
 	(RWED,RWED,RE,)
 	MAIL.DIR;1         104/248   18-SEP-2001 16:19:39  [CIM,MIZOTE]
 	(RWE,RWE,,)
-		¦VMS‚Ìê‡ˆê——‚ª•¡”s‚É•Ê‚ê‚éê‡‚ª‚ ‚é
+		â€»VMSã®å ´åˆä¸€è¦§ãŒè¤‡æ•°è¡Œã«åˆ¥ã‚Œã‚‹å ´åˆãŒã‚ã‚‹
 
 *LIST_OS7_1
 	0                       1        2        3
@@ -656,18 +656,18 @@ LIST_UNIX_70
 
 ------------------------------------*/
 
-/*===== Ú‘±ƒEƒCƒ“ƒhƒE‚ÌŒ`Ž® =====*/
+/*===== æŽ¥ç¶šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®å½¢å¼ =====*/
 
-#define DLG_TYPE_CON	0		/* ŠÈˆÕiƒzƒXƒg•ÒW‚È‚µj */
-#define DLG_TYPE_SET	1		/* ƒzƒXƒg•ÒW‚ ‚è */
+#define DLG_TYPE_CON	0		/* ç°¡æ˜“ï¼ˆãƒ›ã‚¹ãƒˆç·¨é›†ãªã—ï¼‰ */
+#define DLG_TYPE_SET	1		/* ãƒ›ã‚¹ãƒˆç·¨é›†ã‚ã‚Š */
 
-/*===== ƒtƒ@ƒCƒ‹ˆê——Žæ“¾ƒ‚[ƒh =====*/
+/*===== ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§å–å¾—ãƒ¢ãƒ¼ãƒ‰ =====*/
 
-#define CACHE_NORMAL	0		/* ’ÊíiƒLƒƒƒbƒVƒ…‚É‚ ‚ê‚ÎŽg—pA‚È‚¯‚ê‚Î“Ç‚Ýž‚Ýj */
-#define CACHE_REFRESH	1		/* í‚É“Ç‚Ýž‚Ý */
-#define CACHE_LASTREAD	2		/* ÅŒã‚É“Ç‚Ýž‚ñ‚¾‚à‚Ì‚ðŽg—p */
+#define CACHE_NORMAL	0		/* é€šå¸¸ï¼ˆã‚­ãƒ£ãƒƒã‚·ãƒ¥ã«ã‚ã‚Œã°ä½¿ç”¨ã€ãªã‘ã‚Œã°èª­ã¿è¾¼ã¿ï¼‰ */
+#define CACHE_REFRESH	1		/* å¸¸ã«èª­ã¿è¾¼ã¿ */
+#define CACHE_LASTREAD	2		/* æœ€å¾Œã«èª­ã¿è¾¼ã‚“ã ã‚‚ã®ã‚’ä½¿ç”¨ */
 
-/*===== Š¿ŽšƒR[ƒh•ÏŠ· =====*/
+/*===== æ¼¢å­—ã‚³ãƒ¼ãƒ‰å¤‰æ› =====*/
 
 #define KANJI_SJIS		0		/* SJIS */
 #define KANJI_JIS		1		/* JIS */
@@ -676,99 +676,99 @@ LIST_UNIX_70
 #define KANJI_SMB_CAP	4		/* Samba-CAP */
 #define KANJI_UTF8N		5		/* UTF-8N */
 
-#define KANJI_NOCNV		0		/* Š¿ŽšƒR[ƒh•ÏŠ·‚È‚µ */
+#define KANJI_NOCNV		0		/* æ¼¢å­—ã‚³ãƒ¼ãƒ‰å¤‰æ›ãªã— */
 
-/*===== ƒTƒEƒ“ƒh =====*/
+/*===== ã‚µã‚¦ãƒ³ãƒ‰ =====*/
 
-#define SND_CONNECT		0		/* Ú‘±Žž‚ÌƒTƒEƒ“ƒh */
-#define SND_TRANS		1		/* “]‘—I—¹Žž‚ÌƒTƒEƒ“ƒh */
-#define SND_ERROR		2		/* ƒGƒ‰[Žž‚ÌƒTƒEƒ“ƒh */
+#define SND_CONNECT		0		/* æŽ¥ç¶šæ™‚ã®ã‚µã‚¦ãƒ³ãƒ‰ */
+#define SND_TRANS		1		/* è»¢é€çµ‚äº†æ™‚ã®ã‚µã‚¦ãƒ³ãƒ‰ */
+#define SND_ERROR		2		/* ã‚¨ãƒ©ãƒ¼æ™‚ã®ã‚µã‚¦ãƒ³ãƒ‰ */
 
-#define SOUND_TYPES		3		/* ƒTƒEƒ“ƒh‚ÌŽí—Þ */
+#define SOUND_TYPES		3		/* ã‚µã‚¦ãƒ³ãƒ‰ã®ç¨®é¡ž */
 
-/*===== ƒrƒ…[ƒ =====*/
+/*===== ãƒ“ãƒ¥ãƒ¼ãƒ¯ =====*/
 
-#define VIEWERS			3		/* ƒrƒ…[ƒ‚Ì” */
+#define VIEWERS			3		/* ãƒ“ãƒ¥ãƒ¼ãƒ¯ã®æ•° */
 
-/*===== ƒuƒbƒNƒ}[ƒN =====*/
+/*===== ãƒ–ãƒƒã‚¯ãƒžãƒ¼ã‚¯ =====*/
 
-#define BMARK_SUB_MENU		2		/* ƒuƒbƒNƒ}[ƒNƒƒjƒ…[‚ÌƒTƒuƒƒjƒ…[”Ô† */
-#define DEFAULT_BMARK_ITEM	5		/* ƒuƒbƒNƒ}[ƒNƒƒjƒ…[‚É‚ ‚éŒÅ’è•”•ª‚Ì” */
-#define MENU_BMARK_TOP		30000	/* 3000ˆÈ~(3100‚­‚ç‚¢‚Ü‚Å)‚Í—\–ñ‚·‚é */
-									/* resource.h ‚Ì’è‹`‚Æd‚È‚ç‚È‚¢‚æ‚¤‚É */
+#define BMARK_SUB_MENU		2		/* ãƒ–ãƒƒã‚¯ãƒžãƒ¼ã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®ã‚µãƒ–ãƒ¡ãƒ‹ãƒ¥ãƒ¼ç•ªå· */
+#define DEFAULT_BMARK_ITEM	5		/* ãƒ–ãƒƒã‚¯ãƒžãƒ¼ã‚¯ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã«ã‚ã‚‹å›ºå®šéƒ¨åˆ†ã®æ•° */
+#define MENU_BMARK_TOP		30000	/* 3000ä»¥é™(3100ãã‚‰ã„ã¾ã§)ã¯äºˆç´„ã™ã‚‹ */
+									/* resource.h ã®å®šç¾©ã¨é‡ãªã‚‰ãªã„ã‚ˆã†ã« */
 
-#define BMARK_TYPE_NONE		0		/* ƒuƒbƒNƒ}[ƒN–³‚µ */
-#define BMARK_TYPE_LOCAL	1		/* ƒ[ƒJƒ‹‘¤‚ÌƒuƒbƒNƒ}[ƒN */
-#define BMARK_TYPE_REMOTE	2		/* ƒzƒXƒg‘¤‚ÌƒuƒbƒNƒ}[ƒN */
-#define BMARK_TYPE_BOTH		3		/* —¼•û‚ÌƒuƒbƒNƒ}[ƒN */
+#define BMARK_TYPE_NONE		0		/* ãƒ–ãƒƒã‚¯ãƒžãƒ¼ã‚¯ç„¡ã— */
+#define BMARK_TYPE_LOCAL	1		/* ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒ–ãƒƒã‚¯ãƒžãƒ¼ã‚¯ */
+#define BMARK_TYPE_REMOTE	2		/* ãƒ›ã‚¹ãƒˆå´ã®ãƒ–ãƒƒã‚¯ãƒžãƒ¼ã‚¯ */
+#define BMARK_TYPE_BOTH		3		/* ä¸¡æ–¹ã®ãƒ–ãƒƒã‚¯ãƒžãƒ¼ã‚¯ */
 
-#define BMARK_MARK_LOCAL	"L "	/* ƒ[ƒJƒ‹‘¤‚Ìˆó */
-#define BMARK_MARK_REMOTE	"H "	/* ƒzƒXƒg‘¤‚Ìˆó */
-#define BMARK_MARK_BOTH		"W "	/* —¼•û‚Ìˆó */
-#define BMARK_MARK_LEN		2		/* ˆó‚Ì•¶Žš” */
+#define BMARK_MARK_LOCAL	"L "	/* ãƒ­ãƒ¼ã‚«ãƒ«å´ã®å° */
+#define BMARK_MARK_REMOTE	"H "	/* ãƒ›ã‚¹ãƒˆå´ã®å° */
+#define BMARK_MARK_BOTH		"W "	/* ä¸¡æ–¹ã®å° */
+#define BMARK_MARK_LEN		2		/* å°ã®æ–‡å­—æ•° */
 
-#define BMARK_SEP			" <> "	/* ƒ[ƒJƒ‹‘¤‚ÆƒzƒXƒg‘¤‚Ì‹æØ‚è */
-#define BMARK_SEP_LEN		4		/* ‹æØ‚è‚Ì•¶Žš” */
+#define BMARK_SEP			" <> "	/* ãƒ­ãƒ¼ã‚«ãƒ«å´ã¨ãƒ›ã‚¹ãƒˆå´ã®åŒºåˆ‡ã‚Š */
+#define BMARK_SEP_LEN		4		/* åŒºåˆ‡ã‚Šã®æ–‡å­—æ•° */
 
-/*===== ƒŒƒWƒXƒgƒŠ‚Ìƒ^ƒCƒv =====*/
+/*===== ãƒ¬ã‚¸ã‚¹ãƒˆãƒªã®ã‚¿ã‚¤ãƒ— =====*/
 
-#define REGTYPE_REG		0		/* ƒŒƒWƒXƒgƒŠ */
-#define REGTYPE_INI		1		/* INIƒtƒ@ƒCƒ‹ */
+#define REGTYPE_REG		0		/* ãƒ¬ã‚¸ã‚¹ãƒˆãƒª */
+#define REGTYPE_INI		1		/* INIãƒ•ã‚¡ã‚¤ãƒ« */
 
-#define REG_SECT_MAX	(16*1024)	/* ƒŒƒWƒXƒgƒŠ‚Ì‚PƒZƒNƒVƒ‡ƒ“‚ÌÅ‘åƒf[ƒ^ƒTƒCƒY */
+#define REG_SECT_MAX	(16*1024)	/* ãƒ¬ã‚¸ã‚¹ãƒˆãƒªã®ï¼‘ã‚»ã‚¯ã‚·ãƒ§ãƒ³ã®æœ€å¤§ãƒ‡ãƒ¼ã‚¿ã‚µã‚¤ã‚º */
 
-/*===== ƒzƒXƒgÝ’è‚Å–¾Ž¦“I‚ÉŽw’è‚·‚éƒzƒXƒg‚Ìƒ^ƒCƒv =====*/
+/*===== ãƒ›ã‚¹ãƒˆè¨­å®šã§æ˜Žç¤ºçš„ã«æŒ‡å®šã™ã‚‹ãƒ›ã‚¹ãƒˆã®ã‚¿ã‚¤ãƒ— =====*/
 
-#define	HTYPE_AUTO		0		/* Ž©“® */
-#define	HTYPE_ACOS		1		/* ACOS (‘Ò‹@Œ‹‡ƒtƒ@ƒCƒ‹‚ÌŽw’è‚ª•K—v) */
+#define	HTYPE_AUTO		0		/* è‡ªå‹• */
+#define	HTYPE_ACOS		1		/* ACOS (å¾…æ©Ÿçµåˆãƒ•ã‚¡ã‚¤ãƒ«ã®æŒ‡å®šãŒå¿…è¦) */
 #define	HTYPE_VMS		2		/* VAX VMS */
 #define	HTYPE_IRMX		3		/* IRMX */
-#define	HTYPE_ACOS_4	4		/* ACOS ƒtƒ@ƒCƒ‹–¼‚ð('')‚ÅŠ‡‚ç‚È‚¢ */
+#define	HTYPE_ACOS_4	4		/* ACOS ãƒ•ã‚¡ã‚¤ãƒ«åã‚’('')ã§æ‹¬ã‚‰ãªã„ */
 #define	HTYPE_STRATUS	5		/* Stratus */
 #define	HTYPE_AGILENT	6		/* Agilent Logic analyzer */
 #define	HTYPE_SHIBASOKU	7		/* Shibasoku LSI test system */
 
-/*===== ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“ƒIƒvƒVƒ‡ƒ“ =====*/
+/*===== ã‚³ãƒžãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã‚ªãƒ—ã‚·ãƒ§ãƒ³ =====*/
 
-#define OPT_MIRROR		0x0001	/* ƒ~ƒ‰[ƒŠƒ“ƒOƒAƒbƒvƒ[ƒh‚ðs‚¤ */
-#define OPT_FORCE		0x0002	/* ƒ~ƒ‰[ƒŠƒ“ƒOŠJŽn‚ÌŠm”F‚ð‚µ‚È‚¢ */
-#define OPT_QUIT		0x0004	/* I—¹ŒãƒvƒƒOƒ‰ƒ€I—¹ */
-#define OPT_EUC			0x0008	/* Š¿ŽšƒR[ƒh‚ÍEUC */
-#define OPT_JIS			0x0010	/* Š¿ŽšƒR[ƒh‚ÍJIS */
-#define OPT_ASCII		0x0020	/* ƒAƒXƒL[“]‘—ƒ‚[ƒh */
-#define OPT_BINARY		0x0040	/* ƒoƒCƒiƒŠ“]‘—ƒ‚[ƒh */
-#define OPT_AUTO		0x0080	/* Ž©“®”»•Ê */
-#define OPT_KANA		0x0100	/* ”¼Šp‚©‚È‚ð‚»‚Ì‚Ü‚Ü’Ê‚· */
-#define OPT_EUC_NAME	0x0200	/* ƒtƒ@ƒCƒ‹–¼‚ÍEUC */
-#define OPT_JIS_NAME	0x0400	/* ƒtƒ@ƒCƒ‹–¼‚ÍJIS */
-#define OPT_MIRRORDOWN	0x0800	/* ƒ~ƒ‰[ƒŠƒ“ƒOƒ_ƒEƒ“ƒ[ƒh‚ðs‚¤ */
-#define OPT_SAVEOFF		0x1000	/* Ý’è‚Ì•Û‘¶‚ð’†Ž~‚·‚é */
-#define OPT_SAVEON		0x2000	/* Ý’è‚Ì•Û‘¶‚ðÄŠJ‚·‚é */
+#define OPT_MIRROR		0x0001	/* ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ã‚’è¡Œã† */
+#define OPT_FORCE		0x0002	/* ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°é–‹å§‹ã®ç¢ºèªã‚’ã—ãªã„ */
+#define OPT_QUIT		0x0004	/* çµ‚äº†å¾Œãƒ—ãƒ­ã‚°ãƒ©ãƒ çµ‚äº† */
+#define OPT_EUC			0x0008	/* æ¼¢å­—ã‚³ãƒ¼ãƒ‰ã¯EUC */
+#define OPT_JIS			0x0010	/* æ¼¢å­—ã‚³ãƒ¼ãƒ‰ã¯JIS */
+#define OPT_ASCII		0x0020	/* ã‚¢ã‚¹ã‚­ãƒ¼è»¢é€ãƒ¢ãƒ¼ãƒ‰ */
+#define OPT_BINARY		0x0040	/* ãƒã‚¤ãƒŠãƒªè»¢é€ãƒ¢ãƒ¼ãƒ‰ */
+#define OPT_AUTO		0x0080	/* è‡ªå‹•åˆ¤åˆ¥ */
+#define OPT_KANA		0x0100	/* åŠè§’ã‹ãªã‚’ãã®ã¾ã¾é€šã™ */
+#define OPT_EUC_NAME	0x0200	/* ãƒ•ã‚¡ã‚¤ãƒ«åã¯EUC */
+#define OPT_JIS_NAME	0x0400	/* ãƒ•ã‚¡ã‚¤ãƒ«åã¯JIS */
+#define OPT_MIRRORDOWN	0x0800	/* ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã‚’è¡Œã† */
+#define OPT_SAVEOFF		0x1000	/* è¨­å®šã®ä¿å­˜ã‚’ä¸­æ­¢ã™ã‚‹ */
+#define OPT_SAVEON		0x2000	/* è¨­å®šã®ä¿å­˜ã‚’å†é–‹ã™ã‚‹ */
 
-/*===== ƒzƒXƒg‚ÌƒqƒXƒgƒŠ =====*/
+/*===== ãƒ›ã‚¹ãƒˆã®ãƒ’ã‚¹ãƒˆãƒª =====*/
 
-#define	HISTORY_MAX		20		/* ƒtƒ@ƒCƒ‹‚ÌƒqƒXƒgƒŠ‚ÌÅ‘åŒÂ” */
-#define DEF_FMENU_ITEMS	8		/* Fileƒƒjƒ…[‚É‚ ‚é€–Ú”‚Ì‰Šú’l */
+#define	HISTORY_MAX		20		/* ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ’ã‚¹ãƒˆãƒªã®æœ€å¤§å€‹æ•° */
+#define DEF_FMENU_ITEMS	8		/* Fileãƒ¡ãƒ‹ãƒ¥ãƒ¼ã«ã‚ã‚‹é …ç›®æ•°ã®åˆæœŸå€¤ */
 
 /*===== SOCKS4 =====*/
 
-#define SOCKS4_VER			4	/* SOCKS‚Ìƒo[ƒWƒ‡ƒ“ */
+#define SOCKS4_VER			4	/* SOCKSã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³ */
 
-#define SOCKS4_CMD_CONNECT	1	/* CONNECTƒRƒ}ƒ“ƒh */
-#define SOCKS4_CMD_BIND		2	/* BINDƒRƒ}ƒ“ƒh */
+#define SOCKS4_CMD_CONNECT	1	/* CONNECTã‚³ãƒžãƒ³ãƒ‰ */
+#define SOCKS4_CMD_BIND		2	/* BINDã‚³ãƒžãƒ³ãƒ‰ */
 
-/* ƒŠƒUƒ‹ƒgƒR[ƒh */
-#define SOCKS4_RES_OK		90	/* —v‹‚Í‹–‰Â‚³‚ê‚½ */
-	/* ‚»‚Ì‘¼‚ÌƒR[ƒh‚Íƒ`ƒFƒbƒN‚µ‚È‚¢‚Ì‚Å’è‹`‚µ‚È‚¢ */
+/* ãƒªã‚¶ãƒ«ãƒˆã‚³ãƒ¼ãƒ‰ */
+#define SOCKS4_RES_OK		90	/* è¦æ±‚ã¯è¨±å¯ã•ã‚ŒãŸ */
+	/* ãã®ä»–ã®ã‚³ãƒ¼ãƒ‰ã¯ãƒã‚§ãƒƒã‚¯ã—ãªã„ã®ã§å®šç¾©ã—ãªã„ */
 
 /*===== SOCKS5 =====*/
 
-#define SOCKS5_VER			5	/* SOCKS‚Ìƒo[ƒWƒ‡ƒ“ */
+#define SOCKS5_VER			5	/* SOCKSã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³ */
 
-#define SOCKS5_CMD_CONNECT	1	/* CONNECTƒRƒ}ƒ“ƒh */
-#define SOCKS5_CMD_BIND		2	/* BINDƒRƒ}ƒ“ƒh */
+#define SOCKS5_CMD_CONNECT	1	/* CONNECTã‚³ãƒžãƒ³ãƒ‰ */
+#define SOCKS5_CMD_BIND		2	/* BINDã‚³ãƒžãƒ³ãƒ‰ */
 
-#define SOCKS5_AUTH_NONE	0	/* ”FØ–³‚µ */
+#define SOCKS5_AUTH_NONE	0	/* èªè¨¼ç„¡ã— */
 #define SOCKS5_AUTH_GSSAPI	1	/* GSS-API */
 #define SOCKS5_AUTH_USER	2	/* Username/Password */
 
@@ -776,131 +776,131 @@ LIST_UNIX_70
 #define SOCKS5_ADRS_NAME	3	/* Domain name */
 #define SOCKS5_ADRS_IPV6	4	/* IP V6 address */
 
-#define SOCKS5_USERAUTH_VER	1	/* Username\Password”FØ‚Ìƒo[ƒWƒ‡ƒ“ */
+#define SOCKS5_USERAUTH_VER	1	/* Username\Passwordèªè¨¼ã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³ */
 
-/* ƒŠƒUƒ‹ƒgƒR[ƒh */
+/* ãƒªã‚¶ãƒ«ãƒˆã‚³ãƒ¼ãƒ‰ */
 #define SOCKS5_RES_OK		0x00	/* succeeded */
-	/* ‚»‚Ì‘¼‚ÌƒR[ƒh‚Íƒ`ƒFƒbƒN‚µ‚È‚¢‚Ì‚Å’è‹`‚µ‚È‚¢ */
+	/* ãã®ä»–ã®ã‚³ãƒ¼ãƒ‰ã¯ãƒã‚§ãƒƒã‚¯ã—ãªã„ã®ã§å®šç¾©ã—ãªã„ */
 
-/*===== ’†’fƒR[ƒh =====*/
+/*===== ä¸­æ–­ã‚³ãƒ¼ãƒ‰ =====*/
 
-#define ABORT_NONE			0		/* “]‘—’†’f‚È‚µ */
-#define ABORT_USER			1		/* ƒ†[ƒU‚É‚æ‚é’†’f */
-#define ABORT_ERROR			2		/* ƒGƒ‰[‚É‚æ‚é’†’f */
-#define ABORT_DISKFULL		3		/* ƒfƒBƒXƒNƒtƒ‹‚æ‚é’†’f */
+#define ABORT_NONE			0		/* è»¢é€ä¸­æ–­ãªã— */
+#define ABORT_USER			1		/* ãƒ¦ãƒ¼ã‚¶ã«ã‚ˆã‚‹ä¸­æ–­ */
+#define ABORT_ERROR			2		/* ã‚¨ãƒ©ãƒ¼ã«ã‚ˆã‚‹ä¸­æ–­ */
+#define ABORT_DISKFULL		3		/* ãƒ‡ã‚£ã‚¹ã‚¯ãƒ•ãƒ«ã‚ˆã‚‹ä¸­æ–­ */
 
-/*===== FireWall‚ÌŽí—Þ =====*/
+/*===== FireWallã®ç¨®é¡ž =====*/
 
-#define FWALL_NONE			0		/* ‚È‚µ */
-#define FWALL_FU_FP_SITE	1		/* FW user ¨ FW pass ¨ SITE host */
-#define FWALL_FU_FP_USER	2		/* FW user ¨ FW pass ¨ USER user@host */
+#define FWALL_NONE			0		/* ãªã— */
+#define FWALL_FU_FP_SITE	1		/* FW user â†’ FW pass â†’ SITE host */
+#define FWALL_FU_FP_USER	2		/* FW user â†’ FW pass â†’ USER user@host */
 #define FWALL_USER			3		/* USER user@host */
 #define FWALL_OPEN			4		/* OPEN host */
 #define FWALL_SOCKS4		5		/* SOCKS4 */
-#define FWALL_SOCKS5_NOAUTH	6		/* SOCKS5 (”FØ‚È‚µ) */
-#define FWALL_SOCKS5_USER	7		/* SOCKS5 (Username/Password”FØ) */
-#define FWALL_FU_FP			8		/* FW user ¨ FW pass */
+#define FWALL_SOCKS5_NOAUTH	6		/* SOCKS5 (èªè¨¼ãªã—) */
+#define FWALL_SOCKS5_USER	7		/* SOCKS5 (Username/Passwordèªè¨¼) */
+#define FWALL_FU_FP			8		/* FW user â†’ FW pass */
 #define FWALL_SIDEWINDER	9		/* USER FWuser:FWpass@host */
 
-/*===== ƒƒ“ƒ^ƒCƒ€ƒpƒXƒ[ƒh =====*/
+/*===== ãƒ¯ãƒ³ã‚¿ã‚¤ãƒ ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ =====*/
 
-/* ƒR[ƒh‚ÌŽí—Þ */
-#define SECURITY_DISABLE	0		/* Žg—p‚µ‚È‚¢ */
-#define SECURITY_AUTO		1		/* Ž©“®”FŽ¯ */
+/* ã‚³ãƒ¼ãƒ‰ã®ç¨®é¡ž */
+#define SECURITY_DISABLE	0		/* ä½¿ç”¨ã—ãªã„ */
+#define SECURITY_AUTO		1		/* è‡ªå‹•èªè­˜ */
 #define MD4					2		/* MD4 */
 #define MD5					3		/* MD5 */
 #define SHA1				4		/* SHA-1 */
 
-#define MAX_SEED_LEN		16		/* Seed‚Ì•¶Žš” */
+#define MAX_SEED_LEN		16		/* Seedã®æ–‡å­—æ•° */
 
-/*===== Ä‹A“I‚Èƒtƒ@ƒCƒ‹ŒŸõ‚Ì•û–@ =====*/
+/*===== å†å¸°çš„ãªãƒ•ã‚¡ã‚¤ãƒ«æ¤œç´¢ã®æ–¹æ³• =====*/
 
-#define RDIR_NONE		0		/* Ä‹AŒŸõ‚È‚µ */
+#define RDIR_NONE		0		/* å†å¸°æ¤œç´¢ãªã— */
 #define RDIR_NLST		1		/* NLST -R */
-#define RDIR_CWD		2		/* CWD‚ÅˆÚ“® */
+#define RDIR_CWD		2		/* CWDã§ç§»å‹• */
 
-/*===== VAX VMS ŠÖŒW =====*/
+/*===== VAX VMS é–¢ä¿‚ =====*/
 
-#define BLOCK_SIZE		512		/* 1ƒuƒƒbƒN‚ÌƒoƒCƒg” */
+#define BLOCK_SIZE		512		/* 1ãƒ–ãƒ­ãƒƒã‚¯ã®ãƒã‚¤ãƒˆæ•° */
 
-/*===== Ý’è‚ÌƒŒƒxƒ‹ =====*/
+/*===== è¨­å®šã®ãƒ¬ãƒ™ãƒ« =====*/
 
-#define SET_LEVEL_GROUP		0x8000		/* ƒOƒ‹[ƒv‚Ìƒtƒ‰ƒO */
+#define SET_LEVEL_GROUP		0x8000		/* ã‚°ãƒ«ãƒ¼ãƒ—ã®ãƒ•ãƒ©ã‚° */
 #define SET_LEVEL_MASK		0x7FFF
 #define SET_LEVEL_SAME		0x7FFF
 
-/*===== “ú•tA”’l‚Ì•\Ž¦Œ`Ž® =====*/
+/*===== æ—¥ä»˜ã€æ•°å€¤ã®è¡¨ç¤ºå½¢å¼ =====*/
 
-#define DISPFORM_LEGACY		0		/* ŒÅ’è‘Ž® */
-#define DISPFORM_LOCALE		1		/* ƒRƒ“ƒgƒ[ƒ‹ƒpƒlƒ‹‚É]‚¤ */
+#define DISPFORM_LEGACY		0		/* å›ºå®šæ›¸å¼ */
+#define DISPFORM_LOCALE		1		/* ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ãƒ‘ãƒãƒ«ã«å¾“ã† */
 
-/*===== ƒtƒ@ƒCƒ‹ˆê——‚É‘¶Ý‚µ‚½î•ñ =====*/
+/*===== ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã«å­˜åœ¨ã—ãŸæƒ…å ± =====*/
 
-#define FINFO_DATE			0x01	/* “ú•t */
-#define FINFO_TIME			0x02	/* ŽžŠÔ */
-#define FINFO_SIZE			0x04	/* ƒTƒCƒY */
-#define FINFO_ATTR			0x08	/* ‘®« */
-#define FINFO_ALL			0xFF	/* ‘S‚Ä */
+#define FINFO_DATE			0x01	/* æ—¥ä»˜ */
+#define FINFO_TIME			0x02	/* æ™‚é–“ */
+#define FINFO_SIZE			0x04	/* ã‚µã‚¤ã‚º */
+#define FINFO_ATTR			0x08	/* å±žæ€§ */
+#define FINFO_ALL			0xFF	/* å…¨ã¦ */
 
-/*===== GetMasterPasswordStatus‚ÅŽg‚¤ƒR[ƒh =====*/
+/*===== GetMasterPasswordStatusã§ä½¿ã†ã‚³ãƒ¼ãƒ‰ =====*/
 #define PASSWORD_OK 0
 #define PASSWORD_UNMATCH 2
 #define BAD_PASSWORD_HASH 3
 
-/*===== ˆÃ†‰»ƒpƒXƒ[ƒhÝ’è =====*/
+/*===== æš—å·åŒ–ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰è¨­å®š =====*/
 #define DEFAULT_PASSWORD	"DefaultPassword"
 #define MAX_PASSWORD_LEN	128
 
 
 /*=================================================
-*		ƒXƒgƒ‰ƒNƒ`ƒƒ
+*		ã‚¹ãƒˆãƒ©ã‚¯ãƒãƒ£
 *=================================================*/
 
-/*===== ƒzƒXƒgÝ’èƒf[ƒ^ =====*/
+/*===== ãƒ›ã‚¹ãƒˆè¨­å®šãƒ‡ãƒ¼ã‚¿ =====*/
 
 typedef struct {
-	int Level;							/* Ý’è‚ÌƒŒƒxƒ‹ */
-										/* ’Êí‚ÍƒOƒ‹[ƒv‚Ìƒtƒ‰ƒO‚Ì‚Ý‚ª—LŒø */
-										/* ƒŒƒxƒ‹”‚ÍÝ’è‚Ì“o˜^^ŒÄoŽž‚Ì‚Ý‚ÅŽg—p */
-	char HostName[HOST_NAME_LEN+1];		/* Ý’è–¼ */
-	char HostAdrs[HOST_ADRS_LEN+1];		/* ƒzƒXƒg–¼ */
-	char UserName[USER_NAME_LEN+1];		/* ƒ†[ƒU–¼ */
-	char PassWord[PASSWORD_LEN+1];		/* ƒpƒXƒ[ƒh */
-	char Account[ACCOUNT_LEN+1];		/* ƒAƒJƒEƒ“ƒg */
-	char LocalInitDir[INIT_DIR_LEN+1];	/* ƒ[ƒJƒ‹‚ÌŠJŽnƒfƒBƒŒƒNƒgƒŠ */
-	char RemoteInitDir[INIT_DIR_LEN+1];	/* ƒzƒXƒg‚ÌŠJŽnƒfƒBƒŒƒNƒgƒŠ */
-	char BookMark[BOOKMARK_SIZE];		/* ƒuƒbƒNƒ}[ƒN */
-	char ChmodCmd[CHMOD_CMD_LEN+1];		/* ‘®«•ÏXƒRƒ}ƒ“ƒh */
-	char LsName[NLST_NAME_LEN+1];		/* NLST‚É•t‚¯‚éƒtƒ@ƒCƒ‹–¼/ƒIƒvƒVƒ‡ƒ“*/
-	char InitCmd[INITCMD_LEN+1];		/* ƒzƒXƒg‚Ì‰Šú‰»ƒRƒ}ƒ“ƒh */
-	int Port;							/* ƒ|[ƒg”Ô† */
-	int Anonymous;						/* Anonymousƒtƒ‰ƒO */
-	int KanjiCode;						/* ƒzƒXƒg‚ÌŠ¿ŽšƒR[ƒh (KANJI_xxx) */
-	int KanaCnv;						/* ”¼ŠpƒJƒi‚ð‘SŠp‚É•ÏŠ·(YES/NO) */
-	int NameKanjiCode;					/* ƒtƒ@ƒCƒ‹–¼‚ÌŠ¿ŽšƒR[ƒh (KANJI_xxx) */
-	int NameKanaCnv;					/* ƒtƒ@ƒCƒ‹–¼‚Ì”¼ŠpƒJƒi‚ð‘SŠp‚É•ÏŠ·(YES/NO) */
-	int Pasv;							/* PASVƒ‚[ƒh (YES/NO) */
-	int FireWall;						/* FireWall‚ðŽg‚¤ (YES/NO) */
-	int ListCmdOnly;					/* "LIST"ƒRƒ}ƒ“ƒh‚Ì‚ÝŽg—p‚·‚é */
-	int UseNLST_R;						/* "NLST -R"ƒRƒ}ƒ“ƒh‚ðŽg—p‚·‚é */
-	int LastDir;						/* ÅŒã‚ÉƒAƒNƒZƒX‚µ‚½ƒtƒHƒ‹ƒ_‚ð•Û‘¶ */
-	int TimeZone;						/* ƒ^ƒCƒ€ƒ][ƒ“ (-12`12) */
-	int HostType;						/* ƒzƒXƒg‚Ìƒ^ƒCƒv (HTYPE_xxx) */
-	int SyncMove;						/* ƒtƒHƒ‹ƒ_“¯ŽžˆÚ“® (YES/NO) */
-	int NoFullPath;						/* ƒtƒ‹ƒpƒX‚Åƒtƒ@ƒCƒ‹ƒAƒNƒZƒX‚µ‚È‚¢ (YES/NO) */
-	ulong Sort;							/* ƒ\[ƒg•û–@ (0x11223344 : 11=LFsort 22=LDsort 33=RFsort 44=RFsort) */
-	int Security;						/* ƒZƒLƒ…ƒŠƒeƒB (SECURITY_xxx , MDx) */
-	int Dialup;							/* ƒ_ƒCƒAƒ‹ƒAƒbƒvÚ‘±‚·‚é‚©‚Ç‚¤‚© (YES/NO) */
-	int DialupAlways;					/* í‚É‚±‚ÌƒGƒ“ƒgƒŠ‚ÖÚ‘±‚·‚é‚©‚Ç‚¤‚© (YES/NO) */
-	int DialupNotify;					/* ÄÚ‘±‚ÌÛ‚ÉŠm”F‚·‚é (YES/NO) */
-	char DialEntry[RAS_NAME_LEN+1];		/* ƒ_ƒCƒAƒ‹ƒAƒbƒvƒGƒ“ƒgƒŠ */
+	int Level;							/* è¨­å®šã®ãƒ¬ãƒ™ãƒ« */
+										/* é€šå¸¸ã¯ã‚°ãƒ«ãƒ¼ãƒ—ã®ãƒ•ãƒ©ã‚°ã®ã¿ãŒæœ‰åŠ¹ */
+										/* ãƒ¬ãƒ™ãƒ«æ•°ã¯è¨­å®šã®ç™»éŒ²ï¼å‘¼å‡ºæ™‚ã®ã¿ã§ä½¿ç”¨ */
+	char HostName[HOST_NAME_LEN+1];		/* è¨­å®šå */
+	char HostAdrs[HOST_ADRS_LEN+1];		/* ãƒ›ã‚¹ãƒˆå */
+	char UserName[USER_NAME_LEN+1];		/* ãƒ¦ãƒ¼ã‚¶å */
+	char PassWord[PASSWORD_LEN+1];		/* ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ */
+	char Account[ACCOUNT_LEN+1];		/* ã‚¢ã‚«ã‚¦ãƒ³ãƒˆ */
+	char LocalInitDir[INIT_DIR_LEN+1];	/* ãƒ­ãƒ¼ã‚«ãƒ«ã®é–‹å§‹ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª */
+	char RemoteInitDir[INIT_DIR_LEN+1];	/* ãƒ›ã‚¹ãƒˆã®é–‹å§‹ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª */
+	char BookMark[BOOKMARK_SIZE];		/* ãƒ–ãƒƒã‚¯ãƒžãƒ¼ã‚¯ */
+	char ChmodCmd[CHMOD_CMD_LEN+1];		/* å±žæ€§å¤‰æ›´ã‚³ãƒžãƒ³ãƒ‰ */
+	char LsName[NLST_NAME_LEN+1];		/* NLSTã«ä»˜ã‘ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«å/ã‚ªãƒ—ã‚·ãƒ§ãƒ³*/
+	char InitCmd[INITCMD_LEN+1];		/* ãƒ›ã‚¹ãƒˆã®åˆæœŸåŒ–ã‚³ãƒžãƒ³ãƒ‰ */
+	int Port;							/* ãƒãƒ¼ãƒˆç•ªå· */
+	int Anonymous;						/* Anonymousãƒ•ãƒ©ã‚° */
+	int KanjiCode;						/* ãƒ›ã‚¹ãƒˆã®æ¼¢å­—ã‚³ãƒ¼ãƒ‰ (KANJI_xxx) */
+	int KanaCnv;						/* åŠè§’ã‚«ãƒŠã‚’å…¨è§’ã«å¤‰æ›(YES/NO) */
+	int NameKanjiCode;					/* ãƒ•ã‚¡ã‚¤ãƒ«åã®æ¼¢å­—ã‚³ãƒ¼ãƒ‰ (KANJI_xxx) */
+	int NameKanaCnv;					/* ãƒ•ã‚¡ã‚¤ãƒ«åã®åŠè§’ã‚«ãƒŠã‚’å…¨è§’ã«å¤‰æ›(YES/NO) */
+	int Pasv;							/* PASVãƒ¢ãƒ¼ãƒ‰ (YES/NO) */
+	int FireWall;						/* FireWallã‚’ä½¿ã† (YES/NO) */
+	int ListCmdOnly;					/* "LIST"ã‚³ãƒžãƒ³ãƒ‰ã®ã¿ä½¿ç”¨ã™ã‚‹ */
+	int UseNLST_R;						/* "NLST -R"ã‚³ãƒžãƒ³ãƒ‰ã‚’ä½¿ç”¨ã™ã‚‹ */
+	int LastDir;						/* æœ€å¾Œã«ã‚¢ã‚¯ã‚»ã‚¹ã—ãŸãƒ•ã‚©ãƒ«ãƒ€ã‚’ä¿å­˜ */
+	int TimeZone;						/* ã‚¿ã‚¤ãƒ ã‚¾ãƒ¼ãƒ³ (-12ï½ž12) */
+	int HostType;						/* ãƒ›ã‚¹ãƒˆã®ã‚¿ã‚¤ãƒ— (HTYPE_xxx) */
+	int SyncMove;						/* ãƒ•ã‚©ãƒ«ãƒ€åŒæ™‚ç§»å‹• (YES/NO) */
+	int NoFullPath;						/* ãƒ•ãƒ«ãƒ‘ã‚¹ã§ãƒ•ã‚¡ã‚¤ãƒ«ã‚¢ã‚¯ã‚»ã‚¹ã—ãªã„ (YES/NO) */
+	ulong Sort;							/* ã‚½ãƒ¼ãƒˆæ–¹æ³• (0x11223344 : 11=LFsort 22=LDsort 33=RFsort 44=RFsort) */
+	int Security;						/* ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£ (SECURITY_xxx , MDx) */
+	int Dialup;							/* ãƒ€ã‚¤ã‚¢ãƒ«ã‚¢ãƒƒãƒ—æŽ¥ç¶šã™ã‚‹ã‹ã©ã†ã‹ (YES/NO) */
+	int DialupAlways;					/* å¸¸ã«ã“ã®ã‚¨ãƒ³ãƒˆãƒªã¸æŽ¥ç¶šã™ã‚‹ã‹ã©ã†ã‹ (YES/NO) */
+	int DialupNotify;					/* å†æŽ¥ç¶šã®éš›ã«ç¢ºèªã™ã‚‹ (YES/NO) */
+	char DialEntry[RAS_NAME_LEN+1];		/* ãƒ€ã‚¤ã‚¢ãƒ«ã‚¢ãƒƒãƒ—ã‚¨ãƒ³ãƒˆãƒª */
 } HOSTDATA;
 
 
-/*===== ƒzƒXƒgÝ’èƒŠƒXƒg =====*/
+/*===== ãƒ›ã‚¹ãƒˆè¨­å®šãƒªã‚¹ãƒˆ =====*/
 
 typedef struct hostlistdata {
-	HOSTDATA Set;					/* ƒzƒXƒgÝ’èƒf[ƒ^ */
+	HOSTDATA Set;					/* ãƒ›ã‚¹ãƒˆè¨­å®šãƒ‡ãƒ¼ã‚¿ */
 	struct hostlistdata *Next;
 	struct hostlistdata *Prev;
 	struct hostlistdata *Child;
@@ -908,155 +908,155 @@ typedef struct hostlistdata {
 } HOSTLISTDATA;
 
 
-/*===== Ú‘±ƒqƒXƒgƒŠƒŠƒXƒg =====*/
+/*===== æŽ¥ç¶šãƒ’ã‚¹ãƒˆãƒªãƒªã‚¹ãƒˆ =====*/
 
 typedef struct historydata {
-	char HostAdrs[HOST_ADRS_LEN+1];		/* ƒzƒXƒg–¼ */
-	char UserName[USER_NAME_LEN+1];		/* ƒ†[ƒU–¼ */
-	char PassWord[PASSWORD_LEN+1];		/* ƒpƒXƒ[ƒh */
-	char Account[ACCOUNT_LEN+1];		/* ƒAƒJƒEƒ“ƒg */
-	char LocalInitDir[INIT_DIR_LEN+1];	/* ƒfƒBƒŒƒNƒgƒŠ */
-	char RemoteInitDir[INIT_DIR_LEN+1];	/* ƒfƒBƒŒƒNƒgƒŠ */
-	char ChmodCmd[CHMOD_CMD_LEN+1];		/* ‘®«•ÏXƒRƒ}ƒ“ƒh */
-	char LsName[NLST_NAME_LEN+1];		/* NLST‚É•t‚¯‚éƒtƒ@ƒCƒ‹–¼/ƒIƒvƒVƒ‡ƒ“*/
-	char InitCmd[INITCMD_LEN+1];		/* ƒzƒXƒg‚Ì‰Šú‰»ƒRƒ}ƒ“ƒh */
-	int Port;							/* ƒ|[ƒg”Ô† */
-	int KanjiCode;						/* ƒzƒXƒg‚ÌŠ¿ŽšƒR[ƒh (KANJI_xxx) */
-	int KanaCnv;						/* ”¼ŠpƒJƒi‚ð‘SŠp‚É•ÏŠ·(YES/NO) */
-	int NameKanjiCode;					/* ƒtƒ@ƒCƒ‹–¼‚ÌŠ¿ŽšƒR[ƒh (KANJI_xxx) */
-	int NameKanaCnv;					/* ƒtƒ@ƒCƒ‹–¼‚Ì”¼ŠpƒJƒi‚ð‘SŠp‚É•ÏŠ·(YES/NO) */
-	int Pasv;							/* PASVƒ‚[ƒh (YES/NO) */
-	int FireWall;						/* FireWall‚ðŽg‚¤ (YES/NO) */
-	int ListCmdOnly;					/* "LIST"ƒRƒ}ƒ“ƒh‚Ì‚ÝŽg—p‚·‚é */
-	int UseNLST_R;						/* "NLST -R"ƒRƒ}ƒ“ƒh‚ðŽg—p‚·‚é */
-	int TimeZone;						/* ƒ^ƒCƒ€ƒ][ƒ“ (-12`12) */
-	int HostType;						/* ƒzƒXƒg‚Ìƒ^ƒCƒv (HTYPE_xxx) */
-	int SyncMove;						/* ƒtƒHƒ‹ƒ_“¯ŽžˆÚ“® (YES/NO) */
-	int NoFullPath;						/* ƒtƒ‹ƒpƒX‚Åƒtƒ@ƒCƒ‹ƒAƒNƒZƒX‚µ‚È‚¢ (YES/NO) */
-	ulong Sort;							/* ƒ\[ƒg•û–@ (0x11223344 : 11=LFsort 22=LDsort 33=RFsort 44=RFsort) */
-	int Security;						/* ƒZƒLƒ…ƒŠƒeƒB (OTP_xxx , MDx) */
-	int Type;							/* “]‘—•û–@ (TYPE_xx) */
-	int Dialup;							/* ƒ_ƒCƒAƒ‹ƒAƒbƒvÚ‘±‚·‚é‚©‚Ç‚¤‚© (YES/NO) */
-	int DialupAlways;					/* í‚É‚±‚ÌƒGƒ“ƒgƒŠ‚ÖÚ‘±‚·‚é‚©‚Ç‚¤‚© (YES/NO) */
-	int DialupNotify;					/* ÄÚ‘±‚ÌÛ‚ÉŠm”F‚·‚é (YES/NO) */
-	char DialEntry[RAS_NAME_LEN+1];		/* ƒ_ƒCƒAƒ‹ƒAƒbƒvƒGƒ“ƒgƒŠ */
+	char HostAdrs[HOST_ADRS_LEN+1];		/* ãƒ›ã‚¹ãƒˆå */
+	char UserName[USER_NAME_LEN+1];		/* ãƒ¦ãƒ¼ã‚¶å */
+	char PassWord[PASSWORD_LEN+1];		/* ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ */
+	char Account[ACCOUNT_LEN+1];		/* ã‚¢ã‚«ã‚¦ãƒ³ãƒˆ */
+	char LocalInitDir[INIT_DIR_LEN+1];	/* ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª */
+	char RemoteInitDir[INIT_DIR_LEN+1];	/* ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª */
+	char ChmodCmd[CHMOD_CMD_LEN+1];		/* å±žæ€§å¤‰æ›´ã‚³ãƒžãƒ³ãƒ‰ */
+	char LsName[NLST_NAME_LEN+1];		/* NLSTã«ä»˜ã‘ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«å/ã‚ªãƒ—ã‚·ãƒ§ãƒ³*/
+	char InitCmd[INITCMD_LEN+1];		/* ãƒ›ã‚¹ãƒˆã®åˆæœŸåŒ–ã‚³ãƒžãƒ³ãƒ‰ */
+	int Port;							/* ãƒãƒ¼ãƒˆç•ªå· */
+	int KanjiCode;						/* ãƒ›ã‚¹ãƒˆã®æ¼¢å­—ã‚³ãƒ¼ãƒ‰ (KANJI_xxx) */
+	int KanaCnv;						/* åŠè§’ã‚«ãƒŠã‚’å…¨è§’ã«å¤‰æ›(YES/NO) */
+	int NameKanjiCode;					/* ãƒ•ã‚¡ã‚¤ãƒ«åã®æ¼¢å­—ã‚³ãƒ¼ãƒ‰ (KANJI_xxx) */
+	int NameKanaCnv;					/* ãƒ•ã‚¡ã‚¤ãƒ«åã®åŠè§’ã‚«ãƒŠã‚’å…¨è§’ã«å¤‰æ›(YES/NO) */
+	int Pasv;							/* PASVãƒ¢ãƒ¼ãƒ‰ (YES/NO) */
+	int FireWall;						/* FireWallã‚’ä½¿ã† (YES/NO) */
+	int ListCmdOnly;					/* "LIST"ã‚³ãƒžãƒ³ãƒ‰ã®ã¿ä½¿ç”¨ã™ã‚‹ */
+	int UseNLST_R;						/* "NLST -R"ã‚³ãƒžãƒ³ãƒ‰ã‚’ä½¿ç”¨ã™ã‚‹ */
+	int TimeZone;						/* ã‚¿ã‚¤ãƒ ã‚¾ãƒ¼ãƒ³ (-12ï½ž12) */
+	int HostType;						/* ãƒ›ã‚¹ãƒˆã®ã‚¿ã‚¤ãƒ— (HTYPE_xxx) */
+	int SyncMove;						/* ãƒ•ã‚©ãƒ«ãƒ€åŒæ™‚ç§»å‹• (YES/NO) */
+	int NoFullPath;						/* ãƒ•ãƒ«ãƒ‘ã‚¹ã§ãƒ•ã‚¡ã‚¤ãƒ«ã‚¢ã‚¯ã‚»ã‚¹ã—ãªã„ (YES/NO) */
+	ulong Sort;							/* ã‚½ãƒ¼ãƒˆæ–¹æ³• (0x11223344 : 11=LFsort 22=LDsort 33=RFsort 44=RFsort) */
+	int Security;						/* ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£ (OTP_xxx , MDx) */
+	int Type;							/* è»¢é€æ–¹æ³• (TYPE_xx) */
+	int Dialup;							/* ãƒ€ã‚¤ã‚¢ãƒ«ã‚¢ãƒƒãƒ—æŽ¥ç¶šã™ã‚‹ã‹ã©ã†ã‹ (YES/NO) */
+	int DialupAlways;					/* å¸¸ã«ã“ã®ã‚¨ãƒ³ãƒˆãƒªã¸æŽ¥ç¶šã™ã‚‹ã‹ã©ã†ã‹ (YES/NO) */
+	int DialupNotify;					/* å†æŽ¥ç¶šã®éš›ã«ç¢ºèªã™ã‚‹ (YES/NO) */
+	char DialEntry[RAS_NAME_LEN+1];		/* ãƒ€ã‚¤ã‚¢ãƒ«ã‚¢ãƒƒãƒ—ã‚¨ãƒ³ãƒˆãƒª */
 	struct historydata *Next;
 } HISTORYDATA;
 
 
-/*===== “]‘—ƒtƒ@ƒCƒ‹ƒŠƒXƒg =====*/
+/*===== è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆ =====*/
 
 typedef struct transpacket {
 	SOCKET ctrl_skt;				/* Socket */
 	char Cmd[40];					/* STOR/RETR/MKD */
-	char RemoteFile[FMAX_PATH+1];	/* ƒzƒXƒg‘¤‚Ìƒtƒ@ƒCƒ‹–¼iƒtƒ‹ƒpƒXj */
-									/* VMS‚ÌŽž‚Í ddd[xxx.yyy]/yyy/zzz ‚Ì‚æ‚¤‚É */
-									/* ‚È‚Á‚Ä‚é‚Ì‚Å’ˆÓ */
-	char LocalFile[FMAX_PATH+1];	/* ƒ[ƒJƒ‹‘¤‚Ìƒtƒ@ƒCƒ‹–¼iƒtƒ‹ƒpƒXj */
-	int Type;						/* “]‘—•û–@ (TYPE_xx) */
-	LONGLONG Size;					/* ƒtƒ@ƒCƒ‹‚ÌƒTƒCƒY */
-	LONGLONG ExistSize;				/* ‚·‚Å‚É‘¶Ý‚·‚éƒtƒ@ƒCƒ‹‚ÌƒTƒCƒY */
-									/* “]‘—’†‚ÍA“]‘—‚µ‚½ƒtƒ@ƒCƒ‹‚ÌƒTƒCƒY‚ðŠi”[‚·‚é */
-	FILETIME Time;					/* ƒtƒ@ƒCƒ‹‚ÌŽžŠÔ(UTC) */
-	int Attr;						/* ƒtƒ@ƒCƒ‹‚Ì‘®« */
-	int KanjiCode;					/* Š¿ŽšƒR[ƒh (KANJI_xxx) */
-	int KanaCnv;					/* ”¼ŠpƒJƒi‚ð‘SŠp‚É•ÏŠ·(YES/NO) */
-	int Mode;						/* “]‘—ƒ‚[ƒh (EXIST_xxx) */
-	HWND hWndTrans;					/* “]‘—’†ƒ_ƒCƒAƒƒO‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹ */
-	int Abort;						/* “]‘—’†Ž~ƒtƒ‰ƒO (ABORT_xxx) */
+	char RemoteFile[FMAX_PATH+1];	/* ãƒ›ã‚¹ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«åï¼ˆãƒ•ãƒ«ãƒ‘ã‚¹ï¼‰ */
+									/* VMSã®æ™‚ã¯ ddd[xxx.yyy]/yyy/zzz ã®ã‚ˆã†ã« */
+									/* ãªã£ã¦ã‚‹ã®ã§æ³¨æ„ */
+	char LocalFile[FMAX_PATH+1];	/* ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒ•ã‚¡ã‚¤ãƒ«åï¼ˆãƒ•ãƒ«ãƒ‘ã‚¹ï¼‰ */
+	int Type;						/* è»¢é€æ–¹æ³• (TYPE_xx) */
+	LONGLONG Size;					/* ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚µã‚¤ã‚º */
+	LONGLONG ExistSize;				/* ã™ã§ã«å­˜åœ¨ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚µã‚¤ã‚º */
+									/* è»¢é€ä¸­ã¯ã€è»¢é€ã—ãŸãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚µã‚¤ã‚ºã‚’æ ¼ç´ã™ã‚‹ */
+	FILETIME Time;					/* ãƒ•ã‚¡ã‚¤ãƒ«ã®æ™‚é–“(UTC) */
+	int Attr;						/* ãƒ•ã‚¡ã‚¤ãƒ«ã®å±žæ€§ */
+	int KanjiCode;					/* æ¼¢å­—ã‚³ãƒ¼ãƒ‰ (KANJI_xxx) */
+	int KanaCnv;					/* åŠè§’ã‚«ãƒŠã‚’å…¨è§’ã«å¤‰æ›(YES/NO) */
+	int Mode;						/* è»¢é€ãƒ¢ãƒ¼ãƒ‰ (EXIST_xxx) */
+	HWND hWndTrans;					/* è»¢é€ä¸­ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ« */
+	int Abort;						/* è»¢é€ä¸­æ­¢ãƒ•ãƒ©ã‚° (ABORT_xxx) */
 	struct transpacket *Next;
 } TRANSPACKET;
 
 
-/*===== ƒtƒ@ƒCƒ‹ƒŠƒXƒg =====*/
+/*===== ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆ =====*/
 
 typedef struct filelist {
-	char File[FMAX_PATH+1];			/* ƒtƒ@ƒCƒ‹–¼ */
-	char Node;						/* Ží—Þ (NODE_xxx) */
-	char Link;						/* ƒŠƒ“ƒNƒtƒ@ƒCƒ‹‚©‚Ç‚¤‚© (YES/NO) */
-	LONGLONG Size;					/* ƒtƒ@ƒCƒ‹ƒTƒCƒY */
-	int Attr;						/* ‘®« */
-	FILETIME Time;					/* ŽžŠÔ(UTC) */
-	char Owner[OWNER_NAME_LEN+1];	/* ƒI[ƒi–¼ */
-	char InfoExist;					/* ƒtƒ@ƒCƒ‹ˆê——‚É‘¶Ý‚µ‚½î•ñ‚Ìƒtƒ‰ƒO (FINFO_xxx) */
+	char File[FMAX_PATH+1];			/* ãƒ•ã‚¡ã‚¤ãƒ«å */
+	char Node;						/* ç¨®é¡ž (NODE_xxx) */
+	char Link;						/* ãƒªãƒ³ã‚¯ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã©ã†ã‹ (YES/NO) */
+	LONGLONG Size;					/* ãƒ•ã‚¡ã‚¤ãƒ«ã‚µã‚¤ã‚º */
+	int Attr;						/* å±žæ€§ */
+	FILETIME Time;					/* æ™‚é–“(UTC) */
+	char Owner[OWNER_NAME_LEN+1];	/* ã‚ªãƒ¼ãƒŠå */
+	char InfoExist;					/* ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã«å­˜åœ¨ã—ãŸæƒ…å ±ã®ãƒ•ãƒ©ã‚° (FINFO_xxx) */
 	struct filelist *Next;
 } FILELIST;
 
 
-/*===== ƒR[ƒh•ÏŠ·î•ñƒpƒPƒbƒg =====*/
+/*===== ã‚³ãƒ¼ãƒ‰å¤‰æ›æƒ…å ±ãƒ‘ã‚±ãƒƒãƒˆ =====*/
 
 typedef char * (*funcptr)(struct codeconvinfo *, char , char *);
 
 typedef struct codeconvinfo {
-	char *Str;			/* •¶Žš—ñ */
-	int StrLen;			/* •¶Žš—ñ‚Ì’·‚³ */
-	int KanaCnv;		/* ”¼ŠpƒJƒ^ƒJƒi‚ð‘SŠp‚É•ÏŠ·‚·‚é‚©‚Ç‚¤‚© (YES/NO) */
-	char *Buf;			/* •ÏŠ·Œã‚Ì•¶Žš—ñ‚ðŠi”[‚·‚éƒoƒbƒtƒ@ */
-	int BufSize;		/* •ÏŠ·Œã‚Ì•¶Žš—ñ‚ðŠi”[‚·‚éƒoƒbƒtƒ@‚ÌƒTƒCƒY */
-	int OutLen;			/* •ÏŠ·Œã‚Ì•¶Žš—ñ‚ÌƒTƒCƒY */
-	int KanjiMode;		/* Š¿Žšƒ‚[ƒhƒtƒ‰ƒO(YES/NO) (“à•”ˆ——pƒ[ƒN) */
-	int EscProc;		/* ƒGƒXƒP[ƒvƒV[ƒPƒ“ƒX•¶Žš” (0`) (“à•”ˆ——pƒ[ƒN) */
-	char EscCode[2];	/* ƒGƒXƒP[ƒvƒV[ƒPƒ“ƒX•¶Žš•Û‘¶—p (“à•”ˆ——pƒ[ƒN) */
-	char KanjiFst;		/* Š¿ŽšƒR[ƒh‚PƒoƒCƒg–Ú•Û‘¶—p (“à•”ˆ——pƒ[ƒN) */
-	char KanaPrev;		/* ”¼ŠpƒJƒ^ƒJƒi•Û‘¶—p (“à•”ˆ——pƒ[ƒN) */
-	funcptr KanaProc;	/* ”¼ŠpƒJƒ^ƒJƒiˆ—ƒ‹[ƒ`ƒ“ (“à•”ˆ——pƒ[ƒN) */
+	char *Str;			/* æ–‡å­—åˆ— */
+	int StrLen;			/* æ–‡å­—åˆ—ã®é•·ã• */
+	int KanaCnv;		/* åŠè§’ã‚«ã‚¿ã‚«ãƒŠã‚’å…¨è§’ã«å¤‰æ›ã™ã‚‹ã‹ã©ã†ã‹ (YES/NO) */
+	char *Buf;			/* å¤‰æ›å¾Œã®æ–‡å­—åˆ—ã‚’æ ¼ç´ã™ã‚‹ãƒãƒƒãƒ•ã‚¡ */
+	int BufSize;		/* å¤‰æ›å¾Œã®æ–‡å­—åˆ—ã‚’æ ¼ç´ã™ã‚‹ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º */
+	int OutLen;			/* å¤‰æ›å¾Œã®æ–‡å­—åˆ—ã®ã‚µã‚¤ã‚º */
+	int KanjiMode;		/* æ¼¢å­—ãƒ¢ãƒ¼ãƒ‰ãƒ•ãƒ©ã‚°(YES/NO) (å†…éƒ¨å‡¦ç†ç”¨ãƒ¯ãƒ¼ã‚¯) */
+	int EscProc;		/* ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—ã‚·ãƒ¼ã‚±ãƒ³ã‚¹æ–‡å­—æ•° (0ï½ž) (å†…éƒ¨å‡¦ç†ç”¨ãƒ¯ãƒ¼ã‚¯) */
+	char EscCode[2];	/* ã‚¨ã‚¹ã‚±ãƒ¼ãƒ—ã‚·ãƒ¼ã‚±ãƒ³ã‚¹æ–‡å­—ä¿å­˜ç”¨ (å†…éƒ¨å‡¦ç†ç”¨ãƒ¯ãƒ¼ã‚¯) */
+	char KanjiFst;		/* æ¼¢å­—ã‚³ãƒ¼ãƒ‰ï¼‘ãƒã‚¤ãƒˆç›®ä¿å­˜ç”¨ (å†…éƒ¨å‡¦ç†ç”¨ãƒ¯ãƒ¼ã‚¯) */
+	char KanaPrev;		/* åŠè§’ã‚«ã‚¿ã‚«ãƒŠä¿å­˜ç”¨ (å†…éƒ¨å‡¦ç†ç”¨ãƒ¯ãƒ¼ã‚¯) */
+	funcptr KanaProc;	/* åŠè§’ã‚«ã‚¿ã‚«ãƒŠå‡¦ç†ãƒ«ãƒ¼ãƒãƒ³ (å†…éƒ¨å‡¦ç†ç”¨ãƒ¯ãƒ¼ã‚¯) */
 } CODECONVINFO;
 
 
-/*===== ‰üsƒR[ƒh•ÏŠ·î•ñƒpƒPƒbƒg =====*/
+/*===== æ”¹è¡Œã‚³ãƒ¼ãƒ‰å¤‰æ›æƒ…å ±ãƒ‘ã‚±ãƒƒãƒˆ =====*/
 
 typedef struct termcodeconvinfo {
-	char *Str;			/* •¶Žš—ñ */
-	int StrLen;			/* •¶Žš—ñ‚Ì’·‚³ */
-	char *Buf;			/* •ÏŠ·Œã‚Ì•¶Žš—ñ‚ðŠi”[‚·‚éƒoƒbƒtƒ@ */
-	int BufSize;		/* •ÏŠ·Œã‚Ì•¶Žš—ñ‚ðŠi”[‚·‚éƒoƒbƒtƒ@‚ÌƒTƒCƒY */
-	int OutLen;			/* •ÏŠ·Œã‚Ì•¶Žš—ñ‚ÌƒTƒCƒY */
-	char Term;			/* ‰üsƒR[ƒh‚PƒoƒCƒg–Ú•Û‘¶—p (“à•”ˆ——pƒ[ƒN) */
+	char *Str;			/* æ–‡å­—åˆ— */
+	int StrLen;			/* æ–‡å­—åˆ—ã®é•·ã• */
+	char *Buf;			/* å¤‰æ›å¾Œã®æ–‡å­—åˆ—ã‚’æ ¼ç´ã™ã‚‹ãƒãƒƒãƒ•ã‚¡ */
+	int BufSize;		/* å¤‰æ›å¾Œã®æ–‡å­—åˆ—ã‚’æ ¼ç´ã™ã‚‹ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º */
+	int OutLen;			/* å¤‰æ›å¾Œã®æ–‡å­—åˆ—ã®ã‚µã‚¤ã‚º */
+	char Term;			/* æ”¹è¡Œã‚³ãƒ¼ãƒ‰ï¼‘ãƒã‚¤ãƒˆç›®ä¿å­˜ç”¨ (å†…éƒ¨å‡¦ç†ç”¨ãƒ¯ãƒ¼ã‚¯) */
 } TERMCODECONVINFO;
 
 
-/*===== ƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹ƒŠƒXƒg =====*/
+/*===== ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆ =====*/
 
 typedef struct tempfilelist {
-	char *Fname;				/* ƒtƒ@ƒCƒ‹–¼ */
+	char *Fname;				/* ãƒ•ã‚¡ã‚¤ãƒ«å */
 	struct tempfilelist *Next;
 } TEMPFILELIST;
 
 
-/*===== ƒTƒEƒ“ƒhƒtƒ@ƒCƒ‹ =====*/
+/*===== ã‚µã‚¦ãƒ³ãƒ‰ãƒ•ã‚¡ã‚¤ãƒ« =====*/
 
 typedef struct {
-	int On;						/* ON/OFFƒXƒCƒbƒ` */
-	char Fname[FMAX_PATH+1];		/* ƒtƒ@ƒCƒ‹–¼ */
+	int On;						/* ON/OFFã‚¹ã‚¤ãƒƒãƒ */
+	char Fname[FMAX_PATH+1];		/* ãƒ•ã‚¡ã‚¤ãƒ«å */
 } SOUNDFILE;
 
 
-/*===== ƒ‰ƒWƒIƒ{ƒ^ƒ“‚ÌÝ’è =====*/
+/*===== ãƒ©ã‚¸ã‚ªãƒœã‚¿ãƒ³ã®è¨­å®š =====*/
 
 typedef struct {
-	int ButID;			/* ƒ{ƒ^ƒ“‚ÌID */
-	int Value;			/* ’l */
+	int ButID;			/* ãƒœã‚¿ãƒ³ã®ID */
+	int Value;			/* å€¤ */
 } RADIOBUTTON;
 
 
 /*===== SOCKS4 =====*/
 
-/* ƒRƒ}ƒ“ƒhƒpƒPƒbƒg */
+/* ã‚³ãƒžãƒ³ãƒ‰ãƒ‘ã‚±ãƒƒãƒˆ */
 typedef struct {
-	char Ver;						/* ƒo[ƒWƒ‡ƒ“ (SOCKS4_VER) */
-	char Cmd;						/* ƒRƒ}ƒ“ƒh (SOCKS4_CMD_xxx) */
-	ushort Port;					/* ƒ|[ƒg */
-	ulong AdrsInt;					/* ƒAƒhƒŒƒX */
-	char UserID[USER_NAME_LEN+1];	/* ƒ†[ƒUID */
+	char Ver;						/* ãƒãƒ¼ã‚¸ãƒ§ãƒ³ (SOCKS4_VER) */
+	char Cmd;						/* ã‚³ãƒžãƒ³ãƒ‰ (SOCKS4_CMD_xxx) */
+	ushort Port;					/* ãƒãƒ¼ãƒˆ */
+	ulong AdrsInt;					/* ã‚¢ãƒ‰ãƒ¬ã‚¹ */
+	char UserID[USER_NAME_LEN+1];	/* ãƒ¦ãƒ¼ã‚¶ID */
 } SOCKS4CMD;
 
 
-/* •ÔMƒpƒPƒbƒg */
+/* è¿”ä¿¡ãƒ‘ã‚±ãƒƒãƒˆ */
 typedef struct {
-	char Ver;				/* ƒo[ƒWƒ‡ƒ“ */
-	char Result;			/* ƒŠƒUƒ‹ƒgƒR[ƒh (SOCKS4_RES_xxx) */
-	ushort Port;			/* ƒ|[ƒg */
-	ulong AdrsInt;			/* ƒAƒhƒŒƒX */
+	char Ver;				/* ãƒãƒ¼ã‚¸ãƒ§ãƒ³ */
+	char Result;			/* ãƒªã‚¶ãƒ«ãƒˆã‚³ãƒ¼ãƒ‰ (SOCKS4_RES_xxx) */
+	ushort Port;			/* ãƒãƒ¼ãƒˆ */
+	ulong AdrsInt;			/* ã‚¢ãƒ‰ãƒ¬ã‚¹ */
 } SOCKS4REPLY;
 
 #define SOCKS4REPLY_SIZE	8
@@ -1064,75 +1064,75 @@ typedef struct {
 
 /*===== SOCKS5 =====*/
 
-/* Method requestƒpƒPƒbƒg */
+/* Method requestãƒ‘ã‚±ãƒƒãƒˆ */
 typedef struct {
-	char Ver;				/* ƒo[ƒWƒ‡ƒ“ (SOCKS5_VER) */
-	char Num;				/* ƒƒ\ƒbƒh‚Ì” */
-	uchar Methods[1];		/* ƒƒ\ƒbƒh */
+	char Ver;				/* ãƒãƒ¼ã‚¸ãƒ§ãƒ³ (SOCKS5_VER) */
+	char Num;				/* ãƒ¡ã‚½ãƒƒãƒ‰ã®æ•° */
+	uchar Methods[1];		/* ãƒ¡ã‚½ãƒƒãƒ‰ */
 } SOCKS5METHODREQUEST;
 
 #define SOCKS5METHODREQUEST_SIZE	3
 
 
-/* Method replyƒpƒPƒbƒg */
+/* Method replyãƒ‘ã‚±ãƒƒãƒˆ */
 typedef struct {
-	char Ver;				/* ƒo[ƒWƒ‡ƒ“ (SOCKS5_VER) */
-	uchar Method;			/* ƒƒ\ƒbƒh */
+	char Ver;				/* ãƒãƒ¼ã‚¸ãƒ§ãƒ³ (SOCKS5_VER) */
+	uchar Method;			/* ãƒ¡ã‚½ãƒƒãƒ‰ */
 } SOCKS5METHODREPLY;
 
 #define SOCKS5METHODREPLY_SIZE	2
 
 
-/* RequestƒpƒPƒbƒg */
+/* Requestãƒ‘ã‚±ãƒƒãƒˆ */
 typedef struct {
-	char Ver;				/* ƒo[ƒWƒ‡ƒ“ (SOCKS5_VER) */
-	char Cmd;				/* ƒRƒ}ƒ“ƒh (SOCKS5_CMD_xxx) */
-	char Rsv;				/* i—\–ñj */
-	char Type;				/* ƒAƒhƒŒƒX‚Ìƒ^ƒCƒv */
-							/* ˆÈŒãi‰Â•Ï’·•”•ªj */
-	char _dummy[255+1+2];	/* ƒAƒhƒŒƒXAƒ|[ƒg */
+	char Ver;				/* ãƒãƒ¼ã‚¸ãƒ§ãƒ³ (SOCKS5_VER) */
+	char Cmd;				/* ã‚³ãƒžãƒ³ãƒ‰ (SOCKS5_CMD_xxx) */
+	char Rsv;				/* ï¼ˆäºˆç´„ï¼‰ */
+	char Type;				/* ã‚¢ãƒ‰ãƒ¬ã‚¹ã®ã‚¿ã‚¤ãƒ— */
+							/* ä»¥å¾Œï¼ˆå¯å¤‰é•·éƒ¨åˆ†ï¼‰ */
+	char _dummy[255+1+2];	/* ã‚¢ãƒ‰ãƒ¬ã‚¹ã€ãƒãƒ¼ãƒˆ */
 } SOCKS5REQUEST;
 
-#define SOCKS5REQUEST_SIZE 4	/* Å‰‚ÌŒÅ’è•”•ª‚ÌƒTƒCƒY */
+#define SOCKS5REQUEST_SIZE 4	/* æœ€åˆã®å›ºå®šéƒ¨åˆ†ã®ã‚µã‚¤ã‚º */
 
 
-/* ReplyƒpƒPƒbƒg */
+/* Replyãƒ‘ã‚±ãƒƒãƒˆ */
 typedef struct {
-	char Ver;				/* ƒo[ƒWƒ‡ƒ“ */
-	char Result;			/* ƒŠƒUƒ‹ƒgƒR[ƒh (SOCKS4_RES_xxx) */
-	char Rsv;				/* i—\–ñj */
-	char Type;				/* ƒAƒhƒŒƒX‚Ìƒ^ƒCƒv */
-							/* ˆÈŒãi‰Â•Ï’·•”•ªj */
-	ulong AdrsInt;			/* ƒAƒhƒŒƒX */
-	ushort Port;			/* ƒ|[ƒg */
+	char Ver;				/* ãƒãƒ¼ã‚¸ãƒ§ãƒ³ */
+	char Result;			/* ãƒªã‚¶ãƒ«ãƒˆã‚³ãƒ¼ãƒ‰ (SOCKS4_RES_xxx) */
+	char Rsv;				/* ï¼ˆäºˆç´„ï¼‰ */
+	char Type;				/* ã‚¢ãƒ‰ãƒ¬ã‚¹ã®ã‚¿ã‚¤ãƒ— */
+							/* ä»¥å¾Œï¼ˆå¯å¤‰é•·éƒ¨åˆ†ï¼‰ */
+	ulong AdrsInt;			/* ã‚¢ãƒ‰ãƒ¬ã‚¹ */
+	ushort Port;			/* ãƒãƒ¼ãƒˆ */
 	char _dummy[2];			/* dummy */
 } SOCKS5REPLY;
 
-#define SOCKS5REPLY_SIZE 4	/* Å‰‚ÌŒÅ’è•”•ª‚ÌƒTƒCƒY */
+#define SOCKS5REPLY_SIZE 4	/* æœ€åˆã®å›ºå®šéƒ¨åˆ†ã®ã‚µã‚¤ã‚º */
 
 
-/* Username/Password”FØstatusƒpƒPƒbƒg */
+/* Username/Passwordèªè¨¼statusãƒ‘ã‚±ãƒƒãƒˆ */
 typedef struct {
-	char Ver;				/* ƒo[ƒWƒ‡ƒ“ */
-	uchar Status;			/* ƒXƒe[ƒ^ƒX */
+	char Ver;				/* ãƒãƒ¼ã‚¸ãƒ§ãƒ³ */
+	uchar Status;			/* ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ */
 } SOCKS5USERPASSSTATUS;
 
 #define SOCKS5USERPASSSTATUS_SIZE	2
 
 
 
-/*===== ƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX•ÏXˆ——p =====*/
+/*===== ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹å¤‰æ›´å‡¦ç†ç”¨ =====*/
 
 typedef struct {
-	int HorMoveList[10];	/* …•½‚É“®‚©‚·•”•i‚ÌƒŠƒXƒg */
-	int VarMoveList[10];	/* ‚’¼‚É“®‚©‚·•”•i‚ÌƒŠƒXƒg */
-	int ResizeList[10];		/* ƒTƒCƒY•ÏX‚·‚é•”•i‚ÌƒŠƒXƒg */
-	SIZE MinSize;			/* Å­ƒTƒCƒY */
-	SIZE CurSize;			/* Œ»Ý‚ÌƒTƒCƒY */
+	int HorMoveList[10];	/* æ°´å¹³ã«å‹•ã‹ã™éƒ¨å“ã®ãƒªã‚¹ãƒˆ */
+	int VarMoveList[10];	/* åž‚ç›´ã«å‹•ã‹ã™éƒ¨å“ã®ãƒªã‚¹ãƒˆ */
+	int ResizeList[10];		/* ã‚µã‚¤ã‚ºå¤‰æ›´ã™ã‚‹éƒ¨å“ã®ãƒªã‚¹ãƒˆ */
+	SIZE MinSize;			/* æœ€å°‘ã‚µã‚¤ã‚º */
+	SIZE CurSize;			/* ç¾åœ¨ã®ã‚µã‚¤ã‚º */
 } DIALOGSIZE;
 
 
-/*===== ”’l•ÏŠ·—p =====*/
+/*===== æ•°å€¤å¤‰æ›ç”¨ =====*/
 
 typedef struct {
 	int Num1;
@@ -1141,7 +1141,7 @@ typedef struct {
 
 
 /*=================================================
-*		ƒvƒƒgƒ^ƒCƒv
+*		ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ—
 *=================================================*/
 
 /*===== main.c =====*/
@@ -1443,12 +1443,12 @@ int FlushRestData(CODECONVINFO *cInfo);
 int ConvEUCtoSJIS(CODECONVINFO *cInfo);
 int ConvJIStoSJIS(CODECONVINFO *cInfo);
 int ConvSMBtoSJIS(CODECONVINFO *cInfo);
-int ConvUTF8NtoSJIS(CODECONVINFO *cInfo); // UTF-8N‘Î‰ž
+int ConvUTF8NtoSJIS(CODECONVINFO *cInfo); // UTF-8Nå¯¾å¿œ
 int ConvSJIStoEUC(CODECONVINFO *cInfo);
 int ConvSJIStoJIS(CODECONVINFO *cInfo);
 int ConvSJIStoSMB_HEX(CODECONVINFO *cInfo);
 int ConvSJIStoSMB_CAP(CODECONVINFO *cInfo);
-int ConvSJIStoUTF8N(CODECONVINFO *cInfo); // UTF-8N‘Î‰ž
+int ConvSJIStoUTF8N(CODECONVINFO *cInfo); // UTF-8Nå¯¾å¿œ
 void ConvAutoToSJIS(char *Text, int Pref);
 int CheckKanjiCode(char *Text, int Size, int Pref);
 

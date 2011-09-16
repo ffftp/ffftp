@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*									ƒ\ƒPƒbƒg
+*									ã‚½ã‚±ãƒƒãƒˆ
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -79,7 +79,7 @@ typedef struct {
 
 
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static int AskAsyncDone(SOCKET s, int *Error, int Mask);
@@ -90,12 +90,12 @@ static int UnRegistAsyncTable(SOCKET s);
 static int UnRegistAsyncTableDbase(HANDLE Async);
 
 
-/*===== ŠO•”QÆ =====*/
+/*===== å¤–éƒ¨å‚ç…§ =====*/
 
 extern int TimeOut;
 
 
-/*===== ƒ[ƒJƒ‹‚Èƒ[ƒN =====*/
+/*===== ãƒ­ãƒ¼ã‚«ãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
 static const char SocketWndClass[] = "FFFTPSocketWnd";
 static HWND hWndSocket;
@@ -114,7 +114,7 @@ static ASYNCSIGNALDATABASE SignalDbase[MAX_SIGNAL_ENTRY_DBASE];
 *	Parameter
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 *			SUCCESS/FAIL
 *----------------------------------------------------------------------------*/
 
@@ -161,10 +161,10 @@ int MakeSocketWin(HWND hWnd, HINSTANCE hInst)
 /*----- 
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DeleteSocketWin(void)
@@ -180,10 +180,10 @@ void DeleteSocketWin(void)
 /*----- 
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -832,20 +832,20 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 
 
 
-/*----- recv‘Š“–‚ÌŠÖ” --------------------------------------------------------
+/*----- recvç›¸å½“ã®é–¢æ•° --------------------------------------------------------
 *
 *	Parameter
-*		SOCKET s : ƒ\ƒPƒbƒg
-*		char *buf : ƒf[ƒ^‚ğ“Ç‚İ‚Şƒoƒbƒtƒ@
-*		int len : ’·‚³
-*		int flags : recv‚É—^‚¦‚éƒtƒ‰ƒO
-*		int *TimeOutErr : ƒ^ƒCƒ€ƒAƒEƒg‚µ‚½‚©‚Ç‚¤‚©‚ğ•Ô‚·ƒ[ƒN
+*		SOCKET s : ã‚½ã‚±ãƒƒãƒˆ
+*		char *buf : ãƒ‡ãƒ¼ã‚¿ã‚’èª­ã¿è¾¼ã‚€ãƒãƒƒãƒ•ã‚¡
+*		int len : é•·ã•
+*		int flags : recvã«ä¸ãˆã‚‹ãƒ•ãƒ©ã‚°
+*		int *TimeOutErr : ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã—ãŸã‹ã©ã†ã‹ã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int : recv‚Ì–ß‚è’l‚Æ“¯‚¶
+*		int : recvã®æˆ»ã‚Šå€¤ã¨åŒã˜
 *
 *	Note
-*		ƒ^ƒCƒ€ƒAƒEƒg‚Ì‚Í TimeOut=YESARet=SOCKET_ERROR ‚É‚È‚é
+*		ã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã®æ™‚ã¯ TimeOut=YESã€Ret=SOCKET_ERROR ã«ãªã‚‹
 *----------------------------------------------------------------------------*/
 int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *CancelCheckWork)
 {
@@ -1014,7 +1014,7 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 *	Parameter
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 *			SUCCESS/FAIL
 *----------------------------------------------------------------------------*/
 

@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*							ƒŠƒ‚[ƒg‘¤‚Ìƒtƒ@ƒCƒ‹‘€ì
+*							ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«æ“ä½œ
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -27,7 +27,7 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-/* ‚±‚Ìƒ\[ƒX‚Íˆê•”AWS_FTP Version 93.12.05 ‚Ìƒ\[ƒX‚ğQl‚É‚µ‚Ü‚µ‚½B */
+/* ã“ã®ã‚½ãƒ¼ã‚¹ã¯ä¸€éƒ¨ã€WS_FTP Version 93.12.05 ã®ã‚½ãƒ¼ã‚¹ã‚’å‚è€ƒã«ã—ã¾ã—ãŸã€‚ */
 
 #define	STRICT
 #include <stdio.h>
@@ -46,7 +46,7 @@
 #define PWD_XPWD		0
 #define PWD_PWD			1
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static int DoPWD(char *Buf);
 static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork);
@@ -54,15 +54,15 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, 
 static void ChangeSepaLocal2Remote(char *Fname);
 static void ChangeSepaRemote2Local(char *Fname);
 
-/*===== ŠO•”QÆ =====*/
+/*===== å¤–éƒ¨å‚ç…§ =====*/
 
 extern TRANSPACKET MainTransPkt;
 
-/* İ’è’l */
+/* è¨­å®šå€¤ */
 extern int TimeOut;
 extern int SendQuit;
 
-/*===== ƒ[ƒJƒ‹‚Èƒ[ƒN =====*/
+/*===== ãƒ­ãƒ¼ã‚«ãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
 static int PwdCommandType;
 
@@ -70,16 +70,16 @@ static int CheckCancelFlg = NO;
 
 
 
-/*----- ƒŠƒ‚[ƒg‘¤‚ÌƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ•ÏX ----------------------------------
+/*----- ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå¤‰æ›´ ----------------------------------
 *
 *	Parameter
-*		char *Path : ƒpƒX–¼
-*		int Disp : ƒfƒBƒŒƒNƒgƒŠƒŠƒXƒg‚ÉƒpƒX–¼‚ğ•\¦‚·‚é‚©‚Ç‚¤‚©(YES/NO)
-*		int ForceGet : ¸”s‚µ‚Ä‚àƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚ğæ“¾‚·‚é
-*		int ErrorBell : ƒGƒ‰[–‚Ì‰¹‚ğ–Â‚ç‚·‚©‚Ç‚¤‚©(YES/NO)
+*		char *Path : ãƒ‘ã‚¹å
+*		int Disp : ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒªã‚¹ãƒˆã«ãƒ‘ã‚¹åã‚’è¡¨ç¤ºã™ã‚‹ã‹ã©ã†ã‹(YES/NO)
+*		int ForceGet : å¤±æ•—ã—ã¦ã‚‚ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’å–å¾—ã™ã‚‹
+*		int ErrorBell : ã‚¨ãƒ©ãƒ¼äº‹ã®éŸ³ã‚’é³´ã‚‰ã™ã‹ã©ã†ã‹(YES/NO)
 *
 *	Return Value
-*		int ‰“šƒR[ƒh‚Ì‚PŒ…–Ú
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰ã®ï¼‘æ¡ç›®
 *----------------------------------------------------------------------------*/
 
 int DoCWD(char *Path, int Disp, int ForceGet, int ErrorBell)
@@ -96,7 +96,7 @@ int DoCWD(char *Path, int Disp, int ForceGet, int ErrorBell)
 		if((AskHostType() != HTYPE_VMS) || (strchr(Path, '[') != NULL))
 			Sts = CommandProcCmd(NULL, "CWD %s", Path);
 		else
-			Sts = CommandProcCmd(NULL, "CWD [.%s]", Path);	/* VMS—p */
+			Sts = CommandProcCmd(NULL, "CWD [.%s]", Path);	/* VMSç”¨ */
 	}
 
 	if((Sts/100 >= FTP_CONTINUE) && (ErrorBell == YES))
@@ -109,7 +109,7 @@ int DoCWD(char *Path, int Disp, int ForceGet, int ErrorBell)
 		{
 			if(DoPWD(Buf) != FTP_COMPLETE)
 			{
-				/*===== PWD‚ªg‚¦‚È‚©‚Á‚½ê‡ =====*/
+				/*===== PWDãŒä½¿ãˆãªã‹ã£ãŸå ´åˆ =====*/
 
 				if(*Path == '/')
 					strcpy(Buf, Path);
@@ -153,18 +153,18 @@ int DoCWD(char *Path, int Disp, int ForceGet, int ErrorBell)
 
 
 
-/*----- ƒŠƒ‚[ƒg‘¤‚ÌƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ•ÏXi‚»‚Ì‚Qj-------------------------
+/*----- ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå¤‰æ›´ï¼ˆãã®ï¼’ï¼‰-------------------------
 *
 *	Parameter
-*		char *Path : ƒpƒX–¼
-*		char *Cur : ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ
+*		char *Path : ãƒ‘ã‚¹å
+*		char *Cur : ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
 *
 *	Return Value
-*		int ‰“šƒR[ƒh‚Ì‚PŒ…–Ú
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰ã®ï¼‘æ¡ç›®
 *
 *	Note
-*		ƒpƒX–¼‚Í "xxx/yyy/zzz" ‚ÌŒ`®
-*		ƒfƒBƒŒƒNƒgƒŠ•ÏX‚ª¸”s‚µ‚½‚çAƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚É–ß‚µ‚Ä‚¨‚­
+*		ãƒ‘ã‚¹åã¯ "xxx/yyy/zzz" ã®å½¢å¼
+*		ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå¤‰æ›´ãŒå¤±æ•—ã—ãŸã‚‰ã€ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«æˆ»ã—ã¦ãŠã
 *----------------------------------------------------------------------------*/
 
 int DoCWDStepByStep(char *Path, char *Cur)
@@ -197,13 +197,13 @@ int DoCWDStepByStep(char *Path, char *Cur)
 }
 
 
-/*----- ƒŠƒ‚[ƒg‘¤‚ÌƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠæ“¾ ----------------------------------
+/*----- ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå–å¾— ----------------------------------
 *
 *	Parameter
-*		char *Buf : ƒpƒX–¼‚ğ•Ô‚·ƒoƒbƒtƒ@
+*		char *Buf : ãƒ‘ã‚¹åã‚’è¿”ã™ãƒãƒƒãƒ•ã‚¡
 *
 *	Return Value
-*		int ‰“šƒR[ƒh‚Ì‚PŒ…–Ú
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰ã®ï¼‘æ¡ç›®
 *----------------------------------------------------------------------------*/
 
 static int DoPWD(char *Buf)
@@ -246,13 +246,13 @@ static int DoPWD(char *Buf)
 }
 
 
-/*----- PWDƒRƒ}ƒ“ƒh‚Ìƒ^ƒCƒv‚ğ‰Šú‰»‚·‚é ---------------------------------------
+/*----- PWDã‚³ãƒãƒ³ãƒ‰ã®ã‚¿ã‚¤ãƒ—ã‚’åˆæœŸåŒ–ã™ã‚‹ ---------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void InitPWDcommand()
@@ -261,13 +261,13 @@ void InitPWDcommand()
 }
 
 
-/*----- ƒŠƒ‚[ƒg‘¤‚ÌƒfƒBƒŒƒNƒgƒŠì¬ ----------------------------------------
+/*----- ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªä½œæˆ ----------------------------------------
 *
 *	Parameter
-*		char *Path : ƒpƒX–¼
+*		char *Path : ãƒ‘ã‚¹å
 *
 *	Return Value
-*		int ‰“šƒR[ƒh‚Ì‚PŒ…–Ú
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰ã®ï¼‘æ¡ç›®
 *----------------------------------------------------------------------------*/
 
 int DoMKD(char *Path)
@@ -283,13 +283,13 @@ int DoMKD(char *Path)
 }
 
 
-/*----- ƒŠƒ‚[ƒg‘¤‚ÌƒfƒBƒŒƒNƒgƒŠíœ ------------------------------------------
+/*----- ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå‰Šé™¤ ------------------------------------------
 *
 *	Parameter
-*		char *Path : ƒpƒX–¼
+*		char *Path : ãƒ‘ã‚¹å
 *
 *	Return Value
-*		int ‰“šƒR[ƒh‚Ì‚PŒ…–Ú
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰ã®ï¼‘æ¡ç›®
 *----------------------------------------------------------------------------*/
 
 int DoRMD(char *Path)
@@ -305,13 +305,13 @@ int DoRMD(char *Path)
 }
 
 
-/*----- ƒŠƒ‚[ƒg‘¤‚Ìƒtƒ@ƒCƒ‹íœ ----------------------------------------------
+/*----- ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤ ----------------------------------------------
 *
 *	Parameter
-*		char *Path : ƒpƒX–¼
+*		char *Path : ãƒ‘ã‚¹å
 *
 *	Return Value
-*		int ‰“šƒR[ƒh‚Ì‚PŒ…–Ú
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰ã®ï¼‘æ¡ç›®
 *----------------------------------------------------------------------------*/
 
 int DoDELE(char *Path)
@@ -327,14 +327,14 @@ int DoDELE(char *Path)
 }
 
 
-/*----- ƒŠƒ‚[ƒg‘¤‚Ìƒtƒ@ƒCƒ‹–¼•ÏX --------------------------------------------
+/*----- ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«åå¤‰æ›´ --------------------------------------------
 *
 *	Parameter
-*		char *Src : Œ³ƒtƒ@ƒCƒ‹–¼
-*		char *Dst : •ÏXŒã‚Ìƒtƒ@ƒCƒ‹–¼
+*		char *Src : å…ƒãƒ•ã‚¡ã‚¤ãƒ«å
+*		char *Dst : å¤‰æ›´å¾Œã®ãƒ•ã‚¡ã‚¤ãƒ«å
 *
 *	Return Value
-*		int ‰“šƒR[ƒh‚Ì‚PŒ…–Ú
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰ã®ï¼‘æ¡ç›®
 *----------------------------------------------------------------------------*/
 
 int DoRENAME(char *Src, char *Dst)
@@ -352,14 +352,14 @@ int DoRENAME(char *Src, char *Dst)
 }
 
 
-/*----- ƒŠƒ‚[ƒg‘¤‚Ìƒtƒ@ƒCƒ‹‚Ì‘®«•ÏX ----------------------------------------
+/*----- ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®å±æ€§å¤‰æ›´ ----------------------------------------
 *
 *	Parameter
-*		char *Path : ƒpƒX–¼
-*		char *Mode : ƒ‚[ƒh•¶š—ñ
+*		char *Path : ãƒ‘ã‚¹å
+*		char *Mode : ãƒ¢ãƒ¼ãƒ‰æ–‡å­—åˆ—
 *
 *	Return Value
-*		int ‰“šƒR[ƒh‚Ì‚PŒ…–Ú
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰ã®ï¼‘æ¡ç›®
 *----------------------------------------------------------------------------*/
 
 int DoCHMOD(char *Path, char *Mode)
@@ -375,18 +375,18 @@ int DoCHMOD(char *Path, char *Mode)
 }
 
 
-/*----- ƒŠƒ‚[ƒg‘¤‚Ìƒtƒ@ƒCƒ‹‚ÌƒTƒCƒY‚ğæ“¾i“]‘—ƒ\ƒPƒbƒgg—pj-----------------
+/*----- ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚µã‚¤ã‚ºã‚’å–å¾—ï¼ˆè»¢é€ã‚½ã‚±ãƒƒãƒˆä½¿ç”¨ï¼‰-----------------
 *
 *	Parameter
-*		char *Path : ƒpƒX–¼
-*		LONGLONG *Size : ƒtƒ@ƒCƒ‹‚ÌƒTƒCƒY‚ğ•Ô‚·ƒ[ƒN
+*		char *Path : ãƒ‘ã‚¹å
+*		LONGLONG *Size : ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚µã‚¤ã‚ºã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int ‰“šƒR[ƒh‚Ì‚PŒ…–Ú
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰ã®ï¼‘æ¡ç›®
 *
 *	Note
-*		šš“]‘—ƒ\ƒPƒbƒg‚ğg—p‚·‚éšš
-*		ƒTƒCƒY‚ª‘I‚ç‚ê‚È‚¢‚Í Size = -1 ‚ğ•Ô‚·
+*		â˜…â˜…è»¢é€ã‚½ã‚±ãƒƒãƒˆã‚’ä½¿ç”¨ã™ã‚‹â˜…â˜…
+*		ã‚µã‚¤ã‚ºãŒé¸ã‚‰ã‚Œãªã„æ™‚ã¯ Size = -1 ã‚’è¿”ã™
 *----------------------------------------------------------------------------*/
 
 int DoSIZE(char *Path, LONGLONG *Size)
@@ -404,18 +404,18 @@ int DoSIZE(char *Path, LONGLONG *Size)
 }
 
 
-/*----- ƒŠƒ‚[ƒg‘¤‚Ìƒtƒ@ƒCƒ‹‚Ì“ú•t‚ğæ“¾i“]‘—ƒ\ƒPƒbƒgg—pj-------------------
+/*----- ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®æ—¥ä»˜ã‚’å–å¾—ï¼ˆè»¢é€ã‚½ã‚±ãƒƒãƒˆä½¿ç”¨ï¼‰-------------------
 *
 *	Parameter
-*		char *Path : ƒpƒX–¼
-*		FILETIME *Time : “ú•t‚ğ•Ô‚·ƒ[ƒN
+*		char *Path : ãƒ‘ã‚¹å
+*		FILETIME *Time : æ—¥ä»˜ã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int ‰“šƒR[ƒh‚Ì‚PŒ…–Ú
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰ã®ï¼‘æ¡ç›®
 *
 *	Note
-*		šš“]‘—ƒ\ƒPƒbƒg‚ğg—p‚·‚éšš
-*		“ú•t‚ª‘I‚ç‚ê‚È‚¢‚Í Time = 0 ‚ğ•Ô‚·
+*		â˜…â˜…è»¢é€ã‚½ã‚±ãƒƒãƒˆã‚’ä½¿ç”¨ã™ã‚‹â˜…â˜…
+*		æ—¥ä»˜ãŒé¸ã‚‰ã‚Œãªã„æ™‚ã¯ Time = 0 ã‚’è¿”ã™
 *----------------------------------------------------------------------------*/
 
 int DoMDTM(char *Path, FILETIME *Time)
@@ -444,13 +444,13 @@ int DoMDTM(char *Path, FILETIME *Time)
 }
 
 
-/*----- ƒŠƒ‚[ƒg‘¤‚ÌƒRƒ}ƒ“ƒh‚ğÀs --------------------------------------------
+/*----- ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ã‚³ãƒãƒ³ãƒ‰ã‚’å®Ÿè¡Œ --------------------------------------------
 *
 *	Parameter
-*		char *CmdStr : ƒRƒ}ƒ“ƒh•¶š—ñ
+*		char *CmdStr : ã‚³ãƒãƒ³ãƒ‰æ–‡å­—åˆ—
 *
 *	Return Value
-*		int ‰“šƒR[ƒh‚Ì‚PŒ…–Ú
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰ã®ï¼‘æ¡ç›®
 *----------------------------------------------------------------------------*/
 
 int DoQUOTE(char *CmdStr)
@@ -466,13 +466,13 @@ int DoQUOTE(char *CmdStr)
 }
 
 
-/*----- ƒ\ƒPƒbƒg‚ğ•Â‚¶‚é ------------------------------------------------------
+/*----- ã‚½ã‚±ãƒƒãƒˆã‚’é–‰ã˜ã‚‹ ------------------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		SOCKET •Â‚¶‚½Œã‚Ìƒ\ƒPƒbƒg
+*		SOCKET é–‰ã˜ãŸå¾Œã®ã‚½ã‚±ãƒƒãƒˆ
 *----------------------------------------------------------------------------*/
 
 SOCKET DoClose(SOCKET Sock)
@@ -495,13 +495,13 @@ SOCKET DoClose(SOCKET Sock)
 }
 
 
-/*----- ƒzƒXƒg‚©‚çƒƒOƒAƒEƒg‚·‚é ----------------------------------------------
+/*----- ãƒ›ã‚¹ãƒˆã‹ã‚‰ãƒ­ã‚°ã‚¢ã‚¦ãƒˆã™ã‚‹ ----------------------------------------------
 *
 *	Parameter
-*		kSOCKET ctrl_skt : ƒ\ƒPƒbƒg
+*		kSOCKET ctrl_skt : ã‚½ã‚±ãƒƒãƒˆ
 *
 *	Return Value
-*		int ‰“šƒR[ƒh‚Ì‚PŒ…–Ú
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰ã®ï¼‘æ¡ç›®
 *----------------------------------------------------------------------------*/
 
 int DoQUIT(SOCKET ctrl_skt)
@@ -516,15 +516,15 @@ int DoQUIT(SOCKET ctrl_skt)
 }
 
 
-/*----- ƒŠƒ‚[ƒg‘¤‚ÌƒfƒBƒŒƒNƒgƒŠƒŠƒXƒg‚ğæ“¾iƒRƒ}ƒ“ƒhƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg‚ğg—p)
+/*----- ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒªã‚¹ãƒˆã‚’å–å¾—ï¼ˆã‚³ãƒãƒ³ãƒ‰ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆã‚’ä½¿ç”¨)
 *
 *	Parameter
-*		char *AddOpt : ’Ç‰Á‚ÌƒIƒvƒVƒ‡ƒ“
-*		char *Path : ƒpƒX–¼
-*		int Num : ƒtƒ@ƒCƒ‹–¼”Ô†
+*		char *AddOpt : è¿½åŠ ã®ã‚ªãƒ—ã‚·ãƒ§ãƒ³
+*		char *Path : ãƒ‘ã‚¹å
+*		int Num : ãƒ•ã‚¡ã‚¤ãƒ«åç•ªå·
 *
 *	Return Value
-*		int ‰“šƒR[ƒh‚Ì‚PŒ…–Ú
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰ã®ï¼‘æ¡ç›®
 *----------------------------------------------------------------------------*/
 
 int DoDirListCmdSkt(char *AddOpt, char *Path, int Num, int *CancelCheckWork)
@@ -546,17 +546,17 @@ int DoDirListCmdSkt(char *AddOpt, char *Path, int Num, int *CancelCheckWork)
 }
 
 
-/*----- ƒŠƒ‚[ƒg‘¤‚ÌƒfƒBƒŒƒNƒgƒŠƒŠƒXƒg‚ğæ“¾ ----------------------------------
+/*----- ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒªã‚¹ãƒˆã‚’å–å¾— ----------------------------------
 *
 *	Parameter
-*		HWND hWnd : “]‘—’†ƒ_ƒCƒAƒƒO‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		SOCKET cSkt : ƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg
-*		char *AddOpt : ’Ç‰Á‚ÌƒIƒvƒVƒ‡ƒ“
-*		char *Path : ƒpƒX–¼ (""=ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ)
-*		int Num : ƒtƒ@ƒCƒ‹–¼”Ô†
+*		HWND hWnd : è»¢é€ä¸­ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		SOCKET cSkt : ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆ
+*		char *AddOpt : è¿½åŠ ã®ã‚ªãƒ—ã‚·ãƒ§ãƒ³
+*		char *Path : ãƒ‘ã‚¹å (""=ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª)
+*		int Num : ãƒ•ã‚¡ã‚¤ãƒ«åç•ªå·
 *
 *	Return Value
-*		int ‰“šƒR[ƒh
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰
 *----------------------------------------------------------------------------*/
 
 static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, int *CancelCheckWork)
@@ -602,8 +602,8 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, 
 	strcpy(MainTransPkt.LocalFile, Tmp);
 	MainTransPkt.Type = TYPE_A;
 	MainTransPkt.Size = -1;
-	/* ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ì’†‚ÌŠ¿š‚Ìƒtƒ@ƒCƒ‹–¼‚ÍA•Ê“r	*/
-	/* ChangeFnameRemote2Local ‚Å•ÏŠ·‚·‚é 			*/
+	/* ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®ä¸­ã®æ¼¢å­—ã®ãƒ•ã‚¡ã‚¤ãƒ«åã¯ã€åˆ¥é€”	*/
+	/* ChangeFnameRemote2Local ã§å¤‰æ›ã™ã‚‹ 			*/
 	MainTransPkt.KanjiCode = KANJI_NOCNV;
 	MainTransPkt.KanaCnv = YES;
 	MainTransPkt.Mode = EXIST_OVW;
@@ -620,18 +620,18 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, 
 }
 
 
-/*----- ƒŠƒ‚[ƒg‘¤‚ÖƒRƒ}ƒ“ƒh‚ğ‘—‚èƒŠƒvƒ‰ƒC‚ğ‘Ò‚ÂiƒRƒ}ƒ“ƒhƒ\ƒPƒbƒgj-----------
+/*----- ãƒªãƒ¢ãƒ¼ãƒˆå´ã¸ã‚³ãƒãƒ³ãƒ‰ã‚’é€ã‚Šãƒªãƒ—ãƒ©ã‚¤ã‚’å¾…ã¤ï¼ˆã‚³ãƒãƒ³ãƒ‰ã‚½ã‚±ãƒƒãƒˆï¼‰-----------
 *
 *	Parameter
-*		char *Reply : ƒŠƒvƒ‰ƒC‚ÌƒRƒs[æ (NULL=ƒRƒs[‚µ‚È‚¢)
-*		char *fmt : ƒtƒH[ƒ}ƒbƒg•¶š—ñ
-*		... : ƒpƒ‰ƒ[ƒ^
+*		char *Reply : ãƒªãƒ—ãƒ©ã‚¤ã®ã‚³ãƒ”ãƒ¼å…ˆ (NULL=ã‚³ãƒ”ãƒ¼ã—ãªã„)
+*		char *fmt : ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæ–‡å­—åˆ—
+*		... : ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 *
 *	Return Value
-*		int ‰“šƒR[ƒh
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰
 *
 *	Note
-*		ƒRƒ}ƒ“ƒhƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg‚ğg‚¤
+*		ã‚³ãƒãƒ³ãƒ‰ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆã‚’ä½¿ã†
 *----------------------------------------------------------------------------*/
 
 int CommandProcCmd(char *Reply, char *fmt, ...)
@@ -661,18 +661,18 @@ int CommandProcCmd(char *Reply, char *fmt, ...)
 }
 
 
-/*----- ƒŠƒ‚[ƒg‘¤‚ÖƒRƒ}ƒ“ƒh‚ğ‘—‚èƒŠƒvƒ‰ƒC‚ğ‘Ò‚Âi“]‘—ƒ\ƒPƒbƒgj---------------
+/*----- ãƒªãƒ¢ãƒ¼ãƒˆå´ã¸ã‚³ãƒãƒ³ãƒ‰ã‚’é€ã‚Šãƒªãƒ—ãƒ©ã‚¤ã‚’å¾…ã¤ï¼ˆè»¢é€ã‚½ã‚±ãƒƒãƒˆï¼‰---------------
 *
 *	Parameter
-*		char *Reply : ƒŠƒvƒ‰ƒC‚ÌƒRƒs[æ (NULL=ƒRƒs[‚µ‚È‚¢)
-*		char *fmt : ƒtƒH[ƒ}ƒbƒg•¶š—ñ
-*		... : ƒpƒ‰ƒ[ƒ^
+*		char *Reply : ãƒªãƒ—ãƒ©ã‚¤ã®ã‚³ãƒ”ãƒ¼å…ˆ (NULL=ã‚³ãƒ”ãƒ¼ã—ãªã„)
+*		char *fmt : ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæ–‡å­—åˆ—
+*		... : ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 *
 *	Return Value
-*		int ‰“šƒR[ƒh
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰
 *
 *	Note
-*		“]‘—ƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg‚ğg‚¤
+*		è»¢é€ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆã‚’ä½¿ã†
 *----------------------------------------------------------------------------*/
 
 int CommandProcTrn(char *Reply, char *fmt, ...)
@@ -697,19 +697,19 @@ int CommandProcTrn(char *Reply, char *fmt, ...)
 }
 
 
-/*----- ƒRƒ}ƒ“ƒh‚ğ‘—‚èƒŠƒvƒ‰ƒC‚ğ‘Ò‚Â ------------------------------------------
+/*----- ã‚³ãƒãƒ³ãƒ‰ã‚’é€ã‚Šãƒªãƒ—ãƒ©ã‚¤ã‚’å¾…ã¤ ------------------------------------------
 *
 *	Parameter
-*		SOCKET cSkt : ƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg
-*		char *Reply : ƒŠƒvƒ‰ƒC‚ÌƒRƒs[æ (NULL=ƒRƒs[‚µ‚È‚¢)
-*		char *fmt : ƒtƒH[ƒ}ƒbƒg•¶š—ñ
-*		... : ƒpƒ‰ƒ[ƒ^
+*		SOCKET cSkt : ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆ
+*		char *Reply : ãƒªãƒ—ãƒ©ã‚¤ã®ã‚³ãƒ”ãƒ¼å…ˆ (NULL=ã‚³ãƒ”ãƒ¼ã—ãªã„)
+*		char *fmt : ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆæ–‡å­—åˆ—
+*		... : ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿
 *
 *	Return Value
-*		int ‰“šƒR[ƒh
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰
 *
 *	Note
-*		ƒzƒXƒg‚Ìƒtƒ@ƒCƒ‹–¼‚ÌŠ¿šƒR[ƒh‚É‰‚¶‚ÄA‚±‚±‚ÅŠ¿šƒR[ƒh‚Ì•ÏŠ·‚ğs‚È‚¤
+*		ãƒ›ã‚¹ãƒˆã®ãƒ•ã‚¡ã‚¤ãƒ«åã®æ¼¢å­—ã‚³ãƒ¼ãƒ‰ã«å¿œã˜ã¦ã€ã“ã“ã§æ¼¢å­—ã‚³ãƒ¼ãƒ‰ã®å¤‰æ›ã‚’è¡Œãªã†
 *----------------------------------------------------------------------------*/
 
 //#pragma aaa
@@ -769,16 +769,16 @@ int command(SOCKET cSkt, char *Reply, int *CancelCheckWork, char *fmt, ...)
 }
 
 
-/*----- ƒf[ƒ^‚ğ‘—‚é ----------------------------------------------------------
+/*----- ãƒ‡ãƒ¼ã‚¿ã‚’é€ã‚‹ ----------------------------------------------------------
 *
 *	Parameter
-*		SOCKET Skt : ƒ\ƒPƒbƒg
-*		char *Data : ƒf[ƒ^
-*		int Size : ‘—‚éƒf[ƒ^‚ÌƒTƒCƒY
-*		int Mode : ƒR[ƒ‹ƒ‚[ƒh
+*		SOCKET Skt : ã‚½ã‚±ãƒƒãƒˆ
+*		char *Data : ãƒ‡ãƒ¼ã‚¿
+*		int Size : é€ã‚‹ãƒ‡ãƒ¼ã‚¿ã®ã‚µã‚¤ã‚º
+*		int Mode : ã‚³ãƒ¼ãƒ«ãƒ¢ãƒ¼ãƒ‰
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 *			SUCCESS/FAIL
 *----------------------------------------------------------------------------*/
 
@@ -842,17 +842,17 @@ int SendData(SOCKET Skt, char *Data, int Size, int Mode, int *CancelCheckWork)
 }
 
 
-/*----- ‰“šƒƒbƒZ[ƒW‚ğó‚¯æ‚é ----------------------------------------------
+/*----- å¿œç­”ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ã‘å–ã‚‹ ----------------------------------------------
 *
 *	Parameter
-*		SOCKET cSkt : ƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg
-*		char *Buf : ƒƒbƒZ[ƒW‚ğó‚¯æ‚éƒoƒbƒtƒ@ (NULL=ƒRƒs[‚µ‚È‚¢)
-*		int Max : ƒoƒbƒtƒ@‚ÌƒTƒCƒY
+*		SOCKET cSkt : ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆ
+*		char *Buf : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ã‘å–ã‚‹ãƒãƒƒãƒ•ã‚¡ (NULL=ã‚³ãƒ”ãƒ¼ã—ãªã„)
+*		int Max : ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º
 *		int *CancelCheckWork :
-*		char *Tmp : ƒeƒ“ƒ|ƒ‰ƒŠƒ[ƒN
+*		char *Tmp : ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int ‰“šƒR[ƒh
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰
 *----------------------------------------------------------------------------*/
 
 int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char *Tmp)
@@ -880,7 +880,7 @@ int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char
 
 			if(Buf != NULL)
 			{
-				// ‚Qs–ÚˆÈ~‚Ì‰“šƒR[ƒh‚ÍÁ‚·
+				// ï¼’è¡Œç›®ä»¥é™ã®å¿œç­”ã‚³ãƒ¼ãƒ‰ã¯æ¶ˆã™
 				if(Lines > 0)
 				{
 					for(i = 0; ; i++)
@@ -922,16 +922,16 @@ int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char
 }
 
 
-/*----- ‚Ps•ª‚Ìƒf[ƒ^‚ğó‚¯æ‚é ----------------------------------------------
+/*----- ï¼‘è¡Œåˆ†ã®ãƒ‡ãƒ¼ã‚¿ã‚’å—ã‘å–ã‚‹ ----------------------------------------------
 *
 *	Parameter
-*		SOCKET cSkt : ƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg
-*		char *Buf : ƒƒbƒZ[ƒW‚ğó‚¯æ‚éƒoƒbƒtƒ@
-*		int Max : ƒoƒbƒtƒ@‚ÌƒTƒCƒY
+*		SOCKET cSkt : ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆ
+*		char *Buf : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ã‘å–ã‚‹ãƒãƒƒãƒ•ã‚¡
+*		int Max : ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º
 *		int *CancelCheckWork : 
 *
 *	Return Value
-*		int ‰“šƒR[ƒh
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰
 *----------------------------------------------------------------------------*/
 
 static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
@@ -951,7 +951,7 @@ static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
 	if(cSkt != INVALID_SOCKET)
 	{
 		memset(Buf, NUL, Max);
-		Max--;					/* ––”ö‚ÌNULL‚Ì‚Ô‚ñ */
+		Max--;					/* æœ«å°¾ã®NULLã®ã¶ã‚“ */
 		Pos = Buf;
 
 		for(;;)
@@ -979,7 +979,7 @@ static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
 //				break;
 //			}
 
-			/* LF‚Ü‚Å‚ğóM‚·‚é‚½‚ß‚ÉAÅ‰‚ÍPEEK‚ÅóM */
+			/* LFã¾ã§ã‚’å—ä¿¡ã™ã‚‹ãŸã‚ã«ã€æœ€åˆã¯PEEKã§å—ä¿¡ */
 			if((SizeOnce = do_recv(cSkt, (LPSTR)Tmp, 1024, MSG_PEEK, &TimeOutErr, CancelCheckWork)) <= 0)
 			{
 				if(TimeOutErr == YES)
@@ -994,7 +994,7 @@ static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
 				break;
 			}
 
-			/* LF‚ğ’T‚µ‚ÄA‚ ‚Á‚½‚ç‚»‚±‚Ü‚Å‚Ì’·‚³‚ğƒZƒbƒg */
+			/* LFã‚’æ¢ã—ã¦ã€ã‚ã£ãŸã‚‰ãã“ã¾ã§ã®é•·ã•ã‚’ã‚»ãƒƒãƒˆ */
 			for(i = 0; i < SizeOnce ; i++)
 			{
 				if(*(Tmp + i) == NUL || *(Tmp + i) == 0x0A)
@@ -1004,7 +1004,7 @@ static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
 				}
 			}
 
-			/* –{óM */
+			/* æœ¬å—ä¿¡ */
 			if((SizeOnce = do_recv(cSkt, Tmp, SizeOnce, 0, &TimeOutErr, CancelCheckWork)) <= 0)
 				break;
 
@@ -1013,7 +1013,7 @@ static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
 			Pos += CopySize;
 			Max -= CopySize;
 
-			/* ƒf[ƒ^‚ªLF‚ÅI‚í‚Á‚Ä‚¢‚½‚ç‚PsI‚í‚è */
+			/* ãƒ‡ãƒ¼ã‚¿ãŒLFã§çµ‚ã‚ã£ã¦ã„ãŸã‚‰ï¼‘è¡Œçµ‚ã‚ã‚Š */
 			if(*(Tmp + SizeOnce - 1) == 0x0A)
 				break;
 		}
@@ -1036,7 +1036,7 @@ static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
 				ResCode = atoi(Tmp);
 			}
 
-			/* ––”ö‚Ì CR,LF,ƒXƒy[ƒX‚ğæ‚èœ‚­ */
+			/* æœ«å°¾ã® CR,LF,ã‚¹ãƒšãƒ¼ã‚¹ã‚’å–ã‚Šé™¤ã */
 			while((i=strlen(Buf))>2 &&
 				  (Buf[i-1]==0x0a || Buf[i-1]==0x0d || Buf[i-1]==' '))
 				Buf[i-1]=0;
@@ -1046,16 +1046,16 @@ static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
 }
 
 
-/*----- ŒÅ’è’·ƒf[ƒ^‚ğó‚¯æ‚é ------------------------------------------------
+/*----- å›ºå®šé•·ãƒ‡ãƒ¼ã‚¿ã‚’å—ã‘å–ã‚‹ ------------------------------------------------
 *
 *	Parameter
-*		SOCKET cSkt : ƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg
-*		char *Buf : ƒƒbƒZ[ƒW‚ğó‚¯æ‚éƒoƒbƒtƒ@
-*		int Size : ƒoƒCƒg”
+*		SOCKET cSkt : ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆ
+*		char *Buf : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ã‘å–ã‚‹ãƒãƒƒãƒ•ã‚¡
+*		int Size : ãƒã‚¤ãƒˆæ•°
 *		int *CancelCheckWork : 
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 *			SUCCESS/FAIL
 *----------------------------------------------------------------------------*/
 
@@ -1118,13 +1118,13 @@ int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
 }
 
 
-/*----- ƒGƒ‰[•¶š—ñ‚ğæ“¾ ----------------------------------------------------
+/*----- ã‚¨ãƒ©ãƒ¼æ–‡å­—åˆ—ã‚’å–å¾— ----------------------------------------------------
 *
 *	Parameter
-*		UINT Error : ƒGƒ‰[”Ô†
+*		UINT Error : ã‚¨ãƒ©ãƒ¼ç•ªå·
 *
 *	Return Value
-*		char *ƒGƒ‰[•¶š—ñ
+*		char *ã‚¨ãƒ©ãƒ¼æ–‡å­—åˆ—
 *----------------------------------------------------------------------------*/
 
 char *ReturnWSError(UINT Error)
@@ -1260,14 +1260,14 @@ char *ReturnWSError(UINT Error)
 }
 
 
-/*----- ƒfƒoƒbƒOƒRƒ“ƒ\[ƒ‹‚ÉƒGƒ‰[‚ğ•\¦ --------------------------------------
+/*----- ãƒ‡ãƒãƒƒã‚°ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã«ã‚¨ãƒ©ãƒ¼ã‚’è¡¨ç¤º --------------------------------------
 *
 *	Parameter
-*		char *Msg : ƒGƒ‰[‚Ì‘O‚É•\¦‚·‚éƒƒbƒZ[ƒW
-*		UINT Error : ƒGƒ‰[”Ô†
+*		char *Msg : ã‚¨ãƒ©ãƒ¼ã®å‰ã«è¡¨ç¤ºã™ã‚‹ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸
+*		UINT Error : ã‚¨ãƒ©ãƒ¼ç•ªå·
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void ReportWSError(char *Msg, UINT Error)
@@ -1279,14 +1279,14 @@ void ReportWSError(char *Msg, UINT Error)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹–¼‚ğƒ[ƒJƒ‹‘¤‚Åˆµ‚¦‚é‚æ‚¤‚É•ÏŠ·‚·‚é --------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«åã‚’ãƒ­ãƒ¼ã‚«ãƒ«å´ã§æ‰±ãˆã‚‹ã‚ˆã†ã«å¤‰æ›ã™ã‚‹ --------------------------
 *
 *	Parameter
-*		char *Fname : ƒtƒ@ƒCƒ‹–¼
-*		int Max : Å‘å’·
+*		char *Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
+*		int Max : æœ€å¤§é•·
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 *			SUCCESS/FAIL
 *----------------------------------------------------------------------------*/
 
@@ -1357,14 +1357,14 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹–¼‚ğƒŠƒ‚[ƒg‘¤‚Åˆµ‚¦‚é‚æ‚¤‚É•ÏŠ·‚·‚é --------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«åã‚’ãƒªãƒ¢ãƒ¼ãƒˆå´ã§æ‰±ãˆã‚‹ã‚ˆã†ã«å¤‰æ›ã™ã‚‹ --------------------------
 *
 *	Parameter
-*		char *Fname : ƒtƒ@ƒCƒ‹–¼
-*		int Max : Å‘å’·
+*		char *Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
+*		int Max : æœ€å¤§é•·
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 *			SUCCESS/FAIL
 *----------------------------------------------------------------------------*/
 
@@ -1444,13 +1444,13 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 }
 
 
-/*----- ƒpƒX‚Ì‹æØ‚è•¶š‚ğƒzƒXƒg‚É‡‚í‚¹‚Ä•ÏX‚·‚é ----------------------------
+/*----- ãƒ‘ã‚¹ã®åŒºåˆ‡ã‚Šæ–‡å­—ã‚’ãƒ›ã‚¹ãƒˆã«åˆã‚ã›ã¦å¤‰æ›´ã™ã‚‹ ----------------------------
 *
 *	Parameter
-*		char *Fname : ƒtƒ@ƒCƒ‹–¼
+*		char *Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 static void ChangeSepaLocal2Remote(char *Fname)
 {
@@ -1462,13 +1462,13 @@ static void ChangeSepaLocal2Remote(char *Fname)
 }
 
 
-/*----- ƒpƒX‚Ì‹æØ‚è•¶š‚ğƒ[ƒJƒ‹‚É‡‚í‚¹‚Ä•ÏX‚·‚é --------------------------
+/*----- ãƒ‘ã‚¹ã®åŒºåˆ‡ã‚Šæ–‡å­—ã‚’ãƒ­ãƒ¼ã‚«ãƒ«ã«åˆã‚ã›ã¦å¤‰æ›´ã™ã‚‹ --------------------------
 *
 *	Parameter
-*		char *Fname : ƒtƒ@ƒCƒ‹–¼
+*		char *Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 static void ChangeSepaRemote2Local(char *Fname)
 {

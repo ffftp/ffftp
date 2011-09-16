@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*							ƒ_ƒEƒ“ƒ[ƒh^ƒAƒbƒvƒ[ƒh
+*							ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ï¼ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -27,11 +27,11 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-/* ‚±‚Ìƒ\[ƒX‚Íˆê•”AWS_FTP Version 93.12.05 ‚Ìƒ\[ƒX‚ğQl‚É‚µ‚Ü‚µ‚½B */
-/* ƒXƒŒƒbƒh‚Ìì¬^I—¹‚ÉŠÖ‚µ‚ÄA”óŒû“aì¬‚Ìƒpƒbƒ`‚ğ‘g‚İ‚İ‚Ü‚µ‚½B */
+/* ã“ã®ã‚½ãƒ¼ã‚¹ã¯ä¸€éƒ¨ã€WS_FTP Version 93.12.05 ã®ã‚½ãƒ¼ã‚¹ã‚’å‚è€ƒã«ã—ã¾ã—ãŸã€‚ */
+/* ã‚¹ãƒ¬ãƒƒãƒ‰ã®ä½œæˆï¼çµ‚äº†ã«é–¢ã—ã¦ã€æ¨‹å£æ®¿ä½œæˆã®ãƒ‘ãƒƒãƒã‚’çµ„ã¿è¾¼ã¿ã¾ã—ãŸã€‚ */
 
 /*
-	ˆê•”A‚‘¬‰»‚Ì‚½‚ß‚ÌƒR[ƒh’Ç‰Á by H.Shirouzu at 2002/10/02
+	ä¸€éƒ¨ã€é«˜é€ŸåŒ–ã®ãŸã‚ã®ã‚³ãƒ¼ãƒ‰è¿½åŠ  by H.Shirouzu at 2002/10/02
 */
 
 #define	STRICT
@@ -57,20 +57,20 @@
 #define SOCKBUF_SIZE	(256 * 1024)
 /* End */
 
-#define TIMER_DISPLAY		1		/* •\¦XV—pƒ^ƒCƒ}‚ÌID */
-#define DISPLAY_TIMING		500		/* •\¦XVŠÔ 0.5•b */
+#define TIMER_DISPLAY		1		/* è¡¨ç¤ºæ›´æ–°ç”¨ã‚¿ã‚¤ãƒã®ID */
+#define DISPLAY_TIMING		500		/* è¡¨ç¤ºæ›´æ–°æ™‚é–“ 0.5ç§’ */
 
 #define ERR_MSG_LEN			1024
 
 
-/* íœŠm”Fƒ_ƒCƒAƒƒO‚Ìî•ñ */
+/* å‰Šé™¤ç¢ºèªãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®æƒ…å ± */
 typedef struct {
 	int Cur;
 	TRANSPACKET *Pkt;
 } MIRRORDELETEINFO;
 
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static void DispTransPacket(TRANSPACKET *Pkt);
 static void EraseTransFileList(void);
@@ -100,35 +100,35 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt);
 static BOOL CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static void SetErrorMsg(char *fmt, ...);
 
-/*===== ƒ[ƒJƒ‹‚Èƒ[ƒN =====*/
+/*===== ãƒ­ãƒ¼ã‚«ãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
 static HANDLE hTransferThread;
 static int fTransferThreadExit = FALSE;
 
-static HANDLE hRunMutex;				/* “]‘—ƒXƒŒƒbƒhÀsƒ~ƒ…[ƒeƒbƒNƒX */
-static HANDLE hListAccMutex;			/* “]‘—ƒtƒ@ƒCƒ‹ƒAƒNƒZƒX—pƒ~ƒ…[ƒeƒbƒNƒX */
+static HANDLE hRunMutex;				/* è»¢é€ã‚¹ãƒ¬ãƒƒãƒ‰å®Ÿè¡ŒãƒŸãƒ¥ãƒ¼ãƒ†ãƒƒã‚¯ã‚¹ */
+static HANDLE hListAccMutex;			/* è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«ã‚¢ã‚¯ã‚»ã‚¹ç”¨ãƒŸãƒ¥ãƒ¼ãƒ†ãƒƒã‚¯ã‚¹ */
 
-static int TransFiles = 0;				/* “]‘—‘Ò‚¿ƒtƒ@ƒCƒ‹” */
-static TRANSPACKET *TransPacketBase = NULL;	/* “]‘—ƒtƒ@ƒCƒ‹ƒŠƒXƒg */
+static int TransFiles = 0;				/* è»¢é€å¾…ã¡ãƒ•ã‚¡ã‚¤ãƒ«æ•° */
+static TRANSPACKET *TransPacketBase = NULL;	/* è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆ */
 
-static int Canceled;		/* ’†~ƒtƒ‰ƒO YES/NO */
-static int ClearAll;		/* ‘S‚Ä’†~ƒtƒ‰ƒO YES/NO */
+static int Canceled;		/* ä¸­æ­¢ãƒ•ãƒ©ã‚° YES/NO */
+static int ClearAll;		/* å…¨ã¦ä¸­æ­¢ãƒ•ãƒ©ã‚° YES/NO */
 
-static int ForceAbort;		/* “]‘—’†~ƒtƒ‰ƒO */
-							/* ‚±‚Ìƒtƒ‰ƒO‚ÍƒXƒŒƒbƒh‚ğI—¹‚³‚¹‚é‚Æ‚«‚Ég‚¤ */
+static int ForceAbort;		/* è»¢é€ä¸­æ­¢ãƒ•ãƒ©ã‚° */
+							/* ã“ã®ãƒ•ãƒ©ã‚°ã¯ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’çµ‚äº†ã•ã›ã‚‹ã¨ãã«ä½¿ã† */
 
-static LONGLONG AllTransSizeNow;	/* ¡‰ñ‚Ì“]‘—‚Å“]‘—‚µ‚½ƒTƒCƒY */
-static time_t TimeStart;	/* “]‘—ŠJnŠÔ */
+static LONGLONG AllTransSizeNow;	/* ä»Šå›ã®è»¢é€ã§è»¢é€ã—ãŸã‚µã‚¤ã‚º */
+static time_t TimeStart;	/* è»¢é€é–‹å§‹æ™‚é–“ */
 
-static int KeepDlg = NO;	/* “]‘—’†ƒ_ƒCƒAƒƒO‚ğÁ‚³‚È‚¢‚©‚Ç‚¤‚© (YES/NO) */
-static int MoveToForeground = NO;		/* ƒEƒCƒ“ƒhƒE‚ğ‘O–Ê‚ÉˆÚ“®‚·‚é‚©‚Ç‚¤‚© (YES/NO) */
+static int KeepDlg = NO;	/* è»¢é€ä¸­ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’æ¶ˆã•ãªã„ã‹ã©ã†ã‹ (YES/NO) */
+static int MoveToForeground = NO;		/* ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚’å‰é¢ã«ç§»å‹•ã™ã‚‹ã‹ã©ã†ã‹ (YES/NO) */
 
 static char CurDir[FMAX_PATH+1] = { "" };
 static char ErrMsg[ERR_MSG_LEN+7];
 
-/*===== ŠO•”QÆ =====*/
+/*===== å¤–éƒ¨å‚ç…§ =====*/
 
-/* İ’è’l */
+/* è¨­å®šå€¤ */
 extern int SaveTimeStamp;
 extern int RmEOF;
 // extern int TimeOut;
@@ -139,13 +139,13 @@ extern int FolderAttr;
 extern int FolderAttrNum;
 
 
-/*----- ƒtƒ@ƒCƒ‹“]‘—ƒXƒŒƒbƒh‚ğ‹N“®‚·‚é ----------------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«è»¢é€ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’èµ·å‹•ã™ã‚‹ ----------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 int MakeTransferThread(void)
@@ -167,13 +167,13 @@ int MakeTransferThread(void)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹“]‘—ƒXƒŒƒbƒh‚ğI—¹‚·‚é ----------------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«è»¢é€ã‚¹ãƒ¬ãƒƒãƒ‰ã‚’çµ‚äº†ã™ã‚‹ ----------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void CloseTransferThread(void)
@@ -198,14 +198,14 @@ void CloseTransferThread(void)
 }
 
 
-/*----- “]‘—‚·‚éƒtƒ@ƒCƒ‹î•ñ‚ğƒŠƒXƒg‚É’Ç‰Á‚·‚é --------------------------------
+/*----- è»¢é€ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ã‚’ãƒªã‚¹ãƒˆã«è¿½åŠ ã™ã‚‹ --------------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
-*		TRANSPACKET **Base : ƒŠƒXƒg‚Ìæ“ª
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
+*		TRANSPACKET **Base : ãƒªã‚¹ãƒˆã®å…ˆé ­
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 *			SUCCESS/FAIL
 *----------------------------------------------------------------------------*/
 
@@ -236,13 +236,13 @@ int AddTmpTransFileList(TRANSPACKET *Pkt, TRANSPACKET **Base)
 }
 
 
-/*----- “]‘—‚·‚éƒtƒ@ƒCƒ‹î•ñƒŠƒXƒg‚ğƒNƒŠƒA‚·‚é --------------------------------
+/*----- è»¢é€ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ãƒªã‚¹ãƒˆã‚’ã‚¯ãƒªã‚¢ã™ã‚‹ --------------------------------
 *
 *	Parameter
-*		TRANSPACKET **Base : ƒŠƒXƒg‚Ìæ“ª
+*		TRANSPACKET **Base : ãƒªã‚¹ãƒˆã®å…ˆé ­
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void EraseTmpTransFileList(TRANSPACKET **Base)
@@ -262,14 +262,14 @@ void EraseTmpTransFileList(TRANSPACKET **Base)
 }
 
 
-/*----- “]‘—‚·‚éƒtƒ@ƒCƒ‹î•ñƒŠƒXƒg‚©‚ç‚P‚Â‚Ìî•ñ‚ğæ‚èœ‚­ --------------------
+/*----- è»¢é€ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ãƒªã‚¹ãƒˆã‹ã‚‰ï¼‘ã¤ã®æƒ…å ±ã‚’å–ã‚Šé™¤ã --------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
-*		TRANSPACKET **Base : ƒŠƒXƒg‚Ìæ“ª
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
+*		TRANSPACKET **Base : ãƒªã‚¹ãƒˆã®å…ˆé ­
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 *			SUCCESS/FAIL
 *----------------------------------------------------------------------------*/
 
@@ -306,13 +306,13 @@ int RemoveTmpTransFileListItem(TRANSPACKET **Base, int Num)
 }
 
 
-/*----- “]‘—‚·‚éƒtƒ@ƒCƒ‹î•ñ‚ğ“]‘—ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚É“o˜^‚·‚é --------------------
+/*----- è»¢é€ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ã‚’è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã«ç™»éŒ²ã™ã‚‹ --------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void AddTransFileList(TRANSPACKET *Pkt)
@@ -336,17 +336,17 @@ void AddTransFileList(TRANSPACKET *Pkt)
 }
 
 
-/*----- “]‘—ƒtƒ@ƒCƒ‹î•ñ‚ğ“]‘—ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚É’Ç‰Á‚·‚é ------------------------
+/*----- è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ã‚’è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã«è¿½åŠ ã™ã‚‹ ------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
-*		TRANSPACKET **Base : ƒŠƒXƒg‚Ìæ“ª
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
+*		TRANSPACKET **Base : ãƒªã‚¹ãƒˆã®å…ˆé ­
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *
 *	Note
-*		Pkt©‘Ì‚ğƒŠƒXƒg‚É˜AŒ‹‚·‚é
+*		Pktè‡ªä½“ã‚’ãƒªã‚¹ãƒˆã«é€£çµã™ã‚‹
 *----------------------------------------------------------------------------*/
 
 void AppendTransFileList(TRANSPACKET *Pkt)
@@ -383,13 +383,13 @@ void AppendTransFileList(TRANSPACKET *Pkt)
 }
 
 
-/*----- “]‘—ƒtƒ@ƒCƒ‹î•ñ‚ğ•\¦‚·‚é --------------------------------------------
+/*----- è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ã‚’è¡¨ç¤ºã™ã‚‹ --------------------------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void DispTransPacket(TRANSPACKET *Pkt)
@@ -413,13 +413,13 @@ static void DispTransPacket(TRANSPACKET *Pkt)
 }
 
 
-/*----- “]‘—ƒtƒ@ƒCƒ‹ƒŠƒXƒg‚ğƒNƒŠƒA‚·‚é ----------------------------------------
+/*----- è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã‚’ã‚¯ãƒªã‚¢ã™ã‚‹ ----------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void EraseTransFileList(void)
@@ -435,7 +435,7 @@ static void EraseTransFileList(void)
 	New = TransPacketBase;
 	while(New != NULL)
 	{
-		/* ÅŒã‚Ì"BACKCUR"‚Í•K—v‚È‚Ì‚ÅÁ‚³‚È‚¢ */
+		/* æœ€å¾Œã®"BACKCUR"ã¯å¿…è¦ãªã®ã§æ¶ˆã•ãªã„ */
 		if(strcmp(New->Cmd, "BACKCUR") == 0)
 		{
 			if(NotDel != NULL)
@@ -462,13 +462,13 @@ static void EraseTransFileList(void)
 }
 
 
-/*----- “]‘—’†ƒ_ƒCƒAƒƒO‚ğÁ‚³‚È‚¢‚æ‚¤‚É‚·‚é‚©‚Ç‚¤‚©‚ğİ’è --------------------
+/*----- è»¢é€ä¸­ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’æ¶ˆã•ãªã„ã‚ˆã†ã«ã™ã‚‹ã‹ã©ã†ã‹ã‚’è¨­å®š --------------------
 *
 *	Parameter
-*		int Sw : “]‘—’†ƒ_ƒCƒAƒƒO‚ğÁ‚³‚È‚¢‚©‚Ç‚¤‚© (YES/NO)
+*		int Sw : è»¢é€ä¸­ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’æ¶ˆã•ãªã„ã‹ã©ã†ã‹ (YES/NO)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void KeepTransferDialog(int Sw)
@@ -478,13 +478,13 @@ void KeepTransferDialog(int Sw)
 }
 
 
-/*----- Œ»İ“]‘—’†‚©‚Ç‚¤‚©‚ğ•Ô‚· ----------------------------------------------
+/*----- ç¾åœ¨è»¢é€ä¸­ã‹ã©ã†ã‹ã‚’è¿”ã™ ----------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (YES/NO=“]‘—’†‚Å‚Í‚È‚¢)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (YES/NO=è»¢é€ä¸­ã§ã¯ãªã„)
 *----------------------------------------------------------------------------*/
 
 int AskTransferNow(void)
@@ -493,13 +493,13 @@ int AskTransferNow(void)
 }
 
 
-/*----- “]‘—‚·‚éƒtƒ@ƒCƒ‹‚Ì”‚ğ•Ô‚· --------------------------------------------
+/*----- è»¢é€ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®æ•°ã‚’è¿”ã™ --------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int “]‘—‚·‚éƒtƒ@ƒCƒ‹‚Ì”
+*		int è»¢é€ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®æ•°
 *----------------------------------------------------------------------------*/
 
 int AskTransferFileNum(void)
@@ -508,13 +508,13 @@ int AskTransferFileNum(void)
 }
 
 
-/*----- “]‘—’†ƒEƒCƒ“ƒhƒE‚ğ‘O–Ê‚Éo‚· ------------------------------------------
+/*----- è»¢é€ä¸­ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚’å‰é¢ã«å‡ºã™ ------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void GoForwardTransWindow(void)
@@ -524,13 +524,13 @@ void GoForwardTransWindow(void)
 }
 
 
-/*----- “]‘—ƒ\ƒPƒbƒg‚ÌƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠî•ñ‚ğ‰Šú‰» ------------------------
+/*----- è»¢é€ã‚½ã‚±ãƒƒãƒˆã®ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªæƒ…å ±ã‚’åˆæœŸåŒ– ------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void InitTransCurDir(void)
@@ -540,13 +540,13 @@ void InitTransCurDir(void)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹“]‘—ƒXƒŒƒbƒh‚ÌƒƒCƒ“ƒ‹[ƒv ------------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«è»¢é€ã‚¹ãƒ¬ãƒƒãƒ‰ã®ãƒ¡ã‚¤ãƒ³ãƒ«ãƒ¼ãƒ— ------------------------------------
 *
 *	Parameter
-*		void *Dummy : g‚í‚È‚¢
+*		void *Dummy : ä½¿ã‚ãªã„
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static ULONG WINAPI TransferThread(void *Dummy)
@@ -608,18 +608,18 @@ static ULONG WINAPI TransferThread(void *Dummy)
 			if(hWndTrans != NULL)
 				SendMessage(hWndTrans, WM_SET_PACKET, 0, (LPARAM)TransPacketBase);
 
-			/* ƒ_ƒEƒ“ƒ[ƒh */
+			/* ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ */
 			if(strncmp(TransPacketBase->Cmd, "RETR", 4) == 0)
 			{
-				/* •s³‚ÈƒpƒX‚ğŒŸo */
+				/* ä¸æ­£ãªãƒ‘ã‚¹ã‚’æ¤œå‡º */
 				if(CheckPathViolation(TransPacketBase) == NO)
 				{
-					/* ƒtƒ‹ƒpƒX‚ğg‚í‚È‚¢‚½‚ß‚Ìˆ— */
+					/* ãƒ•ãƒ«ãƒ‘ã‚¹ã‚’ä½¿ã‚ãªã„ãŸã‚ã®å‡¦ç† */
 					if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == SUCCESS)
 					{
 						if(strncmp(TransPacketBase->Cmd, "RETR-S", 6) == 0)
 						{
-							/* ƒTƒCƒY‚Æ“ú•t‚ğæ“¾ */
+							/* ã‚µã‚¤ã‚ºã¨æ—¥ä»˜ã‚’å–å¾— */
 							DoSIZE(TransPacketBase->RemoteFile, &TransPacketBase->Size);
 							DoMDTM(TransPacketBase->RemoteFile, &TransPacketBase->Time);
 							strcpy(TransPacketBase->Cmd, "RETR ");
@@ -634,10 +634,10 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					}
 				}
 			}
-			/* ƒAƒbƒvƒ[ƒh */
+			/* ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ */
 			else if(strncmp(TransPacketBase->Cmd, "STOR", 4) == 0)
 			{
-				/* ƒtƒ‹ƒpƒX‚ğg‚í‚È‚¢‚½‚ß‚Ìˆ— */
+				/* ãƒ•ãƒ«ãƒ‘ã‚¹ã‚’ä½¿ã‚ãªã„ãŸã‚ã®å‡¦ç† */
 				if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == SUCCESS)
 				{
 					Up = YES;
@@ -648,14 +648,14 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //					}
 				}
 			}
-			/* ƒtƒHƒ‹ƒ_ì¬iƒ[ƒJƒ‹‚Ü‚½‚ÍƒzƒXƒgj */
+			/* ãƒ•ã‚©ãƒ«ãƒ€ä½œæˆï¼ˆãƒ­ãƒ¼ã‚«ãƒ«ã¾ãŸã¯ãƒ›ã‚¹ãƒˆï¼‰ */
 			else if(strncmp(TransPacketBase->Cmd, "MKD", 3) == 0)
 			{
 				DispTransFileInfo(TransPacketBase, MSGJPN078, FALSE, YES);
 
 				if(strlen(TransPacketBase->RemoteFile) > 0)
 				{
-					/* ƒtƒ‹ƒpƒX‚ğg‚í‚È‚¢‚½‚ß‚Ìˆ— */
+					/* ãƒ•ãƒ«ãƒ‘ã‚¹ã‚’ä½¿ã‚ãªã„ãŸã‚ã®å‡¦ç† */
 					CwdSts = FTP_COMPLETE;
 
 					strcpy(Tmp, TransPacketBase->RemoteFile);
@@ -669,8 +669,8 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					{
 						Up = YES;
 						CommandProcTrn(NULL, "MKD %s", Tmp);
-						/* ‚·‚Å‚ÉƒtƒHƒ‹ƒ_‚ª‚ ‚éê‡‚à‚ ‚é‚Ì‚ÅA */
-						/* ‚±‚±‚Å‚ÍƒGƒ‰[ƒ`ƒFƒbƒN‚Í‚µ‚È‚¢ */
+						/* ã™ã§ã«ãƒ•ã‚©ãƒ«ãƒ€ãŒã‚ã‚‹å ´åˆã‚‚ã‚ã‚‹ã®ã§ã€ */
+						/* ã“ã“ã§ã¯ã‚¨ãƒ©ãƒ¼ãƒã‚§ãƒƒã‚¯ã¯ã—ãªã„ */
 
 					if(FolderAttr)
 						CommandProcTrn(NULL, "%s %03d %s", AskHostChmodCmd(), FolderAttrNum, Tmp);
@@ -682,12 +682,12 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					DoLocalMKD(TransPacketBase->LocalFile);
 				}
 			}
-			/* ƒfƒBƒŒƒNƒgƒŠì¬ií‚ÉƒzƒXƒg‘¤j */
+			/* ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªä½œæˆï¼ˆå¸¸ã«ãƒ›ã‚¹ãƒˆå´ï¼‰ */
 			else if(strncmp(TransPacketBase->Cmd, "R-MKD", 5) == 0)
 			{
 				DispTransFileInfo(TransPacketBase, MSGJPN079, FALSE, YES);
 
-				/* ƒtƒ‹ƒpƒX‚ğg‚í‚È‚¢‚½‚ß‚Ìˆ— */
+				/* ãƒ•ãƒ«ãƒ‘ã‚¹ã‚’ä½¿ã‚ãªã„ãŸã‚ã®å‡¦ç† */
 				if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == SUCCESS)
 				{
 					Up = YES;
@@ -697,7 +697,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 						CommandProcTrn(NULL, "%s %03d %s", AskHostChmodCmd(), FolderAttrNum, TransPacketBase->RemoteFile);
 				}
 			}
-			/* ƒfƒBƒŒƒNƒgƒŠíœií‚ÉƒzƒXƒg‘¤j */
+			/* ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå‰Šé™¤ï¼ˆå¸¸ã«ãƒ›ã‚¹ãƒˆå´ï¼‰ */
 			else if(strncmp(TransPacketBase->Cmd, "R-RMD", 5) == 0)
 			{
 				DispTransFileInfo(TransPacketBase, MSGJPN080, FALSE, YES);
@@ -705,7 +705,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				DelNotify = MirrorDelNotify(WIN_REMOTE, DelNotify, TransPacketBase);
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
 				{
-					/* ƒtƒ‹ƒpƒX‚ğg‚í‚È‚¢‚½‚ß‚Ìˆ— */
+					/* ãƒ•ãƒ«ãƒ‘ã‚¹ã‚’ä½¿ã‚ãªã„ãŸã‚ã®å‡¦ç† */
 					if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == SUCCESS)
 					{
 						Up = YES;
@@ -713,7 +713,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					}
 				}
 			}
-			/* ƒtƒ@ƒCƒ‹íœií‚ÉƒzƒXƒg‘¤j */
+			/* ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤ï¼ˆå¸¸ã«ãƒ›ã‚¹ãƒˆå´ï¼‰ */
 			else if(strncmp(TransPacketBase->Cmd, "R-DELE", 6) == 0)
 			{
 				DispTransFileInfo(TransPacketBase, MSGJPN081, FALSE, YES);
@@ -721,7 +721,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				DelNotify = MirrorDelNotify(WIN_REMOTE, DelNotify, TransPacketBase);
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
 				{
-					/* ƒtƒ‹ƒpƒX‚ğg‚í‚È‚¢‚½‚ß‚Ìˆ— */
+					/* ãƒ•ãƒ«ãƒ‘ã‚¹ã‚’ä½¿ã‚ãªã„ãŸã‚ã®å‡¦ç† */
 					if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == SUCCESS)
 					{
 						Up = YES;
@@ -729,7 +729,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					}
 				}
 			}
-			/* ƒfƒBƒŒƒNƒgƒŠì¬ií‚Éƒ[ƒJƒ‹‘¤j */
+			/* ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªä½œæˆï¼ˆå¸¸ã«ãƒ­ãƒ¼ã‚«ãƒ«å´ï¼‰ */
 			else if(strncmp(TransPacketBase->Cmd, "L-MKD", 5) == 0)
 			{
 				DispTransFileInfo(TransPacketBase, MSGJPN082, FALSE, YES);
@@ -737,7 +737,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				Down = YES;
 				DoLocalMKD(TransPacketBase->LocalFile);
 			}
-			/* ƒfƒBƒŒƒNƒgƒŠíœií‚Éƒ[ƒJƒ‹‘¤j */
+			/* ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªå‰Šé™¤ï¼ˆå¸¸ã«ãƒ­ãƒ¼ã‚«ãƒ«å´ï¼‰ */
 			else if(strncmp(TransPacketBase->Cmd, "L-RMD", 5) == 0)
 			{
 				DispTransFileInfo(TransPacketBase, MSGJPN083, FALSE, YES);
@@ -749,7 +749,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					DoLocalRMD(TransPacketBase->LocalFile);
 				}
 			}
-			/* ƒtƒ@ƒCƒ‹íœií‚Éƒ[ƒJƒ‹‘¤j */
+			/* ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤ï¼ˆå¸¸ã«ãƒ­ãƒ¼ã‚«ãƒ«å´ï¼‰ */
 			else if(strncmp(TransPacketBase->Cmd, "L-DELE", 6) == 0)
 			{
 				DispTransFileInfo(TransPacketBase, MSGJPN084, FALSE, YES);
@@ -761,7 +761,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					DoLocalDELE(TransPacketBase->LocalFile);
 				}
 			}
-			/* ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚ğİ’è */
+			/* ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’è¨­å®š */
 			else if(strcmp(TransPacketBase->Cmd, "SETCUR") == 0)
 			{
 				if(AskShareProh() == YES)
@@ -777,7 +777,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				}
 				strcpy(CurDir, TransPacketBase->RemoteFile);
 			}
-			/* ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚ğ–ß‚· */
+			/* ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æˆ»ã™ */
 			else if(strcmp(TransPacketBase->Cmd, "BACKCUR") == 0)
 			{
 				if(AskShareProh() == NO)
@@ -787,13 +787,13 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					strcpy(CurDir, TransPacketBase->RemoteFile);
 				}
 			}
-			/* ©“®I—¹‚Ì‚½‚ß‚Ì’Ê’m */
+			/* è‡ªå‹•çµ‚äº†ã®ãŸã‚ã®é€šçŸ¥ */
 			else if(strcmp(TransPacketBase->Cmd, "GOQUIT") == 0)
 			{
 				GoExit = YES;
 			}
 
-			/*===== ‚P‚Â‚Ìˆ—I‚í‚è =====*/
+			/*===== ï¼‘ã¤ã®å‡¦ç†çµ‚ã‚ã‚Š =====*/
 
 			if(ForceAbort == NO)
 			{
@@ -864,20 +864,20 @@ static ULONG WINAPI TransferThread(void *Dummy)
 }
 
 
-/*----- ƒtƒ‹ƒpƒX‚ğg‚í‚È‚¢ƒtƒ@ƒCƒ‹ƒAƒNƒZƒX‚Ì€”õ ------------------------------
+/*----- ãƒ•ãƒ«ãƒ‘ã‚¹ã‚’ä½¿ã‚ãªã„ãƒ•ã‚¡ã‚¤ãƒ«ã‚¢ã‚¯ã‚»ã‚¹ã®æº–å‚™ ------------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒpƒPƒbƒg
-*		char *Cur : ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ
-*		char *Tmp : ì‹Æ—pƒGƒŠƒA
+*		TRANSPACKET *Pkt : è»¢é€ãƒ‘ã‚±ãƒƒãƒˆ
+*		char *Cur : ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
+*		char *Tmp : ä½œæ¥­ç”¨ã‚¨ãƒªã‚¢
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX(SUCCESS/FAIL)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹(SUCCESS/FAIL)
 *
 *	Note
-*		ƒtƒ‹ƒpƒX‚ğg‚í‚È‚¢‚ÍA
-*			‚±‚Ìƒ‚ƒWƒ…[ƒ‹“à‚Å CWD ‚ğs‚È‚¢A
-*			Pkt->RemoteFile ‚Éƒtƒ@ƒCƒ‹–¼‚Ì‚İc‚·BiƒpƒX–¼‚ÍÁ‚·j
+*		ãƒ•ãƒ«ãƒ‘ã‚¹ã‚’ä½¿ã‚ãªã„æ™‚ã¯ã€
+*			ã“ã®ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«å†…ã§ CWD ã‚’è¡Œãªã„ã€
+*			Pkt->RemoteFile ã«ãƒ•ã‚¡ã‚¤ãƒ«åã®ã¿æ®‹ã™ã€‚ï¼ˆãƒ‘ã‚¹åã¯æ¶ˆã™ï¼‰
 *----------------------------------------------------------------------------*/
 
 static int MakeNonFullPath(TRANSPACKET *Pkt, char *Cur, char *Tmp)
@@ -894,19 +894,19 @@ static int MakeNonFullPath(TRANSPACKET *Pkt, char *Cur, char *Tmp)
 
 
 
-/*----- ƒ_ƒEƒ“ƒ[ƒh‚ğs‚È‚¤ --------------------------------------------------
+/*----- ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã‚’è¡Œãªã† --------------------------------------------------
 *
 *	Parameter
-*		SOCKET cSkt : ƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
-*		int DirList : ƒfƒBƒŒƒNƒgƒŠƒŠƒXƒg‚Ìƒ_ƒEƒ“ƒ[ƒh(YES/NO)
+*		SOCKET cSkt : ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆ
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
+*		int DirList : ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒªã‚¹ãƒˆã®ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰(YES/NO)
 *
 *	Return Value
-*		int ‰“šƒR[ƒh
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰
 *
 *	Note
-*		‚±‚Ìƒ‚ƒWƒ…[ƒ‹‚ÍAƒtƒ@ƒCƒ‹ˆê——‚Ìæ“¾‚È‚Ç‚ğs‚È‚¤Û‚ÉƒƒCƒ“‚ÌƒXƒŒƒbƒh
-*		‚©‚ç‚àŒÄ‚Î‚ê‚éBƒƒCƒ“‚ÌƒXƒŒƒbƒh‚©‚çŒÄ‚Î‚ê‚é‚Í Pkt->hWndTrans == NULLB
+*		ã“ã®ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã¯ã€ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§ã®å–å¾—ãªã©ã‚’è¡Œãªã†éš›ã«ãƒ¡ã‚¤ãƒ³ã®ã‚¹ãƒ¬ãƒƒãƒ‰
+*		ã‹ã‚‰ã‚‚å‘¼ã°ã‚Œã‚‹ã€‚ãƒ¡ã‚¤ãƒ³ã®ã‚¹ãƒ¬ãƒƒãƒ‰ã‹ã‚‰å‘¼ã°ã‚Œã‚‹æ™‚ã¯ Pkt->hWndTrans == NULLã€‚
 *----------------------------------------------------------------------------*/
 
 int DoDownLoad(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork)
@@ -962,13 +962,13 @@ int DoDownLoad(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork)
 }
 
 
-/*----- ’Êíƒ‚[ƒh‚Åƒtƒ@ƒCƒ‹‚ğƒ_ƒEƒ“ƒ[ƒh ------------------------------------
+/*----- é€šå¸¸ãƒ¢ãƒ¼ãƒ‰ã§ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ ------------------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
 *
 *	Return Value
-*		int ‰“šƒR[ƒh
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰
 *----------------------------------------------------------------------------*/
 
 static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
@@ -1037,13 +1037,13 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 }
 
 
-/*----- Passiveƒ‚[ƒh‚Åƒtƒ@ƒCƒ‹‚ğƒ_ƒEƒ“ƒ[ƒh ---------------------------------
+/*----- Passiveãƒ¢ãƒ¼ãƒ‰ã§ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ ---------------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
 *
 *	Return Value
-*		int ‰“šƒR[ƒh
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰
 *----------------------------------------------------------------------------*/
 
 static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
@@ -1106,20 +1106,20 @@ static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 }
 
 
-/*----- ƒ_ƒEƒ“ƒ[ƒh‚ÌÀs ----------------------------------------------------
+/*----- ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã®å®Ÿè¡Œ ----------------------------------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
-*		SOCKET dSkt : ƒf[ƒ^ƒ\ƒPƒbƒg
-*		int CreateMode : ƒtƒ@ƒCƒ‹ì¬ƒ‚[ƒh (CREATE_ALWAYS/OPEN_ALWAYS)
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
+*		SOCKET dSkt : ãƒ‡ãƒ¼ã‚¿ã‚½ã‚±ãƒƒãƒˆ
+*		int CreateMode : ãƒ•ã‚¡ã‚¤ãƒ«ä½œæˆãƒ¢ãƒ¼ãƒ‰ (CREATE_ALWAYS/OPEN_ALWAYS)
 *
 *	Return Value
-*		int ‰“šƒR[ƒh
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰
 *
 *	Note
-*		“]‘—‚ÌŒo‰ß•\¦‚Í
-*			ƒ_ƒCƒAƒƒO‚ğo‚·(Pkt->hWndTrans!=NULL)ê‡AƒCƒ“ƒ^[ƒoƒ‹ƒ^ƒCƒ}‚ÅŒo‰ß‚ğ•\¦‚·‚é
-*			ƒ_ƒCƒAƒƒO‚ğo‚³‚È‚¢ê‡A‚±‚Ìƒ‹[ƒ`ƒ“‚©‚çDispDownloadSize()‚ğŒÄ‚Ô
+*		è»¢é€ã®çµŒéè¡¨ç¤ºã¯
+*			ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’å‡ºã™(Pkt->hWndTrans!=NULL)å ´åˆã€ã‚¤ãƒ³ã‚¿ãƒ¼ãƒãƒ«ã‚¿ã‚¤ãƒã§çµŒéã‚’è¡¨ç¤ºã™ã‚‹
+*			ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’å‡ºã•ãªã„å ´åˆã€ã“ã®ãƒ«ãƒ¼ãƒãƒ³ã‹ã‚‰DispDownloadSize()ã‚’å‘¼ã¶
 *----------------------------------------------------------------------------*/
 
 static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *CancelCheckWork)
@@ -1157,9 +1157,9 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 
 	dwFileAttributes = GetFileAttributes(Pkt->LocalFile);
 	if (dwFileAttributes != INVALID_FILE_ATTRIBUTES && (dwFileAttributes & FILE_ATTRIBUTE_READONLY)) {
-		// “Ç‚İæ‚èê—p
+		// èª­ã¿å–ã‚Šå°‚ç”¨
 		if (MessageBox(GetMainHwnd(), MSGJPN296, MSGJPN086, MB_YESNO) == IDYES) {
-			// ‘®«‚ğ‰ğœ
+			// å±æ€§ã‚’è§£é™¤
 			SetFileAttributes(Pkt->LocalFile, dwFileAttributes ^ FILE_ATTRIBUTE_READONLY);
 		}
 	}
@@ -1178,7 +1178,7 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		InitCodeConvInfo(&cInfo);
 		cInfo.KanaCnv = Pkt->KanaCnv;
 
-		/*===== ƒtƒ@ƒCƒ‹‚ğóM‚·‚éƒ‹[ƒv =====*/
+		/*===== ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å—ä¿¡ã™ã‚‹ãƒ«ãƒ¼ãƒ— =====*/
 		while((Pkt->Abort == ABORT_NONE) && (ForceAbort == NO))
 		{
 //			FD_ZERO(&ReadFds);
@@ -1225,7 +1225,7 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 				break;
 			}
 
-			/* Š¿šƒR[ƒh•ÏŠ· */
+			/* æ¼¢å­—ã‚³ãƒ¼ãƒ‰å¤‰æ› */
 			if(Pkt->KanjiCode != KANJI_NOCNV)
 			{
 				cInfo.Str = Buf;
@@ -1254,7 +1254,7 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 				AllTransSizeNow += iNumBytes;
 			else
 			{
-				/* “]‘—ƒ_ƒCƒAƒƒO‚ğo‚³‚È‚¢‚ÌŒo‰ß•\¦ */
+				/* è»¢é€ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’å‡ºã•ãªã„æ™‚ã®çµŒéè¡¨ç¤º */
 				DispDownloadSize(Pkt->ExistSize);
 			}
 
@@ -1262,7 +1262,7 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 				ForceAbort = YES;
 		}
 
-		/* ‘‚«c‚µ‚½ƒf[ƒ^‚ğ‘‚«‚Ş */
+		/* æ›¸ãæ®‹ã—ãŸãƒ‡ãƒ¼ã‚¿ã‚’æ›¸ãè¾¼ã‚€ */
 		if(Pkt->KanjiCode != KANJI_NOCNV)
 		{
 			cInfo.Buf = Buf2;
@@ -1272,7 +1272,7 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 				Pkt->Abort = ABORT_DISKFULL;
 		}
 
-		/* ƒOƒ‰ƒt•\¦‚ğXV */
+		/* ã‚°ãƒ©ãƒ•è¡¨ç¤ºã‚’æ›´æ–° */
 		if(Pkt->hWndTrans != NULL)
 		{
 			KillTimer(Pkt->hWndTrans, TIMER_DISPLAY);
@@ -1281,11 +1281,11 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		}
 		else
 		{
-			/* “]‘—ƒ_ƒCƒAƒƒO‚ğo‚³‚È‚¢‚ÌŒo‰ß•\¦‚ğÁ‚· */
+			/* è»¢é€ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’å‡ºã•ãªã„æ™‚ã®çµŒéè¡¨ç¤ºã‚’æ¶ˆã™ */
 			DispDownloadSize(-1);
 		}
 
-		/* ƒtƒ@ƒCƒ‹‚Ìƒ^ƒCƒ€ƒXƒ^ƒ“ƒv‚ğ‡‚í‚¹‚é */
+		/* ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚¿ã‚¤ãƒ ã‚¹ã‚¿ãƒ³ãƒ—ã‚’åˆã‚ã›ã‚‹ */
 		if((SaveTimeStamp == YES) &&
 		   ((Pkt->Time.dwLowDateTime != 0) || (Pkt->Time.dwHighDateTime != 0)))
 		{
@@ -1312,10 +1312,10 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 
 	if(ForceAbort == NO)
 	{
-		/* Abort‚ğƒzƒXƒg‚É“`‚¦‚é */
+		/* Abortã‚’ãƒ›ã‚¹ãƒˆã«ä¼ãˆã‚‹ */
 		if(Pkt->Abort != ABORT_NONE && iFileHandle != INVALID_HANDLE_VALUE)
 		{
-			SendData(Pkt->ctrl_skt, "\xFF\xF4\xFF", 3, MSG_OOB, CancelCheckWork);	/* MSG_OOB‚É’ˆÓ */
+			SendData(Pkt->ctrl_skt, "\xFF\xF4\xFF", 3, MSG_OOB, CancelCheckWork);	/* MSG_OOBã«æ³¨æ„ */
 			SendData(Pkt->ctrl_skt, "\xF2", 1, 0, CancelCheckWork);
 			command(Pkt->ctrl_skt, NULL, CancelCheckWork, "ABOR");
 		}
@@ -1340,14 +1340,14 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 }
 
 
-/*----- ƒ_ƒEƒ“ƒ[ƒhI—¹^’†~‚ÌƒƒbƒZ[ƒW‚ğ•\¦ ----------------------------
+/*----- ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰çµ‚äº†ï¼ä¸­æ­¢æ™‚ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’è¡¨ç¤º ----------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
-*		int iRetCode : ‰“šƒR[ƒh
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
+*		int iRetCode : å¿œç­”ã‚³ãƒ¼ãƒ‰
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
@@ -1361,8 +1361,8 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 			strcpy(Fname, Pkt->RemoteFile);
 
 #if defined(HAVE_OPENVMS)
-			/* OpenVMS‚Ìê‡A‹óƒfƒBƒŒƒNƒgƒŠ‚ÖˆÚ“®‚·‚é‚Æ550 File not found‚É‚È‚Á‚Ä
-			 * ƒGƒ‰[ƒ_ƒCƒAƒƒO‚âƒGƒ‰[ƒƒbƒZ[ƒW‚ªo‚é‚Ì‚Å‰½‚à‚µ‚È‚¢ */
+			/* OpenVMSã®å ´åˆã€ç©ºãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¸ç§»å‹•ã™ã‚‹ã¨550 File not foundã«ãªã£ã¦
+			 * ã‚¨ãƒ©ãƒ¼ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚„ã‚¨ãƒ©ãƒ¼ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒå‡ºã‚‹ã®ã§ä½•ã‚‚ã—ãªã„ */
 			if (AskHostType() == HTYPE_VMS)
 				return;
 #endif
@@ -1397,15 +1397,15 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 }
 
 
-/*----- ƒ_ƒEƒ“ƒ[ƒh^ƒAƒbƒvƒ[ƒhƒGƒ‰[‚Ìƒ_ƒCƒAƒƒO‚ğ•\¦ --------------------
+/*----- ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ï¼ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ã‚¨ãƒ©ãƒ¼ã®ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’è¡¨ç¤º --------------------
 *
 *	Parameter
-*		int RedID : ƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX‚ÌƒŠƒ\[ƒXID
-*		HWND hWnd : ‘‚«‚İ’†ƒ_ƒCƒAƒƒO‚ÌƒEƒCƒ“ƒhƒE
-*		char *Fname : ƒtƒ@ƒCƒ‹–¼
+*		int RedID : ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹ã®ãƒªã‚½ãƒ¼ã‚¹ID
+*		HWND hWnd : æ›¸ãè¾¼ã¿ä¸­ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦
+*		char *Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (YES=’†~/NO=‘S‚Ä’†~)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (YES=ä¸­æ­¢/NO=å…¨ã¦ä¸­æ­¢)
 *----------------------------------------------------------------------------*/
 
 static int DispUpDownErrDialog(int ResID, HWND hWnd, char *Fname)
@@ -1418,13 +1418,13 @@ static int DispUpDownErrDialog(int ResID, HWND hWnd, char *Fname)
 }
 
 
-/*----- ƒ_ƒEƒ“ƒ[ƒhƒGƒ‰[^ƒAƒbƒvƒ[ƒhƒGƒ‰[ƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒN --------
+/*----- ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã‚¨ãƒ©ãƒ¼ï¼ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ã‚¨ãƒ©ãƒ¼ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ --------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1456,19 +1456,19 @@ static BOOL CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wPara
 }
 
 
-/*----- ƒ_ƒEƒ“ƒ[ƒh‚ÌƒŠƒWƒ…[ƒ€‚Ì€”õ‚ğs‚¤ ----------------------------------
+/*----- ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ã®ãƒªã‚¸ãƒ¥ãƒ¼ãƒ ã®æº–å‚™ã‚’è¡Œã† ----------------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
-*		iont ProcMode : ˆ—ƒ‚[ƒh(EXIST_xxx)
-*		LONGLONG Size : ƒ[ƒhÏ‚İ‚Ìƒtƒ@ƒCƒ‹‚ÌƒTƒCƒY
-*		int *Mode : ƒtƒ@ƒCƒ‹ì¬ƒ‚[ƒh (CREATE_xxxx)
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
+*		iont ProcMode : å‡¦ç†ãƒ¢ãƒ¼ãƒ‰(EXIST_xxx)
+*		LONGLONG Size : ãƒ­ãƒ¼ãƒ‰æ¸ˆã¿ã®ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚µã‚¤ã‚º
+*		int *Mode : ãƒ•ã‚¡ã‚¤ãƒ«ä½œæˆãƒ¢ãƒ¼ãƒ‰ (CREATE_xxxx)
 *
 *	Return Value
-*		int “]‘—‚ğs‚¤‚©‚Ç‚¤‚©(YES/NO=‚±‚Ìƒtƒ@ƒCƒ‹‚ğ’†~/NO_ALL=‘S‚Ä’†~)
+*		int è»¢é€ã‚’è¡Œã†ã‹ã©ã†ã‹(YES/NO=ã“ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä¸­æ­¢/NO_ALL=å…¨ã¦ä¸­æ­¢)
 *
 *	Note
-*		Pkt->ExistSize‚ÌƒZƒbƒg‚ğs‚È‚¤
+*		Pkt->ExistSizeã®ã‚»ãƒƒãƒˆã‚’è¡Œãªã†
 *----------------------------------------------------------------------------*/
 
 static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode, int *CancelCheckWork)
@@ -1488,7 +1488,7 @@ static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int 
 		iRetCode = command(Pkt->ctrl_skt, Reply, CancelCheckWork, "REST %s", MakeNumString(Size, Tmp, FALSE));
 		if(iRetCode/100 < FTP_RETRY)
 		{
-			/* ƒŠƒWƒ…[ƒ€ */
+			/* ãƒªã‚¸ãƒ¥ãƒ¼ãƒ  */
 			if(Pkt->hWndTrans != NULL)
 				Pkt->ExistSize = Size;
 			*Mode = OPEN_ALWAYS;
@@ -1498,7 +1498,7 @@ static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int 
 			Com = DialogBox(GetFtpInst(), MAKEINTRESOURCE(noresume_dlg), Pkt->hWndTrans, NoResumeWndProc);
 			if(Com != YES)
 			{
-				if(Com == NO_ALL)		/* ‘S‚Ä’†~ */
+				if(Com == NO_ALL)		/* å…¨ã¦ä¸­æ­¢ */
 					ClearAll = YES;
 				Pkt->Abort = ABORT_USER;
 			}
@@ -1508,13 +1508,13 @@ static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int 
 }
 
 
-/*----- resumeƒGƒ‰[ƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒN ----------------------------------
+/*----- resumeã‚¨ãƒ©ãƒ¼ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ----------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1549,14 +1549,14 @@ static BOOL CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 
 
 
-/*----- ƒAƒbƒvƒ[ƒh‚ğs‚È‚¤ --------------------------------------------------
+/*----- ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ã‚’è¡Œãªã† --------------------------------------------------
 *
 *	Parameter
-*		SOCKET cSkt : ƒRƒ“ƒgƒ[ƒ‹ƒ\ƒPƒbƒg
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
+*		SOCKET cSkt : ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‚½ã‚±ãƒƒãƒˆ
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
 *
 *	Return Value
-*		int ‰“šƒR[ƒh
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰
 *----------------------------------------------------------------------------*/
 
 static int DoUpLoad(SOCKET cSkt, TRANSPACKET *Pkt)
@@ -1595,7 +1595,7 @@ static int DoUpLoad(SOCKET cSkt, TRANSPACKET *Pkt)
 			else
 				SetErrorMsg(Reply);
 
-			/* ‘®«•ÏX */
+			/* å±æ€§å¤‰æ›´ */
 			if((Pkt->Attr != -1) && ((iRetCode/100) == FTP_COMPLETE))
 				command(Pkt->ctrl_skt, Reply, &Canceled, "%s %03X %s", AskHostChmodCmd(), Pkt->Attr, Pkt->RemoteFile);
 		}
@@ -1618,13 +1618,13 @@ static int DoUpLoad(SOCKET cSkt, TRANSPACKET *Pkt)
 }
 
 
-/*----- ’Êíƒ‚[ƒh‚Åƒtƒ@ƒCƒ‹‚ğƒAƒbƒvƒ[ƒh ------------------------------------
+/*----- é€šå¸¸ãƒ¢ãƒ¼ãƒ‰ã§ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ ------------------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
 *
 *	Return Value
-*		int ‰“šƒR[ƒh
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰
 *----------------------------------------------------------------------------*/
 
 static int UpLoadNonPassive(TRANSPACKET *Pkt)
@@ -1693,13 +1693,13 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 }
 
 
-/*----- Passiveƒ‚[ƒh‚Åƒtƒ@ƒCƒ‹‚ğƒAƒbƒvƒ[ƒh ---------------------------------
+/*----- Passiveãƒ¢ãƒ¼ãƒ‰ã§ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ ---------------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
 *
 *	Return Value
-*		int ‰“šƒR[ƒh
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰
 *----------------------------------------------------------------------------*/
 
 static int UpLoadPassive(TRANSPACKET *Pkt)
@@ -1766,18 +1766,18 @@ static int UpLoadPassive(TRANSPACKET *Pkt)
 }
 
 
-/*----- ƒAƒbƒvƒ[ƒh‚ÌÀs ----------------------------------------------------
+/*----- ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ã®å®Ÿè¡Œ ----------------------------------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
-*		SOCKET dSkt : ƒf[ƒ^ƒ\ƒPƒbƒg
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
+*		SOCKET dSkt : ãƒ‡ãƒ¼ã‚¿ã‚½ã‚±ãƒƒãƒˆ
 *
 *	Return Value
-*		int ‰“šƒR[ƒh
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰
 *
 *	Note
-*		“]‘—‚ÌŒo‰ß•\¦‚ÍAƒCƒ“ƒ^[ƒoƒ‹ƒ^ƒCƒ}‚ÅŒo‰ß‚ğ•\¦‚·‚é
-*		“]‘—ƒ_ƒCƒAƒƒO‚ğo‚³‚È‚¢‚ÅƒAƒbƒvƒ[ƒh‚·‚é‚±‚Æ‚Í‚È‚¢
+*		è»¢é€ã®çµŒéè¡¨ç¤ºã¯ã€ã‚¤ãƒ³ã‚¿ãƒ¼ãƒãƒ«ã‚¿ã‚¤ãƒã§çµŒéã‚’è¡¨ç¤ºã™ã‚‹
+*		è»¢é€ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã‚’å‡ºã•ãªã„ã§ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ã™ã‚‹ã“ã¨ã¯ãªã„
 *----------------------------------------------------------------------------*/
 
 static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
@@ -1835,7 +1835,7 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 		cInfo.KanaCnv = Pkt->KanaCnv;
 		InitTermCodeConvInfo(&tInfo);
 
-		/*===== ƒtƒ@ƒCƒ‹‚ğ‘—M‚·‚éƒ‹[ƒv =====*/
+		/*===== ãƒ•ã‚¡ã‚¤ãƒ«ã‚’é€ä¿¡ã™ã‚‹ãƒ«ãƒ¼ãƒ— =====*/
 		while((Pkt->Abort == ABORT_NONE) &&
 			  (ForceAbort == NO) &&
 			  (ReadFile(iFileHandle, Buf, BUFSIZE, &iNumBytes, NULL) == TRUE))
@@ -1843,7 +1843,7 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 			if(iNumBytes == 0)
 				break;
 
-			/* EOFœ‹ */
+			/* EOFé™¤å» */
 			EofPos = NULL;
 			if((RmEOF == YES) && (Pkt->Type == TYPE_A))
 			{
@@ -1851,7 +1851,7 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 					iNumBytes = EofPos - Buf;
 			}
 
-			/* Š¿šƒR[ƒh•ÏŠ· */
+			/* æ¼¢å­—ã‚³ãƒ¼ãƒ‰å¤‰æ› */
 			if(Pkt->KanjiCode != KANJI_NOCNV)
 			{
 				cInfo.Str = Buf;
@@ -1892,7 +1892,7 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 
 		if((ForceAbort == NO) && (Pkt->Abort == ABORT_NONE))
 		{
-			/* ‘—‚èc‚µ‚½ƒf[ƒ^‚ğ‘—M */
+			/* é€ã‚Šæ®‹ã—ãŸãƒ‡ãƒ¼ã‚¿ã‚’é€ä¿¡ */
 			if(Pkt->KanjiCode != KANJI_NOCNV)
 			{
 				cInfo.Buf = Buf2;
@@ -1910,7 +1910,7 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 				Pkt->Abort = ABORT_ERROR;
 		}
 
-		/* ƒOƒ‰ƒt•\¦‚ğXV */
+		/* ã‚°ãƒ©ãƒ•è¡¨ç¤ºã‚’æ›´æ–° */
 		if(Pkt->hWndTrans != NULL)
 		{
 			KillTimer(Pkt->hWndTrans, TIMER_DISPLAY);
@@ -1950,17 +1950,17 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 }
 
 
-/*----- ƒoƒbƒtƒ@‚Ì“à—e‚ğ‰üsƒR[ƒh•ÏŠ·‚µ‚Ä‘—M --------------------------------
+/*----- ãƒãƒƒãƒ•ã‚¡ã®å†…å®¹ã‚’æ”¹è¡Œã‚³ãƒ¼ãƒ‰å¤‰æ›ã—ã¦é€ä¿¡ --------------------------------
 *
 *	Parameter
-*		TERMCODECONVINFO *tInfo : ‰üsƒR[ƒh•ÏŠ·ƒpƒPƒbƒg
-*		SOCKET Skt : ƒ\ƒPƒbƒg
-*		char *Data : ƒf[ƒ^
-*		int Size : ƒf[ƒ^‚ÌƒTƒCƒY
-*		int Ascii : ƒ‚[ƒh@@(TYPE_xx)
+*		TERMCODECONVINFO *tInfo : æ”¹è¡Œã‚³ãƒ¼ãƒ‰å¤‰æ›ãƒ‘ã‚±ãƒƒãƒˆ
+*		SOCKET Skt : ã‚½ã‚±ãƒƒãƒˆ
+*		char *Data : ãƒ‡ãƒ¼ã‚¿
+*		int Size : ãƒ‡ãƒ¼ã‚¿ã®ã‚µã‚¤ã‚º
+*		int Ascii : ãƒ¢ãƒ¼ãƒ‰ã€€ã€€(TYPE_xx)
 *
 *	Return Value
-*		int ‰“šƒR[ƒh
+*		int å¿œç­”ã‚³ãƒ¼ãƒ‰
 *----------------------------------------------------------------------------*/
 
 static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, int Size, int Ascii)
@@ -1971,7 +1971,7 @@ static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, 
 
 	Ret = SUCCESS;
 
-// CR-LFˆÈŠO‚Ì‰üsƒR[ƒh‚ğ•ÏŠ·‚µ‚È‚¢ƒ‚[ƒh‚Í‚±‚±‚Ö’Ç‰Á
+// CR-LFä»¥å¤–ã®æ”¹è¡Œã‚³ãƒ¼ãƒ‰ã‚’å¤‰æ›ã—ãªã„ãƒ¢ãƒ¼ãƒ‰ã¯ã“ã“ã¸è¿½åŠ 
 	if(Ascii == TYPE_A)
 	{
 		tInfo->Str = Data;
@@ -1993,14 +1993,14 @@ static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, 
 }
 
 
-/*----- ƒAƒbƒvƒ[ƒhI—¹^’†~‚ÌƒƒbƒZ[ƒW‚ğ•\¦ ----------------------------
+/*----- ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰çµ‚äº†ï¼ä¸­æ­¢æ™‚ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’è¡¨ç¤º ----------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
-*		int iRetCode : ‰“šƒR[ƒh
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
+*		int iRetCode : å¿œç­”ã‚³ãƒ¼ãƒ‰
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
@@ -2032,19 +2032,19 @@ static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 }
 
 
-/*----- ƒAƒbƒvƒ[ƒh‚ÌƒŠƒWƒ…[ƒ€‚Ì€”õ‚ğs‚¤ ----------------------------------
+/*----- ã‚¢ãƒƒãƒ—ãƒ­ãƒ¼ãƒ‰ã®ãƒªã‚¸ãƒ¥ãƒ¼ãƒ ã®æº–å‚™ã‚’è¡Œã† ----------------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
-*		iont ProcMode : ˆ—ƒ‚[ƒh(EXIST_xxx)
-*		LONGLONG Size : ƒzƒXƒg‚É‚ ‚éƒtƒ@ƒCƒ‹‚ÌƒTƒCƒY
-*		int *Mode : ƒŠƒWƒ…[ƒ€‚ğs‚¤‚©‚Ç‚¤‚© (YES/NO)
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
+*		iont ProcMode : å‡¦ç†ãƒ¢ãƒ¼ãƒ‰(EXIST_xxx)
+*		LONGLONG Size : ãƒ›ã‚¹ãƒˆã«ã‚ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚µã‚¤ã‚º
+*		int *Mode : ãƒªã‚¸ãƒ¥ãƒ¼ãƒ ã‚’è¡Œã†ã‹ã©ã†ã‹ (YES/NO)
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX = YES
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ = YES
 *
 *	Note
-*		Pkt->ExistSize‚ÌƒZƒbƒg‚ğs‚È‚¤
+*		Pkt->ExistSizeã®ã‚»ãƒƒãƒˆã‚’è¡Œãªã†
 *----------------------------------------------------------------------------*/
 
 static int SetUploadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode)
@@ -2063,13 +2063,13 @@ static int SetUploadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *M
 }
 
 
-/*----- “]‘—’†ƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX‚ÌƒR[ƒ‹ƒoƒbƒN --------------------------------
+/*----- è»¢é€ä¸­ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ --------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -2109,7 +2109,7 @@ static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 
 				case TRANS_STOP_ALL :
 					ClearAll = YES;
-					/* ‚±‚±‚É break ‚Í‚È‚¢ */
+					/* ã“ã“ã« break ã¯ãªã„ */
 
 				case IDCANCEL :
 					Pkt->Abort = ABORT_USER;
@@ -2138,14 +2138,14 @@ static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 }
 
 
-/*----- “]‘—ƒXƒe[ƒ^ƒX‚ğ•\¦ --------------------------------------------------
+/*----- è»¢é€ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã‚’è¡¨ç¤º --------------------------------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		int End : “]‘—‚ªŠ®—¹‚µ‚½‚©‚Ç‚¤‚© (YES/NO)
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		int End : è»¢é€ãŒå®Œäº†ã—ãŸã‹ã©ã†ã‹ (YES/NO)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt)
@@ -2225,16 +2225,16 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt)
 }
 
 
-/*----- “]‘—‚·‚éƒtƒ@ƒCƒ‹‚Ìî•ñ‚ğ•\¦ ------------------------------------------
+/*----- è»¢é€ã™ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã®æƒ…å ±ã‚’è¡¨ç¤º ------------------------------------------
 *
 *	Parameter
-*		TRANSPACKET *Pkt : “]‘—ƒtƒ@ƒCƒ‹î•ñ
-*		char *Title : ƒEƒCƒ“ƒhƒE‚Ìƒ^ƒCƒgƒ‹
-*		int SkipButton : u‚±‚Ìƒtƒ@ƒCƒ‹‚ğ’†~vƒ{ƒ^ƒ“‚Ì—L–³ (TRUE/FALSE)
-*		int Info : ƒtƒ@ƒCƒ‹î•ñ‚ğ•\¦‚·‚é‚©‚Ç‚¤‚© (YES/NO)
+*		TRANSPACKET *Pkt : è»¢é€ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±
+*		char *Title : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚¿ã‚¤ãƒˆãƒ«
+*		int SkipButton : ã€Œã“ã®ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä¸­æ­¢ã€ãƒœã‚¿ãƒ³ã®æœ‰ç„¡ (TRUE/FALSE)
+*		int Info : ãƒ•ã‚¡ã‚¤ãƒ«æƒ…å ±ã‚’è¡¨ç¤ºã™ã‚‹ã‹ã©ã†ã‹ (YES/NO)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void DispTransFileInfo(TRANSPACKET *Pkt, char *Title, int SkipButton, int Info)
@@ -2282,16 +2282,16 @@ static void DispTransFileInfo(TRANSPACKET *Pkt, char *Title, int SkipButton, int
 }
 
 
-/*----- PASVƒRƒ}ƒ“ƒh‚Ì–ß‚è’l‚©‚çƒAƒhƒŒƒX‚Æƒ|[ƒg”Ô†‚ğ’Šo --------------------
+/*----- PASVã‚³ãƒãƒ³ãƒ‰ã®æˆ»ã‚Šå€¤ã‹ã‚‰ã‚¢ãƒ‰ãƒ¬ã‚¹ã¨ãƒãƒ¼ãƒˆç•ªå·ã‚’æŠ½å‡º --------------------
 *
 *	Parameter
-*		char *Str : PASVƒRƒ}ƒ“ƒh‚ÌƒŠƒvƒ‰ƒC
-*		char *Adrs : ƒAƒhƒŒƒX‚ÌƒRƒs[æ ("www.xxx.yyy.zzz")
-*		int *Port : ƒ|[ƒg”Ô†‚ğƒZƒbƒg‚·‚éƒ[ƒN
-*		int Max : ƒAƒhƒŒƒX•¶š—ñ‚ÌÅ‘å’·
+*		char *Str : PASVã‚³ãƒãƒ³ãƒ‰ã®ãƒªãƒ—ãƒ©ã‚¤
+*		char *Adrs : ã‚¢ãƒ‰ãƒ¬ã‚¹ã®ã‚³ãƒ”ãƒ¼å…ˆ ("www.xxx.yyy.zzz")
+*		int *Port : ãƒãƒ¼ãƒˆç•ªå·ã‚’ã‚»ãƒƒãƒˆã™ã‚‹ãƒ¯ãƒ¼ã‚¯
+*		int Max : ã‚¢ãƒ‰ãƒ¬ã‚¹æ–‡å­—åˆ—ã®æœ€å¤§é•·
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 *			SUCCESS/FAIL
 *----------------------------------------------------------------------------*/
 
@@ -2346,13 +2346,13 @@ static int GetAdrsAndPort(char *Str, char *Adrs, int *Port, int Max)
 }
 
 
-/*----- Windows‚ÌƒXƒyƒVƒƒƒ‹ƒfƒoƒCƒX‚©‚Ç‚¤‚©‚ğ•Ô‚· -----------------------------
+/*----- Windowsã®ã‚¹ãƒšã‚·ãƒ£ãƒ«ãƒ‡ãƒã‚¤ã‚¹ã‹ã©ã†ã‹ã‚’è¿”ã™ -----------------------------
 *
 *	Parameter
-*		char *Fname : ƒtƒ@ƒCƒ‹–¼
+*		char *Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (YES/NO)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (YES/NO)
 *----------------------------------------------------------------------------*/
 
 static int IsSpecialDevice(char *Fname)
@@ -2373,7 +2373,7 @@ static int IsSpecialDevice(char *Fname)
 }
 
 
-/*----- ƒ~ƒ‰[ƒŠƒ“ƒO‚Å‚Ìƒtƒ@ƒCƒ‹íœŠm”F --------------------------------------
+/*----- ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°ã§ã®ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤ç¢ºèª --------------------------------------
 *
 *	Parameter
 *		int Cur
@@ -2408,13 +2408,13 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt)
 }
 
 
-/*----- ƒ~ƒ‰[ƒŠƒ“ƒO‚Å‚Ìƒtƒ@ƒCƒ‹íœƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒN ------------------
+/*----- ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°ã§ã®ãƒ•ã‚¡ã‚¤ãƒ«å‰Šé™¤ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -2487,13 +2487,13 @@ static void SetErrorMsg(char *fmt, ...)
 
 
 
-/*----- ƒ_ƒEƒ“ƒ[ƒh‚Ì•s³‚ÈƒpƒX‚ğƒ`ƒFƒbƒN ----------------------------------
+/*----- ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰æ™‚ã®ä¸æ­£ãªãƒ‘ã‚¹ã‚’ãƒã‚§ãƒƒã‚¯ ----------------------------------
 *
 *	Parameter
-*		TRANSPACKET *packet : ƒ_ƒEƒ“ƒ[ƒhî•ñ
+*		TRANSPACKET *packet : ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰æƒ…å ±
 *
 *	Return Value
-*		int YES=•s³‚ÈƒpƒX/NO=–â‘è‚È‚¢ƒpƒX
+*		int YES=ä¸æ­£ãªãƒ‘ã‚¹/NO=å•é¡Œãªã„ãƒ‘ã‚¹
 *----------------------------------------------------------------------------*/
 int CheckPathViolation(TRANSPACKET *packet)
 {

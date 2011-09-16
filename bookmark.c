@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*								ƒuƒbƒNƒ}[ƒN
+*								ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -46,30 +46,30 @@
 #include "helpid.h"
 
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static int AddBookMark(char *Path);
 static int GetBothPath(char *Str, char **Path1, char **Path2);
 static BOOL CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
-/*===== ŠO•”QÆ =====*/
+/*===== å¤–éƒ¨å‚ç…§ =====*/
 
 extern HWND hHelpWin;
 
-/* İ’è’l */
-extern HFONT ListFont;		/* ƒŠƒXƒgƒ{ƒbƒNƒX‚ÌƒtƒHƒ“ƒg */
+/* è¨­å®šå€¤ */
+extern HFONT ListFont;		/* ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã®ãƒ•ã‚©ãƒ³ãƒˆ */
 extern SIZE BmarkDlgSize;
 
 
 
-/*----- ƒuƒbƒNƒ}[ƒN‚ğƒNƒŠƒA‚·‚é ----------------------------------------------
+/*----- ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹ ----------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void ClearBookMark(void)
@@ -83,13 +83,13 @@ void ClearBookMark(void)
 }
 
 
-/*----- ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚ğƒuƒbƒNƒ}[ƒN‚É’Ç‰Á ------------------------------
+/*----- ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯ã«è¿½åŠ  ------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô† (WIN_xxx)
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void AddCurDirToBookMark(int Win)
@@ -118,13 +118,13 @@ void AddCurDirToBookMark(int Win)
 }
 
 
-/*----- ƒuƒbƒNƒ}[ƒN‚ÉƒpƒX‚ğ“o˜^‚·‚é ------------------------------------------
+/*----- ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯ã«ãƒ‘ã‚¹ã‚’ç™»éŒ²ã™ã‚‹ ------------------------------------------
 *
 *	Parameter
-*		char *Path : ƒpƒX–¼
+*		char *Path : ãƒ‘ã‚¹å
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 *			SUCCESS/FAIL
 *----------------------------------------------------------------------------*/
 
@@ -143,16 +143,16 @@ static int AddBookMark(char *Path)
 }
 
 
-/*----- w’è‚ÌID‚ğ‚ÂƒuƒbƒNƒ}[ƒN‚ÌƒpƒX‚ğ•Ô‚· --------------------------------
+/*----- æŒ‡å®šã®IDã‚’æŒã¤ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯ã®ãƒ‘ã‚¹ã‚’è¿”ã™ --------------------------------
 *
 *	Parameter
 *		int MarkID : ID
-*		char *Local : ƒ[ƒJƒ‹‘¤‚ÌƒpƒX‚ğ•Ô‚·ƒoƒbƒtƒ@
-*		char *Remote : ƒŠƒ‚[ƒg‘¤‚ÌƒpƒX‚ğ•Ô‚·ƒoƒbƒtƒ@
-*		int Max : ƒoƒbƒtƒ@‚ÌƒTƒCƒY
+*		char *Local : ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒ‘ã‚¹ã‚’è¿”ã™ãƒãƒƒãƒ•ã‚¡
+*		char *Remote : ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ãƒ‘ã‚¹ã‚’è¿”ã™ãƒãƒƒãƒ•ã‚¡
+*		int Max : ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (BMARK_TYPE_xxx)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (BMARK_TYPE_xxx)
 *----------------------------------------------------------------------------*/
 
 int AskBookMarkText(int MarkID, char *Local, char *Remote, int Max)
@@ -202,18 +202,18 @@ int AskBookMarkText(int MarkID, char *Local, char *Remote, int Max)
 }
 
 
-/*----- ƒuƒbƒNƒ}[ƒN‚Ì•¶š—ñ‚©‚ç‚Q‚Â‚ÌƒpƒX‚ğæ‚èo‚· --------------------------
+/*----- ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯ã®æ–‡å­—åˆ—ã‹ã‚‰ï¼’ã¤ã®ãƒ‘ã‚¹ã‚’å–ã‚Šå‡ºã™ --------------------------
 *
 *	Parameter
-*		char *Str : •¶š—ñ
-*		char **Local : ƒ[ƒJƒ‹‘¤‚ÌƒpƒX‚Ìæ“ª‚ğ•Ô‚·ƒ[ƒN
-*		char **Remote : ƒŠƒ‚[ƒg‘¤‚ÌƒpƒX‚Ìæ“ª‚ğ•Ô‚·ƒ[ƒN
+*		char *Str : æ–‡å­—åˆ—
+*		char **Local : ãƒ­ãƒ¼ã‚«ãƒ«å´ã®ãƒ‘ã‚¹ã®å…ˆé ­ã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
+*		char **Remote : ãƒªãƒ¢ãƒ¼ãƒˆå´ã®ãƒ‘ã‚¹ã®å…ˆé ­ã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int ƒpƒX‚ÌŒÂ” (1 or 2)
+*		int ãƒ‘ã‚¹ã®å€‹æ•° (1 or 2)
 *
 *	Note
-*		Str‚Ì“à—e‚ğ‘‚«Š·‚¦‚é
+*		Strã®å†…å®¹ã‚’æ›¸ãæ›ãˆã‚‹
 *----------------------------------------------------------------------------*/
 
 static int GetBothPath(char *Str, char **Path1, char **Path2)
@@ -235,13 +235,13 @@ static int GetBothPath(char *Str, char **Path1, char **Path2)
 }
 
 
-/*----- ƒuƒbƒNƒ}[ƒN‚ğÚ‘±’†‚ÌƒzƒXƒgƒŠƒXƒg‚É•Û‘¶‚·‚é --------------------------
+/*----- ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯ã‚’æ¥ç¶šä¸­ã®ãƒ›ã‚¹ãƒˆãƒªã‚¹ãƒˆã«ä¿å­˜ã™ã‚‹ --------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SaveBookMark(void)
@@ -305,13 +305,13 @@ void SaveBookMark(void)
 }
 
 
-/*----- ƒzƒXƒgƒŠƒXƒg‚©‚çƒuƒbƒNƒ}[ƒN‚ğ“Ç‚İ‚Ş --------------------------------
+/*----- ãƒ›ã‚¹ãƒˆãƒªã‚¹ãƒˆã‹ã‚‰ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯ã‚’èª­ã¿è¾¼ã‚€ --------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void LoadBookMark(void)
@@ -331,8 +331,8 @@ void LoadBookMark(void)
 				Pos = Buf;
 				while(*Pos != NUL)
 				{
-					/* ‹ŒƒtƒH[ƒ}ƒbƒg‚Ì‚½‚ß‚Ìˆ— */
-					/* iƒpƒX‚É"L"‚â"H"‚ª‚Â‚¢‚Ä‚È‚¢•¨j */
+					/* æ—§ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã®ãŸã‚ã®å‡¦ç† */
+					/* ï¼ˆãƒ‘ã‚¹ã«"L"ã‚„"H"ãŒã¤ã„ã¦ãªã„ç‰©ï¼‰ */
 					if((strncmp(Pos, BMARK_MARK_LOCAL, BMARK_MARK_LEN) != 0) &&
 					   (strncmp(Pos, BMARK_MARK_REMOTE, BMARK_MARK_LEN) != 0) &&
 					   (strncmp(Pos, BMARK_MARK_BOTH, BMARK_MARK_LEN) != 0))
@@ -353,13 +353,13 @@ void LoadBookMark(void)
 }
 
 
-/*----- ƒuƒbƒNƒ}[ƒN•ÒWƒEƒCƒ“ƒhƒE --------------------------------------------
+/*----- ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯ç·¨é›†ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ --------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		ƒXƒe[ƒ^ƒX (YES=Às/NO=æÁ)
+*		ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (YES=å®Ÿè¡Œ/NO=å–æ¶ˆ)
 *----------------------------------------------------------------------------*/
 
 int EditBookMark(void)
@@ -371,13 +371,13 @@ int EditBookMark(void)
 }
 
 
-/*----- ƒuƒbƒNƒ}[ƒN•ÒWƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ------------------------------
+/*----- ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯ç·¨é›†ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -425,7 +425,7 @@ static BOOL CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam, LP
 				case BMARK_JUMP :
 					if((Cur = SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
 						PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(Cur+MENU_BMARK_TOP, 0), 0);
-					/* ‚±‚±‚É break ‚Í‚È‚¢ */
+					/* ã“ã“ã« break ã¯ãªã„ */
 
 				case IDCANCEL :
 				case IDOK :
@@ -515,13 +515,13 @@ static BOOL CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam, LP
 }
 
 
-/*----- ƒuƒbƒNƒ}[ƒN“ü—Íƒ_ƒCƒAƒƒO‚ÌƒR[ƒ‹ƒoƒbƒN ------------------------------
+/*----- ãƒ–ãƒƒã‚¯ãƒãƒ¼ã‚¯å…¥åŠ›ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -550,7 +550,7 @@ static BOOL CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wPara
 				else if(strncmp(Str, BMARK_MARK_REMOTE, BMARK_MARK_LEN) == 0)
 				{
 					SendDlgItemMessage(hDlg, BEDIT_REMOTE, WM_SETTEXT, 0, (LPARAM)Path1);
-					/* ƒzƒXƒg‘¤‚ÉƒJ[ƒ\ƒ‹‚ğˆÚ“®‚µ‚Ä‚¨‚­ */
+					/* ãƒ›ã‚¹ãƒˆå´ã«ã‚«ãƒ¼ã‚½ãƒ«ã‚’ç§»å‹•ã—ã¦ãŠã */
 					SetFocus(GetDlgItem(hDlg, BEDIT_REMOTE));
 					SendDlgItemMessage(hDlg, BEDIT_REMOTE, EM_SETSEL, 0, -1);
 					return(FALSE);
@@ -573,7 +573,7 @@ static BOOL CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wPara
 					{
 						if(strlen(Remote) > 0)
 						{
-							/* —¼•û */
+							/* ä¸¡æ–¹ */
 							strcpy(Str, BMARK_MARK_BOTH);
 							strcat(Str, Local);
 							strcat(Str, BMARK_SEP);
@@ -581,7 +581,7 @@ static BOOL CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wPara
 						}
 						else
 						{
-							/* ƒ[ƒJƒ‹‚Ì‚İ */
+							/* ãƒ­ãƒ¼ã‚«ãƒ«ã®ã¿ */
 							strcpy(Str, BMARK_MARK_LOCAL);
 							strcat(Str, Local);
 						}
@@ -589,7 +589,7 @@ static BOOL CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wPara
 					}
 					else if(strlen(Remote) > 0)
 					{
-						/* ƒzƒXƒg‚Ì‚İ */
+						/* ãƒ›ã‚¹ãƒˆã®ã¿ */
 						strcpy(Str, BMARK_MARK_REMOTE);
 						strcat(Str, Remote);
 						EndDialog(hDlg, YES);

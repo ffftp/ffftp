@@ -1,4 +1,4 @@
-/*
+﻿/*
  ---------------------------------------------------------------------------
  Copyright (c) 1998-2008, Brian Gladman, Worcester, UK. All rights reserved.
 

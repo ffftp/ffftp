@@ -1,4 +1,4 @@
-
-/* OPENVMS�p�̃R�[�h��L���ɂ���B����a�쐬�̃p�b�`��g�ݍ��݂܂����B */
+﻿
+/* OPENVMS用のコードを有効にする。樋口殿作成のパッチを組み込みました。 */
 #define HAVE_OPENVMS
 

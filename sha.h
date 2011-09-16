@@ -1,4 +1,4 @@
-#define MSDOS
+﻿#define MSDOS
 #define LITTLE_ENDIAN
 
 typedef int                int32;

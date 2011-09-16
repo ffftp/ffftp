@@ -1,6 +1,6 @@
-/*=============================================================================
+﻿/*=============================================================================
 *
-*										�q�X�g��
+*										ヒストリ
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -43,24 +43,24 @@
 #include "resource.h"
 
 
-/*===== �v���g�^�C�v =====*/
+/*===== プロトタイプ =====*/
 
 static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New);
 static void AddOneFnameToMenu(char *Host, char *User, char *Remote, int Num);
 static void RemoveAllHistoryFromMenu(void);
 
-/*===== �O���Q�� =====*/
+/*===== 外部参照 =====*/
 
-/* �ݒ�l */
+/* 設定値 */
 extern int FileHist;
 extern int PassToHist;
 
-/*===== ���[�J���ȃ��[�N =====*/
+/*===== ローカルなワーク =====*/
 
 static HISTORYDATA *HistoryBase = NULL;
 static int HistoryNum = 0;
 
-/* �q�X�g���̃��j���[���ڂ�ID */
+/* ヒストリのメニュー項目のID */
 static int MenuHistId[HISTORY_MAX] = {
 	MENU_HIST_1,  MENU_HIST_2,  MENU_HIST_3,  MENU_HIST_4,  MENU_HIST_5,
 	MENU_HIST_6,  MENU_HIST_7,  MENU_HIST_8,  MENU_HIST_9,  MENU_HIST_10,
@@ -70,14 +70,14 @@ static int MenuHistId[HISTORY_MAX] = {
 
 
 
-/*----- �z�X�g�����q�X�g�����X�g�̐擪�ɒǉ����� ----------------------------
+/*----- ホスト情報をヒストリリストの先頭に追加する ----------------------------
 *
 *	Parameter
-*		HOSTDATA *Host : �z�X�g�f�[�^
-*		int TrMode : �]�����[�h
+*		HOSTDATA *Host : ホストデータ
+*		int TrMode : 転送モード
 *
 *	Return Value
-*		�Ȃ�
+*		なし
 *----------------------------------------------------------------------------*/
 
 void AddHostToHistory(HOSTDATA *Host, int TrMode)
@@ -91,13 +91,13 @@ void AddHostToHistory(HOSTDATA *Host, int TrMode)
 }
 
 
-/*----- �q�X�g�����q�X�g�����X�g�̐擪�ɒǉ����� ------------------------------
+/*----- ヒストリをヒストリリストの先頭に追加する ------------------------------
 *
 *	Parameter
-*		HISTORYDATA *Hist : �q�X�g���f�[�^
+*		HISTORYDATA *Hist : ヒストリデータ
 *
 *	Return Value
-*		�Ȃ�
+*		なし
 *----------------------------------------------------------------------------*/
 
 void AddHistoryToHistory(HISTORYDATA *Hist)
@@ -120,13 +120,13 @@ void AddHistoryToHistory(HISTORYDATA *Hist)
 }
 
 
-/*----- �q�X�g���̐���Ԃ� ----------------------------------------------------
+/*----- ヒストリの数を返す ----------------------------------------------------
 *
 *	Parameter
-*		�Ȃ�
+*		なし
 *
 *	Return Value
-*		int �q�X�g���̐�
+*		int ヒストリの数
 *----------------------------------------------------------------------------*/
 
 int AskHistoryNum(void)
@@ -135,13 +135,13 @@ int AskHistoryNum(void)
 }
 
 
-/*----- �q�X�g���̐����`�F�b�N������������폜 --------------------------------
+/*----- ヒストリの数をチェックし多すぎたら削除 --------------------------------
 *
 *	Parameter
-*		int Space : �󂯂Ă����� (0�`)
+*		int Space : 空けておく個数 (0～)
 *
 *	Return Value
-*		�Ȃ�
+*		なし
 *----------------------------------------------------------------------------*/
 
 void CheckHistoryNum(int Space)
@@ -153,7 +153,7 @@ void CheckHistoryNum(int Space)
 
 	if(HistoryNum > FileHist-Space)
 	{
-		/* �c���ׂ��q�X�g����T�� */
+		/* 残すべきヒストリを探す */
 		Pos = HistoryBase;
 		Prev = NULL;
 		for(i = 0; i < FileHist-Space; i++)
@@ -162,7 +162,7 @@ void CheckHistoryNum(int Space)
 			Pos = Pos->Next;
 		}
 
-		/* ����Ȃ��q�X�g�������� */
+		/* いらないヒストリを消す */
 		if(Prev == NULL)
 			HistoryBase = NULL;
 		else
@@ -180,14 +180,14 @@ void CheckHistoryNum(int Space)
 }
 
 
-/*----- �z�X�g�����q�X�g���ɃZ�b�g ------------------------------------------
+/*----- ホスト情報をヒストリにセット ------------------------------------------
 *
 *	Parameter
-*		HOSTDATA *Host : �z�X�g�f�[�^
-*		HISTORYDATA *New : �q�X�g�����Z�b�g���郏�[�N
+*		HOSTDATA *Host : ホストデータ
+*		HISTORYDATA *New : ヒストリをセットするワーク
 *
 *	Return Value
-*		�Ȃ�
+*		なし
 *----------------------------------------------------------------------------*/
 
 static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
@@ -227,14 +227,14 @@ static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
 }
 
 
-/*----- �q�X�g�������z�X�g���ɃZ�b�g --------------------------------------
+/*----- ヒストリ情報をホスト情報にセット --------------------------------------
 *
 *	Parameter
-*		HISTORYDATA *Hist : �q�X�g��
-*		HOSTDATA *Host : �z�X�g�f�[�^���Z�b�g���郏�[�N
+*		HISTORYDATA *Hist : ヒストリ
+*		HOSTDATA *Host : ホストデータをセットするワーク
 *
 *	Return Value
-*		�Ȃ�
+*		なし
 *----------------------------------------------------------------------------*/
 
 void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
@@ -276,13 +276,13 @@ void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
 }
 
 
-/*----- �q�X�g�����̏����l���擾 --------------------------------------------
+/*----- ヒストリ情報の初期値を取得 --------------------------------------------
 *
 *	Parameter
-*		HISTORYDATA *Set : �q�X�g�����Z�b�g���郏�[�N
+*		HISTORYDATA *Set : ヒストリをセットするワーク
 *
 *	Return Value
-*		�Ȃ�
+*		なし
 *----------------------------------------------------------------------------*/
 
 void CopyDefaultHistory(HISTORYDATA *Set)
@@ -295,13 +295,13 @@ void CopyDefaultHistory(HISTORYDATA *Set)
 }
 
 
-/*----- �S�q�X�g�������j���[�ɃZ�b�g ------------------------------------------
+/*----- 全ヒストリをメニューにセット ------------------------------------------
 *
 *	Parameter
-*		�Ȃ�
+*		なし
 *
 *	Return Value
-*		�Ȃ�
+*		なし
 *----------------------------------------------------------------------------*/
 
 void SetAllHistoryToMenu(void)
@@ -321,16 +321,16 @@ void SetAllHistoryToMenu(void)
 }
 
 
-/*----- �q�X�g�������j���[�ɒǉ� ----------------------------------------------
+/*----- ヒストリをメニューに追加 ----------------------------------------------
 *
 *	Parameter
-*		char *Host : �z�X�g��
-*		char *User : ���[�U��
-*		char *Remote : �z�X�g�̃t�H���_
-*		int Num : �ԍ�
+*		char *Host : ホスト名
+*		char *User : ユーザ名
+*		char *Remote : ホストのフォルダ
+*		int Num : 番号
 *
 *	Return Value
-*		�Ȃ�
+*		なし
 *----------------------------------------------------------------------------*/
 
 static void AddOneFnameToMenu(char *Host, char *User, char *Remote, int Num)
@@ -356,13 +356,13 @@ static void AddOneFnameToMenu(char *Host, char *User, char *Remote, int Num)
 }
 
 
-/*----- �S�q�X�g�������j���[����폜 ------------------------------------------
+/*----- 全ヒストリをメニューから削除 ------------------------------------------
 *
 *	Parameter
-*		�Ȃ�
+*		なし
 *
 *	Return Value
-*		�Ȃ�
+*		なし
 *----------------------------------------------------------------------------*/
 
 static void RemoveAllHistoryFromMenu(void)
@@ -381,14 +381,14 @@ static void RemoveAllHistoryFromMenu(void)
 }
 
 
-/*----- �w�胁�j���[�R�}���h�ɑΉ�����q�X�g����Ԃ� --------------------------
+/*----- 指定メニューコマンドに対応するヒストリを返す --------------------------
 *
 *	Parameter
-*		int MenuCmd : ���o���q�X�g���Ɋ��蓖�Ă�ꂽ���j���[�R�}���h (MENU_xxx)
-*		HISTORYDATA *Buf : �q�X�g���f�[�^��Ԃ��o�b�t�@
+*		int MenuCmd : 取り出すヒストリに割り当てられたメニューコマンド (MENU_xxx)
+*		HISTORYDATA *Buf : ヒストリデータを返すバッファ
 *
 *	Return Value
-*		int �X�e�[�^�X
+*		int ステータス
 *			SUCCESS/FAIL
 *----------------------------------------------------------------------------*/
 
@@ -413,14 +413,14 @@ int GetHistoryByCmd(int MenuCmd, HISTORYDATA *Buf)
 }
 
 
-/*----- �w��ԍ��ɑΉ�����q�X�g����Ԃ� --------------------------------------
+/*----- 指定番号に対応するヒストリを返す --------------------------------------
 *
 *	Parameter
-*		int Num : �ԍ�(0�`)
-*		HISTORYDATA *Buf : �q�X�g���f�[�^��Ԃ��o�b�t�@
+*		int Num : 番号(0～)
+*		HISTORYDATA *Buf : ヒストリデータを返すバッファ
 *
 *	Return Value
-*		int �X�e�[�^�X
+*		int ステータス
 *			SUCCESS/FAIL
 *----------------------------------------------------------------------------*/
 

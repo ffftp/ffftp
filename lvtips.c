@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*							ƒŠƒXƒgƒrƒ…[ƒeƒBƒbƒvƒX
+*							ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ãƒ†ã‚£ãƒƒãƒ—ã‚¹
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -27,7 +27,7 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-/* ‚±‚Ìƒ\[ƒX‚Í MFC Programmer's SourceBook (http://www.codeguru.com/)‚ğQl‚É‚µ‚Ü‚µ‚½ */
+/* ã“ã®ã‚½ãƒ¼ã‚¹ã¯ MFC Programmer's SourceBook (http://www.codeguru.com/)ã‚’å‚è€ƒã«ã—ã¾ã—ãŸ */
 
 #define  STRICT
 #include <windows.h>
@@ -41,26 +41,26 @@
 #include "resource.h"
 
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffset, int xoffset2, int InRect);
 static int CellRectFromPoint(HWND hWnd, POINT  point, RECT *cellrect, int *col);
 static LRESULT CALLBACK TitleTipWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-/*===== ƒ[ƒJƒ‹‚Èƒ[ƒN =====*/
+/*===== ãƒ­ãƒ¼ã‚«ãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
-static HWND hWndTips;	/* tips‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹ */
+static HWND hWndTips;	/* tipsã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ« */
 
 
 
-/*----- ƒŠƒXƒgƒrƒ…[ƒeƒBƒbƒvƒX‚ÌƒEƒCƒ“ƒhƒE‚ğì¬ ------------------------------
+/*----- ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ãƒ†ã‚£ãƒƒãƒ—ã‚¹ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚’ä½œæˆ ------------------------------
 *
 *	Parameter
-*		HWND hWnd : eƒEƒCƒ“ƒhƒE‚Ìƒnƒ“ƒhƒ‹
-*		HINSTANCE hInst : ƒCƒ“ƒXƒ^ƒ“ƒXƒnƒ“ƒhƒ‹
+*		HWND hWnd : è¦ªã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ãƒãƒ³ãƒ‰ãƒ«
+*		HINSTANCE hInst : ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ãƒãƒ³ãƒ‰ãƒ«
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 *			SUCCESS/FAIL
 *----------------------------------------------------------------------------*/
 
@@ -98,13 +98,13 @@ int InitListViewTips(HWND hWnd, HINSTANCE hInst)
 }
 
 
-/*----- ƒŠƒXƒgƒrƒ…[ƒeƒBƒbƒvƒX‚ÌƒEƒCƒ“ƒhƒE‚ğíœ ------------------------------
+/*----- ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ãƒ†ã‚£ãƒƒãƒ—ã‚¹ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚’å‰Šé™¤ ------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DeleteListViewTips(void)
@@ -115,13 +115,13 @@ void DeleteListViewTips(void)
 }
 
 
-/*----- ƒŠƒXƒgƒrƒ…[ƒeƒBƒbƒvƒX‚ÌƒEƒCƒ“ƒhƒE‚ğÁ‹ ------------------------------
+/*----- ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ãƒ†ã‚£ãƒƒãƒ—ã‚¹ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚’æ¶ˆå» ------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void EraseListViewTips(void)
@@ -132,13 +132,13 @@ void EraseListViewTips(void)
 }
 
 
-/*----- ƒŠƒXƒgƒrƒ…[ƒeƒBƒbƒvƒX‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹‚ğ•Ô‚· ----------------------
+/*----- ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ãƒ†ã‚£ãƒƒãƒ—ã‚¹ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«ã‚’è¿”ã™ ----------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		HWND ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *----------------------------------------------------------------------------*/
 
 HWND GetListViewTipsHwnd(void)
@@ -147,14 +147,14 @@ HWND GetListViewTipsHwnd(void)
 }
 
 
-/*----- ƒŠƒXƒgƒrƒ…[ƒeƒBƒbƒvƒX‚Ì•\¦ƒ`ƒFƒbƒN ----------------------------------
+/*----- ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ãƒ†ã‚£ãƒƒãƒ—ã‚¹ã®è¡¨ç¤ºãƒã‚§ãƒƒã‚¯ ----------------------------------
 *
 *	Parameter
-*		HWND hWnd : ListView‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		LPARAM lParam : WM_MOUSEMOVE‚ÌLPARAM’l
+*		HWND hWnd : ListViewã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		LPARAM lParam : WM_MOUSEMOVEã®LPARAMå€¤
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void CheckTipsDisplay(HWND hWnd, LPARAM lParam)
@@ -205,18 +205,18 @@ void CheckTipsDisplay(HWND hWnd, LPARAM lParam)
 }
 
 
-/*----- ƒŠƒXƒgƒrƒ…[ƒeƒBƒbƒvƒX‚ğ•\¦ ------------------------------------------
+/*----- ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ãƒ†ã‚£ãƒƒãƒ—ã‚¹ã‚’è¡¨ç¤º ------------------------------------------
 *
 *	Parameter
-*		HWND hWnd : ListView‚ÌƒEƒCƒ“ƒhƒE‚Ìƒnƒ“ƒhƒ‹
-*		RECT rectTitle : ListViewƒRƒ“ƒgƒ‹[ƒ‹‚ÌƒAƒCƒeƒ€‚Ì‹éŒ`
-*		LPCTSTR lpszTitleText : •¶š—ñ
-*		int xoffset : ƒIƒtƒZƒbƒg
-*		int xoffset2 : ƒIƒtƒZƒbƒg‚Q
-*		int InRect : •\¦‚·‚é‚©‚Ç‚¤‚©
+*		HWND hWnd : ListViewã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ãƒãƒ³ãƒ‰ãƒ«
+*		RECT rectTitle : ListViewã‚³ãƒ³ãƒˆãƒ«ãƒ¼ãƒ«ã®ã‚¢ã‚¤ãƒ†ãƒ ã®çŸ©å½¢
+*		LPCTSTR lpszTitleText : æ–‡å­—åˆ—
+*		int xoffset : ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+*		int xoffset2 : ã‚ªãƒ•ã‚»ãƒƒãƒˆï¼’
+*		int InRect : è¡¨ç¤ºã™ã‚‹ã‹ã©ã†ã‹
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffset, int xoffset2, int InRect)
@@ -233,7 +233,7 @@ static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffs
 		{
 			RectClientToScreen(hWnd, &rectTitle);
 
-			/* ListViewƒEƒCƒ“ƒhƒE‚ÌƒtƒHƒ“ƒg‚ğ“¾‚é */
+			/* ListViewã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ãƒ•ã‚©ãƒ³ãƒˆã‚’å¾—ã‚‹ */
 			dc = GetDC(hWnd);
 			pFont = (HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0);
 			ReleaseDC(hWnd, dc);
@@ -272,17 +272,17 @@ static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffs
 }
 
 
-/*----- ƒŠƒXƒgƒrƒ…[ƒeƒBƒbƒvƒX‚ğ•\¦‚·‚éˆÊ’u‚ğ•Ô‚· ----------------------------
+/*----- ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ãƒ†ã‚£ãƒƒãƒ—ã‚¹ã‚’è¡¨ç¤ºã™ã‚‹ä½ç½®ã‚’è¿”ã™ ----------------------------
 *
 *	Parameter
-*		HWND hWnd : ListView‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		POINT point : ƒJ[ƒ\ƒ‹‚ÌˆÊ’u
-*		RECT *cellrect : ƒAƒCƒeƒ€‚Ì‹éŒ`‚ğ•Ô‚·ƒ[ƒN
-*		int *col : Œ…”Ô†‚ğ•Ô‚·ƒ[ƒN
+*		HWND hWnd : ListViewã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		POINT point : ã‚«ãƒ¼ã‚½ãƒ«ã®ä½ç½®
+*		RECT *cellrect : ã‚¢ã‚¤ãƒ†ãƒ ã®çŸ©å½¢ã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
+*		int *col : æ¡ç•ªå·ã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int s”Ô†
-*			-1=ŠY“–‚È‚µ
+*		int è¡Œç•ªå·
+*			-1=è©²å½“ãªã—
 *----------------------------------------------------------------------------*/
 
 static int CellRectFromPoint(HWND hWnd, POINT point, RECT *cellrect, int *col)
@@ -339,16 +339,16 @@ static int CellRectFromPoint(HWND hWnd, POINT point, RECT *cellrect, int *col)
 }
 
 
-/*----- ƒŠƒXƒgƒrƒ…[ƒeƒBƒbƒvƒXƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ------------------------
+/*----- ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ãƒ†ã‚£ãƒƒãƒ—ã‚¹ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message  : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message  : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
-*		ƒƒbƒZ[ƒW‚É‘Î‰‚·‚é–ß‚è’l
+*		ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã«å¯¾å¿œã™ã‚‹æˆ»ã‚Šå€¤
 *----------------------------------------------------------------------------*/
 
 static LRESULT CALLBACK TitleTipWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

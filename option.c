@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*								ƒIƒvƒVƒ‡ƒ“İ’è
+*								ã‚ªãƒ—ã‚·ãƒ§ãƒ³è¨­å®š
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -42,7 +42,7 @@
 #include "helpid.h"
 
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static BOOL CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
@@ -79,11 +79,11 @@ typedef struct {
 
 
 
-/*===== ŠO•”QÆ =====*/
+/*===== å¤–éƒ¨å‚ç…§ =====*/
 
 extern HWND hHelpWin;
 
-/* İ’è’l */
+/* è¨­å®šå€¤ */
 extern char UserMailAdrs[USER_MAIL_LEN+1];
 extern char ViewerName[VIEWERS][FMAX_PATH+1];
 extern int ConnectOnStart;
@@ -138,13 +138,13 @@ extern int FolderAttr;
 extern int FolderAttrNum;
 
 
-/*----- ƒIƒvƒVƒ‡ƒ“‚ÌƒvƒƒpƒeƒBƒV[ƒg ------------------------------------------
+/*----- ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£ã‚·ãƒ¼ãƒˆ ------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetOption(int Start)
@@ -288,13 +288,13 @@ void SetOption(int Start)
 }
 
 
-/*----- ƒ†[ƒUİ’èƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ------------------------------------
+/*----- ãƒ¦ãƒ¼ã‚¶è¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -332,13 +332,13 @@ static BOOL CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPA
 }
 
 
-/*----- “]‘—İ’è‚PƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ------------------------------------
+/*----- è»¢é€è¨­å®šï¼‘ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -426,13 +426,13 @@ static BOOL CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 }
 
 
-/*----- “]‘—İ’è‚QƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ------------------------------------
+/*----- è»¢é€è¨­å®šï¼’ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -501,13 +501,13 @@ static BOOL CALLBACK Trmode2SettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 }
 
 
-/*----- “]‘—İ’è‚RƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ------------------------------------
+/*----- è»¢é€è¨­å®šï¼“ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -612,13 +612,13 @@ static BOOL CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹‘®«İ’èƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«å±æ€§è¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -662,15 +662,15 @@ static BOOL CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹–¼‚Æ‘®«‚ğƒŠƒXƒgƒrƒ…[‚É’Ç‰Á ----------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«åã¨å±æ€§ã‚’ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã«è¿½åŠ  ----------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		char *Fname : ƒtƒ@ƒCƒ‹–¼
-*		char *Attr : ‘®«
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		char *Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
+*		char *Attr : å±æ€§
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void AddFnameAttrToListView(HWND hDlg, char *Fname, char *Attr)
@@ -703,16 +703,16 @@ static void AddFnameAttrToListView(HWND hDlg, char *Fname, char *Attr)
 }
 
 
-/*----- ƒŠƒXƒgƒrƒ…[‚Ì“à—e‚ğƒ}ƒ‹ƒ`•¶š—ñ‚É‚·‚é --------------------------------
+/*----- ãƒªã‚¹ãƒˆãƒ“ãƒ¥ãƒ¼ã®å†…å®¹ã‚’ãƒãƒ«ãƒæ–‡å­—åˆ—ã«ã™ã‚‹ --------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		int CtrlList : ƒŠƒXƒgƒ{ƒbƒNƒX‚ÌID
-*		char *Buf : •¶š—ñ‚ğƒZƒbƒg‚·‚éƒoƒbƒtƒ@
-*		int BufSize : ƒoƒbƒtƒ@‚ÌƒTƒCƒY
+*		HWND hDlg : ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		int CtrlList : ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã®ID
+*		char *Buf : æ–‡å­—åˆ—ã‚’ã‚»ãƒƒãƒˆã™ã‚‹ãƒãƒƒãƒ•ã‚¡
+*		int BufSize : ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void GetFnameAttrFromListView(HWND hDlg, char *Buf)
@@ -746,13 +746,13 @@ static void GetFnameAttrFromListView(HWND hDlg, char *Buf)
 }
 
 
-/*----- ƒ~ƒ‰[ƒŠƒ“ƒOƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ----------------------------------
+/*----- ãƒŸãƒ©ãƒ¼ãƒªãƒ³ã‚°ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ----------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -827,13 +827,13 @@ static BOOL CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam, L
 }
 
 
-/*----- ‘€ìİ’èƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN --------------------------------------
+/*----- æ“ä½œè¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ --------------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -901,13 +901,13 @@ static BOOL CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam, L
 }
 
 
-/*----- •\¦İ’èƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN --------------------------------------
+/*----- è¡¨ç¤ºè¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ --------------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -965,18 +965,18 @@ static BOOL CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPA
 }
 
 
-/*----- ƒtƒHƒ“ƒg‚ğ‘I‚Ô --------------------------------------------------------
+/*----- ãƒ•ã‚©ãƒ³ãƒˆã‚’é¸ã¶ --------------------------------------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		LOGFONT *lFont : ƒtƒHƒ“ƒgî•ñ
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		LOGFONT *lFont : ãƒ•ã‚©ãƒ³ãƒˆæƒ…å ±
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *
 *	Parameter change
-*		HFONT *hFont : ƒtƒHƒ“ƒg‚Ìƒnƒ“ƒhƒ‹
-*		LOGFONT *lFont : ƒtƒHƒ“ƒgî•ñ
+*		HFONT *hFont : ãƒ•ã‚©ãƒ³ãƒˆã®ãƒãƒ³ãƒ‰ãƒ«
+*		LOGFONT *lFont : ãƒ•ã‚©ãƒ³ãƒˆæƒ…å ±
 *----------------------------------------------------------------------------*/
 
 static int SelectListFont(HWND hWnd, LOGFONT *lFont)
@@ -999,13 +999,13 @@ static int SelectListFont(HWND hWnd, LOGFONT *lFont)
 }
 
 
-/*----- Ú‘±^Ø’fİ’èƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN --------------------------------
+/*----- æ¥ç¶šï¼åˆ‡æ–­è¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ --------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1077,13 +1077,13 @@ static BOOL CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 }
 
 
-/*----- FireWallİ’èƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ----------------------------------
+/*----- FireWallè¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ----------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1204,13 +1204,13 @@ static BOOL CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPA
 }
 
 
-/*----- ƒc[ƒ‹İ’èƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ------------------------------------
+/*----- ãƒ„ãƒ¼ãƒ«è¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1283,13 +1283,13 @@ static BOOL CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPA
 }
 
 
-/*----- ƒTƒEƒ“ƒhİ’èƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ----------------------------------
+/*----- ã‚µã‚¦ãƒ³ãƒ‰è¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ----------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1384,13 +1384,13 @@ static BOOL CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam, LP
 }
 
 
-/*----- ‚»‚Ì‘¼‚Ìİ’èƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ----------------------------------
+/*----- ãã®ä»–ã®è¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ----------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1487,13 +1487,13 @@ static BOOL CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPA
 }
 
 
-/*----- ƒ\[ƒgİ’èƒEƒCƒ“ƒhƒE --------------------------------------------------
+/*----- ã‚½ãƒ¼ãƒˆè¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ --------------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX (YES=Às/NO=æÁ)
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ (YES=å®Ÿè¡Œ/NO=å–æ¶ˆ)
 *----------------------------------------------------------------------------*/
 
 int SortSetting(void)
@@ -1505,13 +1505,13 @@ int SortSetting(void)
 }
 
 
-/*----- ƒ\[ƒgİ’èƒEƒCƒ“ƒhƒE‚ÌƒR[ƒ‹ƒoƒbƒN ------------------------------------
+/*----- ã‚½ãƒ¼ãƒˆè¨­å®šã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ ------------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -1633,14 +1633,14 @@ static BOOL CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPA
 }
 
 
-/*----- ƒ_ƒCƒAƒƒO‚ÌƒRƒ“ƒgƒ[ƒ‹‚©‚ç‚P‚Oi”‚ğæ“¾ ----------------------------
+/*----- ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã‹ã‚‰ï¼‘ï¼é€²æ•°ã‚’å–å¾— ----------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		int Ctrl : ƒRƒ“ƒgƒ[ƒ‹‚ÌID
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		int Ctrl : ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã®ID
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static int GetDecimalText(HWND hDlg, int Ctrl)
@@ -1652,15 +1652,15 @@ static int GetDecimalText(HWND hDlg, int Ctrl)
 }
 
 
-/*----- ƒ_ƒCƒAƒƒO‚ÌƒRƒ“ƒgƒ[ƒ‹‚É‚P‚Oi”‚ğƒZƒbƒg ----------------------------
+/*----- ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ã®ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã«ï¼‘ï¼é€²æ•°ã‚’ã‚»ãƒƒãƒˆ ----------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		int Ctrl : ƒRƒ“ƒgƒ[ƒ‹‚ÌID
-*		int Num : ”’l
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		int Ctrl : ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã®ID
+*		int Num : æ•°å€¤
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void SetDecimalText(HWND hDlg, int Ctrl, int Num)
@@ -1673,18 +1673,18 @@ static void SetDecimalText(HWND hDlg, int Ctrl, int Num)
 }
 
 
-/*----- İ’è’l‚Ì”ÍˆÍƒ`ƒFƒbƒN --------------------------------------------------
+/*----- è¨­å®šå€¤ã®ç¯„å›²ãƒã‚§ãƒƒã‚¯ --------------------------------------------------
 *
 *	Parameter
-*		int *Cur : İ’è’l
-*		int Max : Å‘å’l
-*		int Min : Å¬’l
+*		int *Cur : è¨­å®šå€¤
+*		int Max : æœ€å¤§å€¤
+*		int Min : æœ€å°å€¤
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *
 *	Parameter change
-*		int *Cur : İ’è’l
+*		int *Cur : è¨­å®šå€¤
 *----------------------------------------------------------------------------*/
 
 static void CheckRange2(int *Cur, int Max, int Min)
@@ -1697,16 +1697,16 @@ static void CheckRange2(int *Cur, int Max, int Min)
 }
 
 
-/*----- •¶š—ñ‚ğƒŠƒXƒgƒ{ƒbƒNƒX‚É’Ç‰Á ------------------------------------------
+/*----- æ–‡å­—åˆ—ã‚’ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã«è¿½åŠ  ------------------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		char *Str : •¶š—ñ
-*		int CtrlList : ƒŠƒXƒgƒ{ƒbƒNƒX‚ÌID
-*		int BufSize : ƒoƒbƒtƒ@ƒTƒCƒY
+*		HWND hDlg : ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		char *Str : æ–‡å­—åˆ—
+*		int CtrlList : ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã®ID
+*		int BufSize : ãƒãƒƒãƒ•ã‚¡ã‚µã‚¤ã‚º
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize)
@@ -1736,15 +1736,15 @@ static void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize)
 }
 
 
-/*----- ƒ}ƒ‹ƒ`•¶š—ñ‚ğƒŠƒXƒgƒ{ƒbƒNƒX‚ÉƒZƒbƒg ----------------------------------
+/*----- ãƒãƒ«ãƒæ–‡å­—åˆ—ã‚’ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã«ã‚»ãƒƒãƒˆ ----------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		int CtrlList : ƒŠƒXƒgƒ{ƒbƒNƒX‚ÌID
-*		char *Text : •¶š—ñ
+*		HWND hDlg : ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		int CtrlList : ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã®ID
+*		char *Text : æ–‡å­—åˆ—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text)
@@ -1761,16 +1761,16 @@ static void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text)
 }
 
 
-/*----- ƒŠƒXƒgƒ{ƒbƒNƒX‚Ì“à—e‚ğƒ}ƒ‹ƒ`•¶š—ñ‚É‚·‚é ------------------------------
+/*----- ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã®å†…å®¹ã‚’ãƒãƒ«ãƒæ–‡å­—åˆ—ã«ã™ã‚‹ ------------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		int CtrlList : ƒŠƒXƒgƒ{ƒbƒNƒX‚ÌID
-*		char *Buf : •¶š—ñ‚ğƒZƒbƒg‚·‚éƒoƒbƒtƒ@
-*		int BufSize : ƒoƒbƒtƒ@‚ÌƒTƒCƒY
+*		HWND hDlg : ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		int CtrlList : ãƒªã‚¹ãƒˆãƒœãƒƒã‚¯ã‚¹ã®ID
+*		char *Buf : æ–‡å­—åˆ—ã‚’ã‚»ãƒƒãƒˆã™ã‚‹ãƒãƒƒãƒ•ã‚¡
+*		int BufSize : ãƒãƒƒãƒ•ã‚¡ã®ã‚µã‚¤ã‚º
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize)

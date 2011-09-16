@@ -1,6 +1,6 @@
-/*=============================================================================
+ï»¿/*=============================================================================
 *
-*									‚e‚e‚e‚s‚o
+*									ï¼¦ï¼¦ï¼¦ï¼´ï¼°
 *
 ===============================================================================
 / Copyright (C) 1997-2007 Sota. All rights reserved.
@@ -47,15 +47,15 @@
 #include "helpid.h"
 
 
-#define RESIZE_OFF		0		/* ƒEƒCƒ“ƒhƒE‚Ì‹æØ‚èˆÊ’u•ÏX‚µ‚Ä‚¢‚È‚¢ */
-#define RESIZE_ON		1		/* ƒEƒCƒ“ƒhƒE‚Ì‹æØ‚èˆÊ’u•ÏX’† */
-#define RESIZE_PREPARE	2		/* ƒEƒCƒ“ƒhƒE‚Ì‹æØ‚èˆÊ’u•ÏX‚Ì€”õ */
+#define RESIZE_OFF		0		/* ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®åŒºåˆ‡ã‚Šä½ç½®å¤‰æ›´ã—ã¦ã„ãªã„ */
+#define RESIZE_ON		1		/* ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®åŒºåˆ‡ã‚Šä½ç½®å¤‰æ›´ä¸­ */
+#define RESIZE_PREPARE	2		/* ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®åŒºåˆ‡ã‚Šä½ç½®å¤‰æ›´ã®æº–å‚™ */
 
-#define RESIZE_HPOS		0		/* ƒ[ƒJƒ‹|ƒzƒXƒgŠÔ‚Ì‹æØ‚èˆÊ’u•ÏX */
-#define RESIZE_VPOS		1		/* ƒŠƒXƒg|ƒ^ƒXƒNŠÔ‚Ì‹æØ‚èˆÊ’u‚Ì•ÏX */
+#define RESIZE_HPOS		0		/* ãƒ­ãƒ¼ã‚«ãƒ«ï¼ãƒ›ã‚¹ãƒˆé–“ã®åŒºåˆ‡ã‚Šä½ç½®å¤‰æ›´ */
+#define RESIZE_VPOS		1		/* ãƒªã‚¹ãƒˆï¼ã‚¿ã‚¹ã‚¯é–“ã®åŒºåˆ‡ã‚Šä½ç½®ã®å¤‰æ›´ */
 
 
-/*===== ƒvƒƒgƒ^ƒCƒv =====*/
+/*===== ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ— =====*/
 
 static int InitApp(LPSTR lpszCmdLine, int cmdShow);
 static int MakeAllWindows(int cmdShow);
@@ -78,7 +78,7 @@ static void DeleteAlltempFile(void);
 static BOOL CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static int EnterMasterPasswordAndSet( int Res, HWND hWnd );
 
-/*===== ƒ[ƒJƒ‹‚Èƒ[ƒN =====*/
+/*===== ãƒ­ãƒ¼ã‚«ãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
 static const char FtpClassStr[] = "FFFTPWin";
 
@@ -108,9 +108,9 @@ static char HelpPath[FMAX_PATH+1];
 static char IniPath[FMAX_PATH+1];
 static int ForceIni = NO;
 
-TRANSPACKET MainTransPkt;		/* ƒtƒ@ƒCƒ‹“]‘——pƒpƒPƒbƒg */
-								/* ‚±‚ê‚ğg‚Á‚Ä“]‘—‚ğs‚¤‚ÆAƒc[ƒ‹ƒo[‚Ì“]‘— */
-								/* ’†~ƒ{ƒ^ƒ“‚Å’†~‚Å‚«‚é */
+TRANSPACKET MainTransPkt;		/* ãƒ•ã‚¡ã‚¤ãƒ«è»¢é€ç”¨ãƒ‘ã‚±ãƒƒãƒˆ */
+								/* ã“ã‚Œã‚’ä½¿ã£ã¦è»¢é€ã‚’è¡Œã†ã¨ã€ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ã®è»¢é€ */
+								/* ä¸­æ­¢ãƒœã‚¿ãƒ³ã§ä¸­æ­¢ã§ãã‚‹ */
 
 char TitleHostName[HOST_ADRS_LEN+1];
 char FilterStr[FILTER_EXT_LEN+1] = { "*" };
@@ -122,11 +122,11 @@ static int SuppressRefresh = 0;
 static DWORD dwCookie;
 
 
-/*===== ƒOƒ[ƒoƒ‹‚Èƒ[ƒN =====*/
+/*===== ã‚°ãƒ­ãƒ¼ãƒãƒ«ãªãƒ¯ãƒ¼ã‚¯ =====*/
 
 HWND hHelpWin = NULL;
 
-/* İ’è’l */
+/* è¨­å®šå€¤ */
 int WinPosX = CW_USEDEFAULT;
 int WinPosY = 0;
 int WinWidth = 630;
@@ -206,16 +206,16 @@ int FolderAttrNum = 777;
 
 
 
-/*----- ƒƒCƒ“ƒ‹[ƒ`ƒ“ --------------------------------------------------------
+/*----- ãƒ¡ã‚¤ãƒ³ãƒ«ãƒ¼ãƒãƒ³ --------------------------------------------------------
 *
 *	Parameter
-*		HINSTANCE hInstance : ‚±‚ÌƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚Ì‚±‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚Ìƒnƒ“ƒhƒ‹
-*		HINSTANCE hPrevInstance : ‚±‚ÌƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚Ì’¼‘O‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚Ìƒnƒ“ƒhƒ‹
-*		LPSTR lpszCmdLine : ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚ª‹N“®‚µ‚½‚Æ‚«‚ÌƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚ğ‚³‚·ƒƒ“ƒOƒ|ƒCƒ“ƒ^
-*		int cmdShow : Å‰‚É•\¦‚·‚éƒEƒCƒ“ƒhƒE‚ÌŒ`®B
+*		HINSTANCE hInstance : ã“ã®ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã®ã“ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®ãƒãƒ³ãƒ‰ãƒ«
+*		HINSTANCE hPrevInstance : ã“ã®ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã®ç›´å‰ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®ãƒãƒ³ãƒ‰ãƒ«
+*		LPSTR lpszCmdLine : ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ãŒèµ·å‹•ã—ãŸã¨ãã®ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã‚’ã•ã™ãƒ­ãƒ³ã‚°ãƒã‚¤ãƒ³ã‚¿
+*		int cmdShow : æœ€åˆã«è¡¨ç¤ºã™ã‚‹ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®å½¢å¼ã€‚
 *
 *	Return Value
-*		int ÅŒã‚ÌƒƒbƒZ[ƒW‚ÌwParam
+*		int æœ€å¾Œã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®wParam
 *----------------------------------------------------------------------------*/
 
 int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmdShow)
@@ -245,8 +245,8 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
 			if(!HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
 			{ 
-				/* ƒfƒBƒŒƒNƒgƒŠ–¼‚Ì•\¦ƒRƒ“ƒ{ƒ{ƒbƒNƒX‚ÅBS‚âRET‚ªŒø‚­‚æ‚¤‚É */
-				/* ƒRƒ“ƒ{ƒ{ƒbƒNƒX“à‚Å‚ÍƒAƒNƒZƒ‰ƒŒ[ƒ^‚ğ–³Œø‚É‚·‚é */
+				/* ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåã®è¡¨ç¤ºã‚³ãƒ³ãƒœãƒœãƒƒã‚¯ã‚¹ã§BSã‚„RETãŒåŠ¹ãã‚ˆã†ã« */
+				/* ã‚³ãƒ³ãƒœãƒœãƒƒã‚¯ã‚¹å†…ã§ã¯ã‚¢ã‚¯ã‚»ãƒ©ãƒ¬ãƒ¼ã‚¿ã‚’ç„¡åŠ¹ã«ã™ã‚‹ */
 				if((Msg.hwnd == GetLocalHistEditHwnd()) ||
 				   (Msg.hwnd == GetRemoteHistEditHwnd()) ||
 				   ((hHelpWin != NULL) && (GetAncestor(Msg.hwnd, GA_ROOT) == hHelpWin)) ||
@@ -266,16 +266,16 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 }
 
 
-/*----- ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚Ì‰Šúİ’è --------------------------------------------
+/*----- ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã®åˆæœŸè¨­å®š --------------------------------------------
 *
 *	Parameter
-*		HINSTANCE hInstance : ‚±‚ÌƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚Ì‚±‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚Ìƒnƒ“ƒhƒ‹
-*		HINSTANCE hPrevInstance : ‚±‚ÌƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚Ì’¼‘O‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚Ìƒnƒ“ƒhƒ‹
-*		LPSTR lpszCmdLine : ƒAƒvƒŠƒP[ƒVƒ‡ƒ“‚ª‹N“®‚µ‚½‚Æ‚«‚ÌƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚ğ‚³‚·ƒƒ“ƒOƒ|ƒCƒ“ƒ^
-*		int cmdShow : Å‰‚É•\¦‚·‚éƒEƒCƒ“ƒhƒE‚ÌŒ`®B
+*		HINSTANCE hInstance : ã“ã®ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã®ã“ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®ãƒãƒ³ãƒ‰ãƒ«
+*		HINSTANCE hPrevInstance : ã“ã®ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ã®ç›´å‰ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã®ãƒãƒ³ãƒ‰ãƒ«
+*		LPSTR lpszCmdLine : ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ãŒèµ·å‹•ã—ãŸã¨ãã®ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã‚’ã•ã™ãƒ­ãƒ³ã‚°ãƒã‚¤ãƒ³ã‚¿
+*		int cmdShow : æœ€åˆã«è¡¨ç¤ºã™ã‚‹ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®å½¢å¼ã€‚
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 *			SUCCESS/FAIL
 *----------------------------------------------------------------------------*/
 
@@ -285,7 +285,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 	int Err;
 	WSADATA WSAData;
 	char PwdBuf[FMAX_PATH+1];
-	int useDefautPassword = 0; /* Œx•¶•\¦—p */
+	int useDefautPassword = 0; /* è­¦å‘Šæ–‡è¡¨ç¤ºç”¨ */
 	int masterpass;
 
 	sts = FAIL;
@@ -321,12 +321,12 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 
 //		AllocConsole();
 
-		/* 2010.02.01 genta ƒ}ƒXƒ^[ƒpƒXƒ[ƒh‚ğ“ü—Í‚³‚¹‚é
-		  -z ƒIƒvƒVƒ‡ƒ“‚ª‚ ‚é‚Æ‚«‚ÍÅ‰‚¾‚¯ƒXƒLƒbƒv
-		  -z ƒIƒvƒVƒ‡ƒ“‚ª‚È‚¢‚Æ‚«‚ÍCƒfƒtƒHƒ‹ƒgƒpƒXƒ[ƒh‚ğ‚Ü‚¸‚·
-		  LoadRegistory()‚·‚é
-		  ƒpƒXƒ[ƒh‚ª•sˆê’v‚È‚çÄ“ü—Í‚·‚é‚©q‚Ë‚éD
-		  (”j‘¹‚µ‚Ä‚¢‚½ê‡‚Í‚³‚¹‚È‚¢)
+		/* 2010.02.01 genta ãƒã‚¹ã‚¿ãƒ¼ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’å…¥åŠ›ã•ã›ã‚‹
+		  -z ã‚ªãƒ—ã‚·ãƒ§ãƒ³ãŒã‚ã‚‹ã¨ãã¯æœ€åˆã ã‘ã‚¹ã‚­ãƒƒãƒ—
+		  -z ã‚ªãƒ—ã‚·ãƒ§ãƒ³ãŒãªã„ã¨ãã¯ï¼Œãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’ã¾ãšè©¦ã™
+		  LoadRegistory()ã™ã‚‹
+		  ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ãŒä¸ä¸€è‡´ãªã‚‰å†å…¥åŠ›ã™ã‚‹ã‹å°‹ã­ã‚‹ï¼
+		  (ç ´æã—ã¦ã„ãŸå ´åˆã¯ã•ã›ãªã„)
 		*/
 		if( CheckMasterPassword(lpszCmdLine, PwdBuf))
 		{
@@ -334,26 +334,26 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			useDefautPassword = 0;
 		}
 		else {
-			/* ƒpƒXƒ[ƒhw’è–³‚µ */
+			/* ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰æŒ‡å®šç„¡ã— */
 			SetMasterPassword( NULL );
-			/* ‚±‚Ìê‚Å‚Í•\¦‚Å‚«‚È‚¢‚Ì‚Åƒtƒ‰ƒO‚¾‚¯—§‚Ä‚Ä‚¨‚­*/
+			/* ã“ã®å ´ã§ã¯è¡¨ç¤ºã§ããªã„ã®ã§ãƒ•ãƒ©ã‚°ã ã‘ç«‹ã¦ã¦ãŠã*/
 			useDefautPassword = 2;
 		}
 
-		/* ƒpƒXƒ[ƒhƒ`ƒFƒbƒN‚Ì‚İÀ{ */
+		/* ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ãƒã‚§ãƒƒã‚¯ã®ã¿å®Ÿæ–½ */
 		masterpass = 1;
 		while( ValidateMasterPassword() == YES &&
 				GetMasterPasswordStatus() == PASSWORD_UNMATCH ){
 			
 			if( useDefautPassword != 2 ){
-				/* Äƒgƒ‰ƒC‚·‚é‚©Šm”F */
+				/* å†ãƒˆãƒ©ã‚¤ã™ã‚‹ã‹ç¢ºèª */
 				if( MessageBox(NULL, MSGJPN304, "FFFTP", MB_YESNO | MB_ICONEXCLAMATION) == IDNO ){
-					useDefautPassword = 0; /* •sˆê’v‚È‚Ì‚ÅC‚à‚Í‚âƒfƒtƒHƒ‹ƒg‚©‚Ç‚¤‚©‚Í•ª‚©‚ç‚È‚¢ */
+					useDefautPassword = 0; /* ä¸ä¸€è‡´ãªã®ã§ï¼Œã‚‚ã¯ã‚„ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‹ã©ã†ã‹ã¯åˆ†ã‹ã‚‰ãªã„ */
 					break;
 				}
 			}
 			
-			/* Ä“ü—Í‚³‚¹‚é*/
+			/* å†å…¥åŠ›ã•ã›ã‚‹*/
 			masterpass = EnterMasterPasswordAndSet(masterpasswd_dlg, NULL);
 			if( masterpass == 2 ){
 				useDefautPassword = 1;
@@ -376,7 +376,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 				LoadRasLib();
 			LoadKernelLib();
 
-			//ƒ^ƒCƒ}‚Ì¸“x‚ğ‰ü‘P
+			//ã‚¿ã‚¤ãƒã®ç²¾åº¦ã‚’æ”¹å–„
 			timeBeginPeriod(1);
 
 			CountPrevFfftpWindows();
@@ -432,12 +432,12 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					StartupProc(lpszCmdLine);
 					sts = SUCCESS;
 
-					/* ƒZƒLƒ…ƒŠƒeƒBŒx•¶‚Ì•\¦ */
+					/* ã‚»ã‚­ãƒ¥ãƒªãƒ†ã‚£è­¦å‘Šæ–‡ã®è¡¨ç¤º */
 					if( useDefautPassword ){
 						SetTaskMsg(MSGJPN300);
 					}
 					
-					/* ƒpƒXƒ[ƒh•sˆê’vŒx•¶‚Ì•\¦ */
+					/* ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ä¸ä¸€è‡´è­¦å‘Šæ–‡ã®è¡¨ç¤º */
 					switch( GetMasterPasswordStatus() ){
 					case PASSWORD_UNMATCH:
 						SetTaskMsg(MSGJPN301);
@@ -460,13 +460,13 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 }
 
 
-/*----- ƒEƒCƒ“ƒhƒE‚ğì¬‚·‚é --------------------------------------------------
+/*----- ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã‚’ä½œæˆã™ã‚‹ --------------------------------------------------
 *
 *	Parameter
-*		int cmdShow : Å‰‚É•\¦‚·‚éƒEƒCƒ“ƒhƒE‚ÌŒ`®B
+*		int cmdShow : æœ€åˆã«è¡¨ç¤ºã™ã‚‹ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®å½¢å¼ã€‚
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
 *			SUCCESS/FAIL
 *----------------------------------------------------------------------------*/
 
@@ -483,7 +483,7 @@ static int MakeAllWindows(int cmdShow)
 	int StsLvtips;
 	int StsSocket;
 
-	/*===== ƒƒCƒ“ƒEƒCƒ“ƒhƒE =====*/
+	/*===== ãƒ¡ã‚¤ãƒ³ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ =====*/
 
 	RootColorBrush = CreateSolidBrush(GetSysColor(COLOR_3DFACE));
 
@@ -521,21 +521,21 @@ static int MakeAllWindows(int cmdShow)
 			MoveWindow(hWndFtp, Rect2.left, Rect2.top, WinWidth, WinHeight, FALSE);
 		}
 
-		/*===== ƒXƒeƒCƒ^ƒXƒo[ =====*/
+		/*===== ã‚¹ãƒ†ã‚¤ã‚¿ã‚¹ãƒãƒ¼ =====*/
 
 		StsSbar = MakeStatusBarWindow(hWndFtp, hInstFtp);
 
 		CalcWinSize();
 
-		/*===== ƒc[ƒ‹ƒo[ =====*/
+		/*===== ãƒ„ãƒ¼ãƒ«ãƒãƒ¼ =====*/
 
 		StsTbar = MakeToolBarWindow(hWndFtp, hInstFtp);
 
-		/*===== ƒtƒ@ƒCƒ‹ƒŠƒXƒgƒEƒCƒ“ƒhƒE =====*/
+		/*===== ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ =====*/
 
 		StsList = MakeListWin(hWndFtp, hInstFtp);
 
-		/*==== ƒ^ƒXƒNƒEƒCƒ“ƒhƒE ====*/
+		/*==== ã‚¿ã‚¹ã‚¯ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ ====*/
 
 		StsTask = MakeTaskWindow(hWndFtp, hInstFtp);
 
@@ -545,7 +545,7 @@ static int MakeAllWindows(int cmdShow)
 
 		ShowWindow(hWndFtp, cmdShow);
 
-		/*==== ƒ\ƒPƒbƒgƒEƒCƒ“ƒhƒE ====*/
+		/*==== ã‚½ã‚±ãƒƒãƒˆã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ ====*/
 
 		StsSocket = MakeSocketWin(hWndFtp, hInstFtp);
 
@@ -571,13 +571,13 @@ static int MakeAllWindows(int cmdShow)
 }
 
 
-/*----- ƒEƒCƒ“ƒhƒE‚Ìƒ^ƒCƒgƒ‹‚ğ•\¦‚·‚é ----------------------------------------
+/*----- ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚¿ã‚¤ãƒˆãƒ«ã‚’è¡¨ç¤ºã™ã‚‹ ----------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DispWindowTitle(void)
@@ -594,13 +594,13 @@ void DispWindowTitle(void)
 }
 
 
-/*----- ‘S‚Ä‚ÌƒIƒuƒWƒFƒNƒg‚ğíœ ----------------------------------------------
+/*----- å…¨ã¦ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’å‰Šé™¤ ----------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void DeleteAllObject(void)
@@ -610,13 +610,13 @@ static void DeleteAllObject(void)
 //move to WM_DESTROY
 	WSACleanup();
 
-//test ƒVƒXƒeƒ€”C‚¹
+//test ã‚·ã‚¹ãƒ†ãƒ ä»»ã›
 //	if(ListFont != NULL)
 //		DeleteObject(ListFont);
 //	if(RootColorBrush != NULL)
 //		DeleteObject(RootColorBrush);
 
-//test ƒVƒXƒeƒ€”C‚¹
+//test ã‚·ã‚¹ãƒ†ãƒ ä»»ã›
 //	DeleteListViewTips();
 //	DeleteListWin();
 //	DeleteStatusBarWindow();
@@ -636,13 +636,13 @@ static void DeleteAllObject(void)
 }
 
 
-/*----- ƒƒCƒ“ƒEƒCƒ“ƒhƒE‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹‚ğ•Ô‚· ----------------------------
+/*----- ãƒ¡ã‚¤ãƒ³ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«ã‚’è¿”ã™ ----------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		HWND ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *----------------------------------------------------------------------------*/
 
 HWND GetMainHwnd(void)
@@ -651,13 +651,13 @@ HWND GetMainHwnd(void)
 }
 
 
-/*----- Œ»İƒtƒH[ƒJƒX‚ª‚ ‚éƒEƒCƒ“ƒhƒE‚ÌƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹‚ğ•Ô‚· --------------
+/*----- ç¾åœ¨ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ãŒã‚ã‚‹ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«ã‚’è¿”ã™ --------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		HWND ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *----------------------------------------------------------------------------*/
 
 HWND GetFocusHwnd(void)
@@ -666,13 +666,13 @@ HWND GetFocusHwnd(void)
 }
 
 
-/*----- Œ»İƒtƒH[ƒJƒX‚ª‚ ‚éƒEƒCƒ“ƒhƒE‚Ì‚ğƒZƒbƒg‚·‚é --------------------------
+/*----- ç¾åœ¨ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ãŒã‚ã‚‹ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚’ã‚»ãƒƒãƒˆã™ã‚‹ --------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SetFocusHwnd(HWND hWnd)
@@ -682,13 +682,13 @@ void SetFocusHwnd(HWND hWnd)
 }
 
 
-/*----- ƒvƒƒOƒ‰ƒ€‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚ğ•Ô‚· ----------------------------------------
+/*----- ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’è¿”ã™ ----------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		HINSTANCE ƒCƒ“ƒXƒ^ƒ“ƒX
+*		HINSTANCE ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹
 *----------------------------------------------------------------------------*/
 
 HINSTANCE GetFtpInst(void)
@@ -697,16 +697,16 @@ HINSTANCE GetFtpInst(void)
 }
 
 
-/*----- ƒƒCƒ“ƒEƒCƒ“ƒhƒE‚ÌƒƒbƒZ[ƒWˆ— --------------------------------------
+/*----- ãƒ¡ã‚¤ãƒ³ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡¦ç† --------------------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message  : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message  : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
-*		ƒƒbƒZ[ƒW‚É‘Î‰‚·‚é–ß‚è’l
+*		ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã«å¯¾å¿œã™ã‚‹æˆ»ã‚Šå€¤
 *----------------------------------------------------------------------------*/
 
 static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -1160,7 +1160,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				case MENU_CHANGEPASSWD:	/* 2010.01.31 genta */
 					if( GetMasterPasswordStatus() != PASSWORD_OK )
 					{
-						/* ‹­§“I‚Éİ’è‚·‚é‚©Šm”F */
+						/* å¼·åˆ¶çš„ã«è¨­å®šã™ã‚‹ã‹ç¢ºèª */
 						if( DialogBox(hInstFtp, MAKEINTRESOURCE(forcepasschange_dlg), hWnd, ExeEscDialogProc) != YES){
 							break;
 						}
@@ -1208,7 +1208,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					}
 					break;
 			}
-// í‚ÉƒzƒXƒg‚©ƒ[ƒJƒ‹‚ÖƒtƒH[ƒJƒX‚ğˆÚ“®
+// å¸¸ã«ãƒ›ã‚¹ãƒˆã‹ãƒ­ãƒ¼ã‚«ãƒ«ã¸ãƒ•ã‚©ãƒ¼ã‚«ã‚¹ã‚’ç§»å‹•
 //			SetFocus(hWndCurFocus);
 			MakeButtonsFocus();
 			break;
@@ -1216,7 +1216,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		case WM_NOTIFY :
 			switch(((LPNMHDR)lParam)->code)
 			{
-				/* ƒc[ƒ‹ƒ`ƒbƒvƒRƒ“ƒgƒ[ƒ‹ƒƒbƒZ[ƒW‚Ìˆ— */
+				/* ãƒ„ãƒ¼ãƒ«ãƒãƒƒãƒ—ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®å‡¦ç† */
 				case TTN_NEEDTEXT:
 					lpttt = (LPTOOLTIPTEXT)lParam;
 					lpttt->hinst = hInstFtp;
@@ -1419,13 +1419,13 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 }
 
 
-/*----- ƒvƒƒOƒ‰ƒ€ŠJn‚Ìˆ— ------------------------------------------------
+/*----- ãƒ—ãƒ­ã‚°ãƒ©ãƒ é–‹å§‹æ™‚ã®å‡¦ç† ------------------------------------------------
 *
 *	Parameter
-*		char *Cmd : ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“•¶š—ñ
+*		char *Cmd : ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³æ–‡å­—åˆ—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void StartupProc(char *Cmd)
@@ -1485,18 +1485,18 @@ static void StartupProc(char *Cmd)
 }
 
 
-/*----- ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚ğ‰ğÍ --------------------------------------------------
+/*----- ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ã‚’è§£æ --------------------------------------------------
 *
 *	Parameter
-*		char *Str : ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“•¶š—ñ
-*		int *AutoConnect : Ú‘±ƒzƒXƒg”Ô†‚ğ•Ô‚·ƒ[ƒN
-*		int *CmdOption : ƒIƒvƒVƒ‡ƒ“‚ğ•Ô‚·ƒ[ƒN
-*		char *unc : unc‚ğ•Ô‚·ƒ[ƒN
-*		int Max : unc‚ÌÅ‘å’·
+*		char *Str : ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³æ–‡å­—åˆ—
+*		int *AutoConnect : æ¥ç¶šãƒ›ã‚¹ãƒˆç•ªå·ã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
+*		int *CmdOption : ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
+*		char *unc : uncã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
+*		int Max : uncã®æœ€å¤§é•·
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			0=w’è‚È‚µA1=URLw’èA2=İ’è–¼w’èA-1=ƒGƒ‰[
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			0=æŒ‡å®šãªã—ã€1=URLæŒ‡å®šã€2=è¨­å®šåæŒ‡å®šã€-1=ã‚¨ãƒ©ãƒ¼
 *
 *	Note
 *		-m	--mirror
@@ -1513,10 +1513,10 @@ static void StartupProc(char *Cmd)
 *		-k	--kana
 *		-u	--eucname
 *		-i	--jisname
-*		-n  --ini		(CheckIniFileName‚ÅŒŸõ)
+*		-n  --ini		(CheckIniFileNameã§æ¤œç´¢)
 *			--saveoff
 *			--saveon
-*		-z	--mpasswd	(CheckMasterPassword‚ÅŒŸõ)	2010.01.30 genta ’Ç‰Á
+*		-z	--mpasswd	(CheckMasterPasswordã§æ¤œç´¢)	2010.01.30 genta è¿½åŠ 
 *----------------------------------------------------------------------------*/
 
 static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc, int Max)
@@ -1633,15 +1633,15 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 }
 
 
-/*----- INIƒtƒ@ƒCƒ‹‚ÌƒpƒX–¼‚Ìw’è‚ğƒ`ƒFƒbƒN ------------------------------------
+/*----- INIãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹åã®æŒ‡å®šã‚’ãƒã‚§ãƒƒã‚¯ ------------------------------------
 *
 *	Parameter
-*		char *Str : ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“•¶š—ñ
-*		char *Ini : iniƒtƒ@ƒCƒ‹–¼‚ğ•Ô‚·ƒ[ƒN
+*		char *Str : ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³æ–‡å­—åˆ—
+*		char *Ini : iniãƒ•ã‚¡ã‚¤ãƒ«åã‚’è¿”ã™ãƒ¯ãƒ¼ã‚¯
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			0=w’è‚È‚µA1=‚ ‚è
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			0=æŒ‡å®šãªã—ã€1=ã‚ã‚Š
 *
 *	Note
 *		-n  --ini
@@ -1652,25 +1652,25 @@ static int CheckIniFileName(char *Str, char *Ini)
 	return GetTokenAfterOption( Str, Ini, "n", "-ini" );
 }
 
-/* ƒ}ƒXƒ^[ƒpƒXƒ[ƒh‚Ìw’è‚ğƒ`ƒFƒbƒN */
+/* ãƒã‚¹ã‚¿ãƒ¼ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã®æŒ‡å®šã‚’ãƒã‚§ãƒƒã‚¯ */
 static int CheckMasterPassword(char *Str, char *Ini)
 {
 	return GetTokenAfterOption( Str, Ini, "z", "-mpasswd" );
 }
 
-/*----- ƒIƒvƒVƒ‡ƒ“‚ÌŒã‚ë‚Ìƒg[ƒNƒ“‚ğæ‚èo‚· ------------------------------------
+/*----- ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã®å¾Œã‚ã®ãƒˆãƒ¼ã‚¯ãƒ³ã‚’å–ã‚Šå‡ºã™ ------------------------------------
 *
 *	Parameter
-*		char *Str : ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“•¶š—ñ
-*		char *Result : æ‚èo‚µ‚½•¶š—ñ‚ğŠi”[‚·‚éƒ[ƒN
-*		const char* Opt1, *Opt2: ƒIƒvƒVƒ‡ƒ“•¶š—ñ(2‚Â)
+*		char *Str : ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³æ–‡å­—åˆ—
+*		char *Result : å–ã‚Šå‡ºã—ãŸæ–‡å­—åˆ—ã‚’æ ¼ç´ã™ã‚‹ãƒ¯ãƒ¼ã‚¯
+*		const char* Opt1, *Opt2: ã‚ªãƒ—ã‚·ãƒ§ãƒ³æ–‡å­—åˆ—(2ã¤)
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX
-*			0=w’è‚È‚µA1=‚ ‚è
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+*			0=æŒ‡å®šãªã—ã€1=ã‚ã‚Š
 *
 *	Note
-*		2010.01.30 genta ƒ}ƒXƒ^[ƒpƒXƒ[ƒhæ‚èo‚µ‚Ì‚½‚ß‹¤’Ê‰»
+*		2010.01.30 genta ãƒã‚¹ã‚¿ãƒ¼ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰å–ã‚Šå‡ºã—ã®ãŸã‚å…±é€šåŒ–
 *----------------------------------------------------------------------------*/
 static int GetTokenAfterOption(char *Str, char *Result, const char* Opt1, const char* Opt2 )
 {
@@ -1694,15 +1694,15 @@ static int GetTokenAfterOption(char *Str, char *Result, const char* Opt1, const 
 	return(Ret);
 }
 
-/*----- ƒg[ƒNƒ“‚ğ•Ô‚· --------------------------------------------------------
+/*----- ãƒˆãƒ¼ã‚¯ãƒ³ã‚’è¿”ã™ --------------------------------------------------------
 *
 *	Parameter
-*		char *Str : •¶š—ñ
-*		char *Buf : •¶š—ñ‚ğ•Ô‚·ƒoƒbƒtƒ@
+*		char *Str : æ–‡å­—åˆ—
+*		char *Buf : æ–‡å­—åˆ—ã‚’è¿”ã™ãƒãƒƒãƒ•ã‚¡
 *
 *	Return Value
-*		char *•Ô‚µ‚½ƒg[ƒNƒ“‚Ì––”ö
-*			NULL=I‚í‚è
+*		char *è¿”ã—ãŸãƒˆãƒ¼ã‚¯ãƒ³ã®æœ«å°¾
+*			NULL=çµ‚ã‚ã‚Š
 *----------------------------------------------------------------------------*/
 
 static char *GetToken(char *Str, char *Buf)
@@ -1744,13 +1744,13 @@ static char *GetToken(char *Str, char *Buf)
 }
 
 
-/*----- ƒvƒƒOƒ‰ƒ€I—¹‚Ìˆ— ------------------------------------------------
+/*----- ãƒ—ãƒ­ã‚°ãƒ©ãƒ çµ‚äº†æ™‚ã®å‡¦ç† ------------------------------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void ExitProc(HWND hWnd)
@@ -1793,15 +1793,15 @@ static void ExitProc(HWND hWnd)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹–¼‚ğƒ_ƒuƒ‹ƒNƒŠƒbƒN‚µ‚½‚Æ‚«‚Ìˆ— ------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«åã‚’ãƒ€ãƒ–ãƒ«ã‚¯ãƒªãƒƒã‚¯ã—ãŸã¨ãã®å‡¦ç† ------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô† (WIN_xxx)
-*		int Mode : í‚ÉuŠJ‚­v“®ì‚ğ‚·‚é‚©‚Ç‚¤‚© (YES/NO)
-*		int App : ƒAƒvƒŠƒP[ƒVƒ‡ƒ“”Ô†i-1=ŠÖ˜A‚Ã‚¯—Dæj
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxx)
+*		int Mode : å¸¸ã«ã€Œé–‹ãã€å‹•ä½œã‚’ã™ã‚‹ã‹ã©ã†ã‹ (YES/NO)
+*		int App : ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ç•ªå·ï¼ˆ-1=é–¢é€£ã¥ã‘å„ªå…ˆï¼‰
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void DoubleClickProc(int Win, int Mode, int App)
@@ -1848,7 +1848,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 					{
 						if((DclickOpen == YES) || (Mode == YES))
 						{
-							// ƒrƒ…[ƒ‚QA‚R‚ÌƒpƒX‚ª "d " ‚Ån‚Ü‚Á‚Ä‚¢‚½‚ç·•ªƒrƒ…[ƒAg—p
+							// ãƒ“ãƒ¥ãƒ¼ãƒ¯ï¼’ã€ï¼“ã®ãƒ‘ã‚¹ãŒ "d " ã§å§‹ã¾ã£ã¦ã„ãŸã‚‰å·®åˆ†ãƒ“ãƒ¥ãƒ¼ã‚¢ä½¿ç”¨
 							if ((App == 1 || App == 2) && strncmp(ViewerName[App], "d ", 2) == 0)
 								UseDiffViewer = YES;
 							else
@@ -1895,7 +1895,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 
 							DisableUserOpe();
 
-							/* •s³‚ÈƒpƒX‚ğŒŸo */
+							/* ä¸æ­£ãªãƒ‘ã‚¹ã‚’æ¤œå‡º */
 							if(CheckPathViolation(&MainTransPkt) == NO)
 							{
 //								if((Sts = DoDownLoad(AskCmdCtrlSkt(), &MainTransPkt, NO)) == 429)
@@ -1934,17 +1934,17 @@ void DoubleClickProc(int Win, int Mode, int App)
 }
 
 
-/*----- ƒtƒHƒ‹ƒ_‚ÌˆÚ“® --------------------------------------------------------
+/*----- ãƒ•ã‚©ãƒ«ãƒ€ã®ç§»å‹• --------------------------------------------------------
 *
 *	Parameter
-*		int Win : ƒEƒCƒ“ƒhƒE”Ô† (WIN_xxx)
-*		char *Path : ˆÚ“®æ‚ÌƒpƒX–¼
+*		int Win : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ç•ªå· (WIN_xxx)
+*		char *Path : ç§»å‹•å…ˆã®ãƒ‘ã‚¹å
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *
 *	Note
-*		ƒtƒHƒ‹ƒ_“¯ˆÚ“®‚Ìˆ—‚às‚¤
+*		ãƒ•ã‚©ãƒ«ãƒ€åŒæ™‚ç§»å‹•ã®å‡¦ç†ã‚‚è¡Œã†
 *----------------------------------------------------------------------------*/
 
 static void ChangeDir(int Win, char *Path)
@@ -1976,7 +1976,7 @@ static void ChangeDir(int Win, char *Path)
 		if(CheckClosedAndReconnect() == SUCCESS)
 		{
 #if defined(HAVE_OPENVMS)
-			/* OpenVMS‚Ìê‡A".DIR;?"‚ğæ‚é */
+			/* OpenVMSã®å ´åˆã€".DIR;?"ã‚’å–ã‚‹ */
 			if (AskHostType() == HTYPE_VMS)
 				ReformVMSDirName(Path, TRUE);
 #endif
@@ -1988,13 +1988,13 @@ static void ChangeDir(int Win, char *Path)
 }
 
 
-/*----- ƒEƒCƒ“ƒhƒE‚ÌƒTƒCƒY•ÏX‚Ìˆ— ------------------------------------------
+/*----- ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®ã‚µã‚¤ã‚ºå¤‰æ›´ã®å‡¦ç† ------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void ResizeWindowProc(void)
@@ -2047,13 +2047,13 @@ static void ResizeWindowProc(void)
 }
 
 
-/*----- ƒEƒCƒ“ƒhƒE‚ÌŠe•”•ª‚ÌƒTƒCƒY‚ğŒvZ‚·‚é ----------------------------------
+/*----- ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®å„éƒ¨åˆ†ã®ã‚µã‚¤ã‚ºã‚’è¨ˆç®—ã™ã‚‹ ----------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void CalcWinSize(void)
@@ -2087,13 +2087,13 @@ static void CalcWinSize(void)
 
 
 #if 0
-/*----- ƒEƒCƒ“ƒhƒE‚Ì•\¦ˆÊ’u‚ğæ“¾‚·‚é ----------------------------------------
+/*----- ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ã®è¡¨ç¤ºä½ç½®ã‚’å–å¾—ã™ã‚‹ ----------------------------------------
 *
 *	Parameter
-*		HWND hWnd : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
+*		HWND hWnd : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void AskWindowPos(HWND hWnd)
@@ -2110,15 +2110,15 @@ static void AskWindowPos(HWND hWnd)
 #endif
 
 
-/*----- ƒfƒBƒŒƒNƒgƒŠƒŠƒXƒg‚Æƒtƒ@ƒCƒ‹ƒŠƒXƒg‚Ì‹«ŠE•ÏXˆ— ----------------------
+/*----- ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªãƒªã‚¹ãƒˆã¨ãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã®å¢ƒç•Œå¤‰æ›´å‡¦ç† ----------------------
 *
 *	Parameter
-*		WPARAM Keys : WM_MOUSEMOVE‚È‚Ç‚ÌWPARAM‚Ì’l
-*		int x : ƒ}ƒEƒXƒJ[ƒ\ƒ‹‚Ì‚wÀ•W
-*		int y : ƒ}ƒEƒXƒJ[ƒ\ƒ‹‚Ì‚xÀ•W
+*		WPARAM Keys : WM_MOUSEMOVEãªã©ã®WPARAMã®å€¤
+*		int x : ãƒã‚¦ã‚¹ã‚«ãƒ¼ã‚½ãƒ«ã®ï¼¸åº§æ¨™
+*		int y : ãƒã‚¦ã‚¹ã‚«ãƒ¼ã‚½ãƒ«ã®ï¼¹åº§æ¨™
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void CheckResizeFrame(WPARAM Keys, int x, int y)
@@ -2131,7 +2131,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 		if((x >= LocalWidth) && (x <= LocalWidth + SepaWidth) &&
 		   (y > TOOLWIN_HEIGHT) && (y < (TOOLWIN_HEIGHT * 2 + ListHeight)))
 		{
-			/* ‹«ŠEˆÊ’u•ÏX—pƒJ[ƒ\ƒ‹‚É•ÏX */
+			/* å¢ƒç•Œä½ç½®å¤‰æ›´ç”¨ã‚«ãƒ¼ã‚½ãƒ«ã«å¤‰æ›´ */
 			SetCapture(hWndFtp);
 			hCursor = LoadCursor(hInstFtp, MAKEINTRESOURCE(resize_lr_csr));
 			SetCursor(hCursor);
@@ -2140,7 +2140,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 		}
 		else if((y >= TOOLWIN_HEIGHT*2+ListHeight) && (y <= TOOLWIN_HEIGHT*2+ListHeight+SepaWidth))
 		{
-			/* ‹«ŠEˆÊ’u•ÏX—pƒJ[ƒ\ƒ‹‚É•ÏX */
+			/* å¢ƒç•Œä½ç½®å¤‰æ›´ç”¨ã‚«ãƒ¼ã‚½ãƒ«ã«å¤‰æ›´ */
 			SetCapture(hWndFtp);
 			hCursor = LoadCursor(hInstFtp, MAKEINTRESOURCE(resize_ud_csr));
 			SetCursor(hCursor);
@@ -2152,7 +2152,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 	{
 		if(Keys & MK_LBUTTON)
 		{
-			/* ‹«ŠEˆÊ’u•ÏXŠJn */
+			/* å¢ƒç•Œä½ç½®å¤‰æ›´é–‹å§‹ */
 			Resizing = RESIZE_ON;
 			GetWindowRect(hWndFtp, &Rect);
 			GetClientRect(GetSbarWnd(), &Rect1);
@@ -2170,7 +2170,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 			   ((ResizePos == RESIZE_VPOS) &&
 				((y < TOOLWIN_HEIGHT*2+ListHeight) || (y > TOOLWIN_HEIGHT*2+ListHeight+SepaWidth))))
 			{
-				/* Œ³‚ÌƒJ[ƒ\ƒ‹‚É–ß‚· */
+				/* å…ƒã®ã‚«ãƒ¼ã‚½ãƒ«ã«æˆ»ã™ */
 				ReleaseCapture();
 				hCursor = LoadCursor(NULL, IDC_ARROW);
 				SetCursor(hCursor);
@@ -2192,7 +2192,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 
 		if((Keys & MK_LBUTTON) == 0)
 		{
-			/* ‹«ŠEˆÊ’u•ÏXI—¹ */
+			/* å¢ƒç•Œä½ç½®å¤‰æ›´çµ‚äº† */
 			ReleaseCapture();
 			ClipCursor(NULL);
 			hCursor = LoadCursor(NULL, IDC_ARROW);
@@ -2204,13 +2204,13 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 }
 
 
-/*----- ƒtƒ@ƒCƒ‹ˆê——î•ñ‚ğƒrƒ…[ƒ‚Å•\¦ --------------------------------------
+/*----- ãƒ•ã‚¡ã‚¤ãƒ«ä¸€è¦§æƒ…å ±ã‚’ãƒ“ãƒ¥ãƒ¼ãƒ¯ã§è¡¨ç¤º --------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void DispDirInfo(void)
@@ -2224,14 +2224,14 @@ static void DispDirInfo(void)
 
 
 
-/*----- ƒrƒ…[ƒ‚ğ‹N“® --------------------------------------------------------
+/*----- ãƒ“ãƒ¥ãƒ¼ãƒ¯ã‚’èµ·å‹• --------------------------------------------------------
 *
 *	Parameter
-*		char Fname : ƒtƒ@ƒCƒ‹–¼
-*		int App : ƒAƒvƒŠƒP[ƒVƒ‡ƒ“”Ô†i-1=ŠÖ˜A‚Ã‚¯—Dæj
+*		char Fname : ãƒ•ã‚¡ã‚¤ãƒ«å
+*		int App : ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ç•ªå·ï¼ˆ-1=é–¢é€£ã¥ã‘å„ªå…ˆï¼‰
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void ExecViewer(char *Fname, int App)
@@ -2242,9 +2242,9 @@ void ExecViewer(char *Fname, int App)
 	char ComLine[FMAX_PATH*2+3+1];
 	char CurDir[FMAX_PATH+1];
 
-	/* FindExecutable()‚ÍŠÖ˜A•t‚¯‚ç‚ê‚½ƒvƒƒOƒ‰ƒ€‚ÌƒpƒX–¼‚ÉƒXƒy[ƒX‚ª	*/
-	/* ŠÜ‚Ü‚ê‚Ä‚¢‚éAŠÔˆá‚Á‚½ƒpƒX–¼‚ğ•Ô‚·–‚ª‚ ‚éB					*/
-	/* ‚»‚±‚ÅAŠÖ˜A•t‚¯‚ç‚ê‚½ƒvƒƒOƒ‰ƒ€‚Ì‹N“®‚ÍShellExecute()‚ğg‚¤B	*/
+	/* FindExecutable()ã¯é–¢é€£ä»˜ã‘ã‚‰ã‚ŒãŸãƒ—ãƒ­ã‚°ãƒ©ãƒ ã®ãƒ‘ã‚¹åã«ã‚¹ãƒšãƒ¼ã‚¹ãŒ	*/
+	/* å«ã¾ã‚Œã¦ã„ã‚‹æ™‚ã€é–“é•ã£ãŸãƒ‘ã‚¹åã‚’è¿”ã™äº‹ãŒã‚ã‚‹ã€‚					*/
+	/* ãã“ã§ã€é–¢é€£ä»˜ã‘ã‚‰ã‚ŒãŸãƒ—ãƒ­ã‚°ãƒ©ãƒ ã®èµ·å‹•ã¯ShellExecute()ã‚’ä½¿ã†ã€‚	*/
 
 	AskLocalCurDir(CurDir, FMAX_PATH);
 
@@ -2278,15 +2278,15 @@ void ExecViewer(char *Fname, int App)
 }
 
 
-/*----- ·•ª•\¦ƒrƒ…[ƒ‚ğ‹N“® ------------------------------------------------
+/*----- å·®åˆ†è¡¨ç¤ºãƒ“ãƒ¥ãƒ¼ãƒ¯ã‚’èµ·å‹• ------------------------------------------------
 *
 *	Parameter
-*		char Fname1 : ƒtƒ@ƒCƒ‹–¼
-*		char Fname2 : ƒtƒ@ƒCƒ‹–¼2
-*		int App : ƒAƒvƒŠƒP[ƒVƒ‡ƒ“”Ô†i2 or 3j
+*		char Fname1 : ãƒ•ã‚¡ã‚¤ãƒ«å
+*		char Fname2 : ãƒ•ã‚¡ã‚¤ãƒ«å2
+*		int App : ã‚¢ãƒ—ãƒªã‚±ãƒ¼ã‚·ãƒ§ãƒ³ç•ªå·ï¼ˆ2 or 3ï¼‰
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void ExecViewer2(char *Fname1, char *Fname2, int App)
@@ -2297,13 +2297,13 @@ void ExecViewer2(char *Fname1, char *Fname2, int App)
 	char ComLine[FMAX_PATH*2+3+1];
 	char CurDir[FMAX_PATH+1];
 
-	/* FindExecutable()‚ÍŠÖ˜A•t‚¯‚ç‚ê‚½ƒvƒƒOƒ‰ƒ€‚ÌƒpƒX–¼‚ÉƒXƒy[ƒX‚ª	*/
-	/* ŠÜ‚Ü‚ê‚Ä‚¢‚éAŠÔˆá‚Á‚½ƒpƒX–¼‚ğ•Ô‚·–‚ª‚ ‚éB					*/
-	/* ‚»‚±‚ÅAŠÖ˜A•t‚¯‚ç‚ê‚½ƒvƒƒOƒ‰ƒ€‚Ì‹N“®‚ÍShellExecute()‚ğg‚¤B	*/
+	/* FindExecutable()ã¯é–¢é€£ä»˜ã‘ã‚‰ã‚ŒãŸãƒ—ãƒ­ã‚°ãƒ©ãƒ ã®ãƒ‘ã‚¹åã«ã‚¹ãƒšãƒ¼ã‚¹ãŒ	*/
+	/* å«ã¾ã‚Œã¦ã„ã‚‹æ™‚ã€é–“é•ã£ãŸãƒ‘ã‚¹åã‚’è¿”ã™äº‹ãŒã‚ã‚‹ã€‚					*/
+	/* ãã“ã§ã€é–¢é€£ä»˜ã‘ã‚‰ã‚ŒãŸãƒ—ãƒ­ã‚°ãƒ©ãƒ ã®èµ·å‹•ã¯ShellExecute()ã‚’ä½¿ã†ã€‚	*/
 
 	AskLocalCurDir(CurDir, FMAX_PATH);
 
-	strcpy(AssocProg, ViewerName[App] + 2);	/* æ“ª‚Ì "d " ‚Í“Ç‚İ”ò‚Î‚· */
+	strcpy(AssocProg, ViewerName[App] + 2);	/* å…ˆé ­ã® "d " ã¯èª­ã¿é£›ã°ã™ */
 
 	if(strchr(Fname1, ' ') == NULL && strchr(Fname2, ' ') == NULL)
 		sprintf(ComLine, "%s %s %s", AssocProg, Fname1, Fname2);
@@ -2325,13 +2325,13 @@ void ExecViewer2(char *Fname1, char *Fname2, int App)
 }
 
 
-/*----- ƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹–¼‚ğƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹ƒŠƒXƒg‚É’Ç‰Á ------------------
+/*----- ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«åã‚’ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã«è¿½åŠ  ------------------
 *
 *	Parameter
-*		char *Fname : ƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹–¼
+*		char *Fname : ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«å
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void AddTempFileList(char *Fname)
@@ -2356,13 +2356,13 @@ void AddTempFileList(char *Fname)
 }
 
 
-/*----- ƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹ƒŠƒXƒg‚É“o˜^‚³‚ê‚Ä‚¢‚éƒtƒ@ƒCƒ‹‚ğ‘S‚Äíœ ------------
+/*----- ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«ãƒªã‚¹ãƒˆã«ç™»éŒ²ã•ã‚Œã¦ã„ã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å…¨ã¦å‰Šé™¤ ------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 static void DeleteAlltempFile(void)
@@ -2381,20 +2381,20 @@ static void DeleteAlltempFile(void)
 		Pos = Next;
 	}
 
-	// OLE D&D‚Ìƒeƒ“ƒ|ƒ‰ƒŠ‚ğíœ‚·‚é (2007.9.11 yutaka)
+	// OLE D&Dã®ãƒ†ãƒ³ãƒãƒ©ãƒªã‚’å‰Šé™¤ã™ã‚‹ (2007.9.11 yutaka)
 	doDeleteRemoteFile();
 
 	return;
 }
 
 
-/*----- ‚`‚‚‚‚•‚”ƒ_ƒCƒAƒƒOƒ{ƒbƒNƒX‚ÌƒR[ƒ‹ƒoƒbƒNŠÖ” ------------------------
+/*----- ï¼¡ï½‚ï½ï½•ï½”ãƒ€ã‚¤ã‚¢ãƒ­ã‚°ãƒœãƒƒã‚¯ã‚¹ã®ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯é–¢æ•° ------------------------
 *
 *	Parameter
-*		HWND hDlg : ƒEƒCƒ“ƒhƒEƒnƒ“ƒhƒ‹
-*		UINT message : ƒƒbƒZ[ƒW”Ô†
-*		WPARAM wParam : ƒƒbƒZ[ƒW‚Ì WPARAM ˆø”
-*		LPARAM lParam : ƒƒbƒZ[ƒW‚Ì LPARAM ˆø”
+*		HWND hDlg : ã‚¦ã‚¤ãƒ³ãƒ‰ã‚¦ãƒãƒ³ãƒ‰ãƒ«
+*		UINT message : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ç•ªå·
+*		WPARAM wParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® WPARAM å¼•æ•°
+*		LPARAM lParam : ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã® LPARAM å¼•æ•°
 *
 *	Return Value
 *		BOOL TRUE/FALSE
@@ -2432,13 +2432,13 @@ static BOOL CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPA
 }
 
 
-/*----- ƒTƒEƒ“ƒh‚ğ–Â‚ç‚· ------------------------------------------------------
+/*----- ã‚µã‚¦ãƒ³ãƒ‰ã‚’é³´ã‚‰ã™ ------------------------------------------------------
 *
 *	Parameter
-*		Int num : ƒTƒEƒ“ƒh‚Ìí—Ş (SND_xxx)
+*		Int num : ã‚µã‚¦ãƒ³ãƒ‰ã®ç¨®é¡ (SND_xxx)
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void SoundPlay(int Num)
@@ -2450,13 +2450,13 @@ void SoundPlay(int Num)
 }
 
 
-/*----- ƒwƒ‹ƒvƒtƒ@ƒCƒ‹‚ÌƒpƒX–¼‚ğ•Ô‚· ------------------------------------------
+/*----- ãƒ˜ãƒ«ãƒ—ãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹åã‚’è¿”ã™ ------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		char *ƒpƒX–¼
+*		char *ãƒ‘ã‚¹å
 *----------------------------------------------------------------------------*/
 
 char *AskHelpFilePath(void)
@@ -2465,13 +2465,13 @@ char *AskHelpFilePath(void)
 }
 
 
-/*----- ƒeƒ“ƒ|ƒ‰ƒŠƒtƒ@ƒCƒ‹‚ÌƒpƒX–¼‚ğ•Ô‚· --------------------------------------
+/*----- ãƒ†ãƒ³ãƒãƒ©ãƒªãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹åã‚’è¿”ã™ --------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		char *ƒpƒX–¼
+*		char *ãƒ‘ã‚¹å
 *----------------------------------------------------------------------------*/
 
 char *AskTmpFilePath(void)
@@ -2480,13 +2480,13 @@ char *AskTmpFilePath(void)
 }
 
 
-/*----- INIƒtƒ@ƒCƒ‹‚ÌƒpƒX–¼‚ğ•Ô‚· ---------------------------------------------
+/*----- INIãƒ•ã‚¡ã‚¤ãƒ«ã®ãƒ‘ã‚¹åã‚’è¿”ã™ ---------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		char *ƒpƒX–¼
+*		char *ãƒ‘ã‚¹å
 *----------------------------------------------------------------------------*/
 
 char *AskIniFilePath(void)
@@ -2494,13 +2494,13 @@ char *AskIniFilePath(void)
 	return(IniPath);
 }
 
-/*----- INIƒtƒ@ƒCƒ‹‚Ì‚İ‚ğg‚¤‚©‚Ç‚¤‚©‚ğ•Ô‚· -----------------------------------
+/*----- INIãƒ•ã‚¡ã‚¤ãƒ«ã®ã¿ã‚’ä½¿ã†ã‹ã©ã†ã‹ã‚’è¿”ã™ -----------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ƒXƒe[ƒ^ƒX : YES/NO
+*		int ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ : YES/NO
 *----------------------------------------------------------------------------*/
 
 int AskForceIni(void)
@@ -2511,13 +2511,13 @@ int AskForceIni(void)
 
 
 
-/*----- ƒƒbƒZ[ƒWˆ— --------------------------------------------------------
+/*----- ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡¦ç† --------------------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int I—¹ƒtƒ‰ƒO (YES=WM_CLOSE‚ª—ˆ‚½/NO)
+*		int çµ‚äº†ãƒ•ãƒ©ã‚° (YES=WM_CLOSEãŒæ¥ãŸ/NO)
 *----------------------------------------------------------------------------*/
 
 int BackgrndMessageProc(void)
@@ -2530,8 +2530,8 @@ int BackgrndMessageProc(void)
 	{
 		if(!HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
 		{
-	 		/* ƒfƒBƒŒƒNƒgƒŠ–¼‚Ì•\¦ƒRƒ“ƒ{ƒ{ƒbƒNƒX‚ÅBS‚âRET‚ªŒø‚­‚æ‚¤‚É */
-			/* ƒRƒ“ƒ{ƒ{ƒbƒNƒX“à‚Å‚ÍƒAƒNƒZƒ‰ƒŒ[ƒ^‚ğ–³Œø‚É‚·‚é */
+	 		/* ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªåã®è¡¨ç¤ºã‚³ãƒ³ãƒœãƒœãƒƒã‚¯ã‚¹ã§BSã‚„RETãŒåŠ¹ãã‚ˆã†ã« */
+			/* ã‚³ãƒ³ãƒœãƒœãƒƒã‚¯ã‚¹å†…ã§ã¯ã‚¢ã‚¯ã‚»ãƒ©ãƒ¬ãƒ¼ã‚¿ã‚’ç„¡åŠ¹ã«ã™ã‚‹ */
 			if((Msg.hwnd == GetLocalHistEditHwnd()) ||
 			   (Msg.hwnd == GetRemoteHistEditHwnd()) ||
 			   ((hHelpWin != NULL) && (Msg.hwnd == hHelpWin)) ||
@@ -2553,13 +2553,13 @@ int BackgrndMessageProc(void)
 }
 
 
-/*----- ©“®I—¹ƒtƒ‰ƒO‚ğƒNƒŠƒA‚·‚é --------------------------------------------
+/*----- è‡ªå‹•çµ‚äº†ãƒ•ãƒ©ã‚°ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹ --------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		‚È‚µ
+*		ãªã—
 *----------------------------------------------------------------------------*/
 
 void ResetAutoExitFlg(void)
@@ -2569,13 +2569,13 @@ void ResetAutoExitFlg(void)
 }
 
 
-/*----- ©“®I—¹ƒtƒ‰ƒO‚ğ•Ô‚· --------------------------------------------------
+/*----- è‡ªå‹•çµ‚äº†ãƒ•ãƒ©ã‚°ã‚’è¿”ã™ --------------------------------------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int ƒtƒ‰ƒO (YES/NO)
+*		int ãƒ•ãƒ©ã‚° (YES/NO)
 *----------------------------------------------------------------------------*/
 
 int AskAutoExit(void)
@@ -2583,13 +2583,13 @@ int AskAutoExit(void)
 	return(AutoExit);
 }
 
-/*----- ƒ†[ƒU‚ÉƒpƒXƒ[ƒh‚ğ“ü—Í‚³‚¹C‚»‚ê‚ğİ’è‚·‚é -----------------------
+/*----- ãƒ¦ãƒ¼ã‚¶ã«ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ã‚’å…¥åŠ›ã•ã›ï¼Œãã‚Œã‚’è¨­å®šã™ã‚‹ -----------------------
 *
 *	Parameter
-*		‚È‚µ
+*		ãªã—
 *
 *	Return Value
-*		int : 0/ƒ†[ƒUƒLƒƒƒ“ƒZƒ‹, 1/İ’è‚µ‚½, 2/ƒfƒtƒHƒ‹ƒgİ’è
+*		int : 0/ãƒ¦ãƒ¼ã‚¶ã‚­ãƒ£ãƒ³ã‚»ãƒ«, 1/è¨­å®šã—ãŸ, 2/ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆè¨­å®š
 *----------------------------------------------------------------------------*/
 int EnterMasterPasswordAndSet( int Res, HWND hWnd )
 {
@@ -2600,9 +2600,9 @@ int EnterMasterPasswordAndSet( int Res, HWND hWnd )
 	buf[0] = NUL;
 	if( InputDialogBox(Res, hWnd, NULL, buf, MAX_PASSWORD_LEN + 1,
 		&Flag, IDH_HELP_TOPIC_0000064) == YES){
-		/* ––”ö‚Ì‹ó”’‚ğíœ */
+		/* æœ«å°¾ã®ç©ºç™½ã‚’å‰Šé™¤ */
 		RemoveTailingSpaces(buf);
-		/* æ“ª‚Ì‹ó”’‚ğíœ */
+		/* å…ˆé ­ã®ç©ºç™½ã‚’å‰Šé™¤ */
 		for( p = buf; *p == ' '; p++ )
 			;
 		
@@ -2611,7 +2611,7 @@ int EnterMasterPasswordAndSet( int Res, HWND hWnd )
 			return 1;
 		}
 		else {
-			/* ‹ó‚Ìê‡‚ÍƒfƒtƒHƒ‹ƒg’l‚ğİ’è */
+			/* ç©ºã®å ´åˆã¯ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ã‚’è¨­å®š */
 			SetMasterPassword( NULL );
 			return 2;
 		}
