@@ -356,7 +356,13 @@ void AddTransFileList(TRANSPACKET *Pkt)
 {
 	DispTransPacket(Pkt);
 
-	WaitForSingleObject(hListAccMutex, INFINITE);
+	// 同時接続対応
+//	WaitForSingleObject(hListAccMutex, INFINITE);
+	while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+	{
+		BackgrndMessageProc();
+		Sleep(1);
+	}
 
 	if(AddTmpTransFileList(Pkt, &TransPacketBase) == FFFTP_SUCCESS)
 	{
@@ -390,7 +396,13 @@ void AppendTransFileList(TRANSPACKET *Pkt)
 {
 	TRANSPACKET *Pos;
 
-	WaitForSingleObject(hListAccMutex, INFINITE);
+	// 同時接続対応
+//	WaitForSingleObject(hListAccMutex, INFINITE);
+	while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+	{
+		BackgrndMessageProc();
+		Sleep(1);
+	}
 
 	if(TransPacketBase == NULL)
 		TransPacketBase = Pkt;
@@ -468,7 +480,13 @@ static void EraseTransFileList(void)
 
 	NotDel = NULL;
 
-	WaitForSingleObject(hListAccMutex, INFINITE);
+	// 同時接続対応
+//	WaitForSingleObject(hListAccMutex, INFINITE);
+	while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+	{
+		BackgrndMessageProc();
+		Sleep(1);
+	}
 	New = TransPacketBase;
 	while(New != NULL)
 	{
@@ -621,7 +639,12 @@ static ULONG WINAPI TransferThread(void *Dummy)
 		if(fTransferThreadExit == TRUE)
 			break;
 
-		WaitForSingleObject(hListAccMutex, INFINITE);
+//		WaitForSingleObject(hListAccMutex, INFINITE);
+		while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+		{
+			BackgrndMessageProc();
+			Sleep(1);
+		}
 		memset(ErrMsg, NUL, ERR_MSG_LEN+7);
 
 //		Canceled = NO;
@@ -634,7 +657,12 @@ static ULONG WINAPI TransferThread(void *Dummy)
 			{
 				ReleaseMutex(hListAccMutex);
 				ReConnectTrnSkt(&TrnSkt);
-				WaitForSingleObject(hListAccMutex, INFINITE);
+//				WaitForSingleObject(hListAccMutex, INFINITE);
+				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+				{
+					BackgrndMessageProc();
+					Sleep(1);
+				}
 			}
 		}
 		else
@@ -644,7 +672,12 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				ReleaseMutex(hListAccMutex);
 				DoClose(TrnSkt);
 				TrnSkt = INVALID_SOCKET;
-				WaitForSingleObject(hListAccMutex, INFINITE);
+//				WaitForSingleObject(hListAccMutex, INFINITE);
+				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+				{
+					BackgrndMessageProc();
+					Sleep(1);
+				}
 			}
 		}
 		CmdSkt = NewCmdSkt;
@@ -958,7 +991,12 @@ static ULONG WINAPI TransferThread(void *Dummy)
 
 			if(ForceAbort == NO)
 			{
-				WaitForSingleObject(hListAccMutex, INFINITE);
+//				WaitForSingleObject(hListAccMutex, INFINITE);
+				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+				{
+					BackgrndMessageProc();
+					Sleep(1);
+				}
 				if(ClearAll == YES)
 //					EraseTransFileList();
 				{

@@ -964,21 +964,21 @@ int ReConnectTrnSkt(SOCKET *Skt)
 
 	SetTaskMsg(MSGJPN003);
 
-	DisableUserOpe();
+//	DisableUserOpe();
 	/* 現在のソケットは切断 */
 	if(*Skt != INVALID_SOCKET)
 		do_closesocket(*Skt);
 	/* 再接続 */
 	if((*Skt = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
 	{
-		AskRemoteCurDir(Path, FMAX_PATH);
+//		AskRemoteCurDir(Path, FMAX_PATH);
 //		DoCWD(Path, YES, YES, YES);
 		Sts = FFFTP_SUCCESS;
 	}
 	else
 		SoundPlay(SND_ERROR);
 
-	EnableUserOpe();
+//	EnableUserOpe();
 	return(Sts);
 }
 

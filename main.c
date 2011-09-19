@@ -2615,7 +2615,6 @@ int BackgrndMessageProc(void)
 	int Ret;
 
 	Ret = NO;
-	SendMessage(GetMainHwnd(), WM_NULL, 0, 0);
 	while(PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE))
 	{
 		if(!HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))

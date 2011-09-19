@@ -291,6 +291,31 @@ static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 					break;
 				}
 			}
+			// APIの仕様上ハンドルが登録される前にウィンドウメッセージが呼び出される可能性あり
+			if(Pos == MAX_SIGNAL_ENTRY_DBASE)
+			{
+				for(Pos = 0; Pos < MAX_SIGNAL_ENTRY_DBASE; Pos++)
+				{
+					if(SignalDbase[Pos].Async == 0)
+					{
+						SignalDbase[Pos].Async = (HANDLE)wParam;
+						SignalDbase[Pos].Done = 0;
+						SignalDbase[Pos].ErrorDb = 0;
+						if(HIWORD(lParam) != 0)
+						{
+							SignalDbase[Pos].ErrorDb = 1;
+#if DBG_MSG
+							DoPrintf("##### SignalDatabase: error");
+#endif
+						}
+						SignalDbase[Pos].Done = 1;
+#if DBG_MSG
+						DoPrintf("##### SignalDatabase: Done");
+#endif
+						break;
+					}
+				}
+			}
 			// スレッド衝突のバグ修正
 			ReleaseMutex(hAsyncTblAccMutex);
 			break;
@@ -525,7 +550,7 @@ static int RegistAsyncTableDbase(HANDLE Async)
 		{
 			// 強制的に閉じられたハンドルがあると重複する可能性あり
 //			MessageBox(GetMainHwnd(), "Async handle already registerd.", "FFFTP inner error", MB_OK);
-			SignalDbase[Pos].Async = 0;
+			// APIの仕様上ハンドルが登録される前にウィンドウメッセージが呼び出される可能性あり
 			break;
 		}
 	}

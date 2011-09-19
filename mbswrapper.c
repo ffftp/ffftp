@@ -549,7 +549,7 @@ START_ROUTINE
 		r = TerminateStringM((LPSTR)lParam, wParam);
 		break;
 	case WM_GETTEXTLENGTH:
-		Size = SendMessageW(hWnd, WM_GETTEXTLENGTH, 0, 0) + 1;
+		Size = SendMessageW(hWnd, WM_GETTEXTLENGTH, wParam, lParam) + 1;
 		pw0 = AllocateStringW(Size);
 		SendMessageW(hWnd, WM_GETTEXT, (WPARAM)Size, (LPARAM)pw0);
 		r = WtoM(NULL, 0, pw0, -1) - 1;
