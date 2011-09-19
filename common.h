@@ -724,7 +724,9 @@ LIST_UNIX_70
 #define REGTYPE_REG		0		/* レジストリ */
 #define REGTYPE_INI		1		/* INIファイル */
 
-#define REG_SECT_MAX	(16*1024)	/* レジストリの１セクションの最大データサイズ */
+// UTF-8対応
+//#define REG_SECT_MAX	(16*1024)	/* レジストリの１セクションの最大データサイズ */
+#define REG_SECT_MAX	(64*1024)	/* レジストリの１セクションの最大データサイズ */
 
 /*===== ホスト設定で明示的に指定するホストのタイプ =====*/
 

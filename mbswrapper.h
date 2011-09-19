@@ -5,6 +5,7 @@
 #ifndef __MBSWRAPPER_H__
 #define __MBSWRAPPER_H__
 
+#include <stdio.h>
 #include <windows.h>
 #include <shlobj.h>
 
@@ -187,6 +188,9 @@ unsigned char * _mbsuprM(unsigned char * _String);
 #undef _mbsninc
 #define _mbsninc _mbsnincM
 unsigned char * _mbsnincM(const unsigned char * _Str, size_t _Count);
+#undef fopen
+#define fopen fopenM
+FILE * fopenM(const char * _Filename, const char * _Mode);
 
 #undef CreateWindow
 #define CreateWindow(lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam) CreateWindowEx(0L, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam)

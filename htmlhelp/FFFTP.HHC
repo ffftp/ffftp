@@ -146,6 +146,10 @@
 			<param name="Name" value="暗号化">
 			<param name="Local" value="HTML\H0000065.HTM">
 			</OBJECT>
+		<LI><OBJECT type="text/sitemap">
+			<param name="Name" value="特殊機能">
+			<param name="Local" value="HTML\H0000066.HTM">
+			</OBJECT>
 	</UL>
 	<LI><OBJECT type="text/sitemap">
 		<param name="Name" value="メニュー">
