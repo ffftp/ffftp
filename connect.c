@@ -915,12 +915,24 @@ static void SaveCurrentSetToHistory(void)
 int ReConnectCmdSkt(void)
 {
 	int Sts;
+	SOCKET s;
 
-	if(CmdCtrlSocket != TrnCtrlSocket)
-		do_closesocket(TrnCtrlSocket);
+
+	// 同時接続対応
+//	if(CmdCtrlSocket != TrnCtrlSocket)
+//		do_closesocket(TrnCtrlSocket);
+//	TrnCtrlSocket = INVALID_SOCKET;
+	s = TrnCtrlSocket;
 	TrnCtrlSocket = INVALID_SOCKET;
+	if(CmdCtrlSocket != s && s != INVALID_SOCKET)
+		do_closesocket(s);
 
-	Sts = ReConnectSkt(&CmdCtrlSocket);
+	// 同時接続対応
+//	Sts = ReConnectSkt(&CmdCtrlSocket);
+	s = CmdCtrlSocket;
+	CmdCtrlSocket = INVALID_SOCKET;
+	Sts = ReConnectSkt(&s);
+	CmdCtrlSocket = s;
 
 	TrnCtrlSocket = CmdCtrlSocket;
 
@@ -942,6 +954,33 @@ int ReConnectCmdSkt(void)
 //{
 //	return(ReConnectSkt(&TrnCtrlSocket));
 //}
+// 同時接続対応
+int ReConnectTrnSkt(SOCKET *Skt)
+{
+	char Path[FMAX_PATH+1];
+	int Sts;
+
+	Sts = FFFTP_FAIL;
+
+	SetTaskMsg(MSGJPN003);
+
+	DisableUserOpe();
+	/* 現在のソケットは切断 */
+	if(*Skt != INVALID_SOCKET)
+		do_closesocket(*Skt);
+	/* 再接続 */
+	if((*Skt = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
+	{
+		AskRemoteCurDir(Path, FMAX_PATH);
+//		DoCWD(Path, YES, YES, YES);
+		Sts = FFFTP_SUCCESS;
+	}
+	else
+		SoundPlay(SND_ERROR);
+
+	EnableUserOpe();
+	return(Sts);
+}
 
 
 /*----- 回線の再接続 ----------------------------------------------------------
@@ -1028,8 +1067,11 @@ void SktShareProh(void)
 
 //SetTaskMsg("############### SktShareProh");
 
-		CmdCtrlSocket = INVALID_SOCKET;
-		ReConnectSkt(&CmdCtrlSocket);
+		// 同時接続対応
+		// 転送スレッドがソケットを各自で用意
+		// TrnCtrlSocketはメインスレッド以外から使用されない
+//		CmdCtrlSocket = INVALID_SOCKET;
+//		ReConnectSkt(&CmdCtrlSocket);
 	}
 	return;
 }
@@ -2188,5 +2230,11 @@ int AskUseFTPIS(void)
 int AskUseSFTP(void)
 {
 	return(CurHost.UseSFTP);
+}
+
+// 同時接続対応
+int AskMaxThreadCount(void)
+{
+	return(CurHost.MaxThreadCount);
 }
 

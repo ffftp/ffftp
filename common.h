@@ -914,6 +914,8 @@ typedef struct {
 	int UseFTPES;						/* FTPESで接続する (YES/NO) */
 	int UseFTPIS;						/* FTPISで接続する (YES/NO) */
 	int UseSFTP;						/* SFTPで接続する (YES/NO) */
+	// 同時接続対応
+	int MaxThreadCount;					/* 同時接続数 */
 } HOSTDATA;
 
 
@@ -964,6 +966,8 @@ typedef struct historydata {
 	int UseFTPES;						/* FTPESで接続する (YES/NO) */
 	int UseFTPIS;						/* FTPISで接続する (YES/NO) */
 	int UseSFTP;						/* SFTPで接続する (YES/NO) */
+	// 同時接続対応
+	int MaxThreadCount;					/* 同時接続数 */
 	struct historydata *Next;
 } HISTORYDATA;
 
@@ -992,6 +996,8 @@ typedef struct transpacket {
 	int Abort;						/* 転送中止フラグ (ABORT_xxx) */
 	// 暗号化通信対応
 	int CryptMode;					/* 暗号化通信モード (CRYPT_xxx) */
+	// 同時接続対応
+	int ThreadCount;
 	struct transpacket *Next;
 } TRANSPACKET;
 
@@ -1263,13 +1269,12 @@ void SetHostKanjiCode(int Type);
 void DispHostKanjiCode(void);
 int AskHostKanjiCode(void);
 void HideHostKanjiButton(void);
-// ローカルの漢字コード
+// UTF-8対応
 void SetLocalKanjiCodeImm(int Mode);
 void SetLocalKanjiCode(int Type);
 void DispLocalKanjiCode(void);
 int AskLocalKanjiCode(void);
 void HideLocalKanjiButton(void);
-// ここまで
 void SetHostKanaCnvImm(int Mode);
 void SetHostKanaCnv(void);
 void DispHostKanaCnv(void);
@@ -1356,6 +1361,8 @@ char *AskHostUserName(void);
 void SaveCurrentSetToHost(void);
 int ReConnectCmdSkt(void);
 // int ReConnectTrnSkt(void);
+// 同時接続対応
+int ReConnectTrnSkt(SOCKET *Skt);
 SOCKET AskCmdCtrlSkt(void);
 SOCKET AskTrnCtrlSkt(void);
 void SktShareProh(void);
@@ -1372,6 +1379,8 @@ int AskCryptMode(void);
 int AskUseFTPES(void);
 int AskUseFTPIS(void);
 int AskUseSFTP(void);
+// 同時接続対応
+int AskMaxThreadCount(void);
 
 /*===== cache.c =====*/
 
@@ -1441,14 +1450,19 @@ int DoRMD(char *Path);
 int DoDELE(char *Path);
 int DoRENAME(char *Src, char *Dst);
 int DoCHMOD(char *Path, char *Mode);
-int DoSIZE(char *Path, LONGLONG *Size);
-int DoMDTM(char *Path, FILETIME *Time);
+// 同時接続対応
+//int DoSIZE(char *Path, LONGLONG *Size);
+//int DoMDTM(char *Path, FILETIME *Time);
+int DoSIZE(SOCKET cSkt, char *Path, LONGLONG *Size);
+int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time);
 int DoQUOTE(char *CmdStr);
 SOCKET DoClose(SOCKET Sock);
 int DoQUIT(SOCKET ctrl_skt);
 int DoDirListCmdSkt(char *AddOpt, char *Path, int Num, int *CancelCheckWork);
 int CommandProcCmd(char *Reply, char *fmt, ...);
-int CommandProcTrn(char *Reply, char *fmt, ...);
+// 同時接続対応
+//int CommandProcTrn(char *Reply, char *fmt, ...);
+int CommandProcTrn(SOCKET cSkt, char *Reply, char *fmt, ...);
 int command(SOCKET cSkt, char *Reply, int *CancelCheckWork, char *fmt, ...);
 int SendData(SOCKET Skt, char *Data, int Size, int Mode, int *CancelCheckWork);
 int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char *Tmp);
@@ -1500,6 +1514,13 @@ int CheckKanjiCode(char *Text, int Size, int Pref);
 
 void SetOption(int Start);
 int SortSetting(void);
+// hostman.cで使用
+int GetDecimalText(HWND hDlg, int Ctrl);
+void SetDecimalText(HWND hDlg, int Ctrl, int Num);
+void CheckRange2(int *Cur, int Max, int Min);
+void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize);
+void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text);
+void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize);
 
 /*===== bookmark.c =====*/
 

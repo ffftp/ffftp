@@ -45,7 +45,7 @@ _SSL_peek pSSL_peek;
 _SSL_read pSSL_read;
 _SSL_get_error pSSL_get_error;
 
-#define MAX_SSL_SOCKET 16
+#define MAX_SSL_SOCKET 64
 
 BOOL g_bOpenSSLLoaded;
 HMODULE g_hOpenSSL;

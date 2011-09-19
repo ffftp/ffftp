@@ -1007,12 +1007,15 @@ START_ROUTINE
 		case REG_SZ:
 		case REG_EXPAND_SZ:
 		case REG_MULTI_SZ:
-			if(lpData && lpcbData)
+			if(lpcbData)
 			{
 				pw1 = AllocateStringW(*lpcbData / sizeof(char) * 4);
 				wcbData = *lpcbData / sizeof(char) * 4;
 				r = RegQueryValueExW(hKey, pw0, lpReserved, lpType, (LPBYTE)pw1, &wcbData);
-				*lpcbData = sizeof(char) * WtoM((char*)lpData, *lpcbData / sizeof(char), pw1, wcbData / sizeof(wchar_t));
+				if(lpData)
+					*lpcbData = sizeof(char) * WtoM((char*)lpData, *lpcbData / sizeof(char), pw1, wcbData / sizeof(wchar_t));
+				else
+					*lpcbData = sizeof(char) * WtoM(NULL, 0, pw1, wcbData / sizeof(wchar_t));
 			}
 			break;
 		default:

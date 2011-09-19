@@ -389,12 +389,15 @@ int DoCHMOD(char *Path, char *Mode)
 *		サイズが選られない時は Size = -1 を返す
 *----------------------------------------------------------------------------*/
 
-int DoSIZE(char *Path, LONGLONG *Size)
+// 同時接続対応
+//int DoSIZE(char *Path, LONGLONG *Size)
+int DoSIZE(SOCKET cSkt, char *Path, LONGLONG *Size)
 {
 	int Sts;
 	char Tmp[1024];
 
-	Sts = CommandProcTrn(Tmp, "SIZE %s", Path);
+//	Sts = CommandProcTrn(Tmp, "SIZE %s", Path);
+	Sts = CommandProcTrn(cSkt, Tmp, "SIZE %s", Path);
 
 	*Size = -1;
 	if((Sts/100 == FTP_COMPLETE) && (strlen(Tmp) > 4) && IsDigit(Tmp[4]))
@@ -418,7 +421,9 @@ int DoSIZE(char *Path, LONGLONG *Size)
 *		日付が選られない時は Time = 0 を返す
 *----------------------------------------------------------------------------*/
 
-int DoMDTM(char *Path, FILETIME *Time)
+// 同時接続対応
+//int DoMDTM(char *Path, FILETIME *Time)
+int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time)
 {
 	int Sts;
 	char Tmp[1024];
@@ -427,7 +432,8 @@ int DoMDTM(char *Path, FILETIME *Time)
     Time->dwLowDateTime = 0;
     Time->dwHighDateTime = 0;
 
-	Sts = CommandProcTrn(Tmp, "MDTM %s", Path);
+//	Sts = CommandProcTrn(Tmp, "MDTM %s", Path);
+	Sts = CommandProcTrn(cSkt, Tmp, "MDTM %s", Path);
 	if(Sts/100 == FTP_COMPLETE)
 	{
 		sTime.wMilliseconds = 0;
@@ -675,7 +681,9 @@ int CommandProcCmd(char *Reply, char *fmt, ...)
 *		転送コントロールソケットを使う
 *----------------------------------------------------------------------------*/
 
-int CommandProcTrn(char *Reply, char *fmt, ...)
+// 同時接続対応
+//int CommandProcTrn(char *Reply, char *fmt, ...)
+int CommandProcTrn(SOCKET cSkt, char *Reply, char *fmt, ...)
 {
 	va_list Args;
 	char Cmd[1024];
@@ -691,7 +699,8 @@ int CommandProcTrn(char *Reply, char *fmt, ...)
 //	if((Sts = command(AskTrnCtrlSkt(), Reply, "%s", Cmd)) == 429)
 //	{
 //		if(ReConnectTrnSkt() == FFFTP_SUCCESS)
-			Sts = command(AskTrnCtrlSkt(), Reply, &CheckCancelFlg, "%s", Cmd);
+//			Sts = command(AskTrnCtrlSkt(), Reply, &CheckCancelFlg, "%s", Cmd);
+			Sts = command(cSkt, Reply, &CheckCancelFlg, "%s", Cmd);
 //	}
 	return(Sts);
 }
@@ -1030,7 +1039,7 @@ static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
 //				DisconnectSet();
 			{
 				if(SizeOnce == -1)
-					ReConnectCmdSkt();
+					ReConnectTrnSkt(&cSkt);
 				else
 					DisconnectSet();
 			}

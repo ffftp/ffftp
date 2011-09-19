@@ -15,4 +15,6 @@
 #define DISABLE_CONTROL_NETWORK_BUFFERS
 // JRE32.DLLを無効にする（UTF-8に非対応のため）
 #define DISABLE_JRE32DLL
+// ファイル転送の同時接続数
+#define MAX_DATA_CONNECTION 4
 

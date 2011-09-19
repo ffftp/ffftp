@@ -317,3 +317,4 @@
 #define MSGJPN317		"Using SSH FTP (SFTP)."
 #define MSGJPN318		"OpenSSL is loaded."
 #define MSGJPN319		"OpenSSL is not installed.\r\nCommunication will not be encrypted."
+#define MSGJPN320		"Feature"

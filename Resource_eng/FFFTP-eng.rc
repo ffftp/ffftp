@@ -1376,6 +1376,16 @@ BEGIN
     CONTROL         "Connect with SFTP",HSET_SFTP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
 END
 
+hset_adv3_dlg DIALOG  0, 0, 207, 139
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "Max Connections",-1,7,10,64,8
+    EDITTEXT        HSET_THREAD_COUNT,72,8,17,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",HSET_THREAD_COUNT_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,7,9,14
+    LTEXT           "(1 to 4 threads)",-1,102,10,53,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1990,6 +2000,14 @@ BEGIN
     END
 
     hset_crypt_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 132
+    END
+
+    hset_adv3_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 200

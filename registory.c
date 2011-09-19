@@ -466,6 +466,8 @@ void SaveRegistory(void)
 							SaveIntNum(hKey5, "FTPES", Hist.UseFTPES, DefaultHist.UseFTPES);
 							SaveIntNum(hKey5, "FTPIS", Hist.UseFTPIS, DefaultHist.UseFTPIS);
 							SaveIntNum(hKey5, "SFTP", Hist.UseSFTP, DefaultHist.UseSFTP);
+							// 同時接続対応
+							SaveIntNum(hKey5, "ThreadCount", Hist.MaxThreadCount, DefaultHist.MaxThreadCount);
 
 							CloseSubKey(hKey5);
 							n++;
@@ -538,6 +540,8 @@ void SaveRegistory(void)
 							SaveIntNum(hKey5, "FTPES", Host.UseFTPES, DefaultHost.UseFTPES);
 							SaveIntNum(hKey5, "FTPIS", Host.UseFTPIS, DefaultHost.UseFTPIS);
 							SaveIntNum(hKey5, "SFTP", Host.UseSFTP, DefaultHost.UseSFTP);
+							// 同時接続対応
+							SaveIntNum(hKey5, "ThreadCount", Host.MaxThreadCount, DefaultHost.MaxThreadCount);
 						}
 						CloseSubKey(hKey5);
 					}
@@ -792,6 +796,8 @@ int LoadRegistory(void)
 					ReadIntValueFromReg(hKey5, "FTPES", &Hist.UseFTPES);
 					ReadIntValueFromReg(hKey5, "FTPIS", &Hist.UseFTPIS);
 					ReadIntValueFromReg(hKey5, "SFTP", &Hist.UseSFTP);
+					// 同時接続対応
+					ReadIntValueFromReg(hKey5, "ThreadCount", &Hist.MaxThreadCount);
 
 					CloseSubKey(hKey5);
 					AddHistoryToHistory(&Hist);
@@ -863,6 +869,8 @@ int LoadRegistory(void)
 					ReadIntValueFromReg(hKey5, "FTPES", &Host.UseFTPES);
 					ReadIntValueFromReg(hKey5, "FTPIS", &Host.UseFTPIS);
 					ReadIntValueFromReg(hKey5, "SFTP", &Host.UseSFTP);
+					// 同時接続対応
+					ReadIntValueFromReg(hKey5, "ThreadCount", &Host.MaxThreadCount);
 
 					CloseSubKey(hKey5);
 

@@ -65,12 +65,19 @@ static BOOL CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPA
 static BOOL CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static int GetDecimalText(HWND hDlg, int Ctrl);
-static void SetDecimalText(HWND hDlg, int Ctrl, int Num);
-static void CheckRange2(int *Cur, int Max, int Min);
-static void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize);
-static void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text);
-static void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize);
+// hostman.cで使用
+//static int GetDecimalText(HWND hDlg, int Ctrl);
+//static void SetDecimalText(HWND hDlg, int Ctrl, int Num);
+//static void CheckRange2(int *Cur, int Max, int Min);
+//static void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize);
+//static void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text);
+//static void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize);
+int GetDecimalText(HWND hDlg, int Ctrl);
+void SetDecimalText(HWND hDlg, int Ctrl, int Num);
+void CheckRange2(int *Cur, int Max, int Min);
+void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize);
+void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text);
+void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize);
 
 
 
@@ -1647,7 +1654,9 @@ static BOOL CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPA
 *		なし
 *----------------------------------------------------------------------------*/
 
-static int GetDecimalText(HWND hDlg, int Ctrl)
+// hostman.cで使用
+//static int GetDecimalText(HWND hDlg, int Ctrl)
+int GetDecimalText(HWND hDlg, int Ctrl)
 {
 	char Tmp[40];
 
@@ -1667,7 +1676,9 @@ static int GetDecimalText(HWND hDlg, int Ctrl)
 *		なし
 *----------------------------------------------------------------------------*/
 
-static void SetDecimalText(HWND hDlg, int Ctrl, int Num)
+// hostman.cで使用
+//static void SetDecimalText(HWND hDlg, int Ctrl, int Num)
+void SetDecimalText(HWND hDlg, int Ctrl, int Num)
 {
 	char Tmp[40];
 
@@ -1691,7 +1702,9 @@ static void SetDecimalText(HWND hDlg, int Ctrl, int Num)
 *		int *Cur : 設定値
 *----------------------------------------------------------------------------*/
 
-static void CheckRange2(int *Cur, int Max, int Min)
+// hostman.cで使用
+//static void CheckRange2(int *Cur, int Max, int Min)
+void CheckRange2(int *Cur, int Max, int Min)
 {
 	if(*Cur < Min)
 		*Cur = Min;
@@ -1713,7 +1726,9 @@ static void CheckRange2(int *Cur, int Max, int Min)
 *		なし
 *----------------------------------------------------------------------------*/
 
-static void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize)
+// hostman.cで使用
+//static void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize)
+void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize)
 {
 	char Tmp[FMAX_PATH+1];
 	int Num;
@@ -1751,7 +1766,9 @@ static void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize)
 *		なし
 *----------------------------------------------------------------------------*/
 
-static void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text)
+// hostman.cで使用
+//static void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text)
+void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text)
 {
 	char *Pos;
 
@@ -1777,7 +1794,9 @@ static void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text)
 *		なし
 *----------------------------------------------------------------------------*/
 
-static void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize)
+// hostman.cで使用
+//static void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize)
+void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize)
 {
 	char Tmp[FMAX_PATH+1];
 	int Num;

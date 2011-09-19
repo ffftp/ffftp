@@ -457,7 +457,9 @@ static int RegistAsyncTable(SOCKET s)
 	{
 		if(Signal[Pos].Socket == s)
 		{
-			MessageBox(GetMainHwnd(), "Async socket already registerd.", "FFFTP inner error", MB_OK);
+			// 強制的に閉じられたソケットがあると重複する可能性あり
+//			MessageBox(GetMainHwnd(), "Async socket already registerd.", "FFFTP inner error", MB_OK);
+			Signal[Pos].Socket = INVALID_SOCKET;
 			break;
 		}
 	}
@@ -521,7 +523,9 @@ static int RegistAsyncTableDbase(HANDLE Async)
 	{
 		if(SignalDbase[Pos].Async == Async)
 		{
-			MessageBox(GetMainHwnd(), "Async handle already registerd.", "FFFTP inner error", MB_OK);
+			// 強制的に閉じられたハンドルがあると重複する可能性あり
+//			MessageBox(GetMainHwnd(), "Async handle already registerd.", "FFFTP inner error", MB_OK);
+			SignalDbase[Pos].Async = 0;
 			break;
 		}
 	}
@@ -714,7 +718,7 @@ int do_closesocket(SOCKET s)
 	if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
 		Ret = closesocketS(s);
 	else
-		Ret = closesocket(s);
+		Ret = closesocketS(s);
 	if(Ret == SOCKET_ERROR)
 	{
 		Error = 0;

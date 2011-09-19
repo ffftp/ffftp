@@ -69,6 +69,8 @@ static BOOL CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, 
 static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 // 暗号化通信対応
 static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+// 同時接続対応
+static BOOL CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 /*===== 外部参照 =====*/
 
@@ -1025,6 +1027,8 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 		Set->UseFTPES = Pos->Set.UseFTPES;
 		Set->UseFTPIS = Pos->Set.UseFTPIS;
 		Set->UseSFTP = Pos->Set.UseSFTP;
+		// 同時接続対応
+		Set->MaxThreadCount = Pos->Set.MaxThreadCount;
 		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
@@ -1303,6 +1307,8 @@ void CopyDefaultHost(HOSTDATA *Set)
 	Set->UseFTPES = YES;
 	Set->UseFTPIS = YES;
 	Set->UseSFTP = YES;
+	// 同時接続対応
+	Set->MaxThreadCount = 1;
 	return;
 }
 
@@ -1514,9 +1520,10 @@ void ImportFromWSFTP(void)
 
 static int DispHostSetDlg(HWND hDlg)
 {
-// SFTP、FTPES、FTPIS対応
+	// SFTP、FTPES、FTPIS対応
+	// 同時接続対応
 //	PROPSHEETPAGE psp[5];
-	PROPSHEETPAGE psp[6];
+	PROPSHEETPAGE psp[7];
 	PROPSHEETHEADER psh;
 
 	psp[0].dwSize = sizeof(PROPSHEETPAGE);
@@ -1569,7 +1576,7 @@ static int DispHostSetDlg(HWND hDlg)
 	psp[4].lParam = 0;
 	psp[4].pfnCallback = NULL;
 
-// SFTP、FTPES、FTPIS対応
+	// SFTP、FTPES、FTPIS対応
 	psp[5].dwSize = sizeof(PROPSHEETPAGE);
 	psp[5].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[5].hInstance = GetFtpInst();
@@ -1579,6 +1586,17 @@ static int DispHostSetDlg(HWND hDlg)
 	psp[5].pszTitle = MSGJPN313;
 	psp[5].lParam = 0;
 	psp[5].pfnCallback = NULL;
+
+	// 同時接続対応
+	psp[6].dwSize = sizeof(PROPSHEETPAGE);
+	psp[6].dwFlags = PSP_USETITLE | PSP_HASHELP;
+	psp[6].hInstance = GetFtpInst();
+	psp[6].pszTemplate = MAKEINTRESOURCE(hset_adv3_dlg);
+	psp[6].pszIcon = NULL;
+	psp[6].pfnDlgProc = Adv3SettingProc;
+	psp[6].pszTitle = MSGJPN320;
+	psp[6].lParam = 0;
+	psp[6].pfnCallback = NULL;
 
 	psh.dwSize = sizeof(PROPSHEETHEADER);
 	psh.dwFlags = PSH_HASHELP | PSH_NOAPPLYNOW | PSH_PROPSHEETPAGE;
@@ -2159,4 +2177,39 @@ static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, L
 	return(FALSE);
 }
 
+// 同時接続対応
+static BOOL CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+	NMHDR *pnmhdr;
+	int Num;
+
+	switch (iMessage)
+	{
+		case WM_INITDIALOG :
+			SendDlgItemMessage(hDlg, HSET_THREAD_COUNT, EM_LIMITTEXT, (WPARAM)1, 0);
+			SetDecimalText(hDlg, HSET_THREAD_COUNT, TmpHost.MaxThreadCount);
+			SendDlgItemMessage(hDlg, HSET_THREAD_COUNT_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(MAX_DATA_CONNECTION, 1));
+			return(TRUE);
+
+		case WM_NOTIFY:
+			pnmhdr = (NMHDR FAR *)lParam;
+			switch(pnmhdr->code)
+			{
+				case PSN_APPLY :
+					TmpHost.MaxThreadCount = GetDecimalText(hDlg, HSET_THREAD_COUNT);
+					CheckRange2(&TmpHost.MaxThreadCount, MAX_DATA_CONNECTION, 1);
+					Apply = YES;
+					break;
+
+				case PSN_RESET :
+					break;
+
+				case PSN_HELP :
+//					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000066);
+					break;
+			}
+			break;
+	}
+	return(FALSE);
+}
 

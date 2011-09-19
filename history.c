@@ -227,6 +227,8 @@ static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
 	New->UseFTPES = Host->UseFTPES;
 	New->UseFTPIS = Host->UseFTPIS;
 	New->UseSFTP = Host->UseSFTP;
+	// 同時接続対応
+	New->MaxThreadCount = Host->MaxThreadCount;
 	return;
 }
 
@@ -280,6 +282,8 @@ void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
 	Host->UseFTPES = Hist->UseFTPES;
 	Host->UseFTPIS = Hist->UseFTPIS;
 	Host->UseSFTP = Hist->UseSFTP;
+	// 同時接続対応
+	Host->MaxThreadCount = Hist->MaxThreadCount;
 	return;
 }
 
