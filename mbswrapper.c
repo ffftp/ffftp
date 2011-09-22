@@ -355,6 +355,18 @@ void FreeDuplicatedString(void* p)
 #define END_ROUTINE						}while(0);end_of_routine:
 #define QUIT_ROUTINE					goto end_of_routine;
 
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
+{
+	int r = 0;
+	char* pm0 = NULL;
+START_ROUTINE
+	pm0 = DuplicateWtoM(lpCmdLine, -1);
+	r = WinMainM(hInstance, hPrevInstance, pm0, nCmdShow);
+END_ROUTINE
+	FreeDuplicatedString(pm0);
+	return r;
+}
+
 HANDLE CreateFileM(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
 {
 	HANDLE r = INVALID_HANDLE_VALUE;

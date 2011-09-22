@@ -593,7 +593,12 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, 
 	}
 	else
 	{
-		strcpy(MainTransPkt.Cmd, "LIST");
+		// MLSD対応
+//		strcpy(MainTransPkt.Cmd, "LIST");
+		if(AskUseMLSD() && (AskHostFeature() & FEATURE_MLSD))
+			strcpy(MainTransPkt.Cmd, "MLSD");
+		else
+			strcpy(MainTransPkt.Cmd, "LIST");
 		if(strlen(AddOpt) > 0)
 		{
 			strcat(MainTransPkt.Cmd, " -");

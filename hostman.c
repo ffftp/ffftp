@@ -1029,6 +1029,8 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 		Set->UseSFTP = Pos->Set.UseSFTP;
 		// 同時接続対応
 		Set->MaxThreadCount = Pos->Set.MaxThreadCount;
+		// MLSD対応
+		Set->UseMLSD = Pos->Set.UseMLSD;
 		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
@@ -1309,6 +1311,9 @@ void CopyDefaultHost(HOSTDATA *Set)
 	Set->UseSFTP = YES;
 	// 同時接続対応
 	Set->MaxThreadCount = 1;
+	// MLSD対応
+	Set->Feature = 0;
+	Set->UseMLSD = YES;
 	return;
 }
 

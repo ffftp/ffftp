@@ -229,6 +229,8 @@ static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
 	New->UseSFTP = Host->UseSFTP;
 	// 同時接続対応
 	New->MaxThreadCount = Host->MaxThreadCount;
+	// MLSD対応
+	New->UseMLSD = Host->UseMLSD;
 	return;
 }
 
@@ -284,6 +286,8 @@ void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
 	Host->UseSFTP = Hist->UseSFTP;
 	// 同時接続対応
 	Host->MaxThreadCount = Hist->MaxThreadCount;
+	// MLSD対応
+	Host->UseMLSD = Hist->UseMLSD;
 	return;
 }
 

@@ -97,6 +97,8 @@ static int CheckYYMMDDformat(char *Str, char Sym, int Dig3);
 static int CheckYYYYMMDDformat(char *Str, char Sym);
 static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, FILETIME *Time, int *Attr, char *Owner, int *Link, int *InfoExist);
 static int FindField(char *Str, char *Buf, int Num, int ToLast);
+// MLSD対応
+static int FindField2(char *Str, char *Buf, char Separator, int Num, int ToLast);
 static void GetMonth(char *Str, WORD *Month, WORD *Day);
 static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day);
 static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute);
@@ -3594,6 +3596,14 @@ static int AnalizeFileInfo(char *Str)
 			}
 		}
 
+		// MLSD対応
+		if(Ret == LIST_UNKNOWN)
+		{
+			if(FindField2(Str, Tmp, ';', 1, NO) == FFFTP_SUCCESS && FindField2(Str, Tmp, '=', 1, NO) == FFFTP_SUCCESS)
+			{
+				Ret = LIST_MLSD;
+			}
+		}
 	}
 
 DoPrintf("ListType=%d", Ret);
@@ -4830,6 +4840,56 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 					Ret = NODE_NONE;
 			}
 			break;
+
+			// MLSD対応
+		case LIST_MLSD:
+			{
+				int i = 0;
+				char Tmp[FMAX_PATH + 1];
+				char Name[FMAX_PATH + 1];
+				char Value[FMAX_PATH + 1];
+				while(FindField2(Str, Tmp, ';', i, NO) == FFFTP_SUCCESS)
+				{
+					if(strncmp(Tmp, " ", 1) == 0)
+						strcpy(Fname, Tmp + 1);
+					else if(FindField2(Tmp, Name, '=', 0, NO) == FFFTP_SUCCESS && FindField2(Tmp, Value, '=', 1, NO) == FFFTP_SUCCESS)
+					{
+						if(_stricmp(Name, "type") == 0)
+						{
+							if(_stricmp(Value, "dir") == 0)
+								Ret = NODE_DIR;
+							else if(_stricmp(Value, "file") == 0)
+								Ret = NODE_FILE;
+						}
+						else if(_stricmp(Name, "size") == 0)
+						{
+							*Size = _atoi64(Value);
+							*InfoExist |= FINFO_SIZE;
+						}
+						else if(_stricmp(Name, "modify") == 0)
+						{
+							sTime.wYear = atoi_n(Value, 4);
+							sTime.wMonth = atoi_n(Value + 4, 2);
+							sTime.wDay = atoi_n(Value + 6, 2);
+							sTime.wHour = atoi_n(Value + 8, 2);
+							sTime.wMinute = atoi_n(Value + 10, 2);
+							sTime.wSecond = atoi_n(Value + 12, 2);
+							SystemTimeToFileTime(&sTime, Time);
+							SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
+							*InfoExist |= FINFO_DATE | FINFO_TIME;
+						}
+						else if(_stricmp(Name, "UNIX.mode") == 0)
+						{
+							*Attr = strtol(Value, NULL, 16);
+							*InfoExist |= FINFO_ATTR;
+						}
+						else if(_stricmp(Name, "UNIX.owner") == 0)
+							strcpy(Owner, Value);
+					}
+					i++;
+				}
+			}
+			break;
 	}
 
 	if((Ret != NODE_NONE) && (strlen(Fname) > 0))
@@ -4890,6 +4950,53 @@ static int FindField(char *Str, char *Buf, int Num, int ToLast)
 	if(Str != NULL)
 	{
 		if((ToLast == YES) || ((Pos = strchr(Str, ' ')) == NULL))
+			strcpy(Buf, Str);
+		else
+		{
+			strncpy(Buf, Str, Pos - Str);
+			*(Buf + (Pos - Str)) = NUL;
+		}
+		Sts = FFFTP_SUCCESS;
+	}
+	return(Sts);
+}
+
+
+// MLSD対応
+static int FindField2(char *Str, char *Buf, char Separator, int Num, int ToLast)
+{
+	char *Pos;
+	int Sts;
+
+	Sts = FFFTP_FAIL;
+	*Buf = NUL;
+	if(Num >= 0)
+	{
+		while(*Str == Separator)
+			Str++;
+
+		for(; Num > 0; Num--)
+		{
+			if((Str = strchr(Str, Separator)) != NULL)
+			{
+				while(*Str == Separator)
+				{
+					if(*Str == NUL)
+					{
+						Str = NULL;
+						break;
+					}
+					Str++;
+				}
+			}
+			else
+				break;
+		}
+	}
+
+	if(Str != NULL)
+	{
+		if((ToLast == YES) || ((Pos = strchr(Str, Separator)) == NULL))
 			strcpy(Buf, Str);
 		else
 		{

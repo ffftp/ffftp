@@ -11,6 +11,9 @@
 
 #ifndef DO_NOT_REPLACE
 
+#undef WinMain
+#define WinMain WinMainM
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow);
 #undef CreateFile
 #define CreateFile CreateFileM
 HANDLE CreateFileM(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
@@ -221,6 +224,8 @@ wchar_t* DuplicateMtoWMultiStringBuffer(LPCSTR lpString, int size);
 char* DuplicateWtoM(LPCWSTR lpString, int c);
 char* DuplicateWtoA(LPCWSTR lpString, int c);
 void FreeDuplicatedString(void* p);
+
+int WINAPI WinMainM(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
 
 #endif
 

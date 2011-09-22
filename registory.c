@@ -468,6 +468,8 @@ void SaveRegistory(void)
 							SaveIntNum(hKey5, "SFTP", Hist.UseSFTP, DefaultHist.UseSFTP);
 							// 同時接続対応
 							SaveIntNum(hKey5, "ThreadCount", Hist.MaxThreadCount, DefaultHist.MaxThreadCount);
+							// MLSD対応
+							SaveIntNum(hKey5, "MLSD", Hist.UseMLSD, DefaultHist.UseMLSD);
 
 							CloseSubKey(hKey5);
 							n++;
@@ -542,6 +544,8 @@ void SaveRegistory(void)
 							SaveIntNum(hKey5, "SFTP", Host.UseSFTP, DefaultHost.UseSFTP);
 							// 同時接続対応
 							SaveIntNum(hKey5, "ThreadCount", Host.MaxThreadCount, DefaultHost.MaxThreadCount);
+							// MLSD対応
+							SaveIntNum(hKey5, "MLSD", Host.UseMLSD, DefaultHost.UseMLSD);
 						}
 						CloseSubKey(hKey5);
 					}
@@ -798,6 +802,8 @@ int LoadRegistory(void)
 					ReadIntValueFromReg(hKey5, "SFTP", &Hist.UseSFTP);
 					// 同時接続対応
 					ReadIntValueFromReg(hKey5, "ThreadCount", &Hist.MaxThreadCount);
+					// MLSD対応
+					ReadIntValueFromReg(hKey5, "MLSD", &Hist.UseMLSD);
 
 					CloseSubKey(hKey5);
 					AddHistoryToHistory(&Hist);
@@ -871,6 +877,8 @@ int LoadRegistory(void)
 					ReadIntValueFromReg(hKey5, "SFTP", &Host.UseSFTP);
 					// 同時接続対応
 					ReadIntValueFromReg(hKey5, "ThreadCount", &Host.MaxThreadCount);
+					// MLSD対応
+					ReadIntValueFromReg(hKey5, "MLSD", &Host.UseMLSD);
 
 					CloseSubKey(hKey5);
 

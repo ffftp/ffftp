@@ -292,6 +292,8 @@
 #define LIST_UNIX_73	45		/* UNIX 73 */
 #define LIST_UNIX_74	46		/* UNIX 74 */
 #define LIST_UNIX_75	47		/* UNIX 75 */
+// MLSD対応
+#define LIST_MLSD		48
 
 #define LIST_MELCOM		0x100	/* MELCOM80 */
 
@@ -868,6 +870,12 @@ LIST_UNIX_70
 #define CRYPT_FTPIS			2
 #define CRYPT_SFTP			3
 
+// FEAT対応
+// UTF-8対応
+#define FEATURE_UTF8		0x00000001
+// MLSD対応
+#define FEATURE_MLSD		0x00000002
+
 
 /*=================================================
 *		ストラクチャ
@@ -918,6 +926,10 @@ typedef struct {
 	int UseSFTP;						/* SFTPで接続する (YES/NO) */
 	// 同時接続対応
 	int MaxThreadCount;					/* 同時接続数 */
+	// FEAT対応
+	int Feature;						/* 利用可能な機能のフラグ (FEATURE_xxx) */
+	// MLSD対応
+	int UseMLSD;						/* "MLSD"コマンドを使用する */
 } HOSTDATA;
 
 
@@ -970,6 +982,8 @@ typedef struct historydata {
 	int UseSFTP;						/* SFTPで接続する (YES/NO) */
 	// 同時接続対応
 	int MaxThreadCount;					/* 同時接続数 */
+	// MLSD対応
+	int UseMLSD;						/* "MLSD"コマンドを使用する */
 	struct historydata *Next;
 } HISTORYDATA;
 
@@ -1383,6 +1397,10 @@ int AskUseFTPIS(void);
 int AskUseSFTP(void);
 // 同時接続対応
 int AskMaxThreadCount(void);
+// FEAT対応
+int AskHostFeature(void);
+// MLSD対応
+int AskUseMLSD(void);
 
 /*===== cache.c =====*/
 
