@@ -4875,7 +4875,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 							sTime.wMinute = atoi_n(Value + 10, 2);
 							sTime.wSecond = atoi_n(Value + 12, 2);
 							SystemTimeToFileTime(&sTime, Time);
-							SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
+//							SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 							*InfoExist |= FINFO_DATE | FINFO_TIME;
 						}
 						else if(_stricmp(Name, "UNIX.mode") == 0)
