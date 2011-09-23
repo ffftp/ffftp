@@ -4850,8 +4850,8 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 				char Value[FMAX_PATH + 1];
 				while(FindField2(Str, Tmp, ';', i, NO) == FFFTP_SUCCESS)
 				{
-					if(strncmp(Tmp, " ", 1) == 0)
-						strcpy(Fname, Tmp + 1);
+					if(i >= 1 && strncmp(Tmp, " ", 1) == 0)
+						strcpy(Fname, strstr(Str, "; ") + 2);
 					else if(FindField2(Tmp, Name, '=', 0, NO) == FFFTP_SUCCESS && FindField2(Tmp, Value, '=', 1, NO) == FFFTP_SUCCESS)
 					{
 						if(_stricmp(Name, "type") == 0)
