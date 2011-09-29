@@ -1,6 +1,6 @@
 ============================================================
-【ソフト名】　ＦＴＰクライアント　ＦＦＦＴＰ  Ver 1.98
-【動作確認環境】　Windows 7, Vista, XP, 2000
+【ソフト名】　FTPクライアント FFFTP（sf.jp版） Ver 1.98
+【動作確認環境】　Windows 7、Vista、XP、2000
 【サポート】　http://sourceforge.jp/projects/ffftp/
 ============================================================
 
@@ -10,49 +10,54 @@
 Ver.1.96d+009以降でマスターパスワードを導入しました。
 
 FFFTP Ver.1.96d+009以降を最初に起動した時、接続メニューの設定→
-マスターパスワードの設定でマスターパスワードを設定して使用してください。
-マスターパスワードを設定すると、FFFTP起動時にマスターパスワードの入力が
-求められますので、入力してください。
+マスターパスワードの設定でマスターパスワードを設定して
+使用してください。マスターパスワードを設定すると、FFFTP起動時に
+マスターパスワードの入力が求められますので、入力してください。
 
 
 Ver 1.98での変更点
 -------------------
 
-・開発をSourceForge.JPが引き継ぎました。Sota氏が制作されたFFFTPには長い間
-　お世話になりました。
+・FFFTPのオリジナル開発者であるSota氏がFFFTPの開発終了宣言を出した
+　のに伴い、SourceForge.JPにて有志による今後の開発・バージョンアップ
+　を行うことにしました。Sota氏が制作されたFFFTPには長い間お世話に
+　なりました。
 
 ・マルチコアCPUの特定環境下でクラッシュするバグを暫定的に解消しました。
 
 ・内部の文字コードをUTF-8に変更しました。
+・正規表現ライブラリのJRE32.DLLは使用できなくなりました（ライブラリが
+　UTF-8に対応していないため）。
 
-・正規表現ライブラリのJRE32.DLLは使用できなくなりました。
-　（ライブラリがUTF-8に対応していないため。）
+・アスキーモード転送の際に行われる漢字コード変換で、Shift_JIS、JIS、
+　EUCに加えて新たにUTF-8への変換をサポートしました。
 
-・アスキーモード転送の際に行われる漢字コード変換がShift_JIS、JIS、EUC、UTF-8の
-　中から選択できるようになりました。
-　その際ローカルのテキストファイルがShift_JISで記述されている必要はなくなり、
-　前述の4種類から選択できるようになりました。
-　（正しく変換するにはあらかじめファイルの漢字コードを調べる必要があります。）
+・漢字コード変換を行う際、ローカルのテキストファイルがShift_JISで記述
+　されている必要はなくなり、Shift_JIS、JIS、EUC、UTF-8の4種類から変換
+　元文字コードを選択できるようになりました。ただし、文字コードの自動
+　判別は行われないため、正しく変換するにはあらかじめファイルの漢字
+　コードを調べておく必要があります。
 
-・ホストのファイル名の漢字コードは既定でUTF-8が選択されるようになりました。
-　（以前のバージョンの設定が残っている場合はその設定が適用されます。
-　以前のバージョンの無変換はShift_JISを示しています。）
+・ホストのファイル名の漢字コードは既定でUTF-8が選択されるようになり
+　ました（以前のバージョンの設定が残っている場合はその設定が適用
+　されます。以前のバージョンの無変換はShift_JISを示しています）。
 
-・Unicode依存文字（中国語など）を含むファイル名を扱えるようになりました。
-　その際ホストのファイル名の漢字コードはUTF-8に設定されている必要があります。
+・Unicode依存文字（中国語など）を含むファイル名を扱えるようになり
+　ました。その際ホストのファイル名の漢字コードはUTF-8に設定されて
+　いる必要があります。
 
-・ファイル一覧のキャッシュは既定で無効化されました。
-　（以前のバージョンの設定が残っている場合はその設定が適用されます。）
+・ファイル一覧のキャッシュは既定で無効化されました（以前のバージョンの
+　設定が残っている場合はその設定が適用されます）。
 
-・ホストとの接続にFTP over Explicit SSL/TLS（略称FTPS Explicit、FTPES）が
-　使用できるようになりました。
-　FTPS対応のホストとの通信は、パスワード、ユーザー名、ファイルの内容などが
-　暗号化された状態で送受信されます。
-　この機能を使用するには別途OpenSSLがインストールされている必要があります。
+・ホストとの接続にFTP over Explicit SSL/TLS（略称FTPS Explicit、
+　FTPES）が使用できるようになりました。FTPS対応のホストとの通信は、
+　パスワード、ユーザー名、ファイルの内容などが暗号化された状態で送受信
+　されます。この機能はOpenSSLライブラリを使用して実装しています。
 
-・UTF-8Nという名称をUTF-8に統一した。（この場合UTF-8と同義のため）
+・UTF-8Nという名称をUTF-8に統一しました（この場合UTF-8と同義のため）。
 
-・ファイル転送時のホストとの同時接続数を最大4まで設定できるようにした。
+・ファイル転送時のホストとの同時接続数を最大4まで設定できるように
+　しました。
 
 
 Ver 1.96d以前へ戻す場合
@@ -65,7 +70,7 @@ Ver 1.96d以前へ戻す場合
 FFFTPの概要
 -----------
 
-ＧＵＩなＦＴＰクライアントソフトです。
+GUIを持つFTPクライアントソフトです。
 
 ☆ファイルリストの部分とファイル転送が別スレッドなので、ファイル転送を
 　しながら新たなファイル操作ができます。
@@ -100,10 +105,10 @@ jre32.dll -------- 正規表現検索ＤＬＬ
 アンインストール方法
 --------------------
 
-■Windows Vista
+■Windows 7、Vista
 コントロールパネルの「プログラムと機能」でアンインストールしてください。
 
-■Windows XP, 2000, 98, Me
+■Windows XP、2000、98、Me
 コントロールパネルの「アプリケーションの追加と削除」でアンインストール
 してください。
 
@@ -129,7 +134,7 @@ jre32.dll -------- 正規表現検索ＤＬＬ
 します。
 
 Copyright(C) 1997-2010, Sota & cooperators. All rights reserved.
-Copyright (C) 2011 Hiromichi Matsushima, Suguru Kawamoto.
+Copyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto).
 
 Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions 
@@ -155,7 +160,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *** 以下は日本語訳(参考) ***
 
 Copyright(C) 1997-2010 Sota & ご協力いただいた方々. All rights reserved.
-Copyright (C) 2011 Hiromichi Matsushima, Suguru Kawamoto.
+Copyright (C) 2011 FFFTP Project（Hiromichi Matsushima, Suguru Kawamoto）All rights reserved.
 
 ソースコード形式でもバイナリ形式でも、変更の有無に関わらず、以下の条件を
 満たす場合に、再配布および使用を許可します。
@@ -203,123 +208,119 @@ in respect of its properties, including, but not limited to, correctness
 and/or fitness for purpose.
 
 
-FTP over SSL/TLSの実装にはOpenSSLが使用されています。
+FTP over SSL/TLSの実装にはOpenSSLを使用しています。
 This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit.
 
   OpenSSL License
   ---------------
 
-/* ====================================================================
- * Copyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. All advertising materials mentioning features or use of this
- *    software must display the following acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
- *
- * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
- *    endorse or promote products derived from this software without
- *    prior written permission. For written permission, please contact
- *    openssl-core@openssl.org.
- *
- * 5. Products derived from this software may not be called "OpenSSL"
- *    nor may "OpenSSL" appear in their names without prior written
- *    permission of the OpenSSL Project.
- *
- * 6. Redistributions of any form whatsoever must retain the following
- *    acknowledgment:
- *    "This product includes software developed by the OpenSSL Project
- *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
- *
- * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
- * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- * ====================================================================
- *
- * This product includes cryptographic software written by Eric Young
- * (eay@cryptsoft.com).  This product includes software written by Tim
- * Hudson (tjh@cryptsoft.com).
- *
- */
+Copyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer. 
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in
+   the documentation and/or other materials provided with the
+   distribution.
+
+3. All advertising materials mentioning features or use of this
+   software must display the following acknowledgment:
+   "This product includes software developed by the OpenSSL Project
+   for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
+
+4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
+   endorse or promote products derived from this software without
+   prior written permission. For written permission, please contact
+   openssl-core@openssl.org.
+
+5. Products derived from this software may not be called "OpenSSL"
+   nor may "OpenSSL" appear in their names without prior written
+   permission of the OpenSSL Project.
+
+6. Redistributions of any form whatsoever must retain the following
+   acknowledgment:
+   "This product includes software developed by the OpenSSL Project
+   for use in the OpenSSL Toolkit (http://www.openssl.org/)"
+
+THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
+EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
+ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
+
+====================================================================
+
+This product includes cryptographic software written by Eric Young
+(eay@cryptsoft.com).  This product includes software written by Tim
+Hudson (tjh@cryptsoft.com).
 
  Original SSLeay License
  -----------------------
 
-/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
- * All rights reserved.
- *
- * This package is an SSL implementation written
- * by Eric Young (eay@cryptsoft.com).
- * The implementation was written so as to conform with Netscapes SSL.
- * 
- * This library is free for commercial and non-commercial use as long as
- * the following conditions are aheared to.  The following conditions
- * apply to all code found in this distribution, be it the RC4, RSA,
- * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
- * included with this distribution is covered by the same copyright terms
- * except that the holder is Tim Hudson (tjh@cryptsoft.com).
- * 
- * Copyright remains Eric Young's, and as such any Copyright notices in
- * the code are not to be removed.
- * If this package is used in a product, Eric Young should be given attribution
- * as the author of the parts of the library used.
- * This can be in the form of a textual message at program startup or
- * in documentation (online or textual) provided with the package.
- * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *    "This product includes cryptographic software written by
- *     Eric Young (eay@cryptsoft.com)"
- *    The word 'cryptographic' can be left out if the rouines from the library
- *    being used are not cryptographic related :-).
- * 4. If you include any Windows specific code (or a derivative thereof) from 
- *    the apps directory (application code) you must include an acknowledgement:
- *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
- * 
- * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- * 
- * The licence and distribution terms for any publically available version or
- * derivative of this code cannot be changed.  i.e. this code cannot simply be
- * copied and put under another distribution licence
- * [including the GNU Public Licence.]
- */
+Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
+All rights reserved.
+
+This package is an SSL implementation written
+by Eric Young (eay@cryptsoft.com).
+The implementation was written so as to conform with Netscapes SSL.
+
+This library is free for commercial and non-commercial use as long as
+the following conditions are aheared to.  The following conditions
+apply to all code found in this distribution, be it the RC4, RSA,
+lhash, DES, etc., code; not just the SSL code.  The SSL documentation
+included with this distribution is covered by the same copyright terms
+except that the holder is Tim Hudson (tjh@cryptsoft.com).
+
+Copyright remains Eric Young's, and as such any Copyright notices in
+the code are not to be removed.
+If this package is used in a product, Eric Young should be given attribution
+as the author of the parts of the library used.
+This can be in the form of a textual message at program startup or
+in documentation (online or textual) provided with the package.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. All advertising materials mentioning features or use of this software
+   must display the following acknowledgement:
+   "This product includes cryptographic software written by
+    Eric Young (eay@cryptsoft.com)"
+   The word 'cryptographic' can be left out if the rouines from the library
+   being used are not cryptographic related :-).
+4. If you include any Windows specific code (or a derivative thereof) from 
+   the apps directory (application code) you must include an acknowledgement:
+   "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
+
+THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
+
+The licence and distribution terms for any publically available version or
+derivative of this code cannot be changed.  i.e. this code cannot simply be
+copied and put under another distribution licence [including the GNU Public Licence.]
 

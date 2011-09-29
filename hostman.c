@@ -2121,7 +2121,6 @@ static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
-	int Num;
 
 	switch (iMessage)
 	{
@@ -2181,7 +2180,6 @@ static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, L
 static BOOL CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
-	int Num;
 
 	switch (iMessage)
 	{

@@ -957,7 +957,6 @@ int ReConnectCmdSkt(void)
 // 同時接続対応
 int ReConnectTrnSkt(SOCKET *Skt)
 {
-	char Path[FMAX_PATH+1];
 	int Sts;
 
 	Sts = FFFTP_FAIL;
@@ -1276,7 +1275,7 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 				// データ転送用ソケットのTCP遅延転送が無効されているので念のため
 				if(setsockopt(ContSock, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					ReportWSError("setsockopt", WSAGetLastError());
-#pragma aaa
+/* #pragma aaa */
 				Flg = 1;
 				if(setsockopt(ContSock, SOL_SOCKET, SO_KEEPALIVE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					ReportWSError("setsockopt", WSAGetLastError());

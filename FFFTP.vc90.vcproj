@@ -46,8 +46,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="Resource"
-				PreprocessorDefinitions="WIN32,_DEBUG,_WINDOWS,_WIN32_IE=0x300,_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories=".\contrib\openssl\include;Resource"
+				PreprocessorDefinitions="WIN32,_DEBUG,_WINDOWS,_WIN32_IE=0x600,_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="1"
 				PrecompiledHeaderFile=".\Debug\FFFTP.pch"
 				AssemblerListingLocation=".\Debug\"
@@ -136,8 +136,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="Resource"
-				PreprocessorDefinitions="WIN32,NDEBUG,_WINDOWS,_WIN32_IE=0x300,_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories=".\contrib\openssl\include;Resource"
+				PreprocessorDefinitions="WIN32,NDEBUG,_WINDOWS,_WIN32_IE=0x600,_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"

@@ -352,8 +352,12 @@ void FreeDuplicatedString(void* p)
 // 引数バッファ a%d
 
 #define START_ROUTINE					do{
+#define END_ROUTINE						}while(0);
+
+/*
 #define END_ROUTINE						}while(0);end_of_routine:
 #define QUIT_ROUTINE					goto end_of_routine;
+*/
 
 HANDLE CreateFileM(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
 {
