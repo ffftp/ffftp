@@ -502,15 +502,20 @@ static void EraseTransFileList(void)
 		if(strcmp(New->Cmd, "BACKCUR") == 0)
 		{
 			if(NotDel != NULL)
-				free(NotDel);
+				// 同時接続対応
+//				free(NotDel);
+				strcpy(NotDel->Cmd, "");
 			NotDel = New;
 			New = New->Next;
-			NotDel->Next = NULL;
+			// 同時接続対応
+//			NotDel->Next = NULL;
 		}
 		else
 		{
 			Next = New->Next;
-			free(New);
+			// 同時接続対応
+//			free(New);
+			strcpy(New->Cmd, "");
 			New = Next;
 		}
 	}
