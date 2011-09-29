@@ -1,4 +1,4 @@
-﻿// mbswrapper.cpp
+﻿// mbswrapper.c
 // Copyright (C) 2011 Suguru Kawamoto
 // マルチバイト文字ワイド文字APIラッパー
 // マルチバイト文字はUTF-8、ワイド文字はUTF-16であるものとする
@@ -38,6 +38,16 @@ int WtoM(LPSTR pDst, int size, LPCWSTR pSrc, int count)
 	if(pDst)
 		return WideCharToMultiByte(CP_UTF8, 0, pSrc, count, pDst, size, NULL, NULL);
 	return WideCharToMultiByte(CP_UTF8, 0, pSrc, count, NULL, 0, NULL, NULL);
+}
+
+// Shift_JIS文字列からワイド文字列へ変換
+int AtoW(LPWSTR pDst, int size, LPCSTR pSrc, int count)
+{
+	if(pSrc < (LPCSTR)0x00010000 || pSrc == (LPCSTR)~0)
+		return 0;
+	if(pDst)
+		return MultiByteToWideChar(CP_ACP, 0, pSrc, count, pDst, size);
+	return MultiByteToWideChar(CP_ACP, 0, pSrc, count, NULL, 0);
 }
 
 // ワイド文字列からShift_JIS文字列へ変換
@@ -176,6 +186,24 @@ int WtoMMultiString(LPSTR pDst, int size, LPCWSTR pSrc)
 		pSrc += wcslen(pSrc) + 1;
 	}
 	pDst[i] = '\0';
+	return i;
+}
+
+// NULL区切りShift_JIS文字列からワイド文字列へ変換
+int AtoWMultiString(LPWSTR pDst, int size, LPCSTR pSrc)
+{
+	int i;
+	if(pSrc < (LPCSTR)0x00010000 || pSrc == (LPCSTR)~0)
+		return 0;
+	if(!pDst)
+		return GetMultiStringLengthA(pSrc);
+	i = 0;
+	while(*pSrc != '\0')
+	{
+		i += MultiByteToWideChar(CP_ACP, 0, pSrc, -1, pDst + i, size - i - 1);
+		pSrc += strlen(pSrc) + 1;
+	}
+	pDst[i] = L'\0';
 	return i;
 }
 
@@ -319,6 +347,24 @@ char* DuplicateWtoM(LPCWSTR lpString, int c)
 	return p;
 }
 
+// メモリを確保してShift_JIS文字列からワイド文字列へ変換
+wchar_t* DuplicateAtoW(LPCSTR lpString, int c)
+{
+	wchar_t* p;
+	int i;
+	if(lpString < (LPCSTR)0x00010000 || lpString == (LPCSTR)~0)
+		return (wchar_t*)lpString;
+	if(c < 0)
+		c = strlen(lpString);
+	p = AllocateStringW(AtoW(NULL, 0, lpString, c) + 1);
+	if(p)
+	{
+		i = AtoW(p, 65535, lpString, c);
+		p[i] = L'\0';
+	}
+	return p;
+}
+
 // メモリを確保してワイド文字列からShift_JIS文字列へ変換
 char* DuplicateWtoA(LPCWSTR lpString, int c)
 {
@@ -351,6 +397,7 @@ void FreeDuplicatedString(void* p)
 // マルチバイト文字バッファ pm%d
 // 引数バッファ a%d
 
+#pragma warning(disable:4102)
 #define START_ROUTINE					do{
 #define END_ROUTINE						}while(0);end_of_routine:
 #define QUIT_ROUTINE					goto end_of_routine;
@@ -364,6 +411,18 @@ START_ROUTINE
 	r = WinMainM(hInstance, hPrevInstance, pm0, nCmdShow);
 END_ROUTINE
 	FreeDuplicatedString(pm0);
+	return r;
+}
+
+HMODULE LoadLibraryM(LPCSTR lpLibFileName)
+{
+	HMODULE r = NULL;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(lpLibFileName, -1);
+	r = LoadLibraryW(pw0);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
 	return r;
 }
 
@@ -886,11 +945,24 @@ END_ROUTINE
 	return r;
 }
 
+LPSTR GetCommandLineM()
+{
+	LPSTR r = 0;
+	static char* pm0 = NULL;
+START_ROUTINE
+	if(!pm0)
+		pm0 = DuplicateWtoM(GetCommandLineW(), -1);
+	r = pm0;
+END_ROUTINE
+	return r;
+}
+
 DWORD GetCurrentDirectoryM(DWORD nBufferLength, LPSTR lpBuffer)
 {
 	DWORD r = 0;
 	wchar_t* pw0 = NULL;
 START_ROUTINE
+	// TODO: バッファが不十分な場合に必要なサイズを返す
 	pw0 = AllocateStringW(nBufferLength * 4);
 	GetCurrentDirectoryW(nBufferLength * 4, pw0);
 	WtoM(lpBuffer, nBufferLength, pw0, -1);
@@ -1130,7 +1202,7 @@ START_ROUTINE
 			pwPage[i].pfnDlgProc = v0->ppsp[i].pfnDlgProc;
 			pwPage[i].lParam = v0->ppsp[i].lParam;
 			// TODO: pfnCallback
-			pwPage[i].pfnCallback = v0->ppsp[i].pfnCallback;
+			pwPage[i].pfnCallback = (LPFNPSPCALLBACKW)v0->ppsp[i].pfnCallback;
 			pwPage[i].pcRefParent = v0->ppsp[i].pcRefParent;
 //			pwPage[i].pszHeaderTitle = DuplicateMtoW(v0->ppsp[i].pszHeaderTitle, -1);
 //			pwPage[i].pszHeaderSubTitle = DuplicateMtoW(v0->ppsp[i].pszHeaderSubTitle, -1);
@@ -1144,21 +1216,21 @@ START_ROUTINE
 	a0.pfnCallback = v0->pfnCallback;
 	r = PropertySheetW(&a0);
 	if(a0.dwFlags & PSH_USEICONID)
-		FreeDuplicatedString(a0.pszIcon);
-	FreeDuplicatedString(a0.pszCaption);
-	FreeDuplicatedString(a0.pStartPage);
+		FreeDuplicatedString((void*)a0.pszIcon);
+	FreeDuplicatedString((void*)a0.pszCaption);
+	FreeDuplicatedString((void*)a0.pStartPage);
 	if(pwPage)
 	{
 		for(i = 0; i < v0->nPages; i++)
 		{
-			FreeDuplicatedString(pwPage[i].pszTemplate);
+			FreeDuplicatedString((void*)pwPage[i].pszTemplate);
 			if(pwPage[i].dwFlags & PSP_USEICONID)
-				FreeDuplicatedString(pwPage[i].pszIcon);
+				FreeDuplicatedString((void*)pwPage[i].pszIcon);
 			if(pwPage[i].dwFlags & PSP_USETITLE)
-				FreeDuplicatedString(pwPage[i].pszTitle);
-//			FreeDuplicatedString(pwPage[i].pszHeaderTitle);
-//			FreeDuplicatedString(pwPage[i].pszHeaderSubTitle);
-//			FreeDuplicatedString(pwPage[i].pszbmHeader);
+				FreeDuplicatedString((void*)pwPage[i].pszTitle);
+//			FreeDuplicatedString((void*)pwPage[i].pszHeaderTitle);
+//			FreeDuplicatedString((void*)pwPage[i].pszHeaderSubTitle);
+//			FreeDuplicatedString((void*)pwPage[i].pszbmHeader);
 		}
 		free(pwPage);
 	}
@@ -1601,7 +1673,7 @@ START_ROUTINE
 	v0->nFontType = a0.nFontType;
 	if(pwlf)
 		free(pwlf);
-	FreeDuplicatedString(a0.lpTemplateName);
+	FreeDuplicatedString((void*)a0.lpTemplateName);
 	FreeDuplicatedString(a0.lpszStyle);
 END_ROUTINE
 	FreeDuplicatedString(pw0);
@@ -1704,7 +1776,7 @@ START_ROUTINE
 	if(wr)
 	{
 		*wr = L'\0';
-		r = _Str + WtoM(NULL, 0, pw0, -1) - 1;
+		r = (unsigned char*)_Str + WtoM(NULL, 0, pw0, -1) - 1;
 	}
 END_ROUTINE
 	FreeDuplicatedString(pw0);
@@ -1723,7 +1795,7 @@ START_ROUTINE
 	if(wr)
 	{
 		*wr = L'\0';
-		r = _Str + WtoM(NULL, 0, pw0, -1) - 1;
+		r = (unsigned char*)_Str + WtoM(NULL, 0, pw0, -1) - 1;
 	}
 END_ROUTINE
 	FreeDuplicatedString(pw0);
@@ -1743,7 +1815,7 @@ START_ROUTINE
 	if(wr)
 	{
 		*wr = L'\0';
-		r = _Str + WtoM(NULL, 0, pw0, -1) - 1;
+		r = (unsigned char*)_Str + WtoM(NULL, 0, pw0, -1) - 1;
 	}
 END_ROUTINE
 	FreeDuplicatedString(pw0);
@@ -1835,7 +1907,7 @@ START_ROUTINE
 	if(wr)
 	{
 		*wr = L'\0';
-		r = _Str + WtoM(NULL, 0, pw0, -1) - 1;
+		r = (unsigned char*)_Str + WtoM(NULL, 0, pw0, -1) - 1;
 	}
 END_ROUTINE
 	FreeDuplicatedString(pw0);

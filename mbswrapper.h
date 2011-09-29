@@ -14,6 +14,9 @@
 #undef WinMain
 #define WinMain WinMainM
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow);
+#undef LoadLibrary
+#define LoadLibrary LoadLibraryM
+HMODULE LoadLibraryM(LPCSTR lpLibFileName);
 #undef CreateFile
 #define CreateFile CreateFileM
 HANDLE CreateFileM(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
@@ -62,6 +65,9 @@ BOOL SetWindowTextM(HWND hWnd, LPCSTR lpString);
 #undef DragQueryFile
 #define DragQueryFile DragQueryFileM
 UINT DragQueryFileM(HDROP hDrop, UINT iFile, LPSTR lpszFile, UINT cch);
+#undef GetCommandLine
+#define GetCommandLine GetCommandLineM
+LPSTR GetCommandLineM();
 #undef GetCurrentDirectory
 #define GetCurrentDirectory GetCurrentDirectoryM
 DWORD GetCurrentDirectoryM(DWORD nBufferLength, LPSTR lpBuffer);
@@ -204,15 +210,17 @@ FILE * fopenM(const char * _Filename, const char * _Mode);
 
 int MtoW(LPWSTR pDst, int size, LPCSTR pSrc, int count);
 int WtoM(LPSTR pDst, int size, LPCWSTR pSrc, int count);
+int AtoW(LPWSTR pDst, int size, LPCSTR pSrc, int count);
 int WtoA(LPSTR pDst, int size, LPCWSTR pSrc, int count);
 int TerminateStringM(LPSTR lpString, int size);
 int TerminateStringW(LPWSTR lpString, int size);
-int TerminateStringA(LPWSTR lpString, int size);
+int TerminateStringA(LPSTR lpString, int size);
 size_t GetMultiStringLengthM(LPCSTR lpString);
 size_t GetMultiStringLengthW(LPCWSTR lpString);
-size_t GetMultiStringLengthA(LPCWSTR lpString);
+size_t GetMultiStringLengthA(LPCSTR lpString);
 int MtoWMultiString(LPWSTR pDst, int size, LPCSTR pSrc);
 int WtoMMultiString(LPSTR pDst, int size, LPCWSTR pSrc);
+int AtoWMultiString(LPWSTR pDst, int size, LPCSTR pSrc);
 int WtoAMultiString(LPSTR pDst, int size, LPCWSTR pSrc);
 char* AllocateStringM(int size);
 wchar_t* AllocateStringW(int size);
@@ -222,6 +230,7 @@ wchar_t* DuplicateMtoWBuffer(LPCSTR lpString, int c, int size);
 wchar_t* DuplicateMtoWMultiString(LPCSTR lpString);
 wchar_t* DuplicateMtoWMultiStringBuffer(LPCSTR lpString, int size);
 char* DuplicateWtoM(LPCWSTR lpString, int c);
+wchar_t* DuplicateAtoW(LPCSTR lpString, int c);
 char* DuplicateWtoA(LPCWSTR lpString, int c);
 void FreeDuplicatedString(void* p);
 

@@ -232,6 +232,34 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	int Ret;
 	BOOL Sts;
 
+	// プロセス保護
+#ifdef ENABLE_PROCESS_PROTECTION
+	BOOL bProtect;
+	char* pCommand;
+	char Option[FMAX_PATH+1];
+	bProtect = FALSE;
+	pCommand = lpszCmdLine;
+	while(pCommand = GetToken(pCommand, Option))
+	{
+		if(strcmp(Option, "--protect") == 0)
+		{
+			bProtect = TRUE;
+			break;
+		}
+	}
+	InitializeLoadLibraryHook();
+	if(bProtect)
+	{
+#ifndef _DEBUG
+		if(IsDebuggerPresent() || RestartProtectedProcess(" --restart"))
+			return 0;
+#endif
+		// DLLの検証の前にロードされている必要があるDLL
+		LoadLibrary("shell32.dll");
+		EnableLoadLibraryHook(TRUE);
+	}
+#endif
+
 #ifdef DISABLE_MULTI_CPUS
 	SetProcessAffinityMask(GetCurrentProcess(), 1);
 #endif
@@ -244,6 +272,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
 	InitCommonControls();
 
+	// FTPS対応
 #ifdef USE_OPENSSL
 	LoadOpenSSL();
 #endif
@@ -277,6 +306,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		Ret = Msg.wParam;
 	}
     UnregisterClass(FtpClassStr, hInstFtp);
+	// FTPS対応
 #ifdef USE_OPENSSL
 	FreeOpenSSL();
 #endif
@@ -1697,6 +1727,15 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 			{
 				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000024);
 			}
+			// プロセス保護
+#ifdef ENABLE_PROCESS_PROTECTION
+			else if(strcmp(Tmp, "--restart") == 0)
+			{
+			}
+			else if(strcmp(Tmp, "--protect") == 0)
+			{
+			}
+#endif
 			else
 			{
 				SetTaskMsg(MSGJPN180, Tmp);

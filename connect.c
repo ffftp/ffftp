@@ -1092,8 +1092,8 @@ int AskShareProh(void)
 	int Sts;
 
 	Sts = YES;
-	if(CmdCtrlSocket == TrnCtrlSocket)
-		Sts = NO;
+//	if(CmdCtrlSocket == TrnCtrlSocket)
+//		Sts = NO;
 
 	return(Sts);
 }

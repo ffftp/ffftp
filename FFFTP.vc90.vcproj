@@ -71,11 +71,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="wsock32.lib comctl32.lib winmm.lib htmlhelp.lib"
+				AdditionalDependencies="wsock32.lib comctl32.lib winmm.lib rasapi32.lib htmlhelp.lib sfc.lib wintrust.lib"
 				OutputFile=".\Debug\FFFTP.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
+				DelayLoadDLLs="advapi32.dll;comctl32.dll;comdlg32.dll;gdi32.dll;sfc.dll;shell32.dll;ole32.dll;user32.dll;winmm.dll;wintrust.dll;wsock32.dll"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug\FFFTP.pdb"
 				SubSystem="2"
@@ -163,11 +164,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="wsock32.lib comctl32.lib winmm.lib RASAPI32.LIB htmlhelp.lib"
+				AdditionalDependencies="wsock32.lib comctl32.lib winmm.lib rasapi32.lib htmlhelp.lib sfc.lib wintrust.lib"
 				OutputFile=".\Release\FFFTP.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
+				DelayLoadDLLs="advapi32.dll;comctl32.dll;comdlg32.dll;gdi32.dll;sfc.dll;shell32.dll;ole32.dll;user32.dll;winmm.dll;wintrust.dll;wsock32.dll"
 				ProgramDatabaseFile=".\Release\FFFTP.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -308,6 +310,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\protectprocess.c"
+				>
+			</File>
+			<File
 				RelativePath=".\ras.c"
 				>
 			</File>
@@ -374,6 +380,10 @@
 			</File>
 			<File
 				RelativePath=".\mbswrapper.h"
+				>
+			</File>
+			<File
+				RelativePath=".\protectprocess.h"
 				>
 			</File>
 			<File
