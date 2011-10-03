@@ -318,3 +318,7 @@
 #define MSGJPN318		"OpenSSL is loaded."
 #define MSGJPN319		"OpenSSL is not installed.\r\nCommunication will not be encrypted."
 #define MSGJPN320		"Feature"
+#define MSGJPN321		"Failed to get required functions to protect the process."
+#define MSGJPN322		"Debugger was detected."
+#define MSGJPN323		"Failed to unload untrustworthy DLLs."
+#define MSGJPN324		"Failed to hook required functions to protect the process."

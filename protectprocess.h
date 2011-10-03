@@ -45,11 +45,10 @@ EXTERN_HOOK_FUNCTION_VAR(LoadLibraryExW)
 #endif
 
 HMODULE System_LoadLibrary(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags);
-BOOL RegisterModuleMD5Hash(void* pHash);
-BOOL UnregisterModuleMD5Hash(void* pHash);
-BOOL FindModuleMD5Hash(void* pHash);
-BOOL IsModuleTrustedA(LPCSTR Filename);
-BOOL IsModuleTrustedW(LPCWSTR Filename);
+BOOL GetMD5HashOfFile(LPCWSTR Filename, void* pHash);
+BOOL RegisterTrustedModuleMD5Hash(void* pHash);
+BOOL UnregisterTrustedModuleMD5Hash(void* pHash);
+BOOL UnloadUntrustedModule();
 BOOL InitializeLoadLibraryHook();
 BOOL EnableLoadLibraryHook(BOOL bEnable);
 BOOL RestartProtectedProcess(LPCTSTR Keyword);

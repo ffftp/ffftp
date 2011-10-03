@@ -16,8 +16,6 @@
 // フック用の関数名 h_%s
 // フック対象のコードのバックアップ c_%s
 
-#define _WIN32_WINNT 0x0600
-
 #include <tchar.h>
 #include <windows.h>
 #include <ntsecapi.h>
@@ -26,8 +24,9 @@
 #include <softpub.h>
 #include <aclapi.h>
 #include <sfc.h>
-#ifdef USE_IAT_HOOK
 #include <tlhelp32.h>
+#include <imagehlp.h>
+#ifdef USE_IAT_HOOK
 #include <dbghelp.h>
 #endif
 
@@ -47,7 +46,20 @@
 #endif
 #endif
 
+BOOL LockThreadLock();
+BOOL UnlockThreadLock();
+#ifdef USE_CODE_HOOK
 BOOL HookFunctionInCode(void* pOriginal, void* pNew, void* pBackupCode, BOOL bRestore);
+#endif
+#ifdef USE_IAT_HOOK
+BOOL HookFunctionInIAT(void* pOriginal, void* pNew);
+#endif
+HANDLE LockExistingFile(LPCWSTR Filename);
+BOOL FindTrustedModuleMD5Hash(void* pHash);
+BOOL VerifyFileSignature(LPCWSTR Filename);
+BOOL VerifyFileSignatureInCatalog(LPCWSTR Catalog, LPCWSTR Filename);
+BOOL GetSHA1HashOfModule(LPCWSTR Filename, void* pHash);
+BOOL IsModuleTrusted(LPCWSTR Filename);
 
 // 変数の宣言
 #ifdef USE_CODE_HOOK
@@ -70,21 +82,23 @@ HOOK_FUNCTION_VAR(LoadLibraryW)
 HOOK_FUNCTION_VAR(LoadLibraryExA)
 HOOK_FUNCTION_VAR(LoadLibraryExW)
 
-// ドキュメントが無いため原因は不明だが第2引数はポインタでないとエラーになる場合がある
-//typedef NTSTATUS (WINAPI* _LdrLoadDll)(LPCWSTR, DWORD, UNICODE_STRING*, HMODULE*);
-typedef NTSTATUS (WINAPI* _LdrLoadDll)(LPCWSTR, DWORD*, UNICODE_STRING*, HMODULE*);
-// ドキュメントが無いため原因は不明だが第2引数はポインタでないとエラーになる場合がある
-//typedef NTSTATUS (WINAPI* _LdrGetDllHandle)(LPCWSTR, DWORD, UNICODE_STRING*, HMODULE*);
-typedef NTSTATUS (WINAPI* _LdrGetDllHandle)(LPCWSTR, DWORD*, UNICODE_STRING*, HMODULE*);
-typedef NTSTATUS (WINAPI* _LdrAddRefDll)(DWORD, HMODULE);
+typedef NTSTATUS (NTAPI* _LdrLoadDll)(LPCWSTR, DWORD*, UNICODE_STRING*, HMODULE*);
+typedef NTSTATUS (NTAPI* _LdrGetDllHandle)(LPCWSTR, DWORD*, UNICODE_STRING*, HMODULE*);
+typedef PIMAGE_NT_HEADERS (NTAPI* _RtlImageNtHeader)(PVOID);
+typedef BOOL (WINAPI* _CryptCATAdminCalcHashFromFileHandle)(HANDLE, DWORD*, BYTE*, DWORD);
 
 _LdrLoadDll p_LdrLoadDll;
 _LdrGetDllHandle p_LdrGetDllHandle;
-_LdrAddRefDll p_LdrAddRefDll;
+_RtlImageNtHeader p_RtlImageNtHeader;
+_CryptCATAdminCalcHashFromFileHandle p_CryptCATAdminCalcHashFromFileHandle;
 
-#define MAX_MD5_HASH_TABLE 16
+#define MAX_LOCKED_THREAD 16
+#define MAX_TRUSTED_FILENAME_TABLE 16
+#define MAX_TRUSTED_MD5_HASH_TABLE 16
 
-BYTE g_MD5HashTable[MAX_MD5_HASH_TABLE][16];
+DWORD g_LockedThread[MAX_LOCKED_THREAD];
+WCHAR* g_pTrustedFilenameTable[MAX_TRUSTED_FILENAME_TABLE];
+BYTE g_TrustedMD5HashTable[MAX_TRUSTED_MD5_HASH_TABLE][16];
 
 // 以下フック関数
 // フック対象を呼び出す場合は前後でSTART_HOOK_FUNCTIONとEND_HOOK_FUNCTIONを実行する必要がある
@@ -92,84 +106,142 @@ BYTE g_MD5HashTable[MAX_MD5_HASH_TABLE][16];
 HMODULE WINAPI h_LoadLibraryA(LPCSTR lpLibFileName)
 {
 	HMODULE r = NULL;
-	if(GetModuleHandleA(lpLibFileName) || IsModuleTrustedA(lpLibFileName))
-	{
-		wchar_t* pw0 = NULL;
-		pw0 = DuplicateAtoW(lpLibFileName, -1);
-		r = System_LoadLibrary(pw0, NULL, 0);
-		FreeDuplicatedString(pw0);
-	}
+	wchar_t* pw0 = NULL;
+	if(pw0 = DuplicateAtoW(lpLibFileName, -1))
+		r = LoadLibraryExW(pw0, NULL, 0);
+	FreeDuplicatedString(pw0);
 	return r;
 }
 
 HMODULE WINAPI h_LoadLibraryW(LPCWSTR lpLibFileName)
 {
 	HMODULE r = NULL;
-	if(GetModuleHandleW(lpLibFileName) || IsModuleTrustedW(lpLibFileName))
-		r = System_LoadLibrary(lpLibFileName, NULL, 0);
+	r = LoadLibraryExW(lpLibFileName, NULL, 0);
 	return r;
 }
 
 HMODULE WINAPI h_LoadLibraryExA(LPCSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
 {
 	HMODULE r = NULL;
-	if(GetModuleHandleA(lpLibFileName) || IsModuleTrustedA(lpLibFileName))
-	{
-		wchar_t* pw0 = NULL;
-		pw0 = DuplicateAtoW(lpLibFileName, -1);
-		r = System_LoadLibrary(pw0, hFile, dwFlags);
-		FreeDuplicatedString(pw0);
-	}
+	wchar_t* pw0 = NULL;
+	if(pw0 = DuplicateAtoW(lpLibFileName, -1))
+		r = LoadLibraryExW(pw0, hFile, dwFlags);
+	FreeDuplicatedString(pw0);
 	return r;
 }
 
 HMODULE WINAPI h_LoadLibraryExW(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
 {
 	HMODULE r = NULL;
-	if(GetModuleHandleW(lpLibFileName) || IsModuleTrustedW(lpLibFileName))
+	BOOL bTrusted;
+	wchar_t* pw0;
+	HANDLE hLock;
+	HMODULE hModule;
+	DWORD Length;
+	bTrusted = FALSE;
+	pw0 = NULL;
+	hLock = NULL;
+//	if(dwFlags & (DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE | LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE))
+	if(dwFlags & (DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE | 0x00000020 | 0x00000040))
+		bTrusted = TRUE;
+	if(!bTrusted)
+	{
+		if(hModule = System_LoadLibrary(lpLibFileName, NULL, DONT_RESOLVE_DLL_REFERENCES))
+		{
+			Length = MAX_PATH;
+			if(pw0 = AllocateStringW(Length))
+			{
+				if(GetModuleFileNameW(hModule, pw0, Length) > 0)
+				{
+					while(pw0)
+					{
+						if(GetModuleFileNameW(hModule, pw0, Length) + 1 <= Length)
+						{
+							lpLibFileName = pw0;
+							break;
+						}
+						Length = Length * 2;
+						FreeDuplicatedString(pw0);
+						pw0 = AllocateStringW(Length);
+					}
+				}
+			}
+			hLock = LockExistingFile(lpLibFileName);
+			FreeLibrary(hModule);
+		}
+		if(GetModuleHandleW(lpLibFileName))
+			bTrusted = TRUE;
+	}
+	if(!bTrusted)
+	{
+		if(LockThreadLock())
+		{
+			if(hLock)
+			{
+				if(IsModuleTrusted(lpLibFileName))
+					bTrusted = TRUE;
+			}
+			UnlockThreadLock();
+		}
+	}
+	if(bTrusted)
 		r = System_LoadLibrary(lpLibFileName, hFile, dwFlags);
+	FreeDuplicatedString(pw0);
+	if(hLock)
+		CloseHandle(hLock);
 	return r;
 }
 
 // 以下ヘルパー関数
 
-BOOL GetMD5HashOfFile(LPCWSTR Filename, void* pHash)
+BOOL LockThreadLock()
 {
 	BOOL bResult;
-	HCRYPTPROV hProv;
-	HCRYPTHASH hHash;
-	HANDLE hFile;
-	DWORD Size;
-	void* pData;
-	DWORD dw;
+	DWORD ThreadId;
+	DWORD i;
 	bResult = FALSE;
-	if(CryptAcquireContextW(&hProv, NULL, NULL, PROV_RSA_FULL, 0) || CryptAcquireContextW(&hProv, NULL, NULL, PROV_RSA_FULL, CRYPT_NEWKEYSET))
+	ThreadId = GetCurrentThreadId();
+	i = 0;
+	while(i < MAX_LOCKED_THREAD)
 	{
-		if(CryptCreateHash(hProv, CALG_MD5, 0, 0, &hHash))
+		if(g_LockedThread[i] == ThreadId)
+			break;
+		i++;
+	}
+	if(i >= MAX_LOCKED_THREAD)
+	{
+		i = 0;
+		while(i < MAX_LOCKED_THREAD)
 		{
-			if((hFile = CreateFileW(Filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+			if(g_LockedThread[i] == 0)
 			{
-				Size = GetFileSize(hFile, NULL);
-				if(pData = VirtualAlloc(NULL, Size, MEM_COMMIT, PAGE_READWRITE))
-				{
-					VirtualLock(pData, Size);
-					if(ReadFile(hFile, pData, Size, &dw, NULL))
-					{
-						if(CryptHashData(hHash, (BYTE*)pData, Size, 0))
-						{
-							dw = 16;
-							if(CryptGetHashParam(hHash, HP_HASHVAL, (BYTE*)pHash, &dw, 0))
-								bResult = TRUE;
-						}
-					}
-					VirtualUnlock(pData, Size);
-					VirtualFree(pData, Size, MEM_DECOMMIT);
-				}
-				CloseHandle(hFile);
+				g_LockedThread[i] = ThreadId;
+				bResult = TRUE;
+				break;
 			}
-			CryptDestroyHash(hHash);
+			i++;
 		}
-		CryptReleaseContext(hProv, 0);
+	}
+	return bResult;
+}
+
+BOOL UnlockThreadLock()
+{
+	BOOL bResult;
+	DWORD ThreadId;
+	DWORD i;
+	bResult = FALSE;
+	ThreadId = GetCurrentThreadId();
+	i = 0;
+	while(i < MAX_LOCKED_THREAD)
+	{
+		if(g_LockedThread[i] == ThreadId)
+		{
+			g_LockedThread[i] = 0;
+			bResult = TRUE;
+			break;
+		}
+		i++;
 	}
 	return bResult;
 }
@@ -287,43 +359,378 @@ BOOL HookFunctionInIAT(void* pOriginal, void* pNew)
 }
 #endif
 
+// ファイルを変更不能に設定
+HANDLE LockExistingFile(LPCWSTR Filename)
+{
+	HANDLE hResult;
+	hResult = NULL;
+	if((hResult = CreateFileW(Filename, 0, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL)) == INVALID_HANDLE_VALUE)
+		hResult = NULL;
+	return hResult;
+}
+
+// DLLのハッシュを検索
+BOOL FindTrustedModuleMD5Hash(void* pHash)
+{
+	BOOL bResult;
+	int i;
+	bResult = FALSE;
+	i = 0;
+	while(i < MAX_TRUSTED_MD5_HASH_TABLE)
+	{
+		if(memcmp(&g_TrustedMD5HashTable[i], pHash, 16) == 0)
+		{
+			bResult = TRUE;
+			break;
+		}
+		i++;
+	}
+	return bResult;
+}
+
+// ファイルの署名を確認
+BOOL VerifyFileSignature(LPCWSTR Filename)
+{
+	BOOL bResult;
+	GUID g = WINTRUST_ACTION_GENERIC_VERIFY_V2;
+	WINTRUST_FILE_INFO wfi;
+	WINTRUST_DATA wd;
+	bResult = FALSE;
+	ZeroMemory(&wfi, sizeof(WINTRUST_FILE_INFO));
+	wfi.cbStruct = sizeof(WINTRUST_FILE_INFO);
+	wfi.pcwszFilePath = Filename;
+	ZeroMemory(&wd, sizeof(WINTRUST_DATA));
+	wd.cbStruct = sizeof(WINTRUST_DATA);
+	wd.dwUIChoice = WTD_UI_NONE;
+	wd.dwUnionChoice = WTD_CHOICE_FILE;
+	wd.pFile = &wfi;
+	if(WinVerifyTrust((HWND)INVALID_HANDLE_VALUE, &g, &wd) == ERROR_SUCCESS)
+		bResult = TRUE;
+	return bResult;
+}
+
+// ファイルの署名をカタログファイルで確認
+BOOL VerifyFileSignatureInCatalog(LPCWSTR Catalog, LPCWSTR Filename)
+{
+	BOOL bResult;
+	GUID g = WINTRUST_ACTION_GENERIC_VERIFY_V2;
+	WINTRUST_CATALOG_INFO wci;
+	WINTRUST_DATA wd;
+	bResult = FALSE;
+	if(VerifyFileSignature(Catalog))
+	{
+		ZeroMemory(&wci, sizeof(WINTRUST_CATALOG_INFO));
+		wci.cbStruct = sizeof(WINTRUST_CATALOG_INFO);
+		wci.pcwszCatalogFilePath = Catalog;
+		wci.pcwszMemberFilePath = Filename;
+		if((wci.hMemberFile = CreateFileW(Filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
+		{
+			p_CryptCATAdminCalcHashFromFileHandle(wci.hMemberFile, &wci.cbCalculatedFileHash, NULL, 0);
+			if(wci.pbCalculatedFileHash = (BYTE*)malloc(wci.cbCalculatedFileHash))
+			{
+				if(p_CryptCATAdminCalcHashFromFileHandle(wci.hMemberFile, &wci.cbCalculatedFileHash, wci.pbCalculatedFileHash, 0))
+				{
+					ZeroMemory(&wd, sizeof(WINTRUST_DATA));
+					wd.cbStruct = sizeof(WINTRUST_DATA);
+					wd.dwUIChoice = WTD_UI_NONE;
+					wd.dwUnionChoice = WTD_CHOICE_CATALOG;
+					wd.pCatalog = &wci;
+					if(WinVerifyTrust((HWND)INVALID_HANDLE_VALUE, &g, &wd) == ERROR_SUCCESS)
+						bResult = TRUE;
+				}
+				free(wci.pbCalculatedFileHash);
+			}
+			CloseHandle(wci.hMemberFile);
+		}
+	}
+	return bResult;
+}
+
+BOOL WINAPI GetSHA1HashOfModule_Function(DIGEST_HANDLE refdata, PBYTE pData, DWORD dwLength)
+{
+	return CryptHashData(*(HCRYPTHASH*)refdata, pData, dwLength, 0);
+}
+
+// モジュールのSHA1ハッシュを取得
+// マニフェストファイルのfile要素のhash属性は実行可能ファイルの場合にImageGetDigestStreamで算出される
+BOOL GetSHA1HashOfModule(LPCWSTR Filename, void* pHash)
+{
+	BOOL bResult;
+	HCRYPTPROV hProv;
+	HCRYPTHASH hHash;
+	HANDLE hFile;
+	DWORD dw;
+	bResult = FALSE;
+	if(CryptAcquireContextW(&hProv, NULL, NULL, PROV_RSA_FULL, 0) || CryptAcquireContextW(&hProv, NULL, NULL, PROV_RSA_FULL, CRYPT_NEWKEYSET))
+	{
+		if(CryptCreateHash(hProv, CALG_SHA1, 0, 0, &hHash))
+		{
+			if((hFile = CreateFileW(Filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+			{
+				if(ImageGetDigestStream(hFile, CERT_PE_IMAGE_DIGEST_ALL_IMPORT_INFO, GetSHA1HashOfModule_Function, (DIGEST_HANDLE)&hHash))
+				{
+					dw = 20;
+					if(CryptGetHashParam(hHash, HP_HASHVAL, (BYTE*)pHash, &dw, 0))
+						bResult = TRUE;
+				}
+				CloseHandle(hFile);
+			}
+			CryptDestroyHash(hHash);
+		}
+		CryptReleaseContext(hProv, 0);
+	}
+	return bResult;
+}
+
+BOOL IsSxsModuleTrusted_Function(LPCWSTR Catalog, LPCWSTR Manifest, LPCWSTR Module)
+{
+	BOOL bResult;
+	HANDLE hLock0;
+	HANDLE hLock1;
+	BYTE Hash[20];
+	int i;
+	static char HexTable[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+	char HashHex[41];
+	HANDLE hFile;
+	DWORD Size;
+	char* pData;
+	DWORD dw;
+	bResult = FALSE;
+	if(hLock0 = LockExistingFile(Catalog))
+	{
+		if(hLock1 = LockExistingFile(Manifest))
+		{
+			if(VerifyFileSignatureInCatalog(Catalog, Manifest))
+			{
+				if(GetSHA1HashOfModule(Module, &Hash))
+				{
+					for(i = 0; i < 20; i++)
+					{
+						HashHex[i * 2] = HexTable[(Hash[i] >> 4) & 0x0f];
+						HashHex[i * 2 + 1] = HexTable[Hash[i] & 0x0f];
+					}
+					HashHex[i * 2] = '\0';
+					if((hFile = CreateFileW(Manifest, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
+					{
+						Size = GetFileSize(hFile, NULL);
+						if(pData = (char*)VirtualAlloc(NULL, Size + 1, MEM_COMMIT, PAGE_READWRITE))
+						{
+							VirtualLock(pData, Size + 1);
+							if(ReadFile(hFile, pData, Size, &dw, NULL))
+							{
+								pData[dw] = '\0';
+								if(strstr(pData, HashHex))
+									bResult = TRUE;
+							}
+							VirtualUnlock(pData, Size + 1);
+							VirtualFree(pData, Size + 1, MEM_DECOMMIT);
+						}
+						CloseHandle(hFile);
+					}
+				}
+			}
+			CloseHandle(hLock1);
+		}
+		CloseHandle(hLock0);
+	}
+	return bResult;
+}
+
+// サイドバイサイドDLLを確認
+// パスは"%SystemRoot%\WinSxS"以下を想定
+// 以下のファイルが存在するものとする
+// "\xxx\yyy.dll"、"\manifests\xxx.cat"、"\manifests\xxx.manifest"のセット（XPの全てのDLL、Vista以降の一部のDLL）
+// "\xxx\yyy.dll"、"\catalogs\zzz.cat"、"\manifests\xxx.manifest"のセット（Vista以降のほとんどのDLL）
+// 署名されたカタログファイルを用いてマニフェストファイルが改竄されていないことを確認
+// ハッシュ値は	マニフェストファイルのfile要素のhash属性に記述されているものを用いる
+// マニフェストファイル内にSHA1ハッシュ値の16進数表記を直接検索しているが確率的に問題なし
+BOOL IsSxsModuleTrusted(LPCWSTR Filename)
+{
+	BOOL bResult;
+	wchar_t* pw0;
+	wchar_t* pw1;
+	wchar_t* pw2;
+	wchar_t* pw3;
+	wchar_t* pw4;
+	wchar_t* pw5;
+	wchar_t* p;
+	HANDLE hFind;
+	WIN32_FIND_DATAW wfd;
+	bResult = FALSE;
+	if(pw0 = AllocateStringW(wcslen(Filename) + 1))
+	{
+		wcscpy(pw0, Filename);
+		if(p = wcsrchr(pw0, L'\\'))
+		{
+			wcscpy(p, L"");
+			if(p = wcsrchr(pw0, L'\\'))
+			{
+				p++;
+				if(pw1 = AllocateStringW(wcslen(p) + 1))
+				{
+					wcscpy(pw1, p);
+					wcscpy(p, L"");
+					if(pw2 = AllocateStringW(wcslen(pw0) + wcslen(L"manifests\\") + wcslen(pw1) + wcslen(L".cat") + 1))
+					{
+						wcscpy(pw2, pw0);
+						wcscat(pw2, L"manifests\\");
+						wcscat(pw2, pw1);
+						if(pw3 = AllocateStringW(wcslen(pw2) + wcslen(L".manifest") + 1))
+						{
+							wcscpy(pw3, pw2);
+							wcscat(pw3, L".manifest");
+							wcscat(pw2, L".cat");
+							if(IsSxsModuleTrusted_Function(pw2, pw3, Filename))
+								bResult = TRUE;
+							FreeDuplicatedString(pw3);
+						}
+						FreeDuplicatedString(pw2);
+					}
+					if(!bResult)
+					{
+						if(pw2 = AllocateStringW(wcslen(pw0) + wcslen(L"catalogs\\") + 1))
+						{
+							if(pw3 = AllocateStringW(wcslen(pw0) + wcslen(L"manifests\\") + wcslen(pw1) + wcslen(L".manifest") + 1))
+							{
+								wcscpy(pw2, pw0);
+								wcscat(pw2, L"catalogs\\");
+								wcscpy(pw3, pw0);
+								wcscat(pw3, L"manifests\\");
+								wcscat(pw3, pw1);
+								wcscat(pw3, L".manifest");
+								if(pw4 = AllocateStringW(wcslen(pw2) + wcslen(L"*.cat") + 1))
+								{
+									wcscpy(pw4, pw2);
+									wcscat(pw4, L"*.cat");
+									if((hFind = FindFirstFileW(pw4, &wfd)) != INVALID_HANDLE_VALUE)
+									{
+										do
+										{
+											if(pw5 = AllocateStringW(wcslen(pw2) + wcslen(wfd.cFileName) + 1))
+											{
+												wcscpy(pw5, pw2);
+												wcscat(pw5, wfd.cFileName);
+												if(IsSxsModuleTrusted_Function(pw5, pw3, Filename))
+													bResult = TRUE;
+												FreeDuplicatedString(pw5);
+											}
+										}
+										while(!bResult && FindNextFileW(hFind, &wfd));
+										FindClose(hFind);
+									}
+									FreeDuplicatedString(pw4);
+								}
+								FreeDuplicatedString(pw3);
+							}
+							FreeDuplicatedString(pw2);
+						}
+					}
+					FreeDuplicatedString(pw1);
+				}
+			}
+		}
+		FreeDuplicatedString(pw0);
+	}
+	return bResult;
+}
+
+// DLLを確認
+// ハッシュが登録されている、Authenticode署名がされている、またはWFPによる保護下にあることを確認
+BOOL IsModuleTrusted(LPCWSTR Filename)
+{
+	BOOL bResult;
+	BYTE Hash[16];
+	bResult = FALSE;
+	if(GetMD5HashOfFile(Filename, &Hash))
+	{
+		if(FindTrustedModuleMD5Hash(&Hash))
+			bResult = TRUE;
+	}
+	if(!bResult)
+	{
+		if(VerifyFileSignature(Filename))
+			bResult = TRUE;
+	}
+	if(!bResult)
+	{
+		if(IsSxsModuleTrusted(Filename))
+			bResult = TRUE;
+	}
+	if(!bResult)
+	{
+		if(SfcIsFileProtected(NULL, Filename))
+			bResult = TRUE;
+	}
+	return bResult;
+}
+
 // kernel32.dllのLoadLibraryExW相当の関数
+// ドキュメントが無いため詳細は不明
+// 一部のウィルス対策ソフト（Avast!等）がLdrLoadDllをフックしているためLdrLoadDllを書き換えるべきではない
+// カーネルモードのコードに対しては効果なし
+// SeDebugPrivilegeが使用可能なユーザーに対しては効果なし
 HMODULE System_LoadLibrary(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
 {
 	HMODULE r = NULL;
 	UNICODE_STRING us;
+	HANDLE hDataFile;
+	HANDLE hMapping;
+	DWORD DllFlags;
 	us.Length = sizeof(wchar_t) * wcslen(lpLibFileName);
 	us.MaximumLength = sizeof(wchar_t) * (wcslen(lpLibFileName) + 1);
 	us.Buffer = (PWSTR)lpLibFileName;
-	if(dwFlags & LOAD_LIBRARY_AS_DATAFILE)
+//	if(dwFlags & (LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE))
+	if(dwFlags & (LOAD_LIBRARY_AS_DATAFILE | 0x00000040))
 	{
-//		if(p_LdrGetDllHandle(NULL, dwFlags, &us, &r) == 0)
-		if(p_LdrGetDllHandle(NULL, &dwFlags, &us, &r) == 0)
+//		if(p_LdrGetDllHandle(NULL, NULL, &us, &r) == STATUS_SUCCESS)
+		if(p_LdrGetDllHandle(NULL, NULL, &us, &r) == 0)
 		{
-			if(p_LdrAddRefDll)
-				p_LdrAddRefDll(0, r);
+//			dwFlags &= ~(LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE);
+			dwFlags &= ~(LOAD_LIBRARY_AS_DATAFILE | 0x00000040);
+			dwFlags |= DONT_RESOLVE_DLL_REFERENCES;
 		}
 		else
 		{
-			dwFlags |= DONT_RESOLVE_DLL_REFERENCES;
-//			if(p_LdrLoadDll(NULL, dwFlags, &us, &r) == 0)
-			if(p_LdrLoadDll(NULL, &dwFlags, &us, &r) == 0)
+//			if(dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE)
+			if(dwFlags & 0x00000040)
+				hDataFile = CreateFileW(lpLibFileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+			else
+				hDataFile = CreateFileW(lpLibFileName, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, 0, NULL);
+			if(hDataFile != INVALID_HANDLE_VALUE)
 			{
+				if(hMapping = CreateFileMappingW(hDataFile, NULL, PAGE_READONLY, 0, 0, NULL))
+				{
+					if(r = (HMODULE)MapViewOfFileEx(hMapping, FILE_MAP_READ, 0, 0, 0, NULL))
+					{
+						if(p_RtlImageNtHeader(r))
+							r = (HMODULE)((size_t)r | 1);
+						else
+						{
+							UnmapViewOfFile(r);
+							r = NULL;
+						}
+					}
+					CloseHandle(hMapping);
+				}
+				CloseHandle(hDataFile);
 			}
 			else
-				r = NULL;
+			{
+//				dwFlags &= ~(LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE);
+				dwFlags &= ~(LOAD_LIBRARY_AS_DATAFILE | 0x00000040);
+				dwFlags |= DONT_RESOLVE_DLL_REFERENCES;
+			}
 		}
 	}
-	else
+//	if(!(dwFlags & (LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE)))
+	if(!(dwFlags & (LOAD_LIBRARY_AS_DATAFILE | 0x00000040)))
 	{
-//		if(p_LdrGetDllHandle(NULL, dwFlags, &us, &r) == 0)
-		if(p_LdrGetDllHandle(NULL, &dwFlags, &us, &r) == 0)
-		{
-			if(p_LdrAddRefDll)
-				p_LdrAddRefDll(0, r);
-		}
-//		else if(p_LdrLoadDll(NULL, dwFlags, &us, &r) == 0)
-		else if(p_LdrLoadDll(NULL, &dwFlags, &us, &r) == 0)
+		DllFlags = 0;
+//		if(dwFlags & (DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_IMAGE_RESOURCE))
+		if(dwFlags & (DONT_RESOLVE_DLL_REFERENCES | 0x00000020))
+			DllFlags |= 0x00000002;
+//		if(p_LdrLoadDll(NULL, &DllFlags, &us, &r) == STATUS_SUCCESS)
+		if(p_LdrLoadDll(NULL, &DllFlags, &us, &r) == 0)
 		{
 		}
 		else
@@ -332,23 +739,65 @@ HMODULE System_LoadLibrary(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
 	return r;
 }
 
+// ファイルのMD5ハッシュを取得
+BOOL GetMD5HashOfFile(LPCWSTR Filename, void* pHash)
+{
+	BOOL bResult;
+	HCRYPTPROV hProv;
+	HCRYPTHASH hHash;
+	HANDLE hFile;
+	DWORD Size;
+	void* pData;
+	DWORD dw;
+	bResult = FALSE;
+	if(CryptAcquireContextW(&hProv, NULL, NULL, PROV_RSA_FULL, 0) || CryptAcquireContextW(&hProv, NULL, NULL, PROV_RSA_FULL, CRYPT_NEWKEYSET))
+	{
+		if(CryptCreateHash(hProv, CALG_MD5, 0, 0, &hHash))
+		{
+			if((hFile = CreateFileW(Filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+			{
+				Size = GetFileSize(hFile, NULL);
+				if(pData = VirtualAlloc(NULL, Size, MEM_COMMIT, PAGE_READWRITE))
+				{
+					VirtualLock(pData, Size);
+					if(ReadFile(hFile, pData, Size, &dw, NULL))
+					{
+						if(CryptHashData(hHash, (BYTE*)pData, Size, 0))
+						{
+							dw = 16;
+							if(CryptGetHashParam(hHash, HP_HASHVAL, (BYTE*)pHash, &dw, 0))
+								bResult = TRUE;
+						}
+					}
+					VirtualUnlock(pData, Size);
+					VirtualFree(pData, Size, MEM_DECOMMIT);
+				}
+				CloseHandle(hFile);
+			}
+			CryptDestroyHash(hHash);
+		}
+		CryptReleaseContext(hProv, 0);
+	}
+	return bResult;
+}
+
 // DLLのハッシュを登録
-BOOL RegisterModuleMD5Hash(void* pHash)
+BOOL RegisterTrustedModuleMD5Hash(void* pHash)
 {
 	BOOL bResult;
 	BYTE NullHash[16] = {0};
 	int i;
 	bResult = FALSE;
-	if(FindModuleMD5Hash(pHash))
+	if(FindTrustedModuleMD5Hash(pHash))
 		bResult = TRUE;
 	else
 	{
 		i = 0;
-		while(i < MAX_MD5_HASH_TABLE)
+		while(i < MAX_TRUSTED_MD5_HASH_TABLE)
 		{
-			if(memcmp(&g_MD5HashTable[i], &NullHash, 16) == 0)
+			if(memcmp(&g_TrustedMD5HashTable[i], &NullHash, 16) == 0)
 			{
-				memcpy(&g_MD5HashTable[i], pHash, 16);
+				memcpy(&g_TrustedMD5HashTable[i], pHash, 16);
 				bResult = TRUE;
 				break;
 			}
@@ -359,18 +808,18 @@ BOOL RegisterModuleMD5Hash(void* pHash)
 }
 
 // DLLのハッシュの登録を解除
-BOOL UnregisterModuleMD5Hash(void* pHash)
+BOOL UnregisterTrustedModuleMD5Hash(void* pHash)
 {
 	BOOL bResult;
 	BYTE NullHash[16] = {0};
 	int i;
 	bResult = FALSE;
 	i = 0;
-	while(i < MAX_MD5_HASH_TABLE)
+	while(i < MAX_TRUSTED_MD5_HASH_TABLE)
 	{
-		if(memcmp(&g_MD5HashTable[i], pHash, 16) == 0)
+		if(memcmp(&g_TrustedMD5HashTable[i], pHash, 16) == 0)
 		{
-			memcpy(&g_MD5HashTable[i], &NullHash, 16);
+			memcpy(&g_TrustedMD5HashTable[i], &NullHash, 16);
 			bResult = TRUE;
 			break;
 		}
@@ -379,144 +828,157 @@ BOOL UnregisterModuleMD5Hash(void* pHash)
 	return bResult;
 }
 
-// DLLのハッシュを検索
-BOOL FindModuleMD5Hash(void* pHash)
+// 信頼できないDLLをアンロード
+BOOL UnloadUntrustedModule()
 {
 	BOOL bResult;
-	int i;
+	wchar_t* pw0;
+	HANDLE hSnapshot;
+	MODULEENTRY32 me;
+	DWORD Length;
 	bResult = FALSE;
-	i = 0;
-	while(i < MAX_MD5_HASH_TABLE)
+	pw0 = NULL;
+	if((hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId())) != INVALID_HANDLE_VALUE)
 	{
-		if(memcmp(&g_MD5HashTable[i], pHash, 16) == 0)
+		bResult = TRUE;
+		me.dwSize = sizeof(MODULEENTRY32);
+		if(Module32First(hSnapshot, &me))
 		{
-			bResult = TRUE;
-			break;
+			do
+			{
+				Length = MAX_PATH;
+				FreeDuplicatedString(pw0);
+				if(pw0 = AllocateStringW(Length))
+				{
+					if(GetModuleFileNameW(me.hModule, pw0, Length) > 0)
+					{
+						while(pw0)
+						{
+							if(GetModuleFileNameW(me.hModule, pw0, Length) + 1 <= Length)
+								break;
+							Length = Length * 2;
+							FreeDuplicatedString(pw0);
+							pw0 = AllocateStringW(Length);
+						}
+					}
+				}
+				if(pw0)
+				{
+					if(!IsModuleTrusted(pw0))
+					{
+						if(me.hModule != GetModuleHandleW(NULL))
+						{
+							while(FreeLibrary(me.hModule))
+							{
+							}
+							if(GetModuleFileNameW(me.hModule, pw0, Length) > 0)
+							{
+								bResult = FALSE;
+								break;
+							}
+						}
+					}
+				}
+				else
+				{
+					bResult = FALSE;
+					break;
+				}
+			}
+			while(Module32Next(hSnapshot, &me));
 		}
-		i++;
+		CloseHandle(hSnapshot);
 	}
-	return bResult;
-}
-
-// DLLを確認
-// ハッシュが登録されている、Authenticode署名がされている、またはWFPによる保護下にあることを確認
-BOOL IsModuleTrustedA(LPCSTR Filename)
-{
-	BOOL r = FALSE;
-	wchar_t* pw0 = NULL;
-	pw0 = DuplicateAtoW(Filename, -1);
-	r = IsModuleTrustedW(pw0);
 	FreeDuplicatedString(pw0);
-	return r;
-}
-
-// DLLを確認
-// ハッシュが登録されている、Authenticode署名がされている、またはWFPによる保護下にあることを確認
-BOOL IsModuleTrustedW(LPCWSTR Filename)
-{
-	BOOL bResult;
-	WCHAR Path[MAX_PATH];
-	LPWSTR p;
-	BYTE Hash[16];
-	GUID g = WINTRUST_ACTION_GENERIC_VERIFY_V2;
-	WINTRUST_FILE_INFO wfi;
-	WINTRUST_DATA wd;
-	bResult = FALSE;
-	if(wcsrchr(Filename, '.') > wcsrchr(Filename, '\\'))
-	{
-		if(SearchPathW(NULL, Filename, NULL, MAX_PATH, Path, &p) > 0)
-			Filename = Path;
-	}
-	else
-	{
-		if(SearchPathW(NULL, Filename, L".dll", MAX_PATH, Path, &p) > 0)
-			Filename = Path;
-	}
-	if(GetMD5HashOfFile(Filename, &Hash))
-	{
-		if(FindModuleMD5Hash(&Hash))
-			bResult = TRUE;
-	}
-	if(!bResult)
-	{
-		ZeroMemory(&wfi, sizeof(WINTRUST_FILE_INFO));
-		wfi.cbStruct = sizeof(WINTRUST_FILE_INFO);
-		wfi.pcwszFilePath = Filename;
-		ZeroMemory(&wd, sizeof(WINTRUST_DATA));
-		wd.cbStruct = sizeof(WINTRUST_DATA);
-		wd.dwUIChoice = WTD_UI_NONE;
-		wd.dwUnionChoice = WTD_CHOICE_FILE;
-		wd.pFile = &wfi;
-		if(WinVerifyTrust((HWND)INVALID_HANDLE_VALUE, &g, &wd) == ERROR_SUCCESS)
-			bResult = TRUE;
-	}
-	if(!bResult)
-	{
-		if(SfcIsFileProtected(NULL, Filename))
-			bResult = TRUE;
-	}
-//	if(!bResult)
-//	{
-//		WCHAR Temp[MAX_PATH + 128];
-//		_swprintf(Temp, L"Untrusted module was detected! \"%s\"\n", Filename);
-//		OutputDebugStringW(Temp);
-//	}
 	return bResult;
 }
 
 // 関数ポインタを使用可能な状態に初期化
 BOOL InitializeLoadLibraryHook()
 {
+	BOOL bResult;
 	HMODULE hModule;
-	hModule = GetModuleHandleW(L"kernel32.dll");
-	GET_FUNCTION(hModule, LoadLibraryA);
-	GET_FUNCTION(hModule, LoadLibraryW);
-	GET_FUNCTION(hModule, LoadLibraryExA);
-	GET_FUNCTION(hModule, LoadLibraryExW);
-	hModule = GetModuleHandleW(L"ntdll.dll");
-	GET_FUNCTION(hModule, LdrLoadDll);
-	GET_FUNCTION(hModule, LdrGetDllHandle);
-	GET_FUNCTION(hModule, LdrAddRefDll);
-	return TRUE;
+	bResult = TRUE;
+	if(!(hModule = GetModuleHandleW(L"kernel32.dll")))
+		bResult = FALSE;
+	if(!(GET_FUNCTION(hModule, LoadLibraryA)))
+		bResult = FALSE;
+	if(!(GET_FUNCTION(hModule, LoadLibraryW)))
+		bResult = FALSE;
+	if(!(GET_FUNCTION(hModule, LoadLibraryExA)))
+		bResult = FALSE;
+	if(!(GET_FUNCTION(hModule, LoadLibraryExW)))
+		bResult = FALSE;
+	if(!(hModule = GetModuleHandleW(L"ntdll.dll")))
+		bResult = FALSE;
+	if(!(GET_FUNCTION(hModule, LdrLoadDll)))
+		bResult = FALSE;
+	if(!(GET_FUNCTION(hModule, LdrGetDllHandle)))
+		bResult = FALSE;
+	if(!(GET_FUNCTION(hModule, RtlImageNtHeader)))
+		bResult = FALSE;
+	if(!(hModule = LoadLibraryW(L"wintrust.dll")))
+		bResult = FALSE;
+	if(!(GET_FUNCTION(hModule, CryptCATAdminCalcHashFromFileHandle)))
+		bResult = FALSE;
+	return bResult;
 }
 
 // SetWindowsHookEx対策
 // DLL Injectionされた場合は上のh_LoadLibrary系関数でトラップ可能
 BOOL EnableLoadLibraryHook(BOOL bEnable)
 {
+	BOOL bResult;
+	bResult = FALSE;
 	if(bEnable)
 	{
-		// 検証に必要なDLLの遅延読み込み回避
-		IsModuleTrustedA("");
+		bResult = TRUE;
 #ifdef USE_CODE_HOOK
-		SET_HOOK_FUNCTION(LoadLibraryA);
-		SET_HOOK_FUNCTION(LoadLibraryW);
-		SET_HOOK_FUNCTION(LoadLibraryExA);
-		SET_HOOK_FUNCTION(LoadLibraryExW);
+		if(!SET_HOOK_FUNCTION(LoadLibraryA))
+			bResult = FALSE;
+		if(!SET_HOOK_FUNCTION(LoadLibraryW))
+			bResult = FALSE;
+		if(!SET_HOOK_FUNCTION(LoadLibraryExA))
+			bResult = FALSE;
+		if(!SET_HOOK_FUNCTION(LoadLibraryExW))
+			bResult = FALSE;
 #endif
 #ifdef USE_IAT_HOOK
-		HookFunctionInIAT(p_LoadLibraryA, h_LoadLibraryA);
-		HookFunctionInIAT(p_LoadLibraryW, h_LoadLibraryW);
-		HookFunctionInIAT(p_LoadLibraryExA, h_LoadLibraryExA);
-		HookFunctionInIAT(p_LoadLibraryExW, h_LoadLibraryExW);
+		if(!HookFunctionInIAT(p_LoadLibraryA, h_LoadLibraryA))
+			bResult = FALSE;
+		if(!HookFunctionInIAT(p_LoadLibraryW, h_LoadLibraryW))
+			bResult = FALSE;
+		if(!HookFunctionInIAT(p_LoadLibraryExA, h_LoadLibraryExA))
+			bResult = FALSE;
+		if(!HookFunctionInIAT(p_LoadLibraryExW, h_LoadLibraryExW))
+			bResult = FALSE;
 #endif
 	}
 	else
 	{
+		bResult = TRUE;
 #ifdef USE_CODE_HOOK
-		END_HOOK_FUNCTION(LoadLibraryA);
-		END_HOOK_FUNCTION(LoadLibraryW);
-		END_HOOK_FUNCTION(LoadLibraryExA);
-		END_HOOK_FUNCTION(LoadLibraryExW);
+		if(!END_HOOK_FUNCTION(LoadLibraryA))
+			bResult = FALSE;
+		if(!END_HOOK_FUNCTION(LoadLibraryW))
+			bResult = FALSE;
+		if(!END_HOOK_FUNCTION(LoadLibraryExA))
+			bResult = FALSE;
+		if(!END_HOOK_FUNCTION(LoadLibraryExW))
+			bResult = FALSE;
 #endif
 #ifdef USE_IAT_HOOK
-		HookFunctionInIAT(h_LoadLibraryA, p_LoadLibraryA);
-		HookFunctionInIAT(h_LoadLibraryW, p_LoadLibraryW);
-		HookFunctionInIAT(h_LoadLibraryExA, p_LoadLibraryExA);
-		HookFunctionInIAT(h_LoadLibraryExW, p_LoadLibraryExW);
+		if(!HookFunctionInIAT(h_LoadLibraryA, p_LoadLibraryA))
+			bResult = FALSE;
+		if(!HookFunctionInIAT(h_LoadLibraryW, p_LoadLibraryW))
+			bResult = FALSE;
+		if(!HookFunctionInIAT(h_LoadLibraryExA, p_LoadLibraryExA))
+			bResult = FALSE;
+		if(!HookFunctionInIAT(h_LoadLibraryExW, p_LoadLibraryExW))
+			bResult = FALSE;
 #endif
 	}
-	return TRUE;
+	return bResult;
 }
 
 // ReadProcessMemory、WriteProcessMemory、CreateRemoteThread対策

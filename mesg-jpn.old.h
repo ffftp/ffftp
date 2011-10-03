@@ -318,3 +318,7 @@
 #define MSGJPN318		"OpenSSLが読み込まれました."
 #define MSGJPN319		"OpenSSLがインストールされていません.\r\n通信の暗号化は行われません."
 #define MSGJPN320		"特殊機能"
+#define MSGJPN321		"プロセスの保護に必要な関数を取得できませんでした."
+#define MSGJPN322		"デバッガが検出されました."
+#define MSGJPN323		"信頼できないDLLをアンロードできませんでした."
+#define MSGJPN324		"プロセスの保護に必要な関数をフックできませんでした."

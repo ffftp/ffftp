@@ -29,7 +29,8 @@
 
 #define  STRICT
 
-#define WINVER 0x400
+// UTF-8対応
+//#define WINVER 0x400
 
 #include <windows.h>
 #include <stdio.h>

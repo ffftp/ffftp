@@ -5,8 +5,6 @@
 // コンパイルにはOpenSSLのヘッダーファイルが必要
 // 実行にはOpenSSLのDLLが必要
 
-#define _WIN32_WINNT 0x0600
-
 #include <windows.h>
 #include <mmsystem.h>
 #include <openssl/ssl.h>
@@ -71,9 +69,9 @@ BOOL LoadOpenSSL()
 #ifdef ENABLE_PROCESS_PROTECTION
 	// ssleay32.dll 1.0.0e
 	// libssl32.dll 1.0.0e
-	RegisterModuleMD5Hash("\x8B\xA3\xB7\xB3\xCE\x2E\x4F\x07\x8C\xB8\x93\x7D\x77\xE1\x09\x3A");
+	RegisterTrustedModuleMD5Hash("\x8B\xA3\xB7\xB3\xCE\x2E\x4F\x07\x8C\xB8\x93\x7D\x77\xE1\x09\x3A");
 	// libeay32.dll 1.0.0e
-	RegisterModuleMD5Hash("\xA6\x4C\xAF\x9E\xF3\xDC\xFC\x68\xAE\xCA\xCC\x61\xD2\xF6\x70\x8B");
+	RegisterTrustedModuleMD5Hash("\xA6\x4C\xAF\x9E\xF3\xDC\xFC\x68\xAE\xCA\xCC\x61\xD2\xF6\x70\x8B");
 #endif
 	g_hOpenSSL = LoadLibrary("ssleay32.dll");
 	if(!g_hOpenSSL)

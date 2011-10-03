@@ -74,9 +74,6 @@ DWORD GetCurrentDirectoryM(DWORD nBufferLength, LPSTR lpBuffer);
 #undef SetCurrentDirectory
 #define SetCurrentDirectory SetCurrentDirectoryM
 BOOL SetCurrentDirectoryM(LPCSTR lpPathName);
-#undef SetDllDirectory
-#define SetDllDirectory SetDllDirectoryM
-BOOL SetDllDirectoryM(LPCSTR lpPathName);
 #undef GetTempPath
 #define GetTempPath GetTempPathM
 DWORD GetTempPathM(DWORD nBufferLength, LPSTR lpBuffer);

@@ -247,17 +247,37 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 			break;
 		}
 	}
-	InitializeLoadLibraryHook();
 	if(bProtect)
 	{
+		if(!InitializeLoadLibraryHook())
+		{
+			MessageBox(NULL, MSGJPN321, "FFFTP", MB_OK | MB_ICONERROR);
+			return 0;
+		}
 #ifndef _DEBUG
-		if(IsDebuggerPresent() || RestartProtectedProcess(" --restart"))
+		if(IsDebuggerPresent())
+		{
+			MessageBox(NULL, MSGJPN322, "FFFTP", MB_OK | MB_ICONERROR);
+			return 0;
+		}
+#endif
+		if(!UnloadUntrustedModule())
+		{
+			MessageBox(NULL, MSGJPN323, "FFFTP", MB_OK | MB_ICONERROR);
+			return 0;
+		}
+#ifndef _DEBUG
+		if(RestartProtectedProcess(" --restart"))
 			return 0;
 #endif
-		// DLLの検証の前にロードされている必要があるDLL
-		LoadLibrary("shell32.dll");
-		EnableLoadLibraryHook(TRUE);
+		if(!EnableLoadLibraryHook(TRUE))
+		{
+			MessageBox(NULL, MSGJPN324, "FFFTP", MB_OK | MB_ICONERROR);
+			return 0;
+		}
 	}
+	else
+		InitializeLoadLibraryHook();
 #endif
 
 #ifdef DISABLE_MULTI_CPUS

@@ -1531,6 +1531,10 @@ static int DispHostSetDlg(HWND hDlg)
 	PROPSHEETPAGE psp[7];
 	PROPSHEETHEADER psh;
 
+	// 変数が未初期化のバグ修正
+	memset(&psp, 0, sizeof(psp));
+	memset(&psh, 0, sizeof(psh));
+
 	psp[0].dwSize = sizeof(PROPSHEETPAGE);
 	psp[0].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[0].hInstance = GetFtpInst();
