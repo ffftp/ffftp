@@ -27,7 +27,8 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-#define WINVER 0x400
+// UTF-8対応
+//#define WINVER 0x400
 
 #define	STRICT
 #include <windows.h>

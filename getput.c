@@ -120,6 +120,8 @@ static HANDLE hListAccMutex;			/* 転送ファイルアクセス用ミューテ�
 
 static int TransFiles = 0;				/* 転送待ちファイル数 */
 static TRANSPACKET *TransPacketBase = NULL;	/* 転送ファイルリスト */
+// 同時接続対応
+static TRANSPACKET *NextTransPacketBase = NULL;
 
 // 同時接続対応
 //static int Canceled;		/* 中止フラグ YES/NO */
@@ -373,6 +375,9 @@ void AddTransFileList(TRANSPACKET *Pkt)
 			PostMessage(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 		}
 	}
+	// 同時接続対応
+	if(NextTransPacketBase == NULL)
+		NextTransPacketBase = TransPacketBase;
 	ReleaseMutex(hListAccMutex);
 
 	return;
@@ -413,6 +418,9 @@ void AppendTransFileList(TRANSPACKET *Pkt)
 			Pos = Pos->Next;
 		Pos->Next = Pkt;
 	}
+	// 同時接続対応
+	if(NextTransPacketBase == NULL)
+		NextTransPacketBase = TransPacketBase;
 
 	while(Pkt != NULL)
 	{
@@ -494,19 +502,26 @@ static void EraseTransFileList(void)
 		if(strcmp(New->Cmd, "BACKCUR") == 0)
 		{
 			if(NotDel != NULL)
-				free(NotDel);
+				// 同時接続対応
+//				free(NotDel);
+				strcpy(NotDel->Cmd, "");
 			NotDel = New;
 			New = New->Next;
-			NotDel->Next = NULL;
+			// 同時接続対応
+//			NotDel->Next = NULL;
 		}
 		else
 		{
 			Next = New->Next;
-			free(New);
+			// 同時接続対応
+//			free(New);
+			strcpy(New->Cmd, "");
 			New = Next;
 		}
 	}
 	TransPacketBase = NotDel;
+	// 同時接続対応
+	NextTransPacketBase = TransPacketBase;
 	TransFiles = 0;
 	PostMessage(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 	ReleaseMutex(hListAccMutex);
@@ -611,8 +626,10 @@ static ULONG WINAPI TransferThread(void *Dummy)
 	char Tmp[FMAX_PATH+1];
 	int CwdSts;
 	int GoExit;
-	int Down;
-	int Up;
+//	int Down;
+//	int Up;
+	static int Down;
+	static int Up;
 	int DelNotify;
 	int ThreadCount;
 	SOCKET CmdSkt;
@@ -650,6 +667,12 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //		Canceled = NO;
 		Canceled[ThreadCount] = NO;
 
+		while(TransPacketBase != NULL && strcmp(TransPacketBase->Cmd, "") == 0)
+		{
+			Pos = TransPacketBase;
+			TransPacketBase = TransPacketBase->Next;
+			free(Pos);
+		}
 		NewCmdSkt = AskCmdCtrlSkt();
 		if(TransPacketBase && NewCmdSkt != INVALID_SOCKET && ThreadCount < AskMaxThreadCount())
 		{
@@ -682,10 +705,10 @@ static ULONG WINAPI TransferThread(void *Dummy)
 		}
 		CmdSkt = NewCmdSkt;
 //		if(TransPacketBase != NULL)
-		if(TrnSkt != INVALID_SOCKET && TransPacketBase != NULL)
+		if(TrnSkt != INVALID_SOCKET && NextTransPacketBase != NULL)
 		{
-			Pos = TransPacketBase;
-			TransPacketBase = TransPacketBase->Next;
+			Pos = NextTransPacketBase;
+			NextTransPacketBase = NextTransPacketBase->Next;
 			// ディレクトリ操作は非同期で行わない
 //			ReleaseMutex(hListAccMutex);
 			if(hWndTrans == NULL)
@@ -1003,6 +1026,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					for(i = 0; i < MAX_DATA_CONNECTION; i++)
 						Canceled[i] = YES;
 					EraseTransFileList();
+					Pos = NULL;
 				}
 				else
 				{
@@ -1032,7 +1056,8 @@ static ULONG WINAPI TransferThread(void *Dummy)
 			}
 			if(hWndTrans != NULL)
 				SendMessage(hWndTrans, WM_SET_PACKET, 0, 0);
-			free(Pos);
+			if(Pos != NULL)
+				strcpy(Pos->Cmd, "");
 		}
 //		else
 		else if(TransPacketBase == NULL)
@@ -1047,20 +1072,20 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					DestroyWindow(hWndTrans);
 					hWndTrans = NULL;
 
-					if(GoExit == YES)
-					{
-						SoundPlay(SND_TRANS);
-
-						if(AskAutoExit() == NO)
-						{
-							if(Down == YES)
-								PostMessage(GetMainHwnd(), WM_REFRESH_LOCAL_FLG, 0, 0);
-							if(Up == YES)
-								PostMessage(GetMainHwnd(), WM_REFRESH_REMOTE_FLG, 0, 0);
-						}
-						Down = NO;
-						Up = NO;
-					}
+//					if(GoExit == YES)
+//					{
+//						SoundPlay(SND_TRANS);
+//
+//						if(AskAutoExit() == NO)
+//						{
+//							if(Down == YES)
+//								PostMessage(GetMainHwnd(), WM_REFRESH_LOCAL_FLG, 0, 0);
+//							if(Up == YES)
+//								PostMessage(GetMainHwnd(), WM_REFRESH_REMOTE_FLG, 0, 0);
+//						}
+//						Down = NO;
+//						Up = NO;
+//					}
 				}
 			}
 			BackgrndMessageProc();
@@ -1068,6 +1093,16 @@ static ULONG WINAPI TransferThread(void *Dummy)
 
 			if(GoExit == YES)
 			{
+				SoundPlay(SND_TRANS);
+				if(AskAutoExit() == NO)
+				{
+					if(Down == YES)
+						PostMessage(GetMainHwnd(), WM_REFRESH_LOCAL_FLG, 0, 0);
+					if(Up == YES)
+						PostMessage(GetMainHwnd(), WM_REFRESH_REMOTE_FLG, 0, 0);
+				}
+				Down = NO;
+				Up = NO;
 				PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_AUTO_EXIT, 0), 0);
 				GoExit = NO;
 			}

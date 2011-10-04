@@ -27,7 +27,8 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-#define _WIN32_WINNT	0x400
+// UTF-8対応
+//#define _WIN32_WINNT	0x400
 
 #define	STRICT
 #include <windows.h>
@@ -3593,7 +3594,6 @@ static int AnalizeFileInfo(char *Str)
 				}
 			}
 		}
-
 	}
 
 DoPrintf("ListType=%d", Ret);

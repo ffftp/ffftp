@@ -1,4 +1,4 @@
-﻿// socketwrapper.cpp
+﻿// socketwrapper.c
 // Copyright (C) 2011 Suguru Kawamoto
 // ソケットラッパー
 // socket関連関数をOpenSSL用に置換
