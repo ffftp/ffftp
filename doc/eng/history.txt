@@ -1,0 +1,305 @@
+FFFTP version history.
+
+Changes in Ver.1.98
+--------------------
+
+-- SourceForge.JP took over the development.
+   Thanks Mr. Sota for FFFTP the most sophisticated FTP client.
+
+-- Fixed bugs to crash under multicore CPU environment.
+
+-- Changed internal characters into UTF-8.
+
+-- JRE32.DLL became unavailable. (It does not support UTF-8.)
+
+-- Shift_JIS, JIS, EUC and UTF-8 conversion under ASCII mode transfer became
+   available.
+
+-- Changed default Kanji code of filenames on hosts into UTF-8.
+
+-- Filenames that depend Unicode characters can be treated.
+
+-- Disabled file list cache by default.
+
+-- FTP over Explicit SSL/TLS became available.
+   Passwords, user names and files are encrypted on the connections to
+   appropriate hosts.
+
+-- Replaced UTF-8N with UTF-8. (They are identical in this case.)
+
+-- Added the simultaneous connections feature up to 4.
+
+Changes in Ver.1.97b
+--------------------
+
+-- Fixed Drag & Drop to the Explorer does not works when select multiple files
+   or folders.
+
+
+Changes in Ver.1.97a
+--------------------
+
+-- Fixed when your password is longer than 32 characters, FFFTP saves only
+   first 32 characters.
+
+-- Fixed FFFTP causes application error on Windows 2000.
+
+Changes in Ver.1.97
+-------------------
+
+-- Now you can use master password.
+   This function is made by Gengen-san.@Thanks.
+   When you use this virsion first, set master password from following menu.
+    File ->@Settings -> Change Master password
+
+-- Now passwords are encrypted with AES.
+   This function is made by Moca-san.@Thanks.
+
+Changes in Ver.1.96d
+--------------------
+
+-- Fixed IBM Extended Kanji Code was not converted when host's Kanji code 
+   was set to EUC or JIS.
+
+-- Fixed FFFTP reacts when user presses some keys (ex. BackSpace key) on 
+   the help window.
+
+Changes in Ver.1.96c
+--------------------
+
+-- Fixed Directory Traversal Vulnerability.
+
+Changes in Ver.1.96b
+--------------------
+
+-- Change font of the file move confirmation dialog.
+
+Changes in Ver.1.96a
+--------------------
+
+-- Supports file list which has one space character in a group name.
+
+Changes in Ver.1.96
+--------------------
+
+-- The confirmation dialog is displayed when move file on the host.
+   This setting can be changed.
+   (Options - Settings - Operation)
+
+-- Fixed FFFTP sometimes freeze when user clicks both mouse buttons on the 
+   toolbar. (Thank you sunasunamix-san.)
+
+-- Fixed FFFTP works incorrect when drop files to the title line of the file 
+   list of the detailes mode.
+
+Changes in Ver.1.95
+--------------------
+
+This version is modified by miau-san.
+
+-- Move focus to the address bar by the ALT+D key.
+
+-- Move focus from the address bar to the file list by the TAB key.
+
+-- Change transfer mode (ASCII -> BINARY -> AUTO) by the Ctrl+M Key.
+
+-- Focus top of the file list immediately after reading the file list.
+
+-- Disable accelerator key while reading the file list.
+
+-- If Veiwer2 or Viewer3 (on the tool setting window) prefixed "d ", it 
+   assumed differential viewer. 
+   If you select one file on the host file list and start the differential 
+   viewer, FFFTP carries two file name to the viewer, one is the file name 
+   on the host side and the other is the same file name on the local side.
+
+-- Fixed unexpected disconnect when download is error because of local file 
+   is read only.
+
+-- Show notify dialog when download destination local file is read only.
+
+Changes in Ver.1.94a
+--------------------
+
+-- Change temporary file handling while drag and drop. (Yutaka Hitrata-san)
+
+-- Disable FFFTP main window operation while drag and drop. 
+   (Yutaka Hitrata-san)
+
+Changes in Ver.1.94
+--------------------
+
+-- Yutaka Hirata-san imprements OLE Drag & Drop using with nakka-san's 
+   library. Now you can drag and drop from FFFTP to the exploler.
+
+-- Yutaka Hirata-san imprements file move function in the host side file
+   list window. Now you can move files to the child folder.
+
+Changes in Ver.1.93
+--------------------
+
+-- Added setting of UTF-8N encoding.
+-- Show application menu when SHIFT-F10 key is pressed.
+
+Changes in Ver.1.92c
+--------------------
+
+-- Expand transfer buffer size to increase speed.
+
+Changes in Ver.1.92b
+--------------------
+
+-- Fix 'Save settings to file' and 'Load settings from file' function does 
+   not work on Windows Vista.
+
+Changes in Ver.1.92a
+--------------------
+
+-- Use LIST command to get file names from server.
+-- Use PASV mode default.
+-- Anonymous FTP sites are no longer registerd when start the FFFTP first.
+
+Changes in Ver.1.92
+--------------------
+
+-- Fixed application error on PASV mode.
+-- Fixed pathname length was limited by the windows size which above on the 
+   file list window.
+-- Support file list format of Chinese Solaris.
+-- Added setting of replace @ by the any character on Firewall.
+-- Fixed write to registory unexpectedly when INI file which specified by 
+   the '-n' option is not exist.
+-- Now support "Koushin Fuutauk".
+
+Changes in Ver.1.91
+--------------------
+-- Fixed Timezone displayed erroneus.
+-- Support ShibaSoku WL Series file list format. (Set Host Type on the Host 
+   Setting Window.)
+
+Changes in Ver.1.90
+--------------------
+- Transfer speed improved.
+- Add new firewall type. ("USER FW user:FW password@host")
+- Fixed file size diaplayed erroneus when over 2 giga bytes.
+- Improve download abortion process.
+- Now file size divides and diaplays every 3 figure.
+- Remove drive names from file list.
+- Fixed "Load setting from file" command failes when folder name has space
+  character. (such as "My Documents")
+- Turn on "Confirm deletions during Mirror Upload" option switch by default.
+
+Changes in Ver.1.89b
+--------------------
+- Fixed Mirror Upload / Mirror Download bug.
+
+Changes in Ver.1.89a
+--------------------
+- Fixed file list not refreshed after upload.
+
+Changes in Ver.1.89
+--------------------
+- Transfer speed improved.
+- Fixed Transfer Status Window didn't close after the transfer complete.
+- Fixed FFFTP was stalled when received unexpected PASV server message.
+- Fixed server message processing.
+- Add "Load Setting from File" menu.
+- Support Agilent Logic Analyzer. (Set Host Type on the Host Setting Window.)
+
+Changes in Ver.1.88b
+--------------------
+- Refine dialog and menu messages. (Thank you Mr.Jim.)
+
+Changes in Ver.1.88a
+--------------------
+- Fixed "Cannot remove FFFTP" error message diaplayed.
+
+Changes in Ver.1.88
+-------------------
+- Change to use the Registory to save settings when run first.
+- Add Save Serrings function.
+  (File -> Settings -L Save settings to file)
+- Now max 40 characters Owner name is displaied on file list.
+- Open folder when drag & drop a file to local file list from the explorer.
+- Page scroll when SHIFT + Mouse Wheel.
+- Fixed mouse wheel scroll didn't work when multi monitor.
+- Fixed noise displaied around the file list window.
+
+Changes in Ver.1.87a
+--------------------
+- Fixed forget bookmark.
+
+Changes in Ver.1.87
+--------------------
+- Fixed no dialup entry diaplayed on Windows9x.
+- Reconnect automatically when oprate by the user after disconnected cause 
+  of timeout from the host.
+
+Changes in Ver.1.86a
+--------------------
+- Fixed download terminated incorrectly.
+
+Changes in Ver.1.86
+--------------------
+- Renew process again to fix file transfer sometimes did not start 
+  or stop.
+- Disable strip host name feature added on 1.83.
+- Support Windows XP's theme.
+- Fixed display wrong format when file name has "&" character.
+- Add No RAS Control option.
+- Change path separater character to ">" when Stratus.
+- Support OS9 server subfolder.
+- Support server that replies following file list.
+    -rwxrwxrwx SEQ 36203776 01/07/07 12:38:28 ABCDEFG
+- Support server that replies following file list. (IBM server)
+    MTS940 3390   2001/07/26  1    1  FB      80  3120  PS  FTPOUT.CNTL
+- Support hidden drives.
+
+Changes in Ver.1.85
+--------------------
+- Fixed file transfer sometimes did not start or stop.
+
+Changes in Ver.1.84
+--------------------
+- Fixed file transfer sometimes did not start or stop.
+- Fixed high CPU usage.
+- Change anonymous FTP list.
+
+Changes in Ver.1.83
+--------------------
+- You can type folder name into current folder window now.
+- You can now copy log data with mouse dragging.
+- Support server that replies file list which has any characters after 
+  the owner and the group name.
+- Strip host name when the URL enterd into host name window.
+- Fixed freez until timeout when network is heavy.
+- Fixed FFFTP did not terminate normally until file transfer is in 
+  progress.
+
+Changes in Ver.1.82
+--------------------
+- Use XPWD command first to get current folder.
+- Add folder list button on change local folder dialog.
+- Add -n command line option. (See ffftp -h)
+- Support server that replies date string such as "5/14".
+- Support OS9 server. (without sub-directory support)
+
+Changes in Ver.1.81
+--------------------
+- File list that containes Ctrl-H are now displaied.
+- Show error reason when file transfer error occured.
+- Copying URL to clipboard include port number.
+- Add default permission for folder.
+- Fixed file date becomes future.
+
+Changes in Ver.1.80
+--------------------
+- Fixed Ctrl-Shift-D did not work to start mirroring download.
+- Change default setting to use INI file.
+- Give priority to use INI file when both INI and Registory settings
+  are existing.
+
+Changes in Ver.1.79a
+--------------------
+- First English version.
+
