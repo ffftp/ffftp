@@ -957,6 +957,7 @@ int ReConnectCmdSkt(void)
 // 同時接続対応
 int ReConnectTrnSkt(SOCKET *Skt)
 {
+//	char Path[FMAX_PATH+1];
 	int Sts;
 
 	Sts = FFFTP_FAIL;
@@ -1091,8 +1092,8 @@ int AskShareProh(void)
 	int Sts;
 
 	Sts = YES;
-	if(CmdCtrlSocket == TrnCtrlSocket)
-		Sts = NO;
+//	if(CmdCtrlSocket == TrnCtrlSocket)
+//		Sts = NO;
 
 	return(Sts);
 }
@@ -1474,6 +1475,26 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 //	WSAUnhookBlockingHook();
 #endif
 	TryConnect = NO;
+
+	// FEAT対応
+	// ホストの機能を確認
+	if(ContSock != INVALID_SOCKET)
+	{
+		if((Sts = command(ContSock, Reply, &CancelFlg, "FEAT")) == 211)
+		{
+			// 改行文字はReadReplyMessageで消去されるため区切り文字に空白を使用
+			// UTF-8対応
+			if(strstr(Reply, " UTF8 "))
+				CurHost.Feature |= FEATURE_UTF8;
+		}
+		// UTF-8対応
+		if(CurHost.NameKanjiCode == KANJI_AUTO && (CurHost.Feature & FEATURE_UTF8))
+		{
+			if((Sts = command(ContSock, Reply, &CancelFlg, "OPTS UTF8 ON")) == 200)
+			{
+			}
+		}
+	}
 
 	return(ContSock);
 }
@@ -2235,5 +2256,11 @@ int AskUseSFTP(void)
 int AskMaxThreadCount(void)
 {
 	return(CurHost.MaxThreadCount);
+}
+
+// FEAT対応
+int AskHostFeature(void)
+{
+	return(CurHost.Feature);
 }
 

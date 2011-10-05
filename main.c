@@ -244,6 +244,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
 	InitCommonControls();
 
+	// FTPS対応
 #ifdef USE_OPENSSL
 	LoadOpenSSL();
 #endif
@@ -277,6 +278,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		Ret = Msg.wParam;
 	}
     UnregisterClass(FtpClassStr, hInstFtp);
+	// FTPS対応
 #ifdef USE_OPENSSL
 	FreeOpenSSL();
 #endif

@@ -868,6 +868,10 @@ LIST_UNIX_70
 #define CRYPT_FTPIS			2
 #define CRYPT_SFTP			3
 
+// FEAT対応
+// UTF-8対応
+#define FEATURE_UTF8		0x00000001
+
 
 /*=================================================
 *		ストラクチャ
@@ -918,6 +922,8 @@ typedef struct {
 	int UseSFTP;						/* SFTPで接続する (YES/NO) */
 	// 同時接続対応
 	int MaxThreadCount;					/* 同時接続数 */
+	// FEAT対応
+	int Feature;						/* 利用可能な機能のフラグ (FEATURE_xxx) */
 } HOSTDATA;
 
 
@@ -1383,6 +1389,8 @@ int AskUseFTPIS(void);
 int AskUseSFTP(void);
 // 同時接続対応
 int AskMaxThreadCount(void);
+// FEAT対応
+int AskHostFeature(void);
 
 /*===== cache.c =====*/
 
