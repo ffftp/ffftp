@@ -237,7 +237,7 @@ BEGIN
     ICON            ffftp,-1,7,4,20,20
     CTEXT           "FFFTP  Ver 1.98",-1,113,11,90,8
     CTEXT           "FFFTPはfreewareです",-1,7,255,305,8
-    CTEXT           "Copyright(C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011 Hiromichi Matsushima, Suguru Kawamoto.",-1,7,25,305,20,SS_NOPREFIX
+    CTEXT           "Copyright(C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto)",-1,7,25,305,20,SS_NOPREFIX
     CTEXT           "",ABOUT_JRE,7,72,305,8
     EDITTEXT        ABOUT_URL,7,52,305,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,119,305,60
