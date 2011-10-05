@@ -4,6 +4,7 @@
 	Version="8.00"
 	Name="FFFTP"
 	ProjectGUID="{5D9496DB-45AF-4389-8FEE-27C9A2FA207A}"
+	RootNamespace="FFFTP"
 	>
 	<Platforms>
 		<Platform
@@ -45,8 +46,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="Resource"
-				PreprocessorDefinitions="WIN32,_DEBUG,_WINDOWS,WINVER=0x0500,_WIN32_WINNT=0x0500,_WIN32_IE=0x0400,_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="Resource;contrib\openssl\include"
+				PreprocessorDefinitions="WIN32,_DEBUG,_WINDOWS,WINVER=0x0500,_WIN32_WINNT=0x0500,_WIN32_IE=0x0500,_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="1"
 				PrecompiledHeaderFile=".\Debug\FFFTP.pch"
 				AssemblerListingLocation=".\Debug\"
@@ -137,8 +138,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="Resource"
-				PreprocessorDefinitions="WIN32,NDEBUG,_WINDOWS,WINVER=0x0500,_WIN32_WINNT=0x0500,_WIN32_IE=0x0400,_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="Resource;contrib\openssl\include"
+				PreprocessorDefinitions="WIN32,NDEBUG,_WINDOWS,WINVER=0x0500,_WIN32_WINNT=0x0500,_WIN32_IE=0x0500,_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"

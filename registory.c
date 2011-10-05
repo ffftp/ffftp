@@ -613,7 +613,7 @@ int LoadRegistory(void)
 
 	if(i == FFFTP_SUCCESS)
 	{
-		char checkbuf[48];
+//		char checkbuf[48];
 		int salt = 0;
 		Sts = YES;
 
