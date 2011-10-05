@@ -405,11 +405,8 @@ void FreeDuplicatedString(void* p)
 #pragma warning(disable:4102)
 #define START_ROUTINE					do{
 #define END_ROUTINE						}while(0);
-
-/*
 #define END_ROUTINE						}while(0);end_of_routine:
 #define QUIT_ROUTINE					goto end_of_routine;
-*/
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {

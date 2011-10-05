@@ -233,7 +233,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	hWndTbarMain = CreateToolbarEx(
 				hWnd,
-				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_TOP | TBSTYLE_FLAT,
+				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_TOP,
 				1,
 				27,
 				hInst,
@@ -258,7 +258,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	hWndTbarLocal = CreateToolbarEx(
 				hWnd,
-				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE | TBSTYLE_FLAT,
+				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE,
 				2,
 				2,
 				hInst,
@@ -321,7 +321,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	hWndTbarRemote = CreateToolbarEx(
 				hWnd,
-				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE | TBSTYLE_FLAT,
+				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE,
 				3,
 				2,
 				hInst,
