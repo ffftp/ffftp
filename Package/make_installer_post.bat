@@ -12,6 +12,6 @@ copy /Y %ENG_ZIP% ffftp-%FFFTP_VERSION%-eng.zip
 
 REM; copy installer
 copy /Y %JPN_INST% ffftp-%FFFTP_VERSION%.exe
-copy /Y %JPN_INST% ffftp-%FFFTP_VERSION%-eng.exe
+copy /Y %ENG_INST% ffftp-%FFFTP_VERSION%-eng.exe
 
 pause
