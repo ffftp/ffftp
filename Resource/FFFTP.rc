@@ -242,7 +242,7 @@ BEGIN
     EDITTEXT        ABOUT_URL,7,52,305,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,119,305,60
     CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,87,305,27
-    CTEXT           "FTP over SSL/TLSの実装にはOpenSSLが使用されています。\nCopyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.",-1,7,183,305,60
+    CTEXT           "FTP over SSL/TLSの実装にはOpenSSLを使用しています。\nCopyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.",-1,7,183,305,60
 END
 
 transfer_dlg DIALOG  0, 0, 199, 91
