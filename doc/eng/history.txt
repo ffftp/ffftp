@@ -1,5 +1,16 @@
 FFFTP version history.
 
+Changes in Ver.1.99
+--------------------
+
+-- MLSD command became used for retrieving filenames on appropriate hosts.
+   That is helpful for hosts that do not return filenames properly.
+
+-- Added the feature that prevents from loading untrustworthy DLLs.
+   It reduces the chance of being intercepted or tampered with passwords and
+   data.
+   Please add --protect to command line options to use this feature.
+
 Changes in Ver.1.98
 --------------------
 

@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.1.98 (FTP Client software)
+[Software Name]  FFFTP Ver.1.99 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright(C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto).
 [Environment]    Windows 7, Vista, XP, 2000
@@ -16,34 +16,16 @@ following menu.
 File ->@Settings -> Change Master password
 
 
-Changes in Ver.1.98
+Changes in Ver.1.99
 --------------------
 
--- SourceForge.JP took over the development.
-   Thanks Mr. Sota for FFFTP the most sophisticated FTP client.
+-- MLSD command became used for retrieving filenames on appropriate hosts.
+   That is helpful for hosts that do not return filenames properly.
 
--- Fixed bugs to crash under multicore CPU environment.
-
--- Changed internal characters into UTF-8.
-
--- JRE32.DLL became unavailable. (It does not support UTF-8.)
-
--- Shift_JIS, JIS, EUC and UTF-8 conversion under ASCII mode transfer became
-   available.
-
--- Changed default Kanji code of filenames on hosts into UTF-8.
-
--- Filenames that depend Unicode characters can be treated.
-
--- Disabled file list cache by default.
-
--- FTP over Explicit SSL/TLS became available.
-   Passwords, user names and files are encrypted on the connections to
-   appropriate hosts.
-
--- Replaced UTF-8N with UTF-8. (They are identical in this case.)
-
--- Added the simultaneous connections feature up to 4.
+-- Added the feature that prevents from loading untrustworthy DLLs.
+   It reduces the chance of being intercepted or tampered with passwords and
+   data.
+   Please add --protect to command line options to use this feature.
 
 
 Outline
