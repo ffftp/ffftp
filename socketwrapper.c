@@ -67,11 +67,12 @@ BOOL LoadOpenSSL()
 	if(g_bOpenSSLLoaded)
 		return FALSE;
 #ifdef ENABLE_PROCESS_PROTECTION
+	// 同梱するOpenSSLのバージョンに合わせてSHA1ハッシュ値を変更すること
 	// ssleay32.dll 1.0.0e
 	// libssl32.dll 1.0.0e
-	RegisterTrustedModuleMD5Hash("\x8B\xA3\xB7\xB3\xCE\x2E\x4F\x07\x8C\xB8\x93\x7D\x77\xE1\x09\x3A");
+	RegisterTrustedModuleSHA1Hash("\x4E\xB7\xA0\x22\x14\x4B\x58\x6D\xBC\xF5\x21\x0D\x96\x78\x0D\x79\x7D\x66\xB2\xB0");
 	// libeay32.dll 1.0.0e
-	RegisterTrustedModuleMD5Hash("\xA6\x4C\xAF\x9E\xF3\xDC\xFC\x68\xAE\xCA\xCC\x61\xD2\xF6\x70\x8B");
+	RegisterTrustedModuleSHA1Hash("\x01\x32\x7A\xAE\x69\x26\xE6\x58\xC7\x63\x22\x1E\x53\x5A\x78\xBC\x61\xC7\xB5\xC1");
 #endif
 	g_hOpenSSL = LoadLibrary("ssleay32.dll");
 	if(!g_hOpenSSL)

@@ -44,10 +44,30 @@ EXTERN_HOOK_FUNCTION_VAR(LoadLibraryExW)
 
 #endif
 
+// ロード済みのモジュールは検査をパス
+#define PROCESS_PROTECTION_LOADED 0x00000001
+// モジュールに埋め込まれたAuthenticode署名を検査
+#define PROCESS_PROTECTION_BUILTIN 0x00000002
+// サイドバイサイドのAuthenticode署名を検査
+#define PROCESS_PROTECTION_SIDE_BY_SIDE 0x00000004
+// WFPによる保護下にあるかを検査
+#define PROCESS_PROTECTION_SYSTEM_FILE 0x00000008
+// Authenticode署名の有効期限を無視
+#define PROCESS_PROTECTION_EXPIRED 0x00000010
+// Authenticode署名の発行元を無視
+#define PROCESS_PROTECTION_UNAUTHORIZED 0x00000020
+
+#define PROCESS_PROTECTION_NONE 0
+#define PROCESS_PROTECTION_DEFAULT PROCESS_PROTECTION_HIGH
+#define PROCESS_PROTECTION_HIGH (PROCESS_PROTECTION_BUILTIN | PROCESS_PROTECTION_SIDE_BY_SIDE | PROCESS_PROTECTION_SYSTEM_FILE)
+#define PROCESS_PROTECTION_MEDIUM (PROCESS_PROTECTION_HIGH | PROCESS_PROTECTION_LOADED | PROCESS_PROTECTION_EXPIRED)
+#define PROCESS_PROTECTION_LOW (PROCESS_PROTECTION_MEDIUM | PROCESS_PROTECTION_UNAUTHORIZED)
+
 HMODULE System_LoadLibrary(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags);
-BOOL GetMD5HashOfFile(LPCWSTR Filename, void* pHash);
-BOOL RegisterTrustedModuleMD5Hash(void* pHash);
-BOOL UnregisterTrustedModuleMD5Hash(void* pHash);
+void SetProcessProtectionLevel(DWORD Level);
+BOOL GetSHA1HashOfFile(LPCWSTR Filename, void* pHash);
+BOOL RegisterTrustedModuleSHA1Hash(void* pHash);
+BOOL UnregisterTrustedModuleSHA1Hash(void* pHash);
 BOOL UnloadUntrustedModule();
 BOOL InitializeLoadLibraryHook();
 BOOL EnableLoadLibraryHook(BOOL bEnable);

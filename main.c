@@ -234,21 +234,37 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
 	// プロセス保護
 #ifdef ENABLE_PROCESS_PROTECTION
-	BOOL bProtect;
+	DWORD ProtectLevel;
 	char* pCommand;
 	char Option[FMAX_PATH+1];
-	bProtect = FALSE;
+	ProtectLevel = PROCESS_PROTECTION_NONE;
 	pCommand = lpszCmdLine;
 	while(pCommand = GetToken(pCommand, Option))
 	{
 		if(strcmp(Option, "--protect") == 0)
 		{
-			bProtect = TRUE;
+			ProtectLevel = PROCESS_PROTECTION_DEFAULT;
+			break;
+		}
+		else if(strcmp(Option, "--protect-high") == 0)
+		{
+			ProtectLevel = PROCESS_PROTECTION_HIGH;
+			break;
+		}
+		else if(strcmp(Option, "--protect-medium") == 0)
+		{
+			ProtectLevel = PROCESS_PROTECTION_MEDIUM;
+			break;
+		}
+		else if(strcmp(Option, "--protect-low") == 0)
+		{
+			ProtectLevel = PROCESS_PROTECTION_LOW;
 			break;
 		}
 	}
-	if(bProtect)
+	if(ProtectLevel != PROCESS_PROTECTION_NONE)
 	{
+		SetProcessProtectionLevel(ProtectLevel);
 		if(!InitializeLoadLibraryHook())
 		{
 			MessageBox(NULL, MSGJPN321, "FFFTP", MB_OK | MB_ICONERROR);
@@ -1753,6 +1769,15 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 			{
 			}
 			else if(strcmp(Tmp, "--protect") == 0)
+			{
+			}
+			else if(strcmp(Tmp, "--protect-high") == 0)
+			{
+			}
+			else if(strcmp(Tmp, "--protect-medium") == 0)
+			{
+			}
+			else if(strcmp(Tmp, "--protect-low") == 0)
 			{
 			}
 #endif
