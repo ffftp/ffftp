@@ -385,31 +385,8 @@ BOOL FindTrustedModuleSHA1Hash(void* pHash)
 	return bResult;
 }
 
-// ファイルの署名を確認
-BOOL VerifyFileSignature(LPCWSTR Filename)
+BOOL VerifyFileSignature_Function(LPCWSTR Filename)
 {
-//	BOOL bResult;
-//	GUID g = WINTRUST_ACTION_GENERIC_VERIFY_V2;
-//	WINTRUST_FILE_INFO wfi;
-//	WINTRUST_DATA wd;
-//	LONG Error;
-//	bResult = FALSE;
-//	ZeroMemory(&wfi, sizeof(WINTRUST_FILE_INFO));
-//	wfi.cbStruct = sizeof(WINTRUST_FILE_INFO);
-//	wfi.pcwszFilePath = Filename;
-//	ZeroMemory(&wd, sizeof(WINTRUST_DATA));
-//	wd.cbStruct = sizeof(WINTRUST_DATA);
-//	wd.dwUIChoice = WTD_UI_NONE;
-//	wd.dwUnionChoice = WTD_CHOICE_FILE;
-//	wd.pFile = &wfi;
-//	Error = WinVerifyTrust((HWND)INVALID_HANDLE_VALUE, &g, &wd);
-//	if(Error == ERROR_SUCCESS)
-//		bResult = TRUE;
-//	else if((g_ProcessProtectionLevel & PROCESS_PROTECTION_EXPIRED) && Error == CERT_E_EXPIRED)
-//		bResult = TRUE;
-//	else if((g_ProcessProtectionLevel & PROCESS_PROTECTION_UNAUTHORIZED) && (Error == CERT_E_UNTRUSTEDROOT || Error == CERT_E_UNTRUSTEDCA))
-//		bResult = TRUE;
-//	return bResult;
 	BOOL bResult;
 	HCERTSTORE hStore;
 	PCCERT_CONTEXT pcc;
@@ -451,6 +428,29 @@ BOOL VerifyFileSignature(LPCWSTR Filename)
 		}
 		CertCloseStore(hStore, 0);
 	}
+	return bResult;
+}
+
+// ファイルの署名を確認
+BOOL VerifyFileSignature(LPCWSTR Filename)
+{
+	BOOL bResult;
+	GUID g = WINTRUST_ACTION_GENERIC_VERIFY_V2;
+	WINTRUST_FILE_INFO wfi;
+	WINTRUST_DATA wd;
+	bResult = FALSE;
+	ZeroMemory(&wfi, sizeof(WINTRUST_FILE_INFO));
+	wfi.cbStruct = sizeof(WINTRUST_FILE_INFO);
+	wfi.pcwszFilePath = Filename;
+	ZeroMemory(&wd, sizeof(WINTRUST_DATA));
+	wd.cbStruct = sizeof(WINTRUST_DATA);
+	wd.dwUIChoice = WTD_UI_NONE;
+	wd.dwUnionChoice = WTD_CHOICE_FILE;
+	wd.pFile = &wfi;
+	if(WinVerifyTrust((HWND)INVALID_HANDLE_VALUE, &g, &wd) == ERROR_SUCCESS)
+		bResult = TRUE;
+	else
+		bResult = VerifyFileSignature_Function(Filename);
 	return bResult;
 }
 
