@@ -499,7 +499,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					DispWindowTitle();
 					// SourceForge.JPによるフォーク
 //					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.");
-					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011 Hiromichi Matsushima, Suguru Kawamoto.");
+					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto).");
 
 					if(ForceIni)
 						SetTaskMsg("%s%s", MSGJPN283, IniPath);
@@ -2767,12 +2767,29 @@ int AskAutoExit(void)
 int EnterMasterPasswordAndSet( int Res, HWND hWnd )
 {
 	char buf[MAX_PASSWORD_LEN + 1];
+	// パスワードの入力欄を非表示
+	// 非表示にしたため新しいパスワードを2回入力させる
+	char buf1[MAX_PASSWORD_LEN + 1];
 	char *p;
 	int Flag;
 
 	buf[0] = NUL;
 	if( InputDialogBox(Res, hWnd, NULL, buf, MAX_PASSWORD_LEN + 1,
 		&Flag, IDH_HELP_TOPIC_0000064) == YES){
+		// パスワードの入力欄を非表示
+		if(Res == newmasterpasswd_dlg)
+		{
+			buf1[0] = NUL;
+			if( InputDialogBox(Res, hWnd, NULL, buf1, MAX_PASSWORD_LEN + 1,
+				&Flag, IDH_HELP_TOPIC_0000064) != YES){
+				return 0;
+			}
+			if(strcmp(buf, buf1) != 0)
+			{
+				MessageBox(hWnd, MSGJPN325, "FFFTP", MB_OK | MB_ICONERROR);
+				return 0;
+			}
+		}
 		/* 末尾の空白を削除 */
 		RemoveTailingSpaces(buf);
 		/* 先頭の空白を削除 */

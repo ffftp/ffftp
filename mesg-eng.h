@@ -322,3 +322,4 @@
 #define MSGJPN322		"Debugger was detected."
 #define MSGJPN323		"Failed to unload untrustworthy DLLs."
 #define MSGJPN324		"Failed to hook required functions to protect the process."
+#define MSGJPN325		"New master passwords are not identical."

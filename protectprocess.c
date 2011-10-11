@@ -388,27 +388,69 @@ BOOL FindTrustedModuleSHA1Hash(void* pHash)
 // ファイルの署名を確認
 BOOL VerifyFileSignature(LPCWSTR Filename)
 {
+//	BOOL bResult;
+//	GUID g = WINTRUST_ACTION_GENERIC_VERIFY_V2;
+//	WINTRUST_FILE_INFO wfi;
+//	WINTRUST_DATA wd;
+//	LONG Error;
+//	bResult = FALSE;
+//	ZeroMemory(&wfi, sizeof(WINTRUST_FILE_INFO));
+//	wfi.cbStruct = sizeof(WINTRUST_FILE_INFO);
+//	wfi.pcwszFilePath = Filename;
+//	ZeroMemory(&wd, sizeof(WINTRUST_DATA));
+//	wd.cbStruct = sizeof(WINTRUST_DATA);
+//	wd.dwUIChoice = WTD_UI_NONE;
+//	wd.dwUnionChoice = WTD_CHOICE_FILE;
+//	wd.pFile = &wfi;
+//	Error = WinVerifyTrust((HWND)INVALID_HANDLE_VALUE, &g, &wd);
+//	if(Error == ERROR_SUCCESS)
+//		bResult = TRUE;
+//	else if((g_ProcessProtectionLevel & PROCESS_PROTECTION_EXPIRED) && Error == CERT_E_EXPIRED)
+//		bResult = TRUE;
+//	else if((g_ProcessProtectionLevel & PROCESS_PROTECTION_UNAUTHORIZED) && (Error == CERT_E_UNTRUSTEDROOT || Error == CERT_E_UNTRUSTEDCA))
+//		bResult = TRUE;
+//	return bResult;
 	BOOL bResult;
-	GUID g = WINTRUST_ACTION_GENERIC_VERIFY_V2;
-	WINTRUST_FILE_INFO wfi;
-	WINTRUST_DATA wd;
-	LONG Error;
+	HCERTSTORE hStore;
+	PCCERT_CONTEXT pcc;
+	CERT_CHAIN_PARA ccp;
+	CERT_CHAIN_CONTEXT* pccc;
+	CERT_CHAIN_POLICY_PARA ccpp;
+	CERT_CHAIN_POLICY_STATUS ccps;
 	bResult = FALSE;
-	ZeroMemory(&wfi, sizeof(WINTRUST_FILE_INFO));
-	wfi.cbStruct = sizeof(WINTRUST_FILE_INFO);
-	wfi.pcwszFilePath = Filename;
-	ZeroMemory(&wd, sizeof(WINTRUST_DATA));
-	wd.cbStruct = sizeof(WINTRUST_DATA);
-	wd.dwUIChoice = WTD_UI_NONE;
-	wd.dwUnionChoice = WTD_CHOICE_FILE;
-	wd.pFile = &wfi;
-	Error = WinVerifyTrust((HWND)INVALID_HANDLE_VALUE, &g, &wd);
-	if(Error == ERROR_SUCCESS)
-		bResult = TRUE;
-	else if((g_ProcessProtectionLevel & PROCESS_PROTECTION_EXPIRED) && Error == CERT_E_EXPIRED)
-		bResult = TRUE;
-	else if((g_ProcessProtectionLevel & PROCESS_PROTECTION_UNAUTHORIZED) && (Error == CERT_E_UNTRUSTEDROOT || Error == CERT_E_UNTRUSTEDCA))
-		bResult = TRUE;
+	if(CryptQueryObject(CERT_QUERY_OBJECT_FILE, Filename, CERT_QUERY_CONTENT_FLAG_ALL, CERT_QUERY_FORMAT_FLAG_ALL, 0, NULL, NULL, NULL, &hStore, NULL, NULL))
+	{
+		pcc = NULL;
+		while(!bResult && (pcc = CertEnumCertificatesInStore(hStore, pcc)))
+		{
+			ZeroMemory(&ccp, sizeof(CERT_CHAIN_PARA));
+			ccp.cbSize = sizeof(CERT_CHAIN_PARA);
+			if(CertGetCertificateChain(NULL, pcc, NULL, NULL, &ccp, 0, NULL, &pccc))
+			{
+				ZeroMemory(&ccpp, sizeof(CERT_CHAIN_POLICY_PARA));
+				ccpp.cbSize = sizeof(CERT_CHAIN_POLICY_PARA);
+				if(g_ProcessProtectionLevel & PROCESS_PROTECTION_EXPIRED)
+					ccpp.dwFlags |= CERT_CHAIN_POLICY_IGNORE_NOT_TIME_VALID_FLAG;
+				else if(g_ProcessProtectionLevel & PROCESS_PROTECTION_UNAUTHORIZED)
+					ccpp.dwFlags |= CERT_CHAIN_POLICY_ALLOW_UNKNOWN_CA_FLAG;
+				ZeroMemory(&ccps, sizeof(CERT_CHAIN_POLICY_STATUS));
+				ccps.cbSize = sizeof(CERT_CHAIN_POLICY_STATUS);
+				if(CertVerifyCertificateChainPolicy(CERT_CHAIN_POLICY_AUTHENTICODE, pccc, &ccpp, &ccps))
+				{
+					if(ccps.dwError == ERROR_SUCCESS)
+					{
+						bResult = TRUE;
+						break;
+					}
+				}
+				CertFreeCertificateChain(pccc);
+			}
+		}
+		while(pcc = CertEnumCertificatesInStore(hStore, pcc))
+		{
+		}
+		CertCloseStore(hStore, 0);
+	}
 	return bResult;
 }
 
@@ -419,7 +461,6 @@ BOOL VerifyFileSignatureInCatalog(LPCWSTR Catalog, LPCWSTR Filename)
 	GUID g = WINTRUST_ACTION_GENERIC_VERIFY_V2;
 	WINTRUST_CATALOG_INFO wci;
 	WINTRUST_DATA wd;
-	LONG Error;
 	bResult = FALSE;
 	if(VerifyFileSignature(Catalog))
 	{
@@ -439,12 +480,7 @@ BOOL VerifyFileSignatureInCatalog(LPCWSTR Catalog, LPCWSTR Filename)
 					wd.dwUIChoice = WTD_UI_NONE;
 					wd.dwUnionChoice = WTD_CHOICE_CATALOG;
 					wd.pCatalog = &wci;
-					Error = WinVerifyTrust((HWND)INVALID_HANDLE_VALUE, &g, &wd);
-					if(Error == ERROR_SUCCESS)
-						bResult = TRUE;
-					else if((g_ProcessProtectionLevel & PROCESS_PROTECTION_EXPIRED) && Error == CERT_E_EXPIRED)
-						bResult = TRUE;
-					else if((g_ProcessProtectionLevel & PROCESS_PROTECTION_UNAUTHORIZED) && (Error == CERT_E_UNTRUSTEDROOT || Error == CERT_E_UNTRUSTEDCA))
+					if(WinVerifyTrust((HWND)INVALID_HANDLE_VALUE, &g, &wd) == ERROR_SUCCESS)
 						bResult = TRUE;
 				}
 				free(wci.pbCalculatedFileHash);
