@@ -151,7 +151,9 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 	int Level2;
 	HOSTLISTDATA *Data1;
 	HOSTLISTDATA *Data2;
-	NM_TREEVIEW *tView;
+	// UTF-8対応
+//	NM_TREEVIEW *tView;
+	NM_TREEVIEWW *tView;
 	HTREEITEM tViewPos;
 	TV_HITTESTINFO HitInfo;
 
@@ -550,7 +552,9 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 			break;
 
 		case WM_NOTIFY:
-			tView = (NM_TREEVIEW FAR *)lParam;
+			// UTF-8対応
+//			tView = (NM_TREEVIEW FAR *)lParam;
+			tView = (NM_TREEVIEWW FAR *)lParam;
 			switch(tView->hdr.idFrom)
 			{
 				case HOST_LIST :
@@ -558,7 +562,9 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 					hItem = tView->itemNew.hItem;
 					switch(tView->hdr.code)
 					{
-						case TVN_SELCHANGED :
+						// UTF-8対応
+//						case TVN_SELCHANGED :
+						case TVN_SELCHANGEDW :
 							/* フォルダが選ばれたときは接続、コピーボタンは禁止 */
 							Item.hItem = hItem;
 							Item.mask = TVIF_PARAM;
