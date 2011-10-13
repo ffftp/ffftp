@@ -189,7 +189,7 @@ BOOL AttachSSL(SOCKET s)
 					while(pSSL_connect(*ppSSL) != 1)
 					{
 						LeaveCriticalSection(&g_OpenSSLLock);
-						if(g_pOpenSSLTimeoutCallback() || timeGetTime() - Time >= g_OpenSSLTimeout)
+						if(g_pOpenSSLTimeoutCallback() || (g_OpenSSLTimeout > 0 && timeGetTime() - Time >= g_OpenSSLTimeout))
 						{
 							DetachSSL(s);
 							r = FALSE;
