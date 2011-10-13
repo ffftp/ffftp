@@ -1808,7 +1808,7 @@ END_ROUTINE
 
 BOOL sndPlaySoundM(LPCSTR pszSound, UINT fuSound)
 {
-	HWND r = NULL;
+	BOOL r = FALSE;
 	wchar_t* pw0 = NULL;
 START_ROUTINE
 	pw0 = DuplicateMtoW(pszSound, -1);

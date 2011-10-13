@@ -499,7 +499,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					DispWindowTitle();
 					// SourceForge.JPによるフォーク
 //					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.");
-					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto).");
+					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, raido).");
 
 					if(ForceIni)
 						SetTaskMsg("%s%s", MSGJPN283, IniPath);
