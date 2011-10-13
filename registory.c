@@ -821,6 +821,9 @@ int LoadRegistory(void)
 						Host.Pasv = NO;
 						Host.ListCmdOnly = NO;
 					}
+					// 1.97b以前はデフォルトでShift_JIS
+					if(Version < 1980)
+						Host.NameKanjiCode = KANJI_SJIS;
 					ReadIntValueFromReg(hKey5, "Set", &Host.Level);
 
 					ReadStringFromReg(hKey5, "HostName", Host.HostName, HOST_NAME_LEN+1);
