@@ -42,7 +42,8 @@
 #include "common.h"
 #include "resource.h"
 
-#define TASK_BUFSIZE	(16*1024)
+// Windows 9x系をサポートしないため不要
+//#define TASK_BUFSIZE	(16*1024)
 
 
 
@@ -90,7 +91,9 @@ int MakeTaskWindow(HWND hWnd, HINSTANCE hInst)
 
 	if(hWndTask != NULL)
 	{
-		SendMessage(hWndTask, EM_LIMITTEXT, TASK_BUFSIZE, 0);
+		// Windows 9x系をサポートしないため不要
+//		SendMessage(hWndTask, EM_LIMITTEXT, TASK_BUFSIZE, 0);
+		SendMessage(hWndTask, EM_LIMITTEXT, 0x7fffffff, 0);
 
 		if(ListFont != NULL)
 			SendMessage(hWndTask, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
@@ -177,16 +180,17 @@ void SetTaskMsg(char *szFormat, ...)
 				Pos = SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
 
 				/* テキストサイズのリミット値をチェック */
-				if((Pos + strlen(szBuf)) >= TASK_BUFSIZE)
-				{
-					/* リミットを越えそうなら、先頭部分を切り捨てる */
-					Pos = SendMessage(GetTaskWnd(), EM_LINEFROMCHAR, TASK_BUFSIZE/10, 0) + 1;
-					Pos = SendMessage(GetTaskWnd(), EM_LINEINDEX, Pos, 0);
-					SendMessage(GetTaskWnd(), EM_SETSEL, 0, Pos);
-					SendMessage(GetTaskWnd(), EM_REPLACESEL, FALSE, (LPARAM)"");
-
-					Pos = SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
-				}
+				// Windows 9x系をサポートしないため不要
+//				if((Pos + strlen(szBuf)) >= TASK_BUFSIZE)
+//				{
+//					/* リミットを越えそうなら、先頭部分を切り捨てる */
+//					Pos = SendMessage(GetTaskWnd(), EM_LINEFROMCHAR, TASK_BUFSIZE/10, 0) + 1;
+//					Pos = SendMessage(GetTaskWnd(), EM_LINEINDEX, Pos, 0);
+//					SendMessage(GetTaskWnd(), EM_SETSEL, 0, Pos);
+//					SendMessage(GetTaskWnd(), EM_REPLACESEL, FALSE, (LPARAM)"");
+//
+//					Pos = SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
+//				}
 
 				SendMessage(GetTaskWnd(), EM_SETSEL, Pos, Pos);
 				SendMessage(GetTaskWnd(), EM_REPLACESEL, FALSE, (LPARAM)szBuf);

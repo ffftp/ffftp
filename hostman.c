@@ -1310,6 +1310,7 @@ void CopyDefaultHost(HOSTDATA *Set)
 	strcpy(Set->DialEntry, "");
 	// 暗号化通信対応
 	Set->CryptMode = CRYPT_NONE;
+	Set->UseNoEncryption = YES;
 	Set->UseFTPES = YES;
 	Set->UseFTPIS = YES;
 	Set->UseSFTP = YES;

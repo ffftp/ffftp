@@ -57,7 +57,10 @@ static int SendInitCommand(char *Cmd);
 static void AskUseFireWall(char *Host, int *Fire, int *Pasv, int *List);
 static void SaveCurrentSetToHistory(void);
 static int ReConnectSkt(SOCKET *Skt);
-static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security);
+// 暗号化通信対応
+//static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security);
+static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security);
+static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security);
 static int CheckOneTimePassword(char *Pass, char *Reply, int Type);
 static BOOL CALLBACK BlkHookFnc(void);
 static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, int ValidIP, ulong IP, char *Host, ushort Port);
@@ -159,7 +162,9 @@ void ConnectProc(int Type, int Num)
 				Save = YES;
 
 			DisableUserOpe();
-			CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, Save, CurHost.Security);
+			// 暗号化通信対応
+//			CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, Save, CurHost.Security);
+			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, Save, CurHost.Security);
 			TrnCtrlSocket = CmdCtrlSocket;
 
 			if(CmdCtrlSocket != INVALID_SOCKET)
@@ -238,7 +243,9 @@ void QuickConnectProc(void)
 			SetSyncMoveMode(CurHost.SyncMove);
 
 			DisableUserOpe();
-			CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
+			// 暗号化通信対応
+//			CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
+			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
 			TrnCtrlSocket = CmdCtrlSocket;
 
 			if(CmdCtrlSocket != INVALID_SOCKET)
@@ -410,7 +417,9 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 		}
 
 		DisableUserOpe();
-		CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
+		// 暗号化通信対応
+//		CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
+		CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
 		TrnCtrlSocket = CmdCtrlSocket;
 
 		if(CmdCtrlSocket != INVALID_SOCKET)
@@ -486,7 +495,9 @@ void HistoryConnectProc(int MenuCmd)
 			DispTransferType();
 
 			DisableUserOpe();
-			CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
+			// 暗号化通信対応
+//			CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
+			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
 			TrnCtrlSocket = CmdCtrlSocket;
 
 			if(CmdCtrlSocket != INVALID_SOCKET)
@@ -959,6 +970,8 @@ int ReConnectTrnSkt(SOCKET *Skt)
 {
 //	char Path[FMAX_PATH+1];
 	int Sts;
+	// 暗号化通信対応
+	HOSTDATA HostData;
 
 	Sts = FFFTP_FAIL;
 
@@ -969,7 +982,18 @@ int ReConnectTrnSkt(SOCKET *Skt)
 	if(*Skt != INVALID_SOCKET)
 		do_closesocket(*Skt);
 	/* 再接続 */
-	if((*Skt = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
+	// 暗号化通信対応
+	HostData = CurHost;
+	if(HostData.CryptMode != CRYPT_NONE)
+		HostData.UseNoEncryption = NO;
+	if(HostData.CryptMode != CRYPT_FTPES)
+		HostData.UseFTPES = NO;
+	if(HostData.CryptMode != CRYPT_FTPIS)
+		HostData.UseFTPIS = NO;
+	if(HostData.CryptMode != CRYPT_SFTP)
+		HostData.UseSFTP = NO;
+//	if((*Skt = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
+	if((*Skt = DoConnect(&HostData, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
 	{
 //		AskRemoteCurDir(Path, FMAX_PATH);
 //		DoCWD(Path, YES, YES, YES);
@@ -1007,7 +1031,9 @@ static int ReConnectSkt(SOCKET *Skt)
 	if(*Skt != INVALID_SOCKET)
 		do_closesocket(*Skt);
 	/* 再接続 */
-	if((*Skt = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
+	// 暗号化通信対応
+//	if((*Skt = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
+	if((*Skt = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
 	{
 		AskRemoteCurDir(Path, FMAX_PATH);
 		DoCWD(Path, YES, YES, YES);
@@ -1216,7 +1242,8 @@ int AskConnecting(void)
 *			none	Connect host →                                              USER user(h) →      PASS pass(h) → ACCT acct
 *----------------------------------------------------------------------------*/
 
-static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security)
+// 暗号化通信対応
+static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security)
 {
 	int Sts;
 	int Flg;
@@ -1232,143 +1259,173 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 	char TmpBuf[ONELINE_BUF_SIZE];
 	struct linger LingerOpt;
 
-	if(Fwall == YES)
-		Fwall = FwallType;
-	else
-		Fwall = FWALL_NONE;
-
-	TryConnect = YES;
-	CancelFlg = NO;
-#if 0
-//	WSASetBlockingHook(BlkHookFnc);
-#endif
-
+	// 暗号化通信対応
 	ContSock = INVALID_SOCKET;
 
-	HostPort = Port;
-	Tmp = Host;
-	if(((Fwall >= FWALL_FU_FP_SITE) && (Fwall <= FWALL_OPEN)) ||
-	   (Fwall == FWALL_SIDEWINDER) ||
-	   (Fwall == FWALL_FU_FP))
+	if(CryptMode == CRYPT_NONE || CryptMode == CRYPT_FTPES || CryptMode == CRYPT_FTPIS)
 	{
-		Tmp = FwallHost;
-		Port = FwallPort;
-	}
+		if(Fwall == YES)
+			Fwall = FwallType;
+		else
+			Fwall = FWALL_NONE;
 
-	if(strlen(Tmp) != 0)
-	{
-		if((ContSock = connectsock(Tmp, Port, "", &CancelFlg)) != INVALID_SOCKET)
-		{
-			// バッファを無効
-#ifdef DISABLE_CONTROL_NETWORK_BUFFERS
-			int BufferSize = 0;
-			setsockopt(ContSock, SOL_SOCKET, SO_SNDBUF, (char*)&BufferSize, sizeof(int));
-			setsockopt(ContSock, SOL_SOCKET, SO_RCVBUF, (char*)&BufferSize, sizeof(int));
+		TryConnect = YES;
+		CancelFlg = NO;
+#if 0
+//		WSASetBlockingHook(BlkHookFnc);
 #endif
-			while((Sts = ReadReplyMessage(ContSock, Buf, 1024, &CancelFlg, TmpBuf) / 100) == FTP_PRELIM)
-				;
 
-			if(Sts == FTP_COMPLETE)
+		ContSock = INVALID_SOCKET;
+
+		HostPort = Port;
+		Tmp = Host;
+		if(((Fwall >= FWALL_FU_FP_SITE) && (Fwall <= FWALL_OPEN)) ||
+		   (Fwall == FWALL_SIDEWINDER) ||
+		   (Fwall == FWALL_FU_FP))
+		{
+			Tmp = FwallHost;
+			Port = FwallPort;
+		}
+
+		if(strlen(Tmp) != 0)
+		{
+			if((ContSock = connectsock(Tmp, Port, "", &CancelFlg)) != INVALID_SOCKET)
 			{
-				Flg = 1;
-				if(setsockopt(ContSock, SOL_SOCKET, SO_OOBINLINE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
-					ReportWSError("setsockopt", WSAGetLastError());
-				// データ転送用ソケットのTCP遅延転送が無効されているので念のため
-				if(setsockopt(ContSock, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
-					ReportWSError("setsockopt", WSAGetLastError());
-/* #pragma aaa */
-				Flg = 1;
-				if(setsockopt(ContSock, SOL_SOCKET, SO_KEEPALIVE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
-					ReportWSError("setsockopt", WSAGetLastError());
-				LingerOpt.l_onoff = 1;
-				LingerOpt.l_linger = 90;
-				if(setsockopt(ContSock, SOL_SOCKET, SO_LINGER, (LPSTR)&LingerOpt, sizeof(LingerOpt)) == SOCKET_ERROR)
-					ReportWSError("setsockopt", WSAGetLastError());
-///////
-
-
-				/*===== 認証を行なう =====*/
-
-				Sts = FTP_COMPLETE;
-				if((Fwall == FWALL_FU_FP_SITE) ||
-				   (Fwall == FWALL_FU_FP_USER) ||
-				   (Fwall == FWALL_FU_FP))
+				// バッファを無効
+#ifdef DISABLE_CONTROL_NETWORK_BUFFERS
+				int BufferSize = 0;
+				setsockopt(ContSock, SOL_SOCKET, SO_SNDBUF, (char*)&BufferSize, sizeof(int));
+				setsockopt(ContSock, SOL_SOCKET, SO_RCVBUF, (char*)&BufferSize, sizeof(int));
+#endif
+				// FTPIS対応
+//				while((Sts = ReadReplyMessage(ContSock, Buf, 1024, &CancelFlg, TmpBuf) / 100) == FTP_PRELIM)
+//					;
+				if(CryptMode == CRYPT_FTPIS)
 				{
-					if((Sts = command(ContSock, Reply, &CancelFlg, "USER %s", FwallUser) / 100) == FTP_CONTINUE)
+					if(AttachSSL(ContSock))
 					{
-						CheckOneTimePassword(FwallPass, Reply, FwallSecurity);
-						Sts = command(ContSock, NULL, &CancelFlg, "PASS %s", Reply) / 100;
+						while((Sts = ReadReplyMessage(ContSock, Buf, 1024, &CancelFlg, TmpBuf) / 100) == FTP_PRELIM)
+							;
+						if((Sts = command(ContSock, Reply, &CancelFlg, "PBSZ 0")) == 200)
+						{
+							if((Sts = command(ContSock, Reply, &CancelFlg, "PROT P")) == 200)
+							{
+							}
+							else
+								Sts = FTP_ERROR;
+						}
+						else
+							Sts = FTP_ERROR;
 					}
-				}
-				else if(Fwall == FWALL_SIDEWINDER)
-				{
-					Sts = command(ContSock, Reply, &CancelFlg, "USER %s:%s%c%s", FwallUser, FwallPass, FwallDelimiter, Host) / 100;
-				}
-				if((Sts != FTP_COMPLETE) && (Sts != FTP_CONTINUE))
-				{
-					SetTaskMsg(MSGJPN006);
-					DoClose(ContSock);
-					ContSock = INVALID_SOCKET;
+					else
+						Sts = FTP_ERROR;
 				}
 				else
 				{
-					if((Fwall == FWALL_FU_FP_SITE) || (Fwall == FWALL_OPEN))
+					while((Sts = ReadReplyMessage(ContSock, Buf, 1024, &CancelFlg, TmpBuf) / 100) == FTP_PRELIM)
+						;
+				}
+
+				if(Sts == FTP_COMPLETE)
+				{
+					Flg = 1;
+					if(setsockopt(ContSock, SOL_SOCKET, SO_OOBINLINE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
+						ReportWSError("setsockopt", WSAGetLastError());
+					// データ転送用ソケットのTCP遅延転送が無効されているので念のため
+					if(setsockopt(ContSock, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
+						ReportWSError("setsockopt", WSAGetLastError());
+//#pragma aaa
+					Flg = 1;
+					if(setsockopt(ContSock, SOL_SOCKET, SO_KEEPALIVE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
+						ReportWSError("setsockopt", WSAGetLastError());
+					LingerOpt.l_onoff = 1;
+					LingerOpt.l_linger = 90;
+					if(setsockopt(ContSock, SOL_SOCKET, SO_LINGER, (LPSTR)&LingerOpt, sizeof(LingerOpt)) == SOCKET_ERROR)
+						ReportWSError("setsockopt", WSAGetLastError());
+///////
+
+
+					/*===== 認証を行なう =====*/
+
+					Sts = FTP_COMPLETE;
+					if((Fwall == FWALL_FU_FP_SITE) ||
+					   (Fwall == FWALL_FU_FP_USER) ||
+					   (Fwall == FWALL_FU_FP))
 					{
-						Flg = 0;
-						if(Fwall == FWALL_OPEN)
-							Flg = 2;
-						if(FwallLower == YES)
-							Flg++;
-
-						if(HostPort == PORT_NOR)
-							Sts = command(ContSock, NULL, &CancelFlg, "%s %s", SiteTbl[Flg], Host) / 100;
-						else
-							Sts = command(ContSock, NULL, &CancelFlg, "%s %s %d", SiteTbl[Flg], Host, HostPort) / 100;
+						if((Sts = command(ContSock, Reply, &CancelFlg, "USER %s", FwallUser) / 100) == FTP_CONTINUE)
+						{
+							CheckOneTimePassword(FwallPass, Reply, FwallSecurity);
+							Sts = command(ContSock, NULL, &CancelFlg, "PASS %s", Reply) / 100;
+						}
 					}
-
+					else if(Fwall == FWALL_SIDEWINDER)
+					{
+						Sts = command(ContSock, Reply, &CancelFlg, "USER %s:%s%c%s", FwallUser, FwallPass, FwallDelimiter, Host) / 100;
+					}
 					if((Sts != FTP_COMPLETE) && (Sts != FTP_CONTINUE))
 					{
-						SetTaskMsg(MSGJPN007, Host);
+						SetTaskMsg(MSGJPN006);
 						DoClose(ContSock);
 						ContSock = INVALID_SOCKET;
 					}
 					else
 					{
-						Anony = NO;
-						if((strlen(User) != 0) || 
-						   (InputDialogBox(username_dlg, GetMainHwnd(), NULL, User, USER_NAME_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
+						if((Fwall == FWALL_FU_FP_SITE) || (Fwall == FWALL_OPEN))
 						{
-							if(Anony == YES)
-							{
-								strcpy(User, "anonymous");
-								strcpy(Pass, UserMailAdrs);
-							}
+							Flg = 0;
+							if(Fwall == FWALL_OPEN)
+								Flg = 2;
+							if(FwallLower == YES)
+								Flg++;
 
-							if((Fwall == FWALL_FU_FP_USER) || (Fwall == FWALL_USER))
-							{
-								if(HostPort == PORT_NOR)
-									sprintf(Buf, "%s%c%s", User, FwallDelimiter, Host);
-								else
-									sprintf(Buf, "%s%c%s %d", User, FwallDelimiter, Host, HostPort);
-							}
+							if(HostPort == PORT_NOR)
+								Sts = command(ContSock, NULL, &CancelFlg, "%s %s", SiteTbl[Flg], Host) / 100;
 							else
-								strcpy(Buf, User);
+								Sts = command(ContSock, NULL, &CancelFlg, "%s %s %d", SiteTbl[Flg], Host, HostPort) / 100;
+						}
 
-							// FTPES対応
-							// 2回以上呼ばれる事があるため既にFTPESで接続していても再確認
-							if(CurHost.CryptMode == CRYPT_NONE || CurHost.CryptMode == CRYPT_FTPES)
+						if((Sts != FTP_COMPLETE) && (Sts != FTP_CONTINUE))
+						{
+							SetTaskMsg(MSGJPN007, Host);
+							DoClose(ContSock);
+							ContSock = INVALID_SOCKET;
+						}
+						else
+						{
+							Anony = NO;
+							if((strlen(User) != 0) || 
+							   (InputDialogBox(username_dlg, GetMainHwnd(), NULL, User, USER_NAME_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
 							{
-								if(IsOpenSSLLoaded() && CurHost.UseFTPES == YES && (Sts = command(ContSock, Reply, &CancelFlg, "AUTH TLS")) == 234)
+								if(Anony == YES)
 								{
-									// SSLに切り替え
-									SetTaskMsg(MSGJPN315);
-									CurHost.CryptMode = CRYPT_FTPES;
-									if(AttachSSL(ContSock))
+									strcpy(User, "anonymous");
+									strcpy(Pass, UserMailAdrs);
+								}
+
+								if((Fwall == FWALL_FU_FP_USER) || (Fwall == FWALL_USER))
+								{
+									if(HostPort == PORT_NOR)
+										sprintf(Buf, "%s%c%s", User, FwallDelimiter, Host);
+									else
+										sprintf(Buf, "%s%c%s %d", User, FwallDelimiter, Host, HostPort);
+								}
+								else
+									strcpy(Buf, User);
+
+								// FTPES対応
+								if(CryptMode == CRYPT_FTPES)
+								{
+									if(IsOpenSSLLoaded() && (Sts = command(ContSock, Reply, &CancelFlg, "AUTH TLS")) == 234)
 									{
-										if((Sts = command(ContSock, Reply, &CancelFlg, "PBSZ 0")) == 200)
+										if(AttachSSL(ContSock))
 										{
-											if((Sts = command(ContSock, Reply, &CancelFlg, "PROT P")) == 200)
+											if((Sts = command(ContSock, Reply, &CancelFlg, "PBSZ 0")) == 200)
 											{
+												if((Sts = command(ContSock, Reply, &CancelFlg, "PROT P")) == 200)
+												{
+												}
+												else
+													Sts = FTP_ERROR;
 											}
 											else
 												Sts = FTP_ERROR;
@@ -1379,124 +1436,155 @@ static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port
 									else
 										Sts = FTP_ERROR;
 								}
-								else
-								{
-									// 暗号化なし
-									CurHost.CryptMode = CRYPT_NONE;
-									SetTaskMsg(MSGJPN314);
-								}
-							}
 
-							ReInPass = NO;
-							do
-							{
-								Continue = NO;
-								if((Sts = command(ContSock, Reply, &CancelFlg, "USER %s", Buf) / 100) == FTP_CONTINUE)
+								ReInPass = NO;
+								do
 								{
-									if((strlen(Pass) != 0) || 
-									   (InputDialogBox(passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
+									// FTPES対応
+									if(Sts == FTP_ERROR)
+										break;
+									Continue = NO;
+									if((Sts = command(ContSock, Reply, &CancelFlg, "USER %s", Buf) / 100) == FTP_CONTINUE)
 									{
-										CheckOneTimePassword(Pass, Reply, Security);
-
-										/* パスワードがスペース1個の時はパスワードの実体なしとする */
-										if(strcmp(Reply, " ") == 0)
-											strcpy(Reply, "");
-
-										Sts = command(ContSock, NULL, &CancelFlg, "PASS %s", Reply) / 100;
-										if(Sts == FTP_ERROR)
+										if((strlen(Pass) != 0) || 
+										   (InputDialogBox(passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
 										{
-											strcpy(Pass, "");
-											if(InputDialogBox(re_passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES)
-												Continue = YES;
-											else
-												DoPrintf("No password specified.");
-											ReInPass = YES;
-										}
-										else if(Sts == FTP_CONTINUE)
-										{
-											if((strlen(Acct) != 0) || 
-											   (InputDialogBox(account_dlg, GetMainHwnd(), NULL, Acct, ACCOUNT_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
+											CheckOneTimePassword(Pass, Reply, Security);
+
+											/* パスワードがスペース1個の時はパスワードの実体なしとする */
+											if(strcmp(Reply, " ") == 0)
+												strcpy(Reply, "");
+
+											Sts = command(ContSock, NULL, &CancelFlg, "PASS %s", Reply) / 100;
+											if(Sts == FTP_ERROR)
 											{
-												Sts = command(ContSock, NULL, &CancelFlg, "ACCT %s", Acct) / 100;
+												strcpy(Pass, "");
+												if(InputDialogBox(re_passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES)
+													Continue = YES;
+												else
+													DoPrintf("No password specified.");
+												ReInPass = YES;
 											}
-											else
-												DoPrintf("No account specified");
+											else if(Sts == FTP_CONTINUE)
+											{
+												if((strlen(Acct) != 0) || 
+												   (InputDialogBox(account_dlg, GetMainHwnd(), NULL, Acct, ACCOUNT_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
+												{
+													Sts = command(ContSock, NULL, &CancelFlg, "ACCT %s", Acct) / 100;
+												}
+												else
+													DoPrintf("No account specified");
+											}
+										}
+										else
+										{
+											Sts = FTP_ERROR;
+											DoPrintf("No password specified.");
 										}
 									}
-									else
-									{
-										Sts = FTP_ERROR;
-										DoPrintf("No password specified.");
-									}
 								}
+								while(Continue == YES);
 							}
-							while(Continue == YES);
-						}
-						else
-						{
-							Sts = FTP_ERROR;
-							DoPrintf("No user name specified");
-						}
+							else
+							{
+								Sts = FTP_ERROR;
+								DoPrintf("No user name specified");
+							}
 
-						if(Sts != FTP_COMPLETE)
-						{
-							SetTaskMsg(MSGJPN008, Host);
-							DoClose(ContSock);
-							ContSock = INVALID_SOCKET;
-						}
-						else if((SavePass == YES) && (ReInPass == YES))
-						{
-							if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savepass_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
-								SetHostPassword(AskCurrentHost(), Pass);
+							if(Sts != FTP_COMPLETE)
+							{
+								SetTaskMsg(MSGJPN008, Host);
+								DoClose(ContSock);
+								ContSock = INVALID_SOCKET;
+							}
+							else if((SavePass == YES) && (ReInPass == YES))
+							{
+								if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savepass_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+									SetHostPassword(AskCurrentHost(), Pass);
+							}
 						}
 					}
 				}
-			}
-			else
-			{
+				else
+				{
 //#pragma aaa
-				SetTaskMsg(MSGJPN009/*"接続できません(1) %x", ContSock*/);
-				DoClose(ContSock);
-				ContSock = INVALID_SOCKET;
+					SetTaskMsg(MSGJPN009/*"接続できません(1) %x", ContSock*/);
+					DoClose(ContSock);
+					ContSock = INVALID_SOCKET;
+				}
 			}
 		}
-	}
-	else
-	{
-
-		if(((Fwall >= FWALL_FU_FP_SITE) && (Fwall <= FWALL_OPEN)) ||
-		   (Fwall == FWALL_FU_FP))
-			SetTaskMsg(MSGJPN010);
 		else
-			SetTaskMsg(MSGJPN011);
-	}
+		{
+
+			if(((Fwall >= FWALL_FU_FP_SITE) && (Fwall <= FWALL_OPEN)) ||
+			   (Fwall == FWALL_FU_FP))
+				SetTaskMsg(MSGJPN010);
+			else
+				SetTaskMsg(MSGJPN011);
+		}
 
 #if 0
-//	WSAUnhookBlockingHook();
+//		WSAUnhookBlockingHook();
 #endif
-	TryConnect = NO;
+		TryConnect = NO;
 
-	// FEAT対応
-	// ホストの機能を確認
-	if(ContSock != INVALID_SOCKET)
-	{
-		if((Sts = command(ContSock, Reply, &CancelFlg, "FEAT")) == 211)
+		// FEAT対応
+		// ホストの機能を確認
+		if(ContSock != INVALID_SOCKET)
 		{
-			// 改行文字はReadReplyMessageで消去されるため区切り文字に空白を使用
-			// UTF-8対応
-			if(strstr(Reply, " UTF8 "))
-				CurHost.Feature |= FEATURE_UTF8;
-		}
-		// UTF-8対応
-		if(CurHost.NameKanjiCode == KANJI_AUTO && (CurHost.Feature & FEATURE_UTF8))
-		{
-			if((Sts = command(ContSock, Reply, &CancelFlg, "OPTS UTF8 ON")) == 200)
+			if((Sts = command(ContSock, Reply, &CancelFlg, "FEAT")) == 211)
 			{
+				// 改行文字はReadReplyMessageで消去されるため区切り文字に空白を使用
+				// UTF-8対応
+				if(strstr(Reply, " UTF8 "))
+					HostData->Feature |= FEATURE_UTF8;
+			}
+			// UTF-8対応
+			if(HostData->NameKanjiCode == KANJI_AUTO && (HostData->Feature & FEATURE_UTF8))
+			{
+				if((Sts = command(ContSock, Reply, &CancelFlg, "OPTS UTF8 ON")) == 200)
+				{
+				}
 			}
 		}
+	}
+	else if(CryptMode == CRYPT_SFTP)
+	{
 	}
 
 	return(ContSock);
+}
+
+static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security)
+{
+	SOCKET ContSock;
+	ContSock = INVALID_SOCKET;
+	if(ContSock == INVALID_SOCKET && HostData->UseSFTP == YES)
+	{
+		SetTaskMsg(MSGJPN317);
+		if((ContSock = DoConnectCrypt(CRYPT_SFTP, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
+			HostData->CryptMode = CRYPT_SFTP;
+	}
+//	if(ContSock == INVALID_SOCKET && HostData->UseFTPIS == YES)
+//	{
+//		SetTaskMsg(MSGJPN316);
+//		if((ContSock = DoConnectCrypt(CRYPT_FTPIS, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
+//			HostData->CryptMode = CRYPT_FTPIS;
+//	}
+	if(ContSock == INVALID_SOCKET && HostData->UseFTPES == YES)
+	{
+		SetTaskMsg(MSGJPN315);
+		if((ContSock = DoConnectCrypt(CRYPT_FTPES, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
+			HostData->CryptMode = CRYPT_FTPES;
+	}
+	if(ContSock == INVALID_SOCKET && HostData->UseNoEncryption == YES)
+	{
+		SetTaskMsg(MSGJPN314);
+		if((ContSock = DoConnectCrypt(CRYPT_NONE, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
+			HostData->CryptMode = CRYPT_NONE;
+	}
+	return ContSock;
 }
 
 
@@ -2235,6 +2323,11 @@ int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data)
 int AskCryptMode(void)
 {
 	return(CurHost.CryptMode);
+}
+
+int AskUseNoEncryption(void)
+{
+	return(CurHost.UseNoEncryption);
 }
 
 int AskUseFTPES(void)

@@ -917,6 +917,7 @@ typedef struct {
 	char DialEntry[RAS_NAME_LEN+1];		/* ダイアルアップエントリ */
 	// 暗号化通信対応
 	int CryptMode;						/* 暗号化通信モード (CRYPT_xxx) */
+	int UseNoEncryption;				/* 暗号化なしで接続する (YES/NO) */
 	int UseFTPES;						/* FTPESで接続する (YES/NO) */
 	int UseFTPIS;						/* FTPISで接続する (YES/NO) */
 	int UseSFTP;						/* SFTPで接続する (YES/NO) */
