@@ -1,5 +1,16 @@
 FFFTP version history.
 
+Changes in Ver.1.98a
+--------------------
+
+-- Fixed bugs of character corruption of host list dialog.
+
+-- Fixed bugs of playing sound whose filename contains multi-byte characters.
+
+-- Fixed bugs of printing logs of transfer rate.
+
+-- Changed behavior of filename encoding settings migration from 1.97b.
+
 Changes in Ver.1.98
 --------------------
 
