@@ -1806,6 +1806,18 @@ END_ROUTINE
 	return r;
 }
 
+BOOL sndPlaySoundM(LPCSTR pszSound, UINT fuSound)
+{
+	HWND r = NULL;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(pszSound, -1);
+	r = sndPlaySoundW(pw0, fuSound);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
 int mkdirM(const char * _Path)
 {
 	int r = 0;
