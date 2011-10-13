@@ -900,7 +900,6 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //			else if(strncmp(TransPacketBase->Cmd, "R-DELE", 6) == 0)
 			else if(strncmp(Pos->Cmd, "R-DELE", 6) == 0)
 			{
-				ReleaseMutex(hListAccMutex);
 //				DispTransFileInfo(TransPacketBase, MSGJPN081, FALSE, YES);
 				DispTransFileInfo(Pos, MSGJPN081, FALSE, YES);
 
@@ -917,6 +916,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 						CommandProcTrn(TrnSkt, NULL, "%s%s", Pos->Cmd+2, Pos->RemoteFile);
 					}
 				}
+				ReleaseMutex(hListAccMutex);
 			}
 			/* ディレクトリ作成（常にローカル側） */
 //			else if(strncmp(TransPacketBase->Cmd, "L-MKD", 5) == 0)

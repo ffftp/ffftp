@@ -740,10 +740,7 @@ int do_closesocket(SOCKET s)
 
 	// FTPS対応
 //	Ret = closesocket(s);
-	if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
-		Ret = closesocketS(s);
-	else
-		Ret = closesocketS(s);
+	Ret = closesocketS(s);
 	if(Ret == SOCKET_ERROR)
 	{
 		Error = 0;
@@ -970,7 +967,7 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 	// FTPS対応
 	// OpenSSLでは受信確認はFD_READが複数回受信される可能性がある
 //	while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_READ_BIT) != YES))
-	while(AskCryptMode() == CRYPT_NONE && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_READ_BIT) != YES))
+	while(!IsSSLAttached(s) && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_READ_BIT) != YES))
 	{
 		if(AskAsyncDone(s, &Error, FD_CLOSE_BIT) == YES)
 		{
@@ -1003,10 +1000,7 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 
 			// FTPS対応
 //			Ret = recv(s, buf, len, flags);
-			if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
-				Ret = recvS(s, buf, len, flags);
-			else
-				Ret = recv(s, buf, len, flags);
+			Ret = recvS(s, buf, len, flags);
 			if(Ret != SOCKET_ERROR)
 				break;
 			Error = WSAGetLastError();
@@ -1015,11 +1009,8 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 				break;
 			// FTPS対応
 			// 受信確認をバイパスしたためここでタイムアウトの確認
-			if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
-			{
-				if(BackgrndMessageProc() == YES)
-					*CancelCheckWork = YES;
-			}
+			if(BackgrndMessageProc() == YES)
+				*CancelCheckWork = YES;
 			else if(TimeOut != 0)
 			{
 				time(&ElapseTime);
@@ -1080,7 +1071,7 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 	// FTPS対応
 	// 送信バッファの空き確認には影響しないが念のため
 //	while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE_BIT) != YES))
-	while(AskCryptMode() == CRYPT_NONE && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE_BIT) != YES))
+	while(!IsSSLAttached(s) && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE_BIT) != YES))
 	{
 		if(AskAsyncDone(s, &Error, FD_CLOSE_BIT) == YES)
 		{
@@ -1114,10 +1105,7 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 
 			// FTPS対応
 //			Ret = send(s, buf, len, flags);
-			if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
-				Ret = sendS(s, buf, len, flags);
-			else
-				Ret = send(s, buf, len, flags);
+			Ret = sendS(s, buf, len, flags);
 			if(Ret != SOCKET_ERROR)
 			{
 #if DBG_MSG
@@ -1131,11 +1119,8 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 				break;
 			// FTPS対応
 			// 送信バッファ確認をバイパスしたためここでタイムアウトの確認
-			if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
-			{
-				if(BackgrndMessageProc() == YES)
-					*CancelCheckWork = YES;
-			}
+			if(BackgrndMessageProc() == YES)
+				*CancelCheckWork = YES;
 			else if(TimeOut != 0)
 			{
 				time(&ElapseTime);
