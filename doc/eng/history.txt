@@ -11,6 +11,12 @@ Changes in Ver.1.98a
 
 -- Changed behavior of filename encoding settings migration from 1.97b.
 
+-- Reduced chance of failure of connecting to hosts that do not support FTPS.
+
+-- Changed behavior of entering a new master password.
+
+-- Removed the log size limit.
+
 Changes in Ver.1.98
 --------------------
 
