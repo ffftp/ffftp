@@ -318,3 +318,4 @@
 #define MSGJPN318		"OpenSSLが読み込まれました."
 #define MSGJPN319		"OpenSSLがインストールされていません.\r\n通信の暗号化は行われません."
 #define MSGJPN320		"特殊機能"
+#define MSGJPN321		"新しいマスターパスワードが一致しません."

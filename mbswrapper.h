@@ -152,6 +152,9 @@ INT_PTR DialogBoxParamM(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndPar
 #undef CreateDialogParam
 #define CreateDialogParam CreateDialogParamM
 HWND CreateDialogParamM(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
+#undef sndPlaySound
+#define sndPlaySound sndPlaySoundM
+BOOL sndPlaySoundM(LPCSTR pszSound, UINT fuSound);
 #undef mkdir
 #define mkdir _mkdirM
 int mkdirM(const char * _Path);

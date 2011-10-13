@@ -3045,7 +3045,10 @@ static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 //			if((Pkt->hWndTrans != NULL) && (TimeStart != 0))
 //				SetTaskMsg(MSGJPN115, TimeStart, Pkt->ExistSize/TimeStart);
 			if((Pkt->hWndTrans != NULL) && (TimeStart[Pkt->ThreadCount] != 0))
-				SetTaskMsg(MSGJPN115, TimeStart[Pkt->ThreadCount], Pkt->ExistSize/TimeStart[Pkt->ThreadCount]);
+				// "0 B/S"と表示されるバグを修正
+				// 原因は%dにあたる部分に64ビット値が渡されているため
+//				SetTaskMsg(MSGJPN115, TimeStart[Pkt->ThreadCount], Pkt->ExistSize/TimeStart[Pkt->ThreadCount]);
+				SetTaskMsg(MSGJPN115, (LONG)TimeStart[Pkt->ThreadCount], (LONG)(Pkt->ExistSize/TimeStart[Pkt->ThreadCount]));
 			else
 				SetTaskMsg(MSGJPN116);
 		}
