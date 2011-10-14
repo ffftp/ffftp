@@ -42,6 +42,8 @@
 #include "common.h"
 #include "resource.h"
 #include "aes.h"
+// 暗号化通信対応
+#include "sha.h"
 
 #include <htmlhelp.h>
 #include "helpid.h"
@@ -210,6 +212,8 @@ int FolderAttr = NO;
 int FolderAttrNum = 777;
 // 同時接続対応
 int MaxThreadCount = 1;
+// 暗号化通信対応
+BYTE CertificateCacheHash[MAX_CERT_CACHE_HASH][20];
 
 
 
@@ -2828,16 +2832,31 @@ BOOL __stdcall SSLTimeoutCallback()
 BOOL __stdcall SSLConfirmCallback(BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName)
 {
 	BOOL bResult;
+	int i;
+	uint32 Hash[5];
 	char* pm0;
 	bResult = FALSE;
-	pm0 = NULL;
-	if(pm0 = AllocateStringM(strlen(Certificate) + 1024))
+	sha_memory((char*)Certificate, (uint32)(strlen(Certificate) * sizeof(char)), (uint32*)&Hash);
+	for(i = 0; i < MAX_CERT_CACHE_HASH; i++)
 	{
-		sprintf(pm0, MSGJPN326, IsHostNameMatched(AskHostAdrs(), CommonName) ? MSGJPN327 : MSGJPN328, bVerified ? MSGJPN327 : MSGJPN328, Certificate);
-		if(MessageBox(GetMainHwnd(), pm0, "FFFTP", MB_YESNO) == IDYES)
+		if(memcmp(&CertificateCacheHash[i], &Hash, 20) == 0)
 			bResult = TRUE;
 	}
-	FreeDuplicatedString(pm0);
+	if(!bResult)
+	{
+		if(pm0 = AllocateStringM(strlen(Certificate) + 1024))
+		{
+			sprintf(pm0, MSGJPN326, IsHostNameMatched(AskHostAdrs(), CommonName) ? MSGJPN327 : MSGJPN328, bVerified ? MSGJPN327 : MSGJPN328, Certificate);
+			if(MessageBox(GetMainHwnd(), pm0, "FFFTP", MB_YESNO) == IDYES)
+			{
+				for(i = MAX_CERT_CACHE_HASH - 1; i >= 1; i--)
+					memcpy(&CertificateCacheHash[i], &CertificateCacheHash[i - 1], 20);
+				memcpy(&CertificateCacheHash[0], &Hash, 20);
+				bResult = TRUE;
+			}
+			FreeDuplicatedString(pm0);
+		}
+	}
 	return bResult;
 }
 

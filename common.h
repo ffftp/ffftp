@@ -879,6 +879,10 @@ LIST_UNIX_70
 #define FEATURE_EPRT		0x00000004
 #define FEATURE_EPSV		0x00000008
 
+// 暗号化通信対応
+// REG_SECT_MAXの値を加味する必要がある
+#define MAX_CERT_CACHE_HASH 256
+
 
 /*=================================================
 *		ストラクチャ

@@ -182,6 +182,9 @@ extern int MirDownDelNotify;
 extern int FolderAttr;
 extern int FolderAttrNum;
 
+// 暗号化通信対応
+extern BYTE CertificateCacheHash[MAX_CERT_CACHE_HASH][20];
+
 /*----- マスタパスワードの設定 ----------------------------------------------
 *
 *	Parameter
@@ -568,6 +571,9 @@ void SaveRegistory(void)
 				if((i = AskCurrentHost()) == HOSTNUM_NOENTRY)
 					i = 0;
 				WriteIntValueToReg(hKey4, "CurSet", i);
+
+				// 暗号化通信対応
+				WriteBinaryToReg(hKey4, "CertCacheHash", &CertificateCacheHash, sizeof(CertificateCacheHash));
 			}
 			CloseSubKey(hKey4);
 		}
@@ -899,6 +905,9 @@ int LoadRegistory(void)
 
 			ReadIntValueFromReg(hKey4, "CurSet", &Sets);
 			SetCurrentHost(Sets);
+
+			// 暗号化通信対応
+			ReadBinaryFromReg(hKey4, "CertCacheHash", &CertificateCacheHash, sizeof(CertificateCacheHash));
 
 			CloseSubKey(hKey4);
 		}
