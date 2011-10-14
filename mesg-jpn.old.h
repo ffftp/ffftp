@@ -323,3 +323,6 @@
 #define MSGJPN323		"信頼できないDLLをアンロードできませんでした."
 #define MSGJPN324		"プロセスの保護に必要な関数をフックできませんでした."
 #define MSGJPN325		"新しいマスターパスワードが一致しません."
+#define MSGJPN326		"この証明書を信頼し,通信を続行するには「はい」を選択してください.\r\nCNの一致: %s\r\n検証に成功: %s\r\n\r\n%s"
+#define MSGJPN327		"はい"
+#define MSGJPN328		"いいえ"

@@ -1037,6 +1037,8 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 		Set->MaxThreadCount = Pos->Set.MaxThreadCount;
 		// MLSD対応
 		Set->UseMLSD = Pos->Set.UseMLSD;
+		// IPv6対応
+		Set->UseIPv6 = Pos->Set.UseIPv6;
 		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
@@ -1321,6 +1323,8 @@ void CopyDefaultHost(HOSTDATA *Set)
 	// MLSD対応
 	Set->Feature = 0;
 	Set->UseMLSD = YES;
+	// IPv6対応
+	Set->UseIPv6 = YES;
 	return;
 }
 

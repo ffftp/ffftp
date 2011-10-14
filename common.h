@@ -875,6 +875,9 @@ LIST_UNIX_70
 #define FEATURE_UTF8		0x00000001
 // MLSD対応
 #define FEATURE_MLSD		0x00000002
+// IPv6対応
+#define FEATURE_EPRT		0x00000004
+#define FEATURE_EPSV		0x00000008
 
 
 /*=================================================
@@ -931,6 +934,8 @@ typedef struct {
 	int Feature;						/* 利用可能な機能のフラグ (FEATURE_xxx) */
 	// MLSD対応
 	int UseMLSD;						/* "MLSD"コマンドを使用する */
+	// IPv6対応
+	int UseIPv6;						/* IPv6接続を許可しEPRT/EPSVコマンドを使用する */
 } HOSTDATA;
 
 
@@ -985,6 +990,8 @@ typedef struct historydata {
 	int MaxThreadCount;					/* 同時接続数 */
 	// MLSD対応
 	int UseMLSD;						/* "MLSD"コマンドを使用する */
+	// IPv6対応
+	int UseIPv6;						/* IPv6接続を許可しEPRT/EPSVコマンドを使用する */
 	struct historydata *Next;
 } HISTORYDATA;
 
@@ -1219,6 +1226,7 @@ void ResetAutoExitFlg(void);
 int AskAutoExit(void);
 // 暗号化通信対応
 BOOL __stdcall SSLTimeoutCallback();
+BOOL __stdcall SSLConfirmCallback(BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName);
 
 /*===== filelist.c =====*/
 
@@ -1402,6 +1410,8 @@ int AskMaxThreadCount(void);
 int AskHostFeature(void);
 // MLSD対応
 int AskUseMLSD(void);
+// IPv6対応
+int AskUseIPv6(void);
 
 /*===== cache.c =====*/
 

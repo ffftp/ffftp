@@ -8,11 +8,14 @@
 #define USE_OPENSSL
 
 typedef BOOL (__stdcall* LPSSLTIMEOUTCALLBACK)();
+typedef BOOL (__stdcall* LPSSLCONFIRMCALLBACK)(BOOL, LPCSTR, LPCSTR);
 
 BOOL LoadOpenSSL();
 void FreeOpenSSL();
 BOOL IsOpenSSLLoaded();
 void SetSSLTimeoutCallback(DWORD Timeout, LPSSLTIMEOUTCALLBACK pCallback);
+void SetSSLConfirmCallback(LPSSLCONFIRMCALLBACK pCallback);
+BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName);
 BOOL AttachSSL(SOCKET s);
 BOOL DetachSSL(SOCKET s);
 BOOL IsSSLAttached(SOCKET s);

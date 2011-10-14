@@ -231,6 +231,8 @@ static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
 	New->MaxThreadCount = Host->MaxThreadCount;
 	// MLSD対応
 	New->UseMLSD = Host->UseMLSD;
+	// IPv6対応
+	New->UseIPv6 = Host->UseIPv6;
 	return;
 }
 
@@ -288,6 +290,8 @@ void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
 	Host->MaxThreadCount = Hist->MaxThreadCount;
 	// MLSD対応
 	Host->UseMLSD = Hist->UseMLSD;
+	// IPv6対応
+	Host->UseIPv6 = Hist->UseIPv6;
 	return;
 }
 

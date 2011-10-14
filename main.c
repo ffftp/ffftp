@@ -458,6 +458,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 
 			// 暗号化通信対応
 			SetSSLTimeoutCallback(TimeOut * 1000, SSLTimeoutCallback);
+			SetSSLConfirmCallback(SSLConfirmCallback);
 
 			LoadJre();
 			if(NoRasControl == NO)
@@ -2822,5 +2823,21 @@ BOOL __stdcall SSLTimeoutCallback()
 //		return TRUE;
 //	}
 	return FALSE;
+}
+
+BOOL __stdcall SSLConfirmCallback(BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName)
+{
+	BOOL bResult;
+	char* pm0;
+	bResult = FALSE;
+	pm0 = NULL;
+	if(pm0 = AllocateStringM(strlen(Certificate) + 1024))
+	{
+		sprintf(pm0, MSGJPN326, IsHostNameMatched(AskHostAdrs(), CommonName) ? MSGJPN327 : MSGJPN328, bVerified ? MSGJPN327 : MSGJPN328, Certificate);
+		if(MessageBox(GetMainHwnd(), pm0, "FFFTP", MB_YESNO) == IDYES)
+			bResult = TRUE;
+	}
+	FreeDuplicatedString(pm0);
+	return bResult;
 }
 

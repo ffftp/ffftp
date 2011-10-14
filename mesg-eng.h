@@ -323,3 +323,6 @@
 #define MSGJPN323		"Failed to unload untrustworthy DLLs."
 #define MSGJPN324		"Failed to hook required functions to protect the process."
 #define MSGJPN325		"New master passwords are not identical."
+#define MSGJPN326		"Choose 'Yes' if you trust this certificate and continue.\r\nCN is identical: %s\r\nVerified successfully: %s\r\n\r\n%s"
+#define MSGJPN327		"Yes"
+#define MSGJPN328		"No"
