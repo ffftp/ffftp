@@ -421,11 +421,14 @@
 #define HSET_SJIS_CNV                   1195
 #define HSET_UTF8N_CNV                  1196
 #define HSET_FN_SJIS_CNV                1197
-#define HSET_FTPES                      1198
-#define HSET_FTPIS                      1199
-#define HSET_SFTP                       1200
-#define HSET_THREAD_COUNT               1201
-#define HSET_THREAD_COUNT_SPN           1202
+#define HSET_NO_ENCRYPTION              1198
+#define HSET_FTPES                      1199
+#define HSET_FTPIS                      1200
+#define HSET_SFTP                       1201
+#define PKEY_FILE_BR                    1202
+#define HSET_PRIVATE_KEY                1203
+#define HSET_THREAD_COUNT               1204
+#define HSET_THREAD_COUNT_SPN           1205
 #define MENU_END                        40001
 #define MENU_EXIT                       40001
 #define MENU_CONNECT                    40003
@@ -611,7 +614,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        191
 #define _APS_NEXT_COMMAND_VALUE         40175
-#define _APS_NEXT_CONTROL_VALUE         1203
+#define _APS_NEXT_CONTROL_VALUE         1206
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -2857,6 +2857,8 @@ BOOL __stdcall SSLConfirmCallback(BOOL bVerified, LPCSTR Certificate, LPCSTR Com
 			FreeDuplicatedString(pm0);
 		}
 	}
+	if(!bResult)
+		CancelFlg = YES;
 	return bResult;
 }
 

@@ -287,7 +287,9 @@ void SaveRegistory(void)
 	void *hKey3;
 	void *hKey4;
 	void *hKey5;
-	char Str[FMAX_PATH+1];
+	// 暗号化通信対応
+//	char Str[FMAX_PATH+1];
+	char Str[PRIVATE_KEY_LEN*4+1];
 	int i;
 	int n;
 	HOSTDATA DefaultHost;
@@ -466,9 +468,12 @@ void SaveRegistory(void)
 							SaveIntNum(hKey5, "Notify", Hist.DialupNotify, DefaultHist.DialupNotify);
 							SaveStr(hKey5, "DialTo", Hist.DialEntry, DefaultHist.DialEntry);
 							// 暗号化通信対応
+							SaveIntNum(hKey5, "NoEncryption", Hist.UseNoEncryption, DefaultHist.UseNoEncryption);
 							SaveIntNum(hKey5, "FTPES", Hist.UseFTPES, DefaultHist.UseFTPES);
 							SaveIntNum(hKey5, "FTPIS", Hist.UseFTPIS, DefaultHist.UseFTPIS);
 							SaveIntNum(hKey5, "SFTP", Hist.UseSFTP, DefaultHist.UseSFTP);
+							EncodePassword(Hist.PrivateKey, Str);
+							SaveStr(hKey5, "PKey", Str, DefaultHist.PrivateKey);
 							// 同時接続対応
 							SaveIntNum(hKey5, "ThreadCount", Hist.MaxThreadCount, DefaultHist.MaxThreadCount);
 							// MLSD対応
@@ -544,9 +549,12 @@ void SaveRegistory(void)
 							SaveIntNum(hKey5, "Notify", Host.DialupNotify, DefaultHost.DialupNotify);
 							SaveStr(hKey5, "DialTo", Host.DialEntry, DefaultHost.DialEntry);
 							// 暗号化通信対応
+							SaveIntNum(hKey5, "NoEncryption", Host.UseNoEncryption, DefaultHost.UseNoEncryption);
 							SaveIntNum(hKey5, "FTPES", Host.UseFTPES, DefaultHost.UseFTPES);
 							SaveIntNum(hKey5, "FTPIS", Host.UseFTPIS, DefaultHost.UseFTPIS);
 							SaveIntNum(hKey5, "SFTP", Host.UseSFTP, DefaultHost.UseSFTP);
+							EncodePassword(Host.PrivateKey, Str);
+							SaveStr(hKey5, "PKey", Str, DefaultHost.PrivateKey);
 							// 同時接続対応
 							SaveIntNum(hKey5, "ThreadCount", Host.MaxThreadCount, DefaultHost.MaxThreadCount);
 							// MLSD対応
@@ -601,7 +609,9 @@ int LoadRegistory(void)
 	void *hKey5;
 	int i;
 	int Sets;
-	char Str[256];	/* ASCII_EXT_LENより大きい事 */
+	// 暗号化通信対応
+//	char Str[256];	/* ASCII_EXT_LENより大きい事 */
+	char Str[PRIVATE_KEY_LEN*4+1];
 	char *Pos;
 	char *Pos2;
 	HOSTDATA Host;
@@ -807,9 +817,13 @@ int LoadRegistory(void)
 					ReadIntValueFromReg(hKey5, "Notify", &Hist.DialupNotify);
 					ReadStringFromReg(hKey5, "DialTo", Hist.DialEntry, RAS_NAME_LEN+1);
 					// 暗号化通信対応
+					ReadIntValueFromReg(hKey5, "NoEncryption", &Hist.UseNoEncryption);
 					ReadIntValueFromReg(hKey5, "FTPES", &Hist.UseFTPES);
 					ReadIntValueFromReg(hKey5, "FTPIS", &Hist.UseFTPIS);
 					ReadIntValueFromReg(hKey5, "SFTP", &Hist.UseSFTP);
+					strcpy(Str, "");
+					ReadStringFromReg(hKey5, "PKey", Str, PRIVATE_KEY_LEN*4+1);
+					DecodePassword(Str, Hist.PrivateKey);
 					// 同時接続対応
 					ReadIntValueFromReg(hKey5, "ThreadCount", &Hist.MaxThreadCount);
 					// MLSD対応
@@ -887,9 +901,13 @@ int LoadRegistory(void)
 					ReadIntValueFromReg(hKey5, "Notify", &Host.DialupNotify);
 					ReadStringFromReg(hKey5, "DialTo", Host.DialEntry, RAS_NAME_LEN+1);
 					// 暗号化通信対応
+					ReadIntValueFromReg(hKey5, "NoEncryption", &Host.UseNoEncryption);
 					ReadIntValueFromReg(hKey5, "FTPES", &Host.UseFTPES);
 					ReadIntValueFromReg(hKey5, "FTPIS", &Host.UseFTPIS);
 					ReadIntValueFromReg(hKey5, "SFTP", &Host.UseSFTP);
+					strcpy(Str, "");
+					ReadStringFromReg(hKey5, "PKey", Str, PRIVATE_KEY_LEN*4+1);
+					DecodePassword(Str, Host.PrivateKey);
 					// 同時接続対応
 					ReadIntValueFromReg(hKey5, "ThreadCount", &Host.MaxThreadCount);
 					// MLSD対応

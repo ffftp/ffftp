@@ -224,9 +224,11 @@ static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
 	New->DialupNotify = Host->DialupNotify;
 	strcpy(New->DialEntry, Host->DialEntry);
 	// 暗号化通信対応
+	New->UseNoEncryption = Host->UseNoEncryption;
 	New->UseFTPES = Host->UseFTPES;
 	New->UseFTPIS = Host->UseFTPIS;
 	New->UseSFTP = Host->UseSFTP;
+	strcpy(New->PrivateKey, Host->PrivateKey);
 	// 同時接続対応
 	New->MaxThreadCount = Host->MaxThreadCount;
 	// MLSD対応
@@ -283,9 +285,11 @@ void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
 	Host->DialupNotify = Hist->DialupNotify;
 	strcpy(Host->DialEntry, Hist->DialEntry);
 	// 暗号化通信対応
+	Host->UseNoEncryption = Hist->UseNoEncryption;
 	Host->UseFTPES = Hist->UseFTPES;
 	Host->UseFTPIS = Hist->UseFTPIS;
 	Host->UseSFTP = Hist->UseSFTP;
+	strcpy(Host->PrivateKey, Hist->PrivateKey);
 	// 同時接続対応
 	Host->MaxThreadCount = Hist->MaxThreadCount;
 	// MLSD対応

@@ -1271,7 +1271,8 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 			Fwall = FWALL_NONE;
 
 		TryConnect = YES;
-		CancelFlg = NO;
+		// 暗号化通信対応
+//		CancelFlg = NO;
 #if 0
 //		WSASetBlockingHook(BlkHookFnc);
 #endif
@@ -1567,25 +1568,26 @@ static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, 
 {
 	SOCKET ContSock;
 	ContSock = INVALID_SOCKET;
-	if(ContSock == INVALID_SOCKET && HostData->UseSFTP == YES)
+	CancelFlg = NO;
+	if(CancelFlg == NO && ContSock == INVALID_SOCKET && HostData->UseSFTP == YES)
 	{
 		SetTaskMsg(MSGJPN317);
 		if((ContSock = DoConnectCrypt(CRYPT_SFTP, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
 			HostData->CryptMode = CRYPT_SFTP;
 	}
-//	if(ContSock == INVALID_SOCKET && HostData->UseFTPIS == YES)
+//	if(CancelFlg == NO && ContSock == INVALID_SOCKET && HostData->UseFTPIS == YES)
 //	{
 //		SetTaskMsg(MSGJPN316);
 //		if((ContSock = DoConnectCrypt(CRYPT_FTPIS, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
 //			HostData->CryptMode = CRYPT_FTPIS;
 //	}
-	if(ContSock == INVALID_SOCKET && HostData->UseFTPES == YES)
+	if(CancelFlg == NO && ContSock == INVALID_SOCKET && HostData->UseFTPES == YES)
 	{
 		SetTaskMsg(MSGJPN315);
 		if((ContSock = DoConnectCrypt(CRYPT_FTPES, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
 			HostData->CryptMode = CRYPT_FTPES;
 	}
-	if(ContSock == INVALID_SOCKET && HostData->UseNoEncryption == YES)
+	if(CancelFlg == NO && ContSock == INVALID_SOCKET && HostData->UseNoEncryption == YES)
 	{
 		SetTaskMsg(MSGJPN314);
 		if((ContSock = DoConnectCrypt(CRYPT_NONE, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
@@ -2350,6 +2352,11 @@ int AskUseFTPIS(void)
 int AskUseSFTP(void)
 {
 	return(CurHost.UseSFTP);
+}
+
+char *AskPrivateKey(void)
+{
+	return(CurHost.PrivateKey);
 }
 
 // 同時接続対応

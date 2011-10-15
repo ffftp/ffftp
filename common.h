@@ -71,7 +71,7 @@
 //#define VER_NUM					1921		/* 設定バージョン */
 //#define PROGRAM_VERSION_NUM		1972		/* バージョン */
 #define VER_STR					"1.99"
-#define VER_NUM					1980		/* 設定バージョン */
+#define VER_NUM					1990		/* 設定バージョン */
 #define PROGRAM_VERSION_NUM		1990		/* バージョン */
 
 
@@ -138,6 +138,9 @@
 #define FMAX_PATH		1024
 
 #define ONELINE_BUF_SIZE	(10*1024)
+
+// 暗号化通信対応
+#define PRIVATE_KEY_LEN 4096
 
 /*===== 初期値 =====*/
 
@@ -932,6 +935,7 @@ typedef struct {
 	int UseFTPES;						/* FTPESで接続する (YES/NO) */
 	int UseFTPIS;						/* FTPISで接続する (YES/NO) */
 	int UseSFTP;						/* SFTPで接続する (YES/NO) */
+	char PrivateKey[PRIVATE_KEY_LEN+1];	/* テキスト形式の秘密鍵 */
 	// 同時接続対応
 	int MaxThreadCount;					/* 同時接続数 */
 	// FEAT対応
@@ -987,9 +991,11 @@ typedef struct historydata {
 	int DialupNotify;					/* 再接続の際に確認する (YES/NO) */
 	char DialEntry[RAS_NAME_LEN+1];		/* ダイアルアップエントリ */
 	// 暗号化通信対応
+	int UseNoEncryption;				/* 暗号化なしで接続する (YES/NO) */
 	int UseFTPES;						/* FTPESで接続する (YES/NO) */
 	int UseFTPIS;						/* FTPISで接続する (YES/NO) */
 	int UseSFTP;						/* SFTPで接続する (YES/NO) */
+	char PrivateKey[PRIVATE_KEY_LEN+1];	/* テキスト形式の秘密鍵 */
 	// 同時接続対応
 	int MaxThreadCount;					/* 同時接続数 */
 	// MLSD対応
@@ -1405,9 +1411,11 @@ int AskTryingConnect(void);
 int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data);
 // 暗号化通信対応
 int AskCryptMode(void);
+int AskUseNoEncryption(void);
 int AskUseFTPES(void);
 int AskUseFTPIS(void);
 int AskUseSFTP(void);
+char *AskPrivateKey(void);
 // 同時接続対応
 int AskMaxThreadCount(void);
 // FEAT対応

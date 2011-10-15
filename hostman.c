@@ -1030,6 +1030,7 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 		Set->LastDir = Pos->Set.LastDir;
 		Set->TimeZone = Pos->Set.TimeZone;
 		// 暗号化通信対応
+		Set->UseNoEncryption = Pos->Set.UseNoEncryption;
 		Set->UseFTPES = Pos->Set.UseFTPES;
 		Set->UseFTPIS = Pos->Set.UseFTPIS;
 		Set->UseSFTP = Pos->Set.UseSFTP;
@@ -1318,6 +1319,7 @@ void CopyDefaultHost(HOSTDATA *Set)
 	Set->UseFTPES = YES;
 	Set->UseFTPIS = YES;
 	Set->UseSFTP = YES;
+	strcpy(Set->PrivateKey, "");
 	// 同時接続対応
 	Set->MaxThreadCount = 1;
 	// MLSD対応
@@ -2146,11 +2148,11 @@ static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, L
 	switch (iMessage)
 	{
 		case WM_INITDIALOG :
+			SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_SETCHECK, TmpHost.UseNoEncryption, 0);
 			if(IsOpenSSLLoaded())
 			{
 				SendDlgItemMessage(hDlg, HSET_FTPES, BM_SETCHECK, TmpHost.UseFTPES, 0);
 				SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, TmpHost.UseFTPIS, 0);
-				SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, TmpHost.UseSFTP, 0);
 			}
 			else
 			{
@@ -2158,9 +2160,9 @@ static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, L
 				EnableWindow(GetDlgItem(hDlg, HSET_FTPES), FALSE);
 				SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, BST_UNCHECKED, 0);
 				EnableWindow(GetDlgItem(hDlg, HSET_FTPIS), FALSE);
-				SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, BST_UNCHECKED, 0);
-				EnableWindow(GetDlgItem(hDlg, HSET_SFTP), FALSE);
 			}
+			SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, TmpHost.UseSFTP, 0);
+			SendDlgItemMessage(hDlg, HSET_PRIVATE_KEY, WM_SETTEXT, 0, (LPARAM)TmpHost.PrivateKey);
 			// TODO: FTPIS対応
 			SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, BST_UNCHECKED, 0);
 			EnableWindow(GetDlgItem(hDlg, HSET_FTPIS), FALSE);
@@ -2174,14 +2176,16 @@ static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, L
 			switch(pnmhdr->code)
 			{
 				case PSN_APPLY :
+					TmpHost.UseNoEncryption = SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_GETCHECK, 0, 0);
 					if(IsOpenSSLLoaded())
 					{
 						TmpHost.UseFTPES = SendDlgItemMessage(hDlg, HSET_FTPES, BM_GETCHECK, 0, 0);
 						// TODO: FTPIS対応
 //						TmpHost.UseFTPIS = SendDlgItemMessage(hDlg, HSET_FTPIS, BM_GETCHECK, 0, 0);
-						// TODO: SFTP対応
-//						TmpHost.UseSFTP = SendDlgItemMessage(hDlg, HSET_SFTP, BM_GETCHECK, 0, 0);
 					}
+					// TODO: SFTP対応
+//					TmpHost.UseSFTP = SendDlgItemMessage(hDlg, HSET_SFTP, BM_GETCHECK, 0, 0);
+					SendDlgItemMessage(hDlg, HSET_PRIVATE_KEY, WM_GETTEXT, PRIVATE_KEY_LEN+1, (LPARAM)TmpHost.PrivateKey);
 					Apply = YES;
 					break;
 

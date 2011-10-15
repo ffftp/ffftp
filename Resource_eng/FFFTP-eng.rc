@@ -1371,9 +1371,13 @@ hset_crypt_dlg DIALOG  0, 0, 207, 139
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Sans Serif"
 BEGIN
-    CONTROL         "Connect with FTPS (Explicit)",HSET_FTPES,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,148,10
-    CONTROL         "Connect with FTPS (Implicit)",HSET_FTPIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
-    CONTROL         "Connect with SFTP",HSET_SFTP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
+    CONTROL         "Allow to connect without encryption",HSET_NO_ENCRYPTION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,148,10
+    CONTROL         "Connect with FTPS (Explicit)",HSET_FTPES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
+    CONTROL         "Connect with FTPS (Implicit)",HSET_FTPIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
+    CONTROL         "Connect with SFTP",HSET_SFTP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,49,148,10
+    LTEXT           "Private key text",-1,7,63,64,8
+    PUSHBUTTON      "...",PKEY_FILE_BR,72,63,13,12
+    EDITTEXT        HSET_PRIVATE_KEY,7,79,193,44,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
 END
 
 hset_adv3_dlg DIALOG  0, 0, 207, 139
