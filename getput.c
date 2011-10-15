@@ -143,6 +143,9 @@ static int MoveToForeground = NO;		/* ウインドウを前面に移動するか
 static char CurDir[FMAX_PATH+1] = { "" };
 static char ErrMsg[ERR_MSG_LEN+7];
 
+// 同時接続対応
+static int WaitForMainThread = NO;
+
 /*===== 外部参照 =====*/
 
 /* 設定値 */
@@ -362,6 +365,7 @@ void AddTransFileList(TRANSPACKET *Pkt)
 //	WaitForSingleObject(hListAccMutex, INFINITE);
 	while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
 	{
+		WaitForMainThread = YES;
 		BackgrndMessageProc();
 		Sleep(1);
 	}
@@ -379,6 +383,8 @@ void AddTransFileList(TRANSPACKET *Pkt)
 	if(NextTransPacketBase == NULL)
 		NextTransPacketBase = TransPacketBase;
 	ReleaseMutex(hListAccMutex);
+	// 同時接続対応
+	WaitForMainThread = NO;
 
 	return;
 }
@@ -405,6 +411,7 @@ void AppendTransFileList(TRANSPACKET *Pkt)
 //	WaitForSingleObject(hListAccMutex, INFINITE);
 	while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
 	{
+		WaitForMainThread = YES;
 		BackgrndMessageProc();
 		Sleep(1);
 	}
@@ -436,6 +443,8 @@ void AppendTransFileList(TRANSPACKET *Pkt)
 	}
 
 	ReleaseMutex(hListAccMutex);
+	// 同時接続対応
+	WaitForMainThread = NO;
 	return;
 }
 
@@ -492,6 +501,7 @@ static void EraseTransFileList(void)
 //	WaitForSingleObject(hListAccMutex, INFINITE);
 	while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
 	{
+		WaitForMainThread = YES;
 		BackgrndMessageProc();
 		Sleep(1);
 	}
@@ -525,6 +535,8 @@ static void EraseTransFileList(void)
 	TransFiles = 0;
 	PostMessage(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 	ReleaseMutex(hListAccMutex);
+	// 同時接続対応
+	WaitForMainThread = NO;
 
 	strcpy(Pkt.Cmd, "GOQUIT");
 	AddTransFileList(&Pkt);
@@ -649,12 +661,20 @@ static ULONG WINAPI TransferThread(void *Dummy)
 	CmdSkt = INVALID_SOCKET;
 	NewCmdSkt = INVALID_SOCKET;
 	TrnSkt = INVALID_SOCKET;
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
 
 	while((TransPacketBase != NULL) ||
 		  (WaitForSingleObject(hRunMutex, 200) == WAIT_TIMEOUT))
 	{
 		if(fTransferThreadExit == TRUE)
 			break;
+
+		if(WaitForMainThread == YES)
+		{
+			BackgrndMessageProc();
+			Sleep(100);
+			continue;
+		}
 
 //		WaitForSingleObject(hListAccMutex, INFINITE);
 		while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
@@ -1089,7 +1109,8 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				}
 			}
 			BackgrndMessageProc();
-			Sleep(1);
+//			Sleep(1);
+			Sleep(100);
 
 			if(GoExit == YES)
 			{
@@ -1116,7 +1137,10 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				hWndTrans = NULL;
 			}
 			BackgrndMessageProc();
-			Sleep(1);
+			if(ThreadCount < AskMaxThreadCount())
+				Sleep(1);
+			else
+				Sleep(100);
 		}
 	}
 	if(TrnSkt != INVALID_SOCKET)

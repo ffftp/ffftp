@@ -4771,9 +4771,11 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 
 						/* 年がない */
 						/* 現在の日付から推定 */
-						if((sTimeNow.wMonth == 12) && (sTime.wMonth == 1))
-							sTime.wYear++;
-						else if(sTimeNow.wMonth+1 == sTime.wMonth)
+						// 恐らくホストとローカルの時刻が異なる場合の対処のようだがとりあえず無効にする
+//						if((sTimeNow.wMonth == 12) && (sTime.wMonth == 1))
+//							sTime.wYear++;
+//						else if(sTimeNow.wMonth+1 == sTime.wMonth)
+						if(sTimeNow.wMonth+1 == sTime.wMonth)
 							/* nothing */;
 						else if(sTimeNow.wMonth < sTime.wMonth)
 							sTime.wYear--;

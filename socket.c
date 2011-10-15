@@ -484,8 +484,8 @@ static int RegistAsyncTable(SOCKET s)
 		{
 			// 強制的に閉じられたソケットがあると重複する可能性あり
 //			MessageBox(GetMainHwnd(), "Async socket already registerd.", "FFFTP inner error", MB_OK);
+//			break;
 			Signal[Pos].Socket = INVALID_SOCKET;
-			break;
 		}
 	}
 	// スレッド衝突のバグ修正

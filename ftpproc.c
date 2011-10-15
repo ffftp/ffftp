@@ -1960,6 +1960,8 @@ void DeleteProc(void)
 	char CurDir[FMAX_PATH+1];
 	char Tmp[FMAX_PATH+1];
 
+	// デッドロック対策
+	DisableUserOpe();
 	Sts = YES;
 	AskRemoteCurDir(CurDir, FMAX_PATH);
 	FileListBase = NULL;
@@ -1979,7 +1981,8 @@ void DeleteProc(void)
 
 	if(Sts == YES)
 	{
-		DisableUserOpe();
+		// デッドロック対策
+//		DisableUserOpe();
 
 		DelFlg = NO;
 		Sts = NO;
@@ -2015,8 +2018,11 @@ void DeleteProc(void)
 				GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
 		}
 
-		EnableUserOpe();
+		// デッドロック対策
+//		EnableUserOpe();
 	}
+	// デッドロック対策
+	EnableUserOpe();
 	return;
 }
 
