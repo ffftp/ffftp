@@ -1818,6 +1818,34 @@ END_ROUTINE
 	return r;
 }
 
+HANDLE SetClipboardDataM(UINT uFormat, HANDLE hMem)
+{
+	HANDLE r = NULL;
+	char* p;
+	int Length;
+	int BufferLength;
+	HGLOBAL hBufferMem;
+START_ROUTINE
+	if(uFormat == CF_TEXT)
+	{
+		p = (char*)GlobalLock(hMem);
+		Length = (int)GlobalSize(hMem);
+		BufferLength = MtoW(NULL, 0, p, Length);
+		if(hBufferMem = GlobalAlloc(GMEM_MOVEABLE, sizeof(wchar_t) * BufferLength))
+		{
+			MtoW((LPWSTR)GlobalLock(hBufferMem), BufferLength, p, Length);
+			GlobalUnlock(hBufferMem);
+			r = SetClipboardData(CF_UNICODETEXT, hBufferMem);
+		}
+		GlobalUnlock(hMem);
+		GlobalFree(hMem);
+	}
+	else
+		r = SetClipboardData(uFormat, hMem);
+END_ROUTINE
+	return r;
+}
+
 int mkdirM(const char * _Path)
 {
 	int r = 0;
