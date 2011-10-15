@@ -1028,8 +1028,6 @@ typedef struct transpacket {
 	int Mode;						/* 転送モード (EXIST_xxx) */
 	HWND hWndTrans;					/* 転送中ダイアログのウインドウハンドル */
 	int Abort;						/* 転送中止フラグ (ABORT_xxx) */
-	// 暗号化通信対応
-	int CryptMode;					/* 暗号化通信モード (CRYPT_xxx) */
 	// 同時接続対応
 	int ThreadCount;
 	struct transpacket *Next;

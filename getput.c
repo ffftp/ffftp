@@ -107,6 +107,8 @@ static int IsSpecialDevice(char *Fname);
 static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt);
 static BOOL CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static void SetErrorMsg(char *fmt, ...);
+// 同時接続対応
+static char* GetErrMsg();
 
 /*===== ローカルなワーク =====*/
 
@@ -141,7 +143,11 @@ static int KeepDlg = NO;	/* 転送中ダイアログを消さないかどうか 
 static int MoveToForeground = NO;		/* ウインドウを前面に移動するかどうか (YES/NO) */
 
 static char CurDir[FMAX_PATH+1] = { "" };
-static char ErrMsg[ERR_MSG_LEN+7];
+// 同時接続対応
+//static char ErrMsg[ERR_MSG_LEN+7];
+static char ErrMsg[MAX_DATA_CONNECTION+1][ERR_MSG_LEN+7];
+static DWORD ErrMsgThreadId[MAX_DATA_CONNECTION+1];
+static HANDLE hErrMsgMutex;
 
 // 同時接続対応
 static int WaitForMainThread = NO;
@@ -175,6 +181,8 @@ int MakeTransferThread(void)
 
 	hListAccMutex = CreateMutex( NULL, FALSE, NULL );
 	hRunMutex = CreateMutex( NULL, TRUE, NULL );
+	// 同時接続対応
+	hErrMsgMutex = CreateMutex( NULL, FALSE, NULL );
 
 	ClearAll = NO;
 	ForceAbort = NO;
@@ -236,6 +244,8 @@ void CloseTransferThread(void)
 
 	CloseHandle( hListAccMutex );
 	CloseHandle( hRunMutex );
+	// 同時接続対応
+	CloseHandle( hErrMsgMutex );
 	return;
 }
 
@@ -682,7 +692,8 @@ static ULONG WINAPI TransferThread(void *Dummy)
 			BackgrndMessageProc();
 			Sleep(1);
 		}
-		memset(ErrMsg, NUL, ERR_MSG_LEN+7);
+//		memset(ErrMsg, NUL, ERR_MSG_LEN+7);
+		memset(GetErrMsg(), NUL, ERR_MSG_LEN+7);
 
 //		Canceled = NO;
 		Canceled[ThreadCount] = NO;
@@ -1304,12 +1315,12 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					ReleaseMutex(hListAccMutex);
 					// FTPS対応
 //					iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
-					if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
+					if(IsSSLAttached(Pkt->ctrl_skt))
 					{
-						if(AttachSSL(data_socket))
+						if(AttachSSL(data_socket, Pkt->ctrl_skt))
 							iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 						else
-							iRetCode = FTP_ERROR;
+							iRetCode = 500;
 					}
 					else
 						iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
@@ -1380,12 +1391,12 @@ static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 						ReleaseMutex(hListAccMutex);
 						// FTPS対応
 //						iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
-						if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
+						if(IsSSLAttached(Pkt->ctrl_skt))
 						{
-							if(AttachSSL(data_socket))
+							if(AttachSSL(data_socket, Pkt->ctrl_skt))
 								iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 							else
-								iRetCode = FTP_ERROR;
+								iRetCode = 500;
 						}
 						else
 							iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
@@ -2094,7 +2105,9 @@ static BOOL CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wPara
 	{
 		case WM_INITDIALOG :
 			SendDlgItemMessage(hDlg, UPDOWN_ERR_FNAME, WM_SETTEXT, 0, (LPARAM)lParam);
-			SendDlgItemMessage(hDlg, UPDOWN_ERR_MSG, WM_SETTEXT, 0, (LPARAM)ErrMsg);
+			// 同時接続対応
+//			SendDlgItemMessage(hDlg, UPDOWN_ERR_MSG, WM_SETTEXT, 0, (LPARAM)ErrMsg);
+			SendDlgItemMessage(hDlg, UPDOWN_ERR_MSG, WM_SETTEXT, 0, (LPARAM)GetErrMsg());
 			return(TRUE);
 
 		case WM_COMMAND :
@@ -2340,12 +2353,12 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 				ReleaseMutex(hListAccMutex);
 				// FTPS対応
 //				iRetCode = UpLoadFile(Pkt, data_socket);
-				if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
+				if(IsSSLAttached(Pkt->ctrl_skt))
 				{
-					if(AttachSSL(data_socket))
+					if(AttachSSL(data_socket, Pkt->ctrl_skt))
 						iRetCode = UpLoadFile(Pkt, data_socket);
 					else
-						iRetCode = FTP_ERROR;
+						iRetCode = 500;
 				}
 				else
 					iRetCode = UpLoadFile(Pkt, data_socket);
@@ -2422,12 +2435,12 @@ static int UpLoadPassive(TRANSPACKET *Pkt)
 					ReleaseMutex(hListAccMutex);
 					// FTPS対応
 //					iRetCode = UpLoadFile(Pkt, data_socket);
-					if(AskCryptMode() == CRYPT_FTPES || AskCryptMode() == CRYPT_FTPIS)
+					if(IsSSLAttached(Pkt->ctrl_skt))
 					{
-						if(AttachSSL(data_socket))
+						if(AttachSSL(data_socket, Pkt->ctrl_skt))
 							iRetCode = UpLoadFile(Pkt, data_socket);
 						else
-							iRetCode = FTP_ERROR;
+							iRetCode = 500;
 					}
 					else
 						iRetCode = UpLoadFile(Pkt, data_socket);
@@ -3561,10 +3574,14 @@ static void SetErrorMsg(char *fmt, ...)
 {
 	va_list Args;
 
-	if(strlen(ErrMsg) == 0)
+	// 同時接続対応
+//	if(strlen(ErrMsg) == 0)
+	if(strlen(GetErrMsg()) == 0)
 	{
 		va_start(Args, fmt);
-		wvsprintf(ErrMsg, fmt, Args);
+		// 同時接続対応
+//		wvsprintf(ErrMsg, fmt, Args);
+		wvsprintf(GetErrMsg(), fmt, Args);
 		va_end(Args);
 	}
 	return;
@@ -3606,3 +3623,39 @@ int CheckPathViolation(TRANSPACKET *packet)
 }
 
 
+// 同時接続対応
+static char* GetErrMsg()
+{
+	char* r;
+	DWORD ThreadId;
+	int i;
+	r = NULL;
+	WaitForSingleObject(hErrMsgMutex, INFINITE);
+	ThreadId = GetCurrentThreadId();
+	i = 0;
+	while(i < MAX_DATA_CONNECTION + 1)
+	{
+		if(ErrMsgThreadId[i] == ThreadId)
+		{
+			r = ErrMsg[i];
+			break;
+		}
+		i++;
+	}
+	if(!r)
+	{
+		i = 0;
+		while(i < MAX_DATA_CONNECTION + 1)
+		{
+			if(ErrMsgThreadId[i] == 0)
+			{
+				ErrMsgThreadId[i] = ThreadId;
+				r = ErrMsg[i];
+				break;
+			}
+			i++;
+		}
+	}
+	ReleaseMutex(hErrMsgMutex);
+	return r;
+}

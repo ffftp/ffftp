@@ -271,6 +271,8 @@ static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 			break;
 
 		case WM_ASYNC_DBASE :
+			// APIの仕様上ハンドルが登録される前にウィンドウメッセージが呼び出される可能性あり
+			RegistAsyncTableDbase((HANDLE)wParam);
 			// スレッド衝突のバグ修正
 			WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 			for(Pos = 0; Pos < MAX_SIGNAL_ENTRY_DBASE; Pos++)
@@ -289,31 +291,6 @@ static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 					DoPrintf("##### SignalDatabase: Done");
 #endif
 					break;
-				}
-			}
-			// APIの仕様上ハンドルが登録される前にウィンドウメッセージが呼び出される可能性あり
-			if(Pos == MAX_SIGNAL_ENTRY_DBASE)
-			{
-				for(Pos = 0; Pos < MAX_SIGNAL_ENTRY_DBASE; Pos++)
-				{
-					if(SignalDbase[Pos].Async == 0)
-					{
-						SignalDbase[Pos].Async = (HANDLE)wParam;
-						SignalDbase[Pos].Done = 0;
-						SignalDbase[Pos].ErrorDb = 0;
-						if(HIWORD(lParam) != 0)
-						{
-							SignalDbase[Pos].ErrorDb = 1;
-#if DBG_MSG
-							DoPrintf("##### SignalDatabase: error");
-#endif
-						}
-						SignalDbase[Pos].Done = 1;
-#if DBG_MSG
-						DoPrintf("##### SignalDatabase: Done");
-#endif
-						break;
-					}
 				}
 			}
 			// スレッド衝突のバグ修正
@@ -738,6 +715,9 @@ int do_closesocket(SOCKET s)
 #endif
 	CancelCheckWork = NO;
 
+	// スレッド衝突のバグ修正
+	WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, 0);
+	UnRegistAsyncTable(s);
 	// FTPS対応
 //	Ret = closesocket(s);
 	Ret = closesocketS(s);
@@ -755,10 +735,12 @@ int do_closesocket(SOCKET s)
 			Ret = 0;
 	}
 
-	WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, 0);
+	// スレッド衝突のバグ修正
+//	WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, 0);
 	if(BackgrndMessageProc() == YES)
 		CancelCheckWork = YES;
-	UnRegistAsyncTable(s);
+	// スレッド衝突のバグ修正
+//	UnRegistAsyncTable(s);
 
 #if DBG_MSG
 	DoPrintf("# Exit close");

@@ -16,7 +16,7 @@ BOOL IsOpenSSLLoaded();
 void SetSSLTimeoutCallback(DWORD Timeout, LPSSLTIMEOUTCALLBACK pCallback);
 void SetSSLConfirmCallback(LPSSLCONFIRMCALLBACK pCallback);
 BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName);
-BOOL AttachSSL(SOCKET s);
+BOOL AttachSSL(SOCKET s, SOCKET parent);
 BOOL DetachSSL(SOCKET s);
 BOOL IsSSLAttached(SOCKET s);
 SOCKET socketS(int af, int type, int protocol);

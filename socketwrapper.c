@@ -30,6 +30,8 @@ typedef int (__cdecl* _SSL_read)(SSL*, void*, int);
 typedef int (__cdecl* _SSL_get_error)(SSL*, int);
 typedef X509* (__cdecl* _SSL_get_peer_certificate)(const SSL*);
 typedef long (__cdecl* _SSL_get_verify_result)(const SSL*);
+typedef SSL_SESSION* (__cdecl* _SSL_get_session)(SSL*);
+typedef int (__cdecl* _SSL_set_session)(SSL*, SSL_SESSION*);
 typedef BIO_METHOD* (__cdecl* _BIO_s_mem)();
 typedef BIO* (__cdecl* _BIO_new)(BIO_METHOD*);
 typedef int (__cdecl* _BIO_free)(BIO*);
@@ -37,7 +39,6 @@ typedef long (__cdecl* _BIO_ctrl)(BIO*, int, long, void*);
 typedef void (__cdecl* _X509_free)(X509*);
 typedef int (__cdecl* _X509_print_ex)(BIO*, X509*, unsigned long, unsigned long);
 typedef X509_NAME* (__cdecl* _X509_get_subject_name)(X509*);
-typedef X509_NAME* (__cdecl* _X509_get_issuer_name)(X509*);
 typedef int (__cdecl* _X509_NAME_print_ex)(BIO*, X509_NAME*, int, unsigned long);
 
 _SSL_load_error_strings p_SSL_load_error_strings;
@@ -58,6 +59,8 @@ _SSL_read p_SSL_read;
 _SSL_get_error p_SSL_get_error;
 _SSL_get_peer_certificate p_SSL_get_peer_certificate;
 _SSL_get_verify_result p_SSL_get_verify_result;
+_SSL_get_session p_SSL_get_session;
+_SSL_set_session p_SSL_set_session;
 _BIO_s_mem p_BIO_s_mem;
 _BIO_new p_BIO_new;
 _BIO_free p_BIO_free;
@@ -65,7 +68,6 @@ _BIO_ctrl p_BIO_ctrl;
 _X509_free p_X509_free;
 _X509_print_ex p_X509_print_ex;
 _X509_get_subject_name p_X509_get_subject_name;
-_X509_get_issuer_name p_X509_get_issuer_name;
 _X509_NAME_print_ex p_X509_NAME_print_ex;
 
 #define MAX_SSL_SOCKET 64
@@ -124,7 +126,9 @@ BOOL LoadOpenSSL()
 		|| !(p_SSL_read = (_SSL_read)GetProcAddress(g_hOpenSSL, "SSL_read"))
 		|| !(p_SSL_get_error = (_SSL_get_error)GetProcAddress(g_hOpenSSL, "SSL_get_error"))
 		|| !(p_SSL_get_peer_certificate = (_SSL_get_peer_certificate)GetProcAddress(g_hOpenSSL, "SSL_get_peer_certificate"))
-		|| !(p_SSL_get_verify_result = (_SSL_get_verify_result)GetProcAddress(g_hOpenSSL, "SSL_get_verify_result")))
+		|| !(p_SSL_get_verify_result = (_SSL_get_verify_result)GetProcAddress(g_hOpenSSL, "SSL_get_verify_result"))
+		|| !(p_SSL_get_session = (_SSL_get_session)GetProcAddress(g_hOpenSSL, "SSL_get_session"))
+		|| !(p_SSL_set_session = (_SSL_set_session)GetProcAddress(g_hOpenSSL, "SSL_set_session")))
 	{
 		if(g_hOpenSSL)
 			FreeLibrary(g_hOpenSSL);
@@ -140,7 +144,6 @@ BOOL LoadOpenSSL()
 		|| !(p_X509_free = (_X509_free)GetProcAddress(g_hOpenSSLCommon, "X509_free"))
 		|| !(p_X509_print_ex = (_X509_print_ex)GetProcAddress(g_hOpenSSLCommon, "X509_print_ex"))
 		|| !(p_X509_get_subject_name = (_X509_get_subject_name)GetProcAddress(g_hOpenSSLCommon, "X509_get_subject_name"))
-		|| !(p_X509_get_issuer_name = (_X509_get_issuer_name)GetProcAddress(g_hOpenSSLCommon, "X509_get_issuer_name"))
 		|| !(p_X509_NAME_print_ex = (_X509_NAME_print_ex)GetProcAddress(g_hOpenSSLCommon, "X509_NAME_print_ex")))
 	{
 		if(g_hOpenSSL)
@@ -330,11 +333,13 @@ BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName)
 	return bResult;
 }
 
-BOOL AttachSSL(SOCKET s)
+BOOL AttachSSL(SOCKET s, SOCKET parent)
 {
 	BOOL r;
 	DWORD Time;
 	SSL** ppSSL;
+	SSL** ppSSLParent;
+	SSL_SESSION* pSession;
 	if(!g_bOpenSSLLoaded)
 		return FALSE;
 	r = FALSE;
@@ -350,8 +355,20 @@ BOOL AttachSSL(SOCKET s)
 			{
 				if(p_SSL_set_fd(*ppSSL, s) != 0)
 				{
-					r = TRUE;
+					if(parent != INVALID_SOCKET)
+					{
+						if(ppSSLParent = FindSSLPointerFromSocket(parent))
+						{
+							if(pSession = p_SSL_get_session(*ppSSLParent))
+							{
+								if(p_SSL_set_session(*ppSSL, pSession) == 1)
+								{
+								}
+							}
+						}
+					}
 					// SSLのネゴシエーションには時間がかかる場合がある
+					r = TRUE;
 					while(p_SSL_connect(*ppSSL) != 1)
 					{
 						LeaveCriticalSection(&g_OpenSSLLock);
@@ -364,20 +381,20 @@ BOOL AttachSSL(SOCKET s)
 						}
 						EnterCriticalSection(&g_OpenSSLLock);
 					}
+					if(ConfirmSSLCertificate(*ppSSL))
+					{
+					}
+					else
+					{
+						DetachSSL(s);
+						r = FALSE;
+					}
 				}
 				else
 				{
 					LeaveCriticalSection(&g_OpenSSLLock);
 					DetachSSL(s);
 					EnterCriticalSection(&g_OpenSSLLock);
-				}
-				if(ConfirmSSLCertificate(*ppSSL))
-				{
-				}
-				else
-				{
-					DetachSSL(s);
-					r = FALSE;
 				}
 			}
 		}
@@ -437,7 +454,7 @@ SOCKET acceptS(SOCKET s, struct sockaddr *addr, int *addrlen)
 {
 	SOCKET r;
 	r = accept(s, addr, addrlen);
-	if(!AttachSSL(r))
+	if(!AttachSSL(r, INVALID_SOCKET))
 	{
 		closesocket(r);
 		return INVALID_SOCKET;
@@ -449,7 +466,7 @@ int connectS(SOCKET s, const struct sockaddr *name, int namelen)
 {
 	int r;
 	r = connect(s, name, namelen);
-	if(!AttachSSL(r))
+	if(!AttachSSL(r, INVALID_SOCKET))
 		return SOCKET_ERROR;
 	return r;
 }

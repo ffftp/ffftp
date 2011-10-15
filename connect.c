@@ -1304,7 +1304,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 //					;
 				if(CryptMode == CRYPT_FTPIS)
 				{
-					if(AttachSSL(ContSock))
+					if(AttachSSL(ContSock, INVALID_SOCKET))
 					{
 						while((Sts = ReadReplyMessage(ContSock, Buf, 1024, &CancelFlg, TmpBuf) / 100) == FTP_PRELIM)
 							;
@@ -1419,7 +1419,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 								{
 									if(IsOpenSSLLoaded() && (Sts = command(ContSock, Reply, &CancelFlg, "AUTH TLS")) == 234)
 									{
-										if(AttachSSL(ContSock))
+										if(AttachSSL(ContSock, INVALID_SOCKET))
 										{
 											if((Sts = command(ContSock, Reply, &CancelFlg, "PBSZ 0")) == 200)
 											{
