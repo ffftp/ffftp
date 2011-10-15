@@ -586,7 +586,8 @@ static void AskUseFireWall(char *Host, int *Fire, int *Pasv, int *List)
 
 	*Fire = FwallDefault;
 	*Pasv = PasvDefault;
-	*List = NO;
+	// NLSTを送ってしまうバグ修正（ただしNLSTを使うべきホストへクイック接続できなくなる）
+//	*List = NO;
 
 	i = 0;
 	while(CopyHostFromList(i, &Tmp) == FFFTP_SUCCESS)
