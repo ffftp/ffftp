@@ -2837,10 +2837,15 @@ BOOL __stdcall SSLConfirmCallback(BOOL bVerified, LPCSTR Certificate, LPCSTR Com
 	char* pm0;
 	bResult = FALSE;
 	sha_memory((char*)Certificate, (uint32)(strlen(Certificate) * sizeof(char)), (uint32*)&Hash);
-	for(i = 0; i < MAX_CERT_CACHE_HASH; i++)
+	i = 0;
+	while(i < MAX_CERT_CACHE_HASH)
 	{
 		if(memcmp(&CertificateCacheHash[i], &Hash, 20) == 0)
+		{
 			bResult = TRUE;
+			break;
+		}
+		i++;
 	}
 	if(!bResult)
 	{

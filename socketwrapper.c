@@ -381,13 +381,18 @@ BOOL AttachSSL(SOCKET s, SOCKET parent)
 						}
 						EnterCriticalSection(&g_OpenSSLLock);
 					}
-					if(ConfirmSSLCertificate(*ppSSL))
+					if(r)
 					{
-					}
-					else
-					{
-						DetachSSL(s);
-						r = FALSE;
+						if(ConfirmSSLCertificate(*ppSSL))
+						{
+						}
+						else
+						{
+							LeaveCriticalSection(&g_OpenSSLLock);
+							DetachSSL(s);
+							r = FALSE;
+							EnterCriticalSection(&g_OpenSSLLock);
+						}
 					}
 				}
 				else
@@ -431,7 +436,7 @@ BOOL IsSSLAttached(SOCKET s)
 	ppSSL = FindSSLPointerFromSocket(s);
 	LeaveCriticalSection(&g_OpenSSLLock);
 	if(!ppSSL)
-		return TRUE;
+		return FALSE;
 	return TRUE;
 }
 
