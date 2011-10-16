@@ -99,6 +99,9 @@ static int IsMasterPasswordError = PASSWORD_OK;
 static int IsRndSourceInit = 0;
 static ulong RndSource[9];
 
+// UTF-8対応
+static int IniKanjiCode = KANJI_NOCNV;
+
 /*===== 外部参照 =====*/
 
 /* 設定値 */
@@ -638,6 +641,9 @@ int LoadRegistory(void)
 		Sts = YES;
 
 		ReadIntValueFromReg(hKey3, "Version", &Version);
+		// UTF-8対応
+		if(Version < 1980)
+			IniKanjiCode = KANJI_SJIS;
 
 		if(OpenSubKey(hKey3, "Options", &hKey4) == FFFTP_SUCCESS)
 		{
@@ -2260,6 +2266,10 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 {
 	int Sts;
 	char *Pos;
+	// UTF-8対応
+	char* pa0;
+	wchar_t* pw0;
+	DWORD TempSize;
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
@@ -2275,10 +2285,37 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 	{
 		if((Pos = ScanValue(Handle, Name)) != NULL)
 		{
-			Size = min1(Size-1, strlen(Pos));
-			Size = StrReadIn(Pos, Size, Str);
-			*(Str + Size) = NUL;
-			Sts = FFFTP_SUCCESS;
+			// UTF-8対応
+//			Size = min1(Size-1, strlen(Pos));
+//			Size = StrReadIn(Pos, Size, Str);
+//			*(Str + Size) = NUL;
+//			Sts = FFFTP_SUCCESS;
+			switch(IniKanjiCode)
+			{
+			case KANJI_SJIS:
+				if(pa0 = AllocateStringA(Size * 4))
+				{
+					if(pw0 = AllocateStringW(Size * 4 * 4))
+					{
+						TempSize = min1((Size * 4) - 1, strlen(Pos));
+						TempSize = StrReadIn(Pos, TempSize, pa0);
+						*(pa0 + TempSize) = NUL;
+						AtoW(pw0, Size * 4 * 4, pa0, -1);
+						WtoM(Str, Size, pw0, -1);
+						TerminateStringM(Str, Size);
+						Sts = FFFTP_SUCCESS;
+						FreeDuplicatedString(pw0);
+					}
+					FreeDuplicatedString(pa0);
+				}
+				break;
+			case KANJI_NOCNV:
+				Size = min1(Size-1, strlen(Pos));
+				Size = StrReadIn(Pos, Size, Str);
+				*(Str + Size) = NUL;
+				Sts = FFFTP_SUCCESS;
+				break;
+			}
 		}
 	}
 	return(Sts);
