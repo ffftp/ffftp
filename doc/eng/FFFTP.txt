@@ -29,7 +29,11 @@ Changes in Ver.1.99
    If slowdown or crash occured, you may adjust the protection level with
    --protect-medium or --protect-low option.
 
--- Changed the behavior of first time connection with FTPS.
+-- Changed to confirm SSL certificate on first time connection with FTPS.
+
+-- Changed to reuse SSL sessions of FTPS control connection.
+
+-- Reduced chance of crash when numerous files are transfered.
 
 
 Outline
