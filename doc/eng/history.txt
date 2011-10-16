@@ -19,6 +19,10 @@ Changes in Ver.1.99
 
 -- Reduced chance of crash when numerous files are transfered.
 
+-- Fixed bugs of copying URL to clipboard.
+
+-- Added support for migration from 1.97b or earlier through INI file.
+
 Changes in Ver.1.98a
 --------------------
 

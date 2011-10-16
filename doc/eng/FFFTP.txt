@@ -5,6 +5,18 @@
 [Environment]    Windows 7, Vista, XP, 2000
 ============================================================
 
+About INI File
+---------------------
+
+Since the character encoding of INI files of Ver.1.98 or later was changed,
+INI files saved by Ver.1.97b or earlier could not be loaded.
+But Ver.1.99 or later can load them again.
+
+Ver.1.97b or earlier cannot load INI files saved by Ver.1.98 or later.
+Please change to save the settings to the registry instead of the INI file
+before reverting to Ver.1.97b or earlier.
+
+
 About Master Password
 ---------------------
 
@@ -34,6 +46,10 @@ Changes in Ver.1.99
 -- Changed to reuse SSL sessions of FTPS control connection.
 
 -- Reduced chance of crash when numerous files are transfered.
+
+-- Fixed bugs of copying URL to clipboard.
+
+-- Added support for migration from 1.97b or earlier through INI file.
 
 
 Outline
