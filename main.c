@@ -2419,6 +2419,8 @@ void ExecViewer(char *Fname, int App)
 	char AssocProg[FMAX_PATH+1];
 	char ComLine[FMAX_PATH*2+3+1];
 	char CurDir[FMAX_PATH+1];
+	// 任意のコードが実行されるバグ修正
+	char SysDir[FMAX_PATH+1];
 
 	/* FindExecutable()は関連付けられたプログラムのパス名にスペースが	*/
 	/* 含まれている時、間違ったパス名を返す事がある。					*/
@@ -2446,10 +2448,26 @@ void ExecViewer(char *Fname, int App)
 		memset(&Startup, NUL, sizeof(STARTUPINFO));
 		Startup.cb = sizeof(STARTUPINFO);
 		Startup.wShowWindow = SW_SHOW;
-		if(CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, NULL, &Startup, &Info) == FALSE)
+		// 任意のコードが実行されるバグ修正
+//		if(CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, NULL, &Startup, &Info) == FALSE)
+//		{
+//			SetTaskMsg(MSGJPN182, GetLastError());
+//			SetTaskMsg(">>%s", ComLine);
+//		}
+		if(GetCurrentDirectory(FMAX_PATH, CurDir) > 0)
 		{
-			SetTaskMsg(MSGJPN182, GetLastError());
-			SetTaskMsg(">>%s", ComLine);
+			if(GetSystemDirectory(SysDir, FMAX_PATH) > 0)
+			{
+				if(SetCurrentDirectory(SysDir))
+				{
+					if(CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, NULL, &Startup, &Info) == FALSE)
+					{
+						SetTaskMsg(MSGJPN182, GetLastError());
+						SetTaskMsg(">>%s", ComLine);
+					}
+					SetCurrentDirectory(CurDir);
+				}
+			}
 		}
 	}
 	return;
@@ -2474,6 +2492,8 @@ void ExecViewer2(char *Fname1, char *Fname2, int App)
 	char AssocProg[FMAX_PATH+1];
 	char ComLine[FMAX_PATH*2+3+1];
 	char CurDir[FMAX_PATH+1];
+	// 任意のコードが実行されるバグ修正
+	char SysDir[FMAX_PATH+1];
 
 	/* FindExecutable()は関連付けられたプログラムのパス名にスペースが	*/
 	/* 含まれている時、間違ったパス名を返す事がある。					*/
@@ -2493,10 +2513,26 @@ void ExecViewer2(char *Fname1, char *Fname2, int App)
 	memset(&Startup, NUL, sizeof(STARTUPINFO));
 	Startup.cb = sizeof(STARTUPINFO);
 	Startup.wShowWindow = SW_SHOW;
-	if(CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, NULL, &Startup, &Info) == FALSE)
+	// 任意のコードが実行されるバグ修正
+//	if(CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, NULL, &Startup, &Info) == FALSE)
+//	{
+//		SetTaskMsg(MSGJPN182, GetLastError());
+//		SetTaskMsg(">>%s", ComLine);
+//	}
+	if(GetCurrentDirectory(FMAX_PATH, CurDir) > 0)
 	{
-		SetTaskMsg(MSGJPN182, GetLastError());
-		SetTaskMsg(">>%s", ComLine);
+		if(GetSystemDirectory(SysDir, FMAX_PATH) > 0)
+		{
+			if(SetCurrentDirectory(SysDir))
+			{
+				if(CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, NULL, &Startup, &Info) == FALSE)
+				{
+					SetTaskMsg(MSGJPN182, GetLastError());
+					SetTaskMsg(">>%s", ComLine);
+				}
+				SetCurrentDirectory(CurDir);
+			}
+		}
 	}
 
 	return;
