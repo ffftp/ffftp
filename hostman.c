@@ -2169,6 +2169,8 @@ static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, L
 			// TODO: SFTP対応
 			SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, BST_UNCHECKED, 0);
 			EnableWindow(GetDlgItem(hDlg, HSET_SFTP), FALSE);
+			EnableWindow(GetDlgItem(hDlg, PKEY_FILE_BR), FALSE);
+			EnableWindow(GetDlgItem(hDlg, HSET_PRIVATE_KEY), FALSE);
 			return(TRUE);
 
 		case WM_NOTIFY:

@@ -1,5 +1,5 @@
 ============================================================
-【ソフト名】　FTPクライアント FFFTP（sf.jp版） Ver 1.99
+【ソフト名】　FTPクライアント FFFTP（sf.jp版） Ver 1.98b
 【動作確認環境】　Windows 7、Vista、XP、2000
 【サポート】　http://sourceforge.jp/projects/ffftp/
 ============================================================
@@ -8,7 +8,7 @@ INIファイルについて
 --------------------------
 
 Ver.1.98よりINIファイルの文字コードが変更されたため、Ver.1.97b以前で
-保存したINIファイルが読み込めなくなっていましたが、Ver.1.99以降では
+保存したINIファイルが読み込めなくなっていましたが、Ver.1.98b以降では
 再び読み込めるようになりました。
 
 なおVer.1.98以降で保存されたINIファイルはVer.1.97b以前で読み込むことが
@@ -27,12 +27,8 @@ FFFTP Ver.1.96d+009以降を最初に起動した時、接続メニューの設定→
 マスターパスワードの入力が求められますので、入力してください。
 
 
-Ver 1.99での変更点
+Ver 1.98bでの変更点
 -------------------
-
-・MLSDコマンドに対応したホストではMLSDコマンドを用いてファイル一覧を
-　取得するようにしました。LISTコマンドの応答に特定のファイルが
-　含まれない一部のホストでも正しく列挙できる可能性が高くなります。
 
 ・信頼できないDLLの読み込みを防ぐ機能を追加しました。Microsoftの署名が
 　無いDLLや改変されたDLLが読み込まれるのを強制的に回避することで、
@@ -52,6 +48,11 @@ Ver 1.99での変更点
 ・URLをクリップボードにコピーすると文字化けするバグを修正しました。
 
 ・1.97b以前の設定をINIファイルを通して引き継げるようにしました。
+
+・暗号化なしでの接続を許可しないための設定を追加しました。
+
+・右クリックで表示されるメニューを用いて任意のコードが実行される可能性
+　があるバグを修正しました。
 
 
 Ver 1.96d以前へ戻す場合
@@ -128,7 +129,7 @@ jre32.dll -------- 正規表現検索ＤＬＬ
 します。
 
 Copyright(C) 1997-2010, Sota & cooperators. All rights reserved.
-Copyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto).
+Copyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, raido).
 
 Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions 
@@ -154,7 +155,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *** 以下は日本語訳(参考) ***
 
 Copyright(C) 1997-2010 Sota & ご協力いただいた方々. All rights reserved.
-Copyright (C) 2011 FFFTP Project（Hiromichi Matsushima, Suguru Kawamoto）All rights reserved.
+Copyright (C) 2011 FFFTP Project（Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, raido）All rights reserved.
 
 ソースコード形式でもバイナリ形式でも、変更の有無に関わらず、以下の条件を
 満たす場合に、再配布および使用を許可します。

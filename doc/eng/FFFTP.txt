@@ -1,7 +1,7 @@
 ============================================================
-[Software Name]  FFFTP Ver.1.99 (FTP Client software)
+[Software Name]  FFFTP Ver.1.98b (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
-                 Copyright(C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto).
+                 Copyright(C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, raido).
 [Environment]    Windows 7, Vista, XP, 2000
 ============================================================
 
@@ -10,7 +10,7 @@ About INI File
 
 Since the character encoding of INI files of Ver.1.98 or later was changed,
 INI files saved by Ver.1.97b or earlier could not be loaded.
-But Ver.1.99 or later can load them again.
+But Ver.1.98b or later can load them again.
 
 Ver.1.97b or earlier cannot load INI files saved by Ver.1.98 or later.
 Please change to save the settings to the registry instead of the INI file
@@ -28,11 +28,8 @@ following menu.
 File ->@Settings -> Change Master password
 
 
-Changes in Ver.1.99
+Changes in Ver.1.98b
 --------------------
-
--- MLSD command became used for retrieving filenames on appropriate hosts.
-   That is helpful for hosts that do not return filenames properly.
 
 -- Added the feature that prevents from loading untrustworthy DLLs.
    It reduces the chance of being intercepted or tampered with passwords and
@@ -50,6 +47,10 @@ Changes in Ver.1.99
 -- Fixed bugs of copying URL to clipboard.
 
 -- Added support for migration from 1.97b or earlier through INI file.
+
+-- Added settings to disallow unencrypted FTP.
+
+-- Fixed bugs of arbitrary code execution from the context menu.
 
 
 Outline
@@ -84,7 +85,7 @@ Warranty Disclaimer
 License Agreement
 -----------------
 Copyright(C) 1997-2010, Sota & cooperators. All rights reserved.
-Copyright(C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto).
+Copyright(C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, raido).
 
 Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions 

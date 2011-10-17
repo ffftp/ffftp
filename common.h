@@ -70,9 +70,9 @@
 //#define VER_STR					"1.97b"
 //#define VER_NUM					1921		/* 設定バージョン */
 //#define PROGRAM_VERSION_NUM		1972		/* バージョン */
-#define VER_STR					"1.99"
-#define VER_NUM					1990		/* 設定バージョン */
-#define PROGRAM_VERSION_NUM		1990		/* バージョン */
+#define VER_STR					"1.98b"
+#define VER_NUM					1982		/* 設定バージョン */
+#define PROGRAM_VERSION_NUM		1982		/* バージョン */
 
 
 #define MYWEB_URL	"http://www2.biglobe.ne.jp/~sota/ffftp-qa.html"

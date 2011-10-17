@@ -1542,11 +1542,11 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 				if(strstr(Reply, " UTF8 "))
 					HostData->Feature |= FEATURE_UTF8;
 				// MLST対応
-				if(strstr(Reply, " MLST ") || strstr(Reply, " MLSD "))
-					HostData->Feature |= FEATURE_MLSD;
+//				if(strstr(Reply, " MLST ") || strstr(Reply, " MLSD "))
+//					HostData->Feature |= FEATURE_MLSD;
 				// IPv6対応
-				if(strstr(Reply, " EPRT ") || strstr(Reply, " EPSV "))
-					HostData->Feature |= FEATURE_EPRT | FEATURE_EPSV;
+//				if(strstr(Reply, " EPRT ") || strstr(Reply, " EPSV "))
+//					HostData->Feature |= FEATURE_EPRT | FEATURE_EPSV;
 			}
 			// UTF-8対応
 			if(HostData->NameKanjiCode == KANJI_AUTO && (HostData->Feature & FEATURE_UTF8))
@@ -1569,12 +1569,12 @@ static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, 
 	SOCKET ContSock;
 	ContSock = INVALID_SOCKET;
 	CancelFlg = NO;
-	if(CancelFlg == NO && ContSock == INVALID_SOCKET && HostData->UseSFTP == YES)
-	{
-		SetTaskMsg(MSGJPN317);
-		if((ContSock = DoConnectCrypt(CRYPT_SFTP, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
-			HostData->CryptMode = CRYPT_SFTP;
-	}
+//	if(CancelFlg == NO && ContSock == INVALID_SOCKET && HostData->UseSFTP == YES)
+//	{
+//		SetTaskMsg(MSGJPN317);
+//		if((ContSock = DoConnectCrypt(CRYPT_SFTP, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
+//			HostData->CryptMode = CRYPT_SFTP;
+//	}
 //	if(CancelFlg == NO && ContSock == INVALID_SOCKET && HostData->UseFTPIS == YES)
 //	{
 //		SetTaskMsg(MSGJPN316);
