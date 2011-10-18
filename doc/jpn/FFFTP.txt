@@ -8,7 +8,7 @@ INIファイルについて
 --------------------------
 
 Ver.1.98よりINIファイルの文字コードが変更されたため、Ver.1.97b以前で
-保存したINIファイルが読み込めなくなっていましたが、Ver.1.99以降では
+保存したINIファイルが読み込めなくなっていましたが、Ver.1.98b以降では
 再び読み込めるようになりました。
 
 なおVer.1.98以降で保存されたINIファイルはVer.1.97b以前で読み込むことが
@@ -33,25 +33,6 @@ Ver 1.99での変更点
 ・MLSDコマンドに対応したホストではMLSDコマンドを用いてファイル一覧を
 　取得するようにしました。LISTコマンドの応答に特定のファイルが
 　含まれない一部のホストでも正しく列挙できる可能性が高くなります。
-
-・信頼できないDLLの読み込みを防ぐ機能を追加しました。Microsoftの署名が
-　無いDLLや改変されたDLLが読み込まれるのを強制的に回避することで、
-　マルウェアなどによってパスワードやデータを傍受や改ざんされる可能性を
-　低減します。この機能を使用するにはコマンドラインオプションに
-　--protectを追加してください。動作が遅い場合や起動に失敗する場合は
-　保護レベルを--protect-mediumか--protect-lowに調整してください。
-
-・初めてFTPSでホストに接続した時にSSL/TLSの証明書を表示するように変更
-　しました。
-
-・FTPSのコントロール接続のSSLセッションを再利用するように変更しました。
-　一部のホストでFTPSによる接続を拒否される問題が解消されます。
-
-・大量のファイルを転送した時にクラッシュするバグを軽減しました。
-
-・URLをクリップボードにコピーすると文字化けするバグを修正しました。
-
-・1.97b以前の設定をINIファイルを通して引き継げるようにしました。
 
 
 Ver 1.96d以前へ戻す場合
@@ -128,7 +109,7 @@ jre32.dll -------- 正規表現検索ＤＬＬ
 します。
 
 Copyright(C) 1997-2010, Sota & cooperators. All rights reserved.
-Copyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto).
+Copyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, raido).
 
 Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions 

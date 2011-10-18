@@ -6,6 +6,9 @@ Changes in Ver.1.99
 -- MLSD command became used for retrieving filenames on appropriate hosts.
    That is helpful for hosts that do not return filenames properly.
 
+Changes in Ver.1.98b
+--------------------
+
 -- Added the feature that prevents from loading untrustworthy DLLs.
    It reduces the chance of being intercepted or tampered with passwords and
    data.
@@ -22,6 +25,10 @@ Changes in Ver.1.99
 -- Fixed bugs of copying URL to clipboard.
 
 -- Added support for migration from 1.97b or earlier through INI file.
+
+-- Added settings to disallow unencrypted FTP.
+
+-- Fixed bugs of arbitrary code execution from the context menu.
 
 Changes in Ver.1.98a
 --------------------
