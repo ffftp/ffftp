@@ -311,6 +311,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\punycode.c"
+				>
+			</File>
+			<File
 				RelativePath=".\protectprocess.c"
 				>
 			</File>
