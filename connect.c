@@ -927,24 +927,15 @@ static void SaveCurrentSetToHistory(void)
 int ReConnectCmdSkt(void)
 {
 	int Sts;
-	SOCKET s;
 
 
 	// 同時接続対応
 //	if(CmdCtrlSocket != TrnCtrlSocket)
-//		do_closesocket(TrnCtrlSocket);
-//	TrnCtrlSocket = INVALID_SOCKET;
-	s = TrnCtrlSocket;
+	if(CmdCtrlSocket != TrnCtrlSocket && TrnCtrlSocket != INVALID_SOCKET)
+		do_closesocket(TrnCtrlSocket);
 	TrnCtrlSocket = INVALID_SOCKET;
-	if(CmdCtrlSocket != s && s != INVALID_SOCKET)
-		do_closesocket(s);
 
-	// 同時接続対応
-//	Sts = ReConnectSkt(&CmdCtrlSocket);
-	s = CmdCtrlSocket;
-	CmdCtrlSocket = INVALID_SOCKET;
-	Sts = ReConnectSkt(&s);
-	CmdCtrlSocket = s;
+	Sts = ReConnectSkt(&CmdCtrlSocket);
 
 	TrnCtrlSocket = CmdCtrlSocket;
 
