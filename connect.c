@@ -1303,6 +1303,8 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 						{
 							if((Sts = command(ContSock, Reply, &CancelFlg, "PROT P")) == 200)
 							{
+								while((Sts = ReadReplyMessage(ContSock, Buf, 1024, &CancelFlg, TmpBuf) / 100) == FTP_PRELIM)
+									;
 							}
 							else
 								Sts = FTP_ERROR;
@@ -1566,12 +1568,12 @@ static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, 
 		if((ContSock = DoConnectCrypt(CRYPT_SFTP, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
 			HostData->CryptMode = CRYPT_SFTP;
 	}
-//	if(CancelFlg == NO && ContSock == INVALID_SOCKET && HostData->UseFTPIS == YES)
-//	{
-//		SetTaskMsg(MSGJPN316);
-//		if((ContSock = DoConnectCrypt(CRYPT_FTPIS, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
-//			HostData->CryptMode = CRYPT_FTPIS;
-//	}
+	if(CancelFlg == NO && ContSock == INVALID_SOCKET && HostData->UseFTPIS == YES)
+	{
+		SetTaskMsg(MSGJPN316);
+		if((ContSock = DoConnectCrypt(CRYPT_FTPIS, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
+			HostData->CryptMode = CRYPT_FTPIS;
+	}
 	if(CancelFlg == NO && ContSock == INVALID_SOCKET && HostData->UseFTPES == YES)
 	{
 		SetTaskMsg(MSGJPN315);

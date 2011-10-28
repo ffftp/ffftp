@@ -340,6 +340,8 @@ BOOL AttachSSL(SOCKET s, SOCKET parent)
 	SSL** ppSSL;
 	SSL** ppSSLParent;
 	SSL_SESSION* pSession;
+	int Return;
+	int Error;
 	if(!g_bOpenSSLLoaded)
 		return FALSE;
 	r = FALSE;
@@ -369,17 +371,21 @@ BOOL AttachSSL(SOCKET s, SOCKET parent)
 					}
 					// SSLのネゴシエーションには時間がかかる場合がある
 					r = TRUE;
-					while(p_SSL_connect(*ppSSL) != 1)
+					while(r)
 					{
-						LeaveCriticalSection(&g_OpenSSLLock);
-						if(g_pOpenSSLTimeoutCallback() || (g_OpenSSLTimeout > 0 && timeGetTime() - Time >= g_OpenSSLTimeout))
-						{
-							DetachSSL(s);
-							r = FALSE;
-							EnterCriticalSection(&g_OpenSSLLock);
+						Return = p_SSL_connect(*ppSSL);
+						if(Return == 1)
 							break;
+						Error = p_SSL_get_error(*ppSSL, Return);
+						if(Error == SSL_ERROR_WANT_READ || Error == SSL_ERROR_WANT_WRITE)
+						{
+							LeaveCriticalSection(&g_OpenSSLLock);
+							if(g_pOpenSSLTimeoutCallback() || (g_OpenSSLTimeout > 0 && timeGetTime() - Time >= g_OpenSSLTimeout))
+								r = FALSE;
+							EnterCriticalSection(&g_OpenSSLLock);
 						}
-						EnterCriticalSection(&g_OpenSSLLock);
+						else
+							r = FALSE;
 					}
 					if(r)
 					{
@@ -393,6 +399,12 @@ BOOL AttachSSL(SOCKET s, SOCKET parent)
 							r = FALSE;
 							EnterCriticalSection(&g_OpenSSLLock);
 						}
+					}
+					else
+					{
+						LeaveCriticalSection(&g_OpenSSLLock);
+						DetachSSL(s);
+						EnterCriticalSection(&g_OpenSSLLock);
 					}
 				}
 				else

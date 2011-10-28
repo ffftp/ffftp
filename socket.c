@@ -779,12 +779,7 @@ int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCh
 	Ret = WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT | FD_READ | FD_WRITE);
 	if(Ret != SOCKET_ERROR)
 	{
-		// FTPS対応
-//		Ret = connect(s, name, namelen);
-		if(AskCryptMode() == CRYPT_FTPIS)
-			Ret = connectS(s, name, namelen);
-		else
-			Ret = connect(s, name, namelen);
+		Ret = connect(s, name, namelen);
 		if(Ret == SOCKET_ERROR)
 		{
 			do
@@ -878,12 +873,7 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 	{
 		do
 		{
-			// FTPS対応
-//			Ret2 = accept(s, addr, addrlen);
-			if(AskCryptMode() == CRYPT_FTPIS)
-				Ret2 = acceptS(s, addr, addrlen);
-			else
-				Ret2 = accept(s, addr, addrlen);
+			Ret2 = accept(s, addr, addrlen);
 			if(Ret2 != INVALID_SOCKET)
 			{
 #if DBG_MSG

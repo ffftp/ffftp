@@ -2856,12 +2856,8 @@ BOOL __stdcall SSLTimeoutCallback()
 	Sleep(1);
 	if(BackgrndMessageProc() == YES)
 		return TRUE;
-	// 念のためツールバーのMENU_ABORTも確認
-//	if(MainTransPkt.Abort != ABORT_NONE)
-//	{
-//		MainTransPkt.Abort = ABORT_NONE;
-//		return TRUE;
-//	}
+	if(CancelFlg == YES)
+		return TRUE;
 	return FALSE;
 }
 
