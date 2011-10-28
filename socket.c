@@ -992,7 +992,7 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 			if(Ret != SOCKET_ERROR)
 				break;
 			// 何故か一部のホストとWindows 2000の組み合わせで通信できないバグに暫定対応
-			if(AskAsyncDone(s, &Error, FD_CLOSE_BIT) == YES)
+			if(AskAsyncDone(s, &Error, FD_CLOSE_BIT) == YES && recvS(s, buf, len, MSG_PEEK) <= 0)
 				break;
 			Error = WSAGetLastError();
 			Sleep(1);
