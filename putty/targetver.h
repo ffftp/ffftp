@@ -1,24 +1,24 @@
-#pragma once
+﻿#pragma once
 
-// �ȉ��̃}�N���́A�Œ���K�v�ȃv���b�g�t�H�[�����`���܂��B�Œ���K�v�ȃv���b�g�t�H�[���Ƃ́A
-// �A�v���P�[�V���������s���邽�߂ɕK�v�ȋ@�\��������ł��Â��o�[�W������ Windows �� Internet Explorer �Ȃ�
-// �������܂��B�����̃}�N���́A�w�肵���o�[�W�����ƁA����ȑO�̃o�[�W�����̃v���b�g�t�H�[����ŗ��p�ł��邷�ׂĂ̋@�\��L���ɂ��邱�Ƃɂ���� 
-// ���삵�܂��B
+// 以下のマクロは、最低限必要なプラットフォームを定義します。最低限必要なプラットフォームとは、
+// アプリケーションを実行するために必要な機能を備えた最も古いバージョンの Windows や Internet Explorer など
+// をいいます。これらのマクロは、指定したバージョンと、それ以前のバージョンのプラットフォーム上で利用できるすべての機能を有効にすることによって 
+// 動作します。
 
-// ���Ŏw�肳�ꂽ��`�̑O�ɑΏۃv���b�g�t�H�[�����w�肵�Ȃ���΂Ȃ�Ȃ��ꍇ�A�ȉ��̒�`��ύX���Ă��������B
-// �قȂ�v���b�g�t�H�[���ɑΉ�����l�Ɋւ���ŐV���ɂ��ẮAMSDN ���Q�Ƃ��Ă��������B
-#ifndef WINVER                          // �Œ���K�v�ȃv���b�g�t�H�[���� Windows Vista �ł��邱�Ƃ��w�肵�܂��B
-#define WINVER 0x0600           // ����� Windows �̑��̃o�[�W���������ɓK�؂Ȓl�ɕύX���Ă��������B
+// 下で指定された定義の前に対象プラットフォームを指定しなければならない場合、以下の定義を変更してください。
+// 異なるプラットフォームに対応する値に関する最新情報については、MSDN を参照してください。
+#ifndef WINVER                          // 最低限必要なプラットフォームが Windows Vista であることを指定します。
+#define WINVER 0x0600           // これを Windows の他のバージョン向けに適切な値に変更してください。
 #endif
 
-#ifndef _WIN32_WINNT            // �Œ���K�v�ȃv���b�g�t�H�[���� Windows Vista �ł��邱�Ƃ��w�肵�܂��B
-#define _WIN32_WINNT 0x0600     // ����� Windows �̑��̃o�[�W���������ɓK�؂Ȓl�ɕύX���Ă��������B
+#ifndef _WIN32_WINNT            // 最低限必要なプラットフォームが Windows Vista であることを指定します。
+#define _WIN32_WINNT 0x0600     // これを Windows の他のバージョン向けに適切な値に変更してください。
 #endif
 
-#ifndef _WIN32_WINDOWS          // �Œ���K�v�ȃv���b�g�t�H�[���� Windows 98 �ł��邱�Ƃ��w�肵�܂��B
-#define _WIN32_WINDOWS 0x0410 // ����� Windows Me �܂��͂���ȍ~�̃o�[�W���������ɓK�؂Ȓl�ɕύX���Ă��������B
+#ifndef _WIN32_WINDOWS          // 最低限必要なプラットフォームが Windows 98 であることを指定します。
+#define _WIN32_WINDOWS 0x0410 // これを Windows Me またはそれ以降のバージョン向けに適切な値に変更してください。
 #endif
 
-#ifndef _WIN32_IE                       // �Œ���K�v�ȃv���b�g�t�H�[���� Internet Explorer 7.0 �ł��邱�Ƃ��w�肵�܂��B
-#define _WIN32_IE 0x0700        // ����� IE �̑��̃o�[�W���������ɓK�؂Ȓl�ɕύX���Ă��������B
+#ifndef _WIN32_IE                       // 最低限必要なプラットフォームが Internet Explorer 7.0 であることを指定します。
+#define _WIN32_IE 0x0700        // これを IE の他のバージョン向けに適切な値に変更してください。
 #endif

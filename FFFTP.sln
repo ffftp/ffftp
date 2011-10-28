@@ -4,7 +4,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFFTP", "FFFTP.vcproj", "{5
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFFTP_English", "FFFTP_English.vcproj", "{EE7CC1BD-92A9-46D5-8270-386BD7BEEA55}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PuTTY", "putty\PuTTY.vc90.vcproj", "{AF1981EB-379B-43B8-BE66-298194297B5C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PuTTY", "putty\PuTTY.vcproj", "{AF1981EB-379B-43B8-BE66-298194297B5C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

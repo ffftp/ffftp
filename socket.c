@@ -995,6 +995,9 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 			Sleep(1);
 			if(BackgrndMessageProc() == YES)
 				break;
+			// 何故か一部のホストとWindows 2000の組み合わせで通信できないバグに暫定対応
+			if(AskAsyncDone(s, &Error, FD_CLOSE_BIT) == YES)
+				break;
 			// FTPS対応
 			// 受信確認をバイパスしたためここでタイムアウトの確認
 			if(BackgrndMessageProc() == YES)
@@ -1104,6 +1107,9 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 			Error = WSAGetLastError();
 			Sleep(1);
 			if(BackgrndMessageProc() == YES)
+				break;
+			// 何故か一部のホストとWindows 2000の組み合わせで通信できないバグに暫定対応
+			if(AskAsyncDone(s, &Error, FD_CLOSE_BIT) == YES)
 				break;
 			// FTPS対応
 			// 送信バッファ確認をバイパスしたためここでタイムアウトの確認

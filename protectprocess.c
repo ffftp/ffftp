@@ -1,20 +1,20 @@
-// protectprocess.c
+ï»¿// protectprocess.c
 // Copyright (C) 2011 Suguru Kawamoto
-// ƒvƒƒZƒX‚Ì•ÛŒì
+// ãƒ—ãƒ­ã‚»ã‚¹ã®ä¿è­·
 
-// Ÿ‚Ì’†‚©‚ç1ŒÂ‚Ì‚İ—LŒø‚É‚·‚é
-// ƒtƒbƒNæ‚ÌŠÖ”‚ÌƒR[ƒh‚ğ‘‚«Š·‚¦‚é
-// ‘S‚Ä‚ÌŒÄ‚Ño‚µ‚ğƒtƒbƒN‰Â”\‚¾‚ªŒ´—“I‚É“ñdŒÄ‚Ño‚µ‚É‘Î‰‚Å‚«‚È‚¢
+// æ¬¡ã®ä¸­ã‹ã‚‰1å€‹ã®ã¿æœ‰åŠ¹ã«ã™ã‚‹
+// ãƒ•ãƒƒã‚¯å…ˆã®é–¢æ•°ã®ã‚³ãƒ¼ãƒ‰ã‚’æ›¸ãæ›ãˆã‚‹
+// å…¨ã¦ã®å‘¼ã³å‡ºã—ã‚’ãƒ•ãƒƒã‚¯å¯èƒ½ã ãŒåŸç†çš„ã«äºŒé‡å‘¼ã³å‡ºã—ã«å¯¾å¿œã§ããªã„
 #define USE_CODE_HOOK
-// ƒtƒbƒNæ‚ÌŠÖ”‚ÌƒCƒ“ƒ|[ƒgƒAƒhƒŒƒXƒe[ƒuƒ‹‚ğ‘‚«Š·‚¦‚é
-// “ñdŒÄ‚Ño‚µ‚ª‰Â”\‚¾‚ªŒÄ‚Ño‚µ•û–@‚É‚æ‚Á‚Ä‚ÍƒtƒbƒN‚ğ‰ñ”ğ‚³‚ê‚é
+// ãƒ•ãƒƒã‚¯å…ˆã®é–¢æ•°ã®ã‚¤ãƒ³ãƒãƒ¼ãƒˆã‚¢ãƒ‰ãƒ¬ã‚¹ãƒ†ãƒ¼ãƒ–ãƒ«ã‚’æ›¸ãæ›ãˆã‚‹
+// äºŒé‡å‘¼ã³å‡ºã—ãŒå¯èƒ½ã ãŒå‘¼ã³å‡ºã—æ–¹æ³•ã«ã‚ˆã£ã¦ã¯ãƒ•ãƒƒã‚¯ã‚’å›é¿ã•ã‚Œã‚‹
 //#define USE_IAT_HOOK
 
-// ƒtƒbƒN‘ÎÛ‚ÌŠÖ”–¼ %s
-// ƒtƒbƒN‘ÎÛ‚ÌŒ^ _%s
-// ƒtƒbƒN‘ÎÛ‚Ìƒ|ƒCƒ“ƒ^ p_%s
-// ƒtƒbƒN—p‚ÌŠÖ”–¼ h_%s
-// ƒtƒbƒN‘ÎÛ‚ÌƒR[ƒh‚ÌƒoƒbƒNƒAƒbƒv c_%s
+// ãƒ•ãƒƒã‚¯å¯¾è±¡ã®é–¢æ•°å %s
+// ãƒ•ãƒƒã‚¯å¯¾è±¡ã®å‹ _%s
+// ãƒ•ãƒƒã‚¯å¯¾è±¡ã®ãƒã‚¤ãƒ³ã‚¿ p_%s
+// ãƒ•ãƒƒã‚¯ç”¨ã®é–¢æ•°å h_%s
+// ãƒ•ãƒƒã‚¯å¯¾è±¡ã®ã‚³ãƒ¼ãƒ‰ã®ãƒãƒƒã‚¯ã‚¢ãƒƒãƒ— c_%s
 
 #include <tchar.h>
 #include <windows.h>
@@ -61,20 +61,20 @@ BOOL VerifyFileSignatureInCatalog(LPCWSTR Catalog, LPCWSTR Filename);
 BOOL GetSHA1HashOfModule(LPCWSTR Filename, void* pHash);
 BOOL IsModuleTrusted(LPCWSTR Filename);
 
-// •Ï”‚ÌéŒ¾
+// å¤‰æ•°ã®å®£è¨€
 #ifdef USE_CODE_HOOK
 #define HOOK_FUNCTION_VAR(name) _##name p_##name;BYTE c_##name[HOOK_JUMP_CODE_LENGTH * 2];
 #endif
 #ifdef USE_IAT_HOOK
 #define HOOK_FUNCTION_VAR(name) _##name p_##name;
 #endif
-// ŠÖ”ƒ|ƒCƒ“ƒ^‚ğæ“¾
+// é–¢æ•°ãƒã‚¤ãƒ³ã‚¿ã‚’å–å¾—
 #define GET_FUNCTION(h, name) p_##name = (_##name)GetProcAddress(h, #name)
-// ƒtƒbƒN‘ÎÛ‚ÌƒR[ƒh‚ğ’uŠ·‚µ‚ÄƒtƒbƒN‚ğŠJn
+// ãƒ•ãƒƒã‚¯å¯¾è±¡ã®ã‚³ãƒ¼ãƒ‰ã‚’ç½®æ›ã—ã¦ãƒ•ãƒƒã‚¯ã‚’é–‹å§‹
 #define SET_HOOK_FUNCTION(name) HookFunctionInCode(p_##name, h_##name, &c_##name, FALSE)
-// ƒtƒbƒN‘ÎÛ‚ğŒÄ‚Ño‚·‘O‚É‘ÎÛ‚ÌƒR[ƒh‚ğ•œŒ³
+// ãƒ•ãƒƒã‚¯å¯¾è±¡ã‚’å‘¼ã³å‡ºã™å‰ã«å¯¾è±¡ã®ã‚³ãƒ¼ãƒ‰ã‚’å¾©å…ƒ
 #define START_HOOK_FUNCTION(name) HookFunctionInCode(p_##name, h_##name, &c_##name, TRUE)
-// ƒtƒbƒN‘ÎÛ‚ğŒÄ‚Ño‚µ‚½Œã‚É‘ÎÛ‚ÌƒR[ƒh‚ğ’uŠ·
+// ãƒ•ãƒƒã‚¯å¯¾è±¡ã‚’å‘¼ã³å‡ºã—ãŸå¾Œã«å¯¾è±¡ã®ã‚³ãƒ¼ãƒ‰ã‚’ç½®æ›
 #define END_HOOK_FUNCTION(name) HookFunctionInCode(p_##name, h_##name, NULL, FALSE)
 
 HOOK_FUNCTION_VAR(LoadLibraryA)
@@ -101,8 +101,8 @@ DWORD g_LockedThread[MAX_LOCKED_THREAD];
 WCHAR* g_pTrustedFilenameTable[MAX_TRUSTED_FILENAME_TABLE];
 BYTE g_TrustedMD5HashTable[MAX_TRUSTED_MD5_HASH_TABLE][20];
 
-// ˆÈ‰ºƒtƒbƒNŠÖ”
-// ƒtƒbƒN‘ÎÛ‚ğŒÄ‚Ño‚·ê‡‚Í‘OŒã‚ÅSTART_HOOK_FUNCTION‚ÆEND_HOOK_FUNCTION‚ğÀs‚·‚é•K—v‚ª‚ ‚é
+// ä»¥ä¸‹ãƒ•ãƒƒã‚¯é–¢æ•°
+// ãƒ•ãƒƒã‚¯å¯¾è±¡ã‚’å‘¼ã³å‡ºã™å ´åˆã¯å‰å¾Œã§START_HOOK_FUNCTIONã¨END_HOOK_FUNCTIONã‚’å®Ÿè¡Œã™ã‚‹å¿…è¦ãŒã‚ã‚‹
 
 HMODULE WINAPI h_LoadLibraryA(LPCSTR lpLibFileName)
 {
@@ -189,7 +189,7 @@ HMODULE WINAPI h_LoadLibraryExW(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFla
 	return r;
 }
 
-// ˆÈ‰ºƒwƒ‹ƒp[ŠÖ”
+// ä»¥ä¸‹ãƒ˜ãƒ«ãƒ‘ãƒ¼é–¢æ•°
 
 BOOL LockThreadLock()
 {
@@ -356,7 +356,7 @@ BOOL HookFunctionInIAT(void* pOriginal, void* pNew)
 }
 #endif
 
-// ƒtƒ@ƒCƒ‹‚ğ•ÏX•s”\‚Éİ’è
+// ãƒ•ã‚¡ã‚¤ãƒ«ã‚’å¤‰æ›´ä¸èƒ½ã«è¨­å®š
 HANDLE LockExistingFile(LPCWSTR Filename)
 {
 	HANDLE hResult;
@@ -366,7 +366,7 @@ HANDLE LockExistingFile(LPCWSTR Filename)
 	return hResult;
 }
 
-// DLL‚ÌƒnƒbƒVƒ…‚ğŒŸõ
+// DLLã®ãƒãƒƒã‚·ãƒ¥ã‚’æ¤œç´¢
 BOOL FindTrustedModuleSHA1Hash(void* pHash)
 {
 	BOOL bResult;
@@ -431,7 +431,7 @@ BOOL VerifyFileSignature_Function(LPCWSTR Filename)
 	return bResult;
 }
 
-// ƒtƒ@ƒCƒ‹‚Ì–¼‚ğŠm”F
+// ãƒ•ã‚¡ã‚¤ãƒ«ã®ç½²åã‚’ç¢ºèª
 BOOL VerifyFileSignature(LPCWSTR Filename)
 {
 	BOOL bResult;
@@ -454,7 +454,7 @@ BOOL VerifyFileSignature(LPCWSTR Filename)
 	return bResult;
 }
 
-// ƒtƒ@ƒCƒ‹‚Ì–¼‚ğƒJƒ^ƒƒOƒtƒ@ƒCƒ‹‚ÅŠm”F
+// ãƒ•ã‚¡ã‚¤ãƒ«ã®ç½²åã‚’ã‚«ã‚¿ãƒ­ã‚°ãƒ•ã‚¡ã‚¤ãƒ«ã§ç¢ºèª
 BOOL VerifyFileSignatureInCatalog(LPCWSTR Catalog, LPCWSTR Filename)
 {
 	BOOL bResult;
@@ -496,8 +496,8 @@ BOOL WINAPI GetSHA1HashOfModule_Function(DIGEST_HANDLE refdata, PBYTE pData, DWO
 	return CryptHashData(*(HCRYPTHASH*)refdata, pData, dwLength, 0);
 }
 
-// ƒ‚ƒWƒ…[ƒ‹‚ÌSHA1ƒnƒbƒVƒ…‚ğæ“¾
-// ƒ}ƒjƒtƒFƒXƒgƒtƒ@ƒCƒ‹‚Ìfile—v‘f‚Ìhash‘®«‚ÍÀs‰Â”\ƒtƒ@ƒCƒ‹‚Ìê‡‚ÉImageGetDigestStream‚ÅZo‚³‚ê‚é
+// ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®SHA1ãƒãƒƒã‚·ãƒ¥ã‚’å–å¾—
+// ãƒãƒ‹ãƒ•ã‚§ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã®fileè¦ç´ ã®hashå±æ€§ã¯å®Ÿè¡Œå¯èƒ½ãƒ•ã‚¡ã‚¤ãƒ«ã®å ´åˆã«ImageGetDigestStreamã§ç®—å‡ºã•ã‚Œã‚‹
 BOOL GetSHA1HashOfModule(LPCWSTR Filename, void* pHash)
 {
 	BOOL bResult;
@@ -581,14 +581,14 @@ BOOL IsSxsModuleTrusted_Function(LPCWSTR Catalog, LPCWSTR Manifest, LPCWSTR Modu
 	return bResult;
 }
 
-// ƒTƒCƒhƒoƒCƒTƒCƒhDLL‚ğŠm”F
-// ƒpƒX‚Í"%SystemRoot%\WinSxS"ˆÈ‰º‚ğ‘z’è
-// ˆÈ‰º‚Ìƒtƒ@ƒCƒ‹‚ª‘¶İ‚·‚é‚à‚Ì‚Æ‚·‚é
-// "\xxx\yyy.dll"A"\manifests\xxx.cat"A"\manifests\xxx.manifest"‚ÌƒZƒbƒgiXP‚Ì‘S‚Ä‚ÌDLLAVistaˆÈ~‚Ìˆê•”‚ÌDLLj
-// "\xxx\yyy.dll"A"\catalogs\zzz.cat"A"\manifests\xxx.manifest"‚ÌƒZƒbƒgiVistaˆÈ~‚Ì‚Ù‚Æ‚ñ‚Ç‚ÌDLLj
-// –¼‚³‚ê‚½ƒJƒ^ƒƒOƒtƒ@ƒCƒ‹‚ğ—p‚¢‚Äƒ}ƒjƒtƒFƒXƒgƒtƒ@ƒCƒ‹‚ª‰üâ‚‚³‚ê‚Ä‚¢‚È‚¢‚±‚Æ‚ğŠm”F
-// ƒnƒbƒVƒ…’l‚Í	ƒ}ƒjƒtƒFƒXƒgƒtƒ@ƒCƒ‹‚Ìfile—v‘f‚Ìhash‘®«‚É‹Lq‚³‚ê‚Ä‚¢‚é‚à‚Ì‚ğ—p‚¢‚é
-// ƒ}ƒjƒtƒFƒXƒgƒtƒ@ƒCƒ‹“à‚ÉSHA1ƒnƒbƒVƒ…’l‚Ì16i”•\‹L‚ğ’¼ÚŒŸõ‚µ‚Ä‚¢‚é‚ªŠm—¦“I‚É–â‘è‚È‚µ
+// ã‚µã‚¤ãƒ‰ãƒã‚¤ã‚µã‚¤ãƒ‰DLLã‚’ç¢ºèª
+// ãƒ‘ã‚¹ã¯"%SystemRoot%\WinSxS"ä»¥ä¸‹ã‚’æƒ³å®š
+// ä»¥ä¸‹ã®ãƒ•ã‚¡ã‚¤ãƒ«ãŒå­˜åœ¨ã™ã‚‹ã‚‚ã®ã¨ã™ã‚‹
+// "\xxx\yyy.dll"ã€"\manifests\xxx.cat"ã€"\manifests\xxx.manifest"ã®ã‚»ãƒƒãƒˆï¼ˆXPã®å…¨ã¦ã®DLLã€Vistaä»¥é™ã®ä¸€éƒ¨ã®DLLï¼‰
+// "\xxx\yyy.dll"ã€"\catalogs\zzz.cat"ã€"\manifests\xxx.manifest"ã®ã‚»ãƒƒãƒˆï¼ˆVistaä»¥é™ã®ã»ã¨ã‚“ã©ã®DLLï¼‰
+// ç½²åã•ã‚ŒãŸã‚«ã‚¿ãƒ­ã‚°ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ç”¨ã„ã¦ãƒãƒ‹ãƒ•ã‚§ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ãŒæ”¹ç«„ã•ã‚Œã¦ã„ãªã„ã“ã¨ã‚’ç¢ºèª
+// ãƒãƒƒã‚·ãƒ¥å€¤ã¯	ãƒãƒ‹ãƒ•ã‚§ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã®fileè¦ç´ ã®hashå±æ€§ã«è¨˜è¿°ã•ã‚Œã¦ã„ã‚‹ã‚‚ã®ã‚’ç”¨ã„ã‚‹
+// ãƒãƒ‹ãƒ•ã‚§ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«å†…ã«SHA1ãƒãƒƒã‚·ãƒ¥å€¤ã®16é€²æ•°è¡¨è¨˜ã‚’ç›´æ¥æ¤œç´¢ã—ã¦ã„ã‚‹ãŒç¢ºç‡çš„ã«å•é¡Œãªã—
 BOOL IsSxsModuleTrusted(LPCWSTR Filename)
 {
 	BOOL bResult;
@@ -679,7 +679,7 @@ BOOL IsSxsModuleTrusted(LPCWSTR Filename)
 	return bResult;
 }
 
-// DLL‚ğŠm”F
+// DLLã‚’ç¢ºèª
 BOOL IsModuleTrusted(LPCWSTR Filename)
 {
 	BOOL bResult;
@@ -712,11 +712,11 @@ BOOL IsModuleTrusted(LPCWSTR Filename)
 	return bResult;
 }
 
-// kernel32.dll‚ÌLoadLibraryExW‘Š“–‚ÌŠÖ”
-// ƒhƒLƒ…ƒƒ“ƒg‚ª–³‚¢‚½‚ßÚ×‚Í•s–¾
-// ˆê•”‚ÌƒEƒBƒ‹ƒX‘Îôƒ\ƒtƒgiAvast!“™j‚ªLdrLoadDll‚ğƒtƒbƒN‚µ‚Ä‚¢‚é‚½‚ßLdrLoadDll‚ğ‘‚«Š·‚¦‚é‚×‚«‚Å‚Í‚È‚¢
-// ƒJ[ƒlƒ‹ƒ‚[ƒh‚ÌƒR[ƒh‚É‘Î‚µ‚Ä‚ÍŒø‰Ê‚È‚µ
-// SeDebugPrivilege‚ªg—p‰Â”\‚Èƒ†[ƒU[‚É‘Î‚µ‚Ä‚ÍŒø‰Ê‚È‚µ
+// kernel32.dllã®LoadLibraryExWç›¸å½“ã®é–¢æ•°
+// ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆãŒç„¡ã„ãŸã‚è©³ç´°ã¯ä¸æ˜
+// ä¸€éƒ¨ã®ã‚¦ã‚£ãƒ«ã‚¹å¯¾ç­–ã‚½ãƒ•ãƒˆï¼ˆAvast!ç­‰ï¼‰ãŒLdrLoadDllã‚’ãƒ•ãƒƒã‚¯ã—ã¦ã„ã‚‹ãŸã‚LdrLoadDllã‚’æ›¸ãæ›ãˆã‚‹ã¹ãã§ã¯ãªã„
+// ã‚«ãƒ¼ãƒãƒ«ãƒ¢ãƒ¼ãƒ‰ã®ã‚³ãƒ¼ãƒ‰ã«å¯¾ã—ã¦ã¯åŠ¹æœãªã—
+// SeDebugPrivilegeãŒä½¿ç”¨å¯èƒ½ãªãƒ¦ãƒ¼ã‚¶ãƒ¼ã«å¯¾ã—ã¦ã¯åŠ¹æœãªã—
 HMODULE System_LoadLibrary(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
 {
 	HMODULE r = NULL;
@@ -792,7 +792,7 @@ void SetProcessProtectionLevel(DWORD Level)
 	g_ProcessProtectionLevel = Level;
 }
 
-// ƒtƒ@ƒCƒ‹‚ÌSHA1ƒnƒbƒVƒ…‚ğæ“¾
+// ãƒ•ã‚¡ã‚¤ãƒ«ã®SHA1ãƒãƒƒã‚·ãƒ¥ã‚’å–å¾—
 BOOL GetSHA1HashOfFile(LPCWSTR Filename, void* pHash)
 {
 	BOOL bResult;
@@ -834,7 +834,7 @@ BOOL GetSHA1HashOfFile(LPCWSTR Filename, void* pHash)
 	return bResult;
 }
 
-// DLL‚ÌƒnƒbƒVƒ…‚ğ“o˜^
+// DLLã®ãƒãƒƒã‚·ãƒ¥ã‚’ç™»éŒ²
 BOOL RegisterTrustedModuleSHA1Hash(void* pHash)
 {
 	BOOL bResult;
@@ -860,7 +860,7 @@ BOOL RegisterTrustedModuleSHA1Hash(void* pHash)
 	return bResult;
 }
 
-// DLL‚ÌƒnƒbƒVƒ…‚Ì“o˜^‚ğ‰ğœ
+// DLLã®ãƒãƒƒã‚·ãƒ¥ã®ç™»éŒ²ã‚’è§£é™¤
 BOOL UnregisterTrustedModuleSHA1Hash(void* pHash)
 {
 	BOOL bResult;
@@ -881,7 +881,7 @@ BOOL UnregisterTrustedModuleSHA1Hash(void* pHash)
 	return bResult;
 }
 
-// M—Š‚Å‚«‚È‚¢DLL‚ğƒAƒ“ƒ[ƒh
+// ä¿¡é ¼ã§ããªã„DLLã‚’ã‚¢ãƒ³ãƒ­ãƒ¼ãƒ‰
 BOOL UnloadUntrustedModule()
 {
 	BOOL bResult;
@@ -946,7 +946,7 @@ BOOL UnloadUntrustedModule()
 	return bResult;
 }
 
-// ŠÖ”ƒ|ƒCƒ“ƒ^‚ğg—p‰Â”\‚Èó‘Ô‚É‰Šú‰»
+// é–¢æ•°ãƒã‚¤ãƒ³ã‚¿ã‚’ä½¿ç”¨å¯èƒ½ãªçŠ¶æ…‹ã«åˆæœŸåŒ–
 BOOL InitializeLoadLibraryHook()
 {
 	BOOL bResult;
@@ -977,8 +977,8 @@ BOOL InitializeLoadLibraryHook()
 	return bResult;
 }
 
-// SetWindowsHookEx‘Îô
-// DLL Injection‚³‚ê‚½ê‡‚Íã‚Ìh_LoadLibraryŒnŠÖ”‚Åƒgƒ‰ƒbƒv‰Â”\
+// SetWindowsHookExå¯¾ç­–
+// DLL Injectionã•ã‚ŒãŸå ´åˆã¯ä¸Šã®h_LoadLibraryç³»é–¢æ•°ã§ãƒˆãƒ©ãƒƒãƒ—å¯èƒ½
 BOOL EnableLoadLibraryHook(BOOL bEnable)
 {
 	BOOL bResult;
@@ -1034,8 +1034,8 @@ BOOL EnableLoadLibraryHook(BOOL bEnable)
 	return bResult;
 }
 
-// ReadProcessMemoryAWriteProcessMemoryACreateRemoteThread‘Îô
-// TerminateProcess‚Ì‚İ‹–‰Â
+// ReadProcessMemoryã€WriteProcessMemoryã€CreateRemoteThreadå¯¾ç­–
+// TerminateProcessã®ã¿è¨±å¯
 BOOL RestartProtectedProcess(LPCTSTR Keyword)
 {
 	BOOL bResult;
