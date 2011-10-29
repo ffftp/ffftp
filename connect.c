@@ -1299,18 +1299,6 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 					{
 						while((Sts = ReadReplyMessage(ContSock, Buf, 1024, &CancelFlg, TmpBuf) / 100) == FTP_PRELIM)
 							;
-						if((Sts = command(ContSock, Reply, &CancelFlg, "PBSZ 0")) == 200)
-						{
-							if((Sts = command(ContSock, Reply, &CancelFlg, "PROT P")) == 200)
-							{
-								while((Sts = ReadReplyMessage(ContSock, Buf, 1024, &CancelFlg, TmpBuf) / 100) == FTP_PRELIM)
-									;
-							}
-							else
-								Sts = FTP_ERROR;
-						}
-						else
-							Sts = FTP_ERROR;
 					}
 					else
 						Sts = FTP_ERROR;
