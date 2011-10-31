@@ -1502,8 +1502,12 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		char Buf3[(BUFSIZE + 3) * 4];
 		CODECONVINFO cInfo2;
 		int ProcessedBOM = NO;
+		// 4GB超対応（kaokunさん提供）
+		DWORD High = 0;
 		if(CreateMode == OPEN_ALWAYS)
-			SetFilePointer(iFileHandle, 0, 0, FILE_END);
+			// 4GB超対応（kaokunさん提供）
+//			SetFilePointer(iFileHandle, 0, 0, FILE_END);
+			SetFilePointer(iFileHandle, 0, &High, FILE_END);
 
 		if(Pkt->hWndTrans != NULL)
 		{
