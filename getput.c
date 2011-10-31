@@ -96,7 +96,7 @@ static int UpLoadPassive(TRANSPACKET *Pkt);
 static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt);
 // 同時接続対応
 //static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, int Size, int Ascii);
-static int TermCodeConvAndSend(int ThreadCount, TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, int Size, int Ascii);
+static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, int Size, int Ascii, int *CancelCheckWork);
 static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
 static int SetUploadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode);
 static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
@@ -142,7 +142,9 @@ static time_t TimeStart[MAX_DATA_CONNECTION];	/* 転送開始時間 */
 static int KeepDlg = NO;	/* 転送中ダイアログを消さないかどうか (YES/NO) */
 static int MoveToForeground = NO;		/* ウインドウを前面に移動するかどうか (YES/NO) */
 
-static char CurDir[FMAX_PATH+1] = { "" };
+// 同時接続対応
+//static char CurDir[FMAX_PATH+1] = { "" };
+static char CurDir[MAX_DATA_CONNECTION][FMAX_PATH+1];
 // 同時接続対応
 //static char ErrMsg[ERR_MSG_LEN+7];
 static char ErrMsg[MAX_DATA_CONNECTION+1][ERR_MSG_LEN+7];
@@ -627,7 +629,11 @@ void GoForwardTransWindow(void)
 
 void InitTransCurDir(void)
 {
-	strcpy(CurDir, "");
+	// 同時接続対応
+//	strcpy(CurDir, "");
+	int i;
+	for(i = 0; i < MAX_DATA_CONNECTION; i++)
+		strcpy(CurDir[i], "");
 	return;
 }
 
@@ -710,7 +716,19 @@ static ULONG WINAPI TransferThread(void *Dummy)
 			if(TrnSkt == INVALID_SOCKET || NewCmdSkt != CmdSkt)
 			{
 				ReleaseMutex(hListAccMutex);
-				ReConnectTrnSkt(&TrnSkt);
+				ReConnectTrnSkt(&TrnSkt, &Canceled[ThreadCount]);
+				// 同時ログイン数制限に引っかかった可能性あり
+				// 負荷を下げるためにしばらく待機
+				if(TrnSkt == INVALID_SOCKET)
+				{
+					i = 10000;
+					while(NewCmdSkt != CmdSkt && i > 0)
+					{
+						BackgrndMessageProc();
+						Sleep(1);
+						i--;
+					}
+				}
 //				WaitForSingleObject(hListAccMutex, INFINITE);
 				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
 				{
@@ -793,7 +811,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				{
 					/* フルパスを使わないための処理 */
 //					if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == FFFTP_SUCCESS)
-					if(MakeNonFullPath(Pos, CurDir, Tmp) == FFFTP_SUCCESS)
+					if(MakeNonFullPath(Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
 					{
 //						if(strncmp(TransPacketBase->Cmd, "RETR-S", 6) == 0)
 						if(strncmp(Pos->Cmd, "RETR-S", 6) == 0)
@@ -802,8 +820,8 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //							DoSIZE(TransPacketBase->RemoteFile, &TransPacketBase->Size);
 //							DoMDTM(TransPacketBase->RemoteFile, &TransPacketBase->Time);
 //							strcpy(TransPacketBase->Cmd, "RETR ");
-							DoSIZE(TrnSkt, Pos->RemoteFile, &Pos->Size);
-							DoMDTM(TrnSkt, Pos->RemoteFile, &Pos->Time);
+							DoSIZE(TrnSkt, Pos->RemoteFile, &Pos->Size, &Canceled[Pos->ThreadCount]);
+							DoMDTM(TrnSkt, Pos->RemoteFile, &Pos->Time, &Canceled[Pos->ThreadCount]);
 							strcpy(Pos->Cmd, "RETR ");
 						}
 
@@ -827,7 +845,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //				ReleaseMutex(hListAccMutex);
 				/* フルパスを使わないための処理 */
 //				if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == FFFTP_SUCCESS)
-				if(MakeNonFullPath(Pos, CurDir, Tmp) == FFFTP_SUCCESS)
+				if(MakeNonFullPath(Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
 				{
 					Up = YES;
 //					if(DoUpLoad(AskTrnCtrlSkt(), TransPacketBase) == 429)
@@ -856,7 +874,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //					strcpy(Tmp, TransPacketBase->RemoteFile);
 					strcpy(Tmp, Pos->RemoteFile);
 //					if(ProcForNonFullpath(Tmp, CurDir, hWndTrans, 1) == FFFTP_FAIL)
-					if(ProcForNonFullpath(Tmp, CurDir, hWndTrans, (int)TrnSkt + 1) == FFFTP_FAIL)
+					if(ProcForNonFullpath(TrnSkt, Tmp, CurDir[Pos->ThreadCount], hWndTrans, &Canceled[Pos->ThreadCount]) == FFFTP_FAIL)
 					{
 						ClearAll = YES;
 						CwdSts = FTP_ERROR;
@@ -866,13 +884,13 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					{
 						Up = YES;
 //						CommandProcTrn(NULL, "MKD %s", Tmp);
-						CommandProcTrn(TrnSkt, NULL, "MKD %s", Tmp);
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "MKD %s", Tmp);
 						/* すでにフォルダがある場合もあるので、 */
 						/* ここではエラーチェックはしない */
 
 					if(FolderAttr)
 //						CommandProcTrn(NULL, "%s %03d %s", AskHostChmodCmd(), FolderAttrNum, Tmp);
-						CommandProcTrn(TrnSkt, NULL, "%s %03d %s", AskHostChmodCmd(), FolderAttrNum, Tmp);
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s %03d %s", AskHostChmodCmd(), FolderAttrNum, Tmp);
 					}
 				}
 //				else if(strlen(TransPacketBase->LocalFile) > 0)
@@ -893,15 +911,15 @@ static ULONG WINAPI TransferThread(void *Dummy)
 
 				/* フルパスを使わないための処理 */
 //				if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == FFFTP_SUCCESS)
-				if(MakeNonFullPath(Pos, CurDir, Tmp) == FFFTP_SUCCESS)
+				if(MakeNonFullPath(Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
 				{
 					Up = YES;
 //					CommandProcTrn(NULL, "%s%s", TransPacketBase->Cmd+2, TransPacketBase->RemoteFile);
-					CommandProcTrn(TrnSkt, NULL, "%s%s", Pos->Cmd+2, Pos->RemoteFile);
+					CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s%s", Pos->Cmd+2, Pos->RemoteFile);
 
 					if(FolderAttr)
 //						CommandProcTrn(NULL, "%s %03d %s", AskHostChmodCmd(), FolderAttrNum, TransPacketBase->RemoteFile);
-						CommandProcTrn(TrnSkt, NULL, "%s %03d %s", AskHostChmodCmd(), FolderAttrNum, Pos->RemoteFile);
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s %03d %s", AskHostChmodCmd(), FolderAttrNum, Pos->RemoteFile);
 				}
 				ReleaseMutex(hListAccMutex);
 			}
@@ -918,11 +936,11 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				{
 					/* フルパスを使わないための処理 */
 //					if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == FFFTP_SUCCESS)
-					if(MakeNonFullPath(Pos, CurDir, Tmp) == FFFTP_SUCCESS)
+					if(MakeNonFullPath(Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
 					{
 						Up = YES;
 //						CommandProcTrn(NULL, "%s%s", TransPacketBase->Cmd+2, TransPacketBase->RemoteFile);
-						CommandProcTrn(TrnSkt, NULL, "%s%s", Pos->Cmd+2, Pos->RemoteFile);
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s%s", Pos->Cmd+2, Pos->RemoteFile);
 					}
 				}
 				ReleaseMutex(hListAccMutex);
@@ -940,11 +958,11 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				{
 					/* フルパスを使わないための処理 */
 //					if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == FFFTP_SUCCESS)
-					if(MakeNonFullPath(Pos, CurDir, Tmp) == FFFTP_SUCCESS)
+					if(MakeNonFullPath(Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
 					{
 						Up = YES;
 //						CommandProcTrn(NULL, "%s%s", TransPacketBase->Cmd+2, TransPacketBase->RemoteFile);
-						CommandProcTrn(TrnSkt, NULL, "%s%s", Pos->Cmd+2, Pos->RemoteFile);
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s%s", Pos->Cmd+2, Pos->RemoteFile);
 					}
 				}
 				ReleaseMutex(hListAccMutex);
@@ -1002,10 +1020,10 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				if(AskShareProh() == YES)
 				{
 //					if(strcmp(CurDir, TransPacketBase->RemoteFile) != 0)
-					if(strcmp(CurDir, Pos->RemoteFile) != 0)
+					if(strcmp(CurDir[Pos->ThreadCount], Pos->RemoteFile) != 0)
 					{
 //						if(CommandProcTrn(NULL, "CWD %s", TransPacketBase->RemoteFile)/100 != FTP_COMPLETE)
-						if(CommandProcTrn(TrnSkt, NULL, "CWD %s", Pos->RemoteFile)/100 != FTP_COMPLETE)
+						if(CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "CWD %s", Pos->RemoteFile)/100 != FTP_COMPLETE)
 						{
 							DispCWDerror(hWndTrans);
 							ClearAll = YES;
@@ -1013,7 +1031,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					}
 				}
 //				strcpy(CurDir, TransPacketBase->RemoteFile);
-				strcpy(CurDir, Pos->RemoteFile);
+				strcpy(CurDir[Pos->ThreadCount], Pos->RemoteFile);
 				ReleaseMutex(hListAccMutex);
 			}
 			/* カレントディレクトリを戻す */
@@ -1025,9 +1043,9 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //					if(strcmp(CurDir, TransPacketBase->RemoteFile) != 0)
 //						CommandProcTrn(NULL, "CWD %s", TransPacketBase->RemoteFile);
 //					strcpy(CurDir, TransPacketBase->RemoteFile);
-					if(strcmp(CurDir, Pos->RemoteFile) != 0)
-						CommandProcTrn(TrnSkt, NULL, "CWD %s", Pos->RemoteFile);
-					strcpy(CurDir, Pos->RemoteFile);
+					if(strcmp(CurDir[Pos->ThreadCount], Pos->RemoteFile) != 0)
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "CWD %s", Pos->RemoteFile);
+					strcpy(CurDir[Pos->ThreadCount], Pos->RemoteFile);
 				}
 				ReleaseMutex(hListAccMutex);
 			}
@@ -1182,7 +1200,7 @@ static int MakeNonFullPath(TRANSPACKET *Pkt, char *Cur, char *Tmp)
 	int Sts;
 
 //	Sts = ProcForNonFullpath(Pkt->RemoteFile, Cur, Pkt->hWndTrans, 1);
-	Sts = ProcForNonFullpath(Pkt->RemoteFile, Cur, Pkt->hWndTrans, (int)Pkt->ctrl_skt + 1);
+	Sts = ProcForNonFullpath(Pkt->ctrl_skt, Pkt->RemoteFile, Cur, Pkt->hWndTrans, &Canceled[Pkt->ThreadCount]);
 	if(Sts == FFFTP_FAIL)
 		ClearAll = YES;
 
@@ -1290,7 +1308,9 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 			iRetCode = command(Pkt->ctrl_skt, Reply, CancelCheckWork, "%s", Buf);
 			if(iRetCode/100 == FTP_PRELIM)
 			{
-				if(SocksGet2ndBindReply(listen_socket, &data_socket) == FFFTP_FAIL)
+				// 同時接続対応
+//				if(SocksGet2ndBindReply(listen_socket, &data_socket) == FFFTP_FAIL)
+				if(SocksGet2ndBindReply(listen_socket, &data_socket, CancelCheckWork) == FFFTP_FAIL)
 				{
 					iLength = sizeof(saSockAddr1);
 					data_socket = do_accept(listen_socket, (struct sockaddr *)&saSockAddr1, (int *)&iLength);
@@ -1317,7 +1337,7 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 //					iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 					if(IsSSLAttached(Pkt->ctrl_skt))
 					{
-						if(AttachSSL(data_socket, Pkt->ctrl_skt))
+						if(AttachSSL(data_socket, Pkt->ctrl_skt, CancelCheckWork))
 							iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 						else
 							iRetCode = 500;
@@ -1393,7 +1413,7 @@ static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 //						iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 						if(IsSSLAttached(Pkt->ctrl_skt))
 						{
-							if(AttachSSL(data_socket, Pkt->ctrl_skt))
+							if(AttachSSL(data_socket, Pkt->ctrl_skt, CancelCheckWork))
 								iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 							else
 								iRetCode = 500;
@@ -2332,7 +2352,9 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 		iRetCode = command(Pkt->ctrl_skt, Reply, &Canceled[Pkt->ThreadCount], "%s", Buf);
 		if((iRetCode/100) == FTP_PRELIM)
 		{
-			if(SocksGet2ndBindReply(listen_socket, &data_socket) == FFFTP_FAIL)
+			// 同時接続対応
+//			if(SocksGet2ndBindReply(listen_socket, &data_socket) == FFFTP_FAIL)
+			if(SocksGet2ndBindReply(listen_socket, &data_socket, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
 			{
 				iLength=sizeof(saSockAddr1);
 				data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddr1, (int *)&iLength);
@@ -2359,7 +2381,7 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 //				iRetCode = UpLoadFile(Pkt, data_socket);
 				if(IsSSLAttached(Pkt->ctrl_skt))
 				{
-					if(AttachSSL(data_socket, Pkt->ctrl_skt))
+					if(AttachSSL(data_socket, Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount]))
 						iRetCode = UpLoadFile(Pkt, data_socket);
 					else
 						iRetCode = 500;
@@ -2441,7 +2463,7 @@ static int UpLoadPassive(TRANSPACKET *Pkt)
 //					iRetCode = UpLoadFile(Pkt, data_socket);
 					if(IsSSLAttached(Pkt->ctrl_skt))
 					{
-						if(AttachSSL(data_socket, Pkt->ctrl_skt))
+						if(AttachSSL(data_socket, Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount]))
 							iRetCode = UpLoadFile(Pkt, data_socket);
 						else
 							iRetCode = 500;
@@ -2784,7 +2806,7 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 					}
 
 //					if(TermCodeConvAndSend(&tInfo, dSkt, Buf2, cInfo.OutLen, Pkt->Type) == FFFTP_FAIL)
-					if(TermCodeConvAndSend(Pkt->ThreadCount, &tInfo, dSkt, Buf3, cInfo2.OutLen, Pkt->Type) == FFFTP_FAIL)
+					if(TermCodeConvAndSend(&tInfo, dSkt, Buf3, cInfo2.OutLen, Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
 					{
 						Pkt->Abort = ABORT_ERROR;
 							break;
@@ -2796,7 +2818,7 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 			{
 				// 同時接続対応
 //				if(TermCodeConvAndSend(&tInfo, dSkt, Buf, iNumBytes, Pkt->Type) == FFFTP_FAIL)
-				if(TermCodeConvAndSend(Pkt->ThreadCount, &tInfo, dSkt, Buf, iNumBytes, Pkt->Type) == FFFTP_FAIL)
+				if(TermCodeConvAndSend(&tInfo, dSkt, Buf, iNumBytes, Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
 					Pkt->Abort = ABORT_ERROR;
 			}
 
@@ -2940,12 +2962,12 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 				}
 
 //				if(TermCodeConvAndSend(&tInfo, dSkt, Buf2, cInfo.OutLen, Pkt->Type) == FFFTP_FAIL)
-				if(TermCodeConvAndSend(Pkt->ThreadCount, &tInfo, dSkt, Buf3, cInfo2.OutLen, Pkt->Type) == FFFTP_FAIL)
+				if(TermCodeConvAndSend(&tInfo, dSkt, Buf3, cInfo2.OutLen, Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
 					Pkt->Abort = ABORT_ERROR;
 				cInfo2.Buf = Buf3;
 				cInfo2.BufSize = (BUFSIZE + 3) * 4;
 				FlushRestData(&cInfo2);
-				if(TermCodeConvAndSend(Pkt->ThreadCount, &tInfo, dSkt, Buf3, cInfo2.OutLen, Pkt->Type) == FFFTP_FAIL)
+				if(TermCodeConvAndSend(&tInfo, dSkt, Buf3, cInfo2.OutLen, Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
 					Pkt->Abort = ABORT_ERROR;
 			}
 
@@ -3017,7 +3039,7 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 
 // 同時接続対応
 //static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, int Size, int Ascii)
-static int TermCodeConvAndSend(int ThreadCount, TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, int Size, int Ascii)
+static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, int Size, int Ascii, int *CancelCheckWork)
 {
 	char Buf3[BUFSIZE*2];
 	int Continue;
@@ -3037,7 +3059,7 @@ static int TermCodeConvAndSend(int ThreadCount, TERMCODECONVINFO *tInfo, SOCKET 
 			Continue = ConvTermCodeToCRLF(tInfo);
 			// 同時接続対応
 //			if((Ret = SendData(Skt, Buf3, tInfo->OutLen, 0, &Canceled)) == FFFTP_FAIL)
-			if((Ret = SendData(Skt, Buf3, tInfo->OutLen, 0, &Canceled[ThreadCount])) == FFFTP_FAIL)
+			if((Ret = SendData(Skt, Buf3, tInfo->OutLen, 0, CancelCheckWork)) == FFFTP_FAIL)
 				break;
 		}
 		while(Continue == YES);
@@ -3045,7 +3067,7 @@ static int TermCodeConvAndSend(int ThreadCount, TERMCODECONVINFO *tInfo, SOCKET 
 	else
 		// 同時接続対応
 //		Ret = SendData(Skt, Data, Size, 0, &Canceled);
-		Ret = SendData(Skt, Data, Size, 0, &Canceled[ThreadCount]);
+		Ret = SendData(Skt, Data, Size, 0, CancelCheckWork);
 
 	return(Ret);
 }

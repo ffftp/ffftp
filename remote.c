@@ -62,11 +62,15 @@ extern TRANSPACKET MainTransPkt;
 extern int TimeOut;
 extern int SendQuit;
 
+// 同時接続対応
+extern int CancelFlg;
+
 /*===== ローカルなワーク =====*/
 
 static int PwdCommandType;
 
-static int CheckCancelFlg = NO;
+// 同時接続対応
+//static int CheckCancelFlg = NO;
 
 
 
@@ -343,7 +347,9 @@ int DoRENAME(char *Src, char *Dst)
 
 	Sts = CommandProcCmd(NULL, "RNFR %s", Src);
 	if(Sts == 350)
-		Sts = command(AskCmdCtrlSkt(), NULL, &CheckCancelFlg, "RNTO %s", Dst);
+		// 同時接続対応
+//		Sts = command(AskCmdCtrlSkt(), NULL, &CheckCancelFlg, "RNTO %s", Dst);
+		Sts = command(AskCmdCtrlSkt(), NULL, &CancelFlg, "RNTO %s", Dst);
 
 	if(Sts/100 >= FTP_CONTINUE)
 		SoundPlay(SND_ERROR);
@@ -391,13 +397,14 @@ int DoCHMOD(char *Path, char *Mode)
 
 // 同時接続対応
 //int DoSIZE(char *Path, LONGLONG *Size)
-int DoSIZE(SOCKET cSkt, char *Path, LONGLONG *Size)
+int DoSIZE(SOCKET cSkt, char *Path, LONGLONG *Size, int *CancelCheckWork)
 {
 	int Sts;
 	char Tmp[1024];
 
+	// 同時接続対応
 //	Sts = CommandProcTrn(Tmp, "SIZE %s", Path);
-	Sts = CommandProcTrn(cSkt, Tmp, "SIZE %s", Path);
+	Sts = CommandProcTrn(cSkt, Tmp, CancelCheckWork, "SIZE %s", Path);
 
 	*Size = -1;
 	if((Sts/100 == FTP_COMPLETE) && (strlen(Tmp) > 4) && IsDigit(Tmp[4]))
@@ -423,7 +430,7 @@ int DoSIZE(SOCKET cSkt, char *Path, LONGLONG *Size)
 
 // 同時接続対応
 //int DoMDTM(char *Path, FILETIME *Time)
-int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time)
+int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork)
 {
 	int Sts;
 	char Tmp[1024];
@@ -432,8 +439,9 @@ int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time)
     Time->dwLowDateTime = 0;
     Time->dwHighDateTime = 0;
 
+	// 同時接続対応
 //	Sts = CommandProcTrn(Tmp, "MDTM %s", Path);
-	Sts = CommandProcTrn(cSkt, Tmp, "MDTM %s", Path);
+	Sts = CommandProcTrn(cSkt, Tmp, CancelCheckWork, "MDTM %s", Path);
 	if(Sts/100 == FTP_COMPLETE)
 	{
 		sTime.wMilliseconds = 0;
@@ -516,7 +524,9 @@ int DoQUIT(SOCKET ctrl_skt)
 
 	Ret = FTP_COMPLETE;
 	if(SendQuit == YES)
-		Ret = command(ctrl_skt, NULL, &CheckCancelFlg, "QUIT") / 100;
+		// 同時接続対応
+//		Ret = command(ctrl_skt, NULL, &CheckCancelFlg, "QUIT") / 100;
+		Ret = command(ctrl_skt, NULL, &CancelFlg, "QUIT") / 100;
 
 	return(Ret);
 }
@@ -665,7 +675,9 @@ int CommandProcCmd(char *Reply, char *fmt, ...)
 //	{
 //		if(ReConnectCmdSkt() == FFFTP_SUCCESS)
 //		{
-			Sts = command(AskCmdCtrlSkt(), Reply, &CheckCancelFlg, "%s", Cmd);
+			// 同時接続対応
+//			Sts = command(AskCmdCtrlSkt(), Reply, &CheckCancelFlg, "%s", Cmd);
+			Sts = command(AskCmdCtrlSkt(), Reply, &CancelFlg, "%s", Cmd);
 //		}
 //	}
 	return(Sts);
@@ -688,7 +700,7 @@ int CommandProcCmd(char *Reply, char *fmt, ...)
 
 // 同時接続対応
 //int CommandProcTrn(char *Reply, char *fmt, ...)
-int CommandProcTrn(SOCKET cSkt, char *Reply, char *fmt, ...)
+int CommandProcTrn(SOCKET cSkt, char *Reply, int* CancelCheckWork, char *fmt, ...)
 {
 	va_list Args;
 	char Cmd[1024];
@@ -705,7 +717,7 @@ int CommandProcTrn(SOCKET cSkt, char *Reply, char *fmt, ...)
 //	{
 //		if(ReConnectTrnSkt() == FFFTP_SUCCESS)
 //			Sts = command(AskTrnCtrlSkt(), Reply, &CheckCancelFlg, "%s", Cmd);
-			Sts = command(cSkt, Reply, &CheckCancelFlg, "%s", Cmd);
+			Sts = command(cSkt, Reply, CancelCheckWork, "%s", Cmd);
 //	}
 	return(Sts);
 }
@@ -1040,14 +1052,8 @@ static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
 
 			if((SizeOnce == -2) || (AskTransferNow() == YES))
 			// 転送中に全て中止を行うと不正なデータが得られる場合のバグ修正
-			// エラーの種類によっては無限ループとスタックオーバーフローの可能性あり
 //				DisconnectSet();
-			{
-				if(SizeOnce == -1)
-					ReConnectTrnSkt(&cSkt);
-				else
-					DisconnectSet();
-			}
+				cSkt = DoClose(cSkt);
 		}
 		else
 		{

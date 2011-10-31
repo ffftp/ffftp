@@ -58,15 +58,20 @@ static void AskUseFireWall(char *Host, int *Fire, int *Pasv, int *List);
 static void SaveCurrentSetToHistory(void);
 static int ReConnectSkt(SOCKET *Skt);
 // 暗号化通信対応
+// 同時接続対応
 //static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security);
-static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security);
-static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security);
+static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork);
+static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork);
 static int CheckOneTimePassword(char *Pass, char *Reply, int Type);
 static BOOL CALLBACK BlkHookFnc(void);
 static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, int ValidIP, ulong IP, char *Host, ushort Port);
 static int SocksSendCmd(SOCKET Socket, void *Data, int Size, int *CancelCheckWork);
-static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet);
-static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet);
+// 同時接続対応
+//static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet);
+static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet, int *CancelCheckWork);
+// 同時接続対応
+//static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet);
+static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet, int *CancelCheckWork);
 static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork);
 
 /*===== 外部参照 =====*/
@@ -163,8 +168,9 @@ void ConnectProc(int Type, int Num)
 
 			DisableUserOpe();
 			// 暗号化通信対応
+			// 同時接続対応
 //			CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, Save, CurHost.Security);
-			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, Save, CurHost.Security);
+			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, Save, CurHost.Security, &CancelFlg);
 			TrnCtrlSocket = CmdCtrlSocket;
 
 			if(CmdCtrlSocket != INVALID_SOCKET)
@@ -244,8 +250,9 @@ void QuickConnectProc(void)
 
 			DisableUserOpe();
 			// 暗号化通信対応
+			// 同時接続対応
 //			CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
-			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
+			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg);
 			TrnCtrlSocket = CmdCtrlSocket;
 
 			if(CmdCtrlSocket != INVALID_SOCKET)
@@ -418,8 +425,9 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 
 		DisableUserOpe();
 		// 暗号化通信対応
+		// 同時接続対応
 //		CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
-		CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
+		CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg);
 		TrnCtrlSocket = CmdCtrlSocket;
 
 		if(CmdCtrlSocket != INVALID_SOCKET)
@@ -496,8 +504,9 @@ void HistoryConnectProc(int MenuCmd)
 
 			DisableUserOpe();
 			// 暗号化通信対応
+			// 同時接続対応
 //			CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
-			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
+			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg);
 			TrnCtrlSocket = CmdCtrlSocket;
 
 			if(CmdCtrlSocket != INVALID_SOCKET)
@@ -958,7 +967,7 @@ int ReConnectCmdSkt(void)
 //	return(ReConnectSkt(&TrnCtrlSocket));
 //}
 // 同時接続対応
-int ReConnectTrnSkt(SOCKET *Skt)
+int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
 {
 //	char Path[FMAX_PATH+1];
 	int Sts;
@@ -984,8 +993,10 @@ int ReConnectTrnSkt(SOCKET *Skt)
 		HostData.UseFTPIS = NO;
 	if(HostData.CryptMode != CRYPT_SFTP)
 		HostData.UseSFTP = NO;
+	// 暗号化通信対応
+	// 同時接続対応
 //	if((*Skt = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
-	if((*Skt = DoConnect(&HostData, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
+	if((*Skt = DoConnect(&HostData, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, CancelCheckWork)) != INVALID_SOCKET)
 	{
 //		AskRemoteCurDir(Path, FMAX_PATH);
 //		DoCWD(Path, YES, YES, YES);
@@ -1024,8 +1035,9 @@ static int ReConnectSkt(SOCKET *Skt)
 		do_closesocket(*Skt);
 	/* 再接続 */
 	// 暗号化通信対応
+	// 同時接続対応
 //	if((*Skt = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
-	if((*Skt = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
+	if((*Skt = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg)) != INVALID_SOCKET)
 	{
 		AskRemoteCurDir(Path, FMAX_PATH);
 		DoCWD(Path, YES, YES, YES);
@@ -1235,7 +1247,7 @@ int AskConnecting(void)
 *----------------------------------------------------------------------------*/
 
 // 暗号化通信対応
-static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security)
+static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork)
 {
 	int Sts;
 	int Flg;
@@ -1282,7 +1294,9 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 
 		if(strlen(Tmp) != 0)
 		{
-			if((ContSock = connectsock(Tmp, Port, "", &CancelFlg)) != INVALID_SOCKET)
+			// 同時接続対応
+//			if((ContSock = connectsock(Tmp, Port, "", &CancelFlg)) != INVALID_SOCKET)
+			if((ContSock = connectsock(Tmp, Port, "", CancelCheckWork)) != INVALID_SOCKET)
 			{
 				// バッファを無効
 #ifdef DISABLE_CONTROL_NETWORK_BUFFERS
@@ -1295,9 +1309,9 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 //					;
 				if(CryptMode == CRYPT_FTPIS)
 				{
-					if(AttachSSL(ContSock, INVALID_SOCKET))
+					if(AttachSSL(ContSock, INVALID_SOCKET, CancelCheckWork))
 					{
-						while((Sts = ReadReplyMessage(ContSock, Buf, 1024, &CancelFlg, TmpBuf) / 100) == FTP_PRELIM)
+						while((Sts = ReadReplyMessage(ContSock, Buf, 1024, CancelCheckWork, TmpBuf) / 100) == FTP_PRELIM)
 							;
 					}
 					else
@@ -1305,7 +1319,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 				}
 				else
 				{
-					while((Sts = ReadReplyMessage(ContSock, Buf, 1024, &CancelFlg, TmpBuf) / 100) == FTP_PRELIM)
+					while((Sts = ReadReplyMessage(ContSock, Buf, 1024, CancelCheckWork, TmpBuf) / 100) == FTP_PRELIM)
 						;
 				}
 
@@ -1335,15 +1349,21 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 					   (Fwall == FWALL_FU_FP_USER) ||
 					   (Fwall == FWALL_FU_FP))
 					{
-						if((Sts = command(ContSock, Reply, &CancelFlg, "USER %s", FwallUser) / 100) == FTP_CONTINUE)
+						// 同時接続対応
+//						if((Sts = command(ContSock, Reply, &CancelFlg, "USER %s", FwallUser) / 100) == FTP_CONTINUE)
+						if((Sts = command(ContSock, Reply, CancelCheckWork, "USER %s", FwallUser) / 100) == FTP_CONTINUE)
 						{
 							CheckOneTimePassword(FwallPass, Reply, FwallSecurity);
-							Sts = command(ContSock, NULL, &CancelFlg, "PASS %s", Reply) / 100;
+							// 同時接続対応
+//							Sts = command(ContSock, NULL, &CancelFlg, "PASS %s", Reply) / 100;
+							Sts = command(ContSock, NULL, CancelCheckWork, "PASS %s", Reply) / 100;
 						}
 					}
 					else if(Fwall == FWALL_SIDEWINDER)
 					{
-						Sts = command(ContSock, Reply, &CancelFlg, "USER %s:%s%c%s", FwallUser, FwallPass, FwallDelimiter, Host) / 100;
+						// 同時接続対応
+//						Sts = command(ContSock, Reply, &CancelFlg, "USER %s:%s%c%s", FwallUser, FwallPass, FwallDelimiter, Host) / 100;
+						Sts = command(ContSock, Reply, CancelCheckWork, "USER %s:%s%c%s", FwallUser, FwallPass, FwallDelimiter, Host) / 100;
 					}
 					if((Sts != FTP_COMPLETE) && (Sts != FTP_CONTINUE))
 					{
@@ -1362,9 +1382,13 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 								Flg++;
 
 							if(HostPort == PORT_NOR)
-								Sts = command(ContSock, NULL, &CancelFlg, "%s %s", SiteTbl[Flg], Host) / 100;
+								// 同時接続対応
+//								Sts = command(ContSock, NULL, &CancelFlg, "%s %s", SiteTbl[Flg], Host) / 100;
+								Sts = command(ContSock, NULL, CancelCheckWork, "%s %s", SiteTbl[Flg], Host) / 100;
 							else
-								Sts = command(ContSock, NULL, &CancelFlg, "%s %s %d", SiteTbl[Flg], Host, HostPort) / 100;
+								// 同時接続対応
+//								Sts = command(ContSock, NULL, &CancelFlg, "%s %s %d", SiteTbl[Flg], Host, HostPort) / 100;
+								Sts = command(ContSock, NULL, CancelCheckWork, "%s %s %d", SiteTbl[Flg], Host, HostPort) / 100;
 						}
 
 						if((Sts != FTP_COMPLETE) && (Sts != FTP_CONTINUE))
@@ -1398,13 +1422,13 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 								// FTPES対応
 								if(CryptMode == CRYPT_FTPES)
 								{
-									if(IsOpenSSLLoaded() && (Sts = command(ContSock, Reply, &CancelFlg, "AUTH TLS")) == 234)
+									if(IsOpenSSLLoaded() && (Sts = command(ContSock, Reply, CancelCheckWork, "AUTH TLS")) == 234)
 									{
-										if(AttachSSL(ContSock, INVALID_SOCKET))
+										if(AttachSSL(ContSock, INVALID_SOCKET, CancelCheckWork))
 										{
-											if((Sts = command(ContSock, Reply, &CancelFlg, "PBSZ 0")) == 200)
+											if((Sts = command(ContSock, Reply, CancelCheckWork, "PBSZ 0")) == 200)
 											{
-												if((Sts = command(ContSock, Reply, &CancelFlg, "PROT P")) == 200)
+												if((Sts = command(ContSock, Reply, CancelCheckWork, "PROT P")) == 200)
 												{
 												}
 												else
@@ -1427,7 +1451,9 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 									if(Sts == FTP_ERROR)
 										break;
 									Continue = NO;
-									if((Sts = command(ContSock, Reply, &CancelFlg, "USER %s", Buf) / 100) == FTP_CONTINUE)
+									// 同時接続対応
+//									if((Sts = command(ContSock, Reply, &CancelFlg, "USER %s", Buf) / 100) == FTP_CONTINUE)
+									if((Sts = command(ContSock, Reply, CancelCheckWork, "USER %s", Buf) / 100) == FTP_CONTINUE)
 									{
 										if((strlen(Pass) != 0) || 
 										   (InputDialogBox(passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
@@ -1438,7 +1464,9 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 											if(strcmp(Reply, " ") == 0)
 												strcpy(Reply, "");
 
-											Sts = command(ContSock, NULL, &CancelFlg, "PASS %s", Reply) / 100;
+											// 同時接続対応
+//											Sts = command(ContSock, NULL, &CancelFlg, "PASS %s", Reply) / 100;
+											Sts = command(ContSock, NULL, CancelCheckWork, "PASS %s", Reply) / 100;
 											if(Sts == FTP_ERROR)
 											{
 												strcpy(Pass, "");
@@ -1453,7 +1481,9 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 												if((strlen(Acct) != 0) || 
 												   (InputDialogBox(account_dlg, GetMainHwnd(), NULL, Acct, ACCOUNT_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
 												{
-													Sts = command(ContSock, NULL, &CancelFlg, "ACCT %s", Acct) / 100;
+													// 同時接続対応
+//													Sts = command(ContSock, NULL, &CancelFlg, "ACCT %s", Acct) / 100;
+													Sts = command(ContSock, NULL, CancelCheckWork, "ACCT %s", Acct) / 100;
 												}
 												else
 													DoPrintf("No account specified");
@@ -1516,7 +1546,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 		// ホストの機能を確認
 		if(ContSock != INVALID_SOCKET)
 		{
-			if((Sts = command(ContSock, Reply, &CancelFlg, "FEAT")) == 211)
+			if((Sts = command(ContSock, Reply, CancelCheckWork, "FEAT")) == 211)
 			{
 				// 改行文字はReadReplyMessageで消去されるため区切り文字に空白を使用
 				// UTF-8対応
@@ -1532,7 +1562,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 			// UTF-8対応
 			if(HostData->NameKanjiCode == KANJI_AUTO && (HostData->Feature & FEATURE_UTF8))
 			{
-				if((Sts = command(ContSock, Reply, &CancelFlg, "OPTS UTF8 ON")) == 200)
+				if((Sts = command(ContSock, Reply, CancelCheckWork, "OPTS UTF8 ON")) == 200)
 				{
 				}
 			}
@@ -1545,33 +1575,35 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 	return(ContSock);
 }
 
-static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security)
+// 同時接続対応
+//static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security)
+static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork)
 {
 	SOCKET ContSock;
 	ContSock = INVALID_SOCKET;
-	CancelFlg = NO;
-	if(CancelFlg == NO && ContSock == INVALID_SOCKET && HostData->UseSFTP == YES)
+	*CancelCheckWork = NO;
+	if(*CancelCheckWork == NO && ContSock == INVALID_SOCKET && HostData->UseSFTP == YES)
 	{
 		SetTaskMsg(MSGJPN317);
-		if((ContSock = DoConnectCrypt(CRYPT_SFTP, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
+		if((ContSock = DoConnectCrypt(CRYPT_SFTP, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security, CancelCheckWork)) != INVALID_SOCKET)
 			HostData->CryptMode = CRYPT_SFTP;
 	}
-	if(CancelFlg == NO && ContSock == INVALID_SOCKET && HostData->UseFTPIS == YES)
+	if(*CancelCheckWork == NO && ContSock == INVALID_SOCKET && HostData->UseFTPIS == YES)
 	{
 		SetTaskMsg(MSGJPN316);
-		if((ContSock = DoConnectCrypt(CRYPT_FTPIS, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
+		if((ContSock = DoConnectCrypt(CRYPT_FTPIS, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security, CancelCheckWork)) != INVALID_SOCKET)
 			HostData->CryptMode = CRYPT_FTPIS;
 	}
-	if(CancelFlg == NO && ContSock == INVALID_SOCKET && HostData->UseFTPES == YES)
+	if(*CancelCheckWork == NO && ContSock == INVALID_SOCKET && HostData->UseFTPES == YES)
 	{
 		SetTaskMsg(MSGJPN315);
-		if((ContSock = DoConnectCrypt(CRYPT_FTPES, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
+		if((ContSock = DoConnectCrypt(CRYPT_FTPES, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security, CancelCheckWork)) != INVALID_SOCKET)
 			HostData->CryptMode = CRYPT_FTPES;
 	}
-	if(CancelFlg == NO && ContSock == INVALID_SOCKET && HostData->UseNoEncryption == YES)
+	if(*CancelCheckWork == NO && ContSock == INVALID_SOCKET && HostData->UseNoEncryption == YES)
 	{
 		SetTaskMsg(MSGJPN314);
-		if((ContSock = DoConnectCrypt(CRYPT_NONE, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security)) != INVALID_SOCKET)
+		if((ContSock = DoConnectCrypt(CRYPT_NONE, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security, CancelCheckWork)) != INVALID_SOCKET)
 			HostData->CryptMode = CRYPT_NONE;
 	}
 	return ContSock;
@@ -1822,8 +1854,12 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			if(Fwall == FWALL_SOCKS4)
 			{
 				Socks4Reply.Result = -1;
+				// 同時接続対応
+//				if((SocksSendCmd(sSocket, &Socks4Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
+//				   (Socks4GetCmdReply(sSocket, &Socks4Reply) != FFFTP_SUCCESS) || 
+//				   (Socks4Reply.Result != SOCKS4_RES_OK))
 				if((SocksSendCmd(sSocket, &Socks4Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
-				   (Socks4GetCmdReply(sSocket, &Socks4Reply) != FFFTP_SUCCESS) || 
+				   (Socks4GetCmdReply(sSocket, &Socks4Reply, CancelCheckWork) != FFFTP_SUCCESS) || 
 				   (Socks4Reply.Result != SOCKS4_RES_OK))
 				{
 					SetTaskMsg(MSGJPN023, Socks4Reply.Result);
@@ -1840,8 +1876,12 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 				}
 
 				Socks5Reply.Result = -1;
+				// 同時接続対応
+//				if((SocksSendCmd(sSocket, &Socks5Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
+//				   (Socks5GetCmdReply(sSocket, &Socks5Reply) != FFFTP_SUCCESS) || 
+//				   (Socks5Reply.Result != SOCKS5_RES_OK))
 				if((SocksSendCmd(sSocket, &Socks5Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
-				   (Socks5GetCmdReply(sSocket, &Socks5Reply) != FFFTP_SUCCESS) || 
+				   (Socks5GetCmdReply(sSocket, &Socks5Reply, CancelCheckWork) != FFFTP_SUCCESS) || 
 				   (Socks5Reply.Result != SOCKS5_RES_OK))
 				{
 					SetTaskMsg(MSGJPN024, Socks5Reply.Result);
@@ -1913,8 +1953,12 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 				Len = offsetof(SOCKS4CMD, UserID) + strlen(FwallUser) + 1;
 
 				Socks4Reply.Result = -1;
+				// 同時接続対応
+//				if((SocksSendCmd(listen_skt, &Socks4Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
+//				   (Socks4GetCmdReply(listen_skt, &Socks4Reply) != FFFTP_SUCCESS) || 
+//				   (Socks4Reply.Result != SOCKS4_RES_OK))
 				if((SocksSendCmd(listen_skt, &Socks4Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
-				   (Socks4GetCmdReply(listen_skt, &Socks4Reply) != FFFTP_SUCCESS) || 
+				   (Socks4GetCmdReply(listen_skt, &Socks4Reply, CancelCheckWork) != FFFTP_SUCCESS) || 
 				   (Socks4Reply.Result != SOCKS4_RES_OK))
 				{
 					SetTaskMsg(MSGJPN028, Socks4Reply.Result);
@@ -1945,8 +1989,12 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 				Len = Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, UseIPadrs, CurSockAddr.sin_addr.s_addr, DomainName, CurSockAddr.sin_port);
 
 				Socks5Reply.Result = -1;
+				// 同時接続対応
+//				if((SocksSendCmd(listen_skt, &Socks5Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
+//				   (Socks5GetCmdReply(listen_skt, &Socks5Reply) != FFFTP_SUCCESS) || 
+//				   (Socks5Reply.Result != SOCKS5_RES_OK))
 				if((SocksSendCmd(listen_skt, &Socks5Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
-				   (Socks5GetCmdReply(listen_skt, &Socks5Reply) != FFFTP_SUCCESS) || 
+				   (Socks5GetCmdReply(listen_skt, &Socks5Reply, CancelCheckWork) != FFFTP_SUCCESS) || 
 				   (Socks5Reply.Result != SOCKS5_RES_OK))
 				{
 					SetTaskMsg(MSGJPN029, Socks5Reply.Result);
@@ -2014,7 +2062,11 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 	if(listen_skt != INVALID_SOCKET)
 	{
 #define  UC(b)  (((int)b)&0xff)
-		if((command(ctrl_skt,NULL, &CancelFlg, "PORT %d,%d,%d,%d,%d,%d",
+		// 同時接続対応
+//		if((command(ctrl_skt,NULL, &CancelFlg, "PORT %d,%d,%d,%d,%d,%d",
+//				UC(a[0]), UC(a[1]), UC(a[2]), UC(a[3]),
+//				UC(p[0]), UC(p[1])) / 100) != FTP_COMPLETE)
+		if((command(ctrl_skt,NULL, CancelCheckWork, "PORT %d,%d,%d,%d,%d,%d",
 				UC(a[0]), UC(a[1]), UC(a[2]), UC(a[3]),
 				UC(p[0]), UC(p[1])) / 100) != FTP_COMPLETE)
 		{
@@ -2157,7 +2209,9 @@ static int SocksSendCmd(SOCKET Socket, void *Data, int Size, int *CancelCheckWor
 *		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
-static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet)
+// 同時接続対応
+//static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet)
+static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet, int *CancelCheckWork)
 {
 	uchar *Pos;
 	int Len;
@@ -2166,7 +2220,9 @@ static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet)
 	Pos = (uchar *)Packet;
 	Pos += SOCKS5REPLY_SIZE;
 
-	if((Ret = ReadNchar(Socket, (char *)Packet, SOCKS5REPLY_SIZE, &CancelFlg)) == FFFTP_SUCCESS)
+	// 同時接続対応
+//	if((Ret = ReadNchar(Socket, (char *)Packet, SOCKS5REPLY_SIZE, &CancelFlg)) == FFFTP_SUCCESS)
+	if((Ret = ReadNchar(Socket, (char *)Packet, SOCKS5REPLY_SIZE, CancelCheckWork)) == FFFTP_SUCCESS)
 	{
 		if(Packet->Type == SOCKS5_ADRS_IPV4)
 			Len = 4 + 2;
@@ -2174,7 +2230,9 @@ static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet)
 			Len = 6 + 2;
 		else
 		{
-			if((Ret = ReadNchar(Socket, (char *)Pos, 1, &CancelFlg)) == FFFTP_SUCCESS)
+			// 同時接続対応
+//			if((Ret = ReadNchar(Socket, (char *)Pos, 1, &CancelFlg)) == FFFTP_SUCCESS)
+			if((Ret = ReadNchar(Socket, (char *)Pos, 1, CancelCheckWork)) == FFFTP_SUCCESS)
 			{
 				Len = *Pos + 2;
 				Pos++;
@@ -2182,7 +2240,9 @@ static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet)
 		}
 
 		if(Ret == FFFTP_SUCCESS)
-			Ret = ReadNchar(Socket, (char *)Pos, Len, &CancelFlg);
+			// 同時接続対応
+//			Ret = ReadNchar(Socket, (char *)Pos, Len, &CancelFlg);
+			Ret = ReadNchar(Socket, (char *)Pos, Len, CancelCheckWork);
 	}
 
 	if(Ret != FFFTP_SUCCESS)
@@ -2202,11 +2262,15 @@ static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet)
 *		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
-static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet)
+// 同時接続対応
+//static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet)
+static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet, int *CancelCheckWork)
 {
 	int Ret;
 
-	Ret = ReadNchar(Socket, (char *)Packet, SOCKS4REPLY_SIZE, &CancelFlg);
+	// 同時接続対応
+//	Ret = ReadNchar(Socket, (char *)Packet, SOCKS4REPLY_SIZE, &CancelFlg);
+	Ret = ReadNchar(Socket, (char *)Packet, SOCKS4REPLY_SIZE, CancelCheckWork);
 
 	if(Ret != FFFTP_SUCCESS)
 		DoPrintf(MSGJPN035);
@@ -2242,8 +2306,12 @@ static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork)
 	else
 		Socks5Method.Methods[0] = SOCKS5_AUTH_USER;
 
+	// 同時接続対応
+//	if((SocksSendCmd(Socket, &Socks5Method, SOCKS5METHODREQUEST_SIZE, CancelCheckWork) != FFFTP_SUCCESS) ||
+//	   (ReadNchar(Socket, (char *)&Socks5MethodReply, SOCKS5METHODREPLY_SIZE, &CancelFlg) != FFFTP_SUCCESS) ||
+//	   (Socks5MethodReply.Method == (uchar)0xFF))
 	if((SocksSendCmd(Socket, &Socks5Method, SOCKS5METHODREQUEST_SIZE, CancelCheckWork) != FFFTP_SUCCESS) ||
-	   (ReadNchar(Socket, (char *)&Socks5MethodReply, SOCKS5METHODREPLY_SIZE, &CancelFlg) != FFFTP_SUCCESS) ||
+	   (ReadNchar(Socket, (char *)&Socks5MethodReply, SOCKS5METHODREPLY_SIZE, CancelCheckWork) != FFFTP_SUCCESS) ||
 	   (Socks5MethodReply.Method == (uchar)0xFF))
 	{
 		SetTaskMsg(MSGJPN036);
@@ -2260,8 +2328,12 @@ static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork)
 		Buf[2 + Len] = Len2;
 		strcpy(Buf+3+Len, FwallPass);
 
+		// 同時接続対応
+//		if((SocksSendCmd(Socket, &Buf, Len+Len2+3, CancelCheckWork) != FFFTP_SUCCESS) ||
+//		   (ReadNchar(Socket, (char *)&Socks5Status, SOCKS5USERPASSSTATUS_SIZE, &CancelFlg) != FFFTP_SUCCESS) ||
+//		   (Socks5Status.Status != 0))
 		if((SocksSendCmd(Socket, &Buf, Len+Len2+3, CancelCheckWork) != FFFTP_SUCCESS) ||
-		   (ReadNchar(Socket, (char *)&Socks5Status, SOCKS5USERPASSSTATUS_SIZE, &CancelFlg) != FFFTP_SUCCESS) ||
+		   (ReadNchar(Socket, (char *)&Socks5Status, SOCKS5USERPASSSTATUS_SIZE, CancelCheckWork) != FFFTP_SUCCESS) ||
 		   (Socks5Status.Status != 0))
 		{
 			SetTaskMsg(MSGJPN037);
@@ -2285,7 +2357,9 @@ static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork)
 *		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
-int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data)
+// 同時接続対応
+//int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data)
+int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data, int *CancelCheckWork)
 {
 	int Ret;
 	char Buf[300];
@@ -2293,14 +2367,18 @@ int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data)
 	Ret = FFFTP_FAIL;
 	if((AskHostFireWall() == YES) && (FwallType == FWALL_SOCKS4))
 	{
-		Socks4GetCmdReply(Socket, (SOCKS4REPLY *)Buf);
+		// 同時接続対応
+//		Socks4GetCmdReply(Socket, (SOCKS4REPLY *)Buf);
+		Socks4GetCmdReply(Socket, (SOCKS4REPLY *)Buf, CancelCheckWork);
 		*Data = Socket;
 		Ret = FFFTP_SUCCESS;
 	}
 	else if((AskHostFireWall() == YES) &&
 			((FwallType == FWALL_SOCKS5_NOAUTH) || (FwallType == FWALL_SOCKS5_USER)))
 	{
-		Socks5GetCmdReply(Socket, (SOCKS5REPLY *)Buf);
+		// 同時接続対応
+//		Socks5GetCmdReply(Socket, (SOCKS5REPLY *)Buf);
+		Socks5GetCmdReply(Socket, (SOCKS5REPLY *)Buf, CancelCheckWork);
 		*Data = Socket;
 		Ret = FFFTP_SUCCESS;
 	}

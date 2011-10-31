@@ -657,7 +657,8 @@ struct hostent *do_gethostbyname(const char *Name, char *Buf, int Len, int *Canc
 	DoPrintf("# Start gethostbyname");
 #endif
 	Ret = NULL;
-	*CancelCheckWork = NO;
+	// 同時接続対応
+//	*CancelCheckWork = NO;
 
 	// UTF-8対応
 //	hAsync = WSAAsyncGetHostByName(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len);
@@ -771,7 +772,8 @@ int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCh
 #if DBG_MSG
 	DoPrintf("# Start connect (S=%x)", s);
 #endif
-	*CancelCheckWork = NO;
+	// 同時接続対応
+//	*CancelCheckWork = NO;
 
 #if DBG_MSG
 	DoPrintf("## Async set: FD_CONNECT|FD_CLOSE|FD_ACCEPT|FD_READ|FD_WRITE");
@@ -935,7 +937,8 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 	DoPrintf("# Start recv (S=%x)", s);
 #endif
 	*TimeOutErr = NO;
-	*CancelCheckWork = NO;
+	// 同時接続対応
+//	*CancelCheckWork = NO;
 	Ret = SOCKET_ERROR;
 	Error = 0;
 
@@ -980,9 +983,6 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 //			Ret = recv(s, buf, len, flags);
 			Ret = recvS(s, buf, len, flags);
 			if(Ret != SOCKET_ERROR)
-				break;
-			// 何故か一部のホストとWindows 2000の組み合わせで通信できないバグに暫定対応
-			if(AskAsyncDone(s, &Error, FD_CLOSE_BIT) == YES && recvS(s, buf, len, MSG_PEEK) <= 0)
 				break;
 			Error = WSAGetLastError();
 			Sleep(1);
@@ -1035,7 +1035,8 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 	DoPrintf("# Start send (S=%x)", s);
 #endif
 	*TimeOutErr = NO;
-	*CancelCheckWork = NO;
+	// 同時接続対応
+//	*CancelCheckWork = NO;
 	Ret = SOCKET_ERROR;
 	Error = 0;
 
@@ -1094,9 +1095,6 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 #endif
 				break;
 			}
-			// 何故か一部のホストとWindows 2000の組み合わせで通信できないバグに暫定対応
-			if(AskAsyncDone(s, &Error, FD_CLOSE_BIT) == YES)
-				break;
 			Error = WSAGetLastError();
 			Sleep(1);
 			if(BackgrndMessageProc() == YES)

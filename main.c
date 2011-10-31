@@ -1081,12 +1081,16 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_FILTER :
+					// 同時接続対応
+					CancelFlg = NO;
 					SetFilter(&CancelFlg);
 					break;
 
 				case MENU_SORT :
 					if(SortSetting() == YES)
 					{
+						// 同時接続対応
+						CancelFlg = NO;
 						LocalFileSort = AskSortType(ITEM_LFILE);
 						LocalDirSort = AskSortType(ITEM_LDIR);
 						RemoteFileSort = AskSortType(ITEM_RFILE);
@@ -1156,6 +1160,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_REFRESH :
+					// 同時接続対応
+					CancelFlg = NO;
 					SuppressRefresh = 1;
 					GetLocalDirForWnd();
 					if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
@@ -1180,6 +1186,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case REFRESH_REMOTE :
+					// 同時接続対応
+					CancelFlg = NO;
 					SuppressRefresh = 1;
 					if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 						GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
@@ -1244,6 +1252,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_DOTFILE :
+					// 同時接続対応
+					CancelFlg = NO;
 					DotFile ^= 1;
 					DispDotFileMode();
 					GetLocalDirForWnd();
@@ -1480,6 +1490,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				case LVN_COLUMNCLICK :
 					if(((NMHDR *)lParam)->hwndFrom == GetLocalHwnd())
 					{
+						// 同時接続対応
+						CancelFlg = NO;
 						SetSortTypeByColumn(WIN_LOCAL, ((NM_LISTVIEW *)lParam)->iSubItem);
 						ReSortDispList(WIN_LOCAL, &CancelFlg);
 					}
@@ -1487,6 +1499,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					{
 						if(((NM_LISTVIEW *)lParam)->iSubItem != 4)
 						{
+							// 同時接続対応
+							CancelFlg = NO;
 							SetSortTypeByColumn(WIN_REMOTE, ((NM_LISTVIEW *)lParam)->iSubItem);
 							ReSortDispList(WIN_REMOTE, &CancelFlg);
 						}
@@ -2079,6 +2093,8 @@ void DoubleClickProc(int Win, int Mode, int App)
 //								if((Sts = DoDownLoad(AskCmdCtrlSkt(), &MainTransPkt, NO)) == 429)
 //								{
 //									ReConnectCmdSkt();
+									// 同時接続対応
+									CancelFlg = NO;
 									Sts = DoDownLoad(AskCmdCtrlSkt(), &MainTransPkt, NO, &CancelFlg);
 //								}
 							}
@@ -2851,17 +2867,17 @@ int EnterMasterPasswordAndSet( int Res, HWND hWnd )
 }
 
 // 暗号化通信対応
-BOOL __stdcall SSLTimeoutCallback()
+BOOL __stdcall SSLTimeoutCallback(BOOL* pbAborted)
 {
 	Sleep(1);
 	if(BackgrndMessageProc() == YES)
 		return TRUE;
-	if(CancelFlg == YES)
+	if(*pbAborted == YES)
 		return TRUE;
 	return FALSE;
 }
 
-BOOL __stdcall SSLConfirmCallback(BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName)
+BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName)
 {
 	BOOL bResult;
 	int i;
@@ -2895,7 +2911,7 @@ BOOL __stdcall SSLConfirmCallback(BOOL bVerified, LPCSTR Certificate, LPCSTR Com
 		}
 	}
 	if(!bResult)
-		CancelFlg = YES;
+		*pbAborted = YES;
 	return bResult;
 }
 

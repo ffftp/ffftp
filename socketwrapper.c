@@ -82,13 +82,13 @@ LPSSLCONFIRMCALLBACK g_pOpenSSLConfirmCallback;
 SSL_CTX* g_pOpenSSLCTX;
 SSL* g_pOpenSSLHandle[MAX_SSL_SOCKET];
 
-BOOL __stdcall DefaultSSLTimeoutCallback()
+BOOL __stdcall DefaultSSLTimeoutCallback(BOOL* pbAborted)
 {
 	Sleep(100);
-	return FALSE;
+	return *pbAborted;
 }
 
-BOOL __stdcall DefaultSSLConfirmCallback(BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName)
+BOOL __stdcall DefaultSSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName)
 {
 	return bVerified;
 }
@@ -220,7 +220,7 @@ SSL** FindSSLPointerFromSocket(SOCKET s)
 	return NULL;
 }
 
-BOOL ConfirmSSLCertificate(SSL* pSSL)
+BOOL ConfirmSSLCertificate(SSL* pSSL, BOOL* pbAborted)
 {
 	BOOL bResult;
 	BOOL bVerified;
@@ -281,7 +281,7 @@ BOOL ConfirmSSLCertificate(SSL* pSSL)
 		if(pCN = strchr(pCN, ','))
 			pCN++;
 	}
-	bResult = g_pOpenSSLConfirmCallback(bVerified, pData, pCN);
+	bResult = g_pOpenSSLConfirmCallback(pbAborted, bVerified, pData, pCN);
 	if(pData)
 		free(pData);
 	if(pSubject)
@@ -333,7 +333,7 @@ BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName)
 	return bResult;
 }
 
-BOOL AttachSSL(SOCKET s, SOCKET parent)
+BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted)
 {
 	BOOL r;
 	DWORD Time;
@@ -380,7 +380,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent)
 						if(Error == SSL_ERROR_WANT_READ || Error == SSL_ERROR_WANT_WRITE)
 						{
 							LeaveCriticalSection(&g_OpenSSLLock);
-							if(g_pOpenSSLTimeoutCallback() || (g_OpenSSLTimeout > 0 && timeGetTime() - Time >= g_OpenSSLTimeout))
+							if(g_pOpenSSLTimeoutCallback(pbAborted) || (g_OpenSSLTimeout > 0 && timeGetTime() - Time >= g_OpenSSLTimeout))
 								r = FALSE;
 							EnterCriticalSection(&g_OpenSSLLock);
 						}
@@ -389,7 +389,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent)
 					}
 					if(r)
 					{
-						if(ConfirmSSLCertificate(*ppSSL))
+						if(ConfirmSSLCertificate(*ppSSL, pbAborted))
 						{
 						}
 						else
@@ -470,8 +470,10 @@ int listenS(SOCKET s, int backlog)
 SOCKET acceptS(SOCKET s, struct sockaddr *addr, int *addrlen)
 {
 	SOCKET r;
+	BOOL bAborted;
 	r = accept(s, addr, addrlen);
-	if(!AttachSSL(r, INVALID_SOCKET))
+	bAborted = FALSE;
+	if(!AttachSSL(r, INVALID_SOCKET, &bAborted))
 	{
 		closesocket(r);
 		return INVALID_SOCKET;
@@ -482,8 +484,10 @@ SOCKET acceptS(SOCKET s, struct sockaddr *addr, int *addrlen)
 int connectS(SOCKET s, const struct sockaddr *name, int namelen)
 {
 	int r;
+	BOOL bAborted;
 	r = connect(s, name, namelen);
-	if(!AttachSSL(r, INVALID_SOCKET))
+	bAborted = FALSE;
+	if(!AttachSSL(r, INVALID_SOCKET, &bAborted))
 		return SOCKET_ERROR;
 	return r;
 }

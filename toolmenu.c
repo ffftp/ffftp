@@ -395,6 +395,8 @@ static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wPara
 				}
 				else
 				{
+					// 同時接続対応
+					CancelFlg = NO;
 					SendMessage(hWndDirRemoteEdit, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Tmp);
 					if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 					{

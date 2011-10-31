@@ -1233,8 +1233,8 @@ int BackgrndMessageProc(void);
 void ResetAutoExitFlg(void);
 int AskAutoExit(void);
 // 暗号化通信対応
-BOOL __stdcall SSLTimeoutCallback();
-BOOL __stdcall SSLConfirmCallback(BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName);
+BOOL __stdcall SSLTimeoutCallback(BOOL* pbAborted);
+BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName);
 
 /*===== filelist.c =====*/
 
@@ -1395,7 +1395,7 @@ void SaveCurrentSetToHost(void);
 int ReConnectCmdSkt(void);
 // int ReConnectTrnSkt(void);
 // 同時接続対応
-int ReConnectTrnSkt(SOCKET *Skt);
+int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
 SOCKET AskCmdCtrlSkt(void);
 SOCKET AskTrnCtrlSkt(void);
 void SktShareProh(void);
@@ -1406,7 +1406,9 @@ int AskConnecting(void);
 SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork);
 SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
-int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data);
+// 同時接続対応
+//int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data);
+int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data, int *CancelCheckWork);
 // 暗号化通信対応
 int AskCryptMode(void);
 int AskUseNoEncryption(void);
@@ -1462,7 +1464,9 @@ void SomeCmdProc(void);
 void CalcFileSizeProc(void);
 void DispCWDerror(HWND hWnd);
 void CopyURLtoClipBoard(void);
-int ProcForNonFullpath(char *Path, char *CurDir, HWND hWnd, int Type);
+// 同時接続対応
+//int ProcForNonFullpath(char *Path, char *CurDir, HWND hWnd, int Type);
+int ProcForNonFullpath(SOCKET cSkt, char *Path, char *CurDir, HWND hWnd, int *CancelCheckWork);
 void ReformToVMSstyleDirName(char *Path);
 void ReformToVMSstylePathName(char *Path);
 #if defined(HAVE_OPENVMS)
@@ -1493,9 +1497,10 @@ int DoRENAME(char *Src, char *Dst);
 int DoCHMOD(char *Path, char *Mode);
 // 同時接続対応
 //int DoSIZE(char *Path, LONGLONG *Size);
+int DoSIZE(SOCKET cSkt, char *Path, LONGLONG *Size, int *CancelCheckWork);
+// 同時接続対応
 //int DoMDTM(char *Path, FILETIME *Time);
-int DoSIZE(SOCKET cSkt, char *Path, LONGLONG *Size);
-int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time);
+int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork);
 int DoQUOTE(char *CmdStr);
 SOCKET DoClose(SOCKET Sock);
 int DoQUIT(SOCKET ctrl_skt);
@@ -1503,7 +1508,7 @@ int DoDirListCmdSkt(char *AddOpt, char *Path, int Num, int *CancelCheckWork);
 int CommandProcCmd(char *Reply, char *fmt, ...);
 // 同時接続対応
 //int CommandProcTrn(char *Reply, char *fmt, ...);
-int CommandProcTrn(SOCKET cSkt, char *Reply, char *fmt, ...);
+int CommandProcTrn(SOCKET cSkt, char *Reply, int* CancelCheckWork, char *fmt, ...);
 int command(SOCKET cSkt, char *Reply, int *CancelCheckWork, char *fmt, ...);
 int SendData(SOCKET Skt, char *Data, int Size, int Mode, int *CancelCheckWork);
 int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char *Tmp);

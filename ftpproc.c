@@ -122,6 +122,9 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 	FILELIST *Pos;
 	TRANSPACKET Pkt;
 
+	// 同時接続対応
+	CancelFlg = NO;
+
 	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
@@ -252,6 +255,9 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 void DirectDownLoadProc(char *Fname)
 {
 	TRANSPACKET Pkt;
+
+	// 同時接続対応
+	CancelFlg = NO;
 
 	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
@@ -391,6 +397,9 @@ void MirrorDownloadProc(int Notify)
 	char *Cat;
 	int Level;
 	int Mode;
+
+	// 同時接続対応
+	CancelFlg = NO;
 
 	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
@@ -863,6 +872,9 @@ void UpLoadListProc(int ChName, int All)
 	char Tmp[FMAX_PATH+1];
 	int FirstAdd;
 
+	// 同時接続対応
+	CancelFlg = NO;
+
 	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
@@ -1031,6 +1043,9 @@ void UpLoadDragProc(WPARAM wParam)
 	int FirstAdd;
 	char Cur[FMAX_PATH+1];
 
+	// 同時接続対応
+	CancelFlg = NO;
+
 	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
@@ -1189,6 +1204,9 @@ void MirrorUploadProc(int Notify)
 	SYSTEMTIME TmpStime;
 	FILETIME TmpFtimeL;
 	FILETIME TmpFtimeR;
+
+	// 同時接続対応
+	CancelFlg = NO;
 
 	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
@@ -1960,6 +1978,9 @@ void DeleteProc(void)
 	char CurDir[FMAX_PATH+1];
 	char Tmp[FMAX_PATH+1];
 
+	// 同時接続対応
+	CancelFlg = NO;
+
 	// デッドロック対策
 	DisableUserOpe();
 	Sts = YES;
@@ -2115,7 +2136,9 @@ static void DelNotifyAndDo(FILELIST *Dt, int Win, int *Sw, int *Flg, char *CurDi
 		else
 		{
 			/* フルパスを使わない時のための処理 */
-			if(ProcForNonFullpath(Path, CurDir, GetMainHwnd(), 0) == FFFTP_FAIL)
+			// 同時接続対応
+//			if(ProcForNonFullpath(Path, CurDir, GetMainHwnd(), 0) == FFFTP_FAIL)
+			if(ProcForNonFullpath(AskCmdCtrlSkt(), Path, CurDir, GetMainHwnd(), &CancelFlg) == FFFTP_FAIL)
 				*Sw = NO_ALL;
 
 			if(*Sw != NO_ALL)
@@ -2199,6 +2222,9 @@ void RenameProc(void)
 	int RenFlg;
 	int Sts;
 
+	// 同時接続対応
+	CancelFlg = NO;
+
 	Sts = FFFTP_SUCCESS;
 	if(GetFocus() == GetLocalHwnd())
 		Win = WIN_LOCAL;
@@ -2273,6 +2299,9 @@ void MoveRemoteFileProc(int drop_index)
 	char HostDir[FMAX_PATH+1];
 	int RenFlg;
 	int Sts;
+
+	// 同時接続対応
+	CancelFlg = NO;
 
 	if(MoveMode == MOVE_DISABLE)
 	{
@@ -2443,6 +2472,9 @@ void MkdirProc(void)
 	char *Title;
 	int Tmp;
 
+	// 同時接続対応
+	CancelFlg = NO;
+
 	if(GetFocus() == GetLocalHwnd())
 	{
 		Win = WIN_LOCAL;
@@ -2495,6 +2527,9 @@ void ChangeDirComboProc(HWND hWnd)
 	char Tmp[FMAX_PATH+1];
 	int i;
 
+	// 同時接続対応
+	CancelFlg = NO;
+
 	if((i = SendMessage(hWnd, CB_GETCURSEL, 0, 0)) != CB_ERR)
 	{
 		SendMessage(hWnd, CB_GETLBTEXT, i, (LPARAM)Tmp);
@@ -2536,6 +2571,9 @@ void ChangeDirBmarkProc(int MarkID)
 	char Remote[FMAX_PATH+1];
 	int Sts;
 
+	// 同時接続対応
+	CancelFlg = NO;
+
 	Sts = AskBookMarkText(MarkID, Local, Remote, FMAX_PATH+1);
 	if((Sts == BMARK_TYPE_LOCAL) || (Sts == BMARK_TYPE_BOTH))
 	{
@@ -2574,6 +2612,9 @@ void ChangeDirDirectProc(int Win)
 	char Path[FMAX_PATH+1];
 	char *Title;
 	int Tmp;
+
+	// 同時接続対応
+	CancelFlg = NO;
 
 	if(Win == WIN_LOCAL)
 		Title = MSGJPN072;
@@ -2650,6 +2691,9 @@ void ChmodProc(void)
 	char *Buf;
 	char *BufTmp;
 	int BufLen;
+
+	// 同時接続対応
+	CancelFlg = NO;
 
 	if(GetFocus() == GetRemoteHwnd())
 	{
@@ -2874,6 +2918,9 @@ void SomeCmdProc(void)
 	int Tmp;
 	FILELIST *FileListBase;
 
+	// 同時接続対応
+	CancelFlg = NO;
+
 	if(GetFocus() == GetRemoteHwnd())
 	{
 		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
@@ -2917,6 +2964,9 @@ void CalcFileSizeProc(void)
 	int Win;
 	int All;
 	int Sts;
+
+	// 同時接続対応
+	CancelFlg = NO;
 
 	if((All = DialogBox(GetFtpInst(), MAKEINTRESOURCE(filesize_notify_dlg), GetMainHwnd(), SizeNotifyDlgWndProc)) != NO_ALL)
 	{
@@ -3141,7 +3191,9 @@ void CopyURLtoClipBoard(void)
 *			Path にファイル名のみ残す。（パス名は消す）
 *----------------------------------------------------------------------------*/
 
-int ProcForNonFullpath(char *Path, char *CurDir, HWND hWnd, int Type)
+// 同時接続対応
+//int ProcForNonFullpath(char *Path, char *CurDir, HWND hWnd, int Type)
+int ProcForNonFullpath(SOCKET cSkt, char *Path, char *CurDir, HWND hWnd, int *CancelCheckWork)
 {
 	int Sts;
 	int Cmd;
@@ -3163,12 +3215,12 @@ int ProcForNonFullpath(char *Path, char *CurDir, HWND hWnd, int Type)
 
 		if(strcmp(Tmp, CurDir) != 0)
 		{
-			if(Type == 0)
-				Cmd = CommandProcCmd(NULL, "CWD %s", Tmp);
-			else
-				// 同時接続対応
+			// 同時接続対応
+//			if(Type == 0)
+//				Cmd = CommandProcCmd(NULL, "CWD %s", Tmp);
+//			else
 //				Cmd = CommandProcTrn(NULL, "CWD %s", Tmp);
-				Cmd = CommandProcTrn((SOCKET)(Type - 1), NULL, "CWD %s", Tmp);
+			Cmd = CommandProcTrn(cSkt, NULL, CancelCheckWork, "CWD %s", Tmp);
 
 			if(Cmd/100 != FTP_COMPLETE)
 			{
