@@ -1719,6 +1719,8 @@ int do_listen(SOCKET s,	int backlog);
 SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen);
 int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOut, int *CancelCheckWork);
 int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int *CancelCheckWork);
+// 同時接続対応
+void RemoveReceivedData(SOCKET s);
 int CheckClosedAndReconnect(void);
 void CheckAllEventClosed(void);
 

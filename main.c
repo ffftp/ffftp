@@ -832,6 +832,10 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	switch (message)
 	{
 		case WM_COMMAND :
+			// 同時接続対応
+			// 中断後に受信バッファに応答が残っていると次のコマンドの応答が正しく処理できない
+			if(CancelFlg == YES)
+				RemoveReceivedData(AskCmdCtrlSkt());
 			switch(LOWORD(wParam))
 			{
 				case MENU_CONNECT :

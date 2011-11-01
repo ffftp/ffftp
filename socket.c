@@ -1046,36 +1046,40 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 #if DBG_MSG
 	DoPrintf("## Async set: FD_CONNECT|FD_CLOSE|FD_ACCEPT|FD_READ|FD_WRITE");
 #endif
-	WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT | FD_READ | FD_WRITE);
+	// Windows 2000でFD_WRITEが通知されないことがあるバグ修正
+	// 毎回通知されたのはNT 4.0までのバグであり仕様ではない
+	// XP以降は互換性のためか毎回通知される
+//	WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT | FD_READ | FD_WRITE);
 	if(BackgrndMessageProc() == YES)
 		*CancelCheckWork = YES;
 
 	// FTPS対応
 	// 送信バッファの空き確認には影響しないが念のため
 //	while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE_BIT) != YES))
-	while(!IsSSLAttached(s) && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE_BIT) != YES))
-	{
-		if(AskAsyncDone(s, &Error, FD_CLOSE_BIT) == YES)
-		{
-			Error = 1;
-			break;
-		}
-
-		Sleep(1);
-		if(BackgrndMessageProc() == YES)
-			*CancelCheckWork = YES;
-		else if(TimeOut != 0)
-		{
-			time(&ElapseTime);
-			ElapseTime -= StartTime;
-			if(ElapseTime >= TimeOut)
-			{
-				DoPrintf("do_write timed out");
-				*TimeOutErr = YES;
-				*CancelCheckWork = YES;
-			}
-		}
-	}
+	// Windows 2000でFD_WRITEが通知されないことがあるバグ修正
+//	while(!IsSSLAttached(s) && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE_BIT) != YES))
+//	{
+//		if(AskAsyncDone(s, &Error, FD_CLOSE_BIT) == YES)
+//		{
+//			Error = 1;
+//			break;
+//		}
+//
+//		Sleep(1);
+//		if(BackgrndMessageProc() == YES)
+//			*CancelCheckWork = YES;
+//		else if(TimeOut != 0)
+//		{
+//			time(&ElapseTime);
+//			ElapseTime -= StartTime;
+//			if(ElapseTime >= TimeOut)
+//			{
+//				DoPrintf("do_write timed out");
+//				*TimeOutErr = YES;
+//				*CancelCheckWork = YES;
+//			}
+//		}
+//	}
 
 	if((Error == 0) && (*CancelCheckWork == NO) && (*TimeOutErr == NO))
 	{
@@ -1130,6 +1134,20 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 #else
 	return(send(s, buf, len, flags));
 #endif
+}
+
+
+// 同時接続対応
+void RemoveReceivedData(SOCKET s)
+{
+	char buf[1024];
+	int len;
+	int Error;
+	while((len = recvS(s, buf, sizeof(buf), MSG_PEEK)) >= 0)
+	{
+		AskAsyncDone(s, &Error, FD_READ_BIT);
+		recvS(s, buf, len, 0);
+	}
 }
 
 
