@@ -1,7 +1,7 @@
 ============================================================
 [Software Name]  FFFTP Ver.1.99 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
-                 Copyright(C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, raido).
+                 Copyright(C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192).
 [Environment]    Windows 7, Vista, XP, 2000
 ============================================================
 
@@ -76,7 +76,7 @@ Warranty Disclaimer
 License Agreement
 -----------------
 Copyright(C) 1997-2010, Sota & cooperators. All rights reserved.
-Copyright(C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, raido).
+Copyright(C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192).
 
 Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions 
