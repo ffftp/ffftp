@@ -854,7 +854,10 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  						PathDir = LocDir;
  
  						FileListBase = NULL;
- 						MakeSelectedFileList(WIN_LOCAL, YES, NO, &FileListBase, &CancelFlg);			
+						// ローカル側からアプリケーションにD&Dできないバグ修正
+// 						MakeSelectedFileList(WIN_LOCAL, YES, NO, &FileListBase, &CancelFlg);			
+ 						MakeSelectedFileList(WIN_LOCAL, NO, NO, &FileListBase, &CancelFlg);			
+						FileListBaseNoExpand = FileListBase;
  
  					} else if (hWndDragStart == hWndListRemote) {
  						GetCursorPos(&Point);
