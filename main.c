@@ -2151,6 +2151,11 @@ static void ChangeDir(int Win, char *Path)
 	char Local[FMAX_PATH+1];
 	char Remote[FMAX_PATH+1];
 
+	// 同時接続対応
+	CancelFlg = NO;
+
+	// デッドロック対策
+	DisableUserOpe();
 	Sync = AskSyncMoveMode();
 	if(Sync == YES)
 	{
@@ -2182,6 +2187,8 @@ static void ChangeDir(int Win, char *Path)
 				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 		}
 	}
+	// デッドロック対策
+	EnableUserOpe();
 	return;
 }
 

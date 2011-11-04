@@ -4830,11 +4830,12 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 
 				if(strchr("dl", *Str) != NULL)
 				{
-					if((_mbscmp(_mbsninc(Fname, _mbslen(Fname) - 1), "/") == 0) ||
-					   (_mbscmp(_mbsninc(Fname, _mbslen(Fname) - 1), "\\") == 0))
-					{
-						*(Fname + strlen(Fname) - 1) = NUL;
-					}
+					// 0x5Cが含まれる文字列を扱えないバグ修正
+//					if((_mbscmp(_mbsninc(Fname, _mbslen(Fname) - 1), "/") == 0) ||
+//					   (_mbscmp(_mbsninc(Fname, _mbslen(Fname) - 1), "\\") == 0))
+//					{
+//						*(Fname + strlen(Fname) - 1) = NUL;
+//					}
 					Ret = NODE_DIR;
 					if(*Str == 'l')
 						*Link = YES;
@@ -4904,6 +4905,10 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			Ret = NODE_NONE;
 		else
 			ChangeFnameRemote2Local(Fname, FMAX_PATH);
+		// 0x5Cが含まれる文字列を扱えないバグ修正
+		if((_mbscmp(_mbsninc(Fname, _mbslen(Fname) - 1), "/") == 0)
+			|| (_mbscmp(_mbsninc(Fname, _mbslen(Fname) - 1), "\\") == 0))
+			*(Fname + strlen(Fname) - 1) = NUL;
 	}
 	return(Ret);
 }

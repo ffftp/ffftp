@@ -239,9 +239,12 @@ static int DoPWD(char *Buf)
 		if(strlen(Tmp) < FMAX_PATH)
 		{
 			strcpy(Buf, Tmp);
-			ReplaceAll(Buf, '\\', '/');
+			// 0x5Cが含まれる文字列を扱えないバグ修正
+//			ReplaceAll(Buf, '\\', '/');
 			ChangeSepaRemote2Local(Buf);
 			ChangeFnameRemote2Local(Buf, FMAX_PATH);
+			// 0x5Cが含まれる文字列を扱えないバグ修正
+			ReplaceAll(Buf, '\\', '/');
 		}
 		else
 			Sts = FTP_ERROR*100;
@@ -1324,13 +1327,21 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 	char *Buf;
 	char *Pos;
 	CODECONVINFO cInfo;
+	// バッファ上書きバグ対策
+	char *Buf2;
 
 	Sts = FFFTP_FAIL;
 	if((Buf = malloc(Max)) != NULL)
 	{
+	// バッファ上書きバグ対策
+	if((Buf2 = malloc(strlen(Fname) + 1)) != NULL)
+	{
 		InitCodeConvInfo(&cInfo);
 		cInfo.KanaCnv = NO;			//AskHostNameKana();
-		cInfo.Str = Fname;
+		// バッファ上書きバグ対策
+//		cInfo.Str = Fname;
+		strcpy(Buf2, Fname);
+		cInfo.Str = Buf2;
 		cInfo.StrLen = strlen(Fname);
 		cInfo.Buf = Buf;
 		cInfo.BufSize = Max - 1;
@@ -1432,8 +1443,13 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 //				strcpy(Pos, Buf);
 //				break;
 		}
-		free(Buf);
+		// バッファ上書きバグ対策
+		free(Buf2);
 		Sts = FFFTP_SUCCESS;
+		}
+		free(Buf);
+		// バッファ上書きバグ対策
+//		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
@@ -1456,13 +1472,21 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 	char *Buf;
 	char *Pos;
 	CODECONVINFO cInfo;
+	// バッファ上書きバグ対策
+	char *Buf2;
 
 	Sts = FFFTP_FAIL;
 	if((Buf = malloc(Max)) != NULL)
 	{
+	// バッファ上書きバグ対策
+	if((Buf2 = malloc(strlen(Fname) + 1)) != NULL)
+	{
 		InitCodeConvInfo(&cInfo);
 		cInfo.KanaCnv = AskHostNameKana();
-		cInfo.Str = Fname;
+		// バッファ上書きバグ対策
+//		cInfo.Str = Fname;
+		strcpy(Buf2, Fname);
+		cInfo.Str = Buf2;
 		cInfo.StrLen = strlen(Fname);
 		cInfo.Buf = Buf;
 		cInfo.BufSize = Max - 1;
@@ -1587,8 +1611,13 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 //				strcpy(Pos, Buf);
 //				break;
 		}
-		free(Buf);
+		// バッファ上書きバグ対策
+		free(Buf2);
 		Sts = FFFTP_SUCCESS;
+		}
+		free(Buf);
+		// バッファ上書きバグ対策
+//		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
 }
