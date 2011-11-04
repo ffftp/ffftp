@@ -15,6 +15,15 @@ Changes in Ver.1.99
 
 -- Fixed bugs of corruption on resuming downloading files larger than 4GB.
 
+-- Fixed communication routines to match specifications of Windows 2000.
+
+-- Enhanced responses of aborting.
+
+-- Fixed bugs of INI file backup.
+
+-- Fixed bugs of handling multi-byte character filenames on hosts whose Kanji
+   code of filenames are Shift_JIS.
+
 Changes in Ver.1.98b
 --------------------
 
