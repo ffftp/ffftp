@@ -1846,6 +1846,20 @@ END_ROUTINE
 	return r;
 }
 
+BOOL CopyFileM(LPCSTR lpExistingFileName, LPCSTR lpNewFileName, BOOL bFailIfExists)
+{
+	BOOL r = FALSE;
+	wchar_t* pw0 = NULL;
+	wchar_t* pw1 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(lpExistingFileName, -1);
+	pw1 = DuplicateMtoW(lpNewFileName, -1);
+	r = CopyFileW(pw0, pw1, bFailIfExists);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
 int mkdirM(const char * _Path)
 {
 	int r = 0;

@@ -158,6 +158,9 @@ BOOL sndPlaySoundM(LPCSTR pszSound, UINT fuSound);
 #undef SetClipboardData
 #define SetClipboardData SetClipboardDataM
 HANDLE SetClipboardDataM(UINT uFormat, HANDLE hMem);
+#undef CopyFile
+#define CopyFile CopyFileM
+BOOL CopyFileM(LPCSTR lpExistingFileName, LPCSTR lpNewFileName, BOOL bFailIfExists);
 #undef mkdir
 #define mkdir _mkdirM
 int mkdirM(const char * _Path);
