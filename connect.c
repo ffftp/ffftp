@@ -1553,11 +1553,11 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 				if(strstr(Reply, " UTF8 "))
 					HostData->Feature |= FEATURE_UTF8;
 				// MLST対応
-				if(strstr(Reply, " MLST ") || strstr(Reply, " MLSD "))
-					HostData->Feature |= FEATURE_MLSD;
+//				if(strstr(Reply, " MLST ") || strstr(Reply, " MLSD "))
+//					HostData->Feature |= FEATURE_MLSD;
 				// IPv6対応
-				if(strstr(Reply, " EPRT ") || strstr(Reply, " EPSV "))
-					HostData->Feature |= FEATURE_EPRT | FEATURE_EPSV;
+//				if(strstr(Reply, " EPRT ") || strstr(Reply, " EPSV "))
+//					HostData->Feature |= FEATURE_EPRT | FEATURE_EPSV;
 			}
 			// UTF-8対応
 			if(HostData->NameKanjiCode == KANJI_AUTO && (HostData->Feature & FEATURE_UTF8))

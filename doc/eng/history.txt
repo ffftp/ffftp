@@ -1,10 +1,7 @@
 FFFTP version history.
 
-Changes in Ver.1.99
+Changes in Ver.1.98c
 --------------------
-
--- MLSD command became used for retrieving filenames on appropriate hosts.
-   That is helpful for hosts that do not return filenames properly.
 
 -- Changed to connect to hosts with Punycode if their names contain
    international characters.
