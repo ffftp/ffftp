@@ -326,3 +326,6 @@
 #define MSGJPN326		"Choose 'Yes' if you trust this certificate and continue.\r\nCN is identical: %s\r\nVerified successfully: %s\r\n\r\n%s"
 #define MSGJPN327		"Yes"
 #define MSGJPN328		"No"
+#define MSGJPN329		"UTF-8 BOM"
+#define MSGJPN330		"UTF-8 BOM Kanji Code"
+#define MSGJPN331		"UTF-8 BOM Kanji Code (Local)"

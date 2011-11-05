@@ -34,24 +34,6 @@ Changes in Ver.1.99
 -- MLSD command became used for retrieving filenames on appropriate hosts.
    That is helpful for hosts that do not return filenames properly.
 
--- Changed to connect to hosts with Punycode if their names contain
-   international characters.
-
--- Fixed bugs of resetting the current directory on reconnection.
-
--- FTP over Implicit SSL/TLS became available.
-
--- Fixed bugs of corruption on resuming downloading files larger than 4GB.
-
--- Fixed communication routines to match specifications of Windows 2000.
-
--- Enhanced responses of aborting.
-
--- Fixed bugs of INI file backup.
-
--- Fixed bugs of handling multi-byte character filenames on hosts whose Kanji
-   code of filenames are Shift_JIS.
-
 
 Outline
 -------

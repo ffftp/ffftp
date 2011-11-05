@@ -877,6 +877,12 @@ int LoadRegistory(void)
 					ReadIntValueFromReg(hKey5, "Port", &Host.Port);
 					ReadIntValueFromReg(hKey5, "Anonymous", &Host.Anonymous);
 					ReadIntValueFromReg(hKey5, "Kanji", &Host.KanjiCode);
+					// 1.98b以前のUTF-8はBOMあり
+					if(Version < 1983)
+					{
+						if(Host.KanjiCode == KANJI_UTF8N)
+							Host.KanjiCode = KANJI_UTF8BOM;
+					}
 					ReadIntValueFromReg(hKey5, "KanaCnv", &Host.KanaCnv);
 					ReadIntValueFromReg(hKey5, "NameKanji", &Host.NameKanjiCode);
 					ReadIntValueFromReg(hKey5, "NameKana", &Host.NameKanaCnv);

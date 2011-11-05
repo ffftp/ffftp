@@ -1864,7 +1864,8 @@ static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 		{ HSET_SJIS_CNV, KANJI_SJIS },
 		{ HSET_JIS_CNV, KANJI_JIS },
 		{ HSET_EUC_CNV, KANJI_EUC },
-		{ HSET_UTF8N_CNV, KANJI_UTF8N }
+		{ HSET_UTF8N_CNV, KANJI_UTF8N },
+		{ HSET_UTF8BOM_CNV, KANJI_UTF8BOM }
 	};
 	#define KANJIBUTTONS	(sizeof(KanjiButton)/sizeof(RADIOBUTTON))
 
@@ -1912,6 +1913,7 @@ static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 		case WM_COMMAND :
 			switch(GET_WM_COMMAND_ID(wParam, lParam))
 			{
+				case HSET_SJIS_CNV :
 				case HSET_JIS_CNV :
 				case HSET_EUC_CNV :
 					EnableWindow(GetDlgItem(hDlg, HSET_HANCNV), TRUE);
@@ -1920,10 +1922,10 @@ static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 				// UTF-8対応
 				case HSET_NO_CNV :
 				case HSET_UTF8N_CNV :
+				case HSET_UTF8BOM_CNV :
 					EnableWindow(GetDlgItem(hDlg, HSET_HANCNV), FALSE);
 					break;
 
-				case HSET_SJIS_CNV :
 				case HSET_FN_JIS_CNV :
 				case HSET_FN_EUC_CNV :
 					EnableWindow(GetDlgItem(hDlg, HSET_FN_HANCNV), TRUE);
@@ -2166,6 +2168,8 @@ static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, L
 			// TODO: SFTP対応
 			SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, BST_UNCHECKED, 0);
 			EnableWindow(GetDlgItem(hDlg, HSET_SFTP), FALSE);
+			EnableWindow(GetDlgItem(hDlg, PKEY_FILE_BR), FALSE);
+			EnableWindow(GetDlgItem(hDlg, HSET_PRIVATE_KEY), FALSE);
 			return(TRUE);
 
 		case WM_NOTIFY:

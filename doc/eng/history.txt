@@ -6,6 +6,9 @@ Changes in Ver.1.99
 -- MLSD command became used for retrieving filenames on appropriate hosts.
    That is helpful for hosts that do not return filenames properly.
 
+Changes in Ver.1.98c
+--------------------
+
 -- Changed to connect to hosts with Punycode if their names contain
    international characters.
 
@@ -23,6 +26,11 @@ Changes in Ver.1.99
 
 -- Fixed bugs of handling multi-byte character filenames on hosts whose Kanji
    code of filenames are Shift_JIS.
+
+-- Added support for UTF-8 (without BOM) conversion under ASCII mode transfer.
+   UTF-8 added in 1.98 was renamed UTF-8 BOM.
+
+-- Changed size and layout of the window at the first run.
 
 Changes in Ver.1.98b
 --------------------

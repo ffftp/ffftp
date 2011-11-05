@@ -1,4 +1,4 @@
-開発者向けドキュメント：インストーラの作成方法
+﻿開発者向けドキュメント：インストーラの作成方法
 
 インストーラの作成にはEXEpress CX 5を使用します。EXEpress CX 5はフリーソフトウェア向けのものが無償でダウンロードできます。
 
@@ -6,7 +6,7 @@
   1.1. make_installer_pre.batを実行
 
 2. 日本語版インストーラを作成
-  2.1. EXEpress\jpn\ffftp\内のファイルをCAB形式で圧縮、EXEpress\jpn\ffftp.cabとして保存（Windows標準のiexpressツールが利用できます）
+  2.1. make_cab_file.batを実行（失敗する場合は手作業でEXEpress\jpn\ffftp\内のファイルをCAB形式で圧縮、EXEpress\jpn\ffftp.cabとして保存（Windows標準のiexpressツールが利用できます））
   2.2. EXEpressを起動し、「設定読み込み」でEXEpress\jpn\ffftp.iniを指定、「作成」をクリックする
 
 3. 英語版インストーラを作成

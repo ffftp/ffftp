@@ -135,12 +135,20 @@ HWND hHelpWin = NULL;
 /* 設定値 */
 int WinPosX = CW_USEDEFAULT;
 int WinPosY = 0;
-int WinWidth = 630;
-int WinHeight = 393;
-int LocalWidth = 309;
-int TaskHeight = 50;
-int LocalTabWidth[4] = { 120, 90, 60, 37 };
-int RemoteTabWidth[6] = { 120, 90, 60, 37, 60, 60 };
+// 機能が増えたためサイズ変更
+// VGAサイズに収まるようになっていたのをSVGAサイズに引き上げ
+//int WinWidth = 630;
+//int WinHeight = 393;
+//int LocalWidth = 309;
+//int TaskHeight = 50;
+//int LocalTabWidth[4] = { 120, 90, 60, 37 };
+//int RemoteTabWidth[6] = { 120, 90, 60, 37, 60, 60 };
+int WinWidth = 790;
+int WinHeight = 513;
+int LocalWidth = 389;
+int TaskHeight = 100;
+int LocalTabWidth[4] = { 160, 110, 60, 37 };
+int RemoteTabWidth[6] = { 160, 110, 60, 37, 60, 60 };
 char UserMailAdrs[USER_MAIL_LEN+1] = { "who@example.com" };
 char ViewerName[VIEWERS][FMAX_PATH+1] = { { "notepad" }, { "" }, { "" } };
 HFONT ListFont = NULL;
@@ -1148,6 +1156,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				case MENU_KNJ_EUC :
 				case MENU_KNJ_JIS :
 				case MENU_KNJ_UTF8N :
+				case MENU_KNJ_UTF8BOM :
 				case MENU_KNJ_NONE :
 					SetHostKanjiCode(LOWORD(wParam));
 					break;
@@ -1156,6 +1165,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				case MENU_L_KNJ_EUC :
 				case MENU_L_KNJ_JIS :
 				case MENU_L_KNJ_UTF8N :
+				case MENU_L_KNJ_UTF8BOM :
 					SetLocalKanjiCode(LOWORD(wParam));
 					break;
 
@@ -1446,6 +1456,10 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 							lpttt->lpszText = MSGJPN308;
 							break;
 
+						case MENU_KNJ_UTF8BOM :
+							lpttt->lpszText = MSGJPN330;
+							break;
+
 						case MENU_KNJ_NONE :
 							lpttt->lpszText = MSGJPN173;
 							break;
@@ -1464,6 +1478,10 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 						case MENU_L_KNJ_UTF8N :
 							lpttt->lpszText = MSGJPN312;
+							break;
+
+						case MENU_L_KNJ_UTF8BOM :
+							lpttt->lpszText = MSGJPN331;
 							break;
 
 						case MENU_KANACNV :
