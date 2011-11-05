@@ -326,3 +326,6 @@
 #define MSGJPN326		"この証明書を信頼し,通信を続行するには「はい」を選択してください.\r\nCNの一致: %s\r\n検証に成功: %s\r\n\r\n%s"
 #define MSGJPN327		"はい"
 #define MSGJPN328		"いいえ"
+#define MSGJPN329		"UTF-8 BOM"
+#define MSGJPN330		"ホストの漢字コードはUTF-8 BOM"
+#define MSGJPN331		"ローカルの漢字コードはUTF-8 BOM"

@@ -21,6 +21,11 @@ Changes in Ver.1.98c
 -- Fixed bugs of handling multi-byte character filenames on hosts whose Kanji
    code of filenames are Shift_JIS.
 
+-- Added support for UTF-8 (without BOM) conversion under ASCII mode transfer.
+   UTF-8 added in 1.98 was renamed UTF-8 BOM.
+
+-- Changed size and layout of the window at the first run.
+
 Changes in Ver.1.98b
 --------------------
 

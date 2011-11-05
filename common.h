@@ -687,9 +687,12 @@ LIST_UNIX_70
 #define KANJI_SMB_HEX	3		/* Samba-HEX */
 #define KANJI_SMB_CAP	4		/* Samba-CAP */
 #define KANJI_UTF8N		5		/* UTF-8 */
+// UTF-8対応
+#define KANJI_UTF8BOM		6		/* UTF-8 BOM */
 
 #define KANJI_NOCNV		-1		/* 漢字コード変換なし */
 
+// UTF-8対応
 #define KANJI_AUTO		-1
 
 /*===== サウンド =====*/

@@ -429,6 +429,7 @@
 #define HSET_PRIVATE_KEY                1203
 #define HSET_THREAD_COUNT               1204
 #define HSET_THREAD_COUNT_SPN           1205
+#define HSET_UTF8BOM_CNV                1206
 #define MENU_END                        40001
 #define MENU_EXIT                       40001
 #define MENU_CONNECT                    40003
@@ -484,21 +485,21 @@
 #define MENU_KNJ_EUC                    40044
 #define MENU_KNJ_JIS                    40045
 #define MENU_KNJ_UTF8N                  40046
-#define MENU_KNJ_NONE                   40047
-#define MENU_L_KNJ_SJIS                 40048
-#define MENU_L_KNJ_EUC                  40049
-#define MENU_L_KNJ_JIS                  40050
-#define MENU_L_KNJ_UTF8N                40051
-#define MENU_UPDIR                      40052
-#define MENU_DCLICK                     40053
-#define MENU_SELECT                     40054
-#define MENU_SELECT_ALL                 40055
-#define MENU_FIND                       40056
-#define MENU_FINDNEXT                   40057
-#define MENU_DOTFILE                    40058
-#define MENU_IMPORT_WS                  40059
-#define ID_BUTTON40060                  40060
-#define ID_BUTTON40061                  40061
+#define MENU_KNJ_UTF8BOM                40047
+#define MENU_KNJ_NONE                   40048
+#define MENU_L_KNJ_SJIS                 40049
+#define MENU_L_KNJ_EUC                  40050
+#define MENU_L_KNJ_JIS                  40051
+#define MENU_L_KNJ_UTF8N                40052
+#define MENU_L_KNJ_UTF8BOM              40053
+#define MENU_UPDIR                      40054
+#define MENU_DCLICK                     40055
+#define MENU_SELECT                     40056
+#define MENU_SELECT_ALL                 40057
+#define MENU_FIND                       40058
+#define MENU_FINDNEXT                   40059
+#define MENU_DOTFILE                    40060
+#define MENU_IMPORT_WS                  40061
 #define ID_BUTTON40062                  40062
 #define ID_BUTTON40063                  40063
 #define ID_BUTTON40064                  40064
@@ -605,6 +606,7 @@
 #define MENU_CHANGEPASSWD               40172
 #define ID_BUTTON40173                  40173
 #define ID_BUTTON40174                  40174
+#define ID_BUTTON40175                  40175
 #define FSNOTIFY_TITLE                  65535
 #define HOST_SIZEGRIP                   65535
 
@@ -613,8 +615,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        191
-#define _APS_NEXT_COMMAND_VALUE         40175
-#define _APS_NEXT_CONTROL_VALUE         1206
+#define _APS_NEXT_COMMAND_VALUE         40176
+#define _APS_NEXT_CONTROL_VALUE         1207
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
