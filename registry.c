@@ -1083,6 +1083,9 @@ void SaveSettingsToFile(void)
 {
 	char Tmp[FMAX_PATH*2];
 	char Fname[FMAX_PATH+1];
+	// 任意のコードが実行されるバグ修正
+	char CurDir[FMAX_PATH+1];
+	char SysDir[FMAX_PATH+1];
 
 	if(RegType == REGTYPE_REG)
 	{
@@ -1090,9 +1093,24 @@ void SaveSettingsToFile(void)
 		if(SelectFile(GetMainHwnd(), Fname, MSGJPN286, MSGJPN287, "reg", OFN_EXTENSIONDIFFERENT | OFN_OVERWRITEPROMPT, 1) == TRUE)
 		{
 			sprintf(Tmp, "/e \x22%s\x22 HKEY_CURRENT_USER\\Software\\sota\\FFFTP", Fname);
-			if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
+			// 任意のコードが実行されるバグ修正
+//			if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
+//			{
+//				MessageBox(NULL, MSGJPN285, "FFFTP", MB_OK);
+//			}
+			if(GetCurrentDirectory(FMAX_PATH, CurDir) > 0)
 			{
-				MessageBox(NULL, MSGJPN285, "FFFTP", MB_OK);
+				if(GetSystemDirectory(SysDir, FMAX_PATH) > 0)
+				{
+					if(SetCurrentDirectory(SysDir))
+					{
+						if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
+						{
+							MessageBox(NULL, MSGJPN285, "FFFTP", MB_OK);
+						}
+						SetCurrentDirectory(CurDir);
+					}
+				}
 			}
 		}
 	}
@@ -1122,6 +1140,9 @@ int LoadSettingsFromFile(void)
 	int Ret;
 	char Tmp[FMAX_PATH*2];
 	char Fname[FMAX_PATH+1];
+	// 任意のコードが実行されるバグ修正
+	char CurDir[FMAX_PATH+1];
+	char SysDir[FMAX_PATH+1];
 
 	Ret = NO;
 	strcpy(Fname, "");
@@ -1130,15 +1151,36 @@ int LoadSettingsFromFile(void)
 		if((strlen(Fname) >= 5) && (_stricmp(&Fname[strlen(Fname)-4], ".reg") == 0))
 		{
 			sprintf(Tmp, "\x22%s\x22", Fname);
-			if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
-			{
-				MessageBox(NULL, MSGJPN285, "FFFTP", MB_OK);
-			}
-			else
-			{
-				Ret = YES;
-				/* レジストリエディタが終了するのを待つ */
+			// 任意のコードが実行されるバグ修正
+//			if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
+//			{
+//				MessageBox(NULL, MSGJPN285, "FFFTP", MB_OK);
+//			}
+//			else
+//			{
+//				Ret = YES;
+//				/* レジストリエディタが終了するのを待つ */
 //				WaitForSingleObject(Info.hProcess, INFINITE);
+//			}
+			if(GetCurrentDirectory(FMAX_PATH, CurDir) > 0)
+			{
+				if(GetSystemDirectory(SysDir, FMAX_PATH) > 0)
+				{
+					if(SetCurrentDirectory(SysDir))
+					{
+						if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
+						{
+							MessageBox(NULL, MSGJPN285, "FFFTP", MB_OK);
+						}
+						else
+						{
+							Ret = YES;
+							/* レジストリエディタが終了するのを待つ */
+//							WaitForSingleObject(Info.hProcess, INFINITE);
+						}
+						SetCurrentDirectory(CurDir);
+					}
+				}
 			}
 		}
 		else if((strlen(Fname) >= 5) && (_stricmp(&Fname[strlen(Fname)-4], ".ini") == 0))
@@ -2273,9 +2315,9 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 	int Sts;
 	char *Pos;
 	// UTF-8対応
+	DWORD TempSize;
 	char* pa0;
 	wchar_t* pw0;
-	DWORD TempSize;
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
@@ -2298,6 +2340,16 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 //			Sts = FFFTP_SUCCESS;
 			switch(IniKanjiCode)
 			{
+			case KANJI_NOCNV:
+				TempSize = min1(Size-1, strlen(Pos));
+				TempSize = StrReadIn(Pos, TempSize, Str);
+				*(Str + TempSize) = NUL;
+				Sts = FFFTP_SUCCESS;
+				if(!CheckStringM(Str))
+					break;
+				Str = Str;
+				// UTF-8ではない可能性がある
+				// Shift_JISとみなす
 			case KANJI_SJIS:
 				if(pa0 = AllocateStringA(Size * 4))
 				{
@@ -2314,12 +2366,6 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 					}
 					FreeDuplicatedString(pa0);
 				}
-				break;
-			case KANJI_NOCNV:
-				Size = min1(Size-1, strlen(Pos));
-				Size = StrReadIn(Pos, Size, Str);
-				*(Str + Size) = NUL;
-				Sts = FFFTP_SUCCESS;
 				break;
 			}
 		}
@@ -2378,6 +2424,10 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 {
 	int Sts;
 	char *Pos;
+	// UTF-8対応
+	DWORD TempSize;
+	char* pa0;
+	wchar_t* pw0;
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
@@ -2393,10 +2443,42 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 	{
 		if((Pos = ScanValue(Handle, Name)) != NULL)
 		{
-			Size = min1(Size-1, strlen(Pos));
-			Size = StrReadIn(Pos, Size, Str);
-			*(Str + Size) = NUL;
-			Sts = FFFTP_SUCCESS;
+			// UTF-8対応
+//			Size = min1(Size-1, strlen(Pos));
+//			Size = StrReadIn(Pos, Size, Str);
+//			*(Str + Size) = NUL;
+//			Sts = FFFTP_SUCCESS;
+			switch(IniKanjiCode)
+			{
+			case KANJI_NOCNV:
+				TempSize = min1(Size-1, strlen(Pos));
+				TempSize = StrReadIn(Pos, TempSize, Str);
+				*(Str + TempSize) = NUL;
+				Sts = FFFTP_SUCCESS;
+				if(!CheckMultiStringM(Str))
+					break;
+				// UTF-8ではない可能性がある
+				// Shift_JISとみなす
+			case KANJI_SJIS:
+				if(pa0 = AllocateStringA(Size * 4))
+				{
+					if(pw0 = AllocateStringW(Size * 4 * 4))
+					{
+						TempSize = min1((Size * 4) - 2, strlen(Pos));
+						TempSize = StrReadIn(Pos, TempSize, pa0);
+						*(pa0 + TempSize) = NUL;
+						*(pa0 + TempSize + 1) = NUL;
+						AtoWMultiString(pw0, Size * 4 * 4, pa0);
+						WtoMMultiString(Str, Size, pw0);
+						TerminateStringM(Str, Size);
+						TerminateStringM(Str, Size - 1);
+						Sts = FFFTP_SUCCESS;
+						FreeDuplicatedString(pw0);
+					}
+					FreeDuplicatedString(pa0);
+				}
+				break;
+			}
 		}
 	}
 	return(Sts);

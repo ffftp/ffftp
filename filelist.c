@@ -4905,6 +4905,8 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			Ret = NODE_NONE;
 		else
 			ChangeFnameRemote2Local(Fname, FMAX_PATH);
+		// UTF-8の冗長表現によるディレクトリトラバーサル対策
+		FixStringM(Fname, Fname);
 		// 0x5Cが含まれる文字列を扱えないバグ修正
 		if((_mbscmp(_mbsninc(Fname, _mbslen(Fname) - 1), "/") == 0)
 			|| (_mbscmp(_mbsninc(Fname, _mbslen(Fname) - 1), "\\") == 0))

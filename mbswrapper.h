@@ -238,6 +238,10 @@ wchar_t* DuplicateMtoWMultiStringBuffer(LPCSTR lpString, int size);
 char* DuplicateWtoM(LPCWSTR lpString, int c);
 wchar_t* DuplicateAtoW(LPCSTR lpString, int c);
 char* DuplicateWtoA(LPCWSTR lpString, int c);
+BOOL FixStringM(LPSTR pDst, LPCSTR pSrc);
+BOOL FixMultiStringM(LPSTR pDst, LPCSTR pSrc);
+BOOL CheckStringM(LPCSTR lpString);
+BOOL CheckMultiStringM(LPCSTR lpString);
 void FreeDuplicatedString(void* p);
 
 int WINAPI WinMainM(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);

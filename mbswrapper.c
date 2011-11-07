@@ -387,6 +387,166 @@ char* DuplicateWtoA(LPCWSTR lpString, int c)
 	return p;
 }
 
+// マルチバイト文字列の冗長表現を修正
+// 修正があればTRUEを返す
+// 修正後の文字列の長さは元の文字列の長さ以下のためpDstとpSrcに同じ値を指定可能
+BOOL FixStringM(LPSTR pDst, LPCSTR pSrc)
+{
+	BOOL bResult;
+	char* p;
+	DWORD Code;
+	int i;
+	char c;
+	bResult = FALSE;
+	p = (char*)pSrc;
+	while(*pSrc != '\0')
+	{
+		Code = 0;
+		if((*pSrc & 0xfe) == 0xfc)
+		{
+			i = 5;
+			Code |= (DWORD)*pSrc & 0x01;
+		}
+		else if((*pSrc & 0xfc) == 0xf8)
+		{
+			i = 4;
+			Code |= (DWORD)*pSrc & 0x03;
+		}
+		else if((*pSrc & 0xf8) == 0xf0)
+		{
+			i = 3;
+			Code |= (DWORD)*pSrc & 0x07;
+		}
+		else if((*pSrc & 0xf0) == 0xe0)
+		{
+			i = 2;
+			Code |= (DWORD)*pSrc & 0x0f;
+		}
+		else if((*pSrc & 0xe0) == 0xc0)
+		{
+			i = 1;
+			Code |= (DWORD)*pSrc & 0x1f;
+		}
+		else if((*pSrc & 0x80) == 0x00)
+		{
+			i = 0;
+			Code |= (DWORD)*pSrc & 0x7f;
+		}
+		else
+			i = -1;
+		pSrc++;
+		while((*pSrc & 0xc0) == 0x80)
+		{
+			i--;
+			Code = Code << 6;
+			Code |= (DWORD)*pSrc & 0x3f;
+			pSrc++;
+		}
+		if(i != 0)
+			continue;
+		else if(Code & 0x7c000000)
+		{
+			i = 5;
+			c = (char)(0xfc | (Code >> (6 * i)));
+		}
+		else if(Code & 0x03e00000)
+		{
+			i = 4;
+			c = (char)(0xf8 | (Code >> (6 * i)));
+		}
+		else if(Code & 0x001f0000)
+		{
+			i = 3;
+			c = (char)(0xf0 | (Code >> (6 * i)));
+		}
+		else if(Code & 0x0000f800)
+		{
+			i = 2;
+			c = (char)(0xe0 | (Code >> (6 * i)));
+		}
+		else if(Code & 0x00000780)
+		{
+			i = 1;
+			c = (char)(0xc0 | (Code >> (6 * i)));
+		}
+		else
+		{
+			i = 0;
+			c = (char)Code;
+		}
+		if(c != *p)
+			bResult = TRUE;
+		p++;
+		*pDst = c;
+		pDst++;
+		while(i > 0)
+		{
+			i--;
+			c = (char)(0x80 | ((Code >> (6 * i)) & 0x3f));
+			if(c != *p)
+				bResult = TRUE;
+			p++;
+			*pDst = c;
+			pDst++;
+		}
+	}
+	if(*p != '\0')
+		bResult = TRUE;
+	*pDst = '\0';
+	return bResult;
+}
+
+// NULL区切りマルチバイト文字列の冗長表現を修正
+// 修正があればTRUEを返す
+// 修正後の文字列の長さは元の文字列の長さ以下のためpDstとpSrcに同じ値を指定可能
+BOOL FixMultiStringM(LPSTR pDst, LPCSTR pSrc)
+{
+	BOOL bResult;
+	int Length;
+	bResult = FALSE;
+	while(*pSrc != '\0')
+	{
+		Length = strlen(pSrc) + 1;
+		bResult = bResult | FixStringM(pDst, pSrc);
+		pSrc += Length;
+		pDst += strlen(pDst) + 1;
+	}
+	*pDst = '\0';
+	return bResult;
+}
+
+// マルチバイト文字列の冗長表現を確認
+// 冗長表現があればTRUEを返す
+BOOL CheckStringM(LPCSTR lpString)
+{
+	BOOL bResult;
+	char* p;
+	bResult = FALSE;
+	p = AllocateStringM(strlen(lpString) + 1);
+	if(p)
+	{
+		bResult = FixStringM(p, lpString);
+		FreeDuplicatedString(p);
+	}
+	return bResult;
+}
+
+// NULL区切りマルチバイト文字列の冗長表現を確認
+// 冗長表現があればTRUEを返す
+BOOL CheckMultiStringM(LPCSTR lpString)
+{
+	BOOL bResult;
+	char* p;
+	bResult = FALSE;
+	p = AllocateStringM(GetMultiStringLengthM(lpString) + 1);
+	if(p)
+	{
+		bResult = FixMultiStringM(p, lpString);
+		FreeDuplicatedString(p);
+	}
+	return bResult;
+}
+
 // 文字列用に確保したメモリを開放
 // リソースIDならば何もしない
 void FreeDuplicatedString(void* p)
@@ -1857,6 +2017,7 @@ START_ROUTINE
 	r = CopyFileW(pw0, pw1, bFailIfExists);
 END_ROUTINE
 	FreeDuplicatedString(pw0);
+	FreeDuplicatedString(pw1);
 	return r;
 }
 
