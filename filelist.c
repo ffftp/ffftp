@@ -4903,16 +4903,23 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 //	if((Ret != NODE_NONE) && (strlen(Fname) > 0))
 	if(!(OrgListType & LIST_RAW_NAME) && (Ret != NODE_NONE) && (strlen(Fname) > 0))
 	{
-		if(CheckSpecialDirName(Fname) == YES)
-			Ret = NODE_NONE;
-		else
-			ChangeFnameRemote2Local(Fname, FMAX_PATH);
+		// UTF-8対応
+//		if(CheckSpecialDirName(Fname) == YES)
+//			Ret = NODE_NONE;
+//		else
+//			ChangeFnameRemote2Local(Fname, FMAX_PATH);
+		ChangeFnameRemote2Local(Fname, FMAX_PATH);
 		// UTF-8の冗長表現によるディレクトリトラバーサル対策
 		FixStringM(Fname, Fname);
 		// 0x5Cが含まれる文字列を扱えないバグ修正
 		if((_mbscmp(_mbsninc(Fname, _mbslen(Fname) - 1), "/") == 0)
 			|| (_mbscmp(_mbsninc(Fname, _mbslen(Fname) - 1), "\\") == 0))
 			*(Fname + strlen(Fname) - 1) = NUL;
+		if(CheckSpecialDirName(Fname) == YES)
+			Ret = NODE_NONE;
+		// 文字コードが正しくないために長さが0になったファイル名は表示しない
+		if(strlen(Fname) == 0)
+			Ret = NODE_NONE;
 	}
 	return(Ret);
 }
@@ -5488,7 +5495,7 @@ int AnalyzeNameKanjiCode(int Num)
 	char* p;
 
 	NameKanjiCode = KANJI_AUTO;
-	Point = 1;
+	Point = 0;
 	PointSJIS = 0;
 	PointJIS = 0;
 	PointEUC = 0;
