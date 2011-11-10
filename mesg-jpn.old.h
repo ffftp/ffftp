@@ -281,7 +281,7 @@
 #define MSGJPN281		"PASVモードで接続できません"
 #define MSGJPN282		"INIファイル名が指定されていません"
 #define MSGJPN283		"INIファイル指定："
-#define MSGJPN284		"http://www2.biglobe.ne.jp/~sota/"
+#define MSGJPN284		"http://sourceforge.jp/projects/ffftp/"
 #define MSGJPN285		"レジストリエディタが起動できませんでした"
 #define MSGJPN286		"設定ファイルの保存"
 #define MSGJPN287		"Regファイル\0*.reg\0全てのファイル\0*\0"

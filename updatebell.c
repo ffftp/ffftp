@@ -40,10 +40,17 @@
 
 
 
+// SourceForge.JPによるフォーク
+//#define MAIL_ADDRESS	"sota@mwa.biglobe.ne.jp"
+//#define SOFTWARE		"FFFTP"
+//#define MYNAME			"曽田"
+//#define MYURL			"http://www2.biglobe.ne.jp/~sota/"
+//#define INFOFILE		"http://www2.biglobe.ne.jp/~sota/product/update.inf"
+// TODO: 更新の通知用のINFファイルのURL（SourceForge.JPに作成可能かどうか不明）
 #define MAIL_ADDRESS	"sota@mwa.biglobe.ne.jp"
 #define SOFTWARE		"FFFTP"
-#define MYNAME			"曽田"
-#define MYURL			"http://www2.biglobe.ne.jp/~sota/"
+#define MYNAME			"FFFTP Project"
+#define MYURL			"http://sourceforge.jp/projects/ffftp/"
 #define INFOFILE		"http://www2.biglobe.ne.jp/~sota/product/update.inf"
 
 

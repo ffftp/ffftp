@@ -239,12 +239,8 @@ static int DoPWD(char *Buf)
 		if(strlen(Tmp) < FMAX_PATH)
 		{
 			strcpy(Buf, Tmp);
-			// 0x5Cが含まれる文字列を扱えないバグ修正
-//			ReplaceAll(Buf, '\\', '/');
-			ChangeSepaRemote2Local(Buf);
-			ChangeFnameRemote2Local(Buf, FMAX_PATH);
-			// 0x5Cが含まれる文字列を扱えないバグ修正
 			ReplaceAll(Buf, '\\', '/');
+			ChangeSepaRemote2Local(Buf);
 		}
 		else
 			Sts = FTP_ERROR*100;
@@ -905,6 +901,8 @@ int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char
 			iContinue = NO;
 			iRetCode = ReadOneLine(cSkt, Tmp, ONELINE_BUF_SIZE, CancelCheckWork);
 
+			// 文字化け対策
+			ChangeFnameRemote2Local(Tmp, ONELINE_BUF_SIZE);
 			SetTaskMsg("%s", Tmp);
 
 			if(Buf != NULL)

@@ -125,6 +125,9 @@ HINSTANCE FindExecutableM(LPCSTR lpFile, LPCSTR lpDirectory, LPSTR lpResult);
 #undef ShellExecute
 #define ShellExecute ShellExecuteM
 HINSTANCE ShellExecuteM(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile, LPCSTR lpParameters, LPCSTR lpDirectory, INT nShowCmd);
+#undef ShellExecuteEx
+#define ShellExecuteEx ShellExecuteExM
+BOOL ShellExecuteExM(LPSHELLEXECUTEINFOA lpExecInfo);
 #undef SHBrowseForFolder
 #define SHBrowseForFolder SHBrowseForFolderM
 PIDLIST_ABSOLUTE SHBrowseForFolderM(LPBROWSEINFOA lpbi);

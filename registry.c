@@ -1104,7 +1104,7 @@ void SaveSettingsToFile(void)
 				{
 					if(SetCurrentDirectory(SysDir))
 					{
-						if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
+						if(ShellExecute(NULL, "open", "regedit", Tmp, NULL, SW_SHOW) <= (HINSTANCE)32)
 						{
 							MessageBox(NULL, MSGJPN285, "FFFTP", MB_OK);
 						}
@@ -1168,7 +1168,7 @@ int LoadSettingsFromFile(void)
 				{
 					if(SetCurrentDirectory(SysDir))
 					{
-						if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
+						if(ShellExecute(NULL, "open", "regedit", Tmp, NULL, SW_SHOW) <= (HINSTANCE)32)
 						{
 							MessageBox(NULL, MSGJPN285, "FFFTP", MB_OK);
 						}

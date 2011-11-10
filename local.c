@@ -181,13 +181,20 @@ void DoLocalRENAME(char *Src, char *Dst)
 void DispFileProperty(char *Fname)
 {
 	SHELLEXECUTEINFO sInfo;
+	// 異なるファイルが表示されるバグ修正
+	// 詳細は不明だが末尾に半角スペースを置くと拡張子の補完がされなくなる
+	char Fname2[FMAX_PATH+1];
 
 	memset(&sInfo, NUL, sizeof(SHELLEXECUTEINFO));
 	sInfo.cbSize = sizeof(SHELLEXECUTEINFO);
 	sInfo.fMask = SEE_MASK_INVOKEIDLIST;
 	sInfo.hwnd = NULL;		//GetMainHwnd();
 	sInfo.lpVerb = "Properties";
-	sInfo.lpFile = Fname;
+	// 異なるファイルが表示されるバグ修正
+//	sInfo.lpFile = Fname;
+	strcpy(Fname2, Fname);
+	strcat(Fname2, " ");
+	sInfo.lpFile = Fname2;
 	sInfo.lpParameters = NULL;
 	sInfo.lpDirectory = NULL;
 	sInfo.nShow = SW_NORMAL;

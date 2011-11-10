@@ -170,7 +170,7 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;sfc.dll;shell32.dll;ole32.dll;user32.dll;winmm.dll;wintrust.dll;wsock32.dll"
+				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;ole32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;wsock32.dll"
 				ProgramDatabaseFile=".\Release\FFFTP.pdb"
 				SubSystem="2"
 				RandomizedBaseAddress="1"

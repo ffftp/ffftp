@@ -1230,7 +1230,9 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_HELP_TROUBLE :
-					ShellExecute(NULL, "open", MYWEB_URL, NULL, ".", SW_SHOW);
+					// 任意のコードが実行されるバグ修正
+//					ShellExecute(NULL, "open", MYWEB_URL, NULL, ".", SW_SHOW);
+					ShellExecute(NULL, "open", MYWEB_URL, NULL, NULL, SW_SHOW);
 					break;
 
 				case MENU_BMARK_ADD :
@@ -2473,7 +2475,10 @@ void ExecViewer(char *Fname, int App)
 
 	AskLocalCurDir(CurDir, FMAX_PATH);
 
-	if((App == -1) && (FindExecutable(Fname, NULL, AssocProg) > (HINSTANCE)32))
+	// 任意のコードが実行されるバグ修正
+	// 拡張子が無いと補完されるため
+//	if((App == -1) && (FindExecutable(Fname, NULL, AssocProg) > (HINSTANCE)32))
+	if((App == -1) && strrchr(Fname, '.') > strrchr(Fname, '\\') && (FindExecutable(Fname, NULL, AssocProg) > (HINSTANCE)32))
 	{
 		DoPrintf("ShellExecute - %s", Fname);
 		ShellExecute(NULL, "open", Fname, NULL, CurDir, SW_SHOW);

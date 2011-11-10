@@ -75,7 +75,9 @@
 #define PROGRAM_VERSION_NUM		1990		/* バージョン */
 
 
-#define MYWEB_URL	"http://www2.biglobe.ne.jp/~sota/ffftp-qa.html"
+// SourceForge.JPによるフォーク
+//#define MYWEB_URL	"http://www2.biglobe.ne.jp/~sota/ffftp-qa.html"
+#define MYWEB_URL	"http://sourceforge.jp/projects/ffftp/"
 
 
 
