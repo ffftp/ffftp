@@ -102,6 +102,8 @@ static int TryConnect = NO;
 static SOCKET CmdCtrlSocket = INVALID_SOCKET;
 static SOCKET TrnCtrlSocket = INVALID_SOCKET;
 static HOSTDATA CurHost;
+// UTF-8対応
+static int TmpNameKanjiCode;
 
 /* 接続中の接続先、SOCKSサーバのアドレス情報を保存しておく */
 /* この情報はlistenソケットを取得する際に用いる */
@@ -148,6 +150,8 @@ void ConnectProc(int Type, int Num)
 
 		InitPWDcommand();
 		CopyHostFromList(AskCurrentHost(), &CurHost);
+		// UTF-8対応
+		TmpNameKanjiCode = CurHost.NameKanjiCode;
 
 		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == FFFTP_SUCCESS)
 		{
@@ -172,6 +176,16 @@ void ConnectProc(int Type, int Num)
 //			CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, Save, CurHost.Security);
 			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, Save, CurHost.Security, &CancelFlg);
 			TrnCtrlSocket = CmdCtrlSocket;
+
+			// UTF-8対応
+			if(TmpNameKanjiCode == KANJI_AUTO)
+			{
+				if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
+				{
+					SetCache(999, "");
+					TmpNameKanjiCode = AnalyzeNameKanjiCode(999);
+				}
+			}
 
 			if(CmdCtrlSocket != INVALID_SOCKET)
 			{
@@ -231,6 +245,8 @@ void QuickConnectProc(void)
 
 		InitPWDcommand();
 		CopyDefaultHost(&CurHost);
+		// UTF-8対応
+		TmpNameKanjiCode = CurHost.NameKanjiCode;
 		if(SplitUNCpath(Tmp, CurHost.HostAdrs, CurHost.RemoteInitDir, File, CurHost.UserName, CurHost.PassWord, &CurHost.Port) == FFFTP_SUCCESS)
 		{
 			if(strlen(CurHost.UserName) == 0)
@@ -254,6 +270,16 @@ void QuickConnectProc(void)
 //			CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
 			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg);
 			TrnCtrlSocket = CmdCtrlSocket;
+
+			// UTF-8対応
+			if(TmpNameKanjiCode == KANJI_AUTO)
+			{
+				if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
+				{
+					SetCache(999, "");
+					TmpNameKanjiCode = AnalyzeNameKanjiCode(999);
+				}
+			}
 
 			if(CmdCtrlSocket != INVALID_SOCKET)
 			{
@@ -412,6 +438,8 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 		CurHost.KanaCnv = Kana;
 		CurHost.NameKanjiCode = Fkanji;
 		CurHost.KanaCnv = YES;			/* とりあえず */
+		// UTF-8対応
+		TmpNameKanjiCode = CurHost.NameKanjiCode;
 
 		SetHostKanaCnvImm(CurHost.KanaCnv);
 		SetHostKanjiCodeImm(CurHost.KanjiCode);
@@ -429,6 +457,16 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 //		CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
 		CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg);
 		TrnCtrlSocket = CmdCtrlSocket;
+
+		// UTF-8対応
+		if(TmpNameKanjiCode == KANJI_AUTO)
+		{
+			if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
+			{
+				SetCache(999, "");
+				TmpNameKanjiCode = AnalyzeNameKanjiCode(999);
+			}
+		}
 
 		if(CmdCtrlSocket != INVALID_SOCKET)
 		{
@@ -487,6 +525,8 @@ void HistoryConnectProc(int MenuCmd)
 
 		InitPWDcommand();
 		CopyHistoryToHost(&Hist, &CurHost);
+		// UTF-8対応
+		TmpNameKanjiCode = CurHost.NameKanjiCode;
 
 		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == FFFTP_SUCCESS)
 		{
@@ -508,6 +548,16 @@ void HistoryConnectProc(int MenuCmd)
 //			CmdCtrlSocket = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security);
 			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg);
 			TrnCtrlSocket = CmdCtrlSocket;
+
+			// UTF-8対応
+			if(TmpNameKanjiCode == KANJI_AUTO)
+			{
+				if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
+				{
+					SetCache(999, "");
+					TmpNameKanjiCode = AnalyzeNameKanjiCode(999);
+				}
+			}
 
 			if(CmdCtrlSocket != INVALID_SOCKET)
 			{
@@ -654,10 +704,12 @@ int AskHostPort(void)
 
 int AskHostNameKanji(void)
 {
-	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
-
-	return(CurHost.NameKanjiCode);
+	// UTF-8対応
+//	if(AskCurrentHost() != HOSTNUM_NOENTRY)
+//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+//
+//	return(CurHost.NameKanjiCode);
+	return(TmpNameKanjiCode);
 }
 
 
@@ -1560,11 +1612,10 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 					HostData->Feature |= FEATURE_EPRT | FEATURE_EPSV;
 			}
 			// UTF-8対応
-			if(HostData->NameKanjiCode == KANJI_AUTO && (HostData->Feature & FEATURE_UTF8))
+			if(TmpNameKanjiCode == KANJI_AUTO && (HostData->Feature & FEATURE_UTF8))
 			{
 				if((Sts = command(ContSock, Reply, CancelCheckWork, "OPTS UTF8 ON")) == 200)
-				{
-				}
+					TmpNameKanjiCode = KANJI_UTF8N;
 			}
 		}
 	}

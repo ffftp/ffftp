@@ -241,6 +241,7 @@ wchar_t* DuplicateMtoWMultiStringBuffer(LPCSTR lpString, int size);
 char* DuplicateWtoM(LPCWSTR lpString, int c);
 wchar_t* DuplicateAtoW(LPCSTR lpString, int c);
 char* DuplicateWtoA(LPCWSTR lpString, int c);
+DWORD GetNextCharM(LPCSTR lpString, LPCSTR* ppNext);
 BOOL FixStringM(LPSTR pDst, LPCSTR pSrc);
 BOOL FixMultiStringM(LPSTR pDst, LPCSTR pSrc);
 BOOL CheckStringM(LPCSTR lpString);

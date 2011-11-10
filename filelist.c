@@ -4899,7 +4899,9 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			break;
 	}
 
-	if((Ret != NODE_NONE) && (strlen(Fname) > 0))
+	// UTF-8対応
+//	if((Ret != NODE_NONE) && (strlen(Fname) > 0))
+	if(!(OrgListType & LIST_RAW_NAME) && (Ret != NODE_NONE) && (strlen(Fname) > 0))
 	{
 		if(CheckSpecialDirName(Fname) == YES)
 			Ret = NODE_NONE;
@@ -5460,4 +5462,99 @@ static int atoi_n(const char *Str, int Len)
 
 
 
+
+// UTF-8対応
+// ファイル一覧から漢字コードを推測
+// 優先度はUTF-8、Shift_JIS、EUC、JISの順
+int AnalyzeNameKanjiCode(int Num)
+{
+	char Str[FMAX_PATH+1];
+	char Name[FMAX_PATH+1];
+	LONGLONG Size;
+	FILETIME Time;
+	int Attr;
+	FILE *fd;
+	int Node;
+	int ListType;
+	char Owner[OWNER_NAME_LEN+1];
+	int Link;
+	int InfoExist;
+	int NameKanjiCode;
+	int Point;
+	int PointSJIS;
+	int PointJIS;
+	int PointEUC;
+	int PointUTF8N;
+	char* p;
+
+	NameKanjiCode = KANJI_AUTO;
+	Point = 1;
+	PointSJIS = 0;
+	PointJIS = 0;
+	PointEUC = 0;
+	PointUTF8N = 0;
+	MakeCacheFileName(Num, Str);
+	if((fd = fopen(Str, "rb")) != NULL)
+	{
+		while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
+		{
+			if((ListType = AnalizeFileInfo(Str)) != LIST_UNKNOWN)
+			{
+				Node = ResolvFileInfo(Str, ListType | LIST_RAW_NAME, Name, &Size, &Time, &Attr, Owner, &Link, &InfoExist);
+				p = Name;
+				while(*p != '\0')
+				{
+					if(*p & 0x80)
+					{
+						p = NULL;
+						break;
+					}
+					p++;
+				}
+				if(!p)
+				{
+					if(!CheckStringM(Name))
+						PointUTF8N++;
+					else
+					{
+						switch(CheckKanjiCode(Name, strlen(Name), KANJI_SJIS))
+						{
+						case KANJI_SJIS:
+							PointSJIS++;
+							break;
+						case KANJI_JIS:
+							PointJIS++;
+							break;
+						case KANJI_EUC:
+							PointEUC++;
+							break;
+						}
+					}
+				}
+			}
+		}
+		fclose(fd);
+	}
+	if(PointJIS >= Point)
+	{
+		NameKanjiCode = KANJI_JIS;
+		Point = PointJIS;
+	}
+	if(PointEUC >= Point)
+	{
+		NameKanjiCode = KANJI_EUC;
+		Point = PointEUC;
+	}
+	if(PointSJIS >= Point)
+	{
+		NameKanjiCode = KANJI_SJIS;
+		Point = PointSJIS;
+	}
+	if(PointUTF8N >= Point)
+	{
+		NameKanjiCode = KANJI_UTF8N;
+		Point = PointUTF8N;
+	}
+	return NameKanjiCode;
+}
 

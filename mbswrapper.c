@@ -387,6 +387,60 @@ char* DuplicateWtoA(LPCWSTR lpString, int c)
 	return p;
 }
 
+// マルチバイト文字列からコードポイントと次のポインタを取得
+// エンコードが不正な場合は0x80000000を返す
+DWORD GetNextCharM(LPCSTR lpString, LPCSTR* ppNext)
+{
+	DWORD Code;
+	int i;
+	Code = 0;
+	if((*lpString & 0xfe) == 0xfc)
+	{
+		i = 5;
+		Code |= (DWORD)*lpString & 0x01;
+	}
+	else if((*lpString & 0xfc) == 0xf8)
+	{
+		i = 4;
+		Code |= (DWORD)*lpString & 0x03;
+	}
+	else if((*lpString & 0xf8) == 0xf0)
+	{
+		i = 3;
+		Code |= (DWORD)*lpString & 0x07;
+	}
+	else if((*lpString & 0xf0) == 0xe0)
+	{
+		i = 2;
+		Code |= (DWORD)*lpString & 0x0f;
+	}
+	else if((*lpString & 0xe0) == 0xc0)
+	{
+		i = 1;
+		Code |= (DWORD)*lpString & 0x1f;
+	}
+	else if((*lpString & 0x80) == 0x00)
+	{
+		i = 0;
+		Code |= (DWORD)*lpString & 0x7f;
+	}
+	else
+		i = -1;
+	lpString++;
+	while((*lpString & 0xc0) == 0x80)
+	{
+		i--;
+		Code = Code << 6;
+		Code |= (DWORD)*lpString & 0x3f;
+		lpString++;
+	}
+	if(i != 0)
+		Code = 0x80000000;
+	if(ppNext)
+		*ppNext = lpString;
+	return Code;
+}
+
 // マルチバイト文字列の冗長表現を修正
 // 修正があればTRUEを返す
 // 修正後の文字列の長さは元の文字列の長さ以下のためpDstとpSrcに同じ値を指定可能
@@ -401,48 +455,8 @@ BOOL FixStringM(LPSTR pDst, LPCSTR pSrc)
 	p = (char*)pSrc;
 	while(*pSrc != '\0')
 	{
-		Code = 0;
-		if((*pSrc & 0xfe) == 0xfc)
-		{
-			i = 5;
-			Code |= (DWORD)*pSrc & 0x01;
-		}
-		else if((*pSrc & 0xfc) == 0xf8)
-		{
-			i = 4;
-			Code |= (DWORD)*pSrc & 0x03;
-		}
-		else if((*pSrc & 0xf8) == 0xf0)
-		{
-			i = 3;
-			Code |= (DWORD)*pSrc & 0x07;
-		}
-		else if((*pSrc & 0xf0) == 0xe0)
-		{
-			i = 2;
-			Code |= (DWORD)*pSrc & 0x0f;
-		}
-		else if((*pSrc & 0xe0) == 0xc0)
-		{
-			i = 1;
-			Code |= (DWORD)*pSrc & 0x1f;
-		}
-		else if((*pSrc & 0x80) == 0x00)
-		{
-			i = 0;
-			Code |= (DWORD)*pSrc & 0x7f;
-		}
-		else
-			i = -1;
-		pSrc++;
-		while((*pSrc & 0xc0) == 0x80)
-		{
-			i--;
-			Code = Code << 6;
-			Code |= (DWORD)*pSrc & 0x3f;
-			pSrc++;
-		}
-		if(i != 0)
+		Code = GetNextCharM(pSrc, &pSrc);
+		if(Code & 0x80000000)
 			continue;
 		else if(Code & 0x7c000000)
 		{
@@ -2117,162 +2131,128 @@ END_ROUTINE
 size_t _mbslenM(const unsigned char * _Str)
 {
 	size_t r = 0;
-	wchar_t* pw0 = NULL;
 START_ROUTINE
-	pw0 = DuplicateMtoW(_Str, -1);
-	r = wcslen(pw0);
+	while(GetNextCharM(_Str, &_Str) > 0)
+	{
+		r++;
+	}
 END_ROUTINE
-	FreeDuplicatedString(pw0);
 	return r;
 }
 
 unsigned char * _mbschrM(const unsigned char * _Str, unsigned int _Ch)
 {
 	unsigned char* r = NULL;
-	wchar_t* pw0 = NULL;
-	wchar_t* wr;
+	unsigned int c;
+	unsigned char* p;
 START_ROUTINE
-	pw0 = DuplicateMtoW(_Str, -1);
-	// TODO: 非ASCII文字の対応
-	wr = wcschr(pw0, _Ch);
-	if(wr)
+	while((c = GetNextCharM(_Str, &p)) > 0)
 	{
-		*wr = L'\0';
-		r = (unsigned char*)_Str + WtoM(NULL, 0, pw0, -1) - 1;
+		if(c == _Ch)
+		{
+			r = (unsigned char*)_Str;
+			break;
+		}
+		_Str = p;
 	}
 END_ROUTINE
-	FreeDuplicatedString(pw0);
 	return r;
 }
 
 unsigned char * _mbsrchrM(const unsigned char * _Str, unsigned int _Ch)
 {
 	unsigned char* r = NULL;
-	wchar_t* pw0 = NULL;
-	wchar_t* wr;
+	unsigned int c;
+	unsigned char* p;
 START_ROUTINE
-	pw0 = DuplicateMtoW(_Str, -1);
-	// TODO: 非ASCII文字の対応
-	wr = wcsrchr(pw0, _Ch);
-	if(wr)
+	while((c = GetNextCharM(_Str, &p)) > 0)
 	{
-		*wr = L'\0';
-		r = (unsigned char*)_Str + WtoM(NULL, 0, pw0, -1) - 1;
+		if(c == _Ch)
+			r = (unsigned char*)_Str;
+		_Str = p;
 	}
 END_ROUTINE
-	FreeDuplicatedString(pw0);
 	return r;
 }
 
 unsigned char * _mbsstrM(const unsigned char * _Str, const unsigned char * _Substr)
 {
 	unsigned char* r = NULL;
-	wchar_t* pw0 = NULL;
-	wchar_t* pw1 = NULL;
-	wchar_t* wr;
 START_ROUTINE
-	pw0 = DuplicateMtoW(_Str, -1);
-	pw1 = DuplicateMtoW(_Substr, -1);
-	wr = wcsstr(pw0, pw1);
-	if(wr)
-	{
-		*wr = L'\0';
-		r = (unsigned char*)_Str + WtoM(NULL, 0, pw0, -1) - 1;
-	}
+	r = strstr(_Str, _Substr);
 END_ROUTINE
-	FreeDuplicatedString(pw0);
-	FreeDuplicatedString(pw1);
 	return r;
 }
 
 int _mbscmpM(const unsigned char * _Str1, const unsigned char * _Str2)
 {
 	int r = 0;
-	wchar_t* pw0 = NULL;
-	wchar_t* pw1 = NULL;
 START_ROUTINE
-	pw0 = DuplicateMtoW(_Str1, -1);
-	pw1 = DuplicateMtoW(_Str2, -1);
-	r = wcscmp(pw0, pw1);
+	r = strcmp(_Str1, _Str2);
 END_ROUTINE
-	FreeDuplicatedString(pw0);
-	FreeDuplicatedString(pw1);
 	return r;
 }
 
 int _mbsicmpM(const unsigned char * _Str1, const unsigned char * _Str2)
 {
 	int r = 0;
-	wchar_t* pw0 = NULL;
-	wchar_t* pw1 = NULL;
 START_ROUTINE
-	pw0 = DuplicateMtoW(_Str1, -1);
-	pw1 = DuplicateMtoW(_Str2, -1);
-	r = _wcsicmp(pw0, pw1);
+	r = _stricmp(_Str1, _Str2);
 END_ROUTINE
-	FreeDuplicatedString(pw0);
-	FreeDuplicatedString(pw1);
 	return r;
 }
 
 int _mbsncmpM(const unsigned char * _Str1, const unsigned char * _Str2, size_t _MaxCount)
 {
 	int r = 0;
-	wchar_t* pw0 = NULL;
-	wchar_t* pw1 = NULL;
+	DWORD c1;
+	DWORD c2;
 START_ROUTINE
-	pw0 = DuplicateMtoW(_Str1, -1);
-	pw1 = DuplicateMtoW(_Str2, -1);
-	r = wcsncmp(pw0, pw1, _MaxCount);
+	c1 = 0;
+	c2 = 0;
+	while(_MaxCount > 0)
+	{
+		c1 = GetNextCharM(_Str1, &_Str1);
+		c2 = GetNextCharM(_Str2, &_Str2);
+		if(c1 != c2)
+			break;
+		_MaxCount--;
+		if(c1 == 0 || c2 == 0)
+			break;
+	}
+	r = c1 - c2;
 END_ROUTINE
-	FreeDuplicatedString(pw0);
-	FreeDuplicatedString(pw1);
 	return r;
 }
 
 unsigned char * _mbslwrM(unsigned char * _String)
 {
 	unsigned char* r = NULL;
-	wchar_t* pw0 = NULL;
 START_ROUTINE
-	pw0 = DuplicateMtoW(_String, -1);
-	_wcslwr(pw0);
-	r = _String;
-	WtoM(_String, strlen(_String) + 1, pw0, -1);
+	r = _strlwr(_String);
 END_ROUTINE
-	FreeDuplicatedString(pw0);
 	return r;
 }
 
 unsigned char * _mbsuprM(unsigned char * _String)
 {
 	unsigned char* r = NULL;
-	wchar_t* pw0 = NULL;
 START_ROUTINE
-	pw0 = DuplicateMtoW(_String, -1);
-	_wcsupr(pw0);
-	r = _String;
-	WtoM(_String, strlen(_String) + 1, pw0, -1);
+	r = _strupr(_String);
 END_ROUTINE
-	FreeDuplicatedString(pw0);
 	return r;
 }
 
 unsigned char * _mbsnincM(const unsigned char * _Str, size_t _Count)
 {
 	unsigned char* r = NULL;
-	wchar_t* pw0 = NULL;
-	wchar_t* wr;
 START_ROUTINE
-	pw0 = DuplicateMtoW(_Str, -1);
-	wr = _wcsninc(pw0, _Count);
-	if(wr)
+	while(_Count > 0 && GetNextCharM(_Str, &_Str) > 0)
 	{
-		*wr = L'\0';
-		r = (unsigned char*)_Str + WtoM(NULL, 0, pw0, -1) - 1;
+		_Count--;
 	}
+	r = (unsigned char*)_Str;
 END_ROUTINE
-	FreeDuplicatedString(pw0);
 	return r;
 }
 

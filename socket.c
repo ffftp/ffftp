@@ -1197,26 +1197,7 @@ static BOOL ConvertStringToPunycode(LPSTR Output, DWORD Count, LPCSTR Input)
 		Length = 0;
 		while(*InputString != '\0')
 		{
-			*p = 0;
-			if((*InputString & 0x80) == 0x00)
-				*p |= (punycode_uint)*InputString & 0x7f;
-			else if((*InputString & 0xe0) == 0xc0)
-				*p |= (punycode_uint)*InputString & 0x1f;
-			else if((*InputString & 0xf0) == 0xe0)
-				*p |= (punycode_uint)*InputString & 0x0f;
-			else if((*InputString & 0xf8) == 0xf0)
-				*p |= (punycode_uint)*InputString & 0x07;
-			else if((*InputString & 0xfc) == 0xf8)
-				*p |= (punycode_uint)*InputString & 0x03;
-			else if((*InputString & 0xfe) == 0xfc)
-				*p |= (punycode_uint)*InputString & 0x01;
-			InputString++;
-			while((*InputString & 0xc0) == 0x80)
-			{
-				*p = *p << 6;
-				*p |= (punycode_uint)*InputString & 0x3f;
-				InputString++;
-			}
+			*p = (punycode_uint)GetNextCharM(InputString, &InputString);
 			if(*p >= 0x80)
 				bNeeded = TRUE;
 			p++;

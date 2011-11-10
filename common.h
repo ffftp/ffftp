@@ -304,6 +304,9 @@
 
 #define LIST_MASKFLG	0xFF
 
+// UTF-8対応
+#define LIST_RAW_NAME	0x80000000
+
 /* ファイル一覧情報例 ---------------
 
 *LIST_UNIX_10
@@ -1278,6 +1281,8 @@ FILELIST *SearchFileList(char *Fname, FILELIST *Base, int Caps);
 int Assume1900or2000(int Year);
 void SetFilter(int *CancelCheckWork);
 void doDeleteRemoteFile(void);
+// UTF-8対応
+int AnalyzeNameKanjiCode(int Num);
 
 
 /*===== toolmenu.c =====*/

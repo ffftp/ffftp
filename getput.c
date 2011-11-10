@@ -3669,18 +3669,30 @@ static int GetAdrsAndPort(char *Str, char *Adrs, int *Port, int Max)
 	{
 		Pos++;
 		Btm = strchr(Pos, ',');
+		// コンマではなくドットを返すホストがあるため
+		if(Btm == NULL)
+			Btm = strchr(Pos, '.');
 		if(Btm != NULL)
 		{
 			Btm++;
 			Btm = strchr(Btm, ',');
+			// コンマではなくドットを返すホストがあるため
+			if(Btm == NULL)
+				Btm = strchr(Btm, '.');
 			if(Btm != NULL)
 			{
 				Btm++;
 				Btm = strchr(Btm, ',');
+				// コンマではなくドットを返すホストがあるため
+				if(Btm == NULL)
+					Btm = strchr(Btm, '.');
 				if(Btm != NULL)
 				{
 					Btm++;
 					Btm = strchr(Btm, ',');
+					// コンマではなくドットを返すホストがあるため
+					if(Btm == NULL)
+						Btm = strchr(Btm, '.');
 					if(Btm != NULL)
 					{
 						if((Btm - Pos) <= Max)
@@ -3691,6 +3703,9 @@ static int GetAdrsAndPort(char *Str, char *Adrs, int *Port, int Max)
 
 							Pos = Btm + 1;
 							Btm = strchr(Pos, ',');
+							// コンマではなくドットを返すホストがあるため
+							if(Btm == NULL)
+								Btm = strchr(Pos, '.');
 							if(Btm != NULL)
 							{
 								Btm++;
