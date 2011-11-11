@@ -990,9 +990,7 @@ int ReConnectCmdSkt(void)
 	int Sts;
 
 
-	// 同時接続対応
-//	if(CmdCtrlSocket != TrnCtrlSocket)
-	if(CmdCtrlSocket != TrnCtrlSocket && TrnCtrlSocket != INVALID_SOCKET)
+	if(CmdCtrlSocket != TrnCtrlSocket)
 		do_closesocket(TrnCtrlSocket);
 	TrnCtrlSocket = INVALID_SOCKET;
 
@@ -1150,10 +1148,13 @@ void SktShareProh(void)
 //SetTaskMsg("############### SktShareProh");
 
 		// 同時接続対応
-		// 転送スレッドがソケットを各自で用意
-		// TrnCtrlSocketはメインスレッド以外から使用されない
 //		CmdCtrlSocket = INVALID_SOCKET;
 //		ReConnectSkt(&CmdCtrlSocket);
+		if(CurHost.ReuseCmdSkt == YES)
+		{
+			CmdCtrlSocket = INVALID_SOCKET;
+			ReConnectSkt(&CmdCtrlSocket);
+		}
 	}
 	return;
 }
@@ -1174,8 +1175,10 @@ int AskShareProh(void)
 	int Sts;
 
 	Sts = YES;
+	// 同時接続対応
 //	if(CmdCtrlSocket == TrnCtrlSocket)
-//		Sts = NO;
+	if(CmdCtrlSocket == TrnCtrlSocket || TrnCtrlSocket == INVALID_SOCKET)
+		Sts = NO;
 
 	return(Sts);
 }
@@ -2473,6 +2476,11 @@ char *AskPrivateKey(void)
 int AskMaxThreadCount(void)
 {
 	return(CurHost.MaxThreadCount);
+}
+
+int AskReuseCmdSkt(void)
+{
+	return(CurHost.ReuseCmdSkt);
 }
 
 // FEAT対応

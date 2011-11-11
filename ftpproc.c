@@ -129,9 +129,6 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 	{
 		DisableUserOpe();
 
-		// 同時接続対応
-		SktShareProh();
-
 		ExistNotify = YES;
 //		KeepTransferDialog(YES);
 
@@ -262,9 +259,6 @@ void DirectDownLoadProc(char *Fname)
 	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
-
-		// 同時接続対応
-		SktShareProh();
 
 		ExistNotify = YES;
 //		KeepTransferDialog(YES);
@@ -404,9 +398,6 @@ void MirrorDownloadProc(int Notify)
 	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
-
-		// 同時接続対応
-		SktShareProh();
 
 		Base = NULL;
 
@@ -879,9 +870,6 @@ void UpLoadListProc(int ChName, int All)
 	{
 		DisableUserOpe();
 
-		// 同時接続対応
-		SktShareProh();
-
 		// ローカル側で選ばれているファイルをFileListBaseに登録
 		FileListBase = NULL;
 		MakeSelectedFileList(WIN_LOCAL, YES, All, &FileListBase, &CancelFlg);
@@ -1050,9 +1038,6 @@ void UpLoadDragProc(WPARAM wParam)
 	{
 		DisableUserOpe();
 
-		// 同時接続対応
-		SktShareProh();
-
 		// ローカル側で選ばれているファイルをFileListBaseに登録
 		FileListBase = NULL;
 		MakeDroppedFileList(wParam, Cur, &FileListBase);
@@ -1211,9 +1196,6 @@ void MirrorUploadProc(int Notify)
 	if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 	{
 		DisableUserOpe();
-
-		// 同時接続対応
-		SktShareProh();
 
 		Base = NULL;
 

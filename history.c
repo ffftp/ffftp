@@ -231,6 +231,7 @@ static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
 	strcpy(New->PrivateKey, Host->PrivateKey);
 	// 同時接続対応
 	New->MaxThreadCount = Host->MaxThreadCount;
+	New->ReuseCmdSkt = Host->ReuseCmdSkt;
 	// MLSD対応
 	New->UseMLSD = Host->UseMLSD;
 	// IPv6対応
@@ -292,6 +293,7 @@ void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
 	strcpy(Host->PrivateKey, Hist->PrivateKey);
 	// 同時接続対応
 	Host->MaxThreadCount = Hist->MaxThreadCount;
+	Host->ReuseCmdSkt = Hist->ReuseCmdSkt;
 	// MLSD対応
 	Host->UseMLSD = Hist->UseMLSD;
 	// IPv6対応

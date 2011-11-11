@@ -1036,6 +1036,7 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 		Set->UseSFTP = Pos->Set.UseSFTP;
 		// 同時接続対応
 		Set->MaxThreadCount = Pos->Set.MaxThreadCount;
+		Set->ReuseCmdSkt = Pos->Set.ReuseCmdSkt;
 		// MLSD対応
 		Set->UseMLSD = Pos->Set.UseMLSD;
 		// IPv6対応
@@ -1322,6 +1323,7 @@ void CopyDefaultHost(HOSTDATA *Set)
 	strcpy(Set->PrivateKey, "");
 	// 同時接続対応
 	Set->MaxThreadCount = 1;
+	Set->ReuseCmdSkt = NO;
 	// MLSD対応
 	Set->Feature = 0;
 	Set->UseMLSD = YES;
@@ -2213,6 +2215,7 @@ static BOOL CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 			SendDlgItemMessage(hDlg, HSET_THREAD_COUNT, EM_LIMITTEXT, (WPARAM)1, 0);
 			SetDecimalText(hDlg, HSET_THREAD_COUNT, TmpHost.MaxThreadCount);
 			SendDlgItemMessage(hDlg, HSET_THREAD_COUNT_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(MAX_DATA_CONNECTION, 1));
+			SendDlgItemMessage(hDlg, HSET_REUSE_SOCKET, BM_SETCHECK, TmpHost.ReuseCmdSkt, 0);
 			return(TRUE);
 
 		case WM_NOTIFY:
@@ -2222,6 +2225,7 @@ static BOOL CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 				case PSN_APPLY :
 					TmpHost.MaxThreadCount = GetDecimalText(hDlg, HSET_THREAD_COUNT);
 					CheckRange2(&TmpHost.MaxThreadCount, MAX_DATA_CONNECTION, 1);
+					TmpHost.ReuseCmdSkt = SendDlgItemMessage(hDlg, HSET_REUSE_SOCKET, BM_GETCHECK, 0, 0);
 					Apply = YES;
 					break;
 

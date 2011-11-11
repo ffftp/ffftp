@@ -28,6 +28,8 @@
 /============================================================================*/
 
 #define	STRICT
+// IPv6対応
+#include <ws2tcpip.h>
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,11 +49,12 @@
 
 
 
-#define FD_CONNECT_BIT		0x0001
-#define FD_CLOSE_BIT		0x0002
-#define FD_ACCEPT_BIT		0x0004
-#define FD_READ_BIT			0x0008
-#define FD_WRITE_BIT		0x0010
+// Winsock2で定義される定数と名前が重複し値が異なるため使用不可
+//#define FD_CONNECT_BIT		0x0001
+//#define FD_CLOSE_BIT		0x0002
+//#define FD_ACCEPT_BIT		0x0004
+//#define FD_READ_BIT			0x0008
+//#define FD_WRITE_BIT		0x0010
 
 
 
@@ -79,8 +82,8 @@ typedef struct {
 // 念のためテーブルを増量
 //#define MAX_SIGNAL_ENTRY		10
 //#define MAX_SIGNAL_ENTRY_DBASE	5
-#define MAX_SIGNAL_ENTRY		100
-#define MAX_SIGNAL_ENTRY_DBASE	50
+#define MAX_SIGNAL_ENTRY		16
+#define MAX_SIGNAL_ENTRY_DBASE	16
 
 
 
@@ -96,6 +99,8 @@ static int UnRegistAsyncTable(SOCKET s);
 static int UnRegistAsyncTableDbase(HANDLE Async);
 // UTF-8対応
 static HANDLE WSAAsyncGetHostByNameM(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen);
+// IPv6対応
+static HANDLE WSAAsyncGetHostByNameIPv6M(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen, short Family);
 
 
 /*===== 外部参照 =====*/
@@ -335,22 +340,22 @@ static int AskAsyncDone(SOCKET s, int *Error, int Mask)
 			*Error = Signal[Pos].Error;
 			if(Signal[Pos].Error != 0)
 				Sts = YES;
-			if((Mask & FD_CONNECT_BIT) && (Signal[Pos].FdConnect != 0))
+			if((Mask & FD_CONNECT) && (Signal[Pos].FdConnect != 0))
 			{
 				Sts = YES;
 #if DBG_MSG
 				DoPrintf("### Ask: connect (Sts=%d, Error=%d)", Sts, *Error);
 #endif
 			}
-			if((Mask & FD_CLOSE_BIT) && (Signal[Pos].FdClose != 0))
-//			if(Mask & FD_CLOSE_BIT)
+			if((Mask & FD_CLOSE) && (Signal[Pos].FdClose != 0))
+//			if(Mask & FD_CLOSE)
 			{
 				Sts = YES;
 #if DBG_MSG
 				DoPrintf("### Ask: close (Sts=%d, Error=%d)", Sts, *Error);
 #endif
 			}
-			if((Mask & FD_ACCEPT_BIT) && (Signal[Pos].FdAccept != 0))
+			if((Mask & FD_ACCEPT) && (Signal[Pos].FdAccept != 0))
 			{
 				Signal[Pos].FdAccept = 0;
 				Sts = YES;
@@ -358,7 +363,7 @@ static int AskAsyncDone(SOCKET s, int *Error, int Mask)
 				DoPrintf("### Ask: accept (Sts=%d, Error=%d)", Sts, *Error);
 #endif
 			}
-			if((Mask & FD_READ_BIT) && (Signal[Pos].FdRead != 0))
+			if((Mask & FD_READ) && (Signal[Pos].FdRead != 0))
 			{
 				Signal[Pos].FdRead = 0;
 				Sts = YES;
@@ -366,7 +371,7 @@ static int AskAsyncDone(SOCKET s, int *Error, int Mask)
 				DoPrintf("### Ask: read (Sts=%d, Error=%d)", Sts, *Error);
 #endif
 			}
-			if((Mask & FD_WRITE_BIT) && (Signal[Pos].FdWrite != 0))
+			if((Mask & FD_WRITE) && (Signal[Pos].FdWrite != 0))
 			{
 				Signal[Pos].FdWrite = 0;
 				Sts = YES;
@@ -382,7 +387,7 @@ static int AskAsyncDone(SOCKET s, int *Error, int Mask)
 
 	if(Pos == MAX_SIGNAL_ENTRY)
 	{
-		if(Mask & FD_CLOSE_BIT)
+		if(Mask & FD_CLOSE)
 		{
 				Sts = YES;
 		}
@@ -662,7 +667,9 @@ struct hostent *do_gethostbyname(const char *Name, char *Buf, int Len, int *Canc
 
 	// UTF-8対応
 //	hAsync = WSAAsyncGetHostByName(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len);
-	hAsync = WSAAsyncGetHostByNameM(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len);
+	// IPv6対応
+//	hAsync = WSAAsyncGetHostByNameM(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len);
+	hAsync = WSAAsyncGetHostByNameIPv6M(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len, AF_INET);
 	if(hAsync != NULL)
 	{
 		RegistAsyncTableDbase(hAsync);
@@ -731,7 +738,7 @@ int do_closesocket(SOCKET s)
 	if(Ret == SOCKET_ERROR)
 	{
 		Error = 0;
-		while((CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_CLOSE_BIT) != YES))
+		while((CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_CLOSE) != YES))
 		{
 			Sleep(1);
 			if(BackgrndMessageProc() == YES)
@@ -778,7 +785,9 @@ int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCh
 #if DBG_MSG
 	DoPrintf("## Async set: FD_CONNECT|FD_CLOSE|FD_ACCEPT|FD_READ|FD_WRITE");
 #endif
-	Ret = WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT | FD_READ | FD_WRITE);
+	// 高速化のためFD_READとFD_WRITEを使用しない
+//	Ret = WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT | FD_READ | FD_WRITE);
+	Ret = WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT);
 	if(Ret != SOCKET_ERROR)
 	{
 		Ret = connect(s, name, namelen);
@@ -787,7 +796,7 @@ int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCh
 			do
 			{
 				Error = 0;
-				while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_CONNECT_BIT) != YES))
+				while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_CONNECT) != YES))
 				{
 					Sleep(1);
 					if(BackgrndMessageProc() == YES)
@@ -859,9 +868,9 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 	Ret2 = INVALID_SOCKET;
 	Error = 0;
 
-	while((CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_ACCEPT_BIT) != YES))
+	while((CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_ACCEPT) != YES))
 	{
-		if(AskAsyncDone(s, &Error, FD_CLOSE_BIT) == YES)
+		if(AskAsyncDone(s, &Error, FD_CLOSE) == YES)
 		{
 			Error = 1;
 			break;
@@ -947,29 +956,30 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 
 	// FTPS対応
 	// OpenSSLでは受信確認はFD_READが複数回受信される可能性がある
-//	while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_READ_BIT) != YES))
-	while(!IsSSLAttached(s) && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_READ_BIT) != YES))
-	{
-		if(AskAsyncDone(s, &Error, FD_CLOSE_BIT) == YES)
-		{
-			Ret = 0;
-			break;
-		}
-		Sleep(1);
-		if(BackgrndMessageProc() == YES)
-			*CancelCheckWork = YES;
-		else if(TimeOut != 0)
-		{
-			time(&ElapseTime);
-			ElapseTime -= StartTime;
-			if(ElapseTime >= TimeOut)
-			{
-				DoPrintf("do_recv timed out");
-				*TimeOutErr = YES;
-				*CancelCheckWork = YES;
-			}
-		}
-	}
+//	while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_READ) != YES))
+	// 短時間にFD_READが2回以上通知される対策
+//	while(!IsSSLAttached(s) && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_READ) != YES))
+//	{
+//		if(AskAsyncDone(s, &Error, FD_CLOSE) == YES)
+//		{
+//			Ret = 0;
+//			break;
+//		}
+//		Sleep(1);
+//		if(BackgrndMessageProc() == YES)
+//			*CancelCheckWork = YES;
+//		else if(TimeOut != 0)
+//		{
+//			time(&ElapseTime);
+//			ElapseTime -= StartTime;
+//			if(ElapseTime >= TimeOut)
+//			{
+//				DoPrintf("do_recv timed out");
+//				*TimeOutErr = YES;
+//				*CancelCheckWork = YES;
+//			}
+//		}
+//	}
 
 	if(/*(Ret != 0) && */(Error == 0) && (*CancelCheckWork == NO) && (*TimeOutErr == NO))
 	{
@@ -1055,11 +1065,11 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 
 	// FTPS対応
 	// 送信バッファの空き確認には影響しないが念のため
-//	while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE_BIT) != YES))
+//	while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE) != YES))
 	// Windows 2000でFD_WRITEが通知されないことがあるバグ修正
-//	while(!IsSSLAttached(s) && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE_BIT) != YES))
+//	while(!IsSSLAttached(s) && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE) != YES))
 //	{
-//		if(AskAsyncDone(s, &Error, FD_CLOSE_BIT) == YES)
+//		if(AskAsyncDone(s, &Error, FD_CLOSE) == YES)
 //		{
 //			Error = 1;
 //			break;
@@ -1145,7 +1155,7 @@ void RemoveReceivedData(SOCKET s)
 	int Error;
 	while((len = recvS(s, buf, sizeof(buf), MSG_PEEK)) >= 0)
 	{
-		AskAsyncDone(s, &Error, FD_READ_BIT);
+		AskAsyncDone(s, &Error, FD_READ);
 		recvS(s, buf, len, 0);
 	}
 }
@@ -1168,7 +1178,7 @@ int CheckClosedAndReconnect(void)
 //SetTaskMsg("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 
 	Sts = FFFTP_SUCCESS;
-	if(AskAsyncDone(AskCmdCtrlSkt(), &Error, FD_CLOSE_BIT) == YES)
+	if(AskAsyncDone(AskCmdCtrlSkt(), &Error, FD_CLOSE) == YES)
 	{
 		Sts = ReConnectCmdSkt();
 	}
@@ -1176,6 +1186,138 @@ int CheckClosedAndReconnect(void)
 }
 
 
+
+// IPv6対応
+
+typedef struct
+{
+	HANDLE h;
+	HWND hWnd;
+	u_int wMsg;
+	char * name;
+	char * buf;
+	int buflen;
+	short Family;
+} GETHOSTBYNAMEDATA;
+
+static DWORD WINAPI WSAAsyncGetHostByNameIPv6ThreadProc(LPVOID lpParameter)
+{
+	GETHOSTBYNAMEDATA* pData;
+	struct hostent* pHost;
+	struct addrinfo* pAddr;
+	struct addrinfo* p;
+	pHost = NULL;
+	pData = (GETHOSTBYNAMEDATA*)lpParameter;
+	if(getaddrinfo(pData->name, NULL, NULL, &pAddr) == 0)
+	{
+		p = pAddr;
+		while(p)
+		{
+			if(p->ai_family == pData->Family)
+			{
+				switch(p->ai_family)
+				{
+				case AF_INET:
+					pHost = (struct hostent*)pData->buf;
+					if((size_t)pData->buflen >= sizeof(struct hostent) + sizeof(char*) * 2 + sizeof(struct in_addr)
+						&& p->ai_addrlen >= sizeof(struct sockaddr_in))
+					{
+						pHost->h_name = NULL;
+						pHost->h_aliases = NULL;
+						pHost->h_addrtype = p->ai_family;
+						pHost->h_length = sizeof(struct in_addr);
+						pHost->h_addr_list = (char**)(&pHost[1]);
+						pHost->h_addr_list[0] = (char*)(&pHost->h_addr_list[2]);
+						pHost->h_addr_list[1] = NULL;
+						memcpy(pHost->h_addr_list[0], &((struct sockaddr_in*)p->ai_addr)->sin_addr, sizeof(struct in_addr));
+						PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(sizeof(struct hostent) + sizeof(char*) * 2 + p->ai_addrlen));
+					}
+					else
+						PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(WSAENOBUFS << 16));
+					break;
+				case AF_INET6:
+					pHost = (struct hostent*)pData->buf;
+					if((size_t)pData->buflen >= sizeof(struct hostent) + sizeof(char*) * 2 + sizeof(struct in6_addr)
+						&& p->ai_addrlen >= sizeof(struct sockaddr_in6))
+					{
+						pHost->h_name = NULL;
+						pHost->h_aliases = NULL;
+						pHost->h_addrtype = p->ai_family;
+						pHost->h_length = sizeof(struct in6_addr);
+						pHost->h_addr_list = (char**)(&pHost[1]);
+						pHost->h_addr_list[0] = (char*)(&pHost->h_addr_list[2]);
+						pHost->h_addr_list[1] = NULL;
+						memcpy(pHost->h_addr_list[0], &((struct sockaddr_in6*)p->ai_addr)->sin6_addr, sizeof(struct in6_addr));
+						PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(sizeof(struct hostent) + sizeof(char*) * 2 + p->ai_addrlen));
+					}
+					else
+						PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(WSAENOBUFS << 16));
+					break;
+				}
+			}
+			if(pHost)
+				break;
+			p = p->ai_next;
+		}
+		if(!p)
+			PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(ERROR_INVALID_FUNCTION << 16));
+		freeaddrinfo(pAddr);
+	}
+	else
+		PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(ERROR_INVALID_FUNCTION << 16));
+	free(pData->name);
+	free(pData);
+	// CreateThreadが返すハンドルが重複するのを回避
+	Sleep(10000);
+	return 0;
+}
+
+// IPv6対応のWSAAsyncGetHostByName相当の関数
+// FamilyにはAF_INETまたはAF_INET6を指定可能
+// ただしANSI用
+static HANDLE WSAAsyncGetHostByNameIPv6(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen, short Family)
+{
+	HANDLE hResult;
+	GETHOSTBYNAMEDATA* pData;
+	hResult = NULL;
+	if(pData = malloc(sizeof(GETHOSTBYNAMEDATA)))
+	{
+		pData->hWnd = hWnd;
+		pData->wMsg = wMsg;
+		if(pData->name = malloc(sizeof(char) * (strlen(name) + 1)))
+		{
+			strcpy(pData->name, name);
+			pData->buf = buf;
+			pData->buflen = buflen;
+			pData->Family = Family;
+			if(pData->h = CreateThread(NULL, 0, WSAAsyncGetHostByNameIPv6ThreadProc, pData, CREATE_SUSPENDED, NULL))
+			{
+				ResumeThread(pData->h);
+				hResult = pData->h;
+			}
+		}
+	}
+	if(!hResult)
+	{
+		if(pData)
+		{
+			if(pData->name)
+				free(pData->name);
+			free(pData);
+		}
+	}
+	return hResult;
+}
+
+// WSAAsyncGetHostByNameIPv6用のWSACancelAsyncRequest相当の関数
+int WSACancelAsyncRequestIPv6(HANDLE hAsyncTaskHandle)
+{
+	int Result;
+	Result = SOCKET_ERROR;
+	if(TerminateThread(hAsyncTaskHandle, 0))
+		Result = 0;
+	return Result;
+}
 
 // UTF-8対応
 
@@ -1274,6 +1416,19 @@ static HANDLE WSAAsyncGetHostByNameM(HWND hWnd, u_int wMsg, const char * name, c
 	{
 		if(ConvertNameToPunycode(pa0, name))
 			r = WSAAsyncGetHostByName(hWnd, wMsg, pa0, buf, buflen);
+	}
+	FreeDuplicatedString(pa0);
+	return r;
+}
+
+static HANDLE WSAAsyncGetHostByNameIPv6M(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen, short Family)
+{
+	HANDLE r = NULL;
+	char* pa0 = NULL;
+	if(pa0 = AllocateStringA(strlen(name) * 4))
+	{
+		if(ConvertNameToPunycode(pa0, name))
+			r = WSAAsyncGetHostByNameIPv6(hWnd, wMsg, pa0, buf, buflen, Family);
 	}
 	FreeDuplicatedString(pa0);
 	return r;

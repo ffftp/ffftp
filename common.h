@@ -946,6 +946,7 @@ typedef struct {
 	char PrivateKey[PRIVATE_KEY_LEN+1];	/* テキスト形式の秘密鍵 */
 	// 同時接続対応
 	int MaxThreadCount;					/* 同時接続数 */
+	int ReuseCmdSkt;					/* メインウィンドウのソケットを再利用する (YES/NO) */
 	// FEAT対応
 	int Feature;						/* 利用可能な機能のフラグ (FEATURE_xxx) */
 	// MLSD対応
@@ -1006,6 +1007,7 @@ typedef struct historydata {
 	char PrivateKey[PRIVATE_KEY_LEN+1];	/* テキスト形式の秘密鍵 */
 	// 同時接続対応
 	int MaxThreadCount;					/* 同時接続数 */
+	int ReuseCmdSkt;					/* メインウィンドウのソケットを再利用する (YES/NO) */
 	// MLSD対応
 	int UseMLSD;						/* "MLSD"コマンドを使用する */
 	// IPv6対応
@@ -1428,6 +1430,7 @@ int AskUseSFTP(void);
 char *AskPrivateKey(void);
 // 同時接続対応
 int AskMaxThreadCount(void);
+int AskReuseCmdSkt(void);
 // FEAT対応
 int AskHostFeature(void);
 // MLSD対応

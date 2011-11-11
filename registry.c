@@ -479,6 +479,7 @@ void SaveRegistory(void)
 							SaveStr(hKey5, "PKey", Str, DefaultHist.PrivateKey);
 							// 同時接続対応
 							SaveIntNum(hKey5, "ThreadCount", Hist.MaxThreadCount, DefaultHist.MaxThreadCount);
+							SaveIntNum(hKey5, "ReuseCmdSkt", Hist.ReuseCmdSkt, DefaultHist.ReuseCmdSkt);
 							// MLSD対応
 							SaveIntNum(hKey5, "MLSD", Hist.UseMLSD, DefaultHist.UseMLSD);
 							// IPv6対応
@@ -560,6 +561,7 @@ void SaveRegistory(void)
 							SaveStr(hKey5, "PKey", Str, DefaultHost.PrivateKey);
 							// 同時接続対応
 							SaveIntNum(hKey5, "ThreadCount", Host.MaxThreadCount, DefaultHost.MaxThreadCount);
+							SaveIntNum(hKey5, "ReuseCmdSkt", Host.ReuseCmdSkt, DefaultHost.ReuseCmdSkt);
 							// MLSD対応
 							SaveIntNum(hKey5, "MLSD", Host.UseMLSD, DefaultHost.UseMLSD);
 							// IPv6対応
@@ -832,6 +834,7 @@ int LoadRegistory(void)
 					DecodePassword(Str, Hist.PrivateKey);
 					// 同時接続対応
 					ReadIntValueFromReg(hKey5, "ThreadCount", &Hist.MaxThreadCount);
+					ReadIntValueFromReg(hKey5, "ReuseCmdSkt", &Hist.ReuseCmdSkt);
 					// MLSD対応
 					ReadIntValueFromReg(hKey5, "MLSD", &Hist.UseMLSD);
 					// IPv6対応
@@ -922,6 +925,7 @@ int LoadRegistory(void)
 					DecodePassword(Str, Host.PrivateKey);
 					// 同時接続対応
 					ReadIntValueFromReg(hKey5, "ThreadCount", &Host.MaxThreadCount);
+					ReadIntValueFromReg(hKey5, "ReuseCmdSkt", &Host.ReuseCmdSkt);
 					// MLSD対応
 					ReadIntValueFromReg(hKey5, "MLSD", &Host.UseMLSD);
 					// IPv6対応

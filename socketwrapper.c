@@ -70,7 +70,7 @@ _X509_print_ex p_X509_print_ex;
 _X509_get_subject_name p_X509_get_subject_name;
 _X509_NAME_print_ex p_X509_NAME_print_ex;
 
-#define MAX_SSL_SOCKET 64
+#define MAX_SSL_SOCKET 16
 
 BOOL g_bOpenSSLLoaded;
 HMODULE g_hOpenSSL;

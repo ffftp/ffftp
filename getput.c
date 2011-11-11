@@ -41,7 +41,9 @@
 #include <string.h>
 #include <mbstring.h>
 #include <time.h>
-#include <winsock.h>
+// IPv6対応
+//#include <winsock.h>
+#include <winsock2.h>
 #include <windowsx.h>
 #include <commctrl.h>
 #include <process.h>
@@ -711,44 +713,53 @@ static ULONG WINAPI TransferThread(void *Dummy)
 			free(Pos);
 		}
 		NewCmdSkt = AskCmdCtrlSkt();
-		if(TransPacketBase && NewCmdSkt != INVALID_SOCKET && ThreadCount < AskMaxThreadCount())
+		if(AskReuseCmdSkt() == YES && ThreadCount == 0)
 		{
-			if(TrnSkt == INVALID_SOCKET || NewCmdSkt != CmdSkt)
-			{
-				ReleaseMutex(hListAccMutex);
-				ReConnectTrnSkt(&TrnSkt, &Canceled[ThreadCount]);
-				// 同時ログイン数制限に引っかかった可能性あり
-				// 負荷を下げるためにしばらく待機
-				if(TrnSkt == INVALID_SOCKET)
-				{
-					i = 10000;
-					while(NewCmdSkt != CmdSkt && i > 0)
-					{
-						BackgrndMessageProc();
-						Sleep(1);
-						i--;
-					}
-				}
-//				WaitForSingleObject(hListAccMutex, INFINITE);
-				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
-				{
-					BackgrndMessageProc();
-					Sleep(1);
-				}
-			}
+			if(TransPacketBase && ThreadCount < AskMaxThreadCount())
+				TrnSkt = AskTrnCtrlSkt();
 		}
 		else
 		{
-			if(TrnSkt != INVALID_SOCKET)
+			if(TransPacketBase && NewCmdSkt != INVALID_SOCKET && ThreadCount < AskMaxThreadCount())
 			{
-				ReleaseMutex(hListAccMutex);
-				DoClose(TrnSkt);
-				TrnSkt = INVALID_SOCKET;
-//				WaitForSingleObject(hListAccMutex, INFINITE);
-				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+				if(TrnSkt == INVALID_SOCKET || NewCmdSkt != CmdSkt)
 				{
-					BackgrndMessageProc();
-					Sleep(1);
+					ReleaseMutex(hListAccMutex);
+					ReConnectTrnSkt(&TrnSkt, &Canceled[ThreadCount]);
+					// 同時ログイン数制限に引っかかった可能性あり
+					// 負荷を下げるためにしばらく待機
+					if(TrnSkt == INVALID_SOCKET)
+					{
+						i = 10000;
+						while(NewCmdSkt != CmdSkt && i > 0)
+						{
+							BackgrndMessageProc();
+							Sleep(1);
+							i--;
+						}
+					}
+//					WaitForSingleObject(hListAccMutex, INFINITE);
+					while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+					{
+						BackgrndMessageProc();
+						Sleep(1);
+					}
+				}
+			}
+			else
+			{
+				if(TrnSkt != INVALID_SOCKET)
+				{
+					ReleaseMutex(hListAccMutex);
+					SendData(TrnSkt, "QUIT\r\n", 6, 0, &Canceled[ThreadCount]);
+					DoClose(TrnSkt);
+					TrnSkt = INVALID_SOCKET;
+//					WaitForSingleObject(hListAccMutex, INFINITE);
+					while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+					{
+						BackgrndMessageProc();
+						Sleep(1);
+					}
 				}
 			}
 		}
@@ -1017,7 +1028,8 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //			else if(strcmp(TransPacketBase->Cmd, "SETCUR") == 0)
 			else if(strcmp(Pos->Cmd, "SETCUR") == 0)
 			{
-				if(AskShareProh() == YES)
+//				if(AskShareProh() == YES)
+				if(AskReuseCmdSkt() == NO || AskShareProh() == YES)
 				{
 //					if(strcmp(CurDir, TransPacketBase->RemoteFile) != 0)
 					if(strcmp(CurDir[Pos->ThreadCount], Pos->RemoteFile) != 0)
@@ -1038,7 +1050,8 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //			else if(strcmp(TransPacketBase->Cmd, "BACKCUR") == 0)
 			else if(strcmp(Pos->Cmd, "BACKCUR") == 0)
 			{
-				if(AskShareProh() == NO)
+//				if(AskShareProh() == NO)
+				if(AskReuseCmdSkt() == YES && AskShareProh() == NO)
 				{
 //					if(strcmp(CurDir, TransPacketBase->RemoteFile) != 0)
 //						CommandProcTrn(NULL, "CWD %s", TransPacketBase->RemoteFile);
@@ -1172,8 +1185,14 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				Sleep(100);
 		}
 	}
-	if(TrnSkt != INVALID_SOCKET)
-		DoClose(TrnSkt);
+	if(AskReuseCmdSkt() == NO || ThreadCount > 0)
+	{
+		if(TrnSkt != INVALID_SOCKET)
+		{
+			SendData(TrnSkt, "QUIT\r\n", 6, 0, &Canceled[ThreadCount]);
+			DoClose(TrnSkt);
+		}
+	}
 	return 0;
 }
 
@@ -3713,6 +3732,59 @@ static int GetAdrsAndPort(char *Str, char *Adrs, int *Port, int Max)
 								Sts = FFFTP_SUCCESS;
 							}
 						}
+					}
+				}
+			}
+		}
+	}
+	return(Sts);
+}
+
+
+// IPv6対応
+static int GetAdrsAndPortIPv6(char *Str, char *Adrs, int *Port, int Max, short *Family)
+{
+	char *Pos;
+	char *Btm;
+	int Sts;
+
+	Sts = FFFTP_FAIL;
+
+	Pos = strchr(Str, '|');
+	if(Pos != NULL)
+	{
+		Pos++;
+		Btm = strchr(Pos, '|');
+		if(Btm != NULL)
+		{
+			switch(atoi(Pos))
+			{
+			case 1:
+				*Family = AF_INET;
+				break;
+			case 2:
+				*Family = AF_INET6;
+				break;
+			}
+			Pos = Btm + 1;
+			Btm = strchr(Pos, '|');
+			if(Btm != NULL)
+			{
+				if((Btm - Pos) <= Max)
+				{
+					if((Btm - Pos) > 0)
+					{
+						strncpy(Adrs, Pos, Btm - Pos);
+						*(Adrs + (Btm - Pos)) = NUL;
+					}
+
+					Pos = Btm + 1;
+					Btm = strchr(Pos, '|');
+					if(Btm != NULL)
+					{
+						Btm++;
+						*Port = atoi(Pos);
+						Sts = FFFTP_SUCCESS;
 					}
 				}
 			}

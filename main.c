@@ -218,8 +218,6 @@ int MirUpDelNotify = YES;
 int MirDownDelNotify = YES; 
 int FolderAttr = NO;
 int FolderAttrNum = 777;
-// 同時接続対応
-int MaxThreadCount = 1;
 // 暗号化通信対応
 BYTE CertificateCacheHash[MAX_CERT_CACHE_HASH][20];
 
