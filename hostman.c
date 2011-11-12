@@ -1298,6 +1298,8 @@ void CopyDefaultHost(HOSTDATA *Set)
 	Set->KanjiCode = KANJI_NOCNV;
 	Set->KanaCnv = YES;
 	Set->NameKanjiCode = KANJI_NOCNV;
+	// UTF-8対応
+	Set->CurNameKanjiCode = KANJI_NOCNV;
 	Set->NameKanaCnv = NO;
 	Set->Pasv = YES;
 	Set->FireWall = NO;

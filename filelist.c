@@ -5507,6 +5507,7 @@ int AnalyzeNameKanjiCode(int Num)
 		{
 			if((ListType = AnalizeFileInfo(Str)) != LIST_UNKNOWN)
 			{
+				strcpy(Name, "");
 				Node = ResolvFileInfo(Str, ListType | LIST_RAW_NAME, Name, &Size, &Time, &Attr, Owner, &Link, &InfoExist);
 				p = Name;
 				while(*p != '\0')

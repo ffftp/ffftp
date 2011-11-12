@@ -921,6 +921,8 @@ typedef struct {
 	int KanjiCode;						/* ホストの漢字コード (KANJI_xxx) */
 	int KanaCnv;						/* 半角カナを全角に変換(YES/NO) */
 	int NameKanjiCode;					/* ファイル名の漢字コード (KANJI_xxx) */
+	// UTF-8対応
+	int CurNameKanjiCode;				/* 自動判別後のファイル名の漢字コード (KANJI_xxx) */
 	int NameKanaCnv;					/* ファイル名の半角カナを全角に変換(YES/NO) */
 	int Pasv;							/* PASVモード (YES/NO) */
 	int FireWall;						/* FireWallを使う (YES/NO) */
