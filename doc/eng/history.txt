@@ -6,6 +6,19 @@ Changes in Ver.1.99
 -- MLSD command became used for retrieving filenames on appropriate hosts.
    That is helpful for hosts that do not return filenames properly.
 
+-- Enhanced communication routines to reduce waiting time.
+
+-- Changed to display responses from hosts after decoding as Kanji code of
+   filenames.
+
+-- Fixed bugs of arbitrary code execution in saving registry settings to a
+   file.
+
+-- Fixed bugs of launching wrong files if correct ones contain no extensions.
+
+-- Internet Protocol Version 6 became available.
+   IPv6 will be used when name resolution for IPv4 is unavailable.
+
 Changes in Ver.1.98c
 --------------------
 

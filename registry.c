@@ -2351,7 +2351,6 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 				Sts = FFFTP_SUCCESS;
 				if(!CheckStringM(Str))
 					break;
-				Str = Str;
 				// UTF-8ではない可能性がある
 				// Shift_JISとみなす
 			case KANJI_SJIS:

@@ -182,7 +182,8 @@ void DispFileProperty(char *Fname)
 {
 	SHELLEXECUTEINFO sInfo;
 	// 異なるファイルが表示されるバグ修正
-	// 詳細は不明だが末尾に半角スペースを置くと拡張子の補完がされなくなる
+	// UNCでない場合に末尾に半角スペースを置くと拡張子の補完がされなくなる
+	// 現在UNC対応の予定は無い
 	char Fname2[FMAX_PATH+1];
 
 	memset(&sInfo, NUL, sizeof(SHELLEXECUTEINFO));

@@ -651,7 +651,9 @@ static int UnRegistAsyncTableDbase(HANDLE Async)
 
 
 
-struct hostent *do_gethostbyname(const char *Name, char *Buf, int Len, int *CancelCheckWork)
+// IPv6対応
+//struct hostent *do_gethostbyname(const char *Name, char *Buf, int Len, int *CancelCheckWork)
+struct hostent *do_gethostbynameIPv4(const char *Name, char *Buf, int Len, int *CancelCheckWork)
 {
 #if USE_THIS
 	struct hostent *Ret;
@@ -667,9 +669,51 @@ struct hostent *do_gethostbyname(const char *Name, char *Buf, int Len, int *Canc
 
 	// UTF-8対応
 //	hAsync = WSAAsyncGetHostByName(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len);
-	// IPv6対応
-//	hAsync = WSAAsyncGetHostByNameM(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len);
-	hAsync = WSAAsyncGetHostByNameIPv6M(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len, AF_INET);
+	hAsync = WSAAsyncGetHostByNameM(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len);
+	if(hAsync != NULL)
+	{
+		RegistAsyncTableDbase(hAsync);
+		while((*CancelCheckWork == NO) && (AskAsyncDoneDbase(hAsync, &Error) != YES))
+		{
+			Sleep(1);
+			if(BackgrndMessageProc() == YES)
+				*CancelCheckWork = YES;
+		}
+
+		if(*CancelCheckWork == YES)
+		{
+			WSACancelAsyncRequest(hAsync);
+		}
+		else if(Error == 0)
+		{
+			Ret = (struct hostent *)Buf;
+		}
+		UnRegistAsyncTableDbase(hAsync);
+	}
+	return(Ret);
+#else
+	return(gethostbyname(Name));
+#endif
+}
+
+
+struct hostent *do_gethostbynameIPv6(const char *Name, char *Buf, int Len, int *CancelCheckWork)
+{
+#if USE_THIS
+	struct hostent *Ret;
+	HANDLE hAsync;
+	int Error;
+
+#if DBG_MSG
+	DoPrintf("# Start gethostbyname");
+#endif
+	Ret = NULL;
+	// 同時接続対応
+//	*CancelCheckWork = NO;
+
+	// UTF-8対応
+//	hAsync = WSAAsyncGetHostByName(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len);
+	hAsync = WSAAsyncGetHostByNameIPv6M(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len, AF_INET6);
 	if(hAsync != NULL)
 	{
 		RegistAsyncTableDbase(hAsync);
@@ -1316,6 +1360,113 @@ int WSACancelAsyncRequestIPv6(HANDLE hAsyncTaskHandle)
 	Result = SOCKET_ERROR;
 	if(TerminateThread(hAsyncTaskHandle, 0))
 		Result = 0;
+	return Result;
+}
+
+char* AddressToStringIPv6(char* str, void* in6)
+{
+	char* pResult;
+	unsigned char* p;
+	int MaxZero;
+	int MaxZeroLen;
+	int i;
+	int j;
+	char Tmp[5];
+	pResult = str;
+	p = (unsigned char*)in6;
+	MaxZero = 8;
+	MaxZeroLen = 1;
+	for(i = 0; i < 8; i++)
+	{
+		for(j = i; j < 8; j++)
+		{
+			if(p[j * 2] != 0 || p[j * 2 + 1] != 0)
+				break;
+		}
+		if(j - i > MaxZeroLen)
+		{
+			MaxZero = i;
+			MaxZeroLen = j - i;
+		}
+	}
+	strcpy(str, "");
+	for(i = 0; i < 8; i++)
+	{
+		if(i == MaxZero)
+		{
+			if(i == 0)
+				strcat(str, ":");
+			strcat(str, ":");
+		}
+		else if(i < MaxZero || i >= MaxZero + MaxZeroLen)
+		{
+			sprintf(Tmp, "%x", (((int)p[i * 2] & 0xff) << 8) | ((int)p[i * 2 + 1] & 0xff));
+			strcat(str, Tmp);
+			if(i < 7)
+				strcat(str, ":");
+		}
+	}
+	return pResult;
+}
+
+// IPv6対応のinet_ntoa相当の関数
+// ただしANSI用
+char* inet6_ntoa(struct in6_addr in6)
+{
+	char* pResult;
+	static char Adrs[40];
+	pResult = NULL;
+	memset(Adrs, 0, sizeof(Adrs));
+	pResult = AddressToStringIPv6(Adrs, &in6);
+	return pResult;
+}
+
+// IPv6対応のinet_addr相当の関数
+// ただしANSI用
+struct in6_addr inet6_addr(const char* cp)
+{
+	struct in6_addr Result;
+	int AfterZero;
+	int i;
+	char* p;
+	memset(&Result, 0, sizeof(Result));
+	AfterZero = 0;
+	for(i = 0; i < 8; i++)
+	{
+		if(!cp)
+		{
+			memset(&Result, 0xff, sizeof(Result));
+			break;
+		}
+		if(i >= AfterZero)
+		{
+			if(strncmp(cp, ":", 1) == 0)
+			{
+				cp = cp + 1;
+				if(i == 0 && strncmp(cp, ":", 1) == 0)
+					cp = cp + 1;
+				p = (char*)cp;
+				AfterZero = 7;
+				while(p = strstr(p, ":"))
+				{
+					p = p + 1;
+					AfterZero--;
+				}
+			}
+			else
+			{
+				Result.u.Word[i] = (USHORT)strtol(cp, &p, 16);
+				Result.u.Word[i] = ((Result.u.Word[i] & 0xff00) >> 8) | ((Result.u.Word[i] & 0x00ff) << 8);
+				if(strncmp(p, ":", 1) != 0 && strlen(p) > 0)
+				{
+					memset(&Result, 0xff, sizeof(Result));
+					break;
+				}
+				if(cp = strstr(cp, ":"))
+					cp = cp + 1;
+			}
+		}
+	}
 	return Result;
 }
 

@@ -1328,6 +1328,7 @@ void CopyDefaultHost(HOSTDATA *Set)
 	Set->Feature = 0;
 	Set->UseMLSD = YES;
 	// IPv6対応
+	Set->InetFamily = AF_UNSPEC;
 	Set->UseIPv6 = YES;
 	return;
 }

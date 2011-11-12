@@ -952,6 +952,7 @@ typedef struct {
 	// MLSD対応
 	int UseMLSD;						/* "MLSD"コマンドを使用する */
 	// IPv6対応
+	int InetFamily;						/* IPv6接続かどうか (AF_INET/AF_INET6) */
 	int UseIPv6;						/* IPv6接続を許可しEPRT/EPSVコマンドを使用する */
 } HOSTDATA;
 
@@ -1181,9 +1182,11 @@ typedef struct {
 	char Rsv;				/* （予約） */
 	char Type;				/* アドレスのタイプ */
 							/* 以後（可変長部分） */
-	ulong AdrsInt;			/* アドレス */
-	ushort Port;			/* ポート */
-	char _dummy[2];			/* dummy */
+	// IPv6対応
+//	ulong AdrsInt;			/* アドレス */
+//	ushort Port;			/* ポート */
+//	char _dummy[2];			/* dummy */
+	char _dummy[255+1+2];	/* dummy */
 } SOCKS5REPLY;
 
 #define SOCKS5REPLY_SIZE 4	/* 最初の固定部分のサイズ */
@@ -1416,7 +1419,13 @@ void DisconnectProc(void);
 void DisconnectSet(void);
 int AskConnecting(void);
 SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork);
+// IPv6対応
+SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork);
+SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork);
 SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork);
+// IPv6対応
+SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork);
+SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
 // 同時接続対応
 //int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data);
@@ -1436,6 +1445,7 @@ int AskHostFeature(void);
 // MLSD対応
 int AskUseMLSD(void);
 // IPv6対応
+int AskInetFamily(void);
 int AskUseIPv6(void);
 
 /*===== cache.c =====*/
@@ -1724,7 +1734,10 @@ char *AskLocalFreeSpace(char *Path);
 
 int MakeSocketWin(HWND hWnd, HINSTANCE hInst);
 void DeleteSocketWin(void);
-struct hostent *do_gethostbyname(const char *Name, char *Buf, int Len, int *CancelCheckWork);
+// IPv6対応
+//struct hostent *do_gethostbyname(const char *Name, char *Buf, int Len, int *CancelCheckWork);
+struct hostent *do_gethostbynameIPv4(const char *Name, char *Buf, int Len, int *CancelCheckWork);
+struct hostent *do_gethostbynameIPv6(const char *Name, char *Buf, int Len, int *CancelCheckWork);
 SOCKET do_socket(int af, int type, int protocol);
 int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCheckWork);
 int do_closesocket(SOCKET s);
@@ -1736,6 +1749,10 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 void RemoveReceivedData(SOCKET s);
 int CheckClosedAndReconnect(void);
 void CheckAllEventClosed(void);
+// IPv6対応
+char* AddressToStringIPv6(char* str, void* in6);
+char* inet6_ntoa(struct in6_addr in6);
+struct in6_addr inet6_addr(const char* cp);
 
 /*===== updatebell.c =====*/
 

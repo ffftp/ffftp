@@ -43,7 +43,7 @@
 #include <time.h>
 // IPv6対応
 //#include <winsock.h>
-#include <winsock2.h>
+#include <ws2tcpip.h>
 #include <windowsx.h>
 #include <commctrl.h>
 #include <process.h>
@@ -104,7 +104,11 @@ static int SetUploadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *M
 static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
 static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt);
 static void DispTransFileInfo(TRANSPACKET *Pkt, char *Title, int SkipButton, int Info);
-static int GetAdrsAndPort(char *Str, char *Adrs, int *Port, int Max);
+// IPv6対応
+//static int GetAdrsAndPort(char *Str, char *Adrs, int *Port, int Max);
+static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max);
+static int GetAdrsAndPortIPv4(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max);
+static int GetAdrsAndPortIPv6(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max);
 static int IsSpecialDevice(char *Fname);
 static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt);
 static BOOL CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
@@ -1316,7 +1320,10 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	SOCKET listen_socket = INVALID_SOCKET; // data listen socket
 	char Buf[1024];
 	int CreateMode;
-	struct sockaddr_in saSockAddr1;
+	// IPv6対応
+//	struct sockaddr_in saSockAddr1;
+	struct sockaddr_in saSockAddrIPv4;
+	struct sockaddr_in6 saSockAddrIPv6;
 	char Reply[ERR_MSG_LEN+7];
 
 	if((listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, CancelCheckWork)) != INVALID_SOCKET)
@@ -1331,8 +1338,20 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 //				if(SocksGet2ndBindReply(listen_socket, &data_socket) == FFFTP_FAIL)
 				if(SocksGet2ndBindReply(listen_socket, &data_socket, CancelCheckWork) == FFFTP_FAIL)
 				{
-					iLength = sizeof(saSockAddr1);
-					data_socket = do_accept(listen_socket, (struct sockaddr *)&saSockAddr1, (int *)&iLength);
+					// IPv6対応
+//					iLength = sizeof(saSockAddr1);
+//					data_socket = do_accept(listen_socket, (struct sockaddr *)&saSockAddr1, (int *)&iLength);
+					switch(AskInetFamily())
+					{
+					case AF_INET:
+						iLength=sizeof(saSockAddrIPv4);
+						data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddrIPv4, (int *)&iLength);
+						break;
+					case AF_INET6:
+						iLength=sizeof(saSockAddrIPv6);
+						data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddrIPv6, (int *)&iLength);
+						break;
+					}
 
 					if(shutdown(listen_socket, 1) != 0)
 						ReportWSError("shutdown listen", WSAGetLastError());
@@ -1345,7 +1364,19 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 						iRetCode = 500;
 					}
 					else
-						DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet_ntoa(saSockAddr1.sin_addr), ntohs(saSockAddr1.sin_port));
+						// IPv6対応
+//						DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet_ntoa(saSockAddr1.sin_addr), ntohs(saSockAddr1.sin_port));
+					{
+						switch(AskInetFamily())
+						{
+						case AF_INET:
+							DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet_ntoa(saSockAddrIPv4.sin_addr), ntohs(saSockAddrIPv4.sin_port));
+							break;
+						case AF_INET6:
+							DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet6_ntoa(saSockAddrIPv6.sin6_addr), ntohs(saSockAddrIPv6.sin6_port));
+							break;
+						}
+					}
 				}
 
 				if(data_socket != INVALID_SOCKET)
@@ -1403,15 +1434,29 @@ static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
 	char Buf[1024];
 	int CreateMode;
-	char Adrs[20];
+	// IPv6対応
+//	char Adrs[20];
+	char Adrs[40];
 	int Port;
 	int Flg;
 	char Reply[ERR_MSG_LEN+7];
 
-	iRetCode = command(Pkt->ctrl_skt, Buf, CancelCheckWork, "PASV");
+	// IPv6対応
+//	iRetCode = command(Pkt->ctrl_skt, Buf, CancelCheckWork, "PASV");
+	switch(AskInetFamily())
+	{
+	case AF_INET:
+		iRetCode = command(Pkt->ctrl_skt, Buf, CancelCheckWork, "PASV");
+		break;
+	case AF_INET6:
+		iRetCode = command(Pkt->ctrl_skt, Buf, CancelCheckWork, "EPSV");
+		break;
+	}
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
-		if(GetAdrsAndPort(Buf, Adrs, &Port, 19) == FFFTP_SUCCESS)
+		// IPv6対応
+//		if(GetAdrsAndPort(Buf, Adrs, &Port, 19) == FFFTP_SUCCESS)
+		if(GetAdrsAndPort(Pkt->ctrl_skt, Buf, Adrs, &Port, 39) == FFFTP_SUCCESS)
 		{
 			if((data_socket = connectsock(Adrs, Port, MSGJPN091, CancelCheckWork)) != INVALID_SOCKET)
 			{
@@ -2475,7 +2520,10 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
 	SOCKET listen_socket = INVALID_SOCKET; // data listen socket
 	char Buf[1024];
-	struct sockaddr_in saSockAddr1;
+	// IPv6対応
+//	struct sockaddr_in saSockAddr1;
+	struct sockaddr_in saSockAddrIPv4;
+	struct sockaddr_in6 saSockAddrIPv6;
 	int Resume;
 	char Reply[ERR_MSG_LEN+7];
 
@@ -2498,8 +2546,20 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 //			if(SocksGet2ndBindReply(listen_socket, &data_socket) == FFFTP_FAIL)
 			if(SocksGet2ndBindReply(listen_socket, &data_socket, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
 			{
-				iLength=sizeof(saSockAddr1);
-				data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddr1, (int *)&iLength);
+				// IPv6対応
+//				iLength=sizeof(saSockAddr1);
+//				data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddr1, (int *)&iLength);
+				switch(AskInetFamily())
+				{
+				case AF_INET:
+					iLength=sizeof(saSockAddrIPv4);
+					data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddrIPv4, (int *)&iLength);
+					break;
+				case AF_INET6:
+					iLength=sizeof(saSockAddrIPv6);
+					data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddrIPv6, (int *)&iLength);
+					break;
+				}
 
 				if(shutdown(listen_socket, 1) != 0)
 					ReportWSError("shutdown listen", WSAGetLastError());
@@ -2512,7 +2572,19 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 					iRetCode = 500;
 				}
 				else
-					DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet_ntoa(saSockAddr1.sin_addr), ntohs(saSockAddr1.sin_port));
+					// IPv6対応
+//					DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet_ntoa(saSockAddr1.sin_addr), ntohs(saSockAddr1.sin_port));
+				{
+					switch(AskInetFamily())
+					{
+					case AF_INET:
+						DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet_ntoa(saSockAddrIPv4.sin_addr), ntohs(saSockAddrIPv4.sin_port));
+						break;
+					case AF_INET6:
+						DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet6_ntoa(saSockAddrIPv6.sin6_addr), ntohs(saSockAddrIPv6.sin6_port));
+						break;
+					}
+				}
 			}
 
 			if(data_socket != INVALID_SOCKET)
@@ -2566,7 +2638,9 @@ static int UpLoadPassive(TRANSPACKET *Pkt)
 	int iRetCode;
 	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
 	char Buf[1024];
-	char Adrs[20];
+	// IPv6対応
+//	char Adrs[20];
+	char Adrs[40];
 	int Port;
 	int Flg;
 	int Resume;
@@ -2574,10 +2648,22 @@ static int UpLoadPassive(TRANSPACKET *Pkt)
 
 	// 同時接続対応
 //	iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled, "PASV");
-	iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled[Pkt->ThreadCount], "PASV");
+	// IPv6対応
+//	iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled[Pkt->ThreadCount], "PASV");
+	switch(AskInetFamily())
+	{
+	case AF_INET:
+		iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled[Pkt->ThreadCount], "PASV");
+		break;
+	case AF_INET6:
+		iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled[Pkt->ThreadCount], "EPSV");
+		break;
+	}
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
-		if(GetAdrsAndPort(Buf, Adrs, &Port, 19) == FFFTP_SUCCESS)
+		// IPv6対応
+//		if(GetAdrsAndPort(Buf, Adrs, &Port, 19) == FFFTP_SUCCESS)
+		if(GetAdrsAndPort(Pkt->ctrl_skt, Buf, Adrs, &Port, 39) == FFFTP_SUCCESS)
 		{
 			// 同時接続対応
 //			if((data_socket = connectsock(Adrs, Port, MSGJPN109, &Canceled)) != INVALID_SOCKET)
@@ -3675,7 +3761,26 @@ static void DispTransFileInfo(TRANSPACKET *Pkt, char *Title, int SkipButton, int
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static int GetAdrsAndPort(char *Str, char *Adrs, int *Port, int Max)
+static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max)
+{
+	int Result;
+	Result = FFFTP_FAIL;
+	switch(AskInetFamily())
+	{
+	case AF_INET:
+		Result = GetAdrsAndPortIPv4(Skt, Str, Adrs, Port, Max);
+		break;
+	case AF_INET6:
+		Result = GetAdrsAndPortIPv6(Skt, Str, Adrs, Port, Max);
+		break;
+	}
+	return Result;
+}
+
+
+// IPv6対応
+//static int GetAdrsAndPort(char *Str, char *Adrs, int *Port, int Max)
+static int GetAdrsAndPortIPv4(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max)
 {
 	char *Pos;
 	char *Btm;
@@ -3742,49 +3847,55 @@ static int GetAdrsAndPort(char *Str, char *Adrs, int *Port, int Max)
 
 
 // IPv6対応
-static int GetAdrsAndPortIPv6(char *Str, char *Adrs, int *Port, int Max, short *Family)
+static int GetAdrsAndPortIPv6(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max)
 {
 	char *Pos;
 	char *Btm;
 	int Sts;
+	int i;
+	struct sockaddr_in6 SockAddr;
 
 	Sts = FFFTP_FAIL;
 
-	Pos = strchr(Str, '|');
-	if(Pos != NULL)
+	Btm = strchr(Str, '(');
+	if(Btm != NULL)
 	{
-		Pos++;
-		Btm = strchr(Pos, '|');
+		Btm++;
+		Btm = strchr(Btm, '|');
 		if(Btm != NULL)
 		{
-			switch(atoi(Pos))
-			{
-			case 1:
-				*Family = AF_INET;
-				break;
-			case 2:
-				*Family = AF_INET6;
-				break;
-			}
 			Pos = Btm + 1;
 			Btm = strchr(Pos, '|');
 			if(Btm != NULL)
 			{
-				if((Btm - Pos) <= Max)
+				Pos = Btm + 1;
+				Btm = strchr(Pos, '|');
+				if(Btm != NULL)
 				{
-					if((Btm - Pos) > 0)
+					if((Btm - Pos) <= Max)
 					{
-						strncpy(Adrs, Pos, Btm - Pos);
-						*(Adrs + (Btm - Pos)) = NUL;
-					}
+						if((Btm - Pos) > 0)
+						{
+							strncpy(Adrs, Pos, Btm - Pos);
+							*(Adrs + (Btm - Pos)) = NUL;
+						}
+						else
+						{
+							i = sizeof(SockAddr);
+							if(getpeername(Skt, (struct sockaddr*)&SockAddr, &i) != SOCKET_ERROR)
+								AddressToStringIPv6(Adrs, &SockAddr.sin6_addr);
+						}
 
-					Pos = Btm + 1;
-					Btm = strchr(Pos, '|');
-					if(Btm != NULL)
-					{
-						Btm++;
-						*Port = atoi(Pos);
-						Sts = FFFTP_SUCCESS;
+						Pos = Btm + 1;
+						Btm = strchr(Pos, '|');
+						if(Btm != NULL)
+						{
+							Btm++;
+							*Port = atoi(Pos);
+							Btm = strchr(Btm, ')');
+							if(Btm != NULL)
+								Sts = FFFTP_SUCCESS;
+						}
 					}
 				}
 			}
