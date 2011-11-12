@@ -2492,14 +2492,14 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 
 	if(listen_skt != INVALID_SOCKET)
 	{
-#define  US(w)  (((int)w)&0xffff)
+#define  UC(b)  (((int)b)&0xff)
 		// 同時接続対応
 //		if((command(ctrl_skt,NULL, &CancelFlg, "PORT %d,%d,%d,%d,%d,%d",
 //				UC(a[0]), UC(a[1]), UC(a[2]), UC(a[3]),
 //				UC(p[0]), UC(p[1])) / 100) != FTP_COMPLETE)
 		if((command(ctrl_skt,NULL, CancelCheckWork, "EPRT |2|%s|%d|",
 				AddressToStringIPv6(Adrs, a),
-				US(p[0])) / 100) != FTP_COMPLETE)
+				(UC(p[0]) << 8) | UC(p[1])) / 100) != FTP_COMPLETE)
 		{
 			SetTaskMsg(MSGJPN031);
 			do_closesocket(listen_skt);

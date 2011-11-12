@@ -47,6 +47,8 @@ Changes in Ver.1.99
 -- Internet Protocol Version 6 became available.
    IPv6 will be used when name resolution for IPv4 is unavailable.
 
+-- Changed to detect encoding of strings in INI file automatically.
+
 
 Outline
 -------
