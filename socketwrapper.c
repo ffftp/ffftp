@@ -32,14 +32,17 @@ typedef X509* (__cdecl* _SSL_get_peer_certificate)(const SSL*);
 typedef long (__cdecl* _SSL_get_verify_result)(const SSL*);
 typedef SSL_SESSION* (__cdecl* _SSL_get_session)(SSL*);
 typedef int (__cdecl* _SSL_set_session)(SSL*, SSL_SESSION*);
+typedef int (__cdecl* _SSL_CTX_use_certificate)(SSL_CTX*, X509*);
 typedef BIO_METHOD* (__cdecl* _BIO_s_mem)();
 typedef BIO* (__cdecl* _BIO_new)(BIO_METHOD*);
 typedef int (__cdecl* _BIO_free)(BIO*);
+typedef BIO* (__cdecl* _BIO_new_mem_buf)(void*, int);
 typedef long (__cdecl* _BIO_ctrl)(BIO*, int, long, void*);
 typedef void (__cdecl* _X509_free)(X509*);
 typedef int (__cdecl* _X509_print_ex)(BIO*, X509*, unsigned long, unsigned long);
 typedef X509_NAME* (__cdecl* _X509_get_subject_name)(X509*);
 typedef int (__cdecl* _X509_NAME_print_ex)(BIO*, X509_NAME*, int, unsigned long);
+typedef X509* (__cdecl* _PEM_read_bio_X509)(BIO*, X509**, pem_password_cb*, void*);
 
 _SSL_load_error_strings p_SSL_load_error_strings;
 _SSL_library_init p_SSL_library_init;
@@ -61,14 +64,17 @@ _SSL_get_peer_certificate p_SSL_get_peer_certificate;
 _SSL_get_verify_result p_SSL_get_verify_result;
 _SSL_get_session p_SSL_get_session;
 _SSL_set_session p_SSL_set_session;
+_SSL_CTX_use_certificate p_SSL_CTX_use_certificate;
 _BIO_s_mem p_BIO_s_mem;
 _BIO_new p_BIO_new;
 _BIO_free p_BIO_free;
+_BIO_new_mem_buf p_BIO_new_mem_buf;
 _BIO_ctrl p_BIO_ctrl;
 _X509_free p_X509_free;
 _X509_print_ex p_X509_print_ex;
 _X509_get_subject_name p_X509_get_subject_name;
 _X509_NAME_print_ex p_X509_NAME_print_ex;
+_PEM_read_bio_X509 p_PEM_read_bio_X509;
 
 #define MAX_SSL_SOCKET 16
 
@@ -93,6 +99,7 @@ BOOL __stdcall DefaultSSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR
 	return bVerified;
 }
 
+// OpenSSLを初期化
 BOOL LoadOpenSSL()
 {
 	if(g_bOpenSSLLoaded)
@@ -106,8 +113,9 @@ BOOL LoadOpenSSL()
 	RegisterTrustedModuleSHA1Hash("\x01\x32\x7A\xAE\x69\x26\xE6\x58\xC7\x63\x22\x1E\x53\x5A\x78\xBC\x61\xC7\xB5\xC1");
 #endif
 	g_hOpenSSL = LoadLibrary("ssleay32.dll");
-	if(!g_hOpenSSL)
-		g_hOpenSSL = LoadLibrary("libssl32.dll");
+	// バージョン固定のためlibssl32.dllの読み込みは脆弱性の原因になり得るので廃止
+//	if(!g_hOpenSSL)
+//		g_hOpenSSL = LoadLibrary("libssl32.dll");
 	if(!g_hOpenSSL
 		|| !(p_SSL_load_error_strings = (_SSL_load_error_strings)GetProcAddress(g_hOpenSSL, "SSL_load_error_strings"))
 		|| !(p_SSL_library_init = (_SSL_library_init)GetProcAddress(g_hOpenSSL, "SSL_library_init"))
@@ -128,7 +136,8 @@ BOOL LoadOpenSSL()
 		|| !(p_SSL_get_peer_certificate = (_SSL_get_peer_certificate)GetProcAddress(g_hOpenSSL, "SSL_get_peer_certificate"))
 		|| !(p_SSL_get_verify_result = (_SSL_get_verify_result)GetProcAddress(g_hOpenSSL, "SSL_get_verify_result"))
 		|| !(p_SSL_get_session = (_SSL_get_session)GetProcAddress(g_hOpenSSL, "SSL_get_session"))
-		|| !(p_SSL_set_session = (_SSL_set_session)GetProcAddress(g_hOpenSSL, "SSL_set_session")))
+		|| !(p_SSL_set_session = (_SSL_set_session)GetProcAddress(g_hOpenSSL, "SSL_set_session"))
+		|| !(p_SSL_CTX_use_certificate = (_SSL_CTX_use_certificate)GetProcAddress(g_hOpenSSL, "SSL_CTX_use_certificate")))
 	{
 		if(g_hOpenSSL)
 			FreeLibrary(g_hOpenSSL);
@@ -140,11 +149,13 @@ BOOL LoadOpenSSL()
 		|| !(p_BIO_s_mem = (_BIO_s_mem)GetProcAddress(g_hOpenSSLCommon, "BIO_s_mem"))
 		|| !(p_BIO_new = (_BIO_new)GetProcAddress(g_hOpenSSLCommon, "BIO_new"))
 		|| !(p_BIO_free = (_BIO_free)GetProcAddress(g_hOpenSSLCommon, "BIO_free"))
+		|| !(p_BIO_new_mem_buf = (_BIO_new_mem_buf)GetProcAddress(g_hOpenSSLCommon, "BIO_new_mem_buf"))
 		|| !(p_BIO_ctrl = (_BIO_ctrl)GetProcAddress(g_hOpenSSLCommon, "BIO_ctrl"))
 		|| !(p_X509_free = (_X509_free)GetProcAddress(g_hOpenSSLCommon, "X509_free"))
 		|| !(p_X509_print_ex = (_X509_print_ex)GetProcAddress(g_hOpenSSLCommon, "X509_print_ex"))
 		|| !(p_X509_get_subject_name = (_X509_get_subject_name)GetProcAddress(g_hOpenSSLCommon, "X509_get_subject_name"))
-		|| !(p_X509_NAME_print_ex = (_X509_NAME_print_ex)GetProcAddress(g_hOpenSSLCommon, "X509_NAME_print_ex")))
+		|| !(p_X509_NAME_print_ex = (_X509_NAME_print_ex)GetProcAddress(g_hOpenSSLCommon, "X509_NAME_print_ex"))
+		|| !(p_PEM_read_bio_X509 = (_PEM_read_bio_X509)GetProcAddress(g_hOpenSSLCommon, "PEM_read_bio_X509")))
 	{
 		if(g_hOpenSSL)
 			FreeLibrary(g_hOpenSSL);
@@ -163,6 +174,7 @@ BOOL LoadOpenSSL()
 	return TRUE;
 }
 
+// OpenSSLを解放
 void FreeOpenSSL()
 {
 	int i;
@@ -190,6 +202,7 @@ void FreeOpenSSL()
 	g_bOpenSSLLoaded = FALSE;
 }
 
+// OpenSSLが使用可能かどうか確認
 BOOL IsOpenSSLLoaded()
 {
 	return g_bOpenSSLLoaded;
@@ -308,6 +321,37 @@ void SetSSLConfirmCallback(LPSSLCONFIRMCALLBACK pCallback)
 	LeaveCriticalSection(&g_OpenSSLLock);
 }
 
+// SSLルート証明書を設定
+BOOL SetSSLRootCertificate(void* pData, DWORD Length)
+{
+	BOOL r;
+	BIO* pBIO;
+	X509* pX509;
+	if(!g_bOpenSSLLoaded)
+		return FALSE;
+	r = FALSE;
+	EnterCriticalSection(&g_OpenSSLLock);
+	if(!g_pOpenSSLCTX)
+		g_pOpenSSLCTX = p_SSL_CTX_new(p_SSLv23_method());
+	if(g_pOpenSSLCTX)
+	{
+		if(pBIO = p_BIO_new_mem_buf(pData, Length))
+		{
+			if(pX509 = p_PEM_read_bio_X509(pBIO, NULL, NULL, NULL))
+			{
+				if(p_SSL_CTX_use_certificate(g_pOpenSSLCTX, pX509) == 1)
+					r = TRUE;
+				p_X509_free(pX509);
+			}
+			p_BIO_free(pBIO);
+		}
+	}
+	LeaveCriticalSection(&g_OpenSSLLock);
+	return r;
+}
+
+// ワイルドカードの比較
+// 主にSSL証明書のCN確認用
 BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName)
 {
 	BOOL bResult;
@@ -333,6 +377,7 @@ BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName)
 	return bResult;
 }
 
+// SSLセッションを開始
 BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted)
 {
 	BOOL r;
@@ -420,6 +465,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted)
 	return r;
 }
 
+// SSLセッションを終了
 BOOL DetachSSL(SOCKET s)
 {
 	BOOL r;
@@ -439,6 +485,8 @@ BOOL DetachSSL(SOCKET s)
 	return r;
 }
 
+// SSLとしてマークされているか確認
+// マークされていればTRUEを返す
 BOOL IsSSLAttached(SOCKET s)
 {
 	SSL** ppSSL;
@@ -467,6 +515,8 @@ int listenS(SOCKET s, int backlog)
 	return listen(s, backlog);
 }
 
+// accept相当の関数
+// ただし初めからSSLのネゴシエーションを行う
 SOCKET acceptS(SOCKET s, struct sockaddr *addr, int *addrlen)
 {
 	SOCKET r;
@@ -481,6 +531,8 @@ SOCKET acceptS(SOCKET s, struct sockaddr *addr, int *addrlen)
 	return r;
 }
 
+// connect相当の関数
+// ただし初めからSSLのネゴシエーションを行う
 int connectS(SOCKET s, const struct sockaddr *name, int namelen)
 {
 	int r;
@@ -492,12 +544,14 @@ int connectS(SOCKET s, const struct sockaddr *name, int namelen)
 	return r;
 }
 
+// closesocket相当の関数
 int closesocketS(SOCKET s)
 {
 	DetachSSL(s);
 	return closesocket(s);
 }
 
+// send相当の関数
 int sendS(SOCKET s, const char * buf, int len, int flags)
 {
 	SSL** ppSSL;
@@ -511,6 +565,7 @@ int sendS(SOCKET s, const char * buf, int len, int flags)
 	return p_SSL_write(*ppSSL, buf, len);
 }
 
+// recv相当の関数
 int recvS(SOCKET s, char * buf, int len, int flags)
 {
 	SSL** ppSSL;
