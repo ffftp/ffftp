@@ -47,6 +47,10 @@ Changes in Ver.1.98c
 
 -- Changed size and layout of the window at the first run.
 
+-- Added settings to reuse connection of the main window for transfer threads.
+   This may allow to transfer files successfully as with 1.97b or earlier,
+   but sometimes may cause some errors.
+
 Changes in Ver.1.98b
 --------------------
 

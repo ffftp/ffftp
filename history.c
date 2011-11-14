@@ -28,6 +28,8 @@
 /============================================================================*/
 
 #define  STRICT
+// IPv6対応
+#include <winsock2.h>
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,7 +39,8 @@
 #include <windowsx.h>
 #include <commctrl.h>
 #include <stdarg.h>
-#include <winsock.h>
+// IPv6対応
+//#include <winsock.h>
 
 #include "common.h"
 #include "resource.h"

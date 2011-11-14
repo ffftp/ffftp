@@ -7,6 +7,7 @@
 #define UNICODE
 #define _UNICODE
 
+#include <stdio.h>
 #include <tchar.h>
 #include <direct.h>
 #include <windows.h>
@@ -2149,12 +2150,11 @@ START_ROUTINE
 	while((c = GetNextCharM(_Str, &p)) > 0)
 	{
 		if(c == _Ch)
-		{
-			r = (unsigned char*)_Str;
 			break;
-		}
 		_Str = p;
 	}
+	if(c == _Ch)
+		r = (unsigned char*)_Str;
 END_ROUTINE
 	return r;
 }
@@ -2171,6 +2171,8 @@ START_ROUTINE
 			r = (unsigned char*)_Str;
 		_Str = p;
 	}
+	if(c == _Ch)
+		r = (unsigned char*)_Str;
 END_ROUTINE
 	return r;
 }

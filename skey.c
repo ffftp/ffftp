@@ -32,7 +32,9 @@
 #define	STRICT
 #include <stdlib.h>
 #include <string.h>
-#include <winsock.h>
+// IPv6対応
+//#include <winsock.h>
+#include <winsock2.h>
 #include <windowsx.h>
 
 #include "common.h"

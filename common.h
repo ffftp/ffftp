@@ -1695,6 +1695,8 @@ int ConvertNum(int x, int Dir, const INTCONVTBL *Tbl, int Num);
 int MoveFileToTrashCan(char *Path);
 LONGLONG MakeLongLong(DWORD High, DWORD Low);
 char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma);
+// 異なるファイルが表示されるバグ修正
+char* MakeDistinguishableFileName(char* Out, char* In);
 
 /*===== dlgsize.c =====*/
 
@@ -1751,10 +1753,6 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 void RemoveReceivedData(SOCKET s);
 int CheckClosedAndReconnect(void);
 void CheckAllEventClosed(void);
-// IPv6対応
-char* AddressToStringIPv6(char* str, void* in6);
-char* inet6_ntoa(struct in6_addr in6);
-struct in6_addr inet6_addr(const char* cp);
 
 /*===== updatebell.c =====*/
 

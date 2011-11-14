@@ -2,15 +2,19 @@
 // Copyright (C) 2011 Suguru Kawamoto
 // ソケットラッパー
 // socket関連関数をOpenSSL用に置換
+// socket関連関数のIPv6対応
 // コンパイルにはOpenSSLのヘッダーファイルが必要
 // 実行にはOpenSSLのDLLが必要
 
+#include <ws2tcpip.h>
 #include <windows.h>
 #include <mmsystem.h>
 #include <openssl/ssl.h>
 
 #include "socketwrapper.h"
 #include "protectprocess.h"
+#include "mbswrapper.h"
+#include "punycode.h"
 
 typedef void (__cdecl* _SSL_load_error_strings)();
 typedef int (__cdecl* _SSL_library_init)();
@@ -579,5 +583,357 @@ int recvS(SOCKET s, char * buf, int len, int flags)
 	if(flags & MSG_PEEK)
 		return p_SSL_peek(*ppSSL, buf, len);
 	return p_SSL_read(*ppSSL, buf, len);
+}
+
+// IPv6対応
+
+typedef struct
+{
+	HANDLE h;
+	HWND hWnd;
+	u_int wMsg;
+	char * name;
+	char * buf;
+	int buflen;
+	short Family;
+} GETHOSTBYNAMEDATA;
+
+DWORD WINAPI WSAAsyncGetHostByNameIPv6ThreadProc(LPVOID lpParameter)
+{
+	GETHOSTBYNAMEDATA* pData;
+	struct hostent* pHost;
+	struct addrinfo* pAddr;
+	struct addrinfo* p;
+	pHost = NULL;
+	pData = (GETHOSTBYNAMEDATA*)lpParameter;
+	if(getaddrinfo(pData->name, NULL, NULL, &pAddr) == 0)
+	{
+		p = pAddr;
+		while(p)
+		{
+			if(p->ai_family == pData->Family)
+			{
+				switch(p->ai_family)
+				{
+				case AF_INET:
+					pHost = (struct hostent*)pData->buf;
+					if((size_t)pData->buflen >= sizeof(struct hostent) + sizeof(char*) * 2 + sizeof(struct in_addr)
+						&& p->ai_addrlen >= sizeof(struct sockaddr_in))
+					{
+						pHost->h_name = NULL;
+						pHost->h_aliases = NULL;
+						pHost->h_addrtype = p->ai_family;
+						pHost->h_length = sizeof(struct in_addr);
+						pHost->h_addr_list = (char**)(&pHost[1]);
+						pHost->h_addr_list[0] = (char*)(&pHost->h_addr_list[2]);
+						pHost->h_addr_list[1] = NULL;
+						memcpy(pHost->h_addr_list[0], &((struct sockaddr_in*)p->ai_addr)->sin_addr, sizeof(struct in_addr));
+						PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(sizeof(struct hostent) + sizeof(char*) * 2 + p->ai_addrlen));
+					}
+					else
+						PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(WSAENOBUFS << 16));
+					break;
+				case AF_INET6:
+					pHost = (struct hostent*)pData->buf;
+					if((size_t)pData->buflen >= sizeof(struct hostent) + sizeof(char*) * 2 + sizeof(struct in6_addr)
+						&& p->ai_addrlen >= sizeof(struct sockaddr_in6))
+					{
+						pHost->h_name = NULL;
+						pHost->h_aliases = NULL;
+						pHost->h_addrtype = p->ai_family;
+						pHost->h_length = sizeof(struct in6_addr);
+						pHost->h_addr_list = (char**)(&pHost[1]);
+						pHost->h_addr_list[0] = (char*)(&pHost->h_addr_list[2]);
+						pHost->h_addr_list[1] = NULL;
+						memcpy(pHost->h_addr_list[0], &((struct sockaddr_in6*)p->ai_addr)->sin6_addr, sizeof(struct in6_addr));
+						PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(sizeof(struct hostent) + sizeof(char*) * 2 + p->ai_addrlen));
+					}
+					else
+						PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(WSAENOBUFS << 16));
+					break;
+				}
+			}
+			if(pHost)
+				break;
+			p = p->ai_next;
+		}
+		if(!p)
+			PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(ERROR_INVALID_FUNCTION << 16));
+		freeaddrinfo(pAddr);
+	}
+	else
+		PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(ERROR_INVALID_FUNCTION << 16));
+	free(pData->name);
+	free(pData);
+	// CreateThreadが返すハンドルが重複するのを回避
+	Sleep(10000);
+	return 0;
+}
+
+// IPv6対応のWSAAsyncGetHostByName相当の関数
+// FamilyにはAF_INETまたはAF_INET6を指定可能
+// ただしANSI用
+HANDLE WSAAsyncGetHostByNameIPv6(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen, short Family)
+{
+	HANDLE hResult;
+	GETHOSTBYNAMEDATA* pData;
+	hResult = NULL;
+	if(pData = malloc(sizeof(GETHOSTBYNAMEDATA)))
+	{
+		pData->hWnd = hWnd;
+		pData->wMsg = wMsg;
+		if(pData->name = malloc(sizeof(char) * (strlen(name) + 1)))
+		{
+			strcpy(pData->name, name);
+			pData->buf = buf;
+			pData->buflen = buflen;
+			pData->Family = Family;
+			if(pData->h = CreateThread(NULL, 0, WSAAsyncGetHostByNameIPv6ThreadProc, pData, CREATE_SUSPENDED, NULL))
+			{
+				ResumeThread(pData->h);
+				hResult = pData->h;
+			}
+		}
+	}
+	if(!hResult)
+	{
+		if(pData)
+		{
+			if(pData->name)
+				free(pData->name);
+			free(pData);
+		}
+	}
+	return hResult;
+}
+
+// WSAAsyncGetHostByNameIPv6用のWSACancelAsyncRequest相当の関数
+int WSACancelAsyncRequestIPv6(HANDLE hAsyncTaskHandle)
+{
+	int Result;
+	Result = SOCKET_ERROR;
+	if(TerminateThread(hAsyncTaskHandle, 0))
+		Result = 0;
+	return Result;
+}
+
+char* AddressToStringIPv6(char* str, void* in6)
+{
+	char* pResult;
+	unsigned char* p;
+	int MaxZero;
+	int MaxZeroLen;
+	int i;
+	int j;
+	char Tmp[5];
+	pResult = str;
+	p = (unsigned char*)in6;
+	MaxZero = 8;
+	MaxZeroLen = 1;
+	for(i = 0; i < 8; i++)
+	{
+		for(j = i; j < 8; j++)
+		{
+			if(p[j * 2] != 0 || p[j * 2 + 1] != 0)
+				break;
+		}
+		if(j - i > MaxZeroLen)
+		{
+			MaxZero = i;
+			MaxZeroLen = j - i;
+		}
+	}
+	strcpy(str, "");
+	for(i = 0; i < 8; i++)
+	{
+		if(i == MaxZero)
+		{
+			if(i == 0)
+				strcat(str, ":");
+			strcat(str, ":");
+		}
+		else if(i < MaxZero || i >= MaxZero + MaxZeroLen)
+		{
+			sprintf(Tmp, "%x", (((int)p[i * 2] & 0xff) << 8) | ((int)p[i * 2 + 1] & 0xff));
+			strcat(str, Tmp);
+			if(i < 7)
+				strcat(str, ":");
+		}
+	}
+	return pResult;
+}
+
+// IPv6対応のinet_ntoa相当の関数
+// ただしANSI用
+char* inet6_ntoa(struct in6_addr in6)
+{
+	char* pResult;
+	static char Adrs[40];
+	pResult = NULL;
+	memset(Adrs, 0, sizeof(Adrs));
+	pResult = AddressToStringIPv6(Adrs, &in6);
+	return pResult;
+}
+
+// IPv6対応のinet_addr相当の関数
+// ただしANSI用
+struct in6_addr inet6_addr(const char* cp)
+{
+	struct in6_addr Result;
+	int AfterZero;
+	int i;
+	char* p;
+	memset(&Result, 0, sizeof(Result));
+	AfterZero = 0;
+	for(i = 0; i < 8; i++)
+	{
+		if(!cp)
+		{
+			memset(&Result, 0xff, sizeof(Result));
+			break;
+		}
+		if(i >= AfterZero)
+		{
+			if(strncmp(cp, ":", 1) == 0)
+			{
+				cp = cp + 1;
+				if(i == 0 && strncmp(cp, ":", 1) == 0)
+					cp = cp + 1;
+				p = (char*)cp;
+				AfterZero = 7;
+				while(p = strstr(p, ":"))
+				{
+					p = p + 1;
+					AfterZero--;
+				}
+			}
+			else
+			{
+				Result.u.Word[i] = (USHORT)strtol(cp, &p, 16);
+				Result.u.Word[i] = ((Result.u.Word[i] & 0xff00) >> 8) | ((Result.u.Word[i] & 0x00ff) << 8);
+				if(strncmp(p, ":", 1) != 0 && strlen(p) > 0)
+				{
+					memset(&Result, 0xff, sizeof(Result));
+					break;
+				}
+				if(cp = strstr(cp, ":"))
+					cp = cp + 1;
+			}
+		}
+	}
+	return Result;
+}
+
+BOOL ConvertDomainNameToPunycode(LPSTR Output, DWORD Count, LPCSTR Input)
+{
+	BOOL bResult;
+	punycode_uint* pUnicode;
+	punycode_uint* p;
+	BOOL bNeeded;
+	LPCSTR InputString;
+	punycode_uint Length;
+	punycode_uint OutputLength;
+	bResult = FALSE;
+	if(pUnicode = malloc(sizeof(punycode_uint) * strlen(Input)))
+	{
+		p = pUnicode;
+		bNeeded = FALSE;
+		InputString = Input;
+		Length = 0;
+		while(*InputString != '\0')
+		{
+			*p = (punycode_uint)GetNextCharM(InputString, &InputString);
+			if(*p >= 0x80)
+				bNeeded = TRUE;
+			p++;
+			Length++;
+		}
+		if(bNeeded)
+		{
+			if(Count >= strlen("xn--") + 1)
+			{
+				strcpy(Output, "xn--");
+				OutputLength = Count - strlen("xn--");
+				if(punycode_encode(Length, pUnicode, NULL, (punycode_uint*)&OutputLength, Output + strlen("xn--")) == punycode_success)
+				{
+					Output[strlen("xn--") + OutputLength] = '\0';
+					bResult = TRUE;
+				}
+			}
+		}
+		free(pUnicode);
+	}
+	if(!bResult)
+	{
+		if(Count >= strlen(Input) + 1)
+		{
+			strcpy(Output, Input);
+			bResult = TRUE;
+		}
+	}
+	return bResult;
+}
+
+BOOL ConvertNameToPunycode(LPSTR Output, LPCSTR Input)
+{
+	BOOL bResult;
+	DWORD Length;
+	char* pm0;
+	char* pm1;
+	char* p;
+	char* pNext;
+	bResult = FALSE;
+	Length = strlen(Input);
+	if(pm0 = AllocateStringM(Length + 1))
+	{
+		if(pm1 = AllocateStringM(Length * 4 + 1))
+		{
+			strcpy(pm0, Input);
+			p = pm0;
+			while(p)
+			{
+				if(pNext = strchr(p, '.'))
+				{
+					*pNext = '\0';
+					pNext++;
+				}
+				if(ConvertDomainNameToPunycode(pm1, Length * 4, p))
+					strcat(Output, pm1);
+				if(pNext)
+					strcat(Output, ".");
+				p = pNext;
+			}
+			bResult = TRUE;
+			FreeDuplicatedString(pm1);
+		}
+		FreeDuplicatedString(pm0);
+	}
+	return bResult;
+}
+
+HANDLE WSAAsyncGetHostByNameM(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen)
+{
+	HANDLE r = NULL;
+	char* pa0 = NULL;
+	if(pa0 = AllocateStringA(strlen(name) * 4))
+	{
+		if(ConvertNameToPunycode(pa0, name))
+			r = WSAAsyncGetHostByName(hWnd, wMsg, pa0, buf, buflen);
+	}
+	FreeDuplicatedString(pa0);
+	return r;
+}
+
+HANDLE WSAAsyncGetHostByNameIPv6M(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen, short Family)
+{
+	HANDLE r = NULL;
+	char* pa0 = NULL;
+	if(pa0 = AllocateStringA(strlen(name) * 4))
+	{
+		if(ConvertNameToPunycode(pa0, name))
+			r = WSAAsyncGetHostByNameIPv6(hWnd, wMsg, pa0, buf, buflen, Family);
+	}
+	FreeDuplicatedString(pa0);
+	return r;
 }
 

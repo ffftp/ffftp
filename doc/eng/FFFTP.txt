@@ -49,6 +49,10 @@ Changes in Ver.1.99
 
 -- Changed to detect encoding of strings in INI file automatically.
 
+-- Added settings to reuse connection of the main window for transfer threads.
+   This may allow to transfer files successfully as with 1.97b or earlier,
+   but sometimes may cause some errors.
+
 
 Outline
 -------

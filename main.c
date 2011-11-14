@@ -28,6 +28,8 @@
 /============================================================================*/
 
 #define  STRICT
+// IPv6対応
+#include <winsock2.h>
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,7 +39,8 @@
 #include <windowsx.h>
 #include <commctrl.h>
 #include <stdarg.h>
-#include <winsock.h>
+// IPv6対応
+//#include <winsock.h>
 
 #include "common.h"
 #include "resource.h"
@@ -2476,7 +2479,7 @@ void ExecViewer(char *Fname, int App)
 	// 任意のコードが実行されるバグ修正
 	// 拡張子が無いと補完されるため
 //	if((App == -1) && (FindExecutable(Fname, NULL, AssocProg) > (HINSTANCE)32))
-	if((App == -1) && strrchr(Fname, '.') > strrchr(Fname, '\\') && (FindExecutable(Fname, NULL, AssocProg) > (HINSTANCE)32))
+	if((App == -1) && (strlen(GetFileExt(GetFileName(Fname))) > 0) && (FindExecutable(Fname, NULL, AssocProg) > (HINSTANCE)32))
 	{
 		DoPrintf("ShellExecute - %s", Fname);
 		ShellExecute(NULL, "open", Fname, NULL, CurDir, SW_SHOW);

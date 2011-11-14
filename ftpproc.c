@@ -28,6 +28,8 @@
 /============================================================================*/
 
 #define  STRICT
+// IPv6対応
+#include <winsock2.h>
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -2098,7 +2100,9 @@ static void DelNotifyAndDo(FILELIST *Dt, int Win, int *Sw, int *Flg, char *CurDi
 	{
 		sprintf(TmpString, "%s", Path);
 
-		if(AskHostType() == HTYPE_VMS)
+		// ローカルのファイルのパスの最後の'\\'が消えるバグ修正
+//		if(AskHostType() == HTYPE_VMS)
+		if(Win == WIN_REMOTE && AskHostType() == HTYPE_VMS)
 			ReformToVMSstylePathName(TmpString);
 
 		CurWin = Win;

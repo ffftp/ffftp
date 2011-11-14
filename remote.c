@@ -36,7 +36,9 @@
 #include <string.h>
 #include <mbstring.h>
 #include <time.h>
-#include <winsock.h>
+// IPv6対応
+//#include <winsock.h>
+#include <winsock2.h>
 #include <windowsx.h>
 #include <commctrl.h>
 

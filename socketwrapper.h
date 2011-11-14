@@ -5,6 +5,9 @@
 #ifndef __SOCKETWRAPPER_H__
 #define __SOCKETWRAPPER_H__
 
+#include <ws2tcpip.h>
+#include <windows.h>
+
 #define USE_OPENSSL
 
 typedef BOOL (__stdcall* LPSSLTIMEOUTCALLBACK)(BOOL*);
@@ -28,6 +31,14 @@ int connectS(SOCKET s, const struct sockaddr *name, int namelen);
 int closesocketS(SOCKET s);
 int sendS(SOCKET s, const char * buf, int len, int flags);
 int recvS(SOCKET s, char * buf, int len, int flags);
+
+HANDLE WSAAsyncGetHostByNameIPv6(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen, short Family);
+int WSACancelAsyncRequestIPv6(HANDLE hAsyncTaskHandle);
+char* AddressToStringIPv6(char* str, void* in6);
+char* inet6_ntoa(struct in6_addr in6);
+struct in6_addr inet6_addr(const char* cp);
+HANDLE WSAAsyncGetHostByNameM(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen);
+HANDLE WSAAsyncGetHostByNameIPv6M(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen, short Family);
 
 #endif
 

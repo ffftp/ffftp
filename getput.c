@@ -43,7 +43,7 @@
 #include <time.h>
 // IPv6対応
 //#include <winsock.h>
-#include <ws2tcpip.h>
+#include <winsock2.h>
 #include <windowsx.h>
 #include <commctrl.h>
 #include <process.h>

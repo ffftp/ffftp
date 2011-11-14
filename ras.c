@@ -32,6 +32,8 @@
 // UTF-8対応
 //#define WINVER 0x400
 
+// IPv6対応
+#include <winsock2.h>
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,7 +41,8 @@
 #include <mbstring.h>
 #include <malloc.h>
 #include <windowsx.h>
-#include <winsock.h>
+// IPv6対応
+//#include <winsock.h>
 #include <ras.h>
 #include <rasdlg.h>
 #include <raserror.h>

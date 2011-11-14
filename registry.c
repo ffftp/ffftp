@@ -33,6 +33,8 @@
 #endif
 
 #define	STRICT
+// IPv6対応
+#include <winsock2.h>
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -33,7 +33,9 @@
 #include <stdarg.h>
 #include <string.h>
 #include <mbstring.h>
-#include <winsock.h>
+// IPv6対応
+//#include <winsock.h>
+#include <winsock2.h>
 #include <windowsx.h>
 #include <commctrl.h>
 #include <shlobj.h>
@@ -1723,4 +1725,45 @@ char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma)
 	return(Buf);
 }
 
+
+// 異なるファイルが表示されるバグ修正
+
+// ShellExecute等で使用されるファイル名を修正
+// UNCでない場合に末尾の半角スペースは無視されるため拡張子が補完されなくなるまで半角スペースを追加
+// 現在UNC対応の予定は無い
+char* MakeDistinguishableFileName(char* Out, char* In)
+{
+	char Tmp[FMAX_PATH+1];
+	char Tmp2[FMAX_PATH+3];
+	HANDLE hFind;
+	WIN32_FIND_DATA Find;
+	if(strlen(GetFileExt(GetFileName(In))) > 0)
+		strcpy(Out, In);
+	else
+	{
+		strcpy(Tmp, In);
+		strcpy(Tmp2, Tmp);
+		strcat(Tmp2, ".*");
+		while(strlen(Tmp) < FMAX_PATH && (hFind = FindFirstFile(Tmp2, &Find)) != INVALID_HANDLE_VALUE)
+		{
+			do
+			{
+				if(strchr(Find.cFileName, '.'))
+					break;
+			}
+			while(FindNextFile(hFind, &Find));
+			FindClose(hFind);
+			if(strchr(Find.cFileName, '.'))
+			{
+				strcat(Tmp, " ");
+				strcpy(Tmp2, Tmp);
+				strcat(Tmp2, ".*");
+			}
+			else
+				break;
+		}
+		strcpy(Out, Tmp);
+	}
+	return Out;
+}
 
