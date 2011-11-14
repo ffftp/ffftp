@@ -1367,6 +1367,16 @@ BEGIN
     CONTROL         "メインウィンドウのソケットを再利用",HSET_REUSE_SOCKET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,27,131,10
 END
 
+savecrypt_dlg DIALOG  0, 0, 146, 50
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "パスワードの保存"
+FONT 9, "ＭＳ Ｐゴシック"
+BEGIN
+    LTEXT           "現在の暗号化の状態を保存しますか？",-1,7,7,132,17
+    DEFPUSHBUTTON   "はい",IDOK,17,29,50,14
+    PUSHBUTTON      "いいえ",IDCANCEL,78,29,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1997,6 +2007,14 @@ BEGIN
         RIGHTMARGIN, 200
         TOPMARGIN, 7
         BOTTOMMARGIN, 132
+    END
+
+    savecrypt_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 139
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 43
     END
 END
 #endif    // APSTUDIO_INVOKED

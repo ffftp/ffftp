@@ -1393,6 +1393,16 @@ BEGIN
     CONTROL         "Reuse socket of the main window",HSET_REUSE_SOCKET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,27,131,10
 END
 
+savecrypt_dlg DIALOG  0, 0, 146, 50
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "パスワードの保存"
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "Save current encryption status?",-1,7,7,132,17
+    DEFPUSHBUTTON   "Yes",IDOK,17,29,50,14
+    PUSHBUTTON      "No",IDCANCEL,78,29,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2020,6 +2030,14 @@ BEGIN
         RIGHTMARGIN, 200
         TOPMARGIN, 7
         BOTTOMMARGIN, 132
+    END
+
+    savecrypt_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 139
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 43
     END
 END
 #endif    // APSTUDIO_INVOKED

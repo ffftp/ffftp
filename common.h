@@ -1387,6 +1387,8 @@ void SetCurrentHost(int Num);
 void CopyDefaultHost(HOSTDATA *Set);
 int SearchHostName(char *Name);
 void ImportFromWSFTP(void);
+// 暗号化通信対応
+int SetHostExcryption(int Num, int UseNoEncryption, int UseFTPES, int UseFTPIS, int UseSFTP);
 
 /*===== connect.c =====*/
 

@@ -110,6 +110,7 @@
 #define masterpasswd_dlg                188
 #define hset_crypt_dlg                  189
 #define hset_adv3_dlg                   190
+#define savecrypt_dlg                   191
 #define TRANS_TIME_BAR                  1002
 #define TRANS_TEXT                      1003
 #define TRANS_REMOTE                    1003
@@ -615,7 +616,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        191
+#define _APS_NEXT_RESOURCE_VALUE        192
 #define _APS_NEXT_COMMAND_VALUE         40176
 #define _APS_NEXT_CONTROL_VALUE         1208
 #define _APS_NEXT_SYMED_VALUE           101

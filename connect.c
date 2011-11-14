@@ -185,15 +185,48 @@ void ConnectProc(int Type, int Num)
 			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, Save, CurHost.Security, &CancelFlg);
 			TrnCtrlSocket = CmdCtrlSocket;
 
-			// UTF-8対応
-			if(CurHost.CurNameKanjiCode == KANJI_AUTO)
-			{
-				if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
-					CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-			}
-
 			if(CmdCtrlSocket != INVALID_SOCKET)
 			{
+				// 暗号化通信対応
+				switch(CurHost.CryptMode)
+				{
+				case CRYPT_NONE:
+					if(CurHost.UseFTPIS != NO || CurHost.UseSFTP != NO)
+					{
+						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+							SetHostExcryption(AskCurrentHost(), CurHost.UseNoEncryption, CurHost.UseFTPES, NO, NO);
+					}
+					break;
+				case CRYPT_FTPES:
+					if(CurHost.UseNoEncryption != NO || CurHost.UseFTPIS != NO || CurHost.UseSFTP != NO)
+					{
+						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+							SetHostExcryption(AskCurrentHost(), NO, CurHost.UseFTPES, NO, NO);
+					}
+					break;
+				case CRYPT_FTPIS:
+					if(CurHost.UseNoEncryption != NO || CurHost.UseFTPES != NO || CurHost.UseSFTP != NO)
+					{
+						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+							SetHostExcryption(AskCurrentHost(), NO, NO, CurHost.UseFTPIS, NO);
+					}
+					break;
+				case CRYPT_SFTP:
+					if(CurHost.UseNoEncryption != NO || CurHost.UseFTPES != NO || CurHost.UseFTPIS != NO)
+					{
+						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+							SetHostExcryption(AskCurrentHost(), NO, NO, NO, CurHost.UseSFTP);
+					}
+					break;
+				}
+
+				// UTF-8対応
+				if(CurHost.CurNameKanjiCode == KANJI_AUTO)
+				{
+					if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
+						CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
+				}
+
 				strcpy(TitleHostName, CurHost.HostName);
 				DispWindowTitle();
 				SoundPlay(SND_CONNECT);
@@ -276,15 +309,15 @@ void QuickConnectProc(void)
 			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg);
 			TrnCtrlSocket = CmdCtrlSocket;
 
-			// UTF-8対応
-			if(CurHost.CurNameKanjiCode == KANJI_AUTO)
-			{
-				if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
-					CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-			}
-
 			if(CmdCtrlSocket != INVALID_SOCKET)
 			{
+				// UTF-8対応
+				if(CurHost.CurNameKanjiCode == KANJI_AUTO)
+				{
+					if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
+						CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
+				}
+
 				strcpy(TitleHostName, CurHost.HostAdrs);
 				DispWindowTitle();
 				SoundPlay(SND_CONNECT);
@@ -460,15 +493,15 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 		CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg);
 		TrnCtrlSocket = CmdCtrlSocket;
 
-		// UTF-8対応
-		if(CurHost.CurNameKanjiCode == KANJI_AUTO)
-		{
-			if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
-				CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-		}
-
 		if(CmdCtrlSocket != INVALID_SOCKET)
 		{
+			// UTF-8対応
+			if(CurHost.CurNameKanjiCode == KANJI_AUTO)
+			{
+				if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
+					CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
+			}
+
 			strcpy(TitleHostName, CurHost.HostAdrs);
 			DispWindowTitle();
 			SoundPlay(SND_CONNECT);
@@ -548,15 +581,15 @@ void HistoryConnectProc(int MenuCmd)
 			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg);
 			TrnCtrlSocket = CmdCtrlSocket;
 
-			// UTF-8対応
-			if(CurHost.CurNameKanjiCode == KANJI_AUTO)
-			{
-				if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
-					CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-			}
-
 			if(CmdCtrlSocket != INVALID_SOCKET)
 			{
+				// UTF-8対応
+				if(CurHost.CurNameKanjiCode == KANJI_AUTO)
+				{
+					if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
+						CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
+				}
+
 				strcpy(TitleHostName, CurHost.HostAdrs);
 				DispWindowTitle();
 				SoundPlay(SND_CONNECT);

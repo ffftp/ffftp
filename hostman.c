@@ -2246,3 +2246,23 @@ static BOOL CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 	return(FALSE);
 }
 
+// 暗号化通信対応
+// ホストの暗号化設定を更新
+int SetHostExcryption(int Num, int UseNoEncryption, int UseFTPES, int UseFTPIS, int UseSFTP)
+{
+	int Sts;
+	HOSTLISTDATA *Pos;
+
+	Sts = FFFTP_FAIL;
+	if((Num >= 0) && (Num < Hosts))
+	{
+		Pos = GetNodeByNum(Num);
+		Pos->Set.UseNoEncryption = UseNoEncryption;
+		Pos->Set.UseFTPES = UseFTPES;
+		Pos->Set.UseFTPIS = UseFTPIS;
+		Pos->Set.UseSFTP = UseSFTP;
+		Sts = FFFTP_SUCCESS;
+	}
+	return(Sts);
+}
+
