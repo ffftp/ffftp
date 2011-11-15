@@ -1369,12 +1369,22 @@ END
 
 savecrypt_dlg DIALOG  0, 0, 146, 50
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "パスワードの保存"
+CAPTION "暗号化の状態の保存"
 FONT 9, "ＭＳ Ｐゴシック"
 BEGIN
     LTEXT           "現在の暗号化の状態を保存しますか？",-1,7,7,132,17
     DEFPUSHBUTTON   "はい",IDOK,17,29,50,14
     PUSHBUTTON      "いいえ",IDCANCEL,78,29,50,14
+END
+
+updatesslroot_dlg DIALOG  0, 0, 211, 64
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "SSLルート証明書を更新"
+FONT 9, "ＭＳ Ｐゴシック"
+BEGIN
+    LTEXT           "SSLルート証明書の変更が検出されました。手動で証明書を更新していない場合、マルウェアなどにより改竄された可能性があります。\r\n変更された証明書を使用しますか。",-1,7,7,196,36
+    DEFPUSHBUTTON   "いいえ",IDCANCEL,112,42,50,14
+    PUSHBUTTON      "はい",IDOK,48,42,50,14
 END
 
 
@@ -2010,6 +2020,14 @@ BEGIN
     END
 
     savecrypt_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 139
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 43
+    END
+
+    updatesslroot_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 139

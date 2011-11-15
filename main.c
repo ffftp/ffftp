@@ -130,6 +130,9 @@ static int SuppressRefresh = 0;
 
 static DWORD dwCookie;
 
+// 暗号化通信対応
+static char SSLRootCAFilePath[FMAX_PATH+1];
+
 
 /*===== グローバルなワーク =====*/
 
@@ -223,6 +226,7 @@ int FolderAttr = NO;
 int FolderAttrNum = 777;
 // 暗号化通信対応
 BYTE CertificateCacheHash[MAX_CERT_CACHE_HASH][20];
+BYTE SSLRootCAFileHash[20];
 
 
 
@@ -472,6 +476,9 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			// 暗号化通信対応
 			SetSSLTimeoutCallback(TimeOut * 1000, SSLTimeoutCallback);
 			SetSSLConfirmCallback(SSLConfirmCallback);
+			GetModuleFileName(NULL, SSLRootCAFilePath, FMAX_PATH);
+			strcpy(GetFileName(SSLRootCAFilePath), "ssl.pem");
+			LoadSSLRootCAFile();
 
 			LoadJre();
 			if(NoRasControl == NO)
@@ -2947,6 +2954,38 @@ BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certif
 	}
 	if(!bResult)
 		*pbAborted = YES;
+	return bResult;
+}
+
+BOOL LoadSSLRootCAFile()
+{
+	BOOL bResult;
+	HANDLE hFile;
+	DWORD Size;
+	BYTE* pBuffer;
+	uint32 Hash[5];
+	bResult = FALSE;
+	if((hFile = CreateFile(SSLRootCAFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+	{
+		Size = GetFileSize(hFile, NULL);
+		if(pBuffer = (BYTE*)malloc(Size))
+		{
+			if(ReadFile(hFile, pBuffer, Size, &Size, NULL))
+			{
+				sha_memory((char*)pBuffer, (uint32)Size, (uint32*)&Hash);
+				// 同梱する"ssl.pem"に合わせてSHA1ハッシュ値を変更すること
+				if(memcmp(&Hash, &SSLRootCAFileHash, 20) == 0 || memcmp(&Hash, "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 20) == 0
+					|| DialogBox(GetFtpInst(), MAKEINTRESOURCE(updatesslroot_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+				{
+					memcpy(&SSLRootCAFileHash, &Hash, 20);
+					if(SetSSLRootCertificate(pBuffer, Size))
+						bResult = TRUE;
+				}
+			}
+			free(pBuffer);
+		}
+		CloseHandle(hFile);
+	}
 	return bResult;
 }
 

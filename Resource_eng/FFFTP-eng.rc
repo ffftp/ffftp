@@ -1395,12 +1395,22 @@ END
 
 savecrypt_dlg DIALOG  0, 0, 146, 50
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "パスワードの保存"
+CAPTION "Save Encryption Status"
 FONT 9, "MS Sans Serif"
 BEGIN
     LTEXT           "Save current encryption status?",-1,7,7,132,17
     DEFPUSHBUTTON   "Yes",IDOK,17,29,50,14
     PUSHBUTTON      "No",IDCANCEL,78,29,50,14
+END
+
+updatesslroot_dlg DIALOG  0, 0, 211, 64
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "Update SSL Root certificate"
+FONT 9, "MS Sans Serif"
+BEGIN
+    LTEXT           "Modified SSL Root certificate was detected.If you did not update it manually, it might be tampered with by malwares.\r\nUse the modified certificate?",-1,7,7,196,36
+    DEFPUSHBUTTON   "No",IDCANCEL,112,42,50,14
+    PUSHBUTTON      "Yes",IDOK,48,42,50,14
 END
 
 
@@ -2033,6 +2043,14 @@ BEGIN
     END
 
     savecrypt_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 139
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 43
+    END
+
+    updatesslroot_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 139

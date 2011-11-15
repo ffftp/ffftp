@@ -1250,6 +1250,7 @@ int AskAutoExit(void);
 // 暗号化通信対応
 BOOL __stdcall SSLTimeoutCallback(BOOL* pbAborted);
 BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName);
+BOOL LoadSSLRootCAFile();
 
 /*===== filelist.c =====*/
 

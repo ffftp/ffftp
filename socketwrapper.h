@@ -18,7 +18,7 @@ void FreeOpenSSL();
 BOOL IsOpenSSLLoaded();
 void SetSSLTimeoutCallback(DWORD Timeout, LPSSLTIMEOUTCALLBACK pCallback);
 void SetSSLConfirmCallback(LPSSLCONFIRMCALLBACK pCallback);
-BOOL SetSSLRootCertificate(void* pData, DWORD Length);
+BOOL SetSSLRootCertificate(const void* pData, DWORD Length);
 BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName);
 BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted);
 BOOL DetachSSL(SOCKET s);

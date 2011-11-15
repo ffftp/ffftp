@@ -21,6 +21,9 @@ Changes in Ver.1.99
 
 -- Changed to detect encoding of strings in INI file automatically.
 
+-- Changed to verify SSL/TLS certificates with root CAs in FTPS connections.
+   Please modify "ssl.pem" in PEM format if you want to update root CA list.
+
 Changes in Ver.1.98c
 --------------------
 

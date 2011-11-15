@@ -86,6 +86,9 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 static int WriteMultiStringToReg(void *Handle, char *Name, char *Str);
 static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size);
 static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len);
+// 暗号化通信対応
+static int StrCatOut(char *Src, int Len, char *Dst);
+static int StrReadIn(char *Src, int Max, char *Dst);
 
 int CheckPasswordValidity( char* Password, int length, const char* HashStr );
 void CreatePasswordHash( char* Password, int length, char* HashStr );
@@ -189,6 +192,7 @@ extern int FolderAttrNum;
 
 // 暗号化通信対応
 extern BYTE CertificateCacheHash[MAX_CERT_CACHE_HASH][20];
+extern BYTE SSLRootCAFileHash[20];
 
 /*----- マスタパスワードの設定 ----------------------------------------------
 *
@@ -295,6 +299,7 @@ void SaveRegistory(void)
 	// 暗号化通信対応
 //	char Str[FMAX_PATH+1];
 	char Str[PRIVATE_KEY_LEN*4+1];
+	char Buf[FMAX_PATH+1];
 	int i;
 	int n;
 	HOSTDATA DefaultHost;
@@ -589,6 +594,10 @@ void SaveRegistory(void)
 
 				// 暗号化通信対応
 				WriteBinaryToReg(hKey4, "CertCacheHash", &CertificateCacheHash, sizeof(CertificateCacheHash));
+				strcpy(Buf, "");
+				StrCatOut((char*)&SSLRootCAFileHash, sizeof(SSLRootCAFileHash), Buf);
+				EncodePassword(Buf, Str);
+				WriteStringToReg(hKey4, "RootCertHash", Str);
 			}
 			CloseSubKey(hKey4);
 		}
@@ -619,6 +628,7 @@ int LoadRegistory(void)
 	// 暗号化通信対応
 //	char Str[256];	/* ASCII_EXT_LENより大きい事 */
 	char Str[PRIVATE_KEY_LEN*4+1];
+	char Buf[FMAX_PATH+1];
 	char *Pos;
 	char *Pos2;
 	HOSTDATA Host;
@@ -944,6 +954,9 @@ int LoadRegistory(void)
 
 			// 暗号化通信対応
 			ReadBinaryFromReg(hKey4, "CertCacheHash", &CertificateCacheHash, sizeof(CertificateCacheHash));
+			ReadStringFromReg(hKey4, "RootCertHash", Str, PRIVATE_KEY_LEN*4+1);
+			DecodePassword(Str, Buf);
+			StrReadIn(Buf, sizeof(SSLRootCAFileHash), (char*)&SSLRootCAFileHash);
 
 			CloseSubKey(hKey4);
 		}
@@ -1796,8 +1809,9 @@ typedef struct regdatatbl {
 
 static BOOL WriteOutRegToFile(REGDATATBL *Pos);
 static int ReadInReg(char *Name, REGDATATBL **Handle);
-static int StrCatOut(char *Src, int Len, char *Dst);
-static int StrReadIn(char *Src, int Max, char *Dst);
+// 暗号化通信対応
+//static int StrCatOut(char *Src, int Len, char *Dst);
+//static int StrReadIn(char *Src, int Max, char *Dst);
 static char *ScanValue(void *Handle, char *Name);
 
 

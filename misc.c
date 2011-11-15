@@ -1733,6 +1733,7 @@ char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma)
 // 現在UNC対応の予定は無い
 char* MakeDistinguishableFileName(char* Out, char* In)
 {
+	char* Fname;
 	char Tmp[FMAX_PATH+1];
 	char Tmp2[FMAX_PATH+3];
 	HANDLE hFind;
@@ -1741,6 +1742,7 @@ char* MakeDistinguishableFileName(char* Out, char* In)
 		strcpy(Out, In);
 	else
 	{
+		Fname = GetFileName(In);
 		strcpy(Tmp, In);
 		strcpy(Tmp2, Tmp);
 		strcat(Tmp2, ".*");
@@ -1748,12 +1750,12 @@ char* MakeDistinguishableFileName(char* Out, char* In)
 		{
 			do
 			{
-				if(strchr(Find.cFileName, '.'))
+				if(strcmp(Find.cFileName, Fname) != 0)
 					break;
 			}
 			while(FindNextFile(hFind, &Find));
 			FindClose(hFind);
-			if(strchr(Find.cFileName, '.'))
+			if(strcmp(Find.cFileName, Fname) != 0)
 			{
 				strcat(Tmp, " ");
 				strcpy(Tmp2, Tmp);

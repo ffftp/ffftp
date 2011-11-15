@@ -36,7 +36,7 @@ typedef X509* (__cdecl* _SSL_get_peer_certificate)(const SSL*);
 typedef long (__cdecl* _SSL_get_verify_result)(const SSL*);
 typedef SSL_SESSION* (__cdecl* _SSL_get_session)(SSL*);
 typedef int (__cdecl* _SSL_set_session)(SSL*, SSL_SESSION*);
-typedef int (__cdecl* _SSL_CTX_use_certificate)(SSL_CTX*, X509*);
+typedef X509_STORE* (__cdecl* _SSL_CTX_get_cert_store)(const SSL_CTX*);
 typedef BIO_METHOD* (__cdecl* _BIO_s_mem)();
 typedef BIO* (__cdecl* _BIO_new)(BIO_METHOD*);
 typedef int (__cdecl* _BIO_free)(BIO*);
@@ -47,6 +47,7 @@ typedef int (__cdecl* _X509_print_ex)(BIO*, X509*, unsigned long, unsigned long)
 typedef X509_NAME* (__cdecl* _X509_get_subject_name)(X509*);
 typedef int (__cdecl* _X509_NAME_print_ex)(BIO*, X509_NAME*, int, unsigned long);
 typedef X509* (__cdecl* _PEM_read_bio_X509)(BIO*, X509**, pem_password_cb*, void*);
+typedef int (__cdecl* _X509_STORE_add_cert)(X509_STORE*, X509*);
 
 _SSL_load_error_strings p_SSL_load_error_strings;
 _SSL_library_init p_SSL_library_init;
@@ -68,7 +69,7 @@ _SSL_get_peer_certificate p_SSL_get_peer_certificate;
 _SSL_get_verify_result p_SSL_get_verify_result;
 _SSL_get_session p_SSL_get_session;
 _SSL_set_session p_SSL_set_session;
-_SSL_CTX_use_certificate p_SSL_CTX_use_certificate;
+_SSL_CTX_get_cert_store p_SSL_CTX_get_cert_store;
 _BIO_s_mem p_BIO_s_mem;
 _BIO_new p_BIO_new;
 _BIO_free p_BIO_free;
@@ -79,6 +80,7 @@ _X509_print_ex p_X509_print_ex;
 _X509_get_subject_name p_X509_get_subject_name;
 _X509_NAME_print_ex p_X509_NAME_print_ex;
 _PEM_read_bio_X509 p_PEM_read_bio_X509;
+_X509_STORE_add_cert p_X509_STORE_add_cert;
 
 #define MAX_SSL_SOCKET 16
 
@@ -141,7 +143,7 @@ BOOL LoadOpenSSL()
 		|| !(p_SSL_get_verify_result = (_SSL_get_verify_result)GetProcAddress(g_hOpenSSL, "SSL_get_verify_result"))
 		|| !(p_SSL_get_session = (_SSL_get_session)GetProcAddress(g_hOpenSSL, "SSL_get_session"))
 		|| !(p_SSL_set_session = (_SSL_set_session)GetProcAddress(g_hOpenSSL, "SSL_set_session"))
-		|| !(p_SSL_CTX_use_certificate = (_SSL_CTX_use_certificate)GetProcAddress(g_hOpenSSL, "SSL_CTX_use_certificate")))
+		|| !(p_SSL_CTX_get_cert_store = (_SSL_CTX_get_cert_store)GetProcAddress(g_hOpenSSL, "SSL_CTX_get_cert_store")))
 	{
 		if(g_hOpenSSL)
 			FreeLibrary(g_hOpenSSL);
@@ -159,7 +161,8 @@ BOOL LoadOpenSSL()
 		|| !(p_X509_print_ex = (_X509_print_ex)GetProcAddress(g_hOpenSSLCommon, "X509_print_ex"))
 		|| !(p_X509_get_subject_name = (_X509_get_subject_name)GetProcAddress(g_hOpenSSLCommon, "X509_get_subject_name"))
 		|| !(p_X509_NAME_print_ex = (_X509_NAME_print_ex)GetProcAddress(g_hOpenSSLCommon, "X509_NAME_print_ex"))
-		|| !(p_PEM_read_bio_X509 = (_PEM_read_bio_X509)GetProcAddress(g_hOpenSSLCommon, "PEM_read_bio_X509")))
+		|| !(p_PEM_read_bio_X509 = (_PEM_read_bio_X509)GetProcAddress(g_hOpenSSLCommon, "PEM_read_bio_X509"))
+		|| !(p_X509_STORE_add_cert = (_X509_STORE_add_cert)GetProcAddress(g_hOpenSSLCommon, "X509_STORE_add_cert")))
 	{
 		if(g_hOpenSSL)
 			FreeLibrary(g_hOpenSSL);
@@ -283,7 +286,7 @@ BOOL ConfirmSSLCertificate(SSL* pSSL, BOOL* pbAborted)
 		}
 		p_X509_free(pX509);
 	}
-	if(p_SSL_get_verify_result(pSSL) == X509_V_OK)
+	if(pX509 && p_SSL_get_verify_result(pSSL) == X509_V_OK)
 		bVerified = TRUE;
 	pCN = pSubject;
 	while(pCN)
@@ -326,9 +329,14 @@ void SetSSLConfirmCallback(LPSSLCONFIRMCALLBACK pCallback)
 }
 
 // SSLルート証明書を設定
-BOOL SetSSLRootCertificate(void* pData, DWORD Length)
+// PEM形式のみ指定可能
+BOOL SetSSLRootCertificate(const void* pData, DWORD Length)
 {
 	BOOL r;
+	X509_STORE* pStore;
+	BYTE* p;
+	BYTE* pBegin;
+	BYTE* pEnd;
 	BIO* pBIO;
 	X509* pX509;
 	if(!g_bOpenSSLLoaded)
@@ -339,15 +347,45 @@ BOOL SetSSLRootCertificate(void* pData, DWORD Length)
 		g_pOpenSSLCTX = p_SSL_CTX_new(p_SSLv23_method());
 	if(g_pOpenSSLCTX)
 	{
-		if(pBIO = p_BIO_new_mem_buf(pData, Length))
+		if(pStore = p_SSL_CTX_get_cert_store(g_pOpenSSLCTX))
 		{
-			if(pX509 = p_PEM_read_bio_X509(pBIO, NULL, NULL, NULL))
+			p = (BYTE*)pData;
+			pBegin = NULL;
+			pEnd = NULL;
+			while(Length > 0)
 			{
-				if(p_SSL_CTX_use_certificate(g_pOpenSSLCTX, pX509) == 1)
-					r = TRUE;
-				p_X509_free(pX509);
+				if(!pBegin)
+				{
+					if(Length < 27)
+						break;
+					if(memcmp(p, "-----BEGIN CERTIFICATE-----", 27) == 0)
+						pBegin = p;
+				}
+				else if(!pEnd)
+				{
+					if(Length < 25)
+						break;
+					if(memcmp(p, "-----END CERTIFICATE-----", 25) == 0)
+						pEnd = p + 25;
+				}
+				if(pBegin && pEnd)
+				{
+					if(pBIO = p_BIO_new_mem_buf(pBegin, (int)((size_t)pEnd - (size_t)pBegin)))
+					{
+						if(pX509 = p_PEM_read_bio_X509(pBIO, NULL, NULL, NULL))
+						{
+							if(p_X509_STORE_add_cert(pStore, pX509) == 1)
+								r = TRUE;
+							p_X509_free(pX509);
+						}
+						p_BIO_free(pBIO);
+					}
+					pBegin = NULL;
+					pEnd = NULL;
+				}
+				p++;
+				Length--;
 			}
-			p_BIO_free(pBIO);
 		}
 	}
 	LeaveCriticalSection(&g_OpenSSLLock);

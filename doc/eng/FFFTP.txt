@@ -53,6 +53,9 @@ Changes in Ver.1.99
    This may allow to transfer files successfully as with 1.97b or earlier,
    but sometimes may cause some errors.
 
+-- Changed to verify SSL/TLS certificates with root CAs in FTPS connections.
+   Please modify "ssl.pem" in PEM format if you want to update root CA list.
+
 
 Outline
 -------
