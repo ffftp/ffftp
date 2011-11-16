@@ -160,6 +160,8 @@ void ConnectProc(int Type, int Num)
 		CopyHostFromList(AskCurrentHost(), &CurHost);
 		// UTF-8対応
 		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
+		// IPv6対応
+		CurHost.CurNetType = CurHost.NetType;
 
 		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == FFFTP_SUCCESS)
 		{
@@ -285,6 +287,8 @@ void QuickConnectProc(void)
 		CopyDefaultHost(&CurHost);
 		// UTF-8対応
 		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
+		// IPv6対応
+		CurHost.CurNetType = CurHost.NetType;
 		if(SplitUNCpath(Tmp, CurHost.HostAdrs, CurHost.RemoteInitDir, File, CurHost.UserName, CurHost.PassWord, &CurHost.Port) == FFFTP_SUCCESS)
 		{
 			if(strlen(CurHost.UserName) == 0)
@@ -475,6 +479,8 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 		CurHost.KanaCnv = YES;			/* とりあえず */
 		// UTF-8対応
 		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
+		// IPv6対応
+		CurHost.CurNetType = CurHost.NetType;
 
 		SetHostKanaCnvImm(CurHost.KanaCnv);
 		SetHostKanjiCodeImm(CurHost.KanjiCode);
@@ -559,6 +565,8 @@ void HistoryConnectProc(int MenuCmd)
 		CopyHistoryToHost(&Hist, &CurHost);
 		// UTF-8対応
 		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
+		// IPv6対応
+		CurHost.CurNetType = CurHost.NetType;
 
 		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == FFFTP_SUCCESS)
 		{
@@ -1074,6 +1082,8 @@ int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
 		HostData.UseSFTP = NO;
 	// UTF-8対応
 	HostData.CurNameKanjiCode = HostData.NameKanjiCode;
+	// IPv6対応
+	HostData.CurNetType = HostData.NetType;
 	// 暗号化通信対応
 	// 同時接続対応
 //	if((*Skt = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
@@ -1825,19 +1835,21 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 {
 	SOCKET Result;
 	Result = INVALID_SOCKET;
-	switch(CurHost.InetFamily)
+	switch(CurHost.CurNetType)
 	{
-	case AF_UNSPEC:
+	case NTYPE_AUTO:
 		if((Result = connectsockIPv4(host, port, PreMsg, CancelCheckWork)) != INVALID_SOCKET)
-			CurHost.InetFamily = AF_INET;
-		else if(CurHost.UseIPv6 == YES && (Result = connectsockIPv6(host, port, PreMsg, CancelCheckWork)) != INVALID_SOCKET)
-			CurHost.InetFamily = AF_INET6;
+			CurHost.CurNetType = NTYPE_IPV4;
+		else if((Result = connectsockIPv6(host, port, PreMsg, CancelCheckWork)) != INVALID_SOCKET)
+			CurHost.CurNetType = NTYPE_IPV6;
 		break;
-	case AF_INET:
+	case NTYPE_IPV4:
 		Result = connectsockIPv4(host, port, PreMsg, CancelCheckWork);
+		CurHost.CurNetType = NTYPE_IPV4;
 		break;
-	case AF_INET6:
+	case NTYPE_IPV6:
 		Result = connectsockIPv6(host, port, PreMsg, CancelCheckWork);
+		CurHost.CurNetType = NTYPE_IPV6;
 		break;
 	}
 	return Result;
@@ -2216,14 +2228,12 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 {
 	SOCKET Result;
 	Result = INVALID_SOCKET;
-	switch(CurHost.InetFamily)
+	switch(CurHost.CurNetType)
 	{
-	case AF_UNSPEC:
-		break;
-	case AF_INET:
+	case NTYPE_IPV4:
 		Result = GetFTPListenSocketIPv4(ctrl_skt, CancelCheckWork);
 		break;
-	case AF_INET6:
+	case NTYPE_IPV6:
 		Result = GetFTPListenSocketIPv6(ctrl_skt, CancelCheckWork);
 		break;
 	}
@@ -2944,13 +2954,14 @@ int AskUseMLSD(void)
 }
 
 // IPv6対応
-int AskInetFamily(void)
+int AskCurNetType(void)
 {
-	return(CurHost.InetFamily);
+	return(CurHost.CurNetType);
 }
 
-int AskUseIPv6(void)
+// 自動切断対策
+int AskNoopInterval(void)
 {
-	return(CurHost.UseIPv6);
+	return(CurHost.NoopInterval);
 }
 

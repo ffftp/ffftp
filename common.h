@@ -890,6 +890,11 @@ LIST_UNIX_70
 #define FEATURE_EPRT		0x00000004
 #define FEATURE_EPSV		0x00000008
 
+// IPv6対応
+#define NTYPE_AUTO			0		/* 自動 */
+#define NTYPE_IPV4			1		/* TCP/IPv4 */
+#define NTYPE_IPV6			2		/* TCP/IPv6 */
+
 // 暗号化通信対応
 // REG_SECT_MAXの値を加味する必要がある
 #define MAX_CERT_CACHE_HASH 256
@@ -954,8 +959,10 @@ typedef struct {
 	// MLSD対応
 	int UseMLSD;						/* "MLSD"コマンドを使用する */
 	// IPv6対応
-	int InetFamily;						/* IPv6接続かどうか (AF_INET/AF_INET6) */
-	int UseIPv6;						/* IPv6接続を許可しEPRT/EPSVコマンドを使用する */
+	int NetType;						/* ネットワークの種類 (NTYPE_xxx) */
+	int CurNetType;						/* 接続中のネットワークの種類 (NTYPE_xxx) */
+	// 自動切断対策
+	int NoopInterval;					/* 無意味なコマンドを送信する間隔（秒数、0で無効）*/
 } HOSTDATA;
 
 
@@ -1014,7 +1021,9 @@ typedef struct historydata {
 	// MLSD対応
 	int UseMLSD;						/* "MLSD"コマンドを使用する */
 	// IPv6対応
-	int UseIPv6;						/* IPv6接続を許可しEPRT/EPSVコマンドを使用する */
+	int NetType;						/* ネットワークの種類 (NTYPE_xxx) */
+	// 自動切断対策
+	int NoopInterval;					/* NOOPコマンドを送信する間隔（秒数、0で無効）*/
 	struct historydata *Next;
 } HISTORYDATA;
 
@@ -1450,8 +1459,9 @@ int AskHostFeature(void);
 // MLSD対応
 int AskUseMLSD(void);
 // IPv6対応
-int AskInetFamily(void);
-int AskUseIPv6(void);
+int AskCurNetType(void);
+// 自動切断対策
+int AskNoopInterval(void);
 
 /*===== cache.c =====*/
 
@@ -1500,6 +1510,8 @@ void ReformToVMSstylePathName(char *Path);
 #if defined(HAVE_OPENVMS)
 void ReformVMSDirName(char *DirName, int Flg);
 #endif
+// 自動切断対策
+void NoopProc(void);
 
 /*===== local.c =====*/
 

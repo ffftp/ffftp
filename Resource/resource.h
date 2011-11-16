@@ -433,6 +433,9 @@
 #define HSET_THREAD_COUNT_SPN           1205
 #define HSET_UTF8BOM_CNV                1206
 #define HSET_REUSE_SOCKET               1207
+#define HSET_NOOP_INTERVAL              1208
+#define HSET_NOOP_INTERVAL_SPN          1209
+#define HSET_NETTYPE                    1210
 #define MENU_END                        40001
 #define MENU_EXIT                       40001
 #define MENU_CONNECT                    40003
@@ -619,7 +622,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        193
 #define _APS_NEXT_COMMAND_VALUE         40176
-#define _APS_NEXT_CONTROL_VALUE         1208
+#define _APS_NEXT_CONTROL_VALUE         1211
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

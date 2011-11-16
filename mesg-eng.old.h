@@ -329,3 +329,6 @@
 #define MSGJPN329		"UTF-8 BOM"
 #define MSGJPN330		"UTF-8 BOM Kanji Code"
 #define MSGJPN331		"UTF-8 BOM Kanji Code (Local)"
+#define MSGJPN332		"Auto"
+#define MSGJPN333		"TCP/IPv4"
+#define MSGJPN334		"TCP/IPv6"

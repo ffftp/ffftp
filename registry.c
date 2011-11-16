@@ -490,7 +490,9 @@ void SaveRegistory(void)
 							// MLSD対応
 							SaveIntNum(hKey5, "MLSD", Hist.UseMLSD, DefaultHist.UseMLSD);
 							// IPv6対応
-							SaveIntNum(hKey5, "IPv6", Hist.UseIPv6, DefaultHist.UseIPv6);
+							SaveIntNum(hKey5, "NetType", Hist.NetType, DefaultHist.NetType);
+							// 自動切断対策
+							SaveIntNum(hKey5, "Noop", Hist.NoopInterval, DefaultHist.NoopInterval);
 
 							CloseSubKey(hKey5);
 							n++;
@@ -572,7 +574,9 @@ void SaveRegistory(void)
 							// MLSD対応
 							SaveIntNum(hKey5, "MLSD", Host.UseMLSD, DefaultHost.UseMLSD);
 							// IPv6対応
-							SaveIntNum(hKey5, "IPv6", Host.UseIPv6, DefaultHost.UseIPv6);
+							SaveIntNum(hKey5, "NetType", Host.NetType, DefaultHost.NetType);
+							// 自動切断対策
+							SaveIntNum(hKey5, "Noop", Host.NoopInterval, DefaultHost.NoopInterval);
 						}
 						CloseSubKey(hKey5);
 					}
@@ -850,7 +854,9 @@ int LoadRegistory(void)
 					// MLSD対応
 					ReadIntValueFromReg(hKey5, "MLSD", &Hist.UseMLSD);
 					// IPv6対応
-					ReadIntValueFromReg(hKey5, "IPv6", &Hist.UseIPv6);
+					ReadIntValueFromReg(hKey5, "NetType", &Hist.NetType);
+					// 自動切断対策
+					ReadIntValueFromReg(hKey5, "Noop", &Hist.NoopInterval);
 
 					CloseSubKey(hKey5);
 					AddHistoryToHistory(&Hist);
@@ -941,7 +947,9 @@ int LoadRegistory(void)
 					// MLSD対応
 					ReadIntValueFromReg(hKey5, "MLSD", &Host.UseMLSD);
 					// IPv6対応
-					ReadIntValueFromReg(hKey5, "IPv6", &Host.UseIPv6);
+					ReadIntValueFromReg(hKey5, "NetType", &Host.NetType);
+					// 自動切断対策
+					ReadIntValueFromReg(hKey5, "Noop", &Host.NoopInterval);
 
 					CloseSubKey(hKey5);
 

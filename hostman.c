@@ -1042,7 +1042,9 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 		// MLSD対応
 		Set->UseMLSD = Pos->Set.UseMLSD;
 		// IPv6対応
-		Set->UseIPv6 = Pos->Set.UseIPv6;
+		Set->NetType = Pos->Set.NetType;
+		// 自動切断対策
+		Set->NoopInterval = Pos->Set.NoopInterval;
 		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
@@ -1332,8 +1334,10 @@ void CopyDefaultHost(HOSTDATA *Set)
 	Set->Feature = 0;
 	Set->UseMLSD = YES;
 	// IPv6対応
-	Set->InetFamily = AF_UNSPEC;
-	Set->UseIPv6 = YES;
+	Set->NetType = NTYPE_AUTO;
+	Set->CurNetType = NTYPE_AUTO;
+	// 自動切断対策
+	Set->NoopInterval = 0;
 	return;
 }
 
@@ -1807,6 +1811,11 @@ static BOOL CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPA
 			SendDlgItemMessage(hDlg, HSET_SECURITY, CB_SETCURSEL, TmpHost.Security, 0);
 			SendDlgItemMessage(hDlg, HSET_INITCMD, EM_LIMITTEXT, INITCMD_LEN, 0);
 			SendDlgItemMessage(hDlg, HSET_INITCMD, WM_SETTEXT, 0, (LPARAM)TmpHost.InitCmd);
+			// IPv6対応
+			SendDlgItemMessage(hDlg, HSET_NETTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN332);
+			SendDlgItemMessage(hDlg, HSET_NETTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN333);
+			SendDlgItemMessage(hDlg, HSET_NETTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN334);
+			SendDlgItemMessage(hDlg, HSET_NETTYPE, CB_SETCURSEL, TmpHost.NetType, 0);
 			return(TRUE);
 
 		case WM_NOTIFY:
@@ -1823,6 +1832,8 @@ static BOOL CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPA
 					TmpHost.TimeZone = SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_GETCURSEL, 0, 0) - 12;
 					TmpHost.Security = SendDlgItemMessage(hDlg, HSET_SECURITY, CB_GETCURSEL, 0, 0);
 					SendDlgItemMessage(hDlg, HSET_INITCMD, WM_GETTEXT, INITCMD_LEN+1, (LPARAM)TmpHost.InitCmd);
+					// IPv6対応
+					TmpHost.NetType = SendDlgItemMessage(hDlg, HSET_NETTYPE, CB_GETCURSEL, 0, 0);
 					Apply = YES;
 					break;
 
@@ -2221,6 +2232,9 @@ static BOOL CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 			SetDecimalText(hDlg, HSET_THREAD_COUNT, TmpHost.MaxThreadCount);
 			SendDlgItemMessage(hDlg, HSET_THREAD_COUNT_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(MAX_DATA_CONNECTION, 1));
 			SendDlgItemMessage(hDlg, HSET_REUSE_SOCKET, BM_SETCHECK, TmpHost.ReuseCmdSkt, 0);
+			SendDlgItemMessage(hDlg, HSET_NOOP_INTERVAL, EM_LIMITTEXT, (WPARAM)3, 0);
+			SetDecimalText(hDlg, HSET_NOOP_INTERVAL, TmpHost.NoopInterval);
+			SendDlgItemMessage(hDlg, HSET_NOOP_INTERVAL_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(300, 0));
 			return(TRUE);
 
 		case WM_NOTIFY:
@@ -2231,6 +2245,8 @@ static BOOL CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 					TmpHost.MaxThreadCount = GetDecimalText(hDlg, HSET_THREAD_COUNT);
 					CheckRange2(&TmpHost.MaxThreadCount, MAX_DATA_CONNECTION, 1);
 					TmpHost.ReuseCmdSkt = SendDlgItemMessage(hDlg, HSET_REUSE_SOCKET, BM_GETCHECK, 0, 0);
+					TmpHost.NoopInterval = GetDecimalText(hDlg, HSET_NOOP_INTERVAL);
+					CheckRange2(&TmpHost.NoopInterval, 300, 0);
 					Apply = YES;
 					break;
 

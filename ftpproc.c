@@ -3361,3 +3361,20 @@ static int RenameUnuseableName(char *Fname)
 }
 
 
+// 自動切断対策
+// NOOPコマンドでは効果が無いホストが多いためLISTコマンドを使用
+void NoopProc(void)
+{
+	int CancelCheckWork;
+	CancelCheckWork = NO;
+	if(AskConnecting() == YES && AskUserOpeDisabled() == NO)
+	{
+		if(AskReuseCmdSkt() == NO || AskShareProh() == YES)
+		{
+			DisableUserOpe();
+			DoDirListCmdSkt("", "", 999, &CancelCheckWork);
+			EnableUserOpe();
+		}
+	}
+}
+

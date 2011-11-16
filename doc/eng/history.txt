@@ -17,12 +17,15 @@ Changes in Ver.1.99
 -- Fixed bugs of launching wrong files if correct ones contain no extensions.
 
 -- Internet Protocol Version 6 became available.
-   IPv6 will be used when name resolution for IPv4 is unavailable.
+   IPv6 will be used when name resolution for IPv4 is unavailable by default.
 
 -- Changed to detect encoding of strings in INI file automatically.
 
 -- Changed to verify SSL/TLS certificates with root CAs in FTPS connections.
    Please modify "ssl.pem" in PEM format if you want to update root CA list.
+
+-- Added a feature to send commands for keep alive.
+   This is disabled by default.
 
 Changes in Ver.1.98c
 --------------------

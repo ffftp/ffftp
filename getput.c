@@ -1341,13 +1341,13 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					// IPv6対応
 //					iLength = sizeof(saSockAddr1);
 //					data_socket = do_accept(listen_socket, (struct sockaddr *)&saSockAddr1, (int *)&iLength);
-					switch(AskInetFamily())
+					switch(AskCurNetType())
 					{
-					case AF_INET:
+					case NTYPE_IPV4:
 						iLength=sizeof(saSockAddrIPv4);
 						data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddrIPv4, (int *)&iLength);
 						break;
-					case AF_INET6:
+					case NTYPE_IPV6:
 						iLength=sizeof(saSockAddrIPv6);
 						data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddrIPv6, (int *)&iLength);
 						break;
@@ -1367,12 +1367,12 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 						// IPv6対応
 //						DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet_ntoa(saSockAddr1.sin_addr), ntohs(saSockAddr1.sin_port));
 					{
-						switch(AskInetFamily())
+						switch(AskCurNetType())
 						{
-						case AF_INET:
+						case NTYPE_IPV4:
 							DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet_ntoa(saSockAddrIPv4.sin_addr), ntohs(saSockAddrIPv4.sin_port));
 							break;
-						case AF_INET6:
+						case NTYPE_IPV6:
 							DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet6_ntoa(saSockAddrIPv6.sin6_addr), ntohs(saSockAddrIPv6.sin6_port));
 							break;
 						}
@@ -1443,12 +1443,12 @@ static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 
 	// IPv6対応
 //	iRetCode = command(Pkt->ctrl_skt, Buf, CancelCheckWork, "PASV");
-	switch(AskInetFamily())
+	switch(AskCurNetType())
 	{
-	case AF_INET:
+	case NTYPE_IPV4:
 		iRetCode = command(Pkt->ctrl_skt, Buf, CancelCheckWork, "PASV");
 		break;
-	case AF_INET6:
+	case NTYPE_IPV6:
 		iRetCode = command(Pkt->ctrl_skt, Buf, CancelCheckWork, "EPSV");
 		break;
 	}
@@ -2549,13 +2549,13 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 				// IPv6対応
 //				iLength=sizeof(saSockAddr1);
 //				data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddr1, (int *)&iLength);
-				switch(AskInetFamily())
+				switch(AskCurNetType())
 				{
-				case AF_INET:
+				case NTYPE_IPV4:
 					iLength=sizeof(saSockAddrIPv4);
 					data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddrIPv4, (int *)&iLength);
 					break;
-				case AF_INET6:
+				case NTYPE_IPV6:
 					iLength=sizeof(saSockAddrIPv6);
 					data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddrIPv6, (int *)&iLength);
 					break;
@@ -2575,12 +2575,12 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 					// IPv6対応
 //					DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet_ntoa(saSockAddr1.sin_addr), ntohs(saSockAddr1.sin_port));
 				{
-					switch(AskInetFamily())
+					switch(AskCurNetType())
 					{
-					case AF_INET:
+					case NTYPE_IPV4:
 						DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet_ntoa(saSockAddrIPv4.sin_addr), ntohs(saSockAddrIPv4.sin_port));
 						break;
-					case AF_INET6:
+					case NTYPE_IPV6:
 						DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet6_ntoa(saSockAddrIPv6.sin6_addr), ntohs(saSockAddrIPv6.sin6_port));
 						break;
 					}
@@ -2650,12 +2650,12 @@ static int UpLoadPassive(TRANSPACKET *Pkt)
 //	iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled, "PASV");
 	// IPv6対応
 //	iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled[Pkt->ThreadCount], "PASV");
-	switch(AskInetFamily())
+	switch(AskCurNetType())
 	{
-	case AF_INET:
+	case NTYPE_IPV4:
 		iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled[Pkt->ThreadCount], "PASV");
 		break;
-	case AF_INET6:
+	case NTYPE_IPV6:
 		iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled[Pkt->ThreadCount], "EPSV");
 		break;
 	}
@@ -3765,12 +3765,12 @@ static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max)
 {
 	int Result;
 	Result = FFFTP_FAIL;
-	switch(AskInetFamily())
+	switch(AskCurNetType())
 	{
-	case AF_INET:
+	case NTYPE_IPV4:
 		Result = GetAdrsAndPortIPv4(Skt, Str, Adrs, Port, Max);
 		break;
-	case AF_INET6:
+	case NTYPE_IPV6:
 		Result = GetAdrsAndPortIPv6(Skt, Str, Adrs, Port, Max);
 		break;
 	}

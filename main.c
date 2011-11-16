@@ -847,6 +847,12 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 	switch (message)
 	{
+		// 自動切断対策
+		case WM_TIMER :
+			if(wParam == 1)
+				NoopProc();
+			break;
+
 		case WM_COMMAND :
 			// 同時接続対応
 			// 中断後に受信バッファに応答が残っていると次のコマンドの応答が正しく処理できない
@@ -855,11 +861,21 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			switch(LOWORD(wParam))
 			{
 				case MENU_CONNECT :
+					// 自動切断対策
+					KillTimer(hWnd, 1);
 					ConnectProc(DLG_TYPE_CON, -1);
+					// 自動切断対策
+					if(AskNoopInterval() > 0)
+						SetTimer(hWnd, 1, AskNoopInterval() * 1000, NULL);
 					break;
 
 				case MENU_CONNECT_NUM :
+					// 自動切断対策
+					KillTimer(hWnd, 1);
 					ConnectProc(DLG_TYPE_CON, (int)lParam);
+					// 自動切断対策
+					if(AskNoopInterval() > 0)
+						SetTimer(hWnd, 1, AskNoopInterval() * 1000, NULL);
 					if(AskConnecting() == YES)
 					{
 						if(HIWORD(wParam) & OPT_MIRROR)
@@ -880,11 +896,21 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_SET_CONNECT :
+					// 自動切断対策
+					KillTimer(hWnd, 1);
 					ConnectProc(DLG_TYPE_SET, -1);
+					// 自動切断対策
+					if(AskNoopInterval() > 0)
+						SetTimer(hWnd, 1, AskNoopInterval() * 1000, NULL);
 					break;
 
 				case MENU_QUICK :
+					// 自動切断対策
+					KillTimer(hWnd, 1);
 					QuickConnectProc();
+					// 自動切断対策
+					if(AskNoopInterval() > 0)
+						SetTimer(hWnd, 1, AskNoopInterval() * 1000, NULL);
 					break;
 
 				case MENU_DISCONNECT :
@@ -918,7 +944,12 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				case MENU_HIST_18 :
 				case MENU_HIST_19 :
 				case MENU_HIST_20 :
+					// 自動切断対策
+					KillTimer(hWnd, 1);
 					HistoryConnectProc(LOWORD(wParam));
+					// 自動切断対策
+					if(AskNoopInterval() > 0)
+						SetTimer(hWnd, 1, AskNoopInterval() * 1000, NULL);
 					break;
 
 				case MENU_UPDIR :

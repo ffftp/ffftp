@@ -329,3 +329,6 @@
 #define MSGJPN329		"UTF-8 BOM"
 #define MSGJPN330		"ホストの漢字コードはUTF-8 BOM"
 #define MSGJPN331		"ローカルの漢字コードはUTF-8 BOM"
+#define MSGJPN332		"自動"
+#define MSGJPN333		"TCP/IPv4"
+#define MSGJPN334		"TCP/IPv6"
