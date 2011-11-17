@@ -3784,6 +3784,8 @@ static int GetAdrsAndPortIPv4(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 {
 	char *Pos;
 	char *Btm;
+	// コンマではなくドットを返すホストがあるため
+	char *OldBtm;
 	int Sts;
 
 	Sts = FFFTP_FAIL;
@@ -3799,24 +3801,30 @@ static int GetAdrsAndPortIPv4(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 		if(Btm != NULL)
 		{
 			Btm++;
-			Btm = strchr(Btm, ',');
 			// コンマではなくドットを返すホストがあるため
+//			Btm = strchr(Btm, ',');
+			OldBtm = Btm;
+			Btm = strchr(OldBtm, ',');
 			if(Btm == NULL)
-				Btm = strchr(Btm, '.');
+				Btm = strchr(OldBtm, '.');
 			if(Btm != NULL)
 			{
 				Btm++;
-				Btm = strchr(Btm, ',');
 				// コンマではなくドットを返すホストがあるため
+//				Btm = strchr(Btm, ',');
+				OldBtm = Btm;
+				Btm = strchr(OldBtm, ',');
 				if(Btm == NULL)
-					Btm = strchr(Btm, '.');
+					Btm = strchr(OldBtm, '.');
 				if(Btm != NULL)
 				{
 					Btm++;
-					Btm = strchr(Btm, ',');
 					// コンマではなくドットを返すホストがあるため
+//					Btm = strchr(Btm, ',');
+					OldBtm = Btm;
+					Btm = strchr(OldBtm, ',');
 					if(Btm == NULL)
-						Btm = strchr(Btm, '.');
+						Btm = strchr(OldBtm, '.');
 					if(Btm != NULL)
 					{
 						if((Btm - Pos) <= Max)

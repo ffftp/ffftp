@@ -1540,6 +1540,18 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 										Sts = FTP_ERROR;
 								}
 
+								// FTPIS対応
+								// "PBSZ 0"と"PROT P"は黙示的に設定されているはずだが念のため
+								if(CryptMode == CRYPT_FTPIS)
+								{
+									if((Sts = command(ContSock, Reply, CancelCheckWork, "PBSZ 0")) == 200)
+									{
+										if((Sts = command(ContSock, Reply, CancelCheckWork, "PROT P")) == 200)
+										{
+										}
+									}
+								}
+
 								ReInPass = NO;
 								do
 								{
