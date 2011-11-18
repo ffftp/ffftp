@@ -1020,18 +1020,20 @@ STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Sans Serif"
 BEGIN
     CONTROL         "Use &LIST command to get file list",HSET_LISTCMD,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,131,10
-    CONTROL         "Use &NLST -R for high-speed recursive search",HSET_NLST_R,
+    CONTROL         "Use &MLSD command to get file list if possible",HSET_MLSDCMD,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,167,10
+    CONTROL         "Use &NLST -R for high-speed recursive search",HSET_NLST_R,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,167,10
     CONTROL         "&Do not use full path to access files",HSET_FULLPATH,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
-    LTEXT           "&Permissions Change Command",-1,7,51,110,8
-    EDITTEXT        HSET_CHMOD_CMD,7,61,62,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "Default",HSET_CHMOD_NOR,70,61,28,13
-    LTEXT           "&Host Type",-1,7,80,69,8
-    COMBOBOX        HSET_HOSTTYPE,7,90,71,75,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "NLST &Filename/Option",-1,7,109,89,8
-    EDITTEXT        HSET_LS_FNAME,7,119,62,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "Delault",HSET_LS_FNAME_NOR,70,119,28,13
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,49,148,10
+    LTEXT           "&Permissions Change Command",-1,7,65,110,8
+    EDITTEXT        HSET_CHMOD_CMD,7,75,62,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Default",HSET_CHMOD_NOR,70,75,28,13
+    LTEXT           "&Host Type",-1,7,94,69,8
+    COMBOBOX        HSET_HOSTTYPE,7,104,71,75,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "NLST &Filename/Option",-1,7,123,89,8
+    EDITTEXT        HSET_LS_FNAME,7,133,62,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Delault",HSET_LS_FNAME_NOR,70,133,28,13
 END
 
 cwderr_dlg DIALOG  0, 0, 155, 57
@@ -1402,7 +1404,8 @@ BEGIN
     EDITTEXT        HSET_THREAD_COUNT,72,8,17,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Spin1",HSET_THREAD_COUNT_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,7,9,14
     LTEXT           "(1 to 4 threads)",-1,102,10,53,8
-    CONTROL         "Reuse socket of the main window",HSET_REUSE_SOCKET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,27,131,10
+    CONTROL         "Reuse socket of the main window",HSET_REUSE_SOCKET,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,27,131,10
     LTEXT           "Command for Keep Alive",-1,7,44,84,8
     EDITTEXT        HSET_NOOP_INTERVAL,92,42,17,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Spin1",HSET_NOOP_INTERVAL_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,109,41,9,14

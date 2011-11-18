@@ -2083,6 +2083,10 @@ static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 			SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_SETCHECK, TmpHost.ListCmdOnly, 0);
 			if(TmpHost.ListCmdOnly == YES)
 				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
+			// MLSD対応
+			else
+				EnableWindow(GetDlgItem(hDlg, HSET_MLSDCMD), FALSE);
+			SendDlgItemMessage(hDlg, HSET_MLSDCMD, BM_SETCHECK, TmpHost.UseMLSD, 0);
 			SendDlgItemMessage(hDlg, HSET_NLST_R, BM_SETCHECK, TmpHost.UseNLST_R, 0);
 			SendDlgItemMessage(hDlg, HSET_FULLPATH, BM_SETCHECK, TmpHost.NoFullPath, 0);
 			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN139);
@@ -2110,6 +2114,8 @@ static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 					SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_GETTEXT, CHMOD_CMD_LEN+1, (LPARAM)TmpHost.ChmodCmd);
 					SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_GETTEXT, NLST_NAME_LEN+1, (LPARAM)TmpHost.LsName);
 					TmpHost.ListCmdOnly = SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0);
+					// MLSD対応
+					TmpHost.UseMLSD = SendDlgItemMessage(hDlg, HSET_MLSDCMD, BM_GETCHECK, 0, 0);
 					TmpHost.UseNLST_R = SendDlgItemMessage(hDlg, HSET_NLST_R, BM_GETCHECK, 0, 0);
 					TmpHost.NoFullPath = SendDlgItemMessage(hDlg, HSET_FULLPATH, BM_GETCHECK, 0, 0);
 					TmpHost.HostType = SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0);
@@ -2138,9 +2144,19 @@ static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 
 				case HSET_LISTCMD :
 					if(SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0) == 0)
+						// MLSD対応
+//						EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), TRUE);
+					{
+						EnableWindow(GetDlgItem(hDlg, HSET_MLSDCMD), FALSE);
 						EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), TRUE);
+					}
 					else
+						// MLSD対応
+//						EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
+					{
+						EnableWindow(GetDlgItem(hDlg, HSET_MLSDCMD), TRUE);
 						EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
+					}
 					break;
 
 				case HSET_HOSTTYPE :
