@@ -332,3 +332,7 @@
 #define MSGJPN332		"自動"
 #define MSGJPN333		"TCP/IPv4"
 #define MSGJPN334		"TCP/IPv6"
+#define MSGJPN335		"毎回尋ねる"
+#define MSGJPN336		"全て後で上書き"
+#define MSGJPN337		"全て後でリジューム"
+#define MSGJPN338		"全てスキップ"

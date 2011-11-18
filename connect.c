@@ -2977,3 +2977,14 @@ int AskNoopInterval(void)
 	return(CurHost.NoopInterval);
 }
 
+// 再転送対応
+int AskTransferErrorMode(void)
+{
+	return(CurHost.TransferErrorMode);
+}
+
+int AskTransferErrorNotify(void)
+{
+	return(CurHost.TransferErrorNotify);
+}
+

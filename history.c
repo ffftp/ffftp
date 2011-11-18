@@ -241,6 +241,9 @@ static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
 	New->NetType = Host->NetType;
 	// 自動切断対策
 	New->NoopInterval = Host->NoopInterval;
+	// 再転送対応
+	New->TransferErrorMode = Host->TransferErrorMode;
+	New->TransferErrorNotify = Host->TransferErrorNotify;
 	return;
 }
 
@@ -305,6 +308,9 @@ void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
 	Host->NetType = Hist->NetType;
 	// 自動切断対策
 	Host->NoopInterval = Hist->NoopInterval;
+	// 再転送対応
+	Host->TransferErrorMode = Hist->TransferErrorMode;
+	Host->TransferErrorNotify = Hist->TransferErrorNotify;
 	return;
 }
 

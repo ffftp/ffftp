@@ -1045,6 +1045,9 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 		Set->NetType = Pos->Set.NetType;
 		// 自動切断対策
 		Set->NoopInterval = Pos->Set.NoopInterval;
+		// 再転送対応
+		Set->TransferErrorMode = Pos->Set.TransferErrorMode;
+		Set->TransferErrorNotify = Pos->Set.TransferErrorNotify;
 		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
@@ -1338,6 +1341,9 @@ void CopyDefaultHost(HOSTDATA *Set)
 	Set->CurNetType = NTYPE_AUTO;
 	// 自動切断対策
 	Set->NoopInterval = 0;
+	// 再転送対応
+	Set->TransferErrorMode = EXIST_OVW;
+	Set->TransferErrorNotify = YES;
 	return;
 }
 
@@ -2225,6 +2231,17 @@ static BOOL CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 	NMHDR *pnmhdr;
 //	int Num;
 
+	// UTF-8対応
+	static const RADIOBUTTON KanjiButton[] = {
+		{ HSET_NO_CNV, KANJI_NOCNV },
+		{ HSET_SJIS_CNV, KANJI_SJIS },
+		{ HSET_JIS_CNV, KANJI_JIS },
+		{ HSET_EUC_CNV, KANJI_EUC },
+		{ HSET_UTF8N_CNV, KANJI_UTF8N },
+		{ HSET_UTF8BOM_CNV, KANJI_UTF8BOM }
+	};
+	#define KANJIBUTTONS	(sizeof(KanjiButton)/sizeof(RADIOBUTTON))
+
 	switch (iMessage)
 	{
 		case WM_INITDIALOG :
@@ -2235,6 +2252,20 @@ static BOOL CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 			SendDlgItemMessage(hDlg, HSET_NOOP_INTERVAL, EM_LIMITTEXT, (WPARAM)3, 0);
 			SetDecimalText(hDlg, HSET_NOOP_INTERVAL, TmpHost.NoopInterval);
 			SendDlgItemMessage(hDlg, HSET_NOOP_INTERVAL_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(300, 0));
+			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN335);
+			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN336);
+			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN337);
+			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN338);
+			if(TmpHost.TransferErrorNotify == YES)
+				SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
+			else if(TmpHost.TransferErrorMode == EXIST_OVW)
+				SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 1, 0);
+			else if(TmpHost.TransferErrorMode == EXIST_RESUME)
+				SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 2, 0);
+			else if(TmpHost.TransferErrorMode == EXIST_IGNORE)
+				SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 3, 0);
+			else
+				SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
 			return(TRUE);
 
 		case WM_NOTIFY:
@@ -2247,6 +2278,25 @@ static BOOL CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 					TmpHost.ReuseCmdSkt = SendDlgItemMessage(hDlg, HSET_REUSE_SOCKET, BM_GETCHECK, 0, 0);
 					TmpHost.NoopInterval = GetDecimalText(hDlg, HSET_NOOP_INTERVAL);
 					CheckRange2(&TmpHost.NoopInterval, 300, 0);
+					switch(SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_GETCURSEL, 0, 0))
+					{
+					case 0:
+						TmpHost.TransferErrorMode = EXIST_OVW;
+						TmpHost.TransferErrorNotify = YES;
+						break;
+					case 1:
+						TmpHost.TransferErrorMode = EXIST_OVW;
+						TmpHost.TransferErrorNotify = NO;
+						break;
+					case 2:
+						TmpHost.TransferErrorMode = EXIST_RESUME;
+						TmpHost.TransferErrorNotify = NO;
+						break;
+					case 3:
+						TmpHost.TransferErrorMode = EXIST_IGNORE;
+						TmpHost.TransferErrorNotify = NO;
+						break;
+					}
 					Apply = YES;
 					break;
 

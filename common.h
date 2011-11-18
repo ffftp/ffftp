@@ -963,6 +963,9 @@ typedef struct {
 	int CurNetType;						/* 接続中のネットワークの種類 (NTYPE_xxx) */
 	// 自動切断対策
 	int NoopInterval;					/* 無意味なコマンドを送信する間隔（秒数、0で無効）*/
+	// 再転送対応
+	int TransferErrorMode;				/* 転送エラー時の処理 (EXIST_xxx) */
+	int TransferErrorNotify;			/* 転送エラー時に確認ダイアログを出すかどうか (YES/NO) */
 } HOSTDATA;
 
 
@@ -1024,6 +1027,9 @@ typedef struct historydata {
 	int NetType;						/* ネットワークの種類 (NTYPE_xxx) */
 	// 自動切断対策
 	int NoopInterval;					/* NOOPコマンドを送信する間隔（秒数、0で無効）*/
+	// 再転送対応
+	int TransferErrorMode;				/* 転送エラー時の処理 (EXIST_xxx) */
+	int TransferErrorNotify;			/* 転送エラー時に確認ダイアログを出すかどうか (YES/NO) */
 	struct historydata *Next;
 } HISTORYDATA;
 
@@ -1462,6 +1468,9 @@ int AskUseMLSD(void);
 int AskCurNetType(void);
 // 自動切断対策
 int AskNoopInterval(void);
+// 再転送対応
+int AskTransferErrorMode(void);
+int AskTransferErrorNotify(void);
 
 /*===== cache.c =====*/
 

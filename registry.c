@@ -493,6 +493,9 @@ void SaveRegistory(void)
 							SaveIntNum(hKey5, "NetType", Hist.NetType, DefaultHist.NetType);
 							// 自動切断対策
 							SaveIntNum(hKey5, "Noop", Hist.NoopInterval, DefaultHist.NoopInterval);
+							// 再転送対応
+							SaveIntNum(hKey5, "ErrMode", Hist.TransferErrorMode, DefaultHist.TransferErrorMode);
+							SaveIntNum(hKey5, "ErrNotify", Hist.TransferErrorNotify, DefaultHist.TransferErrorNotify);
 
 							CloseSubKey(hKey5);
 							n++;
@@ -577,6 +580,9 @@ void SaveRegistory(void)
 							SaveIntNum(hKey5, "NetType", Host.NetType, DefaultHost.NetType);
 							// 自動切断対策
 							SaveIntNum(hKey5, "Noop", Host.NoopInterval, DefaultHost.NoopInterval);
+							// 再転送対応
+							SaveIntNum(hKey5, "ErrMode", Host.TransferErrorMode, DefaultHost.TransferErrorMode);
+							SaveIntNum(hKey5, "ErrNotify", Host.TransferErrorNotify, DefaultHost.TransferErrorNotify);
 						}
 						CloseSubKey(hKey5);
 					}
@@ -857,6 +863,9 @@ int LoadRegistory(void)
 					ReadIntValueFromReg(hKey5, "NetType", &Hist.NetType);
 					// 自動切断対策
 					ReadIntValueFromReg(hKey5, "Noop", &Hist.NoopInterval);
+					// 再転送対応
+					ReadIntValueFromReg(hKey5, "ErrMode", &Hist.TransferErrorMode);
+					ReadIntValueFromReg(hKey5, "ErrNotify", &Hist.TransferErrorNotify);
 
 					CloseSubKey(hKey5);
 					AddHistoryToHistory(&Hist);
@@ -950,6 +959,9 @@ int LoadRegistory(void)
 					ReadIntValueFromReg(hKey5, "NetType", &Host.NetType);
 					// 自動切断対策
 					ReadIntValueFromReg(hKey5, "Noop", &Host.NoopInterval);
+					// 再転送対応
+					ReadIntValueFromReg(hKey5, "ErrMode", &Host.TransferErrorMode);
+					ReadIntValueFromReg(hKey5, "ErrNotify", &Host.TransferErrorNotify);
 
 					CloseSubKey(hKey5);
 

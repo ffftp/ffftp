@@ -332,3 +332,7 @@
 #define MSGJPN332		"Auto"
 #define MSGJPN333		"TCP/IPv4"
 #define MSGJPN334		"TCP/IPv6"
+#define MSGJPN335		"Ask everytime"
+#define MSGJPN336		"Overwrite all later"
+#define MSGJPN337		"Resume all later"
+#define MSGJPN338		"Skip all"

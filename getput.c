@@ -88,7 +88,9 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
 static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
 static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *CancelCheckWork);
 static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
-static int DispUpDownErrDialog(int ResID, HWND hWnd, char *Fname);
+// 再転送対応
+//static int DispUpDownErrDialog(int ResID, HWND hWnd, char *Fname);
+static int DispUpDownErrDialog(int ResID, HWND hWnd, TRANSPACKET *Pkt);
 static BOOL CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode, int *CancelCheckWork);
 static BOOL CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
@@ -159,6 +161,9 @@ static HANDLE hErrMsgMutex;
 
 // 同時接続対応
 static int WaitForMainThread = NO;
+// 再転送対応
+static int TransferErrorMode = EXIST_OVW;
+static int TransferErrorNotify = NO;
 
 /*===== 外部参照 =====*/
 
@@ -377,6 +382,9 @@ int RemoveTmpTransFileListItem(TRANSPACKET **Base, int Num)
 
 void AddTransFileList(TRANSPACKET *Pkt)
 {
+	// 同時接続対応
+	TRANSPACKET *Pos;
+
 	DispTransPacket(Pkt);
 
 	// 同時接続対応
@@ -388,6 +396,13 @@ void AddTransFileList(TRANSPACKET *Pkt)
 		Sleep(1);
 	}
 
+	// 同時接続対応
+	Pos = TransPacketBase;
+	if(Pos != NULL)
+	{
+		while(Pos->Next != NULL)
+			Pos = Pos->Next;
+	}
 	if(AddTmpTransFileList(Pkt, &TransPacketBase) == FFFTP_SUCCESS)
 	{
 		if((strncmp(Pkt->Cmd, "RETR", 4) == 0) ||
@@ -399,7 +414,12 @@ void AddTransFileList(TRANSPACKET *Pkt)
 	}
 	// 同時接続対応
 	if(NextTransPacketBase == NULL)
-		NextTransPacketBase = TransPacketBase;
+	{
+		if(Pos)
+			NextTransPacketBase = Pos->Next;
+		else
+			NextTransPacketBase = TransPacketBase;
+	}
 	ReleaseMutex(hListAccMutex);
 	// 同時接続対応
 	WaitForMainThread = NO;
@@ -445,7 +465,7 @@ void AppendTransFileList(TRANSPACKET *Pkt)
 	}
 	// 同時接続対応
 	if(NextTransPacketBase == NULL)
-		NextTransPacketBase = TransPacketBase;
+		NextTransPacketBase = Pkt;
 
 	while(Pkt != NULL)
 	{
@@ -549,7 +569,7 @@ static void EraseTransFileList(void)
 	}
 	TransPacketBase = NotDel;
 	// 同時接続対応
-	NextTransPacketBase = TransPacketBase;
+	NextTransPacketBase = NotDel;
 	TransFiles = 0;
 	PostMessage(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 	ReleaseMutex(hListAccMutex);
@@ -1173,6 +1193,10 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_AUTO_EXIT, 0), 0);
 				GoExit = NO;
 			}
+
+			// 再転送対応
+			TransferErrorMode = AskTransferErrorMode();
+			TransferErrorNotify = AskTransferErrorNotify();
 		}
 		else
 		{
@@ -2253,8 +2277,19 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 			{
 				// 全て中止を選択後にダイアログが表示されるバグ対策
 //				if(DispUpDownErrDialog(downerr_dlg, Pkt->hWndTrans, Fname) == NO)
-				if(Canceled[Pkt->ThreadCount] == NO && ClearAll == NO && DispUpDownErrDialog(downerr_dlg, Pkt->hWndTrans, Fname) == NO)
-					ClearAll = YES;
+				// 再転送対応
+//				if(Canceled[Pkt->ThreadCount] == NO && ClearAll == NO && DispUpDownErrDialog(downerr_dlg, Pkt->hWndTrans, Fname) == NO)
+//					ClearAll = YES;
+				if(Canceled[Pkt->ThreadCount] == NO && ClearAll == NO)
+				{
+					if(TransferErrorNotify == YES && DispUpDownErrDialog(downerr_dlg, Pkt->hWndTrans, Pkt) == NO)
+						ClearAll = YES;
+					else
+					{
+						Pkt->Mode = TransferErrorMode;
+						AddTransFileList(Pkt);
+					}
+				}
 			}
 		}
 		else
@@ -2288,13 +2323,17 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 *		int ステータス (YES=中止/NO=全て中止)
 *----------------------------------------------------------------------------*/
 
-static int DispUpDownErrDialog(int ResID, HWND hWnd, char *Fname)
+// 再転送対応
+//static int DispUpDownErrDialog(int ResID, HWND hWnd, char *Fname)
+static int DispUpDownErrDialog(int ResID, HWND hWnd, TRANSPACKET *Pkt)
 {
 	if(hWnd == NULL)
 		hWnd = GetMainHwnd();
 
 	SoundPlay(SND_ERROR);
-	return(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(ResID), hWnd, UpDownErrorDialogProc, (LPARAM)Fname));
+	// 再転送対応
+//	return(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(ResID), hWnd, UpDownErrorDialogProc, (LPARAM)Fname));
+	return(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(ResID), hWnd, UpDownErrorDialogProc, (LPARAM)Pkt));
 }
 
 
@@ -2312,29 +2351,53 @@ static int DispUpDownErrDialog(int ResID, HWND hWnd, char *Fname)
 
 static BOOL CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	static TRANSPACKET *Pkt;
+	static const RADIOBUTTON DownExistButton[] = {
+		{ DOWN_EXIST_OVW, EXIST_OVW },
+		{ DOWN_EXIST_RESUME, EXIST_RESUME },
+		{ DOWN_EXIST_IGNORE, EXIST_IGNORE }
+	};
+	#define DOWNEXISTBUTTONS	(sizeof(DownExistButton)/sizeof(RADIOBUTTON))
+
 	switch (message)
 	{
 		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, UPDOWN_ERR_FNAME, WM_SETTEXT, 0, (LPARAM)lParam);
+			Pkt = (TRANSPACKET *)lParam;
+//			SendDlgItemMessage(hDlg, UPDOWN_ERR_FNAME, WM_SETTEXT, 0, (LPARAM)lParam);
+			SendDlgItemMessage(hDlg, UPDOWN_ERR_FNAME, WM_SETTEXT, 0, (LPARAM)Pkt->RemoteFile);
 			// 同時接続対応
 //			SendDlgItemMessage(hDlg, UPDOWN_ERR_MSG, WM_SETTEXT, 0, (LPARAM)ErrMsg);
 			SendDlgItemMessage(hDlg, UPDOWN_ERR_MSG, WM_SETTEXT, 0, (LPARAM)GetErrMsg());
+
+			if((Pkt->Type == TYPE_A) || (Pkt->ExistSize <= 0))
+				EnableWindow(GetDlgItem(hDlg, DOWN_EXIST_RESUME), FALSE);
+
+			SetRadioButtonByValue(hDlg, TransferErrorMode, DownExistButton, DOWNEXISTBUTTONS);
 			return(TRUE);
 
 		case WM_COMMAND :
 			switch(GET_WM_COMMAND_ID(wParam, lParam))
 			{
+				case IDOK_ALL :
+					TransferErrorNotify = NO;
+					/* ここに break はない */
+
 				case IDOK :
+					TransferErrorMode = AskRadioButtonValue(hDlg, DownExistButton, DOWNEXISTBUTTONS);
 					EndDialog(hDlg, YES);
 					break;
 
 				case IDCANCEL :
 					EndDialog(hDlg, NO);
 					break;
+
+				case IDHELP :
+//					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000009);
+					break;
 			}
-			return(TRUE);
+            return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -3452,8 +3515,19 @@ static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 			{
 				// 全て中止を選択後にダイアログが表示されるバグ対策
 //				if(DispUpDownErrDialog(uperr_dlg, Pkt->hWndTrans, Pkt->LocalFile) == NO)
-				if(Canceled[Pkt->ThreadCount] == NO && ClearAll == NO && DispUpDownErrDialog(uperr_dlg, Pkt->hWndTrans, Pkt->LocalFile) == NO)
-					ClearAll = YES;
+				// 再転送対応
+//				if(Canceled[Pkt->ThreadCount] == NO && ClearAll == NO && DispUpDownErrDialog(uperr_dlg, Pkt->hWndTrans, Pkt->LocalFile) == NO)
+//					ClearAll = YES;
+				if(Canceled[Pkt->ThreadCount] == NO && ClearAll == NO)
+				{
+					if(TransferErrorNotify == YES && DispUpDownErrDialog(uperr_dlg, Pkt->hWndTrans, Pkt) == NO)
+						ClearAll = YES;
+					else
+					{
+						Pkt->Mode = TransferErrorMode;
+						AddTransFileList(Pkt);
+					}
+				}
 			}
 		}
 		else

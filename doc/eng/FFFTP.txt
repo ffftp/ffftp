@@ -55,6 +55,10 @@ Changes in Ver.1.99
 -- Added a feature to send commands for keep alive.
    This is disabled by default.
 
+-- Reduced chance of stopping transfer when numerous files are transfered.
+
+-- Added a feature to retry transfering files if failed.
+
 
 Outline
 -------
