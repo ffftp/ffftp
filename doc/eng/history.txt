@@ -1,6 +1,6 @@
 FFFTP version history.
 
-Changes in Ver.1.99
+Changes in Ver.1.98d
 --------------------
 
 -- MLSD command became used for retrieving filenames on appropriate hosts.

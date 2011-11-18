@@ -70,9 +70,9 @@
 //#define VER_STR					"1.97b"
 //#define VER_NUM					1921		/* 設定バージョン */
 //#define PROGRAM_VERSION_NUM		1972		/* バージョン */
-#define VER_STR					"1.99"
-#define VER_NUM					1990		/* 設定バージョン */
-#define PROGRAM_VERSION_NUM		1990		/* バージョン */
+#define VER_STR					"1.98d"
+#define VER_NUM					1984		/* 設定バージョン */
+#define PROGRAM_VERSION_NUM		1984		/* バージョン */
 
 
 // SourceForge.JPによるフォーク
