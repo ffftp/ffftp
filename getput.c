@@ -2282,12 +2282,15 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 //					ClearAll = YES;
 				if(Canceled[Pkt->ThreadCount] == NO && ClearAll == NO)
 				{
-					if(TransferErrorNotify == YES && DispUpDownErrDialog(downerr_dlg, Pkt->hWndTrans, Pkt) == NO)
-						ClearAll = YES;
-					else
+					if(strncmp(Pkt->Cmd, "RETR", 4) == 0 || strncmp(Pkt->Cmd, "STOR", 4) == 0)
 					{
-						Pkt->Mode = TransferErrorMode;
-						AddTransFileList(Pkt);
+						if(TransferErrorNotify == YES && DispUpDownErrDialog(downerr_dlg, Pkt->hWndTrans, Pkt) == NO)
+							ClearAll = YES;
+						else
+						{
+							Pkt->Mode = TransferErrorMode;
+							AddTransFileList(Pkt);
+						}
 					}
 				}
 			}
@@ -3520,12 +3523,15 @@ static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 //					ClearAll = YES;
 				if(Canceled[Pkt->ThreadCount] == NO && ClearAll == NO)
 				{
-					if(TransferErrorNotify == YES && DispUpDownErrDialog(uperr_dlg, Pkt->hWndTrans, Pkt) == NO)
-						ClearAll = YES;
-					else
+					if(strncmp(Pkt->Cmd, "RETR", 4) == 0 || strncmp(Pkt->Cmd, "STOR", 4) == 0)
 					{
-						Pkt->Mode = TransferErrorMode;
-						AddTransFileList(Pkt);
+						if(TransferErrorNotify == YES && DispUpDownErrDialog(uperr_dlg, Pkt->hWndTrans, Pkt) == NO)
+							ClearAll = YES;
+						else
+						{
+							Pkt->Mode = TransferErrorMode;
+							AddTransFileList(Pkt);
+						}
 					}
 				}
 			}
