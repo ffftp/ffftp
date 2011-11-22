@@ -2490,9 +2490,10 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 			switch(IniKanjiCode)
 			{
 			case KANJI_NOCNV:
-				TempSize = min1(Size-1, strlen(Pos));
+				TempSize = min1(Size - 2, strlen(Pos));
 				TempSize = StrReadIn(Pos, TempSize, Str);
 				*(Str + TempSize) = NUL;
+				*(Str + TempSize + 1) = NUL;
 				Sts = FFFTP_SUCCESS;
 				if(!CheckMultiStringM(Str))
 					break;

@@ -31,6 +31,8 @@ Changes in Ver.1.98d
 
 -- Added a feature to retry transfering files if failed.
 
+-- Enhanced automatic detection of Kanji code of filenames.
+
 Changes in Ver.1.98c
 --------------------
 

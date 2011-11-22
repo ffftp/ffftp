@@ -2953,11 +2953,14 @@ BOOL __stdcall SSLTimeoutCallback(BOOL* pbAborted)
 BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName)
 {
 	BOOL bResult;
-	int i;
 	uint32 Hash[5];
+	int i;
 	char* pm0;
 	bResult = FALSE;
 	sha_memory((char*)Certificate, (uint32)(strlen(Certificate) * sizeof(char)), (uint32*)&Hash);
+	// sha.cはビッグエンディアンのため
+	for(i = 0; i < 5; i++)
+		Hash[i] = _byteswap_ulong(Hash[i]);
 	i = 0;
 	while(i < MAX_CERT_CACHE_HASH)
 	{
@@ -2995,6 +2998,7 @@ BOOL LoadSSLRootCAFile()
 	DWORD Size;
 	BYTE* pBuffer;
 	uint32 Hash[5];
+	int i;
 	bResult = FALSE;
 	if((hFile = CreateFile(SSLRootCAFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
 	{
@@ -3004,8 +3008,11 @@ BOOL LoadSSLRootCAFile()
 			if(ReadFile(hFile, pBuffer, Size, &Size, NULL))
 			{
 				sha_memory((char*)pBuffer, (uint32)Size, (uint32*)&Hash);
+				// sha.cはビッグエンディアンのため
+				for(i = 0; i < 5; i++)
+					Hash[i] = _byteswap_ulong(Hash[i]);
 				// 同梱する"ssl.pem"に合わせてSHA1ハッシュ値を変更すること
-				if(memcmp(&Hash, &SSLRootCAFileHash, 20) == 0 || memcmp(&Hash, "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", 20) == 0
+				if(memcmp(&Hash, &SSLRootCAFileHash, 20) == 0 || memcmp(&Hash, "\xF0\x1B\x48\x26\x67\x44\x3A\xFF\x0A\x16\xD3\xBB\x8A\x33\xEB\x70\x6D\x75\xA6\x0D", 20) == 0
 					|| DialogBox(GetFtpInst(), MAKEINTRESOURCE(updatesslroot_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
 				{
 					memcpy(&SSLRootCAFileHash, &Hash, 20);
