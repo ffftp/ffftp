@@ -13,6 +13,7 @@ copy /Y %HTMLHELP% %DIR_JPN%
 copy /Y %DIR_JPN_DOC%\*.txt %DIR_JPN%
 copy /Y %DIR_DIST%\*.dll %DIR_JPN%
 copy /Y %DIR_DIST%\*.manifest %DIR_JPN%
+copy /Y %DIR_DIST%\*.pem %DIR_JPN%
 
 REM;  copy English files
 mkdir %DIR_ENG%
@@ -20,6 +21,7 @@ copy /Y %BIN_ENG% %DIR_ENG%
 copy /Y %DIR_ENG_DOC%\*.txt %DIR_ENG%
 copy /Y %DIR_DIST%\*.dll %DIR_ENG%
 copy /Y %DIR_DIST%\*.manifest %DIR_ENG%
+copy /Y %DIR_DIST%\*.pem %DIR_ENG%
 
 REM; copy to installer working directory
 copy /Y %DIR_JPN%\*.* %DIR_JPN_INST%

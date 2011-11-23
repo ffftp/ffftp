@@ -397,20 +397,34 @@ BOOL SetSSLRootCertificate(const void* pData, DWORD Length)
 BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName)
 {
 	BOOL bResult;
-	char* pAsterisk;
+	const char* pAsterisk;
+	size_t BeforeAsterisk;
+	const char* pBeginAsterisk;
+	const char* pEndAsterisk;
+	const char* pDot;
 	bResult = FALSE;
 	if(HostName && CommonName)
 	{
 		if(pAsterisk = strchr(CommonName, '*'))
 		{
-			if(_strnicmp(HostName, CommonName, ((size_t)pAsterisk - (size_t)CommonName) / sizeof(char)) == 0)
+			BeforeAsterisk = ((size_t)pAsterisk - (size_t)CommonName) / sizeof(char);
+			pBeginAsterisk = HostName + BeforeAsterisk;
+			while(*pAsterisk == '*')
 			{
-				while(*pAsterisk == '*')
+				pAsterisk++;
+			}
+			pEndAsterisk = HostName + strlen(HostName) - strlen(pAsterisk);
+			// "*"より前は大文字小文字を無視して完全一致
+			if(_strnicmp(HostName, CommonName, BeforeAsterisk) == 0)
+			{
+				// "*"より後は大文字小文字を無視して完全一致
+				if(_stricmp(pEndAsterisk, pAsterisk) == 0)
 				{
-					pAsterisk++;
+					// "*"と一致する範囲に"."が含まれてはならない
+					pDot = strchr(pBeginAsterisk, '.');
+					if(!pDot || pDot >= pEndAsterisk)
+						bResult = TRUE;
 				}
-				if(_stricmp(HostName + strlen(HostName) - strlen(pAsterisk), pAsterisk) == 0)
-					bResult = TRUE;
 			}
 		}
 		else if(_stricmp(HostName, CommonName) == 0)

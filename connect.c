@@ -1689,12 +1689,12 @@ static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, 
 	SOCKET ContSock;
 	ContSock = INVALID_SOCKET;
 	*CancelCheckWork = NO;
-	if(*CancelCheckWork == NO && ContSock == INVALID_SOCKET && HostData->UseSFTP == YES)
-	{
-		SetTaskMsg(MSGJPN317);
-		if((ContSock = DoConnectCrypt(CRYPT_SFTP, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security, CancelCheckWork)) != INVALID_SOCKET)
-			HostData->CryptMode = CRYPT_SFTP;
-	}
+//	if(*CancelCheckWork == NO && ContSock == INVALID_SOCKET && HostData->UseSFTP == YES)
+//	{
+//		SetTaskMsg(MSGJPN317);
+//		if((ContSock = DoConnectCrypt(CRYPT_SFTP, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security, CancelCheckWork)) != INVALID_SOCKET)
+//			HostData->CryptMode = CRYPT_SFTP;
+//	}
 	if(*CancelCheckWork == NO && ContSock == INVALID_SOCKET && HostData->UseFTPIS == YES)
 	{
 		SetTaskMsg(MSGJPN316);
