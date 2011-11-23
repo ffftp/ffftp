@@ -1266,6 +1266,8 @@ int AskAutoExit(void);
 BOOL __stdcall SSLTimeoutCallback(BOOL* pbAborted);
 BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName);
 BOOL LoadSSLRootCAFile();
+// マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
+BOOL IsMainThread();
 
 /*===== filelist.c =====*/
 

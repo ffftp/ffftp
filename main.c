@@ -132,6 +132,8 @@ static DWORD dwCookie;
 
 // 暗号化通信対応
 static char SSLRootCAFilePath[FMAX_PATH+1];
+// マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
+static DWORD MainThreadId;
 
 
 /*===== グローバルなワーク =====*/
@@ -313,9 +315,11 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		InitializeLoadLibraryHook();
 #endif
 
+	// マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 #ifdef DISABLE_MULTI_CPUS
 	SetProcessAffinityMask(GetCurrentProcess(), 1);
 #endif
+	MainThreadId = GetCurrentThreadId();
 
 	// yutaka
 	if(OleInitialize(NULL) != S_OK){
@@ -2831,7 +2835,9 @@ int BackgrndMessageProc(void)
 	Ret = NO;
 	while(PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE))
 	{
-		if(!HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
+		// マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
+//		if(!HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
+		if(!IsMainThread() || !HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
 		{
 	 		/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
 			/* コンボボックス内ではアクセラレータを無効にする */
@@ -3027,3 +3033,10 @@ BOOL LoadSSLRootCAFile()
 	return bResult;
 }
 
+// マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
+BOOL IsMainThread()
+{
+	if(GetCurrentThreadId() != MainThreadId)
+		return FALSE;
+	return TRUE;
+}

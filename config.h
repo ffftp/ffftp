@@ -10,7 +10,7 @@
 // プロセスをDLL Injectionから保護する
 #include "protectprocess.h"
 // 使用するCPUを1個に限定する（マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策）
-#define DISABLE_MULTI_CPUS
+//#define DISABLE_MULTI_CPUS
 // ファイル転送用のネットワークバッファを無効にする（通信中止後にリモートのディレクトリが表示されないバグ対策）
 //#define DISABLE_TRANSFER_NETWORK_BUFFERS
 // コントロール用のネットワークバッファを無効にする（フリーズ対策）
