@@ -632,13 +632,7 @@ static int MakeAllWindows(int cmdShow)
 		WinPosX = CW_USEDEFAULT;
 		WinPosY = 0;
 	}
-	// UTF-8対応
-	// ユーザー定義のクラスはデフォルトのWNDPROCがShift_JIS専用のため
-//	hWndFtp = CreateWindow(FtpClassStr, "FFFTP",
-//				WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
-//				WinPosX, WinPosY, WinWidth, WinHeight,
-//				HWND_DESKTOP, 0, hInstFtp, NULL);
-	hWndFtp = CreateWindowA(FtpClassStr, "FFFTP",
+	hWndFtp = CreateWindow(FtpClassStr, "FFFTP",
 				WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
 				WinPosX, WinPosY, WinWidth, WinHeight,
 				HWND_DESKTOP, 0, hInstFtp, NULL);
@@ -845,6 +839,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 {
 	PAINTSTRUCT ps;
 	LPTOOLTIPTEXT lpttt;
+	// UTF-8対応
+	LPTOOLTIPTEXTW wlpttt;
 	RECT Rect;
 
 	int TmpTransType;
@@ -1410,8 +1406,13 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			switch(((LPNMHDR)lParam)->code)
 			{
 				/* ツールチップコントロールメッセージの処理 */
-				case TTN_NEEDTEXT:
+				// UTF-8対応
+//				case TTN_NEEDTEXT:
+				case TTN_NEEDTEXTW:
 					lpttt = (LPTOOLTIPTEXT)lParam;
+					// UTF-8対応
+					// lptttは単なる警告回避用
+					wlpttt = (LPTOOLTIPTEXTW)lParam;
 					lpttt->hinst = hInstFtp;
 					switch(lpttt->hdr.idFrom)
 					{
@@ -1541,15 +1542,14 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 							lpttt->lpszText = MSGJPN176;
 							break;
 					}
-					// UTF-8からShift_JISへ変換
+					// UTF-8対応
+					// UTF-8からUTF-16 LEへ変換
 					{
 						static wchar_t StringBufferUTF16[1024];
-						static char StringBufferSJIS[1024];
 						if(lpttt->lpszText)
 						{
 							MtoW(StringBufferUTF16, sizeof(StringBufferUTF16)/ sizeof(wchar_t), lpttt->lpszText, -1);
-							WtoA(StringBufferSJIS, sizeof(StringBufferSJIS)/ sizeof(char), StringBufferUTF16, -1);
-							lpttt->lpszText = StringBufferSJIS;
+							wlpttt->lpszText = StringBufferUTF16;
 						}
 					}
 					break;

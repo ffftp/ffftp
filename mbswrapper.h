@@ -44,6 +44,12 @@ LONG GetWindowLongM(HWND hWnd, int nIndex);
 #undef SetWindowLong
 #define SetWindowLong SetWindowLongM
 LONG SetWindowLongM(HWND hWnd, int nIndex, LONG dwNewLong);
+#undef GetWindowLongPtr
+#define GetWindowLongPtr GetWindowLongPtrM
+LONG_PTR GetWindowLongPtrM(HWND hWnd, int nIndex);
+#undef SetWindowLongPtr
+#define SetWindowLongPtr SetWindowLongPtrM
+LONG_PTR SetWindowLongPtrM(HWND hWnd, int nIndex, LONG_PTR dwNewLong);
 #undef DefWindowProc
 #define DefWindowProc DefWindowProcM
 LRESULT DefWindowProcM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);

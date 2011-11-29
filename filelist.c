@@ -185,7 +185,9 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 
 	if(hWndListLocal != NULL)
 	{
-		LocalProcPtr = (WNDPROC)SetWindowLong(hWndListLocal, GWL_WNDPROC, (LONG)LocalWndProc);
+		// 64ビット対応
+//		LocalProcPtr = (WNDPROC)SetWindowLong(hWndListLocal, GWL_WNDPROC, (LONG)LocalWndProc);
+		LocalProcPtr = (WNDPROC)SetWindowLongPtr(hWndListLocal, GWL_WNDPROC, (LONG_PTR)LocalWndProc);
 
 	    Tmp = SendMessage(hWndListLocal, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
 	    Tmp |= LVS_EX_FULLROWSELECT;
@@ -234,7 +236,9 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 
 	if(hWndListRemote != NULL)
 	{
-		RemoteProcPtr = (WNDPROC)SetWindowLong(hWndListRemote, GWL_WNDPROC, (LONG)RemoteWndProc);
+		// 64ビット対応
+//		RemoteProcPtr = (WNDPROC)SetWindowLong(hWndListRemote, GWL_WNDPROC, (LONG)RemoteWndProc);
+		RemoteProcPtr = (WNDPROC)SetWindowLongPtr(hWndListRemote, GWL_WNDPROC, (LONG_PTR)RemoteWndProc);
 
 	    Tmp = SendMessage(hWndListRemote, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
 	    Tmp |= LVS_EX_FULLROWSELECT;
@@ -1123,32 +1127,50 @@ void GetListTabWidth(void)
 
 void SetListViewType(void)
 {
-	long lStyle;
+	// 64ビット対応
+//	long lStyle;
+	LONG_PTR lStyle;
 
 	switch(ListType)
 	{
 		case LVS_LIST :
-			lStyle = GetWindowLong(GetLocalHwnd(), GWL_STYLE);
+			// 64ビット対応
+//			lStyle = GetWindowLong(GetLocalHwnd(), GWL_STYLE);
+			lStyle = GetWindowLongPtr(GetLocalHwnd(), GWL_STYLE);
 			lStyle &= ~(LVS_REPORT | LVS_LIST);
 			lStyle |= LVS_LIST;
-			SetWindowLong(GetLocalHwnd(), GWL_STYLE, lStyle);
+			// 64ビット対応
+//			SetWindowLong(GetLocalHwnd(), GWL_STYLE, lStyle);
+			SetWindowLongPtr(GetLocalHwnd(), GWL_STYLE, lStyle);
 
-			lStyle = GetWindowLong(GetRemoteHwnd(), GWL_STYLE);
+			// 64ビット対応
+//			lStyle = GetWindowLong(GetRemoteHwnd(), GWL_STYLE);
+			lStyle = GetWindowLongPtr(GetRemoteHwnd(), GWL_STYLE);
 			lStyle &= ~(LVS_REPORT | LVS_LIST);
 			lStyle |= LVS_LIST;
-			SetWindowLong(GetRemoteHwnd(), GWL_STYLE, lStyle);
+			// 64ビット対応
+//			SetWindowLong(GetRemoteHwnd(), GWL_STYLE, lStyle);
+			SetWindowLongPtr(GetRemoteHwnd(), GWL_STYLE, lStyle);
 			break;
 
 		default :
-			lStyle = GetWindowLong(GetLocalHwnd(), GWL_STYLE);
+			// 64ビット対応
+//			lStyle = GetWindowLong(GetLocalHwnd(), GWL_STYLE);
+			lStyle = GetWindowLongPtr(GetLocalHwnd(), GWL_STYLE);
 			lStyle &= ~(LVS_REPORT | LVS_LIST);
 			lStyle |= LVS_REPORT;
-			SetWindowLong(GetLocalHwnd(), GWL_STYLE, lStyle);
+			// 64ビット対応
+//			SetWindowLong(GetLocalHwnd(), GWL_STYLE, lStyle);
+			SetWindowLongPtr(GetLocalHwnd(), GWL_STYLE, lStyle);
 
-			lStyle = GetWindowLong(GetRemoteHwnd(), GWL_STYLE);
+			// 64ビット対応
+//			lStyle = GetWindowLong(GetRemoteHwnd(), GWL_STYLE);
+			lStyle = GetWindowLongPtr(GetRemoteHwnd(), GWL_STYLE);
 			lStyle &= ~(LVS_REPORT | LVS_LIST);
 			lStyle |= LVS_REPORT;
-			SetWindowLong(GetRemoteHwnd(), GWL_STYLE, lStyle);
+			// 64ビット対応
+//			SetWindowLong(GetRemoteHwnd(), GWL_STYLE, lStyle);
+			SetWindowLongPtr(GetRemoteHwnd(), GWL_STYLE, lStyle);
 			break;
 	}
 	return;

@@ -723,7 +723,7 @@ END_ROUTINE
 
 LONG GetWindowLongM(HWND hWnd, int nIndex)
 {
-	LRESULT r = 0;
+	LONG r = 0;
 START_ROUTINE
 	// WNDPROCがShift_JIS用であるため
 	if(IsWindowUnicode(hWnd))
@@ -736,13 +736,39 @@ END_ROUTINE
 
 LONG SetWindowLongM(HWND hWnd, int nIndex, LONG dwNewLong)
 {
-	LRESULT r = 0;
+	LONG r = 0;
 START_ROUTINE
 	// WNDPROCがShift_JIS用であるため
 	if(IsWindowUnicode(hWnd))
 		r = SetWindowLongW(hWnd, nIndex, dwNewLong);
 	else
 		r = SetWindowLongA(hWnd, nIndex, dwNewLong);
+END_ROUTINE
+	return r;
+}
+
+LONG_PTR GetWindowLongPtrM(HWND hWnd, int nIndex)
+{
+	LONG_PTR r = 0;
+START_ROUTINE
+	// WNDPROCがShift_JIS用であるため
+	if(IsWindowUnicode(hWnd))
+		r = GetWindowLongPtrW(hWnd, nIndex);
+	else
+		r = GetWindowLongPtrA(hWnd, nIndex);
+END_ROUTINE
+	return r;
+}
+
+LONG_PTR SetWindowLongPtrM(HWND hWnd, int nIndex, LONG_PTR dwNewLong)
+{
+	LONG_PTR r = 0;
+START_ROUTINE
+	// WNDPROCがShift_JIS用であるため
+	if(IsWindowUnicode(hWnd))
+		r = SetWindowLongPtrW(hWnd, nIndex, dwNewLong);
+	else
+		r = SetWindowLongPtrA(hWnd, nIndex, dwNewLong);
 END_ROUTINE
 	return r;
 }

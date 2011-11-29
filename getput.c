@@ -3639,7 +3639,9 @@ static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 					/* ここに break はない */
 
 				case IDCANCEL :
-					if(!(Pkt = (TRANSPACKET*)GetWindowLong(hDlg, GWL_USERDATA)))
+					// 64ビット対応
+//					if(!(Pkt = (TRANSPACKET*)GetWindowLong(hDlg, GWL_USERDATA)))
+					if(!(Pkt = (TRANSPACKET*)GetWindowLongPtr(hDlg, GWL_USERDATA)))
 						break;
 					Pkt->Abort = ABORT_USER;
 //					Canceled = YES;
@@ -3655,7 +3657,9 @@ static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 					SetForegroundWindow(hDlg);
 				MoveToForeground = NO;
 				KillTimer(hDlg, TIMER_DISPLAY);
-				if(!(Pkt = (TRANSPACKET*)GetWindowLong(hDlg, GWL_USERDATA)))
+				// 64ビット対応
+//				if(!(Pkt = (TRANSPACKET*)GetWindowLong(hDlg, GWL_USERDATA)))
+				if(!(Pkt = (TRANSPACKET*)GetWindowLongPtr(hDlg, GWL_USERDATA)))
 					break;
 				if(Canceled[Pkt->ThreadCount] == YES)
 					Pkt->Abort = ABORT_USER;
@@ -3666,7 +3670,9 @@ static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 
 		case WM_SET_PACKET :
 //			Pkt = (TRANSPACKET *)lParam;
-			SetWindowLong(hDlg, GWL_USERDATA, (LONG)lParam);
+			// 64ビット対応
+//			SetWindowLong(hDlg, GWL_USERDATA, (LONG)lParam);
+			SetWindowLongPtr(hDlg, GWL_USERDATA, (LONG_PTR)lParam);
 			break;
 	}
 	return(FALSE);

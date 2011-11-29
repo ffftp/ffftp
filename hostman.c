@@ -163,7 +163,9 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 	{
 		case WM_INITDIALOG :
 			/* TreeViewでのダブルクリックをつかまえるため */
-			HostListProcPtr = (WNDPROC)SetWindowLong(GetDlgItem(hDlg, HOST_LIST), GWL_WNDPROC, (LONG)HostListWndProc);
+			// 64ビット対応
+//			HostListProcPtr = (WNDPROC)SetWindowLong(GetDlgItem(hDlg, HOST_LIST), GWL_WNDPROC, (LONG)HostListWndProc);
+			HostListProcPtr = (WNDPROC)SetWindowLongPtr(GetDlgItem(hDlg, HOST_LIST), GWL_WNDPROC, (LONG_PTR)HostListWndProc);
 
 
 //		SetClassLong(hDlg, GCL_HICON, (LONG)LoadIcon(GetFtpInst(), MAKEINTRESOURCE(ffftp)));
@@ -1669,7 +1671,9 @@ static int DispHostSetDlg(HWND hDlg)
 
 static BOOL CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
-	long wStyle;
+	// 64ビット対応
+//	long wStyle;
+	LONG_PTR wStyle;
 	char Tmp[FMAX_PATH+1];
 	NMHDR *pnmhdr;
 
@@ -1747,17 +1751,25 @@ static BOOL CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 					if(SendDlgItemMessage(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0) == 1)
 					{
 						SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)"anonymous");
-						wStyle = GetWindowLong(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
+						// 64ビット対応
+//						wStyle = GetWindowLong(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
+						wStyle = GetWindowLongPtr(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
 						wStyle &= ~ES_PASSWORD;
-						SetWindowLong(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle);
+						// 64ビット対応
+//						SetWindowLong(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle);
+						SetWindowLongPtr(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle);
 						SendDlgItemMessage(hDlg, HSET_PASS, WM_SETTEXT, 0, (LPARAM)UserMailAdrs);
 					}
 					else
 					{
 						SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)"");
-						wStyle = GetWindowLong(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
+						// 64ビット対応
+//						wStyle = GetWindowLong(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
+						wStyle = GetWindowLongPtr(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
 						wStyle |= ES_PASSWORD;
-						SetWindowLong(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle);
+						// 64ビット対応
+//						SetWindowLong(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle);
+						SetWindowLongPtr(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle);
 						SendDlgItemMessage(hDlg, HSET_PASS, WM_SETTEXT, 0, (LPARAM)"");
 					}
 					break;
