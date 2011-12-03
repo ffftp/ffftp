@@ -254,7 +254,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 		/* 2007/09/21 sunasunamix  ここから *********************/
 		// 64ビット対応
 //		pOldTbarMainProc = (WNDPROC)SetWindowLong(hWndTbarMain, GWL_WNDPROC, (DWORD)CountermeasureTbarMainProc);
-		pOldTbarMainProc = (WNDPROC)SetWindowLongPtr(hWndTbarMain, GWL_WNDPROC, (LONG_PTR)CountermeasureTbarMainProc);
+		pOldTbarMainProc = (WNDPROC)SetWindowLongPtr(hWndTbarMain, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarMainProc);
 		/********************************************* ここまで */
 
 		GetClientRect(hWnd, &Rect1);
@@ -281,7 +281,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 		/* 2007/09/21 sunasunamix  ここから *********************/
 		// 64ビット対応
 //		pOldTbarLocalProc = (WNDPROC)SetWindowLong(hWndTbarLocal, GWL_WNDPROC, (DWORD)CountermeasureTbarLocalProc);
-		pOldTbarLocalProc = (WNDPROC)SetWindowLongPtr(hWndTbarLocal, GWL_WNDPROC, (LONG_PTR)CountermeasureTbarLocalProc);
+		pOldTbarLocalProc = (WNDPROC)SetWindowLongPtr(hWndTbarLocal, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarLocalProc);
 		/********************************************* ここまで */
 
 		MoveWindow(hWndTbarLocal, 0, TOOLWIN_HEIGHT, LocalWidth, TOOLWIN_HEIGHT, FALSE);
@@ -308,7 +308,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 			if(hWndDirLocalEdit != NULL)
 				// 64ビット対応
 //				HistEditBoxProcPtr = (WNDPROC)SetWindowLong(hWndDirLocalEdit, GWL_WNDPROC, (LONG)HistEditBoxWndProc);
-				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtr(hWndDirLocalEdit, GWL_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
+				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtr(hWndDirLocalEdit, GWLP_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
 
 			SendMessage(hWndDirLocal, WM_SETFONT, (WPARAM)DlgFont, MAKELPARAM(TRUE, 0));
 			SendMessage(hWndDirLocal, CB_LIMITTEXT, FMAX_PATH, 0);
@@ -348,7 +348,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 		/* 2007/09/21 sunasunamix  ここから *********************/
 		// 64ビット対応
 //		pOldTbarRemoteProc = (WNDPROC)SetWindowLong(hWndTbarRemote, GWL_WNDPROC, (DWORD)CountermeasureTbarRemoteProc);
-		pOldTbarRemoteProc = (WNDPROC)SetWindowLongPtr(hWndTbarRemote, GWL_WNDPROC, (LONG_PTR)CountermeasureTbarRemoteProc);
+		pOldTbarRemoteProc = (WNDPROC)SetWindowLongPtr(hWndTbarRemote, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarRemoteProc);
 		/********************************************* ここまで */
 
 		MoveWindow(hWndTbarRemote, LocalWidth + SepaWidth, TOOLWIN_HEIGHT, RemoteWidth, TOOLWIN_HEIGHT, FALSE);
@@ -369,7 +369,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 			if(hWndDirRemoteEdit != NULL)
 				// 64ビット対応
 //				HistEditBoxProcPtr = (WNDPROC)SetWindowLong(hWndDirRemoteEdit, GWL_WNDPROC, (LONG)HistEditBoxWndProc);
-				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtr(hWndDirRemoteEdit, GWL_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
+				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtr(hWndDirRemoteEdit, GWLP_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
 
 			SendMessage(hWndDirRemote, WM_SETFONT, (WPARAM)DlgFont, MAKELPARAM(TRUE, 0));
 			SendMessage(hWndDirRemote, CB_LIMITTEXT, FMAX_PATH, 0);
@@ -1911,7 +1911,7 @@ static LRESULT CALLBACK CountermeasureTbarMainProc(HWND hWnd,UINT uMessage,WPARA
 	case WM_DESTROY :
 		// 64ビット対応
 //		SetWindowLong(hWnd,GWL_WNDPROC,(DWORD)pOldTbarMainProc);
-		SetWindowLongPtr(hWnd,GWL_WNDPROC,(LONG_PTR)pOldTbarMainProc);
+		SetWindowLongPtr(hWnd,GWLP_WNDPROC,(LONG_PTR)pOldTbarMainProc);
 		break;
 	case WM_RBUTTONDBLCLK :
 	case WM_RBUTTONDOWN :
@@ -1930,7 +1930,7 @@ static LRESULT CALLBACK CountermeasureTbarLocalProc(HWND hWnd,UINT uMessage,WPAR
 	case WM_DESTROY :
 		// 64ビット対応
 //		SetWindowLong(hWnd,GWL_WNDPROC,(DWORD)pOldTbarLocalProc);
-		SetWindowLongPtr(hWnd,GWL_WNDPROC,(LONG_PTR)pOldTbarLocalProc);
+		SetWindowLongPtr(hWnd,GWLP_WNDPROC,(LONG_PTR)pOldTbarLocalProc);
 		break;
 	case WM_RBUTTONDBLCLK :
 	case WM_RBUTTONDOWN :
@@ -1949,7 +1949,7 @@ static LRESULT CALLBACK CountermeasureTbarRemoteProc(HWND hWnd,UINT uMessage,WPA
 	case WM_DESTROY :
 		// 64ビット対応
 //		SetWindowLong(hWnd,GWL_WNDPROC,(DWORD)pOldTbarRemoteProc);
-		SetWindowLongPtr(hWnd,GWL_WNDPROC,(LONG_PTR)pOldTbarRemoteProc);
+		SetWindowLongPtr(hWnd,GWLP_WNDPROC,(LONG_PTR)pOldTbarRemoteProc);
 		break;
 	case WM_RBUTTONDBLCLK :
 	case WM_RBUTTONDOWN :

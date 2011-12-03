@@ -50,7 +50,9 @@
 
 /*===== プロトタイプ =====*/
 
-static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static LRESULT CALLBACK HostListWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static HOSTLISTDATA *GetNextNode(HOSTLISTDATA *Pos);
 static int GetNodeLevel(int Num);
@@ -64,15 +66,21 @@ static int DeleteChildAndNext(HOSTLISTDATA *Pos);
 static void SendAllHostNames(HWND hWnd, int Cur);
 static int IsNodeGroup(int Num);
 static int DispHostSetDlg(HWND hDlg);
-static BOOL CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 // 暗号化通信対応
-static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 // 同時接続対応
-static BOOL CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 /*===== 外部参照 =====*/
 
@@ -137,7 +145,9 @@ int SelectHost(int Type)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	static DIALOGSIZE DlgSize = {
 		{ HOST_NEW, HOST_FOLDER, HOST_SET, HOST_COPY, HOST_DEL, HOST_DOWN, HOST_UP, IDHELP, HOST_SIZEGRIP, -1 },
@@ -165,7 +175,7 @@ static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPAR
 			/* TreeViewでのダブルクリックをつかまえるため */
 			// 64ビット対応
 //			HostListProcPtr = (WNDPROC)SetWindowLong(GetDlgItem(hDlg, HOST_LIST), GWL_WNDPROC, (LONG)HostListWndProc);
-			HostListProcPtr = (WNDPROC)SetWindowLongPtr(GetDlgItem(hDlg, HOST_LIST), GWL_WNDPROC, (LONG_PTR)HostListWndProc);
+			HostListProcPtr = (WNDPROC)SetWindowLongPtr(GetDlgItem(hDlg, HOST_LIST), GWLP_WNDPROC, (LONG_PTR)HostListWndProc);
 
 
 //		SetClassLong(hDlg, GCL_HICON, (LONG)LoadIcon(GetFtpInst(), MAKEINTRESOURCE(ffftp)));
@@ -1669,7 +1679,9 @@ static int DispHostSetDlg(HWND hDlg)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	// 64ビット対応
 //	long wStyle;
@@ -1792,7 +1804,9 @@ static BOOL CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 	char Tmp[20];
@@ -1890,7 +1904,9 @@ static BOOL CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPA
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 
@@ -1993,7 +2009,9 @@ static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 
@@ -2080,7 +2098,9 @@ static BOOL CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, 
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 	int Num;
@@ -2194,7 +2214,7 @@ static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 
 
 // 暗号化通信対応
-static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 //	int Num;
@@ -2254,7 +2274,7 @@ static BOOL CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, L
 }
 
 // 同時接続対応
-static BOOL CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 //	int Num;

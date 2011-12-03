@@ -52,24 +52,36 @@
 /*===== プロトタイプ =====*/
 
 static int CheckRemoteFile(TRANSPACKET *Pkt, FILELIST *ListList);
-static BOOL CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 static void DispMirrorFiles(FILELIST *Local, FILELIST *Remote);
 static void MirrorDeleteAllLocalDir(FILELIST *Local, TRANSPACKET *Pkt, TRANSPACKET **Base);
 static int CheckLocalFile(TRANSPACKET *Pkt);
-static BOOL CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static void RemoveAfterSemicolon(char *Path);
 static void MirrorDeleteAllDir(FILELIST *Remote, TRANSPACKET *Pkt, TRANSPACKET **Base);
-static BOOL CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static void CountMirrorFiles(HWND hDlg, TRANSPACKET *Pkt);
 static int AskMirrorNoTrn(char *Fname, int Mode);
 static int AskUpLoadFileAttr(char *Fname);
-static BOOL CALLBACK UpDownAsDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK UpDownAsDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK UpDownAsDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static void DeleteAllDir(FILELIST *Dt, int Win, int *Sw, int *Flg, char *CurDir);
 static void DelNotifyAndDo(FILELIST *Dt, int Win, int *Sw, int *Flg, char *CurDir);
-static BOOL CALLBACK DeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK RenameDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK DeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK RenameDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK DeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK RenameDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static void SetAttrToDialog(HWND hWnd, int Attr);
 static int GetAttrFromDialog(HWND hDlg);
 static LRESULT CALLBACK SizeNotifyDlgWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
@@ -788,7 +800,9 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	static TRANSPACKET *Pkt;
 	static const RADIOBUTTON DownExistButton[] = {
@@ -1489,7 +1503,9 @@ static void MirrorDeleteAllDir(FILELIST *Remote, TRANSPACKET *Pkt, TRANSPACKET *
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	static int Mode;
 
@@ -1538,7 +1554,9 @@ static BOOL CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wPara
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	static DIALOGSIZE DlgSize = {
 		{ MIRROR_DEL, MIRROR_SIZEGRIP, -1 },
@@ -1844,7 +1862,9 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, FILELIST *ListList)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	static TRANSPACKET *Pkt;
 	static const RADIOBUTTON UpExistButton[] = {
@@ -1910,7 +1930,9 @@ static BOOL CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wPar
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK UpDownAsDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK UpDownAsDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK UpDownAsDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	switch (iMessage)
 	{
@@ -2153,7 +2175,9 @@ static void DelNotifyAndDo(FILELIST *Dt, int Win, int *Sw, int *Flg, char *CurDi
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK DeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK DeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK DeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	switch (iMessage)
 	{
@@ -2405,7 +2429,9 @@ void MoveRemoteFileProc(int drop_index)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK RenameDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK RenameDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK RenameDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	switch (iMessage)
 	{
@@ -2759,7 +2785,9 @@ void ChmodProc(void)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-BOOL CALLBACK ChmodDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//BOOL CALLBACK ChmodDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK ChmodDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	char Str[5];
 	static char *Buf;

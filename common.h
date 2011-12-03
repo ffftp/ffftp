@@ -1508,7 +1508,9 @@ void ChangeDirBmarkProc(int MarkID);
 void ChangeDirDirectProc(int Win);
 void ChangeDirDropFileProc(WPARAM wParam);
 void ChmodProc(void);
-BOOL CALLBACK ChmodDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//BOOL CALLBACK ChmodDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+INT_PTR CALLBACK ChmodDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 void SomeCmdProc(void);
 void CalcFileSizeProc(void);
 void DispCWDerror(HWND hWnd);
@@ -1673,8 +1675,12 @@ int ConnectRas(int Dialup, int UseThis, int Notify, char *Name);
 /*===== misc.c =====*/
 
 int InputDialogBox(int Res, HWND hWnd, char *Title, char *Buf, int Max, int *Flg, int Help);
-BOOL CALLBACK ExeEscDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-BOOL CALLBACK ExeEscTextDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//BOOL CALLBACK ExeEscDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+INT_PTR CALLBACK ExeEscDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//BOOL CALLBACK ExeEscTextDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+INT_PTR CALLBACK ExeEscTextDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 void SetYenTail(char *Str);
 void RemoveYenTail(char *Str);
 void SetSlashTail(char *Str);

@@ -84,7 +84,9 @@ static void CalcWinSize(void);
 static void CheckResizeFrame(WPARAM Keys, int x, int y);
 static void DispDirInfo(void);
 static void DeleteAlltempFile(void);
-static BOOL CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static int EnterMasterPasswordAndSet( int Res, HWND hWnd );
 
 /*===== ローカルなワーク =====*/
@@ -345,7 +347,9 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 			if((Sts == 0) || (Sts == -1))
 				break;
 
-			if(!HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
+			// 64ビット対応
+//			if(!HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
+			if(!HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
 			{ 
 				/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
 				/* コンボボックス内ではアクセラレータを無効にする */
@@ -399,7 +403,9 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 	aes_init();
 	srand(GetTickCount());
 	
-	HtmlHelp(NULL, NULL, HH_INITIALIZE, (DWORD)&dwCookie);
+	// 64ビット対応
+//	HtmlHelp(NULL, NULL, HH_INITIALIZE, (DWORD)&dwCookie);
+	HtmlHelp(NULL, NULL, HH_INITIALIZE, (DWORD_PTR)&dwCookie);
 
 	SaveUpdateBellInfo();
 
@@ -2707,7 +2713,9 @@ static void DeleteAlltempFile(void)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	static char Tmp[80];
 	int Ver;
@@ -2837,7 +2845,9 @@ int BackgrndMessageProc(void)
 	{
 		// マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 //		if(!HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
-		if(!IsMainThread() || !HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
+		// 64ビット対応
+//		if(!IsMainThread() || !HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
+		if(!IsMainThread() || !HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
 		{
 	 		/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
 			/* コンボボックス内ではアクセラレータを無効にする */

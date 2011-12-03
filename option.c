@@ -50,23 +50,40 @@
 
 /*===== プロトタイプ =====*/
 
-static BOOL CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK Trmode2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK Trmode2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK Trmode2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static void AddFnameAttrToListView(HWND hDlg, char *Fname, char *Attr);
 static void GetFnameAttrFromListView(HWND hDlg, char *Buf);
-static BOOL CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static int SelectListFont(HWND hWnd, LOGFONT *lFont);
-static BOOL CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 // hostman.cで使用
 //static int GetDecimalText(HWND hDlg, int Ctrl);
 //static void SetDecimalText(HWND hDlg, int Ctrl, int Num);
@@ -317,7 +334,9 @@ void SetOption(int Start)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 
@@ -361,7 +380,9 @@ static BOOL CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPA
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 	int Num;
@@ -455,7 +476,9 @@ static BOOL CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK Trmode2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK Trmode2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK Trmode2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 	char Tmp[FMAX_PATH+1];
@@ -530,7 +553,9 @@ static BOOL CALLBACK Trmode2SettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 	LV_COLUMN LvCol;
@@ -641,7 +666,9 @@ static BOOL CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	static ATTRSET *AttrSet;
 	char Tmp[5];
@@ -775,7 +802,9 @@ static void GetFnameAttrFromListView(HWND hDlg, char *Buf)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 	int Num;
@@ -856,7 +885,9 @@ static BOOL CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam, L
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 
@@ -930,7 +961,9 @@ static BOOL CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam, L
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 	static LOGFONT TmpFont;
@@ -1028,7 +1061,9 @@ static int SelectListFont(HWND hWnd, LOGFONT *lFont)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 
@@ -1106,7 +1141,9 @@ static BOOL CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 	char Tmp[10];
@@ -1233,7 +1270,9 @@ static BOOL CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPA
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 	char Tmp[FMAX_PATH+1];
@@ -1312,7 +1351,9 @@ static BOOL CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPA
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 	char Tmp[FMAX_PATH+1];
@@ -1413,7 +1454,9 @@ static BOOL CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam, LP
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 	char Tmp[FMAX_PATH+1];
@@ -1534,7 +1577,9 @@ int SortSetting(void)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int LFsort;
 	int LDsort;

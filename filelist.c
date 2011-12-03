@@ -84,7 +84,9 @@ static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LON
 static void EraseDispFileList(FLISTANCHOR *Anchor);
 static void DispFileList2View(HWND hWnd, FLISTANCHOR *Anchor);
 static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist);
-static BOOL CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static void DispListList(FILELIST *Pos, char *Title);
 static void MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
 static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
@@ -108,7 +110,9 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute);
 static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day);
 static int CheckSpecialDirName(char *Fname);
 static int AskFilterStr(char *Fname, int Type);
-static BOOL CALLBACK FilterWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK FilterWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK FilterWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static int atoi_n(const char *Str, int Len);
 
 /*===== 外部参照 =====*/
@@ -187,7 +191,7 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 	{
 		// 64ビット対応
 //		LocalProcPtr = (WNDPROC)SetWindowLong(hWndListLocal, GWL_WNDPROC, (LONG)LocalWndProc);
-		LocalProcPtr = (WNDPROC)SetWindowLongPtr(hWndListLocal, GWL_WNDPROC, (LONG_PTR)LocalWndProc);
+		LocalProcPtr = (WNDPROC)SetWindowLongPtr(hWndListLocal, GWLP_WNDPROC, (LONG_PTR)LocalWndProc);
 
 	    Tmp = SendMessage(hWndListLocal, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
 	    Tmp |= LVS_EX_FULLROWSELECT;
@@ -238,7 +242,7 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 	{
 		// 64ビット対応
 //		RemoteProcPtr = (WNDPROC)SetWindowLong(hWndListRemote, GWL_WNDPROC, (LONG)RemoteWndProc);
-		RemoteProcPtr = (WNDPROC)SetWindowLongPtr(hWndListRemote, GWL_WNDPROC, (LONG_PTR)RemoteWndProc);
+		RemoteProcPtr = (WNDPROC)SetWindowLongPtr(hWndListRemote, GWLP_WNDPROC, (LONG_PTR)RemoteWndProc);
 
 	    Tmp = SendMessage(hWndListRemote, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
 	    Tmp |= LVS_EX_FULLROWSELECT;
@@ -1820,7 +1824,9 @@ void SelectFileInList(HWND hWnd, int Type)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	switch (iMessage)
 	{
@@ -5436,7 +5442,9 @@ void SetFilter(int *CancelCheckWork)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK FilterWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK FilterWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK FilterWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	switch (iMessage)
 	{

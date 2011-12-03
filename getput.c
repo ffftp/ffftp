@@ -91,9 +91,13 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
 // 再転送対応
 //static int DispUpDownErrDialog(int ResID, HWND hWnd, char *Fname);
 static int DispUpDownErrDialog(int ResID, HWND hWnd, TRANSPACKET *Pkt);
-static BOOL CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode, int *CancelCheckWork);
-static BOOL CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static int DoUpLoad(SOCKET cSkt, TRANSPACKET *Pkt);
 static int UpLoadNonPassive(TRANSPACKET *Pkt);
 static int UpLoadPassive(TRANSPACKET *Pkt);
@@ -113,7 +117,9 @@ static int GetAdrsAndPortIPv4(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 static int GetAdrsAndPortIPv6(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max);
 static int IsSpecialDevice(char *Fname);
 static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt);
-static BOOL CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static void SetErrorMsg(char *fmt, ...);
 // 同時接続対応
 static char* GetErrMsg();
@@ -2352,7 +2358,9 @@ static int DispUpDownErrDialog(int ResID, HWND hWnd, TRANSPACKET *Pkt)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	static TRANSPACKET *Pkt;
 	static const RADIOBUTTON DownExistButton[] = {
@@ -2468,7 +2476,9 @@ static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int 
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	switch (iMessage)
 	{
@@ -3641,7 +3651,7 @@ static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 				case IDCANCEL :
 					// 64ビット対応
 //					if(!(Pkt = (TRANSPACKET*)GetWindowLong(hDlg, GWL_USERDATA)))
-					if(!(Pkt = (TRANSPACKET*)GetWindowLongPtr(hDlg, GWL_USERDATA)))
+					if(!(Pkt = (TRANSPACKET*)GetWindowLongPtr(hDlg, GWLP_USERDATA)))
 						break;
 					Pkt->Abort = ABORT_USER;
 //					Canceled = YES;
@@ -3659,7 +3669,7 @@ static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 				KillTimer(hDlg, TIMER_DISPLAY);
 				// 64ビット対応
 //				if(!(Pkt = (TRANSPACKET*)GetWindowLong(hDlg, GWL_USERDATA)))
-				if(!(Pkt = (TRANSPACKET*)GetWindowLongPtr(hDlg, GWL_USERDATA)))
+				if(!(Pkt = (TRANSPACKET*)GetWindowLongPtr(hDlg, GWLP_USERDATA)))
 					break;
 				if(Canceled[Pkt->ThreadCount] == YES)
 					Pkt->Abort = ABORT_USER;
@@ -3672,7 +3682,7 @@ static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 //			Pkt = (TRANSPACKET *)lParam;
 			// 64ビット対応
 //			SetWindowLong(hDlg, GWL_USERDATA, (LONG)lParam);
-			SetWindowLongPtr(hDlg, GWL_USERDATA, (LONG_PTR)lParam);
+			SetWindowLongPtr(hDlg, GWLP_USERDATA, (LONG_PTR)lParam);
 			break;
 	}
 	return(FALSE);
@@ -4087,7 +4097,9 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	static MIRRORDELETEINFO *DelInfo;
 	switch (iMessage)

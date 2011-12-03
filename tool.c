@@ -50,7 +50,9 @@
 
 /*===== プロトタイプ =====*/
 
-static BOOL CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 
 /*===== 外部参照 =====*/
@@ -86,7 +88,9 @@ void OtpCalcTool(void)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	char Tmp[41];
 	char *Pos;

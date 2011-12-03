@@ -57,8 +57,11 @@
 
 static int AddBookMark(char *Path);
 static int GetBothPath(char *Str, char **Path1, char **Path2);
-static BOOL CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static BOOL CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+//static BOOL CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 /*===== 外部参照 =====*/
 
@@ -390,7 +393,9 @@ int EditBookMark(void)
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	HMENU hMenu;
 	MENUITEMINFO mInfo;
@@ -534,7 +539,9 @@ static BOOL CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam, LP
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	static char *Str;
 	char *Path1;

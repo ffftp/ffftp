@@ -64,7 +64,9 @@ typedef struct {
 
 /*===== プロトタイプ =====*/
 
-static BOOL CALLBACK InputDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+// 64ビット対応
+//static BOOL CALLBACK InputDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK InputDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 /*===== 外部参照 =====*/
 
@@ -134,7 +136,9 @@ int InputDialogBox(int Res, HWND hWnd, char *Title, char *Buf, int Max, int *Flg
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-static BOOL CALLBACK InputDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//static BOOL CALLBACK InputDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK InputDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	char Tmp[FMAX_PATH+1];
 
@@ -188,7 +192,9 @@ static BOOL CALLBACK InputDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-BOOL CALLBACK ExeEscDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//BOOL CALLBACK ExeEscDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK ExeEscDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
@@ -224,7 +230,9 @@ BOOL CALLBACK ExeEscDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 *		BOOL TRUE/FALSE
 *----------------------------------------------------------------------------*/
 
-BOOL CALLBACK ExeEscTextDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+// 64ビット対応
+//BOOL CALLBACK ExeEscTextDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK ExeEscTextDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
