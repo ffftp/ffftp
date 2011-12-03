@@ -444,9 +444,11 @@ static void doTransferRemoteFile(void)
 	int CancelFlg = NO;
 	char LocDir[FMAX_PATH+1];
 	char TmpDir[FMAX_PATH+1];
-	char buf[32];
+	// 環境依存の不具合対策
+//	char buf[32];
 	int i;
-	DWORD pid;
+	// 環境依存の不具合対策
+//	DWORD pid;
 
 	// すでにリモートから転送済みなら何もしない。(2007.9.3 yutaka)
 	if (remoteFileListBase != NULL)
@@ -470,7 +472,7 @@ static void doTransferRemoteFile(void)
 	GetAppTempPath(TmpDir);
 	_mkdir(TmpDir);
 	SetYenTail(TmpDir);
-	strcat(TmpDir, "transfer");
+	strcat(TmpDir, "file");
 	_mkdir(TmpDir);
 #if 0
 	if (TmpDir[strlen(TmpDir) - 1] == '\\') {

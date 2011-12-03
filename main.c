@@ -2056,6 +2056,10 @@ static void ExitProc(HWND hWnd)
 
 	// 環境依存の不具合対策
 	GetAppTempPath(Tmp);
+	SetYenTail(Tmp);
+	strcat(Tmp, "file");
+	_rmdir(Tmp);
+	GetAppTempPath(Tmp);
 	_rmdir(Tmp);
 
 	if(RasClose == YES)
@@ -2130,6 +2134,10 @@ void DoubleClickProc(int Win, int Mode, int App)
 								UseDiffViewer = NO;
 
 							strcpy(Remote, TmpPath);
+							SetYenTail(Remote);
+							// 環境依存の不具合対策
+							strcat(Remote, "file");
+							_mkdir(Remote);
 							SetYenTail(Remote);
 							if (UseDiffViewer == YES) {
 								strcat(Remote, "remote.");
