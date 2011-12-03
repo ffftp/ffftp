@@ -1620,6 +1620,9 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 											DoPrintf("No password specified.");
 										}
 									}
+									// FTPES対応
+									if(Continue == YES)
+										Sts = FTP_COMPLETE;
 								}
 								while(Continue == YES);
 							}
