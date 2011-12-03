@@ -697,6 +697,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 	SOCKET TrnSkt;
 	RECT WndRect;
 	int i;
+	DWORD LastUsed;
 
 	hWndTrans = NULL;
 	Down = NO;
@@ -756,10 +757,13 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				{
 					ReleaseMutex(hListAccMutex);
 					ReConnectTrnSkt(&TrnSkt, &Canceled[ThreadCount]);
-					// 同時ログイン数制限に引っかかった可能性あり
-					// 負荷を下げるためにしばらく待機
-					if(TrnSkt == INVALID_SOCKET)
+					// 同時ログイン数制限対策
+					if(TrnSkt != INVALID_SOCKET)
+						LastUsed = timeGetTime();
+					else
 					{
+						// 同時ログイン数制限に引っかかった可能性あり
+						// 負荷を下げるために約10秒間待機
 						i = 10000;
 						while(NewCmdSkt != CmdSkt && i > 0)
 						{
@@ -780,15 +784,20 @@ static ULONG WINAPI TransferThread(void *Dummy)
 			{
 				if(TrnSkt != INVALID_SOCKET)
 				{
-					ReleaseMutex(hListAccMutex);
-					SendData(TrnSkt, "QUIT\r\n", 6, 0, &Canceled[ThreadCount]);
-					DoClose(TrnSkt);
-					TrnSkt = INVALID_SOCKET;
-//					WaitForSingleObject(hListAccMutex, INFINITE);
-					while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+					// 同時ログイン数制限対策
+					// 10秒間は再利用を許可
+					if(timeGetTime() - LastUsed > 10000)
 					{
-						BackgrndMessageProc();
-						Sleep(1);
+						ReleaseMutex(hListAccMutex);
+						SendData(TrnSkt, "QUIT\r\n", 6, 0, &Canceled[ThreadCount]);
+						DoClose(TrnSkt);
+						TrnSkt = INVALID_SOCKET;
+//						WaitForSingleObject(hListAccMutex, INFINITE);
+						while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+						{
+							BackgrndMessageProc();
+							Sleep(1);
+						}
 					}
 				}
 			}
@@ -1150,6 +1159,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				SendMessage(hWndTrans, WM_SET_PACKET, 0, 0);
 			if(Pos != NULL)
 				strcpy(Pos->Cmd, "");
+			LastUsed = timeGetTime();
 		}
 //		else
 		else if(TransPacketBase == NULL)

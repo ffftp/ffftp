@@ -1088,6 +1088,8 @@ int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
 	HostData.CurNameKanjiCode = HostData.NameKanjiCode;
 	// IPv6対応
 	HostData.CurNetType = HostData.NetType;
+	// 同時接続対応
+	HostData.NoDisplayUI = YES;
 	// 暗号化通信対応
 	// 同時接続対応
 //	if((*Skt = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
@@ -1500,8 +1502,11 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 						else
 						{
 							Anony = NO;
+							// 同時接続対応
+//							if((strlen(User) != 0) || 
+//							   (InputDialogBox(username_dlg, GetMainHwnd(), NULL, User, USER_NAME_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
 							if((strlen(User) != 0) || 
-							   (InputDialogBox(username_dlg, GetMainHwnd(), NULL, User, USER_NAME_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
+							   ((HostData->NoDisplayUI == NO) && (InputDialogBox(username_dlg, GetMainHwnd(), NULL, User, USER_NAME_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES)))
 							{
 								if(Anony == YES)
 								{
@@ -1567,8 +1572,11 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 //									if((Sts = command(ContSock, Reply, &CancelFlg, "USER %s", Buf) / 100) == FTP_CONTINUE)
 									if((Sts = command(ContSock, Reply, CancelCheckWork, "USER %s", Buf) / 100) == FTP_CONTINUE)
 									{
+										// 同時接続対応
+//										if((strlen(Pass) != 0) || 
+//										   (InputDialogBox(passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
 										if((strlen(Pass) != 0) || 
-										   (InputDialogBox(passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
+										   ((HostData->NoDisplayUI == NO) && (InputDialogBox(passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES)))
 										{
 											CheckOneTimePassword(Pass, Reply, Security);
 
@@ -1582,7 +1590,9 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 											if(Sts == FTP_ERROR)
 											{
 												strcpy(Pass, "");
-												if(InputDialogBox(re_passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES)
+												// 同時接続対応
+//												if(InputDialogBox(re_passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES)
+												if(HostData->NoDisplayUI == NO && InputDialogBox(re_passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES)
 													Continue = YES;
 												else
 													DoPrintf("No password specified.");
@@ -1590,8 +1600,11 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 											}
 											else if(Sts == FTP_CONTINUE)
 											{
+												// 同時接続対応
+//												if((strlen(Acct) != 0) || 
+//												   (InputDialogBox(account_dlg, GetMainHwnd(), NULL, Acct, ACCOUNT_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
 												if((strlen(Acct) != 0) || 
-												   (InputDialogBox(account_dlg, GetMainHwnd(), NULL, Acct, ACCOUNT_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
+												   ((HostData->NoDisplayUI == NO) && (InputDialogBox(account_dlg, GetMainHwnd(), NULL, Acct, ACCOUNT_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES)))
 												{
 													// 同時接続対応
 //													Sts = command(ContSock, NULL, &CancelFlg, "ACCT %s", Acct) / 100;
@@ -1624,7 +1637,9 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 							}
 							else if((SavePass == YES) && (ReInPass == YES))
 							{
-								if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savepass_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+								// 同時接続対応
+//								if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savepass_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+								if(HostData->NoDisplayUI == NO && DialogBox(GetFtpInst(), MAKEINTRESOURCE(savepass_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
 									SetHostPassword(AskCurrentHost(), Pass);
 							}
 						}

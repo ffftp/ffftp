@@ -1345,6 +1345,7 @@ void CopyDefaultHost(HOSTDATA *Set)
 	// 同時接続対応
 	Set->MaxThreadCount = 1;
 	Set->ReuseCmdSkt = NO;
+	Set->NoDisplayUI = NO;
 	// MLSD対応
 	Set->Feature = 0;
 	Set->UseMLSD = YES;

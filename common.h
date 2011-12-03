@@ -954,6 +954,7 @@ typedef struct {
 	// 同時接続対応
 	int MaxThreadCount;					/* 同時接続数 */
 	int ReuseCmdSkt;					/* メインウィンドウのソケットを再利用する (YES/NO) */
+	int NoDisplayUI;					/* UIを表示しない (YES/NO) */
 	// FEAT対応
 	int Feature;						/* 利用可能な機能のフラグ (FEATURE_xxx) */
 	// MLSD対応
