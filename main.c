@@ -415,7 +415,11 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 	{
 		Accel = LoadAccelerators(hInstFtp, MAKEINTRESOURCE(ffftp_accel));
 
-		GetTempPath(FMAX_PATH, TmpPath);
+		// 環境依存の不具合対策
+//		GetTempPath(FMAX_PATH, TmpPath);
+		GetAppTempPath(TmpPath);
+		_mkdir(TmpPath);
+		SetYenTail(TmpPath);
 
 		GetModuleFileName(NULL, HelpPath, FMAX_PATH);
 		strcpy(GetFileName(HelpPath), "ffftp.chm");
@@ -2019,6 +2023,9 @@ static char *GetToken(char *Str, char *Buf)
 
 static void ExitProc(HWND hWnd)
 {
+	// 環境依存の不具合対策
+	char Tmp[FMAX_PATH+1];
+
 	CancelFlg = YES;
 
 	CloseTransferThread();
@@ -2046,6 +2053,10 @@ static void ExitProc(HWND hWnd)
 	}
 	else
 		DeleteCache();
+
+	// 環境依存の不具合対策
+	GetAppTempPath(Tmp);
+	_rmdir(Tmp);
 
 	if(RasClose == YES)
 	{

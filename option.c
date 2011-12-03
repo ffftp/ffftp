@@ -1537,7 +1537,10 @@ static INT_PTR CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 					break;
 
 				case MISC_CACHEDIR_DEF :
-					GetTempPath(FMAX_PATH, Tmp);
+					// 環境依存の不具合対策
+//					GetTempPath(FMAX_PATH, Tmp);
+					GetAppTempPath(Tmp);
+					SetYenTail(Tmp);
 					SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_SETTEXT, 0, (LPARAM)Tmp);
 					break;
 			}

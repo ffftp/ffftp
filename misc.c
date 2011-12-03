@@ -1777,3 +1777,14 @@ char* MakeDistinguishableFileName(char* Out, char* In)
 	return Out;
 }
 
+// 環境依存の不具合対策
+char* GetAppTempPath(char* Buf)
+{
+	char Temp[32];
+	GetTempPath(MAX_PATH, Buf);
+	SetYenTail(Buf);
+	sprintf(Temp, "ffftp%08x", GetCurrentProcessId());
+	strcat(Buf, Temp);
+	return Buf;
+}
+

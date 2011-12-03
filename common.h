@@ -1730,6 +1730,8 @@ LONGLONG MakeLongLong(DWORD High, DWORD Low);
 char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma);
 // 異なるファイルが表示されるバグ修正
 char* MakeDistinguishableFileName(char* Out, char* In);
+// 環境依存の不具合対策
+char* GetAppTempPath(char* Buf);
 
 /*===== dlgsize.c =====*/
 

@@ -422,7 +422,10 @@ void SaveRegistory(void)
 
 				WriteMultiStringToReg(hKey4, "DefAttr", DefAttrList);
 
-				GetTempPath(FMAX_PATH, Str);
+				// 環境依存の不具合対策
+//				GetTempPath(FMAX_PATH, Str);
+				GetAppTempPath(Str);
+				SetYenTail(Str);
 				SaveStr(hKey4, "Tmp", TmpPath, Str);
 
 				WriteBinaryToReg(hKey4, "Hdlg", &HostDlgSize, sizeof(SIZE));

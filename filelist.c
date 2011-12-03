@@ -462,10 +462,15 @@ static void doTransferRemoteFile(void)
 
 	// アプリを多重起動してもコンフリクトしないように、テンポラリフォルダ名にプロセスID
 	// を付加する。(2007.9.13 yutaka)
-	GetTempPath(sizeof(TmpDir), TmpDir);
-	pid = GetCurrentProcessId();
-	_snprintf_s(buf, sizeof(buf), _TRUNCATE, "ffftp%d", pid);
-	strncat_s(TmpDir, sizeof(TmpDir), buf, _TRUNCATE);
+	// 環境依存の不具合対策
+//	GetTempPath(sizeof(TmpDir), TmpDir);
+//	pid = GetCurrentProcessId();
+//	_snprintf_s(buf, sizeof(buf), _TRUNCATE, "ffftp%d", pid);
+//	strncat_s(TmpDir, sizeof(TmpDir), buf, _TRUNCATE);
+	GetAppTempPath(TmpDir);
+	_mkdir(TmpDir);
+	SetYenTail(TmpDir);
+	strcat(TmpDir, "transfer");
 	_mkdir(TmpDir);
 #if 0
 	if (TmpDir[strlen(TmpDir) - 1] == '\\') {

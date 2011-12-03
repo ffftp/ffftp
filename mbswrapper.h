@@ -182,6 +182,15 @@ int rmdirM(const char * _Path);
 #undef _rmdir
 #define _rmdir _rmdirM
 int _rmdirM(const char * _Path);
+#undef remove
+#define remove removeM
+int removeM(const char * _Filename);
+#undef _remove
+#define _remove _removeM
+int _removeM(const char * _Filename);
+#undef _unlink
+#define _unlink _unlinkM
+int _unlinkM(const char * _Filename);
 #undef _mbslen
 #define _mbslen _mbslenM
 size_t _mbslenM(const unsigned char * _Str);

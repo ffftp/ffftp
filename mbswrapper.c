@@ -2109,7 +2109,7 @@ END_ROUTINE
 
 int mkdirM(const char * _Path)
 {
-	int r = 0;
+	int r = -1;
 	wchar_t* pw0 = NULL;
 START_ROUTINE
 	pw0 = DuplicateMtoW(_Path, -1);
@@ -2121,7 +2121,7 @@ END_ROUTINE
 
 int _mkdirM(const char * _Path)
 {
-	int r = 0;
+	int r = -1;
 	wchar_t* pw0 = NULL;
 START_ROUTINE
 	pw0 = DuplicateMtoW(_Path, -1);
@@ -2133,7 +2133,7 @@ END_ROUTINE
 
 int rmdirM(const char * _Path)
 {
-	int r = 0;
+	int r = -1;
 	wchar_t* pw0 = NULL;
 START_ROUTINE
 	pw0 = DuplicateMtoW(_Path, -1);
@@ -2145,11 +2145,47 @@ END_ROUTINE
 
 int _rmdirM(const char * _Path)
 {
-	int r = 0;
+	int r = -1;
 	wchar_t* pw0 = NULL;
 START_ROUTINE
 	pw0 = DuplicateMtoW(_Path, -1);
 	r = _wrmdir(pw0);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+int removeM(const char * _Filename)
+{
+	int r = -1;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_Filename, -1);
+	r = _wremove(pw0);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+int _removeM(const char * _Filename)
+{
+	int r = -1;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_Filename, -1);
+	r = _wremove(pw0);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+int _unlinkM(const char * _Filename)
+{
+	int r = -1;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(_Filename, -1);
+	r = _wunlink(pw0);
 END_ROUTINE
 	FreeDuplicatedString(pw0);
 	return r;
