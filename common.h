@@ -297,8 +297,10 @@
 #define LIST_UNIX_73	45		/* UNIX 73 */
 #define LIST_UNIX_74	46		/* UNIX 74 */
 #define LIST_UNIX_75	47		/* UNIX 75 */
+// linux-ftpd
+#define LIST_UNIX_16	48		/* UNIX 16 */
 // MLSD対応
-#define LIST_MLSD		48
+#define LIST_MLSD		49
 
 #define LIST_MELCOM		0x100	/* MELCOM80 */
 
@@ -670,6 +672,15 @@ LIST_UNIX_70
        512    Jan-30-2002  14:52:04   DIRNAME           <DIR>
      61191    Aug-30-2002  17:30:38   FILENAME.C        
 
+
+// linux-ftpd
+*LIST_UNIX_16
+	0          1   2     3      4    5          6     7
+	-------------------------------------------------------
+	合計 12345
+	drwxr-x--- 2 root root      4096 2011-12-06 23:39 .
+	drwxr-x--- 3 root root      4096 2011-12-06 23:39 ..
+	-rw-r----- 1 root root       251 2011-12-06 23:39 .hoge
 
 ------------------------------------*/
 

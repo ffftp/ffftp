@@ -3333,6 +3333,21 @@ static int AnalizeFileInfo(char *Str)
 					}
 				}
 
+				// linux-ftpd
+				if((Ret == LIST_UNKNOWN) &&
+				   (FindField(Str, Tmp, 7+Add1, NO) == FFFTP_SUCCESS))
+				{
+					if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
+					   (CheckYYYYMMDDformat(Tmp, NUL) != 0))
+					{
+						if((FindField(Str, Tmp, 6, NO) == FFFTP_SUCCESS) &&
+						   (CheckHHMMformat(Tmp) == YES))
+						{
+							Ret = LIST_UNIX_16;
+						}
+					}
+				}
+
 				if((Ret != LIST_UNKNOWN) && (Flag1 == YES))
 					Ret |= LIST_MELCOM;
 			}
@@ -4671,6 +4686,8 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 		case LIST_UNIX_75 :
 // MELCOMはビットフラグになっている
 //		case LIST_MELCOM :
+		// linux-ftpd
+		case LIST_UNIX_16 :
 		default:
 			/* offsはサイズの位置, offs=0はカラム4 */
 			offs = 0;
@@ -4705,6 +4722,16 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 
 			/* offs2は時間(もしくは年)の位置 */
 			offs2 = 0;
+			// linux-ftpd
+//			if((ListType == LIST_UNIX_11) ||
+//			   (ListType == LIST_UNIX_13) ||
+//			   (ListType == LIST_UNIX_21) ||
+//			   (ListType == LIST_UNIX_23) ||
+//			   (ListType == LIST_UNIX_51) ||
+//			   (ListType == LIST_UNIX_61) ||
+//			   (ListType == LIST_UNIX_63) ||
+//			   (ListType == LIST_UNIX_71) ||
+//			   (ListType == LIST_UNIX_73))
 			if((ListType == LIST_UNIX_11) ||
 			   (ListType == LIST_UNIX_13) ||
 			   (ListType == LIST_UNIX_21) ||
@@ -4713,7 +4740,8 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			   (ListType == LIST_UNIX_61) ||
 			   (ListType == LIST_UNIX_63) ||
 			   (ListType == LIST_UNIX_71) ||
-			   (ListType == LIST_UNIX_73))
+			   (ListType == LIST_UNIX_73) ||
+			   (ListType == LIST_UNIX_16))
 				offs2 = -1;
 
 			/* offs3はオーナ名の位置 */
@@ -4790,6 +4818,16 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 					FindField(Str, Buf, 7+offs+offs2, NO);
 					if(GetHourAndMinute(Buf, &sTime.wHour, &sTime.wMinute) == FFFTP_SUCCESS)
 						*InfoExist |= FINFO_TIME;
+				}
+				// linux-ftpd
+				else if(CheckYYYYMMDDformat(Buf, NUL) != 0)
+				{
+					sTime.wYear = atoi(Buf);
+					sTime.wMonth = atoi(Buf+5);
+					sTime.wDay = atoi(Buf+8);
+					FindField(Str, Buf, 7+offs+offs2, NO);
+					sTime.wHour = atoi_n(Buf, 2);
+					sTime.wMinute = atoi(Buf+2);
 				}
 				else
 				{
