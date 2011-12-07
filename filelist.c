@@ -4826,8 +4826,8 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 					sTime.wMonth = atoi(Buf+5);
 					sTime.wDay = atoi(Buf+8);
 					FindField(Str, Buf, 7+offs+offs2, NO);
-					sTime.wHour = atoi_n(Buf, 2);
-					sTime.wMinute = atoi(Buf+2);
+					if(GetHourAndMinute(Buf, &sTime.wHour, &sTime.wMinute) == FFFTP_SUCCESS)
+						*InfoExist |= FINFO_TIME;
 				}
 				else
 				{
