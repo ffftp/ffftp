@@ -94,7 +94,16 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\..\..\be_none.c
+SOURCE=..\..\..\be_ssh.c
+
+!IF  "$(CFG)" == "pscp - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "pscp - Win32 Debug"
+
+# ADD CPP /Zi
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 

@@ -150,7 +150,7 @@ plink.exe: be_all_s.obj cmdline.obj cproxy.obj ldisc.obj logging.obj \
 		plink.rsp
 	ilink32 -ap -Gn -L$(BCB)\lib @plink.rsp
 
-pscp.exe: be_none.obj cmdline.obj cproxy.obj int64.obj logging.obj misc.obj \
+pscp.exe: be_ssh.obj cmdline.obj cproxy.obj int64.obj logging.obj misc.obj \
 		pgssapi.obj pinger.obj portfwd.obj proxy.obj pscp.obj \
 		pscp.res settings.obj sftp.obj ssh.obj sshaes.obj \
 		ssharcf.obj sshblowf.obj sshbn.obj sshcrc.obj sshcrcda.obj \
@@ -163,7 +163,7 @@ pscp.exe: be_none.obj cmdline.obj cproxy.obj int64.obj logging.obj misc.obj \
 		wintime.obj x11fwd.obj pscp.rsp
 	ilink32 -ap -Gn -L$(BCB)\lib @pscp.rsp
 
-psftp.exe: be_none.obj cmdline.obj cproxy.obj int64.obj logging.obj misc.obj \
+psftp.exe: be_ssh.obj cmdline.obj cproxy.obj int64.obj logging.obj misc.obj \
 		pgssapi.obj pinger.obj portfwd.obj proxy.obj psftp.obj \
 		psftp.res settings.obj sftp.obj ssh.obj sshaes.obj \
 		ssharcf.obj sshblowf.obj sshbn.obj sshcrc.obj sshcrcda.obj \
@@ -246,7 +246,7 @@ plink.rsp: $(MAKEFILE)
 
 pscp.rsp: $(MAKEFILE)
 	echo c0x32 + > pscp.rsp
-	echo be_none.obj cmdline.obj cproxy.obj int64.obj + >> pscp.rsp
+	echo be_ssh.obj cmdline.obj cproxy.obj int64.obj + >> pscp.rsp
 	echo logging.obj misc.obj pgssapi.obj pinger.obj + >> pscp.rsp
 	echo portfwd.obj proxy.obj pscp.obj settings.obj + >> pscp.rsp
 	echo sftp.obj ssh.obj sshaes.obj ssharcf.obj + >> pscp.rsp
@@ -265,7 +265,7 @@ pscp.rsp: $(MAKEFILE)
 
 psftp.rsp: $(MAKEFILE)
 	echo c0x32 + > psftp.rsp
-	echo be_none.obj cmdline.obj cproxy.obj int64.obj + >> psftp.rsp
+	echo be_ssh.obj cmdline.obj cproxy.obj int64.obj + >> psftp.rsp
 	echo logging.obj misc.obj pgssapi.obj pinger.obj + >> psftp.rsp
 	echo portfwd.obj proxy.obj psftp.obj settings.obj + >> psftp.rsp
 	echo sftp.obj ssh.obj sshaes.obj ssharcf.obj + >> psftp.rsp
@@ -344,6 +344,10 @@ be_none.obj: ..\be_none.c ..\putty.h ..\puttyps.h ..\network.h ..\misc.h \
 		..\puttymem.h ..\tree234.h ..\windows\winhelp.h \
 		..\charset\charset.h
 be_nos_s.obj: ..\be_nos_s.c ..\putty.h ..\puttyps.h ..\network.h ..\misc.h \
+		..\windows\winstuff.h ..\macosx\osx.h ..\unix\unix.h \
+		..\puttymem.h ..\tree234.h ..\windows\winhelp.h \
+		..\charset\charset.h
+be_ssh.obj: ..\be_ssh.c ..\putty.h ..\puttyps.h ..\network.h ..\misc.h \
 		..\windows\winstuff.h ..\macosx\osx.h ..\unix\unix.h \
 		..\puttymem.h ..\tree234.h ..\windows\winhelp.h \
 		..\charset\charset.h

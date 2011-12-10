@@ -167,7 +167,7 @@ plink: be_all_s.o cmdline.o cproxy.o ldisc.o logging.o misc.o pgssapi.o \
 		uxnoise.o uxplink.o uxproxy.o uxsel.o uxser.o uxsignal.o \
 		uxstore.o version.o wildcard.o x11fwd.o $(ULDFLAGS) 
 
-pscp: be_none.o cmdline.o cproxy.o int64.o logging.o misc.o pgssapi.o \
+pscp: be_ssh.o cmdline.o cproxy.o int64.o logging.o misc.o pgssapi.o \
 		pinger.o portfwd.o proxy.o pscp.o settings.o sftp.o ssh.o \
 		sshaes.o ssharcf.o sshblowf.o sshbn.o sshcrc.o sshcrcda.o \
 		sshdes.o sshdh.o sshdss.o sshgssc.o sshmd5.o sshpubk.o \
@@ -175,7 +175,7 @@ pscp: be_none.o cmdline.o cproxy.o int64.o logging.o misc.o pgssapi.o \
 		time.o timing.o tree234.o uxagentc.o uxcons.o uxgss.o \
 		uxmisc.o uxnet.o uxnoise.o uxproxy.o uxsel.o uxsftp.o \
 		uxstore.o version.o wildcard.o x11fwd.o
-	$(CC) -o $@ be_none.o cmdline.o cproxy.o int64.o logging.o misc.o \
+	$(CC) -o $@ be_ssh.o cmdline.o cproxy.o int64.o logging.o misc.o \
 		pgssapi.o pinger.o portfwd.o proxy.o pscp.o settings.o \
 		sftp.o ssh.o sshaes.o ssharcf.o sshblowf.o sshbn.o sshcrc.o \
 		sshcrcda.o sshdes.o sshdh.o sshdss.o sshgssc.o sshmd5.o \
@@ -184,7 +184,7 @@ pscp: be_none.o cmdline.o cproxy.o int64.o logging.o misc.o pgssapi.o \
 		uxgss.o uxmisc.o uxnet.o uxnoise.o uxproxy.o uxsel.o \
 		uxsftp.o uxstore.o version.o wildcard.o x11fwd.o $(ULDFLAGS)
 
-psftp: be_none.o cmdline.o cproxy.o int64.o logging.o misc.o pgssapi.o \
+psftp: be_ssh.o cmdline.o cproxy.o int64.o logging.o misc.o pgssapi.o \
 		pinger.o portfwd.o proxy.o psftp.o settings.o sftp.o ssh.o \
 		sshaes.o ssharcf.o sshblowf.o sshbn.o sshcrc.o sshcrcda.o \
 		sshdes.o sshdh.o sshdss.o sshgssc.o sshmd5.o sshpubk.o \
@@ -192,7 +192,7 @@ psftp: be_none.o cmdline.o cproxy.o int64.o logging.o misc.o pgssapi.o \
 		time.o timing.o tree234.o uxagentc.o uxcons.o uxgss.o \
 		uxmisc.o uxnet.o uxnoise.o uxproxy.o uxsel.o uxsftp.o \
 		uxstore.o version.o wildcard.o x11fwd.o
-	$(CC) -o $@ be_none.o cmdline.o cproxy.o int64.o logging.o misc.o \
+	$(CC) -o $@ be_ssh.o cmdline.o cproxy.o int64.o logging.o misc.o \
 		pgssapi.o pinger.o portfwd.o proxy.o psftp.o settings.o \
 		sftp.o ssh.o sshaes.o ssharcf.o sshblowf.o sshbn.o sshcrc.o \
 		sshcrcda.o sshdes.o sshdh.o sshdss.o sshgssc.o sshmd5.o \
@@ -291,6 +291,11 @@ be_nos_s.o: ../be_nos_s.c ../putty.h ../puttyps.h ../network.h ../misc.h \
 		../puttymem.h ../tree234.h ../windows/winhelp.h \
 		../charset/charset.h
 	$(CC) $(COMPAT) $(CFLAGS) $(XFLAGS) -c ../be_nos_s.c
+be_ssh.o: ../be_ssh.c ../putty.h ../puttyps.h ../network.h ../misc.h \
+		../windows/winstuff.h ../macosx/osx.h ../unix/unix.h \
+		../puttymem.h ../tree234.h ../windows/winhelp.h \
+		../charset/charset.h
+	$(CC) $(COMPAT) $(CFLAGS) $(XFLAGS) -c ../be_ssh.c
 cmdgen.o: ../cmdgen.c ../putty.h ../ssh.h ../puttyps.h ../network.h \
 		../misc.h ../puttymem.h ../tree234.h ../int64.h \
 		../windows/winstuff.h ../macosx/osx.h ../unix/unix.h \

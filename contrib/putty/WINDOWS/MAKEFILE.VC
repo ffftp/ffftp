@@ -139,7 +139,7 @@ plink.exe: be_all_s.obj cmdline.obj cproxy.obj ldisc.obj logging.obj \
 		plink.rsp
 	link $(LFLAGS) $(XLFLAGS) -out:plink.exe -map:plink.map @plink.rsp
 
-pscp.exe: be_none.obj cmdline.obj cproxy.obj int64.obj logging.obj misc.obj \
+pscp.exe: be_ssh.obj cmdline.obj cproxy.obj int64.obj logging.obj misc.obj \
 		pgssapi.obj pinger.obj portfwd.obj proxy.obj pscp.obj \
 		pscp.res settings.obj sftp.obj ssh.obj sshaes.obj \
 		ssharcf.obj sshblowf.obj sshbn.obj sshcrc.obj sshcrcda.obj \
@@ -152,7 +152,7 @@ pscp.exe: be_none.obj cmdline.obj cproxy.obj int64.obj logging.obj misc.obj \
 		wintime.obj x11fwd.obj pscp.rsp
 	link $(LFLAGS) $(XLFLAGS) -out:pscp.exe -map:pscp.map @pscp.rsp
 
-psftp.exe: be_none.obj cmdline.obj cproxy.obj int64.obj logging.obj misc.obj \
+psftp.exe: be_ssh.obj cmdline.obj cproxy.obj int64.obj logging.obj misc.obj \
 		pgssapi.obj pinger.obj portfwd.obj proxy.obj psftp.obj \
 		psftp.res settings.obj sftp.obj ssh.obj sshaes.obj \
 		ssharcf.obj sshblowf.obj sshbn.obj sshcrc.obj sshcrcda.obj \
@@ -235,7 +235,7 @@ plink.rsp: $(MAKEFILE)
 
 pscp.rsp: $(MAKEFILE)
 	echo /nologo /subsystem:console > pscp.rsp
-	echo advapi32.lib be_none.obj cmdline.obj comctl32.lib >> pscp.rsp
+	echo advapi32.lib be_ssh.obj cmdline.obj comctl32.lib >> pscp.rsp
 	echo comdlg32.lib cproxy.obj gdi32.lib imm32.lib >> pscp.rsp
 	echo int64.obj logging.obj misc.obj ole32.lib >> pscp.rsp
 	echo pgssapi.obj pinger.obj portfwd.obj proxy.obj >> pscp.rsp
@@ -254,7 +254,7 @@ pscp.rsp: $(MAKEFILE)
 
 psftp.rsp: $(MAKEFILE)
 	echo /nologo /subsystem:console > psftp.rsp
-	echo advapi32.lib be_none.obj cmdline.obj comctl32.lib >> psftp.rsp
+	echo advapi32.lib be_ssh.obj cmdline.obj comctl32.lib >> psftp.rsp
 	echo comdlg32.lib cproxy.obj gdi32.lib imm32.lib >> psftp.rsp
 	echo int64.obj logging.obj misc.obj ole32.lib >> psftp.rsp
 	echo pgssapi.obj pinger.obj portfwd.obj proxy.obj >> psftp.rsp
@@ -342,6 +342,12 @@ be_nos_s.obj: ..\be_nos_s.c ..\putty.h ..\puttyps.h ..\network.h ..\misc.h \
 		..\puttymem.h ..\tree234.h ..\windows\winhelp.h \
 		..\charset\charset.h
 	cl $(COMPAT) $(CFLAGS) $(XFLAGS) /c ..\be_nos_s.c
+
+be_ssh.obj: ..\be_ssh.c ..\putty.h ..\puttyps.h ..\network.h ..\misc.h \
+		..\windows\winstuff.h ..\macosx\osx.h ..\unix\unix.h \
+		..\puttymem.h ..\tree234.h ..\windows\winhelp.h \
+		..\charset\charset.h
+	cl $(COMPAT) $(CFLAGS) $(XFLAGS) /c ..\be_ssh.c
 
 cmdgen.obj: ..\cmdgen.c ..\putty.h ..\ssh.h ..\puttyps.h ..\network.h \
 		..\misc.h ..\puttymem.h ..\tree234.h ..\int64.h \

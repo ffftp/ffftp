@@ -166,7 +166,7 @@ plink.exe: be_all_s.o cmdline.o cproxy.o ldisc.o logging.o misc.o pgssapi.o \
 		-lcomctl32 -lcomdlg32 -lgdi32 -limm32 -lole32 -lshell32 \
 		-luser32 -lwinmm -lwinspool
 
-pscp.exe: be_none.o cmdline.o cproxy.o int64.o logging.o misc.o pgssapi.o \
+pscp.exe: be_ssh.o cmdline.o cproxy.o int64.o logging.o misc.o pgssapi.o \
 		pinger.o portfwd.o proxy.o pscp.o pscp.res.o settings.o \
 		sftp.o ssh.o sshaes.o ssharcf.o sshblowf.o sshbn.o sshcrc.o \
 		sshcrcda.o sshdes.o sshdh.o sshdss.o sshgssc.o sshmd5.o \
@@ -175,19 +175,19 @@ pscp.exe: be_none.o cmdline.o cproxy.o int64.o logging.o misc.o pgssapi.o \
 		windefs.o wingss.o winhandl.o winmisc.o winnet.o winnoise.o \
 		winnojmp.o winpgntc.o winproxy.o winsftp.o winstore.o \
 		wintime.o x11fwd.o
-	$(CC) $(LDFLAGS) -o $@ -Wl,-Map,pscp.map be_none.o cmdline.o \
-		cproxy.o int64.o logging.o misc.o pgssapi.o pinger.o \
-		portfwd.o proxy.o pscp.o pscp.res.o settings.o sftp.o ssh.o \
-		sshaes.o ssharcf.o sshblowf.o sshbn.o sshcrc.o sshcrcda.o \
-		sshdes.o sshdh.o sshdss.o sshgssc.o sshmd5.o sshpubk.o \
-		sshrand.o sshrsa.o sshsh256.o sshsh512.o sshsha.o sshzlib.o \
-		timing.o tree234.o version.o wildcard.o wincons.o windefs.o \
-		wingss.o winhandl.o winmisc.o winnet.o winnoise.o winnojmp.o \
+	$(CC) $(LDFLAGS) -o $@ -Wl,-Map,pscp.map be_ssh.o cmdline.o cproxy.o \
+		int64.o logging.o misc.o pgssapi.o pinger.o portfwd.o \
+		proxy.o pscp.o pscp.res.o settings.o sftp.o ssh.o sshaes.o \
+		ssharcf.o sshblowf.o sshbn.o sshcrc.o sshcrcda.o sshdes.o \
+		sshdh.o sshdss.o sshgssc.o sshmd5.o sshpubk.o sshrand.o \
+		sshrsa.o sshsh256.o sshsh512.o sshsha.o sshzlib.o timing.o \
+		tree234.o version.o wildcard.o wincons.o windefs.o wingss.o \
+		winhandl.o winmisc.o winnet.o winnoise.o winnojmp.o \
 		winpgntc.o winproxy.o winsftp.o winstore.o wintime.o \
 		x11fwd.o -ladvapi32 -lcomctl32 -lcomdlg32 -lgdi32 -limm32 \
 		-lole32 -lshell32 -luser32 -lwinmm -lwinspool
 
-psftp.exe: be_none.o cmdline.o cproxy.o int64.o logging.o misc.o pgssapi.o \
+psftp.exe: be_ssh.o cmdline.o cproxy.o int64.o logging.o misc.o pgssapi.o \
 		pinger.o portfwd.o proxy.o psftp.o psftp.res.o settings.o \
 		sftp.o ssh.o sshaes.o ssharcf.o sshblowf.o sshbn.o sshcrc.o \
 		sshcrcda.o sshdes.o sshdh.o sshdss.o sshgssc.o sshmd5.o \
@@ -196,7 +196,7 @@ psftp.exe: be_none.o cmdline.o cproxy.o int64.o logging.o misc.o pgssapi.o \
 		windefs.o wingss.o winhandl.o winmisc.o winnet.o winnoise.o \
 		winnojmp.o winpgntc.o winproxy.o winsftp.o winstore.o \
 		wintime.o x11fwd.o
-	$(CC) $(LDFLAGS) -o $@ -Wl,-Map,psftp.map be_none.o cmdline.o \
+	$(CC) $(LDFLAGS) -o $@ -Wl,-Map,psftp.map be_ssh.o cmdline.o \
 		cproxy.o int64.o logging.o misc.o pgssapi.o pinger.o \
 		portfwd.o proxy.o psftp.o psftp.res.o settings.o sftp.o \
 		ssh.o sshaes.o ssharcf.o sshblowf.o sshbn.o sshcrc.o \
@@ -285,6 +285,12 @@ be_nos_s.o: ../be_nos_s.c ../putty.h ../puttyps.h ../network.h ../misc.h \
 		../puttymem.h ../tree234.h ../windows/winhelp.h \
 		../charset/charset.h
 	$(CC) $(COMPAT) $(CFLAGS) $(XFLAGS) -c ../be_nos_s.c
+
+be_ssh.o: ../be_ssh.c ../putty.h ../puttyps.h ../network.h ../misc.h \
+		../windows/winstuff.h ../macosx/osx.h ../unix/unix.h \
+		../puttymem.h ../tree234.h ../windows/winhelp.h \
+		../charset/charset.h
+	$(CC) $(COMPAT) $(CFLAGS) $(XFLAGS) -c ../be_ssh.c
 
 cmdgen.o: ../cmdgen.c ../putty.h ../ssh.h ../puttyps.h ../network.h \
 		../misc.h ../puttymem.h ../tree234.h ../int64.h \
