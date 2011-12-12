@@ -193,6 +193,8 @@ extern int FolderAttrNum;
 // 暗号化通信対応
 extern BYTE CertificateCacheHash[MAX_CERT_CACHE_HASH][20];
 extern BYTE SSLRootCAFileHash[20];
+// ファイルアイコン表示対応
+extern int DispFileIcon;
 
 /*----- マスタパスワードの設定 ----------------------------------------------
 *
@@ -611,6 +613,8 @@ void SaveRegistory(void)
 				StrCatOut((char*)&SSLRootCAFileHash, sizeof(SSLRootCAFileHash), Buf);
 				EncodePassword(Buf, Str);
 				WriteStringToReg(hKey4, "RootCertHash", Str);
+				// ファイルアイコン表示対応
+				WriteIntValueToReg(hKey4, "ListIcon", DispFileIcon);
 			}
 			CloseSubKey(hKey4);
 		}
@@ -980,6 +984,8 @@ int LoadRegistory(void)
 			ReadStringFromReg(hKey4, "RootCertHash", Str, PRIVATE_KEY_LEN*4+1);
 			DecodePassword(Str, Buf);
 			StrReadIn(Buf, sizeof(SSLRootCAFileHash), (char*)&SSLRootCAFileHash);
+			// ファイルアイコン表示対応
+			ReadIntValueFromReg(hKey4, "ListIcon", &DispFileIcon);
 
 			CloseSubKey(hKey4);
 		}

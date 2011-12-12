@@ -70,9 +70,9 @@
 //#define VER_STR					"1.97b"
 //#define VER_NUM					1921		/* 設定バージョン */
 //#define PROGRAM_VERSION_NUM		1972		/* バージョン */
-#define VER_STR					"1.98d"
-#define VER_NUM					1984		/* 設定バージョン */
-#define PROGRAM_VERSION_NUM		1984		/* バージョン */
+#define VER_STR					"1.98e"
+#define VER_NUM					1985		/* 設定バージョン */
+#define PROGRAM_VERSION_NUM		1985		/* バージョン */
 
 
 // SourceForge.JPによるフォーク
@@ -1085,6 +1085,8 @@ typedef struct filelist {
 	FILETIME Time;					/* 時間(UTC) */
 	char Owner[OWNER_NAME_LEN+1];	/* オーナ名 */
 	char InfoExist;					/* ファイル一覧に存在した情報のフラグ (FINFO_xxx) */
+	// ファイルアイコン表示対応
+	int ImageId;					/* アイコン画像番号 */
 	struct filelist *Next;
 } FILELIST;
 
@@ -1280,6 +1282,8 @@ BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certif
 BOOL LoadSSLRootCAFile();
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 BOOL IsMainThread();
+// ファイルアイコン表示対応
+int AskDispFileIcon(void);
 
 /*===== filelist.c =====*/
 

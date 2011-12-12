@@ -202,6 +202,7 @@
 #define FIRE_RESOLV                     1013
 #define HSET_DIALNOTIFY                 1013
 #define MIRROR_DOWNDEL_NOTIFY           1013
+#define DISP_ICON                       1013
 #define OPT1_EDITOR_BR                  1014
 #define PERM_G_WRITE                    1014
 #define SORT_RDIR_REV                   1014

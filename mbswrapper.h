@@ -143,6 +143,9 @@ BOOL SHGetPathFromIDListM(PCIDLIST_ABSOLUTE pidl, LPSTR pszPath);
 #undef SHFileOperation
 #define SHFileOperation SHFileOperationM
 int SHFileOperationM(LPSHFILEOPSTRUCTA lpFileOp);
+#undef SHGetFileInfo
+#define SHGetFileInfo SHGetFileInfoM
+DWORD_PTR SHGetFileInfoM(LPCSTR pszPath, DWORD dwFileAttributes, SHFILEINFOA *psfi, UINT cbFileInfo, UINT uFlags);
 #undef AppendMenu
 #define AppendMenu AppendMenuM
 BOOL AppendMenuM(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, LPCSTR lpNewItem);

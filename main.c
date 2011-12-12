@@ -231,6 +231,9 @@ int FolderAttrNum = 777;
 // 暗号化通信対応
 BYTE CertificateCacheHash[MAX_CERT_CACHE_HASH][20];
 BYTE SSLRootCAFileHash[20];
+// ファイルアイコン表示対応
+int DispFileIcon = NO;
+
 
 
 
@@ -534,7 +537,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					DispWindowTitle();
 					// SourceForge.JPによるフォーク
 //					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.");
-					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192).");
+					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka).");
 
 					if(ForceIni)
 						SetTaskMsg("%s%s", MSGJPN283, IniPath);
@@ -3069,3 +3072,10 @@ BOOL IsMainThread()
 		return FALSE;
 	return TRUE;
 }
+
+// ファイルアイコン表示対応
+int AskDispFileIcon(void)
+{
+	return(DispFileIcon);
+}
+

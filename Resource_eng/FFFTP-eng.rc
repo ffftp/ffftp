@@ -235,9 +235,9 @@ FONT 9, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,132,296,50,14
     ICON            ffftp,-1,7,4,20,20
-    CTEXT           "FFFTP  Ver 1.98d",-1,110,11,90,8
+    CTEXT           "FFFTP  Ver 1.98e",-1,110,11,90,8
     CTEXT           "FFFTP is freeware",-1,7,281,301,8
-    CTEXT           "Copyright(C) 1997-2010 Sota && cooperators\nCopyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192)",-1,7,25,301,44
+    CTEXT           "Copyright(C) 1997-2010 Sota && cooperators\nCopyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka)",-1,7,25,301,44
     CTEXT           "",ABOUT_JRE,7,93,301,8
     EDITTEXT        ABOUT_URL,7,76,301,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     CTEXT           "OLE D&&D by Yutaka Hirata-san, nakka-san\nIn site file mover by Hirata-san\nAny issues by miau-san\nMaster Password by Gengen-san\nAES encryption by Moca-san\n\nI had cooperation of many other one.",-1,7,142,301,59
@@ -1315,6 +1315,7 @@ BEGIN
     CONTROL         "Do not display &hidden files/folders",DISP_HIDE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,30,172,10
     LTEXT           "If this box is checked, hidden files/folders are not transferred during Mirror operations.",-1,29,44,167,27,SS_SUNKEN
     CONTROL         "&Display drives in the file list",DISP_DRIVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,76,172,10
+    CONTROL         "Display &icons in the file list",DISP_ICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,90,172,10
 END
 
 bmark_edit_dlg DIALOG  0, 0, 187, 83
@@ -2098,8 +2099,8 @@ nodrop_csr              CURSOR                  "nodrop_c.cur"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,98,4,0
- PRODUCTVERSION 1,98,4,0
+ FILEVERSION 1,98,5,0
+ PRODUCTVERSION 1,98,5,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2117,12 +2118,12 @@ BEGIN
             VALUE "Comments", "This software is Free Software"
             VALUE "CompanyName", " Sota"
             VALUE "FileDescription", "FFFTP"
-            VALUE "FileVersion", "1, 98, 4, 0"
+            VALUE "FileVersion", "1, 98, 5, 0"
             VALUE "InternalName", "FFFTP"
-            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & cooperators\nCopyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192)."
+            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & cooperators\nCopyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka)."
             VALUE "OriginalFilename", "FFFTP.exe"
             VALUE "ProductName", "FFFTP"
-            VALUE "ProductVersion", "1, 98, 4, 0"
+            VALUE "ProductVersion", "1, 98, 5, 0"
         END
     END
     BLOCK "VarFileInfo"

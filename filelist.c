@@ -83,7 +83,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LONGLONG Size, int Attr, int Type, int Link, char *Owner, int InfoExist, int Win);
 static void EraseDispFileList(FLISTANCHOR *Anchor);
 static void DispFileList2View(HWND hWnd, FLISTANCHOR *Anchor);
-static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist);
+// ファイルアイコン表示対応
+//static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist);
+static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist, int ImageId);
 // 64ビット対応
 //static BOOL CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
@@ -1318,6 +1320,57 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork)
 *		なし
 *----------------------------------------------------------------------------*/
 
+// ファイルアイコン表示対応
+void RefreshIconImageList(FLISTANCHOR *Anchor)
+{
+	HBITMAP hBitmap;
+	int ImageId;
+	FILELIST *Pos;
+	int i;
+	char Cur[FMAX_PATH+1];
+	SHFILEINFO FileInfo;
+	SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)NULL);
+	ShowWindow(hWndListLocal, SW_SHOW);
+	SendMessage(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)NULL);
+	ShowWindow(hWndListRemote, SW_SHOW);
+	ImageList_Destroy(ListImg);
+	ListImg = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR24, 0, 1);
+	hBitmap = LoadBitmap(GetFtpInst(), MAKEINTRESOURCE(dirattr_bmp));
+	ImageList_AddMasked(ListImg, hBitmap, RGB(255,0,0));
+	DeleteObject(hBitmap);
+	ImageId = 0;
+	Pos = Anchor->Top;
+	for(i = 0; i < Anchor->Files; i++)
+	{
+		Pos->ImageId = -1;
+		if(AskDispFileIcon() == YES)
+		{
+			if(Pos->Node == NODE_DRIVE)
+				strcpy(Cur, Pos->File);
+			else
+			{
+				AskLocalCurDir(Cur, FMAX_PATH);
+				SetYenTail(Cur);
+				strcat(Cur, Pos->File);
+			}
+			if(SHGetFileInfoM(Cur, 0, &FileInfo, sizeof(SHFILEINFO), SHGFI_SMALLICON | SHGFI_ICON) != 0)
+			{
+				if(ImageList_AddIcon(ListImg, FileInfo.hIcon) >= 0)
+				{
+					Pos->ImageId = ImageId;
+					ImageId++;
+				}
+				DestroyIcon(FileInfo.hIcon);
+			}
+		}
+		Pos = Pos->Next;
+	}
+	SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
+	ShowWindow(hWndListLocal, SW_SHOW);
+	SendMessage(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
+	ShowWindow(hWndListRemote, SW_SHOW);
+}
+
 void GetLocalDirForWnd(void)
 {
 	HANDLE fHnd;
@@ -1386,6 +1439,8 @@ void GetLocalDirForWnd(void)
 		}
 	}
 
+	// ファイルアイコン表示対応
+	RefreshIconImageList(&Anchor);
 	DispFileList2View(GetLocalHwnd(), &Anchor);
 	EraseDispFileList(&Anchor);
 
@@ -1565,7 +1620,9 @@ static void DispFileList2View(HWND hWnd, FLISTANCHOR *Anchor)
 	Pos = Anchor->Top;
 	for(i = 0; i < Anchor->Files; i++)
 	{
-		AddListView(hWnd, -1, Pos->File, Pos->Node, Pos->Size, &Pos->Time, Pos->Attr, Pos->Owner, Pos->Link, Pos->InfoExist);
+		// ファイルアイコン表示対応
+//		AddListView(hWnd, -1, Pos->File, Pos->Node, Pos->Size, &Pos->Time, Pos->Attr, Pos->Owner, Pos->Link, Pos->InfoExist);
+		AddListView(hWnd, -1, Pos->File, Pos->Node, Pos->Size, &Pos->Time, Pos->Attr, Pos->Owner, Pos->Link, Pos->InfoExist, Pos->ImageId);
 		Pos = Pos->Next;
 	}
 
@@ -1595,7 +1652,9 @@ static void DispFileList2View(HWND hWnd, FLISTANCHOR *Anchor)
 *		なし
 *----------------------------------------------------------------------------*/
 
-static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist)
+// ファイルアイコン表示対応
+//static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist)
+static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist, int ImageId)
 {
 	LV_ITEM LvItem;
 	char Tmp[20];
@@ -1614,6 +1673,9 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 		LvItem.iImage = Type;
 	else
 		LvItem.iImage = 4;
+	// ファイルアイコン表示対応
+	if(hWnd == GetLocalHwnd() && ImageId >= 0)
+		LvItem.iImage = 5 + ImageId;
 	LvItem.iItem = SendMessage(hWnd, LVM_INSERTITEM, 0, (LPARAM)&LvItem);
 
 	/* 日付/時刻 */

@@ -166,6 +166,8 @@ extern int MirUpDelNotify;
 extern int MirDownDelNotify;
 extern int FolderAttr;
 extern int FolderAttrNum;
+// ファイルアイコン表示対応
+extern int DispFileIcon;
 
 
 /*----- オプションのプロパティシート ------------------------------------------
@@ -976,6 +978,8 @@ static INT_PTR CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 				SendDlgItemMessage(hDlg, DISP_FONT, WM_SETTEXT, 0, (LPARAM)TmpFont.lfFaceName);
 			SendDlgItemMessage(hDlg, DISP_HIDE, BM_SETCHECK, DispIgnoreHide, 0);
 			SendDlgItemMessage(hDlg, DISP_DRIVE, BM_SETCHECK, DispDrives, 0);
+			// ファイルアイコン表示対応
+			SendDlgItemMessage(hDlg, DISP_ICON, BM_SETCHECK, DispFileIcon, 0);
 		    return(TRUE);
 
 		case WM_NOTIFY:
@@ -985,6 +989,8 @@ static INT_PTR CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 				case PSN_APPLY :
 					DispIgnoreHide = SendDlgItemMessage(hDlg, DISP_HIDE, BM_GETCHECK, 0, 0);
 					DispDrives = SendDlgItemMessage(hDlg, DISP_DRIVE, BM_GETCHECK, 0, 0);
+					// ファイルアイコン表示対応
+					DispFileIcon = SendDlgItemMessage(hDlg, DISP_ICON, BM_GETCHECK, 0, 0);
 					if(strlen(TmpFont.lfFaceName) > 0)
 					{
 						memcpy(&ListLogFont, &TmpFont, sizeof(LOGFONT));

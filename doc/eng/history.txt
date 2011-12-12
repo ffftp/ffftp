@@ -1,5 +1,17 @@
 FFFTP version history.
 
+Changes in Ver.1.98e
+--------------------
+
+-- Fixed bugs that an inputted password is ignored if failed in login.
+
+-- Fixed bugs to crash under multicore CPU environment.
+
+-- Changed the location of temporary files.
+   This resolves interference in file list caches between instances of FFFTP.
+
+-- Supported the file list format of linux-ftpd.
+
 Changes in Ver.1.98d
 --------------------
 
