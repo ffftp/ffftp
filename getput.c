@@ -1709,8 +1709,6 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 //						Continue = ConvJIStoSJIS(&cInfo);
 //					else
 //						Continue = ConvEUCtoSJIS(&cInfo);
-					char Buf3[(BUFSIZE + 3) * 4];
-					CODECONVINFO cInfo2;
 					switch(Pkt->KanjiCode)
 					{
 					case KANJI_SJIS:
