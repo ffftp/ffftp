@@ -339,6 +339,9 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	LoadOpenSSL();
 #endif
 
+	// SFTP対応
+	LoadPuTTY();
+
 	Ret = FALSE;
 	hWndFtp = NULL;
 	hInstFtp = hInstance;
@@ -374,6 +377,8 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 #ifdef USE_OPENSSL
 	FreeOpenSSL();
 #endif
+	// SFTP対応
+	FreePuTTY();
 	OleUninitialize();
 	return(Ret);
 }

@@ -1699,6 +1699,61 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 	}
 	else if(CryptMode == CRYPT_SFTP)
 	{
+		// TODO:
+		// テストコード
+		// ログイン成功を確認
+#define strrcmp(_Str1, _Str2) (strcmp(strstr(_Str1, _Str2) ? strstr(_Str1, _Str2) : "", _Str2))
+		size_t r;
+		ContSock = SFTP_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+		SFTP_SetTimeoutCallback(ContSock, SSLTimeoutCallback);
+		while(1)
+		{
+			r = SFTP_recv(ContSock, Reply, 1024, 0);
+			if(r == SOCKET_ERROR)
+				break;
+			if(r <= 0)
+				continue;
+			Reply[r] = '\0';
+			SetTaskMsg("%s", Reply);
+			if(strrcmp(Reply, "psftp> ") == 0)
+				break;
+		}
+		r = SFTP_send(ContSock, "open \"", strlen("open \""), 0);
+		r = SFTP_send(ContSock, Host, strlen(Host), 0);
+		r = SFTP_send(ContSock, "\"\r\n", strlen("\"\r\n"), 0);
+		while(1)
+		{
+			r = SFTP_recv(ContSock, Reply, 1024, 0);
+			if(r == SOCKET_ERROR)
+				break;
+			if(r <= 0)
+				continue;
+			Reply[r] = '\0';
+			SetTaskMsg("%s", Reply);
+			if(strrcmp(Reply, "Store key in cache? (y/n) ") == 0)
+			{
+				r = SFTP_send(ContSock, "n\r\n", strlen("n\r\n"), 0);
+			}
+			if(strrcmp(Reply, "Update cached key? (y/n, Return cancels connection) ") == 0)
+			{
+				r = SFTP_send(ContSock, "\r\n", strlen("\r\n"), 0);
+			}
+			if(strrcmp(Reply, "login as: ") == 0)
+			{
+				r = SFTP_send(ContSock, User, strlen(User), 0);
+				r = SFTP_send(ContSock, "\r\n", strlen("\r\n"), 0);
+			}
+			if(strrcmp(Reply, "password: ") == 0)
+			{
+				r = SFTP_send(ContSock, Pass, strlen(Pass), 0);
+				r = SFTP_send(ContSock, "\r\n", strlen("\r\n"), 0);
+			}
+			if(strrcmp(Reply, "psftp> ") == 0)
+				break;
+			Sleep(1);
+		}
+		SFTP_closesocket(ContSock);
+		ContSock = INVALID_SOCKET;
 	}
 
 	return(ContSock);
@@ -1711,12 +1766,12 @@ static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, 
 	SOCKET ContSock;
 	ContSock = INVALID_SOCKET;
 	*CancelCheckWork = NO;
-//	if(*CancelCheckWork == NO && ContSock == INVALID_SOCKET && HostData->UseSFTP == YES)
-//	{
-//		SetTaskMsg(MSGJPN317);
-//		if((ContSock = DoConnectCrypt(CRYPT_SFTP, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security, CancelCheckWork)) != INVALID_SOCKET)
-//			HostData->CryptMode = CRYPT_SFTP;
-//	}
+	if(*CancelCheckWork == NO && ContSock == INVALID_SOCKET && HostData->UseSFTP == YES)
+	{
+		SetTaskMsg(MSGJPN317);
+		if((ContSock = DoConnectCrypt(CRYPT_SFTP, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security, CancelCheckWork)) != INVALID_SOCKET)
+			HostData->CryptMode = CRYPT_SFTP;
+	}
 	if(*CancelCheckWork == NO && ContSock == INVALID_SOCKET && HostData->UseFTPIS == YES)
 	{
 		SetTaskMsg(MSGJPN316);

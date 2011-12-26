@@ -772,7 +772,7 @@ int do_closesocket(SOCKET s)
 	UnRegistAsyncTable(s);
 	// FTPS対応
 //	Ret = closesocket(s);
-	Ret = closesocketS(s);
+	Ret = FTPS_closesocket(s);
 	if(Ret == SOCKET_ERROR)
 	{
 		Error = 0;
@@ -1029,7 +1029,7 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 
 			// FTPS対応
 //			Ret = recv(s, buf, len, flags);
-			Ret = recvS(s, buf, len, flags);
+			Ret = FTPS_recv(s, buf, len, flags);
 			if(Ret != SOCKET_ERROR)
 				break;
 			Error = WSAGetLastError();
@@ -1139,7 +1139,7 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 
 			// FTPS対応
 //			Ret = send(s, buf, len, flags);
-			Ret = sendS(s, buf, len, flags);
+			Ret = FTPS_send(s, buf, len, flags);
 			if(Ret != SOCKET_ERROR)
 			{
 #if DBG_MSG
@@ -1191,10 +1191,10 @@ void RemoveReceivedData(SOCKET s)
 	char buf[1024];
 	int len;
 	int Error;
-	while((len = recvS(s, buf, sizeof(buf), MSG_PEEK)) >= 0)
+	while((len = FTPS_recv(s, buf, sizeof(buf), MSG_PEEK)) >= 0)
 	{
 		AskAsyncDone(s, &Error, FD_READ);
-		recvS(s, buf, len, 0);
+		FTPS_recv(s, buf, len, 0);
 	}
 }
 

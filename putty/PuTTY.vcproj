@@ -49,7 +49,7 @@
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -196,7 +196,7 @@
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -333,6 +333,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dllinterface.c"
+				>
+			</File>
+			<File
 				RelativePath=".\dllmain.c"
 				>
 			</File>
@@ -341,7 +345,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\iowrapper.c"
+				>
+			</File>
+			<File
 				RelativePath=".\LOGGING.C"
+				>
+			</File>
+			<File
+				RelativePath=".\mbswrapper.c"
 				>
 			</File>
 			<File

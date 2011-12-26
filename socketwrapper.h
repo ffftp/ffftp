@@ -23,14 +23,14 @@ BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName);
 BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted);
 BOOL DetachSSL(SOCKET s);
 BOOL IsSSLAttached(SOCKET s);
-SOCKET socketS(int af, int type, int protocol);
-int bindS(SOCKET s, const struct sockaddr *addr, int namelen);
-int listenS(SOCKET s, int backlog);
-SOCKET acceptS(SOCKET s, struct sockaddr *addr, int *addrlen);
-int connectS(SOCKET s, const struct sockaddr *name, int namelen);
-int closesocketS(SOCKET s);
-int sendS(SOCKET s, const char * buf, int len, int flags);
-int recvS(SOCKET s, char * buf, int len, int flags);
+SOCKET FTPS_socket(int af, int type, int protocol);
+int FTPS_bind(SOCKET s, const struct sockaddr *addr, int namelen);
+int FTPS_listen(SOCKET s, int backlog);
+SOCKET FTPS_accept(SOCKET s, struct sockaddr *addr, int *addrlen);
+int FTPS_connect(SOCKET s, const struct sockaddr *name, int namelen);
+int FTPS_closesocket(SOCKET s);
+int FTPS_send(SOCKET s, const char * buf, int len, int flags);
+int FTPS_recv(SOCKET s, char * buf, int len, int flags);
 
 HANDLE WSAAsyncGetHostByNameIPv6(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen, short Family);
 int WSACancelAsyncRequestIPv6(HANDLE hAsyncTaskHandle);
@@ -39,6 +39,22 @@ char* inet6_ntoa(struct in6_addr in6);
 struct in6_addr inet6_addr(const char* cp);
 HANDLE WSAAsyncGetHostByNameM(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen);
 HANDLE WSAAsyncGetHostByNameIPv6M(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen, short Family);
+
+BOOL LoadPuTTY();
+void FreePuTTY();
+BOOL IsPuTTYLoaded();
+BOOL IsSFTPAttached(SOCKET s);
+SOCKET SFTP_socket(int af, int type, int protocol);
+int SFTP_bind(SOCKET s, const struct sockaddr *addr, int namelen);
+int SFTP_listen(SOCKET s, int backlog);
+SOCKET SFTP_accept(SOCKET s, struct sockaddr *addr, int *addrlen);
+int SFTP_connect(SOCKET s, const struct sockaddr *name, int namelen);
+int SFTP_closesocket(SOCKET s);
+int SFTP_send(SOCKET s, const char * buf, int len, int flags);
+int SFTP_recv(SOCKET s, char * buf, int len, int flags);
+BOOL SFTP_SetTimeoutCallback(SOCKET s, void* pCallback);
+SOCKET SFTP_GetDataHandle(SOCKET s, int af, int type, int protocol);
+BOOL SFTP_SetFilePosition(SOCKET s, LONGLONG Position);
 
 #endif
 

@@ -2236,13 +2236,18 @@ static INT_PTR CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam
 				SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, BST_UNCHECKED, 0);
 				EnableWindow(GetDlgItem(hDlg, HSET_FTPIS), FALSE);
 			}
-			SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, TmpHost.UseSFTP, 0);
-			SendDlgItemMessage(hDlg, HSET_PRIVATE_KEY, WM_SETTEXT, 0, (LPARAM)TmpHost.PrivateKey);
-			// TODO: SFTP対応
-			SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, BST_UNCHECKED, 0);
-			EnableWindow(GetDlgItem(hDlg, HSET_SFTP), FALSE);
-			EnableWindow(GetDlgItem(hDlg, PKEY_FILE_BR), FALSE);
-			EnableWindow(GetDlgItem(hDlg, HSET_PRIVATE_KEY), FALSE);
+			if(IsPuTTYLoaded())
+			{
+				SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, TmpHost.UseSFTP, 0);
+				SendDlgItemMessage(hDlg, HSET_PRIVATE_KEY, WM_SETTEXT, 0, (LPARAM)TmpHost.PrivateKey);
+			}
+			else
+			{
+				SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, BST_UNCHECKED, 0);
+				EnableWindow(GetDlgItem(hDlg, HSET_SFTP), FALSE);
+				EnableWindow(GetDlgItem(hDlg, PKEY_FILE_BR), FALSE);
+				EnableWindow(GetDlgItem(hDlg, HSET_PRIVATE_KEY), FALSE);
+			}
 			return(TRUE);
 
 		case WM_NOTIFY:
@@ -2256,9 +2261,11 @@ static INT_PTR CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam
 						TmpHost.UseFTPES = SendDlgItemMessage(hDlg, HSET_FTPES, BM_GETCHECK, 0, 0);
 						TmpHost.UseFTPIS = SendDlgItemMessage(hDlg, HSET_FTPIS, BM_GETCHECK, 0, 0);
 					}
-					// TODO: SFTP対応
-//					TmpHost.UseSFTP = SendDlgItemMessage(hDlg, HSET_SFTP, BM_GETCHECK, 0, 0);
-					SendDlgItemMessage(hDlg, HSET_PRIVATE_KEY, WM_GETTEXT, PRIVATE_KEY_LEN+1, (LPARAM)TmpHost.PrivateKey);
+					if(IsPuTTYLoaded())
+					{
+						TmpHost.UseSFTP = SendDlgItemMessage(hDlg, HSET_SFTP, BM_GETCHECK, 0, 0);
+						SendDlgItemMessage(hDlg, HSET_PRIVATE_KEY, WM_GETTEXT, PRIVATE_KEY_LEN+1, (LPARAM)TmpHost.PrivateKey);
+					}
 					Apply = YES;
 					break;
 

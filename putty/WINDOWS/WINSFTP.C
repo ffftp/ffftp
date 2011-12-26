@@ -93,6 +93,9 @@ RFile *open_existing_file(char *name, uint64 *size,
     HANDLE h;
     RFile *ret;
 
+	// FFFTP
+	return snew(RFile);
+
     h = CreateFile(name, GENERIC_READ, FILE_SHARE_READ, NULL,
 		   OPEN_EXISTING, 0, 0);
     if (h == INVALID_HANDLE_VALUE)
@@ -120,6 +123,8 @@ int read_from_file(RFile *f, void *buffer, int length)
 {
     int ret;
     DWORD read;
+	// FFFTP
+	return (int)SFTP_ReadThreadDataIO(buffer, length);
     ret = ReadFile(f->h, buffer, length, &read, NULL);
     if (!ret)
 	return -1;		       /* error */
@@ -129,7 +134,8 @@ int read_from_file(RFile *f, void *buffer, int length)
 
 void close_rfile(RFile *f)
 {
-    CloseHandle(f->h);
+	// FFFTP
+//    CloseHandle(f->h);
     sfree(f);
 }
 
@@ -141,6 +147,9 @@ WFile *open_new_file(char *name)
 {
     HANDLE h;
     WFile *ret;
+
+	// FFFTP
+	return snew(WFile);
 
     h = CreateFile(name, GENERIC_WRITE, 0, NULL,
 		   CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
@@ -157,6 +166,9 @@ WFile *open_existing_wfile(char *name, uint64 *size)
 {
     HANDLE h;
     WFile *ret;
+
+	// FFFTP
+	return snew(WFile);
 
     h = CreateFile(name, GENERIC_WRITE, FILE_SHARE_READ, NULL,
 		   OPEN_EXISTING, 0, 0);
@@ -176,6 +188,8 @@ int write_to_file(WFile *f, void *buffer, int length)
 {
     int ret;
     DWORD written;
+	// FFFTP
+	return (int)SFTP_WriteThreadDataIO(buffer, length);
     ret = WriteFile(f->h, buffer, length, &written, NULL);
     if (!ret)
 	return -1;		       /* error */
@@ -186,6 +200,8 @@ int write_to_file(WFile *f, void *buffer, int length)
 void set_file_times(WFile *f, unsigned long mtime, unsigned long atime)
 {
     FILETIME actime, wrtime;
+	// FFFTP
+	return;
     TIME_POSIX_TO_WIN(atime, actime);
     TIME_POSIX_TO_WIN(mtime, wrtime);
     SetFileTime(f->h, NULL, &actime, &wrtime);
@@ -193,7 +209,8 @@ void set_file_times(WFile *f, unsigned long mtime, unsigned long atime)
 
 void close_wfile(WFile *f)
 {
-    CloseHandle(f->h);
+	// FFFTP
+//    CloseHandle(f->h);
     sfree(f);
 }
 
@@ -202,6 +219,9 @@ void close_wfile(WFile *f)
 int seek_file(WFile *f, uint64 offset, int whence)
 {
     DWORD movemethod;
+
+	// FFFTP
+	return 0;
 
     switch (whence) {
     case FROM_START:
@@ -228,6 +248,10 @@ int seek_file(WFile *f, uint64 offset, int whence)
 uint64 get_file_posn(WFile *f)
 {
     uint64 ret;
+
+	// FFFTP
+	SFTP_GetThreadFilePositon((DWORD*)&ret.lo, (LONG*)&ret.hi);
+	return ret;
 
     ret.hi = 0L;
     ret.lo = SetFilePointer(f->h, 0L, &(ret.hi), FILE_CURRENT);
@@ -679,6 +703,9 @@ char *ssh_sftp_get_cmdline(char *prompt, int no_fds_ok)
 
     fputs(prompt, stdout);
     fflush(stdout);
+
+	// FFFTP
+	return fgetline(stdin);
 
     if ((sftp_ssh_socket == INVALID_SOCKET && no_fds_ok) ||
 	p_WSAEventSelect == NULL) {

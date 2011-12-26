@@ -1303,4 +1303,8 @@ void timer_change_notify(long next);
 #define remove_session_from_jumplist(x) ((void)0)
 #endif
 
+// FFFTP
+#include "mbswrapper.h"
+#include "iowrapper.h"
+
 #endif

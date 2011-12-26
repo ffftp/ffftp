@@ -1895,7 +1895,6 @@ END_ROUTINE
 	return r;
 }
 
-
 BOOL AppendMenuM(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, LPCSTR lpNewItem)
 {
 	int r = 0;
