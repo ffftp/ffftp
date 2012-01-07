@@ -806,6 +806,13 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //		if(TransPacketBase != NULL)
 		if(TrnSkt != INVALID_SOCKET && NextTransPacketBase != NULL)
 		{
+			if(strcmp(NextTransPacketBase->Cmd, "GOQUIT") == 0 && NextTransPacketBase != TransPacketBase)
+			{
+				ReleaseMutex(hListAccMutex);
+				BackgrndMessageProc();
+				Sleep(1);
+				continue;
+			}
 			Pos = NextTransPacketBase;
 			NextTransPacketBase = NextTransPacketBase->Next;
 			// ディレクトリ操作は非同期で行わない
