@@ -1407,6 +1407,12 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						LocalRbuttonMenu(1);
 					break;
 
+#if defined(HAVE_TANDEM)
+				case MENU_SWITCH_OSS :
+					SwitchOSSProc();
+					break;
+#endif
+
 				default :
 					if((LOWORD(wParam) >= MENU_BMARK_TOP) &&
 					   (LOWORD(wParam) < MENU_BMARK_TOP+100))
@@ -1449,7 +1455,15 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						case MENU_DOWNLOAD :
 							lpttt->lpszText = MSGJPN157;
 							break;
+#if defined(HAVE_TANDEM)
+						case MENU_DOWNLOAD_AS :
+							lpttt->lpszText = MSGJPN065;
+							break;
 
+						case MENU_UPLOAD_AS :
+							lpttt->lpszText = MSGJPN064;
+							break;
+#endif
 						case MENU_UPLOAD :
 							lpttt->lpszText = MSGJPN158;
 							break;

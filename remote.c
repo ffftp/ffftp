@@ -685,6 +685,39 @@ int CommandProcCmd(char *Reply, char *fmt, ...)
 }
 
 
+#if defined(HAVE_TANDEM)
+/*----- OSS/Guardian ファイルシステムを切り替えるコマンドを送る ---------------
+*
+*	Parameter
+*		なし
+*
+*	Return Value
+*		なし
+*----------------------------------------------------------------------------*/
+
+void SwitchOSSProc(void)
+{
+	char Buf[MAX_PATH+1];
+
+	/* DoPWD でノード名の \ を保存するために OSSフラグも変更する */
+	if(AskOSS() == YES) {
+		DoQUOTE("GUARDIAN");
+		SetOSS(NO);
+	} else {
+		DoQUOTE("OSS");
+		SetOSS(YES);
+	}
+	/* Current Dir 再取得 */
+	if (DoPWD(Buf) == FTP_COMPLETE)
+		SetRemoteDirHist(Buf);
+	/* ファイルリスト再読み込み */
+	PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(REFRESH_REMOTE, 0), 0);
+
+	return;
+}
+#endif
+
+
 /*----- リモート側へコマンドを送りリプライを待つ（転送ソケット）---------------
 *
 *	Parameter

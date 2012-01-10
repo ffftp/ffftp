@@ -123,6 +123,9 @@ static const struct in6_addr IN6ADDR_NONE = {{0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 static int UseIPadrs;
 static char DomainName[HOST_ADRS_LEN+1];
 
+#if defined(HAVE_TANDEM)
+static int Oss = NO;  /* OSS ファイルシステムへアクセスしている場合は YES */
+#endif
 
 
 
@@ -895,6 +898,14 @@ int AskHostType(void)
 	if(AskCurrentHost() != HOSTNUM_NOENTRY)
 		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
 
+#if defined(HAVE_TANDEM)
+	/* OSS ファイルシステムは UNIX ファイルシステムと同じでいいので AUTO を返す
+	   ただし、Guardian ファイルシステムに戻ったときにおかしくならないように
+	   CurHost.HostType 変数は更新しない */
+	if(CurHost.HostType == HTYPE_TANDEM && Oss == YES)
+		return(HTYPE_AUTO);
+#endif
+
 	return(CurHost.HostType);
 }
 
@@ -1314,6 +1325,55 @@ int AskConnecting(void)
 
 	return(Sts);
 }
+
+
+#if defined(HAVE_TANDEM)
+/*----- 接続している本当のホストのホストタイプを返す --------------------------
+*
+*	Parameter
+*		なし
+*
+*	Return Value
+*		char *ファイル名／オプション
+*----------------------------------------------------------------------------*/
+
+int AskRealHostType(void)
+{
+	if(AskCurrentHost() != HOSTNUM_NOENTRY)
+		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+
+	return(CurHost.HostType);
+}
+
+/*----- OSS ファイルシステムにアクセスしているかどうかのフラグを変更する ------
+*
+*	Parameter
+*		int ステータス (YES/NO)
+*
+*	Return Value
+*		int ステータス (YES/NO)
+*----------------------------------------------------------------------------*/
+
+int SetOSS(int wkOss)
+{
+	Oss = wkOss;
+	return(Oss);
+}
+
+/*----- OSS ファイルシステムにアクセスしているかどうかを返す ------------------
+*
+*	Parameter
+*		なし
+*
+*	Return Value
+*		int ステータス (YES/NO)
+*----------------------------------------------------------------------------*/
+
+int AskOSS(void)
+{
+	return(Oss);
+}
+#endif /* HAVE_TANDEM */
 
 
 /*----- ホストへ接続する ------------------------------------------------------

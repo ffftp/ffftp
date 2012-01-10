@@ -336,3 +336,7 @@
 #define MSGJPN336		"全て後で上書き"
 #define MSGJPN337		"全て後でリジューム"
 #define MSGJPN338		"全てスキップ"
+#if defined(HAVE_TANDEM)
+#define MSGJPN2000              "NonStop Server"
+#define MSGJPN2001              "OSS<->GUARDIAN 切り替え(&O)"
+#endif

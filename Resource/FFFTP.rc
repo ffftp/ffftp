@@ -219,6 +219,7 @@ BEGIN
         MENUITEM "URLをクリップボードへ",                MENU_URL_COPY
         MENUITEM "全てをダウンロード",                   MENU_DOWNLOAD_ALL
         MENUITEM "全てをアップロード",                   MENU_UPLOAD_ALL
+        MENUITEM "OSS<->GUARDIAN 切り替え",         MENU_SWITCH_OSS
     END
 END
 
@@ -815,6 +816,19 @@ BEGIN
     PUSHBUTTON      "中止(&S)",UPDOWNAS_STOP,101,51,50,14
     LTEXT           "",UPDOWNAS_TEXT,7,7,173,8,SS_NOPREFIX
     LTEXT           "の名前を変更してください。",-1,15,20,133,8
+END
+
+updown_as_with_ext_dlg DIALOGEX 0, 0, 187, 89
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+FONT 9, "ＭＳ Ｐゴシック", 0, 0, 0x0
+BEGIN
+    EDITTEXT        UPDOWNAS_NEW,7,34,173,12,ES_AUTOHSCROLL
+    LTEXT           "",UPDOWNAS_TEXT,7,7,173,8,SS_NOPREFIX
+    LTEXT           "の名前を変更してください。",-1,15,20,133,8
+    LTEXT           "ファイルコード",-1,10,51,44,8
+    EDITTEXT        UPDOWNAS_FILECODE,55,49,21,12,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
+    DEFPUSHBUTTON   "OK",IDOK,35,66,50,14
+    PUSHBUTTON      "中止(&S)",UPDOWNAS_STOP,101,66,50,14
 END
 
 re_passwd_dlg DIALOG  0, 0, 187, 62
@@ -1693,6 +1707,14 @@ BEGIN
         RIGHTMARGIN, 180
         TOPMARGIN, 7
         BOTTOMMARGIN, 65
+    END
+
+    updown_as_with_ext_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 87
     END
 
     re_passwd_dlg, DIALOG

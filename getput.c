@@ -2286,6 +2286,12 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 			if (AskHostType() == HTYPE_VMS)
 				return;
 #endif
+#if defined(HAVE_TANDEM)
+			/* HP Nonstop Server の場合、ファイルのない subvol へ移動すると550 File not found
+			 * になるが問題ないのでエラーダイアログやエラーメッセージを出さないため */
+			if (AskHostType() == HTYPE_TANDEM)
+				return;
+#endif
 
 			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0))
 			{
@@ -2636,6 +2642,16 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 	{
 		SetUploadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &Resume);
 		if(Resume == NO)
+#if defined(HAVE_TANDEM)
+			if(AskHostType() == HTYPE_TANDEM && AskOSS() == NO && Pkt->Type != TYPE_A) {
+				if( Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT) {
+					// EXTENTがデフォルトのときはコードのみ
+					sprintf(Buf, "%s%s,%d", Pkt->Cmd, Pkt->RemoteFile, Pkt->FileCode);
+				} else {
+					sprintf(Buf, "%s%s,%d,%d,%d,%d", Pkt->Cmd, Pkt->RemoteFile, Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
+				}
+			} else
+#endif
 			sprintf(Buf, "%s%s", Pkt->Cmd, Pkt->RemoteFile);
 		else
 			sprintf(Buf, "%s%s", "APPE ", Pkt->RemoteFile);
@@ -2779,6 +2795,16 @@ static int UpLoadPassive(TRANSPACKET *Pkt)
 
 				SetUploadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &Resume);
 				if(Resume == NO)
+#if defined(HAVE_TANDEM)
+					if(AskHostType() == HTYPE_TANDEM && AskOSS() == NO && Pkt->Type != TYPE_A) {
+						if( Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT) {
+							// EXTENTがデフォルトのときはコードのみ
+							sprintf(Buf, "%s%s,%d", Pkt->Cmd, Pkt->RemoteFile, Pkt->FileCode);
+						} else {
+							sprintf(Buf, "%s%s,%d,%d,%d,%d", Pkt->Cmd, Pkt->RemoteFile, Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
+						}
+					} else
+#endif
 					sprintf(Buf, "%s%s", Pkt->Cmd, Pkt->RemoteFile);
 				else
 					sprintf(Buf, "%s%s", "APPE ", Pkt->RemoteFile);

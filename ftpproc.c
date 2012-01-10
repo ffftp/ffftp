@@ -75,6 +75,9 @@ static int AskUpLoadFileAttr(char *Fname);
 // 64ビット対応
 //static BOOL CALLBACK UpDownAsDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK UpDownAsDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+#if defined(HAVE_TANDEM)
+static INT_PTR CALLBACK UpDownAsWithExtDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+#endif
 static void DeleteAllDir(FILELIST *Dt, int Win, int *Sw, int *Flg, char *CurDir);
 static void DelNotifyAndDo(FILELIST *Dt, int Win, int *Sw, int *Flg, char *CurDir);
 // 64ビット対応
@@ -109,6 +112,9 @@ extern int CancelFlg;
 /*===== ローカルなワーク =====*/
 
 static char TmpString[FMAX_PATH+80];		/* テンポラリ */
+#if defined(HAVE_TANDEM)
+static char TmpFileCode[5];		/* テンポラリ */
+#endif
 static int CurWin;						/* ウインドウ番号 */
 
 int UpExistMode = EXIST_OVW;		/* アップロードで同じ名前のファイルがある時の扱い方 EXIST_xxx */
@@ -217,6 +223,19 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 				}
 
 				strcpy(Pkt.Cmd, "RETR ");
+#if defined(HAVE_TANDEM)
+				if(AskHostType() == HTYPE_TANDEM) {
+					if(AskTransferType() != TYPE_X) {
+						Pkt.Type = AskTransferType();
+					} else {
+						Pkt.Attr = Pos->Attr;
+						if (Pkt.Attr == 101)
+							Pkt.Type = TYPE_A;
+						else
+							Pkt.Type = TYPE_I;
+					}
+				} else
+#endif
 				Pkt.Type = AskTransferTypeAssoc(Pkt.RemoteFile, AskTransferType());
 				Pkt.Size = Pos->Size;
 				Pkt.Time = Pos->Time;
@@ -911,12 +930,29 @@ void UpLoadListProc(int ChName, int All)
 					_mbslwr(Cat);
 				else if(FnameCnv == FNAME_UPPER)
 					_mbsupr(Cat);
+#if defined(HAVE_TANDEM)
+				Pkt.FileCode = 0;
+				Pkt.PriExt = DEF_PRIEXT;
+				Pkt.SecExt = DEF_SECEXT;
+				Pkt.MaxExt = DEF_MAXEXT;
+#endif
 			}
 			else
 			{
 				// 名前を変更する
 				strcpy(TmpString, Pos->File);
 				CurWin = WIN_LOCAL;
+#if defined(HAVE_TANDEM)
+				strcpy(TmpFileCode, "0"); /* ASCII モードの場合は無視される */
+				if(AskHostType() == HTYPE_TANDEM && AskOSS() == NO) {
+					if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(updown_as_with_ext_dlg), GetMainHwnd(), UpDownAsWithExtDialogCallBack) == YES) {
+						strcat(Pkt.RemoteFile, TmpString);
+						Pkt.FileCode = atoi(TmpFileCode);
+					} else {
+						break;
+					}
+				} else
+#endif
 				if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(updown_as_dlg), GetMainHwnd(), UpDownAsDialogCallBack) == YES)
 					strcat(Pkt.RemoteFile, TmpString);
 				else
@@ -985,6 +1021,11 @@ void UpLoadListProc(int ChName, int All)
 				// UTF-8対応
 				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 				Pkt.KanaCnv = AskHostKanaCnv();
+#if defined(HAVE_TANDEM)
+				if(AskHostType() == HTYPE_TANDEM && AskOSS() == NO) {
+					CalcExtentSize(&Pkt, Pos->Size);
+				}
+#endif
 				Pkt.Mode = CheckRemoteFile(&Pkt, RemoteList);
 				if(Pkt.Mode == EXIST_ABORT)
 					break;
@@ -1079,6 +1120,12 @@ void UpLoadDragProc(WPARAM wParam)
 			else if(FnameCnv == FNAME_UPPER)
 				_mbsupr(Cat);
 			ReplaceAll(Pkt.RemoteFile, '\\', '/');
+#if defined(HAVE_TANDEM)
+			Pkt.FileCode = 0;
+			Pkt.PriExt = DEF_PRIEXT;
+			Pkt.SecExt = DEF_SECEXT;
+			Pkt.MaxExt = DEF_MAXEXT;
+#endif
 
 			if(AskHostType() == HTYPE_ACOS)
 			{
@@ -1140,6 +1187,12 @@ void UpLoadDragProc(WPARAM wParam)
 				// UTF-8対応
 				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 				Pkt.KanaCnv = AskHostKanaCnv();
+#if defined(HAVE_TANDEM)
+				if(AskHostType() == HTYPE_TANDEM && AskOSS() == NO) {
+					int a = Pos->InfoExist && FINFO_SIZE;
+					CalcExtentSize(&Pkt, Pos->Size);
+				}
+#endif
 				Pkt.Mode = CheckRemoteFile(&Pkt, RemoteList);
 				if(Pkt.Mode == EXIST_ABORT)
 					break;
@@ -1411,6 +1464,11 @@ void MirrorUploadProc(int Notify)
 						// UTF-8対応
 						Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 						Pkt.KanaCnv = AskHostKanaCnv();
+#if defined(HAVE_TANDEM)
+						if(AskHostType() == HTYPE_TANDEM && AskOSS() == NO) {
+							CalcExtentSize(&Pkt, LocalPos->Size);
+						}
+#endif
 						Pkt.Mode = EXIST_OVW;
 						AddTmpTransFileList(&Pkt, &Base);
 					}
@@ -1815,13 +1873,26 @@ static int AskUpLoadFileAttr(char *Fname)
 static int CheckRemoteFile(TRANSPACKET *Pkt, FILELIST *ListList)
 {
 	int Ret;
+#if defined(HAVE_TANDEM)
+	int Mode;
+#endif
 	FILELIST *Exist;
 
 	Ret = EXIST_OVW;
 	Pkt->ExistSize = 0;
 	if(SendMode != TRANS_OVW)
 	{
+#if defined(HAVE_TANDEM)
+		/* HP NonStop Server は大文字小文字の区別なし(すべて大文字) */
+		if(AskHostType() == HTYPE_TANDEM)
+			Mode = COMP_IGNORE;
+		else
+			Mode = COMP_STRICT;
+
+		if((Exist = SearchFileList(GetFileName(Pkt->RemoteFile), ListList, Mode)) != NULL)
+#else
 		if((Exist = SearchFileList(GetFileName(Pkt->RemoteFile), ListList, COMP_STRICT)) != NULL)
+#endif
 		{
 			Pkt->ExistSize = Exist->Size;
 
@@ -1963,6 +2034,57 @@ static INT_PTR CALLBACK UpDownAsDialogCallBack(HWND hDlg, UINT iMessage, WPARAM 
 	}
 	return(FALSE);
 }
+
+
+#if defined(HAVE_TANDEM)
+/*----- アップロード／ダウンロードファイル名入力ダイアログのコールバック ------
+*
+*	Parameter
+*		HWND hDlg : ウインドウハンドル
+*		UINT message : メッセージ番号
+*		WPARAM wParam : メッセージの WPARAM 引数
+*		LPARAM lParam : メッセージの LPARAM 引数
+*
+*	Return Value
+*		BOOL TRUE/FALSE
+*----------------------------------------------------------------------------*/
+
+static INT_PTR CALLBACK UpDownAsWithExtDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
+{
+	switch (iMessage)
+	{
+		case WM_INITDIALOG :
+			if(CurWin == WIN_LOCAL)
+				SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)MSGJPN064);
+			else
+				SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)MSGJPN065);
+
+			SendDlgItemMessage(hDlg, UPDOWNAS_NEW, EM_LIMITTEXT, FMAX_PATH, 0);
+			SendDlgItemMessage(hDlg, UPDOWNAS_NEW, WM_SETTEXT, 0, (LPARAM)TmpString);
+			SendDlgItemMessage(hDlg, UPDOWNAS_TEXT, WM_SETTEXT, 0, (LPARAM)TmpString);
+			SendDlgItemMessage(hDlg, UPDOWNAS_FILECODE, EM_LIMITTEXT, 4, 0);
+			SendDlgItemMessage(hDlg, UPDOWNAS_FILECODE, WM_SETTEXT, 0, (LPARAM)TmpFileCode);
+
+			return(TRUE);
+
+		case WM_COMMAND :
+			switch(GET_WM_COMMAND_ID(wParam, lParam))
+			{
+				case IDOK :
+					SendDlgItemMessage(hDlg, UPDOWNAS_NEW, WM_GETTEXT, FMAX_PATH, (LPARAM)TmpString);
+					SendDlgItemMessage(hDlg, UPDOWNAS_FILECODE, WM_GETTEXT, FMAX_PATH, (LPARAM)TmpFileCode);
+					EndDialog(hDlg, YES);
+					break;
+
+				case UPDOWNAS_STOP :
+					EndDialog(hDlg, NO_ALL);
+					break;
+			}
+            return(TRUE);
+	}
+	return(FALSE);
+}
+#endif
 
 
 /*----- ファイル一覧で指定されたファイルを削除する ----------------------------

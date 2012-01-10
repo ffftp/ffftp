@@ -20,3 +20,6 @@
 // ファイル転送の同時接続数
 #define MAX_DATA_CONNECTION 4
 
+/* HP NonStop Server 用のコードを有効にする */
+#define HAVE_TANDEM
+

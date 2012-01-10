@@ -898,6 +898,11 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  
  					} 
  
+#if defined(HAVE_TANDEM)
+					if(FileListBaseNoExpand == NULL)
+						pf = FileListBase;
+					else
+#endif
  					pf = FileListBaseNoExpand;
  					for (filenum = 0; pf ; filenum++) {
  						pf = pf->Next;
@@ -1507,6 +1512,11 @@ static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LON
 			{
 				if((((Sort & SORT_MASK_ORD) == SORT_EXT) &&
 					((Cmp = _mbsicmp(GetFileExt(Name), GetFileExt(Pos->File))) < 0)) ||
+#if defined(HAVE_TANDEM)
+				   ((AskHostType() == HTYPE_TANDEM) &&
+				    ((Sort & SORT_MASK_ORD) == SORT_EXT) &&
+					((Cmp = Attr - Pos->Attr) < 0)) ||
+#endif
 				   (((Sort & SORT_MASK_ORD) == SORT_SIZE) &&
 					((Cmp = Size - Pos->Size) < 0)) ||
 				   (((Sort & SORT_MASK_ORD) == SORT_DATE) &&
@@ -1525,6 +1535,11 @@ static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LON
 			{
 				if((((Sort & SORT_MASK_ORD) == SORT_EXT) &&
 					((Cmp = _mbsicmp(GetFileExt(Name), GetFileExt(Pos->File))) > 0)) ||
+#if defined(HAVE_TANDEM)
+				   ((AskHostType() == HTYPE_TANDEM) &&
+				    ((Sort & SORT_MASK_ORD) == SORT_EXT) &&
+					((Cmp = Attr - Pos->Attr) > 0)) ||
+#endif
 				   (((Sort & SORT_MASK_ORD) == SORT_SIZE) &&
 					((Cmp = Size - Pos->Size) > 0)) ||
 				   (((Sort & SORT_MASK_ORD) == SORT_DATE) &&
@@ -1705,6 +1720,12 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 	LvItem.mask = LVIF_TEXT;
 	LvItem.iItem = Pos;
 	LvItem.iSubItem = 3;
+#if defined(HAVE_TANDEM)
+	if (AskHostType() == HTYPE_TANDEM) {
+		_itoa_s(Attr, Tmp, sizeof(Tmp), 10);
+		LvItem.pszText = Tmp;
+	} else
+#endif
 	LvItem.pszText = GetFileExt(Name);
 	LvItem.iItem = SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
 
@@ -1712,7 +1733,11 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 	{
 		/* 属性 */
 		strcpy(Tmp, "");
+#if defined(HAVE_TANDEM)
+		if((InfoExist & FINFO_ATTR) && (AskHostType() != HTYPE_TANDEM))
+#else
 		if(InfoExist & FINFO_ATTR)
+#endif
 			AttrValue2String(Attr, Tmp);
 		LvItem.mask = LVIF_TEXT;
 		LvItem.iItem = Pos;
@@ -2337,6 +2362,13 @@ int GetNodeSize(int Win, int Pos, LONGLONG *Buf)
 	SendMessage(hWnd, LVM_GETITEM, 0, (LPARAM)&LvItem);
 	*Buf = -1;
 	Ret = NO;
+#if defined(HAVE_TANDEM)
+	if(AskHostType() == HTYPE_TANDEM) {
+		RemoveComma(Tmp);
+		*Buf = _atoi64(Tmp);
+		Ret = YES;
+	} else
+#endif
 	if(strlen(Tmp) > 0)
 	{
 		RemoveComma(Tmp);
@@ -2371,12 +2403,22 @@ int GetNodeAttr(int Win, int Pos, int *Buf)
 	{
 		LvItem.mask = LVIF_TEXT;
 		LvItem.iItem = Pos;
+#if defined(HAVE_TANDEM)
+		if(AskHostType() == HTYPE_TANDEM)
+			LvItem.iSubItem = 3;
+		else
+#endif
 		LvItem.iSubItem = 4;
 		LvItem.pszText = Tmp;
 		LvItem.cchTextMax = 20;
 		SendMessage(GetRemoteHwnd(), LVM_GETITEM, 0, (LPARAM)&LvItem);
 		if(strlen(Tmp) > 0)
 		{
+#if defined(HAVE_TANDEM)
+			if(AskHostType() == HTYPE_TANDEM)
+				*Buf = atoi(Tmp);
+			else
+#endif
 			*Buf = AttrString2Value(Tmp);
 			Ret = YES;
 		}
@@ -2679,10 +2721,19 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
 			strcpy(Pkt.File, GetFileName(Name));
 
 			memset(&Pkt.Time, 0, sizeof(FILETIME));
+#if defined(HAVE_TANDEM)
+			/* Guardian スペースへのアップロードのためにサイズが必要 */
+			Pkt.Size = 0;
+			Pkt.InfoExist = 0;
+#endif
 			if((fHnd = FindFirstFile(Name, &Find)) != INVALID_HANDLE_VALUE)
 			{
 				FindClose(fHnd);
 				Pkt.Time = Find.ftLastWriteTime;
+#if defined(HAVE_TANDEM)
+				Pkt.Size = MakeLongLong(Find.nFileSizeHigh, Find.nFileSizeLow);
+				Pkt.InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE);
+#endif
 			}
 			AddFileList(&Pkt, Base);
 		}
@@ -3713,6 +3764,20 @@ static int AnalizeFileInfo(char *Str)
 				}
 			}
 		}
+#if defined(HAVE_TANDEM)
+		/* 以下のフォーマットをチェック */
+		/* LIST_TANDEM */
+
+		/* OSS の場合は自動判別可能のため Ret == LIST_UNKNOWN のチェックは後 */
+		if(AskRealHostType() == HTYPE_TANDEM) {
+			if(Ret == LIST_UNKNOWN) {
+				SetOSS(NO);
+				Ret = LIST_TANDEM;
+			} else {
+				SetOSS(YES);
+			}
+		}
+#endif
 
 		// MLSD対応
 		if(Ret == LIST_UNKNOWN)
@@ -4718,6 +4783,66 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 				}
 			}
 			break;
+
+#if defined(HAVE_TANDEM)
+		case LIST_TANDEM :
+			*InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE | FINFO_ATTR);
+			/* Open 中だったらずらす */
+			if(FindField(Str, Buf, 1, NO) != FFFTP_SUCCESS)
+				break;
+			if (!strncmp(Buf, "O", 1)) {
+				offs = 1;
+			}
+			/* 日付 */
+			if(FindField(Str, Buf, 3 + offs, NO) != FFFTP_SUCCESS)
+				break;
+			if (Buf[1] == '-') {  /* 日付が 1桁 */
+				sTime.wYear = Assume1900or2000(atoi(Buf + 6));
+				Buf[5] = 0;
+				GetMonth(Buf+2, &sTime.wMonth, &sTime.wDay);	/* wDayは常に0 */
+				sTime.wDay = atoi(Buf);
+				sTime.wDayOfWeek = 0;
+			} else {
+				sTime.wYear = Assume1900or2000(atoi(Buf + 7));
+				Buf[6] = 0;
+				GetMonth(Buf+3, &sTime.wMonth, &sTime.wDay);	/* wDayは常に0 */
+				sTime.wDay = atoi(Buf);
+				sTime.wDayOfWeek = 0;
+			}
+			/* 時刻 */
+			FindField(Str, Buf, 4 + offs, NO);
+			sTime.wHour = atoi(Buf);
+			sTime.wMinute = atoi(Buf+3);
+			sTime.wSecond = atoi(Buf+6);
+			sTime.wMilliseconds = 0;
+			SystemTimeToFileTime(&sTime, Time);
+			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
+
+			/* 属性 セキュリティではなく FileCode を保存する */
+			FindField(Str, Buf, 1 + offs, NO);
+			*Attr = atoi(Buf);
+			/* サイズ */
+			FindField(Str, Buf, 2 + offs, NO);
+			*Size = _atoi64(Buf);
+			/* オーナ名 */
+			if(FindField(Str, Buf, 5 + offs, NO) == FFFTP_SUCCESS) {
+				if(strncmp(Buf, "Owner", sizeof("Owner"))) {
+					memset(Owner, NUL, OWNER_NAME_LEN+1);
+					strncpy(Owner, Buf, OWNER_NAME_LEN);
+					/* 通常は 255,255 だが、20, 33 などにも対応する */
+					/* 最後の文字が , だったら後ろとつなげる */
+					if (Buf[strlen(Buf)-1] == ',') {
+						FindField(Str, Buf, 6 + offs, NO);
+						strncat(Owner, Buf, OWNER_NAME_LEN - strlen(Buf));
+					}
+					/* ファイル名 */
+					if(FindField(Str, Fname, 0, NO) == FFFTP_SUCCESS) {
+						Ret = NODE_FILE;
+					}
+				}
+			}
+			break;
+#endif
 
 		case LIST_UNIX_10 :
 		case LIST_UNIX_11 :

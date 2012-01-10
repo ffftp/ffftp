@@ -336,3 +336,7 @@
 #define MSGJPN336		"Overwrite all later"
 #define MSGJPN337		"Resume all later"
 #define MSGJPN338		"Skip all"
+#if defined(HAVE_TANDEM)
+#define MSGJPN2000		"NonStop Server"
+#define MSGJPN2001		"OSS<->GUARDIAN Switch(&O)"
+#endif

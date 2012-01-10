@@ -318,6 +318,13 @@ void RemoveYenTail(char *Str)
 
 void SetSlashTail(char *Str)
 {
+#if defined(HAVE_TANDEM)
+    /* Tandem では / の代わりに . を追加 */
+	if(AskHostType() == HTYPE_TANDEM) {
+		if(_mbscmp(_mbsninc(Str, _mbslen(Str) - 1), ".") != 0)
+			strcat(Str, ".");
+	} else
+#endif
 	if(_mbscmp(_mbsninc(Str, _mbslen(Str) - 1), "/") != 0)
 		strcat(Str, "/");
 
@@ -364,6 +371,12 @@ void ReplaceAll(char *Str, char Src, char Dst)
 {
 	char *Pos;
 
+/* Tandem ではノード名の変換を行わない */
+/* 最初の1文字が \ でもそのままにする */
+#if defined(HAVE_TANDEM)
+	if (AskRealHostType() == HTYPE_TANDEM && strlen(Str) > 0)
+		Str++;
+#endif
 	while((Pos = _mbschr(Str, Src)) != NULL)
 		*Pos = Dst;
 	return;
@@ -597,6 +610,11 @@ char *GetFileName(char *Path)
 	if((Pos = _mbsrchr(Path, '/')) != NULL)
 		Path = Pos + 1;
 
+#if defined(HAVE_TANDEM)
+	/* Tandem は . がデリミッタとなる */
+	if((AskHostType() == HTYPE_TANDEM) && ((Pos = _mbsrchr(Path, '.')) != NULL))
+		Path = Pos + 1;
+#endif
 	return(Path);
 }
 
@@ -1788,3 +1806,34 @@ char* GetAppTempPath(char* Buf)
 	return Buf;
 }
 
+#if defined(HAVE_TANDEM)
+/*----- ファイルサイズからEXTENTサイズの計算を行う ----------------------------
+*
+*	Parameter
+*		LONGLONG Size : ファイルサイズ
+*
+*	Return Value
+*		なし
+*----------------------------------------------------------------------------*/
+void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size)
+{
+	LONGLONG extent;
+
+	/* EXTENTS(4,28) MAXEXTENTS 978 */
+	if(Size < 56025088) {
+		Pkt->PriExt = DEF_PRIEXT;
+		Pkt->SecExt = DEF_SECEXT;
+		Pkt->MaxExt = DEF_MAXEXT;
+	} else {
+		/* 増加余地を残すため Used 75% 近辺になるように EXTENT サイズを調整) */
+		extent = (LONGLONG)(Size / ((DEF_MAXEXT * 0.75) * 2048LL));
+		/* 28未満にすると誤差でFile Fullになる可能性がある */
+		if(extent < 28)
+			extent = 28;
+
+		Pkt->PriExt = (int)extent;
+		Pkt->SecExt = (int)extent;
+		Pkt->MaxExt = DEF_MAXEXT;
+	}
+}
+#endif

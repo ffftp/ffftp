@@ -150,6 +150,11 @@
 #define CHMOD_CMD_NOR	"SITE CHMOD"	/* 属性変更コマンド */
 #define PORT_NOR		21				/* ポート番号 */
 #define LS_FNAME		"-alL"			/* NLSTに付けるもの */
+#if defined(HAVE_TANDEM)
+#define DEF_PRIEXT		4				/* Primary Extents の初期値 */
+#define DEF_SECEXT		28				/* Secondary Extents の初期値 */
+#define DEF_MAXEXT		978				/* Max Extents の初期値 */
+#endif
 
 /*===== 同じ名前のファイルがあった時の処理 =====*/
 
@@ -301,6 +306,9 @@
 #define LIST_UNIX_16	48		/* UNIX 16 */
 // MLSD対応
 #define LIST_MLSD		49
+#if defined(HAVE_TANDEM)
+#define LIST_TANDEM		50		/* HP NonStop Server */
+#endif
 
 #define LIST_MELCOM		0x100	/* MELCOM80 */
 
@@ -682,6 +690,13 @@ LIST_UNIX_70
 	drwxr-x--- 3 root root      4096 2011-12-06 23:39 ..
 	-rw-r----- 1 root root       251 2011-12-06 23:39 .hoge
 
+*LIST_TANDEM
+	 0             1               2    3         4        5       6
+	---------------------------------------------------------------
+	File         Code             EOF  Last Modification    Owner  RWEP
+	EMSACSTM      101             146  18-Sep-00 09:03:37 170,175 "nunu"
+	TACLCSTM   O  101             101  4-Mar-01  23:50:06 255,255 "oooo"
+
 ------------------------------------*/
 
 /*===== 接続ウインドウの形式 =====*/
@@ -762,6 +777,9 @@ LIST_UNIX_70
 #define	HTYPE_STRATUS	5		/* Stratus */
 #define	HTYPE_AGILENT	6		/* Agilent Logic analyzer */
 #define	HTYPE_SHIBASOKU	7		/* Shibasoku LSI test system */
+#if defined(HAVE_TANDEM)
+#define HTYPE_TANDEM	8		/* HP NonStop Server */
+#endif
 
 /*===== コマンドラインオプション =====*/
 
@@ -1066,6 +1084,12 @@ typedef struct transpacket {
 	int KanjiCodeDesired;			/* ローカルの漢字コード (KANJI_xxx) */
 	int KanaCnv;					/* 半角カナを全角に変換(YES/NO) */
 	int Mode;						/* 転送モード (EXIST_xxx) */
+#if defined(HAVE_TANDEM)
+	int FileCode;					/* ファイルコード */
+	int PriExt;						/* Primary Extents */
+	int SecExt;						/* Secondary Extents */
+	int MaxExt;						/* Max Extents */
+#endif
 	HWND hWndTrans;					/* 転送中ダイアログのウインドウハンドル */
 	int Abort;						/* 転送中止フラグ (ABORT_xxx) */
 	// 同時接続対応
@@ -1456,6 +1480,11 @@ int AskShareProh(void);
 void DisconnectProc(void);
 void DisconnectSet(void);
 int AskConnecting(void);
+#if defined(HAVE_TANDEM)
+int AskRealHostType(void);
+int SetOSS(int wkOss);
+int AskOSS(void);
+#endif
 SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork);
 // IPv6対応
 SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork);
@@ -1574,6 +1603,9 @@ int DoQUOTE(char *CmdStr);
 SOCKET DoClose(SOCKET Sock);
 int DoQUIT(SOCKET ctrl_skt);
 int DoDirListCmdSkt(char *AddOpt, char *Path, int Num, int *CancelCheckWork);
+#if defined(HAVE_TANDEM)
+void SwitchOSSProc(void);
+#endif
 int CommandProcCmd(char *Reply, char *fmt, ...);
 // 同時接続対応
 //int CommandProcTrn(char *Reply, char *fmt, ...);
@@ -1747,6 +1779,9 @@ char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma);
 char* MakeDistinguishableFileName(char* Out, char* In);
 // 環境依存の不具合対策
 char* GetAppTempPath(char* Buf);
+#if defined(HAVE_TANDEM)
+void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size);
+#endif
 
 /*===== dlgsize.c =====*/
 

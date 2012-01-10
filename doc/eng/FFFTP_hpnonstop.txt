@@ -1,0 +1,67 @@
+Overview
+---------------------
+
+This is a supplemental document for HP NonStop Server.
+
+FFFTP supports Guardian and OSS environments. You can switch their
+environments.
+
+How to use ?
+---------------------
+
+Please specify the "NonStop Server" as "Host Type" of "Host Setting" -
+"Special" tab.
+
+HP NonStop Server special features are implemented in right button menu.
+
+How to switch Guardian and OSS environments ?
+---------------------------------------------------------------
+
+Please choose "OSS <-> Guardian Switch(O)" in right button menu at
+remote window.
+
+How to move VOL/SUBVOL in Guardian environment ?
+---------------------------------------------------------------
+
+Please input VOL/SUBVOL directly by clicking the "Change Folder" Icon
+(Next to Up button in remote window). Up button is ignored although
+the error message is not shown.
+
+- How to specify the file code for uploading to Guardian environment ?
+
+Please choose "Upload As..." in right button menu at local window.
+You can specify the file code at Upload As dialog.
+
+Tips for Guardian environment
+---------------------------------------------------------------
+
+When you upload to Guardian environment by "Filename Depend", "ASCII
+mode Filenames" setting is used. So it is useful that "*.c/*.h/*.config/
+*.pl" are added to ASCII mode Filenames of "Option - Transfer1".
+This is a global setting.
+
+When ASCII mode filenames are uploaded to Guardian environment, ASCII
+mode transfer is choosen. Otherwise, binary mode transfer is choosen.
+
+EXTENT and MAXEXTENTS
+---------------------------------------------------------------
+
+HP Default FTPSERV program creates a file with EXT (4,28) MAXEXTENTS 978
+as a default. When the file size is over than it, upload operation fails
+with File Full (Error 45).
+
+FFFTP calculates the EXTENT and MAXEXTENT automatically when uploading
+to Guardian environment with binary mode transfer.
+
+Target used ratio is 75 % and MAXEXTENTS is maximum (978). But NonStop
+NS Series or later adjusts the EXTENT and MAXEXTENTS when it is not
+multiples of 14. So it may be that the target used ratio is not accurate.
+
+When you wonder the EXTENT and MAXEXTENT size, you can see the calculated
+size by FFFTP at console window as the follows.
+
+  STOR Filename,FileCode,Primary,Secondary,MaxExtents
+
+When an append mode transfer is used, EXTENT and MAXEXTENS are not
+specified. This is a limitation at this version.
+

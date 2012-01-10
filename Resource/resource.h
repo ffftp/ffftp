@@ -112,6 +112,7 @@
 #define hset_adv3_dlg                   190
 #define savecrypt_dlg                   191
 #define updatesslroot_dlg               192
+#define updown_as_with_ext_dlg          193
 #define TRANS_TIME_BAR                  1002
 #define TRANS_TEXT                      1003
 #define TRANS_REMOTE                    1003
@@ -358,6 +359,7 @@
 #define UPDOWNAS_TEXT                   1113
 #define UPDOWNAS_NEW                    1114
 #define UPDOWNAS_STOP                   1115
+#define UPDOWNAS_FILECODE               1116
 #define SEL_FNAME                       1117
 #define SEL_REGEXP                      1118
 #define SEL_NOEXIST                     1119
@@ -616,6 +618,7 @@
 #define ID_BUTTON40173                  40173
 #define ID_BUTTON40174                  40174
 #define ID_BUTTON40175                  40175
+#define MENU_SWITCH_OSS                 40176
 #define FSNOTIFY_TITLE                  65535
 #define HOST_SIZEGRIP                   65535
 
@@ -624,7 +627,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        193
-#define _APS_NEXT_COMMAND_VALUE         40176
+#define _APS_NEXT_COMMAND_VALUE         40177
 #define _APS_NEXT_CONTROL_VALUE         1213
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

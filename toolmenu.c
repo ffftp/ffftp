@@ -1846,9 +1846,18 @@ void RemoteRbuttonMenu(int Pos)
 		AppendMenu(hMenu, MF_STRING | Flg1, MENU_DOWNLOAD_ALL, MSGJPN266);
 		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_DELETE, MSGJPN267);
 		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_RENAME, MSGJPN268);
+#if defined(HAVE_TANDEM)
+		/* HP NonStop Server では CHMOD の仕様が異なるため使用不可 */
+		if (AskRealHostType() != HTYPE_TANDEM)
+#endif
 		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_CHMOD, MSGJPN269);
 		AppendMenu(hMenu, MF_STRING | Flg1, MENU_MKDIR, MSGJPN270);
 		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_URL_COPY, MSGJPN271);
+#if defined(HAVE_TANDEM)
+		/* OSS モードのときに表示されるように AskRealHostType() を使用する */
+		if (AskRealHostType() == HTYPE_TANDEM)
+			AppendMenu(hMenu, MF_STRING | Flg1, MENU_SWITCH_OSS, MSGJPN2001);
+#endif
 		AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
 		AppendMenu(hMenu, MF_STRING | Flg1, MENU_FILESIZE, MSGJPN272);
 		AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);

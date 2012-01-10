@@ -2130,8 +2130,15 @@ static INT_PTR CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN144);
 			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN289);
 			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN295);
+#if defined(HAVE_TANDEM)
+			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN2000);
+#endif
 			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_SETCURSEL, TmpHost.HostType, 0);
+#if defined(HAVE_TANDEM)
+			if(TmpHost.HostType == 2 || TmpHost.HostType == HTYPE_TANDEM)  /* VAX or Tandem */
+#else
 			if(TmpHost.HostType == 2)
+#endif
 			{
 				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), FALSE);
@@ -2200,12 +2207,34 @@ static INT_PTR CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 						EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), FALSE);
 						EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), FALSE);
 					}
+#if defined(HAVE_TANDEM)
+					else if(Num == HTYPE_TANDEM) /* Tandem */
+					{
+						/* Tandem を選択すると自動的に LIST にチェックをいれる */
+						SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_SETCHECK, 1, 0);
+						EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
+						EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), FALSE);
+						EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), FALSE);
+					}
+					else
+					{
+						if(SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0) == 0) {
+							EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), TRUE);
+							EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), TRUE);
+						} else {
+							EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
+							EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), TRUE);
+						}
+						EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), TRUE);
+					}
+#else
 					else
 					{
 						EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), TRUE);
 						EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), TRUE);
 						EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), TRUE);
 					}
+#endif
 					break;
 			}
 			return(TRUE);
