@@ -189,10 +189,10 @@ BEGIN
         MENUITEM "KANJI JIS",                   MENU_KNJ_JIS
         MENUITEM "KANJI NONE",                  MENU_KNJ_NONE
         MENUITEM "ダブルクリック",                     MENU_DCLICK
-        MENUITEM "半角かな変換",                      MENU_KANACNV
-        MENUITEM "開く１",                         MENU_OPEN1
-        MENUITEM "開く２",                         MENU_OPEN2
-        MENUITEM "開く３",                         MENU_OPEN3
+        MENUITEM "半角カナ変換",                      MENU_KANACNV
+        MENUITEM "開く1",                         MENU_OPEN1
+        MENUITEM "開く2",                         MENU_OPEN2
+        MENUITEM "開く3",                         MENU_OPEN3
         MENUITEM "接続（番号指定）",                    MENU_CONNECT_NUM
         MENUITEM "ヒストリ1",                       MENU_HIST_1
         MENUITEM "ヒストリ2",                       MENU_HIST_2
@@ -252,16 +252,16 @@ BEGIN
     PUSHBUTTON      "このファイルを中止",IDCANCEL,7,73,74,14
     PUSHBUTTON      "次以降中止",TRANS_STOP_NEXT,93,73,46,14
     PUSHBUTTON      "全て中止",TRANS_STOP_ALL,150,73,42,14
-    LTEXT           "ホスト：",-1,7,5,40,8
+    LTEXT           "ホスト:",-1,7,5,40,8
     LTEXT           "",TRANS_REMOTE,45,5,147,8,SS_NOPREFIX
-    LTEXT           "ローカル：",-1,7,18,40,8
+    LTEXT           "ローカル:",-1,7,18,40,8
     LTEXT           "",TRANS_LOCAL,45,18,147,8,SS_NOPREFIX
-    LTEXT           "状況：",-1,7,44,40,8
+    LTEXT           "状況:",-1,7,44,40,8
     LTEXT           "",TRANS_STATUS,45,44,147,8
     CONTROL         "Progress1",TRANS_TIME_BAR,"msctls_progress32",0x0,7,58,185,9
-    LTEXT           "転送モード：",-1,7,31,40,8
+    LTEXT           "転送モード:",-1,7,31,40,8
     LTEXT           "",TRANS_MODE,45,31,48,8
-    LTEXT           "コード変換：",-1,98,31,39,8
+    LTEXT           "コード変換:",-1,98,31,39,8
     LTEXT           "",TRANS_KANJI,136,31,56,8
 END
 
@@ -289,7 +289,7 @@ BEGIN
     LTEXT           "を削除しますか？",-1,17,21,167,8
 END
 
-hostlist_dlg DIALOG  0, 0, 222, 120
+hostlist_dlg DIALOG  0, 0, 232, 120
 STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "ホスト一覧"
 FONT 9, "MS Shell Dlg"
@@ -297,15 +297,15 @@ BEGIN
     CONTROL         "Tree1",HOST_LIST,"SysTreeView32",TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS | TVS_FULLROWSELECT | WS_BORDER | WS_TABSTOP,7,6,152,89
     DEFPUSHBUTTON   "接続(&S)",IDOK,27,102,50,14
     PUSHBUTTON      "閉じる(&O)",IDCANCEL,91,102,50,14
-    PUSHBUTTON      "新規ホスト(&N)...",HOST_NEW,165,6,50,14
-    PUSHBUTTON      "新規ｸﾞﾙｰﾌﾟ(&G)...",HOST_FOLDER,165,22,50,14
-    PUSHBUTTON      "設定変更(&M)...",HOST_SET,165,38,50,14
-    PUSHBUTTON      "コピー(&C)",HOST_COPY,165,54,50,14
-    PUSHBUTTON      "削除(&D)...",HOST_DEL,165,70,50,14
+    PUSHBUTTON      "新規ホスト(&N)...",HOST_NEW,165,6,60,14
+    PUSHBUTTON      "新規グループ(&G)...",HOST_FOLDER,165,22,60,14
+    PUSHBUTTON      "設定変更(&M)...",HOST_SET,165,38,60,14
+    PUSHBUTTON      "コピー(&C)",HOST_COPY,165,54,60,14
+    PUSHBUTTON      "削除(&D)...",HOST_DEL,165,70,60,14
     PUSHBUTTON      "↑",HOST_UP,165,86,14,14
     PUSHBUTTON      "↓",HOST_DOWN,184,86,14,14
-    SCROLLBAR       HOST_SIZEGRIP,212,106,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
-    PUSHBUTTON      "ヘルプ",9,165,102,50,14
+    SCROLLBAR       HOST_SIZEGRIP,222,106,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
+    PUSHBUTTON      "ヘルプ",9,165,102,60,14
 END
 
 hset_main_dlg DIALOG  0, 0, 207, 155
@@ -326,7 +326,7 @@ BEGIN
     PUSHBUTTON      "...",HSET_LOCAL_BR,145,73,12,14
     LTEXT           "ホストの初期フォルダ(&R)",-1,7,91,94,8
     EDITTEXT        HSET_REMOTE,7,101,137,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "現在のﾌｫﾙﾀﾞ",HSET_REMOTE_CUR,145,101,55,14
+    PUSHBUTTON      "現在のフォルダ",HSET_REMOTE_CUR,145,101,55,14
     CONTROL         "最後にアクセスしたフォルダを次回の初期フォルダとする(&F)",HSET_LASTDIR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,193,10
 END
 
@@ -364,17 +364,17 @@ opt_tool_dlg DIALOG  0, 0, 211, 139
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "ビューワ１(&1)",-1,7,7,39,8
+    LTEXT           "ビューワ1(&1)",-1,7,7,39,8
     EDITTEXT        TOOL_EDITOR1,7,18,183,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",TOOL_EDITOR1_BR,191,18,12,13
-    LTEXT           "ビューワ２(&2)",-1,7,63,39,8
+    LTEXT           "ビューワ2(&2)",-1,7,63,39,8
     EDITTEXT        TOOL_EDITOR2,7,74,183,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",TOOL_EDITOR2_BR,191,74,12,13
-    LTEXT           "ビューワ３(&3)",-1,7,93,39,8
+    LTEXT           "ビューワ3(&3)",-1,7,93,39,8
     EDITTEXT        TOOL_EDITOR3,7,104,183,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",TOOL_EDITOR3_BR,191,104,12,13
-    LTEXT           "ビューワ１は、アプリケーションに関連づけられていないファイルを「開く」で開くときにも使用します。\nまた、「ファイル一覧情報の詳細表示」でも使用します。",-1,19,33,184,27,SS_SUNKEN
-    LTEXT           "ビューワ２、３はマウス右ボタンクリックで使用できます。",-1,14,124,184,8
+    LTEXT           "ビューワ1は、アプリケーションに関連づけられていないファイルを「開く」で開くときにも使用します。\nまた、「ファイル一覧情報の詳細表示」でも使用します。",-1,19,33,184,27,SS_SUNKEN
+    LTEXT           "ビューワ2、3はマウス右ボタンクリックで使用できます。",-1,14,124,184,8
 END
 
 chmod_dlg DIALOG  0, 0, 171, 109
@@ -452,7 +452,7 @@ FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "ウインドウ位置を保存する(&W)",MISC_WINPOS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
     CONTROL         "ファイル一覧をキャッシュする（次回起動時から）(&L)",MISC_CACHE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,23,196,10
-    LTEXT           "キャッシュバッファの数(&B)：",IDC_STATIC,23,37,91,8
+    LTEXT           "キャッシュバッファの数(&B):",IDC_STATIC,23,37,91,8
     EDITTEXT        MISC_BUFNUM,115,35,24,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Spin1",MISC_BUFNUM_SPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS,139,35,9,14
     LTEXT           "(1～99)",IDC_STATIC,152,39,28,8
@@ -558,7 +558,7 @@ BEGIN
     LTEXT           "ネットワークタイムアウト時間(&T)",-1,7,80,131,8
     EDITTEXT        TRMODE2_TIMEOUT,7,90,26,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Spin1",TRMODE2_TIMEOUT_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,33,90,9,14
-    LTEXT           "（0～300秒： 0=タイムアウトなし）",-1,45,94,107,8
+    LTEXT           "（0～300秒; 0=タイムアウトなし）",-1,45,94,107,8
     LTEXT           "デフォルトのローカルフォルダ(&D)",-1,7,108,196,8
     EDITTEXT        TRMODE2_LOCAL,7,118,182,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",TRMODE2_LOCAL_BR,190,118,13,13
@@ -650,7 +650,7 @@ END
 
 diskfull_dlg DIALOG  0, 0, 159, 42
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "FFFTP：エラー"
+CAPTION "FFFTP: エラー"
 FONT 9, "MS Shell Dlg"
 BEGIN
     DEFPUSHBUTTON   "このファイルを中止",IDOK,7,24,82,14
@@ -702,7 +702,7 @@ END
 
 downerr_dlg DIALOG  0, 0, 223, 103
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
-CAPTION "FFFTP：エラー"
+CAPTION "FFFTP: エラー"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "後で上書き(&O)",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,46,99,10
@@ -719,7 +719,7 @@ END
 
 uperr_dlg DIALOG  0, 0, 223, 103
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
-CAPTION "FFFTP：エラー"
+CAPTION "FFFTP: エラー"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "後で上書き(&O)",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,46,99,10
@@ -1046,7 +1046,7 @@ BEGIN
     LTEXT           "属性(&A)",-1,71,7,40,8
     EDITTEXT        DEFATTR_ATTR,71,18,31,12,ES_AUTOHSCROLL | ES_NUMBER
     PUSHBUTTON      "...",DEFATTR_ATTR_BR,102,18,13,12
-    LTEXT           "(例： 644)",-1,72,35,28,8
+    LTEXT           "(例: 644)",-1,72,35,28,8
     DEFPUSHBUTTON   "OK",IDOK,7,48,50,14
     PUSHBUTTON      "キャンセル",IDCANCEL,66,48,50,14
 END
@@ -1057,7 +1057,7 @@ FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,72,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,7,26,33,14
-    PUSHBUTTON      "ｷｬﾝｾﾙ",IDCANCEL,46,26,33,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,46,26,33,14
     CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,71,23,8,10
 END
 
@@ -1157,7 +1157,7 @@ CAPTION "フィルタ"
 FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        FILTER_STR,7,8,147,12,ES_AUTOHSCROLL
-    LTEXT           "複数のフィルタを指定するときはセミコロンで区切ってください。（→ *.txt；*.log）\nフィルタの設定はファイルの転送にも影響します。",-1,13,29,167,27
+    LTEXT           "複数のフィルタを指定するときはセミコロンで区切ってください。（→ *.txt;*.log）\nフィルタの設定はファイルの転送にも影響します。",-1,13,29,167,27
     DEFPUSHBUTTON   "OK",IDOK,7,61,41,14
     PUSHBUTTON      "全表示",FILTER_NOR,51,61,41,14
     PUSHBUTTON      "キャンセル",IDCANCEL,95,61,41,14
@@ -1205,7 +1205,7 @@ BEGIN
     PUSHBUTTON      "閉じる(&O)",IDCANCEL,96,88,50,14
     SCROLLBAR       HOST_SIZEGRIP,156,92,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
     PUSHBUTTON      "新規ホスト(&N)...",HOST_NEW,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
-    PUSHBUTTON      "新規ｸﾞﾙｰﾌﾟ(&G)...",HOST_FOLDER,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "新規グループ(&G)...",HOST_FOLDER,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
     PUSHBUTTON      "設定変更(&M)...",HOST_SET,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
     PUSHBUTTON      "コピー(&C)",HOST_COPY,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
     PUSHBUTTON      "削除(&D)...",HOST_DEL,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
@@ -1215,7 +1215,7 @@ END
 
 noresume_dlg DIALOG  0, 0, 191, 47
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
-CAPTION "FFFTP：エラー"
+CAPTION "FFFTP: エラー"
 FONT 9, "MS Shell Dlg"
 BEGIN
     DEFPUSHBUTTON   "はい",IDOK,7,29,45,14
@@ -1285,7 +1285,7 @@ FONT 9, "MS Shell Dlg"
 BEGIN
     PUSHBUTTON      "変更(&F)",DISP_FONT_BR,167,7,36,14,WS_GROUP
     LTEXT           "",-1,7,8,159,14,SS_NOPREFIX | SS_SUNKEN
-    LTEXT           "フォント：",-1,9,11,29,8
+    LTEXT           "フォント:",-1,9,11,29,8
     LTEXT           "",DISP_FONT,40,11,123,8
     CONTROL         "隠し属性のファイル、フォルダは表示しない(&H)",DISP_HIDE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,30,172,10
     LTEXT           "隠し属性のファイルを表示しないようにすると、ミラーリングアップロードでも隠し属性のファイルはアップロードしないようになります。",-1,29,44,167,27,SS_SUNKEN
@@ -1382,7 +1382,7 @@ BEGIN
     LTEXT           "接続維持用コマンド周期",-1,7,44,84,8
     EDITTEXT        HSET_NOOP_INTERVAL,92,42,17,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Spin1",HSET_NOOP_INTERVAL_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,109,41,9,14
-    LTEXT           "(0～300秒： 0=無効)",-1,122,44,76,8
+    LTEXT           "(0～300秒; 0=無効)",-1,122,44,76,8
     LTEXT           "転送エラー時の処理",-1,7,61,81,8
     COMBOBOX        HSET_ERROR_MODE,7,71,71,75,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
 END
