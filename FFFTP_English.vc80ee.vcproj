@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="FFFTP_English"
+	Name="FFFTP_English.vc80"
 	ProjectGUID="{EE7CC1BD-92A9-46D5-8270-386BD7BEEA55}"
 	RootNamespace="FFFTP_English"
 	>
@@ -28,6 +28,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="cscript //nologo Resource\ReplaceAfxresh.js Resource_eng\FFFTP-eng.rc Resource_eng\FFFTP-eng._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -74,7 +75,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib winmm.lib wintrust.lib wsock32.lib"
+				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib winmm.lib wintrust.lib wsock32.lib user32.lib shell32.lib gdi32.lib ole32.lib comdlg32.lib advapi32.lib"
 				OutputFile=".\FFFTP_Eng_Debug\FFFTP.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -121,6 +122,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="cscript //nologo Resource\ReplaceAfxresh.js Resource_eng\FFFTP-eng.rc Resource_eng\FFFTP-eng._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -167,7 +169,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib winmm.lib wintrust.lib wsock32.lib"
+				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib winmm.lib wintrust.lib wsock32.lib user32.lib shell32.lib gdi32.lib ole32.lib comdlg32.lib advapi32.lib"
 				OutputFile=".\FFFTP_Eng_Release\FFFTP.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -440,8 +442,28 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Resource_eng\FFFTP-eng._replaced_.rc"
+				>
+			</File>
+			<File
 				RelativePath=".\Resource_eng\FFFTP-eng.rc"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\filelist.c"

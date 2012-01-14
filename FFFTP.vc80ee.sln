@@ -1,10 +1,8 @@
 Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFFTP", "FFFTP.vcproj", "{5D9496DB-45AF-4389-8FEE-27C9A2FA207A}"
+# Visual C++ Express 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFFTP.vc80", "FFFTP.vc80ee.vcproj", "{5D9496DB-45AF-4389-8FEE-27C9A2FA207A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFFTP_English", "FFFTP_English.vcproj", "{EE7CC1BD-92A9-46D5-8270-386BD7BEEA55}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PuTTY", "putty\PuTTY.vcproj", "{AF1981EB-379B-43B8-BE66-298194297B5C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFFTP_English.vc80", "FFFTP_English.vc80ee.vcproj", "{EE7CC1BD-92A9-46D5-8270-386BD7BEEA55}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,14 +28,6 @@ Global
 		{EE7CC1BD-92A9-46D5-8270-386BD7BEEA55}.Release|Win32.Build.0 = Release|Win32
 		{EE7CC1BD-92A9-46D5-8270-386BD7BEEA55}.Release|x64.ActiveCfg = Release|x64
 		{EE7CC1BD-92A9-46D5-8270-386BD7BEEA55}.Release|x64.Build.0 = Release|x64
-		{AF1981EB-379B-43B8-BE66-298194297B5C}.Debug|Win32.ActiveCfg = Debug|Win32
-		{AF1981EB-379B-43B8-BE66-298194297B5C}.Debug|Win32.Build.0 = Debug|Win32
-		{AF1981EB-379B-43B8-BE66-298194297B5C}.Debug|x64.ActiveCfg = Debug|x64
-		{AF1981EB-379B-43B8-BE66-298194297B5C}.Debug|x64.Build.0 = Debug|x64
-		{AF1981EB-379B-43B8-BE66-298194297B5C}.Release|Win32.ActiveCfg = Release|Win32
-		{AF1981EB-379B-43B8-BE66-298194297B5C}.Release|Win32.Build.0 = Release|Win32
-		{AF1981EB-379B-43B8-BE66-298194297B5C}.Release|x64.ActiveCfg = Release|x64
-		{AF1981EB-379B-43B8-BE66-298194297B5C}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
