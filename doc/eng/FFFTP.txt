@@ -1,7 +1,7 @@
 ============================================================
 [Software Name]  FFFTP Ver.1.98e (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
-                 Copyright(C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka).
+                 Copyright(C) 2011-2012 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu).
 [Environment]    Windows 7, Vista, XP, 2000
 ============================================================
 
@@ -40,6 +40,12 @@ Changes in Ver.1.98e
 
 -- Supported the file list format of linux-ftpd.
 
+-- Added a feature to show file icons on local file list view.
+
+-- Supported HP NonStep Server (provided by Yuji Tanaka).
+
+-- Fixed several messages (provided by Moriguchi Hirokazu).
+
 
 Outline
 -------
@@ -73,7 +79,7 @@ Warranty Disclaimer
 License Agreement
 -----------------
 Copyright(C) 1997-2010, Sota & cooperators. All rights reserved.
-Copyright(C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka).
+Copyright(C) 2011-2012 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu).
 
 Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions 

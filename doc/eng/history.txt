@@ -12,6 +12,12 @@ Changes in Ver.1.98e
 
 -- Supported the file list format of linux-ftpd.
 
+-- Added a feature to show file icons on local file list view.
+
+-- Supported HP NonStep Server (provided by Yuji Tanaka).
+
+-- Fixed several messages (provided by Moriguchi Hirokazu).
+
 Changes in Ver.1.98d
 --------------------
 

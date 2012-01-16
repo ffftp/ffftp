@@ -40,6 +40,12 @@ Ver 1.98eでの変更点
 
 ・linux-ftpdのファイル一覧形式に対応しました。
 
+・ローカル側のファイル一覧にアイコンを表示できるようにしました。
+
+・HP NonStop Serverに対応しました（Yuji Tanaka氏提供）。
+
+・UIの表記を一部修正しました（Moriguchi Hirokazu氏提供）。
+
 
 Ver 1.96d以前へ戻す場合
 -----------------------
@@ -115,7 +121,7 @@ jre32.dll -------- 正規表現検索ＤＬＬ
 します。
 
 Copyright(C) 1997-2010, Sota & cooperators. All rights reserved.
-Copyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka).
+Copyright (C) 2011-2012 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu).
 
 Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions 
@@ -141,7 +147,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *** 以下は日本語訳(参考) ***
 
 Copyright(C) 1997-2010 Sota & ご協力いただいた方々. All rights reserved.
-Copyright (C) 2011 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka).
+Copyright (C) 2011-2012 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu).
 
 ソースコード形式でもバイナリ形式でも、変更の有無に関わらず、以下の条件を
 満たす場合に、再配布および使用を許可します。

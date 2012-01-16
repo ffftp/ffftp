@@ -12,6 +12,12 @@ FFFTP　改版リスト
 
 ・linux-ftpdのファイル一覧形式に対応しました。
 
+・ローカル側のファイル一覧にアイコンを表示できるようにしました。
+
+・HP NonStop Serverに対応しました（Yuji Tanaka氏提供）。
+
+・UIの表記を一部修正しました（Moriguchi Hirokazu氏提供）。
+
 ■Ver 1.98d
 
 ・MLSDコマンドに対応したホストではMLSDコマンドを用いてファイル一覧を
