@@ -251,7 +251,7 @@
 #define MSGJPN251		"Err\xEF\xBC\x9ASeed"
 #define MSGJPN252		"Err\xEF\xBC\x9ASeed"
 #define MSGJPN253		"Err\xEF\xBC\x9ASequence#"
-#define MSGJPN254		"MS Sans Serif"
+#define MSGJPN254		"MS Shell Dlg"
 #define MSGJPN255		"&Upload"
 #define MSGJPN256		"U&pload As..."
 #define MSGJPN257		"Up&load All"
