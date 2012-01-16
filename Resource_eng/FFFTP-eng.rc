@@ -253,16 +253,16 @@ BEGIN
     PUSHBUTTON      "Cancel this File",IDCANCEL,7,73,62,14
     PUSHBUTTON      "Cancel from Next",TRANS_STOP_NEXT,78,73,62,14
     PUSHBUTTON      "Cancel All",TRANS_STOP_ALL,150,73,42,14
-    LTEXT           "Host :",-1,7,5,27,8
+    LTEXT           "Host:",-1,7,5,27,8
     LTEXT           "",TRANS_REMOTE,45,5,147,8,SS_NOPREFIX
-    LTEXT           "Local :",-1,7,18,27,8
+    LTEXT           "Local:",-1,7,18,27,8
     LTEXT           "",TRANS_LOCAL,45,18,147,8,SS_NOPREFIX
-    LTEXT           "Status :",-1,7,44,27,8
+    LTEXT           "Status:",-1,7,44,27,8
     LTEXT           "",TRANS_STATUS,45,44,147,8
     CONTROL         "Progress1",TRANS_TIME_BAR,"msctls_progress32",0x0,7,58,185,9
-    LTEXT           "Mode :",-1,7,31,27,8
+    LTEXT           "Mode:",-1,7,31,27,8
     LTEXT           "",TRANS_MODE,45,31,51,8
-    LTEXT           "Kanji Code :",-1,98,31,39,8
+    LTEXT           "Kanji Code:",-1,98,31,39,8
     LTEXT           "",TRANS_KANJI,140,31,52,8
 END
 
@@ -384,7 +384,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Permission"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Current Permission :",-1,61,74,61,8
+    LTEXT           "Current Permission:",-1,61,74,61,8
     EDITTEXT        PERM_NOW,124,72,25,12,ES_AUTOHSCROLL | ES_NUMBER
     GROUPBOX        "Owner",-1,7,7,48,58
     CONTROL         "Read",PERM_O_READ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,21,31,10
@@ -562,7 +562,7 @@ BEGIN
     LTEXT           "&Timeout",-1,7,80,131,8
     EDITTEXT        TRMODE2_TIMEOUT,7,90,26,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Spin1",TRMODE2_TIMEOUT_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,33,90,9,14
-    LTEXT           "(0 to 300sec: 0=No timeout)",-1,45,94,107,8
+    LTEXT           "(0 to 300sec; 0=No timeout)",-1,45,94,107,8
     LTEXT           "&Default local folder",-1,7,108,196,8
     EDITTEXT        TRMODE2_LOCAL,7,118,182,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",TRMODE2_LOCAL_BR,190,118,13,13
@@ -656,7 +656,7 @@ END
 
 diskfull_dlg DIALOG  0, 0, 159, 42
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "FFFTP:Error"
+CAPTION "FFFTP: Error"
 FONT 9, "MS Shell Dlg"
 BEGIN
     DEFPUSHBUTTON   "Cencal this File",IDOK,13,24,66,14
@@ -710,7 +710,7 @@ END
 
 downerr_dlg DIALOG  0, 0, 223, 103
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
-CAPTION "FFFTP:Error"
+CAPTION "FFFTP: Error"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "&Overwrite later",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,46,99,10
@@ -720,14 +720,14 @@ BEGIN
     PUSHBUTTON      "&Do All",IDOK_ALL,63,85,50,14
     PUSHBUTTON      "&Cancel All",IDCANCEL,118,85,50,14
     PUSHBUTTON      "&Help",9,173,85,41,14
-    LTEXT           "Cannot download following file :",-1,7,4,184,10
+    LTEXT           "Cannot download following file:",-1,7,4,184,10
     LTEXT           "",UPDOWN_ERR_FNAME,7,16,184,8,SS_NOPREFIX
     EDITTEXT        UPDOWN_ERR_MSG,7,28,209,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER,WS_EX_STATICEDGE
 END
 
 uperr_dlg DIALOG  0, 0, 223, 103
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
-CAPTION "FFFTP:Error"
+CAPTION "FFFTP: Error"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "&Overwrite later",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,46,99,10
@@ -737,7 +737,7 @@ BEGIN
     PUSHBUTTON      "&Do All",IDOK_ALL,63,85,50,14
     PUSHBUTTON      "&Cancel All",IDCANCEL,118,85,50,14
     PUSHBUTTON      "&Help",9,173,85,41,14
-    LTEXT           "Cannot upload following file :",-1,7,4,184,10
+    LTEXT           "Cannot upload following file:",-1,7,4,184,10
     LTEXT           "",UPDOWN_ERR_FNAME,7,16,184,8,SS_NOPREFIX
     EDITTEXT        UPDOWN_ERR_MSG,7,28,209,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER,WS_EX_STATICEDGE
 END
@@ -1241,7 +1241,7 @@ END
 
 noresume_dlg DIALOG  0, 0, 191, 47
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
-CAPTION "FFFTP:Error"
+CAPTION "FFFTP: Error"
 FONT 9, "MS Shell Dlg"
 BEGIN
     DEFPUSHBUTTON   "Yes",IDOK,10,29,45,14
@@ -1311,7 +1311,7 @@ FONT 9, "MS Shell Dlg"
 BEGIN
     PUSHBUTTON      "&Change",DISP_FONT_BR,167,7,36,14,WS_GROUP
     LTEXT           "",-1,7,7,159,14,SS_NOPREFIX | SS_SUNKEN
-    LTEXT           "Font :",-1,9,11,29,8
+    LTEXT           "Font:",-1,9,11,29,8
     LTEXT           "",DISP_FONT,40,11,123,8,SS_NOPREFIX
     CONTROL         "Do not display &hidden files/folders",DISP_HIDE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,30,172,10
     LTEXT           "If this box is checked, hidden files/folders are not transferred during Mirror operations.",-1,29,44,167,27,SS_SUNKEN
@@ -1411,7 +1411,7 @@ BEGIN
     LTEXT           "Command for Keep Alive",-1,7,44,84,8
     EDITTEXT        HSET_NOOP_INTERVAL,92,42,17,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Spin1",HSET_NOOP_INTERVAL_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,109,41,9,14
-    LTEXT           "(0 to 300sec: 0=Never)",-1,122,44,76,8
+    LTEXT           "(0 to 300sec; 0=Never)",-1,122,44,76,8
     LTEXT           "When transfer errors",-1,7,61,81,8
     COMBOBOX        HSET_ERROR_MODE,7,71,71,75,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
 END
