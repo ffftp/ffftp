@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="FFFTP.vc80"
+	Name="FFFTP"
 	ProjectGUID="{5D9496DB-45AF-4389-8FEE-27C9A2FA207A}"
 	RootNamespace="FFFTP"
 	>
