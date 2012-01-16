@@ -251,7 +251,7 @@
 #define MSGJPN251		"Err：シード文字列"
 #define MSGJPN252		"Err：シード文字列"
 #define MSGJPN253		"Err：シーケンス番号"
-#define MSGJPN254		"ＭＳ Ｐゴシック"
+#define MSGJPN254		"MS Shell Dlg"
 #define MSGJPN255		"アップロード(&U)"
 #define MSGJPN256		"名前を変えてアップロード(&P)..."
 #define MSGJPN257		"全てをアップロード"
