@@ -2603,7 +2603,7 @@ void MkdirProc(void)
 	int Sts;
 	int Win;
 	char Path[FMAX_PATH+1];
-	char *Title;
+	const char *Title;
 	int Tmp;
 
 	// 同時接続対応
@@ -2744,7 +2744,7 @@ void ChangeDirDirectProc(int Win)
 {
 	int Sts;
 	char Path[FMAX_PATH+1];
-	char *Title;
+	const char *Title;
 	int Tmp;
 
 	// 同時接続対応

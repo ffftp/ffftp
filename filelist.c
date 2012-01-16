@@ -1977,7 +1977,7 @@ void FindFileInList(HWND hWnd, int Type)
 	static char RegExp[FMAX_PATH+1] = { "" };
 	char Name[FMAX_PATH+1];
 	LV_ITEM LvItem;
-	char *Title;
+	const char *Title;
 
 	Win = WIN_LOCAL;
 	Title = MSGJPN050;

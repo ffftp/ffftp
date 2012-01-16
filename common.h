@@ -35,7 +35,7 @@
 #else
 #include "mesg-eng.h"
 #endif
-
+#include "msgutil.h"
 
 #define NUL				'\0'
 
@@ -1422,11 +1422,11 @@ void DispDownloadSize(LONGLONG Size);
 int MakeTaskWindow(HWND hWnd, HINSTANCE hInst);
 void DeleteTaskWindow(void);
 HWND GetTaskWnd(void);
-void SetTaskMsg(char *szFormat, ...);
+void SetTaskMsg(const char *szFormat, ...);
 int SaveTaskMsg(char *Fname);
 void DispTaskMsg(void);
-void DoPrintf(char *szFormat, ...);
-void DoPrintf2(char *szFormat, ...);
+void DoPrintf(const char *szFormat, ...);
+void DoPrintf2(const char *szFormat, ...);
 
 /*===== hostman.c =====*/
 
@@ -1485,10 +1485,10 @@ int AskRealHostType(void);
 int SetOSS(int wkOss);
 int AskOSS(void);
 #endif
-SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork);
+SOCKET connectsock(char *host, int port, const char *PreMsg, int *CancelCheckWork);
 // IPv6対応
-SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork);
-SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork);
+SOCKET connectsockIPv4(const char *host, int port, const char *PreMsg, int *CancelCheckWork);
+SOCKET connectsockIPv6(const char *host, int port, const char *PreMsg, int *CancelCheckWork);
 SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork);
 // IPv6対応
 SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork);
@@ -1722,7 +1722,7 @@ int ConnectRas(int Dialup, int UseThis, int Notify, char *Name);
 
 /*===== misc.c =====*/
 
-int InputDialogBox(int Res, HWND hWnd, char *Title, char *Buf, int Max, int *Flg, int Help);
+int InputDialogBox(int Res, HWND hWnd, const char *Title, char *Buf, int Max, int *Flg, int Help);
 // 64ビット対応
 //BOOL CALLBACK ExeEscDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 INT_PTR CALLBACK ExeEscDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
@@ -1760,7 +1760,7 @@ void SpecificLocalFileTime2FileTime(FILETIME *Time, int TimeZone);
 int AttrString2Value(char *Str);
 void AttrValue2String(int Attr, char *Buf);
 void FormatIniString(char *Str);
-int SelectFile(HWND hWnd, char *Fname, char *Title, char *Filters, char *Ext, int Flags, int Save);
+int SelectFile(HWND hWnd, char *Fname, const char *Title, const char *Filters, const char *Ext, int Flags, int Save);
 int SelectDir(HWND hWnd, char *Buf, int MaxLen);
 void SetRadioButtonByValue(HWND hDlg, int Value, const RADIOBUTTON *Buttons, int Num);
 int AskRadioButtonValue(HWND hDlg, const RADIOBUTTON *Buttons, int Num);

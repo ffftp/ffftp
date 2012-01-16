@@ -97,7 +97,7 @@ static int HelpPage;
 *		ダイアログは１個のEditBoxと１個のButtonを持つものを使う
 *----------------------------------------------------------------------------*/
 
-int InputDialogBox(int Res, HWND hWnd, char *Title, char *Buf, int Max, int *Flg, int Help)
+int InputDialogBox(int Res, HWND hWnd, const char *Title, char *Buf, int Max, int *Flg, int Help)
 {
 	int Ret;
 	DIALOGDATA dData;
@@ -1321,7 +1321,7 @@ void FormatIniString(char *Str)
 *			TRUE/FALSE=取消
 *----------------------------------------------------------------------------*/
 
-int SelectFile(HWND hWnd, char *Fname, char *Title, char *Filters, char *Ext, int Flags, int Save)
+int SelectFile(HWND hWnd, char *Fname, const char *Title, const char *Filters, const char *Ext, int Flags, int Save)
 {
 	OPENFILENAME OpenFile;
 	char Tmp[FMAX_PATH+1];
