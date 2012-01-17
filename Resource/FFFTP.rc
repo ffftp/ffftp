@@ -137,7 +137,7 @@ BEGIN
         MENUITEM "次を検索(&N)\tF3",                MENU_FINDNEXT
         MENUITEM SEPARATOR
         MENUITEM "選択(U)...\tCtrl+S",            MENU_SELECT
-        MENUITEM "全選択／解除(&A)\tCtrl+A",          MENU_SELECT_ALL
+        MENUITEM "全選択/解除(&A)\tCtrl+A",          MENU_SELECT_ALL
         MENUITEM SEPARATOR
         POPUP "形式(&T)"
         BEGIN
@@ -458,7 +458,7 @@ BEGIN
     CONTROL         "Spin1",MISC_BUFNUM_SPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS,139,35,9,14
     LTEXT           "(1～99)",IDC_STATIC,152,39,28,8
     CONTROL         "キャッシュを保存する(&S)",MISC_CACHE_SAVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,23,50,116,10
-    LTEXT           "キャッシュ／作業ファイルを作成するフォルダ(&F)",IDC_STATIC,7,65,158,8
+    LTEXT           "キャッシュ/作業ファイルを作成するフォルダ(&F)",IDC_STATIC,7,65,158,8
     EDITTEXT        MISC_CACHEDIR,7,75,160,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",MISC_CACHEDIR_BR,168,75,13,13
     PUSHBUTTON      "標準",MISC_CACHEDIR_DEF,182,75,21,13
@@ -882,7 +882,7 @@ BEGIN
     PUSHBUTTON      "キャンセル",IDCANCEL,104,114,45,14
     PUSHBUTTON      "ヘルプ",9,152,114,33,14
     LTEXT           "",-1,7,20,181,76,SS_SUNKEN | NOT WS_GROUP
-    LTEXT           "ミラーリングアップロードは次の処理を行います。\n\n  ●ローカル側→ホスト側へのコピー\n\n  ●ホスト側のファイルの削除\n\n処理内容表示を押すと、コピー／削除するファイルの一覧を表示します。",-1,35,26,146,66
+    LTEXT           "ミラーリングアップロードは次の処理を行います。\n\n  ●ローカル側→ホスト側へのコピー\n\n  ●ホスト側のファイルの削除\n\n処理内容表示を押すと、コピー/削除するファイルの一覧を表示します。",-1,35,26,146,66
     CTEXT           "ミラーリングアップロードを開始します。",-1,7,7,181,8
     LTEXT           "↑上記を確認してください",-1,17,102,100,8
     ICON            notify,-1,12,46,20,20
@@ -1096,7 +1096,7 @@ STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_S
 CAPTION "ミラーリングアップロード"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "次のファイルを転送／削除します。",-1,7,6,160,8
+    LTEXT           "次のファイルを転送/削除します。",-1,7,6,160,8
     LISTBOX         MIRROR_LIST,7,16,160,78,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
     DEFPUSHBUTTON   "実行",IDOK,7,153,50,14
     PUSHBUTTON      "キャンセル",IDCANCEL,62,153,50,14
