@@ -1,5 +1,6 @@
 ﻿<html>
 <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>SourceForge.JP版FFFTPのビルドおよび開発の手順について</title>
 <style type="text/css">
 .filename {font-weight:bold}
@@ -17,7 +18,7 @@ SourceForge.JP版<span style="font-weight:bold"><span style="color:yellow;vertic
 			<li>必要に応じてソースコードを編集する。
 			<ol>
 				<li>プロジェクトはマルチバイト文字（Shift_JIS）用に設定されているが、ファイル名のUTF-8対応に伴い、実際の内部形式はUTF-8として扱っている（構造については<span class="filename">"mbswrapper.c"</span>およびその他のソースコード内のコメントを参照）。
-				<li>メッセージ文字列については<span class="filename">"mesg-jpn.h"</span>および<span class="filename">"mesg-eng.h"</span>に記述されているが、編集する際は<span class="filename">"mesg-jpn.old.h"</span>および<span class="filename">"mesg-eng.old.h"</span>をShift_JISで保存し、<span class="filename">"mbtoutf8.bat"</span>を実行して文字列リテラルをUTF-8に変換する。
+				<li>メッセージ文字列については<span class="filename">"mesg-jpn.h"</span>および<span class="filename">"mesg-eng.h"</span>に記述されている。
 			</ol>
 			<li>必要に応じてリソースを編集する。
 			<ol>
@@ -34,7 +35,7 @@ SourceForge.JP版<span style="font-weight:bold"><span style="color:yellow;vertic
 			<li>必要に応じてソースコードを編集する。
 			<ol>
 				<li>プロジェクトはマルチバイト文字（Shift_JIS）用に設定されているが、ファイル名のUTF-8対応に伴い、実際の内部形式はUTF-8として扱っている（構造については<span class="filename">"mbswrapper.c"</span>およびその他のソースコード内のコメントを参照）。
-				<li>メッセージ文字列については<span class="filename">"mesg-jpn.h"</span>および<span class="filename">"mesg-eng.h"</span>に記述されているが、編集する際は<span class="filename">"mesg-jpn.old.h"</span>および<span class="filename">"mesg-eng.old.h"</span>をShift_JISで保存し、<span class="filename">"mbtoutf8.bat"</span>を実行して文字列リテラルをUTF-8に変換する。
+				<li>メッセージ文字列については<span class="filename">"mesg-jpn.h"</span>および<span class="filename">"mesg-eng.h"</span>に記述されている。
 			</ol>
 			<li>必要に応じてリソースを編集する。
 			<ol>
