@@ -4109,6 +4109,8 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 
 	/* まずクリアしておく */
 	Ret = NODE_NONE;
+	// バグ対策
+	memset(Fname, NUL, FMAX_PATH+1);
 	*Size = -1;
 	*Attr = 0;
 	*Link = NO;
@@ -4844,6 +4846,81 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			break;
 #endif
 
+			// MLSD対応
+			// 以下の形式に対応
+			// fact1=value1;fact2=value2;fact3=value3; filename\r\n
+			// 不完全な実装のホストが存在するため以下の形式も許容
+			// fact1=value1;fact2=value2;fact3=value3 filename\r\n
+			// fact1=value1;fact2=value2;fact3=value3;filename\r\n
+		case LIST_MLSD:
+			{
+				int i = 0;
+				char StrBuf[(FMAX_PATH * 2) + 1];
+				char Fact[FMAX_PATH + 1];
+				char Name[FMAX_PATH + 1];
+				char Value[FMAX_PATH + 1];
+				char* pFileName;
+				strncpy(StrBuf, Str, FMAX_PATH * 2);
+				StrBuf[FMAX_PATH * 2] = '\0';
+				if((pFileName = strstr(StrBuf, "; ")) != NULL)
+				{
+					*pFileName = '\0';
+					pFileName += 2;
+				}
+				else if((pFileName = strchr(StrBuf, ' ')) != NULL)
+				{
+					*pFileName = '\0';
+					pFileName++;
+				}
+				else if((pFileName = strrchr(StrBuf, ';')) != NULL)
+				{
+					*pFileName = '\0';
+					pFileName++;
+				}
+				if(pFileName != NULL)
+					strcpy(Fname, pFileName);
+				while(FindField2(StrBuf, Fact, ';', i, NO) == FFFTP_SUCCESS)
+				{
+					if(FindField2(Fact, Name, '=', 0, NO) == FFFTP_SUCCESS && FindField2(Fact, Value, '=', 1, NO) == FFFTP_SUCCESS)
+					{
+						if(_stricmp(Name, "type") == 0)
+						{
+							if(_stricmp(Value, "dir") == 0)
+								Ret = NODE_DIR;
+							else if(_stricmp(Value, "file") == 0)
+								Ret = NODE_FILE;
+						}
+						else if(_stricmp(Name, "size") == 0)
+						{
+							*Size = _atoi64(Value);
+							*InfoExist |= FINFO_SIZE;
+						}
+						else if(_stricmp(Name, "modify") == 0)
+						{
+							sTime.wYear = atoi_n(Value, 4);
+							sTime.wMonth = atoi_n(Value + 4, 2);
+							sTime.wDay = atoi_n(Value + 6, 2);
+							sTime.wHour = atoi_n(Value + 8, 2);
+							sTime.wMinute = atoi_n(Value + 10, 2);
+							sTime.wSecond = atoi_n(Value + 12, 2);
+							sTime.wMilliseconds = 0;
+							SystemTimeToFileTime(&sTime, Time);
+//							SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
+							*InfoExist |= FINFO_DATE | FINFO_TIME;
+						}
+						else if(_stricmp(Name, "UNIX.mode") == 0)
+						{
+							*Attr = strtol(Value, NULL, 16);
+							*InfoExist |= FINFO_ATTR;
+						}
+						else if(_stricmp(Name, "UNIX.owner") == 0)
+							strcpy(Owner, Value);
+					}
+					i++;
+				}
+			}
+			break;
+
 		case LIST_UNIX_10 :
 		case LIST_UNIX_11 :
 		case LIST_UNIX_12 :
@@ -5107,57 +5184,6 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 
 				if((Ret == NODE_FILE) && (Flag != 'B'))
 					Ret = NODE_NONE;
-			}
-			break;
-
-			// MLSD対応
-		case LIST_MLSD:
-			{
-				int i = 0;
-				char Tmp[FMAX_PATH + 1];
-				char Name[FMAX_PATH + 1];
-				char Value[FMAX_PATH + 1];
-				while(FindField2(Str, Tmp, ';', i, NO) == FFFTP_SUCCESS)
-				{
-					if(i >= 1 && strncmp(Tmp, " ", 1) == 0)
-						strcpy(Fname, strstr(Str, "; ") + 2);
-					else if(FindField2(Tmp, Name, '=', 0, NO) == FFFTP_SUCCESS && FindField2(Tmp, Value, '=', 1, NO) == FFFTP_SUCCESS)
-					{
-						if(_stricmp(Name, "type") == 0)
-						{
-							if(_stricmp(Value, "dir") == 0)
-								Ret = NODE_DIR;
-							else if(_stricmp(Value, "file") == 0)
-								Ret = NODE_FILE;
-						}
-						else if(_stricmp(Name, "size") == 0)
-						{
-							*Size = _atoi64(Value);
-							*InfoExist |= FINFO_SIZE;
-						}
-						else if(_stricmp(Name, "modify") == 0)
-						{
-							sTime.wYear = atoi_n(Value, 4);
-							sTime.wMonth = atoi_n(Value + 4, 2);
-							sTime.wDay = atoi_n(Value + 6, 2);
-							sTime.wHour = atoi_n(Value + 8, 2);
-							sTime.wMinute = atoi_n(Value + 10, 2);
-							sTime.wSecond = atoi_n(Value + 12, 2);
-							sTime.wMilliseconds = 0;
-							SystemTimeToFileTime(&sTime, Time);
-//							SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
-							*InfoExist |= FINFO_DATE | FINFO_TIME;
-						}
-						else if(_stricmp(Name, "UNIX.mode") == 0)
-						{
-							*Attr = strtol(Value, NULL, 16);
-							*InfoExist |= FINFO_ATTR;
-						}
-						else if(_stricmp(Name, "UNIX.owner") == 0)
-							strcpy(Owner, Value);
-					}
-					i++;
-				}
 			}
 			break;
 	}
