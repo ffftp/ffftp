@@ -514,10 +514,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\msgutil.c"
-				>
-			</File>
-			<File
 				RelativePath=".\OleDragDrop.c"
 				>
 			</File>
@@ -600,14 +596,6 @@
 			</File>
 			<File
 				RelativePath=".\mbswrapper.h"
-				>
-			</File>
-			<File
-				RelativePath=".\mesg-jpn.h"
-				>
-			</File>
-			<File
-				RelativePath=".\msgutil.h"
 				>
 			</File>
 			<File
