@@ -28,7 +28,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="cscript //nologo Resource\ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
+				CommandLine="cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -121,7 +121,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="cscript //nologo Resource\ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
+				CommandLine="cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
