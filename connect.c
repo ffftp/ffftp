@@ -1980,7 +1980,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 *----------------------------------------------------------------------------*/
 
 // IPv6対応
-SOCKET connectsock(char *host, int port, const char *PreMsg, int *CancelCheckWork)
+SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 {
 	SOCKET Result;
 	Result = INVALID_SOCKET;
@@ -2007,7 +2007,7 @@ SOCKET connectsock(char *host, int port, const char *PreMsg, int *CancelCheckWor
 
 // IPv6対応
 //SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
-SOCKET connectsockIPv4(const char *host, int port, const char *PreMsg, int *CancelCheckWork)
+SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 {
 	struct sockaddr_in saSockAddr;
 	char HostEntry[MAXGETHOSTSTRUCT];
@@ -2214,7 +2214,7 @@ SOCKET connectsockIPv4(const char *host, int port, const char *PreMsg, int *Canc
 }
 
 
-SOCKET connectsockIPv6(const char *host, int port, const char *PreMsg, int *CancelCheckWork)
+SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 {
 	struct sockaddr_in6 saSockAddr;
 	char HostEntry[MAXGETHOSTSTRUCT];

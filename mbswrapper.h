@@ -173,6 +173,9 @@ HANDLE SetClipboardDataM(UINT uFormat, HANDLE hMem);
 #undef CopyFile
 #define CopyFile CopyFileM
 BOOL CopyFileM(LPCSTR lpExistingFileName, LPCSTR lpNewFileName, BOOL bFailIfExists);
+#undef MoveFile
+#define MoveFile MoveFileM
+BOOL MoveFileM(LPCSTR lpExistingFileName, LPCSTR lpNewFileName);
 #undef mkdir
 #define mkdir _mkdirM
 int mkdirM(const char * _Path);

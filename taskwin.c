@@ -156,7 +156,7 @@ HWND GetTaskWnd(void)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void SetTaskMsg(const char *szFormat, ...)
+void SetTaskMsg(char *szFormat, ...)
 {
 	int Pos;
 	va_list vaArgs;
@@ -285,7 +285,7 @@ void DispTaskMsg(void)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void DoPrintf(const char *szFormat, ...)
+void DoPrintf(char *szFormat, ...)
 {
 	va_list vaArgs;
 	char *szBuf;
@@ -332,7 +332,7 @@ void DoPrintf(const char *szFormat, ...)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void DoPrintf2(const char *szFormat, ...)
+void DoPrintf2(char *szFormat, ...)
 {
 	va_list vaArgs;
 	char *szBuf;

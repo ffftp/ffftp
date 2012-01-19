@@ -379,7 +379,6 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 #endif
 	// SFTP対応
 	FreePuTTY();
-	MessageUtil_FreeUTF8StaticBinaryBlocks();
 	OleUninitialize();
 	return(Ret);
 }

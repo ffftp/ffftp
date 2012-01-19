@@ -145,7 +145,7 @@ BEGIN
             MENUITEM "詳細(&D)",                      MENU_REPORT
         END
         MENUITEM "ソート(&S)...",                  MENU_SORT
-        MENUITEM "．で始まるファイルを表示(&D)",            MENU_DOTFILE
+        MENUITEM ".で始まるファイルを表示(&D)",            MENU_DOTFILE
         MENUITEM SEPARATOR
         MENUITEM "ファイル一覧をビューアで表示(&I)",          MENU_DIRINFO
         MENUITEM "処理内容をビューアで表示(&W)",            MENU_TASKINFO
@@ -543,7 +543,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "マスターパスワード強制変更の確認"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "起動時にマスターパスワードの妥当性を確認できませんでした．強制的に再設定すると登録されているFTPパスワードは無効になります．\r\nマスターパスワードを強制的に変更しますか．",-1,7,7,196,36
+    LTEXT           "起動時にマスターパスワードの妥当性を確認できませんでした。強制的に再設定すると登録されているFTPパスワードは無効になります。\r\nマスターパスワードを強制的に変更しますか？",-1,7,7,196,36
     DEFPUSHBUTTON   "はい",IDOK,48,42,50,14
     PUSHBUTTON      "いいえ",IDCANCEL,112,42,50,14
 END

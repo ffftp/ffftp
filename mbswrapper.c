@@ -2127,6 +2127,21 @@ END_ROUTINE
 	return r;
 }
 
+BOOL MoveFileM(LPCSTR lpExistingFileName, LPCSTR lpNewFileName)
+{
+	BOOL r = FALSE;
+	wchar_t* pw0 = NULL;
+	wchar_t* pw1 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(lpExistingFileName, -1);
+	pw1 = DuplicateMtoW(lpNewFileName, -1);
+	r = MoveFileW(pw0, pw1);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	FreeDuplicatedString(pw1);
+	return r;
+}
+
 int mkdirM(const char * _Path)
 {
 	int r = -1;
