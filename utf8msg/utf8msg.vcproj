@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="mbtoutf8"
+	Name="utf8msg"
 	ProjectGUID="{655A8FD3-5998-472F-8906-F0A028B70C4F}"
-	RootNamespace="mbtoutf8"
+	RootNamespace="utf8msg"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -171,7 +171,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\mbtoutf8.cpp"
+				RelativePath=".\utf8msg.cpp"
 				>
 			</File>
 			<File

@@ -28,6 +28,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="utf8msg.exe mesg-jpn.h mesg-jpn.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -120,6 +121,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="utf8msg.exe mesg-jpn.h mesg-jpn.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -213,6 +215,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="utf8msg.exe mesg-jpn.h mesg-jpn.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -305,6 +308,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="utf8msg.exe mesg-jpn.h mesg-jpn.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"

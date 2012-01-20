@@ -28,7 +28,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
+				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -121,7 +121,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
+				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -215,6 +215,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -307,6 +308,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"

@@ -17,7 +17,6 @@ SourceForge.JP版<span style="font-weight:bold"><span style="color:yellow;vertic
 			<li>必要に応じてソースコードを編集する。
 			<ol>
 				<li>プロジェクトはマルチバイト文字（Shift_JIS）用に設定されているが、ファイル名のUTF-8対応に伴い、実際の内部形式はUTF-8として扱っている（構造については<span class="filename">"mbswrapper.c"</span>およびその他のソースコード内のコメントを参照）。
-				<li>メッセージ文字列については<span class="filename">"mesg-jpn.h"</span>および<span class="filename">"mesg-eng.h"</span>に記述されているが、編集する際は<span class="filename">"mesg-jpn.old.h"</span>および<span class="filename">"mesg-eng.old.h"</span>をShift_JISで保存し、<span class="filename">"mbtoutf8.bat"</span>を実行して文字列リテラルをUTF-8に変換する。
 			</ol>
 			<li>必要に応じてリソースを編集する。
 			<ol>
@@ -28,13 +27,29 @@ SourceForge.JP版<span style="font-weight:bold"><span style="color:yellow;vertic
 			<li>メニューから「ソリューションのビルド」を選択する。
 			<li>問題が無ければ<span class="filename">"Debug\FFFTP.exe"</span>または<span class="filename">"Release\FFFTP.exe"</span>が生成される。
 		</ol>
+		<li>Visual C++ 2005 Express Editionを使用する場合
+		<ol>
+			<li><span class="filename">"FFFTP.vc80ee.sln"</span>を開く。
+			<li>必要に応じてソースコードを編集する。
+			<ol>
+				<li>プロジェクトはマルチバイト文字（Shift_JIS）用に設定されているが、ファイル名のUTF-8対応に伴い、実際の内部形式はUTF-8として扱っている（構造については<span class="filename">"mbswrapper.c"</span>およびその他のソースコード内のコメントを参照）。
+			</ol>
+			<li>必要に応じてリソースを編集する。
+			<ol>
+				<li>追加の依存ライブラリの著作権情報は、ダイアログabout_dlgの「FFFTPはfreewareです」の上のテキストに追記してください。<br>
+				今後の機能追加に伴い著作権情報が増える見込みのため、テキストの範囲を大きめに設定してあります。
+			</ol>
+			<li>ソリューション構成から「Debug」または「Release」を選択する。
+			<li>メニューから「ソリューションのビルド」を選択する。
+			<li>問題が無ければ<span class="filename">"Debug\FFFTP.exe"</span>または<span class="filename">"Release\FFFTP.exe"</span>が生成される。
+			<li>ただしVisual C++ 2005 Express Editionの機能制限のため、コンパイルできないファイルが存在する場合がある。
+		</ol>
 		<li>Visual C++ 2008を使用する場合
 		<ol>
 			<li><span class="filename">"FFFTP.vc90.sln"</span>を開く。
 			<li>必要に応じてソースコードを編集する。
 			<ol>
 				<li>プロジェクトはマルチバイト文字（Shift_JIS）用に設定されているが、ファイル名のUTF-8対応に伴い、実際の内部形式はUTF-8として扱っている（構造については<span class="filename">"mbswrapper.c"</span>およびその他のソースコード内のコメントを参照）。
-				<li>メッセージ文字列については<span class="filename">"mesg-jpn.h"</span>および<span class="filename">"mesg-eng.h"</span>に記述されているが、編集する際は<span class="filename">"mesg-jpn.old.h"</span>および<span class="filename">"mesg-eng.old.h"</span>をShift_JISで保存し、<span class="filename">"mbtoutf8.bat"</span>を実行して文字列リテラルをUTF-8に変換する。
 			</ol>
 			<li>必要に応じてリソースを編集する。
 			<ol>

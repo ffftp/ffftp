@@ -29,6 +29,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -121,6 +122,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -212,6 +214,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -304,6 +307,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"

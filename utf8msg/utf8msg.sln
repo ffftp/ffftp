@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "encutf8", "encutf8.vcproj", "{655A8FD3-5998-472F-8906-F0A028B70C4F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "utf8msg", "utf8msg.vcproj", "{655A8FD3-5998-472F-8906-F0A028B70C4F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
