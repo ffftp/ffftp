@@ -4,7 +4,7 @@
 /**
  * アドレス固定のWide文字列とそれに対応するUTF-8文字列を格納する構造体
  */
-typedef struct {
+typedef struct StrPair_ {
 	const wchar_t *ws;
 	char *u8s;
 	size_t u8size;
@@ -22,6 +22,9 @@ static int strMapCount = 0;
 //! 確保済みのStrPairの領域数
 static int strMapMaxCount = 0;
 
+//! StrPair比較関数
+static int CompareStrPair(const void *c1, const void *c2);
+
 /**
  * staticなWide文字列に対応するUTF-8バイナリ文字列領域を確保し、その先頭アドレスを返す
  */
@@ -37,12 +40,13 @@ const char* const MessageUtil_GetUTF8StaticBinaryBlock(const wchar_t* const ws, 
 		g_initialized = TRUE;
 	}
 	EnterCriticalSection(&g_msgUtilLLock);
-	for (i = 0; i < strMapCount; i++)
 	{
-		if (pStrMap[i].ws == ws)
+		// 二分探索
+		StrPair keyPair = {ws, NULL};
+		StrPair *pResultStrPair = bsearch(&keyPair, pStrMap, strMapCount, sizeof(StrPair), CompareStrPair);
+		if (pResultStrPair)
 		{
-			pResult = pStrMap[i].u8s;
-			break;
+			pResult = pResultStrPair->u8s;
 		}
 	}
 	if (pResult == NULL)
@@ -74,6 +78,9 @@ const char* const MessageUtil_GetUTF8StaticBinaryBlock(const wchar_t* const ws, 
 			pStrMap[index].u8s = beginPos;
 			postSize = WideCharToMultiByte(CP_UTF8, 0, ws, ws_area_length, beginPos, newSize, NULL, NULL);
 			pResult = beginPos;
+
+			// pStrMap ソートする
+			qsort(pStrMap, strMapCount, sizeof(StrPair), CompareStrPair);
 		}
 		else
 		{
@@ -104,7 +111,15 @@ void MessageUtil_FreeUTF8StaticBinaryBlocks()
 	if (pStrMap)
 	{
 		free(pStrMap);
-		pStrMap = (StrPair*)NULL;
+		pStrMap = NULL;
 	}
+	strMapCount = 0;
 	LeaveCriticalSection(&g_msgUtilLLock);
+}
+
+static int CompareStrPair(const void *c1, const void *c2)
+{
+	StrPair *p1 = (StrPair*)c1;
+	StrPair *p2 = (StrPair*)c2;
+	return p1->ws - p2->ws;
 }
