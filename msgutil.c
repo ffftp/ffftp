@@ -71,12 +71,17 @@ const char* const MessageUtil_GetUTF8StaticBinaryBlock(const wchar_t* const ws, 
 			int index = strMapCount;
 			char *beginPos = 0;
 			int postSize = 0;
+			DWORD flPrevProtect = 0;
 			strMapCount++;
 			pStrMap[index].ws = ws;
 			pStrMap[index].u8size = newSize;
-			beginPos = (char*)malloc(newSize);
+			beginPos = VirtualAlloc(NULL, newSize, MEM_COMMIT, PAGE_READWRITE);
 			pStrMap[index].u8s = beginPos;
 			postSize = WideCharToMultiByte(CP_UTF8, 0, ws, ws_area_length, beginPos, newSize, NULL, NULL);
+			if (!VirtualProtect(beginPos, newSize, PAGE_READONLY, &flPrevProtect))
+			{
+				// 失敗した
+			}
 			pResult = beginPos;
 
 			// pStrMap ソートする
@@ -106,7 +111,7 @@ void MessageUtil_FreeUTF8StaticBinaryBlocks()
 	EnterCriticalSection(&g_msgUtilLLock);
 	for (i = 0; i < strMapCount; i++)
 	{
-		free(pStrMap[i].u8s);
+		VirtualFree(pStrMap[i].u8s, pStrMap[i].u8size, MEM_DECOMMIT);
 	}
 	if (pStrMap)
 	{
