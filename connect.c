@@ -1106,6 +1106,7 @@ int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
 //	if((*Skt = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
 	if((*Skt = DoConnect(&HostData, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, CancelCheckWork)) != INVALID_SOCKET)
 	{
+		SendInitCommand(CurHost.InitCmd);
 //		AskRemoteCurDir(Path, FMAX_PATH);
 //		DoCWD(Path, YES, YES, YES);
 		Sts = FFFTP_SUCCESS;
@@ -1147,6 +1148,7 @@ static int ReConnectSkt(SOCKET *Skt)
 //	if((*Skt = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
 	if((*Skt = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg)) != INVALID_SOCKET)
 	{
+		SendInitCommand(CurHost.InitCmd);
 		AskRemoteCurDir(Path, FMAX_PATH);
 		DoCWD(Path, YES, YES, YES);
 		Sts = FFFTP_SUCCESS;
