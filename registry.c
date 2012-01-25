@@ -960,6 +960,12 @@ int LoadRegistory(void)
 					// 同時接続対応
 					ReadIntValueFromReg(hKey5, "ThreadCount", &Host.MaxThreadCount);
 					ReadIntValueFromReg(hKey5, "ReuseCmdSkt", &Host.ReuseCmdSkt);
+					// 1.98d以前で同時接続数が1より大きい場合はソケットの再利用なし
+					if(Version < 1985)
+					{
+						if(Host.MaxThreadCount > 1)
+							Host.ReuseCmdSkt = NO;
+					}
 					// MLSD対応
 					ReadIntValueFromReg(hKey5, "MLSD", &Host.UseMLSD);
 					// IPv6対応

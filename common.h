@@ -1837,7 +1837,8 @@ int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int 
 // 同時接続対応
 void RemoveReceivedData(SOCKET s);
 int CheckClosedAndReconnect(void);
-void CheckAllEventClosed(void);
+// 同時接続対応
+int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
 
 /*===== updatebell.c =====*/
 

@@ -699,10 +699,28 @@ END_ROUTINE
 ATOM RegisterClassExM(CONST WNDCLASSEXA * v0)
 {
 	ATOM r = 0;
+	wchar_t* pw0 = NULL;
+	wchar_t* pw1 = NULL;
+	WNDCLASSEXW a0;
 START_ROUTINE
-	// WNDPROCがShift_JIS用であるため
-	r = RegisterClassExA(v0);
+	a0.cbSize = sizeof(WNDCLASSEXW);
+	a0.style = v0->style;
+	a0.lpfnWndProc = v0->lpfnWndProc;
+	a0.cbClsExtra = v0->cbClsExtra;
+	a0.cbWndExtra = v0->cbWndExtra;
+	a0.hInstance = v0->hInstance;
+	a0.hIcon = v0->hIcon;
+	a0.hCursor = v0->hCursor;
+	a0.hbrBackground = v0->hbrBackground;
+	pw0 = DuplicateMtoW(v0->lpszMenuName, -1);
+	a0.lpszMenuName = pw0;
+	pw1 = DuplicateMtoW(v0->lpszClassName, -1);
+	a0.lpszClassName = pw1;
+	a0.hIconSm = v0->hIconSm;
+	r = RegisterClassExW(&a0);
 END_ROUTINE
+	FreeDuplicatedString(pw0);
+	FreeDuplicatedString(pw1);
 	return r;
 }
 
@@ -725,7 +743,6 @@ LONG GetWindowLongM(HWND hWnd, int nIndex)
 {
 	LONG r = 0;
 START_ROUTINE
-	// WNDPROCがShift_JIS用であるため
 	if(IsWindowUnicode(hWnd))
 		r = GetWindowLongW(hWnd, nIndex);
 	else
@@ -738,7 +755,6 @@ LONG SetWindowLongM(HWND hWnd, int nIndex, LONG dwNewLong)
 {
 	LONG r = 0;
 START_ROUTINE
-	// WNDPROCがShift_JIS用であるため
 	if(IsWindowUnicode(hWnd))
 		r = SetWindowLongW(hWnd, nIndex, dwNewLong);
 	else
@@ -751,7 +767,6 @@ LONG_PTR GetWindowLongPtrM(HWND hWnd, int nIndex)
 {
 	LONG_PTR r = 0;
 START_ROUTINE
-	// WNDPROCがShift_JIS用であるため
 	if(IsWindowUnicode(hWnd))
 		r = GetWindowLongPtrW(hWnd, nIndex);
 	else
@@ -764,7 +779,6 @@ LONG_PTR SetWindowLongPtrM(HWND hWnd, int nIndex, LONG_PTR dwNewLong)
 {
 	LONG_PTR r = 0;
 START_ROUTINE
-	// WNDPROCがShift_JIS用であるため
 	if(IsWindowUnicode(hWnd))
 		r = SetWindowLongPtrW(hWnd, nIndex, dwNewLong);
 	else
@@ -777,7 +791,6 @@ LRESULT DefWindowProcM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT r = 0;
 START_ROUTINE
-	// WNDPROCがShift_JIS用であるため
 	if(IsWindowUnicode(hWnd))
 		r = DefWindowProcW(hWnd, Msg, wParam, lParam);
 	else
@@ -790,7 +803,6 @@ LRESULT CallWindowProcM(WNDPROC lpPrevWndFunc, HWND hWnd, UINT Msg, WPARAM wPara
 {
 	LRESULT r = 0;
 START_ROUTINE
-	// WNDPROCがShift_JIS用であるため
 	if(IsWindowUnicode(hWnd))
 		r = CallWindowProcW(lpPrevWndFunc, hWnd, Msg, wParam, lParam);
 	else
@@ -1978,6 +1990,7 @@ BOOL ChooseFontM(LPCHOOSEFONTA v0)
 {
 	BOOL r = FALSE;
 	wchar_t* pw0 = NULL;
+	wchar_t* pw1 = NULL;
 	CHOOSEFONTW a0;
 	LOGFONTW* pwlf;
 START_ROUTINE
@@ -2010,9 +2023,11 @@ START_ROUTINE
 	a0.rgbColors = v0->rgbColors;
 	a0.lCustData = v0->lCustData;
 	a0.lpfnHook = v0->lpfnHook;
-	a0.lpTemplateName = DuplicateMtoW(v0->lpTemplateName, -1);
+	pw0 = DuplicateMtoW(v0->lpTemplateName, -1);
+	a0.lpTemplateName = pw0;
 	a0.hInstance = v0->hInstance;
-	a0.lpszStyle = DuplicateMtoWBuffer(v0->lpszStyle, -1, LF_FACESIZE * 4);
+	pw1 = DuplicateMtoWBuffer(v0->lpszStyle, -1, LF_FACESIZE * 4);
+	a0.lpszStyle = pw1;
 	a0.nFontType = v0->nFontType;
 	a0.nSizeMin = v0->nSizeMin;
 	a0.nSizeMax = v0->nSizeMax;
@@ -2036,15 +2051,14 @@ START_ROUTINE
 		TerminateStringM(v0->lpLogFont->lfFaceName, LF_FACESIZE);
 	}
 	v0->rgbColors = a0.rgbColors;
-	WtoM(v0->lpszStyle, LF_FACESIZE, a0.lpszStyle, -1);
+	WtoM(v0->lpszStyle, LF_FACESIZE, pw1, -1);
 	TerminateStringM(v0->lpszStyle, LF_FACESIZE);
 	v0->nFontType = a0.nFontType;
 	if(pwlf)
 		free(pwlf);
-	FreeDuplicatedString((void*)a0.lpTemplateName);
-	FreeDuplicatedString(a0.lpszStyle);
 END_ROUTINE
 	FreeDuplicatedString(pw0);
+	FreeDuplicatedString(pw1);
 	return r;
 }
 

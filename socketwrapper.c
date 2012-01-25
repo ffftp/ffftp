@@ -1045,6 +1045,7 @@ BOOL LoadPuTTY()
 	// ビルドしたputty.dllに合わせてSHA1ハッシュ値を変更すること
 	RegisterTrustedModuleSHA1Hash("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00");
 #endif
+	// デバッグ用
 //	g_hPuTTY = LoadLibrary("putty.dll");
 	g_hPuTTY = LoadLibrary("C:\\SourceForge\\ffftp\\putty\\Debug\\PuTTY.dll");
 	if(!g_hPuTTY

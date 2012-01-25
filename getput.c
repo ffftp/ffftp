@@ -753,31 +753,31 @@ static ULONG WINAPI TransferThread(void *Dummy)
 		{
 			if(TransPacketBase && NewCmdSkt != INVALID_SOCKET && ThreadCount < AskMaxThreadCount())
 			{
+				ReleaseMutex(hListAccMutex);
 				if(TrnSkt == INVALID_SOCKET || NewCmdSkt != CmdSkt)
-				{
-					ReleaseMutex(hListAccMutex);
 					ReConnectTrnSkt(&TrnSkt, &Canceled[ThreadCount]);
-					// 同時ログイン数制限対策
-					if(TrnSkt != INVALID_SOCKET)
-						LastUsed = timeGetTime();
-					else
-					{
-						// 同時ログイン数制限に引っかかった可能性あり
-						// 負荷を下げるために約10秒間待機
-						i = 10000;
-						while(NewCmdSkt != CmdSkt && i > 0)
-						{
-							BackgrndMessageProc();
-							Sleep(1);
-							i--;
-						}
-					}
-//					WaitForSingleObject(hListAccMutex, INFINITE);
-					while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+				else
+					CheckClosedAndReconnectTrnSkt(&TrnSkt, &Canceled[ThreadCount]);
+				// 同時ログイン数制限対策
+				if(TrnSkt != INVALID_SOCKET)
+					LastUsed = timeGetTime();
+				else
+				{
+					// 同時ログイン数制限に引っかかった可能性あり
+					// 負荷を下げるために約10秒間待機
+					i = 10000;
+					while(NewCmdSkt != CmdSkt && i > 0)
 					{
 						BackgrndMessageProc();
 						Sleep(1);
+						i--;
 					}
+				}
+//				WaitForSingleObject(hListAccMutex, INFINITE);
+				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+				{
+					BackgrndMessageProc();
+					Sleep(1);
 				}
 			}
 			else
@@ -785,8 +785,8 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				if(TrnSkt != INVALID_SOCKET)
 				{
 					// 同時ログイン数制限対策
-					// 10秒間は再利用を許可
-					if(timeGetTime() - LastUsed > 10000)
+					// 60秒間使用されなければログアウト
+					if(timeGetTime() - LastUsed > 60000)
 					{
 						ReleaseMutex(hListAccMutex);
 						SendData(TrnSkt, "QUIT\r\n", 6, 0, &Canceled[ThreadCount]);
@@ -1305,7 +1305,8 @@ int DoDownLoad(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork)
 	{
 		iRetCode = 500;
 		SetTaskMsg(MSGJPN085, GetFileName(Pkt->LocalFile));
-		DispDownloadFinishMsg(Pkt, iRetCode);
+		// エラーによってはダイアログが表示されない場合があるバグ対策
+//		DispDownloadFinishMsg(Pkt, iRetCode);
 	}
 	else if(Pkt->Mode != EXIST_IGNORE)
 	{
@@ -1352,6 +1353,8 @@ int DoDownLoad(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork)
 		SetTaskMsg(MSGJPN089, Pkt->RemoteFile);
 		iRetCode = 200;
 	}
+	// エラーによってはダイアログが表示されない場合があるバグ対策
+	DispDownloadFinishMsg(Pkt, iRetCode);
 	return(iRetCode);
 }
 
@@ -1466,7 +1469,8 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 		iRetCode = 500;
 		SetErrorMsg(MSGJPN279);
 	}
-	DispDownloadFinishMsg(Pkt, iRetCode);
+	// エラーによってはダイアログが表示されない場合があるバグ対策
+//	DispDownloadFinishMsg(Pkt, iRetCode);
 
 	return(iRetCode);
 }
@@ -1563,7 +1567,8 @@ static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	else
 		SetErrorMsg(Buf);
 
-	DispDownloadFinishMsg(Pkt, iRetCode);
+	// エラーによってはダイアログが表示されない場合があるバグ対策
+//	DispDownloadFinishMsg(Pkt, iRetCode);
 
 	return(iRetCode);
 }
@@ -2600,7 +2605,8 @@ static int DoUpLoad(SOCKET cSkt, TRANSPACKET *Pkt)
 			SetTaskMsg(MSGJPN105, Pkt->LocalFile);
 			iRetCode = 500;
 			Pkt->Abort = ABORT_ERROR;
-			DispUploadFinishMsg(Pkt, iRetCode);
+			// エラーによってはダイアログが表示されない場合があるバグ対策
+//			DispUploadFinishMsg(Pkt, iRetCode);
 		}
 	}
 	else
@@ -2609,6 +2615,8 @@ static int DoUpLoad(SOCKET cSkt, TRANSPACKET *Pkt)
 		SetTaskMsg(MSGJPN107, Pkt->LocalFile);
 		iRetCode = 200;
 	}
+	// エラーによってはダイアログが表示されない場合があるバグ対策
+	DispUploadFinishMsg(Pkt, iRetCode);
 	return(iRetCode);
 }
 
@@ -2737,7 +2745,8 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 		SetErrorMsg(MSGJPN279);
 		iRetCode = 500;
 	}
-	DispUploadFinishMsg(Pkt, iRetCode);
+	// エラーによってはダイアログが表示されない場合があるバグ対策
+//	DispUploadFinishMsg(Pkt, iRetCode);
 
 	return(iRetCode);
 }
@@ -2854,7 +2863,8 @@ static int UpLoadPassive(TRANSPACKET *Pkt)
 	else
 		SetErrorMsg(Buf);
 
-	DispUploadFinishMsg(Pkt, iRetCode);
+	// エラーによってはダイアログが表示されない場合があるバグ対策
+//	DispUploadFinishMsg(Pkt, iRetCode);
 
 	return(iRetCode);
 }

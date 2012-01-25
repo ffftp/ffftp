@@ -1225,3 +1225,19 @@ int CheckClosedAndReconnect(void)
 
 
 
+// 同時接続対応
+int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
+{
+	int Error;
+	int Sts;
+
+//SetTaskMsg("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
+	Sts = FFFTP_SUCCESS;
+	if(AskAsyncDone(*Skt, &Error, FD_CLOSE) == YES)
+	{
+		Sts = ReConnectTrnSkt(Skt, CancelCheckWork);
+	}
+	return(Sts);
+}
+
