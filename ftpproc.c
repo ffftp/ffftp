@@ -3073,7 +3073,9 @@ void SomeCmdProc(void)
 
 			if(InputDialogBox(somecmd_dlg, GetMainHwnd(), NULL, Cmd, 81, &Tmp, IDH_HELP_TOPIC_0000023) == YES)
 			{
-				DoQUOTE(Cmd);
+				// 同時接続対応
+				//DoQUOTE(Cmd);
+				DoQUOTE(AskCmdCtrlSkt(), Cmd);
 			}
 			EnableUserOpe();
 		}

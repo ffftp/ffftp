@@ -468,11 +468,14 @@ int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork)
 *		int 応答コードの１桁目
 *----------------------------------------------------------------------------*/
 
-int DoQUOTE(char *CmdStr)
+// 同時接続対応
+//int DoQUOTE(char *CmdStr)
+int DoQUOTE(SOCKET cSkt, char *CmdStr)
 {
-	int Sts;
+	int Sts, CancelCheckWork;
 
-	Sts = CommandProcCmd(NULL, "%s", CmdStr);
+	CancelCheckWork = NO;
+	Sts = CommandProcTrn(cSkt, NULL, &CancelCheckWork, "%s", CmdStr);
 
 	if(Sts/100 >= FTP_CONTINUE)
 		SoundPlay(SND_ERROR);
@@ -701,10 +704,10 @@ void SwitchOSSProc(void)
 
 	/* DoPWD でノード名の \ を保存するために OSSフラグも変更する */
 	if(AskOSS() == YES) {
-		DoQUOTE("GUARDIAN");
+		DoQUOTE(AskCmdCtrlSkt(), "GUARDIAN");
 		SetOSS(NO);
 	} else {
-		DoQUOTE("OSS");
+		DoQUOTE(AskCmdCtrlSkt(), "OSS");
 		SetOSS(YES);
 	}
 	/* Current Dir 再取得 */
@@ -721,7 +724,9 @@ void SwitchOSSProc(void)
 /*----- リモート側へコマンドを送りリプライを待つ（転送ソケット）---------------
 *
 *	Parameter
+*		SOCKET cSkt : ソケット
 *		char *Reply : リプライのコピー先 (NULL=コピーしない)
+*		int *CancelCheckWork :
 *		char *fmt : フォーマット文字列
 *		... : パラメータ
 *
