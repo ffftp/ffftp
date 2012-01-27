@@ -3075,7 +3075,7 @@ void SomeCmdProc(void)
 			{
 				// 同時接続対応
 				//DoQUOTE(Cmd);
-				DoQUOTE(AskCmdCtrlSkt(), Cmd);
+				DoQUOTE(AskCmdCtrlSkt(), Cmd, &CancelFlg);
 			}
 			EnableUserOpe();
 		}

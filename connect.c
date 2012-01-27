@@ -59,7 +59,7 @@
 static INT_PTR CALLBACK QuickConDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 // 同時接続対応
 //static int SendInitCommand(char *Cmd);
-static int SendInitCommand(SOCKET Socket, char *Cmd);
+static int SendInitCommand(SOCKET Socket, char *Cmd, int *CancelCheckWork);
 static void AskUseFireWall(char *Host, int *Fire, int *Pasv, int *List);
 static void SaveCurrentSetToHistory(void);
 static int ReConnectSkt(SOCKET *Skt);
@@ -240,7 +240,7 @@ void ConnectProc(int Type, int Num)
 				DispWindowTitle();
 				SoundPlay(SND_CONNECT);
 
-				SendInitCommand(CmdCtrlSocket, CurHost.InitCmd);
+				SendInitCommand(CmdCtrlSocket, CurHost.InitCmd, &CancelFlg);
 
 				if(strlen(CurHost.LocalInitDir) > 0)
 				{
@@ -611,7 +611,7 @@ void HistoryConnectProc(int MenuCmd)
 				DispWindowTitle();
 				SoundPlay(SND_CONNECT);
 
-				SendInitCommand(CmdCtrlSocket, CurHost.InitCmd);
+				SendInitCommand(CmdCtrlSocket, CurHost.InitCmd, &CancelFlg);
 
 				DoLocalCWD(CurHost.LocalInitDir);
 				GetLocalDirForWnd();
@@ -650,7 +650,9 @@ void HistoryConnectProc(int MenuCmd)
 *			cmd1\r\ncmd2\r\n\0
 *----------------------------------------------------------------------------*/
 
-static int SendInitCommand(SOCKET Socket, char *Cmd)
+// 同時接続対応
+//static int SendInitCommand(char *Cmd)
+static int SendInitCommand(SOCKET Socket, char *Cmd, int *CancelCheckWork)
 {
 	char Tmp[INITCMD_LEN+1];
 	char *Pos;
@@ -661,7 +663,8 @@ static int SendInitCommand(SOCKET Socket, char *Cmd)
 		if((Pos = strchr(Tmp, '\r')) != NULL)
 			*Pos = NUL;
 		if(strlen(Tmp) > 0)
-			DoQUOTE(Socket, Tmp);
+//			DoQUOTE(Tmp);
+			DoQUOTE(Socket, Tmp, CancelCheckWork);
 
 		if((Cmd = strchr(Cmd, '\n')) != NULL)
 			Cmd++;
@@ -1108,7 +1111,7 @@ int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
 //	if((*Skt = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
 	if((*Skt = DoConnect(&HostData, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, CancelCheckWork)) != INVALID_SOCKET)
 	{
-		SendInitCommand(*Skt, CurHost.InitCmd);
+		SendInitCommand(*Skt, CurHost.InitCmd, CancelCheckWork);
 //		AskRemoteCurDir(Path, FMAX_PATH);
 //		DoCWD(Path, YES, YES, YES);
 		Sts = FFFTP_SUCCESS;
@@ -1150,7 +1153,7 @@ static int ReConnectSkt(SOCKET *Skt)
 //	if((*Skt = DoConnect(CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security)) != INVALID_SOCKET)
 	if((*Skt = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg)) != INVALID_SOCKET)
 	{
-		SendInitCommand(*Skt, CurHost.InitCmd);
+		SendInitCommand(*Skt, CurHost.InitCmd, &CancelFlg);
 		AskRemoteCurDir(Path, FMAX_PATH);
 		DoCWD(Path, YES, YES, YES);
 		Sts = FFFTP_SUCCESS;

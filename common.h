@@ -1601,7 +1601,7 @@ int DoSIZE(SOCKET cSkt, char *Path, LONGLONG *Size, int *CancelCheckWork);
 int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork);
 // 同時接続対応
 //int DoQUOTE(char *CmdStr);
-int DoQUOTE(SOCKET cSkt, char *CmdStr);
+int DoQUOTE(SOCKET cSkt, char *CmdStr, int *CancelCheckWork);
 SOCKET DoClose(SOCKET Sock);
 int DoQUIT(SOCKET ctrl_skt);
 int DoDirListCmdSkt(char *AddOpt, char *Path, int Num, int *CancelCheckWork);

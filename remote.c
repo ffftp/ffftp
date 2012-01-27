@@ -470,12 +470,12 @@ int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork)
 
 // 同時接続対応
 //int DoQUOTE(char *CmdStr)
-int DoQUOTE(SOCKET cSkt, char *CmdStr)
+int DoQUOTE(SOCKET cSkt, char *CmdStr, int *CancelCheckWork)
 {
-	int Sts, CancelCheckWork;
+	int Sts;
 
-	CancelCheckWork = NO;
-	Sts = CommandProcTrn(cSkt, NULL, &CancelCheckWork, "%s", CmdStr);
+//	Sts = CommandProcCmd(NULL, "%s", CmdStr);
+	Sts = CommandProcTrn(cSkt, NULL, CancelCheckWork, "%s", CmdStr);
 
 	if(Sts/100 >= FTP_CONTINUE)
 		SoundPlay(SND_ERROR);
@@ -704,10 +704,10 @@ void SwitchOSSProc(void)
 
 	/* DoPWD でノード名の \ を保存するために OSSフラグも変更する */
 	if(AskOSS() == YES) {
-		DoQUOTE(AskCmdCtrlSkt(), "GUARDIAN");
+		DoQUOTE(AskCmdCtrlSkt(), "GUARDIAN", &CancelFlg);
 		SetOSS(NO);
 	} else {
-		DoQUOTE(AskCmdCtrlSkt(), "OSS");
+		DoQUOTE(AskCmdCtrlSkt(), "OSS", &CancelFlg);
 		SetOSS(YES);
 	}
 	/* Current Dir 再取得 */
