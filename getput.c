@@ -2256,7 +2256,9 @@ static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		SetErrorMsg(MSGJPN096);
 		SetTaskMsg(MSGJPN096);
 	}
-	if(iRetCode >= FTP_RETRY)
+	// バグ修正
+//	if(iRetCode >= FTP_RETRY)
+	if((iRetCode/100) >= FTP_RETRY)
 		SetErrorMsg(Buf);
 	if(Pkt->Abort != ABORT_NONE)
 		iRetCode = 500;
@@ -3504,7 +3506,9 @@ static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 //#pragma aaa
 //DoPrintf("##UP REPLY : %s", Buf);
 
-	if(iRetCode >= FTP_RETRY)
+	// バグ修正
+//	if(iRetCode >= FTP_RETRY)
+	if((iRetCode/100) >= FTP_RETRY)
 		SetErrorMsg(Buf);
 
 	if(Pkt->Abort != ABORT_NONE)
