@@ -4911,6 +4911,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 							sTime.wSecond = atoi_n(Value + 12, 2);
 							sTime.wMilliseconds = 0;
 							SystemTimeToFileTime(&sTime, Time);
+							// 時刻はGMT
 //							SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 							*InfoExist |= FINFO_DATE | FINFO_TIME;
 						}

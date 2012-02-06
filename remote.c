@@ -451,7 +451,8 @@ int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork)
 			&sTime.wHour, &sTime.wMinute, &sTime.wSecond) == 6)
 		{
 			SystemTimeToFileTime(&sTime, Time);
-			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
+			// 時刻はGMT
+//			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
 		}
 	}
