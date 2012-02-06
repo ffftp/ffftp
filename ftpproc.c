@@ -261,8 +261,9 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 		}
 		DeleteFileList(&FileListBase);
 
-		strcpy(Pkt.Cmd, "GOQUIT");
-		AddTransFileList(&Pkt);
+		// 同時接続対応
+//		strcpy(Pkt.Cmd, "GOQUIT");
+//		AddTransFileList(&Pkt);
 
 		GoForwardTransWindow();
 //		KeepTransferDialog(NO);
@@ -363,8 +364,9 @@ void DirectDownLoadProc(char *Fname)
 			AddTransFileList(&Pkt);
 		}
 
-		strcpy(Pkt.Cmd, "GOQUIT");
-		AddTransFileList(&Pkt);
+		// 同時接続対応
+//		strcpy(Pkt.Cmd, "GOQUIT");
+//		AddTransFileList(&Pkt);
 
 		GoForwardTransWindow();
 //		KeepTransferDialog(NO);
@@ -629,8 +631,9 @@ void MirrorDownloadProc(int Notify)
 					AddTransFileList(&Pkt);
 				}
 
-				strcpy(Pkt.Cmd, "GOQUIT");
-				AddTransFileList(&Pkt);
+				// 同時接続対応
+//				strcpy(Pkt.Cmd, "GOQUIT");
+//				AddTransFileList(&Pkt);
 			}
 			else
 				EraseTmpTransFileList(&Base);
@@ -1056,8 +1059,9 @@ void UpLoadListProc(int ChName, int All)
 
 		DeleteFileList(&FileListBase);
 
-		strcpy(Pkt.Cmd, "GOQUIT");
-		AddTransFileList(&Pkt);
+		// 同時接続対応
+//		strcpy(Pkt.Cmd, "GOQUIT");
+//		AddTransFileList(&Pkt);
 
 		GoForwardTransWindow();
 
@@ -1223,8 +1227,9 @@ void UpLoadDragProc(WPARAM wParam)
 
 		DeleteFileList(&FileListBase);
 
-		strcpy(Pkt.Cmd, "GOQUIT");
-		AddTransFileList(&Pkt);
+		// 同時接続対応
+//		strcpy(Pkt.Cmd, "GOQUIT");
+//		AddTransFileList(&Pkt);
 
 		GoForwardTransWindow();
 
@@ -1494,8 +1499,9 @@ void MirrorUploadProc(int Notify)
 					AddTransFileList(&Pkt);
 				}
 
-				strcpy(Pkt.Cmd, "GOQUIT");
-				AddTransFileList(&Pkt);
+				// 同時接続対応
+//				strcpy(Pkt.Cmd, "GOQUIT");
+//				AddTransFileList(&Pkt);
 			}
 			else
 				EraseTmpTransFileList(&Base);

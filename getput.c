@@ -537,7 +537,7 @@ static void EraseTransFileList(void)
 	TRANSPACKET *New;
 	TRANSPACKET *Next;
 	TRANSPACKET *NotDel;
-	TRANSPACKET Pkt;
+//	TRANSPACKET Pkt;
 
 	NotDel = NULL;
 
@@ -582,8 +582,9 @@ static void EraseTransFileList(void)
 	// 同時接続対応
 	WaitForMainThread = NO;
 
-	strcpy(Pkt.Cmd, "GOQUIT");
-	AddTransFileList(&Pkt);
+	// 同時接続対応
+//	strcpy(Pkt.Cmd, "GOQUIT");
+//	AddTransFileList(&Pkt);
 	return;
 }
 
@@ -742,6 +743,8 @@ static ULONG WINAPI TransferThread(void *Dummy)
 			Pos = TransPacketBase;
 			TransPacketBase = TransPacketBase->Next;
 			free(Pos);
+			if(TransPacketBase == NULL)
+				GoExit = YES;
 		}
 		NewCmdSkt = AskCmdCtrlSkt();
 		if(AskReuseCmdSkt() == YES && ThreadCount == 0)
@@ -759,9 +762,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				else
 					CheckClosedAndReconnectTrnSkt(&TrnSkt, &Canceled[ThreadCount]);
 				// 同時ログイン数制限対策
-				if(TrnSkt != INVALID_SOCKET)
-					LastUsed = timeGetTime();
-				else
+				if(TrnSkt == INVALID_SOCKET)
 				{
 					// 同時ログイン数制限に引っかかった可能性あり
 					// 負荷を下げるために約10秒間待機
@@ -773,6 +774,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 						i--;
 					}
 				}
+				LastUsed = timeGetTime();
 //				WaitForSingleObject(hListAccMutex, INFINITE);
 				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
 				{
@@ -786,7 +788,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				{
 					// 同時ログイン数制限対策
 					// 60秒間使用されなければログアウト
-					if(timeGetTime() - LastUsed > 60000)
+					if(timeGetTime() - LastUsed > 60000 || NewCmdSkt == INVALID_SOCKET)
 					{
 						ReleaseMutex(hListAccMutex);
 						SendData(TrnSkt, "QUIT\r\n", 6, 0, &Canceled[ThreadCount]);
@@ -806,13 +808,6 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //		if(TransPacketBase != NULL)
 		if(TrnSkt != INVALID_SOCKET && NextTransPacketBase != NULL)
 		{
-			if(strcmp(NextTransPacketBase->Cmd, "GOQUIT") == 0 && NextTransPacketBase != TransPacketBase)
-			{
-				ReleaseMutex(hListAccMutex);
-				BackgrndMessageProc();
-				Sleep(1);
-				continue;
-			}
 			Pos = NextTransPacketBase;
 			NextTransPacketBase = NextTransPacketBase->Next;
 			// ディレクトリ操作は非同期で行わない
@@ -841,6 +836,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //			TransPacketBase->hWndTrans = hWndTrans;
 			Pos->hWndTrans = hWndTrans;
 			Pos->ctrl_skt = TrnSkt;
+			Pos->Abort = ABORT_NONE;
 			Pos->ThreadCount = ThreadCount;
 
 			if(hWndTrans != NULL)
@@ -855,6 +851,9 @@ static ULONG WINAPI TransferThread(void *Dummy)
 			if(hWndTrans != NULL)
 //				SendMessage(hWndTrans, WM_SET_PACKET, 0, (LPARAM)TransPacketBase);
 				SendMessage(hWndTrans, WM_SET_PACKET, 0, (LPARAM)Pos);
+
+			// 中断後に受信バッファに応答が残っていると次のコマンドの応答が正しく処理できない
+			RemoveReceivedData(TrnSkt);
 
 			/* ダウンロード */
 //			if(strncmp(TransPacketBase->Cmd, "RETR", 4) == 0)
@@ -1110,11 +1109,11 @@ static ULONG WINAPI TransferThread(void *Dummy)
 			}
 			/* 自動終了のための通知 */
 //			else if(strcmp(TransPacketBase->Cmd, "GOQUIT") == 0)
-			else if(strcmp(Pos->Cmd, "GOQUIT") == 0)
-			{
-				ReleaseMutex(hListAccMutex);
-				GoExit = YES;
-			}
+//			else if(strcmp(Pos->Cmd, "GOQUIT") == 0)
+//			{
+//				ReleaseMutex(hListAccMutex);
+//				GoExit = YES;
+//			}
 			else
 				ReleaseMutex(hListAccMutex);
 
@@ -1134,6 +1133,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					for(i = 0; i < MAX_DATA_CONNECTION; i++)
 						Canceled[i] = YES;
 					EraseTransFileList();
+					GoExit = YES;
 					Pos = NULL;
 				}
 				else
@@ -1152,7 +1152,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //					TransPacketBase = TransPacketBase->Next;
 //					free(Pos);
 				}
-				ClearAll = NO;
+//				ClearAll = NO;
 				ReleaseMutex(hListAccMutex);
 
 				if(BackgrndMessageProc() == YES)
@@ -1171,7 +1171,24 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //		else
 		else if(TransPacketBase == NULL)
 		{
+			ClearAll = NO;
 			DelNotify = NO;
+
+			if(GoExit == YES)
+			{
+				SoundPlay(SND_TRANS);
+				if(AskAutoExit() == NO)
+				{
+					if(Down == YES)
+						PostMessage(GetMainHwnd(), WM_REFRESH_LOCAL_FLG, 0, 0);
+					if(Up == YES)
+						PostMessage(GetMainHwnd(), WM_REFRESH_REMOTE_FLG, 0, 0);
+				}
+				Down = NO;
+				Up = NO;
+				PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_AUTO_EXIT, 0), 0);
+				GoExit = NO;
+			}
 
 			ReleaseMutex(hListAccMutex);
 			if(KeepDlg == NO)
@@ -1200,22 +1217,6 @@ static ULONG WINAPI TransferThread(void *Dummy)
 			BackgrndMessageProc();
 //			Sleep(1);
 			Sleep(100);
-
-			if(GoExit == YES)
-			{
-				SoundPlay(SND_TRANS);
-				if(AskAutoExit() == NO)
-				{
-					if(Down == YES)
-						PostMessage(GetMainHwnd(), WM_REFRESH_LOCAL_FLG, 0, 0);
-					if(Up == YES)
-						PostMessage(GetMainHwnd(), WM_REFRESH_REMOTE_FLG, 0, 0);
-				}
-				Down = NO;
-				Up = NO;
-				PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_AUTO_EXIT, 0), 0);
-				GoExit = NO;
-			}
 
 			// 再転送対応
 			TransferErrorMode = AskTransferErrorMode();
@@ -1346,6 +1347,8 @@ int DoDownLoad(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork)
 		}
 		else
 			SetErrorMsg(Reply);
+		// エラーによってはダイアログが表示されない場合があるバグ対策
+		DispDownloadFinishMsg(Pkt, iRetCode);
 	}
 	else
 	{
@@ -1353,8 +1356,6 @@ int DoDownLoad(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork)
 		SetTaskMsg(MSGJPN089, Pkt->RemoteFile);
 		iRetCode = 200;
 	}
-	// エラーによってはダイアログが表示されない場合があるバグ対策
-	DispDownloadFinishMsg(Pkt, iRetCode);
 	return(iRetCode);
 }
 
@@ -2281,6 +2282,8 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 {
 	char Fname[FMAX_PATH+1];
 
+	// 同時接続対応
+	ReleaseMutex(hListAccMutex);
 	if(ForceAbort == NO)
 	{
 		if((iRetCode/100) >= FTP_CONTINUE)
@@ -2300,7 +2303,9 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 				return;
 #endif
 
-			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0))
+			// MLSD対応
+//			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0))
+			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0) || (strncmp(Pkt->Cmd, "MLSD", 4) == 0))
 			{
 				SetTaskMsg(MSGJPN097);
 				strcpy(Fname, MSGJPN098);
@@ -2337,7 +2342,9 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 		}
 		else
 		{
-			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0))
+			// MLSD対応
+//			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0))
+			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0) || (strncmp(Pkt->Cmd, "MLSD", 4) == 0))
 				SetTaskMsg(MSGJPN101, Pkt->ExistSize);
 			// 同時接続対応
 //			else if((Pkt->hWndTrans != NULL) && (TimeStart != 0))
@@ -2610,6 +2617,8 @@ static int DoUpLoad(SOCKET cSkt, TRANSPACKET *Pkt)
 			// エラーによってはダイアログが表示されない場合があるバグ対策
 //			DispUploadFinishMsg(Pkt, iRetCode);
 		}
+		// エラーによってはダイアログが表示されない場合があるバグ対策
+		DispUploadFinishMsg(Pkt, iRetCode);
 	}
 	else
 	{
@@ -2617,8 +2626,6 @@ static int DoUpLoad(SOCKET cSkt, TRANSPACKET *Pkt)
 		SetTaskMsg(MSGJPN107, Pkt->LocalFile);
 		iRetCode = 200;
 	}
-	// エラーによってはダイアログが表示されない場合があるバグ対策
-	DispUploadFinishMsg(Pkt, iRetCode);
 	return(iRetCode);
 }
 
@@ -3579,6 +3586,8 @@ static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, 
 
 static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 {
+	// 同時接続対応
+	ReleaseMutex(hListAccMutex);
 	if(ForceAbort == NO)
 	{
 		if((iRetCode/100) >= FTP_CONTINUE)
@@ -3738,8 +3747,6 @@ static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 //				if(!(Pkt = (TRANSPACKET*)GetWindowLong(hDlg, GWL_USERDATA)))
 				if(!(Pkt = (TRANSPACKET*)GetWindowLongPtr(hDlg, GWLP_USERDATA)))
 					break;
-				if(Canceled[Pkt->ThreadCount] == YES)
-					Pkt->Abort = ABORT_USER;
 				DispTransferStatus(hDlg, NO, Pkt);
 				SetTimer(hDlg, TIMER_DISPLAY, DISPLAY_TIMING, NULL);
 			}

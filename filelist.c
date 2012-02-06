@@ -786,6 +786,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
 
 		case WM_DROPFILES :
+			// 同時接続対応
+			if(AskUserOpeDisabled() == YES)
+				break;
 			// ドラッグ中は処理しない。ドラッグ後にWM_LBUTTONDOWNが飛んでくるため、そこで処理する。
 			if (Dragging == YES) 
 				return (FALSE);
@@ -818,6 +821,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 				hCsrDrg = LoadCursor(NULL, IDC_ARROW);
 				SetCursor(hCsrDrg);
 
+				// 同時接続対応
+				if(AskUserOpeDisabled() == YES)
+					break;
 				Point.x = (long)(short)LOWORD(lParam);
 				Point.y = (long)(short)HIWORD(lParam);
 				ClientToScreen(hWnd, &Point);
