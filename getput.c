@@ -1375,7 +1375,9 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	int iLength;
 	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
 	SOCKET listen_socket = INVALID_SOCKET; // data listen socket
-	char Buf[1024];
+	// 念のため
+//	char Buf[1024];
+	char Buf[FMAX_PATH+1024];
 	int CreateMode;
 	// IPv6対応
 //	struct sockaddr_in saSockAddr1;
@@ -1490,7 +1492,9 @@ static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 {
 	int iRetCode;
 	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
-	char Buf[1024];
+	// 念のため
+//	char Buf[1024];
+	char Buf[FMAX_PATH+1024];
 	int CreateMode;
 	// IPv6対応
 //	char Adrs[20];
@@ -2645,7 +2649,9 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 	int iLength;
 	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
 	SOCKET listen_socket = INVALID_SOCKET; // data listen socket
-	char Buf[1024];
+	// 念のため
+//	char Buf[1024];
+	char Buf[FMAX_PATH+1024];
 	// IPv6対応
 //	struct sockaddr_in saSockAddr1;
 	struct sockaddr_in saSockAddrIPv4;
@@ -2774,7 +2780,9 @@ static int UpLoadPassive(TRANSPACKET *Pkt)
 {
 	int iRetCode;
 	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
-	char Buf[1024];
+	// 念のため
+//	char Buf[1024];
+	char Buf[FMAX_PATH+1024];
 	// IPv6対応
 //	char Adrs[20];
 	char Adrs[40];
