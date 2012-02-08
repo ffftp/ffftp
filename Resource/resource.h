@@ -619,6 +619,7 @@
 #define ID_BUTTON40174                  40174
 #define ID_BUTTON40175                  40175
 #define MENU_SWITCH_OSS                 40176
+#define MENU_OPEN                       40177
 #define FSNOTIFY_TITLE                  65535
 #define HOST_SIZEGRIP                   65535
 

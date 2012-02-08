@@ -1896,7 +1896,9 @@ static void AddOpenMenu(HMENU hMenu, UINT Flg)
 	char Tmp[FMAX_PATH+1];
 	int i;
 
-	AppendMenu(hMenu, MF_STRING | Flg, MENU_DCLICK, MSGJPN274);
+	// ローカルフォルダを開く
+//	AppendMenu(hMenu, MF_STRING | Flg, MENU_DCLICK, MSGJPN274);
+	AppendMenu(hMenu, MF_STRING | Flg, MENU_OPEN, MSGJPN274);
 	for(i = 0; i < VIEWERS; i++)
 	{
 		if(strlen(ViewerName[i]) != 0)
