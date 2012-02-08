@@ -2127,7 +2127,9 @@ void DoubleClickProc(int Win, int Mode, int App)
 
 				if(Win == WIN_LOCAL)
 				{
-					if((App != -1) || (Type == NODE_FILE))
+					// ローカルフォルダを開く
+//					if((App != -1) || (Type == NODE_FILE))
+					if((App != -1) || (Type == NODE_FILE) || (Mode == YES))
 					{
 						if((DclickOpen == YES) || (Mode == YES))
 						{
@@ -2572,6 +2574,13 @@ void ExecViewer(char *Fname, int App)
 	{
 		DoPrintf("ShellExecute - %s", Fname);
 		ShellExecute(NULL, "open", Fname, NULL, CurDir, SW_SHOW);
+	}
+	// ローカルフォルダを開く
+	else if((App == -1) && (GetFileAttributes(Fname) & FILE_ATTRIBUTE_DIRECTORY))
+	{
+		MakeDistinguishableFileName(ComLine, Fname);
+		DoPrintf("ShellExecute - %s", Fname);
+		ShellExecute(NULL, "open", ComLine, NULL, Fname, SW_SHOW);
 	}
 	else
 	{
