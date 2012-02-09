@@ -30,7 +30,7 @@
 #define __COMMON_H__
 
 #include "config.h"
-#ifndef ENGLISH
+#ifndef FFFTP_ENGLISH
 #include "mesg-jpn.h"
 #else
 #include "mesg-eng.h"
