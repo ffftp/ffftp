@@ -1046,8 +1046,16 @@ BOOL LoadPuTTY()
 	RegisterTrustedModuleSHA1Hash("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00");
 #endif
 	// デバッグ用
-//	g_hPuTTY = LoadLibrary("putty.dll");
-	g_hPuTTY = LoadLibrary("C:\\SourceForge\\ffftp\\putty\\Debug\\PuTTY.dll");
+#ifdef _DEBUG
+	{
+		char Path[MAX_PATH];
+		GetModuleFileName(NULL, Path, MAX_PATH);
+		strcpy(strrchr(Path, '\\'), "\\..\\putty\\Debug\\PuTTY.dll");
+		g_hPuTTY = LoadLibrary(Path);
+	}
+#else
+	g_hPuTTY = LoadLibrary("putty.dll");
+#endif
 	if(!g_hPuTTY
 		|| !(p_SFTP_Create = (_SFTP_Create)GetProcAddress(g_hPuTTY, "SFTP_Create"))
 		|| !(p_SFTP_Destroy = (_SFTP_Destroy)GetProcAddress(g_hPuTTY, "SFTP_Destroy"))

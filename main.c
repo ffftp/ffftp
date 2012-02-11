@@ -258,66 +258,68 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
 	// プロセス保護
 #ifdef ENABLE_PROCESS_PROTECTION
-	DWORD ProtectLevel;
-	char* pCommand;
-	char Option[FMAX_PATH+1];
-	ProtectLevel = PROCESS_PROTECTION_NONE;
-	pCommand = lpszCmdLine;
-	while(pCommand = GetToken(pCommand, Option))
 	{
-		if(strcmp(Option, "--protect") == 0)
+		DWORD ProtectLevel;
+		char* pCommand;
+		char Option[FMAX_PATH+1];
+		ProtectLevel = PROCESS_PROTECTION_NONE;
+		pCommand = lpszCmdLine;
+		while(pCommand = GetToken(pCommand, Option))
 		{
-			ProtectLevel = PROCESS_PROTECTION_DEFAULT;
-			break;
+			if(strcmp(Option, "--protect") == 0)
+			{
+				ProtectLevel = PROCESS_PROTECTION_DEFAULT;
+				break;
+			}
+			else if(strcmp(Option, "--protect-high") == 0)
+			{
+				ProtectLevel = PROCESS_PROTECTION_HIGH;
+				break;
+			}
+			else if(strcmp(Option, "--protect-medium") == 0)
+			{
+				ProtectLevel = PROCESS_PROTECTION_MEDIUM;
+				break;
+			}
+			else if(strcmp(Option, "--protect-low") == 0)
+			{
+				ProtectLevel = PROCESS_PROTECTION_LOW;
+				break;
+			}
 		}
-		else if(strcmp(Option, "--protect-high") == 0)
+		if(ProtectLevel != PROCESS_PROTECTION_NONE)
 		{
-			ProtectLevel = PROCESS_PROTECTION_HIGH;
-			break;
-		}
-		else if(strcmp(Option, "--protect-medium") == 0)
-		{
-			ProtectLevel = PROCESS_PROTECTION_MEDIUM;
-			break;
-		}
-		else if(strcmp(Option, "--protect-low") == 0)
-		{
-			ProtectLevel = PROCESS_PROTECTION_LOW;
-			break;
-		}
-	}
-	if(ProtectLevel != PROCESS_PROTECTION_NONE)
-	{
-		SetProcessProtectionLevel(ProtectLevel);
-		if(!InitializeLoadLibraryHook())
-		{
-			MessageBox(NULL, MSGJPN321, "FFFTP", MB_OK | MB_ICONERROR);
-			return 0;
-		}
+			SetProcessProtectionLevel(ProtectLevel);
+			if(!InitializeLoadLibraryHook())
+			{
+				MessageBox(NULL, MSGJPN321, "FFFTP", MB_OK | MB_ICONERROR);
+				return 0;
+			}
 #ifndef _DEBUG
-		if(IsDebuggerPresent())
-		{
-			MessageBox(NULL, MSGJPN322, "FFFTP", MB_OK | MB_ICONERROR);
-			return 0;
-		}
+			if(IsDebuggerPresent())
+			{
+				MessageBox(NULL, MSGJPN322, "FFFTP", MB_OK | MB_ICONERROR);
+				return 0;
+			}
 #endif
-		if(!UnloadUntrustedModule())
-		{
-			MessageBox(NULL, MSGJPN323, "FFFTP", MB_OK | MB_ICONERROR);
-			return 0;
-		}
+			if(!UnloadUntrustedModule())
+			{
+				MessageBox(NULL, MSGJPN323, "FFFTP", MB_OK | MB_ICONERROR);
+				return 0;
+			}
 #ifndef _DEBUG
-		if(RestartProtectedProcess(" --restart"))
-			return 0;
+			if(RestartProtectedProcess(" --restart"))
+				return 0;
 #endif
-		if(!EnableLoadLibraryHook(TRUE))
-		{
-			MessageBox(NULL, MSGJPN324, "FFFTP", MB_OK | MB_ICONERROR);
-			return 0;
+			if(!EnableLoadLibraryHook(TRUE))
+			{
+				MessageBox(NULL, MSGJPN324, "FFFTP", MB_OK | MB_ICONERROR);
+				return 0;
+			}
 		}
+		else
+			InitializeLoadLibraryHook();
 	}
-	else
-		InitializeLoadLibraryHook();
 #endif
 
 	// マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
