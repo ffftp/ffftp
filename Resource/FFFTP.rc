@@ -73,6 +73,7 @@ main_toolbar_bmp        BITMAP                  "toolbar1.bmp"
 remote_toolbar_bmp      BITMAP                  "main_too.bmp"
 dirattr_bmp             BITMAP                  "list_bmp.bmp"
 hlist_bmp               BITMAP                  "bitmap1.bmp"
+dirattr16_bmp           BITMAP                  "list_16.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

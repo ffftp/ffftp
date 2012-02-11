@@ -147,6 +147,8 @@ static WNDPROC LocalProcPtr;
 static WNDPROC RemoteProcPtr;
 
 static HIMAGELIST ListImg = NULL;
+// ファイルアイコン表示対応
+static HIMAGELIST ListImgFileIcon = NULL;
 
 static char FindStr[40+1] = { "*" };		/* 検索文字列 */
 static int IgnoreNew = NO;
@@ -1340,22 +1342,22 @@ void RefreshIconImageList(FLISTANCHOR *Anchor)
 	int i;
 	char Cur[FMAX_PATH+1];
 	SHFILEINFO FileInfo;
-	SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)NULL);
-	ShowWindow(hWndListLocal, SW_SHOW);
-	SendMessage(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)NULL);
-	ShowWindow(hWndListRemote, SW_SHOW);
-	ImageList_Destroy(ListImg);
-	ListImg = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR24, 0, 1);
-	hBitmap = LoadBitmap(GetFtpInst(), MAKEINTRESOURCE(dirattr_bmp));
-	ImageList_AddMasked(ListImg, hBitmap, RGB(255,0,0));
-	DeleteObject(hBitmap);
-	ImageId = 0;
-	Pos = Anchor->Top;
-	for(i = 0; i < Anchor->Files; i++)
+	if(AskDispFileIcon() == YES)
 	{
-		Pos->ImageId = -1;
-		if(AskDispFileIcon() == YES)
+		SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)NULL);
+		ShowWindow(hWndListLocal, SW_SHOW);
+		SendMessage(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)NULL);
+		ShowWindow(hWndListRemote, SW_SHOW);
+		ImageList_Destroy(ListImgFileIcon);
+		ListImgFileIcon = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR32, 0, 1);
+		hBitmap = LoadBitmap(GetFtpInst(), MAKEINTRESOURCE(dirattr16_bmp));
+		ImageList_AddMasked(ListImgFileIcon, hBitmap, RGB(255, 0, 0));
+		DeleteObject(hBitmap);
+		ImageId = 0;
+		Pos = Anchor->Top;
+		for(i = 0; i < Anchor->Files; i++)
 		{
+			Pos->ImageId = -1;
 			if(Pos->Node == NODE_DRIVE)
 				strcpy(Cur, Pos->File);
 			else
@@ -1366,20 +1368,27 @@ void RefreshIconImageList(FLISTANCHOR *Anchor)
 			}
 			if(SHGetFileInfoM(Cur, 0, &FileInfo, sizeof(SHFILEINFO), SHGFI_SMALLICON | SHGFI_ICON) != 0)
 			{
-				if(ImageList_AddIcon(ListImg, FileInfo.hIcon) >= 0)
+				if(ImageList_AddIcon(ListImgFileIcon, FileInfo.hIcon) >= 0)
 				{
 					Pos->ImageId = ImageId;
 					ImageId++;
 				}
 				DestroyIcon(FileInfo.hIcon);
 			}
+			Pos = Pos->Next;
 		}
-		Pos = Pos->Next;
+		SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImgFileIcon);
+		ShowWindow(hWndListLocal, SW_SHOW);
+		SendMessage(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImgFileIcon);
+		ShowWindow(hWndListRemote, SW_SHOW);
 	}
-	SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
-	ShowWindow(hWndListLocal, SW_SHOW);
-	SendMessage(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
-	ShowWindow(hWndListRemote, SW_SHOW);
+	else
+	{
+		SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
+		ShowWindow(hWndListLocal, SW_SHOW);
+		SendMessage(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
+		ShowWindow(hWndListRemote, SW_SHOW);
+	}
 }
 
 void GetLocalDirForWnd(void)
@@ -1695,8 +1704,8 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 	else
 		LvItem.iImage = 4;
 	// ファイルアイコン表示対応
-	if(hWnd == GetLocalHwnd() && ImageId >= 0)
-		LvItem.iImage = 5 + ImageId;
+	if(AskDispFileIcon() == YES && hWnd == GetLocalHwnd())
+		LvItem.iImage = ImageId + 5;
 	LvItem.iItem = SendMessage(hWnd, LVM_INSERTITEM, 0, (LPARAM)&LvItem);
 
 	/* 日付/時刻 */

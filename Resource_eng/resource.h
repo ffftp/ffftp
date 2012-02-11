@@ -20,6 +20,7 @@
 #define rename_dlg                      110
 #define hlist_bmp                       110
 #define delete_dlg                      111
+#define dirattr16_bmp                   111
 #define hostlist_dlg                    112
 #define hostset_dlg                     113
 #define hset_main_dlg                   113
