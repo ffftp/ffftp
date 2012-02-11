@@ -1389,14 +1389,14 @@ BEGIN
     COMBOBOX        HSET_ERROR_MODE,7,71,71,75,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
 END
 
-savecrypt_dlg DIALOG  0, 0, 146, 50
+savecrypt_dlg DIALOG  0, 0, 146, 62
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "暗号化の状態の保存"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "現在の暗号化の状態を保存しますか？",-1,7,7,132,17
-    DEFPUSHBUTTON   "はい",IDOK,17,29,50,14
-    PUSHBUTTON      "いいえ",IDCANCEL,78,29,50,14
+    LTEXT           "現在の暗号化の状態を保存しますか？\r\n「はい」を選択すると次回から他の暗号化方式を試行しなくなります。",-1,7,7,132,29
+    DEFPUSHBUTTON   "はい",IDOK,17,41,50,14
+    PUSHBUTTON      "いいえ",IDCANCEL,78,41,50,14
 END
 
 updatesslroot_dlg DIALOG  0, 0, 211, 64
@@ -2059,7 +2059,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 139
         TOPMARGIN, 7
-        BOTTOMMARGIN, 43
+        BOTTOMMARGIN, 55
     END
 
     updatesslroot_dlg, DIALOG
