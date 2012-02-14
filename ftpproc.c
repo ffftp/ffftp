@@ -108,6 +108,8 @@ extern SIZE MirrorDlgSize;
 extern int VaxSemicolon;
 extern int DebugConsole;
 extern int CancelFlg;
+// ディレクトリ自動作成
+extern int MakeAllDir;
 
 /*===== ローカルなワーク =====*/
 
@@ -135,6 +137,46 @@ static double FileSize;		/* ファイル総容量 */
 *	Return Value
 *		なし
 *----------------------------------------------------------------------------*/
+
+// ディレクトリ自動作成
+// ローカル側のパスから必要なフォルダを作成
+int MakeDirFromLocalPath(char* LocalFile)
+{
+	TRANSPACKET Pkt;
+	char* pDelimiter;
+	char* pNext;
+	char* Cat;
+	int Len;
+	char Tmp[FMAX_PATH+1];
+	int Make;
+	pDelimiter = LocalFile;
+	Make = NO;
+	while(pNext = strchr(pDelimiter, '\\'))
+	{
+		Len = pNext - LocalFile;
+		strncpy(Pkt.LocalFile, LocalFile, Len);
+		Pkt.LocalFile[Len] = '\0';
+		AskLocalCurDir(Tmp, FMAX_PATH);
+		SetYenTail(Tmp);
+		if(strncmp(LocalFile, Tmp, Len + 1) != 0)
+		{
+			Cat = Pkt.LocalFile + (pDelimiter - LocalFile);
+			if(FnameCnv == FNAME_LOWER)
+				_mbslwr(Cat);
+			else if(FnameCnv == FNAME_UPPER)
+				_mbsupr(Cat);
+			ReplaceAll(Pkt.LocalFile, '/', '\\');
+
+			strcpy(Pkt.Cmd, "MKD ");
+			strcpy(Pkt.RemoteFile, "");
+			AddTransFileList(&Pkt);
+
+			Make = YES;
+		}
+		pDelimiter = pNext + 1;
+	}
+	return Make;
+}
 
 void DownLoadProc(int ChName, int ForceFile, int All)
 {
@@ -248,7 +290,13 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 				if(Pkt.Mode == EXIST_ABORT)
 					break;
 				else if(Pkt.Mode != EXIST_IGNORE)
+				// ディレクトリ自動作成
+//					AddTransFileList(&Pkt);
+				{
+					if(MakeAllDir == YES)
+						MakeDirFromLocalPath(Pkt.LocalFile);
 					AddTransFileList(&Pkt);
+				}
 			}
 			Pos = Pos->Next;
 		}
@@ -890,6 +938,72 @@ static INT_PTR CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM
 *		なし
 *----------------------------------------------------------------------------*/
 
+// ディレクトリ自動作成
+// リモート側のパスから必要なディレクトリを作成
+int MakeDirFromRemotePath(char* RemoteFile, int FirstAdd)
+{
+	TRANSPACKET Pkt;
+	TRANSPACKET Pkt1;
+	char* pDelimiter;
+	char* pNext;
+	char* Cat;
+	int Len;
+	char Tmp[FMAX_PATH+1];
+	int Make;
+	pDelimiter = RemoteFile;
+	Make = NO;
+	while(pNext = strchr(pDelimiter, '/'))
+	{
+		Len = pNext - RemoteFile;
+		strncpy(Pkt.RemoteFile, RemoteFile, Len);
+		Pkt.RemoteFile[Len] = '\0';
+		AskRemoteCurDir(Tmp, FMAX_PATH);
+		SetSlashTail(Tmp);
+		if(strncmp(RemoteFile, Tmp, Len + 1) != 0)
+		{
+			Cat = Pkt.RemoteFile + (pDelimiter - RemoteFile);
+			if(FnameCnv == FNAME_LOWER)
+				_mbslwr(Cat);
+			else if(FnameCnv == FNAME_UPPER)
+				_mbsupr(Cat);
+#if defined(HAVE_TANDEM)
+			Pkt.FileCode = 0;
+			Pkt.PriExt = DEF_PRIEXT;
+			Pkt.SecExt = DEF_SECEXT;
+			Pkt.MaxExt = DEF_MAXEXT;
+#endif
+			ReplaceAll(Pkt.RemoteFile, '\\', '/');
+
+			if(AskHostType() == HTYPE_ACOS)
+			{
+				strcpy(Pkt.RemoteFile, "'");
+				strcat(Pkt.RemoteFile, AskHostLsName());
+				strcat(Pkt.RemoteFile, "(");
+				strcat(Pkt.RemoteFile, Cat);
+				strcat(Pkt.RemoteFile, ")");
+				strcat(Pkt.RemoteFile, "'");
+			}
+			else if(AskHostType() == HTYPE_ACOS_4)
+				strcpy(Pkt.RemoteFile, Cat);
+
+			if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
+			{
+				strcpy(Pkt1.Cmd, "SETCUR");
+				AskRemoteCurDir(Pkt1.RemoteFile, FMAX_PATH);
+				AddTransFileList(&Pkt1);
+			}
+			FirstAdd = NO;
+			strcpy(Pkt.Cmd, "MKD ");
+			strcpy(Pkt.LocalFile, "");
+			AddTransFileList(&Pkt);
+
+			Make = YES;
+		}
+		pDelimiter = pNext + 1;
+	}
+	return Make;
+}
+
 void UpLoadListProc(int ChName, int All)
 {
 	FILELIST *FileListBase;
@@ -960,6 +1074,16 @@ void UpLoadListProc(int ChName, int All)
 					strcat(Pkt.RemoteFile, TmpString);
 				else
 					break;
+			}
+			// バグ修正
+			AskRemoteCurDir(Tmp, FMAX_PATH);
+			SetSlashTail(Tmp);
+			if(strncmp(Pkt.RemoteFile, Tmp, strlen(Tmp)) != 0)
+			{
+				if((Cat = strrchr(Pkt.RemoteFile, '/')) != NULL)
+					Cat++;
+				else
+					Cat = Pkt.RemoteFile;
 			}
 			ReplaceAll(Pkt.RemoteFile, '\\', '/');
 
@@ -1034,6 +1158,12 @@ void UpLoadListProc(int ChName, int All)
 					break;
 				else if(Pkt.Mode != EXIST_IGNORE)
 				{
+					// ディレクトリ自動作成
+					if(MakeAllDir == YES)
+					{
+						if(MakeDirFromRemotePath(Pkt.RemoteFile, FirstAdd) == YES)
+							FirstAdd = NO;
+					}
 					if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
 					{
 						strcpy(Pkt1.Cmd, "SETCUR");
@@ -1202,6 +1332,12 @@ void UpLoadDragProc(WPARAM wParam)
 					break;
 				else if(Pkt.Mode != EXIST_IGNORE)
 				{
+					// ディレクトリ自動作成
+					if(MakeAllDir == YES)
+					{
+						if(MakeDirFromRemotePath(Pkt.RemoteFile, FirstAdd) == YES)
+							FirstAdd = NO;
+					}
 					if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
 					{
 						strcpy(Pkt1.Cmd, "SETCUR");

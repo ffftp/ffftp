@@ -233,6 +233,8 @@ BYTE CertificateCacheHash[MAX_CERT_CACHE_HASH][20];
 BYTE SSLRootCAFileHash[20];
 // ファイルアイコン表示対応
 int DispFileIcon = NO;
+// ディレクトリ自動作成
+int MakeAllDir = YES;
 
 
 
