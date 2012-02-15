@@ -2684,6 +2684,10 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 		iRetCode = command(Pkt->ctrl_skt, Reply, &Canceled[Pkt->ThreadCount], "%s", Buf);
 		if((iRetCode/100) == FTP_PRELIM)
 		{
+			// STOUの応答を処理
+			// 応答の形式に規格が無くファイル名を取得できないため属性変更を無効化
+			if(Pkt->Mode == EXIST_UNIQUE)
+				Pkt->Attr = -1;
 			// 同時接続対応
 //			if(SocksGet2ndBindReply(listen_socket, &data_socket) == FFFTP_FAIL)
 			if(SocksGet2ndBindReply(listen_socket, &data_socket, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
@@ -2840,6 +2844,10 @@ static int UpLoadPassive(TRANSPACKET *Pkt)
 				iRetCode = command(Pkt->ctrl_skt, Reply, &Canceled[Pkt->ThreadCount], "%s", Buf);
 				if(iRetCode/100 == FTP_PRELIM)
 				{
+					// STOUの応答を処理
+					// 応答の形式に規格が無くファイル名を取得できないため属性変更を無効化
+					if(Pkt->Mode == EXIST_UNIQUE)
+						Pkt->Attr = -1;
 					// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 					ReleaseMutex(hListAccMutex);
 					// FTPS対応
