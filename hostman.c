@@ -319,8 +319,11 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 						CurrentHost = Item.lParam;
 						Level1 = IsNodeGroup(CurrentHost);
 
-						if(((Level1 == YES) && (DialogBox(GetFtpInst(), MAKEINTRESOURCE(groupdel_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)) ||
-						   ((Level1 == NO) && (DialogBox(GetFtpInst(), MAKEINTRESOURCE(hostdel_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)))
+						// バグ修正
+//						if(((Level1 == YES) && (DialogBox(GetFtpInst(), MAKEINTRESOURCE(groupdel_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)) ||
+//						   ((Level1 == NO) && (DialogBox(GetFtpInst(), MAKEINTRESOURCE(hostdel_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)))
+						if(((Level1 == YES) && (DialogBox(GetFtpInst(), MAKEINTRESOURCE(groupdel_dlg), hDlg, ExeEscDialogProc) == YES)) ||
+						   ((Level1 == NO) && (DialogBox(GetFtpInst(), MAKEINTRESOURCE(hostdel_dlg), hDlg, ExeEscDialogProc) == YES)))
 						{
 							DelHostFromList(CurrentHost);
 							if(CurrentHost >= Hosts)
