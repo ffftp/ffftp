@@ -930,7 +930,9 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 				DoPrintf("## Async set: FD_CONNECT|FD_CLOSE|FD_ACCEPT|FD_READ|FD_WRITE");
 #endif
 				RegistAsyncTable(Ret2);
-				if(WSAAsyncSelect(Ret2, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT | FD_READ | FD_WRITE) == SOCKET_ERROR)
+				// 高速化のためFD_READとFD_WRITEを使用しない
+//				if(WSAAsyncSelect(Ret2, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT | FD_READ | FD_WRITE) == SOCKET_ERROR)
+				if(WSAAsyncSelect(Ret2, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) == SOCKET_ERROR)
 				{
 					do_closesocket(Ret2);
 					Ret2 = INVALID_SOCKET;
@@ -1190,10 +1192,10 @@ void RemoveReceivedData(SOCKET s)
 {
 	char buf[1024];
 	int len;
-	int Error;
-	while((len = FTPS_recv(s, buf, sizeof(buf), MSG_PEEK)) >= 0)
+//	int Error;
+	while((len = FTPS_recv(s, buf, sizeof(buf), MSG_PEEK)) > 0)
 	{
-		AskAsyncDone(s, &Error, FD_READ);
+//		AskAsyncDone(s, &Error, FD_READ);
 		FTPS_recv(s, buf, len, 0);
 	}
 }
