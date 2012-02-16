@@ -1141,7 +1141,8 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //					if((strncmp(TransPacketBase->Cmd, "RETR", 4) == 0) ||
 //					   (strncmp(TransPacketBase->Cmd, "STOR", 4) == 0))
 					if((strncmp(Pos->Cmd, "RETR", 4) == 0) ||
-					   (strncmp(Pos->Cmd, "STOR", 4) == 0))
+					   (strncmp(Pos->Cmd, "STOR", 4) == 0) ||
+					   (strncmp(Pos->Cmd, "STOU", 4) == 0))
 					{
 //						TransFiles--;
 						if(TransFiles > 0)
