@@ -57,6 +57,11 @@ Changes in Ver.1.98e
 
 -- Enabled reusing sockets of the main window by default.
 
+-- Fixed bugs that attributes of existing files were changed on uploading with
+   renaming by hosts.
+
+-- Fixed bugs of hanging on exit in some cases.
+
 
 Outline
 -------
