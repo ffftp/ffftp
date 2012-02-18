@@ -127,7 +127,7 @@ int SelectHost(int Type)
 
 	/* ホスト設定を保存 */
 	SetNodeLevelAll();
-	SaveRegistory();
+	SaveRegistry();
 
 	return(Sts);
 }

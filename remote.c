@@ -523,7 +523,9 @@ SOCKET DoClose(SOCKET Sock)
 *		int 応答コードの１桁目
 *----------------------------------------------------------------------------*/
 
-int DoQUIT(SOCKET ctrl_skt)
+// 同時接続対応
+//int DoQUIT(SOCKET ctrl_skt)
+int DoQUIT(SOCKET ctrl_skt, int *CancelCheckWork)
 {
 	int Ret;
 
@@ -531,7 +533,7 @@ int DoQUIT(SOCKET ctrl_skt)
 	if(SendQuit == YES)
 		// 同時接続対応
 //		Ret = command(ctrl_skt, NULL, &CheckCancelFlg, "QUIT") / 100;
-		Ret = command(ctrl_skt, NULL, &CancelFlg, "QUIT") / 100;
+		Ret = command(ctrl_skt, NULL, CancelCheckWork, "QUIT") / 100;
 
 	return(Ret);
 }
@@ -637,7 +639,7 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, 
 	MainTransPkt.hWndTrans = hWnd;
 	MainTransPkt.Next = NULL;
 
-	Sts = DoDownLoad(cSkt, &MainTransPkt, YES, CancelCheckWork);
+	Sts = DoDownload(cSkt, &MainTransPkt, YES, CancelCheckWork);
 
 //#pragma aaa
 //DoPrintf("===== DoDirList Done.");

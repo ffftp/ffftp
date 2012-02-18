@@ -195,6 +195,8 @@ extern BYTE CertificateCacheHash[MAX_CERT_CACHE_HASH][20];
 extern BYTE SSLRootCAFileHash[20];
 // ファイルアイコン表示対応
 extern int DispFileIcon;
+// ディレクトリ自動作成
+extern int MakeAllDir;
 
 /*----- マスタパスワードの設定 ----------------------------------------------
 *
@@ -293,7 +295,7 @@ int ValidateMasterPassword(void)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void SaveRegistory(void)
+void SaveRegistry(void)
 {
 	void *hKey3;
 	void *hKey4;
@@ -615,6 +617,8 @@ void SaveRegistory(void)
 				WriteStringToReg(hKey4, "RootCertHash", Str);
 				// ファイルアイコン表示対応
 				WriteIntValueToReg(hKey4, "ListIcon", DispFileIcon);
+				// ディレクトリ自動作成
+				WriteIntValueToReg(hKey4, "MakeDir", MakeAllDir);
 			}
 			CloseSubKey(hKey4);
 		}
@@ -635,7 +639,7 @@ void SaveRegistory(void)
 *		NO:  読み出し失敗(設定無し)
 *----------------------------------------------------------------------------*/
 
-int LoadRegistory(void)
+int LoadRegistry(void)
 {
 	void *hKey3;
 	void *hKey4;
@@ -992,6 +996,8 @@ int LoadRegistory(void)
 			StrReadIn(Buf, sizeof(SSLRootCAFileHash), (char*)&SSLRootCAFileHash);
 			// ファイルアイコン表示対応
 			ReadIntValueFromReg(hKey4, "ListIcon", &DispFileIcon);
+			// ディレクトリ自動作成
+			ReadIntValueFromReg(hKey4, "MakeDir", &MakeAllDir);
 
 			CloseSubKey(hKey4);
 		}
@@ -1033,7 +1039,7 @@ int LoadRegistory(void)
 *			YES/NO=設定無し
 *----------------------------------------------------------------------------*/
 
-DWORD LoadHideDriveListRegistory(void)
+DWORD LoadHideDriveListRegistry(void)
 {
 	HKEY hKey1;
 	HKEY hKey2;
@@ -1085,7 +1091,7 @@ DWORD LoadHideDriveListRegistory(void)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void ClearRegistory(void)
+void ClearRegistry(void)
 {
 	HKEY hKey2;
 	HKEY hKey3;
@@ -1980,7 +1986,7 @@ static int CloseReg(void *Handle)
 			if(WriteOutRegToFile(Handle) == TRUE)
 			{
 //				/* レジストリをクリア */
-//				ClearRegistory();
+//				ClearRegistry();
 			}
 		}
 		/* テーブルを削除 */

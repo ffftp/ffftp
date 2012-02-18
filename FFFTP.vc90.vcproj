@@ -619,6 +619,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Resource\list_16.bmp"
+				>
+			</File>
+			<File
 				RelativePath=".\Resource\list_bmp.bmp"
 				>
 			</File>

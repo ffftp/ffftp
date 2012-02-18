@@ -62,6 +62,13 @@ Changes in Ver.1.98e
 
 -- Fixed bugs of hanging on exit in some cases.
 
+-- Fixed bugs of hanging at accessing non-existent directories without full
+   path.
+
+-- Changed behavior of Auto of network type selection.
+   Name resolution and connection will be performed at same time on IPv4 and
+   IPv6, and whichever finished earlier will be used.
+
 
 Outline
 -------

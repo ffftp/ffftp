@@ -354,7 +354,7 @@ BEGIN
     LTEXT           "",stc1,9,18,88,8
 END
 
-opt_user_dlg DIALOG  0, 0, 211, 139
+opt_user_dlg DIALOG  0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg"
 BEGIN
@@ -363,7 +363,7 @@ BEGIN
     LTEXT           "This address is used for the anonymous FTP password.",-1,28,36,169,18,SS_SUNKEN
 END
 
-opt_tool_dlg DIALOG  0, 0, 211, 139
+opt_tool_dlg DIALOG  0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg"
 BEGIN
@@ -449,7 +449,7 @@ BEGIN
     LTEXT           "Enter new folder name:",-1,7,7,160,8
 END
 
-opt_misc_dlg DIALOG  0, 0, 211, 139
+opt_misc_dlg DIALOG  0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg"
 BEGIN
@@ -552,7 +552,7 @@ BEGIN
     PUSHBUTTON      "No",IDCANCEL,112,42,50,14
 END
 
-opt_trmode2_dlg DIALOG  0, 0, 211, 139
+opt_trmode2_dlg DIALOG  0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg"
 BEGIN
@@ -570,7 +570,7 @@ BEGIN
     LTEXT           "Mirror Upload/Download settings are on the Mirror tab.",-1,18,56,181,17,SS_SUNKEN
 END
 
-opt_notify_dlg DIALOGEX 0, 0, 211, 139
+opt_notify_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
@@ -607,7 +607,7 @@ BEGIN
     PUSHBUTTON      "&Help",9,165,90,50,14
 END
 
-opt_fire_dlg DIALOG  0, 0, 211, 139
+opt_fire_dlg DIALOG  0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg"
 BEGIN
@@ -689,7 +689,7 @@ BEGIN
     LTEXT           "You can reenter mail address at the Option dialog.",-1,16,54,164,10
 END
 
-opt_sound_dlg DIALOG  0, 0, 211, 139
+opt_sound_dlg DIALOG  0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg"
 BEGIN
@@ -766,7 +766,7 @@ BEGIN
     CONTROL         "Hankaku to Zenkaku",HSET_FN_HANCNV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,111,108,91,10
 END
 
-opt_trmode1_dlg DIALOG  0, 0, 211, 139
+opt_trmode1_dlg DIALOG  0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg"
 BEGIN
@@ -774,15 +774,17 @@ BEGIN
     CONTROL         "Always &ASCII mode",TRMODE_ASCII,"Button",BS_AUTORADIOBUTTON | WS_GROUP,13,19,85,10
     CONTROL         "Always &BINARY mode",TRMODE_BIN,"Button",BS_AUTORADIOBUTTON,13,33,84,10
     CONTROL         "&Filename dependent",TRMODE_AUTO,"Button",BS_AUTORADIOBUTTON,13,47,78,10
+    LTEXT           "->",-1,98,49,8,8
     GROUPBOX        "ASCII mode Filenames",-1,104,7,99,84,WS_GROUP
     LISTBOX         TRMODE_EXT_LIST,109,19,53,67,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "A&dd...",TRMODE_ADD,167,19,31,14
     PUSHBUTTON      "Delete",TRMODE_DEL,167,38,31,14
     CONTROL         "&Remove EOF for ASCII mode upload",TRMODE_EOF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,94,196,10
-    CONTROL         "Re&tain file date/time on download",TRMODE_TIME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,196,10
-    LTEXT           "->",-1,98,49,8,8
+    CONTROL         "Retain file date/&time on download",TRMODE_TIME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,196,10
     CONTROL         "Truncate filename before &semicolon on download",TRMODE_SEMICOLON,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,196,10
+    CONTROL         "Create &directory at file transfer with renaming",TRMODE_MAKEDIR,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,136,196,10
 END
 
 up_exist_dlg DIALOG  0, 0, 234, 119
@@ -913,7 +915,7 @@ BEGIN
     CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,164,30,16,8
 END
 
-opt_mirror_dlg DIALOG  0, 0, 211, 139
+opt_mirror_dlg DIALOG  0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg"
 BEGIN
@@ -958,7 +960,7 @@ BEGIN
     CONTROL         "",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_DISABLED | WS_TABSTOP,164,30,16,8
 END
 
-opt_connect_dlg DIALOG  0, 0, 211, 139
+opt_connect_dlg DIALOG  0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg"
 BEGIN
@@ -1048,7 +1050,7 @@ BEGIN
     CTEXT           "Stop processing.",-1,7,20,141,8
 END
 
-opt_trmode3_dlg DIALOG  0, 0, 211, 139
+opt_trmode3_dlg DIALOG  0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg"
 BEGIN
@@ -1306,7 +1308,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,96,63,50,14
 END
 
-opt_disp_dlg DIALOG  0, 0, 211, 139
+opt_disp_dlg DIALOG  0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg"
 BEGIN
@@ -1512,7 +1514,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 204
         TOPMARGIN, 7
-        BOTTOMMARGIN, 134
+        BOTTOMMARGIN, 148
     END
 
     opt_tool_dlg, DIALOG
@@ -1520,7 +1522,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 204
         TOPMARGIN, 7
-        BOTTOMMARGIN, 132
+        BOTTOMMARGIN, 148
     END
 
     chmod_dlg, DIALOG
@@ -1552,7 +1554,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 204
         TOPMARGIN, 7
-        BOTTOMMARGIN, 132
+        BOTTOMMARGIN, 148
     END
 
     hostname_dlg, DIALOG
@@ -1615,7 +1617,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 204
         TOPMARGIN, 7
-        BOTTOMMARGIN, 135
+        BOTTOMMARGIN, 148
     END
 
     opt_notify_dlg, DIALOG
@@ -1623,7 +1625,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 204
         TOPMARGIN, 7
-        BOTTOMMARGIN, 132
+        BOTTOMMARGIN, 148
     END
 
     bmark_dlg, DIALOG
@@ -1639,7 +1641,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 204
         TOPMARGIN, 7
-        BOTTOMMARGIN, 132
+        BOTTOMMARGIN, 148
     END
 
     hset_adv_dlg, DIALOG
@@ -1679,7 +1681,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 204
         TOPMARGIN, 7
-        BOTTOMMARGIN, 132
+        BOTTOMMARGIN, 148
     END
 
     downerr_dlg, DIALOG
@@ -1711,7 +1713,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 204
         TOPMARGIN, 7
-        BOTTOMMARGIN, 135
+        BOTTOMMARGIN, 148
     END
 
     up_exist_dlg, DIALOG
@@ -1791,7 +1793,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 204
         TOPMARGIN, 7
-        BOTTOMMARGIN, 135
+        BOTTOMMARGIN, 148
     END
 
     somecmd_dlg, DIALOG
@@ -1815,7 +1817,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 204
         TOPMARGIN, 7
-        BOTTOMMARGIN, 132
+        BOTTOMMARGIN, 148
     END
 
     rasnotify_dlg, DIALOG
@@ -1863,7 +1865,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 204
         TOPMARGIN, 7
-        BOTTOMMARGIN, 135
+        BOTTOMMARGIN, 148
     END
 
     def_attr_dlg, DIALOG
@@ -2023,7 +2025,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 204
         TOPMARGIN, 7
-        BOTTOMMARGIN, 132
+        BOTTOMMARGIN, 148
     END
 
     bmark_edit_dlg, DIALOG

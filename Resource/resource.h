@@ -215,6 +215,7 @@
 #define CONNECT_RASCLOSE                1014
 #define FIRE_LOWER                      1014
 #define MIRROR_TIMECHECK                1014
+#define TRMODE_MAKEDIR                  1014
 #define TOOL_EDITOR_BR                  1015
 #define PERM_A_READ                     1015
 #define SOUND_TRNNG                     1015

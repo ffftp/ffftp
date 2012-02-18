@@ -91,10 +91,10 @@ typedef struct {
 static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static int AskAsyncDone(SOCKET s, int *Error, int Mask);
 static int AskAsyncDoneDbase(HANDLE Async, int *Error);
-static int RegistAsyncTable(SOCKET s);
-static int RegistAsyncTableDbase(HANDLE Async);
-static int UnRegistAsyncTable(SOCKET s);
-static int UnRegistAsyncTableDbase(HANDLE Async);
+static int RegisterAsyncTable(SOCKET s);
+static int RegisterAsyncTableDbase(HANDLE Async);
+static int UnregisterAsyncTable(SOCKET s);
+static int UnregisterAsyncTableDbase(HANDLE Async);
 
 
 /*===== 外部参照 =====*/
@@ -275,7 +275,7 @@ static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 
 		case WM_ASYNC_DBASE :
 			// APIの仕様上ハンドルが登録される前にウィンドウメッセージが呼び出される可能性あり
-			RegistAsyncTableDbase((HANDLE)wParam);
+			RegisterAsyncTableDbase((HANDLE)wParam);
 			// スレッド衝突のバグ修正
 			WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
 			for(Pos = 0; Pos < MAX_SIGNAL_ENTRY_DBASE; Pos++)
@@ -450,7 +450,7 @@ static int AskAsyncDoneDbase(HANDLE Async, int *Error)
 *		
 *----------------------------------------------------------------------------*/
 
-static int RegistAsyncTable(SOCKET s)
+static int RegisterAsyncTable(SOCKET s)
 {
 	int Sts;
 	int Pos;
@@ -516,7 +516,7 @@ static int RegistAsyncTable(SOCKET s)
 *		
 *----------------------------------------------------------------------------*/
 
-static int RegistAsyncTableDbase(HANDLE Async)
+static int RegisterAsyncTableDbase(HANDLE Async)
 {
 	int Sts;
 	int Pos;
@@ -578,7 +578,7 @@ static int RegistAsyncTableDbase(HANDLE Async)
 *		
 *----------------------------------------------------------------------------*/
 
-static int UnRegistAsyncTable(SOCKET s)
+static int UnregisterAsyncTable(SOCKET s)
 {
 	int Sts;
 	int Pos;
@@ -613,7 +613,7 @@ static int UnRegistAsyncTable(SOCKET s)
 *		
 *----------------------------------------------------------------------------*/
 
-static int UnRegistAsyncTableDbase(HANDLE Async)
+static int UnregisterAsyncTableDbase(HANDLE Async)
 {
 	int Sts;
 	int Pos;
@@ -666,7 +666,7 @@ struct hostent *do_gethostbynameIPv4(const char *Name, char *Buf, int Len, int *
 	hAsync = WSAAsyncGetHostByNameM(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len);
 	if(hAsync != NULL)
 	{
-		RegistAsyncTableDbase(hAsync);
+		RegisterAsyncTableDbase(hAsync);
 		while((*CancelCheckWork == NO) && (AskAsyncDoneDbase(hAsync, &Error) != YES))
 		{
 			Sleep(1);
@@ -682,7 +682,7 @@ struct hostent *do_gethostbynameIPv4(const char *Name, char *Buf, int Len, int *
 		{
 			Ret = (struct hostent *)Buf;
 		}
-		UnRegistAsyncTableDbase(hAsync);
+		UnregisterAsyncTableDbase(hAsync);
 	}
 	return(Ret);
 #else
@@ -710,7 +710,7 @@ struct hostent *do_gethostbynameIPv6(const char *Name, char *Buf, int Len, int *
 	hAsync = WSAAsyncGetHostByNameIPv6M(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len, AF_INET6);
 	if(hAsync != NULL)
 	{
-		RegistAsyncTableDbase(hAsync);
+		RegisterAsyncTableDbase(hAsync);
 		while((*CancelCheckWork == NO) && (AskAsyncDoneDbase(hAsync, &Error) != YES))
 		{
 			Sleep(1);
@@ -726,7 +726,7 @@ struct hostent *do_gethostbynameIPv6(const char *Name, char *Buf, int Len, int *
 		{
 			Ret = (struct hostent *)Buf;
 		}
-		UnRegistAsyncTableDbase(hAsync);
+		UnregisterAsyncTableDbase(hAsync);
 	}
 	return(Ret);
 #else
@@ -745,7 +745,7 @@ SOCKET do_socket(int af, int type, int protocol)
 	Ret = socket(af, type, protocol);
 	if(Ret != INVALID_SOCKET)
 	{
-		RegistAsyncTable(Ret);
+		RegisterAsyncTable(Ret);
 	}
 #if DBG_MSG
 	DoPrintf("# do_socket (S=%x)", Ret);
@@ -769,7 +769,7 @@ int do_closesocket(SOCKET s)
 
 	// スレッド衝突のバグ修正
 	WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, 0);
-	UnRegistAsyncTable(s);
+	UnregisterAsyncTable(s);
 	// FTPS対応
 //	Ret = closesocket(s);
 	Ret = FTPS_closesocket(s);
@@ -792,7 +792,7 @@ int do_closesocket(SOCKET s)
 	if(BackgrndMessageProc() == YES)
 		CancelCheckWork = YES;
 	// スレッド衝突のバグ修正
-//	UnRegistAsyncTable(s);
+//	UnregisterAsyncTable(s);
 
 #if DBG_MSG
 	DoPrintf("# Exit close");
@@ -929,7 +929,7 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 				DoPrintf("## do_sccept (S=%x)", Ret2);
 				DoPrintf("## Async set: FD_CONNECT|FD_CLOSE|FD_ACCEPT|FD_READ|FD_WRITE");
 #endif
-				RegistAsyncTable(Ret2);
+				RegisterAsyncTable(Ret2);
 				// 高速化のためFD_READとFD_WRITEを使用しない
 //				if(WSAAsyncSelect(Ret2, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT | FD_READ | FD_WRITE) == SOCKET_ERROR)
 				if(WSAAsyncSelect(Ret2, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) == SOCKET_ERROR)

@@ -1537,12 +1537,12 @@ void CountPrevFfftpWindows(void);
 
 /*===== ftpproc.c =====*/
 
-void DownLoadProc(int ChName, int ForceFile, int All);
-void DirectDownLoadProc(char *Fname);
-void InputDownLoadProc(void);
+void DownloadProc(int ChName, int ForceFile, int All);
+void DirectDownloadProc(char *Fname);
+void InputDownloadProc(void);
 void MirrorDownloadProc(int Notify);
-void UpLoadListProc(int ChName, int All);
-void UpLoadDragProc(WPARAM wParam);
+void UploadListProc(int ChName, int All);
+void UploadDragProc(WPARAM wParam);
 void MirrorUploadProc(int Notify);
 void DeleteProc(void);
 void RenameProc(void);
@@ -1603,7 +1603,9 @@ int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork);
 //int DoQUOTE(char *CmdStr);
 int DoQUOTE(SOCKET cSkt, char *CmdStr, int *CancelCheckWork);
 SOCKET DoClose(SOCKET Sock);
-int DoQUIT(SOCKET ctrl_skt);
+// 同時接続対応
+//int DoQUIT(SOCKET ctrl_skt);
+int DoQUIT(SOCKET ctrl_skt, int *CancelCheckWork);
 int DoDirListCmdSkt(char *AddOpt, char *Path, int Num, int *CancelCheckWork);
 #if defined(HAVE_TANDEM)
 void SwitchOSSProc(void);
@@ -1636,7 +1638,7 @@ int AskTransferNow(void);
 int AskTransferFileNum(void);
 void GoForwardTransWindow(void);
 void InitTransCurDir(void);
-int DoDownLoad(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork);
+int DoDownload(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork);
 int CheckPathViolation(TRANSPACKET *packet);
 
 /*===== codecnv.c =====*/
@@ -1696,13 +1698,13 @@ int CheckFname(char *str, char *regexp);
 
 /*===== registory.c =====*/
 
-void SaveRegistory(void);
-int LoadRegistory(void);
-void ClearRegistory(void);
+void SaveRegistry(void);
+int LoadRegistry(void);
+void ClearRegistry(void);
 void SetMasterPassword( const char* );
 int GetMasterPasswordStatus(void);
 int ValidateMasterPassword(void);
-DWORD LoadHideDriveListRegistory(void);
+DWORD LoadHideDriveListRegistry(void);
 void SaveSettingsToFile(void);
 int LoadSettingsFromFile(void);
 

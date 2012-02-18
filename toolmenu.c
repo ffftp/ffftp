@@ -315,7 +315,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 			/* ドライブ名をセットしておく */
 			GetLogicalDriveStrings(FMAX_PATH, Tmp);
-			NoDrives = LoadHideDriveListRegistory();
+			NoDrives = LoadHideDriveListRegistry();
 			Pos = Tmp;
 			while(*Pos != NUL)
 			{

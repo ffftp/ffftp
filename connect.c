@@ -340,7 +340,7 @@ void QuickConnectProc(void)
 				EnableUserOpe();
 
 				if(strlen(File) > 0)
-					DirectDownLoadProc(File);
+					DirectDownloadProc(File);
 			}
 			else
 			{
@@ -528,7 +528,7 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 			EnableUserOpe();
 
 			if(strlen(File) > 0)
-				DirectDownLoadProc(File);
+				DirectDownloadProc(File);
 			else
 				ResetAutoExitFlg();
 		}
@@ -1265,13 +1265,17 @@ void DisconnectProc(void)
 
 	if((CmdCtrlSocket != INVALID_SOCKET) && (CmdCtrlSocket != TrnCtrlSocket))
 	{
-		DoQUIT(CmdCtrlSocket);
+		// 同時接続対応
+//		DoQUIT(CmdCtrlSocket);
+		DoQUIT(CmdCtrlSocket, &CancelFlg);
 		DoClose(CmdCtrlSocket);
 	}
 
 	if(TrnCtrlSocket != INVALID_SOCKET)
 	{
-		DoQUIT(TrnCtrlSocket);
+		// 同時接続対応
+//		DoQUIT(TrnCtrlSocket);
+		DoQUIT(TrnCtrlSocket, &CancelFlg);
 		DoClose(TrnCtrlSocket);
 
 		SaveCurrentSetToHistory();
@@ -1994,17 +1998,109 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 *----------------------------------------------------------------------------*/
 
 // IPv6対応
+typedef SOCKET (__cdecl* LPCONNECTSOCK)(char*, int, char*, int*);
+
+typedef struct
+{
+	HANDLE h;
+	DWORD ExitCode;
+	char *host;
+	int port;
+	char *PreMsg;
+	int CancelCheckWork;
+	LPCONNECTSOCK f;
+	SOCKET s;
+} CONNECTSOCKDATA;
+
+DWORD WINAPI connectsockThreadProc(LPVOID lpParameter)
+{
+	CONNECTSOCKDATA* pData;
+	pData = (CONNECTSOCKDATA*)lpParameter;
+	pData->s = pData->f(pData->host, pData->port, pData->PreMsg, &pData->CancelCheckWork);
+	return 0;
+}
+
+// IPv6対応
 SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 {
 	SOCKET Result;
+	CONNECTSOCKDATA DataIPv4;
+	CONNECTSOCKDATA DataIPv6;
 	Result = INVALID_SOCKET;
 	switch(CurHost.CurNetType)
 	{
 	case NTYPE_AUTO:
-		if((Result = connectsockIPv4(host, port, PreMsg, CancelCheckWork)) != INVALID_SOCKET)
-			CurHost.CurNetType = NTYPE_IPV4;
-		else if((Result = connectsockIPv6(host, port, PreMsg, CancelCheckWork)) != INVALID_SOCKET)
-			CurHost.CurNetType = NTYPE_IPV6;
+//		if((Result = connectsockIPv4(host, port, PreMsg, CancelCheckWork)) != INVALID_SOCKET)
+//			CurHost.CurNetType = NTYPE_IPV4;
+//		else if((Result = connectsockIPv6(host, port, PreMsg, CancelCheckWork)) != INVALID_SOCKET)
+//			CurHost.CurNetType = NTYPE_IPV6;
+		DataIPv4.host = host;
+		DataIPv4.port = port;
+		DataIPv4.PreMsg = PreMsg;
+		DataIPv4.CancelCheckWork = *CancelCheckWork;
+		DataIPv4.f = connectsockIPv4;
+		DataIPv4.h = CreateThread(NULL, 0, connectsockThreadProc, &DataIPv4, 0, NULL);
+		DataIPv6.host = host;
+		DataIPv6.port = port;
+		DataIPv6.PreMsg = PreMsg;
+		DataIPv6.CancelCheckWork = *CancelCheckWork;
+		DataIPv6.f = connectsockIPv6;
+		DataIPv6.h = CreateThread(NULL, 0, connectsockThreadProc, &DataIPv6, 0, NULL);
+		while(1)
+		{
+			if(GetExitCodeThread(DataIPv4.h, &DataIPv4.ExitCode))
+			{
+				if(DataIPv4.ExitCode != STILL_ACTIVE)
+				{
+					if(DataIPv4.s != INVALID_SOCKET)
+					{
+						Result = DataIPv4.s;
+						CurHost.CurNetType = NTYPE_IPV4;
+						break;
+					}
+				}
+			}
+			if(GetExitCodeThread(DataIPv6.h, &DataIPv6.ExitCode))
+			{
+				if(DataIPv6.ExitCode != STILL_ACTIVE)
+				{
+					if(DataIPv6.s != INVALID_SOCKET)
+					{
+						Result = DataIPv6.s;
+						CurHost.CurNetType = NTYPE_IPV6;
+						break;
+					}
+				}
+			}
+			if(GetExitCodeThread(DataIPv4.h, &DataIPv4.ExitCode) && GetExitCodeThread(DataIPv6.h, &DataIPv6.ExitCode))
+			{
+				if(DataIPv4.ExitCode != STILL_ACTIVE && DataIPv6.ExitCode != STILL_ACTIVE)
+				{
+					if(DataIPv4.s == INVALID_SOCKET && DataIPv6.s == INVALID_SOCKET)
+						break;
+				}
+			}
+			DataIPv4.CancelCheckWork = *CancelCheckWork;
+			DataIPv6.CancelCheckWork = *CancelCheckWork;
+			BackgrndMessageProc();
+			Sleep(1);
+		}
+		while(1)
+		{
+			if(GetExitCodeThread(DataIPv4.h, &DataIPv4.ExitCode) && GetExitCodeThread(DataIPv6.h, &DataIPv6.ExitCode))
+			{
+				if(DataIPv4.ExitCode != STILL_ACTIVE && DataIPv6.ExitCode != STILL_ACTIVE)
+				{
+					CloseHandle(DataIPv4.h);
+					CloseHandle(DataIPv6.h);
+					break;
+				}
+			}
+			DataIPv4.CancelCheckWork = YES;
+			DataIPv6.CancelCheckWork = YES;
+			BackgrndMessageProc();
+			Sleep(1);
+		}
 		break;
 	case NTYPE_IPV4:
 		Result = connectsockIPv4(host, port, PreMsg, CancelCheckWork);
@@ -2067,7 +2163,9 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 		else
 		{
 			// アドレスを取得
-			SetTaskMsg(MSGJPN016, DomainName);
+			// IPv6対応
+//			SetTaskMsg(MSGJPN016, DomainName);
+			SetTaskMsg(MSGJPN016, DomainName, MSGJPN333);
 			// IPv6対応
 //			pHostEntry = do_gethostbyname(host, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork);
 			pHostEntry = do_gethostbynameIPv4(host, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork);
@@ -2079,7 +2177,9 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 //			memcpy((char *)&CurSockAddr.sin_addr, pHostEntry->h_addr, pHostEntry->h_length);
 //			SetTaskMsg(MSGJPN017, PreMsg, DomainName, inet_ntoa(CurSockAddr.sin_addr), ntohs(CurSockAddr.sin_port));
 			memcpy((char *)&CurSockAddrIPv4.sin_addr, pHostEntry->h_addr, pHostEntry->h_length);
-			SetTaskMsg(MSGJPN017, PreMsg, DomainName, inet_ntoa(CurSockAddrIPv4.sin_addr), ntohs(CurSockAddrIPv4.sin_port));
+			// IPv6対応
+//			SetTaskMsg(MSGJPN017, PreMsg, DomainName, inet_ntoa(CurSockAddrIPv4.sin_addr), ntohs(CurSockAddrIPv4.sin_port));
+			SetTaskMsg(MSGJPN017, PreMsg, DomainName, inet_ntoa(CurSockAddrIPv4.sin_addr), ntohs(CurSockAddrIPv4.sin_port), MSGJPN333);
 		}
 		else
 		{
@@ -2088,11 +2188,13 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 				UseIPadrs = NO;
 				// IPv6対応
 //				SetTaskMsg(MSGJPN018, PreMsg, DomainName, ntohs(CurSockAddr.sin_port));
-				SetTaskMsg(MSGJPN018, PreMsg, DomainName, ntohs(CurSockAddrIPv4.sin_port));
+				SetTaskMsg(MSGJPN018, PreMsg, DomainName, ntohs(CurSockAddrIPv4.sin_port), MSGJPN333);
 			}
 			else
 			{
-				SetTaskMsg(MSGJPN019, host);
+				// IPv6対応
+//				SetTaskMsg(MSGJPN019, host);
+				SetTaskMsg(MSGJPN019, host, MSGJPN333);
 				return(INVALID_SOCKET);
 			}
 		}
@@ -2100,7 +2202,7 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 	else
 		// IPv6対応
 //		SetTaskMsg(MSGJPN020, PreMsg, inet_ntoa(CurSockAddr.sin_addr), ntohs(CurSockAddr.sin_port));
-		SetTaskMsg(MSGJPN020, PreMsg, inet_ntoa(CurSockAddrIPv4.sin_addr), ntohs(CurSockAddrIPv4.sin_port));
+		SetTaskMsg(MSGJPN020, PreMsg, inet_ntoa(CurSockAddrIPv4.sin_addr), ntohs(CurSockAddrIPv4.sin_port), MSGJPN333);
 
 	if((Fwall == FWALL_SOCKS4) || (Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
 	{
@@ -2138,7 +2240,9 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 				memcpy((char *)&SocksSockAddrIPv4.sin_addr, pHostEntry->h_addr, pHostEntry->h_length);
 			else
 			{
-				SetTaskMsg(MSGJPN021, FwallHost);
+				// IPv6対応
+//				SetTaskMsg(MSGJPN021, FwallHost);
+				SetTaskMsg(MSGJPN021, FwallHost, MSGJPN333);
 				return INVALID_SOCKET;
 			}
 		}
@@ -2148,7 +2252,9 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 //		SetTaskMsg(MSGJPN022, inet_ntoa(SocksSockAddr.sin_addr), ntohs(SocksSockAddr.sin_port));
 		SocksSockAddrIPv4.sin_port = htons((u_short)FwallPort);
 		SocksSockAddrIPv4.sin_family = AF_INET;
-		SetTaskMsg(MSGJPN022, inet_ntoa(SocksSockAddrIPv4.sin_addr), ntohs(SocksSockAddrIPv4.sin_port));
+		// IPv6対応
+//		SetTaskMsg(MSGJPN022, inet_ntoa(SocksSockAddrIPv4.sin_addr), ntohs(SocksSockAddrIPv4.sin_port));
+		SetTaskMsg(MSGJPN022, inet_ntoa(SocksSockAddrIPv4.sin_addr), ntohs(SocksSockAddrIPv4.sin_port), MSGJPN333);
 		// connectで接続する先はSOCKSサーバ
 		// IPv6対応
 //		memcpy(&saSockAddr, &SocksSockAddr, sizeof(SocksSockAddr));
@@ -2181,7 +2287,9 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 				   (Socks4GetCmdReply(sSocket, &Socks4Reply, CancelCheckWork) != FFFTP_SUCCESS) || 
 				   (Socks4Reply.Result != SOCKS4_RES_OK))
 				{
-					SetTaskMsg(MSGJPN023, Socks4Reply.Result);
+					// IPv6対応
+//					SetTaskMsg(MSGJPN023, Socks4Reply.Result);
+					SetTaskMsg(MSGJPN023, Socks4Reply.Result, MSGJPN333);
 					DoClose(sSocket);
 					sSocket = INVALID_SOCKET;
 				}
@@ -2203,7 +2311,9 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 				   (Socks5GetCmdReply(sSocket, &Socks5Reply, CancelCheckWork) != FFFTP_SUCCESS) || 
 				   (Socks5Reply.Result != SOCKS5_RES_OK))
 				{
-					SetTaskMsg(MSGJPN024, Socks5Reply.Result);
+					// IPv6対応
+//					SetTaskMsg(MSGJPN024, Socks5Reply.Result);
+					SetTaskMsg(MSGJPN024, Socks5Reply.Result, MSGJPN333);
 					DoClose(sSocket);
 					sSocket = INVALID_SOCKET;
 				}
@@ -2211,18 +2321,24 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			}
 
 			if(sSocket != INVALID_SOCKET)
-				SetTaskMsg(MSGJPN025);
+				// IPv6対応
+//				SetTaskMsg(MSGJPN025);
+				SetTaskMsg(MSGJPN025, MSGJPN333);
 		}
 		else
 		{
 //#pragma aaa
-			SetTaskMsg(MSGJPN026/*"接続できません(2) %x", sSocket*/);
+			// IPv6対応
+//			SetTaskMsg(MSGJPN026/*"接続できません(2) %x", sSocket*/);
+			SetTaskMsg(MSGJPN026/*"接続できません(2) %x", sSocket*/, MSGJPN333);
 			DoClose(sSocket);
 			sSocket = INVALID_SOCKET;
 		}
 	}
 	else
-		SetTaskMsg(MSGJPN027);
+		// IPv6対応
+//		SetTaskMsg(MSGJPN027);
+		SetTaskMsg(MSGJPN027, MSGJPN333);
 
 	return(sSocket);
 }
@@ -2268,31 +2384,31 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 		else
 		{
 			// アドレスを取得
-			SetTaskMsg(MSGJPN016, DomainName);
+			SetTaskMsg(MSGJPN016, DomainName, MSGJPN334);
 			pHostEntry = do_gethostbynameIPv6(host, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork);
 		}
 
 		if(pHostEntry != NULL)
 		{
 			memcpy((char *)&CurSockAddrIPv6.sin6_addr, pHostEntry->h_addr, pHostEntry->h_length);
-			SetTaskMsg(MSGJPN017, PreMsg, DomainName, inet6_ntoa(CurSockAddrIPv6.sin6_addr), ntohs(CurSockAddrIPv6.sin6_port));
+			SetTaskMsg(MSGJPN017, PreMsg, DomainName, inet6_ntoa(CurSockAddrIPv6.sin6_addr), ntohs(CurSockAddrIPv6.sin6_port), MSGJPN334);
 		}
 		else
 		{
 			if((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
 			{
 				UseIPadrs = NO;
-				SetTaskMsg(MSGJPN018, PreMsg, DomainName, ntohs(CurSockAddrIPv6.sin6_port));
+				SetTaskMsg(MSGJPN018, PreMsg, DomainName, ntohs(CurSockAddrIPv6.sin6_port), MSGJPN334);
 			}
 			else
 			{
-				SetTaskMsg(MSGJPN019, host);
+				SetTaskMsg(MSGJPN019, host, MSGJPN334);
 				return(INVALID_SOCKET);
 			}
 		}
 	}
 	else
-		SetTaskMsg(MSGJPN020, PreMsg, inet6_ntoa(CurSockAddrIPv6.sin6_addr), ntohs(CurSockAddrIPv6.sin6_port));
+		SetTaskMsg(MSGJPN020, PreMsg, inet6_ntoa(CurSockAddrIPv6.sin6_addr), ntohs(CurSockAddrIPv6.sin6_port), MSGJPN334);
 
 	if((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
 	{
@@ -2310,13 +2426,13 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 				memcpy((char *)&SocksSockAddrIPv6.sin6_addr, pHostEntry->h_addr, pHostEntry->h_length);
 			else
 			{
-				SetTaskMsg(MSGJPN021, FwallHost);
+				SetTaskMsg(MSGJPN021, FwallHost, MSGJPN334);
 				return INVALID_SOCKET;
 			}
 		}
 		SocksSockAddrIPv6.sin6_port = htons((u_short)FwallPort);
 		SocksSockAddrIPv6.sin6_family = AF_INET6;
-		SetTaskMsg(MSGJPN022, inet6_ntoa(SocksSockAddrIPv6.sin6_addr), ntohs(SocksSockAddrIPv6.sin6_port));
+		SetTaskMsg(MSGJPN022, inet6_ntoa(SocksSockAddrIPv6.sin6_addr), ntohs(SocksSockAddrIPv6.sin6_port), MSGJPN334);
 		// connectで接続する先はSOCKSサーバ
 		memcpy(&saSockAddr, &SocksSockAddrIPv6, sizeof(SocksSockAddrIPv6));
 	}
@@ -2352,7 +2468,7 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 				   (Socks5GetCmdReply(sSocket, &Socks5Reply, CancelCheckWork) != FFFTP_SUCCESS) || 
 				   (Socks5Reply.Result != SOCKS5_RES_OK))
 				{
-					SetTaskMsg(MSGJPN024, Socks5Reply.Result);
+					SetTaskMsg(MSGJPN024, Socks5Reply.Result, MSGJPN334);
 					DoClose(sSocket);
 					sSocket = INVALID_SOCKET;
 				}
@@ -2360,18 +2476,18 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			}
 
 			if(sSocket != INVALID_SOCKET)
-				SetTaskMsg(MSGJPN025);
+				SetTaskMsg(MSGJPN025, MSGJPN334);
 		}
 		else
 		{
 //#pragma aaa
-			SetTaskMsg(MSGJPN026/*"接続できません(2) %x", sSocket*/);
+			SetTaskMsg(MSGJPN026/*"接続できません(2) %x", sSocket*/, MSGJPN334);
 			DoClose(sSocket);
 			sSocket = INVALID_SOCKET;
 		}
 	}
 	else
-		SetTaskMsg(MSGJPN027);
+		SetTaskMsg(MSGJPN027, MSGJPN334);
 
 	return(sSocket);
 }
@@ -2454,7 +2570,9 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 				   (Socks4GetCmdReply(listen_skt, &Socks4Reply, CancelCheckWork) != FFFTP_SUCCESS) || 
 				   (Socks4Reply.Result != SOCKS4_RES_OK))
 				{
-					SetTaskMsg(MSGJPN028, Socks4Reply.Result);
+					// IPv6対応
+//					SetTaskMsg(MSGJPN028, Socks4Reply.Result);
+					SetTaskMsg(MSGJPN028, Socks4Reply.Result, MSGJPN333);
 					DoClose(listen_skt);
 					listen_skt = INVALID_SOCKET;
 				}
@@ -2496,7 +2614,9 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 				   (Socks5GetCmdReply(listen_skt, &Socks5Reply, CancelCheckWork) != FFFTP_SUCCESS) || 
 				   (Socks5Reply.Result != SOCKS5_RES_OK))
 				{
-					SetTaskMsg(MSGJPN029, Socks5Reply.Result);
+					// IPv6対応
+//					SetTaskMsg(MSGJPN029, Socks5Reply.Result);
+					SetTaskMsg(MSGJPN029, Socks5Reply.Result, MSGJPN333);
 					DoClose(listen_skt);
 					listen_skt = INVALID_SOCKET;
 				}
@@ -2556,7 +2676,9 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 			}
 
 			if(listen_skt == INVALID_SOCKET)
-				SetTaskMsg(MSGJPN030);
+				// IPv6対応
+//				SetTaskMsg(MSGJPN030);
+				SetTaskMsg(MSGJPN030, MSGJPN333);
 		}
 	}
 	else
@@ -2573,7 +2695,9 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 				UC(a[0]), UC(a[1]), UC(a[2]), UC(a[3]),
 				UC(p[0]), UC(p[1])) / 100) != FTP_COMPLETE)
 		{
-			SetTaskMsg(MSGJPN031);
+			// IPv6対応
+//			SetTaskMsg(MSGJPN031);
+			SetTaskMsg(MSGJPN031, MSGJPN333);
 			do_closesocket(listen_skt);
 			listen_skt = INVALID_SOCKET;
 		}
@@ -2630,7 +2754,7 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 				   (Socks5GetCmdReply(listen_skt, &Socks5Reply, CancelCheckWork) != FFFTP_SUCCESS) || 
 				   (Socks5Reply.Result != SOCKS5_RES_OK))
 				{
-					SetTaskMsg(MSGJPN029, Socks5Reply.Result);
+					SetTaskMsg(MSGJPN029, Socks5Reply.Result, MSGJPN334);
 					DoClose(listen_skt);
 					listen_skt = INVALID_SOCKET;
 				}
@@ -2690,7 +2814,7 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 			}
 
 			if(listen_skt == INVALID_SOCKET)
-				SetTaskMsg(MSGJPN030);
+				SetTaskMsg(MSGJPN030, MSGJPN334);
 		}
 	}
 	else
@@ -2707,7 +2831,7 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 				AddressToStringIPv6(Adrs, a),
 				(UC(p[0]) << 8) | UC(p[1])) / 100) != FTP_COMPLETE)
 		{
-			SetTaskMsg(MSGJPN031);
+			SetTaskMsg(MSGJPN031, MSGJPN334);
 			do_closesocket(listen_skt);
 			listen_skt = INVALID_SOCKET;
 		}

@@ -168,6 +168,8 @@ extern int FolderAttr;
 extern int FolderAttrNum;
 // ファイルアイコン表示対応
 extern int DispFileIcon;
+// ディレクトリ自動作成
+extern int MakeAllDir;
 
 
 /*----- オプションのプロパティシート ------------------------------------------
@@ -406,6 +408,8 @@ static INT_PTR CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wPara
 			SendDlgItemMessage(hDlg, TRMODE_TIME, BM_SETCHECK, SaveTimeStamp, 0);
 			SendDlgItemMessage(hDlg, TRMODE_EOF, BM_SETCHECK, RmEOF, 0);
 			SendDlgItemMessage(hDlg, TRMODE_SEMICOLON, BM_SETCHECK, VaxSemicolon, 0);
+			// ディレクトリ自動作成
+			SendDlgItemMessage(hDlg, TRMODE_MAKEDIR, BM_SETCHECK, MakeAllDir, 0);
 
 			SendMessage(hDlg, WM_COMMAND, MAKEWPARAM(TRMODE_EXT_LIST, 0), 0);
 
@@ -422,6 +426,8 @@ static INT_PTR CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wPara
 					SaveTimeStamp = SendDlgItemMessage(hDlg, TRMODE_TIME, BM_GETCHECK, 0, 0);
 					RmEOF = SendDlgItemMessage(hDlg, TRMODE_EOF, BM_GETCHECK, 0, 0);
 					VaxSemicolon = SendDlgItemMessage(hDlg, TRMODE_SEMICOLON, BM_GETCHECK, 0, 0);
+					// ディレクトリ自動作成
+					MakeAllDir = SendDlgItemMessage(hDlg, TRMODE_MAKEDIR, BM_GETCHECK, 0, 0);
 					break;
 
 				case PSN_RESET :

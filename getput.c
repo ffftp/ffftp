@@ -84,9 +84,9 @@ static void DispTransPacket(TRANSPACKET *Pkt);
 static void EraseTransFileList(void);
 static ULONG WINAPI TransferThread(void *Dummy);
 static int MakeNonFullPath(TRANSPACKET *Pkt, char *CurDir, char *Tmp);
-static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
-static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
-static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *CancelCheckWork);
+static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
+static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
+static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *CancelCheckWork);
 static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
 // 再転送対応
 //static int DispUpDownErrDialog(int ResID, HWND hWnd, char *Fname);
@@ -98,10 +98,10 @@ static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int 
 // 64ビット対応
 //static BOOL CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static int DoUpLoad(SOCKET cSkt, TRANSPACKET *Pkt);
-static int UpLoadNonPassive(TRANSPACKET *Pkt);
-static int UpLoadPassive(TRANSPACKET *Pkt);
-static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt);
+static int DoUpload(SOCKET cSkt, TRANSPACKET *Pkt);
+static int UploadNonPassive(TRANSPACKET *Pkt);
+static int UploadPassive(TRANSPACKET *Pkt);
+static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt);
 // 同時接続対応
 //static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, int Size, int Ascii);
 static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, int Size, int Ascii, int *CancelCheckWork);
@@ -182,6 +182,8 @@ extern int MirUpDelNotify;
 extern int MirDownDelNotify;
 extern int FolderAttr;
 extern int FolderAttrNum;
+// 同時接続対応
+extern int SendQuit;
 
 
 /*----- ファイル転送スレッドを起動する ----------------------------------------
@@ -791,7 +793,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					if(timeGetTime() - LastUsed > 60000 || NewCmdSkt == INVALID_SOCKET)
 					{
 						ReleaseMutex(hListAccMutex);
-						SendData(TrnSkt, "QUIT\r\n", 6, 0, &Canceled[ThreadCount]);
+						DoQUIT(TrnSkt, &Canceled[ThreadCount]);
 						DoClose(TrnSkt);
 						TrnSkt = INVALID_SOCKET;
 //						WaitForSingleObject(hListAccMutex, INFINITE);
@@ -882,11 +884,11 @@ static ULONG WINAPI TransferThread(void *Dummy)
 						}
 
 						Down = YES;
-//						if(DoDownLoad(AskTrnCtrlSkt(), TransPacketBase, NO) == 429)
+//						if(DoDownload(AskTrnCtrlSkt(), TransPacketBase, NO) == 429)
 //						{
 //							if(ReConnectTrnSkt() == FFFTP_SUCCESS)
-//								DoDownLoad(AskTrnCtrlSkt(), TransPacketBase, NO, &Canceled);
-								DoDownLoad(TrnSkt, Pos, NO, &Canceled[Pos->ThreadCount]);
+//								DoDownload(AskTrnCtrlSkt(), TransPacketBase, NO, &Canceled);
+								DoDownload(TrnSkt, Pos, NO, &Canceled[Pos->ThreadCount]);
 //						}
 					}
 				}
@@ -904,11 +906,11 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				if(MakeNonFullPath(Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
 				{
 					Up = YES;
-//					if(DoUpLoad(AskTrnCtrlSkt(), TransPacketBase) == 429)
+//					if(DoUpload(AskTrnCtrlSkt(), TransPacketBase) == 429)
 //					{
 //						if(ReConnectTrnSkt() == FFFTP_SUCCESS)
-//							DoUpLoad(AskTrnCtrlSkt(), TransPacketBase);
-							DoUpLoad(TrnSkt, Pos);
+//							DoUpload(AskTrnCtrlSkt(), TransPacketBase);
+							DoUpload(TrnSkt, Pos);
 //					}
 				}
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
@@ -1132,9 +1134,11 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				{
 					for(i = 0; i < MAX_DATA_CONNECTION; i++)
 						Canceled[i] = YES;
+					if(Pos != NULL)
+						strcpy(Pos->Cmd, "");
+					Pos = NULL;
 					EraseTransFileList();
 					GoExit = YES;
-					Pos = NULL;
 				}
 				else
 				{
@@ -1297,7 +1301,7 @@ static int MakeNonFullPath(TRANSPACKET *Pkt, char *Cur, char *Tmp)
 *		からも呼ばれる。メインのスレッドから呼ばれる時は Pkt->hWndTrans == NULL。
 *----------------------------------------------------------------------------*/
 
-int DoDownLoad(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork)
+int DoDownload(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork)
 {
 	int iRetCode;
 	char Reply[ERR_MSG_LEN+7];
@@ -1339,9 +1343,9 @@ int DoDownLoad(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork)
 			else if(BackgrndMessageProc() == NO)
 			{
 				if(AskPasvMode() != YES)
-					iRetCode = DownLoadNonPassive(Pkt, CancelCheckWork);
+					iRetCode = DownloadNonPassive(Pkt, CancelCheckWork);
 				else
-					iRetCode = DownLoadPassive(Pkt, CancelCheckWork);
+					iRetCode = DownloadPassive(Pkt, CancelCheckWork);
 			}
 			else
 				iRetCode = 500;
@@ -1370,7 +1374,7 @@ int DoDownLoad(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork)
 *		int 応答コード
 *----------------------------------------------------------------------------*/
 
-static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
+static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 {
 	int iRetCode;
 	int iLength;
@@ -1444,16 +1448,16 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 					ReleaseMutex(hListAccMutex);
 					// FTPS対応
-//					iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+//					iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 					if(IsSSLAttached(Pkt->ctrl_skt))
 					{
 						if(AttachSSL(data_socket, Pkt->ctrl_skt, CancelCheckWork))
-							iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+							iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 						else
 							iRetCode = 500;
 					}
 					else
-						iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+						iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 //					data_socket = DoClose(data_socket);
 				}
 			}
@@ -1489,7 +1493,7 @@ static int DownLoadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 *		int 応答コード
 *----------------------------------------------------------------------------*/
 
-static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
+static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 {
 	int iRetCode;
 	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
@@ -1537,16 +1541,16 @@ static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 						// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 						ReleaseMutex(hListAccMutex);
 						// FTPS対応
-//						iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+//						iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 						if(IsSSLAttached(Pkt->ctrl_skt))
 						{
 							if(AttachSSL(data_socket, Pkt->ctrl_skt, CancelCheckWork))
-								iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+								iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 							else
 								iRetCode = 500;
 						}
 						else
-							iRetCode = DownLoadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+							iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 //						data_socket = DoClose(data_socket);
 					}
 					else
@@ -1596,7 +1600,7 @@ static int DownLoadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 *			ダイアログを出さない場合、このルーチンからDispDownloadSize()を呼ぶ
 *----------------------------------------------------------------------------*/
 
-static int DownLoadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *CancelCheckWork)
+static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *CancelCheckWork)
 {
 	int iNumBytes;
 	char Buf[BUFSIZE];
@@ -2563,7 +2567,7 @@ static INT_PTR CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 *		int 応答コード
 *----------------------------------------------------------------------------*/
 
-static int DoUpLoad(SOCKET cSkt, TRANSPACKET *Pkt)
+static int DoUpload(SOCKET cSkt, TRANSPACKET *Pkt)
 {
 	int iRetCode;
 	char Reply[ERR_MSG_LEN+7];
@@ -2597,9 +2601,9 @@ static int DoUpLoad(SOCKET cSkt, TRANSPACKET *Pkt)
 				else if(BackgrndMessageProc() == NO)
 				{
 					if(AskPasvMode() != YES)
-						iRetCode = UpLoadNonPassive(Pkt);
+						iRetCode = UploadNonPassive(Pkt);
 					else
-						iRetCode = UpLoadPassive(Pkt);
+						iRetCode = UploadPassive(Pkt);
 				}
 				else
 					iRetCode = 500;
@@ -2644,7 +2648,7 @@ static int DoUpLoad(SOCKET cSkt, TRANSPACKET *Pkt)
 *		int 応答コード
 *----------------------------------------------------------------------------*/
 
-static int UpLoadNonPassive(TRANSPACKET *Pkt)
+static int UploadNonPassive(TRANSPACKET *Pkt)
 {
 	int iRetCode;
 	int iLength;
@@ -2739,16 +2743,16 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 				ReleaseMutex(hListAccMutex);
 				// FTPS対応
-//				iRetCode = UpLoadFile(Pkt, data_socket);
+//				iRetCode = UploadFile(Pkt, data_socket);
 				if(IsSSLAttached(Pkt->ctrl_skt))
 				{
 					if(AttachSSL(data_socket, Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount]))
-						iRetCode = UpLoadFile(Pkt, data_socket);
+						iRetCode = UploadFile(Pkt, data_socket);
 					else
 						iRetCode = 500;
 				}
 				else
-					iRetCode = UpLoadFile(Pkt, data_socket);
+					iRetCode = UploadFile(Pkt, data_socket);
 				data_socket = DoClose(data_socket);
 			}
 		}
@@ -2781,7 +2785,7 @@ static int UpLoadNonPassive(TRANSPACKET *Pkt)
 *		int 応答コード
 *----------------------------------------------------------------------------*/
 
-static int UpLoadPassive(TRANSPACKET *Pkt)
+static int UploadPassive(TRANSPACKET *Pkt)
 {
 	int iRetCode;
 	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
@@ -2852,16 +2856,16 @@ static int UpLoadPassive(TRANSPACKET *Pkt)
 					// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 					ReleaseMutex(hListAccMutex);
 					// FTPS対応
-//					iRetCode = UpLoadFile(Pkt, data_socket);
+//					iRetCode = UploadFile(Pkt, data_socket);
 					if(IsSSLAttached(Pkt->ctrl_skt))
 					{
 						if(AttachSSL(data_socket, Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount]))
-							iRetCode = UpLoadFile(Pkt, data_socket);
+							iRetCode = UploadFile(Pkt, data_socket);
 						else
 							iRetCode = 500;
 					}
 					else
-						iRetCode = UpLoadFile(Pkt, data_socket);
+						iRetCode = UploadFile(Pkt, data_socket);
 
 					data_socket = DoClose(data_socket);
 				}
@@ -2910,7 +2914,7 @@ static int UpLoadPassive(TRANSPACKET *Pkt)
 *		転送ダイアログを出さないでアップロードすることはない
 *----------------------------------------------------------------------------*/
 
-static int UpLoadFile(TRANSPACKET *Pkt, SOCKET dSkt)
+static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 {
 	DWORD iNumBytes;
 	HANDLE iFileHandle;

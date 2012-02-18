@@ -71,7 +71,7 @@ static INT_PTR CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wP
 static INT_PTR CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static void CountMirrorFiles(HWND hDlg, TRANSPACKET *Pkt);
 static int AskMirrorNoTrn(char *Fname, int Mode);
-static int AskUpLoadFileAttr(char *Fname);
+static int AskUploadFileAttr(char *Fname);
 // 64ビット対応
 //static BOOL CALLBACK UpDownAsDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK UpDownAsDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
@@ -140,14 +140,13 @@ static double FileSize;		/* ファイル総容量 */
 
 // ディレクトリ自動作成
 // ローカル側のパスから必要なフォルダを作成
-int MakeDirFromLocalPath(char* LocalFile)
+int MakeDirFromLocalPath(char* LocalFile, char* Old)
 {
 	TRANSPACKET Pkt;
 	char* pDelimiter;
 	char* pNext;
 	char* Cat;
 	int Len;
-	char Tmp[FMAX_PATH+1];
 	int Make;
 	pDelimiter = LocalFile;
 	Make = NO;
@@ -156,9 +155,7 @@ int MakeDirFromLocalPath(char* LocalFile)
 		Len = pNext - LocalFile;
 		strncpy(Pkt.LocalFile, LocalFile, Len);
 		Pkt.LocalFile[Len] = '\0';
-		AskLocalCurDir(Tmp, FMAX_PATH);
-		SetYenTail(Tmp);
-		if(strncmp(LocalFile, Tmp, Len + 1) != 0)
+		if(strncmp(LocalFile, Old, Len + 1) != 0)
 		{
 			Cat = Pkt.LocalFile + (pDelimiter - LocalFile);
 			if(FnameCnv == FNAME_LOWER)
@@ -178,11 +175,13 @@ int MakeDirFromLocalPath(char* LocalFile)
 	return Make;
 }
 
-void DownLoadProc(int ChName, int ForceFile, int All)
+void DownloadProc(int ChName, int ForceFile, int All)
 {
 	FILELIST *FileListBase;
 	FILELIST *Pos;
 	TRANSPACKET Pkt;
+	// ディレクトリ自動作成
+	char Tmp[FMAX_PATH+1];
 
 	// 同時接続対応
 	CancelFlg = NO;
@@ -286,6 +285,8 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 				Pkt.KanaCnv = AskHostKanaCnv();
 
+				// ディレクトリ自動作成
+				strcpy(Tmp, Pkt.LocalFile);
 				Pkt.Mode = CheckLocalFile(&Pkt);	/* Pkt.ExistSize がセットされる */
 				if(Pkt.Mode == EXIST_ABORT)
 					break;
@@ -294,7 +295,7 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 //					AddTransFileList(&Pkt);
 				{
 					if(MakeAllDir == YES)
-						MakeDirFromLocalPath(Pkt.LocalFile);
+						MakeDirFromLocalPath(Pkt.LocalFile, Tmp);
 					AddTransFileList(&Pkt);
 				}
 			}
@@ -331,7 +332,7 @@ void DownLoadProc(int ChName, int ForceFile, int All)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void DirectDownLoadProc(char *Fname)
+void DirectDownloadProc(char *Fname)
 {
 	TRANSPACKET Pkt;
 
@@ -434,7 +435,7 @@ void DirectDownLoadProc(char *Fname)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void InputDownLoadProc(void)
+void InputDownloadProc(void)
 {
 	char Path[FMAX_PATH+1];
 	int Tmp;
@@ -444,7 +445,7 @@ void InputDownLoadProc(void)
 	strcpy(Path, "");
 	if(InputDialogBox(downname_dlg, GetMainHwnd(), NULL, Path, FMAX_PATH, &Tmp, IDH_HELP_TOPIC_0000001) == YES)
 	{
-		DirectDownLoadProc(Path);
+		DirectDownloadProc(Path);
 	}
 
 //	EnableUserOpe();
@@ -940,7 +941,7 @@ static INT_PTR CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM
 
 // ディレクトリ自動作成
 // リモート側のパスから必要なディレクトリを作成
-int MakeDirFromRemotePath(char* RemoteFile, int FirstAdd)
+int MakeDirFromRemotePath(char* RemoteFile, char* Old, int FirstAdd)
 {
 	TRANSPACKET Pkt;
 	TRANSPACKET Pkt1;
@@ -948,7 +949,6 @@ int MakeDirFromRemotePath(char* RemoteFile, int FirstAdd)
 	char* pNext;
 	char* Cat;
 	int Len;
-	char Tmp[FMAX_PATH+1];
 	int Make;
 	pDelimiter = RemoteFile;
 	Make = NO;
@@ -957,9 +957,7 @@ int MakeDirFromRemotePath(char* RemoteFile, int FirstAdd)
 		Len = pNext - RemoteFile;
 		strncpy(Pkt.RemoteFile, RemoteFile, Len);
 		Pkt.RemoteFile[Len] = '\0';
-		AskRemoteCurDir(Tmp, FMAX_PATH);
-		SetSlashTail(Tmp);
-		if(strncmp(RemoteFile, Tmp, Len + 1) != 0)
+		if(strncmp(RemoteFile, Old, Len + 1) != 0)
 		{
 			Cat = Pkt.RemoteFile + (pDelimiter - RemoteFile);
 			if(FnameCnv == FNAME_LOWER)
@@ -1004,7 +1002,7 @@ int MakeDirFromRemotePath(char* RemoteFile, int FirstAdd)
 	return Make;
 }
 
-void UpLoadListProc(int ChName, int All)
+void UploadListProc(int ChName, int All)
 {
 	FILELIST *FileListBase;
 	FILELIST *Pos;
@@ -1143,7 +1141,7 @@ void UpLoadListProc(int ChName, int All)
 				Pkt.Type = AskTransferTypeAssoc(Pkt.LocalFile, AskTransferType());
 				Pkt.Size = 0;
 				Pkt.Time = Pos->Time;
-				Pkt.Attr = AskUpLoadFileAttr(Pkt.RemoteFile);
+				Pkt.Attr = AskUploadFileAttr(Pkt.RemoteFile);
 				Pkt.KanjiCode = AskHostKanjiCode();
 				// UTF-8対応
 				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
@@ -1153,6 +1151,8 @@ void UpLoadListProc(int ChName, int All)
 					CalcExtentSize(&Pkt, Pos->Size);
 				}
 #endif
+				// ディレクトリ自動作成
+				strcpy(Tmp, Pkt.RemoteFile);
 				Pkt.Mode = CheckRemoteFile(&Pkt, RemoteList);
 				if(Pkt.Mode == EXIST_ABORT)
 					break;
@@ -1161,7 +1161,7 @@ void UpLoadListProc(int ChName, int All)
 					// ディレクトリ自動作成
 					if(MakeAllDir == YES)
 					{
-						if(MakeDirFromRemotePath(Pkt.RemoteFile, FirstAdd) == YES)
+						if(MakeDirFromRemotePath(Pkt.RemoteFile, Tmp, FirstAdd) == YES)
 							FirstAdd = NO;
 					}
 					if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
@@ -1210,7 +1210,7 @@ void UpLoadListProc(int ChName, int All)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void UpLoadDragProc(WPARAM wParam)
+void UploadDragProc(WPARAM wParam)
 {
 	FILELIST *FileListBase;
 	FILELIST *Pos;
@@ -1316,7 +1316,7 @@ void UpLoadDragProc(WPARAM wParam)
 				Pkt.Type = AskTransferTypeAssoc(Pkt.LocalFile, AskTransferType());
 				Pkt.Size = 0;
 				Pkt.Time = Pos->Time;
-				Pkt.Attr = AskUpLoadFileAttr(Pkt.RemoteFile);
+				Pkt.Attr = AskUploadFileAttr(Pkt.RemoteFile);
 				Pkt.KanjiCode = AskHostKanjiCode();
 				// UTF-8対応
 				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
@@ -1327,6 +1327,8 @@ void UpLoadDragProc(WPARAM wParam)
 					CalcExtentSize(&Pkt, Pos->Size);
 				}
 #endif
+				// ディレクトリ自動作成
+				strcpy(Tmp, Pkt.RemoteFile);
 				Pkt.Mode = CheckRemoteFile(&Pkt, RemoteList);
 				if(Pkt.Mode == EXIST_ABORT)
 					break;
@@ -1335,7 +1337,7 @@ void UpLoadDragProc(WPARAM wParam)
 					// ディレクトリ自動作成
 					if(MakeAllDir == YES)
 					{
-						if(MakeDirFromRemotePath(Pkt.RemoteFile, FirstAdd) == YES)
+						if(MakeDirFromRemotePath(Pkt.RemoteFile, Tmp, FirstAdd) == YES)
 							FirstAdd = NO;
 					}
 					if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
@@ -1600,7 +1602,7 @@ void MirrorUploadProc(int Notify)
 						Pkt.Type = AskTransferTypeAssoc(Pkt.LocalFile, AskTransferType());
 						Pkt.Size = 0;
 						Pkt.Time = LocalPos->Time;
-						Pkt.Attr = AskUpLoadFileAttr(Pkt.RemoteFile);
+						Pkt.Attr = AskUploadFileAttr(Pkt.RemoteFile);
 						Pkt.KanjiCode = AskHostKanjiCode();
 						// UTF-8対応
 						Pkt.KanjiCodeDesired = AskLocalKanjiCode();
@@ -1973,7 +1975,7 @@ static int AskMirrorNoTrn(char *Fname, int Mode)
 *		int 属性 (-1=設定なし)
 *----------------------------------------------------------------------------*/
 
-static int AskUpLoadFileAttr(char *Fname)
+static int AskUploadFileAttr(char *Fname)
 {
 	int Ret;
 	int Sts;

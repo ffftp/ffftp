@@ -619,6 +619,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Resource_eng\list_16.bmp"
+				>
+			</File>
+			<File
 				RelativePath=".\Resource_eng\list_bmp.bmp"
 				>
 			</File>
@@ -647,15 +651,15 @@
 				/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Release|Win32"
+				Name="Debug|x64"
+				ExcludedFromBuild="true"
 				>
 				<Tool
 					Name="VCCustomBuildTool"
 				/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Debug|x64"
-				ExcludedFromBuild="true"
+				Name="Release|Win32"
 				>
 				<Tool
 					Name="VCCustomBuildTool"

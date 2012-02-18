@@ -234,7 +234,7 @@ BYTE SSLRootCAFileHash[20];
 // ファイルアイコン表示対応
 int DispFileIcon = NO;
 // ディレクトリ自動作成
-int MakeAllDir = YES;
+int MakeAllDir = NO;
 
 
 
@@ -452,7 +452,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		/* 2010.02.01 genta マスターパスワードを入力させる
 		  -z オプションがあるときは最初だけスキップ
 		  -z オプションがないときは，デフォルトパスワードをまず試す
-		  LoadRegistory()する
+		  LoadRegistry()する
 		  パスワードが不一致なら再入力するか尋ねる．
 		  (破損していた場合はさせない)
 		*/
@@ -497,7 +497,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		
 		if(masterpass != 0)
 		{
-			LoadRegistory();
+			LoadRegistry();
 
 			// 暗号化通信対応
 			SetSSLTimeoutCallback(TimeOut * 1000, SSLTimeoutCallback);
@@ -1067,42 +1067,42 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 				case MENU_DOWNLOAD :
 					SetCurrentDirAsDirHist();
-					DownLoadProc(NO, NO, NO);
+					DownloadProc(NO, NO, NO);
 					break;
 
 				case MENU_DOWNLOAD_AS :
 					SetCurrentDirAsDirHist();
-					DownLoadProc(YES, NO, NO);
+					DownloadProc(YES, NO, NO);
 					break;
 
 				case MENU_DOWNLOAD_AS_FILE :
 					SetCurrentDirAsDirHist();
-					DownLoadProc(NO, YES, NO);
+					DownloadProc(NO, YES, NO);
 					break;
 
 				case MENU_DOWNLOAD_ALL :
 					SetCurrentDirAsDirHist();
-					DownLoadProc(NO, NO, YES);
+					DownloadProc(NO, NO, YES);
 					break;
 
 				case MENU_DOWNLOAD_NAME :
 					SetCurrentDirAsDirHist();
-					InputDownLoadProc();
+					InputDownloadProc();
 					break;
 
 				case MENU_UPLOAD :
 					SetCurrentDirAsDirHist();
-					UpLoadListProc(NO, NO);
+					UploadListProc(NO, NO);
 					break;
 
 				case MENU_UPLOAD_AS :
 					SetCurrentDirAsDirHist();
-					UpLoadListProc(YES, NO);
+					UploadListProc(YES, NO);
 					break;
 
 				case MENU_UPLOAD_ALL :
 					SetCurrentDirAsDirHist();
-					UpLoadListProc(NO, YES);
+					UploadListProc(NO, YES);
 					break;
 
 				case MENU_MIRROR_UPLOAD :
@@ -1363,7 +1363,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 				case MENU_REGSAVE :
 					GetListTabWidth();
-					SaveRegistory();
+					SaveRegistry();
 					SaveSettingsToFile();
 					break;
 
@@ -1379,7 +1379,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				case MENU_REGINIT :
 					if(DialogBox(hInstFtp, MAKEINTRESOURCE(reginit_dlg), hWnd, ExeEscDialogProc) == YES)
 					{
-						ClearRegistory();
+						ClearRegistry();
 						SaveExit = NO;
 						PostMessage(hWnd, WM_CLOSE, 0, 0L);
 					}
@@ -2086,7 +2086,7 @@ static void ExitProc(HWND hWnd)
 	if(SaveExit == YES)
 	{
 		GetListTabWidth();
-		SaveRegistory();
+		SaveRegistry();
 
 		if((CacheEntry > 0) && (CacheSave == YES))
 			SaveCache();
@@ -2226,12 +2226,12 @@ void DoubleClickProc(int Win, int Mode, int App)
 							/* 不正なパスを検出 */
 							if(CheckPathViolation(&MainTransPkt) == NO)
 							{
-//								if((Sts = DoDownLoad(AskCmdCtrlSkt(), &MainTransPkt, NO)) == 429)
+//								if((Sts = DoDownload(AskCmdCtrlSkt(), &MainTransPkt, NO)) == 429)
 //								{
 //									ReConnectCmdSkt();
 									// 同時接続対応
 									CancelFlg = NO;
-									Sts = DoDownLoad(AskCmdCtrlSkt(), &MainTransPkt, NO, &CancelFlg);
+									Sts = DoDownload(AskCmdCtrlSkt(), &MainTransPkt, NO, &CancelFlg);
 //								}
 							}
 

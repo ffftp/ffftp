@@ -798,7 +798,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			if(hWnd == hWndListRemote)
 			{
 				if(AskConnecting() == YES)
-					UpLoadDragProc(wParam);
+					UploadDragProc(wParam);
 			}
 			else if(hWnd == hWndListLocal)
 			{
@@ -1443,7 +1443,7 @@ void GetLocalDirForWnd(void)
 	if(DispDrives)
 	{
 		GetLogicalDriveStrings(FMAX_PATH, Scan);
-		NoDrives = LoadHideDriveListRegistory();
+		NoDrives = LoadHideDriveListRegistry();
 
 		Pos = Scan;
 		while(*Pos != NUL)

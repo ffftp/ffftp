@@ -717,10 +717,11 @@ DWORD WINAPI WSAAsyncGetHostByNameIPv6ThreadProc(LPVOID lpParameter)
 	}
 	else
 		PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(ERROR_INVALID_FUNCTION << 16));
-	free(pData->name);
-	free(pData);
 	// CreateThreadが返すハンドルが重複するのを回避
 	Sleep(10000);
+	CloseHandle(pData->h);
+	free(pData->name);
+	free(pData);
 	return 0;
 }
 
