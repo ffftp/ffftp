@@ -145,6 +145,8 @@ static INT_PTR CALLBACK InputDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wPa
 	switch (iMessage)
 	{
 		case WM_INITDIALOG :
+			// プロセス保護
+			ProtectAllEditControls(hDlg);
 			if(strlen(DialogData->Title) != 0)
 				SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)DialogData->Title);
 			SendDlgItemMessage(hDlg, INP_INPSTR, EM_LIMITTEXT, DialogData->MaxLen-1, 0);

@@ -100,6 +100,7 @@ DWORD g_ProcessProtectionLevel;
 DWORD g_LockedThread[MAX_LOCKED_THREAD];
 WCHAR* g_pTrustedFilenameTable[MAX_TRUSTED_FILENAME_TABLE];
 BYTE g_TrustedMD5HashTable[MAX_TRUSTED_MD5_HASH_TABLE][20];
+WNDPROC g_PasswordEditControlProc;
 
 // 以下フック関数
 // フック対象を呼び出す場合は前後でSTART_HOOK_FUNCTIONとEND_HOOK_FUNCTIONを実行する必要がある
@@ -1087,5 +1088,57 @@ BOOL RestartProtectedProcess(LPCTSTR Keyword)
 		free(pACL);
 	}
 	return bResult;
+}
+
+INT_PTR CALLBACK PasswordEditControlWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+	switch(Msg)
+	{
+	case EM_GETPASSWORDCHAR:
+		break;
+	case EM_SETPASSWORDCHAR:
+		break;
+	default:
+		return CallWindowProcW(g_PasswordEditControlProc, hWnd, Msg, wParam, lParam);
+	}
+	return 0;
+}
+
+BOOL ProtectPasswordEditControl(HWND hWnd)
+{
+	BOOL bResult;
+	WCHAR ClassName[MAX_PATH];
+	WNDPROC Proc;
+	bResult = FALSE;
+	if(g_ProcessProtectionLevel & PROCESS_PROTECTION_PASSWORD_EDIT)
+	{
+		if(GetClassNameW(hWnd, ClassName, MAX_PATH) > 0)
+		{
+			if(_wcsicmp(ClassName, WC_EDITW) == 0)
+			{
+				Proc = (WNDPROC)GetWindowLongPtrW(hWnd, GWLP_WNDPROC);
+				if(Proc != (WNDPROC)PasswordEditControlWndProc)
+				{
+					g_PasswordEditControlProc = Proc;
+					SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)PasswordEditControlWndProc);
+					bResult = TRUE;
+				}
+			}
+		}
+	}
+	return bResult;
+}
+
+BOOL CALLBACK ProtectAllEditControlsEnumChildProc(HWND hwnd , LPARAM lParam)
+{
+	ProtectPasswordEditControl(hwnd);
+	return TRUE;
+}
+
+BOOL ProtectAllEditControls(HWND hWnd)
+{
+	if(g_ProcessProtectionLevel & PROCESS_PROTECTION_PASSWORD_EDIT)
+		EnumChildWindows(hWnd, ProtectAllEditControlsEnumChildProc, 0);
+	return TRUE;
 }
 

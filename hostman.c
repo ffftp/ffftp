@@ -1696,6 +1696,8 @@ static INT_PTR CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 	switch (iMessage)
 	{
 		case WM_INITDIALOG :
+			// プロセス保護
+			ProtectAllEditControls(hDlg);
 			SendDlgItemMessage(hDlg, HSET_HOST, EM_LIMITTEXT, HOST_NAME_LEN, 0);
 			SendDlgItemMessage(hDlg, HSET_ADRS, EM_LIMITTEXT, HOST_ADRS_LEN, 0);
 			SendDlgItemMessage(hDlg, HSET_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
