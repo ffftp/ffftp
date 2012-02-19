@@ -75,12 +75,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib winmm.lib wintrust.lib wsock32.lib user32.lib shell32.lib gdi32.lib ole32.lib comdlg32.lib advapi32.lib"
+				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib winmm.lib wintrust.lib ws2_32.lib user32.lib shell32.lib gdi32.lib ole32.lib comdlg32.lib advapi32.lib"
 				OutputFile=".\FFFTP_Eng_Debug\FFFTP.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;ole32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;wsock32.dll"
+				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;ole32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\FFFTP_Eng_Debug\FFFTP.pdb"
 				SubSystem="2"
@@ -169,12 +169,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib winmm.lib wintrust.lib wsock32.lib"
+				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib winmm.lib wintrust.lib ws2_32.lib"
 				OutputFile=".\FFFTP_Eng_Debug_64\FFFTP.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;ole32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;wsock32.dll"
+				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;ole32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\FFFTP_Eng_Debug_64\FFFTP.pdb"
 				SubSystem="2"
@@ -263,12 +263,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib winmm.lib wintrust.lib wsock32.lib user32.lib shell32.lib gdi32.lib ole32.lib comdlg32.lib advapi32.lib"
+				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib winmm.lib wintrust.lib ws2_32.lib user32.lib shell32.lib gdi32.lib ole32.lib comdlg32.lib advapi32.lib"
 				OutputFile=".\FFFTP_Eng_Release\FFFTP.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;ole32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;wsock32.dll"
+				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;ole32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll"
 				ProgramDatabaseFile=".\FFFTP_Eng_Release\FFFTP.pdb"
 				SubSystem="2"
 				TargetMachine="1"
@@ -356,12 +356,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib winmm.lib wintrust.lib wsock32.lib"
+				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib winmm.lib wintrust.lib ws2_32.lib"
 				OutputFile=".\FFFTP_Eng_Release_64\FFFTP.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;ole32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;wsock32.dll"
+				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;ole32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll"
 				ProgramDatabaseFile=".\FFFTP_Eng_Release_64\FFFTP.pdb"
 				SubSystem="2"
 				TargetMachine="17"
