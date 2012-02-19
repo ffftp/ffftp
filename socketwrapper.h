@@ -40,6 +40,8 @@ struct in6_addr inet6_addr(const char* cp);
 HANDLE WSAAsyncGetHostByNameM(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen);
 HANDLE WSAAsyncGetHostByNameIPv6M(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen, short Family);
 
+extern const struct in6_addr IN6ADDR_NONE;
+
 BOOL LoadPuTTY();
 void FreePuTTY();
 BOOL IsPuTTYLoaded();

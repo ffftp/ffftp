@@ -66,6 +66,11 @@ typedef struct {
 	int FdRead;
 	int FdWrite;
 	int Error;
+	// ソケットにデータを付与
+	struct sockaddr_in HostAddrIPv4;
+	struct sockaddr_in SocksAddrIPv4;
+	struct sockaddr_in6 HostAddrIPv6;
+	struct sockaddr_in6 SocksAddrIPv6;
 } ASYNCSIGNAL;
 
 
@@ -489,6 +494,11 @@ static int RegisterAsyncTable(SOCKET s)
 				Signal[Pos].FdAccept = 0;
 				Signal[Pos].FdRead = 0;
 				Signal[Pos].FdWrite = 0;
+				// ソケットにデータを付与
+				memset(&Signal[Pos].HostAddrIPv4, 0, sizeof(struct sockaddr_in));
+				memset(&Signal[Pos].SocksAddrIPv4, 0, sizeof(struct sockaddr_in));
+				memset(&Signal[Pos].HostAddrIPv6, 0, sizeof(struct sockaddr_in6));
+				memset(&Signal[Pos].SocksAddrIPv6, 0, sizeof(struct sockaddr_in6));
 				Sts = YES;
 				break;
 			}
@@ -639,6 +649,104 @@ static int UnregisterAsyncTableDbase(HANDLE Async)
 }
 
 
+// ソケットにデータを付与
+
+int SetAsyncTableDataIPv4(SOCKET s, struct sockaddr_in* Host, struct sockaddr_in* Socks)
+{
+	int Sts;
+	int Pos;
+
+	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
+	Sts = NO;
+	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
+	{
+		if(Signal[Pos].Socket == s)
+		{
+			if(Host != NULL)
+				memcpy(&Signal[Pos].HostAddrIPv4, Host, sizeof(struct sockaddr_in));
+			if(Socks != NULL)
+				memcpy(&Signal[Pos].SocksAddrIPv4, Socks, sizeof(struct sockaddr_in));
+			Sts = YES;
+			break;
+		}
+	}
+	ReleaseMutex(hAsyncTblAccMutex);
+
+	return(Sts);
+}
+
+int SetAsyncTableDataIPv6(SOCKET s, struct sockaddr_in6* Host, struct sockaddr_in6* Socks)
+{
+	int Sts;
+	int Pos;
+
+	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
+	Sts = NO;
+	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
+	{
+		if(Signal[Pos].Socket == s)
+		{
+			if(Host != NULL)
+				memcpy(&Signal[Pos].HostAddrIPv6, Host, sizeof(struct sockaddr_in6));
+			if(Socks != NULL)
+				memcpy(&Signal[Pos].SocksAddrIPv6, Socks, sizeof(struct sockaddr_in6));
+			Sts = YES;
+			break;
+		}
+	}
+	ReleaseMutex(hAsyncTblAccMutex);
+
+	return(Sts);
+}
+
+int GetAsyncTableDataIPv4(SOCKET s, struct sockaddr_in* Host, struct sockaddr_in* Socks)
+{
+	int Sts;
+	int Pos;
+
+	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
+	Sts = NO;
+	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
+	{
+		if(Signal[Pos].Socket == s)
+		{
+			if(Host != NULL)
+				memcpy(Host, &Signal[Pos].HostAddrIPv4, sizeof(struct sockaddr_in));
+			if(Socks != NULL)
+				memcpy(Socks, &Signal[Pos].SocksAddrIPv4, sizeof(struct sockaddr_in));
+			Sts = YES;
+			break;
+		}
+	}
+	ReleaseMutex(hAsyncTblAccMutex);
+
+	return(Sts);
+}
+
+int GetAsyncTableDataIPv6(SOCKET s, struct sockaddr_in6* Host, struct sockaddr_in6* Socks)
+{
+	int Sts;
+	int Pos;
+
+	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
+	Sts = NO;
+	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
+	{
+		if(Signal[Pos].Socket == s)
+		{
+			if(Host != NULL)
+				memcpy(Host, &Signal[Pos].HostAddrIPv6, sizeof(struct sockaddr_in6));
+			if(Socks != NULL)
+				memcpy(Socks, &Signal[Pos].SocksAddrIPv6, sizeof(struct sockaddr_in6));
+			Sts = YES;
+			break;
+		}
+	}
+	ReleaseMutex(hAsyncTblAccMutex);
+
+	return(Sts);
+}
+
 
 
 
@@ -720,7 +828,7 @@ struct hostent *do_gethostbynameIPv6(const char *Name, char *Buf, int Len, int *
 
 		if(*CancelCheckWork == YES)
 		{
-			WSACancelAsyncRequest(hAsync);
+			WSACancelAsyncRequestIPv6(hAsync);
 		}
 		else if(Error == 0)
 		{

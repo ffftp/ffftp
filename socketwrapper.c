@@ -641,6 +641,8 @@ int FTPS_recv(SOCKET s, char * buf, int len, int flags)
 
 // IPv6対応
 
+const struct in6_addr IN6ADDR_NONE = {{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
+
 typedef struct
 {
 	HANDLE h;
@@ -682,7 +684,7 @@ DWORD WINAPI WSAAsyncGetHostByNameIPv6ThreadProc(LPVOID lpParameter)
 						pHost->h_addr_list[0] = (char*)(&pHost->h_addr_list[2]);
 						pHost->h_addr_list[1] = NULL;
 						memcpy(pHost->h_addr_list[0], &((struct sockaddr_in*)p->ai_addr)->sin_addr, sizeof(struct in_addr));
-						PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(sizeof(struct hostent) + sizeof(char*) * 2 + p->ai_addrlen));
+						PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(sizeof(struct hostent) + sizeof(char*) * 2 + sizeof(struct in_addr)));
 					}
 					else
 						PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(WSAENOBUFS << 16));
@@ -700,7 +702,7 @@ DWORD WINAPI WSAAsyncGetHostByNameIPv6ThreadProc(LPVOID lpParameter)
 						pHost->h_addr_list[0] = (char*)(&pHost->h_addr_list[2]);
 						pHost->h_addr_list[1] = NULL;
 						memcpy(pHost->h_addr_list[0], &((struct sockaddr_in6*)p->ai_addr)->sin6_addr, sizeof(struct in6_addr));
-						PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(sizeof(struct hostent) + sizeof(char*) * 2 + p->ai_addrlen));
+						PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(sizeof(struct hostent) + sizeof(char*) * 2 + sizeof(struct in6_addr)));
 					}
 					else
 						PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(WSAENOBUFS << 16));
@@ -768,7 +770,10 @@ int WSACancelAsyncRequestIPv6(HANDLE hAsyncTaskHandle)
 	int Result;
 	Result = SOCKET_ERROR;
 	if(TerminateThread(hAsyncTaskHandle, 0))
+	{
+		CloseHandle(hAsyncTaskHandle);
 		Result = 0;
+	}
 	return Result;
 }
 
@@ -844,7 +849,7 @@ struct in6_addr inet6_addr(const char* cp)
 	{
 		if(!cp)
 		{
-			memset(&Result, 0xff, sizeof(Result));
+			memcpy(&Result, &IN6ADDR_NONE, sizeof(struct in6_addr));
 			break;
 		}
 		if(i >= AfterZero)
@@ -868,7 +873,7 @@ struct in6_addr inet6_addr(const char* cp)
 				Result.u.Word[i] = ((Result.u.Word[i] & 0xff00) >> 8) | ((Result.u.Word[i] & 0x00ff) << 8);
 				if(strncmp(p, ":", 1) != 0 && strlen(p) > 0)
 				{
-					memset(&Result, 0xff, sizeof(Result));
+					memcpy(&Result, &IN6ADDR_NONE, sizeof(struct in6_addr));
 					break;
 				}
 				if(cp = strstr(cp, ":"))

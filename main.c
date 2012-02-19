@@ -234,7 +234,7 @@ BYTE SSLRootCAFileHash[20];
 // ファイルアイコン表示対応
 int DispFileIcon = NO;
 // ディレクトリ自動作成
-int MakeAllDir = NO;
+int MakeAllDir = YES;
 
 
 

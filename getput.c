@@ -4051,7 +4051,7 @@ static int GetAdrsAndPortIPv6(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 	char *Pos;
 	char *Btm;
 	int Sts;
-	int i;
+//	int i;
 	struct sockaddr_in6 SockAddr;
 
 	Sts = FFFTP_FAIL;
@@ -4080,8 +4080,9 @@ static int GetAdrsAndPortIPv6(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 						}
 						else
 						{
-							i = sizeof(SockAddr);
-							if(getpeername(Skt, (struct sockaddr*)&SockAddr, &i) != SOCKET_ERROR)
+//							i = sizeof(SockAddr);
+//							if(getpeername(Skt, (struct sockaddr*)&SockAddr, &i) != SOCKET_ERROR)
+							if(GetAsyncTableDataIPv6(Skt, &SockAddr, NULL) == YES)
 								AddressToStringIPv6(Adrs, &SockAddr.sin6_addr);
 						}
 

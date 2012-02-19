@@ -116,11 +116,6 @@ static HOSTDATA CurHost;
 // IPv6対応
 //static struct sockaddr_in SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
 //static struct sockaddr_in CurSockAddr;		/* 接続先ホストのアドレス情報 */
-static struct sockaddr_in SocksSockAddrIPv4;	/* SOCKSサーバのアドレス情報 */
-static struct sockaddr_in CurSockAddrIPv4;		/* 接続先ホストのアドレス情報 */
-static struct sockaddr_in6 SocksSockAddrIPv6;	/* SOCKSサーバのアドレス情報 */
-static struct sockaddr_in6 CurSockAddrIPv6;		/* 接続先ホストのアドレス情報 */
-static const struct in6_addr IN6ADDR_NONE = {{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}};
 
 static int UseIPadrs;
 static char DomainName[HOST_ADRS_LEN+1];
@@ -2119,6 +2114,9 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 //SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 {
+	// IPv6対応
+	struct sockaddr_in SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
+	struct sockaddr_in CurSockAddr;		/* 接続先ホストのアドレス情報 */
 	struct sockaddr_in saSockAddr;
 	char HostEntry[MAXGETHOSTSTRUCT];
 	struct hostent *pHostEntry;
@@ -2142,15 +2140,10 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 
 	UseIPadrs = YES;
 	strcpy(DomainName, host);
-	// IPv6対応
-//	memset(&CurSockAddr, 0, sizeof(CurSockAddr));
-//	CurSockAddr.sin_port = htons((u_short)port);
-//	CurSockAddr.sin_family = AF_INET;
-//	if((CurSockAddr.sin_addr.s_addr = inet_addr(host)) == INADDR_NONE)
-	memset(&CurSockAddrIPv4, 0, sizeof(CurSockAddrIPv4));
-	CurSockAddrIPv4.sin_port = htons((u_short)port);
-	CurSockAddrIPv4.sin_family = AF_INET;
-	if((CurSockAddrIPv4.sin_addr.s_addr = inet_addr(host)) == INADDR_NONE)
+	memset(&CurSockAddr, 0, sizeof(CurSockAddr));
+	CurSockAddr.sin_port = htons((u_short)port);
+	CurSockAddr.sin_family = AF_INET;
+	if((CurSockAddr.sin_addr.s_addr = inet_addr(host)) == INADDR_NONE)
 	{
 		// ホスト名が指定された
 		// ホスト名からアドレスを求める
@@ -2173,13 +2166,10 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 
 		if(pHostEntry != NULL)
 		{
+			memcpy((char *)&CurSockAddr.sin_addr, pHostEntry->h_addr, pHostEntry->h_length);
 			// IPv6対応
-//			memcpy((char *)&CurSockAddr.sin_addr, pHostEntry->h_addr, pHostEntry->h_length);
 //			SetTaskMsg(MSGJPN017, PreMsg, DomainName, inet_ntoa(CurSockAddr.sin_addr), ntohs(CurSockAddr.sin_port));
-			memcpy((char *)&CurSockAddrIPv4.sin_addr, pHostEntry->h_addr, pHostEntry->h_length);
-			// IPv6対応
-//			SetTaskMsg(MSGJPN017, PreMsg, DomainName, inet_ntoa(CurSockAddrIPv4.sin_addr), ntohs(CurSockAddrIPv4.sin_port));
-			SetTaskMsg(MSGJPN017, PreMsg, DomainName, inet_ntoa(CurSockAddrIPv4.sin_addr), ntohs(CurSockAddrIPv4.sin_port), MSGJPN333);
+			SetTaskMsg(MSGJPN017, PreMsg, DomainName, inet_ntoa(CurSockAddr.sin_addr), ntohs(CurSockAddr.sin_port), MSGJPN333);
 		}
 		else
 		{
@@ -2188,7 +2178,7 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 				UseIPadrs = NO;
 				// IPv6対応
 //				SetTaskMsg(MSGJPN018, PreMsg, DomainName, ntohs(CurSockAddr.sin_port));
-				SetTaskMsg(MSGJPN018, PreMsg, DomainName, ntohs(CurSockAddrIPv4.sin_port), MSGJPN333);
+				SetTaskMsg(MSGJPN018, PreMsg, DomainName, ntohs(CurSockAddr.sin_port), MSGJPN333);
 			}
 			else
 			{
@@ -2202,7 +2192,7 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 	else
 		// IPv6対応
 //		SetTaskMsg(MSGJPN020, PreMsg, inet_ntoa(CurSockAddr.sin_addr), ntohs(CurSockAddr.sin_port));
-		SetTaskMsg(MSGJPN020, PreMsg, inet_ntoa(CurSockAddrIPv4.sin_addr), ntohs(CurSockAddrIPv4.sin_port), MSGJPN333);
+		SetTaskMsg(MSGJPN020, PreMsg, inet_ntoa(CurSockAddr.sin_addr), ntohs(CurSockAddr.sin_port), MSGJPN333);
 
 	if((Fwall == FWALL_SOCKS4) || (Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
 	{
@@ -2212,32 +2202,23 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 		{
 			Socks4Cmd.Ver = SOCKS4_VER;
 			Socks4Cmd.Cmd = SOCKS4_CMD_CONNECT;
-			// IPv6対応
-//			Socks4Cmd.Port = CurSockAddr.sin_port;
-//			Socks4Cmd.AdrsInt = CurSockAddr.sin_addr.s_addr;
-			Socks4Cmd.Port = CurSockAddrIPv4.sin_port;
-			Socks4Cmd.AdrsInt = CurSockAddrIPv4.sin_addr.s_addr;
+			Socks4Cmd.Port = CurSockAddr.sin_port;
+			Socks4Cmd.AdrsInt = CurSockAddr.sin_addr.s_addr;
 			strcpy(Socks4Cmd.UserID, FwallUser);
 			Len = offsetof(SOCKS4CMD, UserID) + strlen(FwallUser) + 1;
 		}
 		else
 		{
-			// IPv6対応
-//			Len = Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, UseIPadrs, CurSockAddr.sin_addr.s_addr, DomainName, CurSockAddr.sin_port);
-			Len = Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, UseIPadrs, CurSockAddrIPv4.sin_addr.s_addr, DomainName, CurSockAddrIPv4.sin_port);
+			Len = Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, UseIPadrs, CurSockAddr.sin_addr.s_addr, DomainName, CurSockAddr.sin_port);
 		}
 
-		// IPv6対応
-//		memset(&SocksSockAddr, 0, sizeof(SocksSockAddr));
-//		if((SocksSockAddr.sin_addr.s_addr = inet_addr(FwallHost)) == INADDR_NONE)
-		memset(&SocksSockAddrIPv4, 0, sizeof(SocksSockAddrIPv4));
-		if((SocksSockAddrIPv4.sin_addr.s_addr = inet_addr(FwallHost)) == INADDR_NONE)
+		memset(&SocksSockAddr, 0, sizeof(SocksSockAddr));
+		if((SocksSockAddr.sin_addr.s_addr = inet_addr(FwallHost)) == INADDR_NONE)
 		{
 			// IPv6対応
 //			if((pHostEntry = do_gethostbyname(FwallHost, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork)) != NULL)
-//				memcpy((char *)&SocksSockAddr.sin_addr, pHostEntry->h_addr, pHostEntry->h_length);
 			if((pHostEntry = do_gethostbynameIPv4(FwallHost, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork)) != NULL)
-				memcpy((char *)&SocksSockAddrIPv4.sin_addr, pHostEntry->h_addr, pHostEntry->h_length);
+				memcpy((char *)&SocksSockAddr.sin_addr, pHostEntry->h_addr, pHostEntry->h_length);
 			else
 			{
 				// IPv6対応
@@ -2246,26 +2227,18 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 				return INVALID_SOCKET;
 			}
 		}
+		SocksSockAddr.sin_port = htons((u_short)FwallPort);
+		SocksSockAddr.sin_family = AF_INET;
 		// IPv6対応
-//		SocksSockAddr.sin_port = htons((u_short)FwallPort);
-//		SocksSockAddr.sin_family = AF_INET;
 //		SetTaskMsg(MSGJPN022, inet_ntoa(SocksSockAddr.sin_addr), ntohs(SocksSockAddr.sin_port));
-		SocksSockAddrIPv4.sin_port = htons((u_short)FwallPort);
-		SocksSockAddrIPv4.sin_family = AF_INET;
-		// IPv6対応
-//		SetTaskMsg(MSGJPN022, inet_ntoa(SocksSockAddrIPv4.sin_addr), ntohs(SocksSockAddrIPv4.sin_port));
-		SetTaskMsg(MSGJPN022, inet_ntoa(SocksSockAddrIPv4.sin_addr), ntohs(SocksSockAddrIPv4.sin_port), MSGJPN333);
+		SetTaskMsg(MSGJPN022, inet_ntoa(SocksSockAddr.sin_addr), ntohs(SocksSockAddr.sin_port), MSGJPN333);
 		// connectで接続する先はSOCKSサーバ
-		// IPv6対応
-//		memcpy(&saSockAddr, &SocksSockAddr, sizeof(SocksSockAddr));
-		memcpy(&saSockAddr, &SocksSockAddrIPv4, sizeof(SocksSockAddrIPv4));
+		memcpy(&saSockAddr, &SocksSockAddr, sizeof(SocksSockAddr));
 	}
 	else
 	{
 		// connectで接続するのは接続先のホスト
-		// IPv6対応
-//		memcpy(&saSockAddr, &CurSockAddr, sizeof(CurSockAddr));
-		memcpy(&saSockAddr, &CurSockAddrIPv4, sizeof(CurSockAddrIPv4));
+		memcpy(&saSockAddr, &CurSockAddr, sizeof(CurSockAddr));
 	}
 
 	/////////////
@@ -2274,6 +2247,8 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 
 	if((sSocket = do_socket(AF_INET, SOCK_STREAM, TCP_PORT)) != INVALID_SOCKET)
 	{
+		// ソケットにデータを付与
+		SetAsyncTableDataIPv4(sSocket, &CurSockAddr, &SocksSockAddr);
 		if(do_connect(sSocket, (struct sockaddr *)&saSockAddr, sizeof(saSockAddr), CancelCheckWork) != SOCKET_ERROR)
 		{
 			if(Fwall == FWALL_SOCKS4)
@@ -2346,6 +2321,8 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 
 SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 {
+	struct sockaddr_in6 SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
+	struct sockaddr_in6 CurSockAddr;		/* 接続先ホストのアドレス情報 */
 	struct sockaddr_in6 saSockAddr;
 	char HostEntry[MAXGETHOSTSTRUCT];
 	struct hostent *pHostEntry;
@@ -2367,11 +2344,11 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 
 	UseIPadrs = YES;
 	strcpy(DomainName, host);
-	memset(&CurSockAddrIPv6, 0, sizeof(CurSockAddrIPv6));
-	CurSockAddrIPv6.sin6_port = htons((u_short)port);
-	CurSockAddrIPv6.sin6_family = AF_INET6;
-	CurSockAddrIPv6.sin6_addr = inet6_addr(host);
-	if(memcmp(&CurSockAddrIPv6.sin6_addr, &IN6ADDR_NONE, sizeof(struct in6_addr)) == 0)
+	memset(&CurSockAddr, 0, sizeof(CurSockAddr));
+	CurSockAddr.sin6_port = htons((u_short)port);
+	CurSockAddr.sin6_family = AF_INET6;
+	CurSockAddr.sin6_addr = inet6_addr(host);
+	if(memcmp(&CurSockAddr.sin6_addr, &IN6ADDR_NONE, sizeof(struct in6_addr)) == 0)
 	{
 		// ホスト名が指定された
 		// ホスト名からアドレスを求める
@@ -2390,15 +2367,15 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 
 		if(pHostEntry != NULL)
 		{
-			memcpy((char *)&CurSockAddrIPv6.sin6_addr, pHostEntry->h_addr, pHostEntry->h_length);
-			SetTaskMsg(MSGJPN017, PreMsg, DomainName, inet6_ntoa(CurSockAddrIPv6.sin6_addr), ntohs(CurSockAddrIPv6.sin6_port), MSGJPN334);
+			memcpy((char *)&CurSockAddr.sin6_addr, pHostEntry->h_addr, pHostEntry->h_length);
+			SetTaskMsg(MSGJPN017, PreMsg, DomainName, inet6_ntoa(CurSockAddr.sin6_addr), ntohs(CurSockAddr.sin6_port), MSGJPN334);
 		}
 		else
 		{
 			if((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
 			{
 				UseIPadrs = NO;
-				SetTaskMsg(MSGJPN018, PreMsg, DomainName, ntohs(CurSockAddrIPv6.sin6_port), MSGJPN334);
+				SetTaskMsg(MSGJPN018, PreMsg, DomainName, ntohs(CurSockAddr.sin6_port), MSGJPN334);
 			}
 			else
 			{
@@ -2408,47 +2385,48 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 		}
 	}
 	else
-		SetTaskMsg(MSGJPN020, PreMsg, inet6_ntoa(CurSockAddrIPv6.sin6_addr), ntohs(CurSockAddrIPv6.sin6_port), MSGJPN334);
+		SetTaskMsg(MSGJPN020, PreMsg, inet6_ntoa(CurSockAddr.sin6_addr), ntohs(CurSockAddr.sin6_port), MSGJPN334);
 
 	if((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
 	{
 		// SOCKSを使う
 		// SOCKSに接続する準備
 		{
-			Len = Socks5MakeCmdPacketIPv6(&Socks5Cmd, SOCKS5_CMD_CONNECT, UseIPadrs, (char*)&CurSockAddrIPv6.sin6_addr, DomainName, CurSockAddrIPv6.sin6_port);
+			Len = Socks5MakeCmdPacketIPv6(&Socks5Cmd, SOCKS5_CMD_CONNECT, UseIPadrs, (char*)&CurSockAddr.sin6_addr, DomainName, CurSockAddr.sin6_port);
 		}
 
-		memset(&SocksSockAddrIPv6, 0, sizeof(SocksSockAddrIPv6));
-		SocksSockAddrIPv6.sin6_addr = inet6_addr(FwallHost);
-		if(memcmp(&SocksSockAddrIPv6.sin6_addr, &IN6ADDR_NONE, sizeof(struct in6_addr)) == 0)
+		memset(&SocksSockAddr, 0, sizeof(SocksSockAddr));
+		SocksSockAddr.sin6_addr = inet6_addr(FwallHost);
+		if(memcmp(&SocksSockAddr.sin6_addr, &IN6ADDR_NONE, sizeof(struct in6_addr)) == 0)
 		{
 			if((pHostEntry = do_gethostbynameIPv6(FwallHost, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork)) != NULL)
-				memcpy((char *)&SocksSockAddrIPv6.sin6_addr, pHostEntry->h_addr, pHostEntry->h_length);
+				memcpy((char *)&SocksSockAddr.sin6_addr, pHostEntry->h_addr, pHostEntry->h_length);
 			else
 			{
 				SetTaskMsg(MSGJPN021, FwallHost, MSGJPN334);
 				return INVALID_SOCKET;
 			}
 		}
-		SocksSockAddrIPv6.sin6_port = htons((u_short)FwallPort);
-		SocksSockAddrIPv6.sin6_family = AF_INET6;
-		SetTaskMsg(MSGJPN022, inet6_ntoa(SocksSockAddrIPv6.sin6_addr), ntohs(SocksSockAddrIPv6.sin6_port), MSGJPN334);
+		SocksSockAddr.sin6_port = htons((u_short)FwallPort);
+		SocksSockAddr.sin6_family = AF_INET6;
+		SetTaskMsg(MSGJPN022, inet6_ntoa(SocksSockAddr.sin6_addr), ntohs(SocksSockAddr.sin6_port), MSGJPN334);
 		// connectで接続する先はSOCKSサーバ
-		memcpy(&saSockAddr, &SocksSockAddrIPv6, sizeof(SocksSockAddrIPv6));
+		memcpy(&saSockAddr, &SocksSockAddr, sizeof(SocksSockAddr));
 	}
 	else
 	{
 		// connectで接続するのは接続先のホスト
-		memcpy(&saSockAddr, &CurSockAddrIPv6, sizeof(CurSockAddrIPv6));
+		memcpy(&saSockAddr, &CurSockAddr, sizeof(CurSockAddr));
 	}
 
 	/////////////
 	// 接続実行
 	/////////////
 
-	inet6_ntoa(saSockAddr.sin6_addr);
 	if((sSocket = do_socket(AF_INET6, SOCK_STREAM, TCP_PORT)) != INVALID_SOCKET)
 	{
+		// ソケットにデータを付与
+		SetAsyncTableDataIPv6(sSocket, &CurSockAddr, &SocksSockAddr);
 		if(do_connect(sSocket, (struct sockaddr *)&saSockAddr, sizeof(saSockAddr), CancelCheckWork) != SOCKET_ERROR)
 		{
 			if((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
@@ -2524,6 +2502,9 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 //SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 {
+	// IPv6対応
+	struct sockaddr_in SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
+	struct sockaddr_in CurSockAddr;		/* 接続先ホストのアドレス情報 */
     SOCKET listen_skt;
     int iLength;
     char *a,*p;
@@ -2537,6 +2518,9 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 	int Len;
 	int Fwall;
 
+	// ソケットにデータを付与
+	GetAsyncTableDataIPv4(ctrl_skt, &CurSockAddr, &SocksSockAddr);
+
 	Fwall = FWALL_NONE;
 	if(AskHostFireWall() == YES)
 		Fwall = FwallType;
@@ -2547,17 +2531,12 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 		{
 			/*===== SOCKS4を使う =====*/
 			DoPrintf("Use SOCKS4 BIND");
-			// IPv6対応
-//			if(do_connect(listen_skt, (struct sockaddr *)&SocksSockAddr, sizeof(SocksSockAddr), CancelCheckWork) != SOCKET_ERROR)
-			if(do_connect(listen_skt, (struct sockaddr *)&SocksSockAddrIPv4, sizeof(SocksSockAddrIPv4), CancelCheckWork) != SOCKET_ERROR)
+			if(do_connect(listen_skt, (struct sockaddr *)&SocksSockAddr, sizeof(SocksSockAddr), CancelCheckWork) != SOCKET_ERROR)
 			{
 				Socks4Cmd.Ver = SOCKS4_VER;
 				Socks4Cmd.Cmd = SOCKS4_CMD_BIND;
-				// IPv6対応
-//				Socks4Cmd.Port = CurSockAddr.sin_port;
-//				Socks4Cmd.AdrsInt = CurSockAddr.sin_addr.s_addr;
-				Socks4Cmd.Port = CurSockAddrIPv4.sin_port;
-				Socks4Cmd.AdrsInt = CurSockAddrIPv4.sin_addr.s_addr;
+				Socks4Cmd.Port = CurSockAddr.sin_port;
+				Socks4Cmd.AdrsInt = CurSockAddr.sin_addr.s_addr;
 				strcpy(Socks4Cmd.UserID, FwallUser);
 				Len = offsetof(SOCKS4CMD, UserID) + strlen(FwallUser) + 1;
 
@@ -2578,9 +2557,7 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 				}
 
 				if(Socks4Reply.AdrsInt == 0)
-					// IPv6対応
-//					Socks4Reply.AdrsInt = SocksSockAddr.sin_addr.s_addr;
-					Socks4Reply.AdrsInt = SocksSockAddrIPv4.sin_addr.s_addr;
+					Socks4Reply.AdrsInt = SocksSockAddr.sin_addr.s_addr;
 
 				a = (char *)&Socks4Reply.AdrsInt;
 				p = (char *)&Socks4Reply.Port;
@@ -2590,9 +2567,7 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 		{
 			/*===== SOCKS5を使う =====*/
 			DoPrintf("Use SOCKS5 BIND");
-			// IPv6対応
-//			if(do_connect(listen_skt, (struct sockaddr *)&SocksSockAddr, sizeof(SocksSockAddr), CancelCheckWork) != SOCKET_ERROR)
-			if(do_connect(listen_skt, (struct sockaddr *)&SocksSockAddrIPv4, sizeof(SocksSockAddrIPv4), CancelCheckWork) != SOCKET_ERROR)
+			if(do_connect(listen_skt, (struct sockaddr *)&SocksSockAddr, sizeof(SocksSockAddr), CancelCheckWork) != SOCKET_ERROR)
 			{
 				if(Socks5SelMethod(listen_skt, CancelCheckWork) == FFFTP_FAIL)
 				{
@@ -2601,9 +2576,7 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 					return(listen_skt);
 				}
 
-				// IPv6対応
-//				Len = Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, UseIPadrs, CurSockAddr.sin_addr.s_addr, DomainName, CurSockAddr.sin_port);
-				Len = Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, UseIPadrs, CurSockAddrIPv4.sin_addr.s_addr, DomainName, CurSockAddrIPv4.sin_port);
+				Len = Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, UseIPadrs, CurSockAddr.sin_addr.s_addr, DomainName, CurSockAddr.sin_port);
 
 				Socks5Reply.Result = -1;
 				// 同時接続対応
@@ -2711,6 +2684,8 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 
 SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 {
+	struct sockaddr_in6 SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
+	struct sockaddr_in6 CurSockAddr;		/* 接続先ホストのアドレス情報 */
     SOCKET listen_skt;
     int iLength;
     char *a,*p;
@@ -2724,6 +2699,9 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 
 	char Adrs[40];
 
+	// ソケットにデータを付与
+	GetAsyncTableDataIPv6(ctrl_skt, &CurSockAddr, &SocksSockAddr);
+
 	Fwall = FWALL_NONE;
 	if(AskHostFireWall() == YES)
 		Fwall = FwallType;
@@ -2734,7 +2712,7 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 		{
 			/*===== SOCKS5を使う =====*/
 			DoPrintf("Use SOCKS5 BIND");
-			if(do_connect(listen_skt, (struct sockaddr *)&SocksSockAddrIPv6, sizeof(SocksSockAddrIPv6), CancelCheckWork) != SOCKET_ERROR)
+			if(do_connect(listen_skt, (struct sockaddr *)&SocksSockAddr, sizeof(SocksSockAddr), CancelCheckWork) != SOCKET_ERROR)
 			{
 				if(Socks5SelMethod(listen_skt, CancelCheckWork) == FFFTP_FAIL)
 				{
@@ -2743,7 +2721,7 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 					return(listen_skt);
 				}
 
-				Len = Socks5MakeCmdPacketIPv6(&Socks5Cmd, SOCKS5_CMD_BIND, UseIPadrs, (char*)&CurSockAddrIPv6.sin6_addr, DomainName, CurSockAddrIPv6.sin6_port);
+				Len = Socks5MakeCmdPacketIPv6(&Socks5Cmd, SOCKS5_CMD_BIND, UseIPadrs, (char*)&CurSockAddr.sin6_addr, DomainName, CurSockAddr.sin6_port);
 
 				Socks5Reply.Result = -1;
 				// 同時接続対応
