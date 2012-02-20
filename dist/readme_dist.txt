@@ -4,3 +4,4 @@ put below DLL files to distribue in this directory.
  * Microsoft.VC90.CRT.manifest
  * msvcr90.dll
  * ssleay32.dll
+ * ssl.pem
