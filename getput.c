@@ -1334,13 +1334,7 @@ int DoDownload(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork)
 					DispTransFileInfo(Pkt, MSGJPN087, FALSE, NO);
 			}
 
-			// SFTP対応
-//			if(BackgrndMessageProc() == NO)
-			if(IsSFTPAttached(Pkt->ctrl_skt))
-			{
-				// TODO:
-			}
-			else if(BackgrndMessageProc() == NO)
+			if(BackgrndMessageProc() == NO)
 			{
 				if(AskPasvMode() != YES)
 					iRetCode = DownloadNonPassive(Pkt, CancelCheckWork);
@@ -2592,13 +2586,7 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET *Pkt)
 				if(Pkt->hWndTrans != NULL)
 					DispTransFileInfo(Pkt, MSGJPN104, TRUE, YES);
 
-				// SFTP対応
-//				if(BackgrndMessageProc() == NO)
-				if(IsSFTPAttached(Pkt->ctrl_skt))
-				{
-					// TODO:
-				}
-				else if(BackgrndMessageProc() == NO)
+				if(BackgrndMessageProc() == NO)
 				{
 					if(AskPasvMode() != YES)
 						iRetCode = UploadNonPassive(Pkt);
