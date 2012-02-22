@@ -407,6 +407,8 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 	char PwdBuf[FMAX_PATH+1];
 	int useDefautPassword = 0; /* 警告文表示用 */
 	int masterpass;
+	// ポータブル版判定
+	int ImportPortable;
 
 	sts = FFFTP_FAIL;
 
@@ -448,10 +450,20 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		GetModuleFileName(NULL, PortableFilePath, FMAX_PATH);
 		strcpy(GetFileName(PortableFilePath), "portable");
 		CheckPortableVersion();
+		ImportPortable = NO;
 		if(PortableVersion == YES)
 		{
 			ForceIni = YES;
 			RegType = REGTYPE_INI;
+			if(IsRegAvailable() == YES && IsIniAvailable() == NO)
+			{
+				if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(ini_from_reg_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+				{
+					ImportPortable = YES;
+					ForceIni = NO;
+					RegType = REGTYPE_REG;
+				}
+			}
 		}
 
 //		AllocConsole();
@@ -505,6 +517,13 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		if(masterpass != 0)
 		{
 			LoadRegistry();
+
+			// ポータブル版判定
+			if(ImportPortable == YES)
+			{
+				ForceIni = YES;
+				RegType = REGTYPE_INI;
+			}
 
 			// 暗号化通信対応
 			SetSSLTimeoutCallback(TimeOut * 1000, SSLTimeoutCallback);
@@ -1387,6 +1406,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					if(DialogBox(hInstFtp, MAKEINTRESOURCE(reginit_dlg), hWnd, ExeEscDialogProc) == YES)
 					{
 						ClearRegistry();
+						// ポータブル版判定
+						ClearIni();
 						SaveExit = NO;
 						PostMessage(hWnd, WM_CLOSE, 0, 0L);
 					}
@@ -2094,6 +2115,9 @@ static void ExitProc(HWND hWnd)
 	{
 		GetListTabWidth();
 		SaveRegistry();
+		// ポータブル版判定
+		if(RegType == REGTYPE_REG)
+			ClearIni();
 
 		if((CacheEntry > 0) && (CacheSave == YES))
 			SaveCache();

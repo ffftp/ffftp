@@ -2156,6 +2156,18 @@ END_ROUTINE
 	return r;
 }
 
+BOOL DeleteFileM(LPCSTR lpFileName)
+{
+	BOOL r = FALSE;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(lpFileName, -1);
+	r = DeleteFileW(pw0);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
 int mkdirM(const char * _Path)
 {
 	int r = -1;

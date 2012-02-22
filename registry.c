@@ -1130,6 +1130,20 @@ void ClearRegistry(void)
 }
 
 
+// ポータブル版判定
+void ClearIni(void)
+{
+//	FILE *Strm;
+//	if((Strm = fopen(AskIniFilePath(), "rt")) != NULL)
+//	{
+//		fclose(Strm);
+//		MoveFileToTrashCan(AskIniFilePath());
+//	}
+	DeleteFile(AskIniFilePath());
+	return;
+}
+
+
 /*----- 設定をファイルに保存 --------------------------------------------------
 *
 *	Parameter
@@ -1966,18 +1980,20 @@ static int CloseReg(void *Handle)
 {
 	REGDATATBL *Pos;
 	REGDATATBL *Next;
-	FILE *Strm;
+	// ポータブル版判定
+//	FILE *Strm;
 
 	if(TmpRegType == REGTYPE_REG)
 	{
 		RegCloseKey(Handle);
 
 		/* INIファイルを削除 */
-		if((Strm = fopen(AskIniFilePath(), "rt")) != NULL)
-		{
-			fclose(Strm);
-			MoveFileToTrashCan(AskIniFilePath());
-		}
+		// ポータブル版判定
+//		if((Strm = fopen(AskIniFilePath(), "rt")) != NULL)
+//		{
+//			fclose(Strm);
+//			MoveFileToTrashCan(AskIniFilePath());
+//		}
 	}
 	else
 	{
@@ -2927,3 +2943,33 @@ DWORD GetRandamDWRODValue(void)
 	}
 	return rndValue;
 }
+
+// ポータブル版判定
+int IsRegAvailable()
+{
+	int Sts;
+	void* h;
+	Sts = NO;
+	SetRegType(REGTYPE_REG);
+	if(OpenReg("FFFTP", &h) == FFFTP_SUCCESS)
+	{
+		CloseReg(h);
+		Sts = YES;
+	}
+	return Sts;
+}
+
+int IsIniAvailable()
+{
+	int Sts;
+	void* h;
+	Sts = NO;
+	SetRegType(REGTYPE_INI);
+	if(OpenReg("FFFTP", &h) == FFFTP_SUCCESS)
+	{
+		CloseReg(h);
+		Sts = YES;
+	}
+	return Sts;
+}
+

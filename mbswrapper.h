@@ -176,6 +176,9 @@ BOOL CopyFileM(LPCSTR lpExistingFileName, LPCSTR lpNewFileName, BOOL bFailIfExis
 #undef MoveFile
 #define MoveFile MoveFileM
 BOOL MoveFileM(LPCSTR lpExistingFileName, LPCSTR lpNewFileName);
+#undef DeleteFile
+#define DeleteFile DeleteFileM
+BOOL DeleteFileM(LPCSTR lpFileName);
 #undef mkdir
 #define mkdir _mkdirM
 int mkdirM(const char * _Path);
