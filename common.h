@@ -1308,6 +1308,9 @@ BOOL LoadSSLRootCAFile();
 BOOL IsMainThread();
 // ファイルアイコン表示対応
 int AskDispFileIcon(void);
+// ポータブル版判定
+void CheckPortableVersion();
+int AskPortableVersion(void);
 
 /*===== filelist.c =====*/
 

@@ -335,6 +335,8 @@ void DownloadProc(int ChName, int ForceFile, int All)
 void DirectDownloadProc(char *Fname)
 {
 	TRANSPACKET Pkt;
+	// ディレクトリ自動作成
+	char Tmp[FMAX_PATH+1];
 
 	// 同時接続対応
 	CancelFlg = NO;
@@ -400,9 +402,17 @@ void DirectDownloadProc(char *Fname)
 				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 				Pkt.KanaCnv = AskHostKanaCnv();
 
+				// ディレクトリ自動作成
+				strcpy(Tmp, Pkt.LocalFile);
 				Pkt.Mode = CheckLocalFile(&Pkt);	/* Pkt.ExistSize がセットされる */
 				if((Pkt.Mode != EXIST_ABORT) && (Pkt.Mode != EXIST_IGNORE))
+				// ディレクトリ自動作成
+//					AddTransFileList(&Pkt);
+				{
+					if(MakeAllDir == YES)
+						MakeDirFromLocalPath(Pkt.LocalFile, Tmp);
 					AddTransFileList(&Pkt);
+				}
 			}
 		}
 

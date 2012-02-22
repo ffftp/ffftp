@@ -136,6 +136,9 @@ static DWORD dwCookie;
 static char SSLRootCAFilePath[FMAX_PATH+1];
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 static DWORD MainThreadId;
+// ポータブル版判定
+static char PortableFilePath[FMAX_PATH+1];
+int PortableVersion;
 
 
 /*===== グローバルなワーク =====*/
@@ -437,6 +440,15 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			strcpy(GetFileName(IniPath), "ffftp.ini");
 		}
 		else
+		{
+			ForceIni = YES;
+			RegType = REGTYPE_INI;
+		}
+		// ポータブル版判定
+		GetModuleFileName(NULL, PortableFilePath, FMAX_PATH);
+		strcpy(GetFileName(PortableFilePath), "portable");
+		CheckPortableVersion();
+		if(PortableVersion == YES)
 		{
 			ForceIni = YES;
 			RegType = REGTYPE_INI;
@@ -3120,5 +3132,23 @@ BOOL IsMainThread()
 int AskDispFileIcon(void)
 {
 	return(DispFileIcon);
+}
+
+// ポータブル版判定
+void CheckPortableVersion()
+{
+	HANDLE hFile;
+	if((hFile = CreateFile(PortableFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+	{
+		PortableVersion = YES;
+		CloseHandle(hFile);
+	}
+	else
+		PortableVersion = NO;
+}
+
+int AskPortableVersion(void)
+{
+	return(PortableVersion);
 }
 
