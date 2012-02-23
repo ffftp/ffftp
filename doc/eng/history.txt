@@ -44,6 +44,10 @@ Changes in Ver.1.98e
 -- Disabled saving settings in the registry about ZIP version copies.
    To save in the registry, please remove "portable" the file.
 
+-- Fix bugs of corruption of the extensions columns.
+
+-- Added support for some MLSD responses that do not conform to RFC 3659.
+
 Changes in Ver.1.98d
 --------------------
 
