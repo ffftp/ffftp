@@ -427,14 +427,19 @@ DWORD GetNextCharM(LPCSTR lpString, LPCSTR* ppNext)
 	}
 	else
 		i = -1;
-	lpString++;
-	while((*lpString & 0xc0) == 0x80)
+	if(*lpString != 0x00)
 	{
-		i--;
-		Code = Code << 6;
-		Code |= (DWORD)*lpString & 0x3f;
 		lpString++;
+		while((*lpString & 0xc0) == 0x80)
+		{
+			i--;
+			Code = Code << 6;
+			Code |= (DWORD)*lpString & 0x3f;
+			lpString++;
+		}
 	}
+	else
+		lpString++;
 	if(i != 0)
 		Code = 0x80000000;
 	if(ppNext)
