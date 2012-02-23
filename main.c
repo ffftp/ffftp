@@ -136,6 +136,9 @@ static DWORD dwCookie;
 static char SSLRootCAFilePath[FMAX_PATH+1];
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 static DWORD MainThreadId;
+// ポータブル版判定
+static char PortableFilePath[FMAX_PATH+1];
+int PortableVersion;
 
 
 /*===== グローバルなワーク =====*/
@@ -409,6 +412,8 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 	char PwdBuf[FMAX_PATH+1];
 	int useDefautPassword = 0; /* 警告文表示用 */
 	int masterpass;
+	// ポータブル版判定
+	int ImportPortable;
 
 	sts = FFFTP_FAIL;
 
@@ -445,6 +450,25 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		{
 			ForceIni = YES;
 			RegType = REGTYPE_INI;
+		}
+		// ポータブル版判定
+		GetModuleFileName(NULL, PortableFilePath, FMAX_PATH);
+		strcpy(GetFileName(PortableFilePath), "portable");
+		CheckPortableVersion();
+		ImportPortable = NO;
+		if(PortableVersion == YES)
+		{
+			ForceIni = YES;
+			RegType = REGTYPE_INI;
+			if(IsRegAvailable() == YES && IsIniAvailable() == NO)
+			{
+				if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(ini_from_reg_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+				{
+					ImportPortable = YES;
+					ForceIni = NO;
+					RegType = REGTYPE_REG;
+				}
+			}
 		}
 
 //		AllocConsole();
@@ -498,6 +522,13 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		if(masterpass != 0)
 		{
 			LoadRegistry();
+
+			// ポータブル版判定
+			if(ImportPortable == YES)
+			{
+				ForceIni = YES;
+				RegType = REGTYPE_INI;
+			}
 
 			// 暗号化通信対応
 			SetSSLTimeoutCallback(TimeOut * 1000, SSLTimeoutCallback);
@@ -1380,6 +1411,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					if(DialogBox(hInstFtp, MAKEINTRESOURCE(reginit_dlg), hWnd, ExeEscDialogProc) == YES)
 					{
 						ClearRegistry();
+						// ポータブル版判定
+						ClearIni();
 						SaveExit = NO;
 						PostMessage(hWnd, WM_CLOSE, 0, 0L);
 					}
@@ -2087,6 +2120,9 @@ static void ExitProc(HWND hWnd)
 	{
 		GetListTabWidth();
 		SaveRegistry();
+		// ポータブル版判定
+		if(RegType == REGTYPE_REG)
+			ClearIni();
 
 		if((CacheEntry > 0) && (CacheSave == YES))
 			SaveCache();
@@ -3098,7 +3134,7 @@ BOOL LoadSSLRootCAFile()
 				for(i = 0; i < 5; i++)
 					Hash[i] = _byteswap_ulong(Hash[i]);
 				// 同梱する"ssl.pem"に合わせてSHA1ハッシュ値を変更すること
-				if(memcmp(&Hash, &SSLRootCAFileHash, 20) == 0 || memcmp(&Hash, "\xF0\x1B\x48\x26\x67\x44\x3A\xFF\x0A\x16\xD3\xBB\x8A\x33\xEB\x70\x6D\x75\xA6\x0D", 20) == 0
+				if(memcmp(&Hash, &SSLRootCAFileHash, 20) == 0 || memcmp(&Hash, "\x63\xAC\x6C\x43\xCE\xD6\x5B\xCF\x33\xB9\x45\x70\xC3\x9B\x8C\x91\x19\x0D\xEF\xE6", 20) == 0
 					|| DialogBox(GetFtpInst(), MAKEINTRESOURCE(updatesslroot_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
 				{
 					memcpy(&SSLRootCAFileHash, &Hash, 20);
@@ -3125,5 +3161,23 @@ BOOL IsMainThread()
 int AskDispFileIcon(void)
 {
 	return(DispFileIcon);
+}
+
+// ポータブル版判定
+void CheckPortableVersion()
+{
+	HANDLE hFile;
+	if((hFile = CreateFile(PortableFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+	{
+		PortableVersion = YES;
+		CloseHandle(hFile);
+	}
+	else
+		PortableVersion = NO;
+}
+
+int AskPortableVersion(void)
+{
+	return(PortableVersion);
 }
 

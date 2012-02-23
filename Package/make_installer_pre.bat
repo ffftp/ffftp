@@ -27,4 +27,8 @@ REM; copy to installer working directory
 copy /Y %DIR_JPN%\*.* %DIR_JPN_INST%
 copy /Y %DIR_ENG%\*.* %DIR_ENG_INST%
 
+REM; copy a portable indicator file
+copy /Y %PORTABLE_FILE% %DIR_JPN%
+copy /Y %PORTABLE_FILE% %DIR_ENG%
+
 pause

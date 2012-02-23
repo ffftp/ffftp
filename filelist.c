@@ -1525,20 +1525,36 @@ static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LON
 
 			if((Sort & SORT_GET_ORD) == SORT_ASCENT)
 			{
-				if((((Sort & SORT_MASK_ORD) == SORT_EXT) &&
-					((Cmp = _mbsicmp(GetFileExt(Name), GetFileExt(Pos->File))) < 0)) ||
-#if defined(HAVE_TANDEM)
-				   ((AskHostType() == HTYPE_TANDEM) &&
-				    ((Sort & SORT_MASK_ORD) == SORT_EXT) &&
-					((Cmp = Attr - Pos->Attr) < 0)) ||
-#endif
-				   (((Sort & SORT_MASK_ORD) == SORT_SIZE) &&
-					((Cmp = Size - Pos->Size) < 0)) ||
-				   (((Sort & SORT_MASK_ORD) == SORT_DATE) &&
-					((Cmp = CompareFileTime(Time, &Pos->Time)) < 0)))
-				{
+				// 読みにくいのでリファクタリング
+//				if((((Sort & SORT_MASK_ORD) == SORT_EXT) &&
+//					((Cmp = _mbsicmp(GetFileExt(Name), GetFileExt(Pos->File))) < 0)) ||
+//#if defined(HAVE_TANDEM)
+//				   ((AskHostType() == HTYPE_TANDEM) &&
+//				    ((Sort & SORT_MASK_ORD) == SORT_EXT) &&
+//					((Cmp = Attr - Pos->Attr) < 0)) ||
+//#endif
+//				   (((Sort & SORT_MASK_ORD) == SORT_SIZE) &&
+//					((Cmp = Size - Pos->Size) < 0)) ||
+//				   (((Sort & SORT_MASK_ORD) == SORT_DATE) &&
+//					((Cmp = CompareFileTime(Time, &Pos->Time)) < 0)))
+//				{
+//					break;
+//				}
+				if(((Sort & SORT_MASK_ORD) == SORT_EXT) &&
+					((Cmp = _mbsicmp(GetFileExt(Name), GetFileExt(Pos->File))) < 0))
 					break;
-				}
+#if defined(HAVE_TANDEM)
+				if((AskHostType() == HTYPE_TANDEM) &&
+					((Sort & SORT_MASK_ORD) == SORT_EXT) &&
+					((Cmp = Attr - Pos->Attr) < 0))
+					break;
+#endif
+				if(((Sort & SORT_MASK_ORD) == SORT_SIZE) &&
+					((Cmp = Size - Pos->Size) < 0))
+					break;
+				if(((Sort & SORT_MASK_ORD) == SORT_DATE) &&
+					((Cmp = CompareFileTime(Time, &Pos->Time)) < 0))
+					break;
 
 				if(((Sort & SORT_MASK_ORD) == SORT_NAME) || (Cmp == 0))
 				{

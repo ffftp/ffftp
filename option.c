@@ -1481,6 +1481,9 @@ static INT_PTR CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 			SendDlgItemMessage(hDlg, MISC_WINPOS, BM_SETCHECK, SaveWinPos, 0);
 			SendDlgItemMessage(hDlg, MISC_DEBUG, BM_SETCHECK, DebugConsole, 0);
 			SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_SETCHECK, RegType, 0);
+			// ポータブル版判定
+			if(AskForceIni() == YES)
+				EnableWindow(GetDlgItem(hDlg, MISC_REGTYPE), FALSE);
 
 			SendDlgItemMessage(hDlg, MISC_CACHE_SAVE, BM_SETCHECK, CacheSave, 0);
 			SendDlgItemMessage(hDlg, MISC_BUFNUM, EM_LIMITTEXT, (WPARAM)2, 0);
@@ -1510,7 +1513,10 @@ static INT_PTR CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 				case PSN_APPLY :
 					SaveWinPos = SendDlgItemMessage(hDlg, MISC_WINPOS, BM_GETCHECK, 0, 0);
 					DebugConsole = SendDlgItemMessage(hDlg, MISC_DEBUG, BM_GETCHECK, 0, 0);
-					RegType = SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_GETCHECK, 0, 0);
+					// ポータブル版判定
+//					RegType = SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_GETCHECK, 0, 0);
+					if(AskForceIni() == NO)
+						RegType = SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_GETCHECK, 0, 0);
 
 					CacheSave = SendDlgItemMessage(hDlg, MISC_CACHE_SAVE, BM_GETCHECK, 0, 0);
 					CacheEntry = GetDecimalText(hDlg, MISC_BUFNUM);

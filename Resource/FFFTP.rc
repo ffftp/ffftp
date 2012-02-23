@@ -1423,6 +1423,16 @@ BEGIN
     PUSHBUTTON      "中止(&S)",UPDOWNAS_STOP,101,66,50,14
 END
 
+ini_from_reg_dlg DIALOG  0, 0, 211, 64
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "レジストリの設定のインポート"
+FONT 9, "MS Shell Dlg"
+BEGIN
+    LTEXT           "INIファイルを使用するように設定されていますが、INIファイルではなくレジストリに設定が存在することを検出しました。\r\nレジストリの設定をインポートしますか。",-1,7,7,196,36
+    DEFPUSHBUTTON   "はい",IDOK,48,42,50,14
+    PUSHBUTTON      "いいえ",IDCANCEL,112,42,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1578,9 +1588,9 @@ BEGIN
     forcepasschange_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 139
+        RIGHTMARGIN, 204
         TOPMARGIN, 7
-        BOTTOMMARGIN, 43
+        BOTTOMMARGIN, 57
     END
 
     opt_trmode2_dlg, DIALOG
@@ -2066,9 +2076,9 @@ BEGIN
     updatesslroot_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 139
+        RIGHTMARGIN, 204
         TOPMARGIN, 7
-        BOTTOMMARGIN, 43
+        BOTTOMMARGIN, 57
     END
 
     updown_as_with_ext_dlg, DIALOG
@@ -2076,7 +2086,15 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 180
         TOPMARGIN, 7
-        BOTTOMMARGIN, 87
+        BOTTOMMARGIN, 82
+    END
+
+    ini_from_reg_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 57
     END
 END
 #endif    // APSTUDIO_INVOKED

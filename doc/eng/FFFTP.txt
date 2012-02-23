@@ -69,6 +69,13 @@ Changes in Ver.1.98e
    Name resolution and connection will be performed at same time on IPv4 and
    IPv6, and whichever finished earlier will be used.
 
+-- Disabled saving settings in the registry about ZIP version copies.
+   To save in the registry, please remove "portable" the file.
+
+-- Fix bugs of corruption of the extensions columns.
+
+-- Added support for some MLSD responses that do not conform to RFC 3659.
+
 
 Outline
 -------

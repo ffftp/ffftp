@@ -1308,6 +1308,9 @@ BOOL LoadSSLRootCAFile();
 BOOL IsMainThread();
 // ファイルアイコン表示対応
 int AskDispFileIcon(void);
+// ポータブル版判定
+void CheckPortableVersion();
+int AskPortableVersion(void);
 
 /*===== filelist.c =====*/
 
@@ -1701,12 +1704,17 @@ int CheckFname(char *str, char *regexp);
 void SaveRegistry(void);
 int LoadRegistry(void);
 void ClearRegistry(void);
+// ポータブル版判定
+void ClearIni(void);
 void SetMasterPassword( const char* );
 int GetMasterPasswordStatus(void);
 int ValidateMasterPassword(void);
 DWORD LoadHideDriveListRegistry(void);
 void SaveSettingsToFile(void);
 int LoadSettingsFromFile(void);
+// ポータブル版判定
+int IsRegAvailable();
+int IsIniAvailable();
 
 /*===== lvtips.c =====*/
 

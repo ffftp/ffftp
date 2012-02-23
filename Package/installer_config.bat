@@ -17,6 +17,7 @@ set ENG_INST=EXEpress\eng\ffftp.exe
 set HTMLHELP=..\htmlhelp\FFFTP.CHM
 set BIN_JPN=..\Release\FFFTP.exe
 set BIN_ENG=..\FFFTP_Eng_Release\FFFTP.exe
+set PORTABLE_FILE=portable
 
 set DIR_JPN_DOC=..\doc\jpn
 set DIR_ENG_DOC=..\doc\eng
