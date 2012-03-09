@@ -912,6 +912,14 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //							DoUpload(AskTrnCtrlSkt(), TransPacketBase);
 							DoUpload(TrnSkt, Pos);
 //					}
+
+					// ホスト側の日時設定
+					/* ファイルのタイムスタンプを合わせる */
+					if((SaveTimeStamp == YES) &&
+					   ((Pos->Time.dwLowDateTime != 0) || (Pos->Time.dwHighDateTime != 0)))
+					{
+						DoMFMT(TrnSkt, Pos->RemoteFile, &Pos->Time, &Canceled[Pos->ThreadCount]);
+					}
 				}
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 				ReleaseMutex(hListAccMutex);

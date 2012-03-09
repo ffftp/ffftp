@@ -1607,6 +1607,8 @@ int DoSIZE(SOCKET cSkt, char *Path, LONGLONG *Size, int *CancelCheckWork);
 // 同時接続対応
 //int DoMDTM(char *Path, FILETIME *Time);
 int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork);
+// ホスト側の日時設定
+int DoMFMT(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork);
 // 同時接続対応
 //int DoQUOTE(char *CmdStr);
 int DoQUOTE(SOCKET cSkt, char *CmdStr, int *CancelCheckWork);

@@ -773,7 +773,7 @@ BEGIN
     PUSHBUTTON      "追加(&I)...",TRMODE_ADD,167,19,31,14
     PUSHBUTTON      "削除",TRMODE_DEL,167,38,31,14
     CONTROL         "アスキーモードでアップロード時、EOF(Ctrl-Z)を取り除く(&Z)",TRMODE_EOF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,94,196,10
-    CONTROL         "ダウンロードするファイルのタイムスタンプを維持(&T)",TRMODE_TIME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,196,10
+    CONTROL         "アップロード/ダウンロードするファイルのタイムスタンプを維持(&T)",TRMODE_TIME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,196,10
     CONTROL         "ファイル名のセミコロン以降は取り除いてダウンロード(&S)",TRMODE_SEMICOLON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,196,10
     CONTROL         "ファイル名を変えて転送した場合にディレクトリを作成(&D)",TRMODE_MAKEDIR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,136,196,10
 END

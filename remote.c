@@ -460,6 +460,20 @@ int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork)
 }
 
 
+// ホスト側の日時設定
+int DoMFMT(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork)
+{
+	int Sts;
+	char Tmp[1024];
+	SYSTEMTIME sTime;
+
+	FileTimeToSystemTime(Time, &sTime);
+
+	Sts = CommandProcTrn(cSkt, Tmp, CancelCheckWork, "MFMT %04d%02d%02d%02d%02d%02d %s", sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond, Path);
+	return(Sts/100);
+}
+
+
 /*----- リモート側のコマンドを実行 --------------------------------------------
 *
 *	Parameter
