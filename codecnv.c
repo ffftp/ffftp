@@ -370,6 +370,8 @@ void InitCodeConvInfo(CODECONVINFO *cInfo)
 	cInfo->KanaProc = NULL;
 	// UTF-8対応
 	cInfo->EscUTF8Len = 0;
+	cInfo->EscFlush = NO;
+	cInfo->FlushProc = NULL;
 	return;
 }
 
@@ -390,6 +392,13 @@ int FlushRestData(CODECONVINFO *cInfo)
 {
 	char *Put;
 
+	// UTF-8対応
+	if(cInfo->FlushProc != NULL)
+	{
+		cInfo->EscFlush = YES;
+		return cInfo->FlushProc(cInfo);
+	}
+
 	Put = cInfo->Buf;
 
 	if(cInfo->KanaProc != NULL)
@@ -401,9 +410,6 @@ int FlushRestData(CODECONVINFO *cInfo)
 		*Put++ = cInfo->EscCode[0];
 	if(cInfo->EscProc == 2)
 		*Put++ = cInfo->EscCode[1];
-	// UTF-8対応
-	memcpy(Put, cInfo->EscUTF8, sizeof(char) * cInfo->EscUTF8Len);
-	Put += cInfo->EscUTF8Len;
 
 	cInfo->OutLen = Put - cInfo->Buf;
 
@@ -1481,12 +1487,63 @@ static int CheckOnEUC(uchar *Pos, uchar *Btm)
 *		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
 *----------------------------------------------------------------------------*/
 
+// UTF-8対応
+// UTF-8からShift_JISへの変換後のバイト列が確定可能な長さを変換後の長さで返す
+// バイナリ            UTF-8       戻り値 Shift_JIS
+// E3 81 82 E3 81 84   あい     -> 2      82 A0   あ+結合文字の先頭バイトの可能性（い゛等）
+// E3 81 82 E3 81      あ+E3 81 -> 0              結合文字の先頭バイトの可能性
+// E3 81 82 E3         あ+E3    -> 0              結合文字の先頭バイトの可能性
+// E3 81 82            あ       -> 0              結合文字の先頭バイトの可能性
+int ConvUTF8NtoSJIS_TruncateToDelimiter(char* pUTF8, int UTF8Length, int* pNewUTF8Length)
+{
+	int UTF16Length;
+	wchar_t* pUTF16;
+	int SJISLength;
+	int NewSJISLength;
+	int NewUTF16Length;
+	// UTF-8の場合、不完全な文字は常に変換されない
+	// バイナリ            UTF-8       バイナリ      UTF-16 LE
+	// E3 81 82 E3 81 84   あい     -> 42 30 44 30   あい
+	// E3 81 82 E3 81      あ+E3 81 -> 42 30         あ
+	// E3 81 82 E3         あ+E3    -> 42 30         あ
+	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, NULL, 0);
+	if(!(pUTF16 = (wchar_t*)malloc(sizeof(wchar_t) * UTF16Length)))
+		return -1;
+	// Shift_JISへ変換した時に文字数が増減する位置がUnicode結合文字の区切り
+	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, pUTF16, UTF16Length);
+	SJISLength = WideCharToMultiByte(CP_ACP, 0, pUTF16, UTF16Length, NULL, 0, NULL, NULL);
+	NewSJISLength = SJISLength;
+	while(UTF8Length > 0 && NewSJISLength >= SJISLength)
+	{
+		UTF8Length--;
+		UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, pUTF16, UTF16Length);
+		SJISLength = NewSJISLength;
+		NewSJISLength = WideCharToMultiByte(CP_ACP, 0, pUTF16, UTF16Length, NULL, 0, NULL, NULL);
+	}
+	free(pUTF16);
+	// UTF-16 LE変換した時に文字数が増減する位置がUTF-8の区切り
+	NewUTF16Length = UTF16Length;
+	while(UTF8Length > 0 && NewUTF16Length >= UTF16Length)
+	{
+		UTF8Length--;
+		UTF16Length = NewUTF16Length;
+		NewUTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, NULL, 0);
+	}
+	if(pNewUTF8Length)
+	{
+		if(UTF16Length > 0)
+			UTF8Length++;
+		*pNewUTF8Length = UTF8Length;
+	}
+	return NewSJISLength;
+}
+
 int ConvUTF8NtoSJIS(CODECONVINFO *cInfo)
 {
 	int Continue;
 
 //	char temp_string[2048];
-	int string_length;
+//	int string_length;
 
 	// 大きいサイズに対応
 	// 終端のNULLを含むバグを修正
@@ -1494,7 +1551,6 @@ int ConvUTF8NtoSJIS(CODECONVINFO *cInfo)
 	char* pSrc;
 	wchar_t* pUTF16;
 	int UTF16Length;
-	int Count;
 
 	Continue = NO;
 
@@ -1518,6 +1574,14 @@ int ConvUTF8NtoSJIS(CODECONVINFO *cInfo)
 	memcpy(pSrc, cInfo->EscUTF8, sizeof(char) * cInfo->EscUTF8Len);
 	memcpy(pSrc + cInfo->EscUTF8Len, cInfo->Str, sizeof(char) * cInfo->StrLen);
 	*(pSrc + SrcLength) = '\0';
+	if(cInfo->EscFlush == NO)
+	{
+		// バッファに収まらないため変換文字数を半減
+		while(SrcLength > 0 && ConvUTF8NtoSJIS_TruncateToDelimiter(pSrc, SrcLength, &SrcLength) > cInfo->BufSize)
+		{
+			SrcLength = SrcLength / 2;
+		}
+	}
 	// UTF-8の場合、不完全な文字は常に変換されない
 	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pSrc, SrcLength, NULL, 0);
 
@@ -1559,7 +1623,6 @@ int ConvUTF8NtoSJIS(CODECONVINFO *cInfo)
 //						0,				// 格納先サイズ
 //						NULL,NULL
 //					);
-	string_length = WideCharToMultiByte(CP_ACP, 0, pUTF16, UTF16Length, NULL, 0, NULL, NULL);
 
 	// サイズ0 or 出力バッファサイズより大きい場合は、
 	// cInfo->Bufの最初に'\0'を入れて、
@@ -1585,20 +1648,10 @@ int ConvUTF8NtoSJIS(CODECONVINFO *cInfo)
 //		NULL,NULL
 //	);
 	cInfo->OutLen = WideCharToMultiByte(CP_ACP, 0, pUTF16, UTF16Length, cInfo->Buf, cInfo->BufSize, NULL, NULL);
-	// バッファに収まらないため変換文字数を半減
-	while(cInfo->OutLen == 0 && UTF16Length > 0)
-	{
-		UTF16Length = UTF16Length / 2;
-		cInfo->OutLen = WideCharToMultiByte(CP_ACP, 0, pUTF16, UTF16Length, cInfo->Buf, cInfo->BufSize, NULL, NULL);
-	}
-	// 変換された元の文字列での文字数を取得
-	Count = WideCharToMultiByte(CP_UTF8, 0, pUTF16, UTF16Length, NULL, 0, NULL, NULL);
-	// 変換可能な残りの文字数を取得
-	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pSrc + Count, SrcLength - Count, NULL, 0);
-	cInfo->Str += Count - cInfo->EscUTF8Len;
-	cInfo->StrLen -= Count - cInfo->EscUTF8Len;
+	cInfo->Str += SrcLength - cInfo->EscUTF8Len;
+	cInfo->StrLen -= SrcLength - cInfo->EscUTF8Len;
 	cInfo->EscUTF8Len = 0;
-	if(UTF16Length > 0)
+	if(ConvUTF8NtoSJIS_TruncateToDelimiter(cInfo->Str, cInfo->StrLen, NULL) > 0)
 		Continue = YES;
 	else
 	{
@@ -1607,6 +1660,7 @@ int ConvUTF8NtoSJIS(CODECONVINFO *cInfo)
 		cInfo->EscUTF8Len = cInfo->StrLen;
 		cInfo->Str += cInfo->StrLen;
 		cInfo->StrLen = 0;
+		cInfo->FlushProc = ConvUTF8NtoSJIS;
 		Continue = NO;
 	}
 
@@ -1664,25 +1718,28 @@ int ConvSJIStoUTF8N(CODECONVINFO *cInfo)
 	memcpy(pSrc, cInfo->EscUTF8, sizeof(char) * cInfo->EscUTF8Len);
 	memcpy(pSrc + cInfo->EscUTF8Len, cInfo->Str, sizeof(char) * cInfo->StrLen);
 	*(pSrc + SrcLength) = '\0';
-	// Shift_JISの場合、不完全な文字でも変換されることがあるため、末尾の不完全な部分を削る
-	Count = 0;
-	while(Count < SrcLength)
+	if(cInfo->EscFlush == NO)
 	{
-		if(((unsigned char)*(pSrc + Count) >= 0x81 && (unsigned char)*(pSrc + Count) <= 0x9f) || (unsigned char)*(pSrc + Count) >= 0xe0)
+		// Shift_JISの場合、不完全な文字でも変換されることがあるため、末尾の不完全な部分を削る
+		Count = 0;
+		while(Count < SrcLength)
 		{
-			if((unsigned char)*(pSrc + Count + 1) >= 0x40)
-				Count += 2;
-			else
+			if(((unsigned char)*(pSrc + Count) >= 0x81 && (unsigned char)*(pSrc + Count) <= 0x9f) || (unsigned char)*(pSrc + Count) >= 0xe0)
 			{
-				if(Count + 2 > SrcLength)
-					break;
-				Count += 1;
+				if((unsigned char)*(pSrc + Count + 1) >= 0x40)
+					Count += 2;
+				else
+				{
+					if(Count + 2 > SrcLength)
+						break;
+					Count += 1;
+				}
 			}
+			else
+				Count += 1;
 		}
-		else
-			Count += 1;
+		SrcLength = Count;
 	}
-	SrcLength = Count;
 	UTF16Length = MultiByteToWideChar(CP_ACP, 0, pSrc, SrcLength, NULL, 0);
 
 	// サイズ0 or バッファサイズより大きい場合は、
@@ -1779,6 +1836,7 @@ int ConvSJIStoUTF8N(CODECONVINFO *cInfo)
 		cInfo->EscUTF8Len = cInfo->StrLen;
 		cInfo->Str += cInfo->StrLen;
 		cInfo->StrLen = 0;
+		cInfo->FlushProc = ConvSJIStoUTF8N;
 		Continue = NO;
 	}
 

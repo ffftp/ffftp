@@ -1118,6 +1118,8 @@ typedef struct filelist {
 /*===== コード変換情報パケット =====*/
 
 typedef char * (*funcptr)(struct codeconvinfo *, char , char *);
+// UTF-8対応
+typedef int (*convptr)(struct codeconvinfo *);
 
 typedef struct codeconvinfo {
 	char *Str;			/* 文字列 */
@@ -1132,8 +1134,11 @@ typedef struct codeconvinfo {
 	char KanjiFst;		/* 漢字コード１バイト目保存用 (内部処理用ワーク) */
 	char KanaPrev;		/* 半角カタカナ保存用 (内部処理用ワーク) */
 	funcptr KanaProc;	/* 半角カタカナ処理ルーチン (内部処理用ワーク) */
-	char EscUTF8[8];
-	int EscUTF8Len;
+	// UTF-8対応
+	char EscUTF8[16];	/* エスケープシーケンス文字数 (0～) (内部処理用ワーク) */
+	int EscUTF8Len;		/* エスケープシーケンス文字保存用 (内部処理用ワーク) */
+	int EscFlush;		/* 残り情報を出力 (YES/NO) */
+	convptr FlushProc;	/* 残り情報処理ルーチン (内部処理用ワーク) */
 } CODECONVINFO;
 
 

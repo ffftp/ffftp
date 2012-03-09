@@ -183,6 +183,9 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 	LV_COLUMN LvCol;
 	long Tmp;
 
+	// 変数が未初期化のバグ修正
+	memset(&LvCol, 0, sizeof(LV_COLUMN));
+
 	/*===== ローカル側のリストビュー =====*/
 
 	hWndListLocal = CreateWindowEx(/*WS_EX_STATICEDGE*/WS_EX_CLIENTEDGE,
@@ -1125,6 +1128,9 @@ void GetListTabWidth(void)
 	LV_COLUMN LvCol;
 	int i;
 
+	// 変数が未初期化のバグ修正
+	memset(&LvCol, 0, sizeof(LV_COLUMN));
+
 	for(i = 0; i <= 3; i++)
 	{
 		LvCol.mask = LVCF_WIDTH;
@@ -1708,6 +1714,8 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 	if(Pos == -1)
 		Pos = SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0);
 
+	// 変数が未初期化のバグ修正
+	memset(&LvItem, 0, sizeof(LV_ITEM));
 	/* アイコン/ファイル名 */
 	LvItem.mask = LVIF_TEXT | LVIF_IMAGE;
 	LvItem.iItem = Pos;
@@ -1830,6 +1838,8 @@ void SelectFileInList(HWND hWnd, int Type)
 	FILETIME Time2;
 	int Find;
 
+	// 変数が未初期化のバグ修正
+	memset(&LvItem, 0, sizeof(LV_ITEM));
 	Win = WIN_LOCAL;
 	WinDst = WIN_REMOTE;
 	if(hWnd == GetRemoteHwnd())
@@ -2010,6 +2020,8 @@ void FindFileInList(HWND hWnd, int Type)
 	LV_ITEM LvItem;
 	char *Title;
 
+	// 変数が未初期化のバグ修正
+	memset(&LvItem, 0, sizeof(LV_ITEM));
 	Win = WIN_LOCAL;
 	Title = MSGJPN050;
 	if(hWnd == GetRemoteHwnd())
@@ -2291,6 +2303,8 @@ int FindNameNode(int Win, char *Name)
 	if(Win == WIN_REMOTE)
 		hWnd = GetRemoteHwnd();
 
+	// 変数が未初期化のバグ修正
+	memset(&FindInfo, 0, sizeof(LV_FINDINFO));
 	FindInfo.flags = LVFI_STRING;
 	FindInfo.psz = Name;
 	return(SendMessage(hWnd, LVM_FINDITEM, -1, (LPARAM)&FindInfo));
@@ -2318,6 +2332,8 @@ void GetNodeName(int Win, int Pos, char *Buf, int Max)
 	if(Win == WIN_REMOTE)
 		hWnd = GetRemoteHwnd();
 
+	// 変数が未初期化のバグ修正
+	memset(&LvItem, 0, sizeof(LV_ITEM));
 	LvItem.mask = LVIF_TEXT;
 	LvItem.iItem = Pos;
 	LvItem.iSubItem = 0;
@@ -2351,6 +2367,8 @@ int GetNodeTime(int Win, int Pos, FILETIME *Buf)
 	if(Win == WIN_REMOTE)
 		hWnd = GetRemoteHwnd();
 
+	// 変数が未初期化のバグ修正
+	memset(&LvItem, 0, sizeof(LV_ITEM));
 	LvItem.mask = LVIF_TEXT;
 	LvItem.iItem = Pos;
 	LvItem.iSubItem = 1;
@@ -2385,6 +2403,8 @@ int GetNodeSize(int Win, int Pos, LONGLONG *Buf)
 	if(Win == WIN_REMOTE)
 		hWnd = GetRemoteHwnd();
 
+	// 変数が未初期化のバグ修正
+	memset(&LvItem, 0, sizeof(LV_ITEM));
 	LvItem.mask = LVIF_TEXT;
 	LvItem.iItem = Pos;
 	LvItem.iSubItem = 2;
@@ -2432,6 +2452,8 @@ int GetNodeAttr(int Win, int Pos, int *Buf)
 	Ret = NO;
 	if(Win == WIN_REMOTE)
 	{
+		// 変数が未初期化のバグ修正
+		memset(&LvItem, 0, sizeof(LV_ITEM));
 		LvItem.mask = LVIF_TEXT;
 		LvItem.iItem = Pos;
 #if defined(HAVE_TANDEM)
@@ -2479,6 +2501,8 @@ int GetNodeType(int Win, int Pos)
 	if(Win == WIN_REMOTE)
 		hWnd = GetRemoteHwnd();
 
+	// 変数が未初期化のバグ修正
+	memset(&LvItem, 0, sizeof(LV_ITEM));
 	LvItem.mask = LVIF_TEXT;
 	LvItem.iItem = Pos;
 	LvItem.iSubItem = 2;
@@ -2516,6 +2540,8 @@ void GetNodeOwner(int Win, int Pos, char *Buf, int Max)
 	strcpy(Buf, "");
 	if(Win == WIN_REMOTE)
 	{
+		// 変数が未初期化のバグ修正
+		memset(&LvItem, 0, sizeof(LV_ITEM));
 		LvItem.mask = LVIF_TEXT;
 		LvItem.iItem = Pos;
 		LvItem.iSubItem = 5;
