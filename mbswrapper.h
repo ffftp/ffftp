@@ -241,6 +241,9 @@ FILE * fopenM(const char * _Filename, const char * _Mode);
 
 #endif
 
+#undef CP_ACP
+#define CP_ACP 932
+
 int MtoW(LPWSTR pDst, int size, LPCSTR pSrc, int count);
 int WtoM(LPSTR pDst, int size, LPCWSTR pSrc, int count);
 int AtoW(LPWSTR pDst, int size, LPCSTR pSrc, int count);
