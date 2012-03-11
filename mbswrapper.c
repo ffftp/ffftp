@@ -390,47 +390,48 @@ char* DuplicateWtoA(LPCWSTR lpString, int c)
 
 // マルチバイト文字列からコードポイントと次のポインタを取得
 // エンコードが不正な場合は0x80000000を返す
-DWORD GetNextCharM(LPCSTR lpString, LPCSTR* ppNext)
+DWORD GetNextCharM(LPCSTR lpString, LPCSTR pLimit, LPCSTR* ppNext)
 {
 	DWORD Code;
 	int i;
 	Code = 0;
-	if((*lpString & 0xfe) == 0xfc)
+	i = -1;
+	if(!pLimit)
+		pLimit = (LPCSTR)(~0);
+	if(lpString < pLimit)
 	{
-		i = 5;
-		Code |= (DWORD)*lpString & 0x01;
-	}
-	else if((*lpString & 0xfc) == 0xf8)
-	{
-		i = 4;
-		Code |= (DWORD)*lpString & 0x03;
-	}
-	else if((*lpString & 0xf8) == 0xf0)
-	{
-		i = 3;
-		Code |= (DWORD)*lpString & 0x07;
-	}
-	else if((*lpString & 0xf0) == 0xe0)
-	{
-		i = 2;
-		Code |= (DWORD)*lpString & 0x0f;
-	}
-	else if((*lpString & 0xe0) == 0xc0)
-	{
-		i = 1;
-		Code |= (DWORD)*lpString & 0x1f;
-	}
-	else if((*lpString & 0x80) == 0x00)
-	{
-		i = 0;
-		Code |= (DWORD)*lpString & 0x7f;
-	}
-	else
-		i = -1;
-	if(*lpString != 0x00)
-	{
+		if((*lpString & 0xfe) == 0xfc)
+		{
+			i = 5;
+			Code |= (DWORD)*lpString & 0x01;
+		}
+		else if((*lpString & 0xfc) == 0xf8)
+		{
+			i = 4;
+			Code |= (DWORD)*lpString & 0x03;
+		}
+		else if((*lpString & 0xf8) == 0xf0)
+		{
+			i = 3;
+			Code |= (DWORD)*lpString & 0x07;
+		}
+		else if((*lpString & 0xf0) == 0xe0)
+		{
+			i = 2;
+			Code |= (DWORD)*lpString & 0x0f;
+		}
+		else if((*lpString & 0xe0) == 0xc0)
+		{
+			i = 1;
+			Code |= (DWORD)*lpString & 0x1f;
+		}
+		else if((*lpString & 0x80) == 0x00)
+		{
+			i = 0;
+			Code |= (DWORD)*lpString & 0x7f;
+		}
 		lpString++;
-		while((*lpString & 0xc0) == 0x80)
+		while(lpString < pLimit && i > 0 && (*lpString & 0xc0) == 0x80)
 		{
 			i--;
 			Code = Code << 6;
@@ -438,13 +439,143 @@ DWORD GetNextCharM(LPCSTR lpString, LPCSTR* ppNext)
 			lpString++;
 		}
 	}
-	else
-		lpString++;
 	if(i != 0)
 		Code = 0x80000000;
 	if(ppNext)
 		*ppNext = lpString;
 	return Code;
+}
+
+// マルチバイト文字列へコードポイントの文字を追加して次のポインタを取得
+// 文字の長さを返す
+int PutNextCharM(LPSTR lpString, LPSTR pLimit, LPSTR* ppNext, DWORD Code)
+{
+	int Count;
+	int i;
+	Count = 0;
+	i = -1;
+	if(!pLimit)
+		pLimit = (LPSTR)(~0);
+	if(lpString < pLimit)
+	{
+		if(Code & 0x7c000000)
+		{
+			i = 5;
+			*lpString = 0xfc | ((CHAR)(Code >> 30) & 0x01);
+		}
+		else if(Code & 0x03e00000)
+		{
+			i = 4;
+			*lpString = 0xf8 | ((CHAR)(Code >> 24) & 0x03);
+		}
+		else if(Code & 0x001f0000)
+		{
+			i = 3;
+			*lpString = 0xf0 | ((CHAR)(Code >> 18) & 0x07);
+		}
+		else if(Code & 0x0000f800)
+		{
+			i = 2;
+			*lpString = 0xe0 | ((CHAR)(Code >> 12) & 0x0f);
+		}
+		else if(Code & 0x00000780)
+		{
+			i = 1;
+			*lpString = 0xc0 | ((CHAR)(Code >> 6) & 0x1f);
+		}
+		else
+		{
+			i = 0;
+			*lpString = (CHAR)Code & 0x7f;
+		}
+		Count = i + 1;
+		lpString++;
+		while(lpString < pLimit && i > 0)
+		{
+			i--;
+			*lpString = 0x80 | ((CHAR)(Code >> (i * 6)) & 0x3f);
+			lpString++;
+		}
+	}
+	if(i != 0)
+		Count = 0;
+	if(ppNext)
+		*ppNext = lpString;
+	return Count;
+}
+
+// ワイド文字列からコードポイントと次のポインタを取得
+// エンコードが不正な場合は0x80000000を返す
+DWORD GetNextCharW(LPCWSTR lpString, LPCWSTR pLimit, LPCWSTR* ppNext)
+{
+	DWORD Code;
+	Code = 0x80000000;
+	if(!pLimit)
+		pLimit = (LPCWSTR)(~0);
+	if(lpString < pLimit)
+	{
+		if((*lpString & 0xf800) == 0xd800)
+		{
+			if((*lpString & 0x0400) == 0x0400)
+			{
+				Code = (DWORD)*lpString & 0x03ff;
+				lpString++;
+				if(lpString < pLimit)
+				{
+					if((*lpString & 0x0400) == 0x0000)
+					{
+						Code |= ((DWORD)*lpString & 0x03ff) << 10;
+						lpString++;
+					}
+					else
+						Code = 0x80000000;
+				}
+				else
+					Code = 0x80000000;
+			}
+		}
+		else
+		{
+			Code = (DWORD)*lpString;
+			lpString++;
+		}
+	}
+	if(ppNext)
+		*ppNext = lpString;
+	return Code;
+}
+
+// ワイド文字列へコードポイントの文字を追加して次のポインタを取得
+// 文字の長さを返す
+int PutNextCharW(LPWSTR lpString, LPWSTR pLimit, LPWSTR* ppNext, DWORD Code)
+{
+	int Count;
+	Count = 0;
+	if(!pLimit)
+		pLimit = (LPWSTR)(~0);
+	if(lpString < pLimit)
+	{
+		if((Code & 0x7fff0000) || (Code & 0x0000f800) == 0x0000d800)
+		{
+			*lpString = 0xdc00 | ((WCHAR)Code & 0x03ff);
+			lpString++;
+			if(lpString < pLimit)
+			{
+				*lpString = 0xd800 | ((WCHAR)(Code >> 10) & 0x03ff);
+				lpString++;
+				Count = 2;
+			}
+		}
+		else
+		{
+			*lpString = (WCHAR)Code;
+			lpString++;
+			Count = 1;
+		}
+	}
+	if(ppNext)
+		*ppNext = lpString;
+	return Count;
 }
 
 // マルチバイト文字列の冗長表現を修正
@@ -461,7 +592,7 @@ BOOL FixStringM(LPSTR pDst, LPCSTR pSrc)
 	p = (char*)pSrc;
 	while(*pSrc != '\0')
 	{
-		Code = GetNextCharM(pSrc, &pSrc);
+		Code = GetNextCharM(pSrc, NULL, &pSrc);
 		if(Code & 0x80000000)
 			continue;
 		else if(Code & 0x7c000000)
@@ -574,6 +705,82 @@ void FreeDuplicatedString(void* p)
 	if(p < (void*)0x00010000 || p == (void*)~0)
 		return;
 	free(p);
+}
+
+// マルチバイト文字列からワイド文字列へ変換
+// UTF-8からUTF-16 LEへの変換専用
+int MultiByteToWideCharAlternative(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar)
+{
+	int WideCount;
+	LPCSTR pMultiLimit;
+	LPWSTR pWideLimit;
+	DWORD Code;
+	WCHAR Temp[8];
+	if(CodePage != CP_UTF8 || dwFlags != 0)
+		return MultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, lpWideCharStr, cchWideChar);
+	WideCount = 0;
+	if(cbMultiByte == -1)
+		pMultiLimit = lpMultiByteStr + strlen(lpMultiByteStr) + 1;
+	else
+		pMultiLimit = lpMultiByteStr + cbMultiByte;
+	pWideLimit = lpWideCharStr + cchWideChar;
+	while(lpMultiByteStr < pMultiLimit)
+	{
+		Code = GetNextCharM(lpMultiByteStr, pMultiLimit, &lpMultiByteStr);
+		if(Code == 0x80000000)
+			continue;
+		if(lpWideCharStr)
+		{
+			WideCount += PutNextCharW(lpWideCharStr, pWideLimit, &lpWideCharStr, Code);
+			if(lpWideCharStr >= pWideLimit)
+			{
+				WideCount = 0;
+				break;
+			}
+		}
+		else
+			WideCount += PutNextCharW(Temp, NULL, NULL, Code);
+	}
+	return WideCount;
+}
+
+// ワイド文字列からマルチバイト文字列へ変換
+// UTF-16 LEからUTF-8への変換専用
+int WideCharToMultiByteAlternative(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar)
+{
+	int MultiCount;
+	LPCWSTR pWideLimit;
+	LPSTR pMultiLimit;
+	DWORD Code;
+	CHAR Temp[8];
+	if(CodePage != CP_UTF8 || dwFlags != 0)
+		return WideCharToMultiByte(CodePage, dwFlags, lpWideCharStr, cchWideChar, lpMultiByteStr, cbMultiByte, lpDefaultChar, lpUsedDefaultChar);
+	MultiCount = 0;
+	if(cchWideChar == -1)
+		pWideLimit = lpWideCharStr + wcslen(lpWideCharStr) + 1;
+	else
+		pWideLimit = lpWideCharStr + cchWideChar;
+	pMultiLimit = lpMultiByteStr + cbMultiByte;
+	while(lpWideCharStr < pWideLimit)
+	{
+		Code = GetNextCharW(lpWideCharStr, pWideLimit, &lpWideCharStr);
+		if(Code == 0x80000000)
+			continue;
+		if(lpMultiByteStr)
+		{
+			MultiCount += PutNextCharM(lpMultiByteStr, pMultiLimit, &lpMultiByteStr, Code);
+			if(lpMultiByteStr >= pMultiLimit)
+			{
+				MultiCount = 0;
+				break;
+			}
+		}
+		else
+			MultiCount += PutNextCharM(Temp, NULL, NULL, Code);
+	}
+	if(lpUsedDefaultChar)
+		*lpUsedDefaultChar = FALSE;
+	return MultiCount;
 }
 
 // 以下ラッパー
@@ -2261,7 +2468,7 @@ size_t _mbslenM(const unsigned char * _Str)
 {
 	size_t r = 0;
 START_ROUTINE
-	while(GetNextCharM(_Str, &_Str) > 0)
+	while(GetNextCharM(_Str, NULL, &_Str) > 0)
 	{
 		r++;
 	}
@@ -2275,7 +2482,7 @@ unsigned char * _mbschrM(const unsigned char * _Str, unsigned int _Ch)
 	unsigned int c;
 	unsigned char* p;
 START_ROUTINE
-	while((c = GetNextCharM(_Str, &p)) > 0)
+	while((c = GetNextCharM(_Str, NULL, &p)) > 0)
 	{
 		if(c == _Ch)
 			break;
@@ -2293,7 +2500,7 @@ unsigned char * _mbsrchrM(const unsigned char * _Str, unsigned int _Ch)
 	unsigned int c;
 	unsigned char* p;
 START_ROUTINE
-	while((c = GetNextCharM(_Str, &p)) > 0)
+	while((c = GetNextCharM(_Str, NULL, &p)) > 0)
 	{
 		if(c == _Ch)
 			r = (unsigned char*)_Str;
@@ -2342,8 +2549,8 @@ START_ROUTINE
 	c2 = 0;
 	while(_MaxCount > 0)
 	{
-		c1 = GetNextCharM(_Str1, &_Str1);
-		c2 = GetNextCharM(_Str2, &_Str2);
+		c1 = GetNextCharM(_Str1, NULL, &_Str1);
+		c2 = GetNextCharM(_Str2, NULL, &_Str2);
 		if(c1 != c2)
 			break;
 		_MaxCount--;
@@ -2377,7 +2584,7 @@ unsigned char * _mbsnincM(const unsigned char * _Str, size_t _Count)
 {
 	unsigned char* r = NULL;
 START_ROUTINE
-	while(_Count > 0 && GetNextCharM(_Str, &_Str) > 0)
+	while(_Count > 0 && GetNextCharM(_Str, NULL, &_Str) > 0)
 	{
 		_Count--;
 	}

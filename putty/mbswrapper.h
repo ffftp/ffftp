@@ -125,12 +125,17 @@ wchar_t* DuplicateMtoWMultiStringBuffer(LPCSTR lpString, int size);
 char* DuplicateWtoM(LPCWSTR lpString, int c);
 wchar_t* DuplicateAtoW(LPCSTR lpString, int c);
 char* DuplicateWtoA(LPCWSTR lpString, int c);
-DWORD GetNextCharM(LPCSTR lpString, LPCSTR* ppNext);
+DWORD GetNextCharM(LPCSTR lpString, LPCSTR pLimit, LPCSTR* ppNext);
+int PutNextCharM(LPSTR lpString, LPSTR pLimit, LPSTR* ppNext, DWORD Code);
+DWORD GetNextCharW(LPCWSTR lpString, LPCWSTR pLimit, LPCWSTR* ppNext);
+int PutNextCharW(LPWSTR lpString, LPWSTR pLimit, LPWSTR* ppNext, DWORD Code);
 BOOL FixStringM(LPSTR pDst, LPCSTR pSrc);
 BOOL FixMultiStringM(LPSTR pDst, LPCSTR pSrc);
 BOOL CheckStringM(LPCSTR lpString);
 BOOL CheckMultiStringM(LPCSTR lpString);
 void FreeDuplicatedString(void* p);
+int MultiByteToWideCharAlternative(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar);
+int WideCharToMultiByteAlternative(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar);
 
 #endif
 

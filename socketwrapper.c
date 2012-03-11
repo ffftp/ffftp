@@ -902,7 +902,7 @@ BOOL ConvertDomainNameToPunycode(LPSTR Output, DWORD Count, LPCSTR Input)
 		Length = 0;
 		while(*InputString != '\0')
 		{
-			*p = (punycode_uint)GetNextCharM(InputString, &InputString);
+			*p = (punycode_uint)GetNextCharM(InputString, NULL, &InputString);
 			if(*p >= 0x80)
 				bNeeded = TRUE;
 			p++;
