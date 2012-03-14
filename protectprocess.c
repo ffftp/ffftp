@@ -73,7 +73,7 @@ BOOL IsModuleTrusted(LPCWSTR Filename);
 // フック対象のコードを置換してフックを開始
 #define SET_HOOK_FUNCTION(name) HookFunctionInCode(p_##name, h_##name, &c_##name, FALSE)
 // フック対象を呼び出す前に対象のコードを復元
-#define START_HOOK_FUNCTION(name) HookFunctionInCode(p_##name, h_##name, &c_##name, TRUE)
+#define BEGIN_HOOK_FUNCTION(name) HookFunctionInCode(p_##name, h_##name, &c_##name, TRUE)
 // フック対象を呼び出した後に対象のコードを置換
 #define END_HOOK_FUNCTION(name) HookFunctionInCode(p_##name, h_##name, NULL, FALSE)
 
@@ -103,7 +103,7 @@ BYTE g_TrustedMD5HashTable[MAX_TRUSTED_MD5_HASH_TABLE][20];
 WNDPROC g_PasswordEditControlProc;
 
 // 以下フック関数
-// フック対象を呼び出す場合は前後でSTART_HOOK_FUNCTIONとEND_HOOK_FUNCTIONを実行する必要がある
+// フック対象を呼び出す場合は前後でBEGIN_HOOK_FUNCTIONとEND_HOOK_FUNCTIONを実行する必要がある
 
 HMODULE WINAPI h_LoadLibraryA(LPCSTR lpLibFileName)
 {
@@ -248,57 +248,62 @@ BOOL UnlockThreadLock()
 BOOL HookFunctionInCode(void* pOriginal, void* pNew, void* pBackupCode, BOOL bRestore)
 {
 	BOOL bResult;
-	DWORD Protect;
-#if defined(_X86_)
-	BYTE JumpCode[HOOK_JUMP_CODE_LENGTH] = {0xe9, 0x00, 0x00, 0x00, 0x00};
-	size_t Relative;
-	Relative = (size_t)pNew - (size_t)pOriginal - HOOK_JUMP_CODE_LENGTH;
-	memcpy(&JumpCode[1], &Relative, 4);
 	bResult = FALSE;
-	if(bRestore)
+#if defined(_X86_)
 	{
-		if(VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, PAGE_EXECUTE_READWRITE, &Protect))
+		BYTE JumpCode[HOOK_JUMP_CODE_LENGTH] = {0xe9, 0x00, 0x00, 0x00, 0x00};
+		size_t Relative;
+		DWORD Protect;
+		Relative = (size_t)pNew - (size_t)pOriginal - HOOK_JUMP_CODE_LENGTH;
+		memcpy(&JumpCode[1], &Relative, 4);
+		if(bRestore)
 		{
-			memcpy(pOriginal, pBackupCode, HOOK_JUMP_CODE_LENGTH);
-			VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, Protect, &Protect);
-			bResult = TRUE;
+			if(VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, PAGE_EXECUTE_READWRITE, &Protect))
+			{
+				memcpy(pOriginal, pBackupCode, HOOK_JUMP_CODE_LENGTH);
+				VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, Protect, &Protect);
+				bResult = TRUE;
+			}
 		}
-	}
-	else
-	{
-		if(pBackupCode)
-			memcpy(pBackupCode, pOriginal, HOOK_JUMP_CODE_LENGTH);
-		if(VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, PAGE_EXECUTE_READWRITE, &Protect))
+		else
 		{
-			memcpy(pOriginal, &JumpCode, HOOK_JUMP_CODE_LENGTH);
-			VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, Protect, &Protect);
-			bResult = TRUE;
+			if(pBackupCode)
+				memcpy(pBackupCode, pOriginal, HOOK_JUMP_CODE_LENGTH);
+			if(VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, PAGE_EXECUTE_READWRITE, &Protect))
+			{
+				memcpy(pOriginal, &JumpCode, HOOK_JUMP_CODE_LENGTH);
+				VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, Protect, &Protect);
+				bResult = TRUE;
+			}
 		}
 	}
 #elif defined(_AMD64_)
-	BYTE JumpCode[HOOK_JUMP_CODE_LENGTH] = {0xff, 0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-	size_t Absolute;
-	Absolute = (size_t)pOriginal;
-	memcpy(&JumpCode[6], &Absolute, 8);
-	bResult = FALSE;
-	if(bRestore)
 	{
-		if(VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, PAGE_EXECUTE_READWRITE, &Protect))
+		BYTE JumpCode[HOOK_JUMP_CODE_LENGTH] = {0xff, 0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+		size_t Absolute;
+		DWORD Protect;
+		Absolute = (size_t)pNew;
+		memcpy(&JumpCode[6], &Absolute, 8);
+		bResult = FALSE;
+		if(bRestore)
 		{
-			memcpy(pOriginal, pBackupCode, HOOK_JUMP_CODE_LENGTH);
-			VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, Protect, &Protect);
-			bResult = TRUE;
+			if(VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, PAGE_EXECUTE_READWRITE, &Protect))
+			{
+				memcpy(pOriginal, pBackupCode, HOOK_JUMP_CODE_LENGTH);
+				VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, Protect, &Protect);
+				bResult = TRUE;
+			}
 		}
-	}
-	else
-	{
-		if(pBackupCode)
-			memcpy(pBackupCode, pOriginal, HOOK_JUMP_CODE_LENGTH);
-		if(VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, PAGE_EXECUTE_READWRITE, &Protect))
+		else
 		{
-			memcpy(pOriginal, &JumpCode, HOOK_JUMP_CODE_LENGTH);
-			VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, Protect, &Protect);
-			bResult = TRUE;
+			if(pBackupCode)
+				memcpy(pBackupCode, pOriginal, HOOK_JUMP_CODE_LENGTH);
+			if(VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, PAGE_EXECUTE_READWRITE, &Protect))
+			{
+				memcpy(pOriginal, &JumpCode, HOOK_JUMP_CODE_LENGTH);
+				VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, Protect, &Protect);
+				bResult = TRUE;
+			}
 		}
 	}
 #endif
@@ -1012,13 +1017,13 @@ BOOL EnableLoadLibraryHook(BOOL bEnable)
 	{
 		bResult = TRUE;
 #ifdef USE_CODE_HOOK
-		if(!END_HOOK_FUNCTION(LoadLibraryA))
+		if(!BEGIN_HOOK_FUNCTION(LoadLibraryA))
 			bResult = FALSE;
-		if(!END_HOOK_FUNCTION(LoadLibraryW))
+		if(!BEGIN_HOOK_FUNCTION(LoadLibraryW))
 			bResult = FALSE;
-		if(!END_HOOK_FUNCTION(LoadLibraryExA))
+		if(!BEGIN_HOOK_FUNCTION(LoadLibraryExA))
 			bResult = FALSE;
-		if(!END_HOOK_FUNCTION(LoadLibraryExW))
+		if(!BEGIN_HOOK_FUNCTION(LoadLibraryExW))
 			bResult = FALSE;
 #endif
 #ifdef USE_IAT_HOOK
