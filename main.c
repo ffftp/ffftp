@@ -128,7 +128,9 @@ char FilterStr[FILTER_EXT_LEN+1] = { "*" };
 
 int CancelFlg;
 
-static int SuppressRefresh = 0;
+// 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
+//static int SuppressRefresh = 0;
+int SuppressRefresh = 0;
 
 static DWORD dwCookie;
 
@@ -1705,7 +1707,10 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			break;
 
 		case WM_REFRESH_LOCAL_FLG :
-			PostMessage(hWnd,  WM_COMMAND, MAKEWPARAM(REFRESH_LOCAL, 0), 0);
+			// 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
+//			PostMessage(hWnd,  WM_COMMAND, MAKEWPARAM(REFRESH_LOCAL, 0), 0);
+			if(SuppressRefresh == 0)
+				PostMessage(hWnd,  WM_COMMAND, MAKEWPARAM(REFRESH_LOCAL, 0), 0);
 			break;
 
 		case WM_REFRESH_REMOTE_FLG :

@@ -124,6 +124,8 @@ extern int RemoteWidth;
 extern int ListHeight;
 extern char FilterStr[FILTER_EXT_LEN+1];
 extern HWND hHelpWin;
+// 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
+extern int SuppressRefresh;
 
 /* 設定値 */
 extern int LocalWidth;
@@ -498,6 +500,11 @@ static void doTransferRemoteFile(void)
 		remove(fn);
 	}
 
+	// 同時接続対応
+	DisableUserOpe();
+	// 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
+	SuppressRefresh = 1;
+
 	// ダウンロード先をテンポラリに設定
 	SetLocalDirHist(TmpDir);
 
@@ -528,6 +535,12 @@ static void doTransferRemoteFile(void)
 	// ダウンロード先を元に戻す
 	SetLocalDirHist(LocDir);
 	SetCurrentDirAsDirHist();
+
+	// 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
+	SuppressRefresh = 0;
+	GetLocalDirForWnd();
+	// 同時接続対応
+	EnableUserOpe();
 
 	remoteFileListBase = FileListBase;  // あとでフリーすること
 	remoteFileListBaseNoExpand = FileListBaseNoExpand;  // あとでフリーすること
