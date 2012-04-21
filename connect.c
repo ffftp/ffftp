@@ -38,6 +38,8 @@
 // IPv6対応
 //#include <winsock.h>
 #include <winsock2.h>
+// 切断対策
+#include <mstcpip.h>
 #include <windowsx.h>
 #include <commctrl.h>
 
@@ -102,6 +104,8 @@ extern int FwallLower;
 extern int FwallDelimiter;
 extern int PasvDefault;
 extern int QuickAnonymous;
+// 切断対策
+extern int TimeOut;
 
 /*===== ローカルなワーク =====*/
 
@@ -1437,6 +1441,8 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 	static const char *SiteTbl[4] = { "SITE", "site", "OPEN", "open" };
 	char TmpBuf[ONELINE_BUF_SIZE];
 	struct linger LingerOpt;
+	struct tcp_keepalive KeepAlive;
+	DWORD dwTmp;
 
 	// 暗号化通信対応
 	ContSock = INVALID_SOCKET;
@@ -1510,6 +1516,12 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 					Flg = 1;
 					if(setsockopt(ContSock, SOL_SOCKET, SO_KEEPALIVE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 						ReportWSError("setsockopt", WSAGetLastError());
+					// 切断対策
+					KeepAlive.onoff = 1;
+					KeepAlive.keepalivetime = TimeOut * 1000;
+					KeepAlive.keepaliveinterval = 1000;
+					if(WSAIoctl(ContSock, SIO_KEEPALIVE_VALS, &KeepAlive, sizeof(struct tcp_keepalive), NULL, 0, &dwTmp, NULL, NULL) == SOCKET_ERROR)
+						ReportWSError("WSAIoctl", WSAGetLastError());
 					LingerOpt.l_onoff = 1;
 					LingerOpt.l_linger = 90;
 					if(setsockopt(ContSock, SOL_SOCKET, SO_LINGER, (LPSTR)&LingerOpt, sizeof(LingerOpt)) == SOCKET_ERROR)
