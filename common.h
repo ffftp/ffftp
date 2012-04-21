@@ -1714,6 +1714,8 @@ void ClearRegistry(void);
 // ポータブル版判定
 void ClearIni(void);
 void SetMasterPassword( const char* );
+// セキュリティ強化
+void GetMasterPassword(char*);
 int GetMasterPasswordStatus(void);
 int ValidateMasterPassword(void);
 DWORD LoadHideDriveListRegistry(void);

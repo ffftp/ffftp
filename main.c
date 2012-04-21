@@ -1426,9 +1426,34 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						if( DialogBox(hInstFtp, MAKEINTRESOURCE(forcepasschange_dlg), hWnd, ExeEscDialogProc) != YES){
 							break;
 						}
+						// セキュリティ強化
+						if(EnterMasterPasswordAndSet(newmasterpasswd_dlg, hWnd) != 0)
+							SetTaskMsg(MSGJPN303);
 					}
-					if( EnterMasterPasswordAndSet( newmasterpasswd_dlg, hWnd ) != 0 ){
-						SetTaskMsg( MSGJPN303 );
+					// セキュリティ強化
+//					if( EnterMasterPasswordAndSet( newmasterpasswd_dlg, hWnd ) != 0 ){
+//						SetTaskMsg( MSGJPN303 );
+//					}
+					else if(GetMasterPasswordStatus() == PASSWORD_OK)
+					{
+						char Password[MAX_PASSWORD_LEN + 1];
+						GetMasterPassword(Password);
+						SetMasterPassword(NULL);
+						while(ValidateMasterPassword() == YES && GetMasterPasswordStatus() == PASSWORD_UNMATCH)
+						{
+							if(EnterMasterPasswordAndSet(masterpasswd_dlg, NULL) == 0)
+								break;
+						}
+						if(GetMasterPasswordStatus() == PASSWORD_OK && EnterMasterPasswordAndSet(newmasterpasswd_dlg, hWnd) != 0)
+						{
+							SetTaskMsg(MSGJPN303);
+							SaveRegistry();
+						}
+						else
+						{
+							SetMasterPassword(Password);
+							ValidateMasterPassword();
+						}
 					}
 					break;
 

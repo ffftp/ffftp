@@ -221,6 +221,12 @@ void SetMasterPassword( const char* Password )
 	IsMasterPasswordError = PASSWORD_OK;
 }
 
+// セキュリティ強化
+void GetMasterPassword(char* Password)
+{
+	strcpy(Password, SecretKey);
+}
+
 /*----- マスタパスワードの状態取得 ----------------------------------------------
 *
 *	Parameter
