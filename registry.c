@@ -748,8 +748,12 @@ int LoadRegistry(void)
 			if(ReadMultiStringFromReg(hKey4, "AsciiFile", AsciiExt, ASCII_EXT_LEN+1) == FFFTP_FAIL)
 			{
 				/* 旧ASCIIモードの拡張子の設定を新しいものに変換 */
-				ReadStringFromReg(hKey4, "Ascii", Str, ASCII_EXT_LEN+1);
-				memset(AsciiExt, NUL, ASCII_EXT_LEN+1);
+				// アスキーモード判別の改良
+//				ReadStringFromReg(hKey4, "Ascii", Str, ASCII_EXT_LEN+1);
+//				memset(AsciiExt, NUL, ASCII_EXT_LEN+1);
+				Str[0] = NUL;
+				if(ReadStringFromReg(hKey4, "Ascii", Str, ASCII_EXT_LEN+1) == FFFTP_SUCCESS)
+					memset(AsciiExt, NUL, ASCII_EXT_LEN+1);
 				Pos = Str;
 				while(*Pos != NUL)
 				{
