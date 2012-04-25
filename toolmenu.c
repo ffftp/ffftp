@@ -103,7 +103,9 @@ static int TmpRemoteDirSort;
 
 static int SyncMove = NO;
 
-static int HideUI = NO;
+// デッドロック対策
+//static int HideUI = NO;
+static int HideUI = 0;
 
 
 /* 2007/09/21 sunasunamix  ここから *********************/
@@ -588,7 +590,9 @@ HWND GetRemoteTbarWnd(void)
 
 int GetHideUI(void)
 {
-	return(HideUI);
+	// デッドロック対策
+//	return(HideUI);
+	return (HideUI > 0 ? YES : NO);
 }
 
 
@@ -608,7 +612,9 @@ void MakeButtonsFocus(void)
 	int Count;
 	int Win;
 
-	if(HideUI == NO)
+	// デッドロック対策
+//	if(HideUI == NO)
+	if(HideUI == 0)
 	{
 		hWndMain = GetMainHwnd();
 		hWndFocus = GetFocus();
@@ -766,7 +772,9 @@ void DisableUserOpe(void)
 {
 	int i;
 
-	HideUI = YES;
+	// デッドロック対策
+//	HideUI = YES;
+	HideUI++;
 
 	for(i = 0; i < sizeof(HideMenus) / sizeof(int); i++)
 	{
@@ -796,7 +804,11 @@ void EnableUserOpe(void)
 {
 	int i;
 
-	if(HideUI == YES)
+	// デッドロック対策
+//	if(HideUI == YES)
+	if(HideUI > 0)
+		HideUI--;
+	if(HideUI == 0)
 	{
 		for(i = 0; i < sizeof(HideMenus) / sizeof(int); i++)
 		{
@@ -812,7 +824,8 @@ void EnableUserOpe(void)
 		HideHostKanjiButton();
 		HideLocalKanjiButton();
 
-		HideUI = NO;
+		// バグ修正
+//		HideUI = NO;
 
 		MakeButtonsFocus();
 	}
@@ -832,7 +845,9 @@ void EnableUserOpe(void)
 
 int AskUserOpeDisabled(void)
 {
-	return(HideUI);
+	// デッドロック対策
+//	return(HideUI);
+	return (HideUI > 0 ? YES : NO);
 }
 
 
@@ -1758,7 +1773,9 @@ void LocalRbuttonMenu(int Pos)
 	UINT Flg3;
 	int Count;
 
-	if(HideUI == NO)
+	// デッドロック対策
+//	if(HideUI == NO)
+	if(HideUI == 0)
 	{
 		Flg1 = 0;
 		if(AskConnecting() == NO)
@@ -1823,7 +1840,9 @@ void RemoteRbuttonMenu(int Pos)
 	UINT Flg3;
 	int Count;
 
-	if(HideUI == NO)
+	// デッドロック対策
+//	if(HideUI == NO)
+	if(HideUI == 0)
 	{
 		Flg1 = 0;
 		if(AskConnecting() == NO)

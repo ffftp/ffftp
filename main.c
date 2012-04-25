@@ -1077,6 +1077,9 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_REMOTE_UPDIR :
+					// デッドロック対策
+					if(AskUserOpeDisabled() == YES)
+						break;
 					SuppressRefresh = 1;
 					SetCurrentDirAsDirHist();
 					ChangeDir(WIN_REMOTE, "..");
@@ -1084,6 +1087,9 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_LOCAL_UPDIR :
+					// デッドロック対策
+					if(AskUserOpeDisabled() == YES)
+						break;
 					SetCurrentDirAsDirHist();
 					ChangeDir(WIN_LOCAL, "..");
 					break;
@@ -1286,6 +1292,9 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_REFRESH :
+					// デッドロック対策
+					if(AskUserOpeDisabled() == YES)
+						break;
 					// 同時接続対応
 					CancelFlg = NO;
 					SuppressRefresh = 1;
@@ -1312,6 +1321,9 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case REFRESH_REMOTE :
+					// デッドロック対策
+					if(AskUserOpeDisabled() == YES)
+						break;
 					// 同時接続対応
 					CancelFlg = NO;
 					SuppressRefresh = 1;
@@ -1380,6 +1392,9 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_DOTFILE :
+					// デッドロック対策
+					if(AskUserOpeDisabled() == YES)
+						break;
 					// 同時接続対応
 					CancelFlg = NO;
 					DotFile ^= 1;
