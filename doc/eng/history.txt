@@ -1,5 +1,22 @@
 FFFTP version history.
 
+Changes in Ver.1.98f
+--------------------
+
+-- Fixed bugs of incorrect behavior of Select dialog.
+
+-- Added an option for retaining timestamps on uploading.
+
+-- Changed to require the current master password before changing it.
+
+-- Fixed bugs that files in a temporary folder was shown in local file list
+   after files in a host had been dropped into other applications.
+
+-- Shortened intervals between keep alive packets.
+
+-- Fixed bugs that UI was unlocked in some cases when commands were being sent
+   over the socket of main window.
+
 Changes in Ver.1.98e
 --------------------
 

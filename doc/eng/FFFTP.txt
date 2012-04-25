@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.1.98e (FTP Client software)
+[Software Name]  FFFTP Ver.1.98f (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright(C) 2011-2012 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu).
 [Environment]    Windows 7, Vista, XP, 2000
@@ -28,53 +28,22 @@ following menu.
 File ->@Settings -> Change Master password
 
 
-Changes in Ver.1.98e
+Changes in Ver.1.98f
 --------------------
 
--- Fixed bugs that an inputted password is ignored if failed in login.
+-- Fixed bugs of incorrect behavior of Select dialog.
 
--- Fixed bugs to crash under multicore CPU environment.
+-- Added an option for retaining timestamps on uploading.
 
--- Changed the location of temporary files.
-   This resolves interference in file list caches between instances of FFFTP.
+-- Changed to require the current master password before changing it.
 
--- Supported the file list format of linux-ftpd.
+-- Fixed bugs that files in a temporary folder was shown in local file list
+   after files in a host had been dropped into other applications.
 
--- Added a feature to show file icons on local file list view.
+-- Shortened intervals between keep alive packets.
 
--- Supported HP NonStop Server (provided by Yuji Tanaka).
-
--- Fixed bugs of missing some comannds at reconnecting
-   (provided by Yuji Tanaka).
-
--- Fixed several messages (provided by Moriguchi Hirokazu).
-
--- Fixed bugs of setting incorrect file timestamps by MDTM command.
-
--- Fixed bugs that drag-and-drop was enabled during deleting files.
-
--- Enhanced error handling of transferring files.
-
--- Enabled reusing sockets of the main window by default.
-
--- Fixed bugs that attributes of existing files were changed on uploading with
-   renaming by hosts.
-
--- Fixed bugs of hanging on exit in some cases.
-
--- Fixed bugs of hanging at accessing non-existent directories without full
-   path.
-
--- Changed behavior of Auto of network type selection.
-   Name resolution and connection will be performed at same time on IPv4 and
-   IPv6, and whichever finished earlier will be used.
-
--- Disabled saving settings in the registry about ZIP version copies.
-   To save in the registry, please remove "portable" the file.
-
--- Fix bugs of corruption of the extensions columns.
-
--- Added support for some MLSD responses that do not conform to RFC 3659.
+-- Fixed bugs that UI was unlocked in some cases when commands were being sent
+   over the socket of main window.
 
 
 Outline
