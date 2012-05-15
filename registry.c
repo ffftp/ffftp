@@ -771,6 +771,27 @@ int LoadRegistry(void)
 						Pos++;
 				}
 			}
+			// アスキーモード判別の改良
+			if(Version < 1986)
+			{
+				Pos = "*.js\0*.vbs\0*.css\0*.rss\0*.rdf\0*.xml\0*.xhtml\0*.xht\0*.shtml\0*.shtm\0*.sh\0*.py\0*.rb\0*.properties\0*.sql\0*.asp\0*.aspx\0*.php\0*.htaccess\0";
+				while(*Pos != NUL)
+				{
+					Pos2 = AsciiExt;
+					while(*Pos2 != NUL)
+					{
+						if(_stricmp(Pos2, Pos) == 0)
+							break;
+						Pos2 = strchr(Pos2, NUL) + 1;
+					}
+					if(*Pos2 == NUL)
+					{
+						if((StrMultiLen(AsciiExt) + strlen(Pos) + 2) < ASCII_EXT_LEN)
+							strncpy(AsciiExt + StrMultiLen(AsciiExt), Pos, strlen(Pos) + 2);
+					}
+					Pos = strchr(Pos, NUL) + 1;
+				}
+			}
 
 			ReadIntValueFromReg(hKey4, "LowUp", &FnameCnv);
 			ReadIntValueFromReg(hKey4, "Tout", &TimeOut);
