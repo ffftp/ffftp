@@ -314,6 +314,9 @@ void DownloadProc(int ChName, int ForceFile, int All)
 //		strcpy(Pkt.Cmd, "GOQUIT");
 //		AddTransFileList(&Pkt);
 
+		// バグ対策
+		AddNullTransFileList();
+
 		GoForwardTransWindow();
 //		KeepTransferDialog(NO);
 
@@ -426,6 +429,9 @@ void DirectDownloadProc(char *Fname)
 		// 同時接続対応
 //		strcpy(Pkt.Cmd, "GOQUIT");
 //		AddTransFileList(&Pkt);
+
+		// バグ対策
+		AddNullTransFileList();
 
 		GoForwardTransWindow();
 //		KeepTransferDialog(NO);
@@ -696,6 +702,9 @@ void MirrorDownloadProc(int Notify)
 			}
 			else
 				EraseTmpTransFileList(&Base);
+
+			// バグ対策
+			AddNullTransFileList();
 
 			DeleteFileList(&LocalListBase);
 			DeleteFileList(&RemoteListBase);
@@ -1203,6 +1212,9 @@ void UploadListProc(int ChName, int All)
 //		strcpy(Pkt.Cmd, "GOQUIT");
 //		AddTransFileList(&Pkt);
 
+		// バグ対策
+		AddNullTransFileList();
+
 		GoForwardTransWindow();
 
 		EnableUserOpe();
@@ -1378,6 +1390,9 @@ void UploadDragProc(WPARAM wParam)
 		// 同時接続対応
 //		strcpy(Pkt.Cmd, "GOQUIT");
 //		AddTransFileList(&Pkt);
+
+		// バグ対策
+		AddNullTransFileList();
 
 		GoForwardTransWindow();
 
@@ -1653,6 +1668,9 @@ void MirrorUploadProc(int Notify)
 			}
 			else
 				EraseTmpTransFileList(&Base);
+
+			// バグ対策
+			AddNullTransFileList();
 
 			DeleteFileList(&LocalListBase);
 			DeleteFileList(&RemoteListBase);
@@ -3675,7 +3693,7 @@ void NoopProc(void)
 	CancelCheckWork = NO;
 	if(AskConnecting() == YES && AskUserOpeDisabled() == NO)
 	{
-		if(AskReuseCmdSkt() == NO || AskShareProh() == YES)
+		if(AskReuseCmdSkt() == NO || AskShareProh() == YES || AskTransferNow() == NO)
 		{
 			DisableUserOpe();
 			DoDirListCmdSkt("", "", 999, &CancelCheckWork);

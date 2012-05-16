@@ -1662,6 +1662,8 @@ void EraseTmpTransFileList(TRANSPACKET **Base);
 int RemoveTmpTransFileListItem(TRANSPACKET **Base, int Num);
 
 void AddTransFileList(TRANSPACKET *Pkt);
+// バグ対策
+void AddNullTransFileList();
 void AppendTransFileList(TRANSPACKET *Pkt);
 void KeepTransferDialog(int Sw);
 int AskTransferNow(void);

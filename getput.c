@@ -436,6 +436,15 @@ void AddTransFileList(TRANSPACKET *Pkt)
 }
 
 
+// バグ対策
+void AddNullTransFileList()
+{
+	TRANSPACKET Pkt;
+	memset(&Pkt, 0, sizeof(TRANSPACKET));
+	strcpy(Pkt.Cmd, "NULL");
+	AddTransFileList(&Pkt);
+}
+
 /*----- 転送ファイル情報を転送ファイルリストに追加する ------------------------
 *
 *	Parameter
