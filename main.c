@@ -208,7 +208,9 @@ int FwallSecurity = SECURITY_AUTO;
 int FwallResolv = NO;
 int FwallLower = NO;
 int FwallDelimiter = '@';
-int PasvDefault = NO;
+// ルータ対策
+//int PasvDefault = NO;
+int PasvDefault = YES;
 char MirrorNoTrn[MIRROR_LEN+1] = { "*.bak\0" };
 char MirrorNoDel[MIRROR_LEN+1] = { "" };
 int MirrorFnameCnv = NO;
