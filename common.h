@@ -783,20 +783,40 @@ LIST_UNIX_70
 
 /*===== コマンドラインオプション =====*/
 
-#define OPT_MIRROR		0x0001	/* ミラーリングアップロードを行う */
-#define OPT_FORCE		0x0002	/* ミラーリング開始の確認をしない */
-#define OPT_QUIT		0x0004	/* 終了後プログラム終了 */
-#define OPT_EUC			0x0008	/* 漢字コードはEUC */
-#define OPT_JIS			0x0010	/* 漢字コードはJIS */
-#define OPT_ASCII		0x0020	/* アスキー転送モード */
-#define OPT_BINARY		0x0040	/* バイナリ転送モード */
-#define OPT_AUTO		0x0080	/* 自動判別 */
-#define OPT_KANA		0x0100	/* 半角かなをそのまま通す */
-#define OPT_EUC_NAME	0x0200	/* ファイル名はEUC */
-#define OPT_JIS_NAME	0x0400	/* ファイル名はJIS */
-#define OPT_MIRRORDOWN	0x0800	/* ミラーリングダウンロードを行う */
-#define OPT_SAVEOFF		0x1000	/* 設定の保存を中止する */
-#define OPT_SAVEON		0x2000	/* 設定の保存を再開する */
+//#define OPT_MIRROR		0x0001	/* ミラーリングアップロードを行う */
+//#define OPT_FORCE		0x0002	/* ミラーリング開始の確認をしない */
+//#define OPT_QUIT		0x0004	/* 終了後プログラム終了 */
+//#define OPT_EUC			0x0008	/* 漢字コードはEUC */
+//#define OPT_JIS			0x0010	/* 漢字コードはJIS */
+//#define OPT_ASCII		0x0020	/* アスキー転送モード */
+//#define OPT_BINARY		0x0040	/* バイナリ転送モード */
+//#define OPT_AUTO		0x0080	/* 自動判別 */
+//#define OPT_KANA		0x0100	/* 半角かなをそのまま通す */
+//#define OPT_EUC_NAME	0x0200	/* ファイル名はEUC */
+//#define OPT_JIS_NAME	0x0400	/* ファイル名はJIS */
+//#define OPT_MIRRORDOWN	0x0800	/* ミラーリングダウンロードを行う */
+//#define OPT_SAVEOFF		0x1000	/* 設定の保存を中止する */
+//#define OPT_SAVEON		0x2000	/* 設定の保存を再開する */
+#define OPT_MIRROR		0x00000001	/* ミラーリングアップロードを行う */
+#define OPT_FORCE		0x00000002	/* ミラーリング開始の確認をしない */
+#define OPT_QUIT		0x00000004	/* 終了後プログラム終了 */
+#define OPT_EUC			0x00000008	/* 漢字コードはEUC */
+#define OPT_JIS			0x00000010	/* 漢字コードはJIS */
+#define OPT_ASCII		0x00000020	/* アスキー転送モード */
+#define OPT_BINARY		0x00000040	/* バイナリ転送モード */
+#define OPT_AUTO		0x00000080	/* 自動判別 */
+#define OPT_KANA		0x00000100	/* 半角かなをそのまま通す */
+#define OPT_EUC_NAME	0x00000200	/* ファイル名はEUC */
+#define OPT_JIS_NAME	0x00000400	/* ファイル名はJIS */
+#define OPT_MIRRORDOWN	0x00000800	/* ミラーリングダウンロードを行う */
+#define OPT_SAVEOFF		0x00001000	/* 設定の保存を中止する */
+#define OPT_SAVEON		0x00002000	/* 設定の保存を再開する */
+// UTF-8対応
+#define OPT_SJIS		0x00004000	/* 漢字コードはShift_JIS */
+#define OPT_UTF8N		0x00008000	/* 漢字コードはUTF-8 */
+#define OPT_UTF8BOM		0x00010000	/* 漢字コードはUTF-8 BOM */
+#define OPT_SJIS_NAME	0x00020000	/* ファイル名はShift_JIS */
+#define OPT_UTF8N_NAME	0x00040000	/* ファイル名はUTF-8 */
 
 /*===== ホストのヒストリ =====*/
 

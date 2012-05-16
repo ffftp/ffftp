@@ -1840,6 +1840,18 @@ static void StartupProc(char *Cmd)
 	if(CmdOption & OPT_SAVEON)
 		SuppressSave = NO;
 
+	// UTF-8対応
+	if(CmdOption & OPT_SJIS)
+		Kanji = KANJI_SJIS;
+	if(CmdOption & OPT_UTF8N)
+		Kanji = KANJI_UTF8N;
+	if(CmdOption & OPT_UTF8BOM)
+		Kanji = KANJI_UTF8BOM;
+	if(CmdOption & OPT_SJIS_NAME)
+		FnameKanji = KANJI_SJIS;
+	if(CmdOption & OPT_UTF8N_NAME)
+		FnameKanji = KANJI_UTF8N;
+
 	if(Sts == 0)
 	{
 		if(ConnectOnStart == YES)
@@ -1911,9 +1923,14 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 				*CmdOption |= OPT_MIRROR;
 			else if((strcmp(&Tmp[1], "d") == 0) || (strcmp(&Tmp[1], "-mirrordown") == 0))
 				*CmdOption |= OPT_MIRRORDOWN;
-			else if((strcmp(&Tmp[1], "e") == 0) || (strcmp(&Tmp[1], "-euc") == 0))
+			// 廃止予定
+//			else if((strcmp(&Tmp[1], "e") == 0) || (strcmp(&Tmp[1], "-euc") == 0))
+//				*CmdOption |= OPT_EUC;
+//			else if((strcmp(&Tmp[1], "j") == 0) || (strcmp(&Tmp[1], "-jis") == 0))
+//				*CmdOption |= OPT_JIS;
+			else if((strcmp(&Tmp[1], "eu") == 0) || (strcmp(&Tmp[1], "e") == 0) || (strcmp(&Tmp[1], "-euc") == 0))
 				*CmdOption |= OPT_EUC;
-			else if((strcmp(&Tmp[1], "j") == 0) || (strcmp(&Tmp[1], "-jis") == 0))
+			else if((strcmp(&Tmp[1], "ji") == 0) || (strcmp(&Tmp[1], "j") == 0) || (strcmp(&Tmp[1], "-jis") == 0))
 				*CmdOption |= OPT_JIS;
 			else if((strcmp(&Tmp[1], "a") == 0) || (strcmp(&Tmp[1], "-ascii") == 0))
 				*CmdOption |= OPT_ASCII;
@@ -1927,9 +1944,14 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 				*CmdOption |= OPT_QUIT;
 			else if((strcmp(&Tmp[1], "k") == 0) || (strcmp(&Tmp[1], "-kana") == 0))
 				*CmdOption |= OPT_KANA;
-			else if((strcmp(&Tmp[1], "u") == 0) || (strcmp(&Tmp[1], "-eucname") == 0))
+			// 廃止予定
+//			else if((strcmp(&Tmp[1], "u") == 0) || (strcmp(&Tmp[1], "-eucname") == 0))
+//				*CmdOption |= OPT_EUC_NAME;
+//			else if((strcmp(&Tmp[1], "i") == 0) || (strcmp(&Tmp[1], "-jisname") == 0))
+//				*CmdOption |= OPT_JIS_NAME;
+			else if((strcmp(&Tmp[1], "eun") == 0) || (strcmp(&Tmp[1], "u") == 0) || (strcmp(&Tmp[1], "-eucname") == 0))
 				*CmdOption |= OPT_EUC_NAME;
-			else if((strcmp(&Tmp[1], "i") == 0) || (strcmp(&Tmp[1], "-jisname") == 0))
+			else if((strcmp(&Tmp[1], "jin") == 0) || (strcmp(&Tmp[1], "i") == 0) || (strcmp(&Tmp[1], "-jisname") == 0))
 				*CmdOption |= OPT_JIS_NAME;
 			else if((strcmp(&Tmp[1], "n") == 0) || (strcmp(&Tmp[1], "-ini") == 0))
 			{
@@ -1999,6 +2021,17 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 			{
 			}
 #endif
+			// UTF-8対応
+			else if((strcmp(&Tmp[1], "sj") == 0) || (strcmp(&Tmp[1], "-sjis") == 0))
+				*CmdOption |= OPT_SJIS;
+			else if((strcmp(&Tmp[1], "u8") == 0) || (strcmp(&Tmp[1], "-utf8") == 0))
+				*CmdOption |= OPT_UTF8N;
+			else if((strcmp(&Tmp[1], "8b") == 0) || (strcmp(&Tmp[1], "-utf8bom") == 0))
+				*CmdOption |= OPT_UTF8BOM;
+			else if((strcmp(&Tmp[1], "sjn") == 0) || (strcmp(&Tmp[1], "-sjisname") == 0))
+				*CmdOption |= OPT_SJIS_NAME;
+			else if((strcmp(&Tmp[1], "u8n") == 0) || (strcmp(&Tmp[1], "-utf8name") == 0))
+				*CmdOption |= OPT_UTF8N_NAME;
 			else
 			{
 				SetTaskMsg(MSGJPN180, Tmp);
