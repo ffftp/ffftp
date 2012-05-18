@@ -2654,6 +2654,9 @@ void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Ca
 			if((Node == NODE_FILE) ||
 			   ((Expand == NO) && (Node == NODE_DIR)))
 			{
+				// 変数が未初期化のバグ修正
+				memset(&Pkt, 0, sizeof(FILELIST));
+
 				Pkt.InfoExist = 0;
 				GetNodeName(Win, Pos, Pkt.File, FMAX_PATH);
 				if(GetNodeSize(Win, Pos, &Pkt.Size) == YES)
@@ -2690,6 +2693,9 @@ void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Ca
 			{
 				if(GetNodeType(Win, Pos) == NODE_DIR)
 				{
+					// 変数が未初期化のバグ修正
+					memset(&Pkt, 0, sizeof(FILELIST));
+
 					GetNodeName(Win, Pos, Name, FMAX_PATH);
 					strcpy(Pkt.File, Name);
 					ReplaceAll(Pkt.File, '\\', '/');
@@ -2787,6 +2793,9 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
 
 		if((GetFileAttributes(Name) & FILE_ATTRIBUTE_DIRECTORY) == 0)
 		{
+			// 変数が未初期化のバグ修正
+			memset(&Pkt, 0, sizeof(FILELIST));
+
 			Pkt.Node = NODE_FILE;
 			strcpy(Pkt.File, GetFileName(Name));
 
@@ -2817,6 +2826,9 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
 
 		if(GetFileAttributes(Name) & FILE_ATTRIBUTE_DIRECTORY)
 		{
+			// 変数が未初期化のバグ修正
+			memset(&Pkt, 0, sizeof(FILELIST));
+
 			Pkt.Node = NODE_DIR;
 			strcpy(Pkt.File, GetFileName(Name));
 			AddFileList(&Pkt, Base);
@@ -2936,6 +2948,9 @@ static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelC
 			{
 				if(Pos->Node == NODE_DIR)
 				{
+					// 変数が未初期化のバグ修正
+					memset(&Pkt, 0, sizeof(FILELIST));
+
 					/* まずディレクトリ名をセット */
 					strcpy(Pkt.File, Pos->File);
 					Pkt.Node = NODE_DIR;
@@ -3026,6 +3041,9 @@ void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base)
 				{
 					if(IncDir == RDIR_NLST)
 					{
+						// 変数が未初期化のバグ修正
+						memset(&Pkt, 0, sizeof(FILELIST));
+
 						strcpy(Pkt.File, Dir);
 						Pkt.Node = NODE_DIR;
 						Pkt.Size = 0;
@@ -3044,6 +3062,9 @@ void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base)
 					if((Node == NODE_FILE) ||
 					   ((IncDir == RDIR_CWD) && (Node == NODE_DIR)))
 					{
+						// 変数が未初期化のバグ修正
+						memset(&Pkt, 0, sizeof(FILELIST));
+
 						strcpy(Pkt.File, Dir);
 						if(strlen(Pkt.File) > 0)
 							SetSlashTail(Pkt.File);
@@ -3211,6 +3232,9 @@ static void MakeLocalTree(char *Path, FILELIST **Base)
 			{
 				if(AskFilterStr(FindBuf.cFileName, NODE_FILE) == YES)
 				{
+					// 変数が未初期化のバグ修正
+					memset(&Pkt, 0, sizeof(FILELIST));
+
 					strcpy(Pkt.File, Path);
 					SetSlashTail(Pkt.File);
 					strcat(Pkt.File, FindBuf.cFileName);
@@ -3239,6 +3263,9 @@ static void MakeLocalTree(char *Path, FILELIST **Base)
 			   (strcmp(FindBuf.cFileName, ".") != 0) &&
 			   (strcmp(FindBuf.cFileName, "..") != 0))
 			{
+				// 変数が未初期化のバグ修正
+				memset(&Pkt, 0, sizeof(FILELIST));
+
 				strcpy(Src, Path);
 				SetYenTail(Src);
 				strcat(Src, FindBuf.cFileName);
