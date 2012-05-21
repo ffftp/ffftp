@@ -1,3 +1,0 @@
-
-開発環境は Microsoft Visual Studio .NET 2010 を使用しています。
-

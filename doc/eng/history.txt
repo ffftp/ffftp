@@ -17,6 +17,10 @@ Changes in Ver.1.98f
 -- Fixed bugs that UI was unlocked in some cases when commands were being sent
    over the socket of main window.
 
+-- Added extensions of files that will be transferred in ASCII mode.
+
+-- Extended command line options.
+
 Changes in Ver.1.98e
 --------------------
 
