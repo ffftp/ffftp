@@ -1773,6 +1773,12 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 				// IPv6対応
 				if(strstr(Reply, " EPRT ") || strstr(Reply, " EPSV "))
 					HostData->Feature |= FEATURE_EPRT | FEATURE_EPSV;
+				// ホスト側の日時取得
+				if(strstr(Reply, " MDTM "))
+					HostData->Feature |= FEATURE_MDTM;
+				// ホスト側の日時設定
+				if(strstr(Reply, " MFMT "))
+					HostData->Feature |= FEATURE_MFMT;
 			}
 			// UTF-8対応
 			if(HostData->CurNameKanjiCode == KANJI_AUTO && (HostData->Feature & FEATURE_UTF8))

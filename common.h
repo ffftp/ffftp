@@ -938,6 +938,10 @@ LIST_UNIX_70
 // IPv6対応
 #define FEATURE_EPRT		0x00000004
 #define FEATURE_EPSV		0x00000008
+// ホスト側の日時取得
+#define FEATURE_MDTM		0x00000010
+// ホスト側の日時設定
+#define FEATURE_MFMT		0x00000020
 
 // IPv6対応
 #define NTYPE_AUTO			0		/* 自動 */

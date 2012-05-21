@@ -441,8 +441,11 @@ int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork)
     Time->dwHighDateTime = 0;
 
 	// 同時接続対応
+	// ホスト側の日時取得
 //	Sts = CommandProcTrn(Tmp, "MDTM %s", Path);
-	Sts = CommandProcTrn(cSkt, Tmp, CancelCheckWork, "MDTM %s", Path);
+	Sts = 500;
+	if(AskHostFeature() & FEATURE_MDTM)
+		Sts = CommandProcTrn(cSkt, Tmp, CancelCheckWork, "MDTM %s", Path);
 	if(Sts/100 == FTP_COMPLETE)
 	{
 		sTime.wMilliseconds = 0;
@@ -469,7 +472,9 @@ int DoMFMT(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork)
 
 	FileTimeToSystemTime(Time, &sTime);
 
-	Sts = CommandProcTrn(cSkt, Tmp, CancelCheckWork, "MFMT %04d%02d%02d%02d%02d%02d %s", sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond, Path);
+	Sts = 500;
+	if(AskHostFeature() & FEATURE_MFMT)
+		Sts = CommandProcTrn(cSkt, Tmp, CancelCheckWork, "MFMT %04d%02d%02d%02d%02d%02d %s", sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond, Path);
 	return(Sts/100);
 }
 
