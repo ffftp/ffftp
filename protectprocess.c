@@ -705,12 +705,12 @@ BOOL IsModuleTrusted(LPCWSTR Filename)
 		}
 		if(!bResult)
 		{
-			if((g_ProcessProtectionLevel & PROCESS_PROTECTION_SIDE_BY_SIDE) && IsSxsModuleTrusted(Filename))
+			if((g_ProcessProtectionLevel & PROCESS_PROTECTION_SYSTEM_FILE) && SfcIsFileProtected(NULL, Filename))
 				bResult = TRUE;
 		}
 		if(!bResult)
 		{
-			if((g_ProcessProtectionLevel & PROCESS_PROTECTION_SYSTEM_FILE) && SfcIsFileProtected(NULL, Filename))
+			if((g_ProcessProtectionLevel & PROCESS_PROTECTION_SIDE_BY_SIDE) && IsSxsModuleTrusted(Filename))
 				bResult = TRUE;
 		}
 		UnlockThreadLock();
