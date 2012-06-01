@@ -1517,11 +1517,14 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 					if(setsockopt(ContSock, SOL_SOCKET, SO_KEEPALIVE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 						ReportWSError("setsockopt", WSAGetLastError());
 					// 切断対策
-					KeepAlive.onoff = 1;
-					KeepAlive.keepalivetime = TimeOut * 1000;
-					KeepAlive.keepaliveinterval = 1000;
-					if(WSAIoctl(ContSock, SIO_KEEPALIVE_VALS, &KeepAlive, sizeof(struct tcp_keepalive), NULL, 0, &dwTmp, NULL, NULL) == SOCKET_ERROR)
-						ReportWSError("WSAIoctl", WSAGetLastError());
+					if(TimeOut > 0)
+					{
+						KeepAlive.onoff = 1;
+						KeepAlive.keepalivetime = TimeOut * 1000;
+						KeepAlive.keepaliveinterval = 1000;
+						if(WSAIoctl(ContSock, SIO_KEEPALIVE_VALS, &KeepAlive, sizeof(struct tcp_keepalive), NULL, 0, &dwTmp, NULL, NULL) == SOCKET_ERROR)
+							ReportWSError("WSAIoctl", WSAGetLastError());
+					}
 					LingerOpt.l_onoff = 1;
 					LingerOpt.l_linger = 90;
 					if(setsockopt(ContSock, SOL_SOCKET, SO_LINGER, (LPSTR)&LingerOpt, sizeof(LingerOpt)) == SOCKET_ERROR)
