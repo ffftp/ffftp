@@ -39,6 +39,7 @@ typedef long (__cdecl* _SSL_get_verify_result)(const SSL*);
 typedef SSL_SESSION* (__cdecl* _SSL_get_session)(SSL*);
 typedef int (__cdecl* _SSL_set_session)(SSL*, SSL_SESSION*);
 typedef X509_STORE* (__cdecl* _SSL_CTX_get_cert_store)(const SSL_CTX*);
+typedef long (__cdecl* _SSL_CTX_ctrl)(SSL_CTX*, int, long, void*);
 typedef BIO_METHOD* (__cdecl* _BIO_s_mem)();
 typedef BIO* (__cdecl* _BIO_new)(BIO_METHOD*);
 typedef int (__cdecl* _BIO_free)(BIO*);
@@ -72,6 +73,7 @@ _SSL_get_verify_result p_SSL_get_verify_result;
 _SSL_get_session p_SSL_get_session;
 _SSL_set_session p_SSL_set_session;
 _SSL_CTX_get_cert_store p_SSL_CTX_get_cert_store;
+_SSL_CTX_ctrl p_SSL_CTX_ctrl;
 _BIO_s_mem p_BIO_s_mem;
 _BIO_new p_BIO_new;
 _BIO_free p_BIO_free;
@@ -144,7 +146,8 @@ BOOL LoadOpenSSL()
 		|| !(p_SSL_get_verify_result = (_SSL_get_verify_result)GetProcAddress(g_hOpenSSL, "SSL_get_verify_result"))
 		|| !(p_SSL_get_session = (_SSL_get_session)GetProcAddress(g_hOpenSSL, "SSL_get_session"))
 		|| !(p_SSL_set_session = (_SSL_set_session)GetProcAddress(g_hOpenSSL, "SSL_set_session"))
-		|| !(p_SSL_CTX_get_cert_store = (_SSL_CTX_get_cert_store)GetProcAddress(g_hOpenSSL, "SSL_CTX_get_cert_store")))
+		|| !(p_SSL_CTX_get_cert_store = (_SSL_CTX_get_cert_store)GetProcAddress(g_hOpenSSL, "SSL_CTX_get_cert_store"))
+		|| !(p_SSL_CTX_ctrl = (_SSL_CTX_ctrl)GetProcAddress(g_hOpenSSL, "SSL_CTX_ctrl")))
 	{
 		if(g_hOpenSSL)
 			FreeLibrary(g_hOpenSSL);
@@ -345,7 +348,10 @@ BOOL SetSSLRootCertificate(const void* pData, DWORD Length)
 	r = FALSE;
 	EnterCriticalSection(&g_OpenSSLLock);
 	if(!g_pOpenSSLCTX)
+	{
 		g_pOpenSSLCTX = p_SSL_CTX_new(p_SSLv23_method());
+		p_SSL_CTX_ctrl(g_pOpenSSLCTX, SSL_CTRL_MODE, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_AUTO_RETRY, NULL);
+	}
 	if(g_pOpenSSLCTX)
 	{
 		if(pStore = p_SSL_CTX_get_cert_store(g_pOpenSSLCTX))
@@ -450,7 +456,10 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted)
 	Time = timeGetTime();
 	EnterCriticalSection(&g_OpenSSLLock);
 	if(!g_pOpenSSLCTX)
+	{
 		g_pOpenSSLCTX = p_SSL_CTX_new(p_SSLv23_method());
+		p_SSL_CTX_ctrl(g_pOpenSSLCTX, SSL_CTRL_MODE, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_AUTO_RETRY, NULL);
+	}
 	if(g_pOpenSSLCTX)
 	{
 		if(ppSSL = GetUnusedSSLPointer())
@@ -611,6 +620,7 @@ int FTPS_closesocket(SOCKET s)
 // send相当の関数
 int FTPS_send(SOCKET s, const char * buf, int len, int flags)
 {
+	int r;
 	SSL** ppSSL;
 	if(!g_bOpenSSLLoaded)
 		return send(s, buf, len, flags);
@@ -619,12 +629,16 @@ int FTPS_send(SOCKET s, const char * buf, int len, int flags)
 	LeaveCriticalSection(&g_OpenSSLLock);
 	if(!ppSSL)
 		return send(s, buf, len, flags);
-	return p_SSL_write(*ppSSL, buf, len);
+	r = p_SSL_write(*ppSSL, buf, len);
+	if(r < 0)
+		return SOCKET_ERROR;
+	return r;
 }
 
 // recv相当の関数
 int FTPS_recv(SOCKET s, char * buf, int len, int flags)
 {
+	int r;
 	SSL** ppSSL;
 	if(!g_bOpenSSLLoaded)
 		return recv(s, buf, len, flags);
@@ -634,8 +648,12 @@ int FTPS_recv(SOCKET s, char * buf, int len, int flags)
 	if(!ppSSL)
 		return recv(s, buf, len, flags);
 	if(flags & MSG_PEEK)
-		return p_SSL_peek(*ppSSL, buf, len);
-	return p_SSL_read(*ppSSL, buf, len);
+		r = p_SSL_peek(*ppSSL, buf, len);
+	else
+		r = p_SSL_read(*ppSSL, buf, len);
+	if(r < 0)
+		return SOCKET_ERROR;
+	return r;
 }
 
 // IPv6対応
