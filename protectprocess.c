@@ -980,6 +980,8 @@ BOOL InitializeLoadLibraryHook()
 		bResult = FALSE;
 	if(!(GET_FUNCTION(hModule, CryptCATAdminCalcHashFromFileHandle)))
 		bResult = FALSE;
+	// バグ対策
+	ImageGetDigestStream(NULL, 0, NULL, NULL);
 	return bResult;
 }
 
