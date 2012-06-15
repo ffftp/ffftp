@@ -140,7 +140,9 @@ static char SSLRootCAFilePath[FMAX_PATH+1];
 static DWORD MainThreadId;
 // ポータブル版判定
 static char PortableFilePath[FMAX_PATH+1];
-int PortableVersion;
+static int PortableVersion;
+// ローカル側自動更新
+HANDLE ChangeNotification = INVALID_HANDLE_VALUE;
 
 
 /*===== グローバルなワーク =====*/
@@ -901,10 +903,34 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 	switch (message)
 	{
+		// ローカル側自動更新
+		case WM_CREATE :
+			SetTimer(hWnd, 1, 1000, NULL);
+			break;
+
+		// ローカル側自動更新
 		// 自動切断対策
 		case WM_TIMER :
-			if(wParam == 1)
+			switch(wParam)
+			{
+			case 1:
+				if(WaitForSingleObject(ChangeNotification, 0) == WAIT_OBJECT_0)
+				{
+					if(AskUserOpeDisabled() == NO)
+					{
+						FILELIST* Base;
+						FindNextChangeNotification(ChangeNotification);
+						Base = NULL;
+						MakeSelectedFileList(WIN_LOCAL, NO, NO, &Base, &CancelFlg);
+						GetLocalDirForWnd();
+						SelectFileInList(GetLocalHwnd(), SELECT_LIST, Base);
+					}
+				}
+				break;
+			case 2:
 				NoopProc();
+				break;
+			}
 			break;
 
 		case WM_COMMAND :
@@ -916,20 +942,20 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			{
 				case MENU_CONNECT :
 					// 自動切断対策
-					KillTimer(hWnd, 1);
+					KillTimer(hWnd, 2);
 					ConnectProc(DLG_TYPE_CON, -1);
 					// 自動切断対策
 					if(AskNoopInterval() > 0)
-						SetTimer(hWnd, 1, AskNoopInterval() * 1000, NULL);
+						SetTimer(hWnd, 2, AskNoopInterval() * 1000, NULL);
 					break;
 
 				case MENU_CONNECT_NUM :
 					// 自動切断対策
-					KillTimer(hWnd, 1);
+					KillTimer(hWnd, 2);
 					ConnectProc(DLG_TYPE_CON, (int)lParam);
 					// 自動切断対策
 					if(AskNoopInterval() > 0)
-						SetTimer(hWnd, 1, AskNoopInterval() * 1000, NULL);
+						SetTimer(hWnd, 2, AskNoopInterval() * 1000, NULL);
 					if(AskConnecting() == YES)
 					{
 						if(HIWORD(wParam) & OPT_MIRROR)
@@ -951,20 +977,20 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 				case MENU_SET_CONNECT :
 					// 自動切断対策
-					KillTimer(hWnd, 1);
+					KillTimer(hWnd, 2);
 					ConnectProc(DLG_TYPE_SET, -1);
 					// 自動切断対策
 					if(AskNoopInterval() > 0)
-						SetTimer(hWnd, 1, AskNoopInterval() * 1000, NULL);
+						SetTimer(hWnd, 2, AskNoopInterval() * 1000, NULL);
 					break;
 
 				case MENU_QUICK :
 					// 自動切断対策
-					KillTimer(hWnd, 1);
+					KillTimer(hWnd, 2);
 					QuickConnectProc();
 					// 自動切断対策
 					if(AskNoopInterval() > 0)
-						SetTimer(hWnd, 1, AskNoopInterval() * 1000, NULL);
+						SetTimer(hWnd, 2, AskNoopInterval() * 1000, NULL);
 					break;
 
 				case MENU_DISCONNECT :
@@ -999,11 +1025,11 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				case MENU_HIST_19 :
 				case MENU_HIST_20 :
 					// 自動切断対策
-					KillTimer(hWnd, 1);
+					KillTimer(hWnd, 2);
 					HistoryConnectProc(LOWORD(wParam));
 					// 自動切断対策
 					if(AskNoopInterval() > 0)
-						SetTimer(hWnd, 1, AskNoopInterval() * 1000, NULL);
+						SetTimer(hWnd, 2, AskNoopInterval() * 1000, NULL);
 					break;
 
 				case MENU_UPDIR :
@@ -1314,6 +1340,9 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case REFRESH_LOCAL :
+					// デッドロック対策
+					if(AskUserOpeDisabled() == YES)
+						break;
 					GetLocalDirForWnd();
 					break;
 
@@ -1373,11 +1402,15 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_SELECT_ALL :
-					SelectFileInList(hWndCurFocus, SELECT_ALL);
+					// ローカル側自動更新
+//					SelectFileInList(hWndCurFocus, SELECT_ALL);
+					SelectFileInList(hWndCurFocus, SELECT_ALL, NULL);
 					break;
 
 				case MENU_SELECT :
-					SelectFileInList(hWndCurFocus, SELECT_REGEXP);
+					// ローカル側自動更新
+//					SelectFileInList(hWndCurFocus, SELECT_REGEXP);
+					SelectFileInList(hWndCurFocus, SELECT_REGEXP, NULL);
 					break;
 
 				case MENU_FIND :
@@ -1763,6 +1796,10 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			break;
 
 		case WM_DESTROY :
+			// ローカル側自動更新
+			KillTimer(hWnd, 1);
+			if(ChangeNotification != INVALID_HANDLE_VALUE)
+				FindCloseChangeNotification(ChangeNotification);
 //			WSACleanup();
 //			DestroyWindow(hWndFtp);
 			PostQuitMessage(0);

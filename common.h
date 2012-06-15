@@ -238,6 +238,8 @@
 
 #define SELECT_ALL		0		/* 全選択 */
 #define SELECT_REGEXP	1		/* 検索式を入力して選択 */
+// ローカル側自動更新
+#define SELECT_LIST		2		/* リストに含まれるファイルを選択 */
 
 /*===== 検索方法 =====*/
 
@@ -1352,7 +1354,9 @@ void SetListViewType(void);
 void GetRemoteDirForWnd(int Mode, int *CancelCheckWork);
 void GetLocalDirForWnd(void);
 void ReSortDispList(int Win, int *CancelCheckWork);
-void SelectFileInList(HWND hWnd, int Type);
+// ローカル側自動更新
+//void SelectFileInList(HWND hWnd, int Type);
+void SelectFileInList(HWND hWnd, int Type, FILELIST *Base);
 void FindFileInList(HWND hWnd, int Type);
 // void WildCard2RegExp(char *Str);
 int GetCurrentItem(int Win);

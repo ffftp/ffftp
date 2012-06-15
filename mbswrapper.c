@@ -894,6 +894,18 @@ END_ROUTINE
 	return r;
 }
 
+HANDLE FindFirstChangeNotificationM(LPCSTR lpPathName, BOOL bWatchSubtree, DWORD dwNotifyFilter)
+{
+	HANDLE r = INVALID_HANDLE_VALUE;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(lpPathName, -1);
+	r = FindFirstChangeNotificationW(pw0, bWatchSubtree, dwNotifyFilter);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
 DWORD GetLogicalDriveStringsM(DWORD nBufferLength, LPSTR lpBuffer)
 {
 	DWORD r = 0;
