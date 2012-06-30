@@ -49,6 +49,8 @@ Changes in Ver.1.98f
 
 -- Extended command line options.
 
+-- Changed to try SSL when a host cannot recognize TLS on FTPS Explicit.
+
 
 Outline
 -------
