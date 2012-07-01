@@ -52,7 +52,7 @@ Changes in Ver.1.98f
 -- Changed to try SSL when a host cannot recognize TLS on FTPS Explicit.
 
 -- Fixed bugs that corruption was caused when strings were converted from
-   Shift_JIS to UTF-8 on Windows Vista or later.
+   UTF-8 to Shift_JIS on Windows Vista or later.
 
 
 Outline

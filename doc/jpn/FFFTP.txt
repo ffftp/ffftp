@@ -52,7 +52,7 @@ Ver 1.98fでの変更点
 ・FTPS ExplicitでホストがTLSを受け付けない場合に続けてSSLを試すように
 　変更しました。
 
-・Windows Vista以降で文字列がShift_JISからUTF-8へ変換される時に破損する
+・Windows Vista以降で文字列がUTF-8からShift_JISへ変換される時に破損する
 　バグを修正しました。
 
 
