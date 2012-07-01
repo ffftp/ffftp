@@ -1517,20 +1517,18 @@ int ConvUTF8NtoSJIS_TruncateToDelimiter(char* pUTF8, int UTF8Length, int* pNewUT
 	{
 		UTF8Length--;
 		UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, pUTF16, UTF16Length);
-		SJISLength = NewSJISLength;
 		NewSJISLength = WideCharToMultiByte(CP_ACP, 0, pUTF16, UTF16Length, NULL, 0, NULL, NULL);
 	}
 	free(pUTF16);
 	// UTF-16 LE変換した時に文字数が増減する位置がUTF-8の区切り
-	NewUTF16Length = UTF16Length;
-	while(UTF8Length > 0 && NewUTF16Length >= UTF16Length)
-	{
-		UTF8Length--;
-		UTF16Length = NewUTF16Length;
-		NewUTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, NULL, 0);
-	}
 	if(pNewUTF8Length)
 	{
+		NewUTF16Length = UTF16Length;
+		while(UTF8Length > 0 && NewUTF16Length >= UTF16Length)
+		{
+			UTF8Length--;
+			NewUTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, NULL, 0);
+		}
 		if(UTF16Length > 0)
 			UTF8Length++;
 		*pNewUTF8Length = UTF8Length;
@@ -1582,7 +1580,6 @@ int ConvUTF8NtoSJIS(CODECONVINFO *cInfo)
 			SrcLength = SrcLength / 2;
 		}
 	}
-	// UTF-8の場合、不完全な文字は常に変換されない
 	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pSrc, SrcLength, NULL, 0);
 
 	// サイズ0 or バッファサイズより大きい場合は
