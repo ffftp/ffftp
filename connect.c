@@ -1615,7 +1615,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 								// FTPES対応
 								if(CryptMode == CRYPT_FTPES)
 								{
-									if(IsOpenSSLLoaded() && (Sts = command(ContSock, Reply, CancelCheckWork, "AUTH TLS")) == 234)
+									if(IsOpenSSLLoaded() && ((Sts = command(ContSock, Reply, CancelCheckWork, "AUTH TLS")) == 234 || (Sts = command(ContSock, Reply, CancelCheckWork, "AUTH SSL")) == 234))
 									{
 										if(AttachSSL(ContSock, INVALID_SOCKET, CancelCheckWork))
 										{

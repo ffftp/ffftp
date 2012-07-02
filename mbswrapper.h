@@ -29,6 +29,9 @@ HANDLE FindFirstFileM(LPCSTR lpFileName, LPWIN32_FIND_DATAA lpFindFileData);
 #undef FindNextFile
 #define FindNextFile FindNextFileM
 BOOL FindNextFileM(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData);
+#undef FindFirstChangeNotification
+#define FindFirstChangeNotification FindFirstChangeNotificationM
+HANDLE FindFirstChangeNotificationM(LPCSTR lpPathName, BOOL bWatchSubtree, DWORD dwNotifyFilter);
 #undef GetLogicalDriveStrings
 #define GetLogicalDriveStrings GetLogicalDriveStringsM
 DWORD GetLogicalDriveStringsM(DWORD nBufferLength, LPSTR lpBuffer);

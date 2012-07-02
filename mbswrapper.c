@@ -715,6 +715,7 @@ int MultiByteToWideCharAlternative(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiB
 	LPCSTR pMultiLimit;
 	LPWSTR pWideLimit;
 	DWORD Code;
+	int TempCount;
 	WCHAR Temp[8];
 	if(CodePage != CP_UTF8 || dwFlags != 0)
 		return MultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, lpWideCharStr, cchWideChar);
@@ -731,8 +732,9 @@ int MultiByteToWideCharAlternative(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiB
 			continue;
 		if(lpWideCharStr)
 		{
-			WideCount += PutNextCharW(lpWideCharStr, pWideLimit, &lpWideCharStr, Code);
-			if(lpWideCharStr >= pWideLimit)
+			TempCount = PutNextCharW(lpWideCharStr, pWideLimit, &lpWideCharStr, Code);
+			WideCount += TempCount;
+			if(TempCount == 0 && lpWideCharStr >= pWideLimit)
 			{
 				WideCount = 0;
 				break;
@@ -752,6 +754,7 @@ int WideCharToMultiByteAlternative(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideC
 	LPCWSTR pWideLimit;
 	LPSTR pMultiLimit;
 	DWORD Code;
+	int TempCount;
 	CHAR Temp[8];
 	if(CodePage != CP_UTF8 || dwFlags != 0)
 		return WideCharToMultiByte(CodePage, dwFlags, lpWideCharStr, cchWideChar, lpMultiByteStr, cbMultiByte, lpDefaultChar, lpUsedDefaultChar);
@@ -768,8 +771,9 @@ int WideCharToMultiByteAlternative(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideC
 			continue;
 		if(lpMultiByteStr)
 		{
-			MultiCount += PutNextCharM(lpMultiByteStr, pMultiLimit, &lpMultiByteStr, Code);
-			if(lpMultiByteStr >= pMultiLimit)
+			TempCount = PutNextCharM(lpMultiByteStr, pMultiLimit, &lpMultiByteStr, Code);
+			MultiCount += TempCount;
+			if(TempCount == 0 && lpMultiByteStr >= pMultiLimit)
 			{
 				MultiCount = 0;
 				break;
@@ -891,6 +895,18 @@ START_ROUTINE
 		WtoM(lpFindFileData->cAlternateFileName, sizeof(lpFindFileData->cAlternateFileName), a0.cAlternateFileName, -1);
 	}
 END_ROUTINE
+	return r;
+}
+
+HANDLE FindFirstChangeNotificationM(LPCSTR lpPathName, BOOL bWatchSubtree, DWORD dwNotifyFilter)
+{
+	HANDLE r = INVALID_HANDLE_VALUE;
+	wchar_t* pw0 = NULL;
+START_ROUTINE
+	pw0 = DuplicateMtoW(lpPathName, -1);
+	r = FindFirstChangeNotificationW(pw0, bWatchSubtree, dwNotifyFilter);
+END_ROUTINE
+	FreeDuplicatedString(pw0);
 	return r;
 }
 

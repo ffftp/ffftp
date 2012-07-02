@@ -3,12 +3,6 @@
 #define HAVE_OPENVMS
 
 // 全体に影響する設定はここに記述する予定
-// 内部をUTF-8として扱いマルチバイト文字ワイド文字APIラッパーを使用する
-#include "mbswrapper.h"
-// OpenSSL用ソケットラッパーを使用する
-#include "socketwrapper.h"
-// プロセスをDLL Injectionから保護する
-#include "protectprocess.h"
 // 使用するCPUを1個に限定する（マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策）
 //#define DISABLE_MULTI_CPUS
 // ファイル転送用のネットワークバッファを無効にする（通信中止後にリモートのディレクトリが表示されないバグ対策）
@@ -26,4 +20,11 @@
 
 /* HP NonStop Server 用のコードを有効にする */
 #define HAVE_TANDEM
+
+// 内部をUTF-8として扱いマルチバイト文字ワイド文字APIラッパーを使用する
+#include "mbswrapper.h"
+// OpenSSL用ソケットラッパーを使用する
+#include "socketwrapper.h"
+// プロセスをDLL Injectionから保護する
+#include "protectprocess.h"
 

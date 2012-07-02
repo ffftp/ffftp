@@ -126,6 +126,8 @@ extern char FilterStr[FILTER_EXT_LEN+1];
 extern HWND hHelpWin;
 // 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
 extern int SuppressRefresh;
+// ローカル側自動更新
+extern HANDLE ChangeNotification;
 
 /* 設定値 */
 extern int LocalWidth;
@@ -1385,7 +1387,7 @@ void RefreshIconImageList(FLISTANCHOR *Anchor)
 				SetYenTail(Cur);
 				strcat(Cur, Pos->File);
 			}
-			if(SHGetFileInfoM(Cur, 0, &FileInfo, sizeof(SHFILEINFO), SHGFI_SMALLICON | SHGFI_ICON) != 0)
+			if(SHGetFileInfo(Cur, 0, &FileInfo, sizeof(SHFILEINFO), SHGFI_SMALLICON | SHGFI_ICON) != 0)
 			{
 				if(ImageList_AddIcon(ListImgFileIcon, FileInfo.hIcon) >= 0)
 				{
@@ -1428,6 +1430,11 @@ void GetLocalDirForWnd(void)
 	DoLocalPWD(Scan);
 	SetLocalDirHist(Scan);
 	DispLocalFreeSpace(Scan);
+
+	// ローカル側自動更新
+	if(ChangeNotification != INVALID_HANDLE_VALUE)
+		FindCloseChangeNotification(ChangeNotification);
+	ChangeNotification = FindFirstChangeNotification(Scan, FALSE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE);
 
 	/* ディレクトリ／ファイル */
 
@@ -1583,20 +1590,36 @@ static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LON
 			}
 			else
 			{
+				// 読みにくいのでリファクタリング
+//				if((((Sort & SORT_MASK_ORD) == SORT_EXT) &&
+//					((Cmp = _mbsicmp(GetFileExt(Name), GetFileExt(Pos->File))) > 0)) ||
+//#if defined(HAVE_TANDEM)
+//				   ((AskHostType() == HTYPE_TANDEM) &&
+//				    ((Sort & SORT_MASK_ORD) == SORT_EXT) &&
+//					((Cmp = Attr - Pos->Attr) > 0)) ||
+//#endif
+//				   (((Sort & SORT_MASK_ORD) == SORT_SIZE) &&
+//					((Cmp = Size - Pos->Size) > 0)) ||
+//				   (((Sort & SORT_MASK_ORD) == SORT_DATE) &&
+//					((Cmp = CompareFileTime(Time, &Pos->Time)) > 0)))
+//				{
+//					break;
+//				}
 				if((((Sort & SORT_MASK_ORD) == SORT_EXT) &&
-					((Cmp = _mbsicmp(GetFileExt(Name), GetFileExt(Pos->File))) > 0)) ||
-#if defined(HAVE_TANDEM)
-				   ((AskHostType() == HTYPE_TANDEM) &&
-				    ((Sort & SORT_MASK_ORD) == SORT_EXT) &&
-					((Cmp = Attr - Pos->Attr) > 0)) ||
-#endif
-				   (((Sort & SORT_MASK_ORD) == SORT_SIZE) &&
-					((Cmp = Size - Pos->Size) > 0)) ||
-				   (((Sort & SORT_MASK_ORD) == SORT_DATE) &&
-					((Cmp = CompareFileTime(Time, &Pos->Time)) > 0)))
-				{
+					((Cmp = _mbsicmp(GetFileExt(Name), GetFileExt(Pos->File))) > 0)))
 					break;
-				}
+#if defined(HAVE_TANDEM)
+				if(((AskHostType() == HTYPE_TANDEM) &&
+				    ((Sort & SORT_MASK_ORD) == SORT_EXT) &&
+					((Cmp = Attr - Pos->Attr) > 0)))
+					break;
+#endif
+				if(((Sort & SORT_MASK_ORD) == SORT_SIZE) &&
+					((Cmp = Size - Pos->Size) > 0))
+					break;
+				if(((Sort & SORT_MASK_ORD) == SORT_DATE) &&
+					((Cmp = CompareFileTime(Time, &Pos->Time)) > 0))
+					break;
 
 				if(((Sort & SORT_MASK_ORD) == SORT_NAME) || (Cmp == 0))
 				{
@@ -1837,7 +1860,9 @@ void ReSortDispList(int Win, int *CancelCheckWork)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void SelectFileInList(HWND hWnd, int Type)
+// ローカル側自動更新
+//void SelectFileInList(HWND hWnd, int Type)
+void SelectFileInList(HWND hWnd, int Type, FILELIST *Base)
 {
 	int Win;
 	int WinDst;
@@ -1953,6 +1978,22 @@ void SelectFileInList(HWND hWnd, int Type)
 						SendMessage(hWnd, LVM_ENSUREVISIBLE, CsrPos, (LPARAM)TRUE);
 					}
 				}
+			}
+			break;
+
+		// ローカル側自動更新
+		case SELECT_LIST :
+			for(i = 0; i < Num; i++)
+			{
+				LvItem.state = 0;
+				GetNodeName(Win, i, Name, FMAX_PATH);
+				if(SearchFileList(Name, Base, COMP_STRICT) != NULL)
+					LvItem.state = LVIS_SELECTED;
+				LvItem.mask = LVIF_STATE;
+				LvItem.iItem = i;
+				LvItem.stateMask = LVIS_SELECTED;
+				LvItem.iSubItem = 0;
+				SendMessage(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&LvItem);
 			}
 			break;
 	}

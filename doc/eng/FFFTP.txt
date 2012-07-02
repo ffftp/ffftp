@@ -49,6 +49,14 @@ Changes in Ver.1.98f
 
 -- Extended command line options.
 
+-- Changed to try SSL when a host cannot recognize TLS on FTPS Explicit.
+
+-- Fixed bugs that corruption was caused when strings were converted from
+   UTF-8 to Shift_JIS on Windows Vista or later.
+
+-- Changed to refresh the local view automatically when files in the current
+   directory are modified.
+
 
 Outline
 -------
