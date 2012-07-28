@@ -787,21 +787,22 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,136,196,10
 END
 
-up_exist_dlg DIALOG  0, 0, 234, 119
+up_exist_dlg DIALOG  0, 0, 234, 131
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
 CAPTION "Upload"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "&Overwrite existing file",UP_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,8,38,99,10
     CONTROL         "Overwrite if upload file is &newer",UP_EXIST_NEW,"Button",BS_AUTORADIOBUTTON,7,50,118,10
-    CONTROL         "&Resume",UP_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,62,99,10
-    CONTROL         "Rename &by the host",UP_EXIST_UNIQUE,"Button",BS_AUTORADIOBUTTON,7,74,99,10
-    CONTROL         "&Skip",UP_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,86,99,10
+    CONTROL         "Overwrite if upload file is &larger",UP_EXIST_LARGE,"Button",BS_AUTORADIOBUTTON,7,62,118,10
+    CONTROL         "&Resume",UP_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,74,99,10
+    CONTROL         "Rename &by the host",UP_EXIST_UNIQUE,"Button",BS_AUTORADIOBUTTON,7,86,99,10
+    CONTROL         "&Skip",UP_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,98,99,10
     LTEXT           "To upload with a different name, modify the filename and click Overwrite existing file.",-1,129,39,98,41
-    DEFPUSHBUTTON   "OK",IDOK,13,101,50,14,WS_GROUP
-    PUSHBUTTON      "&Do All",IDOK_ALL,68,101,50,14
-    PUSHBUTTON      "&Cancel All",IDCANCEL,123,101,50,14
-    PUSHBUTTON      "&Help",9,178,101,41,14
+    DEFPUSHBUTTON   "OK",IDOK,13,113,50,14,WS_GROUP
+    PUSHBUTTON      "&Do All",IDOK_ALL,68,113,50,14
+    PUSHBUTTON      "&Cancel All",IDCANCEL,123,113,50,14
+    PUSHBUTTON      "&Help",9,178,113,41,14
     LTEXT           "Filename already exists on host. Upload?",-1,7,7,184,8
     EDITTEXT        UP_EXIST_NAME,7,20,220,12,ES_AUTOHSCROLL
 END
@@ -1335,7 +1336,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,101,65,50,14
 END
 
-down_exist_dlg DIALOG  0, 0, 234, 109
+down_exist_dlg DIALOG  0, 0, 234, 121
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
 CAPTION "Download"
 FONT 9, "MS Shell Dlg"
@@ -1343,13 +1344,15 @@ BEGIN
     CONTROL         "&Overwrite existing file",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,39,99,10
     CONTROL         "Overwrite if download file is &newer",DOWN_EXIST_NEW,
                     "Button",BS_AUTORADIOBUTTON,7,51,123,10
-    CONTROL         "&Resume",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,63,99,10
-    CONTROL         "&Skip",DOWN_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,75,99,10
+    CONTROL         "Overwrite if download file is &larger",DOWN_EXIST_LARGE,
+                    "Button",BS_AUTORADIOBUTTON,7,63,123,10
+    CONTROL         "&Resume",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,75,99,10
+    CONTROL         "&Skip",DOWN_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,87,99,10
     LTEXT           "To download with a different name, modify the filename and click Overwrite existing file.",-1,133,38,94,39
-    DEFPUSHBUTTON   "OK",IDOK,13,91,50,14,WS_GROUP
-    PUSHBUTTON      "&Do All",IDOK_ALL,68,91,50,14
-    PUSHBUTTON      "&Cancel All",IDCANCEL,123,91,50,14
-    PUSHBUTTON      "&Help",9,178,91,41,14
+    DEFPUSHBUTTON   "OK",IDOK,13,103,50,14,WS_GROUP
+    PUSHBUTTON      "&Do All",IDOK_ALL,68,103,50,14
+    PUSHBUTTON      "&Cancel All",IDCANCEL,123,103,50,14
+    PUSHBUTTON      "&Help",9,178,103,41,14
     LTEXT           "Filename already exists on local disk. Download?",-1,7,7,184,8
     EDITTEXT        DOWN_EXIST_NAME,7,20,220,12,ES_AUTOHSCROLL
 END
@@ -1731,7 +1734,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 227
         TOPMARGIN, 7
-        BOTTOMMARGIN, 115
+        BOTTOMMARGIN, 127
     END
 
     reginit_dlg, DIALOG
@@ -2051,7 +2054,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 227
         TOPMARGIN, 7
-        BOTTOMMARGIN, 105
+        BOTTOMMARGIN, 117
     END
 
     IDD_OLEDRAG, DIALOG

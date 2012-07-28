@@ -778,21 +778,22 @@ BEGIN
     CONTROL         "ファイル名を変えて転送した場合にディレクトリを作成(&D)",TRMODE_MAKEDIR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,136,196,10
 END
 
-up_exist_dlg DIALOG  0, 0, 223, 119
+up_exist_dlg DIALOG  0, 0, 223, 131
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
 CAPTION "アップロードの確認"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "上書き(&O)",UP_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,38,99,10
     CONTROL         "新しければ上書き(&T)",UP_EXIST_NEW,"Button",BS_AUTORADIOBUTTON,7,50,99,10
-    CONTROL         "再開（リジューム）(&R)",UP_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,62,99,10
-    CONTROL         "ホストが名前を付ける(&M)",UP_EXIST_UNIQUE,"Button",BS_AUTORADIOBUTTON,7,74,99,10
-    CONTROL         "アップロードしない(&N)",UP_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,86,99,10
+    CONTROL         "大きければ上書き(&L)",UP_EXIST_LARGE,"Button",BS_AUTORADIOBUTTON,7,62,99,10
+    CONTROL         "再開（リジューム）(&R)",UP_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,74,99,10
+    CONTROL         "ホストが名前を付ける(&M)",UP_EXIST_UNIQUE,"Button",BS_AUTORADIOBUTTON,7,86,99,10
+    CONTROL         "アップロードしない(&N)",UP_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,98,99,10
     LTEXT           "違う名前でアップロードする時は、名前を変更して「上書き」を押してください。",-1,113,39,103,41
-    DEFPUSHBUTTON   "OK",IDOK,8,101,50,14,WS_GROUP
-    PUSHBUTTON      "以降全て(&A)",IDOK_ALL,63,101,50,14
-    PUSHBUTTON      "全て中止(&S)",IDCANCEL,118,101,50,14
-    PUSHBUTTON      "ヘルプ",9,173,101,41,14
+    DEFPUSHBUTTON   "OK",IDOK,8,113,50,14,WS_GROUP
+    PUSHBUTTON      "以降全て(&A)",IDOK_ALL,63,113,50,14
+    PUSHBUTTON      "全て中止(&S)",IDCANCEL,118,113,50,14
+    PUSHBUTTON      "ヘルプ",9,173,113,41,14
     LTEXT           "ホストに同じ名前のファイルがあります",-1,7,7,184,8
     EDITTEXT        UP_EXIST_NAME,7,20,209,12,ES_AUTOHSCROLL
 END
@@ -1309,20 +1310,21 @@ BEGIN
     PUSHBUTTON      "キャンセル",IDCANCEL,101,65,50,14
 END
 
-down_exist_dlg DIALOG  0, 0, 223, 108
+down_exist_dlg DIALOG  0, 0, 223, 120
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
 CAPTION "ダウンロードの確認"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "上書き(&O)",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,39,99,10
     CONTROL         "新しければ上書き(&T)",DOWN_EXIST_NEW,"Button",BS_AUTORADIOBUTTON,7,51,99,10
-    CONTROL         "再開（リジューム）(&R)",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,63,99,10
-    CONTROL         "ダウンロードしない(&N)",DOWN_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,75,99,10
+    CONTROL         "大きければ上書き(&L)",DOWN_EXIST_LARGE,"Button",BS_AUTORADIOBUTTON,7,63,99,10
+    CONTROL         "再開（リジューム）(&R)",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,75,99,10
+    CONTROL         "ダウンロードしない(&N)",DOWN_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,87,99,10
     LTEXT           "違う名前でダウンロードする時は、名前を変更して「上書き」を押してください。",-1,113,40,103,39
-    DEFPUSHBUTTON   "OK",IDOK,8,90,50,14,WS_GROUP
-    PUSHBUTTON      "以降全て(&A)",IDOK_ALL,63,90,50,14
-    PUSHBUTTON      "全て中止(&S)",IDCANCEL,118,90,50,14
-    PUSHBUTTON      "ヘルプ",9,173,90,41,14
+    DEFPUSHBUTTON   "OK",IDOK,8,102,50,14,WS_GROUP
+    PUSHBUTTON      "以降全て(&A)",IDOK_ALL,63,102,50,14
+    PUSHBUTTON      "全て中止(&S)",IDCANCEL,118,102,50,14
+    PUSHBUTTON      "ヘルプ",9,173,102,41,14
     LTEXT           "ローカル側に同じ名前のファイルがあります",-1,7,7,184,8
     EDITTEXT        DOWN_EXIST_NAME,7,20,209,12,ES_AUTOHSCROLL
 END
@@ -1702,7 +1704,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 216
         TOPMARGIN, 7
-        BOTTOMMARGIN, 115
+        BOTTOMMARGIN, 127
     END
 
     reginit_dlg, DIALOG
@@ -2022,7 +2024,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 216
         TOPMARGIN, 7
-        BOTTOMMARGIN, 104
+        BOTTOMMARGIN, 116
     END
 
     IDD_OLEDRAG, DIALOG

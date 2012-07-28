@@ -872,6 +872,14 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 				else
 					Ret = EXIST_IGNORE;
 			}
+			// 同じ名前のファイルの処理方法追加
+			if(Ret == EXIST_LARGE)
+			{
+				if(MakeLongLong(Find.nFileSizeHigh, Find.nFileSizeLow) < Pkt->Size)
+					Ret = EXIST_OVW;
+				else
+					Ret = EXIST_IGNORE;
+			}
 		}
 	}
 	return(Ret);
@@ -895,11 +903,19 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 static INT_PTR CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	static TRANSPACKET *Pkt;
+	// 同じ名前のファイルの処理方法追加
+//	static const RADIOBUTTON DownExistButton[] = {
+//		{ DOWN_EXIST_OVW, EXIST_OVW },
+//		{ DOWN_EXIST_NEW, EXIST_NEW },
+//		{ DOWN_EXIST_RESUME, EXIST_RESUME },
+//		{ DOWN_EXIST_IGNORE, EXIST_IGNORE }
+//	};
 	static const RADIOBUTTON DownExistButton[] = {
 		{ DOWN_EXIST_OVW, EXIST_OVW },
 		{ DOWN_EXIST_NEW, EXIST_NEW },
 		{ DOWN_EXIST_RESUME, EXIST_RESUME },
-		{ DOWN_EXIST_IGNORE, EXIST_IGNORE }
+		{ DOWN_EXIST_IGNORE, EXIST_IGNORE },
+		{ DOWN_EXIST_LARGE, EXIST_LARGE }
 	};
 	#define DOWNEXISTBUTTONS	(sizeof(DownExistButton)/sizeof(RADIOBUTTON))
 
@@ -1158,7 +1174,9 @@ void UploadListProc(int ChName, int All)
 
 				strcpy(Pkt.Cmd, "STOR ");
 				Pkt.Type = AskTransferTypeAssoc(Pkt.LocalFile, AskTransferType());
-				Pkt.Size = 0;
+				// バグ修正
+//				Pkt.Size = 0;
+				Pkt.Size = Pos->Size;
 				Pkt.Time = Pos->Time;
 				Pkt.Attr = AskUploadFileAttr(Pkt.RemoteFile);
 				Pkt.KanjiCode = AskHostKanjiCode();
@@ -1336,7 +1354,9 @@ void UploadDragProc(WPARAM wParam)
 
 				strcpy(Pkt.Cmd, "STOR ");
 				Pkt.Type = AskTransferTypeAssoc(Pkt.LocalFile, AskTransferType());
-				Pkt.Size = 0;
+				// バグ修正
+//				Pkt.Size = 0;
+				Pkt.Size = Pos->Size;
 				Pkt.Time = Pos->Time;
 				Pkt.Attr = AskUploadFileAttr(Pkt.RemoteFile);
 				Pkt.KanjiCode = AskHostKanjiCode();
@@ -1625,7 +1645,9 @@ void MirrorUploadProc(int Notify)
 
 						strcpy(Pkt.Cmd, "STOR ");
 						Pkt.Type = AskTransferTypeAssoc(Pkt.LocalFile, AskTransferType());
-						Pkt.Size = 0;
+						// バグ修正
+//						Pkt.Size = 0;
+						Pkt.Size = LocalPos->Size;
 						Pkt.Time = LocalPos->Time;
 						Pkt.Attr = AskUploadFileAttr(Pkt.RemoteFile);
 						Pkt.KanjiCode = AskHostKanjiCode();
@@ -2087,6 +2109,14 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, FILELIST *ListList)
 				else
 					Ret = EXIST_IGNORE;
 			}
+			// 同じ名前のファイルの処理方法追加
+			if(Ret == EXIST_LARGE)
+			{
+				if(Exist->Size < Pkt->Size)
+					Ret = EXIST_OVW;
+				else
+					Ret = EXIST_IGNORE;
+			}
 		}
 	}
 	return(Ret);
@@ -2110,12 +2140,21 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, FILELIST *ListList)
 static INT_PTR CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	static TRANSPACKET *Pkt;
+	// 同じ名前のファイルの処理方法追加
+//	static const RADIOBUTTON UpExistButton[] = {
+//		{ UP_EXIST_OVW, EXIST_OVW },
+//		{ UP_EXIST_NEW, EXIST_NEW },
+//		{ UP_EXIST_RESUME, EXIST_RESUME },
+//		{ UP_EXIST_UNIQUE, EXIST_UNIQUE },
+//		{ UP_EXIST_IGNORE, EXIST_IGNORE }
+//	};
 	static const RADIOBUTTON UpExistButton[] = {
 		{ UP_EXIST_OVW, EXIST_OVW },
 		{ UP_EXIST_NEW, EXIST_NEW },
 		{ UP_EXIST_RESUME, EXIST_RESUME },
 		{ UP_EXIST_UNIQUE, EXIST_UNIQUE },
-		{ UP_EXIST_IGNORE, EXIST_IGNORE }
+		{ UP_EXIST_IGNORE, EXIST_IGNORE },
+		{ UP_EXIST_LARGE, EXIST_LARGE }
 	};
 	#define UPEXISTBUTTONS	(sizeof(UpExistButton)/sizeof(RADIOBUTTON))
 

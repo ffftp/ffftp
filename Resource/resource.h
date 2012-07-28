@@ -444,6 +444,8 @@
 #define HSET_NETTYPE                    1210
 #define HSET_ERROR_MODE                 1211
 #define HSET_MLSDCMD                    1212
+#define DOWN_EXIST_LARGE                1213
+#define UP_EXIST_LARGE                  1214
 #define MENU_END                        40001
 #define MENU_EXIT                       40001
 #define MENU_CONNECT                    40003
@@ -632,7 +634,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        195
 #define _APS_NEXT_COMMAND_VALUE         40177
-#define _APS_NEXT_CONTROL_VALUE         1213
+#define _APS_NEXT_CONTROL_VALUE         1215
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

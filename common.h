@@ -164,6 +164,8 @@
 #define EXIST_IGNORE	3		/* 無視 */
 #define EXIST_UNIQUE	4		/* ホストが名前を付ける */
 #define EXIST_ABORT		5		/* 全て中止 */
+// 同じ名前のファイルの処理方法追加
+#define EXIST_LARGE		6		/* 大きければ上書き */
 
 /*===== ファイル名の比較モード =====*/
 
