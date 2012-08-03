@@ -115,6 +115,7 @@
 #define updatesslroot_dlg               192
 #define updown_as_with_ext_dlg          193
 #define ini_from_reg_dlg                194
+#define opt_trmode4_dlg                 195
 #define TRANS_TIME_BAR                  1002
 #define TRANS_TEXT                      1003
 #define TRANS_REMOTE                    1003
@@ -446,6 +447,11 @@
 #define HSET_MLSDCMD                    1212
 #define DOWN_EXIST_LARGE                1213
 #define UP_EXIST_LARGE                  1214
+#define TRMODE4_SJIS_CNV                1215
+#define TRMODE4_JIS_CNV                 1216
+#define TRMODE4_EUC_CNV                 1217
+#define TRMODE4_UTF8N_CNV               1218
+#define TRMODE4_UTF8BOM_CNV             1219
 #define MENU_END                        40001
 #define MENU_EXIT                       40001
 #define MENU_CONNECT                    40003
@@ -632,9 +638,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        195
+#define _APS_NEXT_RESOURCE_VALUE        196
 #define _APS_NEXT_COMMAND_VALUE         40177
-#define _APS_NEXT_CONTROL_VALUE         1215
+#define _APS_NEXT_CONTROL_VALUE         1220
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

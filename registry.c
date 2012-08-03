@@ -197,6 +197,8 @@ extern BYTE SSLRootCAFileHash[20];
 extern int DispFileIcon;
 // ディレクトリ自動作成
 extern int MakeAllDir;
+// UTF-8対応
+extern int LocalKanjiCode;
 
 /*----- マスタパスワードの設定 ----------------------------------------------
 *
@@ -625,6 +627,8 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "ListIcon", DispFileIcon);
 				// ディレクトリ自動作成
 				WriteIntValueToReg(hKey4, "MakeDir", MakeAllDir);
+				// UTF-8対応
+				WriteIntValueToReg(hKey4, "Kanji", LocalKanjiCode);
 			}
 			CloseSubKey(hKey4);
 		}
@@ -1029,6 +1033,8 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "ListIcon", &DispFileIcon);
 			// ディレクトリ自動作成
 			ReadIntValueFromReg(hKey4, "MakeDir", &MakeAllDir);
+			// UTF-8対応
+			ReadIntValueFromReg(hKey4, "Kanji", &LocalKanjiCode);
 
 			CloseSubKey(hKey4);
 		}

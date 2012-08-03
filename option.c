@@ -60,6 +60,8 @@ static INT_PTR CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 static INT_PTR CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK Trmode2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+// UTF-8対応
+static INT_PTR CALLBACK Trmode4SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static void AddFnameAttrToListView(HWND hDlg, char *Fname, char *Attr);
 static void GetFnameAttrFromListView(HWND hDlg, char *Buf);
@@ -183,7 +185,9 @@ extern int MakeAllDir;
 
 void SetOption(int Start)
 {
-	PROPSHEETPAGE psp[12];
+	// UTF-8対応
+//	PROPSHEETPAGE psp[12];
+	PROPSHEETPAGE psp[13];
 	PROPSHEETHEADER psh;
 
 	// 変数が未初期化のバグ修正
@@ -230,85 +234,176 @@ void SetOption(int Start)
 	psp[3].lParam = 0;
 	psp[3].pfnCallback = NULL;
 
+	// UTF-8対応
+//	psp[4].dwSize = sizeof(PROPSHEETPAGE);
+//	psp[4].dwFlags = PSP_USETITLE | PSP_HASHELP;
+//	psp[4].hInstance = GetFtpInst();
+//	psp[4].pszTemplate = MAKEINTRESOURCE(opt_mirror_dlg);
+//	psp[4].pszIcon = NULL;
+//	psp[4].pfnDlgProc = MirrorSettingProc;
+//	psp[4].pszTitle = MSGJPN190;
+//	psp[4].lParam = 0;
+//	psp[4].pfnCallback = NULL;
+
+//	psp[5].dwSize = sizeof(PROPSHEETPAGE);
+//	psp[5].dwFlags = PSP_USETITLE | PSP_HASHELP;
+//	psp[5].hInstance = GetFtpInst();
+//	psp[5].pszTemplate = MAKEINTRESOURCE(opt_notify_dlg);
+//	psp[5].pszIcon = NULL;
+//	psp[5].pfnDlgProc = NotifySettingProc;
+//	psp[5].pszTitle = MSGJPN191;
+//	psp[5].lParam = 0;
+//	psp[5].pfnCallback = NULL;
+
+//	psp[6].dwSize = sizeof(PROPSHEETPAGE);
+//	psp[6].dwFlags = PSP_USETITLE | PSP_HASHELP;
+//	psp[6].hInstance = GetFtpInst();
+//	psp[6].pszTemplate = MAKEINTRESOURCE(opt_disp_dlg);
+//	psp[6].pszIcon = NULL;
+//	psp[6].pfnDlgProc = DispSettingProc;
+//	psp[6].pszTitle = MSGJPN192;
+//	psp[6].lParam = 0;
+//	psp[6].pfnCallback = NULL;
+
+//	psp[7].dwSize = sizeof(PROPSHEETPAGE);
+//	psp[7].dwFlags = PSP_USETITLE | PSP_HASHELP;
+//	psp[7].hInstance = GetFtpInst();
+//	psp[7].pszTemplate = MAKEINTRESOURCE(opt_connect_dlg);
+//	psp[7].pszIcon = NULL;
+//	psp[7].pfnDlgProc = ConnectSettingProc;
+//	psp[7].pszTitle = MSGJPN193;
+//	psp[7].lParam = 0;
+//	psp[7].pfnCallback = NULL;
+
+//	psp[8].dwSize = sizeof(PROPSHEETPAGE);
+//	psp[8].dwFlags = PSP_USETITLE | PSP_HASHELP;
+//	psp[8].hInstance = GetFtpInst();
+//	psp[8].pszTemplate = MAKEINTRESOURCE(opt_fire_dlg);
+//	psp[8].pszIcon = NULL;
+//	psp[8].pfnDlgProc = FireSettingProc;
+//	psp[8].pszTitle = MSGJPN194;
+//	psp[8].lParam = 0;
+//	psp[8].pfnCallback = NULL;
+
+//	psp[9].dwSize = sizeof(PROPSHEETPAGE);
+//	psp[9].dwFlags = PSP_USETITLE | PSP_HASHELP;
+//	psp[9].hInstance = GetFtpInst();
+//	psp[9].pszTemplate = MAKEINTRESOURCE(opt_tool_dlg);
+//	psp[9].pszIcon = NULL;
+//	psp[9].pfnDlgProc = ToolSettingProc;
+//	psp[9].pszTitle = MSGJPN195;
+//	psp[9].lParam = 0;
+//	psp[9].pfnCallback = NULL;
+
+//	psp[10].dwSize = sizeof(PROPSHEETPAGE);
+//	psp[10].dwFlags = PSP_USETITLE | PSP_HASHELP;
+//	psp[10].hInstance = GetFtpInst();
+//	psp[10].pszTemplate = MAKEINTRESOURCE(opt_sound_dlg);
+//	psp[10].pszIcon = NULL;
+//	psp[10].pfnDlgProc = SoundSettingProc;
+//	psp[10].pszTitle = MSGJPN196;
+//	psp[10].lParam = 0;
+//	psp[10].pfnCallback = NULL;
+
+//	psp[11].dwSize = sizeof(PROPSHEETPAGE);
+//	psp[11].dwFlags = PSP_USETITLE | PSP_HASHELP;
+//	psp[11].hInstance = GetFtpInst();
+//	psp[11].pszTemplate = MAKEINTRESOURCE(opt_misc_dlg);
+//	psp[11].pszIcon = NULL;
+//	psp[11].pfnDlgProc = MiscSettingProc;
+//	psp[11].pszTitle = MSGJPN197;
+//	psp[11].lParam = 0;
+//	psp[11].pfnCallback = NULL;
+
 	psp[4].dwSize = sizeof(PROPSHEETPAGE);
 	psp[4].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[4].hInstance = GetFtpInst();
-	psp[4].pszTemplate = MAKEINTRESOURCE(opt_mirror_dlg);
+	psp[4].pszTemplate = MAKEINTRESOURCE(opt_trmode4_dlg);
 	psp[4].pszIcon = NULL;
-	psp[4].pfnDlgProc = MirrorSettingProc;
-	psp[4].pszTitle = MSGJPN190;
+	psp[4].pfnDlgProc = Trmode4SettingProc;
+	psp[4].pszTitle = MSGJPN339;
 	psp[4].lParam = 0;
 	psp[4].pfnCallback = NULL;
 
 	psp[5].dwSize = sizeof(PROPSHEETPAGE);
 	psp[5].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[5].hInstance = GetFtpInst();
-	psp[5].pszTemplate = MAKEINTRESOURCE(opt_notify_dlg);
+	psp[5].pszTemplate = MAKEINTRESOURCE(opt_mirror_dlg);
 	psp[5].pszIcon = NULL;
-	psp[5].pfnDlgProc = NotifySettingProc;
-	psp[5].pszTitle = MSGJPN191;
+	psp[5].pfnDlgProc = MirrorSettingProc;
+	psp[5].pszTitle = MSGJPN190;
 	psp[5].lParam = 0;
 	psp[5].pfnCallback = NULL;
 
 	psp[6].dwSize = sizeof(PROPSHEETPAGE);
 	psp[6].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[6].hInstance = GetFtpInst();
-	psp[6].pszTemplate = MAKEINTRESOURCE(opt_disp_dlg);
+	psp[6].pszTemplate = MAKEINTRESOURCE(opt_notify_dlg);
 	psp[6].pszIcon = NULL;
-	psp[6].pfnDlgProc = DispSettingProc;
-	psp[6].pszTitle = MSGJPN192;
+	psp[6].pfnDlgProc = NotifySettingProc;
+	psp[6].pszTitle = MSGJPN191;
 	psp[6].lParam = 0;
 	psp[6].pfnCallback = NULL;
 
 	psp[7].dwSize = sizeof(PROPSHEETPAGE);
 	psp[7].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[7].hInstance = GetFtpInst();
-	psp[7].pszTemplate = MAKEINTRESOURCE(opt_connect_dlg);
+	psp[7].pszTemplate = MAKEINTRESOURCE(opt_disp_dlg);
 	psp[7].pszIcon = NULL;
-	psp[7].pfnDlgProc = ConnectSettingProc;
-	psp[7].pszTitle = MSGJPN193;
+	psp[7].pfnDlgProc = DispSettingProc;
+	psp[7].pszTitle = MSGJPN192;
 	psp[7].lParam = 0;
 	psp[7].pfnCallback = NULL;
 
 	psp[8].dwSize = sizeof(PROPSHEETPAGE);
 	psp[8].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[8].hInstance = GetFtpInst();
-	psp[8].pszTemplate = MAKEINTRESOURCE(opt_fire_dlg);
+	psp[8].pszTemplate = MAKEINTRESOURCE(opt_connect_dlg);
 	psp[8].pszIcon = NULL;
-	psp[8].pfnDlgProc = FireSettingProc;
-	psp[8].pszTitle = MSGJPN194;
+	psp[8].pfnDlgProc = ConnectSettingProc;
+	psp[8].pszTitle = MSGJPN193;
 	psp[8].lParam = 0;
 	psp[8].pfnCallback = NULL;
 
 	psp[9].dwSize = sizeof(PROPSHEETPAGE);
 	psp[9].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[9].hInstance = GetFtpInst();
-	psp[9].pszTemplate = MAKEINTRESOURCE(opt_tool_dlg);
+	psp[9].pszTemplate = MAKEINTRESOURCE(opt_fire_dlg);
 	psp[9].pszIcon = NULL;
-	psp[9].pfnDlgProc = ToolSettingProc;
-	psp[9].pszTitle = MSGJPN195;
+	psp[9].pfnDlgProc = FireSettingProc;
+	psp[9].pszTitle = MSGJPN194;
 	psp[9].lParam = 0;
 	psp[9].pfnCallback = NULL;
 
 	psp[10].dwSize = sizeof(PROPSHEETPAGE);
 	psp[10].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[10].hInstance = GetFtpInst();
-	psp[10].pszTemplate = MAKEINTRESOURCE(opt_sound_dlg);
+	psp[10].pszTemplate = MAKEINTRESOURCE(opt_tool_dlg);
 	psp[10].pszIcon = NULL;
-	psp[10].pfnDlgProc = SoundSettingProc;
-	psp[10].pszTitle = MSGJPN196;
+	psp[10].pfnDlgProc = ToolSettingProc;
+	psp[10].pszTitle = MSGJPN195;
 	psp[10].lParam = 0;
 	psp[10].pfnCallback = NULL;
 
 	psp[11].dwSize = sizeof(PROPSHEETPAGE);
 	psp[11].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[11].hInstance = GetFtpInst();
-	psp[11].pszTemplate = MAKEINTRESOURCE(opt_misc_dlg);
+	psp[11].pszTemplate = MAKEINTRESOURCE(opt_sound_dlg);
 	psp[11].pszIcon = NULL;
-	psp[11].pfnDlgProc = MiscSettingProc;
-	psp[11].pszTitle = MSGJPN197;
+	psp[11].pfnDlgProc = SoundSettingProc;
+	psp[11].pszTitle = MSGJPN196;
 	psp[11].lParam = 0;
 	psp[11].pfnCallback = NULL;
+
+	psp[12].dwSize = sizeof(PROPSHEETPAGE);
+	psp[12].dwFlags = PSP_USETITLE | PSP_HASHELP;
+	psp[12].hInstance = GetFtpInst();
+	psp[12].pszTemplate = MAKEINTRESOURCE(opt_misc_dlg);
+	psp[12].pszIcon = NULL;
+	psp[12].pfnDlgProc = MiscSettingProc;
+	psp[12].pszTitle = MSGJPN197;
+	psp[12].lParam = 0;
+	psp[12].pfnCallback = NULL;
 
 	psh.dwSize = sizeof(PROPSHEETHEADER);
 	psh.dwFlags = PSH_HASHELP | PSH_NOAPPLYNOW | PSH_PROPSHEETPAGE;
@@ -657,6 +752,50 @@ static INT_PTR CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wPara
 					break;
 			}
 			return(TRUE);
+	}
+    return(FALSE);
+}
+
+
+// UTF-8対応
+static INT_PTR CALLBACK Trmode4SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	NMHDR *pnmhdr;
+
+	static const RADIOBUTTON KanjiButton[] = {
+		{ TRMODE4_SJIS_CNV, KANJI_SJIS },
+		{ TRMODE4_JIS_CNV, KANJI_JIS },
+		{ TRMODE4_EUC_CNV, KANJI_EUC },
+		{ TRMODE4_UTF8N_CNV, KANJI_UTF8N },
+		{ TRMODE4_UTF8BOM_CNV, KANJI_UTF8BOM }
+	};
+	#define KANJIBUTTONS	(sizeof(KanjiButton)/sizeof(RADIOBUTTON))
+
+	switch (message)
+	{
+		case WM_INITDIALOG :
+			SetRadioButtonByValue(hDlg, AskLocalKanjiCode(), KanjiButton, KANJIBUTTONS);
+
+		    return(TRUE);
+
+		case WM_NOTIFY:
+			pnmhdr = (NMHDR FAR *)lParam;
+			switch(pnmhdr->code)
+			{
+				case PSN_APPLY :
+					SetLocalKanjiCodeImm(AskRadioButtonValue(hDlg, KanjiButton, KANJIBUTTONS));
+					SaveLocalKanjiCode();
+					break;
+
+				case PSN_RESET :
+					break;
+
+				case PSN_HELP :
+					// TODO:
+//					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000044);
+					break;
+			}
+			break;
 	}
     return(FALSE);
 }

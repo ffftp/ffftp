@@ -246,6 +246,8 @@ BYTE SSLRootCAFileHash[20];
 int DispFileIcon = NO;
 // ディレクトリ自動作成
 int MakeAllDir = YES;
+// UTF-8対応
+int LocalKanjiCode = KANJI_SJIS;
 
 
 
@@ -567,9 +569,8 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 				DispTransferType();
 				SetHostKanaCnvImm(YES);
 				SetHostKanjiCodeImm(KANJI_NOCNV);
-				// 本当はローカルのデフォルトをUTF-8にしたいが旧バージョンとの互換性のためShift_JISに設定
-//				SetLocalKanjiCodeImm(KANJI_UTF8N);
-				SetLocalKanjiCodeImm(KANJI_SJIS);
+				// UTF-8対応
+				SetLocalKanjiCodeImm(LocalKanjiCode);
 				DispListType();
 				DispDotFileMode();
 				DispSyncMoveMode();

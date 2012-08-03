@@ -337,6 +337,7 @@
 #define MSGJPN336		_Tu8("Overwrite all later", "Overwrite all later")
 #define MSGJPN337		_Tu8("Resume all later", "Resume all later")
 #define MSGJPN338		_Tu8("Skip all", "Skip all")
+#define MSGJPN339		_Tu8("Transfer4", "Transfer4")
 #if defined(HAVE_TANDEM)
 #define MSGJPN2000		_Tu8("NonStop Server", "NonStop Server")
 #define MSGJPN2001		_Tu8("OSS<->GUARDIAN Switch(&O)", "OSS<->GUARDIAN Switch(&O)")

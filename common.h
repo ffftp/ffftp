@@ -70,9 +70,9 @@
 //#define VER_STR					"1.97b"
 //#define VER_NUM					1921		/* 設定バージョン */
 //#define PROGRAM_VERSION_NUM		1972		/* バージョン */
-#define VER_STR					"1.98f"
-#define VER_NUM					1986		/* 設定バージョン */
-#define PROGRAM_VERSION_NUM		1986		/* バージョン */
+#define VER_STR					"1.99"
+#define VER_NUM					1990		/* 設定バージョン */
+#define PROGRAM_VERSION_NUM		1990		/* バージョン */
 
 
 // SourceForge.JPによるフォーク
@@ -1421,6 +1421,7 @@ void SetLocalKanjiCode(int Type);
 void DispLocalKanjiCode(void);
 int AskLocalKanjiCode(void);
 void HideLocalKanjiButton(void);
+void SaveLocalKanjiCode(void);
 void SetHostKanaCnvImm(int Mode);
 void SetHostKanaCnv(void);
 void DispHostKanaCnv(void);

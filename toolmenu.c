@@ -74,6 +74,8 @@ extern int LocalWidth;
 extern char ViewerName[VIEWERS][FMAX_PATH+1];
 extern int TransMode;
 extern int SortSave;
+// UTF-8対応
+extern int LocalKanjiCode;
 
 /*===== ローカルなワーク =====*/
 
@@ -1300,6 +1302,12 @@ void HideLocalKanjiButton(void)
 			}
 			break;
 	}
+	return;
+}
+
+void SaveLocalKanjiCode(void)
+{
+	LocalKanjiCode = TmpLocalKanjiCode;
 	return;
 }
 
