@@ -2968,7 +2968,12 @@ void ChangeDirDirectProc(int Win)
 
 	strcpy(Path, "");
 	if(Win == WIN_LOCAL)
-		Sts = InputDialogBox(chdir_br_dlg, GetMainHwnd(), Title, Path, FMAX_PATH+1, &Tmp, IDH_HELP_TOPIC_0000001);
+	// フォルダ選択ダイアログを直接表示
+//		Sts = InputDialogBox(chdir_br_dlg, GetMainHwnd(), Title, Path, FMAX_PATH+1, &Tmp, IDH_HELP_TOPIC_0000001);
+	{
+		if(SelectDir(GetMainHwnd(), Path, FMAX_PATH) == TRUE)
+			Sts = YES;
+	}
 	else
 		Sts = InputDialogBox(chdir_dlg, GetMainHwnd(), Title, Path, FMAX_PATH+1, &Tmp, IDH_HELP_TOPIC_0000001);
 
