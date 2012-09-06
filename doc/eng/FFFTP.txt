@@ -1,8 +1,8 @@
 ============================================================
-[Software Name]  FFFTP Ver.1.98f (FTP Client software)
+[Software Name]  FFFTP Ver.1.99 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright(C) 2011-2012 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu).
-[Environment]    Windows 7, Vista, XP, 2000
+[Environment]    Windows 8, 7, Vista, XP, 2000
 ============================================================
 
 About INI File
@@ -28,34 +28,21 @@ following menu.
 File ->@Settings -> Change Master password
 
 
-Changes in Ver.1.98f
+Changes in Ver.1.99
 --------------------
 
--- Fixed bugs of incorrect behavior of Select dialog.
+-- Tested on Windows 8 (32bit/64bit).
 
--- Added an option for retaining timestamps on uploading.
+-- Added an option to overwrite files only if they are larger than their
+   originals.
 
--- Changed to require the current master password before changing it.
+-- Added an option to set a local Kanji code chosen at startup.
 
--- Fixed bugs that files in a temporary folder was shown in local file list
-   after files in a host had been dropped into other applications.
+-- Changed to directly show Browse For Folder dialog on clicking Change Folder button
+   in the local side.
 
--- Shortened intervals between keep alive packets.
-
--- Fixed bugs that UI was unlocked in some cases when commands were being sent
-   over the socket of main window.
-
--- Added extensions of files that will be transferred in ASCII mode.
-
--- Extended command line options.
-
--- Changed to try SSL when a host cannot recognize TLS on FTPS Explicit.
-
--- Fixed bugs that corruption was caused when strings were converted from
-   UTF-8 to Shift_JIS on Windows Vista or later.
-
--- Changed to refresh the local view automatically when files in the current
-   directory are modified.
+-- Improved conditions to send commands for keep alive.
+   Less likely to fail such as when deleting a large number of files.
 
 
 Outline

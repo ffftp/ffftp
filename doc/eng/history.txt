@@ -1,5 +1,21 @@
 FFFTP version history.
 
+Changes in Ver.1.99
+--------------------
+
+-- Tested on Windows 8 (32bit/64bit).
+
+-- Added an option to overwrite files only if they are larger than their
+   originals.
+
+-- Added an option to set a local Kanji code chosen at startup.
+
+-- Changed to directly show Browse For Folder dialog on clicking Change Folder button
+   in the local side.
+
+-- Improved conditions to send commands for keep alive.
+   Less likely to fail such as when deleting a large number of files.
+
 Changes in Ver.1.98f
 --------------------
 
