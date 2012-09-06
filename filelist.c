@@ -2337,6 +2337,58 @@ int GetNextSelected(int Win, int Pos, int All)
 }
 
 
+// ローカル側自動更新
+int GetHotSelected(int Win, char *Fname)
+{
+	HWND hWnd;
+	int Pos;
+
+	hWnd = GetLocalHwnd();
+	if(Win == WIN_REMOTE)
+		hWnd = GetRemoteHwnd();
+
+	Pos = SendMessage(hWnd, LVM_GETNEXTITEM, (WPARAM)-1, (LPARAM)MAKELPARAM(LVNI_FOCUSED, 0));
+	if(Pos != -1)
+		GetNodeName(Win, Pos, Fname, FMAX_PATH);
+
+	return Pos;
+}
+
+int SetHotSelected(int Win, char *Fname)
+{
+	HWND hWnd;
+	int i;
+	int Num;
+	char Name[FMAX_PATH+1];
+	LV_ITEM LvItem;
+	int Pos;
+
+	hWnd = GetLocalHwnd();
+	if(Win == WIN_REMOTE)
+		hWnd = GetRemoteHwnd();
+
+	Num = GetItemCount(Win);
+	memset(&LvItem, 0, sizeof(LV_ITEM));
+	Pos = -1;
+	for(i = 0; i < Num; i++)
+	{
+		LvItem.state = 0;
+		GetNodeName(Win, i, Name, FMAX_PATH);
+		if(_mbscmp(Fname, Name) == 0)
+		{
+			Pos = i;
+			LvItem.state = LVIS_FOCUSED;
+		}
+		LvItem.mask = LVIF_STATE;
+		LvItem.iItem = i;
+		LvItem.stateMask = LVIS_FOCUSED;
+		LvItem.iSubItem = 0;
+		SendMessage(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&LvItem);
+	}
+
+	return Pos;
+}
+
 /*----- 指定された名前のアイテムを探す ----------------------------------------
 *
 *	Parameter

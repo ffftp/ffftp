@@ -925,11 +925,18 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					if(AskUserOpeDisabled() == NO)
 					{
 						FILELIST* Base;
+						char Name[FMAX_PATH+1];
+						int Pos;
 						FindNextChangeNotification(ChangeNotification);
 						Base = NULL;
 						MakeSelectedFileList(WIN_LOCAL, NO, NO, &Base, &CancelFlg);
+						GetHotSelected(WIN_LOCAL, Name);
+						Pos = SendMessage(GetLocalHwnd(), LVM_GETTOPINDEX, 0, 0);
 						GetLocalDirForWnd();
 						SelectFileInList(GetLocalHwnd(), SELECT_LIST, Base);
+						SetHotSelected(WIN_LOCAL, Name);
+						SendMessage(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)(SendMessage(GetLocalHwnd(), LVM_GETITEMCOUNT, 0, 0) - 1), (LPARAM)TRUE);
+						SendMessage(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)Pos, (LPARAM)TRUE);
 					}
 				}
 				break;

@@ -1366,6 +1366,9 @@ int GetItemCount(int Win);
 int GetSelectedCount(int Win);
 int GetFirstSelected(int Win, int All);
 int GetNextSelected(int Win, int Pos, int All);
+// ローカル側自動更新
+int GetHotSelected(int Win, char *Fname);
+int SetHotSelected(int Win, char *Fname);
 int FindNameNode(int Win, char *Name);
 void GetNodeName(int Win, int Pos, char *Buf, int Max);
 int GetNodeTime(int Win, int Pos, FILETIME *Buf);

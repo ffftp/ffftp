@@ -1333,6 +1333,8 @@ int SelectFile(HWND hWnd, char *Fname, char *Title, char *Filters, char *Ext, in
 	GetCurrentDirectory(FMAX_PATH, Cur);
 
 	strcpy(Tmp, Fname);
+	// 変数が未初期化のバグ修正
+	memset(&OpenFile, 0, sizeof(OPENFILENAME));
 	OpenFile.lStructSize = sizeof(OPENFILENAME);
 	OpenFile.hwndOwner = hWnd;
 	OpenFile.hInstance = 0;
