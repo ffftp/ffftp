@@ -35,6 +35,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mbstring.h>
+// 自動切断対策
+#include <time.h>
 #include <malloc.h>
 #include <windowsx.h>
 #include <commctrl.h>
@@ -248,6 +250,9 @@ int DispFileIcon = NO;
 int MakeAllDir = YES;
 // UTF-8対応
 int LocalKanjiCode = KANJI_SJIS;
+// 自動切断対策
+int NoopEnable = NO;
+time_t LastDataConnectionTime = 0;
 
 
 
@@ -939,9 +944,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						SendMessage(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)Pos, (LPARAM)TRUE);
 					}
 				}
-				break;
-			case 2:
-				NoopProc();
+				if(NoopEnable == YES && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
+					NoopProc(NO);
 				break;
 			}
 			break;
@@ -955,20 +959,18 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			{
 				case MENU_CONNECT :
 					// 自動切断対策
-					KillTimer(hWnd, 2);
+					NoopEnable = NO;
 					ConnectProc(DLG_TYPE_CON, -1);
 					// 自動切断対策
-					if(AskNoopInterval() > 0)
-						SetTimer(hWnd, 2, AskNoopInterval() * 1000, NULL);
+					NoopEnable = YES;
 					break;
 
 				case MENU_CONNECT_NUM :
 					// 自動切断対策
-					KillTimer(hWnd, 2);
+					NoopEnable = NO;
 					ConnectProc(DLG_TYPE_CON, (int)lParam);
 					// 自動切断対策
-					if(AskNoopInterval() > 0)
-						SetTimer(hWnd, 2, AskNoopInterval() * 1000, NULL);
+					NoopEnable = YES;
 					if(AskConnecting() == YES)
 					{
 						if(HIWORD(wParam) & OPT_MIRROR)
@@ -990,20 +992,18 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 				case MENU_SET_CONNECT :
 					// 自動切断対策
-					KillTimer(hWnd, 2);
+					NoopEnable = NO;
 					ConnectProc(DLG_TYPE_SET, -1);
 					// 自動切断対策
-					if(AskNoopInterval() > 0)
-						SetTimer(hWnd, 2, AskNoopInterval() * 1000, NULL);
+					NoopEnable = YES;
 					break;
 
 				case MENU_QUICK :
 					// 自動切断対策
-					KillTimer(hWnd, 2);
+					NoopEnable = NO;
 					QuickConnectProc();
 					// 自動切断対策
-					if(AskNoopInterval() > 0)
-						SetTimer(hWnd, 2, AskNoopInterval() * 1000, NULL);
+					NoopEnable = YES;
 					break;
 
 				case MENU_DISCONNECT :
@@ -1038,11 +1038,10 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				case MENU_HIST_19 :
 				case MENU_HIST_20 :
 					// 自動切断対策
-					KillTimer(hWnd, 2);
+					NoopEnable = NO;
 					HistoryConnectProc(LOWORD(wParam));
 					// 自動切断対策
-					if(AskNoopInterval() > 0)
-						SetTimer(hWnd, 2, AskNoopInterval() * 1000, NULL);
+					NoopEnable = YES;
 					break;
 
 				case MENU_UPDIR :

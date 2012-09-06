@@ -184,6 +184,8 @@ extern int FolderAttr;
 extern int FolderAttrNum;
 // 同時接続対応
 extern int SendQuit;
+// 自動切断対策
+extern time_t LastDataConnectionTime;
 
 
 /*----- ファイル転送スレッドを起動する ----------------------------------------
@@ -2260,6 +2262,8 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 	if(shutdown(dSkt, 1) != 0)
 		ReportWSError("shutdown", WSAGetLastError());
 
+	// 自動切断対策
+	LastDataConnectionTime = time(NULL);
 	DoClose(dSkt);
 
 	if(ForceAbort == NO)
@@ -3535,6 +3539,8 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 		Pkt->Abort = ABORT_ERROR;
 	}
 
+	// 自動切断対策
+	LastDataConnectionTime = time(NULL);
 	if(shutdown(dSkt, 1) != 0)
 		ReportWSError("shutdown", WSAGetLastError());
 

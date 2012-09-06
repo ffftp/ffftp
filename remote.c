@@ -66,6 +66,8 @@ extern int SendQuit;
 
 // 同時接続対応
 extern int CancelFlg;
+// 自動切断対策
+extern time_t LastDataConnectionTime;
 
 /*===== ローカルなワーク =====*/
 
@@ -96,13 +98,19 @@ int DoCWD(char *Path, int Disp, int ForceGet, int ErrorBell)
 	Sts = FTP_COMPLETE * 100;
 
 	if(strcmp(Path, "..") == 0)
-		Sts = CommandProcCmd(NULL, "CDUP");
+		// 同時接続対応
+//		Sts = CommandProcCmd(NULL, "CDUP");
+		Sts = CommandProcCmd(NULL, &CancelFlg, "CDUP");
 	else if(strcmp(Path, "") != 0)
 	{
 		if((AskHostType() != HTYPE_VMS) || (strchr(Path, '[') != NULL))
-			Sts = CommandProcCmd(NULL, "CWD %s", Path);
+			// 同時接続対応
+//			Sts = CommandProcCmd(NULL, "CWD %s", Path);
+			Sts = CommandProcCmd(NULL, &CancelFlg, "CWD %s", Path);
 		else
-			Sts = CommandProcCmd(NULL, "CWD [.%s]", Path);	/* VMS用 */
+			// 同時接続対応
+//			Sts = CommandProcCmd(NULL, "CWD [.%s]", Path);	/* VMS用 */
+			Sts = CommandProcCmd(NULL, &CancelFlg, "CWD [.%s]", Path);	/* VMS用 */
 	}
 
 	if((Sts/100 >= FTP_CONTINUE) && (ErrorBell == YES))
@@ -220,12 +228,16 @@ static int DoPWD(char *Buf)
 
 	if(PwdCommandType == PWD_XPWD)
 	{
-		Sts = CommandProcCmd(Tmp, "XPWD");
+		// 同時接続対応
+//		Sts = CommandProcCmd(Tmp, "XPWD");
+		Sts = CommandProcCmd(Tmp, &CancelFlg, "XPWD");
 		if(Sts/100 != FTP_COMPLETE)
 			PwdCommandType = PWD_PWD;
 	}
 	if(PwdCommandType == PWD_PWD)
-		Sts = CommandProcCmd(Tmp, "PWD");
+		// 同時接続対応
+//		Sts = CommandProcCmd(Tmp, "PWD");
+		Sts = CommandProcCmd(Tmp, &CancelFlg, "PWD");
 
 	if(Sts/100 == FTP_COMPLETE)
 	{
@@ -279,10 +291,16 @@ int DoMKD(char *Path)
 {
 	int Sts;
 
-	Sts = CommandProcCmd(NULL, "MKD %s", Path);
+	// 同時接続対応
+//	Sts = CommandProcCmd(NULL, "MKD %s", Path);
+	Sts = CommandProcCmd(NULL, &CancelFlg, "MKD %s", Path);
 
 	if(Sts/100 >= FTP_CONTINUE)
 		SoundPlay(SND_ERROR);
+
+	// 自動切断対策
+	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
+		NoopProc(YES);
 
 	return(Sts/100);
 }
@@ -301,10 +319,16 @@ int DoRMD(char *Path)
 {
 	int Sts;
 
-	Sts = CommandProcCmd(NULL, "RMD %s", Path);
+	// 同時接続対応
+//	Sts = CommandProcCmd(NULL, "RMD %s", Path);
+	Sts = CommandProcCmd(NULL, &CancelFlg, "RMD %s", Path);
 
 	if(Sts/100 >= FTP_CONTINUE)
 		SoundPlay(SND_ERROR);
+
+	// 自動切断対策
+	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
+		NoopProc(YES);
 
 	return(Sts/100);
 }
@@ -323,10 +347,16 @@ int DoDELE(char *Path)
 {
 	int Sts;
 
-	Sts = CommandProcCmd(NULL, "DELE %s", Path);
+	// 同時接続対応
+//	Sts = CommandProcCmd(NULL, "DELE %s", Path);
+	Sts = CommandProcCmd(NULL, &CancelFlg, "DELE %s", Path);
 
 	if(Sts/100 >= FTP_CONTINUE)
 		SoundPlay(SND_ERROR);
+
+	// 自動切断対策
+	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
+		NoopProc(YES);
 
 	return(Sts/100);
 }
@@ -346,7 +376,9 @@ int DoRENAME(char *Src, char *Dst)
 {
 	int Sts;
 
-	Sts = CommandProcCmd(NULL, "RNFR %s", Src);
+	// 同時接続対応
+//	Sts = CommandProcCmd(NULL, "RNFR %s", Src);
+	Sts = CommandProcCmd(NULL, &CancelFlg, "RNFR %s", Src);
 	if(Sts == 350)
 		// 同時接続対応
 //		Sts = command(AskCmdCtrlSkt(), NULL, &CheckCancelFlg, "RNTO %s", Dst);
@@ -354,6 +386,10 @@ int DoRENAME(char *Src, char *Dst)
 
 	if(Sts/100 >= FTP_CONTINUE)
 		SoundPlay(SND_ERROR);
+
+	// 自動切断対策
+	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
+		NoopProc(YES);
 
 	return(Sts/100);
 }
@@ -373,10 +409,16 @@ int DoCHMOD(char *Path, char *Mode)
 {
 	int Sts;
 
-	Sts = CommandProcCmd(NULL, "%s %s %s", AskHostChmodCmd(), Mode, Path);
+	// 同時接続対応
+//	Sts = CommandProcCmd(NULL, "%s %s %s", AskHostChmodCmd(), Mode, Path);
+	Sts = CommandProcCmd(NULL, &CancelFlg, "%s %s %s", AskHostChmodCmd(), Mode, Path);
 
 	if(Sts/100 >= FTP_CONTINUE)
 		SoundPlay(SND_ERROR);
+
+	// 自動切断対策
+	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
+		NoopProc(YES);
 
 	return(Sts/100);
 }
@@ -681,7 +723,9 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, 
 *		コマンドコントロールソケットを使う
 *----------------------------------------------------------------------------*/
 
-int CommandProcCmd(char *Reply, char *fmt, ...)
+// 同時接続対応
+//int CommandProcCmd(char *Reply, char *fmt, ...)
+int CommandProcCmd(char *Reply, int* CancelCheckWork, char *fmt, ...)
 {
 	va_list Args;
 	char Cmd[1024];
@@ -703,7 +747,7 @@ int CommandProcCmd(char *Reply, char *fmt, ...)
 //		{
 			// 同時接続対応
 //			Sts = command(AskCmdCtrlSkt(), Reply, &CheckCancelFlg, "%s", Cmd);
-			Sts = command(AskCmdCtrlSkt(), Reply, &CancelFlg, "%s", Cmd);
+			Sts = command(AskCmdCtrlSkt(), Reply, CancelCheckWork, "%s", Cmd);
 //		}
 //	}
 	return(Sts);

@@ -1611,7 +1611,7 @@ void ReformToVMSstylePathName(char *Path);
 void ReformVMSDirName(char *DirName, int Flg);
 #endif
 // 自動切断対策
-void NoopProc(void);
+void NoopProc(int Force);
 
 /*===== local.c =====*/
 
@@ -1654,7 +1654,9 @@ int DoDirListCmdSkt(char *AddOpt, char *Path, int Num, int *CancelCheckWork);
 #if defined(HAVE_TANDEM)
 void SwitchOSSProc(void);
 #endif
-int CommandProcCmd(char *Reply, char *fmt, ...);
+// 同時接続対応
+//int CommandProcCmd(char *Reply, char *fmt, ...);
+int CommandProcCmd(char *Reply, int* CancelCheckWork, char *fmt, ...);
 // 同時接続対応
 //int CommandProcTrn(char *Reply, char *fmt, ...);
 int CommandProcTrn(SOCKET cSkt, char *Reply, int* CancelCheckWork, char *fmt, ...);

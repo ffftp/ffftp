@@ -1356,7 +1356,7 @@ void CopyDefaultHost(HOSTDATA *Set)
 	Set->NetType = NTYPE_AUTO;
 	Set->CurNetType = NTYPE_AUTO;
 	// 自動切断対策
-	Set->NoopInterval = 0;
+	Set->NoopInterval = 60;
 	// 再転送対応
 	Set->TransferErrorMode = EXIST_OVW;
 	Set->TransferErrorNotify = YES;
