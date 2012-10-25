@@ -1094,10 +1094,15 @@ int TimeString2FileTime(char *Time, FILETIME *Buf)
     Buf->dwLowDateTime = 0;
     Buf->dwHighDateTime = 0;
 
-	if(strlen(Time) >= 16)
+	// タイムスタンプのバグ修正
+//	if(strlen(Time) >= 16)
+	if(strlen(Time) >= 19)
 	{
+		// タイムスタンプのバグ修正
+//		if(IsDigit(Time[0]) && IsDigit(Time[5]) && IsDigit(Time[8]) && 
+//		   IsDigit(Time[12]) && IsDigit(Time[14]))
 		if(IsDigit(Time[0]) && IsDigit(Time[5]) && IsDigit(Time[8]) && 
-		   IsDigit(Time[12]) && IsDigit(Time[14]))
+		   IsDigit(Time[12]) && IsDigit(Time[14]) && IsDigit(Time[17]))
 		{
 			Ret = YES;
 		}
@@ -1110,7 +1115,9 @@ int TimeString2FileTime(char *Time, FILETIME *Buf)
 		else
 			sTime.wHour = atoi(Time + 12);
 		sTime.wMinute = atoi(Time + 14);
-		sTime.wSecond = 0;
+		// タイムスタンプのバグ修正
+//		sTime.wSecond = 0;
+		sTime.wSecond = atoi(Time + 17);
 		sTime.wMilliseconds = 0;
 
 		SystemTimeToFileTime(&sTime, &fTime);
@@ -1142,7 +1149,9 @@ void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist)
 		if((Time->dwLowDateTime == 0) && (Time->dwHighDateTime == 0))
 			InfoExist = 0;
 
-		/* "yyyy/mm/dd hh:mm" */
+		// タイムスタンプのバグ修正
+//		/* "yyyy/mm/dd hh:mm" */
+		/* "yyyy/mm/dd hh:mm:ss" */
 		FileTimeToLocalFileTime(Time, &fTime);
 		FileTimeToSystemTime(&fTime, &sTime);
 
@@ -1152,9 +1161,13 @@ void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist)
 			sprintf(Buf, "           ");
 
 		if(InfoExist & FINFO_TIME)
-			sprintf(Buf+11, "%2d:%02d", sTime.wHour, sTime.wMinute);
+			// タイムスタンプのバグ修正
+//			sprintf(Buf+11, "%2d:%02d", sTime.wHour, sTime.wMinute);
+			sprintf(Buf+11, "%2d:%02d:%02d", sTime.wHour, sTime.wMinute, sTime.wSecond);
 		else
-			sprintf(Buf+11, "     ");
+			// タイムスタンプのバグ修正
+//			sprintf(Buf+11, "     ");
+			sprintf(Buf+11, "        ");
 	}
 	else
 	{
