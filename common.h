@@ -313,6 +313,8 @@
 #if defined(HAVE_TANDEM)
 #define LIST_TANDEM		50		/* HP NonStop Server */
 #endif
+// uClinux
+#define LIST_UNIX_17	51		/* UNIX 17 */
 
 #define LIST_MELCOM		0x100	/* MELCOM80 */
 
@@ -693,6 +695,17 @@ LIST_UNIX_70
 	drwxr-x--- 2 root root      4096 2011-12-06 23:39 .
 	drwxr-x--- 3 root root      4096 2011-12-06 23:39 ..
 	-rw-r----- 1 root root       251 2011-12-06 23:39 .hoge
+
+// uClinux
+*LIST_UNIX_17
+	0          1 2 3 4   5
+	-------------------------------------------------------
+	-rw-r--r-- 1 0 0 100 services
+	lrwxrwxrwx 1 0 0 20 resolv.conf -> /var/run/resolv.conf
+	drwxr-sr-x 1 0 0 0 rc.d
+	-rw-r--r-- 1 0 0 290 rc
+	-rw-r--r-- 1 0 0 34 passwd
+	lrwxrwxrwx 1 0 0 18 inittab -> ../var/tmp/inittab
 
 *LIST_TANDEM
 	 0             1               2    3         4        5       6

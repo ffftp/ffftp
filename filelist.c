@@ -3653,6 +3653,13 @@ static int AnalizeFileInfo(char *Str)
 
 				if((Ret != LIST_UNKNOWN) && (Flag1 == YES))
 					Ret |= LIST_MELCOM;
+
+				// uClinux
+				if((Ret == LIST_UNKNOWN) &&
+				   (FindField(Str, Tmp, 5+Add1, NO) == FFFTP_SUCCESS))
+				{
+					Ret = LIST_UNIX_17;
+				}
 			}
 		}
 
@@ -5143,6 +5150,8 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 //		case LIST_MELCOM :
 		// linux-ftpd
 		case LIST_UNIX_16 :
+		// uClinux
+		case LIST_UNIX_17 :
 		default:
 			/* offsはサイズの位置, offs=0はカラム4 */
 			offs = 0;
@@ -5198,6 +5207,9 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			   (ListType == LIST_UNIX_73) ||
 			   (ListType == LIST_UNIX_16))
 				offs2 = -1;
+			// uClinux
+			if(ListType == LIST_UNIX_17)
+				offs2 = -3;
 
 			/* offs3はオーナ名の位置 */
 			offs3 = 0;
@@ -5228,6 +5240,9 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			   (ListType == LIST_UNIX_74) ||
 			   (ListType == LIST_UNIX_75))
 				Flag2 = 1;
+			// uClinux
+			if(ListType == LIST_UNIX_17)
+				Flag2 = -1;
 
 			*InfoExist |= (FINFO_DATE | FINFO_SIZE | FINFO_ATTR);
 
@@ -5324,6 +5339,11 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 						}
 					}
 				}
+			}
+			// uClinux
+			else if(Flag2 == -1)
+			{
+				*InfoExist &= ~(FINFO_DATE | FINFO_TIME);
 			}
 			else
 			{
