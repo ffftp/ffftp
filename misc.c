@@ -1155,19 +1155,30 @@ void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist)
 		FileTimeToLocalFileTime(Time, &fTime);
 		FileTimeToSystemTime(&fTime, &sTime);
 
-		if(InfoExist & FINFO_DATE)
-			sprintf(Buf, "%04d/%02d/%02d ", sTime.wYear, sTime.wMonth, sTime.wDay);
-		else
-			sprintf(Buf, "           ");
-
-		if(InfoExist & FINFO_TIME)
-			// タイムスタンプのバグ修正
+		// タイムスタンプのバグ修正
+//		if(InfoExist & FINFO_DATE)
+//			sprintf(Buf, "%04d/%02d/%02d ", sTime.wYear, sTime.wMonth, sTime.wDay);
+//		else
+//			sprintf(Buf, "           ");
+//
+//		if(InfoExist & FINFO_TIME)
 //			sprintf(Buf+11, "%2d:%02d", sTime.wHour, sTime.wMinute);
-			sprintf(Buf+11, "%2d:%02d:%02d", sTime.wHour, sTime.wMinute, sTime.wSecond);
-		else
-			// タイムスタンプのバグ修正
+//		else
 //			sprintf(Buf+11, "     ");
-			sprintf(Buf+11, "        ");
+		if(InfoExist & (FINFO_DATE | FINFO_TIME))
+		{
+			if(InfoExist & FINFO_DATE)
+				sprintf(Buf, "%04d/%02d/%02d ", sTime.wYear, sTime.wMonth, sTime.wDay);
+			else
+				sprintf(Buf, "           ");
+
+			if(InfoExist & FINFO_TIME)
+				sprintf(Buf+11, "%2d:%02d:%02d", sTime.wHour, sTime.wMinute, sTime.wSecond);
+			else
+				sprintf(Buf+11, "        ");
+		}
+		else
+			Buf[0] = NUL;
 	}
 	else
 	{

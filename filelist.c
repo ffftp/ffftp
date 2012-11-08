@@ -2838,6 +2838,7 @@ void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Ca
 
 					if(Ignore == NO)
 					{
+//						Pkt.Node = NODE_DIR;
 						if(GetImageIndex(Win, Pos) == 4) // symlink
 							Pkt.Node = NODE_FILE;
 						else
@@ -2847,6 +2848,18 @@ void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Ca
 						memset(&Pkt.Time, 0, sizeof(FILETIME));
 						AddFileList(&Pkt, Base);
 
+//						if(Win == WIN_LOCAL)
+//							MakeLocalTree(Name, Base);
+//						else
+//						{
+//							AskRemoteCurDir(Cur, FMAX_PATH);
+//
+//							if((AskListCmdMode() == NO) &&
+//							   (AskUseNLST_R() == YES))
+//								MakeRemoteTree1(Name, Cur, Base, CancelCheckWork);
+//							else
+//								MakeRemoteTree2(Name, Cur, Base, CancelCheckWork);
+//						}
 						if(GetImageIndex(Win, Pos) != 4) { // symlink
 							if(Win == WIN_LOCAL)
 								MakeLocalTree(Name, Base);
@@ -3081,8 +3094,9 @@ static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelC
 
 					/* まずディレクトリ名をセット */
 					strcpy(Pkt.File, Pos->File);
+//					Pkt.Node = NODE_DIR;
 					Pkt.Link = Pos->Link;
-					if(Pkt.Link)
+					if(Pkt.Link == YES)
 						Pkt.Node = NODE_FILE;
 					else
 						Pkt.Node = NODE_DIR;
@@ -3092,7 +3106,8 @@ static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelC
 					AddFileList(&Pkt, Base);
 
 					/* そのディレクトリの中を検索 */
-					if(!Pkt.Link)
+//					MakeRemoteTree2(Pos->File, Cur, Base, CancelCheckWork);
+					if(Pkt.Link == NO)
 						MakeRemoteTree2(Pos->File, Cur, Base, CancelCheckWork);
 				}
 				Pos = Pos->Next;
