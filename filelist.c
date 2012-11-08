@@ -89,6 +89,7 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 // 64ビット対応
 //static BOOL CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static int GetImageIndex(int Win, int Pos);
 static void DispListList(FILELIST *Pos, char *Title);
 static void MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
 static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
@@ -2627,6 +2628,35 @@ int GetNodeType(int Win, int Pos)
 }
 
 
+/*----- 指定位置のアイテムのイメージ番号を返す ----------------------------------------
+*
+*	Parameter
+*		int Win : ウインドウ番号 (WIN_xxx)
+*		int Pos : 位置
+*
+*	Return Value
+*		int イメージ番号
+*			4 Symlink
+*----------------------------------------------------------------------------*/
+static int GetImageIndex(int Win, int Pos)
+{
+	HWND hWnd;
+	LV_ITEM LvItem;
+
+	hWnd = GetLocalHwnd();
+	if(Win == WIN_REMOTE)
+		hWnd = GetRemoteHwnd();
+
+	// 変数が未初期化のバグ修正
+	memset(&LvItem, 0, sizeof(LV_ITEM));
+	LvItem.mask = LVIF_IMAGE;
+	LvItem.iItem = Pos;
+	LvItem.iSubItem = 0;
+	SendMessage(hWnd, LVM_GETITEM, 0, (LPARAM)&LvItem);
+	return LvItem.iImage;
+}
+
+
 /*----- 指定位置のアイテムのオーナ名を返す ------------------------------------
 *
 *	Parameter
@@ -2808,26 +2838,31 @@ void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Ca
 
 					if(Ignore == NO)
 					{
-						Pkt.Node = NODE_DIR;
+						if(GetImageIndex(Win, Pos) == 4) // symlink
+							Pkt.Node = NODE_FILE;
+						else
+							Pkt.Node = NODE_DIR;
 						Pkt.Attr = 0;
 						Pkt.Size = 0;
 						memset(&Pkt.Time, 0, sizeof(FILETIME));
 						AddFileList(&Pkt, Base);
 
-						if(Win == WIN_LOCAL)
-							MakeLocalTree(Name, Base);
-						else
-						{
-							AskRemoteCurDir(Cur, FMAX_PATH);
-
-							if((AskListCmdMode() == NO) &&
-							   (AskUseNLST_R() == YES))
-								MakeRemoteTree1(Name, Cur, Base, CancelCheckWork);
+						if(GetImageIndex(Win, Pos) != 4) { // symlink
+							if(Win == WIN_LOCAL)
+								MakeLocalTree(Name, Base);
 							else
-								MakeRemoteTree2(Name, Cur, Base, CancelCheckWork);
+							{
+								AskRemoteCurDir(Cur, FMAX_PATH);
+
+								if((AskListCmdMode() == NO) &&
+								   (AskUseNLST_R() == YES))
+									MakeRemoteTree1(Name, Cur, Base, CancelCheckWork);
+								else
+									MakeRemoteTree2(Name, Cur, Base, CancelCheckWork);
 
 //DispListList(*Base, "LIST");
 
+							}
 						}
 					}
 				}
@@ -3046,14 +3081,19 @@ static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelC
 
 					/* まずディレクトリ名をセット */
 					strcpy(Pkt.File, Pos->File);
-					Pkt.Node = NODE_DIR;
+					Pkt.Link = Pos->Link;
+					if(Pkt.Link)
+						Pkt.Node = NODE_FILE;
+					else
+						Pkt.Node = NODE_DIR;
 					Pkt.Size = 0;
 					Pkt.Attr = 0;
 					memset(&Pkt.Time, 0, sizeof(FILETIME));
 					AddFileList(&Pkt, Base);
 
 					/* そのディレクトリの中を検索 */
-					MakeRemoteTree2(Pos->File, Cur, Base, CancelCheckWork);
+					if(!Pkt.Link)
+						MakeRemoteTree2(Pos->File, Cur, Base, CancelCheckWork);
 				}
 				Pos = Pos->Next;
 			}
@@ -5049,6 +5089,9 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			// 不完全な実装のホストが存在するため以下の形式も許容
 			// fact1=value1;fact2=value2;fact3=value3 filename\r\n
 			// fact1=value1;fact2=value2;fact3=value3;filename\r\n
+			// SymlinkはRFC3659の7.7.4. A More Complex Exampleに
+			// よるとtype=OS.unix=slink:(target)だが
+			// ProFTPDはtype=OS.unix=symlink:(target)となる
 		case LIST_MLSD:
 			{
 				int i = 0;
@@ -5056,6 +5099,7 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 				char Fact[FMAX_PATH + 1];
 				char Name[FMAX_PATH + 1];
 				char Value[FMAX_PATH + 1];
+				char Value2[FMAX_PATH + 1];
 				char* pFileName;
 				strncpy(StrBuf, Str, FMAX_PATH * 2);
 				StrBuf[FMAX_PATH * 2] = '\0';
@@ -5086,6 +5130,12 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 								Ret = NODE_DIR;
 							else if(_stricmp(Value, "file") == 0)
 								Ret = NODE_FILE;
+							else if(_stricmp(Value, "OS.unix") == 0)
+								if(FindField2(Fact, Value2, '=', 2, NO) == FFFTP_SUCCESS)
+									if(_stricmp(Value2, "symlink") == 0 || _stricmp(Value2, "slink") == 0) { // ProFTPD is symlink. A example of RFC3659 is slink.
+										Ret = NODE_DIR;
+										*Link = YES;
+									}
 						}
 						else if(_stricmp(Name, "size") == 0)
 						{
