@@ -66,12 +66,14 @@ static INT_PTR CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, L
 static void AddFnameAttrToListView(HWND hDlg, char *Fname, char *Attr);
 static void GetFnameAttrFromListView(HWND hDlg, char *Buf);
 // 64ビット対応
+// ファイルの属性を数字で表示
 //static BOOL CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 //static BOOL CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 //static BOOL CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK Disp1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static INT_PTR CALLBACK Disp2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static int SelectListFont(HWND hWnd, LOGFONT *lFont);
 // 64ビット対応
 //static BOOL CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
@@ -172,6 +174,8 @@ extern int FolderAttrNum;
 extern int DispFileIcon;
 // タイムスタンプのバグ修正
 extern int DispTimeSeconds;
+// ファイルの属性を数字で表示
+extern int DispPermissionsNumber;
 // ディレクトリ自動作成
 extern int MakeAllDir;
 
@@ -189,7 +193,7 @@ void SetOption(int Start)
 {
 	// UTF-8対応
 //	PROPSHEETPAGE psp[12];
-	PROPSHEETPAGE psp[13];
+	PROPSHEETPAGE psp[14];
 	PROPSHEETHEADER psh;
 
 	// 変数が未初期化のバグ修正
@@ -350,9 +354,9 @@ void SetOption(int Start)
 	psp[7].dwSize = sizeof(PROPSHEETPAGE);
 	psp[7].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[7].hInstance = GetFtpInst();
-	psp[7].pszTemplate = MAKEINTRESOURCE(opt_disp_dlg);
+	psp[7].pszTemplate = MAKEINTRESOURCE(opt_disp1_dlg);
 	psp[7].pszIcon = NULL;
-	psp[7].pfnDlgProc = DispSettingProc;
+	psp[7].pfnDlgProc = Disp1SettingProc;
 	psp[7].pszTitle = MSGJPN192;
 	psp[7].lParam = 0;
 	psp[7].pfnCallback = NULL;
@@ -360,52 +364,62 @@ void SetOption(int Start)
 	psp[8].dwSize = sizeof(PROPSHEETPAGE);
 	psp[8].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[8].hInstance = GetFtpInst();
-	psp[8].pszTemplate = MAKEINTRESOURCE(opt_connect_dlg);
+	psp[8].pszTemplate = MAKEINTRESOURCE(opt_disp2_dlg);
 	psp[8].pszIcon = NULL;
-	psp[8].pfnDlgProc = ConnectSettingProc;
-	psp[8].pszTitle = MSGJPN193;
+	psp[8].pfnDlgProc = Disp2SettingProc;
+	psp[8].pszTitle = MSGJPN340;
 	psp[8].lParam = 0;
 	psp[8].pfnCallback = NULL;
 
 	psp[9].dwSize = sizeof(PROPSHEETPAGE);
 	psp[9].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[9].hInstance = GetFtpInst();
-	psp[9].pszTemplate = MAKEINTRESOURCE(opt_fire_dlg);
+	psp[9].pszTemplate = MAKEINTRESOURCE(opt_connect_dlg);
 	psp[9].pszIcon = NULL;
-	psp[9].pfnDlgProc = FireSettingProc;
-	psp[9].pszTitle = MSGJPN194;
+	psp[9].pfnDlgProc = ConnectSettingProc;
+	psp[9].pszTitle = MSGJPN193;
 	psp[9].lParam = 0;
 	psp[9].pfnCallback = NULL;
 
 	psp[10].dwSize = sizeof(PROPSHEETPAGE);
 	psp[10].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[10].hInstance = GetFtpInst();
-	psp[10].pszTemplate = MAKEINTRESOURCE(opt_tool_dlg);
+	psp[10].pszTemplate = MAKEINTRESOURCE(opt_fire_dlg);
 	psp[10].pszIcon = NULL;
-	psp[10].pfnDlgProc = ToolSettingProc;
-	psp[10].pszTitle = MSGJPN195;
+	psp[10].pfnDlgProc = FireSettingProc;
+	psp[10].pszTitle = MSGJPN194;
 	psp[10].lParam = 0;
 	psp[10].pfnCallback = NULL;
 
 	psp[11].dwSize = sizeof(PROPSHEETPAGE);
 	psp[11].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[11].hInstance = GetFtpInst();
-	psp[11].pszTemplate = MAKEINTRESOURCE(opt_sound_dlg);
+	psp[11].pszTemplate = MAKEINTRESOURCE(opt_tool_dlg);
 	psp[11].pszIcon = NULL;
-	psp[11].pfnDlgProc = SoundSettingProc;
-	psp[11].pszTitle = MSGJPN196;
+	psp[11].pfnDlgProc = ToolSettingProc;
+	psp[11].pszTitle = MSGJPN195;
 	psp[11].lParam = 0;
 	psp[11].pfnCallback = NULL;
 
 	psp[12].dwSize = sizeof(PROPSHEETPAGE);
 	psp[12].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[12].hInstance = GetFtpInst();
-	psp[12].pszTemplate = MAKEINTRESOURCE(opt_misc_dlg);
+	psp[12].pszTemplate = MAKEINTRESOURCE(opt_sound_dlg);
 	psp[12].pszIcon = NULL;
-	psp[12].pfnDlgProc = MiscSettingProc;
-	psp[12].pszTitle = MSGJPN197;
+	psp[12].pfnDlgProc = SoundSettingProc;
+	psp[12].pszTitle = MSGJPN196;
 	psp[12].lParam = 0;
 	psp[12].pfnCallback = NULL;
+
+	psp[13].dwSize = sizeof(PROPSHEETPAGE);
+	psp[13].dwFlags = PSP_USETITLE | PSP_HASHELP;
+	psp[13].hInstance = GetFtpInst();
+	psp[13].pszTemplate = MAKEINTRESOURCE(opt_misc_dlg);
+	psp[13].pszIcon = NULL;
+	psp[13].pfnDlgProc = MiscSettingProc;
+	psp[13].pszTitle = MSGJPN197;
+	psp[13].lParam = 0;
+	psp[13].pfnCallback = NULL;
 
 	psh.dwSize = sizeof(PROPSHEETHEADER);
 	psh.dwFlags = PSH_HASHELP | PSH_NOAPPLYNOW | PSH_PROPSHEETPAGE;
@@ -1111,8 +1125,9 @@ static INT_PTR CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam
 *----------------------------------------------------------------------------*/
 
 // 64ビット対応
+// ファイルの属性を数字で表示
 //static BOOL CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK Disp1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
 	static LOGFONT TmpFont;
@@ -1167,6 +1182,40 @@ static INT_PTR CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 					break;
 			}
 			return(TRUE);
+	}
+    return(FALSE);
+}
+
+
+// ファイルの属性を数字で表示
+static INT_PTR CALLBACK Disp2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	NMHDR *pnmhdr;
+	static LOGFONT TmpFont;
+
+	switch (message)
+	{
+		case WM_INITDIALOG :
+			SendDlgItemMessage(hDlg, DISP2_PERMIT_NUM, BM_SETCHECK, DispPermissionsNumber, 0);
+		    return(TRUE);
+
+		case WM_NOTIFY:
+			pnmhdr = (NMHDR FAR *)lParam;
+			switch(pnmhdr->code)
+			{
+				case PSN_APPLY :
+					DispPermissionsNumber = SendDlgItemMessage(hDlg, DISP2_PERMIT_NUM, BM_GETCHECK, 0, 0);
+					break;
+
+				case PSN_RESET :
+					break;
+
+				case PSN_HELP :
+					// TODO:
+//					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000047);
+					break;
+			}
+			break;
 	}
     return(FALSE);
 }

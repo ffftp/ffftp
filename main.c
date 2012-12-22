@@ -248,6 +248,8 @@ BYTE SSLRootCAFileHash[20];
 int DispFileIcon = NO;
 // タイムスタンプのバグ修正
 int DispTimeSeconds = NO;
+// ファイルの属性を数字で表示
+int DispPermissionsNumber = NO;
 // ディレクトリ自動作成
 int MakeAllDir = YES;
 // UTF-8対応

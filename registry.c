@@ -197,6 +197,8 @@ extern BYTE SSLRootCAFileHash[20];
 extern int DispFileIcon;
 // タイムスタンプのバグ修正
 extern int DispTimeSeconds;
+// ファイルの属性を数字で表示
+extern int DispPermissionsNumber;
 // ディレクトリ自動作成
 extern int MakeAllDir;
 // UTF-8対応
@@ -629,6 +631,8 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "ListIcon", DispFileIcon);
 				// タイムスタンプのバグ修正
 				WriteIntValueToReg(hKey4, "ListSecond", DispTimeSeconds);
+				// ファイルの属性を数字で表示
+				WriteIntValueToReg(hKey4, "ListPermitNum", DispPermissionsNumber);
 				// ディレクトリ自動作成
 				WriteIntValueToReg(hKey4, "MakeDir", MakeAllDir);
 				// UTF-8対応
@@ -1037,6 +1041,8 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "ListIcon", &DispFileIcon);
 			// タイムスタンプのバグ修正
 			ReadIntValueFromReg(hKey4, "ListSecond", &DispTimeSeconds);
+			// ファイルの属性を数字で表示
+			ReadIntValueFromReg(hKey4, "ListPermitNum", &DispPermissionsNumber);
 			// ディレクトリ自動作成
 			ReadIntValueFromReg(hKey4, "MakeDir", &MakeAllDir);
 			// UTF-8対応

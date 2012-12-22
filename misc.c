@@ -1240,28 +1240,59 @@ int AttrString2Value(char *Str)
 
 	Ret = 0;
 	memset(Tmp, 0, 10);
-	strncpy(Tmp, Str, 9);
+	// ファイルの属性を数字で表示
+//	strncpy(Tmp, Str, 9);
+//
+//	if(Tmp[0] != '-')
+//		Ret |= 0x400;
+//	if(Tmp[1] != '-')
+//		Ret |= 0x200;
+//	if(Tmp[2] != '-')
+//		Ret |= 0x100;
+//
+//	if(Tmp[3] != '-')
+//		Ret |= 0x40;
+//	if(Tmp[4] != '-')
+//		Ret |= 0x20;
+//	if(Tmp[5] != '-')
+//		Ret |= 0x10;
+//
+//	if(Tmp[6] != '-')
+//		Ret |= 0x4;
+//	if(Tmp[7] != '-')
+//		Ret |= 0x2;
+//	if(Tmp[8] != '-')
+//		Ret |= 0x1;
+	if(strlen(Str) >= 9)
+	{
+		strncpy(Tmp, Str, 9);
 
-	if(Tmp[0] != '-')
-		Ret |= 0x400;
-	if(Tmp[1] != '-')
-		Ret |= 0x200;
-	if(Tmp[2] != '-')
-		Ret |= 0x100;
+		if(Tmp[0] != '-')
+			Ret |= 0x400;
+		if(Tmp[1] != '-')
+			Ret |= 0x200;
+		if(Tmp[2] != '-')
+			Ret |= 0x100;
 
-	if(Tmp[3] != '-')
-		Ret |= 0x40;
-	if(Tmp[4] != '-')
-		Ret |= 0x20;
-	if(Tmp[5] != '-')
-		Ret |= 0x10;
+		if(Tmp[3] != '-')
+			Ret |= 0x40;
+		if(Tmp[4] != '-')
+			Ret |= 0x20;
+		if(Tmp[5] != '-')
+			Ret |= 0x10;
 
-	if(Tmp[6] != '-')
-		Ret |= 0x4;
-	if(Tmp[7] != '-')
-		Ret |= 0x2;
-	if(Tmp[8] != '-')
-		Ret |= 0x1;
+		if(Tmp[6] != '-')
+			Ret |= 0x4;
+		if(Tmp[7] != '-')
+			Ret |= 0x2;
+		if(Tmp[8] != '-')
+			Ret |= 0x1;
+	}
+	else if(strlen(Str) >= 3)
+	{
+		strncpy(Tmp, Str, 3);
+		Ret = strtol(Tmp, NULL, 16);
+	}
 
 	return(Ret);
 }
@@ -1277,30 +1308,62 @@ int AttrString2Value(char *Str)
 *		int 値
 *----------------------------------------------------------------------------*/
 
-void AttrValue2String(int Attr, char *Buf)
+// ファイルの属性を数字で表示
+//void AttrValue2String(int Attr, char *Buf)
+void AttrValue2String(int Attr, char *Buf, int ShowNumber)
 {
-	strcpy(Buf, "---------");
+	// ファイルの属性を数字で表示
+//	strcpy(Buf, "---------");
+//
+//	if(Attr & 0x400)
+//		Buf[0] = 'r';
+//	if(Attr & 0x200)
+//		Buf[1] = 'w';
+//	if(Attr & 0x100)
+//		Buf[2] = 'x';
+//
+//	if(Attr & 0x40)
+//		Buf[3] = 'r';
+//	if(Attr & 0x20)
+//		Buf[4] = 'w';
+//	if(Attr & 0x10)
+//		Buf[5] = 'x';
+//
+//	if(Attr & 0x4)
+//		Buf[6] = 'r';
+//	if(Attr & 0x2)
+//		Buf[7] = 'w';
+//	if(Attr & 0x1)
+//		Buf[8] = 'x';
+	if(ShowNumber == YES)
+	{
+		sprintf(Buf, "%03x", Attr);
+	}
+	else
+	{
+		strcpy(Buf, "---------");
 
-	if(Attr & 0x400)
-		Buf[0] = 'r';
-	if(Attr & 0x200)
-		Buf[1] = 'w';
-	if(Attr & 0x100)
-		Buf[2] = 'x';
+		if(Attr & 0x400)
+			Buf[0] = 'r';
+		if(Attr & 0x200)
+			Buf[1] = 'w';
+		if(Attr & 0x100)
+			Buf[2] = 'x';
 
-	if(Attr & 0x40)
-		Buf[3] = 'r';
-	if(Attr & 0x20)
-		Buf[4] = 'w';
-	if(Attr & 0x10)
-		Buf[5] = 'x';
+		if(Attr & 0x40)
+			Buf[3] = 'r';
+		if(Attr & 0x20)
+			Buf[4] = 'w';
+		if(Attr & 0x10)
+			Buf[5] = 'x';
 
-	if(Attr & 0x4)
-		Buf[6] = 'r';
-	if(Attr & 0x2)
-		Buf[7] = 'w';
-	if(Attr & 0x1)
-		Buf[8] = 'x';
+		if(Attr & 0x4)
+			Buf[6] = 'r';
+		if(Attr & 0x2)
+			Buf[7] = 'w';
+		if(Attr & 0x1)
+			Buf[8] = 'x';
+	}
 
 	return;
 }

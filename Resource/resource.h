@@ -101,7 +101,7 @@
 #define rasreconnect_dlg                178
 #define dial_dlg                        179
 #define dial_password_dlg               180
-#define opt_disp_dlg                    181
+#define opt_disp1_dlg                   181
 #define bmark_edit_dlg                  182
 #define opt_tool_dlg1                   183
 #define IDD_OLEDRAG                     184
@@ -116,6 +116,7 @@
 #define updown_as_with_ext_dlg          193
 #define ini_from_reg_dlg                194
 #define opt_trmode4_dlg                 195
+#define opt_disp2_dlg                   196
 #define TRANS_TIME_BAR                  1002
 #define TRANS_TEXT                      1003
 #define TRANS_REMOTE                    1003
@@ -224,6 +225,7 @@
 #define SOUND_TRNNG                     1015
 #define TOOL_EDITOR1_BR                 1015
 #define CONNECT_CLOSE_NOTIFY            1015
+#define DISP2_PERMIT_NUM                1015
 #define PERM_O_EXEC                     1016
 #define TOOL_EDITOR2_BR                 1016
 #define CONNECT_QUICK_ANONY             1016
@@ -639,7 +641,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        196
+#define _APS_NEXT_RESOURCE_VALUE        197
 #define _APS_NEXT_COMMAND_VALUE         40177
 #define _APS_NEXT_CONTROL_VALUE         1220
 #define _APS_NEXT_SYMED_VALUE           101

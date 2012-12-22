@@ -146,6 +146,8 @@ extern int MoveMode;
 extern int DispFileIcon;
 // タイムスタンプのバグ修正
 extern int DispTimeSeconds;
+// ファイルの属性を数字で表示
+extern int DispPermissionsNumber;
 
 /*===== ローカルなワーク =====*/
 
@@ -1820,7 +1822,9 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 #else
 		if(InfoExist & FINFO_ATTR)
 #endif
-			AttrValue2String(Attr, Tmp);
+			// ファイルの属性を数字で表示
+//			AttrValue2String(Attr, Tmp);
+			AttrValue2String(Attr, Tmp, DispPermissionsNumber);
 		LvItem.mask = LVIF_TEXT;
 		LvItem.iItem = Pos;
 		LvItem.iSubItem = 4;

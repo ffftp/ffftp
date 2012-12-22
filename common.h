@@ -1830,7 +1830,9 @@ int TimeString2FileTime(char *Time, FILETIME *Buf);
 void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist, int ShowSeconds);
 void SpecificLocalFileTime2FileTime(FILETIME *Time, int TimeZone);
 int AttrString2Value(char *Str);
-void AttrValue2String(int Attr, char *Buf);
+// ファイルの属性を数字で表示
+//void AttrValue2String(int Attr, char *Buf);
+void AttrValue2String(int Attr, char *Buf, int ShowNumber);
 void FormatIniString(char *Str);
 int SelectFile(HWND hWnd, char *Fname, char *Title, char *Filters, char *Ext, int Flags, int Save);
 int SelectDir(HWND hWnd, char *Buf, int MaxLen);
