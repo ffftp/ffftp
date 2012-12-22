@@ -38,11 +38,20 @@ Changes in Ver.1.99
 
 -- Added an option to set a local Kanji code chosen at startup.
 
--- Changed to directly show Browse For Folder dialog on clicking Change Folder button
-   in the local side.
+-- Changed to directly show Browse For Folder dialog on clicking Change Folder
+   button in the local side.
 
 -- Improved conditions to send commands for keep alive.
    Less likely to fail such as when deleting a large number of files.
+
+-- Supported the file list format of uClinux.
+
+-- Fixed bugs that unexpected files were deleted when removing a directory
+   which includes symbolic links.
+
+-- Added an option to handle of seconds of time stamps.
+
+-- Added an option to display file permissions in numbers.
 
 
 Outline
