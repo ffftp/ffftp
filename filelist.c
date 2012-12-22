@@ -142,6 +142,10 @@ extern int DotFile;
 extern int DispIgnoreHide;
 extern int DispDrives;
 extern int MoveMode;
+// ファイルアイコン表示対応
+extern int DispFileIcon;
+// タイムスタンプのバグ修正
+extern int DispTimeSeconds;
 
 /*===== ローカルなワーク =====*/
 
@@ -1364,7 +1368,7 @@ void RefreshIconImageList(FLISTANCHOR *Anchor)
 	int i;
 	char Cur[FMAX_PATH+1];
 	SHFILEINFO FileInfo;
-	if(AskDispFileIcon() == YES)
+	if(DispFileIcon == YES)
 	{
 		SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)NULL);
 		ShowWindow(hWndListLocal, SW_SHOW);
@@ -1765,12 +1769,14 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 	else
 		LvItem.iImage = 4;
 	// ファイルアイコン表示対応
-	if(AskDispFileIcon() == YES && hWnd == GetLocalHwnd())
+	if(DispFileIcon == YES && hWnd == GetLocalHwnd())
 		LvItem.iImage = ImageId + 5;
 	LvItem.iItem = SendMessage(hWnd, LVM_INSERTITEM, 0, (LPARAM)&LvItem);
 
 	/* 日付/時刻 */
-	FileTime2TimeString(Time, Tmp, DISPFORM_LEGACY, InfoExist);
+	// タイムスタンプのバグ修正
+//	FileTime2TimeString(Time, Tmp, DISPFORM_LEGACY, InfoExist);
+	FileTime2TimeString(Time, Tmp, DISPFORM_LEGACY, InfoExist, DispTimeSeconds);
 	LvItem.mask = LVIF_TEXT;
 	LvItem.iItem = Pos;
 	LvItem.iSubItem = 1;

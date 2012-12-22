@@ -195,6 +195,8 @@ extern BYTE CertificateCacheHash[MAX_CERT_CACHE_HASH][20];
 extern BYTE SSLRootCAFileHash[20];
 // ファイルアイコン表示対応
 extern int DispFileIcon;
+// タイムスタンプのバグ修正
+extern int DispTimeSeconds;
 // ディレクトリ自動作成
 extern int MakeAllDir;
 // UTF-8対応
@@ -625,6 +627,8 @@ void SaveRegistry(void)
 				WriteStringToReg(hKey4, "RootCertHash", Str);
 				// ファイルアイコン表示対応
 				WriteIntValueToReg(hKey4, "ListIcon", DispFileIcon);
+				// タイムスタンプのバグ修正
+				WriteIntValueToReg(hKey4, "ListSecond", DispTimeSeconds);
 				// ディレクトリ自動作成
 				WriteIntValueToReg(hKey4, "MakeDir", MakeAllDir);
 				// UTF-8対応
@@ -1031,6 +1035,8 @@ int LoadRegistry(void)
 			StrReadIn(Buf, sizeof(SSLRootCAFileHash), (char*)&SSLRootCAFileHash);
 			// ファイルアイコン表示対応
 			ReadIntValueFromReg(hKey4, "ListIcon", &DispFileIcon);
+			// タイムスタンプのバグ修正
+			ReadIntValueFromReg(hKey4, "ListSecond", &DispTimeSeconds);
 			// ディレクトリ自動作成
 			ReadIntValueFromReg(hKey4, "MakeDir", &MakeAllDir);
 			// UTF-8対応

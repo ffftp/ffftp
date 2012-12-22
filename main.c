@@ -246,6 +246,8 @@ BYTE CertificateCacheHash[MAX_CERT_CACHE_HASH][20];
 BYTE SSLRootCAFileHash[20];
 // ファイルアイコン表示対応
 int DispFileIcon = NO;
+// タイムスタンプのバグ修正
+int DispTimeSeconds = NO;
 // ディレクトリ自動作成
 int MakeAllDir = YES;
 // UTF-8対応
@@ -3281,12 +3283,6 @@ BOOL IsMainThread()
 	if(GetCurrentThreadId() != MainThreadId)
 		return FALSE;
 	return TRUE;
-}
-
-// ファイルアイコン表示対応
-int AskDispFileIcon(void)
-{
-	return(DispFileIcon);
 }
 
 // ポータブル版判定

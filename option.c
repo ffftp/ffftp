@@ -170,6 +170,8 @@ extern int FolderAttr;
 extern int FolderAttrNum;
 // ファイルアイコン表示対応
 extern int DispFileIcon;
+// タイムスタンプのバグ修正
+extern int DispTimeSeconds;
 // ディレクトリ自動作成
 extern int MakeAllDir;
 
@@ -1125,6 +1127,8 @@ static INT_PTR CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 			SendDlgItemMessage(hDlg, DISP_DRIVE, BM_SETCHECK, DispDrives, 0);
 			// ファイルアイコン表示対応
 			SendDlgItemMessage(hDlg, DISP_ICON, BM_SETCHECK, DispFileIcon, 0);
+			// タイムスタンプのバグ修正
+			SendDlgItemMessage(hDlg, DISP_SECOND, BM_SETCHECK, DispTimeSeconds, 0);
 		    return(TRUE);
 
 		case WM_NOTIFY:
@@ -1136,6 +1140,8 @@ static INT_PTR CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 					DispDrives = SendDlgItemMessage(hDlg, DISP_DRIVE, BM_GETCHECK, 0, 0);
 					// ファイルアイコン表示対応
 					DispFileIcon = SendDlgItemMessage(hDlg, DISP_ICON, BM_GETCHECK, 0, 0);
+					// タイムスタンプのバグ修正
+					DispTimeSeconds = SendDlgItemMessage(hDlg, DISP_SECOND, BM_GETCHECK, 0, 0);
 					if(strlen(TmpFont.lfFaceName) > 0)
 					{
 						memcpy(&ListLogFont, &TmpFont, sizeof(LOGFONT));

@@ -1094,15 +1094,10 @@ int TimeString2FileTime(char *Time, FILETIME *Buf)
     Buf->dwLowDateTime = 0;
     Buf->dwHighDateTime = 0;
 
-	// タイムスタンプのバグ修正
-//	if(strlen(Time) >= 16)
-	if(strlen(Time) >= 19)
+	if(strlen(Time) >= 16)
 	{
-		// タイムスタンプのバグ修正
-//		if(IsDigit(Time[0]) && IsDigit(Time[5]) && IsDigit(Time[8]) && 
-//		   IsDigit(Time[12]) && IsDigit(Time[14]))
 		if(IsDigit(Time[0]) && IsDigit(Time[5]) && IsDigit(Time[8]) && 
-		   IsDigit(Time[12]) && IsDigit(Time[14]) && IsDigit(Time[17]))
+		   IsDigit(Time[12]) && IsDigit(Time[14]))
 		{
 			Ret = YES;
 		}
@@ -1117,7 +1112,10 @@ int TimeString2FileTime(char *Time, FILETIME *Buf)
 		sTime.wMinute = atoi(Time + 14);
 		// タイムスタンプのバグ修正
 //		sTime.wSecond = 0;
-		sTime.wSecond = atoi(Time + 17);
+		if(strlen(Time) >= 19)
+			sTime.wSecond = atoi(Time + 17);
+		else
+			sTime.wSecond = 0;
 		sTime.wMilliseconds = 0;
 
 		SystemTimeToFileTime(&sTime, &fTime);
@@ -1139,7 +1137,9 @@ int TimeString2FileTime(char *Time, FILETIME *Buf)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist)
+// タイムスタンプのバグ修正
+//void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist)
+void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist, int ShowSeconds)
 {
 	SYSTEMTIME sTime;
 	FILETIME fTime;
@@ -1171,11 +1171,20 @@ void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist)
 				sprintf(Buf, "%04d/%02d/%02d ", sTime.wYear, sTime.wMonth, sTime.wDay);
 			else
 				sprintf(Buf, "           ");
-
-			if(InfoExist & FINFO_TIME)
-				sprintf(Buf+11, "%2d:%02d:%02d", sTime.wHour, sTime.wMinute, sTime.wSecond);
+			if(ShowSeconds == YES)
+			{
+				if(InfoExist & FINFO_TIME)
+					sprintf(Buf+11, "%2d:%02d:%02d", sTime.wHour, sTime.wMinute, sTime.wSecond);
+				else
+					sprintf(Buf+11, "        ");
+			}
 			else
-				sprintf(Buf+11, "        ");
+			{
+				if(InfoExist & FINFO_TIME)
+					sprintf(Buf+11, "%2d:%02d", sTime.wHour, sTime.wMinute);
+				else
+					sprintf(Buf+11, "     ");
+			}
 		}
 		else
 			Buf[0] = NUL;

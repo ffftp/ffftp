@@ -1295,6 +1295,8 @@ BEGIN
     LTEXT           "隠し属性のファイルを表示しないようにすると、ミラーリングアップロードでも隠し属性のファイルはアップロードしないようになります。",-1,29,44,167,27,SS_SUNKEN
     CONTROL         "ローカル側のファイル一覧にドライブ名も表示する(&D)",DISP_DRIVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,79,172,10
     CONTROL         "ローカル側のファイル一覧にアイコンを表示する(&I)",DISP_ICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,93,172,10
+    CONTROL         "ファイルのタイムスタンプの秒単位を表示する(&S)",DISP_SECOND,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,107,172,10
+    LTEXT           "タイムスタンプの秒単位を表示するようにすると、ミラーリングアップロード等における更新日時の比較で秒単位を無視しないようになります。",-1,29,121,167,27,SS_SUNKEN
 END
 
 bmark_edit_dlg DIALOG  0, 0, 187, 83

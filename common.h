@@ -1352,8 +1352,6 @@ BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certif
 BOOL LoadSSLRootCAFile();
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 BOOL IsMainThread();
-// ファイルアイコン表示対応
-int AskDispFileIcon(void);
 // ポータブル版判定
 void CheckPortableVersion();
 int AskPortableVersion(void);
@@ -1827,7 +1825,9 @@ void RectClientToScreen(HWND hWnd, RECT *Rect);
 int hex2bin(char Ch);
 int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char *Pass, int *Port);
 int TimeString2FileTime(char *Time, FILETIME *Buf);
-void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist);
+// タイムスタンプのバグ修正
+//void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist);
+void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist, int ShowSeconds);
 void SpecificLocalFileTime2FileTime(FILETIME *Time, int TimeZone);
 int AttrString2Value(char *Str);
 void AttrValue2String(int Attr, char *Buf);

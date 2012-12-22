@@ -1321,6 +1321,8 @@ BEGIN
     LTEXT           "If this box is checked, hidden files/folders are not transferred during Mirror operations.",-1,29,44,167,27,SS_SUNKEN
     CONTROL         "&Display drives in the file list",DISP_DRIVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,76,172,10
     CONTROL         "Display &icons in the file list",DISP_ICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,90,172,10
+    CONTROL         "Display &seconds of time stamps",DISP_SECOND,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,104,172,10
+    LTEXT           "If this box is checked, seconds of time stamps are not ignored during Mirror operations.",-1,29,118,167,27,SS_SUNKEN
 END
 
 bmark_edit_dlg DIALOG  0, 0, 187, 83
