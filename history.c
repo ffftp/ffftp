@@ -244,6 +244,8 @@ static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
 	// 再転送対応
 	New->TransferErrorMode = Host->TransferErrorMode;
 	New->TransferErrorNotify = Host->TransferErrorNotify;
+	// セッションあたりの転送量制限対策
+	New->TransferErrorReconnect = Host->TransferErrorReconnect;
 	return;
 }
 
@@ -311,6 +313,8 @@ void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
 	// 再転送対応
 	Host->TransferErrorMode = Hist->TransferErrorMode;
 	Host->TransferErrorNotify = Hist->TransferErrorNotify;
+	// セッションあたりの転送量制限対策
+	Host->TransferErrorReconnect = Hist->TransferErrorReconnect;
 	return;
 }
 

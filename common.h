@@ -1037,6 +1037,8 @@ typedef struct {
 	// 再転送対応
 	int TransferErrorMode;				/* 転送エラー時の処理 (EXIST_xxx) */
 	int TransferErrorNotify;			/* 転送エラー時に確認ダイアログを出すかどうか (YES/NO) */
+	// セッションあたりの転送量制限対策
+	int TransferErrorReconnect;			/* 転送エラー時に再接続する (YES/NO) */
 } HOSTDATA;
 
 
@@ -1101,6 +1103,8 @@ typedef struct historydata {
 	// 再転送対応
 	int TransferErrorMode;				/* 転送エラー時の処理 (EXIST_xxx) */
 	int TransferErrorNotify;			/* 転送エラー時に確認ダイアログを出すかどうか (YES/NO) */
+	// セッションあたりの転送量制限対策
+	int TransferErrorReconnect;			/* 転送エラー時に再接続する (YES/NO) */
 	struct historydata *Next;
 } HISTORYDATA;
 
@@ -1499,7 +1503,7 @@ void CopyDefaultHost(HOSTDATA *Set);
 int SearchHostName(char *Name);
 void ImportFromWSFTP(void);
 // 暗号化通信対応
-int SetHostExcryption(int Num, int UseNoEncryption, int UseFTPES, int UseFTPIS, int UseSFTP);
+int SetHostEncryption(int Num, int UseNoEncryption, int UseFTPES, int UseFTPIS, int UseSFTP);
 
 /*===== connect.c =====*/
 
@@ -1571,6 +1575,8 @@ int AskNoopInterval(void);
 // 再転送対応
 int AskTransferErrorMode(void);
 int AskTransferErrorNotify(void);
+// セッションあたりの転送量制限対策
+int AskErrorReconnect(void);
 
 /*===== cache.c =====*/
 

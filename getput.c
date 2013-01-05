@@ -712,6 +712,8 @@ static ULONG WINAPI TransferThread(void *Dummy)
 	RECT WndRect;
 	int i;
 	DWORD LastUsed;
+	int LastError;
+	int Sts;
 
 	hWndTrans = NULL;
 	Down = NO;
@@ -724,6 +726,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 	CmdSkt = INVALID_SOCKET;
 	NewCmdSkt = INVALID_SOCKET;
 	TrnSkt = INVALID_SOCKET;
+	LastError = NO;
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
 
 	while((TransPacketBase != NULL) ||
@@ -767,6 +770,20 @@ static ULONG WINAPI TransferThread(void *Dummy)
 		}
 		else
 		{
+			// セッションあたりの転送量制限対策
+			if(AskErrorReconnect() == YES && LastError == YES)
+			{
+				ReleaseMutex(hListAccMutex);
+				DoQUIT(TrnSkt, &Canceled[ThreadCount]);
+				DoClose(TrnSkt);
+				TrnSkt = INVALID_SOCKET;
+//				WaitForSingleObject(hListAccMutex, INFINITE);
+				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+				{
+					BackgrndMessageProc();
+					Sleep(1);
+				}
+			}
 			if(TransPacketBase && NewCmdSkt != INVALID_SOCKET && ThreadCount < AskMaxThreadCount())
 			{
 				ReleaseMutex(hListAccMutex);
@@ -818,6 +835,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 			}
 		}
 		CmdSkt = NewCmdSkt;
+		LastError = NO;
 //		if(TransPacketBase != NULL)
 		if(TrnSkt != INVALID_SOCKET && NextTransPacketBase != NULL)
 		{
@@ -899,7 +917,9 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //						{
 //							if(ReConnectTrnSkt() == FFFTP_SUCCESS)
 //								DoDownload(AskTrnCtrlSkt(), TransPacketBase, NO, &Canceled);
-								DoDownload(TrnSkt, Pos, NO, &Canceled[Pos->ThreadCount]);
+								Sts = DoDownload(TrnSkt, Pos, NO, &Canceled[Pos->ThreadCount]) / 100;
+								if(Sts != FTP_COMPLETE)
+									LastError = YES;
 //						}
 					}
 				}
@@ -921,7 +941,9 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //					{
 //						if(ReConnectTrnSkt() == FFFTP_SUCCESS)
 //							DoUpload(AskTrnCtrlSkt(), TransPacketBase);
-							DoUpload(TrnSkt, Pos);
+							Sts = DoUpload(TrnSkt, Pos) / 100;
+							if(Sts != FTP_COMPLETE)
+								LastError = YES;
 //					}
 
 					// ホスト側の日時設定

@@ -515,6 +515,8 @@ void SaveRegistry(void)
 							// 再転送対応
 							SaveIntNum(hKey5, "ErrMode", Hist.TransferErrorMode, DefaultHist.TransferErrorMode);
 							SaveIntNum(hKey5, "ErrNotify", Hist.TransferErrorNotify, DefaultHist.TransferErrorNotify);
+							// セッションあたりの転送量制限対策
+							SaveIntNum(hKey5, "ErrReconnect", Hist.TransferErrorReconnect, DefaultHist.TransferErrorReconnect);
 
 							CloseSubKey(hKey5);
 							n++;
@@ -602,6 +604,8 @@ void SaveRegistry(void)
 							// 再転送対応
 							SaveIntNum(hKey5, "ErrMode", Host.TransferErrorMode, DefaultHost.TransferErrorMode);
 							SaveIntNum(hKey5, "ErrNotify", Host.TransferErrorNotify, DefaultHost.TransferErrorNotify);
+							// セッションあたりの転送量制限対策
+							SaveIntNum(hKey5, "ErrReconnect", Host.TransferErrorReconnect, DefaultHost.TransferErrorReconnect);
 						}
 						CloseSubKey(hKey5);
 					}
@@ -1022,6 +1026,8 @@ int LoadRegistry(void)
 					// 再転送対応
 					ReadIntValueFromReg(hKey5, "ErrMode", &Host.TransferErrorMode);
 					ReadIntValueFromReg(hKey5, "ErrNotify", &Host.TransferErrorNotify);
+					// セッションあたりの転送量制限対策
+					ReadIntValueFromReg(hKey5, "ErrReconnect", &Host.TransferErrorReconnect);
 
 					CloseSubKey(hKey5);
 

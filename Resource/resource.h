@@ -455,6 +455,7 @@
 #define TRMODE4_EUC_CNV                 1217
 #define TRMODE4_UTF8N_CNV               1218
 #define TRMODE4_UTF8BOM_CNV             1219
+#define HSET_ERROR_RECONNECT             1220
 #define MENU_END                        40001
 #define MENU_EXIT                       40001
 #define MENU_CONNECT                    40003
@@ -643,7 +644,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        197
 #define _APS_NEXT_COMMAND_VALUE         40177
-#define _APS_NEXT_CONTROL_VALUE         1220
+#define _APS_NEXT_CONTROL_VALUE         1221
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

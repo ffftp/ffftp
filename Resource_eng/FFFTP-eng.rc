@@ -1422,6 +1422,7 @@ BEGIN
     LTEXT           "(0 to 300sec; 0=Never)",-1,122,44,76,8
     LTEXT           "When transfer errors",-1,7,61,81,8
     COMBOBOX        HSET_ERROR_MODE,7,71,71,75,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Reconnect after errors",HSET_ERROR_RECONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,84,71,102,10
 END
 
 savecrypt_dlg DIALOG  0, 0, 146, 62

@@ -1063,6 +1063,8 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 		// 再転送対応
 		Set->TransferErrorMode = Pos->Set.TransferErrorMode;
 		Set->TransferErrorNotify = Pos->Set.TransferErrorNotify;
+		// セッションあたりの転送量制限対策
+		Set->TransferErrorReconnect = Pos->Set.TransferErrorReconnect;
 		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
@@ -1360,6 +1362,8 @@ void CopyDefaultHost(HOSTDATA *Set)
 	// 再転送対応
 	Set->TransferErrorMode = EXIST_OVW;
 	Set->TransferErrorNotify = YES;
+	// セッションあたりの転送量制限対策
+	Set->TransferErrorReconnect = NO;
 	return;
 }
 
@@ -2356,6 +2360,7 @@ static INT_PTR CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 				SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 3, 0);
 			else
 				SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
+			SendDlgItemMessage(hDlg, HSET_ERROR_RECONNECT, BM_SETCHECK, TmpHost.TransferErrorReconnect, 0);
 			return(TRUE);
 
 		case WM_NOTIFY:
@@ -2387,6 +2392,7 @@ static INT_PTR CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 						TmpHost.TransferErrorNotify = NO;
 						break;
 					}
+					TmpHost.TransferErrorReconnect = SendDlgItemMessage(hDlg, HSET_ERROR_RECONNECT, BM_GETCHECK, 0, 0);
 					Apply = YES;
 					break;
 
@@ -2404,7 +2410,7 @@ static INT_PTR CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 
 // 暗号化通信対応
 // ホストの暗号化設定を更新
-int SetHostExcryption(int Num, int UseNoEncryption, int UseFTPES, int UseFTPIS, int UseSFTP)
+int SetHostEncryption(int Num, int UseNoEncryption, int UseFTPES, int UseFTPIS, int UseSFTP)
 {
 	int Sts;
 	HOSTLISTDATA *Pos;

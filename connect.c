@@ -202,28 +202,28 @@ void ConnectProc(int Type, int Num)
 					if(CurHost.UseFTPIS != NO || CurHost.UseSFTP != NO)
 					{
 						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
-							SetHostExcryption(AskCurrentHost(), CurHost.UseNoEncryption, CurHost.UseFTPES, NO, NO);
+							SetHostEncryption(AskCurrentHost(), CurHost.UseNoEncryption, CurHost.UseFTPES, NO, NO);
 					}
 					break;
 				case CRYPT_FTPES:
 					if(CurHost.UseNoEncryption != NO || CurHost.UseFTPIS != NO || CurHost.UseSFTP != NO)
 					{
 						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
-							SetHostExcryption(AskCurrentHost(), NO, CurHost.UseFTPES, NO, NO);
+							SetHostEncryption(AskCurrentHost(), NO, CurHost.UseFTPES, NO, NO);
 					}
 					break;
 				case CRYPT_FTPIS:
 					if(CurHost.UseNoEncryption != NO || CurHost.UseFTPES != NO || CurHost.UseSFTP != NO)
 					{
 						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
-							SetHostExcryption(AskCurrentHost(), NO, NO, CurHost.UseFTPIS, NO);
+							SetHostEncryption(AskCurrentHost(), NO, NO, CurHost.UseFTPIS, NO);
 					}
 					break;
 				case CRYPT_SFTP:
 					if(CurHost.UseNoEncryption != NO || CurHost.UseFTPES != NO || CurHost.UseFTPIS != NO)
 					{
 						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
-							SetHostExcryption(AskCurrentHost(), NO, NO, NO, CurHost.UseSFTP);
+							SetHostEncryption(AskCurrentHost(), NO, NO, NO, CurHost.UseSFTP);
 					}
 					break;
 				}
@@ -772,10 +772,18 @@ int AskHostNameKanji(void)
 
 int AskHostNameKana(void)
 {
-	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+	// 同時接続対応
+	HOSTDATA TmpHost;
+	TmpHost = CurHost;
 
-	return(CurHost.NameKanaCnv);
+	if(AskCurrentHost() != HOSTNUM_NOENTRY)
+		// 同時接続対応
+//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
+
+	// 同時接続対応
+//	return(CurHost.NameKanaCnv);
+	return(TmpHost.NameKanaCnv);
 }
 
 
@@ -790,13 +798,21 @@ int AskHostNameKana(void)
 
 int AskListCmdMode(void)
 {
+	// 同時接続対応
+	HOSTDATA TmpHost;
+	TmpHost = CurHost;
+
 	if(CurHost.HostType == HTYPE_VMS)
 		return(YES);
 	else
 	{
 		if(AskCurrentHost() != HOSTNUM_NOENTRY)
-			CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
-		return(CurHost.ListCmdOnly);
+			// 同時接続対応
+//			CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+			CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
+		// 同時接続対応
+//		return(CurHost.ListCmdOnly);
+		return(TmpHost.ListCmdOnly);
 	}
 }
 
@@ -812,10 +828,18 @@ int AskListCmdMode(void)
 
 int AskUseNLST_R(void)
 {
-	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+	// 同時接続対応
+	HOSTDATA TmpHost;
+	TmpHost = CurHost;
 
-	return(CurHost.UseNLST_R);
+	if(AskCurrentHost() != HOSTNUM_NOENTRY)
+		// 同時接続対応
+//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
+
+	// 同時接続対応
+//	return(CurHost.UseNLST_R);
+	return(TmpHost.UseNLST_R);
 }
 
 
@@ -830,10 +854,18 @@ int AskUseNLST_R(void)
 
 char *AskHostChmodCmd(void)
 {
-	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+	// 同時接続対応
+	HOSTDATA TmpHost;
+	TmpHost = CurHost;
 
-	return(CurHost.ChmodCmd);
+	if(AskCurrentHost() != HOSTNUM_NOENTRY)
+		// 同時接続対応
+//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
+
+	// 同時接続対応
+//	return(CurHost.ChmodCmd);
+	return(TmpHost.ChmodCmd);
 }
 
 
@@ -848,10 +880,18 @@ char *AskHostChmodCmd(void)
 
 int AskHostTimeZone(void)
 {
-	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+	// 同時接続対応
+	HOSTDATA TmpHost;
+	TmpHost = CurHost;
 
-	return(CurHost.TimeZone);
+	if(AskCurrentHost() != HOSTNUM_NOENTRY)
+		// 同時接続対応
+//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
+
+	// 同時接続対応
+//	return(CurHost.TimeZone);
+	return(TmpHost.TimeZone);
 }
 
 
@@ -881,10 +921,18 @@ int AskPasvMode(void)
 
 char *AskHostLsName(void)
 {
-	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+	// 同時接続対応
+	HOSTDATA TmpHost;
+	TmpHost = CurHost;
 
-	return(CurHost.LsName);
+	if(AskCurrentHost() != HOSTNUM_NOENTRY)
+		// 同時接続対応
+//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
+
+	// 同時接続対応
+//	return(CurHost.LsName);
+	return(TmpHost.LsName);
 }
 
 
@@ -899,8 +947,14 @@ char *AskHostLsName(void)
 
 int AskHostType(void)
 {
+	// 同時接続対応
+	HOSTDATA TmpHost;
+	TmpHost = CurHost;
+
 	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+		// 同時接続対応
+//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
 
 #if defined(HAVE_TANDEM)
 	/* OSS ファイルシステムは UNIX ファイルシステムと同じでいいので AUTO を返す
@@ -910,7 +964,9 @@ int AskHostType(void)
 		return(HTYPE_AUTO);
 #endif
 
-	return(CurHost.HostType);
+	// 同時接続対応
+//	return(CurHost.HostType);
+	return(TmpHost.HostType);
 }
 
 
@@ -979,13 +1035,19 @@ void SaveCurrentSetToHost(void)
 	int Host;
 	char LocDir[FMAX_PATH+1];
 	char HostDir[FMAX_PATH+1];
+	// 同時接続対応
+	HOSTDATA TmpHost;
+	TmpHost = CurHost;
 
 	if(TrnCtrlSocket != INVALID_SOCKET)
 	{
 		if((Host = AskCurrentHost()) != HOSTNUM_NOENTRY)
 		{
-			CopyHostFromListInConnect(Host, &CurHost);
-			if(CurHost.LastDir == YES)
+			// 同時接続対応
+//			CopyHostFromListInConnect(Host, &CurHost);
+//			if(CurHost.LastDir == YES)
+			CopyHostFromListInConnect(Host, &TmpHost);
+			if(TmpHost.LastDir == YES)
 			{
 				AskLocalCurDir(LocDir, FMAX_PATH);
 				AskRemoteCurDir(HostDir, FMAX_PATH);
@@ -1046,13 +1108,19 @@ int ReConnectCmdSkt(void)
 	int Sts;
 
 
-	if(CmdCtrlSocket != TrnCtrlSocket)
-		do_closesocket(TrnCtrlSocket);
-	TrnCtrlSocket = INVALID_SOCKET;
+	// 同時接続対応
+//	if(CmdCtrlSocket != TrnCtrlSocket)
+//		do_closesocket(TrnCtrlSocket);
+//	TrnCtrlSocket = INVALID_SOCKET;
+	if(CmdCtrlSocket == TrnCtrlSocket)
+		TrnCtrlSocket = INVALID_SOCKET;
 
 	Sts = ReConnectSkt(&CmdCtrlSocket);
 
-	TrnCtrlSocket = CmdCtrlSocket;
+	// 同時接続対応
+//	TrnCtrlSocket = CmdCtrlSocket;
+	if(TrnCtrlSocket == INVALID_SOCKET)
+		TrnCtrlSocket = CmdCtrlSocket;
 
 	return(Sts);
 }
@@ -1216,6 +1284,7 @@ void SktShareProh(void)
 //		ReConnectSkt(&CmdCtrlSocket);
 		if(CurHost.ReuseCmdSkt == YES)
 		{
+			CurHost.ReuseCmdSkt = NO;
 			CmdCtrlSocket = INVALID_SOCKET;
 			ReConnectSkt(&CmdCtrlSocket);
 		}
@@ -1349,10 +1418,18 @@ int AskConnecting(void)
 
 int AskRealHostType(void)
 {
-	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+	// 同時接続対応
+	HOSTDATA TmpHost;
+	TmpHost = CurHost;
 
-	return(CurHost.HostType);
+	if(AskCurrentHost() != HOSTNUM_NOENTRY)
+		// 同時接続対応
+//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
+
+	// 同時接続対応
+//	return(CurHost.HostType);
+	return(TmpHost.HostType);
 }
 
 /*----- OSS ファイルシステムにアクセスしているかどうかのフラグを変更する ------
@@ -3260,5 +3337,11 @@ int AskTransferErrorMode(void)
 int AskTransferErrorNotify(void)
 {
 	return(CurHost.TransferErrorNotify);
+}
+
+// セッションあたりの転送量制限対策
+int AskErrorReconnect(void)
+{
+	return(CurHost.TransferErrorReconnect);
 }
 

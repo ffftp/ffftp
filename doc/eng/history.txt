@@ -25,6 +25,14 @@ Changes in Ver.1.99
 
 -- Added an option to display file permissions in numbers.
 
+-- Added an option to reconnect after transfer errors.
+   This may work around the limitations on the transfer amount or time per
+   session.
+
+-- Fixed bugs that the file transfer might be aborted on operating the main
+   window if reusing sockets of the main window was enabled and you operated
+   the main window while files were transferring.
+
 Changes in Ver.1.98f
 --------------------
 
