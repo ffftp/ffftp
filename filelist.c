@@ -3601,11 +3601,22 @@ static int AnalizeFileInfo(char *Str)
 		Ret = LIST_SHIBASOKU;
 	else
 	{
+		// MLSD対応
+		if(FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS && strstr(Tmp, "type=") != NULL)
+		{
+			if(FindField2(Str, Tmp, ';', 1, NO) == FFFTP_SUCCESS && FindField2(Str, Tmp, '=', 1, NO) == FFFTP_SUCCESS)
+			{
+				Ret = LIST_MLSD;
+			}
+		}
+
 		/* 以下のフォーマットをチェック */
 		/* LIST_UNIX_10, LIST_UNIX_20, LIST_UNIX_12, LIST_UNIX_22, LIST_UNIX_50, LIST_UNIX_60 */
 		/* MELCOM80 */
 
-		if(FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS)
+		// MLSD対応
+//		if(FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS)
+		if(Ret == LIST_UNKNOWN && FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS)
 		{
 			/* MELCOM80は "d rwxrwxrwx" のようにスペースが空いている */
 			Flag1 = NO;
@@ -4041,14 +4052,6 @@ static int AnalizeFileInfo(char *Str)
 		}
 #endif
 
-		// MLSD対応
-		if(Ret == LIST_UNKNOWN)
-		{
-			if(FindField2(Str, Tmp, ';', 1, NO) == FFFTP_SUCCESS && FindField2(Str, Tmp, '=', 1, NO) == FFFTP_SUCCESS)
-			{
-				Ret = LIST_MLSD;
-			}
-		}
 	}
 
 DoPrintf("ListType=%d", Ret);
