@@ -3404,7 +3404,10 @@ static void MakeLocalTree(char *Path, FILELIST **Base)
 					Pkt.Attr = 0;
 					Pkt.Time = FindBuf.ftLastWriteTime;
 					FileTimeToSystemTime(&Pkt.Time, &TmpStime);
-					TmpStime.wSecond = 0;
+					// タイムスタンプのバグ修正
+//					TmpStime.wSecond = 0;
+					if(DispTimeSeconds == NO)
+						TmpStime.wSecond = 0;
 					TmpStime.wMilliseconds = 0;
 					SystemTimeToFileTime(&TmpStime, &Pkt.Time);
 					AddFileList(&Pkt, Base);
@@ -3896,7 +3899,7 @@ static int AnalizeFileInfo(char *Str)
 					if(FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS)
 					{
 						if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
-						   (CheckMMDDYYYYformat(Tmp, NUL, YES) != 0))
+						   (CheckMMDDYYYYformat(Tmp, NUL) != 0))
 						{
 							Ret = LIST_DOS_5;
 						}
