@@ -315,6 +315,8 @@
 #endif
 // uClinux
 #define LIST_UNIX_17	51		/* UNIX 17 */
+// Windows Server 2008 R2
+#define LIST_DOS_5		52		/* MS-DOS 4 */
 
 #define LIST_MELCOM		0x100	/* MELCOM80 */
 
@@ -706,6 +708,13 @@ LIST_UNIX_70
 	-rw-r--r-- 1 0 0 290 rc
 	-rw-r--r-- 1 0 0 34 passwd
 	lrwxrwxrwx 1 0 0 18 inittab -> ../var/tmp/inittab
+
+// Windows Server 2008 R2
+*LIST_DOS_5
+	0          1       2     3
+	-------------------------------------------------------
+	02-05-2013 09:45AM <DIR> TEST
+	01-28-2013 03:54PM 2847 DATA.TXT
 
 *LIST_TANDEM
 	 0             1               2    3         4        5       6

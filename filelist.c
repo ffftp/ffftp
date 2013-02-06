@@ -103,6 +103,8 @@ static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day);
 static int CheckHHMMformat(char *Str);
 static int CheckYYMMDDformat(char *Str, char Sym, int Dig3);
 static int CheckYYYYMMDDformat(char *Str, char Sym);
+// Windows Server 2008 R2
+static int CheckMMDDYYYYformat(char *Str, char Sym);
 static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, FILETIME *Time, int *Attr, char *Owner, int *Link, int *InfoExist);
 static int FindField(char *Str, char *Buf, int Num, int ToLast);
 // MLSD対応
@@ -3882,6 +3884,27 @@ static int AnalizeFileInfo(char *Str)
 			}
 		}
 
+		// Windows Server 2008 R2
+		if(Ret == LIST_UNKNOWN)
+		{
+			if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
+			   (CheckHHMMformat(Tmp) == YES))
+			{
+				if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
+				   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
+				{
+					if(FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS)
+					{
+						if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
+						   (CheckMMDDYYYYformat(Tmp, NUL, YES) != 0))
+						{
+							Ret = LIST_DOS_5;
+						}
+					}
+				}
+			}
+		}
+
 		/* 以下のフォーマットをチェック */
 		/* LIST_CHAMELEON */
 
@@ -4336,6 +4359,26 @@ static int CheckYYYYMMDDformat(char *Str, char Sym)
 }
 
 
+// Windows Server 2008 R2
+static int CheckMMDDYYYYformat(char *Str, char Sym)
+{
+	int Ret;
+
+	Ret = NO;
+	if((strlen(Str) == 10) &&
+	   (IsDigitSym(Str[0], Sym) != 0) && (IsDigitSym(Str[1], Sym) != 0) &&
+	   (IsDigit(Str[2]) == 0) &&
+	   (IsDigitSym(Str[3], Sym) != 0) && (IsDigitSym(Str[4], Sym) != 0) &&
+	   (IsDigit(Str[5]) == 0) &&
+	   (IsDigitSym(Str[6], Sym) != 0) && (IsDigitSym(Str[7], Sym) != 0) &&
+	   (IsDigitSym(Str[8], Sym) != 0) && (IsDigitSym(Str[9], Sym) != 0))
+	{
+		Ret = YES; 
+	}
+	return(Ret);
+}
+
+
 /*----- ファイル情報からファイル名、サイズなどを取り出す ----------------------
 *
 *	Parameter
@@ -4470,6 +4513,46 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 			sTime.wMilliseconds = 0;
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
+
+			/* サイズ */
+			FindField(Str, Buf, 2, NO);
+			*Size = _atoi64(Buf);
+
+			/* 名前 */
+			if(FindField(Str, Fname, 3, YES) == FFFTP_SUCCESS)
+			{
+				Ret = NODE_FILE;
+				if(Buf[0] == '<')
+					Ret = NODE_DIR;
+			}
+			break;
+
+		// Windows Server 2008 R2
+		case LIST_DOS_5 :
+			*InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE);
+
+			/* 日付 */
+			FindField(Str, Buf, 0, NO);
+			sTime.wMonth = atoi(Buf);
+			sTime.wDay = atoi(Buf+3);
+			sTime.wYear = atoi(Buf+6);
+
+			/* 時刻 */
+			FindField(Str, Buf, 1, NO);
+			sTime.wHour = atoi(Buf);
+			sTime.wMinute = atoi(Buf+3);
+			sTime.wSecond = 0;
+			sTime.wMilliseconds = 0;
+			if(_strnicmp(Buf+5, "AM", 2) == 0)
+			{
+				if(sTime.wHour == 12)
+					sTime.wHour = 0;
+			}
+			else if(_strnicmp(Buf+5, "PM", 2) == 0)
+			{
+				if(sTime.wHour != 12)
+					sTime.wHour += 12;
+			}
 
 			/* サイズ */
 			FindField(Str, Buf, 2, NO);
