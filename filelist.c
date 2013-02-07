@@ -4556,6 +4556,8 @@ static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, 
 				if(sTime.wHour != 12)
 					sTime.wHour += 12;
 			}
+			SystemTimeToFileTime(&sTime, Time);
+			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
 			/* サイズ */
 			FindField(Str, Buf, 2, NO);
