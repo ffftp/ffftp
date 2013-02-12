@@ -116,10 +116,10 @@ BOOL LoadOpenSSL()
 		return FALSE;
 #ifdef ENABLE_PROCESS_PROTECTION
 	// 同梱するOpenSSLのバージョンに合わせてSHA1ハッシュ値を変更すること
-	// ssleay32.dll 1.0.1d
-	RegisterTrustedModuleSHA1Hash("\x52\x2F\xA2\x9D\xDC\x20\x73\x1D\xDF\x08\xEF\x79\x63\xA8\xB7\xC7\x68\xAC\x9F\xF4");
-	// libeay32.dll 1.0.1d
-	RegisterTrustedModuleSHA1Hash("\x16\x46\x92\xB4\x55\x67\xA4\x0B\x25\x0B\xBF\x05\xA7\xC7\x9E\xB7\x0F\x6E\xBE\x0D");
+	// ssleay32.dll 1.0.1e
+	RegisterTrustedModuleSHA1Hash("\xE8\x9A\x16\xDF\xCE\xA2\x7E\x55\x28\xC4\x78\x1A\x21\x40\xCB\x57\xDC\x40\xCD\x61");
+	// libeay32.dll 1.0.1e
+	RegisterTrustedModuleSHA1Hash("\x38\xC8\x30\xCB\xE0\x5D\x4E\xF7\xA1\x93\xBB\xF7\x54\xA5\x21\xC8\xF7\xA1\x85\xC5");
 #endif
 	g_hOpenSSL = LoadLibrary("ssleay32.dll");
 	// バージョン固定のためlibssl32.dllの読み込みは脆弱性の原因になり得るので廃止
