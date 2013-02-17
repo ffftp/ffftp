@@ -178,6 +178,8 @@ extern int DispTimeSeconds;
 extern int DispPermissionsNumber;
 // ディレクトリ自動作成
 extern int MakeAllDir;
+// UPnP対応
+extern int UPnPEnabled;
 
 
 /*----- オプションのプロパティシート ------------------------------------------
@@ -1291,6 +1293,14 @@ static INT_PTR CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wPara
 			SendDlgItemMessage(hDlg, CONNECT_HIST_PASS, BM_SETCHECK, PassToHist, 0);
 			SendDlgItemMessage(hDlg, CONNECT_SENDQUIT, BM_SETCHECK, SendQuit, 0);
 			SendDlgItemMessage(hDlg, CONNECT_NORAS, BM_SETCHECK, NoRasControl, 0);
+			// UPnP対応
+			if(IsUPnPLoaded() == YES)
+				SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_SETCHECK, UPnPEnabled, 0);
+			else
+			{
+				SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_SETCHECK, BST_UNCHECKED, 0);
+				EnableWindow(GetDlgItem(hDlg, CONNECT_UPNP), FALSE);
+			}
 		    return(TRUE);
 
 		case WM_NOTIFY:
@@ -1308,6 +1318,9 @@ static INT_PTR CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wPara
 					PassToHist = SendDlgItemMessage(hDlg, CONNECT_HIST_PASS, BM_GETCHECK, 0, 0);
 					SendQuit = SendDlgItemMessage(hDlg, CONNECT_SENDQUIT, BM_GETCHECK, 0, 0);
 					NoRasControl = SendDlgItemMessage(hDlg, CONNECT_NORAS, BM_GETCHECK, 0, 0);
+					// UPnP対応
+					if(IsUPnPLoaded() == YES)
+						UPnPEnabled = SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_GETCHECK, 0, 0);
 					break;
 
 				case PSN_RESET :

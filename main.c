@@ -256,6 +256,8 @@ int MakeAllDir = YES;
 int LocalKanjiCode = KANJI_SJIS;
 // 自動切断対策
 int NoopEnable = NO;
+// UPnP対応
+int UPnPEnabled = NO;
 time_t LastDataConnectionTime = 0;
 
 
@@ -360,6 +362,10 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 
 	InitCommonControls();
 
+	// UPnP対応
+	CoInitialize(NULL);
+	LoadUPnP();
+
 	// FTPS対応
 #ifdef USE_OPENSSL
 	LoadOpenSSL();
@@ -405,6 +411,9 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 #endif
 	// SFTP対応
 	FreePuTTY();
+	// UPnP対応
+	FreeUPnP();
+	CoUninitialize();
 	OleUninitialize();
 	return(Ret);
 }

@@ -2616,6 +2616,10 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 	int Len;
 	int Fwall;
 
+	// UPnP対応
+	char Adrs[16];
+	int Port;
+
 	// ソケットにデータを付与
 	GetAsyncTableDataIPv4(ctrl_skt, &CurSockAddr, &SocksSockAddr);
 
@@ -2724,6 +2728,12 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 
 						a = (char *)&saTmpAddr.sin_addr;
 						p = (char *)&saCtrlAddr.sin_port;
+						// UPnP対応
+						if(IsUPnPLoaded() == YES)
+						{
+							if(AddPortMapping(AddressToStringIPv4(Adrs, &saTmpAddr.sin_addr), ntohs(saCtrlAddr.sin_port)) == FFFTP_SUCCESS)
+								SetAsyncTableDataMapPort(listen_skt, ntohs(saCtrlAddr.sin_port));
+						}
 					}
 					else
 					{
@@ -2769,6 +2779,12 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 			// IPv6対応
 //			SetTaskMsg(MSGJPN031);
 			SetTaskMsg(MSGJPN031, MSGJPN333);
+			// UPnP対応
+			if(IsUPnPLoaded() == YES)
+			{
+				if(GetAsyncTableDataMapPort(listen_skt, &Port) == YES)
+					RemovePortMapping(Port);
+			}
 			do_closesocket(listen_skt);
 			listen_skt = INVALID_SOCKET;
 		}
@@ -2796,6 +2812,8 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 	int Fwall;
 
 	char Adrs[40];
+	// UPnP対応
+	int Port;
 
 	// ソケットにデータを付与
 	GetAsyncTableDataIPv6(ctrl_skt, &CurSockAddr, &SocksSockAddr);
@@ -2867,6 +2885,12 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 
 						a = (char *)&saTmpAddr.sin6_addr;
 						p = (char *)&saCtrlAddr.sin6_port;
+						// UPnP対応
+						if(IsUPnPLoaded() == YES)
+						{
+							if(AddPortMapping(AddressToStringIPv6(Adrs, &saTmpAddr.sin6_addr), ntohs(saCtrlAddr.sin6_port)) == FFFTP_SUCCESS)
+								SetAsyncTableDataMapPort(listen_skt, ntohs(saCtrlAddr.sin6_port));
+						}
 					}
 					else
 					{
@@ -2908,6 +2932,12 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 				(UC(p[0]) << 8) | UC(p[1])) / 100) != FTP_COMPLETE)
 		{
 			SetTaskMsg(MSGJPN031, MSGJPN334);
+			// UPnP対応
+			if(IsUPnPLoaded() == YES)
+			{
+				if(GetAsyncTableDataMapPort(listen_skt, &Port) == YES)
+					RemovePortMapping(Port);
+			}
 			do_closesocket(listen_skt);
 			listen_skt = INVALID_SOCKET;
 		}

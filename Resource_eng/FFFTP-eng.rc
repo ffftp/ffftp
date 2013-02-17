@@ -984,6 +984,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,109,173,10
     CONTROL         "Do not control dialup (&RAS) connection",CONNECT_NORAS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,173,10
+    CONTROL         "Control &UPnP when using non PASV mode",CONNECT_UPNP,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,136,173,10
 END
 
 rasnotify_dlg DIALOG  0, 0, 158, 46

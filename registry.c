@@ -203,6 +203,8 @@ extern int DispPermissionsNumber;
 extern int MakeAllDir;
 // UTF-8対応
 extern int LocalKanjiCode;
+// UPnP対応
+extern int UPnPEnabled;
 
 /*----- マスタパスワードの設定 ----------------------------------------------
 *
@@ -641,6 +643,8 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "MakeDir", MakeAllDir);
 				// UTF-8対応
 				WriteIntValueToReg(hKey4, "Kanji", LocalKanjiCode);
+				// UPnP対応
+				WriteIntValueToReg(hKey4, "UPnP", UPnPEnabled);
 			}
 			CloseSubKey(hKey4);
 		}
@@ -1053,6 +1057,8 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "MakeDir", &MakeAllDir);
 			// UTF-8対応
 			ReadIntValueFromReg(hKey4, "Kanji", &LocalKanjiCode);
+			// UPnP対応
+			ReadIntValueFromReg(hKey4, "UPnP", &UPnPEnabled);
 
 			CloseSubKey(hKey4);
 		}

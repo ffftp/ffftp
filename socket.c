@@ -37,6 +37,8 @@
 #include <time.h>
 #include <windowsx.h>
 #include <commctrl.h>
+// UPnP対応
+#include <natupnp.h>
 
 #include "common.h"
 #include "resource.h"
@@ -71,6 +73,7 @@ typedef struct {
 	struct sockaddr_in SocksAddrIPv4;
 	struct sockaddr_in6 HostAddrIPv6;
 	struct sockaddr_in6 SocksAddrIPv6;
+	int MapPort;
 } ASYNCSIGNAL;
 
 
@@ -119,6 +122,9 @@ static ASYNCSIGNALDATABASE SignalDbase[MAX_SIGNAL_ENTRY_DBASE];
 // スレッド衝突のバグ修正
 static HANDLE hAsyncTblAccMutex;
 
+// UPnP対応
+IUPnPNAT* pUPnPNAT;
+IStaticPortMappingCollection* pUPnPMap;
 
 
 
@@ -499,6 +505,7 @@ static int RegisterAsyncTable(SOCKET s)
 				memset(&Signal[Pos].SocksAddrIPv4, 0, sizeof(struct sockaddr_in));
 				memset(&Signal[Pos].HostAddrIPv6, 0, sizeof(struct sockaddr_in6));
 				memset(&Signal[Pos].SocksAddrIPv6, 0, sizeof(struct sockaddr_in6));
+				Signal[Pos].MapPort = 0;
 				Sts = YES;
 				break;
 			}
@@ -699,6 +706,27 @@ int SetAsyncTableDataIPv6(SOCKET s, struct sockaddr_in6* Host, struct sockaddr_i
 	return(Sts);
 }
 
+int SetAsyncTableDataMapPort(SOCKET s, int Port)
+{
+	int Sts;
+	int Pos;
+
+	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
+	Sts = NO;
+	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
+	{
+		if(Signal[Pos].Socket == s)
+		{
+			Signal[Pos].MapPort = Port;
+			Sts = YES;
+			break;
+		}
+	}
+	ReleaseMutex(hAsyncTblAccMutex);
+
+	return(Sts);
+}
+
 int GetAsyncTableDataIPv4(SOCKET s, struct sockaddr_in* Host, struct sockaddr_in* Socks)
 {
 	int Sts;
@@ -738,6 +766,27 @@ int GetAsyncTableDataIPv6(SOCKET s, struct sockaddr_in6* Host, struct sockaddr_i
 				memcpy(Host, &Signal[Pos].HostAddrIPv6, sizeof(struct sockaddr_in6));
 			if(Socks != NULL)
 				memcpy(Socks, &Signal[Pos].SocksAddrIPv6, sizeof(struct sockaddr_in6));
+			Sts = YES;
+			break;
+		}
+	}
+	ReleaseMutex(hAsyncTblAccMutex);
+
+	return(Sts);
+}
+
+int GetAsyncTableDataMapPort(SOCKET s, int* Port)
+{
+	int Sts;
+	int Pos;
+
+	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
+	Sts = NO;
+	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
+	{
+		if(Signal[Pos].Socket == s)
+		{
+			*Port = Signal[Pos].MapPort;
 			Sts = YES;
 			break;
 		}
@@ -1306,6 +1355,82 @@ void RemoveReceivedData(SOCKET s)
 //		AskAsyncDone(s, &Error, FD_READ);
 		FTPS_recv(s, buf, len, 0);
 	}
+}
+
+// UPnP対応
+int LoadUPnP()
+{
+	int Sts;
+	Sts = FFFTP_FAIL;
+	if(CoCreateInstance(&CLSID_UPnPNAT, NULL, CLSCTX_ALL, &IID_IUPnPNAT, (void**)&pUPnPNAT) == S_OK)
+	{
+		if(pUPnPNAT->lpVtbl->get_StaticPortMappingCollection(pUPnPNAT, &pUPnPMap) == S_OK)
+			Sts = FFFTP_SUCCESS;
+	}
+	return Sts;
+}
+
+void FreeUPnP()
+{
+	if(pUPnPMap != NULL)
+		pUPnPMap->lpVtbl->Release(pUPnPMap);
+	pUPnPMap = NULL;
+	if(pUPnPNAT != NULL)
+		pUPnPNAT->lpVtbl->Release(pUPnPNAT);
+	pUPnPNAT = NULL;
+}
+
+int IsUPnPLoaded()
+{
+	int Sts;
+	Sts = FFFTP_FAIL;
+	if(pUPnPNAT != NULL && pUPnPMap != NULL)
+		Sts = FFFTP_SUCCESS;
+	return Sts;
+}
+
+int AddPortMapping(char* Adrs, int Port)
+{
+	int Sts;
+	WCHAR Tmp1[40];
+	BSTR Tmp2;
+	BSTR Tmp3;
+	BSTR Tmp4;
+	IStaticPortMapping* pPortMap;
+	Sts = FFFTP_FAIL;
+	MtoW(Tmp1, 40, Adrs, -1);
+	if((Tmp2 = SysAllocString(Tmp1)) != NULL)
+	{
+		if((Tmp3 = SysAllocString(L"TCP")) != NULL)
+		{
+			if((Tmp4 = SysAllocString(L"FFFTP")) != NULL)
+			{
+				if(pUPnPMap->lpVtbl->Add(pUPnPMap, Port, Tmp3, Port, Tmp2, VARIANT_TRUE, Tmp4, &pPortMap) == S_OK)
+				{
+					Sts = FFFTP_SUCCESS;
+					pPortMap->lpVtbl->Release(pPortMap);
+				}
+				SysFreeString(Tmp4);
+			}
+			SysFreeString(Tmp3);
+		}
+		SysFreeString(Tmp2);
+	}
+	return Sts;
+}
+
+int RemovePortMapping(int Port)
+{
+	int Sts;
+	BSTR Tmp;
+	Sts = FFFTP_FAIL;
+	if((Tmp = SysAllocString(L"TCP")) != NULL)
+	{
+		if(pUPnPMap->lpVtbl->Remove(pUPnPMap, Port, Tmp) == S_OK)
+			Sts = FFFTP_SUCCESS;
+		SysFreeString(Tmp);
+	}
+	return Sts;
 }
 
 

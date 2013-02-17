@@ -1429,6 +1429,8 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 //	struct sockaddr_in saSockAddr1;
 	struct sockaddr_in saSockAddrIPv4;
 	struct sockaddr_in6 saSockAddrIPv6;
+	// UPnP対応
+	int Port;
 	char Reply[ERR_MSG_LEN+7];
 
 	if((listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, CancelCheckWork)) != INVALID_SOCKET)
@@ -1460,6 +1462,12 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 
 					if(shutdown(listen_socket, 1) != 0)
 						ReportWSError("shutdown listen", WSAGetLastError());
+					// UPnP対応
+					if(IsUPnPLoaded() == YES)
+					{
+						if(GetAsyncTableDataMapPort(listen_socket, &Port) == YES)
+							RemovePortMapping(Port);
+					}
 					listen_socket = DoClose(listen_socket);
 
 					if(data_socket == INVALID_SOCKET)
@@ -1506,12 +1514,29 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 			{
 				SetErrorMsg(Reply);
 				SetTaskMsg(MSGJPN090);
+				// UPnP対応
+				if(IsUPnPLoaded() == YES)
+				{
+					if(GetAsyncTableDataMapPort(listen_socket, &Port) == YES)
+						RemovePortMapping(Port);
+				}
 				listen_socket = DoClose(listen_socket);
 				iRetCode = 500;
 			}
 		}
 		else
+		// バグ修正
+//			iRetCode = 500;
+		{
+			// UPnP対応
+			if(IsUPnPLoaded() == YES)
+			{
+				if(GetAsyncTableDataMapPort(listen_socket, &Port) == YES)
+					RemovePortMapping(Port);
+			}
+			listen_socket = DoClose(listen_socket);
 			iRetCode = 500;
+		}
 	}
 	else
 	{
@@ -2704,6 +2729,8 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 //	struct sockaddr_in saSockAddr1;
 	struct sockaddr_in saSockAddrIPv4;
 	struct sockaddr_in6 saSockAddrIPv6;
+	// UPnP対応
+	int Port;
 	int Resume;
 	char Reply[ERR_MSG_LEN+7];
 
@@ -2757,6 +2784,12 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 
 				if(shutdown(listen_socket, 1) != 0)
 					ReportWSError("shutdown listen", WSAGetLastError());
+				// UPnP対応
+				if(IsUPnPLoaded() == YES)
+				{
+					if(GetAsyncTableDataMapPort(listen_socket, &Port) == YES)
+						RemovePortMapping(Port);
+				}
 				listen_socket = DoClose(listen_socket);
 
 				if(data_socket == INVALID_SOCKET)
@@ -2803,6 +2836,12 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 		{
 			SetErrorMsg(Reply);
 			SetTaskMsg(MSGJPN108);
+			// UPnP対応
+			if(IsUPnPLoaded() == YES)
+			{
+				if(GetAsyncTableDataMapPort(listen_socket, &Port) == YES)
+					RemovePortMapping(Port);
+			}
 			listen_socket = DoClose(listen_socket);
 			iRetCode = 500;
 		}

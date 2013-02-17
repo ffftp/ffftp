@@ -1915,8 +1915,10 @@ void DeleteSocketWin(void);
 // ソケットにデータを付与
 int SetAsyncTableDataIPv4(SOCKET s, struct sockaddr_in* Host, struct sockaddr_in* Socks);
 int SetAsyncTableDataIPv6(SOCKET s, struct sockaddr_in6* Host, struct sockaddr_in6* Socks);
+int SetAsyncTableDataMapPort(SOCKET s, int Port);
 int GetAsyncTableDataIPv4(SOCKET s, struct sockaddr_in* Host, struct sockaddr_in* Socks);
 int GetAsyncTableDataIPv6(SOCKET s, struct sockaddr_in6* Host, struct sockaddr_in6* Socks);
+int GetAsyncTableDataMapPort(SOCKET s, int* Port);
 // IPv6対応
 //struct hostent *do_gethostbyname(const char *Name, char *Buf, int Len, int *CancelCheckWork);
 struct hostent *do_gethostbynameIPv4(const char *Name, char *Buf, int Len, int *CancelCheckWork);
@@ -1930,6 +1932,12 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOut, int *CancelCh
 int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int *CancelCheckWork);
 // 同時接続対応
 void RemoveReceivedData(SOCKET s);
+// UPnP対応
+int LoadUPnP();
+void FreeUPnP();
+int IsUPnPLoaded();
+int AddPortMapping(char* Adrs, int Port);
+int RemovePortMapping(int Port);
 int CheckClosedAndReconnect(void);
 // 同時接続対応
 int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);

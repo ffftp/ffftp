@@ -794,6 +794,16 @@ int WSACancelAsyncRequestIPv6(HANDLE hAsyncTaskHandle)
 	return Result;
 }
 
+char* AddressToStringIPv4(char* str, void* in)
+{
+	char* pResult;
+	unsigned char* p;
+	pResult = str;
+	p = (unsigned char*)in;
+	sprintf(str, "%u.%u.%u.%u", p[0], p[1], p[2], p[3]);
+	return pResult;
+}
+
 char* AddressToStringIPv6(char* str, void* in6)
 {
 	char* pResult;

@@ -235,6 +235,7 @@
 #define PERM_A_WRITE                    1018
 #define CONNECT_NORAS                   1018
 #define PERM_A_EXEC                     1019
+#define CONNECT_UPNP                    1019
 #define PERM_TEXT                       1020
 #define PERM_NOW                        1021
 #define SORT_LFILE_FILE                 1022
