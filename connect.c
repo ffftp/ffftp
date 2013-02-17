@@ -106,6 +106,8 @@ extern int PasvDefault;
 extern int QuickAnonymous;
 // 切断対策
 extern int TimeOut;
+// UPnP対応
+extern int UPnPEnabled;
 
 /*===== ローカルなワーク =====*/
 
@@ -2729,7 +2731,7 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 						a = (char *)&saTmpAddr.sin_addr;
 						p = (char *)&saCtrlAddr.sin_port;
 						// UPnP対応
-						if(IsUPnPLoaded() == YES)
+						if(IsUPnPLoaded() == YES && UPnPEnabled == YES)
 						{
 							if(AddPortMapping(AddressToStringIPv4(Adrs, &saTmpAddr.sin_addr), ntohs(saCtrlAddr.sin_port)) == FFFTP_SUCCESS)
 								SetAsyncTableDataMapPort(listen_skt, ntohs(saCtrlAddr.sin_port));
@@ -2886,7 +2888,7 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 						a = (char *)&saTmpAddr.sin6_addr;
 						p = (char *)&saCtrlAddr.sin6_port;
 						// UPnP対応
-						if(IsUPnPLoaded() == YES)
+						if(IsUPnPLoaded() == YES && UPnPEnabled == YES)
 						{
 							if(AddPortMapping(AddressToStringIPv6(Adrs, &saTmpAddr.sin6_addr), ntohs(saCtrlAddr.sin6_port)) == FFFTP_SUCCESS)
 								SetAsyncTableDataMapPort(listen_skt, ntohs(saCtrlAddr.sin6_port));

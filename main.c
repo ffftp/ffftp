@@ -257,7 +257,7 @@ int LocalKanjiCode = KANJI_SJIS;
 // 自動切断対策
 int NoopEnable = NO;
 // UPnP対応
-int UPnPEnabled = NO;
+int UPnPEnabled = YES;
 time_t LastDataConnectionTime = 0;
 
 
