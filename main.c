@@ -3273,7 +3273,7 @@ BOOL LoadSSLRootCAFile()
 				for(i = 0; i < 5; i++)
 					Hash[i] = _byteswap_ulong(Hash[i]);
 				// 同梱する"ssl.pem"に合わせてSHA1ハッシュ値を変更すること
-				if(memcmp(&Hash, &SSLRootCAFileHash, 20) == 0 || memcmp(&Hash, "\x45\xBF\x6E\x22\xC1\x7C\xEC\x8D\xAB\x3D\x13\x7F\x2B\x93\x1C\x79\x04\x5B\x07\x0C", 20) == 0
+				if(memcmp(&Hash, &SSLRootCAFileHash, 20) == 0 || memcmp(&Hash, "\xD8\x8A\x7B\x2F\xBF\x23\x57\x16\xDA\x02\x14\x2B\xD4\x2E\x09\x80\xA0\x4C\x72\x62", 20) == 0
 					|| DialogBox(GetFtpInst(), MAKEINTRESOURCE(updatesslroot_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
 				{
 					memcpy(&SSLRootCAFileHash, &Hash, 20);
