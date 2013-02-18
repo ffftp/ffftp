@@ -33,6 +33,13 @@ Changes in Ver.1.99
    window if reusing sockets of the main window was enabled and you operated
    the main window while files were transferring.
 
+-- Added an option to control NATs with Universal Plug and Play on non PASV
+   mode connections.
+   This allows computers that are under NATs that have private IP addresses to
+   listen for connections with PORT commands.
+
+-- Supported the file list format of Windows Server 2008 R2.
+
 Changes in Ver.1.98f
 --------------------
 
