@@ -59,3 +59,4 @@
 #define	IDH_HELP_TOPIC_0000064	64	/* マスターパスワード */
 #define	IDH_HELP_TOPIC_0000065	65	/* 暗号化 */
 #define	IDH_HELP_TOPIC_0000066	66	/* 特殊機能 */
+#define	IDH_HELP_TOPIC_0000067	67	/* 転送４ */

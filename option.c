@@ -809,8 +809,7 @@ static INT_PTR CALLBACK Trmode4SettingProc(HWND hDlg, UINT message, WPARAM wPara
 					break;
 
 				case PSN_HELP :
-					// TODO:
-//					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000044);
+					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000067);
 					break;
 			}
 			break;
