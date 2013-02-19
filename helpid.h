@@ -36,12 +36,12 @@
 #define	IDH_HELP_TOPIC_0000039	39	/* ヘルプ */
 #define	IDH_HELP_TOPIC_0000040	40	/* 環境設定 */
 #define	IDH_HELP_TOPIC_0000041	41	/* ユーザ */
-#define	IDH_HELP_TOPIC_0000042	42	/* 転送１ */
-#define	IDH_HELP_TOPIC_0000043	43	/* 転送２ */
-#define	IDH_HELP_TOPIC_0000044	44	/* 転送３ */
+#define	IDH_HELP_TOPIC_0000042	42	/* 転送1 */
+#define	IDH_HELP_TOPIC_0000043	43	/* 転送2 */
+#define	IDH_HELP_TOPIC_0000044	44	/* 転送3 */
 #define	IDH_HELP_TOPIC_0000045	45	/* ミラーリング */
 #define	IDH_HELP_TOPIC_0000046	46	/* 操作 */
-#define	IDH_HELP_TOPIC_0000047	47	/* 表示 */
+#define	IDH_HELP_TOPIC_0000047	47	/* 表示1 */
 #define	IDH_HELP_TOPIC_0000048	48	/* 接続/切断 */
 #define	IDH_HELP_TOPIC_0000049	49	/* FireWall */
 #define	IDH_HELP_TOPIC_0000050	50	/* ツール */
@@ -59,4 +59,5 @@
 #define	IDH_HELP_TOPIC_0000064	64	/* マスターパスワード */
 #define	IDH_HELP_TOPIC_0000065	65	/* 暗号化 */
 #define	IDH_HELP_TOPIC_0000066	66	/* 特殊機能 */
-#define	IDH_HELP_TOPIC_0000067	67	/* 転送４ */
+#define	IDH_HELP_TOPIC_0000067	67	/* 転送4 */
+#define	IDH_HELP_TOPIC_0000068	68	/* 表示2 */

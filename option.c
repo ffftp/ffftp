@@ -1212,8 +1212,7 @@ static INT_PTR CALLBACK Disp2SettingProc(HWND hDlg, UINT message, WPARAM wParam,
 					break;
 
 				case PSN_HELP :
-					// TODO:
-//					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000047);
+					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000068);
 					break;
 			}
 			break;
