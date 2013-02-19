@@ -1,6 +1,6 @@
 FFFTP version history.
 
-Changes in Ver.1.99
+Changes in Ver.1.98g
 --------------------
 
 -- Tested on Windows 8 (32bit/64bit).

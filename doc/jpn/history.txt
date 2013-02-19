@@ -1,6 +1,6 @@
 FFFTP　改版リスト
 
-■Ver 1.99
+■Ver 1.98g
 
 ・Windows 8 (32bit/64bit)で動作を確認しました。
 

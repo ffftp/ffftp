@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.1.99 (FTP Client software)
+[Software Name]  FFFTP Ver.1.98g (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright(C) 2011-2013 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu).
 [Environment]    Windows 8, 7, Vista, XP, 2000
@@ -28,7 +28,7 @@ following menu.
 File ->@Settings -> Change Master password
 
 
-Changes in Ver.1.99
+Changes in Ver.1.98g
 --------------------
 
 -- Tested on Windows 8 (32bit/64bit).
