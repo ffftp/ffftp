@@ -300,7 +300,10 @@ int DoMKD(char *Path)
 
 	// 自動切断対策
 	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
+	{
 		NoopProc(YES);
+		LastDataConnectionTime = time(NULL);
+	}
 
 	return(Sts/100);
 }
@@ -328,7 +331,10 @@ int DoRMD(char *Path)
 
 	// 自動切断対策
 	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
+	{
 		NoopProc(YES);
+		LastDataConnectionTime = time(NULL);
+	}
 
 	return(Sts/100);
 }
@@ -356,7 +362,10 @@ int DoDELE(char *Path)
 
 	// 自動切断対策
 	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
+	{
 		NoopProc(YES);
+		LastDataConnectionTime = time(NULL);
+	}
 
 	return(Sts/100);
 }
@@ -389,7 +398,10 @@ int DoRENAME(char *Src, char *Dst)
 
 	// 自動切断対策
 	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
+	{
 		NoopProc(YES);
+		LastDataConnectionTime = time(NULL);
+	}
 
 	return(Sts/100);
 }
@@ -418,7 +430,10 @@ int DoCHMOD(char *Path, char *Mode)
 
 	// 自動切断対策
 	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
+	{
 		NoopProc(YES);
+		LastDataConnectionTime = time(NULL);
+	}
 
 	return(Sts/100);
 }
