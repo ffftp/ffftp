@@ -156,6 +156,7 @@ BEGIN
     POPUP "ツール(&T)"
     BEGIN
         MENUITEM "ワンタイムパスワード計算(&O)...",         MENU_OTPCALC
+        MENUITEM "WindowsファイアウォールのステートフルFTPフィルタの設定(&F)...", MENU_FW_FTP_FILTER
     END
     POPUP "オプション(&O)"
     BEGIN

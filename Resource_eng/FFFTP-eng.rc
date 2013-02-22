@@ -156,6 +156,7 @@ BEGIN
     POPUP "&Tools"
     BEGIN
         MENUITEM "&One-Time Password Calculation...", MENU_OTPCALC
+        MENUITEM "Turn on/off Stateful FTP &Filtering of Windows Firewall...", MENU_FW_FTP_FILTER
     END
     POPUP "&Options"
     BEGIN
@@ -780,7 +781,8 @@ BEGIN
     PUSHBUTTON      "A&dd...",TRMODE_ADD,167,19,31,14
     PUSHBUTTON      "Delete",TRMODE_DEL,167,38,31,14
     CONTROL         "&Remove EOF for ASCII mode upload",TRMODE_EOF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,94,196,10
-    CONTROL         "Retain file date/&time on upload and download",TRMODE_TIME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,196,10
+    CONTROL         "Retain file date/&time on upload and download",TRMODE_TIME,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,196,10
     CONTROL         "Truncate filename before &semicolon on download",TRMODE_SEMICOLON,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,196,10
     CONTROL         "Create &directory at file transfer with renaming",TRMODE_MAKEDIR,
@@ -794,7 +796,8 @@ FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "&Overwrite existing file",UP_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,8,38,99,10
     CONTROL         "Overwrite if upload file is &newer",UP_EXIST_NEW,"Button",BS_AUTORADIOBUTTON,7,50,118,10
-    CONTROL         "Overwrite if upload file is &larger",UP_EXIST_LARGE,"Button",BS_AUTORADIOBUTTON,7,62,118,10
+    CONTROL         "Overwrite if upload file is &larger",UP_EXIST_LARGE,
+                    "Button",BS_AUTORADIOBUTTON,7,62,118,10
     CONTROL         "&Resume",UP_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,74,99,10
     CONTROL         "Rename &by the host",UP_EXIST_UNIQUE,"Button",BS_AUTORADIOBUTTON,7,86,99,10
     CONTROL         "&Skip",UP_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,98,99,10
@@ -1486,7 +1489,8 @@ opt_disp2_dlg DIALOG  0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Display file &permissions in numbers",DISP2_PERMIT_NUM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,196,10
+    CONTROL         "Display file &permissions in numbers",DISP2_PERMIT_NUM,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,196,10
 END
 
 

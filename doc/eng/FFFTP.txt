@@ -62,11 +62,16 @@ Changes in Ver.1.98g
    the main window while files were transferring.
 
 -- Added an option to control NATs with Universal Plug and Play on non PASV
-   mode connections.
+   mode connections (Windows XP or later only).
    This allows computers that are under NATs that have private IP addresses to
    listen for connections with PORT commands.
 
 -- Supported the file list format of Windows Server 2008 R2.
+
+-- Added an option to turn on/off stateful FTP filtering of Windows Firewall
+   (Windows Vista or later only).
+   This may improve communication conditions in the case that FTPES connection
+   used to be interrupted or that the computer has only private IP addresses.
 
 
 Outline

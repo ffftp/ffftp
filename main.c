@@ -1545,6 +1545,11 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					OtpCalcTool();
 					break;
 
+				// FTPS対応
+				case MENU_FW_FTP_FILTER :
+					TurnStatefulFTPFilter();
+					break;
+
 				case MENU_URL_COPY :
 					CopyURLtoClipBoard();
 					break;
