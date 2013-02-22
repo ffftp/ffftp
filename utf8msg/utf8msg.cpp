@@ -139,48 +139,48 @@ int _tmain(int argc, _TCHAR* argv[])
 	_tsetlocale(LC_ALL, _T(""));
 	if(argc != 3)
 	{
-		_tprintf(_T("UTF-8で書かれたC言語ソースファイル内の文字列リテラルをエンコードします。\n"));
-		_tprintf(_T("行中で最初に出現する文字列リテラルはそのまま保持されます。\n"));
-		_tprintf(_T("行中で2番目以降に出現する文字列リテラルは最初のものでエンコードされます。\n"));
-		_tprintf(_T("コマンドライン\n"));
-		_tprintf(_T("mbtoutf8 [in] [out]\n"));
-		_tprintf(_T("[in]    元のソースファイルのファイル名\n"));
-		_tprintf(_T("[out]   保存先のファイル名\n"));
+		_tprintf(_T("Encode string literals in C language source files written in UTF-8.\n"));
+		_tprintf(_T("The first string literal in each line will be retained.\n"));
+		_tprintf(_T("The other string literals in each line will be encoded from the first one.\n"));
+		_tprintf(_T("Command line\n"));
+		_tprintf(_T("utf8msg.exe [in] [out]\n"));
+		_tprintf(_T("[in]    Original source file name.\n"));
+		_tprintf(_T("[out]   File name to save.\n"));
 		return 0;
 	}
 	fpIn = _tfopen(argv[1], _T("rb"));
 	if(!fpIn)
 	{
-		_tprintf(_T("ファイル\"%s\"が開けません。\n"), argv[1]);
+		_tprintf(_T("File \"%s\" cannot be opened.\n"), argv[1]);
 		return 0;
 	}
 	if(fseek(fpIn, 0, SEEK_END) != 0)
 	{
-		_tprintf(_T("ファイル\"%s\"が開けません。\n"), argv[1]);
+		_tprintf(_T("File \"%s\" cannot be opened.\n"), argv[1]);
 		return 0;
 	}
 	InLength = ftell(fpIn);
 	if(fseek(fpIn, 0, SEEK_SET) != 0)
 	{
-		_tprintf(_T("ファイル\"%s\"が開けません。\n"), argv[1]);
+		_tprintf(_T("File \"%s\" cannot be opened.\n"), argv[1]);
 		return 0;
 	}
 	pInBuffer = (char*)malloc(InLength);
 	if(!pInBuffer)
 	{
-		_tprintf(_T("ファイル\"%s\"が開けません。\n"), argv[1]);
+		_tprintf(_T("File \"%s\" cannot be opened.\n"), argv[1]);
 		return 0;
 	}
 	if((long)fread(pInBuffer, 1, InLength, fpIn) != InLength)
 	{
-		_tprintf(_T("ファイル\"%s\"が開けません。\n"), argv[1]);
+		_tprintf(_T("File \"%s\" cannot be opened.\n"), argv[1]);
 		return 0;
 	}
 	OutLength = InLength * 4;
 	pOutBuffer = (char*)malloc(OutLength);
 	if(!pOutBuffer)
 	{
-		_tprintf(_T("ファイル\"%s\"が開けません。\n"), argv[1]);
+		_tprintf(_T("File \"%s\" cannot be opened.\n"), argv[1]);
 		return 0;
 	}
 	pIn = pInBuffer;
@@ -233,44 +233,44 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		if(fseek(fpIn, 0, SEEK_END) != 0)
 		{
-			_tprintf(_T("ファイル\"%s\"が開けません。\n"), argv[2]);
+			_tprintf(_T("File \"%s\" cannot be opened.\n"), argv[2]);
 			return 0;
 		}
 		InLength = ftell(fpIn);
 		if(fseek(fpIn, 0, SEEK_SET) != 0)
 		{
-			_tprintf(_T("ファイル\"%s\"が開けません。\n"), argv[2]);
+			_tprintf(_T("File \"%s\" cannot be opened.\n"), argv[2]);
 			return 0;
 		}
 		pInBuffer = (char*)malloc(InLength);
 		if(!pInBuffer)
 		{
-			_tprintf(_T("ファイル\"%s\"が開けません。\n"), argv[2]);
+			_tprintf(_T("File \"%s\" cannot be opened.\n"), argv[2]);
 			return 0;
 		}
 		if((long)fread(pInBuffer, 1, InLength, fpIn) != InLength)
 		{
-			_tprintf(_T("ファイル\"%s\"が開けません。\n"), argv[2]);
+			_tprintf(_T("File \"%s\" cannot be opened.\n"), argv[2]);
 			return 0;
 		}
 		if(InLength == OutLength && memcmp(pInBuffer, pOutBuffer, InLength) == 0)
 		{
-			_tprintf(_T("ファイル\"%s\"は変換の必要がありません。\n"), argv[2]);
+			_tprintf(_T("There is no need to convert file \"%s\".\n"), argv[2]);
 			return 0;
 		}
 	}
 	fpOut = _tfopen(argv[2], _T("wb"));
 	if(!fpOut)
 	{
-		_tprintf(_T("ファイル\"%s\"が作成できません。\n"), argv[2]);
+		_tprintf(_T("File \"%s\" cannot be created.\n"), argv[2]);
 		return 0;
 	}
 	if((long)fwrite(pOutBuffer, 1, OutLength, fpOut) != OutLength)
 	{
-		_tprintf(_T("ファイル\"%s\"が作成できません。\n"), argv[2]);
+		_tprintf(_T("File \"%s\" cannot be created.\n"), argv[2]);
 		return 0;
 	}
-	_tprintf(_T("ファイル\"%s\"は正常に変換されました。\n"), argv[2]);
+	_tprintf(_T("File \"%s\" was successfully converted.\n"), argv[2]);
 	return 0;
 }
 
