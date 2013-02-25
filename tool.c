@@ -163,3 +163,29 @@ static INT_PTR CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, L
 
 
 
+// FTPS対応
+void TurnStatefulFTPFilter()
+{
+	int ID;
+	char CurDir[FMAX_PATH+1];
+	char SysDir[FMAX_PATH+1];
+	ID = MessageBox(GetMainHwnd(), MSGJPN341, "FFFTP", MB_YESNOCANCEL);
+	if(ID == IDYES || ID == IDNO)
+	{
+		if(GetCurrentDirectory(FMAX_PATH, CurDir) > 0)
+		{
+			if(GetSystemDirectory(SysDir, FMAX_PATH) > 0)
+			{
+				if(SetCurrentDirectory(SysDir))
+				{
+					if(ShellExecute(NULL, "runas", "netsh", ID == IDYES ? "advfirewall set global statefulftp enable" : "advfirewall set global statefulftp disable", NULL, SW_SHOW) <= (HINSTANCE)32)
+					{
+						MessageBox(NULL, MSGJPN342, "FFFTP", MB_OK);
+					}
+					SetCurrentDirectory(CurDir);
+				}
+			}
+		}
+	}
+}
+

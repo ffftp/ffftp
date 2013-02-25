@@ -1,2 +1,2 @@
-utf8msg mesg-jpn.h mesg-jpn.h
-utf8msg mesg-eng.h mesg-eng.h
+utf8msg.exe mesg-jpn.h mesg-jpn.h
+utf8msg.exe mesg-eng.h mesg-eng.h

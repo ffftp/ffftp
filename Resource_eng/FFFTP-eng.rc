@@ -156,6 +156,7 @@ BEGIN
     POPUP "&Tools"
     BEGIN
         MENUITEM "&One-Time Password Calculation...", MENU_OTPCALC
+        MENUITEM "Turn on/off Stateful FTP &Filtering of Windows Firewall...", MENU_FW_FTP_FILTER
     END
     POPUP "&Options"
     BEGIN
@@ -237,7 +238,7 @@ FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,132,296,50,14
     ICON            ffftp,-1,7,4,20,20
-    CTEXT           "FFFTP  Ver 1.98f",-1,110,11,90,8
+    CTEXT           "FFFTP  Ver 1.99",-1,110,11,90,8
     CTEXT           "FFFTP is freeware",-1,7,281,301,8
     CTEXT           "Copyright(C) 1997-2010 Sota && cooperators\nCopyright (C) 2011-2013 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu)",-1,7,25,301,44
     CTEXT           "",ABOUT_JRE,7,93,301,8
@@ -780,7 +781,8 @@ BEGIN
     PUSHBUTTON      "A&dd...",TRMODE_ADD,167,19,31,14
     PUSHBUTTON      "Delete",TRMODE_DEL,167,38,31,14
     CONTROL         "&Remove EOF for ASCII mode upload",TRMODE_EOF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,94,196,10
-    CONTROL         "Retain file date/&time on upload and download",TRMODE_TIME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,196,10
+    CONTROL         "Retain file date/&time on upload and download",TRMODE_TIME,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,196,10
     CONTROL         "Truncate filename before &semicolon on download",TRMODE_SEMICOLON,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,196,10
     CONTROL         "Create &directory at file transfer with renaming",TRMODE_MAKEDIR,
@@ -794,7 +796,8 @@ FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "&Overwrite existing file",UP_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,8,38,99,10
     CONTROL         "Overwrite if upload file is &newer",UP_EXIST_NEW,"Button",BS_AUTORADIOBUTTON,7,50,118,10
-    CONTROL         "Overwrite if upload file is &larger",UP_EXIST_LARGE,"Button",BS_AUTORADIOBUTTON,7,62,118,10
+    CONTROL         "Overwrite if upload file is &larger",UP_EXIST_LARGE,
+                    "Button",BS_AUTORADIOBUTTON,7,62,118,10
     CONTROL         "&Resume",UP_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,74,99,10
     CONTROL         "Rename &by the host",UP_EXIST_UNIQUE,"Button",BS_AUTORADIOBUTTON,7,86,99,10
     CONTROL         "&Skip",UP_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,98,99,10
@@ -1486,7 +1489,8 @@ opt_disp2_dlg DIALOG  0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Display file &permissions in numbers",DISP2_PERMIT_NUM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,196,10
+    CONTROL         "Display file &permissions in numbers",DISP2_PERMIT_NUM,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,196,10
 END
 
 
@@ -2185,8 +2189,8 @@ nodrop_csr              CURSOR                  "nodrop_c.cur"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,98,6,0
- PRODUCTVERSION 1,98,6,0
+ FILEVERSION 1,99,0,0
+ PRODUCTVERSION 1,99,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2204,12 +2208,12 @@ BEGIN
             VALUE "Comments", "This software is Free Software"
             VALUE "CompanyName", "Sota, FFFTP Project"
             VALUE "FileDescription", "FFFTP"
-            VALUE "FileVersion", "1, 98, 6, 0"
+            VALUE "FileVersion", "1, 99, 0, 0"
             VALUE "InternalName", "FFFTP"
             VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & cooperators\nCopyright (C) 2011-2013 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu)."
             VALUE "OriginalFilename", "FFFTP.exe"
             VALUE "ProductName", "FFFTP"
-            VALUE "ProductVersion", "1, 98, 6, 0"
+            VALUE "ProductVersion", "1, 99, 0, 0"
         END
     END
     BLOCK "VarFileInfo"

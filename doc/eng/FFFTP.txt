@@ -31,43 +31,6 @@ File ->@Settings -> Change Master password
 Changes in Ver.1.99
 --------------------
 
--- Tested on Windows 8 (32bit/64bit).
-
--- Added an option to overwrite files only if they are larger than their
-   originals.
-
--- Added an option to set a local Kanji code chosen at startup.
-
--- Changed to directly show Browse For Folder dialog on clicking Change Folder
-   button in the local side.
-
--- Improved conditions to send commands for keep alive.
-   Less likely to fail such as when deleting a large number of files.
-
--- Supported the file list format of uClinux.
-
--- Fixed bugs that unexpected files were deleted when removing a directory
-   which includes symbolic links.
-
--- Added an option to handle of seconds of time stamps.
-
--- Added an option to display file permissions in numbers.
-
--- Added an option to reconnect after transfer errors.
-   This may work around the limitations on the transfer amount or time per
-   session.
-
--- Fixed bugs that the file transfer might be aborted on operating the main
-   window if reusing sockets of the main window was enabled and you operated
-   the main window while files were transferring.
-
--- Added an option to control NATs with Universal Plug and Play on non PASV
-   mode connections.
-   This allows computers that are under NATs that have private IP addresses to
-   listen for connections with PORT commands.
-
--- Supported the file list format of Windows Server 2008 R2.
-
 
 Outline
 -------

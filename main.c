@@ -958,7 +958,10 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					}
 				}
 				if(NoopEnable == YES && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
+				{
 					NoopProc(NO);
+					LastDataConnectionTime = time(NULL);
+				}
 				break;
 			}
 			break;
@@ -1545,6 +1548,11 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 				case MENU_OTPCALC :
 					OtpCalcTool();
+					break;
+
+				// FTPS対応
+				case MENU_FW_FTP_FILTER :
+					TurnStatefulFTPFilter();
 					break;
 
 				case MENU_URL_COPY :

@@ -1885,6 +1885,8 @@ int Make6WordPass(int seq, char *seed, char *pass, int type, char *buf);
 /*===== tool.c =====*/
 
 void OtpCalcTool(void);
+// FTPS対応
+void TurnStatefulFTPFilter();
 
 /*===== history.c =====*/
 

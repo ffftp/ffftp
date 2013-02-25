@@ -339,6 +339,8 @@
 #define MSGJPN338		_Tu8("Skip all", "Skip all")
 #define MSGJPN339		_Tu8("Transfer4", "Transfer4")
 #define MSGJPN340		_Tu8("View2", "View2")
+#define MSGJPN341		_Tu8("Enable or disable stateful FTP filtering of Windows Firewall.\nIt works only on Windows Vista or later.\nEnabling or disabling may improve communication conditions.\nChoose 'Yes' to enable or 'No' to disable it.", "Enable or disable stateful FTP filtering of Windows Firewall.\nIt works only on Windows Vista or later.\nEnabling or disabling may improve communication conditions.\nChoose 'Yes' to enable or 'No' to disable it.")
+#define MSGJPN342		_Tu8("Failed to turn on/off stateful FTP filtering.", "Failed to turn on/off stateful FTP filtering.")
 #if defined(HAVE_TANDEM)
 #define MSGJPN2000		_Tu8("NonStop Server", "NonStop Server")
 #define MSGJPN2001		_Tu8("OSS<->GUARDIAN Switch(&O)", "OSS<->GUARDIAN Switch(&O)")
