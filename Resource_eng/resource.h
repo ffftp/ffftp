@@ -226,6 +226,7 @@
 #define TOOL_EDITOR1_BR                 1015
 #define CONNECT_CLOSE_NOTIFY            1015
 #define DISP2_PERMIT_NUM                1015
+#define MISC_ENCRYPT_SETTINGS           1015
 #define PERM_O_EXEC                     1016
 #define TOOL_EDITOR2_BR                 1016
 #define CONNECT_QUICK_ANONY             1016

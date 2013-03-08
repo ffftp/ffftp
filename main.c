@@ -259,6 +259,8 @@ int NoopEnable = NO;
 // UPnP対応
 int UPnPEnabled = YES;
 time_t LastDataConnectionTime = 0;
+// 全設定暗号化対応
+int EncryptAllSettings = NO;
 
 
 
@@ -3320,5 +3322,34 @@ void CheckPortableVersion()
 int AskPortableVersion(void)
 {
 	return(PortableVersion);
+}
+
+// 全設定暗号化対応
+int Restart()
+{
+	int Sts;
+	char* CommandLine;
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+	Sts = FFFTP_FAIL;
+	if(CommandLine = (char*)malloc(sizeof(char) * (strlen(GetCommandLine())  + 1)))
+	{
+		strcpy(CommandLine, GetCommandLine());
+		GetStartupInfo(&si);
+		if(CreateProcess(NULL, CommandLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+		{
+			CloseHandle(pi.hThread);
+			CloseHandle(pi.hProcess);
+			Sts = FFFTP_SUCCESS;
+		}
+		free(CommandLine);
+	}
+	return Sts;
+}
+
+void RestartAndTerminate()
+{
+	Restart();
+	exit(1);
 }
 

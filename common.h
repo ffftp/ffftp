@@ -1368,6 +1368,9 @@ BOOL IsMainThread();
 // ポータブル版判定
 void CheckPortableVersion();
 int AskPortableVersion(void);
+// 全設定暗号化対応
+int Restart();
+void RestartAndTerminate();
 
 /*===== filelist.c =====*/
 

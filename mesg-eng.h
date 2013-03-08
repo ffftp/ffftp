@@ -341,6 +341,7 @@
 #define MSGJPN340		_Tu8("View2", "View2")
 #define MSGJPN341		_Tu8("Enable or disable stateful FTP filtering of Windows Firewall.\nIt works only on Windows Vista or later.\nEnabling or disabling may improve communication conditions.\nChoose 'Yes' to enable or 'No' to disable it.", "Enable or disable stateful FTP filtering of Windows Firewall.\nIt works only on Windows Vista or later.\nEnabling or disabling may improve communication conditions.\nChoose 'Yes' to enable or 'No' to disable it.")
 #define MSGJPN342		_Tu8("Failed to turn on/off stateful FTP filtering.", "Failed to turn on/off stateful FTP filtering.")
+#define MSGJPN343		_Tu8("A corruption or tampering of the settings is detected.\nProblems such as settings loss or abnormal stop may occur if this is ignored to load.\nChoose 'Abort' to discard all settings.\nChoose 'Retry' to load settings as read only.\nChoose 'Ignore' to ignore this and load settings", "A corruption or tampering of the settings is detected.\nProblems such as settings loss or abnormal stop may occur if this is ignored to load.\nChoose 'Abort' to discard all settings.\nChoose 'Retry' to load settings as read only.\nChoose 'Ignore' to ignore this and load settings")
 #if defined(HAVE_TANDEM)
 #define MSGJPN2000		_Tu8("NonStop Server", "NonStop Server")
 #define MSGJPN2001		_Tu8("OSS<->GUARDIAN Switch(&O)", "OSS<->GUARDIAN Switch(&O)")

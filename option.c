@@ -180,6 +180,8 @@ extern int DispPermissionsNumber;
 extern int MakeAllDir;
 // UPnP対応
 extern int UPnPEnabled;
+// 全設定暗号化対応
+extern int EncryptAllSettings;
 
 
 /*----- オプションのプロパティシート ------------------------------------------
@@ -1689,6 +1691,8 @@ static INT_PTR CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 			// ポータブル版判定
 			if(AskForceIni() == YES)
 				EnableWindow(GetDlgItem(hDlg, MISC_REGTYPE), FALSE);
+			// 全設定暗号化対応
+			SendDlgItemMessage(hDlg, MISC_ENCRYPT_SETTINGS, BM_SETCHECK, EncryptAllSettings, 0);
 
 			SendDlgItemMessage(hDlg, MISC_CACHE_SAVE, BM_SETCHECK, CacheSave, 0);
 			SendDlgItemMessage(hDlg, MISC_BUFNUM, EM_LIMITTEXT, (WPARAM)2, 0);
@@ -1722,6 +1726,8 @@ static INT_PTR CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 //					RegType = SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_GETCHECK, 0, 0);
 					if(AskForceIni() == NO)
 						RegType = SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_GETCHECK, 0, 0);
+					// 全設定暗号化対応
+					EncryptAllSettings = SendDlgItemMessage(hDlg, MISC_ENCRYPT_SETTINGS, BM_GETCHECK, 0, 0);
 
 					CacheSave = SendDlgItemMessage(hDlg, MISC_CACHE_SAVE, BM_GETCHECK, 0, 0);
 					CacheEntry = GetDecimalText(hDlg, MISC_BUFNUM);

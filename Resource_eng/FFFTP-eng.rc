@@ -468,7 +468,9 @@ BEGIN
     PUSHBUTTON      "Default",MISC_CACHEDIR_DEF,177,74,26,13
     CONTROL         "Sa&ve settings to the ffftp.ini file, instead of the registry",MISC_REGTYPE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,92,173,10
-    CONTROL         "Debug",MISC_DEBUG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,123,40,10
+    CONTROL         "&Encrypt all settings with Master Password",MISC_ENCRYPT_SETTINGS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,173,10
+    CONTROL         "Debug",MISC_DEBUG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,124,40,10
 END
 
 hostname_dlg DIALOG  0, 0, 187, 93
