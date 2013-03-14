@@ -976,8 +976,11 @@ int command(SOCKET cSkt, char *Reply, int *CancelCheckWork, char *fmt, ...)
 		{
 			ChangeSepaLocal2Remote(Cmd);
 			SetTaskMsg(">%s", Cmd);
-			ChangeFnameLocal2Remote(Cmd, FMAX_PATH*2);
+			// UTF-8対応
+//			ChangeFnameLocal2Remote(Cmd, FMAX_PATH*2);
 		}
+		// UTF-8対応
+		ChangeFnameLocal2Remote(Cmd, FMAX_PATH*2);
 
 //		DoPrintf("SEND : %s", Cmd);
 		strcat(Cmd, "\x0D\x0A");
