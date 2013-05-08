@@ -3607,11 +3607,15 @@ static int AnalizeFileInfo(char *Str)
 	else
 	{
 		// MLSD対応
-		if(FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS && strstr(Tmp, "type=") != NULL)
+		if(FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS)
 		{
-			if(FindField2(Str, Tmp, ';', 1, NO) == FFFTP_SUCCESS && FindField2(Str, Tmp, '=', 1, NO) == FFFTP_SUCCESS)
+			_strlwr(Tmp);
+			if(strstr(Tmp, "type=") != NULL)
 			{
-				Ret = LIST_MLSD;
+				if(FindField2(Str, Tmp, ';', 1, NO) == FFFTP_SUCCESS && FindField2(Str, Tmp, '=', 1, NO) == FFFTP_SUCCESS)
+				{
+					Ret = LIST_MLSD;
+				}
 			}
 		}
 
