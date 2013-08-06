@@ -94,6 +94,10 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=..\..\..\conf.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\import.c
 # End Source File
 # Begin Source File

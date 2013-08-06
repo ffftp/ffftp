@@ -329,6 +329,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\CONF.C"
+				>
+			</File>
+			<File
 				RelativePath=".\CPROXY.C"
 				>
 			</File>

@@ -1,4 +1,4 @@
-\define{versionidconfig} \versionid $Id: config.but 9063 2010-12-29 14:11:25Z simon $
+\define{versionidconfig} \versionid $Id: config.but 9846 2013-05-28 23:46:44Z jacob $
 
 \C{config} Configuring PuTTY
 
@@ -1254,12 +1254,16 @@ mechanism for PuTTY and the server to communicate this information,
 so it must usually be manually configured.
 
 There are a lot of character sets to choose from. The \q{Remote
-character set} option lets you select one. By default PuTTY will
-attempt to choose a character set that is right for your \i{locale} as
-reported by Windows; if it gets it wrong, you can select a different
-one using this control.
+character set} option lets you select one.
 
-A few notable character sets are:
+By default PuTTY will use the \i{UTF-8} encoding of \i{Unicode}, which
+can represent pretty much any character; data coming from the server
+is interpreted as UTF-8, and keystrokes are sent UTF-8 encoded. This
+is what most modern distributions of Linux will expect by default.
+However, if this is wrong for your server, you can select a different
+character set using this control.
+
+A few other notable character sets are:
 
 \b The \i{ISO-8859} series are all standard character sets that include
 various accented characters appropriate for different sets of
@@ -1272,12 +1276,6 @@ Euro symbol.
 
 \b If you want the old IBM PC character set with block graphics and
 line-drawing characters, you can select \q{\i{CP437}}.
-
-\b PuTTY also supports \i{Unicode} mode, in which the data coming from
-the server is interpreted as being in the \i{UTF-8} encoding of Unicode,
-and keystrokes are sent UTF-8 encoded. If you select \q{UTF-8} as a
-character set you can use this mode. Not all server-side applications
-will support it.
 
 If you need support for a numeric \i{code page} which is not listed in
 the drop-down list, such as code page 866, then you can try entering
@@ -1541,20 +1539,22 @@ If you do not see \cq{colors#256} in the output, you may need to
 change your terminal setting. On modern Linux machines, you could
 try \cq{xterm-256color}.
 
-\S{config-boldcolour} \q{Bolded text is a different colour}
+\S{config-boldcolour} \q{Indicate bolded text by changing}
 
 \cfg{winhelp-topic}{colours.bold}
 
 When the server sends a \i{control sequence} indicating that some text
-should be displayed in \i{bold}, PuTTY can handle this two ways. It can
-either change the \i{font} for a bold version, or use the same font in a
-brighter colour. This control lets you choose which.
+should be displayed in \i{bold}, PuTTY can handle this in several
+ways. It can either change the \i{font} for a bold version, or use the
+same font in a brighter colour, or it can do both (brighten the colour
+\e{and} embolden the font). This control lets you choose which.
 
-By default the box is checked, so non-bold text is displayed in
-light grey and bold text is displayed in bright white (and similarly
-in other colours). If you uncheck the box, bold and non-bold text
-will be displayed in the same colour, and instead the font will
-change to indicate the difference.
+By default bold is indicated by colour, so non-bold text is displayed
+in light grey and bold text is displayed in bright white (and
+similarly in other colours). If you change the setting to \q{The font}
+box, bold and non-bold text will be displayed in the same colour, and
+instead the font will change to indicate the difference. If you select
+\q{Both}, the font and the colour will both change.
 
 \S{config-logpalette} \q{Attempt to use \i{logical palettes}}
 
@@ -3205,6 +3205,29 @@ If this bug is detected, PuTTY never allows the channel's
 send an over-sized packet.  If this bug is enabled when talking to a
 correct server, the session will work correctly, but download
 performance will be less than it could be.
+
+\S{config-ssh-bug-winadj} \q{Chokes on PuTTY's SSH-2 \cq{winadj} requests}
+
+\cfg{winhelp-topic}{ssh.bugs.winadj}
+
+PuTTY sometimes sends a special request to SSH servers in the middle
+of channel data, with the name \cw{winadj@putty.projects.tartarus.org}
+(see \k{sshnames-channel}). The purpose of this request is to measure
+the round-trip time to the server, which PuTTY uses to tune its flow
+control. The server does not actually have to \e{understand} the
+message; it is expected to send back a \cw{SSH_MSG_CHANNEL_FAILURE}
+message indicating that it didn't understand it. (All PuTTY needs for
+its timing calculations is \e{some} kind of response.)
+
+It has been known for some SSH servers to get confused by this message
+in one way or another \dash because it has a long name, or because
+they can't cope with unrecognised request names even to the extent of
+sending back the correct failure response, or because they handle it
+sensibly but fill up the server's log file with pointless spam, or
+whatever. PuTTY therefore supports this bug-compatibility flag: if it
+believes the server has this bug, it will never send its
+\cq{winadj@putty.projects.tartarus.org} request, and will make do
+without its timing data.
 
 \H{config-serial} The Serial panel
 

@@ -102,6 +102,10 @@ SOURCE=..\..\..\cmdline.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\conf.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\config.c
 # End Source File
 # Begin Source File
