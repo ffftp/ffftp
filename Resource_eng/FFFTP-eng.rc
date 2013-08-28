@@ -1493,6 +1493,8 @@ FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "Display file &permissions in numbers",DISP2_PERMIT_NUM,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,196,10
+    CONTROL         "&Refresh the file list automatically",DISP2_AUTO_REFRESH,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,196,10
 END
 
 

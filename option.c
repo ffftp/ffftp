@@ -182,6 +182,8 @@ extern int MakeAllDir;
 extern int UPnPEnabled;
 // 全設定暗号化対応
 extern int EncryptAllSettings;
+// ローカル側自動更新
+extern int AutoRefreshFileList;
 
 
 /*----- オプションのプロパティシート ------------------------------------------
@@ -1191,6 +1193,7 @@ static INT_PTR CALLBACK Disp1SettingProc(HWND hDlg, UINT message, WPARAM wParam,
 
 
 // ファイルの属性を数字で表示
+// ローカル側自動更新
 static INT_PTR CALLBACK Disp2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
@@ -1200,6 +1203,7 @@ static INT_PTR CALLBACK Disp2SettingProc(HWND hDlg, UINT message, WPARAM wParam,
 	{
 		case WM_INITDIALOG :
 			SendDlgItemMessage(hDlg, DISP2_PERMIT_NUM, BM_SETCHECK, DispPermissionsNumber, 0);
+			SendDlgItemMessage(hDlg, DISP2_AUTO_REFRESH, BM_SETCHECK, AutoRefreshFileList, 0);
 		    return(TRUE);
 
 		case WM_NOTIFY:
@@ -1208,6 +1212,7 @@ static INT_PTR CALLBACK Disp2SettingProc(HWND hDlg, UINT message, WPARAM wParam,
 			{
 				case PSN_APPLY :
 					DispPermissionsNumber = SendDlgItemMessage(hDlg, DISP2_PERMIT_NUM, BM_GETCHECK, 0, 0);
+					AutoRefreshFileList = SendDlgItemMessage(hDlg, DISP2_AUTO_REFRESH, BM_GETCHECK, 0, 0);
 					break;
 
 				case PSN_RESET :

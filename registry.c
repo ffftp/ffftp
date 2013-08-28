@@ -217,6 +217,8 @@ extern int LocalKanjiCode;
 extern int UPnPEnabled;
 // 全設定暗号化対応
 extern int EncryptAllSettings;
+// ローカル側自動更新
+extern int AutoRefreshFileList;
 
 /*----- マスタパスワードの設定 ----------------------------------------------
 *
@@ -669,6 +671,8 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "Kanji", LocalKanjiCode);
 				// UPnP対応
 				WriteIntValueToReg(hKey4, "UPnP", UPnPEnabled);
+				// ローカル側自動更新
+				WriteIntValueToReg(hKey4, "ListRefresh", AutoRefreshFileList);
 			}
 			CloseSubKey(hKey4);
 		}
@@ -1118,6 +1122,8 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "Kanji", &LocalKanjiCode);
 			// UPnP対応
 			ReadIntValueFromReg(hKey4, "UPnP", &UPnPEnabled);
+			// ローカル側自動更新
+			ReadIntValueFromReg(hKey4, "ListRefresh", &AutoRefreshFileList);
 
 			CloseSubKey(hKey4);
 		}

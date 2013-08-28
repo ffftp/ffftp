@@ -230,6 +230,7 @@
 #define PERM_O_EXEC                     1016
 #define TOOL_EDITOR2_BR                 1016
 #define CONNECT_QUICK_ANONY             1016
+#define DISP2_AUTO_REFRESH              1016
 #define PERM_G_EXEC                     1017
 #define TOOL_EDITOR3_BR                 1017
 #define CONNECT_SENDQUIT                1017
