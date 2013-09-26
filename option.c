@@ -184,6 +184,8 @@ extern int UPnPEnabled;
 extern int EncryptAllSettings;
 // ローカル側自動更新
 extern int AutoRefreshFileList;
+// 古い処理内容を消去
+extern int RemoveOldLog;
 
 
 /*----- オプションのプロパティシート ------------------------------------------
@@ -1204,6 +1206,7 @@ static INT_PTR CALLBACK Disp2SettingProc(HWND hDlg, UINT message, WPARAM wParam,
 		case WM_INITDIALOG :
 			SendDlgItemMessage(hDlg, DISP2_PERMIT_NUM, BM_SETCHECK, DispPermissionsNumber, 0);
 			SendDlgItemMessage(hDlg, DISP2_AUTO_REFRESH, BM_SETCHECK, AutoRefreshFileList, 0);
+			SendDlgItemMessage(hDlg, DISP2_REMOVE_OLD_LOG, BM_SETCHECK, RemoveOldLog, 0);
 		    return(TRUE);
 
 		case WM_NOTIFY:
@@ -1213,6 +1216,7 @@ static INT_PTR CALLBACK Disp2SettingProc(HWND hDlg, UINT message, WPARAM wParam,
 				case PSN_APPLY :
 					DispPermissionsNumber = SendDlgItemMessage(hDlg, DISP2_PERMIT_NUM, BM_GETCHECK, 0, 0);
 					AutoRefreshFileList = SendDlgItemMessage(hDlg, DISP2_AUTO_REFRESH, BM_GETCHECK, 0, 0);
+					RemoveOldLog = SendDlgItemMessage(hDlg, DISP2_REMOVE_OLD_LOG, BM_GETCHECK, 0, 0);
 					break;
 
 				case PSN_RESET :

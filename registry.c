@@ -219,6 +219,8 @@ extern int UPnPEnabled;
 extern int EncryptAllSettings;
 // ローカル側自動更新
 extern int AutoRefreshFileList;
+// 古い処理内容を消去
+extern int RemoveOldLog;
 
 /*----- マスタパスワードの設定 ----------------------------------------------
 *
@@ -673,6 +675,8 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "UPnP", UPnPEnabled);
 				// ローカル側自動更新
 				WriteIntValueToReg(hKey4, "ListRefresh", AutoRefreshFileList);
+				// 古い処理内容を消去
+				WriteIntValueToReg(hKey4, "OldLog", RemoveOldLog);
 			}
 			CloseSubKey(hKey4);
 		}
@@ -1124,6 +1128,8 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "UPnP", &UPnPEnabled);
 			// ローカル側自動更新
 			ReadIntValueFromReg(hKey4, "ListRefresh", &AutoRefreshFileList);
+			// 古い処理内容を消去
+			ReadIntValueFromReg(hKey4, "OldLog", &RemoveOldLog);
 
 			CloseSubKey(hKey4);
 		}

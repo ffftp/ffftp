@@ -263,6 +263,8 @@ time_t LastDataConnectionTime = 0;
 int EncryptAllSettings = NO;
 // ローカル側自動更新
 int AutoRefreshFileList = YES;
+// 古い処理内容を消去
+int RemoveOldLog = NO;
 
 
 

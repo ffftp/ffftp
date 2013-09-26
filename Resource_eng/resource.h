@@ -234,6 +234,7 @@
 #define PERM_G_EXEC                     1017
 #define TOOL_EDITOR3_BR                 1017
 #define CONNECT_SENDQUIT                1017
+#define DISP2_REMOVE_OLD_LOG            1017
 #define PERM_A_WRITE                    1018
 #define CONNECT_NORAS                   1018
 #define PERM_A_EXEC                     1019

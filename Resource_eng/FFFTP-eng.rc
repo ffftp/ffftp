@@ -1495,6 +1495,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,196,10
     CONTROL         "&Refresh the file list automatically",DISP2_AUTO_REFRESH,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,196,10
+    CONTROL         "Do not show old &logs",DISP2_REMOVE_OLD_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,196,10
 END
 
 

@@ -45,8 +45,7 @@
 #include "common.h"
 #include "resource.h"
 
-// Windows 9x系をサポートしないため不要
-//#define TASK_BUFSIZE	(16*1024)
+#define TASK_BUFSIZE	(16*1024)
 
 
 
@@ -61,6 +60,8 @@ extern int ListHeight;
 extern int TaskHeight;
 extern HFONT ListFont;
 extern int DebugConsole;
+// 古い処理内容を消去
+extern int RemoveOldLog;
 
 /*===== ローカルなワーク =====*/
 
@@ -184,6 +185,7 @@ void SetTaskMsg(char *szFormat, ...)
 
 				/* テキストサイズのリミット値をチェック */
 				// Windows 9x系をサポートしないため不要
+				// 古い処理内容を消去
 //				if((Pos + strlen(szBuf)) >= TASK_BUFSIZE)
 //				{
 //					/* リミットを越えそうなら、先頭部分を切り捨てる */
@@ -194,6 +196,16 @@ void SetTaskMsg(char *szFormat, ...)
 //
 //					Pos = SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
 //				}
+				if(RemoveOldLog == YES)
+				{
+					if((Pos + strlen(szBuf)) >= TASK_BUFSIZE)
+					{
+						Pos = SendMessage(GetTaskWnd(), EM_LINEINDEX, 1, 0);
+						SendMessage(GetTaskWnd(), EM_SETSEL, 0, Pos);
+						SendMessage(GetTaskWnd(), EM_REPLACESEL, FALSE, (LPARAM)"");
+						Pos = SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
+					}
+				}
 
 				SendMessage(GetTaskWnd(), EM_SETSEL, Pos, Pos);
 				SendMessage(GetTaskWnd(), EM_REPLACESEL, FALSE, (LPARAM)szBuf);
