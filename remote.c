@@ -1655,6 +1655,20 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 //				*(Buf + cInfo.OutLen) = NUL;
 //				strcpy(Pos, Buf);
 //				break;
+
+			// UTF-8 HFS+対応
+			case KANJI_UTF8HFSX :
+				if(IsUnicodeNormalizationDllLoaded())
+				{
+					ConvUTF8HFSXtoUTF8N(&cInfo);
+					*(Buf + cInfo.OutLen) = NUL;
+					strcpy(Fname, Buf);
+					Pos = strchr(Fname, NUL);
+					FlushRestData(&cInfo);
+					*(Buf + cInfo.OutLen) = NUL;
+					strcpy(Pos, Buf);
+				}
+				break;
 		}
 		// バッファ上書きバグ対策
 		free(Buf2);
@@ -1823,6 +1837,20 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 //				*(Buf + cInfo.OutLen) = NUL;
 //				strcpy(Pos, Buf);
 //				break;
+
+			// UTF-8 HFS+対応
+			case KANJI_UTF8HFSX :
+				if(IsUnicodeNormalizationDllLoaded())
+				{
+					ConvUTF8NtoUTF8HFSX(&cInfo);
+					*(Buf + cInfo.OutLen) = NUL;
+					strcpy(Fname, Buf);
+					Pos = strchr(Fname, NUL);
+					FlushRestData(&cInfo);
+					*(Buf + cInfo.OutLen) = NUL;
+					strcpy(Pos, Buf);
+				}
+				break;
 		}
 		// バッファ上書きバグ対策
 		free(Buf2);

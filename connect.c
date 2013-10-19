@@ -1865,8 +1865,10 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 			// UTF-8対応
 			if(HostData->CurNameKanjiCode == KANJI_AUTO && (HostData->Feature & FEATURE_UTF8))
 			{
-				if((Sts = command(ContSock, Reply, CancelCheckWork, "OPTS UTF8 ON")) == 200)
-					HostData->CurNameKanjiCode = KANJI_UTF8N;
+				// UTF-8を指定した場合も自動判別を行う
+//				if((Sts = command(ContSock, Reply, CancelCheckWork, "OPTS UTF8 ON")) == 200)
+//					HostData->CurNameKanjiCode = KANJI_UTF8N;
+				command(ContSock, Reply, CancelCheckWork, "OPTS UTF8 ON");
 			}
 		}
 	}

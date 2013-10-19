@@ -282,6 +282,8 @@ DWORD GetNextCharM(LPCSTR lpString, LPCSTR pLimit, LPCSTR* ppNext);
 int PutNextCharM(LPSTR lpString, LPSTR pLimit, LPSTR* ppNext, DWORD Code);
 DWORD GetNextCharW(LPCWSTR lpString, LPCWSTR pLimit, LPCWSTR* ppNext);
 int PutNextCharW(LPWSTR lpString, LPWSTR pLimit, LPWSTR* ppNext, DWORD Code);
+int GetCodeCountM(LPCSTR lpString, int CharCount);
+int GetCodeCountW(LPCWSTR lpString, int CharCount);
 BOOL FixStringM(LPSTR pDst, LPCSTR pSrc);
 BOOL FixMultiStringM(LPSTR pDst, LPCSTR pSrc);
 BOOL CheckStringM(LPCSTR lpString);

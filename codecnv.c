@@ -36,6 +36,8 @@
 #include <winsock2.h>
 #include <mbstring.h>
 #include <windowsx.h>
+// UTF-8対応
+#include <winnls.h>
 
 #include "common.h"
 #include "resource.h"
@@ -61,6 +63,19 @@ static int CheckOnEUC(uchar *Pos, uchar *Btm);
 static int ConvertIBMExtendedChar(int code);
 
 
+typedef enum _NORM_FORM
+{
+	NormalizationOther = 0,
+	NormalizationC = 0x1,
+	NormalizationD = 0x2,
+	NormalizationKC = 0x5,
+	NormalizationKD = 0x6
+} NORM_FORM;
+
+typedef int (WINAPI* _NormalizeString)(NORM_FORM, LPCWSTR, int, LPWSTR, int);
+
+HMODULE hUnicodeNormalizationDll;
+_NormalizeString p_NormalizeString;
 
 #if 0
 /*----- 漢字コード変換のテストプログラム ------------------------------------*/
@@ -1844,6 +1859,242 @@ int ConvSJIStoUTF8N(CODECONVINFO *cInfo)
 }
 // UTF-8対応 ここまで↑
 
+// UTF-8 HFS+対応
+int ConvUTF8NtoUTF8HFSX(CODECONVINFO *cInfo)
+{
+	int Continue;
+	int SrcLength;
+	char* pSrc;
+	char* pSrcCur;
+	char* pSrcEnd;
+	char* pSrcNext;
+	char* pDstCur;
+	char* pDstEnd;
+	DWORD Code;
+	int Count;
+	wchar_t Temp1[4];
+	wchar_t Temp2[4];
+	char Temp3[16];
+	char* Temp3Cur;
+	char* Temp3End;
+	int TempCount;
+	Continue = NO;
+	SrcLength = cInfo->StrLen + cInfo->EscUTF8Len;
+	if(!(pSrc = (char*)malloc(sizeof(char) * (SrcLength + 1))))
+	{
+		*(cInfo->Buf) = '\0';
+		cInfo->BufSize = 0;
+		return Continue;
+	}
+	memcpy(pSrc, cInfo->EscUTF8, sizeof(char) * cInfo->EscUTF8Len);
+	memcpy(pSrc + cInfo->EscUTF8Len, cInfo->Str, sizeof(char) * cInfo->StrLen);
+	*(pSrc + SrcLength) = '\0';
+	cInfo->OutLen = 0;
+	pSrcCur = pSrc;
+	pSrcEnd = pSrc + SrcLength;
+	pSrcNext = pSrc;
+	pDstCur = cInfo->Buf;
+	pDstEnd = cInfo->Buf + cInfo->BufSize;
+	while(pSrcCur < pSrcEnd)
+	{
+		Code = GetNextCharM(pSrcCur, pSrcEnd, (LPCSTR*)&pSrcNext);
+		if(Code == 0x80000000)
+		{
+			if(pSrcNext == pSrcEnd)
+				// 入力の末尾が不完全
+				break;
+		}
+		else if((Code >= 0x00002000 && Code <= 0x00002fff)
+			|| (Code >= 0x0000f900 && Code <= 0x0000faff)
+			|| (Code >= 0x0002f800 && Code <= 0x0002faff))
+		{
+			// HFS+特有の例外
+			Count = PutNextCharM(pDstCur, pDstEnd, &pDstCur, Code);
+			if(Count > 0)
+				cInfo->OutLen += Count;
+			else
+			{
+				// 出力バッファが不足
+				Continue = YES;
+				break;
+			}
+		}
+		else
+		{
+			// Normalization Form Dに変換
+			Count = MultiByteToWideChar(CP_UTF8, 0, pSrcCur, (int)(pSrcNext - pSrcCur), Temp1, 4);
+			Count = p_NormalizeString(NormalizationD, Temp1, Count, Temp2, 4);
+			Count = WideCharToMultiByte(CP_UTF8, 0, Temp2, Count, Temp3, 16, NULL, NULL);
+			Temp3Cur = Temp3;
+			Temp3End = Temp3 + Count;
+			TempCount = 0;
+			while(Temp3Cur < Temp3End)
+			{
+				Code = GetNextCharM(Temp3Cur, Temp3End, (LPCSTR*)&Temp3Cur);
+				Count = PutNextCharM(pDstCur, pDstEnd, &pDstCur, Code);
+				if(Count > 0)
+					TempCount += Count;
+				else
+				{
+					// 出力バッファが不足
+					Continue = YES;
+					break;
+				}
+			}
+			cInfo->OutLen += TempCount;
+		}
+		pSrcCur = pSrcNext;
+	}
+	cInfo->Str += (int)(pSrcCur - pSrc) - cInfo->EscUTF8Len;
+	cInfo->StrLen -= (int)(pSrcCur - pSrc) - cInfo->EscUTF8Len;
+	cInfo->EscUTF8Len = 0;
+	free(pSrc);
+	if(Continue == NO)
+	{
+		memcpy(cInfo->EscUTF8, cInfo->Str, sizeof(char) * cInfo->StrLen);
+		cInfo->EscUTF8Len = cInfo->StrLen;
+		cInfo->Str += cInfo->StrLen;
+		cInfo->StrLen = 0;
+		cInfo->FlushProc = ConvUTF8NtoUTF8HFSX;
+	}
+	return YES;
+}
+
+// バグの可能性あり
+// 確認するまで複数個のバッファを用いた変換には用いないこと
+// UTF-8 Nomalization Form DからCへの変換後のバイト列が確定可能な長さを変換後のコードポイントの個数で返す
+// バイナリ            UTF-8       戻り値
+// E3 81 82 E3 81 84   あい     -> 1   あ+結合文字の先頭バイトの可能性（い゛等）
+// E3 81 82 E3 81      あ+E3 81 -> 0   結合文字の先頭バイトの可能性
+// E3 81 82 E3         あ+E3    -> 0   結合文字の先頭バイトの可能性
+// E3 81 82            あ       -> 0   結合文字の先頭バイトの可能性
+int ConvUTF8HFSXtoUTF8N_TruncateToDelimiter(char* pUTF8, int UTF8Length, int* pNewUTF8Length)
+{
+	int UTF16Length;
+	wchar_t* pUTF16;
+	int UTF16HFSXLength;
+	wchar_t* pUTF16HFSX;
+	int CodeCount;
+	int NewCodeCount;
+	int NewUTF16Length;
+	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, NULL, 0);
+	if(!(pUTF16 = (wchar_t*)malloc(sizeof(wchar_t) * UTF16Length)))
+		return -1;
+	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, pUTF16, UTF16Length);
+	UTF16HFSXLength = p_NormalizeString(NormalizationC, pUTF16, UTF16Length, NULL, 0);
+	if(!(pUTF16HFSX = (wchar_t*)malloc(sizeof(wchar_t) * UTF16HFSXLength)))
+	{
+		free(pUTF16);
+		return -1;
+	}
+	UTF16HFSXLength = p_NormalizeString(NormalizationC, pUTF16, UTF16Length, pUTF16HFSX, UTF16HFSXLength);
+	// 変換した時にコードポイントの個数が増減する位置がUnicode結合文字の区切り
+	CodeCount = GetCodeCountW(pUTF16HFSX, UTF16HFSXLength);
+	NewCodeCount = CodeCount;
+	while(UTF8Length > 0 && NewCodeCount >= CodeCount)
+	{
+		UTF8Length--;
+		UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, pUTF16, UTF16Length);
+		UTF16HFSXLength = p_NormalizeString(NormalizationC, pUTF16, UTF16Length, pUTF16HFSX, UTF16HFSXLength);
+		NewCodeCount = GetCodeCountW(pUTF16HFSX, UTF16HFSXLength);
+	}
+	free(pUTF16);
+	free(pUTF16HFSX);
+	// UTF-16 LE変換した時に文字数が増減する位置がUTF-8の区切り
+	if(pNewUTF8Length)
+	{
+		NewUTF16Length = UTF16Length;
+		while(UTF8Length > 0 && NewUTF16Length >= UTF16Length)
+		{
+			UTF8Length--;
+			NewUTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, NULL, 0);
+		}
+		if(UTF16Length > 0)
+			UTF8Length++;
+		*pNewUTF8Length = UTF8Length;
+	}
+	return NewCodeCount;
+}
+
+int ConvUTF8HFSXtoUTF8N(CODECONVINFO *cInfo)
+{
+	int Continue;
+	int SrcLength;
+	char* pSrc;
+	int UTF16Length;
+	wchar_t* pUTF16;
+	int UTF16HFSXLength;
+	wchar_t* pUTF16HFSX;
+	CODECONVINFO Temp;
+	int Count;
+	Continue = NO;
+	// 前回の変換不能な残りの文字列を入力の先頭に結合
+	SrcLength = cInfo->StrLen + cInfo->EscUTF8Len;
+	if(!(pSrc = (char*)malloc(sizeof(char) * (SrcLength + 1))))
+	{
+		*(cInfo->Buf) = '\0';
+		cInfo->BufSize = 0;
+		return Continue;
+	}
+	memcpy(pSrc, cInfo->EscUTF8, sizeof(char) * cInfo->EscUTF8Len);
+	memcpy(pSrc + cInfo->EscUTF8Len, cInfo->Str, sizeof(char) * cInfo->StrLen);
+	*(pSrc + SrcLength) = '\0';
+	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pSrc, SrcLength, NULL, 0);
+	if(!(pUTF16 = (wchar_t*)malloc(sizeof(wchar_t) * UTF16Length)))
+	{
+		free(pSrc);
+		*(cInfo->Buf) = '\0';
+		cInfo->BufSize = 0;
+		return Continue;
+	}
+	MultiByteToWideChar(CP_UTF8, 0, pSrc, SrcLength, pUTF16, UTF16Length);
+	UTF16HFSXLength = p_NormalizeString(NormalizationC, pUTF16, UTF16Length, NULL, 0);
+	if(!(pUTF16HFSX = (wchar_t*)malloc(sizeof(wchar_t) * UTF16HFSXLength)))
+	{
+		free(pSrc);
+		free(pUTF16);
+		*(cInfo->Buf) = '\0';
+		cInfo->BufSize = 0;
+		return Continue;
+	}
+	UTF16HFSXLength = p_NormalizeString(NormalizationC, pUTF16, UTF16Length, pUTF16HFSX, UTF16HFSXLength);
+	cInfo->OutLen = WideCharToMultiByte(CP_UTF8, 0, pUTF16HFSX, UTF16HFSXLength, cInfo->Buf, cInfo->BufSize, NULL, NULL);
+	if(cInfo->OutLen == 0 && UTF16HFSXLength > 0)
+	{
+		// バッファに収まらないため変換文字数を半減
+		Temp = *cInfo;
+		Temp.StrLen = cInfo->StrLen / 2;
+		ConvUTF8HFSXtoUTF8N(&Temp);
+		cInfo->OutLen = Temp.OutLen;
+		Count = cInfo->StrLen / 2 + cInfo->EscUTF8Len - Temp.StrLen - Temp.EscUTF8Len;
+		cInfo->Str += Count - cInfo->EscUTF8Len;
+		cInfo->StrLen -= Count - cInfo->EscUTF8Len;
+		cInfo->EscUTF8Len = 0;
+	}
+	else
+	{
+		cInfo->Str += SrcLength - cInfo->EscUTF8Len;
+		cInfo->StrLen -= SrcLength - cInfo->EscUTF8Len;
+		cInfo->EscUTF8Len = 0;
+	}
+	if(ConvUTF8HFSXtoUTF8N_TruncateToDelimiter(cInfo->Str, cInfo->StrLen, NULL) > 0)
+		Continue = YES;
+	else
+	{
+		// 変換不能なため次の入力の先頭に結合
+		memcpy(cInfo->EscUTF8, cInfo->Str, sizeof(char) * cInfo->StrLen);
+		cInfo->EscUTF8Len = cInfo->StrLen;
+		cInfo->Str += cInfo->StrLen;
+		cInfo->StrLen = 0;
+		cInfo->FlushProc = ConvUTF8HFSXtoUTF8N;
+		Continue = NO;
+	}
+	free(pSrc);
+	free(pUTF16);
+	free(pUTF16HFSX);
+	return Continue;
+}
+
 
 /*----- IBM拡張漢字をNEC選定IBM拡張漢字等に変換 -------------------------------
 *
@@ -1871,5 +2122,47 @@ static int ConvertIBMExtendedChar(int code)
 	else if((code >= 0xfb9c) && (code <= 0xfbfc))	code -= (0xfb9c - 0xee80);
 	else if((code >= 0xfc40) && (code <= 0xfc4b))	code -= (0xfc40 - 0xeee1);
 	return code;
+}
+
+// UTF-8対応
+int LoadUnicodeNormalizationDll()
+{
+	int Sts;
+	char CurDir[FMAX_PATH+1];
+	char SysDir[FMAX_PATH+1];
+	Sts = FFFTP_FAIL;
+	if(GetCurrentDirectory(FMAX_PATH, CurDir) > 0)
+	{
+		if(GetSystemDirectory(SysDir, FMAX_PATH) > 0)
+		{
+			if(SetCurrentDirectory(SysDir))
+			{
+				if((hUnicodeNormalizationDll = LoadLibrary("normaliz.dll")) != NULL)
+				{
+					if((p_NormalizeString = (_NormalizeString)GetProcAddress(hUnicodeNormalizationDll, "NormalizeString")) != NULL)
+						Sts = FFFTP_SUCCESS;
+				}
+				SetCurrentDirectory(CurDir);
+			}
+		}
+	}
+	return Sts;
+}
+
+void FreeUnicodeNormalizationDll()
+{
+	if(hUnicodeNormalizationDll != NULL)
+		FreeLibrary(hUnicodeNormalizationDll);
+	hUnicodeNormalizationDll = NULL;
+	p_NormalizeString = NULL;
+}
+
+int IsUnicodeNormalizationDllLoaded()
+{
+	int Sts;
+	Sts = FFFTP_FAIL;
+	if(hUnicodeNormalizationDll != NULL && p_NormalizeString != NULL)
+		Sts = FFFTP_SUCCESS;
+	return Sts;
 }
 

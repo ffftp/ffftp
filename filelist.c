@@ -6144,7 +6144,7 @@ static int atoi_n(const char *Str, int Len)
 
 // UTF-8対応
 // ファイル一覧から漢字コードを推測
-// 優先度はUTF-8、Shift_JIS、EUC、JISの順
+// 優先度はUTF-8、Shift_JIS、EUC、JIS、UTF-8 HFS+の順
 int AnalyzeNameKanjiCode(int Num)
 {
 	char Str[FMAX_PATH+1];
@@ -6164,7 +6164,11 @@ int AnalyzeNameKanjiCode(int Num)
 	int PointJIS;
 	int PointEUC;
 	int PointUTF8N;
+	int PointUTF8HFSX;
 	char* p;
+	CODECONVINFO cInfo1;
+	CODECONVINFO cInfo2;
+	char Buf[FMAX_PATH+1];
 
 	NameKanjiCode = KANJI_AUTO;
 	Point = 0;
@@ -6172,6 +6176,7 @@ int AnalyzeNameKanjiCode(int Num)
 	PointJIS = 0;
 	PointEUC = 0;
 	PointUTF8N = 0;
+	PointUTF8HFSX = 0;
 	MakeCacheFileName(Num, Str);
 	if((fd = fopen(Str, "rb")) != NULL)
 	{
@@ -6194,7 +6199,25 @@ int AnalyzeNameKanjiCode(int Num)
 				if(!p)
 				{
 					if(!CheckStringM(Name))
-						PointUTF8N++;
+					{
+						InitCodeConvInfo(&cInfo1);
+						cInfo1.KanaCnv = NO;
+						cInfo1.Str = Name;
+						cInfo1.StrLen = strlen(Name);
+						cInfo1.Buf = Buf;
+						cInfo1.BufSize = FMAX_PATH;
+						cInfo2 = cInfo1;
+						ConvUTF8NtoUTF8HFSX(&cInfo1);
+						ConvUTF8HFSXtoUTF8N(&cInfo2);
+						if(cInfo1.OutLen > strlen(Name))
+							PointUTF8N++;
+						else
+							PointUTF8HFSX++;
+						if(cInfo2.OutLen < strlen(Name))
+							PointUTF8HFSX++;
+						else
+							PointUTF8N++;
+					}
 					else
 					{
 						switch(CheckKanjiCode(Name, strlen(Name), KANJI_SJIS))
@@ -6214,6 +6237,11 @@ int AnalyzeNameKanjiCode(int Num)
 			}
 		}
 		fclose(fd);
+	}
+	if(PointUTF8HFSX >= Point)
+	{
+		NameKanjiCode = KANJI_UTF8HFSX;
+		Point = PointUTF8HFSX;
 	}
 	if(PointJIS >= Point)
 	{

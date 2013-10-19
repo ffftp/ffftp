@@ -372,6 +372,9 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	CoInitialize(NULL);
 	LoadUPnP();
 
+	// UTF-8対応
+	LoadUnicodeNormalizationDll();
+
 	// FTPS対応
 #ifdef USE_OPENSSL
 	LoadOpenSSL();

@@ -460,6 +460,7 @@
 #define TRMODE4_UTF8N_CNV               1218
 #define TRMODE4_UTF8BOM_CNV             1219
 #define HSET_ERROR_RECONNECT            1220
+#define HSET_FN_UTF8HFSX_CNV            1221
 #define MENU_END                        40001
 #define MENU_EXIT                       40001
 #define MENU_CONNECT                    40003

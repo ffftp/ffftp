@@ -746,6 +746,8 @@ LIST_UNIX_70
 #define KANJI_UTF8N		5		/* UTF-8 */
 // UTF-8対応
 #define KANJI_UTF8BOM		6		/* UTF-8 BOM */
+// UTF-8 HFS+対応
+#define KANJI_UTF8HFSX		7		/* UTF-8 HFS+ */
 
 #define KANJI_NOCNV		-1		/* 漢字コード変換なし */
 
@@ -1735,8 +1737,15 @@ int ConvSJIStoJIS(CODECONVINFO *cInfo);
 int ConvSJIStoSMB_HEX(CODECONVINFO *cInfo);
 int ConvSJIStoSMB_CAP(CODECONVINFO *cInfo);
 int ConvSJIStoUTF8N(CODECONVINFO *cInfo); // UTF-8対応
+// UTF-8 HFS+対応
+int ConvUTF8NtoUTF8HFSX(CODECONVINFO *cInfo);
+int ConvUTF8HFSXtoUTF8N(CODECONVINFO *cInfo);
 void ConvAutoToSJIS(char *Text, int Pref);
 int CheckKanjiCode(char *Text, int Size, int Pref);
+// UTF-8対応
+int LoadUnicodeNormalizationDll();
+void FreeUnicodeNormalizationDll();
+int IsUnicodeNormalizationDllLoaded();
 
 /*===== option.c =====*/
 

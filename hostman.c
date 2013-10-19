@@ -1938,7 +1938,10 @@ static INT_PTR CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 		{ HSET_FN_EUC_CNV, KANJI_EUC },
 		{ HSET_FN_SMH_CNV, KANJI_SMB_HEX },
 		{ HSET_FN_SMC_CNV, KANJI_SMB_CAP },
-		{ HSET_FN_UTF8N_CNV, KANJI_UTF8N }		// UTF-8対応
+		// UTF-8 HFS+対応
+//		{ HSET_FN_UTF8N_CNV, KANJI_UTF8N }		// UTF-8対応
+		{ HSET_FN_UTF8N_CNV, KANJI_UTF8N },		// UTF-8対応
+		{ HSET_FN_UTF8HFSX_CNV, KANJI_UTF8HFSX }
 	};
 	#define NAMEKANJIBUTTONS	(sizeof(NameKanjiButton)/sizeof(RADIOBUTTON))
 
@@ -1998,6 +2001,8 @@ static INT_PTR CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 				case HSET_FN_SMH_CNV :
 				case HSET_FN_SMC_CNV :
 				case HSET_FN_UTF8N_CNV :	// UTF-8対応
+				// UTF-8 HFS+対応
+				case HSET_FN_UTF8HFSX_CNV :
 					EnableWindow(GetDlgItem(hDlg, HSET_FN_HANCNV), FALSE);
 					break;
 			}

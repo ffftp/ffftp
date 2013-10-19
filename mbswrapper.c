@@ -578,6 +578,48 @@ int PutNextCharW(LPWSTR lpString, LPWSTR pLimit, LPWSTR* ppNext, DWORD Code)
 	return Count;
 }
 
+// マルチバイト文字列のコードポイントの個数を取得
+int GetCodeCountM(LPCSTR lpString, int CharCount)
+{
+	int Count;
+	LPCSTR pLimit;
+	DWORD Code;
+	Count = 0;
+	if(CharCount == -1)
+		pLimit = lpString + strlen(lpString);
+	else
+		pLimit = lpString + CharCount;
+	while(lpString < pLimit)
+	{
+		Code = GetNextCharM(lpString, pLimit, &lpString);
+		if(Code == 0x80000000)
+			continue;
+		Count++;
+	}
+	return Count;
+}
+
+// ワイド文字列のコードポイントの個数を取得
+int GetCodeCountW(LPCWSTR lpString, int CharCount)
+{
+	int Count;
+	LPCWSTR pLimit;
+	DWORD Code;
+	Count = 0;
+	if(CharCount == -1)
+		pLimit = lpString + wcslen(lpString);
+	else
+		pLimit = lpString + CharCount;
+	while(lpString < pLimit)
+	{
+		Code = GetNextCharW(lpString, pLimit, &lpString);
+		if(Code == 0x80000000)
+			continue;
+		Count++;
+	}
+	return Count;
+}
+
 // マルチバイト文字列の冗長表現を修正
 // 修正があればTRUEを返す
 // 修正後の文字列の長さは元の文字列の長さ以下のためpDstとpSrcに同じ値を指定可能
