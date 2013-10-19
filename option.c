@@ -136,7 +136,7 @@ extern int FwallPort;
 extern int FwallType;
 extern int FwallDefault;
 extern int FwallSecurity;
-extern int FwallResolv;
+extern int FwallResolve;
 extern int FwallLower;
 extern int FwallDelimiter;
 extern int PasvDefault;
@@ -1428,7 +1428,7 @@ static INT_PTR CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 
 			SendDlgItemMessage(hDlg, FIRE_USEIT, BM_SETCHECK, FwallDefault, 0);
 			SendDlgItemMessage(hDlg, FIRE_PASV, BM_SETCHECK, PasvDefault, 0);
-			SendDlgItemMessage(hDlg, FIRE_RESOLV, BM_SETCHECK, FwallResolv, 0);
+			SendDlgItemMessage(hDlg, FIRE_RESOLV, BM_SETCHECK, FwallResolve, 0);
 			SendDlgItemMessage(hDlg, FIRE_LOWER, BM_SETCHECK, FwallLower, 0);
 
 			SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN212);
@@ -1455,7 +1455,7 @@ static INT_PTR CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 					FwallDelimiter = Tmp[0];
 					FwallDefault = SendDlgItemMessage(hDlg, FIRE_USEIT, BM_GETCHECK, 0, 0);
 					PasvDefault = SendDlgItemMessage(hDlg, FIRE_PASV, BM_GETCHECK, 0, 0);
-					FwallResolv = SendDlgItemMessage(hDlg, FIRE_RESOLV, BM_GETCHECK, 0, 0);
+					FwallResolve = SendDlgItemMessage(hDlg, FIRE_RESOLV, BM_GETCHECK, 0, 0);
 					FwallLower = SendDlgItemMessage(hDlg, FIRE_LOWER, BM_GETCHECK, 0, 0);
 					FwallSecurity = SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_GETCURSEL, 0, 0);
 					break;

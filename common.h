@@ -316,7 +316,7 @@
 // uClinux
 #define LIST_UNIX_17	51		/* UNIX 17 */
 // Windows Server 2008 R2
-#define LIST_DOS_5		52		/* MS-DOS 4 */
+#define LIST_DOS_5		52		/* MS-DOS 5 */
 
 #define LIST_MELCOM		0x100	/* MELCOM80 */
 

@@ -98,14 +98,14 @@ static int GetListOneLine(char *Buf, int Max, FILE *Fd);
 static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir);
 static void MakeLocalTree(char *Path, FILELIST **Base);
 static void AddFileList(FILELIST *Pkt, FILELIST **Base);
-static int AnalizeFileInfo(char *Str);
+static int AnalyzeFileInfo(char *Str);
 static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day);
 static int CheckHHMMformat(char *Str);
 static int CheckYYMMDDformat(char *Str, char Sym, int Dig3);
 static int CheckYYYYMMDDformat(char *Str, char Sym);
 // Windows Server 2008 R2
 static int CheckMMDDYYYYformat(char *Str, char Sym);
-static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, FILETIME *Time, int *Attr, char *Owner, int *Link, int *InfoExist);
+static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, FILETIME *Time, int *Attr, char *Owner, int *Link, int *InfoExist);
 static int FindField(char *Str, char *Buf, int Num, int ToLast);
 // MLSD対応
 static int FindField2(char *Str, char *Buf, char Separator, int Num, int ToLast);
@@ -1303,9 +1303,9 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork)
 
 				while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
 				{
-					if((ListType = AnalizeFileInfo(Str)) != LIST_UNKNOWN)
+					if((ListType = AnalyzeFileInfo(Str)) != LIST_UNKNOWN)
 					{
-						if((Type = ResolvFileInfo(Str, ListType, Buf, &Size, &Time, &Attr, Owner, &Link, &InfoExist)) != NODE_NONE)
+						if((Type = ResolveFileInfo(Str, ListType, Buf, &Size, &Time, &Attr, Owner, &Link, &InfoExist)) != NODE_NONE)
 						{
 							if(AskFilterStr(Buf, Type) == YES)
 							{
@@ -3195,7 +3195,7 @@ void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base)
 
 		while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
 		{
-			if((ListType = AnalizeFileInfo(Str)) == LIST_UNKNOWN)
+			if((ListType = AnalyzeFileInfo(Str)) == LIST_UNKNOWN)
 			{
 				if(MakeDirPath(Str, ListType, Path, Dir) == FFFTP_SUCCESS)
 				{
@@ -3215,7 +3215,7 @@ void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base)
 			}
 			else
 			{
-				Node = ResolvFileInfo(Str, ListType, Name, &Size, &Time, &Attr, Owner, &Link, &InfoExist);
+				Node = ResolveFileInfo(Str, ListType, Name, &Size, &Time, &Attr, Owner, &Link, &InfoExist);
 
 				if(AskFilterStr(Name, Node) == YES)
 				{
@@ -3576,7 +3576,7 @@ FILELIST *SearchFileList(char *Fname, FILELIST *Base, int Caps)
 *		int リストタイプ (LIST_xxx)
 *----------------------------------------------------------------------------*/
 
-static int AnalizeFileInfo(char *Str)
+static int AnalyzeFileInfo(char *Str)
 {
 	int Ret;
 	char Tmp[FMAX_PATH+1];
@@ -4403,7 +4403,7 @@ static int CheckMMDDYYYYformat(char *Str, char Sym)
 *		int 種類 (NODE_xxxx)
 *----------------------------------------------------------------------------*/
 
-static int ResolvFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, FILETIME *Time, int *Attr, char *Owner, int *Link, int *InfoExist)
+static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, FILETIME *Time, int *Attr, char *Owner, int *Link, int *InfoExist)
 {
 	SYSTEMTIME sTime;
 	SYSTEMTIME sTimeNow;
@@ -6177,10 +6177,10 @@ int AnalyzeNameKanjiCode(int Num)
 	{
 		while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
 		{
-			if((ListType = AnalizeFileInfo(Str)) != LIST_UNKNOWN)
+			if((ListType = AnalyzeFileInfo(Str)) != LIST_UNKNOWN)
 			{
 				strcpy(Name, "");
-				Node = ResolvFileInfo(Str, ListType | LIST_RAW_NAME, Name, &Size, &Time, &Attr, Owner, &Link, &InfoExist);
+				Node = ResolveFileInfo(Str, ListType | LIST_RAW_NAME, Name, &Size, &Time, &Attr, Owner, &Link, &InfoExist);
 				p = Name;
 				while(*p != '\0')
 				{

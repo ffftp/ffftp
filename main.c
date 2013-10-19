@@ -209,7 +209,7 @@ int FwallPort = PORT_NOR;
 int FwallType = 1;
 int FwallDefault = NO;
 int FwallSecurity = SECURITY_AUTO;
-int FwallResolv = NO;
+int FwallResolve = NO;
 int FwallLower = NO;
 int FwallDelimiter = '@';
 // ルータ対策

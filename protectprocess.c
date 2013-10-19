@@ -94,12 +94,12 @@ _CryptCATAdminCalcHashFromFileHandle p_CryptCATAdminCalcHashFromFileHandle;
 
 #define MAX_LOCKED_THREAD 16
 #define MAX_TRUSTED_FILENAME_TABLE 16
-#define MAX_TRUSTED_MD5_HASH_TABLE 16
+#define MAX_TRUSTED_SHA1_HASH_TABLE 16
 
 DWORD g_ProcessProtectionLevel;
 DWORD g_LockedThread[MAX_LOCKED_THREAD];
 WCHAR* g_pTrustedFilenameTable[MAX_TRUSTED_FILENAME_TABLE];
-BYTE g_TrustedMD5HashTable[MAX_TRUSTED_MD5_HASH_TABLE][20];
+BYTE g_TrustedSHA1HashTable[MAX_TRUSTED_SHA1_HASH_TABLE][20];
 WNDPROC g_PasswordEditControlProc;
 
 // 以下フック関数
@@ -379,9 +379,9 @@ BOOL FindTrustedModuleSHA1Hash(void* pHash)
 	int i;
 	bResult = FALSE;
 	i = 0;
-	while(i < MAX_TRUSTED_MD5_HASH_TABLE)
+	while(i < MAX_TRUSTED_SHA1_HASH_TABLE)
 	{
-		if(memcmp(&g_TrustedMD5HashTable[i], pHash, 20) == 0)
+		if(memcmp(&g_TrustedSHA1HashTable[i], pHash, 20) == 0)
 		{
 			bResult = TRUE;
 			break;
@@ -852,11 +852,11 @@ BOOL RegisterTrustedModuleSHA1Hash(void* pHash)
 	else
 	{
 		i = 0;
-		while(i < MAX_TRUSTED_MD5_HASH_TABLE)
+		while(i < MAX_TRUSTED_SHA1_HASH_TABLE)
 		{
-			if(memcmp(&g_TrustedMD5HashTable[i], &NullHash, 20) == 0)
+			if(memcmp(&g_TrustedSHA1HashTable[i], &NullHash, 20) == 0)
 			{
-				memcpy(&g_TrustedMD5HashTable[i], pHash, 20);
+				memcpy(&g_TrustedSHA1HashTable[i], pHash, 20);
 				bResult = TRUE;
 				break;
 			}
@@ -874,11 +874,11 @@ BOOL UnregisterTrustedModuleSHA1Hash(void* pHash)
 	int i;
 	bResult = FALSE;
 	i = 0;
-	while(i < MAX_TRUSTED_MD5_HASH_TABLE)
+	while(i < MAX_TRUSTED_SHA1_HASH_TABLE)
 	{
-		if(memcmp(&g_TrustedMD5HashTable[i], pHash, 20) == 0)
+		if(memcmp(&g_TrustedSHA1HashTable[i], pHash, 20) == 0)
 		{
-			memcpy(&g_TrustedMD5HashTable[i], &NullHash, 20);
+			memcpy(&g_TrustedSHA1HashTable[i], &NullHash, 20);
 			bResult = TRUE;
 			break;
 		}

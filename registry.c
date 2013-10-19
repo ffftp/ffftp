@@ -165,7 +165,7 @@ extern int FwallPort;
 extern int FwallType;
 extern int FwallDefault;
 extern int FwallSecurity;
-extern int FwallResolv;
+extern int FwallResolve;
 extern int FwallLower;
 extern int FwallDelimiter;
 extern int PasvDefault;
@@ -455,7 +455,7 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "FwallDef", FwallDefault);
 				WriteIntValueToReg(hKey4, "FwallSec", FwallSecurity);
 				WriteIntValueToReg(hKey4, "PasvDef", PasvDefault);
-				WriteIntValueToReg(hKey4, "FwallRes", FwallResolv);
+				WriteIntValueToReg(hKey4, "FwallRes", FwallResolve);
 				WriteIntValueToReg(hKey4, "FwallLow", FwallLower);
 				WriteIntValueToReg(hKey4, "FwallDel", FwallDelimiter);
 
@@ -906,7 +906,7 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "FwallDef", &FwallDefault);
 			ReadIntValueFromReg(hKey4, "FwallSec", &FwallSecurity);
 			ReadIntValueFromReg(hKey4, "PasvDef", &PasvDefault);
-			ReadIntValueFromReg(hKey4, "FwallRes", &FwallResolv);
+			ReadIntValueFromReg(hKey4, "FwallRes", &FwallResolve);
 			ReadIntValueFromReg(hKey4, "FwallLow", &FwallLower);
 			ReadIntValueFromReg(hKey4, "FwallDel", &FwallDelimiter);
 

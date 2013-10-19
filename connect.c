@@ -99,7 +99,7 @@ extern int FwallPort;
 extern int FwallType;
 extern int FwallDefault;
 extern int FwallSecurity;
-extern int FwallResolv;
+extern int FwallResolve;
 extern int FwallLower;
 extern int FwallDelimiter;
 extern int PasvDefault;
@@ -2018,7 +2018,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 	if((Type == MD4) || (Type == MD5) || (Type == SHA1))
 	{
 		/* シーケンス番号を見つけるループ */
-		DoPrintf("Analize OTP");
+		DoPrintf("Analyze OTP");
 		DoPrintf("%s", Pos);
 		Sts = FFFTP_FAIL;
 		while((Pos = GetNextField(Pos)) != NULL)
@@ -2248,7 +2248,7 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 		// ホスト名が指定された
 		// ホスト名からアドレスを求める
 		if(((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER)) &&
-		   (FwallResolv == YES))
+		   (FwallResolve == YES))
 		{
 			// ホスト名解決はSOCKSサーバに任せる
 			pHostEntry = NULL;
@@ -2453,7 +2453,7 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 		// ホスト名が指定された
 		// ホスト名からアドレスを求める
 		if(((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER)) &&
-		   (FwallResolv == YES))
+		   (FwallResolve == YES))
 		{
 			// ホスト名解決はSOCKSサーバに任せる
 			pHostEntry = NULL;
