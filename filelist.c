@@ -6198,6 +6198,7 @@ int AnalyzeNameKanjiCode(int Num)
 				}
 				if(!p)
 				{
+					// ASCII文字の範囲外
 					if(!CheckStringM(Name))
 					{
 						InitCodeConvInfo(&cInfo1);
@@ -6209,29 +6210,33 @@ int AnalyzeNameKanjiCode(int Num)
 						cInfo2 = cInfo1;
 						ConvUTF8NtoUTF8HFSX(&cInfo1);
 						ConvUTF8HFSXtoUTF8N(&cInfo2);
-						if(cInfo1.OutLen > strlen(Name))
+						if(cInfo1.OutLen > (int)strlen(Name))
 							PointUTF8N++;
 						else
 							PointUTF8HFSX++;
-						if(cInfo2.OutLen < strlen(Name))
+						if(cInfo2.OutLen < (int)strlen(Name))
 							PointUTF8HFSX++;
 						else
 							PointUTF8N++;
 					}
-					else
+					switch(CheckKanjiCode(Name, strlen(Name), KANJI_SJIS))
 					{
-						switch(CheckKanjiCode(Name, strlen(Name), KANJI_SJIS))
-						{
-						case KANJI_SJIS:
-							PointSJIS++;
-							break;
-						case KANJI_JIS:
-							PointJIS++;
-							break;
-						case KANJI_EUC:
-							PointEUC++;
-							break;
-						}
+					case KANJI_SJIS:
+						PointSJIS++;
+						break;
+					case KANJI_EUC:
+						PointEUC++;
+						break;
+					}
+				}
+				else
+				{
+					// ASCII文字の範囲内
+					switch(CheckKanjiCode(Name, strlen(Name), KANJI_SJIS))
+					{
+					case KANJI_JIS:
+						PointJIS++;
+						break;
 					}
 				}
 			}

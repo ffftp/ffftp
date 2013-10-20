@@ -1728,6 +1728,8 @@ int ConvTermCodeToCRLF(TERMCODECONVINFO *cInfo);
 
 void InitCodeConvInfo(CODECONVINFO *cInfo);
 int FlushRestData(CODECONVINFO *cInfo);
+// UTF-8対応
+int ConvNoConv(CODECONVINFO *cInfo);
 int ConvEUCtoSJIS(CODECONVINFO *cInfo);
 int ConvJIStoSJIS(CODECONVINFO *cInfo);
 int ConvSMBtoSJIS(CODECONVINFO *cInfo);

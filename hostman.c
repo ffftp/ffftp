@@ -1951,6 +1951,9 @@ static INT_PTR CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 			SetRadioButtonByValue(hDlg, TmpHost.KanjiCode, KanjiButton, KANJIBUTTONS);
 			SendDlgItemMessage(hDlg, HSET_HANCNV, BM_SETCHECK, TmpHost.KanaCnv, 0);
 			SetRadioButtonByValue(hDlg, TmpHost.NameKanjiCode, NameKanjiButton, NAMEKANJIBUTTONS);
+			// UTF-8 HFS+対応
+			if(IsUnicodeNormalizationDllLoaded() == NO)
+				EnableWindow(GetDlgItem(hDlg, HSET_FN_UTF8HFSX_CNV), FALSE);
 			SendDlgItemMessage(hDlg, HSET_FN_HANCNV, BM_SETCHECK, TmpHost.NameKanaCnv, 0);
 			return(TRUE);
 

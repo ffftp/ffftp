@@ -432,6 +432,24 @@ int FlushRestData(CODECONVINFO *cInfo)
 }
 
 
+// UTF-8対応
+int ConvNoConv(CODECONVINFO *cInfo)
+{
+	int Continue;
+	Continue = NO;
+	if(cInfo->BufSize >= cInfo->StrLen)
+		cInfo->OutLen = cInfo->StrLen;
+	else
+	{
+		cInfo->OutLen = cInfo->BufSize;
+		Continue = YES;
+	}
+	memcpy(cInfo->Buf, cInfo->Str, sizeof(char) * cInfo->OutLen);
+	cInfo->Str += cInfo->OutLen;
+	cInfo->StrLen -= cInfo->OutLen;
+	return Continue;
+}
+
 /*----- EUC漢字コードをSHIFT-JIS漢字コードに変換 ------------------------------
 *
 *	Parameter
@@ -1878,6 +1896,8 @@ int ConvUTF8NtoUTF8HFSX(CODECONVINFO *cInfo)
 	char* Temp3Cur;
 	char* Temp3End;
 	int TempCount;
+	if(IsUnicodeNormalizationDllLoaded() == NO)
+		return ConvNoConv(cInfo);
 	Continue = NO;
 	SrcLength = cInfo->StrLen + cInfo->EscUTF8Len;
 	if(!(pSrc = (char*)malloc(sizeof(char) * (SrcLength + 1))))
@@ -2027,6 +2047,8 @@ int ConvUTF8HFSXtoUTF8N(CODECONVINFO *cInfo)
 	wchar_t* pUTF16HFSX;
 	CODECONVINFO Temp;
 	int Count;
+	if(IsUnicodeNormalizationDllLoaded() == NO)
+		return ConvNoConv(cInfo);
 	Continue = NO;
 	// 前回の変換不能な残りの文字列を入力の先頭に結合
 	SrcLength = cInfo->StrLen + cInfo->EscUTF8Len;
