@@ -1283,7 +1283,7 @@ START_ROUTINE
 				wLVFindInfo.lParam = pmLVFindInfo->lParam;
 				wLVFindInfo.pt = pmLVFindInfo->pt;
 				wLVFindInfo.vkDirection = pmLVFindInfo->vkDirection;
-				r = SendMessageW(hWnd, LVM_FINDITEMW, wParam, (LPARAM)&wLVItem);
+				r = SendMessageW(hWnd, LVM_FINDITEMW, wParam, (LPARAM)&wLVFindInfo);
 				break;
 			case LVM_GETCOLUMNA:
 				pmLVColumn = (LVCOLUMNA*)lParam;
