@@ -221,6 +221,8 @@ extern int EncryptAllSettings;
 extern int AutoRefreshFileList;
 // 古い処理内容を消去
 extern int RemoveOldLog;
+// バージョン確認
+extern int ReadOnlySettings;
 
 /*----- マスタパスワードの設定 ----------------------------------------------
 *
@@ -350,6 +352,10 @@ void SaveRegistry(void)
 	if(EncryptSettingsError == YES)
 		return;
 
+	// バージョン確認
+	if(ReadOnlySettings == YES)
+		return;
+
 	SetRegType(RegType);
 	if(CreateReg("FFFTP", &hKey3) == FFFTP_SUCCESS)
 	{
@@ -372,7 +378,13 @@ void SaveRegistry(void)
 		EncryptSettings = EncryptAllSettings;
 		memset(&EncryptSettingsChecksum, 0, 20);
 
-		if(CreateSubKey(hKey3, "Options", &hKey4) == FFFTP_SUCCESS)
+		// 全設定暗号化対応
+//		if(CreateSubKey(hKey3, "Options", &hKey4) == FFFTP_SUCCESS)
+		if(EncryptAllSettings == YES)
+			strcpy(Str, "EncryptedOptions");
+		else
+			strcpy(Str, "Options");
+		if(CreateSubKey(hKey3, Str, &hKey4) == FFFTP_SUCCESS)
 		{
 			WriteIntValueToReg(hKey4, "NoSave", SuppressSave);
 
@@ -683,6 +695,29 @@ void SaveRegistry(void)
 		// 全設定暗号化対応
 		EncryptSettings = NO;
 		WriteBinaryToReg(hKey3, "EncryptAllChecksum", &EncryptSettingsChecksum, 20);
+		if(EncryptAllSettings == YES)
+		{
+			if(RegType == REGTYPE_REG)
+			{
+				if(RegCreateKeyEx(hKey3, "Options", 0, "", REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, (HKEY*)&hKey4, NULL) == ERROR_SUCCESS)
+				{
+					for(i = 0; ; i++)
+					{
+						sprintf(Str, "Host%d", i);
+						if(RegDeleteKey(hKey4, Str) != ERROR_SUCCESS)
+							break;
+					}
+					for(i = 0; ; i++)
+					{
+						sprintf(Str, "History%d", i);
+						if(RegDeleteKey(hKey4, Str) != ERROR_SUCCESS)
+							break;
+					}
+					RegCloseKey(hKey4);
+				}
+				RegDeleteKey(hKey3, "Options");
+			}
+		}
 		CloseReg(hKey3);
 	}
 	return;
@@ -773,7 +808,13 @@ int LoadRegistry(void)
 			}
 		}
 
-		if(OpenSubKey(hKey3, "Options", &hKey4) == FFFTP_SUCCESS)
+		// 全設定暗号化対応
+//		if(OpenSubKey(hKey3, "Options", &hKey4) == FFFTP_SUCCESS)
+		if(EncryptAllSettings == YES)
+			strcpy(Str, "EncryptedOptions");
+		else
+			strcpy(Str, "Options");
+		if(OpenSubKey(hKey3, Str, &hKey4) == FFFTP_SUCCESS)
 		{
 			ReadIntValueFromReg(hKey4, "WinPosX", &WinPosX);
 			ReadIntValueFromReg(hKey4, "WinPosY", &WinPosY);
@@ -1277,6 +1318,24 @@ void ClearRegistry(void)
 				RegCloseKey(hKey4);
 			}
 			RegDeleteKey(hKey3, "Options");
+			// 全設定暗号化対応
+			if(RegCreateKeyEx(hKey3, "EncryptedOptions", 0, "", REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey4, &Dispos) == ERROR_SUCCESS)
+			{
+				for(i = 0; ; i++)
+				{
+					sprintf(Str, "Host%d", i);
+					if(RegDeleteKey(hKey4, Str) != ERROR_SUCCESS)
+						break;
+				}
+				for(i = 0; ; i++)
+				{
+					sprintf(Str, "History%d", i);
+					if(RegDeleteKey(hKey4, Str) != ERROR_SUCCESS)
+						break;
+				}
+				RegCloseKey(hKey4);
+			}
+			RegDeleteKey(hKey3, "EncryptedOptions");
 			RegCloseKey(hKey3);
 		}
 		RegDeleteKey(hKey2, "FFFTP");
@@ -3186,6 +3245,7 @@ DWORD GetRandamDWRODValue(void)
 }
 
 // 全設定暗号化対応
+// 内部状態推定対策としてハッシュの160ビットのうち80ビットのみを鍵として使用
 void MaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size, int EscapeZero)
 {
 	char Key[FMAX_PATH*2+1];
@@ -3193,23 +3253,23 @@ void MaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size, 
 	DWORD i;
 	DWORD j;
 	ulong Hash[5];
-	BYTE Mask[20];
+	BYTE Mask[10];
 	memcpy(&Key[0], SecretKey, SecretKeyLength);
 	memcpy(&Key[SecretKeyLength], Salt, SaltLength);
 	p = (BYTE*)Data;
 	for(i = 0; i < Size; i++)
 	{
-		if(i % 20 == 0)
+		if(i % 10 == 0)
 		{
 			memcpy(&Key[SecretKeyLength + SaltLength], &i, 4);
 			sha_memory(Key, SecretKeyLength + SaltLength + 4, Hash);
 			// sha.cはビッグエンディアンのため
 			for(j = 0; j < 5; j++)
 				Hash[j] = _byteswap_ulong(Hash[j]);
-			memcpy(&Mask, &Hash, 20);
+			memcpy(&Mask, &Hash, 10);
 		}
-		if(EscapeZero == NO || (p[i] != 0 && p[i] != Mask[i % 20]))
-			p[i] ^= Mask[i % 20];
+		if(EscapeZero == NO || (p[i] != 0 && p[i] != Mask[i % 10]))
+			p[i] ^= Mask[i % 10];
 	}
 }
 
@@ -3259,5 +3319,30 @@ int IsIniAvailable()
 		Sts = YES;
 	}
 	return Sts;
+}
+
+// バージョン確認
+int ReadSettingsVersion()
+{
+	void *hKey3;
+	int i;
+	int Version;
+
+	SetRegType(REGTYPE_INI);
+	if((i = OpenReg("FFFTP", &hKey3)) != FFFTP_SUCCESS)
+	{
+		if(AskForceIni() == NO)
+		{
+			SetRegType(REGTYPE_REG);
+			i = OpenReg("FFFTP", &hKey3);
+		}
+	}
+	Version = INT_MAX;
+	if(i == FFFTP_SUCCESS)
+	{
+		ReadIntValueFromReg(hKey3, "Version", &Version);
+		CloseReg(hKey3);
+	}
+	return Version;
 }
 

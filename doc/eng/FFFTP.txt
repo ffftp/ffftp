@@ -49,6 +49,9 @@ Changes in Ver.1.99
 
 -- Fixed bugs of Select dialog.
 
+-- Changed to confirm how the settings will be saved when the settings of a
+   future version exist in the registry.
+
 
 Outline
 -------

@@ -1802,6 +1802,8 @@ int LoadSettingsFromFile(void);
 // ポータブル版判定
 int IsRegAvailable();
 int IsIniAvailable();
+// バージョン確認
+int ReadSettingsVersion();
 
 /*===== lvtips.c =====*/
 

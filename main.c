@@ -265,6 +265,8 @@ int EncryptAllSettings = NO;
 int AutoRefreshFileList = YES;
 // 古い処理内容を消去
 int RemoveOldLog = NO;
+// バージョン確認
+int ReadOnlySettings = NO;
 
 
 
@@ -500,12 +502,32 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			if(IsRegAvailable() == YES && IsIniAvailable() == NO)
 			{
 				if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(ini_from_reg_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
-				{
 					ImportPortable = YES;
-					ForceIni = NO;
-					RegType = REGTYPE_REG;
+			}
+		}
+		// バージョン確認
+		if(ReadSettingsVersion() > VER_NUM)
+		{
+			if(IsRegAvailable() == YES && IsIniAvailable() == NO)
+			{
+				switch(MessageBox(GetMainHwnd(), MSGJPN351, "FFFTP", MB_YESNOCANCEL | MB_DEFBUTTON2))
+				{
+					case IDCANCEL:
+						ReadOnlySettings = YES;
+						break;
+					case IDYES:
+						break;
+					case IDNO:
+						ImportPortable = YES;
+						break;
 				}
 			}
+		}
+		// ポータブル版判定
+		if(ImportPortable == YES)
+		{
+			ForceIni = NO;
+			RegType = REGTYPE_REG;
 		}
 
 //		AllocConsole();

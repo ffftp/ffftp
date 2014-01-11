@@ -349,6 +349,7 @@
 #define MSGJPN348		_Tu8("EUC", "EUC")
 #define MSGJPN349		_Tu8("UTF-8", "UTF-8")
 #define MSGJPN350		_Tu8("UTF-8 HFS+", "UTF-8 HFS+")
+#define MSGJPN351		_Tu8("The settings of a newer version are detected.\nThe settings may not be read correctly, or they will be changed when they are overwritten for this version.\nChoose 'Yes' to overwrite settings for this version.\nChoose 'No' to save settings to the INI file.\nChoose 'Cancel' to load settings as read only.", "The settings of a newer version are detected.\nThe settings may not be read correctly, or they will be changed when they are overwritten for this version.\nChoose 'Yes' to overwrite settings for this version.\nChoose 'No' to save settings to the INI file.\nChoose 'Cancel' to load settings as read only.")
 #if defined(HAVE_TANDEM)
 #define MSGJPN2000		_Tu8("NonStop Server", "NonStop Server")
 #define MSGJPN2001		_Tu8("OSS<->GUARDIAN Switch(&O)", "OSS<->GUARDIAN Switch(&O)")
