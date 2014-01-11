@@ -3189,55 +3189,33 @@ DWORD GetRandamDWRODValue(void)
 void MaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size, int EscapeZero)
 {
 	char Key[FMAX_PATH*2+1];
-	ulong Hash[5];
-	DWORD i;
-	BYTE Mask[20];
 	BYTE* p;
+	DWORD i;
+	DWORD j;
+	ulong Hash[5];
+	BYTE Mask[20];
 	memcpy(&Key[0], SecretKey, SecretKeyLength);
 	memcpy(&Key[SecretKeyLength], Salt, SaltLength);
-	sha_memory(Key, SecretKeyLength + SaltLength, Hash);
-	// sha.cはビッグエンディアンのため
-	for(i = 0; i < 5; i++)
-		Hash[i] = _byteswap_ulong(Hash[i]);
-	memcpy(&Mask, &Hash, 20);
 	p = (BYTE*)Data;
 	for(i = 0; i < Size; i++)
 	{
-		if(EscapeZero == YES)
+		if(i % 20 == 0)
 		{
-			if(p[i] != 0 && p[i] != Mask[i % sizeof(Mask)])
-				p[i] ^= Mask[i % sizeof(Mask)];
+			memcpy(&Key[SecretKeyLength + SaltLength], &i, 4);
+			sha_memory(Key, SecretKeyLength + SaltLength + 4, Hash);
+			// sha.cはビッグエンディアンのため
+			for(j = 0; j < 5; j++)
+				Hash[j] = _byteswap_ulong(Hash[j]);
+			memcpy(&Mask, &Hash, 20);
 		}
-		else
-			p[i] ^= Mask[i % sizeof(Mask)];
+		if(EscapeZero == NO || (p[i] != 0 && p[i] != Mask[i % 20]))
+			p[i] ^= Mask[i % 20];
 	}
 }
 
 void UnmaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size, int EscapeZero)
 {
-	char Key[FMAX_PATH*2+1];
-	ulong Hash[5];
-	DWORD i;
-	BYTE Mask[20];
-	BYTE* p;
-	memcpy(&Key[0], SecretKey, SecretKeyLength);
-	memcpy(&Key[SecretKeyLength], Salt, SaltLength);
-	sha_memory(Key, SecretKeyLength + SaltLength, Hash);
-	// sha.cはビッグエンディアンのため
-	for(i = 0; i < 5; i++)
-		Hash[i] = _byteswap_ulong(Hash[i]);
-	memcpy(&Mask, &Hash, 20);
-	p = (BYTE*)Data;
-	for(i = 0; i < Size; i++)
-	{
-		if(EscapeZero == YES)
-		{
-			if(p[i] != 0 && p[i] != Mask[i % sizeof(Mask)])
-				p[i] ^= Mask[i % sizeof(Mask)];
-		}
-		else
-			p[i] ^= Mask[i % sizeof(Mask)];
-	}
+	MaskSettingsData(Salt, SaltLength, Data, Size, EscapeZero);
 }
 
 void CalculateSettingsDataChecksum(void* Data, DWORD Size)
