@@ -822,7 +822,25 @@ void DispWindowTitle(void)
 	char Tmp[HOST_ADRS_LEN+FILTER_EXT_LEN+20];
 
 	if(AskConnecting() == YES)
-		sprintf(Tmp, "%s (%s) - FFFTP", TitleHostName, FilterStr);
+	// 暗号化通信対応
+//		sprintf(Tmp, "%s (%s) - FFFTP", TitleHostName, FilterStr);
+	{
+		switch(AskCryptMode())
+		{
+		case CRYPT_NONE:
+			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN352);
+			break;
+		case CRYPT_FTPES:
+			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN353);
+			break;
+		case CRYPT_FTPIS:
+			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN354);
+			break;
+		case CRYPT_SFTP:
+			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN355);
+			break;
+		}
+	}
 	else
 		sprintf(Tmp, "FFFTP (%s)", FilterStr);
 

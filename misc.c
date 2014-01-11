@@ -805,18 +805,44 @@ int AskDirLevel(char *Path)
 
 void MakeSizeString(double Size, char *Buf)
 {
-	if(Size >= (1024*1024))
+	// 修正
+//	if(Size >= (1024*1024))
+//	{
+//		Size /= (1024*1024);
+//		sprintf(Buf, "%.2fM Bytes", Size);
+//	}
+//	else if (Size >= 1024)
+//	{
+//		Size /= 1024;
+//		sprintf(Buf, "%.2fK Bytes", Size);
+//	}
+//	else
+//		sprintf(Buf, "%.0f Bytes", Size);
+	if(Size >= 1024.0)
 	{
-		Size /= (1024*1024);
-		sprintf(Buf, "%.2fM Bytes", Size);
-	}
-	else if (Size >= 1024)
-	{
-		Size /= 1024;
-		sprintf(Buf, "%.2fK Bytes", Size);
+		Size /= 1024.0;
+		if(Size >= 1024.0)
+		{
+			Size /= 1024.0;
+			if(Size >= 1024.0)
+			{
+				Size /= 1024.0;
+				if(Size >= 1024.0)
+				{
+					Size /= 1024.0;
+					sprintf(Buf, "%.2lfT Bytes", Size);
+				}
+				else
+					sprintf(Buf, "%.2lfG Bytes", Size);
+			}
+			else
+				sprintf(Buf, "%.2lfM Bytes", Size);
+		}
+		else
+			sprintf(Buf, "%.2lfK Bytes", Size);
 	}
 	else
-		sprintf(Buf, "%.0f Bytes", Size);
+		sprintf(Buf, "%.0lf Bytes", Size);
 
 	return;
 }
