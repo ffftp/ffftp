@@ -31,6 +31,24 @@ File ->@Settings -> Change Master password
 Changes in Ver.1.99
 --------------------
 
+-- Fixed bugs that the apprication did not start when the INI file was modified
+   and BOM was inserted in it.
+
+-- Fixed bugs that user names which were sent to hosts were always encoded into
+   UTF-8.
+
+-- Fixed bugs of recognition of MLSD responses that include uppercase letters.
+
+-- Added an option to disable automatic refresh of the local view.
+
+-- Added an option to dispose old logs automatically.
+
+-- Supported UTF-8 HFS+ file name encoding (Windows Vista or later only).
+
+-- Improved automatic detection of Kanji code of filenames.
+
+-- Fixed bugs of Select dialog.
+
 
 Outline
 -------
