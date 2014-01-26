@@ -1383,9 +1383,9 @@ void FreeUPnP()
 int IsUPnPLoaded()
 {
 	int Sts;
-	Sts = FFFTP_FAIL;
+	Sts = NO;
 	if(pUPnPNAT != NULL && pUPnPMap != NULL)
-		Sts = FFFTP_SUCCESS;
+		Sts = YES;
 	return Sts;
 }
 

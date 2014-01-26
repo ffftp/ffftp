@@ -170,6 +170,10 @@ static int WaitForMainThread = NO;
 // 再転送対応
 static int TransferErrorMode = EXIST_OVW;
 static int TransferErrorNotify = NO;
+// タスクバー進捗表示
+static LONGLONG TransferSizeLeft = 0;
+static LONGLONG TransferSizeTotal = 0;
+static int TransferErrorDisplay = 0;
 
 /*===== 外部参照 =====*/
 
@@ -419,6 +423,9 @@ void AddTransFileList(TRANSPACKET *Pkt)
 		   (strncmp(Pkt->Cmd, "STOR", 4) == 0))
 		{
 			TransFiles++;
+			// タスクバー進捗表示
+			TransferSizeLeft += Pkt->Size;
+			TransferSizeTotal += Pkt->Size;
 			PostMessage(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 		}
 	}
@@ -494,6 +501,9 @@ void AppendTransFileList(TRANSPACKET *Pkt)
 		   (strncmp(Pkt->Cmd, "STOR", 4) == 0))
 		{
 			TransFiles++;
+			// タスクバー進捗表示
+			TransferSizeLeft += Pkt->Size;
+			TransferSizeTotal += Pkt->Size;
 			PostMessage(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 		}
 		Pkt = Pkt->Next;
@@ -590,6 +600,9 @@ static void EraseTransFileList(void)
 	// 同時接続対応
 	NextTransPacketBase = NotDel;
 	TransFiles = 0;
+	// タスクバー進捗表示
+	TransferSizeLeft = 0;
+	TransferSizeTotal = 0;
 	PostMessage(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 	ReleaseMutex(hListAccMutex);
 	// 同時接続対応
@@ -1192,6 +1205,13 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //						TransFiles--;
 						if(TransFiles > 0)
 							TransFiles--;
+						// タスクバー進捗表示
+						if(TransferSizeLeft > 0)
+							TransferSizeLeft -= Pos->Size;
+						if(TransferSizeLeft < 0)
+							TransferSizeLeft = 0;
+						if(TransFiles == 0)
+							TransferSizeTotal = 0;
 						PostMessage(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 					}
 //					Pos = TransPacketBase;
@@ -2406,6 +2426,8 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 				{
 					if(strncmp(Pkt->Cmd, "RETR", 4) == 0 || strncmp(Pkt->Cmd, "STOR", 4) == 0)
 					{
+						// タスクバー進捗表示
+						TransferErrorDisplay++;
 						if(TransferErrorNotify == YES && DispUpDownErrDialog(downerr_dlg, Pkt->hWndTrans, Pkt) == NO)
 							ClearAll = YES;
 						else
@@ -2413,6 +2435,8 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 							Pkt->Mode = TransferErrorMode;
 							AddTransFileList(Pkt);
 						}
+						// タスクバー進捗表示
+						TransferErrorDisplay--;
 					}
 				}
 			}
@@ -3716,6 +3740,8 @@ static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 				{
 					if(strncmp(Pkt->Cmd, "RETR", 4) == 0 || strncmp(Pkt->Cmd, "STOR", 4) == 0)
 					{
+						// タスクバー進捗表示
+						TransferErrorDisplay++;
 						if(TransferErrorNotify == YES && DispUpDownErrDialog(uperr_dlg, Pkt->hWndTrans, Pkt) == NO)
 							ClearAll = YES;
 						else
@@ -3723,6 +3749,8 @@ static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 							Pkt->Mode = TransferErrorMode;
 							AddTransFileList(Pkt);
 						}
+						// タスクバー進捗表示
+						TransferErrorDisplay--;
 					}
 				}
 			}
@@ -4417,3 +4445,20 @@ static char* GetErrMsg()
 	ReleaseMutex(hErrMsgMutex);
 	return r;
 }
+
+// タスクバー進捗表示
+LONGLONG AskTransferSizeLeft(void)
+{
+	return(TransferSizeLeft);
+}
+
+LONGLONG AskTransferSizeTotal(void)
+{
+	return(TransferSizeTotal);
+}
+
+int AskTransferErrorDisplay(void)
+{
+	return(TransferErrorDisplay);
+}
+

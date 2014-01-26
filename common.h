@@ -1373,6 +1373,11 @@ int AskPortableVersion(void);
 // 全設定暗号化対応
 int Restart();
 void RestartAndTerminate();
+// タスクバー進捗表示
+int LoadTaskbarList3();
+void FreeTaskbarList3();
+int IsTaskbarList3Loaded();
+void UpdateTaskbarProgress();
 
 /*===== filelist.c =====*/
 
@@ -1719,6 +1724,10 @@ void GoForwardTransWindow(void);
 void InitTransCurDir(void);
 int DoDownload(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork);
 int CheckPathViolation(TRANSPACKET *packet);
+// タスクバー進捗表示
+LONGLONG AskTransferSizeLeft(void);
+LONGLONG AskTransferSizeTotal(void);
+int AskTransferErrorDisplay(void);
 
 /*===== codecnv.c =====*/
 

@@ -43,6 +43,8 @@
 #include <stdarg.h>
 // IPv6対応
 //#include <winsock.h>
+// タスクバー進捗表示
+#include <shobjidl.h>
 
 #include "common.h"
 #include "resource.h"
@@ -145,6 +147,8 @@ static char PortableFilePath[FMAX_PATH+1];
 static int PortableVersion;
 // ローカル側自動更新
 HANDLE ChangeNotification = INVALID_HANDLE_VALUE;
+// タスクバー進捗表示
+static ITaskbarList3* pTaskbarList3;
 
 
 /*===== グローバルなワーク =====*/
@@ -373,6 +377,8 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	// UPnP対応
 	CoInitialize(NULL);
 	LoadUPnP();
+	// タスクバー進捗表示
+	LoadTaskbarList3();
 
 	// UTF-8対応
 	LoadUnicodeNormalizationDll();
@@ -422,6 +428,8 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 #endif
 	// SFTP対応
 	FreePuTTY();
+	// タスクバー進捗表示
+	FreeTaskbarList3();
 	// UPnP対応
 	FreeUPnP();
 	CoUninitialize();
@@ -977,12 +985,15 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	switch (message)
 	{
 		// ローカル側自動更新
+		// タスクバー進捗表示
 		case WM_CREATE :
 			SetTimer(hWnd, 1, 1000, NULL);
+			SetTimer(hWnd, 2, 100, NULL);
 			break;
 
 		// ローカル側自動更新
 		// 自動切断対策
+		// タスクバー進捗表示
 		case WM_TIMER :
 			switch(wParam)
 			{
@@ -1014,6 +1025,10 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					NoopProc(NO);
 					LastDataConnectionTime = time(NULL);
 				}
+				break;
+			case 2:
+				if(IsTaskbarList3Loaded() == YES)
+					UpdateTaskbarProgress();
 				break;
 			}
 			break;
@@ -1885,6 +1900,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			KillTimer(hWnd, 1);
 			if(ChangeNotification != INVALID_HANDLE_VALUE)
 				FindCloseChangeNotification(ChangeNotification);
+			// タスクバー進捗表示
+			KillTimer(hWnd, 2);
 //			WSACleanup();
 //			DestroyWindow(hWndFtp);
 			PostQuitMessage(0);
@@ -3401,5 +3418,47 @@ void RestartAndTerminate()
 {
 	Restart();
 	exit(1);
+}
+
+// タスクバー進捗表示
+int LoadTaskbarList3()
+{
+	int Sts;
+	Sts = FFFTP_FAIL;
+	if(CoCreateInstance(&CLSID_TaskbarList, NULL, CLSCTX_ALL, &IID_ITaskbarList3, (void**)&pTaskbarList3) == S_OK)
+	{
+		Sts = FFFTP_SUCCESS;
+	}
+	return Sts;
+}
+
+void FreeTaskbarList3()
+{
+	if(pTaskbarList3 != NULL)
+		pTaskbarList3->lpVtbl->Release(pTaskbarList3);
+	pTaskbarList3 = NULL;
+}
+
+int IsTaskbarList3Loaded()
+{
+	int Sts;
+	Sts = NO;
+	if(pTaskbarList3 != NULL)
+		Sts = YES;
+	return Sts;
+}
+
+void UpdateTaskbarProgress()
+{
+	if(AskTransferSizeTotal() > 0)
+	{
+		if(AskTransferErrorDisplay() > 0)
+			pTaskbarList3->lpVtbl->SetProgressState(pTaskbarList3, GetMainHwnd(), TBPF_ERROR);
+		else
+			pTaskbarList3->lpVtbl->SetProgressState(pTaskbarList3, GetMainHwnd(), TBPF_NORMAL);
+		pTaskbarList3->lpVtbl->SetProgressValue(pTaskbarList3, GetMainHwnd(), (ULONGLONG)(AskTransferSizeTotal() - AskTransferSizeLeft()), (ULONGLONG)AskTransferSizeTotal());
+	}
+	else
+		pTaskbarList3->lpVtbl->SetProgressState(pTaskbarList3, GetMainHwnd(), TBPF_NOPROGRESS);
 }
 
