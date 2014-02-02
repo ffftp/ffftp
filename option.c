@@ -1303,13 +1303,7 @@ static INT_PTR CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wPara
 			SendDlgItemMessage(hDlg, CONNECT_SENDQUIT, BM_SETCHECK, SendQuit, 0);
 			SendDlgItemMessage(hDlg, CONNECT_NORAS, BM_SETCHECK, NoRasControl, 0);
 			// UPnP対応
-			if(IsUPnPLoaded() == YES)
-				SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_SETCHECK, UPnPEnabled, 0);
-			else
-			{
-				SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_SETCHECK, BST_UNCHECKED, 0);
-				EnableWindow(GetDlgItem(hDlg, CONNECT_UPNP), FALSE);
-			}
+			SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_SETCHECK, UPnPEnabled, 0);
 		    return(TRUE);
 
 		case WM_NOTIFY:

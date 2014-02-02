@@ -1640,6 +1640,11 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 #endif
 
+				// 上位のディレクトリへ移動対応
+				case MENU_REMOTE_MOVE_UPDIR :
+					MoveRemoteFileProc(-1);
+					break;
+
 				default :
 					if((LOWORD(wParam) >= MENU_BMARK_TOP) &&
 					   (LOWORD(wParam) < MENU_BMARK_TOP+100))

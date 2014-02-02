@@ -2654,7 +2654,12 @@ void MoveRemoteFileProc(int drop_index)
 	AskRemoteCurDir(HostDir, FMAX_PATH);
 
 	// ドロップ先のフォルダ名を得る
-	GetNodeName(WIN_REMOTE, drop_index, Pkt.File, FMAX_PATH);
+	// 上位のディレクトリへ移動対応
+//	GetNodeName(WIN_REMOTE, drop_index, Pkt.File, FMAX_PATH);
+	if(drop_index >= 0)
+		GetNodeName(WIN_REMOTE, drop_index, Pkt.File, FMAX_PATH);
+	else
+		strcpy(Pkt.File, "..");
 
 	if(MoveMode == MOVE_DLG)
 	{

@@ -354,6 +354,7 @@
 #define MSGJPN353		_Tu8("Encrypted: FTPES", "Encrypted: FTPES")
 #define MSGJPN354		_Tu8("Encrypted: FTPIS", "Encrypted: FTPIS")
 #define MSGJPN355		_Tu8("Encrypted: SFTP", "Encrypted: SFTP")
+#define MSGJPN356		_Tu8("Move to &parent folder...", "Move to &parent folder...")
 #if defined(HAVE_TANDEM)
 #define MSGJPN2000		_Tu8("NonStop Server", "NonStop Server")
 #define MSGJPN2001		_Tu8("OSS<->GUARDIAN Switch(&O)", "OSS<->GUARDIAN Switch(&O)")
