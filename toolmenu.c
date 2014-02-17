@@ -237,21 +237,46 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 	char *Pos;
 	int Tmp2;
 	DWORD NoDrives;
+	// 高DPI対応
+	HBITMAP hOriginal;
+	HBITMAP hResized;
 
 	/*===== メインのツールバー =====*/
 
+	// 高DPI対応
+//	hWndTbarMain = CreateToolbarEx(
+//				hWnd,
+//				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_TOP | TBSTYLE_FLAT,
+//				1,
+//				27,
+//				hInst,
+//				main_toolbar_bmp,
+//				TbarDataMain,
+//				sizeof(TbarDataMain)/sizeof(TBBUTTON),
+//				16,16,
+//				16,16,
+//				sizeof(TBBUTTON));
+	hOriginal = LoadImage(hInst, MAKEINTRESOURCE(main_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
+	if(hOriginal != NULL)
+	{
+		hResized = ResizeBitmap(hOriginal, 16, 16);
+		DeleteObject(hOriginal);
+	}
 	hWndTbarMain = CreateToolbarEx(
 				hWnd,
 				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_TOP | TBSTYLE_FLAT,
 				1,
 				27,
-				hInst,
-				main_toolbar_bmp,
+				NULL,
+				(UINT_PTR)hResized,
 				TbarDataMain,
 				sizeof(TbarDataMain)/sizeof(TBBUTTON),
-				16,16,
-				16,16,
+				CalcPixelX(16),CalcPixelY(16),
+				CalcPixelX(16),CalcPixelY(16),
 				sizeof(TBBUTTON));
+	if(hResized != NULL)
+		DeleteObject(hOriginal);
+	hResized = NULL;
 
 	if(hWndTbarMain != NULL)
 	{
@@ -262,23 +287,47 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 		/********************************************* ここまで */
 
 		GetClientRect(hWnd, &Rect1);
-		MoveWindow(hWndTbarMain, 0, 0, Rect1.right, TOOLWIN_HEIGHT, FALSE);
+		// 高DPI対応
+//		MoveWindow(hWndTbarMain, 0, 0, Rect1.right, TOOLWIN_HEIGHT, FALSE);
+		MoveWindow(hWndTbarMain, 0, 0, Rect1.right, AskToolWinHeight(), FALSE);
 	}
 
 	/*===== ローカルのツールバー =====*/
 
+	// 高DPI対応
+//	hWndTbarLocal = CreateToolbarEx(
+//				hWnd,
+//				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE | TBSTYLE_FLAT,
+//				2,
+//				2,
+//				hInst,
+//				remote_toolbar_bmp,
+//				TbarDataLocal,
+//				sizeof(TbarDataLocal)/sizeof(TBBUTTON),
+//				16,16,
+//				16,16,
+//				sizeof(TBBUTTON));
+	hOriginal = LoadImage(hInst, MAKEINTRESOURCE(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
+	if(hOriginal != NULL)
+	{
+		hResized = ResizeBitmap(hOriginal, 16, 16);
+		DeleteObject(hOriginal);
+	}
 	hWndTbarLocal = CreateToolbarEx(
 				hWnd,
 				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE | TBSTYLE_FLAT,
 				2,
 				2,
-				hInst,
-				remote_toolbar_bmp,
+				NULL,
+				(UINT_PTR)hResized,
 				TbarDataLocal,
 				sizeof(TbarDataLocal)/sizeof(TBBUTTON),
-				16,16,
-				16,16,
+				CalcPixelX(16),CalcPixelY(16),
+				CalcPixelX(16),CalcPixelY(16),
 				sizeof(TBBUTTON));
+	if(hResized != NULL)
+		DeleteObject(hOriginal);
+	hResized = NULL;
 
 	if(hWndTbarLocal != NULL)
 	{
@@ -288,21 +337,32 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 		pOldTbarLocalProc = (WNDPROC)SetWindowLongPtr(hWndTbarLocal, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarLocalProc);
 		/********************************************* ここまで */
 
-		MoveWindow(hWndTbarLocal, 0, TOOLWIN_HEIGHT, LocalWidth, TOOLWIN_HEIGHT, FALSE);
+		// 高DPI対応
+//		MoveWindow(hWndTbarLocal, 0, TOOLWIN_HEIGHT, LocalWidth, TOOLWIN_HEIGHT, FALSE);
+		MoveWindow(hWndTbarLocal, 0, AskToolWinHeight(), LocalWidth, AskToolWinHeight(), FALSE);
 
 		/*===== ローカルのディレクトリ名ウインドウ =====*/
 
 		SendMessage(hWndTbarLocal, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
-#ifndef FFFTP_ENGLISH
-		DlgFont = CreateFont(Rect1.bottom-Rect1.top-8, 0, 0, 0, 0, FALSE,FALSE,FALSE,SHIFTJIS_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH,MSGJPN254);
-#else
-		DlgFont = CreateFont(Rect1.bottom-Rect1.top-8, 0, 0, 0, 0, FALSE,FALSE,FALSE,ANSI_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH,MSGJPN254);
-#endif
+		// UTF-8対応
+		// 高DPI対応
+//#ifndef FFFTP_ENGLISH
+//		DlgFont = CreateFont(Rect1.bottom-Rect1.top-8, 0, 0, 0, 0, FALSE,FALSE,FALSE,SHIFTJIS_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH,MSGJPN254);
+//#else
+//		DlgFont = CreateFont(Rect1.bottom-Rect1.top-8, 0, 0, 0, 0, FALSE,FALSE,FALSE,ANSI_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH,MSGJPN254);
+//#endif
+		DlgFont = CreateFont(Rect1.bottom-Rect1.top-CalcPixelY(8), 0, 0, 0, 0, FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH,MSGJPN254);
 
+		// 高DPI対応
+//		hWndDirLocal = CreateWindowEx(WS_EX_CLIENTEDGE,
+//					"COMBOBOX", "",
+//					WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_SORT | CBS_AUTOHSCROLL,
+//					Rect1.right, Rect1.top, LocalWidth - Rect1.right, 200,
+//					hWndTbarLocal, (HMENU)COMBO_LOCAL, hInst, NULL);
 		hWndDirLocal = CreateWindowEx(WS_EX_CLIENTEDGE,
 					"COMBOBOX", "",
 					WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_SORT | CBS_AUTOHSCROLL,
-					Rect1.right, Rect1.top, LocalWidth - Rect1.right, 200,
+					Rect1.right, Rect1.top, LocalWidth - Rect1.right, CalcPixelY(200),
 					hWndTbarLocal, (HMENU)COMBO_LOCAL, hInst, NULL);
 
 		if(hWndDirLocal != NULL)
@@ -334,18 +394,40 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	/*===== ホストのツールバー =====*/
 
+	// 高DPI対応
+//	hWndTbarRemote = CreateToolbarEx(
+//				hWnd,
+//				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE | TBSTYLE_FLAT,
+//				3,
+//				2,
+//				hInst,
+//				remote_toolbar_bmp,
+//				TbarDataRemote,
+//				sizeof(TbarDataRemote)/sizeof(TBBUTTON),
+//				16,16,
+//				16,16,
+//				sizeof(TBBUTTON));
+	hOriginal = LoadImage(hInst, MAKEINTRESOURCE(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
+	if(hOriginal != NULL)
+	{
+		hResized = ResizeBitmap(hOriginal, 16, 16);
+		DeleteObject(hOriginal);
+	}
 	hWndTbarRemote = CreateToolbarEx(
 				hWnd,
 				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE | TBSTYLE_FLAT,
 				3,
 				2,
-				hInst,
-				remote_toolbar_bmp,
+				NULL,
+				(UINT_PTR)hResized,
 				TbarDataRemote,
 				sizeof(TbarDataRemote)/sizeof(TBBUTTON),
-				16,16,
-				16,16,
+				CalcPixelX(16),CalcPixelY(16),
+				CalcPixelX(16),CalcPixelY(16),
 				sizeof(TBBUTTON));
+	if(hResized != NULL)
+		DeleteObject(hOriginal);
+	hResized = NULL;
 
 	if(hWndTbarRemote != NULL)
 	{
@@ -355,15 +437,23 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 		pOldTbarRemoteProc = (WNDPROC)SetWindowLongPtr(hWndTbarRemote, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarRemoteProc);
 		/********************************************* ここまで */
 
-		MoveWindow(hWndTbarRemote, LocalWidth + SepaWidth, TOOLWIN_HEIGHT, RemoteWidth, TOOLWIN_HEIGHT, FALSE);
+		// 高DPI対応
+//		MoveWindow(hWndTbarRemote, LocalWidth + SepaWidth, TOOLWIN_HEIGHT, RemoteWidth, TOOLWIN_HEIGHT, FALSE);
+		MoveWindow(hWndTbarRemote, LocalWidth + SepaWidth, AskToolWinHeight(), RemoteWidth, AskToolWinHeight(), FALSE);
 
 		/*===== ホストのディレクトリ名ウインドウ =====*/
 
 		SendMessage(hWndTbarRemote, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
+		// 高DPI対応
+//		hWndDirRemote = CreateWindowEx(WS_EX_CLIENTEDGE,
+//					"COMBOBOX", "",
+//					WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL,
+//					Rect1.right, Rect1.top, RemoteWidth - Rect1.right, 200,
+//					hWndTbarRemote, (HMENU)COMBO_REMOTE, hInst, NULL);
 		hWndDirRemote = CreateWindowEx(WS_EX_CLIENTEDGE,
 					"COMBOBOX", "",
 					WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL,
-					Rect1.right, Rect1.top, RemoteWidth - Rect1.right, 200,
+					Rect1.right, Rect1.top, RemoteWidth - Rect1.right, CalcPixelY(200),
 					hWndTbarRemote, (HMENU)COMBO_REMOTE, hInst, NULL);
 
 		if(hWndDirRemote != NULL)

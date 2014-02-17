@@ -1378,6 +1378,8 @@ int LoadTaskbarList3();
 void FreeTaskbarList3();
 int IsTaskbarList3Loaded();
 void UpdateTaskbarProgress();
+// 高DPI対応
+int AskToolWinHeight(void);
 
 /*===== filelist.c =====*/
 
@@ -1896,6 +1898,11 @@ char* GetAppTempPath(char* Buf);
 #if defined(HAVE_TANDEM)
 void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size);
 #endif
+// 高DPI対応
+void QueryDisplayDPI();
+int CalcPixelX(int x);
+int CalcPixelY(int y);
+HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY);
 
 /*===== dlgsize.c =====*/
 

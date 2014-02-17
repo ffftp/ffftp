@@ -149,6 +149,8 @@ static int PortableVersion;
 HANDLE ChangeNotification = INVALID_HANDLE_VALUE;
 // タスクバー進捗表示
 static ITaskbarList3* pTaskbarList3;
+// 高DPI対応
+int ToolWinHeight;
 
 
 /*===== グローバルなワーク =====*/
@@ -461,6 +463,8 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 	int masterpass;
 	// ポータブル版判定
 	int ImportPortable;
+	// 高DPI対応
+	int i;
 
 	sts = FFFTP_FAIL;
 
@@ -484,6 +488,16 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		GetAppTempPath(TmpPath);
 		_mkdir(TmpPath);
 		SetYenTail(TmpPath);
+
+		// 高DPI対応
+		WinWidth = CalcPixelX(WinWidth);
+		WinHeight = CalcPixelY(WinHeight);
+		LocalWidth = CalcPixelX(LocalWidth);
+		TaskHeight = CalcPixelY(TaskHeight);
+		for(i = 0; i < sizeof(LocalTabWidth) / sizeof(int); i++)
+			LocalTabWidth[i] = CalcPixelX(LocalTabWidth[i]);
+		for(i = 0; i < sizeof(RemoteTabWidth) / sizeof(int); i++)
+			RemoteTabWidth[i] = CalcPixelX(RemoteTabWidth[i]);
 
 		GetModuleFileName(NULL, HelpPath, FMAX_PATH);
 		strcpy(GetFileName(HelpPath), "ffftp.chm");
@@ -745,6 +759,10 @@ static int MakeAllWindows(int cmdShow)
 	wClass.lpszClassName = FtpClassStr;
 	wClass.hIconSm       = NULL;
 	RegisterClassEx(&wClass);
+
+	// 高DPI対応
+//	ToolWinHeight = TOOLWIN_HEIGHT;
+	ToolWinHeight = CalcPixelY(16) + 12;
 
 	if(SaveWinPos == NO)
 	{
@@ -2625,16 +2643,24 @@ static void ResizeWindowProc(void)
 	SendMessage(GetSbarWnd(), WM_SIZE, SIZE_RESTORED, MAKELPARAM(Rect.right, Rect.bottom));
 
 	CalcWinSize();
-	SetWindowPos(GetMainTbarWnd(), 0, 0, 0, Rect.right, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
-	SetWindowPos(GetLocalTbarWnd(), 0, 0, TOOLWIN_HEIGHT, LocalWidth, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
-	SetWindowPos(GetRemoteTbarWnd(), 0, LocalWidth + SepaWidth, TOOLWIN_HEIGHT, RemoteWidth, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
+	// 高DPI対応
+//	SetWindowPos(GetMainTbarWnd(), 0, 0, 0, Rect.right, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
+//	SetWindowPos(GetLocalTbarWnd(), 0, 0, TOOLWIN_HEIGHT, LocalWidth, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
+//	SetWindowPos(GetRemoteTbarWnd(), 0, LocalWidth + SepaWidth, TOOLWIN_HEIGHT, RemoteWidth, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
+	SetWindowPos(GetMainTbarWnd(), 0, 0, 0, Rect.right, AskToolWinHeight(), SWP_NOACTIVATE | SWP_NOZORDER);
+	SetWindowPos(GetLocalTbarWnd(), 0, 0, AskToolWinHeight(), LocalWidth, AskToolWinHeight(), SWP_NOACTIVATE | SWP_NOZORDER);
+	SetWindowPos(GetRemoteTbarWnd(), 0, LocalWidth + SepaWidth, AskToolWinHeight(), RemoteWidth, AskToolWinHeight(), SWP_NOACTIVATE | SWP_NOZORDER);
 	SendMessage(GetLocalTbarWnd(), TB_GETITEMRECT, 3, (LPARAM)&Rect);
 	SetWindowPos(GetLocalHistHwnd(), 0, Rect.right, Rect.top, LocalWidth - Rect.right, 200, SWP_NOACTIVATE | SWP_NOZORDER);
 	SendMessage(GetRemoteTbarWnd(), TB_GETITEMRECT, 3, (LPARAM)&Rect);
 	SetWindowPos(GetRemoteHistHwnd(), 0, Rect.right, Rect.top, RemoteWidth - Rect.right, 200, SWP_NOACTIVATE | SWP_NOZORDER);
-	SetWindowPos(GetLocalHwnd(), 0, 0, TOOLWIN_HEIGHT*2, LocalWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-	SetWindowPos(GetRemoteHwnd(), 0, LocalWidth + SepaWidth, TOOLWIN_HEIGHT*2, RemoteWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-	SetWindowPos(GetTaskWnd(), 0, 0, TOOLWIN_HEIGHT*2+ListHeight+SepaWidth, ClientWidth, TaskHeight, SWP_NOACTIVATE | SWP_NOZORDER);
+	// 高DPI対応
+//	SetWindowPos(GetLocalHwnd(), 0, 0, TOOLWIN_HEIGHT*2, LocalWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
+//	SetWindowPos(GetRemoteHwnd(), 0, LocalWidth + SepaWidth, TOOLWIN_HEIGHT*2, RemoteWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
+//	SetWindowPos(GetTaskWnd(), 0, 0, TOOLWIN_HEIGHT*2+ListHeight+SepaWidth, ClientWidth, TaskHeight, SWP_NOACTIVATE | SWP_NOZORDER);
+	SetWindowPos(GetLocalHwnd(), 0, 0, AskToolWinHeight()*2, LocalWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
+	SetWindowPos(GetRemoteHwnd(), 0, LocalWidth + SepaWidth, AskToolWinHeight()*2, RemoteWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
+	SetWindowPos(GetTaskWnd(), 0, 0, AskToolWinHeight()*2+ListHeight+SepaWidth, ClientWidth, TaskHeight, SWP_NOACTIVATE | SWP_NOZORDER);
 #endif
 
 	return;
@@ -2674,7 +2700,9 @@ static void CalcWinSize(void)
 
 	GetClientRect(GetSbarWnd(), &Rect);
 
-	ListHeight = max1(0, ClientHeight - TOOLWIN_HEIGHT * 2 - TaskHeight - SepaWidth - Rect.bottom);
+	// 高DPI対応
+//	ListHeight = max1(0, ClientHeight - TOOLWIN_HEIGHT * 2 - TaskHeight - SepaWidth - Rect.bottom);
+	ListHeight = max1(0, ClientHeight - AskToolWinHeight() * 2 - TaskHeight - SepaWidth - Rect.bottom);
 
 	return;
 }
@@ -2722,8 +2750,11 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 
 	if((Resizing == RESIZE_OFF) && (Keys == 0))
 	{
+		// 高DPI対応
+//		if((x >= LocalWidth) && (x <= LocalWidth + SepaWidth) &&
+//		   (y > TOOLWIN_HEIGHT) && (y < (TOOLWIN_HEIGHT * 2 + ListHeight)))
 		if((x >= LocalWidth) && (x <= LocalWidth + SepaWidth) &&
-		   (y > TOOLWIN_HEIGHT) && (y < (TOOLWIN_HEIGHT * 2 + ListHeight)))
+		   (y > AskToolWinHeight()) && (y < (AskToolWinHeight() * 2 + ListHeight)))
 		{
 			/* 境界位置変更用カーソルに変更 */
 			SetCapture(hWndFtp);
@@ -2732,7 +2763,9 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 			Resizing = RESIZE_PREPARE;
 			ResizePos = RESIZE_HPOS;
 		}
-		else if((y >= TOOLWIN_HEIGHT*2+ListHeight) && (y <= TOOLWIN_HEIGHT*2+ListHeight+SepaWidth))
+		// 高DPI対応
+//		else if((y >= TOOLWIN_HEIGHT*2+ListHeight) && (y <= TOOLWIN_HEIGHT*2+ListHeight+SepaWidth))
+		else if((y >= AskToolWinHeight()*2+ListHeight) && (y <= AskToolWinHeight()*2+ListHeight+SepaWidth))
 		{
 			/* 境界位置変更用カーソルに変更 */
 			SetCapture(hWndFtp);
@@ -2752,17 +2785,25 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 			GetClientRect(GetSbarWnd(), &Rect1);
 			Rect.left += GetSystemMetrics(SM_CXFRAME);
 			Rect.right -= GetSystemMetrics(SM_CXFRAME);
-			Rect.top += TOOLWIN_HEIGHT*2 + GetSystemMetrics(SM_CYMENU) + GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYFRAME);
+			// 高DPI対応
+//			Rect.top += TOOLWIN_HEIGHT*2 + GetSystemMetrics(SM_CYMENU) + GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYFRAME);
+			Rect.top += AskToolWinHeight()*2 + GetSystemMetrics(SM_CYMENU) + GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYFRAME);
 			Rect.bottom -= GetSystemMetrics(SM_CYFRAME) + Rect1.bottom;
 			ClipCursor(&Rect);
 		}
 		else
 		{
+			// 高DPI対応
+//			if(((ResizePos == RESIZE_HPOS) &&
+//				((x < LocalWidth) || (x > LocalWidth + SepaWidth) ||
+//				 (y <= TOOLWIN_HEIGHT) || (y >= (TOOLWIN_HEIGHT * 2 + ListHeight)))) ||
+//			   ((ResizePos == RESIZE_VPOS) &&
+//				((y < TOOLWIN_HEIGHT*2+ListHeight) || (y > TOOLWIN_HEIGHT*2+ListHeight+SepaWidth))))
 			if(((ResizePos == RESIZE_HPOS) &&
 				((x < LocalWidth) || (x > LocalWidth + SepaWidth) ||
-				 (y <= TOOLWIN_HEIGHT) || (y >= (TOOLWIN_HEIGHT * 2 + ListHeight)))) ||
+				 (y <= AskToolWinHeight()) || (y >= (AskToolWinHeight() * 2 + ListHeight)))) ||
 			   ((ResizePos == RESIZE_VPOS) &&
-				((y < TOOLWIN_HEIGHT*2+ListHeight) || (y > TOOLWIN_HEIGHT*2+ListHeight+SepaWidth))))
+				((y < AskToolWinHeight()*2+ListHeight) || (y > AskToolWinHeight()*2+ListHeight+SepaWidth))))
 			{
 				/* 元のカーソルに戻す */
 				ReleaseCapture();
@@ -3465,5 +3506,11 @@ void UpdateTaskbarProgress()
 	}
 	else
 		pTaskbarList3->lpVtbl->SetProgressState(pTaskbarList3, GetMainHwnd(), TBPF_NOPROGRESS);
+}
+
+// 高DPI対応
+int AskToolWinHeight(void)
+{
+	return(ToolWinHeight);
 }
 

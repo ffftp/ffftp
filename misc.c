@@ -76,6 +76,9 @@ extern HWND hHelpWin;
 
 static DIALOGDATA *DialogData;		/* 入力ダイアログデータ */
 static int HelpPage;
+// 高DPI対応
+static int DisplayDPIX;
+static int DisplayDPIY;
 
 
 
@@ -1963,3 +1966,68 @@ void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size)
 	}
 }
 #endif
+
+// 高DPI対応
+void QueryDisplayDPI()
+{
+	HDC hDC;
+	if(DisplayDPIX == 0)
+	{
+		if(hDC = GetDC(NULL))
+		{
+			DisplayDPIX = GetDeviceCaps(hDC, LOGPIXELSX);
+			DisplayDPIY = GetDeviceCaps(hDC, LOGPIXELSY);
+			ReleaseDC(NULL, hDC);
+		}
+	}
+}
+
+int CalcPixelX(int x)
+{
+	QueryDisplayDPI();
+	return (x * DisplayDPIX + 96 / 2) / 96;
+}
+
+int CalcPixelY(int y)
+{
+	QueryDisplayDPI();
+	return (y * DisplayDPIY + 96 / 2) / 96;
+}
+
+HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY)
+{
+	HBITMAP hDstBitmap;
+	HDC hDC;
+	HDC hSrcDC;
+	HDC hDstDC;
+	BITMAP Bitmap;
+	HGDIOBJ hSrcOld;
+	HGDIOBJ hDstOld;
+	hDstBitmap = NULL;
+	if(hDC = GetDC(NULL))
+	{
+		if(hSrcDC = CreateCompatibleDC(hDC))
+		{
+			if(hDstDC = CreateCompatibleDC(hDC))
+			{
+				if(GetObject(hBitmap, sizeof(BITMAP), &Bitmap) > 0)
+				{
+					if(hDstBitmap = CreateCompatibleBitmap(hDC, CalcPixelX((Bitmap.bmWidth / UnitSizeX) * UnitSizeX), CalcPixelY((Bitmap.bmHeight / UnitSizeY) * UnitSizeY)))
+					{
+						hSrcOld = SelectObject(hSrcDC, hBitmap);
+						hDstOld = SelectObject(hDstDC, hDstBitmap);
+						SetStretchBltMode(hDstDC, HALFTONE);
+						StretchBlt(hDstDC, 0, 0, CalcPixelX((Bitmap.bmWidth / UnitSizeX) * UnitSizeX), CalcPixelY((Bitmap.bmHeight / UnitSizeY) * UnitSizeY), hSrcDC, 0, 0, Bitmap.bmWidth, Bitmap.bmHeight, SRCCOPY);
+						SelectObject(hSrcDC, hSrcOld);
+						SelectObject(hDstDC, hDstOld);
+					}
+				}
+				DeleteDC(hDstDC);
+			}
+			DeleteDC(hSrcDC);
+		}
+		ReleaseDC(NULL, hDC);
+	}
+	return hDstBitmap;
+}
+

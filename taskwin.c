@@ -87,10 +87,16 @@ int MakeTaskWindow(HWND hWnd, HINSTANCE hInst)
 	int Sts;
 
 	Sts = FFFTP_FAIL;
+	// 高DPI対応
+//	hWndTask = CreateWindowEx(/*WS_EX_STATICEDGE*/WS_EX_CLIENTEDGE,
+//			"EDIT", NULL,
+//			WS_CHILD | WS_BORDER | ES_AUTOVSCROLL | WS_VSCROLL | ES_MULTILINE | ES_READONLY | WS_CLIPSIBLINGS,
+//			0, TOOLWIN_HEIGHT*2+ListHeight+SepaWidth, ClientWidth, TaskHeight,
+//			hWnd, (HMENU)1500, hInst, NULL);
 	hWndTask = CreateWindowEx(/*WS_EX_STATICEDGE*/WS_EX_CLIENTEDGE,
 			"EDIT", NULL,
 			WS_CHILD | WS_BORDER | ES_AUTOVSCROLL | WS_VSCROLL | ES_MULTILINE | ES_READONLY | WS_CLIPSIBLINGS,
-			0, TOOLWIN_HEIGHT*2+ListHeight+SepaWidth, ClientWidth, TaskHeight,
+			0, AskToolWinHeight()*2+ListHeight+SepaWidth, ClientWidth, TaskHeight,
 			hWnd, (HMENU)1500, hInst, NULL);
 
 	if(hWndTask != NULL)

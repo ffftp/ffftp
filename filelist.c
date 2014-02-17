@@ -201,10 +201,16 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 
 	/*===== ローカル側のリストビュー =====*/
 
+	// 高DPI対応
+//	hWndListLocal = CreateWindowEx(/*WS_EX_STATICEDGE*/WS_EX_CLIENTEDGE,
+//			WC_LISTVIEWA, NULL,
+//			WS_CHILD | /*WS_BORDER | */LVS_REPORT | LVS_SHOWSELALWAYS,
+//			0, TOOLWIN_HEIGHT*2, LocalWidth, ListHeight,
+//			GetMainHwnd(), (HMENU)1500, hInst, NULL);
 	hWndListLocal = CreateWindowEx(/*WS_EX_STATICEDGE*/WS_EX_CLIENTEDGE,
 			WC_LISTVIEWA, NULL,
 			WS_CHILD | /*WS_BORDER | */LVS_REPORT | LVS_SHOWSELALWAYS,
-			0, TOOLWIN_HEIGHT*2, LocalWidth, ListHeight,
+			0, AskToolWinHeight()*2, LocalWidth, ListHeight,
 			GetMainHwnd(), (HMENU)1500, hInst, NULL);
 
 	if(hWndListLocal != NULL)
@@ -252,10 +258,16 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 
 	/*===== ホスト側のリストビュー =====*/
 
+	// 高DPI対応
+//	hWndListRemote = CreateWindowEx(/*WS_EX_STATICEDGE*/WS_EX_CLIENTEDGE,
+//			WC_LISTVIEWA, NULL,
+//			WS_CHILD | /*WS_BORDER | */LVS_REPORT | LVS_SHOWSELALWAYS,
+//			LocalWidth + SepaWidth, TOOLWIN_HEIGHT*2, RemoteWidth, ListHeight,
+//			GetMainHwnd(), (HMENU)1500, hInst, NULL);
 	hWndListRemote = CreateWindowEx(/*WS_EX_STATICEDGE*/WS_EX_CLIENTEDGE,
 			WC_LISTVIEWA, NULL,
 			WS_CHILD | /*WS_BORDER | */LVS_REPORT | LVS_SHOWSELALWAYS,
-			LocalWidth + SepaWidth, TOOLWIN_HEIGHT*2, RemoteWidth, ListHeight,
+			LocalWidth + SepaWidth, AskToolWinHeight()*2, RemoteWidth, ListHeight,
 			GetMainHwnd(), (HMENU)1500, hInst, NULL);
 
 	if(hWndListRemote != NULL)
