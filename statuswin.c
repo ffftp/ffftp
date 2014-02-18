@@ -67,6 +67,8 @@ static int SbarColWidth[5] = { 70, 230, 410, 570, -1 };
 int MakeStatusBarWindow(HWND hWnd, HINSTANCE hInst)
 {
 	int Sts;
+	// 高DPI対応
+	int i;
 
 	Sts = FFFTP_FAIL;
 	hWndSbar = CreateWindowEx(0,
@@ -77,6 +79,9 @@ int MakeStatusBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	if(hWndSbar != NULL)
 	{
+		// 高DPI対応
+		for(i = 0; i < sizeof(SbarColWidth) / sizeof(int); i++)
+			SbarColWidth[i] = CalcPixelX(SbarColWidth[i]);
 		SendMessage(hWndSbar, SB_SETPARTS, sizeof(SbarColWidth)/sizeof(int), (LPARAM)SbarColWidth);
 		ShowWindow(hWndSbar, SW_SHOW);
 		Sts = FFFTP_SUCCESS;

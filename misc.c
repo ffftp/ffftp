@@ -1994,7 +1994,7 @@ int CalcPixelY(int y)
 	return (y * DisplayDPIY + 96 / 2) / 96;
 }
 
-HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY)
+HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNumerator, int ScaleDenominator)
 {
 	HBITMAP hDstBitmap;
 	HDC hDC;
@@ -2003,6 +2003,8 @@ HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY)
 	BITMAP Bitmap;
 	HGDIOBJ hSrcOld;
 	HGDIOBJ hDstOld;
+	int Width;
+	int Height;
 	hDstBitmap = NULL;
 	if(hDC = GetDC(NULL))
 	{
@@ -2012,12 +2014,18 @@ HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY)
 			{
 				if(GetObject(hBitmap, sizeof(BITMAP), &Bitmap) > 0)
 				{
-					if(hDstBitmap = CreateCompatibleBitmap(hDC, CalcPixelX((Bitmap.bmWidth / UnitSizeX) * UnitSizeX), CalcPixelY((Bitmap.bmHeight / UnitSizeY) * UnitSizeY)))
+					if(UnitSizeX == 0)
+						UnitSizeX = Bitmap.bmWidth;
+					if(UnitSizeY == 0)
+						UnitSizeY = Bitmap.bmHeight;
+					Width = (Bitmap.bmWidth / UnitSizeX) * ((CalcPixelX(UnitSizeX) * ScaleNumerator) / ScaleDenominator);
+					Height = (Bitmap.bmHeight / UnitSizeY) * ((CalcPixelY(UnitSizeY) * ScaleNumerator) / ScaleDenominator);
+					if(hDstBitmap = CreateCompatibleBitmap(hDC, Width, Height))
 					{
 						hSrcOld = SelectObject(hSrcDC, hBitmap);
 						hDstOld = SelectObject(hDstDC, hDstBitmap);
 						SetStretchBltMode(hDstDC, HALFTONE);
-						StretchBlt(hDstDC, 0, 0, CalcPixelX((Bitmap.bmWidth / UnitSizeX) * UnitSizeX), CalcPixelY((Bitmap.bmHeight / UnitSizeY) * UnitSizeY), hSrcDC, 0, 0, Bitmap.bmWidth, Bitmap.bmHeight, SRCCOPY);
+						StretchBlt(hDstDC, 0, 0, Width, Height, hSrcDC, 0, 0, Bitmap.bmWidth, Bitmap.bmHeight, SRCCOPY);
 						SelectObject(hSrcDC, hSrcOld);
 						SelectObject(hDstDC, hDstOld);
 					}

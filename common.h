@@ -1902,7 +1902,7 @@ void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size);
 void QueryDisplayDPI();
 int CalcPixelX(int x);
 int CalcPixelY(int y);
-HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY);
+HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNumerator, int ScaleDenominator);
 
 /*===== dlgsize.c =====*/
 
