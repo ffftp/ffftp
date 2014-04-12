@@ -74,12 +74,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib uuid.lib winmm.lib wintrust.lib ws2_32.lib"
+				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib uuid.lib winmm.lib wintrust.lib winhttp.lib ws2_32.lib"
 				OutputFile=".\Debug\FFFTP.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll"
+				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;winhttp.dll;ws2_32.dll"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug\FFFTP.pdb"
 				SubSystem="2"
@@ -167,12 +167,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib uuid.lib winmm.lib wintrust.lib ws2_32.lib"
+				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib uuid.lib winmm.lib wintrust.lib winhttp.lib ws2_32.lib"
 				OutputFile=".\Debug_64\FFFTP.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll"
+				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;winhttp.dll;ws2_32.dll"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug_64\FFFTP.pdb"
 				SubSystem="2"
@@ -262,12 +262,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib uuid.lib winmm.lib wintrust.lib ws2_32.lib"
+				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib uuid.lib winmm.lib wintrust.lib winhttp.lib ws2_32.lib"
 				OutputFile=".\Release\FFFTP.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll"
+				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;winhttp.dll;ws2_32.dll"
 				ProgramDatabaseFile=".\Release\FFFTP.pdb"
 				SubSystem="2"
 				TargetMachine="1"
@@ -356,12 +356,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib uuid.lib winmm.lib wintrust.lib ws2_32.lib"
+				AdditionalDependencies="comctl32.lib crypt32.lib htmlhelp.lib imagehlp.lib rasapi32.lib sfc.lib uuid.lib winmm.lib wintrust.lib winhttp.lib ws2_32.lib"
 				OutputFile=".\Release_64\FFFTP.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll"
+				DelayLoadDLLs="advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;winhttp.dll;ws2_32.dll"
 				ProgramDatabaseFile=".\Release_64\FFFTP.pdb"
 				SubSystem="2"
 				TargetMachine="17"
@@ -584,7 +584,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\updater.c"
+				>
+			</File>
+			<File
 				RelativePath=".\wildcard.c"
+				>
+			</File>
+			<File
+				RelativePath=".\updater.h"
 				>
 			</File>
 		</Filter>

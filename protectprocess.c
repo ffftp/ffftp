@@ -798,44 +798,55 @@ void SetProcessProtectionLevel(DWORD Level)
 	g_ProcessProtectionLevel = Level;
 }
 
-// ファイルのSHA1ハッシュを取得
-BOOL GetSHA1HashOfFile(LPCWSTR Filename, void* pHash)
+//	メモリのSHA1ハッシュを取得
+BOOL GetSHA1HashOfMemory(const void* pData, DWORD Size, void* pHash)
 {
 	BOOL bResult;
 	HCRYPTPROV hProv;
 	HCRYPTHASH hHash;
-	HANDLE hFile;
-	DWORD Size;
-	void* pData;
 	DWORD dw;
 	bResult = FALSE;
 	if(CryptAcquireContextW(&hProv, NULL, NULL, PROV_RSA_FULL, 0) || CryptAcquireContextW(&hProv, NULL, NULL, PROV_RSA_FULL, CRYPT_NEWKEYSET))
 	{
 		if(CryptCreateHash(hProv, CALG_SHA1, 0, 0, &hHash))
 		{
-			if((hFile = CreateFileW(Filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+			if(CryptHashData(hHash, (BYTE*)pData, Size, 0))
 			{
-				Size = GetFileSize(hFile, NULL);
-				if(pData = VirtualAlloc(NULL, Size, MEM_COMMIT, PAGE_READWRITE))
-				{
-					VirtualLock(pData, Size);
-					if(ReadFile(hFile, pData, Size, &dw, NULL))
-					{
-						if(CryptHashData(hHash, (BYTE*)pData, Size, 0))
-						{
-							dw = 20;
-							if(CryptGetHashParam(hHash, HP_HASHVAL, (BYTE*)pHash, &dw, 0))
-								bResult = TRUE;
-						}
-					}
-					VirtualUnlock(pData, Size);
-					VirtualFree(pData, Size, MEM_DECOMMIT);
-				}
-				CloseHandle(hFile);
+				dw = 20;
+				if(CryptGetHashParam(hHash, HP_HASHVAL, (BYTE*)pHash, &dw, 0))
+					bResult = TRUE;
 			}
 			CryptDestroyHash(hHash);
 		}
 		CryptReleaseContext(hProv, 0);
+	}
+	return bResult;
+}
+
+// ファイルのSHA1ハッシュを取得
+BOOL GetSHA1HashOfFile(LPCWSTR Filename, void* pHash)
+{
+	BOOL bResult;
+	HANDLE hFile;
+	DWORD Size;
+	void* pData;
+	DWORD dw;
+	bResult = FALSE;
+	if((hFile = CreateFileW(Filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+	{
+		Size = GetFileSize(hFile, NULL);
+		if(pData = VirtualAlloc(NULL, Size, MEM_COMMIT, PAGE_READWRITE))
+		{
+			VirtualLock(pData, Size);
+			if(ReadFile(hFile, pData, Size, &dw, NULL))
+			{
+				if(GetSHA1HashOfMemory(pData, Size, pHash))
+					bResult = TRUE;
+			}
+			VirtualUnlock(pData, Size);
+			VirtualFree(pData, Size, MEM_DECOMMIT);
+		}
+		CloseHandle(hFile);
 	}
 	return bResult;
 }

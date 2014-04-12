@@ -20,6 +20,7 @@ void SetSSLTimeoutCallback(DWORD Timeout, LPSSLTIMEOUTCALLBACK pCallback);
 void SetSSLConfirmCallback(LPSSLCONFIRMCALLBACK pCallback);
 BOOL SetSSLRootCertificate(const void* pData, DWORD Length);
 BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName);
+BOOL DecryptSignature(const char* PublicKey, const void* pIn, DWORD InLength, void* pOut, DWORD OutLength, DWORD* pOutLength);
 BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted);
 BOOL DetachSSL(SOCKET s);
 BOOL IsSSLAttached(SOCKET s);

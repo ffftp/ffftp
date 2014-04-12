@@ -67,6 +67,7 @@ EXTERN_HOOK_FUNCTION_VAR(LoadLibraryExW)
 
 HMODULE System_LoadLibrary(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags);
 void SetProcessProtectionLevel(DWORD Level);
+BOOL GetSHA1HashOfMemory(const void* pData, DWORD Size, void* pHash);
 BOOL GetSHA1HashOfFile(LPCWSTR Filename, void* pHash);
 BOOL RegisterTrustedModuleSHA1Hash(void* pHash);
 BOOL UnregisterTrustedModuleSHA1Hash(void* pHash);
