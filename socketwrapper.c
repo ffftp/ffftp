@@ -49,8 +49,11 @@ typedef void (__cdecl* _X509_free)(X509*);
 typedef int (__cdecl* _X509_print_ex)(BIO*, X509*, unsigned long, unsigned long);
 typedef X509_NAME* (__cdecl* _X509_get_subject_name)(X509*);
 typedef int (__cdecl* _X509_NAME_print_ex)(BIO*, X509_NAME*, int, unsigned long);
+typedef void (__cdecl* _X509_CRL_free)(X509_CRL*);
 typedef X509* (__cdecl* _PEM_read_bio_X509)(BIO*, X509**, pem_password_cb*, void*);
+typedef X509_CRL* (__cdecl* _PEM_read_bio_X509_CRL)(BIO*, X509_CRL**, pem_password_cb*, void*);
 typedef int (__cdecl* _X509_STORE_add_cert)(X509_STORE*, X509*);
+typedef int (__cdecl* _X509_STORE_add_crl)(X509_STORE*, X509_CRL*);
 
 _SSL_load_error_strings p_SSL_load_error_strings;
 _SSL_library_init p_SSL_library_init;
@@ -83,8 +86,11 @@ _X509_free p_X509_free;
 _X509_print_ex p_X509_print_ex;
 _X509_get_subject_name p_X509_get_subject_name;
 _X509_NAME_print_ex p_X509_NAME_print_ex;
+_X509_CRL_free p_X509_CRL_free;
 _PEM_read_bio_X509 p_PEM_read_bio_X509;
+_PEM_read_bio_X509_CRL p_PEM_read_bio_X509_CRL;
 _X509_STORE_add_cert p_X509_STORE_add_cert;
+_X509_STORE_add_crl p_X509_STORE_add_crl;
 
 #define MAX_SSL_SOCKET 16
 
@@ -165,8 +171,11 @@ BOOL LoadOpenSSL()
 		|| !(p_X509_print_ex = (_X509_print_ex)GetProcAddress(g_hOpenSSLCommon, "X509_print_ex"))
 		|| !(p_X509_get_subject_name = (_X509_get_subject_name)GetProcAddress(g_hOpenSSLCommon, "X509_get_subject_name"))
 		|| !(p_X509_NAME_print_ex = (_X509_NAME_print_ex)GetProcAddress(g_hOpenSSLCommon, "X509_NAME_print_ex"))
+		|| !(p_X509_CRL_free = (_X509_CRL_free)GetProcAddress(g_hOpenSSLCommon, "X509_CRL_free"))
 		|| !(p_PEM_read_bio_X509 = (_PEM_read_bio_X509)GetProcAddress(g_hOpenSSLCommon, "PEM_read_bio_X509"))
-		|| !(p_X509_STORE_add_cert = (_X509_STORE_add_cert)GetProcAddress(g_hOpenSSLCommon, "X509_STORE_add_cert")))
+		|| !(p_PEM_read_bio_X509_CRL = (_PEM_read_bio_X509_CRL)GetProcAddress(g_hOpenSSLCommon, "PEM_read_bio_X509_CRL"))
+		|| !(p_X509_STORE_add_cert = (_X509_STORE_add_cert)GetProcAddress(g_hOpenSSLCommon, "X509_STORE_add_cert"))
+		|| !(p_X509_STORE_add_crl = (_X509_STORE_add_crl)GetProcAddress(g_hOpenSSLCommon, "X509_STORE_add_crl")))
 	{
 		if(g_hOpenSSL)
 			FreeLibrary(g_hOpenSSL);
@@ -341,8 +350,10 @@ BOOL SetSSLRootCertificate(const void* pData, DWORD Length)
 	BYTE* p;
 	BYTE* pBegin;
 	BYTE* pEnd;
+	DWORD Left;
 	BIO* pBIO;
 	X509* pX509;
+	X509_CRL* pX509_CRL;
 	if(!g_bOpenSSLLoaded)
 		return FALSE;
 	r = FALSE;
@@ -359,18 +370,19 @@ BOOL SetSSLRootCertificate(const void* pData, DWORD Length)
 			p = (BYTE*)pData;
 			pBegin = NULL;
 			pEnd = NULL;
-			while(Length > 0)
+			Left = Length;
+			while(Left > 0)
 			{
 				if(!pBegin)
 				{
-					if(Length < 27)
+					if(Left < 27)
 						break;
 					if(memcmp(p, "-----BEGIN CERTIFICATE-----", 27) == 0)
 						pBegin = p;
 				}
 				else if(!pEnd)
 				{
-					if(Length < 25)
+					if(Left < 25)
 						break;
 					if(memcmp(p, "-----END CERTIFICATE-----", 25) == 0)
 						pEnd = p + 25;
@@ -391,7 +403,45 @@ BOOL SetSSLRootCertificate(const void* pData, DWORD Length)
 					pEnd = NULL;
 				}
 				p++;
-				Length--;
+				Left--;
+			}
+			p = (BYTE*)pData;
+			pBegin = NULL;
+			pEnd = NULL;
+			Left = Length;
+			while(Left > 0)
+			{
+				if(!pBegin)
+				{
+					if(Left < 24)
+						break;
+					if(memcmp(p, "-----BEGIN X509 CRL-----", 24) == 0)
+						pBegin = p;
+				}
+				else if(!pEnd)
+				{
+					if(Left < 22)
+						break;
+					if(memcmp(p, "-----END X509 CRL-----", 22) == 0)
+						pEnd = p + 22;
+				}
+				if(pBegin && pEnd)
+				{
+					if(pBIO = p_BIO_new_mem_buf(pBegin, (int)((size_t)pEnd - (size_t)pBegin)))
+					{
+						if(pX509_CRL = p_PEM_read_bio_X509_CRL(pBIO, NULL, NULL, NULL))
+						{
+							if(p_X509_STORE_add_crl(pStore, pX509_CRL) == 1)
+								r = TRUE;
+							p_X509_CRL_free(pX509_CRL);
+						}
+						p_BIO_free(pBIO);
+					}
+					pBegin = NULL;
+					pEnd = NULL;
+				}
+				p++;
+				Left--;
 			}
 		}
 	}
