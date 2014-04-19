@@ -59,7 +59,12 @@ typedef void (__cdecl* _EVP_PKEY_free)(EVP_PKEY*);
 typedef RSA* (__cdecl* _EVP_PKEY_get1_RSA)(EVP_PKEY*);
 typedef void (__cdecl* _RSA_free)(RSA*);
 typedef int (__cdecl* _RSA_size)(const RSA*);
-typedef int (__cdecl* _RSA_public_decrypt)(int, const unsigned char*, unsigned char*, RSA*,int);
+typedef int (__cdecl* _RSA_public_decrypt)(int, const unsigned char*, unsigned char*, RSA*, int);
+typedef unsigned char* (__cdecl* _SHA1)(const unsigned char*, size_t, unsigned char*);
+typedef unsigned char* (__cdecl* _SHA224)(const unsigned char*, size_t, unsigned char*);
+typedef unsigned char* (__cdecl* _SHA256)(const unsigned char*, size_t, unsigned char*);
+typedef unsigned char* (__cdecl* _SHA384)(const unsigned char*, size_t, unsigned char*);
+typedef unsigned char* (__cdecl* _SHA512)(const unsigned char*, size_t, unsigned char*);
 
 _SSL_load_error_strings p_SSL_load_error_strings;
 _SSL_library_init p_SSL_library_init;
@@ -103,6 +108,11 @@ _EVP_PKEY_get1_RSA p_EVP_PKEY_get1_RSA;
 _RSA_free p_RSA_free;
 _RSA_size p_RSA_size;
 _RSA_public_decrypt p_RSA_public_decrypt;
+_SHA1 p_SHA1;
+_SHA224 p_SHA224;
+_SHA256 p_SHA256;
+_SHA384 p_SHA384;
+_SHA512 p_SHA512;
 
 #define MAX_SSL_SOCKET 16
 
@@ -193,7 +203,12 @@ BOOL LoadOpenSSL()
 		|| !(p_EVP_PKEY_get1_RSA = (_EVP_PKEY_get1_RSA)GetProcAddress(g_hOpenSSLCommon, "EVP_PKEY_get1_RSA"))
 		|| !(p_RSA_free = (_RSA_free)GetProcAddress(g_hOpenSSLCommon, "RSA_free"))
 		|| !(p_RSA_size = (_RSA_size)GetProcAddress(g_hOpenSSLCommon, "RSA_size"))
-		|| !(p_RSA_public_decrypt = (_RSA_public_decrypt)GetProcAddress(g_hOpenSSLCommon, "RSA_public_decrypt")))
+		|| !(p_RSA_public_decrypt = (_RSA_public_decrypt)GetProcAddress(g_hOpenSSLCommon, "RSA_public_decrypt"))
+		|| !(p_SHA1 = (_SHA1)GetProcAddress(g_hOpenSSLCommon, "SHA1"))
+		|| !(p_SHA224 = (_SHA224)GetProcAddress(g_hOpenSSLCommon, "SHA224"))
+		|| !(p_SHA256 = (_SHA256)GetProcAddress(g_hOpenSSLCommon, "SHA256"))
+		|| !(p_SHA384 = (_SHA384)GetProcAddress(g_hOpenSSLCommon, "SHA384"))
+		|| !(p_SHA512 = (_SHA512)GetProcAddress(g_hOpenSSLCommon, "SHA512")))
 	{
 		if(g_hOpenSSL)
 			FreeLibrary(g_hOpenSSL);
@@ -540,6 +555,33 @@ BOOL DecryptSignature(const char* PublicKey, const void* pIn, DWORD InLength, vo
 		p_BIO_free(pBIO);
 	}
 	return bResult;
+}
+
+// ハッシュ計算
+// 他にも同等の関数はあるが主にマルウェア対策のための冗長化
+void GetHashSHA1(const void* pData, DWORD Size, void* pHash)
+{
+	p_SHA1((const unsigned char*)pData, (size_t)Size, (unsigned char*)pHash);
+}
+
+void GetHashSHA224(const void* pData, DWORD Size, void* pHash)
+{
+	p_SHA224((const unsigned char*)pData, (size_t)Size, (unsigned char*)pHash);
+}
+
+void GetHashSHA256(const void* pData, DWORD Size, void* pHash)
+{
+	p_SHA256((const unsigned char*)pData, (size_t)Size, (unsigned char*)pHash);
+}
+
+void GetHashSHA384(const void* pData, DWORD Size, void* pHash)
+{
+	p_SHA384((const unsigned char*)pData, (size_t)Size, (unsigned char*)pHash);
+}
+
+void GetHashSHA512(const void* pData, DWORD Size, void* pHash)
+{
+	p_SHA512((const unsigned char*)pData, (size_t)Size, (unsigned char*)pHash);
 }
 
 // SSLセッションを開始

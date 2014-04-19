@@ -13,6 +13,12 @@ typedef SOCKADDR_STORAGE *PSOCKADDR_STORAGE, FAR *LPSOCKADDR_STORAGE;
 #include "socketwrapper.h"
 #include "protectprocess.h"
 
+typedef struct
+{
+	BYTE Signature[64];
+	BYTE ListHash[64];
+} UPDATE_HASH;
+
 BOOL DownloadFileViaHTTP(void* pOut, DWORD Length, DWORD* pLength, LPCWSTR UserAgent, LPCWSTR ServerName, LPCWSTR ObjectName)
 {
 	BOOL bResult;
@@ -53,27 +59,27 @@ BOOL DownloadFileViaHTTP(void* pOut, DWORD Length, DWORD* pLength, LPCWSTR UserA
 BOOL CheckForUpdates()
 {
 	BOOL bResult;
+	DWORD Length;
 	BYTE Buf1[4096];
 	BYTE Buf2[1024];
-	BYTE Hash[20];
-	DWORD Length;
+	UPDATE_HASH UpdateHash;
+	BYTE Hash[64];
 	bResult = FALSE;
 	if(DownloadFileViaHTTP(&Buf1, sizeof(Buf1), &Length, HTTP_USER_AGENT, UPDATE_SERVER, UPDATE_HASH_PATH))
 	{
 		if(DecryptSignature(UPDATE_RSA_PUBLIC_KEY, &Buf1, Length, &Buf2, sizeof(Buf2), &Length))
 		{
-			if(Length >= 20)
+			if(Length == sizeof(UPDATE_HASH))
 			{
-				if(memcmp(&Buf2[0], UPDATE_SIGNATURE, 20) == 0)
+				memcpy(&UpdateHash, &Buf2, sizeof(UPDATE_HASH));
+				if(memcmp(&UpdateHash.Signature, UPDATE_SIGNATURE, 64) == 0)
 				{
 					if(DownloadFileViaHTTP(&Buf1, sizeof(Buf1), &Length, HTTP_USER_AGENT, UPDATE_SERVER, UPDATE_LIST_PATH))
 					{
-						if(GetSHA1HashOfMemory(&Buf1, Length, &Hash))
+						GetHashSHA512(&Buf1, Length, &Hash);
+						if(memcmp(&Hash, &UpdateHash.ListHash, 64) == 0)
 						{
-							if(memcmp(&Hash, &Buf2[20], 20) == 0)
-							{
-								// TODO: 更新情報を解析
-							}
+							// TODO: 更新情報を解析
 						}
 					}
 				}
