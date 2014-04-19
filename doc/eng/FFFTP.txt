@@ -52,6 +52,17 @@ Changes in Ver.1.99
 -- Changed to confirm how the settings will be saved when the settings of a
    future version exist in the registry.
 
+-- Changed to display file sizes with units of GB or larger.
+
+-- Changed to display the encryption status of the current connection.
+
+-- Changed to display the progress of file transfer on the taskbar (Windows 7
+   or later only).
+
+-- Added a function to move remote files to their parent directory.
+
+-- Supported high DPI displays.
+
 
 Outline
 -------
