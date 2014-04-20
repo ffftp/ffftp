@@ -2,6 +2,7 @@
 // Copyright (C) 2014 Suguru Kawamoto
 // ソフトウェア自動更新
 
+#include <tchar.h>
 #include <ws2tcpip.h>
 #include <windows.h>
 #include <mmsystem.h>
@@ -12,6 +13,7 @@ typedef SOCKADDR_STORAGE *PSOCKADDR_STORAGE, FAR *LPSOCKADDR_STORAGE;
 #include "updater.h"
 #include "socketwrapper.h"
 #include "protectprocess.h"
+#include "mbswrapper.h"
 
 typedef struct
 {
@@ -56,7 +58,7 @@ BOOL DownloadFileViaHTTP(void* pOut, DWORD Length, DWORD* pLength, LPCWSTR UserA
 }
 
 // FFFTPの更新情報を確認
-BOOL CheckForUpdates()
+BOOL CheckForUpdates(BOOL bDownload, LPCTSTR DownloadDir)
 {
 	BOOL bResult;
 	DWORD Length;
@@ -80,6 +82,9 @@ BOOL CheckForUpdates()
 						if(memcmp(&Hash, &UpdateHash.ListHash, 64) == 0)
 						{
 							// TODO: 更新情報を解析
+							bResult = TRUE;
+							if(bDownload)
+								bResult = PrepareUpdates(&Buf1, Length, DownloadDir);
 						}
 					}
 				}
@@ -89,12 +94,67 @@ BOOL CheckForUpdates()
 	return bResult;
 }
 
-// 別のプロセスでFFFTPを更新
-BOOL StartUpdateProcess()
+// 更新するファイルをダウンロード
+BOOL PrepareUpdates(void* pList, DWORD ListLength, LPCTSTR DownloadDir)
 {
 	BOOL bResult;
 	bResult = FALSE;
-	// TODO: CreateProcess()
+	// TODO: 更新情報を解析
+	// TODO: 更新するファイルをダウンロード
+	return bResult;
+}
+
+// FFFTPを更新
+BOOL ApplyUpdates(LPCTSTR DestinationDir)
+{
+	BOOL bResult;
+	bResult = FALSE;
+	// TODO:
+	return bResult;
+}
+
+// 更新用のプロセスを起動
+BOOL StartUpdateProcess(LPCTSTR Path, LPCTSTR CommandLine)
+{
+	BOOL bResult;
+	bResult = FALSE;
+	if(ShellExecute(NULL, "open", Path, CommandLine, NULL, SW_SHOW) > (HINSTANCE)32)
+		bResult = TRUE;
+	return bResult;
+}
+
+// 更新用のプロセスを管理者権限で起動
+// Windows XP以前など起動できない場合は現在のプロセスで処理を続行
+BOOL StartUpdateProcessAsAdministrator(LPCTSTR CommandLine, LPCTSTR Keyword)
+{
+	BOOL bResult;
+	TCHAR* NewCommandLine;
+	TCHAR Path[MAX_PATH];
+	SHELLEXECUTEINFO Info;
+	bResult = FALSE;
+	if(_tcslen(CommandLine) < _tcslen(Keyword) || _tcscmp(CommandLine + _tcslen(CommandLine) - _tcslen(Keyword), Keyword) != 0)
+	{
+		if(NewCommandLine = (TCHAR*)malloc(sizeof(TCHAR) * (_tcslen(CommandLine) + _tcslen(Keyword) + 1)))
+		{
+			_tcscpy(NewCommandLine, CommandLine);
+			_tcscat(NewCommandLine, Keyword);
+			GetModuleFileName(NULL, Path, MAX_PATH);
+			memset(&Info, 0, sizeof(SHELLEXECUTEINFO));
+			Info.cbSize = sizeof(SHELLEXECUTEINFO);
+			Info.fMask = SEE_MASK_NOCLOSEPROCESS;
+			Info.lpVerb = "runas";
+			Info.lpFile = Path;
+			Info.lpParameters = NewCommandLine;
+			Info.nShow = SW_SHOW;
+			if(ShellExecuteEx(&Info))
+			{
+				WaitForSingleObject(Info.hProcess, INFINITE);
+				CloseHandle(Info.hProcess);
+				bResult = TRUE;
+			}
+			free(NewCommandLine);
+		}
+	}
 	return bResult;
 }
 

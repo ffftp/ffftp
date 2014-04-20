@@ -55,6 +55,9 @@
 #include <htmlhelp.h>
 #include "helpid.h"
 
+// ソフトウェア自動更新
+#include "updater.h"
+
 // UTF-8対応
 #undef __MBSWRAPPER_H__
 #include "mbswrapper.h"
@@ -295,6 +298,8 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     MSG Msg;
 	int Ret;
 	BOOL Sts;
+	// ソフトウェア自動更新
+	char UpdateDir[FMAX_PATH+1];
 
 	// プロセス保護
 #ifdef ENABLE_PROCESS_PROTECTION
@@ -361,6 +366,20 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 			InitializeLoadLibraryHook();
 	}
 #endif
+
+	// ソフトウェア自動更新
+	if(GetTokenAfterOption(lpszCmdLine, UpdateDir, "--software-update", "--software-update"))
+	{
+		if(!StartUpdateProcessAsAdministrator(lpszCmdLine, " --restart"))
+		{
+			ApplyUpdates(UpdateDir);
+		}
+		return 0;
+	}
+	else if(GetTokenAfterOption(lpszCmdLine, UpdateDir, "--software-cleanup", "--software-cleanup"))
+	{
+		// TODO: ダウンロードした更新ファイルを削除
+	}
 
 	// マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 #ifdef DISABLE_MULTI_CPUS
@@ -2191,6 +2210,21 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 				*CmdOption |= OPT_SJIS_NAME;
 			else if((strcmp(&Tmp[1], "u8n") == 0) || (strcmp(&Tmp[1], "-utf8name") == 0))
 				*CmdOption |= OPT_UTF8N_NAME;
+			// ソフトウェア自動更新
+			else if(strcmp(Tmp, "--software-update") == 0)
+			{
+				if((Str = GetToken(Str, Tmp)) == NULL)
+				{
+					Ret = -1;
+				}
+			}
+			else if(strcmp(Tmp, "--software-cleanup") == 0)
+			{
+				if((Str = GetToken(Str, Tmp)) == NULL)
+				{
+					Ret = -1;
+				}
+			}
 			else
 			{
 				SetTaskMsg(MSGJPN180, Tmp);
