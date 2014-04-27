@@ -2024,7 +2024,7 @@ HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNum
 					{
 						hSrcOld = SelectObject(hSrcDC, hBitmap);
 						hDstOld = SelectObject(hDstDC, hDstBitmap);
-						SetStretchBltMode(hDstDC, HALFTONE);
+						SetStretchBltMode(hDstDC, COLORONCOLOR);
 						StretchBlt(hDstDC, 0, 0, Width, Height, hSrcDC, 0, 0, Bitmap.bmWidth, Bitmap.bmHeight, SRCCOPY);
 						SelectObject(hSrcDC, hSrcOld);
 						SelectObject(hDstDC, hDstOld);
