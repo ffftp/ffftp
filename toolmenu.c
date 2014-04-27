@@ -266,7 +266,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 				hWnd,
 				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_TOP | TBSTYLE_FLAT,
 				1,
-				27,
+				30,
 				NULL,
 				(UINT_PTR)hResized,
 				TbarDataMain,

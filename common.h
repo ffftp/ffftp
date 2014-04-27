@@ -70,7 +70,12 @@
 //#define VER_STR					"1.97b"
 //#define VER_NUM					1921		/* 設定バージョン */
 //#define PROGRAM_VERSION_NUM		1972		/* バージョン */
+// 64ビット対応
+#ifdef _WIN64
+#define VER_STR					"1.99 64bit"
+#else
 #define VER_STR					"1.99"
+#endif
 #define VER_NUM					1990		/* 設定バージョン */
 #define PROGRAM_VERSION_NUM		1990		/* バージョン */
 

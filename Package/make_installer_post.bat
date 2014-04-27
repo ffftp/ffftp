@@ -14,4 +14,11 @@ REM; copy installer
 copy /Y %JPN_INST% ffftp-%FFFTP_VERSION%.exe
 copy /Y %ENG_INST% ffftp-%FFFTP_VERSION%-eng.exe
 
-pause
+REM;  copy zip archive
+copy /Y %AMD64_JPN_ZIP% ffftp-%FFFTP_VERSION%-64.zip
+copy /Y %AMD64_ENG_ZIP% ffftp-%FFFTP_VERSION%-64-eng.zip
+
+REM; copy installer
+copy /Y %AMD64_JPN_INST% ffftp-%FFFTP_VERSION%-64.exe
+copy /Y %AMD64_ENG_INST% ffftp-%FFFTP_VERSION%-64-eng.exe
+
