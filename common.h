@@ -1795,7 +1795,7 @@ char *JreGetStrMatchInfo(char *Str, UINT nStart);
 
 int CheckFname(char *str, char *regexp);
 
-/*===== registory.c =====*/
+/*===== registry.c =====*/
 
 void SaveRegistry(void);
 int LoadRegistry(void);
@@ -1815,6 +1815,8 @@ int IsRegAvailable();
 int IsIniAvailable();
 // バージョン確認
 int ReadSettingsVersion();
+// FileZilla XML形式エクスポート対応
+void SaveSettingsToFileZillaXml();
 
 /*===== lvtips.c =====*/
 

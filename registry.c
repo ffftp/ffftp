@@ -3346,3 +3346,183 @@ int ReadSettingsVersion()
 	return Version;
 }
 
+// FileZilla XML形式エクスポート対応
+void SaveSettingsToFileZillaXml()
+{
+	char Fname[FMAX_PATH+1];
+	FILE* f;
+	TIME_ZONE_INFORMATION tzi;
+	int Level;
+	int i;
+	HOSTDATA Host;
+	char Tmp[FMAX_PATH+1];
+	char* p1;
+	char* p2;
+	strcpy(Fname, "FileZilla.xml");
+	if(SelectFile(GetMainHwnd(), Fname, MSGJPN286, MSGJPN357, "xml", OFN_EXTENSIONDIFFERENT | OFN_OVERWRITEPROMPT, 1) == TRUE)
+	{
+		if((f = fopen(Fname, "wt")) != NULL)
+		{
+			fputs("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n", f);
+			fputs("<FileZilla3>\n", f);
+			fputs("<Servers>\n", f);
+			GetTimeZoneInformation(&tzi);
+			Level = 0;
+			i = 0;
+			while(CopyHostFromList(i, &Host) == FFFTP_SUCCESS)
+			{
+				while((Host.Level & SET_LEVEL_MASK) < Level)
+				{
+					fputs("</Folder>\n", f);
+					Level--;
+				}
+				if(Host.Level & SET_LEVEL_GROUP)
+				{
+					fputs("<Folder expanded=\"1\">\n", f);
+					fprintf(f, "%s&#x0A;\n", Host.HostName);
+					Level++;
+				}
+				else
+				{
+					fputs("<Server>\n", f);
+					fprintf(f, "<Host>%s</Host>\n", Host.HostAdrs);
+					fprintf(f, "<Port>%d</Port>\n", Host.Port);
+					if(Host.UseNoEncryption == YES)
+						fprintf(f, "<Protocol>%s</Protocol>\n", "0");
+					else if(Host.UseFTPES == YES)
+						fprintf(f, "<Protocol>%s</Protocol>\n", "4");
+					else if(Host.UseFTPIS == YES)
+						fprintf(f, "<Protocol>%s</Protocol>\n", "3");
+					else
+						fprintf(f, "<Protocol>%s</Protocol>\n", "0");
+					fprintf(f, "<Type>%s</Type>\n", "0");
+					fprintf(f, "<User>%s</User>\n", Host.UserName);
+					fprintf(f, "<Pass>%s</Pass>\n", Host.PassWord);
+					fprintf(f, "<Account>%s</Account>\n", Host.Account);
+					if(Host.Anonymous == YES || strlen(Host.UserName) == 0)
+						fprintf(f, "<Logontype>%s</Logontype>\n", "0");
+					else
+						fprintf(f, "<Logontype>%s</Logontype>\n", "1");
+					fprintf(f, "<TimezoneOffset>%d</TimezoneOffset>\n", tzi.Bias + Host.TimeZone * 60);
+					if(Host.Pasv == YES)
+						fprintf(f, "<PasvMode>%s</PasvMode>\n", "MODE_PASSIVE");
+					else
+						fprintf(f, "<PasvMode>%s</PasvMode>\n", "MODE_ACTIVE");
+					fprintf(f, "<MaximumMultipleConnections>%d</MaximumMultipleConnections>\n", Host.MaxThreadCount);
+					switch(Host.NameKanjiCode)
+					{
+					case KANJI_SJIS:
+						fprintf(f, "<EncodingType>%s</EncodingType>\n", "Custom");
+						fprintf(f, "<CustomEncoding>%s</CustomEncoding>\n", "Shift_JIS");
+						break;
+					case KANJI_JIS:
+						// 非対応
+						fprintf(f, "<EncodingType>%s</EncodingType>\n", "Auto");
+						break;
+					case KANJI_EUC:
+						fprintf(f, "<EncodingType>%s</EncodingType>\n", "Custom");
+						fprintf(f, "<CustomEncoding>%s</CustomEncoding>\n", "EUC-JP");
+						break;
+					case KANJI_SMB_HEX:
+						// 非対応
+						fprintf(f, "<EncodingType>%s</EncodingType>\n", "Auto");
+						break;
+					case KANJI_SMB_CAP:
+						// 非対応
+						fprintf(f, "<EncodingType>%s</EncodingType>\n", "Auto");
+						break;
+					case KANJI_UTF8N:
+						fprintf(f, "<EncodingType>%s</EncodingType>\n", "UTF-8");
+						break;
+					case KANJI_UTF8HFSX:
+						// 非対応
+						fprintf(f, "<EncodingType>%s</EncodingType>\n", "Auto");
+						break;
+					default:
+						fprintf(f, "<EncodingType>%s</EncodingType>\n", "Auto");
+						break;
+					}
+					if(Host.FireWall == YES)
+						fprintf(f, "<BypassProxy>%s</BypassProxy>\n", "0");
+					else
+						fprintf(f, "<BypassProxy>%s</BypassProxy>\n", "1");
+					fprintf(f, "<Name>%s</Name>\n", Host.HostName);
+					fprintf(f, "<LocalDir>%s</LocalDir>\n", Host.LocalInitDir);
+					if(strchr(Host.RemoteInitDir, '\\') != NULL)
+					{
+						fputs("<RemoteDir>", f);
+						fputs("8 0", f);
+						strcpy(Tmp, Host.RemoteInitDir);
+						p1 = Tmp;
+						while(*p1 != '\0')
+						{
+							while(*p1 == '\\')
+							{
+								p1++;
+							}
+							if((p2 = strchr(p1, '\\')) != NULL)
+							{
+								*p2 = '\0';
+								p2++;
+							}
+							else
+								p2 = strchr(p1, '\0');
+							if(*p1 != '\0')
+								fprintf(f, " %d %s", _mbslen(p1), p1);
+							p1 = p2;
+						}
+						fputs("</RemoteDir>\n", f);
+					}
+					else if(strchr(Host.RemoteInitDir, '/') != NULL)
+					{
+						fputs("<RemoteDir>", f);
+						fputs("1 0", f);
+						strcpy(Tmp, Host.RemoteInitDir);
+						p1 = Tmp;
+						while(*p1 != '\0')
+						{
+							while(*p1 == '/')
+							{
+								p1++;
+							}
+							if((p2 = strchr(p1, '/')) != NULL)
+							{
+								*p2 = '\0';
+								p2++;
+							}
+							else
+								p2 = strchr(p1, '\0');
+							if(*p1 != '\0')
+								fprintf(f, " %d %s", _mbslen(p1), p1);
+							p1 = p2;
+						}
+						fputs("</RemoteDir>\n", f);
+					}
+					else
+						fprintf(f, "<RemoteDir>%s</RemoteDir>\n", Host.RemoteInitDir);
+					if(Host.SyncMove == YES)
+						fprintf(f, "<SyncBrowsing>%s</SyncBrowsing>\n", "1");
+					else
+						fprintf(f, "<SyncBrowsing>%s</SyncBrowsing>\n", "0");
+					fprintf(f, "%s&#x0A;\n", Host.HostName);
+					fputs("</Server>\n", f);
+				}
+				i++;
+			}
+			while(Level > 0)
+			{
+				fputs("</Folder>\n", f);
+				Level--;
+			}
+			fputs("</Servers>\n", f);
+			// TODO: 環境設定
+//			fputs("<Settings>\n", f);
+//			fputs("</Settings>\n", f);
+			fputs("</FileZilla3>\n", f);
+			fclose(f);
+		}
+		else
+			MessageBox(NULL, MSGJPN358, "FFFTP", MB_OK);
+	}
+}
+

@@ -642,6 +642,7 @@
 #define MENU_OPEN                       40177
 #define MENU_FW_FTP_FILTER              40178
 #define MENU_REMOTE_MOVE_UPDIR          40179
+#define MENU_EXPORT_FILEZILLA_XML       40180
 #define FSNOTIFY_TITLE                  65535
 #define HOST_SIZEGRIP                   65535
 
@@ -650,7 +651,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        197
-#define _APS_NEXT_COMMAND_VALUE         40180
+#define _APS_NEXT_COMMAND_VALUE         40181
 #define _APS_NEXT_CONTROL_VALUE         1221
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

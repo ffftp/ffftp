@@ -1682,6 +1682,11 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					MoveRemoteFileProc(-1);
 					break;
 
+				// FileZilla XML形式エクスポート対応
+				case MENU_EXPORT_FILEZILLA_XML :
+					SaveSettingsToFileZillaXml();
+					break;
+
 				default :
 					if((LOWORD(wParam) >= MENU_BMARK_TOP) &&
 					   (LOWORD(wParam) < MENU_BMARK_TOP+100))

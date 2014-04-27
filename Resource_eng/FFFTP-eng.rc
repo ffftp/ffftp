@@ -95,6 +95,7 @@ BEGIN
             MENUITEM "&Save Settings to File...",   MENU_REGSAVE
             MENUITEM "&Load Settings from File...", MENU_REGLOAD
             MENUITEM "Change &Master password...",  MENU_CHANGEPASSWD
+            MENUITEM "Export Settings as FileZilla XML", MENU_EXPORT_FILEZILLA_XML
             MENUITEM SEPARATOR
             MENUITEM "Clear All Settings...",       MENU_REGINIT
         END
