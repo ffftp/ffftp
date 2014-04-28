@@ -259,7 +259,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 	hOriginal = LoadImage(hInst, MAKEINTRESOURCE(main_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
 	if(hOriginal != NULL)
 	{
-		hResized = ResizeBitmap(hOriginal, 16, 16, 1, 1);
+		hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
 		DeleteObject(hOriginal);
 	}
 	hWndTbarMain = CreateToolbarEx(
@@ -310,7 +310,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 	hOriginal = LoadImage(hInst, MAKEINTRESOURCE(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
 	if(hOriginal != NULL)
 	{
-		hResized = ResizeBitmap(hOriginal, 16, 16, 1, 1);
+		hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
 		DeleteObject(hOriginal);
 	}
 	hWndTbarLocal = CreateToolbarEx(
@@ -410,7 +410,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 	hOriginal = LoadImage(hInst, MAKEINTRESOURCE(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
 	if(hOriginal != NULL)
 	{
-		hResized = ResizeBitmap(hOriginal, 16, 16, 1, 1);
+		hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
 		DeleteObject(hOriginal);
 	}
 	hWndTbarRemote = CreateToolbarEx(

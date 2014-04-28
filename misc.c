@@ -2018,8 +2018,8 @@ HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNum
 						UnitSizeX = Bitmap.bmWidth;
 					if(UnitSizeY == 0)
 						UnitSizeY = Bitmap.bmHeight;
-					Width = (Bitmap.bmWidth / UnitSizeX) * ((CalcPixelX(UnitSizeX) * ScaleNumerator) / ScaleDenominator);
-					Height = (Bitmap.bmHeight / UnitSizeY) * ((CalcPixelY(UnitSizeY) * ScaleNumerator) / ScaleDenominator);
+					Width = (Bitmap.bmWidth / UnitSizeX) * CalcPixelX((UnitSizeX * ScaleNumerator) / ScaleDenominator);
+					Height = (Bitmap.bmHeight / UnitSizeY) * CalcPixelY((UnitSizeY * ScaleNumerator) / ScaleDenominator);
 					if(hDstBitmap = CreateCompatibleBitmap(hDC, Width, Height))
 					{
 						hSrcOld = SelectObject(hSrcDC, hBitmap);
