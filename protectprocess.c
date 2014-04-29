@@ -39,9 +39,9 @@
 #endif
 
 #ifdef USE_CODE_HOOK
-#if defined(_X86_)
+#if defined(_M_IX86)
 #define HOOK_JUMP_CODE_LENGTH 5
-#elif defined(_AMD64_)
+#elif defined(_M_AMD64)
 #define HOOK_JUMP_CODE_LENGTH 14
 #endif
 #endif
@@ -249,7 +249,7 @@ BOOL HookFunctionInCode(void* pOriginal, void* pNew, void* pBackupCode, BOOL bRe
 {
 	BOOL bResult;
 	bResult = FALSE;
-#if defined(_X86_)
+#if defined(_M_IX86)
 	{
 		BYTE JumpCode[HOOK_JUMP_CODE_LENGTH] = {0xe9, 0x00, 0x00, 0x00, 0x00};
 		size_t Relative;
@@ -277,7 +277,7 @@ BOOL HookFunctionInCode(void* pOriginal, void* pNew, void* pBackupCode, BOOL bRe
 			}
 		}
 	}
-#elif defined(_AMD64_)
+#elif defined(_M_AMD64)
 	{
 		BYTE JumpCode[HOOK_JUMP_CODE_LENGTH] = {0xff, 0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 		size_t Absolute;
