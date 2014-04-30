@@ -1684,7 +1684,25 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 				// FileZilla XML形式エクスポート対応
 				case MENU_EXPORT_FILEZILLA_XML :
-					SaveSettingsToFileZillaXml();
+					// 平文で出力するためマスターパスワードを再確認
+					if(GetMasterPasswordStatus() == PASSWORD_OK)
+					{
+						char Password[MAX_PASSWORD_LEN + 1];
+						GetMasterPassword(Password);
+						SetMasterPassword(NULL);
+						while(ValidateMasterPassword() == YES && GetMasterPasswordStatus() == PASSWORD_UNMATCH)
+						{
+							if(EnterMasterPasswordAndSet(masterpasswd_dlg, NULL) == 0)
+								break;
+						}
+						if(GetMasterPasswordStatus() == PASSWORD_OK)
+							SaveSettingsToFileZillaXml();
+						else
+						{
+							SetMasterPassword(Password);
+							ValidateMasterPassword();
+						}
+					}
 					break;
 
 				default :

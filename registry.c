@@ -53,8 +53,11 @@
 
 /*===== プロトタイプ =====*/
 
-static void SaveStr(HKEY hKey, char *Key, char *Str, char *DefaultStr);
-static void SaveIntNum(HKEY hKey, char *Key, int Num, int DefaultNum);
+// バグ修正
+//static void SaveStr(HKEY hKey, char *Key, char *Str, char *DefaultStr);
+//static void SaveIntNum(HKEY hKey, char *Key, int Num, int DefaultNum);
+static void SaveStr(void *Handle, char *Key, char *Str, char *DefaultStr);
+static void SaveIntNum(void *Handle, char *Key, int Num, int DefaultNum);
 static void MakeFontData(LOGFONT Font, HFONT hFont, char *Buf);
 static int RestoreFontData(char *Str, LOGFONT *Font);
 
@@ -697,26 +700,23 @@ void SaveRegistry(void)
 		WriteBinaryToReg(hKey3, "EncryptAllChecksum", &EncryptSettingsChecksum, 20);
 		if(EncryptAllSettings == YES)
 		{
-			if(RegType == REGTYPE_REG)
+			if(OpenSubKey(hKey3, "Options", &hKey4) == FFFTP_SUCCESS)
 			{
-				if(RegCreateKeyEx(hKey3, "Options", 0, "", REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, (HKEY*)&hKey4, NULL) == ERROR_SUCCESS)
+				for(i = 0; ; i++)
 				{
-					for(i = 0; ; i++)
-					{
-						sprintf(Str, "Host%d", i);
-						if(RegDeleteKey(hKey4, Str) != ERROR_SUCCESS)
-							break;
-					}
-					for(i = 0; ; i++)
-					{
-						sprintf(Str, "History%d", i);
-						if(RegDeleteKey(hKey4, Str) != ERROR_SUCCESS)
-							break;
-					}
-					RegCloseKey(hKey4);
+					sprintf(Str, "Host%d", i);
+					if(DeleteSubKey(hKey4, Str) != FFFTP_SUCCESS)
+						break;
 				}
-				RegDeleteKey(hKey3, "Options");
+				for(i = 0; ; i++)
+				{
+					sprintf(Str, "History%d", i);
+					if(DeleteSubKey(hKey4, Str) != FFFTP_SUCCESS)
+						break;
+				}
+				CloseSubKey(hKey4);
 			}
+			DeleteSubKey(hKey3, "Options");
 		}
 		CloseReg(hKey3);
 	}
@@ -783,27 +783,30 @@ int LoadRegistry(void)
 		// 全設定暗号化対応
 		if(Version >= 1990)
 		{
-			ReadIntValueFromReg(hKey3, "EncryptAll", &EncryptAllSettings);
-			sprintf(Buf, "%d", EncryptAllSettings);
-			ReadStringFromReg(hKey3, "EncryptAllDetector", Str, 255);
-			DecodePassword(Str, Buf2);
-			EncryptSettings = EncryptAllSettings;
-			memset(&EncryptSettingsChecksum, 0, 20);
-			if(strcmp(Buf, Buf2) != 0)
+			if(GetMasterPasswordStatus() == PASSWORD_OK)
 			{
-				switch(MessageBox(GetMainHwnd(), MSGJPN343, "FFFTP", MB_ABORTRETRYIGNORE | MB_DEFBUTTON2))
+				ReadIntValueFromReg(hKey3, "EncryptAll", &EncryptAllSettings);
+				sprintf(Buf, "%d", EncryptAllSettings);
+				ReadStringFromReg(hKey3, "EncryptAllDetector", Str, 255);
+				DecodePassword(Str, Buf2);
+				EncryptSettings = EncryptAllSettings;
+				memset(&EncryptSettingsChecksum, 0, 20);
+				if(strcmp(Buf, Buf2) != 0)
 				{
-				case IDABORT:
-					CloseReg(hKey3);
-					ClearRegistry();
-					ClearIni();
-					RestartAndTerminate();
-					break;
-				case IDRETRY:
-					EncryptSettingsError = YES;
-					break;
-				case IDIGNORE:
-					break;
+					switch(MessageBox(GetMainHwnd(), MSGJPN343, "FFFTP", MB_ABORTRETRYIGNORE | MB_DEFBUTTON2))
+					{
+					case IDABORT:
+						CloseReg(hKey3);
+						ClearRegistry();
+						ClearIni();
+						RestartAndTerminate();
+						break;
+					case IDRETRY:
+						EncryptSettingsError = YES;
+						break;
+					case IDIGNORE:
+						break;
+					}
 				}
 			}
 		}
@@ -1178,23 +1181,26 @@ int LoadRegistry(void)
 		EncryptSettings = NO;
 		if(Version >= 1990)
 		{
-			memset(&Checksum, 0, 20);
-			ReadBinaryFromReg(hKey3, "EncryptAllChecksum", &Checksum, 20);
-			if(memcmp(&Checksum, &EncryptSettingsChecksum, 20) != 0)
+			if(GetMasterPasswordStatus() == PASSWORD_OK)
 			{
-				switch(MessageBox(GetMainHwnd(), MSGJPN343, "FFFTP", MB_ABORTRETRYIGNORE | MB_DEFBUTTON2))
+				memset(&Checksum, 0, 20);
+				ReadBinaryFromReg(hKey3, "EncryptAllChecksum", &Checksum, 20);
+				if(memcmp(&Checksum, &EncryptSettingsChecksum, 20) != 0)
 				{
-				case IDABORT:
-					CloseReg(hKey3);
-					ClearRegistry();
-					ClearIni();
-					RestartAndTerminate();
-					break;
-				case IDRETRY:
-					EncryptSettingsError = YES;
-					break;
-				case IDIGNORE:
-					break;
+					switch(MessageBox(GetMainHwnd(), MSGJPN343, "FFFTP", MB_ABORTRETRYIGNORE | MB_DEFBUTTON2))
+					{
+					case IDABORT:
+						CloseReg(hKey3);
+						ClearRegistry();
+						ClearIni();
+						RestartAndTerminate();
+						break;
+					case IDRETRY:
+						EncryptSettingsError = YES;
+						break;
+					case IDIGNORE:
+						break;
+					}
 				}
 			}
 		}
@@ -1501,12 +1507,16 @@ int LoadSettingsFromFile(void)
 *		文字列がデフォルトの文字列と同じならセーブしない
 *----------------------------------------------------------------------------*/
 
-static void SaveStr(HKEY hKey, char *Key, char *Str, char *DefaultStr)
+// バグ修正
+//static void SaveStr(HKEY hKey, char *Key, char *Str, char *DefaultStr)
+static void SaveStr(void *Handle, char *Key, char *Str, char *DefaultStr)
 {
 	if((DefaultStr != NULL) && (strcmp(Str, DefaultStr) == 0))
-		DeleteValue(hKey, Key);
+//		DeleteValue(hKey, Key);
+		DeleteValue(Handle, Key);
 	else
-		WriteStringToReg(hKey, Key, Str);
+//		WriteStringToReg(hKey, Key, Str);
+		WriteStringToReg(Handle, Key, Str);
 
 	return;
 }
@@ -1527,12 +1537,16 @@ static void SaveStr(HKEY hKey, char *Key, char *Str, char *DefaultStr)
 *		数値がデフォルトの値と同じならセーブしない
 *----------------------------------------------------------------------------*/
 
-static void SaveIntNum(HKEY hKey, char *Key, int Num, int DefaultNum)
+// バグ修正
+//static void SaveIntNum(HKEY hKey, char *Key, int Num, int DefaultNum)
+static void SaveIntNum(void *Handle, char *Key, int Num, int DefaultNum)
 {
 	if(Num == DefaultNum)
-		DeleteValue(hKey, Key);
+//		DeleteValue(hKey, Key);
+		DeleteValue(Handle, Key);
 	else
-		WriteIntValueToReg(hKey, Key, Num);
+//		WriteIntValueToReg(hKey, Key, Num);
+		WriteIntValueToReg(Handle, Key, Num);
 
 	return;
 }
@@ -2075,6 +2089,12 @@ typedef struct regdatatbl {
 	struct regdatatbl *Next;
 } REGDATATBL;
 
+// 全設定暗号化対応
+typedef struct regdatatbl_reg {
+	char KeyName[80+1];			/* キー名 */
+	HKEY hKey;
+} REGDATATBL_REG;
+
 /*===== プロトタイプ =====*/
 
 static BOOL WriteOutRegToFile(REGDATATBL *Pos);
@@ -2127,10 +2147,21 @@ static int OpenReg(char *Name, void **Handle)
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		strcpy(Tmp, "Software\\Sota\\");
-		strcat(Tmp, Name);
-		if(RegOpenKeyEx(HKEY_CURRENT_USER, Tmp, 0, KEY_READ, (HKEY *)Handle) == ERROR_SUCCESS)
-			Sts = FFFTP_SUCCESS;
+		// 全設定暗号化対応
+//		strcpy(Tmp, "Software\\Sota\\");
+//		strcat(Tmp, Name);
+//		if(RegOpenKeyEx(HKEY_CURRENT_USER, Tmp, 0, KEY_READ, (HKEY *)Handle) == ERROR_SUCCESS)
+//			Sts = FFFTP_SUCCESS;
+		if((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL)
+		{
+			strcpy(((REGDATATBL_REG *)(*Handle))->KeyName, Name);
+			strcpy(Tmp, "Software\\Sota\\");
+			strcat(Tmp, Name);
+			if(RegOpenKeyEx(HKEY_CURRENT_USER, Tmp, 0, KEY_READ, &(((REGDATATBL_REG *)(*Handle))->hKey)) == ERROR_SUCCESS)
+				Sts = FFFTP_SUCCESS;
+			if(Sts != FFFTP_SUCCESS)
+				free(*Handle);
+		}
 	}
 	else
 	{
@@ -2161,10 +2192,21 @@ static int CreateReg(char *Name, void **Handle)
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		strcpy(Tmp, "Software\\Sota\\");
-		strcat(Tmp, Name);
-		if(RegCreateKeyEx(HKEY_CURRENT_USER, Tmp, 0, "", REG_OPTION_NON_VOLATILE, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, NULL, (HKEY *)Handle, &Dispos) == ERROR_SUCCESS)
-			Sts = FFFTP_SUCCESS;
+		// 全設定暗号化対応
+//		strcpy(Tmp, "Software\\Sota\\");
+//		strcat(Tmp, Name);
+//		if(RegCreateKeyEx(HKEY_CURRENT_USER, Tmp, 0, "", REG_OPTION_NON_VOLATILE, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, NULL, (HKEY *)Handle, &Dispos) == ERROR_SUCCESS)
+//			Sts = FFFTP_SUCCESS;
+		if((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL)
+		{
+			strcpy(((REGDATATBL_REG *)(*Handle))->KeyName, Name);
+			strcpy(Tmp, "Software\\Sota\\");
+			strcat(Tmp, Name);
+			if(RegCreateKeyEx(HKEY_CURRENT_USER, Tmp, 0, "", REG_OPTION_NON_VOLATILE, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, NULL, &(((REGDATATBL_REG *)(*Handle))->hKey), &Dispos) == ERROR_SUCCESS)
+				Sts = FFFTP_SUCCESS;
+			if(Sts != FFFTP_SUCCESS)
+				free(*Handle);
+		}
 	}
 	else
 	{
@@ -2200,7 +2242,10 @@ static int CloseReg(void *Handle)
 
 	if(TmpRegType == REGTYPE_REG)
 	{
-		RegCloseKey(Handle);
+		// 全設定暗号化対応
+//		RegCloseKey(Handle);
+		RegCloseKey(((REGDATATBL_REG *)Handle)->hKey);
+		free(Handle);
 
 		/* INIファイルを削除 */
 		// ポータブル版判定
@@ -2383,8 +2428,19 @@ static int OpenSubKey(void *Parent, char *Name, void **Handle)
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		if(RegOpenKeyEx(Parent, Name, 0, KEY_READ, (HKEY *)Handle) == ERROR_SUCCESS)
-			Sts = FFFTP_SUCCESS;
+		// 全設定暗号化対応
+//		if(RegOpenKeyEx(Parent, Name, 0, KEY_READ, (HKEY *)Handle) == ERROR_SUCCESS)
+//			Sts = FFFTP_SUCCESS;
+		if((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL)
+		{
+			strcpy(((REGDATATBL_REG *)(*Handle))->KeyName, ((REGDATATBL_REG *)Parent)->KeyName);
+			strcat(((REGDATATBL_REG *)(*Handle))->KeyName, "\\");
+			strcat(((REGDATATBL_REG *)(*Handle))->KeyName, Name);
+			if(RegOpenKeyEx(((REGDATATBL_REG *)Parent)->hKey, Name, 0, KEY_READ, &(((REGDATATBL_REG *)(*Handle))->hKey)) == ERROR_SUCCESS)
+				Sts = FFFTP_SUCCESS;
+			if(Sts != FFFTP_SUCCESS)
+				free(*Handle);
+		}
 	}
 	else
 	{
@@ -2428,8 +2484,19 @@ static int CreateSubKey(void *Parent, char *Name, void **Handle)
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		if(RegCreateKeyEx(Parent, Name, 0, "", REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, (HKEY *)Handle, &Dispos) == ERROR_SUCCESS)
-			Sts = FFFTP_SUCCESS;
+		// 全設定暗号化対応
+//		if(RegCreateKeyEx(Parent, Name, 0, "", REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, (HKEY *)Handle, &Dispos) == ERROR_SUCCESS)
+//			Sts = FFFTP_SUCCESS;
+		if((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL)
+		{
+			strcpy(((REGDATATBL_REG *)(*Handle))->KeyName, ((REGDATATBL_REG *)Parent)->KeyName);
+			strcat(((REGDATATBL_REG *)(*Handle))->KeyName, "\\");
+			strcat(((REGDATATBL_REG *)(*Handle))->KeyName, Name);
+			if(RegCreateKeyEx(((REGDATATBL_REG *)Parent)->hKey, Name, 0, "", REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, &(((REGDATATBL_REG *)(*Handle))->hKey), &Dispos) == ERROR_SUCCESS)
+				Sts = FFFTP_SUCCESS;
+			if(Sts != FFFTP_SUCCESS)
+				free(*Handle);
+		}
 	}
 	else
 	{
@@ -2466,7 +2533,12 @@ static int CreateSubKey(void *Parent, char *Name, void **Handle)
 static int CloseSubKey(void *Handle)
 {
 	if(TmpRegType == REGTYPE_REG)
-		RegCloseKey(Handle);
+	// 全設定暗号化対応
+//		RegCloseKey(Handle);
+	{
+		RegCloseKey(((REGDATATBL_REG *)Handle)->hKey);
+		free(Handle);
+	}
 	else
 	{
 		/* Nothing */
@@ -2493,7 +2565,9 @@ static int DeleteSubKey(void *Handle, char *Name)
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		if(RegDeleteKey(Handle, Name) == ERROR_SUCCESS)
+		// 全設定暗号化対応
+//		if(RegDeleteKey(Handle, Name) == ERROR_SUCCESS)
+		if(RegDeleteKey(((REGDATATBL_REG *)Handle)->hKey, Name) == ERROR_SUCCESS)
 			Sts = FFFTP_SUCCESS;
 	}
 	else
@@ -2522,7 +2596,9 @@ static int DeleteValue(void *Handle, char *Name)
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		if(RegDeleteValue(Handle, Name) == ERROR_SUCCESS)
+		// 全設定暗号化対応
+//		if(RegDeleteValue(Handle, Name) == ERROR_SUCCESS)
+		if(RegDeleteValue(((REGDATATBL_REG *)Handle)->hKey, Name) == ERROR_SUCCESS)
 			Sts = FFFTP_SUCCESS;
 	}
 	else
@@ -2550,12 +2626,16 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 	int Sts;
 	DWORD Size;
 	char *Pos;
+	// 全設定暗号化対応
+	char Path[80];
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
 		Size = sizeof(int);
-		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Value, &Size) == ERROR_SUCCESS)
+		// 全設定暗号化対応
+//		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Value, &Size) == ERROR_SUCCESS)
+		if(RegQueryValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, NULL, NULL, (BYTE *)Value, &Size) == ERROR_SUCCESS)
 			Sts = FFFTP_SUCCESS;
 	}
 	else
@@ -2571,7 +2651,13 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 	{
 		if(EncryptSettings == YES)
 		{
-			UnmaskSettingsData(Name, strlen(Name), Value, sizeof(int), NO);
+			if(TmpRegType == REGTYPE_REG)
+				strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
+			else
+				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+			strcat(Path, "\\");
+			strcat(Path, Name);
+			UnmaskSettingsData(Path, strlen(Path), Value, sizeof(int), NO);
 			CalculateSettingsDataChecksum(Value, sizeof(int));
 		}
 	}
@@ -2596,12 +2682,24 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 	REGDATATBL *Pos;
 	char *Data;
 	char Tmp[20];
+	// 全設定暗号化対応
+	char Path[80];
 
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
-		MaskSettingsData(Name, strlen(Name), &Value, sizeof(int), NO);
+	{
+		if(TmpRegType == REGTYPE_REG)
+			strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
+		else
+			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+		strcat(Path, "\\");
+		strcat(Path, Name);
+		MaskSettingsData(Path, strlen(Path), &Value, sizeof(int), NO);
+	}
 	if(TmpRegType == REGTYPE_REG)
-		RegSetValueEx(Handle, Name, 0, REG_DWORD, (CONST BYTE *)&Value, sizeof(int));
+		// 全設定暗号化対応
+//		RegSetValueEx(Handle, Name, 0, REG_DWORD, (CONST BYTE *)&Value, sizeof(int));
+		RegSetValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, 0, REG_DWORD, (CONST BYTE *)&Value, sizeof(int));
 	else
 	{
 		Pos = (REGDATATBL *)Handle;
@@ -2615,7 +2713,7 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		UnmaskSettingsData(Name, strlen(Name), &Value, sizeof(int), NO);
+		UnmaskSettingsData(Path, strlen(Path), &Value, sizeof(int), NO);
 		CalculateSettingsDataChecksum(&Value, sizeof(int));
 	}
 	return(FFFTP_SUCCESS);
@@ -2643,11 +2741,15 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 	DWORD TempSize;
 	char* pa0;
 	wchar_t* pw0;
+	// 全設定暗号化対応
+	char Path[80];
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
+		// 全設定暗号化対応
+//		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
+		if(RegQueryValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
 		{
 			if(*(Str + Size - 1) != NUL)
 				*(Str + Size) = NUL;
@@ -2696,7 +2798,13 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 	{
 		if(EncryptSettings == YES)
 		{
-			UnmaskSettingsData(Name, strlen(Name), Str, strlen(Str) + 1, YES);
+			if(TmpRegType == REGTYPE_REG)
+				strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
+			else
+				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+			strcat(Path, "\\");
+			strcat(Path, Name);
+			UnmaskSettingsData(Path, strlen(Path), Str, strlen(Str) + 1, YES);
 			CalculateSettingsDataChecksum(Str, strlen(Str) + 1);
 		}
 	}
@@ -2720,14 +2828,24 @@ static int WriteStringToReg(void *Handle, char *Name, char *Str)
 {
 	REGDATATBL *Pos;
 	char *Data;
+	// 全設定暗号化対応
+	char Path[80];
 
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
-		MaskSettingsData(Name, strlen(Name), Str, strlen(Str) + 1, YES);
+	{
+		if(TmpRegType == REGTYPE_REG)
+			strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
+		else
+			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+		strcat(Path, "\\");
+		strcat(Path, Name);
+		MaskSettingsData(Path, strlen(Path), Str, strlen(Str) + 1, YES);
+	}
 	if(TmpRegType == REGTYPE_REG)
 	// 全設定暗号化対応
 //		RegSetValueEx(Handle, Name, 0, REG_SZ, (CONST BYTE *)Str, strlen(Str)+1);
-		RegSetValueEx(Handle, Name, 0, EncryptSettings == YES ? REG_BINARY : REG_SZ, (CONST BYTE *)Str, strlen(Str)+1);
+		RegSetValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, 0, EncryptSettings == YES ? REG_BINARY : REG_SZ, (CONST BYTE *)Str, strlen(Str)+1);
 	else
 	{
 		Pos = (REGDATATBL *)Handle;
@@ -2741,7 +2859,7 @@ static int WriteStringToReg(void *Handle, char *Name, char *Str)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		UnmaskSettingsData(Name, strlen(Name), Str, strlen(Str) + 1, YES);
+		UnmaskSettingsData(Path, strlen(Path), Str, strlen(Str) + 1, YES);
 		CalculateSettingsDataChecksum(Str, strlen(Str) + 1);
 	}
 	return(FFFTP_SUCCESS);
@@ -2769,11 +2887,15 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 	DWORD TempSize;
 	char* pa0;
 	wchar_t* pw0;
+	// 全設定暗号化対応
+	char Path[80];
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
+		// 全設定暗号化対応
+//		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
+		if(RegQueryValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
 		{
 			if(*(Str + Size - 1) != NUL)
 				*(Str + Size) = NUL;
@@ -2825,7 +2947,13 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 	{
 		if(EncryptSettings == YES)
 		{
-			UnmaskSettingsData(Name, strlen(Name), Str, StrMultiLen(Str) + 1, YES);
+			if(TmpRegType == REGTYPE_REG)
+				strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
+			else
+				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+			strcat(Path, "\\");
+			strcat(Path, Name);
+			UnmaskSettingsData(Path, strlen(Path), Str, StrMultiLen(Str) + 1, YES);
 			CalculateSettingsDataChecksum(Str, StrMultiLen(Str) + 1);
 		}
 	}
@@ -2849,14 +2977,24 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 {
 	REGDATATBL *Pos;
 	char *Data;
+	// 全設定暗号化対応
+	char Path[80];
 
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
-		MaskSettingsData(Name, strlen(Name), Str, StrMultiLen(Str) + 1, YES);
+	{
+		if(TmpRegType == REGTYPE_REG)
+			strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
+		else
+			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+		strcat(Path, "\\");
+		strcat(Path, Name);
+		MaskSettingsData(Path, strlen(Path), Str, StrMultiLen(Str) + 1, YES);
+	}
 	if(TmpRegType == REGTYPE_REG)
 	// 全設定暗号化対応
 //		RegSetValueEx(Handle, Name, 0, REG_MULTI_SZ, (CONST BYTE *)Str, StrMultiLen(Str)+1);
-		RegSetValueEx(Handle, Name, 0, EncryptSettings == YES ? REG_BINARY : REG_MULTI_SZ, (CONST BYTE *)Str, StrMultiLen(Str)+1);
+		RegSetValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, 0, EncryptSettings == YES ? REG_BINARY : REG_MULTI_SZ, (CONST BYTE *)Str, StrMultiLen(Str)+1);
 	else
 	{
 		Pos = (REGDATATBL *)Handle;
@@ -2870,7 +3008,7 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		UnmaskSettingsData(Name, strlen(Name), Str, StrMultiLen(Str) + 1, YES);
+		UnmaskSettingsData(Path, strlen(Path), Str, StrMultiLen(Str) + 1, YES);
 		CalculateSettingsDataChecksum(Str, StrMultiLen(Str) + 1);
 	}
 	return(FFFTP_SUCCESS);
@@ -2894,11 +3032,15 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 {
 	int Sts;
 	char *Pos;
+	// 全設定暗号化対応
+	char Path[80];
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Bin, &Size) == ERROR_SUCCESS)
+		// 全設定暗号化対応
+//		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Bin, &Size) == ERROR_SUCCESS)
+		if(RegQueryValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, NULL, NULL, (BYTE *)Bin, &Size) == ERROR_SUCCESS)
 			Sts = FFFTP_SUCCESS;
 	}
 	else
@@ -2915,7 +3057,13 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 	{
 		if(EncryptSettings == YES)
 		{
-			UnmaskSettingsData(Name, strlen(Name), Bin, Size, NO);
+			if(TmpRegType == REGTYPE_REG)
+				strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
+			else
+				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+			strcat(Path, "\\");
+			strcat(Path, Name);
+			UnmaskSettingsData(Path, strlen(Path), Bin, Size, NO);
 			CalculateSettingsDataChecksum(Bin, Size);
 		}
 	}
@@ -2940,12 +3088,24 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 {
 	REGDATATBL *Pos;
 	char *Data;
+	// 全設定暗号化対応
+	char Path[80];
 
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
-		MaskSettingsData(Name, strlen(Name), Bin, Len, NO);
+	{
+		if(TmpRegType == REGTYPE_REG)
+			strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
+		else
+			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+		strcat(Path, "\\");
+		strcat(Path, Name);
+		MaskSettingsData(Path, strlen(Path), Bin, Len, NO);
+	}
 	if(TmpRegType == REGTYPE_REG)
-		RegSetValueEx(Handle, Name, 0, REG_BINARY, (CONST BYTE *)Bin, Len);
+	// 全設定暗号化対応
+//		RegSetValueEx(Handle, Name, 0, REG_BINARY, (CONST BYTE *)Bin, Len);
+		RegSetValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, 0, REG_BINARY, (CONST BYTE *)Bin, Len);
 	else
 	{
 		Pos = (REGDATATBL *)Handle;
@@ -2959,7 +3119,7 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		UnmaskSettingsData(Name, strlen(Name), Bin, Len, NO);
+		UnmaskSettingsData(Path, strlen(Path), Bin, Len, NO);
 		CalculateSettingsDataChecksum(Bin, Len);
 	}
 	return(FFFTP_SUCCESS);
