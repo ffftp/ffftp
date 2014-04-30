@@ -1227,7 +1227,11 @@ BOOL LoadPuTTY()
 		return FALSE;
 #ifdef ENABLE_PROCESS_PROTECTION
 	// ビルドしたputty.dllに合わせてSHA1ハッシュ値を変更すること
+#if defined(_M_IX86)
 	RegisterTrustedModuleSHA1Hash("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00");
+#elif defined(_M_AMD64)
+	RegisterTrustedModuleSHA1Hash("\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00");
+#endif
 #endif
 	// デバッグ用
 #ifdef _DEBUG

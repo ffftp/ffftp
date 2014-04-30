@@ -26,9 +26,6 @@
 #include <sfc.h>
 #include <tlhelp32.h>
 #include <imagehlp.h>
-#ifdef USE_IAT_HOOK
-#include <dbghelp.h>
-#endif
 
 #define DO_NOT_REPLACE
 #include "protectprocess.h"
@@ -44,12 +41,19 @@
 #elif defined(_M_AMD64)
 #define HOOK_JUMP_CODE_LENGTH 14
 #endif
+typedef struct
+{
+	void* pCode;
+	size_t CodeLength;
+	BYTE PatchCode[HOOK_JUMP_CODE_LENGTH];
+	BYTE BackupCode[HOOK_JUMP_CODE_LENGTH];
+} HOOK_JUMP_CODE_PATCH;
 #endif
 
 BOOL LockThreadLock();
 BOOL UnlockThreadLock();
 #ifdef USE_CODE_HOOK
-BOOL HookFunctionInCode(void* pOriginal, void* pNew, void* pBackupCode, BOOL bRestore);
+BOOL HookFunctionInCode(void* pOriginal, void* pNew, HOOK_JUMP_CODE_PATCH* pPatch, BOOL bRestore);
 #endif
 #ifdef USE_IAT_HOOK
 BOOL HookFunctionInIAT(void* pOriginal, void* pNew);
@@ -63,7 +67,7 @@ BOOL IsModuleTrusted(LPCWSTR Filename);
 
 // 変数の宣言
 #ifdef USE_CODE_HOOK
-#define HOOK_FUNCTION_VAR(name) _##name p_##name;BYTE c_##name[HOOK_JUMP_CODE_LENGTH * 2];
+#define HOOK_FUNCTION_VAR(name) _##name p_##name;HOOK_JUMP_CODE_PATCH c_##name;
 #endif
 #ifdef USE_IAT_HOOK
 #define HOOK_FUNCTION_VAR(name) _##name p_##name;
@@ -75,7 +79,7 @@ BOOL IsModuleTrusted(LPCWSTR Filename);
 // フック対象を呼び出す前に対象のコードを復元
 #define BEGIN_HOOK_FUNCTION(name) HookFunctionInCode(p_##name, h_##name, &c_##name, TRUE)
 // フック対象を呼び出した後に対象のコードを置換
-#define END_HOOK_FUNCTION(name) HookFunctionInCode(p_##name, h_##name, NULL, FALSE)
+#define END_HOOK_FUNCTION(name) HookFunctionInCode(p_##name, h_##name, &c_##name, FALSE)
 
 HOOK_FUNCTION_VAR(LoadLibraryA)
 HOOK_FUNCTION_VAR(LoadLibraryW)
@@ -245,63 +249,120 @@ BOOL UnlockThreadLock()
 }
 
 #ifdef USE_CODE_HOOK
-BOOL HookFunctionInCode(void* pOriginal, void* pNew, void* pBackupCode, BOOL bRestore)
+BOOL HookFunctionInCode(void* pOriginal, void* pNew, HOOK_JUMP_CODE_PATCH* pPatch, BOOL bRestore)
 {
 	BOOL bResult;
 	bResult = FALSE;
 #if defined(_M_IX86)
 	{
-		BYTE JumpCode[HOOK_JUMP_CODE_LENGTH] = {0xe9, 0x00, 0x00, 0x00, 0x00};
-		size_t Relative;
 		DWORD Protect;
-		Relative = (size_t)pNew - (size_t)pOriginal - HOOK_JUMP_CODE_LENGTH;
-		memcpy(&JumpCode[1], &Relative, 4);
+		BYTE* pCode;
+		CHAR c;
+		LONG l;
+		bResult = FALSE;
 		if(bRestore)
 		{
-			if(VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, PAGE_EXECUTE_READWRITE, &Protect))
+			if(VirtualProtect(pPatch->pCode, pPatch->CodeLength, PAGE_EXECUTE_READWRITE, &Protect))
 			{
-				memcpy(pOriginal, pBackupCode, HOOK_JUMP_CODE_LENGTH);
-				VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, Protect, &Protect);
+				memcpy(pPatch->pCode, &pPatch->BackupCode, pPatch->CodeLength);
+				VirtualProtect(pPatch->pCode, pPatch->CodeLength, Protect, &Protect);
 				bResult = TRUE;
 			}
 		}
 		else
 		{
-			if(pBackupCode)
-				memcpy(pBackupCode, pOriginal, HOOK_JUMP_CODE_LENGTH);
-			if(VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, PAGE_EXECUTE_READWRITE, &Protect))
+			if(!pPatch->pCode)
 			{
-				memcpy(pOriginal, &JumpCode, HOOK_JUMP_CODE_LENGTH);
-				VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, Protect, &Protect);
+				pCode = (BYTE*)pOriginal;
+				while(pCode[0] == 0xeb)
+				{
+					memcpy(&c, pCode + 1, 1);
+					pCode = pCode + 2 + c;
+				}
+				if(pCode[0] == 0xe9)
+				{
+					pPatch->pCode = pCode + 1;
+					pPatch->CodeLength = 4;
+					memcpy(&pPatch->BackupCode, pPatch->pCode, pPatch->CodeLength);
+					l = (long)pNew - ((long)pCode + 5);
+					memcpy(&pPatch->PatchCode[0], &l, 4);
+				}
+				else
+				{
+					pPatch->pCode = pCode;
+					pPatch->CodeLength = 5;
+					memcpy(&pPatch->BackupCode, pPatch->pCode, pPatch->CodeLength);
+					pPatch->PatchCode[0] = 0xe9;
+					l = (long)pNew - ((long)pCode + 5);
+					memcpy(&pPatch->PatchCode[1], &l, 4);
+				}
+			}
+			if(VirtualProtect(pPatch->pCode, pPatch->CodeLength, PAGE_EXECUTE_READWRITE, &Protect))
+			{
+				memcpy(pPatch->pCode, &pPatch->PatchCode, pPatch->CodeLength);
+				VirtualProtect(pPatch->pCode, pPatch->CodeLength, Protect, &Protect);
 				bResult = TRUE;
 			}
 		}
 	}
 #elif defined(_M_AMD64)
 	{
-		BYTE JumpCode[HOOK_JUMP_CODE_LENGTH] = {0xff, 0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-		size_t Absolute;
 		DWORD Protect;
-		Absolute = (size_t)pNew;
-		memcpy(&JumpCode[6], &Absolute, 8);
+		BYTE* pCode;
+		CHAR c;
+		LONG l;
 		bResult = FALSE;
 		if(bRestore)
 		{
-			if(VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, PAGE_EXECUTE_READWRITE, &Protect))
+			if(VirtualProtect(pPatch->pCode, pPatch->CodeLength, PAGE_EXECUTE_READWRITE, &Protect))
 			{
-				memcpy(pOriginal, pBackupCode, HOOK_JUMP_CODE_LENGTH);
-				VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, Protect, &Protect);
+				memcpy(pPatch->pCode, &pPatch->BackupCode, pPatch->CodeLength);
+				VirtualProtect(pPatch->pCode, pPatch->CodeLength, Protect, &Protect);
 				bResult = TRUE;
 			}
 		}
 		else
 		{
-			if(pBackupCode)
-				memcpy(pBackupCode, pOriginal, HOOK_JUMP_CODE_LENGTH);
-			if(VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, PAGE_EXECUTE_READWRITE, &Protect))
+			if(!pPatch->pCode)
 			{
-				memcpy(pOriginal, &JumpCode, HOOK_JUMP_CODE_LENGTH);
-				VirtualProtect(pOriginal, HOOK_JUMP_CODE_LENGTH, Protect, &Protect);
+				pCode = (BYTE*)pOriginal;
+				while(pCode[0] == 0xeb || pCode[0] == 0xe9)
+				{
+					if(pCode[0] == 0xeb)
+					{
+						memcpy(&c, pCode + 1, 1);
+						pCode = pCode + 2 + c;
+					}
+					else
+					{
+						memcpy(&l, pCode + 1, 4);
+						pCode = pCode + 5 + l;
+					}
+				}
+				if(pCode[0] == 0xff && pCode[1] == 0x25)
+				{
+					memcpy(&l, pCode + 2, 4);
+					pPatch->pCode = pCode + 6 + l;
+					pPatch->CodeLength = 8;
+					memcpy(&pPatch->BackupCode, pPatch->pCode, pPatch->CodeLength);
+					memcpy(&pPatch->PatchCode[0], &pNew, 8);
+				}
+				else
+				{
+					pPatch->pCode = pCode;
+					pPatch->CodeLength = 14;
+					memcpy(&pPatch->BackupCode, pPatch->pCode, pPatch->CodeLength);
+					pPatch->PatchCode[0] = 0xff;
+					pPatch->PatchCode[1] = 0x25;
+					l = 0;
+					memcpy(&pPatch->PatchCode[2], &l, 4);
+					memcpy(&pPatch->PatchCode[6], &pNew, 8);
+				}
+			}
+			if(VirtualProtect(pPatch->pCode, pPatch->CodeLength, PAGE_EXECUTE_READWRITE, &Protect))
+			{
+				memcpy(pPatch->pCode, &pPatch->PatchCode, pPatch->CodeLength);
+				VirtualProtect(pPatch->pCode, pPatch->CodeLength, Protect, &Protect);
 				bResult = TRUE;
 			}
 		}
@@ -730,8 +791,8 @@ HMODULE System_LoadLibrary(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
 	HANDLE hDataFile;
 	HANDLE hMapping;
 	DWORD DllFlags;
-	us.Length = sizeof(wchar_t) * wcslen(lpLibFileName);
-	us.MaximumLength = sizeof(wchar_t) * (wcslen(lpLibFileName) + 1);
+	us.Length = sizeof(wchar_t) * (USHORT)wcslen(lpLibFileName);
+	us.MaximumLength = sizeof(wchar_t) * ((USHORT)wcslen(lpLibFileName) + 1);
 	us.Buffer = (PWSTR)lpLibFileName;
 //	if(dwFlags & (LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE))
 	if(dwFlags & (LOAD_LIBRARY_AS_DATAFILE | 0x00000040))
