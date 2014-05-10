@@ -6,8 +6,8 @@ REM;
 
 call installer_config.bat
 
-call make_cab_file_routine.bat "%cd%\%DIR_JPN_INST%\.." ffftp
-call make_cab_file_routine.bat "%cd%\%DIR_ENG_INST%\.." ffftp
-call make_cab_file_routine.bat "%cd%\%AMD64_DIR_JPN_INST%\.." ffftp
-call make_cab_file_routine.bat "%cd%\%AMD64_DIR_ENG_INST%\.." ffftp
+call make_cab_file_routine.bat "%cd%\%DIR_INST_JPN%\.." ffftp
+call make_cab_file_routine.bat "%cd%\%DIR_INST_ENG%\.." ffftp
+call make_cab_file_routine.bat "%cd%\%AMD64_DIR_INST_JPN%\.." ffftp
+call make_cab_file_routine.bat "%cd%\%AMD64_DIR_INST_ENG%\.." ffftp
 
