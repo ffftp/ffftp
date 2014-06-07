@@ -372,13 +372,16 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	{
 		if(!StartUpdateProcessAsAdministrator(lpszCmdLine, " --restart"))
 		{
-			ApplyUpdates(UpdateDir);
+			if(ApplyUpdates(UpdateDir))
+				MessageBox(NULL, MSGJPN359, "FFFTP", MB_OK);
+			else
+				MessageBox(NULL, MSGJPN360, "FFFTP", MB_OK);
 		}
 		return 0;
 	}
 	else if(GetTokenAfterOption(lpszCmdLine, UpdateDir, "--software-cleanup", "--software-cleanup"))
 	{
-		// TODO: ダウンロードした更新ファイルを削除
+		CleanupUpdates(UpdateDir);
 	}
 
 	// マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策

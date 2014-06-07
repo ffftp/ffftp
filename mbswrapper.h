@@ -182,6 +182,12 @@ BOOL MoveFileM(LPCSTR lpExistingFileName, LPCSTR lpNewFileName);
 #undef DeleteFile
 #define DeleteFile DeleteFileM
 BOOL DeleteFileM(LPCSTR lpFileName);
+#undef CreateDirectory
+#define CreateDirectory CreateDirectoryM
+BOOL CreateDirectoryM(LPCSTR lpPathName, LPSECURITY_ATTRIBUTES lpSecurityAttributes);
+#undef RemoveDirectory
+#define RemoveDirectory RemoveDirectoryM
+BOOL RemoveDirectoryM(LPCSTR lpPathName);
 #undef mkdir
 #define mkdir _mkdirM
 int mkdirM(const char * _Path);

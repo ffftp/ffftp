@@ -357,6 +357,8 @@
 #define MSGJPN356		_Tu8("Move to &parent folder...", "Move to &parent folder...")
 #define MSGJPN357		_Tu8("XML file\0*.xml\0All file\0*\0", "XML file\0*.xml\0All file\0*\0")
 #define MSGJPN358		_Tu8("Failed to export the settings.\nPlease change saving path or format.", "Failed to export the settings.\nPlease change saving path or format.")
+#define MSGJPN359		_Tu8("Software update has been completed.", "Software update has been completed.")
+#define MSGJPN360		_Tu8("Failed to update the software.\nPlease get the latest version from our web site and update it manually.", "Failed to update the software.\nPlease get the latest version from our web site and update it manually.")
 #if defined(HAVE_TANDEM)
 #define MSGJPN2000		_Tu8("NonStop Server", "NonStop Server")
 #define MSGJPN2001		_Tu8("OSS<->GUARDIAN Switch(&O)", "OSS<->GUARDIAN Switch(&O)")

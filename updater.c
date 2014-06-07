@@ -1,6 +1,7 @@
 ﻿// updater.c
 // Copyright (C) 2014 Suguru Kawamoto
 // ソフトウェア自動更新
+// コードの再利用のため表記はwchar_t型だが実体はchar型でUTF-8
 
 #include <tchar.h>
 #include <ws2tcpip.h>
@@ -21,7 +22,26 @@ typedef struct
 	BYTE ListHash[64];
 } UPDATE_HASH;
 
-BOOL DownloadFileViaHTTP(void* pOut, DWORD Length, DWORD* pLength, LPCWSTR UserAgent, LPCWSTR ServerName, LPCWSTR ObjectName)
+#define UPDATE_LIST_FILE_FLAG_DIRECTORY 0x00000001
+
+typedef struct
+{
+	DWORD Flags;
+	CHAR SrcPath[128];
+	BYTE SrcHash[64];
+	CHAR DstPath[128];
+	FILETIME Timestamp;
+} UPDATE_LIST_FILE;
+
+typedef struct
+{
+	DWORD Version;
+	CHAR VersionString[32];
+	DWORD FileCount;
+	UPDATE_LIST_FILE File[1];
+} UPDATE_LIST;
+
+BOOL ReadFileViaHTTPW(void* pOut, DWORD Length, DWORD* pLength, LPCWSTR UserAgent, LPCWSTR ServerName, LPCWSTR ObjectName)
 {
 	BOOL bResult;
 	HINTERNET hSession;
@@ -57,17 +77,99 @@ BOOL DownloadFileViaHTTP(void* pOut, DWORD Length, DWORD* pLength, LPCWSTR UserA
 	return bResult;
 }
 
+BOOL ReadFileViaHTTP(void* pOut, DWORD Length, DWORD* pLength, LPCSTR UserAgent, LPCSTR ServerName, LPCSTR ObjectName)
+{
+	BOOL r;
+	wchar_t* pw0;
+	wchar_t* pw1;
+	wchar_t* pw2;
+	pw0 = DuplicateMtoW(UserAgent, -1);
+	pw1 = DuplicateMtoW(ServerName, -1);
+	pw2 = DuplicateMtoW(ObjectName, -1);
+	r = ReadFileViaHTTPW(pOut, Length, pLength, pw0, pw1, pw2);
+	FreeDuplicatedString(pw0);
+	FreeDuplicatedString(pw1);
+	FreeDuplicatedString(pw2);
+	return r;
+}
+
+BOOL SaveMemoryToFileWithTimestamp(LPCTSTR FileName, void* pData, DWORD Size, FILETIME* pTimestamp)
+{
+	BOOL bResult;
+	HANDLE hFile;
+	bResult = FALSE;
+	if((hFile = CreateFile(FileName, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+	{
+		if(WriteFile(hFile, pData, Size, &Size, NULL))
+		{
+			if(SetFileTime(hFile, NULL, NULL, pTimestamp))
+				bResult = TRUE;
+		}
+		CloseHandle(hFile);
+	}
+	return bResult;
+}
+
+BOOL CopyAllFilesInDirectory(LPCTSTR From, LPCTSTR To)
+{
+	BOOL bResult;
+	TCHAR* pFrom;
+	TCHAR* pTo;
+	SHFILEOPSTRUCT fop;
+	bResult = FALSE;
+	if(pFrom = (TCHAR*)malloc(sizeof(TCHAR) * (_tcslen(From) + _tcslen(_T("\\*")) + 2)))
+	{
+		_tcscpy(pFrom, From);
+		_tcsncpy(pFrom + _tcslen(pFrom), _T("\\*"), _tcslen(_T("\\*")) + 2);
+		if(pTo = (TCHAR*)malloc(sizeof(TCHAR) * (_tcslen(To) + 2)))
+		{
+			_tcsncpy(pTo, To, _tcslen(To) + 2);
+			memset(&fop, 0, sizeof(SHFILEOPSTRUCT));
+			fop.wFunc = FO_COPY;
+			fop.pFrom = pFrom;
+			fop.pTo = pTo;
+			fop.fFlags = FOF_NO_UI;
+			if(SHFileOperation(&fop) == 0)
+				bResult = TRUE;
+			free(pTo);
+		}
+		free(pFrom);
+	}
+	return bResult;
+}
+
+BOOL DeleteDirectoryAndContents(LPCTSTR Path)
+{
+	BOOL bResult;
+	TCHAR* pFrom;
+	SHFILEOPSTRUCT fop;
+	bResult = FALSE;
+	if(pFrom = (TCHAR*)malloc(sizeof(TCHAR) * (_tcslen(Path) + 2)))
+	{
+		_tcsncpy(pFrom, Path, _tcslen(Path) + 2);
+		memset(&fop, 0, sizeof(SHFILEOPSTRUCT));
+		fop.wFunc = FO_DELETE;
+		fop.pFrom = pFrom;
+		fop.fFlags = FOF_NO_UI;
+		if(SHFileOperation(&fop) == 0)
+			bResult = TRUE;
+		free(pFrom);
+	}
+	return bResult;
+}
+
 // FFFTPの更新情報を確認
-BOOL CheckForUpdates(BOOL bDownload, LPCTSTR DownloadDir)
+BOOL CheckForUpdates(BOOL bDownload, LPCTSTR DownloadDir, DWORD* pVersion, LPTSTR pVersionString)
 {
 	BOOL bResult;
 	DWORD Length;
-	BYTE Buf1[4096];
+	BYTE Buf1[65536];
 	BYTE Buf2[1024];
 	UPDATE_HASH UpdateHash;
 	BYTE Hash[64];
+	UPDATE_LIST* pUpdateList;
 	bResult = FALSE;
-	if(DownloadFileViaHTTP(&Buf1, sizeof(Buf1), &Length, HTTP_USER_AGENT, UPDATE_SERVER, UPDATE_HASH_PATH))
+	if(ReadFileViaHTTP(&Buf1, sizeof(Buf1), &Length, HTTP_USER_AGENT, UPDATE_SERVER, UPDATE_HASH_PATH))
 	{
 		if(DecryptSignature(UPDATE_RSA_PUBLIC_KEY, &Buf1, Length, &Buf2, sizeof(Buf2), &Length))
 		{
@@ -76,15 +178,23 @@ BOOL CheckForUpdates(BOOL bDownload, LPCTSTR DownloadDir)
 				memcpy(&UpdateHash, &Buf2, sizeof(UPDATE_HASH));
 				if(memcmp(&UpdateHash.Signature, UPDATE_SIGNATURE, 64) == 0)
 				{
-					if(DownloadFileViaHTTP(&Buf1, sizeof(Buf1), &Length, HTTP_USER_AGENT, UPDATE_SERVER, UPDATE_LIST_PATH))
+					if(ReadFileViaHTTP(&Buf1, sizeof(Buf1), &Length, HTTP_USER_AGENT, UPDATE_SERVER, UPDATE_LIST_PATH))
 					{
 						GetHashSHA512(&Buf1, Length, &Hash);
 						if(memcmp(&Hash, &UpdateHash.ListHash, 64) == 0)
 						{
-							// TODO: 更新情報を解析
-							bResult = TRUE;
-							if(bDownload)
-								bResult = PrepareUpdates(&Buf1, Length, DownloadDir);
+							if(Length >= sizeof(UPDATE_LIST))
+							{
+								bResult = TRUE;
+								pUpdateList = (UPDATE_LIST*)&Buf1;
+								if(pUpdateList->Version > *pVersion)
+								{
+									*pVersion = pUpdateList->Version;
+									_tcscpy(pVersionString, pUpdateList->VersionString);
+								}
+								if(bDownload)
+									bResult = PrepareUpdates(&Buf1, Length, DownloadDir);
+							}
 						}
 					}
 				}
@@ -98,9 +208,58 @@ BOOL CheckForUpdates(BOOL bDownload, LPCTSTR DownloadDir)
 BOOL PrepareUpdates(void* pList, DWORD ListLength, LPCTSTR DownloadDir)
 {
 	BOOL bResult;
+	UPDATE_LIST* pUpdateList;
+	void* pBuf;
+	DWORD i;
+	BOOL b;
+	DWORD Length;
+	BYTE Hash[64];
+	TCHAR Path[MAX_PATH];
 	bResult = FALSE;
-	// TODO: 更新情報を解析
-	// TODO: 更新するファイルをダウンロード
+	if(ListLength >= sizeof(UPDATE_LIST))
+	{
+		pUpdateList = (UPDATE_LIST*)pList;
+		if((pUpdateList->FileCount - 1) * sizeof(UPDATE_LIST_FILE) + sizeof(UPDATE_LIST) >= ListLength)
+		{
+			bResult = TRUE;
+			DeleteDirectoryAndContents(DownloadDir);
+			CreateDirectory(DownloadDir, NULL);
+			pBuf = malloc(16777216);
+			for(i = 0; i < pUpdateList->FileCount; i++)
+			{
+				b = FALSE;
+				if(pUpdateList->File[i].Flags & UPDATE_LIST_FILE_FLAG_DIRECTORY)
+				{
+					_tcscpy(Path, DownloadDir);
+					_tcscat(Path, _T("\\"));
+					_tcscat(Path, pUpdateList->File[i].DstPath);
+					if(CreateDirectory(Path, NULL))
+						b = TRUE;
+				}
+				if(strlen(pUpdateList->File[i].SrcPath) > 0)
+				{
+					if(ReadFileViaHTTP(pBuf, 16777216, &Length, HTTP_USER_AGENT, UPDATE_SERVER, pUpdateList->File[i].SrcPath))
+					{
+						GetHashSHA512(pBuf, Length, &Hash);
+						if(memcmp(&Hash, &pUpdateList->File[i].SrcHash, 64) == 0)
+						{
+							_tcscpy(Path, DownloadDir);
+							_tcscat(Path, _T("\\"));
+							_tcscat(Path, pUpdateList->File[i].DstPath);
+							if(SaveMemoryToFileWithTimestamp(Path, pBuf, Length, &pUpdateList->File[i].Timestamp))
+								b = TRUE;
+						}
+					}
+				}
+				if(!b)
+				{
+					bResult = FALSE;
+					break;
+				}
+			}
+			free(pBuf);
+		}
+	}
 	return bResult;
 }
 
@@ -108,8 +267,40 @@ BOOL PrepareUpdates(void* pList, DWORD ListLength, LPCTSTR DownloadDir)
 BOOL ApplyUpdates(LPCTSTR DestinationDir)
 {
 	BOOL bResult;
+	TCHAR Source[MAX_PATH];
+	TCHAR Backup[MAX_PATH];
+	TCHAR* p;
 	bResult = FALSE;
-	// TODO:
+	if(GetModuleFileName(NULL, Source, MAX_PATH) > 0)
+	{
+		if(p = _tcsrchr(Source, _T('\\')))
+			*p = _T('\0');
+		_tcscpy(Backup, Source);
+		_tcscat(Backup, _T("\\updatebackup"));
+		DeleteDirectoryAndContents(Backup);
+		if(CopyAllFilesInDirectory(DestinationDir, Backup))
+		{
+			if(CopyAllFilesInDirectory(Source, DestinationDir))
+			{
+				bResult = TRUE;
+				_tcscpy(Backup, DestinationDir);
+				_tcscat(Backup, _T("\\updatebackup"));
+				DeleteDirectoryAndContents(Backup);
+			}
+			else
+				CopyAllFilesInDirectory(Backup, DestinationDir);
+		}
+	}
+	return bResult;
+}
+
+// 更新するファイルをダウンロード
+BOOL CleanupUpdates(LPCTSTR DownloadDir)
+{
+	BOOL bResult;
+	bResult = FALSE;
+	if(DeleteDirectoryAndContents(DownloadDir))
+		bResult = TRUE;
 	return bResult;
 }
 

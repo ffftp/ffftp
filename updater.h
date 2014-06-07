@@ -7,10 +7,15 @@
 
 #include <windows.h>
 
-#define HTTP_USER_AGENT L"Mozilla/4.0"
-#define UPDATE_SERVER L"ffftp.sourceforge.jp"
-#define UPDATE_HASH_PATH L"/update/hash"
-#define UPDATE_LIST_PATH L"/update/list"
+#define HTTP_USER_AGENT "Mozilla/4.0"
+#define UPDATE_SERVER "ffftp.sourceforge.jp"
+#if defined(_M_IX86)
+#define UPDATE_HASH_PATH "/update/hash"
+#define UPDATE_LIST_PATH "/update/list"
+#elif defined(_M_AMD64)
+#define UPDATE_HASH_PATH "/update/amd64/hash"
+#define UPDATE_LIST_PATH "/update/amd64/list"
+#endif
 #define UPDATE_RSA_PUBLIC_KEY \
 	"-----BEGIN PUBLIC KEY-----\n" \
 	"MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAsVo13yricPHxkQypqiMy\n" \
@@ -28,9 +33,10 @@
 	"-----END PUBLIC KEY-----\n"
 #define UPDATE_SIGNATURE "\x4C\x2A\x8E\x57\xAB\x75\x0C\xB5\xDA\x5F\xFE\xB9\x57\x9A\x1B\xA2\x7A\x61\x32\xF8\xFA\x4B\x61\xE2\xBA\x20\x9C\x37\xD5\x0A\xDC\x94\x10\x4D\x02\x30\x9B\xCD\x01\x9B\xB8\x73\x1E\xDB\xFD\xD7\x45\xCA\xE0\x8E\xF9\xB0\x1F\xB4\x0D\xD8\xFB\xE8\x41\x48\xE7\xF5\xE8\x64"
 
-BOOL CheckForUpdates(BOOL bDownload, LPCTSTR DownloadDir);
+BOOL CheckForUpdates(BOOL bDownload, LPCTSTR DownloadDir, DWORD* pVersion, LPTSTR pVersionString);
 BOOL PrepareUpdates(void* pList, DWORD ListLength, LPCTSTR DownloadDir);
 BOOL ApplyUpdates(LPCTSTR DestinationDir);
+BOOL CleanupUpdates(LPCTSTR DownloadDir);
 BOOL StartUpdateProcess(LPCTSTR CommandLine, LPCTSTR Keyword);
 BOOL StartUpdateProcessAsAdministrator(LPCTSTR CommandLine, LPCTSTR Keyword);
 
