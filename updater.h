@@ -35,10 +35,10 @@
 
 BOOL CheckForUpdates(BOOL bDownload, LPCTSTR DownloadDir, DWORD* pVersion, LPTSTR pVersionString);
 BOOL PrepareUpdates(void* pList, DWORD ListLength, LPCTSTR DownloadDir);
-BOOL ApplyUpdates(LPCTSTR DestinationDir);
+BOOL ApplyUpdates(LPCTSTR DestinationDir, LPCTSTR BackupDirName);
 BOOL CleanupUpdates(LPCTSTR DownloadDir);
-BOOL StartUpdateProcess(LPCTSTR CommandLine, LPCTSTR Keyword);
-BOOL StartUpdateProcessAsAdministrator(LPCTSTR CommandLine, LPCTSTR Keyword);
+BOOL StartUpdateProcess(LPCTSTR DownloadDir, LPCTSTR CommandLine);
+BOOL RestartUpdateProcessAsAdministrator(LPCTSTR CommandLine, LPCTSTR Keyword);
 
 #endif
 

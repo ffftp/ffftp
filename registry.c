@@ -226,6 +226,11 @@ extern int AutoRefreshFileList;
 extern int RemoveOldLog;
 // バージョン確認
 extern int ReadOnlySettings;
+// ソフトウェア自動更新
+extern int AutoCheckForUpdates;
+extern int AutoApplyUpdates;
+extern int AutoCheckForUptatesInterval;
+extern time_t LastAutoCheckForUpdates;
 
 /*----- マスタパスワードの設定 ----------------------------------------------
 *
@@ -692,6 +697,11 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "ListRefresh", AutoRefreshFileList);
 				// 古い処理内容を消去
 				WriteIntValueToReg(hKey4, "OldLog", RemoveOldLog);
+				// ソフトウェア自動更新
+				WriteIntValueToReg(hKey4, "UpdCheck", AutoCheckForUpdates);
+				WriteIntValueToReg(hKey4, "UpdApply", AutoApplyUpdates);
+				WriteIntValueToReg(hKey4, "UpdInterval", AutoCheckForUptatesInterval);
+				WriteBinaryToReg(hKey4, "UpdLastCheck", &LastAutoCheckForUpdates, sizeof(LastAutoCheckForUpdates));
 			}
 			CloseSubKey(hKey4);
 		}
@@ -1174,6 +1184,11 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "ListRefresh", &AutoRefreshFileList);
 			// 古い処理内容を消去
 			ReadIntValueFromReg(hKey4, "OldLog", &RemoveOldLog);
+			// ソフトウェア自動更新
+			ReadIntValueFromReg(hKey4, "UpdCheck", &AutoCheckForUpdates);
+			ReadIntValueFromReg(hKey4, "UpdApply", &AutoApplyUpdates);
+			ReadIntValueFromReg(hKey4, "UpdInterval", &AutoCheckForUptatesInterval);
+			ReadBinaryFromReg(hKey4, "UpdLastCheck", &LastAutoCheckForUpdates, sizeof(LastAutoCheckForUpdates));
 
 			CloseSubKey(hKey4);
 		}
@@ -1401,7 +1416,7 @@ void SaveSettingsToFile(void)
 					{
 						if(ShellExecute(NULL, "open", "regedit", Tmp, NULL, SW_SHOW) <= (HINSTANCE)32)
 						{
-							MessageBox(NULL, MSGJPN285, "FFFTP", MB_OK);
+							MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
 						}
 						SetCurrentDirectory(CurDir);
 					}
@@ -1465,7 +1480,7 @@ int LoadSettingsFromFile(void)
 					{
 						if(ShellExecute(NULL, "open", "regedit", Tmp, NULL, SW_SHOW) <= (HINSTANCE)32)
 						{
-							MessageBox(NULL, MSGJPN285, "FFFTP", MB_OK);
+							MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
 						}
 						else
 						{
@@ -1484,7 +1499,9 @@ int LoadSettingsFromFile(void)
 			Ret = YES;
 		}
 		else
-			MessageBox(NULL, MSGJPN293, "FFFTP", MB_OK);
+			// バグ修正
+//			MessageBox(NULL, MSGJPN293, "FFFTP", MB_OK);
+			MessageBox(GetMainHwnd(), MSGJPN293, "FFFTP", MB_OK | MB_ICONERROR);
 	}
 	return(Ret);
 }
@@ -2313,7 +2330,9 @@ static BOOL WriteOutRegToFile(REGDATATBL *Pos)
 		Ret = TRUE;
 	}
 	else
-		MessageBox(NULL, MSGJPN240, "FFFTP", MB_OK);
+		// バグ修正
+//		MessageBox(NULL, MSGJPN240, "FFFTP", MB_OK);
+		MessageBox(GetMainHwnd(), MSGJPN240, "FFFTP", MB_OK | MB_ICONERROR);
 
 	return(Ret);
 }
@@ -3682,7 +3701,7 @@ void SaveSettingsToFileZillaXml()
 			fclose(f);
 		}
 		else
-			MessageBox(NULL, MSGJPN358, "FFFTP", MB_OK);
+			MessageBox(GetMainHwnd(), MSGJPN358, "FFFTP", MB_OK | MB_ICONERROR);
 	}
 }
 

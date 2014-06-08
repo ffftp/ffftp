@@ -168,6 +168,8 @@ BEGIN
         MENUITEM "目次(&C)\tF1",                  MENU_HELP
         MENUITEM "Q&&A集(インターネットに接続します)(T)",     MENU_HELP_TROUBLE
         MENUITEM SEPARATOR
+        MENUITEM "ソフトウェアの更新を確認(&U)...",         MENU_UPDATES_CHECK
+        MENUITEM SEPARATOR
         MENUITEM "FFFTPについて(&A)...",            MENU_ABOUT
     END
 END
@@ -1465,6 +1467,18 @@ BEGIN
     CONTROL         "古い処理内容を表示しない(&L)",DISP2_REMOVE_OLD_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,196,10
 END
 
+opt_updates_dlg DIALOG  0, 0, 211, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Shell Dlg"
+BEGIN
+    CONTROL         "自動的にソフトウェアの更新を確認する(&C)",UPDATES_AUTO_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,196,10
+    CONTROL         "自動的に更新を適用する(&A)",UPDATES_AUTO_APPLY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,196,10
+    LTEXT           "更新の確認の間隔(&I)",-1,7,35,196,8
+    EDITTEXT        UPDATES_INTERVAL,7,45,26,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",UPDATES_INTERVAL_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,33,45,9,14
+    LTEXT           "（0～999日; 0=毎回起動時に確認）",-1,45,49,168,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2138,6 +2152,14 @@ BEGIN
     END
 
     opt_disp2_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    opt_updates_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 204

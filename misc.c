@@ -1422,7 +1422,7 @@ void FormatIniString(char *Str)
 
 	while(*Str != NUL)
 	{
-		if((*Str != 0x22) && (*Str != '\n'))
+		if((*Str != '\"') && (*Str != '\n'))
 			*Put++ = *Str;
 		Str++;
 	}

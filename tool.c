@@ -180,7 +180,7 @@ void TurnStatefulFTPFilter()
 				{
 					if(ShellExecute(NULL, "runas", "netsh", ID == IDYES ? "advfirewall set global statefulftp enable" : "advfirewall set global statefulftp disable", NULL, SW_SHOW) <= (HINSTANCE)32)
 					{
-						MessageBox(NULL, MSGJPN342, "FFFTP", MB_OK);
+						MessageBox(GetMainHwnd(), MSGJPN342, "FFFTP", MB_OK | MB_ICONERROR);
 					}
 					SetCurrentDirectory(CurDir);
 				}

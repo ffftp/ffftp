@@ -153,7 +153,9 @@ HANDLE ChangeNotification = INVALID_HANDLE_VALUE;
 // タスクバー進捗表示
 static ITaskbarList3* pTaskbarList3;
 // 高DPI対応
-int ToolWinHeight;
+static int ToolWinHeight;
+// ソフトウェア自動更新
+static int ApplyUpdatesOnExit = NO;
 
 
 /*===== グローバルなワーク =====*/
@@ -276,6 +278,11 @@ int AutoRefreshFileList = YES;
 int RemoveOldLog = NO;
 // バージョン確認
 int ReadOnlySettings = NO;
+// ソフトウェア自動更新
+int AutoCheckForUpdates = YES;
+int AutoApplyUpdates = NO;
+int AutoCheckForUptatesInterval = 7;
+time_t LastAutoCheckForUpdates = 0;
 
 
 
@@ -300,6 +307,9 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	BOOL Sts;
 	// ソフトウェア自動更新
 	char UpdateDir[FMAX_PATH+1];
+	char Path[FMAX_PATH+1];
+	char Command[FMAX_PATH+1];
+	char* p;
 
 	// プロセス保護
 #ifdef ENABLE_PROCESS_PROTECTION
@@ -311,25 +321,28 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		pCommand = lpszCmdLine;
 		while(pCommand = GetToken(pCommand, Option))
 		{
-			if(strcmp(Option, "--protect") == 0)
+			if(Option[0] == '-')
 			{
-				ProtectLevel = PROCESS_PROTECTION_DEFAULT;
-				break;
-			}
-			else if(strcmp(Option, "--protect-high") == 0)
-			{
-				ProtectLevel = PROCESS_PROTECTION_HIGH;
-				break;
-			}
-			else if(strcmp(Option, "--protect-medium") == 0)
-			{
-				ProtectLevel = PROCESS_PROTECTION_MEDIUM;
-				break;
-			}
-			else if(strcmp(Option, "--protect-low") == 0)
-			{
-				ProtectLevel = PROCESS_PROTECTION_LOW;
-				break;
+				if(strcmp(&Option[1], "-protect") == 0)
+				{
+					ProtectLevel = PROCESS_PROTECTION_DEFAULT;
+					break;
+				}
+				else if(strcmp(&Option[1], "-protect-high") == 0)
+				{
+					ProtectLevel = PROCESS_PROTECTION_HIGH;
+					break;
+				}
+				else if(strcmp(&Option[1], "-protect-medium") == 0)
+				{
+					ProtectLevel = PROCESS_PROTECTION_MEDIUM;
+					break;
+				}
+				else if(strcmp(&Option[1], "-protect-low") == 0)
+				{
+					ProtectLevel = PROCESS_PROTECTION_LOW;
+					break;
+				}
 			}
 		}
 		if(ProtectLevel != PROCESS_PROTECTION_NONE)
@@ -368,18 +381,19 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 #endif
 
 	// ソフトウェア自動更新
-	if(GetTokenAfterOption(lpszCmdLine, UpdateDir, "--software-update", "--software-update"))
+	if(GetTokenAfterOption(lpszCmdLine, UpdateDir, "-software-update", "-software-update"))
 	{
-		if(!StartUpdateProcessAsAdministrator(lpszCmdLine, " --restart"))
+		if(!RestartUpdateProcessAsAdministrator(lpszCmdLine, " --restart"))
 		{
-			if(ApplyUpdates(UpdateDir))
+			Sleep(1000);
+			if(ApplyUpdates(UpdateDir, "updatebackup"))
 				MessageBox(NULL, MSGJPN359, "FFFTP", MB_OK);
 			else
-				MessageBox(NULL, MSGJPN360, "FFFTP", MB_OK);
+				MessageBox(NULL, MSGJPN360, "FFFTP", MB_OK | MB_ICONERROR);
 		}
 		return 0;
 	}
-	else if(GetTokenAfterOption(lpszCmdLine, UpdateDir, "--software-cleanup", "--software-cleanup"))
+	else if(GetTokenAfterOption(lpszCmdLine, UpdateDir, "-software-cleanup", "-software-cleanup"))
 	{
 		CleanupUpdates(UpdateDir);
 	}
@@ -458,6 +472,26 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	FreeUPnP();
 	CoUninitialize();
 	OleUninitialize();
+	// ソフトウェア自動更新
+	if(ApplyUpdatesOnExit == YES)
+	{
+		Sts = FALSE;
+		if(GetModuleFileName(NULL, UpdateDir, FMAX_PATH) > 0)
+		{
+			if(p = strrchr(UpdateDir, '\\'))
+			{
+				*p = '\0';
+				strcpy(Path, TmpPath);
+				SetYenTail(Path);
+				strcat(Path, "update");
+				sprintf(Command, "-%s \"%s\"", "-software-update", UpdateDir);
+				if(StartUpdateProcess(Path, Command))
+					Sts = TRUE;
+			}
+		}
+		if(!Sts)
+			MessageBox(NULL, MSGJPN360, "FFFTP", MB_OK | MB_ICONERROR);
+	}
 	return(Ret);
 }
 
@@ -701,6 +735,10 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					GetLocalDirForWnd();
 					MakeButtonsFocus();
 					DispTransferFiles();
+
+					// ソフトウェア自動更新
+					if(AutoCheckForUptatesInterval == 0)
+						UpdateSoftware(YES, AutoApplyUpdates);
 
 					StartupProc(lpszCmdLine);
 					sts = FFFTP_SUCCESS;
@@ -1026,14 +1064,17 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	{
 		// ローカル側自動更新
 		// タスクバー進捗表示
+		// ソフトウェア自動更新
 		case WM_CREATE :
 			SetTimer(hWnd, 1, 1000, NULL);
 			SetTimer(hWnd, 2, 100, NULL);
+			SetTimer(hWnd, 3, 60000, NULL);
 			break;
 
 		// ローカル側自動更新
 		// 自動切断対策
 		// タスクバー進捗表示
+		// ソフトウェア自動更新
 		case WM_TIMER :
 			switch(wParam)
 			{
@@ -1069,6 +1110,13 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			case 2:
 				if(IsTaskbarList3Loaded() == YES)
 					UpdateTaskbarProgress();
+				break;
+			case 3:
+				if(AskUserOpeDisabled() == NO && AskTransferNow() == NO)
+				{
+					if(AutoCheckForUptatesInterval > 0 && time(NULL) - LastAutoCheckForUpdates >= AutoCheckForUptatesInterval * 86400)
+						UpdateSoftware(YES, AutoApplyUpdates);
+				}
 				break;
 			}
 			break;
@@ -1623,7 +1671,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						SetMasterPassword(NULL);
 						while(ValidateMasterPassword() == YES && GetMasterPasswordStatus() == PASSWORD_UNMATCH)
 						{
-							if(EnterMasterPasswordAndSet(masterpasswd_dlg, NULL) == 0)
+							if(EnterMasterPasswordAndSet(masterpasswd_dlg, hWnd) == 0)
 								break;
 						}
 						if(GetMasterPasswordStatus() == PASSWORD_OK && EnterMasterPasswordAndSet(newmasterpasswd_dlg, hWnd) != 0)
@@ -1695,7 +1743,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						SetMasterPassword(NULL);
 						while(ValidateMasterPassword() == YES && GetMasterPasswordStatus() == PASSWORD_UNMATCH)
 						{
-							if(EnterMasterPasswordAndSet(masterpasswd_dlg, NULL) == 0)
+							if(EnterMasterPasswordAndSet(masterpasswd_dlg, hWnd) == 0)
 								break;
 						}
 						if(GetMasterPasswordStatus() == PASSWORD_OK)
@@ -1706,6 +1754,11 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 							ValidateMasterPassword();
 						}
 					}
+					break;
+
+				// ソフトウェア自動更新
+				case MENU_UPDATES_CHECK :
+					UpdateSoftware(NO, NO);
 					break;
 
 				default :
@@ -1970,6 +2023,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				FindCloseChangeNotification(ChangeNotification);
 			// タスクバー進捗表示
 			KillTimer(hWnd, 2);
+			// ソフトウェア自動更新
+			KillTimer(hWnd, 3);
 //			WSACleanup();
 //			DestroyWindow(hWndFtp);
 			PostQuitMessage(0);
@@ -2209,19 +2264,19 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 			}
 			// プロセス保護
 #ifdef ENABLE_PROCESS_PROTECTION
-			else if(strcmp(Tmp, "--restart") == 0)
+			else if(strcmp(&Tmp[1], "-restart") == 0)
 			{
 			}
-			else if(strcmp(Tmp, "--protect") == 0)
+			else if(strcmp(&Tmp[1], "-protect") == 0)
 			{
 			}
-			else if(strcmp(Tmp, "--protect-high") == 0)
+			else if(strcmp(&Tmp[1], "-protect-high") == 0)
 			{
 			}
-			else if(strcmp(Tmp, "--protect-medium") == 0)
+			else if(strcmp(&Tmp[1], "-protect-medium") == 0)
 			{
 			}
-			else if(strcmp(Tmp, "--protect-low") == 0)
+			else if(strcmp(&Tmp[1], "-protect-low") == 0)
 			{
 			}
 #endif
@@ -2237,14 +2292,14 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 			else if((strcmp(&Tmp[1], "u8n") == 0) || (strcmp(&Tmp[1], "-utf8name") == 0))
 				*CmdOption |= OPT_UTF8N_NAME;
 			// ソフトウェア自動更新
-			else if(strcmp(Tmp, "--software-update") == 0)
+			else if(strcmp(&Tmp[1], "-software-update") == 0)
 			{
 				if((Str = GetToken(Str, Tmp)) == NULL)
 				{
 					Ret = -1;
 				}
 			}
-			else if(strcmp(Tmp, "--software-cleanup") == 0)
+			else if(strcmp(&Tmp[1], "-software-cleanup") == 0)
 			{
 				if((Str = GetToken(Str, Tmp)) == NULL)
 				{
@@ -2363,7 +2418,7 @@ static char *GetToken(char *Str, char *Buf)
 		InQuote = 0;
 		while(*Str != NUL)
 		{
-			if(*Str == 0x22)
+			if(*Str == '\"')
 				InQuote = !InQuote;
 			else
 			{
@@ -3572,5 +3627,44 @@ void UpdateTaskbarProgress()
 int AskToolWinHeight(void)
 {
 	return(ToolWinHeight);
+}
+
+// ソフトウェア自動更新
+void UpdateSoftware(int NoError, int NoConfirm)
+{
+	DWORD Version;
+	char VersionString[32];
+	char Tmp[FMAX_PATH+1];
+	// 念のためマスターパスワードの一致を確認
+	if(GetMasterPasswordStatus() == PASSWORD_OK)
+	{
+		Version = RELEASE_VERSION_NUM;
+		LastAutoCheckForUpdates = time(NULL);
+		if(CheckForUpdates(FALSE, NULL, &Version, VersionString))
+		{
+			if(Version > RELEASE_VERSION_NUM)
+			{
+				sprintf(Tmp, MSGJPN362, VER_STR, VersionString);
+				if(NoConfirm == YES || MessageBox(GetMainHwnd(), Tmp, "FFFTP", MB_YESNO) == IDYES)
+				{
+					strcpy(Tmp, TmpPath);
+					SetYenTail(Tmp);
+					strcat(Tmp, "update");
+					_mkdir(Tmp);
+					if(CheckForUpdates(TRUE, Tmp, &Version, VersionString))
+					{
+						MessageBox(GetMainHwnd(), MSGJPN365, "FFFTP", MB_OK);
+						ApplyUpdatesOnExit = YES;
+					}
+					else if(NoError == NO)
+						MessageBox(GetMainHwnd(), MSGJPN363, "FFFTP", MB_OK | MB_ICONERROR);
+				}
+			}
+			else if(NoError == NO)
+				MessageBox(GetMainHwnd(), MSGJPN364, "FFFTP", MB_OK);
+		}
+		else if(NoError == NO)
+			MessageBox(GetMainHwnd(), MSGJPN363, "FFFTP", MB_OK | MB_ICONERROR);
+	}
 }
 

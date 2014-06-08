@@ -20,7 +20,7 @@ __declspec(dllexport) SFTPSTATUS* SFTP_Create()
 		SFTP_InitializeIOBuffer(&p->DataInBuffer, 1048576);
 		SFTP_InitializeIOBuffer(&p->DataOutBuffer, 1048576);
 		memset(&p->FilePosition, 0, sizeof(LARGE_INTEGER));
-		CreateThread(NULL, 0, SFTP_ThreadProc, NULL, 0, &p->ThreadId);
+		CloseHandle(CreateThread(NULL, 0, SFTP_ThreadProc, NULL, 0, &p->ThreadId));
 	}
 	return p;
 }

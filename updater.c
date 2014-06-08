@@ -264,11 +264,12 @@ BOOL PrepareUpdates(void* pList, DWORD ListLength, LPCTSTR DownloadDir)
 }
 
 // FFFTPを更新
-BOOL ApplyUpdates(LPCTSTR DestinationDir)
+BOOL ApplyUpdates(LPCTSTR DestinationDir, LPCTSTR BackupDirName)
 {
 	BOOL bResult;
 	TCHAR Source[MAX_PATH];
 	TCHAR Backup[MAX_PATH];
+	TCHAR DestinationBackup[MAX_PATH];
 	TCHAR* p;
 	bResult = FALSE;
 	if(GetModuleFileName(NULL, Source, MAX_PATH) > 0)
@@ -276,19 +277,24 @@ BOOL ApplyUpdates(LPCTSTR DestinationDir)
 		if(p = _tcsrchr(Source, _T('\\')))
 			*p = _T('\0');
 		_tcscpy(Backup, Source);
-		_tcscat(Backup, _T("\\updatebackup"));
+		_tcscat(Backup, _T("\\"));
+		_tcscat(Backup, BackupDirName);
 		DeleteDirectoryAndContents(Backup);
 		if(CopyAllFilesInDirectory(DestinationDir, Backup))
 		{
+			_tcscpy(DestinationBackup, DestinationDir);
+			_tcscat(DestinationBackup, _T("\\"));
+			_tcscat(DestinationBackup, BackupDirName);
 			if(CopyAllFilesInDirectory(Source, DestinationDir))
 			{
+				DeleteDirectoryAndContents(DestinationBackup);
 				bResult = TRUE;
-				_tcscpy(Backup, DestinationDir);
-				_tcscat(Backup, _T("\\updatebackup"));
-				DeleteDirectoryAndContents(Backup);
 			}
 			else
+			{
+				DeleteDirectoryAndContents(DestinationBackup);
 				CopyAllFilesInDirectory(Backup, DestinationDir);
+			}
 		}
 	}
 	return bResult;
@@ -305,18 +311,31 @@ BOOL CleanupUpdates(LPCTSTR DownloadDir)
 }
 
 // 更新用のプロセスを起動
-BOOL StartUpdateProcess(LPCTSTR Path, LPCTSTR CommandLine)
+BOOL StartUpdateProcess(LPCTSTR DownloadDir, LPCTSTR CommandLine)
 {
 	BOOL bResult;
+	TCHAR Name[MAX_PATH];
+	TCHAR* p;
+	TCHAR Path[MAX_PATH];
 	bResult = FALSE;
-	if(ShellExecute(NULL, "open", Path, CommandLine, NULL, SW_SHOW) > (HINSTANCE)32)
-		bResult = TRUE;
+	if(GetModuleFileName(NULL, Name, MAX_PATH) > 0)
+	{
+		if(p = _tcsrchr(Name, _T('\\')))
+			p++;
+		else
+			p = Name;
+		_tcscpy(Path, DownloadDir);
+		_tcscat(Path, _T("\\"));
+		_tcscat(Path, p);
+		if(ShellExecute(NULL, _T("open"), Path, CommandLine, NULL, SW_SHOW) > (HINSTANCE)32)
+			bResult = TRUE;
+	}
 	return bResult;
 }
 
 // 更新用のプロセスを管理者権限で起動
 // Windows XP以前など起動できない場合は現在のプロセスで処理を続行
-BOOL StartUpdateProcessAsAdministrator(LPCTSTR CommandLine, LPCTSTR Keyword)
+BOOL RestartUpdateProcessAsAdministrator(LPCTSTR CommandLine, LPCTSTR Keyword)
 {
 	BOOL bResult;
 	TCHAR* NewCommandLine;
@@ -329,19 +348,21 @@ BOOL StartUpdateProcessAsAdministrator(LPCTSTR CommandLine, LPCTSTR Keyword)
 		{
 			_tcscpy(NewCommandLine, CommandLine);
 			_tcscat(NewCommandLine, Keyword);
-			GetModuleFileName(NULL, Path, MAX_PATH);
-			memset(&Info, 0, sizeof(SHELLEXECUTEINFO));
-			Info.cbSize = sizeof(SHELLEXECUTEINFO);
-			Info.fMask = SEE_MASK_NOCLOSEPROCESS;
-			Info.lpVerb = "runas";
-			Info.lpFile = Path;
-			Info.lpParameters = NewCommandLine;
-			Info.nShow = SW_SHOW;
-			if(ShellExecuteEx(&Info))
+			if(GetModuleFileName(NULL, Path, MAX_PATH) > 0)
 			{
-				WaitForSingleObject(Info.hProcess, INFINITE);
-				CloseHandle(Info.hProcess);
-				bResult = TRUE;
+				memset(&Info, 0, sizeof(SHELLEXECUTEINFO));
+				Info.cbSize = sizeof(SHELLEXECUTEINFO);
+				Info.fMask = SEE_MASK_NOCLOSEPROCESS;
+				Info.lpVerb = _T("runas");
+				Info.lpFile = Path;
+				Info.lpParameters = NewCommandLine;
+				Info.nShow = SW_SHOW;
+				if(ShellExecuteEx(&Info))
+				{
+					WaitForSingleObject(Info.hProcess, INFINITE);
+					CloseHandle(Info.hProcess);
+					bResult = TRUE;
+				}
 			}
 			free(NewCommandLine);
 		}

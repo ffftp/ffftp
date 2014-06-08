@@ -117,6 +117,7 @@
 #define ini_from_reg_dlg                194
 #define opt_trmode4_dlg                 195
 #define opt_disp2_dlg                   196
+#define opt_updates_dlg                 197
 #define TRANS_TIME_BAR                  1002
 #define TRANS_TEXT                      1003
 #define TRANS_REMOTE                    1003
@@ -461,6 +462,10 @@
 #define TRMODE4_UTF8BOM_CNV             1219
 #define HSET_ERROR_RECONNECT            1220
 #define HSET_FN_UTF8HFSX_CNV            1221
+#define UPDATES_AUTO_CHECK              1222
+#define UPDATES_AUTO_APPLY              1223
+#define UPDATES_INTERVAL                1224
+#define UPDATES_INTERVAL_SPN            1225
 #define MENU_END                        40001
 #define MENU_EXIT                       40001
 #define MENU_CONNECT                    40003
@@ -643,6 +648,7 @@
 #define MENU_FW_FTP_FILTER              40178
 #define MENU_REMOTE_MOVE_UPDIR          40179
 #define MENU_EXPORT_FILEZILLA_XML       40180
+#define MENU_UPDATES_CHECK              40181
 #define FSNOTIFY_TITLE                  65535
 #define HOST_SIZEGRIP                   65535
 
@@ -651,8 +657,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        197
-#define _APS_NEXT_COMMAND_VALUE         40181
-#define _APS_NEXT_CONTROL_VALUE         1221
+#define _APS_NEXT_COMMAND_VALUE         40182
+#define _APS_NEXT_CONTROL_VALUE         1226
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

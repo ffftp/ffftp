@@ -168,6 +168,8 @@ BEGIN
         MENUITEM "&Contents\tF1",               MENU_HELP
         MENUITEM "&Q&&A (Connect to Internet)", MENU_HELP_TROUBLE
         MENUITEM SEPARATOR
+        MENUITEM "Check for Software &Updates...", MENU_UPDATES_CHECK
+        MENUITEM SEPARATOR
         MENUITEM "&About FFFTP...",             MENU_ABOUT
     END
 END
@@ -176,7 +178,7 @@ dummy_menu MENU
 BEGIN
     POPUP "dummy"
     BEGIN
-        MENUITEM "Go up (host)",                MENU_REMOTE_UPDIR
+        MENUITEM "Go up (remote)",              MENU_REMOTE_UPDIR
         MENUITEM "Go up (local)",               MENU_LOCAL_UPDIR
         MENUITEM "Go up (both)",                MENU_UPDIR
         MENUITEM "COMBO_LOCAL",                 COMBO_LOCAL
@@ -1501,6 +1503,19 @@ BEGIN
     CONTROL         "Do not show old &logs",DISP2_REMOVE_OLD_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,196,10
 END
 
+opt_updates_dlg DIALOG  0, 0, 211, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+FONT 9, "MS Shell Dlg"
+BEGIN
+    CONTROL         "&Check for software updates automatically",UPDATES_AUTO_CHECK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,196,10
+    CONTROL         "&Apply updates automatically",UPDATES_AUTO_APPLY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,196,10
+    LTEXT           "&Interval of checking for updates",-1,7,35,196,8
+    EDITTEXT        UPDATES_INTERVAL,7,45,26,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",UPDATES_INTERVAL_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,33,45,9,14
+    LTEXT           "Åi0Å`999days; 0=Every time at startupÅj",-1,45,49,168,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2171,6 +2186,14 @@ BEGIN
     END
 
     opt_disp2_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    opt_updates_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 204
