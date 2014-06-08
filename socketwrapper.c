@@ -21,10 +21,9 @@
 typedef void (__cdecl* _SSL_load_error_strings)();
 typedef int (__cdecl* _SSL_library_init)();
 typedef SSL_METHOD* (__cdecl* _SSLv23_method)();
-typedef SSL_CTX* (__cdecl* _SSL_CTX_new)(SSL_METHOD*);
-typedef void (__cdecl* _SSL_CTX_free)(SSL_CTX*);
 typedef SSL* (__cdecl* _SSL_new)(SSL_CTX*);
 typedef void (__cdecl* _SSL_free)(SSL*);
+typedef long (__cdecl* _SSL_ctrl)(SSL*, int, long, void*);
 typedef int (__cdecl* _SSL_shutdown)(SSL*);
 typedef int (__cdecl* _SSL_get_fd)(SSL*);
 typedef int (__cdecl* _SSL_set_fd)(SSL*, int);
@@ -38,6 +37,9 @@ typedef X509* (__cdecl* _SSL_get_peer_certificate)(const SSL*);
 typedef long (__cdecl* _SSL_get_verify_result)(const SSL*);
 typedef SSL_SESSION* (__cdecl* _SSL_get_session)(SSL*);
 typedef int (__cdecl* _SSL_set_session)(SSL*, SSL_SESSION*);
+typedef int (__cdecl* _SSL_set_cipher_list)(SSL*, const char*);
+typedef SSL_CTX* (__cdecl* _SSL_CTX_new)(SSL_METHOD*);
+typedef void (__cdecl* _SSL_CTX_free)(SSL_CTX*);
 typedef X509_STORE* (__cdecl* _SSL_CTX_get_cert_store)(const SSL_CTX*);
 typedef long (__cdecl* _SSL_CTX_ctrl)(SSL_CTX*, int, long, void*);
 typedef BIO_METHOD* (__cdecl* _BIO_s_mem)();
@@ -69,10 +71,9 @@ typedef unsigned char* (__cdecl* _SHA512)(const unsigned char*, size_t, unsigned
 _SSL_load_error_strings p_SSL_load_error_strings;
 _SSL_library_init p_SSL_library_init;
 _SSLv23_method p_SSLv23_method;
-_SSL_CTX_new p_SSL_CTX_new;
-_SSL_CTX_free p_SSL_CTX_free;
 _SSL_new p_SSL_new;
 _SSL_free p_SSL_free;
+_SSL_ctrl p_SSL_ctrl;
 _SSL_shutdown p_SSL_shutdown;
 _SSL_get_fd p_SSL_get_fd;
 _SSL_set_fd p_SSL_set_fd;
@@ -86,6 +87,9 @@ _SSL_get_peer_certificate p_SSL_get_peer_certificate;
 _SSL_get_verify_result p_SSL_get_verify_result;
 _SSL_get_session p_SSL_get_session;
 _SSL_set_session p_SSL_set_session;
+_SSL_set_cipher_list p_SSL_set_cipher_list;
+_SSL_CTX_new p_SSL_CTX_new;
+_SSL_CTX_free p_SSL_CTX_free;
 _SSL_CTX_get_cert_store p_SSL_CTX_get_cert_store;
 _SSL_CTX_ctrl p_SSL_CTX_ctrl;
 _BIO_s_mem p_BIO_s_mem;
@@ -164,10 +168,9 @@ BOOL LoadOpenSSL()
 		|| !(p_SSL_load_error_strings = (_SSL_load_error_strings)GetProcAddress(g_hOpenSSL, "SSL_load_error_strings"))
 		|| !(p_SSL_library_init = (_SSL_library_init)GetProcAddress(g_hOpenSSL, "SSL_library_init"))
 		|| !(p_SSLv23_method = (_SSLv23_method)GetProcAddress(g_hOpenSSL, "SSLv23_method"))
-		|| !(p_SSL_CTX_new = (_SSL_CTX_new)GetProcAddress(g_hOpenSSL, "SSL_CTX_new"))
-		|| !(p_SSL_CTX_free = (_SSL_CTX_free)GetProcAddress(g_hOpenSSL, "SSL_CTX_free"))
 		|| !(p_SSL_new = (_SSL_new)GetProcAddress(g_hOpenSSL, "SSL_new"))
 		|| !(p_SSL_free = (_SSL_free)GetProcAddress(g_hOpenSSL, "SSL_free"))
+		|| !(p_SSL_ctrl = (_SSL_ctrl)GetProcAddress(g_hOpenSSL, "SSL_ctrl"))
 		|| !(p_SSL_shutdown = (_SSL_shutdown)GetProcAddress(g_hOpenSSL, "SSL_shutdown"))
 		|| !(p_SSL_get_fd = (_SSL_get_fd)GetProcAddress(g_hOpenSSL, "SSL_get_fd"))
 		|| !(p_SSL_set_fd = (_SSL_set_fd)GetProcAddress(g_hOpenSSL, "SSL_set_fd"))
@@ -181,6 +184,9 @@ BOOL LoadOpenSSL()
 		|| !(p_SSL_get_verify_result = (_SSL_get_verify_result)GetProcAddress(g_hOpenSSL, "SSL_get_verify_result"))
 		|| !(p_SSL_get_session = (_SSL_get_session)GetProcAddress(g_hOpenSSL, "SSL_get_session"))
 		|| !(p_SSL_set_session = (_SSL_set_session)GetProcAddress(g_hOpenSSL, "SSL_set_session"))
+		|| !(p_SSL_set_cipher_list = (_SSL_set_cipher_list)GetProcAddress(g_hOpenSSL, "SSL_set_cipher_list"))
+		|| !(p_SSL_CTX_new = (_SSL_CTX_new)GetProcAddress(g_hOpenSSL, "SSL_CTX_new"))
+		|| !(p_SSL_CTX_free = (_SSL_CTX_free)GetProcAddress(g_hOpenSSL, "SSL_CTX_free"))
 		|| !(p_SSL_CTX_get_cert_store = (_SSL_CTX_get_cert_store)GetProcAddress(g_hOpenSSL, "SSL_CTX_get_cert_store"))
 		|| !(p_SSL_CTX_ctrl = (_SSL_CTX_ctrl)GetProcAddress(g_hOpenSSL, "SSL_CTX_ctrl")))
 	{
@@ -609,11 +615,12 @@ BOOL GetHashSHA512(const void* pData, DWORD Size, void* pHash)
 }
 
 // SSLセッションを開始
-BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted)
+BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen)
 {
 	BOOL r;
 	DWORD Time;
 	SSL** ppSSL;
+	BOOL bInherited;
 	SSL** ppSSLParent;
 	SSL_SESSION* pSession;
 	int Return;
@@ -636,6 +643,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted)
 			{
 				if(p_SSL_set_fd(*ppSSL, s) != 0)
 				{
+					bInherited = FALSE;
 					if(parent != INVALID_SOCKET)
 					{
 						if(ppSSLParent = FindSSLPointerFromSocket(parent))
@@ -643,9 +651,16 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted)
 							if(pSession = p_SSL_get_session(*ppSSLParent))
 							{
 								if(p_SSL_set_session(*ppSSL, pSession) == 1)
-								{
-								}
+									bInherited = TRUE;
 							}
+						}
+					}
+					if(!bInherited)
+					{
+						if(bStrengthen)
+						{
+							p_SSL_ctrl(*ppSSL, SSL_CTRL_OPTIONS, SSL_OP_NO_SSLv2, NULL);
+							p_SSL_set_cipher_list(*ppSSL, "HIGH");
 						}
 					}
 					// SSLのネゴシエーションには時間がかかる場合がある
@@ -757,7 +772,7 @@ SOCKET FTPS_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 	BOOL bAborted;
 	r = accept(s, addr, addrlen);
 	bAborted = FALSE;
-	if(!AttachSSL(r, INVALID_SOCKET, &bAborted))
+	if(!AttachSSL(r, INVALID_SOCKET, &bAborted, TRUE))
 	{
 		closesocket(r);
 		return INVALID_SOCKET;
@@ -773,7 +788,7 @@ int FTPS_connect(SOCKET s, const struct sockaddr *name, int namelen)
 	BOOL bAborted;
 	r = connect(s, name, namelen);
 	bAborted = FALSE;
-	if(!AttachSSL(r, INVALID_SOCKET, &bAborted))
+	if(!AttachSSL(r, INVALID_SOCKET, &bAborted, TRUE))
 		return SOCKET_ERROR;
 	return r;
 }

@@ -1347,6 +1347,7 @@ void CopyDefaultHost(HOSTDATA *Set)
 	Set->UseFTPIS = YES;
 	Set->UseSFTP = YES;
 	strcpy(Set->PrivateKey, "");
+	Set->NoWeakEncryption = NO;
 	// 同時接続対応
 	Set->MaxThreadCount = 1;
 	Set->ReuseCmdSkt = YES;
@@ -2294,6 +2295,7 @@ static INT_PTR CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam
 				EnableWindow(GetDlgItem(hDlg, PKEY_FILE_BR), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_PRIVATE_KEY), FALSE);
 			}
+			SendDlgItemMessage(hDlg, HSET_NO_WEAK, BM_SETCHECK, TmpHost.NoWeakEncryption, 0);
 			return(TRUE);
 
 		case WM_NOTIFY:
@@ -2312,6 +2314,7 @@ static INT_PTR CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam
 						TmpHost.UseSFTP = SendDlgItemMessage(hDlg, HSET_SFTP, BM_GETCHECK, 0, 0);
 						SendDlgItemMessage(hDlg, HSET_PRIVATE_KEY, WM_GETTEXT, PRIVATE_KEY_LEN+1, (LPARAM)TmpHost.PrivateKey);
 					}
+					TmpHost.NoWeakEncryption = SendDlgItemMessage(hDlg, HSET_NO_WEAK, BM_GETCHECK, 0, 0);
 					Apply = YES;
 					break;
 

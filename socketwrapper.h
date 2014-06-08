@@ -26,7 +26,7 @@ BOOL GetHashSHA224(const void* pData, DWORD Size, void* pHash);
 BOOL GetHashSHA256(const void* pData, DWORD Size, void* pHash);
 BOOL GetHashSHA384(const void* pData, DWORD Size, void* pHash);
 BOOL GetHashSHA512(const void* pData, DWORD Size, void* pHash);
-BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted);
+BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen);
 BOOL DetachSSL(SOCKET s);
 BOOL IsSSLAttached(SOCKET s);
 SOCKET FTPS_socket(int af, int type, int protocol);

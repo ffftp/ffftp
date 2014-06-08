@@ -1041,6 +1041,7 @@ typedef struct {
 	int UseFTPIS;						/* FTPISで接続する (YES/NO) */
 	int UseSFTP;						/* SFTPで接続する (YES/NO) */
 	char PrivateKey[PRIVATE_KEY_LEN+1];	/* テキスト形式の秘密鍵 */
+	int NoWeakEncryption;				/* 弱い暗号を拒否 (YES/NO) */
 	// 同時接続対応
 	int MaxThreadCount;					/* 同時接続数 */
 	int ReuseCmdSkt;					/* メインウィンドウのソケットを再利用する (YES/NO) */
@@ -1111,6 +1112,7 @@ typedef struct historydata {
 	int UseFTPIS;						/* FTPISで接続する (YES/NO) */
 	int UseSFTP;						/* SFTPで接続する (YES/NO) */
 	char PrivateKey[PRIVATE_KEY_LEN+1];	/* テキスト形式の秘密鍵 */
+	int NoWeakEncryption;				/* 弱い暗号を拒否 (YES/NO) */
 	// 同時接続対応
 	int MaxThreadCount;					/* 同時接続数 */
 	int ReuseCmdSkt;					/* メインウィンドウのソケットを再利用する (YES/NO) */

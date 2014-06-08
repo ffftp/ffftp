@@ -642,6 +642,7 @@ void SaveRegistry(void)
 							SaveIntNum(hKey5, "SFTP", Host.UseSFTP, DefaultHost.UseSFTP);
 							EncodePassword(Host.PrivateKey, Str);
 							SaveStr(hKey5, "PKey", Str, DefaultHost.PrivateKey);
+							SaveIntNum(hKey5, "NoWeak", Host.NoWeakEncryption, DefaultHost.NoWeakEncryption);
 							// 同時接続対応
 							SaveIntNum(hKey5, "ThreadCount", Host.MaxThreadCount, DefaultHost.MaxThreadCount);
 							SaveIntNum(hKey5, "ReuseCmdSkt", Host.ReuseCmdSkt, DefaultHost.ReuseCmdSkt);
@@ -1133,6 +1134,7 @@ int LoadRegistry(void)
 					strcpy(Str, "");
 					ReadStringFromReg(hKey5, "PKey", Str, PRIVATE_KEY_LEN*4+1);
 					DecodePassword(Str, Host.PrivateKey);
+					ReadIntValueFromReg(hKey5, "NoWeak", &Host.NoWeakEncryption);
 					// 同時接続対応
 					ReadIntValueFromReg(hKey5, "ThreadCount", &Host.MaxThreadCount);
 					ReadIntValueFromReg(hKey5, "ReuseCmdSkt", &Host.ReuseCmdSkt);
