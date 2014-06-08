@@ -180,20 +180,22 @@ BOOL CheckForUpdates(BOOL bDownload, LPCTSTR DownloadDir, DWORD* pVersion, LPTST
 				{
 					if(ReadFileViaHTTP(&Buf1, sizeof(Buf1), &Length, HTTP_USER_AGENT, UPDATE_SERVER, UPDATE_LIST_PATH))
 					{
-						GetHashSHA512(&Buf1, Length, &Hash);
-						if(memcmp(&Hash, &UpdateHash.ListHash, 64) == 0)
+						if(GetHashSHA512(&Buf1, Length, &Hash))
 						{
-							if(Length >= sizeof(UPDATE_LIST))
+							if(memcmp(&Hash, &UpdateHash.ListHash, 64) == 0)
 							{
-								bResult = TRUE;
-								pUpdateList = (UPDATE_LIST*)&Buf1;
-								if(pUpdateList->Version > *pVersion)
+								if(Length >= sizeof(UPDATE_LIST))
 								{
-									*pVersion = pUpdateList->Version;
-									_tcscpy(pVersionString, pUpdateList->VersionString);
+									bResult = TRUE;
+									pUpdateList = (UPDATE_LIST*)&Buf1;
+									if(pUpdateList->Version > *pVersion)
+									{
+										*pVersion = pUpdateList->Version;
+										_tcscpy(pVersionString, pUpdateList->VersionString);
+									}
+									if(bDownload)
+										bResult = PrepareUpdates(&Buf1, Length, DownloadDir);
 								}
-								if(bDownload)
-									bResult = PrepareUpdates(&Buf1, Length, DownloadDir);
 							}
 						}
 					}
@@ -240,14 +242,16 @@ BOOL PrepareUpdates(void* pList, DWORD ListLength, LPCTSTR DownloadDir)
 				{
 					if(ReadFileViaHTTP(pBuf, 16777216, &Length, HTTP_USER_AGENT, UPDATE_SERVER, pUpdateList->File[i].SrcPath))
 					{
-						GetHashSHA512(pBuf, Length, &Hash);
-						if(memcmp(&Hash, &pUpdateList->File[i].SrcHash, 64) == 0)
+						if(GetHashSHA512(pBuf, Length, &Hash))
 						{
-							_tcscpy(Path, DownloadDir);
-							_tcscat(Path, _T("\\"));
-							_tcscat(Path, pUpdateList->File[i].DstPath);
-							if(SaveMemoryToFileWithTimestamp(Path, pBuf, Length, &pUpdateList->File[i].Timestamp))
-								b = TRUE;
+							if(memcmp(&Hash, &pUpdateList->File[i].SrcHash, 64) == 0)
+							{
+								_tcscpy(Path, DownloadDir);
+								_tcscat(Path, _T("\\"));
+								_tcscat(Path, pUpdateList->File[i].DstPath);
+								if(SaveMemoryToFileWithTimestamp(Path, pBuf, Length, &pUpdateList->File[i].Timestamp))
+									b = TRUE;
+							}
 						}
 					}
 				}

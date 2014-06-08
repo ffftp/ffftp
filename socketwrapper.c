@@ -539,6 +539,8 @@ BOOL DecryptSignature(const char* PublicKey, const void* pIn, DWORD InLength, vo
 	EVP_PKEY* pPKEY;
 	RSA* pRSA;
 	int i;
+	if(!g_bOpenSSLLoaded)
+		return FALSE;
 	bResult = FALSE;
 	if(pBIO = p_BIO_new_mem_buf((void*)PublicKey, sizeof(char) * strlen(PublicKey)))
 	{
@@ -566,29 +568,44 @@ BOOL DecryptSignature(const char* PublicKey, const void* pIn, DWORD InLength, vo
 
 // ハッシュ計算
 // 他にも同等の関数はあるが主にマルウェア対策のための冗長化
-void GetHashSHA1(const void* pData, DWORD Size, void* pHash)
+BOOL GetHashSHA1(const void* pData, DWORD Size, void* pHash)
 {
+	if(!g_bOpenSSLLoaded)
+		return FALSE;
 	p_SHA1((const unsigned char*)pData, (size_t)Size, (unsigned char*)pHash);
+	return TRUE;
 }
 
-void GetHashSHA224(const void* pData, DWORD Size, void* pHash)
+BOOL GetHashSHA224(const void* pData, DWORD Size, void* pHash)
 {
+	if(!g_bOpenSSLLoaded)
+		return FALSE;
 	p_SHA224((const unsigned char*)pData, (size_t)Size, (unsigned char*)pHash);
+	return TRUE;
 }
 
-void GetHashSHA256(const void* pData, DWORD Size, void* pHash)
+BOOL GetHashSHA256(const void* pData, DWORD Size, void* pHash)
 {
+	if(!g_bOpenSSLLoaded)
+		return FALSE;
 	p_SHA256((const unsigned char*)pData, (size_t)Size, (unsigned char*)pHash);
+	return TRUE;
 }
 
-void GetHashSHA384(const void* pData, DWORD Size, void* pHash)
+BOOL GetHashSHA384(const void* pData, DWORD Size, void* pHash)
 {
+	if(!g_bOpenSSLLoaded)
+		return FALSE;
 	p_SHA384((const unsigned char*)pData, (size_t)Size, (unsigned char*)pHash);
+	return TRUE;
 }
 
-void GetHashSHA512(const void* pData, DWORD Size, void* pHash)
+BOOL GetHashSHA512(const void* pData, DWORD Size, void* pHash)
 {
+	if(!g_bOpenSSLLoaded)
+		return FALSE;
 	p_SHA512((const unsigned char*)pData, (size_t)Size, (unsigned char*)pHash);
+	return TRUE;
 }
 
 // SSLセッションを開始
