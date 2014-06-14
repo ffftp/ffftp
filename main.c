@@ -738,7 +738,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 
 					// ソフトウェア自動更新
 					if(AutoCheckForUptatesInterval == 0)
-						UpdateSoftware(YES, AutoApplyUpdates);
+						UpdateSoftware(YES, YES, AutoApplyUpdates);
 
 					StartupProc(lpszCmdLine);
 					sts = FFFTP_SUCCESS;
@@ -1115,7 +1115,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				if(AskUserOpeDisabled() == NO && AskTransferNow() == NO)
 				{
 					if(AutoCheckForUptatesInterval > 0 && time(NULL) - LastAutoCheckForUpdates >= AutoCheckForUptatesInterval * 86400)
-						UpdateSoftware(YES, AutoApplyUpdates);
+						UpdateSoftware(YES, YES, AutoApplyUpdates);
 				}
 				break;
 			}
@@ -1758,7 +1758,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 				// ソフトウェア自動更新
 				case MENU_UPDATES_CHECK :
-					UpdateSoftware(NO, NO);
+					UpdateSoftware(NO, NO, NO);
 					break;
 
 				default :
@@ -3630,41 +3630,69 @@ int AskToolWinHeight(void)
 }
 
 // ソフトウェア自動更新
-void UpdateSoftware(int NoError, int NoConfirm)
+typedef struct
 {
+	int NoError;
+	int NoConfirm;
+} UPDATESOFTWAREDATA;
+
+DWORD WINAPI UpdateSoftwareThreadProc(LPVOID lpParameter)
+{
+	UPDATESOFTWAREDATA* pData;
+	pData = (UPDATESOFTWAREDATA*)lpParameter;
+	UpdateSoftware(NO, pData->NoError, pData->NoConfirm);
+	free(pData);
+	return 0;
+}
+
+void UpdateSoftware(int Async, int NoError, int NoConfirm)
+{
+	UPDATESOFTWAREDATA* pData;
 	DWORD Version;
 	char VersionString[32];
 	char Tmp[FMAX_PATH+1];
-	// 念のためマスターパスワードの一致を確認
-	if(GetMasterPasswordStatus() == PASSWORD_OK)
+	if(Async == YES)
 	{
-		Version = RELEASE_VERSION_NUM;
-		LastAutoCheckForUpdates = time(NULL);
-		if(CheckForUpdates(FALSE, NULL, &Version, VersionString))
+		if(pData = malloc(sizeof(UPDATESOFTWAREDATA)))
 		{
-			if(Version > RELEASE_VERSION_NUM)
+			pData->NoError = NoError;
+			pData->NoConfirm = NoConfirm;
+			CloseHandle(CreateThread(NULL, 0, UpdateSoftwareThreadProc, pData, 0, NULL));
+		}
+	}
+	else
+	{
+		// 念のためマスターパスワードの一致を確認
+		if(GetMasterPasswordStatus() == PASSWORD_OK)
+		{
+			Version = RELEASE_VERSION_NUM;
+			LastAutoCheckForUpdates = time(NULL);
+			if(CheckForUpdates(FALSE, NULL, &Version, VersionString))
 			{
-				sprintf(Tmp, MSGJPN362, VER_STR, VersionString);
-				if(NoConfirm == YES || MessageBox(GetMainHwnd(), Tmp, "FFFTP", MB_YESNO) == IDYES)
+				if(Version > RELEASE_VERSION_NUM)
 				{
-					strcpy(Tmp, TmpPath);
-					SetYenTail(Tmp);
-					strcat(Tmp, "update");
-					_mkdir(Tmp);
-					if(CheckForUpdates(TRUE, Tmp, &Version, VersionString))
+					sprintf(Tmp, MSGJPN362, VER_STR, VersionString);
+					if(NoConfirm == YES || MessageBox(GetMainHwnd(), Tmp, "FFFTP", MB_YESNO) == IDYES)
 					{
-						MessageBox(GetMainHwnd(), MSGJPN365, "FFFTP", MB_OK);
-						ApplyUpdatesOnExit = YES;
+						strcpy(Tmp, TmpPath);
+						SetYenTail(Tmp);
+						strcat(Tmp, "update");
+						_mkdir(Tmp);
+						if(CheckForUpdates(TRUE, Tmp, &Version, VersionString))
+						{
+							MessageBox(GetMainHwnd(), MSGJPN365, "FFFTP", MB_OK);
+							ApplyUpdatesOnExit = YES;
+						}
+						else if(NoError == NO)
+							MessageBox(GetMainHwnd(), MSGJPN363, "FFFTP", MB_OK | MB_ICONERROR);
 					}
-					else if(NoError == NO)
-						MessageBox(GetMainHwnd(), MSGJPN363, "FFFTP", MB_OK | MB_ICONERROR);
 				}
+				else if(NoError == NO)
+					MessageBox(GetMainHwnd(), MSGJPN364, "FFFTP", MB_OK);
 			}
 			else if(NoError == NO)
-				MessageBox(GetMainHwnd(), MSGJPN364, "FFFTP", MB_OK);
+				MessageBox(GetMainHwnd(), MSGJPN363, "FFFTP", MB_OK | MB_ICONERROR);
 		}
-		else if(NoError == NO)
-			MessageBox(GetMainHwnd(), MSGJPN363, "FFFTP", MB_OK | MB_ICONERROR);
 	}
 }
 

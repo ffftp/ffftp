@@ -1392,7 +1392,7 @@ void UpdateTaskbarProgress();
 // 高DPI対応
 int AskToolWinHeight(void);
 // ソフトウェア自動更新
-void UpdateSoftware(int NoError, int NoConfirm);
+void UpdateSoftware(int Async, int NoError, int NoConfirm);
 
 /*===== filelist.c =====*/
 
