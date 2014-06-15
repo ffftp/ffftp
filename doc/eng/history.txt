@@ -3,6 +3,10 @@ FFFTP version history.
 Changes in Ver.1.99
 --------------------
 
+-- Added the feature of automatic software update.
+   It will connect to the dedicated server to check whether there are updates
+   every 7 days by default, and then confirm whether to apply them.
+
 -- Fixed bugs that the apprication did not start when the INI file was modified
    and BOM was inserted in it.
 
@@ -34,6 +38,7 @@ Changes in Ver.1.99
 -- Added a function to move remote files to their parent directory.
 
 -- Supported high DPI displays.
+   The interface such as the menu will look smooth on high DPI displays.
 
 Changes in Ver.1.98g
 --------------------
