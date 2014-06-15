@@ -33,7 +33,8 @@
 	"-----END PUBLIC KEY-----\n"
 #define UPDATE_SIGNATURE "\x4C\x2A\x8E\x57\xAB\x75\x0C\xB5\xDA\x5F\xFE\xB9\x57\x9A\x1B\xA2\x7A\x61\x32\xF8\xFA\x4B\x61\xE2\xBA\x20\x9C\x37\xD5\x0A\xDC\x94\x10\x4D\x02\x30\x9B\xCD\x01\x9B\xB8\x73\x1E\xDB\xFD\xD7\x45\xCA\xE0\x8E\xF9\xB0\x1F\xB4\x0D\xD8\xFB\xE8\x41\x48\xE7\xF5\xE8\x64"
 
-BOOL CheckForUpdates(BOOL bDownload, LPCTSTR DownloadDir, DWORD* pVersion, LPTSTR pVersionString);
+BOOL BuildUpdates(LPCTSTR PrivateKeyFile, LPCTSTR Password, LPCTSTR ServerPath, LPCTSTR HashFile, LPCTSTR ListFile, DWORD Version, LPCTSTR VersionString, LPCTSTR Description);
+BOOL CheckForUpdates(BOOL bDownload, LPCTSTR DownloadDir, DWORD* pVersion, LPTSTR pVersionString, LPTSTR pDescription);
 BOOL PrepareUpdates(void* pList, DWORD ListLength, LPCTSTR DownloadDir);
 BOOL ApplyUpdates(LPCTSTR DestinationDir, LPCTSTR BackupDirName);
 BOOL CleanupUpdates(LPCTSTR DownloadDir);

@@ -360,7 +360,7 @@
 #define MSGJPN359		_Tu8("Software update has been completed.", "Software update has been completed.")
 #define MSGJPN360		_Tu8("Failed to update the software.\nPlease get the latest version from our web site and update it manually.", "Failed to update the software.\nPlease get the latest version from our web site and update it manually.")
 #define MSGJPN361		_Tu8("Updates", "Updates")
-#define MSGJPN362		_Tu8("There is a new version.\n\nCurrent version: %s\nNew version: %s\n\nIt takes a few minutes to download the updates.\nDo you want to update now?\n", "There is a new version.\n\nCurrent version: %s\nNew version: %s\n\nIt takes a few minutes to download the updates.\nDo you want to update now?\n")
+#define MSGJPN362		_Tu8("There is a new version.\n\nCurrent version: %s\nNew version: %s\n%s\n\nIt takes a few minutes to download the updates.\nDo you want to update now?\n", "There is a new version.\n\nCurrent version: %s\nNew version: %s\n%s\n\nIt takes a few minutes to download the updates.\nDo you want to update now?\n")
 #define MSGJPN363		_Tu8("Failed to update the software.\nCannot connect to the server or the data is corrupted.", "Failed to update the software.\nCannot connect to the server or the data is corrupted.")
 #define MSGJPN364		_Tu8("Your version is already up-to-date.", "Your version is already up-to-date.")
 #define MSGJPN365		_Tu8("Preparing for the software update has been completed.\nIt will be applied on exit.", "Preparing for the software update has been completed.\nIt will be applied on exit.")

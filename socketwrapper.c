@@ -52,6 +52,7 @@ typedef int (__cdecl* _X509_print_ex)(BIO*, X509*, unsigned long, unsigned long)
 typedef X509_NAME* (__cdecl* _X509_get_subject_name)(X509*);
 typedef int (__cdecl* _X509_NAME_print_ex)(BIO*, X509_NAME*, int, unsigned long);
 typedef void (__cdecl* _X509_CRL_free)(X509_CRL*);
+typedef EVP_PKEY* (__cdecl* _PEM_read_bio_PrivateKey)(BIO*, EVP_PKEY**, pem_password_cb*, void*);
 typedef EVP_PKEY* (__cdecl* _PEM_read_bio_PUBKEY)(BIO*, EVP_PKEY**, pem_password_cb*, void*);
 typedef X509* (__cdecl* _PEM_read_bio_X509)(BIO*, X509**, pem_password_cb*, void*);
 typedef X509_CRL* (__cdecl* _PEM_read_bio_X509_CRL)(BIO*, X509_CRL**, pem_password_cb*, void*);
@@ -61,6 +62,7 @@ typedef void (__cdecl* _EVP_PKEY_free)(EVP_PKEY*);
 typedef RSA* (__cdecl* _EVP_PKEY_get1_RSA)(EVP_PKEY*);
 typedef void (__cdecl* _RSA_free)(RSA*);
 typedef int (__cdecl* _RSA_size)(const RSA*);
+typedef int (__cdecl* _RSA_private_encrypt)(int, const unsigned char*, unsigned char*, RSA*, int);
 typedef int (__cdecl* _RSA_public_decrypt)(int, const unsigned char*, unsigned char*, RSA*, int);
 typedef unsigned char* (__cdecl* _SHA1)(const unsigned char*, size_t, unsigned char*);
 typedef unsigned char* (__cdecl* _SHA224)(const unsigned char*, size_t, unsigned char*);
@@ -102,6 +104,7 @@ _X509_print_ex p_X509_print_ex;
 _X509_get_subject_name p_X509_get_subject_name;
 _X509_NAME_print_ex p_X509_NAME_print_ex;
 _X509_CRL_free p_X509_CRL_free;
+_PEM_read_bio_PrivateKey p_PEM_read_bio_PrivateKey;
 _PEM_read_bio_PUBKEY p_PEM_read_bio_PUBKEY;
 _PEM_read_bio_X509 p_PEM_read_bio_X509;
 _PEM_read_bio_X509_CRL p_PEM_read_bio_X509_CRL;
@@ -111,6 +114,7 @@ _EVP_PKEY_free p_EVP_PKEY_free;
 _EVP_PKEY_get1_RSA p_EVP_PKEY_get1_RSA;
 _RSA_free p_RSA_free;
 _RSA_size p_RSA_size;
+_RSA_private_encrypt p_RSA_private_encrypt;
 _RSA_public_decrypt p_RSA_public_decrypt;
 _SHA1 p_SHA1;
 _SHA224 p_SHA224;
@@ -207,6 +211,7 @@ BOOL LoadOpenSSL()
 		|| !(p_X509_get_subject_name = (_X509_get_subject_name)GetProcAddress(g_hOpenSSLCommon, "X509_get_subject_name"))
 		|| !(p_X509_NAME_print_ex = (_X509_NAME_print_ex)GetProcAddress(g_hOpenSSLCommon, "X509_NAME_print_ex"))
 		|| !(p_X509_CRL_free = (_X509_CRL_free)GetProcAddress(g_hOpenSSLCommon, "X509_CRL_free"))
+		|| !(p_PEM_read_bio_PrivateKey = (_PEM_read_bio_PrivateKey)GetProcAddress(g_hOpenSSLCommon, "PEM_read_bio_PrivateKey"))
 		|| !(p_PEM_read_bio_PUBKEY = (_PEM_read_bio_PUBKEY)GetProcAddress(g_hOpenSSLCommon, "PEM_read_bio_PUBKEY"))
 		|| !(p_PEM_read_bio_X509 = (_PEM_read_bio_X509)GetProcAddress(g_hOpenSSLCommon, "PEM_read_bio_X509"))
 		|| !(p_PEM_read_bio_X509_CRL = (_PEM_read_bio_X509_CRL)GetProcAddress(g_hOpenSSLCommon, "PEM_read_bio_X509_CRL"))
@@ -216,6 +221,7 @@ BOOL LoadOpenSSL()
 		|| !(p_EVP_PKEY_get1_RSA = (_EVP_PKEY_get1_RSA)GetProcAddress(g_hOpenSSLCommon, "EVP_PKEY_get1_RSA"))
 		|| !(p_RSA_free = (_RSA_free)GetProcAddress(g_hOpenSSLCommon, "RSA_free"))
 		|| !(p_RSA_size = (_RSA_size)GetProcAddress(g_hOpenSSLCommon, "RSA_size"))
+		|| !(p_RSA_private_encrypt = (_RSA_private_encrypt)GetProcAddress(g_hOpenSSLCommon, "RSA_private_encrypt"))
 		|| !(p_RSA_public_decrypt = (_RSA_public_decrypt)GetProcAddress(g_hOpenSSLCommon, "RSA_public_decrypt"))
 		|| !(p_SHA1 = (_SHA1)GetProcAddress(g_hOpenSSLCommon, "SHA1"))
 		|| !(p_SHA224 = (_SHA224)GetProcAddress(g_hOpenSSLCommon, "SHA224"))
@@ -536,9 +542,47 @@ BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName)
 	return bResult;
 }
 
+#pragma warning(push)
+#pragma warning(disable:4090)
+
+// RSA暗号化
+BOOL EncryptSignature(const char* PrivateKey, const char* Password, const void* pIn, DWORD InLength, void* pOut, DWORD OutLength, DWORD* pOutLength)
+{
+	BOOL bResult;
+	BIO* pBIO;
+	EVP_PKEY* pPKEY;
+	RSA* pRSA;
+	int i;
+	if(!g_bOpenSSLLoaded)
+		return FALSE;
+	bResult = FALSE;
+	if(pBIO = p_BIO_new_mem_buf((void*)PrivateKey, sizeof(char) * strlen(PrivateKey)))
+	{
+		if(pPKEY = p_PEM_read_bio_PrivateKey(pBIO, NULL, NULL, (void*)Password))
+		{
+			if(pRSA = p_EVP_PKEY_get1_RSA(pPKEY))
+			{
+				if(p_RSA_size(pRSA) <= (int)OutLength)
+				{
+					i = p_RSA_private_encrypt((int)InLength, (const unsigned char*)pIn, (unsigned char*)pOut, pRSA, RSA_PKCS1_PADDING);
+					if(i >= 0)
+					{
+						*pOutLength = (DWORD)i;
+						bResult = TRUE;
+					}
+				}
+				p_RSA_free(pRSA);
+			}
+			p_EVP_PKEY_free(pPKEY);
+		}
+		p_BIO_free(pBIO);
+	}
+	return bResult;
+}
+
 // RSA復号化
 // 主に自動更新ファイルのハッシュの改竄確認
-BOOL DecryptSignature(const char* PublicKey, const void* pIn, DWORD InLength, void* pOut, DWORD OutLength, DWORD* pOutLength)
+BOOL DecryptSignature(const char* PublicKey, const char* Password, const void* pIn, DWORD InLength, void* pOut, DWORD OutLength, DWORD* pOutLength)
 {
 	BOOL bResult;
 	BIO* pBIO;
@@ -550,7 +594,7 @@ BOOL DecryptSignature(const char* PublicKey, const void* pIn, DWORD InLength, vo
 	bResult = FALSE;
 	if(pBIO = p_BIO_new_mem_buf((void*)PublicKey, sizeof(char) * strlen(PublicKey)))
 	{
-		if(pPKEY = p_PEM_read_bio_PUBKEY(pBIO, NULL, NULL, NULL))
+		if(pPKEY = p_PEM_read_bio_PUBKEY(pBIO, NULL, NULL, Password))
 		{
 			if(pRSA = p_EVP_PKEY_get1_RSA(pPKEY))
 			{
@@ -571,6 +615,8 @@ BOOL DecryptSignature(const char* PublicKey, const void* pIn, DWORD InLength, vo
 	}
 	return bResult;
 }
+
+#pragma warning(pop)
 
 // ハッシュ計算
 // 他にも同等の関数はあるが主にマルウェア対策のための冗長化

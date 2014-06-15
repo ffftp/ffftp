@@ -305,98 +305,85 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
     MSG Msg;
 	int Ret;
 	BOOL Sts;
+	// プロセス保護
+	char* pCommand;
+	DWORD ProtectLevel;
+	char Option[FMAX_PATH+1];
 	// ソフトウェア自動更新
+	int ImmediateExit;
+	char PrivateKeyFile[FMAX_PATH+1];
+	char Password[FMAX_PATH+1];
+	char ServerPath[FMAX_PATH+1];
+	char HashFile[FMAX_PATH+1];
+	char ListFile[FMAX_PATH+1];
+	char Description[FMAX_PATH+1];
 	char UpdateDir[FMAX_PATH+1];
 	char Path[FMAX_PATH+1];
 	char Command[FMAX_PATH+1];
 	char* p;
 
-	// プロセス保護
 #ifdef ENABLE_PROCESS_PROTECTION
+	ProtectLevel = PROCESS_PROTECTION_NONE;
+	pCommand = lpszCmdLine;
+	while(pCommand = GetToken(pCommand, Option))
 	{
-		DWORD ProtectLevel;
-		char* pCommand;
-		char Option[FMAX_PATH+1];
-		ProtectLevel = PROCESS_PROTECTION_NONE;
-		pCommand = lpszCmdLine;
-		while(pCommand = GetToken(pCommand, Option))
+		if(Option[0] == '-')
 		{
-			if(Option[0] == '-')
+			if(strcmp(&Option[1], "-protect") == 0)
 			{
-				if(strcmp(&Option[1], "-protect") == 0)
-				{
-					ProtectLevel = PROCESS_PROTECTION_DEFAULT;
-					break;
-				}
-				else if(strcmp(&Option[1], "-protect-high") == 0)
-				{
-					ProtectLevel = PROCESS_PROTECTION_HIGH;
-					break;
-				}
-				else if(strcmp(&Option[1], "-protect-medium") == 0)
-				{
-					ProtectLevel = PROCESS_PROTECTION_MEDIUM;
-					break;
-				}
-				else if(strcmp(&Option[1], "-protect-low") == 0)
-				{
-					ProtectLevel = PROCESS_PROTECTION_LOW;
-					break;
-				}
+				ProtectLevel = PROCESS_PROTECTION_DEFAULT;
+				break;
+			}
+			else if(strcmp(&Option[1], "-protect-high") == 0)
+			{
+				ProtectLevel = PROCESS_PROTECTION_HIGH;
+				break;
+			}
+			else if(strcmp(&Option[1], "-protect-medium") == 0)
+			{
+				ProtectLevel = PROCESS_PROTECTION_MEDIUM;
+				break;
+			}
+			else if(strcmp(&Option[1], "-protect-low") == 0)
+			{
+				ProtectLevel = PROCESS_PROTECTION_LOW;
+				break;
 			}
 		}
-		if(ProtectLevel != PROCESS_PROTECTION_NONE)
+	}
+	if(ProtectLevel != PROCESS_PROTECTION_NONE)
+	{
+		SetProcessProtectionLevel(ProtectLevel);
+		if(!InitializeLoadLibraryHook())
 		{
-			SetProcessProtectionLevel(ProtectLevel);
-			if(!InitializeLoadLibraryHook())
-			{
-				MessageBox(NULL, MSGJPN321, "FFFTP", MB_OK | MB_ICONERROR);
-				return 0;
-			}
+			MessageBox(NULL, MSGJPN321, "FFFTP", MB_OK | MB_ICONERROR);
+			return 0;
+		}
 #ifndef _DEBUG
-			if(IsDebuggerPresent())
-			{
-				MessageBox(NULL, MSGJPN322, "FFFTP", MB_OK | MB_ICONERROR);
-				return 0;
-			}
-#endif
-			if(!UnloadUntrustedModule())
-			{
-				MessageBox(NULL, MSGJPN323, "FFFTP", MB_OK | MB_ICONERROR);
-				return 0;
-			}
-#ifndef _DEBUG
-			if(RestartProtectedProcess(" --restart"))
-				return 0;
-#endif
-			if(!EnableLoadLibraryHook(TRUE))
-			{
-				MessageBox(NULL, MSGJPN324, "FFFTP", MB_OK | MB_ICONERROR);
-				return 0;
-			}
-		}
-		else
-			InitializeLoadLibraryHook();
-	}
-#endif
-
-	// ソフトウェア自動更新
-	if(GetTokenAfterOption(lpszCmdLine, UpdateDir, "-software-update", "-software-update"))
-	{
-		if(!RestartUpdateProcessAsAdministrator(lpszCmdLine, " --restart"))
+		if(IsDebuggerPresent())
 		{
-			Sleep(1000);
-			if(ApplyUpdates(UpdateDir, "updatebackup"))
-				MessageBox(NULL, MSGJPN359, "FFFTP", MB_OK);
-			else
-				MessageBox(NULL, MSGJPN360, "FFFTP", MB_OK | MB_ICONERROR);
+			MessageBox(NULL, MSGJPN322, "FFFTP", MB_OK | MB_ICONERROR);
+			return 0;
 		}
-		return 0;
+#endif
+		if(!UnloadUntrustedModule())
+		{
+			MessageBox(NULL, MSGJPN323, "FFFTP", MB_OK | MB_ICONERROR);
+			return 0;
+		}
+#ifndef _DEBUG
+		if(RestartProtectedProcess(" --restart"))
+			return 0;
+#endif
+		if(!EnableLoadLibraryHook(TRUE))
+		{
+			MessageBox(NULL, MSGJPN324, "FFFTP", MB_OK | MB_ICONERROR);
+			return 0;
+		}
 	}
-	else if(GetTokenAfterOption(lpszCmdLine, UpdateDir, "-software-cleanup", "-software-cleanup"))
-	{
-		CleanupUpdates(UpdateDir);
-	}
+	else
+		InitializeLoadLibraryHook();
+#endif
 
 	// マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 #ifdef DISABLE_MULTI_CPUS
@@ -429,10 +416,66 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	// SFTP対応
 	LoadPuTTY();
 
+	// ソフトウェア自動更新
+	ImmediateExit = NO;
+	pCommand = lpszCmdLine;
+	while(pCommand = GetToken(pCommand, Option))
+	{
+		if(Option[0] == '-')
+		{
+			if(strcmp(&Option[1], "-build-software-update") == 0)
+			{
+				if(pCommand = GetToken(pCommand, PrivateKeyFile))
+				{
+					if(pCommand = GetToken(pCommand, Password))
+					{
+						if(pCommand = GetToken(pCommand, ServerPath))
+						{
+							if(pCommand = GetToken(pCommand, HashFile))
+							{
+								if(pCommand = GetToken(pCommand, ListFile))
+								{
+									if(pCommand = GetToken(pCommand, Description))
+										BuildUpdates(PrivateKeyFile, Password, ServerPath, HashFile, ListFile, RELEASE_VERSION_NUM, VER_STR, Description);
+								}
+							}
+						}
+					}
+				}
+				ImmediateExit = YES;
+				break;
+			}
+			else if(strcmp(&Option[1], "-software-update") == 0)
+			{
+				if(pCommand = GetToken(pCommand, UpdateDir))
+				{
+					if(!RestartUpdateProcessAsAdministrator(lpszCmdLine, " --restart"))
+					{
+						Sleep(1000);
+						if(ApplyUpdates(UpdateDir, "updatebackup"))
+							MessageBox(NULL, MSGJPN359, "FFFTP", MB_OK);
+						else
+							MessageBox(NULL, MSGJPN360, "FFFTP", MB_OK | MB_ICONERROR);
+					}
+				}
+				ImmediateExit = YES;
+				break;
+			}
+			else if(strcmp(&Option[1], "-software-cleanup") == 0)
+			{
+				if(pCommand = GetToken(pCommand, UpdateDir))
+					CleanupUpdates(UpdateDir);
+				break;
+			}
+		}
+	}
+
 	Ret = FALSE;
 	hWndFtp = NULL;
 	hInstFtp = hInstance;
-	if(InitApp(lpszCmdLine, cmdShow) == FFFTP_SUCCESS)
+	// ソフトウェア自動更新
+//	if(InitApp(lpszCmdLine, cmdShow) == FFFTP_SUCCESS)
+	if(ImmediateExit == NO && InitApp(lpszCmdLine, cmdShow) == FFFTP_SUCCESS)
 	{
 		for(;;)
 		{
@@ -2166,6 +2209,8 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 {
 	int Ret;
 	char Tmp[FMAX_PATH+1];
+	// ソフトウェア自動更新
+	int i;
 
 	*AutoConnect = -1;
 	*CmdOption = 0;
@@ -2292,6 +2337,17 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 			else if((strcmp(&Tmp[1], "u8n") == 0) || (strcmp(&Tmp[1], "-utf8name") == 0))
 				*CmdOption |= OPT_UTF8N_NAME;
 			// ソフトウェア自動更新
+			else if(strcmp(&Tmp[1], "-build-software-update") == 0)
+			{
+				for(i = 0; i < 6; i++)
+				{
+					if((Str = GetToken(Str, Tmp)) == NULL)
+					{
+						Ret = -1;
+						break;
+					}
+				}
+			}
 			else if(strcmp(&Tmp[1], "-software-update") == 0)
 			{
 				if((Str = GetToken(Str, Tmp)) == NULL)
@@ -3650,7 +3706,8 @@ void UpdateSoftware(int Async, int NoError, int NoConfirm)
 	UPDATESOFTWAREDATA* pData;
 	DWORD Version;
 	char VersionString[32];
-	char Tmp[FMAX_PATH+1];
+	char Description[1024];
+	char Tmp[2048];
 	if(Async == YES)
 	{
 		if(pData = malloc(sizeof(UPDATESOFTWAREDATA)))
@@ -3667,18 +3724,18 @@ void UpdateSoftware(int Async, int NoError, int NoConfirm)
 		{
 			Version = RELEASE_VERSION_NUM;
 			LastAutoCheckForUpdates = time(NULL);
-			if(CheckForUpdates(FALSE, NULL, &Version, VersionString))
+			if(CheckForUpdates(FALSE, NULL, &Version, VersionString, Description))
 			{
 				if(Version > RELEASE_VERSION_NUM)
 				{
-					sprintf(Tmp, MSGJPN362, VER_STR, VersionString);
+					sprintf(Tmp, MSGJPN362, VER_STR, VersionString, Description);
 					if(NoConfirm == YES || MessageBox(GetMainHwnd(), Tmp, "FFFTP", MB_YESNO) == IDYES)
 					{
 						strcpy(Tmp, TmpPath);
 						SetYenTail(Tmp);
 						strcat(Tmp, "update");
 						_mkdir(Tmp);
-						if(CheckForUpdates(TRUE, Tmp, &Version, VersionString))
+						if(CheckForUpdates(TRUE, Tmp, &Version, VersionString, Description))
 						{
 							MessageBox(GetMainHwnd(), MSGJPN365, "FFFTP", MB_OK);
 							ApplyUpdatesOnExit = YES;
