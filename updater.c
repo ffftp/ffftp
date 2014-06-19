@@ -465,20 +465,23 @@ BOOL ApplyUpdates(LPCTSTR DestinationDir, LPCTSTR BackupDirName)
 		_tcscat(Backup, _T("\\"));
 		_tcscat(Backup, BackupDirName);
 		DeleteDirectoryAndContents(Backup);
-		if(CopyAllFilesInDirectory(DestinationDir, Backup))
+		if(CreateDirectory(Backup, NULL))
 		{
-			_tcscpy(DestinationBackup, DestinationDir);
-			_tcscat(DestinationBackup, _T("\\"));
-			_tcscat(DestinationBackup, BackupDirName);
-			if(CopyAllFilesInDirectory(Source, DestinationDir))
+			if(CopyAllFilesInDirectory(DestinationDir, Backup))
 			{
-				DeleteDirectoryAndContents(DestinationBackup);
-				bResult = TRUE;
-			}
-			else
-			{
-				DeleteDirectoryAndContents(DestinationBackup);
-				CopyAllFilesInDirectory(Backup, DestinationDir);
+				_tcscpy(DestinationBackup, DestinationDir);
+				_tcscat(DestinationBackup, _T("\\"));
+				_tcscat(DestinationBackup, BackupDirName);
+				if(CopyAllFilesInDirectory(Source, DestinationDir))
+				{
+					DeleteDirectoryAndContents(DestinationBackup);
+					bResult = TRUE;
+				}
+				else
+				{
+					DeleteDirectoryAndContents(DestinationBackup);
+					CopyAllFilesInDirectory(Backup, DestinationDir);
+				}
 			}
 		}
 	}
