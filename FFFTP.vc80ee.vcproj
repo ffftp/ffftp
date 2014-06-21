@@ -416,6 +416,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\apiemulator.c"
+				>
+			</File>
+			<File
 				RelativePath=".\bookmark.c"
 				>
 			</File>
@@ -600,6 +604,10 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;fi;fd"
 			>
+			<File
+				RelativePath=".\apiemulator.h"
+				>
+			</File>
 			<File
 				RelativePath=".\common.h"
 				>

@@ -15,6 +15,7 @@ typedef SOCKADDR_STORAGE *PSOCKADDR_STORAGE, FAR *LPSOCKADDR_STORAGE;
 #include "socketwrapper.h"
 #include "protectprocess.h"
 #include "mbswrapper.h"
+#include "apiemulator.h"
 
 typedef struct
 {
@@ -541,7 +542,10 @@ BOOL RestartUpdateProcessAsAdministrator(LPCTSTR CommandLine, LPCTSTR Keyword)
 				memset(&Info, 0, sizeof(SHELLEXECUTEINFO));
 				Info.cbSize = sizeof(SHELLEXECUTEINFO);
 				Info.fMask = SEE_MASK_NOCLOSEPROCESS;
-				Info.lpVerb = _T("runas");
+				if(IsUserAnAdmin())
+					Info.lpVerb = _T("open");
+				else
+					Info.lpVerb = _T("runas");
 				Info.lpFile = Path;
 				Info.lpParameters = NewCommandLine;
 				Info.nShow = SW_SHOW;
