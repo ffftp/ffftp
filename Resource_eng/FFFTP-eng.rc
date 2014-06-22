@@ -1518,6 +1518,18 @@ BEGIN
     LTEXT           "Åi0Å`999days; 0=Every time at startupÅj",-1,45,49,168,8
 END
 
+corruptsettings_dlg DIALOGEX 0, 0, 232, 64
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "Settings are corrupted"
+FONT 9, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LTEXT           "A corruption or tampering of the encrypted settings is detected.\r\nProblems such as settings loss or abnormal stop may occur if they are loaded.",-1,7,7,217,36
+    DEFPUSHBUTTON   "Quit",IDCANCEL,8,42,50,14
+    PUSHBUTTON      "Clear All",IDABORT,63,42,50,14
+    PUSHBUTTON      "Read only",IDRETRY,118,42,50,14
+    PUSHBUTTON      "Ignore",IDIGNORE,173,42,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2201,6 +2213,14 @@ BEGIN
         RIGHTMARGIN, 204
         TOPMARGIN, 7
         BOTTOMMARGIN, 148
+    END
+
+    corruptsettings_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 225
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 57
     END
 END
 #endif    // APSTUDIO_INVOKED

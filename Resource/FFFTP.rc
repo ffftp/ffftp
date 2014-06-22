@@ -1480,6 +1480,18 @@ BEGIN
     LTEXT           "（0～999日; 0=毎回起動時に確認）",-1,45,49,168,8
 END
 
+corruptsettings_dlg DIALOGEX 0, 0, 232, 64
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "設定が破損しています"
+FONT 9, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LTEXT           "暗号化された設定の破損または改竄が検出されました。\r\n読み込むと異常停止や設定の消失などの不具合が発生する可能性があります。",-1,7,7,217,36
+    DEFPUSHBUTTON   "終了",IDCANCEL,8,42,50,14
+    PUSHBUTTON      "全て消去",IDABORT,63,42,50,14
+    PUSHBUTTON      "読み取り専用",IDRETRY,118,42,50,14
+    PUSHBUTTON      "無視",IDIGNORE,173,42,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2166,6 +2178,14 @@ BEGIN
         RIGHTMARGIN, 204
         TOPMARGIN, 7
         BOTTOMMARGIN, 148
+    END
+
+    corruptsettings_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 225
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 57
     END
 END
 #endif    // APSTUDIO_INVOKED

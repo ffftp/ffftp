@@ -262,6 +262,27 @@ INT_PTR CALLBACK ExeEscTextDialogProc(HWND hDlg, UINT message, WPARAM wParam, LP
 }
 
 
+// 全設定暗号化対応
+// 何らかのボタンが押されたときに終了
+INT_PTR CALLBACK AnyButtonDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	switch (message)
+	{
+		case WM_INITDIALOG :
+			return(TRUE);
+
+		case WM_COMMAND :
+			switch(GET_WM_COMMAND_CMD(wParam, lParam))
+			{
+				case BN_CLICKED :
+					EndDialog(hDlg, GET_WM_COMMAND_ID(wParam, lParam));
+					break;
+			}
+			return(TRUE);
+	}
+    return(FALSE);
+}
+
 /*----- 文字列の最後に "\" を付ける -------------------------------------------
 *
 *	Parameter

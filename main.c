@@ -453,9 +453,9 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 					{
 						Sleep(1000);
 						if(ApplyUpdates(UpdateDir, "updatebackup"))
-							MessageBox(NULL, MSGJPN359, "FFFTP", MB_OK);
+							MessageBox(NULL, MSGJPN358, "FFFTP", MB_OK);
 						else
-							MessageBox(NULL, MSGJPN360, "FFFTP", MB_OK | MB_ICONERROR);
+							MessageBox(NULL, MSGJPN359, "FFFTP", MB_OK | MB_ICONERROR);
 					}
 				}
 				ImmediateExit = YES;
@@ -533,7 +533,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 			}
 		}
 		if(!Sts)
-			MessageBox(NULL, MSGJPN360, "FFFTP", MB_OK | MB_ICONERROR);
+			MessageBox(NULL, MSGJPN359, "FFFTP", MB_OK | MB_ICONERROR);
 	}
 	return(Ret);
 }
@@ -631,7 +631,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		{
 			if(IsRegAvailable() == YES && IsIniAvailable() == NO)
 			{
-				switch(MessageBox(GetMainHwnd(), MSGJPN351, "FFFTP", MB_YESNOCANCEL | MB_DEFBUTTON2))
+				switch(MessageBox(GetMainHwnd(), MSGJPN350, "FFFTP", MB_YESNOCANCEL | MB_DEFBUTTON2))
 				{
 					case IDCANCEL:
 						ReadOnlySettings = YES;
@@ -957,16 +957,16 @@ void DispWindowTitle(void)
 		switch(AskCryptMode())
 		{
 		case CRYPT_NONE:
-			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN352);
+			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN351);
 			break;
 		case CRYPT_FTPES:
-			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN353);
+			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN352);
 			break;
 		case CRYPT_FTPIS:
-			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN354);
+			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN353);
 			break;
 		case CRYPT_SFTP:
-			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN355);
+			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN354);
 			break;
 		}
 	}
@@ -3631,9 +3631,8 @@ int Restart()
 	return Sts;
 }
 
-void RestartAndTerminate()
+void Terminate()
 {
-	Restart();
 	exit(1);
 }
 
@@ -3728,7 +3727,7 @@ void UpdateSoftware(int Async, int NoError, int NoConfirm)
 			{
 				if(Version > RELEASE_VERSION_NUM)
 				{
-					sprintf(Tmp, MSGJPN362, VER_STR, VersionString, Description);
+					sprintf(Tmp, MSGJPN361, VER_STR, VersionString, Description);
 					if(NoConfirm == YES || MessageBox(GetMainHwnd(), Tmp, "FFFTP", MB_YESNO) == IDYES)
 					{
 						strcpy(Tmp, TmpPath);
@@ -3737,18 +3736,18 @@ void UpdateSoftware(int Async, int NoError, int NoConfirm)
 						_mkdir(Tmp);
 						if(CheckForUpdates(TRUE, Tmp, &Version, VersionString, Description))
 						{
-							MessageBox(GetMainHwnd(), MSGJPN365, "FFFTP", MB_OK);
+							MessageBox(GetMainHwnd(), MSGJPN364, "FFFTP", MB_OK);
 							ApplyUpdatesOnExit = YES;
 						}
 						else if(NoError == NO)
-							MessageBox(GetMainHwnd(), MSGJPN363, "FFFTP", MB_OK | MB_ICONERROR);
+							MessageBox(GetMainHwnd(), MSGJPN362, "FFFTP", MB_OK | MB_ICONERROR);
 					}
 				}
 				else if(NoError == NO)
-					MessageBox(GetMainHwnd(), MSGJPN364, "FFFTP", MB_OK);
+					MessageBox(GetMainHwnd(), MSGJPN363, "FFFTP", MB_OK);
 			}
 			else if(NoError == NO)
-				MessageBox(GetMainHwnd(), MSGJPN363, "FFFTP", MB_OK | MB_ICONERROR);
+				MessageBox(GetMainHwnd(), MSGJPN362, "FFFTP", MB_OK | MB_ICONERROR);
 		}
 	}
 }

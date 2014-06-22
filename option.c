@@ -431,7 +431,7 @@ void SetOption(int Start)
 	psp[13].pszTemplate = MAKEINTRESOURCE(opt_updates_dlg);
 	psp[13].pszIcon = NULL;
 	psp[13].pfnDlgProc = UpdatesSettingProc;
-	psp[13].pszTitle = MSGJPN361;
+	psp[13].pszTitle = MSGJPN360;
 	psp[13].lParam = 0;
 	psp[13].pfnCallback = NULL;
 

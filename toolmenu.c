@@ -1976,7 +1976,7 @@ void RemoteRbuttonMenu(int Pos)
 			AppendMenu(hMenu, MF_STRING | Flg1, MENU_SWITCH_OSS, MSGJPN2001);
 #endif
 		// 上位のディレクトリへ移動対応
-		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_REMOTE_MOVE_UPDIR, MSGJPN356);
+		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_REMOTE_MOVE_UPDIR, MSGJPN355);
 		AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
 		AppendMenu(hMenu, MF_STRING | Flg1, MENU_FILESIZE, MSGJPN272);
 		AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);

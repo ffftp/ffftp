@@ -93,13 +93,17 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len);
 static int StrCatOut(char *Src, int Len, char *Dst);
 static int StrReadIn(char *Src, int Max, char *Dst);
 
-int CheckPasswordValidity( char* Password, int length, const char* HashStr );
-void CreatePasswordHash( char* Password, int length, char* HashStr );
+// 全設定暗号化対応
+//int CheckPasswordValidity( char* Password, int length, const char* HashStr );
+//void CreatePasswordHash( char* Password, int length, char* HashStr );
+int CheckPasswordValidity( char* Password, int length, const char* HashStr, int StretchCount );
+void CreatePasswordHash( char* Password, int length, char* HashStr, int StretchCount );
 void SetHashSalt( DWORD salt );
 
 DWORD GetRandamDWRODValue(void);
 
 // 全設定暗号化対応
+void GetMaskWithHMACSHA1(DWORD IV, const char* Salt, int SaltLength, void* pHash);
 void MaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size, int EscapeZero);
 void UnmaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size, int EscapeZero);
 void CalculateSettingsDataChecksum(void* Data, DWORD Size);
@@ -302,12 +306,17 @@ int ValidateMasterPassword(void)
 	if(i == FFFTP_SUCCESS){
 		char checkbuf[48];
 		int salt = 0;
+		// 全設定暗号化対応
+		int stretch = 0;
 
 		if( ReadIntValueFromReg(hKey3, "CredentialSalt", &salt)){
 			SetHashSalt( salt );
 		}
 		if( ReadStringFromReg(hKey3, "CredentialCheck", checkbuf, sizeof( checkbuf )) == FFFTP_SUCCESS ){
-			switch( CheckPasswordValidity( SecretKey, SecretKeyLength, checkbuf ) ){
+			// 全設定暗号化対応
+//			switch( CheckPasswordValidity( SecretKey, SecretKeyLength, checkbuf ) ){
+			ReadIntValueFromReg(hKey3, "CredentialStretch", &stretch);
+			switch( CheckPasswordValidity( SecretKey, SecretKeyLength, checkbuf, stretch ) ){
 			case 0: /* not match */
 				IsMasterPasswordError = PASSWORD_UNMATCH;
 				break;
@@ -375,7 +384,18 @@ void SaveRegistry(void)
 		
 		SetHashSalt( salt );
 		/* save password hash */
-		CreatePasswordHash( SecretKey, SecretKeyLength, buf );
+		// 全設定暗号化対応
+//		CreatePasswordHash( SecretKey, SecretKeyLength, buf );
+		if(EncryptAllSettings == YES)
+		{
+			WriteIntValueToReg(hKey3, "CredentialStretch", 65535);
+			CreatePasswordHash( SecretKey, SecretKeyLength, buf, 65535 );
+		}
+		else
+		{
+			WriteIntValueToReg(hKey3, "CredentialStretch", 0);
+			CreatePasswordHash( SecretKey, SecretKeyLength, buf, 0 );
+		}
 		WriteStringToReg(hKey3, "CredentialCheck", buf);
 
 		// 全設定暗号化対応
@@ -804,13 +824,17 @@ int LoadRegistry(void)
 				memset(&EncryptSettingsChecksum, 0, 20);
 				if(strcmp(Buf, Buf2) != 0)
 				{
-					switch(MessageBox(GetMainHwnd(), MSGJPN343, "FFFTP", MB_ABORTRETRYIGNORE | MB_DEFBUTTON2))
+					switch(DialogBox(GetFtpInst(), MAKEINTRESOURCE(corruptsettings_dlg), GetMainHwnd(), AnyButtonDialogProc))
 					{
+					case IDCANCEL:
+						Terminate();
+						break;
 					case IDABORT:
 						CloseReg(hKey3);
 						ClearRegistry();
 						ClearIni();
-						RestartAndTerminate();
+						Restart();
+						Terminate();
 						break;
 					case IDRETRY:
 						EncryptSettingsError = YES;
@@ -1204,13 +1228,17 @@ int LoadRegistry(void)
 				ReadBinaryFromReg(hKey3, "EncryptAllChecksum", &Checksum, 20);
 				if(memcmp(&Checksum, &EncryptSettingsChecksum, 20) != 0)
 				{
-					switch(MessageBox(GetMainHwnd(), MSGJPN343, "FFFTP", MB_ABORTRETRYIGNORE | MB_DEFBUTTON2))
+					switch(DialogBox(GetFtpInst(), MAKEINTRESOURCE(corruptsettings_dlg), GetMainHwnd(), AnyButtonDialogProc))
 					{
+					case IDCANCEL:
+						Terminate();
+						break;
 					case IDABORT:
 						CloseReg(hKey3);
 						ClearRegistry();
 						ClearIni();
-						RestartAndTerminate();
+						Restart();
+						Terminate();
 						break;
 					case IDRETRY:
 						EncryptSettingsError = YES;
@@ -3280,8 +3308,11 @@ static char *ScanValue(void *Handle, char *Name)
 *			1: 一致
 *			2: 異常
 *----------------------------------------------------------------------------*/
-int CheckPasswordValidity( char* Password, int length, const char* HashStr )
+// 全設定暗号化対応
+//int CheckPasswordValidity( char* Password, int length, const char* HashStr )
+int CheckPasswordValidity( char* Password, int length, const char* HashStr, int StretchCount )
 {
+	char Buf[MAX_PASSWORD_LEN + 32];
 	ulong hash1[5];
 	ulong hash2[5];
 	
@@ -3310,6 +3341,12 @@ int CheckPasswordValidity( char* Password, int length, const char* HashStr )
 	
 	/* Password をハッシュする */
 	sha_memory( Password, length, hash2 );
+	for(i = 0; i < StretchCount; i++)
+	{
+		memcpy(&Buf[0], &hash2, 20);
+		memcpy(&Buf[20], Password, length);
+		sha_memory(Buf, 20 + length, hash2);
+	}
 	
 	if( memcmp( (char*)hash1, (char*)hash2, sizeof( hash1 )) == 0 ){
 		return 1;
@@ -3326,13 +3363,22 @@ int CheckPasswordValidity( char* Password, int length, const char* HashStr )
 *	Return Value
 *		None
 *----------------------------------------------------------------------------*/
-void CreatePasswordHash( char* Password, int length, char* HashStr )
+// 全設定暗号化対応
+//void CreatePasswordHash( char* Password, int length, char* HashStr )
+void CreatePasswordHash( char* Password, int length, char* HashStr, int StretchCount )
 {
+	char Buf[MAX_PASSWORD_LEN + 32];
 	ulong hash[5];
 	int i, j;
 	unsigned char *p = (unsigned char *)HashStr;
 
 	sha_memory( Password, length, hash );
+	for(i = 0; i < StretchCount; i++)
+	{
+		memcpy(&Buf[0], &hash, 20);
+		memcpy(&Buf[20], Password, length);
+		sha_memory(Buf, 20 + length, hash);
+	}
 
 	for( i = 0; i < 5; i++ ){
 		ulong rest = hash[i];
@@ -3426,31 +3472,54 @@ DWORD GetRandamDWRODValue(void)
 }
 
 // 全設定暗号化対応
-// 内部状態推定対策としてハッシュの160ビットのうち80ビットのみを鍵として使用
+void GetMaskWithHMACSHA1(DWORD Nonce, const char* Salt, int SaltLength, void* pHash)
+{
+	BYTE Key[FMAX_PATH*2+1];
+	ulong Hash[5];
+	DWORD i;
+	for(i = 0; i < 16; i++)
+	{
+		Nonce = ~Nonce;
+		Nonce *= 1566083941;
+		Nonce = _byteswap_ulong(Nonce);
+		memcpy(&Key[i * 4], &Nonce, 4);
+	}
+	memcpy(&Key[64], Salt, SaltLength);
+	memcpy(&Key[64 + SaltLength], SecretKey, SecretKeyLength);
+	sha_memory((char*)&Key, 64 + SaltLength + SecretKeyLength, Hash);
+	// sha.cはビッグエンディアンのため
+	for(i = 0; i < 5; i++)
+		Hash[i] = _byteswap_ulong(Hash[i]);
+	memcpy(&Key[0], &Hash, 20);
+	memset(&Key[20], 0, 44);
+	for(i = 0; i < 64; i++)
+		Key[i] ^= 0x36;
+	sha_memory((char*)&Key, 64, Hash);
+	// sha.cはビッグエンディアンのため
+	for(i = 0; i < 5; i++)
+		Hash[i] = _byteswap_ulong(Hash[i]);
+	memcpy(&Key[64], &Hash, 20);
+	for(i = 0; i < 64; i++)
+		Key[i] ^= 0x6a;
+	sha_memory((char*)&Key, 84, Hash);
+	// sha.cはビッグエンディアンのため
+	for(i = 0; i < 5; i++)
+		Hash[i] = _byteswap_ulong(Hash[i]);
+	memcpy(pHash, &Hash, 20);
+}
+
 void MaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size, int EscapeZero)
 {
-	char Key[FMAX_PATH*2+1];
 	BYTE* p;
 	DWORD i;
-	DWORD j;
-	ulong Hash[5];
-	BYTE Mask[10];
-	memcpy(&Key[0], SecretKey, SecretKeyLength);
-	memcpy(&Key[SecretKeyLength], Salt, SaltLength);
+	BYTE Mask[20];
 	p = (BYTE*)Data;
 	for(i = 0; i < Size; i++)
 	{
-		if(i % 10 == 0)
-		{
-			memcpy(&Key[SecretKeyLength + SaltLength], &i, 4);
-			sha_memory(Key, SecretKeyLength + SaltLength + 4, Hash);
-			// sha.cはビッグエンディアンのため
-			for(j = 0; j < 5; j++)
-				Hash[j] = _byteswap_ulong(Hash[j]);
-			memcpy(&Mask, &Hash, 10);
-		}
-		if(EscapeZero == NO || (p[i] != 0 && p[i] != Mask[i % 10]))
-			p[i] ^= Mask[i % 10];
+		if(i % 20 == 0)
+			GetMaskWithHMACSHA1(i, Salt, SaltLength, &Mask);
+		if(EscapeZero == NO || (p[i] != 0 && p[i] != Mask[i % 20]))
+			p[i] ^= Mask[i % 20];
 	}
 }
 
@@ -3540,7 +3609,7 @@ void SaveSettingsToFileZillaXml()
 	char* p1;
 	char* p2;
 	strcpy(Fname, "FileZilla.xml");
-	if(SelectFile(GetMainHwnd(), Fname, MSGJPN286, MSGJPN357, "xml", OFN_EXTENSIONDIFFERENT | OFN_OVERWRITEPROMPT, 1) == TRUE)
+	if(SelectFile(GetMainHwnd(), Fname, MSGJPN286, MSGJPN356, "xml", OFN_EXTENSIONDIFFERENT | OFN_OVERWRITEPROMPT, 1) == TRUE)
 	{
 		if((f = fopen(Fname, "wt")) != NULL)
 		{
@@ -3703,7 +3772,7 @@ void SaveSettingsToFileZillaXml()
 			fclose(f);
 		}
 		else
-			MessageBox(GetMainHwnd(), MSGJPN358, "FFFTP", MB_OK | MB_ICONERROR);
+			MessageBox(GetMainHwnd(), MSGJPN357, "FFFTP", MB_OK | MB_ICONERROR);
 	}
 }
 

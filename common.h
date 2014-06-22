@@ -1383,7 +1383,7 @@ void CheckPortableVersion();
 int AskPortableVersion(void);
 // 全設定暗号化対応
 int Restart();
-void RestartAndTerminate();
+void Terminate();
 // タスクバー進捗表示
 int LoadTaskbarList3();
 void FreeTaskbarList3();
@@ -1856,6 +1856,8 @@ INT_PTR CALLBACK ExeEscDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM
 // 64ビット対応
 //BOOL CALLBACK ExeEscTextDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 INT_PTR CALLBACK ExeEscTextDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+// 全設定暗号化対応
+INT_PTR CALLBACK AnyButtonDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 void SetYenTail(char *Str);
 void RemoveYenTail(char *Str);
 void SetSlashTail(char *Str);

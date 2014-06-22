@@ -238,22 +238,22 @@ void ConnectProc(int Type, int Num)
 					switch(CurHost.CurNameKanjiCode)
 					{
 					case KANJI_SJIS:
-						SetTaskMsg(MSGJPN344, MSGJPN346);
+						SetTaskMsg(MSGJPN343, MSGJPN345);
 						break;
 					case KANJI_JIS:
-						SetTaskMsg(MSGJPN344, MSGJPN347);
+						SetTaskMsg(MSGJPN343, MSGJPN346);
 						break;
 					case KANJI_EUC:
-						SetTaskMsg(MSGJPN344, MSGJPN348);
+						SetTaskMsg(MSGJPN343, MSGJPN347);
 						break;
 					case KANJI_UTF8N:
-						SetTaskMsg(MSGJPN344, MSGJPN349);
+						SetTaskMsg(MSGJPN343, MSGJPN348);
 						break;
 					case KANJI_UTF8HFSX:
-						SetTaskMsg(MSGJPN344, MSGJPN350);
+						SetTaskMsg(MSGJPN343, MSGJPN349);
 						break;
 					default:
-						SetTaskMsg(MSGJPN345);
+						SetTaskMsg(MSGJPN344);
 						break;
 					}
 				}
@@ -352,22 +352,22 @@ void QuickConnectProc(void)
 					switch(CurHost.CurNameKanjiCode)
 					{
 					case KANJI_SJIS:
-						SetTaskMsg(MSGJPN344, MSGJPN346);
+						SetTaskMsg(MSGJPN343, MSGJPN345);
 						break;
 					case KANJI_JIS:
-						SetTaskMsg(MSGJPN344, MSGJPN347);
+						SetTaskMsg(MSGJPN343, MSGJPN346);
 						break;
 					case KANJI_EUC:
-						SetTaskMsg(MSGJPN344, MSGJPN348);
+						SetTaskMsg(MSGJPN343, MSGJPN347);
 						break;
 					case KANJI_UTF8N:
-						SetTaskMsg(MSGJPN344, MSGJPN349);
+						SetTaskMsg(MSGJPN343, MSGJPN348);
 						break;
 					case KANJI_UTF8HFSX:
-						SetTaskMsg(MSGJPN344, MSGJPN350);
+						SetTaskMsg(MSGJPN343, MSGJPN349);
 						break;
 					default:
-						SetTaskMsg(MSGJPN345);
+						SetTaskMsg(MSGJPN344);
 						break;
 					}
 				}
@@ -561,22 +561,22 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 				switch(CurHost.CurNameKanjiCode)
 				{
 				case KANJI_SJIS:
-					SetTaskMsg(MSGJPN344, MSGJPN346);
+					SetTaskMsg(MSGJPN343, MSGJPN345);
 					break;
 				case KANJI_JIS:
-					SetTaskMsg(MSGJPN344, MSGJPN347);
+					SetTaskMsg(MSGJPN343, MSGJPN346);
 					break;
 				case KANJI_EUC:
-					SetTaskMsg(MSGJPN344, MSGJPN348);
+					SetTaskMsg(MSGJPN343, MSGJPN347);
 					break;
 				case KANJI_UTF8N:
-					SetTaskMsg(MSGJPN344, MSGJPN349);
+					SetTaskMsg(MSGJPN343, MSGJPN348);
 					break;
 				case KANJI_UTF8HFSX:
-					SetTaskMsg(MSGJPN344, MSGJPN350);
+					SetTaskMsg(MSGJPN343, MSGJPN349);
 					break;
 				default:
-					SetTaskMsg(MSGJPN345);
+					SetTaskMsg(MSGJPN344);
 					break;
 				}
 			}
@@ -672,22 +672,22 @@ void HistoryConnectProc(int MenuCmd)
 					switch(CurHost.CurNameKanjiCode)
 					{
 					case KANJI_SJIS:
-						SetTaskMsg(MSGJPN344, MSGJPN346);
+						SetTaskMsg(MSGJPN343, MSGJPN345);
 						break;
 					case KANJI_JIS:
-						SetTaskMsg(MSGJPN344, MSGJPN347);
+						SetTaskMsg(MSGJPN343, MSGJPN346);
 						break;
 					case KANJI_EUC:
-						SetTaskMsg(MSGJPN344, MSGJPN348);
+						SetTaskMsg(MSGJPN343, MSGJPN347);
 						break;
 					case KANJI_UTF8N:
-						SetTaskMsg(MSGJPN344, MSGJPN349);
+						SetTaskMsg(MSGJPN343, MSGJPN348);
 						break;
 					case KANJI_UTF8HFSX:
-						SetTaskMsg(MSGJPN344, MSGJPN350);
+						SetTaskMsg(MSGJPN343, MSGJPN349);
 						break;
 					default:
-						SetTaskMsg(MSGJPN345);
+						SetTaskMsg(MSGJPN344);
 						break;
 					}
 				}
