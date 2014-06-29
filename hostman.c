@@ -1051,6 +1051,8 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 		Set->UseFTPES = Pos->Set.UseFTPES;
 		Set->UseFTPIS = Pos->Set.UseFTPIS;
 		Set->UseSFTP = Pos->Set.UseSFTP;
+		strcpy(Set->PrivateKey, Pos->Set.PrivateKey);
+		Set->NoWeakEncryption = Pos->Set.NoWeakEncryption;
 		// 同時接続対応
 		Set->MaxThreadCount = Pos->Set.MaxThreadCount;
 		Set->ReuseCmdSkt = Pos->Set.ReuseCmdSkt;
@@ -1347,7 +1349,7 @@ void CopyDefaultHost(HOSTDATA *Set)
 	Set->UseFTPIS = YES;
 	Set->UseSFTP = YES;
 	strcpy(Set->PrivateKey, "");
-	Set->NoWeakEncryption = NO;
+	Set->NoWeakEncryption = YES;
 	// 同時接続対応
 	Set->MaxThreadCount = 1;
 	Set->ReuseCmdSkt = YES;

@@ -2,7 +2,7 @@
 [Software Name]  FFFTP Ver.1.99 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2014 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).
-[Environment]    Windows 8, 7, Vista, XP, 2000
+[Environment]    Windows 8.1, 8, 7, Vista, XP, 2000
 ============================================================
 
 About INI File
@@ -31,9 +31,16 @@ File ->@Settings -> Change Master password
 Changes in Ver.1.99
 --------------------
 
+-- Tested on Windows 8.1 (32bit/64bit).
+
 -- Added the feature of automatic software update.
    It will connect to the dedicated server to check whether there are updates
    every 7 days by default, and then confirm whether to apply them.
+
+-- Added a feature to encrypt the all settings with the master password.
+   This prevents malwares and third parties from skimming personal information.
+   Please note that 1.98g or former versions cannot read encrypted settings.
+   This feature is disabled by default.
 
 -- Fixed bugs that the apprication did not start when the INI file was modified
    and BOM was inserted in it.
@@ -67,6 +74,13 @@ Changes in Ver.1.99
 
 -- Supported high DPI displays.
    The interface such as the menu will look smooth on high DPI displays.
+
+-- Added a feature to export settings as FileZilla XML format.
+
+-- Added an option not to use weak encryption methods for each host.
+   This refuses SSL 2.0 and encryption algorithms whose keys are shorter than
+   128 bits.
+   This feature is enabled by default.
 
 
 Outline

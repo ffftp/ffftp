@@ -3,9 +3,16 @@ FFFTP version history.
 Changes in Ver.1.99
 --------------------
 
+-- Tested on Windows 8.1 (32bit/64bit).
+
 -- Added the feature of automatic software update.
    It will connect to the dedicated server to check whether there are updates
    every 7 days by default, and then confirm whether to apply them.
+
+-- Added a feature to encrypt the all settings with the master password.
+   This prevents malwares and third parties from skimming personal information.
+   Please note that 1.98g or former versions cannot read encrypted settings.
+   This feature is disabled by default.
 
 -- Fixed bugs that the apprication did not start when the INI file was modified
    and BOM was inserted in it.
@@ -39,6 +46,29 @@ Changes in Ver.1.99
 
 -- Supported high DPI displays.
    The interface such as the menu will look smooth on high DPI displays.
+
+-- Added a feature to export settings as FileZilla XML format.
+
+-- Added an option not to use weak encryption methods for each host.
+   This refuses SSL 2.0 and encryption algorithms whose keys are shorter than
+   128 bits.
+   This feature is enabled by default.
+
+Changes in Ver.1.98g2
+--------------------
+
+-- Fixed the issue that the installer was contaminated by a file for the ZIP
+   version.
+
+-- Fixed bugs that the message indicating that SSL/TLS root CAs had been
+   modified was displayed.
+
+Changes in Ver.1.98g1
+--------------------
+
+-- Updated OpenSSL.
+
+-- Updated SSL/TLS root CAs.
 
 Changes in Ver.1.98g
 --------------------

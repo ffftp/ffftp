@@ -99,8 +99,10 @@ static int StrReadIn(char *Src, int Max, char *Dst);
 int CheckPasswordValidity( char* Password, int length, const char* HashStr, int StretchCount );
 void CreatePasswordHash( char* Password, int length, char* HashStr, int StretchCount );
 void SetHashSalt( DWORD salt );
+// 全設定暗号化対応
+void SetHashSalt1(void* Salt, int Length);
 
-DWORD GetRandamDWRODValue(void);
+DWORD GetRandamDWORDValue(void);
 
 // 全設定暗号化対応
 void GetMaskWithHMACSHA1(DWORD IV, const char* Salt, int SaltLength, void* pHash);
@@ -308,22 +310,60 @@ int ValidateMasterPassword(void)
 		int salt = 0;
 		// 全設定暗号化対応
 		int stretch = 0;
+		unsigned char salt1[16];
 
-		if( ReadIntValueFromReg(hKey3, "CredentialSalt", &salt)){
-			SetHashSalt( salt );
-		}
-		if( ReadStringFromReg(hKey3, "CredentialCheck", checkbuf, sizeof( checkbuf )) == FFFTP_SUCCESS ){
-			// 全設定暗号化対応
+		// 全設定暗号化対応
+//		if( ReadIntValueFromReg(hKey3, "CredentialSalt", &salt)){
+//			SetHashSalt( salt );
+//		}
+//		if( ReadStringFromReg(hKey3, "CredentialCheck", checkbuf, sizeof( checkbuf )) == FFFTP_SUCCESS ){
 //			switch( CheckPasswordValidity( SecretKey, SecretKeyLength, checkbuf ) ){
+//			case 0: /* not match */
+//				IsMasterPasswordError = PASSWORD_UNMATCH;
+//				break;
+//			case 1: /* match */
+//				IsMasterPasswordError = PASSWORD_OK;
+//				break;
+//			case 2: /* invalid hash */
+//			default:
+//				IsMasterPasswordError = BAD_PASSWORD_HASH;
+//				break;
+//			}
+//		}
+		if(ReadStringFromReg(hKey3, "CredentialCheck1", checkbuf, sizeof(checkbuf)) == FFFTP_SUCCESS)
+		{
+			if(ReadBinaryFromReg(hKey3, "CredentialSalt1", &salt1, sizeof(salt1)) == FFFTP_SUCCESS)
+				SetHashSalt1(&salt1, 16);
+			else
+				SetHashSalt1(NULL, 0);
 			ReadIntValueFromReg(hKey3, "CredentialStretch", &stretch);
-			switch( CheckPasswordValidity( SecretKey, SecretKeyLength, checkbuf, stretch ) ){
-			case 0: /* not match */
+			switch(CheckPasswordValidity(SecretKey, SecretKeyLength, checkbuf, stretch))
+			{
+			case 0:
 				IsMasterPasswordError = PASSWORD_UNMATCH;
 				break;
-			case 1: /* match */
+			case 1:
 				IsMasterPasswordError = PASSWORD_OK;
 				break;
-			case 2: /* invalid hash */
+			default:
+				IsMasterPasswordError = BAD_PASSWORD_HASH;
+				break;
+			}
+		}
+		else if(ReadStringFromReg(hKey3, "CredentialCheck", checkbuf, sizeof(checkbuf)) == FFFTP_SUCCESS)
+		{
+			if(ReadIntValueFromReg(hKey3, "CredentialSalt", &salt) == FFFTP_SUCCESS)
+				SetHashSalt(salt);
+			else
+				SetHashSalt1(NULL, 0);
+			switch(CheckPasswordValidity(SecretKey, SecretKeyLength, checkbuf, 0))
+			{
+			case 0:
+				IsMasterPasswordError = PASSWORD_UNMATCH;
+				break;
+			case 1:
+				IsMasterPasswordError = PASSWORD_OK;
+				break;
 			default:
 				IsMasterPasswordError = BAD_PASSWORD_HASH;
 				break;
@@ -378,25 +418,38 @@ void SaveRegistry(void)
 	{
 		char buf[48];
 		int salt = GetTickCount();
+		// 全設定暗号化対応
+		unsigned char salt1[16];
+		FILETIME ft[4];
 	
 		WriteIntValueToReg(hKey3, "Version", VER_NUM);
-		WriteIntValueToReg(hKey3, "CredentialSalt", salt);
-		
-		SetHashSalt( salt );
-		/* save password hash */
 		// 全設定暗号化対応
+//		WriteIntValueToReg(hKey3, "CredentialSalt", salt);
+//		
+//		SetHashSalt( salt );
+//		/* save password hash */
 //		CreatePasswordHash( SecretKey, SecretKeyLength, buf );
+//		WriteStringToReg(hKey3, "CredentialCheck", buf);
 		if(EncryptAllSettings == YES)
 		{
+			GetProcessTimes(GetCurrentProcess(), &ft[0], &ft[1], &ft[2], &ft[3]);
+			memcpy(&salt1[0], &salt, 4);
+			memcpy(&salt1[4], &ft[0].dwLowDateTime, 4);
+			memcpy(&salt1[8], &ft[2].dwLowDateTime, 4);
+			memcpy(&salt1[12], &ft[3].dwLowDateTime, 4);
+			SetHashSalt1(&salt1, 16);
+			WriteBinaryToReg(hKey3, "CredentialSalt1", &salt1, sizeof(salt1));
 			WriteIntValueToReg(hKey3, "CredentialStretch", 65535);
-			CreatePasswordHash( SecretKey, SecretKeyLength, buf, 65535 );
+			CreatePasswordHash(SecretKey, SecretKeyLength, buf, 65535);
+			WriteStringToReg(hKey3, "CredentialCheck1", buf);
 		}
 		else
 		{
-			WriteIntValueToReg(hKey3, "CredentialStretch", 0);
-			CreatePasswordHash( SecretKey, SecretKeyLength, buf, 0 );
+			SetHashSalt( salt );
+			WriteIntValueToReg(hKey3, "CredentialSalt", salt);
+			CreatePasswordHash(SecretKey, SecretKeyLength, buf, 0);
+			WriteStringToReg(hKey3, "CredentialCheck", buf);
 		}
-		WriteStringToReg(hKey3, "CredentialCheck", buf);
 
 		// 全設定暗号化対応
 		WriteIntValueToReg(hKey3, "EncryptAll", EncryptAllSettings);
@@ -573,6 +626,7 @@ void SaveRegistry(void)
 							SaveIntNum(hKey5, "SFTP", Hist.UseSFTP, DefaultHist.UseSFTP);
 							EncodePassword(Hist.PrivateKey, Str);
 							SaveStr(hKey5, "PKey", Str, DefaultHist.PrivateKey);
+							SaveIntNum(hKey5, "NoWeak", Hist.NoWeakEncryption, DefaultHist.NoWeakEncryption);
 							// 同時接続対応
 							SaveIntNum(hKey5, "ThreadCount", Hist.MaxThreadCount, DefaultHist.MaxThreadCount);
 							SaveIntNum(hKey5, "ReuseCmdSkt", Hist.ReuseCmdSkt, DefaultHist.ReuseCmdSkt);
@@ -748,6 +802,31 @@ void SaveRegistry(void)
 				CloseSubKey(hKey4);
 			}
 			DeleteSubKey(hKey3, "Options");
+			DeleteValue(hKey3, "CredentialSalt");
+			DeleteValue(hKey3, "CredentialCheck");
+		}
+		else
+		{
+			if(OpenSubKey(hKey3, "EncryptedOptions", &hKey4) == FFFTP_SUCCESS)
+			{
+				for(i = 0; ; i++)
+				{
+					sprintf(Str, "Host%d", i);
+					if(DeleteSubKey(hKey4, Str) != FFFTP_SUCCESS)
+						break;
+				}
+				for(i = 0; ; i++)
+				{
+					sprintf(Str, "History%d", i);
+					if(DeleteSubKey(hKey4, Str) != FFFTP_SUCCESS)
+						break;
+				}
+				CloseSubKey(hKey4);
+			}
+			DeleteSubKey(hKey3, "EncryptedOptions");
+			DeleteValue(hKey3, "CredentialSalt1");
+			DeleteValue(hKey3, "CredentialStretch");
+			DeleteValue(hKey3, "CredentialCheck1");
 		}
 		CloseReg(hKey3);
 	}
@@ -812,36 +891,33 @@ int LoadRegistry(void)
 			IniKanjiCode = KANJI_SJIS;
 
 		// 全設定暗号化対応
-		if(Version >= 1990)
+		if(GetMasterPasswordStatus() == PASSWORD_OK)
 		{
-			if(GetMasterPasswordStatus() == PASSWORD_OK)
+			ReadIntValueFromReg(hKey3, "EncryptAll", &EncryptAllSettings);
+			sprintf(Buf, "%d", EncryptAllSettings);
+			ReadStringFromReg(hKey3, "EncryptAllDetector", Str, 255);
+			DecodePassword(Str, Buf2);
+			EncryptSettings = EncryptAllSettings;
+			memset(&EncryptSettingsChecksum, 0, 20);
+			if(strcmp(Buf, Buf2) != 0)
 			{
-				ReadIntValueFromReg(hKey3, "EncryptAll", &EncryptAllSettings);
-				sprintf(Buf, "%d", EncryptAllSettings);
-				ReadStringFromReg(hKey3, "EncryptAllDetector", Str, 255);
-				DecodePassword(Str, Buf2);
-				EncryptSettings = EncryptAllSettings;
-				memset(&EncryptSettingsChecksum, 0, 20);
-				if(strcmp(Buf, Buf2) != 0)
+				switch(DialogBox(GetFtpInst(), MAKEINTRESOURCE(corruptsettings_dlg), GetMainHwnd(), AnyButtonDialogProc))
 				{
-					switch(DialogBox(GetFtpInst(), MAKEINTRESOURCE(corruptsettings_dlg), GetMainHwnd(), AnyButtonDialogProc))
-					{
-					case IDCANCEL:
-						Terminate();
-						break;
-					case IDABORT:
-						CloseReg(hKey3);
-						ClearRegistry();
-						ClearIni();
-						Restart();
-						Terminate();
-						break;
-					case IDRETRY:
-						EncryptSettingsError = YES;
-						break;
-					case IDIGNORE:
-						break;
-					}
+				case IDCANCEL:
+					Terminate();
+					break;
+				case IDABORT:
+					CloseReg(hKey3);
+					ClearRegistry();
+					ClearIni();
+					Restart();
+					Terminate();
+					break;
+				case IDRETRY:
+					EncryptSettingsError = YES;
+					break;
+				case IDIGNORE:
+					break;
 				}
 			}
 		}
@@ -1062,6 +1138,7 @@ int LoadRegistry(void)
 					strcpy(Str, "");
 					ReadStringFromReg(hKey5, "PKey", Str, PRIVATE_KEY_LEN*4+1);
 					DecodePassword(Str, Hist.PrivateKey);
+					ReadIntValueFromReg(hKey5, "NoWeak", &Hist.NoWeakEncryption);
 					// 同時接続対応
 					ReadIntValueFromReg(hKey5, "ThreadCount", &Hist.MaxThreadCount);
 					ReadIntValueFromReg(hKey5, "ReuseCmdSkt", &Hist.ReuseCmdSkt);
@@ -1074,6 +1151,8 @@ int LoadRegistry(void)
 					// 再転送対応
 					ReadIntValueFromReg(hKey5, "ErrMode", &Hist.TransferErrorMode);
 					ReadIntValueFromReg(hKey5, "ErrNotify", &Hist.TransferErrorNotify);
+					// セッションあたりの転送量制限対策
+					ReadIntValueFromReg(hKey5, "ErrReconnect", &Hist.TransferErrorReconnect);
 
 					CloseSubKey(hKey5);
 					AddHistoryToHistory(&Hist);
@@ -1832,7 +1911,7 @@ static void EncodePassword3(char *Str, char *Buf, const char *Key)
 			/* PAD部分を乱数で埋める StrPad[StrLen](が有効な場合) は NUL */
 			for(StrPadIndex = StrLen + 1; StrPadIndex < StrPadLen;)
 			{
-				RandValue = GetRandamDWRODValue();
+				RandValue = GetRandamDWORDValue();
 				for(RandByteCount = 0; RandByteCount < 4; RandByteCount++)
 				{
 					if(StrPadIndex < StrPadLen)
@@ -1846,7 +1925,7 @@ static void EncodePassword3(char *Str, char *Buf, const char *Key)
 			// IVの初期化
 			for(IvIndex = 0; IvIndex < AES_BLOCK_SIZE;)
 			{
-				RandValue = GetRandamDWRODValue();
+				RandValue = GetRandamDWORDValue();
 				for(RandByteCount = 0; RandByteCount < 4; RandByteCount++)
 				{
 					if(IvIndex < AES_BLOCK_SIZE)
@@ -3392,14 +3471,33 @@ void CreatePasswordHash( char* Password, int length, char* HashStr, int StretchC
 
 void SetHashSalt( DWORD salt )
 {
-	unsigned char* pos = &SecretKey[strlen(SecretKey) + 1];
+	// 全設定暗号化対応
+//	unsigned char* pos = &SecretKey[strlen(SecretKey) + 1];
+	unsigned char c[4];
+	unsigned char* pos = &c[0];
 	*pos++ = ( salt >> 24 ) & 0xff;
 	*pos++ = ( salt >> 16 ) & 0xff;
 	*pos++ = ( salt >>  8 ) & 0xff;
 	*pos++ = ( salt       ) & 0xff;
 	
-	SecretKeyLength = strlen( SecretKey ) + 5;
+//	SecretKeyLength = strlen( SecretKey ) + 5;
+	SetHashSalt1(&c, 4);
 }
+
+// 全設定暗号化対応
+void SetHashSalt1(void* Salt, int Length)
+{
+	void* p;
+	if(Salt != NULL)
+	{
+		p = &SecretKey[strlen(SecretKey) + 1];
+		memcpy(p, Salt, Length);
+		SecretKeyLength = (int)strlen(SecretKey) + 1 + Length;
+	}
+	else
+		SecretKeyLength = (int)strlen(SecretKey) + 1;
+}
+
 
 /*----------- 乱数生成をする -------------------------------------------------
 *
@@ -3408,7 +3506,7 @@ void SetHashSalt( DWORD salt )
 *	Return Value
 *		ランダムな値：コンパイラVS2005/動作環境WinXP以上では rand_s から取得する
 *----------------------------------------------------------------------------*/
-DWORD GetRandamDWRODValue(void)
+DWORD GetRandamDWORDValue(void)
 {
 	DWORD rndValue;
 	int errorCode;
