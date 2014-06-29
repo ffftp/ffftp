@@ -861,93 +861,6 @@ int CommandProcTrn(SOCKET cSkt, char *Reply, int* CancelCheckWork, char *fmt, ..
 //#pragma aaa
 //static int cntcnt = 0;
 
-// SFTP対応
-int ConvertFTPCommandToPuTTYSFTP(SOCKET cSkt, char *Reply, int *CancelCheckWork, char *Cmd)
-{
-	// TODO:
-	// 未実装
-	int Sts;
-	char NewCmd[FMAX_PATH*2];
-	static char RenameFrom[FMAX_PATH+1];
-	Sts = 429;
-	Reply[0] = '\0';
-	if(strcmp(Cmd, "QUIT") == 0)
-	{
-		sprintf(NewCmd, "ls\r\n");
-		SFTP_send(cSkt, NewCmd, strlen(NewCmd), 0);
-	}
-	if(strcmp(Cmd, "LIST") == 0)
-	{
-		sprintf(NewCmd, "ls\r\n");
-		SFTP_send(cSkt, NewCmd, strlen(NewCmd), 0);
-	}
-	else if(strncmp(Cmd, "REST ", 5) == 0)
-	{
-		SFTP_SetFilePosition(cSkt, (LONGLONG)_strtoi64(&Cmd[5], NULL, 10));
-	}
-	else if(strncmp(Cmd, "RETR ", 5) == 0)
-	{
-		sprintf(NewCmd, "get \"%s\"\r\n", &Cmd[5]);
-		SFTP_send(cSkt, NewCmd, strlen(NewCmd), 0);
-	}
-	else if(strncmp(Cmd, "STOR ", 5) == 0)
-	{
-		sprintf(NewCmd, "put \"%s\"\r\n", &Cmd[5]);
-		SFTP_send(cSkt, NewCmd, strlen(NewCmd), 0);
-	}
-	else if(strncmp(Cmd, "APPE ", 5) == 0)
-	{
-		sprintf(NewCmd, "reput \"%s\"\r\n", &Cmd[5]);
-		SFTP_send(cSkt, NewCmd, strlen(NewCmd), 0);
-	}
-	else if(strncmp(Cmd, "DELE ", 5) == 0)
-	{
-		sprintf(NewCmd, "rm \"%s\"\r\n", &Cmd[5]);
-		SFTP_send(cSkt, NewCmd, strlen(NewCmd), 0);
-	}
-	else if(strncmp(Cmd, "CWD ", 4) == 0)
-	{
-		sprintf(NewCmd, "cd \"%s\"\r\n", &Cmd[4]);
-		SFTP_send(cSkt, NewCmd, strlen(NewCmd), 0);
-	}
-	else if(strcmp(Cmd, "PWD") == 0)
-	{
-		sprintf(NewCmd, "pwd\r\n");
-		SFTP_send(cSkt, NewCmd, strlen(NewCmd), 0);
-	}
-	else if(strcmp(Cmd, "XPWD") == 0)
-	{
-		sprintf(NewCmd, "pwd\r\n");
-		SFTP_send(cSkt, NewCmd, strlen(NewCmd), 0);
-	}
-	else if(strncmp(Cmd, "MKD ", 4) == 0)
-	{
-		sprintf(NewCmd, "mkdir \"%s\"\r\n", &Cmd[4]);
-		SFTP_send(cSkt, NewCmd, strlen(NewCmd), 0);
-	}
-	else if(strncmp(Cmd, "RMD ", 4) == 0)
-	{
-		sprintf(NewCmd, "rmdir \"%s\"\r\n", &Cmd[4]);
-		SFTP_send(cSkt, NewCmd, strlen(NewCmd), 0);
-	}
-	else if(strncmp(Cmd, "RNFR ", 5) == 0)
-	{
-		strcpy(RenameFrom, &Cmd[5]);
-	}
-	else if(strncmp(Cmd, "RNTO ", 5) == 0)
-	{
-		sprintf(NewCmd, "mv \"%s\" \"%s\"\r\n", RenameFrom, &Cmd[5]);
-		SFTP_send(cSkt, NewCmd, strlen(NewCmd), 0);
-	}
-	else if(strncmp(Cmd, "SITE CHMOD ", 11) == 0)
-	{
-		Cmd[14] = '\0';
-		sprintf(NewCmd, "chmod %s \"%s\"\r\n", &Cmd[11], &Cmd[15]);
-		SFTP_send(cSkt, NewCmd, strlen(NewCmd), 0);
-	}
-	return Sts;
-}
-
 int command(SOCKET cSkt, char *Reply, int *CancelCheckWork, char *fmt, ...)
 {
 	va_list Args;
@@ -960,10 +873,6 @@ int command(SOCKET cSkt, char *Reply, int *CancelCheckWork, char *fmt, ...)
 		va_start(Args, fmt);
 		wvsprintf(Cmd, fmt, Args);
 		va_end(Args);
-
-		// SFTP対応
-		if(IsSFTPAttached(cSkt))
-			return ConvertFTPCommandToPuTTYSFTP(cSkt, Reply, CancelCheckWork, Cmd);
 
 		if(strncmp(Cmd, "PASS ", 5) == 0)
 			SetTaskMsg(">PASS [xxxxxx]");

@@ -50,21 +50,5 @@ HANDLE WSAAsyncGetHostByNameIPv6M(HWND hWnd, u_int wMsg, const char * name, char
 
 extern const struct in6_addr IN6ADDR_NONE;
 
-BOOL LoadPuTTY();
-void FreePuTTY();
-BOOL IsPuTTYLoaded();
-BOOL IsSFTPAttached(SOCKET s);
-SOCKET SFTP_socket(int af, int type, int protocol);
-int SFTP_bind(SOCKET s, const struct sockaddr *addr, int namelen);
-int SFTP_listen(SOCKET s, int backlog);
-SOCKET SFTP_accept(SOCKET s, struct sockaddr *addr, int *addrlen);
-int SFTP_connect(SOCKET s, const struct sockaddr *name, int namelen);
-int SFTP_closesocket(SOCKET s);
-int SFTP_send(SOCKET s, const char * buf, int len, int flags);
-int SFTP_recv(SOCKET s, char * buf, int len, int flags);
-BOOL SFTP_SetTimeoutCallback(SOCKET s, void* pCallback);
-SOCKET SFTP_GetDataHandle(SOCKET s, int af, int type, int protocol);
-BOOL SFTP_SetFilePosition(SOCKET s, LONGLONG Position);
-
 #endif
 

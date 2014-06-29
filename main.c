@@ -413,9 +413,6 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	LoadOpenSSL();
 #endif
 
-	// SFTP対応
-	LoadPuTTY();
-
 	// ソフトウェア自動更新
 	ImmediateExit = NO;
 	pCommand = lpszCmdLine;
@@ -507,8 +504,6 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 #ifdef USE_OPENSSL
 	FreeOpenSSL();
 #endif
-	// SFTP対応
-	FreePuTTY();
 	// タスクバー進捗表示
 	FreeTaskbarList3();
 	// UPnP対応
