@@ -775,7 +775,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					DispTransferFiles();
 
 					// ソフトウェア自動更新
-					if(AutoCheckForUptatesInterval == 0)
+					if(AutoCheckForUpdates == YES && AutoCheckForUptatesInterval == 0)
 						UpdateSoftware(YES, YES, AutoApplyUpdates);
 
 					StartupProc(lpszCmdLine);
@@ -1152,7 +1152,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			case 3:
 				if(AskUserOpeDisabled() == NO && AskTransferNow() == NO)
 				{
-					if(AutoCheckForUptatesInterval > 0 && time(NULL) - LastAutoCheckForUpdates >= AutoCheckForUptatesInterval * 86400)
+					if(AutoCheckForUpdates == YES && AutoCheckForUptatesInterval > 0 && time(NULL) - LastAutoCheckForUpdates >= AutoCheckForUptatesInterval * 86400)
 						UpdateSoftware(YES, YES, AutoApplyUpdates);
 				}
 				break;
