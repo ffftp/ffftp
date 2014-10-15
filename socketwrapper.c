@@ -705,7 +705,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen)
 					{
 						if(bStrengthen)
 						{
-							p_SSL_ctrl(*ppSSL, SSL_CTRL_OPTIONS, SSL_OP_NO_SSLv2, NULL);
+							p_SSL_ctrl(*ppSSL, SSL_CTRL_OPTIONS, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3, NULL);
 							p_SSL_set_cipher_list(*ppSSL, "HIGH");
 						}
 					}
