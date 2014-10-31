@@ -103,6 +103,9 @@ static HOSTDATA TmpHost;					/* ホスト情報コピー用 */
 static int Apply;							/* プロパティシートでOKを押したフラグ */
 static WNDPROC HostListProcPtr;
 
+// ホスト共通設定機能
+HOSTDATA DefaultHost;
+
 
 
 /*----- ホスト一覧ウインドウ --------------------------------------------------
@@ -537,6 +540,13 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 						CurrentHost = GetNodeNumByData(Data1);
 						SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
 					}
+					break;
+
+				// ホスト共通設定機能
+				case HOST_SET_DEFAULT :
+					CopyDefaultHost(&TmpHost);
+					if(DispHostSetDlg(hDlg) == YES)
+						SetDefaultHost(&TmpHost);
 					break;
 
 				case HOST_LIST :
@@ -1307,6 +1317,62 @@ void SetCurrentHost(int Num)
 
 void CopyDefaultHost(HOSTDATA *Set)
 {
+	// ホスト共通設定機能
+//	Set->Level = 0;
+//	strcpy(Set->HostName, "");
+//	strcpy(Set->HostAdrs, "");
+//	strcpy(Set->UserName, "");
+//	strcpy(Set->PassWord, "");
+//	strcpy(Set->Account, "");
+//	strcpy(Set->LocalInitDir, DefaultLocalPath);
+//	strcpy(Set->RemoteInitDir, "");
+//	memcpy(Set->BookMark, "\0\0", 2);
+//	strcpy(Set->ChmodCmd, CHMOD_CMD_NOR);
+//	strcpy(Set->LsName, LS_FNAME);
+//	strcpy(Set->InitCmd, "");
+//	Set->Port = PORT_NOR;
+//	Set->Anonymous = NO;
+//	Set->KanjiCode = KANJI_NOCNV;
+//	Set->KanaCnv = YES;
+//	Set->NameKanjiCode = KANJI_NOCNV;
+//	Set->NameKanaCnv = NO;
+//	Set->Pasv = YES;
+//	Set->FireWall = NO;
+//	Set->ListCmdOnly = YES;
+//	Set->UseNLST_R = YES;
+//	Set->LastDir = NO;
+//	Set->TimeZone = 9;				/* GMT+9 (JST) */
+//	Set->HostType = HTYPE_AUTO;
+//	Set->SyncMove = NO;
+//	Set->NoFullPath = NO;
+//	Set->Sort = SORT_NOTSAVED;
+//	Set->Security = SECURITY_AUTO;
+//	Set->Dialup = NO;
+//	Set->DialupAlways = NO;
+//	Set->DialupNotify = YES;
+//	strcpy(Set->DialEntry, "");
+	memcpy(Set, &DefaultHost, sizeof(HOSTDATA));
+	return;
+}
+
+
+// ホスト共通設定機能
+void ResetDefaultHost(void)
+{
+	CopyDefaultDefaultHost(&DefaultHost);
+	return;
+}
+
+void SetDefaultHost(HOSTDATA *Set)
+{
+	memcpy(&DefaultHost, Set, sizeof(HOSTDATA));
+	return;
+}
+
+void CopyDefaultDefaultHost(HOSTDATA *Set)
+{
+	// 国際化対応
+	TIME_ZONE_INFORMATION tzi;
 	Set->Level = 0;
 	strcpy(Set->HostName, "");
 	strcpy(Set->HostAdrs, "");
@@ -1332,7 +1398,10 @@ void CopyDefaultHost(HOSTDATA *Set)
 	Set->ListCmdOnly = YES;
 	Set->UseNLST_R = YES;
 	Set->LastDir = NO;
-	Set->TimeZone = 9;				/* GMT+9 (JST) */
+	// 国際化対応
+//	Set->TimeZone = 9;				/* GMT+9 (JST) */
+	GetTimeZoneInformation(&tzi);
+	Set->TimeZone = (int)(tzi.Bias / -60);
 	Set->HostType = HTYPE_AUTO;
 	Set->SyncMove = NO;
 	Set->NoFullPath = NO;
@@ -1369,7 +1438,6 @@ void CopyDefaultHost(HOSTDATA *Set)
 	Set->TransferErrorReconnect = NO;
 	return;
 }
-
 
 /*----- 設定名一覧をウィンドウに送る ------------------------------------------
 *

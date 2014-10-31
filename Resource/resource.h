@@ -468,6 +468,7 @@
 #define UPDATES_INTERVAL                1224
 #define UPDATES_INTERVAL_SPN            1225
 #define HSET_NO_WEAK                    1226
+#define HOST_SET_DEFAULT                1227
 #define MENU_END                        40001
 #define MENU_EXIT                       40001
 #define MENU_CONNECT                    40003
@@ -660,7 +661,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        199
 #define _APS_NEXT_COMMAND_VALUE         40182
-#define _APS_NEXT_CONTROL_VALUE         1227
+#define _APS_NEXT_CONTROL_VALUE         1228
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

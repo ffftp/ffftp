@@ -696,6 +696,9 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		
 		if(masterpass != 0)
 		{
+			// ホスト共通設定機能
+			ResetDefaultHost();
+
 			LoadRegistry();
 
 			// ポータブル版判定

@@ -5,6 +5,9 @@ Changes in Ver.1.99
 
 -- Tested on Windows 8.1 (32bit/64bit).
 
+-- 64bit version is now available.
+   This works around the certain restriction on 64bit Windows.
+
 -- Added the feature of automatic software update.
    It will connect to the dedicated server to check whether there are updates
    every 7 days by default, and then confirm whether to apply them.
@@ -50,9 +53,12 @@ Changes in Ver.1.99
 -- Added a feature to export settings as FileZilla XML format.
 
 -- Added an option not to use weak encryption methods for each host.
-   This refuses SSL 2.0 and encryption algorithms whose keys are shorter than
-   128 bits.
+   This refuses SSL 3.0 or older and encryption algorithms whose keys are
+   shorter than 128 bits.
    This feature is enabled by default.
+
+-- Added the default settings to the host list.
+   This is used for the initial state of new hosts and Quick Connect.
 
 Changes in Ver.1.98g2
 --------------------

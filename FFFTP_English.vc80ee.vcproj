@@ -28,7 +28,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource_eng\FFFTP-eng.rc Resource_eng\FFFTP-eng._replaced_.rc&#x0D;&#x0A;"
+				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource_eng\ffftp.rc Resource_eng\ffftp._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -122,7 +122,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource_eng\FFFTP-eng.rc Resource_eng\FFFTP-eng._replaced_.rc&#x0D;&#x0A;"
+				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource_eng\ffftp.rc Resource_eng\ffftp._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -216,7 +216,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource_eng\FFFTP-eng.rc Resource_eng\FFFTP-eng._replaced_.rc&#x0D;&#x0A;"
+				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource_eng\ffftp.rc Resource_eng\ffftp._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -309,7 +309,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource_eng\FFFTP-eng.rc Resource_eng\FFFTP-eng._replaced_.rc&#x0D;&#x0A;"
+				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource_eng\ffftp.rc Resource_eng\ffftp._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -448,11 +448,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Resource_eng\FFFTP-eng._replaced_.rc"
+				RelativePath=".\Resource_eng\ffftp._replaced_.rc"
 				>
 			</File>
 			<File
-				RelativePath=".\Resource_eng\FFFTP-eng.rc"
+				RelativePath=".\Resource_eng\ffftp.rc"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"

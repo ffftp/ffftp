@@ -1534,6 +1534,10 @@ void DecomposeSortType(ulong Sort, int *LFSort, int *LDSort, int *RFSort, int *R
 int AskCurrentHost(void);
 void SetCurrentHost(int Num);
 void CopyDefaultHost(HOSTDATA *Set);
+// ホスト共通設定機能
+void ResetDefaultHost(void);
+void SetDefaultHost(HOSTDATA *Set);
+void CopyDefaultDefaultHost(HOSTDATA *Set);
 int SearchHostName(char *Name);
 void ImportFromWSFTP(void);
 // 暗号化通信対応
