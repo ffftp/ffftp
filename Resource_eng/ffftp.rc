@@ -784,16 +784,18 @@ BEGIN
     CONTROL         "Always &BINARY mode",TRMODE_BIN,"Button",BS_AUTORADIOBUTTON,13,33,84,10
     CONTROL         "&Filename dependent",TRMODE_AUTO,"Button",BS_AUTORADIOBUTTON,13,47,78,10
     LTEXT           "->",-1,98,49,8,8
-    GROUPBOX        "ASCII mode Filenames",-1,104,7,99,84,WS_GROUP
-    LISTBOX         TRMODE_EXT_LIST,109,19,53,67,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "ASCII mode Filenames",-1,104,7,99,70,WS_GROUP
+    LISTBOX         TRMODE_EXT_LIST,109,19,53,53,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "A&dd...",TRMODE_ADD,167,19,31,14
     PUSHBUTTON      "Delete",TRMODE_DEL,167,38,31,14
-    CONTROL         "&Remove EOF for ASCII mode upload",TRMODE_EOF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,94,196,10
+    CONTROL         "&Remove EOF for ASCII mode upload",TRMODE_EOF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,80,196,10
     CONTROL         "Retain file date/&time on upload and download",TRMODE_TIME,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,196,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,94,196,10
     CONTROL         "Truncate filename before &semicolon on download",TRMODE_SEMICOLON,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,196,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,196,10
     CONTROL         "Create &directory at file transfer with renaming",TRMODE_MAKEDIR,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,196,10
+    CONTROL         "Abort transfer if failed in obtaining file &lists",TRMODE_LISTERROR,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,136,196,10
 END
 

@@ -283,6 +283,8 @@ int AutoCheckForUpdates = YES;
 int AutoApplyUpdates = NO;
 int AutoCheckForUptatesInterval = 7;
 time_t LastAutoCheckForUpdates = 0;
+// ファイル一覧バグ修正
+int AbortOnListError = YES;
 
 
 

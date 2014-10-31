@@ -237,6 +237,8 @@ extern int AutoCheckForUpdates;
 extern int AutoApplyUpdates;
 extern int AutoCheckForUptatesInterval;
 extern time_t LastAutoCheckForUpdates;
+// ファイル一覧バグ修正
+extern int AbortOnListError;
 
 /*----- マスタパスワードの設定 ----------------------------------------------
 *
@@ -837,6 +839,8 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "UpdApply", AutoApplyUpdates);
 				WriteIntValueToReg(hKey4, "UpdInterval", AutoCheckForUptatesInterval);
 				WriteBinaryToReg(hKey4, "UpdLastCheck", &LastAutoCheckForUpdates, sizeof(LastAutoCheckForUpdates));
+				// ファイル一覧バグ修正
+				WriteIntValueToReg(hKey4, "AbortListErr", AbortOnListError);
 			}
 			CloseSubKey(hKey4);
 		}
@@ -1420,6 +1424,8 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "UpdApply", &AutoApplyUpdates);
 			ReadIntValueFromReg(hKey4, "UpdInterval", &AutoCheckForUptatesInterval);
 			ReadBinaryFromReg(hKey4, "UpdLastCheck", &LastAutoCheckForUpdates, sizeof(LastAutoCheckForUpdates));
+			// ファイル一覧バグ修正
+			ReadIntValueFromReg(hKey4, "AbortListErr", &AbortOnListError);
 
 			CloseSubKey(hKey4);
 		}

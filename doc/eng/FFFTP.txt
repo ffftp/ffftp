@@ -88,6 +88,10 @@ Changes in Ver.1.99
 -- Added the default settings to the host list.
    This is used for the initial state of new hosts and Quick Connect.
 
+-- Added an option to abort file transfer if failed in obtaining file lists
+   before it.
+   This feature is enabled by default.
+
 
 Outline
 -------

@@ -91,12 +91,17 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 static INT_PTR CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static int GetImageIndex(int Win, int Pos);
 static void DispListList(FILELIST *Pos, char *Title);
-static void MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
-static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
+// ファイル一覧バグ修正
+//static void MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
+//static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
+static int MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
+static int MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
 static void CopyTmpListToFileList(FILELIST **Base, FILELIST *List);
 static int GetListOneLine(char *Buf, int Max, FILE *Fd);
 static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir);
-static void MakeLocalTree(char *Path, FILELIST **Base);
+// ファイル一覧バグ修正
+//static void MakeLocalTree(char *Path, FILELIST **Base);
+static int MakeLocalTree(char *Path, FILELIST **Base);
 static void AddFileList(FILELIST *Pkt, FILELIST **Base);
 static int AnalyzeFileInfo(char *Str);
 static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day);
@@ -2780,8 +2785,12 @@ double GetSelectedTotalSize(int Win)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *CancelCheckWork)
+// ファイル一覧バグ修正
+//void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *CancelCheckWork)
+int MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *CancelCheckWork)
 {
+	// ファイル一覧バグ修正
+	int Sts;
 	int Pos;
 	char Name[FMAX_PATH+1];
 	char Cur[FMAX_PATH+1];
@@ -2790,6 +2799,8 @@ void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Ca
 	DWORD Attr;
 	int Ignore;
 
+	// ファイル一覧バグ修正
+	Sts = FFFTP_SUCCESS;
 	if((All == YES) || (GetSelectedCount(Win) > 0))
 	{
 		/*===== カレントディレクトリのファイル =====*/
@@ -2886,16 +2897,31 @@ void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Ca
 //						}
 						if(GetImageIndex(Win, Pos) != 4) { // symlink
 							if(Win == WIN_LOCAL)
-								MakeLocalTree(Name, Base);
+							// ファイル一覧バグ修正
+//								MakeLocalTree(Name, Base);
+							{
+								if(MakeLocalTree(Name, Base) == FFFTP_FAIL)
+									Sts = FFFTP_FAIL;
+							}
 							else
 							{
 								AskRemoteCurDir(Cur, FMAX_PATH);
 
 								if((AskListCmdMode() == NO) &&
 								   (AskUseNLST_R() == YES))
-									MakeRemoteTree1(Name, Cur, Base, CancelCheckWork);
+								// ファイル一覧バグ修正
+//									MakeRemoteTree1(Name, Cur, Base, CancelCheckWork);
+								{
+									if(MakeRemoteTree1(Name, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
+										Sts = FFFTP_FAIL;
+								}
 								else
-									MakeRemoteTree2(Name, Cur, Base, CancelCheckWork);
+								// ファイル一覧バグ修正
+//									MakeRemoteTree2(Name, Cur, Base, CancelCheckWork);
+								{
+									if(MakeRemoteTree2(Name, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
+										Sts = FFFTP_FAIL;
+								}
 
 //DispListList(*Base, "LIST");
 
@@ -2907,7 +2933,9 @@ void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Ca
 			}
 		}
 	}
-	return;
+	// ファイル一覧バグ修正
+//	return;
+	return(Sts);
 }
 
 
@@ -3046,10 +3074,16 @@ void MakeDroppedDir(WPARAM wParam, char *Cur)
 *		NLST -alLR を使う
 *----------------------------------------------------------------------------*/
 
-static void MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork)
+// ファイル一覧バグ修正
+//static void MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork)
+static int MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork)
 {
+	// ファイル一覧バグ修正
+	int Ret;
 	int Sts;
 
+	// ファイル一覧バグ修正
+	Ret = FFFTP_FAIL;
 	if(DoCWD(Path, NO, NO, NO) == FTP_COMPLETE)
 	{
 		/* サブフォルダも含めたリストを取得 */
@@ -3057,9 +3091,16 @@ static void MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelC
 		DoCWD(Cur, NO, NO, NO);
 
 		if(Sts == FTP_COMPLETE)
+		// ファイル一覧バグ修正
+//			AddRemoteTreeToFileList(999, Path, RDIR_NLST, Base);
+		{
 			AddRemoteTreeToFileList(999, Path, RDIR_NLST, Base);
+			Ret = FFFTP_SUCCESS;
+		}
 	}
-	return;
+	// ファイル一覧バグ修正
+//	return;
+	return(Ret);
 }
 
 
@@ -3077,13 +3118,19 @@ static void MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelC
 *		各フォルダに移動してリストを取得
 *----------------------------------------------------------------------------*/
 
-static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork)
+// ファイル一覧バグ修正
+//static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork)
+static int MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork)
 {
+	// ファイル一覧バグ修正
+	int Ret;
 	int Sts;
 	FILELIST *CurList;
 	FILELIST *Pos;
 	FILELIST Pkt;
 
+	// ファイル一覧バグ修正
+	Ret = FFFTP_FAIL;
 	/* VAX VMS は CWD xxx/yyy という指定ができないので	*/
 	/* CWD xxx, Cwd yyy と複数に分ける					*/
 	if(AskHostType() != HTYPE_VMS)
@@ -3107,6 +3154,9 @@ static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelC
 			CurList = NULL;
 			AddRemoteTreeToFileList(999, Path, RDIR_CWD, &CurList);
 			CopyTmpListToFileList(Base, CurList);
+
+			// ファイル一覧バグ修正
+			Ret = FFFTP_SUCCESS;
 
 			Pos = CurList;
 			while(Pos != NULL)
@@ -3132,14 +3182,21 @@ static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelC
 					/* そのディレクトリの中を検索 */
 //					MakeRemoteTree2(Pos->File, Cur, Base, CancelCheckWork);
 					if(Pkt.Link == NO)
-						MakeRemoteTree2(Pos->File, Cur, Base, CancelCheckWork);
+					// ファイル一覧バグ修正
+//						MakeRemoteTree2(Pos->File, Cur, Base, CancelCheckWork);
+					{
+						if(MakeRemoteTree2(Pos->File, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
+							Ret = FFFTP_FAIL;
+					}
 				}
 				Pos = Pos->Next;
 			}
 			DeleteFileList(&CurList);
 		}
 	}
-	return;
+	// ファイル一覧バグ修正
+//	return;
+	return(Ret);
 }
 
 
@@ -3383,13 +3440,20 @@ static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir)
 *		なし
 *----------------------------------------------------------------------------*/
 
-static void MakeLocalTree(char *Path, FILELIST **Base)
+// ファイル一覧バグ修正
+//static void MakeLocalTree(char *Path, FILELIST **Base)
+static int MakeLocalTree(char *Path, FILELIST **Base)
 {
+	// ファイル一覧バグ修正
+	int Sts;
 	char Src[FMAX_PATH+1];
 	HANDLE fHnd;
 	WIN32_FIND_DATA FindBuf;
 	FILELIST Pkt;
 	SYSTEMTIME TmpStime;
+
+	// ファイル一覧バグ修正
+	Sts = FFFTP_FAIL;
 
 	strcpy(Src, Path);
 	SetYenTail(Src);
@@ -3432,6 +3496,8 @@ static void MakeLocalTree(char *Path, FILELIST **Base)
 
 	if((fHnd = FindFirstFileAttr(Src, &FindBuf, DispIgnoreHide)) != INVALID_HANDLE_VALUE)
 	{
+		// ファイル一覧バグ修正
+		Sts = FFFTP_SUCCESS;
 		do
 		{
 			if((FindBuf.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
@@ -3452,13 +3518,18 @@ static void MakeLocalTree(char *Path, FILELIST **Base)
 				memset(&Pkt.Time, 0, sizeof(FILETIME));
 				AddFileList(&Pkt, Base);
 
-				MakeLocalTree(Src, Base);
+				// ファイル一覧バグ修正
+//				MakeLocalTree(Src, Base);
+				if(MakeLocalTree(Src, Base) == FFFTP_FAIL)
+					Sts = FFFTP_FAIL;
 			}
 		}
 		while(FindNextFileAttr(fHnd, &FindBuf, DispIgnoreHide) == TRUE);
 		FindClose(fHnd);
 	}
-	return;
+	// ファイル一覧バグ修正
+//	return;
+	return(Sts);
 }
 
 

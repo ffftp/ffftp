@@ -192,6 +192,8 @@ extern int RemoveOldLog;
 extern int AutoCheckForUpdates;
 extern int AutoApplyUpdates;
 extern int AutoCheckForUptatesInterval;
+// ファイル一覧バグ修正
+extern int AbortOnListError;
 
 
 /*----- オプションのプロパティシート ------------------------------------------
@@ -545,6 +547,8 @@ static INT_PTR CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wPara
 			SendDlgItemMessage(hDlg, TRMODE_SEMICOLON, BM_SETCHECK, VaxSemicolon, 0);
 			// ディレクトリ自動作成
 			SendDlgItemMessage(hDlg, TRMODE_MAKEDIR, BM_SETCHECK, MakeAllDir, 0);
+			// ファイル一覧バグ修正
+			SendDlgItemMessage(hDlg, TRMODE_LISTERROR, BM_SETCHECK, AbortOnListError, 0);
 
 			SendMessage(hDlg, WM_COMMAND, MAKEWPARAM(TRMODE_EXT_LIST, 0), 0);
 
@@ -563,6 +567,8 @@ static INT_PTR CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wPara
 					VaxSemicolon = SendDlgItemMessage(hDlg, TRMODE_SEMICOLON, BM_GETCHECK, 0, 0);
 					// ディレクトリ自動作成
 					MakeAllDir = SendDlgItemMessage(hDlg, TRMODE_MAKEDIR, BM_GETCHECK, 0, 0);
+					// ファイル一覧バグ修正
+					AbortOnListError = SendDlgItemMessage(hDlg, TRMODE_LISTERROR, BM_GETCHECK, 0, 0);
 					break;
 
 				case PSN_RESET :

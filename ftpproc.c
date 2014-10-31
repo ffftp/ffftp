@@ -110,6 +110,8 @@ extern int DebugConsole;
 extern int CancelFlg;
 // ディレクトリ自動作成
 extern int MakeAllDir;
+// ファイル一覧バグ修正
+extern int AbortOnListError;
 
 /*===== ローカルなワーク =====*/
 
@@ -182,6 +184,8 @@ void DownloadProc(int ChName, int ForceFile, int All)
 	TRANSPACKET Pkt;
 	// ディレクトリ自動作成
 	char Tmp[FMAX_PATH+1];
+	// ファイル一覧バグ修正
+	int ListSts;
 
 	// 同時接続対応
 	CancelFlg = NO;
@@ -194,7 +198,9 @@ void DownloadProc(int ChName, int ForceFile, int All)
 //		KeepTransferDialog(YES);
 
 		FileListBase = NULL;
-		MakeSelectedFileList(WIN_REMOTE, (ForceFile == YES ? NO : YES), All, &FileListBase, &CancelFlg);
+		// ファイル一覧バグ修正
+//		MakeSelectedFileList(WIN_REMOTE, (ForceFile == YES ? NO : YES), All, &FileListBase, &CancelFlg);
+		ListSts = MakeSelectedFileList(WIN_REMOTE, (ForceFile == YES ? NO : YES), All, &FileListBase, &CancelFlg);
 
 		if(AskNoFullPathMode() == YES)
 		{
@@ -206,6 +212,9 @@ void DownloadProc(int ChName, int ForceFile, int All)
 		Pos = FileListBase;
 		while(Pos != NULL)
 		{
+			// ファイル一覧バグ修正
+			if((AbortOnListError == YES) && (ListSts == FFFTP_FAIL))
+				break;
 			AskLocalCurDir(Pkt.LocalFile, FMAX_PATH);
 			SetYenTail(Pkt.LocalFile);
 			strcpy(TmpString, Pos->File);
@@ -491,6 +500,8 @@ void MirrorDownloadProc(int Notify)
 	char *Cat;
 	int Level;
 	int Mode;
+	// ファイル一覧バグ修正
+	int ListSts;
 
 	// 同時接続対応
 	CancelFlg = NO;
@@ -511,9 +522,14 @@ void MirrorDownloadProc(int Notify)
 			/*===== ファイルリスト取得 =====*/
 
 			LocalListBase = NULL;
-			MakeSelectedFileList(WIN_LOCAL, YES, YES, &LocalListBase, &CancelFlg);
+			// ファイル一覧バグ修正
+//			MakeSelectedFileList(WIN_LOCAL, YES, YES, &LocalListBase, &CancelFlg);
+			ListSts = MakeSelectedFileList(WIN_LOCAL, YES, YES, &LocalListBase, &CancelFlg);
 			RemoteListBase = NULL;
-			MakeSelectedFileList(WIN_REMOTE, YES, YES, &RemoteListBase, &CancelFlg);
+			// ファイル一覧バグ修正
+//			MakeSelectedFileList(WIN_REMOTE, YES, YES, &RemoteListBase, &CancelFlg);
+			if(ListSts == FFFTP_SUCCESS)
+				ListSts = MakeSelectedFileList(WIN_REMOTE, YES, YES, &RemoteListBase, &CancelFlg);
 
 			RemotePos = RemoteListBase;
 			while(RemotePos != NULL)
@@ -678,8 +694,11 @@ void MirrorDownloadProc(int Notify)
 				RemotePos = RemotePos->Next;
 			}
 
-			if((Notify == YES) ||
-			   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirrordown_notify_dlg), GetMainHwnd(), MirrorDispListCallBack, (LPARAM)&Base) == YES))
+			// ファイル一覧バグ修正
+//			if((Notify == YES) ||
+//			   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirrordown_notify_dlg), GetMainHwnd(), MirrorDispListCallBack, (LPARAM)&Base) == YES))
+			if(((AbortOnListError == NO) || (ListSts == FFFTP_SUCCESS)) && ((Notify == YES) ||
+			   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirrordown_notify_dlg), GetMainHwnd(), MirrorDispListCallBack, (LPARAM)&Base) == YES)))
 			{
 				if(AskNoFullPathMode() == YES)
 				{
@@ -1047,6 +1066,8 @@ void UploadListProc(int ChName, int All)
 	FILELIST *RemoteList;
 	char Tmp[FMAX_PATH+1];
 	int FirstAdd;
+	// ファイル一覧バグ修正
+	int ListSts;
 
 	// 同時接続対応
 	CancelFlg = NO;
@@ -1057,7 +1078,9 @@ void UploadListProc(int ChName, int All)
 
 		// ローカル側で選ばれているファイルをFileListBaseに登録
 		FileListBase = NULL;
-		MakeSelectedFileList(WIN_LOCAL, YES, All, &FileListBase, &CancelFlg);
+		// ファイル一覧バグ修正
+//		MakeSelectedFileList(WIN_LOCAL, YES, All, &FileListBase, &CancelFlg);
+		ListSts = MakeSelectedFileList(WIN_LOCAL, YES, All, &FileListBase, &CancelFlg);
 
 		// 現在ホスト側のファイル一覧に表示されているものをRemoteListに登録
 		// 同名ファイルチェック用
@@ -1070,6 +1093,9 @@ void UploadListProc(int ChName, int All)
 		Pos = FileListBase;
 		while(Pos != NULL)
 		{
+			// ファイル一覧バグ修正
+			if((AbortOnListError == YES) && (ListSts == FFFTP_FAIL))
+				break;
 			AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
 			SetSlashTail(Pkt.RemoteFile);
 			Cat = strchr(Pkt.RemoteFile, NUL);
@@ -1446,6 +1472,8 @@ void MirrorUploadProc(int Notify)
 	SYSTEMTIME TmpStime;
 	FILETIME TmpFtimeL;
 	FILETIME TmpFtimeR;
+	// ファイル一覧バグ修正
+	int ListSts;
 
 	// 同時接続対応
 	CancelFlg = NO;
@@ -1466,9 +1494,14 @@ void MirrorUploadProc(int Notify)
 			/*===== ファイルリスト取得 =====*/
 
 			LocalListBase = NULL;
-			MakeSelectedFileList(WIN_LOCAL, YES, YES, &LocalListBase, &CancelFlg);
+			// ファイル一覧バグ修正
+//			MakeSelectedFileList(WIN_LOCAL, YES, YES, &LocalListBase, &CancelFlg);
+			ListSts = MakeSelectedFileList(WIN_LOCAL, YES, YES, &LocalListBase, &CancelFlg);
 			RemoteListBase = NULL;
-			MakeSelectedFileList(WIN_REMOTE, YES, YES, &RemoteListBase, &CancelFlg);
+			// ファイル一覧バグ修正
+//			MakeSelectedFileList(WIN_REMOTE, YES, YES, &RemoteListBase, &CancelFlg);
+			if(ListSts == FFFTP_SUCCESS)
+				ListSts = MakeSelectedFileList(WIN_REMOTE, YES, YES, &RemoteListBase, &CancelFlg);
 
 			LocalPos = LocalListBase;
 			while(LocalPos != NULL)
@@ -1666,8 +1699,11 @@ void MirrorUploadProc(int Notify)
 				LocalPos = LocalPos->Next;
 			}
 
-			if((Notify == YES) ||
-			   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirror_notify_dlg), GetMainHwnd(), MirrorDispListCallBack, (LPARAM)&Base) == YES))
+			// ファイル一覧バグ修正
+//			if((Notify == YES) ||
+//			   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirror_notify_dlg), GetMainHwnd(), MirrorDispListCallBack, (LPARAM)&Base) == YES))
+			if(((AbortOnListError == NO) || (ListSts == FFFTP_SUCCESS)) && ((Notify == YES) ||
+			   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirror_notify_dlg), GetMainHwnd(), MirrorDispListCallBack, (LPARAM)&Base) == YES)))
 			{
 				if(AskNoFullPathMode() == YES)
 				{

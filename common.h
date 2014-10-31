@@ -1427,7 +1427,9 @@ int GetNodeType(int Win, int Pos);
 void GetNodeOwner(int Win, int Pos, char *Buf, int Max);
 void EraseRemoteDirForWnd(void);
 double GetSelectedTotalSize(int Win);
-void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *CancelCheckWork);
+// ファイル一覧バグ修正
+//void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *CancelCheckWork);
+int MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *CancelCheckWork);
 void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base);
 void MakeDroppedDir(WPARAM wParam, char *Cur);
 void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base);
