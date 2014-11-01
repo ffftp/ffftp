@@ -1435,7 +1435,7 @@ void CopyDefaultDefaultHost(HOSTDATA *Set)
 	Set->TransferErrorMode = EXIST_OVW;
 	Set->TransferErrorNotify = YES;
 	// セッションあたりの転送量制限対策
-	Set->TransferErrorReconnect = NO;
+	Set->TransferErrorReconnect = YES;
 	return;
 }
 

@@ -3787,3 +3787,22 @@ void NoopProc(int Force)
 	}
 }
 
+// 同時接続対応
+void AbortRecoveryProc(void)
+{
+	CancelFlg = NO;
+	if(AskReuseCmdSkt() == NO || AskShareProh() == YES || AskTransferNow() == NO)
+	{
+		if(AskErrorReconnect() == YES)
+		{
+			DisableUserOpe();
+			ReConnectCmdSkt();
+			GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
+			EnableUserOpe();
+		}
+		else
+			RemoveReceivedData(AskCmdCtrlSkt());
+	}
+	return;
+}
+

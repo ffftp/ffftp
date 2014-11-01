@@ -1669,6 +1669,8 @@ void ReformVMSDirName(char *DirName, int Flg);
 #endif
 // 自動切断対策
 void NoopProc(int Force);
+// 同時接続対応
+void AbortRecoveryProc(void);
 
 /*===== local.c =====*/
 

@@ -1167,8 +1167,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		case WM_COMMAND :
 			// 同時接続対応
 			// 中断後に受信バッファに応答が残っていると次のコマンドの応答が正しく処理できない
-			if(CancelFlg == YES)
-				RemoveReceivedData(AskCmdCtrlSkt());
+			if(AskUserOpeDisabled() == NO && CancelFlg == YES)
+				AbortRecoveryProc();
 			switch(LOWORD(wParam))
 			{
 				case MENU_CONNECT :
@@ -2512,6 +2512,9 @@ static void ExitProc(HWND hWnd)
 	char Tmp[FMAX_PATH+1];
 
 	CancelFlg = YES;
+
+	// バグ対策
+	DisableUserOpe();
 
 	CloseTransferThread();
 

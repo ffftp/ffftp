@@ -92,6 +92,8 @@ Changes in Ver.1.99
    before it.
    This feature is enabled by default.
 
+-- Changed to enable reconnection after transfer errors by default.
+
 
 Outline
 -------
