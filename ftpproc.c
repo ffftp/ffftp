@@ -3791,17 +3791,20 @@ void NoopProc(int Force)
 void AbortRecoveryProc(void)
 {
 	CancelFlg = NO;
-	if(AskReuseCmdSkt() == NO || AskShareProh() == YES || AskTransferNow() == NO)
+	if(AskConnecting() == YES && AskUserOpeDisabled() == NO)
 	{
-		if(AskErrorReconnect() == YES)
+		if(AskReuseCmdSkt() == NO || AskShareProh() == YES || AskTransferNow() == NO)
 		{
-			DisableUserOpe();
-			ReConnectCmdSkt();
-			GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
-			EnableUserOpe();
+			if(AskErrorReconnect() == YES)
+			{
+				DisableUserOpe();
+					ReConnectCmdSkt();
+				GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
+				EnableUserOpe();
+			}
+			else
+				RemoveReceivedData(AskCmdCtrlSkt());
 		}
-		else
-			RemoveReceivedData(AskCmdCtrlSkt());
 	}
 	return;
 }

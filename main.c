@@ -1167,7 +1167,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		case WM_COMMAND :
 			// 同時接続対応
 			// 中断後に受信バッファに応答が残っていると次のコマンドの応答が正しく処理できない
-			if(AskUserOpeDisabled() == NO && CancelFlg == YES)
+			if(CancelFlg == YES)
 				AbortRecoveryProc();
 			switch(LOWORD(wParam))
 			{
