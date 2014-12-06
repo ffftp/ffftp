@@ -84,6 +84,8 @@ static void DispTransPacket(TRANSPACKET *Pkt);
 static void EraseTransFileList(void);
 static ULONG WINAPI TransferThread(void *Dummy);
 static int MakeNonFullPath(TRANSPACKET *Pkt, char *CurDir, char *Tmp);
+// ミラーリング設定追加
+static int SetDownloadedFileTime(TRANSPACKET *Pkt);
 static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
 static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
 static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *CancelCheckWork);
@@ -930,10 +932,20 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //						{
 //							if(ReConnectTrnSkt() == FFFTP_SUCCESS)
 //								DoDownload(AskTrnCtrlSkt(), TransPacketBase, NO, &Canceled);
+						// ミラーリング設定追加
+						if(Pos->NoTransfer == NO)
+						{
 								Sts = DoDownload(TrnSkt, Pos, NO, &Canceled[Pos->ThreadCount]) / 100;
 								if(Sts != FTP_COMPLETE)
 									LastError = YES;
-//						}
+						}
+
+						// ミラーリング設定追加
+						if((SaveTimeStamp == YES) &&
+						   ((Pos->Time.dwLowDateTime != 0) || (Pos->Time.dwHighDateTime != 0)))
+						{
+							SetDownloadedFileTime(Pos);
+						}
 					}
 				}
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
@@ -954,10 +966,13 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //					{
 //						if(ReConnectTrnSkt() == FFFTP_SUCCESS)
 //							DoUpload(AskTrnCtrlSkt(), TransPacketBase);
+					// ミラーリング設定追加
+					if(Pos->NoTransfer == NO)
+					{
 							Sts = DoUpload(TrnSkt, Pos) / 100;
 							if(Sts != FTP_COMPLETE)
 								LastError = YES;
-//					}
+					}
 
 					// ホスト側の日時設定
 					/* ファイルのタイムスタンプを合わせる */
@@ -1346,6 +1361,21 @@ static int MakeNonFullPath(TRANSPACKET *Pkt, char *Cur, char *Tmp)
 
 
 
+
+// ミラーリング設定追加
+static int SetDownloadedFileTime(TRANSPACKET *Pkt)
+{
+	int Sts;
+	HANDLE hFile;
+	Sts = FFFTP_FAIL;
+	if((hFile = CreateFile(Pkt->LocalFile, GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
+	{
+		if(SetFileTime(hFile, &Pkt->Time, &Pkt->Time, &Pkt->Time))
+			Sts = FFFTP_SUCCESS;
+		CloseHandle(hFile);
+	}
+	return Sts;
+}
 
 /*----- ダウンロードを行なう --------------------------------------------------
 *
@@ -2301,11 +2331,12 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		}
 
 		/* ファイルのタイムスタンプを合わせる */
-		if((SaveTimeStamp == YES) &&
-		   ((Pkt->Time.dwLowDateTime != 0) || (Pkt->Time.dwHighDateTime != 0)))
-		{
-			SetFileTime(iFileHandle, &Pkt->Time, &Pkt->Time, &Pkt->Time);
-		}
+		// ミラーリング設定追加
+//		if((SaveTimeStamp == YES) &&
+//		   ((Pkt->Time.dwLowDateTime != 0) || (Pkt->Time.dwHighDateTime != 0)))
+//		{
+//			SetFileTime(iFileHandle, &Pkt->Time, &Pkt->Time, &Pkt->Time);
+//		}
 
 		CloseHandle(iFileHandle);
 

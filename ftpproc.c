@@ -112,6 +112,8 @@ extern int CancelFlg;
 extern int MakeAllDir;
 // ファイル一覧バグ修正
 extern int AbortOnListError;
+// ミラーリング設定追加
+extern int MirrorNoTransferContents; 
 
 /*===== ローカルなワーク =====*/
 
@@ -688,6 +690,8 @@ void MirrorDownloadProc(int Notify)
 						Pkt.KanjiCodeDesired = AskLocalKanjiCode();
 						Pkt.KanaCnv = AskHostKanaCnv();
 						Pkt.Mode = EXIST_OVW;
+						// ミラーリング設定追加
+						Pkt.NoTransfer = MirrorNoTransferContents;
 						AddTmpTransFileList(&Pkt, &Base);
 					}
 				}
@@ -1693,6 +1697,8 @@ void MirrorUploadProc(int Notify)
 						}
 #endif
 						Pkt.Mode = EXIST_OVW;
+						// ミラーリング設定追加
+						Pkt.NoTransfer = MirrorNoTransferContents;
 						AddTmpTransFileList(&Pkt, &Base);
 					}
 				}
@@ -1890,6 +1896,8 @@ static INT_PTR CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM 
 			CountMirrorFiles(hDlg, *Base);
 			DlgSizeInit(hDlg, &DlgSize, &MirrorDlgSize);
 			EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), FALSE);
+			// ミラーリング設定追加
+			SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_SETCHECK, MirrorNoTransferContents, 0);
 			return(TRUE);
 
 		case WM_COMMAND :
@@ -1931,6 +1939,17 @@ static INT_PTR CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM 
 							else
 								EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), FALSE);
 							break;
+					}
+					break;
+
+				// ミラーリング設定追加
+				case MIRROR_NO_TRANSFER :
+					Pos = *Base;
+					while(Pos != NULL)
+					{
+						if(strncmp(Pos->Cmd, "STOR", 4) == 0 || strncmp(Pos->Cmd, "RETR", 4) == 0)
+							Pos->NoTransfer = SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
+						Pos = Pos->Next;
 					}
 					break;
 

@@ -239,6 +239,8 @@ extern int AutoCheckForUptatesInterval;
 extern time_t LastAutoCheckForUpdates;
 // ファイル一覧バグ修正
 extern int AbortOnListError;
+// ミラーリング設定追加
+extern int MirrorNoTransferContents; 
 
 /*----- マスタパスワードの設定 ----------------------------------------------
 *
@@ -841,6 +843,8 @@ void SaveRegistry(void)
 				WriteBinaryToReg(hKey4, "UpdLastCheck", &LastAutoCheckForUpdates, sizeof(LastAutoCheckForUpdates));
 				// ファイル一覧バグ修正
 				WriteIntValueToReg(hKey4, "AbortListErr", AbortOnListError);
+				// ミラーリング設定追加
+				WriteIntValueToReg(hKey4, "MirNoTransfer", MirrorNoTransferContents);
 			}
 			CloseSubKey(hKey4);
 		}
@@ -1426,6 +1430,8 @@ int LoadRegistry(void)
 			ReadBinaryFromReg(hKey4, "UpdLastCheck", &LastAutoCheckForUpdates, sizeof(LastAutoCheckForUpdates));
 			// ファイル一覧バグ修正
 			ReadIntValueFromReg(hKey4, "AbortListErr", &AbortOnListError);
+			// ミラーリング設定追加
+			ReadIntValueFromReg(hKey4, "MirNoTransfer", &MirrorNoTransferContents);
 
 			CloseSubKey(hKey4);
 		}

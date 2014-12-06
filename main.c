@@ -285,6 +285,8 @@ int AutoCheckForUptatesInterval = 7;
 time_t LastAutoCheckForUpdates = 0;
 // ファイル一覧バグ修正
 int AbortOnListError = YES;
+// ミラーリング設定追加
+int MirrorNoTransferContents = NO; 
 
 
 

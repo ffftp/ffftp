@@ -929,6 +929,7 @@ BEGIN
     CONTROL         "ミラーリングアップロードでファイル削除前に確認(&U)",MIRROR_UPDEL_NOTIFY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,111,174,10
     CONTROL         "ミラーリングダウンロードでファイル削除前に確認(&D)",MIRROR_DOWNDEL_NOTIFY,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,125,174,10
+    CONTROL         "ミラーリングでファイル内容を転送しない(&F)",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,139,174,10
 END
 
 somecmd_dlg DIALOG  0, 0, 187, 61
@@ -1111,11 +1112,12 @@ FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "次のファイルを転送/削除します。",-1,7,6,160,8
     LISTBOX         MIRROR_LIST,7,16,160,78,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "ファイル内容を転送しない(&F)",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,98,10
     DEFPUSHBUTTON   "実行",IDOK,7,153,50,14
     PUSHBUTTON      "キャンセル",IDCANCEL,62,153,50,14
     SCROLLBAR       MIRROR_SIZEGRIP,164,158,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
     PUSHBUTTON      "ヘルプ",9,117,153,50,14
-    PUSHBUTTON      "選んだ処理をしない",MIRROR_DEL,96,96,71,14,NOT WS_TABSTOP
+    PUSHBUTTON      "一覧から削除",MIRROR_DEL,111,96,56,14,NOT WS_TABSTOP
     LTEXT           "",MIRROR_COPYNUM,7,115,160,8
     LTEXT           "",MIRROR_MAKENUM,7,126,160,8
     LTEXT           "",MIRROR_DELNUM,7,137,160,8
@@ -1126,8 +1128,9 @@ STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_S
 CAPTION "ミラーリングダウンロード"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "次の処理を行います。",-1,7,6,92,8
+    LTEXT           "次のファイルを転送/削除します。",-1,7,6,160,8
     LISTBOX         MIRROR_LIST,7,16,160,78,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "ファイル内容を転送しない(&F)",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,98,10
     DEFPUSHBUTTON   "実行",IDOK,7,153,50,14
     PUSHBUTTON      "キャンセル",IDCANCEL,62,153,50,14
     SCROLLBAR       MIRROR_SIZEGRIP,164,158,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
@@ -2223,7 +2226,7 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "041104b0"
+        BLOCK "080004b0"
         BEGIN
             VALUE "Comments", "これはフリーソフトウエアです。"
             VALUE "CompanyName", "Sota, FFFTP Project"
@@ -2238,7 +2241,7 @@ BEGIN
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x411, 1200
+        VALUE "Translation", 0x800, 1200
     END
 END
 

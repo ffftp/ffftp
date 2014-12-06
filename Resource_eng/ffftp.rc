@@ -948,6 +948,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,111,174,10
     CONTROL         "Confirm deletions during Mirror &Download",MIRROR_DOWNDEL_NOTIFY,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,125,174,10
+    CONTROL         "Do not transfer &file contents during Mirroring",MIRROR_NO_TRANSFER,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,139,174,10
 END
 
 somecmd_dlg DIALOG  0, 0, 187, 61
@@ -1142,6 +1144,7 @@ FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "Copy/Delete following files",-1,7,6,160,8
     LISTBOX         MIRROR_LIST,7,16,160,78,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Do not transfer &file contents",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,98,10
     DEFPUSHBUTTON   "Start Now",IDOK,7,153,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,62,153,50,14
     SCROLLBAR       MIRROR_SIZEGRIP,164,158,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
@@ -1157,8 +1160,9 @@ STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_S
 CAPTION "Mirror Download"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Copy/Delete following files",-1,7,6,92,8
+    LTEXT           "Copy/Delete following files",-1,7,6,160,8
     LISTBOX         MIRROR_LIST,7,16,160,78,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Do not transfer &file contents",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,98,10
     DEFPUSHBUTTON   "Start Now",IDOK,7,153,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,62,153,50,14
     SCROLLBAR       MIRROR_SIZEGRIP,164,158,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
@@ -2259,7 +2263,7 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "041104b0"
+        BLOCK "040904b0"
         BEGIN
             VALUE "Comments", "This software is Free Software"
             VALUE "CompanyName", "Sota, FFFTP Project"
@@ -2274,7 +2278,7 @@ BEGIN
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x411, 1200
+        VALUE "Translation", 0x409, 1200
     END
 END
 

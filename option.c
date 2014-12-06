@@ -194,6 +194,8 @@ extern int AutoApplyUpdates;
 extern int AutoCheckForUptatesInterval;
 // ファイル一覧バグ修正
 extern int AbortOnListError;
+// ミラーリング設定追加
+extern int MirrorNoTransferContents; 
 
 
 /*----- オプションのプロパティシート ------------------------------------------
@@ -1010,7 +1012,8 @@ static INT_PTR CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam
 			SetMultiTextToList(hDlg, MIRROR_NODEL_LIST, MirrorNoDel);
 			SendDlgItemMessage(hDlg, MIRROR_LOW, BM_SETCHECK, MirrorFnameCnv, 0);
 			SendDlgItemMessage(hDlg, MIRROR_UPDEL_NOTIFY, BM_SETCHECK, MirUpDelNotify, 0);
-			SendDlgItemMessage(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_SETCHECK, MirDownDelNotify, 0);
+			// ミラーリング設定追加
+			SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_SETCHECK, MirrorNoTransferContents, 0);
 		    return(TRUE);
 
 		case WM_NOTIFY:
@@ -1023,6 +1026,8 @@ static INT_PTR CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam
 					MirrorFnameCnv = SendDlgItemMessage(hDlg, MIRROR_LOW, BM_GETCHECK, 0, 0);
 					MirUpDelNotify = SendDlgItemMessage(hDlg, MIRROR_UPDEL_NOTIFY, BM_GETCHECK, 0, 0);
 					MirDownDelNotify = SendDlgItemMessage(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_GETCHECK, 0, 0);
+					// ミラーリング設定追加
+					MirrorNoTransferContents = SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
 					break;
 
 				case PSN_RESET :

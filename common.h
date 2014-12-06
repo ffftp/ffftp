@@ -1159,6 +1159,8 @@ typedef struct transpacket {
 #endif
 	HWND hWndTrans;					/* 転送中ダイアログのウインドウハンドル */
 	int Abort;						/* 転送中止フラグ (ABORT_xxx) */
+	// ミラーリング設定追加
+	int NoTransfer;
 	// 同時接続対応
 	int ThreadCount;
 	struct transpacket *Next;
