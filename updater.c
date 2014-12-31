@@ -43,6 +43,9 @@ typedef struct
 	UPDATE_LIST_FILE File[1];
 } UPDATE_LIST;
 
+#define UPDATE_MAX_LIST_SIZE 1048576
+#define UPDATE_MAX_FILE_SIZE 16777216
+
 BOOL ReadFileViaHTTPW(void* pOut, DWORD Length, DWORD* pLength, LPCWSTR UserAgent, LPCWSTR ServerName, LPCWSTR ObjectName)
 {
 	BOOL bResult;
@@ -256,9 +259,9 @@ DWORD ListUpdateFile(UPDATE_LIST* pList, DWORD MaxCount, LPCTSTR ServerPath, LPC
 							{
 								if(pList)
 								{
-									if(pBuf = malloc(16777216))
+									if(pBuf = malloc(UPDATE_MAX_FILE_SIZE))
 									{
-										if(LoadMemoryFromFileWithTimestamp(Temp3, pBuf, 16777216, &Length, &Time))
+										if(LoadMemoryFromFileWithTimestamp(Temp3, pBuf, UPDATE_MAX_FILE_SIZE, &Length, &Time))
 										{
 											if(GetHashSHA512(pBuf, Length, &Hash))
 											{
@@ -307,13 +310,13 @@ BOOL BuildUpdates(LPCTSTR PrivateKeyFile, LPCTSTR Password, LPCTSTR ServerPath, 
 		{
 			if(p = _tcsrchr(Name, _T('\\')))
 				*p = _T('\0');
-			if(pList = (UPDATE_LIST*)malloc(1048576))
+			if(pList = (UPDATE_LIST*)malloc(UPDATE_MAX_LIST_SIZE))
 			{
-				memset(pList, 0, 1048576);
+				memset(pList, 0, UPDATE_MAX_LIST_SIZE);
 				pList->Version = Version;
 				_tcscpy(pList->VersionString, VersionString);
 				_tcscpy(pList->Description, Description);
-				ListUpdateFile(pList, (1048576 - sizeof(UPDATE_LIST)) / sizeof(UPDATE_LIST_FILE) + 1, ServerPath, Name, NULL);
+				ListUpdateFile(pList, (UPDATE_MAX_LIST_SIZE - sizeof(UPDATE_LIST)) / sizeof(UPDATE_LIST_FILE) + 1, ServerPath, Name, NULL);
 				Length = (pList->FileCount - 1) * sizeof(UPDATE_LIST_FILE) + sizeof(UPDATE_LIST);
 				if(SaveMemoryToFileWithTimestamp(ListFile, pList, Length, NULL))
 				{
@@ -355,9 +358,9 @@ BOOL CheckForUpdates(BOOL bDownload, LPCTSTR DownloadDir, DWORD* pVersion, LPTST
 				memcpy(&UpdateHash, &Buf2, sizeof(UPDATE_HASH));
 				if(memcmp(&UpdateHash.Signature, UPDATE_SIGNATURE, 64) == 0)
 				{
-					if(pBuf = malloc(1048576))
+					if(pBuf = malloc(UPDATE_MAX_LIST_SIZE))
 					{
-						if(ReadFileViaHTTP(pBuf, 1048576, &Length, HTTP_USER_AGENT, UPDATE_SERVER, UPDATE_LIST_PATH))
+						if(ReadFileViaHTTP(pBuf, UPDATE_MAX_LIST_SIZE, &Length, HTTP_USER_AGENT, UPDATE_SERVER, UPDATE_LIST_PATH))
 						{
 							if(GetHashSHA512(pBuf, Length, &Hash))
 							{
@@ -394,11 +397,13 @@ BOOL PrepareUpdates(void* pList, DWORD ListLength, LPCTSTR DownloadDir)
 	BOOL bResult;
 	UPDATE_LIST* pUpdateList;
 	void* pBuf;
+	TCHAR LocalDir[MAX_PATH];
+	TCHAR* p;
 	DWORD i;
 	BOOL b;
+	TCHAR Path[MAX_PATH];
 	DWORD Length;
 	BYTE Hash[64];
-	TCHAR Path[MAX_PATH];
 	bResult = FALSE;
 	if(ListLength >= sizeof(UPDATE_LIST))
 	{
@@ -408,8 +413,15 @@ BOOL PrepareUpdates(void* pList, DWORD ListLength, LPCTSTR DownloadDir)
 			bResult = TRUE;
 			DeleteDirectoryAndContents(DownloadDir);
 			CreateDirectory(DownloadDir, NULL);
-			if(pBuf = malloc(16777216))
+			if(pBuf = malloc(UPDATE_MAX_FILE_SIZE))
 			{
+				if(GetModuleFileName(NULL, LocalDir, MAX_PATH) > 0)
+				{
+					if(p = _tcsrchr(LocalDir, _T('\\')))
+						*p = _T('\0');
+				}
+				else
+					_tcscpy(LocalDir, _T("."));
 				for(i = 0; i < pUpdateList->FileCount; i++)
 				{
 					b = FALSE;
@@ -422,16 +434,29 @@ BOOL PrepareUpdates(void* pList, DWORD ListLength, LPCTSTR DownloadDir)
 					}
 					if(strlen(pUpdateList->File[i].SrcPath) > 0)
 					{
-						if(ReadFileViaHTTP(pBuf, 16777216, &Length, HTTP_USER_AGENT, UPDATE_SERVER, pUpdateList->File[i].SrcPath))
+						_tcscpy(Path, LocalDir);
+						_tcscat(Path, pUpdateList->File[i].DstPath);
+						if(LoadMemoryFromFileWithTimestamp(Path, pBuf, UPDATE_MAX_FILE_SIZE, &Length, NULL))
 						{
 							if(GetHashSHA512(pBuf, Length, &Hash))
 							{
 								if(memcmp(&Hash, &pUpdateList->File[i].SrcHash, 64) == 0)
+									b = TRUE;
+							}
+						}
+						if(!b)
+						{
+							if(ReadFileViaHTTP(pBuf, UPDATE_MAX_FILE_SIZE, &Length, HTTP_USER_AGENT, UPDATE_SERVER, pUpdateList->File[i].SrcPath))
+							{
+								if(GetHashSHA512(pBuf, Length, &Hash))
 								{
-									_tcscpy(Path, DownloadDir);
-									_tcscat(Path, pUpdateList->File[i].DstPath);
-									if(SaveMemoryToFileWithTimestamp(Path, pBuf, Length, &pUpdateList->File[i].Timestamp))
-										b = TRUE;
+									if(memcmp(&Hash, &pUpdateList->File[i].SrcHash, 64) == 0)
+									{
+										_tcscpy(Path, DownloadDir);
+										_tcscat(Path, pUpdateList->File[i].DstPath);
+										if(SaveMemoryToFileWithTimestamp(Path, pBuf, Length, &pUpdateList->File[i].Timestamp))
+											b = TRUE;
+									}
 								}
 							}
 						}
