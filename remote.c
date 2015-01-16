@@ -711,6 +711,8 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, 
 	MainTransPkt.KanjiCode = KANJI_NOCNV;
 	MainTransPkt.KanaCnv = YES;
 	MainTransPkt.Mode = EXIST_OVW;
+	// ミラーリング設定追加
+	MainTransPkt.NoTransfer = NO;
 	MainTransPkt.ExistSize = 0;
 	MainTransPkt.hWndTrans = hWnd;
 	MainTransPkt.Next = NULL;

@@ -2668,6 +2668,8 @@ void DoubleClickProc(int Win, int Mode, int App)
 							MainTransPkt.KanjiCodeDesired = AskLocalKanjiCode();
 							MainTransPkt.KanaCnv = AskHostKanaCnv();
 							MainTransPkt.Mode = EXIST_OVW;
+							// ミラーリング設定追加
+							MainTransPkt.NoTransfer = NO;
 							MainTransPkt.ExistSize = 0;
 							MainTransPkt.hWndTrans = NULL;
 							MainTransPkt.Next = NULL;

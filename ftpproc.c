@@ -299,6 +299,8 @@ void DownloadProc(int ChName, int ForceFile, int All)
 				// ディレクトリ自動作成
 				strcpy(Tmp, Pkt.LocalFile);
 				Pkt.Mode = CheckLocalFile(&Pkt);	/* Pkt.ExistSize がセットされる */
+				// ミラーリング設定追加
+				Pkt.NoTransfer = NO;
 				if(Pkt.Mode == EXIST_ABORT)
 					break;
 				else if(Pkt.Mode != EXIST_IGNORE)
@@ -419,6 +421,8 @@ void DirectDownloadProc(char *Fname)
 				// ディレクトリ自動作成
 				strcpy(Tmp, Pkt.LocalFile);
 				Pkt.Mode = CheckLocalFile(&Pkt);	/* Pkt.ExistSize がセットされる */
+				// ミラーリング設定追加
+				Pkt.NoTransfer = NO;
 				if((Pkt.Mode != EXIST_ABORT) && (Pkt.Mode != EXIST_IGNORE))
 				// ディレクトリ自動作成
 //					AddTransFileList(&Pkt);
@@ -1221,6 +1225,8 @@ void UploadListProc(int ChName, int All)
 				// ディレクトリ自動作成
 				strcpy(Tmp, Pkt.RemoteFile);
 				Pkt.Mode = CheckRemoteFile(&Pkt, RemoteList);
+				// ミラーリング設定追加
+				Pkt.NoTransfer = NO;
 				if(Pkt.Mode == EXIST_ABORT)
 					break;
 				else if(Pkt.Mode != EXIST_IGNORE)
@@ -1402,6 +1408,8 @@ void UploadDragProc(WPARAM wParam)
 				// ディレクトリ自動作成
 				strcpy(Tmp, Pkt.RemoteFile);
 				Pkt.Mode = CheckRemoteFile(&Pkt, RemoteList);
+				// ミラーリング設定追加
+				Pkt.NoTransfer = NO;
 				if(Pkt.Mode == EXIST_ABORT)
 					break;
 				else if(Pkt.Mode != EXIST_IGNORE)
