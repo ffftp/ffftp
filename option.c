@@ -2001,7 +2001,7 @@ static INT_PTR CALLBACK UpdatesSettingProc(HWND hDlg, UINT message, WPARAM wPara
 					break;
 
 				case PSN_HELP :
-//					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000069);
+					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000069);
 					break;
 			}
 			break;

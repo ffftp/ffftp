@@ -205,8 +205,8 @@
 		<param name="Local" value="HTML\H0000040.HTM">
 		</OBJECT>
 	<LI><OBJECT type="text/sitemap">
-		<param name="Name" value="ユーザ">
-		<param name="Name" value="ユーザ">
+		<param name="Name" value="ユーザー">
+		<param name="Name" value="ユーザー">
 		<param name="Local" value="HTML\H0000041.HTM">
 		</OBJECT>
 	<LI><OBJECT type="text/sitemap">
@@ -338,6 +338,11 @@
 		<param name="Name" value="表示2">
 		<param name="Name" value="表示2">
 		<param name="Local" value="HTML\H0000068.HTM">
+		</OBJECT>
+	<LI><OBJECT type="text/sitemap">
+		<param name="Name" value="更新">
+		<param name="Name" value="更新">
+		<param name="Local" value="HTML\H0000069.HTM">
 		</OBJECT>
 </UL>
 </BODY></HTML>

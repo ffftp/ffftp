@@ -61,3 +61,4 @@
 #define	IDH_HELP_TOPIC_0000066	66	/* 特殊機能 */
 #define	IDH_HELP_TOPIC_0000067	67	/* 転送4 */
 #define	IDH_HELP_TOPIC_0000068	68	/* 表示2 */
+#define	IDH_HELP_TOPIC_0000069	69	/* 更新 */
