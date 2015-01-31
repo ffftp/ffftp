@@ -10,11 +10,21 @@
 #define HTTP_USER_AGENT "Mozilla/4.0"
 #define UPDATE_SERVER "ffftp.sourceforge.jp"
 #if defined(_M_IX86)
-#define UPDATE_HASH_PATH "/update/hash"
-#define UPDATE_LIST_PATH "/update/list"
+#if !defined(FFFTP_ENGLISH)
+#define UPDATE_HASH_PATH "/update/jpn/hash"
+#define UPDATE_LIST_PATH "/update/jpn/list"
+#else
+#define UPDATE_HASH_PATH "/update/eng/hash"
+#define UPDATE_LIST_PATH "/update/eng/list"
+#endif
 #elif defined(_M_AMD64)
-#define UPDATE_HASH_PATH "/update/amd64/hash"
-#define UPDATE_LIST_PATH "/update/amd64/list"
+#if !defined(FFFTP_ENGLISH)
+#define UPDATE_HASH_PATH "/update/amd64/jpn/hash"
+#define UPDATE_LIST_PATH "/update/amd64/jpn/list"
+#else
+#define UPDATE_HASH_PATH "/update/amd64/eng/hash"
+#define UPDATE_LIST_PATH "/update/amd64/eng/list"
+#endif
 #endif
 #define UPDATE_RSA_PUBLIC_KEY \
 	"-----BEGIN PUBLIC KEY-----\n" \
