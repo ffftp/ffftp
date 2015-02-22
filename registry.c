@@ -959,33 +959,36 @@ int LoadRegistry(void)
 			IniKanjiCode = KANJI_SJIS;
 
 		// 全設定暗号化対応
-		if(GetMasterPasswordStatus() == PASSWORD_OK)
+		if(Version >= 1990)
 		{
-			ReadIntValueFromReg(hKey3, "EncryptAll", &EncryptAllSettings);
-			sprintf(Buf, "%d", EncryptAllSettings);
-			ReadStringFromReg(hKey3, "EncryptAllDetector", Str, 255);
-			DecodePassword(Str, Buf2);
-			EncryptSettings = EncryptAllSettings;
-			memset(&EncryptSettingsChecksum, 0, 20);
-			if(strcmp(Buf, Buf2) != 0)
+			if(GetMasterPasswordStatus() == PASSWORD_OK)
 			{
-				switch(DialogBox(GetFtpInst(), MAKEINTRESOURCE(corruptsettings_dlg), GetMainHwnd(), AnyButtonDialogProc))
+				ReadIntValueFromReg(hKey3, "EncryptAll", &EncryptAllSettings);
+				sprintf(Buf, "%d", EncryptAllSettings);
+				ReadStringFromReg(hKey3, "EncryptAllDetector", Str, 255);
+				DecodePassword(Str, Buf2);
+				EncryptSettings = EncryptAllSettings;
+				memset(&EncryptSettingsChecksum, 0, 20);
+				if(strcmp(Buf, Buf2) != 0)
 				{
-				case IDCANCEL:
-					Terminate();
-					break;
-				case IDABORT:
-					CloseReg(hKey3);
-					ClearRegistry();
-					ClearIni();
-					Restart();
-					Terminate();
-					break;
-				case IDRETRY:
-					EncryptSettingsError = YES;
-					break;
-				case IDIGNORE:
-					break;
+					switch(DialogBox(GetFtpInst(), MAKEINTRESOURCE(corruptsettings_dlg), GetMainHwnd(), AnyButtonDialogProc))
+					{
+					case IDCANCEL:
+						Terminate();
+						break;
+					case IDABORT:
+						CloseReg(hKey3);
+						ClearRegistry();
+						ClearIni();
+						Restart();
+						Terminate();
+						break;
+					case IDRETRY:
+						EncryptSettingsError = YES;
+						break;
+					case IDIGNORE:
+						break;
+					}
 				}
 			}
 		}
