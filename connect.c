@@ -2895,6 +2895,8 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 			saCtrlAddr.sin6_port = htons(0);
 			saCtrlAddr.sin6_family = AF_INET6;
 			memset(&saCtrlAddr.sin6_addr, 0, 16);
+			saCtrlAddr.sin6_flowinfo = 0;
+			saCtrlAddr.sin6_scope_id = 0;
 
 			if(bind(listen_skt, (struct sockaddr *)&saCtrlAddr, sizeof(struct sockaddr_in6)) != SOCKET_ERROR)
 			{
