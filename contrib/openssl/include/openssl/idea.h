@@ -57,44 +57,46 @@
  */
 
 #ifndef HEADER_IDEA_H
-#define HEADER_IDEA_H
+# define HEADER_IDEA_H
 
-#include <openssl/opensslconf.h> /* IDEA_INT, OPENSSL_NO_IDEA */
+# include <openssl/opensslconf.h>/* IDEA_INT, OPENSSL_NO_IDEA */
 
-#ifdef OPENSSL_NO_IDEA
-#error IDEA is disabled.
-#endif
+# ifdef OPENSSL_NO_IDEA
+#  error IDEA is disabled.
+# endif
 
-#define IDEA_ENCRYPT	1
-#define IDEA_DECRYPT	0
+# define IDEA_ENCRYPT    1
+# define IDEA_DECRYPT    0
 
-#define IDEA_BLOCK	8
-#define IDEA_KEY_LENGTH	16
+# define IDEA_BLOCK      8
+# define IDEA_KEY_LENGTH 16
 
 #ifdef  __cplusplus
 extern "C" {
 #endif
 
-typedef struct idea_key_st
-	{
-	IDEA_INT data[9][6];
-	} IDEA_KEY_SCHEDULE;
+typedef struct idea_key_st {
+    IDEA_INT data[9][6];
+} IDEA_KEY_SCHEDULE;
 
 const char *idea_options(void);
 void idea_ecb_encrypt(const unsigned char *in, unsigned char *out,
-	IDEA_KEY_SCHEDULE *ks);
-#ifdef OPENSSL_FIPS
-void private_idea_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks);
-#endif
+                      IDEA_KEY_SCHEDULE *ks);
+# ifdef OPENSSL_FIPS
+void private_idea_set_encrypt_key(const unsigned char *key,
+                                  IDEA_KEY_SCHEDULE *ks);
+# endif
 void idea_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks);
 void idea_set_decrypt_key(IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk);
 void idea_cbc_encrypt(const unsigned char *in, unsigned char *out,
-	long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,int enc);
+                      long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
+                      int enc);
 void idea_cfb64_encrypt(const unsigned char *in, unsigned char *out,
-	long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
-	int *num,int enc);
+                        long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
+                        int *num, int enc);
 void idea_ofb64_encrypt(const unsigned char *in, unsigned char *out,
-	long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv, int *num);
+                        long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
+                        int *num);
 void idea_encrypt(unsigned long *in, IDEA_KEY_SCHEDULE *ks);
 #ifdef  __cplusplus
 }
