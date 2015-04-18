@@ -1334,9 +1334,13 @@ typedef struct {
 /*===== ダイアログボックス変更処理用 =====*/
 
 typedef struct {
-	int HorMoveList[10];	/* 水平に動かす部品のリスト */
-	int VarMoveList[10];	/* 垂直に動かす部品のリスト */
-	int ResizeList[10];		/* サイズ変更する部品のリスト */
+	// ホスト共通設定機能
+//	int HorMoveList[10];	/* 水平に動かす部品のリスト */
+//	int VarMoveList[10];	/* 垂直に動かす部品のリスト */
+//	int ResizeList[10];		/* サイズ変更する部品のリスト */
+	int HorMoveList[16];	/* 水平に動かす部品のリスト */
+	int VarMoveList[16];	/* 垂直に動かす部品のリスト */
+	int ResizeList[16];		/* サイズ変更する部品のリスト */
 	SIZE MinSize;			/* 最少サイズ */
 	SIZE CurSize;			/* 現在のサイズ */
 } DIALOGSIZE;
