@@ -282,7 +282,7 @@
 #define MSGJPN281		_Tu8("Cannnot connect with PASV mode", "Cannnot connect with PASV mode")
 #define MSGJPN282		_Tu8("INI filename is not specified", "INI filename is not specified")
 #define MSGJPN283		_Tu8("INI file: ", "INI file: ")
-#define MSGJPN284		_Tu8("http://sourceforge.jp/projects/ffftp/", "http://sourceforge.jp/projects/ffftp/")
+#define MSGJPN284		_Tu8("http://osdn.jp/projects/ffftp/", "http://osdn.jp/projects/ffftp/")
 #define MSGJPN285		_Tu8("Failed to execute Registory Editor.", "Failed to execute Registory Editor.")
 #define MSGJPN286		_Tu8("Save Settings", "Save Settings")
 #define MSGJPN287		_Tu8("Reg file\0*.reg\0All file\0*\0", "Reg file\0*.reg\0All file\0*\0")

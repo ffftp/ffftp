@@ -52,7 +52,7 @@
 #define MAIL_ADDRESS	"sota@mwa.biglobe.ne.jp"
 #define SOFTWARE		"FFFTP"
 #define MYNAME			"FFFTP Project"
-#define MYURL			"http://sourceforge.jp/projects/ffftp/"
+#define MYURL			"http://osdn.jp/projects/ffftp/"
 #define INFOFILE		"http://www2.biglobe.ne.jp/~sota/product/update.inf"
 
 

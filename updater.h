@@ -8,7 +8,7 @@
 #include <windows.h>
 
 #define HTTP_USER_AGENT "Mozilla/4.0"
-#define UPDATE_SERVER "ffftp.sourceforge.jp"
+#define UPDATE_SERVER "ffftp.osdn.jp"
 #if defined(_M_IX86)
 #if !defined(FFFTP_ENGLISH)
 #define UPDATE_HASH_PATH "/update/jpn/hash"
