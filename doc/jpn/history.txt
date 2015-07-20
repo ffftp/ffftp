@@ -6,9 +6,6 @@ FFFTP　改版リスト
 
 ・Windows 10 (32bit/64bit)で動作を確認しました。
 
-・Windows XP以前のサポートを終了しました。
-　Windows Vista以降でのみ動作します。
-
 ・64bit版が利用可能になりました。
 　これにより64bit版Windowsで特定の操作が制限されるのを回避できます。
 

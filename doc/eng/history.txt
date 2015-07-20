@@ -7,9 +7,6 @@ Changes in Ver.1.99
 
 -- Tested on Windows 10 (32bit/64bit).
 
--- Ended the support for Windows XP and earlier.
-   This works only on Windows Vista or later.
-
 -- 64bit version is now available.
    This works around the certain restriction on 64bit Windows.
 
