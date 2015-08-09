@@ -1464,7 +1464,7 @@ int RemovePortMapping(int Port)
 		if(Data.h = CreateEvent(NULL, TRUE, FALSE, NULL))
 		{
 			Data.Port = Port;
-			if(PostMessage(GetMainHwnd(), WM_ADDPORTMAPPING, 0, (LPARAM)&Data))
+			if(PostMessage(GetMainHwnd(), WM_REMOVEPORTMAPPING, 0, (LPARAM)&Data))
 			{
 				if(WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
 					Sts = Data.r;
