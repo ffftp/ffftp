@@ -3801,14 +3801,13 @@ static int RenameUnuseableName(char *Fname)
 // NOOPコマンドでは効果が無いホストが多いためLISTコマンドを使用
 void NoopProc(int Force)
 {
-	int CancelCheckWork;
-	CancelCheckWork = NO;
+//	CancelFlg = NO;
 	if(Force == YES || (AskConnecting() == YES && AskUserOpeDisabled() == NO))
 	{
 		if(AskReuseCmdSkt() == NO || AskShareProh() == YES || AskTransferNow() == NO)
 		{
 			DisableUserOpe();
-			DoDirListCmdSkt("", "", 999, &CancelCheckWork);
+			DoDirListCmdSkt("", "", 999, &CancelFlg);
 			EnableUserOpe();
 		}
 	}

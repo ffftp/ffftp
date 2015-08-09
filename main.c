@@ -2056,6 +2056,17 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				PostMessage(hWnd,  WM_COMMAND, MAKEWPARAM(REFRESH_REMOTE, 0), 0);
 			break;
 
+		// UPnP対応
+		case WM_ADDPORTMAPPING :
+			((ADDPORTMAPPINGDATA*)lParam)->r = AddPortMapping(((ADDPORTMAPPINGDATA*)lParam)->Adrs, ((ADDPORTMAPPINGDATA*)lParam)->Port, ((ADDPORTMAPPINGDATA*)lParam)->ExtAdrs);
+			SetEvent(((ADDPORTMAPPINGDATA*)lParam)->h);
+			break;
+
+		case WM_REMOVEPORTMAPPING :
+			((REMOVEPORTMAPPINGDATA*)lParam)->r = RemovePortMapping(((REMOVEPORTMAPPINGDATA*)lParam)->Port);
+			SetEvent(((REMOVEPORTMAPPINGDATA*)lParam)->h);
+			break;
+
 		case WM_PAINT :
 		    BeginPaint(hWnd, (LPPAINTSTRUCT) &ps);
 		    EndPaint(hWnd, (LPPAINTSTRUCT) &ps);

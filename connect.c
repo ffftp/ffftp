@@ -2643,6 +2643,7 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 	// UPnP対応
 	char Adrs[16];
 	int Port;
+	char ExtAdrs[40];
 
 	// ソケットにデータを付与
 	GetAsyncTableDataIPv4(ctrl_skt, &CurSockAddr, &SocksSockAddr);
@@ -2755,8 +2756,11 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 						// UPnP対応
 						if(IsUPnPLoaded() == YES && UPnPEnabled == YES)
 						{
-							if(AddPortMapping(AddressToStringIPv4(Adrs, &saTmpAddr.sin_addr), ntohs(saCtrlAddr.sin_port)) == FFFTP_SUCCESS)
+							if(AddPortMapping(AddressToStringIPv4(Adrs, &saTmpAddr.sin_addr), ntohs(saCtrlAddr.sin_port), ExtAdrs) == FFFTP_SUCCESS)
+							{
+								saTmpAddr.sin_addr.s_addr = inet_addr(ExtAdrs);
 								SetAsyncTableDataMapPort(listen_skt, ntohs(saCtrlAddr.sin_port));
+							}
 						}
 					}
 					else
@@ -2838,6 +2842,7 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 	char Adrs[40];
 	// UPnP対応
 	int Port;
+	char ExtAdrs[40];
 
 	// ソケットにデータを付与
 	GetAsyncTableDataIPv6(ctrl_skt, &CurSockAddr, &SocksSockAddr);
@@ -2914,8 +2919,11 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 						// UPnP対応
 						if(IsUPnPLoaded() == YES && UPnPEnabled == YES)
 						{
-							if(AddPortMapping(AddressToStringIPv6(Adrs, &saTmpAddr.sin6_addr), ntohs(saCtrlAddr.sin6_port)) == FFFTP_SUCCESS)
+							if(AddPortMapping(AddressToStringIPv6(Adrs, &saTmpAddr.sin6_addr), ntohs(saCtrlAddr.sin6_port), ExtAdrs) == FFFTP_SUCCESS)
+							{
+								saTmpAddr.sin6_addr = inet6_addr(ExtAdrs);
 								SetAsyncTableDataMapPort(listen_skt, ntohs(saCtrlAddr.sin6_port));
+							}
 						}
 					}
 					else

@@ -81,7 +81,7 @@
 // ソフトウェア自動更新
 // リリースバージョンはリリース予定年（10進数4桁）+月（2桁）+日（2桁）+通し番号（0スタート2桁）とする
 // 2014年7月31日中の30個目のリリースは2014073129
-#define RELEASE_VERSION_NUM		2015072001	/* リリースバージョン */
+#define RELEASE_VERSION_NUM		2015080901	/* リリースバージョン */
 
 
 // SourceForge.JPによるフォーク
@@ -116,6 +116,10 @@
 
 #define WM_REFRESH_LOCAL_FLG	(WM_USER+7)
 #define WM_REFRESH_REMOTE_FLG	(WM_USER+8)
+
+// UPnP対応
+#define WM_ADDPORTMAPPING	(WM_USER+9)
+#define WM_REMOVEPORTMAPPING	(WM_USER+10)
 
 /*===== ホスト番号 =====*/
 /* ホスト番号は 0～ の値を取る */
@@ -1354,6 +1358,23 @@ typedef struct {
 } INTCONVTBL;
 
 
+// UPnP対応
+typedef struct
+{
+	int r;
+	HANDLE h;
+	char* Adrs;
+	int Port;
+	char* ExtAdrs;
+} ADDPORTMAPPINGDATA;
+
+typedef struct
+{
+	int r;
+	HANDLE h;
+	int Port;
+} REMOVEPORTMAPPINGDATA;
+
 /*=================================================
 *		プロトタイプ
 *=================================================*/
@@ -2001,7 +2022,7 @@ void RemoveReceivedData(SOCKET s);
 int LoadUPnP();
 void FreeUPnP();
 int IsUPnPLoaded();
-int AddPortMapping(char* Adrs, int Port);
+int AddPortMapping(char* Adrs, int Port, char* ExtAdrs);
 int RemovePortMapping(int Port);
 int CheckClosedAndReconnect(void);
 // 同時接続対応

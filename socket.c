@@ -1389,7 +1389,7 @@ int IsUPnPLoaded()
 	return Sts;
 }
 
-int AddPortMapping(char* Adrs, int Port)
+int AddPortMapping(char* Adrs, int Port, char* ExtAdrs)
 {
 	int Sts;
 	WCHAR Tmp1[40];
@@ -1397,24 +1397,49 @@ int AddPortMapping(char* Adrs, int Port)
 	BSTR Tmp3;
 	BSTR Tmp4;
 	IStaticPortMapping* pPortMap;
+	BSTR Tmp5;
+	ADDPORTMAPPINGDATA Data;
 	Sts = FFFTP_FAIL;
-	MtoW(Tmp1, 40, Adrs, -1);
-	if((Tmp2 = SysAllocString(Tmp1)) != NULL)
+	if(IsMainThread())
 	{
-		if((Tmp3 = SysAllocString(L"TCP")) != NULL)
+		MtoW(Tmp1, 40, Adrs, -1);
+		if((Tmp2 = SysAllocString(Tmp1)) != NULL)
 		{
-			if((Tmp4 = SysAllocString(L"FFFTP")) != NULL)
+			if((Tmp3 = SysAllocString(L"TCP")) != NULL)
 			{
-				if(pUPnPMap->lpVtbl->Add(pUPnPMap, Port, Tmp3, Port, Tmp2, VARIANT_TRUE, Tmp4, &pPortMap) == S_OK)
+				if((Tmp4 = SysAllocString(L"FFFTP")) != NULL)
 				{
-					Sts = FFFTP_SUCCESS;
-					pPortMap->lpVtbl->Release(pPortMap);
+					if(pUPnPMap->lpVtbl->Add(pUPnPMap, Port, Tmp3, Port, Tmp2, VARIANT_TRUE, Tmp4, &pPortMap) == S_OK)
+					{
+						if(pPortMap->lpVtbl->get_ExternalIPAddress(pPortMap, &Tmp5) == S_OK)
+						{
+							WtoM(ExtAdrs, 40, Tmp5, -1);
+							Sts = FFFTP_SUCCESS;
+							SysFreeString(Tmp5);
+						}
+						pPortMap->lpVtbl->Release(pPortMap);
+					}
+					SysFreeString(Tmp4);
 				}
-				SysFreeString(Tmp4);
+				SysFreeString(Tmp3);
 			}
-			SysFreeString(Tmp3);
+			SysFreeString(Tmp2);
 		}
-		SysFreeString(Tmp2);
+	}
+	else
+	{
+		if(Data.h = CreateEvent(NULL, TRUE, FALSE, NULL))
+		{
+			Data.Adrs = Adrs;
+			Data.Port = Port;
+			Data.ExtAdrs = ExtAdrs;
+			if(PostMessage(GetMainHwnd(), WM_ADDPORTMAPPING, 0, (LPARAM)&Data))
+			{
+				if(WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
+					Sts = Data.r;
+			}
+			CloseHandle(Data.h);
+		}
 	}
 	return Sts;
 }
@@ -1423,12 +1448,29 @@ int RemovePortMapping(int Port)
 {
 	int Sts;
 	BSTR Tmp;
+	REMOVEPORTMAPPINGDATA Data;
 	Sts = FFFTP_FAIL;
-	if((Tmp = SysAllocString(L"TCP")) != NULL)
+	if(IsMainThread())
 	{
-		if(pUPnPMap->lpVtbl->Remove(pUPnPMap, Port, Tmp) == S_OK)
-			Sts = FFFTP_SUCCESS;
-		SysFreeString(Tmp);
+		if((Tmp = SysAllocString(L"TCP")) != NULL)
+		{
+			if(pUPnPMap->lpVtbl->Remove(pUPnPMap, Port, Tmp) == S_OK)
+				Sts = FFFTP_SUCCESS;
+			SysFreeString(Tmp);
+		}
+	}
+	else
+	{
+		if(Data.h = CreateEvent(NULL, TRUE, FALSE, NULL))
+		{
+			Data.Port = Port;
+			if(PostMessage(GetMainHwnd(), WM_ADDPORTMAPPING, 0, (LPARAM)&Data))
+			{
+				if(WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
+					Sts = Data.r;
+			}
+			CloseHandle(Data.h);
+		}
 	}
 	return Sts;
 }
