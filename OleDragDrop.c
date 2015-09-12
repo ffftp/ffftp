@@ -12,12 +12,18 @@
 	Include Files
 **************************************************************************/
 
+// UTF-8対応
+#include <winsock2.h>
+
 #define _INC_OLE
 #include <windows.h>
 #undef	_INC_OLE
 
 #include <oleidl.h>
 #include <objidl.h>
+
+// UTF-8対応
+#include "common.h"
 
 #include "OleDragDrop.h"
 

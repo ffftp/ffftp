@@ -966,7 +966,6 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  					}
  					
  					/* ファイル名の配列を作成する */
-					// TODO: GlobalAllocが返すのはメモリポインタではなくハンドルだが実際は同じ値
  					FileNameList = (char **)GlobalAlloc(GPTR,sizeof(char *) * filenum);
  					if(FileNameList == NULL){
  						abort();
