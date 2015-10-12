@@ -4,17 +4,9 @@
 
 // 次の中から1個のみ有効にする
 // フック先の関数のコードを書き換える
-// 全ての呼び出しをフック可能だが原理的に二重呼び出しに対応できない
 #define USE_CODE_HOOK
 // フック先の関数のインポートアドレステーブルを書き換える
-// 二重呼び出しが可能だが呼び出し方法によってはフックを回避される
 //#define USE_IAT_HOOK
-
-// フック対象の関数名 %s
-// フック対象の型 _%s
-// フック対象のポインタ p_%s
-// フック用の関数名 h_%s
-// フック対象のコードのバックアップ c_%s
 
 #include <tchar.h>
 #include <windows.h>
@@ -37,7 +29,8 @@
 
 #ifdef USE_CODE_HOOK
 #if defined(_M_IX86)
-#define HOOK_JUMP_CODE_LENGTH 5
+//#define HOOK_JUMP_CODE_LENGTH 5
+#define HOOK_JUMP_CODE_LENGTH 7
 #elif defined(_M_AMD64)
 #define HOOK_JUMP_CODE_LENGTH 14
 #endif
@@ -49,42 +42,35 @@ typedef struct
 	BYTE BackupCode[HOOK_JUMP_CODE_LENGTH];
 } HOOK_JUMP_CODE_PATCH;
 #endif
-
-BOOL LockThreadLock();
-BOOL UnlockThreadLock();
+typedef struct
+{
+	DWORD Flags;
+	LPCTSTR ModuleName;
+	HMODULE hModule;
+	LPCSTR ProcName;
+	FARPROC Proc;
+	FARPROC Hook;
+	FARPROC Unhook;
 #ifdef USE_CODE_HOOK
-BOOL HookFunctionInCode(void* pOriginal, void* pNew, HOOK_JUMP_CODE_PATCH* pPatch, BOOL bRestore);
+	HOOK_JUMP_CODE_PATCH Patch;
 #endif
-#ifdef USE_IAT_HOOK
-BOOL HookFunctionInIAT(void* pOriginal, void* pNew);
-#endif
-HANDLE LockExistingFile(LPCWSTR Filename);
-BOOL FindTrustedModuleSHA1Hash(void* pHash);
-BOOL VerifyFileSignature(LPCWSTR Filename);
-BOOL VerifyFileSignatureInCatalog(LPCWSTR Catalog, LPCWSTR Filename);
-BOOL GetSHA1HashOfModule(LPCWSTR Filename, void* pHash);
-BOOL IsModuleTrusted(LPCWSTR Filename);
+} HOOK_FUNCTION_INFO;
 
-// 変数の宣言
-#ifdef USE_CODE_HOOK
-#define HOOK_FUNCTION_VAR(name) _##name p_##name;HOOK_JUMP_CODE_PATCH c_##name;
-#endif
-#ifdef USE_IAT_HOOK
-#define HOOK_FUNCTION_VAR(name) _##name p_##name;
-#endif
-// 関数ポインタを取得
-#define GET_FUNCTION(h, name) p_##name = (_##name)GetProcAddress(h, #name)
-// フック対象のコードを置換してフックを開始
-#define SET_HOOK_FUNCTION(name) HookFunctionInCode(p_##name, h_##name, &c_##name, FALSE)
-// フック対象を呼び出す前に対象のコードを復元
-#define BEGIN_HOOK_FUNCTION(name) HookFunctionInCode(p_##name, h_##name, &c_##name, TRUE)
-// フック対象を呼び出した後に対象のコードを置換
-#define END_HOOK_FUNCTION(name) HookFunctionInCode(p_##name, h_##name, &c_##name, FALSE)
+#define HOOK_INITIALIZED 0x00000001
+#define HOOK_ENABLED 0x00000002
+#define HOOK_USE_GETMODULEHANDLE 0x00000004
+#define HOOK_USE_LOADLIBRARY 0x00000008
+#define HOOK_USE_GETPROCADDRESS 0x00000010
 
-HOOK_FUNCTION_VAR(LoadLibraryA)
-HOOK_FUNCTION_VAR(LoadLibraryW)
-HOOK_FUNCTION_VAR(LoadLibraryExA)
-HOOK_FUNCTION_VAR(LoadLibraryExW)
+typedef HMODULE (WINAPI* _LoadLibraryA)(LPCSTR);
+typedef HMODULE (WINAPI* _LoadLibraryW)(LPCWSTR);
+typedef HMODULE (WINAPI* _LoadLibraryExA)(LPCSTR, HANDLE, DWORD);
+typedef HMODULE (WINAPI* _LoadLibraryExW)(LPCWSTR, HANDLE, DWORD);
+
+HOOK_FUNCTION_INFO g_LoadLibraryA;
+HOOK_FUNCTION_INFO g_LoadLibraryW;
+HOOK_FUNCTION_INFO g_LoadLibraryExA;
+HOOK_FUNCTION_INFO g_LoadLibraryExW;
 
 typedef NTSTATUS (NTAPI* _LdrLoadDll)(LPCWSTR, DWORD*, UNICODE_STRING*, HMODULE*);
 typedef NTSTATUS (NTAPI* _LdrGetDllHandle)(LPCWSTR, DWORD*, UNICODE_STRING*, HMODULE*);
@@ -106,95 +92,290 @@ WCHAR* g_pTrustedFilenameTable[MAX_TRUSTED_FILENAME_TABLE];
 BYTE g_TrustedSHA1HashTable[MAX_TRUSTED_SHA1_HASH_TABLE][20];
 WNDPROC g_PasswordEditControlProc;
 
-// 以下フック関数
-// フック対象を呼び出す場合は前後でBEGIN_HOOK_FUNCTIONとEND_HOOK_FUNCTIONを実行する必要がある
-
-HMODULE WINAPI h_LoadLibraryA(LPCSTR lpLibFileName)
+#ifdef USE_CODE_HOOK
+BOOL HookFunctionInCode(void* pProc, void* pHook, void** ppUnhook, HOOK_JUMP_CODE_PATCH* pPatch, BOOL bRestore)
 {
-	HMODULE r = NULL;
-	wchar_t* pw0 = NULL;
-	if(pw0 = DuplicateAtoW(lpLibFileName, -1))
-		r = LoadLibraryExW(pw0, NULL, 0);
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
-HMODULE WINAPI h_LoadLibraryW(LPCWSTR lpLibFileName)
-{
-	HMODULE r = NULL;
-	r = LoadLibraryExW(lpLibFileName, NULL, 0);
-	return r;
-}
-
-HMODULE WINAPI h_LoadLibraryExA(LPCSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
-{
-	HMODULE r = NULL;
-	wchar_t* pw0 = NULL;
-	if(pw0 = DuplicateAtoW(lpLibFileName, -1))
-		r = LoadLibraryExW(pw0, hFile, dwFlags);
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
-HMODULE WINAPI h_LoadLibraryExW(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
-{
-	HMODULE r = NULL;
-	BOOL bTrusted;
-	wchar_t* pw0;
-	HANDLE hLock;
-	HMODULE hModule;
-	DWORD Length;
-	bTrusted = FALSE;
-	pw0 = NULL;
-	hLock = NULL;
-//	if(dwFlags & (DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE | LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE))
-	if(dwFlags & (DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE | 0x00000020 | 0x00000040))
-		bTrusted = TRUE;
-	if(!bTrusted)
+	BOOL bResult;
+	bResult = FALSE;
+#if defined(_M_IX86)
 	{
-		if(hModule = System_LoadLibrary(lpLibFileName, NULL, DONT_RESOLVE_DLL_REFERENCES))
+		DWORD Protect;
+		BYTE* pCode;
+		CHAR c;
+		LONG l;
+		bResult = FALSE;
+		if(bRestore)
 		{
-			Length = MAX_PATH;
-			if(pw0 = AllocateStringW(Length))
+			if(VirtualProtect(pPatch->pCode, pPatch->CodeLength, PAGE_EXECUTE_READWRITE, &Protect))
 			{
-				if(GetModuleFileNameW(hModule, pw0, Length) > 0)
+				memcpy(pPatch->pCode, &pPatch->BackupCode, pPatch->CodeLength);
+				VirtualProtect(pPatch->pCode, pPatch->CodeLength, Protect, &Protect);
+				FlushInstructionCache(GetCurrentProcess(), pPatch->pCode, pPatch->CodeLength);
+				bResult = TRUE;
+			}
+		}
+		else
+		{
+			if(!pPatch->pCode)
+			{
+				pCode = (BYTE*)pProc;
+				while(pCode[0] == 0xeb)
 				{
-					while(pw0)
+					memcpy(&c, pCode + 1, 1);
+					pCode = pCode + 2 + c;
+				}
+				if(pCode[0] == 0x8b && pCode[1] == 0xff)
+				{
+					pCode = pCode - 5;
+					pPatch->pCode = pCode;
+					pPatch->CodeLength = 7;
+					memcpy(&pPatch->BackupCode, pPatch->pCode, pPatch->CodeLength);
+					pPatch->PatchCode[0] = 0xe9;
+					l = (long)pHook - ((long)pCode + 5);
+					memcpy(&pPatch->PatchCode[1], &l, 4);
+					pPatch->PatchCode[5] = 0xeb;
+					pPatch->PatchCode[6] = 0xf9;
+					*ppUnhook = pCode + 7;
+				}
+				else if(pCode[0] == 0xe9)
+				{
+					pPatch->pCode = pCode + 1;
+					pPatch->CodeLength = 4;
+					memcpy(&pPatch->BackupCode, pPatch->pCode, pPatch->CodeLength);
+					l = (long)pHook - ((long)pCode + 5);
+					memcpy(&pPatch->PatchCode[0], &l, 4);
+					memcpy(&l, pCode + 1, 4);
+					*ppUnhook = pCode + 5 + l;
+				}
+				else
+				{
+					pPatch->pCode = pCode;
+					pPatch->CodeLength = 5;
+					memcpy(&pPatch->BackupCode, pPatch->pCode, pPatch->CodeLength);
+					pPatch->PatchCode[0] = 0xe9;
+					l = (long)pHook - ((long)pCode + 5);
+					memcpy(&pPatch->PatchCode[1], &l, 4);
+					*ppUnhook = NULL;
+				}
+			}
+			if(VirtualProtect(pPatch->pCode, pPatch->CodeLength, PAGE_EXECUTE_READWRITE, &Protect))
+			{
+				memcpy(pPatch->pCode, &pPatch->PatchCode, pPatch->CodeLength);
+				VirtualProtect(pPatch->pCode, pPatch->CodeLength, Protect, &Protect);
+				FlushInstructionCache(GetCurrentProcess(), pPatch->pCode, pPatch->CodeLength);
+				bResult = TRUE;
+			}
+		}
+	}
+#elif defined(_M_AMD64)
+	{
+		DWORD Protect;
+		BYTE* pCode;
+		CHAR c;
+		LONG l;
+		LONGLONG ll;
+		bResult = FALSE;
+		if(bRestore)
+		{
+			if(VirtualProtect(pPatch->pCode, pPatch->CodeLength, PAGE_EXECUTE_READWRITE, &Protect))
+			{
+				memcpy(pPatch->pCode, &pPatch->BackupCode, pPatch->CodeLength);
+				VirtualProtect(pPatch->pCode, pPatch->CodeLength, Protect, &Protect);
+				FlushInstructionCache(GetCurrentProcess(), pPatch->pCode, pPatch->CodeLength);
+				bResult = TRUE;
+			}
+		}
+		else
+		{
+			if(!pPatch->pCode)
+			{
+				pCode = (BYTE*)pProc;
+				if(pCode[0] == 0x48)
+					pCode = pCode + 1;
+				while(pCode[0] == 0xeb || pCode[0] == 0xe9)
+				{
+					if(pCode[0] == 0xeb)
 					{
-						if(GetModuleFileNameW(hModule, pw0, Length) + 1 <= Length)
+						memcpy(&c, pCode + 1, 1);
+						pCode = pCode + 2 + c;
+					}
+					else
+					{
+						memcpy(&l, pCode + 1, 4);
+						pCode = pCode + 5 + l;
+					}
+					if(pCode[0] == 0x48)
+						pCode++;
+				}
+				if(pCode[0] == 0xff && pCode[1] == 0x25)
+				{
+					memcpy(&l, pCode + 2, 4);
+					pPatch->pCode = pCode + 6 + l;
+					pPatch->CodeLength = 8;
+					memcpy(&pPatch->BackupCode, pPatch->pCode, pPatch->CodeLength);
+					memcpy(&pPatch->PatchCode[0], &pHook, 8);
+					memcpy(&ll, pCode + 6 + l, 8);
+					*ppUnhook = (void*)ll;
+				}
+				else
+				{
+					pPatch->pCode = pCode;
+					pPatch->CodeLength = 14;
+					memcpy(&pPatch->BackupCode, pPatch->pCode, pPatch->CodeLength);
+					pPatch->PatchCode[0] = 0xff;
+					pPatch->PatchCode[1] = 0x25;
+					l = 0;
+					memcpy(&pPatch->PatchCode[2], &l, 4);
+					memcpy(&pPatch->PatchCode[6], &pHook, 8);
+					*ppUnhook = NULL;
+				}
+			}
+			if(VirtualProtect(pPatch->pCode, pPatch->CodeLength, PAGE_EXECUTE_READWRITE, &Protect))
+			{
+				memcpy(pPatch->pCode, &pPatch->PatchCode, pPatch->CodeLength);
+				VirtualProtect(pPatch->pCode, pPatch->CodeLength, Protect, &Protect);
+				FlushInstructionCache(GetCurrentProcess(), pPatch->pCode, pPatch->CodeLength);
+				bResult = TRUE;
+			}
+		}
+	}
+#endif
+	return bResult;
+}
+#endif
+
+#ifdef USE_IAT_HOOK
+BOOL HookFunctionInIAT(void* pProc, void* pHook, void** ppUnhook)
+{
+	BOOL bResult;
+	HANDLE hSnapshot;
+	MODULEENTRY32 me;
+	BOOL bFound;
+	IMAGE_IMPORT_DESCRIPTOR* piid;
+	ULONG Size;
+	IMAGE_THUNK_DATA* pitd;
+	DWORD Protect;
+	bResult = FALSE;
+	if((hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId())) != INVALID_HANDLE_VALUE)
+	{
+		me.dwSize = sizeof(MODULEENTRY32);
+		if(Module32First(hSnapshot, &me))
+		{
+			bFound = FALSE;
+			do
+			{
+				if(piid = (IMAGE_IMPORT_DESCRIPTOR*)ImageDirectoryEntryToData(me.hModule, TRUE, IMAGE_DIRECTORY_ENTRY_IMPORT, &Size))
+				{
+					while(!bFound && piid->Name != 0)
+					{
+						pitd = (IMAGE_THUNK_DATA*)((BYTE*)me.hModule + piid->FirstThunk);
+						while(!bFound && pitd->u1.Function != 0)
 						{
-							lpLibFileName = pw0;
-							break;
+							if((void*)pitd->u1.Function == pProc)
+							{
+								bFound = TRUE;
+								if(VirtualProtect(&pitd->u1.Function, sizeof(void*), PAGE_EXECUTE_READWRITE, &Protect))
+								{
+									memcpy(&pitd->u1.Function, &pHook, sizeof(void*));
+									VirtualProtect(&pitd->u1.Function, sizeof(void*), Protect, &Protect);
+									*ppUnhook = pProc;
+									bResult = TRUE;
+								}
+							}
+							pitd++;
 						}
-						Length = Length * 2;
-						FreeDuplicatedString(pw0);
-						pw0 = AllocateStringW(Length);
+						piid++;
 					}
 				}
 			}
-			hLock = LockExistingFile(lpLibFileName);
-			FreeLibrary(hModule);
+			while(!bFound && Module32Next(hSnapshot, &me));
 		}
-		if((g_ProcessProtectionLevel & PROCESS_PROTECTION_LOADED) && GetModuleHandleW(lpLibFileName))
-			bTrusted = TRUE;
+		CloseHandle(hSnapshot);
 	}
-	if(!bTrusted)
+	return bResult;
+}
+#endif
+
+BOOL InitializeHookFunction(HOOK_FUNCTION_INFO* pInfo)
+{
+	BOOL bResult;
+	bResult = FALSE;
+	if(!(pInfo->Flags & HOOK_INITIALIZED))
 	{
-		if(hLock)
+		if(pInfo->Flags & HOOK_USE_GETMODULEHANDLE)
+			pInfo->hModule = GetModuleHandle(pInfo->ModuleName);
+		if(pInfo->Flags & HOOK_USE_LOADLIBRARY)
+			pInfo->hModule = LoadLibrary(pInfo->ModuleName);
+		if(pInfo->Flags & HOOK_USE_GETPROCADDRESS)
+			pInfo->Proc = GetProcAddress(pInfo->hModule, pInfo->ProcName);
+		if(pInfo->Proc)
 		{
-			if(IsModuleTrusted(lpLibFileName))
-				bTrusted = TRUE;
+			pInfo->Flags |= HOOK_INITIALIZED;
+			bResult = TRUE;
 		}
 	}
-	if(bTrusted)
-		r = System_LoadLibrary(lpLibFileName, hFile, dwFlags);
-	FreeDuplicatedString(pw0);
-	if(hLock)
-		CloseHandle(hLock);
-	return r;
+	return bResult;
 }
 
-// 以下ヘルパー関数
+void UninitializeHookFunction(HOOK_FUNCTION_INFO* pInfo)
+{
+	if(pInfo->Flags & HOOK_INITIALIZED)
+	{
+		if(pInfo->Flags & HOOK_USE_LOADLIBRARY)
+			FreeLibrary(pInfo->hModule);
+		pInfo->Flags &= ~HOOK_INITIALIZED;
+	}
+}
+
+BOOL EnableHookFunction(HOOK_FUNCTION_INFO* pInfo, BOOL bEnable)
+{
+	BOOL bResult;
+	bResult = FALSE;
+	if(pInfo->Flags & HOOK_INITIALIZED)
+	{
+		if(bEnable)
+		{
+			if(!(pInfo->Flags & HOOK_ENABLED))
+			{
+#ifdef USE_CODE_HOOK
+				if(HookFunctionInCode(pInfo->Proc, pInfo->Hook, (void**)&pInfo->Unhook, &pInfo->Patch, FALSE))
+				{
+					pInfo->Flags |= HOOK_ENABLED;
+					bResult = TRUE;
+				}
+#endif
+#ifdef USE_IAT_HOOK
+				if(HookFunctionInIAT(pInfo->Proc, pInfo->Hook, (void**)&pInfo->Unhook))
+				{
+					pInfo->Flags |= HOOK_ENABLED;
+					bResult = TRUE;
+				}
+#endif
+			}
+		}
+		else
+		{
+			if(pInfo->Flags & HOOK_ENABLED)
+			{
+#ifdef USE_CODE_HOOK
+				if(HookFunctionInCode(pInfo->Proc, pInfo->Hook, (void**)&pInfo->Unhook, &pInfo->Patch, TRUE))
+				{
+					pInfo->Flags &= ~HOOK_ENABLED;
+					bResult = TRUE;
+				}
+#endif
+#ifdef USE_IAT_HOOK
+				if(HookFunctionInIAT(pInfo->Hook, pInfo->Proc, (void**)&pInfo->Unhook))
+				{
+					pInfo->Flags &= ~HOOK_ENABLED;
+					bResult = TRUE;
+				}
+#endif
+			}
+		}
+	}
+	return bResult;
+}
 
 BOOL LockThreadLock()
 {
@@ -247,181 +428,6 @@ BOOL UnlockThreadLock()
 	}
 	return bResult;
 }
-
-#ifdef USE_CODE_HOOK
-BOOL HookFunctionInCode(void* pOriginal, void* pNew, HOOK_JUMP_CODE_PATCH* pPatch, BOOL bRestore)
-{
-	BOOL bResult;
-	bResult = FALSE;
-#if defined(_M_IX86)
-	{
-		DWORD Protect;
-		BYTE* pCode;
-		CHAR c;
-		LONG l;
-		bResult = FALSE;
-		if(bRestore)
-		{
-			if(VirtualProtect(pPatch->pCode, pPatch->CodeLength, PAGE_EXECUTE_READWRITE, &Protect))
-			{
-				memcpy(pPatch->pCode, &pPatch->BackupCode, pPatch->CodeLength);
-				VirtualProtect(pPatch->pCode, pPatch->CodeLength, Protect, &Protect);
-				bResult = TRUE;
-			}
-		}
-		else
-		{
-			if(!pPatch->pCode)
-			{
-				pCode = (BYTE*)pOriginal;
-				while(pCode[0] == 0xeb)
-				{
-					memcpy(&c, pCode + 1, 1);
-					pCode = pCode + 2 + c;
-				}
-				if(pCode[0] == 0xe9)
-				{
-					pPatch->pCode = pCode + 1;
-					pPatch->CodeLength = 4;
-					memcpy(&pPatch->BackupCode, pPatch->pCode, pPatch->CodeLength);
-					l = (long)pNew - ((long)pCode + 5);
-					memcpy(&pPatch->PatchCode[0], &l, 4);
-				}
-				else
-				{
-					pPatch->pCode = pCode;
-					pPatch->CodeLength = 5;
-					memcpy(&pPatch->BackupCode, pPatch->pCode, pPatch->CodeLength);
-					pPatch->PatchCode[0] = 0xe9;
-					l = (long)pNew - ((long)pCode + 5);
-					memcpy(&pPatch->PatchCode[1], &l, 4);
-				}
-			}
-			if(VirtualProtect(pPatch->pCode, pPatch->CodeLength, PAGE_EXECUTE_READWRITE, &Protect))
-			{
-				memcpy(pPatch->pCode, &pPatch->PatchCode, pPatch->CodeLength);
-				VirtualProtect(pPatch->pCode, pPatch->CodeLength, Protect, &Protect);
-				bResult = TRUE;
-			}
-		}
-	}
-#elif defined(_M_AMD64)
-	{
-		DWORD Protect;
-		BYTE* pCode;
-		CHAR c;
-		LONG l;
-		bResult = FALSE;
-		if(bRestore)
-		{
-			if(VirtualProtect(pPatch->pCode, pPatch->CodeLength, PAGE_EXECUTE_READWRITE, &Protect))
-			{
-				memcpy(pPatch->pCode, &pPatch->BackupCode, pPatch->CodeLength);
-				VirtualProtect(pPatch->pCode, pPatch->CodeLength, Protect, &Protect);
-				bResult = TRUE;
-			}
-		}
-		else
-		{
-			if(!pPatch->pCode)
-			{
-				pCode = (BYTE*)pOriginal;
-				while(pCode[0] == 0xeb || pCode[0] == 0xe9)
-				{
-					if(pCode[0] == 0xeb)
-					{
-						memcpy(&c, pCode + 1, 1);
-						pCode = pCode + 2 + c;
-					}
-					else
-					{
-						memcpy(&l, pCode + 1, 4);
-						pCode = pCode + 5 + l;
-					}
-				}
-				if(pCode[0] == 0xff && pCode[1] == 0x25)
-				{
-					memcpy(&l, pCode + 2, 4);
-					pPatch->pCode = pCode + 6 + l;
-					pPatch->CodeLength = 8;
-					memcpy(&pPatch->BackupCode, pPatch->pCode, pPatch->CodeLength);
-					memcpy(&pPatch->PatchCode[0], &pNew, 8);
-				}
-				else
-				{
-					pPatch->pCode = pCode;
-					pPatch->CodeLength = 14;
-					memcpy(&pPatch->BackupCode, pPatch->pCode, pPatch->CodeLength);
-					pPatch->PatchCode[0] = 0xff;
-					pPatch->PatchCode[1] = 0x25;
-					l = 0;
-					memcpy(&pPatch->PatchCode[2], &l, 4);
-					memcpy(&pPatch->PatchCode[6], &pNew, 8);
-				}
-			}
-			if(VirtualProtect(pPatch->pCode, pPatch->CodeLength, PAGE_EXECUTE_READWRITE, &Protect))
-			{
-				memcpy(pPatch->pCode, &pPatch->PatchCode, pPatch->CodeLength);
-				VirtualProtect(pPatch->pCode, pPatch->CodeLength, Protect, &Protect);
-				bResult = TRUE;
-			}
-		}
-	}
-#endif
-	return bResult;
-}
-#endif
-
-#ifdef USE_IAT_HOOK
-BOOL HookFunctionInIAT(void* pOriginal, void* pNew)
-{
-	BOOL bResult;
-	HANDLE hSnapshot;
-	MODULEENTRY32 me;
-	BOOL bFound;
-	IMAGE_IMPORT_DESCRIPTOR* piid;
-	ULONG Size;
-	IMAGE_THUNK_DATA* pitd;
-	DWORD Protect;
-	bResult = FALSE;
-	if((hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId())) != INVALID_HANDLE_VALUE)
-	{
-		me.dwSize = sizeof(MODULEENTRY32);
-		if(Module32First(hSnapshot, &me))
-		{
-			bFound = FALSE;
-			do
-			{
-				if(piid = (IMAGE_IMPORT_DESCRIPTOR*)ImageDirectoryEntryToData(me.hModule, TRUE, IMAGE_DIRECTORY_ENTRY_IMPORT, &Size))
-				{
-					while(!bFound && piid->Name != 0)
-					{
-						pitd = (IMAGE_THUNK_DATA*)((BYTE*)me.hModule + piid->FirstThunk);
-						while(!bFound && pitd->u1.Function != 0)
-						{
-							if((void*)pitd->u1.Function == pOriginal)
-							{
-								bFound = TRUE;
-								if(VirtualProtect(&pitd->u1.Function, sizeof(void*), PAGE_EXECUTE_READWRITE, &Protect))
-								{
-									memcpy(&pitd->u1.Function, &pNew, sizeof(void*));
-									VirtualProtect(&pitd->u1.Function, sizeof(void*), Protect, &Protect);
-									bResult = TRUE;
-								}
-							}
-							pitd++;
-						}
-						piid++;
-					}
-				}
-			}
-			while(!bFound && Module32Next(hSnapshot, &me));
-		}
-		CloseHandle(hSnapshot);
-	}
-	return bResult;
-}
-#endif
 
 // ファイルを変更不能に設定
 HANDLE LockExistingFile(LPCWSTR Filename)
@@ -779,6 +785,93 @@ BOOL IsModuleTrusted(LPCWSTR Filename)
 	return bResult;
 }
 
+// 以下フック関数
+
+HMODULE WINAPI h_LoadLibraryA(LPCSTR lpLibFileName)
+{
+	HMODULE r = NULL;
+	wchar_t* pw0 = NULL;
+	if(pw0 = DuplicateAtoW(lpLibFileName, -1))
+		r = LoadLibraryExW(pw0, NULL, 0);
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+HMODULE WINAPI h_LoadLibraryW(LPCWSTR lpLibFileName)
+{
+	HMODULE r = NULL;
+	r = LoadLibraryExW(lpLibFileName, NULL, 0);
+	return r;
+}
+
+HMODULE WINAPI h_LoadLibraryExA(LPCSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
+{
+	HMODULE r = NULL;
+	wchar_t* pw0 = NULL;
+	if(pw0 = DuplicateAtoW(lpLibFileName, -1))
+		r = LoadLibraryExW(pw0, hFile, dwFlags);
+	FreeDuplicatedString(pw0);
+	return r;
+}
+
+HMODULE WINAPI h_LoadLibraryExW(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
+{
+	HMODULE r = NULL;
+	BOOL bTrusted;
+	wchar_t* pw0;
+	HANDLE hLock;
+	HMODULE hModule;
+	DWORD Length;
+	bTrusted = FALSE;
+	pw0 = NULL;
+	hLock = NULL;
+//	if(dwFlags & (DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE | LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE))
+	if(dwFlags & (DONT_RESOLVE_DLL_REFERENCES | LOAD_LIBRARY_AS_DATAFILE | 0x00000020 | 0x00000040))
+		bTrusted = TRUE;
+	if(!bTrusted)
+	{
+		if(hModule = System_LoadLibrary(lpLibFileName, NULL, DONT_RESOLVE_DLL_REFERENCES))
+		{
+			Length = MAX_PATH;
+			if(pw0 = AllocateStringW(Length))
+			{
+				if(GetModuleFileNameW(hModule, pw0, Length) > 0)
+				{
+					while(pw0)
+					{
+						if(GetModuleFileNameW(hModule, pw0, Length) + 1 <= Length)
+						{
+							lpLibFileName = pw0;
+							break;
+						}
+						Length = Length * 2;
+						FreeDuplicatedString(pw0);
+						pw0 = AllocateStringW(Length);
+					}
+				}
+			}
+			hLock = LockExistingFile(lpLibFileName);
+			FreeLibrary(hModule);
+		}
+		if((g_ProcessProtectionLevel & PROCESS_PROTECTION_LOADED) && GetModuleHandleW(lpLibFileName))
+			bTrusted = TRUE;
+	}
+	if(!bTrusted)
+	{
+		if(hLock)
+		{
+			if(IsModuleTrusted(lpLibFileName))
+				bTrusted = TRUE;
+		}
+	}
+	if(bTrusted)
+		r = System_LoadLibrary(lpLibFileName, hFile, dwFlags);
+	FreeDuplicatedString(pw0);
+	if(hLock)
+		CloseHandle(hLock);
+	return r;
+}
+
 // kernel32.dllのLoadLibraryExW相当の関数
 // ドキュメントが無いため詳細は不明
 // 一部のウィルス対策ソフト（Avast!等）がLdrLoadDllをフックしているためLdrLoadDllを書き換えるべきではない
@@ -859,7 +952,7 @@ void SetProcessProtectionLevel(DWORD Level)
 	g_ProcessProtectionLevel = Level;
 }
 
-//	メモリのSHA1ハッシュを取得
+// メモリのSHA1ハッシュを取得
 BOOL GetSHA1HashOfMemory(const void* pData, DWORD Size, void* pHash)
 {
 	BOOL bResult;
@@ -1030,27 +1123,45 @@ BOOL InitializeLoadLibraryHook()
 	BOOL bResult;
 	HMODULE hModule;
 	bResult = TRUE;
-	if(!(hModule = GetModuleHandleW(L"kernel32.dll")))
+	memset(&g_LoadLibraryA, 0, sizeof(HOOK_FUNCTION_INFO));
+	g_LoadLibraryA.Flags = HOOK_USE_GETMODULEHANDLE | HOOK_USE_GETPROCADDRESS;
+	g_LoadLibraryA.ModuleName = _T("kernel32.dll");
+	g_LoadLibraryA.ProcName = "LoadLibraryA";
+	g_LoadLibraryA.Hook = (FARPROC)h_LoadLibraryA;
+	if(!InitializeHookFunction(&g_LoadLibraryA))
 		bResult = FALSE;
-	if(!(GET_FUNCTION(hModule, LoadLibraryA)))
+	memset(&g_LoadLibraryW, 0, sizeof(HOOK_FUNCTION_INFO));
+	g_LoadLibraryW.Flags = HOOK_USE_GETMODULEHANDLE | HOOK_USE_GETPROCADDRESS;
+	g_LoadLibraryW.ModuleName = _T("kernel32.dll");
+	g_LoadLibraryW.ProcName = "LoadLibraryW";
+	g_LoadLibraryW.Hook = (FARPROC)h_LoadLibraryW;
+	if(!InitializeHookFunction(&g_LoadLibraryW))
 		bResult = FALSE;
-	if(!(GET_FUNCTION(hModule, LoadLibraryW)))
+	memset(&g_LoadLibraryExA, 0, sizeof(HOOK_FUNCTION_INFO));
+	g_LoadLibraryExA.Flags = HOOK_USE_GETMODULEHANDLE | HOOK_USE_GETPROCADDRESS;
+	g_LoadLibraryExA.ModuleName = _T("kernel32.dll");
+	g_LoadLibraryExA.ProcName = "LoadLibraryExA";
+	g_LoadLibraryExA.Hook = (FARPROC)h_LoadLibraryExA;
+	if(!InitializeHookFunction(&g_LoadLibraryExA))
 		bResult = FALSE;
-	if(!(GET_FUNCTION(hModule, LoadLibraryExA)))
-		bResult = FALSE;
-	if(!(GET_FUNCTION(hModule, LoadLibraryExW)))
+	memset(&g_LoadLibraryExW, 0, sizeof(HOOK_FUNCTION_INFO));
+	g_LoadLibraryExW.Flags = HOOK_USE_GETMODULEHANDLE | HOOK_USE_GETPROCADDRESS;
+	g_LoadLibraryExW.ModuleName = _T("kernel32.dll");
+	g_LoadLibraryExW.ProcName = "LoadLibraryExW";
+	g_LoadLibraryExW.Hook = (FARPROC)h_LoadLibraryExW;
+	if(!InitializeHookFunction(&g_LoadLibraryExW))
 		bResult = FALSE;
 	if(!(hModule = GetModuleHandleW(L"ntdll.dll")))
 		bResult = FALSE;
-	if(!(GET_FUNCTION(hModule, LdrLoadDll)))
+	if(!(p_LdrLoadDll = (_LdrLoadDll)GetProcAddress(hModule, "LdrLoadDll")))
 		bResult = FALSE;
-	if(!(GET_FUNCTION(hModule, LdrGetDllHandle)))
+	if(!(p_LdrGetDllHandle = (_LdrGetDllHandle)GetProcAddress(hModule, "LdrGetDllHandle")))
 		bResult = FALSE;
-	if(!(GET_FUNCTION(hModule, RtlImageNtHeader)))
+	if(!(p_RtlImageNtHeader = (_RtlImageNtHeader)GetProcAddress(hModule, "RtlImageNtHeader")))
 		bResult = FALSE;
 	if(!(hModule = LoadLibraryW(L"wintrust.dll")))
 		bResult = FALSE;
-	if(!(GET_FUNCTION(hModule, CryptCATAdminCalcHashFromFileHandle)))
+	if(!(p_CryptCATAdminCalcHashFromFileHandle = (_CryptCATAdminCalcHashFromFileHandle)GetProcAddress(hModule, "CryptCATAdminCalcHashFromFileHandle")))
 		bResult = FALSE;
 	// バグ対策
 	ImageGetDigestStream(NULL, 0, NULL, NULL);
@@ -1062,55 +1173,15 @@ BOOL InitializeLoadLibraryHook()
 BOOL EnableLoadLibraryHook(BOOL bEnable)
 {
 	BOOL bResult;
-	bResult = FALSE;
-	if(bEnable)
-	{
-		bResult = TRUE;
-#ifdef USE_CODE_HOOK
-		if(!SET_HOOK_FUNCTION(LoadLibraryA))
-			bResult = FALSE;
-		if(!SET_HOOK_FUNCTION(LoadLibraryW))
-			bResult = FALSE;
-		if(!SET_HOOK_FUNCTION(LoadLibraryExA))
-			bResult = FALSE;
-		if(!SET_HOOK_FUNCTION(LoadLibraryExW))
-			bResult = FALSE;
-#endif
-#ifdef USE_IAT_HOOK
-		if(!HookFunctionInIAT(p_LoadLibraryA, h_LoadLibraryA))
-			bResult = FALSE;
-		if(!HookFunctionInIAT(p_LoadLibraryW, h_LoadLibraryW))
-			bResult = FALSE;
-		if(!HookFunctionInIAT(p_LoadLibraryExA, h_LoadLibraryExA))
-			bResult = FALSE;
-		if(!HookFunctionInIAT(p_LoadLibraryExW, h_LoadLibraryExW))
-			bResult = FALSE;
-#endif
-	}
-	else
-	{
-		bResult = TRUE;
-#ifdef USE_CODE_HOOK
-		if(!BEGIN_HOOK_FUNCTION(LoadLibraryA))
-			bResult = FALSE;
-		if(!BEGIN_HOOK_FUNCTION(LoadLibraryW))
-			bResult = FALSE;
-		if(!BEGIN_HOOK_FUNCTION(LoadLibraryExA))
-			bResult = FALSE;
-		if(!BEGIN_HOOK_FUNCTION(LoadLibraryExW))
-			bResult = FALSE;
-#endif
-#ifdef USE_IAT_HOOK
-		if(!HookFunctionInIAT(h_LoadLibraryA, p_LoadLibraryA))
-			bResult = FALSE;
-		if(!HookFunctionInIAT(h_LoadLibraryW, p_LoadLibraryW))
-			bResult = FALSE;
-		if(!HookFunctionInIAT(h_LoadLibraryExA, p_LoadLibraryExA))
-			bResult = FALSE;
-		if(!HookFunctionInIAT(h_LoadLibraryExW, p_LoadLibraryExW))
-			bResult = FALSE;
-#endif
-	}
+	bResult = TRUE;
+	if(!EnableHookFunction(&g_LoadLibraryA, bEnable))
+		bResult = FALSE;
+	if(!EnableHookFunction(&g_LoadLibraryW, bEnable))
+		bResult = FALSE;
+	if(!EnableHookFunction(&g_LoadLibraryExA, bEnable))
+		bResult = FALSE;
+	if(!EnableHookFunction(&g_LoadLibraryExW, bEnable))
+		bResult = FALSE;
 	return bResult;
 }
 

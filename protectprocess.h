@@ -7,43 +7,6 @@
 
 #define ENABLE_PROCESS_PROTECTION
 
-// 次の中から1個のみ有効にする
-// フック先の関数のコードを書き換える
-// 全ての呼び出しをフック可能だが原理的に二重呼び出しに対応できない
-#define USE_CODE_HOOK
-// フック先の関数のインポートアドレステーブルを書き換える
-// 二重呼び出しが可能だが呼び出し方法によってはフックを回避される
-//#define USE_IAT_HOOK
-
-typedef HMODULE (WINAPI* _LoadLibraryA)(LPCSTR);
-typedef HMODULE (WINAPI* _LoadLibraryW)(LPCWSTR);
-typedef HMODULE (WINAPI* _LoadLibraryExA)(LPCSTR, HANDLE, DWORD);
-typedef HMODULE (WINAPI* _LoadLibraryExW)(LPCWSTR, HANDLE, DWORD);
-
-#ifndef DO_NOT_REPLACE
-
-#ifdef USE_IAT_HOOK
-
-// 変数の宣言
-#define EXTERN_HOOK_FUNCTION_VAR(name) extern _##name p_##name;
-
-#undef LoadLibraryA
-#define LoadLibraryA p_LoadLibraryA
-EXTERN_HOOK_FUNCTION_VAR(LoadLibraryA)
-#undef LoadLibraryW
-#define LoadLibraryW p_LoadLibraryW
-EXTERN_HOOK_FUNCTION_VAR(LoadLibraryW)
-#undef LoadLibraryExA
-#define LoadLibraryExA p_LoadLibraryExA
-EXTERN_HOOK_FUNCTION_VAR(LoadLibraryExA)
-#undef LoadLibraryExW
-#define LoadLibraryExW p_LoadLibraryExW
-EXTERN_HOOK_FUNCTION_VAR(LoadLibraryExW)
-
-#endif
-
-#endif
-
 // ロード済みのモジュールは検査をパス
 #define PROCESS_PROTECTION_LOADED 0x00000001
 // モジュールに埋め込まれたAuthenticode署名を検査
