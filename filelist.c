@@ -528,8 +528,6 @@ static void doTransferRemoteFile(void)
 		remove(fn);
 	}
 
-	// 同時接続対応
-	DisableUserOpe();
 	// 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
 	SuppressRefresh = 1;
 
@@ -567,8 +565,6 @@ static void doTransferRemoteFile(void)
 	// 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
 	SuppressRefresh = 0;
 	GetLocalDirForWnd();
-	// 同時接続対応
-	EnableUserOpe();
 
 	remoteFileListBase = FileListBase;  // あとでフリーすること
 	remoteFileListBaseNoExpand = FileListBaseNoExpand;  // あとでフリーすること
@@ -916,7 +912,11 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  					int CancelFlg = NO;
  					char LocDir[FMAX_PATH+1];
  					char *PathDir;
- 
+
+					// 特定の操作を行うと異常終了するバグ修正
+					DisableUserOpe();
+					Dragging = NO;
+
 					// 変数が未初期化のバグ修正
 					FileListBaseNoExpand = NULL;
  					// ローカル側で選ばれているファイルをFileListBaseに登録
@@ -949,7 +949,10 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  						}
  
  					} 
- 
+
+					// 特定の操作を行うと異常終了するバグ修正
+					EnableUserOpe();
+
 #if defined(HAVE_TANDEM)
 					if(FileListBaseNoExpand == NULL)
 						pf = FileListBase;

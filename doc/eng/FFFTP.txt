@@ -96,6 +96,11 @@ Changes in Ver.1.99
 
 -- Changed to enable reconnection after transfer errors by default.
 
+-- Fixed bugs to fail in controlling UPnP with simultaneous connections.
+
+-- Fixed bugs to crash if certain operations are performed immediately after
+   drag-and-drop from the remote file view.
+
 
 Outline
 -------
