@@ -1012,6 +1012,7 @@ static INT_PTR CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam
 			SetMultiTextToList(hDlg, MIRROR_NODEL_LIST, MirrorNoDel);
 			SendDlgItemMessage(hDlg, MIRROR_LOW, BM_SETCHECK, MirrorFnameCnv, 0);
 			SendDlgItemMessage(hDlg, MIRROR_UPDEL_NOTIFY, BM_SETCHECK, MirUpDelNotify, 0);
+			SendDlgItemMessage(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_SETCHECK, MirDownDelNotify, 0);
 			// ミラーリング設定追加
 			SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_SETCHECK, MirrorNoTransferContents, 0);
 		    return(TRUE);
@@ -1349,8 +1350,7 @@ static INT_PTR CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wPara
 					SendQuit = SendDlgItemMessage(hDlg, CONNECT_SENDQUIT, BM_GETCHECK, 0, 0);
 					NoRasControl = SendDlgItemMessage(hDlg, CONNECT_NORAS, BM_GETCHECK, 0, 0);
 					// UPnP対応
-					if(IsUPnPLoaded() == YES)
-						UPnPEnabled = SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_GETCHECK, 0, 0);
+					UPnPEnabled = SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_GETCHECK, 0, 0);
 					break;
 
 				case PSN_RESET :

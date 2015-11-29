@@ -1362,22 +1362,28 @@ int LoadUPnP()
 {
 	int Sts;
 	Sts = FFFTP_FAIL;
-	if(CoCreateInstance(&CLSID_UPnPNAT, NULL, CLSCTX_ALL, &IID_IUPnPNAT, (void**)&pUPnPNAT) == S_OK)
+	if(IsMainThread())
 	{
-		if(pUPnPNAT->lpVtbl->get_StaticPortMappingCollection(pUPnPNAT, &pUPnPMap) == S_OK)
-			Sts = FFFTP_SUCCESS;
+		if(CoCreateInstance(&CLSID_UPnPNAT, NULL, CLSCTX_ALL, &IID_IUPnPNAT, (void**)&pUPnPNAT) == S_OK)
+		{
+			if(pUPnPNAT->lpVtbl->get_StaticPortMappingCollection(pUPnPNAT, &pUPnPMap) == S_OK)
+				Sts = FFFTP_SUCCESS;
+		}
 	}
 	return Sts;
 }
 
 void FreeUPnP()
 {
-	if(pUPnPMap != NULL)
-		pUPnPMap->lpVtbl->Release(pUPnPMap);
-	pUPnPMap = NULL;
-	if(pUPnPNAT != NULL)
-		pUPnPNAT->lpVtbl->Release(pUPnPNAT);
-	pUPnPNAT = NULL;
+	if(IsMainThread())
+	{
+		if(pUPnPMap != NULL)
+			pUPnPMap->lpVtbl->Release(pUPnPMap);
+		pUPnPMap = NULL;
+		if(pUPnPNAT != NULL)
+			pUPnPNAT->lpVtbl->Release(pUPnPNAT);
+		pUPnPNAT = NULL;
+	}
 }
 
 int IsUPnPLoaded()
