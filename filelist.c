@@ -922,7 +922,6 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					hWndPnt = WindowFromPoint(Point);
 					hWndParent = GetParent(hWndPnt);
 					DisableUserOpe();
-					Dragging = NO;
 					CancelFlg = NO;
 
 					// 変数が未初期化のバグ修正
@@ -958,16 +957,17 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  						}
  
  					} 
-
-					// 特定の操作を行うと異常終了するバグ修正
-					EnableUserOpe();
-
+ 
 #if defined(HAVE_TANDEM)
 					if(FileListBaseNoExpand == NULL)
 						pf = FileListBase;
 					else
 #endif
  					pf = FileListBaseNoExpand;
+					// 特定の操作を行うと異常終了するバグ修正
+					if(pf != NULL)
+						Dragging = NO;
+					EnableUserOpe();
  					for (filenum = 0; pf ; filenum++) {
  						pf = pf->Next;
  					}
