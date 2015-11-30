@@ -2384,28 +2384,43 @@ void DeleteProc(void)
 	CancelFlg = NO;
 
 	// デッドロック対策
-	DisableUserOpe();
-	Sts = YES;
-	AskRemoteCurDir(CurDir, FMAX_PATH);
-	FileListBase = NULL;
+//	Sts = YES;
+//	AskRemoteCurDir(CurDir, FMAX_PATH);
+//	FileListBase = NULL;
+//	if(GetFocus() == GetLocalHwnd())
+//	{
+//		Win = WIN_LOCAL;
+//		MakeSelectedFileList(Win, NO, NO, &FileListBase, &CancelFlg);
+//	}
+//	else
+//	{
+//		Win = WIN_REMOTE;
+//		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
+//			MakeSelectedFileList(Win, YES, NO, &FileListBase, &CancelFlg);
+//		else
+//			Sts = NO;
+//	}
+	Sts = FFFTP_SUCCESS;
 	if(GetFocus() == GetLocalHwnd())
-	{
 		Win = WIN_LOCAL;
-		MakeSelectedFileList(Win, NO, NO, &FileListBase, &CancelFlg);
-	}
 	else
 	{
 		Win = WIN_REMOTE;
-		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
-			MakeSelectedFileList(Win, YES, NO, &FileListBase, &CancelFlg);
-		else
-			Sts = NO;
+		Sts = CheckClosedAndReconnect();
 	}
 
-	if(Sts == YES)
+	// デッドロック対策
+//	if(Sts == YES)
+	if(Sts == FFFTP_SUCCESS)
 	{
 		// デッドロック対策
-//		DisableUserOpe();
+		DisableUserOpe();
+		AskRemoteCurDir(CurDir, FMAX_PATH);
+		FileListBase = NULL;
+		if(Win == WIN_LOCAL)
+			MakeSelectedFileList(Win, NO, NO, &FileListBase, &CancelFlg);
+		else
+			MakeSelectedFileList(Win, YES, NO, &FileListBase, &CancelFlg);
 
 		DelFlg = NO;
 		Sts = NO;
@@ -2442,10 +2457,8 @@ void DeleteProc(void)
 		}
 
 		// デッドロック対策
-//		EnableUserOpe();
+		EnableUserOpe();
 	}
-	// デッドロック対策
-	EnableUserOpe();
 	return;
 }
 
