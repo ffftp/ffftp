@@ -136,6 +136,8 @@ extern HWND hHelpWin;
 extern int SuppressRefresh;
 // ローカル側自動更新
 extern HANDLE ChangeNotification;
+// 特定の操作を行うと異常終了するバグ修正
+extern int CancelFlg;
 
 /* 設定値 */
 extern int LocalWidth;
@@ -478,7 +480,8 @@ static BOOL CALLBACK doOleDlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
 static void doTransferRemoteFile(void)
 {
 	FILELIST *FileListBase, *FileListBaseNoExpand, *pf;
-	int CancelFlg = NO;
+	// 特定の操作を行うと異常終了するバグ修正
+//	int CancelFlg = NO;
 	char LocDir[FMAX_PATH+1];
 	char TmpDir[FMAX_PATH+1];
 	// 環境依存の不具合対策
@@ -909,13 +912,18 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  					int i, j, filenum = 0;
  
  					FILELIST *FileListBase, *FileListBaseNoExpand, *pf;
- 					int CancelFlg = NO;
+					// 特定の操作を行うと異常終了するバグ修正
+// 					int CancelFlg = NO;
  					char LocDir[FMAX_PATH+1];
  					char *PathDir;
 
 					// 特定の操作を行うと異常終了するバグ修正
+					GetCursorPos(&Point);
+					hWndPnt = WindowFromPoint(Point);
+					hWndParent = GetParent(hWndPnt);
 					DisableUserOpe();
 					Dragging = NO;
+					CancelFlg = NO;
 
 					// 変数が未初期化のバグ修正
 					FileListBaseNoExpand = NULL;
@@ -931,9 +939,10 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 						FileListBaseNoExpand = FileListBase;
  
  					} else if (hWndDragStart == hWndListRemote) {
- 						GetCursorPos(&Point);
- 						hWndPnt = WindowFromPoint(Point);
-						hWndParent = GetParent(hWndPnt);
+						// 特定の操作を行うと異常終了するバグ修正
+// 						GetCursorPos(&Point);
+// 						hWndPnt = WindowFromPoint(Point);
+//						hWndParent = GetParent(hWndPnt);
  						if (hWndPnt == hWndListRemote || hWndPnt == hWndListLocal ||
 							hWndParent == hWndListRemote || hWndParent == hWndListLocal) {
  							FileListBase = NULL;

@@ -3824,7 +3824,7 @@ void AbortRecoveryProc(void)
 			if(AskErrorReconnect() == YES)
 			{
 				DisableUserOpe();
-					ReConnectCmdSkt();
+				ReConnectCmdSkt();
 				GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
 				EnableUserOpe();
 			}
