@@ -81,12 +81,12 @@
 // ソフトウェア自動更新
 // リリースバージョンはリリース予定年（10進数4桁）+月（2桁）+日（2桁）+通し番号（0スタート2桁）とする
 // 2014年7月31日中の30個目のリリースは2014073129
-#define RELEASE_VERSION_NUM		2015120500	/* リリースバージョン */
+#define RELEASE_VERSION_NUM		2016012300	/* リリースバージョン */
 
 
 // SourceForge.JPによるフォーク
 //#define MYWEB_URL	"http://www2.biglobe.ne.jp/~sota/ffftp-qa.html"
-#define MYWEB_URL	"http://osdn.jp/projects/ffftp/"
+#define MYWEB_URL	"https://osdn.jp/projects/ffftp/forums/"
 
 
 
