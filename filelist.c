@@ -3737,7 +3737,9 @@ static int AnalyzeFileInfo(char *Str)
 				}
 			}
 
-			if(strlen(Tmp) >= 10)
+			// バグ修正
+//			if(strlen(Tmp) >= 10)
+			if((strlen(Tmp) >= 10) && (strchr("+-dfl", Tmp[0]) != NULL))
 			{
 				Add1 = 0;
 				if((strlen(Tmp) > 10) && (IsDigit(Tmp[10]) != 0))

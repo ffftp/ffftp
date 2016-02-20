@@ -623,22 +623,23 @@ BEGIN
     COMBOBOX        FIRE_TYPE,7,16,197,104,CBS_DROPDOWNLIST | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Firewall &Hostname",-1,7,32,80,8
     EDITTEXT        FIRE_HOST,7,42,150,12,ES_AUTOHSCROLL
-    LTEXT           "&Port",-1,168,32,36,8
+    LTEXT           "P&ort",-1,168,32,36,8
     EDITTEXT        FIRE_PORT,169,41,35,12,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "Firewall &Username",-1,7,56,72,8
     EDITTEXT        FIRE_USER,7,65,70,12,ES_AUTOHSCROLL
-    LTEXT           "Firewall P&assword",-1,81,56,70,8
+    LTEXT           "Firewall &Password",-1,81,56,70,8
     EDITTEXT        FIRE_PASS,81,65,70,12,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "Replace @ by",-1,154,55,50,8
+    EDITTEXT        FIRE_DELIMIT,154,65,35,12,ES_AUTOHSCROLL
     LTEXT           "&Security",-1,7,80,63,8
     COMBOBOX        FIRE_SECURITY,7,89,57,75,CBS_DROPDOWNLIST | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Use SOCKS se&rver to search for hosts",FIRE_RESOLV,
                     "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,71,83,139,10
-    CONTROL         "Use l&owercase OPEN/SITE commands",FIRE_LOWER,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,71,96,139,10
+    CONTROL         "Use &lowercase OPEN/SITE commands",FIRE_LOWER,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,71,96,139,10
     CONTROL         "Us&e the firewall for undefined hosts",FIRE_USEIT,
                     "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,109,197,10
     CONTROL         "Use PAS&V mode for undefined hosts",FIRE_PASV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,122,197,10
-    LTEXT           "Replace @ by",-1,154,55,50,8
-    EDITTEXT        FIRE_DELIMIT,154,65,35,12,ES_AUTOHSCROLL
+    CONTROL         "Do &not save firewall username/password",FIRE_SHARED,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,135,197,10
 END
 
 hset_adv_dlg DIALOG  0, 0, 207, 155

@@ -241,6 +241,8 @@ extern time_t LastAutoCheckForUpdates;
 extern int AbortOnListError;
 // ミラーリング設定追加
 extern int MirrorNoTransferContents; 
+// FireWall設定追加
+extern int FwallNoSaveUser; 
 
 /*----- マスタパスワードの設定 ----------------------------------------------
 *
@@ -544,8 +546,19 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "ListDrv", DispDrives);
 
 				WriteStringToReg(hKey4, "FwallHost", FwallHost);
-				WriteStringToReg(hKey4, "FwallUser", FwallUser);
-				EncodePassword(FwallPass, Str);
+				// FireWall設定追加
+//				WriteStringToReg(hKey4, "FwallUser", FwallUser);
+//				EncodePassword(FwallPass, Str);
+				if(FwallNoSaveUser == YES)
+				{
+					WriteStringToReg(hKey4, "FwallUser", "");
+					EncodePassword("", Str);
+				}
+				else
+				{
+					WriteStringToReg(hKey4, "FwallUser", FwallUser);
+					EncodePassword(FwallPass, Str);
+				}
 				WriteStringToReg(hKey4, "FwallPass", Str);
 				WriteIntValueToReg(hKey4, "FwallPort", FwallPort);
 				WriteIntValueToReg(hKey4, "FwallType", FwallType);
@@ -845,6 +858,8 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "AbortListErr", AbortOnListError);
 				// ミラーリング設定追加
 				WriteIntValueToReg(hKey4, "MirNoTransfer", MirrorNoTransferContents);
+				// FireWall設定追加
+				WriteIntValueToReg(hKey4, "FwallShared", FwallNoSaveUser);
 			}
 			CloseSubKey(hKey4);
 		}
@@ -1435,6 +1450,8 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "AbortListErr", &AbortOnListError);
 			// ミラーリング設定追加
 			ReadIntValueFromReg(hKey4, "MirNoTransfer", &MirrorNoTransferContents);
+			// FireWall設定追加
+			ReadIntValueFromReg(hKey4, "FwallShared", &FwallNoSaveUser);
 
 			CloseSubKey(hKey4);
 		}

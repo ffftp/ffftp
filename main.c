@@ -287,6 +287,8 @@ time_t LastAutoCheckForUpdates = 0;
 int AbortOnListError = YES;
 // ミラーリング設定追加
 int MirrorNoTransferContents = NO; 
+// FireWall設定追加
+int FwallNoSaveUser = NO; 
 
 
 

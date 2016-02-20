@@ -196,6 +196,8 @@ extern int AutoCheckForUptatesInterval;
 extern int AbortOnListError;
 // ミラーリング設定追加
 extern int MirrorNoTransferContents; 
+// FireWall設定追加
+extern int FwallNoSaveUser; 
 
 
 /*----- オプションのプロパティシート ------------------------------------------
@@ -1458,6 +1460,10 @@ static INT_PTR CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 			SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN215);
 			SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN216);
 			SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_SETCURSEL, FwallSecurity, 0);
+
+			// FireWall設定追加
+			SendDlgItemMessage(hDlg, FIRE_SHARED, BM_SETCHECK, FwallNoSaveUser, 0);
+
 		    return(TRUE);
 
 		case WM_NOTIFY:
@@ -1479,6 +1485,8 @@ static INT_PTR CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 					FwallResolve = SendDlgItemMessage(hDlg, FIRE_RESOLV, BM_GETCHECK, 0, 0);
 					FwallLower = SendDlgItemMessage(hDlg, FIRE_LOWER, BM_GETCHECK, 0, 0);
 					FwallSecurity = SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_GETCURSEL, 0, 0);
+					// FireWall設定追加
+					FwallNoSaveUser = SendDlgItemMessage(hDlg, FIRE_SHARED, BM_GETCHECK, 0, 0);
 					break;
 
 				case PSN_RESET :

@@ -73,6 +73,11 @@ Changes in Ver.1.99
 -- Fixed bugs to crash if certain operations are performed immediately after
    drag-and-drop from the remote file view.
 
+-- Fixed bugs to fail in recognizing file names that contain 2 or more spaces
+   in Windows Server 2008 R2 file list format.
+
+-- Added an option not to save the user name and password of the firewall.
+
 Changes in Ver.1.98g2
 --------------------
 
