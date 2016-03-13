@@ -402,6 +402,8 @@ static INT_PTR CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam,
 	int Cur;
 	int Max;
 	char Tmp[BMARK_MARK_LEN + FMAX_PATH * 2 + BMARK_SEP_LEN + 1];
+	// バグ修正
+	RECT Rect;
 
 	static DIALOGSIZE DlgSize = {
 		{ BMARK_NEW, BMARK_SET, BMARK_DEL, BMARK_DOWN, BMARK_UP, IDHELP, BMARK_SIZEGRIP, -1 },
@@ -413,6 +415,13 @@ static INT_PTR CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam,
 
 	switch (message)
 	{
+		// バグ修正
+		case WM_SIZE :
+			GetWindowRect(hDlg, &Rect);
+			DlgSizeChange(hDlg, &DlgSize, &Rect, 0);
+			RedrawWindow(hDlg, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+		    break;
+
 		case WM_INITDIALOG :
 			if(ListFont != NULL)
 				SendDlgItemMessage(hDlg, BMARK_LIST, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));

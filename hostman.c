@@ -173,9 +173,18 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 	NM_TREEVIEWW *tView;
 	HTREEITEM tViewPos;
 	TV_HITTESTINFO HitInfo;
+	// バグ修正
+	RECT Rect;
 
 	switch (message)
 	{
+		// バグ修正
+		case WM_SIZE :
+			GetWindowRect(hDlg, &Rect);
+			DlgSizeChange(hDlg, &DlgSize, &Rect, 0);
+			RedrawWindow(hDlg, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+		    break;
+
 		case WM_INITDIALOG :
 			/* TreeViewでのダブルクリックをつかまえるため */
 			// 64ビット対応

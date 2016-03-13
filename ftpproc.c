@@ -1862,7 +1862,9 @@ static INT_PTR CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM 
 {
 	static DIALOGSIZE DlgSize = {
 		{ MIRROR_DEL, MIRROR_SIZEGRIP, -1 },
-		{ IDOK, IDCANCEL, IDHELP, MIRROR_DEL, MIRROR_COPYNUM, MIRROR_MAKENUM, MIRROR_DELNUM, MIRROR_SIZEGRIP, -1 },
+		// ミラーリング設定追加
+//		{ IDOK, IDCANCEL, IDHELP, MIRROR_DEL, MIRROR_COPYNUM, MIRROR_MAKENUM, MIRROR_DELNUM, MIRROR_SIZEGRIP, -1 },
+		{ IDOK, IDCANCEL, IDHELP, MIRROR_DEL, MIRROR_COPYNUM, MIRROR_MAKENUM, MIRROR_DELNUM, MIRROR_SIZEGRIP, MIRROR_NO_TRANSFER, -1 },
 		{ MIRROR_LIST, -1 },
 		{ 0, 0 },
 		{ 0, 0 }
@@ -1873,9 +1875,18 @@ static INT_PTR CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM 
 	char Tmp[FMAX_PATH+1+6];
 	int Num;
 	int *List;
+	// バグ修正
+	RECT Rect;
 
 	switch (iMessage)
 	{
+		// バグ修正
+		case WM_SIZE :
+			GetWindowRect(hDlg, &Rect);
+			DlgSizeChange(hDlg, &DlgSize, &Rect, 0);
+			RedrawWindow(hDlg, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+		    break;
+
 		case WM_INITDIALOG :
 			Base = (TRANSPACKET **)lParam;
 			Pos = *Base;

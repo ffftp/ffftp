@@ -78,6 +78,8 @@ Changes in Ver.1.99
 
 -- Added an option not to save the user name and password of the firewall.
 
+-- Fixed bugs to disturb the view after resizing of a dialog.
+
 Changes in Ver.1.98g2
 --------------------
 
