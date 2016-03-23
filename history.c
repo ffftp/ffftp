@@ -334,7 +334,9 @@ void CopyDefaultHistory(HISTORYDATA *Set)
 {
 	HOSTDATA Host;
 
-	CopyDefaultHost(&Host);
+	// ホスト共通設定機能
+//	CopyDefaultHost(&Host);
+	CopyDefaultDefaultHost(&Host);
 	CopyHostToHistory(&Host, Set);
 	return;
 }

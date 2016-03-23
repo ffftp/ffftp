@@ -226,10 +226,11 @@ DWORD ListUpdateFile(UPDATE_LIST* pList, DWORD MaxCount, LPCTSTR ServerPath, LPC
 			{
 				if(_tcscmp(Find.cFileName, _T(".")) != 0 && _tcscmp(Find.cFileName, _T("..")) != 0)
 				{
-					if(_tcslen(ServerPath) + _tcslen(_T("/")) + _tcslen(Find.cFileName) < 128 && _tcslen(Path) + _tcslen(_T("\\")) + _tcslen(Find.cFileName) < 128)
+//					if(_tcslen(ServerPath) + _tcslen(_T("/")) + _tcslen(Find.cFileName) < 128 && _tcslen(Path) + _tcslen(_T("\\")) + _tcslen(Find.cFileName) < 128)
+					if(_tcslen(ServerPath) + _tcslen(Find.cFileName) < 128 && _tcslen(Path) + _tcslen(_T("\\")) + _tcslen(Find.cFileName) < 128)
 					{
 						_tcscpy(Temp1, ServerPath);
-						_tcscat(Temp1, _T("/"));
+//						_tcscat(Temp1, _T("/"));
 						_tcscat(Temp1, Find.cFileName);
 						_tcscpy(Temp2, Path);
 						_tcscat(Temp2, _T("\\"));
