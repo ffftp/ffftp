@@ -50,32 +50,37 @@ BOOL ReadFileViaHTTPW(void* pOut, DWORD Length, DWORD* pLength, LPCWSTR UserAgen
 {
 	BOOL bResult;
 	HINTERNET hSession;
+	DWORD Buffer;
 	HINTERNET hConnect;
 	HINTERNET hRequest;
 	bResult = FALSE;
 	if(hSession = WinHttpOpen(UserAgent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))
 	{
-		if(hConnect = WinHttpConnect(hSession, ServerName, INTERNET_DEFAULT_HTTP_PORT, 0))
+		Buffer = WINHTTP_OPTION_REDIRECT_POLICY_ALWAYS;
+		if(WinHttpSetOption(hSession, WINHTTP_OPTION_REDIRECT_POLICY, &Buffer, sizeof(DWORD)))
 		{
-			if(hRequest = WinHttpOpenRequest(hConnect, L"GET", ObjectName, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, 0))
+			if(hConnect = WinHttpConnect(hSession, ServerName, INTERNET_DEFAULT_HTTP_PORT, 0))
 			{
-				if(WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0))
+				if(hRequest = WinHttpOpenRequest(hConnect, L"GET", ObjectName, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, 0))
 				{
-					if(WinHttpReceiveResponse(hRequest, NULL))
+					if(WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0))
 					{
-						if(WinHttpQueryDataAvailable(hRequest, pLength))
+						if(WinHttpReceiveResponse(hRequest, NULL))
 						{
-							if(*pLength <= Length)
+							if(WinHttpQueryDataAvailable(hRequest, pLength))
 							{
-								if(WinHttpReadData(hRequest, pOut, Length, pLength))
-									bResult = TRUE;
+								if(*pLength <= Length)
+								{
+									if(WinHttpReadData(hRequest, pOut, Length, pLength))
+										bResult = TRUE;
+								}
 							}
 						}
 					}
+					WinHttpCloseHandle(hRequest);
 				}
-				WinHttpCloseHandle(hRequest);
+				WinHttpCloseHandle(hConnect);
 			}
-			WinHttpCloseHandle(hConnect);
 		}
 		WinHttpCloseHandle(hSession);
 	}
