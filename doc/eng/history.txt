@@ -10,7 +10,8 @@ Changes in Ver.1.99
 -- 64bit version is now available.
    This works around the certain restriction on 64bit Windows.
 
--- Added the feature of automatic software update.
+-- Added the feature of automatic software update (Windows XP SP3 or later
+   only).
    It will connect to the dedicated server to check whether there are updates
    every 7 days by default, and then confirm whether to apply them.
 

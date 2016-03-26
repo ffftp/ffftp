@@ -236,13 +236,13 @@ END
 //
 
 about_dlg DIALOGEX 0, 0, 315, 317
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About FFFTP"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,132,296,50,14
     ICON            ffftp,-1,7,4,20,20
-    CTEXT           "FFFTP  Ver 1.99",-1,110,11,90,8
+    CTEXT           "FFFTP Ver 1.99",-1,110,11,90,8
     CTEXT           "FFFTP is freeware",-1,7,281,301,8
     CTEXT           "Copyright(C) 1997-2010 Sota && cooperators\nCopyright (C) 2011-2016 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen)",-1,7,25,301,44
     CTEXT           "",ABOUT_JRE,7,93,301,8
@@ -639,7 +639,8 @@ BEGIN
     CONTROL         "Us&e the firewall for undefined hosts",FIRE_USEIT,
                     "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,109,197,10
     CONTROL         "Use PAS&V mode for undefined hosts",FIRE_PASV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,122,197,10
-    CONTROL         "Do &not save firewall username/password",FIRE_SHARED,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,135,197,10
+    CONTROL         "Do &not save firewall username/password",FIRE_SHARED,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,135,197,10
 END
 
 hset_adv_dlg DIALOG  0, 0, 207, 155
@@ -1145,7 +1146,8 @@ FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "Copy/Delete following files",-1,7,6,160,8
     LISTBOX         MIRROR_LIST,7,16,160,78,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Do not transfer &file contents",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,98,10
+    CONTROL         "Do not transfer &file contents",MIRROR_NO_TRANSFER,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,98,10
     DEFPUSHBUTTON   "Start Now",IDOK,7,153,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,62,153,50,14
     SCROLLBAR       MIRROR_SIZEGRIP,164,158,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
@@ -1163,7 +1165,8 @@ FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "Copy/Delete following files",-1,7,6,160,8
     LISTBOX         MIRROR_LIST,7,16,160,78,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Do not transfer &file contents",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,98,10
+    CONTROL         "Do not transfer &file contents",MIRROR_NO_TRANSFER,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,98,10
     DEFPUSHBUTTON   "Start Now",IDOK,7,153,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,62,153,50,14
     SCROLLBAR       MIRROR_SIZEGRIP,164,158,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
