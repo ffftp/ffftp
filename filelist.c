@@ -97,7 +97,9 @@ static void DispListList(FILELIST *Pos, char *Title);
 static int MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
 static int MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
 static void CopyTmpListToFileList(FILELIST **Base, FILELIST *List);
-static int GetListOneLine(char *Buf, int Max, FILE *Fd);
+// 文字化け対策
+//static int GetListOneLine(char *Buf, int Max, FILE *Fd);
+static int GetListOneLine(char *Buf, int Max, FILE *Fd, int Convert);
 static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir);
 // ファイル一覧バグ修正
 //static void MakeLocalTree(char *Path, FILELIST **Base);
@@ -1329,7 +1331,9 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork)
 			{
 				ListType = LIST_UNKNOWN;
 
-				while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
+				// 文字化け対策
+//				while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
+				while(GetListOneLine(Str, FMAX_PATH, fd, YES) == FFFTP_SUCCESS)
 				{
 					if((ListType = AnalyzeFileInfo(Str)) != LIST_UNKNOWN)
 					{
@@ -3273,7 +3277,9 @@ void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base)
 
 		ListType = LIST_UNKNOWN;
 
-		while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
+		// 文字化け対策
+//		while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
+		while(GetListOneLine(Str, FMAX_PATH, fd, YES) == FFFTP_SUCCESS)
 		{
 			if((ListType = AnalyzeFileInfo(Str)) == LIST_UNKNOWN)
 			{
@@ -3341,7 +3347,9 @@ void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base)
 *		Vax VMSの時は、複数行のファイル情報を１行にまとめる
 *----------------------------------------------------------------------------*/
 
-static int GetListOneLine(char *Buf, int Max, FILE *Fd)
+// 文字化け対策
+//static int GetListOneLine(char *Buf, int Max, FILE *Fd)
+static int GetListOneLine(char *Buf, int Max, FILE *Fd, int Convert)
 {
 	char Tmp[FMAX_PATH+1];
 	int Sts;
@@ -3350,6 +3358,9 @@ static int GetListOneLine(char *Buf, int Max, FILE *Fd)
 	while((Sts == FFFTP_FAIL) && (fgets(Buf, Max, Fd) != NULL))
 	{
 		Sts = FFFTP_SUCCESS;
+		// 文字化け対策
+		if(Convert == YES)
+			ChangeFnameRemote2Local(Buf, Max);
 		RemoveReturnCode(Buf);
 		ReplaceAll(Buf, '\x08', ' ');
 
@@ -3428,7 +3439,8 @@ static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir)
 						strcat(Dir, Str);
 						*(Dir + strlen(Dir) - 1) = NUL;
 
-						ChangeFnameRemote2Local(Dir, FMAX_PATH);
+						// 文字化け対策
+//						ChangeFnameRemote2Local(Dir, FMAX_PATH);
 
 						ReplaceAll(Dir, '\\', '/');
 					}
@@ -5674,7 +5686,6 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 //			Ret = NODE_NONE;
 //		else
 //			ChangeFnameRemote2Local(Fname, FMAX_PATH);
-		ChangeFnameRemote2Local(Fname, FMAX_PATH);
 		// UTF-8の冗長表現によるディレクトリトラバーサル対策
 		FixStringM(Fname, Fname);
 		// 0x5Cが含まれる文字列を扱えないバグ修正
@@ -6276,7 +6287,7 @@ int AnalyzeNameKanjiCode(int Num)
 	MakeCacheFileName(Num, Str);
 	if((fd = fopen(Str, "rb")) != NULL)
 	{
-		while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
+		while(GetListOneLine(Str, FMAX_PATH, fd, NO) == FFFTP_SUCCESS)
 		{
 			if((ListType = AnalyzeFileInfo(Str)) != LIST_UNKNOWN)
 			{
