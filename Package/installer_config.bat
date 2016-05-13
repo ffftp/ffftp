@@ -39,5 +39,5 @@ set DIR_JPN_DOC=..\doc\jpn
 set DIR_ENG_DOC=..\doc\eng
 set DIR_DIST=..\dist
 
-set FFFTP_VERSION=1.99
+set FFFTP_VERSION=1.99a
 
