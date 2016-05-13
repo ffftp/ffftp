@@ -11,19 +11,19 @@
 #define UPDATE_SERVER "osdn.jp"
 #if defined(_M_IX86)
 #if !defined(FFFTP_ENGLISH)
-#define UPDATE_HASH_PATH "/dl/ffftp/update+jpn+hash"
-#define UPDATE_LIST_PATH "/dl/ffftp/update+jpn+list"
+#define UPDATE_HASH_PATH "/dl/ffftp/update.jpn.hash"
+#define UPDATE_LIST_PATH "/dl/ffftp/update.jpn.list"
 #else
-#define UPDATE_HASH_PATH "/dl/ffftp/update+eng+hash"
-#define UPDATE_LIST_PATH "/dl/ffftp/update+eng+list"
+#define UPDATE_HASH_PATH "/dl/ffftp/update.eng.hash"
+#define UPDATE_LIST_PATH "/dl/ffftp/update.eng.list"
 #endif
 #elif defined(_M_AMD64)
 #if !defined(FFFTP_ENGLISH)
-#define UPDATE_HASH_PATH "/dl/ffftp/update+amd64+jpn+hash"
-#define UPDATE_LIST_PATH "/dl/ffftp/update+amd64+jpn+list"
+#define UPDATE_HASH_PATH "/dl/ffftp/update.amd64.jpn.hash"
+#define UPDATE_LIST_PATH "/dl/ffftp/update.amd64.jpn.list"
 #else
-#define UPDATE_HASH_PATH "/dl/ffftp/update+amd64+eng+hash"
-#define UPDATE_LIST_PATH "/dl/ffftp/update+amd64+eng+list"
+#define UPDATE_HASH_PATH "/dl/ffftp/update.amd64.eng.hash"
+#define UPDATE_LIST_PATH "/dl/ffftp/update.amd64.eng.list"
 #endif
 #endif
 #define UPDATE_RSA_PUBLIC_KEY \

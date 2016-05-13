@@ -439,7 +439,10 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 								if(pCommand = GetToken(pCommand, ListFile))
 								{
 									if(pCommand = GetToken(pCommand, Description))
+									{
+										DecodeLineFeed(Description);
 										BuildUpdates(PrivateKeyFile, Password, ServerPath, HashFile, ListFile, RELEASE_VERSION_NUM, VER_STR, Description);
+									}
 								}
 							}
 						}
@@ -628,20 +631,23 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			}
 		}
 		// バージョン確認
-		if(ReadSettingsVersion() > VER_NUM)
+		if(PortableVersion == NO)
 		{
-			if(IsRegAvailable() == YES && IsIniAvailable() == NO)
+			if(ReadSettingsVersion() > VER_NUM)
 			{
-				switch(MessageBox(GetMainHwnd(), MSGJPN350, "FFFTP", MB_YESNOCANCEL | MB_DEFBUTTON2))
+				if(IsRegAvailable() == YES && IsIniAvailable() == NO)
 				{
-					case IDCANCEL:
-						ReadOnlySettings = YES;
-						break;
-					case IDYES:
-						break;
-					case IDNO:
-						ImportPortable = YES;
-						break;
+					switch(MessageBox(GetMainHwnd(), MSGJPN350, "FFFTP", MB_YESNOCANCEL | MB_DEFBUTTON2))
+					{
+						case IDCANCEL:
+							ReadOnlySettings = YES;
+							break;
+						case IDYES:
+							break;
+						case IDNO:
+							ImportPortable = YES;
+							break;
+					}
 				}
 			}
 		}

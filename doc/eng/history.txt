@@ -1,5 +1,25 @@
 FFFTP version history.
 
+Changes in Ver.1.99a
+--------------------
+
+The lists of this and newer versions include changes applied by automatic
+software updates.
+
+-- Supported specification changes of the server for automatic software update.
+   Please update your copy of FFFTP to this version manually because older
+   versions cannot update automatically now.
+
+-- Fixed bugs that it could not display some file names if its encoding was
+   other than UTF-8.
+
+-- Fixed bugs that an useless dialog was popped up on ZIP versions while
+   settings were imported from the registry.
+
+-- Updated OpenSSL.
+
+-- Updated SSL/TLS root CAs.
+
 Changes in Ver.1.99
 --------------------
 

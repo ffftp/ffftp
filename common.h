@@ -72,16 +72,16 @@
 //#define PROGRAM_VERSION_NUM		1972		/* バージョン */
 // 64ビット対応
 #ifdef _WIN64
-#define VER_STR					"1.99-20160504 64bit"
+#define VER_STR					"1.99a 64bit"
 #else
-#define VER_STR					"1.99-20160504"
+#define VER_STR					"1.99a"
 #endif
 #define VER_NUM					1990		/* 設定バージョン */
 #define PROGRAM_VERSION_NUM		1990		/* バージョン */
 // ソフトウェア自動更新
 // リリースバージョンはリリース予定年（10進数4桁）+月（2桁）+日（2桁）+通し番号（0スタート2桁）とする
 // 2014年7月31日中の30個目のリリースは2014073129
-#define RELEASE_VERSION_NUM		2016050400	/* リリースバージョン */
+#define RELEASE_VERSION_NUM		2016051400	/* リリースバージョン */
 
 
 // SourceForge.JPによるフォーク
@@ -1955,6 +1955,8 @@ void QueryDisplayDPI();
 int CalcPixelX(int x);
 int CalcPixelY(int y);
 HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNumerator, int ScaleDenominator);
+// ソフトウェア自動更新
+void DecodeLineFeed(char* Str);
 
 /*===== dlgsize.c =====*/
 

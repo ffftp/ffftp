@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.1.99 (FTP Client software)
+[Software Name]  FFFTP Ver.1.99a (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2016 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).
 [Environment]    Windows 10, 8.1, 8, 7, Vista, XP, 2000
@@ -28,86 +28,25 @@ following menu.
 File ->@Settings -> Change Master password
 
 
-Changes in Ver.1.99
+Changes in Ver.1.99a
 --------------------
 
--- Tested on Windows 8.1 (32bit/64bit).
+The lists of this and newer versions include changes applied by automatic
+software updates.
 
--- Tested on Windows 10 (32bit/64bit).
+-- Supported specification changes of the server for automatic software update.
+   Please update your copy of FFFTP to this version manually because older
+   versions cannot update automatically now.
 
--- 64bit version is now available.
-   This works around the certain restriction on 64bit Windows.
+-- Fixed bugs that it could not display some file names if its encoding was
+   other than UTF-8.
 
--- Added the feature of automatic software update (Windows XP SP3 or later
-   only).
-   It will connect to the dedicated server to check whether there are updates
-   every 7 days by default, and then confirm whether to apply them.
+-- Fixed bugs that an useless dialog was popped up on ZIP versions while
+   settings were imported from the registry.
 
--- Added a feature to encrypt the all settings with the master password.
-   This prevents malwares and third parties from skimming personal information.
-   Please note that 1.98g or former versions cannot read encrypted settings.
-   This feature is disabled by default.
+-- Updated OpenSSL.
 
--- Fixed bugs that the apprication did not start when the INI file was modified
-   and BOM was inserted in it.
-
--- Fixed bugs that user names which were sent to hosts were always encoded into
-   UTF-8.
-
--- Fixed bugs of recognition of MLSD responses that include uppercase letters.
-
--- Added an option to disable automatic refresh of the local view.
-
--- Added an option to dispose old logs automatically.
-
--- Supported UTF-8 HFS+ file name encoding (Windows Vista or later only).
-
--- Improved automatic detection of Kanji code of filenames.
-
--- Fixed bugs of Select dialog.
-
--- Changed to confirm how the settings will be saved when the settings of a
-   future version exist in the registry.
-
--- Changed to display file sizes with units of GB or larger.
-
--- Changed to display the encryption status of the current connection.
-
--- Changed to display the progress of file transfer on the taskbar (Windows 7
-   or later only).
-
--- Added a function to move remote files to their parent directory.
-
--- Supported high DPI displays.
-   The interface such as the menu will look smooth on high DPI displays.
-
--- Added a feature to export settings as FileZilla XML format.
-
--- Added an option not to use weak encryption methods for each host.
-   This refuses SSL 3.0 or older and encryption algorithms whose keys are
-   shorter than 128 bits.
-   This feature is enabled by default.
-
--- Added the default settings to the host list.
-   This is used for the initial state of new hosts and Quick Connect.
-
--- Added an option to abort file transfer if failed in obtaining file lists
-   before it.
-   This feature is enabled by default.
-
--- Changed to enable reconnection after transfer errors by default.
-
--- Fixed bugs to fail in controlling UPnP with simultaneous connections.
-
--- Fixed bugs to crash if certain operations are performed immediately after
-   drag-and-drop from the remote file view.
-
--- Fixed bugs to fail in recognizing file names that contain 2 or more spaces
-   in Windows Server 2008 R2 file list format.
-
--- Added an option not to save the user name and password of the firewall.
-
--- Fixed bugs to disturb the view after resizing of a dialog.
+-- Updated SSL/TLS root CAs.
 
 
 Outline

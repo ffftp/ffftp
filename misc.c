@@ -2060,3 +2060,14 @@ HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNum
 	return hDstBitmap;
 }
 
+// ソフトウェア自動更新
+void DecodeLineFeed(char* Str)
+{
+	char* p;
+	p = Str;
+	while(p = strstr(p, "\\n"))
+	{
+		strncpy(p, "\r\n", 2);
+	}
+}
+
