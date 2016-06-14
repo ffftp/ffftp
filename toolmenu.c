@@ -927,6 +927,9 @@ void EnableUserOpe(void)
 		// バグ修正
 //		HideUI = NO;
 
+		// バグ修正
+		SetFocus(GetMainHwnd());
+
 		MakeButtonsFocus();
 	}
 	return;

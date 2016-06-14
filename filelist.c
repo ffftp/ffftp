@@ -178,6 +178,8 @@ static int IgnoreOld = NO;
 static int IgnoreExist = NO;
 
 static int Dragging = NO;
+// 特定の操作を行うと異常終了するバグ修正
+static int DragFirstTime = NO;
 
 static int StratusMode;			/* 0=ファイル, 1=ディレクトリ, 2=リンク */
 
@@ -542,7 +544,9 @@ static void doTransferRemoteFile(void)
 	// FFFTPにダウンロード要求を出し、ダウンロードの完了を待つ。
 	PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
 
-	for (i = 0 ; i < 10 ; i++) {
+	// 特定の操作を行うと異常終了するバグ修正
+//	for (i = 0 ; i < 10 ; i++) {
+	for (i = 0 ; i < 1000 ; i++) {
 		MSG msg;
 
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -561,7 +565,20 @@ static void doTransferRemoteFile(void)
 	// OLE D&D中にメインウィンドウをユーザに操作させると、おかしくなるので、
 	// 隠しモーダルダイアログを作る。
 	// (2007.9.11 yutaka)
-	DialogBox(GetFtpInst(), MAKEINTRESOURCE(IDD_OLEDRAG), GetMainHwnd(), (DLGPROC)doOleDlgProc);
+	// 特定の操作を行うと異常終了するバグ修正
+//	DialogBox(GetFtpInst(), MAKEINTRESOURCE(IDD_OLEDRAG), GetMainHwnd(), (DLGPROC)doOleDlgProc);
+	while(1)
+	{
+		MSG msg;
+		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		else if(AskTransferNow() == NO)
+			break;
+		Sleep(10);
+	}
 
 	// ダウンロード先を元に戻す
 	SetLocalDirHist(LocDir);
@@ -897,6 +914,8 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
 
  		case WM_DRAGDROP:  
+			// 特定の操作を行うと異常終了するバグ修正
+			DragFirstTime = YES;
  			// OLE D&Dを開始する (yutaka)
  			doDragDrop(hWnd, message, wParam, lParam);
  			return (TRUE);
@@ -920,9 +939,13 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
  					char *PathDir;
 
 					// 特定の操作を行うと異常終了するバグ修正
-					GetCursorPos(&Point);
-					hWndPnt = WindowFromPoint(Point);
-					hWndParent = GetParent(hWndPnt);
+					if(DragFirstTime == YES)
+					{
+						GetCursorPos(&Point);
+						hWndPnt = WindowFromPoint(Point);
+						hWndParent = GetParent(hWndPnt);
+					}
+					DragFirstTime = NO;
 					DisableUserOpe();
 					CancelFlg = NO;
 
