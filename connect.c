@@ -89,6 +89,8 @@ static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork);
 extern char FilterStr[FILTER_EXT_LEN+1];
 extern char TitleHostName[HOST_ADRS_LEN+1];
 extern int CancelFlg;
+// タイトルバーにユーザー名表示対応
+extern char TitleUserName[USER_NAME_LEN+1];
 
 /* 設定値 */
 extern char UserMailAdrs[USER_MAIL_LEN+1];
@@ -259,6 +261,8 @@ void ConnectProc(int Type, int Num)
 				}
 
 				strcpy(TitleHostName, CurHost.HostName);
+				// タイトルバーにユーザー名表示対応
+				strcpy(TitleUserName, CurHost.UserName);
 				DispWindowTitle();
 				SoundPlay(SND_CONNECT);
 
@@ -373,6 +377,8 @@ void QuickConnectProc(void)
 				}
 
 				strcpy(TitleHostName, CurHost.HostAdrs);
+				// タイトルバーにユーザー名表示対応
+				strcpy(TitleUserName, CurHost.UserName);
 				DispWindowTitle();
 				SoundPlay(SND_CONNECT);
 
@@ -582,6 +588,8 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 			}
 
 			strcpy(TitleHostName, CurHost.HostAdrs);
+			// タイトルバーにユーザー名表示対応
+			strcpy(TitleUserName, CurHost.UserName);
 			DispWindowTitle();
 			SoundPlay(SND_CONNECT);
 
@@ -693,6 +701,8 @@ void HistoryConnectProc(int MenuCmd)
 				}
 
 				strcpy(TitleHostName, CurHost.HostAdrs);
+				// タイトルバーにユーザー名表示対応
+				strcpy(TitleUserName, CurHost.UserName);
 				DispWindowTitle();
 				SoundPlay(SND_CONNECT);
 

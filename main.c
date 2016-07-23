@@ -132,6 +132,8 @@ TRANSPACKET MainTransPkt;		/* ファイル転送用パケット */
 
 char TitleHostName[HOST_ADRS_LEN+1];
 char FilterStr[FILTER_EXT_LEN+1] = { "*" };
+// タイトルバーにユーザー名表示対応
+char TitleUserName[USER_NAME_LEN+1];
 
 int CancelFlg;
 
@@ -962,21 +964,22 @@ void DispWindowTitle(void)
 
 	if(AskConnecting() == YES)
 	// 暗号化通信対応
+	// タイトルバーにユーザー名表示対応
 //		sprintf(Tmp, "%s (%s) - FFFTP", TitleHostName, FilterStr);
 	{
 		switch(AskCryptMode())
 		{
 		case CRYPT_NONE:
-			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN351);
+			sprintf(Tmp, "%s@%s (%s) %s - FFFTP", TitleUserName, TitleHostName, FilterStr, MSGJPN351);
 			break;
 		case CRYPT_FTPES:
-			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN352);
+			sprintf(Tmp, "%s@%s (%s) %s - FFFTP", TitleUserName, TitleHostName, FilterStr, MSGJPN352);
 			break;
 		case CRYPT_FTPIS:
-			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN353);
+			sprintf(Tmp, "%s@%s (%s) %s - FFFTP", TitleUserName, TitleHostName, FilterStr, MSGJPN353);
 			break;
 		case CRYPT_SFTP:
-			sprintf(Tmp, "%s (%s) %s - FFFTP", TitleHostName, FilterStr, MSGJPN354);
+			sprintf(Tmp, "%s@%s (%s) %s - FFFTP", TitleUserName, TitleHostName, FilterStr, MSGJPN354);
 			break;
 		}
 	}
