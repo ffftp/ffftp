@@ -18,9 +18,13 @@
 
 // FTPS対応
 
-typedef void (__cdecl* _SSL_load_error_strings)();
-typedef int (__cdecl* _SSL_library_init)();
-typedef SSL_METHOD* (__cdecl* _SSLv23_method)();
+// OpenSSL 1.1.0対応
+//typedef void (__cdecl* _SSL_load_error_strings)();
+//typedef int (__cdecl* _SSL_library_init)();
+typedef int (__cdecl* _OPENSSL_init_ssl)(uint64_t, OPENSSL_INIT_SETTINGS*);
+// OpenSSL 1.1.0対応
+//typedef SSL_METHOD* (__cdecl* _SSLv23_method)();
+typedef SSL_METHOD* (__cdecl* _TLS_method)();
 typedef SSL* (__cdecl* _SSL_new)(SSL_CTX*);
 typedef void (__cdecl* _SSL_free)(SSL*);
 typedef long (__cdecl* _SSL_ctrl)(SSL*, int, long, void*);
@@ -70,9 +74,13 @@ typedef unsigned char* (__cdecl* _SHA256)(const unsigned char*, size_t, unsigned
 typedef unsigned char* (__cdecl* _SHA384)(const unsigned char*, size_t, unsigned char*);
 typedef unsigned char* (__cdecl* _SHA512)(const unsigned char*, size_t, unsigned char*);
 
-_SSL_load_error_strings p_SSL_load_error_strings;
-_SSL_library_init p_SSL_library_init;
-_SSLv23_method p_SSLv23_method;
+// OpenSSL 1.1.0対応
+//_SSL_load_error_strings p_SSL_load_error_strings;
+//_SSL_library_init p_SSL_library_init;
+_OPENSSL_init_ssl p_OPENSSL_init_ssl;
+// OpenSSL 1.1.0対応
+//_SSLv23_method p_SSLv23_method;
+_TLS_method p_TLS_method;
 _SSL_new p_SSL_new;
 _SSL_free p_SSL_free;
 _SSL_ctrl p_SSL_ctrl;
@@ -153,15 +161,15 @@ BOOL LoadOpenSSL()
 #ifdef ENABLE_PROCESS_PROTECTION
 	// 同梱するOpenSSLのバージョンに合わせてSHA1ハッシュ値を変更すること
 #if defined(_M_IX86)
-	// ssleay32.dll 1.0.2h
-	RegisterTrustedModuleSHA1Hash("\x7E\x40\xBE\x64\xDC\x67\xAC\x54\x5E\x27\x62\x02\x80\x41\x08\x0A\xA7\xB4\xD9\x3C");
-	// libeay32.dll 1.0.2h
-	RegisterTrustedModuleSHA1Hash("\xE5\x35\x05\x1B\xEC\x5A\xF1\xC9\xE5\xAA\x3D\x85\x3B\xCE\xBB\x9A\xCA\xC8\x6A\x17");
+	// ssleay32.dll 1.1.0h
+	RegisterTrustedModuleSHA1Hash("\x36\xFA\x98\xA1\xBE\x62\xB2\x07\xF0\xB8\x20\xE0\xB2\x86\x41\x68\xE2\x8D\x8B\x0F");
+	// libeay32.dll 1.1.0h
+	RegisterTrustedModuleSHA1Hash("\x2C\xD5\x65\x74\x2A\x8D\xE3\x22\x8F\xFE\xA9\x6D\xB5\x9D\x34\xFB\xBB\x23\x73\xFD");
 #elif defined(_M_AMD64)
-	// ssleay32.dll 1.0.2h
-	RegisterTrustedModuleSHA1Hash("\x32\x2E\x8A\x61\xCF\x64\xC0\xB4\xFF\x98\x93\x88\x8D\x16\xC8\x7B\xA3\x4D\x90\x78");
-	// libeay32.dll 1.0.2h
-	RegisterTrustedModuleSHA1Hash("\x27\x5F\x56\x01\xDC\xE5\xBA\xF8\x3E\x0E\x32\xB6\xCF\x6C\xF4\x1A\x08\x1E\x49\x16");
+	// ssleay32.dll 1.1.0h
+	RegisterTrustedModuleSHA1Hash("\x1A\xA5\x43\xC8\x19\x85\x16\xC0\x19\x04\x8D\xD2\xE0\xF3\xF8\x73\x4D\x9E\xA0\x2F");
+	// libeay32.dll 1.1.0h
+	RegisterTrustedModuleSHA1Hash("\xC4\x4E\xD4\x5B\xEF\xA6\xC0\x9F\x6A\x45\xEC\x26\xDE\xEC\x3A\xC0\x24\x00\xF1\x66");
 #endif
 #endif
 	g_hOpenSSL = LoadLibrary("ssleay32.dll");
@@ -169,9 +177,13 @@ BOOL LoadOpenSSL()
 //	if(!g_hOpenSSL)
 //		g_hOpenSSL = LoadLibrary("libssl32.dll");
 	if(!g_hOpenSSL
-		|| !(p_SSL_load_error_strings = (_SSL_load_error_strings)GetProcAddress(g_hOpenSSL, "SSL_load_error_strings"))
-		|| !(p_SSL_library_init = (_SSL_library_init)GetProcAddress(g_hOpenSSL, "SSL_library_init"))
-		|| !(p_SSLv23_method = (_SSLv23_method)GetProcAddress(g_hOpenSSL, "SSLv23_method"))
+		// OpenSSL 1.1.0対応
+//		|| !(p_SSL_load_error_strings = (_SSL_load_error_strings)GetProcAddress(g_hOpenSSL, "SSL_load_error_strings"))
+//		|| !(p_SSL_library_init = (_SSL_library_init)GetProcAddress(g_hOpenSSL, "SSL_library_init"))
+		|| !(p_OPENSSL_init_ssl = (_OPENSSL_init_ssl)GetProcAddress(g_hOpenSSL, "OPENSSL_init_ssl"))
+		// OpenSSL 1.1.0対応
+//		|| !(p_SSLv23_method = (_SSLv23_method)GetProcAddress(g_hOpenSSL, "SSLv23_method"))
+		|| !(p_TLS_method = (_TLS_method)GetProcAddress(g_hOpenSSL, "TLS_method"))
 		|| !(p_SSL_new = (_SSL_new)GetProcAddress(g_hOpenSSL, "SSL_new"))
 		|| !(p_SSL_free = (_SSL_free)GetProcAddress(g_hOpenSSL, "SSL_free"))
 		|| !(p_SSL_ctrl = (_SSL_ctrl)GetProcAddress(g_hOpenSSL, "SSL_ctrl"))
@@ -238,8 +250,11 @@ BOOL LoadOpenSSL()
 		return FALSE;
 	}
 	InitializeCriticalSection(&g_OpenSSLLock);
-	p_SSL_load_error_strings();
-	p_SSL_library_init();
+	// OpenSSL 1.1.0対応
+//	p_SSL_load_error_strings();
+	p_OPENSSL_init_ssl(OPENSSL_INIT_LOAD_CRYPTO_STRINGS | OPENSSL_INIT_LOAD_SSL_STRINGS, NULL);
+//	p_SSL_library_init();
+	p_OPENSSL_init_ssl(0, NULL);
 	SetSSLTimeoutCallback(60000, DefaultSSLTimeoutCallback);
 	SetSSLConfirmCallback(DefaultSSLConfirmCallback);
 	g_bOpenSSLLoaded = TRUE;
@@ -265,10 +280,15 @@ void FreeOpenSSL()
 	if(g_pOpenSSLCTX)
 		p_SSL_CTX_free(g_pOpenSSLCTX);
 	g_pOpenSSLCTX = NULL;
-	FreeLibrary(g_hOpenSSL);
-	g_hOpenSSL = NULL;
+	// OpenSSL 1.1.0対応
+//	FreeLibrary(g_hOpenSSL);
+//	g_hOpenSSL = NULL;
+//	FreeLibrary(g_hOpenSSLCommon);
+//	g_hOpenSSLCommon = NULL;
 	FreeLibrary(g_hOpenSSLCommon);
 	g_hOpenSSLCommon = NULL;
+	FreeLibrary(g_hOpenSSL);
+	g_hOpenSSL = NULL;
 	LeaveCriticalSection(&g_OpenSSLLock);
 	DeleteCriticalSection(&g_OpenSSLLock);
 	g_bOpenSSLLoaded = FALSE;
@@ -412,7 +432,9 @@ BOOL SetSSLRootCertificate(const void* pData, DWORD Length)
 	EnterCriticalSection(&g_OpenSSLLock);
 	if(!g_pOpenSSLCTX)
 	{
-		g_pOpenSSLCTX = p_SSL_CTX_new(p_SSLv23_method());
+		// OpenSSL 1.1.0対応
+//		g_pOpenSSLCTX = p_SSL_CTX_new(p_SSLv23_method());
+		g_pOpenSSLCTX = p_SSL_CTX_new(p_TLS_method());
 		p_SSL_CTX_ctrl(g_pOpenSSLCTX, SSL_CTRL_MODE, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_AUTO_RETRY, NULL);
 	}
 	if(g_pOpenSSLCTX)
@@ -678,7 +700,9 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen)
 	EnterCriticalSection(&g_OpenSSLLock);
 	if(!g_pOpenSSLCTX)
 	{
-		g_pOpenSSLCTX = p_SSL_CTX_new(p_SSLv23_method());
+		// OpenSSL 1.1.0対応
+//		g_pOpenSSLCTX = p_SSL_CTX_new(p_SSLv23_method());
+		g_pOpenSSLCTX = p_SSL_CTX_new(p_TLS_method());
 		p_SSL_CTX_ctrl(g_pOpenSSLCTX, SSL_CTRL_MODE, SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_AUTO_RETRY, NULL);
 	}
 	if(g_pOpenSSLCTX)
@@ -705,7 +729,8 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen)
 					{
 						if(bStrengthen)
 						{
-							p_SSL_ctrl(*ppSSL, SSL_CTRL_OPTIONS, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3, NULL);
+							// OpenSSL 1.1.0対応
+//							p_SSL_ctrl(*ppSSL, SSL_CTRL_OPTIONS, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3, NULL);
 							p_SSL_set_cipher_list(*ppSSL, "HIGH");
 						}
 					}
