@@ -161,14 +161,14 @@ BOOL LoadOpenSSL()
 #ifdef ENABLE_PROCESS_PROTECTION
 	// 同梱するOpenSSLのバージョンに合わせてSHA1ハッシュ値を変更すること
 #if defined(_M_IX86)
-	// ssleay32.dll 1.1.0h
+	// ssleay32.dll 1.1.0
 	RegisterTrustedModuleSHA1Hash("\x36\xFA\x98\xA1\xBE\x62\xB2\x07\xF0\xB8\x20\xE0\xB2\x86\x41\x68\xE2\x8D\x8B\x0F");
-	// libeay32.dll 1.1.0h
+	// libeay32.dll 1.1.0
 	RegisterTrustedModuleSHA1Hash("\x2C\xD5\x65\x74\x2A\x8D\xE3\x22\x8F\xFE\xA9\x6D\xB5\x9D\x34\xFB\xBB\x23\x73\xFD");
 #elif defined(_M_AMD64)
-	// ssleay32.dll 1.1.0h
+	// ssleay32.dll 1.1.0
 	RegisterTrustedModuleSHA1Hash("\x1A\xA5\x43\xC8\x19\x85\x16\xC0\x19\x04\x8D\xD2\xE0\xF3\xF8\x73\x4D\x9E\xA0\x2F");
-	// libeay32.dll 1.1.0h
+	// libeay32.dll 1.1.0
 	RegisterTrustedModuleSHA1Hash("\xC4\x4E\xD4\x5B\xEF\xA6\xC0\x9F\x6A\x45\xEC\x26\xDE\xEC\x3A\xC0\x24\x00\xF1\x66");
 #endif
 #endif
@@ -731,6 +731,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen)
 						{
 							// OpenSSL 1.1.0対応
 //							p_SSL_ctrl(*ppSSL, SSL_CTRL_OPTIONS, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3, NULL);
+							p_SSL_ctrl(*ppSSL, SSL_CTRL_SET_MIN_PROTO_VERSION, TLS1_VERSION, NULL);
 							p_SSL_set_cipher_list(*ppSSL, "HIGH");
 						}
 					}
