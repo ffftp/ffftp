@@ -767,18 +767,28 @@ static void DispMirrorFiles(FILELIST *Local, FILELIST *Remote)
 		while(Local != NULL)
 		{
 			FileTimeToLocalFileTime(&Local->Time, &fTime);
-			FileTimeToSystemTime(&fTime, &sTime);
-			sprintf(Date, "%04d/%02d/%02d %02d:%02d:%02d.%04d", 
-				sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond, sTime.wMilliseconds);
+			// タイムスタンプのバグ修正
+//			FileTimeToSystemTime(&fTime, &sTime);
+//			sprintf(Date, "%04d/%02d/%02d %02d:%02d:%02d.%04d", 
+//				sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond, sTime.wMilliseconds);
+			if(FileTimeToSystemTime(&fTime, &sTime))
+				sprintf(Date, "%04d/%02d/%02d %02d:%02d:%02d.%04d", sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond, sTime.wMilliseconds);
+			else
+				strcpy(Date, "");
 			DoPrintf("LOCAL  : %s %s [%s] %s", Local->Attr==1?"YES":"NO ", Local->Node==NODE_DIR?"DIR ":"FILE", Date, Local->File);
 			Local = Local->Next;
 		}
 		while(Remote != NULL)
 		{
 			FileTimeToLocalFileTime(&Remote->Time, &fTime);
-			FileTimeToSystemTime(&fTime, &sTime);
-			sprintf(Date, "%04d/%02d/%02d %02d:%02d:%02d.%04d", 
-				sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond, sTime.wMilliseconds);
+			// タイムスタンプのバグ修正
+//			FileTimeToSystemTime(&fTime, &sTime);
+//			sprintf(Date, "%04d/%02d/%02d %02d:%02d:%02d.%04d", 
+//				sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond, sTime.wMilliseconds);
+			if(FileTimeToSystemTime(&fTime, &sTime))
+				sprintf(Date, "%04d/%02d/%02d %02d:%02d:%02d.%04d", sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond, sTime.wMilliseconds);
+			else
+				strcpy(Date, "");
 			DoPrintf("REMOTE : %s %s [%s] %s", Remote->Attr==1?"YES":"NO ", Remote->Node==NODE_DIR?"DIR ":"FILE", Date, Remote->File);
 			Remote = Remote->Next;
 		}
@@ -1590,19 +1600,37 @@ void MirrorUploadProc(int Notify)
 								FileTimeToLocalFileTime(&RemotePos->Time, &TmpFtimeR);
 								if((RemotePos->InfoExist & FINFO_TIME) == 0)
 								{
-									FileTimeToSystemTime(&TmpFtimeL, &TmpStime);
-									TmpStime.wHour = 0;
-									TmpStime.wMinute = 0;
-									TmpStime.wSecond = 0;
-									TmpStime.wMilliseconds = 0;
-									SystemTimeToFileTime(&TmpStime, &TmpFtimeL);
+									// タイムスタンプのバグ修正
+//									FileTimeToSystemTime(&TmpFtimeL, &TmpStime);
+//									TmpStime.wHour = 0;
+//									TmpStime.wMinute = 0;
+//									TmpStime.wSecond = 0;
+//									TmpStime.wMilliseconds = 0;
+//									SystemTimeToFileTime(&TmpStime, &TmpFtimeL);
+									if(FileTimeToSystemTime(&TmpFtimeL, &TmpStime))
+									{
+										TmpStime.wHour = 0;
+										TmpStime.wMinute = 0;
+										TmpStime.wSecond = 0;
+										TmpStime.wMilliseconds = 0;
+										SystemTimeToFileTime(&TmpStime, &TmpFtimeL);
+									}
 
-									FileTimeToSystemTime(&TmpFtimeR, &TmpStime);
-									TmpStime.wHour = 0;
-									TmpStime.wMinute = 0;
-									TmpStime.wSecond = 0;
-									TmpStime.wMilliseconds = 0;
-									SystemTimeToFileTime(&TmpStime, &TmpFtimeR);
+									// タイムスタンプのバグ修正
+//									FileTimeToSystemTime(&TmpFtimeR, &TmpStime);
+//									TmpStime.wHour = 0;
+//									TmpStime.wMinute = 0;
+//									TmpStime.wSecond = 0;
+//									TmpStime.wMilliseconds = 0;
+//									SystemTimeToFileTime(&TmpStime, &TmpFtimeR);
+									if(FileTimeToSystemTime(&TmpFtimeR, &TmpStime))
+									{
+										TmpStime.wHour = 0;
+										TmpStime.wMinute = 0;
+										TmpStime.wSecond = 0;
+										TmpStime.wMilliseconds = 0;
+										SystemTimeToFileTime(&TmpStime, &TmpFtimeR);
+									}
 								}
 								RemotePos->Attr = NO;
 								if(CompareFileTime(&TmpFtimeL, &TmpFtimeR) <= 0)

@@ -11,6 +11,8 @@ for(@data)
 	$_ =~ s/libcrypto-1_1/libeay32/g;
 	$_ =~ s/\$\(MTOUTFLAG\)ssleay32\.dll/\$\(MTOUTFLAG\)ssleay32\.dll;#2/g;
 	$_ =~ s/\$\(MTOUTFLAG\)libeay32\.dll/\$\(MTOUTFLAG\)libeay32\.dll;#2/g;
+	$_ =~ s/\"-DENGINESDIR=/\"-DENGINESDIR=\\\"\.\\\"\" \"-D_ENGINESDIR=/g;
+	$_ =~ s/\"-DOPENSSLDIR=/\"-DOPENSSLDIR=\\\"\.\\\"\" \"-D_OPENSSLDIR=/g;
 	print FILE $_;
 }
 close(FILE);

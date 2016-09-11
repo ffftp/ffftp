@@ -2,7 +2,7 @@
 pushd %~dp0
 set var0=VC-WIN64A
 set var1=..\dist\amd64
-perl Configure %var0% no-asm --prefix="%cd%"
+perl Configure %var0% no-asm enable-ssl3 enable-ssl3-method enable-weak-ssl-ciphers
 md %var1%
 perl nodebug.pl
 nmake /f makefile

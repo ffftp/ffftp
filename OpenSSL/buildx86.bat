@@ -2,7 +2,7 @@
 pushd %~dp0
 set var0=VC-WIN32
 set var1=..\dist
-perl Configure %var0% no-asm --prefix="%cd%"
+perl Configure %var0% no-asm enable-ssl3 enable-ssl3-method enable-weak-ssl-ciphers
 md %var1%
 perl nodebug.pl
 nmake /f makefile

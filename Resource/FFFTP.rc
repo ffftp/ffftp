@@ -242,7 +242,7 @@ FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,133,294,50,14
     ICON            ffftp,-1,7,4,20,20
-    CTEXT           "FFFTP Ver 1.99a-20160828",-1,113,11,90,8
+    CTEXT           "FFFTP Ver 1.99a-20160911",-1,113,11,90,8
     CTEXT           "FFFTPはfreewareです",-1,7,279,305,8
     CTEXT           "Copyright(C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2016 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん)",-1,7,25,305,44,SS_NOPREFIX
     CTEXT           "",ABOUT_JRE,7,96,305,8
@@ -2213,8 +2213,8 @@ nodrop_csr              CURSOR                  "nodrop_c.cur"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,99,1,4
- PRODUCTVERSION 1,99,1,4
+ FILEVERSION 1,99,1,5
+ PRODUCTVERSION 1,99,1,5
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2232,12 +2232,12 @@ BEGIN
             VALUE "Comments", "これはフリーソフトウエアです。"
             VALUE "CompanyName", "Sota, FFFTP Project"
             VALUE "FileDescription", "FFFTP"
-            VALUE "FileVersion", "1, 99, 1, 4"
+            VALUE "FileVersion", "1, 99, 1, 5"
             VALUE "InternalName", "FFFTP"
             VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2016 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん)."
             VALUE "OriginalFilename", "FFFTP.exe"
             VALUE "ProductName", "FFFTP"
-            VALUE "ProductVersion", "1, 99, 1, 4"
+            VALUE "ProductVersion", "1, 99, 1, 5"
         END
     END
     BLOCK "VarFileInfo"

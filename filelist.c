@@ -3525,13 +3525,19 @@ static int MakeLocalTree(char *Path, FILELIST **Base)
 					Pkt.Size = MakeLongLong(FindBuf.nFileSizeHigh, FindBuf.nFileSizeLow);
 					Pkt.Attr = 0;
 					Pkt.Time = FindBuf.ftLastWriteTime;
-					FileTimeToSystemTime(&Pkt.Time, &TmpStime);
 					// タイムスタンプのバグ修正
+//					FileTimeToSystemTime(&Pkt.Time, &TmpStime);
 //					TmpStime.wSecond = 0;
-					if(DispTimeSeconds == NO)
-						TmpStime.wSecond = 0;
-					TmpStime.wMilliseconds = 0;
-					SystemTimeToFileTime(&TmpStime, &Pkt.Time);
+//					SystemTimeToFileTime(&TmpStime, &Pkt.Time);
+					if(FileTimeToSystemTime(&Pkt.Time, &TmpStime))
+					{
+						if(DispTimeSeconds == NO)
+							TmpStime.wSecond = 0;
+						TmpStime.wMilliseconds = 0;
+						SystemTimeToFileTime(&TmpStime, &Pkt.Time);
+					}
+					else
+						memset(&Pkt.Time, 0, sizeof(FILETIME));
 					AddFileList(&Pkt, Base);
 				}
 			}

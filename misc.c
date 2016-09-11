@@ -1203,7 +1203,10 @@ void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist, int
 //		/* "yyyy/mm/dd hh:mm" */
 		/* "yyyy/mm/dd hh:mm:ss" */
 		FileTimeToLocalFileTime(Time, &fTime);
-		FileTimeToSystemTime(&fTime, &sTime);
+		// タイムスタンプのバグ修正
+//		FileTimeToSystemTime(&fTime, &sTime);
+		if(!FileTimeToSystemTime(&fTime, &sTime))
+			InfoExist = 0;
 
 		// タイムスタンプのバグ修正
 //		if(InfoExist & FINFO_DATE)
