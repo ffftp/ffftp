@@ -16,4 +16,3 @@ for(@data)
 	print FILE $_;
 }
 close(FILE);
-exit(0);

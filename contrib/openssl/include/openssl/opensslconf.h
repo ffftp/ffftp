@@ -25,8 +25,23 @@ extern "C" {
 #ifndef OPENSSL_SYS_WIN32
 # define OPENSSL_SYS_WIN32 1
 #endif
+#ifndef OPENSSL_NO_MD2
+# define OPENSSL_NO_MD2
+#endif
+#ifndef OPENSSL_NO_RC5
+# define OPENSSL_NO_RC5
+#endif
+#ifndef OPENSSL_THREADS
+# define OPENSSL_THREADS
+#endif
 #ifndef OPENSSL_NO_ASAN
 # define OPENSSL_NO_ASAN
+#endif
+#ifndef OPENSSL_NO_ASM
+# define OPENSSL_NO_ASM
+#endif
+#ifndef OPENSSL_NO_ASYNC
+# define OPENSSL_NO_ASYNC
 #endif
 #ifndef OPENSSL_NO_CRYPTO_MDEBUG
 # define OPENSSL_NO_CRYPTO_MDEBUG
@@ -49,14 +64,8 @@ extern "C" {
 #ifndef OPENSSL_NO_HEARTBEATS
 # define OPENSSL_NO_HEARTBEATS
 #endif
-#ifndef OPENSSL_NO_MD2
-# define OPENSSL_NO_MD2
-#endif
 #ifndef OPENSSL_NO_MSAN
 # define OPENSSL_NO_MSAN
-#endif
-#ifndef OPENSSL_NO_RC5
-# define OPENSSL_NO_RC5
 #endif
 #ifndef OPENSSL_NO_SCTP
 # define OPENSSL_NO_SCTP
@@ -69,12 +78,6 @@ extern "C" {
 #endif
 #ifndef OPENSSL_NO_UNIT_TEST
 # define OPENSSL_NO_UNIT_TEST
-#endif
-#ifndef OPENSSL_THREADS
-# define OPENSSL_THREADS
-#endif
-#ifndef OPENSSL_NO_ASM
-# define OPENSSL_NO_ASM
 #endif
 #ifndef OPENSSL_NO_AFALGENG
 # define OPENSSL_NO_AFALGENG
