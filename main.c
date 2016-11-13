@@ -62,6 +62,9 @@
 #undef __MBSWRAPPER_H__
 #include "mbswrapper.h"
 
+// 暗号化通信対応
+#include "filehash.h"
+
 
 #define RESIZE_OFF		0		/* ウインドウの区切り位置変更していない */
 #define RESIZE_ON		1		/* ウインドウの区切り位置変更中 */
@@ -3595,8 +3598,7 @@ BOOL LoadSSLRootCAFile()
 				// sha.cはビッグエンディアンのため
 				for(i = 0; i < 5; i++)
 					Hash[i] = _byteswap_ulong(Hash[i]);
-				// 同梱する"ssl.pem"に合わせてSHA1ハッシュ値を変更すること
-				if(memcmp(&Hash, &SSLRootCAFileHash, 20) == 0 || memcmp(&Hash, "\x73\xB7\x54\x80\xEE\x1C\x4C\x66\x1C\x57\xD2\x0B\xDF\x85\xAD\x11\x69\xAF\x14\x8B", 20) == 0
+				if(memcmp(&Hash, &SSLRootCAFileHash, 20) == 0 || memcmp(&Hash, FILEHASH_SSL_PEM_SHA1, 20) == 0
 					|| DialogBox(GetFtpInst(), MAKEINTRESOURCE(updatesslroot_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
 				{
 					memcpy(&SSLRootCAFileHash, &Hash, 20);

@@ -15,6 +15,7 @@
 #include "protectprocess.h"
 #include "mbswrapper.h"
 #include "punycode.h"
+#include "filehash.h"
 
 // FTPS対応
 
@@ -159,18 +160,10 @@ BOOL LoadOpenSSL()
 	if(g_bOpenSSLLoaded)
 		return FALSE;
 #ifdef ENABLE_PROCESS_PROTECTION
-	// 同梱するOpenSSLのバージョンに合わせてSHA1ハッシュ値を変更すること
-#if defined(_M_IX86)
 	// ssleay32.dll 1.1.0b
-	RegisterTrustedModuleSHA1Hash("\x62\xF4\x7E\xA1\xD9\x24\xE5\xCF\xA7\xBE\x04\xD9\x55\x89\xA6\xF8\x96\x62\x43\xAD");
+	RegisterTrustedModuleSHA1Hash(FILEHASH_SSLEAY32_DLL_SHA1);
 	// libeay32.dll 1.1.0b
-	RegisterTrustedModuleSHA1Hash("\xB7\x63\x47\x26\x24\xE7\x99\x68\xC7\x46\xAD\x59\xBD\xAF\xD0\x44\x86\x35\xB4\x27");
-#elif defined(_M_AMD64)
-	// ssleay32.dll 1.1.0b
-	RegisterTrustedModuleSHA1Hash("\x10\xCD\x83\x06\x6F\xBE\x4D\x58\xE3\x0B\x2C\xF0\xA1\x13\x1B\xA2\x55\xB0\x6D\xE1");
-	// libeay32.dll 1.1.0b
-	RegisterTrustedModuleSHA1Hash("\x4F\x8E\xFB\xF6\x10\x50\x62\xA0\xB4\xF3\x28\x08\x10\x63\x67\x9E\xFD\xBE\xAC\x17");
-#endif
+	RegisterTrustedModuleSHA1Hash(FILEHASH_LIBEAY32_DLL_SHA1);
 #endif
 	g_hOpenSSL = LoadLibrary("ssleay32.dll");
 	// バージョン固定のためlibssl32.dllの読み込みは脆弱性の原因になり得るので廃止
