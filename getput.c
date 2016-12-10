@@ -4109,6 +4109,8 @@ static int GetAdrsAndPortIPv4(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 	// コンマではなくドットを返すホストがあるため
 	char *OldBtm;
 	int Sts;
+	// ホスト側の設定ミス対策
+	struct sockaddr_in SockAddr;
 
 	Sts = FFFTP_FAIL;
 
@@ -4151,9 +4153,21 @@ static int GetAdrsAndPortIPv4(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 					{
 						if((Btm - Pos) <= Max)
 						{
-							strncpy(Adrs, Pos, Btm - Pos);
-							*(Adrs + (Btm - Pos)) = NUL;
-							ReplaceAll(Adrs, ',', '.');
+							// ホスト側の設定ミス対策
+//							strncpy(Adrs, Pos, Btm - Pos);
+//							*(Adrs + (Btm - Pos)) = NUL;
+//							ReplaceAll(Adrs, ',', '.');
+							if(AskNoPasvAdrs() == NO)
+							{
+								strncpy(Adrs, Pos, Btm - Pos);
+								*(Adrs + (Btm - Pos)) = NUL;
+								ReplaceAll(Adrs, ',', '.');
+							}
+							else
+							{
+								if(GetAsyncTableDataIPv4(Skt, &SockAddr, NULL) == YES)
+									AddressToStringIPv4(Adrs, &SockAddr.sin_addr);
+							}
 
 							Pos = Btm + 1;
 							Btm = strchr(Pos, ',');
@@ -4204,7 +4218,8 @@ static int GetAdrsAndPortIPv6(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 				{
 					if((Btm - Pos) <= Max)
 					{
-						if((Btm - Pos) > 0)
+						// ホスト側の設定ミス対策
+						if(AskNoPasvAdrs() == NO && (Btm - Pos) > 0)
 						{
 							strncpy(Adrs, Pos, Btm - Pos);
 							*(Adrs + (Btm - Pos)) = NUL;
