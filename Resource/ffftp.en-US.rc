@@ -1419,14 +1419,16 @@ BEGIN
     CONTROL         "Spin1",HSET_THREAD_COUNT_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,7,9,14
     LTEXT           "(1 to 4 threads)",-1,102,10,53,8
     CONTROL         "Reuse &socket of the main window",HSET_REUSE_SOCKET,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,27,131,10
-    LTEXT           "Command for &Keep Alive",-1,7,44,84,8
-    EDITTEXT        HSET_NOOP_INTERVAL,92,42,17,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Spin1",HSET_NOOP_INTERVAL_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,109,41,9,14
-    LTEXT           "(0 to 300sec; 0=Never)",-1,122,44,76,8
-    LTEXT           "When transfer &errors",-1,7,61,81,8
-    COMBOBOX        HSET_ERROR_MODE,7,71,71,75,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "&Reconnect after errors",HSET_ERROR_RECONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,84,71,102,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,27,148,10
+    CONTROL         "Ignore &addresses returned by PASV",HSET_NO_PASV_ADRS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,41,148,10
+    LTEXT           "Command for &Keep Alive",-1,7,58,84,8
+    EDITTEXT        HSET_NOOP_INTERVAL,92,56,17,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",HSET_NOOP_INTERVAL_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,109,55,9,14
+    LTEXT           "(0 to 300sec; 0=Never)",-1,122,58,76,8
+    LTEXT           "When transfer &errors",-1,7,75,81,8
+    COMBOBOX        HSET_ERROR_MODE,7,85,71,75,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Reconnect after errors",HSET_ERROR_RECONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,84,85,102,10
 END
 
 savecrypt_dlg DIALOG 0, 0, 146, 62

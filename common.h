@@ -227,7 +227,7 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #else
 #define VER_STR					"3.1 32bit"
 #endif
-#define VER_NUM					1990		/* 設定バージョン */
+#define VER_NUM					1991		/* 設定バージョン */
 
 /*===== 通信関係 ======*/
 
@@ -1204,6 +1204,8 @@ typedef struct {
 	int TransferErrorNotify;			/* 転送エラー時に確認ダイアログを出すかどうか (YES/NO) */
 	// セッションあたりの転送量制限対策
 	int TransferErrorReconnect;			/* 転送エラー時に再接続する (YES/NO) */
+	// ホスト側の設定ミス対策
+	int NoPasvAdrs;						/* PASVで返されるアドレスを無視する (YES/NO) */
 } HOSTDATA;
 
 
@@ -1270,6 +1272,8 @@ typedef struct historydata {
 	int TransferErrorNotify;			/* 転送エラー時に確認ダイアログを出すかどうか (YES/NO) */
 	// セッションあたりの転送量制限対策
 	int TransferErrorReconnect;			/* 転送エラー時に再接続する (YES/NO) */
+	// ホスト側の設定ミス対策
+	int NoPasvAdrs;						/* PASVで返されるアドレスを無視する (YES/NO) */
 	struct historydata *Next;
 } HISTORYDATA;
 
@@ -1784,6 +1788,8 @@ int AskTransferErrorMode(void);
 int AskTransferErrorNotify(void);
 // セッションあたりの転送量制限対策
 int AskErrorReconnect(void);
+// ホスト側の設定ミス対策
+int AskNoPasvAdrs(void);
 
 /*===== cache.c =====*/
 

@@ -230,6 +230,8 @@ static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
 	New->TransferErrorNotify = Host->TransferErrorNotify;
 	// セッションあたりの転送量制限対策
 	New->TransferErrorReconnect = Host->TransferErrorReconnect;
+	// ホスト側の設定ミス対策
+	New->NoPasvAdrs = Host->NoPasvAdrs;
 	return;
 }
 
@@ -299,6 +301,8 @@ void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
 	Host->TransferErrorNotify = Hist->TransferErrorNotify;
 	// セッションあたりの転送量制限対策
 	Host->TransferErrorReconnect = Hist->TransferErrorReconnect;
+	// ホスト側の設定ミス対策
+	Host->NoPasvAdrs = Hist->NoPasvAdrs;
 	return;
 }
 

@@ -637,6 +637,8 @@ void SaveRegistry(void)
 							SaveIntNum(hKey5, "ErrNotify", Hist.TransferErrorNotify, DefaultHist.TransferErrorNotify);
 							// セッションあたりの転送量制限対策
 							SaveIntNum(hKey5, "ErrReconnect", Hist.TransferErrorReconnect, DefaultHist.TransferErrorReconnect);
+							// ホスト側の設定ミス対策
+							SaveIntNum(hKey5, "NoPasvAdrs", Hist.NoPasvAdrs, DefaultHist.NoPasvAdrs);
 
 							CloseSubKey(hKey5);
 							n++;
@@ -709,6 +711,7 @@ void SaveRegistry(void)
 					SaveIntNum(hKey5, "ErrMode", Host.TransferErrorMode, DefaultHost.TransferErrorMode);
 					SaveIntNum(hKey5, "ErrNotify", Host.TransferErrorNotify, DefaultHost.TransferErrorNotify);
 					SaveIntNum(hKey5, "ErrReconnect", Host.TransferErrorReconnect, DefaultHost.TransferErrorReconnect);
+					SaveIntNum(hKey5, "NoPasvAdrs", Host.NoPasvAdrs, DefaultHost.NoPasvAdrs);
 					CloseSubKey(hKey5);
 				}
 
@@ -785,6 +788,8 @@ void SaveRegistry(void)
 							SaveIntNum(hKey5, "ErrNotify", Host.TransferErrorNotify, DefaultHost.TransferErrorNotify);
 							// セッションあたりの転送量制限対策
 							SaveIntNum(hKey5, "ErrReconnect", Host.TransferErrorReconnect, DefaultHost.TransferErrorReconnect);
+							// ホスト側の設定ミス対策
+							SaveIntNum(hKey5, "NoPasvAdrs", Host.NoPasvAdrs, DefaultHost.NoPasvAdrs);
 						}
 						CloseSubKey(hKey5);
 					}
@@ -1204,6 +1209,8 @@ int LoadRegistry(void)
 					ReadIntValueFromReg(hKey5, "ErrNotify", &Hist.TransferErrorNotify);
 					// セッションあたりの転送量制限対策
 					ReadIntValueFromReg(hKey5, "ErrReconnect", &Hist.TransferErrorReconnect);
+					// ホスト側の設定ミス対策
+					ReadIntValueFromReg(hKey5, "NoPasvAdrs", &Hist.NoPasvAdrs);
 
 					CloseSubKey(hKey5);
 					AddHistoryToHistory(&Hist);
@@ -1269,6 +1276,7 @@ int LoadRegistry(void)
 				ReadIntValueFromReg(hKey5, "ErrMode", &Host.TransferErrorMode);
 				ReadIntValueFromReg(hKey5, "ErrNotify", &Host.TransferErrorNotify);
 				ReadIntValueFromReg(hKey5, "ErrReconnect", &Host.TransferErrorReconnect);
+				ReadIntValueFromReg(hKey5, "NoPasvAdrs", &Host.NoPasvAdrs);
 
 				CloseSubKey(hKey5);
 
@@ -1373,6 +1381,8 @@ int LoadRegistry(void)
 					ReadIntValueFromReg(hKey5, "ErrNotify", &Host.TransferErrorNotify);
 					// セッションあたりの転送量制限対策
 					ReadIntValueFromReg(hKey5, "ErrReconnect", &Host.TransferErrorReconnect);
+					// ホスト側の設定ミス対策
+					ReadIntValueFromReg(hKey5, "NoPasvAdrs", &Host.NoPasvAdrs);
 
 					CloseSubKey(hKey5);
 
