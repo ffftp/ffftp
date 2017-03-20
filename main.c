@@ -329,6 +329,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	char ListFile[FMAX_PATH+1];
 	char Description[FMAX_PATH+1];
 	char UpdateDir[FMAX_PATH+1];
+	char Buf[FMAX_PATH+1];
 	char Path[FMAX_PATH+1];
 	char Command[FMAX_PATH+1];
 	char* p;
@@ -464,7 +465,12 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 					{
 						Sleep(1000);
 						if(ApplyUpdates(UpdateDir, "updatebackup"))
-							MessageBox(NULL, MSGJPN358, "FFFTP", MB_OK);
+						{
+							GetModuleFileName(NULL, Path, MAX_PATH);
+							strcpy(GetFileName(Path), "updatebackup");
+							sprintf(Buf, MSGJPN358, Path);
+							MessageBox(NULL, Buf, "FFFTP", MB_OK);
+						}
 						else
 							MessageBox(NULL, MSGJPN359, "FFFTP", MB_OK | MB_ICONERROR);
 					}

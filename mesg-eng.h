@@ -356,7 +356,7 @@
 #define MSGJPN355		_Tu8("Move to &parent folder...", "Move to &parent folder...")
 #define MSGJPN356		_Tu8("XML file\0*.xml\0All file\0*\0", "XML file\0*.xml\0All file\0*\0")
 #define MSGJPN357		_Tu8("Failed to export the settings.\nPlease change saving path or format.", "Failed to export the settings.\nPlease change saving path or format.")
-#define MSGJPN358		_Tu8("Software update has been completed.", "Software update has been completed.")
+#define MSGJPN358		_Tu8("Software update has been completed.\nA backup copy of the previous version is in the following location.\n%s", "Software update has been completed.\nA backup copy of the previous version is in the following location.\n%s")
 #define MSGJPN359		_Tu8("Failed to update the software.\nPlease get the latest version from our web site and update it manually.", "Failed to update the software.\nPlease get the latest version from our web site and update it manually.")
 #define MSGJPN360		_Tu8("Updates", "Updates")
 #define MSGJPN361		_Tu8("There is a new version.\n\nCurrent version: %s\nNew version: %s\n%s\n\nIt takes a few minutes to download the updates.\nDo you want to update now?\n", "There is a new version.\n\nCurrent version: %s\nNew version: %s\n%s\n\nIt takes a few minutes to download the updates.\nDo you want to update now?\n")

@@ -72,16 +72,16 @@
 //#define PROGRAM_VERSION_NUM		1972		/* バージョン */
 // 64ビット対応
 #ifdef _WIN64
-#define VER_STR					"1.99a-20170217 64bit"
+#define VER_STR					"1.99a-20170320 64bit"
 #else
-#define VER_STR					"1.99a-20170217"
+#define VER_STR					"1.99a-20170320"
 #endif
 #define VER_NUM					1990		/* 設定バージョン */
 #define PROGRAM_VERSION_NUM		1990		/* バージョン */
 // ソフトウェア自動更新
 // リリースバージョンはリリース予定年（10進数4桁）+月（2桁）+日（2桁）+通し番号（0スタート2桁）とする
 // 2014年7月31日中の30個目のリリースは2014073129
-#define RELEASE_VERSION_NUM		2017021700	/* リリースバージョン */
+#define RELEASE_VERSION_NUM		2017032000	/* リリースバージョン */
 
 
 // SourceForge.JPによるフォーク
