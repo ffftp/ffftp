@@ -2573,7 +2573,7 @@ static INT_PTR CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wP
 //					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000009);
 					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }
@@ -2667,7 +2667,7 @@ static INT_PTR CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 					EndDialog(hDlg, NO_ALL);
 					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }
@@ -4366,7 +4366,7 @@ static INT_PTR CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPA
 					EndDialog(hDlg, NO_ALL);
 					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }

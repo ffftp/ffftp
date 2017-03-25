@@ -353,10 +353,10 @@ static int keycrunch(char *result, char *seed, char *passwd, int Type)
 	}
 	else
 	{
-        sha_memory((uchar *)buf, buflen, results);
-        results [0] ^= results [2];
-        results [1] ^= results [3];
-        results [0] ^= results [4];
+		sha_memory((uchar *)buf, buflen, results);
+		results [0] ^= results [2];
+		results [1] ^= results [3];
+		results [0] ^= results [4];
 	}
 	free(buf);
 
@@ -392,10 +392,10 @@ static void secure_hash(char *x, int Type)
 	}
 	else
 	{
-        sha_memory((uchar *)x, 8, results);
-        results [0] ^= results [2];
-        results [1] ^= results [3];
-        results [0] ^= results [4];
+		sha_memory((uchar *)x, 8, results);
+		results [0] ^= results [2];
+		results [1] ^= results [3];
+		results [0] ^= results [4];
 	}
 
 	/* Only works on byte-addressed little-endian machines!! */

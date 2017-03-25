@@ -183,7 +183,7 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 			GetWindowRect(hDlg, &Rect);
 			DlgSizeChange(hDlg, &DlgSize, &Rect, 0);
 			RedrawWindow(hDlg, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
-		    break;
+			break;
 
 		case WM_INITDIALOG :
 			/* TreeViewでのダブルクリックをつかまえるため */
@@ -213,7 +213,7 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 				CurrentHost = ConnectingHost;
 			SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
 			DlgSizeInit(hDlg, &DlgSize, &HostDlgSize);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_COMMAND :
 			switch(GET_WM_COMMAND_ID(wParam, lParam))
@@ -574,7 +574,7 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 
 		case WM_SIZING :
 			DlgSizeChange(hDlg, &DlgSize, (RECT *)lParam, (int)wParam);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_SELECT_HOST :
 			HitInfo.pt.x = LOWORD(lParam);
@@ -624,7 +624,7 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 			}
 			break;
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -1878,7 +1878,7 @@ static INT_PTR CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 					}
 					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }

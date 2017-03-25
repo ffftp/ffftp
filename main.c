@@ -313,7 +313,7 @@ int FwallNoSaveUser = NO;
 
 int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmdShow)
 {
-    MSG Msg;
+	MSG Msg;
 	int Ret;
 	BOOL Sts;
 	// プロセス保護
@@ -519,7 +519,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		}
 		Ret = Msg.wParam;
 	}
-    UnregisterClass(FtpClassStr, hInstFtp);
+	UnregisterClass(FtpClassStr, hInstFtp);
 	// FTPS対応
 #ifdef USE_OPENSSL
 	FreeOpenSSL();
@@ -2088,8 +2088,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			break;
 
 		case WM_PAINT :
-		    BeginPaint(hWnd, (LPPAINTSTRUCT) &ps);
-		    EndPaint(hWnd, (LPPAINTSTRUCT) &ps);
+			BeginPaint(hWnd, (LPPAINTSTRUCT) &ps);
+			EndPaint(hWnd, (LPPAINTSTRUCT) &ps);
 			break;
 
 		case WM_DESTROY :
@@ -2122,7 +2122,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		default :
 			return(DefWindowProc(hWnd, message, wParam, lParam));
 	}
-    return(0L);
+	return(0L);
 }
 
 
@@ -3320,7 +3320,7 @@ static INT_PTR CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, 
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -3414,7 +3414,7 @@ int AskForceIni(void)
 
 int BackgrndMessageProc(void)
 {
-    MSG Msg;
+	MSG Msg;
 	int Ret;
 
 	Ret = NO;

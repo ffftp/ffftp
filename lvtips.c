@@ -129,7 +129,7 @@ void DeleteListViewTips(void)
 void EraseListViewTips(void)
 {
 	ReleaseCapture();
-    ShowWindow(hWndTips, SW_HIDE);
+	ShowWindow(hWndTips, SW_HIDE);
 	return;
 }
 
@@ -176,8 +176,8 @@ void CheckTipsDisplay(HWND hWnd, LPARAM lParam)
 	if(InRect == NO)
 	{
 		row = CellRectFromPoint(hWnd, Point, &cellrect, &col);
-        if(row != -1)
-        {
+		if(row != -1)
+		{
 			cur_rect=cellrect;
 			offset = 6;
 			offset2 = offset;
@@ -225,13 +225,13 @@ static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffs
 {
 	HDC dc;
 	HFONT pFont;
-    HFONT pFontDC;
+	HFONT pFontDC;
 	RECT rectDisplay;
 	SIZE size;
 
 	if(InRect == NO)
 	{
-        if(GetFocus() != NULL)
+		if(GetFocus() != NULL)
 		{
 			RectClientToScreen(hWnd, &rectTitle);
 
@@ -255,7 +255,7 @@ static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffs
 			{
 				rectDisplay.right += 1;
 
-		        SetWindowPos(hWndTips, HWND_TOPMOST, 
+				SetWindowPos(hWndTips, HWND_TOPMOST, 
 					rectDisplay.left, rectDisplay.top, 
 					rectDisplay.right - rectDisplay.left, 
 					rectDisplay.bottom - rectDisplay.top, 
@@ -263,7 +263,7 @@ static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffs
 
 				TextOut(dc, 0, 0, lpszTitleText, strlen(lpszTitleText));
 
-		        SetCapture(hWnd);
+				SetCapture(hWnd);
 			}
 
 			SelectObject(dc, pFontDC);
@@ -328,7 +328,7 @@ static int CellRectFromPoint(HWND hWnd, POINT point, RECT *cellrect, int *col)
 							if(rect.right > rectClient.right)
 								rect.right = rectClient.right;
 							*cellrect = rect;
-    						*col = colnum;
+							*col = colnum;
 							Ret = row;
 							break;
 						}

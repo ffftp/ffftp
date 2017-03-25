@@ -2340,11 +2340,11 @@ static int CreateAesKey(unsigned char *AesKey, const char* Key)
 
 	strcpy(HashKey, Key);
 	strcat(HashKey, ">g^r=@N7=//z<[`:");
-    sha_memory((uchar *)HashKey, HashKeyLen, results);
+	sha_memory((uchar *)HashKey, HashKeyLen, results);
 
 	strcpy(HashKey, Key);
 	strcat(HashKey, "VG77dO1#EyC]$|C@");
-    sha_memory((uchar *)HashKey, HashKeyLen, results + 5);
+	sha_memory((uchar *)HashKey, HashKeyLen, results + 5);
 
 	KeyIndex = 0;
 	ResIndex = 0;

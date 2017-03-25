@@ -420,7 +420,7 @@ static INT_PTR CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam,
 			GetWindowRect(hDlg, &Rect);
 			DlgSizeChange(hDlg, &DlgSize, &Rect, 0);
 			RedrawWindow(hDlg, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
-		    break;
+			break;
 
 		case WM_INITDIALOG :
 			if(ListFont != NULL)
@@ -438,7 +438,7 @@ static INT_PTR CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam,
 					SendDlgItemMessage(hDlg, BMARK_LIST, LB_ADDSTRING, 0, (LPARAM)Tmp);
 			}
 			DlgSizeInit(hDlg, &DlgSize, &BmarkDlgSize);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_COMMAND :
 			switch(GET_WM_COMMAND_ID(wParam, lParam))
@@ -529,10 +529,10 @@ static INT_PTR CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam,
 
 		case WM_SIZING :
 			DlgSizeChange(hDlg, &DlgSize, (RECT *)lParam, (int)wParam);
-		    return(TRUE);
+			return(TRUE);
 
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -625,7 +625,7 @@ static INT_PTR CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wP
 					EndDialog(hDlg, NO);
 					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }

@@ -114,6 +114,8 @@ extern int MakeAllDir;
 extern int AbortOnListError;
 // ミラーリング設定追加
 extern int MirrorNoTransferContents; 
+// タイムスタンプのバグ修正
+extern int DispTimeSeconds;
 
 /*===== ローカルなワーク =====*/
 
@@ -879,6 +881,8 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 	HANDLE fHnd;
 	WIN32_FIND_DATA Find;
 	int Ret;
+	// タイムスタンプのバグ修正
+	SYSTEMTIME TmpStime;
 
 	Ret = EXIST_OVW;
 	Pkt->ExistSize = 0;
@@ -904,6 +908,16 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 			if(Ret == EXIST_NEW)
 			{
 				/*ファイル日付チェック */
+				// タイムスタンプのバグ修正
+				if(FileTimeToSystemTime(&Find.ftLastWriteTime, &TmpStime))
+				{
+					if(DispTimeSeconds == NO)
+						TmpStime.wSecond = 0;
+					TmpStime.wMilliseconds = 0;
+					SystemTimeToFileTime(&TmpStime, &Find.ftLastWriteTime);
+				}
+				else
+					memset(&Find.ftLastWriteTime, 0, sizeof(FILETIME));
 				if(CompareFileTime(&Find.ftLastWriteTime, &Pkt->Time) < 0)
 					Ret = EXIST_OVW;
 				else
@@ -991,7 +1005,7 @@ static INT_PTR CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM
 					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000009);
 					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }
@@ -1866,7 +1880,7 @@ static INT_PTR CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wP
 					else
 						hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000012);
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }
@@ -1913,7 +1927,7 @@ static INT_PTR CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM 
 			GetWindowRect(hDlg, &Rect);
 			DlgSizeChange(hDlg, &DlgSize, &Rect, 0);
 			RedrawWindow(hDlg, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
-		    break;
+			break;
 
 		case WM_INITDIALOG :
 			Base = (TRANSPACKET **)lParam;
@@ -2003,11 +2017,11 @@ static INT_PTR CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM 
 				case IDHELP :
 					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000012);
 			}
-            return(TRUE);
+			return(TRUE);
 
 		case WM_SIZING :
 			DlgSizeChange(hDlg, &DlgSize, (RECT *)lParam, (int)wParam);
-		    return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }
@@ -2296,7 +2310,7 @@ static INT_PTR CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM w
 					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000011);
 					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }
@@ -2343,7 +2357,7 @@ static INT_PTR CALLBACK UpDownAsDialogCallBack(HWND hDlg, UINT iMessage, WPARAM 
 					EndDialog(hDlg, NO_ALL);
 					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }
@@ -2393,7 +2407,7 @@ static INT_PTR CALLBACK UpDownAsWithExtDialogCallBack(HWND hDlg, UINT iMessage, 
 					EndDialog(hDlg, NO_ALL);
 					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }
@@ -2656,7 +2670,7 @@ static INT_PTR CALLBACK DeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wP
 					EndDialog(hDlg, NO_ALL);
 					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }
@@ -2914,7 +2928,7 @@ static INT_PTR CALLBACK RenameDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wP
 					EndDialog(hDlg, NO_ALL);
 					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }
@@ -3290,7 +3304,7 @@ INT_PTR CALLBACK ChmodDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LP
 					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000017);
 					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }
@@ -3513,7 +3527,7 @@ static LRESULT CALLBACK SizeNotifyDlgWndProc(HWND hDlg, UINT message, WPARAM wPa
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -3556,7 +3570,7 @@ static LRESULT CALLBACK SizeDlgWndProc(HWND hDlg, UINT message, WPARAM wParam, L
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 

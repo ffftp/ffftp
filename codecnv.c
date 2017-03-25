@@ -1143,7 +1143,7 @@ int ConvSJIStoSMB_HEX(CODECONVINFO *cInfo)
 
 		if((cInfo->StrLen >= 2) &&
 		   ((((uchar)*Str >= (uchar)0x81) && ((uchar)*Str <= (uchar)0x9F)) ||
-		    ((uchar)*Str >= (uchar)0xE0)))
+			((uchar)*Str >= (uchar)0xE0)))
 		{
 			sprintf(Put, "%c%02x%c%02x", SAMBA_HEX_TAG, (uchar)*Str, SAMBA_HEX_TAG, (uchar)*(Str+1));
 			Str += 2;

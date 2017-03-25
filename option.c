@@ -490,7 +490,7 @@ static INT_PTR CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 		case WM_INITDIALOG :
 			SendDlgItemMessage(hDlg, USER_ADRS, EM_LIMITTEXT, PASSWORD_LEN, 0);
 			SendDlgItemMessage(hDlg, USER_ADRS, WM_SETTEXT, 0, (LPARAM)UserMailAdrs);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_NOTIFY:
 			pnmhdr = (NMHDR FAR *)lParam;
@@ -509,7 +509,7 @@ static INT_PTR CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 			}
 			break;
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -556,7 +556,7 @@ static INT_PTR CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wPara
 
 			SendMessage(hDlg, WM_COMMAND, MAKEWPARAM(TRMODE_EXT_LIST, 0), 0);
 
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_NOTIFY:
 			pnmhdr = (NMHDR FAR *)lParam;
@@ -613,7 +613,7 @@ static INT_PTR CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wPara
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -655,7 +655,7 @@ static INT_PTR CALLBACK Trmode2SettingProc(HWND hDlg, UINT message, WPARAM wPara
 			sprintf(Tmp, "%d", TimeOut);
 			SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT, WM_SETTEXT, 0, (LPARAM)Tmp);
 			SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT_SPN, UDM_SETRANGE, 0, MAKELONG(300, 0));
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_NOTIFY:
 			pnmhdr = (NMHDR FAR *)lParam;
@@ -690,7 +690,7 @@ static INT_PTR CALLBACK Trmode2SettingProc(HWND hDlg, UINT message, WPARAM wPara
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -722,9 +722,9 @@ static INT_PTR CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wPara
 	switch (message)
 	{
 		case WM_INITDIALOG :
-		    Tmp = SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
-		    Tmp |= LVS_EX_FULLROWSELECT;
-	    	SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
+			Tmp = SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
+			Tmp |= LVS_EX_FULLROWSELECT;
+			SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
 
 			GetClientRect(GetDlgItem(hDlg, TRMODE3_LIST), &Rect);
 
@@ -756,7 +756,7 @@ static INT_PTR CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wPara
 			SendDlgItemMessage(hDlg, TRMODE3_FOLDER_ATTR, EM_LIMITTEXT, (WPARAM)5, 0);
 			sprintf(TmpStr, "%03d", FolderAttrNum);
 			SendDlgItemMessage(hDlg, TRMODE3_FOLDER_ATTR, WM_SETTEXT, 0, (LPARAM)TmpStr);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_NOTIFY:
 			pnmhdr = (NMHDR FAR *)lParam;
@@ -803,7 +803,7 @@ static INT_PTR CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wPara
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -826,7 +826,7 @@ static INT_PTR CALLBACK Trmode4SettingProc(HWND hDlg, UINT message, WPARAM wPara
 		case WM_INITDIALOG :
 			SetRadioButtonByValue(hDlg, AskLocalKanjiCode(), KanjiButton, KANJIBUTTONS);
 
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_NOTIFY:
 			pnmhdr = (NMHDR FAR *)lParam;
@@ -846,7 +846,7 @@ static INT_PTR CALLBACK Trmode4SettingProc(HWND hDlg, UINT message, WPARAM wPara
 			}
 			break;
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -875,7 +875,7 @@ static INT_PTR CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, L
 			AttrSet = (ATTRSET *)lParam;
 			SendDlgItemMessage(hDlg, DEFATTR_FNAME, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
 			SendDlgItemMessage(hDlg, DEFATTR_ATTR, EM_LIMITTEXT, (WPARAM)4, 0);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_COMMAND :
 			switch(GET_WM_COMMAND_ID(wParam, lParam))
@@ -898,7 +898,7 @@ static INT_PTR CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, L
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -1017,7 +1017,7 @@ static INT_PTR CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam
 			SendDlgItemMessage(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_SETCHECK, MirDownDelNotify, 0);
 			// ミラーリング設定追加
 			SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_SETCHECK, MirrorNoTransferContents, 0);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_NOTIFY:
 			pnmhdr = (NMHDR FAR *)lParam;
@@ -1069,7 +1069,7 @@ static INT_PTR CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -1123,7 +1123,7 @@ static INT_PTR CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam
 			SetRadioButtonByValue(hDlg, SendMode,   UpButton,     UPBUTTONS);
 			SetRadioButtonByValue(hDlg, DclickOpen, DclickButton, DCLICKBUTTONS);
 			SetRadioButtonByValue(hDlg, MoveMode,   MoveButton,   MOVEBUTTONS);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_NOTIFY:
 			pnmhdr = (NMHDR FAR *)lParam;
@@ -1145,7 +1145,7 @@ static INT_PTR CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam
 			}
 			break;
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -1181,7 +1181,7 @@ static INT_PTR CALLBACK Disp1SettingProc(HWND hDlg, UINT message, WPARAM wParam,
 			SendDlgItemMessage(hDlg, DISP_ICON, BM_SETCHECK, DispFileIcon, 0);
 			// タイムスタンプのバグ修正
 			SendDlgItemMessage(hDlg, DISP_SECOND, BM_SETCHECK, DispTimeSeconds, 0);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_NOTIFY:
 			pnmhdr = (NMHDR FAR *)lParam;
@@ -1220,7 +1220,7 @@ static INT_PTR CALLBACK Disp1SettingProc(HWND hDlg, UINT message, WPARAM wParam,
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -1237,7 +1237,7 @@ static INT_PTR CALLBACK Disp2SettingProc(HWND hDlg, UINT message, WPARAM wParam,
 			SendDlgItemMessage(hDlg, DISP2_PERMIT_NUM, BM_SETCHECK, DispPermissionsNumber, 0);
 			SendDlgItemMessage(hDlg, DISP2_AUTO_REFRESH, BM_SETCHECK, AutoRefreshFileList, 0);
 			SendDlgItemMessage(hDlg, DISP2_REMOVE_OLD_LOG, BM_SETCHECK, RemoveOldLog, 0);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_NOTIFY:
 			pnmhdr = (NMHDR FAR *)lParam;
@@ -1258,7 +1258,7 @@ static INT_PTR CALLBACK Disp2SettingProc(HWND hDlg, UINT message, WPARAM wParam,
 			}
 			break;
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -1334,7 +1334,7 @@ static INT_PTR CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wPara
 			SendDlgItemMessage(hDlg, CONNECT_NORAS, BM_SETCHECK, NoRasControl, 0);
 			// UPnP対応
 			SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_SETCHECK, UPnPEnabled, 0);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_NOTIFY:
 			pnmhdr = (NMHDR FAR *)lParam;
@@ -1376,7 +1376,7 @@ static INT_PTR CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wPara
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -1464,7 +1464,7 @@ static INT_PTR CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 			// FireWall設定追加
 			SendDlgItemMessage(hDlg, FIRE_SHARED, BM_SETCHECK, FwallNoSaveUser, 0);
 
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_NOTIFY:
 			pnmhdr = (NMHDR FAR *)lParam;
@@ -1513,7 +1513,7 @@ static INT_PTR CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -1545,7 +1545,7 @@ static INT_PTR CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 			SendDlgItemMessage(hDlg, TOOL_EDITOR1, WM_SETTEXT, 0, (LPARAM)ViewerName[0]);
 			SendDlgItemMessage(hDlg, TOOL_EDITOR2, WM_SETTEXT, 0, (LPARAM)ViewerName[1]);
 			SendDlgItemMessage(hDlg, TOOL_EDITOR3, WM_SETTEXT, 0, (LPARAM)ViewerName[2]);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_NOTIFY:
 			pnmhdr = (NMHDR FAR *)lParam;
@@ -1594,7 +1594,7 @@ static INT_PTR CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -1630,7 +1630,7 @@ static INT_PTR CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam,
 			SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, WM_SETTEXT, 0, (LPARAM)Sound[SND_CONNECT].Fname);
 			SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, WM_SETTEXT, 0, (LPARAM)Sound[SND_TRANS].Fname);
 			SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_SETTEXT, 0, (LPARAM)Sound[SND_ERROR].Fname);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_NOTIFY:
 			pnmhdr = (NMHDR FAR *)lParam;
@@ -1697,7 +1697,7 @@ static INT_PTR CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam,
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -1751,7 +1751,7 @@ static INT_PTR CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 
 			SendDlgItemMessage(hDlg, MISC_CACHEDIR, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
 			SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_SETTEXT, 0, (LPARAM)TmpPath);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_NOTIFY:
 			pnmhdr = (NMHDR FAR *)lParam;
@@ -1815,7 +1815,7 @@ static INT_PTR CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -1920,7 +1920,7 @@ static INT_PTR CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 
 			SendDlgItemMessage(hDlg, SORT_SAVEHOST, BM_SETCHECK, AskSaveSortToHost(), 0);
 
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_COMMAND :
 			switch(GET_WM_COMMAND_ID(wParam, lParam))
@@ -1963,7 +1963,7 @@ static INT_PTR CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 		}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -1992,7 +1992,7 @@ static INT_PTR CALLBACK UpdatesSettingProc(HWND hDlg, UINT message, WPARAM wPara
 				EnableWindow(GetDlgItem(hDlg, UPDATES_INTERVAL), FALSE);
 				EnableWindow(GetDlgItem(hDlg, UPDATES_INTERVAL_SPN), FALSE);
 			}
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_NOTIFY:
 			pnmhdr = (NMHDR FAR *)lParam;
@@ -2034,7 +2034,7 @@ static INT_PTR CALLBACK UpdatesSettingProc(HWND hDlg, UINT message, WPARAM wPara
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 /*----- ダイアログのコントロールから１０進数を取得 ----------------------------

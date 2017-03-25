@@ -230,9 +230,9 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 //		LocalProcPtr = (WNDPROC)SetWindowLong(hWndListLocal, GWL_WNDPROC, (LONG)LocalWndProc);
 		LocalProcPtr = (WNDPROC)SetWindowLongPtr(hWndListLocal, GWLP_WNDPROC, (LONG_PTR)LocalWndProc);
 
-	    Tmp = SendMessage(hWndListLocal, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
-	    Tmp |= LVS_EX_FULLROWSELECT;
-	    SendMessage(hWndListLocal, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
+		Tmp = SendMessage(hWndListLocal, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
+		Tmp |= LVS_EX_FULLROWSELECT;
+		SendMessage(hWndListLocal, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
 
 		if(ListFont != NULL)
 			SendMessage(hWndListLocal, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
@@ -287,9 +287,9 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 //		RemoteProcPtr = (WNDPROC)SetWindowLong(hWndListRemote, GWL_WNDPROC, (LONG)RemoteWndProc);
 		RemoteProcPtr = (WNDPROC)SetWindowLongPtr(hWndListRemote, GWLP_WNDPROC, (LONG_PTR)RemoteWndProc);
 
-	    Tmp = SendMessage(hWndListRemote, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
-	    Tmp |= LVS_EX_FULLROWSELECT;
-	    SendMessage(hWndListRemote, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
+		Tmp = SendMessage(hWndListRemote, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
+		Tmp |= LVS_EX_FULLROWSELECT;
+		SendMessage(hWndListRemote, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
 
 		if(ListFont != NULL)
 			SendMessage(hWndListRemote, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
@@ -819,7 +819,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 
 	switch (message)
 	{
-        case WM_SYSKEYDOWN:
+		case WM_SYSKEYDOWN:
 			if (wParam == 'D') {	// Alt+D
 				SetFocus(hWndHistEdit);
 				break;
@@ -827,7 +827,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			EraseListViewTips();
 			return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
 
-        case WM_KEYDOWN:
+		case WM_KEYDOWN:
 			if(wParam == 0x09)
 			{
 				SetFocus(hWndDst);
@@ -1162,7 +1162,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 		case WM_MOUSEWHEEL :
 			if(Dragging == NO)
 			{
-                short zDelta = (short)HIWORD(wParam);
+				short zDelta = (short)HIWORD(wParam);
 
 				EraseListViewTips();
 				Point.x = (short)LOWORD(lParam);
@@ -1187,7 +1187,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 		default :
 			return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
 	}
-    return(0L);
+	return(0L);
 }
 
 
@@ -1620,7 +1620,7 @@ static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LON
 //					((Cmp = _mbsicmp(GetFileExt(Name), GetFileExt(Pos->File))) < 0)) ||
 //#if defined(HAVE_TANDEM)
 //				   ((AskHostType() == HTYPE_TANDEM) &&
-//				    ((Sort & SORT_MASK_ORD) == SORT_EXT) &&
+//					((Sort & SORT_MASK_ORD) == SORT_EXT) &&
 //					((Cmp = Attr - Pos->Attr) < 0)) ||
 //#endif
 //				   (((Sort & SORT_MASK_ORD) == SORT_SIZE) &&
@@ -1659,7 +1659,7 @@ static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LON
 //					((Cmp = _mbsicmp(GetFileExt(Name), GetFileExt(Pos->File))) > 0)) ||
 //#if defined(HAVE_TANDEM)
 //				   ((AskHostType() == HTYPE_TANDEM) &&
-//				    ((Sort & SORT_MASK_ORD) == SORT_EXT) &&
+//					((Sort & SORT_MASK_ORD) == SORT_EXT) &&
 //					((Cmp = Attr - Pos->Attr) > 0)) ||
 //#endif
 //				   (((Sort & SORT_MASK_ORD) == SORT_SIZE) &&
@@ -1674,7 +1674,7 @@ static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LON
 					break;
 #if defined(HAVE_TANDEM)
 				if(((AskHostType() == HTYPE_TANDEM) &&
-				    ((Sort & SORT_MASK_ORD) == SORT_EXT) &&
+					((Sort & SORT_MASK_ORD) == SORT_EXT) &&
 					((Cmp = Attr - Pos->Attr) > 0)))
 					break;
 #endif
@@ -2116,7 +2116,7 @@ static INT_PTR CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wP
 					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000061);
 					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }
@@ -3012,6 +3012,8 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
 	FILELIST Pkt;
 	HANDLE fHnd;
 	WIN32_FIND_DATA Find;
+	// タイムスタンプのバグ修正
+	SYSTEMTIME TmpStime;
 
 	Max = DragQueryFile((HDROP)wParam, 0xFFFFFFFF, NULL, 0);
 
@@ -3040,6 +3042,16 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
 			{
 				FindClose(fHnd);
 				Pkt.Time = Find.ftLastWriteTime;
+				// タイムスタンプのバグ修正
+				if(FileTimeToSystemTime(&Pkt.Time, &TmpStime))
+				{
+					if(DispTimeSeconds == NO)
+						TmpStime.wSecond = 0;
+					TmpStime.wMilliseconds = 0;
+					SystemTimeToFileTime(&TmpStime, &Pkt.Time);
+				}
+				else
+					memset(&Pkt.Time, 0, sizeof(FILETIME));
 #if defined(HAVE_TANDEM)
 				Pkt.Size = MakeLongLong(Find.nFileSizeHigh, Find.nFileSizeLow);
 				Pkt.InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE);
@@ -4285,7 +4297,7 @@ static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day)
 				   (((atoi(Tmp) >= 1) && (atoi(Tmp) <= 9) && 
 					 ((unsigned char)Tmp[1] == 0xD4) &&
 					 ((unsigned char)Tmp[2] == 0xC2)) ||
-				    ((atoi(Tmp) >= 10) && (atoi(Tmp) <= 12) && 
+					((atoi(Tmp) >= 10) && (atoi(Tmp) <= 12) && 
 					 ((unsigned char)Tmp[2] == 0xD4) && 
 					 ((unsigned char)Tmp[3] == 0xC2))))
 				{
@@ -6250,7 +6262,7 @@ static INT_PTR CALLBACK FilterWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, L
 					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000021);
 					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }

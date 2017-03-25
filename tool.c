@@ -112,7 +112,7 @@ static INT_PTR CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, L
 			SendDlgItemMessage(hDlg, OTPCALC_KEY, EM_LIMITTEXT, 40, 0);
 			SendDlgItemMessage(hDlg, OTPCALC_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
 			SetRadioButtonByValue(hDlg, MD4, AlgoButton, ALGOBUTTONS);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_COMMAND :
 			switch(GET_WM_COMMAND_ID(wParam, lParam))
@@ -158,7 +158,7 @@ static INT_PTR CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, L
 		}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 

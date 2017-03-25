@@ -476,7 +476,7 @@ static INT_PTR CALLBACK QuickConDialogCallBack(HWND hDlg, UINT iMessage, WPARAM 
 //						DoPrintf("EDIT");
 //					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }
@@ -2637,9 +2637,9 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 	// IPv6対応
 	struct sockaddr_in SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
 	struct sockaddr_in CurSockAddr;		/* 接続先ホストのアドレス情報 */
-    SOCKET listen_skt;
-    int iLength;
-    char *a,*p;
+	SOCKET listen_skt;
+	int iLength;
+	char *a,*p;
 	struct sockaddr_in saCtrlAddr;
 	struct sockaddr_in saTmpAddr;
 	SOCKS4CMD Socks4Cmd;
@@ -2838,9 +2838,9 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 {
 	struct sockaddr_in6 SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
 	struct sockaddr_in6 CurSockAddr;		/* 接続先ホストのアドレス情報 */
-    SOCKET listen_skt;
-    int iLength;
-    char *a,*p;
+	SOCKET listen_skt;
+	int iLength;
+	char *a,*p;
 	struct sockaddr_in6 saCtrlAddr;
 	struct sockaddr_in6 saTmpAddr;
 	SOCKS5REQUEST Socks5Cmd;

@@ -218,9 +218,9 @@ static int GetCurConnections(RASCONN **Buf)
 		RasConn->dwSize = sizeof(RASCONN);
 		Sts = (*m_RasEnumConnections)(RasConn, &Size, &Num);
 		if((Sts == ERROR_BUFFER_TOO_SMALL) || (Sts == ERROR_NOT_ENOUGH_MEMORY))
-	    {
+		{
 			if((Tmp = realloc(RasConn, Size)) != NULL)
-	        {
+			{
 				RasConn = Tmp;
 				Sts = (*m_RasEnumConnections)(RasConn, &Size, &Num);
 			}
@@ -358,7 +358,7 @@ int SetRasEntryToComboBox(HWND hDlg, int Item, char *CurName)
 			if((Sts == ERROR_BUFFER_TOO_SMALL) || (Sts == ERROR_NOT_ENOUGH_MEMORY))
 			{
 				if((Tmp = realloc(Entry, Size)) != NULL)
-		        {
+				{
 					Entry = Tmp;
 					Sts = (*m_RasEnumEntries)(NULL, NULL, Entry, &Size, &Num);
 				}
@@ -521,8 +521,8 @@ static BOOL CALLBACK DialCallBackProc(HWND hDlg, UINT message, WPARAM wParam, LP
 			SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)Tmp);
 			Sts = (*m_RasDial)(NULL, NULL, Param, 0, &RasDialFunc, &hRasConn);
 			if(Sts != 0)
-		        EndDialog(hDlg, NO);
-		    return(TRUE);
+				EndDialog(hDlg, NO);
+			return(TRUE);
 
 		case WM_COMMAND :
 			switch(GET_WM_COMMAND_ID(wParam, lParam))
@@ -591,58 +591,58 @@ static VOID WINAPI RasDialFunc(UINT unMsg, RASCONNSTATE rasconnstate, DWORD dwEr
 
 static void MakeRasConnMsg(char *Phone, RASCONNSTATE rasconn, char *Buf)
 {
-    switch( rasconn )
-    {
-        case RASCS_OpenPort:
-            strcpy(Buf, MSGJPN226);
+	switch( rasconn )
+	{
+		case RASCS_OpenPort:
+			strcpy(Buf, MSGJPN226);
 			break;
-        case RASCS_PortOpened:
-            strcpy(Buf, MSGJPN227);
+		case RASCS_PortOpened:
+			strcpy(Buf, MSGJPN227);
 			break;
-        case RASCS_ConnectDevice:
-            sprintf(Buf, MSGJPN228);
+		case RASCS_ConnectDevice:
+			sprintf(Buf, MSGJPN228);
 			break;
-        case RASCS_DeviceConnected:
-            strcpy(Buf, MSGJPN229);
+		case RASCS_DeviceConnected:
+			strcpy(Buf, MSGJPN229);
 			break;
-        case RASCS_AllDevicesConnected:
-            strcpy(Buf, MSGJPN230);
+		case RASCS_AllDevicesConnected:
+			strcpy(Buf, MSGJPN230);
 			break;
-        case RASCS_Authenticate:
-        case RASCS_AuthNotify:
-            strcpy(Buf, MSGJPN231);
+		case RASCS_Authenticate:
+		case RASCS_AuthNotify:
+			strcpy(Buf, MSGJPN231);
 			break;
-        case RASCS_AuthRetry:
-        case RASCS_ReAuthenticate:
-            strcpy(Buf, MSGJPN232);
+		case RASCS_AuthRetry:
+		case RASCS_ReAuthenticate:
+			strcpy(Buf, MSGJPN232);
 			break;
-        case RASCS_AuthChangePassword:
-            strcpy(Buf, MSGJPN233);
+		case RASCS_AuthChangePassword:
+			strcpy(Buf, MSGJPN233);
 			break;
-        case RASCS_Authenticated:
-            strcpy(Buf, MSGJPN234);
+		case RASCS_Authenticated:
+			strcpy(Buf, MSGJPN234);
 			break;
-        case RASCS_Connected:
-            strcpy(Buf, MSGJPN235);
+		case RASCS_Connected:
+			strcpy(Buf, MSGJPN235);
 			break;
-        case RASCS_Disconnected:
-            strcpy(Buf, MSGJPN236);
+		case RASCS_Disconnected:
+			strcpy(Buf, MSGJPN236);
 			break;
-        case RASCS_AuthCallback:
-        case RASCS_PrepareForCallback:
-        case RASCS_WaitForModemReset:
-        case RASCS_WaitForCallback:
-        case RASCS_Interactive:
-        case RASCS_RetryAuthentication:
-        case RASCS_CallbackSetByCaller:
-        case RASCS_PasswordExpired:
-        case RASCS_AuthProject:
-        case RASCS_AuthLinkSpeed:
-        case RASCS_AuthAck:
-        default:
-            strcpy(Buf, MSGJPN237);
+		case RASCS_AuthCallback:
+		case RASCS_PrepareForCallback:
+		case RASCS_WaitForModemReset:
+		case RASCS_WaitForCallback:
+		case RASCS_Interactive:
+		case RASCS_RetryAuthentication:
+		case RASCS_CallbackSetByCaller:
+		case RASCS_PasswordExpired:
+		case RASCS_AuthProject:
+		case RASCS_AuthLinkSpeed:
+		case RASCS_AuthAck:
+		default:
+			strcpy(Buf, MSGJPN237);
 			break;
-    }
+	}
 	return;
 }
 
@@ -674,7 +674,7 @@ static BOOL CALLBACK DialPassCallBackProc(HWND hDlg, UINT message, WPARAM wParam
 			SendDlgItemMessage(hDlg, RASPASS_PASS, EM_LIMITTEXT, PWLEN, 0);
 			SendDlgItemMessage(hDlg, RASPASS_USER, WM_SETTEXT, 0, (LPARAM)Param->szUserName);
 			SendDlgItemMessage(hDlg, RASPASS_PASS, WM_SETTEXT, 0, (LPARAM)Param->szPassword);
-		    return(TRUE);
+			return(TRUE);
 
 		case WM_COMMAND :
 			switch(GET_WM_COMMAND_ID(wParam, lParam))

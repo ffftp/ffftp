@@ -532,7 +532,7 @@ static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wPara
 		default :
 			return(CallWindowProc(HistEditBoxProcPtr, hWnd, message, wParam, lParam));
 	}
-    return(0L);
+	return(0L);
 }
 
 
