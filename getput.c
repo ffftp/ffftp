@@ -811,11 +811,11 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				{
 					// 同時ログイン数制限に引っかかった可能性あり
 					// 負荷を下げるために約10秒間待機
-					i = 10000;
+					i = 1000;
 					while(NewCmdSkt != CmdSkt && i > 0)
 					{
 						BackgrndMessageProc();
-						Sleep(1);
+						Sleep(10);
 						i--;
 					}
 				}
@@ -1185,6 +1185,13 @@ static ULONG WINAPI TransferThread(void *Dummy)
 //				ReleaseMutex(hListAccMutex);
 //				GoExit = YES;
 //			}
+			// バグ対策
+			else if(strcmp(Pos->Cmd, "NULL") == 0)
+			{
+				Sleep(0);
+				Sleep(100);
+				ReleaseMutex(hListAccMutex);
+			}
 			else
 				ReleaseMutex(hListAccMutex);
 

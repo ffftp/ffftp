@@ -3426,7 +3426,7 @@ int BackgrndMessageProc(void)
 //		if(!IsMainThread() || !HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
 		if(!IsMainThread() || !HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
 		{
-	 		/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
+			/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
 			/* コンボボックス内ではアクセラレータを無効にする */
 			if((Msg.hwnd == GetLocalHistEditHwnd()) ||
 			   (Msg.hwnd == GetRemoteHistEditHwnd()) ||

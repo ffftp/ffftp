@@ -179,7 +179,7 @@ static int IgnoreExist = NO;
 
 static int Dragging = NO;
 // 特定の操作を行うと異常終了するバグ修正
-static int DragFirstTime = NO;
+static POINT DropPoint;
 
 static int StratusMode;			/* 0=ファイル, 1=ディレクトリ, 2=リンク */
 
@@ -498,6 +498,20 @@ static void doTransferRemoteFile(void)
 	if (remoteFileListBase != NULL)
 		return;
 
+	// 特定の操作を行うと異常終了するバグ修正
+	while(1)
+	{
+		MSG msg;
+		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		else if(AskTransferNow() == NO)
+			break;
+		Sleep(10);
+	}
+
 	FileListBase = NULL;
 	MakeSelectedFileList(WIN_REMOTE, YES, NO, &FileListBase, &CancelFlg);
 	FileListBaseNoExpand = NULL;
@@ -546,7 +560,8 @@ static void doTransferRemoteFile(void)
 
 	// 特定の操作を行うと異常終了するバグ修正
 //	for (i = 0 ; i < 10 ; i++) {
-	for (i = 0 ; i < 1000 ; i++) {
+	while(1)
+	{
 		MSG msg;
 
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -771,9 +786,13 @@ static void doDragDrop(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 
 	// ドロップ先のアプリに WM_LBUTTONUP を飛ばす。
-	GetCursorPos(&pt);
+	// 特定の操作を行うと異常終了するバグ修正
+//	GetCursorPos(&pt);
+	pt = DropPoint;
 	ScreenToClient(hWnd, &pt);
 	PostMessage(hWnd,WM_LBUTTONUP,0,MAKELPARAM(pt.x,pt.y));
+	// ドロップ先が他プロセスかつカーソルが自プロセスのドロップ可能なウィンドウ上にある場合の対策
+	EnableWindow(GetMainHwnd(), TRUE);
 }
 
 
@@ -804,6 +823,8 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 	HWND hWndDst;
 	WNDPROC ProcPtr;
 	HWND hWndHistEdit;
+	// 特定の操作を行うと異常終了するバグ修正
+	static int DragFirstTime = NO;
 
 	Win = WIN_LOCAL;
 	hWndDst = hWndListRemote;
@@ -869,6 +890,13 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			break;
 
 		case WM_LBUTTONDOWN :
+			// 特定の操作を行うと異常終了するバグ修正
+			if(AskUserOpeDisabled() == YES)
+				break;
+			if(Dragging == YES)
+				break;
+			DragFirstTime = NO;
+			GetCursorPos(&DropPoint);
 			EraseListViewTips();
 			SetFocus(hWnd);
 			DragPoint.x = LOWORD(lParam);
@@ -878,6 +906,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			break;
 
 		case WM_LBUTTONUP :
+			// 特定の操作を行うと異常終了するバグ修正
+			if(AskUserOpeDisabled() == YES)
+				break;
 			if(Dragging == YES)
 			{
 				Dragging = NO;
@@ -885,9 +916,6 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 				hCsrDrg = LoadCursor(NULL, IDC_ARROW);
 				SetCursor(hCsrDrg);
 
-				// 同時接続対応
-				if(AskUserOpeDisabled() == YES)
-					break;
 				Point.x = (long)(short)LOWORD(lParam);
 				Point.y = (long)(short)HIWORD(lParam);
 				ClientToScreen(hWnd, &Point);
@@ -913,148 +941,157 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			}
 			return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
 
- 		case WM_DRAGDROP:  
+		case WM_DRAGDROP:  
+			// OLE D&Dを開始する (yutaka)
 			// 特定の操作を行うと異常終了するバグ修正
+//			doDragDrop(hWnd, message, wParam, lParam);
+			if(DragFirstTime == NO)
+				doDragDrop(hWnd, message, wParam, lParam);
 			DragFirstTime = YES;
- 			// OLE D&Dを開始する (yutaka)
- 			doDragDrop(hWnd, message, wParam, lParam);
- 			return (TRUE);
- 			break;
- 
- 		case WM_GETDATA:  // ファイルのパスをD&D先のアプリへ返す (yutaka)
- 			switch(wParam)
- 			{
- 			case CF_HDROP:		/* ファイル */
- 				{
- 					OSVERSIONINFO os_info;
- 					BOOL NTFlag = FALSE;
- 					char **FileNameList;
- 					int filelen;
- 					int i, j, filenum = 0;
- 
- 					FILELIST *FileListBase, *FileListBaseNoExpand, *pf;
+			return (TRUE);
+			break;
+
+		case WM_GETDATA:  // ファイルのパスをD&D先のアプリへ返す (yutaka)
+			switch(wParam)
+			{
+			case CF_HDROP:		/* ファイル */
+				{
+					OSVERSIONINFO os_info;
+					BOOL NTFlag = FALSE;
+					char **FileNameList;
+					int filelen;
+					int i, j, filenum = 0;
+
+					FILELIST *FileListBase, *FileListBaseNoExpand, *pf;
 					// 特定の操作を行うと異常終了するバグ修正
-// 					int CancelFlg = NO;
- 					char LocDir[FMAX_PATH+1];
- 					char *PathDir;
+//					int CancelFlg = NO;
+					char LocDir[FMAX_PATH+1];
+					char *PathDir;
 
 					// 特定の操作を行うと異常終了するバグ修正
-					if(DragFirstTime == YES)
-					{
-						GetCursorPos(&Point);
-						hWndPnt = WindowFromPoint(Point);
-						hWndParent = GetParent(hWndPnt);
-					}
-					DragFirstTime = NO;
+					GetCursorPos(&DropPoint);
+					hWndPnt = WindowFromPoint(DropPoint);
+					hWndParent = GetParent(hWndPnt);
 					DisableUserOpe();
 					CancelFlg = NO;
 
 					// 変数が未初期化のバグ修正
 					FileListBaseNoExpand = NULL;
- 					// ローカル側で選ばれているファイルをFileListBaseに登録
- 					if (hWndDragStart == hWndListLocal) {
- 						AskLocalCurDir(LocDir, FMAX_PATH);
- 						PathDir = LocDir;
- 
- 						FileListBase = NULL;
+					// ローカル側で選ばれているファイルをFileListBaseに登録
+					if (hWndDragStart == hWndListLocal) {
+						AskLocalCurDir(LocDir, FMAX_PATH);
+						PathDir = LocDir;
+
+						FileListBase = NULL;
 						// ローカル側からアプリケーションにD&Dできないバグ修正
-// 						MakeSelectedFileList(WIN_LOCAL, YES, NO, &FileListBase, &CancelFlg);			
- 						MakeSelectedFileList(WIN_LOCAL, NO, NO, &FileListBase, &CancelFlg);			
+//						MakeSelectedFileList(WIN_LOCAL, YES, NO, &FileListBase, &CancelFlg);			
+						if(hWndPnt != hWndListRemote && hWndPnt != hWndListLocal && hWndParent != hWndListRemote && hWndParent != hWndListLocal)
+							MakeSelectedFileList(WIN_LOCAL, NO, NO, &FileListBase, &CancelFlg);			
 						FileListBaseNoExpand = FileListBase;
- 
- 					} else if (hWndDragStart == hWndListRemote) {
+
+					} else if (hWndDragStart == hWndListRemote) {
 						// 特定の操作を行うと異常終了するバグ修正
-// 						GetCursorPos(&Point);
-// 						hWndPnt = WindowFromPoint(Point);
+//						GetCursorPos(&Point);
+//						hWndPnt = WindowFromPoint(Point);
 //						hWndParent = GetParent(hWndPnt);
- 						if (hWndPnt == hWndListRemote || hWndPnt == hWndListLocal ||
+						if (hWndPnt == hWndListRemote || hWndPnt == hWndListLocal ||
 							hWndParent == hWndListRemote || hWndParent == hWndListLocal) {
- 							FileListBase = NULL;
- 
- 						} else {
- 							// 選択されているリモートファイルのリストアップ
- 							// このタイミングでリモートからローカルの一時フォルダへダウンロードする
- 							// (2007.8.31 yutaka)
- 							doTransferRemoteFile();
- 							PathDir = remoteFileDir;
- 							FileListBase = remoteFileListBase;
- 							FileListBaseNoExpand = remoteFileListBaseNoExpand;
- 						}
- 
- 					} 
- 
+							FileListBase = NULL;
+
+						} else {
+							// 選択されているリモートファイルのリストアップ
+							// このタイミングでリモートからローカルの一時フォルダへダウンロードする
+							// (2007.8.31 yutaka)
+							doTransferRemoteFile();
+							PathDir = remoteFileDir;
+							FileListBase = remoteFileListBase;
+							FileListBaseNoExpand = remoteFileListBaseNoExpand;
+						}
+
+					} 
+
 #if defined(HAVE_TANDEM)
 					if(FileListBaseNoExpand == NULL)
 						pf = FileListBase;
 					else
 #endif
- 					pf = FileListBaseNoExpand;
+					pf = FileListBaseNoExpand;
 					// 特定の操作を行うと異常終了するバグ修正
 					if(pf != NULL)
+					{
 						Dragging = NO;
+						ReleaseCapture();
+						hCsrDrg = LoadCursor(NULL, IDC_ARROW);
+						SetCursor(hCsrDrg);
+						// ドロップ先が他プロセスかつカーソルが自プロセスのドロップ可能なウィンドウ上にある場合の対策
+						EnableWindow(GetMainHwnd(), FALSE);
+					}
 					EnableUserOpe();
- 					for (filenum = 0; pf ; filenum++) {
- 						pf = pf->Next;
- 					}
- 					// ファイルが未選択の場合は何もしない。(yutaka)
- 					if (filenum <= 0) {
- 						*((HANDLE *)lParam) = NULL;
- 						return (FALSE);
- 					}
- 					
- 					/* ファイル名の配列を作成する */
- 					FileNameList = (char **)GlobalAlloc(GPTR,sizeof(char *) * filenum);
- 					if(FileNameList == NULL){
- 						abort();
- 					}
- 					pf = FileListBaseNoExpand;
- 					for (j = 0; pf ; j++) {
- 						filelen = strlen(PathDir) + 1 + strlen(pf->File) + 1;
- 						FileNameList[j] = (char *)GlobalAlloc(GPTR, filelen);
- 						strncpy_s(FileNameList[j], filelen, PathDir, _TRUNCATE);
- 						strncat_s(FileNameList[j], filelen, "\\", _TRUNCATE);
- 						strncat_s(FileNameList[j], filelen, pf->File, _TRUNCATE);
- 						pf = pf->Next;
+					// ドロップ先が他プロセスかつカーソルが自プロセスのドロップ可能なウィンドウ上にある場合の対策
+					if(pf != NULL)
+						EnableWindow(GetMainHwnd(), FALSE);
+					for (filenum = 0; pf ; filenum++) {
+						pf = pf->Next;
+					}
+					// ファイルが未選択の場合は何もしない。(yutaka)
+					if (filenum <= 0) {
+						*((HANDLE *)lParam) = NULL;
+						return (FALSE);
+					}
+					
+					/* ファイル名の配列を作成する */
+					FileNameList = (char **)GlobalAlloc(GPTR,sizeof(char *) * filenum);
+					if(FileNameList == NULL){
+						abort();
+					}
+					pf = FileListBaseNoExpand;
+					for (j = 0; pf ; j++) {
+						filelen = strlen(PathDir) + 1 + strlen(pf->File) + 1;
+						FileNameList[j] = (char *)GlobalAlloc(GPTR, filelen);
+						strncpy_s(FileNameList[j], filelen, PathDir, _TRUNCATE);
+						strncat_s(FileNameList[j], filelen, "\\", _TRUNCATE);
+						strncat_s(FileNameList[j], filelen, pf->File, _TRUNCATE);
+						pf = pf->Next;
 #if 0
 						if (FileListBase->Node == NODE_DIR) { 
- 							// フォルダを掴んだ場合はそれ以降展開しない
- 							filenum = 1;
- 							break;
- 						}
+							// フォルダを掴んだ場合はそれ以降展開しない
+							filenum = 1;
+							break;
+						}
 #endif
- 					}
- 					
- 					os_info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
- 					GetVersionEx(&os_info);
- 					if(os_info.dwPlatformId == VER_PLATFORM_WIN32_NT){
- 						NTFlag = TRUE;
- 					}
- 
- 					/* ドロップファイルリストの作成 */
- 					/* NTの場合はUNICODEになるようにする */
- 					*((HANDLE *)lParam) = CreateDropFileMem(FileNameList, filenum, NTFlag);
- 
- 					/* ファイル名の配列を解放する */
- 					for (i = 0; i < filenum ; i++) {
- 						GlobalFree(FileNameList[i]);
- 					}
- 					GlobalFree(FileNameList);
- 
- 					if (hWndDragStart == hWndListLocal) {
- 						DeleteFileList(&FileListBase);
- 					} else {
- 						// あとでファイル削除してフリーする
- 					}
- 
- 					return (TRUE);
- 				}
- 				break;
- 
- 			default:
- 				*((HANDLE *)lParam) = NULL;
- 				break;
- 			}
- 
+					}
+					
+					os_info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+					GetVersionEx(&os_info);
+					if(os_info.dwPlatformId == VER_PLATFORM_WIN32_NT){
+						NTFlag = TRUE;
+					}
+
+					/* ドロップファイルリストの作成 */
+					/* NTの場合はUNICODEになるようにする */
+					*((HANDLE *)lParam) = CreateDropFileMem(FileNameList, filenum, NTFlag);
+
+					/* ファイル名の配列を解放する */
+					for (i = 0; i < filenum ; i++) {
+						GlobalFree(FileNameList[i]);
+					}
+					GlobalFree(FileNameList);
+
+					if (hWndDragStart == hWndListLocal) {
+						DeleteFileList(&FileListBase);
+					} else {
+						// あとでファイル削除してフリーする
+					}
+
+					return (TRUE);
+				}
+				break;
+
+			default:
+				*((HANDLE *)lParam) = NULL;
+				break;
+			}
+
 			break;
 
 		case WM_DRAGOVER:
@@ -1099,6 +1136,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			break;
 
 		case WM_RBUTTONDOWN :
+			// 特定の操作を行うと異常終了するバグ修正
+			if(AskUserOpeDisabled() == YES)
+				break;
 			/* ここでファイルを選ぶ */
 			CallWindowProc(ProcPtr, hWnd, message, wParam, lParam);
 
@@ -1111,10 +1151,16 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			break;
 
 		case WM_LBUTTONDBLCLK :
+			// 特定の操作を行うと異常終了するバグ修正
+			if(AskUserOpeDisabled() == YES)
+				break;
 			DoubleClickProc(Win, NO, -1);
 			break;
 
 		case WM_MOUSEMOVE :
+			// 特定の操作を行うと異常終了するバグ修正
+			if(AskUserOpeDisabled() == YES)
+				break;
 			if(wParam == MK_LBUTTON)
 			{
 				if((Dragging == NO) && 
@@ -1160,6 +1206,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			break;
 
 		case WM_MOUSEWHEEL :
+			// デッドロック対策
+			if(AskUserOpeDisabled() == YES)
+				break;
 			if(Dragging == NO)
 			{
 				short zDelta = (short)HIWORD(wParam);
@@ -6208,7 +6257,7 @@ static int AskFilterStr(char *Fname, int Type)
 
 void SetFilter(int *CancelCheckWork)
 {
- 	if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(filter_dlg), GetMainHwnd(), FilterWndProc) == YES)
+	if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(filter_dlg), GetMainHwnd(), FilterWndProc) == YES)
 	{
 		DispWindowTitle();
 		GetLocalDirForWnd();
