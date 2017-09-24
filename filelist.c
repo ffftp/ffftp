@@ -490,7 +490,7 @@ static void doTransferRemoteFile(void)
 	char TmpDir[FMAX_PATH+1];
 	// 環境依存の不具合対策
 //	char buf[32];
-	int i;
+//	int i;
 	// 環境依存の不具合対策
 //	DWORD pid;
 
