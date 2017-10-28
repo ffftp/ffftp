@@ -1166,6 +1166,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						}
 					}
 				}
+				if(CancelFlg == YES)
+					AbortRecoveryProc();
 				if(NoopEnable == YES && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
 				{
 					NoopProc(NO);

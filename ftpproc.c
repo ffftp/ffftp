@@ -3867,11 +3867,12 @@ static int RenameUnuseableName(char *Fname)
 // NOOPコマンドでは効果が無いホストが多いためLISTコマンドを使用
 void NoopProc(int Force)
 {
-//	CancelFlg = NO;
 	if(Force == YES || (AskConnecting() == YES && AskUserOpeDisabled() == NO))
 	{
-		if(AskReuseCmdSkt() == NO || AskShareProh() == YES || AskTransferNow() == NO)
+		if(AskReuseCmdSkt() == NO || (AskShareProh() == YES && AskTransferNow() == NO))
 		{
+			if(Force == NO)
+				CancelFlg = NO;
 			DisableUserOpe();
 			DoDirListCmdSkt("", "", 999, &CancelFlg);
 			EnableUserOpe();
@@ -3884,9 +3885,9 @@ void AbortRecoveryProc(void)
 {
 	if(AskConnecting() == YES && AskUserOpeDisabled() == NO)
 	{
-		CancelFlg = NO;
 		if(AskReuseCmdSkt() == NO || AskShareProh() == YES || AskTransferNow() == NO)
 		{
+			CancelFlg = NO;
 			if(AskErrorReconnect() == YES)
 			{
 				DisableUserOpe();
