@@ -4032,3 +4032,283 @@ void SaveSettingsToFileZillaXml()
 	}
 }
 
+// WinSCP INI形式エクスポート対応
+void WriteWinSCPString(FILE* f, const char* s)
+{
+	const char* p;
+	p = s;
+	while(*p != '\0')
+	{
+		if(*p & 0x80)
+		{
+			p = NULL;
+			break;
+		}
+		p++;
+	}
+	if(!p)
+		fputs("%EF%BB%BF", f);
+	while(*s != '\0')
+	{
+		switch(*s)
+		{
+		case '\t':
+		case '\n':
+		case '\r':
+		case ' ':
+		case '%':
+		case '*':
+		case '?':
+		case '\\':
+			fprintf(f, "%%%02X", *s & 0xff);
+			break;
+		default:
+			if(*s & 0x80)
+				fprintf(f, "%%%02X", *s & 0xff);
+			else
+				fputc(*s, f);
+			break;
+		}
+		s++;
+	}
+}
+
+void WriteWinSCPPassword(FILE* f, const char* UserName, const char* HostName, const char* Password)
+{
+	char Tmp[256];
+	strcpy(Tmp, UserName);
+	strcat(Tmp, HostName);
+	strcat(Tmp, Password);
+	fprintf(f, "%02X", ~(0xff ^ 0xa3) & 0xff);
+	fprintf(f, "%02X", ~(0x00 ^ 0xa3) & 0xff);
+	fprintf(f, "%02X", ~((unsigned char)strlen(Tmp) ^ 0xa3) & 0xff);
+	fprintf(f, "%02X", ~(0x00 ^ 0xa3) & 0xff);
+	Password = Tmp;
+	while(*Password != '\0')
+	{
+		fprintf(f, "%02X", ~(*Password ^ 0xa3) & 0xff);
+		Password++;
+	}
+}
+
+void SaveSettingsToWinSCPIni()
+{
+	char Fname[FMAX_PATH+1];
+	FILE* f;
+	TIME_ZONE_INFORMATION tzi;
+	char HostPath[FMAX_PATH+1];
+	int Level;
+	int i;
+	HOSTDATA Host;
+	char Tmp[FMAX_PATH+1];
+	char* p1;
+	MessageBox(GetMainHwnd(), MSGJPN365, "FFFTP", MB_OK);
+	strcpy(Fname, "WinSCP.ini");
+	if(SelectFile(GetMainHwnd(), Fname, MSGJPN286, MSGJPN288, "ini", OFN_EXTENSIONDIFFERENT | OFN_OVERWRITEPROMPT, 1) == TRUE)
+	{
+		if((f = fopen(Fname, "at")) != NULL)
+		{
+			GetTimeZoneInformation(&tzi);
+			strcpy(HostPath, "");
+			Level = 0;
+			i = 0;
+			while(CopyHostFromList(i, &Host) == FFFTP_SUCCESS)
+			{
+				while((Host.Level & SET_LEVEL_MASK) < Level)
+				{
+					if((p1 = strrchr(HostPath, '/')) != NULL)
+						*p1 = '\0';
+					if((p1 = strrchr(HostPath, '/')) != NULL)
+						p1++;
+					else
+						p1 = HostPath;
+					*p1 = '\0';
+					Level--;
+				}
+				if(Host.Level & SET_LEVEL_GROUP)
+				{
+					strcat(HostPath, Host.HostName);
+					strcat(HostPath, "/");
+					Level++;
+				}
+				else
+				{
+					fputs("[Sessions\\", f);
+					strcpy(Tmp, HostPath);
+					strcat(Tmp, Host.HostName);
+					WriteWinSCPString(f, Tmp);
+					fputs("]\n", f);
+					fputs("HostName=", f);
+					WriteWinSCPString(f, Host.HostAdrs);
+					fputs("\n", f);
+					fprintf(f, "PortNumber=%d\n", Host.Port);
+					switch(Host.NetType)
+					{
+					case NTYPE_AUTO:
+						break;
+					case NTYPE_IPV4:
+						fprintf(f, "AddressFamily=%s\n", "1");
+						break;
+					case NTYPE_IPV6:
+						fprintf(f, "AddressFamily=%s\n", "2");
+						break;
+					default:
+						break;
+					}
+					fputs("UserName=", f);
+					WriteWinSCPString(f, Host.UserName);
+					fputs("\n", f);
+					fprintf(f, "FSProtocol=%s\n", "5");
+					fputs("LocalDirectory=", f);
+					WriteWinSCPString(f, Host.LocalInitDir);
+					fputs("\n", f);
+					fputs("RemoteDirectory=", f);
+					WriteWinSCPString(f, Host.RemoteInitDir);
+					fputs("\n", f);
+					if(Host.SyncMove == YES)
+						fprintf(f, "SynchronizeBrowsing=%s\n", "1");
+					else
+						fprintf(f, "SynchronizeBrowsing=%s\n", "0");
+					fputs("PostLoginCommands=", f);
+					WriteWinSCPString(f, Host.InitCmd);
+					fputs("\n", f);
+					if(Host.FireWall == YES)
+					{
+						switch(FwallType)
+						{
+						case FWALL_NONE:
+							break;
+						case FWALL_FU_FP_SITE:
+							break;
+						case FWALL_FU_FP_USER:
+							break;
+						case FWALL_USER:
+							break;
+						case FWALL_OPEN:
+							break;
+						case FWALL_SOCKS4:
+							fprintf(f, "ProxyMethod=%s\n", "1");
+							break;
+						case FWALL_SOCKS5_NOAUTH:
+							break;
+						case FWALL_SOCKS5_USER:
+							fprintf(f, "ProxyMethod=%s\n", "2");
+							break;
+						case FWALL_FU_FP:
+							break;
+						case FWALL_SIDEWINDER:
+							break;
+						default:
+							break;
+						}
+						fputs("ProxyHost=", f);
+						WriteWinSCPString(f, FwallHost);
+						fputs("\n", f);
+						fprintf(f, "ProxyPort=%d\n", FwallPort);
+						fputs("ProxyUsername=", f);
+						WriteWinSCPString(f, FwallUser);
+						fputs("\n", f);
+					}
+					switch(Host.NameKanjiCode)
+					{
+					case KANJI_SJIS:
+						fprintf(f, "Utf=%s\n", "0");
+						break;
+					case KANJI_JIS:
+						// 非対応
+						break;
+					case KANJI_EUC:
+						// 非対応
+						break;
+					case KANJI_SMB_HEX:
+						// 非対応
+						break;
+					case KANJI_SMB_CAP:
+						// 非対応
+						break;
+					case KANJI_UTF8N:
+						fprintf(f, "Utf=%s\n", "1");
+						break;
+					case KANJI_UTF8HFSX:
+						// 非対応
+						break;
+					default:
+						break;
+					}
+					if(Host.Pasv == YES)
+						fprintf(f, "FtpPasvMode=%s\n", "1");
+					else
+						fprintf(f, "FtpPasvMode=%s\n", "0");
+					if(Host.ListCmdOnly == YES && Host.UseMLSD == NO)
+						fprintf(f, "FtpUseMlsd=%s\n", "0");
+					fputs("FtpAccount=", f);
+					WriteWinSCPString(f, Host.Account);
+					fputs("\n", f);
+					if(Host.NoopInterval > 0)
+						fprintf(f, "FtpPingInterval=%d\n", Host.NoopInterval);
+					else
+						fprintf(f, "FtpPingType=%s\n", "0");
+					if(Host.UseNoEncryption == YES)
+						fprintf(f, "Ftps=%s\n", "0");
+					else if(Host.UseFTPES == YES)
+						fprintf(f, "Ftps=%s\n", "3");
+					else if(Host.UseFTPIS == YES)
+						fprintf(f, "Ftps=%s\n", "1");
+					else
+						fprintf(f, "Ftps=%s\n", "0");
+					if(Host.FireWall == YES)
+					{
+						switch(FwallType)
+						{
+						case FWALL_NONE:
+							break;
+						case FWALL_FU_FP_SITE:
+							fprintf(f, "FtpProxyLogonType=%s\n", "1");
+							break;
+						case FWALL_FU_FP_USER:
+							fprintf(f, "FtpProxyLogonType=%s\n", "2");
+							break;
+						case FWALL_USER:
+							fprintf(f, "FtpProxyLogonType=%s\n", "5");
+							break;
+						case FWALL_OPEN:
+							fprintf(f, "FtpProxyLogonType=%s\n", "3");
+							break;
+						case FWALL_SOCKS4:
+							break;
+						case FWALL_SOCKS5_NOAUTH:
+							break;
+						case FWALL_SOCKS5_USER:
+							break;
+						case FWALL_FU_FP:
+							break;
+						case FWALL_SIDEWINDER:
+							break;
+						default:
+							break;
+						}
+					}
+					if(Host.NoWeakEncryption == YES)
+						fprintf(f, "MinTlsVersion=%s\n", "10");
+					else
+						fprintf(f, "MinTlsVersion=%s\n", "3");
+					fputs("Password=", f);
+					WriteWinSCPPassword(f, Host.UserName, Host.HostAdrs, Host.PassWord);
+					fputs("\n", f);
+					if(Host.FireWall == YES)
+					{
+						fputs("ProxyPasswordEnc=", f);
+						WriteWinSCPPassword(f, FwallUser, FwallHost, FwallPass);
+						fputs("\n", f);
+					}
+					fputs("\n", f);
+				}
+				i++;
+			}
+			fclose(f);
+		}
+		else
+			MessageBox(GetMainHwnd(), MSGJPN357, "FFFTP", MB_OK | MB_ICONERROR);
+	}
+}
+

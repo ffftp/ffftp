@@ -1208,10 +1208,17 @@ int ReConnectCmdSkt(void)
 //	if(CmdCtrlSocket != TrnCtrlSocket)
 //		do_closesocket(TrnCtrlSocket);
 //	TrnCtrlSocket = INVALID_SOCKET;
-	if(CmdCtrlSocket == TrnCtrlSocket)
-		TrnCtrlSocket = INVALID_SOCKET;
 
-	Sts = ReConnectSkt(&CmdCtrlSocket);
+	// 同時接続対応
+//	Sts = ReConnectSkt(&CmdCtrlSocket);
+	if(AskShareProh() == YES && AskTransferNow() == YES)
+		SktShareProh();
+	else
+	{
+		if(CmdCtrlSocket == TrnCtrlSocket)
+			TrnCtrlSocket = INVALID_SOCKET;
+		Sts = ReConnectSkt(&CmdCtrlSocket);
+	}
 
 	// 同時接続対応
 //	TrnCtrlSocket = CmdCtrlSocket;
@@ -1426,6 +1433,9 @@ void DisconnectProc(void)
 {
 
 //SetTaskMsg("############### Disconnect Cmd=%x, Trn=%x", CmdCtrlSocket,TrnCtrlSocket);
+
+	// 同時接続対応
+	AbortAllTransfer();
 
 	if((CmdCtrlSocket != INVALID_SOCKET) && (CmdCtrlSocket != TrnCtrlSocket))
 	{

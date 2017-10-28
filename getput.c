@@ -249,7 +249,8 @@ void CloseTransferThread(void)
 	for(i = 0; i < MAX_DATA_CONNECTION; i++)
 		Canceled[i] = YES;
 	ClearAll = YES;
-	ForceAbort = YES;
+	// 同時接続対応
+//	ForceAbort = YES;
 
 	fTransferThreadExit = TRUE;
 	// 同時接続対応
@@ -278,6 +279,22 @@ void CloseTransferThread(void)
 	return;
 }
 
+
+// 同時接続対応
+void AbortAllTransfer()
+{
+	int i;
+	while(TransPacketBase != NULL)
+	{
+		for(i = 0; i < MAX_DATA_CONNECTION; i++)
+			Canceled[i] = YES;
+		ClearAll = YES;
+		if(BackgrndMessageProc() == YES)
+			break;
+		Sleep(10);
+	}
+	ClearAll = NO;
+}
 
 /*----- 転送するファイル情報をリストに追加する --------------------------------
 *
@@ -721,8 +738,6 @@ static ULONG WINAPI TransferThread(void *Dummy)
 	static int Up;
 	int DelNotify;
 	int ThreadCount;
-	SOCKET CmdSkt;
-	SOCKET NewCmdSkt;
 	SOCKET TrnSkt;
 	RECT WndRect;
 	int i;
@@ -738,8 +753,6 @@ static ULONG WINAPI TransferThread(void *Dummy)
 	// 同時接続対応
 	// ソケットは各転送スレッドが管理
 	ThreadCount = (int)Dummy;
-	CmdSkt = INVALID_SOCKET;
-	NewCmdSkt = INVALID_SOCKET;
 	TrnSkt = INVALID_SOCKET;
 	LastError = NO;
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
@@ -777,16 +790,29 @@ static ULONG WINAPI TransferThread(void *Dummy)
 			if(TransPacketBase == NULL)
 				GoExit = YES;
 		}
-		NewCmdSkt = AskCmdCtrlSkt();
 		if(AskReuseCmdSkt() == YES && ThreadCount == 0)
 		{
 			if(TransPacketBase && ThreadCount < AskMaxThreadCount())
 				TrnSkt = AskTrnCtrlSkt();
+			// セッションあたりの転送量制限対策
+			if(TrnSkt != INVALID_SOCKET && AskErrorReconnect() == YES && LastError == YES)
+			{
+				ReleaseMutex(hListAccMutex);
+				PostMessage(GetMainHwnd(), WM_RECONNECTSOCKET, 0, 0);
+				Sleep(100);
+				TrnSkt = INVALID_SOCKET;
+//				WaitForSingleObject(hListAccMutex, INFINITE);
+				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
+				{
+					BackgrndMessageProc();
+					Sleep(1);
+				}
+			}
 		}
 		else
 		{
 			// セッションあたりの転送量制限対策
-			if(AskErrorReconnect() == YES && LastError == YES)
+			if(TrnSkt != INVALID_SOCKET && AskErrorReconnect() == YES && LastError == YES)
 			{
 				ReleaseMutex(hListAccMutex);
 				DoQUIT(TrnSkt, &Canceled[ThreadCount]);
@@ -799,10 +825,10 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					Sleep(1);
 				}
 			}
-			if(TransPacketBase && NewCmdSkt != INVALID_SOCKET && ThreadCount < AskMaxThreadCount())
+			if(TransPacketBase && AskConnecting() == YES && ThreadCount < AskMaxThreadCount())
 			{
 				ReleaseMutex(hListAccMutex);
-				if(TrnSkt == INVALID_SOCKET || NewCmdSkt != CmdSkt)
+				if(TrnSkt == INVALID_SOCKET)
 					ReConnectTrnSkt(&TrnSkt, &Canceled[ThreadCount]);
 				else
 					CheckClosedAndReconnectTrnSkt(&TrnSkt, &Canceled[ThreadCount]);
@@ -812,7 +838,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					// 同時ログイン数制限に引っかかった可能性あり
 					// 負荷を下げるために約10秒間待機
 					i = 1000;
-					while(NewCmdSkt != CmdSkt && i > 0)
+					while(i > 0)
 					{
 						BackgrndMessageProc();
 						Sleep(10);
@@ -833,7 +859,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				{
 					// 同時ログイン数制限対策
 					// 60秒間使用されなければログアウト
-					if(timeGetTime() - LastUsed > 60000 || NewCmdSkt == INVALID_SOCKET)
+					if(timeGetTime() - LastUsed > 60000 || AskConnecting() == NO)
 					{
 						ReleaseMutex(hListAccMutex);
 						DoQUIT(TrnSkt, &Canceled[ThreadCount]);
@@ -849,7 +875,6 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				}
 			}
 		}
-		CmdSkt = NewCmdSkt;
 		LastError = NO;
 //		if(TransPacketBase != NULL)
 		if(TrnSkt != INVALID_SOCKET && NextTransPacketBase != NULL)

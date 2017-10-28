@@ -363,6 +363,7 @@
 #define MSGJPN362		_Tu8("Failed to update the software.\nCannot connect to the server or the data is corrupted.", "Failed to update the software.\nCannot connect to the server or the data is corrupted.")
 #define MSGJPN363		_Tu8("Your version is already up-to-date.", "Your version is already up-to-date.")
 #define MSGJPN364		_Tu8("Preparing for the software update has been completed.\nIt will be applied on exit.", "Preparing for the software update has been completed.\nIt will be applied on exit.")
+#define MSGJPN365		_Tu8("The all settings will be lost after loading an INI file newly created with this feature into WinSCP.\nPlease choose an existing WinSCP.ini if you already use WinSCP and want to migrate hosts settings only.", "The all settings will be lost after loading an INI file newly created with this feature into WinSCP.\nPlease choose an existing WinSCP.ini if you already use WinSCP and want to migrate hosts settings only.")
 #if defined(HAVE_TANDEM)
 #define MSGJPN2000		_Tu8("NonStop Server", "NonStop Server")
 #define MSGJPN2001		_Tu8("OSS<->GUARDIAN Switch(&O)", "OSS<->GUARDIAN Switch(&O)")

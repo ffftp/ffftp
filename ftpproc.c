@@ -3882,9 +3882,9 @@ void NoopProc(int Force)
 // 同時接続対応
 void AbortRecoveryProc(void)
 {
-	CancelFlg = NO;
 	if(AskConnecting() == YES && AskUserOpeDisabled() == NO)
 	{
+		CancelFlg = NO;
 		if(AskReuseCmdSkt() == NO || AskShareProh() == YES || AskTransferNow() == NO)
 		{
 			if(AskErrorReconnect() == YES)
@@ -3897,6 +3897,19 @@ void AbortRecoveryProc(void)
 			else
 				RemoveReceivedData(AskCmdCtrlSkt());
 		}
+	}
+	return;
+}
+
+void ReconnectProc(void)
+{
+	if(AskConnecting() == YES && AskUserOpeDisabled() == NO)
+	{
+		CancelFlg = NO;
+		DisableUserOpe();
+		ReConnectCmdSkt();
+		GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
+		EnableUserOpe();
 	}
 	return;
 }

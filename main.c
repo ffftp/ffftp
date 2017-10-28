@@ -2087,6 +2087,11 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			SetEvent(((REMOVEPORTMAPPINGDATA*)lParam)->h);
 			break;
 
+		// 同時接続対応
+		case WM_RECONNECTSOCKET :
+			ReconnectProc();
+			break;
+
 		case WM_PAINT :
 			BeginPaint(hWnd, (LPPAINTSTRUCT) &ps);
 			EndPaint(hWnd, (LPPAINTSTRUCT) &ps);
