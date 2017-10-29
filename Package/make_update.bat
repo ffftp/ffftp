@@ -11,8 +11,8 @@ set PREFIX_JPN=update.jpn.file.
 set PREFIX_ENG=update.eng.file.
 set PREFIX_AMD64_JPN=update.amd64.jpn.file.
 set PREFIX_AMD64_ENG=update.amd64.eng.file.
-set DESC_JPN="転送失敗時に再接続できない場合があるバグを修正しました。\n切断時にファイルの転送待ちが解除されないバグを修正しました。\n転送中の強制終了が機能しない場合があるバグを修正しました。\n転送中の強制終了が機能しない場合があるバグを修正しました。\n受信中止をクリックした後の挙動がおかしくなるバグを修正しました。"
-set DESC_ENG="Fixed bugs that sometimes it cannot reconnect after transfer failure.\nFixed bugs that the queue of file transfer is not released on disconnection.\nFixed bugs that sometimes Force Exit does not work while transfer.\nFixed bugs that the behavior is strange after clicking Stop button."
+set DESC_JPN="同時接続数が1より大きいホストから切断した直後に別のホストで転送に失敗するバグを修正しました。"
+set DESC_ENG="Fixed bugs that transfer fails at a host right after disconnection from another host whose number of simultaneous connections is more than 1."
 set DESC_AMD64_JPN=%DESC_JPN%
 set DESC_AMD64_ENG=%DESC_ENG%
 

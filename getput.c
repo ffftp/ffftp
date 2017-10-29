@@ -792,8 +792,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 		}
 		if(AskReuseCmdSkt() == YES && ThreadCount == 0)
 		{
-			if(TransPacketBase && ThreadCount < AskMaxThreadCount())
-				TrnSkt = AskTrnCtrlSkt();
+			TrnSkt = AskTrnCtrlSkt();
 			// セッションあたりの転送量制限対策
 			if(TrnSkt != INVALID_SOCKET && AskErrorReconnect() == YES && LastError == YES)
 			{
@@ -859,7 +858,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 				{
 					// 同時ログイン数制限対策
 					// 60秒間使用されなければログアウト
-					if(timeGetTime() - LastUsed > 60000 || AskConnecting() == NO)
+					if(timeGetTime() - LastUsed > 60000 || AskConnecting() == NO || ThreadCount >= AskMaxThreadCount())
 					{
 						ReleaseMutex(hListAccMutex);
 						DoQUIT(TrnSkt, &Canceled[ThreadCount]);
