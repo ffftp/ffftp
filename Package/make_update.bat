@@ -11,8 +11,8 @@ set PREFIX_JPN=update.jpn.file.
 set PREFIX_ENG=update.eng.file.
 set PREFIX_AMD64_JPN=update.amd64.jpn.file.
 set PREFIX_AMD64_ENG=update.amd64.eng.file.
-set DESC_JPN="同時接続数が1より大きいホストから切断した直後に別のホストで転送に失敗するバグを修正しました。"
-set DESC_ENG="Fixed bugs that transfer fails at a host right after disconnection from another host whose number of simultaneous connections is more than 1."
+set DESC_JPN="OpenSSLを更新しました。"
+set DESC_ENG="Updated OpenSSL."
 set DESC_AMD64_JPN=%DESC_JPN%
 set DESC_AMD64_ENG=%DESC_ENG%
 
