@@ -26,6 +26,43 @@ Changes in 3.00
 Changes in Ver.2.00
 --------------------
 
+-- Added a feature to export settings as WinSCP INI format.
+
+-- Added an option to ignore addresses returned with PASV mode.
+   Please use this for connection to hosts that have incorrect settings.
+
+-- Fixed bugs that the focus is lost after keyboard operation.
+
+-- Made it show the logged in user name on the title bar.
+
+-- Fixed bugs that connecting to hosts that supports only deprecated encryption
+   methods is unable.
+
+-- Fixed bugs that local files with abnormal timestamps cause crashes.
+
+-- Supported proxy connection for automatic software update.
+
+-- Fixed bugs that sometimes Overwrite if newer does not work.
+
+-- Fixed bugs that it hangs up during drag-and-drop.
+
+-- Resolved flickering of the window caused by a side effect of bug
+   countermeasure.
+
+-- Implemented Server Name Indication.
+   This solves the problem that it cannot connect to some shared servers.
+
+-- Fixed bugs that sometimes it cannot reconnect after transfer failure.
+
+-- Fixed bugs that the queue of file transfer is not released on disconnection.
+
+-- Fixed bugs that sometimes Force Exit does not work while transfer.
+
+-- Fixed bugs that the behavior is strange after clicking Stop button.
+
+-- Fixed bugs that transfer fails at a host right after disconnection from
+   another host whose number of simultaneous connections is more than 1.
+
 -- Updated OpenSSL.
 
 -- Updated SSL/TLS root CAs.
