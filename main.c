@@ -313,7 +313,7 @@ int FwallNoSaveUser = NO;
 
 int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmdShow)
 {
-    MSG Msg;
+	MSG Msg;
 	int Ret;
 	BOOL Sts;
 	// プロセス保護
@@ -329,6 +329,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	char ListFile[FMAX_PATH+1];
 	char Description[FMAX_PATH+1];
 	char UpdateDir[FMAX_PATH+1];
+	char Buf[FMAX_PATH+1];
 	char Path[FMAX_PATH+1];
 	char Command[FMAX_PATH+1];
 	char* p;
@@ -464,7 +465,12 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 					{
 						Sleep(1000);
 						if(ApplyUpdates(UpdateDir, "updatebackup"))
-							MessageBox(NULL, MSGJPN358, "FFFTP", MB_OK);
+						{
+							GetModuleFileName(NULL, Path, MAX_PATH);
+							strcpy(GetFileName(Path), "updatebackup");
+							sprintf(Buf, MSGJPN358, Path);
+							MessageBox(NULL, Buf, "FFFTP", MB_OK);
+						}
 						else
 							MessageBox(NULL, MSGJPN359, "FFFTP", MB_OK | MB_ICONERROR);
 					}
@@ -513,7 +519,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		}
 		Ret = Msg.wParam;
 	}
-    UnregisterClass(FtpClassStr, hInstFtp);
+	UnregisterClass(FtpClassStr, hInstFtp);
 	// FTPS対応
 #ifdef USE_OPENSSL
 	FreeOpenSSL();
@@ -771,7 +777,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					DispWindowTitle();
 					// SourceForge.JPによるフォーク
 //					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.");
-					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011-2016 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).");
+					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).");
 
 					if(ForceIni)
 						SetTaskMsg("%s%s", MSGJPN283, IniPath);
@@ -1160,6 +1166,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						}
 					}
 				}
+				if(CancelFlg == YES)
+					AbortRecoveryProc();
 				if(NoopEnable == YES && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
 				{
 					NoopProc(NO);
@@ -2081,9 +2089,14 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			SetEvent(((REMOVEPORTMAPPINGDATA*)lParam)->h);
 			break;
 
+		// 同時接続対応
+		case WM_RECONNECTSOCKET :
+			ReconnectProc();
+			break;
+
 		case WM_PAINT :
-		    BeginPaint(hWnd, (LPPAINTSTRUCT) &ps);
-		    EndPaint(hWnd, (LPPAINTSTRUCT) &ps);
+			BeginPaint(hWnd, (LPPAINTSTRUCT) &ps);
+			EndPaint(hWnd, (LPPAINTSTRUCT) &ps);
 			break;
 
 		case WM_DESTROY :
@@ -2116,7 +2129,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		default :
 			return(DefWindowProc(hWnd, message, wParam, lParam));
 	}
-    return(0L);
+	return(0L);
 }
 
 
@@ -3314,7 +3327,7 @@ static INT_PTR CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, 
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -3408,7 +3421,7 @@ int AskForceIni(void)
 
 int BackgrndMessageProc(void)
 {
-    MSG Msg;
+	MSG Msg;
 	int Ret;
 
 	Ret = NO;
@@ -3420,7 +3433,7 @@ int BackgrndMessageProc(void)
 //		if(!IsMainThread() || !HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
 		if(!IsMainThread() || !HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
 		{
-	 		/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
+			/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
 			/* コンボボックス内ではアクセラレータを無効にする */
 			if((Msg.hwnd == GetLocalHistEditHwnd()) ||
 			   (Msg.hwnd == GetRemoteHistEditHwnd()) ||

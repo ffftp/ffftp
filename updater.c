@@ -53,6 +53,10 @@ BOOL ReadFileViaHTTPW(void* pOut, DWORD Length, DWORD* pLength, LPCWSTR UserAgen
 	DWORD Buffer;
 	HINTERNET hConnect;
 	HINTERNET hRequest;
+	WCHAR* Url;
+	WINHTTP_AUTOPROXY_OPTIONS AutoProxyOptions;
+	WINHTTP_PROXY_INFO ProxyInfo;
+	WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ProxyConfig;
 	bResult = FALSE;
 	if(hSession = WinHttpOpen(UserAgent, WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0))
 	{
@@ -63,6 +67,61 @@ BOOL ReadFileViaHTTPW(void* pOut, DWORD Length, DWORD* pLength, LPCWSTR UserAgen
 			{
 				if(hRequest = WinHttpOpenRequest(hConnect, L"GET", ObjectName, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, 0))
 				{
+					if(Url = (WCHAR*)malloc(sizeof(WCHAR) * (wcslen(L"http://") + wcslen(ServerName) + wcslen(ObjectName) + 1)))
+					{
+						wcscpy(Url, L"http://");
+						wcscat(Url, ServerName);
+						wcscat(Url, ObjectName);
+					}
+					memset(&AutoProxyOptions, 0, sizeof(WINHTTP_AUTOPROXY_OPTIONS));
+					AutoProxyOptions.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT;
+					AutoProxyOptions.dwAutoDetectFlags = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
+					AutoProxyOptions.fAutoLogonIfChallenged = TRUE;
+					memset(&ProxyInfo, 0, sizeof(WINHTTP_PROXY_INFO));
+					memset(&ProxyConfig, 0, sizeof(WINHTTP_CURRENT_USER_IE_PROXY_CONFIG));
+					if(WinHttpGetProxyForUrl(hSession, Url, &AutoProxyOptions, &ProxyInfo))
+					{
+						WinHttpSetOption(hRequest, WINHTTP_OPTION_PROXY, &ProxyInfo, sizeof(WINHTTP_PROXY_INFO));
+						if(ProxyInfo.lpszProxy)
+							GlobalFree(ProxyInfo.lpszProxy);
+						if(ProxyInfo.lpszProxyBypass)
+							GlobalFree(ProxyInfo.lpszProxyBypass);
+					}
+					else if(WinHttpGetIEProxyConfigForCurrentUser(&ProxyConfig))
+					{
+						if(ProxyConfig.lpszAutoConfigUrl)
+						{
+							memset(&AutoProxyOptions, 0, sizeof(WINHTTP_AUTOPROXY_OPTIONS));
+							AutoProxyOptions.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
+							AutoProxyOptions.lpszAutoConfigUrl = ProxyConfig.lpszAutoConfigUrl;
+							AutoProxyOptions.fAutoLogonIfChallenged = TRUE;
+							memset(&ProxyInfo, 0, sizeof(WINHTTP_PROXY_INFO));
+							if(WinHttpGetProxyForUrl(hSession, Url, &AutoProxyOptions, &ProxyInfo))
+							{
+								WinHttpSetOption(hRequest, WINHTTP_OPTION_PROXY, &ProxyInfo, sizeof(WINHTTP_PROXY_INFO));
+								if(ProxyInfo.lpszProxy)
+									GlobalFree(ProxyInfo.lpszProxy);
+								if(ProxyInfo.lpszProxyBypass)
+									GlobalFree(ProxyInfo.lpszProxyBypass);
+							}
+						}
+						else if(ProxyConfig.lpszProxy)
+						{
+							memset(&ProxyInfo, 0, sizeof(WINHTTP_PROXY_INFO));
+							ProxyInfo.dwAccessType = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
+							ProxyInfo.lpszProxy = ProxyConfig.lpszProxy;
+							ProxyInfo.lpszProxyBypass = ProxyConfig.lpszProxyBypass;
+							WinHttpSetOption(hRequest, WINHTTP_OPTION_PROXY, &ProxyInfo, sizeof(WINHTTP_PROXY_INFO));
+						}
+						if(ProxyConfig.lpszAutoConfigUrl)
+							GlobalFree(ProxyConfig.lpszAutoConfigUrl);
+						if(ProxyConfig.lpszProxy)
+							GlobalFree(ProxyConfig.lpszProxy);
+						if(ProxyConfig.lpszProxyBypass)
+							GlobalFree(ProxyConfig.lpszProxyBypass);
+					}
+					if(Url)
+						free(Url);
 					if(WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0))
 					{
 						if(WinHttpReceiveResponse(hRequest, NULL))

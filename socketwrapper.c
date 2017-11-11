@@ -521,6 +521,7 @@ BOOL SetSSLRootCertificate(const void* pData, DWORD Length)
 BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName)
 {
 	BOOL bResult;
+	char* pa0;
 	const char* pAsterisk;
 	size_t BeforeAsterisk;
 	const char* pBeginAsterisk;
@@ -529,30 +530,37 @@ BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName)
 	bResult = FALSE;
 	if(HostName && CommonName)
 	{
-		if(pAsterisk = strchr(CommonName, '*'))
+		if(pa0 = AllocateStringA(strlen(HostName) * 4))
 		{
-			BeforeAsterisk = ((size_t)pAsterisk - (size_t)CommonName) / sizeof(char);
-			pBeginAsterisk = HostName + BeforeAsterisk;
-			while(*pAsterisk == '*')
+			if(ConvertNameToPunycode(pa0, HostName))
 			{
-				pAsterisk++;
-			}
-			pEndAsterisk = HostName + strlen(HostName) - strlen(pAsterisk);
-			// "*"より前は大文字小文字を無視して完全一致
-			if(_strnicmp(HostName, CommonName, BeforeAsterisk) == 0)
-			{
-				// "*"より後は大文字小文字を無視して完全一致
-				if(_stricmp(pEndAsterisk, pAsterisk) == 0)
+				if(pAsterisk = strchr(CommonName, '*'))
 				{
-					// "*"と一致する範囲に"."が含まれてはならない
-					pDot = strchr(pBeginAsterisk, '.');
-					if(!pDot || pDot >= pEndAsterisk)
-						bResult = TRUE;
+					BeforeAsterisk = ((size_t)pAsterisk - (size_t)CommonName) / sizeof(char);
+					pBeginAsterisk = pa0 + BeforeAsterisk;
+					while(*pAsterisk == '*')
+					{
+						pAsterisk++;
+					}
+					pEndAsterisk = pa0 + strlen(pa0) - strlen(pAsterisk);
+					// "*"より前は大文字小文字を無視して完全一致
+					if(_strnicmp(pa0, CommonName, BeforeAsterisk) == 0)
+					{
+						// "*"より後は大文字小文字を無視して完全一致
+						if(_stricmp(pEndAsterisk, pAsterisk) == 0)
+						{
+							// "*"と一致する範囲に"."が含まれてはならない
+							pDot = strchr(pBeginAsterisk, '.');
+							if(!pDot || pDot >= pEndAsterisk)
+								bResult = TRUE;
+						}
+					}
 				}
+				else if(_stricmp(pa0, CommonName) == 0)
+					bResult = TRUE;
 			}
 		}
-		else if(_stricmp(HostName, CommonName) == 0)
-			bResult = TRUE;
+		FreeDuplicatedString(pa0);
 	}
 	return bResult;
 }
@@ -676,7 +684,7 @@ BOOL GetHashSHA512(const void* pData, DWORD Size, void* pHash)
 }
 
 // SSLセッションを開始
-BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen)
+BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen, const char* ServerName)
 {
 	BOOL r;
 	DWORD Time;
@@ -684,6 +692,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen)
 	BOOL bInherited;
 	SSL** ppSSLParent;
 	SSL_SESSION* pSession;
+	char* pa0;
 	int Return;
 	int Error;
 	if(!g_bOpenSSLLoaded)
@@ -726,6 +735,15 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen)
 //							p_SSL_ctrl(*ppSSL, SSL_CTRL_OPTIONS, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3, NULL);
 							p_SSL_ctrl(*ppSSL, SSL_CTRL_SET_MIN_PROTO_VERSION, TLS1_VERSION, NULL);
 							p_SSL_set_cipher_list(*ppSSL, "HIGH");
+						}
+						if(ServerName)
+						{
+							if(pa0 = AllocateStringA(strlen(ServerName) * 4))
+							{
+								if(ConvertNameToPunycode(pa0, ServerName))
+									p_SSL_ctrl(*ppSSL, SSL_CTRL_SET_TLSEXT_HOSTNAME, TLSEXT_NAMETYPE_host_name, pa0);
+							}
+							FreeDuplicatedString(pa0);
 						}
 					}
 					// SSLのネゴシエーションには時間がかかる場合がある
@@ -837,7 +855,7 @@ SOCKET FTPS_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 	BOOL bAborted;
 	r = accept(s, addr, addrlen);
 	bAborted = FALSE;
-	if(!AttachSSL(r, INVALID_SOCKET, &bAborted, TRUE))
+	if(!AttachSSL(r, INVALID_SOCKET, &bAborted, TRUE, NULL))
 	{
 		closesocket(r);
 		return INVALID_SOCKET;
@@ -853,7 +871,7 @@ int FTPS_connect(SOCKET s, const struct sockaddr *name, int namelen)
 	BOOL bAborted;
 	r = connect(s, name, namelen);
 	bAborted = FALSE;
-	if(!AttachSSL(r, INVALID_SOCKET, &bAborted, TRUE))
+	if(!AttachSSL(r, INVALID_SOCKET, &bAborted, TRUE, NULL))
 		return SOCKET_ERROR;
 	return r;
 }

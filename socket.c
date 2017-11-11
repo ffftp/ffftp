@@ -314,7 +314,7 @@ static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 		default :
 			return(DefWindowProc(hWnd, message, wParam, lParam));
 	}
-    return(0);
+	return(0);
 }
 
 

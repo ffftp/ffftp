@@ -532,7 +532,7 @@ static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wPara
 		default :
 			return(CallWindowProc(HistEditBoxProcPtr, hWnd, message, wParam, lParam));
 	}
-    return(0L);
+	return(0L);
 }
 
 
@@ -879,10 +879,6 @@ void DisableUserOpe(void)
 	EnableWindow(hWndDirLocal, FALSE);
 	EnableWindow(hWndDirRemote, FALSE);
 
-	// 特定の操作を行うと異常終了するバグ修正
-	EnableWindow(GetLocalHwnd(), FALSE);
-	EnableWindow(GetRemoteHwnd(), FALSE);
-
 	return;
 }
 
@@ -915,10 +911,6 @@ void EnableUserOpe(void)
 		}
 		EnableWindow(hWndDirLocal, TRUE);
 		EnableWindow(hWndDirRemote, TRUE);
-
-		// 特定の操作を行うと異常終了するバグ修正
-		EnableWindow(GetLocalHwnd(), TRUE);
-		EnableWindow(GetRemoteHwnd(), TRUE);
 
 		// 選択不可な漢字コードのボタンが表示されるバグを修正
 		HideHostKanjiButton();

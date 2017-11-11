@@ -494,8 +494,8 @@ int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork)
 	char Tmp[1024];
 	SYSTEMTIME sTime;
 
-    Time->dwLowDateTime = 0;
-    Time->dwHighDateTime = 0;
+	Time->dwLowDateTime = 0;
+	Time->dwHighDateTime = 0;
 
 	// 同時接続対応
 	// ホスト側の日時取得

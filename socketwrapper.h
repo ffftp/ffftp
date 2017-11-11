@@ -27,7 +27,7 @@ BOOL GetHashSHA224(const void* pData, DWORD Size, void* pHash);
 BOOL GetHashSHA256(const void* pData, DWORD Size, void* pHash);
 BOOL GetHashSHA384(const void* pData, DWORD Size, void* pHash);
 BOOL GetHashSHA512(const void* pData, DWORD Size, void* pHash);
-BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen);
+BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen, const char* ServerName);
 BOOL DetachSSL(SOCKET s);
 BOOL IsSSLAttached(SOCKET s);
 SOCKET FTPS_socket(int af, int type, int protocol);
@@ -45,6 +45,7 @@ char* AddressToStringIPv4(char* str, void* in);
 char* AddressToStringIPv6(char* str, void* in6);
 char* inet6_ntoa(struct in6_addr in6);
 struct in6_addr inet6_addr(const char* cp);
+BOOL ConvertNameToPunycode(LPSTR Output, LPCSTR Input);
 HANDLE WSAAsyncGetHostByNameM(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen);
 HANDLE WSAAsyncGetHostByNameIPv6M(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen, short Family);
 

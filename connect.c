@@ -476,7 +476,7 @@ static INT_PTR CALLBACK QuickConDialogCallBack(HWND hDlg, UINT iMessage, WPARAM 
 //						DoPrintf("EDIT");
 //					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }
@@ -1208,10 +1208,17 @@ int ReConnectCmdSkt(void)
 //	if(CmdCtrlSocket != TrnCtrlSocket)
 //		do_closesocket(TrnCtrlSocket);
 //	TrnCtrlSocket = INVALID_SOCKET;
-	if(CmdCtrlSocket == TrnCtrlSocket)
-		TrnCtrlSocket = INVALID_SOCKET;
 
-	Sts = ReConnectSkt(&CmdCtrlSocket);
+	// 同時接続対応
+//	Sts = ReConnectSkt(&CmdCtrlSocket);
+	if(AskShareProh() == YES && AskTransferNow() == YES)
+		SktShareProh();
+	else
+	{
+		if(CmdCtrlSocket == TrnCtrlSocket)
+			TrnCtrlSocket = INVALID_SOCKET;
+		Sts = ReConnectSkt(&CmdCtrlSocket);
+	}
 
 	// 同時接続対応
 //	TrnCtrlSocket = CmdCtrlSocket;
@@ -1426,6 +1433,9 @@ void DisconnectProc(void)
 {
 
 //SetTaskMsg("############### Disconnect Cmd=%x, Trn=%x", CmdCtrlSocket,TrnCtrlSocket);
+
+	// 同時接続対応
+	AbortAllTransfer();
 
 	if((CmdCtrlSocket != INVALID_SOCKET) && (CmdCtrlSocket != TrnCtrlSocket))
 	{
@@ -1663,7 +1673,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 //					;
 				if(CryptMode == CRYPT_FTPIS)
 				{
-					if(AttachSSL(ContSock, INVALID_SOCKET, CancelCheckWork, HostData->NoWeakEncryption))
+					if(AttachSSL(ContSock, INVALID_SOCKET, CancelCheckWork, HostData->NoWeakEncryption, Host))
 					{
 						while((Sts = ReadReplyMessage(ContSock, Buf, 1024, CancelCheckWork, TmpBuf) / 100) == FTP_PRELIM)
 							;
@@ -1790,7 +1800,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 								{
 									if(IsOpenSSLLoaded() && ((Sts = command(ContSock, Reply, CancelCheckWork, "AUTH TLS")) == 234 || (Sts = command(ContSock, Reply, CancelCheckWork, "AUTH SSL")) == 234))
 									{
-										if(AttachSSL(ContSock, INVALID_SOCKET, CancelCheckWork, HostData->NoWeakEncryption))
+										if(AttachSSL(ContSock, INVALID_SOCKET, CancelCheckWork, HostData->NoWeakEncryption, Host))
 										{
 											if((Sts = command(ContSock, Reply, CancelCheckWork, "PBSZ 0")) == 200)
 											{
@@ -2637,9 +2647,9 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 	// IPv6対応
 	struct sockaddr_in SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
 	struct sockaddr_in CurSockAddr;		/* 接続先ホストのアドレス情報 */
-    SOCKET listen_skt;
-    int iLength;
-    char *a,*p;
+	SOCKET listen_skt;
+	int iLength;
+	char *a,*p;
 	struct sockaddr_in saCtrlAddr;
 	struct sockaddr_in saTmpAddr;
 	SOCKS4CMD Socks4Cmd;
@@ -2838,9 +2848,9 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 {
 	struct sockaddr_in6 SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
 	struct sockaddr_in6 CurSockAddr;		/* 接続先ホストのアドレス情報 */
-    SOCKET listen_skt;
-    int iLength;
-    char *a,*p;
+	SOCKET listen_skt;
+	int iLength;
+	char *a,*p;
 	struct sockaddr_in6 saCtrlAddr;
 	struct sockaddr_in6 saTmpAddr;
 	SOCKS5REQUEST Socks5Cmd;

@@ -20,11 +20,7 @@
 # include <openssl/crypto.h>
 
 # ifndef OPENSSL_NO_SCTP
-#  ifndef OPENSSL_SYS_VMS
-#   include <stdint.h>
-#  else
-#   include <inttypes.h>
-#  endif
+#  include <openssl/e_os2.h>
 # endif
 
 #ifdef  __cplusplus
@@ -129,11 +125,10 @@ extern "C" {
 
 # define BIO_CTRL_DGRAM_GET_MTU_OVERHEAD   49
 
-# define BIO_CTRL_DGRAM_SET_PEEK_MODE      50
-
+/* Deliberately outside of OPENSSL_NO_SCTP - used in bss_dgram.c */
+#  define BIO_CTRL_DGRAM_SCTP_SET_IN_HANDSHAKE    50
 # ifndef OPENSSL_NO_SCTP
 /* SCTP stuff */
-#  define BIO_CTRL_DGRAM_SCTP_SET_IN_HANDSHAKE    50
 #  define BIO_CTRL_DGRAM_SCTP_ADD_AUTH_KEY                51
 #  define BIO_CTRL_DGRAM_SCTP_NEXT_AUTH_KEY               52
 #  define BIO_CTRL_DGRAM_SCTP_AUTH_CCS_RCVD               53
@@ -145,6 +140,8 @@ extern "C" {
 #  define BIO_CTRL_DGRAM_SCTP_SET_PRINFO                  65
 #  define BIO_CTRL_DGRAM_SCTP_SAVE_SHUTDOWN               70
 # endif
+
+# define BIO_CTRL_DGRAM_SET_PEEK_MODE      71
 
 /* modifiers */
 # define BIO_FP_READ             0x02
@@ -170,7 +167,7 @@ extern "C" {
 /*
  * This is used with memory BIOs:
  * BIO_FLAGS_MEM_RDONLY means we shouldn't free up or change the data in any way;
- * BIO_FLAGS_NONCLEAR_RST means we should't clear data on reset.
+ * BIO_FLAGS_NONCLEAR_RST means we shouldn't clear data on reset.
  */
 # define BIO_FLAGS_MEM_RDONLY    0x200
 # define BIO_FLAGS_NONCLEAR_RST  0x400

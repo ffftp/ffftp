@@ -179,7 +179,7 @@ static INT_PTR CALLBACK InputDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wPa
 						SendDlgItemMessage(hDlg, INP_INPSTR, WM_SETTEXT, 0, (LPARAM)Tmp);
 					break;
 			}
-            return(TRUE);
+			return(TRUE);
 	}
 	return(FALSE);
 }
@@ -219,7 +219,7 @@ INT_PTR CALLBACK ExeEscDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -258,7 +258,7 @@ INT_PTR CALLBACK ExeEscTextDialogProc(HWND hDlg, UINT message, WPARAM wParam, LP
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 
@@ -280,7 +280,7 @@ INT_PTR CALLBACK AnyButtonDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPA
 			}
 			return(TRUE);
 	}
-    return(FALSE);
+	return(FALSE);
 }
 
 /*----- 文字列の最後に "\" を付ける -------------------------------------------
@@ -345,7 +345,7 @@ void RemoveYenTail(char *Str)
 void SetSlashTail(char *Str)
 {
 #if defined(HAVE_TANDEM)
-    /* Tandem では / の代わりに . を追加 */
+	/* Tandem では / の代わりに . を追加 */
 	if(AskHostType() == HTYPE_TANDEM) {
 		if(_mbscmp(_mbsninc(Str, _mbslen(Str) - 1), ".") != 0)
 			strcat(Str, ".");
@@ -1141,8 +1141,8 @@ int TimeString2FileTime(char *Time, FILETIME *Buf)
 	int Ret;
 
 	Ret = NO;
-    Buf->dwLowDateTime = 0;
-    Buf->dwHighDateTime = 0;
+	Buf->dwLowDateTime = 0;
+	Buf->dwHighDateTime = 0;
 
 	if(strlen(Time) >= 16)
 	{
@@ -1560,8 +1560,8 @@ int SelectDir(HWND hWnd, char *Buf, int MaxLen)
 			strncpy(Buf, Tmp, MaxLen-1);
 			Sts = TRUE;
 			lpMalloc->lpVtbl->Free(lpMalloc, lpIdll);
-	    }
-	    lpMalloc->lpVtbl->Release(lpMalloc);
+		}
+		lpMalloc->lpVtbl->Release(lpMalloc);
 		SetCurrentDirectory(Cur);
 	}
 	return(Sts);
