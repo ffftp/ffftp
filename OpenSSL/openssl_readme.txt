@@ -11,10 +11,10 @@
 3. OpenSSLのビルド（32ビット版）
    3.1. Visual Studio 2008 コマンド プロンプトを起動
    3.2. コマンド プロンプト内でbuildx86.batを実行
-   3.3. 正常にビルドされた場合distディレクトリ内にlibeay32.dllおよびssleay32.dllが作成される
+   3.3. 正常にビルドされた場合distディレクトリ内にlibcrypto-1_1.dllおよびlibssl-1_1.dllが作成される
 
 3. OpenSSLのビルド（64ビット版）
    3.1. Visual Studio 2008 x64 Win64 コマンド プロンプトを起動
    3.2. コマンド プロンプト内でbuildx64.batを実行
-   3.3. 正常にビルドされた場合dist\amd64ディレクトリ内にlibeay32.dllおよびssleay32.dllが作成される
+   3.3. 正常にビルドされた場合dist\amd64ディレクトリ内にlibcrypto-1_1-x64.dllおよびlibssl-1_1-x64.dllが作成される
 

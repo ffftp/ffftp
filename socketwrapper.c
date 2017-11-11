@@ -160,12 +160,18 @@ BOOL LoadOpenSSL()
 	if(g_bOpenSSLLoaded)
 		return FALSE;
 #ifdef ENABLE_PROCESS_PROTECTION
-	// ssleay32.dll 1.1.0b
-	RegisterTrustedModuleSHA1Hash(FILEHASH_SSLEAY32_DLL_SHA1);
-	// libeay32.dll 1.1.0b
-	RegisterTrustedModuleSHA1Hash(FILEHASH_LIBEAY32_DLL_SHA1);
+	// libssl-1_1.dll 1.1.0g
+	RegisterTrustedModuleSHA1Hash(FILEHASH_LIBCRYPTO_DLL_SHA1);
+	// libcrypto-1_1.dll 1.1.0g
+	RegisterTrustedModuleSHA1Hash(FILEHASH_LIBSSL_DLL_SHA1);
 #endif
-	g_hOpenSSL = LoadLibrary("ssleay32.dll");
+	// OpenSSL 1.1.0対応
+//	g_hOpenSSL = LoadLibrary("ssleay32.dll");
+#if defined(_M_IX86)
+	g_hOpenSSL = LoadLibrary("libssl-1_1.dll");
+#elif defined(_M_AMD64)
+	g_hOpenSSL = LoadLibrary("libssl-1_1-x64.dll");
+#endif
 	// バージョン固定のためlibssl32.dllの読み込みは脆弱性の原因になり得るので廃止
 //	if(!g_hOpenSSL)
 //		g_hOpenSSL = LoadLibrary("libssl32.dll");
@@ -204,7 +210,13 @@ BOOL LoadOpenSSL()
 		g_hOpenSSL = NULL;
 		return FALSE;
 	}
-	g_hOpenSSLCommon = LoadLibrary("libeay32.dll");
+	// OpenSSL 1.1.0対応
+//	g_hOpenSSLCommon = LoadLibrary("libeay32.dll");
+#if defined(_M_IX86)
+	g_hOpenSSLCommon = LoadLibrary("libcrypto-1_1.dll");
+#elif defined(_M_AMD64)
+	g_hOpenSSLCommon = LoadLibrary("libcrypto-1_1-x64.dll");
+#endif
 	if(!g_hOpenSSLCommon
 		|| !(p_BIO_s_mem = (_BIO_s_mem)GetProcAddress(g_hOpenSSLCommon, "BIO_s_mem"))
 		|| !(p_BIO_new = (_BIO_new)GetProcAddress(g_hOpenSSLCommon, "BIO_new"))

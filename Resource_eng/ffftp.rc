@@ -235,21 +235,21 @@ END
 // Dialog
 //
 
-about_dlg DIALOGEX 0, 0, 315, 317
+about_dlg DIALOGEX 0, 0, 315, 269
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About FFFTP"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,132,296,50,14
+    DEFPUSHBUTTON   "OK",IDOK,132,248,50,14
     ICON            ffftp,-1,7,4,20,20
-    CTEXT           "FFFTP Ver 1.99a-20171104",-1,110,11,90,8
-    CTEXT           "FFFTP is freeware",-1,7,281,301,8
-    CTEXT           "Copyright(C) 1997-2010 Sota && cooperators\nCopyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen)",-1,7,25,301,44
-    CTEXT           "",ABOUT_JRE,7,93,301,8
-    EDITTEXT        ABOUT_URL,7,76,301,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
-    CTEXT           "OLE D&&D by Yutaka Hirata-san, nakka-san\nIn site file mover by Hirata-san\nAny issues by miau-san\nMaster Password by Gengen-san\nAES encryption by Moca-san\n\nI had cooperation of many other one.",-1,7,142,301,59
-    CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,110,301,27
-    CTEXT           "OpenSSL is used for implementation of FTP over SSL/TLS.\nCopyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.",-1,7,209,305,60
+    CTEXT           "FFFTP Ver 2.00",-1,110,11,90,8
+    CTEXT           "FFFTP is freeware",-1,7,233,301,8
+    CTEXT           "Copyright(C) 1997-2010 Sota && cooperators\nCopyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen)",-1,7,25,301,32
+    CTEXT           "",ABOUT_JRE,7,81,301,8
+    EDITTEXT        ABOUT_URL,7,64,301,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
+    CTEXT           "OLE D&&D by Yutaka Hirata-san, nakka-san\nIn site file mover by Hirata-san\nAny issues by miau-san\nMaster Password by Gengen-san\nAES encryption by Moca-san\n\nI had cooperation of many other one.",-1,7,130,301,59
+    CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,98,301,27
+    CTEXT           "OpenSSL is used for implementation of FTP over SSL/TLS.\nCopyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.",-1,7,197,305,24
 END
 
 transfer_dlg DIALOG  0, 0, 199, 91
@@ -1423,12 +1423,8 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,148,10
     CONTROL         "Connect with FTPS (&Explicit)",HSET_FTPES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
     CONTROL         "Connect with FTPS (&Implicit)",HSET_FTPIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
-    CONTROL         "Connect with &SFTP",HSET_SFTP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,49,148,10
-    LTEXT           "Private key text",-1,7,63,64,8
-    PUSHBUTTON      "...",PKEY_FILE_BR,72,63,13,12
-    EDITTEXT        HSET_PRIVATE_KEY,7,79,193,44,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
     CONTROL         "Do not use &weak encryption methods",HSET_NO_WEAK,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,127,148,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,49,148,10
 END
 
 hset_adv3_dlg DIALOG  0, 0, 207, 155
@@ -2255,8 +2251,8 @@ nodrop_csr              CURSOR                  "nodrop_c.cur"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,99,1,19
- PRODUCTVERSION 1,99,1,19
+ FILEVERSION 2,0,0,0
+ PRODUCTVERSION 2,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2274,12 +2270,12 @@ BEGIN
             VALUE "Comments", "This software is Free Software"
             VALUE "CompanyName", "Sota, FFFTP Project"
             VALUE "FileDescription", "FFFTP"
-            VALUE "FileVersion", "1, 99, 1, 19"
+            VALUE "FileVersion", "2, 0, 0, 0"
             VALUE "InternalName", "FFFTP"
             VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & cooperators\nCopyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen)."
             VALUE "OriginalFilename", "FFFTP.exe"
             VALUE "ProductName", "FFFTP"
-            VALUE "ProductVersion", "1, 99, 1, 19"
+            VALUE "ProductVersion", "2, 0, 0, 0"
         END
     END
     BLOCK "VarFileInfo"

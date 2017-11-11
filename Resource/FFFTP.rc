@@ -235,21 +235,21 @@ END
 // Dialog
 //
 
-about_dlg DIALOGEX 0, 0, 319, 315
+about_dlg DIALOGEX 0, 0, 319, 267
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "FFFTPについて"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,133,294,50,14
+    DEFPUSHBUTTON   "OK",IDOK,133,246,50,14
     ICON            ffftp,-1,7,4,20,20
-    CTEXT           "FFFTP Ver 1.99a-20171104",-1,113,11,90,8
-    CTEXT           "FFFTPはfreewareです",-1,7,279,305,8
-    CTEXT           "Copyright(C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん)",-1,7,25,305,44,SS_NOPREFIX
-    CTEXT           "",ABOUT_JRE,7,96,305,8
-    EDITTEXT        ABOUT_URL,7,76,305,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
-    CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,143,305,60
-    CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,111,305,27
-    CTEXT           "FTP over SSL/TLSの実装にはOpenSSLを使用しています。\nCopyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.",-1,7,207,305,60
+    CTEXT           "FFFTP Ver 2.00",-1,113,11,90,8
+    CTEXT           "FFFTPはfreewareです",-1,7,231,305,8
+    CTEXT           "Copyright(C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん)",-1,7,25,305,32,SS_NOPREFIX
+    CTEXT           "",ABOUT_JRE,7,84,305,8
+    EDITTEXT        ABOUT_URL,7,64,305,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
+    CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,131,305,60
+    CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,99,305,27
+    CTEXT           "FTP over SSL/TLSの実装にはOpenSSLを使用しています。\nCopyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.",-1,7,195,305,24
 END
 
 transfer_dlg DIALOG  0, 0, 199, 91
@@ -1385,11 +1385,7 @@ BEGIN
     CONTROL         "暗号化なしで接続を許可(&A)",HSET_NO_ENCRYPTION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,148,10
     CONTROL         "FTPS (Explicit)で接続(&E)",HSET_FTPES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
     CONTROL         "FTPS (Implicit)で接続(&I)",HSET_FTPIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
-    CONTROL         "SFTPで接続(&S)",HSET_SFTP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,49,148,10
-    LTEXT           "秘密鍵のテキスト",-1,7,63,64,8
-    PUSHBUTTON      "...",PKEY_FILE_BR,72,63,13,12
-    EDITTEXT        HSET_PRIVATE_KEY,7,79,193,44,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
-    CONTROL         "弱い暗号化方式を使用しない(&W)",HSET_NO_WEAK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,127,148,10
+    CONTROL         "弱い暗号化方式を使用しない(&W)",HSET_NO_WEAK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,49,148,10
 END
 
 hset_adv3_dlg DIALOG  0, 0, 207, 155
@@ -2214,8 +2210,8 @@ nodrop_csr              CURSOR                  "nodrop_c.cur"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,99,1,19
- PRODUCTVERSION 1,99,1,19
+ FILEVERSION 2,0,0,0
+ PRODUCTVERSION 2,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2233,12 +2229,12 @@ BEGIN
             VALUE "Comments", "これはフリーソフトウエアです。"
             VALUE "CompanyName", "Sota, FFFTP Project"
             VALUE "FileDescription", "FFFTP"
-            VALUE "FileVersion", "1, 99, 1, 19"
+            VALUE "FileVersion", "2, 0, 0, 0"
             VALUE "InternalName", "FFFTP"
             VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん)."
             VALUE "OriginalFilename", "FFFTP.exe"
             VALUE "ProductName", "FFFTP"
-            VALUE "ProductVersion", "1, 99, 1, 19"
+            VALUE "ProductVersion", "2, 0, 0, 0"
         END
     END
     BLOCK "VarFileInfo"
