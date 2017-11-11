@@ -453,9 +453,6 @@
 #define HSET_NO_ENCRYPTION              1198
 #define HSET_FTPES                      1199
 #define HSET_FTPIS                      1200
-#define HSET_SFTP                       1201
-#define PKEY_FILE_BR                    1202
-#define HSET_PRIVATE_KEY                1203
 #define HSET_THREAD_COUNT               1204
 #define HSET_THREAD_COUNT_SPN           1205
 #define HSET_UTF8BOM_CNV                1206

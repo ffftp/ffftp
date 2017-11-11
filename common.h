@@ -227,7 +227,7 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #else
 #define VER_STR					"3.1 32bit"
 #endif
-#define VER_NUM					1991		/* 設定バージョン */
+#define VER_NUM					2000		/* 設定バージョン */
 
 /*===== 通信関係 ======*/
 

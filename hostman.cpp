@@ -2337,10 +2337,6 @@ static INT_PTR CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam
 			SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_SETCHECK, TmpHost.UseNoEncryption, 0);
 			SendDlgItemMessage(hDlg, HSET_FTPES, BM_SETCHECK, TmpHost.UseFTPES, 0);
 			SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, TmpHost.UseFTPIS, 0);
-			SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, BST_UNCHECKED, 0);
-			EnableWindow(GetDlgItem(hDlg, HSET_SFTP), FALSE);
-			EnableWindow(GetDlgItem(hDlg, PKEY_FILE_BR), FALSE);
-			EnableWindow(GetDlgItem(hDlg, HSET_PRIVATE_KEY), FALSE);
 			return(TRUE);
 
 		case WM_NOTIFY:

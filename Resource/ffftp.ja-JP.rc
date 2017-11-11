@@ -239,15 +239,15 @@ END
 // Dialog
 //
 
-about_dlg DIALOGEX 0, 0, 319, 315
+about_dlg DIALOGEX 0, 0, 319, 267
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "FFFTPについて"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,133,294,50,14
+    DEFPUSHBUTTON   "OK",IDOK,133,246,50,14
     ICON            ffftp,-1,7,4,20,20
     CTEXT           "FFFTP Ver 3.1",-1,113,11,90,8
-    CTEXT           "FFFTPはfreewareです",-1,7,279,305,8
+    CTEXT           "FFFTPはfreewareです",-1,7,220,305,8
     CTEXT           "Copyright(C) 1997-2010 Sota & ご協力いただいた方々",-1,7,25,305,8,SS_NOPREFIX
     CTEXT           "Copyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん)\nCopyright (C) 2018, 倉田佐祐理",-1,7,37,305,32,SS_NOPREFIX
     EDITTEXT        ABOUT_URL,7,76,305,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
@@ -1366,10 +1366,6 @@ BEGIN
     CONTROL         "暗号化なしで接続を許可(&A)",HSET_NO_ENCRYPTION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,148,10
     CONTROL         "FTPS (Explicit)で接続(&E)",HSET_FTPES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
     CONTROL         "FTPS (Implicit)で接続(&I)",HSET_FTPIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
-    CONTROL         "SFTPで接続(&S)",HSET_SFTP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,49,148,10
-    LTEXT           "秘密鍵のテキスト",-1,7,63,64,8
-    PUSHBUTTON      "...",PKEY_FILE_BR,72,63,13,12
-    EDITTEXT        HSET_PRIVATE_KEY,7,79,193,44,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
 END
 
 hset_adv3_dlg DIALOG 0, 0, 207, 155
@@ -1492,7 +1488,6 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 312
         TOPMARGIN, 4
-        BOTTOMMARGIN, 308
     END
 
     transfer_dlg, DIALOG
