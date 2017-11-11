@@ -28,7 +28,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
+				CommandLine="utf8msg.exe src\mesg-eng.h src\mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -121,7 +121,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
+				CommandLine="utf8msg.exe src\mesg-eng.h src\mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -214,7 +214,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
+				CommandLine="utf8msg.exe src\mesg-eng.h src\mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -308,7 +308,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="utf8msg.exe mesg-eng.h mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
+				CommandLine="utf8msg.exe src\mesg-eng.h src\mesg-eng.h&#x0D;&#x0A;cscript //nologo ReplaceAfxresh.js Resource\FFFTP.rc Resource\FFFTP._replaced_.rc&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -400,51 +400,51 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;hpj;bat;for;f90"
 			>
 			<File
-				RelativePath=".\aes_modes.c"
+				 RelativePath=".\src\aes_modes.c"
 				>
 			</File>
 			<File
-				RelativePath=".\aescrypt.c"
+				 RelativePath=".\src\aescrypt.c"
 				>
 			</File>
 			<File
-				RelativePath=".\aeskey.c"
+				 RelativePath=".\src\aeskey.c"
 				>
 			</File>
 			<File
-				RelativePath=".\aestab.c"
+				 RelativePath=".\src\aestab.c"
 				>
 			</File>
 			<File
-				RelativePath=".\apiemulator.c"
+				 RelativePath=".\src\apiemulator.c"
 				>
 			</File>
 			<File
-				RelativePath=".\bookmark.c"
+				 RelativePath=".\src\bookmark.c"
 				>
 			</File>
 			<File
-				RelativePath=".\cache.c"
+				 RelativePath=".\src\cache.c"
 				>
 			</File>
 			<File
-				RelativePath=".\clipboard.c"
+				 RelativePath=".\src\clipboard.c"
 				>
 			</File>
 			<File
-				RelativePath=".\codecnv.c"
+				 RelativePath=".\src\codecnv.c"
 				>
 			</File>
 			<File
-				RelativePath=".\connect.c"
+				 RelativePath=".\src\connect.c"
 				>
 			</File>
 			<File
-				RelativePath=".\diskfree.c"
+				 RelativePath=".\src\diskfree.c"
 				>
 			</File>
 			<File
-				RelativePath=".\dlgsize.c"
+				 RelativePath=".\src\dlgsize.c"
 				>
 			</File>
 			<File
@@ -472,131 +472,131 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\filelist.c"
+				 RelativePath=".\src\filelist.c"
 				>
 			</File>
 			<File
-				RelativePath=".\ftpproc.c"
+				 RelativePath=".\src\ftpproc.c"
 				>
 			</File>
 			<File
-				RelativePath=".\getput.c"
+				 RelativePath=".\src\getput.c"
 				>
 			</File>
 			<File
-				RelativePath=".\history.c"
+				 RelativePath=".\src\history.c"
 				>
 			</File>
 			<File
-				RelativePath=".\hostman.c"
+				 RelativePath=".\src\hostman.c"
 				>
 			</File>
 			<File
-				RelativePath=".\local.c"
+				 RelativePath=".\src\local.c"
 				>
 			</File>
 			<File
-				RelativePath=".\lvtips.c"
+				 RelativePath=".\src\lvtips.c"
 				>
 			</File>
 			<File
-				RelativePath=".\main.c"
+				 RelativePath=".\src\main.c"
 				>
 			</File>
 			<File
-				RelativePath=".\mbswrapper.c"
+				 RelativePath=".\src\mbswrapper.c"
 				>
 			</File>
 			<File
-				RelativePath=".\md4.c"
+				 RelativePath=".\src\md4.c"
 				>
 			</File>
 			<File
-				RelativePath=".\md5.c"
+				 RelativePath=".\src\md5.c"
 				>
 			</File>
 			<File
-				RelativePath=".\misc.c"
+				 RelativePath=".\src\misc.c"
 				>
 			</File>
 			<File
-				RelativePath=".\OleDragDrop.c"
+				 RelativePath=".\src\OleDragDrop.c"
 				>
 			</File>
 			<File
-				RelativePath=".\option.c"
+				 RelativePath=".\src\option.c"
 				>
 			</File>
 			<File
-				RelativePath=".\protectprocess.c"
+				 RelativePath=".\src\protectprocess.c"
 				>
 			</File>
 			<File
-				RelativePath=".\punycode.c"
+				 RelativePath=".\src\punycode.c"
 				>
 			</File>
 			<File
-				RelativePath=".\ras.c"
+				 RelativePath=".\src\ras.c"
 				>
 			</File>
 			<File
-				RelativePath=".\regexp.c"
+				 RelativePath=".\src\regexp.c"
 				>
 			</File>
 			<File
-				RelativePath=".\registry.c"
+				 RelativePath=".\src\registry.c"
 				>
 			</File>
 			<File
-				RelativePath=".\remote.c"
+				 RelativePath=".\src\remote.c"
 				>
 			</File>
 			<File
-				RelativePath=".\sha.c"
+				 RelativePath=".\src\sha.c"
 				>
 			</File>
 			<File
-				RelativePath=".\skey.c"
+				 RelativePath=".\src\skey.c"
 				>
 			</File>
 			<File
-				RelativePath=".\socket.c"
+				 RelativePath=".\src\socket.c"
 				>
 			</File>
 			<File
-				RelativePath=".\socketwrapper.c"
+				 RelativePath=".\src\socketwrapper.c"
 				>
 			</File>
 			<File
-				RelativePath=".\statuswin.c"
+				 RelativePath=".\src\statuswin.c"
 				>
 			</File>
 			<File
-				RelativePath=".\taskwin.c"
+				 RelativePath=".\src\taskwin.c"
 				>
 			</File>
 			<File
-				RelativePath=".\tool.c"
+				 RelativePath=".\src\tool.c"
 				>
 			</File>
 			<File
-				RelativePath=".\toolmenu.c"
+				 RelativePath=".\src\toolmenu.c"
 				>
 			</File>
 			<File
-				RelativePath=".\updatebell.c"
+				 RelativePath=".\src\updatebell.c"
 				>
 			</File>
 			<File
-				RelativePath=".\updater.c"
+				 RelativePath=".\src\updater.c"
 				>
 			</File>
 			<File
-				RelativePath=".\wildcard.c"
+				 RelativePath=".\src\wildcard.c"
 				>
 			</File>
 			<File
-				RelativePath=".\updater.h"
+				 RelativePath=".\src\updater.h"
 				>
 			</File>
 		</Filter>
@@ -605,19 +605,19 @@
 			Filter="h;hpp;hxx;hm;inl;fi;fd"
 			>
 			<File
-				RelativePath=".\apiemulator.h"
+				 RelativePath=".\src\apiemulator.h"
 				>
 			</File>
 			<File
-				RelativePath=".\common.h"
+				 RelativePath=".\src\common.h"
 				>
 			</File>
 			<File
-				RelativePath=".\mbswrapper.h"
+				 RelativePath=".\src\mbswrapper.h"
 				>
 			</File>
 			<File
-				RelativePath=".\protectprocess.h"
+				 RelativePath=".\src\protectprocess.h"
 				>
 			</File>
 			<File
@@ -625,7 +625,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\socketwrapper.h"
+				 RelativePath=".\src\socketwrapper.h"
 				>
 			</File>
 		</Filter>
