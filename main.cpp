@@ -1579,6 +1579,29 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					}
 					break;
 
+				// WinSCP INI形式エクスポート対応
+				case MENU_EXPORT_WINSCP_INI :
+					// 平文で出力するためマスターパスワードを再確認
+					if(GetMasterPasswordStatus() == PASSWORD_OK)
+					{
+						char Password[MAX_PASSWORD_LEN + 1];
+						GetMasterPassword(Password);
+						SetMasterPassword(NULL);
+						while(ValidateMasterPassword() == YES && GetMasterPasswordStatus() == PASSWORD_UNMATCH)
+						{
+							if(EnterMasterPasswordAndSet(masterpasswd_dlg, hWnd) == 0)
+								break;
+						}
+						if(GetMasterPasswordStatus() == PASSWORD_OK)
+							SaveSettingsToWinSCPIni();
+						else
+						{
+							SetMasterPassword(Password);
+							ValidateMasterPassword();
+						}
+					}
+					break;
+
 				default :
 					if((LOWORD(wParam) >= MENU_BMARK_TOP) &&
 					   (LOWORD(wParam) < MENU_BMARK_TOP+100))

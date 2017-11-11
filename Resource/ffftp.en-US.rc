@@ -102,6 +102,7 @@ BEGIN
             MENUITEM "&Load Settings from File...", MENU_REGLOAD
             MENUITEM "Change &Master password...",  MENU_CHANGEPASSWD
             MENUITEM "Export Settings as FileZilla XML", MENU_EXPORT_FILEZILLA_XML
+            MENUITEM "Export Settings as WinSCP INI", MENU_EXPORT_WINSCP_INI
             MENUITEM SEPARATOR
             MENUITEM "Clear All Settings...",       MENU_REGINIT
         END
