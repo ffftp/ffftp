@@ -1,7 +1,7 @@
 ============================================================
-【ソフト名】　FTPクライアント FFFTP（OSDN版） Ver 1.99a
+【ソフト名】　FTPクライアント FFFTP（OSDN版） Ver 2.00
 【動作確認環境】　Windows 10, 8.1, 8, 7, Vista, XP, 2000
-【サポート】　http://osdn.jp/projects/ffftp/
+【サポート】　https://ja.osdn.net/projects/ffftp/
 ============================================================
 
 INIファイルについて
@@ -27,20 +27,10 @@ FFFTP Ver.1.96d+009以降を最初に起動した時、接続メニューの設定→
 マスターパスワードの入力が求められますので、入力してください。
 
 
-Ver 1.99aでの変更点
+Ver 2.00での変更点
 -------------------
 
-今回のバージョンより、自動更新機能で対応した内容を含めて記載します。
-
-・自動更新機能用サーバーの仕様変更に対応しました。
-　以前のバージョンでは自動更新機能が使用できなくなったため、
-　このバージョンへの更新は手動にてお願いします。
-
-・ファイル名の漢字コードがUTF-8以外の場合に特定のファイル名が正しく表示
-　されないバグを修正しました。
-
-・ZIP版で将来のバージョンの設定をレジストリからインポートした際に余分な
-　ダイアログが表示されるバグを修正しました。
+自動更新機能で対応した内容を含めて記載します。
 
 ・OpenSSLを更新しました。
 
@@ -121,7 +111,7 @@ jre32.dll -------- 正規表現検索ＤＬＬ
 します。
 
 Copyright(C) 1997-2010, Sota & cooperators. All rights reserved.
-Copyright (C) 2011-2016 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).
+Copyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).
 
 Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions 
@@ -147,7 +137,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *** 以下は日本語訳(参考) ***
 
 Copyright(C) 1997-2010 Sota & ご協力いただいた方々. All rights reserved.
-Copyright (C) 2011-2016 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).
+Copyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).
 
 ソースコード形式でもバイナリ形式でも、変更の有無に関わらず、以下の条件を
 満たす場合に、再配布および使用を許可します。

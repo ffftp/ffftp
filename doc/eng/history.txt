@@ -1,5 +1,12 @@
 FFFTP version history.
 
+Changes in Ver.2.00
+--------------------
+
+-- Updated OpenSSL.
+
+-- Updated SSL/TLS root CAs.
+
 Changes in Ver.1.99a
 --------------------
 

@@ -86,7 +86,11 @@
 
 // SourceForge.JPによるフォーク
 //#define MYWEB_URL	"http://www2.biglobe.ne.jp/~sota/ffftp-qa.html"
-#define MYWEB_URL	"https://osdn.jp/projects/ffftp/forums/"
+#ifndef FFFTP_ENGLISH
+#define MYWEB_URL	"https://ja.osdn.net/projects/ffftp/forums/"
+#else
+#define MYWEB_URL	"https://osdn.net/projects/ffftp/forums/"
+#endif
 
 
 

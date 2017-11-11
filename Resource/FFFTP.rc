@@ -96,6 +96,7 @@ BEGIN
             MENUITEM "設定をファイルから復元(&L)...",          MENU_REGLOAD
             MENUITEM "マスターパスワードの変更(&M)...",         MENU_CHANGEPASSWD
             MENUITEM "FileZilla XMLに設定をエクスポート...",  MENU_EXPORT_FILEZILLA_XML
+            MENUITEM "WinSCP INIに設定をエクスポート...",     MENU_EXPORT_WINSCP_INI
             MENUITEM SEPARATOR
             MENUITEM "全設定の消去...",                   MENU_REGINIT
         END

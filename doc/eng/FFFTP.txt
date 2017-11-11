@@ -1,7 +1,7 @@
 ============================================================
-[Software Name]  FFFTP Ver.1.99a (FTP Client software)
+[Software Name]  FFFTP Ver.2.00 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
-                 Copyright (C) 2011-2016 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).
+                 Copyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).
 [Environment]    Windows 10, 8.1, 8, 7, Vista, XP, 2000
 ============================================================
 
@@ -28,21 +28,10 @@ following menu.
 File ->@Settings -> Change Master password
 
 
-Changes in Ver.1.99a
+Changes in Ver.2.00
 --------------------
 
-The lists of this and newer versions include changes applied by automatic
-software updates.
-
--- Supported specification changes of the server for automatic software update.
-   Please update your copy of FFFTP to this version manually because older
-   versions cannot update automatically now.
-
--- Fixed bugs that it could not display some file names if its encoding was
-   other than UTF-8.
-
--- Fixed bugs that an useless dialog was popped up on ZIP versions while
-   settings were imported from the registry.
+This list includes changes applied by automatic software updates.
 
 -- Updated OpenSSL.
 
@@ -81,7 +70,7 @@ Warranty Disclaimer
 License Agreement
 -----------------
 Copyright(C) 1997-2010, Sota & cooperators. All rights reserved.
-Copyright (C) 2011-2016 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).
+Copyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).
 
 Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions 

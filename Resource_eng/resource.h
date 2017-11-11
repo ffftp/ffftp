@@ -656,6 +656,7 @@
 #define MENU_REMOTE_MOVE_UPDIR          40179
 #define MENU_EXPORT_FILEZILLA_XML       40180
 #define MENU_UPDATES_CHECK              40181
+#define MENU_EXPORT_WINSCP_INI          40182
 #define FSNOTIFY_TITLE                  65535
 #define HOST_SIZEGRIP                   65535
 
@@ -664,7 +665,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        199
-#define _APS_NEXT_COMMAND_VALUE         40182
+#define _APS_NEXT_COMMAND_VALUE         40183
 #define _APS_NEXT_CONTROL_VALUE         1231
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
