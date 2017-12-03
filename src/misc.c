@@ -241,6 +241,11 @@ INT_PTR CALLBACK ExeEscTextDialogProc(HWND hDlg, UINT message, WPARAM wParam, LP
 {
 	switch (message)
 	{
+		// 暗号化通信対応
+		case WM_SHOWWINDOW :
+			SendDlgItemMessage(hDlg, COMMON_TEXT, EM_SETSEL, 0, 0);
+			return(TRUE);
+
 		case WM_INITDIALOG :
 			SendDlgItemMessage(hDlg, COMMON_TEXT, WM_SETTEXT, 0, lParam);
 			return(TRUE);
@@ -2072,5 +2077,44 @@ void DecodeLineFeed(char* Str)
 	{
 		strncpy(p, "\r\n", 2);
 	}
+}
+
+// 暗号化通信対応
+int ReplaceAllStrings(char* Out, char* In, char* From, char* To)
+{
+	int InLen;
+	int FromLen;
+	int ToLen;
+	int Count;
+	char* p;
+	int Len;
+	InLen = strlen(In);
+	FromLen = strlen(From);
+	ToLen = strlen(To);
+	Count = 0;
+	if(Out)
+	{
+		while(p = strstr(In, From))
+		{
+			Len = p - In;
+			strncpy(Out, In, Len);
+			Out += Len;
+			In += Len;
+			strncpy(Out, To, ToLen);
+			Out += ToLen;
+			In += FromLen;
+			Count++;
+		}
+		*Out = '\0';
+	}
+	else
+	{
+		while(In = strstr(In, From))
+		{
+			In += FromLen;
+			Count++;
+		}
+	}
+	return InLen + (ToLen - FromLen) * Count;
 }
 

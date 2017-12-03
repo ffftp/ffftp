@@ -324,7 +324,7 @@
 #define MSGJPN323		_Tu8("Failed to unload untrustworthy DLLs.", "Failed to unload untrustworthy DLLs.")
 #define MSGJPN324		_Tu8("Failed to hook required functions to protect the process.", "Failed to hook required functions to protect the process.")
 #define MSGJPN325		_Tu8("New master passwords are not identical.", "New master passwords are not identical.")
-#define MSGJPN326		_Tu8("Choose 'Yes' if you trust this certificate and continue.\r\nCN is identical: %s\r\nVerified successfully: %s\r\n\r\n%s", "Choose 'Yes' if you trust this certificate and continue.\r\nCN is identical: %s\r\nVerified successfully: %s\r\n\r\n%s")
+#define MSGJPN326		_Tu8("Summary\nCN is identical: %s\nVerified successfully: %s\n\nDetailed information\n%s", "Summary\nCN is identical: %s\nVerified successfully: %s\n\nDetailed information\n%s")
 #define MSGJPN327		_Tu8("Yes", "Yes")
 #define MSGJPN328		_Tu8("No", "No")
 #define MSGJPN329		_Tu8("UTF-8 BOM", "UTF-8 BOM")

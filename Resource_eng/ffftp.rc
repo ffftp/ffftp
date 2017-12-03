@@ -1540,6 +1540,17 @@ BEGIN
     PUSHBUTTON      "Ignore",IDIGNORE,173,42,50,14
 END
 
+ssl_confirm_dlg DIALOGEX 0, 0, 360, 222
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "Confirmation of certificate"
+FONT 9, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LTEXT           "Choose 'OK' if you trust this certificate and continue.",-1,7,7,345,10
+    EDITTEXT        COMMON_TEXT,7,21,345,170,ES_MULTILINE | ES_READONLY | WS_VSCROLL | WS_HSCROLL
+    PUSHBUTTON      "OK",IDOK,127,197,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,182,197,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2231,6 +2242,14 @@ BEGIN
         RIGHTMARGIN, 225
         TOPMARGIN, 7
         BOTTOMMARGIN, 57
+    END
+
+    ssl_confirm_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 353
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 215
     END
 END
 #endif    // APSTUDIO_INVOKED

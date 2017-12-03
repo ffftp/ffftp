@@ -1975,6 +1975,8 @@ int CalcPixelY(int y);
 HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNumerator, int ScaleDenominator);
 // ソフトウェア自動更新
 void DecodeLineFeed(char* Str);
+// 暗号化通信対応
+int ReplaceAllStrings(char* Out, char* In, char* From, char* To);
 
 /*===== dlgsize.c =====*/
 

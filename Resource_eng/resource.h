@@ -119,6 +119,7 @@
 #define opt_disp2_dlg                   196
 #define opt_updates_dlg                 197
 #define corruptsettings_dlg             198
+#define ssl_confirm_dlg                 199
 #define TRANS_TIME_BAR                  1002
 #define TRANS_TEXT                      1003
 #define TRANS_REMOTE                    1003
@@ -664,7 +665,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        199
+#define _APS_NEXT_RESOURCE_VALUE        200
 #define _APS_NEXT_COMMAND_VALUE         40183
 #define _APS_NEXT_CONTROL_VALUE         1231
 #define _APS_NEXT_SYMED_VALUE           101

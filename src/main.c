@@ -3579,6 +3579,7 @@ BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certif
 	uint32 Hash[5];
 	int i;
 	char* pm0;
+	char* pm1;
 	bResult = FALSE;
 	sha_memory((char*)Certificate, (uint32)(strlen(Certificate) * sizeof(char)), (uint32*)&Hash);
 	// sha.cはビッグエンディアンのため
@@ -3598,13 +3599,18 @@ BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certif
 	{
 		if(pm0 = AllocateStringM(strlen(Certificate) + 1024))
 		{
-			sprintf(pm0, MSGJPN326, IsHostNameMatched(AskHostAdrs(), CommonName) ? MSGJPN327 : MSGJPN328, bVerified ? MSGJPN327 : MSGJPN328, Certificate);
-			if(MessageBox(GetMainHwnd(), pm0, "FFFTP", MB_YESNO) == IDYES)
+			if(pm1 = AllocateStringM(strlen(Certificate) * 2 + 1024))
 			{
-				for(i = MAX_CERT_CACHE_HASH - 1; i >= 1; i--)
-					memcpy(&CertificateCacheHash[i], &CertificateCacheHash[i - 1], 20);
-				memcpy(&CertificateCacheHash[0], &Hash, 20);
-				bResult = TRUE;
+				sprintf(pm0, MSGJPN326, IsHostNameMatched(AskHostAdrs(), CommonName) ? MSGJPN327 : MSGJPN328, bVerified ? MSGJPN327 : MSGJPN328, Certificate);
+				ReplaceAllStrings(pm1, pm0, "\n", "\r\n");
+				if(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(ssl_confirm_dlg), GetMainHwnd(), ExeEscTextDialogProc, (LPARAM)pm1) == YES)
+				{
+					for(i = MAX_CERT_CACHE_HASH - 1; i >= 1; i--)
+						memcpy(&CertificateCacheHash[i], &CertificateCacheHash[i - 1], 20);
+					memcpy(&CertificateCacheHash[0], &Hash, 20);
+					bResult = TRUE;
+				}
+				FreeDuplicatedString(pm1);
 			}
 			FreeDuplicatedString(pm0);
 		}
