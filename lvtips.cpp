@@ -230,7 +230,7 @@ static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffs
 			ReleaseDC(hWnd, dc);
 
 			dc = GetDC(hWndTips);
-			pFontDC = SelectObject(dc, pFont);
+			pFontDC = (HFONT)SelectObject(dc, pFont);
 
 			SetTextColor(dc, GetSysColor(COLOR_INFOTEXT));
 			SetBkMode(dc, TRANSPARENT);

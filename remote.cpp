@@ -1311,10 +1311,10 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 	char *Buf2;
 
 	Sts = FFFTP_FAIL;
-	if((Buf = malloc(Max)) != NULL)
+	if((Buf = (char*)malloc(Max)) != NULL)
 	{
 	// バッファ上書きバグ対策
-	if((Buf2 = malloc(strlen(Fname) + 1)) != NULL)
+	if((Buf2 = (char*)malloc(strlen(Fname) + 1)) != NULL)
 	{
 		InitCodeConvInfo(&cInfo);
 		cInfo.KanaCnv = NO;			//AskHostNameKana();
@@ -1467,10 +1467,10 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 	char *Buf2;
 
 	Sts = FFFTP_FAIL;
-	if((Buf = malloc(Max)) != NULL)
+	if((Buf = (char*)malloc(Max)) != NULL)
 	{
 	// バッファ上書きバグ対策
-	if((Buf2 = malloc(strlen(Fname) + 1)) != NULL)
+	if((Buf2 = (char*)malloc(strlen(Fname) + 1)) != NULL)
 	{
 		InitCodeConvInfo(&cInfo);
 		cInfo.KanaCnv = AskHostNameKana();

@@ -14,6 +14,10 @@ This is ANSI C code (C89) implementing Punycode (RFC 3492).
 
 #include <limits.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum punycode_status {
   punycode_success,
   punycode_bad_input,   /* Input is invalid.                       */
@@ -87,3 +91,6 @@ enum punycode_status punycode_decode(
     /* decoder will never need to write an output_length greater than */
     /* input_length, because of how the encoding is defined.          */
 
+#ifdef __cplusplus
+}
+#endif

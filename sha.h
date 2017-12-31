@@ -1,4 +1,8 @@
-﻿#define MSDOS
+﻿#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define MSDOS
 #define LITTLE_ENDIAN
 
 typedef int                int32;
@@ -12,4 +16,6 @@ typedef unsigned short int UINT2;
  */ 
 void sha_memory (char *, uint32, uint32 *);
 
-
+#ifdef __cplusplus
+}
+#endif

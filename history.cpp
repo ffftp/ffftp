@@ -94,7 +94,7 @@ void AddHistoryToHistory(HISTORYDATA *Hist)
 	CheckHistoryNum(1);
 	if(FileHist > HistoryNum)
 	{
-		New = malloc(sizeof(HISTORYDATA));
+		New = (HISTORYDATA*)malloc(sizeof(HISTORYDATA));
 		if(New != NULL)
 		{
 			memcpy(New, Hist, sizeof(HISTORYDATA));

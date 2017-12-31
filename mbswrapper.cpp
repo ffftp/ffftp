@@ -2550,7 +2550,7 @@ size_t _mbslenM(const unsigned char * _Str)
 {
 	size_t r = 0;
 START_ROUTINE
-	while(GetNextCharM(_Str, NULL, &_Str) > 0)
+	while(GetNextCharM((LPCSTR)_Str, NULL, (LPCSTR*)&_Str) > 0)
 	{
 		r++;
 	}
@@ -2564,7 +2564,7 @@ unsigned char * _mbschrM(const unsigned char * _Str, unsigned int _Ch)
 	unsigned int c;
 	unsigned char* p;
 START_ROUTINE
-	while((c = GetNextCharM(_Str, NULL, &p)) > 0)
+	while((c = GetNextCharM((LPCSTR)_Str, NULL, (LPCSTR*)&p)) > 0)
 	{
 		if(c == _Ch)
 			break;
@@ -2582,7 +2582,7 @@ unsigned char * _mbsrchrM(const unsigned char * _Str, unsigned int _Ch)
 	unsigned int c;
 	unsigned char* p;
 START_ROUTINE
-	while((c = GetNextCharM(_Str, NULL, &p)) > 0)
+	while((c = GetNextCharM((LPCSTR)_Str, NULL, (LPCSTR*)&p)) > 0)
 	{
 		if(c == _Ch)
 			r = (unsigned char*)_Str;
@@ -2598,7 +2598,7 @@ unsigned char * _mbsstrM(const unsigned char * _Str, const unsigned char * _Subs
 {
 	unsigned char* r = NULL;
 START_ROUTINE
-	r = strstr(_Str, _Substr);
+	r = (unsigned char*)strstr((char* const)_Str, (const char* const)_Substr);
 END_ROUTINE
 	return r;
 }
@@ -2607,7 +2607,7 @@ int _mbscmpM(const unsigned char * _Str1, const unsigned char * _Str2)
 {
 	int r = 0;
 START_ROUTINE
-	r = strcmp(_Str1, _Str2);
+	r = strcmp((const char*)_Str1, (const char*)_Str2);
 END_ROUTINE
 	return r;
 }
@@ -2616,7 +2616,7 @@ int _mbsicmpM(const unsigned char * _Str1, const unsigned char * _Str2)
 {
 	int r = 0;
 START_ROUTINE
-	r = _stricmp(_Str1, _Str2);
+	r = _stricmp((const char*)_Str1, (const char*)_Str2);
 END_ROUTINE
 	return r;
 }
@@ -2631,8 +2631,8 @@ START_ROUTINE
 	c2 = 0;
 	while(_MaxCount > 0)
 	{
-		c1 = GetNextCharM(_Str1, NULL, &_Str1);
-		c2 = GetNextCharM(_Str2, NULL, &_Str2);
+		c1 = GetNextCharM((LPCSTR)_Str1, NULL, (LPCSTR*)&_Str1);
+		c2 = GetNextCharM((LPCSTR)_Str2, NULL, (LPCSTR*)&_Str2);
 		if(c1 != c2)
 			break;
 		_MaxCount--;
@@ -2648,7 +2648,7 @@ unsigned char * _mbslwrM(unsigned char * _String)
 {
 	unsigned char* r = NULL;
 START_ROUTINE
-	r = _strlwr(_String);
+	r = (unsigned char*)_strlwr((char*)_String);
 END_ROUTINE
 	return r;
 }
@@ -2657,7 +2657,7 @@ unsigned char * _mbsuprM(unsigned char * _String)
 {
 	unsigned char* r = NULL;
 START_ROUTINE
-	r = _strupr(_String);
+	r = (unsigned char*)_strupr((char*)_String);
 END_ROUTINE
 	return r;
 }
@@ -2666,7 +2666,7 @@ unsigned char * _mbsnincM(const unsigned char * _Str, size_t _Count)
 {
 	unsigned char* r = NULL;
 START_ROUTINE
-	while(_Count > 0 && GetNextCharM(_Str, NULL, &_Str) > 0)
+	while(_Count > 0 && GetNextCharM((LPCSTR)_Str, NULL, (LPCSTR*)&_Str) > 0)
 	{
 		_Count--;
 	}

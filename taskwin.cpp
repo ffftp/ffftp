@@ -193,7 +193,7 @@ int SaveTaskMsg(char *Fname)
 
 	Sts = FFFTP_FAIL;
 	Size = (int)SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
-	if((Buf = malloc(Size)) != NULL)
+	if((Buf = (char*)malloc(Size)) != NULL)
 	{
 		if((Strm = fopen(Fname, "wb")) != NULL)
 		{

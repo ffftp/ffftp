@@ -1291,7 +1291,7 @@ void ConvAutoToSJIS(char *Text, int Pref)
 	Code = CheckKanjiCode(Text, (int)strlen(Text), Pref);
 	if(Code != KANJI_SJIS)
 	{
-		Buf = malloc(strlen(Text)+1);
+		Buf = (char*)malloc(strlen(Text)+1);
 		if(Buf != NULL)
 		{
 			InitCodeConvInfo(&cInfo);
@@ -1345,11 +1345,11 @@ int CheckKanjiCode(char *Text, int Size, int Pref)
 	if(Size >= 2)
 	{
 		Ret = -1;
-		Btm = Text + Size;
+		Btm = (uchar*)Text + Size;
 
 		/* JIS漢字コードのチェック */
-		Pos = Text;
-		while((Pos = memchr(Pos, 0x1b, Btm-Pos-2)) != NULL)
+		Pos = (uchar*)Text;
+		while((Pos = (uchar*)memchr(Pos, 0x1b, Btm-Pos-2)) != NULL)
 		{
 			Pos++;
 			if((memcmp(Pos, "$B", 2) == 0) ||	/* <ESC>$B */
@@ -1367,7 +1367,7 @@ int CheckKanjiCode(char *Text, int Size, int Pref)
 			if(Pref != KANJI_NOCNV)
 			{
 				Ret = Pref;
-				Pos = Text;
+				Pos = (uchar*)Text;
 				while(Pos < Btm)
 				{
 					PointSJIS = CheckOnSJIS(Pos, Btm);
@@ -1382,7 +1382,7 @@ int CheckKanjiCode(char *Text, int Size, int Pref)
 						Ret = KANJI_EUC;
 						break;
 					}
-					if((Pos = memchr(Pos, '\n', Btm-Pos)) == NULL)
+					if((Pos = (uchar*)memchr(Pos, '\n', Btm-Pos)) == NULL)
 						break;
 					Pos++;
 				}

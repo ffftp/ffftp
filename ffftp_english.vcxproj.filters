@@ -27,55 +27,55 @@
     <ClCompile Include="aestab.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="apiemulator.c">
+    <ClCompile Include="apiemulator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bookmark.c">
+    <ClCompile Include="bookmark.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cache.c">
+    <ClCompile Include="cache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="clipboard.c">
+    <ClCompile Include="clipboard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="codecnv.c">
+    <ClCompile Include="codecnv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="connect.c">
+    <ClCompile Include="connect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="diskfree.c">
+    <ClCompile Include="diskfree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dlgsize.c">
+    <ClCompile Include="dlgsize.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="filelist.c">
+    <ClCompile Include="filelist.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ftpproc.c">
+    <ClCompile Include="ftpproc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="getput.c">
+    <ClCompile Include="getput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="history.c">
+    <ClCompile Include="history.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hostman.c">
+    <ClCompile Include="hostman.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="local.c">
+    <ClCompile Include="local.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="lvtips.c">
+    <ClCompile Include="lvtips.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.c">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mbswrapper.c">
+    <ClCompile Include="mbswrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="md4.c">
@@ -84,64 +84,64 @@
     <ClCompile Include="md5.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="misc.c">
+    <ClCompile Include="misc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OleDragDrop.c">
+    <ClCompile Include="OleDragDrop.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="option.c">
+    <ClCompile Include="option.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="protectprocess.c">
+    <ClCompile Include="protectprocess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="punycode.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ras.c">
+    <ClCompile Include="ras.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="regexp.c">
+    <ClCompile Include="regexp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="registry.c">
+    <ClCompile Include="registry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="remote.c">
+    <ClCompile Include="remote.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sha.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="skey.c">
+    <ClCompile Include="skey.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="socket.c">
+    <ClCompile Include="socket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="socketwrapper.c">
+    <ClCompile Include="socketwrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="statuswin.c">
+    <ClCompile Include="statuswin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="taskwin.c">
+    <ClCompile Include="taskwin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="tool.c">
+    <ClCompile Include="tool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="toolmenu.c">
+    <ClCompile Include="toolmenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="updatebell.c">
+    <ClCompile Include="updatebell.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="updater.c">
+    <ClCompile Include="updater.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wildcard.c">
+    <ClCompile Include="wildcard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1651,7 +1651,7 @@ static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LON
 //					break;
 //				}
 				if(((Sort & SORT_MASK_ORD) == SORT_EXT) &&
-					((Cmp = _mbsicmp(GetFileExt(Name), GetFileExt(Pos->File))) < 0))
+					((Cmp = _mbsicmp((const unsigned char*)GetFileExt(Name), (const unsigned char*)GetFileExt(Pos->File))) < 0))
 					break;
 #if defined(HAVE_TANDEM)
 				if((AskHostType() == HTYPE_TANDEM) &&
@@ -1668,7 +1668,7 @@ static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LON
 
 				if(((Sort & SORT_MASK_ORD) == SORT_NAME) || (Cmp == 0))
 				{
-					if(_mbsicmp(Name, Pos->File) < 0)
+					if(_mbsicmp((const unsigned char*)Name, (const unsigned char*)Pos->File) < 0)
 						break;
 				}
 			}
@@ -1690,7 +1690,7 @@ static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LON
 //					break;
 //				}
 				if((((Sort & SORT_MASK_ORD) == SORT_EXT) &&
-					((Cmp = _mbsicmp(GetFileExt(Name), GetFileExt(Pos->File))) > 0)))
+					((Cmp = _mbsicmp((const unsigned char*)GetFileExt(Name), (const unsigned char*)GetFileExt(Pos->File))) > 0)))
 					break;
 #if defined(HAVE_TANDEM)
 				if(((AskHostType() == HTYPE_TANDEM) &&
@@ -1707,7 +1707,7 @@ static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LON
 
 				if(((Sort & SORT_MASK_ORD) == SORT_NAME) || (Cmp == 0))
 				{
-					if(_mbsicmp(Name, Pos->File) > 0)
+					if(_mbsicmp((const unsigned char*)Name, (const unsigned char*)Pos->File) > 0)
 						break;
 				}
 			}
@@ -1716,7 +1716,7 @@ static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LON
 		Pos = Pos->Next;
 	}
 
-	if((New = malloc(sizeof(FILELIST))) != NULL)
+	if((New = (FILELIST*)malloc(sizeof(FILELIST))) != NULL)
 	{
 		strcpy(New->File, Name);
 		New->Node = Type;
@@ -2004,7 +2004,7 @@ void SelectFileInList(HWND hWnd, int Type, FILELIST *Base)
 //				if(FindMode == 0)
 //					WildCard2RegExp(RegExp);
 
-				_mbslwr(RegExp);
+				_mbslwr((unsigned char*)RegExp);
 				if((FindMode == 0) || (JreCompileStr(RegExp) == TRUE))
 				{
 					CsrPos = -1;
@@ -2013,7 +2013,7 @@ void SelectFileInList(HWND hWnd, int Type, FILELIST *Base)
 						GetNodeName(Win, i, Name, FMAX_PATH);
 						Find = FindNameNode(WinDst, Name);
 
-						_mbslwr(Name);
+						_mbslwr((unsigned char*)Name);
 						LvItem.state = 0;
 						if(GetNodeType(Win, i) != NODE_DRIVE)
 						{
@@ -2182,13 +2182,13 @@ void FindFileInList(HWND hWnd, int Type)
 //				if(FindMode == 0)
 //					WildCard2RegExp(RegExp);
 
-				_mbslwr(RegExp);
+				_mbslwr((unsigned char*)RegExp);
 				if((FindMode == 0) || (JreCompileStr(RegExp) == TRUE))
 				{
 					for(i = GetCurrentItem(Win)+1; i < Num; i++)
 					{
 						GetNodeName(Win, i, Name, FMAX_PATH);
-						_mbslwr(Name);
+						_mbslwr((unsigned char*)Name);
 
 						LvItem.state = 0;
 						if(((FindMode == 0) && (CheckFname(Name, RegExp) == FFFTP_SUCCESS)) ||
@@ -2212,7 +2212,7 @@ void FindFileInList(HWND hWnd, int Type)
 			for(i = GetCurrentItem(Win)+1; i < Num; i++)
 			{
 				GetNodeName(Win, i, Name, FMAX_PATH);
-				_mbslwr(Name);
+				_mbslwr((unsigned char*)Name);
 
 				LvItem.state = 0;
 				if(((FindMode == 0) && (CheckFname(Name, RegExp) == FFFTP_SUCCESS)) ||
@@ -2462,7 +2462,7 @@ int SetHotSelected(int Win, char *Fname)
 	{
 		LvItem.state = 0;
 		GetNodeName(Win, i, Name, FMAX_PATH);
-		if(_mbscmp(Fname, Name) == 0)
+		if(_mbscmp((const unsigned char*)Fname, (const unsigned char*)Name) == 0)
 		{
 			Pos = i;
 			LvItem.state = LVIS_FOCUSED;
@@ -3649,7 +3649,7 @@ static void AddFileList(FILELIST *Pkt, FILELIST **Base)
 
 	if(Pos == NULL)		/* 重複していないので登録する */
 	{
-		if((Pos = malloc(sizeof(FILELIST))) != NULL)
+		if((Pos = (FILELIST*)malloc(sizeof(FILELIST))) != NULL)
 		{
 			memcpy(Pos, Pkt, sizeof(FILELIST));
 			Pos->Next = NULL;
@@ -3710,20 +3710,20 @@ FILELIST *SearchFileList(char *Fname, FILELIST *Base, int Caps)
 	{
 		if(Caps == COMP_STRICT)
 		{
-			if(_mbscmp(Fname, Base->File) == 0)
+			if(_mbscmp((const unsigned char*)Fname, (const unsigned char*)Base->File) == 0)
 				break;
 		}
 		else
 		{
-			if(_mbsicmp(Fname, Base->File) == 0)
+			if(_mbsicmp((const unsigned char*)Fname, (const unsigned char*)Base->File) == 0)
 			{
 				if(Caps == COMP_IGNORE)
 					break;
 				else
 				{
 					strcpy(Tmp, Base->File);
-					_mbslwr(Tmp);
-					if(_mbscmp(Tmp, Base->File) == 0)
+					_mbslwr((unsigned char*)Tmp);
+					if(_mbscmp((const unsigned char*)Tmp, (const unsigned char*)Base->File) == 0)
 						break;
 				}
 			}
@@ -5750,8 +5750,8 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 		// UTF-8の冗長表現によるディレクトリトラバーサル対策
 		FixStringM(Fname, Fname);
 		// 0x5Cが含まれる文字列を扱えないバグ修正
-		if((_mbscmp(_mbsninc(Fname, _mbslen(Fname) - 1), "/") == 0)
-			|| (_mbscmp(_mbsninc(Fname, _mbslen(Fname) - 1), "\\") == 0))
+		if((_mbscmp(_mbsninc((const unsigned char*)Fname, _mbslen((const unsigned char*)Fname) - 1), (const unsigned char*)"/") == 0)
+			|| (_mbscmp(_mbsninc((const unsigned char*)Fname, _mbslen((const unsigned char*)Fname) - 1), (const unsigned char*)"\\") == 0))
 			*(Fname + strlen(Fname) - 1) = NUL;
 		if(CheckSpecialDirName(Fname) == YES)
 			Ret = NODE_NONE;
@@ -5883,7 +5883,7 @@ static int FindField2(char *Str, char *Buf, char Separator, int Num, int ToLast)
 static void GetMonth(char *Str, WORD *Month, WORD *Day)
 {
 	static const char DateStr[] = { "JanFebMarAprMayJunJulAugSepOctNovDec" };
-	char *Pos;
+	const char *Pos;
 
 	*Month = 0;
 	*Day = 0;
@@ -5927,7 +5927,7 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day)
 						}
 					}
 				}
-				else if(_mbsncmp(Pos, "/", 1) == 0)
+				else if(_mbsncmp((const unsigned char*)Pos, (const unsigned char*)"/", 1) == 0)
 				{
 					/* 「10/」のような日付を返すものがある */
 					Pos += 1;
@@ -6014,12 +6014,12 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 	char *Pos;
 
 	Ret = FFFTP_FAIL;
-	if((_mbslen(Str) >= 3) && (isdigit(Str[0]) != 0))
+	if((_mbslen((const unsigned char*)Str) >= 3) && (isdigit(Str[0]) != 0))
 	{
 		*Hour = atoi(Str);
 		if(*Hour <= 24)
 		{
-			if((Pos = _mbschr(Str, ':')) != NULL)
+			if((Pos = (char*)_mbschr((const unsigned char*)Str, ':')) != NULL)
 			{
 				Pos++;
 				if(IsDigit(*Pos) != 0)
@@ -6297,7 +6297,7 @@ static int atoi_n(const char *Str, int Len)
 	int Ret;
 
 	Ret = 0;
-	if((Tmp = malloc(Len+1)) != NULL)
+	if((Tmp = (char*)malloc(Len+1)) != NULL)
 	{
 		memset(Tmp, 0, Len+1);
 		strncpy(Tmp, Str, Len);

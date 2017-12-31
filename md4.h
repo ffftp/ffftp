@@ -22,6 +22,10 @@
    These notices must be retained in any copies of any part of this
    documentation and/or software.
  */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /* POINTER defines a generic pointer type */
 typedef unsigned char *POINTER;
@@ -50,3 +54,6 @@ void MD4Update PROTO_LIST
   ((MD4_CTX *, unsigned char *, unsigned int));
 void MD4Final PROTO_LIST ((unsigned char [16], MD4_CTX *));
 
+#ifdef __cplusplus
+}
+#endif

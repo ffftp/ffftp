@@ -46,7 +46,7 @@ static ulong extract(char *s, int start, int length);
 /*===== ローカルなワーク =====*/
 
 /* Dictionary for integer-word translations */
-static const char Wp[2048][4] = {
+static const char Wp[2048][5] = {
 	"A",    "ABE",  "ACE",  "ACT",  "AD",   "ADA",  "ADD",  "AGO",  "AID",
 	"AIM",  "AIR",  "ALL",  "ALP",  "AM",   "AMY",  "AN",   "ANA",  "AND",
 	"ANN",  "ANT",  "ANY",  "APE",  "APS",  "APT",  "ARC",  "ARE",  "ARK",
@@ -317,11 +317,11 @@ static int keycrunch(char *result, char *seed, char *passwd, int Type)
 	char *buf;
 	MD4_CTX md4;
 	MD5_CTX md5;
-	ulong results[5];
+	uint32 results[5];
 	unsigned int buflen;
 
 	buflen = (unsigned int)strlen(seed) + (unsigned int)strlen(passwd);
-	if((buf = malloc(buflen + 1)) == NULL)
+	if((buf = (char*)malloc(buflen + 1)) == NULL)
 		return(FFFTP_FAIL);
 	strcpy(buf, seed);
 	strcat(buf, passwd);
@@ -345,7 +345,7 @@ static int keycrunch(char *result, char *seed, char *passwd, int Type)
 	}
 	else
 	{
-		sha_memory((uchar *)buf, buflen, results);
+		sha_memory(buf, buflen, results);
 		results [0] ^= results [2];
 		results [1] ^= results [3];
 		results [0] ^= results [4];
@@ -364,7 +364,7 @@ static void secure_hash(char *x, int Type)
 {
 	MD4_CTX md4;
 	MD5_CTX md5;
-	ulong results[5];
+	uint32 results[5];
 
 	if(Type == MD4)
 	{
@@ -384,7 +384,7 @@ static void secure_hash(char *x, int Type)
 	}
 	else
 	{
-		sha_memory((uchar *)x, 8, results);
+		sha_memory(x, 8, results);
 		results [0] ^= results [2];
 		results [1] ^= results [3];
 		results [0] ^= results [4];

@@ -69,7 +69,7 @@ typedef struct {
 
 static void DispTransPacket(TRANSPACKET *Pkt);
 static void EraseTransFileList(void);
-static ULONG WINAPI TransferThread(void *Dummy);
+static unsigned __stdcall TransferThread(void *Dummy);
 static int MakeNonFullPath(TRANSPACKET *Pkt, char *CurDir, char *Tmp);
 // ミラーリング設定追加
 static int SetDownloadedFileTime(TRANSPACKET *Pkt);
@@ -192,7 +192,7 @@ extern time_t LastDataConnectionTime;
 
 int MakeTransferThread(void)
 {
-	DWORD dwID;
+	unsigned int dwID;
 	int i;
 
 	hListAccMutex = CreateMutex( NULL, FALSE, NULL );
@@ -301,7 +301,7 @@ int AddTmpTransFileList(TRANSPACKET *Pkt, TRANSPACKET **Base)
 	int Sts;
 
 	Sts = FFFTP_FAIL;
-	if((Pos = malloc(sizeof(TRANSPACKET))) != NULL)
+	if((Pos = (TRANSPACKET*)malloc(sizeof(TRANSPACKET))) != NULL)
 	{
 		memcpy(Pos, Pkt, sizeof(TRANSPACKET));
 		Pos->Next = NULL;
@@ -712,7 +712,7 @@ void InitTransCurDir(void)
 *		なし
 *----------------------------------------------------------------------------*/
 
-static ULONG WINAPI TransferThread(void *Dummy)
+static unsigned __stdcall TransferThread(void *Dummy)
 {
 	TRANSPACKET *Pos;
 	HWND hWndTrans;
@@ -1783,7 +1783,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		CODECONVINFO cInfo2;
 		int ProcessedBOM = NO;
 		// 4GB超対応（kaokunさん提供）
-		DWORD High = 0;
+		LONG High = 0;
 		if(CreateMode == OPEN_ALWAYS)
 			// 4GB超対応（kaokunさん提供）
 //			SetFilePointer(iFileHandle, 0, 0, FILE_END);
@@ -3111,7 +3111,7 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 
 			High = (DWORD)HIGH32(Pkt->ExistSize);
 			Low = (DWORD)LOW32(Pkt->ExistSize);
-			SetFilePointer(iFileHandle, Low, &High, FILE_BEGIN);
+			SetFilePointer(iFileHandle, Low, (PLONG)&High, FILE_BEGIN);
 
 			// 同時接続対応
 //			AllTransSizeNow = 0;
@@ -3140,7 +3140,7 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 			EofPos = NULL;
 			if((RmEOF == YES) && (Pkt->Type == TYPE_A))
 			{
-				if((EofPos = memchr(Buf, 0x1A, iNumBytes)) != NULL)
+				if((EofPos = (char*)memchr(Buf, 0x1A, iNumBytes)) != NULL)
 					iNumBytes = (DWORD)(EofPos - Buf);
 			}
 
@@ -4408,7 +4408,7 @@ int CheckPathViolation(TRANSPACKET *packet)
 	   (strstr(packet->RemoteFile, "\\..\\") != NULL) ||
 	   (strstr(packet->RemoteFile, "/../") != NULL))
 	{
-		msg = malloc(strlen(MSGJPN297) + strlen(packet->RemoteFile) + 1);
+		msg = (char*)malloc(strlen(MSGJPN297) + strlen(packet->RemoteFile) + 1);
 		if(msg)
 		{
 			sprintf(msg, MSGJPN297, packet->RemoteFile);

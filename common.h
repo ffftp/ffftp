@@ -32,6 +32,7 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
+#define CINTERFACE
 #include <crtdbg.h>
 #include <mbstring.h>
 #include <stdint.h>

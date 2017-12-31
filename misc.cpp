@@ -275,7 +275,7 @@ INT_PTR CALLBACK AnyButtonDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPA
 
 void SetYenTail(char *Str)
 {
-	if(_mbscmp(_mbsninc(Str, _mbslen(Str) - 1), "\\") != 0)
+	if(_mbscmp(_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), (const unsigned char*)"\\") != 0)
 		strcat(Str, "\\");
 
 	return;;
@@ -300,8 +300,8 @@ void RemoveYenTail(char *Str)
 
 	if(strlen(Str) > 0)
 	{
-		Pos = _mbsninc(Str, _mbslen(Str) - 1);
-		if(_mbscmp(Pos, "\\") == 0)
+		Pos = (char*)_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1);
+		if(_mbscmp((const unsigned char*)Pos, (const unsigned char*)"\\") == 0)
 			*Pos = NUL;
 	}
 	return;;
@@ -325,11 +325,11 @@ void SetSlashTail(char *Str)
 #if defined(HAVE_TANDEM)
 	/* Tandem では / の代わりに . を追加 */
 	if(AskHostType() == HTYPE_TANDEM) {
-		if(_mbscmp(_mbsninc(Str, _mbslen(Str) - 1), ".") != 0)
+		if(_mbscmp(_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), (const unsigned char*)".") != 0)
 			strcat(Str, ".");
 	} else
 #endif
-	if(_mbscmp(_mbsninc(Str, _mbslen(Str) - 1), "/") != 0)
+	if(_mbscmp(_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), (const unsigned char*)"/") != 0)
 		strcat(Str, "/");
 
 	return;
@@ -381,7 +381,7 @@ void ReplaceAll(char *Str, char Src, char Dst)
 	if (AskRealHostType() == HTYPE_TANDEM && strlen(Str) > 0)
 		Str++;
 #endif
-	while((Pos = _mbschr(Str, Src)) != NULL)
+	while((Pos = (char*)_mbschr((const unsigned char*)Str, Src)) != NULL)
 		*Pos = Dst;
 	return;
 }
@@ -605,18 +605,18 @@ char *GetFileName(char *Path)
 {
 	char *Pos;
 
-	if((Pos = _mbschr(Path, ':')) != NULL)
+	if((Pos = (char*)_mbschr((const unsigned char*)Path, ':')) != NULL)
 		Path = Pos + 1;
 
-	if((Pos = _mbsrchr(Path, '\\')) != NULL)
+	if((Pos = (char*)_mbsrchr((const unsigned char*)Path, '\\')) != NULL)
 		Path = Pos + 1;
 
-	if((Pos = _mbsrchr(Path, '/')) != NULL)
+	if((Pos = (char*)_mbsrchr((const unsigned char*)Path, '/')) != NULL)
 		Path = Pos + 1;
 
 #if defined(HAVE_TANDEM)
 	/* Tandem は . がデリミッタとなる */
-	if((AskHostType() == HTYPE_TANDEM) && ((Pos = _mbsrchr(Path, '.')) != NULL))
+	if((AskHostType() == HTYPE_TANDEM) && ((Pos = (char*)_mbsrchr((const unsigned char*)Path, '.')) != NULL))
 		Path = Pos + 1;
 #endif
 	return(Path);
@@ -636,10 +636,10 @@ char *GetToolName(char *Path)
 {
 	char *Pos;
 
-	if((Pos = _mbschr(Path, ':')) != NULL)
+	if((Pos = (char*)_mbschr((const unsigned char*)Path, ':')) != NULL)
 		Path = Pos + 1;
 
-	if((Pos = _mbsrchr(Path, '\\')) != NULL)
+	if((Pos = (char*)_mbsrchr((const unsigned char*)Path, '\\')) != NULL)
 		Path = Pos + 1;
 
 	return(Path);
@@ -659,11 +659,11 @@ char *GetFileExt(char *Path)
 {
 	char *Ret;
 
-	Ret = _mbschr(Path, NUL);
-	if((_mbscmp(Path, ".") != 0) &&
-	   (_mbscmp(Path, "..") != 0))
+	Ret = (char*)_mbschr((const unsigned char*)Path, NUL);
+	if((_mbscmp((const unsigned char*)Path, (const unsigned char*)".") != 0) &&
+	   (_mbscmp((const unsigned char*)Path, (const unsigned char*)"..") != 0))
 	{
-		while((Path = _mbschr(Path, '.')) != NULL)
+		while((Path = (char*)_mbschr((const unsigned char*)Path, '.')) != NULL)
 		{
 			Path++;
 			Ret = Path;
@@ -692,9 +692,9 @@ void RemoveFileName(char *Path, char *Buf)
 
 	strcpy(Buf, Path);
 
-	if((Pos = _mbsrchr(Buf, '/')) != NULL)
+	if((Pos = (char*)_mbsrchr((const unsigned char*)Buf, '/')) != NULL)
 		*Pos = NUL;
-	else if((Pos = _mbsrchr(Buf, '\\')) != NULL)
+	else if((Pos = (char*)_mbsrchr((const unsigned char*)Buf, '\\')) != NULL)
 	{
 		if((Pos == Buf) || 
 		   ((Pos != Buf) && (*(Pos - 1) != ':')))
@@ -724,12 +724,12 @@ void GetUpperDir(char *Path)
 	char *Top;
 	char *Pos;
 
-	if(((Top = _mbschr(Path, '/')) != NULL) ||
-	   ((Top = _mbschr(Path, '\\')) != NULL))
+	if(((Top = (char*)_mbschr((const unsigned char*)Path, '/')) != NULL) ||
+	   ((Top = (char*)_mbschr((const unsigned char*)Path, '\\')) != NULL))
 	{
 		Top++;
-		if(((Pos = _mbsrchr(Top, '/')) != NULL) ||
-		   ((Pos = _mbsrchr(Top, '\\')) != NULL))
+		if(((Pos = (char*)_mbsrchr((const unsigned char*)Top, '/')) != NULL) ||
+		   ((Pos = (char*)_mbsrchr((const unsigned char*)Top, '\\')) != NULL))
 			*Pos = NUL;
 		else
 			*Top = NUL;
@@ -757,8 +757,8 @@ void GetUpperDirEraseTopSlash(char *Path)
 {
 	char *Pos;
 
-	if(((Pos = _mbsrchr(Path, '/')) != NULL) ||
-	   ((Pos = _mbsrchr(Path, '\\')) != NULL))
+	if(((Pos = (char*)_mbsrchr((const unsigned char*)Path, '/')) != NULL) ||
+	   ((Pos = (char*)_mbsrchr((const unsigned char*)Path, '\\')) != NULL))
 		*Pos = NUL;
 	else
 		*Path = NUL;
@@ -785,8 +785,8 @@ int AskDirLevel(char *Path)
 	int Level;
 
 	Level = 0;
-	while(((Pos = _mbschr(Path, '/')) != NULL) ||
-		  ((Pos = _mbschr(Path, '\\')) != NULL))
+	while(((Pos = (char*)_mbschr((const unsigned char*)Path, '/')) != NULL) ||
+		  ((Pos = (char*)_mbschr((const unsigned char*)Path, '\\')) != NULL))
 	{
 		Path = Pos + 1;
 		Level++;
@@ -884,16 +884,16 @@ void DispStaticText(HWND hWnd, char *Str)
 		if(fSize.cx <= Rect.right)
 			break;
 
-		if(_mbslen(Pos) <= 4)
+		if(_mbslen((const unsigned char*)Pos) <= 4)
 			Force = YES;
 		else
 		{
-			Pos = _mbsninc(Pos, 4);
-			if((Tmp = _mbschr(Pos, '\\')) == NULL)
-				Tmp = _mbschr(Pos, '/');
+			Pos = (char*)_mbsninc((const unsigned char*)Pos, 4);
+			if((Tmp = (char*)_mbschr((const unsigned char*)Pos, '\\')) == NULL)
+				Tmp = (char*)_mbschr((const unsigned char*)Pos, '/');
 
 			if(Tmp == NULL)
-				Tmp = _mbsninc(Pos, 4);
+				Tmp = (char*)_mbsninc((const unsigned char*)Pos, 4);
 
 			Pos = Tmp - 3;
 			memset(Pos, '.', 3);
@@ -1025,18 +1025,18 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 
 	ReplaceAll(unc, '\\', '/');
 
-	if((Pos1 = _mbsstr(unc, "//")) != NULL)
+	if((Pos1 = (char*)_mbsstr((const unsigned char*)unc, (const unsigned char*)"//")) != NULL)
 		Pos1 += 2;
 	else
 		Pos1 = unc;
 
-	if((Pos2 = _mbschr(Pos1, '@')) != NULL)
+	if((Pos2 = (char*)_mbschr((const unsigned char*)Pos1, '@')) != NULL)
 	{
 		memset(Tmp, NUL, FMAX_PATH+1);
 		memcpy(Tmp, Pos1, Pos2-Pos1);
 		Pos1 = Pos2 + 1;
 
-		if((Pos2 = _mbschr(Tmp, ':')) != NULL)
+		if((Pos2 = (char*)_mbschr((const unsigned char*)Tmp, ':')) != NULL)
 		{
 			memcpy(User, Tmp, min1((int)(Pos2-Tmp), USER_NAME_LEN));
 			strncpy(Pass, Pos2+1, PASSWORD_LEN);
@@ -1046,17 +1046,17 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 	}
 
 	// IPv6対応
-	if((Pos2 = _mbschr(Pos1, '[')) != NULL && Pos2 < _mbschr(Pos1, ':'))
+	if((Pos2 = (char*)_mbschr((const unsigned char*)Pos1, '[')) != NULL && Pos2 < (char*)_mbschr((const unsigned char*)Pos1, ':'))
 	{
 		Pos1 = Pos2 + 1;
-		if((Pos2 = _mbschr(Pos2, ']')) != NULL)
+		if((Pos2 = (char*)_mbschr((const unsigned char*)Pos2, ']')) != NULL)
 		{
 			memcpy(Host, Pos1, min1((int)(Pos2-Pos1), HOST_ADRS_LEN));
 			Pos1 = Pos2 + 1;
 		}
 	}
 
-	if((Pos2 = _mbschr(Pos1, ':')) != NULL)
+	if((Pos2 = (char*)_mbschr((const unsigned char*)Pos1, ':')) != NULL)
 	{
 		// IPv6対応
 //		memcpy(Host, Pos1, min1(Pos2-Pos1, HOST_ADRS_LEN));
@@ -1076,7 +1076,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 		RemoveFileName(Pos2, Path);
 		strncpy(File, GetFileName(Pos2), FMAX_PATH);
 	}
-	else if((Pos2 = _mbschr(Pos1, '/')) != NULL)
+	else if((Pos2 = (char*)_mbschr((const unsigned char*)Pos1, '/')) != NULL)
 	{
 		// IPv6対応
 //		memcpy(Host, Pos1, min1(Pos2-Pos1, HOST_ADRS_LEN));
@@ -1767,7 +1767,7 @@ int IsFolderExist(char *Path)
 	if(strlen(Path) > 0)
 	{
 		strcpy(Tmp, Path);
-		if(_mbscmp(Tmp+1, ":\\") != 0)
+		if(_mbscmp((const unsigned char*)Tmp+1, (const unsigned char*)":\\") != 0)
 			RemoveYenTail(Tmp);
 
 		Attr = GetFileAttributes(Tmp);

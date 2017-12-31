@@ -1352,7 +1352,7 @@ int LoadUPnP()
 	Sts = FFFTP_FAIL;
 	if(IsMainThread())
 	{
-		if(CoCreateInstance(&CLSID_UPnPNAT, NULL, CLSCTX_ALL, &IID_IUPnPNAT, (void**)&pUPnPNAT) == S_OK)
+		if(CoCreateInstance(CLSID_UPnPNAT, NULL, CLSCTX_ALL, IID_IUPnPNAT, (void**)&pUPnPNAT) == S_OK)
 		{
 			if(pUPnPNAT->lpVtbl->get_StaticPortMappingCollection(pUPnPNAT, &pUPnPMap) == S_OK)
 				Sts = FFFTP_SUCCESS;

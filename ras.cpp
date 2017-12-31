@@ -195,13 +195,13 @@ static int GetCurConnections(RASCONN **Buf)
 
 	Ret = -1;
 	Size = sizeof(RASCONN);
-	if((RasConn = malloc(Size)) != NULL)
+	if((RasConn = (RASCONN*)malloc(Size)) != NULL)
 	{
 		RasConn->dwSize = sizeof(RASCONN);
 		Sts = (*m_RasEnumConnections)(RasConn, &Size, &Num);
 		if((Sts == ERROR_BUFFER_TOO_SMALL) || (Sts == ERROR_NOT_ENOUGH_MEMORY))
 		{
-			if((Tmp = realloc(RasConn, Size)) != NULL)
+			if((Tmp = (RASCONN*)realloc(RasConn, Size)) != NULL)
 			{
 				RasConn = Tmp;
 				Sts = (*m_RasEnumConnections)(RasConn, &Size, &Num);
@@ -333,13 +333,13 @@ int SetRasEntryToComboBox(HWND hDlg, int Item, char *CurName)
 	if(m_hDll != NULL)
 	{
 		Size = sizeof(RASENTRYNAME);
-		if((Entry = malloc(Size)) != NULL)
+		if((Entry = (RASENTRYNAME*)malloc(Size)) != NULL)
 		{
 			Entry->dwSize = sizeof(RASENTRYNAME);
 			Sts = (*m_RasEnumEntries)(NULL, NULL, Entry, &Size, &Num);
 			if((Sts == ERROR_BUFFER_TOO_SMALL) || (Sts == ERROR_NOT_ENOUGH_MEMORY))
 			{
-				if((Tmp = realloc(Entry, Size)) != NULL)
+				if((Tmp = (RASENTRYNAME*)realloc(Entry, Size)) != NULL)
 				{
 					Entry = Tmp;
 					Sts = (*m_RasEnumEntries)(NULL, NULL, Entry, &Size, &Num);
@@ -401,7 +401,7 @@ int ConnectRas(int Dialup, int UseThis, int Notify, char *Name)
 						DoDial = 2;
 						for(i = 0; i < Num; i++)
 						{
-							if(_mbscmp(RasConn[i].szEntryName, Name) == 0)
+							if(_mbscmp((const unsigned char*)RasConn[i].szEntryName, (const unsigned char*)Name) == 0)
 								DoDial = 0;
 						}
 
@@ -534,7 +534,7 @@ static BOOL CALLBACK DialCallBackProc(HWND hDlg, UINT message, WPARAM wParam, LP
 			else
 			{
 				/* ステータス変更 */
-				MakeRasConnMsg(Param->szPhoneNumber, wParam, Tmp);
+				MakeRasConnMsg(Param->szPhoneNumber, (RASCONNSTATE)wParam, Tmp);
 				SendDlgItemMessage(hDlg, DIAL_STATUS, WM_SETTEXT, 0, (LPARAM)Tmp);
 			}
 			return(TRUE);

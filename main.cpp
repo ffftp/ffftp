@@ -3204,9 +3204,9 @@ void AddTempFileList(char *Fname)
 {
 	TEMPFILELIST *New;
 
-	if((New = malloc(sizeof(TEMPFILELIST))) != NULL)
+	if((New = (TEMPFILELIST*)malloc(sizeof(TEMPFILELIST))) != NULL)
 	{
-		if((New->Fname = malloc(strlen(Fname)+1)) != NULL)
+		if((New->Fname = (char*)malloc(strlen(Fname)+1)) != NULL)
 		{
 			strcpy(New->Fname, Fname);
 			if(TempFiles == NULL)
@@ -3654,7 +3654,7 @@ int LoadTaskbarList3()
 {
 	int Sts;
 	Sts = FFFTP_FAIL;
-	if(CoCreateInstance(&CLSID_TaskbarList, NULL, CLSCTX_ALL, &IID_ITaskbarList3, (void**)&pTaskbarList3) == S_OK)
+	if(CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_ALL, IID_ITaskbarList3, (void**)&pTaskbarList3) == S_OK)
 	{
 		Sts = FFFTP_SUCCESS;
 	}
@@ -3722,7 +3722,7 @@ void UpdateSoftware(int Async, int NoError, int NoConfirm)
 	char Tmp[2048];
 	if(Async == YES)
 	{
-		if(pData = malloc(sizeof(UPDATESOFTWAREDATA)))
+		if(pData = (UPDATESOFTWAREDATA*)malloc(sizeof(UPDATESOFTWAREDATA)))
 		{
 			pData->NoError = NoError;
 			pData->NoConfirm = NoConfirm;

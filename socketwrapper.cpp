@@ -613,7 +613,7 @@ BOOL DecryptSignature(const char* PublicKey, const char* Password, const void* p
 	bResult = FALSE;
 	if(pBIO = p_BIO_new_mem_buf((void*)PublicKey, sizeof(char) * (int)strlen(PublicKey)))
 	{
-		if(pPKEY = p_PEM_read_bio_PUBKEY(pBIO, NULL, NULL, Password))
+		if(pPKEY = p_PEM_read_bio_PUBKEY(pBIO, NULL, NULL, (void*)Password))
 		{
 			if(pRSA = p_EVP_PKEY_get1_RSA(pPKEY))
 			{
@@ -1014,11 +1014,11 @@ HANDLE WSAAsyncGetHostByNameIPv6(HWND hWnd, u_int wMsg, const char * name, char 
 	HANDLE hResult;
 	GETHOSTBYNAMEDATA* pData;
 	hResult = NULL;
-	if(pData = malloc(sizeof(GETHOSTBYNAMEDATA)))
+	if(pData = (GETHOSTBYNAMEDATA*)malloc(sizeof(GETHOSTBYNAMEDATA)))
 	{
 		pData->hWnd = hWnd;
 		pData->wMsg = wMsg;
-		if(pData->name = malloc(sizeof(char) * (strlen(name) + 1)))
+		if(pData->name = (char*)malloc(sizeof(char) * (strlen(name) + 1)))
 		{
 			strcpy(pData->name, name);
 			pData->buf = buf;
@@ -1183,7 +1183,7 @@ BOOL ConvertDomainNameToPunycode(LPSTR Output, DWORD Count, LPCSTR Input)
 	punycode_uint Length;
 	punycode_uint OutputLength;
 	bResult = FALSE;
-	if(pUnicode = malloc(sizeof(punycode_uint) * strlen(Input)))
+	if(pUnicode = (punycode_uint*)malloc(sizeof(punycode_uint) * strlen(Input)))
 	{
 		p = pUnicode;
 		bNeeded = FALSE;

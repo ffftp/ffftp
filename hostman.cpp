@@ -822,7 +822,7 @@ int AddHostToList(HOSTDATA *Set, int Pos, int Level)
 			Pos = Hosts;
 		Level &= SET_LEVEL_MASK;
 
-		if((New = malloc(sizeof(HOSTLISTDATA))) != NULL)
+		if((New = (HOSTLISTDATA*)malloc(sizeof(HOSTLISTDATA))) != NULL)
 		{
 			memcpy(&New->Set, Set, sizeof(HOSTDATA));
 			New->Next = NULL;
@@ -1460,7 +1460,7 @@ static void SendAllHostNames(HWND hWnd, int Cur)
 
 	SendMessage(hWnd, TVM_DELETEITEM, 0, (LPARAM)TVI_ROOT);		/* 全てを削除 */
 
-	if((Level = malloc(sizeof(HTREEITEM*) * Hosts + 1)) != NULL)
+	if((Level = (HTREEITEM*)malloc(sizeof(HTREEITEM*) * Hosts + 1)) != NULL)
 	{
 		Pos = HostListTop;
 		for(i = 0; i < Hosts; i++)

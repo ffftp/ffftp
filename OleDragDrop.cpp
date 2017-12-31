@@ -77,7 +77,7 @@ BOOL APIPRIVATE OLE_IDropTarget_RegisterDragDrop(HWND hWnd, UINT uCallbackMessag
 {
 	static IDROPTARGET_INTERNAL *pdti;
 
-	pdti = GlobalAlloc(GPTR, sizeof(IDROPTARGET_INTERNAL));
+	pdti = (IDROPTARGET_INTERNAL*)GlobalAlloc(GPTR, sizeof(IDROPTARGET_INTERNAL));
 	if(pdti == NULL){
 		return FALSE;
 	}
@@ -104,7 +104,7 @@ void APIPRIVATE OLE_IDropTarget_RevokeDragDrop(HWND hWnd)
 static HRESULT STDMETHODCALLTYPE OLE_IDropTarget_QueryInterface(LPDROPTARGET pThis, REFIID riid, PVOID *ppvObject)
 {
 	//要求されたIIDと同じ場合はオブジェクトを返す
-	if(IsEqualIID(riid, &IID_IUnknown) || IsEqualIID(riid, &IID_IDropTarget)){
+	if(IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IDropTarget)){
 		*ppvObject = (LPVOID)pThis;
 		((LPUNKNOWN)*ppvObject)->lpVtbl->AddRef((LPUNKNOWN)*ppvObject);
 		return S_OK;
@@ -273,7 +273,7 @@ typedef struct _IENUMFORMATETC_INTERNAL{
 static HRESULT STDMETHODCALLTYPE OLE_IEnumFORMATETC_QueryInterface(LPENUMFORMATETC lpThis, REFIID riid, LPVOID FAR* lplpvObj)
 {
 	//要求されたIIDと同じ場合はオブジェクトを返す
-	if(IsEqualIID(riid, &IID_IUnknown) || IsEqualIID(riid, &IID_IEnumFORMATETC)){
+	if(IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IEnumFORMATETC)){
 		*lplpvObj = (LPVOID) lpThis;
 		 ((LPUNKNOWN)*lplpvObj)->lpVtbl->AddRef(((LPUNKNOWN)*lplpvObj));
 		return S_OK;
@@ -378,7 +378,7 @@ static HRESULT STDMETHODCALLTYPE OLE_IEnumFORMATETC_Clone(LPENUMFORMATETC lpThis
 	UINT i;
 
 	/* IEnumFORMATETCを作成する */
-	pNew = GlobalAlloc(GPTR, sizeof(IENUMFORMATETC_INTERNAL));
+	pNew = (IENUMFORMATETC_INTERNAL*)GlobalAlloc(GPTR, sizeof(IENUMFORMATETC_INTERNAL));
 	if(pNew == NULL){
 		return ResultFromScode(E_OUTOFMEMORY);
 	}
@@ -390,7 +390,7 @@ static HRESULT STDMETHODCALLTYPE OLE_IEnumFORMATETC_Clone(LPENUMFORMATETC lpThis
 	pNew->m_numFormats = lpefi->m_numFormats;
 
 	/* クリップボードフォーマットのリストをコピーする */
-	pNew->m_formatList = GlobalAlloc(GPTR, sizeof(FORMATETC) * pNew->m_numFormats);
+	pNew->m_formatList = (LPFORMATETC)GlobalAlloc(GPTR, sizeof(FORMATETC) * pNew->m_numFormats);
 	if(pNew->m_formatList != NULL){
 		for(i = 0;i < pNew->m_numFormats;i++){
 			  pNew->m_formatList[i] = lpefi->m_formatList[i];
@@ -456,7 +456,7 @@ typedef struct _IDATAOBJECT_INTERNAL{
 static HRESULT STDMETHODCALLTYPE OLE_IDataObject_QueryInterface(LPDATAOBJECT lpThis, REFIID riid, LPVOID FAR *lplpvObj)
 {
 	//要求されたIIDと同じ場合はオブジェクトを返す
-	if(IsEqualIID(riid, &IID_IUnknown) || IsEqualIID(riid, &IID_IDataObject)){
+	if(IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IDataObject)){
 		*lplpvObj = lpThis;
 		 ((LPUNKNOWN)*lplpvObj)->lpVtbl->AddRef(((LPUNKNOWN)*lplpvObj));
 		return S_OK;
@@ -571,7 +571,7 @@ static HRESULT STDMETHODCALLTYPE OLE_IDataObject_EnumFormatEtc(LPDATAOBJECT lpTh
 	}
 
 	/* IEnumFORMATETCを作成する */
-	pefi = GlobalAlloc(GPTR, sizeof(IENUMFORMATETC_INTERNAL));
+	pefi = (IENUMFORMATETC_INTERNAL*)GlobalAlloc(GPTR, sizeof(IENUMFORMATETC_INTERNAL));
 	if(pefi == NULL){
 		return E_OUTOFMEMORY;
 	}
@@ -582,7 +582,7 @@ static HRESULT STDMETHODCALLTYPE OLE_IDataObject_EnumFormatEtc(LPDATAOBJECT lpTh
 	pefi->m_numFormats = pdoi->m_numTypes;
 
 	/* クリップボードフォーマットのリストをコピーする */
-	pefi->m_formatList = GlobalAlloc(GPTR, sizeof(FORMATETC) * pefi->m_numFormats);
+	pefi->m_formatList = (LPFORMATETC)GlobalAlloc(GPTR, sizeof(FORMATETC) * pefi->m_numFormats);
 	if(pefi->m_formatList != NULL){
 		for(i = 0;i < pefi->m_numFormats;i++){
 			  pefi->m_formatList[i] = pdoi->m_typeList[i];
@@ -647,7 +647,7 @@ typedef struct _IDROPSOURCE_INTERNAL{
 static HRESULT STDMETHODCALLTYPE OLE_IDropSource_QueryInterface(LPDROPSOURCE lpThis, REFIID riid, LPVOID FAR *lplpvObj)
 {
 	//要求されたIIDと同じ場合はオブジェクトを返す
-	if(IsEqualIID(riid, &IID_IUnknown) || IsEqualIID(riid, &IID_IDropSource)){
+	if(IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IDropSource)){
 		*lplpvObj = (LPVOID) lpThis;
 		((LPUNKNOWN)*lplpvObj)->lpVtbl->AddRef(((LPUNKNOWN)*lplpvObj));
 		return S_OK;
@@ -722,7 +722,7 @@ int APIPRIVATE OLE_IDropSource_Start(HWND hWnd, UINT uCallbackMessage, UINT uCal
 	int ret;
 
 	/* IDataObjectの作成 */
-	pdoi = GlobalAlloc(GPTR, sizeof(IDATAOBJECT_INTERNAL));
+	pdoi = (IDATAOBJECT_INTERNAL*)GlobalAlloc(GPTR, sizeof(IDATAOBJECT_INTERNAL));
 	if(pdoi == NULL){
 		return -1;
 	}
@@ -731,7 +731,7 @@ int APIPRIVATE OLE_IDropSource_Start(HWND hWnd, UINT uCallbackMessage, UINT uCal
 	pdoi->m_numTypes = cfcnt;
 	pdoi->m_maxTypes = cfcnt;
 	/* 有効なクリップボードフォーマットを設定する */
-	pdoi->m_typeList = GlobalAlloc(GPTR, sizeof(FORMATETC) * cfcnt);
+	pdoi->m_typeList = (FORMATETC*)GlobalAlloc(GPTR, sizeof(FORMATETC) * cfcnt);
 	if(pdoi->m_typeList == NULL){
 		GlobalFree(pdoi);
 		return -1;
@@ -748,7 +748,7 @@ int APIPRIVATE OLE_IDropSource_Start(HWND hWnd, UINT uCallbackMessage, UINT uCal
 	((LPDATAOBJECT)pdoi)->lpVtbl->AddRef((LPDATAOBJECT)pdoi);
 
 	/* IDropSourceの作成 */
-	pdsi = GlobalAlloc(GPTR, sizeof(IDROPSOURCE_INTERNAL));
+	pdsi = (IDROPSOURCE_INTERNAL*)GlobalAlloc(GPTR, sizeof(IDROPSOURCE_INTERNAL));
 	if(pdsi == NULL){
 		/* IDataObjectを解放する */
 		((LPDATAOBJECT)pdoi)->lpVtbl->Release((LPDATAOBJECT)pdoi);

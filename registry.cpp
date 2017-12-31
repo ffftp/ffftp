@@ -1965,7 +1965,7 @@ static void EncodePassword2(char *Str, char *Buf, const char* Key)
 
 	/* 2010.01.31 genta Key */
 	unsigned char *KeyHead = (unsigned char *)Key;
-	unsigned char *KeyEnd = KeyHead + strlen(KeyHead);
+	unsigned char *KeyEnd = KeyHead + strlen((const char*)KeyHead);
 	unsigned char *KeyCurrent = KeyHead;
 
 	srand((unsigned)time(NULL));
@@ -2039,14 +2039,14 @@ static void EncodePassword3(char *Str, char *Buf, const char *Key)
 //	StrPadLen = min1(StrPadLen, AES_BLOCK_SIZE * 2);
 	StrPadLen = max1((int)StrPadLen, AES_BLOCK_SIZE * 2);
 
-	if((StrPadBuf = malloc(StrPadLen)) != NULL)
+	if((StrPadBuf = (unsigned char*)malloc(StrPadLen)) != NULL)
 	{
-		if((AesEncBuf = malloc(StrPadLen)) != NULL)
+		if((AesEncBuf = (unsigned char*)malloc(StrPadLen)) != NULL)
 		{
 			BOOL PutState;
 
 			PutState = FALSE;
-			strncpy(StrPadBuf, Str, StrPadLen);
+			strncpy((char*)StrPadBuf, Str, StrPadLen);
 			
 			/* PAD部分を乱数で埋める StrPad[StrLen](が有効な場合) は NUL */
 			for(StrPadIndex = StrLen + 1; StrPadIndex < StrPadLen;)
@@ -2080,7 +2080,7 @@ static void EncodePassword3(char *Str, char *Buf, const char *Key)
 			Put += 2;
 			for(IvIndex = 0; IvIndex < AES_BLOCK_SIZE; IvIndex++)
 			{
-				sprintf(Put, "%02x", AesCbcIv[IvIndex]);
+				sprintf((char*)Put, "%02x", AesCbcIv[IvIndex]);
 				Put += 2;
 			}
 			*Put++ = ':';
@@ -2093,7 +2093,7 @@ static void EncodePassword3(char *Str, char *Buf, const char *Key)
 				{
 					for(EncBufIndex = 0; EncBufIndex < StrPadLen; EncBufIndex++)
 					{
-						sprintf(Put, "%02x", AesEncBuf[EncBufIndex]);
+						sprintf((char*)Put, "%02x", AesEncBuf[EncBufIndex]);
 						Put += 2;
 					}
 					*Put = NUL;
@@ -2137,13 +2137,13 @@ static void DecodePassword(char *Str, char *Buf)
 		/* Original algorithm */
 		DecodePasswordOriginal( Str, Buf );
 	}
-	else if( strncmp( Get, "0A", 2 ) == 0 ){
+	else if( strncmp( (const char*)Get, "0A", 2 ) == 0 ){
 		DecodePasswordOriginal( Str + 2, Buf );
 	}
-	else if( strncmp( Get, "0B", 2 ) == 0 ){
+	else if( strncmp( (const char*)Get, "0B", 2 ) == 0 ){
 		DecodePassword2( Str + 2, Buf, SecretKey );
 	}
-	else if( strncmp( Get, "0C", 2 ) == 0 ){
+	else if( strncmp( (const char*)Get, "0C", 2 ) == 0 ){
 		DecodePassword3( Str + 2, Buf, SecretKey );
 	}
 	else {
@@ -2207,7 +2207,7 @@ static void DecodePassword2(char *Str, char *Buf, const char* Key)
 
 	/* 2010.01.31 genta Key */
 	unsigned char *KeyHead = (unsigned char *)Key;
-	unsigned char *KeyEnd = KeyHead + strlen(KeyHead);
+	unsigned char *KeyEnd = KeyHead + strlen((const char*)KeyHead);
 	unsigned char *KeyCurrent = KeyHead;
 
 	while(*Get != NUL)
@@ -2263,7 +2263,7 @@ static void DecodePassword3(char *Str, char *Buf, const char *Key)
 	{
 
 		EncBufLen = (StrLen - 1 ) / 2 - AES_BLOCK_SIZE;
-		if((EncBuf = malloc(EncBufLen)) != NULL)
+		if((EncBuf = (unsigned char*)malloc(EncBufLen)) != NULL)
 		{
 			for(IvIndex = 0; IvIndex < AES_BLOCK_SIZE; IvIndex++)
 			{
@@ -2282,7 +2282,7 @@ static void DecodePassword3(char *Str, char *Buf, const char *Key)
 						EncBuf[EncBufIndex]  = hex2bin(*Get++) << 4;
 						EncBuf[EncBufIndex] |= hex2bin(*Get++);
 					}
-					if(aes_cbc_decrypt(EncBuf, Buf, (int)EncBufLen, AesCbcIv, &Ctx) == EXIT_SUCCESS)
+					if(aes_cbc_decrypt(EncBuf, (unsigned char*)Buf, (int)EncBufLen, AesCbcIv, &Ctx) == EXIT_SUCCESS)
 					{
 						Buf[EncBufLen] = NUL;
 					}
@@ -2316,17 +2316,17 @@ static int CreateAesKey(unsigned char *AesKey, const char* Key)
 	int ResIndex;
 
 	HashKeyLen = (uint32)strlen(Key) + 16;
-	if((HashKey = malloc(HashKeyLen + 1)) == NULL){
+	if((HashKey = (char*)malloc(HashKeyLen + 1)) == NULL){
 		return (FFFTP_FAIL);
 	}
 
 	strcpy(HashKey, Key);
 	strcat(HashKey, ">g^r=@N7=//z<[`:");
-	sha_memory((uchar *)HashKey, HashKeyLen, results);
+	sha_memory(HashKey, HashKeyLen, results);
 
 	strcpy(HashKey, Key);
 	strcat(HashKey, "VG77dO1#EyC]$|C@");
-	sha_memory((uchar *)HashKey, HashKeyLen, results + 5);
+	sha_memory(HashKey, HashKeyLen, results + 5);
 
 	KeyIndex = 0;
 	ResIndex = 0;
@@ -2525,14 +2525,14 @@ static int CloseReg(void *Handle)
 	{
 		if(((REGDATATBL *)Handle)->Mode == 1)
 		{
-			if(WriteOutRegToFile(Handle) == TRUE)
+			if(WriteOutRegToFile((REGDATATBL*)Handle) == TRUE)
 			{
 //				/* レジストリをクリア */
 //				ClearRegistry();
 			}
 		}
 		/* テーブルを削除 */
-		Pos = Handle;
+		Pos = (REGDATATBL*)Handle;
 		while(Pos != NULL)
 		{
 			Next = Pos->Next;
@@ -2615,7 +2615,7 @@ static int ReadInReg(char *Name, REGDATATBL **Handle)
 
 	if((Strm = fopen(AskIniFilePath(), "rt")) != NULL)
 	{
-		if((Buf = malloc(REG_SECT_MAX)) != NULL)
+		if((Buf = (char*)malloc(REG_SECT_MAX)) != NULL)
 		{
 			while(fgets(Buf, REG_SECT_MAX, Strm) != NULL)
 			{
@@ -2626,7 +2626,7 @@ static int ReadInReg(char *Name, REGDATATBL **Handle)
 
 					if(*Buf == '[')
 					{
-						if((New = malloc(sizeof(REGDATATBL))) != NULL)
+						if((New = (REGDATATBL*)malloc(sizeof(REGDATATBL))) != NULL)
 						{
 							if((Tmp = strchr(Buf, ']')) != NULL)
 								*Tmp = NUL;
@@ -2715,7 +2715,7 @@ static int OpenSubKey(void *Parent, char *Name, void **Handle)
 		strcpy(Key, ((REGDATATBL *)Parent)->KeyName);
 		strcat(Key, "\\");
 		strcat(Key, Name);
-		Pos = Parent;
+		Pos = (REGDATATBL*)Parent;
 		while(Pos != NULL)
 		{
 			if(strcmp(Pos->KeyName, Key) == 0)
@@ -2780,7 +2780,7 @@ static int CreateSubKey(void *Parent, char *Name, void **Handle)
 			Pos = (REGDATATBL *)Parent;
 			while(Pos->Next != NULL)
 				Pos = Pos->Next;
-			Pos->Next = *Handle;
+			Pos->Next = (regdatatbl*)*Handle;
 			Sts = FFFTP_SUCCESS;
 		}
 	}
@@ -3316,7 +3316,7 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 		if((Pos = ScanValue(Handle, Name)) != NULL)
 		{
 			Size = min1(Size, (int)strlen(Pos));
-			Size = StrReadIn(Pos, Size, Bin);
+			Size = StrReadIn(Pos, Size, (char*)Bin);
 			Sts = FFFTP_SUCCESS;
 		}
 	}
@@ -3382,7 +3382,7 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 		strcat(Data, "=");
 		Pos->ValLen += (int)strlen(Data);
 		Data = Pos->ValTbl + Pos->ValLen;
-		Pos->ValLen += StrCatOut(Bin, Len, Data) + 1;
+		Pos->ValLen += StrCatOut((char*)Bin, Len, Data) + 1;
 	}
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
@@ -3500,7 +3500,7 @@ static char *ScanValue(void *Handle, char *Name)
 	char *Ret;
 
 	Ret = NULL;
-	Cur = Handle;
+	Cur = (REGDATATBL*)Handle;
 	Pos = Cur->ValTbl;
 	while(Pos < (Cur->ValTbl + Cur->ValLen))
 	{
@@ -3533,7 +3533,7 @@ int CheckPasswordValidity( char* Password, int length, const char* HashStr, int 
 {
 	char Buf[MAX_PASSWORD_LEN + 32];
 	ulong hash1[5];
-	ulong hash2[5];
+	uint32 hash2[5];
 	
 	int i, j;
 	
@@ -3587,7 +3587,7 @@ int CheckPasswordValidity( char* Password, int length, const char* HashStr, int 
 void CreatePasswordHash( char* Password, int length, char* HashStr, int StretchCount )
 {
 	char Buf[MAX_PASSWORD_LEN + 32];
-	ulong hash[5];
+	uint32 hash[5];
 	int i, j;
 	unsigned char *p = (unsigned char *)HashStr;
 
@@ -3662,7 +3662,7 @@ DWORD GetRandamDWORDValue(void)
 		rndValue = rand() | (rand() << 16);
 #else
 		/* rand() のかわりに、SHA-1とパフォーマンスカウンタを用いる */
-		ulong shaValue[5];
+		uint32 shaValue[5];
 		LARGE_INTEGER Counter;
 		
 		if(0 == IsRndSourceInit){
@@ -3713,7 +3713,7 @@ DWORD GetRandamDWORDValue(void)
 void GetMaskWithHMACSHA1(DWORD Nonce, const char* Salt, int SaltLength, void* pHash)
 {
 	BYTE Key[FMAX_PATH*2+1];
-	ulong Hash[5];
+	uint32 Hash[5];
 	DWORD i;
 	for(i = 0; i < 16; i++)
 	{
@@ -3768,7 +3768,7 @@ void UnmaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size
 
 void CalculateSettingsDataChecksum(void* Data, DWORD Size)
 {
-	ulong Hash[5];
+	uint32 Hash[5];
 	DWORD i;
 	BYTE Mask[20];
 	sha_memory((char*)Data, Size, Hash);
@@ -3956,7 +3956,7 @@ void SaveSettingsToFileZillaXml()
 							else
 								p2 = strchr(p1, '\0');
 							if(*p1 != '\0')
-								fprintf(f, " %zu %s", _mbslen(p1), p1);
+								fprintf(f, " %zu %s", _mbslen((const unsigned char*)p1), p1);
 							p1 = p2;
 						}
 						fputs("</RemoteDir>\n", f);
@@ -3981,7 +3981,7 @@ void SaveSettingsToFileZillaXml()
 							else
 								p2 = strchr(p1, '\0');
 							if(*p1 != '\0')
-								fprintf(f, " %zu %s", _mbslen(p1), p1);
+								fprintf(f, " %zu %s", _mbslen((const unsigned char*)p1), p1);
 							p1 = p2;
 						}
 						fputs("</RemoteDir>\n", f);

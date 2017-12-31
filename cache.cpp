@@ -70,7 +70,7 @@ int MakeCacheBuf(int Num)
 	if(Num > 0)
 	{
 		Sts = FFFTP_FAIL;
-		if((RemoteCache = malloc(sizeof(CACHELIST) * Num)) != NULL)
+		if((RemoteCache = (CACHELIST*)malloc(sizeof(CACHELIST) * Num)) != NULL)
 		{
 			TmpCacheEntry = Num;
 			for(i = 0; i < TmpCacheEntry; i++)
