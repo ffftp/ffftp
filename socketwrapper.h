@@ -5,9 +5,6 @@
 #ifndef __SOCKETWRAPPER_H__
 #define __SOCKETWRAPPER_H__
 
-#include <ws2tcpip.h>
-#include <windows.h>
-
 #define USE_OPENSSL
 
 typedef BOOL (__stdcall* LPSSLTIMEOUTCALLBACK)(BOOL*);

@@ -26,13 +26,36 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-#ifndef __COMMON_H__
-#define __COMMON_H__
-
+#pragma once
+#define _CRT_SECURE_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include <crtdbg.h>
+#include <mbstring.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <Windows.h>
+#include <windowsx.h>
+#include <winsock2.h>
+#include <commdlg.h>
+#include <HtmlHelp.h>
+#include <MMSystem.h>
+#include <mstcpip.h>
+#include <shellapi.h>
+#include <WS2tcpip.h>
 #include "config.h"
+#include "mbswrapper.h"
+#include "socketwrapper.h"
+#include "protectprocess.h"
+#include "apiemulator.h"
 #ifndef FFFTP_ENGLISH
+#include "Resource/resource.h"
 #include "mesg-jpn.h"
 #else
+#include "Resource_eng/resource.h"
 #include "mesg-eng.h"
 #endif
 
@@ -2041,6 +2064,3 @@ int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
 /*===== updatebell.c =====*/
 
 void SaveUpdateBellInfo(void);
-
-
-#endif   // __COMMON_H__

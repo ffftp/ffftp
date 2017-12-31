@@ -8,6 +8,7 @@
 // フック先の関数のインポートアドレステーブルを書き換える
 //#define USE_IAT_HOOK
 
+#define _CRT_SECURE_NO_WARNINGS
 #include <tchar.h>
 #include <windows.h>
 #include <ntsecapi.h>

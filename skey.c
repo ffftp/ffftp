@@ -29,14 +29,6 @@
 
 /* このプログラムは skey のソースを参考にしました。 */
 
-#define	STRICT
-#include <stdlib.h>
-#include <string.h>
-// IPv6対応
-//#include <winsock.h>
-#include <winsock2.h>
-#include <windowsx.h>
-
 #include "common.h"
 #include "md4.h"
 #include "md5.h"

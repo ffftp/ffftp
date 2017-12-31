@@ -27,25 +27,7 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-#define	STRICT
-// IPv6対応
-#include <winsock2.h>
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <mbstring.h>
-#include <malloc.h>
-#include <windowsx.h>
-#include <commctrl.h>
-
-#include <stdarg.h>
-
 #include "common.h"
-#include "resource.h"
-
-
 
 
 static BOOL CALLBACK CountPrevFfftpWindowsProc(HWND hWnd, LPARAM lParam);

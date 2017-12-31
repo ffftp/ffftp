@@ -80,7 +80,7 @@
       <Command>utf8msg.exe mesg-jpn.h mesg-jpn.h</Command>
     </PreBuildEvent>
     <ClCompile>
-      <AdditionalIncludeDirectories>Resource;contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>Disabled</Optimization>
@@ -106,7 +106,7 @@
       <Command>utf8msg.exe mesg-jpn.h mesg-jpn.h</Command>
     </PreBuildEvent>
     <ClCompile>
-      <AdditionalIncludeDirectories>Resource;contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>Disabled</Optimization>
@@ -132,7 +132,7 @@
       <Command>utf8msg.exe mesg-jpn.h mesg-jpn.h</Command>
     </PreBuildEvent>
     <ClCompile>
-      <AdditionalIncludeDirectories>Resource;contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>_WINDOWS;WIN32;_WIN32_WINNT=_WIN32_WINNT_WS03;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -158,7 +158,7 @@
       <Command>utf8msg.exe mesg-jpn.h mesg-jpn.h</Command>
     </PreBuildEvent>
     <ClCompile>
-      <AdditionalIncludeDirectories>Resource;contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>_WINDOWS;WIN32;_WIN32_WINNT=_WIN32_WINNT_WS03;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>

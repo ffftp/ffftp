@@ -27,31 +27,8 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-#define	STRICT
-#include <stdio.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <mbstring.h>
-#include <time.h>
-// IPv6対応
-//#include <winsock.h>
-#include <winsock2.h>
-// 切断対策
-#include <mstcpip.h>
-#include <windowsx.h>
-#include <commctrl.h>
-
 #include "common.h"
-#include "resource.h"
-
-#include <htmlhelp.h>
 #include "helpid.h"
-
-// UTF-8対応
-#undef __MBSWRAPPER_H__
-#include "mbswrapper.h"
 
 
 /*===== プロトタイプ =====*/

@@ -27,43 +27,12 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-#define  STRICT
-// IPv6対応
-#include <winsock2.h>
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <mbstring.h>
-// 自動切断対策
-#include <time.h>
-#include <malloc.h>
-#include <windowsx.h>
-#include <commctrl.h>
-#include <stdarg.h>
-// IPv6対応
-//#include <winsock.h>
-// タスクバー進捗表示
-#include <shobjidl.h>
-
 #include "common.h"
-#include "resource.h"
 #include "aes.h"
-// 暗号化通信対応
 #include "sha.h"
-
-#include <htmlhelp.h>
-#include "helpid.h"
-
-// ソフトウェア自動更新
-#include "updater.h"
-
-// UTF-8対応
-#undef __MBSWRAPPER_H__
-#include "mbswrapper.h"
-
-// 暗号化通信対応
 #include "filehash.h"
+#include "helpid.h"
+#include "updater.h"
 
 
 #define RESIZE_OFF		0		/* ウインドウの区切り位置変更していない */

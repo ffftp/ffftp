@@ -6,14 +6,10 @@
 // コンパイルにはOpenSSLのヘッダーファイルが必要
 // 実行にはOpenSSLのDLLが必要
 
-#include <ws2tcpip.h>
-#include <windows.h>
-#include <mmsystem.h>
+#include "common.h"
+#undef SHA1
 #include <openssl/ssl.h>
-
-#include "socketwrapper.h"
 #include "protectprocess.h"
-#include "mbswrapper.h"
 #include "punycode.h"
 #include "filehash.h"
 

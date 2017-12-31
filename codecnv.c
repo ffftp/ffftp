@@ -27,21 +27,7 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-#define	STRICT
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-// IPv6対応
-//#include <winsock.h>
-#include <winsock2.h>
-#include <mbstring.h>
-#include <windowsx.h>
-// UTF-8対応
-#include <winnls.h>
-
 #include "common.h"
-#include "resource.h"
-
 
 
 #define CONV_ASCII		0		/* ASCII文字処理中 */

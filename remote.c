@@ -29,21 +29,8 @@
 
 /* このソースは一部、WS_FTP Version 93.12.05 のソースを参考にしました。 */
 
-#define	STRICT
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <mbstring.h>
-#include <time.h>
-// IPv6対応
-//#include <winsock.h>
-#include <winsock2.h>
-#include <windowsx.h>
-#include <commctrl.h>
-
 #include "common.h"
-#include "resource.h"
+
 
 #define PWD_XPWD		0
 #define PWD_PWD			1

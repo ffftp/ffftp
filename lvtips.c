@@ -29,18 +29,7 @@
 
 /* このソースは MFC Programmer's SourceBook (http://www.codeguru.com/)を参考にしました */
 
-#define  STRICT
-// IPv6対応
-#include <winsock2.h>
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <windowsx.h>
-#include <commctrl.h>
-
 #include "common.h"
-#include "resource.h"
 
 
 /*===== プロトタイプ =====*/

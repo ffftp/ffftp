@@ -27,14 +27,6 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-#define	STRICT
-#include <stdio.h>
-#include <stdlib.h>
-// IPv6対応
-//#include <winsock.h>
-#include <winsock2.h>
-#include <windowsx.h>
-
 #include "common.h"
 #include "jreusr.h"
 

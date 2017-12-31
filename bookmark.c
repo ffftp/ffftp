@@ -27,30 +27,8 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-// UTF-8対応
-//#define WINVER 0x400
-
-#define	STRICT
-// IPv6対応
-#include <winsock2.h>
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <mbstring.h>
-#include <malloc.h>
-#include <windowsx.h>
-#include <commctrl.h>
-
 #include "common.h"
-#include "resource.h"
-
-#include <htmlhelp.h>
 #include "helpid.h"
-
-// UTF-8対応
-#undef __MBSWRAPPER_H__
-#include "mbswrapper.h"
 
 
 /*===== プロトタイプ =====*/

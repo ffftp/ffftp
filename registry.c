@@ -27,28 +27,10 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-// VC 8.0(2005)以上でのみ rand_s を利用可能
-#if 1400 <= _MSC_VER
-//#define _CRT_RAND_S
-#endif
-
-#define	STRICT
-// IPv6対応
-#include <winsock2.h>
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <string.h>
-#include <windowsx.h>
-#include <process.h>
-
-
 #include "common.h"
-#include "resource.h"
+#include "aes.h"
 #include "sample.h"
 #include "sha.h"
-#include "aes.h"
 
 
 /*===== プロトタイプ =====*/

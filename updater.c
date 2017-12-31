@@ -3,6 +3,7 @@
 // ソフトウェア自動更新
 // コードの再利用のため表記はwchar_t型だが実体はchar型でUTF-8
 
+#define _CRT_SECURE_NO_WARNINGS
 #include <tchar.h>
 #include <ws2tcpip.h>
 #include <windows.h>

@@ -27,21 +27,9 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-#define	STRICT
-// IPv6対応
-#include <winsock2.h>
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <windowsx.h>
-#include <commctrl.h>
-// UPnP対応
+#include "common.h"
 #include <natupnp.h>
 
-#include "common.h"
-#include "resource.h"
 
 #define USE_THIS	1
 #define DBG_MSG		0

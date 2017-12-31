@@ -20,13 +20,3 @@
 
 /* HP NonStop Server 用のコードを有効にする */
 #define HAVE_TANDEM
-
-// 内部をUTF-8として扱いマルチバイト文字ワイド文字APIラッパーを使用する
-#include "mbswrapper.h"
-// OpenSSL用ソケットラッパーを使用する
-#include "socketwrapper.h"
-// プロセスをDLL Injectionから保護する
-#include "protectprocess.h"
-// 一部のWin32 APIのエミュレーションを行う
-#include "apiemulator.h"
-

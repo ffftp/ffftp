@@ -84,7 +84,7 @@
       <Command>utf8msg.exe mesg-eng.h mesg-eng.h</Command>
     </PreBuildEvent>
     <ClCompile>
-      <AdditionalIncludeDirectories>Resource_eng;contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>Disabled</Optimization>
@@ -110,7 +110,7 @@
       <Command>utf8msg.exe mesg-eng.h mesg-eng.h</Command>
     </PreBuildEvent>
     <ClCompile>
-      <AdditionalIncludeDirectories>Resource_eng;contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>Disabled</Optimization>
@@ -136,7 +136,7 @@
       <Command>utf8msg.exe mesg-eng.h mesg-eng.h</Command>
     </PreBuildEvent>
     <ClCompile>
-      <AdditionalIncludeDirectories>Resource_eng;contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>_WINDOWS;WIN32;_WIN32_WINNT=_WIN32_WINNT_WS03;FFFTP_ENGLISH;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -162,7 +162,7 @@
       <Command>utf8msg.exe mesg-eng.h mesg-eng.h</Command>
     </PreBuildEvent>
     <ClCompile>
-      <AdditionalIncludeDirectories>Resource_eng;contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>_WINDOWS;WIN32;_WIN32_WINNT=_WIN32_WINNT_WS03;FFFTP_ENGLISH;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>

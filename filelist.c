@@ -27,39 +27,10 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-// UTF-8対応
-//#define _WIN32_WINNT	0x400
-
-#define	STRICT
-// IPv6対応
-#include <winsock2.h>
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <time.h>
-#include <mbstring.h>
-#include <malloc.h>
-#include <windowsx.h>
-#include <commctrl.h>
-#include <sys/types.h>
+#include "common.h"
 #include <sys/stat.h>
-#include <direct.h>
-
-#include "common.h"
-#include "resource.h"
-
-#include <htmlhelp.h>
 #include "helpid.h"
-
-#include <shlobj.h>
 #include "OleDragDrop.h"
-#include "common.h"
-
-// UTF-8対応
-#undef __MBSWRAPPER_H__
-#include "mbswrapper.h"
 
 #define BUF_SIZE		256
 #define CF_CNT 2

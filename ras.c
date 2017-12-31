@@ -27,28 +27,10 @@
 / THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /============================================================================*/
 
-#define  STRICT
-
-// UTF-8対応
-//#define WINVER 0x400
-
-// IPv6対応
-#include <winsock2.h>
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <mbstring.h>
-#include <malloc.h>
-#include <windowsx.h>
-// IPv6対応
-//#include <winsock.h>
-#include <ras.h>
-#include <rasdlg.h>
-#include <raserror.h>
-
 #include "common.h"
-#include "resource.h"
+#include <Ras.h>
+#include <RasDlg.h>
+#include <RasError.h>
 
 
 typedef DWORD (WINAPI*FUNC_RASENUMCONNECTIONS) (LPRASCONN, LPDWORD, LPDWORD);
