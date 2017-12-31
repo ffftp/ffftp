@@ -1305,8 +1305,6 @@ static INT_PTR CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 	switch (message)
 	{
 		case WM_INITDIALOG :
-			// プロセス保護
-			ProtectAllEditControls(hDlg);
 			Type = ConvertNum(FwallType, 1, TypeTbl, sizeof(TypeTbl)/sizeof(INTCONVTBL));
 			SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN204);
 			SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN205);

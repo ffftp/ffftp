@@ -93,9 +93,6 @@
     <ClCompile Include="option.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="protectprocess.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ras.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -149,9 +146,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mbswrapper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="protectprocess.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Resource\resource.en-US.h">

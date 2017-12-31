@@ -9,7 +9,6 @@
 #include "common.h"
 #undef SHA1
 #include <openssl/ssl.h>
-#include "protectprocess.h"
 #include "punycode.h"
 #include "filehash.h"
 
@@ -155,12 +154,6 @@ BOOL LoadOpenSSL()
 {
 	if(g_bOpenSSLLoaded)
 		return FALSE;
-#ifdef ENABLE_PROCESS_PROTECTION
-	// ssleay32.dll 1.1.0b
-	RegisterTrustedModuleSHA1Hash(FILEHASH_SSLEAY32_DLL_SHA1);
-	// libeay32.dll 1.1.0b
-	RegisterTrustedModuleSHA1Hash(FILEHASH_LIBEAY32_DLL_SHA1);
-#endif
 	g_hOpenSSL = LoadLibrary("ssleay32.dll");
 	// バージョン固定のためlibssl32.dllの読み込みは脆弱性の原因になり得るので廃止
 //	if(!g_hOpenSSL)

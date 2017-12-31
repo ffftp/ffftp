@@ -91,10 +91,7 @@
       <Culture>0x0411</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;crypt32.lib;htmlhelp.lib;imagehlp.lib;rasapi32.lib;sfc.lib;uuid.lib;winmm.lib;wintrust.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <SubSystem>Windows</SubSystem>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <MuiResourceCompile>
@@ -118,10 +115,7 @@
       <Culture>0x0411</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;crypt32.lib;htmlhelp.lib;imagehlp.lib;rasapi32.lib;sfc.lib;uuid.lib;winmm.lib;wintrust.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <SubSystem>Windows</SubSystem>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <MuiResourceCompile>
@@ -142,12 +136,9 @@
       <Culture>0x0411</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;crypt32.lib;htmlhelp.lib;imagehlp.lib;rasapi32.lib;sfc.lib;uuid.lib;winmm.lib;wintrust.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <MuiResourceCompile>
@@ -169,12 +160,9 @@
       <Culture>0x0411</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;crypt32.lib;htmlhelp.lib;imagehlp.lib;rasapi32.lib;sfc.lib;uuid.lib;winmm.lib;wintrust.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <MuiResourceCompile>
@@ -207,7 +195,6 @@
     <ClCompile Include="misc.cpp" />
     <ClCompile Include="OleDragDrop.cpp" />
     <ClCompile Include="option.cpp" />
-    <ClCompile Include="protectprocess.cpp" />
     <ClCompile Include="punycode.c" />
     <ClCompile Include="ras.cpp" />
     <ClCompile Include="regexp.cpp" />
@@ -240,7 +227,6 @@
     <ClInclude Include="md5.h" />
     <ClInclude Include="mesg-jpn.h" />
     <ClInclude Include="OleDragDrop.h" />
-    <ClInclude Include="protectprocess.h" />
     <ClInclude Include="punycode.h" />
     <ClInclude Include="Resource\resource.en-US.h" />
     <ClInclude Include="Resource\resource.ja-JP.h" />

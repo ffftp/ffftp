@@ -66,7 +66,6 @@
 #include "config.h"
 #include "mbswrapper.h"
 #include "socketwrapper.h"
-#include "protectprocess.h"
 #include "Resource/resource.ja-JP.h"
 #include "mesg-jpn.h"
 #pragma comment(lib, "Comctl32.lib")
