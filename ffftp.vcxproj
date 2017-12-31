@@ -222,7 +222,6 @@
     <ClCompile Include="taskwin.cpp" />
     <ClCompile Include="tool.cpp" />
     <ClCompile Include="toolmenu.cpp" />
-    <ClCompile Include="updatebell.cpp" />
     <ClCompile Include="updater.cpp" />
     <ClCompile Include="wildcard.cpp" />
   </ItemGroup>

@@ -117,9 +117,6 @@
     <ClCompile Include="updater.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="updatebell.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="toolmenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

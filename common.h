@@ -2086,10 +2086,6 @@ int CheckClosedAndReconnect(void);
 // 同時接続対応
 int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
 
-/*===== updatebell.c =====*/
-
-void SaveUpdateBellInfo(void);
-
 template<class Target, class Source>
 constexpr auto data_as(Source& source) {
 	return reinterpret_cast<Target*>(std::data(source));

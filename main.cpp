@@ -584,8 +584,6 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 //	HtmlHelp(NULL, NULL, HH_INITIALIZE, (DWORD)&dwCookie);
 	HtmlHelp(NULL, NULL, HH_INITIALIZE, (DWORD_PTR)&dwCookie);
 
-	SaveUpdateBellInfo();
-
 	if((Err = WSAStartup((WORD)0x0202, &WSAData)) != 0)
 		MessageBox(NULL, ReturnWSError(Err), "FFFTP - Startup", MB_OK);
 	else
