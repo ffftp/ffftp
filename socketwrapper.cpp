@@ -9,8 +9,9 @@
 #include "common.h"
 #undef SHA1
 #include <openssl/ssl.h>
-#include "punycode.h"
 #include "filehash.h"
+
+extern bool SupportIdn;
 
 // FTPS対応
 
@@ -1090,91 +1091,23 @@ struct in6_addr inet6_addr(const char* cp)
 	return Result;
 }
 
-BOOL ConvertDomainNameToPunycode(LPSTR Output, DWORD Count, LPCSTR Input)
-{
-	BOOL bResult;
-	punycode_uint* pUnicode;
-	punycode_uint* p;
-	BOOL bNeeded;
-	LPCSTR InputString;
-	punycode_uint Length;
-	punycode_uint OutputLength;
-	bResult = FALSE;
-	if(pUnicode = (punycode_uint*)malloc(sizeof(punycode_uint) * strlen(Input)))
-	{
-		p = pUnicode;
-		bNeeded = FALSE;
-		InputString = Input;
-		Length = 0;
-		while(*InputString != '\0')
-		{
-			*p = (punycode_uint)GetNextCharM(InputString, NULL, &InputString);
-			if(*p >= 0x80)
-				bNeeded = TRUE;
-			p++;
-			Length++;
-		}
-		if(bNeeded)
-		{
-			if(Count >= strlen("xn--") + 1)
-			{
-				strcpy(Output, "xn--");
-				OutputLength = Count - (punycode_uint)strlen("xn--");
-				if(punycode_encode(Length, pUnicode, NULL, (punycode_uint*)&OutputLength, Output + strlen("xn--")) == punycode_success)
-				{
-					Output[strlen("xn--") + OutputLength] = '\0';
-					bResult = TRUE;
-				}
-			}
-		}
-		free(pUnicode);
+BOOL ConvertNameToPunycode(LPSTR Output, LPCSTR Input) {
+	static std::regex re{ R"(^(?:[A-Za-z0-9\-.])+$)" };
+	if (std::regex_match(Input, re)) {
+		strcpy(Output, Input);
+		return TRUE;
 	}
-	if(!bResult)
-	{
-		if(Count >= strlen(Input) + 1)
-		{
-			strcpy(Output, Input);
-			bResult = TRUE;
-		}
-	}
-	return bResult;
-}
-
-BOOL ConvertNameToPunycode(LPSTR Output, LPCSTR Input)
-{
-	BOOL bResult;
-	DWORD Length;
-	char* pm0;
-	char* pm1;
-	char* p;
-	char* pNext;
-	bResult = FALSE;
-	Length = (DWORD)strlen(Input);
-	if(pm0 = AllocateStringM(Length + 1))
-	{
-		if(pm1 = AllocateStringM(Length * 4 + 1))
-		{
-			strcpy(pm0, Input);
-			p = pm0;
-			while(p)
-			{
-				if(pNext = strchr(p, '.'))
-				{
-					*pNext = '\0';
-					pNext++;
-				}
-				if(ConvertDomainNameToPunycode(pm1, Length * 4, p))
-					strcat(Output, pm1);
-				if(pNext)
-					strcat(Output, ".");
-				p = pNext;
-			}
-			bResult = TRUE;
-			FreeDuplicatedString(pm1);
-		}
-		FreeDuplicatedString(pm0);
-	}
-	return bResult;
+	if (!SupportIdn)
+		return FALSE;
+	auto const winput = u8(Input);
+	auto length = IdnToAscii(0, data(winput), size_as<int>(winput), nullptr, 0);
+	if (length == 0)
+		return FALSE;
+	std::wstring wbuffer(length, L'\0');
+	auto result = IdnToAscii(0, data(winput), size_as<int>(winput), data(wbuffer), length);
+	assert(result == length);
+	strcpy(Output, u8(wbuffer).c_str());
+	return TRUE;
 }
 
 HANDLE WSAAsyncGetHostByNameM(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen)

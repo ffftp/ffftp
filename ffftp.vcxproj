@@ -93,7 +93,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
-      <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalDependencies>normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;Normaliz.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
@@ -106,7 +107,7 @@
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_WINDOWS;WIN32;_WIN32_WINNT=_WIN32_WINNT_WS03;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDOWS;WIN32;_WIN32_WINNT=_WIN32_WINNT_WIN7;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -118,6 +119,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
+      <AdditionalDependencies>normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <MuiResourceCompile>
@@ -142,7 +144,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
-      <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalDependencies>normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;Normaliz.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
@@ -154,7 +157,7 @@
       <AdditionalIncludeDirectories>contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>_WINDOWS;WIN32;_WIN32_WINNT=_WIN32_WINNT_WS03;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDOWS;WIN32;_WIN32_WINNT=_WIN32_WINNT_WIN7;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -167,6 +170,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX64</TargetMachine>
+      <AdditionalDependencies>normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <MuiResourceCompile>
@@ -193,7 +197,6 @@
     <ClCompile Include="misc.cpp" />
     <ClCompile Include="OleDragDrop.cpp" />
     <ClCompile Include="option.cpp" />
-    <ClCompile Include="punycode.c" />
     <ClCompile Include="ras.cpp" />
     <ClCompile Include="regexp.cpp" />
     <ClCompile Include="registry.cpp" />
@@ -216,7 +219,6 @@
     <ClInclude Include="mbswrapper.h" />
     <ClInclude Include="mesg-jpn.h" />
     <ClInclude Include="OleDragDrop.h" />
-    <ClInclude Include="punycode.h" />
     <ClInclude Include="Resource\resource.en-US.h" />
     <ClInclude Include="Resource\resource.ja-JP.h" />
     <ClInclude Include="sample.h" />

@@ -138,6 +138,7 @@ static int ToolWinHeight;
 HWND hHelpWin = NULL;
 std::map<int, std::string> msgs;
 HCRYPTPROV HCryptProv;
+bool SupportIdn;
 
 /* 設定値 */
 int WinPosX = CW_USEDEFAULT;
@@ -323,8 +324,20 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	// タスクバー進捗表示
 	LoadTaskbarList3();
 
-	// UTF-8対応
-	LoadUnicodeNormalizationDll();
+#if _WIN32_WINNT < _WIN32_WINNT_VISTA
+	// Vista以降およびIE7以降で導入済みとなる
+	SupportIdn = [] {
+		wchar_t systemDirectory[FMAX_PATH];
+		auto result = GetSystemDirectoryW(systemDirectory, size_as<UINT>(systemDirectory));
+		assert(0 < result);
+		if (auto module = LoadLibraryW((fs::path{ systemDirectory } / L"Normaliz.dll").c_str()); module == NULL)
+			return false;
+		__HrLoadAllImportsForDll("Normaliz.dll");
+		return true;
+	}();
+#else
+	SupportIdn = true;
+#endif
 
 	if (!CryptAcquireContextW(&HCryptProv, nullptr, nullptr, PROV_RSA_AES, CRYPT_VERIFYCONTEXT)) {
 		Message(nullptr, hInstance, IDS_ERR_CRYPTO, IDS_APP, MB_OK | MB_ICONERROR);

@@ -37,6 +37,8 @@
 
 /*===== プロトタイプ =====*/
 
+extern bool SupportIdn;
+
 static char *ConvEUCtoSJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put);
 static char *ConvJIStoSJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put);
 static char *ConvSJIStoEUCkanaProc(CODECONVINFO *cInfo, char Dt, char *Put);
@@ -47,203 +49,6 @@ static int AskDakuon(char Ch, char Daku);
 static int CheckOnSJIS(uchar *Pos, uchar *Btm);
 static int CheckOnEUC(uchar *Pos, uchar *Btm);
 static int ConvertIBMExtendedChar(int code);
-
-
-typedef enum _NORM_FORM
-{
-	NormalizationOther = 0,
-	NormalizationC = 0x1,
-	NormalizationD = 0x2,
-	NormalizationKC = 0x5,
-	NormalizationKD = 0x6
-} NORM_FORM;
-
-typedef int (WINAPI* _NormalizeString)(NORM_FORM, LPCWSTR, int, LPWSTR, int);
-
-HMODULE hUnicodeNormalizationDll;
-_NormalizeString p_NormalizeString;
-
-#if 0
-/*----- 漢字コード変換のテストプログラム ------------------------------------*/
-
-void CodeCnvTest(void)
-{
-	#define BUFBUF	43
-	#define BUFBUF2	BUFBUF+3
-
-	CODECONVINFO cInfo;
-	char Buf[BUFBUF];
-	char Buf2[BUFBUF2];
-	FILE *Strm1;
-	FILE *Strm2;
-	int Byte;
-	int Continue;
-
-//	DoPrintf("---START ZEN");
-
-	Strm1 = fopen("in.txt", "rb");
-	Strm2 = fopen("out_zen.txt", "wb");
-
-	InitCodeConvInfo(&cInfo);
-	cInfo.KanaCnv = YES;
-
-
-	while((Byte = fread(Buf, 1, BUFBUF, Strm1)) != 0)
-	{
-		cInfo.Str = Buf;
-		cInfo.StrLen = Byte;
-		cInfo.Buf = Buf2;
-		cInfo.BufSize = BUFBUF2;
-
-//		DoPrintf("READ %d", Byte);
-
-		do
-		{
-//			Continue = ConvEUCtoSJIS(&cInfo);
-//			Continue = ConvJIStoSJIS(&cInfo);
-//			Continue = ConvSJIStoEUC(&cInfo);
-//			Continue = ConvSJIStoJIS(&cInfo);
-			Continue = ConvSMBtoSJIS(&cInfo);
-//			Continue = ConvSJIStoSMB_HEX(&cInfo);
-//			Continue = ConvSJIStoSMB_CAP(&cInfo);
-
-			fwrite(Buf2, cInfo.OutLen, 1, Strm2);
-//			DoPrintf("WRITE %d", cInfo.OutLen);
-
-		}
-		while(Continue == YES);
-	}
-
-	cInfo.Buf = Buf2;
-	cInfo.BufSize = BUFBUF2;
-	FlushRestData(&cInfo);
-	fwrite(Buf2, cInfo.OutLen, 1, Strm2);
-//	DoPrintf("WRITE %d", cInfo.OutLen);
-
-
-	fclose(Strm1);
-	fclose(Strm2);
-
-
-//	DoPrintf("---START HAN");
-
-	Strm1 = fopen("in.txt", "rb");
-	Strm2 = fopen("out_han.txt", "wb");
-
-	InitCodeConvInfo(&cInfo);
-	cInfo.KanaCnv = NO;
-
-
-	while((Byte = fread(Buf, 1, BUFBUF, Strm1)) != 0)
-	{
-		cInfo.Str = Buf;
-		cInfo.StrLen = Byte;
-		cInfo.Buf = Buf2;
-		cInfo.BufSize = BUFBUF2;
-
-//		DoPrintf("READ %d", Byte);
-
-		do
-		{
-//			Continue = ConvEUCtoSJIS(&cInfo);
-//			Continue = ConvJIStoSJIS(&cInfo);
-//			Continue = ConvSJIStoEUC(&cInfo);
-//			Continue = ConvSJIStoJIS(&cInfo);
-			Continue = ConvSMBtoSJIS(&cInfo);
-//			Continue = ConvSJIStoSMB_HEX(&cInfo);
-//			Continue = ConvSJIStoSMB_CAP(&cInfo);
-			fwrite(Buf2, cInfo.OutLen, 1, Strm2);
-//			DoPrintf("WRITE %d", cInfo.OutLen);
-
-		}
-		while(Continue == YES);
-	}
-
-	cInfo.Buf = Buf2;
-	cInfo.BufSize = BUFBUF2;
-	FlushRestData(&cInfo);
-	fwrite(Buf2, cInfo.OutLen, 1, Strm2);
-//	DoPrintf("WRITE %d", cInfo.OutLen);
-
-	fclose(Strm1);
-	fclose(Strm2);
-
-//	DoPrintf("---END");
-
-	return;
-}
-#endif
-
-
-
-#if 0
-/*----- 改行コード変換のテストプログラム ------------------------------------*/
-
-void TermCodeCnvTest(void)
-{
-	#define BUFBUF	10
-	#define BUFBUF2	BUFBUF
-
-	TERMCODECONVINFO cInfo;
-	char Buf[BUFBUF];
-	char Buf2[BUFBUF2];
-	FILE *Strm1;
-	FILE *Strm2;
-	int Byte;
-	int Continue;
-
-//	DoPrintf("---START");
-
-	Strm1 = fopen("in.txt", "rb");
-	Strm2 = fopen("out.txt", "wb");
-
-	InitTermCodeConvInfo(&cInfo);
-
-	while((Byte = fread(Buf, 1, BUFBUF, Strm1)) != 0)
-	{
-		cInfo.Str = Buf;
-		cInfo.StrLen = Byte;
-		cInfo.Buf = Buf2;
-		cInfo.BufSize = BUFBUF2;
-
-//		DoPrintf("READ %d", Byte);
-
-		do
-		{
-			Continue = ConvTermCodeToCRLF(&cInfo);
-
-			fwrite(Buf2, cInfo.OutLen, 1, Strm2);
-//			DoPrintf("WRITE %d", cInfo.OutLen);
-
-		}
-		while(Continue == YES);
-	}
-
-	cInfo.Buf = Buf2;
-	cInfo.BufSize = BUFBUF2;
-	FlushRestTermCodeConvData(&cInfo);
-	fwrite(Buf2, cInfo.OutLen, 1, Strm2);
-//	DoPrintf("WRITE %d", cInfo.OutLen);
-
-	fclose(Strm1);
-	fclose(Strm2);
-
-//	DoPrintf("---END");
-
-	return;
-}
-#endif
-
-
-
-
-
-
-
-
-
-
-
 
 /*----- 改行コード変換情報を初期化 --------------------------------------------
 *
@@ -1882,7 +1687,7 @@ int ConvUTF8NtoUTF8HFSX(CODECONVINFO *cInfo)
 	char* Temp3Cur;
 	char* Temp3End;
 	int TempCount;
-	if(IsUnicodeNormalizationDllLoaded() == NO)
+	if(!SupportIdn)
 		return ConvNoConv(cInfo);
 	Continue = NO;
 	SrcLength = cInfo->StrLen + cInfo->EscUTF8Len;
@@ -1929,7 +1734,7 @@ int ConvUTF8NtoUTF8HFSX(CODECONVINFO *cInfo)
 		{
 			// Normalization Form Dに変換
 			Count = MultiByteToWideChar(CP_UTF8, 0, pSrcCur, (int)(pSrcNext - pSrcCur), Temp1, 4);
-			Count = p_NormalizeString(NormalizationD, Temp1, Count, Temp2, 4);
+			Count = NormalizeString(NormalizationD, Temp1, Count, Temp2, 4);
 			Count = WideCharToMultiByte(CP_UTF8, 0, Temp2, Count, Temp3, 16, NULL, NULL);
 			Temp3Cur = Temp3;
 			Temp3End = Temp3 + Count;
@@ -1987,13 +1792,13 @@ int ConvUTF8HFSXtoUTF8N_TruncateToDelimiter(char* pUTF8, int UTF8Length, int* pN
 	if(!(pUTF16 = (wchar_t*)malloc(sizeof(wchar_t) * UTF16Length)))
 		return -1;
 	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, pUTF16, UTF16Length);
-	UTF16HFSXLength = p_NormalizeString(NormalizationC, pUTF16, UTF16Length, NULL, 0);
+	UTF16HFSXLength = NormalizeString(NormalizationC, pUTF16, UTF16Length, NULL, 0);
 	if(!(pUTF16HFSX = (wchar_t*)malloc(sizeof(wchar_t) * UTF16HFSXLength)))
 	{
 		free(pUTF16);
 		return -1;
 	}
-	UTF16HFSXLength = p_NormalizeString(NormalizationC, pUTF16, UTF16Length, pUTF16HFSX, UTF16HFSXLength);
+	UTF16HFSXLength = NormalizeString(NormalizationC, pUTF16, UTF16Length, pUTF16HFSX, UTF16HFSXLength);
 	// 変換した時にコードポイントの個数が増減する位置がUnicode結合文字の区切り
 	CodeCount = GetCodeCountW(pUTF16HFSX, UTF16HFSXLength);
 	NewCodeCount = CodeCount;
@@ -2001,7 +1806,7 @@ int ConvUTF8HFSXtoUTF8N_TruncateToDelimiter(char* pUTF8, int UTF8Length, int* pN
 	{
 		UTF8Length--;
 		UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, pUTF16, UTF16Length);
-		UTF16HFSXLength = p_NormalizeString(NormalizationC, pUTF16, UTF16Length, pUTF16HFSX, UTF16HFSXLength);
+		UTF16HFSXLength = NormalizeString(NormalizationC, pUTF16, UTF16Length, pUTF16HFSX, UTF16HFSXLength);
 		NewCodeCount = GetCodeCountW(pUTF16HFSX, UTF16HFSXLength);
 	}
 	free(pUTF16);
@@ -2033,7 +1838,7 @@ int ConvUTF8HFSXtoUTF8N(CODECONVINFO *cInfo)
 	wchar_t* pUTF16HFSX;
 	CODECONVINFO Temp;
 	int Count;
-	if(IsUnicodeNormalizationDllLoaded() == NO)
+	if(!SupportIdn)
 		return ConvNoConv(cInfo);
 	Continue = NO;
 	// 前回の変換不能な残りの文字列を入力の先頭に結合
@@ -2056,7 +1861,7 @@ int ConvUTF8HFSXtoUTF8N(CODECONVINFO *cInfo)
 		return Continue;
 	}
 	MultiByteToWideChar(CP_UTF8, 0, pSrc, SrcLength, pUTF16, UTF16Length);
-	UTF16HFSXLength = p_NormalizeString(NormalizationC, pUTF16, UTF16Length, NULL, 0);
+	UTF16HFSXLength = NormalizeString(NormalizationC, pUTF16, UTF16Length, NULL, 0);
 	if(!(pUTF16HFSX = (wchar_t*)malloc(sizeof(wchar_t) * UTF16HFSXLength)))
 	{
 		free(pSrc);
@@ -2065,7 +1870,7 @@ int ConvUTF8HFSXtoUTF8N(CODECONVINFO *cInfo)
 		cInfo->BufSize = 0;
 		return Continue;
 	}
-	UTF16HFSXLength = p_NormalizeString(NormalizationC, pUTF16, UTF16Length, pUTF16HFSX, UTF16HFSXLength);
+	UTF16HFSXLength = NormalizeString(NormalizationC, pUTF16, UTF16Length, pUTF16HFSX, UTF16HFSXLength);
 	cInfo->OutLen = WideCharToMultiByte(CP_UTF8, 0, pUTF16HFSX, UTF16HFSXLength, cInfo->Buf, cInfo->BufSize, NULL, NULL);
 	if(cInfo->OutLen == 0 && UTF16HFSXLength > 0)
 	{
@@ -2131,46 +1936,3 @@ static int ConvertIBMExtendedChar(int code)
 	else if((code >= 0xfc40) && (code <= 0xfc4b))	code -= (0xfc40 - 0xeee1);
 	return code;
 }
-
-// UTF-8対応
-int LoadUnicodeNormalizationDll()
-{
-	int Sts;
-	char CurDir[FMAX_PATH+1];
-	char SysDir[FMAX_PATH+1];
-	Sts = FFFTP_FAIL;
-	if(GetCurrentDirectory(FMAX_PATH, CurDir) > 0)
-	{
-		if(GetSystemDirectory(SysDir, FMAX_PATH) > 0)
-		{
-			if(SetCurrentDirectory(SysDir))
-			{
-				if((hUnicodeNormalizationDll = LoadLibrary("normaliz.dll")) != NULL)
-				{
-					if((p_NormalizeString = (_NormalizeString)GetProcAddress(hUnicodeNormalizationDll, "NormalizeString")) != NULL)
-						Sts = FFFTP_SUCCESS;
-				}
-				SetCurrentDirectory(CurDir);
-			}
-		}
-	}
-	return Sts;
-}
-
-void FreeUnicodeNormalizationDll()
-{
-	if(hUnicodeNormalizationDll != NULL)
-		FreeLibrary(hUnicodeNormalizationDll);
-	hUnicodeNormalizationDll = NULL;
-	p_NormalizeString = NULL;
-}
-
-int IsUnicodeNormalizationDllLoaded()
-{
-	int Sts;
-	Sts = FFFTP_FAIL;
-	if(hUnicodeNormalizationDll != NULL && p_NormalizeString != NULL)
-		Sts = FFFTP_SUCCESS;
-	return Sts;
-}
-

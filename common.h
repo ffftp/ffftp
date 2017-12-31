@@ -69,6 +69,11 @@
 #include "socketwrapper.h"
 #include "Resource/resource.ja-JP.h"
 #include "mesg-jpn.h"
+// IdnToAscii()、NormalizeString()共にVistaからNormaliz.dllからKERNEL32.dllに移されている。
+// この影響かのためかNormalizeString()だけはkernel32.libにも登録されている（多分バグ）。
+// このため、XP向けに正しくリンクするためにはリンカー引数でkernel32.libよりも前にnormaliz.libを置く必要がある。
+// #pragma comment(lib, "normaliz.lib") ではこれを実現できないため、リンクオプションで設定する。
+// 逆にIdnToAscii()はkernel32.libに登録されていないため、Vista以降をターゲットとする場合でもnormaliz.libは必要となる。
 #pragma comment(lib, "Comctl32.lib")
 #pragma comment(lib, "HtmlHelp.lib")
 #pragma comment(lib, "Winmm.lib")
@@ -77,6 +82,99 @@ namespace fs = std::experimental::filesystem;
 using namespace std::literals;
 template<class...>
 constexpr bool false_v = false;
+
+// WinNls.hではバージョン制限があるためローカルにコピー
+extern "C" {
+#if (0x0501 <= WINVER && WINVER < 0x0600)
+//
+//  Normalization forms
+//
+
+typedef enum _NORM_FORM {
+    NormalizationOther  = 0,       // Not supported
+    NormalizationC      = 0x1,     // Each base plus combining characters to the canonical precomposed equivalent.
+    NormalizationD      = 0x2,     // Each precomposed character to its canonical decomposed equivalent.
+    NormalizationKC     = 0x5,     // Each base plus combining characters to the canonical precomposed
+                                   //   equivalents and all compatibility characters to their equivalents.
+    NormalizationKD     = 0x6      // Each precomposed character to its canonical decomposed equivalent
+                                   //   and all compatibility characters to their equivalents.
+} NORM_FORM;
+
+//
+// IDN (International Domain Name) Flags
+//
+#define IDN_ALLOW_UNASSIGNED        0x01  // Allow unassigned "query" behavior per RFC 3454
+#define IDN_USE_STD3_ASCII_RULES    0x02  // Enforce STD3 ASCII restrictions for legal characters
+
+#define VS_ALLOW_LATIN              0x0001  // Allow Latin in test script even if not present in locale script
+
+#define GSS_ALLOW_INHERITED_COMMON  0x0001  // Output script ids for inherited and common character types if present
+
+//
+// Windows API Normalization Functions
+//
+
+WINNORMALIZEAPI
+int
+WINAPI NormalizeString( __in                          NORM_FORM NormForm,
+                        __in_ecount(cwSrcLength)      LPCWSTR   lpSrcString,
+                        __in                          int       cwSrcLength,
+                        __out_ecount_opt(cwDstLength) LPWSTR    lpDstString,
+                        __in                          int       cwDstLength );
+
+WINNORMALIZEAPI
+BOOL
+WINAPI IsNormalizedString( __in                   NORM_FORM NormForm,
+                           __in_ecount(cwLength)  LPCWSTR   lpString,
+                           __in                   int       cwLength );
+
+//
+// IDN (International Domain Name) Functions
+//
+WINNORMALIZEAPI
+int
+WINAPI IdnToAscii(__in                           DWORD    dwFlags,
+                  __in_ecount(cchUnicodeChar) 	 LPCWSTR  lpUnicodeCharStr,
+                  __in                        	 int      cchUnicodeChar,
+                  __out_ecount_opt(cchASCIIChar) LPWSTR   lpASCIICharStr,
+                  __in                        	 int      cchASCIIChar);
+
+WINNORMALIZEAPI
+int
+WINAPI IdnToNameprepUnicode(__in                            	DWORD   dwFlags,
+                            __in_ecount(cchUnicodeChar)     	LPCWSTR lpUnicodeCharStr,
+                            __in                            	int     cchUnicodeChar,
+                            __out_ecount_opt(cchNameprepChar)   LPWSTR  lpNameprepCharStr,
+                            __in                            	int     cchNameprepChar);
+
+WINNORMALIZEAPI
+int
+WINAPI IdnToUnicode(__in                         	 DWORD   dwFlags,
+                    __in_ecount(cchASCIIChar)    	 LPCWSTR lpASCIICharStr,
+                    __in                         	 int     cchASCIIChar,
+                    __out_ecount_opt(cchUnicodeChar) LPWSTR  lpUnicodeCharStr,
+                    __in                         	 int     cchUnicodeChar);
+
+WINBASEAPI
+BOOL
+WINAPI VerifyScripts(
+    __in    DWORD   dwFlags,            // optional behavior flags
+    __in    LPCWSTR lpLocaleScripts,    // Locale list of scripts string
+    __in    int     cchLocaleScripts,   // size of locale script list string
+    __in    LPCWSTR lpTestScripts,      // test scripts string
+    __in    int     cchTestScripts);    // size of test list string
+
+WINBASEAPI
+int
+WINAPI GetStringScripts(
+        __in                         DWORD   dwFlags,        // optional behavior flags
+        __in                         LPCWSTR lpString,       // Unicode character input string
+        __in                         int     cchString,      // size of input string
+        __out_ecount_opt(cchScripts) LPWSTR  lpScripts,      // Script list output string
+        __in                         int     cchScripts);    // size of output string
+
+#endif
+}
 
 
 #define NUL				'\0'
@@ -1853,10 +1951,6 @@ int ConvUTF8NtoUTF8HFSX(CODECONVINFO *cInfo);
 int ConvUTF8HFSXtoUTF8N(CODECONVINFO *cInfo);
 void ConvAutoToSJIS(char *Text, int Pref);
 int CheckKanjiCode(char *Text, int Size, int Pref);
-// UTF-8対応
-int LoadUnicodeNormalizationDll();
-void FreeUnicodeNormalizationDll();
-int IsUnicodeNormalizationDllLoaded();
 
 /*===== option.c =====*/
 
