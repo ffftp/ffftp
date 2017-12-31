@@ -146,9 +146,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Resource\ffftp.rc">
-      <Filter>Source Files</Filter>
-    </ResourceCompile>
+    <MuiResourceCompile Include="Resource\ffftp.en-US.rc">
+      <Filter>Resource Files</Filter>
+    </MuiResourceCompile>
+    <MuiResourceCompile Include="Resource\ffftp.ja-JP.rc">
+      <Filter>Resource Files</Filter>
+    </MuiResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="apiemulator.h">
@@ -163,7 +166,10 @@
     <ClInclude Include="protectprocess.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Resource\resource.h">
+    <ClInclude Include="Resource\resource.en-US.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource\resource.ja-JP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="socketwrapper.h">
@@ -261,6 +267,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Resource\ffftp.exe.manifest">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Resource\ffftp.rcconfig">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

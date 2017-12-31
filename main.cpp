@@ -28,6 +28,12 @@
 /============================================================================*/
 
 #include "common.h"
+#include <delayimp.h>
+#if _WIN32_WINNT < _WIN32_WINNT_VISTA
+#include <muiload.h>
+#pragma comment(lib, "muiload.lib")
+#pragma comment(lib, "legacy_stdio_definitions.lib")
+#endif
 #include "aes.h"
 #include "sha.h"
 #include "filehash.h"
@@ -135,6 +141,7 @@ static int ApplyUpdatesOnExit = NO;
 /*===== グローバルなワーク =====*/
 
 HWND hHelpWin = NULL;
+std::map<int, std::string> msgs;
 
 /* 設定値 */
 int WinPosX = CW_USEDEFAULT;
@@ -282,6 +289,25 @@ int FwallNoSaveUser = NO;
 
 int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmdShow)
 {
+#if _WIN32_WINNT < _WIN32_WINNT_VISTA
+	{
+		wchar_t moduleFileName[FMAX_PATH];
+		GetModuleFileNameW(nullptr, moduleFileName, FMAX_PATH);
+		auto const fileName = fs::path{ moduleFileName }.filename();
+		hInstance = LoadMUILibraryW(fileName.c_str(), MUI_LANGUAGE_NAME, GetUserDefaultUILanguage());
+		if (hInstance == NULL)
+			hInstance = LoadMUILibraryW(fileName.c_str(), MUI_LANGUAGE_NAME, LANG_NEUTRAL);
+	}
+#endif
+	EnumResourceNames(hInstance, RT_STRING, [](auto hModule, auto lpType, auto lpName, auto lParam) -> BOOL {
+		wchar_t buffer[1024];
+		if (IS_INTRESOURCE(lpName))
+			for (int id = (PtrToInt(lpName) - 1) * 16, end = id + 16; id < end; id++)
+				if (auto length = LoadStringW(hModule, id, buffer, size_as<int>(buffer)); 0 < length)
+					msgs.emplace(id, u8(buffer, length));
+		return true;
+	}, 0);
+
 	MSG Msg;
 	int Ret;
 	BOOL Sts;

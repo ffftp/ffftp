@@ -27,7 +27,6 @@
 /============================================================================*/
 
 #pragma once
-#pragma warning (disable: 4819)
 #define _CRT_SECURE_NO_WARNINGS
 #define _SCL_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
@@ -69,13 +68,8 @@
 #include "socketwrapper.h"
 #include "protectprocess.h"
 #include "apiemulator.h"
-#ifndef FFFTP_ENGLISH
-#include "Resource/resource.h"
+#include "Resource/resource.ja-JP.h"
 #include "mesg-jpn.h"
-#else
-#include "Resource_eng/resource.h"
-#include "mesg-eng.h"
-#endif
 #pragma comment(lib, "Comctl32.lib")
 #pragma comment(lib, "HtmlHelp.lib")
 #pragma comment(lib, "Winmm.lib")

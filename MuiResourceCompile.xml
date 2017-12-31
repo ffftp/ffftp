@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ProjectSchemaDefinitions xmlns="http://schemas.microsoft.com/build/2009/properties">
+  <ContentType Name="MUIRC" DisplayName="MUI RC file" ItemType="MuiResourceCompile" />
+  <ItemType Name="MuiResourceCompile" DisplayName="Mui Resource compiler" />
+  <FileExtension Name=".rc" ContentType="MUIRC" />
+  <Rule Name="MUIRC" PageTemplate="tool" DisplayName="MUI Resources" SwitchPrefix="/" Order="50" xmlns="http://schemas.microsoft.com/build/2009/properties" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <Rule.Categories>
+      <Category Name="General" DisplayName="General" />
+      <Category Name="MUI" DisplayName="MUI" />
+      <Category Name="All Options" DisplayName="All Options" Subtype="Search" />
+      <Category Name="Command Line" DisplayName="Command Line" Subtype="CommandLine" />
+    </Rule.Categories>
+    <Rule.DataSource>
+      <DataSource Persistence="ProjectFile" ItemType="MuiResourceCompile" Label="" HasConfigurationCondition="true" />
+    </Rule.DataSource>
+    <StringListProperty Name="PreprocessorDefinitions" DisplayName="Preprocessor Definitions" Description="Specifies one or more defines for the resource compiler. (/d[macro])" Category="General" Switch="D " F1Keyword="VC.Project.VCResourceCompilerTool.PreprocessorDefinitions" />
+    <StringListProperty Name="DesigntimePreprocessorDefinitions" DisplayName="Designtime Preprocessor Definitions" Description="Resource editor defines." Category="General" IncludeInCommandLine="false" Visible="false" />
+    <StringListProperty Name="UndefinePreprocessorDefinitions" DisplayName="Undefine Preprocessor Definitions" Description="Undefine a symbol. (/u)" Category="General" Switch="u" F1Keyword="VC.Project.VCResourceCompilerTool.UndefineProcessorDefinitions" />
+    <DynamicEnumProperty EnumProvider="cultures" Name="Culture" DisplayName="Culture" Description="Lists the culture (such as US English or Italian) used in the resources. (/l [num])" Category="General" Switch="l" F1Keyword="VC.Project.VCResourceCompilerTool.Culture">
+      <DynamicEnumProperty.ProviderSettings>
+        <NameValuePair Name="DisplayNameFormat" Value="{}{1}" />
+        <NameValuePair Name="SwitchFormat" Value="{}l 0x{0:x4}" />
+      </DynamicEnumProperty.ProviderSettings>
+    </DynamicEnumProperty>
+    <StringListProperty Subtype="folder" Name="AdditionalIncludeDirectories" DisplayName="Additional Include Directories" Description="Specifies one or more directories to add to the include path; use semi-colon delimiter if more than one. (/I[path])" Category="General" Switch="I" F1Keyword="VC.Project.VCResourceCompilerTool.AdditionalIncludeDirectories" />
+    <BoolProperty Name="IgnoreStandardIncludePath" DisplayName="Ignore Standard Include Paths" Description="Prevents the resource compiler from searching for include files in directories specified in the INCLUDE environment variables. (/X)" Category="General" Switch="X" F1Keyword="VC.Project.VCResourceCompilerTool.IgnoreStandardIncludePath" />
+    <BoolProperty Name="ShowProgress" DisplayName="Show Progress" Description="Send progress messages to output window. (/v)" Category="General" Switch="v" F1Keyword="VC.Project.VCResourceCompilerTool.ShowProgress" />
+    <BoolProperty Name="SuppressStartupBanner" DisplayName="Suppress Startup Banner" Description="Suppress the display of the startup banner and information message (/nologo)" Category="General" Switch="nologo" F1Keyword="VC.Project.VCResourceCompilerTool.SuppressStartupBanner" />
+    <BoolProperty Name="NullTerminateStrings" DisplayName="Null Terminate Strings" Description="Append null's to all strings in the string tables. (/n)" Category="General" Switch="n" F1Keyword="VC.Project.VCResourceCompilerTool.NullTerminateStrings" />
+    <StringProperty Subtype="folder" Name="TrackerLogDirectory" DisplayName="Tracker Log Directory" Description="Tracker Log Directory." Category="General" IncludeInCommandLine="false" Visible="false" />
+
+    <StringProperty Category="MUI" Name="RCConfigFileName" DisplayName="RC Configuration File Name" Description="Specifies the name of the RC configuration file. (/q [file])" Switch="q" Subtype="file" IsRequired="true" />
+    <StringProperty Category="MUI" Name="ResourceOutputMuiFileName" DisplayName="Mui Resource File Name" Description="Specifies the name of the language-dependent resource file (/fm[file])" Switch="fm" Subtype="file" IsRequired="true" />
+    <StringProperty Category="MUI" Name="MuiCulture" DisplayName="Culture Directory Name" Description="Specifies the name of the cutlure directory." IsRequired="true" IncludeInCommandLine="false" />
+    <EnumProperty Category="MUI" Name="GenerateLanguageNeutralResource" DisplayName="Generate Language-Neutral Resource" Description="Generate the language-neutral resource file. (/g1)">
+      <EnumValue Name="true" DisplayName="Generate">
+        <Argument Property="ResourceOutputLNFileName" IsRequired="true" />
+      </EnumValue>
+      <EnumValue Name="false" DisplayName="Don't Generate" Switch="g1" />
+    </EnumProperty>
+    <StringProperty Category="MUI" Name="ResourceOutputLNFileName" DisplayName="LN Resource File Name" Description="Specifies the name of the language-neutral resource file (/fo[file])" Switch="fo" Subtype="file" />
+
+    <StringProperty Name="AdditionalOptions" DisplayName="Additional Options" Description="Additional Options" Category="Command Line" F1Keyword="vc.project.AdditionalOptionsPage" />
+  </Rule>
+</ProjectSchemaDefinitions>

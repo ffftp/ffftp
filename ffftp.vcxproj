@@ -76,9 +76,6 @@
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <PreBuildEvent>
-      <Command>utf8msg.exe mesg-jpn.h mesg-jpn.h</Command>
-    </PreBuildEvent>
     <ClCompile>
       <AdditionalIncludeDirectories>contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
@@ -100,11 +97,12 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
+    <MuiResourceCompile>
+      <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
+      <PreprocessorDefinitions>_USING_V110_SDK71_</PreprocessorDefinitions>
+    </MuiResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <PreBuildEvent>
-      <Command>utf8msg.exe mesg-jpn.h mesg-jpn.h</Command>
-    </PreBuildEvent>
     <ClCompile>
       <AdditionalIncludeDirectories>contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
@@ -126,11 +124,11 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
+    <MuiResourceCompile>
+      <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
+    </MuiResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <PreBuildEvent>
-      <Command>utf8msg.exe mesg-jpn.h mesg-jpn.h</Command>
-    </PreBuildEvent>
     <ClCompile>
       <AdditionalIncludeDirectories>contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
@@ -152,11 +150,12 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
+    <MuiResourceCompile>
+      <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
+      <PreprocessorDefinitions>_USING_V110_SDK71_</PreprocessorDefinitions>
+    </MuiResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <PreBuildEvent>
-      <Command>utf8msg.exe mesg-jpn.h mesg-jpn.h</Command>
-    </PreBuildEvent>
     <ClCompile>
       <AdditionalIncludeDirectories>contrib\openssl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WarningLevel>Level3</WarningLevel>
@@ -178,6 +177,9 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
+    <MuiResourceCompile>
+      <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
+    </MuiResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="aescrypt.c" />
@@ -244,7 +246,8 @@
     <ClInclude Include="OleDragDrop.h" />
     <ClInclude Include="protectprocess.h" />
     <ClInclude Include="punycode.h" />
-    <ClInclude Include="Resource\resource.h" />
+    <ClInclude Include="Resource\resource.en-US.h" />
+    <ClInclude Include="Resource\resource.ja-JP.h" />
     <ClInclude Include="sample.h" />
     <ClInclude Include="sha.h" />
     <ClInclude Include="socketwrapper.h" />
@@ -263,13 +266,32 @@
     <None Include="Resource\cursor1.cur" />
     <None Include="Resource\cursor2.cur" />
     <None Include="Resource\drag_csr.cur" />
+    <None Include="Resource\ffftp.rcconfig" />
     <None Include="Resource\nodrop_c.cur" />
     <None Include="Resource\ffftp.exe.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Resource\ffftp.rc" />
+    <MuiResourceCompile Include="Resource\ffftp.en-US.rc">
+      <FileType>Document</FileType>
+      <MuiCulture Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">en-US</MuiCulture>
+      <GenerateLanguageNeutralResource Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateLanguageNeutralResource>
+      <MuiCulture Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">en-US</MuiCulture>
+      <GenerateLanguageNeutralResource Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateLanguageNeutralResource>
+      <MuiCulture Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">en-US</MuiCulture>
+      <GenerateLanguageNeutralResource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateLanguageNeutralResource>
+      <MuiCulture Condition="'$(Configuration)|$(Platform)'=='Release|x64'">en-US</MuiCulture>
+      <GenerateLanguageNeutralResource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateLanguageNeutralResource>
+    </MuiResourceCompile>
+    <MuiResourceCompile Include="Resource\ffftp.ja-JP.rc">
+      <FileType>Document</FileType>
+      <MuiCulture Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ja-JP</MuiCulture>
+      <MuiCulture Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ja-JP</MuiCulture>
+      <MuiCulture Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ja-JP</MuiCulture>
+      <MuiCulture Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ja-JP</MuiCulture>
+    </MuiResourceCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)MuiResourceCompile.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>

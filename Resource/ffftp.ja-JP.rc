@@ -1,13 +1,13 @@
 // Microsoft Visual C++ generated resource script.
 //
-#include "resource.h"
+#include "resource.ja-JP.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
+#include "winres.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -27,12 +27,12 @@ LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
 
 1 TEXTINCLUDE 
 BEGIN
-    "resource.h\0"
+    "resource.ja-JP.h\0"
 END
 
 2 TEXTINCLUDE 
 BEGIN
-    "#include ""afxres.h""\r\n"
+    "#include ""winres.h""\r\n"
     "\0"
 END
 
@@ -2335,6 +2335,475 @@ remote_toolbar_bmp TOOLBAR 16, 16
 BEGIN
     BUTTON      ID_BUTTON40108
     BUTTON      ID_BUTTON40109
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN001           "接続を中止しました."
+    IDS_MSGJPN002           "接続を中止しました."
+    IDS_MSGJPN003           "\r\n再接続します.\r\n"
+    IDS_MSGJPN004           "切断しました"
+    IDS_MSGJPN005           "接続が切断されました."
+    IDS_MSGJPN006           "FireWallにログインできません."
+    IDS_MSGJPN007           "ホスト %s に接続できません."
+    IDS_MSGJPN008           "ログインできません."
+    IDS_MSGJPN009           "接続できません."
+    IDS_MSGJPN010           "FireWallのホスト名が設定されていません."
+    IDS_MSGJPN011           "ホスト名がありません."
+    IDS_MSGJPN012           "MD5を使用します."
+    IDS_MSGJPN013           "SHA-1を使用します."
+    IDS_MSGJPN014           "MD4(S/KEY)を使用します."
+    IDS_MSGJPN015           "ワンタイムパスワードが処理できません"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN016           "ホスト %s を探しています. (%s)"
+    IDS_MSGJPN017           "%sホスト %s (%s (%d)) に接続しています. (%s)"
+    IDS_MSGJPN018           "%sホスト %s (%d) に接続しています. (%s)"
+    IDS_MSGJPN019           "ホスト %s が見つかりません. (%s)"
+    IDS_MSGJPN020           "%sホスト %s (%d) に接続しています. (%s)"
+    IDS_MSGJPN021           "SOCKSサーバー %s が見つかりません. (%s)"
+    IDS_MSGJPN022           "SOCKSサーバー %s (%d) に接続しています. (%s)"
+    IDS_MSGJPN023           "SOCKSサーバーに接続できません. (Err=%d) (%s)"
+    IDS_MSGJPN024           "SOCKSサーバーに接続できません. (Err=%d) (%s)"
+    IDS_MSGJPN025           "接続しました. (%s)"
+    IDS_MSGJPN026           "接続できません. (%s)"
+    IDS_MSGJPN027           "ソケットが作成できません. (%s)"
+    IDS_MSGJPN028           "SOCKSサーバーに接続できません. (Err=%d) (%s)"
+    IDS_MSGJPN029           "SOCKSサーバーに接続できません. (Err=%d) (%s)"
+    IDS_MSGJPN030           "Listenソケットが作成できません. (%s)"
+    IDS_MSGJPN031           "PORTコマンドが受け付けられません. (%s)"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN032           "接続はユーザーによって中止されました."
+    IDS_MSGJPN033           "SOCKSのコマンドが送れませんでした (Cmd = %04X)"
+    IDS_MSGJPN034           "SOCKS5のコマンドに対するリプライが受信できませんでした"
+    IDS_MSGJPN035           "SOCKS4のコマンドに対するリプライが受信できませんでした"
+    IDS_MSGJPN036           "SOCKSサーバーの認証方式が異なります."
+    IDS_MSGJPN037           "SOCKSサーバーに認証されませんでした."
+    IDS_MSGJPN038           "名前"
+    IDS_MSGJPN039           "日付"
+    IDS_MSGJPN040           "サイズ"
+    IDS_MSGJPN041           "種類"
+    IDS_MSGJPN042           "名前"
+    IDS_MSGJPN043           "日付"
+    IDS_MSGJPN044           "サイズ"
+    IDS_MSGJPN045           "種類"
+    IDS_MSGJPN046           "属性"
+    IDS_MSGJPN047           "所有者"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN048           "テンポラリファイルが読み出せません."
+    IDS_MSGJPN049           "ファイル一覧の取得に失敗しました."
+    IDS_MSGJPN050           "検索（ローカル）"
+    IDS_MSGJPN051           "検索（ホスト）"
+    IDS_MSGJPN052           "削除: %s"
+    IDS_MSGJPN053           "作成: %s"
+    IDS_MSGJPN054           "転送: %s"
+    IDS_MSGJPN055           "削除: %s"
+    IDS_MSGJPN056           "作成: %s"
+    IDS_MSGJPN057           "転送: %s"
+    IDS_MSGJPN058           "%d個のファイルを転送します."
+    IDS_MSGJPN059           "転送するファイルはありません."
+    IDS_MSGJPN060           "%d個のフォルダを作成します."
+    IDS_MSGJPN061           "作成するフォルダはありません."
+    IDS_MSGJPN062           "%d個のファイル/フォルダを削除します."
+    IDS_MSGJPN063           "削除するファイル/フォルダはありません."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN064           "名前を変更してアップロード"
+    IDS_MSGJPN065           "名前を変更してダウンロード"
+    IDS_MSGJPN066           "削除（ローカル）"
+    IDS_MSGJPN067           "削除（ホスト）"
+    IDS_MSGJPN068           "名前変更（ローカル）"
+    IDS_MSGJPN069           "名前変更（ホスト）"
+    IDS_MSGJPN070           "フォルダ作成（ローカル）"
+    IDS_MSGJPN071           "フォルダ作成（ホスト）"
+    IDS_MSGJPN072           "フォルダ変更（ローカル）"
+    IDS_MSGJPN073           "フォルダ変更（ホスト）"
+    IDS_MSGJPN074           "ローカル側のファイル容量を計算します."
+    IDS_MSGJPN075           "ホスト側のファイル容量を計算します."
+    IDS_MSGJPN076           "ローカル側のファイル容量"
+    IDS_MSGJPN077           "ホスト側のファイル容量"
+    IDS_MSGJPN078           "フォルダ作成"
+    IDS_MSGJPN079           "フォルダ作成"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN080           "フォルダ削除"
+    IDS_MSGJPN081           "ファイル削除"
+    IDS_MSGJPN082           "フォルダ作成"
+    IDS_MSGJPN083           "フォルダ削除"
+    IDS_MSGJPN084           "ファイル削除"
+    IDS_MSGJPN085           "%sという名前のファイルはダウンロードできません."
+    IDS_MSGJPN086           "ダウンロード"
+    IDS_MSGJPN087           "ファイル一覧取得"
+    IDS_MSGJPN088           "スキップ"
+    IDS_MSGJPN089           "ファイル %s はスキップします."
+    IDS_MSGJPN090           "コマンドが受け付けられません."
+    IDS_MSGJPN091           "ダウンロードのために"
+    IDS_MSGJPN092           "コマンドが受け付けられません."
+    IDS_MSGJPN093           "アドレスが取得できません."
+    IDS_MSGJPN094           "受信はタイムアウトで失敗しました."
+    IDS_MSGJPN095           "ファイル %s が作成できません."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN096           "ディスクがいっぱいで書き込めません."
+    IDS_MSGJPN097           "ファイル一覧の取得を中止しました."
+    IDS_MSGJPN098           "ファイル一覧"
+    IDS_MSGJPN099           "ダウンロードを中止しました. (%lld Sec. %lld B/S)."
+    IDS_MSGJPN100           "ダウンロードを中止しました."
+    IDS_MSGJPN101           "ファイル一覧の取得は正常終了しました. (%lld Bytes)"
+    IDS_MSGJPN102           "ダウンロードは正常終了しました. (%d Sec. %d B/S)."
+    IDS_MSGJPN103           "ダウンロードは正常終了しました. (%lld Bytes)"
+    IDS_MSGJPN104           "アップロード"
+    IDS_MSGJPN105           "ファイル %s が読み出せません."
+    IDS_MSGJPN106           "スキップ"
+    IDS_MSGJPN107           "ファイル %s はスキップします."
+    IDS_MSGJPN108           "コマンドが受け付けられません."
+    IDS_MSGJPN109           "アップロードのために"
+    IDS_MSGJPN110           "コマンドが受け付けられません."
+    IDS_MSGJPN111           "アドレスが取得できません."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN112           "ファイル %s がオープンできません."
+    IDS_MSGJPN113           "アップロードを中止しました. (%lld Sec. %lld B/S)."
+    IDS_MSGJPN114           "アップロードを中止しました."
+    IDS_MSGJPN115           "アップロードは正常終了しました. (%d Sec. %d B/S)."
+    IDS_MSGJPN116           "アップロードは正常終了しました."
+    IDS_MSGJPN117           "完了"
+    IDS_MSGJPN118           "中止"
+    IDS_MSGJPN119           "バイナリ"
+    IDS_MSGJPN120           "アスキー"
+    IDS_MSGJPN121           "無変換"
+    IDS_MSGJPN122           "JIS"
+    IDS_MSGJPN123           "EUC"
+    IDS_MSGJPN124           "削除（ローカル）"
+    IDS_MSGJPN125           "削除（ホスト）"
+    IDS_MSGJPN126           "WS_FTP.INIファイル"
+    IDS_MSGJPN127           "基本"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN128           "拡張"
+    IDS_MSGJPN129           "文字コード"
+    IDS_MSGJPN130           "ダイアルアップ"
+    IDS_MSGJPN131           "高度"
+    IDS_MSGJPN132           "ホストの設定"
+    IDS_MSGJPN133           "GMT%+02d:00 (日本)"
+    IDS_MSGJPN134           "使用しない"
+    IDS_MSGJPN135           "自動認識"
+    IDS_MSGJPN136           "OTP MD4, S/KEY"
+    IDS_MSGJPN137           "OTP MD5"
+    IDS_MSGJPN138           "OTP SHA-1"
+    IDS_MSGJPN139           "自動認識"
+    IDS_MSGJPN140           "ACOS"
+    IDS_MSGJPN141           "VAX VMS"
+    IDS_MSGJPN142           "IRMX"
+    IDS_MSGJPN143           "ACOS-4"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN144           "Stratus"
+    IDS_MSGJPN145           "フォルダを変更できません."
+    IDS_MSGJPN146           "フォルダを作成できません."
+    IDS_MSGJPN147           "フォルダを削除できません."
+    IDS_MSGJPN148           "フォルダを削除できません."
+    IDS_MSGJPN149           "ファイルを削除できません."
+    IDS_MSGJPN150           "ファイルを削除できません."
+    IDS_MSGJPN151           "ファイル名変更ができません."
+    IDS_MSGJPN152           "テンポラリフォルダ「%s」がありません"
+    IDS_MSGJPN153           "フォルダ「%s」を使用します"
+    IDS_MSGJPN154           "接続"
+    IDS_MSGJPN155           "クイック接続"
+    IDS_MSGJPN156           "切断"
+    IDS_MSGJPN157           "ダウンロード"
+    IDS_MSGJPN158           "アップロード"
+    IDS_MSGJPN159           "ミラーリングアップロード"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN160           "削除"
+    IDS_MSGJPN161           "名前変更"
+    IDS_MSGJPN162           "フォルダ作成"
+    IDS_MSGJPN163           "一つ上のフォルダへ"
+    IDS_MSGJPN164           "フォルダの移動"
+    IDS_MSGJPN165           "アスキー転送モード"
+    IDS_MSGJPN166           "バイナリ転送モード"
+    IDS_MSGJPN167           "ファイル名で転送モード切替え"
+    IDS_MSGJPN168           "表示を更新"
+    IDS_MSGJPN169           "一覧"
+    IDS_MSGJPN170           "詳細"
+    IDS_MSGJPN171           "ホストの漢字コードはEUC"
+    IDS_MSGJPN172           "ホストの漢字コードはJIS"
+    IDS_MSGJPN173           "漢字コードの変換なし"
+    IDS_MSGJPN174           "半角カナを全角に変換"
+    IDS_MSGJPN175           "フォルダ同時移動"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN176           "受信中止"
+    IDS_MSGJPN177           "設定名「%s」はありません."
+    IDS_MSGJPN178           "設定名が指定されていません."
+    IDS_MSGJPN179           "ホスト名と設定名の両方が指定されています."
+    IDS_MSGJPN180           "オプション「%s」が間違っています."
+    IDS_MSGJPN181           "ホスト名と設定名の両方が指定されています."
+    IDS_MSGJPN182           "ビューアの起動に失敗しました. (ERROR=%d)"
+    IDS_MSGJPN183           "JRE32.DLL 無し"
+    IDS_MSGJPN184           "JRE32.DLL Ver %x.%x (C) 山田和夫さん"
+    IDS_MSGJPN185           "フォルダを選択してください"
+    IDS_MSGJPN186           "ユーザー"
+    IDS_MSGJPN187           "転送1"
+    IDS_MSGJPN188           "転送2"
+    IDS_MSGJPN189           "転送3"
+    IDS_MSGJPN190           "ミラーリング"
+    IDS_MSGJPN191           "操作"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN192           "表示1"
+    IDS_MSGJPN193           "接続/切断"
+    IDS_MSGJPN194           "FireWall"
+    IDS_MSGJPN195           "ツール"
+    IDS_MSGJPN196           "サウンド"
+    IDS_MSGJPN197           "その他"
+    IDS_MSGJPN198           "オプション"
+    IDS_MSGJPN199           "ファイル名"
+    IDS_MSGJPN200           "ファイル名"
+    IDS_MSGJPN201           "属性"
+    IDS_MSGJPN202           "ファイル名"
+    IDS_MSGJPN203           "ファイル名"
+    IDS_MSGJPN204           "FWユーザー名→ FWパスワード→ SITE ホスト名"
+    IDS_MSGJPN205           "FWユーザー名→ FWパスワード→ USER ユーザー名@ホスト名"
+    IDS_MSGJPN206           "FWユーザー名→ FWパスワード"
+    IDS_MSGJPN207           "USER ユーザー名@ホスト名"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN208           "OPEN ホスト名"
+    IDS_MSGJPN209           "SOCKS4"
+    IDS_MSGJPN210           "SOCKS5 (認証なし)"
+    IDS_MSGJPN211           "SOCKS5 (ユーザー名,パスワード認証)"
+    IDS_MSGJPN212           "使用しない"
+    IDS_MSGJPN213           "自動認識"
+    IDS_MSGJPN214           "OTP MD4,S/KEY"
+    IDS_MSGJPN215           "OTP MD5"
+    IDS_MSGJPN216           "OTP SHA-1"
+    IDS_MSGJPN217           "ビューアの選択"
+    IDS_MSGJPN218           "実行ファイル"
+    IDS_MSGJPN219           "Waveファイル"
+    IDS_MSGJPN220           "ダイアルアップを切断しています."
+    IDS_MSGJPN221           "ダイアルアップで接続しています."
+    IDS_MSGJPN222           "ダイアルアップが使えません(RasDialDlg)"
+    IDS_MSGJPN223           "%s に接続しています..."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN224           "不明なエラー"
+    IDS_MSGJPN225           "ダイアルアップ接続"
+    IDS_MSGJPN226           "ポートを開いています..."
+    IDS_MSGJPN227           "ポートが開かれました"
+    IDS_MSGJPN228           "ダイアル中..."
+    IDS_MSGJPN229           "ダイアル完了"
+    IDS_MSGJPN230           "全デバイスが接続されました"
+    IDS_MSGJPN231           "ユーザー名とパスワードを検証中..."
+    IDS_MSGJPN232           "再検証中..."
+    IDS_MSGJPN233           "パスワードを変更して下さい"
+    IDS_MSGJPN234           "検証が終了しました"
+    IDS_MSGJPN235           "接続しました"
+    IDS_MSGJPN236           "切断しました"
+    IDS_MSGJPN237           "接続処理中..."
+    IDS_MSGJPN238           "%s への接続"
+    IDS_MSGJPN239           "# このファイルは編集しないでください.\n"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN240           "INIファイルに設定が保存できません"
+    IDS_MSGJPN241           "送信はタイムアウトで失敗しました."
+    IDS_MSGJPN242           "受信はタイムアウトで失敗しました."
+    IDS_MSGJPN243           "受信はタイムアウトで失敗しました."
+    IDS_MSGJPN244           "固定長の受信が失敗しました"
+    IDS_MSGJPN245           "ローカル"
+    IDS_MSGJPN246           "ホスト"
+    IDS_MSGJPN247           "選択%d個（%s）"
+    IDS_MSGJPN248           "ローカル空 %s"
+    IDS_MSGJPN249           "転送待ちファイル%d個"
+    IDS_MSGJPN250           "受信中 %s"
+    IDS_MSGJPN251           "Err: シード文字列"
+    IDS_MSGJPN252           "Err: シード文字列"
+    IDS_MSGJPN253           "Err: シーケンス番号"
+    IDS_MSGJPN254           "MS Shell Dlg"
+    IDS_MSGJPN255           "アップロード(&U)"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN256           "名前を変えてアップロード(&P)..."
+    IDS_MSGJPN257           "全てをアップロード"
+    IDS_MSGJPN258           "削除(&R)"
+    IDS_MSGJPN259           "名前変更(&N)..."
+    IDS_MSGJPN260           "フォルダ作成(&K)..."
+    IDS_MSGJPN261           "ファイル容量計算(&Z)"
+    IDS_MSGJPN262           "最新の情報に更新(&F)"
+    IDS_MSGJPN263           "ダウンロード(&D)"
+    IDS_MSGJPN264           "名前を変えてダウンロード(&W)..."
+    IDS_MSGJPN265           "ファイルとしてダウンロード(&I)"
+    IDS_MSGJPN266           "全てをダウンロード"
+    IDS_MSGJPN267           "削除(&R)"
+    IDS_MSGJPN268           "名前変更(&N)..."
+    IDS_MSGJPN269           "属性変更(&A)..."
+    IDS_MSGJPN270           "フォルダ作成(&K)..."
+    IDS_MSGJPN271           "URLをクリップボードへコピー(&C)"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN272           "ファイル容量計算(&Z)"
+    IDS_MSGJPN273           "最新の情報に更新(&F)"
+    IDS_MSGJPN274           "開く(&O)"
+    IDS_MSGJPN275           "%sで開く(&%d)"
+    IDS_MSGJPN276           "WS_FTP.INI"
+    IDS_MSGJPN277           "Waveファイル"
+    IDS_MSGJPN278           "理由: %s"
+    IDS_MSGJPN279           "Listenソケットが取得できません"
+    IDS_MSGJPN280           "Dataソケットが取得できません"
+    IDS_MSGJPN281           "PASVモードで接続できません"
+    IDS_MSGJPN282           "INIファイル名が指定されていません"
+    IDS_MSGJPN283           "INIファイル指定: "
+    IDS_MSGJPN284           "http://osdn.jp/projects/ffftp/"
+    IDS_MSGJPN285           "レジストリエディタが起動できませんでした"
+    IDS_MSGJPN286           "設定ファイルの保存"
+    IDS_MSGJPN287           "Regファイル"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN288           "INIファイル"
+    IDS_MSGJPN289           "Agilent Logic analyzer"
+    IDS_MSGJPN290           "Regファイル"
+    IDS_MSGJPN291           "設定をファイルから復元"
+    IDS_MSGJPN292           "設定をファイルから復元するためには,FFFTPを再起動してください."
+    IDS_MSGJPN293           "設定ファイルは拡張子が.regか.iniでなければなりません."
+    IDS_MSGJPN294           "USER FWユーザー名:FWパスワード@ホスト名"
+    IDS_MSGJPN295           "シバソク WL"
+    IDS_MSGJPN296           "読み取り専用ファイルです.読み取り専用属性を解除しますか？"
+    IDS_MSGJPN297           "%s は不正なファイル名です.\r\nこのファイルはダウンロードされません."
+    IDS_MSGJPN298           "OLEの初期化に失敗しました."
+    IDS_MSGJPN299           "コマンドラインにマスターパスワードが指定されていません"
+    IDS_MSGJPN300           "デフォルトのマスターパスワードが使われます.\r\nマルウェアの攻撃を防ぐため,固有のマスターパスワードを設定することをおすすめします"
+    IDS_MSGJPN301           "マスターパスワードが設定と一致しません.安全のため設定の保存を行いません."
+    IDS_MSGJPN302           "確認用データが壊れているため,マスターパスワードの正当性を確認できませんでした."
+    IDS_MSGJPN303           "マスターパスワードを変更しました"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN304           "指定されたマスターパスワードが登録されたものと一致しません.\r\n再度入力しますか？\r\n「いいえ」を選ぶと記憶されたFTPパスワードは利用できません."
+    IDS_MSGJPN305           "Shift_JIS"
+    IDS_MSGJPN306           "UTF-8"
+    IDS_MSGJPN307           "ホストの漢字コードはShift_JIS"
+    IDS_MSGJPN308           "ホストの漢字コードはUTF-8"
+    IDS_MSGJPN309           "ローカルの漢字コードはShift_JIS"
+    IDS_MSGJPN310           "ローカルの漢字コードはEUC"
+    IDS_MSGJPN311           "ローカルの漢字コードはJIS"
+    IDS_MSGJPN312           "ローカルの漢字コードはUTF-8"
+    IDS_MSGJPN313           "暗号化"
+    IDS_MSGJPN314           "通信は暗号化されていません.\r\n第三者にパスワードおよび内容を傍受される可能性があります."
+    IDS_MSGJPN315           "FTP over Explicit SSL/TLS (FTPES)を使用します."
+    IDS_MSGJPN316           "FTP over Implicit SSL/TLS (FTPIS)を使用します."
+    IDS_MSGJPN317           "SSH FTP (SFTP)を使用します."
+    IDS_MSGJPN318           "OpenSSLが読み込まれました."
+    IDS_MSGJPN319           "OpenSSLがインストールされていません.\r\n通信の暗号化は行われません."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN320           "特殊機能"
+    IDS_MSGJPN321           "プロセスの保護に必要な関数を取得できませんでした."
+    IDS_MSGJPN322           "デバッガが検出されました."
+    IDS_MSGJPN323           "信頼できないDLLをアンロードできませんでした."
+    IDS_MSGJPN324           "プロセスの保護に必要な関数をフックできませんでした."
+    IDS_MSGJPN325           "新しいマスターパスワードが一致しません."
+    IDS_MSGJPN326           "この証明書を信頼し,通信を続行するには「はい」を選択してください.\r\nCNの一致: %s\r\n検証に成功: %s\r\n\r\n%s"
+    IDS_MSGJPN327           "はい"
+    IDS_MSGJPN328           "いいえ"
+    IDS_MSGJPN329           "UTF-8 BOM"
+    IDS_MSGJPN330           "ホストの漢字コードはUTF-8 BOM"
+    IDS_MSGJPN331           "ローカルの漢字コードはUTF-8 BOM"
+    IDS_MSGJPN332           "自動"
+    IDS_MSGJPN333           "TCP/IPv4"
+    IDS_MSGJPN334           "TCP/IPv6"
+    IDS_MSGJPN335           "毎回尋ねる"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN336           "全て後で上書き"
+    IDS_MSGJPN337           "全て後でリジューム"
+    IDS_MSGJPN338           "全てスキップ"
+    IDS_MSGJPN339           "転送4"
+    IDS_MSGJPN340           "表示2"
+    IDS_MSGJPN341           "WindowsファイアウォールのステートフルFTPフィルタの有効無効を設定します.\nこれはWindows Vista以降でのみ動作します.\n有効化または無効化することで通信状態が改善されることがあります.\n有効化するには「はい」,無効化するには「いいえ」を選択してください."
+    IDS_MSGJPN342           "ステートフルFTPフィルタを設定できませんでした."
+    IDS_MSGJPN343           "ファイル名の漢字コードの判別結果は%sです."
+    IDS_MSGJPN344           "ファイル名の漢字コードを判別できませんでした."
+    IDS_MSGJPN345           "Shift_JIS"
+    IDS_MSGJPN346           "JIS"
+    IDS_MSGJPN347           "EUC"
+    IDS_MSGJPN348           "UTF-8"
+    IDS_MSGJPN349           "UTF-8 HFS+"
+    IDS_MSGJPN350           "新しいバージョンの設定が検出されました.\nこのバージョンでは一部の設定が正しく読み込まれない,またはこのバージョンで設定を上書きすると設定が変化する可能性があります.\nこのバージョン用に設定を上書きして保存するには「はい」を選択してください.\n設定をレジストリではなくINIファイルに保存するには「いいえ」を選択してください.\n読み取り専用で設定を読み込むには「キャンセル」を選択してください."
+    IDS_MSGJPN351           "警告: 暗号化されていません"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN352           "暗号化されています: FTPES"
+    IDS_MSGJPN353           "暗号化されています: FTPIS"
+    IDS_MSGJPN354           "暗号化されています: SFTP"
+    IDS_MSGJPN355           "一つ上のフォルダへ移動(&P)..."
+    IDS_MSGJPN356           "XMLファイル"
+    IDS_MSGJPN357           "設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください."
+    IDS_MSGJPN358           "ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s"
+    IDS_MSGJPN359           "ソフトウェアの更新に失敗しました.\nWebサイトから最新版を入手して手動で更新してください."
+    IDS_MSGJPN360           "更新"
+    IDS_MSGJPN361           "新しいバージョンがあります.\n\n現在のバージョン: %s\n新しいバージョン: %s\n%s\n\n更新のダウンロードには数分間かかります.\n今すぐ更新しますか."
+    IDS_MSGJPN362           "ソフトウェアの更新に失敗しました.\nサーバーに接続できないかデータが破損しています."
+    IDS_MSGJPN363           "お使いのバージョンはすでに最新です."
+    IDS_MSGJPN364           "ソフトウェアの更新の準備が完了しました.\nFFFTPの終了時に更新が適用されます."
+    IDS_MSGJPN365           "この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN2000          "NonStop Server"
+    IDS_MSGJPN2001          "OSS<->GUARDIAN 切り替え(&O)"
 END
 
 STRINGTABLE

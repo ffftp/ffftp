@@ -1,0 +1,274 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemDefinitionGroup>
+    <MuiResourceCompile>
+      <SuppressStartupBanner            Condition="'%(MuiResourceCompile.SuppressStartupBanner)'           == ''">true</SuppressStartupBanner>
+      <GenerateLanguageNeutralResource  Condition="'%(MuiResourceCompile.GenerateLanguageNeutralResource)' == ''">false</GenerateLanguageNeutralResource>
+      <ResourceOutputLNFileName         Condition="'%(MuiResourceCompile.ResourceOutputLNFileName)'        == ''">$(IntDir)%(Filename).ln.res</ResourceOutputLNFileName>
+      <ResourceOutputMuiFileName        Condition="'%(MuiResourceCompile.ResourceOutputMuiFileName)'       == ''">$(IntDir)%(Filename).res</ResourceOutputMuiFileName>
+      <Culture                          Condition="'%(MuiResourceCompile.Culture)'                         == ''">0x0409</Culture>
+      <TrackerLogDirectory              Condition="'%(MuiResourceCompile.TrackerLogDirectory)'             == ''">$(TLogLocation)</TrackerLogDirectory>
+      <MinimalRebuildFromTracking       Condition="'%(MuiResourceCompile.MinimalRebuildFromTracking)'      == ''">true</MinimalRebuildFromTracking>
+      <AcceptableNonZeroExitCodes       Condition="'%(MuiResourceCompile.AcceptableNonZeroExitCodes)'      == ''">$(AcceptableNonZeroExitCodes)</AcceptableNonZeroExitCodes>
+    </MuiResourceCompile>
+  </ItemDefinitionGroup>
+
+
+  <!-- *******************************************************************************************
+        Build order
+       ******************************************************************************************* -->
+  <!-- TODO: waht is ComputeResourceCompileInputsTargets? -->
+  <PropertyGroup>
+    <AfterLinkTargets>$(AfterLinkTargets);_MuiLink</AfterLinkTargets>
+  </PropertyGroup>
+
+  <Target Name="AfterResourceCompile" DependsOnTargets="MakeDirsForMuiResourceCompile;MuiResourceCompile" />
+
+  
+  <!-- *******************************************************************************************
+        Selective Build
+       ******************************************************************************************* -->
+  <Target Name="SelectMuiResourceCompile" DependsOnTargets="_SelectedFiles;SelectCustomBuild">
+    <ItemGroup Condition="'@(SelectedFiles)'!=''">
+      <MuiResourceCompile Remove="@(MuiResourceCompile)" Condition="'%(Identity)'!='@(SelectedFiles)'"/>
+      <MuiResourceCompile>
+        <MinimalRebuildFromTracking>false</MinimalRebuildFromTracking>
+      </MuiResourceCompile>
+    </ItemGroup>
+  </Target>
+
+
+  <!-- *******************************************************************************************
+        MUIRC targets
+       ******************************************************************************************* -->
+  <!-- Makes the the directories that ResourceCompile uses -->
+  <Target Name="MakeDirsForMuiResourceCompile">
+    <!-- List of directories and files whose directories should be made prior to running ResourceCompile -->
+    <ItemGroup>
+      <MuiRcDirsToMake Include="@(MuiResourceCompile->Metadata('ResourceOutputLNFileName')->DirectoryName()->Distinct()->ClearMetaData())" />
+      <MuiRcDirsToMake Include="@(MuiResourceCompile->Metadata('ResourceOutputMuiFileName')->DirectoryName()->Distinct()->ClearMetaData())" />
+    </ItemGroup>
+
+    <MakeDir Directories="@(MuiRcDirsToMake)" />
+
+    <ItemGroup>
+      <RcDirsToMake Remove="@(MuiRcDirsToMake)" />
+    </ItemGroup>
+  </Target>
+
+
+  <!-- *******************************************************************************************
+        Compute MUIRC Outputs targets
+       ******************************************************************************************* -->
+  <ItemDefinitionGroup>
+    <MuiResourceCompile>
+      <LinkCompiled>$(LinkCompiled)</LinkCompiled>
+    </MuiResourceCompile>
+  </ItemDefinitionGroup>
+
+  <!-- Add MUIRC generated .res files to Res item group, it will be used by lib or link -->
+  <Target Name="ComputeMUIRCOutputs" DependsOnTargets="$(ComputeMuiResourceCompileInputsTargets)">
+
+    <ItemGroup Condition="'@(MuiResourceCompile)' != ''">
+      <LnResObj Condition="'%(MuiResourceCompile.ResourceOutputLNFileName)' != '' and '%(MuiResourceCompile.ExcludedFromBuild)'!='true'" Include="@(MuiResourceCompile->'%(ResourceOutputLNFileName)')">
+        <LinkCompiled>%(MuiResourceCompile.LinkCompiled)</LinkCompiled>
+      </LnResObj>
+      <MuiResObj Condition="'%(MuiResourceCompile.ResourceOutputMuiFileName)' != '' and '%(MuiResourceCompile.ExcludedFromBuild)'!='true'" Include="@(MuiResourceCompile->'%(ResourceOutputMuiFileName)')">
+        <LinkCompiled>%(MuiResourceCompile.LinkCompiled)</LinkCompiled>
+      </MuiResObj>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ComputeMUIRCGeneratedLinkInputs" DependsOnTargets="ComputeMUIRCOutputs">
+    <ItemGroup>
+      <Link Include="@(LnResObj->WithMetadataValue('LinkCompiled', 'true')->ClearMetadata())" />
+      <MuiLink Include="@(MuiResObj->WithMetadataValue('LinkCompiled', 'true')->ClearMetadata())" />
+    </ItemGroup>
+  </Target>
+
+  <PropertyGroup>
+    <ComputeLinkInputsTargets>$(ComputeLinkInputsTargets);ComputeMUIRCGeneratedLinkInputs</ComputeLinkInputsTargets>
+  </PropertyGroup>
+
+
+  <!-- *******************************************************************************************
+        MuiLink targets
+       ******************************************************************************************* -->
+  <Target Name="_MuiLink" DependsOnTargets="MakeDirsForMuiLink;MuiLink" Condition="'$(LinkCompiled)' == 'true'" />
+
+  <!-- Makes the the directories that Link uses -->
+  <Target Name="MakeDirsForMuiLink">
+    <PropertyGroup>
+      <MuiOutputDirectoryName>@(Link->Metadata(OutputFile)->DirectoryName()->Distinct()->ClearMetadata())</MuiOutputDirectoryName>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'@(MuiResourceCompile)' != ''">
+      <MuiLinkDirsToMake Include="@(MuiResourceCompile->'$(MuiOutputDirectoryName)\%(MuiCulture)')" />
+    </ItemGroup>
+
+    <MakeDir Directories="@(MuiLinkDirsToMake)" />
+
+    <ItemGroup>
+      <MuiLinkDirsToMake Remove="@(MuiLinkDirsToMake)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="MuiResourceCompile"/>
+  <Target Name="MuiLink"/>
+
+
+  <!-- *************************SourceFilesProjectOutputGroup****************************************** -->
+
+  <PropertyGroup>
+    <SourceFilesProjectOutputGroupDependsOn>$(SourceFilesProjectOutputGroupDependsOn);SourceFilesProjectOutputGroupForMui</SourceFilesProjectOutputGroupDependsOn>
+  </PropertyGroup>
+
+  <Target Name="SourceFilesProjectOutputGroupForMui">
+    <ItemGroup>
+      <SourceFilesProjectOutputGroupOutput Include="@(MuiResourceCompile->'%(FullPath)')" />
+    </ItemGroup>
+  </Target>
+
+  <!-- *************************ContentFilesProjectOutputGroup****************************************** -->
+
+  <PropertyGroup>
+    <ContentFilesProjectOutputGroupDependsOn>$(ContentFilesProjectOutputGroupDependsOn);ContentFilesProjectOutputGroupForMui</ContentFilesProjectOutputGroupDependsOn>
+  </PropertyGroup>
+
+  <Target Name="ContentFilesProjectOutputGroupForMui">
+    <ItemGroup>
+      <_ContentFilesProjectOutputGroupOutput Include="@(MuiResourceCompile)">
+        <_RootFolder>%(DefiningProjectDirectory)</_RootFolder>
+      </_ContentFilesProjectOutputGroupOutput>
+    </ItemGroup>
+  </Target>
+
+
+  <!-- *******************************************************************************************
+        Property pages
+       ******************************************************************************************* -->
+  <ItemGroup Condition="'$(UseDefaultPropertyPageSchemas)' != 'false'">
+    <PropertyPageSchema Condition="'$(ConfigurationType)' != 'Utility'" Include="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml" />
+  </ItemGroup>
+
+
+  <!-- *******************************************************************************************
+        AvailableItemName
+       ******************************************************************************************* -->
+  <!-- Creates a connection between item names and the targets to build them. -->
+  <ItemGroup>
+    <AvailableItemName Include="MuiResourceCompile">
+      <Targets>MuiResourceCompile</Targets>
+    </AvailableItemName>
+  </ItemGroup>
+
+
+  <!-- *******************************************************************************************
+        MuiLink
+       ******************************************************************************************* -->
+  <Target Name="MuiLink" Condition="'@(MuiResourceCompile)' != '' AND '$(LinkSkippedExecution)' != 'true'">
+    <PropertyGroup>
+      <MuiOutputDirectoryName>@(Link->Metadata(OutputFile)->DirectoryName()->Distinct()->ClearMetadata())</MuiOutputDirectoryName>
+      <LNOutputFileName>@(Link->Metadata(OutputFile)->'%(Filename)%(Extension)'->Distinct()->ClearMetadata())</LNOutputFileName>
+      <MuiOutputFileName>@(Link->Metadata(OutputFile)->'%(Filename)%(Extension).mui'->Distinct()->ClearMetadata())</MuiOutputFileName>
+      <MuiTargetMachine>@(Link->Metadata(TargetMachine)->Distinct())</MuiTargetMachine>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <MuiResourceCompile Condition="'@(MuiResourceCompile)' != ''">
+        <OutputMuiFileName>$(MuiOutputDirectoryName)\%(MuiResourceCompile.MuiCulture)\$(MuiOutputFileName)</OutputMuiFileName>
+      </MuiResourceCompile>
+    </ItemGroup>
+
+    <Link
+        BuildingInIDE                  ="$(BuildingInsideVisualStudio)"
+        Sources                        ="%(MuiResourceCompile.ResourceOutputMuiFileName)"
+
+        LinkDLL                        ="true"
+        OutputFile                     ="%(MuiResourceCompile.OutputMuiFileName)"
+        NoEntryPoint                   ="true"
+        SuppressStartupBanner          ="true"
+        TargetMachine                  ="$(MuiTargetMachine)"
+
+        TrackerLogDirectory            ="$(TLogLocation)"
+
+        TLogReadFiles                  ="@(LinkTLogReadFiles)"
+        TLogWriteFiles                 ="@(LinkTLogWriteFiles)"
+        ToolExe                        ="$(LinkToolExe)"
+        ToolPath                       ="$(LinkToolPath)"
+        TrackFileAccess                ="$(TrackFileAccess)"
+        MinimalRebuildFromTracking     ="%(MuiResourceCompile.MinimalRebuildFromTracking)"
+        ToolArchitecture               ="$(LinkToolArchitecture)"
+        TrackerFrameworkPath           ="$(LinkTrackerFrameworkPath)"
+        TrackerSdkPath                 ="$(LinkTrackerSdkPath)"
+        TrackedInputFilesToIgnore      ="@(LinkNoDependencies)"
+
+        YieldDuringToolExecution       ="$(LinkYieldDuringToolExecution)"
+    >
+    </Link>
+
+    <Exec WorkingDirectory="$(MuiOutputDirectoryName)" Command="muirct -c &quot;$(LNOutputFileName)&quot; -e &quot;%(MuiResourceCompile.MuiCulture)\$(MuiOutputFileName)&quot;" />
+  </Target>
+
+
+   <!-- *******************************************************************************************
+        MuiResourceCompile
+       ******************************************************************************************* -->
+  <Target Name="MuiResourceCompile" Condition="'@(MuiResourceCompile)' != ''" DependsOnTargets="SelectMuiResourceCompile">
+    <ItemGroup>
+      <MuiResourceCompile>
+        <MinimalRebuildFromTracking Condition="'$(_BuildActionType)' != 'Build' or '$(ForceRebuild)' == 'true'">false</MinimalRebuildFromTracking>
+        <AdditionalOptions Condition="'%(MuiResourceCompile.ResourceOutputMuiFileName)' != ''">/fm"%(MuiResourceCompile.ResourceOutputMuiFileName)" %(MuiResourceCompile.AdditionalOptions)</AdditionalOptions>
+      </MuiResourceCompile>
+      <MuiResourceCompile>
+        <AdditionalOptions Condition="'%(MuiResourceCompile.GenerateLanguageNeutralResource)' != 'true'">/g1 %(MuiResourceCompile.AdditionalOptions)</AdditionalOptions>
+        <ResourceOutputLNFileName Condition="'%(MuiResourceCompile.GenerateLanguageNeutralResource)' != 'true'"></ResourceOutputLNFileName>
+      </MuiResourceCompile>
+      <MuiResourceCompile>
+        <AdditionalOptions Condition="'%(MuiResourceCompile.RCConfigFileName)' != ''">/q %(MuiResourceCompile.RCConfigFileName) %(MuiResourceCompile.AdditionalOptions)</AdditionalOptions>
+      </MuiResourceCompile>
+    </ItemGroup>
+
+    <PropertyGroup>
+      <RCToolArchitecture Condition="'$(RCToolArchitecture)' == ''">$(WindowsSDKToolArchitecture)</RCToolArchitecture>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <RCNoDependencies Condition="'@(RCNoDependencies)' == '' and '%(ClInclude.NoDependency)' == 'true'" Include="@(ClInclude)" />
+      <RCNoDependencies Condition="'@(NoDependencies)' != ''" Include="@(NoDependencies)" />
+    </ItemGroup>
+
+    <RC
+      Condition                       ="'%(MuiResourceCompile.ExcludedFromBuild)'!='true'"
+      Source                          ="%(MuiResourceCompile.Identity)"
+      AdditionalIncludeDirectories    ="%(MuiResourceCompile.AdditionalIncludeDirectories)"
+      AdditionalOptions               ="%(MuiResourceCompile.AdditionalOptions)"
+      Culture                         ="%(MuiResourceCompile.Culture)"
+      IgnoreStandardIncludePath       ="%(MuiResourceCompile.IgnoreStandardIncludePath)"
+
+      NullTerminateStrings            ="%(MuiResourceCompile.NullTerminateStrings)"
+      PreprocessorDefinitions         ="%(MuiResourceCompile.PreprocessorDefinitions)"
+      ResourceOutputFileName          ="%(MuiResourceCompile.ResourceOutputLNFileName)"
+      SuppressStartupBanner           ="%(MuiResourceCompile.SuppressStartupBanner)"
+      ShowProgress                    ="%(MuiResourceCompile.ShowProgress)"
+      UndefinePreprocessorDefinitions ="%(MuiResourceCompile.UndefinePreprocessorDefinitions)"
+
+      TrackerLogDirectory             ="%(MuiResourceCompile.TrackerLogDirectory)"
+      MinimalRebuildFromTracking      ="%(MuiResourceCompile.MinimalRebuildFromTracking)"
+      ToolArchitecture                ="$(RCToolArchitecture)"
+      TrackerFrameworkPath            ="$(RCTrackerFrameworkPath)"
+      TrackerSdkPath                  ="$(RCTrackerSdkPath)"
+      TrackedInputFilesToIgnore       ="@(RCNoDependencies)"
+
+      TLogReadFiles                   ="@(RCTLogReadFiles)"
+      TLogWriteFiles                  ="@(RCTLogWriteFiles)"
+      ToolExe                         ="$(RCToolExe)"
+      ToolPath                        ="$(RCToolPath)"
+      TrackFileAccess                 ="$(TrackFileAccess)"
+
+      AcceptableNonZeroExitCodes      ="%(MuiResourceCompile.AcceptableNonZeroExitCodes)"
+      >
+    </RC>
+  </Target>
+
+</Project>
