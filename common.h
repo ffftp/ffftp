@@ -62,6 +62,7 @@
 #include <MMSystem.h>
 #include <mstcpip.h>
 #include <shellapi.h>
+#include <WinCrypt.h>
 #include <WS2tcpip.h>
 #include "config.h"
 #include "mbswrapper.h"
@@ -2079,6 +2080,11 @@ int RemovePortMapping(int Port);
 int CheckClosedAndReconnect(void);
 // 同時接続対応
 int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
+
+
+extern HCRYPTPROV HCryptProv;
+
+void sha_memory(const char* mem, DWORD length, uint32_t* buffer);
 
 template<class Target, class Source>
 constexpr auto data_as(Source& source) {

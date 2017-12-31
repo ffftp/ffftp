@@ -28,10 +28,8 @@
 /============================================================================*/
 
 #include "common.h"
-#include "aes.h"
 #include "sample.h"
-#include "sha.h"
-
+const int AES_BLOCK_SIZE = 16;
 
 /*===== プロトタイプ =====*/
 
@@ -43,16 +41,13 @@ static void SaveIntNum(void *Handle, char *Key, int Num, int DefaultNum);
 static void MakeFontData(LOGFONT Font, HFONT hFont, char *Buf);
 static int RestoreFontData(char *Str, LOGFONT *Font);
 
-static void EncodePassword(char *Str, char *Buf);
-static void EncodePasswordOriginal(char *Str, char *Buf);
-static void EncodePassword2(char *Str, char *Buf, const char *Key);
-static void EncodePassword3(char *Str, char *Buf, const char *Key);
+static void EncodePassword(std::string_view const& Str, char *Buf);
 
 static void DecodePassword(char *Str, char *Buf);
 static void DecodePasswordOriginal(char *Str, char *Buf);
 static void DecodePassword2(char *Str, char *Buf, const char *Key);
-static void DecodePassword3(char *Str, char *Buf, const char *Key);
-static int CreateAesKey(unsigned char *AesKey, const char* Key);
+static void DecodePassword3(char *Str, char *Buf);
+static bool CreateAesKey(unsigned char *AesKey);
 
 static void SetRegType(int Type);
 static int OpenReg(char *Name, void **Handle);
@@ -83,8 +78,6 @@ void CreatePasswordHash( char* Password, int length, char* HashStr, int StretchC
 void SetHashSalt( DWORD salt );
 // 全設定暗号化対応
 void SetHashSalt1(void* Salt, int Length);
-
-DWORD GetRandamDWORDValue(void);
 
 // 全設定暗号化対応
 void GetMaskWithHMACSHA1(DWORD IV, const char* Salt, int SaltLength, void* pHash);
@@ -220,6 +213,19 @@ extern int AbortOnListError;
 extern int MirrorNoTransferContents; 
 // FireWall設定追加
 extern int FwallNoSaveUser; 
+
+
+void sha_memory(const char* mem, DWORD length, uint32_t* buffer) {
+	HCRYPTHASH hash;
+	if (CryptCreateHash(HCryptProv, CALG_SHA1, 0, 0, &hash)) {
+		if (CryptHashData(hash, reinterpret_cast<const BYTE*>(mem), length, 0)) {
+			DWORD hashlen = 20;
+			CryptGetHashParam(hash, HP_HASHVAL, reinterpret_cast<BYTE*>(buffer), &hashlen, 0);
+		}
+		CryptDestroyHash(hash);
+	}
+}
+
 
 /*----- マスタパスワードの設定 ----------------------------------------------
 *
@@ -1870,230 +1876,53 @@ static int RestoreFontData(char *Str, LOGFONT *Font)
 	return(Sts);
 }
 
-/*----- パスワードを暗号化する ------------------------------------------------
-*
-*	Parameter
-*		char *Str : パスワード
-*		char *Buf : 暗号化したパスワードを格納するバッファ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-static void EncodePassword(char *Str, char *Buf)
-{
-	EncodePassword3( Str, Buf, SecretKey );
-}
+// パスワードを暗号化する(AES)
+static void EncodePassword(std::string_view const& Str, char *Buf) {
+	auto result = false;
+	try {
+		auto p = Buf;
+		auto length = size_as<DWORD>(Str);
+		auto paddedLength = length < AES_BLOCK_SIZE * 2 ? AES_BLOCK_SIZE * 2 : ((length + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE) * AES_BLOCK_SIZE;	/* 最低長を32文字とする */
+		std::vector<BYTE> buffer(paddedLength, 0);
+		std::copy(begin(Str), end(Str), begin(buffer));
 
-/*----- パスワードを暗号化する(オリジナルアルゴリズム)  ------------------
-*
-*	Parameter
-*		char *Str : パスワード
-*		char *Buf : 暗号化したパスワードを格納するバッファ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void EncodePasswordOriginal(char *Str, char *Buf)
-{
-	unsigned char *Get;
-	unsigned char *Put;
-	int Rnd;
-	int Ch;
-
-	srand((unsigned)time(NULL));
-
-	Get = (unsigned char *)Str;
-	Put = (unsigned char *)Buf;
-	
-	if( *Get == NUL ){
-		*Put = NUL;
-		return;
-	}
-
-	/* 識別子を先頭に置く */
-	Put[0] = '0';
-	Put[1] = 'A';
-	Put += 2;
-
-	while(*Get != NUL)
-	{
-		Rnd = rand() % 3;
-		Ch = ((int)*Get++) << Rnd;
-		Ch = (unsigned char)Ch | (unsigned char)(Ch >> 8);
-		*Put++ = 0x40 | ((Rnd & 0x3) << 4) | (Ch & 0xF);
-		*Put++ = 0x40 | ((Ch >> 4) & 0xF);
-		if((*(Put-2) & 0x1) != 0)
-			*Put++ = (rand() % 62) + 0x40;
-	}
-	*Put = NUL;
-	return;
-}
-
-/*----- パスワードを暗号化する(オリジナルアルゴリズム＾Key)  ----------------
-*
-*	Parameter
-*		char *Str : パスワード
-*		char *Buf : 暗号化したパスワードを格納するバッファ
-*		const char *Key : 暗号化キー
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void EncodePassword2(char *Str, char *Buf, const char* Key)
-{
-	unsigned char *Get;
-	unsigned char *Put;
-	int Rnd;
-	int Ch;
-
-	/* 2010.01.31 genta Key */
-	unsigned char *KeyHead = (unsigned char *)Key;
-	unsigned char *KeyEnd = KeyHead + strlen((const char*)KeyHead);
-	unsigned char *KeyCurrent = KeyHead;
-
-	srand((unsigned)time(NULL));
-
-	Get = (unsigned char *)Str;
-	Put = (unsigned char *)Buf;
-	
-	if( *Get == NUL ){
-		*Put = NUL;
-		return;
-	}
-
-	/* 識別子を先頭に置く */
-	Put[0] = '0';
-	Put[1] = 'B';
-	Put += 2;
-
-	while(*Get != NUL)
-	{
-		Rnd = rand() % 3;
-		Ch = ((int)(*Get++ ^ *KeyCurrent)) << Rnd;
-		Ch = (unsigned char)Ch | (unsigned char)(Ch >> 8);
-		*Put++ = 0x40 | ((Rnd & 0x3) << 4) | (Ch & 0xF);
-		*Put++ = 0x40 | ((Ch >> 4) & 0xF);
-		if((*(Put-2) & 0x1) != 0)
-			*Put++ = (rand() % 62) + 0x40;
-
-		/* 2010.01.31 genta Key */
-		if( ++KeyCurrent == KeyEnd ){
-			KeyCurrent = KeyHead;
-		}
-	}
-	*Put = NUL;
-	return;
-}
-
-/*----- パスワードを暗号化する(AES) ------------------------------------------
-*
-*	Parameter
-*		char *Str : パスワード
-*		char *Buf : 暗号化したパスワードを格納するバッファ
-*		const char *Key : 暗号化キー
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void EncodePassword3(char *Str, char *Buf, const char *Key)
-{
-	unsigned char *Put;
-	unsigned char *AesEncBuf;
-	unsigned char *StrPadBuf;
-	size_t StrLen;
-	size_t StrPadLen;
-	size_t StrPadIndex;
-	size_t IvIndex;
-	size_t EncBufIndex;
-	DWORD RandValue;
-	int RandByteCount;
-	unsigned char AesKey[32];
-	unsigned char AesCbcIv[AES_BLOCK_SIZE];
-	aes_encrypt_ctx Ctx;
-
-	Buf[0] = NUL;
-
-	Put = (unsigned char *)Buf;
-	StrLen = strlen(Str);
-	StrPadLen = ((StrLen + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE) * AES_BLOCK_SIZE;
-
-	/* 最低長を32文字とする */
-//	StrPadLen = min1(StrPadLen, AES_BLOCK_SIZE * 2);
-	StrPadLen = max1((int)StrPadLen, AES_BLOCK_SIZE * 2);
-
-	if((StrPadBuf = (unsigned char*)malloc(StrPadLen)) != NULL)
-	{
-		if((AesEncBuf = (unsigned char*)malloc(StrPadLen)) != NULL)
-		{
-			BOOL PutState;
-
-			PutState = FALSE;
-			strncpy((char*)StrPadBuf, Str, StrPadLen);
-			
-			/* PAD部分を乱数で埋める StrPad[StrLen](が有効な場合) は NUL */
-			for(StrPadIndex = StrLen + 1; StrPadIndex < StrPadLen;)
-			{
-				RandValue = GetRandamDWORDValue();
-				for(RandByteCount = 0; RandByteCount < 4; RandByteCount++)
-				{
-					if(StrPadIndex < StrPadLen)
-					{
-						StrPadBuf[StrPadIndex++] = (unsigned char)(RandValue & 0xff);
-						RandValue >>= 8;
-					}
-				}
-			}
-			
+		/* PAD部分を乱数で埋める StrPad[StrLen](が有効な場合) は NUL */
+		if (DWORD restLength = paddedLength - length - 1; restLength == 0 || CryptGenRandom(HCryptProv, restLength, &buffer[length + 1]))
 			// IVの初期化
-			for(IvIndex = 0; IvIndex < AES_BLOCK_SIZE;)
-			{
-				RandValue = GetRandamDWORDValue();
-				for(RandByteCount = 0; RandByteCount < 4; RandByteCount++)
-				{
-					if(IvIndex < AES_BLOCK_SIZE)
-					{
-						AesCbcIv[IvIndex++] = (unsigned char)(RandValue & 0xff);
-						RandValue >>= 8;
-					}
+			if (unsigned char iv[AES_BLOCK_SIZE]; CryptGenRandom(HCryptProv, size_as<DWORD>(iv), iv)) {
+				*p++ = '0';
+				*p++ = 'C';
+				for (auto const& item : iv) {
+					sprintf(p, "%02x", item);
+					p += 2;
 				}
-			}
-			Put[0] = '0';
-			Put[1] = 'C';
-			Put += 2;
-			for(IvIndex = 0; IvIndex < AES_BLOCK_SIZE; IvIndex++)
-			{
-				sprintf((char*)Put, "%02x", AesCbcIv[IvIndex]);
-				Put += 2;
-			}
-			*Put++ = ':';
+				*p++ = ':';
 
-			if(CreateAesKey(AesKey, Key) == FFFTP_SUCCESS)
-			{
-				aes_encrypt_key(AesKey, 32, &Ctx);
-
-				if(aes_cbc_encrypt(StrPadBuf, AesEncBuf, (int)StrPadLen, AesCbcIv, &Ctx) == EXIT_SUCCESS)
-				{
-					for(EncBufIndex = 0; EncBufIndex < StrPadLen; EncBufIndex++)
-					{
-						sprintf((char*)Put, "%02x", AesEncBuf[EncBufIndex]);
-						Put += 2;
+				// PLAINTEXTKEYBLOB structure https://msdn.microsoft.com/en-us/library/jj650836(v=vs.85).aspx
+				struct _PLAINTEXTKEYBLOB {
+					BLOBHEADER hdr;
+					DWORD dwKeySize;
+					BYTE rgbKeyData[32];
+				} keyBlob{ { PLAINTEXTKEYBLOB, CUR_BLOB_VERSION, 0, CALG_AES_256 }, 32 };
+				if (CreateAesKey(keyBlob.rgbKeyData))
+					if (HCRYPTKEY hkey; CryptImportKey(HCryptProv, reinterpret_cast<const BYTE*>(&keyBlob), DWORD(sizeof keyBlob), 0, 0, &hkey)) {
+						if (DWORD mode = CRYPT_MODE_CBC; CryptSetKeyParam(hkey, KP_MODE, reinterpret_cast<const BYTE*>(&mode), 0))
+							if (CryptSetKeyParam(hkey, KP_IV, iv, 0))
+								if (CryptEncrypt(hkey, 0, false, 0, data(buffer), &paddedLength, paddedLength)) {
+									for (auto const& item : buffer) {
+										sprintf(p, "%02x", item);
+										p += 2;
+									}
+									*p = NUL;
+									result = true;
+								}
+						CryptDestroyKey(hkey);
 					}
-					*Put = NUL;
-					PutState = TRUE;
-				}
 			}
-			if(FALSE == PutState)
-			{
-				Buf[0] = NUL;
-			}
-			free(StrPadBuf);
-		}
-		free(AesEncBuf);
 	}
-	return;
+	catch (std::bad_alloc&) {}
+	if (!result)
+		Buf[0] = NUL;
 }
 
 
@@ -2129,7 +1958,7 @@ static void DecodePassword(char *Str, char *Buf)
 		DecodePassword2( Str + 2, Buf, SecretKey );
 	}
 	else if( strncmp( (const char*)Get, "0C", 2 ) == 0 ){
-		DecodePassword3( Str + 2, Buf, SecretKey );
+		DecodePassword3( Str + 2, Buf );
 	}
 	else {
 		//	unknown encoding
@@ -2227,103 +2056,77 @@ static void DecodePassword2(char *Str, char *Buf, const char* Key)
 *		なし
 *----------------------------------------------------------------------------*/
 
-static void DecodePassword3(char *Str, char *Buf, const char *Key)
-{
-	char *Get;
-	unsigned char *EncBuf;
-	size_t StrLen;
-	size_t IvIndex;
-	size_t EncBufIndex;
-	size_t EncBufLen;
-	unsigned char AesKey[32];
-	unsigned char AesCbcIv[AES_BLOCK_SIZE];
-	aes_decrypt_ctx Ctx;
-
-	Buf[0] = NUL;
-
-	Get = Str;
-	StrLen = strlen(Str);
-
-	if(AES_BLOCK_SIZE * 2 + 1 < StrLen)
-	{
-
-		EncBufLen = (StrLen - 1 ) / 2 - AES_BLOCK_SIZE;
-		if((EncBuf = (unsigned char*)malloc(EncBufLen)) != NULL)
-		{
-			for(IvIndex = 0; IvIndex < AES_BLOCK_SIZE; IvIndex++)
-			{
-				AesCbcIv[IvIndex]  = hex2bin(*Get++) << 4;
-				AesCbcIv[IvIndex] |= hex2bin(*Get++);
+static void DecodePassword3(char *Str, char *Buf) {
+	try {
+		Buf[0] = NUL;
+		if (auto length = DWORD(strlen(Str)); AES_BLOCK_SIZE * 2 + 1 < length) {
+			DWORD encodedLength = (length - 1) / 2 - AES_BLOCK_SIZE;
+			std::vector<unsigned char> buffer(encodedLength, 0);
+			unsigned char iv[AES_BLOCK_SIZE];
+			for (auto& item : iv) {
+				item = hex2bin(*Str++) << 4;
+				item |= hex2bin(*Str++);
 			}
-
-			if(*Get++ == ':')
-			{
-				if(CreateAesKey(AesKey, Key) == FFFTP_SUCCESS)
-				{
-					aes_decrypt_key(AesKey, 32, &Ctx);
-
-					for(EncBufIndex = 0; EncBufIndex < EncBufLen; EncBufIndex++)
-					{
-						EncBuf[EncBufIndex]  = hex2bin(*Get++) << 4;
-						EncBuf[EncBufIndex] |= hex2bin(*Get++);
+			if (*Str++ == ':') {
+				// PLAINTEXTKEYBLOB structure https://msdn.microsoft.com/en-us/library/jj650836(v=vs.85).aspx
+				struct _PLAINTEXTKEYBLOB {
+					BLOBHEADER hdr;
+					DWORD dwKeySize;
+					BYTE rgbKeyData[32];
+				} keyBlob{ { PLAINTEXTKEYBLOB, CUR_BLOB_VERSION, 0, CALG_AES_256 }, 32 };
+				if (CreateAesKey(keyBlob.rgbKeyData)) {
+					for (auto& item : buffer) {
+						item = hex2bin(*Str++) << 4;
+						item |= hex2bin(*Str++);
 					}
-					if(aes_cbc_decrypt(EncBuf, (unsigned char*)Buf, (int)EncBufLen, AesCbcIv, &Ctx) == EXIT_SUCCESS)
-					{
-						Buf[EncBufLen] = NUL;
+					if (HCRYPTKEY hkey; CryptImportKey(HCryptProv, reinterpret_cast<const BYTE*>(&keyBlob), sizeof keyBlob, 0, 0, &hkey)) {
+						if (DWORD mode = CRYPT_MODE_CBC; CryptSetKeyParam(hkey, KP_MODE, reinterpret_cast<const BYTE*>(&mode), 0))
+							if (CryptSetKeyParam(hkey, KP_IV, iv, 0))
+								if (CryptDecrypt(hkey, 0, false, 0, data(buffer), &encodedLength))
+									strcpy(Buf, reinterpret_cast<const char*>(data(buffer)));
+						CryptDestroyKey(hkey);
 					}
 				}
 			}
-			free(EncBuf);
 		}
 	}
-	return;
+	catch (std::bad_alloc&) {}
 }
 
-/*----- AES用固定長キーを作成 ----------------------------------------------
-*
-*	Parameter
-*		unsigned char *AesKey : AES暗号鍵
-*		const char *Key : 暗号化キー
-*
-*	Return Value
-*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
-*	Note
-*		SHA-1をもちいて32Byte鍵を生成する
-*----------------------------------------------------------------------------*/
-
-static int CreateAesKey(unsigned char *AesKey, const char* Key)
-{
+// AES用固定長キーを作成
+// SHA-1をもちいて32Byte鍵を生成する
+static bool CreateAesKey(unsigned char *AesKey) {
 	char* HashKey;
-	uint32 HashKeyLen;
-	uint32 results[10];
+	uint32_t HashKeyLen;
+	uint32_t results[10];
 	int ByteOffset;
 	int KeyIndex;
 	int ResIndex;
 
-	HashKeyLen = (uint32)strlen(Key) + 16;
+	HashKeyLen = (uint32_t)strlen(SecretKey) + 16;
 	if((HashKey = (char*)malloc(HashKeyLen + 1)) == NULL){
-		return (FFFTP_FAIL);
+		return false;
 	}
 
-	strcpy(HashKey, Key);
+	strcpy(HashKey, SecretKey);
 	strcat(HashKey, ">g^r=@N7=//z<[`:");
 	sha_memory(HashKey, HashKeyLen, results);
 
-	strcpy(HashKey, Key);
+	strcpy(HashKey, SecretKey);
 	strcat(HashKey, "VG77dO1#EyC]$|C@");
 	sha_memory(HashKey, HashKeyLen, results + 5);
 
 	KeyIndex = 0;
 	ResIndex = 0;
-	while(ResIndex < 8){
-		for(ByteOffset = 0; ByteOffset < 4; ByteOffset++){
+	while (ResIndex < 8) {
+		for (ByteOffset = 0; ByteOffset < 4; ByteOffset++) {
 			AesKey[KeyIndex++] = (results[ResIndex] >> ByteOffset * 8) & 0xff;
 		}
 		ResIndex++;
 	}
 	free(HashKey);
 
-	return (FFFTP_SUCCESS);
+	return true;
 }
 
 
@@ -3518,7 +3321,7 @@ int CheckPasswordValidity( char* Password, int length, const char* HashStr, int 
 {
 	char Buf[MAX_PASSWORD_LEN + 32];
 	ulong hash1[5];
-	uint32 hash2[5];
+	uint32_t hash2[5];
 	
 	int i, j;
 	
@@ -3572,7 +3375,7 @@ int CheckPasswordValidity( char* Password, int length, const char* HashStr, int 
 void CreatePasswordHash( char* Password, int length, char* HashStr, int StretchCount )
 {
 	char Buf[MAX_PASSWORD_LEN + 32];
-	uint32 hash[5];
+	uint32_t hash[5];
 	int i, j;
 	unsigned char *p = (unsigned char *)HashStr;
 
@@ -3624,81 +3427,11 @@ void SetHashSalt1(void* Salt, int Length)
 }
 
 
-/*----------- 乱数生成をする -------------------------------------------------
-*
-*	Parameter
-*
-*	Return Value
-*		ランダムな値：コンパイラVS2005/動作環境WinXP以上では rand_s から取得する
-*----------------------------------------------------------------------------*/
-DWORD GetRandamDWORDValue(void)
-{
-	DWORD rndValue;
-	int errorCode;
-#ifdef _CRT_RAND_S
-	errno_t errnoRand_s;
-	errnoRand_s = rand_s(&rndValue);
-	errorCode = (0 != errnoRand_s ? 1 : 0);
-#else
-	errorCode = 1;
-#endif
-	if(0 != errorCode){
-#ifdef USE_RANDAM_C_RAND
-		rndValue = rand() | (rand() << 16);
-#else
-		/* rand() のかわりに、SHA-1とパフォーマンスカウンタを用いる */
-		uint32 shaValue[5];
-		LARGE_INTEGER Counter;
-		
-		if(0 == IsRndSourceInit){
-			/* 初回取得時 */
-			HANDLE CurProcHandle;
-			HANDLE CurThreadHandle;
-			
-			if(DuplicateHandle(GetCurrentProcess(), GetCurrentProcess(), GetCurrentProcess(),
-				&CurProcHandle, 0, FALSE, DUPLICATE_SAME_ACCESS))
-			{
-				CloseHandle(CurProcHandle);
-			}
-			if(DuplicateHandle(GetCurrentProcess(), GetCurrentThread(), GetCurrentProcess(),
-				&CurThreadHandle, 0, FALSE, DUPLICATE_SAME_ACCESS))
-			{
-				CloseHandle(CurThreadHandle);
-			}
-			
-			/* _WIN64 では64bitだが、その場合はrand_sが大抵利用可能なのでここでは32bitのみ用いる */
-			RndSource[0] = PtrToUlong(CurProcHandle);
-			RndSource[1] = PtrToUlong(CurThreadHandle);
-			RndSource[2] = (ulong)GetTickCount();
-			RndSource[3] = (ulong)timeGetTime();
-			RndSource[4] = 0; /* カウントアップ */
-			RndSource[5] = RndSource[3] + 1;
-			IsRndSourceInit = 1;
-		}
-		RndSource[4]++;
-		RndSource[5] += 0x00010010;
-		if(QueryPerformanceCounter(&Counter)){
-			RndSource[6] = Counter.LowPart;
-			RndSource[7] = Counter.HighPart;
-			RndSource[8] = (ulong)rand();
-		}else{
-			RndSource[6] = (ulong)timeGetTime();
-			RndSource[7] = (ulong)rand();
-			RndSource[8] = (ulong)rand();
-		}
-		
-		sha_memory((char *)RndSource, sizeof(RndSource), shaValue);
-		rndValue = shaValue[0] ^ shaValue[1] ^ shaValue[2] ^ shaValue[3] ^ shaValue[4];
-#endif
-	}
-	return rndValue;
-}
-
 // 全設定暗号化対応
 void GetMaskWithHMACSHA1(DWORD Nonce, const char* Salt, int SaltLength, void* pHash)
 {
 	BYTE Key[FMAX_PATH*2+1];
-	uint32 Hash[5];
+	uint32_t Hash[5];
 	DWORD i;
 	for(i = 0; i < 16; i++)
 	{
@@ -3709,7 +3442,7 @@ void GetMaskWithHMACSHA1(DWORD Nonce, const char* Salt, int SaltLength, void* pH
 	}
 	memcpy(&Key[64], Salt, SaltLength);
 	memcpy(&Key[64 + SaltLength], SecretKey, SecretKeyLength);
-	sha_memory((char*)&Key, 64 + SaltLength + SecretKeyLength, Hash);
+	sha_memory((const char*)Key, 64 + SaltLength + SecretKeyLength, Hash);
 	// sha.cはビッグエンディアンのため
 	for(i = 0; i < 5; i++)
 		Hash[i] = _byteswap_ulong(Hash[i]);
@@ -3717,14 +3450,14 @@ void GetMaskWithHMACSHA1(DWORD Nonce, const char* Salt, int SaltLength, void* pH
 	memset(&Key[20], 0, 44);
 	for(i = 0; i < 64; i++)
 		Key[i] ^= 0x36;
-	sha_memory((char*)&Key, 64, Hash);
+	sha_memory((const char*)Key, 64, Hash);
 	// sha.cはビッグエンディアンのため
 	for(i = 0; i < 5; i++)
 		Hash[i] = _byteswap_ulong(Hash[i]);
 	memcpy(&Key[64], &Hash, 20);
 	for(i = 0; i < 64; i++)
 		Key[i] ^= 0x6a;
-	sha_memory((char*)&Key, 84, Hash);
+	sha_memory((const char*)Key, 84, Hash);
 	// sha.cはビッグエンディアンのため
 	for(i = 0; i < 5; i++)
 		Hash[i] = _byteswap_ulong(Hash[i]);
@@ -3753,10 +3486,10 @@ void UnmaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size
 
 void CalculateSettingsDataChecksum(void* Data, DWORD Size)
 {
-	uint32 Hash[5];
+	uint32_t Hash[5];
 	DWORD i;
 	BYTE Mask[20];
-	sha_memory((char*)Data, Size, Hash);
+	sha_memory((const char*)Data, Size, Hash);
 	// sha.cはビッグエンディアンのため
 	for(i = 0; i < 5; i++)
 		Hash[i] = _byteswap_ulong(Hash[i]);
@@ -4278,4 +4011,3 @@ void SaveSettingsToWinSCPIni()
 			MessageBox(GetMainHwnd(), MSGJPN357, "FFFTP", MB_OK | MB_ICONERROR);
 	}
 }
-

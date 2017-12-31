@@ -30,15 +30,10 @@
 /* このプログラムは skey のソースを参考にしました。 */
 
 #include "common.h"
-#include "md4.h"
-#include "md5.h"
-#include "sha.h"
 
 
 /*===== プロトタイプ =====*/
 
-static int keycrunch(char *result, char *seed, char *passwd, int Type);
-static void secure_hash(char *x, int Type);
 static char *btoe(char *c, char *buf);
 static ulong extract(char *s, int start, int length);
 
@@ -278,6 +273,45 @@ static const char Wp[2048][5] = {
 };
 
 
+static bool keycrunch(char* result, std::string_view const& seed, std::string_view const& passwd, ALG_ID algid) {
+	auto ret = false;
+	if (HCRYPTHASH hash; CryptCreateHash(HCryptProv, algid, 0, 0, &hash)) {
+		if (CryptHashData(hash, data_as<BYTE>(seed), size_as<DWORD>(seed), 0))
+			if (CryptHashData(hash, data_as<BYTE>(passwd), size_as<DWORD>(passwd), 0)) {
+				uint32_t hashVal[5];
+				DWORD hashlen = 20;
+				if (CryptGetHashParam(hash, HP_HASHVAL, reinterpret_cast<BYTE*>(hashVal), &hashlen, 0)) {
+					hashVal[0] ^= hashVal[2];
+					hashVal[1] ^= hashVal[3];
+					if (hashlen == 20)
+						hashVal[0] ^= hashVal[4];
+					/* Only works on byte-addressed little-endian machines!! */
+					memcpy(result, hashVal, 8);
+					ret = true;
+				}
+			}
+		CryptDestroyHash(hash);
+	}
+	return ret;
+}
+
+static void secure_hash(char *x, ALG_ID algid) {
+	if (HCRYPTHASH hash; CryptCreateHash(HCryptProv, algid, 0, 0, &hash)) {
+		if (CryptHashData(hash, reinterpret_cast<const BYTE*>(x), 8, 0)) {
+			uint32_t hashVal[5];
+			DWORD hashlen = 20;
+			if (CryptGetHashParam(hash, HP_HASHVAL, reinterpret_cast<BYTE*>(hashVal), &hashlen, 0)) {
+				hashVal[0] ^= hashVal[2];
+				hashVal[1] ^= hashVal[3];
+				if (hashlen == 20)
+					hashVal[0] ^= hashVal[4];
+				/* Only works on byte-addressed little-endian machines!! */
+				memcpy(x, hashVal, 8);
+			}
+		}
+		CryptDestroyHash(hash);
+	}
+}
 
 /*----- ６ワードパスワードを作成する ------------------------------------------
 *
@@ -293,109 +327,18 @@ static const char Wp[2048][5] = {
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-int Make6WordPass(int seq, char *seed, char *pass, int type, char *buf)
-{
+int Make6WordPass(int seq, char *seed, char *pass, int type, char *buf) {
+	int Sts = FFFTP_FAIL;
 	char key[8];
-	int i;
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	if(keycrunch(key, seed, pass, type) != FFFTP_FAIL)
-	{
-		for(i = 0; i < seq; i++)
-			secure_hash(key, type);
+	ALG_ID algid = type == MD4 ? CALG_MD4 : type == MD5 ? CALG_MD5 : CALG_SHA1;
+	if (keycrunch(key, seed, pass, algid)) {
+		for (int i = 0; i < seq; i++)
+			secure_hash(key, algid);
 		btoe(key, buf);
 		Sts = FFFTP_SUCCESS;
 	}
-	return(Sts);
+	return Sts;
 }
-
-
-
-static int keycrunch(char *result, char *seed, char *passwd, int Type)
-{
-	char *buf;
-	MD4_CTX md4;
-	MD5_CTX md5;
-	uint32 results[5];
-	unsigned int buflen;
-
-	buflen = (unsigned int)strlen(seed) + (unsigned int)strlen(passwd);
-	if((buf = (char*)malloc(buflen + 1)) == NULL)
-		return(FFFTP_FAIL);
-	strcpy(buf, seed);
-	strcat(buf, passwd);
-
-	/* Crunch the key through MD[45] */
-	if(Type == MD4)
-	{
-		MD4Init(&md4);
-		MD4Update(&md4, (uchar *)buf, buflen);
-		MD4Final((uchar *)results, &md4);
-		results[0] ^= results[2];
-		results[1] ^= results[3];
-	}
-	else if(Type == MD5)
-	{
-		MD5Init(&md5);
-		MD5Update(&md5, (uchar *)buf, buflen);
-		MD5Final((uchar *)results, &md5);
-		results[0] ^= results[2];
-		results[1] ^= results[3];
-	}
-	else
-	{
-		sha_memory(buf, buflen, results);
-		results [0] ^= results [2];
-		results [1] ^= results [3];
-		results [0] ^= results [4];
-	}
-	free(buf);
-
-	/* Only works on byte-addressed little-endian machines!! */
-	memcpy(result, (char *)results, 8);
-
-	return(FFFTP_SUCCESS);
-}
-
-
-
-static void secure_hash(char *x, int Type)
-{
-	MD4_CTX md4;
-	MD5_CTX md5;
-	uint32 results[5];
-
-	if(Type == MD4)
-	{
-		MD4Init(&md4);
-		MD4Update(&md4,(uchar *)x, 8);
-		MD4Final((uchar *)results, &md4);
-		results[0] ^= results[2];
-		results[1] ^= results[3];
-	}
-	else if(Type == MD5)
-	{
-		MD5Init(&md5);
-		MD5Update(&md5,(uchar *)x, 8);
-		MD5Final((uchar *)results, &md5);
-		results[0] ^= results[2];
-		results[1] ^= results[3];
-	}
-	else
-	{
-		sha_memory(x, 8, results);
-		results [0] ^= results [2];
-		results [1] ^= results [3];
-		results [0] ^= results [4];
-	}
-
-	/* Only works on byte-addressed little-endian machines!! */
-	memcpy(x, (char *)results, 8);
-
-	return;
-}
-
 
 
 static char *btoe(char *c, char *buf)

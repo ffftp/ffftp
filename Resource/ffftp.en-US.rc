@@ -2821,6 +2821,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_APP                 "FFFTP"
+    IDS_ERR_CRYPTO          "Crypto library initialize failed.\nExit application."
 END
 
 #endif    // English (United States) resources

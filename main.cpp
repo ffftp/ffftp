@@ -34,8 +34,6 @@
 #pragma comment(lib, "muiload.lib")
 #pragma comment(lib, "legacy_stdio_definitions.lib")
 #endif
-#include "aes.h"
-#include "sha.h"
 #include "filehash.h"
 #include "helpid.h"
 
@@ -139,6 +137,7 @@ static int ToolWinHeight;
 
 HWND hHelpWin = NULL;
 std::map<int, std::string> msgs;
+HCRYPTPROV HCryptProv;
 
 /* 設定値 */
 int WinPosX = CW_USEDEFAULT;
@@ -327,6 +326,11 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	// UTF-8対応
 	LoadUnicodeNormalizationDll();
 
+	if (!CryptAcquireContextW(&HCryptProv, nullptr, nullptr, PROV_RSA_AES, CRYPT_VERIFYCONTEXT)) {
+		Message(nullptr, hInstance, IDS_ERR_CRYPTO, IDS_APP, MB_OK | MB_ICONERROR);
+		return 0;
+	}
+
 	// FTPS対応
 #ifdef USE_OPENSSL
 	LoadOpenSSL();
@@ -367,6 +371,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 #ifdef USE_OPENSSL
 	FreeOpenSSL();
 #endif
+	CryptReleaseContext(HCryptProv, 0);
 	// タスクバー進捗表示
 	FreeTaskbarList3();
 	// UPnP対応
@@ -404,9 +409,6 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 	int i;
 
 	sts = FFFTP_FAIL;
-
-	aes_init();
-	srand(GetTickCount());
 	
 	// 64ビット対応
 //	HtmlHelp(NULL, NULL, HH_INITIALIZE, (DWORD)&dwCookie);
@@ -3307,11 +3309,11 @@ BOOL __stdcall SSLTimeoutCallback(BOOL* pbAborted)
 BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName)
 {
 	BOOL bResult;
-	uint32 Hash[5];
+	uint32_t Hash[5];
 	int i;
 	char* pm0;
 	bResult = FALSE;
-	sha_memory((char*)Certificate, (uint32)(strlen(Certificate) * sizeof(char)), (uint32*)&Hash);
+	sha_memory(Certificate, (uint32_t)(strlen(Certificate) * sizeof(char)), Hash);
 	// sha.cはビッグエンディアンのため
 	for(i = 0; i < 5; i++)
 		Hash[i] = _byteswap_ulong(Hash[i]);
@@ -3350,18 +3352,18 @@ BOOL LoadSSLRootCAFile()
 	BOOL bResult;
 	HANDLE hFile;
 	DWORD Size;
-	BYTE* pBuffer;
-	uint32 Hash[5];
+	char* pBuffer;
+	uint32_t Hash[5];
 	int i;
 	bResult = FALSE;
 	if((hFile = CreateFile(SSLRootCAFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
 	{
 		Size = GetFileSize(hFile, NULL);
-		if(pBuffer = (BYTE*)malloc(Size))
+		if(pBuffer = (char*)malloc(Size))
 		{
 			if(ReadFile(hFile, pBuffer, Size, &Size, NULL))
 			{
-				sha_memory((char*)pBuffer, (uint32)Size, (uint32*)&Hash);
+				sha_memory(pBuffer, Size, Hash);
 				// sha.cはビッグエンディアンのため
 				for(i = 0; i < 5; i++)
 					Hash[i] = _byteswap_ulong(Hash[i]);

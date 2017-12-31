@@ -170,10 +170,6 @@
     </MuiResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="aescrypt.c" />
-    <ClCompile Include="aeskey.c" />
-    <ClCompile Include="aestab.c" />
-    <ClCompile Include="aes_modes.c" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="cache.cpp" />
     <ClCompile Include="clipboard.cpp" />
@@ -190,8 +186,6 @@
     <ClCompile Include="lvtips.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mbswrapper.cpp" />
-    <ClCompile Include="md4.c" />
-    <ClCompile Include="md5.c" />
     <ClCompile Include="misc.cpp" />
     <ClCompile Include="OleDragDrop.cpp" />
     <ClCompile Include="option.cpp" />
@@ -200,7 +194,6 @@
     <ClCompile Include="regexp.cpp" />
     <ClCompile Include="registry.cpp" />
     <ClCompile Include="remote.cpp" />
-    <ClCompile Include="sha.c" />
     <ClCompile Include="skey.cpp" />
     <ClCompile Include="socket.cpp" />
     <ClCompile Include="socketwrapper.cpp" />
@@ -211,27 +204,18 @@
     <ClCompile Include="wildcard.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="aes.h" />
-    <ClInclude Include="aesopt.h" />
-    <ClInclude Include="aestab.h" />
-    <ClInclude Include="aes_via_ace.h" />
-    <ClInclude Include="brg_endian.h" />
-    <ClInclude Include="brg_types.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="filehash.h" />
     <ClInclude Include="helpid.h" />
     <ClInclude Include="jreusr.h" />
     <ClInclude Include="mbswrapper.h" />
-    <ClInclude Include="md4.h" />
-    <ClInclude Include="md5.h" />
     <ClInclude Include="mesg-jpn.h" />
     <ClInclude Include="OleDragDrop.h" />
     <ClInclude Include="punycode.h" />
     <ClInclude Include="Resource\resource.en-US.h" />
     <ClInclude Include="Resource\resource.ja-JP.h" />
     <ClInclude Include="sample.h" />
-    <ClInclude Include="sha.h" />
     <ClInclude Include="socketwrapper.h" />
   </ItemGroup>
   <ItemGroup>

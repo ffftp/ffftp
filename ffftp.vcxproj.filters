@@ -15,31 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="aes_modes.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="aescrypt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="aeskey.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="aestab.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="md4.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="md5.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="punycode.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sha.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="bookmark.cpp">
@@ -157,9 +136,6 @@
     <ClInclude Include="socketwrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sha.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sample.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -172,12 +148,6 @@
     <ClInclude Include="mesg-jpn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="md5.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="md4.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="jreusr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -188,24 +158,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="config.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="brg_types.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="brg_endian.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="aestab.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="aesopt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="aes_via_ace.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="aes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
