@@ -140,7 +140,7 @@ int MakeDirFromLocalPath(char* LocalFile, char* Old)
 	Make = NO;
 	while(pNext = strchr(pDelimiter, '\\'))
 	{
-		Len = pNext - LocalFile;
+		Len = (int)(pNext - LocalFile);
 		strncpy(Pkt.LocalFile, LocalFile, Len);
 		Pkt.LocalFile[Len] = '\0';
 		if(strncmp(LocalFile, Old, Len + 1) != 0)
@@ -503,7 +503,7 @@ void MirrorDownloadProc(int Notify)
 		Base = NULL;
 
 		if(Notify == YES)
-			Notify = DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirror_down_dlg), GetMainHwnd(), MirrorNotifyCallBack, 0);
+			Notify = (int)DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirror_down_dlg), GetMainHwnd(), MirrorNotifyCallBack, 0);
 		else
 			Notify = YES;
 
@@ -1022,7 +1022,7 @@ int MakeDirFromRemotePath(char* RemoteFile, char* Old, int FirstAdd)
 	Make = NO;
 	while(pNext = strchr(pDelimiter, '/'))
 	{
-		Len = pNext - RemoteFile;
+		Len = (int)(pNext - RemoteFile);
 		strncpy(Pkt.RemoteFile, RemoteFile, Len);
 		Pkt.RemoteFile[Len] = '\0';
 		if(strncmp(RemoteFile, Old, Len + 1) != 0)
@@ -1503,7 +1503,7 @@ void MirrorUploadProc(int Notify)
 		Base = NULL;
 
 		if(Notify == YES)
-			Notify = DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirror_up_dlg), GetMainHwnd(), MirrorNotifyCallBack, 1);
+			Notify = (int)DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirror_up_dlg), GetMainHwnd(), MirrorNotifyCallBack, 1);
 		else
 			Notify = YES;
 
@@ -1838,7 +1838,7 @@ static INT_PTR CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wP
 	switch (iMessage)
 	{
 		case WM_INITDIALOG :
-			Mode = lParam;
+			Mode = (int)lParam;
 			return(TRUE);
 
 		case WM_COMMAND :
@@ -1957,10 +1957,10 @@ static INT_PTR CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM 
 					break;
 
 				case MIRROR_DEL :
-					Num = SendDlgItemMessage(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0);
+					Num = (int)SendDlgItemMessage(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0);
 					if((List = malloc(Num * sizeof(int))) != NULL)
 					{
-						Num = SendDlgItemMessage(hDlg, MIRROR_LIST, LB_GETSELITEMS, Num, (LPARAM)List);
+						Num = (int)SendDlgItemMessage(hDlg, MIRROR_LIST, LB_GETSELITEMS, Num, (LPARAM)List);
 						for(Num--; Num >= 0; Num--)
 						{
 							if(RemoveTmpTransFileListItem(Base, List[Num]) == FFFTP_SUCCESS)
@@ -1991,7 +1991,7 @@ static INT_PTR CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM 
 					while(Pos != NULL)
 					{
 						if(strncmp(Pos->Cmd, "STOR", 4) == 0 || strncmp(Pos->Cmd, "RETR", 4) == 0)
-							Pos->NoTransfer = SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
+							Pos->NoTransfer = (int)SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
 						Pos = Pos->Next;
 					}
 					break;
@@ -2572,7 +2572,7 @@ static void DelNotifyAndDo(FILELIST *Dt, int Win, int *Sw, int *Flg, char *CurDi
 			ReformToVMSstylePathName(TmpString);
 
 		CurWin = Win;
-		*Sw = DialogBox(GetFtpInst(), MAKEINTRESOURCE(delete_dlg), GetMainHwnd(), DeleteDialogCallBack);
+		*Sw = (int)DialogBox(GetFtpInst(), MAKEINTRESOURCE(delete_dlg), GetMainHwnd(), DeleteDialogCallBack);
 	}
 
 	if((*Sw == YES) || (*Sw == YES_ALL))
@@ -2704,7 +2704,7 @@ void RenameProc(void)
 			{
 				strcpy(TmpString, Pos->File);
 				CurWin = Win;
-				Sts = DialogBox(GetFtpInst(), MAKEINTRESOURCE(rename_dlg), GetMainHwnd(), RenameDialogCallBack);
+				Sts = (int)DialogBox(GetFtpInst(), MAKEINTRESOURCE(rename_dlg), GetMainHwnd(), RenameDialogCallBack);
 
 				if(Sts == NO_ALL)
 					break;
@@ -2991,7 +2991,7 @@ void ChangeDirComboProc(HWND hWnd)
 	// 同時接続対応
 	CancelFlg = NO;
 
-	if((i = SendMessage(hWnd, CB_GETCURSEL, 0, 0)) != CB_ERR)
+	if((i = (int)SendMessage(hWnd, CB_GETCURSEL, 0, 0)) != CB_ERR)
 	{
 		SendMessage(hWnd, CB_GETLBTEXT, i, (LPARAM)Tmp);
 
@@ -3210,7 +3210,7 @@ void ChmodProc(void)
 					{
 						Buf = BufTmp;
 						strcpy(Buf+BufLen, Pos->File);
-						BufLen += strlen(Pos->File) + 1;
+						BufLen += (int)strlen(Pos->File) + 1;
 					}
 					Pos = Pos->Next;
 				}
@@ -3438,7 +3438,7 @@ void CalcFileSizeProc(void)
 	// 同時接続対応
 	CancelFlg = NO;
 
-	if((All = DialogBox(GetFtpInst(), MAKEINTRESOURCE(filesize_notify_dlg), GetMainHwnd(), SizeNotifyDlgWndProc)) != NO_ALL)
+	if((All = (int)DialogBox(GetFtpInst(), MAKEINTRESOURCE(filesize_notify_dlg), GetMainHwnd(), SizeNotifyDlgWndProc)) != NO_ALL)
 	{
 		Sts = FFFTP_SUCCESS;
 		if(GetFocus() == GetLocalHwnd())
@@ -3616,7 +3616,7 @@ void CopyURLtoClipBoard(void)
 					sprintf(Port, ":%d", AskHostPort());
 
 				Set = Total;
-				Total += strlen(Path) + strlen(Host) + strlen(Port) + 8;	/* 8は "ftp://\r\n" のぶん */
+				Total += (int)strlen(Path) + (int)strlen(Host) + (int)strlen(Port) + 8;	/* 8は "ftp://\r\n" のぶん */
 				if(AskHostType() == HTYPE_VMS)
 					Total++;
 
@@ -3685,11 +3685,6 @@ int ProcForNonFullpath(SOCKET cSkt, char *Path, char *CurDir, HWND hWnd, int *Ca
 
 		if(strcmp(Tmp, CurDir) != 0)
 		{
-			// 同時接続対応
-//			if(Type == 0)
-//				Cmd = CommandProcCmd(NULL, "CWD %s", Tmp);
-//			else
-//				Cmd = CommandProcTrn(NULL, "CWD %s", Tmp);
 			Cmd = CommandProcTrn(cSkt, NULL, CancelCheckWork, "CWD %s", Tmp);
 
 			if(Cmd/100 != FTP_COMPLETE)

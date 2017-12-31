@@ -320,7 +320,7 @@ static int keycrunch(char *result, char *seed, char *passwd, int Type)
 	ulong results[5];
 	unsigned int buflen;
 
-	buflen = strlen(seed) + strlen(passwd);
+	buflen = (unsigned int)strlen(seed) + (unsigned int)strlen(passwd);
 	if((buf = malloc(buflen + 1)) == NULL)
 		return(FFFTP_FAIL);
 	strcpy(buf, seed);

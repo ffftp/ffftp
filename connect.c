@@ -1882,7 +1882,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 
 							if(Sts != FTP_COMPLETE)
 							{
-								SetTaskMsg(MSGJPN008, Host);
+								SetTaskMsg(MSGJPN008);
 								DoClose(ContSock);
 								ContSock = INVALID_SOCKET;
 							}
@@ -2053,7 +2053,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 					if(GetOneField(Pos, Seed, MAX_SEED_LEN) == FFFTP_SUCCESS)
 					{
 						/* Seedは英数字のみ有効とする */
-						for(i = strlen(Seed)-1; i >= 0; i--)
+						for(i = (int)strlen(Seed)-1; i >= 0; i--)
 						{
 							if((IsAlpha(Seed[i]) == 0) && (IsDigit(Seed[i]) == 0))
 								Seed[i] = NUL;
@@ -2324,7 +2324,7 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			Socks4Cmd.Port = CurSockAddr.sin_port;
 			Socks4Cmd.AdrsInt = CurSockAddr.sin_addr.s_addr;
 			strcpy(Socks4Cmd.UserID, FwallUser);
-			Len = offsetof(SOCKS4CMD, UserID) + strlen(FwallUser) + 1;
+			Len = offsetof(SOCKS4CMD, UserID) + (int)strlen(FwallUser) + 1;
 		}
 		else
 		{
@@ -2662,7 +2662,7 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 				Socks4Cmd.Port = CurSockAddr.sin_port;
 				Socks4Cmd.AdrsInt = CurSockAddr.sin_addr.s_addr;
 				strcpy(Socks4Cmd.UserID, FwallUser);
-				Len = offsetof(SOCKS4CMD, UserID) + strlen(FwallUser) + 1;
+				Len = offsetof(SOCKS4CMD, UserID) + (int)strlen(FwallUser) + 1;
 
 				Socks4Reply.Result = -1;
 				// 同時接続対応
@@ -3061,7 +3061,7 @@ static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, int ValidIP, ulo
 	{
 		/* ホスト名を指定 */
 		Packet->Type = SOCKS5_ADRS_NAME;
-		Len = strlen(Host);
+		Len = (int)strlen(Host);
 		*Pos++ = Len;
 		strcpy(Pos, Host);
 		Pos += Len;
@@ -3099,7 +3099,7 @@ static int Socks5MakeCmdPacketIPv6(SOCKS5REQUEST *Packet, char Cmd, int ValidIP,
 	{
 		/* ホスト名を指定 */
 		Packet->Type = SOCKS5_ADRS_NAME;
-		Len = strlen(Host);
+		Len = (int)strlen(Host);
 		*Pos++ = Len;
 		strcpy(Pos, Host);
 		Pos += Len;
@@ -3257,8 +3257,8 @@ static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork)
 	{
 		DoPrintf("SOCKS5 User/Pass Authentication");
 		Buf[0] = SOCKS5_USERAUTH_VER;
-		Len = strlen(FwallUser);
-		Len2 = strlen(FwallPass);
+		Len = (int)strlen(FwallUser);
+		Len2 = (int)strlen(FwallPass);
 		Buf[1] = Len;
 		strcpy(Buf+2, FwallUser);
 		Buf[2 + Len] = Len2;

@@ -299,7 +299,7 @@ void SaveCache(void)
 				for(i = 0; i < TmpCacheEntry; i++)
 				{
 					if(strlen(Pos->Path) != 0)
-						fprintf(fd, "%s %s %s %ld\n", Pos->HostAdrs, Pos->UserName, Pos->Path, Pos->Time);
+						fprintf(fd, "%s %s %s %lld\n", Pos->HostAdrs, Pos->UserName, Pos->Path, Pos->Time);
 					Pos++;
 				}
 				fclose(fd);
@@ -351,7 +351,7 @@ void LoadCache(void)
 					if(fgets(Buf, FMAX_PATH, fd) == NULL)
 						break;
 
-					if(sscanf(Buf, "%s %s %s %ld\n", Pos->HostAdrs, Pos->UserName, Pos->Path, &(Pos->Time)) == 4)
+					if(sscanf(Buf, "%s %s %s %lld\n", Pos->HostAdrs, Pos->UserName, Pos->Path, &(Pos->Time)) == 4)
 					{
 						Pos++;
 						Num++;

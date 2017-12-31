@@ -201,7 +201,7 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 //		LocalProcPtr = (WNDPROC)SetWindowLong(hWndListLocal, GWL_WNDPROC, (LONG)LocalWndProc);
 		LocalProcPtr = (WNDPROC)SetWindowLongPtr(hWndListLocal, GWLP_WNDPROC, (LONG_PTR)LocalWndProc);
 
-		Tmp = SendMessage(hWndListLocal, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
+		Tmp = (long)SendMessage(hWndListLocal, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
 		Tmp |= LVS_EX_FULLROWSELECT;
 		SendMessage(hWndListLocal, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
 
@@ -258,7 +258,7 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 //		RemoteProcPtr = (WNDPROC)SetWindowLong(hWndListRemote, GWL_WNDPROC, (LONG)RemoteWndProc);
 		RemoteProcPtr = (WNDPROC)SetWindowLongPtr(hWndListRemote, GWLP_WNDPROC, (LONG_PTR)RemoteWndProc);
 
-		Tmp = SendMessage(hWndListRemote, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
+		Tmp = (long)SendMessage(hWndListRemote, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
 		Tmp |= LVS_EX_FULLROWSELECT;
 		SendMessage(hWndListRemote, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
 
@@ -1017,7 +1017,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					}
 					pf = FileListBaseNoExpand;
 					for (j = 0; pf ; j++) {
-						filelen = strlen(PathDir) + 1 + strlen(pf->File) + 1;
+						filelen = (int)strlen(PathDir) + 1 + (int)strlen(pf->File) + 1;
 						FileNameList[j] = (char *)GlobalAlloc(GPTR, filelen);
 						strncpy_s(FileNameList[j], filelen, PathDir, _TRUNCATE);
 						strncat_s(FileNameList[j], filelen, "\\", _TRUNCATE);
@@ -1832,7 +1832,7 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 	char Tmp[20];
 
 	if(Pos == -1)
-		Pos = SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0);
+		Pos = (int)SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0);
 
 	// 変数が未初期化のバグ修正
 	memset(&LvItem, 0, sizeof(LV_ITEM));
@@ -1850,7 +1850,7 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 	// ファイルアイコン表示対応
 	if(DispFileIcon == YES && hWnd == GetLocalHwnd())
 		LvItem.iImage = ImageId + 5;
-	LvItem.iItem = SendMessage(hWnd, LVM_INSERTITEM, 0, (LPARAM)&LvItem);
+	LvItem.iItem = (int)SendMessage(hWnd, LVM_INSERTITEM, 0, (LPARAM)&LvItem);
 
 	/* 日付/時刻 */
 	// タイムスタンプのバグ修正
@@ -1860,7 +1860,7 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 	LvItem.iItem = Pos;
 	LvItem.iSubItem = 1;
 	LvItem.pszText = Tmp;
-	LvItem.iItem = SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
+	LvItem.iItem = (int)SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
 
 	/* サイズ */
 	if(Type == NODE_DIR)
@@ -1875,7 +1875,7 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 	LvItem.iItem = Pos;
 	LvItem.iSubItem = 2;
 	LvItem.pszText = Tmp;
-	LvItem.iItem = SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
+	LvItem.iItem = (int)SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
 
 	/* 拡張子 */
 	LvItem.mask = LVIF_TEXT;
@@ -1888,7 +1888,7 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 	} else
 #endif
 	LvItem.pszText = GetFileExt(Name);
-	LvItem.iItem = SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
+	LvItem.iItem = (int)SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
 
 	if(hWnd == GetRemoteHwnd())
 	{
@@ -1906,14 +1906,14 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 		LvItem.iItem = Pos;
 		LvItem.iSubItem = 4;
 		LvItem.pszText = Tmp;
-		LvItem.iItem = SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
+		LvItem.iItem = (int)SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
 
 		/* オーナ名 */
 		LvItem.mask = LVIF_TEXT;
 		LvItem.iItem = Pos;
 		LvItem.iSubItem = 5;
 		LvItem.pszText = Owner;
-		LvItem.iItem = SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
+		LvItem.iItem = (int)SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
 	}
 	return;
 }
@@ -2121,10 +2121,10 @@ static INT_PTR CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wP
 			{
 				case IDOK :
 					SendDlgItemMessage(hDlg, SEL_FNAME, WM_GETTEXT, 40+1, (LPARAM)FindStr);
-					FindMode = SendDlgItemMessage(hDlg, SEL_REGEXP, BM_GETCHECK, 0, 0);
-					IgnoreOld = SendDlgItemMessage(hDlg, SEL_NOOLD, BM_GETCHECK, 0, 0);
-					IgnoreNew = SendDlgItemMessage(hDlg, SEL_NONEW, BM_GETCHECK, 0, 0);
-					IgnoreExist = SendDlgItemMessage(hDlg, SEL_NOEXIST, BM_GETCHECK, 0, 0);
+					FindMode = (int)SendDlgItemMessage(hDlg, SEL_REGEXP, BM_GETCHECK, 0, 0);
+					IgnoreOld = (int)SendDlgItemMessage(hDlg, SEL_NOOLD, BM_GETCHECK, 0, 0);
+					IgnoreNew = (int)SendDlgItemMessage(hDlg, SEL_NONEW, BM_GETCHECK, 0, 0);
+					IgnoreExist = (int)SendDlgItemMessage(hDlg, SEL_NOEXIST, BM_GETCHECK, 0, 0);
 					EndDialog(hDlg, YES);
 					break;
 
@@ -2319,7 +2319,7 @@ int GetCurrentItem(int Win)
 	if(Win == WIN_REMOTE)
 		hWnd = GetRemoteHwnd();
 
-	if((Ret = SendMessage(hWnd, LVM_GETNEXTITEM, -1, MAKELPARAM(LVNI_ALL | LVNI_FOCUSED, 0))) == -1)
+	if((Ret = (int)SendMessage(hWnd, LVM_GETNEXTITEM, -1, MAKELPARAM(LVNI_ALL | LVNI_FOCUSED, 0))) == -1)
 		Ret = 0;
 
 	return(Ret);
@@ -2343,7 +2343,7 @@ int GetItemCount(int Win)
 	if(Win == WIN_REMOTE)
 		hWnd = GetRemoteHwnd();
 
-	return(SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0));
+	return (int)(SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0));
 }
 
 
@@ -2364,7 +2364,7 @@ int GetSelectedCount(int Win)
 	if(Win == WIN_REMOTE)
 		hWnd = GetRemoteHwnd();
 
-	return(SendMessage(hWnd, LVM_GETSELECTEDCOUNT, 0, 0));
+	return (int)(SendMessage(hWnd, LVM_GETSELECTEDCOUNT, 0, 0));
 }
 
 
@@ -2392,7 +2392,7 @@ int GetFirstSelected(int Win, int All)
 	if(All == YES)
 		Ope = LVNI_ALL;
 
-	return(SendMessage(hWnd, LVM_GETNEXTITEM, (WPARAM)-1, (LPARAM)MAKELPARAM(Ope, 0)));
+	return (int)(SendMessage(hWnd, LVM_GETNEXTITEM, (WPARAM)-1, (LPARAM)MAKELPARAM(Ope, 0)));
 }
 
 
@@ -2421,7 +2421,7 @@ int GetNextSelected(int Win, int Pos, int All)
 	if(All == YES)
 		Ope = LVNI_ALL;
 
-	return(SendMessage(hWnd, LVM_GETNEXTITEM, (WPARAM)Pos, (LPARAM)MAKELPARAM(Ope, 0)));
+	return (int)(SendMessage(hWnd, LVM_GETNEXTITEM, (WPARAM)Pos, (LPARAM)MAKELPARAM(Ope, 0)));
 }
 
 
@@ -2435,7 +2435,7 @@ int GetHotSelected(int Win, char *Fname)
 	if(Win == WIN_REMOTE)
 		hWnd = GetRemoteHwnd();
 
-	Pos = SendMessage(hWnd, LVM_GETNEXTITEM, (WPARAM)-1, (LPARAM)MAKELPARAM(LVNI_FOCUSED, 0));
+	Pos = (int)SendMessage(hWnd, LVM_GETNEXTITEM, (WPARAM)-1, (LPARAM)MAKELPARAM(LVNI_FOCUSED, 0));
 	if(Pos != -1)
 		GetNodeName(Win, Pos, Fname, FMAX_PATH);
 
@@ -2501,7 +2501,7 @@ int FindNameNode(int Win, char *Name)
 	memset(&FindInfo, 0, sizeof(LV_FINDINFO));
 	FindInfo.flags = LVFI_STRING;
 	FindInfo.psz = Name;
-	return(SendMessage(hWnd, LVM_FINDITEM, -1, (LPARAM)&FindInfo));
+	return (int)(SendMessage(hWnd, LVM_FINDITEM, -1, (LPARAM)&FindInfo));
 }
 
 
@@ -3427,7 +3427,7 @@ static int GetListOneLine(char *Buf, int Max, FILE *Fd, int Convert)
 				Sts = FFFTP_FAIL;
 			else
 			{
-				Max -= strlen(Buf);
+				Max -= (int)strlen(Buf);
 				while(strchr(Buf, ')') == NULL)
 				{
 					if(fgets(Tmp, FMAX_PATH, Fd) != NULL)
@@ -3436,7 +3436,7 @@ static int GetListOneLine(char *Buf, int Max, FILE *Fd, int Convert)
 						ReplaceAll(Buf, '\x08', ' ');
 						if((int)strlen(Tmp) > Max)
 							Tmp[Max] = NUL;
-						Max -= strlen(Tmp);
+						Max -= (int)strlen(Tmp);
 						strcat(Buf, Tmp);
 					}
 					else
@@ -5893,7 +5893,7 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day)
 		_strlwr(Str);
 		*Str = toupper(*Str);
 		if((Pos = strstr(DateStr, Str)) != NULL)
-			*Month = ((Pos - DateStr) / 3) + 1;
+			*Month = ((WORD)(Pos - DateStr) / 3) + 1;
 	}
 	else
 	{
@@ -6372,7 +6372,7 @@ int AnalyzeNameKanjiCode(int Num)
 						InitCodeConvInfo(&cInfo1);
 						cInfo1.KanaCnv = NO;
 						cInfo1.Str = Name;
-						cInfo1.StrLen = strlen(Name);
+						cInfo1.StrLen = (int)strlen(Name);
 						cInfo1.Buf = Buf;
 						cInfo1.BufSize = FMAX_PATH;
 						cInfo2 = cInfo1;
@@ -6387,7 +6387,7 @@ int AnalyzeNameKanjiCode(int Num)
 						else
 							PointUTF8N++;
 					}
-					switch(CheckKanjiCode(Name, strlen(Name), KANJI_SJIS))
+					switch(CheckKanjiCode(Name, (int)strlen(Name), KANJI_SJIS))
 					{
 					case KANJI_SJIS:
 						PointSJIS++;
@@ -6400,7 +6400,7 @@ int AnalyzeNameKanjiCode(int Num)
 				else
 				{
 					// ASCII文字の範囲内
-					switch(CheckKanjiCode(Name, strlen(Name), KANJI_SJIS))
+					switch(CheckKanjiCode(Name, (int)strlen(Name), KANJI_SJIS))
 					{
 					case KANJI_JIS:
 						PointJIS++;

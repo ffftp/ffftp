@@ -42,6 +42,7 @@ static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork);
 static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, int *CancelCheckWork);
 static void ChangeSepaLocal2Remote(char *Fname);
 static void ChangeSepaRemote2Local(char *Fname);
+#define CommandProcCmd(REPLY, CANCELCHECKWORK, ...) (AskTransferNow() == YES && (SktShareProh(), 0), command(AskCmdCtrlSkt(), REPLY, CANCELCHECKWORK, __VA_ARGS__))
 
 /*===== 外部参照 =====*/
 
@@ -493,7 +494,7 @@ int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork)
 	if(Sts/100 == FTP_COMPLETE)
 	{
 		sTime.wMilliseconds = 0;
-		if(sscanf(Tmp+4, "%04d%02d%02d%02d%02d%02d",
+		if(sscanf(Tmp+4, "%04hu%02hu%02hu%02hu%02hu%02hu",
 			&sTime.wYear, &sTime.wMonth, &sTime.wDay,
 			&sTime.wHour, &sTime.wMinute, &sTime.wSecond) == 6)
 		{
@@ -518,7 +519,7 @@ int DoMFMT(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork)
 
 	Sts = 500;
 	if(AskHostFeature() & FEATURE_MFMT)
-		Sts = CommandProcTrn(cSkt, Tmp, CancelCheckWork, "MFMT %04d%02d%02d%02d%02d%02d %s", sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond, Path);
+		Sts = CommandProcTrn(cSkt, Tmp, CancelCheckWork, "MFMT %04hu%02hu%02hu%02hu%02hu%02hu %s", sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond, Path);
 	return(Sts/100);
 }
 
@@ -567,11 +568,11 @@ SOCKET DoClose(SOCKET Sock)
 //			WSACancelBlockingCall();
 //		}
 		do_closesocket(Sock);
-		DoPrintf("Skt=%u : Socket closed.", Sock);
+		DoPrintf("Skt=%zu : Socket closed.", Sock);
 		Sock = INVALID_SOCKET;
 	}
 	if(Sock != INVALID_SOCKET)
-		DoPrintf("Skt=%u : Failed to close socket.", Sock);
+		DoPrintf("Skt=%zu : Failed to close socket.", Sock);
 
 	return(Sock);
 }
@@ -713,51 +714,6 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, 
 }
 
 
-/*----- リモート側へコマンドを送りリプライを待つ（コマンドソケット）-----------
-*
-*	Parameter
-*		char *Reply : リプライのコピー先 (NULL=コピーしない)
-*		char *fmt : フォーマット文字列
-*		... : パラメータ
-*
-*	Return Value
-*		int 応答コード
-*
-*	Note
-*		コマンドコントロールソケットを使う
-*----------------------------------------------------------------------------*/
-
-// 同時接続対応
-//int CommandProcCmd(char *Reply, char *fmt, ...)
-int CommandProcCmd(char *Reply, int* CancelCheckWork, char *fmt, ...)
-{
-	va_list Args;
-	char Cmd[1024];
-	int Sts;
-
-	va_start(Args, fmt);
-	wvsprintf(Cmd, fmt, Args);
-	va_end(Args);
-
-	if(AskTransferNow() == YES)
-		SktShareProh();
-
-//#pragma aaa
-//DoPrintf("**CommandProcCmd : %s", Cmd);
-
-//	if((Sts = command(AskCmdCtrlSkt(), Reply, "%s", Cmd)) == 429)
-//	{
-//		if(ReConnectCmdSkt() == FFFTP_SUCCESS)
-//		{
-			// 同時接続対応
-//			Sts = command(AskCmdCtrlSkt(), Reply, &CheckCancelFlg, "%s", Cmd);
-			Sts = command(AskCmdCtrlSkt(), Reply, CancelCheckWork, "%s", Cmd);
-//		}
-//	}
-	return(Sts);
-}
-
-
 #if defined(HAVE_TANDEM)
 /*----- OSS/Guardian ファイルシステムを切り替えるコマンドを送る ---------------
 *
@@ -791,119 +747,32 @@ void SwitchOSSProc(void)
 #endif
 
 
-/*----- リモート側へコマンドを送りリプライを待つ（転送ソケット）---------------
-*
-*	Parameter
-*		SOCKET cSkt : ソケット
-*		char *Reply : リプライのコピー先 (NULL=コピーしない)
-*		int *CancelCheckWork :
-*		char *fmt : フォーマット文字列
-*		... : パラメータ
-*
-*	Return Value
-*		int 応答コード
-*
-*	Note
-*		転送コントロールソケットを使う
-*----------------------------------------------------------------------------*/
-
-// 同時接続対応
-//int CommandProcTrn(char *Reply, char *fmt, ...)
-int CommandProcTrn(SOCKET cSkt, char *Reply, int* CancelCheckWork, char *fmt, ...)
-{
+// コマンドを送りリプライを待つ
+// ホストのファイル名の漢字コードに応じて、ここで漢字コードの変換を行なう
+int _command(SOCKET cSkt, char* Reply, int* CancelCheckWork, const char* fmt, ...) {
+	if (cSkt == INVALID_SOCKET)
+		return 429;
+	char Cmd[FMAX_PATH * 2];
 	va_list Args;
-	char Cmd[1024];
-	int Sts;
-
 	va_start(Args, fmt);
-	wvsprintf(Cmd, fmt, Args);
+	vsprintf(Cmd, fmt, Args);
 	va_end(Args);
-
-//#pragma aaa
-//DoPrintf("**CommandProcTrn : %s", Cmd);
-
-//	if((Sts = command(AskTrnCtrlSkt(), Reply, "%s", Cmd)) == 429)
-//	{
-//		if(ReConnectTrnSkt() == FFFTP_SUCCESS)
-//			Sts = command(AskTrnCtrlSkt(), Reply, &CheckCancelFlg, "%s", Cmd);
-			Sts = command(cSkt, Reply, CancelCheckWork, "%s", Cmd);
-//	}
-	return(Sts);
-}
-
-
-/*----- コマンドを送りリプライを待つ ------------------------------------------
-*
-*	Parameter
-*		SOCKET cSkt : コントロールソケット
-*		char *Reply : リプライのコピー先 (NULL=コピーしない)
-*		char *fmt : フォーマット文字列
-*		... : パラメータ
-*
-*	Return Value
-*		int 応答コード
-*
-*	Note
-*		ホストのファイル名の漢字コードに応じて、ここで漢字コードの変換を行なう
-*----------------------------------------------------------------------------*/
-
-//#pragma aaa
-//static int cntcnt = 0;
-
-int command(SOCKET cSkt, char *Reply, int *CancelCheckWork, char *fmt, ...)
-{
-	va_list Args;
-	char Cmd[FMAX_PATH*2];
-	int Sts;
-	char TmpBuf[ONELINE_BUF_SIZE];
-
-	if(cSkt != INVALID_SOCKET)
-	{
-		va_start(Args, fmt);
-		wvsprintf(Cmd, fmt, Args);
-		va_end(Args);
-
-		if(strncmp(Cmd, "PASS ", 5) == 0)
-			SetTaskMsg(">PASS [xxxxxx]");
-		else if((strncmp(Cmd, "USER ", 5) == 0) ||
-				(strncmp(Cmd, "OPEN ", 5) == 0))
-		{
-			SetTaskMsg(">%s", Cmd);
-		}
-		else
-		{
-			ChangeSepaLocal2Remote(Cmd);
-			SetTaskMsg(">%s", Cmd);
-			// UTF-8対応
-//			ChangeFnameLocal2Remote(Cmd, FMAX_PATH*2);
-		}
-		// UTF-8対応
-		ChangeFnameLocal2Remote(Cmd, FMAX_PATH*2);
-
-//		DoPrintf("SEND : %s", Cmd);
-		strcat(Cmd, "\x0D\x0A");
-
-		if(Reply != NULL)
-			strcpy(Reply, "");
-
-		Sts = 429;
-		if(SendData(cSkt, Cmd, strlen(Cmd), 0, CancelCheckWork) == FFFTP_SUCCESS)
-		{
-			Sts = ReadReplyMessage(cSkt, Reply, 1024, CancelCheckWork, TmpBuf);
-		}
-
-//#pragma aaa
-//if(Reply != NULL)
-//	DoPrintf("%x : %x : %s : %s", cSkt, &TmpBuf, Cmd, Reply);
-//else
-//	DoPrintf("%x : %x : %s : NULL", cSkt, &TmpBuf, Cmd);
-
-//		DoPrintf("command() RET=%d", Sts);
+	if (strncmp(Cmd, "PASS ", 5) == 0)
+		SetTaskMsg(">PASS [xxxxxx]");
+	else if (strncmp(Cmd, "USER ", 5) == 0 || strncmp(Cmd, "OPEN ", 5) == 0)
+		SetTaskMsg(">%s", Cmd);
+	else {
+		ChangeSepaLocal2Remote(Cmd);
+		SetTaskMsg(">%s", Cmd);
 	}
-	else
-		Sts = 429;
-
-	return(Sts);
+	ChangeFnameLocal2Remote(Cmd, FMAX_PATH * 2);
+	strcat(Cmd, "\x0D\x0A");
+	if (Reply != NULL)
+		strcpy(Reply, "");
+	if (SendData(cSkt, Cmd, (int)strlen(Cmd), 0, CancelCheckWork) != FFFTP_SUCCESS)
+		return 429;
+	char TmpBuf[ONELINE_BUF_SIZE];
+	return ReadReplyMessage(cSkt, Reply, 1024, CancelCheckWork, TmpBuf);
 }
 
 
@@ -1031,7 +900,7 @@ int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char
 					}
 				}
 				strncat(Buf, Tmp, Max);
-				Max = max1(0, Max-strlen(Tmp));
+				Max = max1(0, Max-(int)strlen(Tmp));
 
 //				strncpy(Buf, Tmp, Max);
 			}
@@ -1179,7 +1048,7 @@ static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
 			}
 
 			/* 末尾の CR,LF,スペースを取り除く */
-			while((i=strlen(Buf))>2 &&
+			while((i=(int)strlen(Buf))>2 &&
 				  (Buf[i-1]==0x0a || Buf[i-1]==0x0d || Buf[i-1]==' '))
 				Buf[i-1]=0;
 		}
@@ -1453,7 +1322,7 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 //		cInfo.Str = Fname;
 		strcpy(Buf2, Fname);
 		cInfo.Str = Buf2;
-		cInfo.StrLen = strlen(Fname);
+		cInfo.StrLen = (int)strlen(Fname);
 		cInfo.Buf = Buf;
 		cInfo.BufSize = Max - 1;
 
@@ -1483,7 +1352,7 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 				InitCodeConvInfo(&cInfo);
 				cInfo.KanaCnv = NO;
 				cInfo.Str = Fname;
-				cInfo.StrLen = strlen(Fname);
+				cInfo.StrLen = (int)strlen(Fname);
 				cInfo.Buf = Buf;
 				cInfo.BufSize = Max - 1;
 				ConvSJIStoUTF8N(&cInfo);
@@ -1507,7 +1376,7 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 				InitCodeConvInfo(&cInfo);
 				cInfo.KanaCnv = NO;
 				cInfo.Str = Fname;
-				cInfo.StrLen = strlen(Fname);
+				cInfo.StrLen = (int)strlen(Fname);
 				cInfo.Buf = Buf;
 				cInfo.BufSize = Max - 1;
 				ConvSJIStoUTF8N(&cInfo);
@@ -1532,7 +1401,7 @@ int ChangeFnameRemote2Local(char *Fname, int Max)
 				InitCodeConvInfo(&cInfo);
 				cInfo.KanaCnv = NO;
 				cInfo.Str = Fname;
-				cInfo.StrLen = strlen(Fname);
+				cInfo.StrLen = (int)strlen(Fname);
 				cInfo.Buf = Buf;
 				cInfo.BufSize = Max - 1;
 				ConvSJIStoUTF8N(&cInfo);
@@ -1609,7 +1478,7 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 //		cInfo.Str = Fname;
 		strcpy(Buf2, Fname);
 		cInfo.Str = Buf2;
-		cInfo.StrLen = strlen(Fname);
+		cInfo.StrLen = (int)strlen(Fname);
 		cInfo.Buf = Buf;
 		cInfo.BufSize = Max - 1;
 
@@ -1639,7 +1508,7 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 				InitCodeConvInfo(&cInfo);
 				cInfo.KanaCnv = NO;
 				cInfo.Str = Fname;
-				cInfo.StrLen = strlen(Fname);
+				cInfo.StrLen = (int)strlen(Fname);
 				cInfo.Buf = Buf;
 				cInfo.BufSize = Max - 1;
 				ConvSJIStoJIS(&cInfo);
@@ -1663,7 +1532,7 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 				InitCodeConvInfo(&cInfo);
 				cInfo.KanaCnv = NO;
 				cInfo.Str = Fname;
-				cInfo.StrLen = strlen(Fname);
+				cInfo.StrLen = (int)strlen(Fname);
 				cInfo.Buf = Buf;
 				cInfo.BufSize = Max - 1;
 				ConvSJIStoEUC(&cInfo);
@@ -1687,7 +1556,7 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 				InitCodeConvInfo(&cInfo);
 				cInfo.KanaCnv = NO;
 				cInfo.Str = Fname;
-				cInfo.StrLen = strlen(Fname);
+				cInfo.StrLen = (int)strlen(Fname);
 				cInfo.Buf = Buf;
 				cInfo.BufSize = Max - 1;
 				ConvSJIStoSMB_HEX(&cInfo);
@@ -1711,7 +1580,7 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 				InitCodeConvInfo(&cInfo);
 				cInfo.KanaCnv = NO;
 				cInfo.Str = Fname;
-				cInfo.StrLen = strlen(Fname);
+				cInfo.StrLen = (int)strlen(Fname);
 				cInfo.Buf = Buf;
 				cInfo.BufSize = Max - 1;
 				ConvSJIStoSMB_CAP(&cInfo);

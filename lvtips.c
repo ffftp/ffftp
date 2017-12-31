@@ -236,7 +236,7 @@ static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffs
 			SetBkMode(dc, TRANSPARENT);
 
 			rectDisplay = rectTitle;
-			GetTextExtentPoint32(dc, lpszTitleText, strlen(lpszTitleText), &size);
+			GetTextExtentPoint32(dc, lpszTitleText, (int)strlen(lpszTitleText), &size);
 			rectDisplay.left += xoffset;
 			rectDisplay.right = rectDisplay.left + size.cx + 2;
 
@@ -250,7 +250,7 @@ static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffs
 					rectDisplay.bottom - rectDisplay.top, 
 					SWP_SHOWWINDOW|SWP_NOACTIVATE );
 
-				TextOut(dc, 0, 0, lpszTitleText, strlen(lpszTitleText));
+				TextOut(dc, 0, 0, lpszTitleText, (int)strlen(lpszTitleText));
 
 				SetCapture(hWnd);
 			}

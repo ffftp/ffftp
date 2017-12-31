@@ -282,7 +282,7 @@ int FlushRestTermCodeConvData(TERMCODECONVINFO *cInfo)
 	if(cInfo->Term == 0x0D)
 		*Put++ = 0x0A;
 
-	cInfo->OutLen = Put - cInfo->Buf;
+	cInfo->OutLen = (int)(Put - cInfo->Buf);
 
 	return(NO);
 }
@@ -345,7 +345,7 @@ int ConvTermCodeToCRLF(TERMCODECONVINFO *cInfo)
 	}
 
 	cInfo->Str = Str;
-	cInfo->OutLen = Put - cInfo->Buf;
+	cInfo->OutLen = (int)(Put - cInfo->Buf);
 
 	return(Continue);
 }
@@ -412,7 +412,7 @@ int FlushRestData(CODECONVINFO *cInfo)
 	if(cInfo->EscProc == 2)
 		*Put++ = cInfo->EscCode[1];
 
-	cInfo->OutLen = Put - cInfo->Buf;
+	cInfo->OutLen = (int)(Put - cInfo->Buf);
 
 	return(NO);
 }
@@ -506,7 +506,7 @@ int ConvEUCtoSJIS(CODECONVINFO *cInfo)
 	}
 
 	cInfo->Str = Str;
-	cInfo->OutLen = Put - cInfo->Buf;
+	cInfo->OutLen = (int)(Put - cInfo->Buf);
 
 	return(Continue);
 }
@@ -700,7 +700,7 @@ int ConvJIStoSJIS(CODECONVINFO *cInfo)
 	}
 
 	cInfo->Str = Str;
-	cInfo->OutLen = Put - cInfo->Buf;
+	cInfo->OutLen = (int)(Put - cInfo->Buf);
 
 	return(Continue);
 }
@@ -799,7 +799,7 @@ int ConvSMBtoSJIS(CODECONVINFO *cInfo)
 	}
 
 	cInfo->Str = Str;
-	cInfo->OutLen = Put - cInfo->Buf;
+	cInfo->OutLen = (int)(Put - cInfo->Buf);
 
 	return(Continue);
 }
@@ -877,7 +877,7 @@ int ConvSJIStoEUC(CODECONVINFO *cInfo)
 	}
 
 	cInfo->Str = Str;
-	cInfo->OutLen = Put - cInfo->Buf;
+	cInfo->OutLen = (int)(Put - cInfo->Buf);
 
 	return(Continue);
 }
@@ -1029,7 +1029,7 @@ int ConvSJIStoJIS(CODECONVINFO *cInfo)
 	}
 
 	cInfo->Str = Str;
-	cInfo->OutLen = Put - cInfo->Buf;
+	cInfo->OutLen = (int)(Put - cInfo->Buf);
 
 	return(Continue);
 }
@@ -1146,7 +1146,7 @@ int ConvSJIStoSMB_HEX(CODECONVINFO *cInfo)
 	}
 
 	cInfo->Str = Str;
-	cInfo->OutLen = Put - cInfo->Buf;
+	cInfo->OutLen = (int)(Put - cInfo->Buf);
 
 	return(Continue);
 }
@@ -1195,7 +1195,7 @@ int ConvSJIStoSMB_CAP(CODECONVINFO *cInfo)
 	}
 
 	cInfo->Str = Str;
-	cInfo->OutLen = Put - cInfo->Buf;
+	cInfo->OutLen = (int)(Put - cInfo->Buf);
 
 	return(Continue);
 }
@@ -1288,7 +1288,7 @@ void ConvAutoToSJIS(char *Text, int Pref)
 	char *Buf;
 	CODECONVINFO cInfo;
 
-	Code = CheckKanjiCode(Text, strlen(Text), Pref);
+	Code = CheckKanjiCode(Text, (int)strlen(Text), Pref);
 	if(Code != KANJI_SJIS)
 	{
 		Buf = malloc(strlen(Text)+1);
@@ -1297,9 +1297,9 @@ void ConvAutoToSJIS(char *Text, int Pref)
 			InitCodeConvInfo(&cInfo);
 			cInfo.KanaCnv = NO;
 			cInfo.Str = Text;
-			cInfo.StrLen = strlen(Text);
+			cInfo.StrLen = (int)strlen(Text);
 			cInfo.Buf = Buf;
-			cInfo.BufSize = strlen(Text);
+			cInfo.BufSize = (int)strlen(Text);
 
 			switch(Code)
 			{

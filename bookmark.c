@@ -267,7 +267,7 @@ void SaveBookMark(void)
 						{
 							strcpy(Pos, Tmp);
 							Pos += strlen(Tmp) + 1;
-							Len += strlen(Tmp) + 1;
+							Len += (int)strlen(Tmp) + 1;
 						}
 					}
 				}
@@ -354,7 +354,7 @@ int EditBookMark(void)
 {
 	int Sts;
 
-	Sts = DialogBox(GetFtpInst(), MAKEINTRESOURCE(bmark_dlg), GetMainHwnd(), EditBookMarkProc);
+	Sts = (int)DialogBox(GetFtpInst(), MAKEINTRESOURCE(bmark_dlg), GetMainHwnd(), EditBookMarkProc);
 	return(Sts);
 }
 
@@ -422,14 +422,14 @@ static INT_PTR CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam,
 			switch(GET_WM_COMMAND_ID(wParam, lParam))
 			{
 				case BMARK_JUMP :
-					if((Cur = SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
+					if((Cur = (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
 						PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(Cur+MENU_BMARK_TOP, 0), 0);
 					/* ここに break はない */
 
 				case IDCANCEL :
 				case IDOK :
 					ClearBookMark();
-					Max = SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0);
+					Max = (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0);
 					for(Cur = 0; Cur < Max; Cur++)
 					{
 						SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETTEXT, Cur, (LPARAM)Tmp);
@@ -440,7 +440,7 @@ static INT_PTR CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam,
 					break;
 
 				case BMARK_SET :
-					if((Cur = SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
+					if((Cur = (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
 					{
 						SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETTEXT, Cur, (LPARAM)Tmp);
 						if(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(bmark_edit_dlg), hDlg, BookMarkEditCallBack, (LPARAM)Tmp) == YES)
@@ -457,24 +457,24 @@ static INT_PTR CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam,
 					if(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(bmark_edit_dlg), hDlg, BookMarkEditCallBack, (LPARAM)Tmp) == YES)
 					{
 						SendDlgItemMessage(hDlg, BMARK_LIST, LB_ADDSTRING, 0, (LPARAM)Tmp);
-						Cur = SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0) - 1;
+						Cur = (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0) - 1;
 						SendDlgItemMessage(hDlg, BMARK_LIST, LB_SETCURSEL, Cur, 0);
 					}
 					break;
 
 				case BMARK_DEL :
-					if((Cur = SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
+					if((Cur = (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
 					{
 						SendDlgItemMessage(hDlg, BMARK_LIST, LB_DELETESTRING, Cur, 0);
-						if(Cur >= SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0))
-							Cur = max1(0, SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0)-1);
+						if(Cur >= (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0))
+							Cur = max1(0, (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0)-1);
 						if(SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0) > 0)
 							SendDlgItemMessage(hDlg, BMARK_LIST, LB_SETCURSEL, Cur, 0);
 					}
 					break;
 
 				case BMARK_UP :
-					if((Cur = SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
+					if((Cur = (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
 					{
 						if(Cur > 0)
 						{
@@ -487,7 +487,7 @@ static INT_PTR CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam,
 					break;
 
 				case BMARK_DOWN :
-					if((Cur = SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
+					if((Cur = (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
 					{
 						if(Cur < SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0)-1)
 						{

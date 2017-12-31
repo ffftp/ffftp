@@ -243,7 +243,7 @@ void SetMasterPassword( const char* Password )
 	else {
 		strcpy( SecretKey, DEFAULT_PASSWORD );
 	}
-	SecretKeyLength = strlen( SecretKey );
+	SecretKeyLength = (int)strlen( SecretKey );
 	
 	/* 未検証なので，初期状態はOKにする (強制再設定→保存にを可能にする)*/
 	IsMasterPasswordError = PASSWORD_OK;
@@ -1834,7 +1834,7 @@ static void MakeFontData(LOGFONT Font, HFONT hFont, char *Buf)
 {
 	*Buf = NUL;
 	if(hFont != NULL)
-		sprintf(Buf, "%d %d %d %d %d %d %d %d %d %d %d %d %d %s",
+		sprintf(Buf, "%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %s",
 			Font.lfHeight, Font.lfWidth, Font.lfEscapement, Font.lfOrientation,
 			Font.lfWeight, Font.lfItalic, Font.lfUnderline, Font.lfStrikeOut,
 			Font.lfCharSet, Font.lfOutPrecision, Font.lfClipPrecision,
@@ -1860,7 +1860,7 @@ static int RestoreFontData(char *Str, LOGFONT *Font)
 	int Sts;
 
 	Sts = FFFTP_FAIL;
-	if(sscanf(Str, "%d %d %d %d %d %d %d %d %d %d %d %d %d",
+	if(sscanf(Str, "%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",
 			&(Font->lfHeight), &(Font->lfWidth), &(Font->lfEscapement), &(Font->lfOrientation),
 			&(Font->lfWeight), &(Font->lfItalic), &(Font->lfUnderline), &(Font->lfStrikeOut),
 			&(Font->lfCharSet), &(Font->lfOutPrecision), &(Font->lfClipPrecision),
@@ -2037,7 +2037,7 @@ static void EncodePassword3(char *Str, char *Buf, const char *Key)
 
 	/* 最低長を32文字とする */
 //	StrPadLen = min1(StrPadLen, AES_BLOCK_SIZE * 2);
-	StrPadLen = max1(StrPadLen, AES_BLOCK_SIZE * 2);
+	StrPadLen = max1((int)StrPadLen, AES_BLOCK_SIZE * 2);
 
 	if((StrPadBuf = malloc(StrPadLen)) != NULL)
 	{
@@ -2089,7 +2089,7 @@ static void EncodePassword3(char *Str, char *Buf, const char *Key)
 			{
 				aes_encrypt_key(AesKey, 32, &Ctx);
 
-				if(aes_cbc_encrypt(StrPadBuf, AesEncBuf, StrPadLen, AesCbcIv, &Ctx) == EXIT_SUCCESS)
+				if(aes_cbc_encrypt(StrPadBuf, AesEncBuf, (int)StrPadLen, AesCbcIv, &Ctx) == EXIT_SUCCESS)
 				{
 					for(EncBufIndex = 0; EncBufIndex < StrPadLen; EncBufIndex++)
 					{
@@ -2282,7 +2282,7 @@ static void DecodePassword3(char *Str, char *Buf, const char *Key)
 						EncBuf[EncBufIndex]  = hex2bin(*Get++) << 4;
 						EncBuf[EncBufIndex] |= hex2bin(*Get++);
 					}
-					if(aes_cbc_decrypt(EncBuf, Buf, EncBufLen, AesCbcIv, &Ctx) == EXIT_SUCCESS)
+					if(aes_cbc_decrypt(EncBuf, Buf, (int)EncBufLen, AesCbcIv, &Ctx) == EXIT_SUCCESS)
 					{
 						Buf[EncBufLen] = NUL;
 					}
@@ -2315,7 +2315,7 @@ static int CreateAesKey(unsigned char *AesKey, const char* Key)
 	int KeyIndex;
 	int ResIndex;
 
-	HashKeyLen = strlen(Key) + 16;
+	HashKeyLen = (uint32)strlen(Key) + 16;
 	if((HashKey = malloc(HashKeyLen + 1)) == NULL){
 		return (FFFTP_FAIL);
 	}
@@ -2660,7 +2660,7 @@ static int ReadInReg(char *Name, REGDATATBL **Handle)
 							{
 								strcpy(Data, Buf);
 								Data += strlen(Buf) + 1;
-								New->ValLen += strlen(Buf) + 1;
+								New->ValLen += (int)strlen(Buf) + 1;
 							}
 						}
 					}
@@ -2925,7 +2925,7 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 			strcat(Path, "\\");
 			strcat(Path, Name);
-			UnmaskSettingsData(Path, strlen(Path), Value, sizeof(int), NO);
+			UnmaskSettingsData(Path, (int)strlen(Path), Value, sizeof(int), NO);
 			CalculateSettingsDataChecksum(Value, sizeof(int));
 		}
 	}
@@ -2962,7 +2962,7 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 		strcat(Path, "\\");
 		strcat(Path, Name);
-		MaskSettingsData(Path, strlen(Path), &Value, sizeof(int), NO);
+		MaskSettingsData(Path, (int)strlen(Path), &Value, sizeof(int), NO);
 	}
 	if(TmpRegType == REGTYPE_REG)
 		// 全設定暗号化対応
@@ -2976,12 +2976,12 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 		strcat(Data, "=");
 		sprintf(Tmp, "%d", Value);
 		strcat(Data, Tmp);
-		Pos->ValLen += strlen(Data) + 1;
+		Pos->ValLen += (int)strlen(Data) + 1;
 	}
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		UnmaskSettingsData(Path, strlen(Path), &Value, sizeof(int), NO);
+		UnmaskSettingsData(Path, (int)strlen(Path), &Value, sizeof(int), NO);
 		CalculateSettingsDataChecksum(&Value, sizeof(int));
 	}
 	return(FFFTP_SUCCESS);
@@ -3036,7 +3036,7 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 			switch(IniKanjiCode)
 			{
 			case KANJI_NOCNV:
-				TempSize = min1(Size-1, strlen(Pos));
+				TempSize = min1(Size-1, (int)strlen(Pos));
 				TempSize = StrReadIn(Pos, TempSize, Str);
 				*(Str + TempSize) = NUL;
 				Sts = FFFTP_SUCCESS;
@@ -3046,7 +3046,7 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 				{
 					if(pw0 = AllocateStringW(Size * 4 * 4))
 					{
-						TempSize = min1((Size * 4) - 1, strlen(Pos));
+						TempSize = min1((Size * 4) - 1, (int)strlen(Pos));
 						TempSize = StrReadIn(Pos, TempSize, pa0);
 						*(pa0 + TempSize) = NUL;
 						AtoW(pw0, Size * 4 * 4, pa0, -1);
@@ -3072,8 +3072,8 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 			strcat(Path, "\\");
 			strcat(Path, Name);
-			UnmaskSettingsData(Path, strlen(Path), Str, strlen(Str) + 1, YES);
-			CalculateSettingsDataChecksum(Str, strlen(Str) + 1);
+			UnmaskSettingsData(Path, (int)strlen(Path), Str, (DWORD)strlen(Str) + 1, YES);
+			CalculateSettingsDataChecksum(Str, (DWORD)strlen(Str) + 1);
 		}
 	}
 	return(Sts);
@@ -3108,27 +3108,27 @@ static int WriteStringToReg(void *Handle, char *Name, char *Str)
 			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 		strcat(Path, "\\");
 		strcat(Path, Name);
-		MaskSettingsData(Path, strlen(Path), Str, strlen(Str) + 1, YES);
+		MaskSettingsData(Path, (int)strlen(Path), Str, (DWORD)strlen(Str) + 1, YES);
 	}
 	if(TmpRegType == REGTYPE_REG)
 	// 全設定暗号化対応
 //		RegSetValueEx(Handle, Name, 0, REG_SZ, (CONST BYTE *)Str, strlen(Str)+1);
-		RegSetValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, 0, EncryptSettings == YES ? REG_BINARY : REG_SZ, (CONST BYTE *)Str, strlen(Str)+1);
+		RegSetValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, 0, EncryptSettings == YES ? REG_BINARY : REG_SZ, (CONST BYTE *)Str, (DWORD)strlen(Str)+1);
 	else
 	{
 		Pos = (REGDATATBL *)Handle;
 		Data = Pos->ValTbl + Pos->ValLen;
 		strcpy(Data, Name);
 		strcat(Data, "=");
-		Pos->ValLen += strlen(Data);
+		Pos->ValLen += (int)strlen(Data);
 		Data = Pos->ValTbl + Pos->ValLen;
-		Pos->ValLen += StrCatOut(Str, strlen(Str), Data) + 1;
+		Pos->ValLen += StrCatOut(Str, (int)strlen(Str), Data) + 1;
 	}
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		UnmaskSettingsData(Path, strlen(Path), Str, strlen(Str) + 1, YES);
-		CalculateSettingsDataChecksum(Str, strlen(Str) + 1);
+		UnmaskSettingsData(Path, (int)strlen(Path), Str, (DWORD)strlen(Str) + 1, YES);
+		CalculateSettingsDataChecksum(Str, (DWORD)strlen(Str) + 1);
 	}
 	return(FFFTP_SUCCESS);
 }
@@ -3182,7 +3182,7 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 			switch(IniKanjiCode)
 			{
 			case KANJI_NOCNV:
-				TempSize = min1(Size - 2, strlen(Pos));
+				TempSize = min1(Size - 2, (int)strlen(Pos));
 				TempSize = StrReadIn(Pos, TempSize, Str);
 				*(Str + TempSize) = NUL;
 				*(Str + TempSize + 1) = NUL;
@@ -3193,7 +3193,7 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 				{
 					if(pw0 = AllocateStringW(Size * 4 * 4))
 					{
-						TempSize = min1((Size * 4) - 2, strlen(Pos));
+						TempSize = min1((Size * 4) - 2, (int)strlen(Pos));
 						TempSize = StrReadIn(Pos, TempSize, pa0);
 						*(pa0 + TempSize) = NUL;
 						*(pa0 + TempSize + 1) = NUL;
@@ -3221,7 +3221,7 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 			strcat(Path, "\\");
 			strcat(Path, Name);
-			UnmaskSettingsData(Path, strlen(Path), Str, StrMultiLen(Str) + 1, YES);
+			UnmaskSettingsData(Path, (int)strlen(Path), Str, StrMultiLen(Str) + 1, YES);
 			CalculateSettingsDataChecksum(Str, StrMultiLen(Str) + 1);
 		}
 	}
@@ -3257,7 +3257,7 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 		strcat(Path, "\\");
 		strcat(Path, Name);
-		MaskSettingsData(Path, strlen(Path), Str, StrMultiLen(Str) + 1, YES);
+		MaskSettingsData(Path, (int)strlen(Path), Str, StrMultiLen(Str) + 1, YES);
 	}
 	if(TmpRegType == REGTYPE_REG)
 	// 全設定暗号化対応
@@ -3269,14 +3269,14 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 		Data = Pos->ValTbl + Pos->ValLen;
 		strcpy(Data, Name);
 		strcat(Data, "=");
-		Pos->ValLen += strlen(Data);
+		Pos->ValLen += (int)strlen(Data);
 		Data = Pos->ValTbl + Pos->ValLen;
 		Pos->ValLen += StrCatOut(Str, StrMultiLen(Str), Data) + 1;
 	}
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		UnmaskSettingsData(Path, strlen(Path), Str, StrMultiLen(Str) + 1, YES);
+		UnmaskSettingsData(Path, (int)strlen(Path), Str, StrMultiLen(Str) + 1, YES);
 		CalculateSettingsDataChecksum(Str, StrMultiLen(Str) + 1);
 	}
 	return(FFFTP_SUCCESS);
@@ -3315,7 +3315,7 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 	{
 		if((Pos = ScanValue(Handle, Name)) != NULL)
 		{
-			Size = min1(Size, strlen(Pos));
+			Size = min1(Size, (int)strlen(Pos));
 			Size = StrReadIn(Pos, Size, Bin);
 			Sts = FFFTP_SUCCESS;
 		}
@@ -3331,7 +3331,7 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 			strcat(Path, "\\");
 			strcat(Path, Name);
-			UnmaskSettingsData(Path, strlen(Path), Bin, Size, NO);
+			UnmaskSettingsData(Path, (int)strlen(Path), Bin, Size, NO);
 			CalculateSettingsDataChecksum(Bin, Size);
 		}
 	}
@@ -3368,7 +3368,7 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 		strcat(Path, "\\");
 		strcat(Path, Name);
-		MaskSettingsData(Path, strlen(Path), Bin, Len, NO);
+		MaskSettingsData(Path, (int)strlen(Path), Bin, Len, NO);
 	}
 	if(TmpRegType == REGTYPE_REG)
 	// 全設定暗号化対応
@@ -3380,14 +3380,14 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 		Data = Pos->ValTbl + Pos->ValLen;
 		strcpy(Data, Name);
 		strcat(Data, "=");
-		Pos->ValLen += strlen(Data);
+		Pos->ValLen += (int)strlen(Data);
 		Data = Pos->ValTbl + Pos->ValLen;
 		Pos->ValLen += StrCatOut(Bin, Len, Data) + 1;
 	}
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		UnmaskSettingsData(Path, strlen(Path), Bin, Len, NO);
+		UnmaskSettingsData(Path, (int)strlen(Path), Bin, Len, NO);
 		CalculateSettingsDataChecksum(Bin, Len);
 	}
 	return(FFFTP_SUCCESS);
@@ -3682,8 +3682,8 @@ DWORD GetRandamDWORDValue(void)
 			}
 			
 			/* _WIN64 では64bitだが、その場合はrand_sが大抵利用可能なのでここでは32bitのみ用いる */
-			RndSource[0] = (ulong)CurProcHandle;
-			RndSource[1] = (ulong)CurThreadHandle;
+			RndSource[0] = PtrToUlong(CurProcHandle);
+			RndSource[1] = PtrToUlong(CurThreadHandle);
 			RndSource[2] = (ulong)GetTickCount();
 			RndSource[3] = (ulong)timeGetTime();
 			RndSource[4] = 0; /* カウントアップ */
@@ -3956,7 +3956,7 @@ void SaveSettingsToFileZillaXml()
 							else
 								p2 = strchr(p1, '\0');
 							if(*p1 != '\0')
-								fprintf(f, " %d %s", _mbslen(p1), p1);
+								fprintf(f, " %zu %s", _mbslen(p1), p1);
 							p1 = p2;
 						}
 						fputs("</RemoteDir>\n", f);
@@ -3981,7 +3981,7 @@ void SaveSettingsToFileZillaXml()
 							else
 								p2 = strchr(p1, '\0');
 							if(*p1 != '\0')
-								fprintf(f, " %d %s", _mbslen(p1), p1);
+								fprintf(f, " %zu %s", _mbslen(p1), p1);
 							p1 = p2;
 						}
 						fputs("</RemoteDir>\n", f);

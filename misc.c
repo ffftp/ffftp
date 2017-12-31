@@ -93,7 +93,7 @@ int InputDialogBox(int Res, HWND hWnd, char *Title, char *Buf, int Max, int *Flg
 	DialogData = &dData;
 	HelpPage = Help;
 
-	Ret = DialogBox(GetFtpInst(), MAKEINTRESOURCE(Res), hWnd, InputDialogCallBack);
+	Ret = (int)DialogBox(GetFtpInst(), MAKEINTRESOURCE(Res), hWnd, InputDialogCallBack);
 
 	if(Ret == YES)
 	{
@@ -140,7 +140,7 @@ static INT_PTR CALLBACK InputDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wPa
 			{
 				case IDOK :
 					SendDlgItemMessage(hDlg, INP_INPSTR, WM_GETTEXT, DialogData->MaxLen, (LPARAM)DialogData->Str);
-					DialogData->Anonymous = SendDlgItemMessage(hDlg, INP_ANONYMOUS, BM_GETCHECK, 0, 0);
+					DialogData->Anonymous = (int)SendDlgItemMessage(hDlg, INP_ANONYMOUS, BM_GETCHECK, 0, 0);
 					EndDialog(hDlg, YES);
 					break;
 
@@ -879,7 +879,7 @@ void DispStaticText(HWND hWnd, char *Str)
 	Force = NO;
 	while(Force == NO)
 	{
-		GetTextExtentPoint32(hDC, Pos, strlen(Pos), &fSize);
+		GetTextExtentPoint32(hDC, Pos, (int)strlen(Pos), &fSize);
 
 		if(fSize.cx <= Rect.right)
 			break;
@@ -929,7 +929,7 @@ int StrMultiLen(char *Str)
 	Len = 0;
 	while(*Str != NUL)
 	{
-		Tmp = strlen(Str) + 1;
+		Tmp = (int)strlen(Str) + 1;
 		Str += Tmp;
 		Len += Tmp;
 	}
@@ -1038,7 +1038,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 
 		if((Pos2 = _mbschr(Tmp, ':')) != NULL)
 		{
-			memcpy(User, Tmp, min1(Pos2-Tmp, USER_NAME_LEN));
+			memcpy(User, Tmp, min1((int)(Pos2-Tmp), USER_NAME_LEN));
 			strncpy(Pass, Pos2+1, PASSWORD_LEN);
 		}
 		else
@@ -1051,7 +1051,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 		Pos1 = Pos2 + 1;
 		if((Pos2 = _mbschr(Pos2, ']')) != NULL)
 		{
-			memcpy(Host, Pos1, min1(Pos2-Pos1, HOST_ADRS_LEN));
+			memcpy(Host, Pos1, min1((int)(Pos2-Pos1), HOST_ADRS_LEN));
 			Pos1 = Pos2 + 1;
 		}
 	}
@@ -1061,7 +1061,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 		// IPv6対応
 //		memcpy(Host, Pos1, min1(Pos2-Pos1, HOST_ADRS_LEN));
 		if(strlen(Host) == 0)
-			memcpy(Host, Pos1, min1(Pos2-Pos1, HOST_ADRS_LEN));
+			memcpy(Host, Pos1, min1((int)(Pos2-Pos1), HOST_ADRS_LEN));
 		Pos2++;
 		if(IsDigit(*Pos2))
 		{
@@ -1081,7 +1081,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 		// IPv6対応
 //		memcpy(Host, Pos1, min1(Pos2-Pos1, HOST_ADRS_LEN));
 		if(strlen(Host) == 0)
-			memcpy(Host, Pos1, min1(Pos2-Pos1, HOST_ADRS_LEN));
+			memcpy(Host, Pos1, min1((int)(Pos2-Pos1), HOST_ADRS_LEN));
 		RemoveFileName(Pos2, Path);
 		strncpy(File, GetFileName(Pos2), FMAX_PATH);
 	}

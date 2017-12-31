@@ -109,7 +109,7 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt);
 // 64ビット対応
 //static BOOL CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static void SetErrorMsg(char *fmt, ...);
+#define SetErrorMsg(...) do { char* errMsg = GetErrMsg(); if (strlen(errMsg) == 0) sprintf(errMsg, __VA_ARGS__); } while(0)
 // 同時接続対応
 static char* GetErrMsg();
 
@@ -210,7 +210,7 @@ int MakeTransferThread(void)
 //		return(FFFTP_FAIL); /* XXX */
 	for(i = 0; i < MAX_DATA_CONNECTION; i++)
 	{
-		hTransferThread[i] = (HANDLE)_beginthreadex(NULL, 0, TransferThread, (void*)i, 0, &dwID);
+		hTransferThread[i] = (HANDLE)_beginthreadex(NULL, 0, TransferThread, IntToPtr(i), 0, &dwID);
 		if(hTransferThread[i] == NULL)
 			return FFFTP_FAIL;
 	}
@@ -739,7 +739,7 @@ static ULONG WINAPI TransferThread(void *Dummy)
 	DelNotify = NO;
 	// 同時接続対応
 	// ソケットは各転送スレッドが管理
-	ThreadCount = (int)Dummy;
+	ThreadCount = PtrToInt(Dummy);
 	TrnSkt = INVALID_SOCKET;
 	LastError = NO;
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
@@ -1545,10 +1545,10 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 						switch(AskCurNetType())
 						{
 						case NTYPE_IPV4:
-							DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet_ntoa(saSockAddrIPv4.sin_addr), ntohs(saSockAddrIPv4.sin_port));
+							DoPrintf("Skt=%zu : accept from %s port %u", data_socket, inet_ntoa(saSockAddrIPv4.sin_addr), ntohs(saSockAddrIPv4.sin_port));
 							break;
 						case NTYPE_IPV6:
-							DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet6_ntoa(saSockAddrIPv6.sin6_addr), ntohs(saSockAddrIPv6.sin6_port));
+							DoPrintf("Skt=%zu : accept from %s port %u", data_socket, inet6_ntoa(saSockAddrIPv6.sin6_addr), ntohs(saSockAddrIPv6.sin6_port));
 							break;
 						}
 					}
@@ -2527,7 +2527,7 @@ static int DispUpDownErrDialog(int ResID, HWND hWnd, TRANSPACKET *Pkt)
 	SoundPlay(SND_ERROR);
 	// 再転送対応
 //	return(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(ResID), hWnd, UpDownErrorDialogProc, (LPARAM)Fname));
-	return(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(ResID), hWnd, UpDownErrorDialogProc, (LPARAM)Pkt));
+	return (int)(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(ResID), hWnd, UpDownErrorDialogProc, (LPARAM)Pkt));
 }
 
 
@@ -2636,7 +2636,7 @@ static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int 
 		}
 		else
 		{
-			Com = DialogBox(GetFtpInst(), MAKEINTRESOURCE(noresume_dlg), Pkt->hWndTrans, NoResumeWndProc);
+			Com = (int)DialogBox(GetFtpInst(), MAKEINTRESOURCE(noresume_dlg), Pkt->hWndTrans, NoResumeWndProc);
 			if(Com != YES)
 			{
 				if(Com == NO_ALL)		/* 全て中止 */
@@ -2866,10 +2866,10 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 					switch(AskCurNetType())
 					{
 					case NTYPE_IPV4:
-						DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet_ntoa(saSockAddrIPv4.sin_addr), ntohs(saSockAddrIPv4.sin_port));
+						DoPrintf("Skt=%zu : accept from %s port %u", data_socket, inet_ntoa(saSockAddrIPv4.sin_addr), ntohs(saSockAddrIPv4.sin_port));
 						break;
 					case NTYPE_IPV6:
-						DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet6_ntoa(saSockAddrIPv6.sin6_addr), ntohs(saSockAddrIPv6.sin6_port));
+						DoPrintf("Skt=%zu : accept from %s port %u", data_socket, inet6_ntoa(saSockAddrIPv6.sin6_addr), ntohs(saSockAddrIPv6.sin6_port));
 						break;
 					}
 				}
@@ -3141,7 +3141,7 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 			if((RmEOF == YES) && (Pkt->Type == TYPE_A))
 			{
 				if((EofPos = memchr(Buf, 0x1A, iNumBytes)) != NULL)
-					iNumBytes = EofPos - Buf;
+					iNumBytes = (DWORD)(EofPos - Buf);
 			}
 
 			/* 漢字コード変換 */
@@ -3981,7 +3981,7 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt)
 				Transed = Pkt->Size - Pkt->ExistSize;
 
 				if(Pkt->Size <= 0)
-					sprintf(Tmp, "%d ", Pkt->ExistSize);
+					sprintf(Tmp, "%lld ", Pkt->ExistSize);
 				else if(Pkt->Size < 1024)
 					sprintf(Tmp, "%s / %s ", MakeNumString(Pkt->ExistSize, Num1, TRUE), MakeNumString(Pkt->Size, Num2, TRUE));
 				else
@@ -4324,7 +4324,7 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt)
 		hWnd = Pkt->hWndTrans;
 		if(hWnd == NULL)
 			hWnd = GetMainHwnd();
-		Notify = DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(delete_dlg), hWnd, MirrorDeleteDialogCallBack, (LPARAM)&DelInfo);
+		Notify = (int)DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(delete_dlg), hWnd, MirrorDeleteDialogCallBack, (LPARAM)&DelInfo);
 	}
 	return(Notify);
 }
@@ -4388,31 +4388,6 @@ static INT_PTR CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPA
 	}
 	return(FALSE);
 }
-
-
-
-
-
-static void SetErrorMsg(char *fmt, ...)
-{
-	va_list Args;
-
-	// 同時接続対応
-//	if(strlen(ErrMsg) == 0)
-	if(strlen(GetErrMsg()) == 0)
-	{
-		va_start(Args, fmt);
-		// 同時接続対応
-//		wvsprintf(ErrMsg, fmt, Args);
-		wvsprintf(GetErrMsg(), fmt, Args);
-		va_end(Args);
-	}
-	return;
-}
-
-
-
-
 
 
 /*----- ダウンロード時の不正なパスをチェック ----------------------------------

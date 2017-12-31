@@ -486,7 +486,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 				}
 			}
 		}
-		Ret = Msg.wParam;
+		Ret = (int)Msg.wParam;
 	}
 	UnregisterClass(FtpClassStr, hInstFtp);
 	// FTPS対応
@@ -753,9 +753,9 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 
 					if(IsFolderExist(TmpPath) == NO)
 					{
-						SetTaskMsg(MSGJPN152, TmpPath);
+						__pragma(warning(suppress:4474)) SetTaskMsg(MSGJPN152, TmpPath);
 						GetTempPath(FMAX_PATH, TmpPath);
-						SetTaskMsg(MSGJPN153, TmpPath);
+						__pragma(warning(suppress:4474)) SetTaskMsg(MSGJPN153, TmpPath);
 					}
 
 					DoPrintf("Tmp =%s", TmpPath);
@@ -1126,7 +1126,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 							Base = NULL;
 							MakeSelectedFileList(WIN_LOCAL, NO, NO, &Base, &CancelFlg);
 							GetHotSelected(WIN_LOCAL, Name);
-							Pos = SendMessage(GetLocalHwnd(), LVM_GETTOPINDEX, 0, 0);
+							Pos = (int)SendMessage(GetLocalHwnd(), LVM_GETTOPINDEX, 0, 0);
 							GetLocalDirForWnd();
 							SelectFileInList(GetLocalHwnd(), SELECT_LIST, Base);
 							SetHotSelected(WIN_LOCAL, Name);
@@ -2296,7 +2296,7 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 							Ret = 2;
 						else
 						{
-							SetTaskMsg(MSGJPN177, Tmp);
+							__pragma(warning(suppress:4474)) SetTaskMsg(MSGJPN177, Tmp);
 							Ret = -1;
 						}
 					}
@@ -2373,7 +2373,7 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 			}
 			else
 			{
-				SetTaskMsg(MSGJPN180, Tmp);
+				__pragma(warning(suppress:4474)) SetTaskMsg(MSGJPN180, Tmp);
 				Ret = -1;
 			}
 		}
@@ -3542,7 +3542,7 @@ BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certif
 	}
 	if(!bResult)
 	{
-		if(pm0 = AllocateStringM(strlen(Certificate) + 1024))
+		if(pm0 = AllocateStringM((int)strlen(Certificate) + 1024))
 		{
 			sprintf(pm0, MSGJPN326, IsHostNameMatched(AskHostAdrs(), CommonName) ? MSGJPN327 : MSGJPN328, bVerified ? MSGJPN327 : MSGJPN328, Certificate);
 			if(MessageBox(GetMainHwnd(), pm0, "FFFTP", MB_YESNO) == IDYES)

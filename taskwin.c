@@ -138,79 +138,38 @@ HWND GetTaskWnd(void)
 }
 
 
-/*----- タスクメッセージを表示する --------------------------------------------
-*
-*	Parameter
-*		char *szFormat : フォーマット文字列
-*		... : パラメータ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetTaskMsg(char *szFormat, ...)
-{
-	int Pos;
-	va_list vaArgs;
-	char *szBuf;
-//	DWORD Tmp;
-
-//WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "111\n", 4, &Tmp, NULL);
-	while(WaitForSingleObject(DispLogSemaphore, 1) == WAIT_TIMEOUT)
+// タスクメッセージを表示する
+// デバッグビルドではフォーマット済み文字列が渡される
+void _SetTaskMsg(const char* format, ...) {
+	while (WaitForSingleObject(DispLogSemaphore, 1) == WAIT_TIMEOUT)
 		BackgrndMessageProc();
-//WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "222\n", 4, &Tmp, NULL);
-
-	if(hWndTask != NULL)
-	{
-		if((szBuf = malloc(10*1024+3)) != NULL)
-		{
-			va_start(vaArgs, szFormat);
-			if(wvsprintf(szBuf, szFormat, vaArgs) != EOF)
-			{
-//#pragma aaa
-//				WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), szBuf, strlen(szBuf), &Tmp, NULL);
-//				WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "\n", strlen("\n"), &Tmp, NULL);
-
-				strcat(szBuf, "\r\n");
-				Pos = SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
-
-				/* テキストサイズのリミット値をチェック */
-				// Windows 9x系をサポートしないため不要
-				// 古い処理内容を消去
-//				if((Pos + strlen(szBuf)) >= TASK_BUFSIZE)
-//				{
-//					/* リミットを越えそうなら、先頭部分を切り捨てる */
-//					Pos = SendMessage(GetTaskWnd(), EM_LINEFROMCHAR, TASK_BUFSIZE/10, 0) + 1;
-//					Pos = SendMessage(GetTaskWnd(), EM_LINEINDEX, Pos, 0);
-//					SendMessage(GetTaskWnd(), EM_SETSEL, 0, Pos);
-//					SendMessage(GetTaskWnd(), EM_REPLACESEL, FALSE, (LPARAM)"");
-//
-//					Pos = SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
-//				}
-				if(RemoveOldLog == YES)
-				{
-					if((Pos + strlen(szBuf)) >= TASK_BUFSIZE)
-					{
-						Pos = SendMessage(GetTaskWnd(), EM_LINEINDEX, 1, 0);
-						SendMessage(GetTaskWnd(), EM_SETSEL, 0, Pos);
-						SendMessage(GetTaskWnd(), EM_REPLACESEL, FALSE, (LPARAM)"");
-						Pos = SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
-					}
+	if (hWndTask != NULL) {
+		char buffer[10240 + 3];
+#ifdef _DEBUG
+		strcpy(buffer, format);
+		size_t result = strlen(buffer);
+#else
+		va_list args;
+		va_start(args, format);
+		int result = vsprintf(buffer, format, args);
+		va_end(args);
+#endif
+		if (0 < result) {
+			strcat(buffer, "\r\n");
+			int Pos = (int)SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
+			if (RemoveOldLog == YES) {
+				if ((Pos + strlen(buffer)) >= TASK_BUFSIZE) {
+					Pos = (int)SendMessage(GetTaskWnd(), EM_LINEINDEX, 1, 0);
+					SendMessage(GetTaskWnd(), EM_SETSEL, 0, Pos);
+					SendMessage(GetTaskWnd(), EM_REPLACESEL, FALSE, (LPARAM)"");
+					Pos = (int)SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
 				}
-
-				SendMessage(GetTaskWnd(), EM_SETSEL, Pos, Pos);
-				SendMessage(GetTaskWnd(), EM_REPLACESEL, FALSE, (LPARAM)szBuf);
 			}
-			va_end(vaArgs);
-			free(szBuf);
+			SendMessage(GetTaskWnd(), EM_SETSEL, Pos, Pos);
+			SendMessage(GetTaskWnd(), EM_REPLACESEL, FALSE, (LPARAM)buffer);
 		}
 	}
-
-//WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "333\n", 4, &Tmp, NULL);
 	ReleaseSemaphore(DispLogSemaphore, 1, NULL);
-//WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "444\n", 4, &Tmp, NULL);
-
-	return;
 }
 
 
@@ -233,7 +192,7 @@ int SaveTaskMsg(char *Fname)
 
 
 	Sts = FFFTP_FAIL;
-	Size = SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
+	Size = (int)SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
 	if((Buf = malloc(Size)) != NULL)
 	{
 		if((Strm = fopen(Fname, "wb")) != NULL)
@@ -278,91 +237,24 @@ void DispTaskMsg(void)
 }
 
 
-/*----- デバッグコンソールにメッセージを表示する ------------------------------
-*
-*	Parameter
-*		char *szFormat : フォーマット文字列
-*		... : パラメータ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DoPrintf(char *szFormat, ...)
-{
-	va_list vaArgs;
-	char *szBuf;
-//	DWORD Tmp;
-
-//WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "11111\n", 6, &Tmp, NULL);
-	while(WaitForSingleObject(DispLogSemaphore2, 1) == WAIT_TIMEOUT)
+// デバッグコンソールにメッセージを表示する
+// デバッグビルドではフォーマット済み文字列が渡される
+void _DoPrintf(const char* format, ...) {
+	while (WaitForSingleObject(DispLogSemaphore2, 1) == WAIT_TIMEOUT)
 		BackgrndMessageProc();
-//WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "22222\n", 6, &Tmp, NULL);
-
-	if(DebugConsole == YES)
-	{
-		if((szBuf = malloc(10*1024)) != NULL)
-		{
-			va_start(vaArgs, szFormat);
-			if(wvsprintf(szBuf, szFormat, vaArgs) != EOF)
-			{
-				SetTaskMsg("## %s", szBuf);
-
-//#pragma aaa
-//				WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), szBuf, strlen(szBuf), &Tmp, NULL);
-//				WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "\n", strlen("\n"), &Tmp, NULL);
-			}
-			va_end(vaArgs);
-			free(szBuf);
-		}
+	if (DebugConsole == YES) {
+#ifdef _DEBUG
+		const char* buffer = format;
+		size_t result = strlen(buffer);
+#else
+		char buffer[10240];
+		va_list args;
+		va_start(args, format);
+		int result = vsprintf(buffer, format, args);
+		va_end(args);
+#endif
+		if (0 < result)
+			SetTaskMsg("## %s", buffer);
 	}
-
-//WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "33333\n", 6, &Tmp, NULL);
 	ReleaseSemaphore(DispLogSemaphore2, 1, NULL);
-//WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "44444\n", 6, &Tmp, NULL);
-
-	return;
 }
-
-
-/*----- デバッグコンソールにメッセージを表示する ------------------------------
-*
-*	Parameter
-*		char *szFormat : フォーマット文字列
-*		... : パラメータ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DoPrintf2(char *szFormat, ...)
-{
-	va_list vaArgs;
-	char *szBuf;
-	DWORD Tmp;
-
-//WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "11111111\n", 9, &Tmp, NULL);
-	while(WaitForSingleObject(DispLogSemaphore2, 1) == WAIT_TIMEOUT)
-		BackgrndMessageProc();
-//WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "22222222\n", 9, &Tmp, NULL);
-
-	if((szBuf = malloc(10*1024)) != NULL)
-	{
-		va_start(vaArgs, szFormat);
-		if(wvsprintf(szBuf, szFormat, vaArgs) != EOF)
-		{
-			WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), szBuf, strlen(szBuf), &Tmp, NULL);
-			WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "\n", strlen("\n"), &Tmp, NULL);
-		}
-		va_end(vaArgs);
-		free(szBuf);
-	}
-
-//WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "33333333\n", 9, &Tmp, NULL);
-	ReleaseSemaphore(DispLogSemaphore2, 1, NULL);
-//WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), "44444444\n", 9, &Tmp, NULL);
-
-	return;
-}
-
-

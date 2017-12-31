@@ -109,7 +109,7 @@ int SelectHost(int Type)
 	if((ConnectAndSet == YES) || (Type == DLG_TYPE_SET))
 		Dlg = hostlist_dlg;
 
-	Sts = DialogBox(GetFtpInst(), MAKEINTRESOURCE(Dlg), GetMainHwnd(), SelectHostProc);
+	Sts = (int)DialogBox(GetFtpInst(), MAKEINTRESOURCE(Dlg), GetMainHwnd(), SelectHostProc);
 
 	/* ホスト設定を保存 */
 	SetNodeLevelAll();
@@ -207,7 +207,7 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 						Item.hItem = hItem;
 						Item.mask = TVIF_PARAM;
 						SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-						CurrentHost = Item.lParam;
+						CurrentHost = (int)Item.lParam;
 						ConnectingHost = CurrentHost;
 						AskDlgSize(hDlg, &DlgSize, &HostDlgSize);
 						ImageList_Destroy(hImage);
@@ -232,8 +232,8 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 							Item.mask = TVIF_PARAM;
 							SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
 
-							TmpHost.Level = GetNodeLevel(Item.lParam);
-							Level1 = Item.lParam + 1;
+							TmpHost.Level = GetNodeLevel((int)Item.lParam);
+							Level1 = (int)Item.lParam + 1;
 							CurrentHost = Level1;
 						}
 						else
@@ -257,8 +257,8 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 							Item.mask = TVIF_PARAM;
 							SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
 
-							TmpHost.Level = GetNodeLevel(Item.lParam) | SET_LEVEL_GROUP ;
-							Level1 = Item.lParam + 1;
+							TmpHost.Level = GetNodeLevel((int)Item.lParam) | SET_LEVEL_GROUP ;
+							Level1 = (int)Item.lParam + 1;
 							CurrentHost = Level1;
 						}
 						else
@@ -278,7 +278,7 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 						Item.hItem = hItem;
 						Item.mask = TVIF_PARAM;
 						SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-						CurrentHost = Item.lParam;
+						CurrentHost = (int)Item.lParam;
 
 						CopyHostFromList(CurrentHost, &TmpHost);
 						Level1 = IsNodeGroup(CurrentHost);
@@ -297,7 +297,7 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 						Item.hItem = hItem;
 						Item.mask = TVIF_PARAM;
 						SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-						CurrentHost = Item.lParam;
+						CurrentHost = (int)Item.lParam;
 
 						CopyHostFromList(CurrentHost, &TmpHost);
 						strcpy(TmpHost.BookMark, "\0");
@@ -313,7 +313,7 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 						Item.hItem = hItem;
 						Item.mask = TVIF_PARAM;
 						SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-						CurrentHost = Item.lParam;
+						CurrentHost = (int)Item.lParam;
 						Level1 = IsNodeGroup(CurrentHost);
 
 						// バグ修正
@@ -336,7 +336,7 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 						Item.hItem = hItem;
 						Item.mask = TVIF_PARAM;
 						SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-						CurrentHost = Item.lParam;
+						CurrentHost = (int)Item.lParam;
 
 						if(CurrentHost > 0)
 						{
@@ -425,7 +425,7 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 						Item.hItem = hItem;
 						Item.mask = TVIF_PARAM;
 						SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-						CurrentHost = Item.lParam;
+						CurrentHost = (int)Item.lParam;
 
 						Data1 = HostListTop;
 						for(Level1 = CurrentHost; Level1 > 0; Level1--)
@@ -590,7 +590,7 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 							Item.hItem = hItem;
 							Item.mask = TVIF_PARAM;
 							SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-							if(IsNodeGroup(Item.lParam) == YES)
+							if(IsNodeGroup((int)Item.lParam) == YES)
 							{
 								EnableWindow(GetDlgItem(hDlg, IDOK), FALSE);
 								EnableWindow(GetDlgItem(hDlg, HOST_COPY), FALSE);
@@ -1797,8 +1797,8 @@ static INT_PTR CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 					SendDlgItemMessage(hDlg, HSET_PASS, WM_GETTEXT, PASSWORD_LEN+1, (LPARAM)TmpHost.PassWord);
 					SendDlgItemMessage(hDlg, HSET_LOCAL, WM_GETTEXT, INIT_DIR_LEN+1, (LPARAM)TmpHost.LocalInitDir);
 					SendDlgItemMessage(hDlg, HSET_REMOTE, WM_GETTEXT, INIT_DIR_LEN+1, (LPARAM)TmpHost.RemoteInitDir);
-					TmpHost.Anonymous = SendDlgItemMessage(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0);
-					TmpHost.LastDir = SendDlgItemMessage(hDlg, HSET_LASTDIR, BM_GETCHECK, 0, 0);
+					TmpHost.Anonymous = (int)SendDlgItemMessage(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0);
+					TmpHost.LastDir = (int)SendDlgItemMessage(hDlg, HSET_LASTDIR, BM_GETCHECK, 0, 0);
 					if((strlen(TmpHost.HostName) == 0) && (strlen(TmpHost.HostAdrs) > 0))
 					{
 						memset(TmpHost.HostName, NUL, HOST_NAME_LEN+1);
@@ -1930,17 +1930,17 @@ static INT_PTR CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, 
 			switch(pnmhdr->code)
 			{
 				case PSN_APPLY :
-					TmpHost.Pasv = SendDlgItemMessage(hDlg, HSET_PASV, BM_GETCHECK, 0, 0);
-					TmpHost.FireWall = SendDlgItemMessage(hDlg, HSET_FIREWALL, BM_GETCHECK, 0, 0);
-					TmpHost.SyncMove = SendDlgItemMessage(hDlg, HSET_SYNCMOVE, BM_GETCHECK, 0, 0);
+					TmpHost.Pasv = (int)SendDlgItemMessage(hDlg, HSET_PASV, BM_GETCHECK, 0, 0);
+					TmpHost.FireWall = (int)SendDlgItemMessage(hDlg, HSET_FIREWALL, BM_GETCHECK, 0, 0);
+					TmpHost.SyncMove = (int)SendDlgItemMessage(hDlg, HSET_SYNCMOVE, BM_GETCHECK, 0, 0);
 					SendDlgItemMessage(hDlg, HSET_PORT, WM_GETTEXT, 5+1, (LPARAM)Tmp);
 					TmpHost.Port = atoi(Tmp);
 					SendDlgItemMessage(hDlg, HSET_ACCOUNT, WM_GETTEXT, ACCOUNT_LEN+1, (LPARAM)TmpHost.Account);
-					TmpHost.TimeZone = SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_GETCURSEL, 0, 0) - 12;
-					TmpHost.Security = SendDlgItemMessage(hDlg, HSET_SECURITY, CB_GETCURSEL, 0, 0);
+					TmpHost.TimeZone = (int)SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_GETCURSEL, 0, 0) - 12;
+					TmpHost.Security = (int)SendDlgItemMessage(hDlg, HSET_SECURITY, CB_GETCURSEL, 0, 0);
 					SendDlgItemMessage(hDlg, HSET_INITCMD, WM_GETTEXT, INITCMD_LEN+1, (LPARAM)TmpHost.InitCmd);
 					// IPv6対応
-					TmpHost.NetType = SendDlgItemMessage(hDlg, HSET_NETTYPE, CB_GETCURSEL, 0, 0);
+					TmpHost.NetType = (int)SendDlgItemMessage(hDlg, HSET_NETTYPE, CB_GETCURSEL, 0, 0);
 					Apply = YES;
 					break;
 
@@ -2028,9 +2028,9 @@ static INT_PTR CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 			{
 				case PSN_APPLY :
 					TmpHost.KanjiCode = AskRadioButtonValue(hDlg, KanjiButton, KANJIBUTTONS);
-					TmpHost.KanaCnv = SendDlgItemMessage(hDlg, HSET_HANCNV, BM_GETCHECK, 0, 0);
+					TmpHost.KanaCnv = (int)SendDlgItemMessage(hDlg, HSET_HANCNV, BM_GETCHECK, 0, 0);
 					TmpHost.NameKanjiCode = AskRadioButtonValue(hDlg, NameKanjiButton, NAMEKANJIBUTTONS);
-					TmpHost.NameKanaCnv = SendDlgItemMessage(hDlg, HSET_FN_HANCNV, BM_GETCHECK, 0, 0);
+					TmpHost.NameKanaCnv = (int)SendDlgItemMessage(hDlg, HSET_FN_HANCNV, BM_GETCHECK, 0, 0);
 					Apply = YES;
 					break;
 
@@ -2122,9 +2122,9 @@ static INT_PTR CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wPara
 			switch(pnmhdr->code)
 			{
 				case PSN_APPLY :
-					TmpHost.Dialup = SendDlgItemMessage(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0);
-					TmpHost.DialupAlways = SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0);
-					TmpHost.DialupNotify = SendDlgItemMessage(hDlg, HSET_DIALNOTIFY, BM_GETCHECK, 0, 0);
+					TmpHost.Dialup = (int)SendDlgItemMessage(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0);
+					TmpHost.DialupAlways = (int)SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0);
+					TmpHost.DialupNotify = (int)SendDlgItemMessage(hDlg, HSET_DIALNOTIFY, BM_GETCHECK, 0, 0);
 					SendDlgItemMessage(hDlg, HSET_DIALENTRY, WM_GETTEXT, RAS_NAME_LEN+1, (LPARAM)TmpHost.DialEntry);
 					Apply = YES;
 					break;
@@ -2235,12 +2235,12 @@ static INT_PTR CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 				case PSN_APPLY :
 					SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_GETTEXT, CHMOD_CMD_LEN+1, (LPARAM)TmpHost.ChmodCmd);
 					SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_GETTEXT, NLST_NAME_LEN+1, (LPARAM)TmpHost.LsName);
-					TmpHost.ListCmdOnly = SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0);
+					TmpHost.ListCmdOnly = (int)SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0);
 					// MLSD対応
-					TmpHost.UseMLSD = SendDlgItemMessage(hDlg, HSET_MLSDCMD, BM_GETCHECK, 0, 0);
-					TmpHost.UseNLST_R = SendDlgItemMessage(hDlg, HSET_NLST_R, BM_GETCHECK, 0, 0);
-					TmpHost.NoFullPath = SendDlgItemMessage(hDlg, HSET_FULLPATH, BM_GETCHECK, 0, 0);
-					TmpHost.HostType = SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0);
+					TmpHost.UseMLSD = (int)SendDlgItemMessage(hDlg, HSET_MLSDCMD, BM_GETCHECK, 0, 0);
+					TmpHost.UseNLST_R = (int)SendDlgItemMessage(hDlg, HSET_NLST_R, BM_GETCHECK, 0, 0);
+					TmpHost.NoFullPath = (int)SendDlgItemMessage(hDlg, HSET_FULLPATH, BM_GETCHECK, 0, 0);
+					TmpHost.HostType = (int)SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0);
 					Apply = YES;
 					break;
 
@@ -2282,7 +2282,7 @@ static INT_PTR CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 					break;
 
 				case HSET_HOSTTYPE :
-					Num = SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0);
+					Num = (int)SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0);
 					if(Num == 2)
 					{
 						EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
@@ -2359,13 +2359,13 @@ static INT_PTR CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam
 			switch(pnmhdr->code)
 			{
 				case PSN_APPLY :
-					TmpHost.UseNoEncryption = SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_GETCHECK, 0, 0);
+					TmpHost.UseNoEncryption = (int)SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_GETCHECK, 0, 0);
 					if(IsOpenSSLLoaded())
 					{
-						TmpHost.UseFTPES = SendDlgItemMessage(hDlg, HSET_FTPES, BM_GETCHECK, 0, 0);
-						TmpHost.UseFTPIS = SendDlgItemMessage(hDlg, HSET_FTPIS, BM_GETCHECK, 0, 0);
+						TmpHost.UseFTPES = (int)SendDlgItemMessage(hDlg, HSET_FTPES, BM_GETCHECK, 0, 0);
+						TmpHost.UseFTPIS = (int)SendDlgItemMessage(hDlg, HSET_FTPIS, BM_GETCHECK, 0, 0);
 					}
-					TmpHost.NoWeakEncryption = SendDlgItemMessage(hDlg, HSET_NO_WEAK, BM_GETCHECK, 0, 0);
+					TmpHost.NoWeakEncryption = (int)SendDlgItemMessage(hDlg, HSET_NO_WEAK, BM_GETCHECK, 0, 0);
 					Apply = YES;
 					break;
 
@@ -2432,7 +2432,7 @@ static INT_PTR CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 				case PSN_APPLY :
 					TmpHost.MaxThreadCount = GetDecimalText(hDlg, HSET_THREAD_COUNT);
 					CheckRange2(&TmpHost.MaxThreadCount, MAX_DATA_CONNECTION, 1);
-					TmpHost.ReuseCmdSkt = SendDlgItemMessage(hDlg, HSET_REUSE_SOCKET, BM_GETCHECK, 0, 0);
+					TmpHost.ReuseCmdSkt = (int)SendDlgItemMessage(hDlg, HSET_REUSE_SOCKET, BM_GETCHECK, 0, 0);
 					TmpHost.NoopInterval = GetDecimalText(hDlg, HSET_NOOP_INTERVAL);
 					CheckRange2(&TmpHost.NoopInterval, 300, 0);
 					switch(SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_GETCURSEL, 0, 0))
@@ -2454,7 +2454,7 @@ static INT_PTR CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 						TmpHost.TransferErrorNotify = NO;
 						break;
 					}
-					TmpHost.TransferErrorReconnect = SendDlgItemMessage(hDlg, HSET_ERROR_RECONNECT, BM_GETCHECK, 0, 0);
+					TmpHost.TransferErrorReconnect = (int)SendDlgItemMessage(hDlg, HSET_ERROR_RECONNECT, BM_GETCHECK, 0, 0);
 					Apply = YES;
 					break;
 

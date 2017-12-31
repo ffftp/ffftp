@@ -526,7 +526,7 @@ BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName)
 	bResult = FALSE;
 	if(HostName && CommonName)
 	{
-		if(pa0 = AllocateStringA(strlen(HostName) * 4))
+		if(pa0 = AllocateStringA((int)strlen(HostName) * 4))
 		{
 			if(ConvertNameToPunycode(pa0, HostName))
 			{
@@ -575,7 +575,7 @@ BOOL EncryptSignature(const char* PrivateKey, const char* Password, const void* 
 	if(!g_bOpenSSLLoaded)
 		return FALSE;
 	bResult = FALSE;
-	if(pBIO = p_BIO_new_mem_buf((void*)PrivateKey, sizeof(char) * strlen(PrivateKey)))
+	if(pBIO = p_BIO_new_mem_buf((void*)PrivateKey, sizeof(char) * (int)strlen(PrivateKey)))
 	{
 		if(pPKEY = p_PEM_read_bio_PrivateKey(pBIO, NULL, NULL, (void*)Password))
 		{
@@ -611,7 +611,7 @@ BOOL DecryptSignature(const char* PublicKey, const char* Password, const void* p
 	if(!g_bOpenSSLLoaded)
 		return FALSE;
 	bResult = FALSE;
-	if(pBIO = p_BIO_new_mem_buf((void*)PublicKey, sizeof(char) * strlen(PublicKey)))
+	if(pBIO = p_BIO_new_mem_buf((void*)PublicKey, sizeof(char) * (int)strlen(PublicKey)))
 	{
 		if(pPKEY = p_PEM_read_bio_PUBKEY(pBIO, NULL, NULL, Password))
 		{
@@ -709,7 +709,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen, const
 		{
 			if(*ppSSL = p_SSL_new(g_pOpenSSLCTX))
 			{
-				if(p_SSL_set_fd(*ppSSL, s) != 0)
+				if(p_SSL_set_fd(*ppSSL, (int)s) != 0)
 				{
 					bInherited = FALSE;
 					if(parent != INVALID_SOCKET)
@@ -734,7 +734,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen, const
 						}
 						if(ServerName)
 						{
-							if(pa0 = AllocateStringA(strlen(ServerName) * 4))
+							if(pa0 = AllocateStringA((int)strlen(ServerName) * 4))
 							{
 								if(ConvertNameToPunycode(pa0, ServerName))
 									p_SSL_ctrl(*ppSSL, SSL_CTRL_SET_TLSEXT_HOSTNAME, TLSEXT_NAMETYPE_host_name, pa0);
@@ -1202,7 +1202,7 @@ BOOL ConvertDomainNameToPunycode(LPSTR Output, DWORD Count, LPCSTR Input)
 			if(Count >= strlen("xn--") + 1)
 			{
 				strcpy(Output, "xn--");
-				OutputLength = Count - strlen("xn--");
+				OutputLength = Count - (punycode_uint)strlen("xn--");
 				if(punycode_encode(Length, pUnicode, NULL, (punycode_uint*)&OutputLength, Output + strlen("xn--")) == punycode_success)
 				{
 					Output[strlen("xn--") + OutputLength] = '\0';
@@ -1232,7 +1232,7 @@ BOOL ConvertNameToPunycode(LPSTR Output, LPCSTR Input)
 	char* p;
 	char* pNext;
 	bResult = FALSE;
-	Length = strlen(Input);
+	Length = (DWORD)strlen(Input);
 	if(pm0 = AllocateStringM(Length + 1))
 	{
 		if(pm1 = AllocateStringM(Length * 4 + 1))
@@ -1264,7 +1264,7 @@ HANDLE WSAAsyncGetHostByNameM(HWND hWnd, u_int wMsg, const char * name, char * b
 {
 	HANDLE r = NULL;
 	char* pa0 = NULL;
-	if(pa0 = AllocateStringA(strlen(name) * 4))
+	if(pa0 = AllocateStringA((int)strlen(name) * 4))
 	{
 		if(ConvertNameToPunycode(pa0, name))
 			r = WSAAsyncGetHostByName(hWnd, wMsg, pa0, buf, buflen);
@@ -1277,7 +1277,7 @@ HANDLE WSAAsyncGetHostByNameIPv6M(HWND hWnd, u_int wMsg, const char * name, char
 {
 	HANDLE r = NULL;
 	char* pa0 = NULL;
-	if(pa0 = AllocateStringA(strlen(name) * 4))
+	if(pa0 = AllocateStringA((int)strlen(name) * 4))
 	{
 		if(ConvertNameToPunycode(pa0, name))
 			r = WSAAsyncGetHostByNameIPv6(hWnd, wMsg, pa0, buf, buflen, Family);

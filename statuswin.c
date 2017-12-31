@@ -147,7 +147,7 @@ void DispSelectedSpace(void)
 		Win = WIN_REMOTE;
 
 	MakeSizeString(GetSelectedTotalSize(Win), Buf1);
-	sprintf(Buf2, MSGJPN247, GetSelectedCount(Win), Buf1);
+	__pragma(warning(suppress:4474)) sprintf(Buf2, MSGJPN247, GetSelectedCount(Win), Buf1);
 	SendMessage(GetSbarWnd(), SB_SETTEXT, 1 | 0, (LPARAM)Buf2);
 	return;
 }

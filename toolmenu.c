@@ -1729,11 +1729,11 @@ void SetRemoteDirHist(char *Path)
 {
 	int i;
 
-	if((i = SendMessage(hWndDirRemote, CB_FINDSTRINGEXACT, 0, (LPARAM)Path)) != CB_ERR)
+	if((i = (int)SendMessage(hWndDirRemote, CB_FINDSTRINGEXACT, 0, (LPARAM)Path)) != CB_ERR)
 		SendMessage(hWndDirRemote, CB_DELETESTRING, i, 0);
 
 	SendMessage(hWndDirRemote, CB_ADDSTRING, 0, (LPARAM)Path);
-	i = SendMessage(hWndDirRemote, CB_GETCOUNT, 0, 0);
+	i = (int)SendMessage(hWndDirRemote, CB_GETCOUNT, 0, 0);
 	SendMessage(hWndDirRemote, CB_SETCURSEL, i-1, 0);
 
 	strcpy(RemoteCurDir, Path);
@@ -1754,9 +1754,9 @@ void SetLocalDirHist(char *Path)
 {
 	int i;
 
-	if((i = SendMessage(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)Path)) == CB_ERR)
+	if((i = (int)SendMessage(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)Path)) == CB_ERR)
 		SendMessage(hWndDirLocal, CB_ADDSTRING, 0, (LPARAM)Path);
-	i = SendMessage(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)Path);
+	i = (int)SendMessage(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)Path);
 	SendMessage(hWndDirLocal, CB_SETCURSEL, i, 0);
 
 	strcpy(LocalCurDir, Path);

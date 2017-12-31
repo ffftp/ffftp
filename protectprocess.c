@@ -18,7 +18,10 @@
 #include <aclapi.h>
 #include <sfc.h>
 #include <tlhelp32.h>
+#pragma warning(push)
+#pragma warning(disable:4091)
 #include <imagehlp.h>
+#pragma warning(pop)
 
 #define DO_NOT_REPLACE
 #include "protectprocess.h"
@@ -676,7 +679,7 @@ BOOL IsSxsModuleTrusted(LPCWSTR Filename)
 	HANDLE hFind;
 	WIN32_FIND_DATAW wfd;
 	bResult = FALSE;
-	if(pw0 = AllocateStringW(wcslen(Filename) + 1))
+	if(pw0 = AllocateStringW((int)wcslen(Filename) + 1))
 	{
 		wcscpy(pw0, Filename);
 		if(p = wcsrchr(pw0, L'\\'))
@@ -685,16 +688,16 @@ BOOL IsSxsModuleTrusted(LPCWSTR Filename)
 			if(p = wcsrchr(pw0, L'\\'))
 			{
 				p++;
-				if(pw1 = AllocateStringW(wcslen(p) + 1))
+				if(pw1 = AllocateStringW((int)wcslen(p) + 1))
 				{
 					wcscpy(pw1, p);
 					wcscpy(p, L"");
-					if(pw2 = AllocateStringW(wcslen(pw0) + wcslen(L"manifests\\") + wcslen(pw1) + wcslen(L".cat") + 1))
+					if(pw2 = AllocateStringW((int)wcslen(pw0) + (int)wcslen(L"manifests\\") + (int)wcslen(pw1) + (int)wcslen(L".cat") + 1))
 					{
 						wcscpy(pw2, pw0);
 						wcscat(pw2, L"manifests\\");
 						wcscat(pw2, pw1);
-						if(pw3 = AllocateStringW(wcslen(pw2) + wcslen(L".manifest") + 1))
+						if(pw3 = AllocateStringW((int)wcslen(pw2) + (int)wcslen(L".manifest") + 1))
 						{
 							wcscpy(pw3, pw2);
 							wcscat(pw3, L".manifest");
@@ -707,9 +710,9 @@ BOOL IsSxsModuleTrusted(LPCWSTR Filename)
 					}
 					if(!bResult)
 					{
-						if(pw2 = AllocateStringW(wcslen(pw0) + wcslen(L"catalogs\\") + 1))
+						if(pw2 = AllocateStringW((int)wcslen(pw0) + (int)wcslen(L"catalogs\\") + 1))
 						{
-							if(pw3 = AllocateStringW(wcslen(pw0) + wcslen(L"manifests\\") + wcslen(pw1) + wcslen(L".manifest") + 1))
+							if(pw3 = AllocateStringW((int)wcslen(pw0) + (int)wcslen(L"manifests\\") + (int)wcslen(pw1) + (int)wcslen(L".manifest") + 1))
 							{
 								wcscpy(pw2, pw0);
 								wcscat(pw2, L"catalogs\\");
@@ -717,7 +720,7 @@ BOOL IsSxsModuleTrusted(LPCWSTR Filename)
 								wcscat(pw3, L"manifests\\");
 								wcscat(pw3, pw1);
 								wcscat(pw3, L".manifest");
-								if(pw4 = AllocateStringW(wcslen(pw2) + wcslen(L"*.cat") + 1))
+								if(pw4 = AllocateStringW((int)wcslen(pw2) + (int)wcslen(L"*.cat") + 1))
 								{
 									wcscpy(pw4, pw2);
 									wcscat(pw4, L"*.cat");
@@ -725,7 +728,7 @@ BOOL IsSxsModuleTrusted(LPCWSTR Filename)
 									{
 										do
 										{
-											if(pw5 = AllocateStringW(wcslen(pw2) + wcslen(wfd.cFileName) + 1))
+											if(pw5 = AllocateStringW((int)wcslen(pw2) + (int)wcslen(wfd.cFileName) + 1))
 											{
 												wcscpy(pw5, pw2);
 												wcscat(pw5, wfd.cFileName);

@@ -549,13 +549,13 @@ static INT_PTR CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wPara
 					SetTransferTypeImm(AskRadioButtonValue(hDlg, ModeButton, MODEBUTTONS));
 					SaveTransferType();
 					GetMultiTextFromList(hDlg, TRMODE_EXT_LIST, AsciiExt, ASCII_EXT_LEN+1);
-					SaveTimeStamp = SendDlgItemMessage(hDlg, TRMODE_TIME, BM_GETCHECK, 0, 0);
-					RmEOF = SendDlgItemMessage(hDlg, TRMODE_EOF, BM_GETCHECK, 0, 0);
-					VaxSemicolon = SendDlgItemMessage(hDlg, TRMODE_SEMICOLON, BM_GETCHECK, 0, 0);
+					SaveTimeStamp = (int)SendDlgItemMessage(hDlg, TRMODE_TIME, BM_GETCHECK, 0, 0);
+					RmEOF = (int)SendDlgItemMessage(hDlg, TRMODE_EOF, BM_GETCHECK, 0, 0);
+					VaxSemicolon = (int)SendDlgItemMessage(hDlg, TRMODE_SEMICOLON, BM_GETCHECK, 0, 0);
 					// ディレクトリ自動作成
-					MakeAllDir = SendDlgItemMessage(hDlg, TRMODE_MAKEDIR, BM_GETCHECK, 0, 0);
+					MakeAllDir = (int)SendDlgItemMessage(hDlg, TRMODE_MAKEDIR, BM_GETCHECK, 0, 0);
 					// ファイル一覧バグ修正
-					AbortOnListError = SendDlgItemMessage(hDlg, TRMODE_LISTERROR, BM_GETCHECK, 0, 0);
+					AbortOnListError = (int)SendDlgItemMessage(hDlg, TRMODE_LISTERROR, BM_GETCHECK, 0, 0);
 					break;
 
 				case PSN_RESET :
@@ -590,7 +590,7 @@ static INT_PTR CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wPara
 					break;
 
 				case TRMODE_DEL :
-					if((Num = SendDlgItemMessage(hDlg, TRMODE_EXT_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
+					if((Num = (int)SendDlgItemMessage(hDlg, TRMODE_EXT_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
 						SendDlgItemMessage(hDlg, TRMODE_EXT_LIST, LB_DELETESTRING, Num, 0);
 					break;
 			}
@@ -705,7 +705,7 @@ static INT_PTR CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wPara
 	switch (message)
 	{
 		case WM_INITDIALOG :
-			Tmp = SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
+			Tmp = (long)SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
 			Tmp |= LVS_EX_FULLROWSELECT;
 			SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
 
@@ -749,7 +749,7 @@ static INT_PTR CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wPara
 					GetFnameAttrFromListView(hDlg, DefAttrList);
 					SendDlgItemMessage(hDlg, TRMODE3_FOLDER_ATTR, WM_GETTEXT, 5+1, (LPARAM)TmpStr);
 					FolderAttrNum = atoi(TmpStr);
-					FolderAttr = SendDlgItemMessage(hDlg, TRMODE3_FOLDER, BM_GETCHECK, 0, 0);
+					FolderAttr = (int)SendDlgItemMessage(hDlg, TRMODE3_FOLDER, BM_GETCHECK, 0, 0);
 					break;
 
 				case PSN_RESET :
@@ -773,7 +773,7 @@ static INT_PTR CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wPara
 					break;
 
 				case TRMODE3_DEL :
-					if((Tmp = SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETNEXTITEM, -1, MAKELPARAM(LVNI_ALL | LVNI_SELECTED, 0))) != -1)
+					if((Tmp = (long)SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETNEXTITEM, -1, MAKELPARAM(LVNI_ALL | LVNI_SELECTED, 0))) != -1)
 						SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_DELETEITEM, Tmp, 0);
 					break;
 
@@ -905,7 +905,7 @@ static void AddFnameAttrToListView(HWND hDlg, char *Fname, char *Attr)
 	GetFnameAttrFromListView(hDlg, Buf);
 	if(StrMultiLen(Buf) + strlen(Fname) + strlen(Attr) + 2 <= DEFATTRLIST_LEN)
 	{
-		Num = SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETITEMCOUNT, 0, 0);
+		Num = (int)SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETITEMCOUNT, 0, 0);
 
 		LvItem.mask = LVIF_TEXT;
 		LvItem.iItem = Num;
@@ -944,7 +944,7 @@ static void GetFnameAttrFromListView(HWND hDlg, char *Buf)
 	int i;
 	LV_ITEM LvItem;
 
-	Num = SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETITEMCOUNT, 0, 0);
+	Num = (int)SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETITEMCOUNT, 0, 0);
 	for(i = 0; i < Num; i++)
 	{
 		LvItem.mask = LVIF_TEXT;
@@ -1009,11 +1009,11 @@ static INT_PTR CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam
 				case PSN_APPLY :
 					GetMultiTextFromList(hDlg, MIRROR_NOTRN_LIST, MirrorNoTrn, MIRROR_LEN+1);
 					GetMultiTextFromList(hDlg, MIRROR_NODEL_LIST, MirrorNoDel, MIRROR_LEN+1);
-					MirrorFnameCnv = SendDlgItemMessage(hDlg, MIRROR_LOW, BM_GETCHECK, 0, 0);
-					MirUpDelNotify = SendDlgItemMessage(hDlg, MIRROR_UPDEL_NOTIFY, BM_GETCHECK, 0, 0);
-					MirDownDelNotify = SendDlgItemMessage(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_GETCHECK, 0, 0);
+					MirrorFnameCnv = (int)SendDlgItemMessage(hDlg, MIRROR_LOW, BM_GETCHECK, 0, 0);
+					MirUpDelNotify = (int)SendDlgItemMessage(hDlg, MIRROR_UPDEL_NOTIFY, BM_GETCHECK, 0, 0);
+					MirDownDelNotify = (int)SendDlgItemMessage(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_GETCHECK, 0, 0);
 					// ミラーリング設定追加
-					MirrorNoTransferContents = SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
+					MirrorNoTransferContents = (int)SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
 					break;
 
 				case PSN_RESET :
@@ -1041,12 +1041,12 @@ static INT_PTR CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam
 					break;
 
 				case MIRROR_NOTRN_DEL :
-					if((Num = SendDlgItemMessage(hDlg, MIRROR_NOTRN_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
+					if((Num = (int)SendDlgItemMessage(hDlg, MIRROR_NOTRN_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
 						SendDlgItemMessage(hDlg, MIRROR_NOTRN_LIST, LB_DELETESTRING, Num, 0);
 					break;
 
 				case MIRROR_NODEL_DEL :
-					if((Num = SendDlgItemMessage(hDlg, MIRROR_NODEL_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
+					if((Num = (int)SendDlgItemMessage(hDlg, MIRROR_NODEL_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
 						SendDlgItemMessage(hDlg, MIRROR_NODEL_LIST, LB_DELETESTRING, Num, 0);
 					break;
 			}
@@ -1171,12 +1171,12 @@ static INT_PTR CALLBACK Disp1SettingProc(HWND hDlg, UINT message, WPARAM wParam,
 			switch(pnmhdr->code)
 			{
 				case PSN_APPLY :
-					DispIgnoreHide = SendDlgItemMessage(hDlg, DISP_HIDE, BM_GETCHECK, 0, 0);
-					DispDrives = SendDlgItemMessage(hDlg, DISP_DRIVE, BM_GETCHECK, 0, 0);
+					DispIgnoreHide = (int)SendDlgItemMessage(hDlg, DISP_HIDE, BM_GETCHECK, 0, 0);
+					DispDrives = (int)SendDlgItemMessage(hDlg, DISP_DRIVE, BM_GETCHECK, 0, 0);
 					// ファイルアイコン表示対応
-					DispFileIcon = SendDlgItemMessage(hDlg, DISP_ICON, BM_GETCHECK, 0, 0);
+					DispFileIcon = (int)SendDlgItemMessage(hDlg, DISP_ICON, BM_GETCHECK, 0, 0);
 					// タイムスタンプのバグ修正
-					DispTimeSeconds = SendDlgItemMessage(hDlg, DISP_SECOND, BM_GETCHECK, 0, 0);
+					DispTimeSeconds = (int)SendDlgItemMessage(hDlg, DISP_SECOND, BM_GETCHECK, 0, 0);
 					if(strlen(TmpFont.lfFaceName) > 0)
 					{
 						memcpy(&ListLogFont, &TmpFont, sizeof(LOGFONT));
@@ -1227,9 +1227,9 @@ static INT_PTR CALLBACK Disp2SettingProc(HWND hDlg, UINT message, WPARAM wParam,
 			switch(pnmhdr->code)
 			{
 				case PSN_APPLY :
-					DispPermissionsNumber = SendDlgItemMessage(hDlg, DISP2_PERMIT_NUM, BM_GETCHECK, 0, 0);
-					AutoRefreshFileList = SendDlgItemMessage(hDlg, DISP2_AUTO_REFRESH, BM_GETCHECK, 0, 0);
-					RemoveOldLog = SendDlgItemMessage(hDlg, DISP2_REMOVE_OLD_LOG, BM_GETCHECK, 0, 0);
+					DispPermissionsNumber = (int)SendDlgItemMessage(hDlg, DISP2_PERMIT_NUM, BM_GETCHECK, 0, 0);
+					AutoRefreshFileList = (int)SendDlgItemMessage(hDlg, DISP2_AUTO_REFRESH, BM_GETCHECK, 0, 0);
+					RemoveOldLog = (int)SendDlgItemMessage(hDlg, DISP2_REMOVE_OLD_LOG, BM_GETCHECK, 0, 0);
 					break;
 
 				case PSN_RESET :
@@ -1324,18 +1324,18 @@ static INT_PTR CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wPara
 			switch(pnmhdr->code)
 			{
 				case PSN_APPLY :
-					ConnectOnStart = SendDlgItemMessage(hDlg, MISC_CONNECT, BM_GETCHECK, 0, 0);
-					ConnectAndSet = SendDlgItemMessage(hDlg, MISC_OLDDLG, BM_GETCHECK, 0, 0);
-					RasClose = SendDlgItemMessage(hDlg, CONNECT_RASCLOSE, BM_GETCHECK, 0, 0);
-					RasCloseNotify = SendDlgItemMessage(hDlg, CONNECT_CLOSE_NOTIFY, BM_GETCHECK, 0, 0);
+					ConnectOnStart = (int)SendDlgItemMessage(hDlg, MISC_CONNECT, BM_GETCHECK, 0, 0);
+					ConnectAndSet = (int)SendDlgItemMessage(hDlg, MISC_OLDDLG, BM_GETCHECK, 0, 0);
+					RasClose = (int)SendDlgItemMessage(hDlg, CONNECT_RASCLOSE, BM_GETCHECK, 0, 0);
+					RasCloseNotify = (int)SendDlgItemMessage(hDlg, CONNECT_CLOSE_NOTIFY, BM_GETCHECK, 0, 0);
 					FileHist = GetDecimalText(hDlg, CONNECT_HIST);
 					CheckRange2(&FileHist, HISTORY_MAX, 0);
-					QuickAnonymous = SendDlgItemMessage(hDlg, CONNECT_QUICK_ANONY, BM_GETCHECK, 0, 0);
-					PassToHist = SendDlgItemMessage(hDlg, CONNECT_HIST_PASS, BM_GETCHECK, 0, 0);
-					SendQuit = SendDlgItemMessage(hDlg, CONNECT_SENDQUIT, BM_GETCHECK, 0, 0);
-					NoRasControl = SendDlgItemMessage(hDlg, CONNECT_NORAS, BM_GETCHECK, 0, 0);
+					QuickAnonymous = (int)SendDlgItemMessage(hDlg, CONNECT_QUICK_ANONY, BM_GETCHECK, 0, 0);
+					PassToHist = (int)SendDlgItemMessage(hDlg, CONNECT_HIST_PASS, BM_GETCHECK, 0, 0);
+					SendQuit = (int)SendDlgItemMessage(hDlg, CONNECT_SENDQUIT, BM_GETCHECK, 0, 0);
+					NoRasControl = (int)SendDlgItemMessage(hDlg, CONNECT_NORAS, BM_GETCHECK, 0, 0);
 					// UPnP対応
-					UPnPEnabled = SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_GETCHECK, 0, 0);
+					UPnPEnabled = (int)SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_GETCHECK, 0, 0);
 					break;
 
 				case PSN_RESET :
@@ -1454,7 +1454,7 @@ static INT_PTR CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 			switch(pnmhdr->code)
 			{
 				case PSN_APPLY :
-					Type = SendDlgItemMessage(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0) + 1;
+					Type = (int)SendDlgItemMessage(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0) + 1;
 					FwallType = ConvertNum(Type, 0, TypeTbl, sizeof(TypeTbl)/sizeof(INTCONVTBL));
 					SendDlgItemMessage(hDlg, FIRE_HOST, WM_GETTEXT, HOST_ADRS_LEN+1, (LPARAM)FwallHost);
 					SendDlgItemMessage(hDlg, FIRE_USER, WM_GETTEXT, USER_NAME_LEN+1, (LPARAM)FwallUser);
@@ -1463,13 +1463,13 @@ static INT_PTR CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 					FwallPort = atoi(Tmp);
 					SendDlgItemMessage(hDlg, FIRE_DELIMIT, WM_GETTEXT, 5, (LPARAM)Tmp);
 					FwallDelimiter = Tmp[0];
-					FwallDefault = SendDlgItemMessage(hDlg, FIRE_USEIT, BM_GETCHECK, 0, 0);
-					PasvDefault = SendDlgItemMessage(hDlg, FIRE_PASV, BM_GETCHECK, 0, 0);
-					FwallResolve = SendDlgItemMessage(hDlg, FIRE_RESOLV, BM_GETCHECK, 0, 0);
-					FwallLower = SendDlgItemMessage(hDlg, FIRE_LOWER, BM_GETCHECK, 0, 0);
-					FwallSecurity = SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_GETCURSEL, 0, 0);
+					FwallDefault = (int)SendDlgItemMessage(hDlg, FIRE_USEIT, BM_GETCHECK, 0, 0);
+					PasvDefault = (int)SendDlgItemMessage(hDlg, FIRE_PASV, BM_GETCHECK, 0, 0);
+					FwallResolve = (int)SendDlgItemMessage(hDlg, FIRE_RESOLV, BM_GETCHECK, 0, 0);
+					FwallLower = (int)SendDlgItemMessage(hDlg, FIRE_LOWER, BM_GETCHECK, 0, 0);
+					FwallSecurity = (int)SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_GETCURSEL, 0, 0);
 					// FireWall設定追加
-					FwallNoSaveUser = SendDlgItemMessage(hDlg, FIRE_SHARED, BM_GETCHECK, 0, 0);
+					FwallNoSaveUser = (int)SendDlgItemMessage(hDlg, FIRE_SHARED, BM_GETCHECK, 0, 0);
 					break;
 
 				case PSN_RESET :
@@ -1485,7 +1485,7 @@ static INT_PTR CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 			switch(GET_WM_COMMAND_ID(wParam, lParam))
 			{
 				case FIRE_TYPE :
-					Num = SendDlgItemMessage(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0);
+					Num = (int)SendDlgItemMessage(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0);
 					EnableWindow(GetDlgItem(hDlg, FIRE_USER), HideTbl[Num][0]);
 					EnableWindow(GetDlgItem(hDlg, FIRE_PASS), HideTbl[Num][1]);
 					EnableWindow(GetDlgItem(hDlg, FIRE_SECURITY), HideTbl[Num][2]);
@@ -1620,9 +1620,9 @@ static INT_PTR CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam,
 			switch(pnmhdr->code)
 			{
 				case PSN_APPLY :
-					Sound[SND_CONNECT].On = SendDlgItemMessage(hDlg, SOUND_CONNECT, BM_GETCHECK, 0, 0);
-					Sound[SND_TRANS].On = SendDlgItemMessage(hDlg, SOUND_TRANS, BM_GETCHECK, 0, 0);
-					Sound[SND_ERROR].On = SendDlgItemMessage(hDlg, SOUND_ERROR, BM_GETCHECK, 0, 0);
+					Sound[SND_CONNECT].On = (int)SendDlgItemMessage(hDlg, SOUND_CONNECT, BM_GETCHECK, 0, 0);
+					Sound[SND_TRANS].On = (int)SendDlgItemMessage(hDlg, SOUND_TRANS, BM_GETCHECK, 0, 0);
+					Sound[SND_ERROR].On = (int)SendDlgItemMessage(hDlg, SOUND_ERROR, BM_GETCHECK, 0, 0);
 					SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Sound[SND_CONNECT].Fname);
 					SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Sound[SND_TRANS].Fname);
 					SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Sound[SND_ERROR].Fname);
@@ -1741,16 +1741,16 @@ static INT_PTR CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 			switch(pnmhdr->code)
 			{
 				case PSN_APPLY :
-					SaveWinPos = SendDlgItemMessage(hDlg, MISC_WINPOS, BM_GETCHECK, 0, 0);
-					DebugConsole = SendDlgItemMessage(hDlg, MISC_DEBUG, BM_GETCHECK, 0, 0);
+					SaveWinPos = (int)SendDlgItemMessage(hDlg, MISC_WINPOS, BM_GETCHECK, 0, 0);
+					DebugConsole = (int)SendDlgItemMessage(hDlg, MISC_DEBUG, BM_GETCHECK, 0, 0);
 					// ポータブル版判定
 //					RegType = SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_GETCHECK, 0, 0);
 					if(AskForceIni() == NO)
-						RegType = SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_GETCHECK, 0, 0);
+						RegType = (int)SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_GETCHECK, 0, 0);
 					// 全設定暗号化対応
-					EncryptAllSettings = SendDlgItemMessage(hDlg, MISC_ENCRYPT_SETTINGS, BM_GETCHECK, 0, 0);
+					EncryptAllSettings = (int)SendDlgItemMessage(hDlg, MISC_ENCRYPT_SETTINGS, BM_GETCHECK, 0, 0);
 
-					CacheSave = SendDlgItemMessage(hDlg, MISC_CACHE_SAVE, BM_GETCHECK, 0, 0);
+					CacheSave = (int)SendDlgItemMessage(hDlg, MISC_CACHE_SAVE, BM_GETCHECK, 0, 0);
 					CacheEntry = GetDecimalText(hDlg, MISC_BUFNUM);
 					if(SendDlgItemMessage(hDlg, MISC_CACHE, BM_GETCHECK, 0, 0) == 0)
 						CacheEntry = -CacheEntry;
@@ -1815,7 +1815,7 @@ int SortSetting(void)
 {
 	int Sts;
 
-	Sts = DialogBox(GetFtpInst(), MAKEINTRESOURCE(sort_dlg), GetMainHwnd(), SortSettingProc);
+	Sts = (int)DialogBox(GetFtpInst(), MAKEINTRESOURCE(sort_dlg), GetMainHwnd(), SortSettingProc);
 	return(Sts);
 }
 
@@ -1931,7 +1931,7 @@ static INT_PTR CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 
 					SetSortTypeImm(LFsort, LDsort, RFsort, RDsort);
 
-					SetSaveSortToHost(SendDlgItemMessage(hDlg, SORT_SAVEHOST, BM_GETCHECK, 0, 0));
+					SetSaveSortToHost((int)SendDlgItemMessage(hDlg, SORT_SAVEHOST, BM_GETCHECK, 0, 0));
 
 					EndDialog(hDlg, YES);
 					break;
@@ -1982,8 +1982,8 @@ static INT_PTR CALLBACK UpdatesSettingProc(HWND hDlg, UINT message, WPARAM wPara
 			switch(pnmhdr->code)
 			{
 				case PSN_APPLY :
-					AutoCheckForUpdates = SendDlgItemMessage(hDlg, UPDATES_AUTO_CHECK, BM_GETCHECK, 0, 0);
-					AutoApplyUpdates = SendDlgItemMessage(hDlg, UPDATES_AUTO_APPLY, BM_GETCHECK, 0, 0);
+					AutoCheckForUpdates = (int)SendDlgItemMessage(hDlg, UPDATES_AUTO_CHECK, BM_GETCHECK, 0, 0);
+					AutoApplyUpdates = (int)SendDlgItemMessage(hDlg, UPDATES_AUTO_APPLY, BM_GETCHECK, 0, 0);
 					AutoCheckForUptatesInterval = GetDecimalText(hDlg, UPDATES_INTERVAL);
 					CheckRange2(&AutoCheckForUptatesInterval, 999, 0);
 					break;
@@ -2111,15 +2111,15 @@ void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize)
 	int i;
 	int Len;
 
-	Len = strlen(Str);
+	Len = (int)strlen(Str);
 	if(Len > 0)
 	{
 		Len++;
-		Num = SendDlgItemMessage(hDlg, CtrlList, LB_GETCOUNT, 0, 0);
+		Num = (int)SendDlgItemMessage(hDlg, CtrlList, LB_GETCOUNT, 0, 0);
 		for(i = 0; i < Num; i++)
 		{
 			SendDlgItemMessage(hDlg, CtrlList, LB_GETTEXT, i, (LPARAM)Tmp);
-			Len += strlen(Tmp) + 1;
+			Len += (int)strlen(Tmp) + 1;
 		}
 
 		if(Len > (BufSize-1))
@@ -2179,7 +2179,7 @@ void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize)
 	int i;
 
 	memset(Buf, NUL, BufSize);
-	Num = SendDlgItemMessage(hDlg, CtrlList, LB_GETCOUNT, 0, 0);
+	Num = (int)SendDlgItemMessage(hDlg, CtrlList, LB_GETCOUNT, 0, 0);
 	for(i = 0; i < Num; i++)
 	{
 		SendDlgItemMessage(hDlg, CtrlList, LB_GETTEXT, i, (LPARAM)Tmp);

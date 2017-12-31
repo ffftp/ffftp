@@ -158,7 +158,7 @@ int MtoWMultiString(LPWSTR pDst, int size, LPCSTR pSrc)
 	if(pSrc < (LPCSTR)0x00010000 || pSrc == (LPCSTR)~0)
 		return 0;
 	if(!pDst)
-		return GetMultiStringLengthM(pSrc);
+		return (int)GetMultiStringLengthM(pSrc);
 	i = 0;
 	while(*pSrc != '\0')
 	{
@@ -176,7 +176,7 @@ int WtoMMultiString(LPSTR pDst, int size, LPCWSTR pSrc)
 	if(pSrc < (LPCWSTR)0x00010000 || pSrc == (LPCWSTR)~0)
 		return 0;
 	if(!pDst)
-		return GetMultiStringLengthW(pSrc);
+		return (int)GetMultiStringLengthW(pSrc);
 	i = 0;
 	while(*pSrc != L'\0')
 	{
@@ -194,7 +194,7 @@ int AtoWMultiString(LPWSTR pDst, int size, LPCSTR pSrc)
 	if(pSrc < (LPCSTR)0x00010000 || pSrc == (LPCSTR)~0)
 		return 0;
 	if(!pDst)
-		return GetMultiStringLengthA(pSrc);
+		return (int)GetMultiStringLengthA(pSrc);
 	i = 0;
 	while(*pSrc != '\0')
 	{
@@ -212,7 +212,7 @@ int WtoAMultiString(LPSTR pDst, int size, LPCWSTR pSrc)
 	if(pSrc < (LPCWSTR)0x00010000 || pSrc == (LPCWSTR)~0)
 		return 0;
 	if(!pDst)
-		return GetMultiStringLengthW(pSrc);
+		return (int)GetMultiStringLengthW(pSrc);
 	i = 0;
 	while(*pSrc != L'\0')
 	{
@@ -268,7 +268,7 @@ wchar_t* DuplicateMtoW(LPCSTR lpString, int c)
 	if(lpString < (LPCSTR)0x00010000 || lpString == (LPCSTR)~0)
 		return (wchar_t*)lpString;
 	if(c < 0)
-		c = strlen(lpString);
+		c = (int)strlen(lpString);
 	p = AllocateStringW(MtoW(NULL, 0, lpString, c) + 1);
 	if(p)
 	{
@@ -287,7 +287,7 @@ wchar_t* DuplicateMtoWBuffer(LPCSTR lpString, int c, int size)
 	if(lpString < (LPCSTR)0x00010000 || lpString == (LPCSTR)~0)
 		return (wchar_t*)lpString;
 	if(c < 0)
-		c = strlen(lpString);
+		c = (int)strlen(lpString);
 	p = AllocateStringW(size);
 	if(p)
 	{
@@ -305,7 +305,7 @@ wchar_t* DuplicateMtoWMultiString(LPCSTR lpString)
 	wchar_t* p;
 	if(lpString < (LPCSTR)0x00010000 || lpString == (LPCSTR)~0)
 		return (wchar_t*)lpString;
-	count = GetMultiStringLengthM(lpString) + 1;
+	count = (int)GetMultiStringLengthM(lpString) + 1;
 	p = AllocateStringW(count);
 	if(p)
 		MtoW(p, count, lpString, count);
@@ -320,7 +320,7 @@ wchar_t* DuplicateMtoWMultiStringBuffer(LPCSTR lpString, int size)
 	wchar_t* p;
 	if(lpString < (LPCSTR)0x00010000 || lpString == (LPCSTR)~0)
 		return (wchar_t*)lpString;
-	count = GetMultiStringLengthM(lpString) + 1;
+	count = (int)GetMultiStringLengthM(lpString) + 1;
 	p = AllocateStringW(size);
 	if(p)
 	{
@@ -340,7 +340,7 @@ char* DuplicateWtoM(LPCWSTR lpString, int c)
 	if(lpString < (LPCWSTR)0x00010000 || lpString == (LPCWSTR)~0)
 		return (char*)lpString;
 	if(c < 0)
-		c = wcslen(lpString);
+		c = (int)wcslen(lpString);
 	p = AllocateStringM(WtoM(NULL, 0, lpString, c) + 1);
 	if(p)
 	{
@@ -359,7 +359,7 @@ wchar_t* DuplicateAtoW(LPCSTR lpString, int c)
 	if(lpString < (LPCSTR)0x00010000 || lpString == (LPCSTR)~0)
 		return (wchar_t*)lpString;
 	if(c < 0)
-		c = strlen(lpString);
+		c = (int)strlen(lpString);
 	p = AllocateStringW(AtoW(NULL, 0, lpString, c) + 1);
 	if(p)
 	{
@@ -378,7 +378,7 @@ char* DuplicateWtoA(LPCWSTR lpString, int c)
 	if(lpString < (LPCWSTR)0x00010000 || lpString == (LPCWSTR)~0)
 		return (char*)lpString;
 	if(c < 0)
-		c = wcslen(lpString);
+		c = (int)wcslen(lpString);
 	p = AllocateStringA(WtoA(NULL, 0, lpString, c) + 1);
 	if(p)
 	{
@@ -699,7 +699,7 @@ BOOL FixMultiStringM(LPSTR pDst, LPCSTR pSrc)
 	bResult = FALSE;
 	while(*pSrc != '\0')
 	{
-		Length = strlen(pSrc) + 1;
+		Length = (int)strlen(pSrc) + 1;
 		bResult = bResult | FixStringM(pDst, pSrc);
 		pSrc += Length;
 		pDst += strlen(pDst) + 1;
@@ -715,7 +715,7 @@ BOOL CheckStringM(LPCSTR lpString)
 	BOOL bResult;
 	char* p;
 	bResult = FALSE;
-	p = AllocateStringM(strlen(lpString) + 1);
+	p = AllocateStringM((int)strlen(lpString) + 1);
 	if(p)
 	{
 		bResult = FixStringM(p, lpString);
@@ -731,7 +731,7 @@ BOOL CheckMultiStringM(LPCSTR lpString)
 	BOOL bResult;
 	char* p;
 	bResult = FALSE;
-	p = AllocateStringM(GetMultiStringLengthM(lpString) + 1);
+	p = AllocateStringM((int)GetMultiStringLengthM(lpString) + 1);
 	if(p)
 	{
 		bResult = FixMultiStringM(p, lpString);
@@ -1106,13 +1106,13 @@ START_ROUTINE
 		r = SendMessageW(hWnd, WM_SETTEXT, wParam, (LPARAM)pw0);
 		break;
 	case WM_GETTEXT:
-		pw0 = AllocateStringW(wParam * 4);
+		pw0 = AllocateStringW((int)wParam * 4);
 		SendMessageW(hWnd, WM_GETTEXT, wParam * 4, (LPARAM)pw0);
-		WtoM((LPSTR)lParam, wParam, pw0, -1);
-		r = TerminateStringM((LPSTR)lParam, wParam);
+		WtoM((LPSTR)lParam, (int)wParam, pw0, -1);
+		r = TerminateStringM((LPSTR)lParam, (int)wParam);
 		break;
 	case WM_GETTEXTLENGTH:
-		Size = SendMessageW(hWnd, WM_GETTEXTLENGTH, wParam, lParam) + 1;
+		Size = (int)SendMessageW(hWnd, WM_GETTEXTLENGTH, wParam, lParam) + 1;
 		pw0 = AllocateStringW(Size);
 		SendMessageW(hWnd, WM_GETTEXT, (WPARAM)Size, (LPARAM)pw0);
 		r = WtoM(NULL, 0, pw0, -1) - 1;
@@ -1141,7 +1141,7 @@ START_ROUTINE
 				r = SendMessageW(hWnd, CB_ADDSTRING, wParam, (LPARAM)pw0);
 				break;
 			case CB_GETLBTEXT:
-				Size = SendMessageW(hWnd, CB_GETLBTEXTLEN, wParam, 0) + 1;
+				Size = (int)SendMessageW(hWnd, CB_GETLBTEXTLEN, wParam, 0) + 1;
 				pw0 = AllocateStringW(Size);
 				SendMessageW(hWnd, CB_GETLBTEXT, wParam, (LPARAM)pw0);
 				// バッファ長不明のためオーバーランの可能性あり
@@ -1149,7 +1149,7 @@ START_ROUTINE
 				r = TerminateStringM((LPSTR)lParam, Size * 4);
 				break;
 			case CB_GETLBTEXTLEN:
-				Size = SendMessageW(hWnd, CB_GETLBTEXTLEN, wParam, 0) + 1;
+				Size = (int)SendMessageW(hWnd, CB_GETLBTEXTLEN, wParam, 0) + 1;
 				pw0 = AllocateStringW(Size);
 				SendMessageW(hWnd, WM_GETTEXT, wParam, (LPARAM)pw0);
 				r = WtoM(NULL, 0, pw0, -1) - 1;
@@ -1180,7 +1180,7 @@ START_ROUTINE
 				r = SendMessageW(hWnd, LB_INSERTSTRING, wParam, (LPARAM)pw0);
 				break;
 			case LB_GETTEXT:
-				Size = SendMessageW(hWnd, LB_GETTEXTLEN, wParam, 0) + 1;
+				Size = (int)SendMessageW(hWnd, LB_GETTEXTLEN, wParam, 0) + 1;
 				pw0 = AllocateStringW(Size);
 				SendMessageW(hWnd, LB_GETTEXT, wParam, (LPARAM)pw0);
 				// バッファ長不明のためオーバーランの可能性あり
@@ -1188,7 +1188,7 @@ START_ROUTINE
 				r = TerminateStringM((LPSTR)lParam, Size * 4);
 				break;
 			case LB_GETTEXTLEN:
-				Size = SendMessageW(hWnd, LB_GETTEXTLEN, wParam, 0) + 1;
+				Size = (int)SendMessageW(hWnd, LB_GETTEXTLEN, wParam, 0) + 1;
 				pw0 = AllocateStringW(Size);
 				SendMessageW(hWnd, WM_GETTEXT, wParam, (LPARAM)pw0);
 				r = WtoM(NULL, 0, pw0, -1) - 1;
@@ -1706,7 +1706,7 @@ BOOL TextOutM(HDC hdc, int x, int y, LPCSTR lpString, int c)
 	wchar_t* pw0 = NULL;
 START_ROUTINE
 	pw0 = DuplicateMtoW(lpString, c);
-	r = TextOutW(hdc, x, y, pw0, wcslen(pw0));
+	r = TextOutW(hdc, x, y, pw0, (int)wcslen(pw0));
 END_ROUTINE
 	FreeDuplicatedString(pw0);
 	return r;
@@ -1718,7 +1718,7 @@ BOOL GetTextExtentPoint32M(HDC hdc, LPCSTR lpString, int c, LPSIZE psizl)
 	wchar_t* pw0 = NULL;
 START_ROUTINE
 	pw0 = DuplicateMtoW(lpString, c);
-	r = GetTextExtentPoint32W(hdc, pw0, wcslen(pw0), psizl);
+	r = GetTextExtentPoint32W(hdc, pw0, (int)wcslen(pw0), psizl);
 END_ROUTINE
 	FreeDuplicatedString(pw0);
 	return r;
@@ -1962,7 +1962,7 @@ BOOL CreateProcessM(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_AT
 	STARTUPINFOW wStartupInfo;
 START_ROUTINE
 	pw0 = DuplicateMtoW(lpApplicationName, -1);
-	pw1 = DuplicateMtoWBuffer(lpCommandLine, -1, (strlen(lpCommandLine) + 1) * 4);
+	pw1 = DuplicateMtoWBuffer(lpCommandLine, -1, ((int)strlen(lpCommandLine) + 1) * 4);
 	pw2 = DuplicateMtoW(lpCurrentDirectory, -1);
 	wStartupInfo.cb = sizeof(LPSTARTUPINFOW);
 	pw3 = DuplicateMtoW(lpStartupInfo->lpReserved, -1);
@@ -1986,7 +1986,7 @@ START_ROUTINE
 	wStartupInfo.hStdOutput = lpStartupInfo->hStdOutput;
 	wStartupInfo.hStdError = lpStartupInfo->hStdError;
 	r = CreateProcessW(pw0, pw1, lpProcessAttributes, lpThreadAttributes, bInheritHandles, dwCreationFlags, lpEnvironment, pw2, &wStartupInfo, lpProcessInformation);
-	WtoM(lpCommandLine, strlen(lpCommandLine) + 1, pw1, -1);
+	WtoM(lpCommandLine, (int)strlen(lpCommandLine) + 1, pw1, -1);
 END_ROUTINE
 	FreeDuplicatedString(pw0);
 	FreeDuplicatedString(pw1);

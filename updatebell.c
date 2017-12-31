@@ -64,15 +64,15 @@ void SaveUpdateBellInfo(void)
 	{
 		if(RegCreateKeyEx(hKey1, MAIL_ADDRESS, 0, "", REG_OPTION_NON_VOLATILE, KEY_CREATE_SUB_KEY|KEY_SET_VALUE, NULL, &hKey2, &Dispos) == ERROR_SUCCESS)
 		{
-			RegSetValueEx(hKey2, "Author", 0, REG_SZ, MYNAME, strlen(MYNAME)+1);
-			RegSetValueEx(hKey2, "InfoURL", 0, REG_SZ, INFOFILE, strlen(INFOFILE)+1);
-			RegSetValueEx(hKey2, "DisplayHost", 0, REG_SZ, MYURL, strlen(MYURL)+1);
+			RegSetValueEx(hKey2, "Author", 0, REG_SZ, MYNAME, (DWORD)strlen(MYNAME)+1);
+			RegSetValueEx(hKey2, "InfoURL", 0, REG_SZ, INFOFILE, (DWORD)strlen(INFOFILE)+1);
+			RegSetValueEx(hKey2, "DisplayHost", 0, REG_SZ, MYURL, (DWORD)strlen(MYURL)+1);
 
 			if(RegCreateKeyEx(hKey2, SOFTWARE, 0, "", REG_OPTION_NON_VOLATILE, KEY_CREATE_SUB_KEY|KEY_SET_VALUE, NULL, &hKey3, &Dispos) == ERROR_SUCCESS)
 			{
 				Tmp = PROGRAM_VERSION_NUM;
 				RegSetValueEx(hKey3, "Build", 0, REG_DWORD, (CONST BYTE *)&Tmp, sizeof(Tmp));
-				RegSetValueEx(hKey3, "DistinctName", 0, REG_SZ, SOFTWARE, strlen(SOFTWARE)+1);
+				RegSetValueEx(hKey3, "DistinctName", 0, REG_SZ, SOFTWARE, (DWORD)strlen(SOFTWARE)+1);
 
 				RegCloseKey(hKey3);
 			}

@@ -27,6 +27,7 @@
 /============================================================================*/
 
 #pragma once
+#pragma warning (disable: 4819)
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define NOMINMAX
@@ -1568,11 +1569,20 @@ void DispDownloadSize(LONGLONG Size);
 int MakeTaskWindow(HWND hWnd, HINSTANCE hInst);
 void DeleteTaskWindow(void);
 HWND GetTaskWnd(void);
-void SetTaskMsg(char *szFormat, ...);
+void _SetTaskMsg(const char* format, ...);
+#ifdef _DEBUG
+#define SetTaskMsg(...) do { char buffer[10240 + 3]; sprintf(buffer, __VA_ARGS__); _SetTaskMsg(buffer); } while(0)
+#else
+#define SetTaskMsg(...) _SetTaskMsg(__VA_ARGS__)
+#endif
 int SaveTaskMsg(char *Fname);
 void DispTaskMsg(void);
-void DoPrintf(char *szFormat, ...);
-void DoPrintf2(char *szFormat, ...);
+void _DoPrintf(const char* format, ...);
+#ifdef _DEBUG
+#define DoPrintf(...) do { char buffer[10240]; sprintf(buffer, __VA_ARGS__); _DoPrintf(buffer); } while(0)
+#else
+#define DoPrintf(...) _DoPrintf(__VA_ARGS__)
+#endif
 
 /*===== hostman.c =====*/
 
@@ -1767,13 +1777,9 @@ int DoDirListCmdSkt(char *AddOpt, char *Path, int Num, int *CancelCheckWork);
 #if defined(HAVE_TANDEM)
 void SwitchOSSProc(void);
 #endif
-// 同時接続対応
-//int CommandProcCmd(char *Reply, char *fmt, ...);
-int CommandProcCmd(char *Reply, int* CancelCheckWork, char *fmt, ...);
-// 同時接続対応
-//int CommandProcTrn(char *Reply, char *fmt, ...);
-int CommandProcTrn(SOCKET cSkt, char *Reply, int* CancelCheckWork, char *fmt, ...);
-int command(SOCKET cSkt, char *Reply, int *CancelCheckWork, char *fmt, ...);
+#define CommandProcTrn(CSKT, REPLY, CANCELCHECKWORK, ...) (command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
+int _command(SOCKET cSkt, char* Reply, int* CancelCheckWork, const char* fmt, ...);
+#define command(CSKT, REPLY, CANCELCHECKWORK, ...) (_scprintf(__VA_ARGS__), _command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
 int SendData(SOCKET Skt, char *Data, int Size, int Mode, int *CancelCheckWork);
 int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char *Tmp);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
