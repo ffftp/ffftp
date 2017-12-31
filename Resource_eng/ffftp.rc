@@ -2377,6 +2377,11 @@ BEGIN
     BUTTON      ID_BUTTON40109
 END
 
+STRINGTABLE
+BEGIN
+    IDS_APP                 "FFFTP"
+END
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -119,6 +119,7 @@
 #define opt_disp2_dlg                   196
 #define opt_updates_dlg                 197
 #define corruptsettings_dlg             198
+#define IDS_APP                         200
 #define TRANS_TIME_BAR                  1002
 #define TRANS_TEXT                      1003
 #define TRANS_REMOTE                    1003

@@ -2052,3 +2052,23 @@ void DecodeLineFeed(char* Str)
 	}
 }
 
+
+std::wstring u8(std::string_view const& utf8) {
+	auto length = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, data(utf8), size_as<int>(utf8), nullptr, 0);
+	if (length == 0)
+		return {};
+	std::wstring buffer(length, L'\0');
+	auto result = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, data(utf8), size_as<int>(utf8), data(buffer), length);
+	assert(result == length);
+	return buffer;
+}
+
+std::string u8(std::wstring_view const& wide) {
+	auto length = WideCharToMultiByte(CP_UTF8, 0, data(wide), size_as<int>(wide), nullptr, 0, nullptr, nullptr);
+	if (length == 0)
+		return {};
+	std::string buffer(length, '\0');
+	auto result = WideCharToMultiByte(CP_UTF8, 0, data(wide), size_as<int>(wide), data(buffer), length, nullptr, nullptr);
+	assert(result == length);
+	return buffer;
+}

@@ -29,10 +29,26 @@
 #pragma once
 #pragma warning (disable: 4819)
 #define _CRT_SECURE_NO_WARNINGS
+#define _SCL_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #define CINTERFACE
+#include <algorithm>
+#include <chrono>
+#include <filesystem>
+#include <iterator>
+#include <map>
+#include <mutex>
+#include <numeric>
+#include <optional>
+#include <regex>
+#include <string>
+#include <string_view>
+#include <type_traits>
+#include <variant>
+#include <vector>
+#include <cassert>
 #include <crtdbg.h>
 #include <mbstring.h>
 #include <stdint.h>
@@ -60,6 +76,14 @@
 #include "Resource_eng/resource.h"
 #include "mesg-eng.h"
 #endif
+#pragma comment(lib, "Comctl32.lib")
+#pragma comment(lib, "HtmlHelp.lib")
+#pragma comment(lib, "Winmm.lib")
+#pragma comment(lib, "Ws2_32.lib")
+namespace fs = std::experimental::filesystem;
+using namespace std::literals;
+template<class...>
+constexpr bool false_v = false;
 
 
 #define NUL				'\0'
@@ -2071,3 +2095,34 @@ int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
 /*===== updatebell.c =====*/
 
 void SaveUpdateBellInfo(void);
+
+template<class Target, class Source>
+constexpr auto data_as(Source& source) {
+	return reinterpret_cast<Target*>(std::data(source));
+}
+template<class Target, class Source>
+constexpr auto data_as(Source const& source) {
+	return reinterpret_cast<const Target*>(std::data(source));
+}
+template<class Size, class Source>
+constexpr auto size_as(Source const& source) {
+	return static_cast<Size>(std::size(source));
+}
+std::wstring u8(std::string_view const& utf8);
+std::string u8(std::wstring_view const& wide);
+template<class Char>
+static inline auto u8(const Char* str) {
+	return u8(std::basic_string_view<Char>{ str });
+}
+template<class Char>
+static inline auto u8(const Char* str, size_t len) {
+	return u8(std::basic_string_view<Char>{ str, len });
+}
+template<class Char, class Traits, class Allocator>
+static inline auto u8(std::basic_string<Char, Traits, Allocator> const& str) {
+	return u8(std::basic_string_view<Char>{ data(str), size(str) });
+}
+static inline auto Message(HWND owner, HINSTANCE instance, int textId, int captionId, DWORD style) {
+	MSGBOXPARAMSW msgBoxParams{ sizeof MSGBOXPARAMSW, owner, instance, MAKEINTRESOURCEW(textId), MAKEINTRESOURCEW(captionId), style, nullptr, 0, nullptr, LANG_NEUTRAL };
+	return MessageBoxIndirectW(&msgBoxParams);
+}
