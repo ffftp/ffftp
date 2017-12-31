@@ -17,8 +17,6 @@ void SetSSLTimeoutCallback(DWORD Timeout, LPSSLTIMEOUTCALLBACK pCallback);
 void SetSSLConfirmCallback(LPSSLCONFIRMCALLBACK pCallback);
 BOOL SetSSLRootCertificate(const void* pData, DWORD Length);
 BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName);
-BOOL EncryptSignature(const char* PrivateKey, const char* Password, const void* pIn, DWORD InLength, void* pOut, DWORD OutLength, DWORD* pOutLength);
-BOOL DecryptSignature(const char* PublicKey, const char* Password, const void* pIn, DWORD InLength, void* pOut, DWORD OutLength, DWORD* pOutLength);
 BOOL GetHashSHA1(const void* pData, DWORD Size, void* pHash);
 BOOL GetHashSHA224(const void* pData, DWORD Size, void* pHash);
 BOOL GetHashSHA256(const void* pData, DWORD Size, void* pHash);

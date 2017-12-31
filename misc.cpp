@@ -2041,17 +2041,6 @@ HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNum
 	return hDstBitmap;
 }
 
-// ソフトウェア自動更新
-void DecodeLineFeed(char* Str)
-{
-	char* p;
-	p = Str;
-	while(p = strstr(p, "\\n"))
-	{
-		strncpy(p, "\r\n", 2);
-	}
-}
-
 
 std::wstring u8(std::string_view const& utf8) {
 	auto length = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, data(utf8), size_as<int>(utf8), nullptr, 0);

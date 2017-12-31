@@ -214,11 +214,6 @@ extern int AutoRefreshFileList;
 extern int RemoveOldLog;
 // バージョン確認
 extern int ReadOnlySettings;
-// ソフトウェア自動更新
-extern int AutoCheckForUpdates;
-extern int AutoApplyUpdates;
-extern int AutoCheckForUptatesInterval;
-extern time_t LastAutoCheckForUpdates;
 // ファイル一覧バグ修正
 extern int AbortOnListError;
 // ミラーリング設定追加
@@ -831,11 +826,6 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "ListRefresh", AutoRefreshFileList);
 				// 古い処理内容を消去
 				WriteIntValueToReg(hKey4, "OldLog", RemoveOldLog);
-				// ソフトウェア自動更新
-				WriteIntValueToReg(hKey4, "UpdCheck", AutoCheckForUpdates);
-				WriteIntValueToReg(hKey4, "UpdApply", AutoApplyUpdates);
-				WriteIntValueToReg(hKey4, "UpdInterval", AutoCheckForUptatesInterval);
-				WriteBinaryToReg(hKey4, "UpdLastCheck", &LastAutoCheckForUpdates, sizeof(LastAutoCheckForUpdates));
 				// ファイル一覧バグ修正
 				WriteIntValueToReg(hKey4, "AbortListErr", AbortOnListError);
 				// ミラーリング設定追加
@@ -1423,11 +1413,6 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "ListRefresh", &AutoRefreshFileList);
 			// 古い処理内容を消去
 			ReadIntValueFromReg(hKey4, "OldLog", &RemoveOldLog);
-			// ソフトウェア自動更新
-			ReadIntValueFromReg(hKey4, "UpdCheck", &AutoCheckForUpdates);
-			ReadIntValueFromReg(hKey4, "UpdApply", &AutoApplyUpdates);
-			ReadIntValueFromReg(hKey4, "UpdInterval", &AutoCheckForUptatesInterval);
-			ReadBinaryFromReg(hKey4, "UpdLastCheck", &LastAutoCheckForUpdates, sizeof(LastAutoCheckForUpdates));
 			// ファイル一覧バグ修正
 			ReadIntValueFromReg(hKey4, "AbortListErr", &AbortOnListError);
 			// ミラーリング設定追加

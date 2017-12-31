@@ -174,8 +174,6 @@ BEGIN
         MENUITEM "目次(&C)\tF1",                  MENU_HELP
         MENUITEM "Q&&A集(インターネットに接続します)(T)",     MENU_HELP_TROUBLE
         MENUITEM SEPARATOR
-        MENUITEM "ソフトウェアの更新を確認(&U)...",         MENU_UPDATES_CHECK
-        MENUITEM SEPARATOR
         MENUITEM "FFFTPについて(&A)...",            MENU_ABOUT
     END
 END
@@ -1480,18 +1478,6 @@ BEGIN
     CONTROL         "古い処理内容を表示しない(&L)",DISP2_REMOVE_OLD_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,196,10
 END
 
-opt_updates_dlg DIALOG 0, 0, 211, 155
-STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-FONT 9, "MS Shell Dlg"
-BEGIN
-    CONTROL         "自動的にソフトウェアの更新を確認する(&C)",UPDATES_AUTO_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,196,10
-    CONTROL         "自動的に更新を適用する(&A)",UPDATES_AUTO_APPLY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,196,10
-    LTEXT           "更新の確認の間隔(&I)",-1,7,35,196,8
-    EDITTEXT        UPDATES_INTERVAL,7,45,26,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Spin1",UPDATES_INTERVAL_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,33,45,9,14
-    LTEXT           "（0～999日; 0=毎回起動時に確認）",-1,45,49,168,8
-END
-
 corruptsettings_dlg DIALOGEX 0, 0, 232, 64
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
 CAPTION "設定が破損しています"
@@ -2184,14 +2170,6 @@ BEGIN
         BOTTOMMARGIN, 148
     END
 
-    opt_updates_dlg, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 204
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 148
-    END
-
     corruptsettings_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -2792,11 +2770,6 @@ BEGIN
     IDS_MSGJPN357           "設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください."
     IDS_MSGJPN358           "ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s"
     IDS_MSGJPN359           "ソフトウェアの更新に失敗しました.\nWebサイトから最新版を入手して手動で更新してください."
-    IDS_MSGJPN360           "更新"
-    IDS_MSGJPN361           "新しいバージョンがあります.\n\n現在のバージョン: %s\n新しいバージョン: %s\n%s\n\n更新のダウンロードには数分間かかります.\n今すぐ更新しますか."
-    IDS_MSGJPN362           "ソフトウェアの更新に失敗しました.\nサーバーに接続できないかデータが破損しています."
-    IDS_MSGJPN363           "お使いのバージョンはすでに最新です."
-    IDS_MSGJPN364           "ソフトウェアの更新の準備が完了しました.\nFFFTPの終了時に更新が適用されます."
     IDS_MSGJPN365           "この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください."
 END
 

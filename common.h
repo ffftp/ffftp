@@ -67,7 +67,6 @@
 #include "mbswrapper.h"
 #include "socketwrapper.h"
 #include "protectprocess.h"
-#include "apiemulator.h"
 #include "Resource/resource.ja-JP.h"
 #include "mesg-jpn.h"
 #pragma comment(lib, "Comctl32.lib")
@@ -1464,8 +1463,6 @@ int IsTaskbarList3Loaded();
 void UpdateTaskbarProgress();
 // 高DPI対応
 int AskToolWinHeight(void);
-// ソフトウェア自動更新
-void UpdateSoftware(int Async, int NoError, int NoConfirm);
 
 /*===== filelist.c =====*/
 
@@ -2011,8 +2008,6 @@ void QueryDisplayDPI();
 int CalcPixelX(int x);
 int CalcPixelY(int y);
 HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNumerator, int ScaleDenominator);
-// ソフトウェア自動更新
-void DecodeLineFeed(char* Str);
 
 /*===== dlgsize.c =====*/
 

@@ -117,7 +117,6 @@
 #define ini_from_reg_dlg                194
 #define opt_trmode4_dlg                 195
 #define opt_disp2_dlg                   196
-#define opt_updates_dlg                 197
 #define corruptsettings_dlg             198
 #define IDS_APP                         200
 #define TRANS_TIME_BAR                  1002
@@ -465,10 +464,6 @@
 #define TRMODE4_UTF8BOM_CNV             1219
 #define HSET_ERROR_RECONNECT            1220
 #define HSET_FN_UTF8HFSX_CNV            1221
-#define UPDATES_AUTO_CHECK              1222
-#define UPDATES_AUTO_APPLY              1223
-#define UPDATES_INTERVAL                1224
-#define UPDATES_INTERVAL_SPN            1225
 #define HSET_NO_WEAK                    1226
 #define HOST_SET_DEFAULT                1227
 #define TRMODE_LISTERROR                1228
@@ -832,11 +827,6 @@
 #define IDS_MSGJPN357                   10357
 #define IDS_MSGJPN358                   10358
 #define IDS_MSGJPN359                   10359
-#define IDS_MSGJPN360                   10360
-#define IDS_MSGJPN361                   10361
-#define IDS_MSGJPN362                   10362
-#define IDS_MSGJPN363                   10363
-#define IDS_MSGJPN364                   10364
 #define IDS_MSGJPN365                   10365
 #define IDS_MSGJPN2000                  12000
 #define IDS_MSGJPN2001                  12001
@@ -1022,7 +1012,6 @@
 #define MENU_FW_FTP_FILTER              40178
 #define MENU_REMOTE_MOVE_UPDIR          40179
 #define MENU_EXPORT_FILEZILLA_XML       40180
-#define MENU_UPDATES_CHECK              40181
 #define FSNOTIFY_TITLE                  65535
 #define HOST_SIZEGRIP                   65535
 

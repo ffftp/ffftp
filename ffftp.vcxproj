@@ -91,8 +91,8 @@
       <Culture>0x0411</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;crypt32.lib;htmlhelp.lib;imagehlp.lib;rasapi32.lib;sfc.lib;uuid.lib;winmm.lib;wintrust.lib;winhttp.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;winhttp.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalDependencies>comctl32.lib;crypt32.lib;htmlhelp.lib;imagehlp.lib;rasapi32.lib;sfc.lib;uuid.lib;winmm.lib;wintrust.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <TargetMachine>MachineX86</TargetMachine>
@@ -118,8 +118,8 @@
       <Culture>0x0411</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;crypt32.lib;htmlhelp.lib;imagehlp.lib;rasapi32.lib;sfc.lib;uuid.lib;winmm.lib;wintrust.lib;winhttp.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;winhttp.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalDependencies>comctl32.lib;crypt32.lib;htmlhelp.lib;imagehlp.lib;rasapi32.lib;sfc.lib;uuid.lib;winmm.lib;wintrust.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <TargetMachine>MachineX64</TargetMachine>
@@ -142,8 +142,8 @@
       <Culture>0x0411</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;crypt32.lib;htmlhelp.lib;imagehlp.lib;rasapi32.lib;sfc.lib;uuid.lib;winmm.lib;wintrust.lib;winhttp.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;winhttp.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalDependencies>comctl32.lib;crypt32.lib;htmlhelp.lib;imagehlp.lib;rasapi32.lib;sfc.lib;uuid.lib;winmm.lib;wintrust.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -169,8 +169,8 @@
       <Culture>0x0411</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>comctl32.lib;crypt32.lib;htmlhelp.lib;imagehlp.lib;rasapi32.lib;sfc.lib;uuid.lib;winmm.lib;wintrust.lib;winhttp.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;winhttp.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <AdditionalDependencies>comctl32.lib;crypt32.lib;htmlhelp.lib;imagehlp.lib;rasapi32.lib;sfc.lib;uuid.lib;winmm.lib;wintrust.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>advapi32.dll;comctl32.dll;crypt32.dll;comdlg32.dll;gdi32.dll;imagehlp.dll;ole32.dll;oleaut32.dll;sfc.dll;shell32.dll;user32.dll;winmm.dll;wintrust.dll;ws2_32.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -186,7 +186,6 @@
     <ClCompile Include="aeskey.c" />
     <ClCompile Include="aestab.c" />
     <ClCompile Include="aes_modes.c" />
-    <ClCompile Include="apiemulator.cpp" />
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="cache.cpp" />
     <ClCompile Include="clipboard.cpp" />
@@ -222,7 +221,6 @@
     <ClCompile Include="taskwin.cpp" />
     <ClCompile Include="tool.cpp" />
     <ClCompile Include="toolmenu.cpp" />
-    <ClCompile Include="updater.cpp" />
     <ClCompile Include="wildcard.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -230,7 +228,6 @@
     <ClInclude Include="aesopt.h" />
     <ClInclude Include="aestab.h" />
     <ClInclude Include="aes_via_ace.h" />
-    <ClInclude Include="apiemulator.h" />
     <ClInclude Include="brg_endian.h" />
     <ClInclude Include="brg_types.h" />
     <ClInclude Include="common.h" />
@@ -250,7 +247,6 @@
     <ClInclude Include="sample.h" />
     <ClInclude Include="sha.h" />
     <ClInclude Include="socketwrapper.h" />
-    <ClInclude Include="updater.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resource\bitmap1.bmp" />

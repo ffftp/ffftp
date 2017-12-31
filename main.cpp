@@ -38,7 +38,6 @@
 #include "sha.h"
 #include "filehash.h"
 #include "helpid.h"
-#include "updater.h"
 
 
 #define RESIZE_OFF		0		/* ウインドウの区切り位置変更していない */
@@ -134,8 +133,6 @@ HANDLE ChangeNotification = INVALID_HANDLE_VALUE;
 static ITaskbarList3* pTaskbarList3;
 // 高DPI対応
 static int ToolWinHeight;
-// ソフトウェア自動更新
-static int ApplyUpdatesOnExit = NO;
 
 
 /*===== グローバルなワーク =====*/
@@ -259,11 +256,6 @@ int AutoRefreshFileList = YES;
 int RemoveOldLog = NO;
 // バージョン確認
 int ReadOnlySettings = NO;
-// ソフトウェア自動更新
-int AutoCheckForUpdates = YES;
-int AutoApplyUpdates = NO;
-int AutoCheckForUptatesInterval = 7;
-time_t LastAutoCheckForUpdates = 0;
 // ファイル一覧バグ修正
 int AbortOnListError = YES;
 // ミラーリング設定追加
@@ -315,19 +307,6 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	char* pCommand;
 	DWORD ProtectLevel;
 	char Option[FMAX_PATH+1];
-	// ソフトウェア自動更新
-	int ImmediateExit;
-	char PrivateKeyFile[FMAX_PATH+1];
-	char Password[FMAX_PATH+1];
-	char ServerPath[FMAX_PATH+1];
-	char HashFile[FMAX_PATH+1];
-	char ListFile[FMAX_PATH+1];
-	char Description[FMAX_PATH+1];
-	char UpdateDir[FMAX_PATH+1];
-	char Buf[FMAX_PATH+1];
-	char Path[FMAX_PATH+1];
-	char Command[FMAX_PATH+1];
-	char* p;
 
 #ifdef ENABLE_PROCESS_PROTECTION
 	ProtectLevel = PROCESS_PROTECTION_NONE;
@@ -420,74 +399,10 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	LoadOpenSSL();
 #endif
 
-	// ソフトウェア自動更新
-	ImmediateExit = NO;
-	pCommand = lpszCmdLine;
-	while(pCommand = GetToken(pCommand, Option))
-	{
-		if(Option[0] == '-')
-		{
-			if(strcmp(&Option[1], "-build-software-update") == 0)
-			{
-				if(pCommand = GetToken(pCommand, PrivateKeyFile))
-				{
-					if(pCommand = GetToken(pCommand, Password))
-					{
-						if(pCommand = GetToken(pCommand, ServerPath))
-						{
-							if(pCommand = GetToken(pCommand, HashFile))
-							{
-								if(pCommand = GetToken(pCommand, ListFile))
-								{
-									if(pCommand = GetToken(pCommand, Description))
-									{
-										DecodeLineFeed(Description);
-										BuildUpdates(PrivateKeyFile, Password, ServerPath, HashFile, ListFile, RELEASE_VERSION_NUM, VER_STR, Description);
-									}
-								}
-							}
-						}
-					}
-				}
-				ImmediateExit = YES;
-				break;
-			}
-			else if(strcmp(&Option[1], "-software-update") == 0)
-			{
-				if(pCommand = GetToken(pCommand, UpdateDir))
-				{
-					if(!RestartUpdateProcessAsAdministrator(lpszCmdLine, " --restart"))
-					{
-						Sleep(1000);
-						if(ApplyUpdates(UpdateDir, "updatebackup"))
-						{
-							GetModuleFileName(NULL, Path, MAX_PATH);
-							strcpy(GetFileName(Path), "updatebackup");
-							sprintf(Buf, MSGJPN358, Path);
-							MessageBox(NULL, Buf, "FFFTP", MB_OK);
-						}
-						else
-							MessageBox(NULL, MSGJPN359, "FFFTP", MB_OK | MB_ICONERROR);
-					}
-				}
-				ImmediateExit = YES;
-				break;
-			}
-			else if(strcmp(&Option[1], "-software-cleanup") == 0)
-			{
-				if(pCommand = GetToken(pCommand, UpdateDir))
-					CleanupUpdates(UpdateDir);
-				break;
-			}
-		}
-	}
-
 	Ret = FALSE;
 	hWndFtp = NULL;
 	hInstFtp = hInstance;
-	// ソフトウェア自動更新
-//	if(InitApp(lpszCmdLine, cmdShow) == FFFTP_SUCCESS)
-	if(ImmediateExit == NO && InitApp(lpszCmdLine, cmdShow) == FFFTP_SUCCESS)
+	if(InitApp(lpszCmdLine, cmdShow) == FFFTP_SUCCESS)
 	{
 		for(;;)
 		{
@@ -525,26 +440,6 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	FreeUPnP();
 	CoUninitialize();
 	OleUninitialize();
-	// ソフトウェア自動更新
-	if(ApplyUpdatesOnExit == YES)
-	{
-		Sts = FALSE;
-		if(GetModuleFileName(NULL, UpdateDir, FMAX_PATH) > 0)
-		{
-			if(p = strrchr(UpdateDir, '\\'))
-			{
-				*p = '\0';
-				strcpy(Path, TmpPath);
-				SetYenTail(Path);
-				strcat(Path, "update");
-				sprintf(Command, "-%s \"%s\"", "-software-update", UpdateDir);
-				if(StartUpdateProcess(Path, Command))
-					Sts = TRUE;
-			}
-		}
-		if(!Sts)
-			MessageBox(NULL, MSGJPN359, "FFFTP", MB_OK | MB_ICONERROR);
-	}
 	return(Ret);
 }
 
@@ -792,10 +687,6 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					GetLocalDirForWnd();
 					MakeButtonsFocus();
 					DispTransferFiles();
-
-					// ソフトウェア自動更新
-					if(AutoCheckForUpdates == YES && AutoCheckForUptatesInterval == 0)
-						UpdateSoftware(YES, YES, AutoApplyUpdates);
 
 					StartupProc(lpszCmdLine);
 					sts = FFFTP_SUCCESS;
@@ -1122,17 +1013,14 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	{
 		// ローカル側自動更新
 		// タスクバー進捗表示
-		// ソフトウェア自動更新
 		case WM_CREATE :
 			SetTimer(hWnd, 1, 1000, NULL);
 			SetTimer(hWnd, 2, 100, NULL);
-			SetTimer(hWnd, 3, 60000, NULL);
 			break;
 
 		// ローカル側自動更新
 		// 自動切断対策
 		// タスクバー進捗表示
-		// ソフトウェア自動更新
 		case WM_TIMER :
 			switch(wParam)
 			{
@@ -1170,13 +1058,6 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			case 2:
 				if(IsTaskbarList3Loaded() == YES)
 					UpdateTaskbarProgress();
-				break;
-			case 3:
-				if(AskUserOpeDisabled() == NO && AskTransferNow() == NO)
-				{
-					if(AutoCheckForUpdates == YES && AutoCheckForUptatesInterval > 0 && time(NULL) - LastAutoCheckForUpdates >= AutoCheckForUptatesInterval * 86400)
-						UpdateSoftware(YES, YES, AutoApplyUpdates);
-				}
 				break;
 			}
 			break;
@@ -1816,11 +1697,6 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					}
 					break;
 
-				// ソフトウェア自動更新
-				case MENU_UPDATES_CHECK :
-					UpdateSoftware(NO, NO, NO);
-					break;
-
 				default :
 					if((LOWORD(wParam) >= MENU_BMARK_TOP) &&
 					   (LOWORD(wParam) < MENU_BMARK_TOP+100))
@@ -2099,8 +1975,6 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				FindCloseChangeNotification(ChangeNotification);
 			// タスクバー進捗表示
 			KillTimer(hWnd, 2);
-			// ソフトウェア自動更新
-			KillTimer(hWnd, 3);
 //			WSACleanup();
 //			DestroyWindow(hWndFtp);
 			PostQuitMessage(0);
@@ -2242,8 +2116,6 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 {
 	int Ret;
 	char Tmp[FMAX_PATH+1];
-	// ソフトウェア自動更新
-	int i;
 
 	*AutoConnect = -1;
 	*CmdOption = 0;
@@ -2369,32 +2241,6 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 				*CmdOption |= OPT_SJIS_NAME;
 			else if((strcmp(&Tmp[1], "u8n") == 0) || (strcmp(&Tmp[1], "-utf8name") == 0))
 				*CmdOption |= OPT_UTF8N_NAME;
-			// ソフトウェア自動更新
-			else if(strcmp(&Tmp[1], "-build-software-update") == 0)
-			{
-				for(i = 0; i < 6; i++)
-				{
-					if((Str = GetToken(Str, Tmp)) == NULL)
-					{
-						Ret = -1;
-						break;
-					}
-				}
-			}
-			else if(strcmp(&Tmp[1], "-software-update") == 0)
-			{
-				if((Str = GetToken(Str, Tmp)) == NULL)
-				{
-					Ret = -1;
-				}
-			}
-			else if(strcmp(&Tmp[1], "-software-cleanup") == 0)
-			{
-				if((Str = GetToken(Str, Tmp)) == NULL)
-				{
-					Ret = -1;
-				}
-			}
 			else
 			{
 				__pragma(warning(suppress:4474)) SetTaskMsg(MSGJPN180, Tmp);
@@ -3720,72 +3566,3 @@ int AskToolWinHeight(void)
 {
 	return(ToolWinHeight);
 }
-
-// ソフトウェア自動更新
-typedef struct
-{
-	int NoError;
-	int NoConfirm;
-} UPDATESOFTWAREDATA;
-
-DWORD WINAPI UpdateSoftwareThreadProc(LPVOID lpParameter)
-{
-	UPDATESOFTWAREDATA* pData;
-	pData = (UPDATESOFTWAREDATA*)lpParameter;
-	UpdateSoftware(NO, pData->NoError, pData->NoConfirm);
-	free(pData);
-	return 0;
-}
-
-void UpdateSoftware(int Async, int NoError, int NoConfirm)
-{
-	UPDATESOFTWAREDATA* pData;
-	DWORD Version;
-	char VersionString[32];
-	char Description[1024];
-	char Tmp[2048];
-	if(Async == YES)
-	{
-		if(pData = (UPDATESOFTWAREDATA*)malloc(sizeof(UPDATESOFTWAREDATA)))
-		{
-			pData->NoError = NoError;
-			pData->NoConfirm = NoConfirm;
-			CloseHandle(CreateThread(NULL, 0, UpdateSoftwareThreadProc, pData, 0, NULL));
-		}
-	}
-	else
-	{
-		// 念のためマスターパスワードの一致を確認
-		if(GetMasterPasswordStatus() == PASSWORD_OK)
-		{
-			Version = RELEASE_VERSION_NUM;
-			LastAutoCheckForUpdates = time(NULL);
-			if(CheckForUpdates(FALSE, NULL, &Version, VersionString, Description))
-			{
-				if(Version > RELEASE_VERSION_NUM)
-				{
-					sprintf(Tmp, MSGJPN361, VER_STR, VersionString, Description);
-					if(NoConfirm == YES || MessageBox(GetMainHwnd(), Tmp, "FFFTP", MB_YESNO) == IDYES)
-					{
-						strcpy(Tmp, TmpPath);
-						SetYenTail(Tmp);
-						strcat(Tmp, "update");
-						_mkdir(Tmp);
-						if(CheckForUpdates(TRUE, Tmp, &Version, VersionString, Description))
-						{
-							MessageBox(GetMainHwnd(), MSGJPN364, "FFFTP", MB_OK);
-							ApplyUpdatesOnExit = YES;
-						}
-						else if(NoError == NO)
-							MessageBox(GetMainHwnd(), MSGJPN362, "FFFTP", MB_OK | MB_ICONERROR);
-					}
-				}
-				else if(NoError == NO)
-					MessageBox(GetMainHwnd(), MSGJPN363, "FFFTP", MB_OK);
-			}
-			else if(NoError == NO)
-				MessageBox(GetMainHwnd(), MSGJPN362, "FFFTP", MB_OK | MB_ICONERROR);
-		}
-	}
-}
-

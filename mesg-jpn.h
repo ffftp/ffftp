@@ -359,11 +359,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN357 (std::data(msgs[10000+357])) /* 設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください. */
 #define MSGJPN358 (std::data(msgs[10000+358])) /* ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s */
 #define MSGJPN359 (std::data(msgs[10000+359])) /* ソフトウェアの更新に失敗しました.\nWebサイトから最新版を入手して手動で更新してください. */
-#define MSGJPN360 (std::data(msgs[10000+360])) /* 更新 */
-#define MSGJPN361 (std::data(msgs[10000+361])) /* 新しいバージョンがあります.\n\n現在のバージョン: %s\n新しいバージョン: %s\n%s\n\n更新のダウンロードには数分間かかります.\n今すぐ更新しますか. */
-#define MSGJPN362 (std::data(msgs[10000+362])) /* ソフトウェアの更新に失敗しました.\nサーバーに接続できないかデータが破損しています. */
-#define MSGJPN363 (std::data(msgs[10000+363])) /* お使いのバージョンはすでに最新です. */
-#define MSGJPN364 (std::data(msgs[10000+364])) /* ソフトウェアの更新の準備が完了しました.\nFFFTPの終了時に更新が適用されます. */
 #define MSGJPN365 (std::data(msgs[10000+365])) /* この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください. */
 #if defined(HAVE_TANDEM)
 #define MSGJPN2000 (std::data(msgs[10000+2000])) /* NonStop Server */

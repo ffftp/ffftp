@@ -71,8 +71,6 @@ static INT_PTR CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 static INT_PTR CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-// ソフトウェア自動更新
-static INT_PTR CALLBACK UpdatesSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 // hostman.cで使用
 //static int GetDecimalText(HWND hDlg, int Ctrl);
 //static void SetDecimalText(HWND hDlg, int Ctrl, int Num);
@@ -171,10 +169,6 @@ extern int EncryptAllSettings;
 extern int AutoRefreshFileList;
 // 古い処理内容を消去
 extern int RemoveOldLog;
-// ソフトウェア自動更新
-extern int AutoCheckForUpdates;
-extern int AutoApplyUpdates;
-extern int AutoCheckForUptatesInterval;
 // ファイル一覧バグ修正
 extern int AbortOnListError;
 // ミラーリング設定追加
@@ -194,9 +188,7 @@ extern int FwallNoSaveUser;
 
 void SetOption(int Start)
 {
-	// UTF-8対応
-//	PROPSHEETPAGE psp[12];
-	PROPSHEETPAGE psp[15];
+	PROPSHEETPAGE psp[14];
 	PROPSHEETHEADER psh;
 
 	// 変数が未初期化のバグ修正
@@ -242,87 +234,6 @@ void SetOption(int Start)
 	psp[3].pszTitle = MSGJPN189;
 	psp[3].lParam = 0;
 	psp[3].pfnCallback = NULL;
-
-	// UTF-8対応
-//	psp[4].dwSize = sizeof(PROPSHEETPAGE);
-//	psp[4].dwFlags = PSP_USETITLE | PSP_HASHELP;
-//	psp[4].hInstance = GetFtpInst();
-//	psp[4].pszTemplate = MAKEINTRESOURCE(opt_mirror_dlg);
-//	psp[4].pszIcon = NULL;
-//	psp[4].pfnDlgProc = MirrorSettingProc;
-//	psp[4].pszTitle = MSGJPN190;
-//	psp[4].lParam = 0;
-//	psp[4].pfnCallback = NULL;
-
-//	psp[5].dwSize = sizeof(PROPSHEETPAGE);
-//	psp[5].dwFlags = PSP_USETITLE | PSP_HASHELP;
-//	psp[5].hInstance = GetFtpInst();
-//	psp[5].pszTemplate = MAKEINTRESOURCE(opt_notify_dlg);
-//	psp[5].pszIcon = NULL;
-//	psp[5].pfnDlgProc = NotifySettingProc;
-//	psp[5].pszTitle = MSGJPN191;
-//	psp[5].lParam = 0;
-//	psp[5].pfnCallback = NULL;
-
-//	psp[6].dwSize = sizeof(PROPSHEETPAGE);
-//	psp[6].dwFlags = PSP_USETITLE | PSP_HASHELP;
-//	psp[6].hInstance = GetFtpInst();
-//	psp[6].pszTemplate = MAKEINTRESOURCE(opt_disp_dlg);
-//	psp[6].pszIcon = NULL;
-//	psp[6].pfnDlgProc = DispSettingProc;
-//	psp[6].pszTitle = MSGJPN192;
-//	psp[6].lParam = 0;
-//	psp[6].pfnCallback = NULL;
-
-//	psp[7].dwSize = sizeof(PROPSHEETPAGE);
-//	psp[7].dwFlags = PSP_USETITLE | PSP_HASHELP;
-//	psp[7].hInstance = GetFtpInst();
-//	psp[7].pszTemplate = MAKEINTRESOURCE(opt_connect_dlg);
-//	psp[7].pszIcon = NULL;
-//	psp[7].pfnDlgProc = ConnectSettingProc;
-//	psp[7].pszTitle = MSGJPN193;
-//	psp[7].lParam = 0;
-//	psp[7].pfnCallback = NULL;
-
-//	psp[8].dwSize = sizeof(PROPSHEETPAGE);
-//	psp[8].dwFlags = PSP_USETITLE | PSP_HASHELP;
-//	psp[8].hInstance = GetFtpInst();
-//	psp[8].pszTemplate = MAKEINTRESOURCE(opt_fire_dlg);
-//	psp[8].pszIcon = NULL;
-//	psp[8].pfnDlgProc = FireSettingProc;
-//	psp[8].pszTitle = MSGJPN194;
-//	psp[8].lParam = 0;
-//	psp[8].pfnCallback = NULL;
-
-//	psp[9].dwSize = sizeof(PROPSHEETPAGE);
-//	psp[9].dwFlags = PSP_USETITLE | PSP_HASHELP;
-//	psp[9].hInstance = GetFtpInst();
-//	psp[9].pszTemplate = MAKEINTRESOURCE(opt_tool_dlg);
-//	psp[9].pszIcon = NULL;
-//	psp[9].pfnDlgProc = ToolSettingProc;
-//	psp[9].pszTitle = MSGJPN195;
-//	psp[9].lParam = 0;
-//	psp[9].pfnCallback = NULL;
-
-//	psp[10].dwSize = sizeof(PROPSHEETPAGE);
-//	psp[10].dwFlags = PSP_USETITLE | PSP_HASHELP;
-//	psp[10].hInstance = GetFtpInst();
-//	psp[10].pszTemplate = MAKEINTRESOURCE(opt_sound_dlg);
-//	psp[10].pszIcon = NULL;
-//	psp[10].pfnDlgProc = SoundSettingProc;
-//	psp[10].pszTitle = MSGJPN196;
-//	psp[10].lParam = 0;
-//	psp[10].pfnCallback = NULL;
-
-//	psp[11].dwSize = sizeof(PROPSHEETPAGE);
-//	psp[11].dwFlags = PSP_USETITLE | PSP_HASHELP;
-//	psp[11].hInstance = GetFtpInst();
-//	psp[11].pszTemplate = MAKEINTRESOURCE(opt_misc_dlg);
-//	psp[11].pszIcon = NULL;
-//	psp[11].pfnDlgProc = MiscSettingProc;
-//	psp[11].pszTitle = MSGJPN197;
-//	psp[11].lParam = 0;
-//	psp[11].pfnCallback = NULL;
 
 	psp[4].dwSize = sizeof(PROPSHEETPAGE);
 	psp[4].dwFlags = PSP_USETITLE | PSP_HASHELP;
@@ -417,22 +328,12 @@ void SetOption(int Start)
 	psp[13].dwSize = sizeof(PROPSHEETPAGE);
 	psp[13].dwFlags = PSP_USETITLE | PSP_HASHELP;
 	psp[13].hInstance = GetFtpInst();
-	psp[13].pszTemplate = MAKEINTRESOURCE(opt_updates_dlg);
+	psp[13].pszTemplate = MAKEINTRESOURCE(opt_misc_dlg);
 	psp[13].pszIcon = NULL;
-	psp[13].pfnDlgProc = UpdatesSettingProc;
-	psp[13].pszTitle = MSGJPN360;
+	psp[13].pfnDlgProc = MiscSettingProc;
+	psp[13].pszTitle = MSGJPN197;
 	psp[13].lParam = 0;
 	psp[13].pfnCallback = NULL;
-
-	psp[14].dwSize = sizeof(PROPSHEETPAGE);
-	psp[14].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[14].hInstance = GetFtpInst();
-	psp[14].pszTemplate = MAKEINTRESOURCE(opt_misc_dlg);
-	psp[14].pszIcon = NULL;
-	psp[14].pfnDlgProc = MiscSettingProc;
-	psp[14].pszTitle = MSGJPN197;
-	psp[14].lParam = 0;
-	psp[14].pfnCallback = NULL;
 
 	psh.dwSize = sizeof(PROPSHEETHEADER);
 	psh.dwFlags = PSH_HASHELP | PSH_NOAPPLYNOW | PSH_PROPSHEETPAGE;
@@ -1949,76 +1850,6 @@ static INT_PTR CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 	return(FALSE);
 }
 
-
-// ソフトウェア自動更新
-static INT_PTR CALLBACK UpdatesSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, UPDATES_AUTO_CHECK, BM_SETCHECK, AutoCheckForUpdates, 0);
-			SendDlgItemMessage(hDlg, UPDATES_AUTO_APPLY, BM_SETCHECK, AutoApplyUpdates, 0);
-			SendDlgItemMessage(hDlg, UPDATES_INTERVAL, EM_LIMITTEXT, (WPARAM)3, 0);
-			SetDecimalText(hDlg, UPDATES_INTERVAL, AutoCheckForUptatesInterval);
-			SendDlgItemMessage(hDlg, UPDATES_INTERVAL_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
-			if(AutoCheckForUpdates == YES)
-			{
-				EnableWindow(GetDlgItem(hDlg, UPDATES_AUTO_APPLY), TRUE);
-				EnableWindow(GetDlgItem(hDlg, UPDATES_INTERVAL), TRUE);
-				EnableWindow(GetDlgItem(hDlg, UPDATES_INTERVAL_SPN), TRUE);
-			}
-			else
-			{
-				EnableWindow(GetDlgItem(hDlg, UPDATES_AUTO_APPLY), FALSE);
-				EnableWindow(GetDlgItem(hDlg, UPDATES_INTERVAL), FALSE);
-				EnableWindow(GetDlgItem(hDlg, UPDATES_INTERVAL_SPN), FALSE);
-			}
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					AutoCheckForUpdates = (int)SendDlgItemMessage(hDlg, UPDATES_AUTO_CHECK, BM_GETCHECK, 0, 0);
-					AutoApplyUpdates = (int)SendDlgItemMessage(hDlg, UPDATES_AUTO_APPLY, BM_GETCHECK, 0, 0);
-					AutoCheckForUptatesInterval = GetDecimalText(hDlg, UPDATES_INTERVAL);
-					CheckRange2(&AutoCheckForUptatesInterval, 999, 0);
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000069);
-					break;
-			}
-			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case UPDATES_AUTO_CHECK :
-					if(SendDlgItemMessage(hDlg, UPDATES_AUTO_CHECK, BM_GETCHECK, 0, 0) == 1)
-					{
-						EnableWindow(GetDlgItem(hDlg, UPDATES_AUTO_APPLY), TRUE);
-						EnableWindow(GetDlgItem(hDlg, UPDATES_INTERVAL), TRUE);
-						EnableWindow(GetDlgItem(hDlg, UPDATES_INTERVAL_SPN), TRUE);
-					}
-					else
-					{
-						EnableWindow(GetDlgItem(hDlg, UPDATES_AUTO_APPLY), FALSE);
-						EnableWindow(GetDlgItem(hDlg, UPDATES_INTERVAL), FALSE);
-						EnableWindow(GetDlgItem(hDlg, UPDATES_INTERVAL_SPN), FALSE);
-					}
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
 
 /*----- ダイアログのコントロールから１０進数を取得 ----------------------------
 *

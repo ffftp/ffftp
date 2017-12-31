@@ -174,8 +174,6 @@ BEGIN
         MENUITEM "&Contents\tF1",               MENU_HELP
         MENUITEM "&Q&&A (Connect to Internet)", MENU_HELP_TROUBLE
         MENUITEM SEPARATOR
-        MENUITEM "Check for Software &Updates...", MENU_UPDATES_CHECK
-        MENUITEM SEPARATOR
         MENUITEM "&About FFFTP...",             MENU_ABOUT
     END
 END
@@ -1522,19 +1520,6 @@ BEGIN
     CONTROL         "Do not show old &logs",DISP2_REMOVE_OLD_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,196,10
 END
 
-opt_updates_dlg DIALOG 0, 0, 211, 155
-STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-FONT 9, "MS Shell Dlg"
-BEGIN
-    CONTROL         "&Check for software updates automatically",UPDATES_AUTO_CHECK,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,196,10
-    CONTROL         "&Apply updates automatically",UPDATES_AUTO_APPLY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,196,10
-    LTEXT           "&Interval of checking for updates",-1,7,35,196,8
-    EDITTEXT        UPDATES_INTERVAL,7,45,26,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Spin1",UPDATES_INTERVAL_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,33,45,9,14
-    LTEXT           "Åi0Å`999days; 0=Every time at startupÅj",-1,45,49,168,8
-END
-
 corruptsettings_dlg DIALOGEX 0, 0, 232, 64
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
 CAPTION "Settings are corrupted"
@@ -2224,14 +2209,6 @@ BEGIN
         BOTTOMMARGIN, 148
     END
 
-    opt_updates_dlg, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 204
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 148
-    END
-
     corruptsettings_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -2832,11 +2809,6 @@ BEGIN
     IDS_MSGJPN357           "Failed to export the settings.\nPlease change saving path or format."
     IDS_MSGJPN358           "Software update has been completed.\nA backup copy of the previous version is in the following location.\n%s"
     IDS_MSGJPN359           "Failed to update the software.\nPlease get the latest version from our web site and update it manually."
-    IDS_MSGJPN360           "Updates"
-    IDS_MSGJPN361           "There is a new version.\n\nCurrent version: %s\nNew version: %s\n%s\n\nIt takes a few minutes to download the updates.\nDo you want to update now?\n"
-    IDS_MSGJPN362           "Failed to update the software.\nCannot connect to the server or the data is corrupted."
-    IDS_MSGJPN363           "Your version is already up-to-date."
-    IDS_MSGJPN364           "Preparing for the software update has been completed.\nIt will be applied on exit."
     IDS_MSGJPN365           "The all settings will be lost after loading an INI file newly created with this feature into WinSCP.\nPlease choose an existing WinSCP.ini if you already use WinSCP and want to migrate hosts settings only."
 END
 
