@@ -75,6 +75,7 @@ extern HFONT ListFont;
 extern char DefaultLocalPath[FMAX_PATH+1];
 extern int ConnectAndSet;
 extern SIZE HostDlgSize;
+extern int NoRasControl;
 
 /*===== ローカルなワーク =====*/
 
@@ -2102,11 +2103,11 @@ static INT_PTR CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wPara
 			SendDlgItemMessage(hDlg, HSET_DIALUP, BM_SETCHECK, TmpHost.Dialup, 0);
 			SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_SETCHECK, TmpHost.DialupAlways, 0);
 			SendDlgItemMessage(hDlg, HSET_DIALNOTIFY, BM_SETCHECK, TmpHost.DialupNotify, 0);
-			if(AskRasUsable() == NO)
+			if(NoRasControl != NO)
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALUP), FALSE);
-			if((TmpHost.DialupAlways == NO) || (AskRasUsable() == NO))
+			if((TmpHost.DialupAlways == NO) || (NoRasControl != NO))
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), FALSE);
-			if((TmpHost.Dialup == NO) || (AskRasUsable() == NO))
+			if((TmpHost.Dialup == NO) || (NoRasControl != NO))
 			{
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALENTRY), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALUSETHIS), FALSE);

@@ -562,8 +562,6 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			LoadSSLRootCAFile();
 
 			LoadJre();
-			if(NoRasControl == NO)
-				LoadRasLib();
 			LoadKernelLib();
 
 			//タイマの精度を改善
@@ -854,7 +852,6 @@ static void DeleteAllObject(void)
 		DestroyWindow(hWndFtp);
 
 	ReleaseJre();
-	ReleaseRasLib();
 	ReleaseKernelLib();
 
 	return;

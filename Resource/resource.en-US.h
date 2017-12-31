@@ -99,8 +99,6 @@
 #define forcerename_dlg                 176
 #define hset_dialup_dlg                 177
 #define rasreconnect_dlg                178
-#define dial_dlg                        179
-#define dial_password_dlg               180
 #define opt_disp1_dlg                   181
 #define bmark_edit_dlg                  182
 #define opt_tool_dlg1                   183
@@ -141,7 +139,6 @@
 #define MIRROR_NODEL                    1005
 #define DEFATTR_ATTR                    1005
 #define OTPCALC_PASS                    1005
-#define RASPASS_PASS                    1005
 #define RENAME_TEXT                     1006
 #define IDC_EDIT3                       1006
 #define HSET_USER                       1006
@@ -423,8 +420,6 @@
 #define UP_EXIST_RESUME                 1172
 #define FIRE_SECURITY                   1174
 #define HSET_DIALENTRY                  1175
-#define DIAL_STATUS                     1176
-#define RASPASS_USER                    1177
 #define BEDIT_LOCAL                     1178
 #define BEDIT_REMOTE                    1179
 #define MIRROR_COPYNUM                  1180
@@ -690,10 +685,6 @@
 #define IDS_MSGJPN219                   10219
 #define IDS_MSGJPN220                   10220
 #define IDS_MSGJPN221                   10221
-#define IDS_MSGJPN222                   10222
-#define IDS_MSGJPN223                   10223
-#define IDS_MSGJPN224                   10224
-#define IDS_MSGJPN225                   10225
 #define IDS_MSGJPN226                   10226
 #define IDS_MSGJPN227                   10227
 #define IDS_MSGJPN228                   10228
@@ -706,7 +697,6 @@
 #define IDS_MSGJPN235                   10235
 #define IDS_MSGJPN236                   10236
 #define IDS_MSGJPN237                   10237
-#define IDS_MSGJPN238                   10238
 #define IDS_MSGJPN239                   10239
 #define IDS_MSGJPN240                   10240
 #define IDS_MSGJPN241                   10241

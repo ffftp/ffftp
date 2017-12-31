@@ -93,6 +93,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
+      <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
@@ -117,6 +118,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
+      <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
@@ -140,6 +142,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
+      <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
@@ -164,6 +167,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX64</TargetMachine>
+      <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>

@@ -1204,10 +1204,10 @@ static INT_PTR CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wPara
 			SendDlgItemMessage(hDlg, CONNECT_CONNECT, BM_SETCHECK, ConnectOnStart, 0);
 			SendDlgItemMessage(hDlg, CONNECT_OLDDLG, BM_SETCHECK, ConnectAndSet, 0);
 			SendDlgItemMessage(hDlg, CONNECT_RASCLOSE, BM_SETCHECK, RasClose, 0);
-			if(AskRasUsable() == NO)
+			if(NoRasControl != NO)
 				EnableWindow(GetDlgItem(hDlg, CONNECT_RASCLOSE), FALSE);
 			SendDlgItemMessage(hDlg, CONNECT_CLOSE_NOTIFY, BM_SETCHECK, RasCloseNotify, 0);
-			if((RasClose == NO) || (AskRasUsable() == NO))
+			if((RasClose == NO) || (NoRasControl != NO))
 				EnableWindow(GetDlgItem(hDlg, CONNECT_CLOSE_NOTIFY), FALSE);
 			SendDlgItemMessage(hDlg, CONNECT_HIST, EM_LIMITTEXT, (WPARAM)2, 0);
 			SetDecimalText(hDlg, CONNECT_HIST, FileHist);

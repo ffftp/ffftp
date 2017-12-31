@@ -1280,27 +1280,6 @@ BEGIN
     CTEXT           "よろしいですか？",-1,7,30,145,8
 END
 
-dial_dlg DIALOG 0, 0, 159, 37
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-FONT 9, "MS Shell Dlg"
-BEGIN
-    DEFPUSHBUTTON   "キャンセル",IDCANCEL,54,19,50,14
-    CTEXT           "",DIAL_STATUS,7,6,145,8,SS_NOPREFIX
-END
-
-dial_password_dlg DIALOG 0, 0, 170, 93
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-FONT 9, "MS Shell Dlg"
-BEGIN
-    LTEXT           "ダイアルアップ接続のためのユーザー名、パスワードを入力してください。",-1,7,4,156,16
-    RTEXT           "ユーザー名(&U)",-1,14,31,45,8
-    EDITTEXT        RASPASS_USER,62,28,95,14,ES_AUTOHSCROLL
-    RTEXT           "パスワード(&P)",-1,14,52,45,8
-    EDITTEXT        RASPASS_PASS,62,49,95,14,ES_PASSWORD | ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,24,72,50,14
-    PUSHBUTTON      "キャンセル",IDCANCEL,96,72,50,14
-END
-
 opt_disp1_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 FONT 9, "MS Shell Dlg"
@@ -2042,22 +2021,6 @@ BEGIN
         BOTTOMMARGIN, 60
     END
 
-    dial_dlg, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 152
-        TOPMARGIN, 4
-        BOTTOMMARGIN, 33
-    END
-
-    dial_password_dlg, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 163
-        TOPMARGIN, 4
-        BOTTOMMARGIN, 86
-    END
-
     opt_disp1_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -2596,14 +2559,10 @@ BEGIN
     IDS_MSGJPN219           "Waveファイル"
     IDS_MSGJPN220           "ダイアルアップを切断しています."
     IDS_MSGJPN221           "ダイアルアップで接続しています."
-    IDS_MSGJPN222           "ダイアルアップが使えません(RasDialDlg)"
-    IDS_MSGJPN223           "%s に接続しています..."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN224           "不明なエラー"
-    IDS_MSGJPN225           "ダイアルアップ接続"
     IDS_MSGJPN226           "ポートを開いています..."
     IDS_MSGJPN227           "ポートが開かれました"
     IDS_MSGJPN228           "ダイアル中..."
@@ -2616,7 +2575,6 @@ BEGIN
     IDS_MSGJPN235           "接続しました"
     IDS_MSGJPN236           "切断しました"
     IDS_MSGJPN237           "接続処理中..."
-    IDS_MSGJPN238           "%s への接続"
     IDS_MSGJPN239           "# このファイルは編集しないでください.\n"
 END
 

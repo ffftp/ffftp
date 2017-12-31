@@ -31,145 +31,20 @@
 #include <Ras.h>
 #include <RasDlg.h>
 #include <RasError.h>
-
-
-typedef DWORD (WINAPI*FUNC_RASENUMCONNECTIONS) (LPRASCONN, LPDWORD, LPDWORD);
-typedef DWORD (WINAPI*FUNC_RASENUMENTRIES) (LPCTSTR, LPCTSTR, LPRASENTRYNAME, LPDWORD, LPDWORD);
-typedef DWORD (WINAPI*FUNC_RASHANGUP) (HRASCONN);
-typedef BOOL (WINAPI*FUNC_RASDIAL) (LPRASDIALEXTENSIONS, LPCTSTR, LPRASDIALPARAMS, DWORD, LPVOID, LPHRASCONN);
-typedef BOOL (WINAPI*FUNC_RASGETENTRYDIALPARAMS) (LPCTSTR, LPRASDIALPARAMS, LPBOOL);
-typedef BOOL (WINAPI*FUNC_RASGETCONNECTSTATUS) (HRASCONN, LPRASCONNSTATUS);
-typedef BOOL (WINAPI*FUNC_RASGETERRORSTRING)(UINT, LPTSTR, DWORD);
-
-typedef BOOL (WINAPI*FUNC_RASDIALDLG) (LPSTR, LPSTR, LPSTR, LPRASDIALDLG);
+// これらはリンクオプションで遅延ロードに設定する
+#pragma comment(lib, "Rasapi32.lib")
+#pragma comment(lib, "Rasdlg.lib")
 
 
 static int GetCurConnections(RASCONN **Buf);
 static DWORD RasHangUpWait(HRASCONN hRasConn);
 static int DoDisconnect(RASCONN *Buf, int Num);
-static BOOL CALLBACK DialCallBackProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static VOID WINAPI RasDialFunc( UINT unMsg, RASCONNSTATE rasconnstate, DWORD dwError );
 static void MakeRasConnMsg(char *Phone, RASCONNSTATE rasconn, char *Buf);
-static BOOL CALLBACK DialPassCallBackProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 
 /*===== ローカルなワーク =====*/
 
-static HINSTANCE m_hDll = NULL;
-static HINSTANCE m_hDll2 = NULL;
-
-static FUNC_RASENUMCONNECTIONS m_RasEnumConnections = NULL;
-static FUNC_RASENUMENTRIES m_RasEnumEntries = NULL;
-static FUNC_RASHANGUP m_RasHangUp = NULL;
-static FUNC_RASDIAL m_RasDial = NULL;
-static FUNC_RASGETENTRYDIALPARAMS m_RasGetEntryDialParams = NULL;
-static FUNC_RASGETCONNECTSTATUS m_RasGetConnectStatus = NULL;
-static FUNC_RASGETERRORSTRING m_RasGetErrorString = NULL;
-
-static FUNC_RASDIALDLG m_RasDialDlg = NULL;
-
 static HWND hWndDial;
-
-
-
-/*----- RASライブラリをロードする ---------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		RASライブラリは必ずインストールされるものではないので、スタティックに
-*		リンクしない。
-*----------------------------------------------------------------------------*/
-
-void LoadRasLib(void)
-{
-	if((m_hDll = LoadLibrary("rasapi32.dll")) != NULL)
-	{
-		m_RasEnumConnections = (FUNC_RASENUMCONNECTIONS)GetProcAddress(m_hDll, "RasEnumConnectionsA");
-		m_RasEnumEntries = (FUNC_RASENUMENTRIES)GetProcAddress(m_hDll, "RasEnumEntriesA");
-		m_RasHangUp = (FUNC_RASHANGUP)GetProcAddress(m_hDll, "RasHangUpA");
-		m_RasDial = (FUNC_RASDIAL)GetProcAddress(m_hDll, "RasDialA");
-		m_RasGetEntryDialParams = (FUNC_RASGETENTRYDIALPARAMS)GetProcAddress(m_hDll, "RasGetEntryDialParamsA");
-		m_RasGetConnectStatus = (FUNC_RASGETCONNECTSTATUS)GetProcAddress(m_hDll, "RasGetConnectStatusA");
-		m_RasGetErrorString = (FUNC_RASGETERRORSTRING)GetProcAddress(m_hDll, "RasGetErrorStringA");
-
-		if((m_RasEnumConnections == NULL) ||
-		   (m_RasEnumEntries == NULL) ||
-		   (m_RasHangUp == NULL) ||
-		   (m_RasDial == NULL) ||
-		   (m_RasGetEntryDialParams == NULL) ||
-		   (m_RasGetConnectStatus == NULL) ||
-		   (m_RasGetErrorString == NULL))
-		{
-			FreeLibrary(m_hDll);
-			m_hDll = NULL;
-		}
-	}
-
-	if(m_hDll != NULL)
-	{
-		if((m_hDll2 = LoadLibrary("rasdlg.dll")) != NULL)
-		{
-			m_RasDialDlg = (FUNC_RASDIALDLG)GetProcAddress(m_hDll2, "RasDialDlgA");
-
-			if(m_RasDialDlg == NULL)
-			{
-				FreeLibrary(m_hDll2);
-				m_hDll2 = NULL;
-			}
-		}
-	}
-	return;
-}
-
-
-/*----- RASライブラリをリリースする -------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void ReleaseRasLib(void)
-{
-	if(m_hDll != NULL)
-		FreeLibrary(m_hDll);
-	m_hDll = NULL;
-
-	if(m_hDll2 != NULL)
-		FreeLibrary(m_hDll2);
-	m_hDll2 = NULL;
-
-	return;
-}
-
-
-/*----- RASが使えるかどうかを返す ---------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int RASが使えるかどうか
-*			YES/NO
-*----------------------------------------------------------------------------*/
-
-int AskRasUsable(void)
-{
-	int Sts;
-
-	Sts = NO;
-	if(m_hDll != NULL)
-		Sts = YES;
-
-	return(Sts);
-}
 
 
 /*----- 現在のRASコネクション一覧を返す ---------------------------------------
@@ -198,13 +73,13 @@ static int GetCurConnections(RASCONN **Buf)
 	if((RasConn = (RASCONN*)malloc(Size)) != NULL)
 	{
 		RasConn->dwSize = sizeof(RASCONN);
-		Sts = (*m_RasEnumConnections)(RasConn, &Size, &Num);
+		Sts = RasEnumConnections(RasConn, &Size, &Num);
 		if((Sts == ERROR_BUFFER_TOO_SMALL) || (Sts == ERROR_NOT_ENOUGH_MEMORY))
 		{
 			if((Tmp = (RASCONN*)realloc(RasConn, Size)) != NULL)
 			{
 				RasConn = Tmp;
-				Sts = (*m_RasEnumConnections)(RasConn, &Size, &Num);
+				Sts = RasEnumConnections(RasConn, &Size, &Num);
 			}
 		}
 
@@ -237,10 +112,10 @@ static DWORD RasHangUpWait(HRASCONN hRasConn)
 	RASCONNSTATUS RasSts;
 	DWORD Sts;
 
-	Sts = (*m_RasHangUp)(hRasConn);
+	Sts = RasHangUp(hRasConn);
 
 	RasSts.dwSize = sizeof(RASCONNSTATUS);
-	while((*m_RasGetConnectStatus)(hRasConn, &RasSts) != ERROR_INVALID_HANDLE)
+	while(RasGetConnectStatus(hRasConn, &RasSts) != ERROR_INVALID_HANDLE)
 		Sleep(10);
 
 	return(Sts);
@@ -276,36 +151,14 @@ static int DoDisconnect(RASCONN *RasConn, int Num)
 }
 
 
-/*----- RASを切断する ---------------------------------------------------------
-*
-*	Parameter
-*		int Notify : 確認するかどうか (YES/NO)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DisconnectRas(int Notify)
-{
-	RASCONN *RasConn;
-	int Num;
-
-	if(m_hDll != NULL)
-	{
-		if((Num = GetCurConnections(&RasConn)) != -1)
-		{
-			if(Num > 0)
-			{
-				if((Notify == NO) ||
-				   (DialogBox(GetFtpInst(), MAKEINTRESOURCE(rasnotify_dlg), GetMainHwnd(), ExeEscDialogProc) == YES))
-				{
-					DoDisconnect(RasConn, Num);
-				}
-			}
-			free(RasConn);
-		}
+// RASを切断する
+void DisconnectRas(int Notify) {
+	RASCONN* RasConn;
+	if (int Num = GetCurConnections(&RasConn); Num != -1) {
+		if (0 < Num && (Notify == NO || DialogBox(GetFtpInst(), MAKEINTRESOURCE(rasnotify_dlg), GetMainHwnd(), ExeEscDialogProc) == YES))
+			DoDisconnect(RasConn, Num);
+		free(RasConn);
 	}
-	return;
 }
 
 
@@ -330,19 +183,17 @@ int SetRasEntryToComboBox(HWND hDlg, int Item, char *CurName)
 	DWORD Sts;
 
 	Num = 0;
-	if(m_hDll != NULL)
-	{
 		Size = sizeof(RASENTRYNAME);
 		if((Entry = (RASENTRYNAME*)malloc(Size)) != NULL)
 		{
 			Entry->dwSize = sizeof(RASENTRYNAME);
-			Sts = (*m_RasEnumEntries)(NULL, NULL, Entry, &Size, &Num);
+			Sts = RasEnumEntries(NULL, NULL, Entry, &Size, &Num);
 			if((Sts == ERROR_BUFFER_TOO_SMALL) || (Sts == ERROR_NOT_ENOUGH_MEMORY))
 			{
 				if((Tmp = (RASENTRYNAME*)realloc(Entry, Size)) != NULL)
 				{
 					Entry = Tmp;
-					Sts = (*m_RasEnumEntries)(NULL, NULL, Entry, &Size, &Num);
+					Sts = RasEnumEntries(NULL, NULL, Entry, &Size, &Num);
 				}
 			}
 
@@ -355,7 +206,6 @@ int SetRasEntryToComboBox(HWND hDlg, int Item, char *CurName)
 			}
 			free(Entry);
 		}
-	}
 	return(Num);
 }
 
@@ -372,191 +222,39 @@ int SetRasEntryToComboBox(HWND hDlg, int Item, char *CurName)
 *		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
 *----------------------------------------------------------------------------*/
 
-int ConnectRas(int Dialup, int UseThis, int Notify, char *Name)
-{
-	RASDIALDLG DlgParam;
+int ConnectRas(int Dialup, int UseThis, int Notify, char *Name) {
+	if (Dialup != YES)
+		return FFFTP_SUCCESS;
+
+	/* 現在の接続を確認 */
+	bool DoDial = true;
 	RASCONN *RasConn;
-	int i;
-	int Num;
-	int Sts;
-	int DoDial;
-	RASDIALPARAMS Param;
-	BOOL Flg;
-	OSVERSIONINFO VerInfo;
-
-	Sts = FFFTP_SUCCESS;
-	if(Dialup == YES)
-	{
-		if(m_hDll != NULL)
-		{
-			/* 現在の接続を確認 */
-			DoDial = 1;
-			if((Num = GetCurConnections(&RasConn)) != -1)
-			{
-				if(Num > 0)
-				{
-					DoDial = 0;
-					if(UseThis == YES)
-					{
-						DoDial = 2;
-						for(i = 0; i < Num; i++)
-						{
-							if(_mbscmp((const unsigned char*)RasConn[i].szEntryName, (const unsigned char*)Name) == 0)
-								DoDial = 0;
-						}
-
-						if(DoDial == 2)
-						{
-							if((Notify == NO) ||
-							   (DialogBox(GetFtpInst(), MAKEINTRESOURCE(rasreconnect_dlg), GetMainHwnd(), ExeEscDialogProc) == YES))
-							{
-								DoDisconnect(RasConn, Num);
-							}
-							else
-								DoDial = 0;
-						}
+	if (int Num = GetCurConnections(&RasConn); Num != -1) {
+		if (Num > 0) {
+			if (UseThis == YES) {
+				for (int i = 0; i < Num; i++)
+					if (_mbscmp((const unsigned char*)RasConn[i].szEntryName, (const unsigned char*)Name) == 0) {
+						DoDial = false;
+						break;
 					}
-				}
-				free(RasConn);
-			}
-
-			if(DoDial != 0)
-			{
-				/* 接続する */
-				SetTaskMsg(MSGJPN221);
-				Sts = FFFTP_FAIL;
-
-				Num = 0;
-				VerInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-				if(GetVersionEx(&VerInfo) == TRUE)
-				{
-					if(VerInfo.dwPlatformId == VER_PLATFORM_WIN32_NT)
-						Num = 1;
-				}
-
-				if(Num == 1)
-				{
-					if(m_hDll2 != NULL)
-					{
-						/* Windows NT */
-						DlgParam.dwSize = sizeof(RASDIALDLG);
-						DlgParam.hwndOwner = GetMainHwnd();
-						DlgParam.dwFlags = 0;
-						DlgParam.dwSubEntry = 0;
-						DlgParam.reserved = 0;
-						DlgParam.reserved2 = 0;
-						if((*m_RasDialDlg)(NULL, Name, NULL, &DlgParam) != 0)
-							Sts = FFFTP_SUCCESS;
-					}
+				if (DoDial) {
+					if (Notify == NO || DialogBox(GetFtpInst(), MAKEINTRESOURCE(rasreconnect_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+						DoDisconnect(RasConn, Num);
 					else
-						SetTaskMsg(MSGJPN222);
+						DoDial = false;
 				}
-				else
-				{
-					/* Windows 95,98 */
-					Param.dwSize = sizeof(RASDIALPARAMS);
-					strcpy(Param.szEntryName, Name);
-					Flg = TRUE;
-					Sts = (*m_RasGetEntryDialParams)(NULL, &Param, &Flg);
-					strcpy(Param.szPhoneNumber, "");
-
-					if(((strlen(Param.szUserName) != 0) && (strlen(Param.szPassword) != 0)) ||
-					   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(dial_password_dlg), GetMainHwnd(), (DLGPROC)DialPassCallBackProc, (LPARAM)&Param) == YES))
-					{
-						if(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(dial_dlg), GetMainHwnd(), (DLGPROC)DialCallBackProc, (LPARAM)&Param) == YES)
-							Sts = FFFTP_SUCCESS;
-					}
-				}
-			}
+			} else
+				DoDial = false;
 		}
+		free(RasConn);
 	}
-	return(Sts);
-}
+	if (!DoDial)
+		return FFFTP_SUCCESS;
 
-
-/*----- RASダイアルウインドウのコールバック -----------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-static BOOL CALLBACK DialCallBackProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	static RASDIALPARAMS *Param;
-	static HRASCONN hRasConn;
-	char Tmp[RAS_NAME_LEN+25];
-	DWORD Sts;
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			Param = (RASDIALPARAMS *)lParam;
-			hWndDial = hDlg;
-			hRasConn = NULL;
-			sprintf(Tmp, MSGJPN223, Param->szEntryName);
-			SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)Tmp);
-			Sts = (*m_RasDial)(NULL, NULL, Param, 0, &RasDialFunc, &hRasConn);
-			if(Sts != 0)
-				EndDialog(hDlg, NO);
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDCANCEL :
-					RasHangUpWait(hRasConn);
-					EndDialog(hDlg, NO);
-					break;
-			}
-			return(TRUE);
-
-		case WM_DIAL_MSG :
-			if(lParam != 0)
-			{
-				/* エラー発生 */
-				if((*m_RasGetErrorString)((UINT)lParam, (LPTSTR)Tmp, RAS_NAME_LEN+25) != 0)
-					sprintf(Tmp, MSGJPN224);
-				RasHangUpWait(hRasConn);
-				MessageBox(hDlg, Tmp, MSGJPN225, MB_OK | MB_ICONSTOP);
-				EndDialog(hDlg, NO);
-			}
-			else if(wParam & RASCS_DONE)
-			{
-				/* 終了 */
-				EndDialog(hDlg, YES);
-			}
-			else
-			{
-				/* ステータス変更 */
-				MakeRasConnMsg(Param->szPhoneNumber, (RASCONNSTATE)wParam, Tmp);
-				SendDlgItemMessage(hDlg, DIAL_STATUS, WM_SETTEXT, 0, (LPARAM)Tmp);
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
-/*----- RasDial()のコールバック -----------------------------------------------
-*
-*	Parameter
-*		UINT unMsg : メッセージ
-*		RASCONNSTATE rasconnstate : ステータス
-*		DWORD dwError : エラー
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static VOID WINAPI RasDialFunc(UINT unMsg, RASCONNSTATE rasconnstate, DWORD dwError)
-{
-	PostMessage(hWndDial, WM_DIAL_MSG, (WPARAM)rasconnstate, (LPARAM)dwError );
+	/* 接続する */
+	SetTaskMsg(MSGJPN221);
+	RASDIALDLG DlgParam{ sizeof(RASDIALDLG), GetMainHwnd() };
+	return RasDialDlg(NULL, Name, NULL, &DlgParam) != 0 ? FFFTP_SUCCESS : FFFTP_FAIL;
 }
 
 
@@ -627,53 +325,3 @@ static void MakeRasConnMsg(char *Phone, RASCONNSTATE rasconn, char *Buf)
 	}
 	return;
 }
-
-
-/*----- ユーザ名、パスワード入力ウインドウのコールバック ----------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-static BOOL CALLBACK DialPassCallBackProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	static RASDIALPARAMS *Param;
-	char Tmp[RAS_NAME_LEN+25];
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			Param = (RASDIALPARAMS *)lParam;
-			sprintf(Tmp, MSGJPN238, Param->szEntryName);
-			SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)Tmp);
-			SendDlgItemMessage(hDlg, RASPASS_USER, EM_LIMITTEXT, UNLEN, 0);
-			SendDlgItemMessage(hDlg, RASPASS_PASS, EM_LIMITTEXT, PWLEN, 0);
-			SendDlgItemMessage(hDlg, RASPASS_USER, WM_SETTEXT, 0, (LPARAM)Param->szUserName);
-			SendDlgItemMessage(hDlg, RASPASS_PASS, WM_SETTEXT, 0, (LPARAM)Param->szPassword);
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDOK :
-					SendDlgItemMessage(hDlg, RASPASS_USER, WM_GETTEXT, UNLEN+1, (LPARAM)Param->szUserName);
-					SendDlgItemMessage(hDlg, RASPASS_PASS, WM_GETTEXT, PWLEN+1, (LPARAM)Param->szPassword);
-					EndDialog(hDlg, YES);
-					break;
-
-				case IDCANCEL :
-					EndDialog(hDlg, NO);
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-

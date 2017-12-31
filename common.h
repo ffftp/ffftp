@@ -151,7 +151,6 @@ constexpr bool false_v = false;
 #define WM_CHANGE_COND	(WM_USER+1)	/* ファイル一覧を変更するコマンド */
 #define WM_SET_PACKET	(WM_USER+2)	/* 現在使用している転送パケットのアドレスを通知 */
 #define WM_SELECT_HOST	(WM_USER+3)	/* ホストをダブルクリックで選択した */
-#define WM_DIAL_MSG		(WM_USER+4)	/* ダイアル中のステータス通知 */
 
 #define WM_ASYNC_SOCKET	(WM_USER+5)
 #define WM_ASYNC_DBASE	(WM_USER+6)
@@ -1929,8 +1928,6 @@ void CheckTipsDisplay(HWND hWnd, LPARAM lParam);
 
 /*===== ras.c =====*/
 
-void LoadRasLib(void);
-void ReleaseRasLib(void);
 void DisconnectRas(int Notify);
 int SetRasEntryToComboBox(HWND hDlg, int Item, char *CurName);
 int ConnectRas(int Dialup, int UseThis, int Notify, char *Name);
