@@ -33,9 +33,6 @@
     <ClCompile Include="connect.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="diskfree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="dlgsize.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

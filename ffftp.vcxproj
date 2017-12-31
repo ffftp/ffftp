@@ -183,7 +183,6 @@
     <ClCompile Include="clipboard.cpp" />
     <ClCompile Include="codecnv.cpp" />
     <ClCompile Include="connect.cpp" />
-    <ClCompile Include="diskfree.cpp" />
     <ClCompile Include="dlgsize.cpp" />
     <ClCompile Include="filelist.cpp" />
     <ClCompile Include="ftpproc.cpp" />

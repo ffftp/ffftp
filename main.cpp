@@ -575,7 +575,6 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			LoadSSLRootCAFile();
 
 			LoadJre();
-			LoadKernelLib();
 
 			//タイマの精度を改善
 			timeBeginPeriod(1);
@@ -865,7 +864,6 @@ static void DeleteAllObject(void)
 		DestroyWindow(hWndFtp);
 
 	ReleaseJre();
-	ReleaseKernelLib();
 
 	return;
 }

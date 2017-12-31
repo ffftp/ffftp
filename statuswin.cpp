@@ -153,22 +153,14 @@ void DispSelectedSpace(void)
 }
 
 
-/*----- ローカル側の空き容量を表示 --------------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispLocalFreeSpace(char *Path)
-{
-	char Buf[40];
-
-	sprintf(Buf, MSGJPN248, AskLocalFreeSpace(Path));
-	SendMessage(GetSbarWnd(), SB_SETTEXT, 2 | 0, (LPARAM)Buf);
-	return;
+// ローカル側の空き容量を表示
+void DispLocalFreeSpace(char *Path) {
+	char size[40] = "??";
+	if (ULARGE_INTEGER a; GetDiskFreeSpaceExA(Path, &a, nullptr, nullptr) != 0)
+		MakeSizeString((double)a.QuadPart, size);
+	char text[40];
+	sprintf(text, MSGJPN248, size);
+	SendMessage(GetSbarWnd(), SB_SETTEXT, 2 | 0, (LPARAM)text);
 }
 
 

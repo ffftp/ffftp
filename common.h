@@ -2132,12 +2132,6 @@ int GetHistoryByNum(int Num, HISTORYDATA *Buf);
 
 int CopyStrToClipBoard(char *Str);
 
-/*===== diskfree.c =====*/
-
-void LoadKernelLib(void);
-void ReleaseKernelLib(void);
-char *AskLocalFreeSpace(char *Path);
-
 /*===== socket.c =====*/
 
 int MakeSocketWin(HWND hWnd, HINSTANCE hInst);
