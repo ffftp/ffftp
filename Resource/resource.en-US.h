@@ -475,7 +475,8 @@
 #define TRMODE_LISTERROR                1228
 #define MIRROR_NO_TRANSFER              1229
 #define HSET_NO_PASV_ADRS               1230
-#define IDC_SHOWCERT                    1231
+#define TRMODE4_MARK_INTERNET           1231
+#define IDC_SHOWCERT                    1232
 #define IDS_MSGJPN001                   10001
 #define IDS_MSGJPN002                   10002
 #define IDS_MSGJPN003                   10003
@@ -1003,7 +1004,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        200
 #define _APS_NEXT_COMMAND_VALUE         40183
-#define _APS_NEXT_CONTROL_VALUE         1232
+#define _APS_NEXT_CONTROL_VALUE         1233
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

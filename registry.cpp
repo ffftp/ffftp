@@ -207,9 +207,11 @@ extern int ReadOnlySettings;
 // ファイル一覧バグ修正
 extern int AbortOnListError;
 // ミラーリング設定追加
-extern int MirrorNoTransferContents; 
+extern int MirrorNoTransferContents;
 // FireWall設定追加
-extern int FwallNoSaveUser; 
+extern int FwallNoSaveUser;
+// ゾーンID設定追加
+extern int MarkAsInternet;
 
 
 void sha_memory(const char* mem, DWORD length, uint32_t* buffer) {
@@ -831,6 +833,8 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "MirNoTransfer", MirrorNoTransferContents);
 				// FireWall設定追加
 				WriteIntValueToReg(hKey4, "FwallShared", FwallNoSaveUser);
+				// ゾーンID設定追加
+				WriteIntValueToReg(hKey4, "MarkDFile", MarkAsInternet);
 			}
 			CloseSubKey(hKey4);
 		}
@@ -1415,6 +1419,8 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "MirNoTransfer", &MirrorNoTransferContents);
 			// FireWall設定追加
 			ReadIntValueFromReg(hKey4, "FwallShared", &FwallNoSaveUser);
+			// ゾーンID設定追加
+			ReadIntValueFromReg(hKey4, "MarkDFile", &MarkAsInternet);
 
 			CloseSubKey(hKey4);
 		}

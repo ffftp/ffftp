@@ -262,6 +262,9 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 // 同時接続対応
 #define WM_RECONNECTSOCKET	(WM_USER+11)
 
+// ゾーンID設定追加
+#define WM_MARKFILEASDOWNLOADEDFROMINTERNET	(WM_USER+12)
+
 /*===== ホスト番号 =====*/
 /* ホスト番号は 0～ の値を取る */
 
@@ -1518,6 +1521,14 @@ typedef struct
 	int Port;
 } REMOVEPORTMAPPINGDATA;
 
+// ゾーンID設定追加
+typedef struct
+{
+	int r;
+	HANDLE h;
+	char* Fname;
+} MARKFILEASDOWNLOADEDFROMINTERNETDATA;
+
 /*=================================================
 *		プロトタイプ
 *=================================================*/
@@ -1923,6 +1934,11 @@ int CheckPathViolation(TRANSPACKET *packet);
 LONGLONG AskTransferSizeLeft(void);
 LONGLONG AskTransferSizeTotal(void);
 int AskTransferErrorDisplay(void);
+// ゾーンID設定追加
+int LoadZoneID();
+void FreeZoneID();
+int IsZoneIDLoaded();
+int MarkFileAsDownloadedFromInternet(char* Fname);
 
 /*===== codecnv.c =====*/
 
