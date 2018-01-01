@@ -34,7 +34,6 @@
 #pragma comment(lib, "muiload.lib")
 #pragma comment(lib, "legacy_stdio_definitions.lib")
 #endif
-#include "filehash.h"
 #include "helpid.h"
 
 
@@ -118,8 +117,6 @@ int SuppressRefresh = 0;
 
 static DWORD dwCookie;
 
-// 暗号化通信対応
-static char SSLRootCAFilePath[FMAX_PATH+1];
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 static DWORD MainThreadId;
 // ポータブル版判定
@@ -230,9 +227,6 @@ int MirUpDelNotify = YES;
 int MirDownDelNotify = YES; 
 int FolderAttr = NO;
 int FolderAttrNum = 777;
-// 暗号化通信対応
-BYTE CertificateCacheHash[MAX_CERT_CACHE_HASH][20];
-BYTE SSLRootCAFileHash[20];
 // ファイルアイコン表示対応
 int DispFileIcon = NO;
 // タイムスタンプのバグ修正
@@ -344,10 +338,10 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		return 0;
 	}
 
-	// FTPS対応
-#ifdef USE_OPENSSL
-	LoadOpenSSL();
-#endif
+	if (!LoadSSL()) {
+		Message(nullptr, hInstance, IDS_ERR_SSL, IDS_APP, MB_OK | MB_ICONERROR);
+		return 0;
+	}
 
 	Ret = FALSE;
 	hWndFtp = NULL;
@@ -380,10 +374,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		Ret = (int)Msg.wParam;
 	}
 	UnregisterClass(FtpClassStr, hInstFtp);
-	// FTPS対応
-#ifdef USE_OPENSSL
-	FreeOpenSSL();
-#endif
+	FreeSSL();
 	CryptReleaseContext(HCryptProv, 0);
 	// タスクバー進捗表示
 	FreeTaskbarList3();
@@ -567,13 +558,6 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 				RegType = REGTYPE_INI;
 			}
 
-			// 暗号化通信対応
-			SetSSLTimeoutCallback(TimeOut * 1000, SSLTimeoutCallback);
-			SetSSLConfirmCallback(SSLConfirmCallback);
-			GetModuleFileName(NULL, SSLRootCAFilePath, FMAX_PATH);
-			strcpy(GetFileName(SSLRootCAFilePath), "ssl.pem");
-			LoadSSLRootCAFile();
-
 			//タイマの精度を改善
 			timeBeginPeriod(1);
 
@@ -654,14 +638,6 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			}
 		}
 	}
-
-	// 暗号化通信対応
-#ifdef USE_OPENSSL
-	if(IsOpenSSLLoaded())
-		SetTaskMsg(MSGJPN318);
-	else
-		SetTaskMsg(MSGJPN319);
-#endif
 
 	if(sts == FFFTP_FAIL)
 		DeleteAllObject();
@@ -1292,8 +1268,6 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					DispTransferType();
 					CheckHistoryNum(0);
 					SetAllHistoryToMenu();
-					// 暗号化通信対応
-					SetSSLTimeoutCallback(TimeOut * 1000, SSLTimeoutCallback);
 					break;
 
 				case MENU_FILTER :
@@ -3290,90 +3264,15 @@ int EnterMasterPasswordAndSet( int Res, HWND hWnd )
 	return 0;
 }
 
-// 暗号化通信対応
-BOOL __stdcall SSLTimeoutCallback(BOOL* pbAborted)
-{
-	Sleep(1);
-	if(BackgrndMessageProc() == YES)
-		return TRUE;
-	if(*pbAborted == YES)
-		return TRUE;
-	return FALSE;
-}
-
-BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName)
-{
-	BOOL bResult;
-	uint32_t Hash[5];
-	int i;
-	char* pm0;
-	bResult = FALSE;
-	sha_memory(Certificate, (uint32_t)(strlen(Certificate) * sizeof(char)), Hash);
-	// sha.cはビッグエンディアンのため
-	for(i = 0; i < 5; i++)
-		Hash[i] = _byteswap_ulong(Hash[i]);
-	i = 0;
-	while(i < MAX_CERT_CACHE_HASH)
-	{
-		if(memcmp(&CertificateCacheHash[i], &Hash, 20) == 0)
-		{
-			bResult = TRUE;
-			break;
-		}
-		i++;
+bool ConfirmCertificate(const wchar_t* serverName, BOOL* pbAborted) {
+	BOOL bResult = FALSE;
+	if (char* pm0 = AllocateStringM(1024)) {
+		sprintf(pm0, MSGJPN326, u8(serverName).c_str());
+		bResult = MessageBox(GetMainHwnd(), pm0, "FFFTP", MB_YESNO) == IDYES;
+		FreeDuplicatedString(pm0);
 	}
-	if(!bResult)
-	{
-		if(pm0 = AllocateStringM((int)strlen(Certificate) + 1024))
-		{
-			sprintf(pm0, MSGJPN326, IsHostNameMatched(AskHostAdrs(), CommonName) ? MSGJPN327 : MSGJPN328, bVerified ? MSGJPN327 : MSGJPN328, Certificate);
-			if(MessageBox(GetMainHwnd(), pm0, "FFFTP", MB_YESNO) == IDYES)
-			{
-				for(i = MAX_CERT_CACHE_HASH - 1; i >= 1; i--)
-					memcpy(&CertificateCacheHash[i], &CertificateCacheHash[i - 1], 20);
-				memcpy(&CertificateCacheHash[0], &Hash, 20);
-				bResult = TRUE;
-			}
-			FreeDuplicatedString(pm0);
-		}
-	}
-	if(!bResult)
+	if (!bResult)
 		*pbAborted = YES;
-	return bResult;
-}
-
-BOOL LoadSSLRootCAFile()
-{
-	BOOL bResult;
-	HANDLE hFile;
-	DWORD Size;
-	char* pBuffer;
-	uint32_t Hash[5];
-	int i;
-	bResult = FALSE;
-	if((hFile = CreateFile(SSLRootCAFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
-	{
-		Size = GetFileSize(hFile, NULL);
-		if(pBuffer = (char*)malloc(Size))
-		{
-			if(ReadFile(hFile, pBuffer, Size, &Size, NULL))
-			{
-				sha_memory(pBuffer, Size, Hash);
-				// sha.cはビッグエンディアンのため
-				for(i = 0; i < 5; i++)
-					Hash[i] = _byteswap_ulong(Hash[i]);
-				if(memcmp(&Hash, &SSLRootCAFileHash, 20) == 0 || memcmp(&Hash, FILEHASH_SSL_PEM_SHA1, 20) == 0
-					|| DialogBox(GetFtpInst(), MAKEINTRESOURCE(updatesslroot_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
-				{
-					memcpy(&SSLRootCAFileHash, &Hash, 20);
-					if(SetSSLRootCertificate(pBuffer, Size))
-						bResult = TRUE;
-				}
-			}
-			free(pBuffer);
-		}
-		CloseHandle(hFile);
-	}
 	return bResult;
 }
 

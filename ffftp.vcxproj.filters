@@ -136,9 +136,6 @@
     <ClInclude Include="helpid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="filehash.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="config.h">
       <Filter>Header Files</Filter>
     </ClInclude>

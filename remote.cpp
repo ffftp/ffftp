@@ -776,76 +776,18 @@ int _command(SOCKET cSkt, char* Reply, int* CancelCheckWork, const char* fmt, ..
 }
 
 
-/*----- データを送る ----------------------------------------------------------
-*
-*	Parameter
-*		SOCKET Skt : ソケット
-*		char *Data : データ
-*		int Size : 送るデータのサイズ
-*		int Mode : コールモード
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int SendData(SOCKET Skt, char *Data, int Size, int Mode, int *CancelCheckWork)
-{
-	int Sts;
-	int Tmp;
-//	fd_set SendFds;
-//	struct timeval Tout;
-//	struct timeval *ToutPtr;
-	int TimeOutErr;
-
-	Sts = FFFTP_FAIL;
-	if(Skt != INVALID_SOCKET)
-	{
-		Sts = FFFTP_SUCCESS;
-		while(Size > 0)
-		{
-//			FD_ZERO(&SendFds);
-//			FD_SET(Skt, &SendFds);
-//			ToutPtr = NULL;
-//			if(TimeOut != 0)
-//			{
-//				Tout.tv_sec = TimeOut;
-//				Tout.tv_usec = 0;
-//				ToutPtr = &Tout;
-//			}
-//			Tmp = select(0, NULL, &SendFds, NULL, ToutPtr);
-//			if(Tmp == SOCKET_ERROR)
-//			{
-//				Sts = FFFTP_FAIL;
-//				ReportWSError("select", WSAGetLastError());
-//				break;
-//			}
-//			else if(Tmp == 0)
-//			{
-//				Sts = FFFTP_FAIL;
-//				SetTaskMsg(MSGJPN241);
-//				break;
-//			}
-
-			Tmp = do_send(Skt, Data, Size, Mode, &TimeOutErr, CancelCheckWork);
-			if(TimeOutErr == YES)
-			{
-				Sts = FFFTP_FAIL;
-				SetTaskMsg(MSGJPN241);
-				break;
-			}
-			else if(Tmp == SOCKET_ERROR)
-			{
-				Sts = FFFTP_FAIL;
-				ReportWSError("send", WSAGetLastError());
-				break;
-			}
-
-			Size -= Tmp;
-			Data += Tmp;
-		}
-	}
-	return(Sts);
+// データを送る
+int SendData(SOCKET Skt, char* Data, int Size, int Mode, int* CancelCheckWork) {
+	if (Skt == INVALID_SOCKET || Size <= 0)
+		return FFFTP_FAIL;
+	auto result = do_send(Skt, Data, Size, Mode, CancelCheckWork);
+	if (result == ERROR_SUCCESS)
+		return FFFTP_SUCCESS;
+	if (result == WSAETIMEDOUT)
+		SetTaskMsg(MSGJPN241);
+	else
+		ReportWSError("send", result);
+	return FFFTP_FAIL;
 }
 
 

@@ -28,7 +28,12 @@
 /============================================================================*/
 
 #include "common.h"
+#define SECURITY_WIN32
 #include <natupnp.h>
+#include <schannel.h>
+#include <security.h>
+#pragma comment(lib, "Crypt32.lib")
+#pragma comment(lib, "Secur32.lib")
 
 
 #define USE_THIS	1
@@ -115,6 +120,271 @@ IUPnPNAT* pUPnPNAT;
 IStaticPortMappingCollection* pUPnPMap;
 
 
+template<class T>
+static T CreateInvalidateHandle() {
+	T handle;
+	SecInvalidateHandle(&handle);
+	return std::move(handle);
+}
+
+struct Context {
+	std::wstring host;
+	CtxtHandle context;
+	SecPkgContext_StreamSizes streamSizes;
+	std::vector<char> readRaw;
+	std::vector<char> readPlain;
+	SECURITY_STATUS readStatus = SEC_E_OK;
+	Context(std::wstring const& host, CtxtHandle context, SecPkgContext_StreamSizes streamSizes, std::vector<char> extra) : host{ host }, context{ context }, streamSizes{ streamSizes }, readRaw{ extra } {
+		if (!empty(readRaw))
+			Decypt();
+	}
+	Context(Context const&) = delete;
+	~Context() {
+		DeleteSecurityContext(&context);
+	}
+	void Decypt() {
+		for (;;) {
+			SecBuffer buffer[]{
+				{ size_as<unsigned long>(readRaw), SECBUFFER_DATA, data(readRaw) },
+				{ 0, SECBUFFER_EMPTY, nullptr },
+				{ 0, SECBUFFER_EMPTY, nullptr },
+				{ 0, SECBUFFER_EMPTY, nullptr },
+			};
+			SecBufferDesc desc{ SECBUFFER_VERSION, size_as<unsigned long>(buffer), buffer };
+			if (readStatus = DecryptMessage(&context, &desc, 0, nullptr); readStatus != SEC_E_OK) {
+				_RPTWN(_CRT_WARN, L"DecryptMessage error: %08X.\n", readStatus);
+				break;
+			}
+			assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[1].BufferType == SECBUFFER_DATA && buffer[2].BufferType == SECBUFFER_STREAM_TRAILER);
+			readPlain.insert(end(readPlain), reinterpret_cast<const char*>(buffer[1].pvBuffer), reinterpret_cast<const char*>(buffer[1].pvBuffer) + buffer[1].cbBuffer);
+			if (buffer[3].BufferType != SECBUFFER_EXTRA) {
+				readRaw.clear();
+				break;
+			}
+			readRaw = std::vector<char>(reinterpret_cast<const char*>(buffer[3].pvBuffer), reinterpret_cast<const char*>(buffer[3].pvBuffer) + buffer[3].cbBuffer);
+		}
+	}
+	std::vector<char> Encrypt(std::string_view plain) {
+		std::vector<char> result;
+		while (!empty(plain)) {
+			auto dataLength = std::min(size_as<unsigned long>(plain), streamSizes.cbMaximumMessage);
+			auto offset = size_as<unsigned long>(result);
+			result.resize(offset + streamSizes.cbHeader + dataLength + streamSizes.cbTrailer);
+			std::copy_n(begin(plain), dataLength, begin(result) + offset + streamSizes.cbHeader);
+			SecBuffer buffer[]{
+				{ streamSizes.cbHeader,  SECBUFFER_STREAM_HEADER,  data(result) + offset },
+				{ dataLength,            SECBUFFER_DATA,           data(result) + offset + streamSizes.cbHeader },
+				{ streamSizes.cbTrailer, SECBUFFER_STREAM_TRAILER, data(result) + offset + streamSizes.cbHeader + dataLength },
+				{ 0, SECBUFFER_EMPTY, nullptr },
+			};
+			SecBufferDesc desc{ SECBUFFER_VERSION, size_as<unsigned long>(buffer), buffer };
+			if (auto ss = EncryptMessage(&context, 0, &desc, 0); ss != SEC_E_OK) {
+				_RPTWN(_CRT_WARN, L"FTPS_send EncryptMessage error: %08x.\n", ss);
+				return {};
+			}
+			assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[0].cbBuffer == streamSizes.cbHeader);
+			assert(buffer[1].BufferType == SECBUFFER_DATA && buffer[1].cbBuffer == dataLength);
+			assert(buffer[2].BufferType == SECBUFFER_STREAM_TRAILER && buffer[2].cbBuffer <= streamSizes.cbTrailer);
+			result.resize(offset + buffer[0].cbBuffer + buffer[1].cbBuffer + buffer[2].cbBuffer);
+			plain = plain.substr(dataLength);
+		}
+		return std::move(result);
+	}
+};
+
+static CredHandle credential = CreateInvalidateHandle<CredHandle>();
+static std::mutex context_mutex;
+static std::map<SOCKET, Context> contexts;
+
+BOOL LoadSSL() {
+	if (auto ss = AcquireCredentialsHandleW(nullptr, UNISP_NAME_W, SECPKG_CRED_OUTBOUND, nullptr, nullptr, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
+		_RPTWN(_CRT_WARN, L"AcquireCredentialsHandle error: %08X.\n", ss);
+		return FALSE;
+	}
+	return TRUE;
+}
+
+void FreeSSL() {
+	assert(SecIsValidHandle(&credential));
+	std::lock_guard<std::mutex> lock_guard{ context_mutex };
+	contexts.clear();
+	FreeCredentialsHandle(&credential);
+}
+
+static Context* getContext(SOCKET s) {
+	assert(SecIsValidHandle(&credential));
+	std::lock_guard<std::mutex> lock_guard{ context_mutex };
+	if (auto it = contexts.find(s); it != contexts.end())
+		return &it->second;
+	return nullptr;
+}
+
+namespace std {
+	template<>
+	struct default_delete<CERT_CONTEXT> {
+		void operator()(CERT_CONTEXT* ptr) {
+			CertFreeCertificateContext(ptr);
+		}
+	};
+}
+
+static BOOL ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName, BOOL* pbAborted) {
+	std::unique_ptr<CERT_CONTEXT> certContext{ [&context] {
+		PCERT_CONTEXT certContext;
+		if (auto ss = QueryContextAttributesW(&context, SECPKG_ATTR_REMOTE_CERT_CONTEXT, &certContext); ss != SEC_E_OK) {
+			_RPTWN(_CRT_WARN, L"QueryContextAttributes(SECPKG_ATTR_REMOTE_CERT_CONTEXT) error: %08X.\n", ss);
+			nullptr;
+		}
+		return certContext;
+	}() };
+	if (!certContext)
+		return FALSE;
+	CERT_CHAIN_PARA chainPara{ sizeof CERT_CHAIN_PARA };
+	PCCERT_CHAIN_CONTEXT chainContext;
+	if (!CertGetCertificateChain(nullptr, certContext.get(), nullptr, nullptr, &chainPara, CERT_CHAIN_REVOCATION_CHECK_CHAIN_EXCLUDE_ROOT, nullptr, &chainContext)) {
+		_RPTWN(_CRT_WARN, L"CertGetCertificateChain error: %08X.\n", GetLastError());
+		return FALSE;
+	}
+	SSL_EXTRA_CERT_CHAIN_POLICY_PARA sslPolicy{ sizeof SSL_EXTRA_CERT_CHAIN_POLICY_PARA , AUTHTYPE_SERVER, 0, serverName };
+	CERT_CHAIN_POLICY_PARA policyPara{ sizeof CERT_CHAIN_POLICY_PARA, 0, &sslPolicy };
+	CERT_CHAIN_POLICY_STATUS policyStatus{ sizeof CERT_CHAIN_POLICY_STATUS };
+	if (!CertVerifyCertificateChainPolicy(CERT_CHAIN_POLICY_SSL, chainContext, &policyPara, &policyStatus)) {
+		_RPTW0(_CRT_WARN, L"CertVerifyCertificateChainPolicy: not able to check.\n");
+		return FALSE;
+	}
+	if (policyStatus.dwError == 0)
+		return TRUE;
+	_RPTWN(_CRT_WARN, L"CertVerifyCertificateChainPolicy result: %08X.\n", policyStatus.dwError);
+	return ConfirmCertificate(serverName, pbAborted);
+}
+
+// SSLセッションを終了
+static BOOL DetachSSL(SOCKET s) {
+	std::lock_guard<std::mutex> lock_guard{ context_mutex };
+	contexts.erase(s);
+	return true;
+}
+
+// SSLセッションを開始
+BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName) {
+	assert(SecIsValidHandle(&credential));
+	std::wstring wServerName;
+	if (ServerName)
+		wServerName = u8(ServerName);
+	else if (parent != INVALID_SOCKET)
+		if (auto context = getContext(parent))
+			wServerName = context->host;
+	auto node = empty(wServerName) ? nullptr : data(wServerName);
+
+	CtxtHandle context;
+	SecPkgContext_StreamSizes streamSizes;
+	std::vector<char> extra;
+	auto first = true;
+	SECURITY_STATUS ss = SEC_I_CONTINUE_NEEDED;
+	do {
+		constexpr unsigned long contextReq = ISC_REQ_STREAM | ISC_REQ_SEQUENCE_DETECT | ISC_REQ_REPLAY_DETECT | ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_EXTENDED_ERROR | ISC_REQ_USE_SUPPLIED_CREDS | ISC_REQ_PROMPT_FOR_CREDS /* | ISC_REQ_MANUAL_CRED_VALIDATION*/;
+		SecBuffer inBuffer[]{ { 0, SECBUFFER_EMPTY, nullptr }, { 0, SECBUFFER_EMPTY, nullptr } };
+		SecBuffer outBuffer[]{ { 0, SECBUFFER_EMPTY, nullptr }, { 0, SECBUFFER_EMPTY, nullptr } };
+		SecBufferDesc inDesc{ SECBUFFER_VERSION, size_as<unsigned long>(inBuffer), inBuffer };
+		SecBufferDesc outDesc{ SECBUFFER_VERSION, size_as<unsigned long>(outBuffer), outBuffer };
+		unsigned long attr = 0;
+		if (first) {
+			first = false;
+			ss = InitializeSecurityContextW(&credential, nullptr, node, contextReq, 0, 0, nullptr, 0, &context, &outDesc, &attr, nullptr);
+		} else {
+			for (;;) {
+				char buffer[8192];
+				if (auto read = recv(s, buffer, size_as<int>(buffer), 0); read == 0) {
+					_RPTW0(_CRT_WARN, L"AttachSSL recv: connection closed.\n");
+					return FALSE;
+				} else if (0 < read) {
+					_RPTWN(_CRT_WARN, L"AttachSSL recv: %d bytes.\n", read);
+					extra.insert(end(extra), buffer, buffer + read);
+					break;
+				}
+				if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
+					_RPTWN(_CRT_WARN, L"AttachSSL recv error: %d.\n", lastError);
+					return FALSE;
+				}
+				Sleep(0);
+			}
+			inBuffer[0] = { size_as<unsigned long>(extra), SECBUFFER_TOKEN, data(extra) };
+			ss = InitializeSecurityContextW(&credential, &context, node, contextReq, 0, 0, &inDesc, 0, nullptr, &outDesc, &attr, nullptr);
+		}
+		if (FAILED(ss) && ss != SEC_E_INCOMPLETE_MESSAGE) {
+			_RPTWN(_CRT_WARN, L"AttachSSL InitializeSecurityContext error: %08x.\n", ss);
+			return FALSE;
+		}
+		_RPTWN(_CRT_WARN, L"AttachSSL InitializeSecurityContext result: %08x, inBuffer: %d/%d, %d/%d/%p, outBuffer: %d/%d, %d/%d, attr: %08x.\n",
+			ss, inBuffer[0].BufferType, inBuffer[0].cbBuffer, inBuffer[1].BufferType, inBuffer[1].cbBuffer, inBuffer[1].pvBuffer, outBuffer[0].BufferType, outBuffer[0].cbBuffer, outBuffer[1].BufferType, outBuffer[1].cbBuffer, attr);
+		if (outBuffer[0].BufferType == SECBUFFER_TOKEN && outBuffer[0].cbBuffer != 0) {
+			auto written = send(s, reinterpret_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
+			assert(written == outBuffer[0].cbBuffer);
+			_RPTWN(_CRT_WARN, L"AttachSSL send: %d bytes.\n", written);
+			FreeContextBuffer(outBuffer[0].pvBuffer);
+		}
+		if (ss == SEC_E_INCOMPLETE_MESSAGE)
+			ss = SEC_I_CONTINUE_NEEDED;
+		else if (inBuffer[1].BufferType == SECBUFFER_EXTRA)
+			// inBuffer[1].pvBufferはnullptrの場合があるためinBuffer[1].cbBufferのみを使用する
+			extra.erase(begin(extra), end(extra) - inBuffer[1].cbBuffer);
+		else
+			extra.clear();
+	} while (ss == SEC_I_CONTINUE_NEEDED);
+
+	//if (!ConfirmSSLCertificate(context, node, pbAborted))
+	//	return FALSE;
+	if (ss = QueryContextAttributesW(&context, SECPKG_ATTR_STREAM_SIZES, &streamSizes); ss != SEC_E_OK) {
+		_RPTWN(_CRT_WARN, L"AttachSSL QueryContextAttributes(SECPKG_ATTR_STREAM_SIZES) error: %08x.\n", ss);
+		return FALSE;
+	}
+	std::lock_guard<std::mutex> lock_guard{ context_mutex };
+	contexts.emplace(std::piecewise_construct, std::forward_as_tuple(s), std::forward_as_tuple(wServerName, context, streamSizes, extra));
+	_RPTW0(_CRT_WARN, L"AttachSSL success.\n");
+	return TRUE;
+}
+
+// SSLとしてマークされているか確認
+// マークされていればTRUEを返す
+BOOL IsSSLAttached(SOCKET s) {
+	return getContext(s) != nullptr;
+}
+
+static int FTPS_recv(SOCKET s, char* buf, int len, int flags) {
+	assert(flags == 0 || flags == MSG_PEEK);
+	auto context = getContext(s);
+	if (!context)
+		return recv(s, buf, len, flags);
+
+	if (empty(context->readPlain)) {
+		auto offset = size_as<int>(context->readRaw);
+		context->readRaw.resize(context->streamSizes.cbHeader + context->streamSizes.cbMaximumMessage + context->streamSizes.cbTrailer);
+		auto read = recv(s, data(context->readRaw) + offset, size_as<int>(context->readRaw) - offset, 0);
+		if (read <= 0) {
+			context->readRaw.resize(offset);
+			if (read == 0)
+				_RPTW0(_CRT_WARN, L"FTPS_recv recv: connection closed.\n");
+#ifdef _DEBUG
+			else if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK)
+				_RPTWN(_CRT_WARN, L"FTPS_recv recv error: %d.\n", lastError);
+#endif
+			return read;
+		}
+		_RPTWN(_CRT_WARN, L"FTPS_recv recv: %d bytes.\n", read);
+		context->readRaw.resize(offset + read);
+		context->Decypt();
+	}
+
+	if (empty(context->readPlain))
+		// TODO: recv()の読み出し量が少ないとSEC_E_INCOMPLETE_MESSAGEが発生してしまう。
+		return context->readStatus == SEC_I_CONTEXT_EXPIRED ? 0 : SOCKET_ERROR;
+	len = std::min(len, size_as<int>(context->readPlain));
+	std::copy_n(begin(context->readPlain), len, buf);
+	if ((flags & MSG_PEEK) == 0)
+		context->readPlain.erase(begin(context->readPlain), begin(context->readPlain) + len);
+	_RPTWN(_CRT_WARN, L"FTPS_recv read: %d bytes.\n", len);
+	return len;
+}
 
 
 /*----- 
@@ -899,58 +1169,20 @@ SOCKET do_socket(int af, int type, int protocol)
 }
 
 
-
-int do_closesocket(SOCKET s)
-{
-#if USE_THIS
-	int Ret;
-	int Error;
-	int CancelCheckWork;
-
-#if DBG_MSG
-	DoPrintf("# Start close (S=%x)", s);
-#endif
-	CancelCheckWork = NO;
-
-	// スレッド衝突のバグ修正
+int do_closesocket(SOCKET s) {
 	WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, 0);
 	UnregisterAsyncTable(s);
-	// FTPS対応
-//	Ret = closesocket(s);
-	Ret = FTPS_closesocket(s);
-	if(Ret == SOCKET_ERROR)
-	{
-		Error = 0;
-		while((CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_CLOSE) != YES))
-		{
-			Sleep(1);
-			if(BackgrndMessageProc() == YES)
-				CancelCheckWork = YES;
-		}
-
-		if((CancelCheckWork == NO) && (Error == 0))
-			Ret = 0;
+	DetachSSL(s);
+	if (int result = closesocket(s); result != SOCKET_ERROR)
+		return result;
+	for (;;) {
+		if (int error = 0; AskAsyncDone(s, &error, FD_CLOSE) == YES)
+			return error == 0 ? 0 : SOCKET_ERROR;
+		Sleep(1);
+		if (BackgrndMessageProc() == YES)
+			return SOCKET_ERROR;
 	}
-
-	// スレッド衝突のバグ修正
-//	WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, 0);
-	if(BackgrndMessageProc() == YES)
-		CancelCheckWork = YES;
-	// スレッド衝突のバグ修正
-//	UnregisterAsyncTable(s);
-
-#if DBG_MSG
-	DoPrintf("# Exit close");
-#endif
-	return(Ret);
-#else
-	return(closesocket(s));
-#endif
 }
-
-
-
-
 
 
 int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCheckWork)
@@ -1102,233 +1334,66 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 }
 
 
-
-
-/*----- recv相当の関数 --------------------------------------------------------
-*
-*	Parameter
-*		SOCKET s : ソケット
-*		char *buf : データを読み込むバッファ
-*		int len : 長さ
-*		int flags : recvに与えるフラグ
-*		int *TimeOutErr : タイムアウトしたかどうかを返すワーク
-*
-*	Return Value
-*		int : recvの戻り値と同じ
-*
-*	Note
-*		タイムアウトの時は TimeOut=YES、Ret=SOCKET_ERROR になる
-*----------------------------------------------------------------------------*/
-int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *CancelCheckWork)
-{
-#if USE_THIS
-	int Ret;
-	time_t StartTime;
-	time_t ElapseTime;
-	int Error;
-
-#if DBG_MSG
-	DoPrintf("# Start recv (S=%x)", s);
-#endif
+int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *CancelCheckWork) {
+	if (*CancelCheckWork != NO)
+		return SOCKET_ERROR;
+	auto endTime = TimeOut != 0 ? std::make_optional(std::chrono::steady_clock::now() + std::chrono::seconds(TimeOut)) : std::nullopt;
 	*TimeOutErr = NO;
-	// 同時接続対応
-//	*CancelCheckWork = NO;
-	Ret = SOCKET_ERROR;
-	Error = 0;
-
-	if(TimeOut != 0)
-		time(&StartTime);
-
-	// FTPS対応
-	// OpenSSLでは受信確認はFD_READが複数回受信される可能性がある
-//	while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_READ) != YES))
-	// 短時間にFD_READが2回以上通知される対策
-//	while(!IsSSLAttached(s) && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_READ) != YES))
-//	{
-//		if(AskAsyncDone(s, &Error, FD_CLOSE) == YES)
-//		{
-//			Ret = 0;
-//			break;
-//		}
-//		Sleep(1);
-//		if(BackgrndMessageProc() == YES)
-//			*CancelCheckWork = YES;
-//		else if(TimeOut != 0)
-//		{
-//			time(&ElapseTime);
-//			ElapseTime -= StartTime;
-//			if(ElapseTime >= TimeOut)
-//			{
-//				DoPrintf("do_recv timed out");
-//				*TimeOutErr = YES;
-//				*CancelCheckWork = YES;
-//			}
-//		}
-//	}
-
-	if(/*(Ret != 0) && */(Error == 0) && (*CancelCheckWork == NO) && (*TimeOutErr == NO))
-	{
-		do
-		{
-#if DBG_MSG
-			DoPrintf("## recv()");
-#endif
-
-			// FTPS対応
-//			Ret = recv(s, buf, len, flags);
-			Ret = FTPS_recv(s, buf, len, flags);
-			if(Ret != SOCKET_ERROR)
-				break;
-			Error = WSAGetLastError();
-			Sleep(1);
-			if(BackgrndMessageProc() == YES)
-				break;
-			// FTPS対応
-			// 受信確認をバイパスしたためここでタイムアウトの確認
-			if(BackgrndMessageProc() == YES)
-				*CancelCheckWork = YES;
-			else if(TimeOut != 0)
-			{
-				time(&ElapseTime);
-				ElapseTime -= StartTime;
-				if(ElapseTime >= TimeOut)
-				{
-					DoPrintf("do_recv timed out");
-					*TimeOutErr = YES;
-					*CancelCheckWork = YES;
-				}
-			}
-			if(*CancelCheckWork == YES)
-				break;
+	for (;;) {
+		if (auto read = FTPS_recv(s, buf, len, flags); read != SOCKET_ERROR)
+			return read;
+		if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK)
+			return SOCKET_ERROR;
+		Sleep(1);
+		if (BackgrndMessageProc() == YES)
+			return SOCKET_ERROR;
+		if (endTime && *endTime < std::chrono::steady_clock::now()) {
+			DoPrintf("do_recv timed out");
+			*TimeOutErr = YES;
+			*CancelCheckWork = YES;
+			return SOCKET_ERROR;
 		}
-		while(Error == WSAEWOULDBLOCK);
+		if (*CancelCheckWork == YES)
+			return SOCKET_ERROR;
 	}
-
-	if(BackgrndMessageProc() == YES)
-		Ret = SOCKET_ERROR;
-
-#if DBG_MSG
-	DoPrintf("# Exit recv (%d)", Ret);
-#endif
-	return(Ret);
-#else
-	return(recv(s, buf, len, flags));
-#endif
 }
 
 
-
-int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int *CancelCheckWork)
-{
-#if USE_THIS
-	int Ret;
-	time_t StartTime;
-	time_t ElapseTime;
-	int Error;
-
-#if DBG_MSG
-	DoPrintf("# Start send (S=%x)", s);
-#endif
-	*TimeOutErr = NO;
-	// 同時接続対応
-//	*CancelCheckWork = NO;
-	Ret = SOCKET_ERROR;
-	Error = 0;
-
-	if(TimeOut != 0)
-		time(&StartTime);
-
-#if DBG_MSG
-	DoPrintf("## Async set: FD_CONNECT|FD_CLOSE|FD_ACCEPT|FD_READ|FD_WRITE");
-#endif
-	// Windows 2000でFD_WRITEが通知されないことがあるバグ修正
-	// 毎回通知されたのはNT 4.0までのバグであり仕様ではない
-	// XP以降は互換性のためか毎回通知される
-//	WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT | FD_READ | FD_WRITE);
-	if(BackgrndMessageProc() == YES)
-		*CancelCheckWork = YES;
-
-	// FTPS対応
-	// 送信バッファの空き確認には影響しないが念のため
-//	while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE) != YES))
-	// Windows 2000でFD_WRITEが通知されないことがあるバグ修正
-//	while(!IsSSLAttached(s) && (*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_WRITE) != YES))
-//	{
-//		if(AskAsyncDone(s, &Error, FD_CLOSE) == YES)
-//		{
-//			Error = 1;
-//			break;
-//		}
-//
-//		Sleep(1);
-//		if(BackgrndMessageProc() == YES)
-//			*CancelCheckWork = YES;
-//		else if(TimeOut != 0)
-//		{
-//			time(&ElapseTime);
-//			ElapseTime -= StartTime;
-//			if(ElapseTime >= TimeOut)
-//			{
-//				DoPrintf("do_write timed out");
-//				*TimeOutErr = YES;
-//				*CancelCheckWork = YES;
-//			}
-//		}
-//	}
-
-	if((Error == 0) && (*CancelCheckWork == NO) && (*TimeOutErr == NO))
-	{
-		do
-		{
-#if DBG_MSG
-			DoPrintf("## send()");
-#endif
-
-			// FTPS対応
-//			Ret = send(s, buf, len, flags);
-			Ret = FTPS_send(s, buf, len, flags);
-			if(Ret != SOCKET_ERROR)
-			{
-#if DBG_MSG
-				DoPrintf("## send() OK");
-#endif
-				break;
-			}
-			Error = WSAGetLastError();
-			Sleep(1);
-			if(BackgrndMessageProc() == YES)
-				break;
-			// FTPS対応
-			// 送信バッファ確認をバイパスしたためここでタイムアウトの確認
-			if(BackgrndMessageProc() == YES)
-				*CancelCheckWork = YES;
-			else if(TimeOut != 0)
-			{
-				time(&ElapseTime);
-				ElapseTime -= StartTime;
-				if(ElapseTime >= TimeOut)
-				{
-					DoPrintf("do_recv timed out");
-					*TimeOutErr = YES;
-					*CancelCheckWork = YES;
-				}
-			}
-			if(*CancelCheckWork == YES)
-				break;
-		}
-		while(Error == WSAEWOULDBLOCK);
+int do_send(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork) {
+	// バッファの構築、SSLの場合には暗号化を行う
+	std::vector<char> work;
+	std::string_view buffer(buf, len);
+	if (auto context = getContext(s); context) {
+		if (work = context->Encrypt(buffer); empty(work))
+			return WSAEFAULT;
+		buffer = std::string_view{ data(work), size(work) };
 	}
 
-	if(BackgrndMessageProc() == YES)
-		Ret = SOCKET_ERROR;
-
-#if DBG_MSG
-	DoPrintf("# Exit send (%d)", Ret);
-#endif
-	return(Ret);
-#else
-	return(send(s, buf, len, flags));
-#endif
+	// SSLの場合には暗号化されたバッファなため、全てのデータを送信するまで繰り返す必要がある（途中で中断しても再開しようがない）
+	if (*CancelCheckWork != NO)
+		return WSAECONNABORTED;
+	auto endTime = TimeOut != 0 ? std::make_optional(std::chrono::steady_clock::now() + std::chrono::seconds(TimeOut)) : std::nullopt;
+	do {
+		auto sent = send(s, data(buffer), size_as<int>(buffer), flags);
+		if (0 < sent)
+			buffer = buffer.substr(sent);
+		else if (sent == 0) {
+			_RPTW0(_CRT_WARN, L"do_send: connection closed.\n");
+			return WSAEDISCON;
+		} else if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
+			_RPTWN(_CRT_WARN, L"do_send error: %d.\n", lastError);
+			return lastError;
+		}
+		Sleep(1);
+		if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
+			return WSAECONNABORTED;
+		if (endTime && *endTime < std::chrono::steady_clock::now()) {
+			DoPrintf("do_recv timed out");
+			*CancelCheckWork = YES;
+			return WSAETIMEDOUT;
+		}
+	} while (!empty(buffer));
+	return ERROR_SUCCESS;
 }
 
 

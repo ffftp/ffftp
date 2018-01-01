@@ -1189,7 +1189,6 @@ typedef struct {
 	int UseFTPIS;						/* FTPISで接続する (YES/NO) */
 	int UseSFTP;						/* SFTPで接続する (YES/NO) */
 	char PrivateKey[PRIVATE_KEY_LEN+1];	/* テキスト形式の秘密鍵 */
-	int NoWeakEncryption;				/* 弱い暗号を拒否 (YES/NO) */
 	// 同時接続対応
 	int MaxThreadCount;					/* 同時接続数 */
 	int ReuseCmdSkt;					/* メインウィンドウのソケットを再利用する (YES/NO) */
@@ -1260,7 +1259,6 @@ typedef struct historydata {
 	int UseFTPIS;						/* FTPISで接続する (YES/NO) */
 	int UseSFTP;						/* SFTPで接続する (YES/NO) */
 	char PrivateKey[PRIVATE_KEY_LEN+1];	/* テキスト形式の秘密鍵 */
-	int NoWeakEncryption;				/* 弱い暗号を拒否 (YES/NO) */
 	// 同時接続対応
 	int MaxThreadCount;					/* 同時接続数 */
 	int ReuseCmdSkt;					/* メインウィンドウのソケットを再利用する (YES/NO) */
@@ -1543,10 +1541,7 @@ int AskForceIni(void);
 int BackgrndMessageProc(void);
 void ResetAutoExitFlg(void);
 int AskAutoExit(void);
-// 暗号化通信対応
-BOOL __stdcall SSLTimeoutCallback(BOOL* pbAborted);
-BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName);
-BOOL LoadSSLRootCAFile();
+bool ConfirmCertificate(const wchar_t* serverName, BOOL* pbAborted);
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 BOOL IsMainThread();
 // ポータブル版判定
@@ -2120,6 +2115,10 @@ int CopyStrToClipBoard(char *Str);
 
 /*===== socket.c =====*/
 
+BOOL LoadSSL();
+void FreeSSL();
+BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName);
+BOOL IsSSLAttached(SOCKET s);
 int MakeSocketWin(HWND hWnd, HINSTANCE hInst);
 void DeleteSocketWin(void);
 // ソケットにデータを付与
@@ -2139,7 +2138,7 @@ int do_closesocket(SOCKET s);
 int do_listen(SOCKET s,	int backlog);
 SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen);
 int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOut, int *CancelCheckWork);
-int do_send(SOCKET s, const char *buf, int len, int flags, int *TimeOutErr, int *CancelCheckWork);
+int do_send(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork);
 // 同時接続対応
 void RemoveReceivedData(SOCKET s);
 // UPnP対応

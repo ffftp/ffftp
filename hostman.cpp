@@ -1058,7 +1058,6 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 		Set->UseFTPIS = Pos->Set.UseFTPIS;
 		Set->UseSFTP = Pos->Set.UseSFTP;
 		strcpy(Set->PrivateKey, Pos->Set.PrivateKey);
-		Set->NoWeakEncryption = Pos->Set.NoWeakEncryption;
 		// 同時接続対応
 		Set->MaxThreadCount = Pos->Set.MaxThreadCount;
 		Set->ReuseCmdSkt = Pos->Set.ReuseCmdSkt;
@@ -1414,7 +1413,6 @@ void CopyDefaultDefaultHost(HOSTDATA *Set)
 	Set->UseFTPIS = YES;
 	Set->UseSFTP = YES;
 	strcpy(Set->PrivateKey, "");
-	Set->NoWeakEncryption = YES;
 	// 同時接続対応
 	Set->MaxThreadCount = 1;
 	Set->ReuseCmdSkt = YES;
@@ -2334,23 +2332,12 @@ static INT_PTR CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam
 	{
 		case WM_INITDIALOG :
 			SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_SETCHECK, TmpHost.UseNoEncryption, 0);
-			if(IsOpenSSLLoaded())
-			{
-				SendDlgItemMessage(hDlg, HSET_FTPES, BM_SETCHECK, TmpHost.UseFTPES, 0);
-				SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, TmpHost.UseFTPIS, 0);
-			}
-			else
-			{
-				SendDlgItemMessage(hDlg, HSET_FTPES, BM_SETCHECK, BST_UNCHECKED, 0);
-				EnableWindow(GetDlgItem(hDlg, HSET_FTPES), FALSE);
-				SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, BST_UNCHECKED, 0);
-				EnableWindow(GetDlgItem(hDlg, HSET_FTPIS), FALSE);
-			}
+			SendDlgItemMessage(hDlg, HSET_FTPES, BM_SETCHECK, TmpHost.UseFTPES, 0);
+			SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, TmpHost.UseFTPIS, 0);
 			SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, BST_UNCHECKED, 0);
 			EnableWindow(GetDlgItem(hDlg, HSET_SFTP), FALSE);
 			EnableWindow(GetDlgItem(hDlg, PKEY_FILE_BR), FALSE);
 			EnableWindow(GetDlgItem(hDlg, HSET_PRIVATE_KEY), FALSE);
-			SendDlgItemMessage(hDlg, HSET_NO_WEAK, BM_SETCHECK, TmpHost.NoWeakEncryption, 0);
 			return(TRUE);
 
 		case WM_NOTIFY:
@@ -2359,12 +2346,8 @@ static INT_PTR CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam
 			{
 				case PSN_APPLY :
 					TmpHost.UseNoEncryption = (int)SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_GETCHECK, 0, 0);
-					if(IsOpenSSLLoaded())
-					{
-						TmpHost.UseFTPES = (int)SendDlgItemMessage(hDlg, HSET_FTPES, BM_GETCHECK, 0, 0);
-						TmpHost.UseFTPIS = (int)SendDlgItemMessage(hDlg, HSET_FTPIS, BM_GETCHECK, 0, 0);
-					}
-					TmpHost.NoWeakEncryption = (int)SendDlgItemMessage(hDlg, HSET_NO_WEAK, BM_GETCHECK, 0, 0);
+					TmpHost.UseFTPES = (int)SendDlgItemMessage(hDlg, HSET_FTPES, BM_GETCHECK, 0, 0);
+					TmpHost.UseFTPIS = (int)SendDlgItemMessage(hDlg, HSET_FTPIS, BM_GETCHECK, 0, 0);
 					Apply = YES;
 					break;
 

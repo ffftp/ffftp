@@ -310,17 +310,13 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN315 (std::data(msgs[10000+315])) /* FTP over Explicit SSL/TLS (FTPES)を使用します. */
 #define MSGJPN316 (std::data(msgs[10000+316])) /* FTP over Implicit SSL/TLS (FTPIS)を使用します. */
 #define MSGJPN317 (std::data(msgs[10000+317])) /* SSH FTP (SFTP)を使用します. */
-#define MSGJPN318 (std::data(msgs[10000+318])) /* OpenSSLが読み込まれました. */
-#define MSGJPN319 (std::data(msgs[10000+319])) /* OpenSSLがインストールされていません.\r\n通信の暗号化は行われません. */
 #define MSGJPN320 (std::data(msgs[10000+320])) /* 特殊機能 */
 #define MSGJPN321 (std::data(msgs[10000+321])) /* プロセスの保護に必要な関数を取得できませんでした. */
 #define MSGJPN322 (std::data(msgs[10000+322])) /* デバッガが検出されました. */
 #define MSGJPN323 (std::data(msgs[10000+323])) /* 信頼できないDLLをアンロードできませんでした. */
 #define MSGJPN324 (std::data(msgs[10000+324])) /* プロセスの保護に必要な関数をフックできませんでした. */
 #define MSGJPN325 (std::data(msgs[10000+325])) /* 新しいマスターパスワードが一致しません. */
-#define MSGJPN326 (std::data(msgs[10000+326])) /* この証明書を信頼し,通信を続行するには「はい」を選択してください.\r\nCNの一致: %s\r\n検証に成功: %s\r\n\r\n%s */
-#define MSGJPN327 (std::data(msgs[10000+327])) /* はい */
-#define MSGJPN328 (std::data(msgs[10000+328])) /* いいえ */
+#define MSGJPN326 (std::data(msgs[10000+326])) /* 証明書の検証に失敗しました. この証明書を信頼し,通信を続行するには「はい」を選択してください.\r\nサーバー名: %s */
 #define MSGJPN329 (std::data(msgs[10000+329])) /* UTF-8 BOM */
 #define MSGJPN330 (std::data(msgs[10000+330])) /* ホストの漢字コードはUTF-8 BOM */
 #define MSGJPN331 (std::data(msgs[10000+331])) /* ローカルの漢字コードはUTF-8 BOM */

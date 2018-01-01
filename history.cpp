@@ -216,7 +216,6 @@ static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
 	New->UseFTPIS = Host->UseFTPIS;
 	New->UseSFTP = Host->UseSFTP;
 	strcpy(New->PrivateKey, Host->PrivateKey);
-	New->NoWeakEncryption = Host->NoWeakEncryption;
 	// 同時接続対応
 	New->MaxThreadCount = Host->MaxThreadCount;
 	New->ReuseCmdSkt = Host->ReuseCmdSkt;
@@ -286,7 +285,6 @@ void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
 	Host->UseFTPIS = Hist->UseFTPIS;
 	Host->UseSFTP = Hist->UseSFTP;
 	strcpy(Host->PrivateKey, Hist->PrivateKey);
-	Host->NoWeakEncryption = Hist->NoWeakEncryption;
 	// 同時接続対応
 	Host->MaxThreadCount = Hist->MaxThreadCount;
 	Host->ReuseCmdSkt = Hist->ReuseCmdSkt;

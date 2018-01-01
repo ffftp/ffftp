@@ -184,9 +184,6 @@ extern int MirDownDelNotify;
 extern int FolderAttr;
 extern int FolderAttrNum;
 
-// 暗号化通信対応
-extern BYTE CertificateCacheHash[MAX_CERT_CACHE_HASH][20];
-extern BYTE SSLRootCAFileHash[20];
 // ファイルアイコン表示対応
 extern int DispFileIcon;
 // タイムスタンプのバグ修正
@@ -626,7 +623,6 @@ void SaveRegistry(void)
 							SaveIntNum(hKey5, "SFTP", Hist.UseSFTP, DefaultHist.UseSFTP);
 							EncodePassword(Hist.PrivateKey, Str);
 							SaveStr(hKey5, "PKey", Str, DefaultHist.PrivateKey);
-							SaveIntNum(hKey5, "NoWeak", Hist.NoWeakEncryption, DefaultHist.NoWeakEncryption);
 							// 同時接続対応
 							SaveIntNum(hKey5, "ThreadCount", Hist.MaxThreadCount, DefaultHist.MaxThreadCount);
 							SaveIntNum(hKey5, "ReuseCmdSkt", Hist.ReuseCmdSkt, DefaultHist.ReuseCmdSkt);
@@ -705,7 +701,6 @@ void SaveRegistry(void)
 					SaveIntNum(hKey5, "SFTP", Host.UseSFTP, DefaultHost.UseSFTP);
 					EncodePassword(Host.PrivateKey, Str);
 					SaveStr(hKey5, "PKey", Str, DefaultHost.PrivateKey);
-					SaveIntNum(hKey5, "NoWeak", Host.NoWeakEncryption, DefaultHost.NoWeakEncryption);
 					SaveIntNum(hKey5, "ThreadCount", Host.MaxThreadCount, DefaultHost.MaxThreadCount);
 					SaveIntNum(hKey5, "ReuseCmdSkt", Host.ReuseCmdSkt, DefaultHost.ReuseCmdSkt);
 					SaveIntNum(hKey5, "MLSD", Host.UseMLSD, DefaultHost.UseMLSD);
@@ -776,7 +771,6 @@ void SaveRegistry(void)
 							SaveIntNum(hKey5, "SFTP", Host.UseSFTP, DefaultHost.UseSFTP);
 							EncodePassword(Host.PrivateKey, Str);
 							SaveStr(hKey5, "PKey", Str, DefaultHost.PrivateKey);
-							SaveIntNum(hKey5, "NoWeak", Host.NoWeakEncryption, DefaultHost.NoWeakEncryption);
 							// 同時接続対応
 							SaveIntNum(hKey5, "ThreadCount", Host.MaxThreadCount, DefaultHost.MaxThreadCount);
 							SaveIntNum(hKey5, "ReuseCmdSkt", Host.ReuseCmdSkt, DefaultHost.ReuseCmdSkt);
@@ -810,12 +804,6 @@ void SaveRegistry(void)
 					i = 0;
 				WriteIntValueToReg(hKey4, "CurSet", i);
 
-				// 暗号化通信対応
-				WriteBinaryToReg(hKey4, "CertCacheHash", &CertificateCacheHash, sizeof(CertificateCacheHash));
-				strcpy(Buf, "");
-				StrCatOut((char*)&SSLRootCAFileHash, sizeof(SSLRootCAFileHash), Buf);
-				EncodePassword(Buf, Str);
-				WriteStringToReg(hKey4, "RootCertHash", Str);
 				// ファイルアイコン表示対応
 				WriteIntValueToReg(hKey4, "ListIcon", DispFileIcon);
 				// タイムスタンプのバグ修正
@@ -1202,7 +1190,6 @@ int LoadRegistry(void)
 					strcpy(Str, "");
 					ReadStringFromReg(hKey5, "PKey", Str, PRIVATE_KEY_LEN*4+1);
 					DecodePassword(Str, Hist.PrivateKey);
-					ReadIntValueFromReg(hKey5, "NoWeak", &Hist.NoWeakEncryption);
 					// 同時接続対応
 					ReadIntValueFromReg(hKey5, "ThreadCount", &Hist.MaxThreadCount);
 					ReadIntValueFromReg(hKey5, "ReuseCmdSkt", &Hist.ReuseCmdSkt);
@@ -1274,7 +1261,6 @@ int LoadRegistry(void)
 				strcpy(Str, "");
 				ReadStringFromReg(hKey5, "PKey", Str, PRIVATE_KEY_LEN*4+1);
 				DecodePassword(Str, Host.PrivateKey);
-				ReadIntValueFromReg(hKey5, "NoWeak", &Host.NoWeakEncryption);
 				ReadIntValueFromReg(hKey5, "ThreadCount", &Host.MaxThreadCount);
 				ReadIntValueFromReg(hKey5, "ReuseCmdSkt", &Host.ReuseCmdSkt);
 				ReadIntValueFromReg(hKey5, "MLSD", &Host.UseMLSD);
@@ -1367,7 +1353,6 @@ int LoadRegistry(void)
 					strcpy(Str, "");
 					ReadStringFromReg(hKey5, "PKey", Str, PRIVATE_KEY_LEN*4+1);
 					DecodePassword(Str, Host.PrivateKey);
-					ReadIntValueFromReg(hKey5, "NoWeak", &Host.NoWeakEncryption);
 					// 同時接続対応
 					ReadIntValueFromReg(hKey5, "ThreadCount", &Host.MaxThreadCount);
 					ReadIntValueFromReg(hKey5, "ReuseCmdSkt", &Host.ReuseCmdSkt);
@@ -1398,11 +1383,6 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "CurSet", &Sets);
 			SetCurrentHost(Sets);
 
-			// 暗号化通信対応
-			ReadBinaryFromReg(hKey4, "CertCacheHash", &CertificateCacheHash, sizeof(CertificateCacheHash));
-			ReadStringFromReg(hKey4, "RootCertHash", Str, PRIVATE_KEY_LEN*4+1);
-			DecodePassword(Str, Buf);
-			StrReadIn(Buf, sizeof(SSLRootCAFileHash), (char*)&SSLRootCAFileHash);
 			// ファイルアイコン表示対応
 			ReadIntValueFromReg(hKey4, "ListIcon", &DispFileIcon);
 			// タイムスタンプのバグ修正
@@ -3988,10 +3968,6 @@ void SaveSettingsToWinSCPIni()
 							break;
 						}
 					}
-					if(Host.NoWeakEncryption == YES)
-						fprintf(f, "MinTlsVersion=%s\n", "10");
-					else
-						fprintf(f, "MinTlsVersion=%s\n", "3");
 					fputs("Password=", f);
 					WriteWinSCPPassword(f, Host.UserName, Host.HostAdrs, Host.PassWord);
 					fputs("\n", f);

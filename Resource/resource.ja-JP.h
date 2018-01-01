@@ -118,6 +118,7 @@
 #define corruptsettings_dlg             198
 #define IDS_APP                         200
 #define IDS_ERR_CRYPTO                  201
+#define IDS_ERR_SSL                     202
 #define TRANS_TIME_BAR                  1002
 #define TRANS_TEXT                      1003
 #define TRANS_REMOTE                    1003
@@ -459,7 +460,6 @@
 #define TRMODE4_UTF8BOM_CNV             1219
 #define HSET_ERROR_RECONNECT            1220
 #define HSET_FN_UTF8HFSX_CNV            1221
-#define HSET_NO_WEAK                    1226
 #define HOST_SET_DEFAULT                1227
 #define TRMODE_LISTERROR                1228
 #define MIRROR_NO_TRANSFER              1229
@@ -773,8 +773,6 @@
 #define IDS_MSGJPN315                   10315
 #define IDS_MSGJPN316                   10316
 #define IDS_MSGJPN317                   10317
-#define IDS_MSGJPN318                   10318
-#define IDS_MSGJPN319                   10319
 #define IDS_MSGJPN320                   10320
 #define IDS_MSGJPN321                   10321
 #define IDS_MSGJPN322                   10322
@@ -782,8 +780,6 @@
 #define IDS_MSGJPN324                   10324
 #define IDS_MSGJPN325                   10325
 #define IDS_MSGJPN326                   10326
-#define IDS_MSGJPN327                   10327
-#define IDS_MSGJPN328                   10328
 #define IDS_MSGJPN329                   10329
 #define IDS_MSGJPN330                   10330
 #define IDS_MSGJPN331                   10331

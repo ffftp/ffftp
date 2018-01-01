@@ -252,7 +252,6 @@ BEGIN
     EDITTEXT        ABOUT_URL,7,76,305,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,143,305,60
     CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,111,305,27
-    CTEXT           "FTP over SSL/TLSの実装にはOpenSSLを使用しています。\nCopyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.",-1,7,207,305,60
 END
 
 transfer_dlg DIALOG 0, 0, 199, 91
@@ -1371,7 +1370,6 @@ BEGIN
     LTEXT           "秘密鍵のテキスト",-1,7,63,64,8
     PUSHBUTTON      "...",PKEY_FILE_BR,72,63,13,12
     EDITTEXT        HSET_PRIVATE_KEY,7,79,193,44,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
-    CONTROL         "弱い暗号化方式を使用しない(&W)",HSET_NO_WEAK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,127,148,10
 END
 
 hset_adv3_dlg DIALOG 0, 0, 207, 155
@@ -2671,8 +2669,6 @@ BEGIN
     IDS_MSGJPN315           "FTP over Explicit SSL/TLS (FTPES)を使用します."
     IDS_MSGJPN316           "FTP over Implicit SSL/TLS (FTPIS)を使用します."
     IDS_MSGJPN317           "SSH FTP (SFTP)を使用します."
-    IDS_MSGJPN318           "OpenSSLが読み込まれました."
-    IDS_MSGJPN319           "OpenSSLがインストールされていません.\r\n通信の暗号化は行われません."
 END
 
 STRINGTABLE
@@ -2683,9 +2679,7 @@ BEGIN
     IDS_MSGJPN323           "信頼できないDLLをアンロードできませんでした."
     IDS_MSGJPN324           "プロセスの保護に必要な関数をフックできませんでした."
     IDS_MSGJPN325           "新しいマスターパスワードが一致しません."
-    IDS_MSGJPN326           "この証明書を信頼し,通信を続行するには「はい」を選択してください.\r\nCNの一致: %s\r\n検証に成功: %s\r\n\r\n%s"
-    IDS_MSGJPN327           "はい"
-    IDS_MSGJPN328           "いいえ"
+    IDS_MSGJPN326           "証明書の検証に失敗しました. この証明書を信頼し,通信を続行するには「はい」を選択してください.\r\nサーバー名: %s"
     IDS_MSGJPN329           "UTF-8 BOM"
     IDS_MSGJPN330           "ホストの漢字コードはUTF-8 BOM"
     IDS_MSGJPN331           "ローカルの漢字コードはUTF-8 BOM"
@@ -2738,6 +2732,7 @@ STRINGTABLE
 BEGIN
     IDS_APP                 "FFFTP"
     IDS_ERR_CRYPTO          "暗号ライブラリの初期化に失敗しました.\nアプリケーションを終了します."
+    IDS_ERR_SSL             "SSLの初期化に失敗しました.\nアプリケーションを終了します."
 END
 
 #endif    // Japanese (Japan) resources
