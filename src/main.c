@@ -294,6 +294,8 @@ int AbortOnListError = YES;
 int MirrorNoTransferContents = NO; 
 // FireWall設定追加
 int FwallNoSaveUser = NO; 
+// ゾーンID設定追加
+int MarkAsInternet = NO; 
 
 
 
@@ -416,6 +418,8 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	LoadUPnP();
 	// タスクバー進捗表示
 	LoadTaskbarList3();
+	// ゾーンID設定追加
+	LoadZoneID();
 
 	// UTF-8対応
 	LoadUnicodeNormalizationDll();
@@ -524,6 +528,8 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 #ifdef USE_OPENSSL
 	FreeOpenSSL();
 #endif
+	// ゾーンID設定追加
+	FreeZoneID();
 	// タスクバー進捗表示
 	FreeTaskbarList3();
 	// UPnP対応
@@ -2117,6 +2123,12 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			ReconnectProc();
 			break;
 
+		// ゾーンID設定追加
+		case WM_MARKFILEASDOWNLOADEDFROMINTERNET :
+			((MARKFILEASDOWNLOADEDFROMINTERNETDATA*)lParam)->r = MarkFileAsDownloadedFromInternet(((MARKFILEASDOWNLOADEDFROMINTERNETDATA*)lParam)->Fname);
+			SetEvent(((MARKFILEASDOWNLOADEDFROMINTERNETDATA*)lParam)->h);
+			break;
+
 		case WM_PAINT :
 			BeginPaint(hWnd, (LPPAINTSTRUCT) &ps);
 			EndPaint(hWnd, (LPPAINTSTRUCT) &ps);
@@ -2746,6 +2758,9 @@ void DoubleClickProc(int Win, int Mode, int App)
 									// 同時接続対応
 									CancelFlg = NO;
 									Sts = DoDownload(AskCmdCtrlSkt(), &MainTransPkt, NO, &CancelFlg);
+									// ゾーンID設定追加
+									if(MarkAsInternet == YES && IsZoneIDLoaded() == YES)
+										MarkFileAsDownloadedFromInternet(Remote);
 //								}
 							}
 

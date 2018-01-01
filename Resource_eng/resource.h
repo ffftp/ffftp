@@ -474,6 +474,7 @@
 #define TRMODE_LISTERROR                1228
 #define MIRROR_NO_TRANSFER              1229
 #define HSET_NO_PASV_ADRS               1230
+#define TRMODE4_MARK_INTERNET           1231
 #define MENU_END                        40001
 #define MENU_EXIT                       40001
 #define MENU_CONNECT                    40003
@@ -667,7 +668,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        200
 #define _APS_NEXT_COMMAND_VALUE         40183
-#define _APS_NEXT_CONTROL_VALUE         1231
+#define _APS_NEXT_CONTROL_VALUE         1232
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

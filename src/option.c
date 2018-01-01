@@ -195,9 +195,11 @@ extern int AutoCheckForUptatesInterval;
 // ファイル一覧バグ修正
 extern int AbortOnListError;
 // ミラーリング設定追加
-extern int MirrorNoTransferContents; 
+extern int MirrorNoTransferContents;
 // FireWall設定追加
-extern int FwallNoSaveUser; 
+extern int FwallNoSaveUser;
+// ゾーンID設定追加
+extern int MarkAsInternet;
 
 
 /*----- オプションのプロパティシート ------------------------------------------
@@ -825,6 +827,14 @@ static INT_PTR CALLBACK Trmode4SettingProc(HWND hDlg, UINT message, WPARAM wPara
 	{
 		case WM_INITDIALOG :
 			SetRadioButtonByValue(hDlg, AskLocalKanjiCode(), KanjiButton, KANJIBUTTONS);
+			// ゾーンID設定追加
+			if(IsZoneIDLoaded())
+				SendDlgItemMessage(hDlg, TRMODE4_MARK_INTERNET, BM_SETCHECK, MarkAsInternet, 0);
+			else
+			{
+				SendDlgItemMessage(hDlg, TRMODE4_MARK_INTERNET, BM_SETCHECK, BST_UNCHECKED, 0);
+				EnableWindow(GetDlgItem(hDlg, TRMODE4_MARK_INTERNET), FALSE);
+			}
 
 			return(TRUE);
 
@@ -835,6 +845,9 @@ static INT_PTR CALLBACK Trmode4SettingProc(HWND hDlg, UINT message, WPARAM wPara
 				case PSN_APPLY :
 					SetLocalKanjiCodeImm(AskRadioButtonValue(hDlg, KanjiButton, KANJIBUTTONS));
 					SaveLocalKanjiCode();
+					// ゾーンID設定追加
+					if(IsZoneIDLoaded())
+						MarkAsInternet = SendDlgItemMessage(hDlg, TRMODE4_MARK_INTERNET, BM_GETCHECK, 0, 0);
 					break;
 
 				case PSN_RESET :

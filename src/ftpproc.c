@@ -113,7 +113,7 @@ extern int MakeAllDir;
 // ファイル一覧バグ修正
 extern int AbortOnListError;
 // ミラーリング設定追加
-extern int MirrorNoTransferContents; 
+extern int MirrorNoTransferContents;
 // タイムスタンプのバグ修正
 extern int DispTimeSeconds;
 

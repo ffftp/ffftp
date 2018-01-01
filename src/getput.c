@@ -41,6 +41,9 @@
 #include <string.h>
 #include <mbstring.h>
 #include <time.h>
+// ゾーンID設定追加
+#undef _WIN32_IE
+#define _WIN32_IE _WIN32_IE_IE60SP2
 // IPv6対応
 //#include <winsock.h>
 #include <winsock2.h>
@@ -176,6 +179,9 @@ static int TransferErrorNotify = NO;
 static LONGLONG TransferSizeLeft = 0;
 static LONGLONG TransferSizeTotal = 0;
 static int TransferErrorDisplay = 0;
+// ゾーンID設定追加
+IZoneIdentifier* pZoneIdentifier;
+IPersistFile* pPersistFile;
 
 /*===== 外部参照 =====*/
 
@@ -192,6 +198,8 @@ extern int FolderAttrNum;
 extern int SendQuit;
 // 自動切断対策
 extern time_t LastDataConnectionTime;
+// ゾーンID設定追加
+extern int MarkAsInternet;
 
 
 /*----- ファイル転送スレッドを起動する ----------------------------------------
@@ -959,9 +967,12 @@ static ULONG WINAPI TransferThread(void *Dummy)
 						// ミラーリング設定追加
 						if(Pos->NoTransfer == NO)
 						{
-								Sts = DoDownload(TrnSkt, Pos, NO, &Canceled[Pos->ThreadCount]) / 100;
-								if(Sts != FTP_COMPLETE)
-									LastError = YES;
+							Sts = DoDownload(TrnSkt, Pos, NO, &Canceled[Pos->ThreadCount]) / 100;
+							if(Sts != FTP_COMPLETE)
+								LastError = YES;
+							// ゾーンID設定追加
+							if(MarkAsInternet == YES && IsZoneIDLoaded() == YES)
+								MarkFileAsDownloadedFromInternet(Pos->LocalFile);
 						}
 
 						// ミラーリング設定追加
@@ -993,9 +1004,9 @@ static ULONG WINAPI TransferThread(void *Dummy)
 					// ミラーリング設定追加
 					if(Pos->NoTransfer == NO)
 					{
-							Sts = DoUpload(TrnSkt, Pos) / 100;
-							if(Sts != FTP_COMPLETE)
-								LastError = YES;
+						Sts = DoUpload(TrnSkt, Pos) / 100;
+						if(Sts != FTP_COMPLETE)
+							LastError = YES;
 					}
 
 					// ホスト側の日時設定
@@ -4525,5 +4536,79 @@ LONGLONG AskTransferSizeTotal(void)
 int AskTransferErrorDisplay(void)
 {
 	return(TransferErrorDisplay);
+}
+
+// ゾーンID設定追加
+int LoadZoneID()
+{
+	int Sts;
+	Sts = FFFTP_FAIL;
+	if(IsMainThread())
+	{
+		if(CoCreateInstance(&CLSID_PersistentZoneIdentifier, NULL, CLSCTX_ALL, &IID_IZoneIdentifier, (void**)&pZoneIdentifier) == S_OK)
+		{
+			if(pZoneIdentifier->lpVtbl->SetId(pZoneIdentifier, URLZONE_INTERNET) == S_OK)
+			{
+				if(pZoneIdentifier->lpVtbl->QueryInterface(pZoneIdentifier, &IID_IPersistFile, (void**)&pPersistFile) == S_OK)
+					Sts = FFFTP_SUCCESS;
+			}
+		}
+	}
+	return Sts;
+}
+
+void FreeZoneID()
+{
+	if(IsMainThread())
+	{
+		if(pPersistFile != NULL)
+			pPersistFile->lpVtbl->Release(pPersistFile);
+		pPersistFile = NULL;
+		if(pZoneIdentifier != NULL)
+			pZoneIdentifier->lpVtbl->Release(pZoneIdentifier);
+		pZoneIdentifier = NULL;
+	}
+}
+
+int IsZoneIDLoaded()
+{
+	int Sts;
+	Sts = NO;
+	if(pZoneIdentifier != NULL && pPersistFile != NULL)
+		Sts = YES;
+	return Sts;
+}
+
+int MarkFileAsDownloadedFromInternet(char* Fname)
+{
+	int Sts;
+	WCHAR Tmp1[FMAX_PATH+1];
+	BSTR Tmp2;
+	MARKFILEASDOWNLOADEDFROMINTERNETDATA Data;
+	Sts = FFFTP_FAIL;
+	if(IsMainThread())
+	{
+		MtoW(Tmp1, FMAX_PATH, Fname, -1);
+		if((Tmp2 = SysAllocString(Tmp1)) != NULL)
+		{
+			if(pPersistFile->lpVtbl->Save(pPersistFile, Tmp2, FALSE) == S_OK)
+				Sts = FFFTP_SUCCESS;
+			SysFreeString(Tmp2);
+		}
+	}
+	else
+	{
+		if(Data.h = CreateEvent(NULL, TRUE, FALSE, NULL))
+		{
+			Data.Fname = Fname;
+			if(PostMessage(GetMainHwnd(), WM_MARKFILEASDOWNLOADEDFROMINTERNET, 0, (LPARAM)&Data))
+			{
+				if(WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
+					Sts = Data.r;
+			}
+			CloseHandle(Data.h);
+		}
+	}
+	return Sts;
 }
 
