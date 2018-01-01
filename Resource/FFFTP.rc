@@ -236,21 +236,21 @@ END
 // Dialog
 //
 
-about_dlg DIALOGEX 0, 0, 319, 267
+about_dlg DIALOGEX 0, 0, 343, 267
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "FFFTPについて"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,133,246,50,14
+    DEFPUSHBUTTON   "OK",IDOK,145,246,50,14
     ICON            ffftp,-1,7,4,20,20
-    CTEXT           "FFFTP Ver 2.00",-1,113,11,90,8
-    CTEXT           "FFFTPはfreewareです",-1,7,231,305,8
-    CTEXT           "Copyright(C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato)",-1,7,25,305,32,SS_NOPREFIX
-    CTEXT           "",ABOUT_JRE,7,84,305,8
-    EDITTEXT        ABOUT_URL,7,64,305,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
-    CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,131,305,60
-    CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,99,305,27
-    CTEXT           "FTP over SSL/TLSの実装にはOpenSSLを使用しています。\nCopyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.",-1,7,195,305,24
+    CTEXT           "FFFTP Ver 2.00",-1,125,11,90,8
+    CTEXT           "FFFTPはfreewareです",-1,7,231,329,8
+    CTEXT           "Copyright(C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato)",-1,7,25,329,32,SS_NOPREFIX
+    CTEXT           "",ABOUT_JRE,7,84,329,8
+    EDITTEXT        ABOUT_URL,7,64,329,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
+    CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,131,329,60
+    CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,99,329,27
+    CTEXT           "FTP over SSL/TLSの実装にはOpenSSLを使用しています。\nCopyright (c) 1998-2017 The OpenSSL Project.  All rights reserved.",-1,7,195,329,24
 END
 
 transfer_dlg DIALOG  0, 0, 199, 91
@@ -1461,7 +1461,8 @@ BEGIN
     CONTROL         "EUC",TRMODE4_EUC_CNV,"Button",BS_AUTORADIOBUTTON,12,45,41,10
     CONTROL         "UTF-8",TRMODE4_UTF8N_CNV,"Button",BS_AUTORADIOBUTTON,12,57,41,10
     CONTROL         "UTF-8 BOM",TRMODE4_UTF8BOM_CNV,"Button",BS_AUTORADIOBUTTON,12,69,81,10
-    CONTROL         "インターネットから入手したものとしてファイルに情報を付加する(&I)",TRMODE4_MARK_INTERNET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,96,196,10
+    CONTROL         "インターネットから入手したものとしてファイルに情報を付加する(&I)",TRMODE4_MARK_INTERNET,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,96,196,10
 END
 
 opt_disp2_dlg DIALOG  0, 0, 211, 155
@@ -1520,7 +1521,7 @@ BEGIN
     about_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 312
+        RIGHTMARGIN, 336
         TOPMARGIN, 4
     END
 

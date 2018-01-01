@@ -295,7 +295,7 @@ int MirrorNoTransferContents = NO;
 // FireWall設定追加
 int FwallNoSaveUser = NO; 
 // ゾーンID設定追加
-int MarkAsInternet = NO; 
+int MarkAsInternet = YES; 
 
 
 

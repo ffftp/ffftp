@@ -38,6 +38,12 @@ This list includes changes applied by automatic software updates.
 -- Added an option to ignore addresses returned with PASV mode.
    Please use this for connection to hosts that have incorrect settings.
 
+-- Added an option to add information to files as obtained from the Internet
+   when they are downloaded.
+   This will display a warning when downloaded executable files etc. are about
+   to be opened.
+   This feature is enabled by default.
+
 -- Fixed bugs that the focus is lost after keyboard operation.
 
 -- Made it show the logged in user name on the title bar.
@@ -161,7 +167,8 @@ This product includes software developed by the OpenSSL Project for use in the O
   OpenSSL License
   ---------------
 
-Copyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.
+====================================================================
+Copyright (c) 1998-2017 The OpenSSL Project.  All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -206,12 +213,13 @@ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
-
 ====================================================================
 
 This product includes cryptographic software written by Eric Young
 (eay@cryptsoft.com).  This product includes software written by Tim
 Hudson (tjh@cryptsoft.com).
+
+
 
  Original SSLeay License
  -----------------------
@@ -269,5 +277,6 @@ SUCH DAMAGE.
 
 The licence and distribution terms for any publically available version or
 derivative of this code cannot be changed.  i.e. this code cannot simply be
-copied and put under another distribution licence [including the GNU Public Licence.]
+copied and put under another distribution licence
+[including the GNU Public Licence.]
 

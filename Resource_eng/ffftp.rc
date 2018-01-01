@@ -236,21 +236,21 @@ END
 // Dialog
 //
 
-about_dlg DIALOGEX 0, 0, 315, 269
+about_dlg DIALOGEX 0, 0, 339, 269
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About FFFTP"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,132,248,50,14
+    DEFPUSHBUTTON   "OK",IDOK,144,248,50,14
     ICON            ffftp,-1,7,4,20,20
-    CTEXT           "FFFTP Ver 2.00",-1,110,11,90,8
-    CTEXT           "FFFTP is freeware",-1,7,233,301,8
-    CTEXT           "Copyright(C) 1997-2010 Sota && cooperators\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato)",-1,7,25,301,32
-    CTEXT           "",ABOUT_JRE,7,81,301,8
-    EDITTEXT        ABOUT_URL,7,64,301,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
-    CTEXT           "OLE D&&D by Yutaka Hirata-san, nakka-san\nIn site file mover by Hirata-san\nAny issues by miau-san\nMaster Password by Gengen-san\nAES encryption by Moca-san\n\nI had cooperation of many other one.",-1,7,130,301,59
-    CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,98,301,27
-    CTEXT           "OpenSSL is used for implementation of FTP over SSL/TLS.\nCopyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.",-1,7,197,305,24
+    CTEXT           "FFFTP Ver 2.00",-1,122,11,90,8
+    CTEXT           "FFFTP is freeware",-1,7,233,325,8
+    CTEXT           "Copyright(C) 1997-2010 Sota && cooperators\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato)",-1,7,25,325,32
+    CTEXT           "",ABOUT_JRE,7,81,325,8
+    EDITTEXT        ABOUT_URL,7,64,313,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
+    CTEXT           "OLE D&&D by Yutaka Hirata-san, nakka-san\nIn site file mover by Hirata-san\nAny issues by miau-san\nMaster Password by Gengen-san\nAES encryption by Moca-san\n\nI had cooperation of many other one.",-1,7,130,325,59
+    CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,98,325,27
+    CTEXT           "OpenSSL is used for implementation of FTP over SSL/TLS.\nCopyright (c) 1998-2017 The OpenSSL Project.  All rights reserved.",-1,7,197,325,24
 END
 
 transfer_dlg DIALOG  0, 0, 199, 91
@@ -1502,7 +1502,8 @@ BEGIN
     CONTROL         "EUC",TRMODE4_EUC_CNV,"Button",BS_AUTORADIOBUTTON,12,45,41,10
     CONTROL         "UTF-8",TRMODE4_UTF8N_CNV,"Button",BS_AUTORADIOBUTTON,12,57,41,10
     CONTROL         "UTF-8 BOM",TRMODE4_UTF8BOM_CNV,"Button",BS_AUTORADIOBUTTON,12,69,81,10
-    CONTROL         "Add information to files as obtained from the &Internet",TRMODE4_MARK_INTERNET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,96,196,10
+    CONTROL         "Add information to files as obtained from the &Internet",TRMODE4_MARK_INTERNET,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,96,196,10
 END
 
 opt_disp2_dlg DIALOG  0, 0, 211, 155
@@ -1564,9 +1565,8 @@ BEGIN
     about_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 308
+        RIGHTMARGIN, 332
         TOPMARGIN, 4
-        BOTTOMMARGIN, 310
     END
 
     transfer_dlg, DIALOG

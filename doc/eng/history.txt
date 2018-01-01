@@ -8,6 +8,12 @@ Changes in Ver.2.00
 -- Added an option to ignore addresses returned with PASV mode.
    Please use this for connection to hosts that have incorrect settings.
 
+-- Added an option to add information to files as obtained from the Internet
+   when they are downloaded.
+   This will display a warning when downloaded executable files etc. are about
+   to be opened.
+   This feature is enabled by default.
+
 -- Fixed bugs that the focus is lost after keyboard operation.
 
 -- Made it show the logged in user name on the title bar.
