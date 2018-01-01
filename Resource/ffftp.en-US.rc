@@ -240,12 +240,12 @@ END
 // Dialog
 //
 
-about_dlg DIALOGEX 0, 0, 315, 269
+about_dlg DIALOGEX 0, 0, 339, 269
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About FFFTP"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,132,248,50,14
+    DEFPUSHBUTTON   "OK",IDOK,144,248,50,14
     ICON            ffftp,-1,7,4,20,20
     CTEXT           "FFFTP Ver 3.1",-1,110,11,90,8
     CTEXT           "FFFTP is freeware",-1,7,221,301,8
@@ -1481,7 +1481,8 @@ BEGIN
     CONTROL         "EUC",TRMODE4_EUC_CNV,"Button",BS_AUTORADIOBUTTON,12,45,41,10
     CONTROL         "UTF-8",TRMODE4_UTF8N_CNV,"Button",BS_AUTORADIOBUTTON,12,57,41,10
     CONTROL         "UTF-8 BOM",TRMODE4_UTF8BOM_CNV,"Button",BS_AUTORADIOBUTTON,12,69,81,10
-    CONTROL         "Add information to files as obtained from the &Internet",TRMODE4_MARK_INTERNET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,96,196,10
+    CONTROL         "Add information to files as obtained from the &Internet",TRMODE4_MARK_INTERNET,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,96,196,10
 END
 
 opt_disp2_dlg DIALOG 0, 0, 211, 155
@@ -1530,7 +1531,7 @@ BEGIN
     about_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 308
+        RIGHTMARGIN, 332
         TOPMARGIN, 4
     END
 
