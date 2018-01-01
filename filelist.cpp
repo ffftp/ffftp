@@ -668,74 +668,25 @@ skip:
 // yutaka
 // cf. http://www.nakka.com/lib/
 /* ドロップファイルの作成 */
-static HDROP APIPRIVATE CreateDropFileMem(char **FileName,int cnt,BOOL fWide)
-{
-	HDROP hDrop;
-	LPDROPFILES lpDropFile;
-	wchar_t wbuf[BUF_SIZE];
-	int flen = 0;
-	int i;
-	
-	if(fWide == TRUE){
-		/* ワイドキャラ */
-		for(i = 0;i < cnt;i++){
-			// UTF-8対応
-//			MultiByteToWideChar(CP_ACP,0,FileName[i],-1,wbuf,BUF_SIZE);
-//			flen += (wcslen(wbuf) + 1) * sizeof(wchar_t);
-			flen += sizeof(wchar_t) * MtoW(NULL, 0, FileName[i], -1);
+static HDROP CreateDropFileMem(char** FileName, int cnt) {
+	std::vector<std::wstring> wFileNames(cnt);
+	for (int i = 0; i < cnt; i++)
+		wFileNames[i] = u8(FileName[i]);
+	auto extra = std::reduce(begin(wFileNames), end(wFileNames), 0, [](auto l, auto const& r) { return l + size_as<int>(r) + 1; }) + 1;
+	auto drop = (HDROP)GlobalAlloc(GHND, sizeof DROPFILES + extra * sizeof(wchar_t));
+	if (drop) {
+		auto dropfiles = reinterpret_cast<DROPFILES*>(GlobalLock(drop));
+		*dropfiles = { sizeof DROPFILES, {}, false, true };
+		/* 構造体の後ろにファイル名のリストをコピーする。(ファイル名\0ファイル名\0ファイル名\0\0) */
+		auto ptr = reinterpret_cast<wchar_t*>(dropfiles + 1);
+		for (auto const& wFileName : wFileNames) {
+			wcscpy(ptr, wFileName.c_str());
+			ptr += size(wFileName) + 1;
 		}
-		flen++;
-	}else{
-		/* マルチバイト */
-		for(i = 0;i < cnt;i++){
-			// UTF-8対応
-//			flen += lstrlen(FileName[i]) + 1;
-			MtoW(wbuf, BUF_SIZE, FileName[i], -1);
-			flen += sizeof(char) * WtoA(NULL, 0, wbuf, -1);
-		}
+		*ptr = L'\0';
+		GlobalUnlock(drop);
 	}
-
-	hDrop = (HDROP)GlobalAlloc(GHND,sizeof(DROPFILES) + flen + 1);
-	if (hDrop == NULL){
-		return NULL;
-	}
-
-	lpDropFile = (LPDROPFILES) GlobalLock(hDrop);
-	lpDropFile->pFiles = sizeof(DROPFILES);		/* ファイル名のリストまでのオフセット */
-	lpDropFile->pt.x = 0;
-	lpDropFile->pt.y = 0;
-	lpDropFile->fNC = FALSE;
-	lpDropFile->fWide = fWide;					/* ワイドキャラの場合は TRUE */
-
-	/* 構造体の後ろにファイル名のリストをコピーする。(ファイル名\0ファイル名\0ファイル名\0\0) */
-	if(fWide == TRUE){
-		/* ワイドキャラ */
-		wchar_t *buf;
-
-		buf = (wchar_t *)(&lpDropFile[1]);
-		for(i = 0;i < cnt;i++){
-			// UTF-8対応
-//			MultiByteToWideChar(CP_ACP,0,FileName[i],-1,wbuf,BUF_SIZE);
-//			wcscpy(buf,wbuf);
-//			buf += wcslen(wbuf) + 1;
-			buf += MtoW(buf, BUF_SIZE, FileName[i], -1);
-		}
-	}else{
-		/* マルチバイト */
-		char *buf;
-
-		buf = (char *)(&lpDropFile[1]);
-		for(i = 0;i < cnt;i++){
-			// UTF-8対応
-//			lstrcpy(buf,FileName[i]);
-//			buf += lstrlen(FileName[i]) + 1;
-			MtoW(wbuf, BUF_SIZE, FileName[i], -1);
-			buf += WtoA(buf, BUF_SIZE, wbuf, -1);
-		}
-	}
-
-	GlobalUnlock(hDrop);
-	return(hDrop);
+	return drop;
 }
 
 
@@ -927,8 +878,6 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			{
 			case CF_HDROP:		/* ファイル */
 				{
-					OSVERSIONINFO os_info;
-					BOOL NTFlag = FALSE;
 					char **FileNameList;
 					int filelen;
 					int i, j, filenum = 0;
@@ -1032,15 +981,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 #endif
 					}
 					
-					os_info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-					GetVersionEx(&os_info);
-					if(os_info.dwPlatformId == VER_PLATFORM_WIN32_NT){
-						NTFlag = TRUE;
-					}
-
 					/* ドロップファイルリストの作成 */
 					/* NTの場合はUNICODEになるようにする */
-					*((HANDLE *)lParam) = CreateDropFileMem(FileNameList, filenum, NTFlag);
+					*((HANDLE *)lParam) = CreateDropFileMem(FileNameList, filenum);
 
 					/* ファイル名の配列を解放する */
 					for (i = 0; i < filenum ; i++) {
