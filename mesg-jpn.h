@@ -182,8 +182,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN180 (std::data(msgs[10000+180])) /* オプション「%s」が間違っています. */
 #define MSGJPN181 (std::data(msgs[10000+181])) /* ホスト名と設定名の両方が指定されています. */
 #define MSGJPN182 (std::data(msgs[10000+182])) /* ビューアの起動に失敗しました. (ERROR=%d) */
-#define MSGJPN183 (std::data(msgs[10000+183])) /* JRE32.DLL 無し */
-#define MSGJPN184 (std::data(msgs[10000+184])) /* JRE32.DLL Ver %x.%x (C) 山田和夫さん */
 #define MSGJPN185 (std::data(msgs[10000+185])) /* フォルダを選択してください */
 #define MSGJPN186 (std::data(msgs[10000+186])) /* ユーザー */
 #define MSGJPN187 (std::data(msgs[10000+187])) /* 転送1 */

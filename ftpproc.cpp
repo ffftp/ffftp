@@ -2073,78 +2073,27 @@ static void CountMirrorFiles(HWND hDlg, TRANSPACKET *Pkt)
 }
 
 
-
-
-/*----- ミラーリングで転送／削除しないファイルかどうかを返す ------------------
-*
-*	Parameter
-*		char Fname : ファイル名
-*		int Mode : モード
-*			0=転送しないファイル, 1=削除しないファイル
-*
-*	Return Value
-*		int ステータス
-*			YES=転送・削除しない/NO
-*----------------------------------------------------------------------------*/
-
-static int AskMirrorNoTrn(char *Fname, int Mode)
-{
-	int Ret;
-	char *Tbl;
-
-	Tbl = MirrorNoTrn;
-	if(Mode == 1)
-		Tbl = MirrorNoDel;
-
-	Ret = NO;
-	if(StrMultiLen(Tbl) > 0)
-	{
-		Fname = GetFileName(Fname);
-		while(*Tbl != NUL)
-		{
-			if(CheckFname(Fname, Tbl) == FFFTP_SUCCESS)
-			{
-				Ret = YES;
-				break;
-			}
-			Tbl += strlen(Tbl) + 1;
-		}
-	}
-	return(Ret);
+// ミラーリングで転送／削除しないファイルかどうかを返す
+// Mode : 0=転送しないファイル, 1=削除しないファイル
+static int AskMirrorNoTrn(char *Fname, int Mode) {
+	if (auto Tbl = Mode == 1 ? MirrorNoDel : MirrorNoTrn; 0 < StrMultiLen(Tbl))
+		for (auto wFname = u8(GetFileName(Fname)); *Tbl != NUL; Tbl += strlen(Tbl) + 1)
+			if (CheckFname(wFname, u8(Tbl)))
+				return YES;
+	return NO;
 }
 
 
-/*----- アップロードするファイルの属性を返す ----------------------------------
-*
-*	Parameter
-*		char Fname : ファイル名
-*
-*	Return Value
-*		int 属性 (-1=設定なし)
-*----------------------------------------------------------------------------*/
-
-static int AskUploadFileAttr(char *Fname)
-{
-	int Ret;
-	int Sts;
-	char *Tbl;
-
-	Tbl = DefAttrList;
-	Fname = GetFileName(Fname);
-	Ret = -1;
-	while(*Tbl != NUL)
-	{
-		Sts = CheckFname(Fname, Tbl);
+// アップロードするファイルの属性を返す
+static int AskUploadFileAttr(char *Fname) {
+	auto wFname = u8(GetFileName(Fname));
+	for (char* Tbl = DefAttrList; *Tbl != NUL; Tbl += strlen(Tbl) + 1) {
+		auto match = CheckFname(wFname, u8(Tbl));
 		Tbl += strlen(Tbl) + 1;
-
-		if((Sts == FFFTP_SUCCESS) && (*Tbl != NUL))
-		{
-			Ret = xtoi(Tbl);
-			break;
-		}
-		Tbl += strlen(Tbl) + 1;
+		if (match && *Tbl != NUL)
+			return std::strtol(Tbl, nullptr, 16);
 	}
-	return(Ret);
+	return -1;
 }
 
 

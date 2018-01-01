@@ -62,6 +62,7 @@
 #include <MMSystem.h>
 #include <mstcpip.h>
 #include <shellapi.h>
+#include <Shlwapi.h>
 #include <WinCrypt.h>
 #include <WS2tcpip.h>
 #include "config.h"
@@ -76,6 +77,7 @@
 // 逆にIdnToAscii()はkernel32.libに登録されていないため、Vista以降をターゲットとする場合でもnormaliz.libは必要となる。
 #pragma comment(lib, "Comctl32.lib")
 #pragma comment(lib, "HtmlHelp.lib")
+#pragma comment(lib, "Shlwapi.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Ws2_32.lib")
 namespace fs = std::experimental::filesystem;
@@ -1572,11 +1574,9 @@ void SetListViewType(void);
 void GetRemoteDirForWnd(int Mode, int *CancelCheckWork);
 void GetLocalDirForWnd(void);
 void ReSortDispList(int Win, int *CancelCheckWork);
-// ローカル側自動更新
-//void SelectFileInList(HWND hWnd, int Type);
+bool CheckFname(std::wstring str, std::wstring const& regexp);
 void SelectFileInList(HWND hWnd, int Type, FILELIST *Base);
 void FindFileInList(HWND hWnd, int Type);
-// void WildCard2RegExp(char *Str);
 int GetCurrentItem(int Win);
 int GetItemCount(int Win);
 int GetSelectedCount(int Win);
@@ -1972,20 +1972,6 @@ int AskBookMarkText(int MarkID, char *Local, char *Remote, int Max);
 void SaveBookMark(void);
 void LoadBookMark(void);
 int EditBookMark(void);
-
-/*===== regexp.c =====*/
-
-int LoadJre(void);
-void ReleaseJre(void);
-int AskRasUsable(void);
-int AskJreUsable(void);
-int GetJreVersion(void);
-int JreCompileStr(char *Str);
-char *JreGetStrMatchInfo(char *Str, UINT nStart);
-
-/*===== wildcard.c =====*/
-
-int CheckFname(char *str, char *regexp);
 
 /*===== registry.c =====*/
 

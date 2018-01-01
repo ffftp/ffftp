@@ -249,7 +249,6 @@ BEGIN
     CTEXT           "FFFTP Ver 1.99a-20171104",-1,113,11,90,8
     CTEXT           "FFFTPはfreewareです",-1,7,279,305,8
     CTEXT           "Copyright(C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん)",-1,7,25,305,44,SS_NOPREFIX
-    CTEXT           "",ABOUT_JRE,7,96,305,8
     EDITTEXT        ABOUT_URL,7,76,305,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,143,305,60
     CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,111,305,27
@@ -2512,8 +2511,6 @@ BEGIN
     IDS_MSGJPN180           "オプション「%s」が間違っています."
     IDS_MSGJPN181           "ホスト名と設定名の両方が指定されています."
     IDS_MSGJPN182           "ビューアの起動に失敗しました. (ERROR=%d)"
-    IDS_MSGJPN183           "JRE32.DLL 無し"
-    IDS_MSGJPN184           "JRE32.DLL Ver %x.%x (C) 山田和夫さん"
     IDS_MSGJPN185           "フォルダを選択してください"
     IDS_MSGJPN186           "ユーザー"
     IDS_MSGJPN187           "転送1"

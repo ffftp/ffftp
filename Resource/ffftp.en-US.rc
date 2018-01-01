@@ -249,7 +249,6 @@ BEGIN
     CTEXT           "FFFTP Ver 1.99a-20171104",-1,110,11,90,8
     CTEXT           "FFFTP is freeware",-1,7,281,301,8
     CTEXT           "Copyright(C) 1997-2010 Sota && cooperators\nCopyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen)",-1,7,25,301,44
-    CTEXT           "",ABOUT_JRE,7,93,301,8
     EDITTEXT        ABOUT_URL,7,76,301,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     CTEXT           "OLE D&&D by Yutaka Hirata-san, nakka-san\nIn site file mover by Hirata-san\nAny issues by miau-san\nMaster Password by Gengen-san\nAES encryption by Moca-san\n\nI had cooperation of many other one.",-1,7,142,301,59
     CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,110,301,27
@@ -2551,8 +2550,6 @@ BEGIN
     IDS_MSGJPN180           "Wrong Option '%s'."
     IDS_MSGJPN181           "Host name is only used as an alternative to profile name."
     IDS_MSGJPN182           "Failed to open viewer. (ERROR=%d)"
-    IDS_MSGJPN183           "JRE32.DLL none"
-    IDS_MSGJPN184           "JRE32.DLL Ver %x.%x (C) Kazuo Yamada-san"
     IDS_MSGJPN185           "Select folder."
     IDS_MSGJPN186           "User"
     IDS_MSGJPN187           "Transfer1"

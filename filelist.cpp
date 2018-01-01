@@ -1938,154 +1938,91 @@ void ReSortDispList(int Win, int *CancelCheckWork)
 }
 
 
-/*----- ファイル一覧ウインドウのファイルを選択する ----------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		int Type : 選択方法 (SELECT_xxx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
+// ワイルドカードにマッチするかどうかを返す
+bool CheckFname(std::wstring str, std::wstring const& regexp) {
+	// VAX VMSの時は ; 以降は無視する
+	if (AskHostType() == HTYPE_VMS)
+		if (auto pos = str.find(L';'); pos != std::wstring::npos)
+			str.resize(pos);
+	return PathMatchSpecW(str.c_str(), regexp.c_str());
+}
 
-// ローカル側自動更新
-//void SelectFileInList(HWND hWnd, int Type)
-void SelectFileInList(HWND hWnd, int Type, FILELIST *Base)
-{
-	int Win;
-	int WinDst;
-	int i;
-	int Num;
-	char RegExp[FMAX_PATH+1];
-	char Name[FMAX_PATH+1];
-	LV_ITEM LvItem;
-	int CsrPos;
-	FILETIME Time1;
-	FILETIME Time2;
-	int Find;
 
-	// 変数が未初期化のバグ修正
-	memset(&LvItem, 0, sizeof(LV_ITEM));
-	Win = WIN_LOCAL;
-	WinDst = WIN_REMOTE;
-	if(hWnd == GetRemoteHwnd())
-	{
-		Win = WIN_REMOTE;
-		WinDst = WIN_LOCAL;
+// ファイル一覧ウインドウのファイルを選択する
+void SelectFileInList(HWND hWnd, int Type, FILELIST *Base) {
+	int Win = WIN_LOCAL, WinDst = WIN_REMOTE;
+	if (hWnd == GetRemoteHwnd())
+		std::swap(Win, WinDst);
+	if (Type == SELECT_ALL) {
+		LVITEMW item{ 0, 0, 0, GetSelectedCount(Win) <= 1 ? LVIS_SELECTED : 0u, LVIS_SELECTED };
+		for (int i = 0, Num = GetItemCount(Win); i < Num; i++)
+			if (GetNodeType(Win, i) != NODE_DRIVE)
+				SendMessageW(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&item);
+		return;
 	}
-
-	Num = GetItemCount(Win);
-	switch(Type)
-	{
-		case SELECT_ALL :
-			LvItem.state = 0;
-			if(GetSelectedCount(Win) <= 1)
-				LvItem.state = LVIS_SELECTED;
-			for(i = 0; i < Num; i++)
-			{
-				if(GetNodeType(Win, i) != NODE_DRIVE)
-				{
-					LvItem.mask = LVIF_STATE;
-					LvItem.iItem = i;
-					LvItem.stateMask = LVIS_SELECTED;
-					LvItem.iSubItem = 0;
-					SendMessage(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&LvItem);
-				}
-			}
-			break;
-
-		case SELECT_REGEXP :
-			if(((Win == WIN_LOCAL) &&
-				(DialogBox(GetFtpInst(), MAKEINTRESOURCE(sel_local_dlg), hWnd, SelectDialogCallBack) == YES)) ||
-			   ((Win == WIN_REMOTE) &&
-				(DialogBox(GetFtpInst(), MAKEINTRESOURCE(sel_remote_dlg), hWnd, SelectDialogCallBack) == YES)))
-			{
-				strcpy(RegExp, FindStr);
-//				if(FindMode == 0)
-//					WildCard2RegExp(RegExp);
-
-				_mbslwr((unsigned char*)RegExp);
-				if((FindMode == 0) || (JreCompileStr(RegExp) == TRUE))
-				{
-					CsrPos = -1;
-					for(i = 0; i < Num; i++)
-					{
-						GetNodeName(Win, i, Name, FMAX_PATH);
-						Find = FindNameNode(WinDst, Name);
-
-						_mbslwr((unsigned char*)Name);
-						LvItem.state = 0;
-						if(GetNodeType(Win, i) != NODE_DRIVE)
-						{
-							if(((FindMode == 0) && (CheckFname(Name, RegExp) == FFFTP_SUCCESS)) ||
-							   ((FindMode != 0) && (JreGetStrMatchInfo(Name, 0) != NULL)))
-							{
-								LvItem.state = LVIS_SELECTED;
-
-								if(Find >= 0)
-								{
-									if(IgnoreExist == YES)
-										LvItem.state = 0;
-
-									if((LvItem.state != 0) && (IgnoreNew == YES))
-									{
-										GetNodeTime(Win, i, &Time1);
-										GetNodeTime(WinDst, Find, &Time2);
-										if(CompareFileTime(&Time1, &Time2) > 0)
-											LvItem.state = 0;
-									}
-
-									if((LvItem.state != 0) && (IgnoreOld == YES))
-									{
-										GetNodeTime(Win, i, &Time1);
-										GetNodeTime(WinDst, Find, &Time2);
-										if(CompareFileTime(&Time1, &Time2) < 0)
-											LvItem.state = 0;
-									}
-								}
+	if (Type == SELECT_REGEXP) {
+		if (DialogBox(GetFtpInst(), MAKEINTRESOURCE(Win == WIN_LOCAL ? sel_local_dlg : sel_remote_dlg), hWnd, SelectDialogCallBack) != YES)
+			return;
+		try {
+			std::variant<std::wstring, std::wregex> pattern;
+			if (FindMode == 0)
+				pattern = u8(FindStr);
+			else
+				pattern = std::wregex{ u8(FindStr), std::regex_constants::icase };
+			int CsrPos = -1;
+			for (int i = 0, Num = GetItemCount(Win); i < Num; i++) {
+				char Name[FMAX_PATH + 1];
+				GetNodeName(Win, i, Name, FMAX_PATH);
+				int Find = FindNameNode(WinDst, Name);
+				UINT state = 0;
+				if (GetNodeType(Win, i) != NODE_DRIVE) {
+					auto matched = std::visit([wName = u8(Name)](auto&& pattern) {
+						using t = std::decay_t<decltype(pattern)>;
+						if constexpr (std::is_same_v<t, std::wstring>)
+							return CheckFname(wName, pattern);
+						else if constexpr (std::is_same_v<t, std::wregex>)
+							return std::regex_match(wName, pattern);
+						else
+							static_assert(false_v<t>, "not supported variant type.");
+					}, pattern);
+					if (matched) {
+						state = LVIS_SELECTED;
+						if (Find >= 0) {
+							if (IgnoreExist == YES)
+								state = 0;
+							else {
+								FILETIME Time1, Time2;
+								GetNodeTime(Win, i, &Time1);
+								GetNodeTime(WinDst, Find, &Time2);
+								if (IgnoreNew == YES && CompareFileTime(&Time1, &Time2) > 0 || IgnoreOld == YES && CompareFileTime(&Time1, &Time2) < 0)
+									state = 0;
 							}
 						}
-
-						if((LvItem.state != 0) && (CsrPos == -1))
-							CsrPos = i;
-
-						LvItem.mask = LVIF_STATE;
-						LvItem.iItem = i;
-						LvItem.stateMask = LVIS_SELECTED;
-						LvItem.iSubItem = 0;
-						SendMessage(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&LvItem);
 					}
-					if(CsrPos != -1)
-					{
-						LvItem.mask = LVIF_STATE;
-						LvItem.iItem = CsrPos;
-						LvItem.state = LVIS_FOCUSED;
-						LvItem.stateMask = LVIS_FOCUSED;
-						LvItem.iSubItem = 0;
-						SendMessage(hWnd, LVM_SETITEMSTATE, CsrPos, (LPARAM)&LvItem);
-						SendMessage(hWnd, LVM_ENSUREVISIBLE, CsrPos, (LPARAM)TRUE);
-					}
+					if (state != 0 && CsrPos == -1)
+						CsrPos = i;
 				}
+				LVITEMW item{ 0, 0, 0, state, LVIS_SELECTED };
+				SendMessageW(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&item);
 			}
-			break;
-
-		// ローカル側自動更新
-		case SELECT_LIST :
-			for(i = 0; i < Num; i++)
-			{
-				LvItem.state = 0;
-				GetNodeName(Win, i, Name, FMAX_PATH);
-				if(SearchFileList(Name, Base, COMP_STRICT) != NULL)
-					LvItem.state = LVIS_SELECTED;
-				LvItem.mask = LVIF_STATE;
-				LvItem.iItem = i;
-				LvItem.stateMask = LVIS_SELECTED;
-				LvItem.iSubItem = 0;
-				SendMessage(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&LvItem);
+			if (CsrPos != -1) {
+				LVITEMW item{ 0, 0, 0, LVIS_FOCUSED, LVIS_FOCUSED };
+				SendMessageW(hWnd, LVM_SETITEMSTATE, CsrPos, (LPARAM)&item);
+				SendMessageW(hWnd, LVM_ENSUREVISIBLE, CsrPos, (LPARAM)TRUE);
 			}
-			break;
+		}
+		catch (std::regex_error&) {}
+		return;
 	}
-	return;
+	if (Type == SELECT_LIST) {
+		for (int i = 0, Num = GetItemCount(Win); i < Num; i++) {
+			char Name[FMAX_PATH + 1];
+			GetNodeName(Win, i, Name, FMAX_PATH);
+			LVITEMW item{ 0, 0, 0, SearchFileList(Name, Base, COMP_STRICT) != NULL ? LVIS_SELECTED : 0u, LVIS_SELECTED };
+			SendMessageW(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&item);
+		}
+		return;
+	}
 }
 
 
@@ -2142,163 +2079,47 @@ static INT_PTR CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wP
 }
 
 
-/*----- ファイル一覧ウインドウのファイルを検索する ----------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		int Type : 検索方法 (FIND_xxx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void FindFileInList(HWND hWnd, int Type)
-{
-	int Win;
-	int i;
-	int Num;
-	static char RegExp[FMAX_PATH+1] = { "" };
-	char Name[FMAX_PATH+1];
-	LV_ITEM LvItem;
-	char *Title;
-
-	// 変数が未初期化のバグ修正
-	memset(&LvItem, 0, sizeof(LV_ITEM));
-	Win = WIN_LOCAL;
-	Title = MSGJPN050;
-	if(hWnd == GetRemoteHwnd())
-	{
-		Win = WIN_REMOTE;
-		Title = MSGJPN051;
-	}
-
-	Num = GetItemCount(Win);
-	switch(Type)
-	{
-		case FIND_FIRST :
-			if(InputDialogBox(find_dlg, hWnd, Title, FindStr, 40+1, &FindMode, IDH_HELP_TOPIC_0000001) == YES)
-			{
-				strcpy(RegExp, FindStr);
-//				if(FindMode == 0)
-//					WildCard2RegExp(RegExp);
-
-				_mbslwr((unsigned char*)RegExp);
-				if((FindMode == 0) || (JreCompileStr(RegExp) == TRUE))
-				{
-					for(i = GetCurrentItem(Win)+1; i < Num; i++)
-					{
-						GetNodeName(Win, i, Name, FMAX_PATH);
-						_mbslwr((unsigned char*)Name);
-
-						LvItem.state = 0;
-						if(((FindMode == 0) && (CheckFname(Name, RegExp) == FFFTP_SUCCESS)) ||
-						   ((FindMode != 0) && (JreGetStrMatchInfo(Name, 0) != NULL)))
-						{
-							LvItem.mask = LVIF_STATE;
-							LvItem.iItem = i;
-							LvItem.state = LVIS_FOCUSED;
-							LvItem.stateMask = LVIS_FOCUSED;
-							LvItem.iSubItem = 0;
-							SendMessage(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&LvItem);
-							SendMessage(hWnd, LVM_ENSUREVISIBLE, i, (LPARAM)TRUE);
-							break;
-						}
-					}
-				}
-			}
-			break;
-
-		case FIND_NEXT :
-			for(i = GetCurrentItem(Win)+1; i < Num; i++)
-			{
-				GetNodeName(Win, i, Name, FMAX_PATH);
-				_mbslwr((unsigned char*)Name);
-
-				LvItem.state = 0;
-				if(((FindMode == 0) && (CheckFname(Name, RegExp) == FFFTP_SUCCESS)) ||
-				   ((FindMode != 0) && (JreGetStrMatchInfo(Name, 0) != NULL)))
-				{
-					LvItem.mask = LVIF_STATE;
-					LvItem.iItem = i;
-					LvItem.state = LVIS_FOCUSED;
-					LvItem.stateMask = LVIS_FOCUSED;
-					LvItem.iSubItem = 0;
-					SendMessage(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&LvItem);
-					SendMessage(hWnd, LVM_ENSUREVISIBLE, i, (LPARAM)TRUE);
-					break;
-				}
-			}
-			break;
-	}
-	return;
-}
-
-
-#if 0
-/*----- ワイルドカードを正規表現に変換する ------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void WildCard2RegExp(char *Str)
-{
-	char Tmp[FMAX_PATH+1];
-	char *Org;
-	char *Pos;
-	UINT Ch;
-
-	Org = Str;
-	Pos = Tmp;
-
-	*Pos++ = '^';
-	*Pos++ = '(';
-	while(*Str != NUL)
-	{
-		if(Pos >= Tmp + FMAX_PATH - 3)
-			break;
-
-		Ch = _mbsnextc(Str);
-		Str = _mbsinc(Str);
-
-		if(Ch <= 0x7F)
-		{
-			if(strchr("[]()^$.+", Ch) != NULL)
-			{
-				*Pos++ = '\\';
-				*Pos++ = Ch;
-			}
-			else if(Ch == '*')
-			{
-				*Pos++ = '.';
-				*Pos++ = '*';
-			}
-			else if(Ch == '?')
-				*Pos++ = '.';
-			else if(Ch == '|')
-			{
-				*Pos++ = '|';
-			}
+// ファイル一覧ウインドウのファイルを検索する
+void FindFileInList(HWND hWnd, int Type) {
+	static std::variant<std::wstring, std::wregex> pattern;
+	int Win = hWnd == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL;
+	switch (Type) {
+	case FIND_FIRST:
+		if (InputDialogBox(find_dlg, hWnd, Win == WIN_LOCAL ? MSGJPN050 : MSGJPN051, FindStr, 40 + 1, &FindMode, IDH_HELP_TOPIC_0000001) != YES)
+			return;
+		try {
+			if (FindMode == 0)
+				pattern = u8(FindStr);
 			else
-				*Pos++ = Ch;
+				pattern = std::wregex{ u8(FindStr), std::regex_constants::icase };
 		}
-		else
-		{
-			_mbsnset(Pos, Ch, 1);
-			Pos = _mbsinc(Pos);
+		catch (std::regex_error&) {
+			return;
 		}
+		[[fallthrough]];
+	case FIND_NEXT:
+		for (int i = GetCurrentItem(Win) + 1, Num = GetItemCount(Win); i < Num; i++) {
+			char Name[FMAX_PATH + 1];
+			GetNodeName(Win, i, Name, FMAX_PATH);
+			auto match = std::visit([wName = u8(Name)](auto&& pattern) {
+				using t = std::decay_t<decltype(pattern)>;
+				if constexpr (std::is_same_v<t, std::wstring>)
+					return CheckFname(wName, pattern);
+				else if constexpr (std::is_same_v<t, std::wregex>)
+					return std::regex_match(wName, pattern);
+				else
+					static_assert(false_v<t>, "not supported variant type.");
+			}, pattern);
+			if (match) {
+				LVITEMW item{ 0, 0, 0, LVIS_FOCUSED, LVIS_FOCUSED };
+				SendMessageW(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&item);
+				SendMessageW(hWnd, LVM_ENSUREVISIBLE, i, (LPARAM)TRUE);
+				break;
+			}
+		}
+		break;
 	}
-	*Pos++ = ')';
-	*Pos++ = '$';
-	*Pos = NUL;
-	strcpy(Org, Tmp);
-
-	return;
 }
-#endif
 
 
 /*----- カーソル位置のアイテム番号を返す --------------------------------------
@@ -6166,54 +5987,16 @@ static int CheckSpecialDirName(char *Fname)
 }
 
 
-/*----- フィルタに指定されたファイル名かどうかを返す --------------------------
-*
-*	Parameter
-*		char Fname : ファイル名
-*		int Type : ファイルのタイプ (NODE_xxx)
-*
-*	Return Value
-*		int ステータス
-*			YES/NO=表示しない
-*
-*	Note
-*		フィルタ文字列は以下の形式
-*			*.txt;*.log
-*----------------------------------------------------------------------------*/
-
-static int AskFilterStr(char *Fname, int Type)
-{
-	int Ret;
-	char *Tbl;
-	char *Pos;
-	char Tmp[FILTER_EXT_LEN+1];
-
-	Tbl = FilterStr;
-	Ret = YES;
-	if((strlen(Tbl) > 0) && (Type == NODE_FILE))
-	{
-		Ret = NO;
-		while((Tbl != NULL) && (*Tbl != NUL))
-		{
-			while(*Tbl == ';')
-				Tbl++;
-			if(*Tbl == NUL)
-				break;
-
-			strcpy(Tmp, Tbl);
-			if((Pos = strchr(Tmp, ';')) != NULL)
-				*Pos = NUL;
-
-			if(CheckFname(Fname, Tmp) == FFFTP_SUCCESS)
-			{
-				Ret = YES;
-				break;
-			}
-
-			Tbl = strchr(Tbl, ';');
-		}
-	}
-	return(Ret);
+// フィルタに指定されたファイル名かどうかを返す
+static int AskFilterStr(char *Fname, int Type) {
+	static std::wregex re{ L";" };
+	if (Type != NODE_FILE || strlen(FilterStr) == 0)
+		return YES;
+	auto const wFname = u8(Fname), wFilterStr = u8(FilterStr);
+	for (std::wsregex_token_iterator it{ begin(wFilterStr), end(wFilterStr), re, -1 }, end; it != end; ++it)
+		if (it->matched && CheckFname(wFname, *it))
+			return YES;
+	return NO;
 }
 
 

@@ -1021,42 +1021,17 @@ int AskTransferType(void)
 }
 
 
-/*----- 実際の転送モードを返す ------------------------------------------------
-*
-*	Parameter
-*		char Fname : ファイル名
-*		int Type : 設定上の転送モード (TYPE_xx)
-*
-*	Return Value
-*		int 転送モード (TYPE_xx)
-*----------------------------------------------------------------------------*/
-
-int AskTransferTypeAssoc(char *Fname, int Type)
-{
-	int Ret;
-	char *Pos;
-	char *Name;
-
-	Ret = Type;
-	if(Ret == TYPE_X)
-	{
-		Ret = TYPE_I;
-		if(StrMultiLen(AsciiExt) > 0)
-		{
-			Name = GetFileName(Fname);
-			Pos = AsciiExt;
-			while(*Pos != NUL)
-			{
-				if(CheckFname(Name, Pos) == FFFTP_SUCCESS)
-				{
-					Ret = TYPE_A;
-					break;
-				}
-				Pos += strlen(Pos) + 1;
-			}
-		}
+// 実際の転送モードを返す
+int AskTransferTypeAssoc(char* Fname, int Type) {
+	if (Type != TYPE_X)
+		return Type;
+	if (0 < StrMultiLen(AsciiExt)) {
+		auto wName = u8(GetFileName(Fname));
+		for (char* Pos = AsciiExt; *Pos != NUL; Pos += strlen(Pos) + 1)
+			if (CheckFname(wName, u8(Pos)))
+				return TYPE_A;
 	}
-	return(Ret);
+	return TYPE_I;
 }
 
 

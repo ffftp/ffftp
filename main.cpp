@@ -574,8 +574,6 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			strcpy(GetFileName(SSLRootCAFilePath), "ssl.pem");
 			LoadSSLRootCAFile();
 
-			LoadJre();
-
 			//タイマの精度を改善
 			timeBeginPeriod(1);
 
@@ -862,8 +860,6 @@ static void DeleteAllObject(void)
 //move to WM_DESTROY
 	if(hWndFtp != NULL)
 		DestroyWindow(hWndFtp);
-
-	ReleaseJre();
 
 	return;
 }
@@ -3065,18 +3061,9 @@ static void DeleteAlltempFile(void)
 //static BOOL CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 static INT_PTR CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	static char Tmp[80];
-	int Ver;
-
 	switch (message)
 	{
 		case WM_INITDIALOG :
-			Ver = GetJreVersion();
-			if(Ver == -1)
-				sprintf(Tmp, MSGJPN183);
-			else
-				sprintf(Tmp, MSGJPN184, Ver / 0x100, Ver % 0x100);
-			SendDlgItemMessage(hDlg, ABOUT_JRE, WM_SETTEXT, 0, (LPARAM)Tmp);
 			SendDlgItemMessage(hDlg, ABOUT_URL, EM_LIMITTEXT, 256, 0);
 			SendDlgItemMessage(hDlg, ABOUT_URL, WM_SETTEXT, 0, (LPARAM)MSGJPN284);
 			return(TRUE);

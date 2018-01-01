@@ -312,7 +312,6 @@
 #define DISP_FONT_BR                    1074
 #define TRMODE_LOCAL_BR                 1076
 #define TRMODE2_LOCAL_BR                1076
-#define ABOUT_JRE                       1077
 #define HSET_PORT                       1078
 #define NOTIFY_OPEN                     1079
 #define NOTIFY_DOWNLOAD                 1080
@@ -646,8 +645,6 @@
 #define IDS_MSGJPN180                   10180
 #define IDS_MSGJPN181                   10181
 #define IDS_MSGJPN182                   10182
-#define IDS_MSGJPN183                   10183
-#define IDS_MSGJPN184                   10184
 #define IDS_MSGJPN185                   10185
 #define IDS_MSGJPN186                   10186
 #define IDS_MSGJPN187                   10187

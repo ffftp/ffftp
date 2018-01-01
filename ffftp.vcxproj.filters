@@ -78,9 +78,6 @@
     <ClCompile Include="registry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wildcard.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="toolmenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -97,9 +94,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="remote.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="regexp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="misc.cpp">
@@ -137,9 +131,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mesg-jpn.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="jreusr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="helpid.h">
