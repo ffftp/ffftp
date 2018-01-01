@@ -1,7 +1,7 @@
 ============================================================
 [Software Name]  FFFTP Ver.3.1 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
-                 Copyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).
+                 Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018, KURATA Sayuri.
 [Environment]    Windows 10, 8.1, 8, 7, Vista, XP
 ============================================================
@@ -81,7 +81,7 @@ Warranty Disclaimer
 License Agreement
 -----------------
 Copyright(C) 1997-2010, Sota & cooperators. All rights reserved.
-Copyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).
+Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 Copyright (C) 2018, KURATA Sayuri.
 
 Redistribution and use in source and binary forms, with or without 
