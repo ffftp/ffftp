@@ -2154,8 +2154,6 @@ int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
 
 extern HCRYPTPROV HCryptProv;
 
-void sha_memory(const char* mem, DWORD length, uint32_t* buffer);
-
 template<class Target, class Source>
 constexpr auto data_as(Source& source) {
 	return reinterpret_cast<Target*>(std::data(source));

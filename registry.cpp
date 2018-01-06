@@ -213,12 +213,12 @@ extern int FwallNoSaveUser;
 
 
 void sha_memory(const char* mem, DWORD length, uint32_t* buffer) {
-	HCRYPTHASH hash;
-	if (CryptCreateHash(HCryptProv, CALG_SHA1, 0, 0, &hash)) {
-		if (CryptHashData(hash, reinterpret_cast<const BYTE*>(mem), length, 0)) {
-			DWORD hashlen = 20;
-			CryptGetHashParam(hash, HP_HASHVAL, reinterpret_cast<BYTE*>(buffer), &hashlen, 0);
-		}
+	// ビット反転の必要がある
+	if (HCRYPTHASH hash; CryptCreateHash(HCryptProv, CALG_SHA1, 0, 0, &hash)) {
+		if (CryptHashData(hash, reinterpret_cast<const BYTE*>(mem), length, 0))
+			if (DWORD hashlen = 20; CryptGetHashParam(hash, HP_HASHVAL, reinterpret_cast<BYTE*>(buffer), &hashlen, 0))
+				for (DWORD i = 0, end = hashlen / sizeof uint32_t; i < end; i++)
+					buffer[i] = _byteswap_ulong(buffer[i]);
 		CryptDestroyHash(hash);
 	}
 }
