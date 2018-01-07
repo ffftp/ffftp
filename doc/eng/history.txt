@@ -35,6 +35,9 @@ Changes in Ver.2.00
 -- Implemented Server Name Indication.
    This solves the problem that it cannot connect to some shared servers.
 
+-- Changed to check Subject Alternative Names at validation of SSL/TLS
+   certificates.
+
 -- Fixed bugs that sometimes it cannot reconnect after transfer failure.
 
 -- Fixed bugs that the queue of file transfer is not released on disconnection.

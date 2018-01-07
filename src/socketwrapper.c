@@ -38,6 +38,7 @@ typedef int (__cdecl* _SSL_write)(SSL*, const void*, int);
 typedef int (__cdecl* _SSL_peek)(SSL*, void*, int);
 typedef int (__cdecl* _SSL_read)(SSL*, void*, int);
 typedef int (__cdecl* _SSL_get_error)(SSL*, int);
+typedef int (__cdecl* _SSL_set1_param)(SSL*, X509_VERIFY_PARAM*);
 typedef X509* (__cdecl* _SSL_get_peer_certificate)(const SSL*);
 typedef long (__cdecl* _SSL_get_verify_result)(const SSL*);
 typedef SSL_SESSION* (__cdecl* _SSL_get_session)(SSL*);
@@ -56,6 +57,9 @@ typedef void (__cdecl* _X509_free)(X509*);
 typedef int (__cdecl* _X509_print_ex)(BIO*, X509*, unsigned long, unsigned long);
 typedef X509_NAME* (__cdecl* _X509_get_subject_name)(X509*);
 typedef int (__cdecl* _X509_NAME_print_ex)(BIO*, X509_NAME*, int, unsigned long);
+typedef X509_VERIFY_PARAM* (__cdecl* _X509_VERIFY_PARAM_new)();
+typedef void (__cdecl* _X509_VERIFY_PARAM_free)(X509_VERIFY_PARAM*);
+typedef int (__cdecl* _X509_VERIFY_PARAM_set1_host)(X509_VERIFY_PARAM*, const char*, size_t);
 typedef void (__cdecl* _X509_CRL_free)(X509_CRL*);
 typedef EVP_PKEY* (__cdecl* _PEM_read_bio_PrivateKey)(BIO*, EVP_PKEY**, pem_password_cb*, void*);
 typedef EVP_PKEY* (__cdecl* _PEM_read_bio_PUBKEY)(BIO*, EVP_PKEY**, pem_password_cb*, void*);
@@ -94,6 +98,7 @@ _SSL_write p_SSL_write;
 _SSL_peek p_SSL_peek;
 _SSL_read p_SSL_read;
 _SSL_get_error p_SSL_get_error;
+_SSL_set1_param p_SSL_set1_param;
 _SSL_get_peer_certificate p_SSL_get_peer_certificate;
 _SSL_get_verify_result p_SSL_get_verify_result;
 _SSL_get_session p_SSL_get_session;
@@ -112,6 +117,9 @@ _X509_free p_X509_free;
 _X509_print_ex p_X509_print_ex;
 _X509_get_subject_name p_X509_get_subject_name;
 _X509_NAME_print_ex p_X509_NAME_print_ex;
+_X509_VERIFY_PARAM_new p_X509_VERIFY_PARAM_new;
+_X509_VERIFY_PARAM_free p_X509_VERIFY_PARAM_free;
+_X509_VERIFY_PARAM_set1_host p_X509_VERIFY_PARAM_set1_host;
 _X509_CRL_free p_X509_CRL_free;
 _PEM_read_bio_PrivateKey p_PEM_read_bio_PrivateKey;
 _PEM_read_bio_PUBKEY p_PEM_read_bio_PUBKEY;
@@ -149,7 +157,7 @@ BOOL __stdcall DefaultSSLTimeoutCallback(BOOL* pbAborted)
 	return *pbAborted;
 }
 
-BOOL __stdcall DefaultSSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName)
+BOOL __stdcall DefaultSSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certificate)
 {
 	return bVerified;
 }
@@ -195,6 +203,7 @@ BOOL LoadOpenSSL()
 		|| !(p_SSL_peek = (_SSL_peek)GetProcAddress(g_hOpenSSL, "SSL_peek"))
 		|| !(p_SSL_read = (_SSL_read)GetProcAddress(g_hOpenSSL, "SSL_read"))
 		|| !(p_SSL_get_error = (_SSL_get_error)GetProcAddress(g_hOpenSSL, "SSL_get_error"))
+		|| !(p_SSL_set1_param = (_SSL_set1_param)GetProcAddress(g_hOpenSSL, "SSL_set1_param"))
 		|| !(p_SSL_get_peer_certificate = (_SSL_get_peer_certificate)GetProcAddress(g_hOpenSSL, "SSL_get_peer_certificate"))
 		|| !(p_SSL_get_verify_result = (_SSL_get_verify_result)GetProcAddress(g_hOpenSSL, "SSL_get_verify_result"))
 		|| !(p_SSL_get_session = (_SSL_get_session)GetProcAddress(g_hOpenSSL, "SSL_get_session"))
@@ -227,6 +236,9 @@ BOOL LoadOpenSSL()
 		|| !(p_X509_print_ex = (_X509_print_ex)GetProcAddress(g_hOpenSSLCommon, "X509_print_ex"))
 		|| !(p_X509_get_subject_name = (_X509_get_subject_name)GetProcAddress(g_hOpenSSLCommon, "X509_get_subject_name"))
 		|| !(p_X509_NAME_print_ex = (_X509_NAME_print_ex)GetProcAddress(g_hOpenSSLCommon, "X509_NAME_print_ex"))
+		|| !(p_X509_VERIFY_PARAM_new = (_X509_VERIFY_PARAM_new)GetProcAddress(g_hOpenSSLCommon, "X509_VERIFY_PARAM_new"))
+		|| !(p_X509_VERIFY_PARAM_free = (_X509_VERIFY_PARAM_free)GetProcAddress(g_hOpenSSLCommon, "X509_VERIFY_PARAM_free"))
+		|| !(p_X509_VERIFY_PARAM_set1_host = (_X509_VERIFY_PARAM_set1_host)GetProcAddress(g_hOpenSSLCommon, "X509_VERIFY_PARAM_set1_host"))
 		|| !(p_X509_CRL_free = (_X509_CRL_free)GetProcAddress(g_hOpenSSLCommon, "X509_CRL_free"))
 		|| !(p_PEM_read_bio_PrivateKey = (_PEM_read_bio_PrivateKey)GetProcAddress(g_hOpenSSLCommon, "PEM_read_bio_PrivateKey"))
 		|| !(p_PEM_read_bio_PUBKEY = (_PEM_read_bio_PUBKEY)GetProcAddress(g_hOpenSSLCommon, "PEM_read_bio_PUBKEY"))
@@ -340,8 +352,6 @@ BOOL ConfirmSSLCertificate(SSL* pSSL, BOOL* pbAborted)
 	BIO* pBIO;
 	long Length;
 	char* pBuffer;
-	char* pCN;
-	char* p;
 	bResult = FALSE;
 	bVerified = FALSE;
 	pData = NULL;
@@ -374,24 +384,10 @@ BOOL ConfirmSSLCertificate(SSL* pSSL, BOOL* pbAborted)
 			}
 			p_BIO_free(pBIO);
 		}
-		p_X509_free(pX509);
 	}
 	if(pX509 && p_SSL_get_verify_result(pSSL) == X509_V_OK)
 		bVerified = TRUE;
-	pCN = pSubject;
-	while(pCN)
-	{
-		if(strncmp(pCN, "CN=", strlen("CN=")) == 0)
-		{
-			pCN += strlen("CN=");
-			if(p = strchr(pCN, ','))
-				*p = '\0';
-			break;
-		}
-		if(pCN = strchr(pCN, ','))
-			pCN++;
-	}
-	bResult = g_pOpenSSLConfirmCallback(pbAborted, bVerified, pData, pCN);
+	bResult = g_pOpenSSLConfirmCallback(pbAborted, bVerified, pData);
 	if(pData)
 		free(pData);
 	if(pSubject)
@@ -528,55 +524,6 @@ BOOL SetSSLRootCertificate(const void* pData, DWORD Length)
 	return r;
 }
 
-// ワイルドカードの比較
-// 主にSSL証明書のCN確認用
-BOOL IsHostNameMatched(LPCSTR HostName, LPCSTR CommonName)
-{
-	BOOL bResult;
-	char* pa0;
-	const char* pAsterisk;
-	size_t BeforeAsterisk;
-	const char* pBeginAsterisk;
-	const char* pEndAsterisk;
-	const char* pDot;
-	bResult = FALSE;
-	if(HostName && CommonName)
-	{
-		if(pa0 = AllocateStringA(strlen(HostName) * 4))
-		{
-			if(ConvertNameToPunycode(pa0, HostName))
-			{
-				if(pAsterisk = strchr(CommonName, '*'))
-				{
-					BeforeAsterisk = ((size_t)pAsterisk - (size_t)CommonName) / sizeof(char);
-					pBeginAsterisk = pa0 + BeforeAsterisk;
-					while(*pAsterisk == '*')
-					{
-						pAsterisk++;
-					}
-					pEndAsterisk = pa0 + strlen(pa0) - strlen(pAsterisk);
-					// "*"より前は大文字小文字を無視して完全一致
-					if(_strnicmp(pa0, CommonName, BeforeAsterisk) == 0)
-					{
-						// "*"より後は大文字小文字を無視して完全一致
-						if(_stricmp(pEndAsterisk, pAsterisk) == 0)
-						{
-							// "*"と一致する範囲に"."が含まれてはならない
-							pDot = strchr(pBeginAsterisk, '.');
-							if(!pDot || pDot >= pEndAsterisk)
-								bResult = TRUE;
-						}
-					}
-				}
-				else if(_stricmp(pa0, CommonName) == 0)
-					bResult = TRUE;
-			}
-		}
-		FreeDuplicatedString(pa0);
-	}
-	return bResult;
-}
-
 #pragma warning(push)
 #pragma warning(disable:4090)
 
@@ -705,6 +652,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen, const
 	SSL** ppSSLParent;
 	SSL_SESSION* pSession;
 	char* pa0;
+	X509_VERIFY_PARAM* pParam;
 	int Return;
 	int Error;
 	if(!g_bOpenSSLLoaded)
@@ -753,7 +701,15 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, BOOL bStrengthen, const
 							if(pa0 = AllocateStringA(strlen(ServerName) * 4))
 							{
 								if(ConvertNameToPunycode(pa0, ServerName))
+								{
 									p_SSL_ctrl(*ppSSL, SSL_CTRL_SET_TLSEXT_HOSTNAME, TLSEXT_NAMETYPE_host_name, pa0);
+									if(pParam = p_X509_VERIFY_PARAM_new())
+									{
+										p_X509_VERIFY_PARAM_set1_host(pParam, pa0, 0);
+										p_SSL_set1_param(*ppSSL, pParam);
+										p_X509_VERIFY_PARAM_free(pParam);
+									}
+								}
 							}
 							FreeDuplicatedString(pa0);
 						}

@@ -81,7 +81,7 @@
 // ソフトウェア自動更新
 // リリースバージョンはリリース予定年（10進数4桁）+月（2桁）+日（2桁）+通し番号（0スタート2桁）とする
 // 2014年7月31日中の30個目のリリースは2014073129
-#define RELEASE_VERSION_NUM		2017110400	/* リリースバージョン */
+#define RELEASE_VERSION_NUM		2018010700	/* リリースバージョン */
 
 
 // SourceForge.JPによるフォーク
@@ -1423,7 +1423,7 @@ void ResetAutoExitFlg(void);
 int AskAutoExit(void);
 // 暗号化通信対応
 BOOL __stdcall SSLTimeoutCallback(BOOL* pbAborted);
-BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName);
+BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certificate);
 BOOL LoadSSLRootCAFile();
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 BOOL IsMainThread();

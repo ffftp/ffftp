@@ -3588,7 +3588,7 @@ BOOL __stdcall SSLTimeoutCallback(BOOL* pbAborted)
 	return FALSE;
 }
 
-BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certificate, LPCSTR CommonName)
+BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certificate)
 {
 	BOOL bResult;
 	uint32 Hash[5];
@@ -3616,7 +3616,7 @@ BOOL __stdcall SSLConfirmCallback(BOOL* pbAborted, BOOL bVerified, LPCSTR Certif
 		{
 			if(pm1 = AllocateStringM(strlen(Certificate) * 2 + 1024))
 			{
-				sprintf(pm0, MSGJPN326, IsHostNameMatched(AskHostAdrs(), CommonName) ? MSGJPN327 : MSGJPN328, bVerified ? MSGJPN327 : MSGJPN328, Certificate);
+				sprintf(pm0, MSGJPN326, bVerified ? MSGJPN327 : MSGJPN328, Certificate);
 				ReplaceAllStrings(pm1, pm0, "\n", "\r\n");
 				if(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(ssl_confirm_dlg), GetMainHwnd(), ExeEscTextDialogProc, (LPARAM)pm1) == YES)
 				{
