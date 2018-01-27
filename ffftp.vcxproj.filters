@@ -13,6 +13,9 @@
       <UniqueIdentifier>{d3b4da38-7ce2-49f3-ac26-da607fb65c4b}</UniqueIdentifier>
       <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;cnt;rtf;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
+    <Filter Include="Document Files">
+      <UniqueIdentifier>{d42ab6d8-690f-4b17-9d7a-25603bbd5801}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -182,5 +185,25 @@
     <None Include="Resource\ffftp.rcconfig">
       <Filter>Resource Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="doc\ffftp.en.txt">
+      <Filter>Document Files</Filter>
+    </Text>
+    <Text Include="doc\ffftp.ja.txt">
+      <Filter>Document Files</Filter>
+    </Text>
+    <Text Include="doc\ffftp_hpnonstop.en.txt">
+      <Filter>Document Files</Filter>
+    </Text>
+    <Text Include="doc\ffftp_hpnonstop.ja.txt">
+      <Filter>Document Files</Filter>
+    </Text>
+    <Text Include="doc\history.en.txt">
+      <Filter>Document Files</Filter>
+    </Text>
+    <Text Include="doc\history.ja.txt">
+      <Filter>Document Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

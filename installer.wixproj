@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" InitialTargets="EnsureWixToolsetInstalled" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>3.10</ProductVersion>
+    <ProjectGuid>31ff48d2-5f7b-41ac-a702-b954565a905b</ProjectGuid>
+    <SchemaVersion>2.0</SchemaVersion>
+    <OutputName>ffftp-$(Platform)</OutputName>
+    <OutputType>Package</OutputType>
+    <WixInstallPath>$(MSBuildThisFileDirectory)WiX</WixInstallPath>
+    <WixTargetsPath>$(WixInstallPath)\wix.targets</WixTargetsPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <InstallerPlatform>x86</InstallerPlatform>
+    <OutputPath>$(Configuration)\$(Platform)\</OutputPath>
+    <IntermediateOutputPath>$(Configuration)\$(Platform)\</IntermediateOutputPath>
+    <DefineConstants>Debug</DefineConstants>
+    <LinkerAdditionalOptions>-ext WixUIExtension</LinkerAdditionalOptions>
+    <Cultures>en-US;ja-JP</Cultures>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <InstallerPlatform>x86</InstallerPlatform>
+    <OutputPath>$(Configuration)\$(Platform)\</OutputPath>
+    <IntermediateOutputPath>$(Configuration)\$(Platform)\</IntermediateOutputPath>
+    <LinkerAdditionalOptions>-ext WixUIExtension</LinkerAdditionalOptions>
+    <Cultures>en-US;ja-JP</Cultures>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <InstallerPlatform>x64</InstallerPlatform>
+    <OutputPath>$(Configuration)\$(Platform)\</OutputPath>
+    <IntermediateOutputPath>$(Configuration)\$(Platform)\</IntermediateOutputPath>
+    <DefineConstants>Debug</DefineConstants>
+    <LinkerAdditionalOptions>-ext WixUIExtension</LinkerAdditionalOptions>
+    <Cultures>en-US;ja-JP</Cultures>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <InstallerPlatform>x64</InstallerPlatform>
+    <OutputPath>$(Configuration)\$(Platform)\</OutputPath>
+    <IntermediateOutputPath>$(Configuration)\$(Platform)\</IntermediateOutputPath>
+    <LinkerAdditionalOptions>-ext WixUIExtension</LinkerAdditionalOptions>
+    <Cultures>en-US;ja-JP</Cultures>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="installer.wxs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="ffftp.vcxproj">
+      <Name>ffftp</Name>
+      <Project>{5d9496db-45af-4389-8fee-27c9a2fa207a}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(WixTargetsPath)" Condition=" '$(WixTargetsPath)' != '' " />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets" Condition=" '$(WixTargetsPath)' == '' AND Exists('$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets') " />
+  <Target Name="EnsureWixToolsetInstalled" Condition=" '$(WixTargetsImported)' != 'true' ">
+    <Error Text="The WiX Toolset v3.11 (or newer) build tools must be installed to build this project. To download the WiX Toolset, see http://wixtoolset.org/releases/" />
+  </Target>
+  <UsingTask TaskName="EmbeddedSatellites" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+    <ParameterGroup>
+      <TargetFile ParameterType="Microsoft.Build.Framework.ITaskItem" Required="true" />
+      <SatelliteFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="Microsoft.CSharp" />
+      <Using Namespace="System" />
+      <Using Namespace="System.Globalization" />
+      <Using Namespace="System.IO" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+        dynamic installer = Activator.CreateInstance(Type.GetTypeFromProgID("WindowsInstaller.Installer"));
+        var targetDatabase = installer.OpenDatabase(TargetFile.GetMetadata("FullPath"), 1);
+        var view = targetDatabase.OpenView("INSERT INTO _Storages (`Name`, `Data`) VALUES (?, ?)");
+        var template = "";
+        foreach (var satelliteFile in SatelliteFiles) {
+          var msi = satelliteFile.GetMetadata("FullPath");
+          var mst = Path.ChangeExtension(msi, ".mst");
+          var lcid = CultureInfo.GetCultureInfo(satelliteFile.GetMetadata("Culture")).LCID.ToString();
+          var satelliteDatabase = installer.OpenDatabase(msi, 0);
+          satelliteDatabase.GenerateTransform(targetDatabase, mst);
+          satelliteDatabase.CreateTransformSummaryInfo(targetDatabase, mst, 0, 0);
+
+          var record = installer.CreateRecord(2);
+          record.StringData[1] = lcid;
+          record.SetStream(2, mst);
+          view.Execute(record);
+
+          template += "," + lcid;
+        }
+        var summaryInformation = targetDatabase.SummaryInformation[1];
+        summaryInformation.Property[7] += template;
+        summaryInformation.Persist();
+        targetDatabase.Commit();
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+  <UsingTask TaskName="Archive" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
+    <ParameterGroup>
+      <TargetFile ParameterType="Microsoft.Build.Framework.ITaskItem" Required="true" />
+      <ArchiveFiles ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System.IO.Compression" />
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.IO.Compression" />
+      <Using Namespace="System.Text" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+        using (var archive = new ZipArchive(File.Create(TargetFile.GetMetadata("FullPath")), ZipArchiveMode.Create, false, Encoding.ASCII))
+          foreach (var archiveFile in ArchiveFiles) {
+            var entry = archive.CreateEntry(archiveFile.GetMetadata("ArchiveDirectory") + archiveFile.GetMetadata("Filename") + archiveFile.GetMetadata("Extension"), CompressionLevel.Optimal);
+            if (File.Exists(archiveFile.GetMetadata("FullPath")))
+              using (var stream = entry.Open())
+              using (var file = File.OpenRead(archiveFile.GetMetadata("FullPath")))
+                file.CopyTo(stream);
+          }
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+  <Target Name="AfterCompileAndLink">
+    <CreateItem Include="." AdditionalMetadata="$(ProjectReferenceDefineConstants)">
+      <Output TaskParameter="Include" ItemName="ProjectReferenceDefineConstants" />
+    </CreateItem>
+    <PropertyGroup>
+      <DistDir>$(Configuration)\</DistDir>
+      <CppProjectDir>@(ProjectReferenceDefineConstants-&gt;Metadata("ffftp.ProjectDir"))</CppProjectDir>
+      <CppTargetDir>@(ProjectReferenceDefineConstants-&gt;Metadata("ffftp.TargetDir"))</CppTargetDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <TargetFiles Include="@(CultureGroup->'$(TargetDir)%(OutputFolder)$(TargetName)$(TargetExt)')">
+        <Culture>%(CultureGroup.Identity)</Culture>
+      </TargetFiles>
+      <ArchiveFiles Include="$(CppTargetDir)ffftp.exe;$(CppProjectDir)htmlhelp\ffftp.chm;$(CppProjectDir)doc\*.txt;portable">
+        <ArchiveDirectory></ArchiveDirectory>
+      </ArchiveFiles>
+      <ArchiveFiles Include="$(CppTargetDir)en-US\ffftp.exe.mui">
+        <ArchiveDirectory>en-US\</ArchiveDirectory>
+      </ArchiveFiles>
+      <ArchiveFiles Include="$(CppTargetDir)ja-JP\ffftp.exe.mui">
+        <ArchiveDirectory>ja-JP\</ArchiveDirectory>
+      </ArchiveFiles>
+    </ItemGroup>
+    <Copy SourceFiles="@(TargetFiles)" DestinationFolder="$(DistDir)" Condition="'%(Culture)' == 'en-US'" />
+    <EmbeddedSatellites TargetFile="$(DistDir)$(TargetName)$(TargetExt)" SatelliteFiles="@(TargetFiles)" Condition="'%(Culture)' != 'en-US'" />
+    <Archive TargetFile="$(DistDir)$(TargetName).zip" ArchiveFiles="@(ArchiveFiles)" />
+  </Target>
+</Project>

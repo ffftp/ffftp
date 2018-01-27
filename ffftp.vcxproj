@@ -56,23 +56,23 @@
     <_ProjectFileVersion>15.0.26919.1</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\</IntDir>
+    <OutDir>$(Configuration)\$(PlatformTarget)\</OutDir>
+    <IntDir>$(Configuration)\$(PlatformTarget)\</IntDir>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(Configuration)_64\</OutDir>
-    <IntDir>$(Configuration)_64\</IntDir>
+    <OutDir>$(Configuration)\$(PlatformTarget)\</OutDir>
+    <IntDir>$(Configuration)\$(PlatformTarget)\</IntDir>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\</IntDir>
+    <OutDir>$(Configuration)\$(PlatformTarget)\</OutDir>
+    <IntDir>$(Configuration)\$(PlatformTarget)\</IntDir>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(Configuration)_64\</OutDir>
-    <IntDir>$(Configuration)_64\</IntDir>
+    <OutDir>$(Configuration)\$(PlatformTarget)\</OutDir>
+    <IntDir>$(Configuration)\$(PlatformTarget)\</IntDir>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -251,6 +251,14 @@
       <MuiCulture Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ja-JP</MuiCulture>
       <MuiCulture Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ja-JP</MuiCulture>
     </MuiResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="doc\ffftp.en.txt" />
+    <Text Include="doc\ffftp.ja.txt" />
+    <Text Include="doc\ffftp_hpnonstop.en.txt" />
+    <Text Include="doc\ffftp_hpnonstop.ja.txt" />
+    <Text Include="doc\history.en.txt" />
+    <Text Include="doc\history.ja.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(MSBuildThisFileDirectory)MuiResourceCompile.targets" />

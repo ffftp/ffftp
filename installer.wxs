@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?if $(var.ffftp.Platform) = x64 ?>
+  <?define ProgramFilesFolder = "ProgramFiles64Folder" ?>
+  <?else?>
+  <?define ProgramFilesFolder = "ProgramFilesFolder" ?>
+  <?endif ?>
+  <Product Id="*" Language="1033" Manufacturer="KURATA Sayuri" Name="ffftp" UpgradeCode="{E49AC23D-CF13-4928-86DB-8B87D66C4AB3}" Version="!(bind.fileVersion.ffftp.exe)">
+    <Package Compressed="yes" InstallerVersion="200" InstallScope="perMachine" />
+    <MajorUpgrade DowngradeErrorMessage="A later version of [ProductName] is already installed. Setup will now exit." />
+    <Media Id="1" Cabinet="ffftp.cab" EmbedCab="yes" />
+    <Property Id="DISABLEADVTSHORTCUTS" Value="1" />
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramMenuFolder" />
+      <Directory Id="DesktopFolder" />
+      <Directory Id="$(var.ProgramFilesFolder)">
+        <Directory Id="INSTALLDIR" Name="ffftp">
+          <Component Id="ffftp.exe" Guid="{9045C5CC-5CF2-425A-B408-6A302D67F398}">
+            <File Id="ffftp.exe" KeyPath="yes" Source="$(var.ffftp.TargetDir)ffftp.exe">
+              <Shortcut Id="ffftp.exe_1" Name="FFFTP" Description="FTP Client" Directory="ProgramMenuFolder" Advertise="yes" />
+              <Shortcut Id="ffftp.exe_2" Name="FFFTP" Description="FTP Client" Directory="DesktopFolder" Advertise="yes" />
+            </File>
+          </Component>
+          <Component Id="ffftp.chm" Guid="{F1A4DB07-9661-4431-B17E-A32FECB0F820}">
+            <File Id="ffftp.chm" KeyPath="yes" Source="$(var.ffftp.ProjectDir)htmlhelp\ffftp.chm" />
+          </Component>
+          <Component Id="ffftp.en.txt" Guid="{0B3C5D1D-38FF-4DAF-AAB1-4E302FA1B1FA}">
+            <File Id="ffftp.en.txt" KeyPath="yes" Source="$(var.ffftp.ProjectDir)doc\ffftp.en.txt" />
+          </Component>
+          <Component Id="ffftp.ja.txt" Guid="{435B988D-0413-4E44-8E59-C5C5D3E64C8C}">
+            <File Id="ffftp.ja.txt" KeyPath="yes" Source="$(var.ffftp.ProjectDir)doc\ffftp.ja.txt" />
+          </Component>
+          <Component Id="ffftp_hpnonstop.en.txt" Guid="{4652A361-114B-4D85-93F5-2837B81C1A07}">
+            <File Id="ffftp_hpnonstop.en.txt" KeyPath="yes" Source="$(var.ffftp.ProjectDir)doc\ffftp_hpnonstop.en.txt" />
+          </Component>
+          <Component Id="ffftp_hpnonstop.ja.txt" Guid="{44ED3DD9-5693-4457-AA61-A7BD7025B01F}">
+            <File Id="ffftp_hpnonstop.ja.txt" KeyPath="yes" Source="$(var.ffftp.ProjectDir)doc\ffftp_hpnonstop.ja.txt" />
+          </Component>
+          <Component Id="history.en.txt" Guid="{B20F7B7C-F93E-48CA-9EC5-CDBCDCADAFCA}">
+            <File Id="history.en.txt" KeyPath="yes" Source="$(var.ffftp.ProjectDir)doc\history.en.txt" />
+          </Component>
+          <Component Id="history.ja.txt" Guid="{8806ACC1-5232-4D0F-86EB-1DC75E353F8B}">
+            <File Id="history.ja.txt" KeyPath="yes" Source="$(var.ffftp.ProjectDir)doc\history.ja.txt" />
+          </Component>
+          <Directory Id="en_US" Name="en-US">
+            <Component Id="en_US_ffftp.exe.mui" Guid="{DE67AD7F-BFDC-40DE-AC7C-A34D089E7EDD}">
+              <File Id="en_US_ffftp.exe.mui" KeyPath="yes" Source="$(var.ffftp.TargetDir)en-US\ffftp.exe.mui" />
+            </Component>
+          </Directory>
+          <Directory Id="ja_JP" Name="ja-JP">
+            <Component Id="ja_JP_ffftp.exe.mui" Guid="{BB722207-C628-4B61-A9B5-6955B354DE66}">
+              <File Id="ja_JP_ffftp.exe.mui" KeyPath="yes" Source="$(var.ffftp.TargetDir)ja-JP\ffftp.exe.mui" />
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+    </Directory>
+    <Feature Id="ProductFeature" Level="1" Title="ffftp" ConfigurableDirectory="INSTALLDIR" AllowAdvertise="no" Absent="disallow">
+      <ComponentRef Id="ffftp.exe" />
+      <ComponentRef Id="ffftp.chm" />
+      <ComponentRef Id="ffftp.en.txt" />
+      <ComponentRef Id="ffftp.ja.txt" />
+      <ComponentRef Id="ffftp_hpnonstop.en.txt" />
+      <ComponentRef Id="ffftp_hpnonstop.ja.txt" />
+      <ComponentRef Id="history.en.txt" />
+      <ComponentRef Id="history.ja.txt" />
+      <ComponentRef Id="en_US_ffftp.exe.mui" />
+      <ComponentRef Id="ja_JP_ffftp.exe.mui" />
+    </Feature>
+    <UI Id="WixUI_InstallDir">
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+      <Property Id="WixUI_Mode" Value="InstallDir" />
+      <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+      <Property Id="ARPNOMODIFY" Value="1" />
+
+      <DialogRef Id="BrowseDlg" />
+      <DialogRef Id="DiskCostDlg" />
+      <DialogRef Id="ErrorDlg" />
+      <DialogRef Id="FatalError" />
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+      <DialogRef Id="PrepareDlg" />
+      <DialogRef Id="ProgressDlg" />
+      <DialogRef Id="ResumeDlg" />
+      <DialogRef Id="UserExit" />
+
+      <Publish Dialog="BrowseDlg" Control="OK" Event="DoAction" Value="WixUIValidatePath" Order="3">1</Publish>
+      <Publish Dialog="BrowseDlg" Control="OK" Event="SpawnDialog" Value="InvalidDirDlg" Order="4"><![CDATA[NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
+
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg">NOT Installed</Publish>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">Installed AND PATCH</Publish>
+
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="DoAction" Value="WixUIValidatePath" Order="2">NOT WIXUI_DONTVALIDATEPATH</Publish>
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="3"><![CDATA[NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="4">WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"</Publish>
+      <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
+      <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2">1</Publish>
+
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg" Order="1">NOT Installed</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2">Installed AND NOT PATCH</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2">Installed AND PATCH</Publish>
+
+      <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
+
+      <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
+    </UI>
+    <UIRef Id="WixUI_Common" />
+  </Product>
+</Wix>
