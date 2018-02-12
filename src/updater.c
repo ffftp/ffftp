@@ -579,7 +579,7 @@ BOOL ApplyUpdates(LPCTSTR DestinationDir, LPCTSTR BackupDirName)
 	return bResult;
 }
 
-// 更新するファイルをダウンロード
+// 更新に使用したファイルを削除
 BOOL CleanupUpdates(LPCTSTR DownloadDir)
 {
 	BOOL bResult;

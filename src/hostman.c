@@ -1450,7 +1450,7 @@ void CopyDefaultDefaultHost(HOSTDATA *Set)
 	// セッションあたりの転送量制限対策
 	Set->TransferErrorReconnect = YES;
 	// ホスト側の設定ミス対策
-	Set->NoPasvAdrs = YES;
+	Set->NoPasvAdrs = NO;
 	return;
 }
 
