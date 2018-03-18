@@ -590,9 +590,10 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					DoPrintf("DEBUG MESSAGE ON ! ##");
 
 					DispWindowTitle();
-					// SourceForge.JPによるフォーク
-//					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.");
-					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).");
+					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.\r\n"
+						"Copyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).\r\n"
+						"Copyright (C) 2018, KURATA Sayuri."
+					);
 
 					if(ForceIni)
 						SetTaskMsg("%s%s", MSGJPN283, IniPath);
@@ -1417,9 +1418,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_HELP_TROUBLE :
-					// 任意のコードが実行されるバグ修正
-//					ShellExecute(NULL, "open", MYWEB_URL, NULL, ".", SW_SHOW);
-					ShellExecute(NULL, "open", MYWEB_URL, NULL, NULL, SW_SHOW);
+					ShellExecute(NULL, "open", MSGJPN284, NULL, NULL, SW_SHOW);
 					break;
 
 				case MENU_BMARK_ADD :

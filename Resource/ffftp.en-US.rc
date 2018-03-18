@@ -246,12 +246,12 @@ FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,132,296,50,14
     ICON            ffftp,-1,7,4,20,20
-    CTEXT           "FFFTP Ver 1.99a-20171104",-1,110,11,90,8
+    CTEXT           "FFFTP Ver 3.00",-1,110,11,90,8
     CTEXT           "FFFTP is freeware",-1,7,281,301,8
-    CTEXT           "Copyright(C) 1997-2010 Sota && cooperators\nCopyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen)",-1,7,25,301,44
+    CTEXT           "Copyright(C) 1997-2010 Sota && cooperators",-1,7,25,301,8
+    CTEXT           "Copyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen)\nCopyright (C) 2018, KURATA Sayuri",-1,7,37,301,32
     EDITTEXT        ABOUT_URL,7,76,301,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     CTEXT           "OLE D&&D by Yutaka Hirata-san, nakka-san\nIn site file mover by Hirata-san\nAny issues by miau-san\nMaster Password by Gengen-san\nAES encryption by Moca-san\n\nI had cooperation of many other one.",-1,7,142,301,59
-    CTEXT           "AES program code :\nCopyright (c) 1998-2008, Brian Gladman, Worcester, UK.\nAll rights reserved.",-1,7,110,301,27
 END
 
 transfer_dlg DIALOG 0, 0, 199, 91
@@ -2199,8 +2199,8 @@ nodrop_csr              CURSOR                  "nodrop_c.cur"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,99,1,19
- PRODUCTVERSION 1,99,1,19
+ FILEVERSION 3,0,0,0
+ PRODUCTVERSION 3,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2218,12 +2218,12 @@ BEGIN
             VALUE "Comments", "This software is Free Software"
             VALUE "CompanyName", "Sota, FFFTP Project"
             VALUE "FileDescription", "FFFTP"
-            VALUE "FileVersion", "1, 99, 1, 19"
+            VALUE "FileVersion", "3.0.0.0"
             VALUE "InternalName", "FFFTP"
-            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & cooperators\nCopyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen)."
+            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & cooperators\nCopyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).\r\nCopyright (C) 2018, KURATA Sayuri."
             VALUE "OriginalFilename", "FFFTP.exe"
             VALUE "ProductName", "FFFTP"
-            VALUE "ProductVersion", "1, 99, 1, 19"
+            VALUE "ProductVersion", "3.0.0.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -2665,7 +2665,7 @@ BEGIN
     IDS_MSGJPN281           "Cannnot connect with PASV mode"
     IDS_MSGJPN282           "INI filename is not specified"
     IDS_MSGJPN283           "INI file: "
-    IDS_MSGJPN284           "http://osdn.jp/projects/ffftp/"
+    IDS_MSGJPN284           "https://github.com/sayurin/ffftp"
     IDS_MSGJPN285           "Failed to execute Registory Editor."
     IDS_MSGJPN286           "Save Settings"
     IDS_MSGJPN287           "Reg file"

@@ -276,7 +276,7 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN281 (std::data(msgs[10000+281])) /* PASVモードで接続できません */
 #define MSGJPN282 (std::data(msgs[10000+282])) /* INIファイル名が指定されていません */
 #define MSGJPN283 (std::data(msgs[10000+283])) /* INIファイル指定:  */
-#define MSGJPN284 (std::data(msgs[10000+284])) /* http://osdn.jp/projects/ffftp/ */
+#define MSGJPN284 (std::data(msgs[10000+284])) /* https://github.com/sayurin/ffftp */
 #define MSGJPN285 (std::data(msgs[10000+285])) /* レジストリエディタが起動できませんでした */
 #define MSGJPN286 (std::data(msgs[10000+286])) /* 設定ファイルの保存 */
 #define MSGJPN287 (std::data(msgs[10000+287])) /* Regファイル\0*.reg\0全てのファイル\0*\0 */
