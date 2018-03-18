@@ -242,10 +242,6 @@
 			<param name="Local" value="HTML\H0000051.HTM">
 			</OBJECT>
 		<LI><OBJECT type="text/sitemap">
-			<param name="Name" value="更新">
-			<param name="Local" value="HTML\H0000069.HTM">
-			</OBJECT>
-		<LI><OBJECT type="text/sitemap">
 			<param name="Name" value="その他">
 			<param name="Local" value="HTML\H0000052.HTM">
 			</OBJECT>
@@ -265,10 +261,6 @@
 		<LI><OBJECT type="text/sitemap">
 			<param name="Name" value="パスワードの取り扱いについて">
 			<param name="Local" value="HTML\H0000056.HTM">
-			</OBJECT>
-		<LI><OBJECT type="text/sitemap">
-			<param name="Name" value="jre32.dllについて">
-			<param name="Local" value="HTML\H0000057.HTM">
 			</OBJECT>
 		<LI><OBJECT type="text/sitemap">
 			<param name="Name" value="バージョンアップについて">
