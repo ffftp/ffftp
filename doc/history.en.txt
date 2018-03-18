@@ -1,5 +1,26 @@
 FFFTP version history.
 
+Changes in 3.00
+---------------
+
+- Environment changed. Windows 2000 or earlier are not supported.
+
+- Unified binary for Japanese and English.
+
+- Removed all external libraries. There are replaaced by Windows
+  libraries. Used libraries for old versions are following.
+  - OpenSSL ------- SSL/TLS toolkit
+  - aes ----------- encryption algorithms
+  - md4/md5/sha --- Hash functions
+  - punycode ------ IDN code
+  - JRE32.DLL ----- Regular Expression Engine
+
+- Process protection removed.
+
+- Updatebell removed.
+
+- Update notification removed.
+
 Changes in Ver.1.99a
 --------------------
 

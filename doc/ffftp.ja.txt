@@ -1,7 +1,7 @@
 ============================================================
-【ソフト名】　FTPクライアント FFFTP（OSDN版） Ver 1.99a
-【動作確認環境】　Windows 10, 8.1, 8, 7, Vista, XP, 2000
-【サポート】　http://osdn.jp/projects/ffftp/
+【ソフト名】　FTPクライアント FFFTP Ver 3.00
+【動作環境】　Windows 10, 8.1, 8, 7, Vista, XP
+【サポート】　https://github.com/sayurin/ffftp
 ============================================================
 
 INIファイルについて
@@ -27,24 +27,26 @@ FFFTP Ver.1.96d+009以降を最初に起動した時、接続メニューの設定→
 マスターパスワードの入力が求められますので、入力してください。
 
 
-Ver 1.99aでの変更点
--------------------
+Ver 3.00での変更点
+------------------
 
-今回のバージョンより、自動更新機能で対応した内容を含めて記載します。
+・動作環境が変更されました。Windows 2000以前では動作しません。
 
-・自動更新機能用サーバーの仕様変更に対応しました。
-　以前のバージョンでは自動更新機能が使用できなくなったため、
-　このバージョンへの更新は手動にてお願いします。
+・日本語版／英語版が共通化されました。
 
-・ファイル名の漢字コードがUTF-8以外の場合に特定のファイル名が正しく表示
-　されないバグを修正しました。
+・外部ライブラリを使用しなくなりました。すべてWindows付属のライブラリ
+  へ切り替えました。今まで使用していた外部ライブラリは次の通りです。
+  ・OpenSSL ------- SSL/TLSツールキット
+  ・aes ----------- 共通鍵暗号アルゴリズム
+  ・md4/md5/sha --- 各種ハッシュ関数
+  ・punycode ------ 国際化ドメイン名符号化
+  ・JRE32.DLL ----- 正規表現エンジン
 
-・ZIP版で将来のバージョンの設定をレジストリからインポートした際に余分な
-　ダイアログが表示されるバグを修正しました。
+・プロセス保護機能は削除されました。
 
-・OpenSSLを更新しました。
+・更新風鐸対応機能は削除されました。
 
-・SSL/TLSのルート証明書を更新しました。
+・更新通知機能は削除されました。
 
 
 Ver 1.96d以前へ戻す場合
@@ -78,15 +80,23 @@ GUIを持つFTPクライアントソフトです。
 ☆各種FireWall、SOCKS、ワンタイムパスワードに対応しています。
 
 
+動作環境
+--------
+・x64版
+  Windows 7 SP1以降
+・x86版
+  Windows XP SP3以降
+  IDN; 国際化ドメイン名を利用するにはInternet Explorer 7以降をインス
+  トールする必要があります。
+
+
 ファイル構成
 ------------
 
 ffftp.exe -------- 実行ファイル
-ffftp.hlp -------- ヘルプファイル
-ffftp.cnt -------- 　〃
+ffftp.chm -------- ヘルプファイル
 ffftp.txt -------- このファイル
 history.txt ------ 改版履歴
-jre32.dll -------- 正規表現検索ＤＬＬ
 
 
 アンインストール方法
@@ -95,7 +105,7 @@ jre32.dll -------- 正規表現検索ＤＬＬ
 ■Windows 7、Vista
 コントロールパネルの「プログラムと機能」でアンインストールしてください。
 
-■Windows XP、2000、98、Me
+■Windows XP
 コントロールパネルの「アプリケーションの追加と削除」でアンインストール
 してください。
 
@@ -122,6 +132,7 @@ jre32.dll -------- 正規表現検索ＤＬＬ
 
 Copyright(C) 1997-2010, Sota & cooperators. All rights reserved.
 Copyright (C) 2011-2016 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).
+Copyright (C) 2018, KURATA Sayuri.
 
 Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions 
@@ -148,6 +159,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Copyright(C) 1997-2010 Sota & ご協力いただいた方々. All rights reserved.
 Copyright (C) 2011-2016 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).
+Copyright (C) 2018, 倉田佐祐理.
 
 ソースコード形式でもバイナリ形式でも、変更の有無に関わらず、以下の条件を
 満たす場合に、再配布および使用を許可します。
@@ -168,146 +180,3 @@ Copyright (C) 2011-2016 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IW
 対しても（代替品またはサービスの調達、使用機会やデータ、利益の損失の
 補償、または業務の中断に対する補償を含め）、著作権者は責任をいっさい負い
 ません。
-
-
-AES暗号化のコードについては、以下のライセンスとなります。
-
-Copyright (c) 1998-2008, Brian Gladman, Worcester, UK. All rights reserved.
-
-LICENSE TERMS
-
-The redistribution and use of this software (with or without changes)
-is allowed without the payment of fees or royalties provided that:
-
-1. source code distributions include the above copyright notice, this
-list of conditions and the following disclaimer;
-
-2. binary distributions include the above copyright notice, this list
-of conditions and the following disclaimer in their documentation;
-
-3. the name of the copyright holder is not used to endorse products
-built using this software without specific written permission.
-
-DISCLAIMER
-
-This software is provided 'as is' with no explicit or implied warranties
-in respect of its properties, including, but not limited to, correctness
-and/or fitness for purpose.
-
-
-FTP over SSL/TLSの実装にはOpenSSLを使用しています。
-This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit.
-
-  OpenSSL License
-  ---------------
-
-Copyright (c) 1998-2011 The OpenSSL Project.  All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-
-1. Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer. 
-
-2. Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in
-   the documentation and/or other materials provided with the
-   distribution.
-
-3. All advertising materials mentioning features or use of this
-   software must display the following acknowledgment:
-   "This product includes software developed by the OpenSSL Project
-   for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
-
-4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
-   endorse or promote products derived from this software without
-   prior written permission. For written permission, please contact
-   openssl-core@openssl.org.
-
-5. Products derived from this software may not be called "OpenSSL"
-   nor may "OpenSSL" appear in their names without prior written
-   permission of the OpenSSL Project.
-
-6. Redistributions of any form whatsoever must retain the following
-   acknowledgment:
-   "This product includes software developed by the OpenSSL Project
-   for use in the OpenSSL Toolkit (http://www.openssl.org/)"
-
-THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
-EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
-ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-OF THE POSSIBILITY OF SUCH DAMAGE.
-
-====================================================================
-
-This product includes cryptographic software written by Eric Young
-(eay@cryptsoft.com).  This product includes software written by Tim
-Hudson (tjh@cryptsoft.com).
-
- Original SSLeay License
- -----------------------
-
-Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
-All rights reserved.
-
-This package is an SSL implementation written
-by Eric Young (eay@cryptsoft.com).
-The implementation was written so as to conform with Netscapes SSL.
-
-This library is free for commercial and non-commercial use as long as
-the following conditions are aheared to.  The following conditions
-apply to all code found in this distribution, be it the RC4, RSA,
-lhash, DES, etc., code; not just the SSL code.  The SSL documentation
-included with this distribution is covered by the same copyright terms
-except that the holder is Tim Hudson (tjh@cryptsoft.com).
-
-Copyright remains Eric Young's, and as such any Copyright notices in
-the code are not to be removed.
-If this package is used in a product, Eric Young should be given attribution
-as the author of the parts of the library used.
-This can be in the form of a textual message at program startup or
-in documentation (online or textual) provided with the package.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-1. Redistributions of source code must retain the copyright
-   notice, this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in the
-   documentation and/or other materials provided with the distribution.
-3. All advertising materials mentioning features or use of this software
-   must display the following acknowledgement:
-   "This product includes cryptographic software written by
-    Eric Young (eay@cryptsoft.com)"
-   The word 'cryptographic' can be left out if the rouines from the library
-   being used are not cryptographic related :-).
-4. If you include any Windows specific code (or a derivative thereof) from 
-   the apps directory (application code) you must include an acknowledgement:
-   "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
-
-THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-SUCH DAMAGE.
-
-The licence and distribution terms for any publically available version or
-derivative of this code cannot be changed.  i.e. this code cannot simply be
-copied and put under another distribution licence [including the GNU Public Licence.]
-
