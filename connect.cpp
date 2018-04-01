@@ -916,29 +916,11 @@ int AskUseNLST_R(void)
 }
 
 
-/*----- 接続しているホストのChmodコマンドを返す -------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		char *Chmodコマンド
-*----------------------------------------------------------------------------*/
-
-char *AskHostChmodCmd(void)
-{
-	// 同時接続対応
-	HOSTDATA TmpHost;
-	TmpHost = CurHost;
-
-	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-		// 同時接続対応
-//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+std::string AskHostChmodCmd() {
+	HOSTDATA TmpHost = CurHost;
+	if (AskCurrentHost() != HOSTNUM_NOENTRY)
 		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
-
-	// 同時接続対応
-//	return(CurHost.ChmodCmd);
-	return(TmpHost.ChmodCmd);
+	return TmpHost.ChmodCmd;
 }
 
 
@@ -983,29 +965,11 @@ int AskPasvMode(void)
 }
 
 
-/*----- 接続しているホストのLNSTファイル名を返す ------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		char *ファイル名／オプション
-*----------------------------------------------------------------------------*/
-
-char *AskHostLsName(void)
-{
-	// 同時接続対応
-	HOSTDATA TmpHost;
-	TmpHost = CurHost;
-
-	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-		// 同時接続対応
-//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
+std::string AskHostLsName() {
+	HOSTDATA TmpHost = CurHost;
+	if (AskCurrentHost() != HOSTNUM_NOENTRY)
 		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
-
-	// 同時接続対応
-//	return(CurHost.LsName);
-	return(TmpHost.LsName);
+	return TmpHost.LsName;
 }
 
 

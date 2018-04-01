@@ -409,9 +409,7 @@ int DoCHMOD(char *Path, char *Mode)
 {
 	int Sts;
 
-	// 同時接続対応
-//	Sts = CommandProcCmd(NULL, "%s %s %s", AskHostChmodCmd(), Mode, Path);
-	Sts = CommandProcCmd(NULL, &CancelFlg, "%s %s %s", AskHostChmodCmd(), Mode, Path);
+	Sts = CommandProcCmd(NULL, &CancelFlg, "%s %s %s", AskHostChmodCmd().c_str(), Mode, Path);
 
 	if(Sts/100 >= FTP_CONTINUE)
 		SoundPlay(SND_ERROR);
@@ -660,12 +658,12 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, 
 	if(AskListCmdMode() == NO)
 	{
 		strcpy(MainTransPkt.Cmd, "NLST");
-		if(strlen(AskHostLsName()) > 0)
+		if(!empty(AskHostLsName()))
 		{
 			strcat(MainTransPkt.Cmd, " ");
 			if((AskHostType() == HTYPE_ACOS) || (AskHostType() == HTYPE_ACOS_4))
 				strcat(MainTransPkt.Cmd, "'");
-			strcat(MainTransPkt.Cmd, AskHostLsName());
+			strcat(MainTransPkt.Cmd, AskHostLsName().c_str());
 			if((AskHostType() == HTYPE_ACOS) || (AskHostType() == HTYPE_ACOS_4))
 				strcat(MainTransPkt.Cmd, "'");
 		}

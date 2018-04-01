@@ -240,7 +240,7 @@ void DownloadProc(int ChName, int ForceFile, int All)
 				if(AskHostType() == HTYPE_ACOS)
 				{
 					strcpy(Pkt.RemoteFile, "'");
-					strcat(Pkt.RemoteFile, AskHostLsName());
+					strcat(Pkt.RemoteFile, AskHostLsName().c_str());
 					strcat(Pkt.RemoteFile, "(");
 					strcat(Pkt.RemoteFile, Pos->File);
 					strcat(Pkt.RemoteFile, ")");
@@ -374,7 +374,7 @@ void DirectDownloadProc(char *Fname)
 				if(AskHostType() == HTYPE_ACOS)
 				{
 					strcpy(Pkt.RemoteFile, "'");
-					strcat(Pkt.RemoteFile, AskHostLsName());
+					strcat(Pkt.RemoteFile, AskHostLsName().c_str());
 					strcat(Pkt.RemoteFile, "(");
 					strcat(Pkt.RemoteFile, Fname);
 					strcat(Pkt.RemoteFile, ")");
@@ -1043,7 +1043,7 @@ int MakeDirFromRemotePath(char* RemoteFile, char* Old, int FirstAdd)
 			if(AskHostType() == HTYPE_ACOS)
 			{
 				strcpy(Pkt.RemoteFile, "'");
-				strcat(Pkt.RemoteFile, AskHostLsName());
+				strcat(Pkt.RemoteFile, AskHostLsName().c_str());
 				strcat(Pkt.RemoteFile, "(");
 				strcat(Pkt.RemoteFile, Cat);
 				strcat(Pkt.RemoteFile, ")");
@@ -1163,7 +1163,7 @@ void UploadListProc(int ChName, int All)
 			if(AskHostType() == HTYPE_ACOS)
 			{
 				strcpy(Pkt.RemoteFile, "'");
-				strcat(Pkt.RemoteFile, AskHostLsName());
+				strcat(Pkt.RemoteFile, AskHostLsName().c_str());
 				strcat(Pkt.RemoteFile, "(");
 				strcat(Pkt.RemoteFile, Cat);
 				strcat(Pkt.RemoteFile, ")");
@@ -1346,7 +1346,7 @@ void UploadDragProc(WPARAM wParam)
 			if(AskHostType() == HTYPE_ACOS)
 			{
 				strcpy(Pkt.RemoteFile, "'");
-				strcat(Pkt.RemoteFile, AskHostLsName());
+				strcat(Pkt.RemoteFile, AskHostLsName().c_str());
 				strcat(Pkt.RemoteFile, "(");
 				strcat(Pkt.RemoteFile, Cat);
 				strcat(Pkt.RemoteFile, ")");

@@ -362,9 +362,9 @@ static int FTPS_recv(SOCKET s, char* buf, int len, int flags) {
 		auto read = recv(s, data(context->readRaw) + offset, size_as<int>(context->readRaw) - offset, 0);
 		if (read <= 0) {
 			context->readRaw.resize(offset);
+#ifdef _DEBUG
 			if (read == 0)
 				_RPTW0(_CRT_WARN, L"FTPS_recv recv: connection closed.\n");
-#ifdef _DEBUG
 			else if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK)
 				_RPTWN(_CRT_WARN, L"FTPS_recv recv error: %d.\n", lastError);
 #endif

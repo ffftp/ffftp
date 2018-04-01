@@ -2418,7 +2418,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							if(AskHostType() == HTYPE_ACOS)
 							{
 								strcpy(MainTransPkt.RemoteFile, "'");
-								strcat(MainTransPkt.RemoteFile, AskHostLsName());
+								strcat(MainTransPkt.RemoteFile, AskHostLsName().c_str());
 								strcat(MainTransPkt.RemoteFile, "(");
 								strcat(MainTransPkt.RemoteFile, Tmp);
 								strcat(MainTransPkt.RemoteFile, ")");

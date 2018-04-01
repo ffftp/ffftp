@@ -1027,8 +1027,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						/* ここではエラーチェックはしない */
 
 					if(FolderAttr)
-//						CommandProcTrn(NULL, "%s %03d %s", AskHostChmodCmd(), FolderAttrNum, Tmp);
-						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s %03d %s", AskHostChmodCmd(), FolderAttrNum, Tmp);
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s %03d %s", AskHostChmodCmd().c_str(), FolderAttrNum, Tmp);
 					}
 				}
 //				else if(strlen(TransPacketBase->LocalFile) > 0)
@@ -1056,8 +1055,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s%s", Pos->Cmd+2, Pos->RemoteFile);
 
 					if(FolderAttr)
-//						CommandProcTrn(NULL, "%s %03d %s", AskHostChmodCmd(), FolderAttrNum, TransPacketBase->RemoteFile);
-						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s %03d %s", AskHostChmodCmd(), FolderAttrNum, Pos->RemoteFile);
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s %03d %s", AskHostChmodCmd().c_str(), FolderAttrNum, Pos->RemoteFile);
 				}
 				ReleaseMutex(hListAccMutex);
 			}
@@ -2742,9 +2740,7 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET *Pkt)
 
 			/* 属性変更 */
 			if((Pkt->Attr != -1) && ((iRetCode/100) == FTP_COMPLETE))
-				// 同時接続対応
-//				command(Pkt->ctrl_skt, Reply, &Canceled, "%s %03X %s", AskHostChmodCmd(), Pkt->Attr, Pkt->RemoteFile);
-				command(Pkt->ctrl_skt, Reply, &Canceled[Pkt->ThreadCount], "%s %03X %s", AskHostChmodCmd(), Pkt->Attr, Pkt->RemoteFile);
+				command(Pkt->ctrl_skt, Reply, &Canceled[Pkt->ThreadCount], "%s %03X %s", AskHostChmodCmd().c_str(), Pkt->Attr, Pkt->RemoteFile);
 		}
 		else
 		{
