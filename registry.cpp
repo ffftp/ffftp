@@ -1862,12 +1862,13 @@ static void EncodePassword(std::string_view const& Str, char *Buf) {
 	try {
 		auto p = Buf;
 		auto length = size_as<DWORD>(Str);
-		auto paddedLength = length < AES_BLOCK_SIZE * 2 ? AES_BLOCK_SIZE * 2 : ((length + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE) * AES_BLOCK_SIZE;	/* 最低長を32文字とする */
+		auto paddedLength = (length + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE * AES_BLOCK_SIZE;
+		paddedLength = std::max(paddedLength, DWORD(AES_BLOCK_SIZE * 2));	/* 最低長を32文字とする */
 		std::vector<BYTE> buffer(paddedLength, 0);
 		std::copy(begin(Str), end(Str), begin(buffer));
 
 		/* PAD部分を乱数で埋める StrPad[StrLen](が有効な場合) は NUL */
-		if (DWORD restLength = paddedLength - length - 1; restLength == 0 || CryptGenRandom(HCryptProv, restLength, &buffer[length + 1]))
+		if (paddedLength <= length + 1 || CryptGenRandom(HCryptProv, paddedLength - length - 1, &buffer[length + 1]))
 			// IVの初期化
 			if (unsigned char iv[AES_BLOCK_SIZE]; CryptGenRandom(HCryptProv, size_as<DWORD>(iv), iv)) {
 				*p++ = '0';
@@ -2041,7 +2042,7 @@ static void DecodePassword3(char *Str, char *Buf) {
 		Buf[0] = NUL;
 		if (auto length = DWORD(strlen(Str)); AES_BLOCK_SIZE * 2 + 1 < length) {
 			DWORD encodedLength = (length - 1) / 2 - AES_BLOCK_SIZE;
-			std::vector<unsigned char> buffer(encodedLength, 0);
+			std::vector<unsigned char> buffer(encodedLength + 1, 0);	// NUL終端用に１バイト追加
 			unsigned char iv[AES_BLOCK_SIZE];
 			for (auto& item : iv) {
 				item = hex2bin(*Str++) << 4;
@@ -2055,9 +2056,10 @@ static void DecodePassword3(char *Str, char *Buf) {
 					BYTE rgbKeyData[32];
 				} keyBlob{ { PLAINTEXTKEYBLOB, CUR_BLOB_VERSION, 0, CALG_AES_256 }, 32 };
 				if (CreateAesKey(keyBlob.rgbKeyData)) {
-					for (auto& item : buffer) {
-						item = hex2bin(*Str++) << 4;
+					for (DWORD i = 0; i < encodedLength; i++) {
+						auto item = hex2bin(*Str++) << 4;
 						item |= hex2bin(*Str++);
+						buffer[i] = static_cast<unsigned char>(item);
 					}
 					if (HCRYPTKEY hkey; CryptImportKey(HCryptProv, reinterpret_cast<const BYTE*>(&keyBlob), sizeof keyBlob, 0, 0, &hkey)) {
 						if (DWORD mode = CRYPT_MODE_CBC; CryptSetKeyParam(hkey, KP_MODE, reinterpret_cast<const BYTE*>(&mode), 0))
