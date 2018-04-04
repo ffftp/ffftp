@@ -1507,6 +1507,17 @@ BEGIN
     PUSHBUTTON      "Ignore",IDIGNORE,173,42,50,14
 END
 
+certerr_dlg DIALOGEX 0, 0, 187, 42
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "Not Secure"
+FONT 9, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LTEXT           "This connection is not secure. Continue connecting?",IDC_STATIC,7,7,173,8
+    PUSHBUTTON      "&Yes",IDYES,7,21,50,14
+    PUSHBUTTON      "&No",IDNO,64,21,50,14
+    PUSHBUTTON      "Show cert...",IDC_SHOWCERT,121,21,59,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2175,6 +2186,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 57
     END
+
+    certerr_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 35
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -2717,7 +2736,6 @@ BEGIN
     IDS_MSGJPN323           "Failed to unload untrustworthy DLLs."
     IDS_MSGJPN324           "Failed to hook required functions to protect the process."
     IDS_MSGJPN325           "New master passwords are not identical."
-    IDS_MSGJPN326           "Certificate verification failed. Choose 'Yes' if you trust this certificate and continue.\r\nServer name: %s"
     IDS_MSGJPN329           "UTF-8 BOM"
     IDS_MSGJPN330           "UTF-8 BOM Kanji Code"
     IDS_MSGJPN331           "UTF-8 BOM Kanji Code (Local)"
@@ -2744,14 +2762,10 @@ BEGIN
     IDS_MSGJPN348           "UTF-8"
     IDS_MSGJPN349           "UTF-8 HFS+"
     IDS_MSGJPN350           "The settings of a newer version are detected.\nThe settings may not be read correctly, or they will be changed when they are overwritten for this version.\nChoose 'Yes' to overwrite settings for this version.\nChoose 'No' to save settings to the INI file.\nChoose 'Cancel' to load settings as read only."
-    IDS_MSGJPN351           "Warning: No encryption"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN352           "Encrypted: FTPES"
-    IDS_MSGJPN353           "Encrypted: FTPIS"
-    IDS_MSGJPN354           "Encrypted: SFTP"
     IDS_MSGJPN355           "Move to &parent folder..."
     IDS_MSGJPN356           "XML file"
     IDS_MSGJPN357           "Failed to export the settings.\nPlease change saving path or format."
@@ -2771,6 +2785,8 @@ BEGIN
     IDS_APP                 "FFFTP"
     IDS_ERR_CRYPTO          "Crypto library initialize failed.\nExit application."
     IDS_ERR_SSL             "SSL initialize failed.\nExit application."
+    IDS_SECURE              "Secure"
+    IDS_NOTSECURE           "Not Secure"
 END
 
 #endif    // English (United States) resources

@@ -116,9 +116,12 @@
 #define opt_trmode4_dlg                 195
 #define opt_disp2_dlg                   196
 #define corruptsettings_dlg             198
+#define certerr_dlg                     199
 #define IDS_APP                         200
 #define IDS_ERR_CRYPTO                  201
 #define IDS_ERR_SSL                     202
+#define IDS_SECURE                      203
+#define IDS_NOTSECURE                   204
 #define TRANS_TIME_BAR                  1002
 #define TRANS_TEXT                      1003
 #define TRANS_REMOTE                    1003
@@ -463,6 +466,7 @@
 #define HOST_SET_DEFAULT                1227
 #define TRMODE_LISTERROR                1228
 #define MIRROR_NO_TRANSFER              1229
+#define IDC_SHOWCERT                    1230
 #define IDS_MSGJPN001                   10001
 #define IDS_MSGJPN002                   10002
 #define IDS_MSGJPN003                   10003
@@ -779,7 +783,6 @@
 #define IDS_MSGJPN323                   10323
 #define IDS_MSGJPN324                   10324
 #define IDS_MSGJPN325                   10325
-#define IDS_MSGJPN326                   10326
 #define IDS_MSGJPN329                   10329
 #define IDS_MSGJPN330                   10330
 #define IDS_MSGJPN331                   10331
@@ -802,10 +805,6 @@
 #define IDS_MSGJPN348                   10348
 #define IDS_MSGJPN349                   10349
 #define IDS_MSGJPN350                   10350
-#define IDS_MSGJPN351                   10351
-#define IDS_MSGJPN352                   10352
-#define IDS_MSGJPN353                   10353
-#define IDS_MSGJPN354                   10354
 #define IDS_MSGJPN355                   10355
 #define IDS_MSGJPN356                   10356
 #define IDS_MSGJPN357                   10357
@@ -1004,9 +1003,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        199
+#define _APS_NEXT_RESOURCE_VALUE        200
 #define _APS_NEXT_COMMAND_VALUE         40182
-#define _APS_NEXT_CONTROL_VALUE         1230
+#define _APS_NEXT_CONTROL_VALUE         1231
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

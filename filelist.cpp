@@ -5957,6 +5957,7 @@ void SetFilter(int *CancelCheckWork)
 	if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(filter_dlg), GetMainHwnd(), FilterWndProc) == YES)
 	{
 		DispWindowTitle();
+		UpdateStatusBar();
 		GetLocalDirForWnd();
 		GetRemoteDirForWnd(CACHE_LASTREAD, CancelCheckWork);
 	}

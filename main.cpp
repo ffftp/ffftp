@@ -590,6 +590,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					DoPrintf("DEBUG MESSAGE ON ! ##");
 
 					DispWindowTitle();
+					UpdateStatusBar();
 					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.\r\n"
 						"Copyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).\r\n"
 						"Copyright (C) 2018, KURATA Sayuri."
@@ -762,45 +763,14 @@ static int MakeAllWindows(int cmdShow)
 }
 
 
-/*----- ウインドウのタイトルを表示する ----------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispWindowTitle(void)
-{
-	char Tmp[HOST_ADRS_LEN+FILTER_EXT_LEN+20];
-
-	if(AskConnecting() == YES)
-	// 暗号化通信対応
-	// タイトルバーにユーザー名表示対応
-//		sprintf(Tmp, "%s (%s) - FFFTP", TitleHostName, FilterStr);
-	{
-		switch(AskCryptMode())
-		{
-		case CRYPT_NONE:
-			sprintf(Tmp, "%s@%s (%s) %s - FFFTP", TitleUserName, TitleHostName, FilterStr, MSGJPN351);
-			break;
-		case CRYPT_FTPES:
-			sprintf(Tmp, "%s@%s (%s) %s - FFFTP", TitleUserName, TitleHostName, FilterStr, MSGJPN352);
-			break;
-		case CRYPT_FTPIS:
-			sprintf(Tmp, "%s@%s (%s) %s - FFFTP", TitleUserName, TitleHostName, FilterStr, MSGJPN353);
-			break;
-		case CRYPT_SFTP:
-			sprintf(Tmp, "%s@%s (%s) %s - FFFTP", TitleUserName, TitleHostName, FilterStr, MSGJPN354);
-			break;
-		}
-	}
+// ウインドウのタイトルを表示する
+void DispWindowTitle() {
+	char text[HOST_ADRS_LEN + FILTER_EXT_LEN + 20];
+	if (AskConnecting() == YES)
+		sprintf(text, "%s (%s) - FFFTP", TitleHostName, FilterStr);
 	else
-		sprintf(Tmp, "FFFTP (%s)", FilterStr);
-
-	SetWindowText(GetMainHwnd(), Tmp);
-	return;
+		sprintf(text, "FFFTP (%s)", FilterStr);
+	SetWindowText(GetMainHwnd(), text);
 }
 
 
@@ -1623,6 +1593,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			break;
 
 		case WM_NOTIFY :
+			if (NotifyStatusBar(reinterpret_cast<const NMHDR*>(lParam)))
+				break;
 			switch(((LPNMHDR)lParam)->code)
 			{
 				/* ツールチップコントロールメッセージの処理 */
@@ -3261,18 +3233,6 @@ int EnterMasterPasswordAndSet( int Res, HWND hWnd )
 		}
 	}
 	return 0;
-}
-
-bool ConfirmCertificate(const wchar_t* serverName, BOOL* pbAborted) {
-	BOOL bResult = FALSE;
-	if (char* pm0 = AllocateStringM(1024)) {
-		sprintf(pm0, MSGJPN326, u8(serverName).c_str());
-		bResult = MessageBox(GetMainHwnd(), pm0, "FFFTP", MB_YESNO) == IDYES;
-		FreeDuplicatedString(pm0);
-	}
-	if (!bResult)
-		*pbAborted = YES;
-	return bResult;
 }
 
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策

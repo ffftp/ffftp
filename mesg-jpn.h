@@ -316,7 +316,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN323 (std::data(msgs[10000+323])) /* 信頼できないDLLをアンロードできませんでした. */
 #define MSGJPN324 (std::data(msgs[10000+324])) /* プロセスの保護に必要な関数をフックできませんでした. */
 #define MSGJPN325 (std::data(msgs[10000+325])) /* 新しいマスターパスワードが一致しません. */
-#define MSGJPN326 (std::data(msgs[10000+326])) /* 証明書の検証に失敗しました. この証明書を信頼し,通信を続行するには「はい」を選択してください.\r\nサーバー名: %s */
 #define MSGJPN329 (std::data(msgs[10000+329])) /* UTF-8 BOM */
 #define MSGJPN330 (std::data(msgs[10000+330])) /* ホストの漢字コードはUTF-8 BOM */
 #define MSGJPN331 (std::data(msgs[10000+331])) /* ローカルの漢字コードはUTF-8 BOM */
@@ -339,10 +338,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN348 (std::data(msgs[10000+348])) /* UTF-8 */
 #define MSGJPN349 (std::data(msgs[10000+349])) /* UTF-8 HFS+ */
 #define MSGJPN350 (std::data(msgs[10000+350])) /* 新しいバージョンの設定が検出されました.\nこのバージョンでは一部の設定が正しく読み込まれない,またはこのバージョンで設定を上書きすると設定が変化する可能性があります.\nこのバージョン用に設定を上書きして保存するには「はい」を選択してください.\n設定をレジストリではなくINIファイルに保存するには「いいえ」を選択してください.\n読み取り専用で設定を読み込むには「キャンセル」を選択してください. */
-#define MSGJPN351 (std::data(msgs[10000+351])) /* 警告: 暗号化されていません */
-#define MSGJPN352 (std::data(msgs[10000+352])) /* 暗号化されています: FTPES */
-#define MSGJPN353 (std::data(msgs[10000+353])) /* 暗号化されています: FTPIS */
-#define MSGJPN354 (std::data(msgs[10000+354])) /* 暗号化されています: SFTP */
 #define MSGJPN355 (std::data(msgs[10000+355])) /* 一つ上のフォルダへ移動(&P)... */
 #define MSGJPN356 (std::data(msgs[10000+356])) /* XMLファイル\0*.xml\0全てのファイル\0*\0 */
 #define MSGJPN357 (std::data(msgs[10000+357])) /* 設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください. */

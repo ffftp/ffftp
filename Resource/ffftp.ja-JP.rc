@@ -1466,6 +1466,17 @@ BEGIN
     PUSHBUTTON      "無視",IDIGNORE,173,42,50,14
 END
 
+certerr_dlg DIALOGEX 0, 0, 187, 42
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "保護されていません"
+FONT 9, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LTEXT           "このサイトへの接続は保護されていません。続行しますか？",IDC_STATIC,7,7,173,8
+    PUSHBUTTON      "&Yes",IDYES,7,21,50,14
+    PUSHBUTTON      "&No",IDNO,64,21,50,14
+    PUSHBUTTON      "証明書を表示...",IDC_SHOWCERT,121,21,59,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2137,6 +2148,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 57
     END
+
+    certerr_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 35
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -2679,7 +2698,6 @@ BEGIN
     IDS_MSGJPN323           "信頼できないDLLをアンロードできませんでした."
     IDS_MSGJPN324           "プロセスの保護に必要な関数をフックできませんでした."
     IDS_MSGJPN325           "新しいマスターパスワードが一致しません."
-    IDS_MSGJPN326           "証明書の検証に失敗しました. この証明書を信頼し,通信を続行するには「はい」を選択してください.\r\nサーバー名: %s"
     IDS_MSGJPN329           "UTF-8 BOM"
     IDS_MSGJPN330           "ホストの漢字コードはUTF-8 BOM"
     IDS_MSGJPN331           "ローカルの漢字コードはUTF-8 BOM"
@@ -2706,14 +2724,10 @@ BEGIN
     IDS_MSGJPN348           "UTF-8"
     IDS_MSGJPN349           "UTF-8 HFS+"
     IDS_MSGJPN350           "新しいバージョンの設定が検出されました.\nこのバージョンでは一部の設定が正しく読み込まれない,またはこのバージョンで設定を上書きすると設定が変化する可能性があります.\nこのバージョン用に設定を上書きして保存するには「はい」を選択してください.\n設定をレジストリではなくINIファイルに保存するには「いいえ」を選択してください.\n読み取り専用で設定を読み込むには「キャンセル」を選択してください."
-    IDS_MSGJPN351           "警告: 暗号化されていません"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN352           "暗号化されています: FTPES"
-    IDS_MSGJPN353           "暗号化されています: FTPIS"
-    IDS_MSGJPN354           "暗号化されています: SFTP"
     IDS_MSGJPN355           "一つ上のフォルダへ移動(&P)..."
     IDS_MSGJPN356           "XMLファイル"
     IDS_MSGJPN357           "設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください."
@@ -2733,6 +2747,8 @@ BEGIN
     IDS_APP                 "FFFTP"
     IDS_ERR_CRYPTO          "暗号ライブラリの初期化に失敗しました.\nアプリケーションを終了します."
     IDS_ERR_SSL             "SSLの初期化に失敗しました.\nアプリケーションを終了します."
+    IDS_SECURE              "保護されています"
+    IDS_NOTSECURE           "保護されていません"
 END
 
 #endif    // Japanese (Japan) resources
