@@ -246,8 +246,7 @@ struct in6_addr inet6_addr(const char* cp)
 			}
 			else
 			{
-				Result.u.Word[i] = (USHORT)strtol(cp, &p, 16);
-				Result.u.Word[i] = ((Result.u.Word[i] & 0xff00) >> 8) | ((Result.u.Word[i] & 0x00ff) << 8);
+				Result.u.Word[i] = _byteswap_ushort((USHORT)strtol(cp, &p, 16));
 				if(strncmp(p, ":", 1) != 0 && strlen(p) > 0)
 				{
 					memcpy(&Result, &IN6ADDR_NONE, sizeof(struct in6_addr));
