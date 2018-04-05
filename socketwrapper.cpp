@@ -99,35 +99,23 @@ DWORD WINAPI WSAAsyncGetHostByNameIPv6ThreadProc(LPVOID lpParameter)
 // ただしANSI用
 HANDLE WSAAsyncGetHostByNameIPv6(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen, short Family)
 {
-	HANDLE hResult;
-	GETHOSTBYNAMEDATA* pData;
-	hResult = NULL;
-	if(pData = (GETHOSTBYNAMEDATA*)malloc(sizeof(GETHOSTBYNAMEDATA)))
+	HANDLE hResult = nullptr;
+	GETHOSTBYNAMEDATA Data;
+	Data.hWnd = hWnd;
+	Data.wMsg = wMsg;
+	if(Data.name = (char*)malloc(sizeof(char) * (strlen(name) + 1)))
 	{
-		pData->hWnd = hWnd;
-		pData->wMsg = wMsg;
-		if(pData->name = (char*)malloc(sizeof(char) * (strlen(name) + 1)))
+		strcpy(Data.name, name);
+		Data.buf = buf;
+		Data.buflen = buflen;
+		Data.Family = Family;
+		if(Data.h = CreateThread(NULL, 0, WSAAsyncGetHostByNameIPv6ThreadProc, &Data, CREATE_SUSPENDED, NULL))
 		{
-			strcpy(pData->name, name);
-			pData->buf = buf;
-			pData->buflen = buflen;
-			pData->Family = Family;
-			if(pData->h = CreateThread(NULL, 0, WSAAsyncGetHostByNameIPv6ThreadProc, pData, CREATE_SUSPENDED, NULL))
-			{
-				ResumeThread(pData->h);
-				hResult = pData->h;
-			}
+			ResumeThread(Data.h);
+			hResult = Data.h;
 		}
 	}
-	if(!hResult)
-	{
-		if(pData)
-		{
-			if(pData->name)
-				free(pData->name);
-			free(pData);
-		}
-	}
+	if(!hResult) free(Data.name);
 	return hResult;
 }
 
