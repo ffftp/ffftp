@@ -2262,32 +2262,32 @@ BOOL ChooseFontM(LPCHOOSEFONTA v0)
 	wchar_t* pw0 = NULL;
 	wchar_t* pw1 = NULL;
 	CHOOSEFONTW a0;
-	LOGFONTW* pwlf;
+	LOGFONTW wlf;
 START_ROUTINE
 	a0.lStructSize = sizeof(CHOOSEFONTW);
 	a0.hwndOwner = v0->hwndOwner;
 	a0.hDC = v0->hDC;
-	if(v0->lpLogFont && (pwlf = (LOGFONTW*)malloc(sizeof(LOGFONTW))))
+	if(v0->lpLogFont)
 	{
-		pwlf->lfHeight = v0->lpLogFont->lfHeight;
-		pwlf->lfWidth = v0->lpLogFont->lfWidth;
-		pwlf->lfEscapement = v0->lpLogFont->lfEscapement;
-		pwlf->lfOrientation = v0->lpLogFont->lfOrientation;
-		pwlf->lfWeight = v0->lpLogFont->lfWeight;
-		pwlf->lfItalic = v0->lpLogFont->lfItalic;
-		pwlf->lfUnderline = v0->lpLogFont->lfUnderline;
-		pwlf->lfStrikeOut = v0->lpLogFont->lfStrikeOut;
-		pwlf->lfCharSet = v0->lpLogFont->lfCharSet;
-		pwlf->lfOutPrecision = v0->lpLogFont->lfOutPrecision;
-		pwlf->lfClipPrecision = v0->lpLogFont->lfClipPrecision;
-		pwlf->lfQuality = v0->lpLogFont->lfQuality;
-		pwlf->lfPitchAndFamily = v0->lpLogFont->lfPitchAndFamily;
-		MtoW(pwlf->lfFaceName, LF_FACESIZE, v0->lpLogFont->lfFaceName, -1);
-		TerminateStringW(pwlf->lfFaceName, LF_FACESIZE);
+		wlf.lfHeight = v0->lpLogFont->lfHeight;
+		wlf.lfWidth = v0->lpLogFont->lfWidth;
+		wlf.lfEscapement = v0->lpLogFont->lfEscapement;
+		wlf.lfOrientation = v0->lpLogFont->lfOrientation;
+		wlf.lfWeight = v0->lpLogFont->lfWeight;
+		wlf.lfItalic = v0->lpLogFont->lfItalic;
+		wlf.lfUnderline = v0->lpLogFont->lfUnderline;
+		wlf.lfStrikeOut = v0->lpLogFont->lfStrikeOut;
+		wlf.lfCharSet = v0->lpLogFont->lfCharSet;
+		wlf.lfOutPrecision = v0->lpLogFont->lfOutPrecision;
+		wlf.lfClipPrecision = v0->lpLogFont->lfClipPrecision;
+		wlf.lfQuality = v0->lpLogFont->lfQuality;
+		wlf.lfPitchAndFamily = v0->lpLogFont->lfPitchAndFamily;
+		MtoW(wlf.lfFaceName, LF_FACESIZE, v0->lpLogFont->lfFaceName, -1);
+		TerminateStringW(wlf.lfFaceName, LF_FACESIZE);
+		a0.lpLogFont = &wlf;
 	}
 	else
-		pwlf = NULL;
-	a0.lpLogFont = pwlf;
+		a0.lpLogFont = nullptr;
 	a0.iPointSize = v0->iPointSize;
 	a0.Flags = v0->Flags;
 	a0.rgbColors = v0->rgbColors;
@@ -2304,28 +2304,26 @@ START_ROUTINE
 	r = ChooseFontW(&a0);
 	if(v0->lpLogFont)
 	{
-		v0->lpLogFont->lfHeight = pwlf->lfHeight;
-		v0->lpLogFont->lfWidth = pwlf->lfWidth;
-		v0->lpLogFont->lfEscapement = pwlf->lfEscapement;
-		v0->lpLogFont->lfOrientation = pwlf->lfOrientation;
-		v0->lpLogFont->lfWeight = pwlf->lfWeight;
-		v0->lpLogFont->lfItalic = pwlf->lfItalic;
-		v0->lpLogFont->lfUnderline = pwlf->lfUnderline;
-		v0->lpLogFont->lfStrikeOut = pwlf->lfStrikeOut;
-		v0->lpLogFont->lfCharSet = pwlf->lfCharSet;
-		v0->lpLogFont->lfOutPrecision = pwlf->lfOutPrecision;
-		v0->lpLogFont->lfClipPrecision = pwlf->lfClipPrecision;
-		v0->lpLogFont->lfQuality = pwlf->lfQuality;
-		v0->lpLogFont->lfPitchAndFamily = pwlf->lfPitchAndFamily;
-		WtoM(v0->lpLogFont->lfFaceName, LF_FACESIZE, pwlf->lfFaceName, -1);
+		v0->lpLogFont->lfHeight = wlf.lfHeight;
+		v0->lpLogFont->lfWidth = wlf.lfWidth;
+		v0->lpLogFont->lfEscapement = wlf.lfEscapement;
+		v0->lpLogFont->lfOrientation = wlf.lfOrientation;
+		v0->lpLogFont->lfWeight = wlf.lfWeight;
+		v0->lpLogFont->lfItalic = wlf.lfItalic;
+		v0->lpLogFont->lfUnderline = wlf.lfUnderline;
+		v0->lpLogFont->lfStrikeOut = wlf.lfStrikeOut;
+		v0->lpLogFont->lfCharSet = wlf.lfCharSet;
+		v0->lpLogFont->lfOutPrecision = wlf.lfOutPrecision;
+		v0->lpLogFont->lfClipPrecision = wlf.lfClipPrecision;
+		v0->lpLogFont->lfQuality = wlf.lfQuality;
+		v0->lpLogFont->lfPitchAndFamily = wlf.lfPitchAndFamily;
+		WtoM(v0->lpLogFont->lfFaceName, LF_FACESIZE, wlf.lfFaceName, -1);
 		TerminateStringM(v0->lpLogFont->lfFaceName, LF_FACESIZE);
 	}
 	v0->rgbColors = a0.rgbColors;
 	WtoM(v0->lpszStyle, LF_FACESIZE, pw1, -1);
 	TerminateStringM(v0->lpszStyle, LF_FACESIZE);
 	v0->nFontType = a0.nFontType;
-	if(pwlf)
-		free(pwlf);
 END_ROUTINE
 	FreeDuplicatedString(pw0);
 	FreeDuplicatedString(pw1);
