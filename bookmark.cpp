@@ -238,7 +238,6 @@ void SaveBookMark(void)
 	MENUITEMINFO mInfo;
 	int i;
 	int Cnt;
-	char *Buf;
 	char *Pos;
 	int Len;
 	char Tmp[BMARK_MARK_LEN + FMAX_PATH * 2 + BMARK_SEP_LEN + 1];
@@ -248,45 +247,41 @@ void SaveBookMark(void)
 	{
 		if((CurHost = AskCurrentHost()) != HOSTNUM_NOENTRY)
 		{
-			if((Buf = (char*)malloc(BOOKMARK_SIZE)) != NULL)
-			{
-				hMenu = GetSubMenu(GetMenu(GetMainHwnd()), BMARK_SUB_MENU);
+			char Buf[BOOKMARK_SIZE];
+			hMenu = GetSubMenu(GetMenu(GetMainHwnd()), BMARK_SUB_MENU);
 
-				Pos = Buf;
-				Len = 0;
-				Cnt = GetMenuItemCount(hMenu);
-				for(i = DEFAULT_BMARK_ITEM; i < Cnt; i++)
+			Pos = Buf;
+			Len = 0;
+			Cnt = GetMenuItemCount(hMenu);
+			for(i = DEFAULT_BMARK_ITEM; i < Cnt; i++)
+			{
+				mInfo.cbSize = sizeof(MENUITEMINFO);
+				mInfo.fMask = MIIM_TYPE;
+				mInfo.dwTypeData = Tmp;
+				mInfo.cch = FMAX_PATH;
+				if(GetMenuItemInfo(hMenu, i, TRUE, &mInfo) == TRUE)
 				{
-					mInfo.cbSize = sizeof(MENUITEMINFO);
-					mInfo.fMask = MIIM_TYPE;
-					mInfo.dwTypeData = Tmp;
-					mInfo.cch = FMAX_PATH;
-					if(GetMenuItemInfo(hMenu, i, TRUE, &mInfo) == TRUE)
+					if(Len + strlen(Tmp) + 2 <= BOOKMARK_SIZE)
 					{
-						if(Len + strlen(Tmp) + 2 <= BOOKMARK_SIZE)
-						{
-							strcpy(Pos, Tmp);
-							Pos += strlen(Tmp) + 1;
-							Len += (int)strlen(Tmp) + 1;
-						}
+						strcpy(Pos, Tmp);
+						Pos += strlen(Tmp) + 1;
+						Len += (int)strlen(Tmp) + 1;
 					}
 				}
-
-				if(Pos == Buf)
-				{
-					memset(Buf, NUL, 2);
-					Len = 2;
-				}
-				else
-				{
-					*Pos = NUL;
-					Len++;
-				}
-
-				SetHostBookMark(CurHost, Buf, Len);
-
-				free(Buf);
 			}
+
+			if(Pos == Buf)
+			{
+				memset(Buf, NUL, 2);
+				Len = 2;
+			}
+			else
+			{
+				*Pos = NUL;
+				Len++;
+			}
+
+			SetHostBookMark(CurHost, Buf, Len);
 		}
 	}
 	return;
