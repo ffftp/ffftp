@@ -26,6 +26,11 @@ Changes in 3.00
 Changes in Ver.2.00
 --------------------
 
+This list includes changes applied by automatic software updates.
+
+-- Changed the checking interval of automatic software updates from 7 days to
+   30 days.
+
 -- Added a feature to export settings as WinSCP INI format.
 
 -- Added an option to ignore addresses returned with PASV mode.
@@ -467,12 +472,12 @@ Changes in Ver.1.97
 -------------------
 
 -- Now you can use master password.
-   This function is made by Gengen-san.Å@Thanks.
+   This function is made by Gengen-san. Thanks.
    When you use this virsion first, set master password from following menu.
-    File ->Å@Settings -> Change Master password
+    File -> Settings -> Change Master password
 
 -- Now passwords are encrypted with AES.
-   This function is made by Moca-san.Å@Thanks.
+   This function is made by Moca-san. Thanks.
 
 Changes in Ver.1.96d
 --------------------

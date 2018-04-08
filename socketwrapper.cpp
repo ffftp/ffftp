@@ -87,7 +87,7 @@ DWORD WINAPI WSAAsyncGetHostByNameIPv6ThreadProc(LPVOID lpParameter)
 	else
 		PostMessage(pData->hWnd, pData->wMsg, (WPARAM)pData->h, (LPARAM)(ERROR_INVALID_FUNCTION << 16));
 	// CreateThreadが返すハンドルが重複するのを回避
-	Sleep(10000);
+	Sleep(1000);
 	CloseHandle(pData->h);
 	free(pData->name);
 	free(pData);
@@ -104,6 +104,7 @@ HANDLE WSAAsyncGetHostByNameIPv6(HWND hWnd, u_int wMsg, const char * name, char 
 	hResult = NULL;
 	if(pData = (GETHOSTBYNAMEDATA*)malloc(sizeof(GETHOSTBYNAMEDATA)))
 	{
+		pData->h = NULL; 
 		pData->hWnd = hWnd;
 		pData->wMsg = wMsg;
 		if(pData->name = (char*)malloc(sizeof(char) * (strlen(name) + 1)))
@@ -114,8 +115,8 @@ HANDLE WSAAsyncGetHostByNameIPv6(HWND hWnd, u_int wMsg, const char * name, char 
 			pData->Family = Family;
 			if(pData->h = CreateThread(NULL, 0, WSAAsyncGetHostByNameIPv6ThreadProc, pData, CREATE_SUSPENDED, NULL))
 			{
-				ResumeThread(pData->h);
-				hResult = pData->h;
+				if(ResumeThread(pData->h) != (DWORD)-1)
+					hResult = pData->h;
 			}
 		}
 	}
@@ -123,6 +124,11 @@ HANDLE WSAAsyncGetHostByNameIPv6(HWND hWnd, u_int wMsg, const char * name, char 
 	{
 		if(pData)
 		{
+			if(pData->h)
+			{
+				TerminateThread(pData->h, 0);
+				CloseHandle(pData->h);
+			}
 			if(pData->name)
 				free(pData->name);
 			free(pData);

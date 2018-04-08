@@ -3785,7 +3785,6 @@ void WriteWinSCPPassword(FILE* f, const char* UserName, const char* HostName, co
 void SaveSettingsToWinSCPIni()
 {
 	FILE* f;
-	TIME_ZONE_INFORMATION tzi;
 	char HostPath[FMAX_PATH+1];
 	int Level;
 	int i;
@@ -3797,7 +3796,6 @@ void SaveSettingsToWinSCPIni()
 	{
 		if((f = _wfopen(path.c_str(), L"at")) != NULL)
 		{
-			GetTimeZoneInformation(&tzi);
 			strcpy(HostPath, "");
 			Level = 0;
 			i = 0;
