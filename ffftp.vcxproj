@@ -210,6 +210,7 @@
   <ItemGroup>
     <ClInclude Include="common.h" />
     <ClInclude Include="config.h" />
+    <ClInclude Include="dialog.h" />
     <ClInclude Include="helpid.h" />
     <ClInclude Include="mbswrapper.h" />
     <ClInclude Include="mesg-jpn.h" />

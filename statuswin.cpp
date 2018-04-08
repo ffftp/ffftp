@@ -29,127 +29,57 @@
 
 #include "common.h"
 
-
-/*===== ローカルなワーク =====*/
-
 static HWND hWndSbar = NULL;
-static int SbarColWidth[5] = { 70, 230, 410, 570, -1 };
 
 
-
-/*----- ステータスウインドウを作成する ----------------------------------------
-*
-*	Parameter
-*		HWND hWnd : 親ウインドウのウインドウハンドル
-*		HINSTANCE hInst : インスタンスハンドル
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int MakeStatusBarWindow(HWND hWnd, HINSTANCE hInst)
-{
-	int Sts;
-	// 高DPI対応
-	int i;
-
-	Sts = FFFTP_FAIL;
-	hWndSbar = CreateWindowEx(0,
-			STATUSCLASSNAME, NULL,
-			WS_CHILD | SBS_SIZEGRIP | WS_CLIPSIBLINGS | SBT_NOBORDERS,
-			0, 0, 0, 0,
-			hWnd, (HMENU)1500, hInst, NULL);
-
-	if(hWndSbar != NULL)
-	{
-		// 高DPI対応
-		for(i = 0; i < sizeof(SbarColWidth) / sizeof(int) - 1; i++)
-			SbarColWidth[i] = CalcPixelX(SbarColWidth[i]);
-		SendMessage(hWndSbar, SB_SETPARTS, sizeof(SbarColWidth)/sizeof(int), (LPARAM)SbarColWidth);
-		ShowWindow(hWndSbar, SW_SHOW);
-		Sts = FFFTP_SUCCESS;
-	}
-	return(Sts);
+// ステータスウインドウを作成する
+int MakeStatusBarWindow(HWND hWnd, HINSTANCE hInst) {
+	hWndSbar = CreateWindowEx(0, STATUSCLASSNAME, nullptr, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | SBARS_SIZEGRIP, 0, 0, 0, 0, hWnd, 0, hInst, nullptr);
+	if (!hWndSbar)
+		return FFFTP_FAIL;
+	static int parts[]{ 120, 190, 340, 500, 660, -1 };
+	for (auto& part : parts)
+		if (part != -1)
+			part = CalcPixelX(part);
+	SendMessage(hWndSbar, SB_SETPARTS, size_as<WPARAM>(parts), (LPARAM)parts);
+	return FFFTP_SUCCESS;
 }
 
 
-/*----- ステータスウインドウを削除 --------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DeleteStatusBarWindow(void)
-{
-	if(hWndSbar != NULL)
+// ステータスウインドウを削除
+void DeleteStatusBarWindow() {
+	if (hWndSbar)
 		DestroyWindow(hWndSbar);
-	return;
 }
 
 
-/*----- ステータスウインドウのウインドウハンドルを返す ------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetSbarWnd(void)
-{
-	return(hWndSbar);
+// ステータスウインドウのウインドウハンドルを返す
+HWND GetSbarWnd() {
+	return hWndSbar;
 }
 
 
-/*----- カレントウインドウを表示 ----------------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx : -1=なし)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispCurrentWindow(int Win)
-{
-	if(Win == WIN_LOCAL)
-		SendMessage(GetSbarWnd(), SB_SETTEXT, 0 | 0, (LPARAM)MSGJPN245);
-	else if(Win == WIN_REMOTE)
-		SendMessage(GetSbarWnd(), SB_SETTEXT, 0 | 0, (LPARAM)MSGJPN246);
-	else
-		SendMessage(GetSbarWnd(), SB_SETTEXT, 0 | 0, (LPARAM)"");
-	return;
+void UpdateStatusBar() {
+	auto text = AskConnecting() == YES ? GetString(IsSecureConnection() ? IDS_SECURE : IDS_NOTSECURE) : L""s;
+	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(0, 0), (LPARAM)text.c_str());
 }
 
 
-/*----- 選択されているファイル数とサイズを表示 --------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
+// カレントウインドウを表示
+void DispCurrentWindow(int Win) {
+	auto text = Win == WIN_LOCAL ? MSGJPN245 : Win == WIN_REMOTE ? MSGJPN246 : "";
+	SendMessage(hWndSbar, SB_SETTEXT, MAKEWORD(1, 0), (LPARAM)text);
+}
 
-void DispSelectedSpace(void)
-{
-	char Buf1[50];
-	char Buf2[50];
-	int Win;
 
-	Win = WIN_LOCAL;
-	if(GetFocus() == GetRemoteHwnd())
-		Win = WIN_REMOTE;
-
-	MakeSizeString(GetSelectedTotalSize(Win), Buf1);
-	__pragma(warning(suppress:4474)) sprintf(Buf2, MSGJPN247, GetSelectedCount(Win), Buf1);
-	SendMessage(GetSbarWnd(), SB_SETTEXT, 1 | 0, (LPARAM)Buf2);
-	return;
+// 選択されているファイル数とサイズを表示
+void DispSelectedSpace() {
+	auto Win = GetFocus() == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL;
+	char size[50];
+	MakeSizeString(GetSelectedTotalSize(Win), size);
+	char text[50];
+	sprintf(text, MSGJPN247, GetSelectedCount(Win), size);
+	SendMessage(hWndSbar, SB_SETTEXT, MAKEWORD(2, 0), (LPARAM)text);
 }
 
 
@@ -160,51 +90,34 @@ void DispLocalFreeSpace(char *Path) {
 		MakeSizeString((double)a.QuadPart, size);
 	char text[40];
 	sprintf(text, MSGJPN248, size);
-	SendMessage(GetSbarWnd(), SB_SETTEXT, 2 | 0, (LPARAM)text);
+	SendMessage(hWndSbar, SB_SETTEXT, MAKEWORD(3, 0), (LPARAM)text);
 }
 
 
-/*----- 転送するファイルの数を表示 --------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispTransferFiles(void)
-{
-	char Buf[50];
-
-	sprintf(Buf, MSGJPN249, AskTransferFileNum());
-	SendMessage(GetSbarWnd(), SB_SETTEXT, 3 | 0, (LPARAM)Buf);
-	return;
+// 転送するファイルの数を表示
+void DispTransferFiles() {
+	char text[50];
+	sprintf(text, MSGJPN249, AskTransferFileNum());
+	SendMessage(hWndSbar, SB_SETTEXT, MAKEWORD(4, 0), (LPARAM)text);
 }
 
 
-/*----- 受信中のバイト数を表示 ------------------------------------------------
-*
-*	Parameter
-*		LONGLONG Size : バイト数 (-1=表示を消す)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispDownloadSize(LONGLONG Size)
-{
-	char Buf[50];
-	char Tmp[50];
-
-	strcpy(Buf, "");
-	if(Size >= 0)
-	{
+// 受信中のバイト数を表示
+void DispDownloadSize(LONGLONG Size) {
+	char text[50]{};
+	if (0 <= Size) {
+		char Tmp[50];
 		MakeSizeString((double)Size, Tmp);
-		sprintf(Buf, MSGJPN250, Tmp);
+		sprintf(text, MSGJPN250, Tmp);
 	}
-	SendMessage(GetSbarWnd(), SB_SETTEXT, 4 | 0, (LPARAM)Buf);
-	return;
+	SendMessage(hWndSbar, SB_SETTEXT, MAKEWORD(5, 0), (LPARAM)text);
 }
 
-
+bool NotifyStatusBar(const NMHDR* hdr) {
+	if (hdr->hwndFrom != hWndSbar)
+		return false;
+	if (hdr->code == NM_CLICK)
+		if (auto mouse = reinterpret_cast<const NMMOUSE*>(hdr); mouse->dwItemSpec == 0)
+			ShowCertificate();
+	return true;
+}

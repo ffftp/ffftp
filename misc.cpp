@@ -793,58 +793,20 @@ int AskDirLevel(char *Path)
 }
 
 
-/*----- ファイルサイズを文字列に変換する --------------------------------------
-*
-*	Parameter
-*		double Size : ファイルサイズ
-*		char *Buf : 文字列を返すバッファ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void MakeSizeString(double Size, char *Buf)
-{
-	// 修正
-//	if(Size >= (1024*1024))
-//	{
-//		Size /= (1024*1024);
-//		sprintf(Buf, "%.2fM Bytes", Size);
-//	}
-//	else if (Size >= 1024)
-//	{
-//		Size /= 1024;
-//		sprintf(Buf, "%.2fK Bytes", Size);
-//	}
-//	else
-//		sprintf(Buf, "%.0f Bytes", Size);
-	if(Size >= 1024.0)
-	{
-		Size /= 1024.0;
-		if(Size >= 1024.0)
-		{
-			Size /= 1024.0;
-			if(Size >= 1024.0)
-			{
-				Size /= 1024.0;
-				if(Size >= 1024.0)
-				{
-					Size /= 1024.0;
-					sprintf(Buf, "%.2lfT Bytes", Size);
-				}
-				else
-					sprintf(Buf, "%.2lfG Bytes", Size);
-			}
-			else
-				sprintf(Buf, "%.2lfM Bytes", Size);
-		}
-		else
-			sprintf(Buf, "%.2lfK Bytes", Size);
-	}
+// ファイルサイズを文字列に変換する
+void MakeSizeString(double Size, char *Buf) {
+	if (Size < 1024)
+		sprintf(Buf, "%.0lfB", Size);
+	else if (Size /= 1024; Size < 1024)
+		sprintf(Buf, "%.2lfKB", Size);
+	else if (Size /= 1024; Size < 1024)
+		sprintf(Buf, "%.2lfMB", Size);
+	else if (Size /= 1024; Size < 1024)
+		sprintf(Buf, "%.2lfGB", Size);
+	else if (Size /= 1024; Size < 1024)
+		sprintf(Buf, "%.2lfTB", Size);
 	else
-		sprintf(Buf, "%.0lf Bytes", Size);
-
-	return;
+		sprintf(Buf, "%.2lfPB", Size / 1024);
 }
 
 

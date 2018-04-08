@@ -241,6 +241,7 @@ void ConnectProc(int Type, int Num)
 				// タイトルバーにユーザー名表示対応
 				strcpy(TitleUserName, CurHost.UserName);
 				DispWindowTitle();
+				UpdateStatusBar();
 				SoundPlay(SND_CONNECT);
 
 				SendInitCommand(CmdCtrlSocket, CurHost.InitCmd, &CancelFlg);
@@ -357,6 +358,7 @@ void QuickConnectProc(void)
 				// タイトルバーにユーザー名表示対応
 				strcpy(TitleUserName, CurHost.UserName);
 				DispWindowTitle();
+				UpdateStatusBar();
 				SoundPlay(SND_CONNECT);
 
 				InitTransCurDir();
@@ -568,6 +570,7 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 			// タイトルバーにユーザー名表示対応
 			strcpy(TitleUserName, CurHost.UserName);
 			DispWindowTitle();
+			UpdateStatusBar();
 			SoundPlay(SND_CONNECT);
 
 			InitTransCurDir();
@@ -681,6 +684,7 @@ void HistoryConnectProc(int MenuCmd)
 				// タイトルバーにユーザー名表示対応
 				strcpy(TitleUserName, CurHost.UserName);
 				DispWindowTitle();
+				UpdateStatusBar();
 				SoundPlay(SND_CONNECT);
 
 				SendInitCommand(CmdCtrlSocket, CurHost.InitCmd, &CancelFlg);
@@ -1403,6 +1407,7 @@ void DisconnectProc(void)
 	CmdCtrlSocket = INVALID_SOCKET;
 
 	DispWindowTitle();
+	UpdateStatusBar();
 	MakeButtonsFocus();
 	ClearBookMark();
 
@@ -1426,6 +1431,7 @@ void DisconnectSet(void)
 
 	EraseRemoteDirForWnd();
 	DispWindowTitle();
+	UpdateStatusBar();
 	MakeButtonsFocus();
 	SetTaskMsg(MSGJPN005);
 	return;
@@ -3285,13 +3291,6 @@ int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data, int *CancelCheckWork)
 	return(Ret);
 }
 
-
-
-// 暗号化通信対応
-int AskCryptMode(void)
-{
-	return(CurHost.CryptMode);
-}
 
 int AskUseNoEncryption(void)
 {

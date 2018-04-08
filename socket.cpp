@@ -29,10 +29,12 @@
 
 #include "common.h"
 #define SECURITY_WIN32
+#include <cryptuiapi.h>
 #include <natupnp.h>
 #include <schannel.h>
 #include <security.h>
 #pragma comment(lib, "Crypt32.lib")
+#pragma comment(lib, "Cryptui.lib")
 #pragma comment(lib, "Secur32.lib")
 
 
@@ -130,11 +132,12 @@ static T CreateInvalidateHandle() {
 struct Context {
 	std::wstring host;
 	CtxtHandle context;
+	const bool secure;
 	SecPkgContext_StreamSizes streamSizes;
 	std::vector<char> readRaw;
 	std::vector<char> readPlain;
 	SECURITY_STATUS readStatus = SEC_E_OK;
-	Context(std::wstring const& host, CtxtHandle context, SecPkgContext_StreamSizes streamSizes, std::vector<char> extra) : host{ host }, context{ context }, streamSizes{ streamSizes }, readRaw{ extra } {
+	Context(std::wstring const& host, CtxtHandle context, bool secure, SecPkgContext_StreamSizes streamSizes, std::vector<char> extra) : host{ host }, context{ context }, secure{ secure }, streamSizes { streamSizes }, readRaw{ extra } {
 		if (!empty(readRaw))
 			Decypt();
 	}
@@ -228,34 +231,86 @@ namespace std {
 	};
 }
 
-static BOOL ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName, BOOL* pbAborted) {
-	std::unique_ptr<CERT_CONTEXT> certContext{ [&context] {
-		PCERT_CONTEXT certContext;
-		if (auto ss = QueryContextAttributesW(&context, SECPKG_ATTR_REMOTE_CERT_CONTEXT, &certContext); ss != SEC_E_OK) {
-			_RPTWN(_CRT_WARN, L"QueryContextAttributes(SECPKG_ATTR_REMOTE_CERT_CONTEXT) error: %08X.\n", ss);
-			nullptr;
+auto getCertContext(CtxtHandle& context) {
+	PCERT_CONTEXT certContext = nullptr;
+	[[maybe_unused]] auto ss = QueryContextAttributesW(&context, SECPKG_ATTR_REMOTE_CERT_CONTEXT, &certContext);
+#ifdef _DEBUG
+	if (ss != SEC_E_OK)
+		_RPTWN(_CRT_WARN, L"QueryContextAttributes(SECPKG_ATTR_REMOTE_CERT_CONTEXT) error: %08X.\n", ss);
+#endif
+	return std::unique_ptr<CERT_CONTEXT>{ certContext };
+}
+
+void ShowCertificate() {
+	if (auto context = getContext(AskCmdCtrlSkt()))
+		if (auto certContext = getCertContext(context->context)) {
+			CRYPTUI_VIEWCERTIFICATE_STRUCT certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCT, 0, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext.get() };
+			CryptUIDlgViewCertificate(&certViewInfo, nullptr);
 		}
-		return certContext;
-	}() };
+}
+
+enum class CertResult {
+	Secure,
+	NotSecureAccepted,
+	Declined,
+	Failed = Declined,
+};
+
+struct CertDialog {
+	using result_t = int;
+	std::unique_ptr<CERT_CONTEXT> const& certContext;
+	CertDialog(std::unique_ptr<CERT_CONTEXT> const& certContext) : certContext{ certContext } {}
+	INT_PTR OnCommand(HWND hdlg, WORD commandId) {
+		switch (commandId) {
+		case IDYES:
+		case IDNO:
+			EndDialog(hdlg, commandId);
+			break;
+		case IDC_SHOWCERT:
+			CRYPTUI_VIEWCERTIFICATE_STRUCTW certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCTW, hdlg, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext.get() };
+			CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
+			break;
+		}
+		return 0;
+	}
+};
+
+static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName, BOOL* pbAborted) {
+	auto certContext = getCertContext(context);
 	if (!certContext)
-		return FALSE;
+		return CertResult::Failed;
+
 	CERT_CHAIN_PARA chainPara{ sizeof CERT_CHAIN_PARA };
 	PCCERT_CHAIN_CONTEXT chainContext;
 	if (!CertGetCertificateChain(nullptr, certContext.get(), nullptr, nullptr, &chainPara, CERT_CHAIN_REVOCATION_CHECK_CHAIN_EXCLUDE_ROOT, nullptr, &chainContext)) {
 		_RPTWN(_CRT_WARN, L"CertGetCertificateChain error: %08X.\n", GetLastError());
-		return FALSE;
+		return CertResult::Failed;
 	}
 	SSL_EXTRA_CERT_CHAIN_POLICY_PARA sslPolicy{ sizeof SSL_EXTRA_CERT_CHAIN_POLICY_PARA , AUTHTYPE_SERVER, 0, serverName };
 	CERT_CHAIN_POLICY_PARA policyPara{ sizeof CERT_CHAIN_POLICY_PARA, 0, &sslPolicy };
 	CERT_CHAIN_POLICY_STATUS policyStatus{ sizeof CERT_CHAIN_POLICY_STATUS };
 	if (!CertVerifyCertificateChainPolicy(CERT_CHAIN_POLICY_SSL, chainContext, &policyPara, &policyStatus)) {
 		_RPTW0(_CRT_WARN, L"CertVerifyCertificateChainPolicy: not able to check.\n");
-		return FALSE;
+		return CertResult::Failed;
 	}
 	if (policyStatus.dwError == 0)
-		return TRUE;
+		return CertResult::Secure;
 	_RPTWN(_CRT_WARN, L"CertVerifyCertificateChainPolicy result: %08X.\n", policyStatus.dwError);
-	return ConfirmCertificate(serverName, pbAborted);
+
+	// thumbprint比較
+	static std::vector<std::array<unsigned char, 20>> acceptedThumbprints;
+	std::array<unsigned char, 20> thumbprint;
+	if (auto size = size_as<DWORD>(thumbprint); !CertGetCertificateContextProperty(certContext.get(), CERT_HASH_PROP_ID, data(thumbprint), &size))
+		return CertResult::Failed;
+	if (std::find(begin(acceptedThumbprints), end(acceptedThumbprints), thumbprint) != end(acceptedThumbprints))
+		return CertResult::NotSecureAccepted;
+
+	if (Dialog(GetFtpInst(), certerr_dlg, GetMainHwnd(), CertDialog{ certContext }) == IDYES) {
+		acceptedThumbprints.push_back(thumbprint);
+		return CertResult::NotSecureAccepted;
+	}
+	*pbAborted = YES;
+	return CertResult::Declined;
 }
 
 // SSLセッションを終了
@@ -282,7 +337,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName)
 	auto first = true;
 	SECURITY_STATUS ss = SEC_I_CONTINUE_NEEDED;
 	do {
-		constexpr unsigned long contextReq = ISC_REQ_STREAM | ISC_REQ_SEQUENCE_DETECT | ISC_REQ_REPLAY_DETECT | ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_EXTENDED_ERROR | ISC_REQ_USE_SUPPLIED_CREDS | ISC_REQ_PROMPT_FOR_CREDS /* | ISC_REQ_MANUAL_CRED_VALIDATION*/;
+		constexpr unsigned long contextReq = ISC_REQ_STREAM | ISC_REQ_SEQUENCE_DETECT | ISC_REQ_REPLAY_DETECT | ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_EXTENDED_ERROR | ISC_REQ_USE_SUPPLIED_CREDS | ISC_REQ_PROMPT_FOR_CREDS | ISC_REQ_MANUAL_CRED_VALIDATION;
 		SecBuffer inBuffer[]{ { 0, SECBUFFER_EMPTY, nullptr }, { 0, SECBUFFER_EMPTY, nullptr } };
 		SecBuffer outBuffer[]{ { 0, SECBUFFER_EMPTY, nullptr }, { 0, SECBUFFER_EMPTY, nullptr } };
 		SecBufferDesc inDesc{ SECBUFFER_VERSION, size_as<unsigned long>(inBuffer), inBuffer };
@@ -332,16 +387,31 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName)
 			extra.clear();
 	} while (ss == SEC_I_CONTINUE_NEEDED);
 
-	//if (!ConfirmSSLCertificate(context, node, pbAborted))
-	//	return FALSE;
 	if (ss = QueryContextAttributesW(&context, SECPKG_ATTR_STREAM_SIZES, &streamSizes); ss != SEC_E_OK) {
 		_RPTWN(_CRT_WARN, L"AttachSSL QueryContextAttributes(SECPKG_ATTR_STREAM_SIZES) error: %08x.\n", ss);
 		return FALSE;
 	}
+
+	bool secure;
+	switch (ConfirmSSLCertificate(context, node, pbAborted)) {
+	case CertResult::Secure:
+		secure = true;
+		break;
+	case CertResult::NotSecureAccepted:
+		secure = false;
+		break;
+	default:
+		return FALSE;
+	}
 	std::lock_guard<std::mutex> lock_guard{ context_mutex };
-	contexts.emplace(std::piecewise_construct, std::forward_as_tuple(s), std::forward_as_tuple(wServerName, context, streamSizes, extra));
+	contexts.emplace(std::piecewise_construct, std::forward_as_tuple(s), std::forward_as_tuple(wServerName, context, secure, streamSizes, extra));
 	_RPTW0(_CRT_WARN, L"AttachSSL success.\n");
 	return TRUE;
+}
+
+bool IsSecureConnection() {
+	auto context = getContext(AskCmdCtrlSkt());
+	return context && context->secure;
 }
 
 // SSLとしてマークされているか確認

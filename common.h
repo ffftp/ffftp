@@ -34,6 +34,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define CINTERFACE
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <filesystem>
 #include <iterator>
@@ -66,6 +67,7 @@
 #include <WinCrypt.h>
 #include <WS2tcpip.h>
 #include "config.h"
+#include "dialog.h"
 #include "mbswrapper.h"
 #include "socketwrapper.h"
 #include "Resource/resource.ja-JP.h"
@@ -1507,7 +1509,7 @@ typedef struct
 /*===== main.c =====*/
 
 int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmdShow);
-void DispWindowTitle(void);
+void DispWindowTitle();
 HWND GetMainHwnd(void);
 HWND GetFocusHwnd(void);
 void SetFocusHwnd(HWND hWnd);
@@ -1524,7 +1526,6 @@ int AskForceIni(void);
 int BackgrndMessageProc(void);
 void ResetAutoExitFlg(void);
 int AskAutoExit(void);
-bool ConfirmCertificate(const wchar_t* serverName, BOOL* pbAborted);
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 BOOL IsMainThread();
 // ポータブル版判定
@@ -1649,11 +1650,13 @@ void RemoteRbuttonMenu(int Pos);
 int MakeStatusBarWindow(HWND hWnd, HINSTANCE hInst);
 void DeleteStatusBarWindow(void);
 HWND GetSbarWnd(void);
+void UpdateStatusBar();
 void DispCurrentWindow(int Win);
 void DispSelectedSpace(void);
 void DispLocalFreeSpace(char *Path);
 void DispTransferFiles(void);
 void DispDownloadSize(LONGLONG Size);
+bool NotifyStatusBar(const NMHDR* hdr);
 
 /*===== taskwin.c =====*/
 
@@ -1748,8 +1751,6 @@ int AskTryingConnect(void);
 // 同時接続対応
 //int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data);
 int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data, int *CancelCheckWork);
-// 暗号化通信対応
-int AskCryptMode(void);
 int AskUseNoEncryption(void);
 int AskUseFTPES(void);
 int AskUseFTPIS(void);
@@ -2100,7 +2101,9 @@ int CopyStrToClipBoard(char *Str);
 
 BOOL LoadSSL();
 void FreeSSL();
+void ShowCertificate();
 BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName);
+bool IsSecureConnection();
 BOOL IsSSLAttached(SOCKET s);
 int MakeSocketWin(HWND hWnd, HINSTANCE hInst);
 void DeleteSocketWin(void);
@@ -2166,4 +2169,9 @@ static inline auto u8(std::basic_string<Char, Traits, Allocator> const& str) {
 static inline auto Message(HWND owner, HINSTANCE instance, int textId, int captionId, DWORD style) {
 	MSGBOXPARAMSW msgBoxParams{ sizeof MSGBOXPARAMSW, owner, instance, MAKEINTRESOURCEW(textId), MAKEINTRESOURCEW(captionId), style, nullptr, 0, nullptr, LANG_NEUTRAL };
 	return MessageBoxIndirectW(&msgBoxParams);
+}
+static auto GetString(UINT id) {
+	wchar_t buffer[1024];
+	auto length = LoadStringW(GetFtpInst(), id, buffer, size_as<int>(buffer));
+	return std::wstring(buffer, length);
 }
