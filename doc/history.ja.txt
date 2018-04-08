@@ -1,5 +1,7 @@
 FFFTP　改版リスト
 
+以降の更新は https://github.com/sayurin/ffftp/releases を参照ください。
+
 ■Ver 3.00
 
 ・動作環境が変更されました。Windows 2000以前では動作しません。

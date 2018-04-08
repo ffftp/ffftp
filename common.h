@@ -211,9 +211,9 @@ WINAPI GetStringScripts(
 /*===== バージョン ======*/
 
 #ifdef _WIN64
-#define VER_STR					"3.00 64bit"
+#define VER_STR					"3.1 64bit"
 #else
-#define VER_STR					"3.00 32bit"
+#define VER_STR					"3.1 32bit"
 #endif
 #define VER_NUM					1990		/* 設定バージョン */
 

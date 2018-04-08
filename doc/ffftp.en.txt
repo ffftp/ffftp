@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.3.00 (FTP Client software)
+[Software Name]  FFFTP Ver.3.1 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2016 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).
 				 Copyright (C) 2018, KURATA Sayuri.
@@ -29,26 +29,15 @@ following menu.
 File ->@Settings -> Change Master password
 
 
-Changes at 3.00
----------------
+Changes at 3.1
+--------------
 
-- Environment changed. Windows 2000 or earlier are not supported.
-
-- Unified binary for Japanese and English.
-
-- Removed all external libraries. There are replaaced by Windows
-  libraries. Used libraries for old versions are following.
-  - OpenSSL ------- SSL/TLS toolkit
-  - aes ----------- encryption algorithms
-  - md4/md5/sha --- Hash functions
-  - punycode ------ IDN code
-  - JRE32.DLL ----- Regular Expression Engine
-
-- Process protection removed.
-
-- Updatebell removed.
-
-- Update notification removed.
+- fix crash of reading and writing password. #3
+- update verify certificate.  #2 
+  - confirm if certificate verfication failed.
+- show connection status in statusbar. #9 
+  - popup certificate when statusbar clicked.
+  - then encryption status removed.
 
 
 Outline
