@@ -25,13 +25,16 @@ Password feature.
 When you use this virsion first, please set Master Password from 
 following menu.
 
-File ->@Settings -> Change Master password
+File -> Settings -> Change Master password
 
 
 Changes in Ver.2.00
 --------------------
 
 This list includes changes applied by automatic software updates.
+
+-- Changed the checking interval of automatic software updates from 7 days to
+   30 days.
 
 -- Added a feature to export settings as WinSCP INI format.
 

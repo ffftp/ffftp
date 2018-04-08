@@ -1459,6 +1459,12 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "UpdCheck", &AutoCheckForUpdates);
 			ReadIntValueFromReg(hKey4, "UpdApply", &AutoApplyUpdates);
 			ReadIntValueFromReg(hKey4, "UpdInterval", &AutoCheckForUptatesInterval);
+			// 今後の緊急リリースとトラフィック軽減を考慮し確認間隔を30日に延長
+			if(Version < 2000)
+			{
+				if(AutoCheckForUptatesInterval < 30)
+					AutoCheckForUptatesInterval = 30;
+			}
 			ReadBinaryFromReg(hKey4, "UpdLastCheck", &LastAutoCheckForUpdates, sizeof(LastAutoCheckForUpdates));
 			// ファイル一覧バグ修正
 			ReadIntValueFromReg(hKey4, "AbortListErr", &AbortOnListError);
@@ -4111,7 +4117,6 @@ void SaveSettingsToWinSCPIni()
 {
 	char Fname[FMAX_PATH+1];
 	FILE* f;
-	TIME_ZONE_INFORMATION tzi;
 	char HostPath[FMAX_PATH+1];
 	int Level;
 	int i;
@@ -4124,7 +4129,6 @@ void SaveSettingsToWinSCPIni()
 	{
 		if((f = fopen(Fname, "at")) != NULL)
 		{
-			GetTimeZoneInformation(&tzi);
 			strcpy(HostPath, "");
 			Level = 0;
 			i = 0;
