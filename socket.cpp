@@ -446,8 +446,16 @@ static int FTPS_recv(SOCKET s, char* buf, int len, int flags) {
 	}
 
 	if (empty(context->readPlain))
-		// TODO: recv()の読み出し量が少ないとSEC_E_INCOMPLETE_MESSAGEが発生してしまう。
-		return context->readStatus == SEC_I_CONTEXT_EXPIRED ? 0 : SOCKET_ERROR;
+		switch (context->readStatus) {
+		case SEC_I_CONTEXT_EXPIRED:
+			return 0;
+		case SEC_E_INCOMPLETE_MESSAGE:
+			WSASetLastError(WSAEWOULDBLOCK);
+			[[fallthrough]];
+		default:
+			DoPrintf("####### FTPS_recv error: %08X", context->readStatus);
+			return SOCKET_ERROR;
+		}
 	len = std::min(len, size_as<int>(context->readPlain));
 	std::copy_n(begin(context->readPlain), len, buf);
 	if ((flags & MSG_PEEK) == 0)
