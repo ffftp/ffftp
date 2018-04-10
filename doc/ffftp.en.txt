@@ -33,6 +33,7 @@ Changes at 3.1
 --------------
 
 - fix crash of reading and writing password. #3
+- fix communication error if encryption enabled. #17
 - update verify certificate.  #2 
   - confirm if certificate verfication failed.
 - show connection status in statusbar. #9 
