@@ -450,10 +450,12 @@ static int FTPS_recv(SOCKET s, char* buf, int len, int flags) {
 		case SEC_I_CONTEXT_EXPIRED:
 			return 0;
 		case SEC_E_INCOMPLETE_MESSAGE:
+			// recvできたデータが少なすぎてフレームの解析・デコードができず、復号データが得られないというエラー。
+			// ブロッキングが発生するというエラーに書き換える。
 			WSASetLastError(WSAEWOULDBLOCK);
-			[[fallthrough]];
+			return SOCKET_ERROR;
 		default:
-			DoPrintf("####### FTPS_recv error: %08X", context->readStatus);
+			_RPTWN(_CRT_WARN, L"FTPS_recv readStatus: %08X.\n", context->readStatus);
 			return SOCKET_ERROR;
 		}
 	len = std::min(len, size_as<int>(context->readPlain));
