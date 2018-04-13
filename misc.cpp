@@ -1393,67 +1393,36 @@ void FormatIniString(char *Str)
 	return;
 }
 
+static auto GetFilterString(std::initializer_list<FileType> fileTypes) {
+	static auto const map = [] {
+		std::map<FileType, std::wstring> map;
+		for (auto fileType : AllFileTyes) {
+			// リソース文字列は末尾 '\0' を扱えないので '\t' を利用し、ここで置換する。
+			auto text = GetString(static_cast<UINT>(fileType));
+			for (auto& ch : text)
+				if (ch == L'\t')
+					ch = L'\0';
+			map.emplace(fileType, text);
+		}
+		return map;
+	}();
+	return std::accumulate(begin(fileTypes), end(fileTypes), L""s, [](auto const& result, auto fileType) { return result + map.at(fileType); });
+}
 
-/*----- ファイル選択 ----------------------------------------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		char *Fname : ファイル名を返すバッファ
-*		char *Title : タイトル
-*		char *Filters : フィルター文字列
-*		char *Ext : デフォルト拡張子
-*		int Flags : 追加するフラグ
-*		int Save : 「開く」か「保存」か (0=開く, 1=保存)
-*
-*	Return Value
-*		int ステータス
-*			TRUE/FALSE=取消
-*----------------------------------------------------------------------------*/
-
-int SelectFile(HWND hWnd, char *Fname, char *Title, char *Filters, char *Ext, int Flags, int Save)
-{
-	OPENFILENAME OpenFile;
-	char Tmp[FMAX_PATH+1];
-	char Cur[FMAX_PATH+1];
-	int Sts;
-
-	GetCurrentDirectory(FMAX_PATH, Cur);
-
-	strcpy(Tmp, Fname);
-	// 変数が未初期化のバグ修正
-	memset(&OpenFile, 0, sizeof(OPENFILENAME));
-	OpenFile.lStructSize = sizeof(OPENFILENAME);
-	OpenFile.hwndOwner = hWnd;
-	OpenFile.hInstance = 0;
-	OpenFile.lpstrFilter = Filters;
-	OpenFile.lpstrCustomFilter = NULL;
-	OpenFile.nFilterIndex = 1;
-	OpenFile.lpstrFile = Tmp;
-	OpenFile.nMaxFile = FMAX_PATH;
-	OpenFile.lpstrFileTitle = NULL;
-	OpenFile.nMaxFileTitle = 0;
-	OpenFile.lpstrInitialDir = NULL;
-	OpenFile.lpstrTitle = Title;
-	OpenFile.Flags = OFN_HIDEREADONLY | OFN_PATHMUSTEXIST | Flags;
-	OpenFile.nFileOffset = 0;
-	OpenFile.nFileExtension = 0;
-	OpenFile.lpstrDefExt = Ext;
-	OpenFile.lCustData = 0;
-	OpenFile.lpfnHook = NULL;
-	OpenFile.lpTemplateName = NULL;
-
-	if(Save == 0)
-	{
-		if((Sts = GetOpenFileName(&OpenFile)) == TRUE)
-			strcpy(Fname,Tmp);
-	}
-	else
-	{
-		if((Sts = GetSaveFileName(&OpenFile)) == TRUE)
-			strcpy(Fname,Tmp);
-	}
-	SetCurrentDirectory(Cur);
-	return(Sts);
+// ファイル選択
+fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes) {
+	auto const filter = GetFilterString(fileTypes);
+	wchar_t buffer[FMAX_PATH + 1];
+	wcscpy(buffer, initialFileName);
+	auto const title = GetString(titleId);
+	DWORD flags = (open ? OFN_FILEMUSTEXIST : OFN_EXTENSIONDIFFERENT | OFN_OVERWRITEPROMPT) | OFN_HIDEREADONLY | OFN_PATHMUSTEXIST;
+	OPENFILENAMEW ofn{ sizeof(OPENFILENAMEW), hWnd, 0, filter.c_str(), nullptr, 0, 1, buffer, size_as<DWORD>(buffer), nullptr, 0, nullptr, title.c_str(), flags, 0, 0, extension };
+	auto const cwd = fs::current_path();
+	int result = (open ? GetOpenFileNameW : GetSaveFileNameW)(&ofn);
+	fs::current_path(cwd);
+	if (!result)
+		return {};
+	return buffer;
 }
 
 

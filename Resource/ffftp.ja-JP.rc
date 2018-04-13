@@ -2455,7 +2455,6 @@ BEGIN
     IDS_MSGJPN123           "EUC"
     IDS_MSGJPN124           "削除（ローカル）"
     IDS_MSGJPN125           "削除（ホスト）"
-    IDS_MSGJPN126           "WS_FTP.INIファイル"
     IDS_MSGJPN127           "基本"
 END
 
@@ -2568,9 +2567,6 @@ BEGIN
     IDS_MSGJPN214           "OTP MD4,S/KEY"
     IDS_MSGJPN215           "OTP MD5"
     IDS_MSGJPN216           "OTP SHA-1"
-    IDS_MSGJPN217           "ビューアの選択"
-    IDS_MSGJPN218           "実行ファイル"
-    IDS_MSGJPN219           "Waveファイル"
     IDS_MSGJPN220           "ダイアルアップを切断しています."
     IDS_MSGJPN221           "ダイアルアップで接続しています."
 END
@@ -2638,8 +2634,6 @@ BEGIN
     IDS_MSGJPN273           "最新の情報に更新(&F)"
     IDS_MSGJPN274           "開く(&O)"
     IDS_MSGJPN275           "%sで開く(&%d)"
-    IDS_MSGJPN276           "WS_FTP.INI"
-    IDS_MSGJPN277           "Waveファイル"
     IDS_MSGJPN278           "理由: %s"
     IDS_MSGJPN279           "Listenソケットが取得できません"
     IDS_MSGJPN280           "Dataソケットが取得できません"
@@ -2648,16 +2642,11 @@ BEGIN
     IDS_MSGJPN283           "INIファイル指定: "
     IDS_MSGJPN284           "https://github.com/sayurin/ffftp"
     IDS_MSGJPN285           "レジストリエディタが起動できませんでした"
-    IDS_MSGJPN286           "設定ファイルの保存"
-    IDS_MSGJPN287           "Regファイル"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN288           "INIファイル"
     IDS_MSGJPN289           "Agilent Logic analyzer"
-    IDS_MSGJPN290           "Regファイル"
-    IDS_MSGJPN291           "設定をファイルから復元"
     IDS_MSGJPN292           "設定をファイルから復元するためには,FFFTPを再起動してください."
     IDS_MSGJPN293           "設定ファイルは拡張子が.regか.iniでなければなりません."
     IDS_MSGJPN294           "USER FWユーザー名:FWパスワード@ホスト名"
@@ -2729,7 +2718,6 @@ END
 STRINGTABLE
 BEGIN
     IDS_MSGJPN355           "一つ上のフォルダへ移動(&P)..."
-    IDS_MSGJPN356           "XMLファイル"
     IDS_MSGJPN357           "設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください."
     IDS_MSGJPN358           "ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s"
     IDS_MSGJPN359           "ソフトウェアの更新に失敗しました.\nWebサイトから最新版を入手して手動で更新してください."
@@ -2749,6 +2737,21 @@ BEGIN
     IDS_ERR_SSL             "SSLの初期化に失敗しました.\nアプリケーションを終了します."
     IDS_SECURE              "保護されています"
     IDS_NOTSECURE           "保護されていません"
+    IDS_FILETYPE_ALL        "すべてのファイル\t*.*\t"
+    IDS_FILETYPE_EXECUTABLE "実行可能ファイル (*.exe;*.com;*.bat)\t*.exe;*.com;*.bat\t"
+    IDS_FILETYPE_AUDIO      "オーディオ ファイル (*.wav)\t*.wav\t"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_FILETYPE_REG        "登録ファイル (*.reg)\t*.reg\t"
+    IDS_FILETYPE_INI        "INI ファイル (*.ini)\t*.ini\t"
+    IDS_FILETYPE_XML        "XML ファイル (*.xml)\t*.xml\t"
+    IDS_OPEN_WSFTPINI       "WS_FTP.INIを開く"
+    IDS_SELECT_VIEWER       "ビューアーを選択する"
+    IDS_SELECT_AUDIOFILE    "オーディオファイルを選択する"
+    IDS_SAVE_SETTING        "設定を保存する"
+    IDS_LOAD_SETTING        "設定を読み込む"
 END
 
 #endif    // Japanese (Japan) resources

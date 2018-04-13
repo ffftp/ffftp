@@ -125,7 +125,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN123 (std::data(msgs[10000+123])) /* EUC */
 #define MSGJPN124 (std::data(msgs[10000+124])) /* 削除（ローカル） */
 #define MSGJPN125 (std::data(msgs[10000+125])) /* 削除（ホスト） */
-#define MSGJPN126 (std::data(msgs[10000+126])) /* WS_FTP.INIファイル */
 #define MSGJPN127 (std::data(msgs[10000+127])) /* 基本 */
 #define MSGJPN128 (std::data(msgs[10000+128])) /* 拡張 */
 #define MSGJPN129 (std::data(msgs[10000+129])) /* 文字コード */
@@ -214,9 +213,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN214 (std::data(msgs[10000+214])) /* OTP MD4,S/KEY */
 #define MSGJPN215 (std::data(msgs[10000+215])) /* OTP MD5 */
 #define MSGJPN216 (std::data(msgs[10000+216])) /* OTP SHA-1 */
-#define MSGJPN217 (std::data(msgs[10000+217])) /* ビューアの選択 */
-#define MSGJPN218 (std::data(msgs[10000+218])) /* 実行ファイル\0*.exe;*.com;*.bat\0全てのファイル\0*\0 */
-#define MSGJPN219 (std::data(msgs[10000+219])) /* Waveファイル */
 #define MSGJPN220 (std::data(msgs[10000+220])) /* ダイアルアップを切断しています. */
 #define MSGJPN221 (std::data(msgs[10000+221])) /* ダイアルアップで接続しています. */
 #define MSGJPN226 (std::data(msgs[10000+226])) /* ポートを開いています... */
@@ -268,8 +264,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN273 (std::data(msgs[10000+273])) /* 最新の情報に更新(&F) */
 #define MSGJPN274 (std::data(msgs[10000+274])) /* 開く(&O) */
 #define MSGJPN275 (std::data(msgs[10000+275])) /* %sで開く(&%d) */
-#define MSGJPN276 (std::data(msgs[10000+276])) /* WS_FTP.INI\0ws_ftp.ini\0全てのファイル\0*\0 */
-#define MSGJPN277 (std::data(msgs[10000+277])) /* Waveファイル\0*.wav\0全てのファイル\0*\0 */
 #define MSGJPN278 (std::data(msgs[10000+278])) /* 理由: %s */
 #define MSGJPN279 (std::data(msgs[10000+279])) /* Listenソケットが取得できません */
 #define MSGJPN280 (std::data(msgs[10000+280])) /* Dataソケットが取得できません */
@@ -278,12 +272,7 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN283 (std::data(msgs[10000+283])) /* INIファイル指定:  */
 #define MSGJPN284 (std::data(msgs[10000+284])) /* https://github.com/sayurin/ffftp */
 #define MSGJPN285 (std::data(msgs[10000+285])) /* レジストリエディタが起動できませんでした */
-#define MSGJPN286 (std::data(msgs[10000+286])) /* 設定ファイルの保存 */
-#define MSGJPN287 (std::data(msgs[10000+287])) /* Regファイル\0*.reg\0全てのファイル\0*\0 */
-#define MSGJPN288 (std::data(msgs[10000+288])) /* INIファイル\0*.ini\0全てのファイル\0*\0 */
 #define MSGJPN289 (std::data(msgs[10000+289])) /* Agilent Logic analyzer */
-#define MSGJPN290 (std::data(msgs[10000+290])) /* Regファイル\0*.reg\0INIファイル\0*.ini\0全てのファイル\0*\0 */
-#define MSGJPN291 (std::data(msgs[10000+291])) /* 設定をファイルから復元 */
 #define MSGJPN292 (std::data(msgs[10000+292])) /* 設定をファイルから復元するためには,FFFTPを再起動してください. */
 #define MSGJPN293 (std::data(msgs[10000+293])) /* 設定ファイルは拡張子が.regか.iniでなければなりません. */
 #define MSGJPN294 (std::data(msgs[10000+294])) /* USER FWユーザー名:FWパスワード@ホスト名 */
@@ -339,7 +328,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN349 (std::data(msgs[10000+349])) /* UTF-8 HFS+ */
 #define MSGJPN350 (std::data(msgs[10000+350])) /* 新しいバージョンの設定が検出されました.\nこのバージョンでは一部の設定が正しく読み込まれない,またはこのバージョンで設定を上書きすると設定が変化する可能性があります.\nこのバージョン用に設定を上書きして保存するには「はい」を選択してください.\n設定をレジストリではなくINIファイルに保存するには「いいえ」を選択してください.\n読み取り専用で設定を読み込むには「キャンセル」を選択してください. */
 #define MSGJPN355 (std::data(msgs[10000+355])) /* 一つ上のフォルダへ移動(&P)... */
-#define MSGJPN356 (std::data(msgs[10000+356])) /* XMLファイル\0*.xml\0全てのファイル\0*\0 */
 #define MSGJPN357 (std::data(msgs[10000+357])) /* 設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください. */
 #define MSGJPN358 (std::data(msgs[10000+358])) /* ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s */
 #define MSGJPN359 (std::data(msgs[10000+359])) /* ソフトウェアの更新に失敗しました.\nWebサイトから最新版を入手して手動で更新してください. */

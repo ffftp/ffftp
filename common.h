@@ -49,6 +49,7 @@
 #include <variant>
 #include <vector>
 #include <cassert>
+#include <cwctype>
 #include <crtdbg.h>
 #include <mbstring.h>
 #include <stdint.h>
@@ -179,6 +180,17 @@ WINAPI GetStringScripts(
 
 #endif
 }
+
+enum class FileType : UINT {
+	All = IDS_FILETYPE_ALL,
+	Executable = IDS_FILETYPE_EXECUTABLE,
+	Audio = IDS_FILETYPE_AUDIO,
+	Reg = IDS_FILETYPE_REG,
+	Ini = IDS_FILETYPE_INI,
+	Xml = IDS_FILETYPE_XML,
+};
+
+constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType::Audio, FileType::Reg, FileType::Ini, FileType::Xml, };
 
 
 #define NUL				'\0'
@@ -2037,7 +2049,7 @@ int AttrString2Value(char *Str);
 //void AttrValue2String(int Attr, char *Buf);
 void AttrValue2String(int Attr, char *Buf, int ShowNumber);
 void FormatIniString(char *Str);
-int SelectFile(HWND hWnd, char *Fname, char *Title, char *Filters, char *Ext, int Flags, int Save);
+fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 int SelectDir(HWND hWnd, char *Buf, int MaxLen);
 void SetRadioButtonByValue(HWND hDlg, int Value, const RADIOBUTTON *Buttons, int Num);
 int AskRadioButtonValue(HWND hDlg, const RADIOBUTTON *Buttons, int Num);
@@ -2165,6 +2177,9 @@ static inline auto u8(const Char* str, size_t len) {
 template<class Char, class Traits, class Allocator>
 static inline auto u8(std::basic_string<Char, Traits, Allocator> const& str) {
 	return u8(std::basic_string_view<Char>{ data(str), size(str) });
+}
+static auto ieq(std::wstring const& left, std::wstring const& right) {
+	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::towupper(l) == std::towupper(r); });
 }
 static inline auto Message(HWND owner, HINSTANCE instance, int textId, int captionId, DWORD style) {
 	MSGBOXPARAMSW msgBoxParams{ sizeof MSGBOXPARAMSW, owner, instance, MAKEINTRESOURCEW(textId), MAKEINTRESOURCEW(captionId), style, nullptr, 0, nullptr, LANG_NEUTRAL };
