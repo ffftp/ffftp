@@ -2366,77 +2366,60 @@ static BOOL WriteOutRegToFile(REGDATATBL *Pos)
 static int ReadInReg(char *Name, REGDATATBL **Handle)
 {
 	FILE *Strm;
-	char *Buf;
-	char *Tmp;
-	char *Data;
-	REGDATATBL *New;
-	REGDATATBL *Pos;
-	int Sts;
+	char *Data = nullptr;
+	REGDATATBL *New = nullptr;
 
-	Sts = FFFTP_FAIL;
 	*Handle = NULL;
-	// バグ修正
-	New = NULL;
+	if ((Strm = fopen(AskIniFilePath(), "rt")) == NULL) return FFFTP_FAIL;
 
-	if((Strm = fopen(AskIniFilePath(), "rt")) != NULL)
+	for(char Buf[REG_SECT_MAX]; fgets(Buf, REG_SECT_MAX, Strm) != NULL; )
 	{
-		if((Buf = (char*)malloc(REG_SECT_MAX)) != NULL)
-		{
-			while(fgets(Buf, REG_SECT_MAX, Strm) != NULL)
-			{
-				if(*Buf != '#')
-				{
-					if((Tmp = strchr(Buf, '\n')) != NULL)
-						*Tmp = NUL;
+		if (*Buf == '#') continue;
 
-					if(*Buf == '[')
-					{
-						if((New = (REGDATATBL*)malloc(sizeof(REGDATATBL))) != NULL)
-						{
-							if((Tmp = strchr(Buf, ']')) != NULL)
-								*Tmp = NUL;
-							// バグ修正
-//							strcpy(New->KeyName, Buf+1);
-							strncpy(New->KeyName, Buf+1, 80);
-							New->KeyName[80] = NUL;
-							New->ValLen = 0;
-							New->Next = NULL;
-							Data = New->ValTbl;
-						}
-						if(*Handle == NULL)
-							*Handle = New;
-						else
-						{
-							Pos = *Handle;
-							while(Pos->Next != NULL)
-								Pos = Pos->Next;
-							Pos->Next = New;
-						}
-					}
-					else if(strlen(Buf) > 0)
-					{
-						// バグ修正
-//						strcpy(Data, Buf);
-//						Data += strlen(Buf) + 1;
-//						New->ValLen += strlen(Buf) + 1;
-						if(Data != NULL && New != NULL)
-						{
-							if(New->ValLen + strlen(Buf) + 1 <= REG_SECT_MAX)
-							{
-								strcpy(Data, Buf);
-								Data += strlen(Buf) + 1;
-								New->ValLen += (int)strlen(Buf) + 1;
-							}
-						}
-					}
+		if(auto Tmp = strchr(Buf, '\n')) *Tmp = NUL;
+
+		if(*Buf == '[')
+		{
+			if((New = (REGDATATBL*)malloc(sizeof(REGDATATBL))) != NULL)
+			{
+				if(auto Tmp = strchr(Buf, ']')) *Tmp = NUL;
+				// バグ修正
+//				strcpy(New->KeyName, Buf+1);
+				strncpy(New->KeyName, Buf+1, 80);
+				New->KeyName[80] = NUL;
+				New->ValLen = 0;
+				New->Next = NULL;
+				Data = New->ValTbl;
+			}
+			if(*Handle == NULL)
+				*Handle = New;
+			else
+			{
+				auto Pos = *Handle;
+				while(Pos->Next != NULL)
+					Pos = Pos->Next;
+				Pos->Next = New;
+			}
+		}
+		else if(strlen(Buf) > 0)
+		{
+			// バグ修正
+//			strcpy(Data, Buf);
+//			Data += strlen(Buf) + 1;
+//			New->ValLen += strlen(Buf) + 1;
+			if(Data != NULL && New != NULL)
+			{
+				if(New->ValLen + strlen(Buf) + 1 <= REG_SECT_MAX)
+				{
+					strcpy(Data, Buf);
+					Data += strlen(Buf) + 1;
+					New->ValLen += (int)strlen(Buf) + 1;
 				}
 			}
-			Sts = FFFTP_SUCCESS;
-			free(Buf);
 		}
-		fclose(Strm);
 	}
-	return(Sts);
+	fclose(Strm);
+	return FFFTP_SUCCESS;
 }
 
 

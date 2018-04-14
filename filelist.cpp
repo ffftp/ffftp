@@ -96,7 +96,13 @@ static int AskFilterStr(char *Fname, int Type);
 // 64ビット対応
 //static BOOL CALLBACK FilterWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK FilterWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static int atoi_n(const char *Str, int Len);
+template<std::size_t Len>
+static int atoi_n(const char *Str)
+{
+	char Tmp[Len] = {};
+	strncpy(Tmp, Str, Len);
+	return atoi(Tmp);
+}
 
 /*===== 外部参照 =====*/
 
@@ -4959,7 +4965,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 時刻 */
 			FindField(Str, Buf, 2, NO);
-			sTime.wHour = atoi_n(Buf, 2);
+			sTime.wHour = atoi_n<2>(Buf);
 			sTime.wMinute = atoi(Buf+2);
 			sTime.wSecond = 0;
 			sTime.wMilliseconds = 0;
@@ -5197,12 +5203,12 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 						}
 						else if(_stricmp(Name, "modify") == 0)
 						{
-							sTime.wYear = atoi_n(Value, 4);
-							sTime.wMonth = atoi_n(Value + 4, 2);
-							sTime.wDay = atoi_n(Value + 6, 2);
-							sTime.wHour = atoi_n(Value + 8, 2);
-							sTime.wMinute = atoi_n(Value + 10, 2);
-							sTime.wSecond = atoi_n(Value + 12, 2);
+							sTime.wYear = atoi_n<4>(Value);
+							sTime.wMonth = atoi_n<2>(Value + 4);
+							sTime.wDay = atoi_n<2>(Value + 6);
+							sTime.wHour = atoi_n<2>(Value + 8);
+							sTime.wMinute = atoi_n<2>(Value + 10);
+							sTime.wSecond = atoi_n<2>(Value + 12);
 							sTime.wMilliseconds = 0;
 							SystemTimeToFileTime(&sTime, Time);
 							// 時刻はGMT
@@ -6013,29 +6019,6 @@ static INT_PTR CALLBACK FilterWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, L
 	}
 	return(FALSE);
 }
-
-
-
-
-
-static int atoi_n(const char *Str, int Len)
-{
-	char *Tmp;
-	int Ret;
-
-	Ret = 0;
-	if((Tmp = (char*)malloc(Len+1)) != NULL)
-	{
-		memset(Tmp, 0, Len+1);
-		strncpy(Tmp, Str, Len);
-		Ret = atoi(Tmp);
-		free(Tmp);
-	}
-	return(Ret);
-}
-
-
-
 
 // UTF-8対応
 // ファイル一覧から漢字コードを推測
