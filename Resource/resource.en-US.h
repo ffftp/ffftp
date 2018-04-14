@@ -122,6 +122,17 @@
 #define IDS_ERR_SSL                     202
 #define IDS_SECURE                      203
 #define IDS_NOTSECURE                   204
+#define IDS_FILETYPE_ALL                205
+#define IDS_FILETYPE_EXECUTABLE         206
+#define IDS_FILETYPE_AUDIO              207
+#define IDS_FILETYPE_REG                208
+#define IDS_FILETYPE_INI                209
+#define IDS_FILETYPE_XML                210
+#define IDS_OPEN_WSFTPINI               211
+#define IDS_SELECT_VIEWER               212
+#define IDS_SELECT_AUDIOFILE            213
+#define IDS_SAVE_SETTING                214
+#define IDS_LOAD_SETTING                215
 #define TRANS_TIME_BAR                  1002
 #define TRANS_TEXT                      1003
 #define TRANS_REMOTE                    1003
@@ -592,7 +603,6 @@
 #define IDS_MSGJPN123                   10123
 #define IDS_MSGJPN124                   10124
 #define IDS_MSGJPN125                   10125
-#define IDS_MSGJPN126                   10126
 #define IDS_MSGJPN127                   10127
 #define IDS_MSGJPN128                   10128
 #define IDS_MSGJPN129                   10129
@@ -681,9 +691,6 @@
 #define IDS_MSGJPN214                   10214
 #define IDS_MSGJPN215                   10215
 #define IDS_MSGJPN216                   10216
-#define IDS_MSGJPN217                   10217
-#define IDS_MSGJPN218                   10218
-#define IDS_MSGJPN219                   10219
 #define IDS_MSGJPN220                   10220
 #define IDS_MSGJPN221                   10221
 #define IDS_MSGJPN226                   10226
@@ -735,8 +742,6 @@
 #define IDS_MSGJPN273                   10273
 #define IDS_MSGJPN274                   10274
 #define IDS_MSGJPN275                   10275
-#define IDS_MSGJPN276                   10276
-#define IDS_MSGJPN277                   10277
 #define IDS_MSGJPN278                   10278
 #define IDS_MSGJPN279                   10279
 #define IDS_MSGJPN280                   10280
@@ -745,12 +750,7 @@
 #define IDS_MSGJPN283                   10283
 #define IDS_MSGJPN284                   10284
 #define IDS_MSGJPN285                   10285
-#define IDS_MSGJPN286                   10286
-#define IDS_MSGJPN287                   10287
-#define IDS_MSGJPN288                   10288
 #define IDS_MSGJPN289                   10289
-#define IDS_MSGJPN290                   10290
-#define IDS_MSGJPN291                   10291
 #define IDS_MSGJPN292                   10292
 #define IDS_MSGJPN293                   10293
 #define IDS_MSGJPN294                   10294
@@ -806,7 +806,6 @@
 #define IDS_MSGJPN349                   10349
 #define IDS_MSGJPN350                   10350
 #define IDS_MSGJPN355                   10355
-#define IDS_MSGJPN356                   10356
 #define IDS_MSGJPN357                   10357
 #define IDS_MSGJPN358                   10358
 #define IDS_MSGJPN359                   10359

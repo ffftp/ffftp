@@ -1557,15 +1557,14 @@ static int IsNodeGroup(int Num)
 void ImportFromWSFTP(void)
 {
 	FILE *Strm;
-	char Buf[FMAX_PATH+1];
 	HOSTDATA Host;
 	int InHost;
 
-	strcpy(Buf, "WS_FTP.INI");
-	if(SelectFile(GetMainHwnd(), Buf, MSGJPN126, MSGJPN276, NULL, OFN_FILEMUSTEXIST, 0) == TRUE)
+	if (auto const path = SelectFile(true, GetMainHwnd(), IDS_OPEN_WSFTPINI, L"WS_FTP.INI", nullptr, { FileType::Ini, FileType::All }); !std::empty(path))
 	{
-		if((Strm = fopen(Buf, "rt")) != NULL)
+		if((Strm = _wfopen(path.c_str(), L"rt")) != NULL)
 		{
+			char Buf[FMAX_PATH + 1];
 			InHost = NO;
 			while(fgets(Buf, FMAX_PATH, Strm) != NULL)
 			{

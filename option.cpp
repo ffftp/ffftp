@@ -1416,7 +1416,6 @@ static INT_PTR CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 static INT_PTR CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	NMHDR *pnmhdr;
-	char Tmp[FMAX_PATH+1];
 
 	switch (message)
 	{
@@ -1454,21 +1453,20 @@ static INT_PTR CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 				case TOOL_EDITOR1_BR :
 				case TOOL_EDITOR2_BR :
 				case TOOL_EDITOR3_BR :
-					strcpy(Tmp, "");
-					if(SelectFile(hDlg, Tmp, MSGJPN217, MSGJPN218, NULL, OFN_FILEMUSTEXIST, 0) == TRUE)
+					if (auto const path = SelectFile(true, hDlg, IDS_SELECT_VIEWER, L"", nullptr, { FileType::Executable, FileType::All }); !std::empty(path))
 					{
 						switch(GET_WM_COMMAND_ID(wParam, lParam))
 						{
 							case TOOL_EDITOR1_BR :
-								SendDlgItemMessage(hDlg, TOOL_EDITOR1, WM_SETTEXT, 0, (LPARAM)Tmp);
+								SendDlgItemMessageW(hDlg, TOOL_EDITOR1, WM_SETTEXT, 0, (LPARAM)path.c_str());
 								break;
 
 							case TOOL_EDITOR2_BR :
-								SendDlgItemMessage(hDlg, TOOL_EDITOR2, WM_SETTEXT, 0, (LPARAM)Tmp);
+								SendDlgItemMessageW(hDlg, TOOL_EDITOR2, WM_SETTEXT, 0, (LPARAM)path.c_str());
 								break;
 
 							case TOOL_EDITOR3_BR :
-								SendDlgItemMessage(hDlg, TOOL_EDITOR3, WM_SETTEXT, 0, (LPARAM)Tmp);
+								SendDlgItemMessageW(hDlg, TOOL_EDITOR3, WM_SETTEXT, 0, (LPARAM)path.c_str());
 								break;
 						}
 					}
@@ -1542,21 +1540,20 @@ static INT_PTR CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam,
 				case SOUND_CONNECT_BR :
 				case SOUND_TRANS_BR :
 				case SOUND_ERROR_BR :
-					strcpy(Tmp, "");
-					if(SelectFile(hDlg, Tmp, MSGJPN219, MSGJPN277, NULL, OFN_FILEMUSTEXIST, 0) == TRUE)
+					if (auto const path = SelectFile(true, hDlg, IDS_SELECT_AUDIOFILE, L"", nullptr, { FileType::Audio, FileType::All }); !std::empty(path))
 					{
 						switch(GET_WM_COMMAND_ID(wParam, lParam))
 						{
 							case SOUND_CONNECT_BR :
-								SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, WM_SETTEXT, 0, (LPARAM)Tmp);
+								SendDlgItemMessageW(hDlg, SOUND_CONNECT_WAV, WM_SETTEXT, 0, (LPARAM)path.c_str());
 								break;
 
 							case SOUND_TRANS_BR :
-								SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, WM_SETTEXT, 0, (LPARAM)Tmp);
+								SendDlgItemMessageW(hDlg, SOUND_TRANS_WAV, WM_SETTEXT, 0, (LPARAM)path.c_str());
 								break;
 
 							case SOUND_ERROR_BR :
-								SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_SETTEXT, 0, (LPARAM)Tmp);
+								SendDlgItemMessageW(hDlg, SOUND_ERROR_WAV, WM_SETTEXT, 0, (LPARAM)path.c_str());
 								break;
 						}
 					}

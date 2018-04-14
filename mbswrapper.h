@@ -116,12 +116,6 @@ BOOL GetTextExtentPoint32M(HDC hdc, LPCSTR lpString, int c, LPSIZE psizl);
 #undef PropertySheet
 #define PropertySheet PropertySheetM
 INT_PTR PropertySheetM(LPCPROPSHEETHEADERA v0);
-#undef GetOpenFileName
-#define GetOpenFileName GetOpenFileNameM
-BOOL GetOpenFileNameM(LPOPENFILENAMEA v0);
-#undef GetSaveFileName
-#define GetSaveFileName GetSaveFileNameM
-BOOL GetSaveFileNameM(LPOPENFILENAMEA v0);
 #undef HtmlHelp
 #define HtmlHelp HtmlHelpM
 HWND HtmlHelpM(HWND hwndCaller, LPCSTR pszFile, UINT uCommand, DWORD_PTR dwData);
@@ -173,9 +167,6 @@ BOOL sndPlaySoundM(LPCSTR pszSound, UINT fuSound);
 #undef SetClipboardData
 #define SetClipboardData SetClipboardDataM
 HANDLE SetClipboardDataM(UINT uFormat, HANDLE hMem);
-#undef CopyFile
-#define CopyFile CopyFileM
-BOOL CopyFileM(LPCSTR lpExistingFileName, LPCSTR lpNewFileName, BOOL bFailIfExists);
 #undef MoveFile
 #define MoveFile MoveFileM
 BOOL MoveFileM(LPCSTR lpExistingFileName, LPCSTR lpNewFileName);

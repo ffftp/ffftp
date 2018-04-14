@@ -1612,17 +1612,15 @@ void ClearIni(void)
 void SaveSettingsToFile(void)
 {
 	char Tmp[FMAX_PATH*2];
-	char Fname[FMAX_PATH+1];
 	// 任意のコードが実行されるバグ修正
 	char CurDir[FMAX_PATH+1];
 	char SysDir[FMAX_PATH+1];
 
 	if(RegType == REGTYPE_REG)
 	{
-		strcpy(Fname, "FFFTP.reg");
-		if(SelectFile(GetMainHwnd(), Fname, MSGJPN286, MSGJPN287, "reg", OFN_EXTENSIONDIFFERENT | OFN_OVERWRITEPROMPT, 1) == TRUE)
+		if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FFFTP.reg", L"reg", { FileType::Reg, FileType::All }); !std::empty(path))
 		{
-			sprintf(Tmp, "/e \x22%s\x22 HKEY_CURRENT_USER\\Software\\sota\\FFFTP", Fname);
+			sprintf(Tmp, "/e \x22%s\x22 HKEY_CURRENT_USER\\Software\\sota\\FFFTP", path.u8string().c_str());
 			// 任意のコードが実行されるバグ修正
 //			if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
 //			{
@@ -1646,10 +1644,9 @@ void SaveSettingsToFile(void)
 	}
 	else
 	{
-		strcpy(Fname, "FFFTP-Backup.ini");
-		if(SelectFile(GetMainHwnd(), Fname, MSGJPN286, MSGJPN288, "ini", OFN_EXTENSIONDIFFERENT | OFN_OVERWRITEPROMPT, 1) == TRUE)
+		if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FFFTP-Backup.ini", L"ini", { FileType::Ini, FileType::All }); !std::empty(path))
 		{
-			CopyFile(AskIniFilePath(), Fname, FALSE);
+			CopyFileW(u8(AskIniFilePath()).c_str(), path.c_str(), FALSE);
 		}
 	}
 	return;
@@ -1669,18 +1666,16 @@ int LoadSettingsFromFile(void)
 {
 	int Ret;
 	char Tmp[FMAX_PATH*2];
-	char Fname[FMAX_PATH+1];
 	// 任意のコードが実行されるバグ修正
 	char CurDir[FMAX_PATH+1];
 	char SysDir[FMAX_PATH+1];
 
 	Ret = NO;
-	strcpy(Fname, "");
-	if(SelectFile(GetMainHwnd(), Fname, MSGJPN291, MSGJPN290, "", OFN_FILEMUSTEXIST, 0) == TRUE)
+	if (auto const path = SelectFile(true, GetMainHwnd(), IDS_LOAD_SETTING, L"", L"", { FileType::Reg, FileType::Ini, FileType::All }); !std::empty(path))
 	{
-		if((strlen(Fname) >= 5) && (_stricmp(&Fname[strlen(Fname)-4], ".reg") == 0))
+		if (ieq(path.extension(), L".reg"s))
 		{
-			sprintf(Tmp, "\x22%s\x22", Fname);
+			sprintf(Tmp, "\x22%s\x22", path.u8string().c_str());
 			// 任意のコードが実行されるバグ修正
 //			if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
 //			{
@@ -1713,9 +1708,9 @@ int LoadSettingsFromFile(void)
 				}
 			}
 		}
-		else if((strlen(Fname) >= 5) && (_stricmp(&Fname[strlen(Fname)-4], ".ini") == 0))
+		else if (ieq(path.extension(), L".ini"s))
 		{
-			CopyFile(Fname, AskIniFilePath(), FALSE);
+			CopyFileW(path.c_str(), u8(AskIniFilePath()).c_str(), FALSE);
 			Ret = YES;
 		}
 		else
@@ -3537,7 +3532,6 @@ int ReadSettingsVersion()
 // FileZilla XML形式エクスポート対応
 void SaveSettingsToFileZillaXml()
 {
-	char Fname[FMAX_PATH+1];
 	FILE* f;
 	TIME_ZONE_INFORMATION tzi;
 	int Level;
@@ -3546,10 +3540,9 @@ void SaveSettingsToFileZillaXml()
 	char Tmp[FMAX_PATH+1];
 	char* p1;
 	char* p2;
-	strcpy(Fname, "FileZilla.xml");
-	if(SelectFile(GetMainHwnd(), Fname, MSGJPN286, MSGJPN356, "xml", OFN_EXTENSIONDIFFERENT | OFN_OVERWRITEPROMPT, 1) == TRUE)
+	if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FileZilla.xml", L"xml", { FileType::Xml,FileType::All }); !std::empty(path))
 	{
-		if((f = fopen(Fname, "wt")) != NULL)
+		if((f = _wfopen(path.c_str(), L"wt")) != NULL)
 		{
 			fputs("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n", f);
 			fputs("<FileZilla3>\n", f);
@@ -3775,7 +3768,6 @@ void WriteWinSCPPassword(FILE* f, const char* UserName, const char* HostName, co
 
 void SaveSettingsToWinSCPIni()
 {
-	char Fname[FMAX_PATH+1];
 	FILE* f;
 	TIME_ZONE_INFORMATION tzi;
 	char HostPath[FMAX_PATH+1];
@@ -3785,10 +3777,9 @@ void SaveSettingsToWinSCPIni()
 	char Tmp[FMAX_PATH+1];
 	char* p1;
 	MessageBox(GetMainHwnd(), MSGJPN365, "FFFTP", MB_OK);
-	strcpy(Fname, "WinSCP.ini");
-	if(SelectFile(GetMainHwnd(), Fname, MSGJPN286, MSGJPN288, "ini", OFN_EXTENSIONDIFFERENT | OFN_OVERWRITEPROMPT, 1) == TRUE)
+	if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"WinSCP.ini", L"ini", { FileType::Ini, FileType::All }); !std::empty(path))
 	{
-		if((f = fopen(Fname, "at")) != NULL)
+		if((f = _wfopen(path.c_str(), L"at")) != NULL)
 		{
 			GetTimeZoneInformation(&tzi);
 			strcpy(HostPath, "");

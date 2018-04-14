@@ -2493,7 +2493,6 @@ BEGIN
     IDS_MSGJPN123           "EUC"
     IDS_MSGJPN124           "Delete(Local)"
     IDS_MSGJPN125           "Delete(Host)"
-    IDS_MSGJPN126           "WS_FTP.INI"
     IDS_MSGJPN127           "General"
 END
 
@@ -2606,9 +2605,6 @@ BEGIN
     IDS_MSGJPN214           "OTP MD4,S/KEY"
     IDS_MSGJPN215           "OTP MD5"
     IDS_MSGJPN216           "OTP SHA-1"
-    IDS_MSGJPN217           "Select viewer"
-    IDS_MSGJPN218           "EXE file"
-    IDS_MSGJPN219           "Wave file"
     IDS_MSGJPN220           "Disconencting dialup."
     IDS_MSGJPN221           "Connecting dialup."
 END
@@ -2676,8 +2672,6 @@ BEGIN
     IDS_MSGJPN273           "R&efresh File List"
     IDS_MSGJPN274           "&Open"
     IDS_MSGJPN275           "Open in %s (&%d)"
-    IDS_MSGJPN276           "WS_FTP.INI"
-    IDS_MSGJPN277           "Wave file"
     IDS_MSGJPN278           "Reason: %s"
     IDS_MSGJPN279           "Cannnot get Listen Socket"
     IDS_MSGJPN280           "Cannnot get Data Socket"
@@ -2686,16 +2680,11 @@ BEGIN
     IDS_MSGJPN283           "INI file: "
     IDS_MSGJPN284           "https://github.com/sayurin/ffftp"
     IDS_MSGJPN285           "Failed to execute Registory Editor."
-    IDS_MSGJPN286           "Save Settings"
-    IDS_MSGJPN287           "Reg file"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN288           "INI file"
     IDS_MSGJPN289           "Agilent Logic analyzer"
-    IDS_MSGJPN290           "Reg file"
-    IDS_MSGJPN291           "Load Settings"
     IDS_MSGJPN292           "Restart FFFTP to take effect."
     IDS_MSGJPN293           "File must be *.reg or *.ini."
     IDS_MSGJPN294           "USER FW user:FW password@host"
@@ -2767,7 +2756,6 @@ END
 STRINGTABLE
 BEGIN
     IDS_MSGJPN355           "Move to &parent folder..."
-    IDS_MSGJPN356           "XML file"
     IDS_MSGJPN357           "Failed to export the settings.\nPlease change saving path or format."
     IDS_MSGJPN358           "Software update has been completed.\nA backup copy of the previous version is in the following location.\n%s"
     IDS_MSGJPN359           "Failed to update the software.\nPlease get the latest version from our web site and update it manually."
@@ -2787,6 +2775,21 @@ BEGIN
     IDS_ERR_SSL             "SSL initialize failed.\nExit application."
     IDS_SECURE              "Secure"
     IDS_NOTSECURE           "Not Secure"
+    IDS_FILETYPE_ALL        "All Files\t*.*\t"
+    IDS_FILETYPE_EXECUTABLE "Executable Files (*.exe;*.com;*.bat)\t*.exe;*.com;*.bat\t"
+    IDS_FILETYPE_AUDIO      "Audio Files (*.wav)\t*.wav\t"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_FILETYPE_REG        "Registration Files (*.reg)\t*.reg\t"
+    IDS_FILETYPE_INI        "INI Files (*.ini)\t*.ini\t"
+    IDS_FILETYPE_XML        "XML Files (*.xml)\t*.xml\t"
+    IDS_OPEN_WSFTPINI       "Open WS_FTP.INI"
+    IDS_SELECT_VIEWER       "Select Viewer"
+    IDS_SELECT_AUDIOFILE    "Select Audio File"
+    IDS_SAVE_SETTING        "Save Settings"
+    IDS_LOAD_SETTING        "Load Settings"
 END
 
 #endif    // English (United States) resources
