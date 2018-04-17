@@ -163,6 +163,9 @@ static int TransferErrorNotify = NO;
 static LONGLONG TransferSizeLeft = 0;
 static LONGLONG TransferSizeTotal = 0;
 static int TransferErrorDisplay = 0;
+// ゾーンID設定追加
+IZoneIdentifier* pZoneIdentifier;
+IPersistFile* pPersistFile;
 
 /*===== 外部参照 =====*/
 
@@ -179,6 +182,8 @@ extern int FolderAttrNum;
 extern int SendQuit;
 // 自動切断対策
 extern time_t LastDataConnectionTime;
+// ゾーンID設定追加
+extern int MarkAsInternet;
 
 
 /*----- ファイル転送スレッドを起動する ----------------------------------------
@@ -946,9 +951,12 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						// ミラーリング設定追加
 						if(Pos->NoTransfer == NO)
 						{
-								Sts = DoDownload(TrnSkt, Pos, NO, &Canceled[Pos->ThreadCount]) / 100;
-								if(Sts != FTP_COMPLETE)
-									LastError = YES;
+							Sts = DoDownload(TrnSkt, Pos, NO, &Canceled[Pos->ThreadCount]) / 100;
+							if(Sts != FTP_COMPLETE)
+								LastError = YES;
+							// ゾーンID設定追加
+							if(MarkAsInternet == YES && IsZoneIDLoaded() == YES)
+								MarkFileAsDownloadedFromInternet(Pos->LocalFile);
 						}
 
 						// ミラーリング設定追加
@@ -980,9 +988,9 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					// ミラーリング設定追加
 					if(Pos->NoTransfer == NO)
 					{
-							Sts = DoUpload(TrnSkt, Pos) / 100;
-							if(Sts != FTP_COMPLETE)
-								LastError = YES;
+						Sts = DoUpload(TrnSkt, Pos) / 100;
+						if(Sts != FTP_COMPLETE)
+							LastError = YES;
 					}
 
 					// ホスト側の日時設定
@@ -4123,6 +4131,8 @@ static int GetAdrsAndPortIPv4(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 	// コンマではなくドットを返すホストがあるため
 	char *OldBtm;
 	int Sts;
+	// ホスト側の設定ミス対策
+	struct sockaddr_in SockAddr;
 
 	Sts = FFFTP_FAIL;
 
@@ -4165,9 +4175,21 @@ static int GetAdrsAndPortIPv4(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 					{
 						if((Btm - Pos) <= Max)
 						{
-							strncpy(Adrs, Pos, Btm - Pos);
-							*(Adrs + (Btm - Pos)) = NUL;
-							ReplaceAll(Adrs, ',', '.');
+							// ホスト側の設定ミス対策
+//							strncpy(Adrs, Pos, Btm - Pos);
+//							*(Adrs + (Btm - Pos)) = NUL;
+//							ReplaceAll(Adrs, ',', '.');
+							if(AskNoPasvAdrs() == NO)
+							{
+								strncpy(Adrs, Pos, Btm - Pos);
+								*(Adrs + (Btm - Pos)) = NUL;
+								ReplaceAll(Adrs, ',', '.');
+							}
+							else
+							{
+								if(GetAsyncTableDataIPv4(Skt, &SockAddr, NULL) == YES)
+									AddressToStringIPv4(Adrs, &SockAddr.sin_addr);
+							}
 
 							Pos = Btm + 1;
 							Btm = strchr(Pos, ',');
@@ -4218,7 +4240,8 @@ static int GetAdrsAndPortIPv6(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 				{
 					if((Btm - Pos) <= Max)
 					{
-						if((Btm - Pos) > 0)
+						// ホスト側の設定ミス対策
+						if(AskNoPasvAdrs() == NO && (Btm - Pos) > 0)
 						{
 							strncpy(Adrs, Pos, Btm - Pos);
 							*(Adrs + (Btm - Pos)) = NUL;
@@ -4468,5 +4491,79 @@ LONGLONG AskTransferSizeTotal(void)
 int AskTransferErrorDisplay(void)
 {
 	return(TransferErrorDisplay);
+}
+
+// ゾーンID設定追加
+int LoadZoneID()
+{
+	int Sts;
+	Sts = FFFTP_FAIL;
+	if(IsMainThread())
+	{
+		if(CoCreateInstance(CLSID_PersistentZoneIdentifier, NULL, CLSCTX_ALL, IID_IZoneIdentifier, (void**)&pZoneIdentifier) == S_OK)
+		{
+			if(pZoneIdentifier->lpVtbl->SetId(pZoneIdentifier, URLZONE_INTERNET) == S_OK)
+			{
+				if(pZoneIdentifier->lpVtbl->QueryInterface(pZoneIdentifier, IID_IPersistFile, (void**)&pPersistFile) == S_OK)
+					Sts = FFFTP_SUCCESS;
+			}
+		}
+	}
+	return Sts;
+}
+
+void FreeZoneID()
+{
+	if(IsMainThread())
+	{
+		if(pPersistFile != NULL)
+			pPersistFile->lpVtbl->Release(pPersistFile);
+		pPersistFile = NULL;
+		if(pZoneIdentifier != NULL)
+			pZoneIdentifier->lpVtbl->Release(pZoneIdentifier);
+		pZoneIdentifier = NULL;
+	}
+}
+
+int IsZoneIDLoaded()
+{
+	int Sts;
+	Sts = NO;
+	if(pZoneIdentifier != NULL && pPersistFile != NULL)
+		Sts = YES;
+	return Sts;
+}
+
+int MarkFileAsDownloadedFromInternet(char* Fname)
+{
+	int Sts;
+	WCHAR Tmp1[FMAX_PATH+1];
+	BSTR Tmp2;
+	MARKFILEASDOWNLOADEDFROMINTERNETDATA Data;
+	Sts = FFFTP_FAIL;
+	if(IsMainThread())
+	{
+		MtoW(Tmp1, FMAX_PATH, Fname, -1);
+		if((Tmp2 = SysAllocString(Tmp1)) != NULL)
+		{
+			if(pPersistFile->lpVtbl->Save(pPersistFile, Tmp2, FALSE) == S_OK)
+				Sts = FFFTP_SUCCESS;
+			SysFreeString(Tmp2);
+		}
+	}
+	else
+	{
+		if(Data.h = CreateEvent(NULL, TRUE, FALSE, NULL))
+		{
+			Data.Fname = Fname;
+			if(PostMessage(GetMainHwnd(), WM_MARKFILEASDOWNLOADEDFROMINTERNET, 0, (LPARAM)&Data))
+			{
+				if(WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
+					Sts = Data.r;
+			}
+			CloseHandle(Data.h);
+		}
+	}
+	return Sts;
 }
 

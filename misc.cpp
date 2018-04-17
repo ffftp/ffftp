@@ -217,6 +217,11 @@ INT_PTR CALLBACK ExeEscTextDialogProc(HWND hDlg, UINT message, WPARAM wParam, LP
 {
 	switch (message)
 	{
+		// 暗号化通信対応
+		case WM_SHOWWINDOW :
+			SendDlgItemMessage(hDlg, COMMON_TEXT, EM_SETSEL, 0, 0);
+			return(TRUE);
+
 		case WM_INITDIALOG :
 			SendDlgItemMessage(hDlg, COMMON_TEXT, WM_SETTEXT, 0, lParam);
 			return(TRUE);

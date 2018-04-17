@@ -102,6 +102,7 @@ BEGIN
             MENUITEM "設定をファイルから復元(&L)...",          MENU_REGLOAD
             MENUITEM "マスターパスワードの変更(&M)...",         MENU_CHANGEPASSWD
             MENUITEM "FileZilla XMLに設定をエクスポート...",  MENU_EXPORT_FILEZILLA_XML
+            MENUITEM "WinSCP INIに設定をエクスポート...",     MENU_EXPORT_WINSCP_INI
             MENUITEM SEPARATOR
             MENUITEM "全設定の消去...",                   MENU_REGINIT
         END
@@ -239,17 +240,17 @@ END
 // Dialog
 //
 
-about_dlg DIALOGEX 0, 0, 319, 315
+about_dlg DIALOGEX 0, 0, 343, 267
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "FFFTPについて"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,133,294,50,14
+    DEFPUSHBUTTON   "OK",IDOK,145,246,50,14
     ICON            ffftp,-1,7,4,20,20
     CTEXT           "FFFTP Ver 3.1",-1,113,11,90,8
-    CTEXT           "FFFTPはfreewareです",-1,7,279,305,8
+    CTEXT           "FFFTPはfreewareです",-1,7,220,305,8
     CTEXT           "Copyright(C) 1997-2010 Sota & ご協力いただいた方々",-1,7,25,305,8,SS_NOPREFIX
-    CTEXT           "Copyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん)\nCopyright (C) 2018, 倉田佐祐理",-1,7,37,305,32,SS_NOPREFIX
+    CTEXT           "Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato)\nCopyright (C) 2018, 倉田佐祐理",-1,7,37,305,32,SS_NOPREFIX
     EDITTEXT        ABOUT_URL,7,76,305,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,143,305,60
 END
@@ -1366,10 +1367,6 @@ BEGIN
     CONTROL         "暗号化なしで接続を許可(&A)",HSET_NO_ENCRYPTION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,148,10
     CONTROL         "FTPS (Explicit)で接続(&E)",HSET_FTPES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
     CONTROL         "FTPS (Implicit)で接続(&I)",HSET_FTPIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
-    CONTROL         "SFTPで接続(&S)",HSET_SFTP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,49,148,10
-    LTEXT           "秘密鍵のテキスト",-1,7,63,64,8
-    PUSHBUTTON      "...",PKEY_FILE_BR,72,63,13,12
-    EDITTEXT        HSET_PRIVATE_KEY,7,79,193,44,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
 END
 
 hset_adv3_dlg DIALOG 0, 0, 207, 155
@@ -1380,14 +1377,15 @@ BEGIN
     EDITTEXT        HSET_THREAD_COUNT,72,8,17,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Spin1",HSET_THREAD_COUNT_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,7,9,14
     LTEXT           "(1～4)",-1,102,10,31,8
-    CONTROL         "メインウィンドウのソケットを再利用(&S)",HSET_REUSE_SOCKET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,27,131,10
-    LTEXT           "接続維持用コマンド周期(&K)",-1,7,44,84,8
-    EDITTEXT        HSET_NOOP_INTERVAL,92,42,17,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Spin1",HSET_NOOP_INTERVAL_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,109,41,9,14
-    LTEXT           "(0～300秒; 0=無効)",-1,122,44,76,8
-    LTEXT           "転送エラー時の処理(&E)",-1,7,61,81,8
-    COMBOBOX        HSET_ERROR_MODE,7,71,71,75,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "転送エラー後に再接続(&R)",HSET_ERROR_RECONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,84,71,102,10
+    CONTROL         "メインウィンドウのソケットを再利用(&S)",HSET_REUSE_SOCKET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,27,148,10
+    CONTROL         "PASVで返されるアドレスを無視(&A)",HSET_NO_PASV_ADRS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,41,148,10
+    LTEXT           "接続維持用コマンド周期(&K)",-1,7,58,84,8
+    EDITTEXT        HSET_NOOP_INTERVAL,92,56,17,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",HSET_NOOP_INTERVAL_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,109,55,9,14
+    LTEXT           "(0～300秒; 0=無効)",-1,122,58,76,8
+    LTEXT           "転送エラー時の処理(&E)",-1,7,75,81,8
+    COMBOBOX        HSET_ERROR_MODE,7,85,71,75,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "転送エラー後に再接続(&R)",HSET_ERROR_RECONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,84,85,102,10
 END
 
 savecrypt_dlg DIALOG 0, 0, 146, 62
@@ -1443,6 +1441,8 @@ BEGIN
     CONTROL         "EUC",TRMODE4_EUC_CNV,"Button",BS_AUTORADIOBUTTON,12,45,41,10
     CONTROL         "UTF-8",TRMODE4_UTF8N_CNV,"Button",BS_AUTORADIOBUTTON,12,57,41,10
     CONTROL         "UTF-8 BOM",TRMODE4_UTF8BOM_CNV,"Button",BS_AUTORADIOBUTTON,12,69,81,10
+    CONTROL         "インターネットから入手したものとしてファイルに情報を付加する(&I)",TRMODE4_MARK_INTERNET,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,96,196,10
 END
 
 opt_disp2_dlg DIALOG 0, 0, 211, 155
@@ -1489,9 +1489,8 @@ BEGIN
     about_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 312
+        RIGHTMARGIN, 336
         TOPMARGIN, 4
-        BOTTOMMARGIN, 308
     END
 
     transfer_dlg, DIALOG
@@ -2201,7 +2200,7 @@ BEGIN
             VALUE "FileDescription", "FFFTP"
             VALUE "FileVersion", "3.1.0.0"
             VALUE "InternalName", "FFFTP"
-            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん).\r\nCopyright (C) 2018, 倉田佐祐理."
+            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato).\r\nCopyright (C) 2018, 倉田佐祐理."
             VALUE "OriginalFilename", "FFFTP.exe"
             VALUE "ProductName", "FFFTP"
             VALUE "ProductVersion", "3.1.0.0"

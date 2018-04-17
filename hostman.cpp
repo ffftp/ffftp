@@ -1072,6 +1072,8 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 		Set->TransferErrorNotify = Pos->Set.TransferErrorNotify;
 		// セッションあたりの転送量制限対策
 		Set->TransferErrorReconnect = Pos->Set.TransferErrorReconnect;
+		// ホスト側の設定ミス対策
+		Set->NoPasvAdrs = Pos->Set.NoPasvAdrs;
 		Sts = FFFTP_SUCCESS;
 	}
 	return(Sts);
@@ -1430,6 +1432,8 @@ void CopyDefaultDefaultHost(HOSTDATA *Set)
 	Set->TransferErrorNotify = YES;
 	// セッションあたりの転送量制限対策
 	Set->TransferErrorReconnect = YES;
+	// ホスト側の設定ミス対策
+	Set->NoPasvAdrs = NO;
 	return;
 }
 
@@ -2333,10 +2337,6 @@ static INT_PTR CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam
 			SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_SETCHECK, TmpHost.UseNoEncryption, 0);
 			SendDlgItemMessage(hDlg, HSET_FTPES, BM_SETCHECK, TmpHost.UseFTPES, 0);
 			SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, TmpHost.UseFTPIS, 0);
-			SendDlgItemMessage(hDlg, HSET_SFTP, BM_SETCHECK, BST_UNCHECKED, 0);
-			EnableWindow(GetDlgItem(hDlg, HSET_SFTP), FALSE);
-			EnableWindow(GetDlgItem(hDlg, PKEY_FILE_BR), FALSE);
-			EnableWindow(GetDlgItem(hDlg, HSET_PRIVATE_KEY), FALSE);
 			return(TRUE);
 
 		case WM_NOTIFY:
@@ -2404,6 +2404,7 @@ static INT_PTR CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 			else
 				SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
 			SendDlgItemMessage(hDlg, HSET_ERROR_RECONNECT, BM_SETCHECK, TmpHost.TransferErrorReconnect, 0);
+			SendDlgItemMessage(hDlg, HSET_NO_PASV_ADRS, BM_SETCHECK, TmpHost.NoPasvAdrs, 0);
 			return(TRUE);
 
 		case WM_NOTIFY:
@@ -2436,6 +2437,7 @@ static INT_PTR CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 						break;
 					}
 					TmpHost.TransferErrorReconnect = (int)SendDlgItemMessage(hDlg, HSET_ERROR_RECONNECT, BM_GETCHECK, 0, 0);
+					TmpHost.NoPasvAdrs = (int)SendDlgItemMessage(hDlg, HSET_NO_PASV_ADRS, BM_GETCHECK, 0, 0);
 					Apply = YES;
 					break;
 

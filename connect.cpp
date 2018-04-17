@@ -3369,3 +3369,9 @@ int AskErrorReconnect(void)
 	return(CurHost.TransferErrorReconnect);
 }
 
+// ホスト側の設定ミス対策
+int AskNoPasvAdrs(void)
+{
+	return(CurHost.NoPasvAdrs);
+}
+

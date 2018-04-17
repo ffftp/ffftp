@@ -207,9 +207,11 @@ extern int ReadOnlySettings;
 // ファイル一覧バグ修正
 extern int AbortOnListError;
 // ミラーリング設定追加
-extern int MirrorNoTransferContents; 
+extern int MirrorNoTransferContents;
 // FireWall設定追加
-extern int FwallNoSaveUser; 
+extern int FwallNoSaveUser;
+// ゾーンID設定追加
+extern int MarkAsInternet;
 
 
 void sha_memory(const char* mem, DWORD length, uint32_t* buffer) {
@@ -637,6 +639,8 @@ void SaveRegistry(void)
 							SaveIntNum(hKey5, "ErrNotify", Hist.TransferErrorNotify, DefaultHist.TransferErrorNotify);
 							// セッションあたりの転送量制限対策
 							SaveIntNum(hKey5, "ErrReconnect", Hist.TransferErrorReconnect, DefaultHist.TransferErrorReconnect);
+							// ホスト側の設定ミス対策
+							SaveIntNum(hKey5, "NoPasvAdrs", Hist.NoPasvAdrs, DefaultHist.NoPasvAdrs);
 
 							CloseSubKey(hKey5);
 							n++;
@@ -709,6 +713,7 @@ void SaveRegistry(void)
 					SaveIntNum(hKey5, "ErrMode", Host.TransferErrorMode, DefaultHost.TransferErrorMode);
 					SaveIntNum(hKey5, "ErrNotify", Host.TransferErrorNotify, DefaultHost.TransferErrorNotify);
 					SaveIntNum(hKey5, "ErrReconnect", Host.TransferErrorReconnect, DefaultHost.TransferErrorReconnect);
+					SaveIntNum(hKey5, "NoPasvAdrs", Host.NoPasvAdrs, DefaultHost.NoPasvAdrs);
 					CloseSubKey(hKey5);
 				}
 
@@ -785,6 +790,8 @@ void SaveRegistry(void)
 							SaveIntNum(hKey5, "ErrNotify", Host.TransferErrorNotify, DefaultHost.TransferErrorNotify);
 							// セッションあたりの転送量制限対策
 							SaveIntNum(hKey5, "ErrReconnect", Host.TransferErrorReconnect, DefaultHost.TransferErrorReconnect);
+							// ホスト側の設定ミス対策
+							SaveIntNum(hKey5, "NoPasvAdrs", Host.NoPasvAdrs, DefaultHost.NoPasvAdrs);
 						}
 						CloseSubKey(hKey5);
 					}
@@ -826,6 +833,8 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "MirNoTransfer", MirrorNoTransferContents);
 				// FireWall設定追加
 				WriteIntValueToReg(hKey4, "FwallShared", FwallNoSaveUser);
+				// ゾーンID設定追加
+				WriteIntValueToReg(hKey4, "MarkDFile", MarkAsInternet);
 			}
 			CloseSubKey(hKey4);
 		}
@@ -1204,6 +1213,8 @@ int LoadRegistry(void)
 					ReadIntValueFromReg(hKey5, "ErrNotify", &Hist.TransferErrorNotify);
 					// セッションあたりの転送量制限対策
 					ReadIntValueFromReg(hKey5, "ErrReconnect", &Hist.TransferErrorReconnect);
+					// ホスト側の設定ミス対策
+					ReadIntValueFromReg(hKey5, "NoPasvAdrs", &Hist.NoPasvAdrs);
 
 					CloseSubKey(hKey5);
 					AddHistoryToHistory(&Hist);
@@ -1269,6 +1280,7 @@ int LoadRegistry(void)
 				ReadIntValueFromReg(hKey5, "ErrMode", &Host.TransferErrorMode);
 				ReadIntValueFromReg(hKey5, "ErrNotify", &Host.TransferErrorNotify);
 				ReadIntValueFromReg(hKey5, "ErrReconnect", &Host.TransferErrorReconnect);
+				ReadIntValueFromReg(hKey5, "NoPasvAdrs", &Host.NoPasvAdrs);
 
 				CloseSubKey(hKey5);
 
@@ -1373,6 +1385,8 @@ int LoadRegistry(void)
 					ReadIntValueFromReg(hKey5, "ErrNotify", &Host.TransferErrorNotify);
 					// セッションあたりの転送量制限対策
 					ReadIntValueFromReg(hKey5, "ErrReconnect", &Host.TransferErrorReconnect);
+					// ホスト側の設定ミス対策
+					ReadIntValueFromReg(hKey5, "NoPasvAdrs", &Host.NoPasvAdrs);
 
 					CloseSubKey(hKey5);
 
@@ -1405,6 +1419,8 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "MirNoTransfer", &MirrorNoTransferContents);
 			// FireWall設定追加
 			ReadIntValueFromReg(hKey4, "FwallShared", &FwallNoSaveUser);
+			// ゾーンID設定追加
+			ReadIntValueFromReg(hKey4, "MarkDFile", &MarkAsInternet);
 
 			CloseSubKey(hKey4);
 		}
@@ -3769,7 +3785,6 @@ void WriteWinSCPPassword(FILE* f, const char* UserName, const char* HostName, co
 void SaveSettingsToWinSCPIni()
 {
 	FILE* f;
-	TIME_ZONE_INFORMATION tzi;
 	char HostPath[FMAX_PATH+1];
 	int Level;
 	int i;
@@ -3781,7 +3796,6 @@ void SaveSettingsToWinSCPIni()
 	{
 		if((f = _wfopen(path.c_str(), L"at")) != NULL)
 		{
-			GetTimeZoneInformation(&tzi);
 			strcpy(HostPath, "");
 			Level = 0;
 			i = 0;

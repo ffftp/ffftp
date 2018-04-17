@@ -102,6 +102,7 @@ BEGIN
             MENUITEM "&Load Settings from File...", MENU_REGLOAD
             MENUITEM "Change &Master password...",  MENU_CHANGEPASSWD
             MENUITEM "Export Settings as FileZilla XML", MENU_EXPORT_FILEZILLA_XML
+            MENUITEM "Export Settings as WinSCP INI", MENU_EXPORT_WINSCP_INI
             MENUITEM SEPARATOR
             MENUITEM "Clear All Settings...",       MENU_REGINIT
         END
@@ -239,17 +240,17 @@ END
 // Dialog
 //
 
-about_dlg DIALOGEX 0, 0, 315, 317
+about_dlg DIALOGEX 0, 0, 339, 269
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About FFFTP"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,132,296,50,14
+    DEFPUSHBUTTON   "OK",IDOK,144,248,50,14
     ICON            ffftp,-1,7,4,20,20
     CTEXT           "FFFTP Ver 3.1",-1,110,11,90,8
-    CTEXT           "FFFTP is freeware",-1,7,281,301,8
+    CTEXT           "FFFTP is freeware",-1,7,221,301,8
     CTEXT           "Copyright(C) 1997-2010 Sota && cooperators",-1,7,25,301,8
-    CTEXT           "Copyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen)\nCopyright (C) 2018, KURATA Sayuri",-1,7,37,301,32
+    CTEXT           "Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato)\nCopyright (C) 2018, KURATA Sayuri",-1,7,37,301,32
     EDITTEXT        ABOUT_URL,7,76,301,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     CTEXT           "OLE D&&D by Yutaka Hirata-san, nakka-san\nIn site file mover by Hirata-san\nAny issues by miau-san\nMaster Password by Gengen-san\nAES encryption by Moca-san\n\nI had cooperation of many other one.",-1,7,142,301,59
 END
@@ -1404,10 +1405,6 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,148,10
     CONTROL         "Connect with FTPS (&Explicit)",HSET_FTPES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
     CONTROL         "Connect with FTPS (&Implicit)",HSET_FTPIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
-    CONTROL         "Connect with &SFTP",HSET_SFTP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,49,148,10
-    LTEXT           "Private key text",-1,7,63,64,8
-    PUSHBUTTON      "...",PKEY_FILE_BR,72,63,13,12
-    EDITTEXT        HSET_PRIVATE_KEY,7,79,193,44,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
 END
 
 hset_adv3_dlg DIALOG 0, 0, 207, 155
@@ -1419,14 +1416,16 @@ BEGIN
     CONTROL         "Spin1",HSET_THREAD_COUNT_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,7,9,14
     LTEXT           "(1 to 4 threads)",-1,102,10,53,8
     CONTROL         "Reuse &socket of the main window",HSET_REUSE_SOCKET,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,27,131,10
-    LTEXT           "Command for &Keep Alive",-1,7,44,84,8
-    EDITTEXT        HSET_NOOP_INTERVAL,92,42,17,12,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Spin1",HSET_NOOP_INTERVAL_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,109,41,9,14
-    LTEXT           "(0 to 300sec; 0=Never)",-1,122,44,76,8
-    LTEXT           "When transfer &errors",-1,7,61,81,8
-    COMBOBOX        HSET_ERROR_MODE,7,71,71,75,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "&Reconnect after errors",HSET_ERROR_RECONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,84,71,102,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,27,148,10
+    CONTROL         "Ignore &addresses returned by PASV",HSET_NO_PASV_ADRS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,41,148,10
+    LTEXT           "Command for &Keep Alive",-1,7,58,84,8
+    EDITTEXT        HSET_NOOP_INTERVAL,92,56,17,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",HSET_NOOP_INTERVAL_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,109,55,9,14
+    LTEXT           "(0 to 300sec; 0=Never)",-1,122,58,76,8
+    LTEXT           "When transfer &errors",-1,7,75,81,8
+    COMBOBOX        HSET_ERROR_MODE,7,85,71,75,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Reconnect after errors",HSET_ERROR_RECONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,84,85,102,10
 END
 
 savecrypt_dlg DIALOG 0, 0, 146, 62
@@ -1482,6 +1481,8 @@ BEGIN
     CONTROL         "EUC",TRMODE4_EUC_CNV,"Button",BS_AUTORADIOBUTTON,12,45,41,10
     CONTROL         "UTF-8",TRMODE4_UTF8N_CNV,"Button",BS_AUTORADIOBUTTON,12,57,41,10
     CONTROL         "UTF-8 BOM",TRMODE4_UTF8BOM_CNV,"Button",BS_AUTORADIOBUTTON,12,69,81,10
+    CONTROL         "Add information to files as obtained from the &Internet",TRMODE4_MARK_INTERNET,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,96,196,10
 END
 
 opt_disp2_dlg DIALOG 0, 0, 211, 155
@@ -1530,9 +1531,8 @@ BEGIN
     about_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 308
+        RIGHTMARGIN, 332
         TOPMARGIN, 4
-        BOTTOMMARGIN, 310
     END
 
     transfer_dlg, DIALOG
@@ -2239,7 +2239,7 @@ BEGIN
             VALUE "FileDescription", "FFFTP"
             VALUE "FileVersion", "3.1.0.0"
             VALUE "InternalName", "FFFTP"
-            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & cooperators\nCopyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).\r\nCopyright (C) 2018, KURATA Sayuri."
+            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & cooperators\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).\r\nCopyright (C) 2018, KURATA Sayuri."
             VALUE "OriginalFilename", "FFFTP.exe"
             VALUE "ProductName", "FFFTP"
             VALUE "ProductVersion", "3.1.0.0"

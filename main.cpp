@@ -256,6 +256,8 @@ int AbortOnListError = YES;
 int MirrorNoTransferContents = NO; 
 // FireWall設定追加
 int FwallNoSaveUser = NO; 
+// ゾーンID設定追加
+int MarkAsInternet = YES; 
 
 
 
@@ -317,6 +319,8 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	LoadUPnP();
 	// タスクバー進捗表示
 	LoadTaskbarList3();
+	// ゾーンID設定追加
+	LoadZoneID();
 
 #if _WIN32_WINNT < _WIN32_WINNT_VISTA
 	// Vista以降およびIE7以降で導入済みとなる
@@ -376,6 +380,8 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	UnregisterClass(FtpClassStr, hInstFtp);
 	FreeSSL();
 	CryptReleaseContext(HCryptProv, 0);
+	// ゾーンID設定追加
+	FreeZoneID();
 	// タスクバー進捗表示
 	FreeTaskbarList3();
 	// UPnP対応
@@ -592,7 +598,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					DispWindowTitle();
 					UpdateStatusBar();
 					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.\r\n"
-						"Copyright (C) 2011-2017 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen).\r\n"
+						"Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).\r\n"
 						"Copyright (C) 2018, KURATA Sayuri."
 					);
 
@@ -1579,6 +1585,29 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					}
 					break;
 
+				// WinSCP INI形式エクスポート対応
+				case MENU_EXPORT_WINSCP_INI :
+					// 平文で出力するためマスターパスワードを再確認
+					if(GetMasterPasswordStatus() == PASSWORD_OK)
+					{
+						char Password[MAX_PASSWORD_LEN + 1];
+						GetMasterPassword(Password);
+						SetMasterPassword(NULL);
+						while(ValidateMasterPassword() == YES && GetMasterPasswordStatus() == PASSWORD_UNMATCH)
+						{
+							if(EnterMasterPasswordAndSet(masterpasswd_dlg, hWnd) == 0)
+								break;
+						}
+						if(GetMasterPasswordStatus() == PASSWORD_OK)
+							SaveSettingsToWinSCPIni();
+						else
+						{
+							SetMasterPassword(Password);
+							ValidateMasterPassword();
+						}
+					}
+					break;
+
 				default :
 					if((LOWORD(wParam) >= MENU_BMARK_TOP) &&
 					   (LOWORD(wParam) < MENU_BMARK_TOP+100))
@@ -1845,6 +1874,12 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		// 同時接続対応
 		case WM_RECONNECTSOCKET :
 			ReconnectProc();
+			break;
+
+		// ゾーンID設定追加
+		case WM_MARKFILEASDOWNLOADEDFROMINTERNET :
+			((MARKFILEASDOWNLOADEDFROMINTERNETDATA*)lParam)->r = MarkFileAsDownloadedFromInternet(((MARKFILEASDOWNLOADEDFROMINTERNETDATA*)lParam)->Fname);
+			SetEvent(((MARKFILEASDOWNLOADEDFROMINTERNETDATA*)lParam)->h);
 			break;
 
 		case WM_PAINT :
@@ -2428,6 +2463,9 @@ void DoubleClickProc(int Win, int Mode, int App)
 									// 同時接続対応
 									CancelFlg = NO;
 									Sts = DoDownload(AskCmdCtrlSkt(), &MainTransPkt, NO, &CancelFlg);
+									// ゾーンID設定追加
+									if(MarkAsInternet == YES && IsZoneIDLoaded() == YES)
+										MarkFileAsDownloadedFromInternet(Remote);
 //								}
 							}
 

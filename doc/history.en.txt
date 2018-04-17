@@ -23,6 +23,64 @@ Changes in 3.00
 
 - Update notification removed.
 
+Changes in Ver.2.00
+--------------------
+
+This list includes changes applied by automatic software updates.
+
+-- Changed the checking interval of automatic software updates from 7 days to
+   30 days.
+
+-- Added a feature to export settings as WinSCP INI format.
+
+-- Added an option to ignore addresses returned with PASV mode.
+   Please use this for connection to hosts that have incorrect settings.
+
+-- Added an option to add information to files as obtained from the Internet
+   when they are downloaded.
+   This will display a warning when downloaded executable files etc. are about
+   to be opened.
+   This feature is enabled by default.
+
+-- Fixed bugs that the focus is lost after keyboard operation.
+
+-- Made it show the logged in user name on the title bar.
+
+-- Fixed bugs that connecting to hosts that supports only deprecated encryption
+   methods is unable.
+
+-- Fixed bugs that local files with abnormal timestamps cause crashes.
+
+-- Supported proxy connection for automatic software update.
+
+-- Fixed bugs that sometimes Overwrite if newer does not work.
+
+-- Fixed bugs that it hangs up during drag-and-drop.
+
+-- Resolved flickering of the window caused by a side effect of bug
+   countermeasure.
+
+-- Implemented Server Name Indication.
+   This solves the problem that it cannot connect to some shared servers.
+
+-- Changed to check Subject Alternative Names at validation of SSL/TLS
+   certificates.
+
+-- Fixed bugs that sometimes it cannot reconnect after transfer failure.
+
+-- Fixed bugs that the queue of file transfer is not released on disconnection.
+
+-- Fixed bugs that sometimes Force Exit does not work while transfer.
+
+-- Fixed bugs that the behavior is strange after clicking Stop button.
+
+-- Fixed bugs that transfer fails at a host right after disconnection from
+   another host whose number of simultaneous connections is more than 1.
+
+-- Updated OpenSSL.
+
+-- Updated SSL/TLS root CAs.
+
 Changes in Ver.1.99a
 --------------------
 
@@ -414,12 +472,12 @@ Changes in Ver.1.97
 -------------------
 
 -- Now you can use master password.
-   This function is made by Gengen-san.Å@Thanks.
+   This function is made by Gengen-san. Thanks.
    When you use this virsion first, set master password from following menu.
-    File ->Å@Settings -> Change Master password
+    File -> Settings -> Change Master password
 
 -- Now passwords are encrypted with AES.
-   This function is made by Moca-san.Å@Thanks.
+   This function is made by Moca-san. Thanks.
 
 Changes in Ver.1.96d
 --------------------

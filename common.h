@@ -227,7 +227,7 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #else
 #define VER_STR					"3.1 32bit"
 #endif
-#define VER_NUM					1990		/* 設定バージョン */
+#define VER_NUM					2000		/* 設定バージョン */
 
 /*===== 通信関係 ======*/
 
@@ -261,6 +261,9 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 // 同時接続対応
 #define WM_RECONNECTSOCKET	(WM_USER+11)
+
+// ゾーンID設定追加
+#define WM_MARKFILEASDOWNLOADEDFROMINTERNET	(WM_USER+12)
 
 /*===== ホスト番号 =====*/
 /* ホスト番号は 0～ の値を取る */
@@ -1204,6 +1207,8 @@ typedef struct {
 	int TransferErrorNotify;			/* 転送エラー時に確認ダイアログを出すかどうか (YES/NO) */
 	// セッションあたりの転送量制限対策
 	int TransferErrorReconnect;			/* 転送エラー時に再接続する (YES/NO) */
+	// ホスト側の設定ミス対策
+	int NoPasvAdrs;						/* PASVで返されるアドレスを無視する (YES/NO) */
 } HOSTDATA;
 
 
@@ -1270,6 +1275,8 @@ typedef struct historydata {
 	int TransferErrorNotify;			/* 転送エラー時に確認ダイアログを出すかどうか (YES/NO) */
 	// セッションあたりの転送量制限対策
 	int TransferErrorReconnect;			/* 転送エラー時に再接続する (YES/NO) */
+	// ホスト側の設定ミス対策
+	int NoPasvAdrs;						/* PASVで返されるアドレスを無視する (YES/NO) */
 	struct historydata *Next;
 } HISTORYDATA;
 
@@ -1513,6 +1520,14 @@ typedef struct
 	HANDLE h;
 	int Port;
 } REMOVEPORTMAPPINGDATA;
+
+// ゾーンID設定追加
+typedef struct
+{
+	int r;
+	HANDLE h;
+	char* Fname;
+} MARKFILEASDOWNLOADEDFROMINTERNETDATA;
 
 /*=================================================
 *		プロトタイプ
@@ -1784,6 +1799,8 @@ int AskTransferErrorMode(void);
 int AskTransferErrorNotify(void);
 // セッションあたりの転送量制限対策
 int AskErrorReconnect(void);
+// ホスト側の設定ミス対策
+int AskNoPasvAdrs(void);
 
 /*===== cache.c =====*/
 
@@ -1917,6 +1934,11 @@ int CheckPathViolation(TRANSPACKET *packet);
 LONGLONG AskTransferSizeLeft(void);
 LONGLONG AskTransferSizeTotal(void);
 int AskTransferErrorDisplay(void);
+// ゾーンID設定追加
+int LoadZoneID();
+void FreeZoneID();
+int IsZoneIDLoaded();
+int MarkFileAsDownloadedFromInternet(char* Fname);
 
 /*===== codecnv.c =====*/
 

@@ -453,9 +453,6 @@
 #define HSET_NO_ENCRYPTION              1198
 #define HSET_FTPES                      1199
 #define HSET_FTPIS                      1200
-#define HSET_SFTP                       1201
-#define PKEY_FILE_BR                    1202
-#define HSET_PRIVATE_KEY                1203
 #define HSET_THREAD_COUNT               1204
 #define HSET_THREAD_COUNT_SPN           1205
 #define HSET_UTF8BOM_CNV                1206
@@ -477,7 +474,9 @@
 #define HOST_SET_DEFAULT                1227
 #define TRMODE_LISTERROR                1228
 #define MIRROR_NO_TRANSFER              1229
-#define IDC_SHOWCERT                    1230
+#define HSET_NO_PASV_ADRS               1230
+#define TRMODE4_MARK_INTERNET           1231
+#define IDC_SHOWCERT                    1232
 #define IDS_MSGJPN001                   10001
 #define IDS_MSGJPN002                   10002
 #define IDS_MSGJPN003                   10003
@@ -994,6 +993,7 @@
 #define MENU_FW_FTP_FILTER              40178
 #define MENU_REMOTE_MOVE_UPDIR          40179
 #define MENU_EXPORT_FILEZILLA_XML       40180
+#define MENU_EXPORT_WINSCP_INI          40182
 #define FSNOTIFY_TITLE                  65535
 #define HOST_SIZEGRIP                   65535
 
@@ -1003,8 +1003,8 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        200
-#define _APS_NEXT_COMMAND_VALUE         40182
-#define _APS_NEXT_CONTROL_VALUE         1231
+#define _APS_NEXT_COMMAND_VALUE         40183
+#define _APS_NEXT_CONTROL_VALUE         1233
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
