@@ -127,9 +127,6 @@
     <ClInclude Include="socketwrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sample.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="OleDragDrop.h">
       <Filter>Header Files</Filter>
     </ClInclude>

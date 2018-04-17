@@ -217,7 +217,6 @@
     <ClInclude Include="OleDragDrop.h" />
     <ClInclude Include="Resource\resource.en-US.h" />
     <ClInclude Include="Resource\resource.ja-JP.h" />
-    <ClInclude Include="sample.h" />
     <ClInclude Include="socketwrapper.h" />
   </ItemGroup>
   <ItemGroup>
