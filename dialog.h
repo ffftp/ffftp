@@ -14,7 +14,7 @@ class Resizable<Controls<anchorRight...>, Controls<anchorBottom...>, Controls<an
 	static const UINT flags = SWP_NOZORDER | SWP_NOREDRAW | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_DEFERERASE | SWP_ASYNCWINDOWPOS;
 	SIZE minimum;
 	SIZE current;
-	static void Discard(int...) {}
+	static void Discard(std::initializer_list<int>) {}
 	static void OnSizeRight(HWND dialog, int id, LONG dx) {
 		auto control = GetDlgItem(dialog, id);
 		RECT r;
@@ -44,11 +44,11 @@ public:
 	void OnSize(HWND dialog, LONG cx, LONG cy) {
 		LONG dx = cx - current.cx, dy = cy - current.cy;
 		if (dx != 0)
-			Discard((OnSizeRight(dialog, anchorRight, dx), 0)...);
+			Discard({ (OnSizeRight(dialog, anchorRight, dx), 0)... });
 		if (dy != 0)
-			Discard((OnSizeBottom(dialog, anchorBottom, dy), 0)...);
+			Discard({ (OnSizeBottom(dialog, anchorBottom, dy), 0)... });
 		if (dx != 0 || dy != 0)
-			Discard((OnSizeStretch(dialog, anchorStretch, dx, dy), 0)...);
+			Discard({ (OnSizeStretch(dialog, anchorStretch, dx, dy), 0)... });
 		current = { cx, cy };
 		InvalidateRect(dialog, nullptr, FALSE);
 	}
