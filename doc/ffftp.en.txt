@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.3.1 (FTP Client software)
+[Software Name]  FFFTP Ver.3.2 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018, KURATA Sayuri.
@@ -29,16 +29,15 @@ following menu.
 File -> Settings -> Change Master password
 
 
-Changes at 3.1
+Changes at 3.2
 --------------
 
-- fix crash of reading and writing password. #3
-- fix communication error if encryption enabled. #17
-- update verify certificate.  #2 
-  - confirm if certificate verfication failed.
-- show connection status in statusbar. #9 
-  - popup certificate when statusbar clicked.
-  - then encryption status removed.
+- merged changes until v2.00 at osdn. #25
+  - but not modified ssl related codes.
+  - v3.0 and v3.1 are forked from 1.99a-update.
+- fix shown error dialog when uploading. #21
+- fix missing file at file common dialogs. #17
+- refactoring bookmark code. #28
 
 
 Outline
