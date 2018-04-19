@@ -101,7 +101,7 @@ namespace detail {
 			if (uMsg == WM_INITDIALOG) {
 				auto ptr = reinterpret_cast<Data*>(lParam);
 				SetWindowLongPtrW(hwndDlg, GWLP_USERDATA, lParam);
-				auto result = TRUE;
+				INT_PTR result = TRUE;
 				if constexpr (hasOnInit<Data>())
 					result = ptr->OnInit(hwndDlg);
 				if constexpr (hasResizable<Data>())
