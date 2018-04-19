@@ -2977,28 +2977,24 @@ void ChangeDirComboProc(HWND hWnd)
 
 void ChangeDirBmarkProc(int MarkID)
 {
-	char Local[FMAX_PATH+1];
-	char Remote[FMAX_PATH+1];
-	int Sts;
-
 	// 同時接続対応
 	CancelFlg = NO;
 
-	Sts = AskBookMarkText(MarkID, Local, Remote, FMAX_PATH+1);
-	if((Sts == BMARK_TYPE_LOCAL) || (Sts == BMARK_TYPE_BOTH))
+	auto [local, remote] = AskBookMarkText(MarkID);
+	if(!empty(local))
 	{
 		DisableUserOpe();
-		if(DoLocalCWD(Local) == FFFTP_SUCCESS)
+		if(DoLocalCWD(u8(local).data()) == FFFTP_SUCCESS)
 			GetLocalDirForWnd();
 		EnableUserOpe();
 	}
 
-	if((Sts == BMARK_TYPE_REMOTE) || (Sts == BMARK_TYPE_BOTH))
+	if(!empty(remote))
 	{
 		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 		{
 			DisableUserOpe();
-			if(DoCWD(Remote, YES, NO, YES) < FTP_RETRY)
+			if(DoCWD(u8(remote).data(), YES, NO, YES) < FTP_RETRY)
 				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 			EnableUserOpe();
 		}

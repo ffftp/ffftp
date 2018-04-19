@@ -930,19 +930,6 @@ LIST_UNIX_70
 #define MENU_BMARK_TOP		30000	/* 3000以降(3100くらいまで)は予約する */
 									/* resource.h の定義と重ならないように */
 
-#define BMARK_TYPE_NONE		0		/* ブックマーク無し */
-#define BMARK_TYPE_LOCAL	1		/* ローカル側のブックマーク */
-#define BMARK_TYPE_REMOTE	2		/* ホスト側のブックマーク */
-#define BMARK_TYPE_BOTH		3		/* 両方のブックマーク */
-
-#define BMARK_MARK_LOCAL	"L "	/* ローカル側の印 */
-#define BMARK_MARK_REMOTE	"H "	/* ホスト側の印 */
-#define BMARK_MARK_BOTH		"W "	/* 両方の印 */
-#define BMARK_MARK_LEN		2		/* 印の文字数 */
-
-#define BMARK_SEP			" <> "	/* ローカル側とホスト側の区切り */
-#define BMARK_SEP_LEN		4		/* 区切りの文字数 */
-
 /*===== レジストリのタイプ =====*/
 
 #define REGTYPE_REG		0		/* レジストリ */
@@ -1979,12 +1966,12 @@ void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize);
 
 /*===== bookmark.c =====*/
 
-void ClearBookMark(void);
+void ClearBookMark();
 void AddCurDirToBookMark(int Win);
-int AskBookMarkText(int MarkID, char *Local, char *Remote, int Max);
-void SaveBookMark(void);
-void LoadBookMark(void);
-int EditBookMark(void);
+std::tuple<std::wstring, std::wstring> AskBookMarkText(int MarkID);
+void SaveBookMark();
+void LoadBookMark();
+void EditBookMark();
 
 /*===== registry.c =====*/
 
@@ -2211,4 +2198,16 @@ static auto GetString(UINT id) {
 	wchar_t buffer[1024];
 	auto length = LoadStringW(GetFtpInst(), id, buffer, size_as<int>(buffer));
 	return std::wstring(buffer, length);
+}
+static auto GetText(HWND hwnd) {
+	std::wstring text;
+	if (auto const length = SendMessageW(hwnd, WM_GETTEXTLENGTH, 0, 0); 0 < length) {
+		text.resize(length);
+		auto const result = SendMessageW(hwnd, WM_GETTEXT, length + 1, (LPARAM)text.data());
+		text.resize(result);
+	}
+	return text;
+}
+static inline auto GetText(HWND hdlg, int id) {
+	return GetText(GetDlgItem(hdlg, id));
 }

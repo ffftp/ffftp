@@ -30,582 +30,205 @@
 #include "common.h"
 #include "helpid.h"
 
-
-/*===== プロトタイプ =====*/
-
-static int AddBookMark(char *Path);
-static int GetBothPath(char *Str, char **Path1, char **Path2);
-// 64ビット対応
-//static BOOL CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-
-/*===== 外部参照 =====*/
-
 extern HWND hHelpWin;
-
-/* 設定値 */
 extern HFONT ListFont;		/* リストボックスのフォント */
 extern SIZE BmarkDlgSize;
 
+struct Bookmark {
+	std::wstring local;
+	std::wstring remote;
+	std::wstring line;
+	Bookmark() = default;
+	Bookmark(std::wstring const& line) : line{ line } {
+		// 旧フォーマットはプレフィックスが付いていない
+		static std::wregex re{ LR"(^(?:W (.*?) <> (.*)|L (.*)|(?:H )?(.*))$)" };
+		if (std::wsmatch m; std::regex_search(line, m, re)) {
+			local = m[1].matched ? m[1] : m[3];
+			remote = m[2].matched ? m[2] : m[4];
+		} else
+			throw std::runtime_error("invalid bookmark.");
+	}
+	Bookmark(std::wstring const& local, std::wstring const& remote) : local{ local }, remote{ remote } {
+		if (empty(local) && empty(remote))
+			throw std::runtime_error("empty bookmark.");
+		line = empty(remote) ? L"L "s + local : empty(local) ? L"H "s + remote : L"W "s + local + L" <> "s + remote;
+	}
+};
 
+static std::vector<Bookmark> bookmarks;
 
-/*----- ブックマークをクリアする ----------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void ClearBookMark(void)
-{
-	HMENU hMenu;
-
-	hMenu = GetSubMenu(GetMenu(GetMainHwnd()), BMARK_SUB_MENU);
-	while(GetMenuItemCount(hMenu) > DEFAULT_BMARK_ITEM)
-		DeleteMenu(hMenu, DEFAULT_BMARK_ITEM, MF_BYPOSITION);
-	return;
+// ブックマークをクリアする
+void ClearBookMark() {
+	auto menu = GetSubMenu(GetMenu(GetMainHwnd()), BMARK_SUB_MENU);
+	for (int i = 0; i < size_as<int>(bookmarks); i++)
+		DeleteMenu(menu, DEFAULT_BMARK_ITEM, MF_BYPOSITION);
+	bookmarks.clear();
 }
 
-
-/*----- カレントディレクトリをブックマークに追加 ------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void AddCurDirToBookMark(int Win)
-{
-	char Buf[BMARK_MARK_LEN + FMAX_PATH * 2 + BMARK_SEP_LEN + 1];
-
-	if(Win == WIN_LOCAL)
-	{
-		strcpy(Buf, BMARK_MARK_LOCAL);
-		AskLocalCurDir(Buf + BMARK_MARK_LEN, FMAX_PATH);
-	}
-	else if(Win == WIN_REMOTE)
-	{
-		strcpy(Buf, BMARK_MARK_REMOTE);
-		AskRemoteCurDir(Buf + BMARK_MARK_LEN, FMAX_PATH);
-	}
-	else
-	{
-		strcpy(Buf, BMARK_MARK_BOTH);
-		AskLocalCurDir(Buf + BMARK_MARK_LEN, FMAX_PATH);
-		strcat(Buf, BMARK_SEP);
-		AskRemoteCurDir(Buf + strlen(Buf), FMAX_PATH);
-	}
-	AddBookMark(Buf);
-	return;
+// ブックマークにパスを登録する
+template<class... Args>
+static void AddBookMark(Args&&... args) {
+	auto menu = GetSubMenu(GetMenu(GetMainHwnd()), BMARK_SUB_MENU);
+	auto menuId = MENU_BMARK_TOP + size_as<UINT_PTR>(bookmarks);
+	auto const& bookmark = bookmarks.emplace_back(std::forward<Args>(args)...);
+	AppendMenuW(menu, MF_STRING, menuId, bookmark.line.c_str());
 }
 
-
-/*----- ブックマークにパスを登録する ------------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int AddBookMark(char *Path)
-{
-	HMENU hMenu;
-	int MarkID;
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	hMenu = GetSubMenu(GetMenu(GetMainHwnd()), BMARK_SUB_MENU);
-	MarkID = (GetMenuItemCount(hMenu) - DEFAULT_BMARK_ITEM) + MENU_BMARK_TOP;
-	if(AppendMenu(hMenu, MF_STRING, MarkID, Path) == TRUE)
-		Sts = FFFTP_SUCCESS;
-	return(Sts);
+// カレントディレクトリをブックマークに追加
+void AddCurDirToBookMark(int Win) {
+	char local[FMAX_PATH + 1] = "";
+	char remote[FMAX_PATH + 1] = "";
+	if (Win != WIN_REMOTE)
+		AskLocalCurDir(local, FMAX_PATH);
+	if (Win != WIN_LOCAL)
+		AskRemoteCurDir(remote, FMAX_PATH);
+	AddBookMark(u8(local), u8(remote));
 }
 
+// 指定のIDを持つブックマークのパスを返す
+std::tuple<std::wstring, std::wstring> AskBookMarkText(int MarkID) {
+	auto bookmark = bookmarks[MarkID - MENU_BMARK_TOP];
+	return { bookmark.local, bookmark.remote };
+}
 
-/*----- 指定のIDを持つブックマークのパスを返す --------------------------------
-*
-*	Parameter
-*		int MarkID : ID
-*		char *Local : ローカル側のパスを返すバッファ
-*		char *Remote : リモート側のパスを返すバッファ
-*		int Max : バッファのサイズ
-*
-*	Return Value
-*		int ステータス (BMARK_TYPE_xxx)
-*----------------------------------------------------------------------------*/
-
-int AskBookMarkText(int MarkID, char *Local, char *Remote, int Max)
-{
-	HMENU hMenu;
-	MENUITEMINFO mInfo;
-	int Sts;
-	char Tmp[BMARK_MARK_LEN + FMAX_PATH * 2 + BMARK_SEP_LEN + 1];
-	char *Path1;
-	char *Path2;
-	int Num;
-
-	memset(Local, NUL, Max);
-	memset(Remote, NUL, Max);
-
-	Sts = BMARK_TYPE_NONE;
-	hMenu = GetSubMenu(GetMenu(GetMainHwnd()), BMARK_SUB_MENU);
-
-	mInfo.cbSize = sizeof(MENUITEMINFO);
-	mInfo.fMask = MIIM_TYPE;
-	mInfo.dwTypeData = Tmp;
-	mInfo.cch = BMARK_MARK_LEN + FMAX_PATH * 2 + BMARK_SEP_LEN;
-	if(GetMenuItemInfo(hMenu, MarkID, FALSE, &mInfo) == TRUE)
-	{
-		Num = GetBothPath(Tmp, &Path1, &Path2);
-		if(strncmp(Tmp, BMARK_MARK_LOCAL, BMARK_MARK_LEN) == 0)
-		{
-			Sts = BMARK_TYPE_LOCAL;
-			strncpy(Local, Path1, Max-1);
+// ブックマークを接続中のホストリストに保存する
+void SaveBookMark() {
+	if (AskConnecting() == YES)
+		if (auto CurHost = AskCurrentHost(); CurHost != HOSTNUM_NOENTRY) {
+			auto total = std::accumulate(begin(bookmarks), end(bookmarks), L""s, [](auto const& total, auto const& bookmark) { return total + bookmark.line + L'\0'; });
+			if (empty(total))
+				total += L'\0';
+			total += L'\0';
+			SetHostBookMark(CurHost, u8(total).data(), size_as<int>(total));
 		}
-		else if(strncmp(Tmp, BMARK_MARK_REMOTE, BMARK_MARK_LEN) == 0)
-		{
-			Sts = BMARK_TYPE_REMOTE;
-			strncpy(Remote, Path1, Max-1);
-		}
-		else if(strncmp(Tmp, BMARK_MARK_BOTH, BMARK_MARK_LEN) == 0)
-		{
-			if(Num == 2)
-			{
-				strncpy(Local, Path1, Max-1);
-				strncpy(Remote, Path2, Max-1);
-				Sts = BMARK_TYPE_BOTH;
-			}
-		}
-	}
-	return(Sts);
 }
 
-
-/*----- ブックマークの文字列から２つのパスを取り出す --------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*		char **Local : ローカル側のパスの先頭を返すワーク
-*		char **Remote : リモート側のパスの先頭を返すワーク
-*
-*	Return Value
-*		int パスの個数 (1 or 2)
-*
-*	Note
-*		Strの内容を書き換える
-*----------------------------------------------------------------------------*/
-
-static int GetBothPath(char *Str, char **Path1, char **Path2)
-{
-	char *Pos;
-	int Ret;
-
-	Ret = 1;
-	*Path1 = Str + BMARK_MARK_LEN;
-
-	Pos = (char*)_mbsstr((const unsigned char *)Str, (const unsigned char *)BMARK_SEP);
-	if(Pos != NULL)
-	{
-		Ret = 2;
-		*Pos = NUL;
-		*Path2 = Pos + BMARK_SEP_LEN;
-	}
-	return(Ret);
-}
-
-
-/*----- ブックマークを接続中のホストリストに保存する --------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SaveBookMark(void)
-{
-	HMENU hMenu;
-	MENUITEMINFO mInfo;
-	int i;
-	int Cnt;
-	char *Buf;
-	char *Pos;
-	int Len;
-	char Tmp[BMARK_MARK_LEN + FMAX_PATH * 2 + BMARK_SEP_LEN + 1];
-	int CurHost;
-
-	if(AskConnecting() == YES)
-	{
-		if((CurHost = AskCurrentHost()) != HOSTNUM_NOENTRY)
-		{
-			if((Buf = (char*)malloc(BOOKMARK_SIZE)) != NULL)
-			{
-				hMenu = GetSubMenu(GetMenu(GetMainHwnd()), BMARK_SUB_MENU);
-
-				Pos = Buf;
-				Len = 0;
-				Cnt = GetMenuItemCount(hMenu);
-				for(i = DEFAULT_BMARK_ITEM; i < Cnt; i++)
-				{
-					mInfo.cbSize = sizeof(MENUITEMINFO);
-					mInfo.fMask = MIIM_TYPE;
-					mInfo.dwTypeData = Tmp;
-					mInfo.cch = FMAX_PATH;
-					if(GetMenuItemInfo(hMenu, i, TRUE, &mInfo) == TRUE)
-					{
-						if(Len + strlen(Tmp) + 2 <= BOOKMARK_SIZE)
-						{
-							strcpy(Pos, Tmp);
-							Pos += strlen(Tmp) + 1;
-							Len += (int)strlen(Tmp) + 1;
-						}
-					}
-				}
-
-				if(Pos == Buf)
-				{
-					memset(Buf, NUL, 2);
-					Len = 2;
-				}
-				else
-				{
-					*Pos = NUL;
-					Len++;
-				}
-
-				SetHostBookMark(CurHost, Buf, Len);
-
-				free(Buf);
-			}
-		}
-	}
-	return;
-}
-
-
-/*----- ホストリストからブックマークを読み込む --------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void LoadBookMark(void)
-{
-	char *Buf;
-	char *Pos;
-	int CurHost;
-	char Tmp[FMAX_PATH + BMARK_MARK_LEN + 1];
-
-	if(AskConnecting() == YES)
-	{
-		if((CurHost = AskCurrentHost()) != HOSTNUM_NOENTRY)
-		{
-			if((Buf = AskHostBookMark(CurHost)) != NULL)
-			{
+// ホストリストからブックマークを読み込む
+void LoadBookMark() {
+	if (AskConnecting() == YES)
+		if (auto CurHost = AskCurrentHost(); CurHost != HOSTNUM_NOENTRY)
+			if (auto p = AskHostBookMark(CurHost)) {
 				ClearBookMark();
-				Pos = Buf;
-				while(*Pos != NUL)
-				{
-					/* 旧フォーマットのための処理 */
-					/* （パスに"L"や"H"がついてない物） */
-					if((strncmp(Pos, BMARK_MARK_LOCAL, BMARK_MARK_LEN) != 0) &&
-					   (strncmp(Pos, BMARK_MARK_REMOTE, BMARK_MARK_LEN) != 0) &&
-					   (strncmp(Pos, BMARK_MARK_BOTH, BMARK_MARK_LEN) != 0))
-					{
-						strcpy(Tmp, BMARK_MARK_REMOTE);
-						strcat(Tmp, Pos);
-						AddBookMark(Tmp);
-					}
-					else
-						AddBookMark(Pos);
-
-					Pos += strlen(Pos) + 1;
-				}
+				for (; *p; p += strlen(p) + 1)
+					AddBookMark(u8(p));
 			}
+}
+
+struct Editor {
+	using result_t = bool;
+	Bookmark bookmark;
+	Editor() = default;
+	Editor(Bookmark const& bookmark) : bookmark{ bookmark } {}
+	INT_PTR OnInit(HWND hDlg) {
+		SendDlgItemMessageW(hDlg, BEDIT_LOCAL, EM_LIMITTEXT, FMAX_PATH - 1, 0);
+		SendDlgItemMessageW(hDlg, BEDIT_REMOTE, EM_LIMITTEXT, FMAX_PATH - 1, 0);
+		if (!empty(bookmark.remote))
+			SendDlgItemMessageW(hDlg, BEDIT_REMOTE, WM_SETTEXT, 0, (LPARAM)bookmark.remote.c_str());
+		if (!empty(bookmark.local))
+			SendDlgItemMessageW(hDlg, BEDIT_LOCAL, WM_SETTEXT, 0, (LPARAM)bookmark.local.c_str());
+		else {
+			/* ホスト側にカーソルを移動しておく */
+			SetFocus(GetDlgItem(hDlg, BEDIT_REMOTE));
+			SendDlgItemMessageW(hDlg, BEDIT_REMOTE, EM_SETSEL, 0, -1);
 		}
+		return TRUE;
 	}
-	return;
-}
-
-
-/*----- ブックマーク編集ウインドウ --------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		ステータス (YES=実行/NO=取消)
-*----------------------------------------------------------------------------*/
-
-int EditBookMark(void)
-{
-	int Sts;
-
-	Sts = (int)DialogBox(GetFtpInst(), MAKEINTRESOURCE(bmark_dlg), GetMainHwnd(), EditBookMarkProc);
-	return(Sts);
-}
-
-
-/*----- ブックマーク編集ウインドウのコールバック ------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK EditBookMarkProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	HMENU hMenu;
-	MENUITEMINFO mInfo;
-	int Cur;
-	int Max;
-	char Tmp[BMARK_MARK_LEN + FMAX_PATH * 2 + BMARK_SEP_LEN + 1];
-	// バグ修正
-	RECT Rect;
-
-	static DIALOGSIZE DlgSize = {
-		{ BMARK_NEW, BMARK_SET, BMARK_DEL, BMARK_DOWN, BMARK_UP, IDHELP, BMARK_SIZEGRIP, -1 },
-		{ IDOK, BMARK_JUMP, BMARK_SIZEGRIP, -1 },
-		{ BMARK_LIST, -1 },
-		{ 0, 0 },
-		{ 0, 0 }
-	};
-
-	switch (message)
-	{
-		// バグ修正
-		case WM_SIZE :
-			GetWindowRect(hDlg, &Rect);
-			DlgSizeChange(hDlg, &DlgSize, &Rect, 0);
-			RedrawWindow(hDlg, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+	INT_PTR OnCommand(HWND hDlg, WORD commandId) {
+		switch (commandId) {
+		case IDOK:
+			if (auto local = GetText(hDlg, BEDIT_LOCAL), remote = GetText(hDlg, BEDIT_REMOTE); !empty(local) || !empty(remote)) {
+				bookmark = { local, remote };
+				EndDialog(hDlg, true);
+				break;
+			}
+			[[fallthrough]];
+		case IDCANCEL:
+			EndDialog(hDlg, false);
 			break;
-
-		case WM_INITDIALOG :
-			if(ListFont != NULL)
-				SendDlgItemMessage(hDlg, BMARK_LIST, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
-
-			hMenu = GetSubMenu(GetMenu(GetMainHwnd()), BMARK_SUB_MENU);
-			Max = GetMenuItemCount(hMenu);
-			for(Cur = DEFAULT_BMARK_ITEM; Cur < Max; Cur++)
-			{
-				mInfo.cbSize = sizeof(MENUITEMINFO);
-				mInfo.fMask = MIIM_TYPE;
-				mInfo.dwTypeData = Tmp;
-				mInfo.cch = FMAX_PATH;
-				if(GetMenuItemInfo(hMenu, Cur, TRUE, &mInfo) == TRUE)
-					SendDlgItemMessage(hDlg, BMARK_LIST, LB_ADDSTRING, 0, (LPARAM)Tmp);
-			}
-			DlgSizeInit(hDlg, &DlgSize, &BmarkDlgSize);
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case BMARK_JUMP :
-					if((Cur = (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
-						PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(Cur+MENU_BMARK_TOP, 0), 0);
-					/* ここに break はない */
-
-				case IDCANCEL :
-				case IDOK :
-					ClearBookMark();
-					Max = (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0);
-					for(Cur = 0; Cur < Max; Cur++)
-					{
-						SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETTEXT, Cur, (LPARAM)Tmp);
-						AddBookMark(Tmp);
-					}
-					AskDlgSize(hDlg, &DlgSize, &BmarkDlgSize);
-					EndDialog(hDlg, YES);
-					break;
-
-				case BMARK_SET :
-					if((Cur = (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
-					{
-						SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETTEXT, Cur, (LPARAM)Tmp);
-						if(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(bmark_edit_dlg), hDlg, BookMarkEditCallBack, (LPARAM)Tmp) == YES)
-						{
-							SendDlgItemMessage(hDlg, BMARK_LIST, LB_DELETESTRING, Cur, 0);
-							SendDlgItemMessage(hDlg, BMARK_LIST, LB_INSERTSTRING, Cur, (LPARAM)Tmp);
-							SendDlgItemMessage(hDlg, BMARK_LIST, LB_SETCURSEL, Cur, 0);
-						}
-					}
-					break;
-
-				case BMARK_NEW :
-					strcpy(Tmp, "");
-					if(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(bmark_edit_dlg), hDlg, BookMarkEditCallBack, (LPARAM)Tmp) == YES)
-					{
-						SendDlgItemMessage(hDlg, BMARK_LIST, LB_ADDSTRING, 0, (LPARAM)Tmp);
-						Cur = (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0) - 1;
-						SendDlgItemMessage(hDlg, BMARK_LIST, LB_SETCURSEL, Cur, 0);
-					}
-					break;
-
-				case BMARK_DEL :
-					if((Cur = (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
-					{
-						SendDlgItemMessage(hDlg, BMARK_LIST, LB_DELETESTRING, Cur, 0);
-						if(Cur >= (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0))
-							Cur = max1(0, (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0)-1);
-						if(SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0) > 0)
-							SendDlgItemMessage(hDlg, BMARK_LIST, LB_SETCURSEL, Cur, 0);
-					}
-					break;
-
-				case BMARK_UP :
-					if((Cur = (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
-					{
-						if(Cur > 0)
-						{
-							SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETTEXT, Cur, (LPARAM)Tmp);
-							SendDlgItemMessage(hDlg, BMARK_LIST, LB_DELETESTRING, Cur, 0);
-							SendDlgItemMessage(hDlg, BMARK_LIST, LB_INSERTSTRING, --Cur, (LPARAM)Tmp);
-							SendDlgItemMessage(hDlg, BMARK_LIST, LB_SETCURSEL, Cur, 0);
-						}
-					}
-					break;
-
-				case BMARK_DOWN :
-					if((Cur = (int)SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
-					{
-						if(Cur < SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETCOUNT, 0, 0)-1)
-						{
-							SendDlgItemMessage(hDlg, BMARK_LIST, LB_GETTEXT, Cur, (LPARAM)Tmp);
-							SendDlgItemMessage(hDlg, BMARK_LIST, LB_DELETESTRING, Cur, 0);
-							SendDlgItemMessage(hDlg, BMARK_LIST, LB_INSERTSTRING, ++Cur, (LPARAM)Tmp);
-							SendDlgItemMessage(hDlg, BMARK_LIST, LB_SETCURSEL, Cur, 0);
-						}
-					}
-					break;
-
-				case IDHELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000019);
-					break;
-			}
-			return(TRUE);
-
-		case WM_SIZING :
-			DlgSizeChange(hDlg, &DlgSize, (RECT *)lParam, (int)wParam);
-			return(TRUE);
-
+		}
+		return 0;
 	}
-	return(FALSE);
-}
+};
 
-
-/*----- ブックマーク入力ダイアログのコールバック ------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK BookMarkEditCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	static char *Str;
-	char *Path1;
-	char *Path2;
-	char Local[FMAX_PATH+1];
-	char Remote[FMAX_PATH+1];
-	int Num;
-
-	switch (iMessage)
-	{
-		case WM_INITDIALOG :
-			Str = (char *)lParam;
-			SendDlgItemMessage(hDlg, BEDIT_LOCAL, EM_LIMITTEXT, FMAX_PATH-1, 0);
-			SendDlgItemMessage(hDlg, BEDIT_REMOTE, EM_LIMITTEXT, FMAX_PATH-1, 0);
-			if(strlen(Str) > BMARK_MARK_LEN)
-			{
-				Num = GetBothPath(Str, &Path1, &Path2);
-				if(strncmp(Str, BMARK_MARK_LOCAL, BMARK_MARK_LEN) == 0)
-					SendDlgItemMessage(hDlg, BEDIT_LOCAL, WM_SETTEXT, 0, (LPARAM)Path1);
-				else if(strncmp(Str, BMARK_MARK_REMOTE, BMARK_MARK_LEN) == 0)
-				{
-					SendDlgItemMessage(hDlg, BEDIT_REMOTE, WM_SETTEXT, 0, (LPARAM)Path1);
-					/* ホスト側にカーソルを移動しておく */
-					SetFocus(GetDlgItem(hDlg, BEDIT_REMOTE));
-					SendDlgItemMessage(hDlg, BEDIT_REMOTE, EM_SETSEL, 0, -1);
-					return(FALSE);
-				}
-				else if((strncmp(Str, BMARK_MARK_BOTH, BMARK_MARK_LEN) == 0) && (Num == 2))
-				{
-					SendDlgItemMessage(hDlg, BEDIT_LOCAL, WM_SETTEXT, 0, (LPARAM)Path1);
-					SendDlgItemMessage(hDlg, BEDIT_REMOTE, WM_SETTEXT, 0, (LPARAM)Path2);
-				}
-			}
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDOK :
-					SendDlgItemMessage(hDlg, BEDIT_LOCAL, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Local);
-					SendDlgItemMessage(hDlg, BEDIT_REMOTE, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Remote);
-					if(strlen(Local) > 0)
-					{
-						if(strlen(Remote) > 0)
-						{
-							/* 両方 */
-							strcpy(Str, BMARK_MARK_BOTH);
-							strcat(Str, Local);
-							strcat(Str, BMARK_SEP);
-							strcat(Str, Remote);
-						}
-						else
-						{
-							/* ローカルのみ */
-							strcpy(Str, BMARK_MARK_LOCAL);
-							strcat(Str, Local);
-						}
-						EndDialog(hDlg, YES);
-					}
-					else if(strlen(Remote) > 0)
-					{
-						/* ホストのみ */
-						strcpy(Str, BMARK_MARK_REMOTE);
-						strcat(Str, Remote);
-						EndDialog(hDlg, YES);
-					}
-					else
-						EndDialog(hDlg, NO);
-					break;
-
-				case IDCANCEL :
-					EndDialog(hDlg, NO);
-					break;
-			}
-			return(TRUE);
+struct List {
+	using result_t = LRESULT;
+	Resizable<Controls<BMARK_NEW, BMARK_SET, BMARK_DEL, BMARK_DOWN, BMARK_UP, IDHELP, BMARK_SIZEGRIP>, Controls<IDOK, BMARK_JUMP, BMARK_SIZEGRIP>, Controls<BMARK_LIST>> resizable{ BmarkDlgSize };
+	std::vector<Bookmark> bookmarks;
+	List(std::vector<Bookmark> const& bookmarks) : bookmarks{ bookmarks } {}
+	INT_PTR OnInit(HWND hDlg) {
+		auto hList = GetDlgItem(hDlg, BMARK_LIST);
+		if (ListFont != NULL)
+			SendMessageW(hList, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
+		for (auto const& bookmark : bookmarks)
+			SendMessageW(hList, LB_ADDSTRING, 0, (LPARAM)bookmark.line.c_str());
+		return TRUE;
 	}
-	return(FALSE);
+	INT_PTR OnCommand(HWND hDlg, WORD commandId) {
+		auto hList = GetDlgItem(hDlg, BMARK_LIST);
+		switch (commandId) {
+		case BMARK_JUMP:
+		case IDCANCEL:
+		case IDOK:
+			BmarkDlgSize = resizable.GetCurrent();
+			EndDialog(hDlg, commandId == BMARK_JUMP ? SendMessageW(hList, LB_GETCURSEL, 0, 0) : LB_ERR);
+			break;
+		case BMARK_SET:
+			if (auto index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR)
+				if (Editor editor{ bookmarks[index] }; Dialog(GetFtpInst(), bmark_edit_dlg, hDlg, editor)) {
+					bookmarks[index] = editor.bookmark;
+					SendMessageW(hList, LB_DELETESTRING, index, 0);
+					SendMessageW(hList, LB_INSERTSTRING, index, (LPARAM)editor.bookmark.line.c_str());
+					SendMessageW(hList, LB_SETCURSEL, index, 0);
+				}
+			break;
+		case BMARK_NEW:
+			if (Editor editor; Dialog(GetFtpInst(), bmark_edit_dlg, hDlg, editor)) {
+				bookmarks.emplace_back(editor.bookmark);
+				auto index = SendMessageW(hList, LB_ADDSTRING, 0, (LPARAM)editor.bookmark.line.c_str());
+				SendMessageW(hList, LB_SETCURSEL, index, 0);
+			}
+			break;
+		case BMARK_DEL:
+			if (auto index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR) {
+				bookmarks.erase(begin(bookmarks) + index);
+				SendMessageW(hList, LB_DELETESTRING, index, 0);
+				if (!empty(bookmarks))
+					SendMessageW(hList, LB_SETCURSEL, std::min(index, size_as<LRESULT>(bookmarks) - 1), 0);
+			}
+			break;
+		case BMARK_UP:
+			if (auto index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR)
+				if (0 < index) {
+					std::swap(bookmarks[index - 1], bookmarks[index]);
+					SendMessageW(hList, LB_DELETESTRING, index, 0);
+					SendMessageW(hList, LB_INSERTSTRING, index - 1, (LPARAM)bookmarks[index - 1].line.c_str());
+					SendMessageW(hList, LB_SETCURSEL, index - 1, 0);
+				}
+			break;
+		case BMARK_DOWN:
+			if (auto index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR)
+				if (index < size_as<LRESULT>(bookmarks) - 1) {
+					std::swap(bookmarks[index], bookmarks[index + 1]);
+					SendMessageW(hList, LB_DELETESTRING, index, 0);
+					SendMessageW(hList, LB_INSERTSTRING, index + 1, (LPARAM)bookmarks[index + 1].line.c_str());
+					SendMessageW(hList, LB_SETCURSEL, index + 1, 0);
+				}
+			break;
+		case IDHELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000019);
+			break;
+		}
+		return 0;
+	}
+};
+
+// ブックマーク編集ウインドウ
+void EditBookMark() {
+	List editor{ bookmarks };
+	auto index = Dialog(GetFtpInst(), bmark_dlg, GetMainHwnd(), editor);
+	ClearBookMark();
+	for (auto const& bookmark : editor.bookmarks)
+		AddBookMark(bookmark);
+	if (index != LB_ERR)
+		PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_BMARK_TOP + index, 0), 0);
 }
-
-
