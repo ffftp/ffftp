@@ -36,6 +36,7 @@
 #include <array>
 #include <chrono>
 #include <filesystem>
+#include <future>
 #include <iterator>
 #include <map>
 #include <mutex>
@@ -72,7 +73,6 @@
 #include "config.h"
 #include "dialog.h"
 #include "mbswrapper.h"
-#include "socketwrapper.h"
 #include "Resource/resource.ja-JP.h"
 #include "mesg-jpn.h"
 // IdnToAscii()、NormalizeString()共にVistaからNormaliz.dllからKERNEL32.dllに移されている。
@@ -255,7 +255,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define WM_SELECT_HOST	(WM_USER+3)	/* ホストをダブルクリックで選択した */
 
 #define WM_ASYNC_SOCKET	(WM_USER+5)
-#define WM_ASYNC_DBASE	(WM_USER+6)
 
 #define WM_REFRESH_LOCAL_FLG	(WM_USER+7)
 #define WM_REFRESH_REMOTE_FLG	(WM_USER+8)
@@ -2140,10 +2139,6 @@ int SetAsyncTableDataMapPort(SOCKET s, int Port);
 int GetAsyncTableDataIPv4(SOCKET s, struct sockaddr_in* Host, struct sockaddr_in* Socks);
 int GetAsyncTableDataIPv6(SOCKET s, struct sockaddr_in6* Host, struct sockaddr_in6* Socks);
 int GetAsyncTableDataMapPort(SOCKET s, int* Port);
-// IPv6対応
-//struct hostent *do_gethostbyname(const char *Name, char *Buf, int Len, int *CancelCheckWork);
-struct hostent *do_gethostbynameIPv4(const char *Name, char *Buf, int Len, int *CancelCheckWork);
-struct hostent *do_gethostbynameIPv6(const char *Name, char *Buf, int Len, int *CancelCheckWork);
 SOCKET do_socket(int af, int type, int protocol);
 int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCheckWork);
 int do_closesocket(SOCKET s);

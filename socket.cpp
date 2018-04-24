@@ -72,19 +72,10 @@ typedef struct {
 } ASYNCSIGNAL;
 
 
-typedef struct {
-	HANDLE Async;
-	int Done;
-	int ErrorDb;
-} ASYNCSIGNALDATABASE;
-
-
 // スレッド衝突のバグ修正
 // 念のためテーブルを増量
 //#define MAX_SIGNAL_ENTRY		10
-//#define MAX_SIGNAL_ENTRY_DBASE	5
 #define MAX_SIGNAL_ENTRY		16
-#define MAX_SIGNAL_ENTRY_DBASE	16
 
 
 
@@ -93,11 +84,8 @@ typedef struct {
 
 static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static int AskAsyncDone(SOCKET s, int *Error, int Mask);
-static int AskAsyncDoneDbase(HANDLE Async, int *Error);
 static int RegisterAsyncTable(SOCKET s);
-static int RegisterAsyncTableDbase(HANDLE Async);
 static int UnregisterAsyncTable(SOCKET s);
-static int UnregisterAsyncTableDbase(HANDLE Async);
 
 
 /*===== 外部参照 =====*/
@@ -111,7 +99,6 @@ static const char SocketWndClass[] = "FFFTPSocketWnd";
 static HWND hWndSocket;
 
 static ASYNCSIGNAL Signal[MAX_SIGNAL_ENTRY];
-static ASYNCSIGNALDATABASE SignalDbase[MAX_SIGNAL_ENTRY_DBASE];
 
 //static HANDLE hAsyncTblAccMutex;
 // スレッド衝突のバグ修正
@@ -525,14 +512,10 @@ int MakeSocketWin(HWND hWnd, HINSTANCE hInst)
 		// スレッド衝突のバグ修正
 //		for(i = 0; i < MAX_SIGNAL_ENTRY; i++)
 //			Signal[i].Socket = INVALID_SOCKET;
-//		for(i = 0; i < MAX_SIGNAL_ENTRY_DBASE; i++)
-//			SignalDbase[i].Async = 0;
 		if(hAsyncTblAccMutex = CreateMutex(NULL, FALSE, NULL))
 		{
 			for(i = 0; i < MAX_SIGNAL_ENTRY; i++)
 				Signal[i].Socket = INVALID_SOCKET;
-			for(i = 0; i < MAX_SIGNAL_ENTRY_DBASE; i++)
-				SignalDbase[i].Async = 0;
 		}
 		Sts = FFFTP_SUCCESS;
 	}
@@ -631,33 +614,6 @@ static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 #endif
 							break;
 					}
-					break;
-				}
-			}
-			// スレッド衝突のバグ修正
-			ReleaseMutex(hAsyncTblAccMutex);
-			break;
-
-		case WM_ASYNC_DBASE :
-			// APIの仕様上ハンドルが登録される前にウィンドウメッセージが呼び出される可能性あり
-			RegisterAsyncTableDbase((HANDLE)wParam);
-			// スレッド衝突のバグ修正
-			WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-			for(Pos = 0; Pos < MAX_SIGNAL_ENTRY_DBASE; Pos++)
-			{
-				if(SignalDbase[Pos].Async == (HANDLE)wParam)
-				{
-					if(HIWORD(lParam) != 0)
-					{
-						SignalDbase[Pos].ErrorDb = 1;
-#if DBG_MSG
-						DoPrintf("##### SignalDatabase: error");
-#endif
-					}
-					SignalDbase[Pos].Done = 1;
-#if DBG_MSG
-					DoPrintf("##### SignalDatabase: Done");
-#endif
 					break;
 				}
 			}
@@ -769,52 +725,6 @@ static int AskAsyncDone(SOCKET s, int *Error, int Mask)
 *		
 *----------------------------------------------------------------------------*/
 
-static int AskAsyncDoneDbase(HANDLE Async, int *Error)
-{
-	int Sts;
-	int Pos;
-
-	// スレッド衝突のバグ修正
-	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-	Sts = NO;
-	*Error = 0;
-	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY_DBASE; Pos++)
-	{
-		if(SignalDbase[Pos].Async == Async)
-		{
-			if(SignalDbase[Pos].Done != 0)
-			{
-				*Error = SignalDbase[Pos].ErrorDb;
-				Sts = YES;
-#if DBG_MSG
-				DoPrintf("### Ask: Dbase (Sts=%d, Error=%d)", Sts, *Error);
-#endif
-			}
-			break;
-		}
-	}
-	// スレッド衝突のバグ修正
-	ReleaseMutex(hAsyncTblAccMutex);
-
-	if(Pos == MAX_SIGNAL_ENTRY_DBASE)
-	{
-		MessageBox(GetMainHwnd(), "AskAsyncDoneDbase called with unregisterd handle.", "FFFTP inner error", MB_OK);
-		exit(1);
-	}
-	return(Sts);
-}
-
-
-
-/*----- 
-*
-*	Parameter
-*		
-*
-*	Return Value
-*		
-*----------------------------------------------------------------------------*/
-
 static int RegisterAsyncTable(SOCKET s)
 {
 	int Sts;
@@ -887,68 +797,6 @@ static int RegisterAsyncTable(SOCKET s)
 *		
 *----------------------------------------------------------------------------*/
 
-static int RegisterAsyncTableDbase(HANDLE Async)
-{
-	int Sts;
-	int Pos;
-
-	// スレッド衝突のバグ修正
-	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-	Sts = NO;
-	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY_DBASE; Pos++)
-	{
-		if(SignalDbase[Pos].Async == Async)
-		{
-			// 強制的に閉じられたハンドルがあると重複する可能性あり
-//			MessageBox(GetMainHwnd(), "Async handle already registerd.", "FFFTP inner error", MB_OK);
-			// APIの仕様上ハンドルが登録される前にウィンドウメッセージが呼び出される可能性あり
-			break;
-		}
-	}
-	// スレッド衝突のバグ修正
-	ReleaseMutex(hAsyncTblAccMutex);
-
-	if(Pos == MAX_SIGNAL_ENTRY_DBASE)
-	{
-		// スレッド衝突のバグ修正
-		WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-		for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
-		{
-			if(SignalDbase[Pos].Async == 0)
-			{
-
-//SetTaskMsg("############### Regist dbase (%d)", Pos);
-
-				SignalDbase[Pos].Async = Async;
-				SignalDbase[Pos].Done = 0;
-				SignalDbase[Pos].ErrorDb = 0;
-				Sts = YES;
-				break;
-			}
-		}
-		// スレッド衝突のバグ修正
-		ReleaseMutex(hAsyncTblAccMutex);
-
-		if(Pos == MAX_SIGNAL_ENTRY_DBASE)
-		{
-			MessageBox(GetMainHwnd(), "No more async dbase regist space.", "FFFTP inner error", MB_OK);
-			exit(1);
-		}
-	}
-
-	return(Sts);
-}
-
-
-/*----- 
-*
-*	Parameter
-*		
-*
-*	Return Value
-*		
-*----------------------------------------------------------------------------*/
-
 static int UnregisterAsyncTable(SOCKET s)
 {
 	int Sts;
@@ -965,41 +813,6 @@ static int UnregisterAsyncTable(SOCKET s)
 //SetTaskMsg("############### UnRegist socket (%d)", Pos);
 
 			Signal[Pos].Socket = INVALID_SOCKET;
-			Sts = YES;
-			break;
-		}
-	}
-	// スレッド衝突のバグ修正
-	ReleaseMutex(hAsyncTblAccMutex);
-	return(Sts);
-}
-
-
-/*----- 
-*
-*	Parameter
-*		
-*
-*	Return Value
-*		
-*----------------------------------------------------------------------------*/
-
-static int UnregisterAsyncTableDbase(HANDLE Async)
-{
-	int Sts;
-	int Pos;
-
-	// スレッド衝突のバグ修正
-	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-	Sts = NO;
-	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY_DBASE; Pos++)
-	{
-		if(SignalDbase[Pos].Async == Async)
-		{
-
-//SetTaskMsg("############### UnRegist dbase (%d)", Pos);
-
-			SignalDbase[Pos].Async = 0;
 			Sts = YES;
 			break;
 		}
@@ -1149,104 +962,6 @@ int GetAsyncTableDataMapPort(SOCKET s, int* Port)
 
 	return(Sts);
 }
-
-
-
-
-
-
-
-// IPv6対応
-//struct hostent *do_gethostbyname(const char *Name, char *Buf, int Len, int *CancelCheckWork)
-struct hostent *do_gethostbynameIPv4(const char *Name, char *Buf, int Len, int *CancelCheckWork)
-{
-#if USE_THIS
-	struct hostent *Ret;
-	HANDLE hAsync;
-	int Error;
-
-#if DBG_MSG
-	DoPrintf("# Start gethostbyname");
-#endif
-	Ret = NULL;
-	// 同時接続対応
-//	*CancelCheckWork = NO;
-
-	// UTF-8対応
-//	hAsync = WSAAsyncGetHostByName(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len);
-	hAsync = WSAAsyncGetHostByNameM(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len);
-	if(hAsync != NULL)
-	{
-		RegisterAsyncTableDbase(hAsync);
-		while((*CancelCheckWork == NO) && (AskAsyncDoneDbase(hAsync, &Error) != YES))
-		{
-			Sleep(1);
-			if(BackgrndMessageProc() == YES)
-				*CancelCheckWork = YES;
-		}
-
-		if(*CancelCheckWork == YES)
-		{
-			WSACancelAsyncRequest(hAsync);
-		}
-		else if(Error == 0)
-		{
-			Ret = (struct hostent *)Buf;
-		}
-		UnregisterAsyncTableDbase(hAsync);
-	}
-	return(Ret);
-#else
-	return(gethostbyname(Name));
-#endif
-}
-
-
-struct hostent *do_gethostbynameIPv6(const char *Name, char *Buf, int Len, int *CancelCheckWork)
-{
-#if USE_THIS
-	struct hostent *Ret;
-	HANDLE hAsync;
-	int Error;
-
-#if DBG_MSG
-	DoPrintf("# Start gethostbyname");
-#endif
-	Ret = NULL;
-	// 同時接続対応
-//	*CancelCheckWork = NO;
-
-	// UTF-8対応
-//	hAsync = WSAAsyncGetHostByName(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len);
-	hAsync = WSAAsyncGetHostByNameIPv6M(hWndSocket, WM_ASYNC_DBASE, Name, Buf, Len, AF_INET6);
-	if(hAsync != NULL)
-	{
-		RegisterAsyncTableDbase(hAsync);
-		while((*CancelCheckWork == NO) && (AskAsyncDoneDbase(hAsync, &Error) != YES))
-		{
-			Sleep(1);
-			if(BackgrndMessageProc() == YES)
-				*CancelCheckWork = YES;
-		}
-
-		if(*CancelCheckWork == YES)
-		{
-			WSACancelAsyncRequestIPv6(hAsync);
-		}
-		else if(Error == 0)
-		{
-			Ret = (struct hostent *)Buf;
-		}
-		UnregisterAsyncTableDbase(hAsync);
-	}
-	return(Ret);
-#else
-	return(gethostbyname(Name));
-#endif
-}
-
-
-
 
 
 SOCKET do_socket(int af, int type, int protocol)

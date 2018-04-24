@@ -87,6 +87,7 @@ extern int QuickAnonymous;
 extern int TimeOut;
 // UPnP対応
 extern int UPnPEnabled;
+extern bool SupportIdn;
 
 /*===== ローカルなワーク =====*/
 
@@ -2081,6 +2082,30 @@ static inline auto getaddrinfo(std::wstring const& host, int port, int family = 
 	return getaddrinfo(host, std::to_wstring(port), family, flags);
 }
 
+static std::unique_ptr<addrinfoW> getaddrinfo(std::wstring const& host, std::wstring const& port, int family, int* CancelCheckWork) {
+	auto future = std::async(std::launch::async, [host, port, family] {
+		std::wstring idn;
+		if (SupportIdn) {
+			auto length = IdnToAscii(0, data(host), size_as<int>(host), nullptr, 0);
+			idn.resize(length);
+			auto result = IdnToAscii(0, data(host), size_as<int>(host), data(idn), length);
+			assert(result == length);
+		} else
+			idn = host;
+		return getaddrinfo(idn, port, family, AI_NUMERICSERV);
+	});
+	while (*CancelCheckWork == NO && future.wait_for(1ms) == std::future_status::timeout)
+		if (BackgrndMessageProc() == YES)
+			*CancelCheckWork = YES;
+	if (*CancelCheckWork == YES)
+		return {};
+	return future.get();
+}
+
+
+static inline auto getaddrinfo(std::wstring const& host, int port, int family, int* CancelCheckWork) {
+	return getaddrinfo(host, std::to_wstring(port), family, CancelCheckWork);
+}
 
 
 
@@ -2228,8 +2253,6 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 	// IPv6対応
 	struct sockaddr_in SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
 	struct sockaddr_in saSockAddr;
-	char HostEntry[MAXGETHOSTSTRUCT];
-	struct hostent *pHostEntry;
 	SOCKET sSocket;
 	int Len;
 	int Fwall;
@@ -2256,16 +2279,14 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 		// ホスト名からアドレスを求める
 		if ((Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) && FwallResolve == YES) {
 			// ホスト名解決はSOCKSサーバに任せる
-			pHostEntry = NULL;
 		} else {
 			// アドレスを取得
 			SetTaskMsg(MSGJPN016, DomainName, MSGJPN333);
-			pHostEntry = do_gethostbynameIPv4(host, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork);
+			ai = getaddrinfo(u8(host), port, AF_INET, CancelCheckWork);
 		}
 
-		if (pHostEntry != NULL) {
-			assert(pHostEntry->h_length == sizeof(IN_ADDR));
-			CurSockAddr = { AF_INET, htons((u_short)port), *reinterpret_cast<const IN_ADDR*>(pHostEntry->h_addr) };
+		if (ai) {
+			CurSockAddr = *reinterpret_cast<const sockaddr_in*>(ai->ai_addr);
 			SetTaskMsg(MSGJPN017, PreMsg, DomainName, u8(AddressPortToString(CurSockAddr)).c_str(), MSGJPN333);
 		} else {
 			if (Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
@@ -2277,7 +2298,7 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			}
 		}
 	} else {
-		CurSockAddr = *reinterpret_cast<const sockaddr_in*>(&ai->ai_addr);
+		CurSockAddr = *reinterpret_cast<const sockaddr_in*>(ai->ai_addr);
 		SetTaskMsg(MSGJPN020, PreMsg, u8(AddressPortToString(CurSockAddr)).c_str(), MSGJPN333);
 	}
 
@@ -2299,15 +2320,14 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			Len = Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, UseIPadrs, CurSockAddr.sin_addr.s_addr, DomainName, CurSockAddr.sin_port);
 		}
 
-		if (auto ai = getaddrinfo(u8(FwallHost), FwallPort, AF_INET); !ai) {
-			if ((pHostEntry = do_gethostbynameIPv4(FwallHost, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork)) == nullptr) {
-				SetTaskMsg(MSGJPN021, FwallHost, MSGJPN333);
-				return INVALID_SOCKET;
-			}
-			assert(pHostEntry->h_length == sizeof(IN_ADDR));
-			SocksSockAddr = { AF_INET, htons((u_short)FwallPort), *reinterpret_cast<const IN_ADDR*>(pHostEntry->h_addr) };
-		} else
-			SocksSockAddr = *reinterpret_cast<const sockaddr_in*>(&ai->ai_addr);
+		auto ai = getaddrinfo(u8(FwallHost), FwallPort, AF_INET);
+		if (!ai)
+			ai = getaddrinfo(u8(FwallHost), FwallPort, AF_INET, CancelCheckWork);
+		if (!ai) {
+			SetTaskMsg(MSGJPN021, FwallHost, MSGJPN333);
+			return INVALID_SOCKET;
+		}
+		SocksSockAddr = *reinterpret_cast<const sockaddr_in*>(ai->ai_addr);
 		SetTaskMsg(MSGJPN022, u8(AddressPortToString(SocksSockAddr)).c_str(), MSGJPN333);
 		// connectで接続する先はSOCKSサーバ
 		memcpy(&saSockAddr, &SocksSockAddr, sizeof(SocksSockAddr));
@@ -2400,8 +2420,6 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 {
 	struct sockaddr_in6 SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
 	struct sockaddr_in6 saSockAddr;
-	char HostEntry[MAXGETHOSTSTRUCT];
-	struct hostent *pHostEntry;
 	SOCKET sSocket;
 	int Len;
 	int Fwall;
@@ -2426,16 +2444,14 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 		// ホスト名からアドレスを求める
 		if ((Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) && FwallResolve == YES) {
 			// ホスト名解決はSOCKSサーバに任せる
-			pHostEntry = NULL;
 		} else {
 			// アドレスを取得
 			SetTaskMsg(MSGJPN016, DomainName, MSGJPN334);
-			pHostEntry = do_gethostbynameIPv6(host, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork);
+			ai = getaddrinfo(u8(host), port, AF_INET6, CancelCheckWork);
 		}
 
-		if (pHostEntry != NULL) {
-			assert(pHostEntry->h_length == sizeof(IN6_ADDR));
-			CurSockAddr = { AF_INET6, htons((u_short)port), 0, *reinterpret_cast<const IN6_ADDR*>(pHostEntry->h_addr) };
+		if (ai) {
+			CurSockAddr = *reinterpret_cast<const sockaddr_in6*>(ai->ai_addr);
 			SetTaskMsg(MSGJPN017, PreMsg, DomainName, u8(AddressPortToString(CurSockAddr)).c_str(), MSGJPN334);
 		} else {
 			if ((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER)) {
@@ -2447,7 +2463,7 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			}
 		}
 	} else {
-		CurSockAddr = *reinterpret_cast<const sockaddr_in6*>(&ai->ai_addr);
+		CurSockAddr = *reinterpret_cast<const sockaddr_in6*>(ai->ai_addr);
 		SetTaskMsg(MSGJPN020, PreMsg, u8(AddressPortToString(CurSockAddr)).c_str(), MSGJPN334);
 	}
 
@@ -2459,15 +2475,14 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			Len = Socks5MakeCmdPacketIPv6(&Socks5Cmd, SOCKS5_CMD_CONNECT, UseIPadrs, (char*)&CurSockAddr.sin6_addr, DomainName, CurSockAddr.sin6_port);
 		}
 
-		if (auto ai = getaddrinfo(u8(FwallHost), FwallPort, AF_INET6); !ai) {
-			if ((pHostEntry = do_gethostbynameIPv6(FwallHost, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork)) == nullptr) {
-				SetTaskMsg(MSGJPN021, FwallHost, MSGJPN334);
-				return INVALID_SOCKET;
-			}
-			assert(pHostEntry->h_length == sizeof(IN6_ADDR));
-			SocksSockAddr = { AF_INET6, htons((u_short)FwallPort), 0, *reinterpret_cast<const IN6_ADDR*>(pHostEntry->h_addr) };
-		} else
-			SocksSockAddr = *reinterpret_cast<const sockaddr_in6*>(&ai->ai_addr);
+		auto ai = getaddrinfo(u8(FwallHost), FwallPort, AF_INET6);
+		if (!ai)
+			ai = getaddrinfo(u8(FwallHost), FwallPort, AF_INET6, CancelCheckWork);
+		if (!ai) {
+			SetTaskMsg(MSGJPN021, FwallHost, MSGJPN334);
+			return INVALID_SOCKET;
+		}
+		SocksSockAddr = *reinterpret_cast<const sockaddr_in6*>(ai->ai_addr);
 		SetTaskMsg(MSGJPN022, u8(AddressPortToString(SocksSockAddr)).c_str(), MSGJPN334);
 		// connectで接続する先はSOCKSサーバ
 		memcpy(&saSockAddr, &SocksSockAddr, sizeof(SocksSockAddr));
