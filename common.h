@@ -1501,7 +1501,7 @@ typedef struct
 {
 	int r;
 	HANDLE h;
-	char* Adrs;
+	const char* Adrs;
 	int Port;
 	char* ExtAdrs;
 } ADDPORTMAPPINGDATA;
@@ -2157,7 +2157,7 @@ void RemoveReceivedData(SOCKET s);
 int LoadUPnP();
 void FreeUPnP();
 int IsUPnPLoaded();
-int AddPortMapping(char* Adrs, int Port, char* ExtAdrs);
+int AddPortMapping(const char* Adrs, int Port, char* ExtAdrs);
 int RemovePortMapping(int Port);
 int CheckClosedAndReconnect(void);
 // 同時接続対応
@@ -2215,4 +2215,34 @@ static auto GetText(HWND hwnd) {
 }
 static inline auto GetText(HWND hdlg, int id) {
 	return GetText(GetDlgItem(hdlg, id));
+}
+static inline auto AddressPortToString(const SOCKADDR* sa, size_t salen) {
+	std::wstring string(sizeof "[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff%4294967295]:65535" - 1, L'\0');
+	auto length = size_as<DWORD>(string) + 1;
+	auto result = WSAAddressToStringW(const_cast<SOCKADDR*>(sa), static_cast<DWORD>(salen), nullptr, data(string), &length);
+	assert(result == 0);
+	string.resize(length - 1);
+	return string;
+}
+template<class SockAddr>
+static inline auto AddressPortToString(const SockAddr* sa, size_t salen = sizeof(SockAddr)) {
+	static_assert(std::is_same_v<SockAddr, sockaddr_in> || std::is_same_v<SockAddr, sockaddr_in6> || std::is_same_v<SockAddr, sockaddr_storage>);
+	return AddressPortToString(reinterpret_cast<const SOCKADDR*>(&sa), salen);
+}
+static inline auto AddressPortToString(sockaddr_in const& sa) {
+	return AddressPortToString(&sa);
+}
+static inline auto AddressPortToString(sockaddr_in6 const& sa) {
+	return AddressPortToString(&sa);
+}
+static inline auto AddressToString(sockaddr_in const& sa) {
+	auto local = sa;
+	local.sin_port = 0;
+	return AddressPortToString(local);
+}
+static inline auto AddressToString(sockaddr_in6 const& sa) {
+	auto local = sa;
+	local.sin6_port = 0;
+	local.sin6_scope_id = 0;
+	return AddressPortToString(local);
 }

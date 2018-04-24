@@ -2321,12 +2321,12 @@ END
 STRINGTABLE
 BEGIN
     IDS_MSGJPN016           "ホスト %s を探しています. (%s)"
-    IDS_MSGJPN017           "%sホスト %s (%s (%d)) に接続しています. (%s)"
+    IDS_MSGJPN017           "%sホスト %s (%s) に接続しています. (%s)"
     IDS_MSGJPN018           "%sホスト %s (%d) に接続しています. (%s)"
     IDS_MSGJPN019           "ホスト %s が見つかりません. (%s)"
-    IDS_MSGJPN020           "%sホスト %s (%d) に接続しています. (%s)"
+    IDS_MSGJPN020           "%sホスト %s に接続しています. (%s)"
     IDS_MSGJPN021           "SOCKSサーバー %s が見つかりません. (%s)"
-    IDS_MSGJPN022           "SOCKSサーバー %s (%d) に接続しています. (%s)"
+    IDS_MSGJPN022           "SOCKSサーバー %s に接続しています. (%s)"
     IDS_MSGJPN023           "SOCKSサーバーに接続できません. (Err=%d) (%s)"
     IDS_MSGJPN024           "SOCKSサーバーに接続できません. (Err=%d) (%s)"
     IDS_MSGJPN025           "接続しました. (%s)"

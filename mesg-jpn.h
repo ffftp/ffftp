@@ -16,12 +16,12 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN014 (std::data(msgs[10000+14])) /* MD4(S/KEY)を使用します. */
 #define MSGJPN015 (std::data(msgs[10000+15])) /* ワンタイムパスワードが処理できません */
 #define MSGJPN016 (std::data(msgs[10000+16])) /* ホスト %s を探しています. (%s) */
-#define MSGJPN017 (std::data(msgs[10000+17])) /* %sホスト %s (%s (%d)) に接続しています. (%s) */
+#define MSGJPN017 (std::data(msgs[10000+17])) /* %sホスト %s (%s) に接続しています. (%s) */
 #define MSGJPN018 (std::data(msgs[10000+18])) /* %sホスト %s (%d) に接続しています. (%s) */
 #define MSGJPN019 (std::data(msgs[10000+19])) /* ホスト %s が見つかりません. (%s) */
-#define MSGJPN020 (std::data(msgs[10000+20])) /* %sホスト %s (%d) に接続しています. (%s) */
+#define MSGJPN020 (std::data(msgs[10000+20])) /* %sホスト %s に接続しています. (%s) */
 #define MSGJPN021 (std::data(msgs[10000+21])) /* SOCKSサーバー %s が見つかりません. (%s) */
-#define MSGJPN022 (std::data(msgs[10000+22])) /* SOCKSサーバー %s (%d) に接続しています. (%s) */
+#define MSGJPN022 (std::data(msgs[10000+22])) /* SOCKSサーバー %s に接続しています. (%s) */
 #define MSGJPN023 (std::data(msgs[10000+23])) /* SOCKSサーバーに接続できません. (Err=%d) (%s) */
 #define MSGJPN024 (std::data(msgs[10000+24])) /* SOCKSサーバーに接続できません. (Err=%d) (%s) */
 #define MSGJPN025 (std::data(msgs[10000+25])) /* 接続しました. (%s) */

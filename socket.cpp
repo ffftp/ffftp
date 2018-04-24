@@ -1529,7 +1529,7 @@ int IsUPnPLoaded() {
 	return upnpNAT && staticPortMappingCollection ? YES : NO;
 }
 
-int AddPortMapping(char* Adrs, int Port, char* ExtAdrs) {
+int AddPortMapping(const char* Adrs, int Port, char* ExtAdrs) {
 	static _bstr_t TCP{ L"TCP" };
 	static _bstr_t FFFTP{ L"FFFTP" };
 	int result = FFFTP_FAIL;

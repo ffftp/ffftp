@@ -2360,12 +2360,12 @@ END
 STRINGTABLE
 BEGIN
     IDS_MSGJPN016           "Searching host %s. (%s)"
-    IDS_MSGJPN017           "Connecting %sto host %s (%s (%d)). (%s)"
+    IDS_MSGJPN017           "Connecting %sto host %s (%s). (%s)"
     IDS_MSGJPN018           "Connecting %sto host %s (%d). (%s)"
     IDS_MSGJPN019           "Host %s not found. (%s)"
-    IDS_MSGJPN020           "Connecting %sto host %s (%d). (%s)"
+    IDS_MSGJPN020           "Connecting %sto host %s. (%s)"
     IDS_MSGJPN021           "SOCKS server %s not found. (%s)"
-    IDS_MSGJPN022           "Connecting to SOCKS server %s (%d). (%s)"
+    IDS_MSGJPN022           "Connecting to SOCKS server %s. (%s)"
     IDS_MSGJPN023           "Cannnot connect to SOCKS server. (Err=%d) (%s)"
     IDS_MSGJPN024           "Cannnot connect to SOCKS server. (Err=%d) (%s)"
     IDS_MSGJPN025           "Connected. (%s)"

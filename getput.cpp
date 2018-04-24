@@ -1483,17 +1483,12 @@ int DoDownload(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork)
 static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 {
 	int iRetCode;
-	int iLength;
 	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
 	SOCKET listen_socket = INVALID_SOCKET; // data listen socket
 	// 念のため
 //	char Buf[1024];
 	char Buf[FMAX_PATH+1024];
 	int CreateMode;
-	// IPv6対応
-//	struct sockaddr_in saSockAddr1;
-	struct sockaddr_in saSockAddrIPv4;
-	struct sockaddr_in6 saSockAddrIPv6;
 	// UPnP対応
 	int Port;
 	char Reply[ERR_MSG_LEN+7];
@@ -1510,20 +1505,9 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 //				if(SocksGet2ndBindReply(listen_socket, &data_socket) == FFFTP_FAIL)
 				if(SocksGet2ndBindReply(listen_socket, &data_socket, CancelCheckWork) == FFFTP_FAIL)
 				{
-					// IPv6対応
-//					iLength = sizeof(saSockAddr1);
-//					data_socket = do_accept(listen_socket, (struct sockaddr *)&saSockAddr1, (int *)&iLength);
-					switch(AskCurNetType())
-					{
-					case NTYPE_IPV4:
-						iLength=sizeof(saSockAddrIPv4);
-						data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddrIPv4, (int *)&iLength);
-						break;
-					case NTYPE_IPV6:
-						iLength=sizeof(saSockAddrIPv6);
-						data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddrIPv6, (int *)&iLength);
-						break;
-					}
+					sockaddr_storage sa;
+					int salen = sizeof(sockaddr_storage);
+					data_socket = do_accept(listen_socket, reinterpret_cast<sockaddr*>(&sa), &salen);
 
 					if(shutdown(listen_socket, 1) != 0)
 						ReportWSError("shutdown listen", WSAGetLastError());
@@ -1542,19 +1526,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 						iRetCode = 500;
 					}
 					else
-						// IPv6対応
-//						DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet_ntoa(saSockAddr1.sin_addr), ntohs(saSockAddr1.sin_port));
-					{
-						switch(AskCurNetType())
-						{
-						case NTYPE_IPV4:
-							DoPrintf("Skt=%zu : accept from %s port %u", data_socket, inet_ntoa(saSockAddrIPv4.sin_addr), ntohs(saSockAddrIPv4.sin_port));
-							break;
-						case NTYPE_IPV6:
-							DoPrintf("Skt=%zu : accept from %s port %u", data_socket, inet6_ntoa(saSockAddrIPv6.sin6_addr), ntohs(saSockAddrIPv6.sin6_port));
-							break;
-						}
-					}
+						DoPrintf("Skt=%zu : accept from %s", data_socket, u8(AddressPortToString(&sa, salen)).c_str());
 				}
 
 				if(data_socket != INVALID_SOCKET)
@@ -2781,16 +2753,11 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET *Pkt)
 static int UploadNonPassive(TRANSPACKET *Pkt)
 {
 	int iRetCode;
-	int iLength;
 	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
 	SOCKET listen_socket = INVALID_SOCKET; // data listen socket
 	// 念のため
 //	char Buf[1024];
 	char Buf[FMAX_PATH+1024];
-	// IPv6対応
-//	struct sockaddr_in saSockAddr1;
-	struct sockaddr_in saSockAddrIPv4;
-	struct sockaddr_in6 saSockAddrIPv6;
 	// UPnP対応
 	int Port;
 	int Resume;
@@ -2829,20 +2796,9 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 //			if(SocksGet2ndBindReply(listen_socket, &data_socket) == FFFTP_FAIL)
 			if(SocksGet2ndBindReply(listen_socket, &data_socket, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
 			{
-				// IPv6対応
-//				iLength=sizeof(saSockAddr1);
-//				data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddr1, (int *)&iLength);
-				switch(AskCurNetType())
-				{
-				case NTYPE_IPV4:
-					iLength=sizeof(saSockAddrIPv4);
-					data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddrIPv4, (int *)&iLength);
-					break;
-				case NTYPE_IPV6:
-					iLength=sizeof(saSockAddrIPv6);
-					data_socket = do_accept(listen_socket,(struct sockaddr *)&saSockAddrIPv6, (int *)&iLength);
-					break;
-				}
+				sockaddr_storage sa;
+				int salen = sizeof(sockaddr_storage);
+				data_socket = do_accept(listen_socket, reinterpret_cast<sockaddr*>(&sa), &salen);
 
 				if(shutdown(listen_socket, 1) != 0)
 					ReportWSError("shutdown listen", WSAGetLastError());
@@ -2861,19 +2817,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 					iRetCode = 500;
 				}
 				else
-					// IPv6対応
-//					DoPrintf("Skt=%u : accept from %s port %u", data_socket, inet_ntoa(saSockAddr1.sin_addr), ntohs(saSockAddr1.sin_port));
-				{
-					switch(AskCurNetType())
-					{
-					case NTYPE_IPV4:
-						DoPrintf("Skt=%zu : accept from %s port %u", data_socket, inet_ntoa(saSockAddrIPv4.sin_addr), ntohs(saSockAddrIPv4.sin_port));
-						break;
-					case NTYPE_IPV6:
-						DoPrintf("Skt=%zu : accept from %s port %u", data_socket, inet6_ntoa(saSockAddrIPv6.sin6_addr), ntohs(saSockAddrIPv6.sin6_port));
-						break;
-					}
-				}
+					DoPrintf("Skt=%zu : accept from %s", data_socket, u8(AddressPortToString(&sa, salen)).c_str());
 			}
 
 			if(data_socket != INVALID_SOCKET)
@@ -4185,7 +4129,7 @@ static int GetAdrsAndPortIPv4(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 							else
 							{
 								if(GetAsyncTableDataIPv4(Skt, &SockAddr, NULL) == YES)
-									AddressToStringIPv4(Adrs, &SockAddr.sin_addr);
+									strcpy(Adrs, u8(AddressToString(SockAddr)).c_str());
 							}
 
 							Pos = Btm + 1;
@@ -4248,7 +4192,7 @@ static int GetAdrsAndPortIPv6(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 //							i = sizeof(SockAddr);
 //							if(getpeername(Skt, (struct sockaddr*)&SockAddr, &i) != SOCKET_ERROR)
 							if(GetAsyncTableDataIPv6(Skt, &SockAddr, NULL) == YES)
-								AddressToStringIPv6(Adrs, &SockAddr.sin6_addr);
+								strcpy(Adrs, u8(AddressToString(SockAddr)).c_str());
 						}
 
 						Pos = Btm + 1;
