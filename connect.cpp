@@ -2058,6 +2058,28 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 }
 
 
+namespace std {
+	template<>
+	struct default_delete<addrinfoW> {
+		void operator()(addrinfoW* ai) const noexcept {
+			FreeAddrInfoW(ai);
+		}
+	};
+}
+
+static inline auto getaddrinfo(std::wstring const& host, std::wstring const& port, int family = AF_UNSPEC, int flags = AI_NUMERICHOST | AI_NUMERICSERV) {
+	if (addrinfoW hint{ flags, family }, *ai; GetAddrInfoW(host.c_str(), port.c_str(), &hint, &ai) == 0) {
+		assert(family == AF_INET || family == AF_INET6 ? ai->ai_family == family : true);
+		assert(ai->ai_family == AF_INET && ai->ai_addrlen == sizeof(sockaddr_in) || ai->ai_family == AF_INET6 && ai->ai_addrlen == sizeof(sockaddr_in6));
+		assert(ai->ai_addr->sa_family == ai->ai_family);
+		return std::unique_ptr<addrinfoW>{ ai };
+	}
+	return std::unique_ptr<addrinfoW>{};
+}
+
+static inline auto getaddrinfo(std::wstring const& host, int port, int family = AF_UNSPEC, int flags = AI_NUMERICHOST | AI_NUMERICSERV) {
+	return getaddrinfo(host, std::to_wstring(port), family, flags);
+}
 
 
 
@@ -2228,53 +2250,36 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 
 	UseIPadrs = YES;
 	strcpy(DomainName, host);
-	sockaddr_in CurSockAddr{ AF_INET, htons((u_short)port) };		/* 接続先ホストのアドレス情報 */
-	if((CurSockAddr.sin_addr.s_addr = inet_addr(host)) == INADDR_NONE)
-	{
+	sockaddr_in CurSockAddr{ AF_INET, htons(port) };		/* 接続先ホストのアドレス情報 */
+	if (auto ai = getaddrinfo(u8(host), port, AF_INET); !ai) {
 		// ホスト名が指定された
 		// ホスト名からアドレスを求める
-		if(((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER)) &&
-		   (FwallResolve == YES))
-		{
+		if ((Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) && FwallResolve == YES) {
 			// ホスト名解決はSOCKSサーバに任せる
 			pHostEntry = NULL;
-		}
-		else
-		{
+		} else {
 			// アドレスを取得
-			// IPv6対応
-//			SetTaskMsg(MSGJPN016, DomainName);
 			SetTaskMsg(MSGJPN016, DomainName, MSGJPN333);
-			// IPv6対応
-//			pHostEntry = do_gethostbyname(host, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork);
 			pHostEntry = do_gethostbynameIPv4(host, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork);
 		}
 
-		if(pHostEntry != NULL)
-		{
-			memcpy((char *)&CurSockAddr.sin_addr, pHostEntry->h_addr, pHostEntry->h_length);
+		if (pHostEntry != NULL) {
+			assert(pHostEntry->h_length == sizeof(IN_ADDR));
+			CurSockAddr = { AF_INET, htons((u_short)port), *reinterpret_cast<const IN_ADDR*>(pHostEntry->h_addr) };
 			SetTaskMsg(MSGJPN017, PreMsg, DomainName, u8(AddressPortToString(CurSockAddr)).c_str(), MSGJPN333);
-		}
-		else
-		{
-			if((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
-			{
+		} else {
+			if (Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
 				UseIPadrs = NO;
-				// IPv6対応
-//				SetTaskMsg(MSGJPN018, PreMsg, DomainName, ntohs(CurSockAddr.sin_port));
-				SetTaskMsg(MSGJPN018, PreMsg, DomainName, ntohs(CurSockAddr.sin_port), MSGJPN333);
-			}
-			else
-			{
-				// IPv6対応
-//				SetTaskMsg(MSGJPN019, host);
+				SetTaskMsg(MSGJPN018, PreMsg, DomainName, port, MSGJPN333);
+			} else {
 				SetTaskMsg(MSGJPN019, host, MSGJPN333);
-				return(INVALID_SOCKET);
+				return INVALID_SOCKET;
 			}
 		}
-	}
-	else
+	} else {
+		CurSockAddr = *reinterpret_cast<const sockaddr_in*>(&ai->ai_addr);
 		SetTaskMsg(MSGJPN020, PreMsg, u8(AddressPortToString(CurSockAddr)).c_str(), MSGJPN333);
+	}
 
 	if((Fwall == FWALL_SOCKS4) || (Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
 	{
@@ -2294,23 +2299,15 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			Len = Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, UseIPadrs, CurSockAddr.sin_addr.s_addr, DomainName, CurSockAddr.sin_port);
 		}
 
-		memset(&SocksSockAddr, 0, sizeof(SocksSockAddr));
-		if((SocksSockAddr.sin_addr.s_addr = inet_addr(FwallHost)) == INADDR_NONE)
-		{
-			// IPv6対応
-//			if((pHostEntry = do_gethostbyname(FwallHost, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork)) != NULL)
-			if((pHostEntry = do_gethostbynameIPv4(FwallHost, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork)) != NULL)
-				memcpy((char *)&SocksSockAddr.sin_addr, pHostEntry->h_addr, pHostEntry->h_length);
-			else
-			{
-				// IPv6対応
-//				SetTaskMsg(MSGJPN021, FwallHost);
+		if (auto ai = getaddrinfo(u8(FwallHost), FwallPort, AF_INET); !ai) {
+			if ((pHostEntry = do_gethostbynameIPv4(FwallHost, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork)) == nullptr) {
 				SetTaskMsg(MSGJPN021, FwallHost, MSGJPN333);
 				return INVALID_SOCKET;
 			}
-		}
-		SocksSockAddr.sin_port = htons((u_short)FwallPort);
-		SocksSockAddr.sin_family = AF_INET;
+			assert(pHostEntry->h_length == sizeof(IN_ADDR));
+			SocksSockAddr = { AF_INET, htons((u_short)FwallPort), *reinterpret_cast<const IN_ADDR*>(pHostEntry->h_addr) };
+		} else
+			SocksSockAddr = *reinterpret_cast<const sockaddr_in*>(&ai->ai_addr);
 		SetTaskMsg(MSGJPN022, u8(AddressPortToString(SocksSockAddr)).c_str(), MSGJPN333);
 		// connectで接続する先はSOCKSサーバ
 		memcpy(&saSockAddr, &SocksSockAddr, sizeof(SocksSockAddr));
@@ -2423,45 +2420,36 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 
 	UseIPadrs = YES;
 	strcpy(DomainName, host);
-	sockaddr_in6 CurSockAddr{ AF_INET6, htons((u_short)port), 0, inet6_addr(host) };		/* 接続先ホストのアドレス情報 */
-	if(memcmp(&CurSockAddr.sin6_addr, &IN6ADDR_NONE, sizeof(struct in6_addr)) == 0)
-	{
+	sockaddr_in6 CurSockAddr{ AF_INET6, htons(port) };		/* 接続先ホストのアドレス情報 */
+	if (auto ai = getaddrinfo(u8(host), port, AF_INET6); !ai) {
 		// ホスト名が指定された
 		// ホスト名からアドレスを求める
-		if(((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER)) &&
-		   (FwallResolve == YES))
-		{
+		if ((Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) && FwallResolve == YES) {
 			// ホスト名解決はSOCKSサーバに任せる
 			pHostEntry = NULL;
-		}
-		else
-		{
+		} else {
 			// アドレスを取得
 			SetTaskMsg(MSGJPN016, DomainName, MSGJPN334);
 			pHostEntry = do_gethostbynameIPv6(host, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork);
 		}
 
-		if(pHostEntry != NULL)
-		{
-			memcpy((char *)&CurSockAddr.sin6_addr, pHostEntry->h_addr, pHostEntry->h_length);
+		if (pHostEntry != NULL) {
+			assert(pHostEntry->h_length == sizeof(IN6_ADDR));
+			CurSockAddr = { AF_INET6, htons((u_short)port), 0, *reinterpret_cast<const IN6_ADDR*>(pHostEntry->h_addr) };
 			SetTaskMsg(MSGJPN017, PreMsg, DomainName, u8(AddressPortToString(CurSockAddr)).c_str(), MSGJPN334);
-		}
-		else
-		{
-			if((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
-			{
+		} else {
+			if ((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER)) {
 				UseIPadrs = NO;
-				SetTaskMsg(MSGJPN018, PreMsg, DomainName, ntohs(CurSockAddr.sin6_port), MSGJPN334);
-			}
-			else
-			{
+				SetTaskMsg(MSGJPN018, PreMsg, DomainName, port, MSGJPN334);
+			} else {
 				SetTaskMsg(MSGJPN019, host, MSGJPN334);
 				return(INVALID_SOCKET);
 			}
 		}
-	}
-	else
+	} else {
+		CurSockAddr = *reinterpret_cast<const sockaddr_in6*>(&ai->ai_addr);
 		SetTaskMsg(MSGJPN020, PreMsg, u8(AddressPortToString(CurSockAddr)).c_str(), MSGJPN334);
+	}
 
 	if((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
 	{
@@ -2471,20 +2459,15 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			Len = Socks5MakeCmdPacketIPv6(&Socks5Cmd, SOCKS5_CMD_CONNECT, UseIPadrs, (char*)&CurSockAddr.sin6_addr, DomainName, CurSockAddr.sin6_port);
 		}
 
-		memset(&SocksSockAddr, 0, sizeof(SocksSockAddr));
-		SocksSockAddr.sin6_addr = inet6_addr(FwallHost);
-		if(memcmp(&SocksSockAddr.sin6_addr, &IN6ADDR_NONE, sizeof(struct in6_addr)) == 0)
-		{
-			if((pHostEntry = do_gethostbynameIPv6(FwallHost, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork)) != NULL)
-				memcpy((char *)&SocksSockAddr.sin6_addr, pHostEntry->h_addr, pHostEntry->h_length);
-			else
-			{
+		if (auto ai = getaddrinfo(u8(FwallHost), FwallPort, AF_INET6); !ai) {
+			if ((pHostEntry = do_gethostbynameIPv6(FwallHost, HostEntry, MAXGETHOSTSTRUCT, CancelCheckWork)) == nullptr) {
 				SetTaskMsg(MSGJPN021, FwallHost, MSGJPN334);
 				return INVALID_SOCKET;
 			}
-		}
-		SocksSockAddr.sin6_port = htons((u_short)FwallPort);
-		SocksSockAddr.sin6_family = AF_INET6;
+			assert(pHostEntry->h_length == sizeof(IN6_ADDR));
+			SocksSockAddr = { AF_INET6, htons((u_short)FwallPort), 0, *reinterpret_cast<const IN6_ADDR*>(pHostEntry->h_addr) };
+		} else
+			SocksSockAddr = *reinterpret_cast<const sockaddr_in6*>(&ai->ai_addr);
 		SetTaskMsg(MSGJPN022, u8(AddressPortToString(SocksSockAddr)).c_str(), MSGJPN334);
 		// connectで接続する先はSOCKSサーバ
 		memcpy(&saSockAddr, &SocksSockAddr, sizeof(SocksSockAddr));
@@ -2698,11 +2681,11 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 						// UPnP対応
 						if(IsUPnPLoaded() == YES && UPnPEnabled == YES)
 						{
-							if(AddPortMapping(u8(AddressToString(saTmpAddr)).c_str(), ntohs(saTmpAddr.sin_port), ExtAdrs) == FFFTP_SUCCESS)
-							{
-								saTmpAddr.sin_addr.s_addr = inet_addr(ExtAdrs);
-								SetAsyncTableDataMapPort(listen_skt, ntohs(saTmpAddr.sin_port));
-							}
+							if (auto port = ntohs(saTmpAddr.sin_port); AddPortMapping(u8(AddressToString(saTmpAddr)).c_str(), port, ExtAdrs) == FFFTP_SUCCESS)
+								if (auto ai = getaddrinfo(u8(ExtAdrs), port, AF_INET)) {
+									saTmpAddr = *reinterpret_cast<const sockaddr_in*>(ai->ai_addr);
+									SetAsyncTableDataMapPort(listen_skt, port);
+								}
 						}
 					}
 					else
@@ -2841,11 +2824,11 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 						// UPnP対応
 						if(IsUPnPLoaded() == YES && UPnPEnabled == YES)
 						{
-							if(AddPortMapping(u8(AddressToString(saTmpAddr)).c_str(), ntohs(saTmpAddr.sin6_port), ExtAdrs) == FFFTP_SUCCESS)
-							{
-								saTmpAddr.sin6_addr = inet6_addr(ExtAdrs);
-								SetAsyncTableDataMapPort(listen_skt, ntohs(saTmpAddr.sin6_port));
-							}
+							if (auto port = ntohs(saTmpAddr.sin6_port); AddPortMapping(u8(AddressToString(saTmpAddr)).c_str(), port, ExtAdrs) == FFFTP_SUCCESS)
+								if (auto ai = getaddrinfo(u8(ExtAdrs), port, AF_INET6)) {
+									saTmpAddr = *reinterpret_cast<const sockaddr_in6*>(ai->ai_addr);
+									SetAsyncTableDataMapPort(listen_skt, port);
+								}
 						}
 					}
 					else

@@ -150,55 +150,6 @@ int WSACancelAsyncRequestIPv6(HANDLE hAsyncTaskHandle)
 	return Result;
 }
 
-// IPv6対応のinet_addr相当の関数
-// ただしANSI用
-struct in6_addr inet6_addr(const char* cp)
-{
-	struct in6_addr Result;
-	int AfterZero;
-	int i;
-	char* p;
-	memset(&Result, 0, sizeof(Result));
-	AfterZero = 0;
-	for(i = 0; i < 8; i++)
-	{
-		if(!cp)
-		{
-			memcpy(&Result, &IN6ADDR_NONE, sizeof(struct in6_addr));
-			break;
-		}
-		if(i >= AfterZero)
-		{
-			if(strncmp(cp, ":", 1) == 0)
-			{
-				cp = cp + 1;
-				if(i == 0 && strncmp(cp, ":", 1) == 0)
-					cp = cp + 1;
-				p = (char*)cp;
-				AfterZero = 7;
-				while(p = strstr(p, ":"))
-				{
-					p = p + 1;
-					AfterZero--;
-				}
-			}
-			else
-			{
-				Result.u.Word[i] = (USHORT)strtol(cp, &p, 16);
-				Result.u.Word[i] = ((Result.u.Word[i] & 0xff00) >> 8) | ((Result.u.Word[i] & 0x00ff) << 8);
-				if(strncmp(p, ":", 1) != 0 && strlen(p) > 0)
-				{
-					memcpy(&Result, &IN6ADDR_NONE, sizeof(struct in6_addr));
-					break;
-				}
-				if(cp = strstr(cp, ":"))
-					cp = cp + 1;
-			}
-		}
-	}
-	return Result;
-}
-
 BOOL ConvertNameToPunycode(LPSTR Output, LPCSTR Input) {
 	static std::regex re{ R"(^(?:[A-Za-z0-9\-.])+$)" };
 	if (std::regex_match(Input, re)) {

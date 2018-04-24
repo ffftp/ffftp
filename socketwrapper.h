@@ -7,7 +7,6 @@
 
 HANDLE WSAAsyncGetHostByNameIPv6(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen, short Family);
 int WSACancelAsyncRequestIPv6(HANDLE hAsyncTaskHandle);
-struct in6_addr inet6_addr(const char* cp);
 BOOL ConvertNameToPunycode(LPSTR Output, LPCSTR Input);
 HANDLE WSAAsyncGetHostByNameM(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen);
 HANDLE WSAAsyncGetHostByNameIPv6M(HWND hWnd, u_int wMsg, const char * name, char * buf, int buflen, short Family);
