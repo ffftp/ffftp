@@ -2247,9 +2247,8 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 //SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork)
 SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 {
-	// IPv6対応
-	struct sockaddr_in SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
-	struct sockaddr_in saSockAddr;
+	sockaddr_storage SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
+	sockaddr_storage saSockAddr;
 	SOCKET sSocket;
 	int Len;
 	int Fwall;
@@ -2270,7 +2269,8 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 
 	UseIPadrs = YES;
 	strcpy(DomainName, host);
-	sockaddr_in CurSockAddr{ AF_INET, htons(port) };		/* 接続先ホストのアドレス情報 */
+	sockaddr_storage CurSockAddr{ AF_INET };		/* 接続先ホストのアドレス情報 */
+	reinterpret_cast<sockaddr_in*>(&CurSockAddr)->sin_port = htons(port);
 	if (auto ai = getaddrinfo(u8(host), port, AF_INET); !ai) {
 		// ホスト名が指定された
 		// ホスト名からアドレスを求める
@@ -2283,8 +2283,8 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 		}
 
 		if (ai) {
-			CurSockAddr = *reinterpret_cast<const sockaddr_in*>(ai->ai_addr);
-			SetTaskMsg(MSGJPN017, PreMsg, DomainName, u8(AddressPortToString(CurSockAddr)).c_str(), MSGJPN333);
+			memcpy(&CurSockAddr, ai->ai_addr, ai->ai_addrlen);
+			SetTaskMsg(MSGJPN017, PreMsg, DomainName, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str(), MSGJPN333);
 		} else {
 			if (Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
 				UseIPadrs = NO;
@@ -2295,11 +2295,11 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			}
 		}
 	} else {
-		CurSockAddr = *reinterpret_cast<const sockaddr_in*>(ai->ai_addr);
-		SetTaskMsg(MSGJPN020, PreMsg, u8(AddressPortToString(CurSockAddr)).c_str(), MSGJPN333);
+		memcpy(&CurSockAddr, ai->ai_addr, ai->ai_addrlen);
+		SetTaskMsg(MSGJPN020, PreMsg, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str(), MSGJPN333);
 	}
 
-	if((Fwall == FWALL_SOCKS4) || (Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
+	if(auto sa = reinterpret_cast<const sockaddr_in*>(&CurSockAddr); (Fwall == FWALL_SOCKS4) || (Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
 	{
 		// SOCKSを使う
 		// SOCKSに接続する準備
@@ -2307,16 +2307,16 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 		{
 			Socks4Cmd.Ver = SOCKS4_VER;
 			Socks4Cmd.Cmd = SOCKS4_CMD_CONNECT;
-			Socks4Cmd.Port = CurSockAddr.sin_port;
-			Socks4Cmd.AdrsInt = CurSockAddr.sin_addr.s_addr;
+			Socks4Cmd.Port = sa->sin_port;
+			Socks4Cmd.AdrsInt = sa->sin_addr.s_addr;
 			strcpy(Socks4Cmd.UserID, FwallUser);
 			Len = offsetof(SOCKS4CMD, UserID) + (int)strlen(FwallUser) + 1;
 		}
 		else
 		{
 			Len = UseIPadrs == YES
-				? Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, reinterpret_cast<const sockaddr*>(&CurSockAddr), CurSockAddr.sin_port)
-				: Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, DomainName, CurSockAddr.sin_port);
+				? Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, reinterpret_cast<const sockaddr*>(&CurSockAddr), sa->sin_port)
+				: Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, DomainName, sa->sin_port);
 		}
 
 		auto ai = getaddrinfo(u8(FwallHost), FwallPort, AF_INET);
@@ -2326,15 +2326,15 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			SetTaskMsg(MSGJPN021, FwallHost, MSGJPN333);
 			return INVALID_SOCKET;
 		}
-		SocksSockAddr = *reinterpret_cast<const sockaddr_in*>(ai->ai_addr);
-		SetTaskMsg(MSGJPN022, u8(AddressPortToString(SocksSockAddr)).c_str(), MSGJPN333);
+		memcpy(&SocksSockAddr, ai->ai_addr, ai->ai_addrlen);
+		SetTaskMsg(MSGJPN022, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str(), MSGJPN333);
 		// connectで接続する先はSOCKSサーバ
-		memcpy(&saSockAddr, &SocksSockAddr, sizeof(SocksSockAddr));
+		saSockAddr = SocksSockAddr;
 	}
 	else
 	{
 		// connectで接続するのは接続先のホスト
-		memcpy(&saSockAddr, &CurSockAddr, sizeof(CurSockAddr));
+		saSockAddr = CurSockAddr;
 	}
 
 	/////////////
@@ -2344,7 +2344,7 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 	if((sSocket = do_socket(AF_INET, SOCK_STREAM, TCP_PORT)) != INVALID_SOCKET)
 	{
 		// ソケットにデータを付与
-		SetAsyncTableDataIPv4(sSocket, &CurSockAddr, &SocksSockAddr);
+		SetAsyncTableData(sSocket, &CurSockAddr, &SocksSockAddr);
 		if(do_connect(sSocket, (struct sockaddr *)&saSockAddr, sizeof(saSockAddr), CancelCheckWork) != SOCKET_ERROR)
 		{
 			if(Fwall == FWALL_SOCKS4)
@@ -2417,8 +2417,8 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 
 SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 {
-	struct sockaddr_in6 SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
-	struct sockaddr_in6 saSockAddr;
+	sockaddr_storage SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
+	sockaddr_storage saSockAddr;
 	SOCKET sSocket;
 	int Len;
 	int Fwall;
@@ -2437,7 +2437,8 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 
 	UseIPadrs = YES;
 	strcpy(DomainName, host);
-	sockaddr_in6 CurSockAddr{ AF_INET6, htons(port) };		/* 接続先ホストのアドレス情報 */
+	sockaddr_storage CurSockAddr{ AF_INET6 };		/* 接続先ホストのアドレス情報 */
+	reinterpret_cast<sockaddr_in6*>(&CurSockAddr)->sin6_port = htons(port);
 	if (auto ai = getaddrinfo(u8(host), port, AF_INET6); !ai) {
 		// ホスト名が指定された
 		// ホスト名からアドレスを求める
@@ -2450,8 +2451,8 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 		}
 
 		if (ai) {
-			CurSockAddr = *reinterpret_cast<const sockaddr_in6*>(ai->ai_addr);
-			SetTaskMsg(MSGJPN017, PreMsg, DomainName, u8(AddressPortToString(CurSockAddr)).c_str(), MSGJPN334);
+			memcpy(&CurSockAddr, ai->ai_addr, ai->ai_addrlen);
+			SetTaskMsg(MSGJPN017, PreMsg, DomainName, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str(), MSGJPN334);
 		} else {
 			if ((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER)) {
 				UseIPadrs = NO;
@@ -2462,18 +2463,18 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			}
 		}
 	} else {
-		CurSockAddr = *reinterpret_cast<const sockaddr_in6*>(ai->ai_addr);
-		SetTaskMsg(MSGJPN020, PreMsg, u8(AddressPortToString(CurSockAddr)).c_str(), MSGJPN334);
+		memcpy(&CurSockAddr, ai->ai_addr, ai->ai_addrlen);
+		SetTaskMsg(MSGJPN020, PreMsg, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str(), MSGJPN334);
 	}
 
-	if((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
+	if(auto sa = reinterpret_cast<const sockaddr_in6*>(&CurSockAddr); (Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
 	{
 		// SOCKSを使う
 		// SOCKSに接続する準備
 		{
 			Len = UseIPadrs == YES
-				? Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, reinterpret_cast<const sockaddr*>(&CurSockAddr), CurSockAddr.sin6_port)
-				: Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, DomainName, CurSockAddr.sin6_port);
+				? Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, reinterpret_cast<const sockaddr*>(&CurSockAddr), sa->sin6_port)
+				: Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, DomainName, sa->sin6_port);
 		}
 
 		auto ai = getaddrinfo(u8(FwallHost), FwallPort, AF_INET6);
@@ -2483,15 +2484,15 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 			SetTaskMsg(MSGJPN021, FwallHost, MSGJPN334);
 			return INVALID_SOCKET;
 		}
-		SocksSockAddr = *reinterpret_cast<const sockaddr_in6*>(ai->ai_addr);
-		SetTaskMsg(MSGJPN022, u8(AddressPortToString(SocksSockAddr)).c_str(), MSGJPN334);
+		memcpy(&SocksSockAddr, ai->ai_addr, ai->ai_addrlen);
+		SetTaskMsg(MSGJPN022, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str(), MSGJPN334);
 		// connectで接続する先はSOCKSサーバ
-		memcpy(&saSockAddr, &SocksSockAddr, sizeof(SocksSockAddr));
+		saSockAddr = SocksSockAddr;
 	}
 	else
 	{
 		// connectで接続するのは接続先のホスト
-		memcpy(&saSockAddr, &CurSockAddr, sizeof(CurSockAddr));
+		saSockAddr = CurSockAddr;
 	}
 
 	/////////////
@@ -2501,7 +2502,7 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 	if((sSocket = do_socket(AF_INET6, SOCK_STREAM, TCP_PORT)) != INVALID_SOCKET)
 	{
 		// ソケットにデータを付与
-		SetAsyncTableDataIPv6(sSocket, &CurSockAddr, &SocksSockAddr);
+		SetAsyncTableData(sSocket, &CurSockAddr, &SocksSockAddr);
 		if(do_connect(sSocket, (struct sockaddr *)&saSockAddr, sizeof(saSockAddr), CancelCheckWork) != SOCKET_ERROR)
 		{
 			if((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
@@ -2578,8 +2579,8 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
 SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 {
 	// IPv6対応
-	struct sockaddr_in SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
-	struct sockaddr_in CurSockAddr;		/* 接続先ホストのアドレス情報 */
+	sockaddr_storage SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
+	sockaddr_storage CurSockAddr;		/* 接続先ホストのアドレス情報 */
 	SOCKET listen_skt;
 	int iLength;
 	struct sockaddr_in saCtrlAddr;
@@ -2595,7 +2596,7 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 	char ExtAdrs[40];
 
 	// ソケットにデータを付与
-	GetAsyncTableDataIPv4(ctrl_skt, &CurSockAddr, &SocksSockAddr);
+	GetAsyncTableData(ctrl_skt, &CurSockAddr, &SocksSockAddr);
 
 	Fwall = FWALL_NONE;
 	if(AskHostFireWall() == YES)
@@ -2603,7 +2604,7 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 
 	if((listen_skt = do_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) != INVALID_SOCKET)
 	{
-		if(Fwall == FWALL_SOCKS4)
+		if(auto sa = reinterpret_cast<const sockaddr_in*>(&CurSockAddr); Fwall == FWALL_SOCKS4)
 		{
 			/*===== SOCKS4を使う =====*/
 			DoPrintf("Use SOCKS4 BIND");
@@ -2611,8 +2612,8 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 			{
 				Socks4Cmd.Ver = SOCKS4_VER;
 				Socks4Cmd.Cmd = SOCKS4_CMD_BIND;
-				Socks4Cmd.Port = CurSockAddr.sin_port;
-				Socks4Cmd.AdrsInt = CurSockAddr.sin_addr.s_addr;
+				Socks4Cmd.Port = sa->sin_port;
+				Socks4Cmd.AdrsInt = sa->sin_addr.s_addr;
 				strcpy(Socks4Cmd.UserID, FwallUser);
 				Len = offsetof(SOCKS4CMD, UserID) + (int)strlen(FwallUser) + 1;
 
@@ -2633,7 +2634,7 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 				}
 
 				if(Socks4Reply.AdrsInt == 0)
-					Socks4Reply.AdrsInt = SocksSockAddr.sin_addr.s_addr;
+					Socks4Reply.AdrsInt = reinterpret_cast<const sockaddr_in*>(&SocksSockAddr)->sin_addr.s_addr;
 
 				saTmpAddr.sin_addr.s_addr = Socks4Reply.AdrsInt;
 				saTmpAddr.sin_port = Socks4Reply.Port;
@@ -2653,8 +2654,8 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 				}
 
 				Len = UseIPadrs == YES
-					? Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, reinterpret_cast<const sockaddr*>(&CurSockAddr), CurSockAddr.sin_port)
-					: Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, DomainName, CurSockAddr.sin_port);
+					? Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, reinterpret_cast<const sockaddr*>(&CurSockAddr), sa->sin_port)
+					: Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, DomainName, sa->sin_port);
 
 				Socks5Reply.Result = -1;
 				// 同時接続対応
@@ -2761,8 +2762,8 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 
 SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 {
-	struct sockaddr_in6 SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
-	struct sockaddr_in6 CurSockAddr;		/* 接続先ホストのアドレス情報 */
+	sockaddr_storage SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
+	sockaddr_storage CurSockAddr;		/* 接続先ホストのアドレス情報 */
 	SOCKET listen_skt;
 	int iLength;
 	struct sockaddr_in6 saCtrlAddr;
@@ -2776,7 +2777,7 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 	char ExtAdrs[40];
 
 	// ソケットにデータを付与
-	GetAsyncTableDataIPv6(ctrl_skt, &CurSockAddr, &SocksSockAddr);
+	GetAsyncTableData(ctrl_skt, &CurSockAddr, &SocksSockAddr);
 
 	Fwall = FWALL_NONE;
 	if(AskHostFireWall() == YES)
@@ -2797,9 +2798,10 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 					return(listen_skt);
 				}
 
+				auto port = reinterpret_cast<const sockaddr_in6*>(&CurSockAddr)->sin6_port;
 				Len = UseIPadrs == YES
-					? Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, reinterpret_cast<const sockaddr*>(&CurSockAddr), CurSockAddr.sin6_port)
-					: Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, DomainName, CurSockAddr.sin6_port);
+					? Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, reinterpret_cast<const sockaddr*>(&CurSockAddr), port)
+					: Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, DomainName, port);
 
 				Socks5Reply.Result = -1;
 				// 同時接続対応

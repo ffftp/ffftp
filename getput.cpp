@@ -4072,9 +4072,6 @@ static int GetAdrsAndPortIPv4(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 	// コンマではなくドットを返すホストがあるため
 	char *OldBtm;
 	int Sts;
-	// ホスト側の設定ミス対策
-	struct sockaddr_in SockAddr;
-
 	Sts = FFFTP_FAIL;
 
 	Pos = strchr(Str, '(');
@@ -4128,7 +4125,7 @@ static int GetAdrsAndPortIPv4(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 							}
 							else
 							{
-								if(GetAsyncTableDataIPv4(Skt, &SockAddr, NULL) == YES)
+								if(sockaddr_storage SockAddr; GetAsyncTableData(Skt, &SockAddr, NULL) == YES)
 									strcpy(Adrs, u8(AddressToString(SockAddr)).c_str());
 							}
 
@@ -4159,9 +4156,6 @@ static int GetAdrsAndPortIPv6(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 	char *Pos;
 	char *Btm;
 	int Sts;
-//	int i;
-	struct sockaddr_in6 SockAddr;
-
 	Sts = FFFTP_FAIL;
 
 	Btm = strchr(Str, '(');
@@ -4189,9 +4183,7 @@ static int GetAdrsAndPortIPv6(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 						}
 						else
 						{
-//							i = sizeof(SockAddr);
-//							if(getpeername(Skt, (struct sockaddr*)&SockAddr, &i) != SOCKET_ERROR)
-							if(GetAsyncTableDataIPv6(Skt, &SockAddr, NULL) == YES)
+							if(sockaddr_storage SockAddr; GetAsyncTableData(Skt, &SockAddr, NULL) == YES)
 								strcpy(Adrs, u8(AddressToString(SockAddr)).c_str());
 						}
 

@@ -2132,12 +2132,9 @@ bool IsSecureConnection();
 BOOL IsSSLAttached(SOCKET s);
 int MakeSocketWin(HWND hWnd, HINSTANCE hInst);
 void DeleteSocketWin(void);
-// ソケットにデータを付与
-int SetAsyncTableDataIPv4(SOCKET s, struct sockaddr_in* Host, struct sockaddr_in* Socks);
-int SetAsyncTableDataIPv6(SOCKET s, struct sockaddr_in6* Host, struct sockaddr_in6* Socks);
-int SetAsyncTableDataMapPort(SOCKET s, int Port);
-int GetAsyncTableDataIPv4(SOCKET s, struct sockaddr_in* Host, struct sockaddr_in* Socks);
-int GetAsyncTableDataIPv6(SOCKET s, struct sockaddr_in6* Host, struct sockaddr_in6* Socks);
+void SetAsyncTableData(SOCKET s, sockaddr_storage* Host, sockaddr_storage* Socks);
+void SetAsyncTableDataMapPort(SOCKET s, int Port);
+int GetAsyncTableData(SOCKET s, sockaddr_storage* Host, sockaddr_storage* Socks);
 int GetAsyncTableDataMapPort(SOCKET s, int* Port);
 SOCKET do_socket(int af, int type, int protocol);
 int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCheckWork);
@@ -2240,4 +2237,16 @@ static inline auto AddressToString(sockaddr_in6 const& sa) {
 	local.sin6_port = 0;
 	local.sin6_scope_id = 0;
 	return AddressPortToString(local);
+}
+static inline auto AddressToString(sockaddr_storage const& sa) {
+	if (sa.ss_family == AF_INET) {
+		auto local = reinterpret_cast<sockaddr_in const&>(sa);
+		local.sin_port = 0;
+		return AddressPortToString(&local);
+	} else {
+		auto local = reinterpret_cast<sockaddr_in6 const&>(sa);
+		local.sin6_port = 0;
+		local.sin6_scope_id = 0;
+		return AddressPortToString(&local);
+	}
 }

@@ -42,50 +42,21 @@
 #define DBG_MSG		0
 
 
-
-
-// Winsock2で定義される定数と名前が重複し値が異なるため使用不可
-//#define FD_CONNECT_BIT		0x0001
-//#define FD_CLOSE_BIT		0x0002
-//#define FD_ACCEPT_BIT		0x0004
-//#define FD_READ_BIT			0x0008
-//#define FD_WRITE_BIT		0x0010
-
-
-
-
-
-typedef struct {
-	SOCKET Socket;
-	int FdConnect;
-	int FdClose;
-	int FdAccept;
-	int FdRead;
-	int FdWrite;
+struct AsyncSignal {
+	int Event;
 	int Error;
-	// ソケットにデータを付与
-	struct sockaddr_in HostAddrIPv4;
-	struct sockaddr_in SocksAddrIPv4;
-	struct sockaddr_in6 HostAddrIPv6;
-	struct sockaddr_in6 SocksAddrIPv6;
+	sockaddr_storage HostAddr;
+	sockaddr_storage SocksAddr;
 	int MapPort;
-} ASYNCSIGNAL;
-
-
-// スレッド衝突のバグ修正
-// 念のためテーブルを増量
-//#define MAX_SIGNAL_ENTRY		10
-#define MAX_SIGNAL_ENTRY		16
-
-
+};
 
 
 /*===== プロトタイプ =====*/
 
 static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static int AskAsyncDone(SOCKET s, int *Error, int Mask);
-static int RegisterAsyncTable(SOCKET s);
-static int UnregisterAsyncTable(SOCKET s);
+static void RegisterAsyncTable(SOCKET s);
+static void UnregisterAsyncTable(SOCKET s);
 
 
 /*===== 外部参照 =====*/
@@ -95,14 +66,9 @@ extern int TimeOut;
 
 /*===== ローカルなワーク =====*/
 
-static const char SocketWndClass[] = "FFFTPSocketWnd";
 static HWND hWndSocket;
-
-static ASYNCSIGNAL Signal[MAX_SIGNAL_ENTRY];
-
-//static HANDLE hAsyncTblAccMutex;
-// スレッド衝突のバグ修正
-static HANDLE hAsyncTblAccMutex;
+static std::map<SOCKET, AsyncSignal> Signal;
+static std::mutex SignalMutex;
 
 
 template<class T>
@@ -470,497 +436,108 @@ static int FTPS_recv(SOCKET s, char* buf, int len, int flags) {
 }
 
 
-/*----- 
-*
-*	Parameter
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int MakeSocketWin(HWND hWnd, HINSTANCE hInst)
-{
-	int i;
-	int Sts;
-	WNDCLASSEX wClass;
-
-	wClass.cbSize        = sizeof(WNDCLASSEX);
-	wClass.style         = 0;
-	wClass.lpfnWndProc   = SocketWndProc;
-	wClass.cbClsExtra    = 0;
-	wClass.cbWndExtra    = 0;
-	wClass.hInstance     = hInst;
-	wClass.hIcon         = NULL;
-	wClass.hCursor       = NULL;
-	wClass.hbrBackground = (HBRUSH)CreateSolidBrush(GetSysColor(COLOR_INFOBK));
-	wClass.lpszMenuName  = NULL;
-	wClass.lpszClassName = SocketWndClass;
-	wClass.hIconSm       = NULL;
-	RegisterClassEx(&wClass);
-
-	Sts = FFFTP_FAIL;
-	hWndSocket = CreateWindowEx(0, SocketWndClass, NULL,
-			WS_BORDER | WS_POPUP,
-			0, 0, 0, 0,
-			hWnd, NULL, hInst, NULL);
-
-	if(hWndSocket != NULL)
-	{
-//		hAsyncTblAccMutex = CreateMutex(NULL, FALSE, NULL);
-
-		// スレッド衝突のバグ修正
-//		for(i = 0; i < MAX_SIGNAL_ENTRY; i++)
-//			Signal[i].Socket = INVALID_SOCKET;
-		if(hAsyncTblAccMutex = CreateMutex(NULL, FALSE, NULL))
-		{
-			for(i = 0; i < MAX_SIGNAL_ENTRY; i++)
-				Signal[i].Socket = INVALID_SOCKET;
-		}
-		Sts = FFFTP_SUCCESS;
+int MakeSocketWin(HWND hWnd, HINSTANCE hInst) {
+	auto const className = L"FFFTPSocketWnd";
+	WNDCLASSEXW wcx{ sizeof(WNDCLASSEXW), 0, SocketWndProc, 0, 0, hInst, nullptr, nullptr, CreateSolidBrush(GetSysColor(COLOR_INFOBK)), nullptr, className, };
+	RegisterClassExW(&wcx);
+	if (hWndSocket = CreateWindowExW(0, className, nullptr, WS_BORDER | WS_POPUP, 0, 0, 0, 0, hWnd, nullptr, hInst, nullptr)) {
+		Signal.clear();
+		return FFFTP_SUCCESS;
 	}
-	return(Sts);
+	return FFFTP_FAIL;
 }
 
 
-/*----- 
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DeleteSocketWin(void)
-{
-//	CloseHandle(hAsyncTblAccMutex);
-	// スレッド衝突のバグ修正
-	CloseHandle(hAsyncTblAccMutex);
-	hAsyncTblAccMutex = NULL;
-
-	if(hWndSocket != NULL)
+void DeleteSocketWin() {
+	if (hWndSocket)
 		DestroyWindow(hWndSocket);
-	return;
 }
 
 
-/*----- 
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	int Pos;
-
-	switch(message)
-	{
-		case WM_ASYNC_SOCKET :
-			// スレッド衝突のバグ修正
-			WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-			for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
-			{
-				if(Signal[Pos].Socket == (SOCKET)wParam)
-				{
-					Signal[Pos].Error = WSAGETSELECTERROR(lParam);
-#if DBG_MSG
-					if(WSAGETSELECTERROR(lParam) != 0)
-						DoPrintf("####### Signal: error (%d)", WSAGETSELECTERROR(lParam));
-#endif
-
-					switch(WSAGETSELECTEVENT(lParam))
-					{
-						case FD_CONNECT :
-							Signal[Pos].FdConnect = 1;
-#if DBG_MSG
-							DoPrintf("####### Signal: connect (S=%x)", Signal[Pos].Socket);
-#endif
-							break;
-
-						case FD_CLOSE :
-							Signal[Pos].FdClose = 1;
-#if DBG_MSG
-							DoPrintf("####### Signal: close (S=%x)", Signal[Pos].Socket);
-#endif
-//SetTaskMsg("####### Signal: close (%d) (S=%x)", Pos, Signal[Pos].Socket);
-							break;
-
-						case FD_ACCEPT :
-							Signal[Pos].FdAccept = 1;
-#if DBG_MSG
-							DoPrintf("####### Signal: accept (S=%x)", Signal[Pos].Socket);
-#endif
-							break;
-
-						case FD_READ :
-							Signal[Pos].FdRead = 1;
-#if DBG_MSG
-							DoPrintf("####### Signal: read (S=%x)", Signal[Pos].Socket);
-#endif
-							break;
-
-						case FD_WRITE :
-							Signal[Pos].FdWrite = 1;
-#if DBG_MSG
-							DoPrintf("####### Signal: write (S=%x)", Signal[Pos].Socket);
-#endif
-							break;
-					}
-					break;
-				}
-			}
-			// スレッド衝突のバグ修正
-			ReleaseMutex(hAsyncTblAccMutex);
-			break;
-
-		default :
-			return(DefWindowProc(hWnd, message, wParam, lParam));
+static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+	if (message == WM_ASYNC_SOCKET) {
+		std::lock_guard lock{ SignalMutex };
+		if (auto it = Signal.find(wParam); it != end(Signal)) {
+			it->second.Error = WSAGETSELECTERROR(lParam);
+			it->second.Event |= WSAGETSELECTEVENT(lParam);
+		}
+		return 0;
 	}
-	return(0);
+	return DefWindowProcW(hWnd, message, wParam, lParam);
 }
 
 
-
-
-/*----- 
-*
-*	Parameter
-*		
-*
-*	Return Value
-*		
-*----------------------------------------------------------------------------*/
-
-static int AskAsyncDone(SOCKET s, int *Error, int Mask)
-{
-	int Sts;
-	int Pos;
-
-	// スレッド衝突のバグ修正
-	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-	Sts = NO;
+static int AskAsyncDone(SOCKET s, int *Error, int Mask) {
 	*Error = 0;
-	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
-	{
-		if(Signal[Pos].Socket == s)
-		{
-			*Error = Signal[Pos].Error;
-			if(Signal[Pos].Error != 0)
-				Sts = YES;
-			if((Mask & FD_CONNECT) && (Signal[Pos].FdConnect != 0))
-			{
-				Sts = YES;
-#if DBG_MSG
-				DoPrintf("### Ask: connect (Sts=%d, Error=%d)", Sts, *Error);
-#endif
-			}
-			if((Mask & FD_CLOSE) && (Signal[Pos].FdClose != 0))
-//			if(Mask & FD_CLOSE)
-			{
-				Sts = YES;
-#if DBG_MSG
-				DoPrintf("### Ask: close (Sts=%d, Error=%d)", Sts, *Error);
-#endif
-			}
-			if((Mask & FD_ACCEPT) && (Signal[Pos].FdAccept != 0))
-			{
-				Signal[Pos].FdAccept = 0;
-				Sts = YES;
-#if DBG_MSG
-				DoPrintf("### Ask: accept (Sts=%d, Error=%d)", Sts, *Error);
-#endif
-			}
-			if((Mask & FD_READ) && (Signal[Pos].FdRead != 0))
-			{
-				Signal[Pos].FdRead = 0;
-				Sts = YES;
-#if DBG_MSG
-				DoPrintf("### Ask: read (Sts=%d, Error=%d)", Sts, *Error);
-#endif
-			}
-			if((Mask & FD_WRITE) && (Signal[Pos].FdWrite != 0))
-			{
-				Signal[Pos].FdWrite = 0;
-				Sts = YES;
-#if DBG_MSG
-				DoPrintf("### Ask: write (Sts=%d, Error=%d)", Sts, *Error);
-#endif
-			}
-			break;
+	std::lock_guard lock{ SignalMutex };
+	if (auto it = Signal.find(s); it != end(Signal)) {
+		if (*Error = it->second.Error)
+			return YES;
+		if (it->second.Event & Mask) {
+			if (Mask & FD_ACCEPT)
+				it->second.Event &= ~FD_ACCEPT;
+			else if (Mask & FD_READ)
+				it->second.Event &= ~FD_READ;
+			else if (Mask & FD_WRITE)
+				it->second.Event &= ~FD_WRITE;
+			return YES;
 		}
+		return NO;
 	}
-	// スレッド衝突のバグ修正
-	ReleaseMutex(hAsyncTblAccMutex);
-
-	if(Pos == MAX_SIGNAL_ENTRY)
-	{
-		if(Mask & FD_CLOSE)
-		{
-				Sts = YES;
-		}
-		else
-		{
-			MessageBox(GetMainHwnd(), "AskAsyncDone called with unregisterd socket.", "FFFTP inner error", MB_OK);
-			exit(1);
-		}
-	}
-	return(Sts);
+	if (Mask & FD_CLOSE)
+		return YES;
+	MessageBox(GetMainHwnd(), "AskAsyncDone called with unregisterd socket.", "FFFTP inner error", MB_OK);
+	exit(1);
 }
 
 
-/*----- 
-*
-*	Parameter
-*		
-*
-*	Return Value
-*		
-*----------------------------------------------------------------------------*/
-
-static int RegisterAsyncTable(SOCKET s)
-{
-	int Sts;
-	int Pos;
-
-	// スレッド衝突のバグ修正
-	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-	Sts = NO;
-	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
-	{
-		if(Signal[Pos].Socket == s)
-		{
-			// 強制的に閉じられたソケットがあると重複する可能性あり
-//			MessageBox(GetMainHwnd(), "Async socket already registerd.", "FFFTP inner error", MB_OK);
-//			break;
-			Signal[Pos].Socket = INVALID_SOCKET;
-		}
-	}
-	// スレッド衝突のバグ修正
-	ReleaseMutex(hAsyncTblAccMutex);
-
-	if(Pos == MAX_SIGNAL_ENTRY)
-	{
-		// スレッド衝突のバグ修正
-		WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-		for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
-		{
-			if(Signal[Pos].Socket == INVALID_SOCKET)
-			{
-
-//SetTaskMsg("############### Regist socket (%d)", Pos);
-
-				Signal[Pos].Socket = s;
-				Signal[Pos].Error = 0;
-				Signal[Pos].FdConnect = 0;
-				Signal[Pos].FdClose = 0;
-				Signal[Pos].FdAccept = 0;
-				Signal[Pos].FdRead = 0;
-				Signal[Pos].FdWrite = 0;
-				// ソケットにデータを付与
-				memset(&Signal[Pos].HostAddrIPv4, 0, sizeof(struct sockaddr_in));
-				memset(&Signal[Pos].SocksAddrIPv4, 0, sizeof(struct sockaddr_in));
-				memset(&Signal[Pos].HostAddrIPv6, 0, sizeof(struct sockaddr_in6));
-				memset(&Signal[Pos].SocksAddrIPv6, 0, sizeof(struct sockaddr_in6));
-				Signal[Pos].MapPort = 0;
-				Sts = YES;
-				break;
-			}
-		}
-		// スレッド衝突のバグ修正
-		ReleaseMutex(hAsyncTblAccMutex);
-
-		if(Pos == MAX_SIGNAL_ENTRY)
-		{
-			MessageBox(GetMainHwnd(), "No more async regist space.", "FFFTP inner error", MB_OK);
-			exit(1);
-		}
-	}
-
-	return(Sts);
+static void RegisterAsyncTable(SOCKET s) {
+	std::lock_guard lock{ SignalMutex };
+	Signal[s] = {};
 }
 
 
-/*----- 
-*
-*	Parameter
-*		
-*
-*	Return Value
-*		
-*----------------------------------------------------------------------------*/
-
-static int UnregisterAsyncTable(SOCKET s)
-{
-	int Sts;
-	int Pos;
-
-	// スレッド衝突のバグ修正
-	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-	Sts = NO;
-	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
-	{
-		if(Signal[Pos].Socket == s)
-		{
-
-//SetTaskMsg("############### UnRegist socket (%d)", Pos);
-
-			Signal[Pos].Socket = INVALID_SOCKET;
-			Sts = YES;
-			break;
-		}
-	}
-	// スレッド衝突のバグ修正
-	ReleaseMutex(hAsyncTblAccMutex);
-	return(Sts);
+static void UnregisterAsyncTable(SOCKET s) {
+	std::lock_guard lock{ SignalMutex };
+	Signal.erase(s);
 }
 
 
-// ソケットにデータを付与
-
-int SetAsyncTableDataIPv4(SOCKET s, struct sockaddr_in* Host, struct sockaddr_in* Socks)
-{
-	int Sts;
-	int Pos;
-
-	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-	Sts = NO;
-	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
-	{
-		if(Signal[Pos].Socket == s)
-		{
-			if(Host != NULL)
-				memcpy(&Signal[Pos].HostAddrIPv4, Host, sizeof(struct sockaddr_in));
-			if(Socks != NULL)
-				memcpy(&Signal[Pos].SocksAddrIPv4, Socks, sizeof(struct sockaddr_in));
-			Sts = YES;
-			break;
-		}
+void SetAsyncTableData(SOCKET s, sockaddr_storage* Host, sockaddr_storage* Socks) {
+	std::lock_guard lock{ SignalMutex };
+	if (auto it = Signal.find(s); it != end(Signal)) {
+		if (Host)
+			it->second.HostAddr = *Host;
+		if (Socks)
+			it->second.SocksAddr = *Socks;
 	}
-	ReleaseMutex(hAsyncTblAccMutex);
-
-	return(Sts);
 }
 
-int SetAsyncTableDataIPv6(SOCKET s, struct sockaddr_in6* Host, struct sockaddr_in6* Socks)
-{
-	int Sts;
-	int Pos;
-
-	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-	Sts = NO;
-	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
-	{
-		if(Signal[Pos].Socket == s)
-		{
-			if(Host != NULL)
-				memcpy(&Signal[Pos].HostAddrIPv6, Host, sizeof(struct sockaddr_in6));
-			if(Socks != NULL)
-				memcpy(&Signal[Pos].SocksAddrIPv6, Socks, sizeof(struct sockaddr_in6));
-			Sts = YES;
-			break;
-		}
-	}
-	ReleaseMutex(hAsyncTblAccMutex);
-
-	return(Sts);
+void SetAsyncTableDataMapPort(SOCKET s, int Port) {
+	std::lock_guard lock{ SignalMutex };
+	if (auto it = Signal.find(s); it != end(Signal))
+		it->second.MapPort = Port;
 }
 
-int SetAsyncTableDataMapPort(SOCKET s, int Port)
-{
-	int Sts;
-	int Pos;
-
-	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-	Sts = NO;
-	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
-	{
-		if(Signal[Pos].Socket == s)
-		{
-			Signal[Pos].MapPort = Port;
-			Sts = YES;
-			break;
-		}
+int GetAsyncTableData(SOCKET s, sockaddr_storage* Host, sockaddr_storage* Socks) {
+	std::lock_guard lock{ SignalMutex };
+	if (auto it = Signal.find(s); it != end(Signal)) {
+		if (Host)
+			*Host = it->second.HostAddr;
+		if (Socks)
+			*Socks = it->second.SocksAddr;
+		return YES;
 	}
-	ReleaseMutex(hAsyncTblAccMutex);
-
-	return(Sts);
+	return NO;
 }
 
-int GetAsyncTableDataIPv4(SOCKET s, struct sockaddr_in* Host, struct sockaddr_in* Socks)
-{
-	int Sts;
-	int Pos;
-
-	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-	Sts = NO;
-	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
-	{
-		if(Signal[Pos].Socket == s)
-		{
-			if(Host != NULL)
-				memcpy(Host, &Signal[Pos].HostAddrIPv4, sizeof(struct sockaddr_in));
-			if(Socks != NULL)
-				memcpy(Socks, &Signal[Pos].SocksAddrIPv4, sizeof(struct sockaddr_in));
-			Sts = YES;
-			break;
-		}
+int GetAsyncTableDataMapPort(SOCKET s, int* Port) {
+	std::lock_guard lock{ SignalMutex };
+	if (auto it = Signal.find(s); it != end(Signal)) {
+		*Port = it->second.MapPort;
+		return YES;
 	}
-	ReleaseMutex(hAsyncTblAccMutex);
-
-	return(Sts);
-}
-
-int GetAsyncTableDataIPv6(SOCKET s, struct sockaddr_in6* Host, struct sockaddr_in6* Socks)
-{
-	int Sts;
-	int Pos;
-
-	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-	Sts = NO;
-	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
-	{
-		if(Signal[Pos].Socket == s)
-		{
-			if(Host != NULL)
-				memcpy(Host, &Signal[Pos].HostAddrIPv6, sizeof(struct sockaddr_in6));
-			if(Socks != NULL)
-				memcpy(Socks, &Signal[Pos].SocksAddrIPv6, sizeof(struct sockaddr_in6));
-			Sts = YES;
-			break;
-		}
-	}
-	ReleaseMutex(hAsyncTblAccMutex);
-
-	return(Sts);
-}
-
-int GetAsyncTableDataMapPort(SOCKET s, int* Port)
-{
-	int Sts;
-	int Pos;
-
-	WaitForSingleObject(hAsyncTblAccMutex, INFINITE);
-	Sts = NO;
-	for(Pos = 0; Pos < MAX_SIGNAL_ENTRY; Pos++)
-	{
-		if(Signal[Pos].Socket == s)
-		{
-			*Port = Signal[Pos].MapPort;
-			Sts = YES;
-			break;
-		}
-	}
-	ReleaseMutex(hAsyncTblAccMutex);
-
-	return(Sts);
+	return NO;
 }
 
 
