@@ -48,10 +48,7 @@ static int ReConnectSkt(SOCKET *Skt);
 static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork);
 static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork);
 static int CheckOneTimePassword(char *Pass, char *Reply, int Type);
-static BOOL CALLBACK BlkHookFnc(void);
-static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, int ValidIP, ulong IP, char *Host, ushort Port);
-// IPv6対応
-static int Socks5MakeCmdPacketIPv6(SOCKS5REQUEST *Packet, char Cmd, int ValidIP, char *IP, char *Host, ushort Port);
+static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, std::variant<const sockaddr*, const char*> addr, ushort Port);
 static int SocksSendCmd(SOCKET Socket, void *Data, int Size, int *CancelCheckWork);
 // 同時接続対応
 //static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet);
@@ -2317,7 +2314,9 @@ SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork)
 		}
 		else
 		{
-			Len = Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, UseIPadrs, CurSockAddr.sin_addr.s_addr, DomainName, CurSockAddr.sin_port);
+			Len = UseIPadrs == YES
+				? Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, reinterpret_cast<const sockaddr*>(&CurSockAddr), CurSockAddr.sin_port)
+				: Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, DomainName, CurSockAddr.sin_port);
 		}
 
 		auto ai = getaddrinfo(u8(FwallHost), FwallPort, AF_INET);
@@ -2472,7 +2471,9 @@ SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork)
 		// SOCKSを使う
 		// SOCKSに接続する準備
 		{
-			Len = Socks5MakeCmdPacketIPv6(&Socks5Cmd, SOCKS5_CMD_CONNECT, UseIPadrs, (char*)&CurSockAddr.sin6_addr, DomainName, CurSockAddr.sin6_port);
+			Len = UseIPadrs == YES
+				? Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, reinterpret_cast<const sockaddr*>(&CurSockAddr), CurSockAddr.sin6_port)
+				: Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_CONNECT, DomainName, CurSockAddr.sin6_port);
 		}
 
 		auto ai = getaddrinfo(u8(FwallHost), FwallPort, AF_INET6);
@@ -2651,7 +2652,9 @@ SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
 					return(listen_skt);
 				}
 
-				Len = Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, UseIPadrs, CurSockAddr.sin_addr.s_addr, DomainName, CurSockAddr.sin_port);
+				Len = UseIPadrs == YES
+					? Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, reinterpret_cast<const sockaddr*>(&CurSockAddr), CurSockAddr.sin_port)
+					: Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, DomainName, CurSockAddr.sin_port);
 
 				Socks5Reply.Result = -1;
 				// 同時接続対応
@@ -2794,7 +2797,9 @@ SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
 					return(listen_skt);
 				}
 
-				Len = Socks5MakeCmdPacketIPv6(&Socks5Cmd, SOCKS5_CMD_BIND, UseIPadrs, (char*)&CurSockAddr.sin6_addr, DomainName, CurSockAddr.sin6_port);
+				Len = UseIPadrs == YES
+					? Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, reinterpret_cast<const sockaddr*>(&CurSockAddr), CurSockAddr.sin6_port)
+					: Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, DomainName, CurSockAddr.sin6_port);
 
 				Socks5Reply.Result = -1;
 				// 同時接続対応
@@ -2910,118 +2915,31 @@ int AskTryingConnect(void)
 }
 
 
-#if 0
-///*----- ブロッキングコールのフックコールバック --------------------------------
-//*
-//*	Parameter
-//*		なし
-//*
-//*	Return Value
-//*		BOOL FALSE
-//*----------------------------------------------------------------------------*/
-//
-//static BOOL CALLBACK BlkHookFnc(void)
-//{
-//	BackgrndMessageProc();
-//
-//	if(CancelFlg == YES)
-//	{
-//		SetTaskMsg(MSGJPN032);
-//		WSACancelBlockingCall();
-//		CancelFlg = NO;
-//	}
-//	return(FALSE);
-//}
-#endif
-
-
-
-/*----- SOCKS5のコマンドパケットを作成する ------------------------------------
-*
-*	Parameter
-*		SOCKS5REQUEST *Packet : パケットを作成するワーク
-*		char Cmd : コマンド
-*		int ValidIP : IPアドレスを使うかどうか(YES/NO)
-*		ulong IP : IPアドレス
-*		char *Host : ホスト名
-*		ushort Port : ポート
-*
-*	Return Value
-*		int コマンドパケットの長さ
-*----------------------------------------------------------------------------*/
-
-static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, int ValidIP, ulong IP, char *Host, ushort Port)
-{
-	uchar *Pos;
-	int Len;
-	int TotalLen;
-
-	Pos = (uchar *)Packet;
-	Pos += SOCKS5REQUEST_SIZE;
-	TotalLen = SOCKS5REQUEST_SIZE + 2;	/* +2はポートの分 */
-
+static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, std::variant<const sockaddr*, const char*> addr, ushort Port) {
 	Packet->Ver = SOCKS5_VER;
 	Packet->Cmd = Cmd;
 	Packet->Rsv = 0;
-	if(ValidIP == YES)
-	{
-		/* IPアドレスを指定 */
-		Packet->Type = SOCKS5_ADRS_IPV4;
-		*((ulong *)Pos) = IP;
-		Pos += 4;
-		TotalLen += 4;
-	}
-	else
-	{
-		/* ホスト名を指定 */
-		Packet->Type = SOCKS5_ADRS_NAME;
-		Len = (int)strlen(Host);
-		*Pos++ = Len;
-		strcpy((char*)Pos, Host);
-		Pos += Len;
-		TotalLen += Len + 1;
-	}
-	*((ushort *)Pos) = Port;
-
-	return(TotalLen);
-}
-
-
-// IPv6対応
-static int Socks5MakeCmdPacketIPv6(SOCKS5REQUEST *Packet, char Cmd, int ValidIP, char *IP, char *Host, ushort Port)
-{
-	uchar *Pos;
-	int Len;
-	int TotalLen;
-
-	Pos = (uchar *)Packet;
-	Pos += SOCKS5REQUEST_SIZE;
-	TotalLen = SOCKS5REQUEST_SIZE + 2;	/* +2はポートの分 */
-
-	Packet->Ver = SOCKS5_VER;
-	Packet->Cmd = Cmd;
-	Packet->Rsv = 0;
-	if(ValidIP == YES)
-	{
-		/* IPアドレスを指定 */
-		Packet->Type = SOCKS5_ADRS_IPV6;
-		memcpy(Pos, IP, 16);
-		Pos += 16;
-		TotalLen += 16;
-	}
-	else
-	{
-		/* ホスト名を指定 */
-		Packet->Type = SOCKS5_ADRS_NAME;
-		Len = (int)strlen(Host);
-		*Pos++ = Len;
-		strcpy((char*)Pos, Host);
-		Pos += Len;
-		TotalLen += Len + 1;
-	}
-	*((ushort *)Pos) = Port;
-
-	return(TotalLen);
+	auto dst = reinterpret_cast<unsigned char*>(Packet->_dummy);
+	auto [type, ptr, len] = std::visit([&dst](auto addr) -> std::tuple<char, const void*, int> {
+		using type = decltype(addr);
+		if constexpr (std::is_same_v<type, const sockaddr*>) {
+			if (addr->sa_family == AF_INET) {
+				return { SOCKS5_ADRS_IPV4, &reinterpret_cast<const sockaddr_in*>(addr)->sin_addr, static_cast<int>(sizeof(IN_ADDR)) };
+			} else {
+				assert(addr->sa_family == AF_INET6);
+				return { SOCKS5_ADRS_IPV6, &reinterpret_cast<const sockaddr_in6*>(addr)->sin6_addr, static_cast<int>(sizeof(IN6_ADDR)) };
+			}
+		} else if constexpr (std::is_same_v<type, const char*>) {
+			auto hostlen = static_cast<unsigned char>(strlen(addr));
+			*dst++ = hostlen;
+			return { SOCKS5_ADRS_NAME, addr, hostlen };
+		} else
+			static_assert(false_v<type>);
+	}, addr);
+	Packet->Type = type;
+	dst = std::copy_n(reinterpret_cast<const unsigned char*>(ptr), len, dst);
+	*reinterpret_cast<ushort*>(dst) = Port;
+	return static_cast<int>(dst - reinterpret_cast<const unsigned char*>(Packet)) + 2;
 }
 
 
