@@ -1758,9 +1758,6 @@ int SetOSS(int wkOss);
 int AskOSS(void);
 #endif
 SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork);
-// IPv6対応
-SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork);
-SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork);
 SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork);
 // IPv6対応
 SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork);
