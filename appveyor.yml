@@ -1,0 +1,13 @@
+version: 1.0.{build}
+image: Visual Studio 2017
+configuration:
+- Release
+- Debug
+platform:
+- x64
+- Win32
+build:
+  project: ffftp.sln
+  verbosity: minimal
+test: off
+deploy: off
