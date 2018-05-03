@@ -4339,7 +4339,6 @@ static int CheckMMDDYYYYformat(char *Str, char Sym)
 static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, FILETIME *Time, int *Attr, char *Owner, int *Link, int *InfoExist)
 {
 	SYSTEMTIME sTime;
-	SYSTEMTIME sTimeNow;
 	char Buf[FMAX_PATH+1];
 	char *Pos;
 	char Flag;
@@ -5378,7 +5377,6 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			{
 				/* 時刻／日付 */
 				GetLocalTime(&sTime);
-				memcpy(&sTimeNow, &sTime, sizeof(SYSTEMTIME));
 				sTime.wSecond = 0;
 				sTime.wMilliseconds = 0;
 
@@ -5422,24 +5420,14 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 						/* 年がない */
 						/* 現在の日付から推定 */
-						// 恐らくホストとローカルの時刻が異なる場合の対処のようだがとりあえず無効にする
-//						if((sTimeNow.wMonth == 12) && (sTime.wMonth == 1))
-//							sTime.wYear++;
-//						else if(sTimeNow.wMonth+1 == sTime.wMonth)
-						if(sTimeNow.wMonth+1 == sTime.wMonth)
-							/* nothing */;
-						else if(sTimeNow.wMonth < sTime.wMonth)
-							sTime.wYear--;
-
-
-//#################
 						/* 今年の今日以降のファイルは、実は去年のファイル */
-						if((sTime.wYear == sTimeNow.wYear) &&
-						   ((sTime.wMonth > sTimeNow.wMonth) ||
-							((sTime.wMonth == sTimeNow.wMonth) && (sTime.wDay > sTimeNow.wDay))))
-						{
+						// UTCに変換して比較する
+						SYSTEMTIME utcNow, utcTime;
+						GetSystemTime(&utcNow);
+						TIME_ZONE_INFORMATION tz{ AskHostTimeZone() * -60 };
+						TzSpecificLocalTimeToSystemTime(&tz, &sTime, &utcTime);
+						if (utcNow.wMonth < utcTime.wMonth || utcNow.wMonth == utcTime.wMonth && (utcNow.wDay < utcTime.wDay || utcNow.wDay == utcTime.wDay && utcNow.wHour < utcTime.wHour))
 							sTime.wYear--;
-						}
 					}
 				}
 			}
