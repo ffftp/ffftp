@@ -27,9 +27,6 @@
     <ClCompile Include="cache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="clipboard.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="codecnv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

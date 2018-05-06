@@ -3517,74 +3517,41 @@ void DispCWDerror(HWND hWnd)
 }
 
 
-/*----- URLをクリップボードにコピー -------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void CopyURLtoClipBoard(void)
-{
-	FILELIST *FileListBase;
-	FILELIST *Pos;
-	char *Buf;
-	char Path[FMAX_PATH+1];
-	char Host[HOST_ADRS_LEN+1];
-	char Port[10];
-	int Set;
-	int Total;
-
-	if(GetFocus() == GetRemoteHwnd())
+// URLをクリップボードにコピー
+void CopyURLtoClipBoard() {
+	if (GetFocus() != GetRemoteHwnd())
+		return;
+	FILELIST* FileListBase = nullptr;
+	MakeSelectedFileList(WIN_REMOTE, NO, NO, &FileListBase, &CancelFlg);
+	if (!FileListBase)
+		return;
+	auto baseAddress = L"ftp://"s + u8(AskHostAdrs());
+	if (auto port = AskHostPort(); port != PORT_NOR)
+		baseAddress.append(L":").append(std::to_wstring(port));
 	{
-		FileListBase = NULL;
-		MakeSelectedFileList(WIN_REMOTE, NO, NO, &FileListBase, &CancelFlg);
-		if(FileListBase != NULL)
-		{
-			strcpy(Host, AskHostAdrs());
-			Total = 0;
-			Buf = NULL;
-			Pos = FileListBase;
-			while(Pos != NULL)
-			{
-				AskRemoteCurDir(Path, FMAX_PATH);
-				SetSlashTail(Path);
-				strcat(Path, Pos->File);
-
-				if(AskHostType() == HTYPE_VMS)
-					ReformToVMSstylePathName(Path);
-
-				strcpy(Port, "");
-				if(AskHostPort() != PORT_NOR)
-					sprintf(Port, ":%d", AskHostPort());
-
-				Set = Total;
-				Total += (int)strlen(Path) + (int)strlen(Host) + (int)strlen(Port) + 8;	/* 8は "ftp://\r\n" のぶん */
-				if(AskHostType() == HTYPE_VMS)
-					Total++;
-
-				if((Buf = (char*)realloc(Buf, Total+1)) == NULL)
-					break;
-
-				if(AskHostType() != HTYPE_VMS)
-					sprintf(Buf + Set, "ftp://%s%s%s\r\n", Host, Port, Path);
-				else
-					sprintf(Buf + Set, "ftp://%s%s/%s\r\n", Host, Port, Path);
-
-				Pos = Pos->Next;
-			}
-
-			if(Buf != NULL)
-			{
-				CopyStrToClipBoard(Buf);
-				free(Buf);
-			}
+		char dir[FMAX_PATH + 1];
+		AskRemoteCurDir(dir, FMAX_PATH);
+		SetSlashTail(dir);
+		if (AskHostType() == HTYPE_VMS) {
+			baseAddress += L"/"sv;
+			ReformToVMSstylePathName(dir);
 		}
-		DeleteFileList(&FileListBase);
+		baseAddress += u8(dir);
 	}
-	return;
+	std::wstring text;
+	for (auto Pos = FileListBase; Pos; Pos = Pos->Next)
+		text.append(baseAddress).append(u8(Pos->File)).append(L"\r\n"sv);
+	DeleteFileList(&FileListBase);
+	if (OpenClipboard(GetMainHwnd())) {
+		if (EmptyClipboard())
+			if (auto global = GlobalAlloc(GHND, (size_as<SIZE_T>(text) + 1) * sizeof(wchar_t)); global)
+				if (auto buffer = GlobalLock(global); buffer) {
+					std::copy(begin(text), end(text), reinterpret_cast<wchar_t*>(buffer));
+					GlobalUnlock(global);
+					SetClipboardData(CF_UNICODETEXT, global);
+				}
+		CloseClipboard();
+	}
 }
 
 

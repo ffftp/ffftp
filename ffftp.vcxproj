@@ -186,7 +186,6 @@
   <ItemGroup>
     <ClCompile Include="bookmark.cpp" />
     <ClCompile Include="cache.cpp" />
-    <ClCompile Include="clipboard.cpp" />
     <ClCompile Include="codecnv.cpp" />
     <ClCompile Include="connect.cpp" />
     <ClCompile Include="dlgsize.cpp" />
