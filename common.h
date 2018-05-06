@@ -2114,10 +2114,6 @@ void SetAllHistoryToMenu(void);
 int GetHistoryByCmd(int MenuCmd, HISTORYDATA *Buf);
 int GetHistoryByNum(int Num, HISTORYDATA *Buf);
 
-/*===== clipboard.c =====*/
-
-int CopyStrToClipBoard(char *Str);
-
 /*===== socket.c =====*/
 
 BOOL LoadSSL();

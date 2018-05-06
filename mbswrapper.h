@@ -164,9 +164,6 @@ HWND CreateDialogParamM(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndPar
 #undef sndPlaySound
 #define sndPlaySound sndPlaySoundM
 BOOL sndPlaySoundM(LPCSTR pszSound, UINT fuSound);
-#undef SetClipboardData
-#define SetClipboardData SetClipboardDataM
-HANDLE SetClipboardDataM(UINT uFormat, HANDLE hMem);
 #undef MoveFile
 #define MoveFile MoveFileM
 BOOL MoveFileM(LPCSTR lpExistingFileName, LPCSTR lpNewFileName);
