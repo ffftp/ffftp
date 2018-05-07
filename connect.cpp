@@ -2333,357 +2333,134 @@ static SOCKET connectsock(ADDRESS_FAMILY family, char *host, int port, char *Pre
 }
 
 
-/*----- リッスンソケットを取得 ------------------------------------------------
-*
-*	Parameter
-*		SOCKET ctrl_skt : コントロールソケット
-*
-*	Return Value
-*		SOCKET リッスンソケット
-*----------------------------------------------------------------------------*/
-
-// IPv6対応
-SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
-{
-	SOCKET Result;
-	Result = INVALID_SOCKET;
-	switch(CurHost.CurNetType)
-	{
-	case NTYPE_IPV4:
-		Result = GetFTPListenSocketIPv4(ctrl_skt, CancelCheckWork);
-		break;
-	case NTYPE_IPV6:
-		Result = GetFTPListenSocketIPv6(ctrl_skt, CancelCheckWork);
-		break;
+// リッスンソケットを取得
+SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
+	// FwallType == FWALL_SOCKS4 && Control接続がIPv4
+	//   → SOCKS4
+	// FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER
+	//   → SOCKS5
+	// それ以外
+	//   → direct
+	sockaddr_storage saListen;
+	int salen = sizeof saListen;
+	if (getsockname(ctrl_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
+		ReportWSError("getsockname", WSAGetLastError());
+		return INVALID_SOCKET;
 	}
-	return Result;
-}
-
-
-// IPv6対応
-//SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork)
-SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork)
-{
-	// IPv6対応
-	sockaddr_storage SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
-	sockaddr_storage CurSockAddr;		/* 接続先ホストのアドレス情報 */
-	SOCKET listen_skt;
-	int iLength;
-	struct sockaddr_in saCtrlAddr;
-	sockaddr_in saTmpAddr{ AF_INET };
-	SOCKS4CMD Socks4Cmd;
-	SOCKS4REPLY Socks4Reply;
-	SOCKS5REQUEST Socks5Cmd;
-	SOCKS5REPLY Socks5Reply;
-
-	int Len;
-	int Fwall;
-	int Port;
-	char ExtAdrs[40];
-
-	// ソケットにデータを付与
-	GetAsyncTableData(ctrl_skt, &CurSockAddr, &SocksSockAddr);
-
-	Fwall = FWALL_NONE;
-	if(AskHostFireWall() == YES)
-		Fwall = FwallType;
-
-	if((listen_skt = do_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) != INVALID_SOCKET)
-	{
-		if(auto sa = reinterpret_cast<const sockaddr_in*>(&CurSockAddr); Fwall == FWALL_SOCKS4)
-		{
-			/*===== SOCKS4を使う =====*/
-			DoPrintf("Use SOCKS4 BIND");
-			if(do_connect(listen_skt, (struct sockaddr *)&SocksSockAddr, sizeof(SocksSockAddr), CancelCheckWork) != SOCKET_ERROR)
-			{
-				Socks4Cmd.Ver = SOCKS4_VER;
-				Socks4Cmd.Cmd = SOCKS4_CMD_BIND;
-				Socks4Cmd.Port = sa->sin_port;
-				Socks4Cmd.AdrsInt = sa->sin_addr.s_addr;
-				strcpy(Socks4Cmd.UserID, FwallUser);
-				Len = offsetof(SOCKS4CMD, UserID) + (int)strlen(FwallUser) + 1;
-
-				Socks4Reply.Result = -1;
-				// 同時接続対応
-//				if((SocksSendCmd(listen_skt, &Socks4Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
-//				   (Socks4GetCmdReply(listen_skt, &Socks4Reply) != FFFTP_SUCCESS) || 
-//				   (Socks4Reply.Result != SOCKS4_RES_OK))
-				if((SocksSendCmd(listen_skt, &Socks4Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
-				   (Socks4GetCmdReply(listen_skt, &Socks4Reply, CancelCheckWork) != FFFTP_SUCCESS) || 
-				   (Socks4Reply.Result != SOCKS4_RES_OK))
-				{
-					// IPv6対応
-//					SetTaskMsg(MSGJPN028, Socks4Reply.Result);
-					SetTaskMsg(MSGJPN028, Socks4Reply.Result, MSGJPN333);
-					DoClose(listen_skt);
-					listen_skt = INVALID_SOCKET;
-				}
-
-				if(Socks4Reply.AdrsInt == 0)
-					Socks4Reply.AdrsInt = reinterpret_cast<const sockaddr_in*>(&SocksSockAddr)->sin_addr.s_addr;
-
-				saTmpAddr.sin_addr.s_addr = Socks4Reply.AdrsInt;
-				saTmpAddr.sin_port = Socks4Reply.Port;
-			}
-		}
-		else if((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
-		{
-			/*===== SOCKS5を使う =====*/
-			DoPrintf("Use SOCKS5 BIND");
-			if(do_connect(listen_skt, (struct sockaddr *)&SocksSockAddr, sizeof(SocksSockAddr), CancelCheckWork) != SOCKET_ERROR)
-			{
-				if(Socks5SelMethod(listen_skt, CancelCheckWork) == FFFTP_FAIL)
-				{
-					DoClose(listen_skt);
-					listen_skt = INVALID_SOCKET;
-					return(listen_skt);
-				}
-
-				Len = UseIPadrs == YES
-					? Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, reinterpret_cast<const sockaddr*>(&CurSockAddr), sa->sin_port)
-					: Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, DomainName, sa->sin_port);
-
-				Socks5Reply.Result = -1;
-				// 同時接続対応
-//				if((SocksSendCmd(listen_skt, &Socks5Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
-//				   (Socks5GetCmdReply(listen_skt, &Socks5Reply) != FFFTP_SUCCESS) || 
-//				   (Socks5Reply.Result != SOCKS5_RES_OK))
-				if((SocksSendCmd(listen_skt, &Socks5Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
-				   (Socks5GetCmdReply(listen_skt, &Socks5Reply, CancelCheckWork) != FFFTP_SUCCESS) || 
-				   (Socks5Reply.Result != SOCKS5_RES_OK))
-				{
-					// IPv6対応
-//					SetTaskMsg(MSGJPN029, Socks5Reply.Result);
-					SetTaskMsg(MSGJPN029, Socks5Reply.Result, MSGJPN333);
-					DoClose(listen_skt);
-					listen_skt = INVALID_SOCKET;
-				}
-
-				saTmpAddr.sin_addr = *reinterpret_cast<const IN_ADDR*>(&Socks5Reply._dummy[0]);
-				saTmpAddr.sin_port = *reinterpret_cast<const USHORT*>(&Socks5Reply._dummy[4]);
-			}
-		}
-		else
-		{
-			/*===== SOCKSを使わない =====*/
-			DoPrintf("Use normal BIND");
-			saCtrlAddr.sin_port = htons(0);
-			saCtrlAddr.sin_family = AF_INET;
-			saCtrlAddr.sin_addr.s_addr = 0;
-
-			if(bind(listen_skt, (struct sockaddr *)&saCtrlAddr, sizeof(struct sockaddr)) != SOCKET_ERROR)
-			{
-				iLength = sizeof(saCtrlAddr);
-				if(getsockname(listen_skt, (struct sockaddr *)&saCtrlAddr, &iLength) != SOCKET_ERROR)
-				{
-					if(do_listen(listen_skt, 1) == 0)
-					{
-						iLength = sizeof(saTmpAddr);
-						if(getsockname(ctrl_skt, (struct sockaddr *)&saTmpAddr, &iLength) == SOCKET_ERROR)
-							ReportWSError("getsockname", WSAGetLastError());
-
-						saTmpAddr.sin_port = saCtrlAddr.sin_port;
-						// UPnP対応
-						if(IsUPnPLoaded() == YES && UPnPEnabled == YES)
-						{
-							if (auto port = ntohs(saTmpAddr.sin_port); AddPortMapping(u8(AddressToString(saTmpAddr)).c_str(), port, ExtAdrs) == FFFTP_SUCCESS)
-								if (auto ai = getaddrinfo(u8(ExtAdrs), port, AF_INET)) {
-									saTmpAddr = *reinterpret_cast<const sockaddr_in*>(ai->ai_addr);
-									SetAsyncTableDataMapPort(listen_skt, port);
-								}
-						}
-					}
-					else
-					{
-						ReportWSError("listen", WSAGetLastError());
-						do_closesocket(listen_skt);
-						listen_skt = INVALID_SOCKET;
-					}
-				}
-				else
-				{
-					ReportWSError("getsockname", WSAGetLastError());
-					do_closesocket(listen_skt);
-					listen_skt = INVALID_SOCKET;
-				}
-			}
-			else
-			{
-				ReportWSError("bind", WSAGetLastError());
-				do_closesocket(listen_skt);
-				listen_skt = INVALID_SOCKET;
-			}
-
-			if(listen_skt == INVALID_SOCKET)
-				// IPv6対応
-//				SetTaskMsg(MSGJPN030);
-				SetTaskMsg(MSGJPN030, MSGJPN333);
-		}
-	}
-	else
+	auto listen_skt = do_socket(saListen.ss_family, SOCK_STREAM, IPPROTO_TCP);
+	if (listen_skt == INVALID_SOCKET) {
 		ReportWSError("socket create", WSAGetLastError());
-
-	if(listen_skt != INVALID_SOCKET)
-	{
-		auto a = reinterpret_cast<const unsigned char*>(&saTmpAddr.sin_addr), p = reinterpret_cast<const unsigned char*>(&saTmpAddr.sin_port);
-		if((command(ctrl_skt,NULL, CancelCheckWork, "PORT %hhu,%hhu,%hhu,%hhu,%hhu,%hhu", a[0], a[1], a[2], a[3], p[0], p[1]) / 100) != FTP_COMPLETE)
-		{
-			// IPv6対応
-//			SetTaskMsg(MSGJPN031);
-			SetTaskMsg(MSGJPN031, MSGJPN333);
-			// UPnP対応
-			if(IsUPnPLoaded() == YES)
-			{
-				if(GetAsyncTableDataMapPort(listen_skt, &Port) == YES)
-					RemovePortMapping(Port);
-			}
-			do_closesocket(listen_skt);
-			listen_skt = INVALID_SOCKET;
-		}
+		return INVALID_SOCKET;
 	}
-
-	return(listen_skt);
-}
-
-
-SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork)
-{
-	sockaddr_storage SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
-	sockaddr_storage CurSockAddr;		/* 接続先ホストのアドレス情報 */
-	SOCKET listen_skt;
-	int iLength;
-	struct sockaddr_in6 saCtrlAddr;
-	sockaddr_in6 saTmpAddr{ AF_INET6 };
-	SOCKS5REQUEST Socks5Cmd;
-	SOCKS5REPLY Socks5Reply;
-
-	int Len;
-	int Fwall;
-	int Port;
-	char ExtAdrs[40];
-
-	// ソケットにデータを付与
-	GetAsyncTableData(ctrl_skt, &CurSockAddr, &SocksSockAddr);
-
-	Fwall = FWALL_NONE;
-	if(AskHostFireWall() == YES)
-		Fwall = FwallType;
-
-	if((listen_skt = do_socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP)) != INVALID_SOCKET)
-	{
-		if((Fwall == FWALL_SOCKS5_NOAUTH) || (Fwall == FWALL_SOCKS5_USER))
-		{
-			/*===== SOCKS5を使う =====*/
-			DoPrintf("Use SOCKS5 BIND");
-			if(do_connect(listen_skt, (struct sockaddr *)&SocksSockAddr, sizeof(SocksSockAddr), CancelCheckWork) != SOCKET_ERROR)
-			{
-				if(Socks5SelMethod(listen_skt, CancelCheckWork) == FFFTP_FAIL)
-				{
-					DoClose(listen_skt);
-					listen_skt = INVALID_SOCKET;
-					return(listen_skt);
-				}
-
-				auto port = reinterpret_cast<const sockaddr_in6*>(&CurSockAddr)->sin6_port;
-				Len = UseIPadrs == YES
-					? Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, reinterpret_cast<const sockaddr*>(&CurSockAddr), port)
-					: Socks5MakeCmdPacket(&Socks5Cmd, SOCKS5_CMD_BIND, DomainName, port);
-
-				Socks5Reply.Result = -1;
-				// 同時接続対応
-//				if((SocksSendCmd(listen_skt, &Socks5Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
-//				   (Socks5GetCmdReply(listen_skt, &Socks5Reply) != FFFTP_SUCCESS) || 
-//				   (Socks5Reply.Result != SOCKS5_RES_OK))
-				if((SocksSendCmd(listen_skt, &Socks5Cmd, Len, CancelCheckWork) != FFFTP_SUCCESS) ||
-				   (Socks5GetCmdReply(listen_skt, &Socks5Reply, CancelCheckWork) != FFFTP_SUCCESS) || 
-				   (Socks5Reply.Result != SOCKS5_RES_OK))
-				{
-					SetTaskMsg(MSGJPN029, Socks5Reply.Result, MSGJPN334);
-					DoClose(listen_skt);
-					listen_skt = INVALID_SOCKET;
-				}
-
-				saTmpAddr.sin6_addr = *reinterpret_cast<const IN6_ADDR*>(&Socks5Reply._dummy[0]);
-				saTmpAddr.sin6_port = *reinterpret_cast<const USHORT*>(&Socks5Reply._dummy[16]);
-			}
+	if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 && saListen.ss_family == AF_INET || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
+		DoPrintf("Use SOCKS BIND");
+		// Control接続と同じアドレスに接続する
+		salen = sizeof saListen;
+		if (getpeername(ctrl_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
+			ReportWSError("getpeername", WSAGetLastError());
+			return INVALID_SOCKET;
 		}
-		else
-		{
-			/*===== SOCKSを使わない =====*/
-			DoPrintf("Use normal BIND");
-			saCtrlAddr.sin6_port = htons(0);
-			saCtrlAddr.sin6_family = AF_INET6;
-			memset(&saCtrlAddr.sin6_addr, 0, 16);
-			saCtrlAddr.sin6_flowinfo = 0;
-			saCtrlAddr.sin6_scope_id = 0;
-
-			if(bind(listen_skt, (struct sockaddr *)&saCtrlAddr, sizeof(struct sockaddr_in6)) != SOCKET_ERROR)
-			{
-				iLength = sizeof(saCtrlAddr);
-				if(getsockname(listen_skt, (struct sockaddr *)&saCtrlAddr, &iLength) != SOCKET_ERROR)
-				{
-					if(do_listen(listen_skt, 1) == 0)
-					{
-						iLength = sizeof(saTmpAddr);
-						if(getsockname(ctrl_skt, (struct sockaddr *)&saTmpAddr, &iLength) == SOCKET_ERROR)
-							ReportWSError("getsockname", WSAGetLastError());
-
-						saTmpAddr.sin6_port = saCtrlAddr.sin6_port;
-						// UPnP対応
-						if(IsUPnPLoaded() == YES && UPnPEnabled == YES)
-						{
-							if (auto port = ntohs(saTmpAddr.sin6_port); AddPortMapping(u8(AddressToString(saTmpAddr)).c_str(), port, ExtAdrs) == FFFTP_SUCCESS)
-								if (auto ai = getaddrinfo(u8(ExtAdrs), port, AF_INET6)) {
-									saTmpAddr = *reinterpret_cast<const sockaddr_in6*>(ai->ai_addr);
-									SetAsyncTableDataMapPort(listen_skt, port);
-								}
-						}
-					}
-					else
-					{
-						ReportWSError("listen", WSAGetLastError());
-						do_closesocket(listen_skt);
-						listen_skt = INVALID_SOCKET;
-					}
-				}
-				else
-				{
-					ReportWSError("getsockname", WSAGetLastError());
-					do_closesocket(listen_skt);
-					listen_skt = INVALID_SOCKET;
-				}
+		if (do_connect(listen_skt, reinterpret_cast<const sockaddr*>(&saListen), salen, CancelCheckWork) == SOCKET_ERROR) {
+			return INVALID_SOCKET;
+		}
+		sockaddr_storage saTarget;
+		GetAsyncTableData(ctrl_skt, &saTarget, nullptr);
+		if (FwallType == FWALL_SOCKS4) {
+			assert(saTarget.ss_family == AF_INET);
+			auto const& sa = reinterpret_cast<sockaddr_in const&>(saTarget);
+			SOCKS4CMD cmd4{ SOCKS4_VER, SOCKS4_CMD_BIND, sa.sin_port, sa.sin_addr.s_addr };
+			strcpy(cmd4.UserID, FwallUser);
+			int cmdlen = offsetof(SOCKS4CMD, UserID) + (int)strlen(FwallUser) + 1;
+			SOCKS4REPLY reply{ 0, -1 };
+			if (SocksSendCmd(listen_skt, &cmd4, cmdlen, CancelCheckWork) != FFFTP_SUCCESS || Socks4GetCmdReply(listen_skt, &reply, CancelCheckWork) != FFFTP_SUCCESS || reply.Result != SOCKS4_RES_OK) {
+				SetTaskMsg(MSGJPN028, reply.Result);
+				DoClose(listen_skt);
+				return INVALID_SOCKET;
 			}
+			// TODO: SOCKS4サーバーがlisten()したアドレスを返す個所。アドレスを返さなかった場合にはSOCK4サーバーのアドレスを使用している。このようなことがあり得るのか？
+			if (reply.AdrsInt == 0) {
+				assert(saListen.ss_family == AF_INET);
+				reply.AdrsInt = reinterpret_cast<sockaddr_in&>(saListen).sin_addr.s_addr;
+			}
+			reinterpret_cast<sockaddr_in&>(saListen) = { AF_INET, reply.Port };
+			reinterpret_cast<sockaddr_in&>(saListen).sin_addr.s_addr = reply.AdrsInt;
+		} else {
+			if (Socks5SelMethod(listen_skt, CancelCheckWork) == FFFTP_FAIL) {
+				DoClose(listen_skt);
+				return INVALID_SOCKET;
+			}
+			auto port = saTarget.ss_family == AF_INET ? reinterpret_cast<sockaddr_in const&>(saTarget).sin_port : reinterpret_cast<sockaddr_in6 const&>(saTarget).sin6_port;
+			SOCKS5REQUEST cmd5;
+			int Len = UseIPadrs == YES
+				? Socks5MakeCmdPacket(&cmd5, SOCKS5_CMD_BIND, reinterpret_cast<const sockaddr*>(&saTarget), port)
+				: Socks5MakeCmdPacket(&cmd5, SOCKS5_CMD_BIND, DomainName, port);
+			SOCKS5REPLY reply{ 0, -1 };
+			if (SocksSendCmd(listen_skt, &cmd5, Len, CancelCheckWork) != FFFTP_SUCCESS || Socks5GetCmdReply(listen_skt, &reply, CancelCheckWork) != FFFTP_SUCCESS || reply.Result != SOCKS5_RES_OK) {
+				SetTaskMsg(MSGJPN029, reply.Result);
+				DoClose(listen_skt);
+				return INVALID_SOCKET;
+			}
+			if (reply.Type == SOCKS5_ADRS_IPV4)
+				reinterpret_cast<sockaddr_in&>(saListen) = { AF_INET, *reinterpret_cast<const USHORT*>(&reply._dummy[4]), *reinterpret_cast<const IN_ADDR*>(&reply._dummy[0]) };
 			else
-			{
-				ReportWSError("bind", WSAGetLastError());
-				do_closesocket(listen_skt);
-				listen_skt = INVALID_SOCKET;
-			}
-
-			if(listen_skt == INVALID_SOCKET)
-				SetTaskMsg(MSGJPN030, MSGJPN334);
+				reinterpret_cast<sockaddr_in6&>(saListen) = { AF_INET6, *reinterpret_cast<const USHORT*>(&reply._dummy[16]), 0, *reinterpret_cast<const IN6_ADDR*>(&reply._dummy[0]) };
 		}
-	}
-	else
-		ReportWSError("socket create", WSAGetLastError());
-
-	if(listen_skt != INVALID_SOCKET)
-	{
-		if((command(ctrl_skt,NULL, CancelCheckWork, "EPRT |2|%s|%d|", u8(AddressToString(saTmpAddr)).c_str(), ntohs(saTmpAddr.sin6_port)) / 100) != FTP_COMPLETE)
-		{
-			SetTaskMsg(MSGJPN031, MSGJPN334);
-			// UPnP対応
-			if(IsUPnPLoaded() == YES)
-			{
-				if(GetAsyncTableDataMapPort(listen_skt, &Port) == YES)
-					RemovePortMapping(Port);
-			}
+	} else {
+		DoPrintf("Use normal BIND");
+		// Control接続と同じアドレス（ただしport=0）でlistenする
+		if (saListen.ss_family == AF_INET)
+			reinterpret_cast<sockaddr_in&>(saListen).sin_port = 0;
+		else
+			reinterpret_cast<sockaddr_in6&>(saListen).sin6_port = 0;
+		if (bind(listen_skt, reinterpret_cast<const sockaddr*>(&saListen), salen) == SOCKET_ERROR) {
+			ReportWSError("bind", WSAGetLastError());
 			do_closesocket(listen_skt);
-			listen_skt = INVALID_SOCKET;
+			SetTaskMsg(MSGJPN030);
+			return INVALID_SOCKET;
+		}
+		salen = sizeof saListen;
+		if (getsockname(listen_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
+			ReportWSError("getsockname", WSAGetLastError());
+			do_closesocket(listen_skt);
+			SetTaskMsg(MSGJPN030);
+			return INVALID_SOCKET;
+		}
+		if (do_listen(listen_skt, 1) != 0) {
+			ReportWSError("listen", WSAGetLastError());
+			do_closesocket(listen_skt);
+			SetTaskMsg(MSGJPN030);
+			return INVALID_SOCKET;
+		}
+		// TODO: IPv6にUPnP NATは無意味なのでは？
+		if (IsUPnPLoaded() == YES && UPnPEnabled == YES) {
+			auto port = ntohs(saListen.ss_family == AF_INET ? reinterpret_cast<sockaddr_in const&>(saListen).sin_port : reinterpret_cast<sockaddr_in6 const&>(saListen).sin6_port);
+			// TODO: UPnP NATで外部アドレスだけ参照しているが、外部ポートが内部ポートと異なる可能性が十分にあるのでは？
+			if (char ExtAdrs[40]; AddPortMapping(u8(AddressToString(saListen)).c_str(), port, ExtAdrs) == FFFTP_SUCCESS)
+				if (auto ai = getaddrinfo(u8(ExtAdrs), port, saListen.ss_family)) {
+					memcpy(&saListen, ai->ai_addr, ai->ai_addrlen);
+					SetAsyncTableDataMapPort(listen_skt, port);
+				}
 		}
 	}
-
-	return(listen_skt);
+	int status;
+	if (saListen.ss_family == AF_INET) {
+		auto const& sin = reinterpret_cast<sockaddr_in const&>(saListen);
+		auto a = reinterpret_cast<const uint8_t*>(&sin.sin_addr), p = reinterpret_cast<const uint8_t*>(&sin.sin_port);
+		status = command(ctrl_skt, NULL, CancelCheckWork, "PORT %hhu,%hhu,%hhu,%hhu,%hhu,%hhu", a[0], a[1], a[2], a[3], p[0], p[1]);
+	} else {
+		auto a = u8(AddressToString(saListen));
+		auto p = reinterpret_cast<sockaddr_in6 const&>(saListen).sin6_port;
+		status = command(ctrl_skt, NULL, CancelCheckWork, "EPRT |2|%s|%d|", a.c_str(), ntohs(p));
+	}
+	if (status / 100 != FTP_COMPLETE) {
+		SetTaskMsg(MSGJPN031, saListen.ss_family == AF_INET ? "PORT" : "EPRT");
+		if (IsUPnPLoaded() == YES)
+			if (int port; GetAsyncTableDataMapPort(listen_skt, &port) == YES)
+				RemovePortMapping(port);
+		do_closesocket(listen_skt);
+		return INVALID_SOCKET;
+	}
+	return listen_skt;
 }
 
 

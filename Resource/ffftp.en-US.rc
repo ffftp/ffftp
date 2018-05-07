@@ -2371,10 +2371,10 @@ BEGIN
     IDS_MSGJPN025           "Connected. (%s)"
     IDS_MSGJPN026           "Cannnot connected. (%s)"
     IDS_MSGJPN027           "Cannnot create socket. (%s)"
-    IDS_MSGJPN028           "Cannnot connect to SOCKS server. (Err=%d) (%s)"
-    IDS_MSGJPN029           "Cannnot connect to SOCKS server. (Err=%d) (%s)"
-    IDS_MSGJPN030           "Cannnot create listen socket. (%s)"
-    IDS_MSGJPN031           "PORT command not accepted. (%s)"
+    IDS_MSGJPN028           "Cannnot connect to SOCKS server. (Err=%d)"
+    IDS_MSGJPN029           "Cannnot connect to SOCKS server. (Err=%d)"
+    IDS_MSGJPN030           "Cannnot create listen socket."
+    IDS_MSGJPN031           "%s command not accepted."
 END
 
 STRINGTABLE

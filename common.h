@@ -1759,9 +1759,6 @@ int AskOSS(void);
 #endif
 SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork);
 SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork);
-// IPv6対応
-SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork);
-SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
 // 同時接続対応
 //int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data);
@@ -2217,23 +2214,6 @@ template<class SockAddr>
 static inline auto AddressPortToString(const SockAddr* sa, size_t salen = sizeof(SockAddr)) {
 	static_assert(std::is_same_v<SockAddr, sockaddr_in> || std::is_same_v<SockAddr, sockaddr_in6> || std::is_same_v<SockAddr, sockaddr_storage>);
 	return AddressPortToString(reinterpret_cast<const SOCKADDR*>(&sa), salen);
-}
-static inline auto AddressPortToString(sockaddr_in const& sa) {
-	return AddressPortToString(&sa);
-}
-static inline auto AddressPortToString(sockaddr_in6 const& sa) {
-	return AddressPortToString(&sa);
-}
-static inline auto AddressToString(sockaddr_in const& sa) {
-	auto local = sa;
-	local.sin_port = 0;
-	return AddressPortToString(local);
-}
-static inline auto AddressToString(sockaddr_in6 const& sa) {
-	auto local = sa;
-	local.sin6_port = 0;
-	local.sin6_scope_id = 0;
-	return AddressPortToString(local);
 }
 static inline auto AddressToString(sockaddr_storage const& sa) {
 	if (sa.ss_family == AF_INET) {

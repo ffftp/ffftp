@@ -27,10 +27,10 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN025 (std::data(msgs[10000+25])) /* 接続しました. (%s) */
 #define MSGJPN026 (std::data(msgs[10000+26])) /* 接続できません. (%s) */
 #define MSGJPN027 (std::data(msgs[10000+27])) /* ソケットが作成できません. (%s) */
-#define MSGJPN028 (std::data(msgs[10000+28])) /* SOCKSサーバーに接続できません. (Err=%d) (%s) */
-#define MSGJPN029 (std::data(msgs[10000+29])) /* SOCKSサーバーに接続できません. (Err=%d) (%s) */
-#define MSGJPN030 (std::data(msgs[10000+30])) /* Listenソケットが作成できません. (%s) */
-#define MSGJPN031 (std::data(msgs[10000+31])) /* PORTコマンドが受け付けられません. (%s) */
+#define MSGJPN028 (std::data(msgs[10000+28])) /* SOCKSサーバーに接続できません. (Err=%d) */
+#define MSGJPN029 (std::data(msgs[10000+29])) /* SOCKSサーバーに接続できません. (Err=%d) */
+#define MSGJPN030 (std::data(msgs[10000+30])) /* Listenソケットが作成できません. */
+#define MSGJPN031 (std::data(msgs[10000+31])) /* %sコマンドが受け付けられません. */
 #define MSGJPN032 (std::data(msgs[10000+32])) /* 接続はユーザーによって中止されました. */
 #define MSGJPN033 (std::data(msgs[10000+33])) /* SOCKSのコマンドが送れませんでした (Cmd = %04X) */
 #define MSGJPN034 (std::data(msgs[10000+34])) /* SOCKS5のコマンドに対するリプライが受信できませんでした */

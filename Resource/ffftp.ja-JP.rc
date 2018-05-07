@@ -2332,10 +2332,10 @@ BEGIN
     IDS_MSGJPN025           "接続しました. (%s)"
     IDS_MSGJPN026           "接続できません. (%s)"
     IDS_MSGJPN027           "ソケットが作成できません. (%s)"
-    IDS_MSGJPN028           "SOCKSサーバーに接続できません. (Err=%d) (%s)"
-    IDS_MSGJPN029           "SOCKSサーバーに接続できません. (Err=%d) (%s)"
-    IDS_MSGJPN030           "Listenソケットが作成できません. (%s)"
-    IDS_MSGJPN031           "PORTコマンドが受け付けられません. (%s)"
+    IDS_MSGJPN028           "SOCKSサーバーに接続できません. (Err=%d)"
+    IDS_MSGJPN029           "SOCKSサーバーに接続できません. (Err=%d)"
+    IDS_MSGJPN030           "Listenソケットが作成できません."
+    IDS_MSGJPN031           "%sコマンドが受け付けられません."
 END
 
 STRINGTABLE
