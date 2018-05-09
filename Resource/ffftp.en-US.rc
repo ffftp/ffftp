@@ -2359,27 +2359,19 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN016           "Searching host %s. (%s)"
     IDS_MSGJPN017           "Connecting %sto host %s (%s)."
-    IDS_MSGJPN018           "Connecting %sto host %s (%d). (%s)"
     IDS_MSGJPN019           "Host %s not found."
-    IDS_MSGJPN020           "Connecting %sto host %s. (%s)"
     IDS_MSGJPN021           "SOCKS server %s not found."
     IDS_MSGJPN022           "Connecting to SOCKS server %s."
     IDS_MSGJPN023           "Cannnot connect to SOCKS server. (Err=%d)"
-    IDS_MSGJPN024           "Cannnot connect to SOCKS server. (Err=%d)"
     IDS_MSGJPN025           "Connected."
     IDS_MSGJPN026           "Cannnot connected."
     IDS_MSGJPN027           "Cannnot create socket."
-    IDS_MSGJPN028           "Cannnot connect to SOCKS server. (Err=%d)"
-    IDS_MSGJPN029           "Cannnot connect to SOCKS server. (Err=%d)"
-    IDS_MSGJPN030           "Cannnot create listen socket."
     IDS_MSGJPN031           "%s command not accepted."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN032           "Connection is cancelled by user."
     IDS_MSGJPN033           "Cannnot send SOCKS command. (Cmd = %04X)"
     IDS_MSGJPN034           "Cannnot receive SOCKS5 reply."
     IDS_MSGJPN035           "Cannnot receive SOCKS4 reply."

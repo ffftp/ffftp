@@ -15,23 +15,15 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN013 (std::data(msgs[10000+13])) /* SHA-1を使用します. */
 #define MSGJPN014 (std::data(msgs[10000+14])) /* MD4(S/KEY)を使用します. */
 #define MSGJPN015 (std::data(msgs[10000+15])) /* ワンタイムパスワードが処理できません */
-#define MSGJPN016 (std::data(msgs[10000+16])) /* ホスト %s を探しています. (%s) */
 #define MSGJPN017 (std::data(msgs[10000+17])) /* %sホスト %s (%s) に接続しています. */
-#define MSGJPN018 (std::data(msgs[10000+18])) /* %sホスト %s (%d) に接続しています. (%s) */
 #define MSGJPN019 (std::data(msgs[10000+19])) /* ホスト %s が見つかりません. */
-#define MSGJPN020 (std::data(msgs[10000+20])) /* %sホスト %s に接続しています. (%s) */
 #define MSGJPN021 (std::data(msgs[10000+21])) /* SOCKSサーバー %s が見つかりません. */
 #define MSGJPN022 (std::data(msgs[10000+22])) /* SOCKSサーバー %s に接続しています. */
 #define MSGJPN023 (std::data(msgs[10000+23])) /* SOCKSサーバーに接続できません. (Err=%d) */
-#define MSGJPN024 (std::data(msgs[10000+24])) /* SOCKSサーバーに接続できません. (Err=%d) */
 #define MSGJPN025 (std::data(msgs[10000+25])) /* 接続しました. */
 #define MSGJPN026 (std::data(msgs[10000+26])) /* 接続できません. */
 #define MSGJPN027 (std::data(msgs[10000+27])) /* ソケットが作成できません. */
-#define MSGJPN028 (std::data(msgs[10000+28])) /* SOCKSサーバーに接続できません. (Err=%d) */
-#define MSGJPN029 (std::data(msgs[10000+29])) /* SOCKSサーバーに接続できません. (Err=%d) */
-#define MSGJPN030 (std::data(msgs[10000+30])) /* Listenソケットが作成できません. */
 #define MSGJPN031 (std::data(msgs[10000+31])) /* %sコマンドが受け付けられません. */
-#define MSGJPN032 (std::data(msgs[10000+32])) /* 接続はユーザーによって中止されました. */
 #define MSGJPN033 (std::data(msgs[10000+33])) /* SOCKSのコマンドが送れませんでした (Cmd = %04X) */
 #define MSGJPN034 (std::data(msgs[10000+34])) /* SOCKS5のコマンドに対するリプライが受信できませんでした */
 #define MSGJPN035 (std::data(msgs[10000+35])) /* SOCKS4のコマンドに対するリプライが受信できませんでした */

@@ -2178,7 +2178,7 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork) {
 		auto port = saTarget.ss_family == AF_INET ? reinterpret_cast<sockaddr_in const&>(saTarget).sin_port : reinterpret_cast<sockaddr_in6 const&>(saTarget).sin6_port;
 		int cmdlen = UseIPadrs == YES ? Socks5MakeCmdPacket(&cmd5, SOCKS5_CMD_CONNECT, reinterpret_cast<const sockaddr*>(&saTarget), port) : Socks5MakeCmdPacket(&cmd5, SOCKS5_CMD_CONNECT, DomainName, port);
 		if (SOCKS5REPLY reply{ 0, -1 }; SocksSendCmd(s, &cmd5, cmdlen, CancelCheckWork) != FFFTP_SUCCESS || Socks5GetCmdReply(s, &reply, CancelCheckWork) != FFFTP_SUCCESS || reply.Result != SOCKS5_RES_OK) {
-			SetTaskMsg(MSGJPN024, reply.Result);
+			SetTaskMsg(MSGJPN023, reply.Result);
 			DoClose(s);
 			return INVALID_SOCKET;
 		}
@@ -2228,7 +2228,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 			int cmdlen = offsetof(SOCKS4CMD, UserID) + (int)strlen(FwallUser) + 1;
 			SOCKS4REPLY reply{ 0, -1 };
 			if (SocksSendCmd(listen_skt, &cmd4, cmdlen, CancelCheckWork) != FFFTP_SUCCESS || Socks4GetCmdReply(listen_skt, &reply, CancelCheckWork) != FFFTP_SUCCESS || reply.Result != SOCKS4_RES_OK) {
-				SetTaskMsg(MSGJPN028, reply.Result);
+				SetTaskMsg(MSGJPN023, reply.Result);
 				DoClose(listen_skt);
 				return INVALID_SOCKET;
 			}
@@ -2251,7 +2251,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 				: Socks5MakeCmdPacket(&cmd5, SOCKS5_CMD_BIND, DomainName, port);
 			SOCKS5REPLY reply{ 0, -1 };
 			if (SocksSendCmd(listen_skt, &cmd5, Len, CancelCheckWork) != FFFTP_SUCCESS || Socks5GetCmdReply(listen_skt, &reply, CancelCheckWork) != FFFTP_SUCCESS || reply.Result != SOCKS5_RES_OK) {
-				SetTaskMsg(MSGJPN029, reply.Result);
+				SetTaskMsg(MSGJPN023, reply.Result);
 				DoClose(listen_skt);
 				return INVALID_SOCKET;
 			}
@@ -2270,20 +2270,20 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 		if (bind(listen_skt, reinterpret_cast<const sockaddr*>(&saListen), salen) == SOCKET_ERROR) {
 			ReportWSError("bind", WSAGetLastError());
 			do_closesocket(listen_skt);
-			SetTaskMsg(MSGJPN030);
+			SetTaskMsg(MSGJPN027);
 			return INVALID_SOCKET;
 		}
 		salen = sizeof saListen;
 		if (getsockname(listen_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
 			ReportWSError("getsockname", WSAGetLastError());
 			do_closesocket(listen_skt);
-			SetTaskMsg(MSGJPN030);
+			SetTaskMsg(MSGJPN027);
 			return INVALID_SOCKET;
 		}
 		if (do_listen(listen_skt, 1) != 0) {
 			ReportWSError("listen", WSAGetLastError());
 			do_closesocket(listen_skt);
-			SetTaskMsg(MSGJPN030);
+			SetTaskMsg(MSGJPN027);
 			return INVALID_SOCKET;
 		}
 		// TODO: IPv6にUPnP NATは無意味なのでは？

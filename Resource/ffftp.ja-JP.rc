@@ -2320,27 +2320,19 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN016           "ホスト %s を探しています. (%s)"
     IDS_MSGJPN017           "%sホスト %s (%s) に接続しています."
-    IDS_MSGJPN018           "%sホスト %s (%d) に接続しています. (%s)"
     IDS_MSGJPN019           "ホスト %s が見つかりません."
-    IDS_MSGJPN020           "%sホスト %s に接続しています. (%s)"
     IDS_MSGJPN021           "SOCKSサーバー %s が見つかりません."
     IDS_MSGJPN022           "SOCKSサーバー %s に接続しています."
     IDS_MSGJPN023           "SOCKSサーバーに接続できません. (Err=%d)"
-    IDS_MSGJPN024           "SOCKSサーバーに接続できません. (Err=%d)"
     IDS_MSGJPN025           "接続しました."
     IDS_MSGJPN026           "接続できません."
     IDS_MSGJPN027           "ソケットが作成できません."
-    IDS_MSGJPN028           "SOCKSサーバーに接続できません. (Err=%d)"
-    IDS_MSGJPN029           "SOCKSサーバーに接続できません. (Err=%d)"
-    IDS_MSGJPN030           "Listenソケットが作成できません."
     IDS_MSGJPN031           "%sコマンドが受け付けられません."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN032           "接続はユーザーによって中止されました."
     IDS_MSGJPN033           "SOCKSのコマンドが送れませんでした (Cmd = %04X)"
     IDS_MSGJPN034           "SOCKS5のコマンドに対するリプライが受信できませんでした"
     IDS_MSGJPN035           "SOCKS4のコマンドに対するリプライが受信できませんでした"
