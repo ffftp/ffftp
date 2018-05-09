@@ -46,7 +46,6 @@ struct AsyncSignal {
 	int Event;
 	int Error;
 	sockaddr_storage HostAddr;
-	sockaddr_storage SocksAddr;
 	int MapPort;
 };
 
@@ -503,14 +502,10 @@ static void UnregisterAsyncTable(SOCKET s) {
 }
 
 
-void SetAsyncTableData(SOCKET s, sockaddr_storage* Host, sockaddr_storage* Socks) {
+void SetAsyncTableData(SOCKET s, sockaddr_storage const& Host) {
 	std::lock_guard lock{ SignalMutex };
-	if (auto it = Signal.find(s); it != end(Signal)) {
-		if (Host)
-			it->second.HostAddr = *Host;
-		if (Socks)
-			it->second.SocksAddr = *Socks;
-	}
+	if (auto it = Signal.find(s); it != end(Signal))
+		it->second.HostAddr = Host;
 }
 
 void SetAsyncTableDataMapPort(SOCKET s, int Port) {
@@ -519,13 +514,10 @@ void SetAsyncTableDataMapPort(SOCKET s, int Port) {
 		it->second.MapPort = Port;
 }
 
-int GetAsyncTableData(SOCKET s, sockaddr_storage* Host, sockaddr_storage* Socks) {
+int GetAsyncTableData(SOCKET s, sockaddr_storage& Host) {
 	std::lock_guard lock{ SignalMutex };
 	if (auto it = Signal.find(s); it != end(Signal)) {
-		if (Host)
-			*Host = it->second.HostAddr;
-		if (Socks)
-			*Socks = it->second.SocksAddr;
+		Host = it->second.HostAddr;
 		return YES;
 	}
 	return NO;

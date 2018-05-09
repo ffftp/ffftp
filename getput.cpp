@@ -4125,7 +4125,7 @@ static int GetAdrsAndPortIPv4(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 							}
 							else
 							{
-								if(sockaddr_storage SockAddr; GetAsyncTableData(Skt, &SockAddr, NULL) == YES)
+								if(sockaddr_storage SockAddr; GetAsyncTableData(Skt, SockAddr) == YES)
 									strcpy(Adrs, u8(AddressToString(SockAddr)).c_str());
 							}
 
@@ -4183,7 +4183,7 @@ static int GetAdrsAndPortIPv6(SOCKET Skt, char *Str, char *Adrs, int *Port, int 
 						}
 						else
 						{
-							if(sockaddr_storage SockAddr; GetAsyncTableData(Skt, &SockAddr, NULL) == YES)
+							if(sockaddr_storage SockAddr; GetAsyncTableData(Skt, SockAddr) == YES)
 								strcpy(Adrs, u8(AddressToString(SockAddr)).c_str());
 						}
 

@@ -2264,7 +2264,6 @@ static SOCKET connectsock(ADDRESS_FAMILY family, char *host, int port, char *Pre
 	SOCKS4CMD cmd4;
 	SOCKS5REQUEST cmd5;
 	int cmdlen;
-	sockaddr_storage saSocks;	/* SOCKSサーバのアドレス情報 */
 	sockaddr_storage saConnect;
 	if (family == AF_INET && Fwall == FWALL_SOCKS4 || Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
 		// SOCKSを使う
@@ -2286,10 +2285,9 @@ static SOCKET connectsock(ADDRESS_FAMILY family, char *host, int port, char *Pre
 			SetTaskMsg(MSGJPN021, FwallHost, ipversion);
 			return INVALID_SOCKET;
 		}
-		memcpy(&saSocks, ai->ai_addr, ai->ai_addrlen);
-		SetTaskMsg(MSGJPN022, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str(), ipversion);
 		// connectで接続する先はSOCKSサーバ
-		saConnect = saSocks;
+		memcpy(&saConnect, ai->ai_addr, ai->ai_addrlen);
+		SetTaskMsg(MSGJPN022, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str(), ipversion);
 	} else {
 		// connectで接続するのは接続先のホスト
 		saConnect = saTarget;
@@ -2305,7 +2303,7 @@ static SOCKET connectsock(ADDRESS_FAMILY family, char *host, int port, char *Pre
 		return INVALID_SOCKET;
 	}
 	// ソケットにデータを付与
-	SetAsyncTableData(s, &saTarget, &saSocks);
+	SetAsyncTableData(s, saTarget);
 	if (do_connect(s, (struct sockaddr *)&saConnect, sizeof(saConnect), CancelCheckWork) == SOCKET_ERROR) {
 		SetTaskMsg(MSGJPN026, ipversion);
 		DoClose(s);
@@ -2364,7 +2362,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 			return INVALID_SOCKET;
 		}
 		sockaddr_storage saTarget;
-		GetAsyncTableData(ctrl_skt, &saTarget, nullptr);
+		GetAsyncTableData(ctrl_skt, saTarget);
 		if (FwallType == FWALL_SOCKS4) {
 			assert(saTarget.ss_family == AF_INET);
 			auto const& sa = reinterpret_cast<sockaddr_in const&>(saTarget);
