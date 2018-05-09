@@ -1063,8 +1063,6 @@ int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
 		Set->ReuseCmdSkt = Pos->Set.ReuseCmdSkt;
 		// MLSD対応
 		Set->UseMLSD = Pos->Set.UseMLSD;
-		// IPv6対応
-		Set->NetType = Pos->Set.NetType;
 		// 自動切断対策
 		Set->NoopInterval = Pos->Set.NoopInterval;
 		// 再転送対応
@@ -1422,8 +1420,6 @@ void CopyDefaultDefaultHost(HOSTDATA *Set)
 	// MLSD対応
 	Set->Feature = 0;
 	Set->UseMLSD = YES;
-	// IPv6対応
-	Set->NetType = NTYPE_AUTO;
 	Set->CurNetType = NTYPE_AUTO;
 	// 自動切断対策
 	Set->NoopInterval = 60;
@@ -1919,11 +1915,6 @@ static INT_PTR CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, 
 			SendDlgItemMessage(hDlg, HSET_SECURITY, CB_SETCURSEL, TmpHost.Security, 0);
 			SendDlgItemMessage(hDlg, HSET_INITCMD, EM_LIMITTEXT, INITCMD_LEN, 0);
 			SendDlgItemMessage(hDlg, HSET_INITCMD, WM_SETTEXT, 0, (LPARAM)TmpHost.InitCmd);
-			// IPv6対応
-			SendDlgItemMessage(hDlg, HSET_NETTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN332);
-			SendDlgItemMessage(hDlg, HSET_NETTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN333);
-			SendDlgItemMessage(hDlg, HSET_NETTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN334);
-			SendDlgItemMessage(hDlg, HSET_NETTYPE, CB_SETCURSEL, TmpHost.NetType, 0);
 			return(TRUE);
 
 		case WM_NOTIFY:
@@ -1940,8 +1931,6 @@ static INT_PTR CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, 
 					TmpHost.TimeZone = (int)SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_GETCURSEL, 0, 0) - 12;
 					TmpHost.Security = (int)SendDlgItemMessage(hDlg, HSET_SECURITY, CB_GETCURSEL, 0, 0);
 					SendDlgItemMessage(hDlg, HSET_INITCMD, WM_GETTEXT, INITCMD_LEN+1, (LPARAM)TmpHost.InitCmd);
-					// IPv6対応
-					TmpHost.NetType = (int)SendDlgItemMessage(hDlg, HSET_NETTYPE, CB_GETCURSEL, 0, 0);
 					Apply = YES;
 					break;
 

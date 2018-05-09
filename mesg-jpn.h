@@ -300,9 +300,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN329 (std::data(msgs[10000+329])) /* UTF-8 BOM */
 #define MSGJPN330 (std::data(msgs[10000+330])) /* ホストの漢字コードはUTF-8 BOM */
 #define MSGJPN331 (std::data(msgs[10000+331])) /* ローカルの漢字コードはUTF-8 BOM */
-#define MSGJPN332 (std::data(msgs[10000+332])) /* 自動 */
-#define MSGJPN333 (std::data(msgs[10000+333])) /* TCP/IPv4 */
-#define MSGJPN334 (std::data(msgs[10000+334])) /* TCP/IPv6 */
 #define MSGJPN335 (std::data(msgs[10000+335])) /* 毎回尋ねる */
 #define MSGJPN336 (std::data(msgs[10000+336])) /* 全て後で上書き */
 #define MSGJPN337 (std::data(msgs[10000+337])) /* 全て後でリジューム */

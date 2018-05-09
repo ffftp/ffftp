@@ -651,8 +651,6 @@ BEGIN
     PUSHBUTTON      "標準",HSET_PORT_NOR,30,66,25,13
     LTEXT           "アカウント(&C)",-1,7,87,65,8
     EDITTEXT        HSET_ACCOUNT,7,97,62,12,ES_AUTOHSCROLL
-    LTEXT           "ネットワークの種類(&N)",-1,7,115,81,8
-    COMBOBOX        HSET_NETTYPE,7,125,71,75,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     LTEXT           "ホストのタイムゾーン(&T)",-1,103,7,81,8
     COMBOBOX        HSET_TIMEZONE,103,17,71,102,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     LTEXT           "セキュリティ(&Q)",-1,103,35,72,8
@@ -2681,9 +2679,6 @@ BEGIN
     IDS_MSGJPN329           "UTF-8 BOM"
     IDS_MSGJPN330           "ホストの漢字コードはUTF-8 BOM"
     IDS_MSGJPN331           "ローカルの漢字コードはUTF-8 BOM"
-    IDS_MSGJPN332           "自動"
-    IDS_MSGJPN333           "TCP/IPv4"
-    IDS_MSGJPN334           "TCP/IPv6"
     IDS_MSGJPN335           "毎回尋ねる"
 END
 

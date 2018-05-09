@@ -1189,8 +1189,6 @@ typedef struct {
 	int Feature;						/* 利用可能な機能のフラグ (FEATURE_xxx) */
 	// MLSD対応
 	int UseMLSD;						/* "MLSD"コマンドを使用する */
-	// IPv6対応
-	int NetType;						/* ネットワークの種類 (NTYPE_xxx) */
 	int CurNetType;						/* 接続中のネットワークの種類 (NTYPE_xxx) */
 	// 自動切断対策
 	int NoopInterval;					/* 無意味なコマンドを送信する間隔（秒数、0で無効）*/
@@ -1258,8 +1256,6 @@ typedef struct historydata {
 	int ReuseCmdSkt;					/* メインウィンドウのソケットを再利用する (YES/NO) */
 	// MLSD対応
 	int UseMLSD;						/* "MLSD"コマンドを使用する */
-	// IPv6対応
-	int NetType;						/* ネットワークの種類 (NTYPE_xxx) */
 	// 自動切断対策
 	int NoopInterval;					/* NOOPコマンドを送信する間隔（秒数、0で無効）*/
 	// 再転送対応

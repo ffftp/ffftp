@@ -459,7 +459,6 @@
 #define HSET_REUSE_SOCKET               1207
 #define HSET_NOOP_INTERVAL              1208
 #define HSET_NOOP_INTERVAL_SPN          1209
-#define HSET_NETTYPE                    1210
 #define HSET_ERROR_MODE                 1211
 #define HSET_MLSDCMD                    1212
 #define DOWN_EXIST_LARGE                1213
@@ -777,9 +776,6 @@
 #define IDS_MSGJPN329                   10329
 #define IDS_MSGJPN330                   10330
 #define IDS_MSGJPN331                   10331
-#define IDS_MSGJPN332                   10332
-#define IDS_MSGJPN333                   10333
-#define IDS_MSGJPN334                   10334
 #define IDS_MSGJPN335                   10335
 #define IDS_MSGJPN336                   10336
 #define IDS_MSGJPN337                   10337

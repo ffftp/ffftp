@@ -136,8 +136,6 @@ void ConnectProc(int Type, int Num)
 		CopyHostFromList(AskCurrentHost(), &CurHost);
 		// UTF-8対応
 		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
-		// IPv6対応
-		CurHost.CurNetType = CurHost.NetType;
 
 		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == FFFTP_SUCCESS)
 		{
@@ -287,8 +285,6 @@ void QuickConnectProc(void)
 		CopyDefaultHost(&CurHost);
 		// UTF-8対応
 		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
-		// IPv6対応
-		CurHost.CurNetType = CurHost.NetType;
 		if(SplitUNCpath(Tmp, CurHost.HostAdrs, CurHost.RemoteInitDir, File, CurHost.UserName, CurHost.PassWord, &CurHost.Port) == FFFTP_SUCCESS)
 		{
 			if(strlen(CurHost.UserName) == 0)
@@ -505,8 +501,6 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 		CurHost.KanaCnv = YES;			/* とりあえず */
 		// UTF-8対応
 		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
-		// IPv6対応
-		CurHost.CurNetType = CurHost.NetType;
 
 		SetHostKanaCnvImm(CurHost.KanaCnv);
 		SetHostKanjiCodeImm(CurHost.KanjiCode);
@@ -615,8 +609,6 @@ void HistoryConnectProc(int MenuCmd)
 		CopyHistoryToHost(&Hist, &CurHost);
 		// UTF-8対応
 		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
-		// IPv6対応
-		CurHost.CurNetType = CurHost.NetType;
 
 		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == FFFTP_SUCCESS)
 		{
@@ -1206,8 +1198,6 @@ int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
 		HostData.UseSFTP = NO;
 	// UTF-8対応
 	HostData.CurNameKanjiCode = HostData.NameKanjiCode;
-	// IPv6対応
-	HostData.CurNetType = HostData.NetType;
 	// 同時接続対応
 	HostData.NoDisplayUI = YES;
 	// 暗号化通信対応
