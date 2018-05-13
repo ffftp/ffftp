@@ -34,6 +34,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <chrono>
 #include <filesystem>
 #include <future>
@@ -2126,9 +2127,9 @@ bool IsSecureConnection();
 BOOL IsSSLAttached(SOCKET s);
 int MakeSocketWin(HWND hWnd, HINSTANCE hInst);
 void DeleteSocketWin(void);
-void SetAsyncTableData(SOCKET s, sockaddr_storage const& Host);
+void SetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::string, int>> const& target);
 void SetAsyncTableDataMapPort(SOCKET s, int Port);
-int GetAsyncTableData(SOCKET s, sockaddr_storage& Host);
+int GetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::string, int>>& target);
 int GetAsyncTableDataMapPort(SOCKET s, int* Port);
 SOCKET do_socket(int af, int type, int protocol);
 int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCheckWork);

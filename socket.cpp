@@ -45,7 +45,7 @@
 struct AsyncSignal {
 	int Event;
 	int Error;
-	sockaddr_storage HostAddr;
+	std::variant<sockaddr_storage, std::tuple<std::string, int>> Target;
 	int MapPort;
 };
 
@@ -502,10 +502,10 @@ static void UnregisterAsyncTable(SOCKET s) {
 }
 
 
-void SetAsyncTableData(SOCKET s, sockaddr_storage const& Host) {
+void SetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::string, int>> const& target) {
 	std::lock_guard lock{ SignalMutex };
 	if (auto it = Signal.find(s); it != end(Signal))
-		it->second.HostAddr = Host;
+		it->second.Target = target;
 }
 
 void SetAsyncTableDataMapPort(SOCKET s, int Port) {
@@ -514,10 +514,10 @@ void SetAsyncTableDataMapPort(SOCKET s, int Port) {
 		it->second.MapPort = Port;
 }
 
-int GetAsyncTableData(SOCKET s, sockaddr_storage& Host) {
+int GetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::string, int>>& target) {
 	std::lock_guard lock{ SignalMutex };
 	if (auto it = Signal.find(s); it != end(Signal)) {
-		Host = it->second.HostAddr;
+		target = it->second.Target;
 		return YES;
 	}
 	return NO;

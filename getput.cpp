@@ -99,11 +99,7 @@ static int SetUploadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *M
 static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
 static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt);
 static void DispTransFileInfo(TRANSPACKET *Pkt, char *Title, int SkipButton, int Info);
-// IPv6対応
-//static int GetAdrsAndPort(char *Str, char *Adrs, int *Port, int Max);
 static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max);
-static int GetAdrsAndPortIPv4(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max);
-static int GetAdrsAndPortIPv6(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max);
 static int IsSpecialDevice(char *Fname);
 static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt);
 // 64ビット対応
@@ -4046,163 +4042,50 @@ static void DispTransFileInfo(TRANSPACKET *Pkt, char *Title, int SkipButton, int
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max)
-{
-	int Result;
-	Result = FFFTP_FAIL;
-	switch(AskCurNetType())
-	{
-	case NTYPE_IPV4:
-		Result = GetAdrsAndPortIPv4(Skt, Str, Adrs, Port, Max);
-		break;
-	case NTYPE_IPV6:
-		Result = GetAdrsAndPortIPv6(Skt, Str, Adrs, Port, Max);
-		break;
-	}
-	return Result;
-}
+static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max) {
+	if (AskCurNetType() == NTYPE_IPV4) {
+		// RFC1123 4.1.2.6  PASV Command: RFC-959 Section 4.1.2
+		// Therefore, a User-FTP program that interprets the PASV reply must scan the reply for the first digit of the host and port numbers.
+		// コンマではなくドットを返すホストがある
+		static std::regex re{ R"((\d+[,.]\d+[,.]\d+[,.]\d+)[,.](\d+)[,.](\d+))" };
+		if (std::cmatch m; std::regex_search(Str, m, re)) {
+			int p1, p2;
+			std::from_chars(m[2].first, m[2].second, p1);
+			std::from_chars(m[3].first, m[3].second, p2);
+			*Port = p1 << 8 | p2;
 
-
-// IPv6対応
-//static int GetAdrsAndPort(char *Str, char *Adrs, int *Port, int Max)
-static int GetAdrsAndPortIPv4(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max)
-{
-	char *Pos;
-	char *Btm;
-	// コンマではなくドットを返すホストがあるため
-	char *OldBtm;
-	int Sts;
-	Sts = FFFTP_FAIL;
-
-	Pos = strchr(Str, '(');
-	if(Pos != NULL)
-	{
-		Pos++;
-		Btm = strchr(Pos, ',');
-		// コンマではなくドットを返すホストがあるため
-		if(Btm == NULL)
-			Btm = strchr(Pos, '.');
-		if(Btm != NULL)
-		{
-			Btm++;
-			// コンマではなくドットを返すホストがあるため
-//			Btm = strchr(Btm, ',');
-			OldBtm = Btm;
-			Btm = strchr(OldBtm, ',');
-			if(Btm == NULL)
-				Btm = strchr(OldBtm, '.');
-			if(Btm != NULL)
-			{
-				Btm++;
-				// コンマではなくドットを返すホストがあるため
-//				Btm = strchr(Btm, ',');
-				OldBtm = Btm;
-				Btm = strchr(OldBtm, ',');
-				if(Btm == NULL)
-					Btm = strchr(OldBtm, '.');
-				if(Btm != NULL)
-				{
-					Btm++;
-					// コンマではなくドットを返すホストがあるため
-//					Btm = strchr(Btm, ',');
-					OldBtm = Btm;
-					Btm = strchr(OldBtm, ',');
-					if(Btm == NULL)
-						Btm = strchr(OldBtm, '.');
-					if(Btm != NULL)
-					{
-						if((Btm - Pos) <= Max)
-						{
-							// ホスト側の設定ミス対策
-//							strncpy(Adrs, Pos, Btm - Pos);
-//							*(Adrs + (Btm - Pos)) = NUL;
-//							ReplaceAll(Adrs, ',', '.');
-							if(AskNoPasvAdrs() == NO)
-							{
-								strncpy(Adrs, Pos, Btm - Pos);
-								*(Adrs + (Btm - Pos)) = NUL;
-								ReplaceAll(Adrs, ',', '.');
-							}
-							else
-							{
-								if(sockaddr_storage SockAddr; GetAsyncTableData(Skt, SockAddr) == YES)
-									strcpy(Adrs, u8(AddressToString(SockAddr)).c_str());
-							}
-
-							Pos = Btm + 1;
-							Btm = strchr(Pos, ',');
-							// コンマではなくドットを返すホストがあるため
-							if(Btm == NULL)
-								Btm = strchr(Pos, '.');
-							if(Btm != NULL)
-							{
-								Btm++;
-								*Port = (atoi(Pos) * 0x100) + atoi(Btm);
-								Sts = FFFTP_SUCCESS;
-							}
-						}
-					}
-				}
+			// ホスト側の設定ミス対策
+			if (AskNoPasvAdrs() == NO) {
+				auto addr = m[1].str();
+				std::replace(begin(addr), end(addr), ',', '.');
+				strcpy(Adrs, addr.c_str());
+				return FFFTP_SUCCESS;
 			}
-		}
+		} else
+			return FFFTP_FAIL;
+	} else {
+		// RFC2428 3.  The EPSV Command
+		// The text returned in response to the EPSV command MUST be:
+		// <text indicating server is entering extended passive mode> (<d><d><d><tcp-port><d>)
+		static std::regex re{ R"(\(([\x21-\xFE])\1\1(\d+)\1\))" };
+		if (std::cmatch m; std::regex_search(Str, m, re))
+			std::from_chars(m[2].first, m[2].second, *Port);
+		else
+			return FFFTP_FAIL;
 	}
-	return(Sts);
-}
-
-
-// IPv6対応
-static int GetAdrsAndPortIPv6(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max)
-{
-	char *Pos;
-	char *Btm;
-	int Sts;
-	Sts = FFFTP_FAIL;
-
-	Btm = strchr(Str, '(');
-	if(Btm != NULL)
-	{
-		Btm++;
-		Btm = strchr(Btm, '|');
-		if(Btm != NULL)
-		{
-			Pos = Btm + 1;
-			Btm = strchr(Pos, '|');
-			if(Btm != NULL)
-			{
-				Pos = Btm + 1;
-				Btm = strchr(Pos, '|');
-				if(Btm != NULL)
-				{
-					if((Btm - Pos) <= Max)
-					{
-						// ホスト側の設定ミス対策
-						if(AskNoPasvAdrs() == NO && (Btm - Pos) > 0)
-						{
-							strncpy(Adrs, Pos, Btm - Pos);
-							*(Adrs + (Btm - Pos)) = NUL;
-						}
-						else
-						{
-							if(sockaddr_storage SockAddr; GetAsyncTableData(Skt, SockAddr) == YES)
-								strcpy(Adrs, u8(AddressToString(SockAddr)).c_str());
-						}
-
-						Pos = Btm + 1;
-						Btm = strchr(Pos, '|');
-						if(Btm != NULL)
-						{
-							Btm++;
-							*Port = atoi(Pos);
-							Btm = strchr(Btm, ')');
-							if(Btm != NULL)
-								Sts = FFFTP_SUCCESS;
-						}
-					}
-				}
-			}
-		}
-	}
-	return(Sts);
+	std::variant<sockaddr_storage, std::tuple<std::string, int>> target;
+	GetAsyncTableData(Skt, target);
+	std::visit([Adrs](auto addr) {
+		using type = std::decay_t<decltype(addr)>;
+		if constexpr (std::is_same_v<type, sockaddr_storage>) {
+			strcpy(Adrs, u8(AddressToString(addr)).c_str());
+		} else if constexpr (std::is_same_v<type, std::tuple<std::string, int>>) {
+			auto [host, port] = addr;
+			strcpy(Adrs, host.c_str());
+		} else
+			static_assert(false_v<type>);
+	}, target);
+	return FFFTP_SUCCESS;
 }
 
 

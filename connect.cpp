@@ -48,7 +48,7 @@ static int ReConnectSkt(SOCKET *Skt);
 static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork);
 static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork);
 static int CheckOneTimePassword(char *Pass, char *Reply, int Type);
-static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, std::variant<const sockaddr*, const char*> addr, ushort Port);
+static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, std::variant<sockaddr_storage, std::tuple<std::string, int>> const& target);
 static int SocksSendCmd(SOCKET Socket, void *Data, int Size, int *CancelCheckWork);
 // 同時接続対応
 //static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet);
@@ -93,15 +93,6 @@ static int TryConnect = NO;
 static SOCKET CmdCtrlSocket = INVALID_SOCKET;
 static SOCKET TrnCtrlSocket = INVALID_SOCKET;
 static HOSTDATA CurHost;
-
-/* 接続中の接続先、SOCKSサーバのアドレス情報を保存しておく */
-/* この情報はlistenソケットを取得する際に用いる */
-// IPv6対応
-//static struct sockaddr_in SocksSockAddr;	/* SOCKSサーバのアドレス情報 */
-//static struct sockaddr_in CurSockAddr;		/* 接続先ホストのアドレス情報 */
-
-static int UseIPadrs;
-static char DomainName[HOST_ADRS_LEN+1];
 
 #if defined(HAVE_TANDEM)
 static int Oss = NO;  /* OSS ファイルシステムへアクセスしている場合は YES */
@@ -2106,29 +2097,27 @@ static inline auto getaddrinfo(std::wstring const& host, int port, int family, i
 
 
 SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork) {
-	//////////////////////////////
-	// ホスト名解決と接続の準備
-	//////////////////////////////
-
-	strcpy(DomainName, host);
+	std::variant<sockaddr_storage, std::tuple<std::string, int>> target;
 	int Fwall = AskHostFireWall() == YES ? FwallType : FWALL_NONE;
-	UseIPadrs = (Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) && FwallResolve == YES ? NO : YES;
-	sockaddr_storage saTarget;
 	if (auto ai = getaddrinfo(u8(host), port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC)) {
-		UseIPadrs = YES;
-		SetTaskMsg(MSGJPN017, PreMsg, DomainName, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str());
-		memcpy(&saTarget, ai->ai_addr, ai->ai_addrlen);
-	} else if (UseIPadrs == YES && (ai = getaddrinfo(u8(host), port, AF_UNSPEC, CancelCheckWork))) {
-		SetTaskMsg(MSGJPN017, PreMsg, DomainName, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str());
-		memcpy(&saTarget, ai->ai_addr, ai->ai_addrlen);
-	} else if (UseIPadrs == YES) {
+		// ホスト名がIPアドレスだった
+		SetTaskMsg(MSGJPN017, PreMsg, host, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str());
+		memcpy(&std::get<sockaddr_storage>(target), ai->ai_addr, ai->ai_addrlen);
+	} else if ((Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) && FwallResolve == YES) {
+		// SOCKS5で名前解決する
+		target = std::tuple{ std::string(host), port };
+	} else if (ai = getaddrinfo(u8(host), port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC, CancelCheckWork)) {
+		// 名前解決に成功
+		SetTaskMsg(MSGJPN017, PreMsg, host, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str());
+		memcpy(&std::get<sockaddr_storage>(target), ai->ai_addr, ai->ai_addrlen);
+	} else {
+		// 名前解決に失敗
 		SetTaskMsg(MSGJPN019, host);
 		return INVALID_SOCKET;
 	}
-	CurHost.CurNetType = saTarget.ss_family == AF_INET ? NTYPE_IPV4 : NTYPE_IPV6;
 
 	sockaddr_storage saConnect;
-	if (saTarget.ss_family == AF_INET && Fwall == FWALL_SOCKS4 || Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
+	if (Fwall == FWALL_SOCKS4 || Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
 		// connectで接続する先はSOCKSサーバ
 		auto ai = getaddrinfo(u8(FwallHost), FwallPort);
 		if (!ai)
@@ -2141,26 +2130,22 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork) {
 		SetTaskMsg(MSGJPN022, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str());
 	} else {
 		// connectで接続するのは接続先のホスト
-		saConnect = saTarget;
+		saConnect = std::get<sockaddr_storage>(target);
 	}
-
-	/////////////
-	// 接続実行
-	/////////////
 
 	auto s = do_socket(saConnect.ss_family, SOCK_STREAM, TCP_PORT);
 	if (s == INVALID_SOCKET) {
 		SetTaskMsg(MSGJPN027);
 		return INVALID_SOCKET;
 	}
-	SetAsyncTableData(s, saTarget);
+	SetAsyncTableData(s, target);
 	if (do_connect(s, reinterpret_cast<const sockaddr*>(&saConnect), sizeof saConnect, CancelCheckWork) == SOCKET_ERROR) {
 		SetTaskMsg(MSGJPN026);
 		DoClose(s);
 		return INVALID_SOCKET;
 	}
-	if (saTarget.ss_family == AF_INET && Fwall == FWALL_SOCKS4) {
-		auto const& sa = reinterpret_cast<sockaddr_in const&>(saTarget);
+	if (Fwall == FWALL_SOCKS4) {
+		auto const& sa = reinterpret_cast<sockaddr_in const&>(std::get<sockaddr_storage>(target));
 		SOCKS4CMD cmd4{ SOCKS4_VER, SOCKS4_CMD_CONNECT, sa.sin_port, sa.sin_addr.s_addr };
 		strcpy(cmd4.UserID, FwallUser);
 		int cmdlen = offsetof(SOCKS4CMD, UserID) + (int)strlen(FwallUser) + 1;
@@ -2169,20 +2154,23 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork) {
 			DoClose(s);
 			return INVALID_SOCKET;
 		}
+		CurHost.CurNetType = NTYPE_IPV4;
 	} else if (Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
 		if (Socks5SelMethod(s, CancelCheckWork) == FFFTP_FAIL) {
 			DoClose(s);
 			return INVALID_SOCKET;
 		}
 		SOCKS5REQUEST cmd5;
-		auto port = saTarget.ss_family == AF_INET ? reinterpret_cast<sockaddr_in const&>(saTarget).sin_port : reinterpret_cast<sockaddr_in6 const&>(saTarget).sin6_port;
-		int cmdlen = UseIPadrs == YES ? Socks5MakeCmdPacket(&cmd5, SOCKS5_CMD_CONNECT, reinterpret_cast<const sockaddr*>(&saTarget), port) : Socks5MakeCmdPacket(&cmd5, SOCKS5_CMD_CONNECT, DomainName, port);
-		if (SOCKS5REPLY reply{ 0, -1 }; SocksSendCmd(s, &cmd5, cmdlen, CancelCheckWork) != FFFTP_SUCCESS || Socks5GetCmdReply(s, &reply, CancelCheckWork) != FFFTP_SUCCESS || reply.Result != SOCKS5_RES_OK) {
+		int cmdlen = Socks5MakeCmdPacket(&cmd5, SOCKS5_CMD_CONNECT, target);
+		SOCKS5REPLY reply{ 0, -1 };
+		if (SocksSendCmd(s, &cmd5, cmdlen, CancelCheckWork) != FFFTP_SUCCESS || Socks5GetCmdReply(s, &reply, CancelCheckWork) != FFFTP_SUCCESS || reply.Result != SOCKS5_RES_OK) {
 			SetTaskMsg(MSGJPN023, reply.Result);
 			DoClose(s);
 			return INVALID_SOCKET;
 		}
-	}
+		CurHost.CurNetType = reply.Type == SOCKS5_ADRS_IPV4 ? NTYPE_IPV4 : NTYPE_IPV6;
+	} else
+		CurHost.CurNetType = saConnect.ss_family == AF_INET ? NTYPE_IPV4 : NTYPE_IPV6;
 	SetTaskMsg(MSGJPN025);
 	return s;
 }
@@ -2190,12 +2178,6 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork) {
 
 // リッスンソケットを取得
 SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
-	// FwallType == FWALL_SOCKS4 && Control接続がIPv4
-	//   → SOCKS4
-	// FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER
-	//   → SOCKS5
-	// それ以外
-	//   → direct
 	sockaddr_storage saListen;
 	int salen = sizeof saListen;
 	if (getsockname(ctrl_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
@@ -2207,7 +2189,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 		ReportWSError("socket create", WSAGetLastError());
 		return INVALID_SOCKET;
 	}
-	if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 && saListen.ss_family == AF_INET || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
+	if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
 		DoPrintf("Use SOCKS BIND");
 		// Control接続と同じアドレスに接続する
 		salen = sizeof saListen;
@@ -2218,11 +2200,11 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 		if (do_connect(listen_skt, reinterpret_cast<const sockaddr*>(&saListen), salen, CancelCheckWork) == SOCKET_ERROR) {
 			return INVALID_SOCKET;
 		}
-		sockaddr_storage saTarget;
-		GetAsyncTableData(ctrl_skt, saTarget);
+		std::variant<sockaddr_storage, std::tuple<std::string, int>> target;
+		GetAsyncTableData(ctrl_skt, target);
 		if (FwallType == FWALL_SOCKS4) {
-			assert(saTarget.ss_family == AF_INET);
-			auto const& sa = reinterpret_cast<sockaddr_in const&>(saTarget);
+			assert(std::get<sockaddr_storage>(target).ss_family == AF_INET);
+			auto const& sa = reinterpret_cast<sockaddr_in const&>(std::get<sockaddr_storage>(target));
 			SOCKS4CMD cmd4{ SOCKS4_VER, SOCKS4_CMD_BIND, sa.sin_port, sa.sin_addr.s_addr };
 			strcpy(cmd4.UserID, FwallUser);
 			int cmdlen = offsetof(SOCKS4CMD, UserID) + (int)strlen(FwallUser) + 1;
@@ -2232,10 +2214,11 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 				DoClose(listen_skt);
 				return INVALID_SOCKET;
 			}
-			// TODO: SOCKS4サーバーがlisten()したアドレスを返す個所。アドレスを返さなかった場合にはSOCK4サーバーのアドレスを使用している。このようなことがあり得るのか？
 			if (reply.AdrsInt == 0) {
+				// from "SOCKS: A protocol for TCP proxy across firewalls"
+				// If the DSTIP in the reply is 0 (the value of constant INADDR_ANY), then the client should replace it by the IP address of the SOCKS server to which the cleint is connected.
 				assert(saListen.ss_family == AF_INET);
-				reply.AdrsInt = reinterpret_cast<sockaddr_in&>(saListen).sin_addr.s_addr;
+				reply.AdrsInt = reinterpret_cast<sockaddr_in const&>(saListen).sin_addr.s_addr;
 			}
 			reinterpret_cast<sockaddr_in&>(saListen) = { AF_INET, reply.Port };
 			reinterpret_cast<sockaddr_in&>(saListen).sin_addr.s_addr = reply.AdrsInt;
@@ -2244,13 +2227,10 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 				DoClose(listen_skt);
 				return INVALID_SOCKET;
 			}
-			auto port = saTarget.ss_family == AF_INET ? reinterpret_cast<sockaddr_in const&>(saTarget).sin_port : reinterpret_cast<sockaddr_in6 const&>(saTarget).sin6_port;
 			SOCKS5REQUEST cmd5;
-			int Len = UseIPadrs == YES
-				? Socks5MakeCmdPacket(&cmd5, SOCKS5_CMD_BIND, reinterpret_cast<const sockaddr*>(&saTarget), port)
-				: Socks5MakeCmdPacket(&cmd5, SOCKS5_CMD_BIND, DomainName, port);
+			int cmdlen = Socks5MakeCmdPacket(&cmd5, SOCKS5_CMD_BIND, target);
 			SOCKS5REPLY reply{ 0, -1 };
-			if (SocksSendCmd(listen_skt, &cmd5, Len, CancelCheckWork) != FFFTP_SUCCESS || Socks5GetCmdReply(listen_skt, &reply, CancelCheckWork) != FFFTP_SUCCESS || reply.Result != SOCKS5_RES_OK) {
+			if (SocksSendCmd(listen_skt, &cmd5, cmdlen, CancelCheckWork) != FFFTP_SUCCESS || Socks5GetCmdReply(listen_skt, &reply, CancelCheckWork) != FFFTP_SUCCESS || reply.Result != SOCKS5_RES_OK) {
 				SetTaskMsg(MSGJPN023, reply.Result);
 				DoClose(listen_skt);
 				return INVALID_SOCKET;
@@ -2335,30 +2315,32 @@ int AskTryingConnect(void)
 }
 
 
-static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, std::variant<const sockaddr*, const char*> addr, ushort Port) {
+static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, std::variant<sockaddr_storage, std::tuple<std::string, int>> const& target) {
 	Packet->Ver = SOCKS5_VER;
 	Packet->Cmd = Cmd;
 	Packet->Rsv = 0;
 	auto dst = reinterpret_cast<unsigned char*>(Packet->_dummy);
-	auto [type, ptr, len] = std::visit([&dst](auto addr) -> std::tuple<char, const void*, int> {
-		using type = decltype(addr);
-		if constexpr (std::is_same_v<type, const sockaddr*>) {
-			if (addr->sa_family == AF_INET) {
-				return { SOCKS5_ADRS_IPV4, &reinterpret_cast<const sockaddr_in*>(addr)->sin_addr, static_cast<int>(sizeof(IN_ADDR)) };
+	auto [type, ptr, len, port] = std::visit([&dst](auto const& addr) -> std::tuple<char, const void*, int, USHORT> {
+		using type = std::decay_t<decltype(addr)>;
+		if constexpr (std::is_same_v<type, sockaddr_storage>) {
+			if (addr.ss_family == AF_INET) {
+				auto sa = reinterpret_cast<sockaddr_in const&>(addr);
+				return { SOCKS5_ADRS_IPV4, &sa.sin_addr, static_cast<int>(sizeof(sockaddr_in::sin_addr)), sa.sin_port };
 			} else {
-				assert(addr->sa_family == AF_INET6);
-				return { SOCKS5_ADRS_IPV6, &reinterpret_cast<const sockaddr_in6*>(addr)->sin6_addr, static_cast<int>(sizeof(IN6_ADDR)) };
+				assert(addr.ss_family == AF_INET6);
+				auto sa = reinterpret_cast<sockaddr_in6 const&>(addr);
+				return { SOCKS5_ADRS_IPV6, &sa.sin6_addr, static_cast<int>(sizeof(sockaddr_in6::sin6_addr)), sa.sin6_port };
 			}
-		} else if constexpr (std::is_same_v<type, const char*>) {
-			auto hostlen = static_cast<unsigned char>(strlen(addr));
-			*dst++ = hostlen;
-			return { SOCKS5_ADRS_NAME, addr, hostlen };
+		} else if constexpr (std::is_same_v<type, std::tuple<std::string, int>>) {
+			auto [host, port] = addr;
+			*dst++ = size_as<unsigned char>(host);
+			return { SOCKS5_ADRS_NAME, host.c_str(), size_as<unsigned char>(host), htons(port) };
 		} else
 			static_assert(false_v<type>);
-	}, addr);
+	}, target);
 	Packet->Type = type;
 	dst = std::copy_n(reinterpret_cast<const unsigned char*>(ptr), len, dst);
-	*reinterpret_cast<ushort*>(dst) = Port;
+	*reinterpret_cast<ushort*>(dst) = port;
 	return static_cast<int>(dst - reinterpret_cast<const unsigned char*>(Packet)) + 2;
 }
 
