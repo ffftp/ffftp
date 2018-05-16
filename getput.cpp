@@ -1497,10 +1497,12 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 			iRetCode = command(Pkt->ctrl_skt, Reply, CancelCheckWork, "%s", Buf);
 			if(iRetCode/100 == FTP_PRELIM)
 			{
-				// 同時接続対応
-//				if(SocksGet2ndBindReply(listen_socket, &data_socket) == FFFTP_FAIL)
-				if(SocksGet2ndBindReply(listen_socket, &data_socket, CancelCheckWork) == FFFTP_FAIL)
-				{
+				if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
+					if (!SocksReceiveReply(listen_socket, CancelCheckWork))
+						data_socket = listen_socket;
+					else
+						listen_socket = DoClose(listen_socket);
+				} else {
 					sockaddr_storage sa;
 					int salen = sizeof(sockaddr_storage);
 					data_socket = do_accept(listen_socket, reinterpret_cast<sockaddr*>(&sa), &salen);
@@ -2788,10 +2790,12 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 			// 応答の形式に規格が無くファイル名を取得できないため属性変更を無効化
 			if(Pkt->Mode == EXIST_UNIQUE)
 				Pkt->Attr = -1;
-			// 同時接続対応
-//			if(SocksGet2ndBindReply(listen_socket, &data_socket) == FFFTP_FAIL)
-			if(SocksGet2ndBindReply(listen_socket, &data_socket, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
-			{
+			if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
+				if (SocksReceiveReply(listen_socket, &Canceled[Pkt->ThreadCount]))
+					data_socket = listen_socket;
+				else
+					listen_socket = DoClose(listen_socket);
+			} else {
 				sockaddr_storage sa;
 				int salen = sizeof(sockaddr_storage);
 				data_socket = do_accept(listen_socket, reinterpret_cast<sockaddr*>(&sa), &salen);

@@ -1000,38 +1000,6 @@ LIST_UNIX_70
 #define	HISTORY_MAX		20		/* ファイルのヒストリの最大個数 */
 #define DEF_FMENU_ITEMS	8		/* Fileメニューにある項目数の初期値 */
 
-/*===== SOCKS4 =====*/
-
-#define SOCKS4_VER			4	/* SOCKSのバージョン */
-
-#define SOCKS4_CMD_CONNECT	1	/* CONNECTコマンド */
-#define SOCKS4_CMD_BIND		2	/* BINDコマンド */
-
-/* リザルトコード */
-#define SOCKS4_RES_OK		90	/* 要求は許可された */
-	/* その他のコードはチェックしないので定義しない */
-
-/*===== SOCKS5 =====*/
-
-#define SOCKS5_VER			5	/* SOCKSのバージョン */
-
-#define SOCKS5_CMD_CONNECT	1	/* CONNECTコマンド */
-#define SOCKS5_CMD_BIND		2	/* BINDコマンド */
-
-#define SOCKS5_AUTH_NONE	0	/* 認証無し */
-#define SOCKS5_AUTH_GSSAPI	1	/* GSS-API */
-#define SOCKS5_AUTH_USER	2	/* Username/Password */
-
-#define SOCKS5_ADRS_IPV4	1	/* IP V4 address */
-#define SOCKS5_ADRS_NAME	3	/* Domain name */
-#define SOCKS5_ADRS_IPV6	4	/* IP V6 address */
-
-#define SOCKS5_USERAUTH_VER	1	/* Username\Password認証のバージョン */
-
-/* リザルトコード */
-#define SOCKS5_RES_OK		0x00	/* succeeded */
-	/* その他のコードはチェックしないので定義しない */
-
 /*===== 中断コード =====*/
 
 #define ABORT_NONE			0		/* 転送中断なし */
@@ -1385,90 +1353,6 @@ typedef struct {
 } RADIOBUTTON;
 
 
-/*===== SOCKS4 =====*/
-
-/* コマンドパケット */
-typedef struct {
-	char Ver;						/* バージョン (SOCKS4_VER) */
-	char Cmd;						/* コマンド (SOCKS4_CMD_xxx) */
-	ushort Port;					/* ポート */
-	ulong AdrsInt;					/* アドレス */
-	char UserID[USER_NAME_LEN+1];	/* ユーザID */
-} SOCKS4CMD;
-
-
-/* 返信パケット */
-typedef struct {
-	char Ver;				/* バージョン */
-	char Result;			/* リザルトコード (SOCKS4_RES_xxx) */
-	ushort Port;			/* ポート */
-	ulong AdrsInt;			/* アドレス */
-} SOCKS4REPLY;
-
-#define SOCKS4REPLY_SIZE	8
-
-
-/*===== SOCKS5 =====*/
-
-/* Method requestパケット */
-typedef struct {
-	char Ver;				/* バージョン (SOCKS5_VER) */
-	char Num;				/* メソッドの数 */
-	uchar Methods[1];		/* メソッド */
-} SOCKS5METHODREQUEST;
-
-#define SOCKS5METHODREQUEST_SIZE	3
-
-
-/* Method replyパケット */
-typedef struct {
-	char Ver;				/* バージョン (SOCKS5_VER) */
-	uchar Method;			/* メソッド */
-} SOCKS5METHODREPLY;
-
-#define SOCKS5METHODREPLY_SIZE	2
-
-
-/* Requestパケット */
-typedef struct {
-	char Ver;				/* バージョン (SOCKS5_VER) */
-	char Cmd;				/* コマンド (SOCKS5_CMD_xxx) */
-	char Rsv;				/* （予約） */
-	char Type;				/* アドレスのタイプ */
-							/* 以後（可変長部分） */
-	char _dummy[255+1+2];	/* アドレス、ポート */
-} SOCKS5REQUEST;
-
-#define SOCKS5REQUEST_SIZE 4	/* 最初の固定部分のサイズ */
-
-
-/* Replyパケット */
-typedef struct {
-	char Ver;				/* バージョン */
-	char Result;			/* リザルトコード (SOCKS4_RES_xxx) */
-	char Rsv;				/* （予約） */
-	char Type;				/* アドレスのタイプ */
-							/* 以後（可変長部分） */
-	// IPv6対応
-//	ulong AdrsInt;			/* アドレス */
-//	ushort Port;			/* ポート */
-//	char _dummy[2];			/* dummy */
-	char _dummy[255+1+2];	/* dummy */
-} SOCKS5REPLY;
-
-#define SOCKS5REPLY_SIZE 4	/* 最初の固定部分のサイズ */
-
-
-/* Username/Password認証statusパケット */
-typedef struct {
-	char Ver;				/* バージョン */
-	uchar Status;			/* ステータス */
-} SOCKS5USERPASSSTATUS;
-
-#define SOCKS5USERPASSSTATUS_SIZE	2
-
-
-
 /*===== ダイアログボックス変更処理用 =====*/
 
 typedef struct {
@@ -1754,12 +1638,10 @@ int AskRealHostType(void);
 int SetOSS(int wkOss);
 int AskOSS(void);
 #endif
+std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork);
 SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork);
 SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
-// 同時接続対応
-//int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data);
-int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data, int *CancelCheckWork);
 int AskUseNoEncryption(void);
 int AskUseFTPES(void);
 int AskUseFTPIS(void);
@@ -1887,7 +1769,7 @@ int _command(SOCKET cSkt, char* Reply, int* CancelCheckWork, const char* fmt, ..
 #else
 #define command(CSKT, REPLY, CANCELCHECKWORK, ...) (_command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
 #endif
-int SendData(SOCKET Skt, char *Data, int Size, int Mode, int *CancelCheckWork);
+int SendData(SOCKET Skt, const char *Data, int Size, int Mode, int *CancelCheckWork);
 int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char *Tmp);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
 char *ReturnWSError(UINT Error);

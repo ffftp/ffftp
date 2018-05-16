@@ -775,7 +775,7 @@ int _command(SOCKET cSkt, char* Reply, int* CancelCheckWork, const char* fmt, ..
 
 
 // データを送る
-int SendData(SOCKET Skt, char* Data, int Size, int Mode, int* CancelCheckWork) {
+int SendData(SOCKET Skt, const char* Data, int Size, int Mode, int* CancelCheckWork) {
 	if (Skt == INVALID_SOCKET)
 		return FFFTP_FAIL;
 	if (Size <= 0)

@@ -48,15 +48,6 @@ static int ReConnectSkt(SOCKET *Skt);
 static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork);
 static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork);
 static int CheckOneTimePassword(char *Pass, char *Reply, int Type);
-static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, std::variant<sockaddr_storage, std::tuple<std::string, int>> const& target);
-static int SocksSendCmd(SOCKET Socket, void *Data, int Size, int *CancelCheckWork);
-// 同時接続対応
-//static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet);
-static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet, int *CancelCheckWork);
-// 同時接続対応
-//static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet);
-static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet, int *CancelCheckWork);
-static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork);
 
 /*===== 外部参照 =====*/
 
@@ -2086,6 +2077,181 @@ static inline auto getaddrinfo(std::wstring const& host, int port, int family, i
 }
 
 
+enum class SocksCommand : uint8_t {
+	Connect = 1,
+	Bind = 2,
+};
+
+
+static bool SocksSend(SOCKET s, std::vector<uint8_t> const& buffer, int* CancelCheckWork) {
+	if (SendData(s, reinterpret_cast<const char*>(data(buffer)), size_as<int>(buffer), 0, CancelCheckWork) != FFFTP_SUCCESS) {
+		SetTaskMsg(MSGJPN033, *reinterpret_cast<const short*>(&buffer[0]));
+		return false;
+	}
+	return true;
+}
+
+
+template<class T>
+static inline bool SocksRecv(SOCKET s, T& buffer, int* CancelCheckWork) {
+	return ReadNchar(s, reinterpret_cast<char*>(&buffer), sizeof(T), CancelCheckWork) == FFFTP_SUCCESS;
+}
+
+
+// SOCKS5の認証を行う
+static bool Socks5Authenticate(SOCKET s, int* CancelCheckWork) {
+	std::vector<uint8_t> buffer;
+	if (FwallType == FWALL_SOCKS5_NOAUTH)
+		buffer = { 5, 1, 0 };			// VER, NMETHODS, METHODS
+	else
+		buffer = { 5, 2, 0, 1 };		// VER, NMETHODS, METHODS
+	struct {
+		uint8_t VER;
+		uint8_t METHOD;
+	} reply;
+	if (!SocksSend(s, buffer, CancelCheckWork) || !SocksRecv(s, reply, CancelCheckWork)) {
+		SetTaskMsg(MSGJPN036);
+		return false;
+	}
+	if (reply.METHOD == 0)
+		DoPrintf("SOCKS5 No Authentication");
+	else if (reply.METHOD == 1) {
+		// RFC 1929 Username/Password Authentication for SOCKS V5
+		DoPrintf("SOCKS5 User/Pass Authentication");
+		auto ulen = (uint8_t)strlen(FwallUser);
+		auto plen = (uint8_t)strlen(FwallPass);
+		buffer = { 1 };												// VER
+		buffer.push_back(ulen);										// ULEN
+		buffer.insert(end(buffer), FwallUser, FwallUser + ulen);	// UNAME
+		buffer.push_back(plen);										// PLEN
+		buffer.insert(end(buffer), FwallPass, FwallPass + plen);	// PASSWD
+		struct {
+			uint8_t VER;
+			uint8_t STATUS;
+		} reply;
+		if (!SocksSend(s, buffer, CancelCheckWork) || !SocksRecv(s, reply, CancelCheckWork) || reply.STATUS != 0) {
+			SetTaskMsg(MSGJPN037);
+			return false;
+		}
+	} else {
+		SetTaskMsg(MSGJPN036);
+		return false;
+	}
+	return true;
+}
+
+
+// SOCKSのコマンドに対するリプライパケットを受信する
+std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork) {
+	assert(AskHostFireWall() == YES);
+	sockaddr_storage ss;
+	if (FwallType == FWALL_SOCKS4) {
+		struct {
+			uint8_t VN;
+			uint8_t CD;
+			USHORT DSTPORT;
+			IN_ADDR DSTIP;
+		} reply;
+		if (!SocksRecv(s, reply, CancelCheckWork) || reply.VN != 0 || reply.CD != 90) {
+			DoPrintf(MSGJPN035);
+			return {};
+		}
+		// from "SOCKS: A protocol for TCP proxy across firewalls"
+		// If the DSTIP in the reply is 0 (the value of constant INADDR_ANY), then the client should replace it by the IP address of the SOCKS server to which the cleint is connected.
+		if (reply.DSTIP.s_addr == 0) {
+			int namelen = sizeof ss;
+			getpeername(s, reinterpret_cast<sockaddr*>(&ss), &namelen);
+			assert(ss.ss_family == AF_INET && namelen == sizeof(sockaddr_in));
+			reinterpret_cast<sockaddr_in&>(ss).sin_port = reply.DSTPORT;
+		} else
+			reinterpret_cast<sockaddr_in&>(ss) = { AF_INET, reply.DSTPORT, reply.DSTIP };
+		return ss;
+	} else if (FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER) {
+		struct {
+			uint8_t VER;
+			uint8_t REP;
+			uint8_t RSV;
+			uint8_t ATYP;
+		} reply;
+		if (SocksRecv(s, reply, CancelCheckWork) && reply.VER == 5 && reply.REP == 0) {
+			if (reply.ATYP == 1) {
+				struct {
+					IN_ADDR BND_ADDR;
+					USHORT BND_PORT;
+				} reply;
+				if (SocksRecv(s, reply, CancelCheckWork)) {
+					reinterpret_cast<sockaddr_in&>(ss) = { AF_INET, reply.BND_PORT, reply.BND_ADDR };
+					return ss;
+				}
+			} else if (reply.ATYP == 4) {
+				struct {
+					IN6_ADDR BND_ADDR;
+					USHORT BND_PORT;
+				} reply;
+				if (SocksRecv(s, reply, CancelCheckWork)) {
+					reinterpret_cast<sockaddr_in6&>(ss) = { AF_INET6, reply.BND_PORT, 0, reply.BND_ADDR };
+					return ss;
+				}
+			}
+		}
+	}
+	SetTaskMsg(MSGJPN034);
+	return {};
+}
+
+
+template<class T>
+static void append(std::vector<uint8_t>& buffer, T const& data) {
+	buffer.insert(end(buffer), reinterpret_cast<const uint8_t*>(&data), reinterpret_cast<const uint8_t*>(&data + 1));
+}
+
+static std::optional<sockaddr_storage> SocksRequest(SOCKET s, SocksCommand cmd, std::variant<sockaddr_storage, std::tuple<std::string, int>> const& target, int* CancelCheckWork) {
+	assert(AskHostFireWall() == YES);
+	std::vector<uint8_t> buffer;
+	if (FwallType == FWALL_SOCKS4) {
+		auto ss = std::get_if<sockaddr_storage>(&target);
+		assert(ss && ss->ss_family == AF_INET);
+		auto sin = reinterpret_cast<const sockaddr_in*>(ss);
+		buffer = { 4, static_cast<uint8_t>(cmd) };									// VN, CD
+		append(buffer, sin->sin_port);												// DSTPORT
+		append(buffer, sin->sin_addr);												// DSTIP
+		buffer.insert(end(buffer), FwallUser, FwallUser + strlen(FwallUser) + 1);	// USERID, NULL
+	} else if (FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER) {
+		if (!Socks5Authenticate(s, CancelCheckWork))
+			return {};
+		buffer = { 5, static_cast<uint8_t>(cmd), 0 };								// VER, CMD, RSV
+		std::visit([&buffer](auto const& addr) {
+			using type = std::decay_t<decltype(addr)>;
+			if constexpr (std::is_same_v<type, sockaddr_storage>) {
+				if (addr.ss_family == AF_INET) {
+					auto const& sin = reinterpret_cast<sockaddr_in const&>(addr);
+					buffer.push_back(1);											// ATYP
+					append(buffer, sin.sin_addr);									// DST.ADDR
+					append(buffer, sin.sin_port);									// DST.PORT
+				} else {
+					assert(addr.ss_family == AF_INET6);
+					auto const& sin6 = reinterpret_cast<sockaddr_in6 const&>(addr);
+					buffer.push_back(4);											// ATYP
+					append(buffer, sin6.sin6_addr);									// DST.ADDR
+					append(buffer, sin6.sin6_port);									// DST.PORT
+				}
+			} else if constexpr (std::is_same_v<type, std::tuple<std::string, int>>) {
+				auto [host, hport] = addr;
+				auto nsport = htons(hport);
+				buffer.push_back(3);												// ATYP
+				buffer.push_back(size_as<uint8_t>(host));							// DST.ADDR
+				buffer.insert(end(buffer), begin(host), end(host));					// DST.ADDR
+				append(buffer, nsport);												// DST.PORT
+			} else
+				static_assert(false_v<type>);
+		}, target);
+	}
+	if (!SocksSend(s, buffer, CancelCheckWork))
+		return {};
+	return SocksReceiveReply(s, CancelCheckWork);
+}
+
+
 SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork) {
 	std::variant<sockaddr_storage, std::tuple<std::string, int>> target;
 	int Fwall = AskHostFireWall() == YES ? FwallType : FWALL_NONE;
@@ -2134,31 +2300,14 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork) {
 		DoClose(s);
 		return INVALID_SOCKET;
 	}
-	if (Fwall == FWALL_SOCKS4) {
-		auto const& sa = reinterpret_cast<sockaddr_in const&>(std::get<sockaddr_storage>(target));
-		SOCKS4CMD cmd4{ SOCKS4_VER, SOCKS4_CMD_CONNECT, sa.sin_port, sa.sin_addr.s_addr };
-		strcpy(cmd4.UserID, FwallUser);
-		int cmdlen = offsetof(SOCKS4CMD, UserID) + (int)strlen(FwallUser) + 1;
-		if (SOCKS4REPLY reply{ 0, -1 }; SocksSendCmd(s, &cmd4, cmdlen, CancelCheckWork) != FFFTP_SUCCESS || Socks4GetCmdReply(s, &reply, CancelCheckWork) != FFFTP_SUCCESS || reply.Result != SOCKS4_RES_OK) {
-			SetTaskMsg(MSGJPN023, reply.Result);
+	if (Fwall == FWALL_SOCKS4 || Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
+		auto result = SocksRequest(s, SocksCommand::Connect, target, CancelCheckWork);
+		if (!result) {
+			SetTaskMsg(MSGJPN023, -1);
 			DoClose(s);
 			return INVALID_SOCKET;
 		}
-		CurHost.CurNetType = NTYPE_IPV4;
-	} else if (Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
-		if (Socks5SelMethod(s, CancelCheckWork) == FFFTP_FAIL) {
-			DoClose(s);
-			return INVALID_SOCKET;
-		}
-		SOCKS5REQUEST cmd5;
-		int cmdlen = Socks5MakeCmdPacket(&cmd5, SOCKS5_CMD_CONNECT, target);
-		SOCKS5REPLY reply{ 0, -1 };
-		if (SocksSendCmd(s, &cmd5, cmdlen, CancelCheckWork) != FFFTP_SUCCESS || Socks5GetCmdReply(s, &reply, CancelCheckWork) != FFFTP_SUCCESS || reply.Result != SOCKS5_RES_OK) {
-			SetTaskMsg(MSGJPN023, reply.Result);
-			DoClose(s);
-			return INVALID_SOCKET;
-		}
-		CurHost.CurNetType = reply.Type == SOCKS5_ADRS_IPV4 ? NTYPE_IPV4 : NTYPE_IPV6;
+		CurHost.CurNetType = result->ss_family == AF_INET ? NTYPE_IPV4 : NTYPE_IPV6;
 	} else
 		CurHost.CurNetType = saConnect.ss_family == AF_INET ? NTYPE_IPV4 : NTYPE_IPV6;
 	SetTaskMsg(MSGJPN025);
@@ -2192,43 +2341,12 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 		}
 		std::variant<sockaddr_storage, std::tuple<std::string, int>> target;
 		GetAsyncTableData(ctrl_skt, target);
-		if (FwallType == FWALL_SOCKS4) {
-			assert(std::get<sockaddr_storage>(target).ss_family == AF_INET);
-			auto const& sa = reinterpret_cast<sockaddr_in const&>(std::get<sockaddr_storage>(target));
-			SOCKS4CMD cmd4{ SOCKS4_VER, SOCKS4_CMD_BIND, sa.sin_port, sa.sin_addr.s_addr };
-			strcpy(cmd4.UserID, FwallUser);
-			int cmdlen = offsetof(SOCKS4CMD, UserID) + (int)strlen(FwallUser) + 1;
-			SOCKS4REPLY reply{ 0, -1 };
-			if (SocksSendCmd(listen_skt, &cmd4, cmdlen, CancelCheckWork) != FFFTP_SUCCESS || Socks4GetCmdReply(listen_skt, &reply, CancelCheckWork) != FFFTP_SUCCESS || reply.Result != SOCKS4_RES_OK) {
-				SetTaskMsg(MSGJPN023, reply.Result);
-				DoClose(listen_skt);
-				return INVALID_SOCKET;
-			}
-			if (reply.AdrsInt == 0) {
-				// from "SOCKS: A protocol for TCP proxy across firewalls"
-				// If the DSTIP in the reply is 0 (the value of constant INADDR_ANY), then the client should replace it by the IP address of the SOCKS server to which the cleint is connected.
-				assert(saListen.ss_family == AF_INET);
-				reply.AdrsInt = reinterpret_cast<sockaddr_in const&>(saListen).sin_addr.s_addr;
-			}
-			reinterpret_cast<sockaddr_in&>(saListen) = { AF_INET, reply.Port };
-			reinterpret_cast<sockaddr_in&>(saListen).sin_addr.s_addr = reply.AdrsInt;
+		if (auto result = SocksRequest(listen_skt, SocksCommand::Bind, target, CancelCheckWork)) {
+			saListen = *result;
 		} else {
-			if (Socks5SelMethod(listen_skt, CancelCheckWork) == FFFTP_FAIL) {
-				DoClose(listen_skt);
-				return INVALID_SOCKET;
-			}
-			SOCKS5REQUEST cmd5;
-			int cmdlen = Socks5MakeCmdPacket(&cmd5, SOCKS5_CMD_BIND, target);
-			SOCKS5REPLY reply{ 0, -1 };
-			if (SocksSendCmd(listen_skt, &cmd5, cmdlen, CancelCheckWork) != FFFTP_SUCCESS || Socks5GetCmdReply(listen_skt, &reply, CancelCheckWork) != FFFTP_SUCCESS || reply.Result != SOCKS5_RES_OK) {
-				SetTaskMsg(MSGJPN023, reply.Result);
-				DoClose(listen_skt);
-				return INVALID_SOCKET;
-			}
-			if (reply.Type == SOCKS5_ADRS_IPV4)
-				reinterpret_cast<sockaddr_in&>(saListen) = { AF_INET, *reinterpret_cast<const USHORT*>(&reply._dummy[4]), *reinterpret_cast<const IN_ADDR*>(&reply._dummy[0]) };
-			else
-				reinterpret_cast<sockaddr_in6&>(saListen) = { AF_INET6, *reinterpret_cast<const USHORT*>(&reply._dummy[16]), 0, *reinterpret_cast<const IN6_ADDR*>(&reply._dummy[0]) };
+			SetTaskMsg(MSGJPN023, -1);
+			DoClose(listen_skt);
+			return INVALID_SOCKET;
 		}
 	} else {
 		DoPrintf("Use normal BIND");
@@ -2302,247 +2420,6 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 int AskTryingConnect(void)
 {
 	return(TryConnect);
-}
-
-
-static int Socks5MakeCmdPacket(SOCKS5REQUEST *Packet, char Cmd, std::variant<sockaddr_storage, std::tuple<std::string, int>> const& target) {
-	Packet->Ver = SOCKS5_VER;
-	Packet->Cmd = Cmd;
-	Packet->Rsv = 0;
-	auto dst = reinterpret_cast<unsigned char*>(Packet->_dummy);
-	auto [type, ptr, len, port] = std::visit([&dst](auto const& addr) -> std::tuple<char, const void*, int, USHORT> {
-		using type = std::decay_t<decltype(addr)>;
-		if constexpr (std::is_same_v<type, sockaddr_storage>) {
-			if (addr.ss_family == AF_INET) {
-				auto sa = reinterpret_cast<sockaddr_in const&>(addr);
-				return { SOCKS5_ADRS_IPV4, &sa.sin_addr, static_cast<int>(sizeof(sockaddr_in::sin_addr)), sa.sin_port };
-			} else {
-				assert(addr.ss_family == AF_INET6);
-				auto sa = reinterpret_cast<sockaddr_in6 const&>(addr);
-				return { SOCKS5_ADRS_IPV6, &sa.sin6_addr, static_cast<int>(sizeof(sockaddr_in6::sin6_addr)), sa.sin6_port };
-			}
-		} else if constexpr (std::is_same_v<type, std::tuple<std::string, int>>) {
-			auto [host, port] = addr;
-			*dst++ = size_as<unsigned char>(host);
-			return { SOCKS5_ADRS_NAME, host.c_str(), size_as<unsigned char>(host), htons(port) };
-		} else
-			static_assert(false_v<type>);
-	}, target);
-	Packet->Type = type;
-	dst = std::copy_n(reinterpret_cast<const unsigned char*>(ptr), len, dst);
-	*reinterpret_cast<ushort*>(dst) = port;
-	return static_cast<int>(dst - reinterpret_cast<const unsigned char*>(Packet)) + 2;
-}
-
-
-/*----- SOCKSのコマンドを送る -------------------------------------------------
-*
-*	Parameter
-*		SOCKET Socket : ソケット
-*		void *Data : 送るデータ
-*		int Size : サイズ
-*
-*	Return Value
-*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
-*----------------------------------------------------------------------------*/
-
-static int SocksSendCmd(SOCKET Socket, void *Data, int Size, int *CancelCheckWork)
-{
-	int Ret;
-
-	Ret = SendData(Socket, (char *)Data, Size, 0, CancelCheckWork);
-
-	if(Ret != FFFTP_SUCCESS)
-		SetTaskMsg(MSGJPN033, *((short *)Data));
-
-	return(Ret);
-}
-
-
-/*----- SOCKS5のコマンドに対するリプライパケットを受信する --------------------
-*
-*	Parameter
-*		SOCKET Socket : ソケット
-*		SOCKS5REPLY *Packet : パケット
-*
-*	Return Value
-*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
-*----------------------------------------------------------------------------*/
-
-// 同時接続対応
-//static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet)
-static int Socks5GetCmdReply(SOCKET Socket, SOCKS5REPLY *Packet, int *CancelCheckWork)
-{
-	uchar *Pos;
-	int Len;
-	int Ret;
-
-	Pos = (uchar *)Packet;
-	Pos += SOCKS5REPLY_SIZE;
-
-	// 同時接続対応
-//	if((Ret = ReadNchar(Socket, (char *)Packet, SOCKS5REPLY_SIZE, &CancelFlg)) == FFFTP_SUCCESS)
-	if((Ret = ReadNchar(Socket, (char *)Packet, SOCKS5REPLY_SIZE, CancelCheckWork)) == FFFTP_SUCCESS)
-	{
-		if(Packet->Type == SOCKS5_ADRS_IPV4)
-			Len = 4 + 2;
-		else if(Packet->Type == SOCKS5_ADRS_IPV6)
-			Len = 16 + 2;
-		else
-		{
-			// 同時接続対応
-//			if((Ret = ReadNchar(Socket, (char *)Pos, 1, &CancelFlg)) == FFFTP_SUCCESS)
-			if((Ret = ReadNchar(Socket, (char *)Pos, 1, CancelCheckWork)) == FFFTP_SUCCESS)
-			{
-				Len = *Pos + 2;
-				Pos++;
-			}
-		}
-
-		if(Ret == FFFTP_SUCCESS)
-			// 同時接続対応
-//			Ret = ReadNchar(Socket, (char *)Pos, Len, &CancelFlg);
-			Ret = ReadNchar(Socket, (char *)Pos, Len, CancelCheckWork);
-	}
-
-	if(Ret != FFFTP_SUCCESS)
-		SetTaskMsg(MSGJPN034);
-
-	return(Ret);
-}
-
-
-/*----- SOCKS4のコマンドに対するリプライパケットを受信する --------------------
-*
-*	Parameter
-*		SOCKET Socket : ソケット
-*		SOCKS5REPLY *Packet : パケット
-*
-*	Return Value
-*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
-*----------------------------------------------------------------------------*/
-
-// 同時接続対応
-//static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet)
-static int Socks4GetCmdReply(SOCKET Socket, SOCKS4REPLY *Packet, int *CancelCheckWork)
-{
-	int Ret;
-
-	// 同時接続対応
-//	Ret = ReadNchar(Socket, (char *)Packet, SOCKS4REPLY_SIZE, &CancelFlg);
-	Ret = ReadNchar(Socket, (char *)Packet, SOCKS4REPLY_SIZE, CancelCheckWork);
-
-	if(Ret != FFFTP_SUCCESS)
-		DoPrintf(MSGJPN035);
-
-	return(Ret);
-}
-
-
-/*----- SOCKS5の認証を行う ----------------------------------------------------
-*
-*	Parameter
-*		SOCKET Socket : ソケット
-*
-*	Return Value
-*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
-*----------------------------------------------------------------------------*/
-
-static int Socks5SelMethod(SOCKET Socket, int *CancelCheckWork)
-{
-	int Ret;
-	SOCKS5METHODREQUEST Socks5Method;
-	SOCKS5METHODREPLY Socks5MethodReply;
-	SOCKS5USERPASSSTATUS Socks5Status;
-	char Buf[USER_NAME_LEN + PASSWORD_LEN + 4];
-	int Len;
-	int Len2;
-
-	Ret = FFFTP_SUCCESS;
-	Socks5Method.Ver = SOCKS5_VER;
-	Socks5Method.Num = 1;
-	if(FwallType == FWALL_SOCKS5_NOAUTH)
-		Socks5Method.Methods[0] = SOCKS5_AUTH_NONE;
-	else
-		Socks5Method.Methods[0] = SOCKS5_AUTH_USER;
-
-	// 同時接続対応
-//	if((SocksSendCmd(Socket, &Socks5Method, SOCKS5METHODREQUEST_SIZE, CancelCheckWork) != FFFTP_SUCCESS) ||
-//	   (ReadNchar(Socket, (char *)&Socks5MethodReply, SOCKS5METHODREPLY_SIZE, &CancelFlg) != FFFTP_SUCCESS) ||
-//	   (Socks5MethodReply.Method == (uchar)0xFF))
-	if((SocksSendCmd(Socket, &Socks5Method, SOCKS5METHODREQUEST_SIZE, CancelCheckWork) != FFFTP_SUCCESS) ||
-	   (ReadNchar(Socket, (char *)&Socks5MethodReply, SOCKS5METHODREPLY_SIZE, CancelCheckWork) != FFFTP_SUCCESS) ||
-	   (Socks5MethodReply.Method == (uchar)0xFF))
-	{
-		SetTaskMsg(MSGJPN036);
-		Ret = FFFTP_FAIL;
-	}
-	else if(Socks5MethodReply.Method == SOCKS5_AUTH_USER)
-	{
-		DoPrintf("SOCKS5 User/Pass Authentication");
-		Buf[0] = SOCKS5_USERAUTH_VER;
-		Len = (int)strlen(FwallUser);
-		Len2 = (int)strlen(FwallPass);
-		Buf[1] = Len;
-		strcpy(Buf+2, FwallUser);
-		Buf[2 + Len] = Len2;
-		strcpy(Buf+3+Len, FwallPass);
-
-		// 同時接続対応
-//		if((SocksSendCmd(Socket, &Buf, Len+Len2+3, CancelCheckWork) != FFFTP_SUCCESS) ||
-//		   (ReadNchar(Socket, (char *)&Socks5Status, SOCKS5USERPASSSTATUS_SIZE, &CancelFlg) != FFFTP_SUCCESS) ||
-//		   (Socks5Status.Status != 0))
-		if((SocksSendCmd(Socket, &Buf, Len+Len2+3, CancelCheckWork) != FFFTP_SUCCESS) ||
-		   (ReadNchar(Socket, (char *)&Socks5Status, SOCKS5USERPASSSTATUS_SIZE, CancelCheckWork) != FFFTP_SUCCESS) ||
-		   (Socks5Status.Status != 0))
-		{
-			SetTaskMsg(MSGJPN037);
-			Ret = FFFTP_FAIL;
-		}
-	}
-	else
-		DoPrintf("SOCKS5 No Authentication");
-
-	return(Ret);
-}
-
-
-/*----- SOCKSのBINDの第２リプライメッセージを受け取る -------------------------
-*
-*	Parameter
-*		SOCKET Socket : ソケット
-*		SOCKET *Data : データソケットを返すワーク
-*
-*	Return Value
-*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
-*----------------------------------------------------------------------------*/
-
-// 同時接続対応
-//int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data)
-int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data, int *CancelCheckWork)
-{
-	int Ret;
-	char Buf[300];
-
-	Ret = FFFTP_FAIL;
-	if((AskHostFireWall() == YES) && (FwallType == FWALL_SOCKS4))
-	{
-		// 同時接続対応
-//		Socks4GetCmdReply(Socket, (SOCKS4REPLY *)Buf);
-		Socks4GetCmdReply(Socket, (SOCKS4REPLY *)Buf, CancelCheckWork);
-		*Data = Socket;
-		Ret = FFFTP_SUCCESS;
-	}
-	else if((AskHostFireWall() == YES) &&
-			((FwallType == FWALL_SOCKS5_NOAUTH) || (FwallType == FWALL_SOCKS5_USER)))
-	{
-		// 同時接続対応
-//		Socks5GetCmdReply(Socket, (SOCKS5REPLY *)Buf);
-		Socks5GetCmdReply(Socket, (SOCKS5REPLY *)Buf, CancelCheckWork);
-		*Data = Socket;
-		Ret = FFFTP_SUCCESS;
-	}
-	return(Ret);
 }
 
 
