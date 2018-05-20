@@ -774,23 +774,6 @@ int _command(SOCKET cSkt, char* Reply, int* CancelCheckWork, const char* fmt, ..
 }
 
 
-// データを送る
-int SendData(SOCKET Skt, const char* Data, int Size, int Mode, int* CancelCheckWork) {
-	if (Skt == INVALID_SOCKET)
-		return FFFTP_FAIL;
-	if (Size <= 0)
-		return FFFTP_SUCCESS;
-	auto result = do_send(Skt, Data, Size, Mode, CancelCheckWork);
-	if (result == ERROR_SUCCESS)
-		return FFFTP_SUCCESS;
-	if (result == WSAETIMEDOUT)
-		SetTaskMsg(MSGJPN241);
-	else
-		ReportWSError("send", result);
-	return FFFTP_FAIL;
-}
-
-
 /*----- 応答メッセージを受け取る ----------------------------------------------
 *
 *	Parameter

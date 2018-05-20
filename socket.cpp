@@ -533,19 +533,14 @@ int GetAsyncTableDataMapPort(SOCKET s, int* Port) {
 }
 
 
-SOCKET do_socket(int af, int type, int protocol)
-{
-	SOCKET Ret;
-
-	Ret = socket(af, type, protocol);
-	if(Ret != INVALID_SOCKET)
-	{
-		RegisterAsyncTable(Ret);
+SOCKET do_socket(int af, int type, int protocol) {
+	auto s = socket(af, type, protocol);
+	if (s == INVALID_SOCKET) {
+		DoPrintf("socket: socket failed: 0x%08X", WSAGetLastError());
+		return INVALID_SOCKET;
 	}
-#if DBG_MSG
-	DoPrintf("# do_socket (S=%x)", Ret);
-#endif
-	return(Ret);
+	RegisterAsyncTable(s);
+	return s;
 }
 
 
@@ -565,86 +560,42 @@ int do_closesocket(SOCKET s) {
 }
 
 
-int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCheckWork)
-{
-#if USE_THIS
-	int Ret;
-	int Error;
-
-#if DBG_MSG
-	DoPrintf("# Start connect (S=%x)", s);
-#endif
-	// 同時接続対応
-//	*CancelCheckWork = NO;
-
-#if DBG_MSG
-	DoPrintf("## Async set: FD_CONNECT|FD_CLOSE|FD_ACCEPT|FD_READ|FD_WRITE");
-#endif
-	// 高速化のためFD_READとFD_WRITEを使用しない
-//	Ret = WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT | FD_READ | FD_WRITE);
-	Ret = WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT);
-	if(Ret != SOCKET_ERROR)
-	{
-		Ret = connect(s, name, namelen);
-		if(Ret == SOCKET_ERROR)
-		{
-			do
-			{
-				Error = 0;
-				while((*CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_CONNECT) != YES))
-				{
-					Sleep(1);
-					if(BackgrndMessageProc() == YES)
-						*CancelCheckWork = YES;
-				}
-
-				if(*CancelCheckWork == YES)
-					break;
-				if(Error == 0)
-					Ret = 0;
-				else
-				{
-//					Error = WSAGetLastError();
-					DoPrintf("#### Connect: Error=%d", Error);
-				}
-			}
-			while((Ret != 0) && (Error == WSAEWOULDBLOCK));
-		}
+int do_connect(SOCKET s, const sockaddr* name, int namelen, int* CancelCheckWork) {
+	if (WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) != 0) {
+		DoPrintf("connect: WSAAsyncSelect failed: 0x%08X", WSAGetLastError());
+		return SOCKET_ERROR;
 	}
-	else
-		DoPrintf("#### Connect: AsyncSelect error (%d)", WSAGetLastError());
-
-#if DBG_MSG
-	DoPrintf("# Exit connect (%d)", Ret);
-#endif
-	return(Ret);
-#else
-	return(connect(s, name, namelen));
-#endif
+	if (connect(s, name, namelen) == 0)
+		return 0;
+	if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
+		DoPrintf("connect: connect failed: 0x%08X", WSAGetLastError());
+		return SOCKET_ERROR;
+	}
+	while (*CancelCheckWork != YES) {
+		if (int error = 0; AskAsyncDone(s, &error, FD_CONNECT) == YES && error != WSAEWOULDBLOCK) {
+			if (error == 0)
+				return 0;
+			DoPrintf("connect: select error: 0x%08X", error);
+			return SOCKET_ERROR;
+		}
+		Sleep(1);
+		if (BackgrndMessageProc() == YES)
+			*CancelCheckWork = YES;
+	}
+	return SOCKET_ERROR;
 }
 
 
-
-
-
-int do_listen(SOCKET s,	int backlog)
-{
-	int Ret;
-
-	Ret = 1;
-#if DBG_MSG
-	DoPrintf("# Start listen (S=%x)", s);
-	DoPrintf("## Async set: FD_CLOSE|FD_ACCEPT");
-#endif
-
-	Ret = WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CLOSE | FD_ACCEPT);
-	if(Ret != SOCKET_ERROR)
-		Ret = listen(s, backlog);
-
-#if DBG_MSG
-	DoPrintf("# Exit listen (%d)", Ret);
-#endif
-	return(Ret);
+int do_listen(SOCKET s, int backlog) {
+	if (WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CLOSE | FD_ACCEPT) != 0) {
+		DoPrintf("listen: WSAAsyncSelect failed: 0x%08X", WSAGetLastError());
+		return SOCKET_ERROR;
+	}
+	if (listen(s, backlog) != 0) {
+		DoPrintf("listen: listen failed: 0x%08X", WSAGetLastError());
+		return SOCKET_ERROR;
+	}
+	return 0;
 }
 
 
@@ -739,41 +690,48 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 }
 
 
-int do_send(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork) {
+int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork) {
+	if (s == INVALID_SOCKET)
+		return FFFTP_FAIL;
+	if (len <= 0)
+		return FFFTP_SUCCESS;
+
 	// バッファの構築、SSLの場合には暗号化を行う
 	std::vector<char> work;
-	std::string_view buffer(buf, len);
-	if (auto context = getContext(s); context) {
-		if (work = context->Encrypt(buffer); empty(work))
-			return WSAEFAULT;
-		buffer = std::string_view{ data(work), size(work) };
+	std::string_view buffer{ buf, size_t(len) };
+	if (auto context = getContext(s)) {
+		if (work = context->Encrypt(buffer); empty(work)) {
+			DoPrintf("send: EncryptMessage failed.");
+			return FFFTP_FAIL;
+		}
+		buffer = { data(work), size(work) };
 	}
 
 	// SSLの場合には暗号化されたバッファなため、全てのデータを送信するまで繰り返す必要がある（途中で中断しても再開しようがない）
 	if (*CancelCheckWork != NO)
-		return WSAECONNABORTED;
-	auto endTime = TimeOut != 0 ? std::make_optional(std::chrono::steady_clock::now() + std::chrono::seconds(TimeOut)) : std::nullopt;
+		return FFFTP_FAIL;
+	auto endTime = TimeOut != 0 ? std::optional{ std::chrono::steady_clock::now() + std::chrono::seconds(TimeOut) } : std::nullopt;
 	do {
 		auto sent = send(s, data(buffer), size_as<int>(buffer), flags);
 		if (0 < sent)
 			buffer = buffer.substr(sent);
 		else if (sent == 0) {
-			_RPTW0(_CRT_WARN, L"do_send: connection closed.\n");
-			return WSAEDISCON;
+			DoPrintf("send: connection closed.");
+			return FFFTP_FAIL;
 		} else if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
-			_RPTWN(_CRT_WARN, L"do_send error: %d.\n", lastError);
-			return lastError;
+			DoPrintf("send: send failed: 0x%08X", lastError);
+			return FFFTP_FAIL;
 		}
 		Sleep(1);
 		if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
-			return WSAECONNABORTED;
+			return FFFTP_FAIL;
 		if (endTime && *endTime < std::chrono::steady_clock::now()) {
-			DoPrintf("do_recv timed out");
+			SetTaskMsg(MSGJPN241);
 			*CancelCheckWork = YES;
-			return WSAETIMEDOUT;
+			return FFFTP_FAIL;
 		}
 	} while (!empty(buffer));
-	return ERROR_SUCCESS;
+	return FFFTP_SUCCESS;
 }
 
 
