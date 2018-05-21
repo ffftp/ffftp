@@ -1679,7 +1679,7 @@ void DeleteTaskWindow(void);
 HWND GetTaskWnd(void);
 void _SetTaskMsg(const char* format, ...);
 #ifdef _DEBUG
-#define SetTaskMsg(...) do { char buffer[10240 + 3]; sprintf(buffer, __VA_ARGS__); _SetTaskMsg(buffer); } while(0)
+#define SetTaskMsg(...) do { char buffer_SetTaskMsg[10240 + 3]; sprintf(buffer_SetTaskMsg, __VA_ARGS__); _SetTaskMsg(buffer_SetTaskMsg); } while(0)
 #else
 #define SetTaskMsg(...) _SetTaskMsg(__VA_ARGS__)
 #endif
@@ -1687,7 +1687,7 @@ int SaveTaskMsg(char *Fname);
 void DispTaskMsg(void);
 void _DoPrintf(const char* format, ...);
 #ifdef _DEBUG
-#define DoPrintf(...) do { char buffer[10240]; sprintf(buffer, __VA_ARGS__); _DoPrintf(buffer); } while(0)
+#define DoPrintf(...) do { char buffer_DoPrintf[10240]; sprintf(buffer_DoPrintf, __VA_ARGS__); _DoPrintf(buffer_DoPrintf); } while(0)
 #else
 #define DoPrintf(...) _DoPrintf(__VA_ARGS__)
 #endif
@@ -1887,7 +1887,11 @@ void SwitchOSSProc(void);
 #endif
 #define CommandProcTrn(CSKT, REPLY, CANCELCHECKWORK, ...) (command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
 int _command(SOCKET cSkt, char* Reply, int* CancelCheckWork, const char* fmt, ...);
+#ifdef _DEBUG
 #define command(CSKT, REPLY, CANCELCHECKWORK, ...) (_scprintf(__VA_ARGS__), _command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
+#else
+#define command(CSKT, REPLY, CANCELCHECKWORK, ...) (_command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
+#endif
 int SendData(SOCKET Skt, char *Data, int Size, int Mode, int *CancelCheckWork);
 int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char *Tmp);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
