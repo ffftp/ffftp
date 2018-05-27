@@ -16,6 +16,9 @@
     <Filter Include="Document Files">
       <UniqueIdentifier>{d42ab6d8-690f-4b17-9d7a-25603bbd5801}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\wrl">
+      <UniqueIdentifier>{7d801498-d6e9-4a83-93f3-b3b3b505fe44}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -135,6 +138,18 @@
     </ClInclude>
     <ClInclude Include="dialog.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrl\client.h">
+      <Filter>Header Files\wrl</Filter>
+    </ClInclude>
+    <ClInclude Include="wrl\def.h">
+      <Filter>Header Files\wrl</Filter>
+    </ClInclude>
+    <ClInclude Include="wrl\implements.h">
+      <Filter>Header Files\wrl</Filter>
+    </ClInclude>
+    <ClInclude Include="wrl\internal.h">
+      <Filter>Header Files\wrl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
