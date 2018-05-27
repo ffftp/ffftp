@@ -16,9 +16,6 @@
 #pragma region includes
 #include <stddef.h>
 #include <unknwn.h>
-#ifdef BUILD_WINDOWS
-#include <winrt.h>
-#endif
 
 #include "wrl\def.h"
 #include "wrl\internal.h"

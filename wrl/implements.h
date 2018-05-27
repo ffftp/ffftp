@@ -15,10 +15,6 @@
 
 #pragma region includes
 
-#ifdef BUILD_WINDOWS
-#include <winrt.h>
-#endif
-
 #include <new.h>
 #include <objbase.h>    // IMarshal
 #include <cguid.h>      // CLSID_StdGlobalInterfaceTable

@@ -14,15 +14,9 @@
 #endif  // _MSC_VER
 
 #ifndef __WRL_ASSERT__
-#ifdef __WRL_CONFIGURATION_LEGACY__
-// Take NT_ASSERT for windows build 
-#include <ntassert.h>
-#define __WRL_ASSERT__(cond)    NT_ASSERT(cond)
-#else
 // Take CRT assert as default
 #include <crtdbg.h>
 #define __WRL_ASSERT__(cond)    _ASSERTE(cond)
-#endif // BUILD_WINDOWS
 #endif // __WRL_ASSERT__
 
 #ifndef __WRL_IMPLEMENTS_FTM_BASE__
