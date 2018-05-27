@@ -60,9 +60,6 @@
     <ClCompile Include="mbswrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OleDragDrop.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="option.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

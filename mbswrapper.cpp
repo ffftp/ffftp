@@ -1966,49 +1966,6 @@ END_ROUTINE
 	return r;
 }
 
-PIDLIST_ABSOLUTE SHBrowseForFolderM(LPBROWSEINFOA lpbi)
-{
-	PIDLIST_ABSOLUTE r = NULL;
-	wchar_t* pw0 = NULL;
-	wchar_t* pw1 = NULL;
-	BROWSEINFOW wbi;
-START_ROUTINE
-	wbi.hwndOwner = lpbi->hwndOwner;
-	wbi.pidlRoot = lpbi->pidlRoot;
-	pw0 = DuplicateMtoWBuffer(lpbi->pszDisplayName, -1, MAX_PATH * 4);
-	wbi.pszDisplayName = pw0;
-	pw1 = DuplicateMtoW(lpbi->lpszTitle, -1);
-	wbi.lpszTitle = pw1;
-	wbi.ulFlags = lpbi->ulFlags;
-	// TODO: lpfn
-	wbi.lpfn = lpbi->lpfn;
-	wbi.lParam = lpbi->lParam;
-	wbi.iImage = lpbi->iImage;
-	r = SHBrowseForFolderW(&wbi);
-	// バッファ長不明のためオーバーランの可能性あり
-	WtoM(lpbi->pszDisplayName, MAX_PATH, wbi.pszDisplayName, -1);
-	lpbi->iImage = wbi.iImage;
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	FreeDuplicatedString(pw1);
-	return r;
-}
-
-BOOL SHGetPathFromIDListM(PCIDLIST_ABSOLUTE pidl, LPSTR pszPath)
-{
-	BOOL r = FALSE;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = AllocateStringW(MAX_PATH * 4);
-	r = SHGetPathFromIDListW(pidl, pw0);
-	// バッファ長不明のためオーバーランの可能性あり
-	WtoM(pszPath, MAX_PATH, pw0, -1);
-	TerminateStringM(pszPath, MAX_PATH);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 int SHFileOperationM(LPSHFILEOPSTRUCTA lpFileOp)
 {
 	int r = 0;

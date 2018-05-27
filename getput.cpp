@@ -163,9 +163,6 @@ static int TransferErrorNotify = NO;
 static LONGLONG TransferSizeLeft = 0;
 static LONGLONG TransferSizeTotal = 0;
 static int TransferErrorDisplay = 0;
-// ゾーンID設定追加
-IZoneIdentifier* pZoneIdentifier;
-IPersistFile* pPersistFile;
 
 /*===== 外部参照 =====*/
 
@@ -4493,77 +4490,44 @@ int AskTransferErrorDisplay(void)
 	return(TransferErrorDisplay);
 }
 
-// ゾーンID設定追加
-int LoadZoneID()
-{
-	int Sts;
-	Sts = FFFTP_FAIL;
-	if(IsMainThread())
-	{
-		if(CoCreateInstance(CLSID_PersistentZoneIdentifier, NULL, CLSCTX_ALL, IID_IZoneIdentifier, (void**)&pZoneIdentifier) == S_OK)
-		{
-			if(pZoneIdentifier->lpVtbl->SetId(pZoneIdentifier, URLZONE_INTERNET) == S_OK)
-			{
-				if(pZoneIdentifier->lpVtbl->QueryInterface(pZoneIdentifier, IID_IPersistFile, (void**)&pPersistFile) == S_OK)
-					Sts = FFFTP_SUCCESS;
-			}
-		}
-	}
-	return Sts;
+// ゾーンID設定
+static ComPtr<IZoneIdentifier> zoneIdentifier;
+static ComPtr<IPersistFile> persistFile;
+
+int LoadZoneID() {
+	if (IsMainThread())
+		if (CoCreateInstance(CLSID_PersistentZoneIdentifier, NULL, CLSCTX_ALL, IID_PPV_ARGS(&zoneIdentifier)) == S_OK)
+			if (zoneIdentifier->SetId(URLZONE_INTERNET) == S_OK)
+				if (zoneIdentifier.As(&persistFile) == S_OK)
+					return FFFTP_SUCCESS;
+	return FFFTP_FAIL;
 }
 
-void FreeZoneID()
-{
-	if(IsMainThread())
-	{
-		if(pPersistFile != NULL)
-			pPersistFile->lpVtbl->Release(pPersistFile);
-		pPersistFile = NULL;
-		if(pZoneIdentifier != NULL)
-			pZoneIdentifier->lpVtbl->Release(pZoneIdentifier);
-		pZoneIdentifier = NULL;
+void FreeZoneID() {
+	if (IsMainThread()) {
+		persistFile.Reset();
+		zoneIdentifier.Reset();
 	}
 }
 
-int IsZoneIDLoaded()
-{
-	int Sts;
-	Sts = NO;
-	if(pZoneIdentifier != NULL && pPersistFile != NULL)
-		Sts = YES;
-	return Sts;
+int IsZoneIDLoaded() {
+	return zoneIdentifier && persistFile ? YES : NO;
 }
 
-int MarkFileAsDownloadedFromInternet(char* Fname)
-{
-	int Sts;
-	WCHAR Tmp1[FMAX_PATH+1];
-	BSTR Tmp2;
+int MarkFileAsDownloadedFromInternet(char* Fname) {
 	MARKFILEASDOWNLOADEDFROMINTERNETDATA Data;
-	Sts = FFFTP_FAIL;
-	if(IsMainThread())
-	{
-		MtoW(Tmp1, FMAX_PATH, Fname, -1);
-		if((Tmp2 = SysAllocString(Tmp1)) != NULL)
-		{
-			if(pPersistFile->lpVtbl->Save(pPersistFile, Tmp2, FALSE) == S_OK)
-				Sts = FFFTP_SUCCESS;
-			SysFreeString(Tmp2);
-		}
-	}
-	else
-	{
-		if(Data.h = CreateEvent(NULL, TRUE, FALSE, NULL))
-		{
+	int result = FFFTP_FAIL;
+	if (IsMainThread()) {
+		if (persistFile->Save(_bstr_t{ u8(Fname).c_str() }, FALSE) == S_OK)
+			return FFFTP_SUCCESS;
+	} else {
+		if (Data.h = CreateEvent(NULL, TRUE, FALSE, NULL)) {
 			Data.Fname = Fname;
-			if(PostMessage(GetMainHwnd(), WM_MARKFILEASDOWNLOADEDFROMINTERNET, 0, (LPARAM)&Data))
-			{
-				if(WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
-					Sts = Data.r;
-			}
+			if (PostMessage(GetMainHwnd(), WM_MARKFILEASDOWNLOADEDFROMINTERNET, 0, (LPARAM)&Data))
+				if (WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
+					result = Data.r;
 			CloseHandle(Data.h);
 		}
 	}
-	return Sts;
+	return result;
 }
-

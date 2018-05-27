@@ -124,8 +124,6 @@ static char PortableFilePath[FMAX_PATH+1];
 static int PortableVersion;
 // ローカル側自動更新
 HANDLE ChangeNotification = INVALID_HANDLE_VALUE;
-// タスクバー進捗表示
-static ITaskbarList3* pTaskbarList3;
 // 高DPI対応
 static int ToolWinHeight;
 
@@ -3328,45 +3326,28 @@ void Terminate()
 }
 
 // タスクバー進捗表示
-int LoadTaskbarList3()
-{
-	int Sts;
-	Sts = FFFTP_FAIL;
-	if(CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_ALL, IID_ITaskbarList3, (void**)&pTaskbarList3) == S_OK)
-	{
-		Sts = FFFTP_SUCCESS;
-	}
-	return Sts;
+static ComPtr<ITaskbarList3> taskbarList;
+
+int LoadTaskbarList3() {
+	if (CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_ALL, IID_PPV_ARGS(&taskbarList)) == S_OK)
+		return FFFTP_SUCCESS;
+	return FFFTP_FAIL;
 }
 
-void FreeTaskbarList3()
-{
-	if(pTaskbarList3 != NULL)
-		pTaskbarList3->lpVtbl->Release(pTaskbarList3);
-	pTaskbarList3 = NULL;
+void FreeTaskbarList3() {
+	taskbarList.Reset();
 }
 
-int IsTaskbarList3Loaded()
-{
-	int Sts;
-	Sts = NO;
-	if(pTaskbarList3 != NULL)
-		Sts = YES;
-	return Sts;
+int IsTaskbarList3Loaded() {
+	return taskbarList ? YES : NO;
 }
 
-void UpdateTaskbarProgress()
-{
-	if(AskTransferSizeTotal() > 0)
-	{
-		if(AskTransferErrorDisplay() > 0)
-			pTaskbarList3->lpVtbl->SetProgressState(pTaskbarList3, GetMainHwnd(), TBPF_ERROR);
-		else
-			pTaskbarList3->lpVtbl->SetProgressState(pTaskbarList3, GetMainHwnd(), TBPF_NORMAL);
-		pTaskbarList3->lpVtbl->SetProgressValue(pTaskbarList3, GetMainHwnd(), (ULONGLONG)(AskTransferSizeTotal() - AskTransferSizeLeft()), (ULONGLONG)AskTransferSizeTotal());
-	}
-	else
-		pTaskbarList3->lpVtbl->SetProgressState(pTaskbarList3, GetMainHwnd(), TBPF_NOPROGRESS);
+void UpdateTaskbarProgress() {
+	if (AskTransferSizeTotal() > 0) {
+		taskbarList->SetProgressState(GetMainHwnd(), 0 < AskTransferErrorDisplay() ? TBPF_ERROR : TBPF_NORMAL);
+		taskbarList->SetProgressValue(GetMainHwnd(), (ULONGLONG)(AskTransferSizeTotal() - AskTransferSizeLeft()), (ULONGLONG)AskTransferSizeTotal());
+	} else
+		taskbarList->SetProgressState(GetMainHwnd(), TBPF_NOPROGRESS);
 }
 
 // 高DPI対応

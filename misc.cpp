@@ -1443,40 +1443,20 @@ fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFi
 *			TRUE/FALSE=取消
 *----------------------------------------------------------------------------*/
 
-int SelectDir(HWND hWnd, char *Buf, int MaxLen)
-{
-	char Tmp[FMAX_PATH+1];
-	char Cur[FMAX_PATH+1];
-	BROWSEINFO  Binfo;
-	LPITEMIDLIST lpIdll;
-	int Sts;
-	LPMALLOC lpMalloc;
-
-	Sts = FALSE;
-	GetCurrentDirectory(FMAX_PATH, Cur);
-
-	if(SHGetMalloc(&lpMalloc) == NOERROR)
-	{
-		Binfo.hwndOwner = hWnd;
-		Binfo.pidlRoot = NULL;
-		Binfo.pszDisplayName = Tmp;
-		Binfo.lpszTitle = MSGJPN185;
-		Binfo.ulFlags = BIF_RETURNONLYFSDIRS;
-		Binfo.lpfn = NULL;
-		Binfo.lParam = 0;
-		Binfo.iImage = 0;
-		if((lpIdll = SHBrowseForFolder(&Binfo)) != NULL)
-		{
-			SHGetPathFromIDList(lpIdll, Tmp);
-			memset(Buf, NUL, MaxLen);
-			strncpy(Buf, Tmp, MaxLen-1);
-			Sts = TRUE;
-			lpMalloc->lpVtbl->Free(lpMalloc, lpIdll);
-		}
-		lpMalloc->lpVtbl->Release(lpMalloc);
-		SetCurrentDirectory(Cur);
+int SelectDir(HWND hWnd, char *Buf, int MaxLen) {
+	int result = FALSE;
+	auto const cwd = fs::current_path();
+	wchar_t buffer[FMAX_PATH + 1];
+	auto const title = u8(MSGJPN185);
+	BROWSEINFOW bi{ hWnd, nullptr, buffer, title.c_str(), BIF_RETURNONLYFSDIRS };
+	if (auto idlist = SHBrowseForFolderW(&bi)) {
+		SHGetPathFromIDListW(idlist, buffer);
+		strncpy(Buf, u8(buffer).c_str(), MaxLen - 1);
+		result = TRUE;
+		CoTaskMemFree(idlist);
 	}
-	return(Sts);
+	fs::current_path(cwd);
+	return result;
 }
 
 

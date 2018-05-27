@@ -199,7 +199,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mbswrapper.cpp" />
     <ClCompile Include="misc.cpp" />
-    <ClCompile Include="OleDragDrop.cpp" />
     <ClCompile Include="option.cpp" />
     <ClCompile Include="ras.cpp" />
     <ClCompile Include="registry.cpp" />

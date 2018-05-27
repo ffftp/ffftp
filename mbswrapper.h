@@ -131,12 +131,6 @@ HINSTANCE ShellExecuteM(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile, LPCSTR lpP
 #undef ShellExecuteEx
 #define ShellExecuteEx ShellExecuteExM
 BOOL ShellExecuteExM(LPSHELLEXECUTEINFOA lpExecInfo);
-#undef SHBrowseForFolder
-#define SHBrowseForFolder SHBrowseForFolderM
-PIDLIST_ABSOLUTE SHBrowseForFolderM(LPBROWSEINFOA lpbi);
-#undef SHGetPathFromIDList
-#define SHGetPathFromIDList SHGetPathFromIDListM
-BOOL SHGetPathFromIDListM(PCIDLIST_ABSOLUTE pidl, LPSTR pszPath);
 #undef SHFileOperation
 #define SHFileOperation SHFileOperationM
 int SHFileOperationM(LPSHFILEOPSTRUCTA lpFileOp);
