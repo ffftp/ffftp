@@ -16,8 +16,6 @@
 #pragma region includes
 #include <stddef.h>
 #include <unknwn.h>
-#include <weakreference.h>
-#include <roapi.h>
 #ifdef BUILD_WINDOWS
 #include <winrt.h>
 #endif
@@ -65,14 +63,6 @@ class ComPtrRefBase
 {
 public:
     typedef typename T::InterfaceType InterfaceType;
-
-#ifndef __WRL_CLASSIC_COM__
-    operator IInspectable**() const throw()
-    {
-        static_assert(__is_base_of(IInspectable, InterfaceType), "Invalid cast: InterfaceType does not derive from IInspectable");
-        return reinterpret_cast<IInspectable**>(ptr_->ReleaseAndGetAddressOf());
-    }
-#endif
 
     operator IUnknown**() const throw()
     {
@@ -135,18 +125,6 @@ public:
 };
 
 } // namespace Details
-
-class WeakRef;
-
-#if (NTDDI_VERSION >= NTDDI_WINBLUE)
-class AgileRef;
-
-template<typename T>
-HRESULT AsAgile(_In_ T* p, _Out_ AgileRef* pAgile) throw();
-#endif // (NTDDI_VERSION >= NTDDI_WINBLUE)
-
-template<typename T>
-HRESULT AsWeak(_In_ T* p, _Out_ WeakRef* pWeak) throw();
 
 template <typename T>
 class ComPtr
@@ -376,7 +354,7 @@ public:
     // This overload matches ComPtrRef before the implicit cast takes place, preventing the unsafe downcast.
     template <typename U>
     HRESULT CopyTo(Details::ComPtrRef<ComPtr<U>> ptr, typename Details::EnableIf<
-      ((Details::IsSame<T, IInspectable>::value && !Details::IsSame<U, IUnknown>::value) || (Details::IsSame<T, IUnknown>::value))
+      Details::IsSame<T, IUnknown>::value
       && !Details::IsSame<U*, T*>::value, void *>::type * = 0) const throw()
     {
         return ptr_->QueryInterface(__uuidof(U), ptr);
@@ -420,295 +398,7 @@ public:
         return ptr_->QueryInterface(riid, reinterpret_cast<void**>(p->ReleaseAndGetAddressOf()));
     }
 
-    HRESULT AsWeak(_Out_ WeakRef* pWeakRef) const throw()
-    {
-        return ::Microsoft::WRL::AsWeak(ptr_, pWeakRef);
-    }
-
-#if (NTDDI_VERSION >= NTDDI_WINBLUE)
-    HRESULT AsAgile(_Out_ AgileRef* pAgile) const throw()
-    {
-        return ::Microsoft::WRL::AsAgile(ptr_, pAgile);
-    }
-#endif // (NTDDI_VERSION >= NTDDI_WINBLUE)
-
 };    // ComPtr
-
-class WeakRef : public ComPtr<IWeakReference>
-{
-private:
-    void operator->();
-protected:
-    HRESULT InternalResolve(REFIID riid, _Outptr_result_maybenull_ IInspectable** inspectable) const throw()
-    {
-        *inspectable = nullptr;
-
-        if (ptr_ == nullptr)
-        {
-            // For compatibility with original release, treat nullptr as successful
-            return S_OK;
-        }
-
-        return ptr_->Resolve(riid, inspectable);
-    }
-public:
-    Details::ComPtrRef<WeakRef> operator&() throw()
-    {
-        return Details::ComPtrRef<WeakRef>(this);
-    }
-
-    const Details::ComPtrRef<const WeakRef> operator&() const throw()
-    {
-        return Details::ComPtrRef<const WeakRef>(this);
-    }
-
-    WeakRef() throw() : ComPtr(nullptr)
-    {
-    }
-
-    WeakRef(decltype(__nullptr)) throw() : ComPtr(nullptr)
-    {
-    }
-
-    WeakRef(_In_opt_ IWeakReference* ptr) throw() : ComPtr(ptr)
-    {
-    }
-
-    WeakRef(const ComPtr<IWeakReference>& ptr) throw() : ComPtr(ptr)
-    {
-    }
-
-    WeakRef(const WeakRef& ptr) throw() : ComPtr(ptr)
-    {
-    }
-
-    WeakRef(_Inout_ WeakRef&& ptr) throw() : ComPtr(static_cast<ComPtr<IWeakReference>&&>(ptr))
-    {
-    }
-
-    ~WeakRef() throw()
-    {
-    }
-
-    // Resolve U interface
-    template<typename U>
-    HRESULT As(_Inout_ Details::ComPtrRef<ComPtr<U>> ptr) const throw()
-    {
-        static_assert(!Details::IsSame<IWeakReference, U>::value, "IWeakReference cannot resolve IWeakReference object.");
-        static_assert(__is_base_of(IInspectable, U), "WeakRef::As() can only be used on types derived from IInspectable");
-
-        return InternalResolve(__uuidof(U), ptr);
-    }
-
-    template<typename U>
-    HRESULT As(_Out_ ComPtr<U>* ptr) const throw()
-    {
-        static_assert(!Details::IsSame<IWeakReference, U>::value, "IWeakReference cannot resolve IWeakReference object.");
-        static_assert(__is_base_of(IInspectable, U), "WeakRef::As() can only be used on types derived from IInspectable");
-
-        return InternalResolve(__uuidof(U), ptr->ReleaseAndGetAddressOf());
-    }
-
-    HRESULT AsIID(REFIID riid, _Out_ ComPtr<IInspectable>* ptr) const throw()
-    {
-        __WRL_ASSERT__(riid != __uuidof(IWeakReference));
-
-        return InternalResolve(riid, ptr->ReleaseAndGetAddressOf());
-    }
-
-    HRESULT CopyTo(REFIID riid, _Outptr_result_maybenull_ IInspectable** ptr) const throw()
-    {
-        __WRL_ASSERT__(riid != __uuidof(IWeakReference));
-
-        return InternalResolve(riid, ptr);
-    }
-
-    template<typename U>
-    HRESULT CopyTo(_Outptr_result_maybenull_ U** ptr) const throw()
-    {
-        static_assert(__is_base_of(IInspectable, U), "WeakRef::CopyTo() can only be used on types derived from IInspectable");
-
-        return InternalResolve(__uuidof(U), reinterpret_cast<IInspectable**>(ptr));
-    }
-
-    HRESULT CopyTo(_Outptr_result_maybenull_ IWeakReference** ptr) const throw()
-    {
-        InternalAddRef();
-        *ptr = ptr_;
-        return S_OK;
-    }
-
-    WeakRef& operator=(_In_ const WeakRef &other) throw()
-    {
-        ComPtr::operator=(static_cast<const ComPtr&>(other));
-        return *this;
-    }
-
-    WeakRef& operator=(_Inout_ WeakRef &&other) throw()
-    {
-        ComPtr::operator=(static_cast<ComPtr&&>(other));
-        return *this;
-    }
-};
-
-template<typename T>
-HRESULT AsWeak(_In_ T* p, _Out_ WeakRef* pWeak) throw()
-{
-    static_assert(!Details::IsSame<IWeakReference,T>::value, "Cannot get IWeakReference object to IWeakReference.");
-    ComPtr<IWeakReferenceSource> refSource;
-
-    HRESULT hr = p->QueryInterface(IID_PPV_ARGS(refSource.GetAddressOf()));
-    if (FAILED(hr))
-    {
-        return hr;
-    }
-
-    ComPtr<IWeakReference> weakref;
-    hr = refSource->GetWeakReference(weakref.GetAddressOf());
-    if (FAILED(hr))
-    {
-        return hr;
-    }
-
-    *pWeak = WeakRef(weakref);
-    return S_OK;
-}
-
-#if (NTDDI_VERSION >= NTDDI_WINBLUE)
-class AgileRef : public ComPtr<IAgileReference>
-{
-protected:
-    HRESULT InternalResolve(REFIID riid, _Outptr_result_maybenull_ void** ptr) const
-    {
-        *ptr = nullptr;
-
-        if (ptr_ == nullptr)
-        {
-            // For compatibility with original release, treat nullptr as successful
-            return S_OK;
-        }
-
-        return ptr_->Resolve(riid, ptr);
-    }
-public:
-    Details::ComPtrRef<AgileRef> operator&() throw()
-    {
-        return Details::ComPtrRef<AgileRef>(this);
-    }
-
-    const Details::ComPtrRef<const AgileRef> operator&() const throw()
-    {
-        return Details::ComPtrRef<const AgileRef>(this);
-    }
-
-    AgileRef() throw() : ComPtr(nullptr)
-    {
-    }
-
-    AgileRef(decltype(__nullptr)) throw() : ComPtr(nullptr)
-    {
-    }
-
-    AgileRef(_In_opt_ IAgileReference* ptr) throw() : ComPtr(ptr)
-    {
-    }
-
-    AgileRef(const ComPtr<IAgileReference>& ptr) throw() : ComPtr(ptr)
-    {
-    }
-
-    AgileRef(const AgileRef& ptr) throw() : ComPtr(ptr)
-    {
-    }
-
-    AgileRef(_Inout_ AgileRef&& ptr) throw() : ComPtr(static_cast<ComPtr<IAgileReference>&&>(ptr))
-    {
-    }
-
-    ~AgileRef() throw()
-    {
-    }
-
-    template<typename U>
-    HRESULT As(_Inout_ Details::ComPtrRef<ComPtr<U>> ptr) const throw()
-    {
-        static_assert(!Details::IsSame<IAgileReference, U>::value, "IAgileReference cannot resolve IAgileReference object.");
-        static_assert(__is_base_of(IUnknown, U), "AgileRef::As() can only be used on types derived from IUnknown");
-
-        return InternalResolve(__uuidof(U), ptr);
-    }
-
-    template<typename U>
-    HRESULT As(_Out_ ComPtr<U>* ptr) const throw()
-    {
-        static_assert(!Details::IsSame<IAgileReference, U>::value, "IAgileReference cannot resolve IAgileReference object.");
-        static_assert(__is_base_of(IUnknown, U), "AgileRef::As() can only be used on types derived from IUnknown");
-
-        return InternalResolve(__uuidof(U), reinterpret_cast<void**>(ptr->ReleaseAndGetAddressOf()));
-    }
-
-    HRESULT AsIID(REFIID riid, _Out_ ComPtr<IUnknown>* ptr) const throw()
-    {
-        __WRL_ASSERT__(riid != __uuidof(IAgileReference));
-
-        return InternalResolve(riid, reinterpret_cast<void**>(ptr->ReleaseAndGetAddressOf()));
-    }
-
-    HRESULT CopyTo(REFIID riid, _Outptr_result_maybenull_ IUnknown** ptr) const throw()
-    {
-        __WRL_ASSERT__(riid != __uuidof(IAgileReference));
-
-        return InternalResolve(riid, reinterpret_cast<void**>(ptr));
-    }
-
-    template<typename U>
-    HRESULT CopyTo(_Outptr_result_maybenull_ U** ptr) const throw()
-    {
-        static_assert(__is_base_of(IUnknown, U), "AgileRef::As() can only be used on types derived from IUnknown");
-
-        return InternalResolve(__uuidof(U), reinterpret_cast<void**>(ptr));
-    }
-
-    HRESULT CopyTo(_Outptr_result_maybenull_ IAgileReference** ptr) const throw()
-    {
-        InternalAddRef();
-        *ptr = ptr_;
-        return S_OK;
-    }
-
-    AgileRef& operator=(_In_ const AgileRef &other) throw()
-    {
-        ComPtr::operator=(static_cast<const ComPtr&>(other));
-        return *this;
-    }
-
-    AgileRef& operator=(_Inout_ AgileRef &&other) throw()
-    {
-        ComPtr::operator=(static_cast<ComPtr&&>(other));
-        return *this;
-    }
-    
-    void operator->() = delete;
-};
-
-template<typename T>
-HRESULT AsAgile(_In_opt_ T* p, _Inout_ Microsoft::WRL::AgileRef* pAgile) throw()
-{
-    static_assert(!Details::IsSame<IAgileReference, T>::value, "Cannot get IAgileReference object to IAgileReference.");
-    
-    HRESULT hr = S_OK;
-    if (p)
-    {
-        hr = RoGetAgileReference(AGILEREFERENCE_DEFAULT, __uuidof(T), p, pAgile->ReleaseAndGetAddressOf());
-    }
-    else
-    {
-        *pAgile = nullptr;
-    }
-    
-    return hr;
-}
-#endif // (NTDDI_VERSION >= NTDDI_WINBLUE)
 
 // Comparison operators - don't compare COM object identity
 template<class T, class U>
@@ -834,61 +524,6 @@ void** IID_PPV_ARGS_Helper(_Inout_ ::Microsoft::WRL::Details::ComPtrRef<T> pp) t
 {
     static_assert(__is_base_of(IUnknown, typename T::InterfaceType), "T has to derive from IUnknown");
     return pp;
-}
-
-// Overloaded global function to provide to IID_INS_ARGS that support Details::ComPtrRef
-template<typename T>
-void** IID_INS_ARGS_Helper(_Inout_ ::Microsoft::WRL::Details::ComPtrRef<T> pp) throw()
-{
-    static_assert(__is_base_of(IInspectable, typename T::InterfaceType), "T has to derive from IInspectable");
-    return pp;
-}
-
-namespace Windows
-{
-    namespace Foundation
-    {
-        template<typename T>
-        inline HRESULT ActivateInstance(
-            _In_ HSTRING activatableClassId,
-            _Inout_ ::Microsoft::WRL::Details::ComPtrRef<T> instance) throw()
-        {
-            return ActivateInstance(activatableClassId, instance.ReleaseAndGetAddressOf());
-        }
-
-        template<typename T>
-        inline HRESULT GetActivationFactory(
-            _In_  HSTRING activatableClassId,
-            _Inout_ ::Microsoft::WRL::Details::ComPtrRef<T>  factory) throw()
-        {
-            return GetActivationFactory(activatableClassId, factory.ReleaseAndGetAddressOf());
-        }
-    }
-}
-
-namespace ABI
-{
-    namespace Windows
-    {
-        namespace Foundation
-        {
-            template<typename T>
-            inline HRESULT ActivateInstance(
-                _In_ HSTRING activatableClassId,
-                _Inout_ ::Microsoft::WRL::Details::ComPtrRef<T> instance) throw()
-            {
-                return ActivateInstance(activatableClassId, instance.ReleaseAndGetAddressOf());
-            }
-
-            template<typename T>
-            inline HRESULT GetActivationFactory(
-                _In_  HSTRING activatableClassId,
-                _Inout_ ::Microsoft::WRL::Details::ComPtrRef<T>  factory) throw()
-            {
-                return GetActivationFactory(activatableClassId, factory.ReleaseAndGetAddressOf());
-            }
-        }
-    }
 }
 #pragma warning(pop)
 

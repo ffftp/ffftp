@@ -44,11 +44,6 @@
 #error WRL cannot be compiled with /clr option enabled
 #endif
 
-// Minimal requirement set to Windows Vista
-#if NTDDI_VERSION < NTDDI_VISTA 
-#error WRL requires NTDDI_VERSION to be #defined at least to NTDDI_VISTA or greater
-#endif
-
 // IA64 architecture is not supported by WRL
 #ifdef _M_IA64
 #error WRL doesn't support IA64 architecture

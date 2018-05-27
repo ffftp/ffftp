@@ -15,26 +15,17 @@
 
 #pragma region includes
 
-#include <inspectable.h>
-#include <roapi.h>
 #ifdef BUILD_WINDOWS
 #include <winrt.h>
 #endif
-#include <activation.h>
-#include <WinString.h>
 
 #include <new.h>
-#include <weakreference.h>
 #include <objbase.h>    // IMarshal
 #include <cguid.h>      // CLSID_StdGlobalInterfaceTable
 #include <intrin.h>
 
 #include "wrl\def.h"
 #include "wrl\client.h"
-
-#if (NTDDI_VERSION >= NTDDI_WINBLUE)
-#include "roerrorapi.h"
-#endif // (NTDDI_VERSION >= NTDDI_WINBLUE)
 
 // Set packing
 #include <pshpack8.h>
@@ -100,37 +91,12 @@ struct MixIn
 
 // ComposableBase template to allow deriving from a RuntimeClass
 // Optionally allows specifying the base factory and statics interface
-template <typename FactoryInterface = IInspectable>
+template <typename FactoryInterface>
 class ComposableBase
 {
 };
 // Back-compat indicator for RuntimeClass to not support IWeakReferenceSource
 typedef RuntimeClassFlags<WinRt | InhibitWeakReference>    InhibitWeakReferencePolicy;
-
-template<unsigned int RuntimeClassTypeT>
-struct ErrorHelper
-{
-    static void OriginateError(HRESULT hr, HSTRING message)
-    {
-#if (NTDDI_VERSION >= NTDDI_WINBLUE)
-        ::RoOriginateError(hr, message);
-#else
-        UNREFERENCED_PARAMETER(hr);
-        UNREFERENCED_PARAMETER(message);
-#endif // (NTDDI_VERSION >= NTDDI_WINBLUE)
-    }
-};
-
-template<>
-struct ErrorHelper<InhibitRoOriginateError>
-{
-    static void OriginateError(HRESULT hr, HSTRING message)
-    {
-        UNREFERENCED_PARAMETER(hr);
-        UNREFERENCED_PARAMETER(message);
-        // No-Op
-    }
-};
 
 namespace Details
 {
@@ -236,8 +202,6 @@ public:
         return reinterpret_cast<SRWLOCK*>(&moduleLock_);
     }
 
-    STDMETHOD(RegisterWinRTObject)(_In_opt_z_ const wchar_t*, _In_z_ const wchar_t** activatableClassIds, _Inout_ RO_REGISTRATION_COOKIE* cookie, unsigned int) = 0;
-    STDMETHOD(UnregisterWinRTObject)(_In_opt_z_ const wchar_t*, _In_ RO_REGISTRATION_COOKIE) = 0;
     STDMETHOD(RegisterCOMObject)(_In_opt_z_ const wchar_t*, _In_ IID*, _In_ IClassFactory**, _Inout_ DWORD*, unsigned int) = 0;
     STDMETHOD(UnregisterCOMObject)(_In_opt_z_ const wchar_t*, _Inout_ DWORD*, unsigned int) = 0;
 };
@@ -292,7 +256,7 @@ protected:
 // Conditional check using template parameter is constant and can be used to optimize the code
         bool isRefDelegated = false;
         // Prefer InlineIsEqualGUID over other forms since it's better perf on 4-byte aligned data, which is almost always the case.
-        if (InlineIsEqualGUID(riid, __uuidof(IUnknown)) || ((RuntimeClassTypeT & WinRt) != 0 && InlineIsEqualGUID(riid, __uuidof(IInspectable))))
+        if (InlineIsEqualGUID(riid, __uuidof(IUnknown)))
 #pragma warning(pop)
         {
             *ppvObject = implements->CastToUnknown();
@@ -370,10 +334,10 @@ struct VerifyInterfaceHelper<ClassicCom, I, doStrictCheck, false>
     static void Verify() throw()
     {
 #ifdef __WRL_STRICT__
-        // Make sure that your interfaces inherit from IUnknown and are not IUnknown and/or IInspectable based
+        // Make sure that your interfaces inherit from IUnknown and are not IUnknown based
         // The IUnknown is allowed only on RuntimeClass as first template parameter
-        static_assert(__is_base_of(IUnknown, I) && !__is_base_of(IInspectable, I) && !(doStrictCheck && IsSame<IUnknown, I>::value),
-            "'I' has to derive from 'IUnknown' and not from 'IInspectable'. 'I' must not be IUnknown.");
+        static_assert(__is_base_of(IUnknown, I) && !(doStrictCheck && IsSame<IUnknown, I>::value),
+            "'I' has to derive from 'IUnknown'. 'I' must not be IUnknown.");
 #else
         static_assert(__is_base_of(IUnknown, I), "'I' has to derive from 'IUnknown'.");
 #endif
@@ -387,11 +351,10 @@ struct VerifyInterfaceHelper<WinRtClassicComMix, I, doStrictCheck, false>
     static void Verify() throw()
     {
 #ifdef __WRL_STRICT__
-        // Make sure that your interfaces inherit from IUnknown and are not IUnknown and/or IInspectable
-        // except when IInspectable is the first template parameter
+        // Make sure that your interfaces inherit from IUnknown and are not IUnknown
         static_assert(__is_base_of(IUnknown, I) && 
-            (doStrictCheck ? !(IsSame<IInspectable, I>::value || IsSame<IUnknown, I>::value) : __is_base_of(IInspectable, I)),
-                "'I' has to derive from 'IUnknown' and must not be IUnknown and/or IInspectable.");
+            (doStrictCheck ? !(IsSame<IUnknown, I>::value) : false),
+                "'I' has to derive from 'IUnknown' and must not be IUnknown.");
 #else
         static_assert(__is_base_of(IUnknown, I), "'I' has to derive from 'IUnknown'.");
 #endif
@@ -404,19 +367,7 @@ struct VerifyInterfaceHelper<WinRt, I, doStrictCheck, false>
 {
     static void Verify() throw()
     {
-#ifdef __WRL_STRICT__
-        // IWeakReferenceSource is exception for WinRt and can be used however it cannot be first templated interface
-        // Make sure that your interfaces inherit from IInspectable and are not IInspectable
-        // The IInspectable is allowed only on RuntimeClass as first template parameter
-        static_assert((__is_base_of(IWeakReferenceSource, I) && doStrictCheck) || 
-            (__is_base_of(IInspectable, I) && !(doStrictCheck && IsSame<IInspectable, I>::value)), 
-                "'I' has to derive from 'IWeakReferenceSource' or 'IInspectable' and must not be IInspectable");
-#else
-        // IWeakReference and IWeakReferneceSource are exceptions for WinRT
-        static_assert(__is_base_of(IWeakReference, I) ||
-                        __is_base_of(IWeakReferenceSource, I) ||
-                            __is_base_of(IInspectable, I), "'I' has to derive from 'IWeakReference', 'IWeakReferenceSource' or 'IInspectable'");
-#endif
+        static_assert(false);
     }
 };
 
@@ -1224,37 +1175,12 @@ protected:
     }
 
 public:
-    HRESULT SetComposableBasePointers(_In_ IInspectable* base, _In_opt_ FactoryInterface* baseFactory = nullptr) throw()
-    {
-        if (composableBase_ != nullptr)
-        {
-#if (NTDDI_VERSION >= NTDDI_WINBLUE)
-            ErrorHelper<RuntimeClassFlagsT::value & InhibitRoOriginateError>::OriginateError(E_UNEXPECTED, nullptr);
-#endif // (NTDDI_VERSION >= NTDDI_WINBLUE)
-            return E_UNEXPECTED;
-        }
-
-        HRESULT hr = base->GetIids(&iidCount_, &iidsCached_);
-        if (SUCCEEDED(hr))
-        {
-            composableBase_ = base;
-            composableBaseFactory_ = baseFactory;
-        }
-        return hr;
-    }
-
-    ComPtr<IInspectable> GetComposableBase() throw()
-    {
-        return composableBase_;
-    }
-
     ComPtr<FactoryInterface> GetComposableBaseFactory() throw()
     {
         return composableBaseFactory_;
     }
 
 private:
-    ComPtr<IInspectable> composableBase_;
     ComPtr<FactoryInterface> composableBaseFactory_;
     IID *iidsCached_;
     unsigned long iidCount_;
@@ -1351,19 +1277,6 @@ class FtmBase :
       ::Microsoft::WRL::CloakedIid< ::IMarshal> >;
 protected:
     template <typename RuntimeClassFlagsT, bool doStrictCheck, typename ...TInterfaces> friend struct Details::ImplementsHelper;
-
-    HRESULT CanCastTo(REFIID riid, _Outptr_ void **ppv) throw()
-    {
-        // Prefer InlineIsEqualGUID over other forms since it's better perf on 4-byte aligned data, which is almost always the case.
-        if (InlineIsEqualGUID(riid, __uuidof(::IAgileObject)))
-        {
-            
-            *ppv = Super::CastToUnknown();
-            return S_OK;
-        }
-
-        return Super::CanCastTo(riid, ppv);
-    }
 
 public:
     FtmBase() throw()
@@ -1646,50 +1559,14 @@ protected:
         return refcount_;
     }
 
-    friend class WeakReferenceImpl;
-
 private:
     volatile long refcount_;
-};
-
-template<typename I, bool isImplementsBased = __is_base_of(ImplementsBase, I)>
-struct HasIInspectable;
-
-template<typename I>
-struct HasIInspectable<I, false>
-{
-    static const bool isIInspectable = __is_base_of(IInspectable, I);
-};
-
-template<typename I>
-struct HasIInspectable<I, true>
-{
-    static const bool isIInspectable = HasIInspectable<typename I::FirstInterface>::isIInspectable;
-};
-
-#ifdef __WRL_STRICT__
-template<typename I0, bool isIInspectable = true>
-#else
-template<typename I0, bool isIInspectable = HasIInspectable<I0>::isIInspectable>
-#endif
-struct IInspectableInjector;
-
-template<typename I0>
-struct IInspectableInjector<I0, true>
-{
-    typedef Details::Nil InspectableIfNeeded;
-};
-
-template<typename I0>
-struct IInspectableInjector<I0, false>
-{
-    typedef IInspectable InspectableIfNeeded;
 };
 
 // Implements IInspectable in ILst
 template <class RuntimeClassFlagsT, typename I0, typename ...TInterfaces>
 class __declspec(novtable) RuntimeClassImpl<RuntimeClassFlagsT, false, true, false, I0, TInterfaces...> :
-    public Details::AdjustImplements<RuntimeClassFlagsT, false, typename IInspectableInjector<I0>::InspectableIfNeeded, I0, TInterfaces...>::Type,
+    public Details::AdjustImplements<RuntimeClassFlagsT, false, Details::Nil, I0, TInterfaces...>::Type,
     public RuntimeClassBaseT<RuntimeClassFlagsT::value>,
     protected RuntimeClassFlags<InhibitWeakReference>,
     public DontUseNewUseMake
@@ -1739,30 +1616,6 @@ public:
     {
         return Super::GetImplementedIIDS(this, iidCount, iids);
     }
-
-#if !defined(__WRL_STRICT__) || !defined(__WRL_FORCE_INSPECTABLE_CLASS_MACRO__)
-    STDMETHOD(GetRuntimeClassName)(_Out_ HSTRING* runtimeClassName)
-    {
-        *runtimeClassName = nullptr;
-
-        __WRL_ASSERT__(false && "Use InspectableClass macro to set runtime class name and trust level.");
-
-#if (NTDDI_VERSION >= NTDDI_WINBLUE)
-        ErrorHelper<RuntimeClassFlagsT::value & InhibitRoOriginateError>::OriginateError(E_NOTIMPL, nullptr);
-#endif // (NTDDI_VERSION >= NTDDI_WINBLUE)
-        return E_NOTIMPL;
-    }
-
-    STDMETHOD(GetTrustLevel)(_Out_ TrustLevel*)
-    {
-        __WRL_ASSERT__(false && "Use InspectableClass macro to set runtime class name and trust level.");
-
-#if (NTDDI_VERSION >= NTDDI_WINBLUE)
-        ErrorHelper<RuntimeClassFlagsT::value & InhibitRoOriginateError>::OriginateError(E_NOTIMPL, nullptr);
-#endif // (NTDDI_VERSION >= NTDDI_WINBLUE)
-        return E_NOTIMPL;
-    }
-#endif // !defined(__WRL_STRICT__) || !defined(__WRL_FORCE_INSPECTABLE_CLASS_MACRO__)
 
 protected:
     using Super = RuntimeClassBaseT<RuntimeClassFlagsT::value>;
@@ -1854,384 +1707,6 @@ public:
 
     long strongRefCount_;
 };
-
-// To support storing, encoding and decoding reference-count/pointers regardless of the target platform.
-// In a RuntimeClass, the refCount_ member can mean either
-//    1. actual reference count
-//    2. pointer to the weak reference object which holds the strong count
-// The member
-//    1. If it is a count, the most significant bit will be OFF
-//    2. If it is an encoded pointer to the weak reference, the most significant bit will be turned ON
-// To test which mode it is
-//    1. Test for negative
-//    2. If it is, it is an encoded pointer to the weak reference
-//    3. If it is not, it is the actual reference count
-// To yield the encoded pointer
-//    1. Test the value for negative 
-//    2. If it is, shift the value to the left and cast it to a WeakReferenceImpl*
-// 
-const UINT_PTR EncodeWeakReferencePointerFlag = static_cast<UINT_PTR>(1) << ((sizeof(UINT_PTR) * 8) - 1);
-
-union ReferenceCountOrWeakReferencePointer
-{
-    // Represents the count when it is a count (in practice only the least significant 4 bytes)
-    UINT_PTR refCount;
-    // Pointer size, *signed* to help with ease of casting and such
-    INT_PTR rawValue;
-    // The hint that this could also be a pointer
-    void* ifHighBitIsSetThenShiftLeftToYieldPointerToWeakReference;
-};
-
-// Helper methods to test, decode and decode the different representations of ReferenceCountOrWeakReferencePointer
-inline bool IsValueAPointerToWeakReference(INT_PTR value)
-{
-    return value < 0;
-}
-
-// Forward declaration
-class WeakReferenceImpl;
-inline INT_PTR EncodeWeakReferencePointer(Microsoft::WRL::Details::WeakReferenceImpl* value);
-inline Microsoft::WRL::Details::WeakReferenceImpl* DecodeWeakReferencePointer(INT_PTR value);
-
-// Helper functions, originally from winnt.h, needed to get the semantics right when fetching values
-// in multi-threaded scenarios. This is in order to guarantee the compiler emits exactly one read
-// (compiler may decide to re-fetch the value later on, which in some cases can break code)
-#if defined(_ARM_)
-
-FORCEINLINE
-LONG
-ReadULongPtrNoFence (
-    _In_ _Interlocked_operand_ DWORD const volatile *Source
-    )
-
-{
-    LONG Value;
-
-    Value = __iso_volatile_load32((int *)Source);
-    return Value;
-}
-
-#elif defined(_ARM64_)
-
-FORCEINLINE
-LONG64
-ReadULongPtrNoFence (
-    _In_ _Interlocked_operand_ DWORD64 const volatile *Source
-    )
-
-{
-    LONG64 Value;
-
-    Value = __iso_volatile_load64((__int64 *)Source);
-    return Value;
-}
-
-#elif defined(_X86_)
-
-FORCEINLINE
-LONG
-ReadULongPtrNoFence (
-    _In_ _Interlocked_operand_ DWORD const volatile *Source
-    )
-
-{
-    LONG Value;
-
-    Value = *Source;
-    return Value;
-}
-
-#elif defined(_AMD64_)
-
-FORCEINLINE
-LONG64
-ReadULongPtrNoFence (
-    _In_ _Interlocked_operand_ DWORD64 const volatile *Source
-    )
-
-{
-    LONG64 Value;
-
-    Value = *Source;
-    return Value;
-}
-
-#else
-
-#error Unsupported architecture.
-
-#endif
-
-template <typename T>
-inline T ReadValueFromPointerNoFence(_In_ const volatile T* value)
-{
-    ULONG_PTR currentValue = ReadULongPtrNoFence(reinterpret_cast<const volatile ULONG_PTR *>(value));
-    const T* currentPointerToValue = reinterpret_cast<T*>(&currentValue);
-    return *currentPointerToValue;
-}
-
-inline WeakReferenceImpl* CreateWeakReference(_In_ IUnknown*);
-
-// Implementation of activatable class that implements IWeakReferenceSource
-// and delegates reference counting to WeakReferenceImpl object
-template <class RuntimeClassFlagsT, typename I0, typename ...TInterfaces>
-class __declspec(novtable) RuntimeClassImpl<RuntimeClassFlagsT, true, true, false, I0, TInterfaces...> :
-    public Details::AdjustImplements<RuntimeClassFlagsT, false, typename IInspectableInjector<I0>::InspectableIfNeeded, I0, IWeakReferenceSource, TInterfaces...>::Type,
-    public RuntimeClassBaseT<RuntimeClassFlagsT::value>,
-    public DontUseNewUseMake
-#ifdef _PERF_COUNTERS
-    , public PerfCountersBase
-#endif
-{
-public:
-    typedef RuntimeClassFlagsT ClassFlags;
-
-    RuntimeClassImpl() throw()
-    {
-        refCount_.rawValue = 1;
-    }
-
-    STDMETHOD(QueryInterface)(REFIID riid, _Outptr_result_nullonfailure_ void **ppvObject)
-    {
-#ifdef _PERF_COUNTERS
-        IncrementQueryInterfaceCount();
-#endif
-        return Super::AsIID(this, riid, ppvObject);
-    }
-
-    STDMETHOD_(ULONG, AddRef)()
-    {
-        return InternalAddRef();
-    }
-
-    STDMETHOD_(ULONG, Release)()
-    {
-        ULONG ref = InternalRelease();
-        if (ref == 0)
-        {
-            delete this;
-
-            auto modulePtr = ::Microsoft::WRL::GetModuleBase();
-            if (modulePtr != nullptr)
-            {
-                modulePtr->DecrementObjectCount();
-            }
-        }
-
-        return ref;
-    }
-
-    // IInspectable methods
-    STDMETHOD(GetIids)(
-        _Out_ ULONG *iidCount,
-        _When_(*iidCount == 0, _At_(*iids, _Post_null_))
-        _When_(*iidCount > 0, _At_(*iids, _Post_notnull_))
-        _Result_nullonfailure_ IID **iids)
-    {
-        return Super::GetImplementedIIDS(this, iidCount, iids);
-    }
-
-#if !defined(__WRL_STRICT__) || !defined(__WRL_FORCE_INSPECTABLE_CLASS_MACRO__)
-    STDMETHOD(GetRuntimeClassName)(_Out_ HSTRING* runtimeClassName)
-    {
-        *runtimeClassName = nullptr;
-
-        __WRL_ASSERT__(false && "Use InspectableClass macro to set runtime class name and trust level.");
-
-#if (NTDDI_VERSION >= NTDDI_WINBLUE)
-        ErrorHelper<RuntimeClassFlagsT::value & InhibitRoOriginateError>::OriginateError(E_NOTIMPL, nullptr);
-#endif // (NTDDI_VERSION >= NTDDI_WINBLUE)
-        return E_NOTIMPL;
-    }
-
-    STDMETHOD(GetTrustLevel)(_Out_ TrustLevel*)
-    {
-        __WRL_ASSERT__(false && "Use InspectableClass macro to set runtime class name and trust level.");
-#if (NTDDI_VERSION >= NTDDI_WINBLUE)
-        ErrorHelper<RuntimeClassFlagsT::value & InhibitRoOriginateError>::OriginateError(E_NOTIMPL, nullptr);
-#endif // (NTDDI_VERSION >= NTDDI_WINBLUE)
-        return E_NOTIMPL;
-    }
-#endif // !defined(__WRL_STRICT__) || !defined(__WRL_FORCE_INSPECTABLE_CLASS_MACRO__)
-
-    STDMETHOD(GetWeakReference)(_Outptr_ IWeakReference **weakReference)
-    {
-        WeakReferenceImpl* weakRef = nullptr;
-        INT_PTR encodedWeakRef = 0;
-        ReferenceCountOrWeakReferencePointer currentValue = ReadValueFromPointerNoFence<ReferenceCountOrWeakReferencePointer>(&refCount_);
-
-        *weakReference = nullptr;
-
-        if (IsValueAPointerToWeakReference(currentValue.rawValue))
-        {
-            weakRef = DecodeWeakReferencePointer(currentValue.rawValue);
-
-            weakRef->AddRef();
-            *weakReference = weakRef;
-            return S_OK;
-        }
-
-        // WeakReferenceImpl is created with ref count 2 to avoid interlocked increment
-        weakRef = CreateWeakReference(ImplementsHelper::CastToUnknown());
-        if (weakRef == nullptr)
-        {
-            return E_OUTOFMEMORY;
-        }
-        
-        encodedWeakRef = EncodeWeakReferencePointer(weakRef);
-
-        for (;;)
-        {
-            INT_PTR previousValue = 0;
-
-            weakRef->SetStrongReference(static_cast<unsigned long>(currentValue.refCount));
-
-#ifdef __WRL_UNITTEST__
-            OnBeforeGetWeakReferenceSwap();
-#endif
-
-            previousValue = reinterpret_cast<INT_PTR>(UnknownInterlockedCompareExchangePointer(reinterpret_cast<PVOID*>(&(this->refCount_.ifHighBitIsSetThenShiftLeftToYieldPointerToWeakReference)), reinterpret_cast<PVOID>(encodedWeakRef), currentValue.ifHighBitIsSetThenShiftLeftToYieldPointerToWeakReference));
-            if (previousValue == currentValue.rawValue)
-            {
-                // No need to call AddRef in this case, WeakReferenceImpl is created with ref count 2 to avoid interlocked increment
-                *weakReference = weakRef;
-                return S_OK;
-            }
-            else if (IsValueAPointerToWeakReference(previousValue))
-            {
-                // Another thread beat this call to create the weak reference. 
-
-                delete weakRef;
-
-                weakRef = DecodeWeakReferencePointer(previousValue);
-                weakRef->AddRef();
-                *weakReference = weakRef;
-                return S_OK;
-            }
-
-            // Another thread won via an AddRef or Release.
-            // Let's try again
-            currentValue.rawValue = previousValue;
-        }
-    }
-
-    virtual ~RuntimeClassImpl() throw()
-    {
-        if (IsValueAPointerToWeakReference(refCount_.rawValue))
-        {
-            WeakReferenceImpl* weakRef = DecodeWeakReferencePointer(refCount_.rawValue);
-            weakRef->Release();
-            weakRef = nullptr;
-        }
-    }
-
-protected:
-    template <unsigned int RuntimeClassTypeT> friend class Details::RuntimeClassBaseT;
-    using ImplementsHelper = typename Details::AdjustImplements<RuntimeClassFlagsT, false, typename IInspectableInjector<I0>::InspectableIfNeeded, I0, IWeakReferenceSource, TInterfaces...>::Type;
-    using Super = RuntimeClassBaseT<RuntimeClassFlagsT::value>;
-
-    unsigned long InternalAddRef() throw()
-    {
-#ifdef _PERF_COUNTERS
-        IncrementAddRefCount();
-#endif
-
-        ReferenceCountOrWeakReferencePointer currentValue = ReadValueFromPointerNoFence<ReferenceCountOrWeakReferencePointer>(&refCount_);
-
-        for (;;)
-        {
-            if (!IsValueAPointerToWeakReference(currentValue.rawValue))
-            {
-                UINT_PTR updateValue = currentValue.refCount + 1;
-
-#ifdef __WRL_UNITTEST__
-                OnBeforeInternalAddRefIncrement();
-#endif
-
-                INT_PTR previousValue = reinterpret_cast<INT_PTR>(UnknownInterlockedCompareExchangePointerForIncrement(reinterpret_cast<PVOID*>(&(refCount_.refCount)), reinterpret_cast<PVOID>(updateValue), reinterpret_cast<PVOID>(currentValue.refCount)));
-                if (previousValue == currentValue.rawValue)
-                {
-                    return static_cast<unsigned long>(updateValue);
-                }
-
-                currentValue.rawValue = previousValue;
-            }
-            else
-            {
-                WeakReferenceImpl* weakRef = DecodeWeakReferencePointer(currentValue.rawValue);
-                return weakRef->IncrementStrongReference();
-            }
-        }
-    }
-
-    unsigned long InternalRelease() throw()
-    {
-#ifdef _PERF_COUNTERS
-        IncrementReleaseCount();
-#endif
-
-        ReferenceCountOrWeakReferencePointer currentValue = ReadValueFromPointerNoFence<ReferenceCountOrWeakReferencePointer>(&refCount_);
-
-        for (;;)
-        {
-            if (!IsValueAPointerToWeakReference(currentValue.rawValue))
-            {
-                UINT_PTR updateValue = currentValue.refCount - 1;
-
-#ifdef __WRL_UNITTEST__
-                OnBeforeInternalReleaseDecrement();
-#endif
-
-                INT_PTR previousValue = reinterpret_cast<INT_PTR>(UnknownInterlockedCompareExchangePointerForIncrement(reinterpret_cast<PVOID*>(&(refCount_.refCount)), reinterpret_cast<PVOID>(updateValue), reinterpret_cast<PVOID>(currentValue.refCount)));
-                if (previousValue == currentValue.rawValue)
-                {
-                    return static_cast<unsigned long>(updateValue);
-                }
-
-                currentValue.rawValue = previousValue;
-            }
-            else
-            {
-                WeakReferenceImpl* weakRef = DecodeWeakReferencePointer(currentValue.rawValue);
-                return weakRef->DecrementStrongReference();
-            }
-        }
-    }
-
-    unsigned long GetRefCount() const throw()
-    {
-        ReferenceCountOrWeakReferencePointer currentValue = ReadValueFromPointerNoFence<ReferenceCountOrWeakReferencePointer>(&refCount_);
-
-        if (IsValueAPointerToWeakReference(currentValue.rawValue))
-        {
-            WeakReferenceImpl* weakRef = DecodeWeakReferencePointer(currentValue.rawValue);
-            return weakRef->GetStrongReferenceCount();
-        }
-        else
-        {
-            return static_cast<unsigned long>(currentValue.refCount);
-        }
-    }
-
-    friend class WeakReferenceImpl;
-
-#ifdef __WRL_UNITTEST__
-protected:
-#else
-private:
-#endif
-    ReferenceCountOrWeakReferencePointer refCount_;
-};
-
-inline INT_PTR EncodeWeakReferencePointer(Microsoft::WRL::Details::WeakReferenceImpl* value)
-{
-    return ((reinterpret_cast<INT_PTR>(value) >> 1) | EncodeWeakReferencePointerFlag);
-}
-
-inline Microsoft::WRL::Details::WeakReferenceImpl* DecodeWeakReferencePointer(INT_PTR value)
-{
-    return reinterpret_cast<Microsoft::WRL::Details::WeakReferenceImpl*>(value << 1);
-}
 
 #pragma warning(pop) // C6388
 
@@ -2337,59 +1812,6 @@ public:
 
 namespace Details
 {
-//Weak reference implementation
-    class WeakReferenceImpl sealed:
-        public ::Microsoft::WRL::RuntimeClass<RuntimeClassFlags<ClassicCom>, IWeakReference>,
-        public StrongReference
-    {
-    public:
-    WeakReferenceImpl(_In_ IUnknown* unk) throw() : StrongReference(LONG_MAX / 2), unknown_(unk)
-    {
-        // Set ref count to 2 to avoid unnecessary interlocked increment operation while returning
-        // WeakReferenceImpl from GetWeakReference method. One reference is hold by the object the second is hold
-        // by the caller of GetWeakReference method.
-        refcount_ = 2;
-    }
-
-    virtual ~WeakReferenceImpl() throw()
-    {
-    }
-
-    STDMETHOD(Resolve)(REFIID riid, _Outptr_result_maybenull_ _Result_nullonfailure_ IInspectable **ppvObject)    
-    {            
-        *ppvObject = nullptr;
-
-        for(;;)
-        {
-            long ref = this->strongRefCount_;
-            if (ref == 0)
-            {
-                return S_OK;
-            }
-
-            // InterlockedCompareExchange calls _InterlockedCompareExchange intrinsic thus we call directly _InterlockedCompareExchange to save the call
-            if (::_InterlockedCompareExchange(&this->strongRefCount_, ref + 1, ref) == ref)
-            {
-#ifdef _PERF_COUNTERS
-                // This artificially manipulates the strong ref count via AddRef to account for the resolve 
-                // interlocked operation above when tallying reference counting operations.
-                unknown_->AddRef();
-                ::_InterlockedDecrement(&this->strongRefCount_);
-#endif
-                break;
-            }
-        }
-            
-        HRESULT hr = unknown_->QueryInterface(riid, reinterpret_cast<void**>(ppvObject));
-        unknown_->Release();
-        return hr;
-    }
-
-
-private:
-    IUnknown *unknown_;
-};
-
 // Memory allocation for object that doesn't support weak references
 // It only allocates memory
 template<typename T>
@@ -2484,69 +1906,6 @@ using Details::MakeAndInitialize;
 using Details::Make;
 
 #pragma endregion // make overloads
-
-namespace Details
-{
-    inline WeakReferenceImpl* CreateWeakReference(_In_ IUnknown* unk)
-    {
-        return Make<WeakReferenceImpl>(unk).Detach();
-    }
-}
-
-#define InspectableClass(runtimeClassName, trustLevel) \
-    public: \
-        static const wchar_t* STDMETHODCALLTYPE InternalGetRuntimeClassName() throw() \
-        { \
-            static_assert((RuntimeClassT::ClassFlags::value & ::Microsoft::WRL::WinRtClassicComMix) == ::Microsoft::WRL::WinRt || \
-                (RuntimeClassT::ClassFlags::value & ::Microsoft::WRL::WinRtClassicComMix) == ::Microsoft::WRL::WinRtClassicComMix, \
-                    "'InspectableClass' macro must not be used with ClassicCom clasess."); \
-            static_assert(__is_base_of(::Microsoft::WRL::Details::RuntimeClassBase, RuntimeClassT), "'InspectableClass' macro can only be used with ::Windows::WRL::RuntimeClass types"); \
-            static_assert(!__is_base_of(IActivationFactory, RuntimeClassT), "Incorrect usage of IActivationFactory interface. Make sure that your RuntimeClass doesn't implement IActivationFactory interface use ::Windows::WRL::ActivationFactory instead or 'InspectableClass' macro is not used on ::Windows::WRL::ActivationFactory"); \
-            return runtimeClassName; \
-        } \
-        static TrustLevel STDMETHODCALLTYPE InternalGetTrustLevel() throw() \
-        { \
-            return trustLevel; \
-        } \
-        STDMETHOD(GetRuntimeClassName)(_Out_ HSTRING* runtimeName) \
-        { \
-            *runtimeName = nullptr; \
-            HRESULT hr = S_OK; \
-            const wchar_t *name = InternalGetRuntimeClassName(); \
-            if (name != nullptr) \
-            { \
-                hr = ::WindowsCreateString(name, static_cast<UINT32>(::wcslen(name)), runtimeName); \
-            } \
-            return hr; \
-        } \
-        STDMETHOD(GetTrustLevel)(_Out_ TrustLevel* trustLvl) \
-        { \
-            *trustLvl = trustLevel; \
-            return S_OK; \
-        } \
-        STDMETHOD(GetIids)(_Out_ ULONG *iidCount, \
-            _When_(*iidCount == 0, _At_(*iids, _Post_null_)) \
-            _When_(*iidCount > 0, _At_(*iids, _Post_notnull_)) \
-            _Result_nullonfailure_ IID **iids) \
-        { \
-            return RuntimeClassT::GetIids(iidCount, iids); \
-        } \
-        STDMETHOD(QueryInterface)(REFIID riid, _Outptr_result_nullonfailure_ void **ppvObject) \
-        { \
-            bool handled = false; \
-            HRESULT hr = CustomQueryInterface(riid, ppvObject, &handled); \
-            if (FAILED(hr) || handled) return hr; \
-            return RuntimeClassT::QueryInterface(riid, ppvObject); \
-        } \
-        STDMETHOD_(ULONG, Release)() \
-        { \
-            return RuntimeClassT::Release(); \
-        } \
-        STDMETHOD_(ULONG, AddRef)() \
-        { \
-            return RuntimeClassT::AddRef(); \
-        } \
-    private:
 
 #define MixInHelper() \
     public: \
