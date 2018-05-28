@@ -19,20 +19,6 @@
 #define __WRL_ASSERT__(cond)    _ASSERTE(cond)
 #endif // __WRL_ASSERT__
 
-#ifndef __WRL_IMPLEMENTS_FTM_BASE__
-#ifdef __WRL_CONFIGURATION_LEGACY__
-#define __WRL_IMPLEMENTS_FTM_BASE__(flags) (false)
-#else
-#define __WRL_IMPLEMENTS_FTM_BASE__(flags) ((flags & ::Microsoft::WRL::InhibitFtmBase) == 0)
-#endif
-#endif
-
-#ifndef __WRL_CONFIGURATION_LEGACY__
-#ifndef __WRL_STRICT__
-//#define __WRL_STRICT__
-#endif
-#endif
-
 // Include common headers
 #include <windows.h>
 
