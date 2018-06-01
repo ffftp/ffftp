@@ -225,7 +225,6 @@
     <ClInclude Include="wrl\client.h" />
     <ClInclude Include="wrl\def.h" />
     <ClInclude Include="wrl\implements.h" />
-    <ClInclude Include="wrl\internal.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resource\bitmap1.bmp" />

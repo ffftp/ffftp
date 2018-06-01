@@ -14,11 +14,11 @@
 #endif  // _MSC_VER
 
 #pragma region includes
+#include <type_traits>
 #include <stddef.h>
 #include <unknwn.h>
 
 #include "wrl\def.h"
-#include "wrl\internal.h"
 
 // Set packing
 #include <pshpack8.h>
@@ -63,7 +63,7 @@ public:
 
     operator IUnknown**() const throw()
     {
-        static_assert(__is_base_of(IUnknown, InterfaceType), "Invalid cast: InterfaceType does not derive from IUnknown");
+        static_assert(std::is_base_of_v<IUnknown, InterfaceType>, "Invalid cast: InterfaceType does not derive from IUnknown");
         return reinterpret_cast<IUnknown**>(ptr_->ReleaseAndGetAddressOf());
     }
 
@@ -161,7 +161,7 @@ public:
     {
     }
 
-    ComPtr(decltype(__nullptr)) throw() : ptr_(nullptr)
+    ComPtr(std::nullptr_t) throw() : ptr_(nullptr)
     {
     }
 
@@ -178,7 +178,7 @@ public:
 
     // copy constructor that allows to instantiate class when U* is convertible to T*
     template<class U>
-    ComPtr(const ComPtr<U> &other, typename Details::EnableIf<__is_convertible_to(U*, T*), void *>::type * = 0) throw() :
+    ComPtr(const ComPtr<U> &other, std::enable_if_t<std::is_convertible_v<U*, T*>, void *>* = 0) throw() :
         ptr_(other.ptr_)
     {
         InternalAddRef();
@@ -194,7 +194,7 @@ public:
 
     // Move constructor that allows instantiation of a class when U* is convertible to T*
     template<class U>
-    ComPtr(_Inout_ ComPtr<U>&& other, typename Details::EnableIf<__is_convertible_to(U*, T*), void *>::type * = 0) throw() :
+    ComPtr(_Inout_ ComPtr<U>&& other, std::enable_if_t<std::is_convertible_v<U*, T*>, void *>* = 0) throw() :
         ptr_(other.ptr_)
     {
         other.ptr_ = nullptr;
@@ -209,7 +209,7 @@ public:
 #pragma endregion
 
 #pragma region assignment
-    ComPtr& operator=(decltype(__nullptr)) throw()
+    ComPtr& operator=(std::nullptr_t) throw()
     {
         InternalRelease();
         return *this;
@@ -277,9 +277,9 @@ public:
     }
 #pragma endregion
 
-    operator Details::BoolType() const throw()
+    explicit operator bool() const throw()
     {
-        return Get() != nullptr ? &Details::BoolStruct::Member : nullptr;
+        return Get() != nullptr;
     }
 
     T* Get() const throw()
@@ -350,9 +350,7 @@ public:
     // A valid polymoprhic downcast requires run-time type checking via QueryInterface, so CopyTo(InterfaceType**) will break type safety.
     // This overload matches ComPtrRef before the implicit cast takes place, preventing the unsafe downcast.
     template <typename U>
-    HRESULT CopyTo(Details::ComPtrRef<ComPtr<U>> ptr, typename Details::EnableIf<
-      Details::IsSame<T, IUnknown>::value
-      && !Details::IsSame<U*, T*>::value, void *>::type * = 0) const throw()
+    HRESULT CopyTo(Details::ComPtrRef<ComPtr<U>> ptr, std::enable_if_t<std::is_same_v<T, IUnknown> && !std::is_same<U*, T*>::value, void *>* = 0) const throw()
     {
         return ptr_->QueryInterface(__uuidof(U), ptr);
     }
@@ -401,18 +399,18 @@ public:
 template<class T, class U>
 bool operator==(const ComPtr<T>& a, const ComPtr<U>& b) throw()
 {
-    static_assert(__is_base_of(T, U) || __is_base_of(U, T), "'T' and 'U' pointers must be comparable");
+    static_assert(std::is_base_of_v<T, U> || std::is_base_of_v<U, T>, "'T' and 'U' pointers must be comparable");
     return a.Get() == b.Get();
 }
 
 template<class T>
-bool operator==(const ComPtr<T>& a, decltype(__nullptr)) throw()
+bool operator==(const ComPtr<T>& a, std::nullptr_t) throw()
 {
     return a.Get() == nullptr;
 }
 
 template<class T>
-bool operator==(decltype(__nullptr), const ComPtr<T>& a) throw()
+bool operator==(std::nullptr_t, const ComPtr<T>& a) throw()
 {
     return a.Get() == nullptr;
 }
@@ -420,18 +418,18 @@ bool operator==(decltype(__nullptr), const ComPtr<T>& a) throw()
 template<class T, class U>
 bool operator!=(const ComPtr<T>& a, const ComPtr<U>& b) throw()
 {
-    static_assert(__is_base_of(T, U) || __is_base_of(U, T), "'T' and 'U' pointers must be comparable");
+    static_assert(std::is_base_of_v<T, U> || std::is_base_of_v<U, T>, "'T' and 'U' pointers must be comparable");
     return a.Get() != b.Get();
 }
 
 template<class T>
-bool operator!=(const ComPtr<T>& a, decltype(__nullptr)) throw()
+bool operator!=(const ComPtr<T>& a, std::nullptr_t) throw()
 {
     return a.Get() != nullptr;
 }
 
 template<class T>
-bool operator!=(decltype(__nullptr), const ComPtr<T>& a) throw()
+bool operator!=(std::nullptr_t, const ComPtr<T>& a) throw()
 {
     return a.Get() != nullptr;
 }
@@ -439,7 +437,7 @@ bool operator!=(decltype(__nullptr), const ComPtr<T>& a) throw()
 template<class T, class U>
 bool operator<(const ComPtr<T>& a, const ComPtr<U>& b) throw()
 {
-    static_assert(__is_base_of(T, U) || __is_base_of(U, T), "'T' and 'U' pointers must be comparable");
+    static_assert(std::is_base_of_v<T, U> || std::is_base_of_v<U, T>, "'T' and 'U' pointers must be comparable");
     return a.Get() < b.Get();
 }
 
@@ -447,18 +445,18 @@ bool operator<(const ComPtr<T>& a, const ComPtr<U>& b) throw()
 template<class T, class U>
 bool operator==(const Details::ComPtrRef<ComPtr<T>>& a, const Details::ComPtrRef<ComPtr<U>>& b) throw()
 {
-    static_assert(__is_base_of(T, U) || __is_base_of(U, T), "'T' and 'U' pointers must be comparable");
+    static_assert(std::is_base_of_v<T, U> || std::is_base_of_v<U, T>, "'T' and 'U' pointers must be comparable");
     return a.GetAddressOf() == b.GetAddressOf();
 }
 
 template<class T>
-bool operator==(const Details::ComPtrRef<ComPtr<T>>& a, decltype(__nullptr)) throw()
+bool operator==(const Details::ComPtrRef<ComPtr<T>>& a, std::nullptr_t) throw()
 {
     return a.GetAddressOf() == nullptr;
 }
 
 template<class T>
-bool operator==(decltype(__nullptr), const Details::ComPtrRef<ComPtr<T>>& a) throw()
+bool operator==(std::nullptr_t, const Details::ComPtrRef<ComPtr<T>>& a) throw()
 {
     return a.GetAddressOf() == nullptr;
 }
@@ -478,18 +476,18 @@ bool operator==(void* b, const Details::ComPtrRef<ComPtr<T>>& a) throw()
 template<class T, class U>
 bool operator!=(const Details::ComPtrRef<ComPtr<T>>& a, const Details::ComPtrRef<ComPtr<U>>& b) throw()
 {
-    static_assert(__is_base_of(T, U) || __is_base_of(U, T), "'T' and 'U' pointers must be comparable");
+    static_assert(std::is_base_of_v<T, U> || std::is_base_of_v<U, T>, "'T' and 'U' pointers must be comparable");
     return a.GetAddressOf() != b.GetAddressOf();
 }
 
 template<class T>
-bool operator!=(const Details::ComPtrRef<ComPtr<T>>& a, decltype(__nullptr)) throw()
+bool operator!=(const Details::ComPtrRef<ComPtr<T>>& a, std::nullptr_t) throw()
 {
     return a.GetAddressOf() != nullptr;
 }
 
 template<class T>
-bool operator!=(decltype(__nullptr), const Details::ComPtrRef<ComPtr<T>>& a) throw()
+bool operator!=(std::nullptr_t, const Details::ComPtrRef<ComPtr<T>>& a) throw()
 {
     return a.GetAddressOf() != nullptr;
 }
@@ -509,7 +507,7 @@ bool operator!=(void* b, const Details::ComPtrRef<ComPtr<T>>& a) throw()
 template<class T, class U>
 bool operator<(const Details::ComPtrRef<ComPtr<T>>& a, const Details::ComPtrRef<ComPtr<U>>& b) throw()
 {
-    static_assert(__is_base_of(T, U) || __is_base_of(U, T), "'T' and 'U' pointers must be comparable");
+    static_assert(std::is_base_of_v<T, U> || std::is_base_of_v<U, T>, "'T' and 'U' pointers must be comparable");
     return a.GetAddressOf() < b.GetAddressOf();
 }
 
@@ -519,7 +517,7 @@ bool operator<(const Details::ComPtrRef<ComPtr<T>>& a, const Details::ComPtrRef<
 template<typename T>
 void** IID_PPV_ARGS_Helper(_Inout_ ::Microsoft::WRL::Details::ComPtrRef<T> pp) throw()
 {
-    static_assert(__is_base_of(IUnknown, typename T::InterfaceType), "T has to derive from IUnknown");
+    static_assert(std::is_base_of_v<IUnknown, typename T::InterfaceType>, "T has to derive from IUnknown");
     return pp;
 }
 #pragma warning(pop)

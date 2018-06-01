@@ -15,6 +15,8 @@
 
 #pragma region includes
 
+#include <atomic>
+#include <utility>
 #include <new.h>
 #include <objbase.h>    // IMarshal
 #include <cguid.h>      // CLSID_StdGlobalInterfaceTable
@@ -70,7 +72,7 @@ struct ImplementsBase
 
 // MixIn modifier allows to combine QI from
 // a class that doesn't have default constructor on it
-template<typename Derived, typename MixInType, bool hasImplements = __is_base_of(Details::ImplementsBase, MixInType)>
+template<typename Derived, typename MixInType, bool hasImplements = std::is_base_of_v<Details::ImplementsBase, MixInType>>
 struct MixIn
 {
 };
@@ -143,7 +145,7 @@ public:
 };
 
 // Verifies that I is derived from specified base
-template <typename I, bool doStrictCheck = true, bool isImplementsBased = __is_base_of(ImplementsBase, I)>
+template <typename I, bool doStrictCheck = true, bool isImplementsBased = std::is_base_of_v<ImplementsBase, I>>
 struct VerifyInterfaceHelper;
 
 // Specialization for ClassicCom interface
@@ -155,10 +157,10 @@ struct VerifyInterfaceHelper<I, doStrictCheck, false>
 #ifdef __WRL_STRICT__
         // Make sure that your interfaces inherit from IUnknown and are not IUnknown based
         // The IUnknown is allowed only on RuntimeClass as first template parameter
-        static_assert(__is_base_of(IUnknown, I) && !(doStrictCheck && IsSame<IUnknown, I>::value),
+        static_assert(std::is_base_of_v<IUnknown, I> && !(doStrictCheck && std::is_same_v<IUnknown, I>),
             "'I' has to derive from 'IUnknown'. 'I' must not be IUnknown.");
 #else
-        static_assert(__is_base_of(IUnknown, I), "'I' has to derive from 'IUnknown'.");
+        static_assert(std::is_base_of_v<IUnknown, I>, "'I' has to derive from 'IUnknown'.");
 #endif
     }
 };
@@ -285,7 +287,7 @@ struct VerifyInheritanceHelper
 {
     static void Verify() throw()
     {
-        static_assert(Details::IsBaseOfStrict<typename InterfaceTraits<Base>::Base, typename InterfaceTraits<I>::Base>::value, "'I' needs to inherit from 'Base'.");
+        static_assert(std::is_base_of_v<InterfaceTraits<Base>::Base, InterfaceTraits<I>::Base>, "'I' needs to inherit from 'Base'.");
     }
 };
 
@@ -465,7 +467,7 @@ struct __declspec(novtable) AdjustImplements;
 template <bool doStrictCheck, typename I0, typename ...Bases>
 struct __declspec(novtable) AdjustImplements<doStrictCheck, I0, Bases...>
 {
-    typedef ImplementsHelper<doStrictCheck, typename MarkImplements<I0, __is_base_of(ImplementsBase, I0)>::Type, Bases...> Type;
+    typedef ImplementsHelper<doStrictCheck, typename MarkImplements<I0, std::is_base_of_v<ImplementsBase, I0>>::Type, Bases...> Type;
 };
 
 // Use AdjustImplements to remove instances of "Details::Nil" from the type list.
@@ -831,17 +833,17 @@ class __declspec(novtable) PerfCountersBase
 public:
     ULONG GetAddRefCount() throw()
     {
-        return addRefCount_;
+        return addRefCount_.load(std::memory_order_relaxed);
     }
 
     ULONG GetReleaseCount() throw()
     {
-        return releaseCount_;
+        return releaseCount_.load(std::memory_order_relaxed);
     }
 
     ULONG GetQueryInterfaceCount() throw()
     {
-        return queryInterfaceCount_;
+        return queryInterfaceCount_.load(std::memory_order_relaxed);
     }
 
     void ResetPerfCounters() throw()
@@ -852,57 +854,28 @@ public:
     }
 
 protected:
-    PerfCountersBase() throw() : 
-        addRefCount_(0),
-        releaseCount_(0),
-        queryInterfaceCount_(0)
-    {
-    }
+	PerfCountersBase() = default;
 
     void IncrementAddRefCount() throw()
     {
-        InterlockedIncrement(&addRefCount_);
+        addRefCount_++;
     }
 
     void IncrementReleaseCount() throw()
     {
-        InterlockedIncrement(&releaseCount_);
+        releaseCount_++;
     }
 
     void IncrementQueryInterfaceCount() throw()
     {
-        InterlockedIncrement(&queryInterfaceCount_);
+        queryInterfaceCount_++;
     }
 
 private:
-    volatile unsigned long addRefCount_;
-    volatile unsigned long releaseCount_;
-    volatile unsigned long queryInterfaceCount_;
+    std::atomic<unsigned long> addRefCount_ = 0;
+	std::atomic<unsigned long> releaseCount_ = 0;
+	std::atomic<unsigned long> queryInterfaceCount_ = 0;
 };
-#endif
-
-#if defined(_X86_) || defined(_AMD64_)
-
-#define UnknownIncrementReference InterlockedIncrement
-#define UnknownDecrementReference InterlockedDecrement
-#define UnknownBarrierAfterInterlock() 
-
-#elif defined(_ARM_)
-
-#define UnknownIncrementReference InterlockedIncrementNoFence
-#define UnknownDecrementReference InterlockedDecrementRelease
-#define UnknownBarrierAfterInterlock() __dmb(_ARM_BARRIER_ISH)
-
-#elif defined(_ARM64_)
-
-#define UnknownIncrementReference InterlockedIncrementNoFence
-#define UnknownDecrementReference InterlockedDecrementRelease
-#define UnknownBarrierAfterInterlock() __dmb(_ARM64_BARRIER_ISH)
-
-#else
-
-#error Unsupported architecture.
-
 #endif
 
 #pragma warning(push)
@@ -946,15 +919,13 @@ public:
 protected:
     using Super = RuntimeClassBase;
 
-    RuntimeClassImpl() throw() : refcount_(1)
-    {
-    }    
+	RuntimeClassImpl() = default;
 
     virtual ~RuntimeClassImpl() throw()
     {
         // Set refcount_ to -(LONG_MAX/2) to protect destruction and
         // also catch mismatched Release in debug builds
-        refcount_ = -(LONG_MAX/2);
+		refcount_.store(-(LONG_MAX/2), std::memory_order_relaxed);
     }
 
     unsigned long InternalAddRef() throw()
@@ -962,7 +933,7 @@ protected:
 #ifdef _PERF_COUNTERS
         IncrementAddRefCount();
 #endif
-        return UnknownIncrementReference(&refcount_);
+		return refcount_.fetch_add(1, std::memory_order_relaxed) + 1;
     }
 
     unsigned long InternalRelease() throw()
@@ -972,23 +943,23 @@ protected:
 #endif
         // A release fence is required to ensure all guarded memory accesses are
         // complete before any thread can begin destroying the object.
-        unsigned long newValue = UnknownDecrementReference(&refcount_);
+		unsigned long newValue = refcount_.fetch_sub(1, std::memory_order_release) - 1;
         if (newValue == 0)
         {
             // An acquire fence is required before object destruction to ensure
             // that the destructor cannot observe values changing on other threads.
-            UnknownBarrierAfterInterlock();
+			std::atomic_thread_fence(std::memory_order_acquire);
         }
         return newValue;
     }
 
     unsigned long GetRefCount() const throw()
     {
-        return refcount_;
+        return refcount_.load(std::memory_order_relaxed);
     }
 
 private:
-    volatile long refcount_;
+	std::atomic<long> refcount_ = 1;
 };
 
 #pragma warning(pop) // C6388
@@ -1066,13 +1037,13 @@ namespace Details {
 template <typename T, typename ...TArgs>
 ComPtr<T> Make(TArgs&&... args)
 {
-    static_assert(__is_base_of(RuntimeClassBase, T), "Make can only instantiate types that derive from RuntimeClass");
+    static_assert(std::is_base_of_v<RuntimeClassBase, T>, "Make can only instantiate types that derive from RuntimeClass");
     ComPtr<T> object;
     Details::MakeAllocator<T> allocator;
     void *buffer = allocator.Allocate();
     if (buffer != nullptr)
     {
-        auto ptr = new (buffer)T(Details::Forward<TArgs>(args)...);
+        auto ptr = new (buffer)T(std::forward<TArgs>(args)...);
         object.Attach(ptr);
         allocator.Detach();
     }
@@ -1085,8 +1056,8 @@ ComPtr<T> Make(TArgs&&... args)
 template <typename T, typename I, typename ...TArgs>
 HRESULT MakeAndInitialize(_Outptr_result_nullonfailure_ I** result, TArgs&&... args)
 {
-    static_assert(__is_base_of(RuntimeClassBase, T), "Make can only instantiate types that derive from RuntimeClass");
-    static_assert(__is_base_of(I, T), "The 'T' runtime class doesn't implement 'I' interface");
+    static_assert(std::is_base_of_v<RuntimeClassBase, T>, "Make can only instantiate types that derive from RuntimeClass");
+    static_assert(std::is_base_of_v<I, T>, "The 'T' runtime class doesn't implement 'I' interface");
     *result = nullptr;
     Details::MakeAllocator<T> allocator;
     void *buffer = allocator.Allocate();
@@ -1095,7 +1066,7 @@ HRESULT MakeAndInitialize(_Outptr_result_nullonfailure_ I** result, TArgs&&... a
     ComPtr<T> object;
     object.Attach(ptr);
     allocator.Detach();
-    HRESULT hr = object->RuntimeClassInitialize(Details::Forward<TArgs>(args)...);
+    HRESULT hr = object->RuntimeClassInitialize(std::forward<TArgs>(args)...);
     if (FAILED(hr)) { return hr; }
     return object.CopyTo(result);
 }
@@ -1105,7 +1076,7 @@ HRESULT MakeAndInitialize(_Outptr_result_nullonfailure_ I** result, TArgs&&... a
 template <typename T, typename I, typename ...TArgs>
 HRESULT MakeAndInitialize(_Inout_ ComPtrRef<ComPtr<I>> ppvObject, TArgs&&... args)
 {    
-    return MakeAndInitialize<T>(ppvObject.ReleaseAndGetAddressOf(), Details::Forward<TArgs>(args)...);
+    return MakeAndInitialize<T>(ppvObject.ReleaseAndGetAddressOf(), std::forward<TArgs>(args)...);
 }
 
 } //end of Details
@@ -1119,8 +1090,8 @@ using Details::Make;
     public: \
         STDMETHOD(QueryInterface)(REFIID riid, _Outptr_result_nullonfailure_ void **ppvObject) \
         { \
-            static_assert(__is_base_of(::Microsoft::WRL::Details::RuntimeClassBase, RuntimeClassT), "'MixInHelper' macro can only be used with ::Windows::WRL::RuntimeClass types"); \
-            static_assert(!__is_base_of(IClassFactory, RuntimeClassT), "Incorrect usage of IClassFactory interface. Make sure that your RuntimeClass doesn't implement IClassFactory interface use ::Windows::WRL::ClassFactory instead or 'MixInHelper' macro is not used on ::Windows::WRL::ClassFactory"); \
+            static_assert(std::is_base_of_v<::Microsoft::WRL::Details::RuntimeClassBase, RuntimeClassT>, "'MixInHelper' macro can only be used with ::Windows::WRL::RuntimeClass types"); \
+            static_assert(!std::is_base_of_v<IClassFactory, RuntimeClassT>, "Incorrect usage of IClassFactory interface. Make sure that your RuntimeClass doesn't implement IClassFactory interface use ::Windows::WRL::ClassFactory instead or 'MixInHelper' macro is not used on ::Windows::WRL::ClassFactory"); \
             return RuntimeClassT::QueryInterface(riid, ppvObject); \
         } \
         STDMETHOD_(ULONG, Release)() \
@@ -1132,10 +1103,6 @@ using Details::Make;
             return RuntimeClassT::AddRef(); \
         } \
     private:
-
-#undef UnknownIncrementReference
-#undef UnknownDecrementReference
-#undef UnknownBarrierAfterInterlock 
 
 }}    // namespace Microsoft::WRL
 

@@ -148,9 +148,6 @@
     <ClInclude Include="wrl\implements.h">
       <Filter>Header Files\wrl</Filter>
     </ClInclude>
-    <ClInclude Include="wrl\internal.h">
-      <Filter>Header Files\wrl</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resource\bitmap1.bmp">

@@ -55,4 +55,10 @@
 #define nullptr  0
 #endif /* BUG ESC:849 - disabling under prefast */
 
+#ifndef __WRL_ASSERT__
+ // Take CRT assert as default
+#include <crtdbg.h>
+#define __WRL_ASSERT__(cond)    _ASSERTE(cond)
+#endif // __WRL_ASSERT__
+
 #endif // _WRL_DEF_H_
