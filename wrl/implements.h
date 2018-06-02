@@ -81,11 +81,6 @@ namespace Details
 {
 
 #pragma region helper types
-// Empty struct used as default template parameter
-class Nil 
-{
-};
-
 // Used on RuntimeClass to protect it from being constructed with new
 class DontUseNewUseMake
 {
@@ -263,24 +258,6 @@ struct __declspec(novtable) InterfaceTraits<CloakedIid<CloakedType>>
     }
 };
 
-// Specialization for Nil parameter
-template<>
-struct __declspec(novtable) InterfaceTraits<Nil>
-{
-    typedef Nil Base;
-
-    static void Verify() throw()
-    {
-    }
-
-    template <typename T>
-    _Success_(return == true)
-    static bool CanCastTo(_In_ T*, REFIID, _Outptr_ void **) throw()
-    {
-        return false;
-    }
-};
-
 // Verify inheritance
 template <typename I, typename Base>
 struct VerifyInheritanceHelper
@@ -291,63 +268,28 @@ struct VerifyInheritanceHelper
     }
 };
 
-template <typename I>
-struct VerifyInheritanceHelper<I, Nil>
-{
-    static void Verify() throw()
-    {
-    }
-};
-
 #pragma endregion //  helper types
 
 } // namespace Details
 
 // ChainInterfaces - template allows specifying a derived COM interface along with its class hierarchy to allow QI for the base interfaces
-template <typename I0, typename I1, typename I2 = Details::Nil, typename I3 = Details::Nil, 
-        typename I4 = Details::Nil, typename I5 = Details::Nil, typename I6 = Details::Nil,
-        typename I7 = Details::Nil, typename I8 = Details::Nil, typename I9 = Details::Nil>
+template <typename I0, typename... Is>
 struct ChainInterfaces : I0
 {
-protected:    
+	static_assert(0 < sizeof...(Is), "ChainInterfaces requires at least 2 interfaces");
+protected:
     static void Verify() throw()
     {
-        Details::InterfaceTraits<I0>::Verify();
-        Details::InterfaceTraits<I1>::Verify();
-        Details::InterfaceTraits<I2>::Verify();
-        Details::InterfaceTraits<I3>::Verify();
-        Details::InterfaceTraits<I4>::Verify();
-        Details::InterfaceTraits<I5>::Verify();
-        Details::InterfaceTraits<I6>::Verify();
-        Details::InterfaceTraits<I7>::Verify();
-        Details::InterfaceTraits<I8>::Verify();
-        Details::InterfaceTraits<I9>::Verify();
-
-        Details::VerifyInheritanceHelper<I0, I1>::Verify();
-        Details::VerifyInheritanceHelper<I0, I2>::Verify();
-        Details::VerifyInheritanceHelper<I0, I3>::Verify();
-        Details::VerifyInheritanceHelper<I0, I4>::Verify();
-        Details::VerifyInheritanceHelper<I0, I5>::Verify();
-        Details::VerifyInheritanceHelper<I0, I6>::Verify();
-        Details::VerifyInheritanceHelper<I0, I7>::Verify();
-        Details::VerifyInheritanceHelper<I0, I8>::Verify();
-        Details::VerifyInheritanceHelper<I0, I9>::Verify();
+        (Details::InterfaceTraits<I0>::Verify(), ..., Details::InterfaceTraits<Is>::Verify());
+        (..., Details::VerifyInheritanceHelper<I0, Is>::Verify());
     }
 
     HRESULT CanCastTo(REFIID riid, _Outptr_ void **ppv) throw()
     {
         typename Details::InterfaceTraits<I0>::Base* ptr = Details::InterfaceTraits<I0>::CastToBase(this);
 
-        return (Details::InterfaceTraits<I0>::CanCastTo(this, riid, ppv) ||
-            Details::InterfaceTraits<I1>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I2>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I3>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I4>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I5>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I6>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I7>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I8>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I9>::CanCastTo(ptr, riid, ppv)) ? S_OK : E_NOINTERFACE;
+		return (Details::InterfaceTraits<I0>::CanCastTo(this, riid, ppv) || ... || Details::InterfaceTraits<Is>::CanCastTo(ptr, riid, ppv))
+			? S_OK : E_NOINTERFACE;
     }
 
     IUnknown* CastToUnknown() throw()
@@ -356,52 +298,24 @@ protected:
     }
 };
 
-template <typename DerivedType, typename BaseType, bool hasImplements, typename I1, typename I2, typename I3, 
-        typename I4, typename I5, typename I6,
-        typename I7, typename I8, typename I9>
-struct ChainInterfaces<MixIn<DerivedType, BaseType, hasImplements>, I1, I2, I3, I4, I5, I6, I7, I8, I9>
+template <typename DerivedType, typename BaseType, bool hasImplements, typename... Is>
+struct ChainInterfaces<MixIn<DerivedType, BaseType, hasImplements>, Is...>
 {
     static_assert(!hasImplements, "Cannot use ChainInterfaces<MixIn<...>> to Mix a class implementing interfaces using \"Implements\"");
+	static_assert(0 < sizeof...(Is), "ChainInterfaces requires at least 2 interfaces");
 
 protected:    
     static void Verify() throw()
     {
         Details::InterfaceTraits<BaseType>::Verify();
-        Details::InterfaceTraits<I1>::Verify();
-        Details::InterfaceTraits<I2>::Verify();
-        Details::InterfaceTraits<I3>::Verify();
-        Details::InterfaceTraits<I4>::Verify();
-        Details::InterfaceTraits<I5>::Verify();
-        Details::InterfaceTraits<I6>::Verify();
-        Details::InterfaceTraits<I7>::Verify();
-        Details::InterfaceTraits<I8>::Verify();
-        Details::InterfaceTraits<I9>::Verify();
-
-        Details::VerifyInheritanceHelper<BaseType, I1>::Verify();
-        Details::VerifyInheritanceHelper<BaseType, I2>::Verify();
-        Details::VerifyInheritanceHelper<BaseType, I3>::Verify();
-        Details::VerifyInheritanceHelper<BaseType, I4>::Verify();
-        Details::VerifyInheritanceHelper<BaseType, I5>::Verify();
-        Details::VerifyInheritanceHelper<BaseType, I6>::Verify();
-        Details::VerifyInheritanceHelper<BaseType, I7>::Verify();
-        Details::VerifyInheritanceHelper<BaseType, I8>::Verify();
-        Details::VerifyInheritanceHelper<BaseType, I9>::Verify();
+        (..., Details::InterfaceTraits<Is>::Verify());
+        (..., Details::VerifyInheritanceHelper<BaseType, Is>::Verify());
     }
 
     HRESULT CanCastTo(REFIID riid, _Outptr_ void **ppv) throw()
     {
         BaseType* ptr = static_cast<BaseType*>(static_cast<DerivedType*>(this));
-
-        return (
-            Details::InterfaceTraits<I1>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I2>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I3>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I4>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I5>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I6>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I7>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I8>::CanCastTo(ptr, riid, ppv) ||
-            Details::InterfaceTraits<I9>::CanCastTo(ptr, riid, ppv)) ? S_OK : E_NOINTERFACE;
+        return (... || Details::InterfaceTraits<Is>::CanCastTo(ptr, riid, ppv)) ? S_OK : E_NOINTERFACE;
     }
 
     IUnknown* CastToUnknown() throw()
@@ -468,13 +382,6 @@ template <bool doStrictCheck, typename I0, typename ...Bases>
 struct __declspec(novtable) AdjustImplements<doStrictCheck, I0, Bases...>
 {
     typedef ImplementsHelper<doStrictCheck, typename MarkImplements<I0, std::is_base_of_v<ImplementsBase, I0>>::Type, Bases...> Type;
-};
-
-// Use AdjustImplements to remove instances of "Details::Nil" from the type list.
-template <bool doStrictCheck, typename ...Bases>
-struct __declspec(novtable) AdjustImplements<doStrictCheck, typename Details::Nil, Bases...>
-{
-    typedef typename AdjustImplements<doStrictCheck, Bases...>::Type Type;
 };
 
 
@@ -630,9 +537,9 @@ protected:
 };
 
 // Specialization handles chaining interfaces
-template <bool doStrictCheck, typename C0, typename C1, typename C2, typename C3, typename C4, typename C5, typename C6, typename C7, typename C8, typename C9, typename ...TInterfaces>
-struct __declspec(novtable) ImplementsHelper<doStrictCheck, ChainInterfaces<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>, TInterfaces...> :
-    ChainInterfaces<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>,
+template <bool doStrictCheck, typename... Cs, typename ...TInterfaces>
+struct __declspec(novtable) ImplementsHelper<doStrictCheck, ChainInterfaces<Cs...>, TInterfaces...> :
+    ChainInterfaces<Cs...>,
     AdjustImplements<true, TInterfaces...>::Type
 {
     template <bool doStrictCheck, typename ...TInterfaces> friend struct ImplementsHelper;
@@ -643,9 +550,9 @@ protected:
 
     HRESULT CanCastTo(REFIID riid, _Outptr_ void **ppv) throw()
     {
-        ChainInterfaces<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>::Verify();
+        ChainInterfaces<Cs...>::Verify();
         
-        HRESULT hr = ChainInterfaces<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>::CanCastTo(riid, ppv);
+        HRESULT hr = ChainInterfaces<Cs...>::CanCastTo(riid, ppv);
         if (FAILED(hr))
         {
             hr = BaseType::CanCastTo(riid, ppv);
@@ -656,7 +563,7 @@ protected:
 
     IUnknown* CastToUnknown() throw()
     {
-        return ChainInterfaces<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>::CastToUnknown();
+        return ChainInterfaces<Cs...>::CastToUnknown();
     }
 };
 
