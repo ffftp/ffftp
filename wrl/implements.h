@@ -82,16 +82,9 @@ namespace Details
 
 #pragma region helper types
 // Used on RuntimeClass to protect it from being constructed with new
-class DontUseNewUseMake
+struct DontUseNewUseMake
 {
-private:
-    void* operator new(size_t) throw()
-    {
-        __WRL_ASSERT__(false);
-        return 0;
-    }
-
-public:
+	void* operator new(size_t) = delete;
     void* operator new(size_t, _In_ void* placement) throw()
     {
         return placement;
@@ -345,18 +338,9 @@ struct __declspec(novtable) ImplementsMarker
 {};
 
 template <typename I0, bool isImplements>
-struct __declspec(novtable) MarkImplements;
-
-template <typename I0>
-struct __declspec(novtable) MarkImplements<I0, false>
+struct __declspec(novtable) MarkImplements
 {
-    typedef I0 Type;
-};
-
-template <typename I0>
-struct __declspec(novtable) MarkImplements<I0, true>
-{
-    typedef ImplementsMarker<I0> Type;
+    using Type = std::conditional_t<isImplements, ImplementsMarker<I0>, I0>;
 };
 
 template <typename I0>
@@ -422,25 +406,18 @@ protected:
 };
 
 
-// Selector is used to "tag" base interfaces to be used in casting, since a runtime class may indirectly derive from 
-// the same interface or Implements<> template multiple times
-template <typename base, typename disciminator>
-struct  __declspec(novtable) Selector : public base
-{
-};
-
 // Specialization handles types that derive from ImplementsHelper (e.g. nested Implements).
 template <bool doStrictCheck, typename I0, typename ...TInterfaces>
 struct __declspec(novtable) ImplementsHelper<doStrictCheck, ImplementsMarker<I0>, TInterfaces...> :
-    Selector<I0, ImplementsHelper<doStrictCheck, ImplementsMarker<I0>, TInterfaces...>>,
-    Selector<typename AdjustImplements<true, TInterfaces...>::Type, ImplementsHelper<doStrictCheck, ImplementsMarker<I0>, TInterfaces...>>
+    I0,
+    AdjustImplements<true, TInterfaces...>::Type
 {
     template <bool doStrictCheck, typename ...TInterfaces> friend struct ImplementsHelper;
     friend class RuntimeClassBase;
 
 protected:
-    typedef Selector<I0, ImplementsHelper<doStrictCheck, ImplementsMarker<I0>, TInterfaces...>> CurrentType;
-    typedef Selector<typename AdjustImplements<true, TInterfaces...>::Type, ImplementsHelper<doStrictCheck, ImplementsMarker<I0>, TInterfaces...>> BaseType;
+    typedef I0 CurrentType;
+    typedef typename AdjustImplements<true, TInterfaces...>::Type BaseType;
 
     HRESULT CanCastTo(REFIID riid, _Outptr_ void **ppv) throw()
     {
@@ -637,9 +614,6 @@ class FtmBase :
     public Implements< 
         ::Microsoft::WRL::CloakedIid< ::IMarshal> >
 {
-    // defining type 'Super' for other compilers since '__super' is a VC++-specific language extension
-    using Super = Implements< 
-      ::Microsoft::WRL::CloakedIid< ::IMarshal> >;
 protected:
     template <bool doStrictCheck, typename ...TInterfaces> friend struct Details::ImplementsHelper;
 
@@ -804,7 +778,7 @@ public:
 #ifdef _PERF_COUNTERS
         IncrementQueryInterfaceCount();
 #endif
-        return Super::AsIID(this, riid, ppvObject);
+        return RuntimeClassBase::AsIID(this, riid, ppvObject);
     }
 
     STDMETHOD_(ULONG, AddRef)()
@@ -824,8 +798,6 @@ public:
     }
 
 protected:
-    using Super = RuntimeClassBase;
-
 	RuntimeClassImpl() = default;
 
     virtual ~RuntimeClassImpl() throw()
@@ -883,8 +855,6 @@ template <unsigned int classFlags, typename ...TInterfaces>
 class RuntimeClass<RuntimeClassFlags<classFlags>, TInterfaces...> :
     public Details::RuntimeClassImpl<TInterfaces...>
 {
-    RuntimeClass(const RuntimeClass&);    
-    RuntimeClass& operator=(const RuntimeClass&);    
 protected:
     HRESULT CustomQueryInterface(REFIID /*riid*/, _Outptr_result_nullonfailure_ void** /*ppvObject*/, _Out_ bool *handled)
     {
@@ -893,6 +863,8 @@ protected:
     }
 public:
 	RuntimeClass() = default;
+    RuntimeClass(const RuntimeClass&) = delete;    
+    RuntimeClass& operator=(const RuntimeClass&) = delete;    
     typedef RuntimeClass RuntimeClassT;
 };
 
@@ -904,10 +876,6 @@ template<typename T>
 class MakeAllocator
 {
 public:
-    MakeAllocator() throw() : buffer_(nullptr)
-    {
-    }
-
     ~MakeAllocator() throw()
     {
         if (buffer_ != nullptr)
@@ -931,7 +899,7 @@ public:
         buffer_ = nullptr;
     }
 private:
-    char* buffer_;
+    char* buffer_ = nullptr;
 };
 
 } //Details
