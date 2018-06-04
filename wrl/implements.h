@@ -133,46 +133,29 @@ public:
 };
 
 // Verifies that I is derived from specified base
-template <typename I, bool doStrictCheck = true, bool isImplementsBased = std::is_base_of_v<ImplementsBase, I>>
-struct VerifyInterfaceHelper;
-
-// Specialization for ClassicCom interface
-template <typename I, bool doStrictCheck>
-struct VerifyInterfaceHelper<I, doStrictCheck, false>
+template <typename I, bool doStrictCheck = true>
+struct VerifyInterfaceHelper
 {
-    static void Verify() throw()
-    {
+	static void Verify() throw()
+	{
+		if constexpr (std::is_base_of_v<ImplementsBase, I>) {
+			if constexpr (!doStrictCheck) {
 #ifdef __WRL_STRICT__
-        // Make sure that your interfaces inherit from IUnknown and are not IUnknown based
-        // The IUnknown is allowed only on RuntimeClass as first template parameter
-        static_assert(std::is_base_of_v<IUnknown, I> && !(doStrictCheck && std::is_same_v<IUnknown, I>),
-            "'I' has to derive from 'IUnknown'. 'I' must not be IUnknown.");
-#else
-        static_assert(std::is_base_of_v<IUnknown, I>, "'I' has to derive from 'IUnknown'.");
+				// Besides make sure that the first interface on Implements meet flags requirement
+				VerifyInterfaceHelper<I::FirstInterface, false>::Verify();
 #endif
-    }
-};
-
-// Specialization for Implements passed as template parameter
-template <typename I>
-struct VerifyInterfaceHelper<I, true, true>
-{
-    static void Verify() throw()
-    {
-    }
-};
-
-// Specialization for Implements passed as first template parameter
-template <typename I>
-struct VerifyInterfaceHelper<I, false, true>
-{
-    static void Verify() throw()
-    {
+			}
+		} else {
+			// Make sure that your interfaces inherit from IUnknown and are not IUnknown based
+			// The IUnknown is allowed only on RuntimeClass as first template parameter
+			static_assert(std::is_base_of_v<IUnknown, I>, "'I' has to derive from 'IUnknown'.");
+			if constexpr (doStrictCheck) {
 #ifdef __WRL_STRICT__
-        // Besides make sure that the first interface on Implements meet flags requirement
-        VerifyInterfaceHelper<I::FirstInterface, false>::Verify();
+				static_assert(!std::is_same_v<IUnknown, I>, "'I' must not be IUnknown.");
 #endif
-    }
+			}
+		}
+	}
 };
 
 // Interface traits provides casting and filling iids methods helpers
@@ -215,41 +198,7 @@ struct __declspec(novtable) InterfaceTraits
 
 // Specialization of traits for cloaked interface
 template<typename CloakedType>
-struct __declspec(novtable) InterfaceTraits<CloakedIid<CloakedType>>
-{
-    typedef CloakedType Base;
-
-    static void Verify() throw()
-    {
-        VerifyInterfaceHelper<Base>::Verify();
-    }
-
-    template<typename T>
-    static Base* CastToBase(_In_ T* ptr) throw()
-    {
-        return static_cast<Base*>(ptr);
-    }
-
-    template<typename T>
-    static IUnknown* CastToUnknown(_In_ T* ptr) throw()
-    {
-        return static_cast<IUnknown*>(static_cast<Base*>(ptr));
-    }
-
-    template <typename T>
-    _Success_(return == true)
-    static bool CanCastTo(_In_ T* ptr, REFIID riid, _Outptr_ void **ppv) throw()
-    {
-        // Prefer InlineIsEqualGUID over other forms since it's better perf on 4-byte aligned data, which is almost always the case.
-        if (InlineIsEqualGUID(riid, __uuidof(Base)))
-        {
-            *ppv = static_cast<Base*>(ptr);
-            return true;
-        }
-
-        return false;
-    }
-};
+struct __declspec(novtable) InterfaceTraits<CloakedIid<CloakedType>> : InterfaceTraits<CloakedType> {};
 
 // Verify inheritance
 template <typename I, typename Base>
