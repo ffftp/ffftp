@@ -200,9 +200,29 @@ static std::mutex context_mutex;
 static std::map<SOCKET, Context> contexts;
 
 BOOL LoadSSL() {
+	// Windows 7以前はTLS 1.1、TLS 1.2が既定で無効化されている。 <https://msdn.microsoft.com/en-us/library/mt808159(v=vs.85).aspx>
+	// それとは別にTLS 1.2とSSL 2.0は排他となる。 <https://msdn.microsoft.com/en-us/library/aa379810(v=vs.85).aspx>
+	// そこでまずは既定でオープンし、有効化されているプロトコルを調べる。
+	// TLS 1.1、TLS 1.2が無効化されている場合はそれらを加えて再度オープンし直す。
+	// 古いプロトコルを無理に有効化しないための措置。
 	if (auto ss = AcquireCredentialsHandleW(nullptr, UNISP_NAME_W, SECPKG_CRED_OUTBOUND, nullptr, nullptr, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
 		_RPTWN(_CRT_WARN, L"AcquireCredentialsHandle error: %08X.\n", ss);
 		return FALSE;
+	}
+	SecPkgCred_SupportedProtocols sp;
+	if (auto ss = QueryCredentialsAttributesW(&credential, SECPKG_ATTR_SUPPORTED_PROTOCOLS, &sp); ss != SEC_E_OK) {
+		_RPTWN(_CRT_WARN, L"QueryCredentialsAttributes error: %08X.\n", ss);
+		return FALSE;
+	}
+	if ((sp.grbitProtocol & SP_PROT_TLS1_1_CLIENT) == 0 || (sp.grbitProtocol & SP_PROT_TLS1_2_CLIENT) == 0) {
+		FreeCredentialsHandle(&credential);
+		SCHANNEL_CRED schannelCred{ SCHANNEL_CRED_VERSION, 0, nullptr, 0, 0, nullptr, 0, nullptr, sp.grbitProtocol | SP_PROT_TLS1_1_CLIENT };
+		if ((sp.grbitProtocol & SP_PROT_SSL2_CLIENT) == 0)
+			schannelCred.grbitEnabledProtocols |= SP_PROT_TLS1_2_CLIENT;
+		if (auto ss = AcquireCredentialsHandleW(nullptr, UNISP_NAME_W, SECPKG_CRED_OUTBOUND, nullptr, &schannelCred, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
+			_RPTWN(_CRT_WARN, L"AcquireCredentialsHandle error: %08X.\n", ss);
+			return FALSE;
+		}
 	}
 	return TRUE;
 }
