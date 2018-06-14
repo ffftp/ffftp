@@ -85,127 +85,11 @@ struct MixIn
 {
 };
 
-// ComposableBase template to allow deriving from a RuntimeClass
-// Optionally allows specifying the base factory and statics interface
-template <typename FactoryInterface>
-class ComposableBase
-{
-};
 // Back-compat indicator for RuntimeClass to not support IWeakReferenceSource
 typedef RuntimeClassFlags<WinRt | InhibitWeakReference>    InhibitWeakReferencePolicy;
 
 namespace Details
 {
-
-//Forward declaration
-struct CreatorMap;
-
-// Sections automatically generate a list of pointers to CreatorMap through the linker
-// Sections a and z are used as a terminators
-#pragma section("minATL$__a", read)
-// Section f is used to put com objects to creator map
-#pragma section("minATL$__f", read)
-// Section m divides COM entries from WinRT entries
-#pragma section("minATL$__m", read)
-// Section r is used to put WinRT objects to creator map
-#pragma section("minATL$__r", read)
-#pragma section("minATL$__z", read)
-
-extern "C"
-{
-// Location of the first and last entries for the linker generated list of pointers to CreatorMapEntry
-__declspec(selectany) __declspec(allocate("minATL$__a")) const CreatorMap* __pobjectentryfirst = nullptr;
-// Section m divides COM objects from WinRT objects
-// - sections between a and m we store COM object info
-// - sections between m+1 and z we store WinRT object info 
-__declspec(selectany) __declspec(allocate("minATL$__m")) const CreatorMap* __pobjectentrymid = nullptr;
-__declspec(selectany) __declspec(allocate("minATL$__z")) const CreatorMap* __pobjectentrylast = nullptr;
-}
-
-// Base class used by all module classes.
-class __declspec(novtable) ModuleBase
-{
-private:
-    // Lock that synchronize access and termination of factories
-    static void* moduleLock_;
-
-    static_assert(sizeof(moduleLock_) == sizeof(SRWLOCK), "cacheLock must have the same size as SRWLOCK");
-protected:
-    static volatile unsigned long objectCount_;
-public:
-    static ModuleBase *module_;
-
-    ModuleBase() throw()
-    {
-#ifdef _DEBUG
-        // WRLs support for activatable classes requires there is only one instance of Module<>, this assert
-        // ensures there is only one. Since Module<> is templatized, using different template parameters will
-        // result in multiple instances, avoid this by making sure all code in a component uses the same parameters.
-        // Note that the C++ CX runtime creates an instance; Module<InProc, Platform::Details::InProcModule>,
-        // so mixing it with non CX code can result in this assert.
-        // WRL supports static and dynamically allocated Module<>, choose dynamic by defining __WRL_DISABLE_STATIC_INITIALIZE__
-        // and allocate that instance with new but only once, for example in the main() entry point of an application.
-        __WRL_ASSERT__(::InterlockedCompareExchangePointer(reinterpret_cast<void* volatile*>(&module_), this, nullptr) == nullptr &&
-            "The module was already instantiated");
-
-        SRWLOCK initSRWLOCK = SRWLOCK_INIT;
-        __WRL_ASSERT__(reinterpret_cast<SRWLOCK*>(&moduleLock_)->Ptr == initSRWLOCK.Ptr && "Different value for moduleLock_ than SRWLOCK_INIT");
-        (initSRWLOCK);
-#else
-        module_ = this;
-#endif
-    }
-
-    ModuleBase(const ModuleBase&) = delete;
-    ModuleBase& operator=(const ModuleBase&) = delete;
-
-    virtual ~ModuleBase() throw()
-    {
-#ifdef _DEBUG
-        __WRL_ASSERT__(::InterlockedCompareExchangePointer(reinterpret_cast<void* volatile*>(&module_), nullptr, this) == this &&
-            "The module was already instantiated");
-#else
-        module_ = nullptr;
-#endif
-    }
-
-    // Number of active objects in the module
-    STDMETHOD_(unsigned long, IncrementObjectCount)() = 0;
-    STDMETHOD_(unsigned long, DecrementObjectCount)() = 0;
-
-    STDMETHOD_(unsigned long, GetObjectCount)() const
-    {
-        return objectCount_;
-    }
-
-    STDMETHOD_(const CreatorMap**, GetFirstEntryPointer)() const
-    {
-        return &__pobjectentryfirst;
-    }
-
-    STDMETHOD_(const CreatorMap**, GetMidEntryPointer)() const
-    {
-        return &__pobjectentrymid;
-    }
-
-    STDMETHOD_(const CreatorMap**, GetLastEntryPointer)() const
-    {
-        return &__pobjectentrylast;
-    }
-
-    STDMETHOD_(SRWLOCK*, GetLock)() const
-    {
-        return reinterpret_cast<SRWLOCK*>(&moduleLock_);
-    }
-
-    STDMETHOD(RegisterCOMObject)(_In_opt_z_ const wchar_t*, _In_ IID*, _In_ IClassFactory**, _Inout_ DWORD*, unsigned int) = 0;
-    STDMETHOD(UnregisterCOMObject)(_In_opt_z_ const wchar_t*, _Inout_ DWORD*, unsigned int) = 0;
-};
-
-__declspec(selectany) volatile unsigned long ModuleBase::objectCount_ = 0;
-// moduleLock_ value must be equal SRWLOCK_INIT which is nullptr
-__declspec(selectany) void* ModuleBase::moduleLock_ = nullptr;
-__declspec(selectany) ModuleBase *ModuleBase::module_ = nullptr;
 
 #pragma region helper types
 // Empty struct used as default template parameter
@@ -538,11 +422,6 @@ struct VerifyInheritanceHelper<I, Nil>
 #pragma endregion //  helper types
 
 } // namespace Details
-
-inline Details::ModuleBase* GetModuleBase() throw()
-{
-    return Details::ModuleBase::module_;
-}
 
 // ChainInterfaces - template allows specifying a derived COM interface along with its class hierarchy to allow QI for the base interfaces
 template <typename I0, typename I1, typename I2 = Details::Nil, typename I3 = Details::Nil, 
@@ -1068,120 +947,6 @@ protected:
     }
 };
 
-// Specialization handles inheriting COM objects. ComposableBase must be the last non-nil interface in the list.
-// Trailing nil's are allowed for compatibility with some tools that pad out the list.
-template <typename I0, typename ...>
-struct AreAllNil
-{
-    static const bool value = false;
-};
-
-template <typename ...TInterfaces>
-struct AreAllNil<Microsoft::WRL::Details::Nil, TInterfaces...>
-{
-    static const bool value = AreAllNil<TInterfaces...>::value;
-};
-
-template <>
-struct AreAllNil<Microsoft::WRL::Details::Nil>
-{
-    static const bool value = true;
-};
-
-template <typename RuntimeClassFlagsT, typename FactoryInterface, bool doStrictCheck, typename ...TInterfaces>
-struct __declspec(novtable) ImplementsHelper<RuntimeClassFlagsT, doStrictCheck, ComposableBase<FactoryInterface>, TInterfaces...> :
-    ImplementsHelper<RuntimeClassFlagsT, true, ComposableBase<FactoryInterface>>
-{
-    template <typename RuntimeClassFlagsT, bool doStrictCheck, typename ...TInterfaces> friend struct ImplementsHelper;
-    template <unsigned int RuntimeClassTypeT> friend class RuntimeClassBaseT;
-
-protected:
-    template <unsigned int RuntimeClassTypeT> friend class Details::RuntimeClassBaseT;
-
-    typedef ImplementsHelper<RuntimeClassFlagsT, true, ComposableBase<FactoryInterface>> BaseType;
-
-    HRESULT CanCastTo(REFIID riid, _Outptr_ void **ppv, bool *pRefDelegated = nullptr) throw()
-    {
-        static_assert(AreAllNil<TInterfaces...>::value, "ComposableBase should be the last template parameter to RuntimeClass");
-        return BaseType::CanCastTo(riid, ppv, pRefDelegated);
-    }
-
-    IUnknown* CastToUnknown() throw()
-    {
-        static_assert(AreAllNil<TInterfaces...>::value, "ComposableBase should be the last template parameter to RuntimeClass");
-        return BaseType::CastToUnknown();
-    }
-
-    unsigned long GetIidCount() throw()
-    {
-        static_assert(AreAllNil<TInterfaces...>::value, "ComposableBase should be the last template parameter to RuntimeClass");
-        return BaseType::GetIidCount();
-    }
-
-    void FillArrayWithIid(_Inout_ unsigned long *index, _Inout_ IID* iids) throw()
-    {
-        static_assert(AreAllNil<TInterfaces...>::value, "ComposableBase should be the last template parameter to RuntimeClass");
-        BaseType::FillArrayWithIid(index, iids);
-    }
-};
-
-template <typename RuntimeClassFlagsT, typename FactoryInterface, bool doStrictCheck>
-struct __declspec(novtable) ImplementsHelper<RuntimeClassFlagsT, doStrictCheck, ComposableBase<FactoryInterface>>
-{
-    template <typename RuntimeClassFlagsT, bool doStrictCheck, typename ...TInterfaces> friend struct ImplementsHelper;
-    template <unsigned int RuntimeClassTypeT> friend class RuntimeClassBaseT;
-
-protected:
-    template <unsigned int RuntimeClassTypeT> friend class Details::RuntimeClassBaseT;
-
-    HRESULT CanCastTo(REFIID riid, _Outptr_ void **ppv, bool *pRefDelegated) throw()
-    {
-        *pRefDelegated = true;
-        return composableBase_.CopyTo(riid, ppv);
-    }
-
-    IUnknown* CastToUnknown() throw()
-    {
-        return nullptr;
-    }
-
-    unsigned long GetIidCount() throw()
-    {
-        return iidCount_;
-    }
-
-    void FillArrayWithIid(_Inout_ unsigned long *index, _Inout_ IID* iids) throw()
-    {
-        for(unsigned long i = 0; i < iidCount_; i++)
-        {
-            *(iids + *index) = *(iidsCached_ + i);
-            (*index)++;
-        }
-    }
-
-    ImplementsHelper() throw() : iidsCached_(nullptr), iidCount_(0)
-    {
-    }
-
-    ~ImplementsHelper() throw()
-    {
-        ::CoTaskMemFree(iidsCached_);
-        iidsCached_ = nullptr;
-        iidCount_ = 0;
-    }
-
-public:
-    ComPtr<FactoryInterface> GetComposableBaseFactory() throw()
-    {
-        return composableBaseFactory_;
-    }
-
-private:
-    ComPtr<FactoryInterface> composableBaseFactory_;
-    IID *iidsCached_;
-    unsigned long iidCount_;
-};
-
 #pragma endregion // Implements helper templates
 
 } // namespace Details
@@ -1426,27 +1191,18 @@ private:
 #define UnknownIncrementReference InterlockedIncrement
 #define UnknownDecrementReference InterlockedDecrement
 #define UnknownBarrierAfterInterlock() 
-#define UnknownInterlockedCompareExchangePointer InterlockedCompareExchangePointer
-#define UnknownInterlockedCompareExchangePointerForIncrement InterlockedCompareExchangePointer
-#define UnknownInterlockedCompareExchangePointerForRelease InterlockedCompareExchangePointer
 
 #elif defined(_ARM_)
 
 #define UnknownIncrementReference InterlockedIncrementNoFence
 #define UnknownDecrementReference InterlockedDecrementRelease
 #define UnknownBarrierAfterInterlock() __dmb(_ARM_BARRIER_ISH)
-#define UnknownInterlockedCompareExchangePointer InterlockedCompareExchangePointer
-#define UnknownInterlockedCompareExchangePointerForIncrement InterlockedCompareExchangePointerNoFence
-#define UnknownInterlockedCompareExchangePointerForRelease InterlockedCompareExchangePointerRelease
 
 #elif defined(_ARM64_)
 
 #define UnknownIncrementReference InterlockedIncrementNoFence
 #define UnknownDecrementReference InterlockedDecrementRelease
 #define UnknownBarrierAfterInterlock() __dmb(_ARM64_BARRIER_ISH)
-#define UnknownInterlockedCompareExchangePointer InterlockedCompareExchangePointer
-#define UnknownInterlockedCompareExchangePointerForIncrement InterlockedCompareExchangePointerNoFence
-#define UnknownInterlockedCompareExchangePointerForRelease InterlockedCompareExchangePointerRelease
 
 #else
 
@@ -1500,12 +1256,6 @@ public:
         if (ref == 0)
         {
             delete this;
-
-            auto modulePtr = ::Microsoft::WRL::GetModuleBase();
-            if (modulePtr != nullptr)
-            {
-                modulePtr->DecrementObjectCount();
-            }
         }
 
         return ref;
@@ -1660,50 +1410,6 @@ private:
     volatile long refcount_;
 };
 
-class StrongReference
-{
-public:
-    StrongReference(long refCount = 1) throw() : strongRefCount_(refCount) {}
-
-    ~StrongReference() throw()
-    {
-        // Set refcount_ to -(LONG_MAX/2) to protect destruction and
-        // also catch mismatched Release in debug builds
-        strongRefCount_ = -(LONG_MAX / 2);
-    }
-
-    unsigned long IncrementStrongReference() throw()
-    {
-        return UnknownIncrementReference(&strongRefCount_);
-    }
-
-    unsigned long DecrementStrongReference() throw()
-    {
-        // A release fence is required to ensure all guarded memory accesses are
-        // complete before any thread can begin destroying the object.
-        unsigned long newValue = UnknownDecrementReference(&strongRefCount_);
-        if (newValue == 0)
-        {
-            // An acquire fence is required before object destruction to ensure
-            // that the destructor cannot observe values changing on other threads.
-            UnknownBarrierAfterInterlock();
-        }
-        return newValue;
-    }
-
-    unsigned long GetStrongReferenceCount() throw()
-    {
-        return strongRefCount_;
-    }
-
-    void SetStrongReference(unsigned long value) throw()
-    {
-        strongRefCount_ = value;
-    }
-
-    long strongRefCount_;
-};
-
 #pragma warning(pop) // C6388
 
 template <class RuntimeClassFlagsT, typename I0, typename ...TInterfaces>
@@ -1716,41 +1422,6 @@ template <class RuntimeClassFlagsT, typename I0, typename ...TInterfaces>
 class __declspec(novtable) RuntimeClassImpl<RuntimeClassFlagsT, true, true, true, I0, TInterfaces...> :
     public RuntimeClassImpl<RuntimeClassFlagsT, true, true, false, I0, FtmBase, TInterfaces...>
 {
-};
-
-// To minimize breaks with code written against WRL before variadic support was added, this form is maintained.
-template <typename ...TInterfaces>
-struct InterfaceListHelper
-{
-    typedef InterfaceListHelper<TInterfaces...> TypeT;
-};
-
-template <
-    typename ILst,
-    class RuntimeClassFlagsT,
-    bool implementsWeakReferenceSource = (RuntimeClassFlagsT::value & InhibitWeakReference) == 0,
-    bool implementsInspectable = (RuntimeClassFlagsT::value & WinRt) == WinRt,
-    bool implementsFtmBase = __WRL_IMPLEMENTS_FTM_BASE__(RuntimeClassFlagsT::value)
->
-class RuntimeClass;
-
-    
-template <
-    typename RuntimeClassFlagsT, 
-    bool implementsWeakReferenceSource,
-    bool implementsInspectable,
-    bool implementsFtmBase,
-    typename ...TInterfaces
->
-class RuntimeClass<InterfaceListHelper<TInterfaces...>, RuntimeClassFlagsT, implementsWeakReferenceSource, implementsInspectable, implementsFtmBase> :
-    public RuntimeClassImpl<RuntimeClassFlagsT, implementsWeakReferenceSource, implementsInspectable, implementsFtmBase, TInterfaces...>
-{
-protected:
-    HRESULT CustomQueryInterface(REFIID /*riid*/, _Outptr_result_nullonfailure_ void** /*ppvObject*/, _Out_ bool *handled)
-    {
-        *handled = false;
-        return S_OK;
-    }
 };
 
 } // namespace Details
@@ -1771,14 +1442,7 @@ protected:
         return S_OK;
     }
 public:
-    RuntimeClass() throw()
-    {
-        auto modulePtr = ::Microsoft::WRL::GetModuleBase();
-        if (modulePtr != nullptr)
-        {
-            modulePtr->IncrementObjectCount();
-        }
-    }
+	RuntimeClass() = default;
     typedef RuntimeClass RuntimeClassT;
 };
 
@@ -1795,14 +1459,7 @@ protected:
         return S_OK;
     }
 public:
-    RuntimeClass() throw()
-    {
-        auto modulePtr = ::Microsoft::WRL::GetModuleBase();
-        if (modulePtr != nullptr)
-        {
-            modulePtr->IncrementObjectCount();
-        }
-    }
+	RuntimeClass() = default;
     typedef RuntimeClass RuntimeClassT;
 };
 
@@ -1922,61 +1579,9 @@ using Details::Make;
         } \
     private:
 
-// Please make sure that those macros are in sync with those ones from 'wrl/module.h'
-#ifndef WrlCreatorMapIncludePragmaEx
-#define WrlCreatorMapIncludePragmaEx(className, group)  static_assert(false, "It's required to include 'wrl/module.h' to be able to use 'WrlCreatorMapIncludePragmaEx' macro");
-#endif
-
-#ifndef WrlCreatorMapIncludePragma
-#define WrlCreatorMapIncludePragma(className)  static_assert(false, "It's required to include 'wrl/module.h' to be able to use 'WrlCreatorMapIncludePragma' macro");
-#endif    
-
-#ifndef ActivatableClassWithFactoryEx
-#define ActivatableClassWithFactoryEx(className, factory, groupId)  static_assert(false, "It's required to include 'wrl/module.h' to be able to use 'ActivatableClassWithFactoryEx' macro");
-#endif
-
-#ifndef ActivatableClassWithFactory
-#define ActivatableClassWithFactory(className, factory)  static_assert(false, "It's required to include 'wrl/module.h' to be able to use 'ActivatableClassWithFactory' macro");
-#endif
-
-#ifndef ActivatableClass
-#define ActivatableClass(className)  static_assert(false, "It's required to include 'wrl/module.h' to be able to use 'ActivatableClass' macro");
-#endif
-
-#ifndef ActivatableStaticOnlyFactoryEx
-#define ActivatableStaticOnlyFactoryEx(factory, serverName)  static_assert(false, "It's required to include 'wrl/module.h' to be able to use 'ActivatableStaticOnlyFactoryEx' macro");
-#endif
-
-#ifndef ActivatableStaticOnlyFactory
-#define ActivatableStaticOnlyFactory(factory)  static_assert(false, "It's required to include 'wrl/module.h' to be able to use 'ActivatableStaticOnlyFactory' macro");
-#endif
-
-#ifndef CoCreatableClassWithFactoryEx
-#define CoCreatableClassWithFactoryEx(className, factory, groupId)  static_assert(false, "It's required to include 'wrl/module.h' to be able to use 'CoCreatableClassWithFactory' macro");
-#endif
-
-#ifndef CoCreatableClassWithFactory
-#define CoCreatableClassWithFactory(className, factory)  static_assert(false, "It's required to include 'wrl/module.h' to be able to use 'CoCreatableClassWithFactory' macro");
-#endif
-
-#ifndef CoCreatableClass
-#define CoCreatableClass(className)  static_assert(false, "It's required to include 'wrl/module.h' to be able to use 'CoCreatableClass' macro");
-#endif
-
-#ifndef CoCreatableClassWrlCreatorMapInclude
-#define CoCreatableClassWrlCreatorMapInclude(className)  static_assert(false, "It's required to include 'wrl/module.h' to be able to use 'CoCreatableClassWrlCreatorMapInclude' macro");
-#endif
-
-#ifndef CoCreatableClassWrlCreatorMapIncludeEx
-#define CoCreatableClassWrlCreatorMapIncludeEx(className, groupId)  static_assert(false, "It's required to include 'wrl/module.h' to be able to use 'CoCreatableClassWrlCreatorMapInclude' macro");
-#endif
-
 #undef UnknownIncrementReference
 #undef UnknownDecrementReference
 #undef UnknownBarrierAfterInterlock 
-#undef UnknownInterlockedCompareExchangePointer
-#undef UnknownInterlockedCompareExchangePointerForIncrement
-#undef UnknownInterlockedCompareExchangePointerForRelease
 
 }}    // namespace Microsoft::WRL
 
