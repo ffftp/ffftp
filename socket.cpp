@@ -117,10 +117,6 @@ static ASYNCSIGNALDATABASE SignalDbase[MAX_SIGNAL_ENTRY_DBASE];
 // スレッド衝突のバグ修正
 static HANDLE hAsyncTblAccMutex;
 
-// UPnP対応
-IUPnPNAT* pUPnPNAT;
-IStaticPortMappingCollection* pUPnPMap;
-
 
 template<class T>
 static T CreateInvalidateHandle() {
@@ -1511,127 +1507,68 @@ void RemoveReceivedData(SOCKET s)
 }
 
 // UPnP対応
-int LoadUPnP()
-{
-	int Sts;
-	Sts = FFFTP_FAIL;
-	if(IsMainThread())
-	{
-		if(CoCreateInstance(CLSID_UPnPNAT, NULL, CLSCTX_ALL, IID_IUPnPNAT, (void**)&pUPnPNAT) == S_OK)
-		{
-			if(pUPnPNAT->lpVtbl->get_StaticPortMappingCollection(pUPnPNAT, &pUPnPMap) == S_OK)
-				Sts = FFFTP_SUCCESS;
-		}
-	}
-	return Sts;
+static ComPtr<IUPnPNAT> upnpNAT;
+static ComPtr<IStaticPortMappingCollection> staticPortMappingCollection;
+
+int LoadUPnP() {
+	if (IsMainThread())
+		if (CoCreateInstance(CLSID_UPnPNAT, NULL, CLSCTX_ALL, IID_PPV_ARGS(&upnpNAT)) == S_OK)
+			if (upnpNAT->get_StaticPortMappingCollection(&staticPortMappingCollection) == S_OK)
+				return FFFTP_SUCCESS;
+	return FFFTP_FAIL;
 }
 
-void FreeUPnP()
-{
-	if(IsMainThread())
-	{
-		if(pUPnPMap != NULL)
-			pUPnPMap->lpVtbl->Release(pUPnPMap);
-		pUPnPMap = NULL;
-		if(pUPnPNAT != NULL)
-			pUPnPNAT->lpVtbl->Release(pUPnPNAT);
-		pUPnPNAT = NULL;
+void FreeUPnP() {
+	if (IsMainThread()) {
+		staticPortMappingCollection.Reset();
+		upnpNAT.Reset();
 	}
 }
 
-int IsUPnPLoaded()
-{
-	int Sts;
-	Sts = NO;
-	if(pUPnPNAT != NULL && pUPnPMap != NULL)
-		Sts = YES;
-	return Sts;
+int IsUPnPLoaded() {
+	return upnpNAT && staticPortMappingCollection ? YES : NO;
 }
 
-int AddPortMapping(char* Adrs, int Port, char* ExtAdrs)
-{
-	int Sts;
-	WCHAR Tmp1[40];
-	BSTR Tmp2;
-	BSTR Tmp3;
-	BSTR Tmp4;
-	IStaticPortMapping* pPortMap;
-	BSTR Tmp5;
-	ADDPORTMAPPINGDATA Data;
-	Sts = FFFTP_FAIL;
-	if(IsMainThread())
-	{
-		MtoW(Tmp1, 40, Adrs, -1);
-		if((Tmp2 = SysAllocString(Tmp1)) != NULL)
-		{
-			if((Tmp3 = SysAllocString(L"TCP")) != NULL)
-			{
-				if((Tmp4 = SysAllocString(L"FFFTP")) != NULL)
-				{
-					if(pUPnPMap->lpVtbl->Add(pUPnPMap, Port, Tmp3, Port, Tmp2, VARIANT_TRUE, Tmp4, &pPortMap) == S_OK)
-					{
-						if(pPortMap->lpVtbl->get_ExternalIPAddress(pPortMap, &Tmp5) == S_OK)
-						{
-							WtoM(ExtAdrs, 40, Tmp5, -1);
-							Sts = FFFTP_SUCCESS;
-							SysFreeString(Tmp5);
-						}
-						pPortMap->lpVtbl->Release(pPortMap);
-					}
-					SysFreeString(Tmp4);
-				}
-				SysFreeString(Tmp3);
+int AddPortMapping(char* Adrs, int Port, char* ExtAdrs) {
+	static _bstr_t TCP{ L"TCP" };
+	static _bstr_t FFFTP{ L"FFFTP" };
+	int result = FFFTP_FAIL;
+	if (IsMainThread()) {
+		if (ComPtr<IStaticPortMapping> staticPortMapping; staticPortMappingCollection->Add(Port, TCP, Port, _bstr_t{ Adrs }, VARIANT_TRUE, FFFTP, &staticPortMapping) == S_OK)
+			if (_bstr_t buffer; staticPortMapping->get_ExternalIPAddress(buffer.GetAddress()) == S_OK) {
+				strcpy(ExtAdrs, buffer);
+				return FFFTP_SUCCESS;
 			}
-			SysFreeString(Tmp2);
-		}
-	}
-	else
-	{
-		if(Data.h = CreateEvent(NULL, TRUE, FALSE, NULL))
-		{
+	} else {
+		if (ADDPORTMAPPINGDATA Data; Data.h = CreateEvent(NULL, TRUE, FALSE, NULL)) {
 			Data.Adrs = Adrs;
 			Data.Port = Port;
 			Data.ExtAdrs = ExtAdrs;
-			if(PostMessage(GetMainHwnd(), WM_ADDPORTMAPPING, 0, (LPARAM)&Data))
-			{
-				if(WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
-					Sts = Data.r;
-			}
+			if (PostMessage(GetMainHwnd(), WM_ADDPORTMAPPING, 0, (LPARAM)&Data))
+				if (WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
+					result = Data.r;
 			CloseHandle(Data.h);
 		}
 	}
-	return Sts;
+	return result;
 }
 
-int RemovePortMapping(int Port)
-{
-	int Sts;
-	BSTR Tmp;
-	REMOVEPORTMAPPINGDATA Data;
-	Sts = FFFTP_FAIL;
-	if(IsMainThread())
-	{
-		if((Tmp = SysAllocString(L"TCP")) != NULL)
-		{
-			if(pUPnPMap->lpVtbl->Remove(pUPnPMap, Port, Tmp) == S_OK)
-				Sts = FFFTP_SUCCESS;
-			SysFreeString(Tmp);
-		}
-	}
-	else
-	{
-		if(Data.h = CreateEvent(NULL, TRUE, FALSE, NULL))
-		{
+int RemovePortMapping(int Port) {
+	static _bstr_t TCP{ L"TCP" };
+	int result = FFFTP_FAIL;
+	if (IsMainThread()) {
+		if (staticPortMappingCollection->Remove(Port, TCP) == S_OK)
+			return FFFTP_SUCCESS;
+	} else {
+		if (REMOVEPORTMAPPINGDATA Data; Data.h = CreateEvent(NULL, TRUE, FALSE, NULL)) {
 			Data.Port = Port;
-			if(PostMessage(GetMainHwnd(), WM_REMOVEPORTMAPPING, 0, (LPARAM)&Data))
-			{
-				if(WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
-					Sts = Data.r;
-			}
+			if (PostMessage(GetMainHwnd(), WM_REMOVEPORTMAPPING, 0, (LPARAM)&Data))
+				if (WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
+					result = Data.r;
 			CloseHandle(Data.h);
 		}
 	}
-	return Sts;
+	return result;
 }
 
 

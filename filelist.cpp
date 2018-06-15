@@ -694,18 +694,14 @@ static HDROP CreateDropFileMem(char** FileName, int cnt) {
 // (2007.8.30 yutaka)
 static void doDragDrop(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	UINT cf[CF_CNT];
 	POINT pt;
-	int ret;
 
 	// テンポラリをきれいにする (2007.9.3 yutaka)
 	doDeleteRemoteFile();
 
 	/* ドラッグ&ドロップの開始 */
-	cf[0] = CF_HDROP;
-	cf[1] = CF_HDROP;	/* ファイル */
-	if((ret = OLE_IDropSource_Start(hWnd,WM_GETDATA, WM_DRAGOVER, cf,1,DROPEFFECT_COPY | DROPEFFECT_MOVE | DROPEFFECT_LINK)) == DROPEFFECT_MOVE){
-	}
+	CLIPFORMAT clipFormat = CF_HDROP;
+	OleDragDrop::DoDragDrop(hWnd, WM_GETDATA, WM_DRAGOVER, &clipFormat, 1, DROPEFFECT_COPY | DROPEFFECT_MOVE | DROPEFFECT_LINK);
 
 	// ドロップ先のアプリに WM_LBUTTONUP を飛ばす。
 	// 特定の操作を行うと異常終了するバグ修正

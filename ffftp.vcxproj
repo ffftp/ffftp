@@ -199,7 +199,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mbswrapper.cpp" />
     <ClCompile Include="misc.cpp" />
-    <ClCompile Include="OleDragDrop.cpp" />
     <ClCompile Include="option.cpp" />
     <ClCompile Include="ras.cpp" />
     <ClCompile Include="registry.cpp" />
@@ -223,6 +222,9 @@
     <ClInclude Include="Resource\resource.en-US.h" />
     <ClInclude Include="Resource\resource.ja-JP.h" />
     <ClInclude Include="socketwrapper.h" />
+    <ClInclude Include="wrl\client.h" />
+    <ClInclude Include="wrl\def.h" />
+    <ClInclude Include="wrl\implements.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resource\bitmap1.bmp" />

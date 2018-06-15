@@ -32,7 +32,6 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
-#define CINTERFACE
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -67,6 +66,9 @@
 #include <Shlwapi.h>
 #include <WinCrypt.h>
 #include <WS2tcpip.h>
+#include "wrl/client.h"
+#include "wrl/implements.h"
+#include <comutil.h>
 #include "config.h"
 #include "dialog.h"
 #include "mbswrapper.h"
@@ -83,8 +85,11 @@
 #pragma comment(lib, "Shlwapi.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "comsuppw.lib")
 namespace fs = std::experimental::filesystem;
 using namespace std::literals;
+template<class T>
+using ComPtr = Microsoft::WRL::ComPtr<T>;
 template<class...>
 constexpr bool false_v = false;
 
