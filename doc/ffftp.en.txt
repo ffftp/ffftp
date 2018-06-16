@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.3.3 (FTP Client software)
+[Software Name]  FFFTP Ver.3.4 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018, KURATA Sayuri.
@@ -29,11 +29,13 @@ following menu.
 File -> Settings -> Change Master password
 
 
-Changes at 3.3
+Changes at 3.4
 --------------
 
-- fix file timestamp when connected server with different timezone. #32
-- support non-sse2 computer (x86). #33
+- enable TLS 1.1ÅATLS 1.2 explicitly. #46
+- rewrite with C++ for COM related. #27
+- refactor code for blipboard. #40
+- update to Visual Studio 2017 15.7 and Windows 10 SDK 10.0.17134.0. #41
 
 
 Outline
