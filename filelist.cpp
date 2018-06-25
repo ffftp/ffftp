@@ -39,21 +39,12 @@
 #define WM_DRAGOVER		(WM_APP + 102)
 
 
-/*===== ファイルリストのリスト用ストラクチャ =====*/
-
-typedef struct {
-	FILELIST *Top;			/* ファイルリストの先頭 */
-	int Files;				/* ファイルの数 */
-} FLISTANCHOR;
-
 /*===== プロトタイプ =====*/
 
 static LRESULT CALLBACK LocalWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LONGLONG Size, int Attr, int Type, int Link, char *Owner, int InfoExist, int Win);
-static void EraseDispFileList(FLISTANCHOR *Anchor);
-static void DispFileList2View(HWND hWnd, FLISTANCHOR *Anchor);
+static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files);
 // ファイルアイコン表示対応
 //static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist);
 static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist, int ImageId);
@@ -1265,16 +1256,10 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork)
 	int Type;
 	int ListType;
 	int Num;
-	FLISTANCHOR Anchor;
+	std::vector<FILELIST> files;
 	char Owner[OWNER_NAME_LEN+1];
 	int Link;
 	int InfoExist;
-
-//#pragma aaa
-//DoPrintf("===== GetRemoteDirForWnd");
-
-	Anchor.Top = NULL;
-	Anchor.Files = 0;
 
 	if(AskConnecting() == YES)
 	{
@@ -1324,17 +1309,14 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork)
 							if(AskFilterStr(Buf, Type) == YES)
 							{
 								if((DotFile == YES) || (Buf[0] != '.'))
-								{
-									AddDispFileList(&Anchor, Buf, &Time, Size, Attr, Type, Link, Owner, InfoExist, WIN_REMOTE);
-								}
+									files.emplace_back(Buf, Type, Link, Size, Attr, Time, Owner, InfoExist);
 							}
 						}
 					}
 				}
 				fclose(fd);
 
-				DispFileList2View(GetRemoteHwnd(), &Anchor);
-				EraseDispFileList(&Anchor);
+				DispFileList2View(GetRemoteHwnd(), files);
 
 				// 先頭のアイテムを選択
 				ListView_SetItemState(GetRemoteHwnd(), 0, LVIS_FOCUSED, LVIS_FOCUSED);
@@ -1368,24 +1350,11 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork)
 }
 
 
-/*----- ローカル側のファイル一覧ウインドウにファイル名をセット ----------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-// ファイルアイコン表示対応
-void RefreshIconImageList(FLISTANCHOR *Anchor)
+// ローカル側のファイル一覧ウインドウにファイル名をセット
+void RefreshIconImageList(std::vector<FILELIST>& files)
 {
 	HBITMAP hBitmap;
-	int ImageId;
-	FILELIST *Pos;
-	int i;
-	char Cur[FMAX_PATH+1];
-	SHFILEINFO FileInfo;
+	
 	if(DispFileIcon == YES)
 	{
 		SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)NULL);
@@ -1397,29 +1366,17 @@ void RefreshIconImageList(FLISTANCHOR *Anchor)
 		hBitmap = LoadBitmap(GetFtpInst(), MAKEINTRESOURCE(dirattr16_bmp));
 		ImageList_AddMasked(ListImgFileIcon, hBitmap, RGB(255, 0, 0));
 		DeleteObject(hBitmap);
-		ImageId = 0;
-		Pos = Anchor->Top;
-		for(i = 0; i < Anchor->Files; i++)
-		{
-			Pos->ImageId = -1;
-			if(Pos->Node == NODE_DRIVE)
-				strcpy(Cur, Pos->File);
-			else
-			{
-				AskLocalCurDir(Cur, FMAX_PATH);
-				SetYenTail(Cur);
-				strcat(Cur, Pos->File);
+		int ImageId = 0;
+		for (auto& file : files) {
+			file.ImageId = -1;
+			auto fullpath = fs::u8path(file.File);
+			if (file.Node != NODE_DRIVE)
+				fullpath = fs::current_path() / fullpath;
+			if (SHFILEINFOW fi; SHGetFileInfoW(fullpath.c_str(), 0, &fi, sizeof(SHFILEINFOW), SHGFI_SMALLICON | SHGFI_ICON)) {
+				if (ImageList_AddIcon(ListImgFileIcon, fi.hIcon) >= 0)
+					file.ImageId = ImageId++;
+				DestroyIcon(fi.hIcon);
 			}
-			if(SHGetFileInfo(Cur, 0, &FileInfo, sizeof(SHFILEINFO), SHGFI_SMALLICON | SHGFI_ICON) != 0)
-			{
-				if(ImageList_AddIcon(ListImgFileIcon, FileInfo.hIcon) >= 0)
-				{
-					Pos->ImageId = ImageId;
-					ImageId++;
-				}
-				DestroyIcon(FileInfo.hIcon);
-			}
-			Pos = Pos->Next;
 		}
 		SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImgFileIcon);
 		ShowWindow(hWndListLocal, SW_SHOW);
@@ -1442,13 +1399,9 @@ void GetLocalDirForWnd(void)
 	char Scan[FMAX_PATH+1];
 	char *Pos;
 	char Buf[10];
-	FILETIME Time;
-	FLISTANCHOR Anchor;
+	std::vector<FILELIST> files;
 	DWORD NoDrives;
 	int Tmp;
-
-	Anchor.Top = NULL;
-	Anchor.Files = 0;
 
 	DoLocalPWD(Scan);
 	SetLocalDirHist(Scan);
@@ -1473,13 +1426,11 @@ void GetLocalDirForWnd(void)
 				if((DotFile == YES) || (Find.cFileName[0] != '.'))
 				{
 					if(Find.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-						AddDispFileList(&Anchor, Find.cFileName, &Find.ftLastWriteTime, MakeLongLong(Find.nFileSizeHigh, Find.nFileSizeLow), 0, NODE_DIR, NO, "", FINFO_ALL, WIN_LOCAL);
+						files.emplace_back(Find.cFileName, NODE_DIR, NO, MakeLongLong(Find.nFileSizeHigh, Find.nFileSizeLow), 0, Find.ftLastWriteTime, "", FINFO_ALL);
 					else
 					{
 						if(AskFilterStr(Find.cFileName, NODE_FILE) == YES)
-						{
-							AddDispFileList(&Anchor, Find.cFileName, &Find.ftLastWriteTime, MakeLongLong(Find.nFileSizeHigh, Find.nFileSizeLow), 0, NODE_FILE, NO, "", FINFO_ALL, WIN_LOCAL);
-						}
+							files.emplace_back(Find.cFileName, NODE_FILE, NO, MakeLongLong(Find.nFileSizeHigh, Find.nFileSizeLow), 0, Find.ftLastWriteTime, "", FINFO_ALL);
 					}
 				}
 			}
@@ -1501,17 +1452,15 @@ void GetLocalDirForWnd(void)
 			if((NoDrives & (0x00000001 << Tmp)) == 0)
 			{
 				sprintf(Buf, "%s", Pos);
-				memset(&Time, 0, sizeof(FILETIME));
-				AddDispFileList(&Anchor, Buf, &Time, 0, 0, NODE_DRIVE, NO, "", FINFO_ALL, WIN_LOCAL);
+				files.emplace_back(Buf, NODE_DRIVE, NO, 0, 0, FILETIME{}, "", FINFO_ALL);
 			}
 			Pos = strchr(Pos, NUL) + 1;
 		}
 	}
 
 	// ファイルアイコン表示対応
-	RefreshIconImageList(&Anchor);
-	DispFileList2View(GetLocalHwnd(), &Anchor);
-	EraseDispFileList(&Anchor);
+	RefreshIconImageList(files);
+	DispFileList2View(GetLocalHwnd(), files);
 
 	// 先頭のアイテムを選択
 	ListView_SetItemState(GetLocalHwnd(), 0, LVIS_FOCUSED, LVIS_FOCUSED);
@@ -1520,228 +1469,40 @@ void GetLocalDirForWnd(void)
 }
 
 
-/*----- ファイル情報をファイル一覧用リストに登録する --------------------------
-*
-*	Parameter
-*		FLISTANCHOR *Anchor : ファイルリストの先頭
-*		char *Name : ファイル名
-*		FILETIME *Time : 日付
-*		LONGLONG Size : サイズ
-*		int Attr : 属性
-*		int Type : タイプ (NODE_xxxx)
-*		int Link : リンクかどうか (YES/NO)
-*		char *Owner : オーナ名
-*		int InfoExist : 情報があるかどうか (FINFO_xxx)
-*		int Win : ウィンドウ番号 (WIN_xxxx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void AddDispFileList(FLISTANCHOR *Anchor, char *Name, FILETIME *Time, LONGLONG Size, int Attr, int Type, int Link, char *Owner, int InfoExist, int Win)
-{
-	int i;
-	FILELIST *Pos;
-	FILELIST *Prev;
-	FILELIST *New;
-	int FileSort;
-	int DirSort;
-	int Sort;
-	LONGLONG Cmp;
-
-	FileSort = AskSortType(ITEM_LFILE);
-	DirSort = AskSortType(ITEM_LDIR);
-	if(Win == WIN_REMOTE)
-	{
-		FileSort = AskSortType(ITEM_RFILE);
-		DirSort = AskSortType(ITEM_RDIR);
-	}
-
-	Pos = Anchor->Top;
-	for(i = 0; i < Anchor->Files; i++)
-	{
-		if((Type == NODE_DIR) && (Pos->Node == NODE_FILE))
-			break;
-		if((Type == NODE_FILE) && (Pos->Node == NODE_DRIVE))
-			break;
-
-		if(Type == Pos->Node)
-		{
-			if(Type == NODE_DIR)
-				Sort = DirSort;
-			else
-				Sort = FileSort;
-
-			if((Sort & SORT_GET_ORD) == SORT_ASCENT)
-			{
-				// 読みにくいのでリファクタリング
-//				if((((Sort & SORT_MASK_ORD) == SORT_EXT) &&
-//					((Cmp = _mbsicmp(GetFileExt(Name), GetFileExt(Pos->File))) < 0)) ||
-//#if defined(HAVE_TANDEM)
-//				   ((AskHostType() == HTYPE_TANDEM) &&
-//					((Sort & SORT_MASK_ORD) == SORT_EXT) &&
-//					((Cmp = Attr - Pos->Attr) < 0)) ||
-//#endif
-//				   (((Sort & SORT_MASK_ORD) == SORT_SIZE) &&
-//					((Cmp = Size - Pos->Size) < 0)) ||
-//				   (((Sort & SORT_MASK_ORD) == SORT_DATE) &&
-//					((Cmp = CompareFileTime(Time, &Pos->Time)) < 0)))
-//				{
-//					break;
-//				}
-				if(((Sort & SORT_MASK_ORD) == SORT_EXT) &&
-					((Cmp = _mbsicmp((const unsigned char*)GetFileExt(Name), (const unsigned char*)GetFileExt(Pos->File))) < 0))
-					break;
+// ファイル一覧用リストの内容をファイル一覧ウインドウにセット
+static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
+	std::sort(begin(files), end(files), [hWnd](FILELIST& l, FILELIST& r) {
+		if (l.Node != r.Node)
+			return l.Node < r.Node;
+		auto Sort = AskSortType(hWnd == GetRemoteHwnd() ? l.Node == NODE_DIR ? ITEM_RDIR : ITEM_RFILE : l.Node == NODE_DIR ? ITEM_LDIR : ITEM_LFILE);
+		auto test = [ascent = (Sort & SORT_GET_ORD) == SORT_ASCENT](auto r) { return ascent ? r < 0 : r > 0; };
+		LONGLONG Cmp = 0;
+		if ((Sort & SORT_MASK_ORD) == SORT_EXT && test(Cmp = _mbsicmp((const unsigned char*)GetFileExt(l.File), (const unsigned char*)GetFileExt(r.File))))
+			return true;
 #if defined(HAVE_TANDEM)
-				if((AskHostType() == HTYPE_TANDEM) &&
-					((Sort & SORT_MASK_ORD) == SORT_EXT) &&
-					((Cmp = Attr - Pos->Attr) < 0))
-					break;
+		if (AskHostType() == HTYPE_TANDEM && (Sort & SORT_MASK_ORD) == SORT_EXT && test(Cmp = l.Attr - r.Attr))
+			return true;
 #endif
-				if(((Sort & SORT_MASK_ORD) == SORT_SIZE) &&
-					((Cmp = Size - Pos->Size) < 0))
-					break;
-				if(((Sort & SORT_MASK_ORD) == SORT_DATE) &&
-					((Cmp = CompareFileTime(Time, &Pos->Time)) < 0))
-					break;
-
-				if(((Sort & SORT_MASK_ORD) == SORT_NAME) || (Cmp == 0))
-				{
-					if(_mbsicmp((const unsigned char*)Name, (const unsigned char*)Pos->File) < 0)
-						break;
-				}
-			}
-			else
-			{
-				// 読みにくいのでリファクタリング
-//				if((((Sort & SORT_MASK_ORD) == SORT_EXT) &&
-//					((Cmp = _mbsicmp(GetFileExt(Name), GetFileExt(Pos->File))) > 0)) ||
-//#if defined(HAVE_TANDEM)
-//				   ((AskHostType() == HTYPE_TANDEM) &&
-//					((Sort & SORT_MASK_ORD) == SORT_EXT) &&
-//					((Cmp = Attr - Pos->Attr) > 0)) ||
-//#endif
-//				   (((Sort & SORT_MASK_ORD) == SORT_SIZE) &&
-//					((Cmp = Size - Pos->Size) > 0)) ||
-//				   (((Sort & SORT_MASK_ORD) == SORT_DATE) &&
-//					((Cmp = CompareFileTime(Time, &Pos->Time)) > 0)))
-//				{
-//					break;
-//				}
-				if((((Sort & SORT_MASK_ORD) == SORT_EXT) &&
-					((Cmp = _mbsicmp((const unsigned char*)GetFileExt(Name), (const unsigned char*)GetFileExt(Pos->File))) > 0)))
-					break;
-#if defined(HAVE_TANDEM)
-				if(((AskHostType() == HTYPE_TANDEM) &&
-					((Sort & SORT_MASK_ORD) == SORT_EXT) &&
-					((Cmp = Attr - Pos->Attr) > 0)))
-					break;
-#endif
-				if(((Sort & SORT_MASK_ORD) == SORT_SIZE) &&
-					((Cmp = Size - Pos->Size) > 0))
-					break;
-				if(((Sort & SORT_MASK_ORD) == SORT_DATE) &&
-					((Cmp = CompareFileTime(Time, &Pos->Time)) > 0))
-					break;
-
-				if(((Sort & SORT_MASK_ORD) == SORT_NAME) || (Cmp == 0))
-				{
-					if(_mbsicmp((const unsigned char*)Name, (const unsigned char*)Pos->File) > 0)
-						break;
-				}
-			}
-		}
-		Prev = Pos;
-		Pos = Pos->Next;
-	}
-
-	if((New = (FILELIST*)malloc(sizeof(FILELIST))) != NULL)
-	{
-		strcpy(New->File, Name);
-		New->Node = Type;
-		New->Link = Link;
-		New->Size = Size;
-		New->Attr = Attr;
-		New->Time = *Time;
-		strcpy(New->Owner, Owner);
-		New->InfoExist = InfoExist;
-
-		if(Pos == Anchor->Top)
-		{
-			New->Next = Anchor->Top;
-			Anchor->Top = New;
-		}
-		else
-		{
-			New->Next = Prev->Next;
-			Prev->Next = New;
-		}
-		Anchor->Files += 1;
-	}
-	return;
-}
-
-
-/*----- ファイル一覧用リストをクリアする --------------------------------------
-*
-*	Parameter
-*		FLISTANCHOR *Anchor : ファイルリストの先頭
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void EraseDispFileList(FLISTANCHOR *Anchor)
-{
-	FILELIST *Pos;
-	FILELIST *Next;
-	int i;
-
-	Pos = Anchor->Top;
-	for(i = 0; i < Anchor->Files; i++)
-	{
-		Next = Pos->Next;
-		free(Pos);
-		Pos = Next;
-	}
-	Anchor->Files = 0;
-	Anchor->Top = NULL;
-	return;
-}
-
-
-/*----- ファイル一覧用リストの内容をファイル一覧ウインドウにセット ------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		FLISTANCHOR *Anchor : ファイルリストの先頭
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void DispFileList2View(HWND hWnd, FLISTANCHOR *Anchor)
-{
-	int i;
-	FILELIST *Pos;
+		if ((Sort & SORT_MASK_ORD) == SORT_SIZE && test(Cmp = l.Size - r.Size))
+			return true;
+		if ((Sort & SORT_MASK_ORD) == SORT_DATE && test(Cmp = CompareFileTime(&l.Time, &r.Time)))
+			return true;
+		if ((Sort & SORT_MASK_ORD) == SORT_NAME || Cmp == 0)
+			if (test(_mbsicmp((const unsigned char*)l.File, (const unsigned char*)r.File)))
+				return true;
+		return false;
+	});
 
 	SendMessage(hWnd, WM_SETREDRAW, (WPARAM)FALSE, 0);
 	SendMessage(hWnd, LVM_DELETEALLITEMS, 0, 0);
 
-	Pos = Anchor->Top;
-	for(i = 0; i < Anchor->Files; i++)
-	{
-		// ファイルアイコン表示対応
-//		AddListView(hWnd, -1, Pos->File, Pos->Node, Pos->Size, &Pos->Time, Pos->Attr, Pos->Owner, Pos->Link, Pos->InfoExist);
-		AddListView(hWnd, -1, Pos->File, Pos->Node, Pos->Size, &Pos->Time, Pos->Attr, Pos->Owner, Pos->Link, Pos->InfoExist, Pos->ImageId);
-		Pos = Pos->Next;
-	}
+	for (auto& file : files)
+		AddListView(hWnd, -1, file.File, file.Node, file.Size, &file.Time, file.Attr, file.Owner, file.Link, file.InfoExist, file.ImageId);
 
 	SendMessage(hWnd, WM_SETREDRAW, (WPARAM)TRUE, 0);
 	UpdateWindow(hWnd);
 
 	DispSelectedSpace();
-	return;
 }
 
 
