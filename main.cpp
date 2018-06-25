@@ -1803,8 +1803,18 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case LVN_ITEMCHANGED :
-					DispSelectedSpace();
-					MakeButtonsFocus();
+					{
+						// SetTimerによるとnIDEventが一致する既存のタイマーを置き換えるとのこと <https://msdn.microsoft.com/en-us/library/ms644906(v=vs.85).aspx>
+						// この通りであれば問題ない。ただしCWnd::SetTimerによると新たなタイマーが作成される（＝既存のタイマーを置き換えない）とのこと
+						// <https://docs.microsoft.com/ja-jp/cpp/mfc/reference/cwnd-class#settimer>
+						auto id = SetTimer(hWnd, 3, USER_TIMER_MINIMUM, [](auto hWnd, auto, auto, auto) {
+							DispSelectedSpace();
+							MakeButtonsFocus();
+							auto result = KillTimer(hWnd, 3);
+							assert(result);
+						});
+						assert(id == 3);
+					}
 					break;
 			}
 			break;

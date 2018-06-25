@@ -1994,26 +1994,6 @@ END_ROUTINE
 	return r;
 }
 
-DWORD_PTR SHGetFileInfoM(LPCSTR pszPath, DWORD dwFileAttributes, SHFILEINFOA *psfi, UINT cbFileInfo, UINT uFlags)
-{
-	DWORD_PTR r = 0;
-	wchar_t* pw0 = NULL;
-	SHFILEINFOW wsfi;
-START_ROUTINE
-	pw0 = DuplicateMtoWMultiString(pszPath);
-	if((r = SHGetFileInfoW(pw0, dwFileAttributes, &wsfi, cbFileInfo, uFlags)) != 0)
-	{
-		psfi->hIcon = wsfi.hIcon;
-		psfi->iIcon = wsfi.iIcon;
-		psfi->dwAttributes = wsfi.dwAttributes;
-		WtoM(psfi->szDisplayName, MAX_PATH, wsfi.szDisplayName, -1);
-		WtoM(psfi->szTypeName, 80, wsfi.szTypeName, -1);
-	}
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 BOOL AppendMenuM(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, LPCSTR lpNewItem)
 {
 	int r = 0;

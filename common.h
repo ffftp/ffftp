@@ -1323,6 +1323,11 @@ typedef struct filelist {
 	// ファイルアイコン表示対応
 	int ImageId;					/* アイコン画像番号 */
 	struct filelist *Next;
+	filelist() = default;
+	filelist(const char* file, char node, char link, LONGLONG size, int attr, FILETIME time, const char* owner, char infoExist) : Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, InfoExist{ infoExist } {
+		strcpy(File, file);
+		strcpy(Owner, owner);
+	}
 } FILELIST;
 
 
