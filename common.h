@@ -2091,7 +2091,7 @@ static inline auto AddressPortToString(const SOCKADDR* sa, size_t salen) {
 template<class SockAddr>
 static inline auto AddressPortToString(const SockAddr* sa, size_t salen = sizeof(SockAddr)) {
 	static_assert(std::is_same_v<SockAddr, sockaddr_in> || std::is_same_v<SockAddr, sockaddr_in6> || std::is_same_v<SockAddr, sockaddr_storage>);
-	return AddressPortToString(reinterpret_cast<const SOCKADDR*>(&sa), salen);
+	return AddressPortToString(reinterpret_cast<const SOCKADDR*>(sa), salen);
 }
 static inline auto AddressToString(sockaddr_storage const& sa) {
 	if (sa.ss_family == AF_INET) {
