@@ -34,8 +34,10 @@
 #define WIN32_LEAN_AND_MEAN
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <chrono>
 #include <filesystem>
+#include <future>
 #include <iterator>
 #include <map>
 #include <mutex>
@@ -72,7 +74,6 @@
 #include "config.h"
 #include "dialog.h"
 #include "mbswrapper.h"
-#include "socketwrapper.h"
 #include "Resource/resource.ja-JP.h"
 #include "mesg-jpn.h"
 // IdnToAscii()、NormalizeString()共にVistaからNormaliz.dllからKERNEL32.dllに移されている。
@@ -255,7 +256,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define WM_SELECT_HOST	(WM_USER+3)	/* ホストをダブルクリックで選択した */
 
 #define WM_ASYNC_SOCKET	(WM_USER+5)
-#define WM_ASYNC_DBASE	(WM_USER+6)
 
 #define WM_REFRESH_LOCAL_FLG	(WM_USER+7)
 #define WM_REFRESH_REMOTE_FLG	(WM_USER+8)
@@ -1000,38 +1000,6 @@ LIST_UNIX_70
 #define	HISTORY_MAX		20		/* ファイルのヒストリの最大個数 */
 #define DEF_FMENU_ITEMS	8		/* Fileメニューにある項目数の初期値 */
 
-/*===== SOCKS4 =====*/
-
-#define SOCKS4_VER			4	/* SOCKSのバージョン */
-
-#define SOCKS4_CMD_CONNECT	1	/* CONNECTコマンド */
-#define SOCKS4_CMD_BIND		2	/* BINDコマンド */
-
-/* リザルトコード */
-#define SOCKS4_RES_OK		90	/* 要求は許可された */
-	/* その他のコードはチェックしないので定義しない */
-
-/*===== SOCKS5 =====*/
-
-#define SOCKS5_VER			5	/* SOCKSのバージョン */
-
-#define SOCKS5_CMD_CONNECT	1	/* CONNECTコマンド */
-#define SOCKS5_CMD_BIND		2	/* BINDコマンド */
-
-#define SOCKS5_AUTH_NONE	0	/* 認証無し */
-#define SOCKS5_AUTH_GSSAPI	1	/* GSS-API */
-#define SOCKS5_AUTH_USER	2	/* Username/Password */
-
-#define SOCKS5_ADRS_IPV4	1	/* IP V4 address */
-#define SOCKS5_ADRS_NAME	3	/* Domain name */
-#define SOCKS5_ADRS_IPV6	4	/* IP V6 address */
-
-#define SOCKS5_USERAUTH_VER	1	/* Username\Password認証のバージョン */
-
-/* リザルトコード */
-#define SOCKS5_RES_OK		0x00	/* succeeded */
-	/* その他のコードはチェックしないので定義しない */
-
 /*===== 中断コード =====*/
 
 #define ABORT_NONE			0		/* 転送中断なし */
@@ -1189,8 +1157,6 @@ typedef struct {
 	int Feature;						/* 利用可能な機能のフラグ (FEATURE_xxx) */
 	// MLSD対応
 	int UseMLSD;						/* "MLSD"コマンドを使用する */
-	// IPv6対応
-	int NetType;						/* ネットワークの種類 (NTYPE_xxx) */
 	int CurNetType;						/* 接続中のネットワークの種類 (NTYPE_xxx) */
 	// 自動切断対策
 	int NoopInterval;					/* 無意味なコマンドを送信する間隔（秒数、0で無効）*/
@@ -1258,8 +1224,6 @@ typedef struct historydata {
 	int ReuseCmdSkt;					/* メインウィンドウのソケットを再利用する (YES/NO) */
 	// MLSD対応
 	int UseMLSD;						/* "MLSD"コマンドを使用する */
-	// IPv6対応
-	int NetType;						/* ネットワークの種類 (NTYPE_xxx) */
 	// 自動切断対策
 	int NoopInterval;					/* NOOPコマンドを送信する間隔（秒数、0で無効）*/
 	// 再転送対応
@@ -1394,90 +1358,6 @@ typedef struct {
 } RADIOBUTTON;
 
 
-/*===== SOCKS4 =====*/
-
-/* コマンドパケット */
-typedef struct {
-	char Ver;						/* バージョン (SOCKS4_VER) */
-	char Cmd;						/* コマンド (SOCKS4_CMD_xxx) */
-	ushort Port;					/* ポート */
-	ulong AdrsInt;					/* アドレス */
-	char UserID[USER_NAME_LEN+1];	/* ユーザID */
-} SOCKS4CMD;
-
-
-/* 返信パケット */
-typedef struct {
-	char Ver;				/* バージョン */
-	char Result;			/* リザルトコード (SOCKS4_RES_xxx) */
-	ushort Port;			/* ポート */
-	ulong AdrsInt;			/* アドレス */
-} SOCKS4REPLY;
-
-#define SOCKS4REPLY_SIZE	8
-
-
-/*===== SOCKS5 =====*/
-
-/* Method requestパケット */
-typedef struct {
-	char Ver;				/* バージョン (SOCKS5_VER) */
-	char Num;				/* メソッドの数 */
-	uchar Methods[1];		/* メソッド */
-} SOCKS5METHODREQUEST;
-
-#define SOCKS5METHODREQUEST_SIZE	3
-
-
-/* Method replyパケット */
-typedef struct {
-	char Ver;				/* バージョン (SOCKS5_VER) */
-	uchar Method;			/* メソッド */
-} SOCKS5METHODREPLY;
-
-#define SOCKS5METHODREPLY_SIZE	2
-
-
-/* Requestパケット */
-typedef struct {
-	char Ver;				/* バージョン (SOCKS5_VER) */
-	char Cmd;				/* コマンド (SOCKS5_CMD_xxx) */
-	char Rsv;				/* （予約） */
-	char Type;				/* アドレスのタイプ */
-							/* 以後（可変長部分） */
-	char _dummy[255+1+2];	/* アドレス、ポート */
-} SOCKS5REQUEST;
-
-#define SOCKS5REQUEST_SIZE 4	/* 最初の固定部分のサイズ */
-
-
-/* Replyパケット */
-typedef struct {
-	char Ver;				/* バージョン */
-	char Result;			/* リザルトコード (SOCKS4_RES_xxx) */
-	char Rsv;				/* （予約） */
-	char Type;				/* アドレスのタイプ */
-							/* 以後（可変長部分） */
-	// IPv6対応
-//	ulong AdrsInt;			/* アドレス */
-//	ushort Port;			/* ポート */
-//	char _dummy[2];			/* dummy */
-	char _dummy[255+1+2];	/* dummy */
-} SOCKS5REPLY;
-
-#define SOCKS5REPLY_SIZE 4	/* 最初の固定部分のサイズ */
-
-
-/* Username/Password認証statusパケット */
-typedef struct {
-	char Ver;				/* バージョン */
-	uchar Status;			/* ステータス */
-} SOCKS5USERPASSSTATUS;
-
-#define SOCKS5USERPASSSTATUS_SIZE	2
-
-
-
 /*===== ダイアログボックス変更処理用 =====*/
 
 typedef struct {
@@ -1506,7 +1386,7 @@ typedef struct
 {
 	int r;
 	HANDLE h;
-	char* Adrs;
+	const char* Adrs;
 	int Port;
 	char* ExtAdrs;
 } ADDPORTMAPPINGDATA;
@@ -1763,18 +1643,10 @@ int AskRealHostType(void);
 int SetOSS(int wkOss);
 int AskOSS(void);
 #endif
+std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork);
 SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork);
-// IPv6対応
-SOCKET connectsockIPv4(char *host, int port, char *PreMsg, int *CancelCheckWork);
-SOCKET connectsockIPv6(char *host, int port, char *PreMsg, int *CancelCheckWork);
 SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork);
-// IPv6対応
-SOCKET GetFTPListenSocketIPv4(SOCKET ctrl_skt, int *CancelCheckWork);
-SOCKET GetFTPListenSocketIPv6(SOCKET ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
-// 同時接続対応
-//int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data);
-int SocksGet2ndBindReply(SOCKET Socket, SOCKET *Data, int *CancelCheckWork);
 int AskUseNoEncryption(void);
 int AskUseFTPES(void);
 int AskUseFTPIS(void);
@@ -1902,7 +1774,6 @@ int _command(SOCKET cSkt, char* Reply, int* CancelCheckWork, const char* fmt, ..
 #else
 #define command(CSKT, REPLY, CANCELCHECKWORK, ...) (_command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
 #endif
-int SendData(SOCKET Skt, char *Data, int Size, int Mode, int *CancelCheckWork);
 int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char *Tmp);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
 char *ReturnWSError(UINT Error);
@@ -2138,31 +2009,24 @@ bool IsSecureConnection();
 BOOL IsSSLAttached(SOCKET s);
 int MakeSocketWin(HWND hWnd, HINSTANCE hInst);
 void DeleteSocketWin(void);
-// ソケットにデータを付与
-int SetAsyncTableDataIPv4(SOCKET s, struct sockaddr_in* Host, struct sockaddr_in* Socks);
-int SetAsyncTableDataIPv6(SOCKET s, struct sockaddr_in6* Host, struct sockaddr_in6* Socks);
-int SetAsyncTableDataMapPort(SOCKET s, int Port);
-int GetAsyncTableDataIPv4(SOCKET s, struct sockaddr_in* Host, struct sockaddr_in* Socks);
-int GetAsyncTableDataIPv6(SOCKET s, struct sockaddr_in6* Host, struct sockaddr_in6* Socks);
+void SetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::string, int>> const& target);
+void SetAsyncTableDataMapPort(SOCKET s, int Port);
+int GetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::string, int>>& target);
 int GetAsyncTableDataMapPort(SOCKET s, int* Port);
-// IPv6対応
-//struct hostent *do_gethostbyname(const char *Name, char *Buf, int Len, int *CancelCheckWork);
-struct hostent *do_gethostbynameIPv4(const char *Name, char *Buf, int Len, int *CancelCheckWork);
-struct hostent *do_gethostbynameIPv6(const char *Name, char *Buf, int Len, int *CancelCheckWork);
 SOCKET do_socket(int af, int type, int protocol);
 int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCheckWork);
 int do_closesocket(SOCKET s);
 int do_listen(SOCKET s,	int backlog);
 SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen);
 int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOut, int *CancelCheckWork);
-int do_send(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork);
+int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork);
 // 同時接続対応
 void RemoveReceivedData(SOCKET s);
 // UPnP対応
 int LoadUPnP();
 void FreeUPnP();
 int IsUPnPLoaded();
-int AddPortMapping(char* Adrs, int Port, char* ExtAdrs);
+int AddPortMapping(const char* Adrs, int Port, char* ExtAdrs);
 int RemovePortMapping(int Port);
 int CheckClosedAndReconnect(void);
 // 同時接続対応
@@ -2220,4 +2084,29 @@ static auto GetText(HWND hwnd) {
 }
 static inline auto GetText(HWND hdlg, int id) {
 	return GetText(GetDlgItem(hdlg, id));
+}
+static inline auto AddressPortToString(const SOCKADDR* sa, size_t salen) {
+	std::wstring string(sizeof "[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff%4294967295]:65535" - 1, L'\0');
+	auto length = size_as<DWORD>(string) + 1;
+	auto result = WSAAddressToStringW(const_cast<SOCKADDR*>(sa), static_cast<DWORD>(salen), nullptr, data(string), &length);
+	assert(result == 0);
+	string.resize(length - 1);
+	return string;
+}
+template<class SockAddr>
+static inline auto AddressPortToString(const SockAddr* sa, size_t salen = sizeof(SockAddr)) {
+	static_assert(std::is_same_v<SockAddr, sockaddr_in> || std::is_same_v<SockAddr, sockaddr_in6> || std::is_same_v<SockAddr, sockaddr_storage>);
+	return AddressPortToString(reinterpret_cast<const SOCKADDR*>(sa), salen);
+}
+static inline auto AddressToString(sockaddr_storage const& sa) {
+	if (sa.ss_family == AF_INET) {
+		auto local = reinterpret_cast<sockaddr_in const&>(sa);
+		local.sin_port = 0;
+		return AddressPortToString(&local);
+	} else {
+		auto local = reinterpret_cast<sockaddr_in6 const&>(sa);
+		local.sin6_port = 0;
+		local.sin6_scope_id = 0;
+		return AddressPortToString(&local);
+	}
 }

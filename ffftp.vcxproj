@@ -205,7 +205,6 @@
     <ClCompile Include="remote.cpp" />
     <ClCompile Include="skey.cpp" />
     <ClCompile Include="socket.cpp" />
-    <ClCompile Include="socketwrapper.cpp" />
     <ClCompile Include="statuswin.cpp" />
     <ClCompile Include="taskwin.cpp" />
     <ClCompile Include="tool.cpp" />
@@ -221,7 +220,6 @@
     <ClInclude Include="OleDragDrop.h" />
     <ClInclude Include="Resource\resource.en-US.h" />
     <ClInclude Include="Resource\resource.ja-JP.h" />
-    <ClInclude Include="socketwrapper.h" />
     <ClInclude Include="wrl\client.h" />
     <ClInclude Include="wrl\def.h" />
     <ClInclude Include="wrl\implements.h" />

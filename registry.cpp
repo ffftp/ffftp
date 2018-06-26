@@ -629,8 +629,6 @@ void SaveRegistry(void)
 							SaveIntNum(hKey5, "ReuseCmdSkt", Hist.ReuseCmdSkt, DefaultHist.ReuseCmdSkt);
 							// MLSD対応
 							SaveIntNum(hKey5, "MLSD", Hist.UseMLSD, DefaultHist.UseMLSD);
-							// IPv6対応
-							SaveIntNum(hKey5, "NetType", Hist.NetType, DefaultHist.NetType);
 							// 自動切断対策
 							SaveIntNum(hKey5, "Noop", Hist.NoopInterval, DefaultHist.NoopInterval);
 							// 再転送対応
@@ -707,7 +705,6 @@ void SaveRegistry(void)
 					SaveIntNum(hKey5, "ThreadCount", Host.MaxThreadCount, DefaultHost.MaxThreadCount);
 					SaveIntNum(hKey5, "ReuseCmdSkt", Host.ReuseCmdSkt, DefaultHost.ReuseCmdSkt);
 					SaveIntNum(hKey5, "MLSD", Host.UseMLSD, DefaultHost.UseMLSD);
-					SaveIntNum(hKey5, "NetType", Host.NetType, DefaultHost.NetType);
 					SaveIntNum(hKey5, "Noop", Host.NoopInterval, DefaultHost.NoopInterval);
 					SaveIntNum(hKey5, "ErrMode", Host.TransferErrorMode, DefaultHost.TransferErrorMode);
 					SaveIntNum(hKey5, "ErrNotify", Host.TransferErrorNotify, DefaultHost.TransferErrorNotify);
@@ -780,8 +777,6 @@ void SaveRegistry(void)
 							SaveIntNum(hKey5, "ReuseCmdSkt", Host.ReuseCmdSkt, DefaultHost.ReuseCmdSkt);
 							// MLSD対応
 							SaveIntNum(hKey5, "MLSD", Host.UseMLSD, DefaultHost.UseMLSD);
-							// IPv6対応
-							SaveIntNum(hKey5, "NetType", Host.NetType, DefaultHost.NetType);
 							// 自動切断対策
 							SaveIntNum(hKey5, "Noop", Host.NoopInterval, DefaultHost.NoopInterval);
 							// 再転送対応
@@ -1203,8 +1198,6 @@ int LoadRegistry(void)
 					ReadIntValueFromReg(hKey5, "ReuseCmdSkt", &Hist.ReuseCmdSkt);
 					// MLSD対応
 					ReadIntValueFromReg(hKey5, "MLSD", &Hist.UseMLSD);
-					// IPv6対応
-					ReadIntValueFromReg(hKey5, "NetType", &Hist.NetType);
 					// 自動切断対策
 					ReadIntValueFromReg(hKey5, "Noop", &Hist.NoopInterval);
 					// 再転送対応
@@ -1274,7 +1267,6 @@ int LoadRegistry(void)
 				ReadIntValueFromReg(hKey5, "ThreadCount", &Host.MaxThreadCount);
 				ReadIntValueFromReg(hKey5, "ReuseCmdSkt", &Host.ReuseCmdSkt);
 				ReadIntValueFromReg(hKey5, "MLSD", &Host.UseMLSD);
-				ReadIntValueFromReg(hKey5, "NetType", &Host.NetType);
 				ReadIntValueFromReg(hKey5, "Noop", &Host.NoopInterval);
 				ReadIntValueFromReg(hKey5, "ErrMode", &Host.TransferErrorMode);
 				ReadIntValueFromReg(hKey5, "ErrNotify", &Host.TransferErrorNotify);
@@ -1375,8 +1367,6 @@ int LoadRegistry(void)
 					}
 					// MLSD対応
 					ReadIntValueFromReg(hKey5, "MLSD", &Host.UseMLSD);
-					// IPv6対応
-					ReadIntValueFromReg(hKey5, "NetType", &Host.NetType);
 					// 自動切断対策
 					ReadIntValueFromReg(hKey5, "Noop", &Host.NoopInterval);
 					// 再転送対応
@@ -3828,19 +3818,6 @@ void SaveSettingsToWinSCPIni()
 					WriteWinSCPString(f, Host.HostAdrs);
 					fputs("\n", f);
 					fprintf(f, "PortNumber=%d\n", Host.Port);
-					switch(Host.NetType)
-					{
-					case NTYPE_AUTO:
-						break;
-					case NTYPE_IPV4:
-						fprintf(f, "AddressFamily=%s\n", "1");
-						break;
-					case NTYPE_IPV6:
-						fprintf(f, "AddressFamily=%s\n", "2");
-						break;
-					default:
-						break;
-					}
 					fputs("UserName=", f);
 					WriteWinSCPString(f, Host.UserName);
 					fputs("\n", f);

@@ -651,8 +651,6 @@ BEGIN
     PUSHBUTTON      "標準",HSET_PORT_NOR,30,66,25,13
     LTEXT           "アカウント(&C)",-1,7,87,65,8
     EDITTEXT        HSET_ACCOUNT,7,97,62,12,ES_AUTOHSCROLL
-    LTEXT           "ネットワークの種類(&N)",-1,7,115,81,8
-    COMBOBOX        HSET_NETTYPE,7,125,71,75,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     LTEXT           "ホストのタイムゾーン(&T)",-1,103,7,81,8
     COMBOBOX        HSET_TIMEZONE,103,17,71,102,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     LTEXT           "セキュリティ(&Q)",-1,103,35,72,8
@@ -2320,27 +2318,19 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN016           "ホスト %s を探しています. (%s)"
-    IDS_MSGJPN017           "%sホスト %s (%s (%d)) に接続しています. (%s)"
-    IDS_MSGJPN018           "%sホスト %s (%d) に接続しています. (%s)"
-    IDS_MSGJPN019           "ホスト %s が見つかりません. (%s)"
-    IDS_MSGJPN020           "%sホスト %s (%d) に接続しています. (%s)"
-    IDS_MSGJPN021           "SOCKSサーバー %s が見つかりません. (%s)"
-    IDS_MSGJPN022           "SOCKSサーバー %s (%d) に接続しています. (%s)"
-    IDS_MSGJPN023           "SOCKSサーバーに接続できません. (Err=%d) (%s)"
-    IDS_MSGJPN024           "SOCKSサーバーに接続できません. (Err=%d) (%s)"
-    IDS_MSGJPN025           "接続しました. (%s)"
-    IDS_MSGJPN026           "接続できません. (%s)"
-    IDS_MSGJPN027           "ソケットが作成できません. (%s)"
-    IDS_MSGJPN028           "SOCKSサーバーに接続できません. (Err=%d) (%s)"
-    IDS_MSGJPN029           "SOCKSサーバーに接続できません. (Err=%d) (%s)"
-    IDS_MSGJPN030           "Listenソケットが作成できません. (%s)"
-    IDS_MSGJPN031           "PORTコマンドが受け付けられません. (%s)"
+    IDS_MSGJPN017           "%sホスト %s (%s) に接続しています."
+    IDS_MSGJPN019           "ホスト %s が見つかりません."
+    IDS_MSGJPN021           "SOCKSサーバー %s が見つかりません."
+    IDS_MSGJPN022           "SOCKSサーバー %s に接続しています."
+    IDS_MSGJPN023           "SOCKSサーバーに接続できません. (Err=%d)"
+    IDS_MSGJPN025           "接続しました."
+    IDS_MSGJPN026           "接続できません."
+    IDS_MSGJPN027           "ソケットが作成できません."
+    IDS_MSGJPN031           "%sコマンドが受け付けられません."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN032           "接続はユーザーによって中止されました."
     IDS_MSGJPN033           "SOCKSのコマンドが送れませんでした (Cmd = %04X)"
     IDS_MSGJPN034           "SOCKS5のコマンドに対するリプライが受信できませんでした"
     IDS_MSGJPN035           "SOCKS4のコマンドに対するリプライが受信できませんでした"
@@ -2689,9 +2679,6 @@ BEGIN
     IDS_MSGJPN329           "UTF-8 BOM"
     IDS_MSGJPN330           "ホストの漢字コードはUTF-8 BOM"
     IDS_MSGJPN331           "ローカルの漢字コードはUTF-8 BOM"
-    IDS_MSGJPN332           "自動"
-    IDS_MSGJPN333           "TCP/IPv4"
-    IDS_MSGJPN334           "TCP/IPv6"
     IDS_MSGJPN335           "毎回尋ねる"
 END
 

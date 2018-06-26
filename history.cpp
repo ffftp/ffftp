@@ -221,8 +221,6 @@ static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
 	New->ReuseCmdSkt = Host->ReuseCmdSkt;
 	// MLSD対応
 	New->UseMLSD = Host->UseMLSD;
-	// IPv6対応
-	New->NetType = Host->NetType;
 	// 自動切断対策
 	New->NoopInterval = Host->NoopInterval;
 	// 再転送対応
@@ -292,8 +290,6 @@ void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
 	Host->ReuseCmdSkt = Hist->ReuseCmdSkt;
 	// MLSD対応
 	Host->UseMLSD = Hist->UseMLSD;
-	// IPv6対応
-	Host->NetType = Hist->NetType;
 	// 自動切断対策
 	Host->NoopInterval = Hist->NoopInterval;
 	// 再転送対応

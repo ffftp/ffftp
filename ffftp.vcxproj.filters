@@ -69,9 +69,6 @@
     <ClCompile Include="ras.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="socketwrapper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="socket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -119,9 +116,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Resource\resource.ja-JP.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="socketwrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OleDragDrop.h">
