@@ -68,7 +68,6 @@ static INT_PTR CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 /*===== 外部参照 =====*/
 
 extern HWND hHelpWin;
-extern bool SupportIdn;
 
 /* 設定値 */
 extern char UserMailAdrs[USER_MAIL_LEN+1];

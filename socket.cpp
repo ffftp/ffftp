@@ -293,7 +293,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName)
 	assert(SecIsValidHandle(&credential));
 	std::wstring wServerName;
 	if (ServerName)
-		wServerName = u8(ServerName);
+		wServerName = IdnToAscii(u8(ServerName));
 	else if (parent != INVALID_SOCKET)
 		if (auto context = getContext(parent))
 			wServerName = context->host;
