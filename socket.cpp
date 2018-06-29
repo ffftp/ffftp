@@ -312,7 +312,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName)
 	auto first = true;
 	SECURITY_STATUS ss = SEC_I_CONTINUE_NEEDED;
 	do {
-		constexpr unsigned long contextReq = ISC_REQ_STREAM | ISC_REQ_SEQUENCE_DETECT | ISC_REQ_REPLAY_DETECT | ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_EXTENDED_ERROR | ISC_REQ_USE_SUPPLIED_CREDS | ISC_REQ_PROMPT_FOR_CREDS | ISC_REQ_MANUAL_CRED_VALIDATION;
+		constexpr unsigned long contextReq = ISC_REQ_STREAM | ISC_REQ_SEQUENCE_DETECT | ISC_REQ_REPLAY_DETECT | ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_EXTENDED_ERROR | ISC_REQ_USE_SUPPLIED_CREDS | ISC_REQ_MANUAL_CRED_VALIDATION;
 		SecBuffer inBuffer[]{ { 0, SECBUFFER_EMPTY, nullptr }, { 0, SECBUFFER_EMPTY, nullptr } };
 		SecBuffer outBuffer[]{ { 0, SECBUFFER_EMPTY, nullptr }, { 0, SECBUFFER_EMPTY, nullptr } };
 		SecBufferDesc inDesc{ SECBUFFER_VERSION, size_as<unsigned long>(inBuffer), inBuffer };
@@ -325,7 +325,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName)
 			for (;;) {
 				char buffer[8192];
 				if (auto read = recv(s, buffer, size_as<int>(buffer), 0); read == 0) {
-					_RPTW0(_CRT_WARN, L"AttachSSL recv: connection closed.\n");
+					DoPrintf("AttachSSL recv: connection closed.");
 					return FALSE;
 				} else if (0 < read) {
 					_RPTWN(_CRT_WARN, L"AttachSSL recv: %d bytes.\n", read);
@@ -333,7 +333,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName)
 					break;
 				}
 				if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
-					_RPTWN(_CRT_WARN, L"AttachSSL recv error: %d.\n", lastError);
+					DoPrintf("AttachSSL recv error: %d.", lastError);
 					return FALSE;
 				}
 				Sleep(0);
@@ -342,7 +342,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName)
 			ss = InitializeSecurityContextW(&credential, &context, node, contextReq, 0, 0, &inDesc, 0, nullptr, &outDesc, &attr, nullptr);
 		}
 		if (FAILED(ss) && ss != SEC_E_INCOMPLETE_MESSAGE) {
-			_RPTWN(_CRT_WARN, L"AttachSSL InitializeSecurityContext error: %08x.\n", ss);
+			DoPrintf("AttachSSL InitializeSecurityContext error: %08x.", ss);
 			return FALSE;
 		}
 		_RPTWN(_CRT_WARN, L"AttachSSL InitializeSecurityContext result: %08x, inBuffer: %d/%d, %d/%d/%p, outBuffer: %d/%d, %d/%d, attr: %08x.\n",
@@ -363,7 +363,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName)
 	} while (ss == SEC_I_CONTINUE_NEEDED);
 
 	if (ss = QueryContextAttributesW(&context, SECPKG_ATTR_STREAM_SIZES, &streamSizes); ss != SEC_E_OK) {
-		_RPTWN(_CRT_WARN, L"AttachSSL QueryContextAttributes(SECPKG_ATTR_STREAM_SIZES) error: %08x.\n", ss);
+		DoPrintf("AttachSSL QueryContextAttributes(SECPKG_ATTR_STREAM_SIZES) error: %08x.", ss);
 		return FALSE;
 	}
 
