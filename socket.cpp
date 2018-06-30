@@ -151,11 +151,18 @@ static std::mutex context_mutex;
 static std::map<SOCKET, Context> contexts;
 
 BOOL LoadSSL() {
-	// Windows 7以前はTLS 1.1、TLS 1.2が既定で無効化されている。 <https://docs.microsoft.com/en-us/windows/desktop/SecAuthN/protocols-in-tls-ssl--schannel-ssp->
-	// それとは別にTLS 1.2とSSL 2.0は排他となる。 <https://docs.microsoft.com/en-us/windows/desktop/api/schannel/ns-schannel-_schannel_cred>
-	// そこでまずは既定でオープンし、有効化されているプロトコルを調べる。
-	// TLS 1.1、TLS 1.2が無効化されている場合はそれらを加えて再度オープンし直す。
-	// 古いプロトコルを無理に有効化しないための措置。
+	// 目的：
+	//   TLS 1.1以前を無効化する動きに対応しつつ、古いSSL 2.0にもできるだけ対応する
+	// 前提：
+	//   Windows 7以前はTLS 1.1、TLS 1.2が既定で無効化されている。 <https://docs.microsoft.com/en-us/windows/desktop/SecAuthN/protocols-in-tls-ssl--schannel-ssp->
+	//   それとは別にTLS 1.2とSSL 2.0は排他となる。 <https://docs.microsoft.com/en-us/windows/desktop/api/schannel/ns-schannel-_schannel_cred>
+	//   ドキュメントに記載されていないUNI; Multi-Protocol Unified Helloが存在し、Windows XPではUNIが既定で有効化されている。さらにTLS 1.2とUNIは排他となる。
+	//   またドキュメントにはないがTLSとDTLSも排他となる。同じくドキュメントにないがTLS 1.3は現時点で未対応。
+	// 手順：
+	//   未指定でオープンすることで、レジストリ値に従った初期化をする。
+	//   有効になっているプロトコルを調べ、SSL 2.0が無効かつTLS 1.2が無効な場合は開き直す。
+	//   排他となるプロトコルがあるため、有効になっているプロトコルのうちSSL 3.0以降とTLS 1.2を指定してオープンする。
+	static_assert((SP_PROT_TLS1_1PLUS_CLIENT & ~(SP_PROT_TLS1_1_CLIENT | SP_PROT_TLS1_2_CLIENT | SP_PROT_TLS1_3_CLIENT)) == 0, "new tls version detected.");
 	if (auto ss = AcquireCredentialsHandleW(nullptr, UNISP_NAME_W, SECPKG_CRED_OUTBOUND, nullptr, nullptr, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
 		_RPTWN(_CRT_WARN, L"AcquireCredentialsHandle error: %08X.\n", ss);
 		return FALSE;
@@ -165,16 +172,11 @@ BOOL LoadSSL() {
 		_RPTWN(_CRT_WARN, L"QueryCredentialsAttributes error: %08X.\n", ss);
 		return FALSE;
 	}
-	// ドキュメントにはないがTLSとDTLSを共存できない。そのため、SSL/TLS以外のプロトコルを無効化する。
-	static_assert((SP_PROT_TLS1_1PLUS_CLIENT & ~(SP_PROT_TLS1_1_CLIENT | SP_PROT_TLS1_2_CLIENT | SP_PROT_TLS1_3_CLIENT)) == 0, "new tls version detected.");
-	sp.grbitProtocol &= SP_PROT_PCT1_CLIENT | SP_PROT_SSL2_CLIENT | SP_PROT_SSL3_CLIENT | SP_PROT_TLS1_CLIENT | SP_PROT_TLS1_1_CLIENT | SP_PROT_TLS1_2_CLIENT | SP_PROT_TLS1_3_CLIENT;
-	if ((sp.grbitProtocol & SP_PROT_TLS1_1_CLIENT) == 0 || (sp.grbitProtocol & SP_PROT_TLS1_2_CLIENT) == 0 && (sp.grbitProtocol & SP_PROT_SSL2_CLIENT) == 0) {
+	if ((sp.grbitProtocol & SP_PROT_SSL2_CLIENT) == 0 && (sp.grbitProtocol & SP_PROT_TLS1_2_CLIENT) == 0) {
 		FreeCredentialsHandle(&credential);
-		sp.grbitProtocol |= SP_PROT_TLS1_1_CLIENT;
-		if ((sp.grbitProtocol & SP_PROT_SSL2_CLIENT) == 0)
-			sp.grbitProtocol |= SP_PROT_TLS1_2_CLIENT;
-		SCHANNEL_CRED schannelCred{ SCHANNEL_CRED_VERSION, 0, nullptr, 0, 0, nullptr, 0, nullptr, sp.grbitProtocol };
-		if (auto ss = AcquireCredentialsHandleW(nullptr, UNISP_NAME_W, SECPKG_CRED_OUTBOUND, nullptr, &schannelCred, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
+		SCHANNEL_CRED sc{ SCHANNEL_CRED_VERSION };
+		sc.grbitEnabledProtocols = sp.grbitProtocol & (SP_PROT_SSL3_CLIENT | SP_PROT_TLS1_0_CLIENT | SP_PROT_TLS1_1_CLIENT | SP_PROT_TLS1_2_CLIENT | SP_PROT_TLS1_3_CLIENT) | SP_PROT_TLS1_2_CLIENT;
+		if (auto ss = AcquireCredentialsHandleW(nullptr, UNISP_NAME_W, SECPKG_CRED_OUTBOUND, nullptr, &sc, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
 			_RPTWN(_CRT_WARN, L"AcquireCredentialsHandle error: %08X.\n", ss);
 			return FALSE;
 		}
