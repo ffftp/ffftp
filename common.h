@@ -2110,3 +2110,15 @@ static inline auto AddressToString(sockaddr_storage const& sa) {
 		return AddressPortToString(&local);
 	}
 }
+extern bool SupportIdn;
+static inline auto IdnToAscii(std::wstring const& unicode) {
+	if (!SupportIdn || empty(unicode))
+		return unicode;
+	auto length = IdnToAscii(0, data(unicode), size_as<int>(unicode), nullptr, 0);
+	if (length == 0)
+		return unicode;
+	std::wstring ascii(static_cast<size_t>(length), L'\0');
+	auto result = IdnToAscii(0, data(unicode), size_as<int>(unicode), data(ascii), length);
+	assert(result == length);
+	return ascii;
+}

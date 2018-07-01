@@ -75,7 +75,6 @@ extern int QuickAnonymous;
 extern int TimeOut;
 // UPnP対応
 extern int UPnPEnabled;
-extern bool SupportIdn;
 
 /*===== ローカルなワーク =====*/
 
@@ -2052,17 +2051,7 @@ static inline auto getaddrinfo(std::wstring const& host, int port, int family = 
 }
 
 static std::unique_ptr<addrinfoW> getaddrinfo(std::wstring const& host, std::wstring const& port, int family, int* CancelCheckWork) {
-	auto future = std::async(std::launch::async, [host, port, family] {
-		std::wstring idn;
-		if (SupportIdn) {
-			auto length = IdnToAscii(0, data(host), size_as<int>(host), nullptr, 0);
-			idn.resize(length);
-			auto result = IdnToAscii(0, data(host), size_as<int>(host), data(idn), length);
-			assert(result == length);
-		} else
-			idn = host;
-		return getaddrinfo(idn, port, family, AI_NUMERICSERV);
-	});
+	auto future = std::async(std::launch::async, [host, port, family] { return getaddrinfo(IdnToAscii(host), port, family, AI_NUMERICSERV);	});
 	while (*CancelCheckWork == NO && future.wait_for(1ms) == std::future_status::timeout)
 		if (BackgrndMessageProc() == YES)
 			*CancelCheckWork = YES;

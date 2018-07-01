@@ -37,8 +37,6 @@
 
 /*===== プロトタイプ =====*/
 
-extern bool SupportIdn;
-
 static char *ConvEUCtoSJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put);
 static char *ConvJIStoSJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put);
 static char *ConvSJIStoEUCkanaProc(CODECONVINFO *cInfo, char Dt, char *Put);
