@@ -321,6 +321,7 @@ END
 
 hset_main_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "基本"
 FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "ホストの設定名(&T)",-1,7,7,94,8
@@ -364,6 +365,7 @@ END
 
 opt_user_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "ユーザー"
 FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "メールアドレス(&M)",-1,7,7,59,8
@@ -373,6 +375,7 @@ END
 
 opt_tool_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "ツール"
 FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "ビューア1(&1)",-1,7,7,39,8
@@ -459,6 +462,7 @@ END
 
 opt_misc_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "その他"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "ウインドウ位置を保存する(&W)",MISC_WINPOS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
@@ -561,6 +565,7 @@ END
 
 opt_trmode2_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "転送2"
 FONT 9, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "ファイル名の変更",-1,7,7,196,69
@@ -579,6 +584,7 @@ END
 
 opt_notify_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "操作"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     GROUPBOX        "同じ名前のファイルがある時",-1,7,7,196,66,WS_GROUP
@@ -616,6 +622,7 @@ END
 
 opt_fire_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "FireWall"
 FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "FireWallのタイプ(&T)",-1,7,7,90,8
@@ -641,6 +648,7 @@ END
 
 hset_adv_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "拡張"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "FireWallを使う(&F)",HSET_FIREWALL,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,92,10
@@ -695,6 +703,7 @@ END
 
 opt_sound_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "サウンド"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "接続時にWaveファイルを鳴らす(&C)",SOUND_CONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,9,196,10
@@ -747,6 +756,7 @@ END
 
 hset_code_dlg DIALOGEX 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "文字コード"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     GROUPBOX        "ホストの漢字コード(&K)",-1,7,7,98,106,WS_GROUP
@@ -771,6 +781,7 @@ END
 
 opt_trmode1_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "転送1"
 FONT 9, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "転送モード",-1,7,7,93,56
@@ -915,6 +926,7 @@ END
 
 opt_mirror_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "ミラーリング"
 FONT 9, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "転送しないファイル名(&F)",-1,7,7,95,80,WS_GROUP
@@ -960,6 +972,7 @@ END
 
 opt_connect_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "接続/切断"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "起動時に接続ダイアログを表示する(&C)",CONNECT_CONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
@@ -1013,6 +1026,7 @@ END
 
 hset_adv2_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "高度"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "LISTコマンドでファイル一覧を取得(&L)",HSET_LISTCMD,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,131,10
@@ -1041,6 +1055,7 @@ END
 
 opt_trmode3_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "転送3"
 FONT 9, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "アップロードするファイルの属性(&P)",-1,7,7,124,95
@@ -1257,6 +1272,7 @@ END
 
 hset_dialup_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "ダイアルアップ"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "ダイアルアップで接続する(&D)",HSET_DIALUP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,110,10
@@ -1279,6 +1295,7 @@ END
 
 opt_disp1_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "表示1"
 FONT 9, "MS Shell Dlg"
 BEGIN
     PUSHBUTTON      "変更(&F)",DISP_FONT_BR,167,7,36,14,WS_GROUP
@@ -1360,6 +1377,7 @@ END
 
 hset_crypt_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "暗号化"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "暗号化なしで接続を許可(&A)",HSET_NO_ENCRYPTION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,148,10
@@ -1369,6 +1387,7 @@ END
 
 hset_adv3_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "特殊機能"
 FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "最大同時接続数(&M)",-1,7,10,64,8
@@ -1431,6 +1450,7 @@ END
 
 opt_trmode4_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "転送4"
 FONT 9, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "ローカルの漢字コード(&L)",-1,7,7,98,82,WS_GROUP
@@ -1445,6 +1465,7 @@ END
 
 opt_disp2_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "表示2"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "ファイルの属性を数字で表示する(&P)",DISP2_PERMIT_NUM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,196,10
@@ -2444,16 +2465,10 @@ BEGIN
     IDS_MSGJPN123           "EUC"
     IDS_MSGJPN124           "削除（ローカル）"
     IDS_MSGJPN125           "削除（ホスト）"
-    IDS_MSGJPN127           "基本"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN128           "拡張"
-    IDS_MSGJPN129           "文字コード"
-    IDS_MSGJPN130           "ダイアルアップ"
-    IDS_MSGJPN131           "高度"
-    IDS_MSGJPN132           "ホストの設定"
     IDS_MSGJPN133           "GMT%+02d:00 (日本)"
     IDS_MSGJPN134           "使用しない"
     IDS_MSGJPN135           "自動認識"
@@ -2517,23 +2532,10 @@ BEGIN
     IDS_MSGJPN181           "ホスト名と設定名の両方が指定されています."
     IDS_MSGJPN182           "ビューアの起動に失敗しました. (ERROR=%d)"
     IDS_MSGJPN185           "フォルダを選択してください"
-    IDS_MSGJPN186           "ユーザー"
-    IDS_MSGJPN187           "転送1"
-    IDS_MSGJPN188           "転送2"
-    IDS_MSGJPN189           "転送3"
-    IDS_MSGJPN190           "ミラーリング"
-    IDS_MSGJPN191           "操作"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN192           "表示1"
-    IDS_MSGJPN193           "接続/切断"
-    IDS_MSGJPN194           "FireWall"
-    IDS_MSGJPN195           "ツール"
-    IDS_MSGJPN196           "サウンド"
-    IDS_MSGJPN197           "その他"
-    IDS_MSGJPN198           "オプション"
     IDS_MSGJPN199           "ファイル名"
     IDS_MSGJPN200           "ファイル名"
     IDS_MSGJPN201           "属性"
@@ -2661,7 +2663,6 @@ BEGIN
     IDS_MSGJPN310           "ローカルの漢字コードはEUC"
     IDS_MSGJPN311           "ローカルの漢字コードはJIS"
     IDS_MSGJPN312           "ローカルの漢字コードはUTF-8"
-    IDS_MSGJPN313           "暗号化"
     IDS_MSGJPN314           "通信は暗号化されていません.\r\n第三者にパスワードおよび内容を傍受される可能性があります."
     IDS_MSGJPN315           "FTP over Explicit SSL/TLS (FTPES)を使用します."
     IDS_MSGJPN316           "FTP over Implicit SSL/TLS (FTPIS)を使用します."
@@ -2670,7 +2671,6 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN320           "特殊機能"
     IDS_MSGJPN321           "プロセスの保護に必要な関数を取得できませんでした."
     IDS_MSGJPN322           "デバッガが検出されました."
     IDS_MSGJPN323           "信頼できないDLLをアンロードできませんでした."
@@ -2687,8 +2687,6 @@ BEGIN
     IDS_MSGJPN336           "全て後で上書き"
     IDS_MSGJPN337           "全て後でリジューム"
     IDS_MSGJPN338           "全てスキップ"
-    IDS_MSGJPN339           "転送4"
-    IDS_MSGJPN340           "表示2"
     IDS_MSGJPN341           "WindowsファイアウォールのステートフルFTPフィルタの有効無効を設定します.\nこれはWindows Vista以降でのみ動作します.\n有効化または無効化することで通信状態が改善されることがあります.\n有効化するには「はい」,無効化するには「いいえ」を選択してください."
     IDS_MSGJPN342           "ステートフルFTPフィルタを設定できませんでした."
     IDS_MSGJPN343           "ファイル名の漢字コードの判別結果は%sです."
@@ -2738,6 +2736,8 @@ BEGIN
     IDS_SELECT_AUDIOFILE    "オーディオファイルを選択する"
     IDS_SAVE_SETTING        "設定を保存する"
     IDS_LOAD_SETTING        "設定を読み込む"
+    IDS_OPTION              "オプション"
+    IDS_HOSTSETTING         "ホストの設定"
 END
 
 #endif    // Japanese (Japan) resources

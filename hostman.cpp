@@ -1626,115 +1626,21 @@ void ImportFromWSFTP(void)
 }
 
 
-
-/*----- ホスト設定のプロパティシート ------------------------------------------
-*
-*	Parameter
-*		HWND hDlg : 親ウインドウのハンドル
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static int DispHostSetDlg(HWND hDlg)
-{
-	// SFTP、FTPES、FTPIS対応
-	// 同時接続対応
-//	PROPSHEETPAGE psp[5];
-	PROPSHEETPAGE psp[7];
-	PROPSHEETHEADER psh;
-
-	// 変数が未初期化のバグ修正
-	memset(&psp, 0, sizeof(psp));
-	memset(&psh, 0, sizeof(psh));
-
-	psp[0].dwSize = sizeof(PROPSHEETPAGE);
-	psp[0].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[0].hInstance = GetFtpInst();
-	psp[0].pszTemplate = MAKEINTRESOURCE(hset_main_dlg);
-	psp[0].pszIcon = NULL;
-	psp[0].pfnDlgProc = MainSettingProc;
-	psp[0].pszTitle = MSGJPN127;
-	psp[0].lParam = 0;
-	psp[0].pfnCallback = NULL;
-
-	psp[1].dwSize = sizeof(PROPSHEETPAGE);
-	psp[1].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[1].hInstance = GetFtpInst();
-	psp[1].pszTemplate = MAKEINTRESOURCE(hset_adv_dlg);
-	psp[1].pszIcon = NULL;
-	psp[1].pfnDlgProc = AdvSettingProc;
-	psp[1].pszTitle = MSGJPN128;
-	psp[1].lParam = 0;
-	psp[1].pfnCallback = NULL;
-
-	psp[2].dwSize = sizeof(PROPSHEETPAGE);
-	psp[2].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[2].hInstance = GetFtpInst();
-	psp[2].pszTemplate = MAKEINTRESOURCE(hset_code_dlg);
-	psp[2].pszIcon = NULL;
-	psp[2].pfnDlgProc = CodeSettingProc;
-	psp[2].pszTitle = MSGJPN129;
-	psp[2].lParam = 0;
-	psp[2].pfnCallback = NULL;
-
-	psp[3].dwSize = sizeof(PROPSHEETPAGE);
-	psp[3].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[3].hInstance = GetFtpInst();
-	psp[3].pszTemplate = MAKEINTRESOURCE(hset_dialup_dlg);
-	psp[3].pszIcon = NULL;
-	psp[3].pfnDlgProc = DialupSettingProc;
-	psp[3].pszTitle = MSGJPN130;
-	psp[3].lParam = 0;
-	psp[3].pfnCallback = NULL;
-
-	psp[4].dwSize = sizeof(PROPSHEETPAGE);
-	psp[4].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[4].hInstance = GetFtpInst();
-	psp[4].pszTemplate = MAKEINTRESOURCE(hset_adv2_dlg);
-	psp[4].pszIcon = NULL;
-	psp[4].pfnDlgProc = Adv2SettingProc;
-	psp[4].pszTitle = MSGJPN131;
-	psp[4].lParam = 0;
-	psp[4].pfnCallback = NULL;
-
-	// SFTP、FTPES、FTPIS対応
-	psp[5].dwSize = sizeof(PROPSHEETPAGE);
-	psp[5].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[5].hInstance = GetFtpInst();
-	psp[5].pszTemplate = MAKEINTRESOURCE(hset_crypt_dlg);
-	psp[5].pszIcon = NULL;
-	psp[5].pfnDlgProc = CryptSettingProc;
-	psp[5].pszTitle = MSGJPN313;
-	psp[5].lParam = 0;
-	psp[5].pfnCallback = NULL;
-
-	// 同時接続対応
-	psp[6].dwSize = sizeof(PROPSHEETPAGE);
-	psp[6].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[6].hInstance = GetFtpInst();
-	psp[6].pszTemplate = MAKEINTRESOURCE(hset_adv3_dlg);
-	psp[6].pszIcon = NULL;
-	psp[6].pfnDlgProc = Adv3SettingProc;
-	psp[6].pszTitle = MSGJPN320;
-	psp[6].lParam = 0;
-	psp[6].pfnCallback = NULL;
-
-	psh.dwSize = sizeof(PROPSHEETHEADER);
-	psh.dwFlags = PSH_HASHELP | PSH_NOAPPLYNOW | PSH_PROPSHEETPAGE;
-	psh.hwndParent = hDlg;
-	psh.hInstance = GetFtpInst();
-	psh.pszIcon = NULL;
-	psh.pszCaption = MSGJPN132;
-	psh.nPages = sizeof(psp) / sizeof(PROPSHEETPAGE);
-	psh.nStartPage = 0;
-	psh.ppsp = (LPCPROPSHEETPAGE)&psp;
-	psh.pfnCallback = NULL;
-
+// ホスト設定のプロパティシート
+static int DispHostSetDlg(HWND hDlg) {
+	PROPSHEETPAGEW psp[]{
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(hset_main_dlg),   0, nullptr, MainSettingProc,   },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(hset_adv_dlg),    0, nullptr, AdvSettingProc,    },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(hset_code_dlg),   0, nullptr, CodeSettingProc,   },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(hset_dialup_dlg), 0, nullptr, DialupSettingProc, },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(hset_adv2_dlg),   0, nullptr, Adv2SettingProc,   },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(hset_crypt_dlg),  0, nullptr, CryptSettingProc,  },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(hset_adv3_dlg),   0, nullptr, Adv3SettingProc,   },
+	};
+	PROPSHEETHEADERW psh{ sizeof(PROPSHEETHEADERW), PSH_HASHELP | PSH_NOAPPLYNOW | PSH_PROPSHEETPAGE, hDlg, GetFtpInst(), 0, MAKEINTRESOURCEW(IDS_HOSTSETTING), size_as<UINT>(psp), 0, psp };
 	Apply = NO;
-	PropertySheet(&psh);
-
-	return(Apply);
+	PropertySheetW(&psh);
+	return Apply;
 }
 
 

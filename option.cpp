@@ -179,177 +179,26 @@ extern int FwallNoSaveUser;
 extern int MarkAsInternet;
 
 
-/*----- オプションのプロパティシート ------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetOption(int Start)
-{
-	PROPSHEETPAGE psp[14];
-	PROPSHEETHEADER psh;
-
-	// 変数が未初期化のバグ修正
-	memset(&psp, 0, sizeof(psp));
-	memset(&psh, 0, sizeof(psh));
-
-	psp[0].dwSize = sizeof(PROPSHEETPAGE);
-	psp[0].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[0].hInstance = GetFtpInst();
-	psp[0].pszTemplate = MAKEINTRESOURCE(opt_user_dlg);
-	psp[0].pszIcon = NULL;
-	psp[0].pfnDlgProc = UserSettingProc;
-	psp[0].pszTitle = MSGJPN186;
-	psp[0].lParam = 0;
-	psp[0].pfnCallback = NULL;
-
-	psp[1].dwSize = sizeof(PROPSHEETPAGE);
-	psp[1].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[1].hInstance = GetFtpInst();
-	psp[1].pszTemplate = MAKEINTRESOURCE(opt_trmode1_dlg);
-	psp[1].pszIcon = NULL;
-	psp[1].pfnDlgProc = Trmode1SettingProc;
-	psp[1].pszTitle = MSGJPN187;
-	psp[1].lParam = 0;
-	psp[1].pfnCallback = NULL;
-
-	psp[2].dwSize = sizeof(PROPSHEETPAGE);
-	psp[2].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[2].hInstance = GetFtpInst();
-	psp[2].pszTemplate = MAKEINTRESOURCE(opt_trmode2_dlg);
-	psp[2].pszIcon = NULL;
-	psp[2].pfnDlgProc = Trmode2SettingProc;
-	psp[2].pszTitle = MSGJPN188;
-	psp[2].lParam = 0;
-	psp[2].pfnCallback = NULL;
-
-	psp[3].dwSize = sizeof(PROPSHEETPAGE);
-	psp[3].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[3].hInstance = GetFtpInst();
-	psp[3].pszTemplate = MAKEINTRESOURCE(opt_trmode3_dlg);
-	psp[3].pszIcon = NULL;
-	psp[3].pfnDlgProc = Trmode3SettingProc;
-	psp[3].pszTitle = MSGJPN189;
-	psp[3].lParam = 0;
-	psp[3].pfnCallback = NULL;
-
-	psp[4].dwSize = sizeof(PROPSHEETPAGE);
-	psp[4].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[4].hInstance = GetFtpInst();
-	psp[4].pszTemplate = MAKEINTRESOURCE(opt_trmode4_dlg);
-	psp[4].pszIcon = NULL;
-	psp[4].pfnDlgProc = Trmode4SettingProc;
-	psp[4].pszTitle = MSGJPN339;
-	psp[4].lParam = 0;
-	psp[4].pfnCallback = NULL;
-
-	psp[5].dwSize = sizeof(PROPSHEETPAGE);
-	psp[5].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[5].hInstance = GetFtpInst();
-	psp[5].pszTemplate = MAKEINTRESOURCE(opt_mirror_dlg);
-	psp[5].pszIcon = NULL;
-	psp[5].pfnDlgProc = MirrorSettingProc;
-	psp[5].pszTitle = MSGJPN190;
-	psp[5].lParam = 0;
-	psp[5].pfnCallback = NULL;
-
-	psp[6].dwSize = sizeof(PROPSHEETPAGE);
-	psp[6].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[6].hInstance = GetFtpInst();
-	psp[6].pszTemplate = MAKEINTRESOURCE(opt_notify_dlg);
-	psp[6].pszIcon = NULL;
-	psp[6].pfnDlgProc = NotifySettingProc;
-	psp[6].pszTitle = MSGJPN191;
-	psp[6].lParam = 0;
-	psp[6].pfnCallback = NULL;
-
-	psp[7].dwSize = sizeof(PROPSHEETPAGE);
-	psp[7].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[7].hInstance = GetFtpInst();
-	psp[7].pszTemplate = MAKEINTRESOURCE(opt_disp1_dlg);
-	psp[7].pszIcon = NULL;
-	psp[7].pfnDlgProc = Disp1SettingProc;
-	psp[7].pszTitle = MSGJPN192;
-	psp[7].lParam = 0;
-	psp[7].pfnCallback = NULL;
-
-	psp[8].dwSize = sizeof(PROPSHEETPAGE);
-	psp[8].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[8].hInstance = GetFtpInst();
-	psp[8].pszTemplate = MAKEINTRESOURCE(opt_disp2_dlg);
-	psp[8].pszIcon = NULL;
-	psp[8].pfnDlgProc = Disp2SettingProc;
-	psp[8].pszTitle = MSGJPN340;
-	psp[8].lParam = 0;
-	psp[8].pfnCallback = NULL;
-
-	psp[9].dwSize = sizeof(PROPSHEETPAGE);
-	psp[9].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[9].hInstance = GetFtpInst();
-	psp[9].pszTemplate = MAKEINTRESOURCE(opt_connect_dlg);
-	psp[9].pszIcon = NULL;
-	psp[9].pfnDlgProc = ConnectSettingProc;
-	psp[9].pszTitle = MSGJPN193;
-	psp[9].lParam = 0;
-	psp[9].pfnCallback = NULL;
-
-	psp[10].dwSize = sizeof(PROPSHEETPAGE);
-	psp[10].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[10].hInstance = GetFtpInst();
-	psp[10].pszTemplate = MAKEINTRESOURCE(opt_fire_dlg);
-	psp[10].pszIcon = NULL;
-	psp[10].pfnDlgProc = FireSettingProc;
-	psp[10].pszTitle = MSGJPN194;
-	psp[10].lParam = 0;
-	psp[10].pfnCallback = NULL;
-
-	psp[11].dwSize = sizeof(PROPSHEETPAGE);
-	psp[11].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[11].hInstance = GetFtpInst();
-	psp[11].pszTemplate = MAKEINTRESOURCE(opt_tool_dlg);
-	psp[11].pszIcon = NULL;
-	psp[11].pfnDlgProc = ToolSettingProc;
-	psp[11].pszTitle = MSGJPN195;
-	psp[11].lParam = 0;
-	psp[11].pfnCallback = NULL;
-
-	psp[12].dwSize = sizeof(PROPSHEETPAGE);
-	psp[12].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[12].hInstance = GetFtpInst();
-	psp[12].pszTemplate = MAKEINTRESOURCE(opt_sound_dlg);
-	psp[12].pszIcon = NULL;
-	psp[12].pfnDlgProc = SoundSettingProc;
-	psp[12].pszTitle = MSGJPN196;
-	psp[12].lParam = 0;
-	psp[12].pfnCallback = NULL;
-
-	psp[13].dwSize = sizeof(PROPSHEETPAGE);
-	psp[13].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[13].hInstance = GetFtpInst();
-	psp[13].pszTemplate = MAKEINTRESOURCE(opt_misc_dlg);
-	psp[13].pszIcon = NULL;
-	psp[13].pfnDlgProc = MiscSettingProc;
-	psp[13].pszTitle = MSGJPN197;
-	psp[13].lParam = 0;
-	psp[13].pfnCallback = NULL;
-
-	psh.dwSize = sizeof(PROPSHEETHEADER);
-	psh.dwFlags = PSH_HASHELP | PSH_NOAPPLYNOW | PSH_PROPSHEETPAGE;
-	psh.hwndParent = GetMainHwnd();
-	psh.hInstance = GetFtpInst();
-	psh.pszIcon = NULL;
-	psh.pszCaption = MSGJPN198;
-	psh.nPages = sizeof(psp) / sizeof(PROPSHEETPAGE);
-	psh.nStartPage = Start;
-	psh.ppsp = (LPCPROPSHEETPAGE)&psp;
-	psh.pfnCallback = NULL;
-
-	PropertySheet(&psh);
-	return;
+// オプションのプロパティシート
+void SetOption() {
+	PROPSHEETPAGEW psp[]{
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(opt_user_dlg),    0, nullptr, UserSettingProc,    },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(opt_trmode1_dlg), 0, nullptr, Trmode1SettingProc, },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(opt_trmode2_dlg), 0, nullptr, Trmode2SettingProc, },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(opt_trmode3_dlg), 0, nullptr, Trmode3SettingProc, },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(opt_trmode4_dlg), 0, nullptr, Trmode4SettingProc, },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(opt_mirror_dlg),  0, nullptr, MirrorSettingProc,  },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(opt_notify_dlg),  0, nullptr, NotifySettingProc,  },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(opt_disp1_dlg),   0, nullptr, Disp1SettingProc,   },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(opt_disp2_dlg),   0, nullptr, Disp2SettingProc,   },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(opt_connect_dlg), 0, nullptr, ConnectSettingProc, },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(opt_fire_dlg),    0, nullptr, FireSettingProc,    },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(opt_tool_dlg),    0, nullptr, ToolSettingProc,    },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(opt_sound_dlg),   0, nullptr, SoundSettingProc,   },
+		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(opt_misc_dlg),    0, nullptr, MiscSettingProc,    },
+	};
+	PROPSHEETHEADERW psh{ sizeof(PROPSHEETHEADERW), PSH_HASHELP | PSH_NOAPPLYNOW | PSH_PROPSHEETPAGE, GetMainHwnd(), GetFtpInst(), 0, MAKEINTRESOURCEW(IDS_OPTION), size_as<UINT>(psp), 0, psp };
+	PropertySheetW(&psh);
 }
 
 

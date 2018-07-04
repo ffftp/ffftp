@@ -113,9 +113,6 @@ BOOL TextOutM(HDC hdc, int x, int y, LPCSTR lpString, int c);
 #undef GetTextExtentPoint32
 #define GetTextExtentPoint32 GetTextExtentPoint32M
 BOOL GetTextExtentPoint32M(HDC hdc, LPCSTR lpString, int c, LPSIZE psizl);
-#undef PropertySheet
-#define PropertySheet PropertySheetM
-INT_PTR PropertySheetM(LPCPROPSHEETHEADERA v0);
 #undef HtmlHelp
 #define HtmlHelp HtmlHelpM
 HWND HtmlHelpM(HWND hwndCaller, LPCSTR pszFile, UINT uCommand, DWORD_PTR dwData);

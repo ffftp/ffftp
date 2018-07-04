@@ -1232,7 +1232,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_OPTION :
-					SetOption(0);
+					SetOption();
 					if(ListFont != NULL)
 					{
 						SendMessage(GetLocalHwnd(), WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));

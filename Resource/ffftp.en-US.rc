@@ -321,6 +321,7 @@ END
 
 hset_main_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "General"
 FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "Profile &Name",-1,7,7,94,8
@@ -365,6 +366,7 @@ END
 
 opt_user_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "User"
 FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "&Mail address",-1,7,7,59,8
@@ -374,6 +376,7 @@ END
 
 opt_tool_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Tool"
 FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "Viewer &1",-1,7,7,39,8
@@ -460,6 +463,7 @@ END
 
 opt_misc_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Other"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "&Save window position",MISC_WINPOS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
@@ -565,6 +569,7 @@ END
 
 opt_trmode2_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Transfer2"
 FONT 9, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Filename",-1,7,7,196,69
@@ -583,6 +588,7 @@ END
 
 opt_notify_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Operation"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     GROUPBOX        "If File Already Exists",-1,7,7,196,67,WS_GROUP
@@ -620,6 +626,7 @@ END
 
 opt_fire_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Firewall"
 FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "Firewall &Type",-1,7,7,90,8
@@ -648,6 +655,7 @@ END
 
 hset_adv_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Advanced"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "Use &Firewall",HSET_FIREWALL,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,92,10
@@ -702,6 +710,7 @@ END
 
 opt_sound_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Sounds"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "Play *.wav file at successful &connection",SOUND_CONNECT,
@@ -756,6 +765,7 @@ END
 
 hset_code_dlg DIALOGEX 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Kanji Code"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     GROUPBOX        "&Japanese Kanji Code",-1,7,7,98,106,WS_GROUP
@@ -780,6 +790,7 @@ END
 
 opt_trmode1_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Transfer1"
 FONT 9, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Transfer mode",-1,7,7,93,56
@@ -934,6 +945,7 @@ END
 
 opt_mirror_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Mirroring"
 FONT 9, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Files Not Transferred",-1,7,7,95,85,WS_GROUP
@@ -981,6 +993,7 @@ END
 
 opt_connect_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Connecting"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "&Display Host List dialog at startup",CONNECT_CONNECT,
@@ -1042,6 +1055,7 @@ END
 
 hset_adv2_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Special"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "Use &LIST command to get file list",HSET_LISTCMD,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,131,10
@@ -1073,6 +1087,7 @@ END
 
 opt_trmode3_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Transfer3"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "List1",TRMODE3_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,13,20,78,78
@@ -1292,6 +1307,7 @@ END
 
 hset_dialup_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Dialup"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "&Use Dialup Connection",HSET_DIALUP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,110,10
@@ -1314,6 +1330,7 @@ END
 
 opt_disp1_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "View1"
 FONT 9, "MS Shell Dlg"
 BEGIN
     PUSHBUTTON      "&Change",DISP_FONT_BR,167,7,36,14,WS_GROUP
@@ -1397,6 +1414,7 @@ END
 
 hset_crypt_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Encryption"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "&Allow to connect without encryption",HSET_NO_ENCRYPTION,
@@ -1407,6 +1425,7 @@ END
 
 hset_adv3_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Feature"
 FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "&Max Connections",-1,7,10,64,8
@@ -1471,6 +1490,7 @@ END
 
 opt_trmode4_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "Transfer4"
 FONT 9, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "&Local Kanji Code",-1,7,7,98,82,WS_GROUP
@@ -1485,6 +1505,7 @@ END
 
 opt_disp2_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "View2"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "Display file &permissions in numbers",DISP2_PERMIT_NUM,
@@ -2483,16 +2504,10 @@ BEGIN
     IDS_MSGJPN123           "EUC"
     IDS_MSGJPN124           "Delete(Local)"
     IDS_MSGJPN125           "Delete(Host)"
-    IDS_MSGJPN127           "General"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN128           "Advanced"
-    IDS_MSGJPN129           "Kanji Code"
-    IDS_MSGJPN130           "Dialup"
-    IDS_MSGJPN131           "Special"
-    IDS_MSGJPN132           "Host Setting"
     IDS_MSGJPN133           "GMT%+02d:00"
     IDS_MSGJPN134           "None"
     IDS_MSGJPN135           "Auto"
@@ -2556,23 +2571,10 @@ BEGIN
     IDS_MSGJPN181           "Host name is only used as an alternative to profile name."
     IDS_MSGJPN182           "Failed to open viewer. (ERROR=%d)"
     IDS_MSGJPN185           "Select folder."
-    IDS_MSGJPN186           "User"
-    IDS_MSGJPN187           "Transfer1"
-    IDS_MSGJPN188           "Transfer2"
-    IDS_MSGJPN189           "Transfer3"
-    IDS_MSGJPN190           "Mirroring"
-    IDS_MSGJPN191           "Operation"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN192           "View1"
-    IDS_MSGJPN193           "Connecting"
-    IDS_MSGJPN194           "Firewall"
-    IDS_MSGJPN195           "Tool"
-    IDS_MSGJPN196           "Sounds"
-    IDS_MSGJPN197           "Other"
-    IDS_MSGJPN198           "Option"
     IDS_MSGJPN199           "Filename"
     IDS_MSGJPN200           "Filename"
     IDS_MSGJPN201           "Attr"
@@ -2700,7 +2702,6 @@ BEGIN
     IDS_MSGJPN310           "EUC Kanji Code (Local)"
     IDS_MSGJPN311           "JIS Kanji Code (Local)"
     IDS_MSGJPN312           "UTF-8 Kanji Code (Local)"
-    IDS_MSGJPN313           "Encryption"
     IDS_MSGJPN314           "Communication is not encrypted.\r\nPassword and other data may be intercepted by a third party."
     IDS_MSGJPN315           "Using FTP over Explicit SSL/TLS (FTPES)."
     IDS_MSGJPN316           "Using FTP over Implicit SSL/TLS (FTPIS)."
@@ -2709,7 +2710,6 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN320           "Feature"
     IDS_MSGJPN321           "Failed to get required functions to protect the process."
     IDS_MSGJPN322           "Debugger was detected."
     IDS_MSGJPN323           "Failed to unload untrustworthy DLLs."
@@ -2726,8 +2726,6 @@ BEGIN
     IDS_MSGJPN336           "Overwrite all later"
     IDS_MSGJPN337           "Resume all later"
     IDS_MSGJPN338           "Skip all"
-    IDS_MSGJPN339           "Transfer4"
-    IDS_MSGJPN340           "View2"
     IDS_MSGJPN341           "Enable or disable stateful FTP filtering of Windows Firewall.\nIt works only on Windows Vista or later.\nEnabling or disabling may improve communication conditions.\nChoose 'Yes' to enable or 'No' to disable it."
     IDS_MSGJPN342           "Failed to turn on/off stateful FTP filtering."
     IDS_MSGJPN343           "Determination result of the filename Kanji code is %s."
@@ -2777,6 +2775,8 @@ BEGIN
     IDS_SELECT_AUDIOFILE    "Select Audio File"
     IDS_SAVE_SETTING        "Save Settings"
     IDS_LOAD_SETTING        "Load Settings"
+    IDS_OPTION              "Option"
+    IDS_HOSTSETTING         "Host Setting"
 END
 
 #endif    // English (United States) resources

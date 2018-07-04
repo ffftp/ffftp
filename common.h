@@ -1839,7 +1839,7 @@ int CheckKanjiCode(char *Text, int Size, int Pref);
 
 /*===== option.c =====*/
 
-void SetOption(int Start);
+void SetOption();
 int SortSetting(void);
 // hostman.cで使用
 int GetDecimalText(HWND hDlg, int Ctrl);
