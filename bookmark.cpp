@@ -133,7 +133,7 @@ struct Editor {
 		}
 		return TRUE;
 	}
-	INT_PTR OnCommand(HWND hDlg, WORD commandId) {
+	void OnCommand(HWND hDlg, WORD commandId) {
 		switch (commandId) {
 		case IDOK:
 			if (auto local = GetText(hDlg, BEDIT_LOCAL), remote = GetText(hDlg, BEDIT_REMOTE); !empty(local) || !empty(remote)) {
@@ -146,7 +146,6 @@ struct Editor {
 			EndDialog(hDlg, false);
 			break;
 		}
-		return 0;
 	}
 };
 
@@ -163,7 +162,7 @@ struct List {
 			SendMessageW(hList, LB_ADDSTRING, 0, (LPARAM)bookmark.line.c_str());
 		return TRUE;
 	}
-	INT_PTR OnCommand(HWND hDlg, WORD commandId) {
+	void OnCommand(HWND hDlg, WORD commandId) {
 		auto hList = GetDlgItem(hDlg, BMARK_LIST);
 		switch (commandId) {
 		case BMARK_JUMP:
@@ -218,7 +217,6 @@ struct List {
 			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000019);
 			break;
 		}
-		return 0;
 	}
 };
 

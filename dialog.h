@@ -14,7 +14,6 @@ class Resizable<Controls<anchorRight...>, Controls<anchorBottom...>, Controls<an
 	static const UINT flags = SWP_NOZORDER | SWP_NOREDRAW | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_DEFERERASE | SWP_ASYNCWINDOWPOS;
 	SIZE minimum;
 	SIZE current;
-	static void Discard(std::initializer_list<int>) {}
 	static void OnSizeRight(HWND dialog, int id, LONG dx) {
 		auto control = GetDlgItem(dialog, id);
 		RECT r;
@@ -44,11 +43,11 @@ public:
 	void OnSize(HWND dialog, LONG cx, LONG cy) {
 		LONG dx = cx - current.cx, dy = cy - current.cy;
 		if (dx != 0)
-			Discard({ (OnSizeRight(dialog, anchorRight, dx), 0)... });
+			(..., OnSizeRight(dialog, anchorRight, dx));
 		if (dy != 0)
-			Discard({ (OnSizeBottom(dialog, anchorBottom, dy), 0)... });
+			(..., OnSizeBottom(dialog, anchorBottom, dy));
 		if (dx != 0 || dy != 0)
-			Discard({ (OnSizeStretch(dialog, anchorStretch, dx, dy), 0)... });
+			(..., OnSizeStretch(dialog, anchorStretch, dx, dy));
 		current = { cx, cy };
 		InvalidateRect(dialog, nullptr, FALSE);
 	}
@@ -110,11 +109,15 @@ namespace detail {
 			}
 			auto data = reinterpret_cast<Data*>(GetWindowLongPtrW(hwndDlg, GWLP_USERDATA));
 			if constexpr (hasOnCommand1<Data>()) {
-				if (uMsg == WM_COMMAND)
-					return data->OnCommand(hwndDlg, GET_WM_COMMAND_ID(wParam, lParam));
+				if (uMsg == WM_COMMAND) {
+					data->OnCommand(hwndDlg, GET_WM_COMMAND_ID(wParam, lParam));
+					return 0;
+				}
 			} else if constexpr (hasOnCommand2<Data>()) {
-				if (uMsg == WM_COMMAND)
-					return data->OnCommand(hwndDlg, GET_WM_COMMAND_CMD(wParam, lParam), GET_WM_COMMAND_ID(wParam, lParam));
+				if (uMsg == WM_COMMAND){
+					data->OnCommand(hwndDlg, GET_WM_COMMAND_CMD(wParam, lParam), GET_WM_COMMAND_ID(wParam, lParam));
+					return 0;
+				}
 			}
 			if constexpr (hasResizable<Data>()) {
 				if (uMsg == WM_SIZING) {
@@ -151,7 +154,11 @@ namespace detail {
 //     // 任意。WM_INITDIALOGメッセージを処理するコールバック。
 //     INT_PTR OnInit(HWND);
 //     // 任意。WM_COMMANDメッセージを処理するコールバック。第２引数は押されたコマンドのIDです。
-//     INT_PTR OnCommand(HWND, WORD);
+//     void OnCommand(HWND, WORD);
+//     // 任意。WM_NOTIFYメッセージを処理するコールバック。第２引数はlParamで渡されたNMHDR*です。
+//     INT_PTR OnNotify(HWND, NMHDR*);
+//     // 任意。残りのメッセージを処理するコールバック。
+//     INT_PTR OnMessage(HWND, UNIT, WPARAM, LPARAM);
 // };
 template<class Data>
 static inline auto Dialog(HINSTANCE instance, int resourceId, HWND parent, Data&& data) {
