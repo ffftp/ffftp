@@ -48,22 +48,7 @@ static int DelHostFromList(int Num);
 static int DeleteChildAndNext(HOSTLISTDATA *Pos);
 static void SendAllHostNames(HWND hWnd, int Cur);
 static int IsNodeGroup(int Num);
-static int DispHostSetDlg(HWND hDlg);
-// 64ビット対応
-//static BOOL CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-// 暗号化通信対応
-static INT_PTR CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-// 同時接続対応
-static INT_PTR CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+static bool DispHostSetDlg(HWND hDlg);
 
 /*===== 外部参照 =====*/
 
@@ -84,7 +69,6 @@ static int ConnectingHost;					/* 接続中のホスト */
 static int CurrentHost;						/* カーソル位置のホスト */
 static HOSTLISTDATA *HostListTop = NULL;	/* ホスト一覧データ */
 static HOSTDATA TmpHost;					/* ホスト情報コピー用 */
-static int Apply;							/* プロパティシートでOKを押したフラグ */
 static WNDPROC HostListProcPtr;
 
 // ホスト共通設定機能
@@ -225,7 +209,7 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 
 				case HOST_NEW :
 					CopyDefaultHost(&TmpHost);
-					if(DispHostSetDlg(hDlg) == YES)
+					if(DispHostSetDlg(hDlg))
 					{
 						if((hItem = (HTREEITEM)SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) != NULL)
 						{
@@ -283,7 +267,7 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 
 						CopyHostFromList(CurrentHost, &TmpHost);
 						Level1 = IsNodeGroup(CurrentHost);
-						if(((Level1 == NO) && (DispHostSetDlg(hDlg) == YES)) ||
+						if(((Level1 == NO) && DispHostSetDlg(hDlg)) ||
 						   ((Level1 == YES) && (InputDialogBox(group_dlg, hDlg, NULL, TmpHost.HostName, HOST_NAME_LEN+1, &Level1, IDH_HELP_TOPIC_0000001) == YES)))
 						{
 							UpdateHostToList(CurrentHost, &TmpHost);
@@ -540,7 +524,7 @@ static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, L
 				// ホスト共通設定機能
 				case HOST_SET_DEFAULT :
 					CopyDefaultHost(&TmpHost);
-					if(DispHostSetDlg(hDlg) == YES)
+					if(DispHostSetDlg(hDlg))
 						SetDefaultHost(&TmpHost);
 					break;
 
@@ -1626,262 +1610,154 @@ void ImportFromWSFTP(void)
 }
 
 
-// ホスト設定のプロパティシート
-static int DispHostSetDlg(HWND hDlg) {
-	PROPSHEETPAGEW psp[]{
-		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(hset_main_dlg),   0, nullptr, MainSettingProc,   },
-		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(hset_adv_dlg),    0, nullptr, AdvSettingProc,    },
-		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(hset_code_dlg),   0, nullptr, CodeSettingProc,   },
-		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(hset_dialup_dlg), 0, nullptr, DialupSettingProc, },
-		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(hset_adv2_dlg),   0, nullptr, Adv2SettingProc,   },
-		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(hset_crypt_dlg),  0, nullptr, CryptSettingProc,  },
-		{ sizeof(PROPSHEETPAGEW), PSP_HASHELP, GetFtpInst(), MAKEINTRESOURCEW(hset_adv3_dlg),   0, nullptr, Adv3SettingProc,   },
-	};
-	PROPSHEETHEADERW psh{ sizeof(PROPSHEETHEADERW), PSH_HASHELP | PSH_NOAPPLYNOW | PSH_PROPSHEETPAGE, hDlg, GetFtpInst(), 0, MAKEINTRESOURCEW(IDS_HOSTSETTING), size_as<UINT>(psp), 0, psp };
-	Apply = NO;
-	PropertySheetW(&psh);
-	return Apply;
-}
-
-
-/*----- 基本設定ウインドウのコールバック --------------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK MainSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	// 64ビット対応
-//	long wStyle;
-	LONG_PTR wStyle;
-	char Tmp[FMAX_PATH+1];
-	NMHDR *pnmhdr;
-
-	switch (iMessage)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, HSET_HOST, EM_LIMITTEXT, HOST_NAME_LEN, 0);
-			SendDlgItemMessage(hDlg, HSET_ADRS, EM_LIMITTEXT, HOST_ADRS_LEN, 0);
-			SendDlgItemMessage(hDlg, HSET_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
-			SendDlgItemMessage(hDlg, HSET_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
-			SendDlgItemMessage(hDlg, HSET_LOCAL, EM_LIMITTEXT, INIT_DIR_LEN, 0);
-			SendDlgItemMessage(hDlg, HSET_REMOTE, EM_LIMITTEXT, INIT_DIR_LEN, 0);
-			SendDlgItemMessage(hDlg, HSET_HOST, WM_SETTEXT, 0, (LPARAM)TmpHost.HostName);
-			SendDlgItemMessage(hDlg, HSET_ADRS, WM_SETTEXT, 0, (LPARAM)TmpHost.HostAdrs);
-			SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)TmpHost.UserName);
-			SendDlgItemMessage(hDlg, HSET_PASS, WM_SETTEXT, 0, (LPARAM)TmpHost.PassWord);
-			SendDlgItemMessage(hDlg, HSET_LOCAL, WM_SETTEXT, 0, (LPARAM)TmpHost.LocalInitDir);
-			SendDlgItemMessage(hDlg, HSET_REMOTE, WM_SETTEXT, 0, (LPARAM)TmpHost.RemoteInitDir);
-			SendDlgItemMessage(hDlg, HSET_ANONYMOUS, BM_SETCHECK, TmpHost.Anonymous, 0);
-			SendDlgItemMessage(hDlg, HSET_LASTDIR, BM_SETCHECK, TmpHost.LastDir, 0);
-			if(AskConnecting() == NO)
-				EnableWindow(GetDlgItem(hDlg, HSET_REMOTE_CUR), FALSE);
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					SendDlgItemMessage(hDlg, HSET_HOST, WM_GETTEXT, HOST_NAME_LEN+1, (LPARAM)TmpHost.HostName);
-					SendDlgItemMessage(hDlg, HSET_ADRS, WM_GETTEXT, HOST_ADRS_LEN+1, (LPARAM)TmpHost.HostAdrs);
-					RemoveTailingSpaces(TmpHost.HostAdrs);
-					SendDlgItemMessage(hDlg, HSET_USER, WM_GETTEXT, USER_NAME_LEN+1, (LPARAM)TmpHost.UserName);
-					SendDlgItemMessage(hDlg, HSET_PASS, WM_GETTEXT, PASSWORD_LEN+1, (LPARAM)TmpHost.PassWord);
-					SendDlgItemMessage(hDlg, HSET_LOCAL, WM_GETTEXT, INIT_DIR_LEN+1, (LPARAM)TmpHost.LocalInitDir);
-					SendDlgItemMessage(hDlg, HSET_REMOTE, WM_GETTEXT, INIT_DIR_LEN+1, (LPARAM)TmpHost.RemoteInitDir);
-					TmpHost.Anonymous = (int)SendDlgItemMessage(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0);
-					TmpHost.LastDir = (int)SendDlgItemMessage(hDlg, HSET_LASTDIR, BM_GETCHECK, 0, 0);
-					if((strlen(TmpHost.HostName) == 0) && (strlen(TmpHost.HostAdrs) > 0))
-					{
-						memset(TmpHost.HostName, NUL, HOST_NAME_LEN+1);
-						strncpy(TmpHost.HostName, TmpHost.HostAdrs, HOST_NAME_LEN);
-					}
-					else if((strlen(TmpHost.HostName) > 0) && (strlen(TmpHost.HostAdrs) == 0))
-					{
-						memset(TmpHost.HostAdrs, NUL, HOST_ADRS_LEN+1);
-						strncpy(TmpHost.HostAdrs, TmpHost.HostName, HOST_ADRS_LEN);
-					}
-					Apply = YES;
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000028);
-					break;
+struct General {
+	static constexpr WORD dialogId = hset_main_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static INT_PTR OnInit(HWND hDlg) {
+		SendDlgItemMessage(hDlg, HSET_HOST, EM_LIMITTEXT, HOST_NAME_LEN, 0);
+		SendDlgItemMessage(hDlg, HSET_ADRS, EM_LIMITTEXT, HOST_ADRS_LEN, 0);
+		SendDlgItemMessage(hDlg, HSET_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
+		SendDlgItemMessage(hDlg, HSET_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
+		SendDlgItemMessage(hDlg, HSET_LOCAL, EM_LIMITTEXT, INIT_DIR_LEN, 0);
+		SendDlgItemMessage(hDlg, HSET_REMOTE, EM_LIMITTEXT, INIT_DIR_LEN, 0);
+		SendDlgItemMessage(hDlg, HSET_HOST, WM_SETTEXT, 0, (LPARAM)TmpHost.HostName);
+		SendDlgItemMessage(hDlg, HSET_ADRS, WM_SETTEXT, 0, (LPARAM)TmpHost.HostAdrs);
+		SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)TmpHost.UserName);
+		SendDlgItemMessage(hDlg, HSET_PASS, WM_SETTEXT, 0, (LPARAM)TmpHost.PassWord);
+		SendDlgItemMessage(hDlg, HSET_LOCAL, WM_SETTEXT, 0, (LPARAM)TmpHost.LocalInitDir);
+		SendDlgItemMessage(hDlg, HSET_REMOTE, WM_SETTEXT, 0, (LPARAM)TmpHost.RemoteInitDir);
+		SendDlgItemMessage(hDlg, HSET_ANONYMOUS, BM_SETCHECK, TmpHost.Anonymous, 0);
+		SendDlgItemMessage(hDlg, HSET_LASTDIR, BM_SETCHECK, TmpHost.LastDir, 0);
+		if (AskConnecting() == NO)
+			EnableWindow(GetDlgItem(hDlg, HSET_REMOTE_CUR), FALSE);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			SendDlgItemMessage(hDlg, HSET_HOST, WM_GETTEXT, HOST_NAME_LEN + 1, (LPARAM)TmpHost.HostName);
+			SendDlgItemMessage(hDlg, HSET_ADRS, WM_GETTEXT, HOST_ADRS_LEN + 1, (LPARAM)TmpHost.HostAdrs);
+			RemoveTailingSpaces(TmpHost.HostAdrs);
+			SendDlgItemMessage(hDlg, HSET_USER, WM_GETTEXT, USER_NAME_LEN + 1, (LPARAM)TmpHost.UserName);
+			SendDlgItemMessage(hDlg, HSET_PASS, WM_GETTEXT, PASSWORD_LEN + 1, (LPARAM)TmpHost.PassWord);
+			SendDlgItemMessage(hDlg, HSET_LOCAL, WM_GETTEXT, INIT_DIR_LEN + 1, (LPARAM)TmpHost.LocalInitDir);
+			SendDlgItemMessage(hDlg, HSET_REMOTE, WM_GETTEXT, INIT_DIR_LEN + 1, (LPARAM)TmpHost.RemoteInitDir);
+			TmpHost.Anonymous = (int)SendDlgItemMessage(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0);
+			TmpHost.LastDir = (int)SendDlgItemMessage(hDlg, HSET_LASTDIR, BM_GETCHECK, 0, 0);
+			if ((strlen(TmpHost.HostName) == 0) && (strlen(TmpHost.HostAdrs) > 0)) {
+				memset(TmpHost.HostName, NUL, HOST_NAME_LEN + 1);
+				strncpy(TmpHost.HostName, TmpHost.HostAdrs, HOST_NAME_LEN);
+			} else if ((strlen(TmpHost.HostName) > 0) && (strlen(TmpHost.HostAdrs) == 0)) {
+				memset(TmpHost.HostAdrs, NUL, HOST_ADRS_LEN + 1);
+				strncpy(TmpHost.HostAdrs, TmpHost.HostName, HOST_ADRS_LEN);
+			}
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000028);
+			break;
+		}
+		return 0;
+	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case HSET_LOCAL_BR:
+			if (SelectDir(hDlg, TmpHost.LocalInitDir, INIT_DIR_LEN) == TRUE)
+				SendDlgItemMessage(hDlg, HSET_LOCAL, WM_SETTEXT, 0, (LPARAM)TmpHost.LocalInitDir);
+			break;
+		case HSET_REMOTE_CUR: {
+			char Tmp[FMAX_PATH + 1];
+			AskRemoteCurDir(Tmp, FMAX_PATH);
+			SendDlgItemMessage(hDlg, HSET_REMOTE, WM_SETTEXT, 0, (LPARAM)Tmp);
+			break;
+		}
+		case HSET_ANONYMOUS:
+			if (SendDlgItemMessage(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0) == 1) {
+				SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)"anonymous");
+				auto wStyle = GetWindowLongPtr(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
+				SetWindowLongPtr(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle & ~ES_PASSWORD);
+				SendDlgItemMessage(hDlg, HSET_PASS, WM_SETTEXT, 0, (LPARAM)UserMailAdrs);
+			} else {
+				SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)"");
+				auto wStyle = GetWindowLongPtr(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
+				SetWindowLongPtr(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle | ES_PASSWORD);
+				SendDlgItemMessage(hDlg, HSET_PASS, WM_SETTEXT, 0, (LPARAM)"");
 			}
 			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case HSET_LOCAL_BR :
-					if(SelectDir(hDlg, TmpHost.LocalInitDir, INIT_DIR_LEN) == TRUE)
-						SendDlgItemMessage(hDlg, HSET_LOCAL, WM_SETTEXT, 0, (LPARAM)TmpHost.LocalInitDir);
-					break;
-
-				case HSET_REMOTE_CUR :
-						AskRemoteCurDir(Tmp, FMAX_PATH);
-						SendDlgItemMessage(hDlg, HSET_REMOTE, WM_SETTEXT, 0, (LPARAM)Tmp);
-					break;
-
-				case HSET_ANONYMOUS :
-					if(SendDlgItemMessage(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0) == 1)
-					{
-						SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)"anonymous");
-						// 64ビット対応
-//						wStyle = GetWindowLong(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
-						wStyle = GetWindowLongPtr(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
-						wStyle &= ~ES_PASSWORD;
-						// 64ビット対応
-//						SetWindowLong(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle);
-						SetWindowLongPtr(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle);
-						SendDlgItemMessage(hDlg, HSET_PASS, WM_SETTEXT, 0, (LPARAM)UserMailAdrs);
-					}
-					else
-					{
-						SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)"");
-						// 64ビット対応
-//						wStyle = GetWindowLong(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
-						wStyle = GetWindowLongPtr(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
-						wStyle |= ES_PASSWORD;
-						// 64ビット対応
-//						SetWindowLong(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle);
-						SetWindowLongPtr(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle);
-						SendDlgItemMessage(hDlg, HSET_PASS, WM_SETTEXT, 0, (LPARAM)"");
-					}
-					break;
-			}
-			return(TRUE);
+		}
 	}
-	return(FALSE);
-}
+};
 
+struct Advanced {
+	static constexpr WORD dialogId = hset_adv_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static INT_PTR OnInit(HWND hDlg) {
+		SendDlgItemMessage(hDlg, HSET_PORT, EM_LIMITTEXT, 5, 0);
+		char Tmp[20];
+		sprintf(Tmp, "%d", TmpHost.Port);
+		SendDlgItemMessage(hDlg, HSET_PORT, WM_SETTEXT, 0, (LPARAM)Tmp);
+		SendDlgItemMessage(hDlg, HSET_ACCOUNT, EM_LIMITTEXT, ACCOUNT_LEN, 0);
+		SendDlgItemMessage(hDlg, HSET_ACCOUNT, WM_SETTEXT, 0, (LPARAM)TmpHost.Account);
+		SendDlgItemMessage(hDlg, HSET_PASV, BM_SETCHECK, TmpHost.Pasv, 0);
+		SendDlgItemMessage(hDlg, HSET_FIREWALL, BM_SETCHECK, TmpHost.FireWall, 0);
+		SendDlgItemMessage(hDlg, HSET_SYNCMOVE, BM_SETCHECK, TmpHost.SyncMove, 0);
+		for (int i = -12; i <= 12; i++) {
+			if (i == 0)
+				sprintf(Tmp, "GMT");
+			else if (i == 9)
+				sprintf(Tmp, MSGJPN133, i);
+			else
+				sprintf(Tmp, "GMT%+02d:00", i);
+			SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_ADDSTRING, 0, (LPARAM)Tmp);
+		}
+		SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_SETCURSEL, TmpHost.TimeZone + 12, 0);
 
-/*----- 拡張設定ウインドウのコールバック --------------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK AdvSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-	char Tmp[20];
-	int i;
-
-	switch (iMessage)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, HSET_PORT, EM_LIMITTEXT, 5, 0);
-			sprintf(Tmp, "%d", TmpHost.Port);
+		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN134);
+		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN135);
+		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN136);
+		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN137);
+		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN138);
+		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_SETCURSEL, TmpHost.Security, 0);
+		SendDlgItemMessage(hDlg, HSET_INITCMD, EM_LIMITTEXT, INITCMD_LEN, 0);
+		SendDlgItemMessage(hDlg, HSET_INITCMD, WM_SETTEXT, 0, (LPARAM)TmpHost.InitCmd);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY: {
+			TmpHost.Pasv = (int)SendDlgItemMessage(hDlg, HSET_PASV, BM_GETCHECK, 0, 0);
+			TmpHost.FireWall = (int)SendDlgItemMessage(hDlg, HSET_FIREWALL, BM_GETCHECK, 0, 0);
+			TmpHost.SyncMove = (int)SendDlgItemMessage(hDlg, HSET_SYNCMOVE, BM_GETCHECK, 0, 0);
+			char Tmp[20];
+			SendDlgItemMessage(hDlg, HSET_PORT, WM_GETTEXT, 5 + 1, (LPARAM)Tmp);
+			TmpHost.Port = atoi(Tmp);
+			SendDlgItemMessage(hDlg, HSET_ACCOUNT, WM_GETTEXT, ACCOUNT_LEN + 1, (LPARAM)TmpHost.Account);
+			TmpHost.TimeZone = (int)SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_GETCURSEL, 0, 0) - 12;
+			TmpHost.Security = (int)SendDlgItemMessage(hDlg, HSET_SECURITY, CB_GETCURSEL, 0, 0);
+			SendDlgItemMessage(hDlg, HSET_INITCMD, WM_GETTEXT, INITCMD_LEN + 1, (LPARAM)TmpHost.InitCmd);
+			return PSNRET_NOERROR;
+		}
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000029);
+			break;
+		}
+		return 0;
+	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case HSET_PORT_NOR: {
+			char Tmp[20];
+			sprintf(Tmp, "%d", PORT_NOR);
 			SendDlgItemMessage(hDlg, HSET_PORT, WM_SETTEXT, 0, (LPARAM)Tmp);
-			SendDlgItemMessage(hDlg, HSET_ACCOUNT, EM_LIMITTEXT, ACCOUNT_LEN, 0);
-			SendDlgItemMessage(hDlg, HSET_ACCOUNT, WM_SETTEXT, 0, (LPARAM)TmpHost.Account);
-			SendDlgItemMessage(hDlg, HSET_PASV, BM_SETCHECK, TmpHost.Pasv, 0);
-			SendDlgItemMessage(hDlg, HSET_FIREWALL, BM_SETCHECK, TmpHost.FireWall, 0);
-			SendDlgItemMessage(hDlg, HSET_SYNCMOVE, BM_SETCHECK, TmpHost.SyncMove, 0);
-			for(i = -12; i <= 12; i++)
-			{
-				if(i == 0)
-					sprintf(Tmp, "GMT");
-				else if(i == 9)
-					sprintf(Tmp, MSGJPN133, i);
-				else
-					sprintf(Tmp, "GMT%+02d:00", i);
-				SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_ADDSTRING, 0, (LPARAM)Tmp);
-			}
-			SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_SETCURSEL, TmpHost.TimeZone+12, 0);
-
-			SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN134);
-			SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN135);
-			SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN136);
-			SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN137);
-			SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN138);
-			SendDlgItemMessage(hDlg, HSET_SECURITY, CB_SETCURSEL, TmpHost.Security, 0);
-			SendDlgItemMessage(hDlg, HSET_INITCMD, EM_LIMITTEXT, INITCMD_LEN, 0);
-			SendDlgItemMessage(hDlg, HSET_INITCMD, WM_SETTEXT, 0, (LPARAM)TmpHost.InitCmd);
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					TmpHost.Pasv = (int)SendDlgItemMessage(hDlg, HSET_PASV, BM_GETCHECK, 0, 0);
-					TmpHost.FireWall = (int)SendDlgItemMessage(hDlg, HSET_FIREWALL, BM_GETCHECK, 0, 0);
-					TmpHost.SyncMove = (int)SendDlgItemMessage(hDlg, HSET_SYNCMOVE, BM_GETCHECK, 0, 0);
-					SendDlgItemMessage(hDlg, HSET_PORT, WM_GETTEXT, 5+1, (LPARAM)Tmp);
-					TmpHost.Port = atoi(Tmp);
-					SendDlgItemMessage(hDlg, HSET_ACCOUNT, WM_GETTEXT, ACCOUNT_LEN+1, (LPARAM)TmpHost.Account);
-					TmpHost.TimeZone = (int)SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_GETCURSEL, 0, 0) - 12;
-					TmpHost.Security = (int)SendDlgItemMessage(hDlg, HSET_SECURITY, CB_GETCURSEL, 0, 0);
-					SendDlgItemMessage(hDlg, HSET_INITCMD, WM_GETTEXT, INITCMD_LEN+1, (LPARAM)TmpHost.InitCmd);
-					Apply = YES;
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000029);
-					break;
-			}
 			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case HSET_PORT_NOR :
-					sprintf(Tmp, "%d", PORT_NOR);
-					SendDlgItemMessage(hDlg, HSET_PORT, WM_SETTEXT, 0, (LPARAM)Tmp);
-					break;
-			}
-			return(TRUE);
+		}
+		}
 	}
-	return(FALSE);
-}
+};
 
-
-/*----- 文字コード設定ウインドウのコールバック --------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-
-	// UTF-8対応
-	static const RADIOBUTTON KanjiButton[] = {
+struct KanjiCode {
+	static constexpr WORD dialogId = hset_code_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static constexpr RADIOBUTTON KanjiButton[] = {
 		{ HSET_NO_CNV, KANJI_NOCNV },
 		{ HSET_SJIS_CNV, KANJI_SJIS },
 		{ HSET_JIS_CNV, KANJI_JIS },
@@ -1890,461 +1766,328 @@ static INT_PTR CALLBACK CodeSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam,
 		{ HSET_UTF8BOM_CNV, KANJI_UTF8BOM }
 	};
 	#define KANJIBUTTONS	(sizeof(KanjiButton)/sizeof(RADIOBUTTON))
-
-	static const RADIOBUTTON NameKanjiButton[] = {
+	static constexpr RADIOBUTTON NameKanjiButton[] = {
 		{ HSET_FN_AUTO_CNV, KANJI_AUTO },
 		{ HSET_FN_SJIS_CNV, KANJI_SJIS },
 		{ HSET_FN_JIS_CNV, KANJI_JIS },
 		{ HSET_FN_EUC_CNV, KANJI_EUC },
 		{ HSET_FN_SMH_CNV, KANJI_SMB_HEX },
 		{ HSET_FN_SMC_CNV, KANJI_SMB_CAP },
-		// UTF-8 HFS+対応
-//		{ HSET_FN_UTF8N_CNV, KANJI_UTF8N }		// UTF-8対応
 		{ HSET_FN_UTF8N_CNV, KANJI_UTF8N },		// UTF-8対応
 		{ HSET_FN_UTF8HFSX_CNV, KANJI_UTF8HFSX }
 	};
 	#define NAMEKANJIBUTTONS	(sizeof(NameKanjiButton)/sizeof(RADIOBUTTON))
-
-	switch (iMessage)
-	{
-		case WM_INITDIALOG :
-			SetRadioButtonByValue(hDlg, TmpHost.KanjiCode, KanjiButton, KANJIBUTTONS);
-			SendDlgItemMessage(hDlg, HSET_HANCNV, BM_SETCHECK, TmpHost.KanaCnv, 0);
-			SetRadioButtonByValue(hDlg, TmpHost.NameKanjiCode, NameKanjiButton, NAMEKANJIBUTTONS);
-			if(!SupportIdn)
-				EnableWindow(GetDlgItem(hDlg, HSET_FN_UTF8HFSX_CNV), FALSE);
-			SendDlgItemMessage(hDlg, HSET_FN_HANCNV, BM_SETCHECK, TmpHost.NameKanaCnv, 0);
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					TmpHost.KanjiCode = AskRadioButtonValue(hDlg, KanjiButton, KANJIBUTTONS);
-					TmpHost.KanaCnv = (int)SendDlgItemMessage(hDlg, HSET_HANCNV, BM_GETCHECK, 0, 0);
-					TmpHost.NameKanjiCode = AskRadioButtonValue(hDlg, NameKanjiButton, NAMEKANJIBUTTONS);
-					TmpHost.NameKanaCnv = (int)SendDlgItemMessage(hDlg, HSET_FN_HANCNV, BM_GETCHECK, 0, 0);
-					Apply = YES;
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000030);
-					break;
-			}
-			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case HSET_SJIS_CNV :
-				case HSET_JIS_CNV :
-				case HSET_EUC_CNV :
-					EnableWindow(GetDlgItem(hDlg, HSET_HANCNV), TRUE);
-					break;
-
-				// UTF-8対応
-				case HSET_NO_CNV :
-				case HSET_UTF8N_CNV :
-				case HSET_UTF8BOM_CNV :
-					EnableWindow(GetDlgItem(hDlg, HSET_HANCNV), FALSE);
-					break;
-
-				case HSET_FN_JIS_CNV :
-				case HSET_FN_EUC_CNV :
-					EnableWindow(GetDlgItem(hDlg, HSET_FN_HANCNV), TRUE);
-					break;
-
-				case HSET_FN_AUTO_CNV :
-				case HSET_FN_SJIS_CNV :
-				case HSET_FN_SMH_CNV :
-				case HSET_FN_SMC_CNV :
-				case HSET_FN_UTF8N_CNV :	// UTF-8対応
-				// UTF-8 HFS+対応
-				case HSET_FN_UTF8HFSX_CNV :
-					EnableWindow(GetDlgItem(hDlg, HSET_FN_HANCNV), FALSE);
-					break;
-			}
-			return(TRUE);
+	static INT_PTR OnInit(HWND hDlg) {
+		SetRadioButtonByValue(hDlg, TmpHost.KanjiCode, KanjiButton, KANJIBUTTONS);
+		SendDlgItemMessage(hDlg, HSET_HANCNV, BM_SETCHECK, TmpHost.KanaCnv, 0);
+		SetRadioButtonByValue(hDlg, TmpHost.NameKanjiCode, NameKanjiButton, NAMEKANJIBUTTONS);
+		if (!SupportIdn)
+			EnableWindow(GetDlgItem(hDlg, HSET_FN_UTF8HFSX_CNV), FALSE);
+		SendDlgItemMessage(hDlg, HSET_FN_HANCNV, BM_SETCHECK, TmpHost.NameKanaCnv, 0);
+		return TRUE;
 	}
-	return(FALSE);
-}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			TmpHost.KanjiCode = AskRadioButtonValue(hDlg, KanjiButton, KANJIBUTTONS);
+			TmpHost.KanaCnv = (int)SendDlgItemMessage(hDlg, HSET_HANCNV, BM_GETCHECK, 0, 0);
+			TmpHost.NameKanjiCode = AskRadioButtonValue(hDlg, NameKanjiButton, NAMEKANJIBUTTONS);
+			TmpHost.NameKanaCnv = (int)SendDlgItemMessage(hDlg, HSET_FN_HANCNV, BM_GETCHECK, 0, 0);
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000030);
+			break;
+		}
+		return 0;
+	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case HSET_SJIS_CNV:
+		case HSET_JIS_CNV:
+		case HSET_EUC_CNV:
+			EnableWindow(GetDlgItem(hDlg, HSET_HANCNV), TRUE);
+			break;
+		case HSET_NO_CNV:
+		case HSET_UTF8N_CNV:
+		case HSET_UTF8BOM_CNV:
+			EnableWindow(GetDlgItem(hDlg, HSET_HANCNV), FALSE);
+			break;
+		case HSET_FN_JIS_CNV:
+		case HSET_FN_EUC_CNV:
+			EnableWindow(GetDlgItem(hDlg, HSET_FN_HANCNV), TRUE);
+			break;
+		case HSET_FN_AUTO_CNV:
+		case HSET_FN_SJIS_CNV:
+		case HSET_FN_SMH_CNV:
+		case HSET_FN_SMC_CNV:
+		case HSET_FN_UTF8N_CNV:
+		case HSET_FN_UTF8HFSX_CNV:
+			EnableWindow(GetDlgItem(hDlg, HSET_FN_HANCNV), FALSE);
+			break;
+		}
+	}
+};
 
-
-/*----- ダイアルアップ設定ウインドウのコールバック ----------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK DialupSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-
-	switch (iMessage)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, HSET_DIALUP, BM_SETCHECK, TmpHost.Dialup, 0);
-			SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_SETCHECK, TmpHost.DialupAlways, 0);
-			SendDlgItemMessage(hDlg, HSET_DIALNOTIFY, BM_SETCHECK, TmpHost.DialupNotify, 0);
-			if(NoRasControl != NO)
-				EnableWindow(GetDlgItem(hDlg, HSET_DIALUP), FALSE);
-			if((TmpHost.DialupAlways == NO) || (NoRasControl != NO))
-				EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), FALSE);
-			if((TmpHost.Dialup == NO) || (NoRasControl != NO))
-			{
+struct Dialup {
+	static constexpr WORD dialogId = hset_dialup_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static INT_PTR OnInit(HWND hDlg) {
+		SendDlgItemMessage(hDlg, HSET_DIALUP, BM_SETCHECK, TmpHost.Dialup, 0);
+		SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_SETCHECK, TmpHost.DialupAlways, 0);
+		SendDlgItemMessage(hDlg, HSET_DIALNOTIFY, BM_SETCHECK, TmpHost.DialupNotify, 0);
+		if (NoRasControl != NO)
+			EnableWindow(GetDlgItem(hDlg, HSET_DIALUP), FALSE);
+		if (TmpHost.DialupAlways == NO || NoRasControl != NO)
+			EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), FALSE);
+		if (TmpHost.Dialup == NO || NoRasControl != NO) {
+			EnableWindow(GetDlgItem(hDlg, HSET_DIALENTRY), FALSE);
+			EnableWindow(GetDlgItem(hDlg, HSET_DIALUSETHIS), FALSE);
+			EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), FALSE);
+		}
+		SetRasEntryToComboBox(hDlg, HSET_DIALENTRY, TmpHost.DialEntry);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			TmpHost.Dialup = (int)SendDlgItemMessage(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0);
+			TmpHost.DialupAlways = (int)SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0);
+			TmpHost.DialupNotify = (int)SendDlgItemMessage(hDlg, HSET_DIALNOTIFY, BM_GETCHECK, 0, 0);
+			SendDlgItemMessage(hDlg, HSET_DIALENTRY, WM_GETTEXT, RAS_NAME_LEN + 1, (LPARAM)TmpHost.DialEntry);
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000031);
+			break;
+		}
+		return 0;
+	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case HSET_DIALUP:
+			if (SendDlgItemMessage(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0) == 0) {
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALENTRY), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALUSETHIS), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), FALSE);
+				break;
+			} else {
+				EnableWindow(GetDlgItem(hDlg, HSET_DIALENTRY), TRUE);
+				EnableWindow(GetDlgItem(hDlg, HSET_DIALUSETHIS), TRUE);
 			}
-			SetRasEntryToComboBox(hDlg, HSET_DIALENTRY, TmpHost.DialEntry);
-			return(TRUE);
+			[[fallthrough]];
+		case HSET_DIALUSETHIS:
+			if (SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0) == 0)
+				EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), FALSE);
+			else
+				EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), TRUE);
+			break;
+		}
+	}
+};
 
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					TmpHost.Dialup = (int)SendDlgItemMessage(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0);
-					TmpHost.DialupAlways = (int)SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0);
-					TmpHost.DialupNotify = (int)SendDlgItemMessage(hDlg, HSET_DIALNOTIFY, BM_GETCHECK, 0, 0);
-					SendDlgItemMessage(hDlg, HSET_DIALENTRY, WM_GETTEXT, RAS_NAME_LEN+1, (LPARAM)TmpHost.DialEntry);
-					Apply = YES;
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000031);
-					break;
+struct Special {
+	static constexpr WORD dialogId = hset_adv2_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static INT_PTR OnInit(HWND hDlg) {
+		SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, EM_LIMITTEXT, CHMOD_CMD_LEN, 0);
+		SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_SETTEXT, 0, (LPARAM)TmpHost.ChmodCmd);
+		SendDlgItemMessage(hDlg, HSET_LS_FNAME, EM_LIMITTEXT, NLST_NAME_LEN, 0);
+		SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_SETTEXT, 0, (LPARAM)TmpHost.LsName);
+		SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_SETCHECK, TmpHost.ListCmdOnly, 0);
+		if (TmpHost.ListCmdOnly == YES)
+			EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
+		else
+			EnableWindow(GetDlgItem(hDlg, HSET_MLSDCMD), FALSE);
+		SendDlgItemMessage(hDlg, HSET_MLSDCMD, BM_SETCHECK, TmpHost.UseMLSD, 0);
+		SendDlgItemMessage(hDlg, HSET_NLST_R, BM_SETCHECK, TmpHost.UseNLST_R, 0);
+		SendDlgItemMessage(hDlg, HSET_FULLPATH, BM_SETCHECK, TmpHost.NoFullPath, 0);
+		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN139);
+		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN140);
+		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN141);
+		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN142);
+		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN143);
+		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN144);
+		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN289);
+		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN295);
+#if defined(HAVE_TANDEM)
+		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN2000);
+#endif
+		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_SETCURSEL, TmpHost.HostType, 0);
+#if defined(HAVE_TANDEM)
+		if (TmpHost.HostType == 2 || TmpHost.HostType == HTYPE_TANDEM)  /* VAX or Tandem */
+#else
+		if (TmpHost.HostType == 2)
+#endif
+		{
+			EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
+			EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), FALSE);
+			EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), FALSE);
+		}
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_GETTEXT, CHMOD_CMD_LEN + 1, (LPARAM)TmpHost.ChmodCmd);
+			SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_GETTEXT, NLST_NAME_LEN + 1, (LPARAM)TmpHost.LsName);
+			TmpHost.ListCmdOnly = (int)SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0);
+			TmpHost.UseMLSD = (int)SendDlgItemMessage(hDlg, HSET_MLSDCMD, BM_GETCHECK, 0, 0);
+			TmpHost.UseNLST_R = (int)SendDlgItemMessage(hDlg, HSET_NLST_R, BM_GETCHECK, 0, 0);
+			TmpHost.NoFullPath = (int)SendDlgItemMessage(hDlg, HSET_FULLPATH, BM_GETCHECK, 0, 0);
+			TmpHost.HostType = (int)SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0);
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000032);
+			break;
+		}
+		return 0;
+	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case HSET_CHMOD_NOR:
+			SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_SETTEXT, 0, (LPARAM)CHMOD_CMD_NOR);
+			break;
+		case HSET_LS_FNAME_NOR:
+			SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_SETTEXT, 0, (LPARAM)LS_FNAME);
+			break;
+		case HSET_LISTCMD:
+			if (SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0) == 0) {
+				EnableWindow(GetDlgItem(hDlg, HSET_MLSDCMD), FALSE);
+				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), TRUE);
+			} else {
+				EnableWindow(GetDlgItem(hDlg, HSET_MLSDCMD), TRUE);
+				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
 			}
 			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case HSET_DIALUP :
-					if(SendDlgItemMessage(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0) == 0)
-					{
-						EnableWindow(GetDlgItem(hDlg, HSET_DIALENTRY), FALSE);
-						EnableWindow(GetDlgItem(hDlg, HSET_DIALUSETHIS), FALSE);
-						EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), FALSE);
-						break;
-					}
-					else
-					{
-						EnableWindow(GetDlgItem(hDlg, HSET_DIALENTRY), TRUE);
-						EnableWindow(GetDlgItem(hDlg, HSET_DIALUSETHIS), TRUE);
-					}
-					/* ここにbreakはない */
-
-				case HSET_DIALUSETHIS :
-					if(SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0) == 0)
-						EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), FALSE);
-					else
-						EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), TRUE);
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
-/*----- 高度設定ウインドウのコールバック --------------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK Adv2SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-	int Num;
-
-	switch (iMessage)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, EM_LIMITTEXT, CHMOD_CMD_LEN, 0);
-			SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_SETTEXT, 0, (LPARAM)TmpHost.ChmodCmd);
-			SendDlgItemMessage(hDlg, HSET_LS_FNAME, EM_LIMITTEXT, NLST_NAME_LEN, 0);
-			SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_SETTEXT, 0, (LPARAM)TmpHost.LsName);
-			SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_SETCHECK, TmpHost.ListCmdOnly, 0);
-			if(TmpHost.ListCmdOnly == YES)
-				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
-			// MLSD対応
-			else
-				EnableWindow(GetDlgItem(hDlg, HSET_MLSDCMD), FALSE);
-			SendDlgItemMessage(hDlg, HSET_MLSDCMD, BM_SETCHECK, TmpHost.UseMLSD, 0);
-			SendDlgItemMessage(hDlg, HSET_NLST_R, BM_SETCHECK, TmpHost.UseNLST_R, 0);
-			SendDlgItemMessage(hDlg, HSET_FULLPATH, BM_SETCHECK, TmpHost.NoFullPath, 0);
-			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN139);
-			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN140);
-			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN141);
-			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN142);
-			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN143);
-			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN144);
-			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN289);
-			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN295);
-#if defined(HAVE_TANDEM)
-			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN2000);
-#endif
-			SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_SETCURSEL, TmpHost.HostType, 0);
-#if defined(HAVE_TANDEM)
-			if(TmpHost.HostType == 2 || TmpHost.HostType == HTYPE_TANDEM)  /* VAX or Tandem */
-#else
-			if(TmpHost.HostType == 2)
-#endif
-			{
+		case HSET_HOSTTYPE:
+			if (auto Num = (int)SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0); Num == 2) {
 				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), FALSE);
 			}
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_GETTEXT, CHMOD_CMD_LEN+1, (LPARAM)TmpHost.ChmodCmd);
-					SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_GETTEXT, NLST_NAME_LEN+1, (LPARAM)TmpHost.LsName);
-					TmpHost.ListCmdOnly = (int)SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0);
-					// MLSD対応
-					TmpHost.UseMLSD = (int)SendDlgItemMessage(hDlg, HSET_MLSDCMD, BM_GETCHECK, 0, 0);
-					TmpHost.UseNLST_R = (int)SendDlgItemMessage(hDlg, HSET_NLST_R, BM_GETCHECK, 0, 0);
-					TmpHost.NoFullPath = (int)SendDlgItemMessage(hDlg, HSET_FULLPATH, BM_GETCHECK, 0, 0);
-					TmpHost.HostType = (int)SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0);
-					Apply = YES;
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000032);
-					break;
-			}
-			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case HSET_CHMOD_NOR :
-					SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_SETTEXT, 0, (LPARAM)CHMOD_CMD_NOR);
-					break;
-
-				case HSET_LS_FNAME_NOR :
-					SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_SETTEXT, 0, (LPARAM)LS_FNAME);
-					break;
-
-				case HSET_LISTCMD :
-					if(SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0) == 0)
-						// MLSD対応
-//						EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), TRUE);
-					{
-						EnableWindow(GetDlgItem(hDlg, HSET_MLSDCMD), FALSE);
-						EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), TRUE);
-					}
-					else
-						// MLSD対応
-//						EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
-					{
-						EnableWindow(GetDlgItem(hDlg, HSET_MLSDCMD), TRUE);
-						EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
-					}
-					break;
-
-				case HSET_HOSTTYPE :
-					Num = (int)SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0);
-					if(Num == 2)
-					{
-						EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
-						EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), FALSE);
-						EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), FALSE);
-					}
 #if defined(HAVE_TANDEM)
-					else if(Num == HTYPE_TANDEM) /* Tandem */
-					{
-						/* Tandem を選択すると自動的に LIST にチェックをいれる */
-						SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_SETCHECK, 1, 0);
-						EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
-						EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), FALSE);
-						EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), FALSE);
-					}
-					else
-					{
-						if(SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0) == 0) {
-							EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), TRUE);
-							EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), TRUE);
-						} else {
-							EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
-							EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), TRUE);
-						}
-						EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), TRUE);
-					}
+			else if (Num == HTYPE_TANDEM) /* Tandem */
+			{
+				/* Tandem を選択すると自動的に LIST にチェックをいれる */
+				SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_SETCHECK, 1, 0);
+				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
+				EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), FALSE);
+				EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), FALSE);
+			} else {
+				if (SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0) == 0) {
+					EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), TRUE);
+					EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), TRUE);
+				} else {
+					EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
+					EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), TRUE);
+				}
+				EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), TRUE);
+			}
 #else
-					else
-					{
-						EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), TRUE);
-						EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), TRUE);
-						EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), TRUE);
-					}
+			else {
+				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), TRUE);
+				EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), TRUE);
+				EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), TRUE);
+			}
 #endif
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
-// 暗号化通信対応
-static INT_PTR CALLBACK CryptSettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-//	int Num;
-
-	switch (iMessage)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_SETCHECK, TmpHost.UseNoEncryption, 0);
-			SendDlgItemMessage(hDlg, HSET_FTPES, BM_SETCHECK, TmpHost.UseFTPES, 0);
-			SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, TmpHost.UseFTPIS, 0);
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					TmpHost.UseNoEncryption = (int)SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_GETCHECK, 0, 0);
-					TmpHost.UseFTPES = (int)SendDlgItemMessage(hDlg, HSET_FTPES, BM_GETCHECK, 0, 0);
-					TmpHost.UseFTPIS = (int)SendDlgItemMessage(hDlg, HSET_FTPIS, BM_GETCHECK, 0, 0);
-					Apply = YES;
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000065);
-					break;
-			}
 			break;
+		}
 	}
-	return(FALSE);
-}
+};
 
-// 同時接続対応
-static INT_PTR CALLBACK Adv3SettingProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-//	int Num;
-
-	// UTF-8対応
-	static const RADIOBUTTON KanjiButton[] = {
-		{ HSET_NO_CNV, KANJI_NOCNV },
-		{ HSET_SJIS_CNV, KANJI_SJIS },
-		{ HSET_JIS_CNV, KANJI_JIS },
-		{ HSET_EUC_CNV, KANJI_EUC },
-		{ HSET_UTF8N_CNV, KANJI_UTF8N },
-		{ HSET_UTF8BOM_CNV, KANJI_UTF8BOM }
-	};
-	#define KANJIBUTTONS	(sizeof(KanjiButton)/sizeof(RADIOBUTTON))
-
-	switch (iMessage)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, HSET_THREAD_COUNT, EM_LIMITTEXT, (WPARAM)1, 0);
-			SetDecimalText(hDlg, HSET_THREAD_COUNT, TmpHost.MaxThreadCount);
-			SendDlgItemMessage(hDlg, HSET_THREAD_COUNT_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(MAX_DATA_CONNECTION, 1));
-			SendDlgItemMessage(hDlg, HSET_REUSE_SOCKET, BM_SETCHECK, TmpHost.ReuseCmdSkt, 0);
-			SendDlgItemMessage(hDlg, HSET_NOOP_INTERVAL, EM_LIMITTEXT, (WPARAM)3, 0);
-			SetDecimalText(hDlg, HSET_NOOP_INTERVAL, TmpHost.NoopInterval);
-			SendDlgItemMessage(hDlg, HSET_NOOP_INTERVAL_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(300, 0));
-			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN335);
-			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN336);
-			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN337);
-			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN338);
-			if(TmpHost.TransferErrorNotify == YES)
-				SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
-			else if(TmpHost.TransferErrorMode == EXIST_OVW)
-				SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 1, 0);
-			else if(TmpHost.TransferErrorMode == EXIST_RESUME)
-				SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 2, 0);
-			else if(TmpHost.TransferErrorMode == EXIST_IGNORE)
-				SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 3, 0);
-			else
-				SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
-			SendDlgItemMessage(hDlg, HSET_ERROR_RECONNECT, BM_SETCHECK, TmpHost.TransferErrorReconnect, 0);
-			SendDlgItemMessage(hDlg, HSET_NO_PASV_ADRS, BM_SETCHECK, TmpHost.NoPasvAdrs, 0);
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					TmpHost.MaxThreadCount = GetDecimalText(hDlg, HSET_THREAD_COUNT);
-					CheckRange2(&TmpHost.MaxThreadCount, MAX_DATA_CONNECTION, 1);
-					TmpHost.ReuseCmdSkt = (int)SendDlgItemMessage(hDlg, HSET_REUSE_SOCKET, BM_GETCHECK, 0, 0);
-					TmpHost.NoopInterval = GetDecimalText(hDlg, HSET_NOOP_INTERVAL);
-					CheckRange2(&TmpHost.NoopInterval, 300, 0);
-					switch(SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_GETCURSEL, 0, 0))
-					{
-					case 0:
-						TmpHost.TransferErrorMode = EXIST_OVW;
-						TmpHost.TransferErrorNotify = YES;
-						break;
-					case 1:
-						TmpHost.TransferErrorMode = EXIST_OVW;
-						TmpHost.TransferErrorNotify = NO;
-						break;
-					case 2:
-						TmpHost.TransferErrorMode = EXIST_RESUME;
-						TmpHost.TransferErrorNotify = NO;
-						break;
-					case 3:
-						TmpHost.TransferErrorMode = EXIST_IGNORE;
-						TmpHost.TransferErrorNotify = NO;
-						break;
-					}
-					TmpHost.TransferErrorReconnect = (int)SendDlgItemMessage(hDlg, HSET_ERROR_RECONNECT, BM_GETCHECK, 0, 0);
-					TmpHost.NoPasvAdrs = (int)SendDlgItemMessage(hDlg, HSET_NO_PASV_ADRS, BM_GETCHECK, 0, 0);
-					Apply = YES;
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000066);
-					break;
-			}
+struct Encryption {
+	static constexpr WORD dialogId = hset_crypt_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static INT_PTR OnInit(HWND hDlg) {
+		SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_SETCHECK, TmpHost.UseNoEncryption, 0);
+		SendDlgItemMessage(hDlg, HSET_FTPES, BM_SETCHECK, TmpHost.UseFTPES, 0);
+		SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, TmpHost.UseFTPIS, 0);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			TmpHost.UseNoEncryption = (int)SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_GETCHECK, 0, 0);
+			TmpHost.UseFTPES = (int)SendDlgItemMessage(hDlg, HSET_FTPES, BM_GETCHECK, 0, 0);
+			TmpHost.UseFTPIS = (int)SendDlgItemMessage(hDlg, HSET_FTPIS, BM_GETCHECK, 0, 0);
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000065);
 			break;
+		}
+		return 0;
 	}
-	return(FALSE);
+};
+
+struct Feature {
+	static constexpr WORD dialogId = hset_adv3_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static INT_PTR OnInit(HWND hDlg) {
+		SendDlgItemMessage(hDlg, HSET_THREAD_COUNT, EM_LIMITTEXT, (WPARAM)1, 0);
+		SetDecimalText(hDlg, HSET_THREAD_COUNT, TmpHost.MaxThreadCount);
+		SendDlgItemMessage(hDlg, HSET_THREAD_COUNT_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(MAX_DATA_CONNECTION, 1));
+		SendDlgItemMessage(hDlg, HSET_REUSE_SOCKET, BM_SETCHECK, TmpHost.ReuseCmdSkt, 0);
+		SendDlgItemMessage(hDlg, HSET_NOOP_INTERVAL, EM_LIMITTEXT, (WPARAM)3, 0);
+		SetDecimalText(hDlg, HSET_NOOP_INTERVAL, TmpHost.NoopInterval);
+		SendDlgItemMessage(hDlg, HSET_NOOP_INTERVAL_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(300, 0));
+		SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN335);
+		SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN336);
+		SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN337);
+		SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN338);
+		if (TmpHost.TransferErrorNotify == YES)
+			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
+		else if (TmpHost.TransferErrorMode == EXIST_OVW)
+			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 1, 0);
+		else if (TmpHost.TransferErrorMode == EXIST_RESUME)
+			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 2, 0);
+		else if (TmpHost.TransferErrorMode == EXIST_IGNORE)
+			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 3, 0);
+		else
+			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
+		SendDlgItemMessage(hDlg, HSET_ERROR_RECONNECT, BM_SETCHECK, TmpHost.TransferErrorReconnect, 0);
+		SendDlgItemMessage(hDlg, HSET_NO_PASV_ADRS, BM_SETCHECK, TmpHost.NoPasvAdrs, 0);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			TmpHost.MaxThreadCount = GetDecimalText(hDlg, HSET_THREAD_COUNT);
+			CheckRange2(&TmpHost.MaxThreadCount, MAX_DATA_CONNECTION, 1);
+			TmpHost.ReuseCmdSkt = (int)SendDlgItemMessage(hDlg, HSET_REUSE_SOCKET, BM_GETCHECK, 0, 0);
+			TmpHost.NoopInterval = GetDecimalText(hDlg, HSET_NOOP_INTERVAL);
+			CheckRange2(&TmpHost.NoopInterval, 300, 0);
+			switch (SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_GETCURSEL, 0, 0)) {
+			case 0:
+				TmpHost.TransferErrorMode = EXIST_OVW;
+				TmpHost.TransferErrorNotify = YES;
+				break;
+			case 1:
+				TmpHost.TransferErrorMode = EXIST_OVW;
+				TmpHost.TransferErrorNotify = NO;
+				break;
+			case 2:
+				TmpHost.TransferErrorMode = EXIST_RESUME;
+				TmpHost.TransferErrorNotify = NO;
+				break;
+			case 3:
+				TmpHost.TransferErrorMode = EXIST_IGNORE;
+				TmpHost.TransferErrorNotify = NO;
+				break;
+			}
+			TmpHost.TransferErrorReconnect = (int)SendDlgItemMessage(hDlg, HSET_ERROR_RECONNECT, BM_GETCHECK, 0, 0);
+			TmpHost.NoPasvAdrs = (int)SendDlgItemMessage(hDlg, HSET_NO_PASV_ADRS, BM_GETCHECK, 0, 0);
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000066);
+			break;
+		}
+		return 0;
+	}
+};
+
+// ホスト設定のプロパティシート
+static bool DispHostSetDlg(HWND hDlg) {
+	auto result = PropSheet<General, Advanced, KanjiCode, Dialup, Special, Encryption, Feature>(hDlg, GetFtpInst(), IDS_HOSTSETTING, PSH_NOAPPLYNOW);
+	return 1 <= result;
 }
 
 // 暗号化通信対応

@@ -165,3 +165,27 @@ static inline auto Dialog(HINSTANCE instance, int resourceId, HWND parent, Data&
 	using T = std::remove_reference_t<Data>;
 	return (typename T::result_t)DialogBoxParamW(instance, MAKEINTRESOURCEW(resourceId), parent, detail::Dialog<T>::Proc, (LPARAM)&data);
 }
+
+// PropertySheetを表示します。
+// 次の要件を満たした型を受け入れます。
+// struct Page {
+//     // 必須。PROPSHEETPAGE::pszTemplateに指定するダイアログリソースIDです。
+//     static constexpr int dialogId = ...;
+//     // 必須。PROPSHEETPAGE::dwFlagsに指定する値です。
+//     static constexpr DWORD flag = ...;
+//     // 任意。WM_INITDIALOGメッセージを処理するコールバック。
+//     static INT_PTR OnInit(HWND);
+//     // 任意。WM_COMMANDメッセージを処理するコールバック。第２引数は押されたコマンドのIDです。
+//     static void OnCommand(HWND, WORD);
+//     // 任意。WM_NOTIFYメッセージを処理するコールバック。第２引数はlParamで渡されたNMHDR*です。
+//     static INT_PTR OnNotify(HWND, NMHDR*);
+//     // 任意。残りのメッセージを処理するコールバック。
+//     static INT_PTR OnMessage(HWND, UNIT, WPARAM, LPARAM);
+// };
+// TODO: 各ページはinstance化されていないのでstaticメンバーとする制約がある。
+template<class... Page>
+static inline auto PropSheet(HWND parent, HINSTANCE instance, int captionId, DWORD flag) {
+	PROPSHEETPAGEW psp[]{ { sizeof(PROPSHEETPAGEW), Page::flag, instance, MAKEINTRESOURCEW(Page::dialogId), 0, nullptr, detail::Dialog<Page>::Proc }... };
+	PROPSHEETHEADERW psh{ sizeof(PROPSHEETHEADERW), flag | PSH_PROPSHEETPAGE, parent, instance, 0, MAKEINTRESOURCEW(captionId), size_as<UINT>(psp), 0, psp };
+	return PropertySheetW(&psh);
+}
