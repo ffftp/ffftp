@@ -28,7 +28,6 @@
 /============================================================================*/
 
 #include "common.h"
-#include "helpid.h"
 
 
 /*===== プロトタイプ =====*/
@@ -36,11 +35,6 @@
 // 64ビット対応
 //static BOOL CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-
-
-/*===== 外部参照 =====*/
-
-extern HWND hHelpWin;
 
 
 /*----- ワンタイムパスワード計算 ----------------------------------------------

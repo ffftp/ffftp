@@ -28,7 +28,6 @@
 /============================================================================*/
 
 #include "common.h"
-#include "helpid.h"
 
 
 /*===== プロトタイプ =====*/
@@ -59,13 +58,6 @@ typedef struct {
 	char Attr[5];
 } ATTRSET;
 
-
-
-
-
-/*===== 外部参照 =====*/
-
-extern HWND hHelpWin;
 
 /* 設定値 */
 extern char UserMailAdrs[USER_MAIL_LEN+1];
@@ -218,12 +210,10 @@ struct Transfer1 {
 			EnableWindow(GetDlgItem(hDlg, TRMODE_ADD), TRUE);
 			EnableWindow(GetDlgItem(hDlg, TRMODE_DEL), TRUE);
 			break;
-		case TRMODE_ADD: {
-			char Tmp[FMAX_PATH + 1] = "";
-			if (int Trash;  InputDialogBox(fname_in_dlg, hDlg, MSGJPN199, Tmp, FMAX_PATH, &Trash, IDH_HELP_TOPIC_0000001) == YES)
+		case TRMODE_ADD:
+			if (char Tmp[FMAX_PATH + 1] = ""; InputDialog(fname_in_dlg, hDlg, MSGJPN199, Tmp, FMAX_PATH))
 				AddTextToListBox(hDlg, Tmp, TRMODE_EXT_LIST, ASCII_EXT_LEN + 1);
 			break;
-		}
 		case TRMODE_DEL:
 			if (auto Num = (int)SendDlgItemMessage(hDlg, TRMODE_EXT_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
 				SendDlgItemMessage(hDlg, TRMODE_EXT_LIST, LB_DELETESTRING, Num, 0);
@@ -426,18 +416,14 @@ struct Mirroring {
 	}
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
-		case MIRROR_NOTRN_ADD: {
-			char Tmp[FMAX_PATH + 1] = "";
-			if (int Trash; InputDialogBox(fname_in_dlg, hDlg, MSGJPN202, Tmp, FMAX_PATH, &Trash, IDH_HELP_TOPIC_0000001) == YES)
+		case MIRROR_NOTRN_ADD:
+			if (char Tmp[FMAX_PATH + 1] = ""; InputDialog(fname_in_dlg, hDlg, MSGJPN202, Tmp, FMAX_PATH))
 				AddTextToListBox(hDlg, Tmp, MIRROR_NOTRN_LIST, MIRROR_LEN + 1);
 			break;
-		}
-		case MIRROR_NODEL_ADD: {
-			char Tmp[FMAX_PATH + 1] = "";
-			if (int Trash; InputDialogBox(fname_in_dlg, hDlg, MSGJPN203, Tmp, FMAX_PATH, &Trash, IDH_HELP_TOPIC_0000001) == YES)
+		case MIRROR_NODEL_ADD:
+			if (char Tmp[FMAX_PATH + 1] = ""; InputDialog(fname_in_dlg, hDlg, MSGJPN203, Tmp, FMAX_PATH))
 				AddTextToListBox(hDlg, Tmp, MIRROR_NODEL_LIST, MIRROR_LEN + 1);
 			break;
-		}
 		case MIRROR_NOTRN_DEL:
 			if (auto Num = (int)SendDlgItemMessage(hDlg, MIRROR_NOTRN_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
 				SendDlgItemMessage(hDlg, MIRROR_NOTRN_LIST, LB_DELETESTRING, Num, 0);

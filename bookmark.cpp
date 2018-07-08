@@ -28,9 +28,7 @@
 /============================================================================*/
 
 #include "common.h"
-#include "helpid.h"
 
-extern HWND hHelpWin;
 extern HFONT ListFont;		/* リストボックスのフォント */
 extern SIZE BmarkDlgSize;
 

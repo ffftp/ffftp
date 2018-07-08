@@ -28,7 +28,6 @@
 /============================================================================*/
 
 #include "common.h"
-#include "helpid.h"
 
 
 /*===== プロトタイプ =====*/
@@ -45,10 +44,6 @@ static int DeleteChildAndNext(HOSTLISTDATA *Pos);
 static void SendAllHostNames(HWND hWnd, int Cur);
 static int IsNodeGroup(int Num);
 static bool DispHostSetDlg(HWND hDlg);
-
-/*===== 外部参照 =====*/
-
-extern HWND hHelpWin;
 
 /* 設定値 */
 extern char UserMailAdrs[USER_MAIL_LEN+1];
@@ -131,7 +126,7 @@ struct HostList {
 			break;
 		case HOST_FOLDER:
 			CopyDefaultHost(&TmpHost);
-			if (int Level1; InputDialogBox(group_dlg, hDlg, NULL, TmpHost.HostName, HOST_NAME_LEN + 1, &Level1, IDH_HELP_TOPIC_0000001) == YES) {
+			if (int Level1 = -1; InputDialog(group_dlg, hDlg, NULL, TmpHost.HostName, HOST_NAME_LEN + 1)) {
 				if (auto hItem = (HTREEITEM)SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) {
 					TVITEMW Item{ TVIF_PARAM, hItem };
 					SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
@@ -140,7 +135,6 @@ struct HostList {
 					CurrentHost = Level1;
 				} else {
 					TmpHost.Level = 0 | SET_LEVEL_GROUP;
-					Level1 = -1;
 					CurrentHost = Hosts;
 				}
 				AddHostToList(&TmpHost, Level1, SET_LEVEL_SAME);
@@ -154,7 +148,7 @@ struct HostList {
 				CurrentHost = (int)Item.lParam;
 				CopyHostFromList(CurrentHost, &TmpHost);
 				int Level1 = IsNodeGroup(CurrentHost);
-				if (Level1 == NO && DispHostSetDlg(hDlg) || Level1 == YES && InputDialogBox(group_dlg, hDlg, NULL, TmpHost.HostName, HOST_NAME_LEN + 1, &Level1, IDH_HELP_TOPIC_0000001) == YES) {
+				if (Level1 == NO && DispHostSetDlg(hDlg) || Level1 == YES && InputDialog(group_dlg, hDlg, NULL, TmpHost.HostName, HOST_NAME_LEN + 1)) {
 					UpdateHostToList(CurrentHost, &TmpHost);
 					SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
 				}

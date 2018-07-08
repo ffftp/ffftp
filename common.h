@@ -73,6 +73,7 @@
 #include <comutil.h>
 #include "config.h"
 #include "dialog.h"
+#include "helpid.h"
 #include "mbswrapper.h"
 #include "Resource/resource.ja-JP.h"
 #include "mesg-jpn.h"
@@ -1898,9 +1899,6 @@ int ConnectRas(int Dialup, int UseThis, int Notify, char *Name);
 
 /*===== misc.c =====*/
 
-int InputDialogBox(int Res, HWND hWnd, char *Title, char *Buf, int Max, int *Flg, int Help);
-// 64ビット対応
-//BOOL CALLBACK ExeEscDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 INT_PTR CALLBACK ExeEscDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 // 64ビット対応
 //BOOL CALLBACK ExeEscTextDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
@@ -2027,6 +2025,7 @@ int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
 
 
 extern HCRYPTPROV HCryptProv;
+extern HWND hHelpWin;
 
 template<class Target, class Source>
 constexpr auto data_as(Source& source) {
@@ -2114,4 +2113,45 @@ static inline auto IdnToAscii(std::wstring const& unicode) {
 	auto result = IdnToAscii(0, data(unicode), size_as<int>(unicode), data(ascii), length);
 	assert(result == length);
 	return ascii;
+}
+static inline auto InputDialog(int dialogId, HWND parent, char *Title, char *Buf, int maxlength = 0, int* flag = nullptr, int helpTopicId = IDH_HELP_TOPIC_0000001) {
+	struct Data {
+		using result_t = bool;
+		char* Title;
+		char* Buf;
+		int maxlength;
+		int* flag;
+		int helpTopicId;
+		Data(char* Title, char* Buf, int maxlength, int* flag, int helpTopicId) : Title{ Title }, Buf{ Buf }, maxlength{ maxlength }, flag{ flag }, helpTopicId{ helpTopicId } {}
+		INT_PTR OnInit(HWND hDlg) {
+			if (Title)
+				SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)Title);
+			SendDlgItemMessageW(hDlg, INP_INPSTR, EM_LIMITTEXT, maxlength - 1, 0);
+			SendDlgItemMessage(hDlg, INP_INPSTR, WM_SETTEXT, 0, (LPARAM)Buf);
+			if (flag)
+				SendDlgItemMessageW(hDlg, INP_ANONYMOUS, BM_SETCHECK, *flag, 0);
+			return TRUE;
+		}
+		void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK:
+				strncpy(Buf, u8(GetText(hDlg, INP_INPSTR)).c_str(), maxlength - 1);
+				if (flag)
+					*flag = (int)SendDlgItemMessageW(hDlg, INP_ANONYMOUS, BM_GETCHECK, 0, 0);
+				EndDialog(hDlg, true);
+				break;
+			case IDCANCEL:
+				EndDialog(hDlg, false);
+				break;
+			case IDHELP:
+				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, helpTopicId);
+				break;
+			case INP_BROWSE:
+				if (char Tmp[FMAX_PATH + 1]; SelectDir(hDlg, Tmp, FMAX_PATH) == TRUE)
+					SendDlgItemMessage(hDlg, INP_INPSTR, WM_SETTEXT, 0, (LPARAM)Tmp);
+				break;
+			}
+		}
+	};
+	return Dialog(GetFtpInst(), dialogId, parent, Data{ Title, Buf, maxlength, flag, helpTopicId });
 }

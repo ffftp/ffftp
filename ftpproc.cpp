@@ -28,7 +28,6 @@
 /============================================================================*/
 
 #include "common.h"
-#include "helpid.h"
 
 
 /*===== プロトタイプ =====*/
@@ -68,10 +67,6 @@ static int GetAttrFromDialog(HWND hDlg);
 static INT_PTR CALLBACK SizeNotifyDlgWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK SizeDlgWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static int RenameUnuseableName(char *Fname);
-
-/*===== 外部参照 ====*/
-
-extern HWND hHelpWin;
 
 /* 設定値 */
 extern int FnameCnv;
@@ -437,31 +432,10 @@ void DirectDownloadProc(char *Fname)
 }
 
 
-/*----- 入力されたファイル名のファイルを一つダウンロードする ------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void InputDownloadProc(void)
-{
-	char Path[FMAX_PATH+1];
-	int Tmp;
-
-//	DisableUserOpe();
-
-	strcpy(Path, "");
-	if(InputDialogBox(downname_dlg, GetMainHwnd(), NULL, Path, FMAX_PATH, &Tmp, IDH_HELP_TOPIC_0000001) == YES)
-	{
+// 入力されたファイル名のファイルを一つダウンロードする
+void InputDownloadProc() {
+	if (char Path[FMAX_PATH + 1] = ""; InputDialog(downname_dlg, GetMainHwnd(), NULL, Path, FMAX_PATH))
 		DirectDownloadProc(Path);
-	}
-
-//	EnableUserOpe();
-
-	return;
 }
 
 struct MirrorList {
@@ -2783,11 +2757,8 @@ static INT_PTR CALLBACK RenameDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wP
 
 void MkdirProc(void)
 {
-	int Sts;
 	int Win;
-	char Path[FMAX_PATH+1];
 	char *Title;
-	int Tmp;
 
 	// 同時接続対応
 	CancelFlg = NO;
@@ -2803,10 +2774,7 @@ void MkdirProc(void)
 		Title = MSGJPN071;
 	}
 
-	strcpy(Path, "");
-	Sts = InputDialogBox(mkdir_dlg, GetMainHwnd(), Title, Path, FMAX_PATH+1, &Tmp, IDH_HELP_TOPIC_0000001);
-
-	if((Sts == YES) && (strlen(Path) != 0))
+	if (char Path[FMAX_PATH + 1] = ""; InputDialog(mkdir_dlg, GetMainHwnd(), Title, Path, FMAX_PATH + 1) && strlen(Path) != 0)
 	{
 		if(Win == WIN_LOCAL)
 		{
@@ -2921,10 +2889,9 @@ void ChangeDirBmarkProc(int MarkID)
 
 void ChangeDirDirectProc(int Win)
 {
-	int Sts;
+	bool result = false;
 	char Path[FMAX_PATH+1];
 	char *Title;
-	int Tmp;
 
 	// 同時接続対応
 	CancelFlg = NO;
@@ -2936,16 +2903,14 @@ void ChangeDirDirectProc(int Win)
 
 	strcpy(Path, "");
 	if(Win == WIN_LOCAL)
-	// フォルダ選択ダイアログを直接表示
-//		Sts = InputDialogBox(chdir_br_dlg, GetMainHwnd(), Title, Path, FMAX_PATH+1, &Tmp, IDH_HELP_TOPIC_0000001);
 	{
 		if(SelectDir(GetMainHwnd(), Path, FMAX_PATH) == TRUE)
-			Sts = YES;
+			result = true;
 	}
 	else
-		Sts = InputDialogBox(chdir_dlg, GetMainHwnd(), Title, Path, FMAX_PATH+1, &Tmp, IDH_HELP_TOPIC_0000001);
+		result = InputDialog(chdir_dlg, GetMainHwnd(), Title, Path, FMAX_PATH+1);
 
-	if((Sts == YES) && (strlen(Path) != 0))
+	if(result && strlen(Path) != 0)
 	{
 		if(Win == WIN_LOCAL)
 		{
@@ -3235,7 +3200,6 @@ static int GetAttrFromDialog(HWND hDlg)
 void SomeCmdProc(void)
 {
 	char Cmd[81];
-	int Tmp;
 	FILELIST *FileListBase;
 
 	// 同時接続対応
@@ -3255,12 +3219,8 @@ void SomeCmdProc(void)
 			}
 			DeleteFileList(&FileListBase);
 
-			if(InputDialogBox(somecmd_dlg, GetMainHwnd(), NULL, Cmd, 81, &Tmp, IDH_HELP_TOPIC_0000023) == YES)
-			{
-				// 同時接続対応
-				//DoQUOTE(Cmd);
+			if (InputDialog(somecmd_dlg, GetMainHwnd(), NULL, Cmd, 81, nullptr, IDH_HELP_TOPIC_0000023))
 				DoQUOTE(AskCmdCtrlSkt(), Cmd, &CancelFlg);
-			}
 			EnableUserOpe();
 		}
 	}
@@ -3631,7 +3591,6 @@ void ReformVMSDirName(char *DirName, int Flg)
 
 static int RenameUnuseableName(char *Fname)
 {
-	int Tmp;
 	int Ret;
 
 	Ret = FFFTP_SUCCESS;
@@ -3646,7 +3605,7 @@ static int RenameUnuseableName(char *Fname)
 		   (_mbschr((const unsigned char *)Fname, '\x22') != NULL) ||
 		   (_mbschr((const unsigned char *)Fname, '\\') != NULL))
 		{
-			if(InputDialogBox(forcerename_dlg, GetMainHwnd(), NULL, Fname, FMAX_PATH+1, &Tmp, IDH_HELP_TOPIC_0000001) == NO)
+			if (!InputDialog(forcerename_dlg, GetMainHwnd(), NULL, Fname, FMAX_PATH+1))
 			{
 				Ret = FFFTP_FAIL;
 				break;

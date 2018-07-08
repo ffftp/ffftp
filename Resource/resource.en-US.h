@@ -54,7 +54,6 @@
 #define hset_adv_dlg                    132
 #define diskfull_dlg                    133
 #define find_dlg                        134
-#define mailadrs_dlg                    135
 #define opt_sound_dlg                   136
 #define downerr_dlg                     137
 #define uperr_dlg                       138
