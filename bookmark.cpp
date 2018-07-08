@@ -168,7 +168,6 @@ struct List {
 		case BMARK_JUMP:
 		case IDCANCEL:
 		case IDOK:
-			BmarkDlgSize = resizable.GetCurrent();
 			EndDialog(hDlg, commandId == BMARK_JUMP ? SendMessageW(hList, LB_GETCURSEL, 0, 0) : LB_ERR);
 			break;
 		case BMARK_SET:

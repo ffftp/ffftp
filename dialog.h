@@ -13,7 +13,7 @@ template<int... anchorRight, int... anchorBottom, int... anchorStretch>
 class Resizable<Controls<anchorRight...>, Controls<anchorBottom...>, Controls<anchorStretch...>> {
 	static const UINT flags = SWP_NOZORDER | SWP_NOREDRAW | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_DEFERERASE | SWP_ASYNCWINDOWPOS;
 	SIZE minimum;
-	SIZE current;
+	SIZE& current;
 	static void OnSizeRight(HWND dialog, int id, LONG dx) {
 		auto control = GetDlgItem(dialog, id);
 		RECT r;
@@ -37,9 +37,8 @@ class Resizable<Controls<anchorRight...>, Controls<anchorBottom...>, Controls<an
 		SetWindowPos(control, 0, 0, 0, r.right - r.left + dx, r.bottom - r.top + dy, SWP_NOMOVE | flags);
 	}
 public:
-	Resizable() : current{} {}
-	Resizable(SIZE current) : current{ current } {}
-	SIZE GetCurrent() const { return current; }
+	Resizable(SIZE& current) : current{ current } {}
+	Resizable(SIZE&&) = delete;
 	void OnSize(HWND dialog, LONG cx, LONG cy) {
 		LONG dx = cx - current.cx, dy = cy - current.cy;
 		if (dx != 0)

@@ -495,13 +495,9 @@ struct MirrorList {
 	void OnCommand(HWND hDlg, WORD cmd, WORD id) {
 		switch (id) {
 		case IDOK:
-			MirrorDlgSize = resizable.GetCurrent();
-			EndDialog(hDlg, true);
-			break;
 		case IDCANCEL:
-			MirrorDlgSize = resizable.GetCurrent();
-			EndDialog(hDlg, false);
-			break;
+			EndDialog(hDlg, id == IDOK);
+			return;
 		case MIRROR_DEL: {
 			std::vector<int> List((size_t)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0));
 			auto Num = (int)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELITEMS, size_as<WPARAM>(List), (LPARAM)data(List));

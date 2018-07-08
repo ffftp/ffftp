@@ -104,13 +104,11 @@ struct HostList {
 				SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
 				CurrentHost = (int)Item.lParam;
 				ConnectingHost = CurrentHost;
-				HostDlgSize = resizable.GetCurrent();
 				EndDialog(hDlg, YES);
 				return;
 			}
 			[[fallthrough]];
 		case IDCANCEL:
-			HostDlgSize = resizable.GetCurrent();
 			EndDialog(hDlg, NO);
 			return;
 		case HOST_NEW:
