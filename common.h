@@ -253,7 +253,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 #define WM_CHANGE_COND	(WM_USER+1)	/* ファイル一覧を変更するコマンド */
 #define WM_SET_PACKET	(WM_USER+2)	/* 現在使用している転送パケットのアドレスを通知 */
-#define WM_SELECT_HOST	(WM_USER+3)	/* ホストをダブルクリックで選択した */
 
 #define WM_ASYNC_SOCKET	(WM_USER+5)
 
@@ -1970,12 +1969,6 @@ void QueryDisplayDPI();
 int CalcPixelX(int x);
 int CalcPixelY(int y);
 HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNumerator, int ScaleDenominator);
-
-/*===== dlgsize.c =====*/
-
-void DlgSizeInit(HWND hDlg, DIALOGSIZE *Dt, SIZE *Size);
-void AskDlgSize(HWND hDlg, DIALOGSIZE *Dt, SIZE *Size);
-void DlgSizeChange(HWND hDlg, DIALOGSIZE *Dt, RECT *New, int Flg);
 
 /*===== opie.c =====*/
 

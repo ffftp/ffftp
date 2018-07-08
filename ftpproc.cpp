@@ -46,11 +46,7 @@ static int CheckLocalFile(TRANSPACKET *Pkt);
 static INT_PTR CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static void RemoveAfterSemicolon(char *Path);
 static void MirrorDeleteAllDir(FILELIST *Remote, TRANSPACKET *Pkt, TRANSPACKET **Base);
-// 64ビット対応
-//static BOOL CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static void CountMirrorFiles(HWND hDlg, TRANSPACKET *Pkt);
 static int AskMirrorNoTrn(char *Fname, int Mode);
 static int AskUploadFileAttr(char *Fname);
@@ -468,6 +464,70 @@ void InputDownloadProc(void)
 	return;
 }
 
+struct MirrorList {
+	using result_t = bool;
+	Resizable<Controls<MIRROR_DEL, MIRROR_SIZEGRIP>, Controls<IDOK, IDCANCEL, IDHELP, MIRROR_DEL, MIRROR_COPYNUM, MIRROR_MAKENUM, MIRROR_DELNUM, MIRROR_SIZEGRIP, MIRROR_NO_TRANSFER>, Controls<MIRROR_LIST>> resizable{ MirrorDlgSize };
+	TRANSPACKET** Base;
+	MirrorList(TRANSPACKET** Base) : Base{ Base } {}
+	INT_PTR OnInit(HWND hDlg) {
+		for (auto Pos = *Base; Pos; Pos = Pos->Next) {
+			char Tmp[FMAX_PATH + 1 + 6] = "";
+			if (strncmp(Pos->Cmd, "R-DELE", 6) == 0 || strncmp(Pos->Cmd, "R-RMD", 5) == 0)
+				sprintf(Tmp, MSGJPN052, Pos->RemoteFile);
+			else if (strncmp(Pos->Cmd, "R-MKD", 5) == 0)
+				sprintf(Tmp, MSGJPN053, Pos->RemoteFile);
+			else if (strncmp(Pos->Cmd, "STOR", 4) == 0)
+				sprintf(Tmp, MSGJPN054, Pos->RemoteFile);
+			else if (strncmp(Pos->Cmd, "L-DELE", 6) == 0 || strncmp(Pos->Cmd, "L-RMD", 5) == 0)
+				sprintf(Tmp, MSGJPN055, Pos->LocalFile);
+			else if (strncmp(Pos->Cmd, "L-MKD", 5) == 0)
+				sprintf(Tmp, MSGJPN056, Pos->LocalFile);
+			else if (strncmp(Pos->Cmd, "RETR", 4) == 0)
+				sprintf(Tmp, MSGJPN057, Pos->LocalFile);
+			if (strlen(Tmp) > 0)
+				SendDlgItemMessage(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)Tmp);
+		}
+		CountMirrorFiles(hDlg, *Base);
+		EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), FALSE);
+		SendDlgItemMessageW(hDlg, MIRROR_NO_TRANSFER, BM_SETCHECK, MirrorNoTransferContents, 0);
+		return TRUE;
+	}
+	void OnCommand(HWND hDlg, WORD cmd, WORD id) {
+		switch (id) {
+		case IDOK:
+			MirrorDlgSize = resizable.GetCurrent();
+			EndDialog(hDlg, true);
+			break;
+		case IDCANCEL:
+			MirrorDlgSize = resizable.GetCurrent();
+			EndDialog(hDlg, false);
+			break;
+		case MIRROR_DEL: {
+			std::vector<int> List((size_t)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0));
+			auto Num = (int)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELITEMS, size_as<WPARAM>(List), (LPARAM)data(List));
+			for (Num--; Num >= 0; Num--)
+				if (RemoveTmpTransFileListItem(Base, List[Num]) == FFFTP_SUCCESS)
+					SendDlgItemMessage(hDlg, MIRROR_LIST, LB_DELETESTRING, List[Num], 0);
+				else
+					MessageBeep(-1);
+			CountMirrorFiles(hDlg, *Base);
+			break;
+		}
+		case MIRROR_LIST:
+			if (cmd == LBN_SELCHANGE)
+				EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), 0 < SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0));
+			break;
+		case MIRROR_NO_TRANSFER:
+			for (auto Pos = *Base; Pos; Pos = Pos->Next)
+				if (strncmp(Pos->Cmd, "STOR", 4) == 0 || strncmp(Pos->Cmd, "RETR", 4) == 0)
+					Pos->NoTransfer = (int)SendDlgItemMessageW(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
+			break;
+		case IDHELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000012);
+			break;
+		}
+	}
+};
 
 /*----- ミラーリングダウンロードを行う ----------------------------------------
 *
@@ -686,11 +746,7 @@ void MirrorDownloadProc(int Notify)
 				RemotePos = RemotePos->Next;
 			}
 
-			// ファイル一覧バグ修正
-//			if((Notify == YES) ||
-//			   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirrordown_notify_dlg), GetMainHwnd(), MirrorDispListCallBack, (LPARAM)&Base) == YES))
-			if(((AbortOnListError == NO) || (ListSts == FFFTP_SUCCESS)) && ((Notify == YES) ||
-			   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirrordown_notify_dlg), GetMainHwnd(), MirrorDispListCallBack, (LPARAM)&Base) == YES)))
+			if ((AbortOnListError == NO || ListSts == FFFTP_SUCCESS) && (Notify == YES || Dialog(GetFtpInst(), mirrordown_notify_dlg, GetMainHwnd(), MirrorList{ &Base })))
 			{
 				if(AskNoFullPathMode() == YES)
 				{
@@ -1737,11 +1793,7 @@ void MirrorUploadProc(int Notify)
 				LocalPos = LocalPos->Next;
 			}
 
-			// ファイル一覧バグ修正
-//			if((Notify == YES) ||
-//			   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirror_notify_dlg), GetMainHwnd(), MirrorDispListCallBack, (LPARAM)&Base) == YES))
-			if(((AbortOnListError == NO) || (ListSts == FFFTP_SUCCESS)) && ((Notify == YES) ||
-			   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirror_notify_dlg), GetMainHwnd(), MirrorDispListCallBack, (LPARAM)&Base) == YES)))
+			if ((AbortOnListError == NO || ListSts == FFFTP_SUCCESS) && (Notify == YES || Dialog(GetFtpInst(), mirror_notify_dlg, GetMainHwnd(), MirrorList{ &Base })))
 			{
 				if(AskNoFullPathMode() == YES)
 				{
@@ -1862,147 +1914,6 @@ static INT_PTR CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wP
 					else
 						hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000012);
 			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
-/*----- ミラーリングアップロード処理内容確認ウインドウのコールバック ----------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	static DIALOGSIZE DlgSize = {
-		{ MIRROR_DEL, MIRROR_SIZEGRIP, -1 },
-		// ミラーリング設定追加
-//		{ IDOK, IDCANCEL, IDHELP, MIRROR_DEL, MIRROR_COPYNUM, MIRROR_MAKENUM, MIRROR_DELNUM, MIRROR_SIZEGRIP, -1 },
-		{ IDOK, IDCANCEL, IDHELP, MIRROR_DEL, MIRROR_COPYNUM, MIRROR_MAKENUM, MIRROR_DELNUM, MIRROR_SIZEGRIP, MIRROR_NO_TRANSFER, -1 },
-		{ MIRROR_LIST, -1 },
-		{ 0, 0 },
-		{ 0, 0 }
-	};
-
-	static TRANSPACKET **Base;
-	TRANSPACKET *Pos;
-	char Tmp[FMAX_PATH+1+6];
-	int Num;
-	int *List;
-	// バグ修正
-	RECT Rect;
-
-	switch (iMessage)
-	{
-		// バグ修正
-		case WM_SIZE :
-			GetWindowRect(hDlg, &Rect);
-			DlgSizeChange(hDlg, &DlgSize, &Rect, 0);
-			RedrawWindow(hDlg, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
-			break;
-
-		case WM_INITDIALOG :
-			Base = (TRANSPACKET **)lParam;
-			Pos = *Base;
-			while(Pos != NULL)
-			{
-				strcpy(Tmp, "");
-				if((strncmp(Pos->Cmd, "R-DELE", 6) == 0) ||
-				   (strncmp(Pos->Cmd, "R-RMD", 5) == 0))
-					sprintf(Tmp, MSGJPN052, Pos->RemoteFile);
-				else if(strncmp(Pos->Cmd, "R-MKD", 5) == 0)
-					sprintf(Tmp, MSGJPN053, Pos->RemoteFile);
-				else if(strncmp(Pos->Cmd, "STOR", 4) == 0)
-					sprintf(Tmp, MSGJPN054, Pos->RemoteFile);
-				else if((strncmp(Pos->Cmd, "L-DELE", 6) == 0) ||
-						(strncmp(Pos->Cmd, "L-RMD", 5) == 0))
-					sprintf(Tmp, MSGJPN055, Pos->LocalFile);
-				else if(strncmp(Pos->Cmd, "L-MKD", 5) == 0)
-					sprintf(Tmp, MSGJPN056, Pos->LocalFile);
-				else if(strncmp(Pos->Cmd, "RETR", 4) == 0)
-					sprintf(Tmp, MSGJPN057, Pos->LocalFile);
-
-				if(strlen(Tmp) > 0)
-					SendDlgItemMessage(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)Tmp);
-				Pos = Pos->Next;
-			}
-			CountMirrorFiles(hDlg, *Base);
-			DlgSizeInit(hDlg, &DlgSize, &MirrorDlgSize);
-			EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), FALSE);
-			// ミラーリング設定追加
-			SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_SETCHECK, MirrorNoTransferContents, 0);
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDOK :
-					AskDlgSize(hDlg, &DlgSize, &MirrorDlgSize);
-					EndDialog(hDlg, YES);
-					break;
-
-				case IDCANCEL :
-					AskDlgSize(hDlg, &DlgSize, &MirrorDlgSize);
-					EndDialog(hDlg, NO);
-					break;
-
-				case MIRROR_DEL :
-					Num = (int)SendDlgItemMessage(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0);
-					if((List = (int*)malloc(Num * sizeof(int))) != NULL)
-					{
-						Num = (int)SendDlgItemMessage(hDlg, MIRROR_LIST, LB_GETSELITEMS, Num, (LPARAM)List);
-						for(Num--; Num >= 0; Num--)
-						{
-							if(RemoveTmpTransFileListItem(Base, List[Num]) == FFFTP_SUCCESS)
-								SendDlgItemMessage(hDlg, MIRROR_LIST, LB_DELETESTRING, List[Num], 0);
-							else
-								MessageBeep(-1);
-						}
-						free(List);
-						CountMirrorFiles(hDlg, *Base);
-					}
-					break;
-
-				case MIRROR_LIST :
-					switch(GET_WM_COMMAND_CMD(wParam, lParam))
-					{
-						case LBN_SELCHANGE :
-							if(SendDlgItemMessage(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0) > 0)
-								EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), TRUE);
-							else
-								EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), FALSE);
-							break;
-					}
-					break;
-
-				// ミラーリング設定追加
-				case MIRROR_NO_TRANSFER :
-					Pos = *Base;
-					while(Pos != NULL)
-					{
-						if(strncmp(Pos->Cmd, "STOR", 4) == 0 || strncmp(Pos->Cmd, "RETR", 4) == 0)
-							Pos->NoTransfer = (int)SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
-						Pos = Pos->Next;
-					}
-					break;
-
-				case IDHELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000012);
-			}
-			return(TRUE);
-
-		case WM_SIZING :
-			DlgSizeChange(hDlg, &DlgSize, (RECT *)lParam, (int)wParam);
 			return(TRUE);
 	}
 	return(FALSE);

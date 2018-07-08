@@ -70,7 +70,7 @@ public:
 		RECT r;
 		GetWindowRect(dialog, &r);
 		minimum = { r.right - r.left, r.bottom - r.top };
-		if (current.cx == 0)
+		if (current.cx == 0 || current.cx == -1)
 			current = minimum;
 		else {
 			auto copied = current;

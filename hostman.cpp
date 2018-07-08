@@ -33,10 +33,6 @@
 
 /*===== プロトタイプ =====*/
 
-// 64ビット対応
-//static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static LRESULT CALLBACK HostListWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static HOSTLISTDATA *GetNextNode(HOSTLISTDATA *Pos);
 static int GetNodeLevel(int Num);
 static int GetNodeLevelByData(HOSTLISTDATA *Data);
@@ -69,554 +65,359 @@ static int ConnectingHost;					/* 接続中のホスト */
 static int CurrentHost;						/* カーソル位置のホスト */
 static HOSTLISTDATA *HostListTop = NULL;	/* ホスト一覧データ */
 static HOSTDATA TmpHost;					/* ホスト情報コピー用 */
-static WNDPROC HostListProcPtr;
 
 // ホスト共通設定機能
 HOSTDATA DefaultHost;
 
 
+struct HostList {
+	using result_t = int;
+	Resizable<Controls<HOST_NEW, HOST_FOLDER, HOST_SET, HOST_COPY, HOST_DEL, HOST_DOWN, HOST_UP, HOST_SET_DEFAULT, IDHELP, HOST_SIZEGRIP>, Controls<IDOK, IDCANCEL, HOST_SIZEGRIP>, Controls<HOST_LIST>> resizable{ HostDlgSize };
+	HIMAGELIST hImage = ImageList_LoadBitmap(GetFtpInst(), MAKEINTRESOURCE(hlist_bmp), 16, 8, RGB(255, 0, 0));
+	~HostList() {
+		ImageList_Destroy(hImage);
+	}
+	INT_PTR OnInit(HWND hDlg) {
+		if (AskConnecting() == YES) {
+			/* 接続中は「変更」のみ許可 */
+			EnableWindow(GetDlgItem(hDlg, HOST_NEW), FALSE);
+			EnableWindow(GetDlgItem(hDlg, HOST_FOLDER), FALSE);
+			EnableWindow(GetDlgItem(hDlg, HOST_COPY), FALSE);
+			EnableWindow(GetDlgItem(hDlg, HOST_DEL), FALSE);
+			EnableWindow(GetDlgItem(hDlg, HOST_DOWN), FALSE);
+			EnableWindow(GetDlgItem(hDlg, HOST_UP), FALSE);
+		}
+		if (ListFont != NULL)
+			SendDlgItemMessageW(hDlg, HOST_LIST, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
+		SendDlgItemMessageW(hDlg, HOST_LIST, TVM_SETIMAGELIST, TVSIL_NORMAL, (LPARAM)hImage);
+		CurrentHost = 0;
+		if (ConnectingHost >= 0)
+			CurrentHost = ConnectingHost;
+		SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
+		return TRUE;
+	}
+	void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case IDOK:
+			if (auto hItem = (HTREEITEM)SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) {
+				TVITEMW Item{ TVIF_PARAM, hItem };
+				SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
+				CurrentHost = (int)Item.lParam;
+				ConnectingHost = CurrentHost;
+				HostDlgSize = resizable.GetCurrent();
+				EndDialog(hDlg, YES);
+				return;
+			}
+			[[fallthrough]];
+		case IDCANCEL:
+			HostDlgSize = resizable.GetCurrent();
+			EndDialog(hDlg, NO);
+			return;
+		case HOST_NEW:
+			CopyDefaultHost(&TmpHost);
+			if (DispHostSetDlg(hDlg)) {
+				int Level1 = -1;
+				if (auto hItem = (HTREEITEM)SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) {
+					TVITEMW Item{ TVIF_PARAM, hItem };
+					SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
+					TmpHost.Level = GetNodeLevel((int)Item.lParam);
+					Level1 = (int)Item.lParam + 1;
+					CurrentHost = Level1;
+				} else {
+					TmpHost.Level = 0;
+					CurrentHost = Hosts;
+				}
+				AddHostToList(&TmpHost, Level1, SET_LEVEL_SAME);
+				SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
+			}
+			break;
+		case HOST_FOLDER:
+			CopyDefaultHost(&TmpHost);
+			if (int Level1; InputDialogBox(group_dlg, hDlg, NULL, TmpHost.HostName, HOST_NAME_LEN + 1, &Level1, IDH_HELP_TOPIC_0000001) == YES) {
+				if (auto hItem = (HTREEITEM)SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) {
+					TVITEMW Item{ TVIF_PARAM, hItem };
+					SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
+					TmpHost.Level = GetNodeLevel((int)Item.lParam) | SET_LEVEL_GROUP;
+					Level1 = (int)Item.lParam + 1;
+					CurrentHost = Level1;
+				} else {
+					TmpHost.Level = 0 | SET_LEVEL_GROUP;
+					Level1 = -1;
+					CurrentHost = Hosts;
+				}
+				AddHostToList(&TmpHost, Level1, SET_LEVEL_SAME);
+				SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
+			}
+			break;
+		case HOST_SET:
+			if (auto hItem = (HTREEITEM)SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) {
+				TVITEMW Item{ TVIF_PARAM, hItem };
+				SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
+				CurrentHost = (int)Item.lParam;
+				CopyHostFromList(CurrentHost, &TmpHost);
+				int Level1 = IsNodeGroup(CurrentHost);
+				if (Level1 == NO && DispHostSetDlg(hDlg) || Level1 == YES && InputDialogBox(group_dlg, hDlg, NULL, TmpHost.HostName, HOST_NAME_LEN + 1, &Level1, IDH_HELP_TOPIC_0000001) == YES) {
+					UpdateHostToList(CurrentHost, &TmpHost);
+					SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
+				}
+			}
+			break;
+		case HOST_COPY:
+			if (auto hItem = (HTREEITEM)SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) {
+				TVITEMW Item{ TVIF_PARAM, hItem };
+				SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
+				CurrentHost = (int)Item.lParam;
+				CopyHostFromList(CurrentHost, &TmpHost);
+				strcpy(TmpHost.BookMark, "\0");
+				CurrentHost++;
+				AddHostToList(&TmpHost, CurrentHost, SET_LEVEL_SAME);
+				SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
+			}
+			break;
+		case HOST_DEL:
+			if (auto hItem = (HTREEITEM)SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) {
+				TVITEMW Item{ TVIF_PARAM, hItem };
+				SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
+				CurrentHost = (int)Item.lParam;
+				int Level1 = IsNodeGroup(CurrentHost);
+				if (Level1 == YES && DialogBox(GetFtpInst(), MAKEINTRESOURCE(groupdel_dlg), hDlg, ExeEscDialogProc) == YES || Level1 == NO && DialogBox(GetFtpInst(), MAKEINTRESOURCE(hostdel_dlg), hDlg, ExeEscDialogProc) == YES) {
+					DelHostFromList(CurrentHost);
+					if (CurrentHost >= Hosts)
+						CurrentHost = max1(0, Hosts - 1);
+					SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
+				}
+			}
+			break;
+		case HOST_UP:
+			if (auto hItem = (HTREEITEM)SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) {
+				TVITEMW Item{ TVIF_PARAM, hItem };
+				SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
+				CurrentHost = (int)Item.lParam;
 
-/*----- ホスト一覧ウインドウ --------------------------------------------------
-*
-*	Parameter
-*		int Type : ダイアログのタイプ (DLG_TYPE_xxx)
-*
-*	Return Value
-*		ステータス (YES=実行/NO=取消)
-*----------------------------------------------------------------------------*/
+				if (CurrentHost > 0) {
+					int Level1, Level2;
+					auto Data1 = HostListTop;
+					for (Level1 = CurrentHost; Level1 > 0; Level1--)
+						Data1 = GetNextNode(Data1);
+					Level1 = GetNodeLevel(CurrentHost);
 
-int SelectHost(int Type)
-{
-	int Sts;
-	int Dlg;
+					auto Data2 = HostListTop;
+					for (Level2 = CurrentHost - 1; Level2 > 0; Level2--)
+						Data2 = GetNextNode(Data2);
+					Level2 = GetNodeLevel(CurrentHost - 1);
 
-	Dlg = hostconnect_dlg;
-	if((ConnectAndSet == YES) || (Type == DLG_TYPE_SET))
-		Dlg = hostlist_dlg;
+					if (Level1 == Level2 && (Data2->Set.Level & SET_LEVEL_GROUP)) {
+						//Data2のchildへ
+						if (Data1->Next != NULL)
+							Data1->Next->Prev = Data1->Prev;
+						if (Data1->Prev != NULL)
+							Data1->Prev->Next = Data1->Next;
+						if (Data1->Parent != NULL && Data1->Parent->Child == Data1)
+							Data1->Parent->Child = Data1->Next;
+						if (Data1->Parent == NULL && HostListTop == Data1)
+							HostListTop = Data1->Next;
 
-	Sts = (int)DialogBox(GetFtpInst(), MAKEINTRESOURCE(Dlg), GetMainHwnd(), SelectHostProc);
+						Data1->Next = Data2->Child;
+						Data1->Prev = NULL;
+						Data1->Parent = Data2;
+						Data2->Child = Data1;
+					} else if (Level1 < Level2) {
+						//Data1のPrevのChildのNextの末尾へ
+						Data2 = Data1->Prev->Child;
+						while (Data2->Next != NULL)
+							Data2 = Data2->Next;
+
+						if (Data1->Next != NULL)
+							Data1->Next->Prev = Data1->Prev;
+						if (Data1->Prev != NULL)
+							Data1->Prev->Next = Data1->Next;
+						if (Data1->Parent != NULL && Data1->Parent->Child == Data1)
+							Data1->Parent->Child = Data1->Next;
+						if (Data1->Parent == NULL && HostListTop == Data1)
+							HostListTop = Data1->Next;
+
+						Data2->Next = Data1;
+						Data1->Prev = Data2;
+						Data1->Next = NULL;
+						Data1->Parent = Data2->Parent;
+					} else {
+						//Data2のprevへ
+						if (Data1->Next != NULL)
+							Data1->Next->Prev = Data1->Prev;
+						if (Data1->Prev != NULL)
+							Data1->Prev->Next = Data1->Next;
+						if (Data1->Parent != NULL && Data1->Parent->Child == Data1)
+							Data1->Parent->Child = Data1->Next;
+						if (Data1->Parent == NULL && HostListTop == Data1)
+							HostListTop = Data1->Next;
+
+						if (Data2->Prev != NULL)
+							Data2->Prev->Next = Data1;
+						Data1->Prev = Data2->Prev;
+						Data2->Prev = Data1;
+						Data1->Next = Data2;
+						Data1->Parent = Data2->Parent;
+
+						if (Data1->Parent != NULL && Data1->Parent->Child == Data2)
+							Data1->Parent->Child = Data1;
+						if (Data1->Parent == NULL && HostListTop == Data2)
+							HostListTop = Data1;
+					}
+
+					CurrentHost = GetNodeNumByData(Data1);
+					SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
+				}
+			}
+			break;
+		case HOST_DOWN:
+			if (auto hItem = (HTREEITEM)SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) {
+				TVITEMW Item{ TVIF_PARAM, hItem };
+				SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
+				CurrentHost = (int)Item.lParam;
+
+				int Level1, Level2;
+				auto Data1 = HostListTop;
+				for (Level1 = CurrentHost; Level1 > 0; Level1--)
+					Data1 = GetNextNode(Data1);
+				Level1 = GetNodeLevel(CurrentHost);
+
+				HOSTLISTDATA* Data2 = NULL;
+				Level2 = SET_LEVEL_SAME;
+				if (CurrentHost < Hosts - 1) {
+					Data2 = HostListTop;
+					for (Level2 = CurrentHost + 1; Level2 > 0; Level2--)
+						Data2 = GetNextNode(Data2);
+					Level2 = GetNodeLevel(CurrentHost + 1);
+
+					if (Level1 < Level2) {
+						if (Data1->Next != NULL) {
+							//Data2 = Data1のNext
+							Data2 = Data1->Next;
+							Level2 = GetNodeLevelByData(Data2);
+						} else if (Data1->Parent != NULL) {
+							Data2 = NULL;
+							Level2 = SET_LEVEL_SAME;
+						}
+					}
+				}
+
+				if (Data2 == NULL && Level1 > 0 || Level1 > Level2) {
+					//Data1のParentのNextへ
+					Data2 = Data1->Parent;
+
+					if (Data1->Next != NULL)
+						Data1->Next->Prev = Data1->Prev;
+					if (Data1->Prev != NULL)
+						Data1->Prev->Next = Data1->Next;
+					if (Data1->Parent != NULL && Data1->Parent->Child == Data1)
+						Data1->Parent->Child = Data1->Next;
+					if (Data1->Parent == NULL && HostListTop == Data1)
+						HostListTop = Data1->Next;
+
+					if (Data2->Next != NULL)
+						Data2->Next->Prev = Data1;
+					Data1->Next = Data2->Next;
+					Data2->Next = Data1;
+					Data1->Prev = Data2;
+					Data1->Parent = Data2->Parent;
+
+					if (Data1->Parent != NULL && Data1->Parent->Child == Data1)
+						Data1->Parent->Child = Data2;
+					if (Data1->Parent == NULL && HostListTop == Data1)
+						HostListTop = Data2;
+				} else if (Level1 == Level2) {
+					if (Data2->Set.Level & SET_LEVEL_GROUP) {
+						//Data2のChildへ
+						if (Data1->Next != NULL)
+							Data1->Next->Prev = Data1->Prev;
+						if (Data1->Prev != NULL)
+							Data1->Prev->Next = Data1->Next;
+						if (Data1->Parent != NULL && Data1->Parent->Child == Data1)
+							Data1->Parent->Child = Data1->Next;
+						if (Data1->Parent == NULL && HostListTop == Data1)
+							HostListTop = Data1->Next;
+
+						if (Data2->Child != NULL)
+							Data2->Child->Prev = Data1;
+						Data1->Next = Data2->Child;
+						Data1->Prev = NULL;
+						Data1->Parent = Data2;
+						Data2->Child = Data1;
+					} else {
+						//Data2のNextへ
+						if (Data1->Next != NULL)
+							Data1->Next->Prev = Data1->Prev;
+						if (Data1->Prev != NULL)
+							Data1->Prev->Next = Data1->Next;
+						if (Data1->Parent != NULL && Data1->Parent->Child == Data1)
+							Data1->Parent->Child = Data1->Next;
+						if (Data1->Parent == NULL && HostListTop == Data1)
+							HostListTop = Data1->Next;
+
+						if (Data2->Next != NULL)
+							Data2->Next->Prev = Data1;
+						Data1->Next = Data2->Next;
+						Data2->Next = Data1;
+						Data1->Prev = Data2;
+						Data1->Parent = Data2->Parent;
+
+						if (Data1->Parent != NULL && Data1->Parent->Child == Data1)
+							Data1->Parent->Child = Data2;
+						if (Data1->Parent == NULL && HostListTop == Data1)
+							HostListTop = Data2;
+					}
+				}
+
+				CurrentHost = GetNodeNumByData(Data1);
+				SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
+			}
+			break;
+		case HOST_SET_DEFAULT:
+			CopyDefaultHost(&TmpHost);
+			if (DispHostSetDlg(hDlg))
+				SetDefaultHost(&TmpHost);
+			break;
+		case IDHELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000027);
+			break;
+		}
+		SetFocus(GetDlgItem(hDlg, HOST_LIST));
+	}
+	INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		if (nmh->idFrom == HOST_LIST)
+			switch (nmh->code) {
+			case NM_DBLCLK:
+				if (IsWindowEnabled(GetDlgItem(hDlg, IDOK)) == TRUE)
+					PostMessageW(hDlg, WM_COMMAND, MAKEWPARAM(IDOK, 0), 0);
+				break;
+			case TVN_SELCHANGEDW: {
+				/* フォルダが選ばれたときは接続、コピーボタンは禁止 */
+				TVITEMW Item{ TVIF_PARAM, reinterpret_cast<NMTREEVIEW*>(nmh)->itemNew.hItem };
+				SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
+				if (IsNodeGroup((int)Item.lParam) == YES) {
+					EnableWindow(GetDlgItem(hDlg, IDOK), FALSE);
+					EnableWindow(GetDlgItem(hDlg, HOST_COPY), FALSE);
+				} else {
+					EnableWindow(GetDlgItem(hDlg, IDOK), TRUE);
+					if (AskConnecting() == NO)
+						EnableWindow(GetDlgItem(hDlg, HOST_COPY), TRUE);
+				}
+				break;
+			}
+			}
+		return 0;
+	}
+};
+
+// ホスト一覧
+int SelectHost(int Type) {
+	auto result = Dialog(GetFtpInst(), ConnectAndSet == YES || Type == DLG_TYPE_SET ? hostlist_dlg : hostconnect_dlg, GetMainHwnd(), HostList{});
 
 	/* ホスト設定を保存 */
 	SetNodeLevelAll();
 	SaveRegistry();
 
-	return(Sts);
-}
-
-
-/*----- ホスト一覧ウインドウのコールバック ------------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK SelectHostProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	static DIALOGSIZE DlgSize = {
-		// ホスト共通設定機能
-//		{ HOST_NEW, HOST_FOLDER, HOST_SET, HOST_COPY, HOST_DEL, HOST_DOWN, HOST_UP, IDHELP, HOST_SIZEGRIP, -1 },
-		{ HOST_NEW, HOST_FOLDER, HOST_SET, HOST_COPY, HOST_DEL, HOST_DOWN, HOST_UP, HOST_SET_DEFAULT, IDHELP, HOST_SIZEGRIP, -1 },
-		{ IDOK, IDCANCEL, HOST_SIZEGRIP, -1 },
-		{ HOST_LIST, -1 },
-		{ 0, 0 },
-		{ 0, 0 }
-	};
-	static HIMAGELIST hImage;
-	HTREEITEM hItem;
-	TV_ITEM Item;
-	int Level1;
-	int Level2;
-	HOSTLISTDATA *Data1;
-	HOSTLISTDATA *Data2;
-	// UTF-8対応
-//	NM_TREEVIEW *tView;
-	NM_TREEVIEWW *tView;
-	HTREEITEM tViewPos;
-	TV_HITTESTINFO HitInfo;
-	// バグ修正
-	RECT Rect;
-
-	switch (message)
-	{
-		// バグ修正
-		case WM_SIZE :
-			GetWindowRect(hDlg, &Rect);
-			DlgSizeChange(hDlg, &DlgSize, &Rect, 0);
-			RedrawWindow(hDlg, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
-			break;
-
-		case WM_INITDIALOG :
-			/* TreeViewでのダブルクリックをつかまえるため */
-			// 64ビット対応
-//			HostListProcPtr = (WNDPROC)SetWindowLong(GetDlgItem(hDlg, HOST_LIST), GWL_WNDPROC, (LONG)HostListWndProc);
-			HostListProcPtr = (WNDPROC)SetWindowLongPtr(GetDlgItem(hDlg, HOST_LIST), GWLP_WNDPROC, (LONG_PTR)HostListWndProc);
-
-
-//		SetClassLong(hDlg, GCL_HICON, (LONG)LoadIcon(GetFtpInst(), MAKEINTRESOURCE(ffftp)));
-
-			if(AskConnecting() == YES)
-			{
-				/* 接続中は「変更」のみ許可 */
-				EnableWindow(GetDlgItem(hDlg, HOST_NEW), FALSE);
-				EnableWindow(GetDlgItem(hDlg, HOST_FOLDER), FALSE);
-				EnableWindow(GetDlgItem(hDlg, HOST_COPY), FALSE);
-				EnableWindow(GetDlgItem(hDlg, HOST_DEL), FALSE);
-				EnableWindow(GetDlgItem(hDlg, HOST_DOWN), FALSE);
-				EnableWindow(GetDlgItem(hDlg, HOST_UP), FALSE);
-			}
-			if(ListFont != NULL)
-				SendDlgItemMessage(hDlg, HOST_LIST, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
-			hImage = ImageList_LoadBitmap(GetFtpInst(), MAKEINTRESOURCE(hlist_bmp), 16, 8, RGB(255,0,0));
-			SendDlgItemMessage(hDlg, HOST_LIST, TVM_SETIMAGELIST, TVSIL_NORMAL, (LPARAM)hImage);
-			CurrentHost = 0;
-			if(ConnectingHost >= 0)
-				CurrentHost = ConnectingHost;
-			SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
-			DlgSizeInit(hDlg, &DlgSize, &HostDlgSize);
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDOK :
-					if((hItem = (HTREEITEM)SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) != NULL)
-					{
-						Item.hItem = hItem;
-						Item.mask = TVIF_PARAM;
-						SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-						CurrentHost = (int)Item.lParam;
-						ConnectingHost = CurrentHost;
-						AskDlgSize(hDlg, &DlgSize, &HostDlgSize);
-						ImageList_Destroy(hImage);
-						EndDialog(hDlg, YES);
-						break;
-					}
-					/* ここにbreakはない */
-
-				case IDCANCEL :
-					AskDlgSize(hDlg, &DlgSize, &HostDlgSize);
-					ImageList_Destroy(hImage);
-					EndDialog(hDlg, NO);
-					break;
-
-				case HOST_NEW :
-					CopyDefaultHost(&TmpHost);
-					if(DispHostSetDlg(hDlg))
-					{
-						if((hItem = (HTREEITEM)SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) != NULL)
-						{
-							Item.hItem = hItem;
-							Item.mask = TVIF_PARAM;
-							SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-
-							TmpHost.Level = GetNodeLevel((int)Item.lParam);
-							Level1 = (int)Item.lParam + 1;
-							CurrentHost = Level1;
-						}
-						else
-						{
-							TmpHost.Level = 0;
-							Level1 = -1;
-							CurrentHost = Hosts;
-						}
-						AddHostToList(&TmpHost, Level1, SET_LEVEL_SAME);
-						SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
-					}
-					break;
-
-				case HOST_FOLDER :
-					CopyDefaultHost(&TmpHost);
-					if(InputDialogBox(group_dlg, hDlg, NULL, TmpHost.HostName, HOST_NAME_LEN+1, &Level1, IDH_HELP_TOPIC_0000001) == YES)
-					{
-						if((hItem = (HTREEITEM)SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) != NULL)
-						{
-							Item.hItem = hItem;
-							Item.mask = TVIF_PARAM;
-							SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-
-							TmpHost.Level = GetNodeLevel((int)Item.lParam) | SET_LEVEL_GROUP ;
-							Level1 = (int)Item.lParam + 1;
-							CurrentHost = Level1;
-						}
-						else
-						{
-							TmpHost.Level = 0 | SET_LEVEL_GROUP;
-							Level1 = -1;
-							CurrentHost = Hosts;
-						}
-						AddHostToList(&TmpHost, Level1, SET_LEVEL_SAME);
-						SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
-					}
-					break;
-
-				case HOST_SET :
-					if((hItem = (HTREEITEM)SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) != NULL)
-					{
-						Item.hItem = hItem;
-						Item.mask = TVIF_PARAM;
-						SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-						CurrentHost = (int)Item.lParam;
-
-						CopyHostFromList(CurrentHost, &TmpHost);
-						Level1 = IsNodeGroup(CurrentHost);
-						if(((Level1 == NO) && DispHostSetDlg(hDlg)) ||
-						   ((Level1 == YES) && (InputDialogBox(group_dlg, hDlg, NULL, TmpHost.HostName, HOST_NAME_LEN+1, &Level1, IDH_HELP_TOPIC_0000001) == YES)))
-						{
-							UpdateHostToList(CurrentHost, &TmpHost);
-							SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
-						}
-					}
-					break;
-
-				case HOST_COPY :
-					if((hItem = (HTREEITEM)SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) != NULL)
-					{
-						Item.hItem = hItem;
-						Item.mask = TVIF_PARAM;
-						SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-						CurrentHost = (int)Item.lParam;
-
-						CopyHostFromList(CurrentHost, &TmpHost);
-						strcpy(TmpHost.BookMark, "\0");
-						CurrentHost++;
-						AddHostToList(&TmpHost, CurrentHost, SET_LEVEL_SAME);
-						SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
-					}
-					break;
-
-				case HOST_DEL :
-					if((hItem = (HTREEITEM)SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) != NULL)
-					{
-						Item.hItem = hItem;
-						Item.mask = TVIF_PARAM;
-						SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-						CurrentHost = (int)Item.lParam;
-						Level1 = IsNodeGroup(CurrentHost);
-
-						// バグ修正
-//						if(((Level1 == YES) && (DialogBox(GetFtpInst(), MAKEINTRESOURCE(groupdel_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)) ||
-//						   ((Level1 == NO) && (DialogBox(GetFtpInst(), MAKEINTRESOURCE(hostdel_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)))
-						if(((Level1 == YES) && (DialogBox(GetFtpInst(), MAKEINTRESOURCE(groupdel_dlg), hDlg, ExeEscDialogProc) == YES)) ||
-						   ((Level1 == NO) && (DialogBox(GetFtpInst(), MAKEINTRESOURCE(hostdel_dlg), hDlg, ExeEscDialogProc) == YES)))
-						{
-							DelHostFromList(CurrentHost);
-							if(CurrentHost >= Hosts)
-								CurrentHost = max1(0, Hosts-1);
-							SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
-						}
-					}
-					break;
-
-				case HOST_UP :
-					if((hItem = (HTREEITEM)SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) != NULL)
-					{
-						Item.hItem = hItem;
-						Item.mask = TVIF_PARAM;
-						SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-						CurrentHost = (int)Item.lParam;
-
-						if(CurrentHost > 0)
-						{
-							Data1 = HostListTop;
-							for(Level1 = CurrentHost; Level1 > 0; Level1--)
-								Data1 = GetNextNode(Data1);
-							Level1 = GetNodeLevel(CurrentHost);
-
-							Data2 = HostListTop;
-							for(Level2 = CurrentHost-1; Level2 > 0; Level2--)
-								Data2 = GetNextNode(Data2);
-							Level2 = GetNodeLevel(CurrentHost-1);
-
-							if((Level1 == Level2) && (Data2->Set.Level & SET_LEVEL_GROUP))
-							{
-								//Data2のchildへ
-								if(Data1->Next != NULL)
-									Data1->Next->Prev = Data1->Prev;
-								if(Data1->Prev != NULL)
-									Data1->Prev->Next = Data1->Next;
-								if((Data1->Parent != NULL) && (Data1->Parent->Child == Data1))
-									Data1->Parent->Child = Data1->Next;
-								if((Data1->Parent == NULL) && (HostListTop == Data1))
-									HostListTop = Data1->Next;
-
-								Data1->Next = Data2->Child;
-								Data1->Prev = NULL;
-								Data1->Parent = Data2;
-								Data2->Child = Data1;
-							}
-							else if(Level1 < Level2)
-							{
-								//Data1のPrevのChildのNextの末尾へ
-								Data2 = Data1->Prev->Child;
-								while(Data2->Next != NULL)
-									Data2 = Data2->Next;
-
-								if(Data1->Next != NULL)
-									Data1->Next->Prev = Data1->Prev;
-								if(Data1->Prev != NULL)
-									Data1->Prev->Next = Data1->Next;
-								if((Data1->Parent != NULL) && (Data1->Parent->Child == Data1))
-									Data1->Parent->Child = Data1->Next;
-								if((Data1->Parent == NULL) && (HostListTop == Data1))
-									HostListTop = Data1->Next;
-
-								Data2->Next = Data1;
-								Data1->Prev = Data2;
-								Data1->Next = NULL;
-								Data1->Parent = Data2->Parent;
-							}
-							else
-							{
-								//Data2のprevへ
-								if(Data1->Next != NULL)
-									Data1->Next->Prev = Data1->Prev;
-								if(Data1->Prev != NULL)
-									Data1->Prev->Next = Data1->Next;
-								if((Data1->Parent != NULL) && (Data1->Parent->Child == Data1))
-									Data1->Parent->Child = Data1->Next;
-								if((Data1->Parent == NULL) && (HostListTop == Data1))
-									HostListTop = Data1->Next;
-
-								if(Data2->Prev != NULL)
-									Data2->Prev->Next = Data1;
-								Data1->Prev = Data2->Prev;
-								Data2->Prev = Data1;
-								Data1->Next = Data2;
-								Data1->Parent = Data2->Parent;
-
-								if((Data1->Parent != NULL) && (Data1->Parent->Child == Data2))
-									Data1->Parent->Child = Data1;
-								if((Data1->Parent == NULL) && (HostListTop == Data2))
-									HostListTop = Data1;
-							}
-
-							CurrentHost = GetNodeNumByData(Data1);
-							SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
-						}
-					}
-					break;
-
-				case HOST_DOWN :
-					if((hItem = (HTREEITEM)SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) != NULL)
-					{
-						Item.hItem = hItem;
-						Item.mask = TVIF_PARAM;
-						SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-						CurrentHost = (int)Item.lParam;
-
-						Data1 = HostListTop;
-						for(Level1 = CurrentHost; Level1 > 0; Level1--)
-							Data1 = GetNextNode(Data1);
-						Level1 = GetNodeLevel(CurrentHost);
-
-						Data2 = NULL;
-						Level2 = SET_LEVEL_SAME;
-						if(CurrentHost < Hosts-1)
-						{
-							Data2 = HostListTop;
-							for(Level2 = CurrentHost+1; Level2 > 0; Level2--)
-								Data2 = GetNextNode(Data2);
-							Level2 = GetNodeLevel(CurrentHost+1);
-
-							if(Level1 < Level2)
-							{
-								if(Data1->Next != NULL)
-								{
-									//Data2 = Data1のNext
-									Data2 = Data1->Next;
-									Level2 = GetNodeLevelByData(Data2);
-								}
-								else if(Data1->Parent != NULL)
-								{
-									Data2 = NULL;
-									Level2 = SET_LEVEL_SAME;
-								}
-							}
-						}
-
-						if(((Data2 == NULL) && (Level1 > 0)) ||
-						   (Level1 > Level2))
-						{
-							//Data1のParentのNextへ
-							Data2 = Data1->Parent;
-
-							if(Data1->Next != NULL)
-								Data1->Next->Prev = Data1->Prev;
-							if(Data1->Prev != NULL)
-								Data1->Prev->Next = Data1->Next;
-							if((Data1->Parent != NULL) && (Data1->Parent->Child == Data1))
-								Data1->Parent->Child = Data1->Next;
-							if((Data1->Parent == NULL) && (HostListTop == Data1))
-								HostListTop = Data1->Next;
-
-							if(Data2->Next != NULL)
-								Data2->Next->Prev = Data1;
-							Data1->Next = Data2->Next;
-							Data2->Next = Data1;
-							Data1->Prev = Data2;
-							Data1->Parent = Data2->Parent;
-
-							if((Data1->Parent != NULL) && (Data1->Parent->Child == Data1))
-								Data1->Parent->Child = Data2;
-							if((Data1->Parent == NULL) && (HostListTop == Data1))
-								HostListTop = Data2;
-						}
-						else if(Level1 == Level2)
-						{
-							if(Data2->Set.Level & SET_LEVEL_GROUP)
-							{
-								//Data2のChildへ
-								if(Data1->Next != NULL)
-									Data1->Next->Prev = Data1->Prev;
-								if(Data1->Prev != NULL)
-									Data1->Prev->Next = Data1->Next;
-								if((Data1->Parent != NULL) && (Data1->Parent->Child == Data1))
-									Data1->Parent->Child = Data1->Next;
-								if((Data1->Parent == NULL) && (HostListTop == Data1))
-									HostListTop = Data1->Next;
-
-								if(Data2->Child != NULL)
-									Data2->Child->Prev = Data1;
-								Data1->Next = Data2->Child;
-								Data1->Prev = NULL;
-								Data1->Parent = Data2;
-								Data2->Child = Data1;
-							}
-							else
-							{
-								//Data2のNextへ
-								if(Data1->Next != NULL)
-									Data1->Next->Prev = Data1->Prev;
-								if(Data1->Prev != NULL)
-									Data1->Prev->Next = Data1->Next;
-								if((Data1->Parent != NULL) && (Data1->Parent->Child == Data1))
-									Data1->Parent->Child = Data1->Next;
-								if((Data1->Parent == NULL) && (HostListTop == Data1))
-									HostListTop = Data1->Next;
-
-								if(Data2->Next != NULL)
-									Data2->Next->Prev = Data1;
-								Data1->Next = Data2->Next;
-								Data2->Next = Data1;
-								Data1->Prev = Data2;
-								Data1->Parent = Data2->Parent;
-
-								if((Data1->Parent != NULL) && (Data1->Parent->Child == Data1))
-									Data1->Parent->Child = Data2;
-								if((Data1->Parent == NULL) && (HostListTop == Data1))
-									HostListTop = Data2;
-							}
-						}
-
-						CurrentHost = GetNodeNumByData(Data1);
-						SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
-					}
-					break;
-
-				// ホスト共通設定機能
-				case HOST_SET_DEFAULT :
-					CopyDefaultHost(&TmpHost);
-					if(DispHostSetDlg(hDlg))
-						SetDefaultHost(&TmpHost);
-					break;
-
-				case HOST_LIST :
-					if(HIWORD(wParam) == LBN_DBLCLK)
-						PostMessage(hDlg, WM_COMMAND, MAKEWORD(IDOK, 0), 0);
-					break;
-
-				case IDHELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000027);
-					break;
-			}
-			SetFocus(GetDlgItem(hDlg, HOST_LIST));
-			return(TRUE);
-
-		case WM_SIZING :
-			DlgSizeChange(hDlg, &DlgSize, (RECT *)lParam, (int)wParam);
-			return(TRUE);
-
-		case WM_SELECT_HOST :
-			HitInfo.pt.x = LOWORD(lParam);
-			HitInfo.pt.y = HIWORD(lParam);
-			HitInfo.flags = TVHT_ONITEM;
-			hItem = (HTREEITEM)SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0);
-			HitInfo.hItem = hItem;
-			if((HTREEITEM)SendMessage(GetDlgItem(hDlg, HOST_LIST), TVM_HITTEST, 0, (LPARAM)&HitInfo) == hItem)
-			{
-				if(IsWindowEnabled(GetDlgItem(hDlg, IDOK)) == TRUE)
-					PostMessage(hDlg, WM_COMMAND, MAKEWPARAM(IDOK, 0), 0);
-			}
-			break;
-
-		case WM_NOTIFY:
-			// UTF-8対応
-//			tView = (NM_TREEVIEW FAR *)lParam;
-			tView = (NM_TREEVIEWW FAR *)lParam;
-			switch(tView->hdr.idFrom)
-			{
-				case HOST_LIST :
-					tViewPos = tView->itemNew.hItem;
-					hItem = tView->itemNew.hItem;
-					switch(tView->hdr.code)
-					{
-						// UTF-8対応
-//						case TVN_SELCHANGED :
-						case TVN_SELCHANGEDW :
-							/* フォルダが選ばれたときは接続、コピーボタンは禁止 */
-							Item.hItem = hItem;
-							Item.mask = TVIF_PARAM;
-							SendDlgItemMessage(hDlg, HOST_LIST, TVM_GETITEM, TVGN_CARET, (LPARAM)&Item);
-							if(IsNodeGroup((int)Item.lParam) == YES)
-							{
-								EnableWindow(GetDlgItem(hDlg, IDOK), FALSE);
-								EnableWindow(GetDlgItem(hDlg, HOST_COPY), FALSE);
-							}
-							else
-							{
-								EnableWindow(GetDlgItem(hDlg, IDOK), TRUE);
-								if(AskConnecting() == NO)
-									EnableWindow(GetDlgItem(hDlg, HOST_COPY), TRUE);
-							}
-							break;
-					}
-					break;
-			}
-			break;
-	}
-	return(FALSE);
-}
-
-
-/*----- ホスト一覧TreeViewのメッセージ処理 ------------------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		UINT message  : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		メッセージに対応する戻り値
-*----------------------------------------------------------------------------*/
-
-static LRESULT CALLBACK HostListWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	switch (message)
-	{
-		case WM_LBUTTONDBLCLK :
-			PostMessage(GetParent(hWnd), WM_SELECT_HOST, 0, lParam);
-			break;
-	}
-	return(CallWindowProc(HostListProcPtr, hWnd, message, wParam, lParam));
+	return result;
 }
 
 
