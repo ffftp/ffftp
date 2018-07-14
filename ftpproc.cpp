@@ -962,21 +962,7 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 static INT_PTR CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	static TRANSPACKET *Pkt;
-	// 同じ名前のファイルの処理方法追加
-//	static const RADIOBUTTON DownExistButton[] = {
-//		{ DOWN_EXIST_OVW, EXIST_OVW },
-//		{ DOWN_EXIST_NEW, EXIST_NEW },
-//		{ DOWN_EXIST_RESUME, EXIST_RESUME },
-//		{ DOWN_EXIST_IGNORE, EXIST_IGNORE }
-//	};
-	static const RADIOBUTTON DownExistButton[] = {
-		{ DOWN_EXIST_OVW, EXIST_OVW },
-		{ DOWN_EXIST_NEW, EXIST_NEW },
-		{ DOWN_EXIST_RESUME, EXIST_RESUME },
-		{ DOWN_EXIST_IGNORE, EXIST_IGNORE },
-		{ DOWN_EXIST_LARGE, EXIST_LARGE }
-	};
-	#define DOWNEXISTBUTTONS	(sizeof(DownExistButton)/sizeof(RADIOBUTTON))
+	using DownExistButton = RadioButton<DOWN_EXIST_OVW, DOWN_EXIST_NEW, DOWN_EXIST_RESUME, DOWN_EXIST_IGNORE, DOWN_EXIST_LARGE>;
 
 	switch (iMessage)
 	{
@@ -988,7 +974,7 @@ static INT_PTR CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM
 			if((Pkt->Type == TYPE_A) || (Pkt->ExistSize <= 0))
 				EnableWindow(GetDlgItem(hDlg, DOWN_EXIST_RESUME), FALSE);
 
-			SetRadioButtonByValue(hDlg, ExistMode, DownExistButton, DOWNEXISTBUTTONS);
+			DownExistButton::Set(hDlg, ExistMode);
 			return(TRUE);
 
 		case WM_COMMAND :
@@ -999,7 +985,7 @@ static INT_PTR CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM
 					/* ここに break はない */
 
 				case IDOK :
-					ExistMode = AskRadioButtonValue(hDlg, DownExistButton, DOWNEXISTBUTTONS);
+					ExistMode = DownExistButton::Get(hDlg);
 					SendDlgItemMessage(hDlg, DOWN_EXIST_NAME, WM_GETTEXT, FMAX_PATH, (LPARAM)Pkt->LocalFile);
 					EndDialog(hDlg, YES);
 					break;
@@ -2068,23 +2054,7 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, FILELIST *ListList)
 static INT_PTR CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	static TRANSPACKET *Pkt;
-	// 同じ名前のファイルの処理方法追加
-//	static const RADIOBUTTON UpExistButton[] = {
-//		{ UP_EXIST_OVW, EXIST_OVW },
-//		{ UP_EXIST_NEW, EXIST_NEW },
-//		{ UP_EXIST_RESUME, EXIST_RESUME },
-//		{ UP_EXIST_UNIQUE, EXIST_UNIQUE },
-//		{ UP_EXIST_IGNORE, EXIST_IGNORE }
-//	};
-	static const RADIOBUTTON UpExistButton[] = {
-		{ UP_EXIST_OVW, EXIST_OVW },
-		{ UP_EXIST_NEW, EXIST_NEW },
-		{ UP_EXIST_RESUME, EXIST_RESUME },
-		{ UP_EXIST_UNIQUE, EXIST_UNIQUE },
-		{ UP_EXIST_IGNORE, EXIST_IGNORE },
-		{ UP_EXIST_LARGE, EXIST_LARGE }
-	};
-	#define UPEXISTBUTTONS	(sizeof(UpExistButton)/sizeof(RADIOBUTTON))
+	using UpExistButton = RadioButton<UP_EXIST_OVW, UP_EXIST_NEW, UP_EXIST_RESUME, UP_EXIST_UNIQUE, UP_EXIST_IGNORE, UP_EXIST_LARGE>;
 
 	switch (iMessage)
 	{
@@ -2096,7 +2066,7 @@ static INT_PTR CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM w
 			if((Pkt->Type == TYPE_A) || (Pkt->ExistSize <= 0))
 				EnableWindow(GetDlgItem(hDlg, UP_EXIST_RESUME), FALSE);
 
-			SetRadioButtonByValue(hDlg, UpExistMode, UpExistButton, UPEXISTBUTTONS);
+			UpExistButton::Set(hDlg, UpExistMode);
 			return(TRUE);
 
 		case WM_COMMAND :
@@ -2107,7 +2077,7 @@ static INT_PTR CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM w
 					/* ここに break はない */
 
 				case IDOK :
-					UpExistMode = AskRadioButtonValue(hDlg, UpExistButton, UPEXISTBUTTONS);
+					UpExistMode = UpExistButton::Get(hDlg);
 					SendDlgItemMessage(hDlg, UP_EXIST_NAME, WM_GETTEXT, FMAX_PATH, (LPARAM)Pkt->RemoteFile);
 					EndDialog(hDlg, YES);
 					break;

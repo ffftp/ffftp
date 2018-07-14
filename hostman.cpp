@@ -1550,30 +1550,12 @@ struct Advanced {
 struct KanjiCode {
 	static constexpr WORD dialogId = hset_code_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
-	static constexpr RADIOBUTTON KanjiButton[] = {
-		{ HSET_NO_CNV, KANJI_NOCNV },
-		{ HSET_SJIS_CNV, KANJI_SJIS },
-		{ HSET_JIS_CNV, KANJI_JIS },
-		{ HSET_EUC_CNV, KANJI_EUC },
-		{ HSET_UTF8N_CNV, KANJI_UTF8N },
-		{ HSET_UTF8BOM_CNV, KANJI_UTF8BOM }
-	};
-	#define KANJIBUTTONS	(sizeof(KanjiButton)/sizeof(RADIOBUTTON))
-	static constexpr RADIOBUTTON NameKanjiButton[] = {
-		{ HSET_FN_AUTO_CNV, KANJI_AUTO },
-		{ HSET_FN_SJIS_CNV, KANJI_SJIS },
-		{ HSET_FN_JIS_CNV, KANJI_JIS },
-		{ HSET_FN_EUC_CNV, KANJI_EUC },
-		{ HSET_FN_SMH_CNV, KANJI_SMB_HEX },
-		{ HSET_FN_SMC_CNV, KANJI_SMB_CAP },
-		{ HSET_FN_UTF8N_CNV, KANJI_UTF8N },		// UTF-8対応
-		{ HSET_FN_UTF8HFSX_CNV, KANJI_UTF8HFSX }
-	};
-	#define NAMEKANJIBUTTONS	(sizeof(NameKanjiButton)/sizeof(RADIOBUTTON))
+	using KanjiButton = RadioButton<HSET_NO_CNV, HSET_SJIS_CNV, HSET_JIS_CNV, HSET_EUC_CNV, HSET_UTF8N_CNV, HSET_UTF8BOM_CNV>;
+	using NameKanjiButton = RadioButton<HSET_FN_AUTO_CNV, HSET_FN_SJIS_CNV, HSET_FN_JIS_CNV, HSET_FN_EUC_CNV, HSET_FN_SMH_CNV, HSET_FN_SMC_CNV, HSET_FN_UTF8N_CNV, HSET_FN_UTF8HFSX_CNV>;
 	static INT_PTR OnInit(HWND hDlg) {
-		SetRadioButtonByValue(hDlg, TmpHost.KanjiCode, KanjiButton, KANJIBUTTONS);
+		KanjiButton::Set(hDlg, TmpHost.KanjiCode);
 		SendDlgItemMessage(hDlg, HSET_HANCNV, BM_SETCHECK, TmpHost.KanaCnv, 0);
-		SetRadioButtonByValue(hDlg, TmpHost.NameKanjiCode, NameKanjiButton, NAMEKANJIBUTTONS);
+		NameKanjiButton::Set(hDlg, TmpHost.NameKanjiCode);
 		if (!SupportIdn)
 			EnableWindow(GetDlgItem(hDlg, HSET_FN_UTF8HFSX_CNV), FALSE);
 		SendDlgItemMessage(hDlg, HSET_FN_HANCNV, BM_SETCHECK, TmpHost.NameKanaCnv, 0);
@@ -1582,9 +1564,9 @@ struct KanjiCode {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			TmpHost.KanjiCode = AskRadioButtonValue(hDlg, KanjiButton, KANJIBUTTONS);
+			TmpHost.KanjiCode = KanjiButton::Get(hDlg);
 			TmpHost.KanaCnv = (int)SendDlgItemMessage(hDlg, HSET_HANCNV, BM_GETCHECK, 0, 0);
-			TmpHost.NameKanjiCode = AskRadioButtonValue(hDlg, NameKanjiButton, NAMEKANJIBUTTONS);
+			TmpHost.NameKanjiCode = NameKanjiButton::Get(hDlg);
 			TmpHost.NameKanaCnv = (int)SendDlgItemMessage(hDlg, HSET_FN_HANCNV, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:

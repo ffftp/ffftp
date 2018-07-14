@@ -162,15 +162,10 @@ struct User {
 struct Transfer1 {
 	static constexpr WORD dialogId = opt_trmode1_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
-	static constexpr RADIOBUTTON ModeButton[] = {
-		{ TRMODE_AUTO, TYPE_X },
-		{ TRMODE_ASCII, TYPE_A },
-		{ TRMODE_BIN, TYPE_I }
-	};
-	#define MODEBUTTONS	(sizeof(ModeButton)/sizeof(RADIOBUTTON))
+	using ModeButton = RadioButton<TRMODE_AUTO, TRMODE_ASCII, TRMODE_BIN>;
 	static INT_PTR OnInit(HWND hDlg) {
 		SetMultiTextToList(hDlg, TRMODE_EXT_LIST, AsciiExt);
-		SetRadioButtonByValue(hDlg, AskTransferType(), ModeButton, MODEBUTTONS);
+		ModeButton::Set(hDlg, AskTransferType());
 		SendDlgItemMessage(hDlg, TRMODE_TIME, BM_SETCHECK, SaveTimeStamp, 0);
 		SendDlgItemMessage(hDlg, TRMODE_EOF, BM_SETCHECK, RmEOF, 0);
 		SendDlgItemMessage(hDlg, TRMODE_SEMICOLON, BM_SETCHECK, VaxSemicolon, 0);
@@ -182,7 +177,7 @@ struct Transfer1 {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			SetTransferTypeImm(AskRadioButtonValue(hDlg, ModeButton, MODEBUTTONS));
+			SetTransferTypeImm(ModeButton::Get(hDlg));
 			SaveTransferType();
 			GetMultiTextFromList(hDlg, TRMODE_EXT_LIST, AsciiExt, ASCII_EXT_LEN + 1);
 			SaveTimeStamp = (int)SendDlgItemMessage(hDlg, TRMODE_TIME, BM_GETCHECK, 0, 0);
@@ -225,16 +220,11 @@ struct Transfer1 {
 struct Transfer2 {
 	static constexpr WORD dialogId = opt_trmode2_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
-	static constexpr RADIOBUTTON CnvButton[] = {
-		{ TRMODE2_NOCNV, FNAME_NOCNV },
-		{ TRMODE2_LOWER, FNAME_LOWER },
-		{ TRMODE2_UPPER, FNAME_UPPER }
-	};
-	#define CNVBUTTONS	(sizeof(CnvButton)/sizeof(RADIOBUTTON))
+	using CnvButton = RadioButton<TRMODE2_NOCNV, TRMODE2_LOWER, TRMODE2_UPPER>;
 	static INT_PTR OnInit(HWND hDlg) {
 		SendDlgItemMessage(hDlg, TRMODE2_LOCAL, EM_LIMITTEXT, FMAX_PATH, 0);
 		SendDlgItemMessage(hDlg, TRMODE2_LOCAL, WM_SETTEXT, 0, (LPARAM)DefaultLocalPath);
-		SetRadioButtonByValue(hDlg, FnameCnv, CnvButton, CNVBUTTONS);
+		CnvButton::Set(hDlg, FnameCnv);
 		SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT, EM_LIMITTEXT, (WPARAM)5, 0);
 		char Tmp[FMAX_PATH + 1];
 		sprintf(Tmp, "%d", TimeOut);
@@ -246,7 +236,7 @@ struct Transfer2 {
 		switch (nmh->code) {
 		case PSN_APPLY: {
 			SendDlgItemMessage(hDlg, TRMODE2_LOCAL, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)DefaultLocalPath);
-			FnameCnv = AskRadioButtonValue(hDlg, CnvButton, CNVBUTTONS);
+			FnameCnv = CnvButton::Get(hDlg);
 			char Tmp[FMAX_PATH + 1];
 			SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT, WM_GETTEXT, 5 + 1, (LPARAM)Tmp);
 			TimeOut = atoi(Tmp);
@@ -352,16 +342,9 @@ struct Transfer3 {
 struct Transfer4 {
 	static constexpr WORD dialogId = opt_trmode4_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
-	static constexpr RADIOBUTTON KanjiButton[] = {
-		{ TRMODE4_SJIS_CNV, KANJI_SJIS },
-		{ TRMODE4_JIS_CNV, KANJI_JIS },
-		{ TRMODE4_EUC_CNV, KANJI_EUC },
-		{ TRMODE4_UTF8N_CNV, KANJI_UTF8N },
-		{ TRMODE4_UTF8BOM_CNV, KANJI_UTF8BOM }
-	};
-	#define KANJIBUTTONS	(sizeof(KanjiButton)/sizeof(RADIOBUTTON))
+	using KanjiButton = RadioButton<TRMODE4_SJIS_CNV, TRMODE4_JIS_CNV, TRMODE4_EUC_CNV, TRMODE4_UTF8N_CNV, TRMODE4_UTF8BOM_CNV>;
 	static INT_PTR OnInit(HWND hDlg) {
-		SetRadioButtonByValue(hDlg, AskLocalKanjiCode(), KanjiButton, KANJIBUTTONS);
+		KanjiButton::Set(hDlg, AskLocalKanjiCode());
 		if (IsZoneIDLoaded())
 			SendDlgItemMessage(hDlg, TRMODE4_MARK_INTERNET, BM_SETCHECK, MarkAsInternet, 0);
 		else {
@@ -373,7 +356,7 @@ struct Transfer4 {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			SetLocalKanjiCodeImm(AskRadioButtonValue(hDlg, KanjiButton, KANJIBUTTONS));
+			SetLocalKanjiCodeImm(KanjiButton::Get(hDlg));
 			SaveLocalKanjiCode();
 			if (IsZoneIDLoaded())
 				MarkAsInternet = (int)SendDlgItemMessage(hDlg, TRMODE4_MARK_INTERNET, BM_GETCHECK, 0, 0);
@@ -439,41 +422,24 @@ struct Mirroring {
 struct Operation {
 	static constexpr WORD dialogId = opt_notify_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
-	static constexpr RADIOBUTTON DownButton[] = {
-		{ NOTIFY_D_DLG, TRANS_DLG },
-		{ NOTIFY_D_OVW, TRANS_OVW }
-	};
-	#define DOWNBUTTONS	(sizeof(DownButton)/sizeof(RADIOBUTTON))
-	static constexpr RADIOBUTTON UpButton[] = {
-		{ NOTIFY_U_DLG, TRANS_DLG },
-		{ NOTIFY_U_OVW, TRANS_OVW }
-	};
-	#define UPBUTTONS	(sizeof(UpButton)/sizeof(RADIOBUTTON))
-	static constexpr RADIOBUTTON DclickButton[] = {
-		{ NOTIFY_OPEN,     YES },
-		{ NOTIFY_DOWNLOAD, NO }
-	};
-	#define DCLICKBUTTONS	(sizeof(DclickButton)/sizeof(RADIOBUTTON))
-	static constexpr RADIOBUTTON MoveButton[] = {
-		{ NOTIFY_M_NODLG,   MOVE_NODLG },
-		{ NOTIFY_M_DLG,     MOVE_DLG },
-		{ NOTIFY_M_DISABLE, MOVE_DISABLE }
-	};
-	#define MOVEBUTTONS	(sizeof(MoveButton)/sizeof(RADIOBUTTON))
+	using DownButton = RadioButton<NOTIFY_D_DLG, NOTIFY_D_OVW>;
+	using UpButton = RadioButton<NOTIFY_U_DLG, NOTIFY_U_OVW>;
+	using DclickButton = RadioButton<NOTIFY_OPEN, NOTIFY_DOWNLOAD>;
+	using MoveButton = RadioButton<NOTIFY_M_NODLG, NOTIFY_M_DLG, NOTIFY_M_DISABLE>;
 	static INT_PTR OnInit(HWND hDlg) {
-		SetRadioButtonByValue(hDlg, RecvMode, DownButton, DOWNBUTTONS);
-		SetRadioButtonByValue(hDlg, SendMode, UpButton, UPBUTTONS);
-		SetRadioButtonByValue(hDlg, DclickOpen, DclickButton, DCLICKBUTTONS);
-		SetRadioButtonByValue(hDlg, MoveMode, MoveButton, MOVEBUTTONS);
+		DownButton::Set(hDlg, RecvMode);
+		UpButton::Set(hDlg, SendMode);
+		DclickButton::Set(hDlg, DclickOpen);
+		MoveButton::Set(hDlg, MoveMode);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			RecvMode = AskRadioButtonValue(hDlg, DownButton, DOWNBUTTONS);
-			SendMode = AskRadioButtonValue(hDlg, UpButton, UPBUTTONS);
-			DclickOpen = AskRadioButtonValue(hDlg, DclickButton, DCLICKBUTTONS);
-			MoveMode = AskRadioButtonValue(hDlg, MoveButton, MOVEBUTTONS);
+			RecvMode = DownButton::Get(hDlg);
+			SendMode = UpButton::Get(hDlg);
+			DclickOpen = DclickButton::Get(hDlg);
+			MoveMode = MoveButton::Get(hDlg);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000046);
@@ -1112,103 +1078,47 @@ int SortSetting(void)
 //static BOOL CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 static INT_PTR CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	using LsortOrdButton = RadioButton<SORT_LFILE_NAME, SORT_LFILE_EXT, SORT_LFILE_SIZE, SORT_LFILE_DATE>;
+	using LDirsortOrdButton = RadioButton<SORT_LDIR_NAME, SORT_LDIR_DATE>;
+	using RsortOrdButton = RadioButton<SORT_RFILE_NAME, SORT_RFILE_EXT, SORT_RFILE_SIZE, SORT_RFILE_DATE>;
+	using RDirsortOrdButton = RadioButton<SORT_RDIR_NAME, SORT_RDIR_DATE>;
 	int LFsort;
 	int LDsort;
 	int RFsort;
 	int RDsort;
 
-	static const RADIOBUTTON LsortOrdButton[] = {
-		{ SORT_LFILE_NAME, SORT_NAME },
-		{ SORT_LFILE_EXT, SORT_EXT },
-		{ SORT_LFILE_SIZE, SORT_SIZE },
-		{ SORT_LFILE_DATE, SORT_DATE }
-	};
-	#define LSORTORDBUTTONS	(sizeof(LsortOrdButton)/sizeof(RADIOBUTTON))
-
-	static const RADIOBUTTON LDirsortOrdButton[] = {
-		{ SORT_LDIR_NAME, SORT_NAME },
-		{ SORT_LDIR_DATE, SORT_DATE }
-	};
-	#define LDIRSORTORDBUTTONS	(sizeof(LDirsortOrdButton)/sizeof(RADIOBUTTON))
-
-	static const RADIOBUTTON RsortOrdButton[] = {
-		{ SORT_RFILE_NAME, SORT_NAME },
-		{ SORT_RFILE_EXT, SORT_EXT },
-		{ SORT_RFILE_SIZE, SORT_SIZE },
-		{ SORT_RFILE_DATE, SORT_DATE }
-	};
-	#define RSORTORDBUTTONS	(sizeof(RsortOrdButton)/sizeof(RADIOBUTTON))
-
-	static const RADIOBUTTON RDirsortOrdButton[] = {
-		{ SORT_RDIR_NAME, SORT_NAME },
-		{ SORT_RDIR_DATE, SORT_DATE }
-	};
-	#define RDIRSORTORDBUTTONS	(sizeof(RDirsortOrdButton)/sizeof(RADIOBUTTON))
-
 	switch (message)
 	{
 		case WM_INITDIALOG :
-
-			SetRadioButtonByValue(hDlg, AskSortType(ITEM_LFILE) & SORT_MASK_ORD, LsortOrdButton, LSORTORDBUTTONS);
-
-			if((AskSortType(ITEM_LFILE) & SORT_GET_ORD) == SORT_ASCENT)
-				SendDlgItemMessage(hDlg, SORT_LFILE_REV, BM_SETCHECK, 0, 0);
-			else
-				SendDlgItemMessage(hDlg, SORT_LFILE_REV, BM_SETCHECK, 1, 0);
-
-			SetRadioButtonByValue(hDlg, AskSortType(ITEM_LDIR) & SORT_MASK_ORD, LDirsortOrdButton, LDIRSORTORDBUTTONS);
-
-			if((AskSortType(ITEM_LDIR) & SORT_GET_ORD) == SORT_ASCENT)
-				SendDlgItemMessage(hDlg, SORT_LDIR_REV, BM_SETCHECK, 0, 0);
-			else
-				SendDlgItemMessage(hDlg, SORT_LDIR_REV, BM_SETCHECK, 1, 0);
-
-			SetRadioButtonByValue(hDlg, AskSortType(ITEM_RFILE) & SORT_MASK_ORD, RsortOrdButton, RSORTORDBUTTONS);
-
-			if((AskSortType(ITEM_RFILE) & SORT_GET_ORD) == SORT_ASCENT)
-				SendDlgItemMessage(hDlg, SORT_RFILE_REV, BM_SETCHECK, 0, 0);
-			else
-				SendDlgItemMessage(hDlg, SORT_RFILE_REV, BM_SETCHECK, 1, 0);
-
-			SetRadioButtonByValue(hDlg, AskSortType(ITEM_RDIR) & SORT_MASK_ORD, RDirsortOrdButton, RDIRSORTORDBUTTONS);
-
-			if((AskSortType(ITEM_RDIR) & SORT_GET_ORD) == SORT_ASCENT)
-				SendDlgItemMessage(hDlg, SORT_RDIR_REV, BM_SETCHECK, 0, 0);
-			else
-				SendDlgItemMessage(hDlg, SORT_RDIR_REV, BM_SETCHECK, 1, 0);
-
-			SendDlgItemMessage(hDlg, SORT_SAVEHOST, BM_SETCHECK, AskSaveSortToHost(), 0);
-
+			LsortOrdButton::Set(hDlg, AskSortType(ITEM_LFILE) & SORT_MASK_ORD);
+			SendDlgItemMessageW(hDlg, SORT_LFILE_REV, BM_SETCHECK, (AskSortType(ITEM_LFILE) & SORT_GET_ORD) != SORT_ASCENT, 0);
+			LDirsortOrdButton::Set(hDlg, AskSortType(ITEM_LDIR) & SORT_MASK_ORD);
+			SendDlgItemMessageW(hDlg, SORT_LDIR_REV, BM_SETCHECK, (AskSortType(ITEM_LDIR) & SORT_GET_ORD) != SORT_ASCENT, 0);
+			RsortOrdButton::Set(hDlg, AskSortType(ITEM_RFILE) & SORT_MASK_ORD);
+			SendDlgItemMessageW(hDlg, SORT_RFILE_REV, BM_SETCHECK, (AskSortType(ITEM_RFILE) & SORT_GET_ORD) != SORT_ASCENT, 0);
+			RDirsortOrdButton::Set(hDlg, AskSortType(ITEM_RDIR) & SORT_MASK_ORD);
+			SendDlgItemMessageW(hDlg, SORT_RDIR_REV, BM_SETCHECK, (AskSortType(ITEM_RDIR) & SORT_GET_ORD) != SORT_ASCENT, 0);
+			SendDlgItemMessageW(hDlg, SORT_SAVEHOST, BM_SETCHECK, AskSaveSortToHost(), 0);
 			return(TRUE);
 
 		case WM_COMMAND :
 			switch(GET_WM_COMMAND_ID(wParam, lParam))
 			{
 				case IDOK :
-					LFsort = AskRadioButtonValue(hDlg, LsortOrdButton, LSORTORDBUTTONS);
-
+					LFsort = LsortOrdButton::Get(hDlg);
 					if(SendDlgItemMessage(hDlg, SORT_LFILE_REV, BM_GETCHECK, 0, 0) == 1)
 						LFsort |= SORT_DESCENT;
-
-					LDsort = AskRadioButtonValue(hDlg, LDirsortOrdButton, LDIRSORTORDBUTTONS);
-
+					LDsort = LDirsortOrdButton::Get(hDlg);
 					if(SendDlgItemMessage(hDlg, SORT_LDIR_REV, BM_GETCHECK, 0, 0) == 1)
 						LDsort |= SORT_DESCENT;
-
-					RFsort = AskRadioButtonValue(hDlg, RsortOrdButton, RSORTORDBUTTONS);
-
+					RFsort = RsortOrdButton::Get(hDlg);
 					if(SendDlgItemMessage(hDlg, SORT_RFILE_REV, BM_GETCHECK, 0, 0) == 1)
 						RFsort |= SORT_DESCENT;
-
-					RDsort = AskRadioButtonValue(hDlg, RDirsortOrdButton, RDIRSORTORDBUTTONS);
-
+					RDsort = RDirsortOrdButton::Get(hDlg);
 					if(SendDlgItemMessage(hDlg, SORT_RDIR_REV, BM_GETCHECK, 0, 0) == 1)
 						RDsort |= SORT_DESCENT;
-
 					SetSortTypeImm(LFsort, LDsort, RFsort, RDsort);
-
 					SetSaveSortToHost((int)SendDlgItemMessage(hDlg, SORT_SAVEHOST, BM_GETCHECK, 0, 0));
-
 					EndDialog(hDlg, YES);
 					break;
 

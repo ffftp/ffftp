@@ -165,6 +165,28 @@ static inline auto Dialog(HINSTANCE instance, int resourceId, HWND parent, Data&
 	return (typename T::result_t)DialogBoxParamW(instance, MAKEINTRESOURCEW(resourceId), parent, detail::Dialog<T>::Proc, (LPARAM)&data);
 }
 
+template<int first, int... rest>
+class RadioButton {
+	static constexpr int controls[] = { first, rest... };
+public:
+	static void Set(HWND hDlg, int value) {
+		for (auto id : controls)
+			if ((char)id == (char)value) {
+				SendDlgItemMessageW(hDlg, id, BM_SETCHECK, BST_CHECKED, 0);
+				SendMessageW(hDlg, WM_COMMAND, MAKEWPARAM(id, 0), 0);
+				return;
+			}
+		SendDlgItemMessageW(hDlg, first, BM_SETCHECK, BST_CHECKED, 0);
+		SendMessageW(hDlg, WM_COMMAND, MAKEWPARAM(first, 0), 0);
+	}
+	static auto Get(HWND hDlg) {
+		for (auto id : controls)
+			if (SendDlgItemMessageW(hDlg, id, BM_GETCHECK, 0, 0) == BST_CHECKED)
+				return (int)(char)id;
+		return (int)(char)first;
+	}
+};
+
 // PropertySheetを表示します。
 // 次の要件を満たした型を受け入れます。
 // struct Page {

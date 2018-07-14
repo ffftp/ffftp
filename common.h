@@ -1350,14 +1350,6 @@ typedef struct {
 } SOUNDFILE;
 
 
-/*===== ラジオボタンの設定 =====*/
-
-typedef struct {
-	int ButID;			/* ボタンのID */
-	int Value;			/* 値 */
-} RADIOBUTTON;
-
-
 /*===== ダイアログボックス変更処理用 =====*/
 
 typedef struct {
@@ -1942,8 +1934,6 @@ void AttrValue2String(int Attr, char *Buf, int ShowNumber);
 void FormatIniString(char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 int SelectDir(HWND hWnd, char *Buf, int MaxLen);
-void SetRadioButtonByValue(HWND hDlg, int Value, const RADIOBUTTON *Buttons, int Num);
-int AskRadioButtonValue(HWND hDlg, const RADIOBUTTON *Buttons, int Num);
 int xtoi(char *Str);
 int CheckFileReadable(char *Fname);
 int max1(int n, int m);
