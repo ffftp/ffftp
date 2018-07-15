@@ -172,7 +172,7 @@ struct HostList {
 				SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
 				CurrentHost = (int)Item.lParam;
 				int Level1 = IsNodeGroup(CurrentHost);
-				if (Level1 == YES && DialogBox(GetFtpInst(), MAKEINTRESOURCE(groupdel_dlg), hDlg, ExeEscDialogProc) == YES || Level1 == NO && DialogBox(GetFtpInst(), MAKEINTRESOURCE(hostdel_dlg), hDlg, ExeEscDialogProc) == YES) {
+				if (Level1 == YES && Dialog(GetFtpInst(), groupdel_dlg, hDlg) || Level1 == NO && Dialog(GetFtpInst(), hostdel_dlg, hDlg)) {
 					DelHostFromList(CurrentHost);
 					if (CurrentHost >= Hosts)
 						CurrentHost = max1(0, Hosts - 1);

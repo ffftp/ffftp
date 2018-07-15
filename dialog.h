@@ -165,6 +165,23 @@ static inline auto Dialog(HINSTANCE instance, int resourceId, HWND parent, Data&
 	return (typename T::result_t)DialogBoxParamW(instance, MAKEINTRESOURCEW(resourceId), parent, detail::Dialog<T>::Proc, (LPARAM)&data);
 }
 
+static inline auto Dialog(HINSTANCE instance, int resourceId, HWND parent) {
+	struct Data {
+		using result_t = bool;
+		static void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK:
+				EndDialog(hDlg, true);
+				break;
+			case IDCANCEL:
+				EndDialog(hDlg, false);
+				break;
+			}
+		}
+	};
+	return Dialog(instance, resourceId, parent, Data{});
+}
+
 template<int first, int... rest>
 class RadioButton {
 	static constexpr int controls[] = { first, rest... };

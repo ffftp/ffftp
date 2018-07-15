@@ -899,6 +899,13 @@ void SaveRegistry(void)
 
 int LoadRegistry(void)
 {
+	struct Data {
+		using result_t = int;
+		static void OnCommand(HWND hDlg, WORD cmd, WORD id) {
+			if (cmd == BN_CLICKED)
+				EndDialog(hDlg, id);
+		}
+	};
 	void *hKey3;
 	void *hKey4;
 	void *hKey5;
@@ -955,7 +962,7 @@ int LoadRegistry(void)
 				memset(&EncryptSettingsChecksum, 0, 20);
 				if(strcmp(Buf, Buf2) != 0)
 				{
-					switch(DialogBox(GetFtpInst(), MAKEINTRESOURCE(corruptsettings_dlg), GetMainHwnd(), AnyButtonDialogProc))
+					switch (Dialog(GetFtpInst(), corruptsettings_dlg, GetMainHwnd(), Data{}))
 					{
 					case IDCANCEL:
 						Terminate();
@@ -1423,7 +1430,7 @@ int LoadRegistry(void)
 				ReadBinaryFromReg(hKey3, "EncryptAllChecksum", &Checksum, 20);
 				if(memcmp(&Checksum, &EncryptSettingsChecksum, 20) != 0)
 				{
-					switch(DialogBox(GetFtpInst(), MAKEINTRESOURCE(corruptsettings_dlg), GetMainHwnd(), AnyButtonDialogProc))
+					switch (Dialog(GetFtpInst(), corruptsettings_dlg, GetMainHwnd(), Data{}))
 					{
 					case IDCANCEL:
 						Terminate();

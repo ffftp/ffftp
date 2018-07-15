@@ -158,28 +158,28 @@ void ConnectProc(int Type, int Num)
 				case CRYPT_NONE:
 					if(CurHost.UseFTPIS != NO || CurHost.UseSFTP != NO)
 					{
-						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+						if(Dialog(GetFtpInst(), savecrypt_dlg, GetMainHwnd()))
 							SetHostEncryption(AskCurrentHost(), CurHost.UseNoEncryption, CurHost.UseFTPES, NO, NO);
 					}
 					break;
 				case CRYPT_FTPES:
 					if(CurHost.UseNoEncryption != NO || CurHost.UseFTPIS != NO || CurHost.UseSFTP != NO)
 					{
-						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+						if(Dialog(GetFtpInst(), savecrypt_dlg, GetMainHwnd()))
 							SetHostEncryption(AskCurrentHost(), NO, CurHost.UseFTPES, NO, NO);
 					}
 					break;
 				case CRYPT_FTPIS:
 					if(CurHost.UseNoEncryption != NO || CurHost.UseFTPES != NO || CurHost.UseSFTP != NO)
 					{
-						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+						if(Dialog(GetFtpInst(), savecrypt_dlg, GetMainHwnd()))
 							SetHostEncryption(AskCurrentHost(), NO, NO, CurHost.UseFTPIS, NO);
 					}
 					break;
 				case CRYPT_SFTP:
 					if(CurHost.UseNoEncryption != NO || CurHost.UseFTPES != NO || CurHost.UseFTPIS != NO)
 					{
-						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+						if(Dialog(GetFtpInst(), savecrypt_dlg, GetMainHwnd()))
 							SetHostEncryption(AskCurrentHost(), NO, NO, NO, CurHost.UseSFTP);
 					}
 					break;
@@ -1812,9 +1812,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 							}
 							else if((SavePass == YES) && (ReInPass == YES))
 							{
-								// 同時接続対応
-//								if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savepass_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
-								if(HostData->NoDisplayUI == NO && DialogBox(GetFtpInst(), MAKEINTRESOURCE(savepass_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+								if (HostData->NoDisplayUI == NO && Dialog(GetFtpInst(), savepass_dlg, GetMainHwnd()))
 									SetHostPassword(AskCurrentHost(), Pass);
 							}
 						}
@@ -1990,7 +1988,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 
 							/* シーケンス番号のチェックと警告 */
 							if(Seq <= 10)
-								DialogBox(GetFtpInst(), MAKEINTRESOURCE(otp_notify_dlg), GetMainHwnd(), ExeEscDialogProc);
+								Dialog(GetFtpInst(), otp_notify_dlg, GetMainHwnd());
 
 							Sts = FFFTP_SUCCESS;
 						}

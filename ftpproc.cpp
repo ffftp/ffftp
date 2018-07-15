@@ -2544,6 +2544,31 @@ void RenameProc(void)
 //
 void MoveRemoteFileProc(int drop_index)
 {
+	struct Data {
+		using result_t = bool;
+		std::wstring const& file;
+		Data(std::wstring const& file) : file{ file } {}
+		INT_PTR OnInit(HWND hDlg) {
+			SendDlgItemMessageW(hDlg, COMMON_TEXT, WM_SETTEXT, 0, (LPARAM)file.c_str());
+			return TRUE;
+		}
+		static void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK:
+				EndDialog(hDlg, true);
+				break;
+			case IDCANCEL:
+				EndDialog(hDlg, false);
+				break;
+			}
+		}
+		static INT_PTR OnMessage(HWND hDlg, UINT uMsg, WPARAM, LPARAM) {
+			if (uMsg == WM_SHOWWINDOW)
+				SendDlgItemMessageW(hDlg, COMMON_TEXT, EM_SETSEL, 0, 0);
+			return 0;
+		}
+	};
+
 	int Win;
 	FILELIST *FileListBase;
 	FILELIST *Pos;
@@ -2572,13 +2597,8 @@ void MoveRemoteFileProc(int drop_index)
 	else
 		strcpy(Pkt.File, "..");
 
-	if(MoveMode == MOVE_DLG)
-	{
-		if(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(move_notify_dlg), GetRemoteHwnd(), ExeEscTextDialogProc, (LPARAM)Pkt.File) == NO)
-		{
-			return;
-		}
-	}
+	if (MoveMode == MOVE_DLG && !Dialog(GetFtpInst(), move_notify_dlg, GetRemoteHwnd(), Data{ u8(Pkt.File) }))
+		return;
 
 	Sts = FFFTP_SUCCESS;
 #if 0
@@ -3338,19 +3358,9 @@ static INT_PTR CALLBACK SizeDlgWndProc(HWND hDlg, UINT message, WPARAM wParam, L
 }
 
 
-/*----- ディレクトリ移動失敗時のエラーを表示 ----------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispCWDerror(HWND hWnd)
-{
-	DialogBox(GetFtpInst(), MAKEINTRESOURCE(cwderr_dlg), hWnd, ExeEscDialogProc);
-	return;
+// ディレクトリ移動失敗時のエラーを表示
+void DispCWDerror(HWND hWnd) {
+	Dialog(GetFtpInst(), cwderr_dlg, hWnd);
 }
 
 

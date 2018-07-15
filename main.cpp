@@ -467,7 +467,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			RegType = REGTYPE_INI;
 			if(IsRegAvailable() == YES && IsIniAvailable() == NO)
 			{
-				if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(ini_from_reg_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+				if (Dialog(GetFtpInst(), ini_from_reg_dlg, GetMainHwnd()))
 					ImportPortable = YES;
 			}
 		}
@@ -1466,7 +1466,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_REGINIT :
-					if(DialogBox(hInstFtp, MAKEINTRESOURCE(reginit_dlg), hWnd, ExeEscDialogProc) == YES)
+					if(Dialog(hInstFtp, reginit_dlg, hWnd))
 					{
 						ClearRegistry();
 						// ポータブル版判定
@@ -1479,9 +1479,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					if( GetMasterPasswordStatus() != PASSWORD_OK )
 					{
 						/* 強制的に設定するか確認 */
-						if( DialogBox(hInstFtp, MAKEINTRESOURCE(forcepasschange_dlg), hWnd, ExeEscDialogProc) != YES){
+						if (!Dialog(hInstFtp, forcepasschange_dlg, hWnd))
 							break;
-						}
 						if(EnterMasterPasswordAndSet(true, hWnd) != 0)
 							SetTaskMsg(MSGJPN303);
 					}
@@ -1906,9 +1905,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			return(TRUE);
 
 		case WM_CLOSE :
-			if((AskTransferNow() == NO) ||
-			   (DialogBox(hInstFtp, MAKEINTRESOURCE(exit_dlg), hWnd, ExeEscDialogProc) == YES))
-			{
+			if (AskTransferNow() == NO || Dialog(hInstFtp, exit_dlg, hWnd)) {
 				ExitProc(hWnd);
 				return(DefWindowProc(hWnd, message, wParam, lParam));
 			}
