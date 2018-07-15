@@ -28,7 +28,6 @@
 /============================================================================*/
 
 #include "common.h"
-#include "helpid.h"
 
 
 /*===== プロトタイプ =====*/
@@ -159,28 +158,28 @@ void ConnectProc(int Type, int Num)
 				case CRYPT_NONE:
 					if(CurHost.UseFTPIS != NO || CurHost.UseSFTP != NO)
 					{
-						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+						if(Dialog(GetFtpInst(), savecrypt_dlg, GetMainHwnd()))
 							SetHostEncryption(AskCurrentHost(), CurHost.UseNoEncryption, CurHost.UseFTPES, NO, NO);
 					}
 					break;
 				case CRYPT_FTPES:
 					if(CurHost.UseNoEncryption != NO || CurHost.UseFTPIS != NO || CurHost.UseSFTP != NO)
 					{
-						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+						if(Dialog(GetFtpInst(), savecrypt_dlg, GetMainHwnd()))
 							SetHostEncryption(AskCurrentHost(), NO, CurHost.UseFTPES, NO, NO);
 					}
 					break;
 				case CRYPT_FTPIS:
 					if(CurHost.UseNoEncryption != NO || CurHost.UseFTPES != NO || CurHost.UseSFTP != NO)
 					{
-						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+						if(Dialog(GetFtpInst(), savecrypt_dlg, GetMainHwnd()))
 							SetHostEncryption(AskCurrentHost(), NO, NO, CurHost.UseFTPIS, NO);
 					}
 					break;
 				case CRYPT_SFTP:
 					if(CurHost.UseNoEncryption != NO || CurHost.UseFTPES != NO || CurHost.UseFTPIS != NO)
 					{
-						if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savecrypt_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+						if(Dialog(GetFtpInst(), savecrypt_dlg, GetMainHwnd()))
 							SetHostEncryption(AskCurrentHost(), NO, NO, NO, CurHost.UseSFTP);
 					}
 					break;
@@ -1689,11 +1688,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 						else
 						{
 							Anony = NO;
-							// 同時接続対応
-//							if((strlen(User) != 0) || 
-//							   (InputDialogBox(username_dlg, GetMainHwnd(), NULL, User, USER_NAME_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
-							if((strlen(User) != 0) || 
-							   ((HostData->NoDisplayUI == NO) && (InputDialogBox(username_dlg, GetMainHwnd(), NULL, User, USER_NAME_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES)))
+							if (strlen(User) != 0 || HostData->NoDisplayUI == NO && InputDialog(username_dlg, GetMainHwnd(), NULL, User, USER_NAME_LEN+1, &Anony))
 							{
 								if(Anony == YES)
 								{
@@ -1759,11 +1754,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 //									if((Sts = command(ContSock, Reply, &CancelFlg, "USER %s", Buf) / 100) == FTP_CONTINUE)
 									if((Sts = command(ContSock, Reply, CancelCheckWork, "USER %s", Buf) / 100) == FTP_CONTINUE)
 									{
-										// 同時接続対応
-//										if((strlen(Pass) != 0) || 
-//										   (InputDialogBox(passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
-										if((strlen(Pass) != 0) || 
-										   ((HostData->NoDisplayUI == NO) && (InputDialogBox(passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES)))
+										if (strlen(Pass) != 0 || HostData->NoDisplayUI == NO && InputDialog(passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1))
 										{
 											CheckOneTimePassword(Pass, Reply, Security);
 
@@ -1777,9 +1768,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 											if(Sts == FTP_ERROR)
 											{
 												strcpy(Pass, "");
-												// 同時接続対応
-//												if(InputDialogBox(re_passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES)
-												if(HostData->NoDisplayUI == NO && InputDialogBox(re_passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES)
+												if (HostData->NoDisplayUI == NO && InputDialog(re_passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1))
 													Continue = YES;
 												else
 													DoPrintf("No password specified.");
@@ -1787,11 +1776,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 											}
 											else if(Sts == FTP_CONTINUE)
 											{
-												// 同時接続対応
-//												if((strlen(Acct) != 0) || 
-//												   (InputDialogBox(account_dlg, GetMainHwnd(), NULL, Acct, ACCOUNT_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES))
-												if((strlen(Acct) != 0) || 
-												   ((HostData->NoDisplayUI == NO) && (InputDialogBox(account_dlg, GetMainHwnd(), NULL, Acct, ACCOUNT_LEN+1, &Anony, IDH_HELP_TOPIC_0000001) == YES)))
+												if (strlen(Acct) != 0 || HostData->NoDisplayUI == NO && InputDialog(account_dlg, GetMainHwnd(), NULL, Acct, ACCOUNT_LEN+1))
 												{
 													// 同時接続対応
 //													Sts = command(ContSock, NULL, &CancelFlg, "ACCT %s", Acct) / 100;
@@ -1827,9 +1812,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 							}
 							else if((SavePass == YES) && (ReInPass == YES))
 							{
-								// 同時接続対応
-//								if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(savepass_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
-								if(HostData->NoDisplayUI == NO && DialogBox(GetFtpInst(), MAKEINTRESOURCE(savepass_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+								if (HostData->NoDisplayUI == NO && Dialog(GetFtpInst(), savepass_dlg, GetMainHwnd()))
 									SetHostPassword(AskCurrentHost(), Pass);
 							}
 						}
@@ -2005,7 +1988,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 
 							/* シーケンス番号のチェックと警告 */
 							if(Seq <= 10)
-								DialogBox(GetFtpInst(), MAKEINTRESOURCE(otp_notify_dlg), GetMainHwnd(), ExeEscDialogProc);
+								Dialog(GetFtpInst(), otp_notify_dlg, GetMainHwnd());
 
 							Sts = FFFTP_SUCCESS;
 						}

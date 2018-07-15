@@ -188,7 +188,6 @@
     <ClCompile Include="cache.cpp" />
     <ClCompile Include="codecnv.cpp" />
     <ClCompile Include="connect.cpp" />
-    <ClCompile Include="dlgsize.cpp" />
     <ClCompile Include="filelist.cpp" />
     <ClCompile Include="ftpproc.cpp" />
     <ClCompile Include="getput.cpp" />

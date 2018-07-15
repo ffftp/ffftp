@@ -13,8 +13,7 @@ template<int... anchorRight, int... anchorBottom, int... anchorStretch>
 class Resizable<Controls<anchorRight...>, Controls<anchorBottom...>, Controls<anchorStretch...>> {
 	static const UINT flags = SWP_NOZORDER | SWP_NOREDRAW | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING | SWP_DEFERERASE | SWP_ASYNCWINDOWPOS;
 	SIZE minimum;
-	SIZE current;
-	static void Discard(std::initializer_list<int>) {}
+	SIZE& current;
 	static void OnSizeRight(HWND dialog, int id, LONG dx) {
 		auto control = GetDlgItem(dialog, id);
 		RECT r;
@@ -38,17 +37,16 @@ class Resizable<Controls<anchorRight...>, Controls<anchorBottom...>, Controls<an
 		SetWindowPos(control, 0, 0, 0, r.right - r.left + dx, r.bottom - r.top + dy, SWP_NOMOVE | flags);
 	}
 public:
-	Resizable() : current{} {}
-	Resizable(SIZE current) : current{ current } {}
-	SIZE GetCurrent() const { return current; }
+	Resizable(SIZE& current) : current{ current } {}
+	Resizable(SIZE&&) = delete;
 	void OnSize(HWND dialog, LONG cx, LONG cy) {
 		LONG dx = cx - current.cx, dy = cy - current.cy;
 		if (dx != 0)
-			Discard({ (OnSizeRight(dialog, anchorRight, dx), 0)... });
+			(..., OnSizeRight(dialog, anchorRight, dx));
 		if (dy != 0)
-			Discard({ (OnSizeBottom(dialog, anchorBottom, dy), 0)... });
+			(..., OnSizeBottom(dialog, anchorBottom, dy));
 		if (dx != 0 || dy != 0)
-			Discard({ (OnSizeStretch(dialog, anchorStretch, dx, dy), 0)... });
+			(..., OnSizeStretch(dialog, anchorStretch, dx, dy));
 		current = { cx, cy };
 		InvalidateRect(dialog, nullptr, FALSE);
 	}
@@ -71,7 +69,7 @@ public:
 		RECT r;
 		GetWindowRect(dialog, &r);
 		minimum = { r.right - r.left, r.bottom - r.top };
-		if (current.cx == 0)
+		if (current.cx == 0 || current.cx == -1)
 			current = minimum;
 		else {
 			auto copied = current;
@@ -110,11 +108,15 @@ namespace detail {
 			}
 			auto data = reinterpret_cast<Data*>(GetWindowLongPtrW(hwndDlg, GWLP_USERDATA));
 			if constexpr (hasOnCommand1<Data>()) {
-				if (uMsg == WM_COMMAND)
-					return data->OnCommand(hwndDlg, GET_WM_COMMAND_ID(wParam, lParam));
+				if (uMsg == WM_COMMAND) {
+					data->OnCommand(hwndDlg, GET_WM_COMMAND_ID(wParam, lParam));
+					return 0;
+				}
 			} else if constexpr (hasOnCommand2<Data>()) {
-				if (uMsg == WM_COMMAND)
-					return data->OnCommand(hwndDlg, GET_WM_COMMAND_CMD(wParam, lParam), GET_WM_COMMAND_ID(wParam, lParam));
+				if (uMsg == WM_COMMAND){
+					data->OnCommand(hwndDlg, GET_WM_COMMAND_CMD(wParam, lParam), GET_WM_COMMAND_ID(wParam, lParam));
+					return 0;
+				}
 			}
 			if constexpr (hasResizable<Data>()) {
 				if (uMsg == WM_SIZING) {
@@ -151,10 +153,77 @@ namespace detail {
 //     // 任意。WM_INITDIALOGメッセージを処理するコールバック。
 //     INT_PTR OnInit(HWND);
 //     // 任意。WM_COMMANDメッセージを処理するコールバック。第２引数は押されたコマンドのIDです。
-//     INT_PTR OnCommand(HWND, WORD);
+//     void OnCommand(HWND, WORD);
+//     // 任意。WM_NOTIFYメッセージを処理するコールバック。第２引数はlParamで渡されたNMHDR*です。
+//     INT_PTR OnNotify(HWND, NMHDR*);
+//     // 任意。残りのメッセージを処理するコールバック。
+//     INT_PTR OnMessage(HWND, UNIT, WPARAM, LPARAM);
 // };
 template<class Data>
 static inline auto Dialog(HINSTANCE instance, int resourceId, HWND parent, Data&& data) {
 	using T = std::remove_reference_t<Data>;
 	return (typename T::result_t)DialogBoxParamW(instance, MAKEINTRESOURCEW(resourceId), parent, detail::Dialog<T>::Proc, (LPARAM)&data);
+}
+
+static inline auto Dialog(HINSTANCE instance, int resourceId, HWND parent) {
+	struct Data {
+		using result_t = bool;
+		static void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK:
+				EndDialog(hDlg, true);
+				break;
+			case IDCANCEL:
+				EndDialog(hDlg, false);
+				break;
+			}
+		}
+	};
+	return Dialog(instance, resourceId, parent, Data{});
+}
+
+template<int first, int... rest>
+class RadioButton {
+	static constexpr int controls[] = { first, rest... };
+public:
+	static void Set(HWND hDlg, int value) {
+		for (auto id : controls)
+			if ((char)id == (char)value) {
+				SendDlgItemMessageW(hDlg, id, BM_SETCHECK, BST_CHECKED, 0);
+				SendMessageW(hDlg, WM_COMMAND, MAKEWPARAM(id, 0), 0);
+				return;
+			}
+		SendDlgItemMessageW(hDlg, first, BM_SETCHECK, BST_CHECKED, 0);
+		SendMessageW(hDlg, WM_COMMAND, MAKEWPARAM(first, 0), 0);
+	}
+	static auto Get(HWND hDlg) {
+		for (auto id : controls)
+			if (SendDlgItemMessageW(hDlg, id, BM_GETCHECK, 0, 0) == BST_CHECKED)
+				return (int)(char)id;
+		return (int)(char)first;
+	}
+};
+
+// PropertySheetを表示します。
+// 次の要件を満たした型を受け入れます。
+// struct Page {
+//     // 必須。PROPSHEETPAGE::pszTemplateに指定するダイアログリソースIDです。
+//     static constexpr int dialogId = ...;
+//     // 必須。PROPSHEETPAGE::dwFlagsに指定する値です。
+//     static constexpr DWORD flag = ...;
+//     // 任意。WM_INITDIALOGメッセージを処理するコールバック。
+//     static INT_PTR OnInit(HWND);
+//     // 任意。WM_COMMANDメッセージを処理するコールバック。第２引数は押されたコマンドのIDです。
+//     static void OnCommand(HWND, WORD);
+//     // 任意。WM_NOTIFYメッセージを処理するコールバック。第２引数はlParamで渡されたNMHDR*です。
+//     static INT_PTR OnNotify(HWND, NMHDR*);
+//     // 任意。残りのメッセージを処理するコールバック。
+//     static INT_PTR OnMessage(HWND, UNIT, WPARAM, LPARAM);
+// };
+// TODO: 各ページはinstance化されていないのでstaticメンバーとする制約がある。
+template<class... Page>
+static inline auto PropSheet(HWND parent, HINSTANCE instance, int captionId, DWORD flag) {
+	PROPSHEETPAGEW psp[]{ { sizeof(PROPSHEETPAGEW), Page::flag, instance, MAKEINTRESOURCEW(Page::dialogId), 0, nullptr, detail::Dialog<Page>::Proc }... };
+	PROPSHEETHEADERW psh{ sizeof(PROPSHEETHEADERW), flag | PSH_PROPSHEETPAGE, parent, instance, 0, MAKEINTRESOURCEW(captionId), size_as<UINT>(psp), 0, psp };
+	return PropertySheetW(&psh);
 }

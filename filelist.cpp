@@ -29,7 +29,6 @@
 
 #include "common.h"
 #include <sys/stat.h>
-#include "helpid.h"
 #include "OleDragDrop.h"
 
 #define BUF_SIZE		256
@@ -95,7 +94,6 @@ extern int SepaWidth;
 extern int RemoteWidth;
 extern int ListHeight;
 extern char FilterStr[FILTER_EXT_LEN+1];
-extern HWND hHelpWin;
 // 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
 extern int SuppressRefresh;
 // ローカル側自動更新
@@ -1785,7 +1783,7 @@ void FindFileInList(HWND hWnd, int Type) {
 	int Win = hWnd == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL;
 	switch (Type) {
 	case FIND_FIRST:
-		if (InputDialogBox(find_dlg, hWnd, Win == WIN_LOCAL ? MSGJPN050 : MSGJPN051, FindStr, 40 + 1, &FindMode, IDH_HELP_TOPIC_0000001) != YES)
+		if (!InputDialog(find_dlg, hWnd, Win == WIN_LOCAL ? MSGJPN050 : MSGJPN051, FindStr, 40 + 1, &FindMode))
 			return;
 		try {
 			if (FindMode == 0)

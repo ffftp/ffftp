@@ -117,12 +117,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN123 (std::data(msgs[10000+123])) /* EUC */
 #define MSGJPN124 (std::data(msgs[10000+124])) /* 削除（ローカル） */
 #define MSGJPN125 (std::data(msgs[10000+125])) /* 削除（ホスト） */
-#define MSGJPN127 (std::data(msgs[10000+127])) /* 基本 */
-#define MSGJPN128 (std::data(msgs[10000+128])) /* 拡張 */
-#define MSGJPN129 (std::data(msgs[10000+129])) /* 文字コード */
-#define MSGJPN130 (std::data(msgs[10000+130])) /* ダイアルアップ */
-#define MSGJPN131 (std::data(msgs[10000+131])) /* 高度 */
-#define MSGJPN132 (std::data(msgs[10000+132])) /* ホストの設定 */
 #define MSGJPN133 (std::data(msgs[10000+133])) /* GMT%+02d:00 (日本) */
 #define MSGJPN134 (std::data(msgs[10000+134])) /* 使用しない */
 #define MSGJPN135 (std::data(msgs[10000+135])) /* 自動認識 */
@@ -174,19 +168,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN181 (std::data(msgs[10000+181])) /* ホスト名と設定名の両方が指定されています. */
 #define MSGJPN182 (std::data(msgs[10000+182])) /* ビューアの起動に失敗しました. (ERROR=%d) */
 #define MSGJPN185 (std::data(msgs[10000+185])) /* フォルダを選択してください */
-#define MSGJPN186 (std::data(msgs[10000+186])) /* ユーザー */
-#define MSGJPN187 (std::data(msgs[10000+187])) /* 転送1 */
-#define MSGJPN188 (std::data(msgs[10000+188])) /* 転送2 */
-#define MSGJPN189 (std::data(msgs[10000+189])) /* 転送3 */
-#define MSGJPN190 (std::data(msgs[10000+190])) /* ミラーリング */
-#define MSGJPN191 (std::data(msgs[10000+191])) /* 操作 */
-#define MSGJPN192 (std::data(msgs[10000+192])) /* 表示1 */
-#define MSGJPN193 (std::data(msgs[10000+193])) /* 接続/切断 */
-#define MSGJPN194 (std::data(msgs[10000+194])) /* FireWall */
-#define MSGJPN195 (std::data(msgs[10000+195])) /* ツール */
-#define MSGJPN196 (std::data(msgs[10000+196])) /* サウンド */
-#define MSGJPN197 (std::data(msgs[10000+197])) /* その他 */
-#define MSGJPN198 (std::data(msgs[10000+198])) /* オプション */
 #define MSGJPN199 (std::data(msgs[10000+199])) /* ファイル名 */
 #define MSGJPN200 (std::data(msgs[10000+200])) /* ファイル名 */
 #define MSGJPN201 (std::data(msgs[10000+201])) /* 属性 */
@@ -286,12 +267,10 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN310 (std::data(msgs[10000+310])) /* ローカルの漢字コードはEUC */
 #define MSGJPN311 (std::data(msgs[10000+311])) /* ローカルの漢字コードはJIS */
 #define MSGJPN312 (std::data(msgs[10000+312])) /* ローカルの漢字コードはUTF-8 */
-#define MSGJPN313 (std::data(msgs[10000+313])) /* 暗号化 */
 #define MSGJPN314 (std::data(msgs[10000+314])) /* 通信は暗号化されていません.\r\n第三者にパスワードおよび内容を傍受される可能性があります. */
 #define MSGJPN315 (std::data(msgs[10000+315])) /* FTP over Explicit SSL/TLS (FTPES)を使用します. */
 #define MSGJPN316 (std::data(msgs[10000+316])) /* FTP over Implicit SSL/TLS (FTPIS)を使用します. */
 #define MSGJPN317 (std::data(msgs[10000+317])) /* SSH FTP (SFTP)を使用します. */
-#define MSGJPN320 (std::data(msgs[10000+320])) /* 特殊機能 */
 #define MSGJPN321 (std::data(msgs[10000+321])) /* プロセスの保護に必要な関数を取得できませんでした. */
 #define MSGJPN322 (std::data(msgs[10000+322])) /* デバッガが検出されました. */
 #define MSGJPN323 (std::data(msgs[10000+323])) /* 信頼できないDLLをアンロードできませんでした. */
@@ -304,8 +283,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN336 (std::data(msgs[10000+336])) /* 全て後で上書き */
 #define MSGJPN337 (std::data(msgs[10000+337])) /* 全て後でリジューム */
 #define MSGJPN338 (std::data(msgs[10000+338])) /* 全てスキップ */
-#define MSGJPN339 (std::data(msgs[10000+339])) /* 転送4 */
-#define MSGJPN340 (std::data(msgs[10000+340])) /* 表示2 */
 #define MSGJPN341 (std::data(msgs[10000+341])) /* WindowsファイアウォールのステートフルFTPフィルタの有効無効を設定します.\nこれはWindows Vista以降でのみ動作します.\n有効化または無効化することで通信状態が改善されることがあります.\n有効化するには「はい」,無効化するには「いいえ」を選択してください. */
 #define MSGJPN342 (std::data(msgs[10000+342])) /* ステートフルFTPフィルタを設定できませんでした. */
 #define MSGJPN343 (std::data(msgs[10000+343])) /* ファイル名の漢字コードの判別結果は%sです. */

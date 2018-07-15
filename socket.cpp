@@ -237,7 +237,7 @@ struct CertDialog {
 	using result_t = int;
 	std::unique_ptr<CERT_CONTEXT> const& certContext;
 	CertDialog(std::unique_ptr<CERT_CONTEXT> const& certContext) : certContext{ certContext } {}
-	INT_PTR OnCommand(HWND hdlg, WORD commandId) {
+	void OnCommand(HWND hdlg, WORD commandId) {
 		switch (commandId) {
 		case IDYES:
 		case IDNO:
@@ -248,7 +248,6 @@ struct CertDialog {
 			CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
 			break;
 		}
-		return 0;
 	}
 };
 

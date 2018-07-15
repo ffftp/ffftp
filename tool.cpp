@@ -28,7 +28,6 @@
 /============================================================================*/
 
 #include "common.h"
-#include "helpid.h"
 
 
 /*===== プロトタイプ =====*/
@@ -36,11 +35,6 @@
 // 64ビット対応
 //static BOOL CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-
-
-/*===== 外部参照 =====*/
-
-extern HWND hHelpWin;
 
 
 /*----- ワンタイムパスワード計算 ----------------------------------------------
@@ -75,6 +69,7 @@ void OtpCalcTool(void)
 //static BOOL CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 static INT_PTR CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	using AlgoButton = RadioButton<OTPCALC_MD4, OTPCALC_MD5, OTPCALC_SHA1>;
 	char Tmp[41];
 	char *Pos;
 	int Seq;
@@ -82,19 +77,12 @@ static INT_PTR CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, L
 	char Seed[MAX_SEED_LEN+1];
 	char Pass[PASSWORD_LEN+1];
 
-	static const RADIOBUTTON AlgoButton[] = {
-		{ OTPCALC_MD4, MD4 },
-		{ OTPCALC_MD5, MD5 },
-		{ OTPCALC_SHA1, SHA1 }
-	};
-	#define ALGOBUTTONS	(sizeof(AlgoButton)/sizeof(RADIOBUTTON))
-
 	switch (message)
 	{
 		case WM_INITDIALOG :
 			SendDlgItemMessage(hDlg, OTPCALC_KEY, EM_LIMITTEXT, 40, 0);
 			SendDlgItemMessage(hDlg, OTPCALC_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
-			SetRadioButtonByValue(hDlg, MD4, AlgoButton, ALGOBUTTONS);
+			AlgoButton::Set(hDlg, MD4);
 			return(TRUE);
 
 		case WM_COMMAND :
@@ -103,7 +91,7 @@ static INT_PTR CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, L
 				case IDOK :
 					SendDlgItemMessage(hDlg, OTPCALC_KEY, WM_GETTEXT, 41, (LPARAM)Tmp);
 					SendDlgItemMessage(hDlg, OTPCALC_PASS, WM_GETTEXT, PASSWORD_LEN+1, (LPARAM)Pass);
-					Type = AskRadioButtonValue(hDlg, AlgoButton, ALGOBUTTONS);
+					Type = AlgoButton::Get(hDlg);
 
 					Pos = Tmp;
 					while(*Pos == ' ')

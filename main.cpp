@@ -34,7 +34,6 @@
 #pragma comment(lib, "muiload.lib")
 #pragma comment(lib, "legacy_stdio_definitions.lib")
 #endif
-#include "helpid.h"
 
 
 #define RESIZE_OFF		0		/* ウインドウの区切り位置変更していない */
@@ -68,7 +67,7 @@ static void DeleteAlltempFile(void);
 // 64ビット対応
 //static BOOL CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static int EnterMasterPasswordAndSet( int Res, HWND hWnd );
+static int EnterMasterPasswordAndSet(bool newpassword, HWND hWnd);
 
 /*===== ローカルなワーク =====*/
 
@@ -468,7 +467,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			RegType = REGTYPE_INI;
 			if(IsRegAvailable() == YES && IsIniAvailable() == NO)
 			{
-				if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(ini_from_reg_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+				if (Dialog(GetFtpInst(), ini_from_reg_dlg, GetMainHwnd()))
 					ImportPortable = YES;
 			}
 		}
@@ -535,7 +534,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			}
 			
 			/* 再入力させる*/
-			masterpass = EnterMasterPasswordAndSet(masterpasswd_dlg, NULL);
+			masterpass = EnterMasterPasswordAndSet(false, NULL);
 			if( masterpass == 2 ){
 				useDefautPassword = 1;
 			}
@@ -1232,7 +1231,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_OPTION :
-					SetOption(0);
+					SetOption();
 					if(ListFont != NULL)
 					{
 						SendMessage(GetLocalHwnd(), WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
@@ -1467,7 +1466,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_REGINIT :
-					if(DialogBox(hInstFtp, MAKEINTRESOURCE(reginit_dlg), hWnd, ExeEscDialogProc) == YES)
+					if(Dialog(hInstFtp, reginit_dlg, hWnd))
 					{
 						ClearRegistry();
 						// ポータブル版判定
@@ -1480,17 +1479,11 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					if( GetMasterPasswordStatus() != PASSWORD_OK )
 					{
 						/* 強制的に設定するか確認 */
-						if( DialogBox(hInstFtp, MAKEINTRESOURCE(forcepasschange_dlg), hWnd, ExeEscDialogProc) != YES){
+						if (!Dialog(hInstFtp, forcepasschange_dlg, hWnd))
 							break;
-						}
-						// セキュリティ強化
-						if(EnterMasterPasswordAndSet(newmasterpasswd_dlg, hWnd) != 0)
+						if(EnterMasterPasswordAndSet(true, hWnd) != 0)
 							SetTaskMsg(MSGJPN303);
 					}
-					// セキュリティ強化
-//					if( EnterMasterPasswordAndSet( newmasterpasswd_dlg, hWnd ) != 0 ){
-//						SetTaskMsg( MSGJPN303 );
-//					}
 					else if(GetMasterPasswordStatus() == PASSWORD_OK)
 					{
 						char Password[MAX_PASSWORD_LEN + 1];
@@ -1498,10 +1491,10 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						SetMasterPassword(NULL);
 						while(ValidateMasterPassword() == YES && GetMasterPasswordStatus() == PASSWORD_UNMATCH)
 						{
-							if(EnterMasterPasswordAndSet(masterpasswd_dlg, hWnd) == 0)
+							if(EnterMasterPasswordAndSet(false, hWnd) == 0)
 								break;
 						}
-						if(GetMasterPasswordStatus() == PASSWORD_OK && EnterMasterPasswordAndSet(newmasterpasswd_dlg, hWnd) != 0)
+						if(GetMasterPasswordStatus() == PASSWORD_OK && EnterMasterPasswordAndSet(true, hWnd) != 0)
 						{
 							SetTaskMsg(MSGJPN303);
 							SaveRegistry();
@@ -1570,7 +1563,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						SetMasterPassword(NULL);
 						while(ValidateMasterPassword() == YES && GetMasterPasswordStatus() == PASSWORD_UNMATCH)
 						{
-							if(EnterMasterPasswordAndSet(masterpasswd_dlg, hWnd) == 0)
+							if(EnterMasterPasswordAndSet(false, hWnd) == 0)
 								break;
 						}
 						if(GetMasterPasswordStatus() == PASSWORD_OK)
@@ -1593,7 +1586,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						SetMasterPassword(NULL);
 						while(ValidateMasterPassword() == YES && GetMasterPasswordStatus() == PASSWORD_UNMATCH)
 						{
-							if(EnterMasterPasswordAndSet(masterpasswd_dlg, hWnd) == 0)
+							if(EnterMasterPasswordAndSet(false, hWnd) == 0)
 								break;
 						}
 						if(GetMasterPasswordStatus() == PASSWORD_OK)
@@ -1912,9 +1905,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			return(TRUE);
 
 		case WM_CLOSE :
-			if((AskTransferNow() == NO) ||
-			   (DialogBox(hInstFtp, MAKEINTRESOURCE(exit_dlg), hWnd, ExeEscDialogProc) == YES))
-			{
+			if (AskTransferNow() == NO || Dialog(hInstFtp, exit_dlg, hWnd)) {
 				ExitProc(hWnd);
 				return(DefWindowProc(hWnd, message, wParam, lParam));
 			}
@@ -3236,24 +3227,21 @@ int AskAutoExit(void)
 *	Return Value
 *		int : 0/ユーザキャンセル, 1/設定した, 2/デフォルト設定
 *----------------------------------------------------------------------------*/
-int EnterMasterPasswordAndSet( int Res, HWND hWnd )
+int EnterMasterPasswordAndSet(bool newpassword, HWND hWnd)
 {
 	char buf[MAX_PASSWORD_LEN + 1];
 	// パスワードの入力欄を非表示
 	// 非表示にしたため新しいパスワードを2回入力させる
 	char buf1[MAX_PASSWORD_LEN + 1];
 	char *p;
-	int Flag;
 
 	buf[0] = NUL;
-	if( InputDialogBox(Res, hWnd, NULL, buf, MAX_PASSWORD_LEN + 1,
-		&Flag, IDH_HELP_TOPIC_0000064) == YES){
+	if (InputDialog(newpassword ? newmasterpasswd_dlg : masterpasswd_dlg, hWnd, NULL, buf, MAX_PASSWORD_LEN + 1, nullptr, IDH_HELP_TOPIC_0000064)){
 		// パスワードの入力欄を非表示
-		if(Res == newmasterpasswd_dlg)
+		if (newpassword)
 		{
 			buf1[0] = NUL;
-			if( InputDialogBox(Res, hWnd, NULL, buf1, MAX_PASSWORD_LEN + 1,
-				&Flag, IDH_HELP_TOPIC_0000064) != YES){
+			if (!InputDialog(newmasterpasswd_dlg, hWnd, NULL, buf1, MAX_PASSWORD_LEN + 1, nullptr, IDH_HELP_TOPIC_0000064)){
 				return 0;
 			}
 			if(strcmp(buf, buf1) != 0)

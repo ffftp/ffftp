@@ -2521,12 +2521,7 @@ static int DispUpDownErrDialog(int ResID, HWND hWnd, TRANSPACKET *Pkt)
 static INT_PTR CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	static TRANSPACKET *Pkt;
-	static const RADIOBUTTON DownExistButton[] = {
-		{ DOWN_EXIST_OVW, EXIST_OVW },
-		{ DOWN_EXIST_RESUME, EXIST_RESUME },
-		{ DOWN_EXIST_IGNORE, EXIST_IGNORE }
-	};
-	#define DOWNEXISTBUTTONS	(sizeof(DownExistButton)/sizeof(RADIOBUTTON))
+	using DownExistButton = RadioButton<DOWN_EXIST_OVW, DOWN_EXIST_RESUME, DOWN_EXIST_IGNORE>;
 
 	switch (message)
 	{
@@ -2541,7 +2536,7 @@ static INT_PTR CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wP
 			if((Pkt->Type == TYPE_A) || (Pkt->ExistSize <= 0))
 				EnableWindow(GetDlgItem(hDlg, DOWN_EXIST_RESUME), FALSE);
 
-			SetRadioButtonByValue(hDlg, TransferErrorMode, DownExistButton, DOWNEXISTBUTTONS);
+			DownExistButton::Set(hDlg, TransferErrorMode);
 			return(TRUE);
 
 		case WM_COMMAND :
@@ -2552,7 +2547,7 @@ static INT_PTR CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wP
 					/* ここに break はない */
 
 				case IDOK :
-					TransferErrorMode = AskRadioButtonValue(hDlg, DownExistButton, DOWNEXISTBUTTONS);
+					TransferErrorMode = DownExistButton::Get(hDlg);
 					EndDialog(hDlg, YES);
 					break;
 

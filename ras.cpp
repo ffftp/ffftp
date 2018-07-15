@@ -155,7 +155,7 @@ static int DoDisconnect(RASCONN *RasConn, int Num)
 void DisconnectRas(int Notify) {
 	RASCONN* RasConn;
 	if (int Num = GetCurConnections(&RasConn); Num != -1) {
-		if (0 < Num && (Notify == NO || DialogBox(GetFtpInst(), MAKEINTRESOURCE(rasnotify_dlg), GetMainHwnd(), ExeEscDialogProc) == YES))
+		if (0 < Num && (Notify == NO || Dialog(GetFtpInst(), rasnotify_dlg, GetMainHwnd())))
 			DoDisconnect(RasConn, Num);
 		free(RasConn);
 	}
@@ -238,7 +238,7 @@ int ConnectRas(int Dialup, int UseThis, int Notify, char *Name) {
 						break;
 					}
 				if (DoDial) {
-					if (Notify == NO || DialogBox(GetFtpInst(), MAKEINTRESOURCE(rasreconnect_dlg), GetMainHwnd(), ExeEscDialogProc) == YES)
+					if (Notify == NO || Dialog(GetFtpInst(), rasreconnect_dlg, GetMainHwnd()))
 						DoDisconnect(RasConn, Num);
 					else
 						DoDial = false;

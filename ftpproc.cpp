@@ -28,7 +28,6 @@
 /============================================================================*/
 
 #include "common.h"
-#include "helpid.h"
 
 
 /*===== プロトタイプ =====*/
@@ -46,11 +45,7 @@ static int CheckLocalFile(TRANSPACKET *Pkt);
 static INT_PTR CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static void RemoveAfterSemicolon(char *Path);
 static void MirrorDeleteAllDir(FILELIST *Remote, TRANSPACKET *Pkt, TRANSPACKET **Base);
-// 64ビット対応
-//static BOOL CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static void CountMirrorFiles(HWND hDlg, TRANSPACKET *Pkt);
 static int AskMirrorNoTrn(char *Fname, int Mode);
 static int AskUploadFileAttr(char *Fname);
@@ -72,10 +67,6 @@ static int GetAttrFromDialog(HWND hDlg);
 static INT_PTR CALLBACK SizeNotifyDlgWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK SizeDlgWndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static int RenameUnuseableName(char *Fname);
-
-/*===== 外部参照 ====*/
-
-extern HWND hHelpWin;
 
 /* 設定値 */
 extern int FnameCnv;
@@ -441,33 +432,72 @@ void DirectDownloadProc(char *Fname)
 }
 
 
-/*----- 入力されたファイル名のファイルを一つダウンロードする ------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void InputDownloadProc(void)
-{
-	char Path[FMAX_PATH+1];
-	int Tmp;
-
-//	DisableUserOpe();
-
-	strcpy(Path, "");
-	if(InputDialogBox(downname_dlg, GetMainHwnd(), NULL, Path, FMAX_PATH, &Tmp, IDH_HELP_TOPIC_0000001) == YES)
-	{
+// 入力されたファイル名のファイルを一つダウンロードする
+void InputDownloadProc() {
+	if (char Path[FMAX_PATH + 1] = ""; InputDialog(downname_dlg, GetMainHwnd(), NULL, Path, FMAX_PATH))
 		DirectDownloadProc(Path);
-	}
-
-//	EnableUserOpe();
-
-	return;
 }
 
+struct MirrorList {
+	using result_t = bool;
+	Resizable<Controls<MIRROR_DEL, MIRROR_SIZEGRIP>, Controls<IDOK, IDCANCEL, IDHELP, MIRROR_DEL, MIRROR_COPYNUM, MIRROR_MAKENUM, MIRROR_DELNUM, MIRROR_SIZEGRIP, MIRROR_NO_TRANSFER>, Controls<MIRROR_LIST>> resizable{ MirrorDlgSize };
+	TRANSPACKET** Base;
+	MirrorList(TRANSPACKET** Base) : Base{ Base } {}
+	INT_PTR OnInit(HWND hDlg) {
+		for (auto Pos = *Base; Pos; Pos = Pos->Next) {
+			char Tmp[FMAX_PATH + 1 + 6] = "";
+			if (strncmp(Pos->Cmd, "R-DELE", 6) == 0 || strncmp(Pos->Cmd, "R-RMD", 5) == 0)
+				sprintf(Tmp, MSGJPN052, Pos->RemoteFile);
+			else if (strncmp(Pos->Cmd, "R-MKD", 5) == 0)
+				sprintf(Tmp, MSGJPN053, Pos->RemoteFile);
+			else if (strncmp(Pos->Cmd, "STOR", 4) == 0)
+				sprintf(Tmp, MSGJPN054, Pos->RemoteFile);
+			else if (strncmp(Pos->Cmd, "L-DELE", 6) == 0 || strncmp(Pos->Cmd, "L-RMD", 5) == 0)
+				sprintf(Tmp, MSGJPN055, Pos->LocalFile);
+			else if (strncmp(Pos->Cmd, "L-MKD", 5) == 0)
+				sprintf(Tmp, MSGJPN056, Pos->LocalFile);
+			else if (strncmp(Pos->Cmd, "RETR", 4) == 0)
+				sprintf(Tmp, MSGJPN057, Pos->LocalFile);
+			if (strlen(Tmp) > 0)
+				SendDlgItemMessage(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)Tmp);
+		}
+		CountMirrorFiles(hDlg, *Base);
+		EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), FALSE);
+		SendDlgItemMessageW(hDlg, MIRROR_NO_TRANSFER, BM_SETCHECK, MirrorNoTransferContents, 0);
+		return TRUE;
+	}
+	void OnCommand(HWND hDlg, WORD cmd, WORD id) {
+		switch (id) {
+		case IDOK:
+		case IDCANCEL:
+			EndDialog(hDlg, id == IDOK);
+			return;
+		case MIRROR_DEL: {
+			std::vector<int> List((size_t)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0));
+			auto Num = (int)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELITEMS, size_as<WPARAM>(List), (LPARAM)data(List));
+			for (Num--; Num >= 0; Num--)
+				if (RemoveTmpTransFileListItem(Base, List[Num]) == FFFTP_SUCCESS)
+					SendDlgItemMessage(hDlg, MIRROR_LIST, LB_DELETESTRING, List[Num], 0);
+				else
+					MessageBeep(-1);
+			CountMirrorFiles(hDlg, *Base);
+			break;
+		}
+		case MIRROR_LIST:
+			if (cmd == LBN_SELCHANGE)
+				EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), 0 < SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0));
+			break;
+		case MIRROR_NO_TRANSFER:
+			for (auto Pos = *Base; Pos; Pos = Pos->Next)
+				if (strncmp(Pos->Cmd, "STOR", 4) == 0 || strncmp(Pos->Cmd, "RETR", 4) == 0)
+					Pos->NoTransfer = (int)SendDlgItemMessageW(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
+			break;
+		case IDHELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000012);
+			break;
+		}
+	}
+};
 
 /*----- ミラーリングダウンロードを行う ----------------------------------------
 *
@@ -686,11 +716,7 @@ void MirrorDownloadProc(int Notify)
 				RemotePos = RemotePos->Next;
 			}
 
-			// ファイル一覧バグ修正
-//			if((Notify == YES) ||
-//			   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirrordown_notify_dlg), GetMainHwnd(), MirrorDispListCallBack, (LPARAM)&Base) == YES))
-			if(((AbortOnListError == NO) || (ListSts == FFFTP_SUCCESS)) && ((Notify == YES) ||
-			   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirrordown_notify_dlg), GetMainHwnd(), MirrorDispListCallBack, (LPARAM)&Base) == YES)))
+			if ((AbortOnListError == NO || ListSts == FFFTP_SUCCESS) && (Notify == YES || Dialog(GetFtpInst(), mirrordown_notify_dlg, GetMainHwnd(), MirrorList{ &Base })))
 			{
 				if(AskNoFullPathMode() == YES)
 				{
@@ -936,21 +962,7 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 static INT_PTR CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	static TRANSPACKET *Pkt;
-	// 同じ名前のファイルの処理方法追加
-//	static const RADIOBUTTON DownExistButton[] = {
-//		{ DOWN_EXIST_OVW, EXIST_OVW },
-//		{ DOWN_EXIST_NEW, EXIST_NEW },
-//		{ DOWN_EXIST_RESUME, EXIST_RESUME },
-//		{ DOWN_EXIST_IGNORE, EXIST_IGNORE }
-//	};
-	static const RADIOBUTTON DownExistButton[] = {
-		{ DOWN_EXIST_OVW, EXIST_OVW },
-		{ DOWN_EXIST_NEW, EXIST_NEW },
-		{ DOWN_EXIST_RESUME, EXIST_RESUME },
-		{ DOWN_EXIST_IGNORE, EXIST_IGNORE },
-		{ DOWN_EXIST_LARGE, EXIST_LARGE }
-	};
-	#define DOWNEXISTBUTTONS	(sizeof(DownExistButton)/sizeof(RADIOBUTTON))
+	using DownExistButton = RadioButton<DOWN_EXIST_OVW, DOWN_EXIST_NEW, DOWN_EXIST_RESUME, DOWN_EXIST_IGNORE, DOWN_EXIST_LARGE>;
 
 	switch (iMessage)
 	{
@@ -962,7 +974,7 @@ static INT_PTR CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM
 			if((Pkt->Type == TYPE_A) || (Pkt->ExistSize <= 0))
 				EnableWindow(GetDlgItem(hDlg, DOWN_EXIST_RESUME), FALSE);
 
-			SetRadioButtonByValue(hDlg, ExistMode, DownExistButton, DOWNEXISTBUTTONS);
+			DownExistButton::Set(hDlg, ExistMode);
 			return(TRUE);
 
 		case WM_COMMAND :
@@ -973,7 +985,7 @@ static INT_PTR CALLBACK DownExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM
 					/* ここに break はない */
 
 				case IDOK :
-					ExistMode = AskRadioButtonValue(hDlg, DownExistButton, DOWNEXISTBUTTONS);
+					ExistMode = DownExistButton::Get(hDlg);
 					SendDlgItemMessage(hDlg, DOWN_EXIST_NAME, WM_GETTEXT, FMAX_PATH, (LPARAM)Pkt->LocalFile);
 					EndDialog(hDlg, YES);
 					break;
@@ -1737,11 +1749,7 @@ void MirrorUploadProc(int Notify)
 				LocalPos = LocalPos->Next;
 			}
 
-			// ファイル一覧バグ修正
-//			if((Notify == YES) ||
-//			   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirror_notify_dlg), GetMainHwnd(), MirrorDispListCallBack, (LPARAM)&Base) == YES))
-			if(((AbortOnListError == NO) || (ListSts == FFFTP_SUCCESS)) && ((Notify == YES) ||
-			   (DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(mirror_notify_dlg), GetMainHwnd(), MirrorDispListCallBack, (LPARAM)&Base) == YES)))
+			if ((AbortOnListError == NO || ListSts == FFFTP_SUCCESS) && (Notify == YES || Dialog(GetFtpInst(), mirror_notify_dlg, GetMainHwnd(), MirrorList{ &Base })))
 			{
 				if(AskNoFullPathMode() == YES)
 				{
@@ -1862,147 +1870,6 @@ static INT_PTR CALLBACK MirrorNotifyCallBack(HWND hDlg, UINT iMessage, WPARAM wP
 					else
 						hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000012);
 			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
-/*----- ミラーリングアップロード処理内容確認ウインドウのコールバック ----------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK MirrorDispListCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	static DIALOGSIZE DlgSize = {
-		{ MIRROR_DEL, MIRROR_SIZEGRIP, -1 },
-		// ミラーリング設定追加
-//		{ IDOK, IDCANCEL, IDHELP, MIRROR_DEL, MIRROR_COPYNUM, MIRROR_MAKENUM, MIRROR_DELNUM, MIRROR_SIZEGRIP, -1 },
-		{ IDOK, IDCANCEL, IDHELP, MIRROR_DEL, MIRROR_COPYNUM, MIRROR_MAKENUM, MIRROR_DELNUM, MIRROR_SIZEGRIP, MIRROR_NO_TRANSFER, -1 },
-		{ MIRROR_LIST, -1 },
-		{ 0, 0 },
-		{ 0, 0 }
-	};
-
-	static TRANSPACKET **Base;
-	TRANSPACKET *Pos;
-	char Tmp[FMAX_PATH+1+6];
-	int Num;
-	int *List;
-	// バグ修正
-	RECT Rect;
-
-	switch (iMessage)
-	{
-		// バグ修正
-		case WM_SIZE :
-			GetWindowRect(hDlg, &Rect);
-			DlgSizeChange(hDlg, &DlgSize, &Rect, 0);
-			RedrawWindow(hDlg, NULL, NULL, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
-			break;
-
-		case WM_INITDIALOG :
-			Base = (TRANSPACKET **)lParam;
-			Pos = *Base;
-			while(Pos != NULL)
-			{
-				strcpy(Tmp, "");
-				if((strncmp(Pos->Cmd, "R-DELE", 6) == 0) ||
-				   (strncmp(Pos->Cmd, "R-RMD", 5) == 0))
-					sprintf(Tmp, MSGJPN052, Pos->RemoteFile);
-				else if(strncmp(Pos->Cmd, "R-MKD", 5) == 0)
-					sprintf(Tmp, MSGJPN053, Pos->RemoteFile);
-				else if(strncmp(Pos->Cmd, "STOR", 4) == 0)
-					sprintf(Tmp, MSGJPN054, Pos->RemoteFile);
-				else if((strncmp(Pos->Cmd, "L-DELE", 6) == 0) ||
-						(strncmp(Pos->Cmd, "L-RMD", 5) == 0))
-					sprintf(Tmp, MSGJPN055, Pos->LocalFile);
-				else if(strncmp(Pos->Cmd, "L-MKD", 5) == 0)
-					sprintf(Tmp, MSGJPN056, Pos->LocalFile);
-				else if(strncmp(Pos->Cmd, "RETR", 4) == 0)
-					sprintf(Tmp, MSGJPN057, Pos->LocalFile);
-
-				if(strlen(Tmp) > 0)
-					SendDlgItemMessage(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)Tmp);
-				Pos = Pos->Next;
-			}
-			CountMirrorFiles(hDlg, *Base);
-			DlgSizeInit(hDlg, &DlgSize, &MirrorDlgSize);
-			EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), FALSE);
-			// ミラーリング設定追加
-			SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_SETCHECK, MirrorNoTransferContents, 0);
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDOK :
-					AskDlgSize(hDlg, &DlgSize, &MirrorDlgSize);
-					EndDialog(hDlg, YES);
-					break;
-
-				case IDCANCEL :
-					AskDlgSize(hDlg, &DlgSize, &MirrorDlgSize);
-					EndDialog(hDlg, NO);
-					break;
-
-				case MIRROR_DEL :
-					Num = (int)SendDlgItemMessage(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0);
-					if((List = (int*)malloc(Num * sizeof(int))) != NULL)
-					{
-						Num = (int)SendDlgItemMessage(hDlg, MIRROR_LIST, LB_GETSELITEMS, Num, (LPARAM)List);
-						for(Num--; Num >= 0; Num--)
-						{
-							if(RemoveTmpTransFileListItem(Base, List[Num]) == FFFTP_SUCCESS)
-								SendDlgItemMessage(hDlg, MIRROR_LIST, LB_DELETESTRING, List[Num], 0);
-							else
-								MessageBeep(-1);
-						}
-						free(List);
-						CountMirrorFiles(hDlg, *Base);
-					}
-					break;
-
-				case MIRROR_LIST :
-					switch(GET_WM_COMMAND_CMD(wParam, lParam))
-					{
-						case LBN_SELCHANGE :
-							if(SendDlgItemMessage(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0) > 0)
-								EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), TRUE);
-							else
-								EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), FALSE);
-							break;
-					}
-					break;
-
-				// ミラーリング設定追加
-				case MIRROR_NO_TRANSFER :
-					Pos = *Base;
-					while(Pos != NULL)
-					{
-						if(strncmp(Pos->Cmd, "STOR", 4) == 0 || strncmp(Pos->Cmd, "RETR", 4) == 0)
-							Pos->NoTransfer = (int)SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
-						Pos = Pos->Next;
-					}
-					break;
-
-				case IDHELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000012);
-			}
-			return(TRUE);
-
-		case WM_SIZING :
-			DlgSizeChange(hDlg, &DlgSize, (RECT *)lParam, (int)wParam);
 			return(TRUE);
 	}
 	return(FALSE);
@@ -2187,23 +2054,7 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, FILELIST *ListList)
 static INT_PTR CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
 	static TRANSPACKET *Pkt;
-	// 同じ名前のファイルの処理方法追加
-//	static const RADIOBUTTON UpExistButton[] = {
-//		{ UP_EXIST_OVW, EXIST_OVW },
-//		{ UP_EXIST_NEW, EXIST_NEW },
-//		{ UP_EXIST_RESUME, EXIST_RESUME },
-//		{ UP_EXIST_UNIQUE, EXIST_UNIQUE },
-//		{ UP_EXIST_IGNORE, EXIST_IGNORE }
-//	};
-	static const RADIOBUTTON UpExistButton[] = {
-		{ UP_EXIST_OVW, EXIST_OVW },
-		{ UP_EXIST_NEW, EXIST_NEW },
-		{ UP_EXIST_RESUME, EXIST_RESUME },
-		{ UP_EXIST_UNIQUE, EXIST_UNIQUE },
-		{ UP_EXIST_IGNORE, EXIST_IGNORE },
-		{ UP_EXIST_LARGE, EXIST_LARGE }
-	};
-	#define UPEXISTBUTTONS	(sizeof(UpExistButton)/sizeof(RADIOBUTTON))
+	using UpExistButton = RadioButton<UP_EXIST_OVW, UP_EXIST_NEW, UP_EXIST_RESUME, UP_EXIST_UNIQUE, UP_EXIST_IGNORE, UP_EXIST_LARGE>;
 
 	switch (iMessage)
 	{
@@ -2215,7 +2066,7 @@ static INT_PTR CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM w
 			if((Pkt->Type == TYPE_A) || (Pkt->ExistSize <= 0))
 				EnableWindow(GetDlgItem(hDlg, UP_EXIST_RESUME), FALSE);
 
-			SetRadioButtonByValue(hDlg, UpExistMode, UpExistButton, UPEXISTBUTTONS);
+			UpExistButton::Set(hDlg, UpExistMode);
 			return(TRUE);
 
 		case WM_COMMAND :
@@ -2226,7 +2077,7 @@ static INT_PTR CALLBACK UpExistDialogCallBack(HWND hDlg, UINT iMessage, WPARAM w
 					/* ここに break はない */
 
 				case IDOK :
-					UpExistMode = AskRadioButtonValue(hDlg, UpExistButton, UPEXISTBUTTONS);
+					UpExistMode = UpExistButton::Get(hDlg);
 					SendDlgItemMessage(hDlg, UP_EXIST_NAME, WM_GETTEXT, FMAX_PATH, (LPARAM)Pkt->RemoteFile);
 					EndDialog(hDlg, YES);
 					break;
@@ -2693,6 +2544,31 @@ void RenameProc(void)
 //
 void MoveRemoteFileProc(int drop_index)
 {
+	struct Data {
+		using result_t = bool;
+		std::wstring const& file;
+		Data(std::wstring const& file) : file{ file } {}
+		INT_PTR OnInit(HWND hDlg) {
+			SendDlgItemMessageW(hDlg, COMMON_TEXT, WM_SETTEXT, 0, (LPARAM)file.c_str());
+			return TRUE;
+		}
+		static void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK:
+				EndDialog(hDlg, true);
+				break;
+			case IDCANCEL:
+				EndDialog(hDlg, false);
+				break;
+			}
+		}
+		static INT_PTR OnMessage(HWND hDlg, UINT uMsg, WPARAM, LPARAM) {
+			if (uMsg == WM_SHOWWINDOW)
+				SendDlgItemMessageW(hDlg, COMMON_TEXT, EM_SETSEL, 0, 0);
+			return 0;
+		}
+	};
+
 	int Win;
 	FILELIST *FileListBase;
 	FILELIST *Pos;
@@ -2721,13 +2597,8 @@ void MoveRemoteFileProc(int drop_index)
 	else
 		strcpy(Pkt.File, "..");
 
-	if(MoveMode == MOVE_DLG)
-	{
-		if(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(move_notify_dlg), GetRemoteHwnd(), ExeEscTextDialogProc, (LPARAM)Pkt.File) == NO)
-		{
-			return;
-		}
-	}
+	if (MoveMode == MOVE_DLG && !Dialog(GetFtpInst(), move_notify_dlg, GetRemoteHwnd(), Data{ u8(Pkt.File) }))
+		return;
 
 	Sts = FFFTP_SUCCESS;
 #if 0
@@ -2876,11 +2747,8 @@ static INT_PTR CALLBACK RenameDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wP
 
 void MkdirProc(void)
 {
-	int Sts;
 	int Win;
-	char Path[FMAX_PATH+1];
 	char *Title;
-	int Tmp;
 
 	// 同時接続対応
 	CancelFlg = NO;
@@ -2896,10 +2764,7 @@ void MkdirProc(void)
 		Title = MSGJPN071;
 	}
 
-	strcpy(Path, "");
-	Sts = InputDialogBox(mkdir_dlg, GetMainHwnd(), Title, Path, FMAX_PATH+1, &Tmp, IDH_HELP_TOPIC_0000001);
-
-	if((Sts == YES) && (strlen(Path) != 0))
+	if (char Path[FMAX_PATH + 1] = ""; InputDialog(mkdir_dlg, GetMainHwnd(), Title, Path, FMAX_PATH + 1) && strlen(Path) != 0)
 	{
 		if(Win == WIN_LOCAL)
 		{
@@ -3014,10 +2879,9 @@ void ChangeDirBmarkProc(int MarkID)
 
 void ChangeDirDirectProc(int Win)
 {
-	int Sts;
+	bool result = false;
 	char Path[FMAX_PATH+1];
 	char *Title;
-	int Tmp;
 
 	// 同時接続対応
 	CancelFlg = NO;
@@ -3029,16 +2893,14 @@ void ChangeDirDirectProc(int Win)
 
 	strcpy(Path, "");
 	if(Win == WIN_LOCAL)
-	// フォルダ選択ダイアログを直接表示
-//		Sts = InputDialogBox(chdir_br_dlg, GetMainHwnd(), Title, Path, FMAX_PATH+1, &Tmp, IDH_HELP_TOPIC_0000001);
 	{
 		if(SelectDir(GetMainHwnd(), Path, FMAX_PATH) == TRUE)
-			Sts = YES;
+			result = true;
 	}
 	else
-		Sts = InputDialogBox(chdir_dlg, GetMainHwnd(), Title, Path, FMAX_PATH+1, &Tmp, IDH_HELP_TOPIC_0000001);
+		result = InputDialog(chdir_dlg, GetMainHwnd(), Title, Path, FMAX_PATH+1);
 
-	if((Sts == YES) && (strlen(Path) != 0))
+	if(result && strlen(Path) != 0)
 	{
 		if(Win == WIN_LOCAL)
 		{
@@ -3328,7 +3190,6 @@ static int GetAttrFromDialog(HWND hDlg)
 void SomeCmdProc(void)
 {
 	char Cmd[81];
-	int Tmp;
 	FILELIST *FileListBase;
 
 	// 同時接続対応
@@ -3348,12 +3209,8 @@ void SomeCmdProc(void)
 			}
 			DeleteFileList(&FileListBase);
 
-			if(InputDialogBox(somecmd_dlg, GetMainHwnd(), NULL, Cmd, 81, &Tmp, IDH_HELP_TOPIC_0000023) == YES)
-			{
-				// 同時接続対応
-				//DoQUOTE(Cmd);
+			if (InputDialog(somecmd_dlg, GetMainHwnd(), NULL, Cmd, 81, nullptr, IDH_HELP_TOPIC_0000023))
 				DoQUOTE(AskCmdCtrlSkt(), Cmd, &CancelFlg);
-			}
 			EnableUserOpe();
 		}
 	}
@@ -3501,19 +3358,9 @@ static INT_PTR CALLBACK SizeDlgWndProc(HWND hDlg, UINT message, WPARAM wParam, L
 }
 
 
-/*----- ディレクトリ移動失敗時のエラーを表示 ----------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispCWDerror(HWND hWnd)
-{
-	DialogBox(GetFtpInst(), MAKEINTRESOURCE(cwderr_dlg), hWnd, ExeEscDialogProc);
-	return;
+// ディレクトリ移動失敗時のエラーを表示
+void DispCWDerror(HWND hWnd) {
+	Dialog(GetFtpInst(), cwderr_dlg, hWnd);
 }
 
 
@@ -3724,7 +3571,6 @@ void ReformVMSDirName(char *DirName, int Flg)
 
 static int RenameUnuseableName(char *Fname)
 {
-	int Tmp;
 	int Ret;
 
 	Ret = FFFTP_SUCCESS;
@@ -3739,7 +3585,7 @@ static int RenameUnuseableName(char *Fname)
 		   (_mbschr((const unsigned char *)Fname, '\x22') != NULL) ||
 		   (_mbschr((const unsigned char *)Fname, '\\') != NULL))
 		{
-			if(InputDialogBox(forcerename_dlg, GetMainHwnd(), NULL, Fname, FMAX_PATH+1, &Tmp, IDH_HELP_TOPIC_0000001) == NO)
+			if (!InputDialog(forcerename_dlg, GetMainHwnd(), NULL, Fname, FMAX_PATH+1))
 			{
 				Ret = FFFTP_FAIL;
 				break;

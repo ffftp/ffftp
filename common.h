@@ -73,6 +73,7 @@
 #include <comutil.h>
 #include "config.h"
 #include "dialog.h"
+#include "helpid.h"
 #include "mbswrapper.h"
 #include "Resource/resource.ja-JP.h"
 #include "mesg-jpn.h"
@@ -253,7 +254,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 #define WM_CHANGE_COND	(WM_USER+1)	/* ファイル一覧を変更するコマンド */
 #define WM_SET_PACKET	(WM_USER+2)	/* 現在使用している転送パケットのアドレスを通知 */
-#define WM_SELECT_HOST	(WM_USER+3)	/* ホストをダブルクリックで選択した */
 
 #define WM_ASYNC_SOCKET	(WM_USER+5)
 
@@ -1350,29 +1350,6 @@ typedef struct {
 } SOUNDFILE;
 
 
-/*===== ラジオボタンの設定 =====*/
-
-typedef struct {
-	int ButID;			/* ボタンのID */
-	int Value;			/* 値 */
-} RADIOBUTTON;
-
-
-/*===== ダイアログボックス変更処理用 =====*/
-
-typedef struct {
-	// ホスト共通設定機能
-//	int HorMoveList[10];	/* 水平に動かす部品のリスト */
-//	int VarMoveList[10];	/* 垂直に動かす部品のリスト */
-//	int ResizeList[10];		/* サイズ変更する部品のリスト */
-	int HorMoveList[16];	/* 水平に動かす部品のリスト */
-	int VarMoveList[16];	/* 垂直に動かす部品のリスト */
-	int ResizeList[16];		/* サイズ変更する部品のリスト */
-	SIZE MinSize;			/* 最少サイズ */
-	SIZE CurSize;			/* 現在のサイズ */
-} DIALOGSIZE;
-
-
 /*===== 数値変換用 =====*/
 
 typedef struct {
@@ -1839,7 +1816,7 @@ int CheckKanjiCode(char *Text, int Size, int Pref);
 
 /*===== option.c =====*/
 
-void SetOption(int Start);
+void SetOption();
 int SortSetting(void);
 // hostman.cで使用
 int GetDecimalText(HWND hDlg, int Ctrl);
@@ -1899,15 +1876,6 @@ int ConnectRas(int Dialup, int UseThis, int Notify, char *Name);
 
 /*===== misc.c =====*/
 
-int InputDialogBox(int Res, HWND hWnd, char *Title, char *Buf, int Max, int *Flg, int Help);
-// 64ビット対応
-//BOOL CALLBACK ExeEscDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-INT_PTR CALLBACK ExeEscDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-// 64ビット対応
-//BOOL CALLBACK ExeEscTextDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-INT_PTR CALLBACK ExeEscTextDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-// 全設定暗号化対応
-INT_PTR CALLBACK AnyButtonDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 void SetYenTail(char *Str);
 void RemoveYenTail(char *Str);
 void SetSlashTail(char *Str);
@@ -1945,8 +1913,6 @@ void AttrValue2String(int Attr, char *Buf, int ShowNumber);
 void FormatIniString(char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 int SelectDir(HWND hWnd, char *Buf, int MaxLen);
-void SetRadioButtonByValue(HWND hDlg, int Value, const RADIOBUTTON *Buttons, int Num);
-int AskRadioButtonValue(HWND hDlg, const RADIOBUTTON *Buttons, int Num);
 int xtoi(char *Str);
 int CheckFileReadable(char *Fname);
 int max1(int n, int m);
@@ -1970,12 +1936,6 @@ void QueryDisplayDPI();
 int CalcPixelX(int x);
 int CalcPixelY(int y);
 HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNumerator, int ScaleDenominator);
-
-/*===== dlgsize.c =====*/
-
-void DlgSizeInit(HWND hDlg, DIALOGSIZE *Dt, SIZE *Size);
-void AskDlgSize(HWND hDlg, DIALOGSIZE *Dt, SIZE *Size);
-void DlgSizeChange(HWND hDlg, DIALOGSIZE *Dt, RECT *New, int Flg);
 
 /*===== opie.c =====*/
 
@@ -2034,6 +1994,7 @@ int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
 
 
 extern HCRYPTPROV HCryptProv;
+extern HWND hHelpWin;
 
 template<class Target, class Source>
 constexpr auto data_as(Source& source) {
@@ -2121,4 +2082,45 @@ static inline auto IdnToAscii(std::wstring const& unicode) {
 	auto result = IdnToAscii(0, data(unicode), size_as<int>(unicode), data(ascii), length);
 	assert(result == length);
 	return ascii;
+}
+static inline auto InputDialog(int dialogId, HWND parent, char *Title, char *Buf, int maxlength = 0, int* flag = nullptr, int helpTopicId = IDH_HELP_TOPIC_0000001) {
+	struct Data {
+		using result_t = bool;
+		char* Title;
+		char* Buf;
+		int maxlength;
+		int* flag;
+		int helpTopicId;
+		Data(char* Title, char* Buf, int maxlength, int* flag, int helpTopicId) : Title{ Title }, Buf{ Buf }, maxlength{ maxlength }, flag{ flag }, helpTopicId{ helpTopicId } {}
+		INT_PTR OnInit(HWND hDlg) {
+			if (Title)
+				SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)Title);
+			SendDlgItemMessageW(hDlg, INP_INPSTR, EM_LIMITTEXT, maxlength - 1, 0);
+			SendDlgItemMessage(hDlg, INP_INPSTR, WM_SETTEXT, 0, (LPARAM)Buf);
+			if (flag)
+				SendDlgItemMessageW(hDlg, INP_ANONYMOUS, BM_SETCHECK, *flag, 0);
+			return TRUE;
+		}
+		void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK:
+				strncpy(Buf, u8(GetText(hDlg, INP_INPSTR)).c_str(), maxlength - 1);
+				if (flag)
+					*flag = (int)SendDlgItemMessageW(hDlg, INP_ANONYMOUS, BM_GETCHECK, 0, 0);
+				EndDialog(hDlg, true);
+				break;
+			case IDCANCEL:
+				EndDialog(hDlg, false);
+				break;
+			case IDHELP:
+				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, helpTopicId);
+				break;
+			case INP_BROWSE:
+				if (char Tmp[FMAX_PATH + 1]; SelectDir(hDlg, Tmp, FMAX_PATH) == TRUE)
+					SendDlgItemMessage(hDlg, INP_INPSTR, WM_SETTEXT, 0, (LPARAM)Tmp);
+				break;
+			}
+		}
+	};
+	return Dialog(GetFtpInst(), dialogId, parent, Data{ Title, Buf, maxlength, flag, helpTopicId });
 }

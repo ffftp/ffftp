@@ -899,6 +899,13 @@ void SaveRegistry(void)
 
 int LoadRegistry(void)
 {
+	struct Data {
+		using result_t = int;
+		static void OnCommand(HWND hDlg, WORD cmd, WORD id) {
+			if (cmd == BN_CLICKED)
+				EndDialog(hDlg, id);
+		}
+	};
 	void *hKey3;
 	void *hKey4;
 	void *hKey5;
@@ -955,7 +962,7 @@ int LoadRegistry(void)
 				memset(&EncryptSettingsChecksum, 0, 20);
 				if(strcmp(Buf, Buf2) != 0)
 				{
-					switch(DialogBox(GetFtpInst(), MAKEINTRESOURCE(corruptsettings_dlg), GetMainHwnd(), AnyButtonDialogProc))
+					switch (Dialog(GetFtpInst(), corruptsettings_dlg, GetMainHwnd(), Data{}))
 					{
 					case IDCANCEL:
 						Terminate();
@@ -1423,7 +1430,7 @@ int LoadRegistry(void)
 				ReadBinaryFromReg(hKey3, "EncryptAllChecksum", &Checksum, 20);
 				if(memcmp(&Checksum, &EncryptSettingsChecksum, 20) != 0)
 				{
-					switch(DialogBox(GetFtpInst(), MAKEINTRESOURCE(corruptsettings_dlg), GetMainHwnd(), AnyButtonDialogProc))
+					switch (Dialog(GetFtpInst(), corruptsettings_dlg, GetMainHwnd(), Data{}))
 					{
 					case IDCANCEL:
 						Terminate();
@@ -1449,24 +1456,6 @@ int LoadRegistry(void)
 	else
 	{
 		/*===== 最初の起動時（設定が無い) =====*/
-
-#if 0
-		strcpy(UserMailAdrs, "");
-		strcpy(Str, "");
-		if(InputDialogBox(mailadrs_dlg, HWND_DESKTOP, NULL, Str, USER_MAIL_LEN+1, &i, IDH_HELP_TOPIC_0000001) == YES)
-			strcpy(UserMailAdrs, Str);
-
-		for(i = 0; i < SAMPLE_HOSTS; i++)
-		{
-			CopyDefaultHost(&Host);
-			Host.Level = Sample[i].Level;
-			strcpy(Host.PassWord, UserMailAdrs);
-			strcpy(Host.HostName, Sample[i].HostName);
-			strcpy(Host.HostAdrs, Sample[i].HostAdrs);
-			strcpy(Host.UserName, "anonymous");
-			AddHostToList(&Host, -1, Host.Level);
-		}
-#endif
 	}
 	return(Sts);
 }

@@ -28,48 +28,14 @@
 /============================================================================*/
 
 #include "common.h"
-#include "helpid.h"
 
 
 /*===== プロトタイプ =====*/
 
-// 64ビット対応
-//static BOOL CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK Trmode2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK Trmode2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-// UTF-8対応
-static INT_PTR CALLBACK Trmode4SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static void AddFnameAttrToListView(HWND hDlg, char *Fname, char *Attr);
 static void GetFnameAttrFromListView(HWND hDlg, char *Buf);
-// 64ビット対応
-// ファイルの属性を数字で表示
-//static BOOL CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK Disp1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK Disp2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static int SelectListFont(HWND hWnd, LOGFONT *lFont);
-// 64ビット対応
-//static BOOL CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-//static BOOL CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static INT_PTR CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 // hostman.cで使用
 //static int GetDecimalText(HWND hDlg, int Ctrl);
@@ -92,13 +58,6 @@ typedef struct {
 	char Attr[5];
 } ATTRSET;
 
-
-
-
-
-/*===== 外部参照 =====*/
-
-extern HWND hHelpWin;
 
 /* 設定値 */
 extern char UserMailAdrs[USER_MAIL_LEN+1];
@@ -179,571 +138,739 @@ extern int FwallNoSaveUser;
 extern int MarkAsInternet;
 
 
-/*----- オプションのプロパティシート ------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
+struct User {
+	static constexpr WORD dialogId = opt_user_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static INT_PTR OnInit(HWND hDlg) {
+		SendDlgItemMessage(hDlg, USER_ADRS, EM_LIMITTEXT, PASSWORD_LEN, 0);
+		SendDlgItemMessage(hDlg, USER_ADRS, WM_SETTEXT, 0, (LPARAM)UserMailAdrs);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			SendDlgItemMessage(hDlg, USER_ADRS, WM_GETTEXT, USER_MAIL_LEN + 1, (LPARAM)UserMailAdrs);
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000041);
+			break;
+		}
+		return 0;
+	}
+};
 
-void SetOption(int Start)
-{
-	PROPSHEETPAGE psp[14];
-	PROPSHEETHEADER psh;
+struct Transfer1 {
+	static constexpr WORD dialogId = opt_trmode1_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	using ModeButton = RadioButton<TRMODE_AUTO, TRMODE_ASCII, TRMODE_BIN>;
+	static INT_PTR OnInit(HWND hDlg) {
+		SetMultiTextToList(hDlg, TRMODE_EXT_LIST, AsciiExt);
+		ModeButton::Set(hDlg, AskTransferType());
+		SendDlgItemMessage(hDlg, TRMODE_TIME, BM_SETCHECK, SaveTimeStamp, 0);
+		SendDlgItemMessage(hDlg, TRMODE_EOF, BM_SETCHECK, RmEOF, 0);
+		SendDlgItemMessage(hDlg, TRMODE_SEMICOLON, BM_SETCHECK, VaxSemicolon, 0);
+		SendDlgItemMessage(hDlg, TRMODE_MAKEDIR, BM_SETCHECK, MakeAllDir, 0);
+		SendDlgItemMessage(hDlg, TRMODE_LISTERROR, BM_SETCHECK, AbortOnListError, 0);
+		SendMessage(hDlg, WM_COMMAND, MAKEWPARAM(TRMODE_EXT_LIST, 0), 0);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			SetTransferTypeImm(ModeButton::Get(hDlg));
+			SaveTransferType();
+			GetMultiTextFromList(hDlg, TRMODE_EXT_LIST, AsciiExt, ASCII_EXT_LEN + 1);
+			SaveTimeStamp = (int)SendDlgItemMessage(hDlg, TRMODE_TIME, BM_GETCHECK, 0, 0);
+			RmEOF = (int)SendDlgItemMessage(hDlg, TRMODE_EOF, BM_GETCHECK, 0, 0);
+			VaxSemicolon = (int)SendDlgItemMessage(hDlg, TRMODE_SEMICOLON, BM_GETCHECK, 0, 0);
+			MakeAllDir = (int)SendDlgItemMessage(hDlg, TRMODE_MAKEDIR, BM_GETCHECK, 0, 0);
+			AbortOnListError = (int)SendDlgItemMessage(hDlg, TRMODE_LISTERROR, BM_GETCHECK, 0, 0);
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000042);
+			break;
+		}
+		return 0;
+	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case TRMODE_ASCII:
+		case TRMODE_BIN:
+			EnableWindow(GetDlgItem(hDlg, TRMODE_EXT_LIST), FALSE);
+			EnableWindow(GetDlgItem(hDlg, TRMODE_ADD), FALSE);
+			EnableWindow(GetDlgItem(hDlg, TRMODE_DEL), FALSE);
+			break;
+		case TRMODE_AUTO:
+			EnableWindow(GetDlgItem(hDlg, TRMODE_EXT_LIST), TRUE);
+			EnableWindow(GetDlgItem(hDlg, TRMODE_ADD), TRUE);
+			EnableWindow(GetDlgItem(hDlg, TRMODE_DEL), TRUE);
+			break;
+		case TRMODE_ADD:
+			if (char Tmp[FMAX_PATH + 1] = ""; InputDialog(fname_in_dlg, hDlg, MSGJPN199, Tmp, FMAX_PATH))
+				AddTextToListBox(hDlg, Tmp, TRMODE_EXT_LIST, ASCII_EXT_LEN + 1);
+			break;
+		case TRMODE_DEL:
+			if (auto Num = (int)SendDlgItemMessage(hDlg, TRMODE_EXT_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
+				SendDlgItemMessage(hDlg, TRMODE_EXT_LIST, LB_DELETESTRING, Num, 0);
+			break;
+		}
+	}
+};
 
-	// 変数が未初期化のバグ修正
-	memset(&psp, 0, sizeof(psp));
-	memset(&psh, 0, sizeof(psh));
+struct Transfer2 {
+	static constexpr WORD dialogId = opt_trmode2_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	using CnvButton = RadioButton<TRMODE2_NOCNV, TRMODE2_LOWER, TRMODE2_UPPER>;
+	static INT_PTR OnInit(HWND hDlg) {
+		SendDlgItemMessage(hDlg, TRMODE2_LOCAL, EM_LIMITTEXT, FMAX_PATH, 0);
+		SendDlgItemMessage(hDlg, TRMODE2_LOCAL, WM_SETTEXT, 0, (LPARAM)DefaultLocalPath);
+		CnvButton::Set(hDlg, FnameCnv);
+		SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT, EM_LIMITTEXT, (WPARAM)5, 0);
+		char Tmp[FMAX_PATH + 1];
+		sprintf(Tmp, "%d", TimeOut);
+		SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT, WM_SETTEXT, 0, (LPARAM)Tmp);
+		SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT_SPN, UDM_SETRANGE, 0, MAKELONG(300, 0));
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY: {
+			SendDlgItemMessage(hDlg, TRMODE2_LOCAL, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)DefaultLocalPath);
+			FnameCnv = CnvButton::Get(hDlg);
+			char Tmp[FMAX_PATH + 1];
+			SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT, WM_GETTEXT, 5 + 1, (LPARAM)Tmp);
+			TimeOut = atoi(Tmp);
+			CheckRange2(&TimeOut, 300, 0);
+			return PSNRET_NOERROR;
+		}
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000043);
+			break;
+		}
+		return 0;
+	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case TRMODE2_LOCAL_BR:
+			if (char Tmp[FMAX_PATH + 1]; SelectDir(hDlg, Tmp, FMAX_PATH) == TRUE)
+				SendDlgItemMessage(hDlg, TRMODE2_LOCAL, WM_SETTEXT, 0, (LPARAM)Tmp);
+			break;
+		}
+	}
+};
 
-	psp[0].dwSize = sizeof(PROPSHEETPAGE);
-	psp[0].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[0].hInstance = GetFtpInst();
-	psp[0].pszTemplate = MAKEINTRESOURCE(opt_user_dlg);
-	psp[0].pszIcon = NULL;
-	psp[0].pfnDlgProc = UserSettingProc;
-	psp[0].pszTitle = MSGJPN186;
-	psp[0].lParam = 0;
-	psp[0].pfnCallback = NULL;
+struct Transfer3 {
+	static constexpr WORD dialogId = opt_trmode3_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static INT_PTR OnInit(HWND hDlg) {
+		auto Tmp = (long)SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
+		Tmp |= LVS_EX_FULLROWSELECT;
+		SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
 
-	psp[1].dwSize = sizeof(PROPSHEETPAGE);
-	psp[1].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[1].hInstance = GetFtpInst();
-	psp[1].pszTemplate = MAKEINTRESOURCE(opt_trmode1_dlg);
-	psp[1].pszIcon = NULL;
-	psp[1].pfnDlgProc = Trmode1SettingProc;
-	psp[1].pszTitle = MSGJPN187;
-	psp[1].lParam = 0;
-	psp[1].pfnCallback = NULL;
+		RECT Rect;
+		GetClientRect(GetDlgItem(hDlg, TRMODE3_LIST), &Rect);
 
-	psp[2].dwSize = sizeof(PROPSHEETPAGE);
-	psp[2].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[2].hInstance = GetFtpInst();
-	psp[2].pszTemplate = MAKEINTRESOURCE(opt_trmode2_dlg);
-	psp[2].pszIcon = NULL;
-	psp[2].pfnDlgProc = Trmode2SettingProc;
-	psp[2].pszTitle = MSGJPN188;
-	psp[2].lParam = 0;
-	psp[2].pfnCallback = NULL;
+		LV_COLUMN LvCol;
+		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
+		LvCol.cx = (Rect.right / 3) * 2;
+		LvCol.pszText = MSGJPN200;
+		LvCol.iSubItem = 0;
+		SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_INSERTCOLUMN, 0, (LPARAM)&LvCol);
 
-	psp[3].dwSize = sizeof(PROPSHEETPAGE);
-	psp[3].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[3].hInstance = GetFtpInst();
-	psp[3].pszTemplate = MAKEINTRESOURCE(opt_trmode3_dlg);
-	psp[3].pszIcon = NULL;
-	psp[3].pfnDlgProc = Trmode3SettingProc;
-	psp[3].pszTitle = MSGJPN189;
-	psp[3].lParam = 0;
-	psp[3].pfnCallback = NULL;
+		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
+		LvCol.cx = Rect.right - LvCol.cx;
+		LvCol.pszText = MSGJPN201;
+		LvCol.iSubItem = 1;
+		SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_INSERTCOLUMN, 1, (LPARAM)&LvCol);
 
-	psp[4].dwSize = sizeof(PROPSHEETPAGE);
-	psp[4].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[4].hInstance = GetFtpInst();
-	psp[4].pszTemplate = MAKEINTRESOURCE(opt_trmode4_dlg);
-	psp[4].pszIcon = NULL;
-	psp[4].pfnDlgProc = Trmode4SettingProc;
-	psp[4].pszTitle = MSGJPN339;
-	psp[4].lParam = 0;
-	psp[4].pfnCallback = NULL;
+		auto Fname = DefAttrList;
+		while (*Fname != NUL) {
+			auto Attr = strchr(Fname, NUL) + 1;
+			if (*Attr != NUL)
+				AddFnameAttrToListView(hDlg, Fname, Attr);
+			Fname = strchr(Attr, NUL) + 1;
+		}
 
-	psp[5].dwSize = sizeof(PROPSHEETPAGE);
-	psp[5].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[5].hInstance = GetFtpInst();
-	psp[5].pszTemplate = MAKEINTRESOURCE(opt_mirror_dlg);
-	psp[5].pszIcon = NULL;
-	psp[5].pfnDlgProc = MirrorSettingProc;
-	psp[5].pszTitle = MSGJPN190;
-	psp[5].lParam = 0;
-	psp[5].pfnCallback = NULL;
+		SendDlgItemMessage(hDlg, TRMODE3_FOLDER, BM_SETCHECK, FolderAttr, 0);
+		if (FolderAttr == NO)
+			EnableWindow(GetDlgItem(hDlg, TRMODE3_FOLDER_ATTR), FALSE);
 
-	psp[6].dwSize = sizeof(PROPSHEETPAGE);
-	psp[6].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[6].hInstance = GetFtpInst();
-	psp[6].pszTemplate = MAKEINTRESOURCE(opt_notify_dlg);
-	psp[6].pszIcon = NULL;
-	psp[6].pfnDlgProc = NotifySettingProc;
-	psp[6].pszTitle = MSGJPN191;
-	psp[6].lParam = 0;
-	psp[6].pfnCallback = NULL;
-
-	psp[7].dwSize = sizeof(PROPSHEETPAGE);
-	psp[7].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[7].hInstance = GetFtpInst();
-	psp[7].pszTemplate = MAKEINTRESOURCE(opt_disp1_dlg);
-	psp[7].pszIcon = NULL;
-	psp[7].pfnDlgProc = Disp1SettingProc;
-	psp[7].pszTitle = MSGJPN192;
-	psp[7].lParam = 0;
-	psp[7].pfnCallback = NULL;
-
-	psp[8].dwSize = sizeof(PROPSHEETPAGE);
-	psp[8].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[8].hInstance = GetFtpInst();
-	psp[8].pszTemplate = MAKEINTRESOURCE(opt_disp2_dlg);
-	psp[8].pszIcon = NULL;
-	psp[8].pfnDlgProc = Disp2SettingProc;
-	psp[8].pszTitle = MSGJPN340;
-	psp[8].lParam = 0;
-	psp[8].pfnCallback = NULL;
-
-	psp[9].dwSize = sizeof(PROPSHEETPAGE);
-	psp[9].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[9].hInstance = GetFtpInst();
-	psp[9].pszTemplate = MAKEINTRESOURCE(opt_connect_dlg);
-	psp[9].pszIcon = NULL;
-	psp[9].pfnDlgProc = ConnectSettingProc;
-	psp[9].pszTitle = MSGJPN193;
-	psp[9].lParam = 0;
-	psp[9].pfnCallback = NULL;
-
-	psp[10].dwSize = sizeof(PROPSHEETPAGE);
-	psp[10].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[10].hInstance = GetFtpInst();
-	psp[10].pszTemplate = MAKEINTRESOURCE(opt_fire_dlg);
-	psp[10].pszIcon = NULL;
-	psp[10].pfnDlgProc = FireSettingProc;
-	psp[10].pszTitle = MSGJPN194;
-	psp[10].lParam = 0;
-	psp[10].pfnCallback = NULL;
-
-	psp[11].dwSize = sizeof(PROPSHEETPAGE);
-	psp[11].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[11].hInstance = GetFtpInst();
-	psp[11].pszTemplate = MAKEINTRESOURCE(opt_tool_dlg);
-	psp[11].pszIcon = NULL;
-	psp[11].pfnDlgProc = ToolSettingProc;
-	psp[11].pszTitle = MSGJPN195;
-	psp[11].lParam = 0;
-	psp[11].pfnCallback = NULL;
-
-	psp[12].dwSize = sizeof(PROPSHEETPAGE);
-	psp[12].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[12].hInstance = GetFtpInst();
-	psp[12].pszTemplate = MAKEINTRESOURCE(opt_sound_dlg);
-	psp[12].pszIcon = NULL;
-	psp[12].pfnDlgProc = SoundSettingProc;
-	psp[12].pszTitle = MSGJPN196;
-	psp[12].lParam = 0;
-	psp[12].pfnCallback = NULL;
-
-	psp[13].dwSize = sizeof(PROPSHEETPAGE);
-	psp[13].dwFlags = PSP_USETITLE | PSP_HASHELP;
-	psp[13].hInstance = GetFtpInst();
-	psp[13].pszTemplate = MAKEINTRESOURCE(opt_misc_dlg);
-	psp[13].pszIcon = NULL;
-	psp[13].pfnDlgProc = MiscSettingProc;
-	psp[13].pszTitle = MSGJPN197;
-	psp[13].lParam = 0;
-	psp[13].pfnCallback = NULL;
-
-	psh.dwSize = sizeof(PROPSHEETHEADER);
-	psh.dwFlags = PSH_HASHELP | PSH_NOAPPLYNOW | PSH_PROPSHEETPAGE;
-	psh.hwndParent = GetMainHwnd();
-	psh.hInstance = GetFtpInst();
-	psh.pszIcon = NULL;
-	psh.pszCaption = MSGJPN198;
-	psh.nPages = sizeof(psp) / sizeof(PROPSHEETPAGE);
-	psh.nStartPage = Start;
-	psh.ppsp = (LPCPROPSHEETPAGE)&psp;
-	psh.pfnCallback = NULL;
-
-	PropertySheet(&psh);
-	return;
-}
-
-
-/*----- ユーザ設定ウインドウのコールバック ------------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK UserSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, USER_ADRS, EM_LIMITTEXT, PASSWORD_LEN, 0);
-			SendDlgItemMessage(hDlg, USER_ADRS, WM_SETTEXT, 0, (LPARAM)UserMailAdrs);
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					SendDlgItemMessage(hDlg, USER_ADRS, WM_GETTEXT, USER_MAIL_LEN+1, (LPARAM)UserMailAdrs);
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000041);
-					break;
+		SendDlgItemMessage(hDlg, TRMODE3_FOLDER_ATTR, EM_LIMITTEXT, (WPARAM)5, 0);
+		char TmpStr[10];
+		sprintf(TmpStr, "%03d", FolderAttrNum);
+		SendDlgItemMessage(hDlg, TRMODE3_FOLDER_ATTR, WM_SETTEXT, 0, (LPARAM)TmpStr);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY: {
+			GetFnameAttrFromListView(hDlg, DefAttrList);
+			char TmpStr[10];
+			SendDlgItemMessage(hDlg, TRMODE3_FOLDER_ATTR, WM_GETTEXT, 5 + 1, (LPARAM)TmpStr);
+			FolderAttrNum = atoi(TmpStr);
+			FolderAttr = (int)SendDlgItemMessage(hDlg, TRMODE3_FOLDER, BM_GETCHECK, 0, 0);
+			return PSNRET_NOERROR;
+		}
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000044);
+			break;
+		}
+		return 0;
+	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case TRMODE3_ADD:
+			if (ATTRSET AttrSet; DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(def_attr_dlg), hDlg, DefAttrDlgProc, (LPARAM)&AttrSet) == YES) {
+				if ((strlen(AttrSet.Fname) > 0) && (strlen(AttrSet.Attr) > 0))
+					AddFnameAttrToListView(hDlg, AttrSet.Fname, AttrSet.Attr);
 			}
 			break;
-	}
-	return(FALSE);
-}
-
-
-/*----- 転送設定１ウインドウのコールバック ------------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK Trmode1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-	int Num;
-	char Tmp[FMAX_PATH+1];
-	int Trash;
-
-	static const RADIOBUTTON ModeButton[] = {
-		{ TRMODE_AUTO, TYPE_X },
-		{ TRMODE_ASCII, TYPE_A },
-		{ TRMODE_BIN, TYPE_I }
-	};
-	#define MODEBUTTONS	(sizeof(ModeButton)/sizeof(RADIOBUTTON))
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			SetMultiTextToList(hDlg, TRMODE_EXT_LIST, AsciiExt);
-			SetRadioButtonByValue(hDlg, AskTransferType(), ModeButton, MODEBUTTONS);
-			SendDlgItemMessage(hDlg, TRMODE_TIME, BM_SETCHECK, SaveTimeStamp, 0);
-			SendDlgItemMessage(hDlg, TRMODE_EOF, BM_SETCHECK, RmEOF, 0);
-			SendDlgItemMessage(hDlg, TRMODE_SEMICOLON, BM_SETCHECK, VaxSemicolon, 0);
-			// ディレクトリ自動作成
-			SendDlgItemMessage(hDlg, TRMODE_MAKEDIR, BM_SETCHECK, MakeAllDir, 0);
-			// ファイル一覧バグ修正
-			SendDlgItemMessage(hDlg, TRMODE_LISTERROR, BM_SETCHECK, AbortOnListError, 0);
-
-			SendMessage(hDlg, WM_COMMAND, MAKEWPARAM(TRMODE_EXT_LIST, 0), 0);
-
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					SetTransferTypeImm(AskRadioButtonValue(hDlg, ModeButton, MODEBUTTONS));
-					SaveTransferType();
-					GetMultiTextFromList(hDlg, TRMODE_EXT_LIST, AsciiExt, ASCII_EXT_LEN+1);
-					SaveTimeStamp = (int)SendDlgItemMessage(hDlg, TRMODE_TIME, BM_GETCHECK, 0, 0);
-					RmEOF = (int)SendDlgItemMessage(hDlg, TRMODE_EOF, BM_GETCHECK, 0, 0);
-					VaxSemicolon = (int)SendDlgItemMessage(hDlg, TRMODE_SEMICOLON, BM_GETCHECK, 0, 0);
-					// ディレクトリ自動作成
-					MakeAllDir = (int)SendDlgItemMessage(hDlg, TRMODE_MAKEDIR, BM_GETCHECK, 0, 0);
-					// ファイル一覧バグ修正
-					AbortOnListError = (int)SendDlgItemMessage(hDlg, TRMODE_LISTERROR, BM_GETCHECK, 0, 0);
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000042);
-					break;
-			}
+		case TRMODE3_DEL:
+			if (auto Tmp = (long)SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETNEXTITEM, -1, MAKELPARAM(LVNI_ALL | LVNI_SELECTED, 0)); Tmp != -1)
+				SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_DELETEITEM, Tmp, 0);
 			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case TRMODE_ASCII :
-				case TRMODE_BIN :
-					EnableWindow(GetDlgItem(hDlg, TRMODE_EXT_LIST), FALSE);
-					EnableWindow(GetDlgItem(hDlg, TRMODE_ADD), FALSE);
-					EnableWindow(GetDlgItem(hDlg, TRMODE_DEL), FALSE);
-					break;
-
-				case TRMODE_AUTO :
-					EnableWindow(GetDlgItem(hDlg, TRMODE_EXT_LIST), TRUE);
-					EnableWindow(GetDlgItem(hDlg, TRMODE_ADD), TRUE);
-					EnableWindow(GetDlgItem(hDlg, TRMODE_DEL), TRUE);
-					break;
-
-				case TRMODE_ADD :
-					strcpy(Tmp, "");
-					if(InputDialogBox(fname_in_dlg, hDlg, MSGJPN199, Tmp, FMAX_PATH, &Trash, IDH_HELP_TOPIC_0000001) == YES)
-						AddTextToListBox(hDlg, Tmp,  TRMODE_EXT_LIST, ASCII_EXT_LEN+1);
-					break;
-
-				case TRMODE_DEL :
-					if((Num = (int)SendDlgItemMessage(hDlg, TRMODE_EXT_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
-						SendDlgItemMessage(hDlg, TRMODE_EXT_LIST, LB_DELETESTRING, Num, 0);
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
-/*----- 転送設定２ウインドウのコールバック ------------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK Trmode2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK Trmode2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-	char Tmp[FMAX_PATH+1];
-
-	static const RADIOBUTTON CnvButton[] = {
-		{ TRMODE2_NOCNV, FNAME_NOCNV },
-		{ TRMODE2_LOWER, FNAME_LOWER },
-		{ TRMODE2_UPPER, FNAME_UPPER }
-	};
-	#define CNVBUTTONS	(sizeof(CnvButton)/sizeof(RADIOBUTTON))
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, TRMODE2_LOCAL, EM_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, TRMODE2_LOCAL, WM_SETTEXT, 0, (LPARAM)DefaultLocalPath);
-
-			SetRadioButtonByValue(hDlg, FnameCnv, CnvButton, CNVBUTTONS);
-
-			SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT, EM_LIMITTEXT, (WPARAM)5, 0);
-			sprintf(Tmp, "%d", TimeOut);
-			SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT, WM_SETTEXT, 0, (LPARAM)Tmp);
-			SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT_SPN, UDM_SETRANGE, 0, MAKELONG(300, 0));
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					SendDlgItemMessage(hDlg, TRMODE2_LOCAL, WM_GETTEXT, FMAX_PATH+1, (LPARAM)DefaultLocalPath);
-
-					FnameCnv = AskRadioButtonValue(hDlg, CnvButton, CNVBUTTONS);
-
-					SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT, WM_GETTEXT, 5+1, (LPARAM)Tmp);
-					TimeOut = atoi(Tmp);
-					CheckRange2(&TimeOut, 300, 0);
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000043);
-					break;
-			}
-			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case TRMODE2_LOCAL_BR :
-					if(SelectDir(hDlg, Tmp, FMAX_PATH) == TRUE)
-						SendDlgItemMessage(hDlg, TRMODE2_LOCAL, WM_SETTEXT, 0, (LPARAM)Tmp);
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
-/*----- 転送設定３ウインドウのコールバック ------------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK Trmode3SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-	LV_COLUMN LvCol;
-	long Tmp;
-	RECT Rect;
-	ATTRSET AttrSet;
-	char *Fname;
-	char *Attr;
-	char TmpStr[10];
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			Tmp = (long)SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
-			Tmp |= LVS_EX_FULLROWSELECT;
-			SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
-
-			GetClientRect(GetDlgItem(hDlg, TRMODE3_LIST), &Rect);
-
-			LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-			LvCol.cx = (Rect.right / 3) * 2;
-			LvCol.pszText = MSGJPN200;
-			LvCol.iSubItem = 0;
-			SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_INSERTCOLUMN, 0, (LPARAM)&LvCol);
-
-			LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-			LvCol.cx = Rect.right - LvCol.cx;
-			LvCol.pszText = MSGJPN201;
-			LvCol.iSubItem = 1;
-			SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_INSERTCOLUMN, 1, (LPARAM)&LvCol);
-
-			Fname = DefAttrList;
-			while(*Fname != NUL)
-			{
-				Attr = strchr(Fname, NUL) + 1;
-				if(*Attr != NUL)
-					AddFnameAttrToListView(hDlg, Fname, Attr);
-				Fname = strchr(Attr, NUL) + 1;
-			}
-
-			SendDlgItemMessage(hDlg, TRMODE3_FOLDER, BM_SETCHECK, FolderAttr, 0);
-			if(FolderAttr == NO)
-				EnableWindow(GetDlgItem(hDlg, TRMODE3_FOLDER_ATTR), FALSE);
-
-			SendDlgItemMessage(hDlg, TRMODE3_FOLDER_ATTR, EM_LIMITTEXT, (WPARAM)5, 0);
-			sprintf(TmpStr, "%03d", FolderAttrNum);
-			SendDlgItemMessage(hDlg, TRMODE3_FOLDER_ATTR, WM_SETTEXT, 0, (LPARAM)TmpStr);
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					GetFnameAttrFromListView(hDlg, DefAttrList);
-					SendDlgItemMessage(hDlg, TRMODE3_FOLDER_ATTR, WM_GETTEXT, 5+1, (LPARAM)TmpStr);
-					FolderAttrNum = atoi(TmpStr);
-					FolderAttr = (int)SendDlgItemMessage(hDlg, TRMODE3_FOLDER, BM_GETCHECK, 0, 0);
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000044);
-					break;
-			}
-			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case TRMODE3_ADD :
-					if(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(def_attr_dlg), hDlg, DefAttrDlgProc, (LPARAM)&AttrSet) == YES)
-					{
-						if((strlen(AttrSet.Fname) > 0) && (strlen(AttrSet.Attr) > 0))
-							AddFnameAttrToListView(hDlg, AttrSet.Fname, AttrSet.Attr);
-					}
-					break;
-
-				case TRMODE3_DEL :
-					if((Tmp = (long)SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETNEXTITEM, -1, MAKELPARAM(LVNI_ALL | LVNI_SELECTED, 0))) != -1)
-						SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_DELETEITEM, Tmp, 0);
-					break;
-
-				case TRMODE3_FOLDER :
-					if(SendDlgItemMessage(hDlg, TRMODE3_FOLDER, BM_GETCHECK, 0, 0) == 1)
-						EnableWindow(GetDlgItem(hDlg, TRMODE3_FOLDER_ATTR), TRUE);
-					else
-						EnableWindow(GetDlgItem(hDlg, TRMODE3_FOLDER_ATTR), FALSE);
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
-// UTF-8対応
-static INT_PTR CALLBACK Trmode4SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-
-	static const RADIOBUTTON KanjiButton[] = {
-		{ TRMODE4_SJIS_CNV, KANJI_SJIS },
-		{ TRMODE4_JIS_CNV, KANJI_JIS },
-		{ TRMODE4_EUC_CNV, KANJI_EUC },
-		{ TRMODE4_UTF8N_CNV, KANJI_UTF8N },
-		{ TRMODE4_UTF8BOM_CNV, KANJI_UTF8BOM }
-	};
-	#define KANJIBUTTONS	(sizeof(KanjiButton)/sizeof(RADIOBUTTON))
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			SetRadioButtonByValue(hDlg, AskLocalKanjiCode(), KanjiButton, KANJIBUTTONS);
-			// ゾーンID設定追加
-			if(IsZoneIDLoaded())
-				SendDlgItemMessage(hDlg, TRMODE4_MARK_INTERNET, BM_SETCHECK, MarkAsInternet, 0);
+		case TRMODE3_FOLDER:
+			if (SendDlgItemMessage(hDlg, TRMODE3_FOLDER, BM_GETCHECK, 0, 0) == 1)
+				EnableWindow(GetDlgItem(hDlg, TRMODE3_FOLDER_ATTR), TRUE);
 			else
-			{
-				SendDlgItemMessage(hDlg, TRMODE4_MARK_INTERNET, BM_SETCHECK, BST_UNCHECKED, 0);
-				EnableWindow(GetDlgItem(hDlg, TRMODE4_MARK_INTERNET), FALSE);
+				EnableWindow(GetDlgItem(hDlg, TRMODE3_FOLDER_ATTR), FALSE);
+			break;
+		}
+	}
+};
+
+struct Transfer4 {
+	static constexpr WORD dialogId = opt_trmode4_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	using KanjiButton = RadioButton<TRMODE4_SJIS_CNV, TRMODE4_JIS_CNV, TRMODE4_EUC_CNV, TRMODE4_UTF8N_CNV, TRMODE4_UTF8BOM_CNV>;
+	static INT_PTR OnInit(HWND hDlg) {
+		KanjiButton::Set(hDlg, AskLocalKanjiCode());
+		if (IsZoneIDLoaded())
+			SendDlgItemMessage(hDlg, TRMODE4_MARK_INTERNET, BM_SETCHECK, MarkAsInternet, 0);
+		else {
+			SendDlgItemMessage(hDlg, TRMODE4_MARK_INTERNET, BM_SETCHECK, BST_UNCHECKED, 0);
+			EnableWindow(GetDlgItem(hDlg, TRMODE4_MARK_INTERNET), FALSE);
+		}
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			SetLocalKanjiCodeImm(KanjiButton::Get(hDlg));
+			SaveLocalKanjiCode();
+			if (IsZoneIDLoaded())
+				MarkAsInternet = (int)SendDlgItemMessage(hDlg, TRMODE4_MARK_INTERNET, BM_GETCHECK, 0, 0);
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000067);
+			break;
+		}
+		return 0;
+	}
+};
+
+struct Mirroring {
+	static constexpr WORD dialogId = opt_mirror_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static INT_PTR OnInit(HWND hDlg) {
+		SetMultiTextToList(hDlg, MIRROR_NOTRN_LIST, MirrorNoTrn);
+		SetMultiTextToList(hDlg, MIRROR_NODEL_LIST, MirrorNoDel);
+		SendDlgItemMessage(hDlg, MIRROR_LOW, BM_SETCHECK, MirrorFnameCnv, 0);
+		SendDlgItemMessage(hDlg, MIRROR_UPDEL_NOTIFY, BM_SETCHECK, MirUpDelNotify, 0);
+		SendDlgItemMessage(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_SETCHECK, MirDownDelNotify, 0);
+		SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_SETCHECK, MirrorNoTransferContents, 0);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			GetMultiTextFromList(hDlg, MIRROR_NOTRN_LIST, MirrorNoTrn, MIRROR_LEN + 1);
+			GetMultiTextFromList(hDlg, MIRROR_NODEL_LIST, MirrorNoDel, MIRROR_LEN + 1);
+			MirrorFnameCnv = (int)SendDlgItemMessage(hDlg, MIRROR_LOW, BM_GETCHECK, 0, 0);
+			MirUpDelNotify = (int)SendDlgItemMessage(hDlg, MIRROR_UPDEL_NOTIFY, BM_GETCHECK, 0, 0);
+			MirDownDelNotify = (int)SendDlgItemMessage(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_GETCHECK, 0, 0);
+			MirrorNoTransferContents = (int)SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000045);
+			break;
+		}
+		return 0;
+	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case MIRROR_NOTRN_ADD:
+			if (char Tmp[FMAX_PATH + 1] = ""; InputDialog(fname_in_dlg, hDlg, MSGJPN202, Tmp, FMAX_PATH))
+				AddTextToListBox(hDlg, Tmp, MIRROR_NOTRN_LIST, MIRROR_LEN + 1);
+			break;
+		case MIRROR_NODEL_ADD:
+			if (char Tmp[FMAX_PATH + 1] = ""; InputDialog(fname_in_dlg, hDlg, MSGJPN203, Tmp, FMAX_PATH))
+				AddTextToListBox(hDlg, Tmp, MIRROR_NODEL_LIST, MIRROR_LEN + 1);
+			break;
+		case MIRROR_NOTRN_DEL:
+			if (auto Num = (int)SendDlgItemMessage(hDlg, MIRROR_NOTRN_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
+				SendDlgItemMessage(hDlg, MIRROR_NOTRN_LIST, LB_DELETESTRING, Num, 0);
+			break;
+		case MIRROR_NODEL_DEL:
+			if (auto Num = (int)SendDlgItemMessage(hDlg, MIRROR_NODEL_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
+				SendDlgItemMessage(hDlg, MIRROR_NODEL_LIST, LB_DELETESTRING, Num, 0);
+			break;
+		}
+	}
+};
+
+struct Operation {
+	static constexpr WORD dialogId = opt_notify_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	using DownButton = RadioButton<NOTIFY_D_DLG, NOTIFY_D_OVW>;
+	using UpButton = RadioButton<NOTIFY_U_DLG, NOTIFY_U_OVW>;
+	using DclickButton = RadioButton<NOTIFY_OPEN, NOTIFY_DOWNLOAD>;
+	using MoveButton = RadioButton<NOTIFY_M_NODLG, NOTIFY_M_DLG, NOTIFY_M_DISABLE>;
+	static INT_PTR OnInit(HWND hDlg) {
+		DownButton::Set(hDlg, RecvMode);
+		UpButton::Set(hDlg, SendMode);
+		DclickButton::Set(hDlg, DclickOpen);
+		MoveButton::Set(hDlg, MoveMode);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			RecvMode = DownButton::Get(hDlg);
+			SendMode = UpButton::Get(hDlg);
+			DclickOpen = DclickButton::Get(hDlg);
+			MoveMode = MoveButton::Get(hDlg);
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000046);
+			break;
+		}
+		return 0;
+	}
+};
+
+struct View1 {
+	static constexpr WORD dialogId = opt_disp1_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static inline LOGFONT TmpFont;
+	static INT_PTR OnInit(HWND hDlg) {
+		memcpy(&TmpFont, &ListLogFont, sizeof(LOGFONT));
+		if (ListFont != NULL)
+			SendDlgItemMessage(hDlg, DISP_FONT, WM_SETTEXT, 0, (LPARAM)TmpFont.lfFaceName);
+		SendDlgItemMessage(hDlg, DISP_HIDE, BM_SETCHECK, DispIgnoreHide, 0);
+		SendDlgItemMessage(hDlg, DISP_DRIVE, BM_SETCHECK, DispDrives, 0);
+		SendDlgItemMessage(hDlg, DISP_ICON, BM_SETCHECK, DispFileIcon, 0);
+		SendDlgItemMessage(hDlg, DISP_SECOND, BM_SETCHECK, DispTimeSeconds, 0);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			DispIgnoreHide = (int)SendDlgItemMessage(hDlg, DISP_HIDE, BM_GETCHECK, 0, 0);
+			DispDrives = (int)SendDlgItemMessage(hDlg, DISP_DRIVE, BM_GETCHECK, 0, 0);
+			DispFileIcon = (int)SendDlgItemMessage(hDlg, DISP_ICON, BM_GETCHECK, 0, 0);
+			DispTimeSeconds = (int)SendDlgItemMessage(hDlg, DISP_SECOND, BM_GETCHECK, 0, 0);
+			if (strlen(TmpFont.lfFaceName) > 0) {
+				memcpy(&ListLogFont, &TmpFont, sizeof(LOGFONT));
+				ListFont = CreateFontIndirect(&ListLogFont);
 			}
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000047);
+			break;
+		}
+		return 0;
+	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case DISP_FONT_BR:
+			if (SelectListFont(hDlg, &TmpFont) == YES)
+				SendDlgItemMessage(hDlg, DISP_FONT, WM_SETTEXT, 0, (LPARAM)TmpFont.lfFaceName);
+			break;
+		}
+	}
+};
 
-			return(TRUE);
+struct View2 {
+	static constexpr WORD dialogId = opt_disp2_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static INT_PTR OnInit(HWND hDlg) {
+		SendDlgItemMessage(hDlg, DISP2_PERMIT_NUM, BM_SETCHECK, DispPermissionsNumber, 0);
+		SendDlgItemMessage(hDlg, DISP2_AUTO_REFRESH, BM_SETCHECK, AutoRefreshFileList, 0);
+		SendDlgItemMessage(hDlg, DISP2_REMOVE_OLD_LOG, BM_SETCHECK, RemoveOldLog, 0);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			DispPermissionsNumber = (int)SendDlgItemMessage(hDlg, DISP2_PERMIT_NUM, BM_GETCHECK, 0, 0);
+			AutoRefreshFileList = (int)SendDlgItemMessage(hDlg, DISP2_AUTO_REFRESH, BM_GETCHECK, 0, 0);
+			RemoveOldLog = (int)SendDlgItemMessage(hDlg, DISP2_REMOVE_OLD_LOG, BM_GETCHECK, 0, 0);
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000068);
+			break;
+		}
+		return 0;
+	}
+};
 
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					SetLocalKanjiCodeImm(AskRadioButtonValue(hDlg, KanjiButton, KANJIBUTTONS));
-					SaveLocalKanjiCode();
-					// ゾーンID設定追加
-					if(IsZoneIDLoaded())
-						MarkAsInternet = (int)SendDlgItemMessage(hDlg, TRMODE4_MARK_INTERNET, BM_GETCHECK, 0, 0);
+struct Connecting {
+	static constexpr WORD dialogId = opt_connect_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static INT_PTR OnInit(HWND hDlg) {
+		SendDlgItemMessage(hDlg, CONNECT_CONNECT, BM_SETCHECK, ConnectOnStart, 0);
+		SendDlgItemMessage(hDlg, CONNECT_OLDDLG, BM_SETCHECK, ConnectAndSet, 0);
+		SendDlgItemMessage(hDlg, CONNECT_RASCLOSE, BM_SETCHECK, RasClose, 0);
+		if (NoRasControl != NO)
+			EnableWindow(GetDlgItem(hDlg, CONNECT_RASCLOSE), FALSE);
+		SendDlgItemMessage(hDlg, CONNECT_CLOSE_NOTIFY, BM_SETCHECK, RasCloseNotify, 0);
+		if (RasClose == NO || NoRasControl != NO)
+			EnableWindow(GetDlgItem(hDlg, CONNECT_CLOSE_NOTIFY), FALSE);
+		SendDlgItemMessage(hDlg, CONNECT_HIST, EM_LIMITTEXT, (WPARAM)2, 0);
+		SetDecimalText(hDlg, CONNECT_HIST, FileHist);
+		SendDlgItemMessage(hDlg, CONNECT_HIST_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(HISTORY_MAX, 0));
+		SendDlgItemMessage(hDlg, CONNECT_QUICK_ANONY, BM_SETCHECK, QuickAnonymous, 0);
+		SendDlgItemMessage(hDlg, CONNECT_HIST_PASS, BM_SETCHECK, PassToHist, 0);
+		SendDlgItemMessage(hDlg, CONNECT_SENDQUIT, BM_SETCHECK, SendQuit, 0);
+		SendDlgItemMessage(hDlg, CONNECT_NORAS, BM_SETCHECK, NoRasControl, 0);
+		SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_SETCHECK, UPnPEnabled, 0);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			ConnectOnStart = (int)SendDlgItemMessage(hDlg, MISC_CONNECT, BM_GETCHECK, 0, 0);
+			ConnectAndSet = (int)SendDlgItemMessage(hDlg, MISC_OLDDLG, BM_GETCHECK, 0, 0);
+			RasClose = (int)SendDlgItemMessage(hDlg, CONNECT_RASCLOSE, BM_GETCHECK, 0, 0);
+			RasCloseNotify = (int)SendDlgItemMessage(hDlg, CONNECT_CLOSE_NOTIFY, BM_GETCHECK, 0, 0);
+			FileHist = GetDecimalText(hDlg, CONNECT_HIST);
+			CheckRange2(&FileHist, HISTORY_MAX, 0);
+			QuickAnonymous = (int)SendDlgItemMessage(hDlg, CONNECT_QUICK_ANONY, BM_GETCHECK, 0, 0);
+			PassToHist = (int)SendDlgItemMessage(hDlg, CONNECT_HIST_PASS, BM_GETCHECK, 0, 0);
+			SendQuit = (int)SendDlgItemMessage(hDlg, CONNECT_SENDQUIT, BM_GETCHECK, 0, 0);
+			NoRasControl = (int)SendDlgItemMessage(hDlg, CONNECT_NORAS, BM_GETCHECK, 0, 0);
+			UPnPEnabled = (int)SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_GETCHECK, 0, 0);
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000048);
+			break;
+		}
+		return 0;
+	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case CONNECT_RASCLOSE:
+			if (SendDlgItemMessage(hDlg, CONNECT_RASCLOSE, BM_GETCHECK, 0, 0) == 1)
+				EnableWindow(GetDlgItem(hDlg, CONNECT_CLOSE_NOTIFY), TRUE);
+			else
+				EnableWindow(GetDlgItem(hDlg, CONNECT_CLOSE_NOTIFY), FALSE);
+			break;
+		}
+	}
+};
+
+struct Firewall {
+	static constexpr WORD dialogId = opt_fire_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static constexpr INTCONVTBL TypeTbl[] = {
+		{ 0, 0 }, { 1, 1 }, { 2, 2 }, { 3, 8 }, 
+		{ 4, 3 }, { 5, 4 }, { 6, 5 }, { 7, 6 }, 
+		{ 8, 7 }, { 9, 9 }
+	};
+	static constexpr int HideTbl[9][6] = {
+		{ TRUE,  TRUE,  TRUE,  FALSE, TRUE,  FALSE },
+		{ TRUE,  TRUE,  TRUE,  FALSE, FALSE, TRUE  },
+		{ TRUE,  TRUE,  TRUE,  FALSE, FALSE, FALSE },
+		{ FALSE, FALSE, FALSE, FALSE, FALSE, TRUE  },
+		{ FALSE, FALSE, FALSE, FALSE, TRUE,  FALSE },
+		{ TRUE,  FALSE, FALSE, FALSE, FALSE, FALSE },
+		{ FALSE, FALSE, FALSE, TRUE,  FALSE, FALSE },
+		{ TRUE,  TRUE,  FALSE, TRUE,  FALSE, FALSE },
+		{ TRUE,  TRUE,  FALSE, FALSE, TRUE,  TRUE  }
+	};
+	static INT_PTR OnInit(HWND hDlg) {
+		auto Type = ConvertNum(FwallType, 1, TypeTbl, sizeof(TypeTbl) / sizeof(INTCONVTBL));
+		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN204);
+		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN205);
+		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN206);
+		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN207);
+		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN208);
+		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN209);
+		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN210);
+		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN211);
+		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN294);
+		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_SETCURSEL, Type - 1, 0);
+
+		SendDlgItemMessage(hDlg, FIRE_HOST, EM_LIMITTEXT, HOST_ADRS_LEN, 0);
+		SendDlgItemMessage(hDlg, FIRE_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
+		SendDlgItemMessage(hDlg, FIRE_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
+		SendDlgItemMessage(hDlg, FIRE_PORT, EM_LIMITTEXT, 5, 0);
+		SendDlgItemMessage(hDlg, FIRE_DELIMIT, EM_LIMITTEXT, 1, 0);
+
+		SendDlgItemMessage(hDlg, FIRE_HOST, WM_SETTEXT, 0, (LPARAM)FwallHost);
+		SendDlgItemMessage(hDlg, FIRE_USER, WM_SETTEXT, 0, (LPARAM)FwallUser);
+		SendDlgItemMessage(hDlg, FIRE_PASS, WM_SETTEXT, 0, (LPARAM)FwallPass);
+		char Tmp[10];
+		sprintf(Tmp, "%d", FwallPort);
+		SendDlgItemMessage(hDlg, FIRE_PORT, WM_SETTEXT, 0, (LPARAM)Tmp);
+		sprintf(Tmp, "%c", FwallDelimiter);
+		SendDlgItemMessage(hDlg, FIRE_DELIMIT, WM_SETTEXT, 0, (LPARAM)Tmp);
+
+		SendDlgItemMessage(hDlg, FIRE_USEIT, BM_SETCHECK, FwallDefault, 0);
+		SendDlgItemMessage(hDlg, FIRE_PASV, BM_SETCHECK, PasvDefault, 0);
+		SendDlgItemMessage(hDlg, FIRE_RESOLV, BM_SETCHECK, FwallResolve, 0);
+		SendDlgItemMessage(hDlg, FIRE_LOWER, BM_SETCHECK, FwallLower, 0);
+
+		SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN212);
+		SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN213);
+		SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN214);
+		SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN215);
+		SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN216);
+		SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_SETCURSEL, FwallSecurity, 0);
+
+		SendDlgItemMessage(hDlg, FIRE_SHARED, BM_SETCHECK, FwallNoSaveUser, 0);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY: {
+			auto Type = (int)SendDlgItemMessage(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0) + 1;
+			FwallType = ConvertNum(Type, 0, TypeTbl, sizeof(TypeTbl) / sizeof(INTCONVTBL));
+			SendDlgItemMessage(hDlg, FIRE_HOST, WM_GETTEXT, HOST_ADRS_LEN + 1, (LPARAM)FwallHost);
+			SendDlgItemMessage(hDlg, FIRE_USER, WM_GETTEXT, USER_NAME_LEN + 1, (LPARAM)FwallUser);
+			SendDlgItemMessage(hDlg, FIRE_PASS, WM_GETTEXT, PASSWORD_LEN, (LPARAM)FwallPass);
+			char Tmp[10];
+			SendDlgItemMessage(hDlg, FIRE_PORT, WM_GETTEXT, 5 + 1, (LPARAM)Tmp);
+			FwallPort = atoi(Tmp);
+			SendDlgItemMessage(hDlg, FIRE_DELIMIT, WM_GETTEXT, 5, (LPARAM)Tmp);
+			FwallDelimiter = Tmp[0];
+			FwallDefault = (int)SendDlgItemMessage(hDlg, FIRE_USEIT, BM_GETCHECK, 0, 0);
+			PasvDefault = (int)SendDlgItemMessage(hDlg, FIRE_PASV, BM_GETCHECK, 0, 0);
+			FwallResolve = (int)SendDlgItemMessage(hDlg, FIRE_RESOLV, BM_GETCHECK, 0, 0);
+			FwallLower = (int)SendDlgItemMessage(hDlg, FIRE_LOWER, BM_GETCHECK, 0, 0);
+			FwallSecurity = (int)SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_GETCURSEL, 0, 0);
+			FwallNoSaveUser = (int)SendDlgItemMessage(hDlg, FIRE_SHARED, BM_GETCHECK, 0, 0);
+			return PSNRET_NOERROR;
+		}
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000049);
+			break;
+		}
+		return 0;
+	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case FIRE_TYPE: {
+			auto Num = (int)SendDlgItemMessage(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0);
+			EnableWindow(GetDlgItem(hDlg, FIRE_USER), HideTbl[Num][0]);
+			EnableWindow(GetDlgItem(hDlg, FIRE_PASS), HideTbl[Num][1]);
+			EnableWindow(GetDlgItem(hDlg, FIRE_SECURITY), HideTbl[Num][2]);
+			EnableWindow(GetDlgItem(hDlg, FIRE_RESOLV), HideTbl[Num][3]);
+			EnableWindow(GetDlgItem(hDlg, FIRE_LOWER), HideTbl[Num][4]);
+			EnableWindow(GetDlgItem(hDlg, FIRE_DELIMIT), HideTbl[Num][5]);
+			break;
+		}
+		}
+	}
+};
+
+struct Tool {
+	static constexpr WORD dialogId = opt_tool_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static INT_PTR OnInit(HWND hDlg) {
+		SendDlgItemMessage(hDlg, TOOL_EDITOR1, EM_LIMITTEXT, FMAX_PATH, 0);
+		SendDlgItemMessage(hDlg, TOOL_EDITOR2, EM_LIMITTEXT, FMAX_PATH, 0);
+		SendDlgItemMessage(hDlg, TOOL_EDITOR3, EM_LIMITTEXT, FMAX_PATH, 0);
+		SendDlgItemMessage(hDlg, TOOL_EDITOR1, WM_SETTEXT, 0, (LPARAM)ViewerName[0]);
+		SendDlgItemMessage(hDlg, TOOL_EDITOR2, WM_SETTEXT, 0, (LPARAM)ViewerName[1]);
+		SendDlgItemMessage(hDlg, TOOL_EDITOR3, WM_SETTEXT, 0, (LPARAM)ViewerName[2]);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			SendDlgItemMessage(hDlg, TOOL_EDITOR1, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)ViewerName[0]);
+			SendDlgItemMessage(hDlg, TOOL_EDITOR2, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)ViewerName[1]);
+			SendDlgItemMessage(hDlg, TOOL_EDITOR3, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)ViewerName[2]);
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000050);
+			break;
+		}
+		return 0;
+	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case TOOL_EDITOR1_BR:
+		case TOOL_EDITOR2_BR:
+		case TOOL_EDITOR3_BR:
+			if (auto const path = SelectFile(true, hDlg, IDS_SELECT_VIEWER, L"", nullptr, { FileType::Executable, FileType::All }); !std::empty(path)) {
+				switch (id) {
+				case TOOL_EDITOR1_BR:
+					SendDlgItemMessageW(hDlg, TOOL_EDITOR1, WM_SETTEXT, 0, (LPARAM)path.c_str());
 					break;
-
-				case PSN_RESET :
+				case TOOL_EDITOR2_BR:
+					SendDlgItemMessageW(hDlg, TOOL_EDITOR2, WM_SETTEXT, 0, (LPARAM)path.c_str());
 					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000067);
+				case TOOL_EDITOR3_BR:
+					SendDlgItemMessageW(hDlg, TOOL_EDITOR3, WM_SETTEXT, 0, (LPARAM)path.c_str());
 					break;
+				}
 			}
 			break;
+		}
 	}
-	return(FALSE);
+};
+
+struct Sounds {
+	static constexpr WORD dialogId = opt_sound_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static INT_PTR OnInit(HWND hDlg) {
+		SendDlgItemMessage(hDlg, SOUND_CONNECT, BM_SETCHECK, Sound[SND_CONNECT].On, 0);
+		SendDlgItemMessage(hDlg, SOUND_TRANS, BM_SETCHECK, Sound[SND_TRANS].On, 0);
+		SendDlgItemMessage(hDlg, SOUND_ERROR, BM_SETCHECK, Sound[SND_ERROR].On, 0);
+
+		SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
+		SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
+		SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
+		SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, WM_SETTEXT, 0, (LPARAM)Sound[SND_CONNECT].Fname);
+		SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, WM_SETTEXT, 0, (LPARAM)Sound[SND_TRANS].Fname);
+		SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_SETTEXT, 0, (LPARAM)Sound[SND_ERROR].Fname);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			Sound[SND_CONNECT].On = (int)SendDlgItemMessage(hDlg, SOUND_CONNECT, BM_GETCHECK, 0, 0);
+			Sound[SND_TRANS].On = (int)SendDlgItemMessage(hDlg, SOUND_TRANS, BM_GETCHECK, 0, 0);
+			Sound[SND_ERROR].On = (int)SendDlgItemMessage(hDlg, SOUND_ERROR, BM_GETCHECK, 0, 0);
+			SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Sound[SND_CONNECT].Fname);
+			SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Sound[SND_TRANS].Fname);
+			SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Sound[SND_ERROR].Fname);
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000051);
+			break;
+		}
+		return 0;
+	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		char Tmp[FMAX_PATH + 1];
+		switch (id) {
+		case SOUND_CONNECT_BR:
+		case SOUND_TRANS_BR:
+		case SOUND_ERROR_BR:
+			if (auto const path = SelectFile(true, hDlg, IDS_SELECT_AUDIOFILE, L"", nullptr, { FileType::Audio, FileType::All }); !std::empty(path)) {
+				switch (id) {
+				case SOUND_CONNECT_BR:
+					SendDlgItemMessageW(hDlg, SOUND_CONNECT_WAV, WM_SETTEXT, 0, (LPARAM)path.c_str());
+					break;
+				case SOUND_TRANS_BR:
+					SendDlgItemMessageW(hDlg, SOUND_TRANS_WAV, WM_SETTEXT, 0, (LPARAM)path.c_str());
+					break;
+				case SOUND_ERROR_BR:
+					SendDlgItemMessageW(hDlg, SOUND_ERROR_WAV, WM_SETTEXT, 0, (LPARAM)path.c_str());
+					break;
+				}
+			}
+			break;
+		case SOUND_CONNECT_TEST:
+			SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Tmp);
+			sndPlaySound(Tmp, SND_ASYNC | SND_NODEFAULT);
+			break;
+		case SOUND_TRANS_TEST:
+			SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Tmp);
+			sndPlaySound(Tmp, SND_ASYNC | SND_NODEFAULT);
+			break;
+		case SOUND_ERROR_TEST:
+			SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Tmp);
+			sndPlaySound(Tmp, SND_ASYNC | SND_NODEFAULT);
+			break;
+		}
+	}
+};
+
+struct Other {
+	static constexpr WORD dialogId = opt_misc_dlg;
+	static constexpr DWORD flag = PSP_HASHELP;
+	static INT_PTR OnInit(HWND hDlg) {
+		SendDlgItemMessage(hDlg, MISC_WINPOS, BM_SETCHECK, SaveWinPos, 0);
+		SendDlgItemMessage(hDlg, MISC_DEBUG, BM_SETCHECK, DebugConsole, 0);
+		SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_SETCHECK, RegType, 0);
+		if (AskForceIni() == YES)
+			EnableWindow(GetDlgItem(hDlg, MISC_REGTYPE), FALSE);
+		SendDlgItemMessage(hDlg, MISC_ENCRYPT_SETTINGS, BM_SETCHECK, EncryptAllSettings, 0);
+
+		SendDlgItemMessage(hDlg, MISC_CACHE_SAVE, BM_SETCHECK, CacheSave, 0);
+		SendDlgItemMessage(hDlg, MISC_BUFNUM, EM_LIMITTEXT, (WPARAM)2, 0);
+		SetDecimalText(hDlg, MISC_BUFNUM, abs(CacheEntry));
+		SendDlgItemMessage(hDlg, MISC_BUFNUM_SPIN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(99, 1));
+		if (CacheEntry > 0) {
+			SendDlgItemMessage(hDlg, MISC_CACHE, BM_SETCHECK, 1, 0);
+			EnableWindow(GetDlgItem(hDlg, MISC_BUFNUM), TRUE);
+			EnableWindow(GetDlgItem(hDlg, MISC_CACHE_SAVE), TRUE);
+		} else {
+			SendDlgItemMessage(hDlg, MISC_CACHE, BM_SETCHECK, 0, 0);
+			EnableWindow(GetDlgItem(hDlg, MISC_BUFNUM), FALSE);
+			EnableWindow(GetDlgItem(hDlg, MISC_CACHE_SAVE), FALSE);
+		}
+
+		SendDlgItemMessage(hDlg, MISC_CACHEDIR, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
+		SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_SETTEXT, 0, (LPARAM)TmpPath);
+		return TRUE;
+	}
+	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
+		switch (nmh->code) {
+		case PSN_APPLY:
+			SaveWinPos = (int)SendDlgItemMessage(hDlg, MISC_WINPOS, BM_GETCHECK, 0, 0);
+			DebugConsole = (int)SendDlgItemMessage(hDlg, MISC_DEBUG, BM_GETCHECK, 0, 0);
+			if (AskForceIni() == NO)
+				RegType = (int)SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_GETCHECK, 0, 0);
+			EncryptAllSettings = (int)SendDlgItemMessage(hDlg, MISC_ENCRYPT_SETTINGS, BM_GETCHECK, 0, 0);
+
+			CacheSave = (int)SendDlgItemMessage(hDlg, MISC_CACHE_SAVE, BM_GETCHECK, 0, 0);
+			CacheEntry = GetDecimalText(hDlg, MISC_BUFNUM);
+			if (SendDlgItemMessage(hDlg, MISC_CACHE, BM_GETCHECK, 0, 0) == 0)
+				CacheEntry = -CacheEntry;
+
+			SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)TmpPath);
+			return PSNRET_NOERROR;
+		case PSN_HELP:
+			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000052);
+			break;
+		}
+		return 0;
+	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case MISC_CACHE:
+			if (SendDlgItemMessage(hDlg, MISC_CACHE, BM_GETCHECK, 0, 0) == 1) {
+				EnableWindow(GetDlgItem(hDlg, TRMODE_EXT), TRUE);
+				EnableWindow(GetDlgItem(hDlg, MISC_CACHE_SAVE), TRUE);
+			} else {
+				EnableWindow(GetDlgItem(hDlg, TRMODE_EXT), FALSE);
+				EnableWindow(GetDlgItem(hDlg, MISC_CACHE_SAVE), FALSE);
+			}
+			break;
+		case MISC_CACHEDIR_BR:
+			if (char Tmp[FMAX_PATH + 1]; SelectDir(hDlg, Tmp, FMAX_PATH) == TRUE)
+				SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_SETTEXT, 0, (LPARAM)Tmp);
+			break;
+		case MISC_CACHEDIR_DEF: {
+			char Tmp[FMAX_PATH + 1];
+			GetAppTempPath(Tmp);
+			SetYenTail(Tmp);
+			SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_SETTEXT, 0, (LPARAM)Tmp);
+			break;
+		}
+		}
+	}
+};
+
+// オプションのプロパティシート
+void SetOption() {
+	PropSheet<User, Transfer1, Transfer2, Transfer3, Transfer4, Mirroring, Operation, View1, View2, Connecting, Firewall, Tool, Sounds, Other>(GetMainHwnd(), GetFtpInst(), IDS_OPTION, PSH_NOAPPLYNOW);
 }
 
 
@@ -883,282 +1010,6 @@ static void GetFnameAttrFromListView(HWND hDlg, char *Buf)
 }
 
 
-/*----- ミラーリングウインドウのコールバック ----------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK MirrorSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-	int Num;
-	char Tmp[FMAX_PATH+1];
-	int Trash;
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			SetMultiTextToList(hDlg, MIRROR_NOTRN_LIST, MirrorNoTrn);
-			SetMultiTextToList(hDlg, MIRROR_NODEL_LIST, MirrorNoDel);
-			SendDlgItemMessage(hDlg, MIRROR_LOW, BM_SETCHECK, MirrorFnameCnv, 0);
-			SendDlgItemMessage(hDlg, MIRROR_UPDEL_NOTIFY, BM_SETCHECK, MirUpDelNotify, 0);
-			SendDlgItemMessage(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_SETCHECK, MirDownDelNotify, 0);
-			// ミラーリング設定追加
-			SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_SETCHECK, MirrorNoTransferContents, 0);
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					GetMultiTextFromList(hDlg, MIRROR_NOTRN_LIST, MirrorNoTrn, MIRROR_LEN+1);
-					GetMultiTextFromList(hDlg, MIRROR_NODEL_LIST, MirrorNoDel, MIRROR_LEN+1);
-					MirrorFnameCnv = (int)SendDlgItemMessage(hDlg, MIRROR_LOW, BM_GETCHECK, 0, 0);
-					MirUpDelNotify = (int)SendDlgItemMessage(hDlg, MIRROR_UPDEL_NOTIFY, BM_GETCHECK, 0, 0);
-					MirDownDelNotify = (int)SendDlgItemMessage(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_GETCHECK, 0, 0);
-					// ミラーリング設定追加
-					MirrorNoTransferContents = (int)SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000045);
-					break;
-			}
-			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case MIRROR_NOTRN_ADD :
-					strcpy(Tmp, "");
-					if(InputDialogBox(fname_in_dlg, hDlg, MSGJPN202, Tmp, FMAX_PATH, &Trash, IDH_HELP_TOPIC_0000001) == YES)
-						AddTextToListBox(hDlg, Tmp, MIRROR_NOTRN_LIST, MIRROR_LEN+1);
-					break;
-
-				case MIRROR_NODEL_ADD :
-					strcpy(Tmp, "");
-					if(InputDialogBox(fname_in_dlg, hDlg, MSGJPN203, Tmp, FMAX_PATH, &Trash, IDH_HELP_TOPIC_0000001) == YES)
-						AddTextToListBox(hDlg, Tmp, MIRROR_NODEL_LIST, MIRROR_LEN+1);
-					break;
-
-				case MIRROR_NOTRN_DEL :
-					if((Num = (int)SendDlgItemMessage(hDlg, MIRROR_NOTRN_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
-						SendDlgItemMessage(hDlg, MIRROR_NOTRN_LIST, LB_DELETESTRING, Num, 0);
-					break;
-
-				case MIRROR_NODEL_DEL :
-					if((Num = (int)SendDlgItemMessage(hDlg, MIRROR_NODEL_LIST, LB_GETCURSEL, 0, 0)) != LB_ERR)
-						SendDlgItemMessage(hDlg, MIRROR_NODEL_LIST, LB_DELETESTRING, Num, 0);
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
-/*----- 操作設定ウインドウのコールバック --------------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK NotifySettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-
-	static const RADIOBUTTON DownButton[] = {
-		{ NOTIFY_D_DLG, TRANS_DLG },
-		{ NOTIFY_D_OVW, TRANS_OVW }
-	};
-	#define DOWNBUTTONS	(sizeof(DownButton)/sizeof(RADIOBUTTON))
-
-	static const RADIOBUTTON UpButton[] = {
-		{ NOTIFY_U_DLG, TRANS_DLG },
-		{ NOTIFY_U_OVW, TRANS_OVW }
-	};
-	#define UPBUTTONS	(sizeof(UpButton)/sizeof(RADIOBUTTON))
-
-	static const RADIOBUTTON DclickButton[] = {
-		{ NOTIFY_OPEN,     YES },
-		{ NOTIFY_DOWNLOAD, NO }
-	};
-	#define DCLICKBUTTONS	(sizeof(DclickButton)/sizeof(RADIOBUTTON))
-
-	static const RADIOBUTTON MoveButton[] = {
-		{ NOTIFY_M_NODLG,   MOVE_NODLG },
-		{ NOTIFY_M_DLG,     MOVE_DLG },
-		{ NOTIFY_M_DISABLE, MOVE_DISABLE }
-	};
-	#define MOVEBUTTONS	(sizeof(MoveButton)/sizeof(RADIOBUTTON))
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			SetRadioButtonByValue(hDlg, RecvMode,   DownButton,   DOWNBUTTONS);
-			SetRadioButtonByValue(hDlg, SendMode,   UpButton,     UPBUTTONS);
-			SetRadioButtonByValue(hDlg, DclickOpen, DclickButton, DCLICKBUTTONS);
-			SetRadioButtonByValue(hDlg, MoveMode,   MoveButton,   MOVEBUTTONS);
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					RecvMode   = AskRadioButtonValue(hDlg, DownButton,   DOWNBUTTONS);
-					SendMode   = AskRadioButtonValue(hDlg, UpButton,     UPBUTTONS);
-					DclickOpen = AskRadioButtonValue(hDlg, DclickButton, DCLICKBUTTONS);
-					MoveMode   = AskRadioButtonValue(hDlg, MoveButton,   MOVEBUTTONS);
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000046);
-					break;
-			}
-			break;
-	}
-	return(FALSE);
-}
-
-
-/*----- 表示設定ウインドウのコールバック --------------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-// ファイルの属性を数字で表示
-//static BOOL CALLBACK DispSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK Disp1SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-	static LOGFONT TmpFont;
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			memcpy(&TmpFont, &ListLogFont, sizeof(LOGFONT));
-			if(ListFont != NULL)
-				SendDlgItemMessage(hDlg, DISP_FONT, WM_SETTEXT, 0, (LPARAM)TmpFont.lfFaceName);
-			SendDlgItemMessage(hDlg, DISP_HIDE, BM_SETCHECK, DispIgnoreHide, 0);
-			SendDlgItemMessage(hDlg, DISP_DRIVE, BM_SETCHECK, DispDrives, 0);
-			// ファイルアイコン表示対応
-			SendDlgItemMessage(hDlg, DISP_ICON, BM_SETCHECK, DispFileIcon, 0);
-			// タイムスタンプのバグ修正
-			SendDlgItemMessage(hDlg, DISP_SECOND, BM_SETCHECK, DispTimeSeconds, 0);
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					DispIgnoreHide = (int)SendDlgItemMessage(hDlg, DISP_HIDE, BM_GETCHECK, 0, 0);
-					DispDrives = (int)SendDlgItemMessage(hDlg, DISP_DRIVE, BM_GETCHECK, 0, 0);
-					// ファイルアイコン表示対応
-					DispFileIcon = (int)SendDlgItemMessage(hDlg, DISP_ICON, BM_GETCHECK, 0, 0);
-					// タイムスタンプのバグ修正
-					DispTimeSeconds = (int)SendDlgItemMessage(hDlg, DISP_SECOND, BM_GETCHECK, 0, 0);
-					if(strlen(TmpFont.lfFaceName) > 0)
-					{
-						memcpy(&ListLogFont, &TmpFont, sizeof(LOGFONT));
-						ListFont = CreateFontIndirect(&ListLogFont);
-					}
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000047);
-					break;
-			}
-			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case DISP_FONT_BR :
-					if(SelectListFont(hDlg, &TmpFont) == YES)
-						SendDlgItemMessage(hDlg, DISP_FONT, WM_SETTEXT, 0, (LPARAM)TmpFont.lfFaceName);
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
-// ファイルの属性を数字で表示
-// ローカル側自動更新
-static INT_PTR CALLBACK Disp2SettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-	static LOGFONT TmpFont;
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, DISP2_PERMIT_NUM, BM_SETCHECK, DispPermissionsNumber, 0);
-			SendDlgItemMessage(hDlg, DISP2_AUTO_REFRESH, BM_SETCHECK, AutoRefreshFileList, 0);
-			SendDlgItemMessage(hDlg, DISP2_REMOVE_OLD_LOG, BM_SETCHECK, RemoveOldLog, 0);
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					DispPermissionsNumber = (int)SendDlgItemMessage(hDlg, DISP2_PERMIT_NUM, BM_GETCHECK, 0, 0);
-					AutoRefreshFileList = (int)SendDlgItemMessage(hDlg, DISP2_AUTO_REFRESH, BM_GETCHECK, 0, 0);
-					RemoveOldLog = (int)SendDlgItemMessage(hDlg, DISP2_REMOVE_OLD_LOG, BM_GETCHECK, 0, 0);
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000068);
-					break;
-			}
-			break;
-	}
-	return(FALSE);
-}
-
-
 /*----- フォントを選ぶ --------------------------------------------------------
 *
 *	Parameter
@@ -1190,524 +1041,6 @@ static int SelectListFont(HWND hWnd, LOGFONT *lFont)
 		Sts = YES;
 
 	return(Sts);
-}
-
-
-/*----- 接続／切断設定ウインドウのコールバック --------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK ConnectSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, CONNECT_CONNECT, BM_SETCHECK, ConnectOnStart, 0);
-			SendDlgItemMessage(hDlg, CONNECT_OLDDLG, BM_SETCHECK, ConnectAndSet, 0);
-			SendDlgItemMessage(hDlg, CONNECT_RASCLOSE, BM_SETCHECK, RasClose, 0);
-			if(NoRasControl != NO)
-				EnableWindow(GetDlgItem(hDlg, CONNECT_RASCLOSE), FALSE);
-			SendDlgItemMessage(hDlg, CONNECT_CLOSE_NOTIFY, BM_SETCHECK, RasCloseNotify, 0);
-			if((RasClose == NO) || (NoRasControl != NO))
-				EnableWindow(GetDlgItem(hDlg, CONNECT_CLOSE_NOTIFY), FALSE);
-			SendDlgItemMessage(hDlg, CONNECT_HIST, EM_LIMITTEXT, (WPARAM)2, 0);
-			SetDecimalText(hDlg, CONNECT_HIST, FileHist);
-			SendDlgItemMessage(hDlg, CONNECT_HIST_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(HISTORY_MAX, 0));
-			SendDlgItemMessage(hDlg, CONNECT_QUICK_ANONY, BM_SETCHECK, QuickAnonymous, 0);
-			SendDlgItemMessage(hDlg, CONNECT_HIST_PASS, BM_SETCHECK, PassToHist, 0);
-			SendDlgItemMessage(hDlg, CONNECT_SENDQUIT, BM_SETCHECK, SendQuit, 0);
-			SendDlgItemMessage(hDlg, CONNECT_NORAS, BM_SETCHECK, NoRasControl, 0);
-			// UPnP対応
-			SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_SETCHECK, UPnPEnabled, 0);
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					ConnectOnStart = (int)SendDlgItemMessage(hDlg, MISC_CONNECT, BM_GETCHECK, 0, 0);
-					ConnectAndSet = (int)SendDlgItemMessage(hDlg, MISC_OLDDLG, BM_GETCHECK, 0, 0);
-					RasClose = (int)SendDlgItemMessage(hDlg, CONNECT_RASCLOSE, BM_GETCHECK, 0, 0);
-					RasCloseNotify = (int)SendDlgItemMessage(hDlg, CONNECT_CLOSE_NOTIFY, BM_GETCHECK, 0, 0);
-					FileHist = GetDecimalText(hDlg, CONNECT_HIST);
-					CheckRange2(&FileHist, HISTORY_MAX, 0);
-					QuickAnonymous = (int)SendDlgItemMessage(hDlg, CONNECT_QUICK_ANONY, BM_GETCHECK, 0, 0);
-					PassToHist = (int)SendDlgItemMessage(hDlg, CONNECT_HIST_PASS, BM_GETCHECK, 0, 0);
-					SendQuit = (int)SendDlgItemMessage(hDlg, CONNECT_SENDQUIT, BM_GETCHECK, 0, 0);
-					NoRasControl = (int)SendDlgItemMessage(hDlg, CONNECT_NORAS, BM_GETCHECK, 0, 0);
-					// UPnP対応
-					UPnPEnabled = (int)SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_GETCHECK, 0, 0);
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000048);
-					break;
-			}
-			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case CONNECT_RASCLOSE :
-					if(SendDlgItemMessage(hDlg, CONNECT_RASCLOSE, BM_GETCHECK, 0, 0) == 1)
-						EnableWindow(GetDlgItem(hDlg, CONNECT_CLOSE_NOTIFY), TRUE);
-					else
-						EnableWindow(GetDlgItem(hDlg, CONNECT_CLOSE_NOTIFY), FALSE);
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
-/*----- FireWall設定ウインドウのコールバック ----------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK FireSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-	char Tmp[10];
-	int Num;
-	static int Type;
-	static const INTCONVTBL TypeTbl[] = {
-		{ 0, 0 }, { 1, 1 }, { 2, 2 }, { 3, 8 }, 
-		{ 4, 3 }, { 5, 4 }, { 6, 5 }, { 7, 6 }, 
-		{ 8, 7 }, { 9, 9 }
-	};
-
-	static const int HideTbl[9][6] = {
-		{ TRUE,  TRUE,  TRUE,  FALSE, TRUE,  FALSE },
-		{ TRUE,  TRUE,  TRUE,  FALSE, FALSE, TRUE  },
-		{ TRUE,  TRUE,  TRUE,  FALSE, FALSE, FALSE },
-		{ FALSE, FALSE, FALSE, FALSE, FALSE, TRUE  },
-		{ FALSE, FALSE, FALSE, FALSE, TRUE,  FALSE },
-		{ TRUE,  FALSE, FALSE, FALSE, FALSE, FALSE },
-		{ FALSE, FALSE, FALSE, TRUE,  FALSE, FALSE },
-		{ TRUE,  TRUE,  FALSE, TRUE,  FALSE, FALSE },
-		{ TRUE,  TRUE,  FALSE, FALSE, TRUE,  TRUE  }
-	};
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			Type = ConvertNum(FwallType, 1, TypeTbl, sizeof(TypeTbl)/sizeof(INTCONVTBL));
-			SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN204);
-			SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN205);
-			SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN206);
-			SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN207);
-			SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN208);
-			SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN209);
-			SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN210);
-			SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN211);
-			SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN294);
-			SendDlgItemMessage(hDlg, FIRE_TYPE, CB_SETCURSEL, Type-1, 0);
-
-			SendDlgItemMessage(hDlg, FIRE_HOST, EM_LIMITTEXT, HOST_ADRS_LEN, 0);
-			SendDlgItemMessage(hDlg, FIRE_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
-			SendDlgItemMessage(hDlg, FIRE_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
-			SendDlgItemMessage(hDlg, FIRE_PORT, EM_LIMITTEXT, 5, 0);
-			SendDlgItemMessage(hDlg, FIRE_DELIMIT, EM_LIMITTEXT, 1, 0);
-
-			SendDlgItemMessage(hDlg, FIRE_HOST, WM_SETTEXT, 0, (LPARAM)FwallHost);
-			SendDlgItemMessage(hDlg, FIRE_USER, WM_SETTEXT, 0, (LPARAM)FwallUser);
-			SendDlgItemMessage(hDlg, FIRE_PASS, WM_SETTEXT, 0, (LPARAM)FwallPass);
-			sprintf(Tmp, "%d", FwallPort);
-			SendDlgItemMessage(hDlg, FIRE_PORT, WM_SETTEXT, 0, (LPARAM)Tmp);
-			sprintf(Tmp, "%c", FwallDelimiter);
-			SendDlgItemMessage(hDlg, FIRE_DELIMIT, WM_SETTEXT, 0, (LPARAM)Tmp);
-
-			SendDlgItemMessage(hDlg, FIRE_USEIT, BM_SETCHECK, FwallDefault, 0);
-			SendDlgItemMessage(hDlg, FIRE_PASV, BM_SETCHECK, PasvDefault, 0);
-			SendDlgItemMessage(hDlg, FIRE_RESOLV, BM_SETCHECK, FwallResolve, 0);
-			SendDlgItemMessage(hDlg, FIRE_LOWER, BM_SETCHECK, FwallLower, 0);
-
-			SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN212);
-			SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN213);
-			SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN214);
-			SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN215);
-			SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN216);
-			SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_SETCURSEL, FwallSecurity, 0);
-
-			// FireWall設定追加
-			SendDlgItemMessage(hDlg, FIRE_SHARED, BM_SETCHECK, FwallNoSaveUser, 0);
-
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					Type = (int)SendDlgItemMessage(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0) + 1;
-					FwallType = ConvertNum(Type, 0, TypeTbl, sizeof(TypeTbl)/sizeof(INTCONVTBL));
-					SendDlgItemMessage(hDlg, FIRE_HOST, WM_GETTEXT, HOST_ADRS_LEN+1, (LPARAM)FwallHost);
-					SendDlgItemMessage(hDlg, FIRE_USER, WM_GETTEXT, USER_NAME_LEN+1, (LPARAM)FwallUser);
-					SendDlgItemMessage(hDlg, FIRE_PASS, WM_GETTEXT, PASSWORD_LEN, (LPARAM)FwallPass);
-					SendDlgItemMessage(hDlg, FIRE_PORT, WM_GETTEXT, 5+1, (LPARAM)Tmp);
-					FwallPort = atoi(Tmp);
-					SendDlgItemMessage(hDlg, FIRE_DELIMIT, WM_GETTEXT, 5, (LPARAM)Tmp);
-					FwallDelimiter = Tmp[0];
-					FwallDefault = (int)SendDlgItemMessage(hDlg, FIRE_USEIT, BM_GETCHECK, 0, 0);
-					PasvDefault = (int)SendDlgItemMessage(hDlg, FIRE_PASV, BM_GETCHECK, 0, 0);
-					FwallResolve = (int)SendDlgItemMessage(hDlg, FIRE_RESOLV, BM_GETCHECK, 0, 0);
-					FwallLower = (int)SendDlgItemMessage(hDlg, FIRE_LOWER, BM_GETCHECK, 0, 0);
-					FwallSecurity = (int)SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_GETCURSEL, 0, 0);
-					// FireWall設定追加
-					FwallNoSaveUser = (int)SendDlgItemMessage(hDlg, FIRE_SHARED, BM_GETCHECK, 0, 0);
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000049);
-					break;
-			}
-			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case FIRE_TYPE :
-					Num = (int)SendDlgItemMessage(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0);
-					EnableWindow(GetDlgItem(hDlg, FIRE_USER), HideTbl[Num][0]);
-					EnableWindow(GetDlgItem(hDlg, FIRE_PASS), HideTbl[Num][1]);
-					EnableWindow(GetDlgItem(hDlg, FIRE_SECURITY), HideTbl[Num][2]);
-					EnableWindow(GetDlgItem(hDlg, FIRE_RESOLV), HideTbl[Num][3]);
-					EnableWindow(GetDlgItem(hDlg, FIRE_LOWER), HideTbl[Num][4]);
-					EnableWindow(GetDlgItem(hDlg, FIRE_DELIMIT), HideTbl[Num][5]);
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
-/*----- ツール設定ウインドウのコールバック ------------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK ToolSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, TOOL_EDITOR1, EM_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, TOOL_EDITOR2, EM_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, TOOL_EDITOR3, EM_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, TOOL_EDITOR1, WM_SETTEXT, 0, (LPARAM)ViewerName[0]);
-			SendDlgItemMessage(hDlg, TOOL_EDITOR2, WM_SETTEXT, 0, (LPARAM)ViewerName[1]);
-			SendDlgItemMessage(hDlg, TOOL_EDITOR3, WM_SETTEXT, 0, (LPARAM)ViewerName[2]);
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					SendDlgItemMessage(hDlg, TOOL_EDITOR1, WM_GETTEXT, FMAX_PATH+1, (LPARAM)ViewerName[0]);
-					SendDlgItemMessage(hDlg, TOOL_EDITOR2, WM_GETTEXT, FMAX_PATH+1, (LPARAM)ViewerName[1]);
-					SendDlgItemMessage(hDlg, TOOL_EDITOR3, WM_GETTEXT, FMAX_PATH+1, (LPARAM)ViewerName[2]);
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000050);
-					break;
-			}
-			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case TOOL_EDITOR1_BR :
-				case TOOL_EDITOR2_BR :
-				case TOOL_EDITOR3_BR :
-					if (auto const path = SelectFile(true, hDlg, IDS_SELECT_VIEWER, L"", nullptr, { FileType::Executable, FileType::All }); !std::empty(path))
-					{
-						switch(GET_WM_COMMAND_ID(wParam, lParam))
-						{
-							case TOOL_EDITOR1_BR :
-								SendDlgItemMessageW(hDlg, TOOL_EDITOR1, WM_SETTEXT, 0, (LPARAM)path.c_str());
-								break;
-
-							case TOOL_EDITOR2_BR :
-								SendDlgItemMessageW(hDlg, TOOL_EDITOR2, WM_SETTEXT, 0, (LPARAM)path.c_str());
-								break;
-
-							case TOOL_EDITOR3_BR :
-								SendDlgItemMessageW(hDlg, TOOL_EDITOR3, WM_SETTEXT, 0, (LPARAM)path.c_str());
-								break;
-						}
-					}
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
-/*----- サウンド設定ウインドウのコールバック ----------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK SoundSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-	char Tmp[FMAX_PATH+1];
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, SOUND_CONNECT, BM_SETCHECK, Sound[SND_CONNECT].On, 0);
-			SendDlgItemMessage(hDlg, SOUND_TRANS, BM_SETCHECK, Sound[SND_TRANS].On, 0);
-			SendDlgItemMessage(hDlg, SOUND_ERROR, BM_SETCHECK, Sound[SND_ERROR].On, 0);
-
-			SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, WM_SETTEXT, 0, (LPARAM)Sound[SND_CONNECT].Fname);
-			SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, WM_SETTEXT, 0, (LPARAM)Sound[SND_TRANS].Fname);
-			SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_SETTEXT, 0, (LPARAM)Sound[SND_ERROR].Fname);
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					Sound[SND_CONNECT].On = (int)SendDlgItemMessage(hDlg, SOUND_CONNECT, BM_GETCHECK, 0, 0);
-					Sound[SND_TRANS].On = (int)SendDlgItemMessage(hDlg, SOUND_TRANS, BM_GETCHECK, 0, 0);
-					Sound[SND_ERROR].On = (int)SendDlgItemMessage(hDlg, SOUND_ERROR, BM_GETCHECK, 0, 0);
-					SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Sound[SND_CONNECT].Fname);
-					SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Sound[SND_TRANS].Fname);
-					SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Sound[SND_ERROR].Fname);
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000051);
-					break;
-			}
-			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case SOUND_CONNECT_BR :
-				case SOUND_TRANS_BR :
-				case SOUND_ERROR_BR :
-					if (auto const path = SelectFile(true, hDlg, IDS_SELECT_AUDIOFILE, L"", nullptr, { FileType::Audio, FileType::All }); !std::empty(path))
-					{
-						switch(GET_WM_COMMAND_ID(wParam, lParam))
-						{
-							case SOUND_CONNECT_BR :
-								SendDlgItemMessageW(hDlg, SOUND_CONNECT_WAV, WM_SETTEXT, 0, (LPARAM)path.c_str());
-								break;
-
-							case SOUND_TRANS_BR :
-								SendDlgItemMessageW(hDlg, SOUND_TRANS_WAV, WM_SETTEXT, 0, (LPARAM)path.c_str());
-								break;
-
-							case SOUND_ERROR_BR :
-								SendDlgItemMessageW(hDlg, SOUND_ERROR_WAV, WM_SETTEXT, 0, (LPARAM)path.c_str());
-								break;
-						}
-					}
-					break;
-
-				case SOUND_CONNECT_TEST :
-					SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Tmp);
-					sndPlaySound(Tmp, SND_ASYNC | SND_NODEFAULT);
-					break;
-
-				case SOUND_TRANS_TEST :
-					SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Tmp);
-					sndPlaySound(Tmp, SND_ASYNC | SND_NODEFAULT);
-					break;
-
-				case SOUND_ERROR_TEST :
-					SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Tmp);
-					sndPlaySound(Tmp, SND_ASYNC | SND_NODEFAULT);
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
-/*----- その他の設定ウインドウのコールバック ----------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK MiscSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	NMHDR *pnmhdr;
-	char Tmp[FMAX_PATH+1];
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, MISC_WINPOS, BM_SETCHECK, SaveWinPos, 0);
-			SendDlgItemMessage(hDlg, MISC_DEBUG, BM_SETCHECK, DebugConsole, 0);
-			SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_SETCHECK, RegType, 0);
-			// ポータブル版判定
-			if(AskForceIni() == YES)
-				EnableWindow(GetDlgItem(hDlg, MISC_REGTYPE), FALSE);
-			// 全設定暗号化対応
-			SendDlgItemMessage(hDlg, MISC_ENCRYPT_SETTINGS, BM_SETCHECK, EncryptAllSettings, 0);
-
-			SendDlgItemMessage(hDlg, MISC_CACHE_SAVE, BM_SETCHECK, CacheSave, 0);
-			SendDlgItemMessage(hDlg, MISC_BUFNUM, EM_LIMITTEXT, (WPARAM)2, 0);
-			SetDecimalText(hDlg, MISC_BUFNUM, abs(CacheEntry));
-			SendDlgItemMessage(hDlg, MISC_BUFNUM_SPIN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(99, 1));
-			if(CacheEntry > 0)
-			{
-				SendDlgItemMessage(hDlg, MISC_CACHE, BM_SETCHECK, 1, 0);
-				EnableWindow(GetDlgItem(hDlg, MISC_BUFNUM), TRUE);
-				EnableWindow(GetDlgItem(hDlg, MISC_CACHE_SAVE), TRUE);
-			}
-			else
-			{
-				SendDlgItemMessage(hDlg, MISC_CACHE, BM_SETCHECK, 0, 0);
-				EnableWindow(GetDlgItem(hDlg, MISC_BUFNUM), FALSE);
-				EnableWindow(GetDlgItem(hDlg, MISC_CACHE_SAVE), FALSE);
-			}
-
-			SendDlgItemMessage(hDlg, MISC_CACHEDIR, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_SETTEXT, 0, (LPARAM)TmpPath);
-			return(TRUE);
-
-		case WM_NOTIFY:
-			pnmhdr = (NMHDR FAR *)lParam;
-			switch(pnmhdr->code)
-			{
-				case PSN_APPLY :
-					SaveWinPos = (int)SendDlgItemMessage(hDlg, MISC_WINPOS, BM_GETCHECK, 0, 0);
-					DebugConsole = (int)SendDlgItemMessage(hDlg, MISC_DEBUG, BM_GETCHECK, 0, 0);
-					// ポータブル版判定
-//					RegType = SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_GETCHECK, 0, 0);
-					if(AskForceIni() == NO)
-						RegType = (int)SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_GETCHECK, 0, 0);
-					// 全設定暗号化対応
-					EncryptAllSettings = (int)SendDlgItemMessage(hDlg, MISC_ENCRYPT_SETTINGS, BM_GETCHECK, 0, 0);
-
-					CacheSave = (int)SendDlgItemMessage(hDlg, MISC_CACHE_SAVE, BM_GETCHECK, 0, 0);
-					CacheEntry = GetDecimalText(hDlg, MISC_BUFNUM);
-					if(SendDlgItemMessage(hDlg, MISC_CACHE, BM_GETCHECK, 0, 0) == 0)
-						CacheEntry = -CacheEntry;
-
-					SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_GETTEXT, FMAX_PATH+1, (LPARAM)TmpPath);
-					break;
-
-				case PSN_RESET :
-					break;
-
-				case PSN_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000052);
-					break;
-			}
-			break;
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case MISC_CACHE :
-					if(SendDlgItemMessage(hDlg, MISC_CACHE, BM_GETCHECK, 0, 0) == 1)
-					{
-						EnableWindow(GetDlgItem(hDlg, TRMODE_EXT), TRUE);
-						EnableWindow(GetDlgItem(hDlg, MISC_CACHE_SAVE), TRUE);
-					}
-					else
-					{
-						EnableWindow(GetDlgItem(hDlg, TRMODE_EXT), FALSE);
-						EnableWindow(GetDlgItem(hDlg, MISC_CACHE_SAVE), FALSE);
-					}
-					break;
-
-				case MISC_CACHEDIR_BR :
-					if(SelectDir(hDlg, Tmp, FMAX_PATH) == TRUE)
-						SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_SETTEXT, 0, (LPARAM)Tmp);
-					break;
-
-				case MISC_CACHEDIR_DEF :
-					// 環境依存の不具合対策
-//					GetTempPath(FMAX_PATH, Tmp);
-					GetAppTempPath(Tmp);
-					SetYenTail(Tmp);
-					SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_SETTEXT, 0, (LPARAM)Tmp);
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
 }
 
 
@@ -1745,103 +1078,47 @@ int SortSetting(void)
 //static BOOL CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 static INT_PTR CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	using LsortOrdButton = RadioButton<SORT_LFILE_NAME, SORT_LFILE_EXT, SORT_LFILE_SIZE, SORT_LFILE_DATE>;
+	using LDirsortOrdButton = RadioButton<SORT_LDIR_NAME, SORT_LDIR_DATE>;
+	using RsortOrdButton = RadioButton<SORT_RFILE_NAME, SORT_RFILE_EXT, SORT_RFILE_SIZE, SORT_RFILE_DATE>;
+	using RDirsortOrdButton = RadioButton<SORT_RDIR_NAME, SORT_RDIR_DATE>;
 	int LFsort;
 	int LDsort;
 	int RFsort;
 	int RDsort;
 
-	static const RADIOBUTTON LsortOrdButton[] = {
-		{ SORT_LFILE_NAME, SORT_NAME },
-		{ SORT_LFILE_EXT, SORT_EXT },
-		{ SORT_LFILE_SIZE, SORT_SIZE },
-		{ SORT_LFILE_DATE, SORT_DATE }
-	};
-	#define LSORTORDBUTTONS	(sizeof(LsortOrdButton)/sizeof(RADIOBUTTON))
-
-	static const RADIOBUTTON LDirsortOrdButton[] = {
-		{ SORT_LDIR_NAME, SORT_NAME },
-		{ SORT_LDIR_DATE, SORT_DATE }
-	};
-	#define LDIRSORTORDBUTTONS	(sizeof(LDirsortOrdButton)/sizeof(RADIOBUTTON))
-
-	static const RADIOBUTTON RsortOrdButton[] = {
-		{ SORT_RFILE_NAME, SORT_NAME },
-		{ SORT_RFILE_EXT, SORT_EXT },
-		{ SORT_RFILE_SIZE, SORT_SIZE },
-		{ SORT_RFILE_DATE, SORT_DATE }
-	};
-	#define RSORTORDBUTTONS	(sizeof(RsortOrdButton)/sizeof(RADIOBUTTON))
-
-	static const RADIOBUTTON RDirsortOrdButton[] = {
-		{ SORT_RDIR_NAME, SORT_NAME },
-		{ SORT_RDIR_DATE, SORT_DATE }
-	};
-	#define RDIRSORTORDBUTTONS	(sizeof(RDirsortOrdButton)/sizeof(RADIOBUTTON))
-
 	switch (message)
 	{
 		case WM_INITDIALOG :
-
-			SetRadioButtonByValue(hDlg, AskSortType(ITEM_LFILE) & SORT_MASK_ORD, LsortOrdButton, LSORTORDBUTTONS);
-
-			if((AskSortType(ITEM_LFILE) & SORT_GET_ORD) == SORT_ASCENT)
-				SendDlgItemMessage(hDlg, SORT_LFILE_REV, BM_SETCHECK, 0, 0);
-			else
-				SendDlgItemMessage(hDlg, SORT_LFILE_REV, BM_SETCHECK, 1, 0);
-
-			SetRadioButtonByValue(hDlg, AskSortType(ITEM_LDIR) & SORT_MASK_ORD, LDirsortOrdButton, LDIRSORTORDBUTTONS);
-
-			if((AskSortType(ITEM_LDIR) & SORT_GET_ORD) == SORT_ASCENT)
-				SendDlgItemMessage(hDlg, SORT_LDIR_REV, BM_SETCHECK, 0, 0);
-			else
-				SendDlgItemMessage(hDlg, SORT_LDIR_REV, BM_SETCHECK, 1, 0);
-
-			SetRadioButtonByValue(hDlg, AskSortType(ITEM_RFILE) & SORT_MASK_ORD, RsortOrdButton, RSORTORDBUTTONS);
-
-			if((AskSortType(ITEM_RFILE) & SORT_GET_ORD) == SORT_ASCENT)
-				SendDlgItemMessage(hDlg, SORT_RFILE_REV, BM_SETCHECK, 0, 0);
-			else
-				SendDlgItemMessage(hDlg, SORT_RFILE_REV, BM_SETCHECK, 1, 0);
-
-			SetRadioButtonByValue(hDlg, AskSortType(ITEM_RDIR) & SORT_MASK_ORD, RDirsortOrdButton, RDIRSORTORDBUTTONS);
-
-			if((AskSortType(ITEM_RDIR) & SORT_GET_ORD) == SORT_ASCENT)
-				SendDlgItemMessage(hDlg, SORT_RDIR_REV, BM_SETCHECK, 0, 0);
-			else
-				SendDlgItemMessage(hDlg, SORT_RDIR_REV, BM_SETCHECK, 1, 0);
-
-			SendDlgItemMessage(hDlg, SORT_SAVEHOST, BM_SETCHECK, AskSaveSortToHost(), 0);
-
+			LsortOrdButton::Set(hDlg, AskSortType(ITEM_LFILE) & SORT_MASK_ORD);
+			SendDlgItemMessageW(hDlg, SORT_LFILE_REV, BM_SETCHECK, (AskSortType(ITEM_LFILE) & SORT_GET_ORD) != SORT_ASCENT, 0);
+			LDirsortOrdButton::Set(hDlg, AskSortType(ITEM_LDIR) & SORT_MASK_ORD);
+			SendDlgItemMessageW(hDlg, SORT_LDIR_REV, BM_SETCHECK, (AskSortType(ITEM_LDIR) & SORT_GET_ORD) != SORT_ASCENT, 0);
+			RsortOrdButton::Set(hDlg, AskSortType(ITEM_RFILE) & SORT_MASK_ORD);
+			SendDlgItemMessageW(hDlg, SORT_RFILE_REV, BM_SETCHECK, (AskSortType(ITEM_RFILE) & SORT_GET_ORD) != SORT_ASCENT, 0);
+			RDirsortOrdButton::Set(hDlg, AskSortType(ITEM_RDIR) & SORT_MASK_ORD);
+			SendDlgItemMessageW(hDlg, SORT_RDIR_REV, BM_SETCHECK, (AskSortType(ITEM_RDIR) & SORT_GET_ORD) != SORT_ASCENT, 0);
+			SendDlgItemMessageW(hDlg, SORT_SAVEHOST, BM_SETCHECK, AskSaveSortToHost(), 0);
 			return(TRUE);
 
 		case WM_COMMAND :
 			switch(GET_WM_COMMAND_ID(wParam, lParam))
 			{
 				case IDOK :
-					LFsort = AskRadioButtonValue(hDlg, LsortOrdButton, LSORTORDBUTTONS);
-
+					LFsort = LsortOrdButton::Get(hDlg);
 					if(SendDlgItemMessage(hDlg, SORT_LFILE_REV, BM_GETCHECK, 0, 0) == 1)
 						LFsort |= SORT_DESCENT;
-
-					LDsort = AskRadioButtonValue(hDlg, LDirsortOrdButton, LDIRSORTORDBUTTONS);
-
+					LDsort = LDirsortOrdButton::Get(hDlg);
 					if(SendDlgItemMessage(hDlg, SORT_LDIR_REV, BM_GETCHECK, 0, 0) == 1)
 						LDsort |= SORT_DESCENT;
-
-					RFsort = AskRadioButtonValue(hDlg, RsortOrdButton, RSORTORDBUTTONS);
-
+					RFsort = RsortOrdButton::Get(hDlg);
 					if(SendDlgItemMessage(hDlg, SORT_RFILE_REV, BM_GETCHECK, 0, 0) == 1)
 						RFsort |= SORT_DESCENT;
-
-					RDsort = AskRadioButtonValue(hDlg, RDirsortOrdButton, RDIRSORTORDBUTTONS);
-
+					RDsort = RDirsortOrdButton::Get(hDlg);
 					if(SendDlgItemMessage(hDlg, SORT_RDIR_REV, BM_GETCHECK, 0, 0) == 1)
 						RDsort |= SORT_DESCENT;
-
 					SetSortTypeImm(LFsort, LDsort, RFsort, RDsort);
-
 					SetSaveSortToHost((int)SendDlgItemMessage(hDlg, SORT_SAVEHOST, BM_GETCHECK, 0, 0));
-
 					EndDialog(hDlg, YES);
 					break;
 
