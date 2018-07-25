@@ -58,13 +58,6 @@
 #define ERR_MSG_LEN			1024
 
 
-/* 削除確認ダイアログの情報 */
-typedef struct {
-	int Cur;
-	TRANSPACKET *Pkt;
-} MIRRORDELETEINFO;
-
-
 /*===== プロトタイプ =====*/
 
 static void DispTransPacket(TRANSPACKET *Pkt);
@@ -77,16 +70,8 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
 static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
 static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *CancelCheckWork);
 static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
-// 再転送対応
-//static int DispUpDownErrDialog(int ResID, HWND hWnd, char *Fname);
-static int DispUpDownErrDialog(int ResID, HWND hWnd, TRANSPACKET *Pkt);
-// 64ビット対応
-//static BOOL CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static bool DispUpDownErrDialog(int ResID, HWND hWnd, TRANSPACKET *Pkt);
 static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode, int *CancelCheckWork);
-// 64ビット対応
-//static BOOL CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static int DoUpload(SOCKET cSkt, TRANSPACKET *Pkt);
 static int UploadNonPassive(TRANSPACKET *Pkt);
 static int UploadPassive(TRANSPACKET *Pkt);
@@ -102,9 +87,6 @@ static void DispTransFileInfo(TRANSPACKET *Pkt, char *Title, int SkipButton, int
 static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max);
 static int IsSpecialDevice(char *Fname);
 static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt);
-// 64ビット対応
-//static BOOL CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 #define SetErrorMsg(...) do { char* errMsg = GetErrMsg(); if (strlen(errMsg) == 0) sprintf(errMsg, __VA_ARGS__); } while(0)
 // 同時接続対応
 static char* GetErrMsg();
@@ -2444,7 +2426,7 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 					{
 						// タスクバー進捗表示
 						TransferErrorDisplay++;
-						if(TransferErrorNotify == YES && DispUpDownErrDialog(downerr_dlg, Pkt->hWndTrans, Pkt) == NO)
+						if(TransferErrorNotify == YES && !DispUpDownErrDialog(downerr_dlg, Pkt->hWndTrans, Pkt))
 							ClearAll = YES;
 						else
 						{
@@ -2479,89 +2461,40 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 }
 
 
-/*----- ダウンロード／アップロードエラーのダイアログを表示 --------------------
-*
-*	Parameter
-*		int RedID : ダイアログボックスのリソースID
-*		HWND hWnd : 書き込み中ダイアログのウインドウ
-*		char *Fname : ファイル名
-*
-*	Return Value
-*		int ステータス (YES=中止/NO=全て中止)
-*----------------------------------------------------------------------------*/
-
-// 再転送対応
-//static int DispUpDownErrDialog(int ResID, HWND hWnd, char *Fname)
-static int DispUpDownErrDialog(int ResID, HWND hWnd, TRANSPACKET *Pkt)
-{
-	if(hWnd == NULL)
-		hWnd = GetMainHwnd();
-
-	SoundPlay(SND_ERROR);
-	// 再転送対応
-//	return(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(ResID), hWnd, UpDownErrorDialogProc, (LPARAM)Fname));
-	return (int)(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(ResID), hWnd, UpDownErrorDialogProc, (LPARAM)Pkt));
-}
-
-
-/*----- ダウンロードエラー／アップロードエラーダイアログのコールバック --------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	static TRANSPACKET *Pkt;
-	using DownExistButton = RadioButton<DOWN_EXIST_OVW, DOWN_EXIST_RESUME, DOWN_EXIST_IGNORE>;
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			Pkt = (TRANSPACKET *)lParam;
-//			SendDlgItemMessage(hDlg, UPDOWN_ERR_FNAME, WM_SETTEXT, 0, (LPARAM)lParam);
+// ダウンロード／アップロードエラーのダイアログを表示
+static bool DispUpDownErrDialog(int ResID, HWND hWnd, TRANSPACKET *Pkt) {
+	struct Data {
+		using result_t = bool;
+		using DownExistButton = RadioButton<DOWN_EXIST_OVW, DOWN_EXIST_RESUME, DOWN_EXIST_IGNORE>;
+		TRANSPACKET* Pkt;
+		Data(TRANSPACKET* Pkt) : Pkt{ Pkt } {}
+		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessage(hDlg, UPDOWN_ERR_FNAME, WM_SETTEXT, 0, (LPARAM)Pkt->RemoteFile);
-			// 同時接続対応
-//			SendDlgItemMessage(hDlg, UPDOWN_ERR_MSG, WM_SETTEXT, 0, (LPARAM)ErrMsg);
 			SendDlgItemMessage(hDlg, UPDOWN_ERR_MSG, WM_SETTEXT, 0, (LPARAM)GetErrMsg());
-
-			if((Pkt->Type == TYPE_A) || (Pkt->ExistSize <= 0))
+			if (Pkt->Type == TYPE_A || Pkt->ExistSize <= 0)
 				EnableWindow(GetDlgItem(hDlg, DOWN_EXIST_RESUME), FALSE);
-
 			DownExistButton::Set(hDlg, TransferErrorMode);
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDOK_ALL :
-					TransferErrorNotify = NO;
-					/* ここに break はない */
-
-				case IDOK :
-					TransferErrorMode = DownExistButton::Get(hDlg);
-					EndDialog(hDlg, YES);
-					break;
-
-				case IDCANCEL :
-					EndDialog(hDlg, NO);
-					break;
-
-				case IDHELP :
-//					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000009);
-					break;
+			return TRUE;
+		}
+		void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK_ALL:
+				TransferErrorNotify = NO;
+				[[fallthrough]];
+			case IDOK:
+				TransferErrorMode = DownExistButton::Get(hDlg);
+				EndDialog(hDlg, true);
+				break;
+			case IDCANCEL:
+				EndDialog(hDlg, false);
+				break;
 			}
-			return(TRUE);
-	}
-	return(FALSE);
+		}
+	};
+	if (hWnd == NULL)
+		hWnd = GetMainHwnd();
+	SoundPlay(SND_ERROR);
+	return Dialog(GetFtpInst(), ResID, hWnd, Data{ Pkt });
 }
 
 
@@ -2580,84 +2513,46 @@ static INT_PTR CALLBACK UpDownErrorDialogProc(HWND hDlg, UINT message, WPARAM wP
 *		Pkt->ExistSizeのセットを行なう
 *----------------------------------------------------------------------------*/
 
-static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode, int *CancelCheckWork)
-{
-	int iRetCode;
-	int Com;
-	char Reply[ERR_MSG_LEN+7];
-	char Tmp[40];
-
-	Com = YES;
-
+static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode, int *CancelCheckWork) {
+	struct Data {
+		using result_t = int;
+		void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK:
+				EndDialog(hDlg, YES);
+				break;
+			case IDCANCEL:
+				EndDialog(hDlg, NO);
+				break;
+			case RESUME_CANCEL_ALL:
+				EndDialog(hDlg, NO_ALL);
+				break;
+			}
+		}
+	};
+	int Com = YES;
 	Pkt->ExistSize = 0;
 	*Mode = CREATE_ALWAYS;
-
-	if(ProcMode == EXIST_RESUME)
-	{
-		iRetCode = command(Pkt->ctrl_skt, Reply, CancelCheckWork, "REST %s", MakeNumString(Size, Tmp, FALSE));
-		if(iRetCode/100 < FTP_RETRY)
-		{
+	if (ProcMode == EXIST_RESUME) {
+		char Reply[ERR_MSG_LEN + 7];
+		char Tmp[40];
+		auto iRetCode = command(Pkt->ctrl_skt, Reply, CancelCheckWork, "REST %s", MakeNumString(Size, Tmp, FALSE));
+		if (iRetCode / 100 < FTP_RETRY) {
 			/* リジューム */
-			if(Pkt->hWndTrans != NULL)
+			if (Pkt->hWndTrans != NULL)
 				Pkt->ExistSize = Size;
 			*Mode = OPEN_ALWAYS;
-		}
-		else
-		{
-			Com = (int)DialogBox(GetFtpInst(), MAKEINTRESOURCE(noresume_dlg), Pkt->hWndTrans, NoResumeWndProc);
-			if(Com != YES)
-			{
-				if(Com == NO_ALL)		/* 全て中止 */
+		} else {
+			Com = Dialog(GetFtpInst(), noresume_dlg, Pkt->hWndTrans, Data{});
+			if (Com != YES) {
+				if (Com == NO_ALL)		/* 全て中止 */
 					ClearAll = YES;
 				Pkt->Abort = ABORT_USER;
 			}
 		}
 	}
-	return(Com);
+	return Com;
 }
-
-
-/*----- resumeエラーダイアログのコールバック ----------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK NoResumeWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	switch (iMessage)
-	{
-		case WM_INITDIALOG :
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDOK :
-					EndDialog(hDlg, YES);
-					break;
-
-				case IDCANCEL :
-					EndDialog(hDlg, NO);
-					break;
-
-				case RESUME_CANCEL_ALL :
-					EndDialog(hDlg, NO_ALL);
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
 
 
 /*----- アップロードを行なう --------------------------------------------------
@@ -3719,7 +3614,7 @@ static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 					{
 						// タスクバー進捗表示
 						TransferErrorDisplay++;
-						if(TransferErrorNotify == YES && DispUpDownErrDialog(uperr_dlg, Pkt->hWndTrans, Pkt) == NO)
+						if(TransferErrorNotify == YES && !DispUpDownErrDialog(uperr_dlg, Pkt->hWndTrans, Pkt))
 							ClearAll = YES;
 						else
 						{
@@ -4129,98 +4024,46 @@ static int IsSpecialDevice(char *Fname)
 }
 
 
-/*----- ミラーリングでのファイル削除確認 --------------------------------------
-*
-*	Parameter
-*		int Cur
-*		int Notify
-*		TRANSPACKET *Pkt
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt)
-{
-	MIRRORDELETEINFO DelInfo;
-	HWND hWnd;
-
-	if(((Cur == WIN_LOCAL) && (MirDownDelNotify == NO)) ||
-	   ((Cur == WIN_REMOTE) && (MirUpDelNotify == NO)))
-	{
-		Notify = YES_ALL;
-	}
-
-	if(Notify != YES_ALL)
-	{
-		DelInfo.Cur = Cur;
-		DelInfo.Pkt = Pkt;
-		hWnd = Pkt->hWndTrans;
-		if(hWnd == NULL)
-			hWnd = GetMainHwnd();
-		Notify = (int)DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(delete_dlg), hWnd, MirrorDeleteDialogCallBack, (LPARAM)&DelInfo);
-	}
-	return(Notify);
-}
-
-
-/*----- ミラーリングでのファイル削除ダイアログのコールバック ------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK MirrorDeleteDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	static MIRRORDELETEINFO *DelInfo;
-	switch (iMessage)
-	{
-		case WM_INITDIALOG :
-			DelInfo = (MIRRORDELETEINFO *)lParam;
-
-			if(DelInfo->Cur == WIN_LOCAL)
-			{
+// ミラーリングでのファイル削除確認
+static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt) {
+	struct Data {
+		using result_t = int;
+		int Cur;
+		TRANSPACKET* Pkt;
+		Data(int Cur, TRANSPACKET* Pkt) : Cur{ Cur }, Pkt{ Pkt } {}
+		INT_PTR OnInit(HWND hDlg) {
+			if (Cur == WIN_LOCAL) {
 				SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)MSGJPN124);
-				SendDlgItemMessage(hDlg, DELETE_TEXT, WM_SETTEXT, 0, (LPARAM)DelInfo->Pkt->LocalFile);
-			}
-			else
-			{
+				SendDlgItemMessage(hDlg, DELETE_TEXT, WM_SETTEXT, 0, (LPARAM)Pkt->LocalFile);
+			} else {
 				SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)MSGJPN125);
-				SendDlgItemMessage(hDlg, DELETE_TEXT, WM_SETTEXT, 0, (LPARAM)DelInfo->Pkt->RemoteFile);
+				SendDlgItemMessage(hDlg, DELETE_TEXT, WM_SETTEXT, 0, (LPARAM)Pkt->RemoteFile);
 			}
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDOK :
-					EndDialog(hDlg, YES);
-					break;
-
-				case DELETE_NO :
-					EndDialog(hDlg, NO);
-					break;
-
-				case DELETE_ALL :
-					EndDialog(hDlg, YES_ALL);
-					break;
-
-				case IDCANCEL :
-					ClearAll = YES;
-					EndDialog(hDlg, NO_ALL);
-					break;
+			return TRUE;
+		}
+		void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK:
+				EndDialog(hDlg, YES);
+				break;
+			case DELETE_NO:
+				EndDialog(hDlg, NO);
+				break;
+			case DELETE_ALL:
+				EndDialog(hDlg, YES_ALL);
+				break;
+			case IDCANCEL:
+				ClearAll = YES;
+				EndDialog(hDlg, NO_ALL);
+				break;
 			}
-			return(TRUE);
-	}
-	return(FALSE);
+		}
+	};
+	if (Cur == WIN_LOCAL && MirDownDelNotify == NO || Cur == WIN_REMOTE && MirUpDelNotify == NO)
+		Notify = YES_ALL;
+	if (Notify != YES_ALL)
+		Notify = Dialog(GetFtpInst(), delete_dlg, Pkt->hWndTrans ? Pkt->hWndTrans : GetMainHwnd(), Data{ Cur, Pkt });
+	return Notify;
 }
 
 

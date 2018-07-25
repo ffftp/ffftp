@@ -243,7 +243,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN281 (std::data(msgs[10000+281])) /* PASVモードで接続できません */
 #define MSGJPN282 (std::data(msgs[10000+282])) /* INIファイル名が指定されていません */
 #define MSGJPN283 (std::data(msgs[10000+283])) /* INIファイル指定:  */
-#define MSGJPN284 (std::data(msgs[10000+284])) /* https://github.com/sayurin/ffftp */
 #define MSGJPN285 (std::data(msgs[10000+285])) /* レジストリエディタが起動できませんでした */
 #define MSGJPN289 (std::data(msgs[10000+289])) /* Agilent Logic analyzer */
 #define MSGJPN292 (std::data(msgs[10000+292])) /* 設定をファイルから復元するためには,FFFTPを再起動してください. */

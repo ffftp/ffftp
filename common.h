@@ -1682,9 +1682,7 @@ void ChangeDirBmarkProc(int MarkID);
 void ChangeDirDirectProc(int Win);
 void ChangeDirDropFileProc(WPARAM wParam);
 void ChmodProc(void);
-// 64ビット対応
-//BOOL CALLBACK ChmodDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-INT_PTR CALLBACK ChmodDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
+std::optional<std::wstring> ChmodDialog(std::wstring const& text);
 void SomeCmdProc(void);
 void CalcFileSizeProc(void);
 void DispCWDerror(HWND hWnd);
@@ -1724,7 +1722,7 @@ void InitPWDcommand();
 int DoRMD(char *Path);
 int DoDELE(char *Path);
 int DoRENAME(char *Src, char *Dst);
-int DoCHMOD(char *Path, char *Mode);
+int DoCHMOD(const char *Path, const char *Mode);
 // 同時接続対応
 //int DoSIZE(char *Path, LONGLONG *Size);
 int DoSIZE(SOCKET cSkt, char *Path, LONGLONG *Size, int *CancelCheckWork);
@@ -1913,7 +1911,6 @@ void AttrValue2String(int Attr, char *Buf, int ShowNumber);
 void FormatIniString(char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 int SelectDir(HWND hWnd, char *Buf, int MaxLen);
-int xtoi(char *Str);
 int CheckFileReadable(char *Fname);
 int max1(int n, int m);
 int min1(int n, int m);

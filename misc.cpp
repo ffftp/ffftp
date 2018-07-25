@@ -1232,38 +1232,6 @@ int SelectDir(HWND hWnd, char *Buf, int MaxLen) {
 }
 
 
-/*----- １６進文字列を数値に変換 ----------------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*
-*	Return Value
-*		int 値
-*----------------------------------------------------------------------------*/
-
-int xtoi(char *Str)
-{
-	int Ret;
-
-	Ret = 0;
-	while(*Str != NUL)
-	{
-		Ret *= 0x10;
-		if((*Str >= '0') && (*Str <= '9'))
-			Ret += *Str - '0';
-		else if((*Str >= 'A') && (*Str <= 'F'))
-			Ret += *Str - 'A' + 10;
-		else if((*Str >= 'a') && (*Str <= 'f'))
-			Ret += *Str - 'a' + 10;
-		else
-			break;
-
-		Str++;
-	}
-	return(Ret);
-}
-
-
 /*----- ファイルが読み取り可能かどうかを返す ----------------------------------
 *
 *	Parameter

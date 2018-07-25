@@ -47,9 +47,6 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files);
 // ファイルアイコン表示対応
 //static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist);
 static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist, int ImageId);
-// 64ビット対応
-//static BOOL CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static int GetImageIndex(int Win, int Pos);
 static void DispListList(FILELIST *Pos, char *Title);
 // ファイル一覧バグ修正
@@ -83,9 +80,6 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute);
 static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day);
 static int CheckSpecialDirName(char *Fname);
 static int AskFilterStr(char *Fname, int Type);
-// 64ビット対応
-//static BOOL CALLBACK FilterWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK FilterWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
 static int atoi_n(const char *Str, int Len);
 
 /*===== 外部参照 =====*/
@@ -133,9 +127,6 @@ static HIMAGELIST ListImg = NULL;
 static HIMAGELIST ListImgFileIcon = NULL;
 
 static char FindStr[40+1] = { "*" };		/* 検索文字列 */
-static int IgnoreNew = NO;
-static int IgnoreOld = NO;
-static int IgnoreExist = NO;
 
 static int Dragging = NO;
 // 特定の操作を行うと異常終了するバグ修正
@@ -392,55 +383,6 @@ static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 }
 
 
-// ダイアログプロシージャ
-static BOOL CALLBACK doOleDlgProc(HWND hDlg, UINT msg, WPARAM wp, LPARAM lp)
-{
-#define TIMER_ID     (100)      // 作成するタイマの識別ID
-#define TIMER_ELAPSE (100)       // WM_TIMERの発生間隔
-	MSG message;
-
-	switch( msg ){
-	case WM_INITDIALOG:  // ダイアログボックスが作成されたとき
-		SetTimer( hDlg, TIMER_ID, 0, NULL);
-		return TRUE;
-
-	case WM_TIMER:
-		ShowWindow(hDlg, SW_HIDE);  // ダイアログは隠す
-
-		if (wp != TIMER_ID)
-			break;
-
-		if (PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) {
-				TranslateMessage(&message);
-				DispatchMessage(&message);
-
-		} else {
-			if (AskTransferNow() == NO) {
-				EndDialog( hDlg, 0 );
-				return TRUE;
-			}
-		}
-
-		SetTimer( hDlg, TIMER_ID, TIMER_ELAPSE, NULL );
-		return TRUE;
-
-	case WM_COMMAND:     // ダイアログボックス内の何かが選択されたとき
-		switch( LOWORD( wp ) ){
-//		case IDOK:       // 「OK」ボタンが選択された
-		case IDCANCEL:   // 「キャンセル」ボタンが選択された
-			// ダイアログボックスを消す
-			EndDialog( hDlg, 0 );
-			break;
-		}
-		return TRUE;
-	}
-
-	return FALSE;  // DefWindowProc()ではなく、FALSEを返すこと！
-#undef TIMER_ID     
-#undef TIMER_ELAPSE 
-}
-
-
 static void doTransferRemoteFile(void)
 {
 	FILELIST *FileListBase, *FileListBaseNoExpand, *pf;
@@ -537,11 +479,7 @@ static void doTransferRemoteFile(void)
 		Sleep(10);
 	}
 
-	// OLE D&D中にメインウィンドウをユーザに操作させると、おかしくなるので、
-	// 隠しモーダルダイアログを作る。
-	// (2007.9.11 yutaka)
 	// 特定の操作を行うと異常終了するバグ修正
-//	DialogBox(GetFtpInst(), MAKEINTRESOURCE(IDD_OLEDRAG), GetMainHwnd(), (DLGPROC)doOleDlgProc);
 	while(1)
 	{
 		MSG msg;
@@ -1648,6 +1586,39 @@ bool CheckFname(std::wstring str, std::wstring const& regexp) {
 
 // ファイル一覧ウインドウのファイルを選択する
 void SelectFileInList(HWND hWnd, int Type, FILELIST *Base) {
+	static bool IgnoreNew = false;
+	static bool IgnoreOld = false;
+	static bool IgnoreExist = false;
+	struct Select {
+		using result_t = bool;
+		INT_PTR OnInit(HWND hDlg) {
+			SendDlgItemMessageW(hDlg, SEL_FNAME, EM_LIMITTEXT, 40, 0);
+			SendDlgItemMessageW(hDlg, SEL_FNAME, WM_SETTEXT, 0, (LPARAM)u8(FindStr).c_str());
+			SendDlgItemMessageW(hDlg, SEL_REGEXP, BM_SETCHECK, FindMode, 0);
+			SendDlgItemMessageW(hDlg, SEL_NOOLD, BM_SETCHECK, IgnoreOld ? BST_CHECKED : BST_UNCHECKED, 0);
+			SendDlgItemMessageW(hDlg, SEL_NONEW, BM_SETCHECK, IgnoreNew ? BST_CHECKED : BST_UNCHECKED, 0);
+			SendDlgItemMessageW(hDlg, SEL_NOEXIST, BM_SETCHECK, IgnoreExist ? BST_CHECKED : BST_UNCHECKED, 0);
+			return TRUE;
+		}
+		void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK:
+				strcpy(FindStr, u8(GetText(hDlg, SEL_FNAME)).c_str());
+				FindMode = (int)SendDlgItemMessageW(hDlg, SEL_REGEXP, BM_GETCHECK, 0, 0);
+				IgnoreOld = SendDlgItemMessageW(hDlg, SEL_NOOLD, BM_GETCHECK, 0, 0) == BST_CHECKED;
+				IgnoreNew = SendDlgItemMessageW(hDlg, SEL_NONEW, BM_GETCHECK, 0, 0) == BST_CHECKED;
+				IgnoreExist = SendDlgItemMessageW(hDlg, SEL_NOEXIST, BM_GETCHECK, 0, 0) == BST_CHECKED;
+				EndDialog(hDlg, true);
+				break;
+			case IDCANCEL:
+				EndDialog(hDlg, false);
+				break;
+			case IDHELP:
+				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000061);
+				break;
+			}
+		}
+	};
 	int Win = WIN_LOCAL, WinDst = WIN_REMOTE;
 	if (hWnd == GetRemoteHwnd())
 		std::swap(Win, WinDst);
@@ -1659,7 +1630,7 @@ void SelectFileInList(HWND hWnd, int Type, FILELIST *Base) {
 		return;
 	}
 	if (Type == SELECT_REGEXP) {
-		if (DialogBox(GetFtpInst(), MAKEINTRESOURCE(Win == WIN_LOCAL ? sel_local_dlg : sel_remote_dlg), hWnd, SelectDialogCallBack) != YES)
+		if (!Dialog(GetFtpInst(), Win == WIN_LOCAL ? sel_local_dlg : sel_remote_dlg, hWnd, Select{}))
 			return;
 		try {
 			std::variant<std::wstring, std::wregex> pattern;
@@ -1686,13 +1657,13 @@ void SelectFileInList(HWND hWnd, int Type, FILELIST *Base) {
 					if (matched) {
 						state = LVIS_SELECTED;
 						if (Find >= 0) {
-							if (IgnoreExist == YES)
+							if (IgnoreExist)
 								state = 0;
 							else {
 								FILETIME Time1, Time2;
 								GetNodeTime(Win, i, &Time1);
 								GetNodeTime(WinDst, Find, &Time2);
-								if (IgnoreNew == YES && CompareFileTime(&Time1, &Time2) > 0 || IgnoreOld == YES && CompareFileTime(&Time1, &Time2) < 0)
+								if (IgnoreNew && CompareFileTime(&Time1, &Time2) > 0 || IgnoreOld && CompareFileTime(&Time1, &Time2) < 0)
 									state = 0;
 							}
 						}
@@ -1721,59 +1692,6 @@ void SelectFileInList(HWND hWnd, int Type, FILELIST *Base) {
 		}
 		return;
 	}
-}
-
-
-/*----- 選択ダイアログのコールバック ------------------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK SelectDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	switch (iMessage)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, SEL_FNAME, EM_LIMITTEXT, 40, 0);
-			SendDlgItemMessage(hDlg, SEL_FNAME, WM_SETTEXT, 0, (LPARAM)FindStr);
-			SendDlgItemMessage(hDlg, SEL_REGEXP, BM_SETCHECK, FindMode, 0);
-			SendDlgItemMessage(hDlg, SEL_NOOLD, BM_SETCHECK, IgnoreOld, 0);
-			SendDlgItemMessage(hDlg, SEL_NONEW, BM_SETCHECK, IgnoreNew, 0);
-			SendDlgItemMessage(hDlg, SEL_NOEXIST, BM_SETCHECK, IgnoreExist, 0);
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDOK :
-					SendDlgItemMessage(hDlg, SEL_FNAME, WM_GETTEXT, 40+1, (LPARAM)FindStr);
-					FindMode = (int)SendDlgItemMessage(hDlg, SEL_REGEXP, BM_GETCHECK, 0, 0);
-					IgnoreOld = (int)SendDlgItemMessage(hDlg, SEL_NOOLD, BM_GETCHECK, 0, 0);
-					IgnoreNew = (int)SendDlgItemMessage(hDlg, SEL_NONEW, BM_GETCHECK, 0, 0);
-					IgnoreExist = (int)SendDlgItemMessage(hDlg, SEL_NOEXIST, BM_GETCHECK, 0, 0);
-					EndDialog(hDlg, YES);
-					break;
-
-				case IDCANCEL :
-					EndDialog(hDlg, NO);
-					break;
-
-				case IDHELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000061);
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
 }
 
 
@@ -5686,79 +5604,41 @@ static int AskFilterStr(char *Fname, int Type) {
 }
 
 
-/*----- フィルタを設定する ----------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetFilter(int *CancelCheckWork)
-{
-	if(DialogBox(GetFtpInst(), MAKEINTRESOURCE(filter_dlg), GetMainHwnd(), FilterWndProc) == YES)
-	{
+// フィルタを設定する
+void SetFilter(int *CancelCheckWork) {
+	struct Filter {
+		using result_t = bool;
+		INT_PTR OnInit(HWND hDlg) {
+			SendDlgItemMessageW(hDlg, FILTER_STR, EM_LIMITTEXT, FILTER_EXT_LEN + 1, 0);
+			SendDlgItemMessageW(hDlg, FILTER_STR, WM_SETTEXT, 0, (LPARAM)u8(FilterStr).c_str());
+			return TRUE;
+		}
+		void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK:
+				strcpy(FilterStr, u8(GetText(hDlg, FILTER_STR)).c_str());
+				EndDialog(hDlg, true);
+				break;
+			case IDCANCEL:
+				EndDialog(hDlg, false);
+				break;
+			case FILTER_NOR:
+				strcpy(FilterStr, "*");
+				EndDialog(hDlg, true);
+				break;
+			case IDHELP:
+				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000021);
+				break;
+			}
+		}
+	};
+	if (Dialog(GetFtpInst(), filter_dlg, GetMainHwnd(), Filter{})) {
 		DispWindowTitle();
 		UpdateStatusBar();
 		GetLocalDirForWnd();
 		GetRemoteDirForWnd(CACHE_LASTREAD, CancelCheckWork);
 	}
-	return;
 }
-
-
-/*----- フィルタ入力ダイアログのコールバック ----------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK FilterWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK FilterWndProc(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	switch (iMessage)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, FILTER_STR, EM_LIMITTEXT, FILTER_EXT_LEN+1, 0);
-			SendDlgItemMessage(hDlg, FILTER_STR, WM_SETTEXT, 0, (LPARAM)FilterStr);
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDOK :
-					SendDlgItemMessage(hDlg, FILTER_STR, WM_GETTEXT, FILTER_EXT_LEN, (LPARAM)FilterStr);
-					EndDialog(hDlg, YES);
-					break;
-
-				case IDCANCEL :
-					EndDialog(hDlg, NO);
-					break;
-
-				case FILTER_NOR :
-					strcpy(FilterStr, "*");
-					EndDialog(hDlg, YES);
-					break;
-
-				case IDHELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000021);
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
-
 
 
 static int atoi_n(const char *Str, int Len)

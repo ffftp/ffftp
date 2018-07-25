@@ -32,11 +32,6 @@
 
 /*===== プロトタイプ =====*/
 
-// 64ビット対応
-//static BOOL CALLBACK QuickConDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK QuickConDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam);
-// 同時接続対応
-//static int SendInitCommand(char *Cmd);
 static int SendInitCommand(SOCKET Socket, char *Cmd, int *CancelCheckWork);
 static void AskUseFireWall(char *Host, int *Fire, int *Pasv, int *List);
 static void SaveCurrentSetToHistory(void);
@@ -245,27 +240,59 @@ void ConnectProc(int Type, int Num)
 }
 
 
-/*----- ホスト名を入力してホストへ接続 ----------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void QuickConnectProc(void)
-{
+// ホスト名を入力してホストへ接続
+void QuickConnectProc() {
+	struct QuickCon {
+		using result_t = bool;
+		std::wstring hostname;
+		std::wstring username;
+		std::wstring password;
+		bool firewall;
+		bool passive;
+		INT_PTR OnInit(HWND hDlg) {
+			SendDlgItemMessageW(hDlg, QHOST_HOST, CB_LIMITTEXT, FMAX_PATH, 0);
+			SendDlgItemMessageW(hDlg, QHOST_HOST, WM_SETTEXT, 0, (LPARAM)L"");
+			SendDlgItemMessageW(hDlg, QHOST_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
+			if (QuickAnonymous == YES) {
+				SendDlgItemMessageW(hDlg, QHOST_USER, WM_SETTEXT, 0, (LPARAM)L"anonymous");
+				SendDlgItemMessageW(hDlg, QHOST_PASS, WM_SETTEXT, 0, (LPARAM)u8(UserMailAdrs).c_str());
+			} else {
+				SendDlgItemMessageW(hDlg, QHOST_USER, WM_SETTEXT, 0, (LPARAM)L"");
+				SendDlgItemMessageW(hDlg, QHOST_PASS, WM_SETTEXT, 0, (LPARAM)L"");
+			}
+			SendDlgItemMessageW(hDlg, QHOST_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
+			SendDlgItemMessageW(hDlg, QHOST_FWALL, BM_SETCHECK, FwallDefault, 0);
+			SendDlgItemMessageW(hDlg, QHOST_PASV, BM_SETCHECK, PasvDefault, 0);
+			for (int i = 0; i < HISTORY_MAX; i++)
+				if (HISTORYDATA Tmp; GetHistoryByNum(i, &Tmp) == FFFTP_SUCCESS)
+					SendDlgItemMessageW(hDlg, QHOST_HOST, CB_ADDSTRING, 0, (LPARAM)u8(Tmp.HostAdrs).c_str());
+			return TRUE;
+		}
+		void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK:
+				hostname = GetText(hDlg, QHOST_HOST);
+				username = GetText(hDlg, QHOST_USER);
+				password = GetText(hDlg, QHOST_PASS);
+				firewall = SendDlgItemMessageW(hDlg, QHOST_FWALL, BM_GETCHECK, 0, 0) == BST_CHECKED;
+				passive = SendDlgItemMessageW(hDlg, QHOST_PASV, BM_GETCHECK, 0, 0) == BST_CHECKED;
+				EndDialog(hDlg, true);
+				break;
+			case IDCANCEL:
+				EndDialog(hDlg, false);
+				break;
+			}
+		}
+	};
 	char Tmp[FMAX_PATH+1 + USER_NAME_LEN+1 + PASSWORD_LEN+1 + 2];
 	char File[FMAX_PATH+1];
 
 	SaveBookMark();
 	SaveCurrentSetToHost();
 
-	if(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(hostname_dlg), GetMainHwnd(), QuickConDialogCallBack, (LPARAM)Tmp) == YES)
-	{
+	if (QuickCon qc; Dialog(GetFtpInst(), hostname_dlg, GetMainHwnd(), qc)) {
 		/* 接続中なら切断する */
-		if(CmdCtrlSocket != INVALID_SOCKET)
+		if (CmdCtrlSocket != INVALID_SOCKET)
 			DisconnectProc();
 
 		SetTaskMsg("----------------------------");
@@ -274,18 +301,16 @@ void QuickConnectProc(void)
 		CopyDefaultHost(&CurHost);
 		// UTF-8対応
 		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
-		if(SplitUNCpath(Tmp, CurHost.HostAdrs, CurHost.RemoteInitDir, File, CurHost.UserName, CurHost.PassWord, &CurHost.Port) == FFFTP_SUCCESS)
-		{
-			if(strlen(CurHost.UserName) == 0)
-			{
-				strcpy(CurHost.UserName, Tmp + FMAX_PATH+1);
-				strcpy(CurHost.PassWord, Tmp + FMAX_PATH+1 + USER_NAME_LEN+1);
+		if (strcpy(Tmp, u8(qc.hostname).c_str()); SplitUNCpath(Tmp, CurHost.HostAdrs, CurHost.RemoteInitDir, File, CurHost.UserName, CurHost.PassWord, &CurHost.Port) == FFFTP_SUCCESS) {
+			if (strlen(CurHost.UserName) == 0) {
+				strcpy(CurHost.UserName, u8(qc.username).c_str());
+				strcpy(CurHost.PassWord, u8(qc.password).c_str());
 			}
 
 			SetCurrentHost(HOSTNUM_NOENTRY);
 			AskUseFireWall(CurHost.HostAdrs, &CurHost.FireWall, &CurHost.Pasv, &CurHost.ListCmdOnly);
-			CurHost.FireWall = (int)Tmp[FMAX_PATH+1 + USER_NAME_LEN+1 + PASSWORD_LEN+1];
-			CurHost.Pasv = (int)Tmp[FMAX_PATH+1 + USER_NAME_LEN+1 + PASSWORD_LEN+1 + 1];
+			CurHost.FireWall = qc.firewall ? 1 : 0;
+			CurHost.Pasv = qc.passive ? 1 : 0;
 
 			SetHostKanaCnvImm(CurHost.KanaCnv);
 			SetHostKanjiCodeImm(CurHost.KanjiCode);
@@ -298,15 +323,12 @@ void QuickConnectProc(void)
 			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg);
 			TrnCtrlSocket = CmdCtrlSocket;
 
-			if(CmdCtrlSocket != INVALID_SOCKET)
-			{
+			if (CmdCtrlSocket != INVALID_SOCKET) {
 				// UTF-8対応
-				if(CurHost.CurNameKanjiCode == KANJI_AUTO)
-				{
-					if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
+				if (CurHost.CurNameKanjiCode == KANJI_AUTO) {
+					if (DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
 						CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-					switch(CurHost.CurNameKanjiCode)
-					{
+					switch (CurHost.CurNameKanjiCode) {
 					case KANJI_SJIS:
 						SetTaskMsg(MSGJPN343, MSGJPN345);
 						break;
@@ -341,97 +363,14 @@ void QuickConnectProc(void)
 				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 				EnableUserOpe();
 
-				if(strlen(File) > 0)
+				if (strlen(File) > 0)
 					DirectDownloadProc(File);
-			}
-			else
-			{
+			} else {
 				SoundPlay(SND_ERROR);
 				EnableUserOpe();
 			}
 		}
 	}
-	return;
-}
-
-
-/*----- クイック接続ダイアログのコールバック ----------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK QuickConDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK QuickConDialogCallBack(HWND hDlg, UINT iMessage, WPARAM wParam, LPARAM lParam)
-{
-	static char *Buf;
-	int i;
-	HISTORYDATA Tmp;
-
-//char Str[HOST_ADRS_LEN+USER_NAME_LEN+INIT_DIR_LEN+5+1];
-
-	switch (iMessage)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, QHOST_HOST, CB_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, QHOST_HOST, WM_SETTEXT, 0, (LPARAM)"");
-			SendDlgItemMessage(hDlg, QHOST_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
-			if(QuickAnonymous == YES)
-			{
-				SendDlgItemMessage(hDlg, QHOST_USER, WM_SETTEXT, 0, (LPARAM)"anonymous");
-				SendDlgItemMessage(hDlg, QHOST_PASS, WM_SETTEXT, 0, (LPARAM)UserMailAdrs);
-			}
-			else
-			{
-				SendDlgItemMessage(hDlg, QHOST_USER, WM_SETTEXT, 0, (LPARAM)"");
-				SendDlgItemMessage(hDlg, QHOST_PASS, WM_SETTEXT, 0, (LPARAM)"");
-			}
-			SendDlgItemMessage(hDlg, QHOST_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
-			SendDlgItemMessage(hDlg, QHOST_FWALL, BM_SETCHECK, FwallDefault, 0);
-			SendDlgItemMessage(hDlg, QHOST_PASV, BM_SETCHECK, PasvDefault, 0);
-			for(i = 0; i < HISTORY_MAX; i++)
-			{
-				if(GetHistoryByNum(i, &Tmp) == FFFTP_SUCCESS)
-				{
-//sprintf(Str, "%s (%s) %s", Tmp.HostAdrs, Tmp.UserName, Tmp.RemoteInitDir);
-//SendDlgItemMessage(hDlg, QHOST_HOST, CB_ADDSTRING, 0, (LPARAM)Str);
-					SendDlgItemMessage(hDlg, QHOST_HOST, CB_ADDSTRING, 0, (LPARAM)Tmp.HostAdrs);
-				}
-			}
-			Buf = (char *)lParam;
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDOK :
-					SendDlgItemMessage(hDlg, QHOST_HOST, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Buf);
-					SendDlgItemMessage(hDlg, QHOST_USER, WM_GETTEXT, USER_NAME_LEN+1, (LPARAM)Buf + FMAX_PATH+1);
-					SendDlgItemMessage(hDlg, QHOST_PASS, WM_GETTEXT, PASSWORD_LEN+1, (LPARAM)Buf + FMAX_PATH+1 + USER_NAME_LEN+1);
-					*(Buf + FMAX_PATH+1 + USER_NAME_LEN+1 + PASSWORD_LEN+1) = (char)SendDlgItemMessage(hDlg, QHOST_FWALL, BM_GETCHECK, 0, 0);
-					*(Buf + FMAX_PATH+1 + USER_NAME_LEN+1 + PASSWORD_LEN+1+1) = (char)SendDlgItemMessage(hDlg, QHOST_PASV, BM_GETCHECK, 0, 0);
-					EndDialog(hDlg, YES);
-					break;
-
-				case IDCANCEL :
-					EndDialog(hDlg, NO);
-					break;
-
-//				case QHOST_HOST :
-//					if(HIWORD(wParam) == CBN_EDITCHANGE)
-//						DoPrintf("EDIT");
-//					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
 }
 
 

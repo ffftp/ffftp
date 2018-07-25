@@ -30,108 +30,53 @@
 #include "common.h"
 
 
-/*===== プロトタイプ =====*/
-
-// 64ビット対応
-//static BOOL CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-
-
-/*----- ワンタイムパスワード計算 ----------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void OtpCalcTool(void)
-{
-	DialogBox(GetFtpInst(), MAKEINTRESOURCE(otp_calc_dlg), GetMainHwnd(), OtpCalcWinProc);
-	return;
-}
-
-
-/*----- ワンタイムパスワード計算ウインドウのコールバック ----------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK OtpCalcWinProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	using AlgoButton = RadioButton<OTPCALC_MD4, OTPCALC_MD5, OTPCALC_SHA1>;
-	char Tmp[41];
-	char *Pos;
-	int Seq;
-	int Type;
-	char Seed[MAX_SEED_LEN+1];
-	char Pass[PASSWORD_LEN+1];
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, OTPCALC_KEY, EM_LIMITTEXT, 40, 0);
-			SendDlgItemMessage(hDlg, OTPCALC_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
+// ワンタイムパスワード計算
+void OtpCalcTool() {
+	struct Data {
+		using result_t = int;
+		using AlgoButton = RadioButton<OTPCALC_MD4, OTPCALC_MD5, OTPCALC_SHA1>;
+		INT_PTR OnInit(HWND hDlg) {
+			SendDlgItemMessageW(hDlg, OTPCALC_KEY, EM_LIMITTEXT, 40, 0);
+			SendDlgItemMessageW(hDlg, OTPCALC_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
 			AlgoButton::Set(hDlg, MD4);
 			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDOK :
-					SendDlgItemMessage(hDlg, OTPCALC_KEY, WM_GETTEXT, 41, (LPARAM)Tmp);
-					SendDlgItemMessage(hDlg, OTPCALC_PASS, WM_GETTEXT, PASSWORD_LEN+1, (LPARAM)Pass);
-					Type = AlgoButton::Get(hDlg);
-
-					Pos = Tmp;
-					while(*Pos == ' ')
-						Pos++;
-
-					if(IsDigit(*Pos))
-					{
-						Seq = atoi(Pos);
-						/* Seed */
-						if((Pos = GetNextField(Pos)) != NULL)
-						{
-							if(GetOneField(Pos, Seed, MAX_SEED_LEN) == FFFTP_SUCCESS)
-							{
-								Make6WordPass(Seq, Seed, Pass, Type, Tmp);
-							}
-							else
-								strcpy(Tmp, MSGJPN251);
-						}
-						else
-							strcpy(Tmp, MSGJPN252);
-					}
-					else
-						strcpy(Tmp, MSGJPN253);
-
-					SendDlgItemMessage(hDlg, OTPCALC_RES, WM_SETTEXT, 0, (LPARAM)Tmp);
-					break;
-
-				case IDCANCEL :
-					EndDialog(hDlg, NO);
-					break;
-
-				case IDHELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000037);
-					break;
 		}
-			return(TRUE);
-	}
-	return(FALSE);
+		void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK: {
+				char Tmp[41];
+				char Pass[PASSWORD_LEN + 1];
+				SendDlgItemMessage(hDlg, OTPCALC_KEY, WM_GETTEXT, 41, (LPARAM)Tmp);
+				SendDlgItemMessage(hDlg, OTPCALC_PASS, WM_GETTEXT, PASSWORD_LEN + 1, (LPARAM)Pass);
+				auto Pos = Tmp;
+				while (*Pos == ' ')
+					Pos++;
+				if (IsDigit(*Pos)) {
+					auto Seq = atoi(Pos);
+					/* Seed */
+					if ((Pos = GetNextField(Pos)) != NULL) {
+						if (char Seed[MAX_SEED_LEN + 1]; GetOneField(Pos, Seed, MAX_SEED_LEN) == FFFTP_SUCCESS)
+							Make6WordPass(Seq, Seed, Pass, AlgoButton::Get(hDlg), Tmp);
+						else
+							strcpy(Tmp, MSGJPN251);
+					} else
+						strcpy(Tmp, MSGJPN252);
+				} else
+					strcpy(Tmp, MSGJPN253);
+				SendDlgItemMessage(hDlg, OTPCALC_RES, WM_SETTEXT, 0, (LPARAM)Tmp);
+				break;
+			}
+			case IDCANCEL:
+				EndDialog(hDlg, NO);
+				break;
+			case IDHELP:
+				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000037);
+				break;
+			}
+		}
+	};
+	Dialog(GetFtpInst(), otp_calc_dlg, GetMainHwnd(), Data{});
 }
-
 
 
 // FTPS対応

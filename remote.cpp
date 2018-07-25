@@ -405,7 +405,7 @@ int DoRENAME(char *Src, char *Dst)
 *		int 応答コードの１桁目
 *----------------------------------------------------------------------------*/
 
-int DoCHMOD(char *Path, char *Mode)
+int DoCHMOD(const char *Path, const char *Mode)
 {
 	int Sts;
 
