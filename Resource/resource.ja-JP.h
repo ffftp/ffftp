@@ -101,7 +101,6 @@
 #define opt_disp1_dlg                   181
 #define bmark_edit_dlg                  182
 #define opt_tool_dlg1                   183
-#define IDD_OLEDRAG                     184
 #define move_notify_dlg                 185
 #define forcepasschange_dlg             186
 #define newmasterpasswd_dlg             187
@@ -720,7 +719,6 @@
 #define IDS_MSGJPN281                   10281
 #define IDS_MSGJPN282                   10282
 #define IDS_MSGJPN283                   10283
-#define IDS_MSGJPN284                   10284
 #define IDS_MSGJPN285                   10285
 #define IDS_MSGJPN289                   10289
 #define IDS_MSGJPN292                   10292

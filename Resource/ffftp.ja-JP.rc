@@ -1317,13 +1317,6 @@ BEGIN
     EDITTEXT        DOWN_EXIST_NAME,7,20,209,12,ES_AUTOHSCROLL
 END
 
-IDD_OLEDRAG DIALOGEX 0, 0, 30, 13
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Transfering"
-FONT 9, "MS Shell Dlg", 400, 0, 0x80
-BEGIN
-END
-
 move_notify_dlg DIALOGEX 0, 0, 201, 82
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "ファイルやフォルダの移動"
@@ -2037,14 +2030,6 @@ BEGIN
         BOTTOMMARGIN, 116
     END
 
-    IDD_OLEDRAG, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 23
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 6
-    END
-
     move_notify_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -2597,7 +2582,6 @@ BEGIN
     IDS_MSGJPN281           "PASVモードで接続できません"
     IDS_MSGJPN282           "INIファイル名が指定されていません"
     IDS_MSGJPN283           "INIファイル指定: "
-    IDS_MSGJPN284           "https://github.com/sayurin/ffftp"
     IDS_MSGJPN285           "レジストリエディタが起動できませんでした"
 END
 

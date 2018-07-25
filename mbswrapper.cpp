@@ -2055,18 +2055,6 @@ END_ROUTINE
 	return r;
 }
 
-INT_PTR DialogBoxParamM(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam)
-{
-	INT_PTR r = 0;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpTemplateName, -1);
-	r = DialogBoxParamW(hInstance, pw0, hWndParent, lpDialogFunc, dwInitParam);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 HWND CreateDialogParamM(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam)
 {
 	HWND r = NULL;

@@ -143,9 +143,6 @@ HFONT CreateFontIndirectM(CONST LOGFONTA *lplf);
 #undef ChooseFont
 #define ChooseFont ChooseFontM
 BOOL ChooseFontM(LPCHOOSEFONTA v0);
-#undef DialogBoxParam
-#define DialogBoxParam DialogBoxParamM
-INT_PTR DialogBoxParamM(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
 #undef CreateDialogParam
 #define CreateDialogParam CreateDialogParamM
 HWND CreateDialogParamM(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
@@ -221,8 +218,6 @@ FILE * fopenM(const char * _Filename, const char * _Mode);
 
 #undef CreateWindow
 #define CreateWindow(lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam) CreateWindowEx(0L, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam)
-#undef DialogBox
-#define DialogBox(hInstance, lpTemplate, hWndParent, lpDialogFunc) DialogBoxParam(hInstance, lpTemplate, hWndParent, lpDialogFunc, 0L)
 
 #endif
 

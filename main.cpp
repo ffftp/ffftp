@@ -64,14 +64,13 @@ static void CalcWinSize(void);
 static void CheckResizeFrame(WPARAM Keys, int x, int y);
 static void DispDirInfo(void);
 static void DeleteAlltempFile(void);
-// 64ビット対応
-//static BOOL CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-static INT_PTR CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+static void AboutDialog(HWND hWnd);
 static int EnterMasterPasswordAndSet(bool newpassword, HWND hWnd);
 
 /*===== ローカルなワーク =====*/
 
 static const char FtpClassStr[] = "FFFTPWin";
+static const wchar_t WebURL[] = L"https://github.com/sayurin/ffftp";
 
 static HINSTANCE hInstFtp;
 static HWND hWndFtp = NULL;
@@ -1274,7 +1273,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_ABOUT :
-					DialogBox(hInstFtp, MAKEINTRESOURCE(about_dlg), hWnd, AboutDialogProc);
+					AboutDialog(hWnd);
 					break;
 
 				case MENU_TEXT :
@@ -1391,7 +1390,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_HELP_TROUBLE :
-					ShellExecute(NULL, "open", MSGJPN284, NULL, NULL, SW_SHOW);
+					ShellExecuteW(0, L"open", WebURL, nullptr, nullptr, SW_SHOW);
 					break;
 
 				case MENU_BMARK_ADD :
@@ -3027,40 +3026,25 @@ static void DeleteAlltempFile(void)
 }
 
 
-/*----- Ａｂｏｕｔダイアログボックスのコールバック関数 ------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK AboutDialogProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			SendDlgItemMessage(hDlg, ABOUT_URL, EM_LIMITTEXT, 256, 0);
-			SendDlgItemMessage(hDlg, ABOUT_URL, WM_SETTEXT, 0, (LPARAM)MSGJPN284);
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDOK :
-				case IDCANCEL :
-					EndDialog(hDlg, YES);
-					break;
+// Ａｂｏｕｔダイアログボックス
+static void AboutDialog(HWND hWnd) {
+	struct About {
+		using result_t = int;
+		static INT_PTR OnInit(HWND hDlg) {
+			SendDlgItemMessageW(hDlg, ABOUT_URL, EM_LIMITTEXT, 256, 0);
+			SendDlgItemMessageW(hDlg, ABOUT_URL, WM_SETTEXT, 0, (LPARAM)WebURL);
+			return TRUE;
+		}
+		static void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK:
+			case IDCANCEL:
+				EndDialog(hDlg, 0);
+				break;
 			}
-			return(TRUE);
-	}
-	return(FALSE);
+		}
+	};
+	Dialog(hInstFtp, about_dlg, hWnd, About{});
 }
 
 

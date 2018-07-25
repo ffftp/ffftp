@@ -1354,13 +1354,6 @@ BEGIN
     EDITTEXT        DOWN_EXIST_NAME,7,20,220,12,ES_AUTOHSCROLL
 END
 
-IDD_OLEDRAG DIALOGEX 0, 0, 30, 13
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Transfering"
-FONT 9, "MS Shell Dlg", 0, 0, 0x1
-BEGIN
-END
-
 move_notify_dlg DIALOGEX 0, 0, 201, 82
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Move Files/Folders"
@@ -2079,14 +2072,6 @@ BEGIN
         BOTTOMMARGIN, 117
     END
 
-    IDD_OLEDRAG, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 23
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 6
-    END
-
     move_notify_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -2636,7 +2621,6 @@ BEGIN
     IDS_MSGJPN281           "Cannnot connect with PASV mode"
     IDS_MSGJPN282           "INI filename is not specified"
     IDS_MSGJPN283           "INI file: "
-    IDS_MSGJPN284           "https://github.com/sayurin/ffftp"
     IDS_MSGJPN285           "Failed to execute Registory Editor."
 END
 

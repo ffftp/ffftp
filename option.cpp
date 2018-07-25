@@ -32,11 +32,9 @@
 
 /*===== プロトタイプ =====*/
 
-static INT_PTR CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 static void AddFnameAttrToListView(HWND hDlg, char *Fname, char *Attr);
 static void GetFnameAttrFromListView(HWND hDlg, char *Buf);
 static int SelectListFont(HWND hWnd, LOGFONT *lFont);
-static INT_PTR CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 // hostman.cで使用
 //static int GetDecimalText(HWND hDlg, int Ctrl);
 //static void SetDecimalText(HWND hDlg, int Ctrl, int Num);
@@ -50,13 +48,6 @@ void CheckRange2(int *Cur, int Max, int Min);
 void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize);
 void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text);
 void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize);
-
-
-
-typedef struct {
-	char Fname[FMAX_PATH+1];
-	char Attr[5];
-} ATTRSET;
 
 
 /* 設定値 */
@@ -136,6 +127,35 @@ extern int MirrorNoTransferContents;
 extern int FwallNoSaveUser;
 // ゾーンID設定追加
 extern int MarkAsInternet;
+
+
+// ファイル属性設定ウインドウ
+struct DefAttr {
+	using result_t = bool;
+	std::wstring filename;
+	std::wstring attr;
+	INT_PTR OnInit(HWND hDlg) {
+		SendDlgItemMessageW(hDlg, DEFATTR_FNAME, EM_LIMITTEXT, FMAX_PATH, 0);
+		SendDlgItemMessageW(hDlg, DEFATTR_ATTR, EM_LIMITTEXT, 4, 0);
+		return TRUE;
+	}
+	void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case IDOK:
+			filename = GetText(hDlg, DEFATTR_FNAME);
+			attr = GetText(hDlg, DEFATTR_ATTR);
+			EndDialog(hDlg, true);
+			break;
+		case IDCANCEL:
+			EndDialog(hDlg, false);
+			break;
+		case DEFATTR_ATTR_BR:
+			if (auto newattr = ChmodDialog(GetText(hDlg, DEFATTR_ATTR)))
+				SendDlgItemMessageW(hDlg, DEFATTR_ATTR, WM_SETTEXT, 0, (LPARAM)newattr->c_str());
+			break;
+		}
+	}
+};
 
 
 struct User {
@@ -320,10 +340,8 @@ struct Transfer3 {
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
 		case TRMODE3_ADD:
-			if (ATTRSET AttrSet; DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(def_attr_dlg), hDlg, DefAttrDlgProc, (LPARAM)&AttrSet) == YES) {
-				if ((strlen(AttrSet.Fname) > 0) && (strlen(AttrSet.Attr) > 0))
-					AddFnameAttrToListView(hDlg, AttrSet.Fname, AttrSet.Attr);
-			}
+			if (DefAttr data; Dialog(GetFtpInst(), def_attr_dlg, hDlg, data) && !empty(data.filename) && !empty(data.attr))
+				AddFnameAttrToListView(hDlg, const_cast<char*>(u8(data.filename).c_str()), const_cast<char*>(u8(data.attr).c_str()));
 			break;
 		case TRMODE3_DEL:
 			if (auto Tmp = (long)SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETNEXTITEM, -1, MAKELPARAM(LVNI_ALL | LVNI_SELECTED, 0)); Tmp != -1)
@@ -874,58 +892,6 @@ void SetOption() {
 }
 
 
-/*----- ファイル属性設定ウインドウのコールバック ------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK DefAttrDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	static ATTRSET *AttrSet;
-	char Tmp[5];
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
-			AttrSet = (ATTRSET *)lParam;
-			SendDlgItemMessage(hDlg, DEFATTR_FNAME, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, DEFATTR_ATTR, EM_LIMITTEXT, (WPARAM)4, 0);
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDOK :
-					SendDlgItemMessage(hDlg, DEFATTR_FNAME, WM_GETTEXT, (WPARAM)FMAX_PATH+1, (LPARAM)AttrSet->Fname);
-					SendDlgItemMessage(hDlg, DEFATTR_ATTR, WM_GETTEXT, (WPARAM)4+1, (LPARAM)AttrSet->Attr);
-					EndDialog(hDlg, YES);
-					break;
-
-				case IDCANCEL :
-					EndDialog(hDlg, NO);
-					break;
-
-				case DEFATTR_ATTR_BR :
-					SendDlgItemMessage(hDlg, DEFATTR_ATTR, WM_GETTEXT, (WPARAM)4+1, (LPARAM)Tmp);
-					if(DialogBoxParam(GetFtpInst(), MAKEINTRESOURCE(chmod_dlg), GetMainHwnd(), ChmodDialogCallBack, (LPARAM)Tmp) == YES)
-						SendDlgItemMessage(hDlg, DEFATTR_ATTR, WM_SETTEXT, 0, (LPARAM)Tmp);
-					break;
-			}
-			return(TRUE);
-	}
-	return(FALSE);
-}
-
-
 /*----- ファイル名と属性をリストビューに追加 ----------------------------------
 *
 *	Parameter
@@ -1044,52 +1010,15 @@ static int SelectListFont(HWND hWnd, LOGFONT *lFont)
 }
 
 
-/*----- ソート設定ウインドウ --------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int ステータス (YES=実行/NO=取消)
-*----------------------------------------------------------------------------*/
-
-int SortSetting(void)
-{
-	int Sts;
-
-	Sts = (int)DialogBox(GetFtpInst(), MAKEINTRESOURCE(sort_dlg), GetMainHwnd(), SortSettingProc);
-	return(Sts);
-}
-
-
-/*----- ソート設定ウインドウのコールバック ------------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		UINT message : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		BOOL TRUE/FALSE
-*----------------------------------------------------------------------------*/
-
-// 64ビット対応
-//static BOOL CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-static INT_PTR CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	using LsortOrdButton = RadioButton<SORT_LFILE_NAME, SORT_LFILE_EXT, SORT_LFILE_SIZE, SORT_LFILE_DATE>;
-	using LDirsortOrdButton = RadioButton<SORT_LDIR_NAME, SORT_LDIR_DATE>;
-	using RsortOrdButton = RadioButton<SORT_RFILE_NAME, SORT_RFILE_EXT, SORT_RFILE_SIZE, SORT_RFILE_DATE>;
-	using RDirsortOrdButton = RadioButton<SORT_RDIR_NAME, SORT_RDIR_DATE>;
-	int LFsort;
-	int LDsort;
-	int RFsort;
-	int RDsort;
-
-	switch (message)
-	{
-		case WM_INITDIALOG :
+// ソート設定
+int SortSetting() {
+	struct Data {
+		using result_t = int;
+		using LsortOrdButton = RadioButton<SORT_LFILE_NAME, SORT_LFILE_EXT, SORT_LFILE_SIZE, SORT_LFILE_DATE>;
+		using LDirsortOrdButton = RadioButton<SORT_LDIR_NAME, SORT_LDIR_DATE>;
+		using RsortOrdButton = RadioButton<SORT_RFILE_NAME, SORT_RFILE_EXT, SORT_RFILE_SIZE, SORT_RFILE_DATE>;
+		using RDirsortOrdButton = RadioButton<SORT_RDIR_NAME, SORT_RDIR_DATE>;
+		INT_PTR OnInit(HWND hDlg) {
 			LsortOrdButton::Set(hDlg, AskSortType(ITEM_LFILE) & SORT_MASK_ORD);
 			SendDlgItemMessageW(hDlg, SORT_LFILE_REV, BM_SETCHECK, (AskSortType(ITEM_LFILE) & SORT_GET_ORD) != SORT_ASCENT, 0);
 			LDirsortOrdButton::Set(hDlg, AskSortType(ITEM_LDIR) & SORT_MASK_ORD);
@@ -1099,40 +1028,38 @@ static INT_PTR CALLBACK SortSettingProc(HWND hDlg, UINT message, WPARAM wParam, 
 			RDirsortOrdButton::Set(hDlg, AskSortType(ITEM_RDIR) & SORT_MASK_ORD);
 			SendDlgItemMessageW(hDlg, SORT_RDIR_REV, BM_SETCHECK, (AskSortType(ITEM_RDIR) & SORT_GET_ORD) != SORT_ASCENT, 0);
 			SendDlgItemMessageW(hDlg, SORT_SAVEHOST, BM_SETCHECK, AskSaveSortToHost(), 0);
-			return(TRUE);
-
-		case WM_COMMAND :
-			switch(GET_WM_COMMAND_ID(wParam, lParam))
-			{
-				case IDOK :
-					LFsort = LsortOrdButton::Get(hDlg);
-					if(SendDlgItemMessage(hDlg, SORT_LFILE_REV, BM_GETCHECK, 0, 0) == 1)
-						LFsort |= SORT_DESCENT;
-					LDsort = LDirsortOrdButton::Get(hDlg);
-					if(SendDlgItemMessage(hDlg, SORT_LDIR_REV, BM_GETCHECK, 0, 0) == 1)
-						LDsort |= SORT_DESCENT;
-					RFsort = RsortOrdButton::Get(hDlg);
-					if(SendDlgItemMessage(hDlg, SORT_RFILE_REV, BM_GETCHECK, 0, 0) == 1)
-						RFsort |= SORT_DESCENT;
-					RDsort = RDirsortOrdButton::Get(hDlg);
-					if(SendDlgItemMessage(hDlg, SORT_RDIR_REV, BM_GETCHECK, 0, 0) == 1)
-						RDsort |= SORT_DESCENT;
-					SetSortTypeImm(LFsort, LDsort, RFsort, RDsort);
-					SetSaveSortToHost((int)SendDlgItemMessage(hDlg, SORT_SAVEHOST, BM_GETCHECK, 0, 0));
-					EndDialog(hDlg, YES);
-					break;
-
-				case IDCANCEL :
-					EndDialog(hDlg, NO);
-					break;
-	
-				case IDHELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000001);
-					break;
+			return TRUE;
 		}
-			return(TRUE);
-	}
-	return(FALSE);
+		void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK: {
+				auto LFsort = LsortOrdButton::Get(hDlg);
+				if (SendDlgItemMessage(hDlg, SORT_LFILE_REV, BM_GETCHECK, 0, 0) == 1)
+					LFsort |= SORT_DESCENT;
+				auto LDsort = LDirsortOrdButton::Get(hDlg);
+				if (SendDlgItemMessage(hDlg, SORT_LDIR_REV, BM_GETCHECK, 0, 0) == 1)
+					LDsort |= SORT_DESCENT;
+				auto RFsort = RsortOrdButton::Get(hDlg);
+				if (SendDlgItemMessage(hDlg, SORT_RFILE_REV, BM_GETCHECK, 0, 0) == 1)
+					RFsort |= SORT_DESCENT;
+				auto RDsort = RDirsortOrdButton::Get(hDlg);
+				if (SendDlgItemMessage(hDlg, SORT_RDIR_REV, BM_GETCHECK, 0, 0) == 1)
+					RDsort |= SORT_DESCENT;
+				SetSortTypeImm(LFsort, LDsort, RFsort, RDsort);
+				SetSaveSortToHost((int)SendDlgItemMessage(hDlg, SORT_SAVEHOST, BM_GETCHECK, 0, 0));
+				EndDialog(hDlg, YES);
+				break;
+			}
+			case IDCANCEL:
+				EndDialog(hDlg, NO);
+				break;
+			case IDHELP:
+				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000001);
+				break;
+			}
+		}
+	};
+	return Dialog(GetFtpInst(), sort_dlg, GetMainHwnd(), Data{});
 }
 
 
