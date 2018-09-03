@@ -1593,6 +1593,83 @@ void ClearIni(void)
 	return;
 }
 
+/*----- ウィンドウ表示無しでプロセス実行 --------------------------------------------
+*
+* Parameter
+*   applicationName アプリケーション名
+*   parameters 実行パラメーター
+*   directory 実行ディレクトリ
+*   er API内部でエラーが出た時のエラーコード格納先
+*   stdoutHandle 標準出力リダイレクト先ハンドル。NULLまたはINVALID_HANDLE_VALUEの場合は無視される
+*   stderrHandle 標準出力リダイレクト先ハンドル。NULLまたはINVALID_HANDLE_VALUEの場合は無視される
+* Return Value
+*   -1: CreateProcessの失敗
+*   -2: stdoutHandleの複製に失敗した場合
+*   -3: stderrHandleの複製に失敗した場合
+*   それ以外: プロセスの戻り値
+*/
+INT32 ExecuteProcessNoWindow(const char *applicationName, const char *parameters, const char *directory, DWORD *er, HANDLE stdoutHandle, HANDLE stderrHandle)
+{
+	STARTUPINFO si;
+	ZeroMemory(&si, sizeof(STARTUPINFO));
+	auto hdeleter = [](HANDLE h) { if (h != INVALID_HANDLE_VALUE) CloseHandle(h); };
+	si.cb = sizeof(STARTUPINFO);
+	si.wShowWindow = SW_HIDE;
+	si.dwFlags |= STARTF_USESHOWWINDOW;
+	std::unique_ptr<std::remove_pointer<HANDLE>::type, decltype(hdeleter)> hstdout(NULL, hdeleter);
+	if (stdoutHandle != NULL && stdoutHandle != INVALID_HANDLE_VALUE)
+	{
+		// 複製ハンドルを使わないと、結果がリダイレクトされない
+		if (!DuplicateHandle(GetCurrentProcess(), stdoutHandle, GetCurrentProcess(), &si.hStdOutput, 0, TRUE, DUPLICATE_SAME_ACCESS))
+		{
+			*er = GetLastError();
+			return -2;
+		}
+		hstdout.reset(si.hStdOutput);
+	}
+	std::unique_ptr<std::remove_pointer<HANDLE>::type, decltype(hdeleter)> hstderr(NULL, hdeleter);
+	if (stderrHandle != NULL && stderrHandle != INVALID_HANDLE_VALUE)
+	{
+		// 複製ハンドルを使わないと、結果がリダイレクトされない
+		if (!DuplicateHandle(GetCurrentProcess(), stderrHandle, GetCurrentProcess(), &si.hStdError, 0, TRUE, DUPLICATE_SAME_ACCESS))
+		{
+			*er = GetLastError();
+			return -3;
+		}
+		hstderr.reset(si.hStdError);
+	}
+	if ((stdoutHandle != NULL && stdoutHandle != INVALID_HANDLE_VALUE) || (stderrHandle != NULL && stderrHandle != INVALID_HANDLE_VALUE))
+	{
+		si.hStdInput = INVALID_HANDLE_VALUE;
+		si.dwFlags |= STARTF_USESTDHANDLES;
+	}
+	PROCESS_INFORMATION pi = { 0 };
+	// CreateProcessWの第二引数はLPWSTRなので、一旦別バッファに置く。
+	// https://msdn.microsoft.com/ja-jp/library/cc429066.aspx によると、場合によってはバッファ内が改変される場合があるため。
+	std::vector<char> parambuf;
+	if (parameters != NULL)
+	{
+		parambuf.assign(parameters, parameters + strlen(parameters) + 1);
+	}
+	if (CreateProcess(applicationName, parameters == NULL ? NULL : parambuf.data(), NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, directory, &si, &pi))
+	{
+		WaitForSingleObject(pi.hProcess, INFINITE);
+		DWORD ret = -1;
+		GetExitCodeProcess(pi.hProcess, &ret);
+		if (ret != 0)
+		{
+			*er = GetLastError();
+		}
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+		return ret;
+	}
+	else
+	{
+		*er = GetLastError();
+		return -1;
+	}
+}
 
 /*----- 設定をファイルに保存 --------------------------------------------------
 *
@@ -1614,7 +1691,6 @@ void SaveSettingsToFile(void)
 	{
 		if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FFFTP.reg", L"reg", { FileType::Reg, FileType::All }); !std::empty(path))
 		{
-			sprintf(Tmp, "/e \x22%s\x22 HKEY_CURRENT_USER\\Software\\sota\\FFFTP", path.u8string().c_str());
 			// 任意のコードが実行されるバグ修正
 //			if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
 //			{
@@ -1626,7 +1702,10 @@ void SaveSettingsToFile(void)
 				{
 					if(SetCurrentDirectory(SysDir))
 					{
-						if(ShellExecute(NULL, "open", "regedit", Tmp, NULL, SW_SHOW) <= (HINSTANCE)32)
+						DWORD er = 0;
+						sprintf(Tmp, "\x22%s\\reg.exe\x22 export HKEY_CURRENT_USER\\Software\\sota\\FFFTP \x22%s\x22 /y", SysDir, path.u8string().c_str());
+						auto procRet = ExecuteProcessNoWindow(NULL, Tmp, SysDir, &er, NULL, NULL);
+						if (procRet != 0)
 						{
 							MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
 						}
@@ -1669,7 +1748,6 @@ int LoadSettingsFromFile(void)
 	{
 		if (ieq(path.extension(), L".reg"s))
 		{
-			sprintf(Tmp, "\x22%s\x22", path.u8string().c_str());
 			// 任意のコードが実行されるバグ修正
 //			if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
 //			{
@@ -1687,15 +1765,16 @@ int LoadSettingsFromFile(void)
 				{
 					if(SetCurrentDirectory(SysDir))
 					{
-						if(ShellExecute(NULL, "open", "regedit", Tmp, NULL, SW_SHOW) <= (HINSTANCE)32)
+						DWORD er = 0;
+						sprintf(Tmp, "\x22%s\\reg.exe\x22 import \x22%s\x22", SysDir, path.u8string().c_str());
+						auto procRet = ExecuteProcessNoWindow(NULL, Tmp, SysDir, &er, NULL, NULL);
+						if (procRet != 0)
 						{
 							MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
 						}
 						else
 						{
 							Ret = YES;
-							/* レジストリエディタが終了するのを待つ */
-//							WaitForSingleObject(Info.hProcess, INFINITE);
 						}
 						SetCurrentDirectory(CurDir);
 					}
