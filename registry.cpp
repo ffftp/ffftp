@@ -1646,7 +1646,7 @@ void SaveSettingsToFile(void)
 				{
 					WCHAR msgtemplate[128];
 					WCHAR msg[128];
-					MtoW(msgtemplate, 128, MSGJPN366, strlen(MSGJPN366));
+					MtoW(msgtemplate, 128, MSGJPN366, (int)strlen(MSGJPN366));
 					_snwprintf(msg, 128, msgtemplate, er.value());
 					MessageBoxW(GetMainHwnd(), msg, L"FFFTP", MB_OK | MB_ICONERROR);
 					return;
