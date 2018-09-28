@@ -2094,18 +2094,6 @@ END_ROUTINE
 	return r;
 }
 
-BOOL DeleteFileM(LPCSTR lpFileName)
-{
-	BOOL r = FALSE;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpFileName, -1);
-	r = DeleteFileW(pw0);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 BOOL CreateDirectoryM(LPCSTR lpPathName, LPSECURITY_ATTRIBUTES lpSecurityAttributes)
 {
 	BOOL r = FALSE;
@@ -2113,18 +2101,6 @@ BOOL CreateDirectoryM(LPCSTR lpPathName, LPSECURITY_ATTRIBUTES lpSecurityAttribu
 START_ROUTINE
 	pw0 = DuplicateMtoW(lpPathName, -1);
 	r = CreateDirectoryW(pw0, lpSecurityAttributes);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
-BOOL RemoveDirectoryM(LPCSTR lpPathName)
-{
-	BOOL r = FALSE;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpPathName, -1);
-	r = RemoveDirectoryW(pw0);
 END_ROUTINE
 	FreeDuplicatedString(pw0);
 	return r;
@@ -2149,66 +2125,6 @@ int _mkdirM(const char * _Path)
 START_ROUTINE
 	pw0 = DuplicateMtoW(_Path, -1);
 	r = _wmkdir(pw0);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
-int rmdirM(const char * _Path)
-{
-	int r = -1;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(_Path, -1);
-	r = _wrmdir(pw0);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
-int _rmdirM(const char * _Path)
-{
-	int r = -1;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(_Path, -1);
-	r = _wrmdir(pw0);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
-int removeM(const char * _Filename)
-{
-	int r = -1;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(_Filename, -1);
-	r = _wremove(pw0);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
-int _removeM(const char * _Filename)
-{
-	int r = -1;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(_Filename, -1);
-	r = _wremove(pw0);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
-int _unlinkM(const char * _Filename)
-{
-	int r = -1;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(_Filename, -1);
-	r = _wunlink(pw0);
 END_ROUTINE
 	FreeDuplicatedString(pw0);
 	return r;

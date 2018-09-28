@@ -1580,17 +1580,8 @@ void ClearRegistry(void)
 }
 
 
-// ポータブル版判定
-void ClearIni(void)
-{
-//	FILE *Strm;
-//	if((Strm = fopen(AskIniFilePath(), "rt")) != NULL)
-//	{
-//		fclose(Strm);
-//		MoveFileToTrashCan(AskIniFilePath());
-//	}
-	DeleteFile(AskIniFilePath());
-	return;
+void ClearIni() {
+	fs::remove(fs::u8path(AskIniFilePath()));
 }
 
 
