@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// âpåÍ (ïƒçë) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -2695,7 +2695,6 @@ BEGIN
     IDS_MSGJPN358           "Software update has been completed.\nA backup copy of the previous version is in the following location.\n%s"
     IDS_MSGJPN359           "Failed to update the software.\nPlease get the latest version from our web site and update it manually."
     IDS_MSGJPN365           "The all settings will be lost after loading an INI file newly created with this feature into WinSCP.\nPlease choose an existing WinSCP.ini if you already use WinSCP and want to migrate hosts settings only."
-    IDS_MSGJPN366           "Failed to save registry setting(%d)"
 END
 
 STRINGTABLE
@@ -2730,7 +2729,7 @@ BEGIN
     IDS_HOSTSETTING         "Host Setting"
 END
 
-#endif    // âpåÍ (ïƒçë) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

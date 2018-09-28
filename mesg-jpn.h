@@ -297,7 +297,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN358 (std::data(msgs[10000+358])) /* ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s */
 #define MSGJPN359 (std::data(msgs[10000+359])) /* ソフトウェアの更新に失敗しました.\nWebサイトから最新版を入手して手動で更新してください. */
 #define MSGJPN365 (std::data(msgs[10000+365])) /* この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください. */
-#define MSGJPN366 (std::data(msgs[10000+366])) /* レジストリ設定の上書き保存に失敗しました.(%d) */
 #if defined(HAVE_TANDEM)
 #define MSGJPN2000 (std::data(msgs[10000+2000])) /* NonStop Server */
 #define MSGJPN2001 (std::data(msgs[10000+2001])) /* OSS<->GUARDIAN 切り替え(&O) */

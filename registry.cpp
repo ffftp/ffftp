@@ -1591,13 +1591,12 @@ void ClearIni() {
 *   char *Commandline 実行パラメーター
 *   const char *Directory 実行ディレクトリ
 * Return Value
-*   プロセスが正常に起動できた場合は0、それ以外の場合はエラーコード
+*   プロセス起動に成功した場合はtrue、失敗した場合はfalse
 */
-bool ExecuteProcessNoWindow(const WCHAR *ApplicationName, WCHAR *Commandline, const WCHAR *Directory)
+static bool ExecuteProcessNoWindow(const WCHAR *ApplicationName, WCHAR *Commandline, const WCHAR *Directory)
 {
-	STARTUPINFOW si{};
-	//ZeroMemory(&si, sizeof(STARTUPINFOW));
-	si.cb = sizeof(STARTUPINFOW); si.wShowWindow = SW_HIDE; si.dwFlags |= STARTF_USESHOWWINDOW;
+	// cb, lpReserved, lpDesktop, lpTitle, dwX, dwY, dwXSize, dwYSize, dwXCountChars, dwYCountChars, dwFillAttribute, dwFlags, wShowWindow, cbReserved2, lpReserved2, hStdInput, hStdOut, hStdError
+	STARTUPINFOW si{ sizeof(STARTUPINFOW), NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, STARTF_USESHOWWINDOW, SW_HIDE, 0, 0, NULL, NULL, NULL };
 	PROCESS_INFORMATION pi{};
 	if (CreateProcessW(ApplicationName, Commandline, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, Directory, &si, &pi))
 	{
@@ -1630,19 +1629,8 @@ void SaveSettingsToFile(void)
 	{
 		if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FFFTP.reg", L"reg", { FileType::Reg, FileType::All }); !std::empty(path))
 		{
-			if (std::experimental::filesystem::exists(path))
-			{
-				std::error_code er;
-				if (!std::experimental::filesystem::remove(path, er))
-				{
-					WCHAR msgtemplate[128];
-					WCHAR msg[128];
-					MtoW(msgtemplate, 128, MSGJPN366, (int)strlen(MSGJPN366));
-					_snwprintf(msg, 128, msgtemplate, er.value());
-					MessageBoxW(GetMainHwnd(), msg, L"FFFTP", MB_OK | MB_ICONERROR);
-					return;
-				}
-			}
+			std::error_code er;
+			fs::remove(path, er);
 			// 任意のコードが実行されるバグ修正
 //			if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
 //			{
@@ -1650,7 +1638,7 @@ void SaveSettingsToFile(void)
 //			}
 			if (GetSystemDirectoryW(SysDir, FMAX_PATH) > 0)
 			{
-				_snwprintf(Tmp, sizeof(Tmp)/sizeof(WCHAR), LR"("%s\reg.exe" export HKEY_CURRENT_USER\Software\sota\FFFTP "%s")", SysDir, path.c_str());
+				_snwprintf(Tmp, std::size(Tmp), LR"("%s\reg.exe" export HKEY_CURRENT_USER\Software\sota\FFFTP "%s")", SysDir, path.c_str());
 				if (!ExecuteProcessNoWindow(NULL, Tmp, SysDir))
 				{
 					MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);

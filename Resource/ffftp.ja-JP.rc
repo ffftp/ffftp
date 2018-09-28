@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// 日本語 (日本) resources
+// Japanese (Japan) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
 LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
@@ -2656,7 +2656,6 @@ BEGIN
     IDS_MSGJPN358           "ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s"
     IDS_MSGJPN359           "ソフトウェアの更新に失敗しました.\nWebサイトから最新版を入手して手動で更新してください."
     IDS_MSGJPN365           "この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください."
-    IDS_MSGJPN366           "レジストリ設定の上書き保存に失敗しました.(%d)"
 END
 
 STRINGTABLE
@@ -2691,7 +2690,7 @@ BEGIN
     IDS_HOSTSETTING         "ホストの設定"
 END
 
-#endif    // 日本語 (日本) resources
+#endif    // Japanese (Japan) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
