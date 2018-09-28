@@ -310,12 +310,10 @@ void SaveCache(void)
 		DeleteCache();
 
 	MakeCacheFileName(998, Buf);
-	_unlink(Buf);
+	fs::remove(fs::u8path(Buf));
 
 	MakeCacheFileName(999, Buf);
-	_unlink(Buf);
-
-	return;
+	fs::remove(fs::u8path(Buf));
 }
 
 
@@ -367,41 +365,22 @@ void LoadCache(void)
 }
 
 
-/*----- キャッシュデータを全て削除する ----------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
+// キャッシュデータを全て削除する
+void DeleteCache() {
+	if (ProgNum == 0)
+		fs::remove(fs::u8path(AskTmpFilePath()) / L"_ffftp.idx");
 
-void DeleteCache(void)
-{
-	char Buf[FMAX_PATH+1];
-	int i;
-
-	if(ProgNum == 0)
-	{
-		strcpy(Buf, AskTmpFilePath());
-		SetYenTail(Buf);
-		strcat(Buf, "_ffftp.idx");
-		_unlink(Buf);
-	}
-
-	for(i = 0; i <= TmpCacheEntry; i++)
-	{
+	char Buf[FMAX_PATH + 1];
+	for (auto i = 0; i <= TmpCacheEntry; i++) {
 		MakeCacheFileName(i, Buf);
-		_unlink(Buf);
+		fs::remove(fs::u8path(Buf));
 	}
 
 	MakeCacheFileName(998, Buf);
-	_unlink(Buf);
+	fs::remove(fs::u8path(Buf));
 
 	MakeCacheFileName(999, Buf);
-	_unlink(Buf);
-
-	return;
+	fs::remove(fs::u8path(Buf));
 }
 
 

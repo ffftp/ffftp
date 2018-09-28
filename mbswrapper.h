@@ -152,36 +152,15 @@ BOOL sndPlaySoundM(LPCSTR pszSound, UINT fuSound);
 #undef MoveFile
 #define MoveFile MoveFileM
 BOOL MoveFileM(LPCSTR lpExistingFileName, LPCSTR lpNewFileName);
-#undef DeleteFile
-#define DeleteFile DeleteFileM
-BOOL DeleteFileM(LPCSTR lpFileName);
 #undef CreateDirectory
 #define CreateDirectory CreateDirectoryM
 BOOL CreateDirectoryM(LPCSTR lpPathName, LPSECURITY_ATTRIBUTES lpSecurityAttributes);
-#undef RemoveDirectory
-#define RemoveDirectory RemoveDirectoryM
-BOOL RemoveDirectoryM(LPCSTR lpPathName);
 #undef mkdir
 #define mkdir _mkdirM
 int mkdirM(const char * _Path);
 #undef _mkdir
 #define _mkdir _mkdirM
 int _mkdirM(const char * _Path);
-#undef rmdir
-#define rmdir rmdirM
-int rmdirM(const char * _Path);
-#undef _rmdir
-#define _rmdir _rmdirM
-int _rmdirM(const char * _Path);
-#undef remove
-#define remove removeM
-int removeM(const char * _Filename);
-#undef _remove
-#define _remove _removeM
-int _removeM(const char * _Filename);
-#undef _unlink
-#define _unlink _unlinkM
-int _unlinkM(const char * _Filename);
 #undef _mbslen
 #define _mbslen _mbslenM
 size_t _mbslenM(const unsigned char * _Str);

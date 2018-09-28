@@ -385,16 +385,8 @@ static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 
 static void doTransferRemoteFile(void)
 {
-	FILELIST *FileListBase, *FileListBaseNoExpand, *pf;
-	// 特定の操作を行うと異常終了するバグ修正
-//	int CancelFlg = NO;
+	FILELIST *FileListBase, *FileListBaseNoExpand;
 	char LocDir[FMAX_PATH+1];
-	char TmpDir[FMAX_PATH+1];
-	// 環境依存の不具合対策
-//	char buf[32];
-//	int i;
-	// 環境依存の不具合対策
-//	DWORD pid;
 
 	// すでにリモートから転送済みなら何もしない。(2007.9.3 yutaka)
 	if (remoteFileListBase != NULL)
@@ -422,33 +414,18 @@ static void doTransferRemoteFile(void)
 	// set temporary folder
 	AskLocalCurDir(LocDir, FMAX_PATH);
 
-	// アプリを多重起動してもコンフリクトしないように、テンポラリフォルダ名にプロセスID
-	// を付加する。(2007.9.13 yutaka)
-	// 環境依存の不具合対策
-//	GetTempPath(sizeof(TmpDir), TmpDir);
-//	pid = GetCurrentProcessId();
-//	_snprintf_s(buf, sizeof(buf), _TRUNCATE, "ffftp%d", pid);
-//	strncat_s(TmpDir, sizeof(TmpDir), buf, _TRUNCATE);
+	char TmpDir[FMAX_PATH + 1];
 	GetAppTempPath(TmpDir);
 	_mkdir(TmpDir);
 	SetYenTail(TmpDir);
 	strcat(TmpDir, "file");
 	_mkdir(TmpDir);
-#if 0
-	if (TmpDir[strlen(TmpDir) - 1] == '\\') {
-		TmpDir[strlen(TmpDir) - 1] = '\0';
-	}
-#endif
 
 	// 既存のファイルを削除する
-	for (pf = FileListBase ; pf ; pf = pf->Next) {
-		char fn[FMAX_PATH+1];
-
-		strncpy_s(fn, sizeof(fn), TmpDir, _TRUNCATE);
-		strncat_s(fn, sizeof(fn), "\\", _TRUNCATE);
-		strncat_s(fn, sizeof(fn), pf->File, _TRUNCATE);
-
-		remove(fn);
+	{
+		auto const tmp = fs::u8path(TmpDir);
+		for (auto pf = FileListBase; pf; pf = pf->Next)
+			fs::remove(tmp / fs::u8path(pf->File));
 	}
 
 	// 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
@@ -461,7 +438,6 @@ static void doTransferRemoteFile(void)
 	PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
 
 	// 特定の操作を行うと異常終了するバグ修正
-//	for (i = 0 ; i < 10 ; i++) {
 	while(1)
 	{
 		MSG msg;
@@ -504,21 +480,6 @@ static void doTransferRemoteFile(void)
 	remoteFileListBase = FileListBase;  // あとでフリーすること
 	remoteFileListBaseNoExpand = FileListBaseNoExpand;  // あとでフリーすること
 	strncpy_s(remoteFileDir, sizeof(remoteFileDir), TmpDir, _TRUNCATE);
-
-#if 0
-	// add temporary list
-	if (remoteFileListBase != NULL) {
-		FILELIST *pf = remoteFileListBase;
-		char fn[FMAX_PATH + 1];
-		while (pf) {
-			strncpy_s(fn, sizeof(fn), remoteFileDir, _TRUNCATE);
-			strncat_s(fn, sizeof(fn), "\\", _TRUNCATE);
-			strncat_s(fn, sizeof(fn), pf->File, _TRUNCATE);
-			AddTempFileList(fn);
-			pf = pf->Next;
-		}
-	}
-#endif
 }
 
 
@@ -538,49 +499,10 @@ int isDirectory(char *fn)
 void doDeleteRemoteFile(void)
 {
 	if (remoteFileListBase != NULL) {
-#if 0
-		int dirs = 0;
-		int i, count;
-		FILELIST *pf = remoteFileListBase;
-		char fn[FMAX_PATH + 1];
-		while (pf) {
-			strncpy_s(fn, sizeof(fn), remoteFileDir, _TRUNCATE);
-			strncat_s(fn, sizeof(fn), "\\", _TRUNCATE);
-			strncat_s(fn, sizeof(fn), pf->File, _TRUNCATE);
-			if (isDirectory(fn)) {
-				dirs++;
-			} else {
-				remove(fn);
-			}
-			pf = pf->Next;
-		}
-
-		count = 0;
-		for (i = 0 ; i < 1000 ; i++) {
-			pf = remoteFileListBase;
-			while (pf) {
-				strncpy_s(fn, sizeof(fn), remoteFileDir, _TRUNCATE);
-				strncat_s(fn, sizeof(fn), "\\", _TRUNCATE);
-				strncat_s(fn, sizeof(fn), pf->File, _TRUNCATE);
-				if (isDirectory(fn)) {
-					if (_rmdir(fn) == 0) { // ディレクトリを消せたらカウントアップ
-						count++;
-						if (count >= dirs)  // すべて消せたら終わり
-							goto skip;
-					}
-				}
-				pf = pf->Next;
-			}
-		}
-skip:
-		_rmdir(remoteFileDir);  // 自分で作ったディレクトリも消す
-#else
 		SHFILEOPSTRUCT FileOp = { NULL, FO_DELETE, remoteFileDir, NULL, 
 			FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI, 
 			FALSE, NULL, NULL };	
 		SHFileOperation(&FileOp);
-#endif
-
 		DeleteFileList(&remoteFileListBase);
 		remoteFileListBase = NULL;
 	}

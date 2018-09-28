@@ -2323,13 +2323,8 @@ static void ExitProc(HWND hWnd)
 	else
 		DeleteCache();
 
-	// 環境依存の不具合対策
 	GetAppTempPath(Tmp);
-	SetYenTail(Tmp);
-	strcat(Tmp, "file");
-	_rmdir(Tmp);
-	GetAppTempPath(Tmp);
-	_rmdir(Tmp);
+	fs::remove_all(fs::u8path(Tmp));
 
 	if(RasClose == YES)
 	{
@@ -3011,7 +3006,7 @@ static void DeleteAlltempFile(void)
 	Pos = TempFiles;
 	while(Pos != NULL)
 	{
-		DeleteFile(Pos->Fname);
+		fs::remove(fs::u8path(Pos->Fname));
 
 		Next = Pos->Next;
 		free(Pos->Fname);
