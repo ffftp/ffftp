@@ -203,7 +203,7 @@ int SaveTaskMsg(char *Fname)
 			fclose(Strm);
 
 			if(Sts == FFFTP_FAIL)
-				_unlink(Fname);
+				fs::remove(fs::u8path(Fname));
 		}
 		free(Buf);
 	}

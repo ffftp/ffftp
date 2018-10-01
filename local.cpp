@@ -90,53 +90,19 @@ void DoLocalPWD(char *Buf)
 }
 
 
-/*----- ローカル側のディレクトリ削除 ------------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DoLocalRMD(char *Path)
-{
-#if 0
+// ローカル側のディレクトリ削除
+void DoLocalRMD(char *Path) {
 	SetTaskMsg(">>RMDIR %s", Path);
-	if(rmdir(Path) != 0)
-		SetTaskMsg(MSGJPN147);
-#else
-	SetTaskMsg(">>RMDIR %s", Path);
-
-	if(MoveFileToTrashCan(Path) != 0)
+	if (MoveFileToTrashCan(Path) != 0)
 		SetTaskMsg(MSGJPN148);
-#endif
-	return;
 }
 
 
-/*----- ローカル側のファイル削除 -----------------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DoLocalDELE(char *Path)
-{
-#if 0
+// ローカル側のファイル削除
+void DoLocalDELE(char *Path) {
 	SetTaskMsg(">>DEL %s", Path);
-	if(DeleteFile(Path) != TRUE)
-		SetTaskMsg(MSGJPN149);
-#else
-	SetTaskMsg(">>DEL %s", Path);
-
-	if(MoveFileToTrashCan(Path) != 0)
+	if (MoveFileToTrashCan(Path) != 0)
 		SetTaskMsg(MSGJPN150);
-#endif
-	return;
 }
 
 
