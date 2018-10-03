@@ -1691,7 +1691,7 @@ int LoadSettingsFromFile(void)
 //			}
 			if (GetSystemDirectoryW(SysDir, FMAX_PATH) > 0)
 			{
-				_snwprintf(Tmp, sizeof(Tmp)/sizeof(WCHAR), LR"("%s\reg.exe" import "%s")", SysDir, path.c_str());
+				_snwprintf(Tmp, std::size(Tmp), LR"("%s\reg.exe" import "%s")", SysDir, path.c_str());
 				if (!ExecuteProcessNoWindow(NULL, Tmp, SysDir))
 				{
 					MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
