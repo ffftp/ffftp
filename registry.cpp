@@ -1584,6 +1584,31 @@ void ClearIni() {
 	fs::remove(fs::u8path(AskIniFilePath()));
 }
 
+/*----- ウィンドウ表示無しでプロセス実行 --------------------------------------------
+*
+* Parameter
+*   const char *ApplicationName アプリケーション名
+*   char *Commandline 実行パラメーター
+*   const char *Directory 実行ディレクトリ
+* Return Value
+*   プロセス起動に成功した場合はtrue、失敗した場合はfalse
+*/
+static bool ExecuteProcessNoWindow(const WCHAR *ApplicationName, WCHAR *Commandline, const WCHAR *Directory)
+{
+	// cb, lpReserved, lpDesktop, lpTitle, dwX, dwY, dwXSize, dwYSize, dwXCountChars, dwYCountChars, dwFillAttribute, dwFlags, wShowWindow, cbReserved2, lpReserved2, hStdInput, hStdOut, hStdError
+	STARTUPINFOW si{ sizeof(STARTUPINFOW), NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, STARTF_USESHOWWINDOW, SW_HIDE, 0, 0, NULL, NULL, NULL };
+	PROCESS_INFORMATION pi{};
+	if (CreateProcessW(ApplicationName, Commandline, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, Directory, &si, &pi))
+	{
+		CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
 
 /*----- 設定をファイルに保存 --------------------------------------------------
 *
@@ -1596,33 +1621,27 @@ void ClearIni() {
 
 void SaveSettingsToFile(void)
 {
-	char Tmp[FMAX_PATH*2];
+	WCHAR Tmp[FMAX_PATH*2];
 	// 任意のコードが実行されるバグ修正
-	char CurDir[FMAX_PATH+1];
-	char SysDir[FMAX_PATH+1];
+	WCHAR SysDir[FMAX_PATH+1];
 
 	if(RegType == REGTYPE_REG)
 	{
 		if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FFFTP.reg", L"reg", { FileType::Reg, FileType::All }); !std::empty(path))
 		{
-			sprintf(Tmp, "/e \x22%s\x22 HKEY_CURRENT_USER\\Software\\sota\\FFFTP", path.u8string().c_str());
+			std::error_code er;
+			fs::remove(path, er);
 			// 任意のコードが実行されるバグ修正
 //			if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
 //			{
 //				MessageBox(NULL, MSGJPN285, "FFFTP", MB_OK);
 //			}
-			if(GetCurrentDirectory(FMAX_PATH, CurDir) > 0)
+			if (GetSystemDirectoryW(SysDir, FMAX_PATH) > 0)
 			{
-				if(GetSystemDirectory(SysDir, FMAX_PATH) > 0)
+				_snwprintf(Tmp, std::size(Tmp), LR"("%s\reg.exe" export HKEY_CURRENT_USER\Software\sota\FFFTP "%s")", SysDir, path.c_str());
+				if (!ExecuteProcessNoWindow(NULL, Tmp, SysDir))
 				{
-					if(SetCurrentDirectory(SysDir))
-					{
-						if(ShellExecute(NULL, "open", "regedit", Tmp, NULL, SW_SHOW) <= (HINSTANCE)32)
-						{
-							MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
-						}
-						SetCurrentDirectory(CurDir);
-					}
+					MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
 				}
 			}
 		}
@@ -1650,17 +1669,15 @@ void SaveSettingsToFile(void)
 int LoadSettingsFromFile(void)
 {
 	int Ret;
-	char Tmp[FMAX_PATH*2];
+	WCHAR Tmp[FMAX_PATH*2];
 	// 任意のコードが実行されるバグ修正
-	char CurDir[FMAX_PATH+1];
-	char SysDir[FMAX_PATH+1];
+	WCHAR SysDir[FMAX_PATH+1];
 
 	Ret = NO;
 	if (auto const path = SelectFile(true, GetMainHwnd(), IDS_LOAD_SETTING, L"", L"", { FileType::Reg, FileType::Ini, FileType::All }); !std::empty(path))
 	{
 		if (ieq(path.extension(), L".reg"s))
 		{
-			sprintf(Tmp, "\x22%s\x22", path.u8string().c_str());
 			// 任意のコードが実行されるバグ修正
 //			if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
 //			{
@@ -1672,24 +1689,16 @@ int LoadSettingsFromFile(void)
 //				/* レジストリエディタが終了するのを待つ */
 //				WaitForSingleObject(Info.hProcess, INFINITE);
 //			}
-			if(GetCurrentDirectory(FMAX_PATH, CurDir) > 0)
+			if (GetSystemDirectoryW(SysDir, FMAX_PATH) > 0)
 			{
-				if(GetSystemDirectory(SysDir, FMAX_PATH) > 0)
+				_snwprintf(Tmp, std::size(Tmp), LR"("%s\reg.exe" import "%s")", SysDir, path.c_str());
+				if (!ExecuteProcessNoWindow(NULL, Tmp, SysDir))
 				{
-					if(SetCurrentDirectory(SysDir))
-					{
-						if(ShellExecute(NULL, "open", "regedit", Tmp, NULL, SW_SHOW) <= (HINSTANCE)32)
-						{
-							MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
-						}
-						else
-						{
-							Ret = YES;
-							/* レジストリエディタが終了するのを待つ */
-//							WaitForSingleObject(Info.hProcess, INFINITE);
-						}
-						SetCurrentDirectory(CurDir);
-					}
+					MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
+				}
+				else
+				{
+					Ret = YES;
 				}
 			}
 		}
