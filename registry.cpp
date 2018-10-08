@@ -1584,138 +1584,47 @@ void ClearIni() {
 	fs::remove(fs::u8path(AskIniFilePath()));
 }
 
-/*----- ウィンドウ表示無しでプロセス実行 --------------------------------------------
-*
-* Parameter
-*   const char *ApplicationName アプリケーション名
-*   char *Commandline 実行パラメーター
-*   const char *Directory 実行ディレクトリ
-* Return Value
-*   プロセス起動に成功した場合はtrue、失敗した場合はfalse
-*/
-static bool ExecuteProcessNoWindow(const WCHAR *ApplicationName, WCHAR *Commandline, const WCHAR *Directory)
-{
-	// cb, lpReserved, lpDesktop, lpTitle, dwX, dwY, dwXSize, dwYSize, dwXCountChars, dwYCountChars, dwFillAttribute, dwFlags, wShowWindow, cbReserved2, lpReserved2, hStdInput, hStdOut, hStdError
-	STARTUPINFOW si{ sizeof(STARTUPINFOW), NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 0, STARTF_USESHOWWINDOW, SW_HIDE, 0, 0, NULL, NULL, NULL };
-	PROCESS_INFORMATION pi{};
-	if (CreateProcessW(ApplicationName, Commandline, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, Directory, &si, &pi))
-	{
-		CloseHandle(pi.hThread);
-		CloseHandle(pi.hProcess);
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
 
-/*----- 設定をファイルに保存 --------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SaveSettingsToFile(void)
-{
-	WCHAR Tmp[FMAX_PATH*2];
-	// 任意のコードが実行されるバグ修正
-	WCHAR SysDir[FMAX_PATH+1];
-
-	if(RegType == REGTYPE_REG)
-	{
-		if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FFFTP.reg", L"reg", { FileType::Reg, FileType::All }); !std::empty(path))
-		{
-			std::error_code er;
-			fs::remove(path, er);
-			// 任意のコードが実行されるバグ修正
-//			if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
-//			{
-//				MessageBox(NULL, MSGJPN285, "FFFTP", MB_OK);
-//			}
-			if (GetSystemDirectoryW(SysDir, FMAX_PATH) > 0)
-			{
-				_snwprintf(Tmp, std::size(Tmp), LR"("%s\reg.exe" export HKEY_CURRENT_USER\Software\sota\FFFTP "%s")", SysDir, path.c_str());
-				if (!ExecuteProcessNoWindow(NULL, Tmp, SysDir))
-				{
+// 設定をファイルに保存
+void SaveSettingsToFile() {
+	if (RegType == REGTYPE_REG) {
+		if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FFFTP.reg", L"reg", { FileType::Reg, FileType::All }); !std::empty(path)) {
+			if (wchar_t systemDirectory[FMAX_PATH + 1]; GetSystemDirectoryW(systemDirectory, size_as<UINT>(systemDirectory)) > 0) {
+				wchar_t commandLine[FMAX_PATH * 2];
+				_snwprintf(commandLine, std::size(commandLine), LR"("%s\reg.exe" EXPORT HKCU\Software\sota\FFFTP "%s")", systemDirectory, path.c_str());
+				fs::remove(path);
+				STARTUPINFOW si{ sizeof(STARTUPINFOW) };
+				if (ProcessInformation pi; !CreateProcessW(nullptr, commandLine, nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory, &si, &pi))
 					MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
-				}
 			}
 		}
-	}
-	else
-	{
+	} else {
 		if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FFFTP-Backup.ini", L"ini", { FileType::Ini, FileType::All }); !std::empty(path))
-		{
 			CopyFileW(u8(AskIniFilePath()).c_str(), path.c_str(), FALSE);
-		}
 	}
-	return;
 }
 
 
-/*----- 設定をファイルから復元 ------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int	ロードしたかどうか (YES/NO)
-*----------------------------------------------------------------------------*/
-
-int LoadSettingsFromFile(void)
-{
-	int Ret;
-	WCHAR Tmp[FMAX_PATH*2];
-	// 任意のコードが実行されるバグ修正
-	WCHAR SysDir[FMAX_PATH+1];
-
-	Ret = NO;
-	if (auto const path = SelectFile(true, GetMainHwnd(), IDS_LOAD_SETTING, L"", L"", { FileType::Reg, FileType::Ini, FileType::All }); !std::empty(path))
-	{
-		if (ieq(path.extension(), L".reg"s))
-		{
-			// 任意のコードが実行されるバグ修正
-//			if(ShellExecute(NULL, "open", "regedit", Tmp, ".", SW_SHOW) <= (HINSTANCE)32)
-//			{
-//				MessageBox(NULL, MSGJPN285, "FFFTP", MB_OK);
-//			}
-//			else
-//			{
-//				Ret = YES;
-//				/* レジストリエディタが終了するのを待つ */
-//				WaitForSingleObject(Info.hProcess, INFINITE);
-//			}
-			if (GetSystemDirectoryW(SysDir, FMAX_PATH) > 0)
-			{
-				_snwprintf(Tmp, std::size(Tmp), LR"("%s\reg.exe" import "%s")", SysDir, path.c_str());
-				if (!ExecuteProcessNoWindow(NULL, Tmp, SysDir))
-				{
-					MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
-				}
-				else
-				{
-					Ret = YES;
-				}
+// 設定をファイルから復元
+int LoadSettingsFromFile() {
+	if (auto const path = SelectFile(true, GetMainHwnd(), IDS_LOAD_SETTING, L"", L"", { FileType::Reg, FileType::Ini, FileType::All }); !std::empty(path)) {
+		if (ieq(path.extension(), L".reg"s)) {
+			if (wchar_t systemDirectory[FMAX_PATH + 1]; GetSystemDirectoryW(systemDirectory, size_as<UINT>(systemDirectory)) > 0) {
+				wchar_t commandLine[FMAX_PATH * 2];
+				_snwprintf(commandLine, std::size(commandLine), LR"("%s\reg.exe" IMPORT "%s")", systemDirectory, path.c_str());
+				STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, STARTF_USESHOWWINDOW, SW_HIDE };
+				if (ProcessInformation pi; CreateProcessW(nullptr, commandLine, nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory, &si, &pi))
+					return YES;
+				MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
 			}
-		}
-		else if (ieq(path.extension(), L".ini"s))
-		{
+		} else if (ieq(path.extension(), L".ini"s)) {
 			CopyFileW(path.c_str(), u8(AskIniFilePath()).c_str(), FALSE);
-			Ret = YES;
-		}
-		else
-			// バグ修正
-//			MessageBox(NULL, MSGJPN293, "FFFTP", MB_OK);
+			return YES;
+		} else
 			MessageBox(GetMainHwnd(), MSGJPN293, "FFFTP", MB_OK | MB_ICONERROR);
 	}
-	return(Ret);
+	return NO;
 }
-
-
 
 
 /*----- レジストリ/INIファイルに文字列をセーブ --------------------------------
