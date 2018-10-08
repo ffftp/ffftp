@@ -2823,7 +2823,6 @@ static void DispDirInfo(void)
 
 void ExecViewer(char *Fname, int App)
 {
-	PROCESS_INFORMATION Info;
 	STARTUPINFO Startup;
 	char AssocProg[FMAX_PATH+1];
 	char ComLine[FMAX_PATH*2+3+1];
@@ -2867,19 +2866,13 @@ void ExecViewer(char *Fname, int App)
 		memset(&Startup, NUL, sizeof(STARTUPINFO));
 		Startup.cb = sizeof(STARTUPINFO);
 		Startup.wShowWindow = SW_SHOW;
-		// 任意のコードが実行されるバグ修正
-//		if(CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, NULL, &Startup, &Info) == FALSE)
-//		{
-//			SetTaskMsg(MSGJPN182, GetLastError());
-//			SetTaskMsg(">>%s", ComLine);
-//		}
 		if(GetCurrentDirectory(FMAX_PATH, CurDir) > 0)
 		{
 			if(GetSystemDirectory(SysDir, FMAX_PATH) > 0)
 			{
 				if(SetCurrentDirectory(SysDir))
 				{
-					if(CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, NULL, &Startup, &Info) == FALSE)
+					if(ProcessInformation Info; CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, NULL, &Startup, &Info) == FALSE)
 					{
 						SetTaskMsg(MSGJPN182, GetLastError());
 						SetTaskMsg(">>%s", ComLine);
@@ -2906,7 +2899,6 @@ void ExecViewer(char *Fname, int App)
 
 void ExecViewer2(char *Fname1, char *Fname2, int App)
 {
-	PROCESS_INFORMATION Info;
 	STARTUPINFO Startup;
 	char AssocProg[FMAX_PATH+1];
 	char ComLine[FMAX_PATH*2+3+1];
@@ -2932,19 +2924,13 @@ void ExecViewer2(char *Fname1, char *Fname2, int App)
 	memset(&Startup, NUL, sizeof(STARTUPINFO));
 	Startup.cb = sizeof(STARTUPINFO);
 	Startup.wShowWindow = SW_SHOW;
-	// 任意のコードが実行されるバグ修正
-//	if(CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, NULL, &Startup, &Info) == FALSE)
-//	{
-//		SetTaskMsg(MSGJPN182, GetLastError());
-//		SetTaskMsg(">>%s", ComLine);
-//	}
 	if(GetCurrentDirectory(FMAX_PATH, CurDir) > 0)
 	{
 		if(GetSystemDirectory(SysDir, FMAX_PATH) > 0)
 		{
 			if(SetCurrentDirectory(SysDir))
 			{
-				if(CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, NULL, &Startup, &Info) == FALSE)
+				if(ProcessInformation Info; CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, NULL, &Startup, &Info) == FALSE)
 				{
 					SetTaskMsg(MSGJPN182, GetLastError());
 					SetTaskMsg(">>%s", ComLine);
@@ -3280,18 +3266,13 @@ int Restart()
 	int Sts;
 	char* CommandLine;
 	STARTUPINFO si;
-	PROCESS_INFORMATION pi;
 	Sts = FFFTP_FAIL;
 	if(CommandLine = (char*)malloc(sizeof(char) * (strlen(GetCommandLine())  + 1)))
 	{
 		strcpy(CommandLine, GetCommandLine());
 		GetStartupInfo(&si);
-		if(CreateProcess(NULL, CommandLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-		{
-			CloseHandle(pi.hThread);
-			CloseHandle(pi.hProcess);
+		if(ProcessInformation pi; CreateProcess(NULL, CommandLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
 			Sts = FFFTP_SUCCESS;
-		}
 		free(CommandLine);
 	}
 	return Sts;

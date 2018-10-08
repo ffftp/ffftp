@@ -2121,3 +2121,12 @@ static inline auto InputDialog(int dialogId, HWND parent, char *Title, char *Buf
 	};
 	return Dialog(GetFtpInst(), dialogId, parent, Data{ Title, Buf, maxlength, flag, helpTopicId });
 }
+struct ProcessInformation : PROCESS_INFORMATION {
+	ProcessInformation() : PROCESS_INFORMATION{ INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE } {}
+	~ProcessInformation() {
+		if (hThread != INVALID_HANDLE_VALUE)
+			CloseHandle(hThread);
+		if (hProcess != INVALID_HANDLE_VALUE)
+			CloseHandle(hProcess);
+	}
+};
