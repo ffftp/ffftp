@@ -646,15 +646,7 @@ int DoDirListCmdSkt(char *AddOpt, char *Path, int Num, int *CancelCheckWork)
 
 static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, int *CancelCheckWork)
 {
-	char Tmp[FMAX_PATH];
 	int Sts;
-
-//#pragma aaa
-//DoPrintf("===== DoDirList %d = %s", Num, Path);
-
-	MakeCacheFileName(Num, Tmp);
-//	MainTransPkt.ctrl_skt = cSkt;
-
 	if(AskListCmdMode() == NO)
 	{
 		strcpy(MainTransPkt.Cmd, "NLST");
@@ -689,7 +681,7 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, 
 		strcat(MainTransPkt.Cmd, " ");
 
 	strcpy(MainTransPkt.RemoteFile, Path);
-	strcpy(MainTransPkt.LocalFile, Tmp);
+	strcpy(MainTransPkt.LocalFile, MakeCacheFileName(Num).u8string().c_str());
 	MainTransPkt.Type = TYPE_A;
 	MainTransPkt.Size = -1;
 	/* ファイルリストの中の漢字のファイル名は、別途	*/

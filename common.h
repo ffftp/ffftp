@@ -1650,19 +1650,8 @@ int AskNoPasvAdrs(void);
 
 /*===== cache.c =====*/
 
-int MakeCacheBuf(int Num);
-void DeleteCacheBuf(void);
-int AskCached(char *Path);
-int AskFreeCache(void);
-void SetCache(int Num, char *Path);
-void ClearCache(int Num);
-int AskCurrentFileListNum(void);
-void SetCurrentFileListNum(int Num);
-void SaveCache(void);
-void LoadCache(void);
-void DeleteCache(void);
-void MakeCacheFileName(int Num, char *Buf);
-void CountPrevFfftpWindows(void);
+void DeleteCache();
+fs::path MakeCacheFileName(int Num);
 
 /*===== ftpproc.c =====*/
 

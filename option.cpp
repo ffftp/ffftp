@@ -60,8 +60,6 @@ extern char AsciiExt[ASCII_EXT_LEN+1];
 extern int RecvMode;
 extern int SendMode;
 extern int MoveMode;
-extern int CacheEntry;
-extern int CacheSave;
 extern char FwallHost[HOST_ADRS_LEN+1];
 extern char FwallUser[USER_NAME_LEN+1];
 extern char FwallPass[PASSWORD_LEN+1];
@@ -820,20 +818,6 @@ struct Other {
 			EnableWindow(GetDlgItem(hDlg, MISC_REGTYPE), FALSE);
 		SendDlgItemMessage(hDlg, MISC_ENCRYPT_SETTINGS, BM_SETCHECK, EncryptAllSettings, 0);
 
-		SendDlgItemMessage(hDlg, MISC_CACHE_SAVE, BM_SETCHECK, CacheSave, 0);
-		SendDlgItemMessage(hDlg, MISC_BUFNUM, EM_LIMITTEXT, (WPARAM)2, 0);
-		SetDecimalText(hDlg, MISC_BUFNUM, abs(CacheEntry));
-		SendDlgItemMessage(hDlg, MISC_BUFNUM_SPIN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(99, 1));
-		if (CacheEntry > 0) {
-			SendDlgItemMessage(hDlg, MISC_CACHE, BM_SETCHECK, 1, 0);
-			EnableWindow(GetDlgItem(hDlg, MISC_BUFNUM), TRUE);
-			EnableWindow(GetDlgItem(hDlg, MISC_CACHE_SAVE), TRUE);
-		} else {
-			SendDlgItemMessage(hDlg, MISC_CACHE, BM_SETCHECK, 0, 0);
-			EnableWindow(GetDlgItem(hDlg, MISC_BUFNUM), FALSE);
-			EnableWindow(GetDlgItem(hDlg, MISC_CACHE_SAVE), FALSE);
-		}
-
 		SendDlgItemMessage(hDlg, MISC_CACHEDIR, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
 		SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_SETTEXT, 0, (LPARAM)TmpPath);
 		return TRUE;
@@ -847,11 +831,6 @@ struct Other {
 				RegType = (int)SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_GETCHECK, 0, 0);
 			EncryptAllSettings = (int)SendDlgItemMessage(hDlg, MISC_ENCRYPT_SETTINGS, BM_GETCHECK, 0, 0);
 
-			CacheSave = (int)SendDlgItemMessage(hDlg, MISC_CACHE_SAVE, BM_GETCHECK, 0, 0);
-			CacheEntry = GetDecimalText(hDlg, MISC_BUFNUM);
-			if (SendDlgItemMessage(hDlg, MISC_CACHE, BM_GETCHECK, 0, 0) == 0)
-				CacheEntry = -CacheEntry;
-
 			SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)TmpPath);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
@@ -862,15 +841,6 @@ struct Other {
 	}
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
-		case MISC_CACHE:
-			if (SendDlgItemMessage(hDlg, MISC_CACHE, BM_GETCHECK, 0, 0) == 1) {
-				EnableWindow(GetDlgItem(hDlg, TRMODE_EXT), TRUE);
-				EnableWindow(GetDlgItem(hDlg, MISC_CACHE_SAVE), TRUE);
-			} else {
-				EnableWindow(GetDlgItem(hDlg, TRMODE_EXT), FALSE);
-				EnableWindow(GetDlgItem(hDlg, MISC_CACHE_SAVE), FALSE);
-			}
-			break;
 		case MISC_CACHEDIR_BR:
 			if (char Tmp[FMAX_PATH + 1]; SelectDir(hDlg, Tmp, FMAX_PATH) == TRUE)
 				SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_SETTEXT, 0, (LPARAM)Tmp);

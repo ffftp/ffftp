@@ -1070,7 +1070,7 @@ void UploadListProc(int ChName, int All)
 		// 現在ホスト側のファイル一覧に表示されているものをRemoteListに登録
 		// 同名ファイルチェック用
 		RemoteList = NULL;
-		AddRemoteTreeToFileList(AskCurrentFileListNum(), "", RDIR_NONE, &RemoteList);
+		AddRemoteTreeToFileList(0, "", RDIR_NONE, &RemoteList);
 
 		FirstAdd = YES;
 		ExistNotify = YES;
@@ -1286,7 +1286,7 @@ void UploadDragProc(WPARAM wParam)
 		// 現在ホスト側のファイル一覧に表示されているものをRemoteListに登録
 		// 同名ファイルチェック用
 		RemoteList = NULL;
-		AddRemoteTreeToFileList(AskCurrentFileListNum(), "", RDIR_NONE, &RemoteList);
+		AddRemoteTreeToFileList(0, "", RDIR_NONE, &RemoteList);
 
 		FirstAdd = YES;
 		ExistNotify = YES;

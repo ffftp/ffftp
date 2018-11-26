@@ -141,10 +141,8 @@
 #define TOOL_EDITOR                     1004
 #define INP_INPSTR                      1004
 #define TRANS_LOCAL                     1004
-#define TRMODE_EXT                      1004
 #define EXIST_NAME                      1004
 #define FIRE_HOST                       1004
-#define MISC_BUFNUM                     1004
 #define TOOL_EDITOR1                    1004
 #define TRANS_FILE                      1005
 #define IDC_EDIT2                       1005
@@ -284,9 +282,6 @@
 #define FIRE_TYPE3                      1064
 #define FIRE_TYPE2                      1065
 #define HSET_FN_SMB_CNV                 1065
-#define MISC_BUFNUM_SPIN                1067
-#define MISC_CACHE                      1068
-#define MISC_CACHE_SAVE                 1070
 #define TRANS_MODE                      1071
 #define TRANS_KANJI                     1072
 #define HSET_FN_SMB_TAG                 1073

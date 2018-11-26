@@ -169,10 +169,6 @@ int RecvMode = TRANS_DLG;
 int SendMode = TRANS_DLG;
 int MoveMode = MOVE_DLG;
 int ListType = LVS_REPORT;
-// LISTのキャッシュを無効にする（リモートのディレクトリの表示が更新されないバグ対策）
-//int CacheEntry = 10;
-int CacheEntry = -10;
-int CacheSave = NO;
 char DefaultLocalPath[FMAX_PATH+1] = { "" };
 int SaveTimeStamp = YES;
 int FindMode = 0;
@@ -563,8 +559,6 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			//タイマの精度を改善
 			timeBeginPeriod(1);
 
-			CountPrevFfftpWindows();
-
 			if(MakeAllWindows(cmdShow) == FFFTP_SUCCESS)
 			{
 				hWndCurFocus = GetLocalHwnd();
@@ -582,10 +576,6 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 				DispListType();
 				DispDotFileMode();
 				DispSyncMoveMode();
-
-				MakeCacheBuf(CacheEntry);
-				if(CacheSave == YES)
-					LoadCache();
 
 				if(MakeTransferThread() == FFFTP_SUCCESS)
 				{
@@ -787,8 +777,6 @@ void DispWindowTitle() {
 
 static void DeleteAllObject(void)
 {
-	DeleteCacheBuf();
-
 //move to WM_DESTROY
 	WSACleanup();
 
@@ -2314,14 +2302,8 @@ static void ExitProc(HWND hWnd)
 		// ポータブル版判定
 		if(RegType == REGTYPE_REG)
 			ClearIni();
-
-		if((CacheEntry > 0) && (CacheSave == YES))
-			SaveCache();
-		else
-			DeleteCache();
 	}
-	else
-		DeleteCache();
+	DeleteCache();
 
 	GetAppTempPath(Tmp);
 	fs::remove_all(fs::u8path(Tmp));
@@ -2804,7 +2786,7 @@ static void DispDirInfo(void)
 {
 	char Buf[FMAX_PATH+1];
 
-	MakeCacheFileName(AskCurrentFileListNum(), Buf);
+	strcpy(Buf, MakeCacheFileName(0).u8string().c_str());
 	ExecViewer(Buf, 0);
 	return;
 }

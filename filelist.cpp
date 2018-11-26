@@ -1113,7 +1113,6 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork)
 	int Attr;
 	int Type;
 	int ListType;
-	int Num;
 	std::vector<FILELIST> files;
 	char Owner[OWNER_NAME_LEN+1];
 	int Link;
@@ -1127,32 +1126,11 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork)
 		AskRemoteCurDir(Buf, FMAX_PATH);
 		SetRemoteDirHist(Buf);
 
-		Type = FTP_COMPLETE;
-		if(Mode != CACHE_LASTREAD)
-		{
-
-			if((Num = AskCached(Buf)) == -1)
-			{
-				Num = AskFreeCache();
-				Mode = CACHE_REFRESH;
-			}
-
-			if(Mode == CACHE_REFRESH)
-			{
-				if((Type = DoDirListCmdSkt("", "", Num, CancelCheckWork)) == FTP_COMPLETE)
-					SetCache(Num, Buf);
-				else
-					ClearCache(Num);
-			}
-		}
-		else
-			Num = AskCurrentFileListNum();
+		Type = Mode == CACHE_LASTREAD ? FTP_COMPLETE : DoDirListCmdSkt("", "", 0, CancelCheckWork);
 
 		if(Type == FTP_COMPLETE)
 		{
-			SetCurrentFileListNum(Num);
-			MakeCacheFileName(Num, Buf);
-			if((fd = fopen(Buf, "rb"))!=NULL)
+			if((fd = _wfopen(MakeCacheFileName(0).c_str(), L"rb"))!=NULL)
 			{
 				ListType = LIST_UNKNOWN;
 
@@ -2670,7 +2648,6 @@ static void CopyTmpListToFileList(FILELIST **Base, FILELIST *List)
 
 void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base)
 {
-	char Str[FMAX_PATH+1];
 	char Dir[FMAX_PATH+1];
 	char Name[FMAX_PATH+1];
 	LONGLONG Size;
@@ -2684,13 +2661,13 @@ void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base)
 	int Link;
 	int InfoExist;
 
-	MakeCacheFileName(Num, Str);
-	if((fd = fopen(Str, "rb")) != NULL)
+	if((fd = _wfopen(MakeCacheFileName(Num).c_str(), L"rb")) != NULL)
 	{
 		strcpy(Dir, Path);
 
 		ListType = LIST_UNKNOWN;
 
+		char Str[FMAX_PATH+1];
 		// 文字化け対策
 //		while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
 		while(GetListOneLine(Str, FMAX_PATH, fd, YES) == FFFTP_SUCCESS)
@@ -5587,7 +5564,6 @@ static int atoi_n(const char *Str, int Len)
 // 優先度はUTF-8、Shift_JIS、EUC、JIS、UTF-8 HFS+の順
 int AnalyzeNameKanjiCode(int Num)
 {
-	char Str[FMAX_PATH+1];
 	char Name[FMAX_PATH+1];
 	LONGLONG Size;
 	FILETIME Time;
@@ -5617,9 +5593,9 @@ int AnalyzeNameKanjiCode(int Num)
 	PointEUC = 0;
 	PointUTF8N = 0;
 	PointUTF8HFSX = 0;
-	MakeCacheFileName(Num, Str);
-	if((fd = fopen(Str, "rb")) != NULL)
+	if((fd = _wfopen(MakeCacheFileName(Num).c_str(), L"rb")) != NULL)
 	{
+		char Str[FMAX_PATH+1];
 		while(GetListOneLine(Str, FMAX_PATH, fd, NO) == FFFTP_SUCCESS)
 		{
 			if((ListType = AnalyzeFileInfo(Str)) != LIST_UNKNOWN)

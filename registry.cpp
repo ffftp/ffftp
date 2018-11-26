@@ -128,8 +128,6 @@ extern int RecvMode;
 extern int SendMode;
 extern int MoveMode;
 extern int ListType;
-extern int CacheEntry;
-extern int CacheSave;
 extern char DefaultLocalPath[FMAX_PATH+1];
 extern int SaveTimeStamp;
 extern int FindMode;
@@ -492,8 +490,6 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "SortSave", SortSave);
 
 				WriteIntValueToReg(hKey4, "ListType", ListType);
-				WriteIntValueToReg(hKey4, "Cache", CacheEntry);
-				WriteIntValueToReg(hKey4, "CacheSave", CacheSave);
 				WriteIntValueToReg(hKey4, "DotFile", DotFile);
 				WriteIntValueToReg(hKey4, "Dclick", DclickOpen);
 
@@ -1030,8 +1026,6 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "SortSave", &SortSave);
 
 			ReadIntValueFromReg(hKey4, "ListType", &ListType);
-			ReadIntValueFromReg(hKey4, "Cache", &CacheEntry);
-			ReadIntValueFromReg(hKey4, "CacheSave", &CacheSave);
 			ReadIntValueFromReg(hKey4, "DotFile", &DotFile);
 			ReadIntValueFromReg(hKey4, "Dclick", &DclickOpen);
 

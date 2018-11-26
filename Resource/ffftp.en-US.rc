@@ -466,14 +466,7 @@ CAPTION "Other"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "&Save window position",MISC_WINPOS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
-    CONTROL         "&Cache file list (activate on next start)",MISC_CACHE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,196,10
-    RTEXT           "&No. of cache files",IDC_STATIC,23,35,87,8
-    EDITTEXT        MISC_BUFNUM,115,33,24,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Spin1",MISC_BUFNUM_SPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS,139,33,9,14
-    LTEXT           "(1 to 99)",IDC_STATIC,152,37,28,8
-    CONTROL         "S&ave cache",MISC_CACHE_SAVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,23,51,116,10
-    LTEXT           "&Folder for cache files / temporary files",IDC_STATIC,7,64,158,8
+    LTEXT           "&Folder for temporary files",IDC_STATIC,7,64,158,8
     EDITTEXT        MISC_CACHEDIR,7,74,155,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",MISC_CACHEDIR_BR,163,74,13,13
     PUSHBUTTON      "Default",MISC_CACHEDIR_DEF,177,74,26,13
