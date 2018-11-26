@@ -465,13 +465,7 @@ CAPTION "その他"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "ウインドウ位置を保存する(&W)",MISC_WINPOS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
-    CONTROL         "ファイル一覧をキャッシュする（次回起動時から）(&L)",MISC_CACHE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,23,196,10
-    LTEXT           "キャッシュバッファの数(&B):",IDC_STATIC,23,37,91,8
-    EDITTEXT        MISC_BUFNUM,115,35,24,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Spin1",MISC_BUFNUM_SPIN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS,139,35,9,14
-    LTEXT           "(1～99)",IDC_STATIC,152,39,28,8
-    CONTROL         "キャッシュを保存する(&S)",MISC_CACHE_SAVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,23,50,116,10
-    LTEXT           "キャッシュ/作業ファイルを作成するフォルダ(&F)",IDC_STATIC,7,65,158,8
+    LTEXT           "作業ファイルを作成するフォルダ(&F)",IDC_STATIC,7,65,158,8
     EDITTEXT        MISC_CACHEDIR,7,75,160,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",MISC_CACHEDIR_BR,168,75,13,13
     PUSHBUTTON      "標準",MISC_CACHEDIR_DEF,182,75,21,13
