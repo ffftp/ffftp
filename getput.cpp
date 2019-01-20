@@ -76,9 +76,7 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET *Pkt);
 static int UploadNonPassive(TRANSPACKET *Pkt);
 static int UploadPassive(TRANSPACKET *Pkt);
 static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt);
-// 同時接続対応
-//static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, int Size, int Ascii);
-static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, int Size, int Ascii, int *CancelCheckWork);
+static int TermCodeConvAndSend(SOCKET Skt, char *Data, int Size, int Ascii, int *CancelCheckWork);
 static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
 static int SetUploadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode);
 static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
@@ -2900,7 +2898,6 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 	char Buf[BUFSIZE];
 	char Buf2[BUFSIZE+3];
 	CODECONVINFO cInfo;
-	TERMCODECONVINFO tInfo;
 	int Continue;
 	char *EofPos;
 	int iRetCode;
@@ -2958,7 +2955,6 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 
 		InitCodeConvInfo(&cInfo);
 		cInfo.KanaCnv = Pkt->KanaCnv;
-		InitTermCodeConvInfo(&tInfo);
 
 		InitCodeConvInfo(&cInfo2);
 		cInfo2.KanaCnv = Pkt->KanaCnv;
@@ -3250,8 +3246,7 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 						break;
 					}
 
-//					if(TermCodeConvAndSend(&tInfo, dSkt, Buf2, cInfo.OutLen, Pkt->Type) == FFFTP_FAIL)
-					if(TermCodeConvAndSend(&tInfo, dSkt, Buf3, cInfo2.OutLen, Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
+					if(TermCodeConvAndSend(dSkt, Buf3, cInfo2.OutLen, Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
 					{
 						Pkt->Abort = ABORT_ERROR;
 							break;
@@ -3261,9 +3256,7 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 			}
 			else
 			{
-				// 同時接続対応
-//				if(TermCodeConvAndSend(&tInfo, dSkt, Buf, iNumBytes, Pkt->Type) == FFFTP_FAIL)
-				if(TermCodeConvAndSend(&tInfo, dSkt, Buf, iNumBytes, Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
+				if(TermCodeConvAndSend(dSkt, Buf, iNumBytes, Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
 					Pkt->Abort = ABORT_ERROR;
 			}
 
@@ -3459,23 +3452,14 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 					break;
 				}
 
-//				if(TermCodeConvAndSend(&tInfo, dSkt, Buf2, cInfo.OutLen, Pkt->Type) == FFFTP_FAIL)
-				if(TermCodeConvAndSend(&tInfo, dSkt, Buf3, cInfo2.OutLen, Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
+				if(TermCodeConvAndSend(dSkt, Buf3, cInfo2.OutLen, Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
 					Pkt->Abort = ABORT_ERROR;
 				cInfo2.Buf = Buf3;
 				cInfo2.BufSize = (BUFSIZE + 3) * 4;
 				FlushRestData(&cInfo2);
-				if(TermCodeConvAndSend(&tInfo, dSkt, Buf3, cInfo2.OutLen, Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
+				if(TermCodeConvAndSend(dSkt, Buf3, cInfo2.OutLen, Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
 					Pkt->Abort = ABORT_ERROR;
 			}
-
-			tInfo.Buf = Buf2;
-			tInfo.BufSize = BUFSIZE+3;
-			FlushRestTermCodeConvData(&tInfo);
-			// 同時接続対応
-//			if(SendData(dSkt, Buf2, tInfo.OutLen, 0, &Canceled) == FFFTP_FAIL)
-			if(SendData(dSkt, Buf2, tInfo.OutLen, 0, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
-				Pkt->Abort = ABORT_ERROR;
 		}
 
 		/* グラフ表示を更新 */
@@ -3526,52 +3510,14 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 }
 
 
-/*----- バッファの内容を改行コード変換して送信 --------------------------------
-*
-*	Parameter
-*		TERMCODECONVINFO *tInfo : 改行コード変換パケット
-*		SOCKET Skt : ソケット
-*		char *Data : データ
-*		int Size : データのサイズ
-*		int Ascii : モード　　(TYPE_xx)
-*
-*	Return Value
-*		int 応答コード
-*----------------------------------------------------------------------------*/
-
-// 同時接続対応
-//static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, int Size, int Ascii)
-static int TermCodeConvAndSend(TERMCODECONVINFO *tInfo, SOCKET Skt, char *Data, int Size, int Ascii, int *CancelCheckWork)
-{
-	char Buf3[BUFSIZE*2];
-	int Continue;
-	int Ret;
-
-	Ret = FFFTP_SUCCESS;
-
-// CR-LF以外の改行コードを変換しないモードはここへ追加
-	if(Ascii == TYPE_A)
-	{
-		tInfo->Str = Data;
-		tInfo->StrLen = Size;
-		tInfo->Buf = Buf3;
-		tInfo->BufSize = BUFSIZE*2;
-		do
-		{
-			Continue = ConvTermCodeToCRLF(tInfo);
-			// 同時接続対応
-//			if((Ret = SendData(Skt, Buf3, tInfo->OutLen, 0, &Canceled)) == FFFTP_FAIL)
-			if((Ret = SendData(Skt, Buf3, tInfo->OutLen, 0, CancelCheckWork)) == FFFTP_FAIL)
-				break;
-		}
-		while(Continue == YES);
+// バッファの内容を改行コード変換して送信
+static int TermCodeConvAndSend(SOCKET Skt, char *Data, int Size, int Ascii, int *CancelCheckWork) {
+	// CR-LF以外の改行コードを変換しないモードはここへ追加
+	if (Ascii == TYPE_A) {
+		auto encoded = ToCRLF({ Data, (size_t)Size });
+		return SendData(Skt, data(encoded), size_as<int>(encoded), 0, CancelCheckWork);
 	}
-	else
-		// 同時接続対応
-//		Ret = SendData(Skt, Data, Size, 0, &Canceled);
-		Ret = SendData(Skt, Data, Size, 0, CancelCheckWork);
-
-	return(Ret);
+	return SendData(Skt, Data, Size, 0, CancelCheckWork);
 }
 
 

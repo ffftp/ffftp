@@ -48,109 +48,13 @@ static int CheckOnSJIS(uchar *Pos, uchar *Btm);
 static int CheckOnEUC(uchar *Pos, uchar *Btm);
 static int ConvertIBMExtendedChar(int code);
 
-/*----- 改行コード変換情報を初期化 --------------------------------------------
-*
-*	Parameter
-*		TERMCODECONVINFO *cInfo : 改行コード変換情報
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
 
-void InitTermCodeConvInfo(TERMCODECONVINFO *cInfo)
-{
-	cInfo->Term = 0;
-	return;
-}
-
-
-/*----- 改行コード変換の残り情報を出力 ----------------------------------------
-*
-*	Parameter
-*		TERMCODECONVINFO *cInfo : 改行コード変換情報
-*
-*	Return Value
-*		int くり返しフラグ (=NO)
-*
-*	Note
-*		改行コード変換の最後に呼ぶ事
-*----------------------------------------------------------------------------*/
-
-int FlushRestTermCodeConvData(TERMCODECONVINFO *cInfo)
-{
-	char *Put;
-
-	Put = cInfo->Buf;
-
-	if(cInfo->Term == 0x0D)
-		*Put++ = 0x0A;
-
-	cInfo->OutLen = (int)(Put - cInfo->Buf);
-
-	return(NO);
-}
-
-
-/*----- 改行コードをCRLFに変換 -------------------------------------------------
-*
-*	Parameter
-*		TERMCODECONVINFO *cInfo : 改行コード変換情報
-*
-*	Return Value
-*		int くり返しフラグ (YES/NO)
-*
-*	Note
-*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
-*----------------------------------------------------------------------------*/
-
-int ConvTermCodeToCRLF(TERMCODECONVINFO *cInfo)
-{
-	char *Str;
-	char *Put;
-	char *Limit;
-	int Continue;
-
-	Continue = NO;
-	Str = cInfo->Str;
-	Put = cInfo->Buf;
-	Limit = cInfo->Buf + cInfo->BufSize - 1;
-
-	for(; cInfo->StrLen > 0; cInfo->StrLen--)
-	{
-		if(Put >= Limit)
-		{
-			Continue = YES;
-			break;
-		}
-
-		if(*Str == 0x0D)
-		{
-			if(cInfo->Term == 0x0D)
-				*Put++ = 0x0A;
-			*Put++ = 0x0D;
-			cInfo->Term = *Str++;
-		}
-		else
-		{
-			if(*Str == 0x0A)
-			{
-				if(cInfo->Term != 0x0D)
-					*Put++ = 0x0D;
-			}
-			else
-			{
-				if(cInfo->Term == 0x0D)
-					*Put++ = 0x0A;
-			}
-			cInfo->Term = 0;
-			*Put++ = *Str++;
-		}
-	}
-
-	cInfo->Str = Str;
-	cInfo->OutLen = (int)(Put - cInfo->Buf);
-
-	return(Continue);
+// 改行コードをCRLFに変換
+std::string ToCRLF(std::string_view source) {
+	static std::regex re{ R"(\r\n|[\r\n])" };
+	std::string result;
+	std::regex_replace(back_inserter(result), begin(source), end(source), re, "\r\n");
+	return result;
 }
 
 

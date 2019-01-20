@@ -1322,18 +1322,6 @@ typedef struct codeconvinfo {
 } CODECONVINFO;
 
 
-/*===== 改行コード変換情報パケット =====*/
-
-typedef struct termcodeconvinfo {
-	char *Str;			/* 文字列 */
-	int StrLen;			/* 文字列の長さ */
-	char *Buf;			/* 変換後の文字列を格納するバッファ */
-	int BufSize;		/* 変換後の文字列を格納するバッファのサイズ */
-	int OutLen;			/* 変換後の文字列のサイズ */
-	char Term;			/* 改行コード１バイト目保存用 (内部処理用ワーク) */
-} TERMCODECONVINFO;
-
-
 /*===== テンポラリファイルリスト =====*/
 
 typedef struct tempfilelist {
@@ -1778,9 +1766,7 @@ int MarkFileAsDownloadedFromInternet(char* Fname);
 
 /*===== codecnv.c =====*/
 
-void InitTermCodeConvInfo(TERMCODECONVINFO *cInfo);
-int FlushRestTermCodeConvData(TERMCODECONVINFO *cInfo);
-int ConvTermCodeToCRLF(TERMCODECONVINFO *cInfo);
+std::string ToCRLF(std::string_view source);
 
 void InitCodeConvInfo(CODECONVINFO *cInfo);
 int FlushRestData(CODECONVINFO *cInfo);
