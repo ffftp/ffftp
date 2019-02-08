@@ -247,10 +247,10 @@ FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,145,246,50,14
     ICON            ffftp,-1,7,4,20,20
-    CTEXT           "FFFTP Ver 3.5",-1,113,11,90,8
+    CTEXT           "FFFTP Ver 3.6",-1,113,11,90,8
     CTEXT           "FFFTPはfreewareです",-1,7,220,305,8
     CTEXT           "Copyright(C) 1997-2010 Sota & ご協力いただいた方々",-1,7,25,305,8,SS_NOPREFIX
-    CTEXT           "Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato)\nCopyright (C) 2018, 倉田佐祐理",-1,7,37,305,32,SS_NOPREFIX
+    CTEXT           "Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato)\nCopyright (C) 2018-2019, 倉田佐祐理",-1,7,37,305,32,SS_NOPREFIX
     EDITTEXT        ABOUT_URL,7,76,305,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,143,305,60
 END
@@ -2143,8 +2143,8 @@ nodrop_csr              CURSOR                  "nodrop_c.cur"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,5,0,0
- PRODUCTVERSION 3,5,0,0
+ FILEVERSION 3,6,0,0
+ PRODUCTVERSION 3,6,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -2162,12 +2162,12 @@ BEGIN
             VALUE "Comments", "これはフリーソフトウエアです。"
             VALUE "CompanyName", "Sota, FFFTP Project"
             VALUE "FileDescription", "FFFTP"
-            VALUE "FileVersion", "3.5.0.0"
+            VALUE "FileVersion", "3.6.0.0"
             VALUE "InternalName", "FFFTP"
-            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato).\r\nCopyright (C) 2018, 倉田佐祐理."
+            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato).\r\nCopyright (C) 2018-2019, 倉田佐祐理."
             VALUE "OriginalFilename", "FFFTP.exe"
             VALUE "ProductName", "FFFTP"
-            VALUE "ProductVersion", "3.5.0.0"
+            VALUE "ProductVersion", "3.6.0.0"
         END
     END
     BLOCK "VarFileInfo"

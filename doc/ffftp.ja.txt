@@ -1,7 +1,7 @@
 ============================================================
-【ソフト名】　FTPクライアント FFFTP Ver 3.5
+【ソフト名】　FTPクライアント FFFTP Ver 3.6
 【動作環境】　Windows 10, 8.1, 8, 7, Vista, XP
-【サポート】　https://github.com/sayurin/ffftp
+【サポート】　https://github.com/ffftp/ffftp
 ============================================================
 
 INIファイルについて
@@ -27,14 +27,16 @@ FFFTP Ver.1.96d+009以降を最初に起動した時、接続メニューの設定→
 マスターパスワードの入力が求められますので、入力してください。
 
 
-Ver 3.5での変更点
+Ver 3.6での変更点
 ----------------
 
-- Windows 7でSSLの初期化に失敗する問題を修正しました。 #52
-- Windows XP / Vistaから暗号化接続できない問題を修正しました。 #54
-- 国際化ドメイン名のサーバー証明書を正しく扱えない問題を修正しました。 #48
-- ファイルリストの表示速度を改善しました。 #49
-- DNS名前解決、サーバー接続関連のソースコードをリファクタリングしました。 #42
+- ファイル名の全角カナ変換が機能していなかった問題を修正しました。 #74
+- メニュー項目テキストの誤りを修正しました。 #70
+- 既定でUPnPを使用しないように変更しました。 #76
+- 設定バックアップ時にUACダイアログを表示しないように改善しました。 #29
+- キャッシュ機能を削除しました。 #57
+- CIビルド方法を改善しました。 #69
+- ダイアログプロシージャをリファクタリングしました。 #15
 
 
 Ver 1.96d以前へ戻す場合
@@ -120,7 +122,7 @@ history.txt ------ 改版履歴
 
 Copyright(C) 1997-2010, Sota & cooperators. All rights reserved.
 Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
-Copyright (C) 2018, KURATA Sayuri.
+Copyright (C) 2018-2019, KURATA Sayuri.
 
 Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions 
@@ -147,7 +149,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Copyright(C) 1997-2010 Sota & ご協力いただいた方々. All rights reserved.
 Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
-Copyright (C) 2018, 倉田佐祐理.
+Copyright (C) 2018-2019, 倉田佐祐理.
 
 ソースコード形式でもバイナリ形式でも、変更の有無に関わらず、以下の条件を
 満たす場合に、再配布および使用を許可します。

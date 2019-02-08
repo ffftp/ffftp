@@ -230,9 +230,9 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 /*===== バージョン ======*/
 
 #ifdef _WIN64
-#define VER_STR					"3.5 64bit"
+#define VER_STR					"3.6 64bit"
 #else
-#define VER_STR					"3.5 32bit"
+#define VER_STR					"3.6 32bit"
 #endif
 #define VER_NUM					2000		/* 設定バージョン */
 

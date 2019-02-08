@@ -1,6 +1,6 @@
 FFFTP　改版リスト
 
-以降の更新は https://github.com/sayurin/ffftp/releases を参照ください。
+以降の更新は https://github.com/ffftp/ffftp/releases を参照ください。
 
 ■Ver 3.00
 

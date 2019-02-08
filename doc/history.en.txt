@@ -1,6 +1,6 @@
 FFFTP version history.
 
-Newer updates are listed at https://github.com/sayurin/ffftp/releases .
+Newer updates are listed at https://github.com/ffftp/ffftp/releases .
 
 Changes in 3.00
 ---------------
