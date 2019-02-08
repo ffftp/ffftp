@@ -232,7 +232,7 @@ int LocalKanjiCode = KANJI_SJIS;
 // 自動切断対策
 int NoopEnable = NO;
 // UPnP対応
-int UPnPEnabled = YES;
+int UPnPEnabled = NO;
 time_t LastDataConnectionTime = 0;
 // 全設定暗号化対応
 int EncryptAllSettings = NO;
