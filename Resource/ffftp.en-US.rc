@@ -173,7 +173,7 @@ BEGIN
     POPUP "&Help"
     BEGIN
         MENUITEM "&Contents\tF1",               MENU_HELP
-        MENUITEM "&Q&&A (Connect to Internet)", MENU_HELP_TROUBLE
+        MENUITEM "Open &Web Site",              MENU_HELP_TROUBLE
         MENUITEM SEPARATOR
         MENUITEM "&About FFFTP...",             MENU_ABOUT
     END
