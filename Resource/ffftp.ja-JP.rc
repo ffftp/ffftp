@@ -173,7 +173,7 @@ BEGIN
     POPUP "ヘルプ(&H)"
     BEGIN
         MENUITEM "目次(&C)\tF1",                  MENU_HELP
-        MENUITEM "Q&&A集(インターネットに接続します)(T)",     MENU_HELP_TROUBLE
+        MENUITEM "ウェブサイトを開く(&W)",               MENU_HELP_TROUBLE
         MENUITEM SEPARATOR
         MENUITEM "FFFTPについて(&A)...",            MENU_ABOUT
     END
