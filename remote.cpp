@@ -1390,7 +1390,7 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 	if((Buf2 = (char*)malloc(strlen(Fname) + 1)) != NULL)
 	{
 		InitCodeConvInfo(&cInfo);
-		cInfo.KanaCnv = AskHostNameKana();
+		cInfo.KanaCnv = NO;
 		// バッファ上書きバグ対策
 //		cInfo.Str = Fname;
 		strcpy(Buf2, Fname);
@@ -1423,7 +1423,7 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 				strcpy(Pos, Buf);
 				// TODO
 				InitCodeConvInfo(&cInfo);
-				cInfo.KanaCnv = NO;
+				cInfo.KanaCnv = AskHostNameKana();
 				cInfo.Str = Fname;
 				cInfo.StrLen = (int)strlen(Fname);
 				cInfo.Buf = Buf;
@@ -1447,7 +1447,7 @@ int ChangeFnameLocal2Remote(char *Fname, int Max)
 				strcpy(Pos, Buf);
 				// TODO
 				InitCodeConvInfo(&cInfo);
-				cInfo.KanaCnv = NO;
+				cInfo.KanaCnv = AskHostNameKana();
 				cInfo.Str = Fname;
 				cInfo.StrLen = (int)strlen(Fname);
 				cInfo.Buf = Buf;
