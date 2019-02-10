@@ -44,8 +44,6 @@ static char *ConvSJIStoJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put);
 static int HanKataToZen(char Ch);
 static int AskDakuon(char Ch, char Daku);
 
-static int CheckOnSJIS(uchar *Pos, uchar *Btm);
-static int CheckOnEUC(uchar *Pos, uchar *Btm);
 static int ConvertIBMExtendedChar(int code);
 
 
@@ -968,238 +966,6 @@ static int AskDakuon(char Ch, char Daku)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-/*----- 文字列の漢字コードを調べ、Shift-JISに変換 -----------------------------
-*
-*	Parameter
-*		char *Text : 文字列
-*		int Pref : SJIS/EUCの優先指定
-＊			KANJI_SJIS / KANJI_EUC / KANJI_NOCNV=SJIS/EUCのチェックはしない
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void ConvAutoToSJIS(char *Text, int Pref)
-{
-	int Code;
-	char *Buf;
-	CODECONVINFO cInfo;
-
-	Code = CheckKanjiCode(Text, (int)strlen(Text), Pref);
-	if(Code != KANJI_SJIS)
-	{
-		Buf = (char*)malloc(strlen(Text)+1);
-		if(Buf != NULL)
-		{
-			InitCodeConvInfo(&cInfo);
-			cInfo.KanaCnv = NO;
-			cInfo.Str = Text;
-			cInfo.StrLen = (int)strlen(Text);
-			cInfo.Buf = Buf;
-			cInfo.BufSize = (int)strlen(Text);
-
-			switch(Code)
-			{
-				case KANJI_JIS :
-					ConvJIStoSJIS(&cInfo);
-					break;
-
-				case KANJI_EUC :
-					ConvEUCtoSJIS(&cInfo);
-					break;
-			}
-
-			*(Buf + cInfo.OutLen) = NUL;
-			strcpy(Text, Buf);
-			free(Buf);
-		}
-	}
-	return;
-}
-
-
-/*----- 使われている漢字コードを調べる ----------------------------------------
-*
-*	Parameter
-*		char *Text : 文字列
-*		int Size : 文字列の長さ
-*		int Pref : SJIS/EUCの優先指定
-＊			KANJI_SJIS / KANJI_EUC / KANJI_NOCNV=SJIS/EUCのチェックはしない
-*
-*	Return Value
-*		int 漢字コード (KANJI_xxx)
-*----------------------------------------------------------------------------*/
-
-int CheckKanjiCode(char *Text, int Size, int Pref)
-{
-	uchar *Pos;
-	uchar *Btm;
-	int Ret;
-	int PointSJIS;
-	int PointEUC;
-
-	Ret = KANJI_SJIS;
-	if(Size >= 2)
-	{
-		Ret = -1;
-		Btm = (uchar*)Text + Size;
-
-		/* JIS漢字コードのチェック */
-		Pos = (uchar*)Text;
-		while((Pos = (uchar*)memchr(Pos, 0x1b, Btm-Pos-2)) != NULL)
-		{
-			Pos++;
-			if((memcmp(Pos, "$B", 2) == 0) ||	/* <ESC>$B */
-			   (memcmp(Pos, "$@", 2) == 0) ||	/* <ESC>$@ */
-			   (memcmp(Pos, "(I", 2) == 0))		/* <ESC>(I */
-			{
-				Ret = KANJI_JIS;
-				break;
-			}
-		}
-
-		/* EUCとSHIFT-JIS漢字コードのチェック */
-		if(Ret == -1)
-		{
-			if(Pref != KANJI_NOCNV)
-			{
-				Ret = Pref;
-				Pos = (uchar*)Text;
-				while(Pos < Btm)
-				{
-					PointSJIS = CheckOnSJIS(Pos, Btm);
-					PointEUC = CheckOnEUC(Pos, Btm);
-					if(PointSJIS > PointEUC)
-					{
-						Ret = KANJI_SJIS;
-						break;
-					}
-					if(PointSJIS < PointEUC)
-					{
-						Ret = KANJI_EUC;
-						break;
-					}
-					if((Pos = (uchar*)memchr(Pos, '\n', Btm-Pos)) == NULL)
-						break;
-					Pos++;
-				}
-			}
-			else
-				Ret = KANJI_SJIS;
-		}
-	}
-	return(Ret);
-}
-
-
-/*----- SHIFT-JISコードの可能性があるかチェック --------------------------------
-*
-*	Parameter
-*		uchar *Pos : 文字列
-*		uchar *Btm : 文字列の末尾
-*
-*	Return Value
-*		int 得点
-*
-*	Note
-*		High	81-FF (A0-DFは半角)	(EB以降はほとんど無い)
-*		Low		40-FC
-*----------------------------------------------------------------------------*/
-
-static int CheckOnSJIS(uchar *Pos, uchar *Btm)
-{
-	int FstOnTwo;
-	int Point;
-
-	FstOnTwo = NO;
-	Point = 100;
-	while((Point > 0) && (Pos < Btm) && (*Pos != '\n'))
-	{
-		if(FstOnTwo == YES)
-		{
-			if((*Pos < 0x40) || (*Pos > 0xFC))	/* 2バイト目は 0x40～0xFC */
-				Point = 0;
-			FstOnTwo = NO;
-		}
-		else if(*Pos >= 0x81)
-		{
-			if((*Pos < 0xA0) || (*Pos > 0xDF))	/* 半角カナでなければ */
-			{
-				if(*Pos >= 0xEB)		/* 1バイト目は0xEB以降はほとんど無い */
-					Point -= 50;
-				FstOnTwo = YES;
-			}
-		}
-		Pos++;
-	}
-	if(FstOnTwo == YES)		/* １バイト目で終わっているのはおかしい  */
-		Point = 0;
-
-	return(Point);
-}
-
-
-/*----- EUCコードの可能性があるかチェック -------------------------------------
-*
-*	Parameter
-*		uchar *Pos : 文字列
-*		uchar *Btm : 文字列の末尾
-*
-*	Return Value
-*		int 得点
-*
-*	Note
-*		High	A1-FE , 8E
-*		Low		A1-FE
-*----------------------------------------------------------------------------*/
-
-static int CheckOnEUC(uchar *Pos, uchar *Btm)
-{
-	int FstOnTwo;
-	int Point;
-
-	FstOnTwo = 0;
-	Point = 100;
-	while((Point > 0) && (Pos < Btm) && (*Pos != '\n'))
-	{
-		if(FstOnTwo == 1)
-		{
-			if((*Pos < 0xA1) || (*Pos > 0xFE))	/* 2バイト目は 0xA1～0xFE */
-				Point = 0;
-			FstOnTwo = 0;
-		}
-		else if(FstOnTwo == 2)		/* 半角カナ */
-		{
-			if((*Pos < 0xA0) || (*Pos > 0xDF))	/* 2バイト目は 0xA0～0xDF */
-				Point = 0;
-			FstOnTwo = 0;
-		}
-		else
-		{
-			if(*Pos == 0x8E)		/* 0x8E??は半角カナ */
-				FstOnTwo = 2;
-			else if((*Pos >= 0xA1) && (*Pos <= 0xFE))
-				FstOnTwo = 1;
-		}
-		Pos++;
-	}
-	if(FstOnTwo != 0)		/* １バイト目で終わっているのはおかしい  */
-		Point = 0;
-
-	return(Point);
-}
-
-
 // UTF-8対応 ここから↓
 /*----- UTF-8漢字コードをSHIFT-JIS漢字コードに変換 ------------------------------
 *
@@ -1837,4 +1603,45 @@ static int ConvertIBMExtendedChar(int code)
 	else if((code >= 0xfb9c) && (code <= 0xfbfc))	code -= (0xfb9c - 0xee80);
 	else if((code >= 0xfc40) && (code <= 0xfc4b))	code -= (0xfc40 - 0xeee1);
 	return code;
+}
+
+
+void CodeDetector::Test(std::string_view str) {
+	static std::regex reJISor8BIT{ R"(\x1B(\$[B@]|\([BHIJ]|\$\([DOPQ])|[\x80-\xFF])" },
+		// Shift-JIS
+		// JIS X 0208  1～8、16～47、48～84  81-84,88-9F,E0-EA
+		// NEC特殊文字                       87
+		// NEC選定IBM拡張文字                ED-EE
+		// IBM拡張文字                       FA-FC
+		reSJIS{ R"((?:[\x00-\x7F\xA1-\xDF]|(?:[\x81-\x84\x87-\x9F\xE0-\xEA\xED\xEE\xFA-\xFC]|([\x81-\x9F\xE0-\xFC]))[\x40-\x7E\x80-\xFC])*)" },
+		reEUC{ R"((?:[\x00-\x7F]|\x8E[\xA1-\xDF]|(?:[\xA1-\xA8\xB0-\xF4]|(\x8F?[\xA1-\xFE]))[\xA1-\xFE])*)" },
+		// UTF-8
+		// U+000000-U+00007F                   0b0000000-                 0b1111111  00-7F
+		// U+000080-U+0007FF              0b00010'000000-            0b11111'111111  C2-DF             80-BF
+		// U+000800-U+000FFF        0b0000'100000'000000-      0b0000'111111'111111  E0    A0-BF       80-BF
+		// U+001000-U+00FFFF        0b0001'000000'000000-      0b1111'111111'111111  E1-EF       80-BF 80-BF
+		// U+003099-U+00309A        0b0011'000010'011001-      0b0011'000010'011010  E3    82    99-9A       (COMBINING KATAKANA-HIRAGANA VOICED SOUND MARK, COMBINING KATAKANA-HIRAGANA SEMI-VOICED SOUND MARK)
+		// U+00D800-U+00DFFF        0b1101'100000'000000-      0b1101'111111'111111  ED    A0-BF       80-BF (High Surrogate Area, Low Surrogate Area)
+		// U+00E000-U+00EFFF        0b1110'000000'000000-      0b1110'111111'111111  EE          80-BF 80-BF (Private Use Area)
+		// U+00F000-U+00F8FF        0b1111'000000'000000-      0b1111'100011'111111  EF    80-A3       80-BF (Private Use Area)
+		// U+010000-U+03FFFF  0b000'010000'000000'000000-0b000'111111'111111'111111  F0    90-BF 80-BF 80-BF
+		// U+040000-U+0FFFFF  0b001'000000'000000'000000-0b011'111111'111111'111111  F1-F3 80-BF 80-BF 80-BF
+		// U+0F0000-U+0FFFFF  0b011'110000'000000'000000-0b011'111111'111111'111111  F3    B0-BF 80-BF 80-BF (Supplementary Private Use Area-A)
+		// U+100000-U+10FFFF  0b100'000000'000000'000000-0b100'001111'111111'111111  F4    80-8F 80-BF 80-BF (Supplementary Private Use Area-B)
+		reUTF8{ R"((?:[\x00-\x7F]|(\xE3\x82[\x99\x9A])|(?:(\xED[\xA0-\xBF]|\xEF[\x80-\xA3])|[\xC2-\xDF]|\xE0[\xA0-\xBF]|(?:(\xEE|\xF3[\xB0-\xBF]|\xF4[\x80-\x8F])|[\xE1-\xEF]|\xF0[\x90-\xBF]|[\xF1-\xF3][\x80-\xBF])[\x80-\xBF])[\x80-\xBF])*)" };
+	if (std::match_results<std::string_view::const_iterator> m; std::regex_search(begin(str), end(str), m, reJISor8BIT)) {
+		if (m[1].matched)
+			jis += 2;
+		else {
+			if (std::match_results<std::string_view::const_iterator> m; std::regex_match(begin(str), end(str), m, reSJIS))
+				sjis += m[1].matched ? 1 : 2;
+			if (std::match_results<std::string_view::const_iterator> m; std::regex_match(begin(str), end(str), m, reEUC))
+				euc += m[1].matched ? 1 : 2;
+			if (std::match_results<std::string_view::const_iterator> m; std::regex_match(begin(str), end(str), m, reUTF8)) {
+				utf8 += m[2].matched || m[3].matched ? 1 : 2;
+				if (m[1].matched)
+					hfsx = true;
+			}
+		}
+	}
 }

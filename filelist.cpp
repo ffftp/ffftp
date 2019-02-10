@@ -5221,22 +5221,27 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day)
 	}
 	else
 	{
-		/* 「10月」のような日付を返すものがある */
-		/* 漢字がJISの時のみSJISに変換 */
-		ConvAutoToSJIS(Str, KANJI_NOCNV);
-
 		Pos = Str;
 		while(*Pos != NUL)
 		{
 			if(!IsDigit(*Pos))
 			{
-				// UTF-8対応
-//				if((_mbsncmp(Pos, "月", 1) == 0) ||
-//				   (memcmp(Pos, "\xB7\xEE", 2) == 0) ||	/* EUCの「月」 */
-//				   (memcmp(Pos, "\xD4\xC2", 2) == 0))	/* GBコードの「月」 */
-				if(memcmp(Pos, "\xE6\x9C\x88", 3) == 0 || memcmp(Pos, "\x8C\x8E", 2) == 0 || memcmp(Pos, "\xB7\xEE", 2) == 0 || memcmp(Pos, "\xD4\xC2", 2) == 0)
-				{
-					Pos += 2;
+				// "月"
+				//   UTF-8        E6 9C 88
+				//   Shift-JIS    8C 8E
+				//   EUC-JP       B7 EE
+				//   GB 2312      D4 C2
+				//   ISO-2022-JP  37 6E
+				//     JIS C 6226-1978  ESC $ @
+				//     JIS X 0208-1983  ESC $ B
+				//     JIS X 0208:1990  ESC $ B
+				//     JIS X 0213:2000  ESC $ ( O
+				//     JIS X 0213:2004  ESC $ ( Q
+				//     ASCII            ESC ( B
+				//     JIS C 6220-1976  ESC ( J
+				static std::regex re{ R"(^(?:\xE6\x9C\x88|\x8C\x8E|\xB7\xEE|\xD4\xC2|\x1B\$(?:[@B]|\([OQ])\x37\x6E\x1B\([BJ]))" };
+				if (std::cmatch m; std::regex_search(Pos, m, re)) {
+					Pos += m.length();
 					*Month = atoi(Str);
 					if((*Month < 1) || (*Month > 12))
 						*Month = 0;
@@ -5355,20 +5360,27 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 			}
 			else
 			{
-				/* 漢字がJISの時のみSJISに変換 */
-				ConvAutoToSJIS(Str, KANJI_NOCNV);
-
 				Pos = Str;
 				while(*Pos != NUL)
 				{
 					if(IsDigit(*Pos) == 0)
 					{
-						// UTF-8対応
-//						if((_mbsncmp(Pos, "時", 1) == 0) ||
-//						   (memcmp(Pos, "\xBB\xFE", 2) == 0))	/* EUCの「時」 */
-						if(memcmp(Pos, "\xE6\x99\x82", 3) == 0 || memcmp(Pos, "\x8E\x9E", 2) == 0 || memcmp(Pos, "\xBB\xFE", 2) == 0)
-						{
-							Pos += 2;
+						// "時"
+						//   UTF-8        E6 99 82
+						//   Shift-JIS    8E 9E
+						//   EUC-JP       BB FE
+						//   GB 2312      95 72
+						//   ISO-2022-JP  3B 7E
+						//     JIS C 6226-1978  ESC $ @
+						//     JIS X 0208-1983  ESC $ B
+						//     JIS X 0208:1990  ESC $ B
+						//     JIS X 0213:2000  ESC $ ( O
+						//     JIS X 0213:2004  ESC $ ( Q
+						//     ASCII            ESC ( B
+						//     JIS C 6220-1976  ESC ( J
+						static std::regex re{ R"(^(?:\xE6\x99\x82|\x8E\x9E|\xBB\xFE|\x95\x72|\x1B\$(?:[@B]|\([OQ])\x3B\x7E\x1B\([BJ]))" };
+						if (std::cmatch m; std::regex_search(Pos, m, re)) {
+							Pos += m.length();
 							if(*Pos != NUL)
 							{
 								*Minute = atoi(Pos);
@@ -5574,25 +5586,7 @@ int AnalyzeNameKanjiCode(int Num)
 	char Owner[OWNER_NAME_LEN+1];
 	int Link;
 	int InfoExist;
-	int NameKanjiCode;
-	int Point;
-	int PointSJIS;
-	int PointJIS;
-	int PointEUC;
-	int PointUTF8N;
-	int PointUTF8HFSX;
-	char* p;
-	CODECONVINFO cInfo1;
-	CODECONVINFO cInfo2;
-	char Buf[FMAX_PATH+1];
-
-	NameKanjiCode = KANJI_AUTO;
-	Point = 0;
-	PointSJIS = 0;
-	PointJIS = 0;
-	PointEUC = 0;
-	PointUTF8N = 0;
-	PointUTF8HFSX = 0;
+	CodeDetector cd;
 	if((fd = _wfopen(MakeCacheFileName(Num).c_str(), L"rb")) != NULL)
 	{
 		char Str[FMAX_PATH+1];
@@ -5602,88 +5596,10 @@ int AnalyzeNameKanjiCode(int Num)
 			{
 				strcpy(Name, "");
 				Node = ResolveFileInfo(Str, ListType | LIST_RAW_NAME, Name, &Size, &Time, &Attr, Owner, &Link, &InfoExist);
-				p = Name;
-				while(*p != '\0')
-				{
-					if(*p & 0x80)
-					{
-						p = NULL;
-						break;
-					}
-					p++;
-				}
-				if(!p)
-				{
-					// ASCII文字の範囲外
-					if(!CheckStringM(Name))
-					{
-						InitCodeConvInfo(&cInfo1);
-						cInfo1.KanaCnv = NO;
-						cInfo1.Str = Name;
-						cInfo1.StrLen = (int)strlen(Name);
-						cInfo1.Buf = Buf;
-						cInfo1.BufSize = FMAX_PATH;
-						cInfo2 = cInfo1;
-						ConvUTF8NtoUTF8HFSX(&cInfo1);
-						ConvUTF8HFSXtoUTF8N(&cInfo2);
-						if(cInfo1.OutLen > (int)strlen(Name))
-							PointUTF8N++;
-						else
-							PointUTF8HFSX++;
-						if(cInfo2.OutLen < (int)strlen(Name))
-							PointUTF8HFSX++;
-						else
-							PointUTF8N++;
-					}
-					switch(CheckKanjiCode(Name, (int)strlen(Name), KANJI_SJIS))
-					{
-					case KANJI_SJIS:
-						PointSJIS++;
-						break;
-					case KANJI_EUC:
-						PointEUC++;
-						break;
-					}
-				}
-				else
-				{
-					// ASCII文字の範囲内
-					switch(CheckKanjiCode(Name, (int)strlen(Name), KANJI_SJIS))
-					{
-					case KANJI_JIS:
-						PointJIS++;
-						break;
-					}
-				}
+				cd.Test(Name);
 			}
 		}
 		fclose(fd);
 	}
-	if(PointUTF8HFSX >= Point)
-	{
-		NameKanjiCode = KANJI_UTF8HFSX;
-		Point = PointUTF8HFSX;
-	}
-	if(PointJIS >= Point)
-	{
-		NameKanjiCode = KANJI_JIS;
-		Point = PointJIS;
-	}
-	if(PointEUC >= Point)
-	{
-		NameKanjiCode = KANJI_EUC;
-		Point = PointEUC;
-	}
-	if(PointSJIS >= Point)
-	{
-		NameKanjiCode = KANJI_SJIS;
-		Point = PointSJIS;
-	}
-	if(PointUTF8N >= Point)
-	{
-		NameKanjiCode = KANJI_UTF8N;
-		Point = PointUTF8N;
-	}
-	return NameKanjiCode;
+	return cd.result();
 }
-

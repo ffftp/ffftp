@@ -1766,6 +1766,25 @@ int MarkFileAsDownloadedFromInternet(char* Fname);
 
 /*===== codecnv.c =====*/
 
+class CodeDetector {
+	int utf8 = 0;
+	int sjis = 0;
+	int euc = 0;
+	int jis = 0;
+	bool hfsx = false;
+public:
+	void Test(std::string_view str);
+	int result() const {
+		auto& [_, id] = std::max<std::tuple<int, int>>({
+			{ utf8, KANJI_UTF8N },
+			{ sjis, KANJI_SJIS },
+			{ euc, KANJI_EUC },
+			{ jis, KANJI_JIS },
+			}, [](auto const& l, auto const& r) { return std::get<0>(l) < std::get<0>(r); });
+		return id == KANJI_UTF8N && hfsx ? KANJI_UTF8HFSX : id;
+	}
+};
+
 std::string ToCRLF(std::string_view source);
 
 void InitCodeConvInfo(CODECONVINFO *cInfo);
@@ -1784,8 +1803,6 @@ int ConvSJIStoUTF8N(CODECONVINFO *cInfo); // UTF-8対応
 // UTF-8 HFS+対応
 int ConvUTF8NtoUTF8HFSX(CODECONVINFO *cInfo);
 int ConvUTF8HFSXtoUTF8N(CODECONVINFO *cInfo);
-void ConvAutoToSJIS(char *Text, int Pref);
-int CheckKanjiCode(char *Text, int Size, int Pref);
 
 /*===== option.c =====*/
 
