@@ -2751,7 +2751,7 @@ static int GetListOneLine(char *Buf, int Max, FILE *Fd, int Convert)
 		Sts = FFFTP_SUCCESS;
 		// 文字化け対策
 		if(Convert == YES)
-			ChangeFnameRemote2Local(Buf, Max);
+			strncpy(Buf, ConvertFrom(Buf, AskHostNameKanji()).c_str(), Max);
 		RemoveReturnCode(Buf);
 		ReplaceAll(Buf, '\x08', ' ');
 

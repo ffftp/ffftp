@@ -56,6 +56,47 @@ std::string ToCRLF(std::string_view source) {
 }
 
 
+static auto normalize(NORM_FORM form, std::wstring_view src) {
+	// NormalizeString returns estimated buffer length.
+	auto estimated = NormalizeString(form, data(src), size_as<int>(src), nullptr, 0);
+	std::wstring normalized(estimated, L'\0');
+	auto len = NormalizeString(form, data(src), size_as<int>(src), data(normalized), estimated);
+	normalized.resize(len);
+	return normalized;
+}
+
+
+static auto convert(std::string_view input, DWORD incp, DWORD outcp, void (*update)(std::wstring&)) {
+	static auto mlang = LoadLibraryW(L"mlang.dll");
+	static auto convertINetMultiByteToUnicode = reinterpret_cast<decltype(&ConvertINetMultiByteToUnicode)>(GetProcAddress(mlang, "ConvertINetMultiByteToUnicode"));
+	static auto convertINetUnicodeToMultiByte = reinterpret_cast<decltype(&ConvertINetUnicodeToMultiByte)>(GetProcAddress(mlang, "ConvertINetUnicodeToMultiByte"));
+	static DWORD mb2u = 0, u2mb = 0;
+	static INT scale = 2;
+	std::wstring wstr;
+	for (;; ++scale) {
+		auto inlen = size_as<INT>(input), wlen = inlen * scale;
+		wstr.resize(wlen);
+		auto hr = convertINetMultiByteToUnicode(&mb2u, incp, data(input), &inlen, data(wstr), &wlen);
+		assert(hr == S_OK);
+		if (inlen == size_as<INT>(input)) {
+			wstr.resize(wlen);
+			break;
+		}
+	}
+	update(wstr);
+	for (std::string output;; ++scale) {
+		auto wlen = size_as<INT>(wstr), outlen = wlen * scale;
+		output.resize(outlen);
+		auto hr = convertINetUnicodeToMultiByte(&u2mb, outcp, data(wstr), &wlen, data(output), &outlen);
+		assert(hr == S_OK);
+		if (wlen == size_as<INT>(wstr)) {
+			output.resize(outlen);
+			return output;
+		}
+	}
+}
+
+
 /*----- 漢字コード変換情報を初期化 --------------------------------------------
 *
 *	Parameter
@@ -454,62 +495,6 @@ static char *ConvJIStoSJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put)
 }
 
 
-/*----- Samba-HEX/Samba-CAP漢字コードをSHIFT-JIS漢字コードに変換 --------------
-*
-*	Parameter
-*		CODECONVINFO *cInfo : 漢字コード変換情報
-*
-*	Return Value
-*		int くり返しフラグ (YES/NO)
-*
-*	Note
-*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
-*		分割された入力文字列の変換はサポートしていない
-*		半角カタカナの変換設定には対応していない
-*----------------------------------------------------------------------------*/
-
-int ConvSMBtoSJIS(CODECONVINFO *cInfo)
-{
-	char *Str;
-	char *Put;
-	char *Limit;
-	int Continue;
-
-	Continue = NO;
-	Str = cInfo->Str;
-	Put = cInfo->Buf;
-	Limit = cInfo->Buf + cInfo->BufSize - 2;
-
-	for(; cInfo->StrLen > 0; cInfo->StrLen--)
-	{
-		if(Put >= Limit)
-		{
-			Continue = YES;
-			break;
-		}
-
-		if((*Str == SAMBA_HEX_TAG) && (cInfo->StrLen >= 3))
-		{
-			if(isxdigit(*(Str+1)) && isxdigit(*(Str+2)))
-			{
-				*Put++ = N2INT(hex2bin(*(Str+1)), hex2bin(*(Str+2)));
-				Str += 3;
-				cInfo->StrLen -= 2;
-			}
-			else
-				*Put++ = *Str++;
-		}
-		else
-			*Put++ = *Str++;
-	}
-
-	cInfo->Str = Str;
-	cInfo->OutLen = (int)(Put - cInfo->Buf);
-
-	return(Continue);
-}
-
-
 /*----- SHIFT-JIS漢字コードをEUC漢字コードに変換 ------------------------------
 *
 *	Parameter
@@ -795,114 +780,6 @@ static char *ConvSJIStoJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put)
 			cInfo->KanaPrev = Dt;
 	}
 	return(Put);
-}
-
-
-/*----- SHIFT-JIS漢字コードをSamba-HEX漢字コードに変換 ------------------------
-*
-*	Parameter
-*		CODECONVINFO *cInfo : 漢字コード変換情報
-*
-*	Return Value
-*		int くり返しフラグ (YES/NO)
-*
-*	Note
-*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
-*		分割された入力文字列の変換はサポートしていない
-*		半角カタカナの変換設定には対応していない
-*----------------------------------------------------------------------------*/
-
-int ConvSJIStoSMB_HEX(CODECONVINFO *cInfo)
-{
-	char *Str;
-	char *Put;
-	char *Limit;
-	int Continue;
-
-	Continue = NO;
-	Str = cInfo->Str;
-	Put = cInfo->Buf;
-	Limit = cInfo->Buf + cInfo->BufSize - 6;
-
-	for(; cInfo->StrLen > 0; cInfo->StrLen--)
-	{
-		if(Put >= Limit)
-		{
-			Continue = YES;
-			break;
-		}
-
-		if((cInfo->StrLen >= 2) &&
-		   ((((uchar)*Str >= (uchar)0x81) && ((uchar)*Str <= (uchar)0x9F)) ||
-			((uchar)*Str >= (uchar)0xE0)))
-		{
-			sprintf(Put, "%c%02x%c%02x", SAMBA_HEX_TAG, (uchar)*Str, SAMBA_HEX_TAG, (uchar)*(Str+1));
-			Str += 2;
-			Put += 6;
-			cInfo->StrLen--;
-		}
-		else if((uchar)*Str >= (uchar)0x80)
-		{
-			sprintf(Put, "%c%02x", SAMBA_HEX_TAG, (uchar)*Str++);
-			Put += 3;
-		}
-		else
-			*Put++ = *Str++;
-	}
-
-	cInfo->Str = Str;
-	cInfo->OutLen = (int)(Put - cInfo->Buf);
-
-	return(Continue);
-}
-
-
-/*----- SHIFT-JIS漢字コードをSamba-CAP漢字コードに変換 ------------------------
-*
-*	Parameter
-*		CODECONVINFO *cInfo : 漢字コード変換情報
-*
-*	Return Value
-*		int くり返しフラグ (YES/NO)
-*
-*	Note
-*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
-*		分割された入力文字列の変換はサポートしていない
-*----------------------------------------------------------------------------*/
-
-int ConvSJIStoSMB_CAP(CODECONVINFO *cInfo)
-{
-	char *Str;
-	char *Put;
-	char *Limit;
-	int Continue;
-
-	Continue = NO;
-	Str = cInfo->Str;
-	Put = cInfo->Buf;
-	Limit = cInfo->Buf + cInfo->BufSize - 6;
-
-	for(; cInfo->StrLen > 0; cInfo->StrLen--)
-	{
-		if(Put >= Limit)
-		{
-			Continue = YES;
-			break;
-		}
-
-		if((uchar)*Str >= (uchar)0x80)
-		{
-			sprintf(Put, "%c%02x", SAMBA_HEX_TAG, (uchar)*Str++);
-			Put += 3;
-		}
-		else
-			*Put++ = *Str++;
-	}
-
-	cInfo->Str = Str;
-	cInfo->OutLen = (int)(Put - cInfo->Buf);
-
-	return(Continue);
 }
 
 
@@ -1336,246 +1213,6 @@ int ConvSJIStoUTF8N(CODECONVINFO *cInfo)
 }
 // UTF-8対応 ここまで↑
 
-// UTF-8 HFS+対応
-int ConvUTF8NtoUTF8HFSX(CODECONVINFO *cInfo)
-{
-	int Continue;
-	int SrcLength;
-	char* pSrc;
-	char* pSrcCur;
-	char* pSrcEnd;
-	char* pSrcNext;
-	char* pDstCur;
-	char* pDstEnd;
-	DWORD Code;
-	int Count;
-	wchar_t Temp1[4];
-	wchar_t Temp2[4];
-	char Temp3[16];
-	char* Temp3Cur;
-	char* Temp3End;
-	int TempCount;
-	if(!SupportIdn)
-		return ConvNoConv(cInfo);
-	Continue = NO;
-	SrcLength = cInfo->StrLen + cInfo->EscUTF8Len;
-	if(!(pSrc = (char*)malloc(sizeof(char) * (SrcLength + 1))))
-	{
-		*(cInfo->Buf) = '\0';
-		cInfo->BufSize = 0;
-		return Continue;
-	}
-	memcpy(pSrc, cInfo->EscUTF8, sizeof(char) * cInfo->EscUTF8Len);
-	memcpy(pSrc + cInfo->EscUTF8Len, cInfo->Str, sizeof(char) * cInfo->StrLen);
-	*(pSrc + SrcLength) = '\0';
-	cInfo->OutLen = 0;
-	pSrcCur = pSrc;
-	pSrcEnd = pSrc + SrcLength;
-	pSrcNext = pSrc;
-	pDstCur = cInfo->Buf;
-	pDstEnd = cInfo->Buf + cInfo->BufSize;
-	while(pSrcCur < pSrcEnd)
-	{
-		Code = GetNextCharM(pSrcCur, pSrcEnd, (LPCSTR*)&pSrcNext);
-		if(Code == 0x80000000)
-		{
-			if(pSrcNext == pSrcEnd)
-				// 入力の末尾が不完全
-				break;
-		}
-		else if((Code >= 0x00002000 && Code <= 0x00002fff)
-			|| (Code >= 0x0000f900 && Code <= 0x0000faff)
-			|| (Code >= 0x0002f800 && Code <= 0x0002faff))
-		{
-			// HFS+特有の例外
-			Count = PutNextCharM(pDstCur, pDstEnd, &pDstCur, Code);
-			if(Count > 0)
-				cInfo->OutLen += Count;
-			else
-			{
-				// 出力バッファが不足
-				Continue = YES;
-				break;
-			}
-		}
-		else
-		{
-			// Normalization Form Dに変換
-			Count = MultiByteToWideChar(CP_UTF8, 0, pSrcCur, (int)(pSrcNext - pSrcCur), Temp1, 4);
-			Count = NormalizeString(NormalizationD, Temp1, Count, Temp2, 4);
-			Count = WideCharToMultiByte(CP_UTF8, 0, Temp2, Count, Temp3, 16, NULL, NULL);
-			Temp3Cur = Temp3;
-			Temp3End = Temp3 + Count;
-			TempCount = 0;
-			while(Temp3Cur < Temp3End)
-			{
-				Code = GetNextCharM(Temp3Cur, Temp3End, (LPCSTR*)&Temp3Cur);
-				Count = PutNextCharM(pDstCur, pDstEnd, &pDstCur, Code);
-				if(Count > 0)
-					TempCount += Count;
-				else
-				{
-					// 出力バッファが不足
-					Continue = YES;
-					break;
-				}
-			}
-			cInfo->OutLen += TempCount;
-		}
-		pSrcCur = pSrcNext;
-	}
-	cInfo->Str += (int)(pSrcCur - pSrc) - cInfo->EscUTF8Len;
-	cInfo->StrLen -= (int)(pSrcCur - pSrc) - cInfo->EscUTF8Len;
-	cInfo->EscUTF8Len = 0;
-	free(pSrc);
-	if(Continue == NO)
-	{
-		memcpy(cInfo->EscUTF8, cInfo->Str, sizeof(char) * cInfo->StrLen);
-		cInfo->EscUTF8Len = cInfo->StrLen;
-		cInfo->Str += cInfo->StrLen;
-		cInfo->StrLen = 0;
-		cInfo->FlushProc = ConvUTF8NtoUTF8HFSX;
-	}
-	return YES;
-}
-
-// バグの可能性あり
-// 確認するまで複数個のバッファを用いた変換には用いないこと
-// UTF-8 Nomalization Form DからCへの変換後のバイト列が確定可能な長さを変換後のコードポイントの個数で返す
-// バイナリ            UTF-8       戻り値
-// E3 81 82 E3 81 84   あい     -> 1   あ+結合文字の先頭バイトの可能性（い゛等）
-// E3 81 82 E3 81      あ+E3 81 -> 0   結合文字の先頭バイトの可能性
-// E3 81 82 E3         あ+E3    -> 0   結合文字の先頭バイトの可能性
-// E3 81 82            あ       -> 0   結合文字の先頭バイトの可能性
-int ConvUTF8HFSXtoUTF8N_TruncateToDelimiter(char* pUTF8, int UTF8Length, int* pNewUTF8Length)
-{
-	int UTF16Length;
-	wchar_t* pUTF16;
-	int UTF16HFSXLength;
-	wchar_t* pUTF16HFSX;
-	int CodeCount;
-	int NewCodeCount;
-	int NewUTF16Length;
-	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, NULL, 0);
-	if(!(pUTF16 = (wchar_t*)malloc(sizeof(wchar_t) * UTF16Length)))
-		return -1;
-	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, pUTF16, UTF16Length);
-	UTF16HFSXLength = NormalizeString(NormalizationC, pUTF16, UTF16Length, NULL, 0);
-	if(!(pUTF16HFSX = (wchar_t*)malloc(sizeof(wchar_t) * UTF16HFSXLength)))
-	{
-		free(pUTF16);
-		return -1;
-	}
-	UTF16HFSXLength = NormalizeString(NormalizationC, pUTF16, UTF16Length, pUTF16HFSX, UTF16HFSXLength);
-	// 変換した時にコードポイントの個数が増減する位置がUnicode結合文字の区切り
-	CodeCount = GetCodeCountW(pUTF16HFSX, UTF16HFSXLength);
-	NewCodeCount = CodeCount;
-	while(UTF8Length > 0 && NewCodeCount >= CodeCount)
-	{
-		UTF8Length--;
-		UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, pUTF16, UTF16Length);
-		UTF16HFSXLength = NormalizeString(NormalizationC, pUTF16, UTF16Length, pUTF16HFSX, UTF16HFSXLength);
-		NewCodeCount = GetCodeCountW(pUTF16HFSX, UTF16HFSXLength);
-	}
-	free(pUTF16);
-	free(pUTF16HFSX);
-	// UTF-16 LE変換した時に文字数が増減する位置がUTF-8の区切り
-	if(pNewUTF8Length)
-	{
-		NewUTF16Length = UTF16Length;
-		while(UTF8Length > 0 && NewUTF16Length >= UTF16Length)
-		{
-			UTF8Length--;
-			NewUTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, NULL, 0);
-		}
-		if(UTF16Length > 0)
-			UTF8Length++;
-		*pNewUTF8Length = UTF8Length;
-	}
-	return NewCodeCount;
-}
-
-int ConvUTF8HFSXtoUTF8N(CODECONVINFO *cInfo)
-{
-	int Continue;
-	int SrcLength;
-	char* pSrc;
-	int UTF16Length;
-	wchar_t* pUTF16;
-	int UTF16HFSXLength;
-	wchar_t* pUTF16HFSX;
-	CODECONVINFO Temp;
-	int Count;
-	if(!SupportIdn)
-		return ConvNoConv(cInfo);
-	Continue = NO;
-	// 前回の変換不能な残りの文字列を入力の先頭に結合
-	SrcLength = cInfo->StrLen + cInfo->EscUTF8Len;
-	if(!(pSrc = (char*)malloc(sizeof(char) * (SrcLength + 1))))
-	{
-		*(cInfo->Buf) = '\0';
-		cInfo->BufSize = 0;
-		return Continue;
-	}
-	memcpy(pSrc, cInfo->EscUTF8, sizeof(char) * cInfo->EscUTF8Len);
-	memcpy(pSrc + cInfo->EscUTF8Len, cInfo->Str, sizeof(char) * cInfo->StrLen);
-	*(pSrc + SrcLength) = '\0';
-	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pSrc, SrcLength, NULL, 0);
-	if(!(pUTF16 = (wchar_t*)malloc(sizeof(wchar_t) * UTF16Length)))
-	{
-		free(pSrc);
-		*(cInfo->Buf) = '\0';
-		cInfo->BufSize = 0;
-		return Continue;
-	}
-	MultiByteToWideChar(CP_UTF8, 0, pSrc, SrcLength, pUTF16, UTF16Length);
-	UTF16HFSXLength = NormalizeString(NormalizationC, pUTF16, UTF16Length, NULL, 0);
-	if(!(pUTF16HFSX = (wchar_t*)malloc(sizeof(wchar_t) * UTF16HFSXLength)))
-	{
-		free(pSrc);
-		free(pUTF16);
-		*(cInfo->Buf) = '\0';
-		cInfo->BufSize = 0;
-		return Continue;
-	}
-	UTF16HFSXLength = NormalizeString(NormalizationC, pUTF16, UTF16Length, pUTF16HFSX, UTF16HFSXLength);
-	cInfo->OutLen = WideCharToMultiByte(CP_UTF8, 0, pUTF16HFSX, UTF16HFSXLength, cInfo->Buf, cInfo->BufSize, NULL, NULL);
-	if(cInfo->OutLen == 0 && UTF16HFSXLength > 0)
-	{
-		// バッファに収まらないため変換文字数を半減
-		Temp = *cInfo;
-		Temp.StrLen = cInfo->StrLen / 2;
-		ConvUTF8HFSXtoUTF8N(&Temp);
-		cInfo->OutLen = Temp.OutLen;
-		Count = cInfo->StrLen / 2 + cInfo->EscUTF8Len - Temp.StrLen - Temp.EscUTF8Len;
-		cInfo->Str += Count - cInfo->EscUTF8Len;
-		cInfo->StrLen -= Count - cInfo->EscUTF8Len;
-		cInfo->EscUTF8Len = 0;
-	}
-	else
-	{
-		cInfo->Str += SrcLength - cInfo->EscUTF8Len;
-		cInfo->StrLen -= SrcLength - cInfo->EscUTF8Len;
-		cInfo->EscUTF8Len = 0;
-	}
-	if(ConvUTF8HFSXtoUTF8N_TruncateToDelimiter(cInfo->Str, cInfo->StrLen, NULL) > 0)
-		Continue = YES;
-	else
-	{
-		// 変換不能なため次の入力の先頭に結合
-		memcpy(cInfo->EscUTF8, cInfo->Str, sizeof(char) * cInfo->StrLen);
-		cInfo->EscUTF8Len = cInfo->StrLen;
-		cInfo->Str += cInfo->StrLen;
-		cInfo->StrLen = 0;
-		cInfo->FlushProc = ConvUTF8HFSXtoUTF8N;
-		Continue = NO;
-	}
-	free(pSrc);
-	free(pUTF16);
-	free(pUTF16HFSX);
-	return Continue;
-}
-
 
 /*----- IBM拡張漢字をNEC選定IBM拡張漢字等に変換 -------------------------------
 *
@@ -1643,5 +1280,86 @@ void CodeDetector::Test(std::string_view str) {
 					hfsx = true;
 			}
 		}
+	}
+}
+
+
+static void fullwidth(std::wstring& str) {
+	static std::wregex re{ LR"([\uFF61-\uFF9F]+)" };
+	str = replace<wchar_t>(str, re, [](auto const& m) { return normalize(NormalizationKC, { m[0].first, (size_t)m.length() }); });
+}
+
+
+static auto tohex(std::cmatch const& m) {
+	static char hex[] = "0123456789abcdef";
+	std::string converted;
+	for (auto it = m[0].first; it != m[0].second; ++it) {
+		unsigned char ch = *it;
+		converted += ':';
+		converted += hex[ch >> 4];
+		converted += hex[ch & 15];
+	}
+	return converted;
+}
+
+
+std::string ConvertFrom(std::string_view str, int kanji) {
+	switch (kanji) {
+	case KANJI_SJIS:
+		return convert(str, 932, CP_UTF8, [](auto) {});
+	case KANJI_JIS:
+		return convert(str, 50221, CP_UTF8, [](auto) {});
+	case KANJI_EUC:
+		return convert(str, 51932, CP_UTF8, [](auto) {});
+	case KANJI_SMB_HEX:
+	case KANJI_SMB_CAP: {
+		static std::regex re{ R"(:([0-9A-Fa-f]{2}))" };
+		auto decoded = replace(str, re, [](auto const& m) {
+			char ch;
+			std::from_chars(m[1].first, m[1].second, ch, 16);
+			return ch;
+		});
+		return convert(decoded, 932, CP_UTF8, [](auto) {});
+	}
+	case KANJI_UTF8HFSX:
+		return convert(str, CP_UTF8, CP_UTF8, [](auto& str) { str = normalize(NormalizationC, str); });
+	case KANJI_UTF8N:
+	default:
+		return std::string(str);
+	}
+}
+
+
+std::string ConvertTo(std::string_view str, int kanji, int kana) {
+	switch (kanji) {
+	case KANJI_SJIS:
+		return convert(str, CP_UTF8, 932, [](auto) {});
+	case KANJI_JIS:
+		return convert(str, CP_UTF8, 50221, kana ? fullwidth : [](auto) {});
+	case KANJI_EUC:
+		return convert(str, CP_UTF8, 51932, kana ? fullwidth : [](auto) {});
+	case KANJI_SMB_HEX: {
+		auto sjis = convert(str, CP_UTF8, 932, [](auto) {});
+		static std::regex re{ R"((?:[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]|[\xA1-\xDF])+)" };
+		return replace<char>(sjis, re, tohex);
+	}
+	case KANJI_SMB_CAP: {
+		auto sjis = convert(str, CP_UTF8, 932, [](auto) {});
+		static std::regex re{ R"([\x80-\xFF]+)" };
+		return replace<char>(sjis, re, tohex);
+	}
+	case KANJI_UTF8HFSX:
+		// TODO: fullwidth
+		return convert(str, CP_UTF8, CP_UTF8, [](auto& str) {
+			// HFS+のNFD対象外の範囲
+			// U+02000–U+02FFF       2000-2FFF
+			// U+0F900–U+0FAFF       F900-FAFF
+			// U+2F800–U+2FAFF  D87E DC00-DEFF
+			static std::wregex re{ LR"((.*?)((?:[\u2000-\u2FFF\uF900-\uFAFF]|\uD87E[\uDC00-\uDEFF])+|$))" };
+			str = replace<wchar_t>(str, re, [](auto const& m) { return normalize(NormalizationD, { m[1].first, (size_t)m.length(1) }).append(m[2].first, m[2].second); });
+		});
+	case KANJI_UTF8N:
+	default:
+		return std::string(str);
 	}
 }

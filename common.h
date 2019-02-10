@@ -58,10 +58,12 @@
 #include <stdlib.h>
 #include <time.h>
 #include <Windows.h>
+#include <ObjBase.h>			// for COM interface, define `interface` macro.
 #include <windowsx.h>
 #include <winsock2.h>
 #include <commdlg.h>
 #include <HtmlHelp.h>
+#include <MLang.h>
 #include <MMSystem.h>
 #include <mstcpip.h>
 #include <shellapi.h>
@@ -308,7 +310,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 /*===== 初期値 =====*/
 
-#define SAMBA_HEX_TAG	':'				/* Samba-HEX の区切り文字 */
 #define CHMOD_CMD_NOR	"SITE CHMOD"	/* 属性変更コマンド */
 #define PORT_NOR		21				/* ポート番号 */
 #define LS_FNAME		"-alL"			/* NLSTに付けるもの */
@@ -1730,8 +1731,6 @@ int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
 char *ReturnWSError(UINT Error);
 void ReportWSError(char *Msg, UINT Error);
-int ChangeFnameRemote2Local(char *Fname, int Max);
-int ChangeFnameLocal2Remote(char *Fname, int Max);
 
 /*===== getput.c =====*/
 
@@ -1786,23 +1785,17 @@ public:
 };
 
 std::string ToCRLF(std::string_view source);
+std::string ConvertFrom(std::string_view str, int kanji);
+std::string ConvertTo(std::string_view str, int kanji, int kana);
 
 void InitCodeConvInfo(CODECONVINFO *cInfo);
 int FlushRestData(CODECONVINFO *cInfo);
-// UTF-8対応
-int ConvNoConv(CODECONVINFO *cInfo);
 int ConvEUCtoSJIS(CODECONVINFO *cInfo);
 int ConvJIStoSJIS(CODECONVINFO *cInfo);
-int ConvSMBtoSJIS(CODECONVINFO *cInfo);
 int ConvUTF8NtoSJIS(CODECONVINFO *cInfo); // UTF-8対応
 int ConvSJIStoEUC(CODECONVINFO *cInfo);
 int ConvSJIStoJIS(CODECONVINFO *cInfo);
-int ConvSJIStoSMB_HEX(CODECONVINFO *cInfo);
-int ConvSJIStoSMB_CAP(CODECONVINFO *cInfo);
 int ConvSJIStoUTF8N(CODECONVINFO *cInfo); // UTF-8対応
-// UTF-8 HFS+対応
-int ConvUTF8NtoUTF8HFSX(CODECONVINFO *cInfo);
-int ConvUTF8HFSXtoUTF8N(CODECONVINFO *cInfo);
 
 /*===== option.c =====*/
 
@@ -2013,6 +2006,18 @@ static inline auto u8(std::basic_string<Char, Traits, Allocator> const& str) {
 }
 static auto ieq(std::wstring const& left, std::wstring const& right) {
 	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::towupper(l) == std::towupper(r); });
+}
+template<class Char, class Evaluator>
+static inline auto replace(std::basic_string_view<Char> input, std::basic_regex<Char> const& pattern, Evaluator&& evaluator) {
+	std::basic_string<Char> replaced;
+	auto last = data(input);
+	for (std::regex_iterator<const Char*> it{ data(input), data(input) + size(input), pattern }, end; it != end; ++it) {
+		replaced.append(last, (*it)[0].first);
+		replaced += evaluator(*it);
+		last = (*it)[0].second;
+	}
+	replaced.append(last, data(input) + size(input));
+	return replaced;
 }
 static inline auto Message(HWND owner, HINSTANCE instance, int textId, int captionId, DWORD style) {
 	MSGBOXPARAMSW msgBoxParams{ sizeof MSGBOXPARAMSW, owner, instance, MAKEINTRESOURCEW(textId), MAKEINTRESOURCEW(captionId), style, nullptr, 0, nullptr, LANG_NEUTRAL };
