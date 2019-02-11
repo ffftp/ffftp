@@ -1,50 +1,5 @@
-﻿/*=============================================================================
-*
-*							漢字コード変換／改行コード変換
-*
-===============================================================================
-/ Copyright (C) 1997-2007 Sota. All rights reserved.
-/
-/ Redistribution and use in source and binary forms, with or without 
-/ modification, are permitted provided that the following conditions 
-/ are met:
-/
-/  1. Redistributions of source code must retain the above copyright 
-/     notice, this list of conditions and the following disclaimer.
-/  2. Redistributions in binary form must reproduce the above copyright 
-/     notice, this list of conditions and the following disclaimer in the 
-/     documentation and/or other materials provided with the distribution.
-/
-/ THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR 
-/ IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
-/ OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
-/ IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
-/ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
-/ BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF 
-/ USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
-/ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-/ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
-/ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-/============================================================================*/
-
+﻿// Copyright(C) 2019 Kurata Sayuri. All rights reserved.
 #include "common.h"
-
-
-#define CONV_ASCII		0		/* ASCII文字処理中 */
-#define CONV_KANJI		1		/* 漢字処理中 */
-#define CONV_KANA		2		/* 半角カタカナ処理中 */
-
-
-/*===== プロトタイプ =====*/
-
-static char *ConvEUCtoSJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put);
-static char *ConvJIStoSJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put);
-static char *ConvSJIStoEUCkanaProc(CODECONVINFO *cInfo, char Dt, char *Put);
-static char *ConvSJIStoJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put);
-static int HanKataToZen(char Ch);
-static int AskDakuon(char Ch, char Daku);
-
-static int ConvertIBMExtendedChar(int code);
 
 
 // 改行コードをCRLFに変換
@@ -94,1152 +49,6 @@ static auto convert(std::string_view input, DWORD incp, DWORD outcp, void (*upda
 			return output;
 		}
 	}
-}
-
-
-/*----- 漢字コード変換情報を初期化 --------------------------------------------
-*
-*	Parameter
-*		CODECONVINFO *cInfo : 漢字コード変換情報
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void InitCodeConvInfo(CODECONVINFO *cInfo)
-{
-	cInfo->KanaCnv = YES;
-
-	cInfo->EscProc = 0;
-	cInfo->KanjiMode = CONV_ASCII;
-	cInfo->KanjiFst = 0;
-	cInfo->KanaPrev = 0;
-	cInfo->KanaProc = NULL;
-	// UTF-8対応
-	cInfo->EscUTF8Len = 0;
-	cInfo->EscFlush = NO;
-	cInfo->FlushProc = NULL;
-	return;
-}
-
-
-/*----- 漢字コード変換の残り情報を出力 ----------------------------------------
-*
-*	Parameter
-*		CODECONVINFO *cInfo : 漢字コード変換情報
-*
-*	Return Value
-*		int くり返しフラグ (=NO)
-*
-*	Note
-*		漢字コード変換の最後に呼ぶ事
-*----------------------------------------------------------------------------*/
-
-int FlushRestData(CODECONVINFO *cInfo)
-{
-	char *Put;
-
-	// UTF-8対応
-	if(cInfo->FlushProc != NULL)
-	{
-		cInfo->EscFlush = YES;
-		return cInfo->FlushProc(cInfo);
-	}
-
-	Put = cInfo->Buf;
-
-	if(cInfo->KanaProc != NULL)
-		Put = (cInfo->KanaProc)(cInfo, 0, Put);
-
-	if(cInfo->KanjiFst != 0)
-		*Put++ = cInfo->KanjiFst;
-	if(cInfo->EscProc >= 1)
-		*Put++ = cInfo->EscCode[0];
-	if(cInfo->EscProc == 2)
-		*Put++ = cInfo->EscCode[1];
-
-	cInfo->OutLen = (int)(Put - cInfo->Buf);
-
-	return(NO);
-}
-
-
-// UTF-8対応
-int ConvNoConv(CODECONVINFO *cInfo)
-{
-	int Continue;
-	Continue = NO;
-	if(cInfo->BufSize >= cInfo->StrLen)
-		cInfo->OutLen = cInfo->StrLen;
-	else
-	{
-		cInfo->OutLen = cInfo->BufSize;
-		Continue = YES;
-	}
-	memcpy(cInfo->Buf, cInfo->Str, sizeof(char) * cInfo->OutLen);
-	cInfo->Str += cInfo->OutLen;
-	cInfo->StrLen -= cInfo->OutLen;
-	return Continue;
-}
-
-/*----- EUC漢字コードをSHIFT-JIS漢字コードに変換 ------------------------------
-*
-*	Parameter
-*		CODECONVINFO *cInfo : 漢字コード変換情報
-*
-*	Return Value
-*		int くり返しフラグ (YES/NO)
-*
-*	Note
-*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
-*----------------------------------------------------------------------------*/
-
-int ConvEUCtoSJIS(CODECONVINFO *cInfo)
-{
-	int Kcode;
-	char *Str;
-	char *Put;
-	char *Limit;
-	int Continue;
-
-	cInfo->KanaProc = &ConvEUCtoSJISkanaProc;
-
-	Continue = NO;
-	Str = cInfo->Str;
-	Put = cInfo->Buf;
-	Limit = cInfo->Buf + cInfo->BufSize - 2;
-
-	for(; cInfo->StrLen > 0; cInfo->StrLen--)
-	{
-		if(Put >= Limit)
-		{
-			Continue = YES;
-			break;
-		}
-
-		if((*Str & 0x80) != 0)
-		{
-			if(cInfo->KanjiFst == 0)
-				cInfo->KanjiFst = *Str++;
-			else
-			{
-				if((uchar)cInfo->KanjiFst == (uchar)0x8E)	/* 半角カタカナ */
-				{
-					Put = ConvEUCtoSJISkanaProc(cInfo, *Str++, Put);
-				}
-				else
-				{
-					Put = ConvEUCtoSJISkanaProc(cInfo, 0, Put);
-
-					Kcode = _mbcjistojms(((cInfo->KanjiFst & 0x7F) * 0x100) + (*Str++ & 0x7F));
-					*Put++ = HIGH8(Kcode);
-					*Put++ = LOW8(Kcode);
-				}
-				cInfo->KanjiFst = 0;
-			}
-		}
-		else
-		{
-			Put = ConvEUCtoSJISkanaProc(cInfo, 0, Put);
-
-			if(cInfo->KanjiFst != 0)
-			{
-				*Put++ = cInfo->KanjiFst;
-				cInfo->KanjiFst = 0;
-			}
-			*Put++ = *Str++;
-		}
-	}
-
-	cInfo->Str = Str;
-	cInfo->OutLen = (int)(Put - cInfo->Buf);
-
-	return(Continue);
-}
-
-
-/*----- EUC-->SHIFT-JIS漢字コードに変換の半角カタカナの処理 -------------------
-*
-*	Parameter
-*		CODECONVINFO *cInfo : 漢字コード変換情報
-*		char Dt : 文字
-*		char *Put : データセット位置
-*
-*	Return Value
-*		char *次のデータセット位置
-*----------------------------------------------------------------------------*/
-
-static char *ConvEUCtoSJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put)
-{
-	int Kcode;
-	int Daku;
-
-	if(cInfo->KanaCnv == NO)
-	{
-		if(Dt != 0)
-			*Put++ = Dt;
-	}
-	else
-	{
-		if(cInfo->KanaPrev != 0)
-		{
-			Daku = AskDakuon(cInfo->KanaPrev, Dt);
-
-			Kcode = _mbcjistojms(HanKataToZen(cInfo->KanaPrev)) + Daku;
-			*Put++ = HIGH8(Kcode);
-			*Put++ = LOW8(Kcode);
-
-			if(Daku == 0)
-				cInfo->KanaPrev = Dt;
-			else
-				cInfo->KanaPrev = 0;
-		}
-		else
-			cInfo->KanaPrev = Dt;
-	}
-	return(Put);
-}
-
-
-/*----- JIS漢字コードをSHIFT-JIS漢字コードに変換 ------------------------------
-*
-*	Parameter
-*		CODECONVINFO *cInfo : 漢字コード変換情報
-*
-*	Return Value
-*		int くり返しフラグ (YES/NO)
-*
-*	Note
-*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
-*
-*		エスケープコードは、次のものに対応している
-*			漢字開始		<ESC>$B		<ESC>$@
-*			半角カナ開始	<ESC>(I
-*			漢字終了		<ESC>(B		<ESC>(J		<ESC>(H
-*----------------------------------------------------------------------------*/
-
-int ConvJIStoSJIS(CODECONVINFO *cInfo)
-{
-	int Kcode;
-	char *Str;
-	char *Put;
-	char *Limit;
-	int Continue;
-
-	cInfo->KanaProc = &ConvJIStoSJISkanaProc;
-
-	Continue = NO;
-	Str = cInfo->Str;
-	Put = cInfo->Buf;
-	Limit = cInfo->Buf + cInfo->BufSize - 3;
-
-	for(; cInfo->StrLen > 0; cInfo->StrLen--)
-	{
-		if(Put >= Limit)
-		{
-			Continue = YES;
-			break;
-		}
-
-		if(cInfo->EscProc == 0)
-		{
-			if(*Str == 0x1B)
-			{
-				if(cInfo->KanjiFst != 0)
-				{
-					*Put++ = cInfo->KanjiFst;
-					cInfo->KanjiFst = 0;
-				}
-				Put = ConvJIStoSJISkanaProc(cInfo, 0, Put);
-
-				cInfo->EscCode[cInfo->EscProc] = *Str++;
-				cInfo->EscProc++;
-			}
-			else
-			{
-				if(cInfo->KanjiMode == CONV_KANA)
-				{
-					if(cInfo->KanjiFst != 0)
-					{
-						*Put++ = cInfo->KanjiFst;
-						cInfo->KanjiFst = 0;
-					}
-
-					if((*Str >= 0x21) && (*Str <= 0x5F))
-					{
-						Put = ConvJIStoSJISkanaProc(cInfo, *Str++, Put);
-					}
-					else
-					{
-						Put = ConvJIStoSJISkanaProc(cInfo, 0, Put);
-						*Put++ = *Str++;
-					}
-				}
-				else if(cInfo->KanjiMode == CONV_KANJI)
-				{
-					Put = ConvJIStoSJISkanaProc(cInfo, 0, Put);
-					if((*Str >= 0x21) && (*Str <= 0x7E))
-					{
-						if(cInfo->KanjiFst == 0)
-							cInfo->KanjiFst = *Str++;
-						else
-						{
-							Kcode = _mbcjistojms((cInfo->KanjiFst * 0x100) + *Str++);
-							*Put++ = HIGH8(Kcode);
-							*Put++ = LOW8(Kcode);
-							cInfo->KanjiFst = 0;
-						}
-					}
-					else
-					{
-						if(cInfo->KanjiFst == 0)
-							*Put++ = *Str++;
-						else
-						{
-							*Put++ = cInfo->KanjiFst;
-							*Put++ = *Str++;
-							cInfo->KanjiFst = 0;
-						}
-					}
-				}
-				else
-				{
-					Put = ConvJIStoSJISkanaProc(cInfo, 0, Put);
-					*Put++ = *Str++;
-				}
-			}
-		}
-		else if(cInfo->EscProc == 1)
-		{
-			if((*Str == '$') || (*Str == '('))
-			{
-				cInfo->EscCode[cInfo->EscProc] = *Str++;
-				cInfo->EscProc++;
-			}
-			else
-			{
-				*Put++ = cInfo->EscCode[0];
-				*Put++ = *Str++;
-				cInfo->EscProc = 0;
-			}
-		}
-		else if(cInfo->EscProc == 2)
-		{
-			if((cInfo->EscCode[1] == '$') && ((*Str == 'B') || (*Str == '@')))
-				cInfo->KanjiMode = CONV_KANJI;
-			else if((cInfo->EscCode[1] == '(') && (*Str == 'I'))
-				cInfo->KanjiMode = CONV_KANA;
-			else if((cInfo->EscCode[1] == '(') && ((*Str == 'B') || (*Str == 'J') || (*Str == 'H')))
-				cInfo->KanjiMode = CONV_ASCII;
-			else
-			{
-				*Put++ = cInfo->EscCode[0];
-				*Put++ = cInfo->EscCode[1];
-				if((cInfo->KanjiMode == CONV_KANJI) && ((*Str >= 0x21) && (*Str <= 0x7E)))
-					cInfo->KanjiFst = *Str;
-				else
-					*Put++ = *Str;
-			}
-			Str++;
-			cInfo->EscProc = 0;
-		}
-	}
-
-	cInfo->Str = Str;
-	cInfo->OutLen = (int)(Put - cInfo->Buf);
-
-	return(Continue);
-}
-
-
-/*----- JIS-->SHIFT-JIS漢字コードに変換の半角カタカナの処理 -------------------
-*
-*	Parameter
-*		CODECONVINFO *cInfo : 漢字コード変換情報
-*		char Dt : 文字
-*		char *Put : データセット位置
-*
-*	Return Value
-*		char *次のデータセット位置
-*----------------------------------------------------------------------------*/
-
-static char *ConvJIStoSJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put)
-{
-	int Kcode;
-	int Daku;
-
-	Dt = (uchar)Dt + (uchar)0x80;
-	if(cInfo->KanaCnv == NO)
-	{
-		if((uchar)Dt != (uchar)0x80)
-			*Put++ = Dt;
-	}
-	else
-	{
-		if(cInfo->KanaPrev != 0)
-		{
-			Daku = AskDakuon(cInfo->KanaPrev, Dt);
-			Kcode = _mbcjistojms(HanKataToZen(cInfo->KanaPrev)) + Daku;
-			*Put++ = HIGH8(Kcode);
-			*Put++ = LOW8(Kcode);
-
-			if((Daku == 0) && ((uchar)Dt != (uchar)0x80))
-				cInfo->KanaPrev = Dt;
-			else
-				cInfo->KanaPrev = 0;
-		}
-		else if((uchar)Dt != (uchar)0x80)
-			cInfo->KanaPrev = Dt;
-	}
-	return(Put);
-}
-
-
-/*----- SHIFT-JIS漢字コードをEUC漢字コードに変換 ------------------------------
-*
-*	Parameter
-*		CODECONVINFO *cInfo : 漢字コード変換情報
-*
-*	Return Value
-*		int くり返しフラグ (YES/NO)
-*
-*	Note
-*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
-*----------------------------------------------------------------------------*/
-
-int ConvSJIStoEUC(CODECONVINFO *cInfo)
-{
-	int Kcode;
-	char *Str;
-	char *Put;
-	char *Limit;
-	int Continue;
-
-	cInfo->KanaProc = &ConvSJIStoEUCkanaProc;
-
-	Continue = NO;
-	Str = cInfo->Str;
-	Put = cInfo->Buf;
-	Limit = cInfo->Buf + cInfo->BufSize - 2;
-
-	for(; cInfo->StrLen > 0; cInfo->StrLen--)
-	{
-		if(Put >= Limit)
-		{
-			Continue = YES;
-			break;
-		}
-
-		if(cInfo->KanjiFst == 0)
-		{
-			if((((uchar)*Str >= (uchar)0x81) && ((uchar)*Str <= (uchar)0x9F)) ||
-			   ((uchar)*Str >= (uchar)0xE0))
-			{
-				Put = ConvSJIStoEUCkanaProc(cInfo, 0, Put);
-				cInfo->KanjiFst = *Str++;
-			}
-			else if(((uchar)*Str >= (uchar)0xA0) && ((uchar)*Str <= (uchar)0xDF))
-			{
-				Put = ConvSJIStoEUCkanaProc(cInfo, *Str++, Put);
-			}
-			else
-			{
-				Put = ConvSJIStoEUCkanaProc(cInfo, 0, Put);
-				*Put++ = *Str++;
-			}
-		}
-		else
-		{
-			if((uchar)*Str >= (uchar)0x40)
-			{
-				Kcode = ConvertIBMExtendedChar(((uchar)cInfo->KanjiFst * 0x100) + (uchar)*Str++);
-				Kcode = _mbcjmstojis(Kcode);
-				*Put++ = HIGH8(Kcode) | 0x80;
-				*Put++ = LOW8(Kcode) | 0x80;
-			}
-			else
-			{
-				*Put++ = cInfo->KanjiFst;
-				*Put++ = *Str++;
-			}
-			cInfo->KanjiFst = 0;
-		}
-	}
-
-	cInfo->Str = Str;
-	cInfo->OutLen = (int)(Put - cInfo->Buf);
-
-	return(Continue);
-}
-
-
-/*----- SHIFT-JIS-->EUC漢字コードに変換の半角カタカナの処理 -------------------
-*
-*	Parameter
-*		CODECONVINFO *cInfo : 漢字コード変換情報
-*		char Dt : 文字
-*		char *Put : データセット位置
-*
-*	Return Value
-*		char *次のデータセット位置
-*----------------------------------------------------------------------------*/
-
-static char *ConvSJIStoEUCkanaProc(CODECONVINFO *cInfo, char Dt, char *Put)
-{
-	int Kcode;
-	int Daku;
-
-	if(cInfo->KanaCnv == NO)
-	{
-		if(Dt != 0)
-		{
-			Kcode = 0x8E00 + (uchar)Dt;
-			*Put++ = HIGH8(Kcode) | 0x80;
-			*Put++ = LOW8(Kcode) | 0x80;
-		}
-	}
-	else
-	{
-		if(cInfo->KanaPrev != 0)
-		{
-			Daku = AskDakuon(cInfo->KanaPrev, Dt);
-			Kcode = HanKataToZen(cInfo->KanaPrev) + Daku;
-			*Put++ = HIGH8(Kcode) | 0x80;
-			*Put++ = LOW8(Kcode) | 0x80;
-
-			if(Daku == 0)
-				cInfo->KanaPrev = Dt;
-			else
-				cInfo->KanaPrev = 0;
-		}
-		else
-			cInfo->KanaPrev = Dt;
-	}
-	return(Put);
-}
-
-
-/*----- SHIFT-JIS漢字コードをJIS漢字コードに変換 ------------------------------
-*
-*	Parameter
-*		CODECONVINFO *cInfo : 漢字コード変換情報
-*
-*	Return Value
-*		int くり返しフラグ (YES/NO)
-*
-*	Note
-*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
-*
-*		エスケープコードは、次のものを使用する
-*			漢字開始		<ESC>$B
-*			半角カナ開始	<ESC>(I
-*			漢字終了		<ESC>(B
-*----------------------------------------------------------------------------*/
-
-int ConvSJIStoJIS(CODECONVINFO *cInfo)
-{
-	int Kcode;
-	char *Str;
-	char *Put;
-	char *Limit;
-	int Continue;
-
-	cInfo->KanaProc = &ConvSJIStoJISkanaProc;
-
-	Continue = NO;
-	Str = cInfo->Str;
-	Put = cInfo->Buf;
-	Limit = cInfo->Buf + cInfo->BufSize - 5;
-
-	for(; cInfo->StrLen > 0; cInfo->StrLen--)
-	{
-		if(Put >= Limit)
-		{
-			Continue = YES;
-			break;
-		}
-
-		if(cInfo->KanjiFst == 0)
-		{
-			if((((uchar)*Str >= (uchar)0x81) && ((uchar)*Str <= (uchar)0x9F)) ||
-			   ((uchar)*Str >= (uchar)0xE0))
-			{
-				Put = ConvSJIStoJISkanaProc(cInfo, 0, Put);
-				cInfo->KanjiFst = *Str++;
-			}
-			else if(((uchar)*Str >= (uchar)0xA0) && ((uchar)*Str <= (uchar)0xDF))
-			{
-				Put = ConvSJIStoJISkanaProc(cInfo, *Str++, Put);
-			}
-			else
-			{
-				Put = ConvSJIStoJISkanaProc(cInfo, 0, Put);
-				if(cInfo->KanjiMode != CONV_ASCII)
-				{
-					*Put++ = 0x1B;
-					*Put++ = '(';
-					*Put++ = 'B';
-					cInfo->KanjiMode = CONV_ASCII;
-				}
-				*Put++ = *Str++;
-			}
-		}
-		else
-		{
-			Put = ConvSJIStoJISkanaProc(cInfo, 0, Put);
-			if((uchar)*Str >= (uchar)0x40)
-			{
-				if(cInfo->KanjiMode != CONV_KANJI)
-				{
-					*Put++ = 0x1B;
-					*Put++ = '$';
-					*Put++ = 'B';
-					cInfo->KanjiMode = CONV_KANJI;
-				}
-
-				Kcode = ConvertIBMExtendedChar(((uchar)cInfo->KanjiFst * 0x100) + (uchar)*Str++);
-				Kcode = _mbcjmstojis(Kcode);
-				*Put++ = HIGH8(Kcode);
-				*Put++ = LOW8(Kcode);
-			}
-			else
-			{
-				if(cInfo->KanjiMode != CONV_ASCII)
-				{
-					*Put++ = 0x1B;
-					*Put++ = '(';
-					*Put++ = 'B';
-					cInfo->KanjiMode = CONV_ASCII;
-				}
-				*Put++ = cInfo->KanjiFst;
-				*Put++ = *Str++;
-			}
-			cInfo->KanjiFst = 0;
-		}
-	}
-
-	cInfo->Str = Str;
-	cInfo->OutLen = (int)(Put - cInfo->Buf);
-
-	return(Continue);
-}
-
-
-/*----- SHIFT-JIS-->JIS漢字コードに変換の半角カタカナの処理 -------------------
-*
-*	Parameter
-*		CODECONVINFO *cInfo : 漢字コード変換情報
-*		char Dt : 文字
-*		char *Put : データセット位置
-*
-*	Return Value
-*		char *次のデータセット位置
-*----------------------------------------------------------------------------*/
-
-static char *ConvSJIStoJISkanaProc(CODECONVINFO *cInfo, char Dt, char *Put)
-{
-	int Kcode;
-	int Daku;
-
-	if(cInfo->KanaCnv == NO)
-	{
-		if(Dt != 0)
-		{
-			if(cInfo->KanjiMode != CONV_KANA)
-			{
-				*Put++ = 0x1B;
-				*Put++ = '(';
-				*Put++ = 'I';
-				cInfo->KanjiMode = CONV_KANA;
-			}
-			*Put++ = (uchar)Dt - (uchar)0x80;
-		}
-	}
-	else
-	{
-		if(cInfo->KanaPrev != 0)
-		{
-			if(cInfo->KanjiMode != CONV_KANJI)
-			{
-				*Put++ = 0x1B;
-				*Put++ = '$';
-				*Put++ = 'B';
-				cInfo->KanjiMode = CONV_KANJI;
-			}
-			Daku = AskDakuon(cInfo->KanaPrev, Dt);
-			Kcode = HanKataToZen(cInfo->KanaPrev) + Daku;
-			*Put++ = HIGH8(Kcode);
-			*Put++ = LOW8(Kcode);
-
-			if(Daku == 0)
-				cInfo->KanaPrev = Dt;
-			else
-				cInfo->KanaPrev = 0;
-		}
-		else
-			cInfo->KanaPrev = Dt;
-	}
-	return(Put);
-}
-
-
-/*----- １バイトカタカナをJIS漢字コードに変換 ---------------------------------
-*
-*	Parameter
-*		char Ch : １バイトカタカナコード
-*
-*	Return Value
-*		int JIS漢字コード
-*----------------------------------------------------------------------------*/
-
-static int HanKataToZen(char Ch)
-{
-	static const int Katakana[] = {
-		0x2121, 0x2123, 0x2156, 0x2157, 0x2122, 0x2126, 0x2572, 0x2521, 
-		0x2523, 0x2525, 0x2527, 0x2529, 0x2563, 0x2565, 0x2567, 0x2543, 
-		0x213C, 0x2522, 0x2524, 0x2526, 0x2528, 0x252A, 0x252B, 0x252D, 
-		0x252F, 0x2531, 0x2533, 0x2535, 0x2537, 0x2539, 0x253B, 0x253D, 
-		0x253F, 0x2541, 0x2544, 0x2546, 0x2548, 0x254A, 0x254B, 0x254C, 
-		0x254D, 0x254E, 0x254F, 0x2552, 0x2555, 0x2558, 0x255B, 0x255E, 
-		0x255F, 0x2560, 0x2561, 0x2562, 0x2564, 0x2566, 0x2568, 0x2569, 
-		0x256A, 0x256B, 0x256C, 0x256D, 0x256F, 0x2573, 0x212B, 0x212C
-	};
-
-	return(Katakana[(uchar)Ch - (uchar)0xA0]);
-}
-
-
-/*----- 濁音／半濁音になる文字かチェック --------------------------------------
-*
-*	Parameter
-*		char Ch : １バイトカタカナコード
-*		char Daku : 濁点／半濁点
-*
-*	Return Value
-*		int 文字コードに加える値 (0=濁音／半濁音にならない)
-*----------------------------------------------------------------------------*/
-
-static int AskDakuon(char Ch, char Daku)
-{
-	int Ret;
-
-	Ret = 0;
-	if((uchar)Daku == (uchar)0xDE)
-	{
-		if((((uchar)Ch >= (uchar)0xB6) && ((uchar)Ch <= (uchar)0xC4)) ||
-		   (((uchar)Ch >= (uchar)0xCA) && ((uchar)Ch <= (uchar)0xCE)))
-		{
-			Ret = 1;
-		}
-	}
-	else if((uchar)Daku == (uchar)0xDF)
-	{
-		if(((uchar)Ch >= (uchar)0xCA) && ((uchar)Ch <= (uchar)0xCE))
-		{
-			Ret = 2;
-		}
-	}
-	return(Ret);
-}
-
-
-// UTF-8対応 ここから↓
-/*----- UTF-8漢字コードをSHIFT-JIS漢字コードに変換 ------------------------------
-*
-*	Parameter
-*		CODECONVINFO *cInfo : 漢字コード変換情報
-*
-*	Return Value
-*		int くり返しフラグ (YES/NO)
-*
-*	Note
-*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
-*----------------------------------------------------------------------------*/
-
-// UTF-8対応
-// UTF-8からShift_JISへの変換後のバイト列が確定可能な長さを変換後の長さで返す
-// バイナリ            UTF-8       戻り値 Shift_JIS
-// E3 81 82 E3 81 84   あい     -> 2      82 A0   あ+結合文字の先頭バイトの可能性（い゛等）
-// E3 81 82 E3 81      あ+E3 81 -> 0              結合文字の先頭バイトの可能性
-// E3 81 82 E3         あ+E3    -> 0              結合文字の先頭バイトの可能性
-// E3 81 82            あ       -> 0              結合文字の先頭バイトの可能性
-int ConvUTF8NtoSJIS_TruncateToDelimiter(char* pUTF8, int UTF8Length, int* pNewUTF8Length)
-{
-	int UTF16Length;
-	wchar_t* pUTF16;
-	int SJISLength;
-	int NewSJISLength;
-	int NewUTF16Length;
-	// UTF-8の場合、不完全な文字は常に変換されない
-	// バイナリ            UTF-8       バイナリ      UTF-16 LE
-	// E3 81 82 E3 81 84   あい     -> 42 30 44 30   あい
-	// E3 81 82 E3 81      あ+E3 81 -> 42 30         あ
-	// E3 81 82 E3         あ+E3    -> 42 30         あ
-	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, NULL, 0);
-	if(!(pUTF16 = (wchar_t*)malloc(sizeof(wchar_t) * UTF16Length)))
-		return -1;
-	// Shift_JISへ変換した時に文字数が増減する位置がUnicode結合文字の区切り
-	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, pUTF16, UTF16Length);
-	SJISLength = WideCharToMultiByte(CP_ACP, 0, pUTF16, UTF16Length, NULL, 0, NULL, NULL);
-	NewSJISLength = SJISLength;
-	while(UTF8Length > 0 && NewSJISLength >= SJISLength)
-	{
-		UTF8Length--;
-		UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, pUTF16, UTF16Length);
-		NewSJISLength = WideCharToMultiByte(CP_ACP, 0, pUTF16, UTF16Length, NULL, 0, NULL, NULL);
-	}
-	free(pUTF16);
-	// UTF-16 LE変換した時に文字数が増減する位置がUTF-8の区切り
-	if(pNewUTF8Length)
-	{
-		NewUTF16Length = UTF16Length;
-		while(UTF8Length > 0 && NewUTF16Length >= UTF16Length)
-		{
-			UTF8Length--;
-			NewUTF16Length = MultiByteToWideChar(CP_UTF8, 0, pUTF8, UTF8Length, NULL, 0);
-		}
-		if(UTF16Length > 0)
-			UTF8Length++;
-		*pNewUTF8Length = UTF8Length;
-	}
-	return NewSJISLength;
-}
-
-int ConvUTF8NtoSJIS(CODECONVINFO *cInfo)
-{
-	int Continue;
-
-//	char temp_string[2048];
-//	int string_length;
-
-	// 大きいサイズに対応
-	// 終端のNULLを含むバグを修正
-	int SrcLength;
-	char* pSrc;
-	wchar_t* pUTF16;
-	int UTF16Length;
-
-	Continue = NO;
-
-	// 生成される中間コードのサイズを調べる
-//	string_length = MultiByteToWideChar(
-//						CP_UTF8,		// 変換先文字コード
-//						0,				// フラグ(0:なし)
-//						cInfo->Str,		// 変換元文字列
-//						-1,				// 変換元文字列バイト数(-1:自動)
-//						NULL,			// 変換した文字列の格納先
-//						0				// 格納先サイズ
-//					);
-	// 前回の変換不能な残りの文字列を入力の先頭に結合
-	SrcLength = cInfo->StrLen + cInfo->EscUTF8Len;
-	if(!(pSrc = (char*)malloc(sizeof(char) * (SrcLength + 1))))
-	{
-		*(cInfo->Buf) = '\0';
-		cInfo->BufSize = 0;
-		return Continue;
-	}
-	memcpy(pSrc, cInfo->EscUTF8, sizeof(char) * cInfo->EscUTF8Len);
-	memcpy(pSrc + cInfo->EscUTF8Len, cInfo->Str, sizeof(char) * cInfo->StrLen);
-	*(pSrc + SrcLength) = '\0';
-	if(cInfo->EscFlush == NO)
-	{
-		// バッファに収まらないため変換文字数を半減
-		while(SrcLength > 0 && ConvUTF8NtoSJIS_TruncateToDelimiter(pSrc, SrcLength, &SrcLength) > cInfo->BufSize)
-		{
-			SrcLength = SrcLength / 2;
-		}
-	}
-	UTF16Length = MultiByteToWideChar(CP_UTF8, 0, pSrc, SrcLength, NULL, 0);
-
-	// サイズ0 or バッファサイズより大きい場合は
-	// cInfo->Bufの最初に'\0'を入れて、
-	// cInfo->BufSizeに0を入れて返す。
-//	if( string_length == 0 ||
-//		string_length >= 1024 ){
-//		*(cInfo->Buf) = '\0';
-//		cInfo->BufSize = 0;
-//		return(Continue);
-//	}
-	if(!(pUTF16 = (wchar_t*)malloc(sizeof(wchar_t) * UTF16Length)))
-	{
-		free(pSrc);
-		*(cInfo->Buf) = '\0';
-		cInfo->BufSize = 0;
-		return Continue;
-	}
-
-	// 中間コード(unicode)に変換
-//	MultiByteToWideChar(
-//		CP_UTF8,						// 変換先文字コード
-//		0,								// フラグ(0:なし)
-//		cInfo->Str,						// 変換元文字列
-//		-1,								// 変換元文字列バイト数(-1:自動)
-//		(unsigned short *)temp_string,	// 変換した文字列の格納先
-//		1024							// 格納先サイズ
-//	);
-	MultiByteToWideChar(CP_UTF8, 0, pSrc, SrcLength, pUTF16, UTF16Length);
-
-	// 生成されるUTF-8コードのサイズを調べる
-//	string_length = WideCharToMultiByte(
-//						CP_ACP,			// 変換先文字コード
-//						0,				// フラグ(0:なし)
-//						(unsigned short *)temp_string,	// 変換元文字列
-//						-1,				// 変換元文字列バイト数(-1:自動)
-//						NULL,			// 変換した文字列の格納先
-//						0,				// 格納先サイズ
-//						NULL,NULL
-//					);
-
-	// サイズ0 or 出力バッファサイズより大きい場合は、
-	// cInfo->Bufの最初に'\0'を入れて、
-	// cInfo->BufSizeに0を入れて返す。
-//	if( string_length == 0 ||
-//		string_length >= cInfo->BufSize ){
-//		*(cInfo->Buf) = '\0';
-//		cInfo->BufSize = 0;
-//		return(Continue);
-//	}
-
-	// 出力サイズを設定
-//	cInfo->OutLen = string_length;
-
-	// UTF-8コードに変換
-//	WideCharToMultiByte(
-//		CP_ACP,							// 変換先文字コード
-//		0,								// フラグ(0:なし)
-//		(unsigned short *)temp_string,	// 変換元文字列
-//		-1,								// 変換元文字列バイト数(-1:自動)
-//		cInfo->Buf,						// 変換した文字列の格納先(BOM:3bytes)
-//		cInfo->BufSize,					// 格納先サイズ
-//		NULL,NULL
-//	);
-	cInfo->OutLen = WideCharToMultiByte(CP_ACP, 0, pUTF16, UTF16Length, cInfo->Buf, cInfo->BufSize, NULL, NULL);
-	cInfo->Str += SrcLength - cInfo->EscUTF8Len;
-	cInfo->StrLen -= SrcLength - cInfo->EscUTF8Len;
-	cInfo->EscUTF8Len = 0;
-	if(ConvUTF8NtoSJIS_TruncateToDelimiter(cInfo->Str, cInfo->StrLen, NULL) > 0)
-		Continue = YES;
-	else
-	{
-		// 変換不能なため次の入力の先頭に結合
-		memcpy(cInfo->EscUTF8, cInfo->Str, sizeof(char) * cInfo->StrLen);
-		cInfo->EscUTF8Len = cInfo->StrLen;
-		cInfo->Str += cInfo->StrLen;
-		cInfo->StrLen = 0;
-		cInfo->FlushProc = ConvUTF8NtoSJIS;
-		Continue = NO;
-	}
-
-	free(pSrc);
-	free(pUTF16);
-
-	return(Continue);
-}
-
-/*----- SHIFT-JIS漢字コードをUTF-8漢字コードに変換 ------------------------------
-*
-*	Parameter
-*		CODECONVINFO *cInfo : 漢字コード変換情報
-*
-*	Return Value
-*		int くり返しフラグ (YES/NO)
-*
-*	Note
-*		くり返しフラグがYESの時は、cInfoの内容を変えずにもう一度呼ぶこと
-*----------------------------------------------------------------------------*/
-int ConvSJIStoUTF8N(CODECONVINFO *cInfo)
-{
-	int Continue;
-
-//	char temp_string[2048];
-	int string_length;
-
-	// 大きいサイズに対応
-	// 終端のNULLを含むバグを修正
-	int SrcLength;
-	char* pSrc;
-	wchar_t* pUTF16;
-	int UTF16Length;
-	int Count;
-
-	Continue = NO;
-
-	// 生成される中間コードのサイズを調べる
-//	string_length = MultiByteToWideChar(
-//						CP_ACP,			// 変換先文字コード
-//						0,				// フラグ(0:なし)
-//						cInfo->Str,		// 変換元文字列
-//						-1,				// 変換元文字列バイト数(-1:自動)
-//						NULL,			// 変換した文字列の格納先
-//						0				// 格納先サイズ
-//					);
-	// 前回の変換不能な残りの文字列を入力の先頭に結合
-	SrcLength = cInfo->StrLen + cInfo->EscUTF8Len;
-	if(!(pSrc = (char*)malloc(sizeof(char) * (SrcLength + 1))))
-	{
-		*(cInfo->Buf) = '\0';
-		cInfo->BufSize = 0;
-		return Continue;
-	}
-	memcpy(pSrc, cInfo->EscUTF8, sizeof(char) * cInfo->EscUTF8Len);
-	memcpy(pSrc + cInfo->EscUTF8Len, cInfo->Str, sizeof(char) * cInfo->StrLen);
-	*(pSrc + SrcLength) = '\0';
-	if(cInfo->EscFlush == NO)
-	{
-		// Shift_JISの場合、不完全な文字でも変換されることがあるため、末尾の不完全な部分を削る
-		Count = 0;
-		while(Count < SrcLength)
-		{
-			if(((unsigned char)*(pSrc + Count) >= 0x81 && (unsigned char)*(pSrc + Count) <= 0x9f) || (unsigned char)*(pSrc + Count) >= 0xe0)
-			{
-				if((unsigned char)*(pSrc + Count + 1) >= 0x40)
-					Count += 2;
-				else
-				{
-					if(Count + 2 > SrcLength)
-						break;
-					Count += 1;
-				}
-			}
-			else
-				Count += 1;
-		}
-		SrcLength = Count;
-	}
-	UTF16Length = MultiByteToWideChar(CP_ACP, 0, pSrc, SrcLength, NULL, 0);
-
-	// サイズ0 or バッファサイズより大きい場合は、
-	// cInfo->Bufの最初に'\0'を入れて、
-	// cInfo->BufSizeに0を入れて返す。
-//	if( string_length == 0 ||
-//		string_length >= 1024 ){
-//		*(cInfo->Buf) = '\0';
-//		cInfo->BufSize = 0;
-//		return(Continue);
-//	}
-	if(!(pUTF16 = (wchar_t*)malloc(sizeof(wchar_t) * UTF16Length)))
-	{
-		free(pSrc);
-		*(cInfo->Buf) = '\0';
-		cInfo->BufSize = 0;
-		return Continue;
-	}
-
-	// 中間コード(unicode)に変換
-//	MultiByteToWideChar(
-//		CP_ACP,							// 変換先文字コード
-//		0,								// フラグ(0:なし)
-//		cInfo->Str,						// 変換元文字列
-//		-1,								// 変換元文字列バイト数(-1:自動)
-//		(unsigned short *)temp_string,	// 変換した文字列の格納先
-//		1024							// 格納先サイズ
-//	);
-	MultiByteToWideChar(CP_ACP, 0, pSrc, SrcLength, pUTF16, UTF16Length);
-
-	// 生成されるUTF-8コードのサイズを調べる
-//	string_length = WideCharToMultiByte(
-//						CP_UTF8,		// 変換先文字コード
-//						0,				// フラグ(0:なし)
-//						(unsigned short *)temp_string,	// 変換元文字列
-//						-1,				// 変換元文字列バイト数(-1:自動)
-//						NULL,			// 変換した文字列の格納先
-//						0,				// 格納先サイズ
-//						NULL,NULL
-//					);
-	string_length = WideCharToMultiByte(CP_UTF8, 0, pUTF16, UTF16Length, NULL, 0, NULL, NULL);
-
-	// サイズ0 or 出力バッファサイズより大きい場合は、
-	// cInfo->Bufの最初に'\0'を入れて、
-	// cInfo->BufSizeに0を入れて返す。
-//	if( string_length == 0 ||
-//		string_length >= cInfo->BufSize ){
-//		*(cInfo->Buf) = '\0';
-//		cInfo->BufSize = 0;
-//		return(Continue);
-//	}
-
-	// 出力サイズを設定
-//	cInfo->OutLen = string_length;
-
-	/*
-	// ↓付けちゃだめ コマンドにも追加されてしまう
-	// 出力文字列の先頭にBOM(byte order mark)をつける
-	*(cInfo->Buf) = (char)0xef;
-	*(cInfo->Buf+1) = (char)0xbb;
-	*(cInfo->Buf+2) = (char)0xbf;
-	*/
-
-	// UTF-8コードに変換
-//	WideCharToMultiByte(
-//		CP_UTF8,						// 変換先文字コード
-//		0,								// フラグ(0:なし)
-//		(unsigned short *)temp_string,	// 変換元文字列
-//		-1,								// 変換元文字列バイト数(-1:自動)
-//		cInfo->Buf,					// 変換した文字列の格納先(BOM:3bytes)
-//		cInfo->BufSize,					// 格納先サイズ
-//		NULL,NULL
-//	);
-	cInfo->OutLen = WideCharToMultiByte(CP_UTF8, 0, pUTF16, UTF16Length, cInfo->Buf, cInfo->BufSize, NULL, NULL);
-	// バッファに収まらないため変換文字数を半減
-	while(cInfo->OutLen == 0 && UTF16Length > 0)
-	{
-		UTF16Length = UTF16Length / 2;
-		cInfo->OutLen = WideCharToMultiByte(CP_UTF8, 0, pUTF16, UTF16Length, cInfo->Buf, cInfo->BufSize, NULL, NULL);
-	}
-	// 変換された元の文字列での文字数を取得
-	Count = WideCharToMultiByte(CP_ACP, 0, pUTF16, UTF16Length, NULL, 0, NULL, NULL);
-	// 変換可能な残りの文字数を取得
-	UTF16Length = MultiByteToWideChar(CP_ACP, 0, pSrc + Count, SrcLength - Count, NULL, 0);
-	cInfo->Str += Count - cInfo->EscUTF8Len;
-	cInfo->StrLen -= Count - cInfo->EscUTF8Len;
-	cInfo->EscUTF8Len = 0;
-	if(UTF16Length > 0)
-		Continue = YES;
-	else
-	{
-		// 変換不能なため次の入力の先頭に結合
-		memcpy(cInfo->EscUTF8, cInfo->Str, sizeof(char) * cInfo->StrLen);
-		cInfo->EscUTF8Len = cInfo->StrLen;
-		cInfo->Str += cInfo->StrLen;
-		cInfo->StrLen = 0;
-		cInfo->FlushProc = ConvSJIStoUTF8N;
-		Continue = NO;
-	}
-
-	free(pSrc);
-	free(pUTF16);
-
-	return(Continue);
-}
-// UTF-8対応 ここまで↑
-
-
-/*----- IBM拡張漢字をNEC選定IBM拡張漢字等に変換 -------------------------------
-*
-*	Parameter
-*		code	漢字コード
-*
-*	Return Value
-*		int 漢字コード
-*----------------------------------------------------------------------------*/
-static int ConvertIBMExtendedChar(int code)
-{
-	if((code >= 0xfa40) && (code <= 0xfa49))		code -= (0xfa40 - 0xeeef);
-	else if((code >= 0xfa4a) && (code <= 0xfa53))	code -= (0xfa4a - 0x8754);
-	else if((code >= 0xfa54) && (code <= 0xfa57))	code -= (0xfa54 - 0xeef9);
-	else if(code == 0xfa58)							code = 0x878a;
-	else if(code == 0xfa59)							code = 0x8782;
-	else if(code == 0xfa5a)							code = 0x8784;
-	else if(code == 0xfa5b)							code = 0x879a;
-	else if((code >= 0xfa5c) && (code <= 0xfa7e))	code -= (0xfa5c - 0xed40);
-	else if((code >= 0xfa80) && (code <= 0xfa9b))	code -= (0xfa80 - 0xed63);
-	else if((code >= 0xfa9c) && (code <= 0xfafc))	code -= (0xfa9c - 0xed80);
-	else if((code >= 0xfb40) && (code <= 0xfb5b))	code -= (0xfb40 - 0xede1);
-	else if((code >= 0xfb5c) && (code <= 0xfb7e))	code -= (0xfb5c - 0xee40);
-	else if((code >= 0xfb80) && (code <= 0xfb9b))	code -= (0xfb80 - 0xee63);
-	else if((code >= 0xfb9c) && (code <= 0xfbfc))	code -= (0xfb9c - 0xee80);
-	else if((code >= 0xfc40) && (code <= 0xfc4b))	code -= (0xfc40 - 0xeee1);
-	return code;
 }
 
 
@@ -1300,6 +109,132 @@ static auto tohex(std::cmatch const& m) {
 		converted += hex[ch & 15];
 	}
 	return converted;
+}
+
+
+std::string CodeConverter::Convert(std::string_view input) {
+	if (incode == KANJI_NOCNV)
+		return std::string(input);
+	rest += input;
+	switch (incode) {
+	case KANJI_SJIS: {
+		static std::regex re{ R"(^(?:[\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]|[\x00-\xFF](?!$))*)" };
+		std::smatch m;
+		std::regex_search(rest, m, re);
+		auto source = m.str();
+		rest = m.suffix();
+		switch (outcode) {
+		case KANJI_SJIS:
+			return kana ? convert(source, 932, 932, fullwidth) : source;
+		case KANJI_JIS:
+			return convert(source, 932, 50221, kana ? fullwidth : [](auto) {});
+		case KANJI_EUC:
+			return convert(source, 932, 51932, kana ? fullwidth : [](auto) {});
+		case KANJI_UTF8BOM:
+			if (first) {
+				first = false;
+				return "\xEF\xBB\xBF"sv + convert(source, 932, CP_UTF8, [](auto) {});
+			}
+			[[fallthrough]];
+		case KANJI_UTF8N:
+			return convert(source, 932, CP_UTF8, [](auto) {});
+		}
+		break;
+	}
+	case KANJI_JIS: {
+		// 0 : entire, 1 : kanji range, 2 : latest escape sequence
+		static std::regex re{ R"(^([\x00-\xFF]*(\x1B\([BHIJ]|\x1B\$(?:[@B]|\([DOPQ]))(?:[\x00-\xFF]{2})*))" };
+		if (std::smatch m; std::regex_search(rest, m, re)) {
+			auto isKanji = *(m[2].first + 1) == '$';
+			auto source = isKanji ? m[1].str() : rest;
+			rest = isKanji ? m[2].str() + m.suffix().str() : m[2];
+			switch (outcode) {
+			case KANJI_SJIS:
+				return convert(source, 50221, 932, kana ? fullwidth : [](auto) {});
+			case KANJI_JIS:
+				return kana ? convert(source, 50221, 50221, fullwidth) : source;
+			case KANJI_EUC:
+				return convert(source, 50221, 51932, kana ? fullwidth : [](auto) {});
+			case KANJI_UTF8BOM:
+				if (first) {
+					first = false;
+					return "\xEF\xBB\xBF"sv + convert(source, 50221, CP_UTF8, [](auto) {});
+				}
+				[[fallthrough]];
+			case KANJI_UTF8N:
+				return convert(source, 50221, CP_UTF8, [](auto) {});
+			}
+		} else {
+			auto source = rest;
+			rest.clear();
+			if (outcode == KANJI_UTF8BOM && first) {
+				first = false;
+				return "\xEF\xBB\xBF"sv + source;
+			}
+			return source;
+		}
+		break;
+	}
+	case KANJI_EUC: {
+		static std::regex re{ R"(^(?:[\x00-\x7F]|\x8E[\xA1-\xDF]|\x8F?[\xA1-\xFE][\xA1-\xFE]|[\x00-\xFF](?!$))*)" };
+		std::smatch m;
+		std::regex_search(rest, m, re);
+		auto source = m.str();
+		rest = m.suffix();
+		switch (outcode) {
+		case KANJI_SJIS:
+			return convert(source, 51932, 932, kana ? fullwidth : [](auto) {});
+		case KANJI_JIS:
+			return convert(source, 51932, 50221, kana ? fullwidth : [](auto) {});
+		case KANJI_EUC:
+			return kana ? convert(source, 51932, 51932, fullwidth) : source;
+		case KANJI_UTF8BOM:
+			if (first) {
+				first = false;
+				return "\xEF\xBB\xBF"sv + convert(source, 51932, CP_UTF8, [](auto) {});
+			}
+			[[fallthrough]];
+		case KANJI_UTF8N:
+			return convert(source, 51932, CP_UTF8, [](auto) {});
+		}
+		break;
+	}
+	case KANJI_UTF8BOM:
+		if (first) {
+			if (size(rest) < 3)
+				return {};
+			if (rest.compare(0, 3, "\xEF\xBB\xBF"sv) == 0)
+				rest.erase(0, 3);
+			if (outcode != KANJI_UTF8BOM)
+				first = false;
+		}
+		[[fallthrough]];
+	case KANJI_UTF8N: {
+		static std::regex re{ R"(^[\x00-\xFF]*(?:[\x00-\x7F]|(?:[\xC0-\xDF]|(?:[\xE0-\xEF]|[\xF0-\xF4][\x80-\xBF])[\x80-\xBF])[\x80-\xBF]))" };
+		std::smatch m;
+		std::regex_search(rest, m, re);
+		auto source = m.str();
+		rest = m.suffix();
+		switch (outcode) {
+		case KANJI_SJIS:
+			return convert(source, CP_UTF8, 932, kana ? fullwidth : [](auto) {});
+		case KANJI_JIS:
+			return convert(source, CP_UTF8, 50221, kana ? fullwidth : [](auto) {});
+		case KANJI_EUC:
+			return convert(source, CP_UTF8, 51932, kana ? fullwidth : [](auto) {});
+		case KANJI_UTF8BOM:
+			if (first) {
+				first = false;
+				return "\xEF\xBB\xBF"sv + source;
+			}
+			[[fallthrough]];
+		case KANJI_UTF8N:
+			return source;
+		}
+		break;
+	}
+	}
+	return {};
 }
 
 

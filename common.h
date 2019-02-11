@@ -1296,33 +1296,6 @@ typedef struct filelist {
 } FILELIST;
 
 
-/*===== コード変換情報パケット =====*/
-
-typedef char * (*funcptr)(struct codeconvinfo *, char , char *);
-// UTF-8対応
-typedef int (*convptr)(struct codeconvinfo *);
-
-typedef struct codeconvinfo {
-	char *Str;			/* 文字列 */
-	int StrLen;			/* 文字列の長さ */
-	int KanaCnv;		/* 半角カタカナを全角に変換するかどうか (YES/NO) */
-	char *Buf;			/* 変換後の文字列を格納するバッファ */
-	int BufSize;		/* 変換後の文字列を格納するバッファのサイズ */
-	int OutLen;			/* 変換後の文字列のサイズ */
-	int KanjiMode;		/* 漢字モードフラグ(YES/NO) (内部処理用ワーク) */
-	int EscProc;		/* エスケープシーケンス文字数 (0～) (内部処理用ワーク) */
-	char EscCode[2];	/* エスケープシーケンス文字保存用 (内部処理用ワーク) */
-	char KanjiFst;		/* 漢字コード１バイト目保存用 (内部処理用ワーク) */
-	char KanaPrev;		/* 半角カタカナ保存用 (内部処理用ワーク) */
-	funcptr KanaProc;	/* 半角カタカナ処理ルーチン (内部処理用ワーク) */
-	// UTF-8対応
-	char EscUTF8[16];	/* エスケープシーケンス文字数 (0～) (内部処理用ワーク) */
-	int EscUTF8Len;		/* エスケープシーケンス文字保存用 (内部処理用ワーク) */
-	int EscFlush;		/* 残り情報を出力 (YES/NO) */
-	convptr FlushProc;	/* 残り情報処理ルーチン (内部処理用ワーク) */
-} CODECONVINFO;
-
-
 /*===== テンポラリファイルリスト =====*/
 
 typedef struct tempfilelist {
@@ -1784,18 +1757,20 @@ public:
 	}
 };
 
+class CodeConverter {
+	const int incode;
+	const int outcode;
+	const bool kana;
+	bool first = true;
+	std::string rest;
+public:
+	CodeConverter(int incode, int outcode, bool kana) : incode{ outcode == KANJI_NOCNV || incode == outcode && !kana ? KANJI_NOCNV : incode }, outcode{ outcode }, kana{ kana } {}
+	std::string Convert(std::string_view input);
+};
+
 std::string ToCRLF(std::string_view source);
 std::string ConvertFrom(std::string_view str, int kanji);
 std::string ConvertTo(std::string_view str, int kanji, int kana);
-
-void InitCodeConvInfo(CODECONVINFO *cInfo);
-int FlushRestData(CODECONVINFO *cInfo);
-int ConvEUCtoSJIS(CODECONVINFO *cInfo);
-int ConvJIStoSJIS(CODECONVINFO *cInfo);
-int ConvUTF8NtoSJIS(CODECONVINFO *cInfo); // UTF-8対応
-int ConvSJIStoEUC(CODECONVINFO *cInfo);
-int ConvSJIStoJIS(CODECONVINFO *cInfo);
-int ConvSJIStoUTF8N(CODECONVINFO *cInfo); // UTF-8対応
 
 /*===== option.c =====*/
 
@@ -1989,6 +1964,20 @@ constexpr auto data_as(Source const& source) {
 template<class Size, class Source>
 constexpr auto size_as(Source const& source) {
 	return static_cast<Size>(std::size(source));
+}
+template<class Char, class Traits, class Alloc>
+static inline auto operator+(std::basic_string<Char, Traits, Alloc> const& left, std::basic_string_view<Char, Traits> const& right) {
+	std::basic_string<Char, Traits, Alloc> result(size(left) + size(right), Char(0));
+	auto it = std::copy(begin(left), end(left), begin(result));
+	std::copy(begin(right), end(right), it);
+	return result;
+}
+template<class Char, class Traits, class Alloc>
+static inline auto operator+(std::basic_string_view<Char, Traits> const& left, std::basic_string<Char, Traits, Alloc> const& right) {
+	std::basic_string<Char, Traits, Alloc> result(size(left) + size(right), Char(0));
+	auto it = std::copy(begin(left), end(left), begin(result));
+	std::copy(begin(right), end(right), it);
+	return result;
 }
 std::wstring u8(std::string_view const& utf8);
 std::string u8(std::wstring_view const& wide);
