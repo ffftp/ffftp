@@ -58,10 +58,12 @@
 #include <stdlib.h>
 #include <time.h>
 #include <Windows.h>
+#include <ObjBase.h>			// for COM interface, define `interface` macro.
 #include <windowsx.h>
 #include <winsock2.h>
 #include <commdlg.h>
 #include <HtmlHelp.h>
+#include <MLang.h>
 #include <MMSystem.h>
 #include <mstcpip.h>
 #include <shellapi.h>
@@ -308,7 +310,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 /*===== 初期値 =====*/
 
-#define SAMBA_HEX_TAG	':'				/* Samba-HEX の区切り文字 */
 #define CHMOD_CMD_NOR	"SITE CHMOD"	/* 属性変更コマンド */
 #define PORT_NOR		21				/* ポート番号 */
 #define LS_FNAME		"-alL"			/* NLSTに付けるもの */
@@ -1295,45 +1296,6 @@ typedef struct filelist {
 } FILELIST;
 
 
-/*===== コード変換情報パケット =====*/
-
-typedef char * (*funcptr)(struct codeconvinfo *, char , char *);
-// UTF-8対応
-typedef int (*convptr)(struct codeconvinfo *);
-
-typedef struct codeconvinfo {
-	char *Str;			/* 文字列 */
-	int StrLen;			/* 文字列の長さ */
-	int KanaCnv;		/* 半角カタカナを全角に変換するかどうか (YES/NO) */
-	char *Buf;			/* 変換後の文字列を格納するバッファ */
-	int BufSize;		/* 変換後の文字列を格納するバッファのサイズ */
-	int OutLen;			/* 変換後の文字列のサイズ */
-	int KanjiMode;		/* 漢字モードフラグ(YES/NO) (内部処理用ワーク) */
-	int EscProc;		/* エスケープシーケンス文字数 (0～) (内部処理用ワーク) */
-	char EscCode[2];	/* エスケープシーケンス文字保存用 (内部処理用ワーク) */
-	char KanjiFst;		/* 漢字コード１バイト目保存用 (内部処理用ワーク) */
-	char KanaPrev;		/* 半角カタカナ保存用 (内部処理用ワーク) */
-	funcptr KanaProc;	/* 半角カタカナ処理ルーチン (内部処理用ワーク) */
-	// UTF-8対応
-	char EscUTF8[16];	/* エスケープシーケンス文字数 (0～) (内部処理用ワーク) */
-	int EscUTF8Len;		/* エスケープシーケンス文字保存用 (内部処理用ワーク) */
-	int EscFlush;		/* 残り情報を出力 (YES/NO) */
-	convptr FlushProc;	/* 残り情報処理ルーチン (内部処理用ワーク) */
-} CODECONVINFO;
-
-
-/*===== 改行コード変換情報パケット =====*/
-
-typedef struct termcodeconvinfo {
-	char *Str;			/* 文字列 */
-	int StrLen;			/* 文字列の長さ */
-	char *Buf;			/* 変換後の文字列を格納するバッファ */
-	int BufSize;		/* 変換後の文字列を格納するバッファのサイズ */
-	int OutLen;			/* 変換後の文字列のサイズ */
-	char Term;			/* 改行コード１バイト目保存用 (内部処理用ワーク) */
-} TERMCODECONVINFO;
-
-
 /*===== テンポラリファイルリスト =====*/
 
 typedef struct tempfilelist {
@@ -1742,8 +1704,6 @@ int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
 char *ReturnWSError(UINT Error);
 void ReportWSError(char *Msg, UINT Error);
-int ChangeFnameRemote2Local(char *Fname, int Max);
-int ChangeFnameLocal2Remote(char *Fname, int Max);
 
 /*===== getput.c =====*/
 
@@ -1778,28 +1738,39 @@ int MarkFileAsDownloadedFromInternet(char* Fname);
 
 /*===== codecnv.c =====*/
 
-void InitTermCodeConvInfo(TERMCODECONVINFO *cInfo);
-int FlushRestTermCodeConvData(TERMCODECONVINFO *cInfo);
-int ConvTermCodeToCRLF(TERMCODECONVINFO *cInfo);
+class CodeDetector {
+	int utf8 = 0;
+	int sjis = 0;
+	int euc = 0;
+	int jis = 0;
+	bool hfsx = false;
+public:
+	void Test(std::string_view str);
+	int result() const {
+		auto& [_, id] = std::max<std::tuple<int, int>>({
+			{ utf8, KANJI_UTF8N },
+			{ sjis, KANJI_SJIS },
+			{ euc, KANJI_EUC },
+			{ jis, KANJI_JIS },
+			}, [](auto const& l, auto const& r) { return std::get<0>(l) < std::get<0>(r); });
+		return id == KANJI_UTF8N && hfsx ? KANJI_UTF8HFSX : id;
+	}
+};
 
-void InitCodeConvInfo(CODECONVINFO *cInfo);
-int FlushRestData(CODECONVINFO *cInfo);
-// UTF-8対応
-int ConvNoConv(CODECONVINFO *cInfo);
-int ConvEUCtoSJIS(CODECONVINFO *cInfo);
-int ConvJIStoSJIS(CODECONVINFO *cInfo);
-int ConvSMBtoSJIS(CODECONVINFO *cInfo);
-int ConvUTF8NtoSJIS(CODECONVINFO *cInfo); // UTF-8対応
-int ConvSJIStoEUC(CODECONVINFO *cInfo);
-int ConvSJIStoJIS(CODECONVINFO *cInfo);
-int ConvSJIStoSMB_HEX(CODECONVINFO *cInfo);
-int ConvSJIStoSMB_CAP(CODECONVINFO *cInfo);
-int ConvSJIStoUTF8N(CODECONVINFO *cInfo); // UTF-8対応
-// UTF-8 HFS+対応
-int ConvUTF8NtoUTF8HFSX(CODECONVINFO *cInfo);
-int ConvUTF8HFSXtoUTF8N(CODECONVINFO *cInfo);
-void ConvAutoToSJIS(char *Text, int Pref);
-int CheckKanjiCode(char *Text, int Size, int Pref);
+class CodeConverter {
+	const int incode;
+	const int outcode;
+	const bool kana;
+	bool first = true;
+	std::string rest;
+public:
+	CodeConverter(int incode, int outcode, bool kana) : incode{ outcode == KANJI_NOCNV || incode == outcode && !kana ? KANJI_NOCNV : incode }, outcode{ outcode }, kana{ kana } {}
+	std::string Convert(std::string_view input);
+};
+
+std::string ToCRLF(std::string_view source);
+std::string ConvertFrom(std::string_view str, int kanji);
+std::string ConvertTo(std::string_view str, int kanji, int kana);
 
 /*===== option.c =====*/
 
@@ -1994,6 +1965,20 @@ template<class Size, class Source>
 constexpr auto size_as(Source const& source) {
 	return static_cast<Size>(std::size(source));
 }
+template<class Char, class Traits, class Alloc>
+static inline auto operator+(std::basic_string<Char, Traits, Alloc> const& left, std::basic_string_view<Char, Traits> const& right) {
+	std::basic_string<Char, Traits, Alloc> result(size(left) + size(right), Char(0));
+	auto it = std::copy(begin(left), end(left), begin(result));
+	std::copy(begin(right), end(right), it);
+	return result;
+}
+template<class Char, class Traits, class Alloc>
+static inline auto operator+(std::basic_string_view<Char, Traits> const& left, std::basic_string<Char, Traits, Alloc> const& right) {
+	std::basic_string<Char, Traits, Alloc> result(size(left) + size(right), Char(0));
+	auto it = std::copy(begin(left), end(left), begin(result));
+	std::copy(begin(right), end(right), it);
+	return result;
+}
 std::wstring u8(std::string_view const& utf8);
 std::string u8(std::wstring_view const& wide);
 template<class Char>
@@ -2010,6 +1995,18 @@ static inline auto u8(std::basic_string<Char, Traits, Allocator> const& str) {
 }
 static auto ieq(std::wstring const& left, std::wstring const& right) {
 	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::towupper(l) == std::towupper(r); });
+}
+template<class Char, class Evaluator>
+static inline auto replace(std::basic_string_view<Char> input, std::basic_regex<Char> const& pattern, Evaluator&& evaluator) {
+	std::basic_string<Char> replaced;
+	auto last = data(input);
+	for (std::regex_iterator<const Char*> it{ data(input), data(input) + size(input), pattern }, end; it != end; ++it) {
+		replaced.append(last, (*it)[0].first);
+		replaced += evaluator(*it);
+		last = (*it)[0].second;
+	}
+	replaced.append(last, data(input) + size(input));
+	return replaced;
 }
 static inline auto Message(HWND owner, HINSTANCE instance, int textId, int captionId, DWORD style) {
 	MSGBOXPARAMSW msgBoxParams{ sizeof MSGBOXPARAMSW, owner, instance, MAKEINTRESOURCEW(textId), MAKEINTRESOURCEW(captionId), style, nullptr, 0, nullptr, LANG_NEUTRAL };

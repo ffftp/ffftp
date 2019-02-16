@@ -689,57 +689,6 @@ BOOL FixStringM(LPSTR pDst, LPCSTR pSrc)
 	return bResult;
 }
 
-// NULL区切りマルチバイト文字列の冗長表現を修正
-// 修正があればTRUEを返す
-// 修正後の文字列の長さは元の文字列の長さ以下のためpDstとpSrcに同じ値を指定可能
-BOOL FixMultiStringM(LPSTR pDst, LPCSTR pSrc)
-{
-	BOOL bResult;
-	int Length;
-	bResult = FALSE;
-	while(*pSrc != '\0')
-	{
-		Length = (int)strlen(pSrc) + 1;
-		bResult = bResult | FixStringM(pDst, pSrc);
-		pSrc += Length;
-		pDst += strlen(pDst) + 1;
-	}
-	*pDst = '\0';
-	return bResult;
-}
-
-// マルチバイト文字列の冗長表現を確認
-// 冗長表現があればTRUEを返す
-BOOL CheckStringM(LPCSTR lpString)
-{
-	BOOL bResult;
-	char* p;
-	bResult = FALSE;
-	p = AllocateStringM((int)strlen(lpString) + 1);
-	if(p)
-	{
-		bResult = FixStringM(p, lpString);
-		FreeDuplicatedString(p);
-	}
-	return bResult;
-}
-
-// NULL区切りマルチバイト文字列の冗長表現を確認
-// 冗長表現があればTRUEを返す
-BOOL CheckMultiStringM(LPCSTR lpString)
-{
-	BOOL bResult;
-	char* p;
-	bResult = FALSE;
-	p = AllocateStringM((int)GetMultiStringLengthM(lpString) + 1);
-	if(p)
-	{
-		bResult = FixMultiStringM(p, lpString);
-		FreeDuplicatedString(p);
-	}
-	return bResult;
-}
-
 // 文字列用に確保したメモリを開放
 // リソースIDならば何もしない
 void FreeDuplicatedString(void* p)
