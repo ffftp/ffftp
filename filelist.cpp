@@ -76,7 +76,6 @@ static int FindField(char *Str, char *Buf, int Num, int ToLast);
 static int FindField2(char *Str, char *Buf, char Separator, int Num, int ToLast);
 static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day);
 static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute);
-static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day);
 static int AskFilterStr(char *Fname, int Type);
 
 /*===== 外部参照 =====*/
@@ -4299,7 +4298,15 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 時刻／日付 */
 			FindField(Str, Buf, 2, NO);
-			GetVMSdate(Buf, &sTime.wYear, &sTime.wMonth, &sTime.wDay);
+			{
+				static std::regex re{ R"(^([0-9]+)[^-]*-(...)[^-]*-([0-9]+))" };
+				sTime.wYear = sTime.wMonth = sTime.wDay = 0;
+				if (std::cmatch m; std::regex_search(Buf, m, re)) {
+					std::from_chars(m[1].first, m[1].second, sTime.wDay);
+					std::tie(sTime.wMonth, std::ignore) = ParseMonthDay({ m[2].first, 3 });
+					std::from_chars(m[3].first, m[3].second, sTime.wYear);
+				}
+			}
 
 			FindField(Str, Buf, 3, NO);
 			GetHourAndMinute(Buf, &sTime.wHour, &sTime.wMinute);
@@ -5325,55 +5332,6 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 	{
 		*Hour = 0;
 		*Minute = 0;
-	}
-	return(Ret);
-}
-
-
-/*----- VAX VMSの日付文字列から日付を取り出す ---------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*		WORD *Year : 年
-*		WORD *Month : 月
-*		WORD *Day : 日
-*
-*	Return Value
-*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL=日付を表す文字ではない)
-*
-*	Note
-*		以下の形式をサポート
-*			18-SEP-1998
-*		FFFTP_FAILを返す時は *Year = 0; *Month = 0; *Day = 0
-*----------------------------------------------------------------------------*/
-
-static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day)
-{
-	char *Pos;
-	int Ret;
-	char Buf[4];
-
-	Ret = FFFTP_FAIL;
-	*Day = atoi(Str);
-	if((Pos = strchr(Str, '-')) != NULL)
-	{
-		Pos++;
-		strncpy(Buf, Pos, 3);
-		Buf[3] = NUL;
-		std::tie(*Month, std::ignore) = ParseMonthDay(Buf);
-		if((Pos = strchr(Pos, '-')) != NULL)
-		{
-			Pos++;
-			*Year = atoi(Pos);
-			Ret = FFFTP_SUCCESS;
-		}
-	}
-
-	if(Ret == FFFTP_FAIL)
-	{
-		*Year = 0;
-		*Month = 0;
-		*Day = 0;
 	}
 	return(Ret);
 }
