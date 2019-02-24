@@ -74,7 +74,6 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 static int FindField(char *Str, char *Buf, int Num, int ToLast);
 // MLSD対応
 static int FindField2(char *Str, char *Buf, char Separator, int Num, int ToLast);
-static void GetMonth(char *Str, WORD *Month, WORD *Day);
 static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day);
 static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute);
 static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day);
@@ -137,6 +136,43 @@ static int StratusMode;			/* 0=ファイル, 1=ディレクトリ, 2=リンク *
 static FILELIST *remoteFileListBase;
 static FILELIST *remoteFileListBaseNoExpand;
 static char remoteFileDir[FMAX_PATH + 1];
+
+
+static std::tuple<WORD, WORD> ParseMonthDay(std::string_view src) {
+	if (IsDigit(src[0]) == 0) {
+		static std::regex re{ R"((JAN)|(FEB)|(MAR)|(APR)|(MAY)|(JUN)|(JUL)|(AUG)|(SEP)|(OCT)|(NOV)|(DEC))", std::regex_constants::icase };
+		if (std::cmatch m; std::regex_match(data(src), data(src) + size(src), m, re))
+			for (WORD month = 1; month <= 12; month++)
+				if (m[month].matched)
+					return { month, 0 };
+	} else {
+		// "月"
+		//   UTF-8        E6 9C 88
+		//   Shift-JIS    8C 8E
+		//   EUC-JP       B7 EE
+		//   GB 2312      D4 C2
+		//   ISO-2022-JP  37 6E
+		//     JIS C 6226-1978  ESC $ @
+		//     JIS X 0208-1983  ESC $ B
+		//     JIS X 0208:1990  ESC $ B
+		//     JIS X 0213:2000  ESC $ ( O
+		//     JIS X 0213:2004  ESC $ ( Q
+		//     ASCII            ESC ( B
+		//     JIS C 6220-1976  ESC ( J
+		static std::regex re{ R"(^([0-9]|1[0-2])(?:/|\xE6\x9C\x88|\x8C\x8E|\xB7\xEE|\xD4\xC2|\x1B\$(?:[@B]|\([OQ])\x37\x6E\x1B\([BJ])([0-9]*))" };
+		if (std::cmatch m; std::regex_search(data(src), data(src) + size(src), m, re)) {
+			WORD month = 0, day = 0;
+			std::from_chars(m[1].first, m[1].second, month);
+			if (0 < m.length(2)) {
+				std::from_chars(m[2].first, m[2].second, day);
+				if (day < 1 || 31 < day)
+					day = 0;
+			}
+			return { month, day };
+		}
+	}
+	return {};
+}
 
 
 /*----- ファイルリストウインドウを作成する ------------------------------------
@@ -3084,8 +3120,6 @@ static int AnalyzeFileInfo(char *Str)
 	int Add1;
 	int TmpInt;
 	int Flag1;
-	WORD Month;
-	WORD Day;
 
 //DoPrintf("LIST : %s", Str);
 
@@ -3160,11 +3194,8 @@ static int AnalyzeFileInfo(char *Str)
 // LIST_UNIX_60 support
 				if(FindField(Str, Tmp, 7+Add1, NO) == FFFTP_SUCCESS)
 				{
-					GetMonth(Tmp, &Month, &Day);
-					if(Month != 0)
-					{
-						Ret = CheckUnixType(Str, Tmp, Add1, 2, Day);
-					}
+					if (auto& [month, day] = ParseMonthDay(Tmp); month != 0)
+						Ret = CheckUnixType(Str, Tmp, Add1, 2, day);
 				}
 ///////////
 
@@ -3173,11 +3204,8 @@ static int AnalyzeFileInfo(char *Str)
 				if((Ret == LIST_UNKNOWN) &&
 				   (FindField(Str, Tmp, 6+Add1, NO) == FFFTP_SUCCESS))
 				{
-					GetMonth(Tmp, &Month, &Day);
-					if(Month != 0)
-					{
-						Ret = CheckUnixType(Str, Tmp, Add1, 0, Day);
-					}
+					if (auto& [month, day] = ParseMonthDay(Tmp); month != 0)
+						Ret = CheckUnixType(Str, Tmp, Add1, 0, day);
 				}
 //////////////////
 
@@ -3186,42 +3214,30 @@ static int AnalyzeFileInfo(char *Str)
 				if((Ret == LIST_UNKNOWN) &&
 				   (FindField(Str, Tmp, 6+Add1, NO) == FFFTP_SUCCESS))
 				{
-					GetMonth(Tmp, &Month, &Day);
-					if(Month != 0)
-					{
-						Ret = CheckUnixType(Str, Tmp, Add1, 1, Day);
-					}
+					if (auto& [month, day] = ParseMonthDay(Tmp); month != 0)
+						Ret = CheckUnixType(Str, Tmp, Add1, 1, day);
 				}
 ///////////
 
 				if((Ret == LIST_UNKNOWN) &&
 				   (FindField(Str, Tmp, 5+Add1, NO) == FFFTP_SUCCESS))
 				{
-					GetMonth(Tmp, &Month, &Day);
-					if(Month != 0)
-					{
-						Ret = CheckUnixType(Str, Tmp, Add1, 0, Day);
-					}
+					if (auto& [month, day] = ParseMonthDay(Tmp); month != 0)
+						Ret = CheckUnixType(Str, Tmp, Add1, 0, day);
 				}
 
 				if((Ret == LIST_UNKNOWN) &&
 				   (FindField(Str, Tmp, 4+Add1, NO) == FFFTP_SUCCESS))
 				{
-					GetMonth(Tmp, &Month, &Day);
-					if(Month != 0)
-					{
-						Ret = CheckUnixType(Str, Tmp, Add1, -1, Day);
-					}
+					if (auto& [month, day] = ParseMonthDay(Tmp); month != 0)
+						Ret = CheckUnixType(Str, Tmp, Add1, -1, day);
 				}
 
 				if((Ret == LIST_UNKNOWN) &&
 				   (FindField(Str, Tmp, 3+Add1, NO) == FFFTP_SUCCESS))
 				{
-					GetMonth(Tmp, &Month, &Day);
-					if(Month != 0)
-					{
-						Ret = CheckUnixType(Str, Tmp, Add1, -2, Day);
-					}
+					if (auto& [month, day] = ParseMonthDay(Tmp); month != 0)
+						Ret = CheckUnixType(Str, Tmp, Add1, -2, day);
 				}
 
 				// linux-ftpd
@@ -3422,8 +3438,7 @@ static int AnalyzeFileInfo(char *Str)
 		{
 			if(FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS)
 			{
-				GetMonth(Tmp, &Month, &Day);
-				if((Month != 0) && (Day == 0))
+				if (auto& [month, day] = ParseMonthDay(Tmp); month != 0 && day == 0)
 				{
 					if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 					   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
@@ -3513,8 +3528,7 @@ static int AnalyzeFileInfo(char *Str)
 				{
 					if(FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS)
 					{
-						GetMonth(Tmp, &Month, &Day);
-						if(Month != 0)
+						if (auto& [month, day] = ParseMonthDay(Tmp); month != 0)
 						{
 							if((FindField(Str, Tmp, 6, NO) == FFFTP_SUCCESS) &&
 							   (IsDigit(Tmp[0]) != 0))
@@ -4124,7 +4138,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 日付 */
 			FindField(Str, Buf, 2, NO);
-			GetMonth(Buf, &sTime.wMonth, &sTime.wDay);	/* wDayは常に0 */
+			std::tie(sTime.wMonth, sTime.wDay) = ParseMonthDay(Buf);	/* wDayは常に0 */
 			FindField(Str, Buf, 3, NO);
 			sTime.wDay = atoi(Buf);
 			FindField(Str, Buf, 4, NO);
@@ -4432,7 +4446,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			sTime.wYear = Assume1900or2000(atoi(Buf));
 			if(FindField(Str, Buf, --offs, NO) != FFFTP_SUCCESS)
 				break;
-			GetMonth(Buf, &sTime.wMonth, &sTime.wDay);
+			std::tie(sTime.wMonth, sTime.wDay) = ParseMonthDay(Buf);
 			if(FindField(Str, Buf, --offs, NO) != FFFTP_SUCCESS)
 				break;
 			if(IsDigit(*Buf) == 0)
@@ -4487,7 +4501,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 日付 */
 			FindField(Str, Buf, 3, NO);
-			GetMonth(Buf, &sTime.wMonth, &sTime.wDay);	/* wDayは常に0 */
+			std::tie(sTime.wMonth, sTime.wDay) = ParseMonthDay(Buf);	/* wDayは常に0 */
 			FindField(Str, Buf, 4, NO);
 			sTime.wDay = atoi(Buf);
 			FindField(Str, Buf, 6, NO);
@@ -4619,7 +4633,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 				/* 日付 */
 				FindField(Str, Buf, 1, NO);
 				Buf[3] = '\0';
-				GetMonth(Buf, &sTime.wMonth, &sTime.wDay);
+				std::tie(sTime.wMonth, sTime.wDay) = ParseMonthDay(Buf);
 				sTime.wDay = atoi(Buf+4);
 				sTime.wYear = atoi(Buf+7);
 
@@ -4660,13 +4674,13 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			if (Buf[1] == '-') {  /* 日付が 1桁 */
 				sTime.wYear = Assume1900or2000(atoi(Buf + 6));
 				Buf[5] = 0;
-				GetMonth(Buf+2, &sTime.wMonth, &sTime.wDay);	/* wDayは常に0 */
+				std::tie(sTime.wMonth, sTime.wDay) = ParseMonthDay(Buf + 2);	/* wDayは常に0 */
 				sTime.wDay = atoi(Buf);
 				sTime.wDayOfWeek = 0;
 			} else {
 				sTime.wYear = Assume1900or2000(atoi(Buf + 7));
 				Buf[6] = 0;
-				GetMonth(Buf+3, &sTime.wMonth, &sTime.wDay);	/* wDayは常に0 */
+				std::tie(sTime.wMonth, sTime.wDay) = ParseMonthDay(Buf + 3);	/* wDayは常に0 */
 				sTime.wDay = atoi(Buf);
 				sTime.wDayOfWeek = 0;
 			}
@@ -4972,7 +4986,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 				}
 				else
 				{
-					GetMonth(Buf, &sTime.wMonth, &sTime.wDay);
+					std::tie(sTime.wMonth, sTime.wDay) = ParseMonthDay(Buf);
 					if(offs2 == 0)
 					{
 						FindField(Str, Buf, 6+offs, NO);
@@ -5188,96 +5202,6 @@ static int FindField2(char *Str, char *Buf, char Separator, int Num, int ToLast)
 }
 
 
-/*----- 文字列から月を求める --------------------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*		WORD *Month : 月 (0=月を表す文字列ではない)
-*		WORD *Day : 日 (0=日は含まれていない)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void GetMonth(char *Str, WORD *Month, WORD *Day)
-{
-	static const char DateStr[] = { "JanFebMarAprMayJunJulAugSepOctNovDec" };
-	const char *Pos;
-
-	*Month = 0;
-	*Day = 0;
-
-	if(IsDigit(*Str) == 0)
-	{
-		_strlwr(Str);
-		*Str = toupper(*Str);
-		if((Pos = strstr(DateStr, Str)) != NULL)
-			*Month = ((WORD)(Pos - DateStr) / 3) + 1;
-	}
-	else
-	{
-		Pos = Str;
-		while(*Pos != NUL)
-		{
-			if(!IsDigit(*Pos))
-			{
-				// "月"
-				//   UTF-8        E6 9C 88
-				//   Shift-JIS    8C 8E
-				//   EUC-JP       B7 EE
-				//   GB 2312      D4 C2
-				//   ISO-2022-JP  37 6E
-				//     JIS C 6226-1978  ESC $ @
-				//     JIS X 0208-1983  ESC $ B
-				//     JIS X 0208:1990  ESC $ B
-				//     JIS X 0213:2000  ESC $ ( O
-				//     JIS X 0213:2004  ESC $ ( Q
-				//     ASCII            ESC ( B
-				//     JIS C 6220-1976  ESC ( J
-				static std::regex re{ R"(^(?:\xE6\x9C\x88|\x8C\x8E|\xB7\xEE|\xD4\xC2|\x1B\$(?:[@B]|\([OQ])\x37\x6E\x1B\([BJ]))" };
-				if (std::cmatch m; std::regex_search(Pos, m, re)) {
-					Pos += m.length();
-					*Month = atoi(Str);
-					if((*Month < 1) || (*Month > 12))
-						*Month = 0;
-					else
-					{
-						/* 「10月11日」のように日がくっついている事がある */
-						if(*Pos != NUL)
-						{
-							*Day = atoi(Pos);
-							if((*Day < 1) || (*Day > 31))
-								*Day = 0;
-						}
-					}
-				}
-				else if(_mbsncmp((const unsigned char*)Pos, (const unsigned char*)"/", 1) == 0)
-				{
-					/* 「10/」のような日付を返すものがある */
-					Pos += 1;
-					*Month = atoi(Str);
-					if((*Month < 1) || (*Month > 12))
-						*Month = 0;
-					else
-					{
-						/* 「10/11」のように日がくっついている事がある */
-						if(*Pos != NUL)
-						{
-							*Day = atoi(Pos);
-							if((*Day < 1) || (*Day > 31))
-								*Day = 0;
-						}
-					}
-				}
-				break;
-			}
-			Pos++;
-		}
-	}
-	return;
-}
-
-
 /*----- 文字列から年月日を求める ----------------------------------------------
 *
 *	Parameter
@@ -5427,7 +5351,6 @@ static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day)
 {
 	char *Pos;
 	int Ret;
-	WORD Tmp;
 	char Buf[4];
 
 	Ret = FFFTP_FAIL;
@@ -5437,7 +5360,7 @@ static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day)
 		Pos++;
 		strncpy(Buf, Pos, 3);
 		Buf[3] = NUL;
-		GetMonth(Buf, Month, &Tmp);
+		std::tie(*Month, std::ignore) = ParseMonthDay(Buf);
 		if((Pos = strchr(Pos, '-')) != NULL)
 		{
 			Pos++;
