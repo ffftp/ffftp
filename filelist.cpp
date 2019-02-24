@@ -80,7 +80,6 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute);
 static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day);
 static int CheckSpecialDirName(char *Fname);
 static int AskFilterStr(char *Fname, int Type);
-static int atoi_n(const char *Str, int Len);
 
 /*===== 外部参照 =====*/
 
@@ -4530,7 +4529,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 時刻 */
 			FindField(Str, Buf, 2, NO);
-			sTime.wHour = atoi_n(Buf, 2);
+			std::from_chars(Buf + 0, Buf + 2, sTime.wHour);
 			sTime.wMinute = atoi(Buf+2);
 			sTime.wSecond = 0;
 			sTime.wMilliseconds = 0;
@@ -4768,12 +4767,12 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 						}
 						else if(_stricmp(Name, "modify") == 0)
 						{
-							sTime.wYear = atoi_n(Value, 4);
-							sTime.wMonth = atoi_n(Value + 4, 2);
-							sTime.wDay = atoi_n(Value + 6, 2);
-							sTime.wHour = atoi_n(Value + 8, 2);
-							sTime.wMinute = atoi_n(Value + 10, 2);
-							sTime.wSecond = atoi_n(Value + 12, 2);
+							std::from_chars(Value + 0, Value + 4, sTime.wYear);
+							std::from_chars(Value + 4, Value + 6, sTime.wMonth);
+							std::from_chars(Value + 6, Value + 8, sTime.wDay);
+							std::from_chars(Value + 8, Value + 10, sTime.wHour);
+							std::from_chars(Value + 10, Value + 12, sTime.wMinute);
+							std::from_chars(Value + 12, Value + 14, sTime.wSecond);
 							sTime.wMilliseconds = 0;
 							SystemTimeToFileTime(&sTime, Time);
 							// 時刻はGMT
@@ -5550,25 +5549,6 @@ void SetFilter(int *CancelCheckWork) {
 		GetRemoteDirForWnd(CACHE_LASTREAD, CancelCheckWork);
 	}
 }
-
-
-static int atoi_n(const char *Str, int Len)
-{
-	char *Tmp;
-	int Ret;
-
-	Ret = 0;
-	if((Tmp = (char*)malloc(Len+1)) != NULL)
-	{
-		memset(Tmp, 0, Len+1);
-		strncpy(Tmp, Str, Len);
-		Ret = atoi(Tmp);
-		free(Tmp);
-	}
-	return(Ret);
-}
-
-
 
 
 // UTF-8対応
