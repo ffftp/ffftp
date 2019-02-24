@@ -78,7 +78,6 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day);
 static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day);
 static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute);
 static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day);
-static int CheckSpecialDirName(char *Fname);
 static int AskFilterStr(char *Fname, int Type);
 
 /*===== 外部参照 =====*/
@@ -5076,10 +5075,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 		if((_mbscmp(_mbsninc((const unsigned char*)Fname, _mbslen((const unsigned char*)Fname) - 1), (const unsigned char*)"/") == 0)
 			|| (_mbscmp(_mbsninc((const unsigned char*)Fname, _mbslen((const unsigned char*)Fname) - 1), (const unsigned char*)"\\") == 0))
 			*(Fname + strlen(Fname) - 1) = NUL;
-		if(CheckSpecialDirName(Fname) == YES)
-			Ret = NODE_NONE;
-		// 文字コードが正しくないために長さが0になったファイル名は表示しない
-		if(strlen(Fname) == 0)
+		if (Fname == ""sv || Fname == "."sv || Fname == ".."sv)
 			Ret = NODE_NONE;
 	}
 	return(Ret);
@@ -5476,28 +5472,6 @@ int Assume1900or2000(int Year)
 	else
 		Year += 2000;
 	return(Year);
-}
-
-
-
-/*----- "."や".."かどうかを返す -----------------------------------------------
-*
-*	Parameter
-*		char *Fname : ファイル名
-*
-*	Return Value
-*		int ステータス (YES="."か".."のどちらか/NO)
-*----------------------------------------------------------------------------*/
-
-static int CheckSpecialDirName(char *Fname)
-{
-	int Sts;
-
-	Sts = NO;
-	if((strcmp(Fname, ".") == 0) || (strcmp(Fname, "..") == 0))
-		Sts = YES;
-
-	return(Sts);
 }
 
 
