@@ -68,8 +68,6 @@ static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day);
 static int CheckHHMMformat(char *Str);
 static int CheckYYMMDDformat(char *Str, char Sym, int Dig3);
 static int CheckYYYYMMDDformat(char *Str, char Sym);
-// Windows Server 2008 R2
-static int CheckMMDDYYYYformat(char *Str, char Sym);
 static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, FILETIME *Time, int *Attr, char *Owner, int *Link, int *InfoExist);
 static int FindField(char *Str, char *Buf, int Num, int ToLast);
 // MLSD対応
@@ -3449,8 +3447,9 @@ static int AnalyzeFileInfo(char *Str)
 				{
 					if(FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS)
 					{
+						static std::regex re{ R"([0-9]{2}[^0-9][0-9]{2}[^0-9][0-9]{4})" };
 						if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
-						   (CheckMMDDYYYYformat(Tmp, NUL) != 0))
+							std::regex_match(Tmp, re))
 						{
 							Ret = LIST_DOS_5;
 						}
@@ -3901,26 +3900,6 @@ static int CheckYYYYMMDDformat(char *Str, char Sym)
 	   (IsDigit(Str[4]) == 0) &&
 	   (IsDigitSym(Str[5], Sym) != 0) && (IsDigitSym(Str[6], Sym) != 0) &&
 	   (IsDigit(Str[7]) == 0) &&
-	   (IsDigitSym(Str[8], Sym) != 0) && (IsDigitSym(Str[9], Sym) != 0))
-	{
-		Ret = YES; 
-	}
-	return(Ret);
-}
-
-
-// Windows Server 2008 R2
-static int CheckMMDDYYYYformat(char *Str, char Sym)
-{
-	int Ret;
-
-	Ret = NO;
-	if((strlen(Str) == 10) &&
-	   (IsDigitSym(Str[0], Sym) != 0) && (IsDigitSym(Str[1], Sym) != 0) &&
-	   (IsDigit(Str[2]) == 0) &&
-	   (IsDigitSym(Str[3], Sym) != 0) && (IsDigitSym(Str[4], Sym) != 0) &&
-	   (IsDigit(Str[5]) == 0) &&
-	   (IsDigitSym(Str[6], Sym) != 0) && (IsDigitSym(Str[7], Sym) != 0) &&
 	   (IsDigitSym(Str[8], Sym) != 0) && (IsDigitSym(Str[9], Sym) != 0))
 	{
 		Ret = YES; 
