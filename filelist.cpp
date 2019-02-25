@@ -74,7 +74,6 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 static int FindField(char *Str, char *Buf, int Num, int ToLast);
 // MLSD対応
 static int FindField2(char *Str, char *Buf, char Separator, int Num, int ToLast);
-static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day);
 static int AskFilterStr(char *Fname, int Type);
 
 /*===== 外部参照 =====*/
@@ -5001,8 +5000,11 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 				FindField(Str, Buf, 5+offs, NO);
 				/* 日付が yy/mm/dd の場合に対応 */
-				if(GetYearMonthDay(Buf, &sTime.wYear, &sTime.wMonth, &sTime.wDay) == FFFTP_SUCCESS)
-				{
+				static std::regex re{ R"(([0-9]{2})[^0-9]([0-9]{2})[^0-9]([0-9]{2}))" };
+				if (std::cmatch m; std::regex_match(Buf, m, re)) {
+					std::from_chars(m[1].first, m[1].second, sTime.wYear);
+					std::from_chars(m[2].first, m[2].second, sTime.wMonth);
+					std::from_chars(m[3].first, m[3].second, sTime.wDay);
 					sTime.wYear = Assume1900or2000(sTime.wYear);
 
 					FindField(Str, Buf, 7+offs+offs2, NO);
@@ -5240,43 +5242,6 @@ static int FindField2(char *Str, char *Buf, char Separator, int Num, int ToLast)
 			*(Buf + (Pos - Str)) = NUL;
 		}
 		Sts = FFFTP_SUCCESS;
-	}
-	return(Sts);
-}
-
-
-/*----- 文字列から年月日を求める ----------------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*		WORD *Year : 年
-*		WORD *Month : 月
-*		WORD *Day : 日
-*
-*	Return Value
-*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL=日付を表す文字ではない)
-*
-*	Note
-*		以下の形式をサポート
-*			01/07/25
-*		FFFTP_FAILを返す時は *Year = 0; *Month = 0; *Day = 0
-*----------------------------------------------------------------------------*/
-static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day)
-{
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	if(strlen(Str) == 8)
-	{
-		if(IsDigit(Str[0]) && IsDigit(Str[1]) && !IsDigit(Str[2]) &&
-		   IsDigit(Str[3]) && IsDigit(Str[4]) && !IsDigit(Str[5]) &&
-		   IsDigit(Str[6]) && IsDigit(Str[7]))
-		{
-			*Year = atoi(&Str[0]);
-			*Month = atoi(&Str[3]);
-			*Day = atoi(&Str[6]);
-			Sts = FFFTP_SUCCESS;
-		}
 	}
 	return(Sts);
 }
