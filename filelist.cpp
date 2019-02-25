@@ -75,7 +75,6 @@ static int FindField(char *Str, char *Buf, int Num, int ToLast);
 // MLSD対応
 static int FindField2(char *Str, char *Buf, char Separator, int Num, int ToLast);
 static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day);
-static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute);
 static int AskFilterStr(char *Fname, int Type);
 
 /*===== 外部参照 =====*/
@@ -169,6 +168,37 @@ static std::tuple<WORD, WORD> ParseMonthDay(std::string_view src) {
 			}
 			return { month, day };
 		}
+	}
+	return {};
+}
+
+static std::optional<std::tuple<WORD, WORD>> ParseHourMinute(std::string_view src) {
+	// "時"
+	//   UTF-8        E6 99 82
+	//   Shift-JIS    8E 9E
+	//   EUC-JP       BB FE
+	//   GB 2312      95 72
+	//   ISO-2022-JP  3B 7E
+	//     JIS C 6226-1978  ESC $ @
+	//     JIS X 0208-1983  ESC $ B
+	//     JIS X 0208:1990  ESC $ B
+	//     JIS X 0213:2000  ESC $ ( O
+	//     JIS X 0213:2004  ESC $ ( Q
+	//     ASCII            ESC ( B
+	//     JIS C 6220-1976  ESC ( J
+	static std::regex re{ R"(^([0-9]+)(?::|\xE6\x99\x82|\x8E\x9E|\xBB\xFE|\x95\x72|\x1B\$(?:[@B]|\([OQ])\x3B\x7E\x1B\([BJ])([0-9]+))" };
+	if (std::cmatch m; std::regex_search(data(src), data(src) + size(src), m, re)) {
+		WORD hour = 100, minute = 100;
+		std::from_chars(m[1].first, m[1].second, hour);
+		if (0 < m.length(2)) {
+			std::from_chars(m[2].first, m[2].second, minute);
+			if (hour < 24 && minute < 60)
+				return { { hour, minute } };
+		}
+	} else {
+		static std::regex re{ R"([AP]:M)", std::regex_constants::icase };
+		if (std::regex_match(data(src), data(src) + size(src), re))
+			return { {0, 0} };
 	}
 	return {};
 }
@@ -3623,8 +3653,6 @@ static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day)
 {
 	int Ret;
 	int Add3;
-	WORD Hour;
-	WORD Minute;
 	int Flag;
 
 	Flag = 0;
@@ -3642,7 +3670,7 @@ static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day)
 		((atoi(Tmp) >= 1) && (atoi(Tmp) <= 31))))
 	{
 		if((FindField(Str, Tmp, 7+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
-		   ((atoi(Tmp) >= 1900) || (GetHourAndMinute(Tmp, &Hour, &Minute) == FFFTP_SUCCESS)))
+		   ((atoi(Tmp) >= 1900) || ParseHourMinute(Tmp)))
 		{
 			if(FindField(Str, Tmp, 8+Add1+Add2+Add3, NO) == FFFTP_SUCCESS)
 			{
@@ -4309,7 +4337,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			}
 
 			FindField(Str, Buf, 3, NO);
-			GetHourAndMinute(Buf, &sTime.wHour, &sTime.wMinute);
+			std::tie(sTime.wHour, sTime.wMinute) = ParseHourMinute(Buf).value_or(std::make_tuple<WORD, WORD>(0, 0));
 
 			sTime.wSecond = 0;
 			sTime.wMilliseconds = 0;
@@ -4978,8 +5006,11 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 					sTime.wYear = Assume1900or2000(sTime.wYear);
 
 					FindField(Str, Buf, 7+offs+offs2, NO);
-					if(GetHourAndMinute(Buf, &sTime.wHour, &sTime.wMinute) == FFFTP_SUCCESS)
+					if (auto pair = ParseHourMinute(Buf)) {
+						std::tie(sTime.wHour, sTime.wMinute) = *pair;
 						*InfoExist |= FINFO_TIME;
+					} else
+						sTime.wHour = sTime.wMinute = 0;
 				}
 				// linux-ftpd
 				else if(CheckYYYYMMDDformat(Buf, NUL) != 0)
@@ -4988,8 +5019,11 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 					sTime.wMonth = atoi(Buf+5);
 					sTime.wDay = atoi(Buf+8);
 					FindField(Str, Buf, 7+offs+offs2, NO);
-					if(GetHourAndMinute(Buf, &sTime.wHour, &sTime.wMinute) == FFFTP_SUCCESS)
+					if (auto pair = ParseHourMinute(Buf)) {
+						std::tie(sTime.wHour, sTime.wMinute) = *pair;
 						*InfoExist |= FINFO_TIME;
+					} else
+						sTime.wHour = sTime.wMinute = 0;
 				}
 				else
 				{
@@ -5001,12 +5035,14 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 					}
 
 					FindField(Str, Buf, 7+offs+offs2, NO);
-					if(GetHourAndMinute(Buf, &sTime.wHour, &sTime.wMinute) == FFFTP_FAIL)
+					if (auto pair = ParseHourMinute(Buf); !pair)
 					{
+						sTime.wHour = sTime.wMinute = 0;
 						sTime.wYear = atoi(Buf);
 					}
 					else
 					{
+						std::tie(sTime.wHour, sTime.wMinute) = *pair;
 						*InfoExist |= FINFO_TIME;
 
 						/* 年がない */
@@ -5243,97 +5279,6 @@ static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day)
 		}
 	}
 	return(Sts);
-}
-
-
-/*----- 文字列から時刻を取り出す ----------------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*		WORD *Hour : 時
-*		WORD *Minute : 分
-*
-*	Return Value
-*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL=時刻を表す文字ではない)
-*
-*	Note
-*		以下の形式をサポート
-*			HH:MM
-*			HH時MM分
-*		FFFTP_FAILを返す時は *Hour = 0; *Minute = 0
-*----------------------------------------------------------------------------*/
-
-static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
-{
-	int Ret;
-	char *Pos;
-
-	Ret = FFFTP_FAIL;
-	if((_mbslen((const unsigned char*)Str) >= 3) && (isdigit(Str[0]) != 0))
-	{
-		*Hour = atoi(Str);
-		if(*Hour <= 24)
-		{
-			if((Pos = (char*)_mbschr((const unsigned char*)Str, ':')) != NULL)
-			{
-				Pos++;
-				if(IsDigit(*Pos) != 0)
-				{
-					*Minute = atoi(Pos);
-					if(*Minute < 60)
-						Ret = FFFTP_SUCCESS;
-				}
-			}
-			else
-			{
-				Pos = Str;
-				while(*Pos != NUL)
-				{
-					if(IsDigit(*Pos) == 0)
-					{
-						// "時"
-						//   UTF-8        E6 99 82
-						//   Shift-JIS    8E 9E
-						//   EUC-JP       BB FE
-						//   GB 2312      95 72
-						//   ISO-2022-JP  3B 7E
-						//     JIS C 6226-1978  ESC $ @
-						//     JIS X 0208-1983  ESC $ B
-						//     JIS X 0208:1990  ESC $ B
-						//     JIS X 0213:2000  ESC $ ( O
-						//     JIS X 0213:2004  ESC $ ( Q
-						//     ASCII            ESC ( B
-						//     JIS C 6220-1976  ESC ( J
-						static std::regex re{ R"(^(?:\xE6\x99\x82|\x8E\x9E|\xBB\xFE|\x95\x72|\x1B\$(?:[@B]|\([OQ])\x3B\x7E\x1B\([BJ]))" };
-						if (std::cmatch m; std::regex_search(Pos, m, re)) {
-							Pos += m.length();
-							if(*Pos != NUL)
-							{
-								*Minute = atoi(Pos);
-								if(*Minute < 60)
-									Ret = FFFTP_SUCCESS;
-							}
-						}
-						break;
-					}
-					Pos++;
-				}
-			}
-		}
-	}
-	else if((_stricmp(Str, "a:m") == 0) || (_stricmp(Str, "p:m") == 0))
-	{
-		*Hour = 0;
-		*Minute = 0;
-		Ret = FFFTP_SUCCESS;
-	}
-
-	if(Ret == FFFTP_FAIL)
-	{
-		*Hour = 0;
-		*Minute = 0;
-	}
-	return(Ret);
 }
 
 
