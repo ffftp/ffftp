@@ -67,7 +67,6 @@ static int AnalyzeFileInfo(char *Str);
 static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day);
 static int CheckHHMMformat(char *Str);
 static int CheckYYMMDDformat(char *Str, char Sym, int Dig3);
-static int CheckYYYYMMDDformat(char *Str, char Sym);
 static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, FILETIME *Time, int *Attr, char *Owner, int *Link, int *InfoExist);
 static int FindField(char *Str, char *Buf, int Num, int ToLast);
 // MLSD対応
@@ -3130,6 +3129,8 @@ FILELIST *SearchFileList(char *Fname, FILELIST *Base, int Caps)
 }
 
 
+static std::regex reYYYYMMDD{ R"([0-9]{4}[^0-9][0-9]{2}[^0-9][0-9]{2})" };
+
 /*----- ファイル情報からリストタイプを求める ----------------------------------
 *
 *	Parameter
@@ -3271,7 +3272,7 @@ static int AnalyzeFileInfo(char *Str)
 				   (FindField(Str, Tmp, 7+Add1, NO) == FFFTP_SUCCESS))
 				{
 					if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
-					   (CheckYYYYMMDDformat(Tmp, NUL) != 0))
+						std::regex_match(Tmp, reYYYYMMDD))
 					{
 						if((FindField(Str, Tmp, 6, NO) == FFFTP_SUCCESS) &&
 						   (CheckHHMMformat(Tmp) == YES))
@@ -3419,7 +3420,7 @@ static int AnalyzeFileInfo(char *Str)
 		if(Ret == LIST_UNKNOWN)
 		{
 			if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
-			   (CheckYYYYMMDDformat(Tmp, NUL) == YES))
+				std::regex_match(Tmp, reYYYYMMDD))
 			{
 				if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 				   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
@@ -3597,7 +3598,7 @@ static int AnalyzeFileInfo(char *Str)
 		if(Ret == LIST_UNKNOWN)
 		{
 			if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
-			   (CheckYYYYMMDDformat(Tmp, NUL) == YES))
+				std::regex_match(Tmp, reYYYYMMDD))
 			{
 				if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) && IsDigit(Tmp[0]))
 				{
@@ -3870,39 +3871,6 @@ static int CheckYYMMDDformat(char *Str, char Sym, int Dig3)
 		{
 			Ret = 1; 
 		}
-	}
-	return(Ret);
-}
-
-
-/*----- YYYY/MM/DD 形式の文字列かどうかをチェック -----------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*		char Sym : 数字の代わりに使える記号 (NUL=数字以外使えない)
-*
-*	Return Value
-*		int ステータス (YES/NO)
-*
-*	Note
-*		区切り文字は何でもよい
-*		年月日でなくてもよい
-*----------------------------------------------------------------------------*/
-
-static int CheckYYYYMMDDformat(char *Str, char Sym)
-{
-	int Ret;
-
-	Ret = NO;
-	if((strlen(Str) == 10) &&
-	   (IsDigitSym(Str[0], Sym) != 0) && (IsDigitSym(Str[1], Sym) != 0) &&
-	   (IsDigitSym(Str[2], Sym) != 0) && (IsDigitSym(Str[3], Sym) != 0) &&
-	   (IsDigit(Str[4]) == 0) &&
-	   (IsDigitSym(Str[5], Sym) != 0) && (IsDigitSym(Str[6], Sym) != 0) &&
-	   (IsDigit(Str[7]) == 0) &&
-	   (IsDigitSym(Str[8], Sym) != 0) && (IsDigitSym(Str[9], Sym) != 0))
-	{
-		Ret = YES; 
 	}
 	return(Ret);
 }
@@ -4994,7 +4962,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 						sTime.wHour = sTime.wMinute = 0;
 				}
 				// linux-ftpd
-				else if(CheckYYYYMMDDformat(Buf, NUL) != 0)
+				else if(std::regex_match(Buf, reYYYYMMDD))
 				{
 					sTime.wYear = atoi(Buf);
 					sTime.wMonth = atoi(Buf+5);
