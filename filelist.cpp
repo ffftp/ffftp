@@ -66,7 +66,6 @@ static void AddFileList(FILELIST *Pkt, FILELIST **Base);
 static int AnalyzeFileInfo(char *Str);
 static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day);
 static int CheckHHMMformat(char *Str);
-static int CheckYYMMDDformat(char *Str, char Sym, int Dig3);
 static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, FILETIME *Time, int *Attr, char *Owner, int *Link, int *InfoExist);
 static int FindField(char *Str, char *Buf, int Num, int ToLast);
 // MLSD対応
@@ -3130,6 +3129,9 @@ FILELIST *SearchFileList(char *Fname, FILELIST *Base, int Caps)
 
 
 static std::regex reYYYYMMDD{ R"([0-9]{4}[^0-9][0-9]{2}[^0-9][0-9]{2})" };
+static std::regex reYYMMDD{ R"([0-9]{2}[^0-9][0-9]{2}[^0-9][0-9]{2})" };
+static std::regex reYYMMDDasterisk{ R"([0-9*]{2}[^0-9][0-9*]{2}[^0-9][0-9*]{2})" };
+static std::regex reYYMMDD3digit{ R"([0-9]{2}([0-9])?[^0-9][0-9]{2}[^0-9][0-9]{2,3})" };
 
 /*----- ファイル情報からリストタイプを求める ----------------------------------
 *
@@ -3300,10 +3302,10 @@ static int AnalyzeFileInfo(char *Str)
 		if(Ret == LIST_UNKNOWN)
 		{
 			if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
-			   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
+				std::regex_match(Tmp, reYYMMDD))
 			{
 				if((FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS) &&
-				   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
+					std::regex_match(Tmp, reYYMMDD))
 				{
 					if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 					   (IsDigit(Tmp[0]) != 0))
@@ -3323,7 +3325,7 @@ static int AnalyzeFileInfo(char *Str)
 		if(Ret == LIST_UNKNOWN)
 		{
 			if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
-			   (CheckYYMMDDformat(Tmp, '*', NO) != 0))
+				std::regex_match(Tmp, reYYMMDDasterisk))
 			{
 				if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 				   ((IsDigit(Tmp[0]) != 0) || (StrAllSameChar(Tmp, '*') == YES)))
@@ -3350,10 +3352,10 @@ static int AnalyzeFileInfo(char *Str)
 		if(Ret == LIST_UNKNOWN)
 		{
 			if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
-			   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
+				std::regex_match(Tmp, reYYMMDD))
 			{
 				if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
-				   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
+					std::regex_match(Tmp, reYYMMDD))
 				{
 					if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
 					   (IsDigit(Tmp[0]) != 0))
@@ -3381,7 +3383,7 @@ static int AnalyzeFileInfo(char *Str)
 					if(FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS)
 					{
 						if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
-						   (CheckYYMMDDformat(Tmp, NUL, YES) != 0))
+							std::regex_match(Tmp, reYYMMDD3digit))
 						{
 							TmpInt = atoi(Tmp);
 							if((TmpInt >= 1) && (TmpInt <= 12))
@@ -3406,7 +3408,7 @@ static int AnalyzeFileInfo(char *Str)
 				   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
 				{
 					if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
-					   (CheckYYMMDDformat(Tmp, NUL, YES) != 0))
+						std::regex_match(Tmp, reYYMMDD3digit))
 					{
 						Ret = LIST_DOS_3;
 					}
@@ -3423,7 +3425,7 @@ static int AnalyzeFileInfo(char *Str)
 				std::regex_match(Tmp, reYYYYMMDD))
 			{
 				if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
-				   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
+					std::regex_match(Tmp, reYYMMDD))
 				{
 					if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 					   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
@@ -3493,7 +3495,7 @@ static int AnalyzeFileInfo(char *Str)
 				   (IsDigit(Tmp[0]) != 0))
 				{
 					if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
-					   (CheckYYMMDDformat(Tmp, NUL, YES) != 0))
+						std::regex_match(Tmp, reYYMMDD3digit))
 					{
 						if(FindField(Str, Tmp, 4, NO) == FFFTP_SUCCESS)
 						{
@@ -3513,10 +3515,10 @@ static int AnalyzeFileInfo(char *Str)
 			   (strlen(Tmp) == 10))
 			{
 				if((FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS) &&
-				   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
+					std::regex_match(Tmp, reYYMMDD))
 				{
 					if((FindField(Str, Tmp, 4, NO) == FFFTP_SUCCESS) &&
-					   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
+						std::regex_match(Tmp, reYYMMDD))
 					{
 						if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 						   (IsDigit(Tmp[0]) != 0))
@@ -3529,10 +3531,10 @@ static int AnalyzeFileInfo(char *Str)
 					}
 				}
 				else if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
-						(CheckYYMMDDformat(Tmp, NUL, NO) != 0))
+					std::regex_match(Tmp, reYYMMDD))
 				{
 					if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
-					   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
+						std::regex_match(Tmp, reYYMMDD))
 					{
 						if(FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS)
 						{
@@ -3575,7 +3577,7 @@ static int AnalyzeFileInfo(char *Str)
 		if(Ret == LIST_UNKNOWN)
 		{
 			if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
-			   (CheckYYMMDDformat(Tmp, NUL, NO) != 0))
+				std::regex_match(Tmp, reYYMMDD))
 			{
 				if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 				   (IsDigit(Tmp[0]) != 0) && (strlen(Tmp) == 4))
@@ -3819,63 +3821,6 @@ static int CheckHHMMformat(char *Str)
 }
 
 
-/*----- YY/MM/DD 形式の文字列かどうかをチェック -------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*		char Sym : 数字の代わりに使える記号 (NUL=数字以外使えない)
-*		int Dig3 : 3桁の年を許可
-*
-*	Return Value
-*		int ステータス
-*			0 = 該当しない
-*			1 = ??/??/??, ??/??/???
-*			2 = ???/??/??
-*
-*	Note
-*		区切り文字は何でもよい
-*		年月日でなくてもよい
-*----------------------------------------------------------------------------*/
-
-static int CheckYYMMDDformat(char *Str, char Sym, int Dig3)
-{
-	int Ret;
-
-	Ret = 0;
-	if((strlen(Str) == 8) &&
-	   (IsDigitSym(Str[0], Sym) != 0) && (IsDigitSym(Str[1], Sym) != 0) &&
-	   (IsDigit(Str[2]) == 0) &&
-	   (IsDigitSym(Str[3], Sym) != 0) && (IsDigitSym(Str[4], Sym) != 0) &&
-	   (IsDigit(Str[5]) == 0) &&
-	   (IsDigitSym(Str[6], Sym) != 0) && (IsDigitSym(Str[7], Sym) != 0))
-	{
-		Ret = 1; 
-	}
-	if(Dig3 == YES)
-	{
-		if((strlen(Str) == 9) &&
-		   (IsDigitSym(Str[0], Sym) != 0) && (IsDigitSym(Str[1], Sym) != 0) && (IsDigitSym(Str[2], Sym) != 0) &&
-		   (IsDigit(Str[3]) == 0) &&
-		   (IsDigitSym(Str[4], Sym) != 0) && (IsDigitSym(Str[5], Sym) != 0) &&
-		   (IsDigit(Str[6]) == 0) &&
-		   (IsDigitSym(Str[7], Sym) != 0) && (IsDigitSym(Str[8], Sym) != 0))
-		{
-			Ret = 2; 
-		}
-		else if((strlen(Str) == 9) &&
-				(IsDigitSym(Str[0], Sym) != 0) && (IsDigitSym(Str[1], Sym) != 0) &&
-				(IsDigit(Str[2]) == 0) &&
-				(IsDigitSym(Str[3], Sym) != 0) && (IsDigitSym(Str[4], Sym) != 0) &&
-				(IsDigit(Str[5]) == 0) &&
-				(IsDigitSym(Str[6], Sym) != 0) && (IsDigitSym(Str[7], Sym) != 0) && (IsDigitSym(Str[8], Sym) != 0))
-		{
-			Ret = 1; 
-		}
-	}
-	return(Ret);
-}
-
-
 /*----- ファイル情報からファイル名、サイズなどを取り出す ----------------------
 *
 *	Parameter
@@ -3969,7 +3914,9 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 日付 */
 			FindField(Str, Buf, DosPos[offs][1], NO);
-			if((offs2 = CheckYYMMDDformat(Buf, NUL, YES)) == 0)
+			if (std::cmatch m; std::regex_match(Buf, m, reYYMMDD3digit))
+				offs2 = m[1].matched ? 2 : 1;
+			else
 				break;
 			offs2--;
 			sTime.wYear = Assume1900or2000(atoi(Buf + DosDate[offs][0][offs2]));

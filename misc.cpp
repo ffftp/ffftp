@@ -162,30 +162,6 @@ void ReplaceAll(char *Str, char Src, char Dst)
 }
 
 
-/*----- 数字もしくは特定の１文字かチェック ------------------------------------
-*
-*	Parameter
-*		int Ch : チェックする文字
-*		int Sym : 記号
-*
-*	Return Value
-*		int ステータス
-*			0=数字でも特定の記号でもない
-*----------------------------------------------------------------------------*/
-
-int IsDigitSym(int Ch, int Sym)
-{
-	int Ret;
-
-	if((Ret = IsDigit(Ch)) == 0)
-	{
-		if((Sym != NUL) && (Sym == Ch))
-			Ret = 1;
-	}
-	return(Ret);
-}
-
-
 /*----- 文字列が全て同じ文字かチェック ----------------------------------------
 *
 *	Parameter

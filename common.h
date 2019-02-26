@@ -1839,7 +1839,6 @@ void RemoveYenTail(char *Str);
 void SetSlashTail(char *Str);
 void RemoveReturnCode(char *Str);
 void ReplaceAll(char *Str, char Src, char Dst);
-int IsDigitSym(int Ch, int Sym);
 int StrAllSameChar(char *Str, char Ch);
 void RemoveTailingSpaces(char *Str);
 char *stristr(char *s1, char *s2);
