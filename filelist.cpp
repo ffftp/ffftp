@@ -65,7 +65,6 @@ static int MakeLocalTree(char *Path, FILELIST **Base);
 static void AddFileList(FILELIST *Pkt, FILELIST **Base);
 static int AnalyzeFileInfo(char *Str);
 static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day);
-static int CheckHHMMformat(char *Str);
 static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, FILETIME *Time, int *Attr, char *Owner, int *Link, int *InfoExist);
 static int FindField(char *Str, char *Buf, int Num, int ToLast);
 // MLSD対応
@@ -3132,6 +3131,7 @@ static std::regex reYYYYMMDD{ R"([0-9]{4}[^0-9][0-9]{2}[^0-9][0-9]{2})" };
 static std::regex reYYMMDD{ R"([0-9]{2}[^0-9][0-9]{2}[^0-9][0-9]{2})" };
 static std::regex reYYMMDDasterisk{ R"([0-9*]{2}[^0-9][0-9*]{2}[^0-9][0-9*]{2})" };
 static std::regex reYYMMDD3digit{ R"([0-9]{2}([0-9])?[^0-9][0-9]{2}[^0-9][0-9]{2,3})" };
+static std::regex reHHMM{ R"(^[0-9][^:]*:[0-9])" };
 
 /*----- ファイル情報からリストタイプを求める ----------------------------------
 *
@@ -3277,7 +3277,7 @@ static int AnalyzeFileInfo(char *Str)
 						std::regex_match(Tmp, reYYYYMMDD))
 					{
 						if((FindField(Str, Tmp, 6, NO) == FFFTP_SUCCESS) &&
-						   (CheckHHMMformat(Tmp) == YES))
+							std::regex_search(Tmp, reHHMM))
 						{
 							Ret = LIST_UNIX_16;
 						}
@@ -3375,7 +3375,7 @@ static int AnalyzeFileInfo(char *Str)
 		if(Ret == LIST_UNKNOWN)
 		{
 			if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
-			   (CheckHHMMformat(Tmp) == YES))
+				std::regex_search(Tmp, reHHMM))
 			{
 				if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 				   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
@@ -3402,7 +3402,7 @@ static int AnalyzeFileInfo(char *Str)
 		if(Ret == LIST_UNKNOWN)
 		{
 			if((FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS) &&
-			   (CheckHHMMformat(Tmp) == YES))
+				std::regex_search(Tmp, reHHMM))
 			{
 				if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
 				   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
@@ -3443,7 +3443,7 @@ static int AnalyzeFileInfo(char *Str)
 		if(Ret == LIST_UNKNOWN)
 		{
 			if((FindField(Str, Tmp, 1, NO) == FFFTP_SUCCESS) &&
-			   (CheckHHMMformat(Tmp) == YES))
+				std::regex_search(Tmp, reHHMM))
 			{
 				if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
 				   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
@@ -3474,7 +3474,7 @@ static int AnalyzeFileInfo(char *Str)
 					   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
 					{
 						if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
-						   (CheckHHMMformat(Tmp) == YES))
+							std::regex_search(Tmp, reHHMM))
 						{
 							Ret = LIST_CHAMELEON;
 						}
@@ -3489,7 +3489,7 @@ static int AnalyzeFileInfo(char *Str)
 		if(Ret == LIST_UNKNOWN)
 		{
 			if((FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS) &&
-			   (CheckHHMMformat(Tmp) == YES))
+				std::regex_search(Tmp, reHHMM))
 			{
 				if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
 				   (IsDigit(Tmp[0]) != 0))
@@ -3554,7 +3554,7 @@ static int AnalyzeFileInfo(char *Str)
 			   ((Tmp[0] == '<') || (IsDigit(Tmp[0]) != 0)))
 			{
 				if((FindField(Str, Tmp, 5, NO) == FFFTP_SUCCESS) &&
-				   (CheckHHMMformat(Tmp) == YES))
+					std::regex_search(Tmp, reHHMM))
 				{
 					if(FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS)
 					{
@@ -3783,38 +3783,6 @@ static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day)
 				Ret = LIST_UNIX_54;
 			if(Day != 0)
 				Ret = LIST_UNIX_51;
-		}
-	}
-	return(Ret);
-}
-
-
-/*----- HH:MM 形式の文字列かどうかをチェック ----------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*
-*	Return Value
-*		int ステータス (YES/NO)
-*
-*	Note
-*		区切り文字は何でもよい
-*		時分でなくてもよい
-*		後ろに余分な文字が付いていてもよい
-*----------------------------------------------------------------------------*/
-
-static int CheckHHMMformat(char *Str)
-{
-	int Ret;
-
-	Ret = NO;
-	if((strlen(Str) >= 3) &&
-	   (IsDigit(Str[0]) != 0))
-	{
-		if((Str = strchr(Str, ':')) != NULL)
-		{
-			if(IsDigit(*(Str+1)) != 0)
-				Ret = YES;
 		}
 	}
 	return(Ret);
