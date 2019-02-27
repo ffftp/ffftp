@@ -130,6 +130,12 @@ static FILELIST *remoteFileListBaseNoExpand;
 static char remoteFileDir[FMAX_PATH + 1];
 
 
+template<class Int = int>
+static inline auto svtoi(std::string_view src, Int value = 0) {
+	std::from_chars(data(src), data(src) + size(src), value);
+	return value;
+}
+
 static std::tuple<WORD, WORD> ParseMonthDay(std::string_view src) {
 	if (IsDigit(src[0]) == 0) {
 		static std::regex re{ R"((JAN)|(FEB)|(MAR)|(APR)|(MAY)|(JUN)|(JUL)|(AUG)|(SEP)|(OCT)|(NOV)|(DEC))", std::regex_constants::icase };
@@ -2004,14 +2010,14 @@ int GetNodeSize(int Win, int Pos, LONGLONG *Buf)
 #if defined(HAVE_TANDEM)
 	if(AskHostType() == HTYPE_TANDEM) {
 		RemoveComma(Tmp);
-		*Buf = _atoi64(Tmp);
+		*Buf = svtoi<LONGLONG>(Tmp);
 		Ret = YES;
 	} else
 #endif
 	if(strlen(Tmp) > 0)
 	{
 		RemoveComma(Tmp);
-		*Buf = _atoi64(Tmp);
+		*Buf = svtoi<LONGLONG>(Tmp);
 		Ret = YES;
 	}
 	return(Ret);
@@ -2057,7 +2063,7 @@ int GetNodeAttr(int Win, int Pos, int *Buf)
 		{
 #if defined(HAVE_TANDEM)
 			if(AskHostType() == HTYPE_TANDEM)
-				*Buf = atoi(Tmp);
+				*Buf = svtoi(Tmp);
 			else
 #endif
 			*Buf = AttrString2Value(Tmp);
@@ -3385,7 +3391,7 @@ static int AnalyzeFileInfo(char *Str)
 						if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
 							std::regex_match(Tmp, reYYMMDD3digit))
 						{
-							TmpInt = atoi(Tmp);
+							TmpInt = svtoi(Tmp);
 							if((TmpInt >= 1) && (TmpInt <= 12))
 								Ret = LIST_DOS_2;
 							else
@@ -3668,10 +3674,10 @@ static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day)
 	// unix系チェック
 	if((Day != 0) ||
 	   ((FindField(Str, Tmp, 6+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
-		((atoi(Tmp) >= 1) && (atoi(Tmp) <= 31))))
+		((svtoi(Tmp) >= 1) && (svtoi(Tmp) <= 31))))
 	{
 		if((FindField(Str, Tmp, 7+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
-		   ((atoi(Tmp) >= 1900) || ParseHourMinute(Tmp)))
+		   ((svtoi(Tmp) >= 1900) || ParseHourMinute(Tmp)))
 		{
 			if(FindField(Str, Tmp, 8+Add1+Add2+Add3, NO) == FFFTP_SUCCESS)
 			{
@@ -3684,16 +3690,16 @@ static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day)
 	if(Flag == 0)
 	{
 	   if((FindField(Str, Tmp, 7+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
-		  ((atoi(Tmp) >= 1) && (atoi(Tmp) <= 31)))
+		  ((svtoi(Tmp) >= 1) && (svtoi(Tmp) <= 31)))
 		{
 			if((FindField(Str, Tmp, 5+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
-			   (atoi(Tmp) >= 1900))
+			   (svtoi(Tmp) >= 1900))
 			{
 				if((FindField(Str, Tmp, 6+Add1+Add2+Add3, NO) == FFFTP_SUCCESS) &&
-				   (((atoi(Tmp) >= 1) && (atoi(Tmp) <= 9) && 
+				   (((svtoi(Tmp) >= 1) && (svtoi(Tmp) <= 9) && 
 					 ((unsigned char)Tmp[1] == 0xD4) &&
 					 ((unsigned char)Tmp[2] == 0xC2)) ||
-					((atoi(Tmp) >= 10) && (atoi(Tmp) <= 12) && 
+					((svtoi(Tmp) >= 10) && (svtoi(Tmp) <= 12) && 
 					 ((unsigned char)Tmp[2] == 0xD4) && 
 					 ((unsigned char)Tmp[3] == 0xC2))))
 				{
@@ -3860,8 +3866,8 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			if((Pos = strchr(Buf, ':')) != NULL)
 			{
 				*InfoExist |= FINFO_TIME;
-				sTime.wHour = atoi(Buf);
-				sTime.wMinute = atoi(Pos+1);
+				sTime.wHour = svtoi(Buf);
+				sTime.wMinute = svtoi(Pos+1);
 				sTime.wSecond = 0;
 				sTime.wMilliseconds = 0;
 
@@ -3887,15 +3893,15 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			else
 				break;
 			offs2--;
-			sTime.wYear = Assume1900or2000(atoi(Buf + DosDate[offs][0][offs2]));
-			sTime.wMonth = atoi(Buf + DosDate[offs][1][offs2]);
-			sTime.wDay = atoi(Buf + DosDate[offs][2][offs2]);
+			sTime.wYear = Assume1900or2000(svtoi(Buf + DosDate[offs][0][offs2]));
+			sTime.wMonth = svtoi(Buf + DosDate[offs][1][offs2]);
+			sTime.wDay = svtoi(Buf + DosDate[offs][2][offs2]);
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
 			/* サイズ */
 			FindField(Str, Buf, DosPos[offs][2], NO);
-			*Size = _atoi64(Buf);
+			*Size = svtoi<LONGLONG>(Buf);
 
 			/* 名前 */
 			if(FindField(Str, Fname, DosPos[offs][3], DosLongFname[offs]) == FFFTP_SUCCESS)
@@ -3911,23 +3917,23 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 日付 */
 			FindField(Str, Buf, 0, NO);
-			sTime.wYear = atoi(Buf);
-			sTime.wMonth = atoi(Buf+5);
-			sTime.wDay = atoi(Buf+8);
+			sTime.wYear = svtoi(Buf);
+			sTime.wMonth = svtoi(Buf+5);
+			sTime.wDay = svtoi(Buf+8);
 
 			/* 時刻 */
 			*InfoExist |= FINFO_TIME;
 			FindField(Str, Buf, 1, NO);
-			sTime.wHour = atoi(Buf);
-			sTime.wMinute = atoi(Buf+3);
-			sTime.wSecond = 0;				// atoi(Buf+6);
+			sTime.wHour = svtoi(Buf);
+			sTime.wMinute = svtoi(Buf+3);
+			sTime.wSecond = 0;				// svtoi(Buf+6);
 			sTime.wMilliseconds = 0;
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
 			/* サイズ */
 			FindField(Str, Buf, 2, NO);
-			*Size = _atoi64(Buf);
+			*Size = svtoi<LONGLONG>(Buf);
 
 			/* 名前 */
 			if(FindField(Str, Fname, 3, YES) == FFFTP_SUCCESS)
@@ -3944,14 +3950,14 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 日付 */
 			FindField(Str, Buf, 0, NO);
-			sTime.wMonth = atoi(Buf);
-			sTime.wDay = atoi(Buf+3);
-			sTime.wYear = atoi(Buf+6);
+			sTime.wMonth = svtoi(Buf);
+			sTime.wDay = svtoi(Buf+3);
+			sTime.wYear = svtoi(Buf+6);
 
 			/* 時刻 */
 			FindField(Str, Buf, 1, NO);
-			sTime.wHour = atoi(Buf);
-			sTime.wMinute = atoi(Buf+3);
+			sTime.wHour = svtoi(Buf);
+			sTime.wMinute = svtoi(Buf+3);
 			sTime.wSecond = 0;
 			sTime.wMilliseconds = 0;
 			if(_strnicmp(Buf+5, "AM", 2) == 0)
@@ -3969,7 +3975,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* サイズ */
 			FindField(Str, Buf, 2, NO);
-			*Size = _atoi64(Buf);
+			*Size = svtoi<LONGLONG>(Buf);
 
 			/* 名前 */
 			if(FindField(Str, Fname, 3, YES) == FFFTP_SUCCESS)
@@ -3988,23 +3994,23 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			if((Pos = strchr(Buf, ':')) != NULL)
 			{
 				*InfoExist |= FINFO_TIME;
-				sTime.wHour = atoi(Buf);
-				sTime.wMinute = atoi(Pos+1);
+				sTime.wHour = svtoi(Buf);
+				sTime.wMinute = svtoi(Pos+1);
 				sTime.wSecond = 0;
 				sTime.wMilliseconds = 0;
 			}
 
 			/* 日付 */
 			FindField(Str, Buf, 2, NO);
-			sTime.wYear = Assume1900or2000(atoi(Buf+6));
-			sTime.wMonth = atoi(Buf+0);
-			sTime.wDay = atoi(Buf+3);
+			sTime.wYear = Assume1900or2000(svtoi(Buf+6));
+			sTime.wMonth = svtoi(Buf+0);
+			sTime.wDay = svtoi(Buf+3);
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
 			/* サイズ */
 			FindField(Str, Buf, 0, NO);
-			*Size = _atoi64(Buf);
+			*Size = svtoi<LONGLONG>(Buf);
 
 			/* 名前 */
 			if(FindField(Str, Fname, 4, YES) == FFFTP_SUCCESS)
@@ -4028,14 +4034,14 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			FindField(Str, Buf, 2, NO);
 			std::tie(sTime.wMonth, sTime.wDay) = ParseMonthDay(Buf);	/* wDayは常に0 */
 			FindField(Str, Buf, 3, NO);
-			sTime.wDay = atoi(Buf);
+			sTime.wDay = svtoi(Buf);
 			FindField(Str, Buf, 4, NO);
-			sTime.wYear = atoi(Buf);
+			sTime.wYear = svtoi(Buf);
 
 			/* 時刻 */
 			FindField(Str, Buf, 5, NO);
-			sTime.wHour = atoi(Buf);
-			sTime.wMinute = atoi(Buf+3);
+			sTime.wHour = svtoi(Buf);
+			sTime.wMinute = svtoi(Buf+3);
 			sTime.wSecond = 0;
 			sTime.wMilliseconds = 0;
 			SystemTimeToFileTime(&sTime, Time);
@@ -4043,7 +4049,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* サイズ */
 			FindField(Str, Buf, 1, NO);
-			*Size = _atoi64(Buf);
+			*Size = svtoi<LONGLONG>(Buf);
 
 			/* 名前 */
 			if(FindField(Str, Fname, 0, NO) == FFFTP_SUCCESS)
@@ -4063,22 +4069,22 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 時刻 */
 			FindField(Str, Buf, 3, NO);
-			sTime.wHour = atoi(Buf);
-			sTime.wMinute = atoi(Buf+3);
+			sTime.wHour = svtoi(Buf);
+			sTime.wMinute = svtoi(Buf+3);
 			sTime.wSecond = 0;
 			sTime.wMilliseconds = 0;
 
 			/* 日付 */
 			FindField(Str, Buf, 2, NO);
-			sTime.wYear = Assume1900or2000(atoi(Buf));
-			sTime.wMonth = atoi(Buf + 3);
-			sTime.wDay = atoi(Buf + 6);
+			sTime.wYear = Assume1900or2000(svtoi(Buf));
+			sTime.wMonth = svtoi(Buf + 3);
+			sTime.wDay = svtoi(Buf + 6);
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
 			/* サイズ */
 			FindField(Str, Buf, 1, NO);
-			*Size = _atoi64(Buf);
+			*Size = svtoi<LONGLONG>(Buf);
 
 			/* 名前 */
 			if(FindField(Str, Fname, 5, YES) == FFFTP_SUCCESS)
@@ -4112,9 +4118,9 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 				sTime.wSecond = 0;
 				sTime.wMilliseconds = 0;
 
-				sTime.wYear = Assume1900or2000(atoi(Buf));
-				sTime.wMonth = atoi(Buf + 3);
-				sTime.wDay = atoi(Buf + 6);
+				sTime.wYear = Assume1900or2000(svtoi(Buf));
+				sTime.wMonth = svtoi(Buf + 3);
+				sTime.wDay = svtoi(Buf + 6);
 				SystemTimeToFileTime(&sTime, Time);
 				SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 			}
@@ -4141,22 +4147,22 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 時刻 */
 			FindField(Str, Buf, 2, NO);
-			sTime.wHour = atoi(Buf);
-			sTime.wMinute = atoi(Buf+3);
+			sTime.wHour = svtoi(Buf);
+			sTime.wMinute = svtoi(Buf+3);
 			sTime.wSecond = 0;
 			sTime.wMilliseconds = 0;
 
 			/* 日付 */
 			FindField(Str, Buf, 1, NO);
-			sTime.wYear = Assume1900or2000(atoi(Buf));
-			sTime.wMonth = atoi(Buf + 3);
-			sTime.wDay = atoi(Buf + 6);
+			sTime.wYear = Assume1900or2000(svtoi(Buf));
+			sTime.wMonth = svtoi(Buf + 3);
+			sTime.wDay = svtoi(Buf + 6);
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
 			/* サイズ */
 			FindField(Str, Buf, 5, NO);
-			*Size = _atoi64(Buf);
+			*Size = svtoi<LONGLONG>(Buf);
 
 			/* 属性 */
 			FindField(Str, Buf, 0, NO);
@@ -4183,7 +4189,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* サイズ */
 			FindField(Str, Buf, 1, NO);
-			*Size = _atoi64(Buf) * BLOCK_SIZE;
+			*Size = svtoi<LONGLONG>(Buf) * BLOCK_SIZE;
 
 			/* 時刻／日付 */
 			FindField(Str, Buf, 2, NO);
@@ -4229,7 +4235,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* サイズ */
 			FindField(Str, Buf, 2, NO);
-			*Size = _atoi64(Buf);
+			*Size = svtoi<LONGLONG>(Buf);
 			/* ここにbreakはない */
 
 		case LIST_OS7_1 :
@@ -4237,14 +4243,14 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 日付 */
 			FindField(Str, Buf, 1+offs, NO);
-			sTime.wYear = Assume1900or2000(atoi(Buf));
-			sTime.wMonth = atoi(Buf + 3);
-			sTime.wDay = atoi(Buf + 6);
+			sTime.wYear = Assume1900or2000(svtoi(Buf));
+			sTime.wMonth = svtoi(Buf + 3);
+			sTime.wDay = svtoi(Buf + 6);
 
 			/* 時刻 */
 			FindField(Str, Buf, 2+offs, NO);
-			sTime.wHour = atoi(Buf);
-			sTime.wMinute = atoi(Buf+3);
+			sTime.wHour = svtoi(Buf);
+			sTime.wMinute = svtoi(Buf+3);
 			sTime.wSecond = 0;
 			sTime.wMilliseconds = 0;
 			SystemTimeToFileTime(&sTime, Time);
@@ -4287,15 +4293,15 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 				/* 日付 */
 				if(FindField(Str, Buf, 2+offs, NO) != FFFTP_SUCCESS)
 					break;
-				sTime.wYear = Assume1900or2000(atoi(Buf));
-				sTime.wMonth = atoi(Buf + 3);
-				sTime.wDay = atoi(Buf + 6);
+				sTime.wYear = Assume1900or2000(svtoi(Buf));
+				sTime.wMonth = svtoi(Buf + 3);
+				sTime.wDay = svtoi(Buf + 6);
 
 				/* 時刻 */
 				if(FindField(Str, Buf, 3+offs, NO) != FFFTP_SUCCESS)
 					break;
-				sTime.wHour = atoi(Buf);
-				sTime.wMinute = atoi(Buf+3);
+				sTime.wHour = svtoi(Buf);
+				sTime.wMinute = svtoi(Buf+3);
 				sTime.wSecond = 0;
 				sTime.wMilliseconds = 0;
 				SystemTimeToFileTime(&sTime, Time);
@@ -4312,7 +4318,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 					/* サイズ */
 					if(FindField(Str, Buf, 1, NO) != FFFTP_SUCCESS)
 						break;
-					*Size = _atoi64(Buf) * 4096;
+					*Size = svtoi<LONGLONG>(Buf) * 4096;
 
 					/* 種類（オーナ名のフィールドにいれる） */
 					if(FindField(Str, Buf, 2, NO) != FFFTP_SUCCESS)
@@ -4339,7 +4345,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 				break;
 			if(IsDigit(*Buf) == 0)
 				break;
-			sTime.wYear = Assume1900or2000(atoi(Buf));
+			sTime.wYear = Assume1900or2000(svtoi(Buf));
 			if(FindField(Str, Buf, --offs, NO) != FFFTP_SUCCESS)
 				break;
 			std::tie(sTime.wMonth, sTime.wDay) = ParseMonthDay(Buf);
@@ -4347,7 +4353,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 				break;
 			if(IsDigit(*Buf) == 0)
 				break;
-			sTime.wDay = atoi(Buf);
+			sTime.wDay = svtoi(Buf);
 			sTime.wHour = 0;
 			sTime.wMinute = 0;
 			sTime.wSecond = 0;
@@ -4371,7 +4377,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			if((err = FindField(Str, Buf, --offs, NO)) != FFFTP_SUCCESS)
 				break;
 			RemoveComma(Buf);
-			*Size = _atoi64(Buf);
+			*Size = svtoi<LONGLONG>(Buf);
 			if((err = FindField(Str, Buf, --offs, NO)) != FFFTP_SUCCESS)
 				break;
 			if(IsDigit(*Buf) == 0)
@@ -4399,14 +4405,14 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			FindField(Str, Buf, 3, NO);
 			std::tie(sTime.wMonth, sTime.wDay) = ParseMonthDay(Buf);	/* wDayは常に0 */
 			FindField(Str, Buf, 4, NO);
-			sTime.wDay = atoi(Buf);
+			sTime.wDay = svtoi(Buf);
 			FindField(Str, Buf, 6, NO);
-			sTime.wYear = atoi(Buf);
+			sTime.wYear = svtoi(Buf);
 
 			/* 時刻 */
 			FindField(Str, Buf, 5, NO);
-			sTime.wHour = atoi(Buf);
-			sTime.wMinute = atoi(Buf+3);
+			sTime.wHour = svtoi(Buf);
+			sTime.wMinute = svtoi(Buf+3);
 			sTime.wSecond = 0;
 			sTime.wMilliseconds = 0;
 			SystemTimeToFileTime(&sTime, Time);
@@ -4414,7 +4420,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* サイズ */
 			FindField(Str, Buf, 0, NO);
-			*Size = _atoi64(Buf);
+			*Size = svtoi<LONGLONG>(Buf);
 
 			/* 名前 */
 			if(FindField(Str, Fname, 1, NO) == FFFTP_SUCCESS)
@@ -4430,16 +4436,16 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 日付 */
 			FindField(Str, Buf, 1, NO);
-			sTime.wYear = Assume1900or2000(atoi(Buf));
-			sTime.wMonth = atoi(Buf + 3);
-			sTime.wDay = atoi(Buf + 6);
+			sTime.wYear = Assume1900or2000(svtoi(Buf));
+			sTime.wMonth = svtoi(Buf + 3);
+			sTime.wDay = svtoi(Buf + 6);
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
 			/* 時刻 */
 			FindField(Str, Buf, 2, NO);
 			std::from_chars(Buf + 0, Buf + 2, sTime.wHour);
-			sTime.wMinute = atoi(Buf+2);
+			sTime.wMinute = svtoi(Buf+2);
 			sTime.wSecond = 0;
 			sTime.wMilliseconds = 0;
 			SystemTimeToFileTime(&sTime, Time);
@@ -4447,7 +4453,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* サイズ */
 			FindField(Str, Buf, 5, NO);
-			*Size = _atoi64(Buf);
+			*Size = svtoi<LONGLONG>(Buf);
 
 			/* オーナ名 */
 			FindField(Str, Buf, 0, NO);
@@ -4472,9 +4478,9 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 日付 */
 			FindField(Str, Buf, 2, NO);
-			sTime.wYear = atoi(Buf);
-			sTime.wMonth = atoi(Buf + 5);
-			sTime.wDay = atoi(Buf + 8);
+			sTime.wYear = svtoi(Buf);
+			sTime.wMonth = svtoi(Buf + 5);
+			sTime.wDay = svtoi(Buf + 8);
 			sTime.wHour = 0;
 			sTime.wMinute = 0;
 			sTime.wSecond = 0;
@@ -4502,7 +4508,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* サイズ */
 			FindField(Str, Buf, 4, NO);
-			*Size = _atoi64(Buf);
+			*Size = svtoi<LONGLONG>(Buf);
 
 			/* 属性 */
 			FindField(Str, Buf, 0, NO);
@@ -4524,19 +4530,19 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			FindField(Str, Buf, 0, NO);
 			if(IsDigit(Buf[0]))
 			{
-				*Size = _atoi64(Buf);
+				*Size = svtoi<LONGLONG>(Buf);
 
 				/* 日付 */
 				FindField(Str, Buf, 1, NO);
 				Buf[3] = '\0';
 				std::tie(sTime.wMonth, sTime.wDay) = ParseMonthDay(Buf);
-				sTime.wDay = atoi(Buf+4);
-				sTime.wYear = atoi(Buf+7);
+				sTime.wDay = svtoi(Buf+4);
+				sTime.wYear = svtoi(Buf+7);
 
 				/* 時刻 */
 				FindField(Str, Buf, 2, NO);
-				sTime.wHour = atoi(Buf);
-				sTime.wMinute = atoi(Buf+3);
+				sTime.wHour = svtoi(Buf);
+				sTime.wMinute = svtoi(Buf+3);
 				sTime.wSecond = 0;
 				sTime.wMilliseconds = 0;
 				SystemTimeToFileTime(&sTime, Time);
@@ -4568,33 +4574,33 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			if(FindField(Str, Buf, 3 + offs, NO) != FFFTP_SUCCESS)
 				break;
 			if (Buf[1] == '-') {  /* 日付が 1桁 */
-				sTime.wYear = Assume1900or2000(atoi(Buf + 6));
+				sTime.wYear = Assume1900or2000(svtoi(Buf + 6));
 				Buf[5] = 0;
 				std::tie(sTime.wMonth, sTime.wDay) = ParseMonthDay(Buf + 2);	/* wDayは常に0 */
-				sTime.wDay = atoi(Buf);
+				sTime.wDay = svtoi(Buf);
 				sTime.wDayOfWeek = 0;
 			} else {
-				sTime.wYear = Assume1900or2000(atoi(Buf + 7));
+				sTime.wYear = Assume1900or2000(svtoi(Buf + 7));
 				Buf[6] = 0;
 				std::tie(sTime.wMonth, sTime.wDay) = ParseMonthDay(Buf + 3);	/* wDayは常に0 */
-				sTime.wDay = atoi(Buf);
+				sTime.wDay = svtoi(Buf);
 				sTime.wDayOfWeek = 0;
 			}
 			/* 時刻 */
 			FindField(Str, Buf, 4 + offs, NO);
-			sTime.wHour = atoi(Buf);
-			sTime.wMinute = atoi(Buf+3);
-			sTime.wSecond = atoi(Buf+6);
+			sTime.wHour = svtoi(Buf);
+			sTime.wMinute = svtoi(Buf+3);
+			sTime.wSecond = svtoi(Buf+6);
 			sTime.wMilliseconds = 0;
 			SystemTimeToFileTime(&sTime, Time);
 			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
 
 			/* 属性 セキュリティではなく FileCode を保存する */
 			FindField(Str, Buf, 1 + offs, NO);
-			*Attr = atoi(Buf);
+			*Attr = svtoi(Buf);
 			/* サイズ */
 			FindField(Str, Buf, 2 + offs, NO);
-			*Size = _atoi64(Buf);
+			*Size = svtoi<LONGLONG>(Buf);
 			/* オーナ名 */
 			if(FindField(Str, Buf, 5 + offs, NO) == FFFTP_SUCCESS) {
 				if(strncmp(Buf, "Owner", sizeof("Owner"))) {
@@ -4671,7 +4677,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 						}
 						else if(_stricmp(Name, "size") == 0)
 						{
-							*Size = _atoi64(Value);
+							*Size = svtoi<LONGLONG>(Value);
 							*InfoExist |= FINFO_SIZE;
 						}
 						else if(_stricmp(Name, "modify") == 0)
@@ -4851,7 +4857,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 					}
 				}
 			}
-			*Size = _atoi64(Pos);
+			*Size = svtoi<LONGLONG>(Pos);
 
 			if(Flag2 == 0)
 			{
@@ -4879,9 +4885,9 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 				// linux-ftpd
 				else if(std::regex_match(Buf, reYYYYMMDD))
 				{
-					sTime.wYear = atoi(Buf);
-					sTime.wMonth = atoi(Buf+5);
-					sTime.wDay = atoi(Buf+8);
+					sTime.wYear = svtoi(Buf);
+					sTime.wMonth = svtoi(Buf+5);
+					sTime.wDay = svtoi(Buf+8);
 					FindField(Str, Buf, 7+offs+offs2, NO);
 					if (auto pair = ParseHourMinute(Buf)) {
 						std::tie(sTime.wHour, sTime.wMinute) = *pair;
@@ -4895,14 +4901,14 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 					if(offs2 == 0)
 					{
 						FindField(Str, Buf, 6+offs, NO);
-						sTime.wDay = atoi(Buf);
+						sTime.wDay = svtoi(Buf);
 					}
 
 					FindField(Str, Buf, 7+offs+offs2, NO);
 					if (auto pair = ParseHourMinute(Buf); !pair)
 					{
 						sTime.wHour = sTime.wMinute = 0;
-						sTime.wYear = atoi(Buf);
+						sTime.wYear = svtoi(Buf);
 					}
 					else
 					{
@@ -4931,11 +4937,11 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			{
 				/* LIST_UNIX_?4, LIST_UNIX_?5 の時 */
 				FindField(Str, Buf, 5+offs, NO);
-				sTime.wYear = atoi(Buf);
+				sTime.wYear = svtoi(Buf);
 				FindField(Str, Buf, 6+offs, NO);
-				sTime.wMonth = atoi(Buf);
+				sTime.wMonth = svtoi(Buf);
 				FindField(Str, Buf, 7+offs, NO);
-				sTime.wDay = atoi(Buf);
+				sTime.wDay = svtoi(Buf);
 				sTime.wHour = 0;
 				sTime.wMinute = 0;
 				sTime.wSecond = 0;
