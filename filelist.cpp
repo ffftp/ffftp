@@ -203,6 +203,18 @@ static std::optional<std::tuple<WORD, WORD>> ParseHourMinute(std::string_view sr
 	return {};
 }
 
+int ParseAttribute(std::string_view src) {
+	// TODO: 本来は16進表記ではなく8進表記。関連個所全体を修正する必要がある。
+	int attr = 0;
+	if (9 <= size(src)) {
+		for (int i = 0, x = 0x400; i < 3; i++, x >>= 4)
+			for (int j = 0, y = x; j < 3; j++, y >>= 1)
+				if (src[i * 3 + j] != '-')
+					attr |= y;
+	} else if (3 <= size(src))
+		std::from_chars(data(src), data(src) + size(src), attr, 16);
+	return attr;
+}
 
 /*----- ファイルリストウインドウを作成する ------------------------------------
 *
@@ -2066,7 +2078,7 @@ int GetNodeAttr(int Win, int Pos, int *Buf)
 				*Buf = svtoi(Tmp);
 			else
 #endif
-			*Buf = AttrString2Value(Tmp);
+			*Buf = ParseAttribute(Tmp);
 			Ret = YES;
 		}
 	}
@@ -4028,7 +4040,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			/* 属性 */
 			FindField(Str, Buf, 6, NO);
 			strcat(Buf, "------");
-			*Attr = AttrString2Value(Buf+1);
+			*Attr = ParseAttribute(Buf+1);
 
 			/* 日付 */
 			FindField(Str, Buf, 2, NO);
@@ -4104,7 +4116,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			/* 属性 */
 			FindField(Str, Buf, 0, NO);
 			strcat(Buf, "------");
-			*Attr = AttrString2Value(Buf+1);
+			*Attr = ParseAttribute(Buf+1);
 
 			/* 日付 */
 			Time->dwLowDateTime = 0;
@@ -4166,7 +4178,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 属性 */
 			FindField(Str, Buf, 0, NO);
-			*Attr = AttrString2Value(Buf+1);
+			*Attr = ParseAttribute(Buf+1);
 
 			/* 名前 */
 			if(FindField(Str, Fname, 6, YES) == FFFTP_SUCCESS)
@@ -4258,7 +4270,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 属性 */
 			FindField(Str, Buf, 0, NO);
-			*Attr = AttrString2Value(Buf+1);
+			*Attr = ParseAttribute(Buf+1);
 
 			/* 名前 */
 			if(FindField(Str, Fname, 3+offs, YES) == FFFTP_SUCCESS)
@@ -4512,7 +4524,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 属性 */
 			FindField(Str, Buf, 0, NO);
-			*Attr = AttrString2Value(Buf+1);
+			*Attr = ParseAttribute(Buf+1);
 
 			/* 名前 */
 			if(FindField(Str, Fname, 5, YES) == FFFTP_SUCCESS)
@@ -4836,7 +4848,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* 属性 */
 			FindField(Str, Buf, 0, NO);
-			*Attr = AttrString2Value(Buf+1);
+			*Attr = ParseAttribute(Buf+1);
 
 			/* オーナ名 */
 			FindField(Str, Buf, 2+offs3, NO);

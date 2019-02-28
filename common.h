@@ -1862,7 +1862,6 @@ int TimeString2FileTime(char *Time, FILETIME *Buf);
 //void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist);
 void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist, int ShowSeconds);
 void SpecificLocalFileTime2FileTime(FILETIME *Time, int TimeZone);
-int AttrString2Value(char *Str);
 // ファイルの属性を数字で表示
 //void AttrValue2String(int Attr, char *Buf);
 void AttrValue2String(int Attr, char *Buf, int ShowNumber);
