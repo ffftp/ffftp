@@ -162,35 +162,6 @@ void ReplaceAll(char *Str, char Src, char Dst)
 }
 
 
-/*----- 文字列が全て同じ文字かチェック ----------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*		int Ch : 文字
-*
-*	Return Value
-*		int ステータス
-*			YES/NO
-*----------------------------------------------------------------------------*/
-
-int StrAllSameChar(char *Str, char Ch)
-{
-	int Ret;
-
-	Ret = YES;
-	while(*Str != NUL)
-	{
-		if(*Str != Ch)
-		{
-			Ret = NO;
-			break;
-		}
-		Str++;
-	}
-	return(Ret);
-}
-
-
 /*----- 文字列の末尾のスペースを削除 ------------------------------------------
 *
 *	Parameter

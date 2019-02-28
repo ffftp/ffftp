@@ -3334,10 +3334,10 @@ static int AnalyzeFileInfo(char *Str)
 				std::regex_match(Tmp, reYYMMDDasterisk))
 			{
 				if((FindField(Str, Tmp, 2, NO) == FFFTP_SUCCESS) &&
-				   ((IsDigit(Tmp[0]) != 0) || (StrAllSameChar(Tmp, '*') == YES)))
+				   ((IsDigit(Tmp[0]) != 0) || std::all_of(Tmp, Tmp + strlen(Tmp), [](auto ch) { return ch == '*'; })))
 				{
 					if((FindField(Str, Tmp, 3, NO) == FFFTP_SUCCESS) &&
-					   ((IsDigit(Tmp[0]) != 0) || (StrAllSameChar(Tmp, '*') == YES)))
+					   ((IsDigit(Tmp[0]) != 0) || std::all_of(Tmp, Tmp + strlen(Tmp), [](auto ch) { return ch == '*'; })))
 					{
 						if((FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS) &&
 						   (strlen(Tmp) == 4))
