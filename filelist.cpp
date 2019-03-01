@@ -67,8 +67,6 @@ static int AnalyzeFileInfo(char *Str);
 static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day);
 static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size, FILETIME *Time, int *Attr, char *Owner, int *Link, int *InfoExist);
 static int FindField(char *Str, char *Buf, int Num, int ToLast);
-// MLSD対応
-static int FindField2(char *Str, char *Buf, char Separator, int Num, int ToLast);
 static int AskFilterStr(char *Fname, int Type);
 
 /*===== 外部参照 =====*/
@@ -134,6 +132,17 @@ template<class Int = int>
 static inline auto svtoi(std::string_view src, Int value = 0) {
 	std::from_chars(data(src), data(src) + size(src), value);
 	return value;
+}
+
+static auto ParseMLSx(std::string_view src) {
+	static std::regex re{ R"(([^ ;=]+)=([^ ;]*))" };
+	std::map<std::string, std::string> facts;
+	for (std::cregex_iterator it{ data(src), data(src) + size(src), re }, end; it != end; ++it) {
+		auto factname = it->str(1);
+		_strlwr(data(factname));
+		facts.insert_or_assign(factname, it->str(2));
+	}
+	return facts;
 }
 
 static std::tuple<WORD, WORD> ParseMonthDay(std::string_view src) {
@@ -3188,18 +3197,8 @@ static int AnalyzeFileInfo(char *Str)
 		Ret = LIST_SHIBASOKU;
 	else
 	{
-		// MLSD対応
-		if(FindField(Str, Tmp, 0, NO) == FFFTP_SUCCESS)
-		{
-			_strlwr(Tmp);
-			if(strstr(Tmp, "type=") != NULL)
-			{
-				if(FindField2(Str, Tmp, ';', 1, NO) == FFFTP_SUCCESS && FindField2(Str, Tmp, '=', 1, NO) == FFFTP_SUCCESS)
-				{
-					Ret = LIST_MLSD;
-				}
-			}
-		}
+		if (auto facts = ParseMLSx(Str); facts.find("type"s) != end(facts))
+			Ret = LIST_MLSD;
 
 		/* 以下のフォーマットをチェック */
 		/* LIST_UNIX_10, LIST_UNIX_20, LIST_UNIX_12, LIST_UNIX_22, LIST_UNIX_50, LIST_UNIX_60 */
@@ -4639,17 +4638,10 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			// 不完全な実装のホストが存在するため以下の形式も許容
 			// fact1=value1;fact2=value2;fact3=value3 filename\r\n
 			// fact1=value1;fact2=value2;fact3=value3;filename\r\n
-			// SymlinkはRFC3659の7.7.4. A More Complex Exampleに
-			// よるとtype=OS.unix=slink:(target)だが
-			// ProFTPDはtype=OS.unix=symlink:(target)となる
 		case LIST_MLSD:
 			{
 				int i = 0;
 				char StrBuf[(FMAX_PATH * 2) + 1];
-				char Fact[FMAX_PATH + 1];
-				char Name[FMAX_PATH + 1];
-				char Value[FMAX_PATH + 1];
-				char Value2[FMAX_PATH + 1];
 				char* pFileName;
 				strncpy(StrBuf, Str, FMAX_PATH * 2);
 				StrBuf[FMAX_PATH * 2] = '\0';
@@ -4670,51 +4662,38 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 				}
 				if(pFileName != NULL)
 					strcpy(Fname, pFileName);
-				while(FindField2(StrBuf, Fact, ';', i, NO) == FFFTP_SUCCESS)
-				{
-					if(FindField2(Fact, Name, '=', 0, NO) == FFFTP_SUCCESS && FindField2(Fact, Value, '=', 1, NO) == FFFTP_SUCCESS)
-					{
-						if(_stricmp(Name, "type") == 0)
-						{
-							if(_stricmp(Value, "dir") == 0)
+				for (auto& [factname, value] : ParseMLSx(StrBuf)) {
+					if (factname == "type"sv) {
+						// RFC3659, Errata ID: 1500にてType=OS.unix=slink:/foobarの他にType=OS.unix=symlinkが提案されている
+						static std::regex re{ R"((dir)|(file)|OS.unix=(?:symlink|slink:[^;]*))", std::regex_constants::icase };
+						if (std::smatch m; std::regex_match(value, m, re)) {
+							if (m[1].matched)
 								Ret = NODE_DIR;
-							else if(_stricmp(Value, "file") == 0)
+							else if (m[2].matched)
 								Ret = NODE_FILE;
-							else if(_stricmp(Value, "OS.unix") == 0)
-								if(FindField2(Fact, Value2, '=', 2, NO) == FFFTP_SUCCESS)
-									if(_stricmp(Value2, "symlink") == 0 || _stricmp(Value2, "slink") == 0) { // ProFTPD is symlink. A example of RFC3659 is slink.
-										Ret = NODE_DIR;
-										*Link = YES;
-									}
+							else {
+								Ret = NODE_DIR;
+								*Link = YES;
+							}
 						}
-						else if(_stricmp(Name, "size") == 0)
-						{
-							*Size = svtoi<LONGLONG>(Value);
-							*InfoExist |= FINFO_SIZE;
-						}
-						else if(_stricmp(Name, "modify") == 0)
-						{
-							std::from_chars(Value + 0, Value + 4, sTime.wYear);
-							std::from_chars(Value + 4, Value + 6, sTime.wMonth);
-							std::from_chars(Value + 6, Value + 8, sTime.wDay);
-							std::from_chars(Value + 8, Value + 10, sTime.wHour);
-							std::from_chars(Value + 10, Value + 12, sTime.wMinute);
-							std::from_chars(Value + 12, Value + 14, sTime.wSecond);
-							sTime.wMilliseconds = 0;
-							SystemTimeToFileTime(&sTime, Time);
-							// 時刻はGMT
-//							SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
-							*InfoExist |= FINFO_DATE | FINFO_TIME;
-						}
-						else if(_stricmp(Name, "UNIX.mode") == 0)
-						{
-							*Attr = strtol(Value, NULL, 16);
-							*InfoExist |= FINFO_ATTR;
-						}
-						else if(_stricmp(Name, "UNIX.owner") == 0)
-							strcpy(Owner, Value);
-					}
-					i++;
+					} else if (factname == "size"sv) {
+						*Size = svtoi<LONGLONG>(value);
+						*InfoExist |= FINFO_SIZE;
+					} else if (factname == "modify"sv) {
+						std::from_chars(data(value) + 0, data(value) + 4, sTime.wYear);
+						std::from_chars(data(value) + 4, data(value) + 6, sTime.wMonth);
+						std::from_chars(data(value) + 6, data(value) + 8, sTime.wDay);
+						std::from_chars(data(value) + 8, data(value) + 10, sTime.wHour);
+						std::from_chars(data(value) + 10, data(value) + 12, sTime.wMinute);
+						std::from_chars(data(value) + 12, data(value) + 14, sTime.wSecond);
+						sTime.wMilliseconds = 0;
+						SystemTimeToFileTime(&sTime, Time);
+						*InfoExist |= FINFO_DATE | FINFO_TIME;
+					} else if (factname == "unix.mode"sv) {
+						std::from_chars(data(value), data(value) + size(value), *Attr, 16);
+						*InfoExist |= FINFO_ATTR;
+					} else if (factname == "unix.owner"sv)
+						strcpy(Owner, value.c_str());
 				}
 			}
 			break;
@@ -5068,53 +5047,6 @@ static int FindField(char *Str, char *Buf, int Num, int ToLast)
 	if(Str != NULL)
 	{
 		if((ToLast == YES) || ((Pos = strchr(Str, ' ')) == NULL))
-			strcpy(Buf, Str);
-		else
-		{
-			strncpy(Buf, Str, Pos - Str);
-			*(Buf + (Pos - Str)) = NUL;
-		}
-		Sts = FFFTP_SUCCESS;
-	}
-	return(Sts);
-}
-
-
-// MLSD対応
-static int FindField2(char *Str, char *Buf, char Separator, int Num, int ToLast)
-{
-	char *Pos;
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	*Buf = NUL;
-	if(Num >= 0)
-	{
-		while(*Str == Separator)
-			Str++;
-
-		for(; Num > 0; Num--)
-		{
-			if((Str = strchr(Str, Separator)) != NULL)
-			{
-				while(*Str == Separator)
-				{
-					if(*Str == NUL)
-					{
-						Str = NULL;
-						break;
-					}
-					Str++;
-				}
-			}
-			else
-				break;
-		}
-	}
-
-	if(Str != NULL)
-	{
-		if((ToLast == YES) || ((Pos = strchr(Str, Separator)) == NULL))
 			strcpy(Buf, Str);
 		else
 		{
