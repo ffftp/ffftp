@@ -93,11 +93,16 @@ std::tuple<std::wstring, std::wstring> AskBookMarkText(int MarkID) {
 void SaveBookMark() {
 	if (AskConnecting() == YES)
 		if (auto CurHost = AskCurrentHost(); CurHost != HOSTNUM_NOENTRY) {
-			auto total = std::accumulate(begin(bookmarks), end(bookmarks), L""s, [](auto const& total, auto const& bookmark) { return total + bookmark.line + L'\0'; });
-			if (empty(total))
-				total += L'\0';
-			total += L'\0';
-			SetHostBookMark(CurHost, u8(total).data(), size_as<int>(total));
+			auto u8total = "\0"s;
+			if (!empty(bookmarks)) {
+				auto total = L""s;
+				for (auto const& bookmark : bookmarks) {
+					total += bookmark.line;
+					total += L'\0';
+				}
+				u8total = u8(total);
+			}
+			SetHostBookMark(CurHost, data(u8total), size_as<int>(u8total) + 1);
 		}
 }
 
