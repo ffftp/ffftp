@@ -28,6 +28,7 @@
 /============================================================================*/
 
 #include "common.h"
+#pragma hdrstop
 #include <delayimp.h>
 #if _WIN32_WINNT < _WIN32_WINNT_VISTA
 #include <muiload.h>
