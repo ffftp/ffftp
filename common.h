@@ -1743,7 +1743,8 @@ class CodeDetector {
 	int sjis = 0;
 	int euc = 0;
 	int jis = 0;
-	bool hfsx = false;
+	bool nfc = false;
+	bool nfd = false;
 public:
 	void Test(std::string_view str);
 	int result() const {
@@ -1753,7 +1754,7 @@ public:
 			{ euc, KANJI_EUC },
 			{ jis, KANJI_JIS },
 			}, [](auto const& l, auto const& r) { return std::get<0>(l) < std::get<0>(r); });
-		return id == KANJI_UTF8N && hfsx ? KANJI_UTF8HFSX : id;
+		return id == KANJI_UTF8N && nfc ? KANJI_UTF8HFSX : id;
 	}
 };
 

@@ -6,6 +6,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ffftp", "ffftp.vcxproj", "{
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "installer", "installer.wixproj", "{31FF48D2-5F7B-41AC-A702-B954565A905B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "util", "util", "{FCEFF612-937B-46E6-AC81-10D305A28D3F}"
+	ProjectSection(SolutionItems) = preProject
+		util\hfs+.cpp = util\hfs+.cpp
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
