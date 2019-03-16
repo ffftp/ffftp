@@ -35,293 +35,72 @@
 #pragma comment(lib, "Rasapi32.lib")
 #pragma comment(lib, "Rasdlg.lib")
 
-
-static int GetCurConnections(RASCONN **Buf);
-static DWORD RasHangUpWait(HRASCONN hRasConn);
-static int DoDisconnect(RASCONN *Buf, int Num);
-static void MakeRasConnMsg(char *Phone, RASCONNSTATE rasconn, char *Buf);
-
-
-/*===== ローカルなワーク =====*/
-
-static HWND hWndDial;
-
-
-/*----- 現在のRASコネクション一覧を返す ---------------------------------------
-*
-*	Parameter
-*		RASCONN **Buf : 一覧へのポインタを返すワーク
-*
-*	Return Value
-*		int 個数 (-1=エラー)
-*
-*	Note
-*		Bufの領域は呼出側で開放すること
-*----------------------------------------------------------------------------*/
-
-static int GetCurConnections(RASCONN **Buf)
-{
-	RASCONN *RasConn;
-	RASCONN *Tmp;
-	DWORD Size;
-	DWORD Num;
-	DWORD Sts;
-	int Ret;
-
-	Ret = -1;
-	Size = sizeof(RASCONN);
-	if((RasConn = (RASCONN*)malloc(Size)) != NULL)
-	{
-		RasConn->dwSize = sizeof(RASCONN);
-		Sts = RasEnumConnections(RasConn, &Size, &Num);
-		if((Sts == ERROR_BUFFER_TOO_SMALL) || (Sts == ERROR_NOT_ENOUGH_MEMORY))
-		{
-			if((Tmp = (RASCONN*)realloc(RasConn, Size)) != NULL)
-			{
-				RasConn = Tmp;
-				Sts = RasEnumConnections(RasConn, &Size, &Num);
-			}
-		}
-
-		if(Sts == 0)
-		{
-			Ret = Num;
-			*Buf = RasConn;
-		}
-		else
-			free(RasConn);
+static auto GetConnections() {
+	std::vector<RASCONNW> connections;
+	if (DWORD size = 0, count = 0, result = RasEnumConnectionsW(nullptr, &size, &count); result == ERROR_BUFFER_TOO_SMALL) {
+		connections.resize(size / sizeof(RASCONNW));
+		size = sizeof(RASCONNW) * size_as<DWORD>(connections);
+		connections[0].dwSize = sizeof(RASCONNW);
+		result = RasEnumConnectionsW(data(connections), &size, &count);
+		connections.resize(count);
 	}
-	return(Ret);
+	return connections;
 }
 
-
-/*----- RasHangUp()------------------------------------------------------------
-*
-*	Parameter
-*		HRASCONN hRasConn : ハンドル
-*
-*	Return Value
-*		DWORD ステータス
-*
-*	Note
-*		切断が完了するまで待つ
-*----------------------------------------------------------------------------*/
-
-static DWORD RasHangUpWait(HRASCONN hRasConn)
-{
-	RASCONNSTATUS RasSts;
-	DWORD Sts;
-
-	Sts = RasHangUp(hRasConn);
-
-	RasSts.dwSize = sizeof(RASCONNSTATUS);
-	while(RasGetConnectStatus(hRasConn, &RasSts) != ERROR_INVALID_HANDLE)
-		Sleep(10);
-
-	return(Sts);
-}
-
-
-/*----- 現在のRASコネクションを切断する ---------------------------------------
-*
-*	Parameter
-*		RASCONN *RasConn : 接続一覧
-*		int Num : 個数
-*
-*	Return Value
-*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
-*----------------------------------------------------------------------------*/
-
-static int DoDisconnect(RASCONN *RasConn, int Num)
-{
-	int i;
-	int Sts;
-
-	Sts = FFFTP_SUCCESS;
-	if(Num > 0)
-	{
-		SetTaskMsg(MSGJPN220);
-		for(i = 0; i < Num; i++)
-		{
-			if(RasHangUpWait(RasConn[i].hrasconn) != 0)
-				Sts = FFFTP_FAIL;
-		}
+static void DisconnectAll(std::vector<RASCONNW> const& connections) {
+	if (empty(connections))
+		return;
+	SetTaskMsg(MSGJPN220);
+	for (auto const& connection : connections) {
+		RasHangUpW(connection.hrasconn);
+		for (RASCONNSTATUSW status{ sizeof(RASCONNSTATUSW) }; RasGetConnectStatusW(connection.hrasconn, &status) != ERROR_INVALID_HANDLE;)
+			Sleep(10);
 	}
-	return(Sts);
 }
-
 
 // RASを切断する
-void DisconnectRas(int Notify) {
-	RASCONN* RasConn;
-	if (int Num = GetCurConnections(&RasConn); Num != -1) {
-		if (0 < Num && (Notify == NO || Dialog(GetFtpInst(), rasnotify_dlg, GetMainHwnd())))
-			DoDisconnect(RasConn, Num);
-		free(RasConn);
+//   confirm: 切断前に確認を行う
+void DisconnectRas(bool confirm) {
+	if (auto connections = GetConnections(); !empty(connections) && (!confirm || Dialog(GetFtpInst(), rasnotify_dlg, GetMainHwnd())))
+		DisconnectAll(connections);
+}
+
+// RASのエントリ一覧をコンボボックスにセットする
+void SetRasEntryToComboBox(HWND hdlg, int item, std::wstring const& selected) {
+	if (DWORD size = 0, count = 0, result = RasEnumEntriesW(nullptr, nullptr, nullptr, &size, &count); result == ERROR_BUFFER_TOO_SMALL) {
+		std::vector<RASENTRYNAMEW> entries{ size / sizeof(RASENTRYNAMEW) };
+		size = sizeof(RASENTRYNAMEW) * size_as<DWORD>(entries);
+		result = RasEnumEntriesW(nullptr, nullptr, data(entries), &size, &count);
+		for (DWORD i = 0; i < count; i++)
+			SendDlgItemMessageW(hdlg, item, CB_ADDSTRING, 0, (LPARAM)entries[i].szEntryName);
+		SendDlgItemMessageW(hdlg, item, CB_SELECTSTRING, -1, (LPARAM)selected.c_str());
 	}
 }
 
-
-/*----- RASのエントリ一覧をコンボボックスにセットする -------------------------
-*
-*	Parameter
-*		HWND hDlg : ダイアログボックスのハンドル
-*		int Item : コンボボックスのリソース番号
-*		char *CurName : 初期値
-*
-*	Return Value
-*		int エントリ数
-*----------------------------------------------------------------------------*/
-
-int SetRasEntryToComboBox(HWND hDlg, int Item, char *CurName)
-{
-	RASENTRYNAME *Entry;
-	RASENTRYNAME *Tmp;
-	DWORD i;
-	DWORD Size;
-	DWORD Num;
-	DWORD Sts;
-
-	Num = 0;
-		Size = sizeof(RASENTRYNAME);
-		if((Entry = (RASENTRYNAME*)malloc(Size)) != NULL)
-		{
-			Entry->dwSize = sizeof(RASENTRYNAME);
-			Sts = RasEnumEntries(NULL, NULL, Entry, &Size, &Num);
-			if((Sts == ERROR_BUFFER_TOO_SMALL) || (Sts == ERROR_NOT_ENOUGH_MEMORY))
-			{
-				if((Tmp = (RASENTRYNAME*)realloc(Entry, Size)) != NULL)
-				{
-					Entry = Tmp;
-					Sts = RasEnumEntries(NULL, NULL, Entry, &Size, &Num);
-				}
-			}
-
-			if((Sts == 0) && (Num > 0))
-			{
-				for(i = 0; i < Num; i++)
-					SendDlgItemMessage(hDlg, Item, CB_ADDSTRING, 0, (LPARAM)Entry[i].szEntryName);
-
-				SendDlgItemMessage(hDlg, Item, CB_SELECTSTRING, -1, (LPARAM)CurName);
-			}
-			free(Entry);
-		}
-	return(Num);
-}
-
-
-/*----- RASの接続を行う -------------------------------------------------------
-*
-*	Parameter
-*		int Dialup : ダイアルアップするかどうか (YES/NO)
-*		int UseThis : 必ずこのエントリに接続するかどうか (YES/NO)
-*		int Notify : 再接続前に確認するかどうか (YES/NO)
-*		char *Name : 接続先
-*
-*	Return Value
-*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
-*----------------------------------------------------------------------------*/
-
-int ConnectRas(int Dialup, int UseThis, int Notify, char *Name) {
-	if (Dialup != YES)
-		return FFFTP_SUCCESS;
+// RASの接続を行う
+//   dialup: ダイアルアップ接続を行う
+//   explicitly: nameで指定した接続先へ接続する
+//   confirm: 既存の接続を切断する前に確認を行う
+//   name: 接続先名
+bool ConnectRas(bool dialup, bool explicitly, bool confirm, std::wstring const& name) {
+	if (!dialup)
+		return true;
 
 	/* 現在の接続を確認 */
-	bool DoDial = true;
-	RASCONN *RasConn;
-	if (int Num = GetCurConnections(&RasConn); Num != -1) {
-		if (Num > 0) {
-			if (UseThis == YES) {
-				for (int i = 0; i < Num; i++)
-					if (_mbscmp((const unsigned char*)RasConn[i].szEntryName, (const unsigned char*)Name) == 0) {
-						DoDial = false;
-						break;
-					}
-				if (DoDial) {
-					if (Notify == NO || Dialog(GetFtpInst(), rasreconnect_dlg, GetMainHwnd()))
-						DoDisconnect(RasConn, Num);
-					else
-						DoDial = false;
-				}
-			} else
-				DoDial = false;
-		}
-		free(RasConn);
+	if (auto connections = GetConnections(); !empty(connections)) {
+		if (!explicitly)
+			return true;
+		for (auto const& connection : connections)
+			if (name == connection.szEntryName)
+				return true;
+		if (!confirm || Dialog(GetFtpInst(), rasreconnect_dlg, GetMainHwnd()))
+			DisconnectAll(connections);
+		else
+			return true;
 	}
-	if (!DoDial)
-		return FFFTP_SUCCESS;
 
 	/* 接続する */
 	SetTaskMsg(MSGJPN221);
-	RASDIALDLG DlgParam{ sizeof(RASDIALDLG), GetMainHwnd() };
-	return RasDialDlg(NULL, Name, NULL, &DlgParam) != 0 ? FFFTP_SUCCESS : FFFTP_FAIL;
-}
-
-
-/*----- RasDial()のステータスメッセージを作成する -----------------------------
-*
-*	Parameter
-*		char *Phone : 電話番号
-*		RASCONNSTATE rasconn : ステータス
-*		char *Buf : 文字列をセットするバッファ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void MakeRasConnMsg(char *Phone, RASCONNSTATE rasconn, char *Buf)
-{
-	switch( rasconn )
-	{
-		case RASCS_OpenPort:
-			strcpy(Buf, MSGJPN226);
-			break;
-		case RASCS_PortOpened:
-			strcpy(Buf, MSGJPN227);
-			break;
-		case RASCS_ConnectDevice:
-			sprintf(Buf, MSGJPN228);
-			break;
-		case RASCS_DeviceConnected:
-			strcpy(Buf, MSGJPN229);
-			break;
-		case RASCS_AllDevicesConnected:
-			strcpy(Buf, MSGJPN230);
-			break;
-		case RASCS_Authenticate:
-		case RASCS_AuthNotify:
-			strcpy(Buf, MSGJPN231);
-			break;
-		case RASCS_AuthRetry:
-		case RASCS_ReAuthenticate:
-			strcpy(Buf, MSGJPN232);
-			break;
-		case RASCS_AuthChangePassword:
-			strcpy(Buf, MSGJPN233);
-			break;
-		case RASCS_Authenticated:
-			strcpy(Buf, MSGJPN234);
-			break;
-		case RASCS_Connected:
-			strcpy(Buf, MSGJPN235);
-			break;
-		case RASCS_Disconnected:
-			strcpy(Buf, MSGJPN236);
-			break;
-		case RASCS_AuthCallback:
-		case RASCS_PrepareForCallback:
-		case RASCS_WaitForModemReset:
-		case RASCS_WaitForCallback:
-		case RASCS_Interactive:
-		case RASCS_RetryAuthentication:
-		case RASCS_CallbackSetByCaller:
-		case RASCS_PasswordExpired:
-		case RASCS_AuthProject:
-		case RASCS_AuthLinkSpeed:
-		case RASCS_AuthAck:
-		default:
-			strcpy(Buf, MSGJPN237);
-			break;
-	}
-	return;
+	RASDIALDLG info{ sizeof(RASDIALDLG), GetMainHwnd() };
+	return RasDialDlgW(nullptr, const_cast<LPWSTR>(name.c_str()), nullptr, &info);
 }

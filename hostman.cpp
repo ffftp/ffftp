@@ -1619,7 +1619,7 @@ struct Dialup {
 			EnableWindow(GetDlgItem(hDlg, HSET_DIALUSETHIS), FALSE);
 			EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), FALSE);
 		}
-		SetRasEntryToComboBox(hDlg, HSET_DIALENTRY, TmpHost.DialEntry);
+		SetRasEntryToComboBox(hDlg, HSET_DIALENTRY, u8(TmpHost.DialEntry));
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
