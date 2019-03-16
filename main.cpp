@@ -2311,7 +2311,7 @@ static void ExitProc(HWND hWnd)
 
 	if(RasClose == YES)
 	{
-		DisconnectRas(RasCloseNotify);
+		DisconnectRas(RasCloseNotify != NO);
 	}
 	DeleteAllObject();
 	HtmlHelp(NULL, NULL, HH_UNINITIALIZE, dwCookie); 

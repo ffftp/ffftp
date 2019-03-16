@@ -188,18 +188,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN216 (std::data(msgs[10000+216])) /* OTP SHA-1 */
 #define MSGJPN220 (std::data(msgs[10000+220])) /* ダイアルアップを切断しています. */
 #define MSGJPN221 (std::data(msgs[10000+221])) /* ダイアルアップで接続しています. */
-#define MSGJPN226 (std::data(msgs[10000+226])) /* ポートを開いています... */
-#define MSGJPN227 (std::data(msgs[10000+227])) /* ポートが開かれました */
-#define MSGJPN228 (std::data(msgs[10000+228])) /* ダイアル中... */
-#define MSGJPN229 (std::data(msgs[10000+229])) /* ダイアル完了 */
-#define MSGJPN230 (std::data(msgs[10000+230])) /* 全デバイスが接続されました */
-#define MSGJPN231 (std::data(msgs[10000+231])) /* ユーザー名とパスワードを検証中... */
-#define MSGJPN232 (std::data(msgs[10000+232])) /* 再検証中... */
-#define MSGJPN233 (std::data(msgs[10000+233])) /* パスワードを変更して下さい */
-#define MSGJPN234 (std::data(msgs[10000+234])) /* 検証が終了しました */
-#define MSGJPN235 (std::data(msgs[10000+235])) /* 接続しました */
-#define MSGJPN236 (std::data(msgs[10000+236])) /* 切断しました */
-#define MSGJPN237 (std::data(msgs[10000+237])) /* 接続処理中... */
 #define MSGJPN239 (std::data(msgs[10000+239])) /* # このファイルは編集しないでください.\n */
 #define MSGJPN240 (std::data(msgs[10000+240])) /* INIファイルに設定が保存できません */
 #define MSGJPN241 (std::data(msgs[10000+241])) /* 送信はタイムアウトで失敗しました. */

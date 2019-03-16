@@ -2509,18 +2509,6 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN226           "ポートを開いています..."
-    IDS_MSGJPN227           "ポートが開かれました"
-    IDS_MSGJPN228           "ダイアル中..."
-    IDS_MSGJPN229           "ダイアル完了"
-    IDS_MSGJPN230           "全デバイスが接続されました"
-    IDS_MSGJPN231           "ユーザー名とパスワードを検証中..."
-    IDS_MSGJPN232           "再検証中..."
-    IDS_MSGJPN233           "パスワードを変更して下さい"
-    IDS_MSGJPN234           "検証が終了しました"
-    IDS_MSGJPN235           "接続しました"
-    IDS_MSGJPN236           "切断しました"
-    IDS_MSGJPN237           "接続処理中..."
     IDS_MSGJPN239           "# このファイルは編集しないでください.\n"
 END
 

@@ -121,8 +121,7 @@ void ConnectProc(int Type, int Num)
 		// UTF-8対応
 		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
 
-		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == FFFTP_SUCCESS)
-		{
+		if (ConnectRas(CurHost.Dialup != NO, CurHost.DialupAlways != NO, CurHost.DialupNotify != NO, u8(CurHost.DialEntry))) {
 			SetHostKanaCnvImm(CurHost.KanaCnv);
 			SetHostKanjiCodeImm(CurHost.KanjiCode);
 			SetSyncMoveMode(CurHost.SyncMove);
@@ -538,8 +537,7 @@ void HistoryConnectProc(int MenuCmd)
 		// UTF-8対応
 		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
 
-		if(ConnectRas(CurHost.Dialup, CurHost.DialupAlways, CurHost.DialupNotify, CurHost.DialEntry) == FFFTP_SUCCESS)
-		{
+		if (ConnectRas(CurHost.Dialup != NO, CurHost.DialupAlways != NO, CurHost.DialupNotify != NO, u8(CurHost.DialEntry))) {
 			SetCurrentHost(HOSTNUM_NOENTRY);
 			SetHostKanaCnvImm(CurHost.KanaCnv);
 			SetHostKanjiCodeImm(CurHost.KanjiCode);

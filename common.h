@@ -1829,9 +1829,9 @@ void CheckTipsDisplay(HWND hWnd, LPARAM lParam);
 
 /*===== ras.c =====*/
 
-void DisconnectRas(int Notify);
-int SetRasEntryToComboBox(HWND hDlg, int Item, char *CurName);
-int ConnectRas(int Dialup, int UseThis, int Notify, char *Name);
+void DisconnectRas(bool confirm);
+void SetRasEntryToComboBox(HWND hdlg, int item, std::wstring const& selected);
+bool ConnectRas(bool dialup, bool explicitly, bool confirm, std::wstring const& name);
 
 /*===== misc.c =====*/
 
