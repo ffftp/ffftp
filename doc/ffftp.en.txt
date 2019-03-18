@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.3.6 (FTP Client software)
+[Software Name]  FFFTP Ver.3.7 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018-2019, KURATA Sayuri.
@@ -29,16 +29,13 @@ following menu.
 File -> Settings -> Change Master password
 
 
-Changes at 3.6
+Changes at 3.7
 --------------
 
-- Fix problem of file name conversion. #74
-- Correct menu item text. #70
-- Disable UPnP by default. #76
-- Improve save setting, avoid UAC dialog. #29
-- Remove cache feature. #57
-- Improve ci build. #69
-- Refactor dialog procedure. #15
+- Fix lost bookmark with multibyte path. #82
+- Fix ras connect error. #86
+- Reimplement Japanese code converter. #79
+- Improve build speed by precompile header. #85
 
 
 Outline
