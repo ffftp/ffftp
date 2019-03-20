@@ -1966,6 +1966,22 @@ template<class Size, class Source>
 constexpr auto size_as(Source const& source) {
 	return static_cast<Size>(std::size(source));
 }
+template<class DstChar, class SrcChar, class Fn>
+static inline auto convert(Fn&& fn, std::basic_string_view<SrcChar> src) {
+	auto len1 = fn(data(src), size_as<int>(src), nullptr, 0);
+	std::basic_string<DstChar> dst(len1, 0);
+	auto len2 = fn(data(src), size_as<int>(src), data(dst), len1);
+	dst.resize(len2);
+	return dst;
+}
+template<class DstChar, class Fn>
+static inline auto convert(Fn&& fn, std::string_view src) {
+	return convert<DstChar, char>(std::forward<Fn>(fn), src);
+}
+template<class DstChar, class Fn>
+static inline auto convert(Fn&& fn, std::wstring_view src) {
+	return convert<DstChar, wchar_t>(std::forward<Fn>(fn), src);
+}
 template<class Char, class Traits, class Alloc>
 static inline auto operator+(std::basic_string<Char, Traits, Alloc> const& left, std::basic_string_view<Char, Traits> const& right) {
 	std::basic_string<Char, Traits, Alloc> result(size(left) + size(right), Char(0));
