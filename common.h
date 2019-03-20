@@ -1996,19 +1996,15 @@ static inline auto operator+(std::basic_string_view<Char, Traits> const& left, s
 	std::copy(begin(right), end(right), it);
 	return result;
 }
-std::wstring u8(std::string_view const& utf8);
-std::string u8(std::wstring_view const& wide);
-template<class Char>
-static inline auto u8(const Char* str) {
-	return u8(std::basic_string_view<Char>{ str });
+static inline auto u8(std::string_view utf8) {
+	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) { return MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, src, srclen, dst, dstlen); }, utf8);
+}
+static inline auto u8(std::wstring_view wide) {
+	return convert<char>([](auto src, auto srclen, auto dst, auto dstlen) { return WideCharToMultiByte(CP_UTF8, 0, src, srclen, dst, dstlen, nullptr, nullptr); }, wide);
 }
 template<class Char>
 static inline auto u8(const Char* str, size_t len) {
 	return u8(std::basic_string_view<Char>{ str, len });
-}
-template<class Char, class Traits, class Allocator>
-static inline auto u8(std::basic_string<Char, Traits, Allocator> const& str) {
-	return u8(std::basic_string_view<Char>{ data(str), size(str) });
 }
 static auto ieq(std::wstring const& left, std::wstring const& right) {
 	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::towupper(l) == std::towupper(r); });
