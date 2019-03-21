@@ -1966,6 +1966,22 @@ template<class Size, class Source>
 constexpr auto size_as(Source const& source) {
 	return static_cast<Size>(std::size(source));
 }
+template<class DstChar, class SrcChar, class Fn>
+static inline auto convert(Fn&& fn, std::basic_string_view<SrcChar> src) {
+	auto len1 = fn(data(src), size_as<int>(src), nullptr, 0);
+	std::basic_string<DstChar> dst(len1, 0);
+	auto len2 = fn(data(src), size_as<int>(src), data(dst), len1);
+	dst.resize(len2);
+	return dst;
+}
+template<class DstChar, class Fn>
+static inline auto convert(Fn&& fn, std::string_view src) {
+	return convert<DstChar, char>(std::forward<Fn>(fn), src);
+}
+template<class DstChar, class Fn>
+static inline auto convert(Fn&& fn, std::wstring_view src) {
+	return convert<DstChar, wchar_t>(std::forward<Fn>(fn), src);
+}
 template<class Char, class Traits, class Alloc>
 static inline auto operator+(std::basic_string<Char, Traits, Alloc> const& left, std::basic_string_view<Char, Traits> const& right) {
 	std::basic_string<Char, Traits, Alloc> result(size(left) + size(right), Char(0));
@@ -1980,19 +1996,15 @@ static inline auto operator+(std::basic_string_view<Char, Traits> const& left, s
 	std::copy(begin(right), end(right), it);
 	return result;
 }
-std::wstring u8(std::string_view const& utf8);
-std::string u8(std::wstring_view const& wide);
-template<class Char>
-static inline auto u8(const Char* str) {
-	return u8(std::basic_string_view<Char>{ str });
+static inline auto u8(std::string_view utf8) {
+	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) { return MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, src, srclen, dst, dstlen); }, utf8);
+}
+static inline auto u8(std::wstring_view wide) {
+	return convert<char>([](auto src, auto srclen, auto dst, auto dstlen) { return WideCharToMultiByte(CP_UTF8, 0, src, srclen, dst, dstlen, nullptr, nullptr); }, wide);
 }
 template<class Char>
 static inline auto u8(const Char* str, size_t len) {
 	return u8(std::basic_string_view<Char>{ str, len });
-}
-template<class Char, class Traits, class Allocator>
-static inline auto u8(std::basic_string<Char, Traits, Allocator> const& str) {
-	return u8(std::basic_string_view<Char>{ data(str), size(str) });
 }
 static auto ieq(std::wstring const& left, std::wstring const& right) {
 	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::towupper(l) == std::towupper(r); });
@@ -2059,13 +2071,7 @@ extern bool SupportIdn;
 static inline auto IdnToAscii(std::wstring const& unicode) {
 	if (!SupportIdn || empty(unicode))
 		return unicode;
-	auto length = IdnToAscii(0, data(unicode), size_as<int>(unicode), nullptr, 0);
-	if (length == 0)
-		return unicode;
-	std::wstring ascii(static_cast<size_t>(length), L'\0');
-	auto result = IdnToAscii(0, data(unicode), size_as<int>(unicode), data(ascii), length);
-	assert(result == length);
-	return ascii;
+	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) { return IdnToAscii(0, src, srclen, dst, dstlen); }, unicode);
 }
 static inline auto InputDialog(int dialogId, HWND parent, char *Title, char *Buf, int maxlength = 0, int* flag = nullptr, int helpTopicId = IDH_HELP_TOPIC_0000001) {
 	struct Data {
