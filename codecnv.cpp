@@ -11,16 +11,6 @@ std::string ToCRLF(std::string_view source) {
 }
 
 
-static auto normalize(NORM_FORM form, std::wstring_view src) {
-	// NormalizeString returns estimated buffer length.
-	auto estimated = NormalizeString(form, data(src), size_as<int>(src), nullptr, 0);
-	std::wstring normalized(estimated, L'\0');
-	auto len = NormalizeString(form, data(src), size_as<int>(src), data(normalized), estimated);
-	normalized.resize(len);
-	return normalized;
-}
-
-
 static auto convert(std::string_view input, DWORD incp, DWORD outcp, void (*update)(std::wstring&)) {
 	static auto mlang = LoadLibraryW(L"mlang.dll");
 	static auto convertINetMultiByteToUnicode = reinterpret_cast<decltype(&ConvertINetMultiByteToUnicode)>(GetProcAddress(mlang, "ConvertINetMultiByteToUnicode"));
@@ -102,7 +92,7 @@ void CodeDetector::Test(std::string_view str) {
 
 static void fullwidth(std::wstring& str) {
 	static std::wregex re{ LR"([\uFF61-\uFF9F]+)" };
-	str = replace<wchar_t>(str, re, [](auto const& m) { return normalize(NormalizationKC, { m[0].first, (size_t)m.length() }); });
+	str = replace<wchar_t>(str, re, [](auto const& m) { return NormalizeString(NormalizationKC, { m[0].first, (size_t)m.length() }); });
 }
 
 
@@ -264,7 +254,7 @@ std::string ConvertFrom(std::string_view str, int kanji) {
 		return convert(decoded, 932, CP_UTF8, [](auto) {});
 	}
 	case KANJI_UTF8HFSX:
-		return convert(str, CP_UTF8, CP_UTF8, [](auto& str) { str = normalize(NormalizationC, str); });
+		return convert(str, CP_UTF8, CP_UTF8, [](auto& str) { str = NormalizeString(NormalizationC, str); });
 	case KANJI_UTF8N:
 	default:
 		return std::string(str);
@@ -298,7 +288,7 @@ std::string ConvertTo(std::string_view str, int kanji, int kana) {
 			// U+0F900–U+0FAFF       F900-FAFF
 			// U+2F800–U+2FAFF  D87E DC00-DEFF
 			static std::wregex re{ LR"((.*?)((?:[\u2000-\u2FFF\uF900-\uFAFF]|\uD87E[\uDC00-\uDEFF])+|$))" };
-			str = replace<wchar_t>(str, re, [](auto const& m) { return normalize(NormalizationD, { m[1].first, (size_t)m.length(1) }).append(m[2].first, m[2].second); });
+			str = replace<wchar_t>(str, re, [](auto const& m) { return NormalizeString(NormalizationD, { m[1].first, (size_t)m.length(1) }).append(m[2].first, m[2].second); });
 		});
 	case KANJI_UTF8N:
 	default:

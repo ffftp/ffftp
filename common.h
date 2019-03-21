@@ -2073,6 +2073,11 @@ static inline auto IdnToAscii(std::wstring const& unicode) {
 		return unicode;
 	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) { return IdnToAscii(0, src, srclen, dst, dstlen); }, unicode);
 }
+static inline auto NormalizeString(NORM_FORM form, std::wstring_view src) {
+	if (!SupportIdn || empty(src))
+		return std::wstring{ src };
+	return convert<wchar_t>([form](auto src, auto srclen, auto dst, auto dstlen) { return NormalizeString(form, src, srclen, dst, dstlen); }, src);
+}
 static inline auto InputDialog(int dialogId, HWND parent, char *Title, char *Buf, int maxlength = 0, int* flag = nullptr, int helpTopicId = IDH_HELP_TOPIC_0000001) {
 	struct Data {
 		using result_t = bool;
