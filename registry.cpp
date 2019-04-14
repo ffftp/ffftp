@@ -82,7 +82,6 @@ void SetHashSalt1(void* Salt, int Length);
 void GetMaskWithHMACSHA1(DWORD IV, const char* Salt, int SaltLength, void* pHash);
 void MaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size, int EscapeZero);
 void UnmaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size, int EscapeZero);
-void CalculateSettingsDataChecksum(void* Data, DWORD Size);
 
 /* 2010.01.30 genta 追加 */
 static char SecretKey[FMAX_PATH+1];
@@ -97,7 +96,6 @@ static int IniKanjiCode = KANJI_NOCNV;
 
 // 全設定暗号化対応
 static int EncryptSettings = NO;
-static BYTE EncryptSettingsChecksum[20];
 static int EncryptSettingsError = NO;
 
 /*===== 外部参照 =====*/
@@ -442,7 +440,6 @@ void SaveRegistry(void)
 		EncodePassword(Buf, Str);
 		WriteStringToReg(hKey3, "EncryptAllDetector", Str);
 		EncryptSettings = EncryptAllSettings;
-		memset(&EncryptSettingsChecksum, 0, 20);
 
 		// 全設定暗号化対応
 //		if(CreateSubKey(hKey3, "Options", &hKey4) == FFFTP_SUCCESS)
@@ -830,7 +827,6 @@ void SaveRegistry(void)
 		}
 		// 全設定暗号化対応
 		EncryptSettings = NO;
-		WriteBinaryToReg(hKey3, "EncryptAllChecksum", &EncryptSettingsChecksum, 20);
 		if(EncryptAllSettings == YES)
 		{
 			if(OpenSubKey(hKey3, "Options", &hKey4) == FFFTP_SUCCESS)
@@ -919,8 +915,6 @@ int LoadRegistry(void)
 	HISTORYDATA Hist;
 	int Sts;
 	int Version;
-	// 全設定暗号化対応
-	BYTE Checksum[20];
 
 	Sts = NO;
 
@@ -955,7 +949,6 @@ int LoadRegistry(void)
 				ReadStringFromReg(hKey3, "EncryptAllDetector", Str, 255);
 				DecodePassword(Str, Buf2);
 				EncryptSettings = EncryptAllSettings;
-				memset(&EncryptSettingsChecksum, 0, 20);
 				if(strcmp(Buf, Buf2) != 0)
 				{
 					switch (Dialog(GetFtpInst(), corruptsettings_dlg, GetMainHwnd(), Data{}))
@@ -1416,35 +1409,6 @@ int LoadRegistry(void)
 		}
 		// 全設定暗号化対応
 		EncryptSettings = NO;
-		if(Version >= 1990)
-		{
-			if(GetMasterPasswordStatus() == PASSWORD_OK)
-			{
-				memset(&Checksum, 0, 20);
-				ReadBinaryFromReg(hKey3, "EncryptAllChecksum", &Checksum, 20);
-				if(memcmp(&Checksum, &EncryptSettingsChecksum, 20) != 0)
-				{
-					switch (Dialog(GetFtpInst(), corruptsettings_dlg, GetMainHwnd(), Data{}))
-					{
-					case IDCANCEL:
-						Terminate();
-						break;
-					case IDABORT:
-						CloseReg(hKey3);
-						ClearRegistry();
-						ClearIni();
-						Restart();
-						Terminate();
-						break;
-					case IDRETRY:
-						EncryptSettingsError = YES;
-						break;
-					case IDIGNORE:
-						break;
-					}
-				}
-			}
-		}
 		CloseReg(hKey3);
 	}
 	else
@@ -2588,7 +2552,6 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 			strcat(Path, "\\");
 			strcat(Path, Name);
 			UnmaskSettingsData(Path, (int)strlen(Path), Value, sizeof(int), NO);
-			CalculateSettingsDataChecksum(Value, sizeof(int));
 		}
 	}
 	return(Sts);
@@ -2644,7 +2607,6 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 	if(EncryptSettings == YES)
 	{
 		UnmaskSettingsData(Path, (int)strlen(Path), &Value, sizeof(int), NO);
-		CalculateSettingsDataChecksum(&Value, sizeof(int));
 	}
 	return(FFFTP_SUCCESS);
 }
@@ -2735,7 +2697,6 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 			strcat(Path, "\\");
 			strcat(Path, Name);
 			UnmaskSettingsData(Path, (int)strlen(Path), Str, (DWORD)strlen(Str) + 1, YES);
-			CalculateSettingsDataChecksum(Str, (DWORD)strlen(Str) + 1);
 		}
 	}
 	return(Sts);
@@ -2790,7 +2751,6 @@ static int WriteStringToReg(void *Handle, char *Name, char *Str)
 	if(EncryptSettings == YES)
 	{
 		UnmaskSettingsData(Path, (int)strlen(Path), Str, (DWORD)strlen(Str) + 1, YES);
-		CalculateSettingsDataChecksum(Str, (DWORD)strlen(Str) + 1);
 	}
 	return(FFFTP_SUCCESS);
 }
@@ -2884,7 +2844,6 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 			strcat(Path, "\\");
 			strcat(Path, Name);
 			UnmaskSettingsData(Path, (int)strlen(Path), Str, StrMultiLen(Str) + 1, YES);
-			CalculateSettingsDataChecksum(Str, StrMultiLen(Str) + 1);
 		}
 	}
 	return(Sts);
@@ -2939,7 +2898,6 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 	if(EncryptSettings == YES)
 	{
 		UnmaskSettingsData(Path, (int)strlen(Path), Str, StrMultiLen(Str) + 1, YES);
-		CalculateSettingsDataChecksum(Str, StrMultiLen(Str) + 1);
 	}
 	return(FFFTP_SUCCESS);
 }
@@ -2994,7 +2952,6 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 			strcat(Path, "\\");
 			strcat(Path, Name);
 			UnmaskSettingsData(Path, (int)strlen(Path), Bin, Size, NO);
-			CalculateSettingsDataChecksum(Bin, Size);
 		}
 	}
 	return(Sts);
@@ -3050,7 +3007,6 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 	if(EncryptSettings == YES)
 	{
 		UnmaskSettingsData(Path, (int)strlen(Path), Bin, Len, NO);
-		CalculateSettingsDataChecksum(Bin, Len);
 	}
 	return(FFFTP_SUCCESS);
 }
@@ -3356,20 +3312,6 @@ void MaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size, 
 void UnmaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size, int EscapeZero)
 {
 	MaskSettingsData(Salt, SaltLength, Data, Size, EscapeZero);
-}
-
-void CalculateSettingsDataChecksum(void* Data, DWORD Size)
-{
-	uint32_t Hash[5];
-	DWORD i;
-	BYTE Mask[20];
-	sha_memory((const char*)Data, Size, Hash);
-	// sha.cはビッグエンディアンのため
-	for(i = 0; i < 5; i++)
-		Hash[i] = _byteswap_ulong(Hash[i]);
-	memcpy(&Mask, &Hash, 20);
-	for(i = 0; i < 20; i++)
-		EncryptSettingsChecksum[i] ^= Mask[i];
 }
 
 // ポータブル版判定
