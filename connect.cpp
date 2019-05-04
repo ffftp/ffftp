@@ -2014,10 +2014,13 @@ static bool Socks5Authenticate(SOCKET s, int* CancelCheckWork) {
 		buffer = { 5, 1, 0 };			// VER, NMETHODS, METHODS
 	else
 		buffer = { 5, 2, 0, 1 };		// VER, NMETHODS, METHODS
+	#pragma pack(push, 1)
 	struct {
 		uint8_t VER;
 		uint8_t METHOD;
 	} reply;
+	static_assert(sizeof reply == 2);
+	#pragma pack(pop)
 	if (!SocksSend(s, buffer, CancelCheckWork) || !SocksRecv(s, reply, CancelCheckWork)) {
 		SetTaskMsg(MSGJPN036);
 		return false;
@@ -2034,10 +2037,13 @@ static bool Socks5Authenticate(SOCKET s, int* CancelCheckWork) {
 		buffer.insert(end(buffer), FwallUser, FwallUser + ulen);	// UNAME
 		buffer.push_back(plen);										// PLEN
 		buffer.insert(end(buffer), FwallPass, FwallPass + plen);	// PASSWD
+		#pragma pack(push, 1)
 		struct {
 			uint8_t VER;
 			uint8_t STATUS;
 		} reply;
+		static_assert(sizeof reply == 2);
+		#pragma pack(pop)
 		if (!SocksSend(s, buffer, CancelCheckWork) || !SocksRecv(s, reply, CancelCheckWork) || reply.STATUS != 0) {
 			SetTaskMsg(MSGJPN037);
 			return false;
@@ -2055,12 +2061,15 @@ std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork
 	assert(AskHostFireWall() == YES);
 	sockaddr_storage ss;
 	if (FwallType == FWALL_SOCKS4) {
+		#pragma pack(push, 1)
 		struct {
 			uint8_t VN;
 			uint8_t CD;
 			USHORT DSTPORT;
 			IN_ADDR DSTIP;
 		} reply;
+		static_assert(sizeof reply == 8);
+		#pragma pack(pop)
 		if (!SocksRecv(s, reply, CancelCheckWork) || reply.VN != 0 || reply.CD != 90) {
 			DoPrintf(MSGJPN035);
 			return {};
@@ -2076,27 +2085,36 @@ std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork
 			reinterpret_cast<sockaddr_in&>(ss) = { AF_INET, reply.DSTPORT, reply.DSTIP };
 		return ss;
 	} else if (FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER) {
+		#pragma pack(push, 1)
 		struct {
 			uint8_t VER;
 			uint8_t REP;
 			uint8_t RSV;
 			uint8_t ATYP;
 		} reply;
+		static_assert(sizeof reply == 4);
+		#pragma pack(pop)
 		if (SocksRecv(s, reply, CancelCheckWork) && reply.VER == 5 && reply.REP == 0) {
 			if (reply.ATYP == 1) {
+				#pragma pack(push, 1)
 				struct {
 					IN_ADDR BND_ADDR;
 					USHORT BND_PORT;
 				} reply;
+				static_assert(sizeof reply == 6);
+				#pragma pack(pop)
 				if (SocksRecv(s, reply, CancelCheckWork)) {
 					reinterpret_cast<sockaddr_in&>(ss) = { AF_INET, reply.BND_PORT, reply.BND_ADDR };
 					return ss;
 				}
 			} else if (reply.ATYP == 4) {
+				#pragma pack(push, 1)
 				struct {
 					IN6_ADDR BND_ADDR;
 					USHORT BND_PORT;
 				} reply;
+				static_assert(sizeof reply == 18);
+				#pragma pack(pop)
 				if (SocksRecv(s, reply, CancelCheckWork)) {
 					reinterpret_cast<sockaddr_in6&>(ss) = { AF_INET6, reply.BND_PORT, 0, reply.BND_ADDR };
 					return ss;
