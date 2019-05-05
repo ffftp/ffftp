@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.3.7 (FTP Client software)
+[Software Name]  FFFTP Ver.3.8 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018-2019, KURATA Sayuri.
@@ -29,13 +29,13 @@ following menu.
 File -> Settings -> Change Master password
 
 
-Changes at 3.7
+Changes at 3.8
 --------------
 
-- Fix lost bookmark with multibyte path. #82
-- Fix ras connect error. #86
-- Reimplement Japanese code converter. #79
-- Improve build speed by precompile header. #85
+- Fix socks5 support. #93
+- Fix crash on xp w/o ie7. #89
+- Remove feature: setting check sum. #90
+- Import cert error. #95
 
 
 Outline
