@@ -206,6 +206,12 @@ namespace std {
 			CertFreeCertificateContext(ptr);
 		}
 	};
+	template<>
+	struct default_delete<const CERT_CHAIN_CONTEXT> {
+		void operator()(const CERT_CHAIN_CONTEXT* ptr) {
+			CertFreeCertificateChain(ptr);
+		}
+	};
 }
 
 auto getCertContext(CtxtHandle& context) {
@@ -256,14 +262,18 @@ static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName
 	if (!certContext)
 		return CertResult::Failed;
 
-	CERT_CHAIN_PARA chainPara{ sizeof CERT_CHAIN_PARA };
-	PCCERT_CHAIN_CONTEXT chainContext;
-	if (!CertGetCertificateChain(nullptr, certContext.get(), nullptr, nullptr, &chainPara, CERT_CHAIN_REVOCATION_CHECK_CHAIN_EXCLUDE_ROOT, nullptr, &chainContext))
+	auto chainContext = [&certContext]() {
+		CERT_CHAIN_PARA chainPara{ sizeof(CERT_CHAIN_PARA) };
+		PCCERT_CHAIN_CONTEXT chainContext;
+		auto result = CertGetCertificateChain(nullptr, certContext.get(), nullptr, nullptr, &chainPara, CERT_CHAIN_REVOCATION_CHECK_CHAIN_EXCLUDE_ROOT, nullptr, &chainContext);
+		return std::unique_ptr<const CERT_CHAIN_CONTEXT>{ result ? chainContext : nullptr };
+	}();
+	if (!chainContext)
 		return CertResult::Failed;
-	SSL_EXTRA_CERT_CHAIN_POLICY_PARA sslPolicy{ sizeof SSL_EXTRA_CERT_CHAIN_POLICY_PARA , AUTHTYPE_SERVER, 0, serverName };
-	CERT_CHAIN_POLICY_PARA policyPara{ sizeof CERT_CHAIN_POLICY_PARA, 0, &sslPolicy };
-	CERT_CHAIN_POLICY_STATUS policyStatus{ sizeof CERT_CHAIN_POLICY_STATUS };
-	if (!CertVerifyCertificateChainPolicy(CERT_CHAIN_POLICY_SSL, chainContext, &policyPara, &policyStatus))
+	SSL_EXTRA_CERT_CHAIN_POLICY_PARA sslPolicy{ sizeof(SSL_EXTRA_CERT_CHAIN_POLICY_PARA), AUTHTYPE_SERVER, 0, serverName };
+	CERT_CHAIN_POLICY_PARA policyPara{ sizeof(CERT_CHAIN_POLICY_PARA), 0, &sslPolicy };
+	CERT_CHAIN_POLICY_STATUS policyStatus{ sizeof(CERT_CHAIN_POLICY_STATUS) };
+	if (!CertVerifyCertificateChainPolicy(CERT_CHAIN_POLICY_SSL, chainContext.get(), &policyPara, &policyStatus))
 		return CertResult::Failed;
 	if (policyStatus.dwError == 0)
 		return CertResult::Secure;
