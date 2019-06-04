@@ -29,112 +29,48 @@
 
 #include "common.h"
 
-
 #define TASK_BUFSIZE	(16*1024)
-
-
-
-
-/*===== 外部参照 =====*/
-
 extern int ClientWidth;
 extern int SepaWidth;
 extern int ListHeight;
-
-/* 設定値 */
 extern int TaskHeight;
 extern HFONT ListFont;
 extern int DebugConsole;
-// 古い処理内容を消去
 extern int RemoveOldLog;
-
-/*===== ローカルなワーク =====*/
-
 static HWND hWndTask = NULL;
 static HANDLE DispLogSemaphore;
 static HANDLE DispLogSemaphore2;
 
 
+// タスクウインドウを作成する
+int MakeTaskWindow(HWND hWnd, HINSTANCE hInst) {
+	constexpr DWORD style = WS_CHILD | WS_BORDER | ES_AUTOVSCROLL | WS_VSCROLL | ES_MULTILINE | ES_READONLY | WS_CLIPSIBLINGS;
+	hWndTask = CreateWindowExW(WS_EX_CLIENTEDGE, WC_EDITW, nullptr, style, 0, AskToolWinHeight() * 2 + ListHeight + SepaWidth, ClientWidth, TaskHeight, hWnd, (HMENU)1500, hInst, nullptr);
+	if (hWndTask == NULL)
+		return FFFTP_FAIL;
 
-/*----- タスクウインドウを作成する --------------------------------------------
-*
-*	Parameter
-*		HWND hWnd : 親ウインドウのウインドウハンドル
-*		HINSTANCE hInst : インスタンスハンドル
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int MakeTaskWindow(HWND hWnd, HINSTANCE hInst)
-{
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	// 高DPI対応
-//	hWndTask = CreateWindowEx(/*WS_EX_STATICEDGE*/WS_EX_CLIENTEDGE,
-//			"EDIT", NULL,
-//			WS_CHILD | WS_BORDER | ES_AUTOVSCROLL | WS_VSCROLL | ES_MULTILINE | ES_READONLY | WS_CLIPSIBLINGS,
-//			0, TOOLWIN_HEIGHT*2+ListHeight+SepaWidth, ClientWidth, TaskHeight,
-//			hWnd, (HMENU)1500, hInst, NULL);
-	hWndTask = CreateWindowEx(/*WS_EX_STATICEDGE*/WS_EX_CLIENTEDGE,
-			"EDIT", NULL,
-			WS_CHILD | WS_BORDER | ES_AUTOVSCROLL | WS_VSCROLL | ES_MULTILINE | ES_READONLY | WS_CLIPSIBLINGS,
-			0, AskToolWinHeight()*2+ListHeight+SepaWidth, ClientWidth, TaskHeight,
-			hWnd, (HMENU)1500, hInst, NULL);
-
-	if(hWndTask != NULL)
-	{
-		// Windows 9x系をサポートしないため不要
-//		SendMessage(hWndTask, EM_LIMITTEXT, TASK_BUFSIZE, 0);
-		SendMessage(hWndTask, EM_LIMITTEXT, 0x7fffffff, 0);
-
-		if(ListFont != NULL)
-			SendMessage(hWndTask, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
-
-		ShowWindow(hWndTask, SW_SHOW);
-		Sts = FFFTP_SUCCESS;
-
-		DispLogSemaphore = CreateSemaphore(NULL, 1, 1, NULL);
-		DispLogSemaphore2 = CreateSemaphore(NULL, 1, 1, NULL);
-
-	}
-	return(Sts);
+	SendMessageW(hWndTask, EM_LIMITTEXT, 0x7fffffff, 0);
+	if (ListFont != NULL)
+		SendMessageW(hWndTask, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
+	ShowWindow(hWndTask, SW_SHOW);
+	DispLogSemaphore = CreateSemaphore(NULL, 1, 1, NULL);
+	DispLogSemaphore2 = CreateSemaphore(NULL, 1, 1, NULL);
+	return FFFTP_SUCCESS;
 }
 
 
-/*----- タスクウインドウを削除 ------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DeleteTaskWindow(void)
-{
+// タスクウインドウを削除
+void DeleteTaskWindow() {
 	CloseHandle(DispLogSemaphore);
 	CloseHandle(DispLogSemaphore2);
-	if(hWndTask != NULL)
+	if (hWndTask != NULL)
 		DestroyWindow(hWndTask);
-	return;
 }
 
 
-/*----- タスクウインドウのウインドウハンドルを返す ----------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetTaskWnd(void)
-{
-	return(hWndTask);
+// タスクウインドウのウインドウハンドルを返す
+HWND GetTaskWnd() {
+	return hWndTask;
 }
 
 
@@ -156,84 +92,33 @@ void _SetTaskMsg(const char* format, ...) {
 #endif
 		if (0 < result) {
 			strcat(buffer, "\r\n");
-			int Pos = (int)SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
+			int Pos = (int)SendMessage(hWndTask, WM_GETTEXTLENGTH, 0, 0);
 			if (RemoveOldLog == YES) {
 				if ((Pos + strlen(buffer)) >= TASK_BUFSIZE) {
-					Pos = (int)SendMessage(GetTaskWnd(), EM_LINEINDEX, 1, 0);
-					SendMessage(GetTaskWnd(), EM_SETSEL, 0, Pos);
-					SendMessage(GetTaskWnd(), EM_REPLACESEL, FALSE, (LPARAM)"");
-					Pos = (int)SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
+					Pos = (int)SendMessage(hWndTask, EM_LINEINDEX, 1, 0);
+					SendMessage(hWndTask, EM_SETSEL, 0, Pos);
+					SendMessage(hWndTask, EM_REPLACESEL, FALSE, (LPARAM)"");
+					Pos = (int)SendMessage(hWndTask, WM_GETTEXTLENGTH, 0, 0);
 				}
 			}
-			SendMessage(GetTaskWnd(), EM_SETSEL, Pos, Pos);
-			SendMessage(GetTaskWnd(), EM_REPLACESEL, FALSE, (LPARAM)buffer);
+			SendMessage(hWndTask, EM_SETSEL, Pos, Pos);
+			SendMessage(hWndTask, EM_REPLACESEL, FALSE, (LPARAM)buffer);
 		}
 	}
 	ReleaseSemaphore(DispLogSemaphore, 1, NULL);
 }
 
 
-/*----- タスクメッセージをファイルに保存する ----------------------------------
-*
-*	Parameter
-*		char *Fname : ファイル名
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int SaveTaskMsg(char *Fname)
-{
-	FILE *Strm;
-	int Size;
-	char *Buf;
-	int Sts;
-
-
-	Sts = FFFTP_FAIL;
-	Size = (int)SendMessage(GetTaskWnd(), WM_GETTEXTLENGTH, 0, 0);
-	if((Buf = (char*)malloc(Size)) != NULL)
-	{
-		if((Strm = fopen(Fname, "wb")) != NULL)
-		{
-			SendMessage(GetTaskWnd(), WM_GETTEXT, Size, (LPARAM)Buf);
-			if(fwrite(Buf, strlen(Buf), 1, Strm) == 1)
-				Sts = FFFTP_SUCCESS;
-			fclose(Strm);
-
-			if(Sts == FFFTP_FAIL)
-				fs::remove(fs::u8path(Fname));
-		}
-		free(Buf);
+// タスク内容をビューワで表示
+void DispTaskMsg() {
+	auto temp = fs::u8path(AskTmpFilePath()) / L"_ffftp.tsk";
+	if (auto text = u8(GetText(hWndTask)); std::ofstream{ temp, std::ofstream::binary }.write(data(text), size(text)).bad()) {
+		fs::remove(temp);
+		return;
 	}
-	return(Sts);
-}
-
-
-/*----- タスク内容をビューワで表示 --------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispTaskMsg(void)
-{
-	char Buf[FMAX_PATH+1];
-
-	strcpy(Buf, AskTmpFilePath());
-	SetYenTail(Buf);
-	strcat(Buf, "_ffftp.tsk");
-
-	if(SaveTaskMsg(Buf) == FFFTP_SUCCESS)
-	{
-		AddTempFileList(Buf);
-		ExecViewer(Buf, 0);
-	}
-	return;
+	auto path = temp.u8string();
+	AddTempFileList(data(path));
+	ExecViewer(data(path), 0);
 }
 
 

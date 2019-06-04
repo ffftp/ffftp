@@ -37,6 +37,7 @@
 #include <charconv>
 #include <chrono>
 #include <filesystem>
+#include <fstream>
 #include <future>
 #include <iterator>
 #include <map>
@@ -1512,7 +1513,6 @@ void _SetTaskMsg(const char* format, ...);
 #else
 #define SetTaskMsg(...) _SetTaskMsg(__VA_ARGS__)
 #endif
-int SaveTaskMsg(char *Fname);
 void DispTaskMsg(void);
 void _DoPrintf(const char* format, ...);
 #ifdef _DEBUG
