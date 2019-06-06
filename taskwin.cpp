@@ -38,9 +38,22 @@ extern HFONT ListFont;
 extern int DebugConsole;
 extern int RemoveOldLog;
 static HWND hWndTask = NULL;
-static HANDLE DispLogSemaphore;
-static HANDLE DispLogSemaphore2;
+static std::mutex mutex;
+static std::wstring queued;
 
+static VOID CALLBACK Writer(HWND hwnd, UINT, UINT_PTR, DWORD) {
+	std::unique_lock lock{ mutex };
+	auto length = GetWindowTextLengthW(hwnd);
+	if (RemoveOldLog == YES)
+		while (TASK_BUFSIZE <= length + size_as<int>(queued)) {
+			SendMessageW(hWndTask, EM_SETSEL, 0, SendMessageW(hWndTask, EM_LINEINDEX, 1, 0));
+			SendMessageW(hWndTask, EM_REPLACESEL, FALSE, (LPARAM)L"");
+			length = GetWindowTextLengthW(hwnd);
+		}
+	SendMessageW(hwnd, EM_SETSEL, (WPARAM)length, (LPARAM)length);
+	SendMessageW(hwnd, EM_REPLACESEL, false, (LPARAM)queued.c_str());
+	queued.clear();
+}
 
 // タスクウインドウを作成する
 int MakeTaskWindow(HWND hWnd, HINSTANCE hInst) {
@@ -52,19 +65,15 @@ int MakeTaskWindow(HWND hWnd, HINSTANCE hInst) {
 	SendMessageW(hWndTask, EM_LIMITTEXT, 0x7fffffff, 0);
 	if (ListFont != NULL)
 		SendMessageW(hWndTask, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
+	SetTimer(hWndTask, 1, USER_TIMER_MINIMUM, Writer);
 	ShowWindow(hWndTask, SW_SHOW);
-	DispLogSemaphore = CreateSemaphore(NULL, 1, 1, NULL);
-	DispLogSemaphore2 = CreateSemaphore(NULL, 1, 1, NULL);
 	return FFFTP_SUCCESS;
 }
 
 
 // タスクウインドウを削除
 void DeleteTaskWindow() {
-	CloseHandle(DispLogSemaphore);
-	CloseHandle(DispLogSemaphore2);
-	if (hWndTask != NULL)
-		DestroyWindow(hWndTask);
+	DestroyWindow(hWndTask);
 }
 
 
@@ -77,35 +86,22 @@ HWND GetTaskWnd() {
 // タスクメッセージを表示する
 // デバッグビルドではフォーマット済み文字列が渡される
 void _SetTaskMsg(const char* format, ...) {
-	while (WaitForSingleObject(DispLogSemaphore, 1) == WAIT_TIMEOUT)
-		BackgrndMessageProc();
-	if (hWndTask != NULL) {
-		char buffer[10240 + 3];
+	char buffer[10240 + 3];
 #ifdef _DEBUG
-		strcpy(buffer, format);
-		size_t result = strlen(buffer);
+	strcpy(buffer, format);
+	size_t result = strlen(buffer);
 #else
-		va_list args;
-		va_start(args, format);
-		int result = vsprintf(buffer, format, args);
-		va_end(args);
+	va_list args;
+	va_start(args, format);
+	int result = vsprintf(buffer, format, args);
+	va_end(args);
 #endif
-		if (0 < result) {
-			strcat(buffer, "\r\n");
-			int Pos = (int)SendMessage(hWndTask, WM_GETTEXTLENGTH, 0, 0);
-			if (RemoveOldLog == YES) {
-				if ((Pos + strlen(buffer)) >= TASK_BUFSIZE) {
-					Pos = (int)SendMessage(hWndTask, EM_LINEINDEX, 1, 0);
-					SendMessage(hWndTask, EM_SETSEL, 0, Pos);
-					SendMessage(hWndTask, EM_REPLACESEL, FALSE, (LPARAM)"");
-					Pos = (int)SendMessage(hWndTask, WM_GETTEXTLENGTH, 0, 0);
-				}
-			}
-			SendMessage(hWndTask, EM_SETSEL, Pos, Pos);
-			SendMessage(hWndTask, EM_REPLACESEL, FALSE, (LPARAM)buffer);
-		}
+	if (0 < result) {
+		strcat(buffer, "\r\n");
+		auto wbuffer = u8(buffer);
+		std::unique_lock{ mutex };
+		queued += wbuffer;
 	}
-	ReleaseSemaphore(DispLogSemaphore, 1, NULL);
 }
 
 
@@ -125,21 +121,18 @@ void DispTaskMsg() {
 // デバッグコンソールにメッセージを表示する
 // デバッグビルドではフォーマット済み文字列が渡される
 void _DoPrintf(const char* format, ...) {
-	while (WaitForSingleObject(DispLogSemaphore2, 1) == WAIT_TIMEOUT)
-		BackgrndMessageProc();
-	if (DebugConsole == YES) {
+	if (DebugConsole != YES)
+		return;
 #ifdef _DEBUG
-		const char* buffer = format;
-		size_t result = strlen(buffer);
+	const char* buffer = format;
+	size_t result = strlen(buffer);
 #else
-		char buffer[10240];
-		va_list args;
-		va_start(args, format);
-		int result = vsprintf(buffer, format, args);
-		va_end(args);
+	char buffer[10240];
+	va_list args;
+	va_start(args, format);
+	int result = vsprintf(buffer, format, args);
+	va_end(args);
 #endif
-		if (0 < result)
-			SetTaskMsg("## %s", buffer);
-	}
-	ReleaseSemaphore(DispLogSemaphore2, 1, NULL);
+	if (0 < result)
+		SetTaskMsg("## %s", buffer);
 }
