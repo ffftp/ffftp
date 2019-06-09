@@ -1068,20 +1068,7 @@ START_ROUTINE
 		break;
 	default:
 		GetClassNameW(hWnd, ClassName, sizeof(ClassName) / sizeof(wchar_t));
-		if(_wcsicmp(ClassName, WC_EDITW) == 0)
-		{
-			switch(Msg)
-			{
-			case EM_REPLACESEL:
-				pw0 = DuplicateMtoW((LPCSTR)lParam, -1);
-				r = SendMessageW(hWnd, EM_REPLACESEL, wParam, (LPARAM)pw0);
-				break;
-			default:
-				r = SendMessageW(hWnd, Msg, wParam, lParam);
-				break;
-			}
-		}
-		else if(_wcsicmp(ClassName, WC_COMBOBOXW) == 0)
+		if(_wcsicmp(ClassName, WC_COMBOBOXW) == 0)
 		{
 			switch(Msg)
 			{
