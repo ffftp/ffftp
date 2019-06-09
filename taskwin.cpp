@@ -43,14 +43,20 @@ static std::wstring queued;
 
 static VOID CALLBACK Writer(HWND hwnd, UINT, UINT_PTR, DWORD) {
 	std::unique_lock lock{ mutex };
-	auto length = GetWindowTextLengthW(hwnd);
-	if (RemoveOldLog == YES)
-		while (TASK_BUFSIZE <= length + size_as<int>(queued)) {
-			SendMessageW(hWndTask, EM_SETSEL, 0, SendMessageW(hWndTask, EM_LINEINDEX, 1, 0));
-			SendMessageW(hWndTask, EM_REPLACESEL, FALSE, (LPARAM)L"");
-			length = GetWindowTextLengthW(hwnd);
+	if (empty(queued))
+		return;
+	if (auto length = GetWindowTextLengthW(hwnd); RemoveOldLog == YES) {
+		if (TASK_BUFSIZE <= size_as<int>(queued))
+			SendMessageW(hwnd, EM_SETSEL, 0, -1);
+		else {
+			for (; TASK_BUFSIZE <= length + size_as<int>(queued); length = GetWindowTextLengthW(hwnd)) {
+				SendMessageW(hwnd, EM_SETSEL, 0, SendMessageW(hwnd, EM_LINEINDEX, 1, 0));
+				SendMessageW(hwnd, EM_REPLACESEL, false, (LPARAM)L"");
+			}
+			SendMessageW(hwnd, EM_SETSEL, length, length);
 		}
-	SendMessageW(hwnd, EM_SETSEL, (WPARAM)length, (LPARAM)length);
+	} else
+		SendMessageW(hwnd, EM_SETSEL, length, length);
 	SendMessageW(hwnd, EM_REPLACESEL, false, (LPARAM)queued.c_str());
 	queued.clear();
 }
