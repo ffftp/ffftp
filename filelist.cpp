@@ -2365,7 +2365,6 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
 	int Max;
 	int i;
 	char Name[FMAX_PATH+1];
-	char Tmp[FMAX_PATH+1];
 	FILELIST Pkt;
 	HANDLE fHnd;
 	WIN32_FIND_DATA Find;
@@ -2418,8 +2417,8 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
 		}
 	}
 
-	GetCurrentDirectory(FMAX_PATH, Tmp);
-	SetCurrentDirectory(Cur);
+	auto const saved = fs::current_path();
+	fs::current_path(fs::u8path(Cur));
 	for(i = 0; i < Max; i++)
 	{
 		DragQueryFile((HDROP)wParam, i, Name, FMAX_PATH);
@@ -2436,7 +2435,7 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
 			MakeLocalTree(Pkt.File, Base);
 		}
 	}
-	SetCurrentDirectory(Tmp);
+	fs::current_path(saved);
 
 	DragFinish((HDROP)wParam);
 

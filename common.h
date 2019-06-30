@@ -1352,6 +1352,7 @@ typedef struct
 
 /*===== main.c =====*/
 
+fs::path systemDirectory();
 int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmdShow);
 void DispWindowTitle();
 HWND GetMainHwnd(void);
@@ -1484,7 +1485,7 @@ void SetRemoteDirHist(char *Path);
 void SetLocalDirHist(char *Path);
 void AskLocalCurDir(char *Buf, int Max);
 void AskRemoteCurDir(char *Buf, int Max);
-void SetCurrentDirAsDirHist(void);
+void SetCurrentDirAsDirHist();
 void DispDotFileMode(void);
 void LocalRbuttonMenu(int Pos);
 void RemoteRbuttonMenu(int Pos);
@@ -1654,7 +1655,7 @@ void ReconnectProc(void);
 
 /*===== local.c =====*/
 
-int DoLocalCWD(char *Path);
+int DoLocalCWD(const char *Path);
 void DoLocalMKD(char *Path);
 void DoLocalPWD(char *Buf);
 void DoLocalRMD(char *Path);

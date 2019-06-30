@@ -30,28 +30,15 @@
 #include "common.h"
 
 
-/*----- ローカル側のディレクトリ変更 -------------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int DoLocalCWD(char *Path)
-{
-	int Sts;
-
-	Sts = FFFTP_SUCCESS;
+// ローカル側のディレクトリ変更
+int DoLocalCWD(const char *Path) {
 	SetTaskMsg(">>CD %s", Path);
-	if(SetCurrentDirectory(Path) != TRUE)
-	{
-		SetTaskMsg(MSGJPN145);
-		Sts = FFFTP_FAIL;
-	}
-	return(Sts);
+	std::error_code ec;
+	fs::current_path(fs::u8path(Path), ec);
+	if (!ec)
+		return FFFTP_SUCCESS;
+	SetTaskMsg(MSGJPN145);
+	return FFFTP_FAIL;
 }
 
 
@@ -73,20 +60,9 @@ void DoLocalMKD(char *Path)
 }
 
 
-/*----- ローカル側のカレントディレクトリ取得 -----------------------------------
-*
-*	Parameter
-*		char *Buf : パス名を返すバッファ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DoLocalPWD(char *Buf)
-{
-	if(GetCurrentDirectory(FMAX_PATH, Buf) == 0)
-		strcpy(Buf, "");
-	return;
+// ローカル側のカレントディレクトリ取得
+void DoLocalPWD(char *Buf) {
+	strcpy(Buf, fs::current_path().u8string().c_str());
 }
 
 

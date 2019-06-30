@@ -1462,33 +1462,6 @@ END_ROUTINE
 	return r;
 }
 
-DWORD GetCurrentDirectoryM(DWORD nBufferLength, LPSTR lpBuffer)
-{
-	DWORD r = 0;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	// TODO: バッファが不十分な場合に必要なサイズを返す
-	pw0 = AllocateStringW(nBufferLength * 4);
-	GetCurrentDirectoryW(nBufferLength * 4, pw0);
-	WtoM(lpBuffer, nBufferLength, pw0, -1);
-	r = TerminateStringM(lpBuffer, nBufferLength);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
-BOOL SetCurrentDirectoryM(LPCSTR lpPathName)
-{
-	BOOL r = FALSE;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpPathName, -1);
-	r = SetCurrentDirectoryW(pw0);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 DWORD GetTempPathM(DWORD nBufferLength, LPSTR lpBuffer)
 {
 	DWORD r = 0;

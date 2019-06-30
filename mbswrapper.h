@@ -77,12 +77,6 @@ UINT DragQueryFileM(HDROP hDrop, UINT iFile, LPSTR lpszFile, UINT cch);
 #undef GetCommandLine
 #define GetCommandLine GetCommandLineM
 LPSTR GetCommandLineM();
-#undef GetCurrentDirectory
-#define GetCurrentDirectory GetCurrentDirectoryM
-DWORD GetCurrentDirectoryM(DWORD nBufferLength, LPSTR lpBuffer);
-#undef SetCurrentDirectory
-#define SetCurrentDirectory SetCurrentDirectoryM
-BOOL SetCurrentDirectoryM(LPCSTR lpPathName);
 #undef GetTempPath
 #define GetTempPath GetTempPathM
 DWORD GetTempPathM(DWORD nBufferLength, LPSTR lpBuffer);
