@@ -1768,19 +1768,9 @@ void AskRemoteCurDir(char *Buf, int Max)
 }
 
 
-/*----- カレントディレクトリを設定する ----------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetCurrentDirAsDirHist(void)
-{
-	SetCurrentDirectory(LocalCurDir);
-	return;
+// カレントディレクトリを設定する
+void SetCurrentDirAsDirHist() {
+	fs::current_path(fs::u8path(LocalCurDir));
 }
 
 

@@ -570,7 +570,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 				hWndCurFocus = GetLocalHwnd();
 
 				if(strlen(DefaultLocalPath) > 0)
-					SetCurrentDirectory(DefaultLocalPath);
+					fs::current_path(fs::u8path(DefaultLocalPath));
 
 				SetSortTypeImm(LocalFileSort, LocalDirSort, RemoteFileSort, RemoteDirSort);
 				SetTransferTypeImm(TransMode);
