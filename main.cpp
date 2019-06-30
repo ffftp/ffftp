@@ -326,10 +326,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 #if _WIN32_WINNT < _WIN32_WINNT_VISTA
 	// Vista以降およびIE7以降で導入済みとなる
 	SupportIdn = [] {
-		wchar_t systemDirectory[FMAX_PATH];
-		auto result = GetSystemDirectoryW(systemDirectory, size_as<UINT>(systemDirectory));
-		assert(0 < result);
-		if (auto module = LoadLibraryW((fs::path{ systemDirectory } / L"Normaliz.dll").c_str()); module == NULL)
+		if (auto module = LoadLibraryW((systemDirectory() / L"Normaliz.dll").c_str()); module == NULL)
 			return false;
 		__HrLoadAllImportsForDll("Normaliz.dll");
 		return true;
@@ -2818,8 +2815,6 @@ void ExecViewer(char *Fname, int App)
 	char AssocProg[FMAX_PATH+1];
 	char ComLine[FMAX_PATH*2+3+1];
 	char CurDir[FMAX_PATH+1];
-	// 任意のコードが実行されるバグ修正
-	char SysDir[FMAX_PATH+1];
 
 	/* FindExecutable()は関連付けられたプログラムのパス名にスペースが	*/
 	/* 含まれている時、間違ったパス名を返す事がある。					*/
@@ -2857,23 +2852,11 @@ void ExecViewer(char *Fname, int App)
 		memset(&Startup, NUL, sizeof(STARTUPINFO));
 		Startup.cb = sizeof(STARTUPINFO);
 		Startup.wShowWindow = SW_SHOW;
-		if(GetCurrentDirectory(FMAX_PATH, CurDir) > 0)
-		{
-			if(GetSystemDirectory(SysDir, FMAX_PATH) > 0)
-			{
-				if(SetCurrentDirectory(SysDir))
-				{
-					if(ProcessInformation Info; CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, NULL, &Startup, &Info) == FALSE)
-					{
-						SetTaskMsg(MSGJPN182, GetLastError());
-						SetTaskMsg(">>%s", ComLine);
-					}
-					SetCurrentDirectory(CurDir);
-				}
-			}
+		if (ProcessInformation Info; !CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, systemDirectory().u8string().c_str(), &Startup, &Info)) {
+			SetTaskMsg(MSGJPN182, GetLastError());
+			SetTaskMsg(">>%s", ComLine);
 		}
 	}
-	return;
 }
 
 
@@ -2893,15 +2876,10 @@ void ExecViewer2(char *Fname1, char *Fname2, int App)
 	STARTUPINFO Startup;
 	char AssocProg[FMAX_PATH+1];
 	char ComLine[FMAX_PATH*2+3+1];
-	char CurDir[FMAX_PATH+1];
-	// 任意のコードが実行されるバグ修正
-	char SysDir[FMAX_PATH+1];
 
 	/* FindExecutable()は関連付けられたプログラムのパス名にスペースが	*/
 	/* 含まれている時、間違ったパス名を返す事がある。					*/
 	/* そこで、関連付けられたプログラムの起動はShellExecute()を使う。	*/
-
-	AskLocalCurDir(CurDir, FMAX_PATH);
 
 	strcpy(AssocProg, ViewerName[App] + 2);	/* 先頭の "d " は読み飛ばす */
 
@@ -2915,23 +2893,10 @@ void ExecViewer2(char *Fname1, char *Fname2, int App)
 	memset(&Startup, NUL, sizeof(STARTUPINFO));
 	Startup.cb = sizeof(STARTUPINFO);
 	Startup.wShowWindow = SW_SHOW;
-	if(GetCurrentDirectory(FMAX_PATH, CurDir) > 0)
-	{
-		if(GetSystemDirectory(SysDir, FMAX_PATH) > 0)
-		{
-			if(SetCurrentDirectory(SysDir))
-			{
-				if(ProcessInformation Info; CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, NULL, &Startup, &Info) == FALSE)
-				{
-					SetTaskMsg(MSGJPN182, GetLastError());
-					SetTaskMsg(">>%s", ComLine);
-				}
-				SetCurrentDirectory(CurDir);
-			}
-		}
+	if (ProcessInformation Info; !CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, systemDirectory().u8string().c_str(), &Startup, &Info)) {
+		SetTaskMsg(MSGJPN182, GetLastError());
+		SetTaskMsg(">>%s", ComLine);
 	}
-
-	return;
 }
 
 

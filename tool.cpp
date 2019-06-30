@@ -79,29 +79,8 @@ void OtpCalcTool() {
 }
 
 
-// FTPS対応
-void TurnStatefulFTPFilter()
-{
-	int ID;
-	char CurDir[FMAX_PATH+1];
-	char SysDir[FMAX_PATH+1];
-	ID = MessageBox(GetMainHwnd(), MSGJPN341, "FFFTP", MB_YESNOCANCEL);
-	if(ID == IDYES || ID == IDNO)
-	{
-		if(GetCurrentDirectory(FMAX_PATH, CurDir) > 0)
-		{
-			if(GetSystemDirectory(SysDir, FMAX_PATH) > 0)
-			{
-				if(SetCurrentDirectory(SysDir))
-				{
-					if(ShellExecute(NULL, "runas", "netsh", ID == IDYES ? "advfirewall set global statefulftp enable" : "advfirewall set global statefulftp disable", NULL, SW_SHOW) <= (HINSTANCE)32)
-					{
-						MessageBox(GetMainHwnd(), MSGJPN342, "FFFTP", MB_OK | MB_ICONERROR);
-					}
-					SetCurrentDirectory(CurDir);
-				}
-			}
-		}
-	}
+void TurnStatefulFTPFilter() {
+	if (auto ID = MessageBox(GetMainHwnd(), MSGJPN341, "FFFTP", MB_YESNOCANCEL); ID == IDYES || ID == IDNO)
+		if (PtrToInt(ShellExecuteW(NULL, L"runas", L"netsh", ID == IDYES ? L"advfirewall set global statefulftp enable" : L"advfirewall set global statefulftp disable", systemDirectory().c_str(), SW_SHOW)) <= 32)
+			MessageBox(GetMainHwnd(), MSGJPN342, "FFFTP", MB_OK | MB_ICONERROR);
 }
-

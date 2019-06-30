@@ -1547,14 +1547,12 @@ void ClearIni() {
 void SaveSettingsToFile() {
 	if (RegType == REGTYPE_REG) {
 		if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FFFTP.reg", L"reg", { FileType::Reg, FileType::All }); !std::empty(path)) {
-			if (wchar_t systemDirectory[FMAX_PATH + 1]; GetSystemDirectoryW(systemDirectory, size_as<UINT>(systemDirectory)) > 0) {
-				wchar_t commandLine[FMAX_PATH * 2];
-				_snwprintf(commandLine, std::size(commandLine), LR"("%s\reg.exe" EXPORT HKCU\Software\sota\FFFTP "%s")", systemDirectory, path.c_str());
-				fs::remove(path);
-				STARTUPINFOW si{ sizeof(STARTUPINFOW) };
-				if (ProcessInformation pi; !CreateProcessW(nullptr, commandLine, nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory, &si, &pi))
-					MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
-			}
+			wchar_t commandLine[FMAX_PATH * 2];
+			_snwprintf(commandLine, std::size(commandLine), LR"("%s\reg.exe" EXPORT HKCU\Software\sota\FFFTP "%s")", systemDirectory().c_str(), path.c_str());
+			fs::remove(path);
+			STARTUPINFOW si{ sizeof(STARTUPINFOW) };
+			if (ProcessInformation pi; !CreateProcessW(nullptr, commandLine, nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory().c_str(), &si, &pi))
+				MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
 		}
 	} else {
 		if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FFFTP-Backup.ini", L"ini", { FileType::Ini, FileType::All }); !std::empty(path))
@@ -1567,14 +1565,12 @@ void SaveSettingsToFile() {
 int LoadSettingsFromFile() {
 	if (auto const path = SelectFile(true, GetMainHwnd(), IDS_LOAD_SETTING, L"", L"", { FileType::Reg, FileType::Ini, FileType::All }); !std::empty(path)) {
 		if (ieq(path.extension(), L".reg"s)) {
-			if (wchar_t systemDirectory[FMAX_PATH + 1]; GetSystemDirectoryW(systemDirectory, size_as<UINT>(systemDirectory)) > 0) {
-				wchar_t commandLine[FMAX_PATH * 2];
-				_snwprintf(commandLine, std::size(commandLine), LR"("%s\reg.exe" IMPORT "%s")", systemDirectory, path.c_str());
-				STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, STARTF_USESHOWWINDOW, SW_HIDE };
-				if (ProcessInformation pi; CreateProcessW(nullptr, commandLine, nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory, &si, &pi))
-					return YES;
-				MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
-			}
+			wchar_t commandLine[FMAX_PATH * 2];
+			_snwprintf(commandLine, std::size(commandLine), LR"("%s\reg.exe" IMPORT "%s")", systemDirectory().c_str(), path.c_str());
+			STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, STARTF_USESHOWWINDOW, SW_HIDE };
+			if (ProcessInformation pi; CreateProcessW(nullptr, commandLine, nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory().c_str(), &si, &pi))
+				return YES;
+			MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
 		} else if (ieq(path.extension(), L".ini"s)) {
 			CopyFileW(path.c_str(), u8(AskIniFilePath()).c_str(), FALSE);
 			return YES;
