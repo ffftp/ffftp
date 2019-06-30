@@ -1352,6 +1352,7 @@ typedef struct
 
 /*===== main.c =====*/
 
+fs::path systemDirectory();
 int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmdShow);
 void DispWindowTitle();
 HWND GetMainHwnd(void);

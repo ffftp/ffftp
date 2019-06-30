@@ -253,7 +253,15 @@ int FwallNoSaveUser = NO;
 int MarkAsInternet = YES; 
 
 
-
+fs::path systemDirectory() {
+	static auto path = [] {
+		wchar_t directory[FMAX_PATH];
+		auto length = GetSystemDirectoryW(directory, size_as<UINT>(directory));
+		assert(0 < length);
+		return fs::path{ directory, directory + length };
+	}();
+	return path;
+}
 
 
 /*----- メインルーチン --------------------------------------------------------
