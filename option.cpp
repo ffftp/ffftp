@@ -170,7 +170,7 @@ struct User {
 			SendDlgItemMessage(hDlg, USER_ADRS, WM_GETTEXT, USER_MAIL_LEN + 1, (LPARAM)UserMailAdrs);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000041);
+			ShowHelp(IDH_HELP_TOPIC_0000041);
 			break;
 		}
 		return 0;
@@ -205,7 +205,7 @@ struct Transfer1 {
 			AbortOnListError = (int)SendDlgItemMessage(hDlg, TRMODE_LISTERROR, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000042);
+			ShowHelp(IDH_HELP_TOPIC_0000042);
 			break;
 		}
 		return 0;
@@ -262,7 +262,7 @@ struct Transfer2 {
 			return PSNRET_NOERROR;
 		}
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000043);
+			ShowHelp(IDH_HELP_TOPIC_0000043);
 			break;
 		}
 		return 0;
@@ -330,7 +330,7 @@ struct Transfer3 {
 			return PSNRET_NOERROR;
 		}
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000044);
+			ShowHelp(IDH_HELP_TOPIC_0000044);
 			break;
 		}
 		return 0;
@@ -378,7 +378,7 @@ struct Transfer4 {
 				MarkAsInternet = (int)SendDlgItemMessage(hDlg, TRMODE4_MARK_INTERNET, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000067);
+			ShowHelp(IDH_HELP_TOPIC_0000067);
 			break;
 		}
 		return 0;
@@ -408,7 +408,7 @@ struct Mirroring {
 			MirrorNoTransferContents = (int)SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000045);
+			ShowHelp(IDH_HELP_TOPIC_0000045);
 			break;
 		}
 		return 0;
@@ -458,7 +458,7 @@ struct Operation {
 			MoveMode = MoveButton::Get(hDlg);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000046);
+			ShowHelp(IDH_HELP_TOPIC_0000046);
 			break;
 		}
 		return 0;
@@ -492,7 +492,7 @@ struct View1 {
 			}
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000047);
+			ShowHelp(IDH_HELP_TOPIC_0000047);
 			break;
 		}
 		return 0;
@@ -524,7 +524,7 @@ struct View2 {
 			RemoveOldLog = (int)SendDlgItemMessage(hDlg, DISP2_REMOVE_OLD_LOG, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000068);
+			ShowHelp(IDH_HELP_TOPIC_0000068);
 			break;
 		}
 		return 0;
@@ -569,7 +569,7 @@ struct Connecting {
 			UPnPEnabled = (int)SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000048);
+			ShowHelp(IDH_HELP_TOPIC_0000048);
 			break;
 		}
 		return 0;
@@ -670,7 +670,7 @@ struct Firewall {
 			return PSNRET_NOERROR;
 		}
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000049);
+			ShowHelp(IDH_HELP_TOPIC_0000049);
 			break;
 		}
 		return 0;
@@ -711,7 +711,7 @@ struct Tool {
 			SendDlgItemMessage(hDlg, TOOL_EDITOR3, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)ViewerName[2]);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000050);
+			ShowHelp(IDH_HELP_TOPIC_0000050);
 			break;
 		}
 		return 0;
@@ -766,7 +766,7 @@ struct Sounds {
 			SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Sound[SND_ERROR].Fname);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000051);
+			ShowHelp(IDH_HELP_TOPIC_0000051);
 			break;
 		}
 		return 0;
@@ -834,7 +834,7 @@ struct Other {
 			SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)TmpPath);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000052);
+			ShowHelp(IDH_HELP_TOPIC_0000052);
 			break;
 		}
 		return 0;
@@ -1024,7 +1024,7 @@ int SortSetting() {
 				EndDialog(hDlg, NO);
 				break;
 			case IDHELP:
-				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000001);
+				ShowHelp(IDH_HELP_TOPIC_0000001);
 				break;
 			}
 		}

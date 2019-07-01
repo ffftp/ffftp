@@ -83,9 +83,6 @@ DWORD GetTempPathM(DWORD nBufferLength, LPSTR lpBuffer);
 #undef GetFileAttributes
 #define GetFileAttributes GetFileAttributesM
 DWORD GetFileAttributesM(LPCSTR lpFileName);
-#undef GetModuleFileName
-#define GetModuleFileName GetModuleFileNameM
-DWORD GetModuleFileNameM(HMODULE hModule, LPCH lpFilename, DWORD nSize);
 #undef RegOpenKeyEx
 #define RegOpenKeyEx RegOpenKeyExM
 LSTATUS RegOpenKeyExM(HKEY hKey, LPCSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult);
@@ -107,9 +104,6 @@ BOOL TextOutM(HDC hdc, int x, int y, LPCSTR lpString, int c);
 #undef GetTextExtentPoint32
 #define GetTextExtentPoint32 GetTextExtentPoint32M
 BOOL GetTextExtentPoint32M(HDC hdc, LPCSTR lpString, int c, LPSIZE psizl);
-#undef HtmlHelp
-#define HtmlHelp HtmlHelpM
-HWND HtmlHelpM(HWND hwndCaller, LPCSTR pszFile, UINT uCommand, DWORD_PTR dwData);
 #undef CreateProcess
 #define CreateProcess CreateProcessM
 BOOL CreateProcessM(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation);

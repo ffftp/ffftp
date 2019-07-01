@@ -70,7 +70,7 @@ void OtpCalcTool() {
 				EndDialog(hDlg, NO);
 				break;
 			case IDHELP:
-				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000037);
+				ShowHelp(IDH_HELP_TOPIC_0000037);
 				break;
 			}
 		}

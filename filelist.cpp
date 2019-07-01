@@ -1514,7 +1514,7 @@ void SelectFileInList(HWND hWnd, int Type, FILELIST *Base) {
 				EndDialog(hDlg, false);
 				break;
 			case IDHELP:
-				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000061);
+				ShowHelp(IDH_HELP_TOPIC_0000061);
 				break;
 			}
 		}
@@ -5537,7 +5537,7 @@ void SetFilter(int *CancelCheckWork) {
 				EndDialog(hDlg, true);
 				break;
 			case IDHELP:
-				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000021);
+				ShowHelp(IDH_HELP_TOPIC_0000021);
 				break;
 			}
 		}

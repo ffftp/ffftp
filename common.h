@@ -63,7 +63,6 @@
 #include <windowsx.h>
 #include <winsock2.h>
 #include <commdlg.h>
-#include <HtmlHelp.h>
 #include <MLang.h>
 #include <MMSystem.h>
 #include <mstcpip.h>
@@ -86,7 +85,6 @@
 // #pragma comment(lib, "normaliz.lib") ではこれを実現できないため、リンクオプションで設定する。
 // 逆にIdnToAscii()はkernel32.libに登録されていないため、Vista以降をターゲットとする場合でもnormaliz.libは必要となる。
 #pragma comment(lib, "Comctl32.lib")
-#pragma comment(lib, "HtmlHelp.lib")
 #pragma comment(lib, "Shlwapi.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Ws2_32.lib")
@@ -1364,7 +1362,7 @@ void ExecViewer(char *Fname, int App);
 void ExecViewer2(char *Fname1, char *Fname2, int App);
 void AddTempFileList(char *Fname);
 void SoundPlay(int Num);
-char *AskHelpFilePath(void);
+void ShowHelp(DWORD_PTR helpTopicId);
 char *AskTmpFilePath(void);
 char *AskIniFilePath(void);
 int AskForceIni(void);
@@ -1373,9 +1371,6 @@ void ResetAutoExitFlg(void);
 int AskAutoExit(void);
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 BOOL IsMainThread();
-// ポータブル版判定
-void CheckPortableVersion();
-int AskPortableVersion(void);
 // 全設定暗号化対応
 int Restart();
 void Terminate();
@@ -1953,7 +1948,6 @@ int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
 
 
 extern HCRYPTPROV HCryptProv;
-extern HWND hHelpWin;
 
 template<class Target, class Source>
 constexpr auto data_as(Source& source) {
@@ -2109,7 +2103,7 @@ static inline auto InputDialog(int dialogId, HWND parent, char *Title, char *Buf
 				EndDialog(hDlg, false);
 				break;
 			case IDHELP:
-				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, helpTopicId);
+				ShowHelp(helpTopicId);
 				break;
 			case INP_BROWSE:
 				if (char Tmp[FMAX_PATH + 1]; SelectDir(hDlg, Tmp, FMAX_PATH) == TRUE)

@@ -30,6 +30,8 @@
 #include "common.h"
 #pragma hdrstop
 #include <delayimp.h>
+#include <HtmlHelp.h>
+#pragma comment(lib, "HtmlHelp.lib")
 #if _WIN32_WINNT < _WIN32_WINNT_VISTA
 #include <muiload.h>
 #pragma comment(lib, "muiload.lib")
@@ -95,7 +97,6 @@ static TEMPFILELIST *TempFiles = NULL;
 static int SaveExit = YES;
 static int AutoExit = NO;
 
-static char HelpPath[FMAX_PATH+1];
 static char IniPath[FMAX_PATH+1];
 static int ForceIni = NO;
 
@@ -118,9 +119,6 @@ static DWORD dwCookie;
 
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 static DWORD MainThreadId;
-// ポータブル版判定
-static char PortableFilePath[FMAX_PATH+1];
-static int PortableVersion;
 // ローカル側自動更新
 HANDLE ChangeNotification = INVALID_HANDLE_VALUE;
 // 高DPI対応
@@ -129,7 +127,7 @@ static int ToolWinHeight;
 
 /*===== グローバルなワーク =====*/
 
-HWND hHelpWin = NULL;
+static HWND hHelpWin = NULL;
 std::map<int, std::string> msgs;
 HCRYPTPROV HCryptProv;
 bool SupportIdn;
@@ -264,6 +262,29 @@ fs::path systemDirectory() {
 }
 
 
+static auto const& moduleDirectory() {
+	static const auto directory = [] {
+		wchar_t directory[FMAX_PATH];
+		const auto length = GetModuleFileNameW(nullptr, directory, size_as<DWORD>(directory));
+		assert(0 < length);
+		return fs::path{ directory, directory + length }.remove_filename();
+	}();
+	return directory;
+}
+
+
+static auto isPortable() {
+	static const auto isPortable = fs::is_regular_file(moduleDirectory() / L"portable");
+	return isPortable;
+}
+
+
+static auto const& helpPath() {
+	static const auto path = moduleDirectory() / L"ffftp.chm";
+	return path;
+}
+
+
 /*----- メインルーチン --------------------------------------------------------
 *
 *	Parameter
@@ -356,9 +377,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 			if((Sts == 0) || (Sts == -1))
 				break;
 
-			// 64ビット対応
-//			if(!HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
-			if(!HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
+			if(!HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
 			{ 
 				/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
 				/* コンボボックス内ではアクセラレータを無効にする */
@@ -418,9 +437,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 
 	sts = FFFTP_FAIL;
 	
-	// 64ビット対応
-//	HtmlHelp(NULL, NULL, HH_INITIALIZE, (DWORD)&dwCookie);
-	HtmlHelp(NULL, NULL, HH_INITIALIZE, (DWORD_PTR)&dwCookie);
+	HtmlHelpW(NULL, NULL, HH_INITIALIZE, (DWORD_PTR)&dwCookie);
 
 	if((Err = WSAStartup((WORD)0x0202, &WSAData)) != 0)
 		MessageBox(NULL, ReturnWSError(Err), "FFFTP - Startup", MB_OK);
@@ -444,26 +461,17 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		for(i = 0; i < sizeof(RemoteTabWidth) / sizeof(int); i++)
 			RemoteTabWidth[i] = CalcPixelX(RemoteTabWidth[i]);
 
-		GetModuleFileName(NULL, HelpPath, FMAX_PATH);
-		strcpy(GetFileName(HelpPath), "ffftp.chm");
-
 		if(CheckIniFileName(lpszCmdLine, IniPath) == 0)
 		{
-			GetModuleFileName(NULL, IniPath, FMAX_PATH);
-			strcpy(GetFileName(IniPath), "ffftp.ini");
+			strcpy(IniPath, (moduleDirectory() / L"ffftp.ini").u8string().c_str());
 		}
 		else
 		{
 			ForceIni = YES;
 			RegType = REGTYPE_INI;
 		}
-		// ポータブル版判定
-		GetModuleFileName(NULL, PortableFilePath, FMAX_PATH);
-		strcpy(GetFileName(PortableFilePath), "portable");
-		CheckPortableVersion();
 		ImportPortable = NO;
-		if(PortableVersion == YES)
-		{
+		if (isPortable()) {
 			ForceIni = YES;
 			RegType = REGTYPE_INI;
 			if(IsRegAvailable() == YES && IsIniAvailable() == NO)
@@ -471,10 +479,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 				if (Dialog(GetFtpInst(), ini_from_reg_dlg, GetMainHwnd()))
 					ImportPortable = YES;
 			}
-		}
-		// バージョン確認
-		if(PortableVersion == NO)
-		{
+		} else {
 			if(ReadSettingsVersion() > VER_NUM)
 			{
 				if(IsRegAvailable() == YES && IsIniAvailable() == NO)
@@ -605,7 +610,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					}
 
 					DoPrintf("Tmp =%s", TmpPath);
-					DoPrintf("Help=%s", HelpPath);
+					DoPrintf("Help=%s", helpPath().u8string().c_str());
 
 					DragAcceptFiles(GetRemoteHwnd(), TRUE);
 					DragAcceptFiles(GetLocalHwnd(), TRUE);
@@ -1380,7 +1385,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_HELP :
-					hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000001);
+					ShowHelp(IDH_HELP_TOPIC_0000001);
 					break;
 
 				case MENU_HELP_TROUBLE :
@@ -2121,7 +2126,7 @@ static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc
 			}
 			else if((strcmp(&Tmp[1], "h") == 0) || (strcmp(&Tmp[1], "-help") == 0))
 			{
-				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000024);
+				ShowHelp(IDH_HELP_TOPIC_0000024);
 			}
 			// UTF-8対応
 			else if((strcmp(&Tmp[1], "sj") == 0) || (strcmp(&Tmp[1], "-sjis") == 0))
@@ -2319,7 +2324,7 @@ static void ExitProc(HWND hWnd)
 		DisconnectRas(RasCloseNotify != NO);
 	}
 	DeleteAllObject();
-	HtmlHelp(NULL, NULL, HH_UNINITIALIZE, dwCookie); 
+	HtmlHelpW(NULL, NULL, HH_UNINITIALIZE, dwCookie); 
 	return;
 }
 
@@ -3003,18 +3008,8 @@ void SoundPlay(int Num)
 }
 
 
-/*----- ヘルプファイルのパス名を返す ------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		char *パス名
-*----------------------------------------------------------------------------*/
-
-char *AskHelpFilePath(void)
-{
-	return(HelpPath);
+void ShowHelp(DWORD_PTR helpTopicId) {
+	hHelpWin = HtmlHelpW(NULL, helpPath().c_str(), HH_HELP_CONTEXT, helpTopicId);
 }
 
 
@@ -3081,11 +3076,7 @@ int BackgrndMessageProc(void)
 	Ret = NO;
 	while(PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE))
 	{
-		// マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
-//		if(!HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
-		// 64ビット対応
-//		if(!IsMainThread() || !HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD)&Msg))
-		if(!IsMainThread() || !HtmlHelp(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
+		if(!IsMainThread() || !HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
 		{
 			/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
 			/* コンボボックス内ではアクセラレータを無効にする */
@@ -3196,24 +3187,6 @@ BOOL IsMainThread()
 	if(GetCurrentThreadId() != MainThreadId)
 		return FALSE;
 	return TRUE;
-}
-
-// ポータブル版判定
-void CheckPortableVersion()
-{
-	HANDLE hFile;
-	if((hFile = CreateFile(PortableFilePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
-	{
-		PortableVersion = YES;
-		CloseHandle(hFile);
-	}
-	else
-		PortableVersion = NO;
-}
-
-int AskPortableVersion(void)
-{
-	return(PortableVersion);
 }
 
 // 全設定暗号化対応

@@ -1488,20 +1488,6 @@ END_ROUTINE
 	return r;
 }
 
-DWORD GetModuleFileNameM(HMODULE hModule, LPCH lpFilename, DWORD nSize)
-{
-	DWORD r = 0;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = AllocateStringW(nSize * 4);
-	GetModuleFileNameW(hModule, pw0, nSize * 4);
-	WtoM(lpFilename, nSize, pw0, -1);
-	r = TerminateStringM(lpFilename, nSize);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 LSTATUS RegOpenKeyExM(HKEY hKey, LPCSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult)
 {
 	LSTATUS r = 0;
@@ -1628,18 +1614,6 @@ BOOL GetTextExtentPoint32M(HDC hdc, LPCSTR lpString, int c, LPSIZE psizl)
 START_ROUTINE
 	pw0 = DuplicateMtoW(lpString, c);
 	r = GetTextExtentPoint32W(hdc, pw0, (int)wcslen(pw0), psizl);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
-HWND HtmlHelpM(HWND hwndCaller, LPCSTR pszFile, UINT uCommand, DWORD_PTR dwData)
-{
-	HWND r = NULL;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(pszFile, -1);
-	r = HtmlHelpW(hwndCaller, pw0, uCommand, dwData);
 END_ROUTINE
 	FreeDuplicatedString(pw0);
 	return r;
