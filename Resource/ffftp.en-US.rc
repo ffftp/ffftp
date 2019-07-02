@@ -466,10 +466,6 @@ CAPTION "Other"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "&Save window position",MISC_WINPOS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
-    LTEXT           "&Folder for temporary files",IDC_STATIC,7,64,158,8
-    EDITTEXT        MISC_CACHEDIR,7,74,155,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "...",MISC_CACHEDIR_BR,163,74,13,13
-    PUSHBUTTON      "Default",MISC_CACHEDIR_DEF,177,74,26,13
     CONTROL         "Sa&ve settings to the ffftp.ini file, instead of the registry",MISC_REGTYPE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,92,173,10
     CONTROL         "&Encrypt all settings with Master Password",MISC_ENCRYPT_SETTINGS,

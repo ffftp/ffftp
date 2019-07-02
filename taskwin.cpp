@@ -113,7 +113,7 @@ void _SetTaskMsg(const char* format, ...) {
 
 // タスク内容をビューワで表示
 void DispTaskMsg() {
-	auto temp = fs::u8path(AskTmpFilePath()) / L"_ffftp.tsk";
+	auto temp = tempDirectory() / L"_ffftp.tsk";
 	if (auto text = u8(GetText(hWndTask)); std::ofstream{ temp, std::ofstream::binary }.write(data(text), size(text)).bad()) {
 		fs::remove(temp);
 		return;

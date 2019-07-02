@@ -29,16 +29,9 @@
 
 #include "common.h"
 
-
-// キャッシュデータを全て削除する
-void DeleteCache() {
-	fs::remove(MakeCacheFileName(998));
-	fs::remove(MakeCacheFileName(999));
-}
-
 // キャッシュのファイル名を作成する
 fs::path MakeCacheFileName(int Num) {
 	wchar_t filename[16];
 	_swprintf(filename, L"_ffftp.%03d", Num);
-	return fs::u8path(AskTmpFilePath()) / filename;
+	return tempDirectory() / filename;
 }

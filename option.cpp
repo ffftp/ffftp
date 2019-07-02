@@ -87,7 +87,6 @@ extern int RasClose;
 extern int RasCloseNotify;
 extern int FileHist;
 extern char DefAttrList[DEFATTRLIST_LEN+1];
-extern char TmpPath[FMAX_PATH+1];
 extern int QuickAnonymous;
 extern int PassToHist;
 extern int VaxSemicolon;
@@ -817,9 +816,6 @@ struct Other {
 		if (AskForceIni() == YES)
 			EnableWindow(GetDlgItem(hDlg, MISC_REGTYPE), FALSE);
 		SendDlgItemMessage(hDlg, MISC_ENCRYPT_SETTINGS, BM_SETCHECK, EncryptAllSettings, 0);
-
-		SendDlgItemMessage(hDlg, MISC_CACHEDIR, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
-		SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_SETTEXT, 0, (LPARAM)TmpPath);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -830,29 +826,12 @@ struct Other {
 			if (AskForceIni() == NO)
 				RegType = (int)SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_GETCHECK, 0, 0);
 			EncryptAllSettings = (int)SendDlgItemMessage(hDlg, MISC_ENCRYPT_SETTINGS, BM_GETCHECK, 0, 0);
-
-			SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)TmpPath);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000052);
 			break;
 		}
 		return 0;
-	}
-	static void OnCommand(HWND hDlg, WORD id) {
-		switch (id) {
-		case MISC_CACHEDIR_BR:
-			if (char Tmp[FMAX_PATH + 1]; SelectDir(hDlg, Tmp, FMAX_PATH) == TRUE)
-				SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_SETTEXT, 0, (LPARAM)Tmp);
-			break;
-		case MISC_CACHEDIR_DEF: {
-			char Tmp[FMAX_PATH + 1];
-			GetAppTempPath(Tmp);
-			SetYenTail(Tmp);
-			SendDlgItemMessage(hDlg, MISC_CACHEDIR, WM_SETTEXT, 0, (LPARAM)Tmp);
-			break;
-		}
-		}
 	}
 };
 

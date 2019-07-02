@@ -161,7 +161,6 @@ extern SIZE BmarkDlgSize;
 extern SIZE MirrorDlgSize;
 extern int Sizing;
 extern int SortSave;
-extern char TmpPath[FMAX_PATH+1];
 extern int QuickAnonymous;
 extern int PassToHist;
 extern int VaxSemicolon;
@@ -551,12 +550,6 @@ void SaveRegistry(void)
 				WriteStringToReg(hKey4, "SndErr", Sound[SND_ERROR].Fname);
 
 				WriteMultiStringToReg(hKey4, "DefAttr", DefAttrList);
-
-				// 環境依存の不具合対策
-//				GetTempPath(FMAX_PATH, Str);
-				GetAppTempPath(Str);
-				SetYenTail(Str);
-				SaveStr(hKey4, "Tmp", TmpPath, Str);
 
 				WriteBinaryToReg(hKey4, "Hdlg", &HostDlgSize, sizeof(SIZE));
 				WriteBinaryToReg(hKey4, "Bdlg", &BmarkDlgSize, sizeof(SIZE));
@@ -1122,8 +1115,6 @@ int LoadRegistry(void)
 			ReadStringFromReg(hKey4, "SndErr", Sound[SND_ERROR].Fname, FMAX_PATH+1);
 
 			ReadMultiStringFromReg(hKey4, "DefAttr", DefAttrList, DEFATTRLIST_LEN+1);
-
-			ReadStringFromReg(hKey4, "Tmp", TmpPath, FMAX_PATH+1);
 
 			ReadBinaryFromReg(hKey4, "Hdlg", &HostDlgSize, sizeof(SIZE));
 			ReadBinaryFromReg(hKey4, "Bdlg", &BmarkDlgSize, sizeof(SIZE));

@@ -1351,6 +1351,7 @@ typedef struct
 /*===== main.c =====*/
 
 fs::path systemDirectory();
+fs::path const& tempDirectory();
 int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmdShow);
 void DispWindowTitle();
 HWND GetMainHwnd(void);
@@ -1363,7 +1364,6 @@ void ExecViewer2(char *Fname1, char *Fname2, int App);
 void AddTempFileList(char *Fname);
 void SoundPlay(int Num);
 void ShowHelp(DWORD_PTR helpTopicId);
-char *AskTmpFilePath(void);
 char *AskIniFilePath(void);
 int AskForceIni(void);
 int BackgrndMessageProc(void);
@@ -1477,7 +1477,7 @@ void ToggleSyncMoveMode(void);
 void DispSyncMoveMode(void);
 int AskSyncMoveMode(void);
 void SetRemoteDirHist(char *Path);
-void SetLocalDirHist(char *Path);
+void SetLocalDirHist(const char *Path);
 void AskLocalCurDir(char *Buf, int Max);
 void AskRemoteCurDir(char *Buf, int Max);
 void SetCurrentDirAsDirHist();
@@ -1608,7 +1608,6 @@ int AskNoPasvAdrs(void);
 
 /*===== cache.c =====*/
 
-void DeleteCache();
 fs::path MakeCacheFileName(int Num);
 
 /*===== ftpproc.c =====*/
@@ -1880,8 +1879,6 @@ LONGLONG MakeLongLong(DWORD High, DWORD Low);
 char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma);
 // 異なるファイルが表示されるバグ修正
 char* MakeDistinguishableFileName(char* Out, char* In);
-// 環境依存の不具合対策
-char* GetAppTempPath(char* Buf);
 #if defined(HAVE_TANDEM)
 void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size);
 #endif

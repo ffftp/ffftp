@@ -273,6 +273,18 @@ static auto const& moduleDirectory() {
 }
 
 
+fs::path const& tempDirectory() {
+	static const auto directory = [] {
+		wchar_t subdir[16];
+		swprintf(subdir, std::size(subdir), L"ffftp%08x", GetCurrentProcessId());
+		const auto path = fs::temp_directory_path() / subdir;
+		fs::create_directory(path);
+		return path;
+	}();
+	return directory;
+}
+
+
 static auto isPortable() {
 	static const auto isPortable = fs::is_regular_file(moduleDirectory() / L"portable");
 	return isPortable;
@@ -444,12 +456,6 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 	else
 	{
 		Accel = LoadAccelerators(hInstFtp, MAKEINTRESOURCE(ffftp_accel));
-
-		// 環境依存の不具合対策
-//		GetTempPath(FMAX_PATH, TmpPath);
-		GetAppTempPath(TmpPath);
-		_mkdir(TmpPath);
-		SetYenTail(TmpPath);
 
 		// 高DPI対応
 		WinWidth = CalcPixelX(WinWidth);
@@ -2285,9 +2291,6 @@ static char *GetToken(char *Str, char *Buf)
 
 static void ExitProc(HWND hWnd)
 {
-	// 環境依存の不具合対策
-	char Tmp[FMAX_PATH+1];
-
 	CancelFlg = YES;
 
 	// バグ対策
@@ -2314,10 +2317,8 @@ static void ExitProc(HWND hWnd)
 		if(RegType == REGTYPE_REG)
 			ClearIni();
 	}
-	DeleteCache();
 
-	GetAppTempPath(Tmp);
-	fs::remove_all(fs::u8path(Tmp));
+	fs::remove_all(tempDirectory());
 
 	if(RasClose == YES)
 	{
@@ -3010,21 +3011,6 @@ void SoundPlay(int Num)
 
 void ShowHelp(DWORD_PTR helpTopicId) {
 	hHelpWin = HtmlHelpW(NULL, helpPath().c_str(), HH_HELP_CONTEXT, helpTopicId);
-}
-
-
-/*----- テンポラリファイルのパス名を返す --------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		char *パス名
-*----------------------------------------------------------------------------*/
-
-char *AskTmpFilePath(void)
-{
-	return(TmpPath);
 }
 
 
