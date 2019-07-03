@@ -370,7 +370,7 @@ struct HostList {
 				SetDefaultHost(&TmpHost);
 			break;
 		case IDHELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000027);
+			ShowHelp(IDH_HELP_TOPIC_0000027);
 			break;
 		}
 		SetFocus(GetDlgItem(hDlg, HOST_LIST));
@@ -1446,7 +1446,7 @@ struct General {
 			}
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000028);
+			ShowHelp(IDH_HELP_TOPIC_0000028);
 			break;
 		}
 		return 0;
@@ -1530,7 +1530,7 @@ struct Advanced {
 			return PSNRET_NOERROR;
 		}
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000029);
+			ShowHelp(IDH_HELP_TOPIC_0000029);
 			break;
 		}
 		return 0;
@@ -1570,7 +1570,7 @@ struct KanjiCode {
 			TmpHost.NameKanaCnv = (int)SendDlgItemMessage(hDlg, HSET_FN_HANCNV, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000030);
+			ShowHelp(IDH_HELP_TOPIC_0000030);
 			break;
 		}
 		return 0;
@@ -1631,7 +1631,7 @@ struct Dialup {
 			SendDlgItemMessage(hDlg, HSET_DIALENTRY, WM_GETTEXT, RAS_NAME_LEN + 1, (LPARAM)TmpHost.DialEntry);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000031);
+			ShowHelp(IDH_HELP_TOPIC_0000031);
 			break;
 		}
 		return 0;
@@ -1711,7 +1711,7 @@ struct Special {
 			TmpHost.HostType = (int)SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000032);
+			ShowHelp(IDH_HELP_TOPIC_0000032);
 			break;
 		}
 		return 0;
@@ -1786,7 +1786,7 @@ struct Encryption {
 			TmpHost.UseFTPIS = (int)SendDlgItemMessage(hDlg, HSET_FTPIS, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000065);
+			ShowHelp(IDH_HELP_TOPIC_0000065);
 			break;
 		}
 		return 0;
@@ -1852,7 +1852,7 @@ struct Feature {
 			TmpHost.NoPasvAdrs = (int)SendDlgItemMessage(hDlg, HSET_NO_PASV_ADRS, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000066);
+			ShowHelp(IDH_HELP_TOPIC_0000066);
 			break;
 		}
 		return 0;

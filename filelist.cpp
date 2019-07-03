@@ -414,16 +414,9 @@ static void doTransferRemoteFile(void)
 	// set temporary folder
 	AskLocalCurDir(LocDir, FMAX_PATH);
 
-	char TmpDir[FMAX_PATH + 1];
-	GetAppTempPath(TmpDir);
-	_mkdir(TmpDir);
-	SetYenTail(TmpDir);
-	strcat(TmpDir, "file");
-	_mkdir(TmpDir);
-
-	// 既存のファイルを削除する
-	{
-		auto const tmp = fs::u8path(TmpDir);
+	auto tmp = tempDirectory() / L"file";
+	if (auto const created = !fs::create_directory(tmp); !created) {
+		// 既存のファイルを削除する
 		for (auto pf = FileListBase; pf; pf = pf->Next)
 			fs::remove(tmp / fs::u8path(pf->File));
 	}
@@ -432,7 +425,7 @@ static void doTransferRemoteFile(void)
 	SuppressRefresh = 1;
 
 	// ダウンロード先をテンポラリに設定
-	SetLocalDirHist(TmpDir);
+	SetLocalDirHist(tmp.u8string().c_str());
 
 	// FFFTPにダウンロード要求を出し、ダウンロードの完了を待つ。
 	PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
@@ -479,7 +472,7 @@ static void doTransferRemoteFile(void)
 
 	remoteFileListBase = FileListBase;  // あとでフリーすること
 	remoteFileListBaseNoExpand = FileListBaseNoExpand;  // あとでフリーすること
-	strncpy_s(remoteFileDir, sizeof(remoteFileDir), TmpDir, _TRUNCATE);
+	strncpy_s(remoteFileDir, sizeof(remoteFileDir), tmp.u8string().c_str(), _TRUNCATE);
 }
 
 
@@ -1514,7 +1507,7 @@ void SelectFileInList(HWND hWnd, int Type, FILELIST *Base) {
 				EndDialog(hDlg, false);
 				break;
 			case IDHELP:
-				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000061);
+				ShowHelp(IDH_HELP_TOPIC_0000061);
 				break;
 			}
 		}
@@ -5537,7 +5530,7 @@ void SetFilter(int *CancelCheckWork) {
 				EndDialog(hDlg, true);
 				break;
 			case IDHELP:
-				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000021);
+				ShowHelp(IDH_HELP_TOPIC_0000021);
 				break;
 			}
 		}

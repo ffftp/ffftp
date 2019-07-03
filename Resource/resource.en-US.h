@@ -365,9 +365,6 @@
 #define DEFATTR_ATTR_BR                 1144
 #define SORT_SAVEHOST                   1145
 #define UPDOWN_ERR_FNAME                1146
-#define MISC_CACHEDIR                   1147
-#define MISC_CACHEDIR_BR                1148
-#define MISC_CACHEDIR_DEF               1149
 #define HSET_SECURITY                   1150
 #define edt1                            0x0480
 #define OTPCALC_KEY                     1153

@@ -1718,7 +1718,7 @@ void SetRemoteDirHist(char *Path)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void SetLocalDirHist(char *Path)
+void SetLocalDirHist(const char *Path)
 {
 	int i;
 

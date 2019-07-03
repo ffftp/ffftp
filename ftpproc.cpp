@@ -461,7 +461,7 @@ struct MirrorList {
 					Pos->NoTransfer = (int)SendDlgItemMessageW(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
 			break;
 		case IDHELP:
-			hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000012);
+			ShowHelp(IDH_HELP_TOPIC_0000012);
 			break;
 		}
 	}
@@ -878,7 +878,7 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 				EndDialog(hDlg, false);
 				break;
 			case IDHELP:
-				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000009);
+				ShowHelp(IDH_HELP_TOPIC_0000009);
 				break;
 			}
 		}
@@ -1796,7 +1796,7 @@ static int MirrorNotify(bool upload) {
 				EndDialog(hDlg, YES_LIST);
 				break;
 			case IDHELP:
-				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, upload ? IDH_HELP_TOPIC_0000012 : IDH_HELP_TOPIC_0000013);
+				ShowHelp(upload ? IDH_HELP_TOPIC_0000012 : IDH_HELP_TOPIC_0000013);
 			}
 		}
 	};
@@ -1935,7 +1935,7 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, FILELIST *ListList)
 				EndDialog(hDlg, false);
 				break;
 			case IDHELP:
-				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000011);
+				ShowHelp(IDH_HELP_TOPIC_0000011);
 				break;
 			}
 		}
@@ -2836,7 +2836,7 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 				break;
 			}
 			case IDHELP:
-				hHelpWin = HtmlHelp(NULL, AskHelpFilePath(), HH_HELP_CONTEXT, IDH_HELP_TOPIC_0000017);
+				ShowHelp(IDH_HELP_TOPIC_0000017);
 				break;
 			}
 		}
