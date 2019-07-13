@@ -14,9 +14,6 @@
 #undef WinMain
 #define WinMain WinMainM
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow);
-#undef LoadLibrary
-#define LoadLibrary LoadLibraryM
-HMODULE LoadLibraryM(LPCSTR lpLibFileName);
 #undef CreateFile
 #define CreateFile CreateFileM
 HANDLE CreateFileM(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);

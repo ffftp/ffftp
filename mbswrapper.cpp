@@ -801,18 +801,6 @@ END_ROUTINE
 	return r;
 }
 
-HMODULE LoadLibraryM(LPCSTR lpLibFileName)
-{
-	HMODULE r = NULL;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpLibFileName, -1);
-	r = LoadLibraryW(pw0);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 HANDLE CreateFileM(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
 {
 	HANDLE r = INVALID_HANDLE_VALUE;
