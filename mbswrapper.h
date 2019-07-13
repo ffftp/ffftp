@@ -77,9 +77,6 @@ UINT DragQueryFileM(HDROP hDrop, UINT iFile, LPSTR lpszFile, UINT cch);
 #undef GetCommandLine
 #define GetCommandLine GetCommandLineM
 LPSTR GetCommandLineM();
-#undef GetTempPath
-#define GetTempPath GetTempPathM
-DWORD GetTempPathM(DWORD nBufferLength, LPSTR lpBuffer);
 #undef GetFileAttributes
 #define GetFileAttributes GetFileAttributesM
 DWORD GetFileAttributesM(LPCSTR lpFileName);

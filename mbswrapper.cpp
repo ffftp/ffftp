@@ -1462,20 +1462,6 @@ END_ROUTINE
 	return r;
 }
 
-DWORD GetTempPathM(DWORD nBufferLength, LPSTR lpBuffer)
-{
-	DWORD r = 0;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = AllocateStringW(nBufferLength * 4);
-	GetTempPathW(nBufferLength * 4, pw0);
-	WtoM(lpBuffer, nBufferLength, pw0, -1);
-	r = TerminateStringM(lpBuffer, nBufferLength);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 DWORD GetFileAttributesM(LPCSTR lpFileName)
 {
 	DWORD r = FALSE;
