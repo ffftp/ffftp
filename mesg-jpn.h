@@ -136,8 +136,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN149 (std::data(msgs[10000+149])) /* ファイルを削除できません. */
 #define MSGJPN150 (std::data(msgs[10000+150])) /* ファイルを削除できません. */
 #define MSGJPN151 (std::data(msgs[10000+151])) /* ファイル名変更ができません. */
-#define MSGJPN152 (std::data(msgs[10000+152])) /* テンポラリフォルダ「%s」がありません */
-#define MSGJPN153 (std::data(msgs[10000+153])) /* フォルダ「%s」を使用します */
 #define MSGJPN154 (std::data(msgs[10000+154])) /* 接続 */
 #define MSGJPN155 (std::data(msgs[10000+155])) /* クイック接続 */
 #define MSGJPN156 (std::data(msgs[10000+156])) /* 切断 */

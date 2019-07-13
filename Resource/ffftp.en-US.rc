@@ -2471,8 +2471,6 @@ BEGIN
     IDS_MSGJPN149           "Cannnot delete file."
     IDS_MSGJPN150           "Cannnot delete file."
     IDS_MSGJPN151           "Cannnot rename file."
-    IDS_MSGJPN152           "Temporary folder '%s' not found."
-    IDS_MSGJPN153           "Folder '%s' is used."
     IDS_MSGJPN154           "Connect"
     IDS_MSGJPN155           "Quick Connect"
     IDS_MSGJPN156           "Disconnect"

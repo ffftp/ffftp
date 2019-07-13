@@ -205,7 +205,6 @@ SIZE BmarkDlgSize = { -1, -1 };
 SIZE MirrorDlgSize = { -1, -1 };
 int Sizing = SW_RESTORE;
 int SortSave = NO;
-char TmpPath[FMAX_PATH+1];
 int QuickAnonymous = YES;
 int PassToHist = YES;
 int VaxSemicolon = NO;
@@ -608,14 +607,6 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					if(ForceIni)
 						SetTaskMsg("%s%s", MSGJPN283, IniPath);
 
-					if(IsFolderExist(TmpPath) == NO)
-					{
-						__pragma(warning(suppress:4474)) SetTaskMsg(MSGJPN152, TmpPath);
-						GetTempPath(FMAX_PATH, TmpPath);
-						__pragma(warning(suppress:4474)) SetTaskMsg(MSGJPN153, TmpPath);
-					}
-
-					DoPrintf("Tmp =%s", TmpPath);
 					DoPrintf("Help=%s", helpPath().u8string().c_str());
 
 					DragAcceptFiles(GetRemoteHwnd(), TRUE);
@@ -2346,7 +2337,6 @@ void DoubleClickProc(int Win, int Mode, int App)
 	int Pos;
 	int Type;
 	char Local[FMAX_PATH+1];
-	char Remote[FMAX_PATH+1];
 	char Tmp[FMAX_PATH+1];
 	int Sts;
 	int UseDiffViewer;
@@ -2393,16 +2383,9 @@ void DoubleClickProc(int Win, int Mode, int App)
 							else
 								UseDiffViewer = NO;
 
-							strcpy(Remote, TmpPath);
-							SetYenTail(Remote);
-							// 環境依存の不具合対策
-							strcat(Remote, "file");
-							_mkdir(Remote);
-							SetYenTail(Remote);
-							if (UseDiffViewer == YES) {
-								strcat(Remote, "remote.");
-							}
-							strcat(Remote, Tmp);
+							auto remoteDir = tempDirectory() / L"file";
+							fs::create_directory(remoteDir);
+							auto remotePath = (remoteDir / (UseDiffViewer == YES ? L"remote." + u8(Tmp) : u8(Tmp))).u8string();
 
 							if(AskTransferNow() == YES)
 								SktShareProh();
@@ -2426,7 +2409,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							{
 								strcpy(MainTransPkt.RemoteFile, Tmp);
 							}
-							strcpy(MainTransPkt.LocalFile, Remote);
+							strcpy(MainTransPkt.LocalFile, data(remotePath));
 							MainTransPkt.Type = AskTransferTypeAssoc(MainTransPkt.RemoteFile, AskTransferType());
 							MainTransPkt.Size = 1;
 							MainTransPkt.KanjiCode = AskHostKanjiCode();
@@ -2452,22 +2435,22 @@ void DoubleClickProc(int Win, int Mode, int App)
 									Sts = DoDownload(AskCmdCtrlSkt(), &MainTransPkt, NO, &CancelFlg);
 									// ゾーンID設定追加
 									if(MarkAsInternet == YES && IsZoneIDLoaded() == YES)
-										MarkFileAsDownloadedFromInternet(Remote);
+										MarkFileAsDownloadedFromInternet(data(remotePath));
 //								}
 							}
 
 							EnableUserOpe();
 
-							AddTempFileList(Remote);
+							AddTempFileList(data(remotePath));
 							if(Sts/100 == FTP_COMPLETE) {
 								if (UseDiffViewer == YES) {
 									AskLocalCurDir(Local, FMAX_PATH);
 									ReplaceAll(Local, '/', '\\');
 									SetYenTail(Local);
 									strcat(Local, Tmp);
-									ExecViewer2(Local, Remote, App);
+									ExecViewer2(Local, data(remotePath), App);
 								} else {
-									ExecViewer(Remote, App);
+									ExecViewer(data(remotePath), App);
 								}
 							}
 						}

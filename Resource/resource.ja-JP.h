@@ -604,8 +604,6 @@
 #define IDS_MSGJPN149                   10149
 #define IDS_MSGJPN150                   10150
 #define IDS_MSGJPN151                   10151
-#define IDS_MSGJPN152                   10152
-#define IDS_MSGJPN153                   10153
 #define IDS_MSGJPN154                   10154
 #define IDS_MSGJPN155                   10155
 #define IDS_MSGJPN156                   10156

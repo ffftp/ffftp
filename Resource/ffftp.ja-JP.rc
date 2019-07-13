@@ -2433,8 +2433,6 @@ BEGIN
     IDS_MSGJPN149           "ファイルを削除できません."
     IDS_MSGJPN150           "ファイルを削除できません."
     IDS_MSGJPN151           "ファイル名変更ができません."
-    IDS_MSGJPN152           "テンポラリフォルダ「%s」がありません"
-    IDS_MSGJPN153           "フォルダ「%s」を使用します"
     IDS_MSGJPN154           "接続"
     IDS_MSGJPN155           "クイック接続"
     IDS_MSGJPN156           "切断"
