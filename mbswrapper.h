@@ -20,9 +20,6 @@ HANDLE CreateFileM(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, 
 #undef MessageBox
 #define MessageBox MessageBoxM
 int MessageBoxM(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
-#undef FindFirstChangeNotification
-#define FindFirstChangeNotification FindFirstChangeNotificationM
-HANDLE FindFirstChangeNotificationM(LPCSTR lpPathName, BOOL bWatchSubtree, DWORD dwNotifyFilter);
 #undef GetLogicalDriveStrings
 #define GetLogicalDriveStrings GetLogicalDriveStringsM
 DWORD GetLogicalDriveStringsM(DWORD nBufferLength, LPSTR lpBuffer);

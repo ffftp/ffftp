@@ -1234,7 +1234,7 @@ void GetLocalDirForWnd(void)
 	// ローカル側自動更新
 	if(ChangeNotification != INVALID_HANDLE_VALUE)
 		FindCloseChangeNotification(ChangeNotification);
-	ChangeNotification = FindFirstChangeNotification(Scan, FALSE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE);
+	ChangeNotification = FindFirstChangeNotificationW(fs::u8path(Scan).c_str(), FALSE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE);
 
 	/* ディレクトリ／ファイル */
 	FindFile(fs::u8path(Scan) / L"*", [&files](WIN32_FIND_DATAW const& data) {
