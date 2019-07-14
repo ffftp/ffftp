@@ -1691,7 +1691,6 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 	int iRetCode;
 	int TimeOutErr;
 	char TmpBuf[ONELINE_BUF_SIZE];
-	DWORD dwFileAttributes;
 
 #ifdef SET_BUFFER_SIZE
 /* Add by H.Shirouzu at 2002/10/02 */
@@ -1714,12 +1713,11 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 	Sec.lpSecurityDescriptor = NULL;
 	Sec.bInheritHandle = FALSE;
 
-	dwFileAttributes = GetFileAttributes(Pkt->LocalFile);
-	if (dwFileAttributes != INVALID_FILE_ATTRIBUTES && (dwFileAttributes & FILE_ATTRIBUTE_READONLY)) {
+	if (auto attr = GetFileAttributesW(fs::u8path(Pkt->LocalFile).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_READONLY)) {
 		// 読み取り専用
 		if (MessageBox(GetMainHwnd(), MSGJPN296, MSGJPN086, MB_YESNO) == IDYES) {
 			// 属性を解除
-			SetFileAttributesW(fs::u8path(Pkt->LocalFile).c_str(), dwFileAttributes & ~FILE_ATTRIBUTE_READONLY);
+			SetFileAttributesW(fs::u8path(Pkt->LocalFile).c_str(), attr & ~FILE_ATTRIBUTE_READONLY);
 		}
 	}
 

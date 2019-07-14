@@ -92,7 +92,6 @@ extern int PassToHist;
 extern int VaxSemicolon;
 extern int SendQuit;
 extern int NoRasControl;
-extern int DispIgnoreHide;
 extern int DispDrives;
 extern HFONT ListFont;
 extern LOGFONT ListLogFont;

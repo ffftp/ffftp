@@ -828,55 +828,6 @@ END_ROUTINE
 	return r;
 }
 
-HANDLE FindFirstFileM(LPCSTR lpFileName, LPWIN32_FIND_DATAA lpFindFileData)
-{
-	HANDLE r = INVALID_HANDLE_VALUE;
-	wchar_t* pw0 = NULL;
-	WIN32_FIND_DATAW a0;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpFileName, -1);
-	r = FindFirstFileW(pw0, &a0);
-	if(r != INVALID_HANDLE_VALUE)
-	{
-		lpFindFileData->dwFileAttributes = a0.dwFileAttributes;
-		lpFindFileData->ftCreationTime = a0.ftCreationTime;
-		lpFindFileData->ftLastAccessTime = a0.ftLastAccessTime;
-		lpFindFileData->ftLastWriteTime = a0.ftLastWriteTime;
-		lpFindFileData->nFileSizeHigh = a0.nFileSizeHigh;
-		lpFindFileData->nFileSizeLow = a0.nFileSizeLow;
-		lpFindFileData->dwReserved0 = a0.dwReserved0;
-		lpFindFileData->dwReserved1 = a0.dwReserved1;
-		WtoM(lpFindFileData->cFileName, sizeof(lpFindFileData->cFileName), a0.cFileName, -1);
-		WtoM(lpFindFileData->cAlternateFileName, sizeof(lpFindFileData->cAlternateFileName), a0.cAlternateFileName, -1);
-	}
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
-BOOL FindNextFileM(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData)
-{
-	BOOL r = FALSE;
-	WIN32_FIND_DATAW a0;
-START_ROUTINE
-	r = FindNextFileW(hFindFile, &a0);
-	if(r)
-	{
-		lpFindFileData->dwFileAttributes = a0.dwFileAttributes;
-		lpFindFileData->ftCreationTime = a0.ftCreationTime;
-		lpFindFileData->ftLastAccessTime = a0.ftLastAccessTime;
-		lpFindFileData->ftLastWriteTime = a0.ftLastWriteTime;
-		lpFindFileData->nFileSizeHigh = a0.nFileSizeHigh;
-		lpFindFileData->nFileSizeLow = a0.nFileSizeLow;
-		lpFindFileData->dwReserved0 = a0.dwReserved0;
-		lpFindFileData->dwReserved1 = a0.dwReserved1;
-		WtoM(lpFindFileData->cFileName, sizeof(lpFindFileData->cFileName), a0.cFileName, -1);
-		WtoM(lpFindFileData->cAlternateFileName, sizeof(lpFindFileData->cAlternateFileName), a0.cAlternateFileName, -1);
-	}
-END_ROUTINE
-	return r;
-}
-
 HANDLE FindFirstChangeNotificationM(LPCSTR lpPathName, BOOL bWatchSubtree, DWORD dwNotifyFilter)
 {
 	HANDLE r = INVALID_HANDLE_VALUE;
@@ -1447,18 +1398,6 @@ START_ROUTINE
 		pm0 = DuplicateWtoM(GetCommandLineW(), -1);
 	r = pm0;
 END_ROUTINE
-	return r;
-}
-
-DWORD GetFileAttributesM(LPCSTR lpFileName)
-{
-	DWORD r = FALSE;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpFileName, -1);
-	r = GetFileAttributesW(pw0);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
 	return r;
 }
 

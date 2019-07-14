@@ -170,7 +170,6 @@ extern int SuppressSave;
 
 extern int UpExistMode;
 extern int ExistMode;
-extern int DispIgnoreHide;
 extern int DispDrives;
 extern int MirUpDelNotify;
 extern int MirDownDelNotify;

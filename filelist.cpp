@@ -59,9 +59,7 @@ static void CopyTmpListToFileList(FILELIST **Base, FILELIST *List);
 //static int GetListOneLine(char *Buf, int Max, FILE *Fd);
 static int GetListOneLine(char *Buf, int Max, FILE *Fd, int Convert);
 static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir);
-// ファイル一覧バグ修正
-//static void MakeLocalTree(char *Path, FILELIST **Base);
-static int MakeLocalTree(char *Path, FILELIST **Base);
+static int MakeLocalTree(const char *Path, FILELIST **Base);
 static void AddFileList(FILELIST *Pkt, FILELIST **Base);
 static int AnalyzeFileInfo(char *Str);
 static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day);
@@ -79,7 +77,7 @@ static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day);
 static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute);
 static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day);
 static int CheckSpecialDirName(char *Fname);
-static int AskFilterStr(char *Fname, int Type);
+static int AskFilterStr(const char *Fname, int Type);
 static int atoi_n(const char *Str, int Len);
 
 /*===== 外部参照 =====*/
@@ -104,7 +102,6 @@ extern HFONT ListFont;
 extern int ListType;
 extern int FindMode;
 extern int DotFile;
-extern int DispIgnoreHide;
 extern int DispDrives;
 extern int MoveMode;
 // ファイルアイコン表示対応
@@ -1223,8 +1220,6 @@ void RefreshIconImageList(std::vector<FILELIST>& files)
 
 void GetLocalDirForWnd(void)
 {
-	HANDLE fHnd;
-	WIN32_FIND_DATA Find;
 	char Scan[FMAX_PATH+1];
 	char *Pos;
 	char Buf[10];
@@ -1242,31 +1237,14 @@ void GetLocalDirForWnd(void)
 	ChangeNotification = FindFirstChangeNotification(Scan, FALSE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE);
 
 	/* ディレクトリ／ファイル */
-
-	SetYenTail(Scan);
-	strcat(Scan, "*");
-	if((fHnd = FindFirstFileAttr(Scan, &Find, DispIgnoreHide)) != INVALID_HANDLE_VALUE)
-	{
-		do
-		{
-			if((strcmp(Find.cFileName, ".") != 0) &&
-			   (strcmp(Find.cFileName, "..") != 0))
-			{
-				if((DotFile == YES) || (Find.cFileName[0] != '.'))
-				{
-					if(Find.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-						files.emplace_back(Find.cFileName, NODE_DIR, NO, MakeLongLong(Find.nFileSizeHigh, Find.nFileSizeLow), 0, Find.ftLastWriteTime, "", FINFO_ALL);
-					else
-					{
-						if(AskFilterStr(Find.cFileName, NODE_FILE) == YES)
-							files.emplace_back(Find.cFileName, NODE_FILE, NO, MakeLongLong(Find.nFileSizeHigh, Find.nFileSizeLow), 0, Find.ftLastWriteTime, "", FINFO_ALL);
-					}
-				}
-			}
-		}
-		while(FindNextFileAttr(fHnd, &Find, DispIgnoreHide) == TRUE);
-		FindClose(fHnd);
-	}
+	FindFile(fs::u8path(Scan) / L"*", [&files](WIN32_FIND_DATAW const& data) {
+		if (DotFile != YES && data.cFileName[0] == L'.')
+			return;
+		if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			files.emplace_back(u8(data.cFileName).c_str(), NODE_DIR, NO, MakeLongLong(data.nFileSizeHigh, data.nFileSizeLow), 0, data.ftLastWriteTime, "", FINFO_ALL);
+		else if (AskFilterStr(u8(data.cFileName).c_str(), NODE_FILE) == YES)
+			files.emplace_back(u8(data.cFileName).c_str(), NODE_FILE, NO, MakeLongLong(data.nFileSizeHigh, data.nFileSizeLow), 0, data.ftLastWriteTime, "", FINFO_ALL);
+	});
 
 	/* ドライブ */
 	if(DispDrives)
@@ -2184,7 +2162,6 @@ int MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Can
 	char Cur[FMAX_PATH+1];
 	FILELIST Pkt;
 	int Node;
-	DWORD Attr;
 	int Ignore;
 
 	// ファイル一覧バグ修正
@@ -2217,10 +2194,7 @@ int MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Can
 				if((DispIgnoreHide == YES) && (Win == WIN_LOCAL))
 				{
 					AskLocalCurDir(Cur, FMAX_PATH);
-					SetYenTail(Cur);
-					strcat(Cur, Pkt.File);
-					Attr = GetFileAttributes(Cur);
-					if((Attr != 0xFFFFFFFF) && (Attr & FILE_ATTRIBUTE_HIDDEN))
+					if (auto attr = GetFileAttributesW((fs::u8path(Cur) / fs::u8path(Pkt.File)).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_HIDDEN))
 						Ignore = YES;
 				}
 
@@ -2251,11 +2225,7 @@ int MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Can
 					if((DispIgnoreHide == YES) && (Win == WIN_LOCAL))
 					{
 						AskLocalCurDir(Cur, FMAX_PATH);
-						SetYenTail(Cur);
-						strcat(Cur, Pkt.File);
-						ReplaceAll(Cur, '/', '\\');
-						Attr = GetFileAttributes(Cur);
-						if((Attr != 0xFFFFFFFF) && (Attr & FILE_ATTRIBUTE_HIDDEN))
+						if (auto attr = GetFileAttributesW((fs::u8path(Cur) / fs::u8path(Pkt.File)).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_HIDDEN))
 							Ignore = YES;
 					}
 
@@ -2359,8 +2329,6 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
 	int i;
 	char Name[FMAX_PATH+1];
 	FILELIST Pkt;
-	HANDLE fHnd;
-	WIN32_FIND_DATA Find;
 	// タイムスタンプのバグ修正
 	SYSTEMTIME TmpStime;
 
@@ -2373,7 +2341,10 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
 	{
 		DragQueryFile((HDROP)wParam, i, Name, FMAX_PATH);
 
-		if((GetFileAttributes(Name) & FILE_ATTRIBUTE_DIRECTORY) == 0)
+		WIN32_FILE_ATTRIBUTE_DATA attr;
+		if (!GetFileAttributesExW(fs::u8path(Name).c_str(), GetFileExInfoStandard, &attr))
+			continue;
+		if((attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
 		{
 			// 変数が未初期化のバグ修正
 			memset(&Pkt, 0, sizeof(FILELIST));
@@ -2387,25 +2358,21 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
 			Pkt.Size = 0;
 			Pkt.InfoExist = 0;
 #endif
-			if((fHnd = FindFirstFile(Name, &Find)) != INVALID_HANDLE_VALUE)
+			Pkt.Time = attr.ftLastWriteTime;
+			// タイムスタンプのバグ修正
+			if(FileTimeToSystemTime(&Pkt.Time, &TmpStime))
 			{
-				FindClose(fHnd);
-				Pkt.Time = Find.ftLastWriteTime;
-				// タイムスタンプのバグ修正
-				if(FileTimeToSystemTime(&Pkt.Time, &TmpStime))
-				{
-					if(DispTimeSeconds == NO)
-						TmpStime.wSecond = 0;
-					TmpStime.wMilliseconds = 0;
-					SystemTimeToFileTime(&TmpStime, &Pkt.Time);
-				}
-				else
-					memset(&Pkt.Time, 0, sizeof(FILETIME));
-#if defined(HAVE_TANDEM)
-				Pkt.Size = MakeLongLong(Find.nFileSizeHigh, Find.nFileSizeLow);
-				Pkt.InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE);
-#endif
+				if(DispTimeSeconds == NO)
+					TmpStime.wSecond = 0;
+				TmpStime.wMilliseconds = 0;
+				SystemTimeToFileTime(&TmpStime, &Pkt.Time);
 			}
+			else
+				memset(&Pkt.Time, 0, sizeof(FILETIME));
+#if defined(HAVE_TANDEM)
+			Pkt.Size = LONGLONG(attr.nFileSizeHigh) << 32 | attr.nFileSizeLow;
+			Pkt.InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE);
+#endif
 			AddFileList(&Pkt, Base);
 		}
 	}
@@ -2416,7 +2383,7 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
 	{
 		DragQueryFile((HDROP)wParam, i, Name, FMAX_PATH);
 
-		if(GetFileAttributes(Name) & FILE_ATTRIBUTE_DIRECTORY)
+		if(GetFileAttributesW(fs::u8path(Name).c_str()) & FILE_ATTRIBUTE_DIRECTORY)
 		{
 			// 変数が未初期化のバグ修正
 			memset(&Pkt, 0, sizeof(FILELIST));
@@ -2836,112 +2803,44 @@ static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir)
 }
 
 
-/*----- ローカル側のサブディレクトリ以下のファイルをリストに登録する ----------
-*
-*	Parameter
-*		char *Path : パス名
-*		FILELIST **Base : ファイルリストの先頭
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-// ファイル一覧バグ修正
-//static void MakeLocalTree(char *Path, FILELIST **Base)
-static int MakeLocalTree(char *Path, FILELIST **Base)
-{
-	// ファイル一覧バグ修正
-	int Sts;
-	char Src[FMAX_PATH+1];
-	HANDLE fHnd;
-	WIN32_FIND_DATA FindBuf;
-	FILELIST Pkt;
-	SYSTEMTIME TmpStime;
-
-	// ファイル一覧バグ修正
-	Sts = FFFTP_FAIL;
-
-	strcpy(Src, Path);
-	SetYenTail(Src);
-	strcat(Src, "*");
-	ReplaceAll(Src, '/', '\\');
-
-	if((fHnd = FindFirstFileAttr(Src, &FindBuf, DispIgnoreHide)) != INVALID_HANDLE_VALUE)
-	{
-		do
-		{
-			if((FindBuf.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
-			{
-				if(AskFilterStr(FindBuf.cFileName, NODE_FILE) == YES)
-				{
-					// 変数が未初期化のバグ修正
-					memset(&Pkt, 0, sizeof(FILELIST));
-
-					strcpy(Pkt.File, Path);
-					SetSlashTail(Pkt.File);
-					strcat(Pkt.File, FindBuf.cFileName);
-					ReplaceAll(Pkt.File, '\\', '/');
-					Pkt.Node = NODE_FILE;
-					Pkt.Size = MakeLongLong(FindBuf.nFileSizeHigh, FindBuf.nFileSizeLow);
-					Pkt.Attr = 0;
-					Pkt.Time = FindBuf.ftLastWriteTime;
-					// タイムスタンプのバグ修正
-//					FileTimeToSystemTime(&Pkt.Time, &TmpStime);
-//					TmpStime.wSecond = 0;
-//					SystemTimeToFileTime(&TmpStime, &Pkt.Time);
-					if(FileTimeToSystemTime(&Pkt.Time, &TmpStime))
-					{
-						if(DispTimeSeconds == NO)
-							TmpStime.wSecond = 0;
-						TmpStime.wMilliseconds = 0;
-						SystemTimeToFileTime(&TmpStime, &Pkt.Time);
-					}
-					else
-						memset(&Pkt.Time, 0, sizeof(FILETIME));
-					AddFileList(&Pkt, Base);
-				}
-			}
+// ローカル側のサブディレクトリ以下のファイルをリストに登録する
+static int MakeLocalTree(const char *Path, FILELIST **Base) {
+	auto const path = fs::u8path(Path);
+	auto const src = path / L"*";
+	FindFile(src, [&path, &Base](WIN32_FIND_DATAW const& data) {
+		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) || AskFilterStr(u8(data.cFileName).c_str(), NODE_FILE) != YES)
+			return;
+		FILELIST Pkt{};
+		auto const src = (path / data.cFileName).u8string();
+		strcpy(Pkt.File, src.c_str());
+		ReplaceAll(Pkt.File, '\\', '/');
+		Pkt.Node = NODE_FILE;
+		Pkt.Size = MakeLongLong(data.nFileSizeHigh, data.nFileSizeLow);
+		if (SYSTEMTIME TmpStime; FileTimeToSystemTime(&data.ftLastWriteTime, &TmpStime)) {
+			if (DispTimeSeconds == NO)
+				TmpStime.wSecond = 0;
+			TmpStime.wMilliseconds = 0;
+			SystemTimeToFileTime(&TmpStime, &Pkt.Time);
 		}
-		while(FindNextFileAttr(fHnd, &FindBuf, DispIgnoreHide) == TRUE);
-		FindClose(fHnd);
-	}
+		AddFileList(&Pkt, Base);
+	});
 
-	if((fHnd = FindFirstFileAttr(Src, &FindBuf, DispIgnoreHide)) != INVALID_HANDLE_VALUE)
-	{
-		// ファイル一覧バグ修正
-		Sts = FFFTP_SUCCESS;
-		do
-		{
-			if((FindBuf.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
-			   (strcmp(FindBuf.cFileName, ".") != 0) &&
-			   (strcmp(FindBuf.cFileName, "..") != 0))
-			{
-				// 変数が未初期化のバグ修正
-				memset(&Pkt, 0, sizeof(FILELIST));
-
-				strcpy(Src, Path);
-				SetYenTail(Src);
-				strcat(Src, FindBuf.cFileName);
-				strcpy(Pkt.File, Src);
-				ReplaceAll(Pkt.File, '\\', '/');
-				Pkt.Node = NODE_DIR;
-				Pkt.Size = 0;
-				Pkt.Attr = 0;
-				memset(&Pkt.Time, 0, sizeof(FILETIME));
-				AddFileList(&Pkt, Base);
-
-				// ファイル一覧バグ修正
-//				MakeLocalTree(Src, Base);
-				if(MakeLocalTree(Src, Base) == FFFTP_FAIL)
-					Sts = FFFTP_FAIL;
-			}
-		}
-		while(FindNextFileAttr(fHnd, &FindBuf, DispIgnoreHide) == TRUE);
-		FindClose(fHnd);
-	}
-	// ファイル一覧バグ修正
-//	return;
-	return(Sts);
+	std::optional<bool> result;
+	FindFile(src, [&path, &Base, &result](WIN32_FIND_DATAW const& data) {
+		if (!result.has_value())
+			result = true;
+		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+			return;
+		FILELIST Pkt{};
+		auto const src = (path / data.cFileName).u8string();
+		strcpy(Pkt.File, src.c_str());
+		ReplaceAll(Pkt.File, '\\', '/');
+		Pkt.Node = NODE_DIR;
+		AddFileList(&Pkt, Base);
+		if (MakeLocalTree(src.c_str(), Base) == FFFTP_FAIL)
+			result = false;
+	});
+	return result.value_or(false) ? FFFTP_SUCCESS : FFFTP_FAIL;
 }
 
 
@@ -5495,7 +5394,7 @@ static int CheckSpecialDirName(char *Fname)
 
 
 // フィルタに指定されたファイル名かどうかを返す
-static int AskFilterStr(char *Fname, int Type) {
+static int AskFilterStr(const char *Fname, int Type) {
 	static std::wregex re{ L";" };
 	if (Type != NODE_FILE || strlen(FilterStr) == 0)
 		return YES;

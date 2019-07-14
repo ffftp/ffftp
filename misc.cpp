@@ -1325,36 +1325,6 @@ void SwapInt(int *Num1, int *Num2)
 }
 
 
-/*----- 指定されたフォルダがあるかどうかチェック -------------------------------
-*
-*	Parameter
-*		char *Path : パス
-*
-*	Return Value
-*		int ステータス (YES/NO)
-*----------------------------------------------------------------------------*/
-
-int IsFolderExist(char *Path)
-{
-	int Sts;
-	char Tmp[FMAX_PATH+1];
-	DWORD Attr;
-
-	Sts = YES;
-	if(strlen(Path) > 0)
-	{
-		strcpy(Tmp, Path);
-		if(_mbscmp((const unsigned char*)Tmp+1, (const unsigned char*)":\\") != 0)
-			RemoveYenTail(Tmp);
-
-		Attr = GetFileAttributes(Tmp);
-		if((Attr == 0xFFFFFFFF) || ((Attr & FILE_ATTRIBUTE_DIRECTORY) == 0))
-			Sts = NO;
-	}
-	return(Sts);
-}
-
-
 /*----- テーブルにしたがって数値を登録 -----------------------------------------
 *
 *	Parameter
@@ -1460,45 +1430,29 @@ char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma)
 }
 
 
-// 異なるファイルが表示されるバグ修正
-
 // ShellExecute等で使用されるファイル名を修正
 // UNCでない場合に末尾の半角スペースは無視されるため拡張子が補完されなくなるまで半角スペースを追加
 // 現在UNC対応の予定は無い
-char* MakeDistinguishableFileName(char* Out, char* In)
-{
-	char* Fname;
-	char Tmp[FMAX_PATH+1];
-	char Tmp2[FMAX_PATH+3];
-	HANDLE hFind;
-	WIN32_FIND_DATA Find;
-	if(strlen(GetFileExt(GetFileName(In))) > 0)
+char* MakeDistinguishableFileName(char* Out, char* In) {
+	if (strlen(GetFileExt(GetFileName(In))) > 0)
 		strcpy(Out, In);
-	else
-	{
-		Fname = GetFileName(In);
-		strcpy(Tmp, In);
-		strcpy(Tmp2, Tmp);
-		strcat(Tmp2, ".*");
-		while(strlen(Tmp) < FMAX_PATH && (hFind = FindFirstFile(Tmp2, &Find)) != INVALID_HANDLE_VALUE)
-		{
-			do
-			{
-				if(strcmp(Find.cFileName, Fname) != 0)
+	else {
+		auto const Fname = u8(GetFileName(In));
+		auto current = u8(In);
+		WIN32_FIND_DATAW data;
+		for (HANDLE handle; (handle = FindFirstFileW((current + L".*"sv).c_str(), &data)) != INVALID_HANDLE_VALUE; current += L' ') {
+			bool invalid = false;
+			do {
+				if (data.cFileName != Fname) {
+					invalid = true;
 					break;
-			}
-			while(FindNextFile(hFind, &Find));
-			FindClose(hFind);
-			if(strcmp(Find.cFileName, Fname) != 0)
-			{
-				strcat(Tmp, " ");
-				strcpy(Tmp2, Tmp);
-				strcat(Tmp2, ".*");
-			}
-			else
+				}
+			} while (FindNextFileW(handle, &data));
+			FindClose(handle);
+			if (!invalid)
 				break;
 		}
-		strcpy(Out, Tmp);
+		strcpy(Out, u8(current).c_str());
 	}
 	return Out;
 }

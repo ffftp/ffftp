@@ -2820,7 +2820,7 @@ void ExecViewer(char *Fname, int App)
 		ShellExecute(NULL, "open", Fname, NULL, CurDir, SW_SHOW);
 	}
 	// ローカルフォルダを開く
-	else if((App == -1) && (GetFileAttributes(Fname) & FILE_ATTRIBUTE_DIRECTORY))
+	else if((App == -1) && (GetFileAttributesW(fs::u8path(Fname).c_str()) & FILE_ATTRIBUTE_DIRECTORY))
 	{
 		MakeDistinguishableFileName(ComLine, Fname);
 		DoPrintf("ShellExecute - %s", Fname);

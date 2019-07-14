@@ -20,12 +20,6 @@ HANDLE CreateFileM(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, 
 #undef MessageBox
 #define MessageBox MessageBoxM
 int MessageBoxM(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
-#undef FindFirstFile
-#define FindFirstFile FindFirstFileM
-HANDLE FindFirstFileM(LPCSTR lpFileName, LPWIN32_FIND_DATAA lpFindFileData);
-#undef FindNextFile
-#define FindNextFile FindNextFileM
-BOOL FindNextFileM(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData);
 #undef FindFirstChangeNotification
 #define FindFirstChangeNotification FindFirstChangeNotificationM
 HANDLE FindFirstChangeNotificationM(LPCSTR lpPathName, BOOL bWatchSubtree, DWORD dwNotifyFilter);
@@ -74,9 +68,6 @@ UINT DragQueryFileM(HDROP hDrop, UINT iFile, LPSTR lpszFile, UINT cch);
 #undef GetCommandLine
 #define GetCommandLine GetCommandLineM
 LPSTR GetCommandLineM();
-#undef GetFileAttributes
-#define GetFileAttributes GetFileAttributesM
-DWORD GetFileAttributesM(LPCSTR lpFileName);
 #undef RegOpenKeyEx
 #define RegOpenKeyEx RegOpenKeyExM
 LSTATUS RegOpenKeyExM(HKEY hKey, LPCSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult);

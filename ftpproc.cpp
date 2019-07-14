@@ -883,8 +883,6 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 			}
 		}
 	};
-	HANDLE fHnd;
-	WIN32_FIND_DATA Find;
 	int Ret;
 	// タイムスタンプのバグ修正
 	SYSTEMTIME TmpStime;
@@ -893,11 +891,9 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 	Pkt->ExistSize = 0;
 	if(RecvMode != TRANS_OVW)
 	{
-		if((fHnd = FindFirstFile(Pkt->LocalFile, &Find)) != INVALID_HANDLE_VALUE)
+		if (WIN32_FILE_ATTRIBUTE_DATA attr; GetFileAttributesExW(fs::u8path(Pkt->LocalFile).c_str(), GetFileExInfoStandard, &attr))
 		{
-			FindClose(fHnd);
-
-			Pkt->ExistSize = MakeLongLong(Find.nFileSizeHigh, Find.nFileSizeLow);
+			Pkt->ExistSize = LONGLONG(attr.nFileSizeHigh) << 32 | attr.nFileSizeLow;
 
 			if(ExistNotify == YES)
 			{
@@ -911,28 +907,21 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 			{
 				/*ファイル日付チェック */
 				// タイムスタンプのバグ修正
-				if(FileTimeToSystemTime(&Find.ftLastWriteTime, &TmpStime))
-				{
-					if(DispTimeSeconds == NO)
+				if (FileTimeToSystemTime(&attr.ftLastWriteTime, &TmpStime)) {
+					if (DispTimeSeconds == NO)
 						TmpStime.wSecond = 0;
 					TmpStime.wMilliseconds = 0;
-					SystemTimeToFileTime(&TmpStime, &Find.ftLastWriteTime);
-				}
-				else
-					memset(&Find.ftLastWriteTime, 0, sizeof(FILETIME));
-				if(CompareFileTime(&Find.ftLastWriteTime, &Pkt->Time) < 0)
+					SystemTimeToFileTime(&TmpStime, &attr.ftLastWriteTime);
+				} else
+					attr.ftLastWriteTime = {};
+				if(CompareFileTime(&attr.ftLastWriteTime, &Pkt->Time) < 0)
 					Ret = EXIST_OVW;
 				else
 					Ret = EXIST_IGNORE;
 			}
 			// 同じ名前のファイルの処理方法追加
-			if(Ret == EXIST_LARGE)
-			{
-				if(MakeLongLong(Find.nFileSizeHigh, Find.nFileSizeLow) < Pkt->Size)
-					Ret = EXIST_OVW;
-				else
-					Ret = EXIST_IGNORE;
-			}
+			if (Ret == EXIST_LARGE)
+				Ret = (LONGLONG(attr.nFileSizeHigh) << 32 | attr.nFileSizeLow) < Pkt->Size ? EXIST_OVW : EXIST_IGNORE;
 		}
 	}
 	return(Ret);
