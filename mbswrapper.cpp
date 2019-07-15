@@ -1320,18 +1320,6 @@ END_ROUTINE
 	return r;
 }
 
-LPSTR GetCommandLineM()
-{
-	LPSTR r = 0;
-	static char* pm0 = NULL;
-START_ROUTINE
-	if(!pm0)
-		pm0 = DuplicateWtoM(GetCommandLineW(), -1);
-	r = pm0;
-END_ROUTINE
-	return r;
-}
-
 LSTATUS RegOpenKeyExM(HKEY hKey, LPCSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult)
 {
 	LSTATUS r = 0;

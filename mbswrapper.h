@@ -53,9 +53,6 @@ BOOL SetWindowTextM(HWND hWnd, LPCSTR lpString);
 #undef DragQueryFile
 #define DragQueryFile DragQueryFileM
 UINT DragQueryFileM(HDROP hDrop, UINT iFile, LPSTR lpszFile, UINT cch);
-#undef GetCommandLine
-#define GetCommandLine GetCommandLineM
-LPSTR GetCommandLineM();
 #undef RegOpenKeyEx
 #define RegOpenKeyEx RegOpenKeyExM
 LSTATUS RegOpenKeyExM(HKEY hKey, LPCSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult);

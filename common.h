@@ -1371,8 +1371,7 @@ void ResetAutoExitFlg(void);
 int AskAutoExit(void);
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 BOOL IsMainThread();
-// 全設定暗号化対応
-int Restart();
+void Restart();
 void Terminate();
 // タスクバー進捗表示
 int LoadTaskbarList3();
