@@ -20,12 +20,6 @@ HANDLE CreateFileM(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, 
 #undef MessageBox
 #define MessageBox MessageBoxM
 int MessageBoxM(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
-#undef RegisterClassEx
-#define RegisterClassEx RegisterClassExM
-ATOM RegisterClassExM(CONST WNDCLASSEXA * v0);
-#undef CreateWindowEx
-#define CreateWindowEx CreateWindowExM
-HWND CreateWindowExM(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 #undef GetWindowLong
 #define GetWindowLong GetWindowLongM
 LONG GetWindowLongM(HWND hWnd, int nIndex);
@@ -161,9 +155,6 @@ unsigned char * _mbsnincM(const unsigned char * _Str, size_t _Count);
 #undef fopen
 #define fopen fopenM
 FILE * fopenM(const char * _Filename, const char * _Mode);
-
-#undef CreateWindow
-#define CreateWindow(lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam) CreateWindowEx(0L, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam)
 
 #endif
 

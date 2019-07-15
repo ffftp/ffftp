@@ -34,7 +34,7 @@ static HWND hWndSbar = NULL;
 
 // ステータスウインドウを作成する
 int MakeStatusBarWindow(HWND hWnd, HINSTANCE hInst) {
-	hWndSbar = CreateWindowEx(0, STATUSCLASSNAME, nullptr, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | SBARS_SIZEGRIP, 0, 0, 0, 0, hWnd, 0, hInst, nullptr);
+	hWndSbar = CreateWindowExW(0, STATUSCLASSNAMEW, nullptr, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | SBARS_SIZEGRIP, 0, 0, 0, 0, hWnd, 0, hInst, nullptr);
 	if (!hWndSbar)
 		return FFFTP_FAIL;
 	static int parts[]{ 120, 190, 340, 500, 660, -1 };

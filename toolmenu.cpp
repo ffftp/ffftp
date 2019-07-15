@@ -326,17 +326,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 		SendMessage(hWndTbarLocal, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
 		DlgFont = CreateFont(Rect1.bottom-Rect1.top-CalcPixelY(8), 0, 0, 0, 0, FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH,MSGJPN254);
 
-		// 高DPI対応
-//		hWndDirLocal = CreateWindowEx(WS_EX_CLIENTEDGE,
-//					"COMBOBOX", "",
-//					WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_SORT | CBS_AUTOHSCROLL,
-//					Rect1.right, Rect1.top, LocalWidth - Rect1.right, 200,
-//					hWndTbarLocal, (HMENU)COMBO_LOCAL, hInst, NULL);
-		hWndDirLocal = CreateWindowEx(WS_EX_CLIENTEDGE,
-					"COMBOBOX", "",
-					WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_SORT | CBS_AUTOHSCROLL,
-					Rect1.right, Rect1.top, LocalWidth - Rect1.right, CalcPixelY(200),
-					hWndTbarLocal, (HMENU)COMBO_LOCAL, hInst, NULL);
+		hWndDirLocal = CreateWindowExW(WS_EX_CLIENTEDGE, WC_COMBOBOXW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_SORT | CBS_AUTOHSCROLL, Rect1.right, Rect1.top, LocalWidth - Rect1.right, CalcPixelY(200), hWndTbarLocal, (HMENU)COMBO_LOCAL, hInst, nullptr);
 
 		if(hWndDirLocal != NULL)
 		{
@@ -408,17 +398,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 		/*===== ホストのディレクトリ名ウインドウ =====*/
 
 		SendMessage(hWndTbarRemote, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
-		// 高DPI対応
-//		hWndDirRemote = CreateWindowEx(WS_EX_CLIENTEDGE,
-//					"COMBOBOX", "",
-//					WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL,
-//					Rect1.right, Rect1.top, RemoteWidth - Rect1.right, 200,
-//					hWndTbarRemote, (HMENU)COMBO_REMOTE, hInst, NULL);
-		hWndDirRemote = CreateWindowEx(WS_EX_CLIENTEDGE,
-					"COMBOBOX", "",
-					WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL,
-					Rect1.right, Rect1.top, RemoteWidth - Rect1.right, CalcPixelY(200),
-					hWndTbarRemote, (HMENU)COMBO_REMOTE, hInst, NULL);
+		hWndDirRemote = CreateWindowExW(WS_EX_CLIENTEDGE, WC_COMBOBOXW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL, Rect1.right, Rect1.top, RemoteWidth - Rect1.right, CalcPixelY(200), hWndTbarRemote, (HMENU)COMBO_REMOTE, hInst, nullptr);
 
 		if(hWndDirRemote != NULL)
 		{

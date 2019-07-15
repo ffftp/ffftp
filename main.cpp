@@ -72,7 +72,7 @@ static int EnterMasterPasswordAndSet(bool newpassword, HWND hWnd);
 
 /*===== ローカルなワーク =====*/
 
-static const char FtpClassStr[] = "FFFTPWin";
+static const wchar_t FtpClass[] = L"FFFTPWin";
 static const wchar_t WebURL[] = L"https://github.com/ffftp/ffftp";
 
 static HINSTANCE hInstFtp;
@@ -405,7 +405,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		}
 		Ret = (int)Msg.wParam;
 	}
-	UnregisterClass(FtpClassStr, hInstFtp);
+	UnregisterClassW(FtpClass, hInstFtp);
 	FreeSSL();
 	CryptReleaseContext(HCryptProv, 0);
 	// ゾーンID設定追加
@@ -662,7 +662,6 @@ static int MakeAllWindows(int cmdShow)
 {
 	RECT Rect1;
 	RECT Rect2;
-	WNDCLASSEX wClass;
 	int Sts;
 	int StsTask;
 	int StsSbar;
@@ -675,19 +674,8 @@ static int MakeAllWindows(int cmdShow)
 
 	RootColorBrush = CreateSolidBrush(GetSysColor(COLOR_3DFACE));
 
-	wClass.cbSize = sizeof(WNDCLASSEX);
-	wClass.style         = 0;
-	wClass.lpfnWndProc   = FtpWndProc;
-	wClass.cbClsExtra    = 0;
-	wClass.cbWndExtra    = 0;
-	wClass.hInstance     = hInstFtp;
-	wClass.hIcon         = LoadIcon(hInstFtp, MAKEINTRESOURCE(ffftp));
-	wClass.hCursor       = NULL;
-	wClass.hbrBackground = RootColorBrush;
-	wClass.lpszMenuName  = (LPSTR)MAKEINTRESOURCE(main_menu);
-	wClass.lpszClassName = FtpClassStr;
-	wClass.hIconSm       = NULL;
-	RegisterClassEx(&wClass);
+	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, FtpWndProc, 0, 0, hInstFtp, LoadIconW(hInstFtp, MAKEINTRESOURCEW(ffftp)), 0, RootColorBrush, MAKEINTRESOURCEW(main_menu), FtpClass };
+	RegisterClassExW(&classEx);
 
 	// 高DPI対応
 //	ToolWinHeight = TOOLWIN_HEIGHT;
@@ -698,10 +686,7 @@ static int MakeAllWindows(int cmdShow)
 		WinPosX = CW_USEDEFAULT;
 		WinPosY = 0;
 	}
-	hWndFtp = CreateWindow(FtpClassStr, "FFFTP",
-				WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
-				WinPosX, WinPosY, WinWidth, WinHeight,
-				HWND_DESKTOP, 0, hInstFtp, NULL);
+	hWndFtp = CreateWindowExW(0, FtpClass, L"FFFTP", WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, WinPosX, WinPosY, WinWidth, WinHeight, HWND_DESKTOP, 0, hInstFtp, nullptr);
 
 	if(hWndFtp != NULL)
 	{

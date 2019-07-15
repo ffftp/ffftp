@@ -828,49 +828,6 @@ END_ROUTINE
 	return r;
 }
 
-ATOM RegisterClassExM(CONST WNDCLASSEXA * v0)
-{
-	ATOM r = 0;
-	wchar_t* pw0 = NULL;
-	wchar_t* pw1 = NULL;
-	WNDCLASSEXW a0;
-START_ROUTINE
-	a0.cbSize = sizeof(WNDCLASSEXW);
-	a0.style = v0->style;
-	a0.lpfnWndProc = v0->lpfnWndProc;
-	a0.cbClsExtra = v0->cbClsExtra;
-	a0.cbWndExtra = v0->cbWndExtra;
-	a0.hInstance = v0->hInstance;
-	a0.hIcon = v0->hIcon;
-	a0.hCursor = v0->hCursor;
-	a0.hbrBackground = v0->hbrBackground;
-	pw0 = DuplicateMtoW(v0->lpszMenuName, -1);
-	a0.lpszMenuName = pw0;
-	pw1 = DuplicateMtoW(v0->lpszClassName, -1);
-	a0.lpszClassName = pw1;
-	a0.hIconSm = v0->hIconSm;
-	r = RegisterClassExW(&a0);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	FreeDuplicatedString(pw1);
-	return r;
-}
-
-HWND CreateWindowExM(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
-{
-	HWND r = NULL;
-	wchar_t* pw0 = NULL;
-	wchar_t* pw1 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpClassName, -1);
-	pw1 = DuplicateMtoW(lpWindowName, -1);
-	r = CreateWindowExW(dwExStyle, pw0, pw1, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	FreeDuplicatedString(pw1);
-	return r;
-}
-
 LONG GetWindowLongM(HWND hWnd, int nIndex)
 {
 	LONG r = 0;

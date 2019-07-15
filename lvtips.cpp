@@ -43,49 +43,12 @@ static LRESULT CALLBACK TitleTipWndProc(HWND hWnd, UINT message, WPARAM wParam, 
 static HWND hWndTips;	/* tipsのウインドウハンドル */
 
 
-
-/*----- リストビューティップスのウインドウを作成 ------------------------------
-*
-*	Parameter
-*		HWND hWnd : 親ウインドウのハンドル
-*		HINSTANCE hInst : インスタンスハンドル
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int InitListViewTips(HWND hWnd, HINSTANCE hInst)
-{
-	WNDCLASSEX wClass;
-	int Ret;
-
-	Ret = FFFTP_FAIL;
-
-	wClass.cbSize = sizeof(WNDCLASSEX);
-	wClass.style         = 0;
-	wClass.lpfnWndProc   = TitleTipWndProc;
-	wClass.cbClsExtra    = 0;
-	wClass.cbWndExtra    = 0;
-	wClass.hInstance     = hInst;
-	wClass.hIcon         = NULL;
-	wClass.hCursor       = NULL;
-	wClass.hbrBackground = (HBRUSH)CreateSolidBrush(GetSysColor(COLOR_INFOBK));
-	wClass.lpszMenuName  = NULL;
-	wClass.lpszClassName = "XTitleTip";
-	wClass.hIconSm       = NULL;
-	RegisterClassEx(&wClass);
-
-	hWndTips = CreateWindowEx(WS_EX_TOOLWINDOW | WS_EX_TOPMOST,
-				"XTitleTip", NULL,
-				WS_BORDER | WS_POPUP,
-				0, 0, 0, 0,
-				hWnd, NULL, hInst, NULL);
-
-	if(hWndTips != NULL)
-		Ret = FFFTP_SUCCESS;
-
-	return(Ret);
+// リストビューティップスのウインドウを作成
+int InitListViewTips(HWND hWnd, HINSTANCE hInst) {
+	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, TitleTipWndProc, 0, 0, hInst, 0, 0, CreateSolidBrush(GetSysColor(COLOR_INFOBK)), nullptr, L"XTitleTip" };
+	RegisterClassExW(&classEx);
+	hWndTips = CreateWindowExW(WS_EX_TOOLWINDOW | WS_EX_TOPMOST, L"XTitleTip", nullptr, WS_BORDER | WS_POPUP, 0, 0, 0, 0, hWnd, 0, hInst, nullptr);
+	return hWndTips ? FFFTP_SUCCESS : FFFTP_FAIL;
 }
 
 
