@@ -65,12 +65,6 @@ LSTATUS RegQueryValueExM(HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDW
 #undef RegSetValueEx
 #define RegSetValueEx RegSetValueExM
 LSTATUS RegSetValueExM(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, CONST BYTE* lpData, DWORD cbData);
-#undef TextOut
-#define TextOut TextOutM
-BOOL TextOutM(HDC hdc, int x, int y, LPCSTR lpString, int c);
-#undef GetTextExtentPoint32
-#define GetTextExtentPoint32 GetTextExtentPoint32M
-BOOL GetTextExtentPoint32M(HDC hdc, LPCSTR lpString, int c, LPSIZE psizl);
 #undef CreateProcess
 #define CreateProcess CreateProcessM
 BOOL CreateProcessM(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation);

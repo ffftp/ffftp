@@ -1415,30 +1415,6 @@ END_ROUTINE
 	return r;
 }
 
-BOOL TextOutM(HDC hdc, int x, int y, LPCSTR lpString, int c)
-{
-	BOOL r = FALSE;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpString, c);
-	r = TextOutW(hdc, x, y, pw0, (int)wcslen(pw0));
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
-BOOL GetTextExtentPoint32M(HDC hdc, LPCSTR lpString, int c, LPSIZE psizl)
-{
-	BOOL r = FALSE;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpString, c);
-	r = GetTextExtentPoint32W(hdc, pw0, (int)wcslen(pw0), psizl);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 BOOL CreateProcessM(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation)
 {
 	BOOL r = FALSE;

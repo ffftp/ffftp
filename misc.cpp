@@ -587,59 +587,34 @@ void MakeSizeString(double Size, char *Buf) {
 }
 
 
-/*----- StaticTextの領域に収まるようにパス名を整形して表示 --------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		char *Str : 文字列 (長さはFMAX_PATH以下)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
+// StaticTextの領域に収まるようにパス名を整形して表示
+void DispStaticText(HWND hWnd, char *Str) {
+	RECT rect;
+	GetClientRect(hWnd, &rect);
+	auto width = rect.right - rect.left;
 
-void DispStaticText(HWND hWnd, char *Str)
-{
-	char Buf[FMAX_PATH+1];
-	char *Pos;
-	char *Tmp;
-	RECT Rect;
-	SIZE fSize;
-	HDC hDC;
-	int Force;
-
-	GetClientRect(hWnd, &Rect);
-	Rect.right -= Rect.left;
-
-	hDC = GetDC(hWnd);
-	strcpy(Buf, Str);
-	Pos = Buf;
-	Force = NO;
-	while(Force == NO)
-	{
-		GetTextExtentPoint32(hDC, Pos, (int)strlen(Pos), &fSize);
-
-		if(fSize.cx <= Rect.right)
+	auto dc = GetDC(hWnd);
+	auto wStr = u8(Str);
+	auto p = wStr.data();
+	for (;;) {
+		int len = (int)wcslen(p);
+		if (len <= 4)
 			break;
-
-		if(_mbslen((const unsigned char*)Pos) <= 4)
-			Force = YES;
-		else
-		{
-			Pos = (char*)_mbsninc((const unsigned char*)Pos, 4);
-			if((Tmp = (char*)_mbschr((const unsigned char*)Pos, '\\')) == NULL)
-				Tmp = (char*)_mbschr((const unsigned char*)Pos, '/');
-
-			if(Tmp == NULL)
-				Tmp = (char*)_mbsninc((const unsigned char*)Pos, 4);
-
-			Pos = Tmp - 3;
-			memset(Pos, '.', 3);
-		}
+		SIZE size;
+		GetTextExtentPoint32W(dc, p, len, &size);
+		if (size.cx <= rect.right)
+			break;
+		p += 4;
+		auto q = wcschr(p, L'\\');
+		if (q == NULL)
+			q = wcschr(p, L'/');
+		if (q == NULL)
+			q = p + 4;
+		p = q - 3;
+		std::fill_n(p, 3, L'.');
 	}
-	ReleaseDC(hWnd, hDC);
-
-	SendMessage(hWnd, WM_SETTEXT, 0, (LPARAM)Pos);
-	return;
+	ReleaseDC(hWnd, dc);
+	SendMessageW(hWnd, WM_SETTEXT, 0, (LPARAM)p);
 }
 
 

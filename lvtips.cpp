@@ -173,56 +173,27 @@ void CheckTipsDisplay(HWND hWnd, LPARAM lParam)
 *		なし
 *----------------------------------------------------------------------------*/
 
-static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffset, int xoffset2, int InRect)
-{
-	HDC dc;
-	HFONT pFont;
-	HFONT pFontDC;
-	RECT rectDisplay;
+static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffset, int xoffset2, int InRect) {
+	if (InRect != NO || GetFocus() == NULL)
+		return;
+
+	RectClientToScreen(hWnd, &rectTitle);
+	auto wText = u8(lpszTitleText);
+	auto font = (HFONT)SendMessageW(hWnd, WM_GETFONT, 0, 0);
+
+	auto dc = GetDC(hWndTips);
+	auto saved = (HFONT)SelectObject(dc, font);
+	SetTextColor(dc, GetSysColor(COLOR_INFOTEXT));
+	SetBkMode(dc, TRANSPARENT);
 	SIZE size;
-
-	if(InRect == NO)
-	{
-		if(GetFocus() != NULL)
-		{
-			RectClientToScreen(hWnd, &rectTitle);
-
-			/* ListViewウインドウのフォントを得る */
-			dc = GetDC(hWnd);
-			pFont = (HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0);
-			ReleaseDC(hWnd, dc);
-
-			dc = GetDC(hWndTips);
-			pFontDC = (HFONT)SelectObject(dc, pFont);
-
-			SetTextColor(dc, GetSysColor(COLOR_INFOTEXT));
-			SetBkMode(dc, TRANSPARENT);
-
-			rectDisplay = rectTitle;
-			GetTextExtentPoint32(dc, lpszTitleText, (int)strlen(lpszTitleText), &size);
-			rectDisplay.left += xoffset;
-			rectDisplay.right = rectDisplay.left + size.cx + 2;
-
-			if(rectDisplay.right > rectTitle.right-xoffset2)
-			{
-				rectDisplay.right += 1;
-
-				SetWindowPos(hWndTips, HWND_TOPMOST, 
-					rectDisplay.left, rectDisplay.top, 
-					rectDisplay.right - rectDisplay.left, 
-					rectDisplay.bottom - rectDisplay.top, 
-					SWP_SHOWWINDOW|SWP_NOACTIVATE );
-
-				TextOut(dc, 0, 0, lpszTitleText, (int)strlen(lpszTitleText));
-
-				SetCapture(hWnd);
-			}
-
-			SelectObject(dc, pFontDC);
-			ReleaseDC(hWndTips, dc);
-		}
+	GetTextExtentPoint32W(dc, wText.c_str(), size_as<int>(wText), &size);
+	if (rectTitle.right - rectTitle.left < size.cx + xoffset + xoffset2 + 2) {
+		SetWindowPos(hWndTips, HWND_TOPMOST, rectTitle.left + xoffset, rectTitle.top, size.cx + 3, rectTitle.bottom - rectTitle.top, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+		TextOutW(dc, 0, 0, wText.c_str(), size_as<int>(wText));
+		SetCapture(hWnd);
 	}
-	return;
+	SelectObject(dc, saved);
+	ReleaseDC(hWndTips, dc);
 }
 
 
