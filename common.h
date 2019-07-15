@@ -1799,7 +1799,6 @@ void SetMasterPassword( const char* );
 void GetMasterPassword(char*);
 int GetMasterPasswordStatus(void);
 int ValidateMasterPassword(void);
-DWORD LoadHideDriveListRegistry(void);
 void SaveSettingsToFile(void);
 int LoadSettingsFromFile(void);
 // ポータブル版判定
@@ -2131,4 +2130,16 @@ static inline void FindFile(fs::path const& fileName, Fn&& fn) {
 		} while (FindNextFileW(handle, &data));
 		FindClose(handle);
 	}
+}
+template<class Fn>
+static inline void GetDrives(Fn&& fn) {
+	auto drives = GetLogicalDrives();
+	DWORD nodrives = 0;
+	DWORD size = sizeof(DWORD);
+	SHRegGetUSValueW(LR"(Software\Microsoft\Windows\CurrentVersion\Policies\Explorer)", L"NoDrives", nullptr, &nodrives, &size, false, nullptr, 0);
+	for (int i = 0; i < sizeof(DWORD) * 8; i++)
+		if ((drives & 1 << i) != 0 && (nodrives & 1 << i) == 0) {
+			wchar_t drive[] = { wchar_t(L'A' + i), L':', L'\\', 0 };
+			fn(drive);
+		}
 }

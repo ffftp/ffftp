@@ -20,9 +20,6 @@ HANDLE CreateFileM(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, 
 #undef MessageBox
 #define MessageBox MessageBoxM
 int MessageBoxM(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
-#undef GetLogicalDriveStrings
-#define GetLogicalDriveStrings GetLogicalDriveStringsM
-DWORD GetLogicalDriveStringsM(DWORD nBufferLength, LPSTR lpBuffer);
 #undef RegisterClassEx
 #define RegisterClassEx RegisterClassExM
 ATOM RegisterClassExM(CONST WNDCLASSEXA * v0);

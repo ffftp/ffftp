@@ -1409,59 +1409,6 @@ int LoadRegistry(void)
 }
 
 
-/*----- 隠しドライブ情報を取得 ------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		DWORD 
-*			YES/NO=設定無し
-*----------------------------------------------------------------------------*/
-
-DWORD LoadHideDriveListRegistry(void)
-{
-	HKEY hKey1;
-	HKEY hKey2;
-	HKEY hKey3;
-	HKEY hKey4;
-	HKEY hKey5;
-	HKEY hKey6;
-	DWORD Size;
-	DWORD Type;
-	DWORD Ret;
-
-	Ret = 0;
-	if(RegOpenKeyEx(HKEY_CURRENT_USER, "Software", 0, KEY_READ, &hKey1) == ERROR_SUCCESS)
-	{
-		if(RegOpenKeyEx(hKey1, "Microsoft", 0, KEY_READ, &hKey2) == ERROR_SUCCESS)
-		{
-			if(RegOpenKeyEx(hKey2, "Windows", 0, KEY_READ, &hKey3) == ERROR_SUCCESS)
-			{
-				if(RegOpenKeyEx(hKey3, "CurrentVersion", 0, KEY_READ, &hKey4) == ERROR_SUCCESS)
-				{
-					if(RegOpenKeyEx(hKey4, "Policies", 0, KEY_READ, &hKey5) == ERROR_SUCCESS)
-					{
-						if(RegOpenKeyEx(hKey5, "Explorer", 0, KEY_READ, &hKey6) == ERROR_SUCCESS)
-						{
-							Size = sizeof(DWORD);
-							RegQueryValueEx(hKey6, "NoDrives", NULL, &Type, (BYTE *)&Ret, &Size);
-							RegCloseKey(hKey6);
-						}
-						RegCloseKey(hKey5);
-					}
-					RegCloseKey(hKey4);
-				}
-				RegCloseKey(hKey3);
-			}
-			RegCloseKey(hKey2);
-		}
-		RegCloseKey(hKey1);
-	}
-	return(Ret);
-}
-
-
 /*----- レジストリの設定値をクリア --------------------------------------------
 *
 *	Parameter

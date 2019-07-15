@@ -1221,11 +1221,7 @@ void RefreshIconImageList(std::vector<FILELIST>& files)
 void GetLocalDirForWnd(void)
 {
 	char Scan[FMAX_PATH+1];
-	char *Pos;
-	char Buf[10];
 	std::vector<FILELIST> files;
-	DWORD NoDrives;
-	int Tmp;
 
 	DoLocalPWD(Scan);
 	SetLocalDirHist(Scan);
@@ -1247,23 +1243,8 @@ void GetLocalDirForWnd(void)
 	});
 
 	/* ドライブ */
-	if(DispDrives)
-	{
-		GetLogicalDriveStrings(FMAX_PATH, Scan);
-		NoDrives = LoadHideDriveListRegistry();
-
-		Pos = Scan;
-		while(*Pos != NUL)
-		{
-			Tmp = toupper(*Pos) - 'A';
-			if((NoDrives & (0x00000001 << Tmp)) == 0)
-			{
-				sprintf(Buf, "%s", Pos);
-				files.emplace_back(Buf, NODE_DRIVE, NO, 0, 0, FILETIME{}, "", FINFO_ALL);
-			}
-			Pos = strchr(Pos, NUL) + 1;
-		}
-	}
+	if (DispDrives)
+		GetDrives([&files](const wchar_t drive[]) { files.emplace_back(u8(drive).c_str(), NODE_DRIVE, NO, 0, 0, FILETIME{}, "", FINFO_ALL); });
 
 	// ファイルアイコン表示対応
 	RefreshIconImageList(files);

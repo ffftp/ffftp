@@ -217,10 +217,6 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 {
 	int Sts;
 	RECT Rect1;
-	char Tmp[FMAX_PATH+1];
-	char *Pos;
-	int Tmp2;
-	DWORD NoDrives;
 	// 高DPI対応
 	HBITMAP hOriginal;
 	HBITMAP hResized;
@@ -355,16 +351,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 			SendMessage(hWndDirLocal, CB_LIMITTEXT, FMAX_PATH, 0);
 
 			/* ドライブ名をセットしておく */
-			GetLogicalDriveStrings(FMAX_PATH, Tmp);
-			NoDrives = LoadHideDriveListRegistry();
-			Pos = Tmp;
-			while(*Pos != NUL)
-			{
-				Tmp2 = toupper(*Pos) - 'A';
-				if((NoDrives & (0x00000001 << Tmp2)) == 0)
-					SetLocalDirHist(Pos);
-				Pos = strchr(Pos, NUL) + 1;
-			}
+			GetDrives([](const wchar_t drive[]) { SetLocalDirHist(u8(drive).c_str()); });
 			SendMessage(hWndDirLocal, CB_SETCURSEL, 0, 0);
 		}
 	}

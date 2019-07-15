@@ -828,20 +828,6 @@ END_ROUTINE
 	return r;
 }
 
-DWORD GetLogicalDriveStringsM(DWORD nBufferLength, LPSTR lpBuffer)
-{
-	DWORD r = 0;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = AllocateStringW(nBufferLength * 4);
-	GetLogicalDriveStringsW(nBufferLength * 4, pw0);
-	WtoMMultiString(lpBuffer, nBufferLength, pw0);
-	r = TerminateStringM(lpBuffer, nBufferLength);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 ATOM RegisterClassExM(CONST WNDCLASSEXA * v0)
 {
 	ATOM r = 0;
