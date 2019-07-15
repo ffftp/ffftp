@@ -1289,18 +1289,6 @@ END_ROUTINE
 	return r;
 }
 
-BOOL SetWindowTextM(HWND hWnd, LPCSTR lpString)
-{
-	BOOL r = FALSE;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpString, -1);
-	r = SetWindowTextW(hWnd, pw0);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 UINT DragQueryFileM(HDROP hDrop, UINT iFile, LPSTR lpszFile, UINT cch)
 {
 	UINT r = 0;

@@ -755,7 +755,7 @@ void DispWindowTitle() {
 		sprintf(text, "%s (%s) - FFFTP", TitleHostName, FilterStr);
 	else
 		sprintf(text, "FFFTP (%s)", FilterStr);
-	SetWindowText(GetMainHwnd(), text);
+	SetWindowTextW(GetMainHwnd(), u8(text).c_str());
 }
 
 

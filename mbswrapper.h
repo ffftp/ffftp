@@ -47,9 +47,6 @@ LRESULT DefDlgProcM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 #undef SendDlgItemMessage
 #define SendDlgItemMessage SendDlgItemMessageM
 LRESULT SendDlgItemMessageM(HWND hDlg, int nIDDlgItem, UINT Msg, WPARAM wParam, LPARAM lParam);
-#undef SetWindowText
-#define SetWindowText SetWindowTextM
-BOOL SetWindowTextM(HWND hWnd, LPCSTR lpString);
 #undef DragQueryFile
 #define DragQueryFile DragQueryFileM
 UINT DragQueryFileM(HDROP hDrop, UINT iFile, LPSTR lpszFile, UINT cch);
