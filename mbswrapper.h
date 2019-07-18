@@ -68,9 +68,6 @@ LSTATUS RegSetValueExM(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwTy
 #undef AppendMenu
 #define AppendMenu AppendMenuM
 BOOL AppendMenuM(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, LPCSTR lpNewItem);
-#undef GetMenuItemInfo
-#define GetMenuItemInfo GetMenuItemInfoM
-BOOL GetMenuItemInfoM(HMENU hmenu, UINT item, BOOL fByPosition, LPMENUITEMINFOA lpmii);
 #undef CreateFontIndirect
 #define CreateFontIndirect CreateFontIndirectM
 HFONT CreateFontIndirectM(CONST LOGFONTA *lplf);

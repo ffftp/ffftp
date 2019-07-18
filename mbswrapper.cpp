@@ -1432,43 +1432,6 @@ END_ROUTINE
 	return r;
 }
 
-BOOL GetMenuItemInfoM(HMENU hmenu, UINT item, BOOL fByPosition, LPMENUITEMINFOA lpmii)
-{
-	BOOL r = FALSE;
-	wchar_t* pw0 = NULL;
-	MENUITEMINFOW wmii;
-START_ROUTINE
-	wmii.cbSize = sizeof(MENUITEMINFOW);
-	wmii.fMask = lpmii->fMask;
-	wmii.fType = lpmii->fType;
-	wmii.fState = lpmii->fState;
-	wmii.wID = lpmii->wID;
-	wmii.hSubMenu = lpmii->hSubMenu;
-	wmii.hbmpChecked = lpmii->hbmpChecked;
-	wmii.hbmpUnchecked = lpmii->hbmpUnchecked;
-	wmii.dwItemData = lpmii->dwItemData;
-	if(lpmii->fMask & MIIM_TYPE)
-	{
-		pw0 = DuplicateMtoWBuffer(lpmii->dwTypeData, -1, lpmii->cch * 4);
-		wmii.dwTypeData = pw0;
-		wmii.cch = lpmii->cch * 4;
-	}
-	wmii.hbmpItem = lpmii->hbmpItem;
-	r = GetMenuItemInfoW(hmenu, item, fByPosition, &wmii);
-	lpmii->fType = wmii.fType;
-	lpmii->fState = wmii.fState;
-	lpmii->wID = wmii.wID;
-	lpmii->hSubMenu = wmii.hSubMenu;
-	lpmii->hbmpChecked = wmii.hbmpChecked;
-	lpmii->hbmpUnchecked = wmii.hbmpUnchecked;
-	lpmii->dwItemData = wmii.dwItemData;
-	WtoM(lpmii->dwTypeData, lpmii->cch, wmii.dwTypeData, -1);
-	TerminateStringM(lpmii->dwTypeData, lpmii->cch);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 HFONT CreateFontIndirectM(CONST LOGFONTA *lplf)
 {
 	HFONT r = NULL;
