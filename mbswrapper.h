@@ -65,9 +65,6 @@ LSTATUS RegQueryValueExM(HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDW
 #undef RegSetValueEx
 #define RegSetValueEx RegSetValueExM
 LSTATUS RegSetValueExM(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, CONST BYTE* lpData, DWORD cbData);
-#undef SHFileOperation
-#define SHFileOperation SHFileOperationM
-int SHFileOperationM(LPSHFILEOPSTRUCTA lpFileOp);
 #undef AppendMenu
 #define AppendMenu AppendMenuM
 BOOL AppendMenuM(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, LPCSTR lpNewItem);

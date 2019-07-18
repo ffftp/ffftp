@@ -1336,36 +1336,13 @@ int ConvertNum(int x, int Dir, const INTCONVTBL *Tbl, int Num)
 }
 
 
-
-
-
-
-/*----- ファイルをゴミ箱に削除 ------------------------------------------------
-*
-*	Parameter
-*		char *Path : ファイル名
-*
-*	Return Value
-*		int ステータス (0=正常終了)
-*----------------------------------------------------------------------------*/
-
-int MoveFileToTrashCan(char *Path)
-{
-	SHFILEOPSTRUCT FileOp;
-	char Tmp[FMAX_PATH+2];
-
-	memset(Tmp, 0, FMAX_PATH+2);
-	strcpy(Tmp, Path);
-	FileOp.hwnd = NULL;
-	FileOp.wFunc = FO_DELETE;
-	FileOp.pFrom = Tmp;
-	FileOp.pTo = "";
-	FileOp.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_ALLOWUNDO;
-	FileOp.lpszProgressTitle = "";
-	return(SHFileOperation(&FileOp));
+// ファイルをゴミ箱に削除
+int MoveFileToTrashCan(const char *Path) {
+	auto wPath = u8(Path);
+	wPath += L'\0';			// for PCZZSTR
+	SHFILEOPSTRUCTW op{ 0, FO_DELETE, wPath.c_str(), nullptr, FOF_SILENT | FOF_NOCONFIRMATION | FOF_ALLOWUNDO | FOF_NOERRORUI };
+	return SHFileOperationW(&op);
 }
-
-
 
 
 LONGLONG MakeLongLong(DWORD High, DWORD Low)

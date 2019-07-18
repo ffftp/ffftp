@@ -1869,7 +1869,7 @@ int min1(int n, int m);
 void ExcEndianDWORD(DWORD *x);
 void SwapInt(int *Num1, int *Num2);
 int ConvertNum(int x, int Dir, const INTCONVTBL *Tbl, int Num);
-int MoveFileToTrashCan(char *Path);
+int MoveFileToTrashCan(const char *Path);
 LONGLONG MakeLongLong(DWORD High, DWORD Low);
 char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma);
 // 異なるファイルが表示されるバグ修正

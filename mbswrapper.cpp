@@ -1415,34 +1415,6 @@ END_ROUTINE
 	return r;
 }
 
-int SHFileOperationM(LPSHFILEOPSTRUCTA lpFileOp)
-{
-	int r = 0;
-	wchar_t* pw0 = NULL;
-	wchar_t* pw1 = NULL;
-	wchar_t* pw2 = NULL;
-	SHFILEOPSTRUCTW wFileOp;
-START_ROUTINE
-	wFileOp.hwnd = lpFileOp->hwnd;
-	wFileOp.wFunc = lpFileOp->wFunc;
-	pw0 = DuplicateMtoWMultiString(lpFileOp->pFrom);
-	wFileOp.pFrom = pw0;
-	pw1 = DuplicateMtoWMultiString(lpFileOp->pTo);
-	wFileOp.pTo = pw1;
-	wFileOp.fFlags = lpFileOp->fFlags;
-	wFileOp.fAnyOperationsAborted = lpFileOp->fAnyOperationsAborted;
-	wFileOp.hNameMappings = lpFileOp->hNameMappings;
-	if(lpFileOp->fFlags & FOF_SIMPLEPROGRESS)
-		pw2 = DuplicateMtoW(lpFileOp->lpszProgressTitle, -1);
-	r = SHFileOperationW(&wFileOp);
-	lpFileOp->fAnyOperationsAborted = wFileOp.fAnyOperationsAborted;
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	FreeDuplicatedString(pw1);
-	FreeDuplicatedString(pw2);
-	return r;
-}
-
 BOOL AppendMenuM(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, LPCSTR lpNewItem)
 {
 	int r = 0;

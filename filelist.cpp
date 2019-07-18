@@ -469,10 +469,7 @@ int isDirectory(char *fn)
 void doDeleteRemoteFile(void)
 {
 	if (remoteFileListBase != NULL) {
-		SHFILEOPSTRUCT FileOp = { NULL, FO_DELETE, remoteFileDir, NULL, 
-			FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI, 
-			FALSE, NULL, NULL };	
-		SHFileOperation(&FileOp);
+		MoveFileToTrashCan(remoteFileDir);
 		DeleteFileList(&remoteFileListBase);
 		remoteFileListBase = NULL;
 	}
