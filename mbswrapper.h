@@ -65,15 +65,6 @@ LSTATUS RegQueryValueExM(HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDW
 #undef RegSetValueEx
 #define RegSetValueEx RegSetValueExM
 LSTATUS RegSetValueExM(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, CONST BYTE* lpData, DWORD cbData);
-#undef CreateProcess
-#define CreateProcess CreateProcessM
-BOOL CreateProcessM(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation);
-#undef FindExecutable
-#define FindExecutable FindExecutableM
-HINSTANCE FindExecutableM(LPCSTR lpFile, LPCSTR lpDirectory, LPSTR lpResult);
-#undef ShellExecute
-#define ShellExecute ShellExecuteM
-HINSTANCE ShellExecuteM(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile, LPCSTR lpParameters, LPCSTR lpDirectory, INT nShowCmd);
 #undef ShellExecuteEx
 #define ShellExecuteEx ShellExecuteExM
 BOOL ShellExecuteExM(LPSHELLEXECUTEINFOA lpExecInfo);

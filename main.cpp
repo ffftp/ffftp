@@ -2772,61 +2772,30 @@ static void DispDirInfo(void)
 }
 
 
-
-/*----- ビューワを起動 --------------------------------------------------------
-*
-*	Parameter
-*		char Fname : ファイル名
-*		int App : アプリケーション番号（-1=関連づけ優先）
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void ExecViewer(char *Fname, int App)
-{
-	STARTUPINFO Startup;
-	char AssocProg[FMAX_PATH+1];
-	char ComLine[FMAX_PATH*2+3+1];
-	char CurDir[FMAX_PATH+1];
-
+// ビューワを起動
+void ExecViewer(char *Fname, int App) {
 	/* FindExecutable()は関連付けられたプログラムのパス名にスペースが	*/
 	/* 含まれている時、間違ったパス名を返す事がある。					*/
 	/* そこで、関連付けられたプログラムの起動はShellExecute()を使う。	*/
-
-	AskLocalCurDir(CurDir, FMAX_PATH);
-
-	// 任意のコードが実行されるバグ修正
-	// 拡張子が無いと補完されるため
-//	if((App == -1) && (FindExecutable(Fname, NULL, AssocProg) > (HINSTANCE)32))
-	if((App == -1) && (strlen(GetFileExt(GetFileName(Fname))) > 0) && (FindExecutable(Fname, NULL, AssocProg) > (HINSTANCE)32))
-	{
+	char ComLine[FMAX_PATH * 2 + 3 + 1];
+	auto pFname = fs::u8path(Fname);
+	if (wchar_t result[MAX_PATH]; App == -1 && pFname.has_extension() && FindExecutableW(pFname.c_str(), nullptr, result) > (HINSTANCE)32) {
+		// 拡張子があるので関連付けを実行する
 		DoPrintf("ShellExecute - %s", Fname);
-		ShellExecute(NULL, "open", Fname, NULL, CurDir, SW_SHOW);
-	}
-	// ローカルフォルダを開く
-	else if((App == -1) && (GetFileAttributesW(fs::u8path(Fname).c_str()) & FILE_ATTRIBUTE_DIRECTORY))
-	{
+		char CurDir[FMAX_PATH + 1];
+		AskLocalCurDir(CurDir, FMAX_PATH);
+		ShellExecuteW(0, L"open", pFname.c_str(), nullptr, fs::u8path(CurDir).c_str(), SW_SHOW);
+	} else if (App == -1 && (GetFileAttributesW(pFname.c_str()) & FILE_ATTRIBUTE_DIRECTORY)) {
+		// ディレクトリなのでフォルダを開く
 		MakeDistinguishableFileName(ComLine, Fname);
 		DoPrintf("ShellExecute - %s", Fname);
-		ShellExecute(NULL, "open", ComLine, NULL, Fname, SW_SHOW);
-	}
-	else
-	{
-		App = max1(0, App);
-		strcpy(AssocProg, ViewerName[App]);
-
-		if(strchr(Fname, ' ') == NULL)
-			sprintf(ComLine, "%s %s", AssocProg, Fname);
-		else
-			sprintf(ComLine, "%s \"%s\"", AssocProg, Fname);
-
-		DoPrintf("FindExecutable - %s", ComLine);
-
-		memset(&Startup, NUL, sizeof(STARTUPINFO));
-		Startup.cb = sizeof(STARTUPINFO);
-		Startup.wShowWindow = SW_SHOW;
-		if (ProcessInformation Info; !CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, systemDirectory().u8string().c_str(), &Startup, &Info)) {
+		ShellExecuteW(0, L"open", u8(ComLine).c_str(), nullptr, pFname.c_str(), SW_SHOW);
+	} else {
+		sprintf(ComLine, "%s \"%s\"", ViewerName[App == -1 ? 0 : App], Fname);
+		DoPrintf("CreateProcess - %s", ComLine);
+		STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
+		auto wComLine = u8(ComLine);
+		if (ProcessInformation pi; !CreateProcessW(nullptr, data(wComLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
 			SetTaskMsg(MSGJPN182, GetLastError());
 			SetTaskMsg(">>%s", ComLine);
 		}
@@ -2847,7 +2816,6 @@ void ExecViewer(char *Fname, int App)
 
 void ExecViewer2(char *Fname1, char *Fname2, int App)
 {
-	STARTUPINFO Startup;
 	char AssocProg[FMAX_PATH+1];
 	char ComLine[FMAX_PATH*2+3+1];
 
@@ -2864,10 +2832,9 @@ void ExecViewer2(char *Fname1, char *Fname2, int App)
 
 	DoPrintf("FindExecutable - %s", ComLine);
 
-	memset(&Startup, NUL, sizeof(STARTUPINFO));
-	Startup.cb = sizeof(STARTUPINFO);
-	Startup.wShowWindow = SW_SHOW;
-	if (ProcessInformation Info; !CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, systemDirectory().u8string().c_str(), &Startup, &Info)) {
+	STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
+	auto wComLine = u8(ComLine);
+	if (ProcessInformation pi; !CreateProcessW(nullptr, data(wComLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
 		SetTaskMsg(MSGJPN182, GetLastError());
 		SetTaskMsg(">>%s", ComLine);
 	}
