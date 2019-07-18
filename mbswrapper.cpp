@@ -1415,51 +1415,6 @@ END_ROUTINE
 	return r;
 }
 
-BOOL ShellExecuteExM(LPSHELLEXECUTEINFOA lpExecInfo)
-{
-	BOOL r = FALSE;
-	wchar_t* pw0 = NULL;
-	wchar_t* pw1 = NULL;
-	wchar_t* pw2 = NULL;
-	wchar_t* pw3 = NULL;
-	wchar_t* pw4 = NULL;
-	SHELLEXECUTEINFOW wExecInfo;
-START_ROUTINE
-	wExecInfo.cbSize = sizeof(SHELLEXECUTEINFOW);
-	wExecInfo.fMask = lpExecInfo->fMask;
-	wExecInfo.hwnd = lpExecInfo->hwnd;
-	pw0 = DuplicateMtoW(lpExecInfo->lpVerb, -1);
-	wExecInfo.lpVerb = pw0;
-	pw1 = DuplicateMtoW(lpExecInfo->lpFile, -1);
-	wExecInfo.lpFile = pw1;
-	pw2 = DuplicateMtoW(lpExecInfo->lpParameters, -1);
-	wExecInfo.lpParameters = pw2;
-	pw3 = DuplicateMtoW(lpExecInfo->lpDirectory, -1);
-	wExecInfo.lpDirectory = pw3;
-	wExecInfo.nShow = lpExecInfo->nShow;
-	wExecInfo.hInstApp = lpExecInfo->hInstApp;
-	wExecInfo.lpIDList = lpExecInfo->lpIDList;
-	if(lpExecInfo->fMask & SEE_MASK_CLASSNAME)
-	{
-		pw4 = DuplicateMtoW(lpExecInfo->lpClass, -1);
-		wExecInfo.lpClass = pw4;
-	}
-	wExecInfo.hkeyClass = lpExecInfo->hkeyClass;
-	wExecInfo.dwHotKey = lpExecInfo->dwHotKey;
-	wExecInfo.hIcon = lpExecInfo->hIcon;
-	wExecInfo.hProcess = lpExecInfo->hProcess;
-	r = ShellExecuteExW(&wExecInfo);
-	lpExecInfo->hInstApp = wExecInfo.hInstApp;
-	lpExecInfo->hProcess = wExecInfo.hProcess;
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	FreeDuplicatedString(pw1);
-	FreeDuplicatedString(pw2);
-	FreeDuplicatedString(pw3);
-	FreeDuplicatedString(pw4);
-	return r;
-}
-
 int SHFileOperationM(LPSHFILEOPSTRUCTA lpFileOp)
 {
 	int r = 0;

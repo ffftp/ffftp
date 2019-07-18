@@ -101,33 +101,11 @@ void DoLocalRENAME(char *Src, char *Dst)
 }
 
 
-/*----- ファイルのプロパティを表示する ----------------------------------------
-*
-*	Parameter
-*		char *Fname : ファイル名
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispFileProperty(char *Fname)
-{
-	SHELLEXECUTEINFO sInfo;
-	// 異なるファイルが表示されるバグ修正
-	char Fname2[FMAX_PATH+1];
-
-	memset(&sInfo, NUL, sizeof(SHELLEXECUTEINFO));
-	sInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-	sInfo.fMask = SEE_MASK_INVOKEIDLIST;
-	sInfo.hwnd = NULL;		//GetMainHwnd();
-	sInfo.lpVerb = "Properties";
-	// 異なるファイルが表示されるバグ修正
-//	sInfo.lpFile = Fname;
-	sInfo.lpFile = MakeDistinguishableFileName(Fname2, Fname);
-	sInfo.lpParameters = NULL;
-	sInfo.lpDirectory = NULL;
-	sInfo.nShow = SW_NORMAL;
-	sInfo.lpIDList = NULL;
-	ShellExecuteEx(&sInfo);
-	return;
+// ファイルのプロパティを表示する
+void DispFileProperty(char *Fname) {
+	char Fname2[FMAX_PATH + 1];
+	MakeDistinguishableFileName(Fname2, Fname);
+	auto wFname2 = u8(Fname2);
+	SHELLEXECUTEINFOW info{ sizeof(SHELLEXECUTEINFOW), SEE_MASK_INVOKEIDLIST, 0, L"Properties", wFname2.c_str(), nullptr, nullptr, SW_NORMAL };
+	ShellExecuteExW(&info);
 }
