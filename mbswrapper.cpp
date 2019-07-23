@@ -1432,18 +1432,6 @@ END_ROUTINE
 	return r;
 }
 
-BOOL CreateDirectoryM(LPCSTR lpPathName, LPSECURITY_ATTRIBUTES lpSecurityAttributes)
-{
-	BOOL r = FALSE;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpPathName, -1);
-	r = CreateDirectoryW(pw0, lpSecurityAttributes);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 int mkdirM(const char * _Path)
 {
 	int r = -1;
