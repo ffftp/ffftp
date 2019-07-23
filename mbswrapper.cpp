@@ -1432,18 +1432,6 @@ END_ROUTINE
 	return r;
 }
 
-HWND CreateDialogParamM(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam)
-{
-	HWND r = NULL;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpTemplateName, -1);
-	r = CreateDialogParamW(hInstance, pw0, hWndParent, lpDialogFunc, dwInitParam);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 BOOL sndPlaySoundM(LPCSTR pszSound, UINT fuSound)
 {
 	BOOL r = FALSE;

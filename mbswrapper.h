@@ -68,9 +68,6 @@ LSTATUS RegSetValueExM(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwTy
 #undef AppendMenu
 #define AppendMenu AppendMenuM
 BOOL AppendMenuM(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, LPCSTR lpNewItem);
-#undef CreateDialogParam
-#define CreateDialogParam CreateDialogParamM
-HWND CreateDialogParamM(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
 #undef sndPlaySound
 #define sndPlaySound sndPlaySoundM
 BOOL sndPlaySoundM(LPCSTR pszSound, UINT fuSound);
