@@ -37,8 +37,8 @@ const int AES_BLOCK_SIZE = 16;
 //static void SaveIntNum(HKEY hKey, char *Key, int Num, int DefaultNum);
 static void SaveStr(void *Handle, char *Key, char *Str, char *DefaultStr);
 static void SaveIntNum(void *Handle, char *Key, int Num, int DefaultNum);
-static void MakeFontData(LOGFONT Font, HFONT hFont, char *Buf);
-static int RestoreFontData(char *Str, LOGFONT *Font);
+static std::wstring MakeFontData(HFONT hfont, LOGFONTW const& logFont);
+static std::optional<LOGFONTW> RestoreFontData(const wchar_t* str);
 
 static void EncodePassword(std::string_view const& Str, char *Buf);
 
@@ -112,7 +112,7 @@ extern int RemoteTabWidth[6];
 extern char UserMailAdrs[USER_MAIL_LEN+1];
 extern char ViewerName[VIEWERS][FMAX_PATH+1];
 extern HFONT ListFont;
-extern LOGFONT ListLogFont;
+extern LOGFONTW ListLogFont;
 extern int LocalFileSort;
 extern int LocalDirSort;
 extern int RemoteFileSort;
@@ -512,7 +512,7 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "MirUNot", MirUpDelNotify);
 				WriteIntValueToReg(hKey4, "MirDNot", MirDownDelNotify);
 
-				MakeFontData(ListLogFont, ListFont, Str);
+				strcpy(Str, u8(MakeFontData(ListFont, ListLogFont)).c_str());
 				WriteStringToReg(hKey4, "ListFont", Str);
 				WriteIntValueToReg(hKey4, "ListHide", DispIgnoreHide);
 				WriteIntValueToReg(hKey4, "ListDrv", DispDrives);
@@ -1085,10 +1085,12 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "MirUNot", &MirUpDelNotify);
 			ReadIntValueFromReg(hKey4, "MirDNot", &MirDownDelNotify);
 
-			if(ReadStringFromReg(hKey4, "ListFont", Str, 256) == FFFTP_SUCCESS)
-			{
-				if(RestoreFontData(Str, &ListLogFont) == FFFTP_SUCCESS)
-					ListFont = CreateFontIndirect(&ListLogFont);
+			if (ReadStringFromReg(hKey4, "ListFont", Str, 256) == FFFTP_SUCCESS) {
+				if (auto logfont = RestoreFontData(u8(Str).c_str())) {
+					ListLogFont = *logfont;
+					ListFont = CreateFontIndirectW(&ListLogFont);
+				} else
+					ListLogFont = {};
 			}
 			ReadIntValueFromReg(hKey4, "ListHide", &DispIgnoreHide);
 			ReadIntValueFromReg(hKey4, "ListDrv", &DispDrives);
@@ -1578,71 +1580,32 @@ static void SaveIntNum(void *Handle, char *Key, int Num, int DefaultNum)
 }
 
 
-/*----- LOGFONTデータを文字列に変換する ---------------------------------------
-*
-*	Parameter
-*		LOGFONT Font : フォントデータ
-*		HFONT hFont : フォントのハンドル
-*			NULL = デフォルトのフォント
-*		char *Buf : バッファ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void MakeFontData(LOGFONT Font, HFONT hFont, char *Buf)
-{
-	*Buf = NUL;
-	if(hFont != NULL)
-		sprintf(Buf, "%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %s",
-			Font.lfHeight, Font.lfWidth, Font.lfEscapement, Font.lfOrientation,
-			Font.lfWeight, Font.lfItalic, Font.lfUnderline, Font.lfStrikeOut,
-			Font.lfCharSet, Font.lfOutPrecision, Font.lfClipPrecision,
-			Font.lfQuality, Font.lfPitchAndFamily, Font.lfFaceName);
-	return;
+// LOGFONTデータを文字列に変換する
+static std::wstring MakeFontData(HFONT hfont, LOGFONTW const& logfont) {
+	if (!hfont)
+		return {};
+	wchar_t buffer[1024];
+	swprintf(buffer, std::size(buffer), L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %s",
+		logfont.lfHeight, logfont.lfWidth, logfont.lfEscapement, logfont.lfOrientation, logfont.lfWeight,
+		logfont.lfItalic, logfont.lfUnderline, logfont.lfStrikeOut, logfont.lfCharSet,
+		logfont.lfOutPrecision, logfont.lfClipPrecision, logfont.lfQuality, logfont.lfPitchAndFamily, logfont.lfFaceName
+	);
+	return buffer;
 }
 
 
-/*----- 文字列をLOGFONTデータに変換する ---------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*		LOGFONT *Font : フォントデータ
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL=変換できない
-*----------------------------------------------------------------------------*/
-
-static int RestoreFontData(char *Str, LOGFONT *Font)
-{
-	int i;
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	if(sscanf(Str, "%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",
-			&(Font->lfHeight), &(Font->lfWidth), &(Font->lfEscapement), &(Font->lfOrientation),
-			&(Font->lfWeight), &(Font->lfItalic), &(Font->lfUnderline), &(Font->lfStrikeOut),
-			&(Font->lfCharSet), &(Font->lfOutPrecision), &(Font->lfClipPrecision),
-			&(Font->lfQuality), &(Font->lfPitchAndFamily)) == 13)
-	{
-		for(i = 13; i > 0; i--)
-		{
-			if((Str = strchr(Str, ' ')) == NULL)
-				break;
-			Str++;
-		}
-		if(i == 0)
-		{
-			strcpy(Font->lfFaceName, Str);
-			Sts = FFFTP_SUCCESS;
-		}
-	}
-
-	if(Sts == FFFTP_FAIL)
-		memset(Font, NUL, sizeof(LOGFONT));
-
-	return(Sts);
+// 文字列をLOGFONTデータに変換する
+static std::optional<LOGFONTW> RestoreFontData(const wchar_t* str) {
+	LOGFONTW logfont;
+	int offset;
+	auto read = swscanf(str, L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
+		&logfont.lfHeight, &logfont.lfWidth, &logfont.lfEscapement, &logfont.lfOrientation, &logfont.lfWeight,
+		&logfont.lfItalic, &logfont.lfUnderline, &logfont.lfStrikeOut, &logfont.lfCharSet,
+		&logfont.lfOutPrecision, &logfont.lfClipPrecision, &logfont.lfQuality, &logfont.lfPitchAndFamily, &offset);
+	if (read != 13)
+		return {};
+	wcscpy(logfont.lfFaceName, str + offset);
+	return logfont;
 }
 
 // パスワードを暗号化する(AES)

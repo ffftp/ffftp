@@ -152,7 +152,6 @@ int RemoteTabWidth[6] = { 150, 120, 60, 37, 60, 60 };
 char UserMailAdrs[USER_MAIL_LEN+1] = { "who@example.com" };
 char ViewerName[VIEWERS][FMAX_PATH+1] = { { "notepad" }, { "" }, { "" } };
 HFONT ListFont = NULL;
-LOGFONT ListLogFont;
 int LocalFileSort = SORT_NAME;
 int LocalDirSort = SORT_NAME;
 int RemoteFileSort = SORT_NAME;
