@@ -82,22 +82,13 @@ void DoLocalDELE(char *Path) {
 }
 
 
-/*----- ローカル側のファイル名変更 ---------------------------------------------
-*
-*	Parameter
-*		char *Src : 元ファイル名
-*		char *Dst : 変更後のファイル名
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DoLocalRENAME(char *Src, char *Dst)
-{
+// ローカル側のファイル名変更
+void DoLocalRENAME(char *Src, char *Dst) {
 	SetTaskMsg(">>REN %s %s", Src, Dst);
-	if(MoveFile(Src, Dst) != TRUE)
+	std::error_code ec;
+	fs::rename(fs::u8path(Src), fs::u8path(Dst), ec);
+	if (ec)
 		SetTaskMsg(MSGJPN151);
-	return;
 }
 
 
