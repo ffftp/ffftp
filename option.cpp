@@ -764,7 +764,6 @@ struct Sounds {
 		return 0;
 	}
 	static void OnCommand(HWND hDlg, WORD id) {
-		char Tmp[FMAX_PATH + 1];
 		switch (id) {
 		case SOUND_CONNECT_BR:
 		case SOUND_TRANS_BR:
@@ -784,16 +783,13 @@ struct Sounds {
 			}
 			break;
 		case SOUND_CONNECT_TEST:
-			SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Tmp);
-			sndPlaySound(Tmp, SND_ASYNC | SND_NODEFAULT);
+			sndPlaySoundW(GetText(hDlg, SOUND_CONNECT_WAV).c_str(), SND_ASYNC | SND_NODEFAULT);
 			break;
 		case SOUND_TRANS_TEST:
-			SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Tmp);
-			sndPlaySound(Tmp, SND_ASYNC | SND_NODEFAULT);
+			sndPlaySoundW(GetText(hDlg, SOUND_TRANS_WAV).c_str(), SND_ASYNC | SND_NODEFAULT);
 			break;
 		case SOUND_ERROR_TEST:
-			SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Tmp);
-			sndPlaySound(Tmp, SND_ASYNC | SND_NODEFAULT);
+			sndPlaySoundW(GetText(hDlg, SOUND_ERROR_WAV).c_str(), SND_ASYNC | SND_NODEFAULT);
 			break;
 		}
 	}

@@ -1432,18 +1432,6 @@ END_ROUTINE
 	return r;
 }
 
-BOOL sndPlaySoundM(LPCSTR pszSound, UINT fuSound)
-{
-	BOOL r = FALSE;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(pszSound, -1);
-	r = sndPlaySoundW(pw0, fuSound);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 BOOL MoveFileM(LPCSTR lpExistingFileName, LPCSTR lpNewFileName)
 {
 	BOOL r = FALSE;

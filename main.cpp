@@ -2925,21 +2925,10 @@ static void AboutDialog(HWND hWnd) {
 }
 
 
-/*----- サウンドを鳴らす ------------------------------------------------------
-*
-*	Parameter
-*		Int num : サウンドの種類 (SND_xxx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SoundPlay(int Num)
-{
-	if(Sound[Num].On == YES)
-		sndPlaySound(Sound[Num].Fname, SND_ASYNC | SND_NODEFAULT);
-
-	return;
+// サウンドを鳴らす
+void SoundPlay(int Num) {
+	if (Sound[Num].On == YES)
+		sndPlaySoundW(u8(Sound[Num].Fname).c_str(), SND_ASYNC | SND_NODEFAULT);
 }
 
 
