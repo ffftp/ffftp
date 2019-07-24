@@ -68,12 +68,6 @@ LSTATUS RegSetValueExM(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwTy
 #undef AppendMenu
 #define AppendMenu AppendMenuM
 BOOL AppendMenuM(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, LPCSTR lpNewItem);
-#undef mkdir
-#define mkdir _mkdirM
-int mkdirM(const char * _Path);
-#undef _mkdir
-#define _mkdir _mkdirM
-int _mkdirM(const char * _Path);
 #undef _mbslen
 #define _mbslen _mbslenM
 size_t _mbslenM(const unsigned char * _Str);

@@ -42,21 +42,11 @@ int DoLocalCWD(const char *Path) {
 }
 
 
-/*----- ローカル側のディレクトリ作成 -------------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DoLocalMKD(char *Path)
-{
+// ローカル側のディレクトリ作成
+void DoLocalMKD(char *Path) {
 	SetTaskMsg(">>MKDIR %s", Path);
-	if(_mkdir(Path) != 0)
+	if (std::error_code ec; !fs::create_directory(fs::u8path(Path), ec))
 		SetTaskMsg(MSGJPN146);
-	return;
 }
 
 

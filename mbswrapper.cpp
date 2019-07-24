@@ -1432,30 +1432,6 @@ END_ROUTINE
 	return r;
 }
 
-int mkdirM(const char * _Path)
-{
-	int r = -1;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(_Path, -1);
-	r = _wmkdir(pw0);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
-int _mkdirM(const char * _Path)
-{
-	int r = -1;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(_Path, -1);
-	r = _wmkdir(pw0);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 size_t _mbslenM(const unsigned char * _Str)
 {
 	size_t r = 0;
