@@ -98,9 +98,6 @@ unsigned char * _mbsuprM(unsigned char * _String);
 #undef _mbsninc
 #define _mbsninc _mbsnincM
 unsigned char * _mbsnincM(const unsigned char * _Str, size_t _Count);
-#undef fopen
-#define fopen fopenM
-FILE * fopenM(const char * _Filename, const char * _Mode);
 
 #endif
 
