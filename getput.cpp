@@ -1719,7 +1719,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		// 読み取り専用
 		if (MessageBox(GetMainHwnd(), MSGJPN296, MSGJPN086, MB_YESNO) == IDYES) {
 			// 属性を解除
-			SetFileAttributes(Pkt->LocalFile, dwFileAttributes ^ FILE_ATTRIBUTE_READONLY);
+			SetFileAttributesW(fs::u8path(Pkt->LocalFile).c_str(), dwFileAttributes & ~FILE_ATTRIBUTE_READONLY);
 		}
 	}
 
