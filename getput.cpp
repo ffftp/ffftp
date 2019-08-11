@@ -64,8 +64,6 @@ static void DispTransPacket(TRANSPACKET *Pkt);
 static void EraseTransFileList(void);
 static unsigned __stdcall TransferThread(void *Dummy);
 static int MakeNonFullPath(TRANSPACKET *Pkt, char *CurDir, char *Tmp);
-// ミラーリング設定追加
-static int SetDownloadedFileTime(TRANSPACKET *Pkt);
 static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
 static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
 static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *CancelCheckWork);
@@ -932,12 +930,11 @@ static unsigned __stdcall TransferThread(void *Dummy)
 								MarkFileAsDownloadedFromInternet(Pos->LocalFile);
 						}
 
-						// ミラーリング設定追加
-						if((SaveTimeStamp == YES) &&
-						   ((Pos->Time.dwLowDateTime != 0) || (Pos->Time.dwHighDateTime != 0)))
-						{
-							SetDownloadedFileTime(Pos);
-						}
+						if (SaveTimeStamp == YES && (Pos->Time.dwLowDateTime != 0 || Pos->Time.dwHighDateTime != 0))
+							if (auto handle = CreateFileW(fs::u8path(Pos->LocalFile).c_str(), FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, 0); handle != INVALID_HANDLE_VALUE) {
+								SetFileTime(handle, &Pos->Time, &Pos->Time, &Pos->Time);
+								CloseHandle(handle);
+							}
 					}
 				}
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
@@ -1356,24 +1353,6 @@ static int MakeNonFullPath(TRANSPACKET *Pkt, char *Cur, char *Tmp)
 	return(Sts);
 }
 
-
-
-
-// ミラーリング設定追加
-static int SetDownloadedFileTime(TRANSPACKET *Pkt)
-{
-	int Sts;
-	HANDLE hFile;
-	Sts = FFFTP_FAIL;
-	if((hFile = CreateFile(Pkt->LocalFile, GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
-	{
-		if(SetFileTime(hFile, &Pkt->Time, &Pkt->Time, &Pkt->Time))
-			Sts = FFFTP_SUCCESS;
-		CloseHandle(hFile);
-	}
-	return Sts;
-}
-
 /*----- ダウンロードを行なう --------------------------------------------------
 *
 *	Parameter
@@ -1681,59 +1660,27 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 *			ダイアログを出さない場合、このルーチンからDispDownloadSize()を呼ぶ
 *----------------------------------------------------------------------------*/
 
-static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *CancelCheckWork)
-{
-	int iNumBytes;
-	char Buf[BUFSIZE];
-	HANDLE iFileHandle;
-	SECURITY_ATTRIBUTES Sec;
-	DWORD Writed;
-	int iRetCode;
-	int TimeOutErr;
-	char TmpBuf[ONELINE_BUF_SIZE];
-
-#ifdef SET_BUFFER_SIZE
-/* Add by H.Shirouzu at 2002/10/02 */
-	int buf_size = SOCKBUF_SIZE;
-	for ( ; buf_size > 0; buf_size /= 2)
-		if (setsockopt(dSkt, SOL_SOCKET, SO_RCVBUF, (char *)&buf_size, sizeof(buf_size)) == 0)
-			break;
-/* End */
-#endif
-
-	// 念のため受信バッファを無効にする
+static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *CancelCheckWork) {
 #ifdef DISABLE_TRANSFER_NETWORK_BUFFERS
 	int buf_size = 0;
-	setsockopt(dSkt, SOL_SOCKET, SO_RCVBUF, (char *)&buf_size, sizeof(buf_size));
+	setsockopt(dSkt, SOL_SOCKET, SO_RCVBUF, (char*)&buf_size, sizeof(buf_size));
+#elif defined(SET_BUFFER_SIZE)
+	for (int buf_size = SOCKBUF_SIZE; buf_size > 0; buf_size /= 2)
+		if (setsockopt(dSkt, SOL_SOCKET, SO_RCVBUF, (char*)&buf_size, sizeof(buf_size)) == 0)
+			break;
 #endif
 
+	char buf[BUFSIZE];
 	Pkt->Abort = ABORT_NONE;
-
-	Sec.nLength = sizeof(SECURITY_ATTRIBUTES);
-	Sec.lpSecurityDescriptor = NULL;
-	Sec.bInheritHandle = FALSE;
-
-	if (auto attr = GetFileAttributesW(fs::u8path(Pkt->LocalFile).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_READONLY)) {
-		// 読み取り専用
-		if (MessageBox(GetMainHwnd(), MSGJPN296, MSGJPN086, MB_YESNO) == IDYES) {
-			// 属性を解除
+	if (auto attr = GetFileAttributesW(fs::u8path(Pkt->LocalFile).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_READONLY))
+		if (MessageBox(GetMainHwnd(), MSGJPN296, MSGJPN086, MB_YESNO) == IDYES)
 			SetFileAttributesW(fs::u8path(Pkt->LocalFile).c_str(), attr & ~FILE_ATTRIBUTE_READONLY);
-		}
-	}
 
-	if((iFileHandle = CreateFile(Pkt->LocalFile, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, &Sec, CreateMode, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
-	{
-		// 4GB超対応（kaokunさん提供）
-		LONG High = 0;
-		if(CreateMode == OPEN_ALWAYS)
-			// 4GB超対応（kaokunさん提供）
-//			SetFilePointer(iFileHandle, 0, 0, FILE_END);
-			SetFilePointer(iFileHandle, 0, &High, FILE_END);
+	auto opened = false;
+	if (std::ofstream os{ fs::u8path(Pkt->LocalFile), std::ios::binary | (CreateMode == OPEN_ALWAYS ? std::ios::ate : std::ios::trunc) }) {
+		opened = true;
 
-		if(Pkt->hWndTrans != NULL)
-		{
-			// 同時接続対応
-//			TimeStart = time(NULL);
+		if (Pkt->hWndTrans != NULL) {
 			TimeStart[Pkt->ThreadCount] = time(NULL);
 			SetTimer(Pkt->hWndTrans, TIMER_DISPLAY, DISPLAY_TIMING, NULL);
 		}
@@ -1741,143 +1688,79 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		CodeConverter cc{ Pkt->KanjiCode, Pkt->KanjiCodeDesired, Pkt->KanaCnv != NO };
 
 		/*===== ファイルを受信するループ =====*/
-		while((Pkt->Abort == ABORT_NONE) && (ForceAbort == NO))
-		{
-//			FD_ZERO(&ReadFds);
-//			FD_SET(dSkt, &ReadFds);
-//			ToutPtr = NULL;
-//			if(TimeOut != 0)
-//			{
-//				Tout.tv_sec = TimeOut;
-//				Tout.tv_usec = 0;
-//				ToutPtr = &Tout;
-//			}
-//			iNumBytes = select(0, &ReadFds, NULL, NULL, ToutPtr);
-//			if(iNumBytes == SOCKET_ERROR)
-//			{
-//				ReportWSError("select", WSAGetLastError());
-//				if(Pkt->Abort == ABORT_NONE)
-//					Pkt->Abort = ABORT_ERROR;
-//				break;
-//			}
-//			else if(iNumBytes == 0)
-//			{
-//				SetErrorMsg(MSGJPN094);
-//				SetTaskMsg(MSGJPN094);
-//				Pkt->Abort = ABORT_ERROR;
-//				break;
-//			}
-
-			if((iNumBytes = do_recv(dSkt, Buf, BUFSIZE, 0, &TimeOutErr, CancelCheckWork)) <= 0)
-			{
-				if(TimeOutErr == YES)
-				{
+		int read;
+		while (Pkt->Abort == ABORT_NONE && ForceAbort == NO) {
+			if (int timeout; (read = do_recv(dSkt, buf, BUFSIZE, 0, &timeout, CancelCheckWork)) <= 0) {
+				if (timeout == YES) {
 					SetErrorMsg(MSGJPN094);
 					SetTaskMsg(MSGJPN094);
-					if(Pkt->hWndTrans != NULL)
+					if (Pkt->hWndTrans != NULL)
 						ClearAll = YES;
-					if(Pkt->Abort == ABORT_NONE)
+					if (Pkt->Abort == ABORT_NONE)
 						Pkt->Abort = ABORT_ERROR;
-				}
-				else if(iNumBytes == SOCKET_ERROR)
-				{
-					if(Pkt->Abort == ABORT_NONE)
+				} else if (read == SOCKET_ERROR) {
+					if (Pkt->Abort == ABORT_NONE)
 						Pkt->Abort = ABORT_ERROR;
 				}
 				break;
 			}
 
-			auto converted = cc.Convert({ Buf, (size_t)iNumBytes });
-			if (WriteFile(iFileHandle, data(converted), size_as<DWORD>(converted), &Writed, NULL) == FALSE)
+			if (auto converted = cc.Convert({ buf, (size_t)read }); !os.write(data(converted), size(converted)))
 				Pkt->Abort = ABORT_DISKFULL;
 
-			Pkt->ExistSize += iNumBytes;
-			if(Pkt->hWndTrans != NULL)
-				// 同時接続対応
-//				AllTransSizeNow += iNumBytes;
-				AllTransSizeNow[Pkt->ThreadCount] += iNumBytes;
-			else
-			{
+			Pkt->ExistSize += read;
+			if (Pkt->hWndTrans != NULL)
+				AllTransSizeNow[Pkt->ThreadCount] += read;
+			else {
 				/* 転送ダイアログを出さない時の経過表示 */
 				DispDownloadSize(Pkt->ExistSize);
 			}
 
-			if(BackgrndMessageProc() == YES)
+			if (BackgrndMessageProc() == YES)
 				ForceAbort = YES;
 		}
 
 		/* グラフ表示を更新 */
-		if(Pkt->hWndTrans != NULL)
-		{
+		if (Pkt->hWndTrans != NULL) {
 			KillTimer(Pkt->hWndTrans, TIMER_DISPLAY);
 			DispTransferStatus(Pkt->hWndTrans, YES, Pkt);
-			// 同時接続対応
-//			TimeStart = time(NULL) - TimeStart + 1;
 			TimeStart[Pkt->ThreadCount] = time(NULL) - TimeStart[Pkt->ThreadCount] + 1;
-		}
-		else
-		{
+		} else {
 			/* 転送ダイアログを出さない時の経過表示を消す */
 			DispDownloadSize(-1);
 		}
 
-		/* ファイルのタイムスタンプを合わせる */
-		// ミラーリング設定追加
-//		if((SaveTimeStamp == YES) &&
-//		   ((Pkt->Time.dwLowDateTime != 0) || (Pkt->Time.dwHighDateTime != 0)))
-//		{
-//			SetFileTime(iFileHandle, &Pkt->Time, &Pkt->Time, &Pkt->Time);
-//		}
-
-		CloseHandle(iFileHandle);
-
-		if(iNumBytes == SOCKET_ERROR)
-			ReportWSError("recv",WSAGetLastError());
-	}
-	else
-	{
+		if (read == SOCKET_ERROR)
+			ReportWSError("recv", WSAGetLastError());
+	} else {
 		SetErrorMsg(MSGJPN095, Pkt->LocalFile);
 		SetTaskMsg(MSGJPN095, Pkt->LocalFile);
 		Pkt->Abort = ABORT_ERROR;
 	}
 
-
-	if(shutdown(dSkt, 1) != 0)
+	if (shutdown(dSkt, 1) != 0)
 		ReportWSError("shutdown", WSAGetLastError());
-
-	// 自動切断対策
 	LastDataConnectionTime = time(NULL);
 	DoClose(dSkt);
 
-	if(ForceAbort == NO)
-	{
-		/* Abortをホストに伝える */
-		if(Pkt->Abort != ABORT_NONE && iFileHandle != INVALID_HANDLE_VALUE)
-		{
-			SendData(Pkt->ctrl_skt, "\xFF\xF4\xFF", 3, MSG_OOB, CancelCheckWork);	/* MSG_OOBに注意 */
-			SendData(Pkt->ctrl_skt, "\xF2", 1, 0, CancelCheckWork);
-			command(Pkt->ctrl_skt, NULL, CancelCheckWork, "ABOR");
-		}
+	/* Abortをホストに伝える */
+	if (ForceAbort == NO && Pkt->Abort != ABORT_NONE && opened) {
+		SendData(Pkt->ctrl_skt, "\xFF\xF4\xFF", 3, MSG_OOB, CancelCheckWork);	/* MSG_OOBに注意 */
+		SendData(Pkt->ctrl_skt, "\xF2", 1, 0, CancelCheckWork);
+		command(Pkt->ctrl_skt, NULL, CancelCheckWork, "ABOR");
 	}
 
-	iRetCode = ReadReplyMessage(Pkt->ctrl_skt, Buf, 1024, CancelCheckWork, TmpBuf);
-
-//#pragma aaa
-//DoPrintf("##DOWN REPLY : %s", Buf);
-
-	if(Pkt->Abort == ABORT_DISKFULL)
-	{
+	char tmp[ONELINE_BUF_SIZE];
+	auto code = ReadReplyMessage(Pkt->ctrl_skt, buf, 1024, CancelCheckWork, tmp);
+	if (Pkt->Abort == ABORT_DISKFULL) {
 		SetErrorMsg(MSGJPN096);
 		SetTaskMsg(MSGJPN096);
 	}
-	// バグ修正
-//	if(iRetCode >= FTP_RETRY)
-	if((iRetCode/100) >= FTP_RETRY)
-		SetErrorMsg(Buf);
-	if(Pkt->Abort != ABORT_NONE)
-		iRetCode = 500;
-
-	return(iRetCode);
+	if (code / 100 >= FTP_RETRY)
+		SetErrorMsg(buf);
+	if (Pkt->Abort != ABORT_NONE)
+		code = 500;
+	return code;
 }
 
 
@@ -2092,8 +1975,7 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET *Pkt)
 
 	if(Pkt->Mode != EXIST_IGNORE)
 	{
-		if(CheckFileReadable(Pkt->LocalFile) == FFFTP_SUCCESS)
-		{
+		if (std::wifstream{ fs::u8path(Pkt->LocalFile) }) {
 			if(Pkt->Type == TYPE_I)
 				Pkt->KanjiCode = KANJI_NOCNV;
 
@@ -2410,57 +2292,23 @@ static int UploadPassive(TRANSPACKET *Pkt)
 *		転送ダイアログを出さないでアップロードすることはない
 *----------------------------------------------------------------------------*/
 
-static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt)
-{
-	DWORD iNumBytes;
-	HANDLE iFileHandle;
-	SECURITY_ATTRIBUTES Sec;
-	char Buf[BUFSIZE];
-	char *EofPos;
-	int iRetCode;
-#if 0
-	int TimeOutErr;
-#endif
-	char TmpBuf[ONELINE_BUF_SIZE];
-	DWORD Low;
-	DWORD High;
-
-#ifdef SET_BUFFER_SIZE
-/* Add by H.Shirouzu at 2002/10/02 */
-	int buf_size = SOCKBUF_SIZE;
-	for ( ; buf_size > 0; buf_size /= 2)
-		if (setsockopt(dSkt, SOL_SOCKET, SO_SNDBUF, (char *)&buf_size, sizeof(buf_size)) == 0)
-			break;
-/* End */
-#endif
-
-	// 念のため送信バッファを無効にする
+static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 #ifdef DISABLE_TRANSFER_NETWORK_BUFFERS
 	int buf_size = 0;
-	setsockopt(dSkt, SOL_SOCKET, SO_SNDBUF, (char *)&buf_size, sizeof(buf_size));
+	setsockopt(dSkt, SOL_SOCKET, SO_SNDBUF, (char*)&buf_size, sizeof(buf_size));
+#elif defined(SET_BUFFER_SIZE)
+	for (int buf_size = SOCKBUF_SIZE; buf_size > 0; buf_size /= 2)
+		if (setsockopt(dSkt, SOL_SOCKET, SO_SNDBUF, (char*)&buf_size, sizeof(buf_size)) == 0)
+			break;
 #endif
 
+	char buf[BUFSIZE];
 	Pkt->Abort = ABORT_NONE;
+	if (std::ifstream is{ fs::u8path(Pkt->LocalFile), std::ios::binary }) {
+		if (Pkt->hWndTrans != NULL) {
+			Pkt->Size = is.seekg(0, std::ios::end).tellg();
+			is.seekg(Pkt->ExistSize, std::ios::beg);
 
-	Sec.nLength = sizeof(SECURITY_ATTRIBUTES);
-	Sec.lpSecurityDescriptor = NULL;
-	Sec.bInheritHandle = FALSE;
-
-	if((iFileHandle = CreateFile(Pkt->LocalFile, GENERIC_READ,
-		FILE_SHARE_READ|FILE_SHARE_WRITE, &Sec, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
-	{
-		if(Pkt->hWndTrans != NULL)
-		{
-			Low = GetFileSize(iFileHandle, &High);
-			Pkt->Size = MakeLongLong(High, Low);
-
-			High = (DWORD)HIGH32(Pkt->ExistSize);
-			Low = (DWORD)LOW32(Pkt->ExistSize);
-			SetFilePointer(iFileHandle, Low, (PLONG)&High, FILE_BEGIN);
-
-			// 同時接続対応
-//			AllTransSizeNow = 0;
-//			TimeStart = time(NULL);
 			AllTransSizeNow[Pkt->ThreadCount] = 0;
 			TimeStart[Pkt->ThreadCount] = time(NULL);
 			SetTimer(Pkt->hWndTrans, TIMER_DISPLAY, DISPLAY_TIMING, NULL);
@@ -2469,83 +2317,50 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt)
 		CodeConverter cc{ Pkt->KanjiCodeDesired, Pkt->KanjiCode, Pkt->KanaCnv != NO };
 
 		/*===== ファイルを送信するループ =====*/
-		while((Pkt->Abort == ABORT_NONE) &&
-			  (ForceAbort == NO) &&
-			  (ReadFile(iFileHandle, Buf, BUFSIZE, &iNumBytes, NULL) == TRUE))
-		{
-			if(iNumBytes == 0)
-				break;
-
+		auto eof = false;
+		for (std::streamsize read; Pkt->Abort == ABORT_NONE && ForceAbort == NO && !eof && (read = is.read(buf, std::size(buf)).gcount()) != 0;) {
 			/* EOF除去 */
-			EofPos = NULL;
-			if((RmEOF == YES) && (Pkt->Type == TYPE_A))
-			{
-				if((EofPos = (char*)memchr(Buf, 0x1A, iNumBytes)) != NULL)
-					iNumBytes = (DWORD)(EofPos - Buf);
-			}
+			if (RmEOF == YES && Pkt->Type == TYPE_A)
+				if (auto pos = std::find(buf, buf + read, '\x1A'); pos != buf + read) {
+					eof = true;
+					read = pos - buf;
+				}
 
-			auto converted = cc.Convert({ Buf, (size_t)iNumBytes });
+			auto converted = cc.Convert({ buf, (std::string_view::size_type)read });
 			if (TermCodeConvAndSend(dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
 				Pkt->Abort = ABORT_ERROR;
 
-			Pkt->ExistSize += iNumBytes;
-			if(Pkt->hWndTrans != NULL)
-				// 同時接続対応
-//				AllTransSizeNow += iNumBytes;
-				AllTransSizeNow[Pkt->ThreadCount] += iNumBytes;
+			Pkt->ExistSize += read;
+			if (Pkt->hWndTrans != NULL)
+				AllTransSizeNow[Pkt->ThreadCount] += read;
 
-			if(BackgrndMessageProc() == YES)
+			if (BackgrndMessageProc() == YES)
 				ForceAbort = YES;
-
-			if(EofPos != NULL)
-				break;
 		}
 
 		/* グラフ表示を更新 */
-		if(Pkt->hWndTrans != NULL)
-		{
+		if (Pkt->hWndTrans != NULL) {
 			KillTimer(Pkt->hWndTrans, TIMER_DISPLAY);
 			DispTransferStatus(Pkt->hWndTrans, YES, Pkt);
-			// 同時接続対応
-//			TimeStart = time(NULL) - TimeStart + 1;
 			TimeStart[Pkt->ThreadCount] = time(NULL) - TimeStart[Pkt->ThreadCount] + 1;
 		}
-		CloseHandle(iFileHandle);
-	}
-	else
-	{
+	} else {
 		SetErrorMsg(MSGJPN112, Pkt->LocalFile);
 		SetTaskMsg(MSGJPN112, Pkt->LocalFile);
 		Pkt->Abort = ABORT_ERROR;
 	}
 
-	// 自動切断対策
 	LastDataConnectionTime = time(NULL);
-	if(shutdown(dSkt, 1) != 0)
+	if (shutdown(dSkt, 1) != 0)
 		ReportWSError("shutdown", WSAGetLastError());
 
-#if 0
-	/* clean up */
-	while(do_recv(dSkt, Buf, BUFSIZE, 0, &TimeOutErr, &Canceled) > 0)
-		;
-#endif
-
-	// 同時接続対応
-//	iRetCode = ReadReplyMessage(Pkt->ctrl_skt, Buf, 1024, &Canceled, TmpBuf);
-	iRetCode = ReadReplyMessage(Pkt->ctrl_skt, Buf, 1024, &Canceled[Pkt->ThreadCount], TmpBuf);
-
-//#pragma aaa
-//DoPrintf("##UP REPLY : %s", Buf);
-
-	// バグ修正
-//	if(iRetCode >= FTP_RETRY)
-	if((iRetCode/100) >= FTP_RETRY)
-		SetErrorMsg(Buf);
-
-	if(Pkt->Abort != ABORT_NONE)
-		iRetCode = 500;
-
-	return(iRetCode);
+	char tmp[ONELINE_BUF_SIZE];
+	auto code = ReadReplyMessage(Pkt->ctrl_skt, buf, 1024, &Canceled[Pkt->ThreadCount], tmp);
+	if (code / 100 >= FTP_RETRY)
+		SetErrorMsg(buf);
+	if (Pkt->Abort != ABORT_NONE)
+		code = 500;
+	return code;
 }
 
 

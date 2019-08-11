@@ -1863,7 +1863,6 @@ void AttrValue2String(int Attr, char *Buf, int ShowNumber);
 void FormatIniString(char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 int SelectDir(HWND hWnd, char *Buf, int MaxLen);
-int CheckFileReadable(char *Fname);
 int max1(int n, int m);
 int min1(int n, int m);
 void ExcEndianDWORD(DWORD *x);

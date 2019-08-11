@@ -1207,41 +1207,6 @@ int SelectDir(HWND hWnd, char *Buf, int MaxLen) {
 }
 
 
-/*----- ファイルが読み取り可能かどうかを返す ----------------------------------
-*
-*	Parameter
-*		char *Fname : ファイル名
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int CheckFileReadable(char *Fname)
-{
-	int Sts;
-	HANDLE iFileHandle;
-	SECURITY_ATTRIBUTES Sec;
-
-	Sts = FFFTP_FAIL;
-
-	Sec.nLength = sizeof(SECURITY_ATTRIBUTES);
-	Sec.lpSecurityDescriptor = NULL;
-	Sec.bInheritHandle = FALSE;
-
-	if((iFileHandle = CreateFile(Fname, GENERIC_READ,
-		FILE_SHARE_READ|FILE_SHARE_WRITE, &Sec, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
-	{
-		Sts = FFFTP_SUCCESS;
-		CloseHandle(iFileHandle);
-	}
-	return(Sts);
-}
-
-
-
-
-
 int max1(int n, int m)
 {
 	if(n > m)
