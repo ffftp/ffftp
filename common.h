@@ -89,7 +89,7 @@
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "comsuppw.lib")
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 using namespace std::literals;
 template<class T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
