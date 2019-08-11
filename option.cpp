@@ -34,14 +34,6 @@
 
 static void AddFnameAttrToListView(HWND hDlg, char *Fname, char *Attr);
 static void GetFnameAttrFromListView(HWND hDlg, char *Buf);
-static int SelectListFont(HWND hWnd, LOGFONT *lFont);
-// hostman.cで使用
-//static int GetDecimalText(HWND hDlg, int Ctrl);
-//static void SetDecimalText(HWND hDlg, int Ctrl, int Num);
-//static void CheckRange2(int *Cur, int Max, int Min);
-//static void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize);
-//static void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text);
-//static void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize);
 int GetDecimalText(HWND hDlg, int Ctrl);
 void SetDecimalText(HWND hDlg, int Ctrl, int Num);
 void CheckRange2(int *Cur, int Max, int Min);
@@ -92,10 +84,9 @@ extern int PassToHist;
 extern int VaxSemicolon;
 extern int SendQuit;
 extern int NoRasControl;
-extern int DispIgnoreHide;
 extern int DispDrives;
 extern HFONT ListFont;
-extern LOGFONT ListLogFont;
+LOGFONTW ListLogFont;
 extern int MirUpDelNotify;
 extern int MirDownDelNotify;
 extern int FolderAttr;
@@ -467,11 +458,11 @@ struct Operation {
 struct View1 {
 	static constexpr WORD dialogId = opt_disp1_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
-	static inline LOGFONT TmpFont;
+	static inline LOGFONTW TmpFont;
 	static INT_PTR OnInit(HWND hDlg) {
-		memcpy(&TmpFont, &ListLogFont, sizeof(LOGFONT));
+		TmpFont = ListLogFont;
 		if (ListFont != NULL)
-			SendDlgItemMessage(hDlg, DISP_FONT, WM_SETTEXT, 0, (LPARAM)TmpFont.lfFaceName);
+			SendDlgItemMessageW(hDlg, DISP_FONT, WM_SETTEXT, 0, (LPARAM)TmpFont.lfFaceName);
 		SendDlgItemMessage(hDlg, DISP_HIDE, BM_SETCHECK, DispIgnoreHide, 0);
 		SendDlgItemMessage(hDlg, DISP_DRIVE, BM_SETCHECK, DispDrives, 0);
 		SendDlgItemMessage(hDlg, DISP_ICON, BM_SETCHECK, DispFileIcon, 0);
@@ -485,9 +476,9 @@ struct View1 {
 			DispDrives = (int)SendDlgItemMessage(hDlg, DISP_DRIVE, BM_GETCHECK, 0, 0);
 			DispFileIcon = (int)SendDlgItemMessage(hDlg, DISP_ICON, BM_GETCHECK, 0, 0);
 			DispTimeSeconds = (int)SendDlgItemMessage(hDlg, DISP_SECOND, BM_GETCHECK, 0, 0);
-			if (strlen(TmpFont.lfFaceName) > 0) {
-				memcpy(&ListLogFont, &TmpFont, sizeof(LOGFONT));
-				ListFont = CreateFontIndirect(&ListLogFont);
+			if (wcslen(TmpFont.lfFaceName) > 0) {
+				ListLogFont = TmpFont;
+				ListFont = CreateFontIndirectW(&ListLogFont);
 			}
 			return PSNRET_NOERROR;
 		case PSN_HELP:
@@ -497,10 +488,12 @@ struct View1 {
 		return 0;
 	}
 	static void OnCommand(HWND hDlg, WORD id) {
+		static CHOOSEFONTW chooseFont;
 		switch (id) {
 		case DISP_FONT_BR:
-			if (SelectListFont(hDlg, &TmpFont) == YES)
-				SendDlgItemMessage(hDlg, DISP_FONT, WM_SETTEXT, 0, (LPARAM)TmpFont.lfFaceName);
+			chooseFont = { sizeof(CHOOSEFONTW), hDlg, 0, &TmpFont, 0, CF_FORCEFONTEXIST | CF_SCREENFONTS | CF_INITTOLOGFONTSTRUCT, 0, 0, nullptr, nullptr, 0, nullptr, SCREEN_FONTTYPE };
+			if (ChooseFontW(&chooseFont))
+				SendDlgItemMessageW(hDlg, DISP_FONT, WM_SETTEXT, 0, (LPARAM)TmpFont.lfFaceName);
 			break;
 		}
 	}
@@ -771,7 +764,6 @@ struct Sounds {
 		return 0;
 	}
 	static void OnCommand(HWND hDlg, WORD id) {
-		char Tmp[FMAX_PATH + 1];
 		switch (id) {
 		case SOUND_CONNECT_BR:
 		case SOUND_TRANS_BR:
@@ -791,16 +783,13 @@ struct Sounds {
 			}
 			break;
 		case SOUND_CONNECT_TEST:
-			SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Tmp);
-			sndPlaySound(Tmp, SND_ASYNC | SND_NODEFAULT);
+			sndPlaySoundW(GetText(hDlg, SOUND_CONNECT_WAV).c_str(), SND_ASYNC | SND_NODEFAULT);
 			break;
 		case SOUND_TRANS_TEST:
-			SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Tmp);
-			sndPlaySound(Tmp, SND_ASYNC | SND_NODEFAULT);
+			sndPlaySoundW(GetText(hDlg, SOUND_TRANS_WAV).c_str(), SND_ASYNC | SND_NODEFAULT);
 			break;
 		case SOUND_ERROR_TEST:
-			SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Tmp);
-			sndPlaySound(Tmp, SND_ASYNC | SND_NODEFAULT);
+			sndPlaySoundW(GetText(hDlg, SOUND_ERROR_WAV).c_str(), SND_ASYNC | SND_NODEFAULT);
 			break;
 		}
 	}
@@ -922,40 +911,6 @@ static void GetFnameAttrFromListView(HWND hDlg, char *Buf)
 	*Buf = NUL;
 
 	return;
-}
-
-
-/*----- フォントを選ぶ --------------------------------------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		LOGFONT *lFont : フォント情報
-*
-*	Return Value
-*		なし
-*
-*	Parameter change
-*		HFONT *hFont : フォントのハンドル
-*		LOGFONT *lFont : フォント情報
-*----------------------------------------------------------------------------*/
-
-static int SelectListFont(HWND hWnd, LOGFONT *lFont)
-{
-	static CHOOSEFONT cFont;
-	int Sts;
-
-	cFont.lStructSize = sizeof(CHOOSEFONT);
-	cFont.hwndOwner = hWnd;
-	cFont.hDC = 0;
-	cFont.lpLogFont = lFont;
-	cFont.Flags = CF_FORCEFONTEXIST | CF_SCREENFONTS | CF_INITTOLOGFONTSTRUCT;
-	cFont.nFontType = SCREEN_FONTTYPE;
-
-	Sts = NO;
-	if(ChooseFont(&cFont) == TRUE)
-		Sts = YES;
-
-	return(Sts);
 }
 
 

@@ -42,21 +42,11 @@ int DoLocalCWD(const char *Path) {
 }
 
 
-/*----- ローカル側のディレクトリ作成 -------------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DoLocalMKD(char *Path)
-{
+// ローカル側のディレクトリ作成
+void DoLocalMKD(char *Path) {
 	SetTaskMsg(">>MKDIR %s", Path);
-	if(_mkdir(Path) != 0)
+	if (std::error_code ec; !fs::create_directory(fs::u8path(Path), ec))
 		SetTaskMsg(MSGJPN146);
-	return;
 }
 
 
@@ -82,114 +72,21 @@ void DoLocalDELE(char *Path) {
 }
 
 
-/*----- ローカル側のファイル名変更 ---------------------------------------------
-*
-*	Parameter
-*		char *Src : 元ファイル名
-*		char *Dst : 変更後のファイル名
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DoLocalRENAME(char *Src, char *Dst)
-{
+// ローカル側のファイル名変更
+void DoLocalRENAME(char *Src, char *Dst) {
 	SetTaskMsg(">>REN %s %s", Src, Dst);
-	if(MoveFile(Src, Dst) != TRUE)
+	std::error_code ec;
+	fs::rename(fs::u8path(Src), fs::u8path(Dst), ec);
+	if (ec)
 		SetTaskMsg(MSGJPN151);
-	return;
 }
 
 
-/*----- ファイルのプロパティを表示する ----------------------------------------
-*
-*	Parameter
-*		char *Fname : ファイル名
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispFileProperty(char *Fname)
-{
-	SHELLEXECUTEINFO sInfo;
-	// 異なるファイルが表示されるバグ修正
-	char Fname2[FMAX_PATH+1];
-
-	memset(&sInfo, NUL, sizeof(SHELLEXECUTEINFO));
-	sInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-	sInfo.fMask = SEE_MASK_INVOKEIDLIST;
-	sInfo.hwnd = NULL;		//GetMainHwnd();
-	sInfo.lpVerb = "Properties";
-	// 異なるファイルが表示されるバグ修正
-//	sInfo.lpFile = Fname;
-	sInfo.lpFile = MakeDistinguishableFileName(Fname2, Fname);
-	sInfo.lpParameters = NULL;
-	sInfo.lpDirectory = NULL;
-	sInfo.nShow = SW_NORMAL;
-	sInfo.lpIDList = NULL;
-	ShellExecuteEx(&sInfo);
-	return;
+// ファイルのプロパティを表示する
+void DispFileProperty(char *Fname) {
+	char Fname2[FMAX_PATH + 1];
+	MakeDistinguishableFileName(Fname2, Fname);
+	auto wFname2 = u8(Fname2);
+	SHELLEXECUTEINFOW info{ sizeof(SHELLEXECUTEINFOW), SEE_MASK_INVOKEIDLIST, 0, L"Properties", wFname2.c_str(), nullptr, nullptr, SW_NORMAL };
+	ShellExecuteExW(&info);
 }
-
-
-/*----- 属性をチェックする FindFirstFile --------------------------------------
-*
-*	Parameter
-*		char *Fname : ファイル名
-*		WIN32_FIND_DATA *FindData : 検索データ
-*		int IgnHide : 隠しファイルを無視するかどうか(YES/NO)
-*
-*	Return Value
-*		HANDLE ハンドル
-*----------------------------------------------------------------------------*/
-
-HANDLE FindFirstFileAttr(char *Fname, WIN32_FIND_DATA *FindData, int IgnHide)
-{
-	HANDLE hFind;
-
-	if((hFind = FindFirstFile(Fname, FindData)) != INVALID_HANDLE_VALUE)
-	{
-		if(IgnHide == YES)
-		{
-			while(FindData->dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
-			{
-				if(FindNextFile(hFind, FindData) == FALSE)
-				{
-					FindClose(hFind);
-					hFind = INVALID_HANDLE_VALUE;
-					break;
-				}
-			}
-		}
-	}
-	return(hFind);
-}
-
-
-/*----- 属性をチェックする FindNextFile ---------------------------------------
-*
-*	Parameter
-*		HANDLE hFind : ハンドル
-*		WIN32_FIND_DATA *FindData : 検索データ
-*		int IgnHide : 隠しファイルを無視するかどうか(YES/NO)
-*
-*	Return Value
-*		HANDLE ハンドル
-*----------------------------------------------------------------------------*/
-
-BOOL FindNextFileAttr(HANDLE hFind, WIN32_FIND_DATA *FindData, int IgnHide)
-{
-	BOOL Ret;
-
-	while((Ret = FindNextFile(hFind, FindData)) == TRUE)
-	{
-		if(IgnHide == NO)
-			break;
-		if((FindData->dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) == 0)
-			break;
-	}
-	return(Ret);
-}
-
-

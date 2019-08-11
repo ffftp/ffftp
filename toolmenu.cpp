@@ -217,10 +217,6 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 {
 	int Sts;
 	RECT Rect1;
-	char Tmp[FMAX_PATH+1];
-	char *Pos;
-	int Tmp2;
-	DWORD NoDrives;
 	// 高DPI対応
 	HBITMAP hOriginal;
 	HBITMAP hResized;
@@ -264,11 +260,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	if(hWndTbarMain != NULL)
 	{
-		/* 2007/09/21 sunasunamix  ここから *********************/
-		// 64ビット対応
-//		pOldTbarMainProc = (WNDPROC)SetWindowLong(hWndTbarMain, GWL_WNDPROC, (DWORD)CountermeasureTbarMainProc);
-		pOldTbarMainProc = (WNDPROC)SetWindowLongPtr(hWndTbarMain, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarMainProc);
-		/********************************************* ここまで */
+		pOldTbarMainProc = (WNDPROC)SetWindowLongPtrW(hWndTbarMain, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarMainProc);
 
 		GetClientRect(hWnd, &Rect1);
 		// 高DPI対応
@@ -315,11 +307,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	if(hWndTbarLocal != NULL)
 	{
-		/* 2007/09/21 sunasunamix  ここから *********************/
-		// 64ビット対応
-//		pOldTbarLocalProc = (WNDPROC)SetWindowLong(hWndTbarLocal, GWL_WNDPROC, (DWORD)CountermeasureTbarLocalProc);
-		pOldTbarLocalProc = (WNDPROC)SetWindowLongPtr(hWndTbarLocal, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarLocalProc);
-		/********************************************* ここまで */
+		pOldTbarLocalProc = (WNDPROC)SetWindowLongPtrW(hWndTbarLocal, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarLocalProc);
 
 		// 高DPI対応
 //		MoveWindow(hWndTbarLocal, 0, TOOLWIN_HEIGHT, LocalWidth, TOOLWIN_HEIGHT, FALSE);
@@ -330,41 +318,20 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 		SendMessage(hWndTbarLocal, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
 		DlgFont = CreateFont(Rect1.bottom-Rect1.top-CalcPixelY(8), 0, 0, 0, 0, FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH,MSGJPN254);
 
-		// 高DPI対応
-//		hWndDirLocal = CreateWindowEx(WS_EX_CLIENTEDGE,
-//					"COMBOBOX", "",
-//					WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_SORT | CBS_AUTOHSCROLL,
-//					Rect1.right, Rect1.top, LocalWidth - Rect1.right, 200,
-//					hWndTbarLocal, (HMENU)COMBO_LOCAL, hInst, NULL);
-		hWndDirLocal = CreateWindowEx(WS_EX_CLIENTEDGE,
-					"COMBOBOX", "",
-					WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_SORT | CBS_AUTOHSCROLL,
-					Rect1.right, Rect1.top, LocalWidth - Rect1.right, CalcPixelY(200),
-					hWndTbarLocal, (HMENU)COMBO_LOCAL, hInst, NULL);
+		hWndDirLocal = CreateWindowExW(WS_EX_CLIENTEDGE, WC_COMBOBOXW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_SORT | CBS_AUTOHSCROLL, Rect1.right, Rect1.top, LocalWidth - Rect1.right, CalcPixelY(200), hWndTbarLocal, (HMENU)COMBO_LOCAL, hInst, nullptr);
 
 		if(hWndDirLocal != NULL)
 		{
 			/* エディットコントロールを探す */
 			hWndDirLocalEdit = GetWindow(hWndDirLocal, GW_CHILD);
 			if(hWndDirLocalEdit != NULL)
-				// 64ビット対応
-//				HistEditBoxProcPtr = (WNDPROC)SetWindowLong(hWndDirLocalEdit, GWL_WNDPROC, (LONG)HistEditBoxWndProc);
-				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtr(hWndDirLocalEdit, GWLP_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
+				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtrW(hWndDirLocalEdit, GWLP_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
 
 			SendMessage(hWndDirLocal, WM_SETFONT, (WPARAM)DlgFont, MAKELPARAM(TRUE, 0));
 			SendMessage(hWndDirLocal, CB_LIMITTEXT, FMAX_PATH, 0);
 
 			/* ドライブ名をセットしておく */
-			GetLogicalDriveStrings(FMAX_PATH, Tmp);
-			NoDrives = LoadHideDriveListRegistry();
-			Pos = Tmp;
-			while(*Pos != NUL)
-			{
-				Tmp2 = toupper(*Pos) - 'A';
-				if((NoDrives & (0x00000001 << Tmp2)) == 0)
-					SetLocalDirHist(Pos);
-				Pos = strchr(Pos, NUL) + 1;
-			}
+			GetDrives([](const wchar_t drive[]) { SetLocalDirHist(u8(drive).c_str()); });
 			SendMessage(hWndDirLocal, CB_SETCURSEL, 0, 0);
 		}
 	}
@@ -408,11 +375,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	if(hWndTbarRemote != NULL)
 	{
-		/* 2007/09/21 sunasunamix  ここから *********************/
-		// 64ビット対応
-//		pOldTbarRemoteProc = (WNDPROC)SetWindowLong(hWndTbarRemote, GWL_WNDPROC, (DWORD)CountermeasureTbarRemoteProc);
-		pOldTbarRemoteProc = (WNDPROC)SetWindowLongPtr(hWndTbarRemote, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarRemoteProc);
-		/********************************************* ここまで */
+		pOldTbarRemoteProc = (WNDPROC)SetWindowLongPtrW(hWndTbarRemote, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarRemoteProc);
 
 		// 高DPI対応
 //		MoveWindow(hWndTbarRemote, LocalWidth + SepaWidth, TOOLWIN_HEIGHT, RemoteWidth, TOOLWIN_HEIGHT, FALSE);
@@ -421,26 +384,14 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 		/*===== ホストのディレクトリ名ウインドウ =====*/
 
 		SendMessage(hWndTbarRemote, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
-		// 高DPI対応
-//		hWndDirRemote = CreateWindowEx(WS_EX_CLIENTEDGE,
-//					"COMBOBOX", "",
-//					WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL,
-//					Rect1.right, Rect1.top, RemoteWidth - Rect1.right, 200,
-//					hWndTbarRemote, (HMENU)COMBO_REMOTE, hInst, NULL);
-		hWndDirRemote = CreateWindowEx(WS_EX_CLIENTEDGE,
-					"COMBOBOX", "",
-					WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL,
-					Rect1.right, Rect1.top, RemoteWidth - Rect1.right, CalcPixelY(200),
-					hWndTbarRemote, (HMENU)COMBO_REMOTE, hInst, NULL);
+		hWndDirRemote = CreateWindowExW(WS_EX_CLIENTEDGE, WC_COMBOBOXW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL, Rect1.right, Rect1.top, RemoteWidth - Rect1.right, CalcPixelY(200), hWndTbarRemote, (HMENU)COMBO_REMOTE, hInst, nullptr);
 
 		if(hWndDirRemote != NULL)
 		{
 			/* エディットコントロールを探す */
 			hWndDirRemoteEdit = GetWindow(hWndDirRemote, GW_CHILD);
 			if(hWndDirRemoteEdit != NULL)
-				// 64ビット対応
-//				HistEditBoxProcPtr = (WNDPROC)SetWindowLong(hWndDirRemoteEdit, GWL_WNDPROC, (LONG)HistEditBoxWndProc);
-				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtr(hWndDirRemoteEdit, GWLP_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
+				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtrW(hWndDirRemoteEdit, GWLP_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
 
 			SendMessage(hWndDirRemote, WM_SETFONT, (WPARAM)DlgFont, MAKELPARAM(TRUE, 0));
 			SendMessage(hWndDirRemote, CB_LIMITTEXT, FMAX_PATH, 0);
@@ -503,11 +454,11 @@ static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wPara
 				}
 			}
 			else
-				return(CallWindowProc(HistEditBoxProcPtr, hWnd, message, wParam, lParam));
+				return CallWindowProcW(HistEditBoxProcPtr, hWnd, message, wParam, lParam);
 			break;
 
 		default :
-			return(CallWindowProc(HistEditBoxProcPtr, hWnd, message, wParam, lParam));
+			return CallWindowProcW(HistEditBoxProcPtr, hWnd, message, wParam, lParam);
 	}
 	return(0L);
 }
@@ -1985,16 +1936,14 @@ static LRESULT CALLBACK CountermeasureTbarMainProc(HWND hWnd,UINT uMessage,WPARA
 {
 	switch (uMessage) {
 	case WM_DESTROY :
-		// 64ビット対応
-//		SetWindowLong(hWnd,GWL_WNDPROC,(DWORD)pOldTbarMainProc);
-		SetWindowLongPtr(hWnd,GWLP_WNDPROC,(LONG_PTR)pOldTbarMainProc);
+		SetWindowLongPtrW(hWnd,GWLP_WNDPROC,(LONG_PTR)pOldTbarMainProc);
 		break;
 	case WM_RBUTTONDBLCLK :
 	case WM_RBUTTONDOWN :
 	case WM_RBUTTONUP :
 		return TRUE;
 	}
-	return CallWindowProc(pOldTbarMainProc, hWnd, uMessage, wParam, lParam);
+	return CallWindowProcW(pOldTbarMainProc, hWnd, uMessage, wParam, lParam);
 }
 
 /*----- CreateToolbarEx のマウスクリック関連を無視する(TbarLocal用) ----------
@@ -2004,16 +1953,14 @@ static LRESULT CALLBACK CountermeasureTbarLocalProc(HWND hWnd,UINT uMessage,WPAR
 {
 	switch (uMessage) {
 	case WM_DESTROY :
-		// 64ビット対応
-//		SetWindowLong(hWnd,GWL_WNDPROC,(DWORD)pOldTbarLocalProc);
-		SetWindowLongPtr(hWnd,GWLP_WNDPROC,(LONG_PTR)pOldTbarLocalProc);
+		SetWindowLongPtrW(hWnd,GWLP_WNDPROC,(LONG_PTR)pOldTbarLocalProc);
 		break;
 	case WM_RBUTTONDBLCLK :
 	case WM_RBUTTONDOWN :
 	case WM_RBUTTONUP :
 		return TRUE;
 	}
-	return CallWindowProc(pOldTbarLocalProc, hWnd, uMessage, wParam, lParam);
+	return CallWindowProcW(pOldTbarLocalProc, hWnd, uMessage, wParam, lParam);
 }
 
 /*----- CreateToolbarEx のマウスクリック関連を無視する(TbarRemote用) ---------
@@ -2023,15 +1970,13 @@ static LRESULT CALLBACK CountermeasureTbarRemoteProc(HWND hWnd,UINT uMessage,WPA
 {
 	switch (uMessage) {
 	case WM_DESTROY :
-		// 64ビット対応
-//		SetWindowLong(hWnd,GWL_WNDPROC,(DWORD)pOldTbarRemoteProc);
-		SetWindowLongPtr(hWnd,GWLP_WNDPROC,(LONG_PTR)pOldTbarRemoteProc);
+		SetWindowLongPtrW(hWnd,GWLP_WNDPROC,(LONG_PTR)pOldTbarRemoteProc);
 		break;
 	case WM_RBUTTONDBLCLK :
 	case WM_RBUTTONDOWN :
 	case WM_RBUTTONUP :
 		return TRUE;
 	}
-	return CallWindowProc(pOldTbarRemoteProc, hWnd, uMessage, wParam, lParam);
+	return CallWindowProcW(pOldTbarRemoteProc, hWnd, uMessage, wParam, lParam);
 }
 /********************************************* ここまで */

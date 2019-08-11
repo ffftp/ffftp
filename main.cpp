@@ -72,7 +72,7 @@ static int EnterMasterPasswordAndSet(bool newpassword, HWND hWnd);
 
 /*===== ローカルなワーク =====*/
 
-static const char FtpClassStr[] = "FFFTPWin";
+static const wchar_t FtpClass[] = L"FFFTPWin";
 static const wchar_t WebURL[] = L"https://github.com/ffftp/ffftp";
 
 static HINSTANCE hInstFtp;
@@ -152,7 +152,6 @@ int RemoteTabWidth[6] = { 150, 120, 60, 37, 60, 60 };
 char UserMailAdrs[USER_MAIL_LEN+1] = { "who@example.com" };
 char ViewerName[VIEWERS][FMAX_PATH+1] = { { "notepad" }, { "" }, { "" } };
 HFONT ListFont = NULL;
-LOGFONT ListLogFont;
 int LocalFileSort = SORT_NAME;
 int LocalDirSort = SORT_NAME;
 int RemoteFileSort = SORT_NAME;
@@ -296,20 +295,8 @@ static auto const& helpPath() {
 }
 
 
-/*----- メインルーチン --------------------------------------------------------
-*
-*	Parameter
-*		HINSTANCE hInstance : このアプリケーションのこのインスタンスのハンドル
-*		HINSTANCE hPrevInstance : このアプリケーションの直前のインスタンスのハンドル
-*		LPSTR lpszCmdLine : アプリケーションが起動したときのコマンドラインをさすロングポインタ
-*		int cmdShow : 最初に表示するウインドウの形式。
-*
-*	Return Value
-*		int 最後のメッセージのwParam
-*----------------------------------------------------------------------------*/
-
-int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmdShow)
-{
+// メインルーチン
+int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in LPWSTR lpCmdLine, __in int nShowCmd) {
 #if _WIN32_WINNT < _WIN32_WINNT_VISTA
 	{
 		wchar_t moduleFileName[FMAX_PATH];
@@ -380,8 +367,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	Ret = FALSE;
 	hWndFtp = NULL;
 	hInstFtp = hInstance;
-	if(InitApp(lpszCmdLine, cmdShow) == FFFTP_SUCCESS)
-	{
+	if (auto u8CmdLine = u8(lpCmdLine); InitApp(data(u8CmdLine), nShowCmd) == FFFTP_SUCCESS) {
 		for(;;)
 		{
 			Sts = GetMessage(&Msg, NULL, 0, 0);
@@ -405,7 +391,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 		}
 		Ret = (int)Msg.wParam;
 	}
-	UnregisterClass(FtpClassStr, hInstFtp);
+	UnregisterClassW(FtpClass, hInstFtp);
 	FreeSSL();
 	CryptReleaseContext(HCryptProv, 0);
 	// ゾーンID設定追加
@@ -662,7 +648,6 @@ static int MakeAllWindows(int cmdShow)
 {
 	RECT Rect1;
 	RECT Rect2;
-	WNDCLASSEX wClass;
 	int Sts;
 	int StsTask;
 	int StsSbar;
@@ -675,19 +660,8 @@ static int MakeAllWindows(int cmdShow)
 
 	RootColorBrush = CreateSolidBrush(GetSysColor(COLOR_3DFACE));
 
-	wClass.cbSize = sizeof(WNDCLASSEX);
-	wClass.style         = 0;
-	wClass.lpfnWndProc   = FtpWndProc;
-	wClass.cbClsExtra    = 0;
-	wClass.cbWndExtra    = 0;
-	wClass.hInstance     = hInstFtp;
-	wClass.hIcon         = LoadIcon(hInstFtp, MAKEINTRESOURCE(ffftp));
-	wClass.hCursor       = NULL;
-	wClass.hbrBackground = RootColorBrush;
-	wClass.lpszMenuName  = (LPSTR)MAKEINTRESOURCE(main_menu);
-	wClass.lpszClassName = FtpClassStr;
-	wClass.hIconSm       = NULL;
-	RegisterClassEx(&wClass);
+	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, FtpWndProc, 0, 0, hInstFtp, LoadIconW(hInstFtp, MAKEINTRESOURCEW(ffftp)), 0, RootColorBrush, MAKEINTRESOURCEW(main_menu), FtpClass };
+	RegisterClassExW(&classEx);
 
 	// 高DPI対応
 //	ToolWinHeight = TOOLWIN_HEIGHT;
@@ -698,10 +672,7 @@ static int MakeAllWindows(int cmdShow)
 		WinPosX = CW_USEDEFAULT;
 		WinPosY = 0;
 	}
-	hWndFtp = CreateWindow(FtpClassStr, "FFFTP",
-				WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
-				WinPosX, WinPosY, WinWidth, WinHeight,
-				HWND_DESKTOP, 0, hInstFtp, NULL);
+	hWndFtp = CreateWindowExW(0, FtpClass, L"FFFTP", WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, WinPosX, WinPosY, WinWidth, WinHeight, HWND_DESKTOP, 0, hInstFtp, nullptr);
 
 	if(hWndFtp != NULL)
 	{
@@ -770,7 +741,7 @@ void DispWindowTitle() {
 		sprintf(text, "%s (%s) - FFFTP", TitleHostName, FilterStr);
 	else
 		sprintf(text, "FFFTP (%s)", FilterStr);
-	SetWindowText(GetMainHwnd(), text);
+	SetWindowTextW(GetMainHwnd(), u8(text).c_str());
 }
 
 
@@ -1822,13 +1793,13 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				ResizeWindowProc();
 			}
 			else
-				return(DefWindowProc(hWnd, message, wParam, lParam));
+				return DefWindowProcW(hWnd, message, wParam, lParam);
 			break;
 
 		case WM_MOVING :
 			WinPosX = ((RECT *)lParam)->left;
 			WinPosY = ((RECT *)lParam)->top;
-			return(DefWindowProc(hWnd, message, wParam, lParam));
+			return DefWindowProcW(hWnd, message, wParam, lParam);
 
 		case WM_SETFOCUS :
 			SetFocus(hWndCurFocus);
@@ -1902,12 +1873,12 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		case WM_CLOSE :
 			if (AskTransferNow() == NO || Dialog(hInstFtp, exit_dlg, hWnd)) {
 				ExitProc(hWnd);
-				return(DefWindowProc(hWnd, message, wParam, lParam));
+				return DefWindowProcW(hWnd, message, wParam, lParam);
 			}
 			break;
 
 		default :
-			return(DefWindowProc(hWnd, message, wParam, lParam));
+			return DefWindowProcW(hWnd, message, wParam, lParam);
 	}
 	return(0L);
 }
@@ -2787,61 +2758,30 @@ static void DispDirInfo(void)
 }
 
 
-
-/*----- ビューワを起動 --------------------------------------------------------
-*
-*	Parameter
-*		char Fname : ファイル名
-*		int App : アプリケーション番号（-1=関連づけ優先）
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void ExecViewer(char *Fname, int App)
-{
-	STARTUPINFO Startup;
-	char AssocProg[FMAX_PATH+1];
-	char ComLine[FMAX_PATH*2+3+1];
-	char CurDir[FMAX_PATH+1];
-
+// ビューワを起動
+void ExecViewer(char *Fname, int App) {
 	/* FindExecutable()は関連付けられたプログラムのパス名にスペースが	*/
 	/* 含まれている時、間違ったパス名を返す事がある。					*/
 	/* そこで、関連付けられたプログラムの起動はShellExecute()を使う。	*/
-
-	AskLocalCurDir(CurDir, FMAX_PATH);
-
-	// 任意のコードが実行されるバグ修正
-	// 拡張子が無いと補完されるため
-//	if((App == -1) && (FindExecutable(Fname, NULL, AssocProg) > (HINSTANCE)32))
-	if((App == -1) && (strlen(GetFileExt(GetFileName(Fname))) > 0) && (FindExecutable(Fname, NULL, AssocProg) > (HINSTANCE)32))
-	{
+	char ComLine[FMAX_PATH * 2 + 3 + 1];
+	auto pFname = fs::u8path(Fname);
+	if (wchar_t result[MAX_PATH]; App == -1 && pFname.has_extension() && FindExecutableW(pFname.c_str(), nullptr, result) > (HINSTANCE)32) {
+		// 拡張子があるので関連付けを実行する
 		DoPrintf("ShellExecute - %s", Fname);
-		ShellExecute(NULL, "open", Fname, NULL, CurDir, SW_SHOW);
-	}
-	// ローカルフォルダを開く
-	else if((App == -1) && (GetFileAttributes(Fname) & FILE_ATTRIBUTE_DIRECTORY))
-	{
+		char CurDir[FMAX_PATH + 1];
+		AskLocalCurDir(CurDir, FMAX_PATH);
+		ShellExecuteW(0, L"open", pFname.c_str(), nullptr, fs::u8path(CurDir).c_str(), SW_SHOW);
+	} else if (App == -1 && (GetFileAttributesW(pFname.c_str()) & FILE_ATTRIBUTE_DIRECTORY)) {
+		// ディレクトリなのでフォルダを開く
 		MakeDistinguishableFileName(ComLine, Fname);
 		DoPrintf("ShellExecute - %s", Fname);
-		ShellExecute(NULL, "open", ComLine, NULL, Fname, SW_SHOW);
-	}
-	else
-	{
-		App = max1(0, App);
-		strcpy(AssocProg, ViewerName[App]);
-
-		if(strchr(Fname, ' ') == NULL)
-			sprintf(ComLine, "%s %s", AssocProg, Fname);
-		else
-			sprintf(ComLine, "%s \"%s\"", AssocProg, Fname);
-
-		DoPrintf("FindExecutable - %s", ComLine);
-
-		memset(&Startup, NUL, sizeof(STARTUPINFO));
-		Startup.cb = sizeof(STARTUPINFO);
-		Startup.wShowWindow = SW_SHOW;
-		if (ProcessInformation Info; !CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, systemDirectory().u8string().c_str(), &Startup, &Info)) {
+		ShellExecuteW(0, L"open", u8(ComLine).c_str(), nullptr, pFname.c_str(), SW_SHOW);
+	} else {
+		sprintf(ComLine, "%s \"%s\"", ViewerName[App == -1 ? 0 : App], Fname);
+		DoPrintf("CreateProcess - %s", ComLine);
+		STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
+		auto wComLine = u8(ComLine);
+		if (ProcessInformation pi; !CreateProcessW(nullptr, data(wComLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
 			SetTaskMsg(MSGJPN182, GetLastError());
 			SetTaskMsg(">>%s", ComLine);
 		}
@@ -2862,7 +2802,6 @@ void ExecViewer(char *Fname, int App)
 
 void ExecViewer2(char *Fname1, char *Fname2, int App)
 {
-	STARTUPINFO Startup;
 	char AssocProg[FMAX_PATH+1];
 	char ComLine[FMAX_PATH*2+3+1];
 
@@ -2879,10 +2818,9 @@ void ExecViewer2(char *Fname1, char *Fname2, int App)
 
 	DoPrintf("FindExecutable - %s", ComLine);
 
-	memset(&Startup, NUL, sizeof(STARTUPINFO));
-	Startup.cb = sizeof(STARTUPINFO);
-	Startup.wShowWindow = SW_SHOW;
-	if (ProcessInformation Info; !CreateProcess(NULL, ComLine, NULL, NULL, FALSE, 0, NULL, systemDirectory().u8string().c_str(), &Startup, &Info)) {
+	STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
+	auto wComLine = u8(ComLine);
+	if (ProcessInformation pi; !CreateProcessW(nullptr, data(wComLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
 		SetTaskMsg(MSGJPN182, GetLastError());
 		SetTaskMsg(">>%s", ComLine);
 	}
@@ -2974,21 +2912,10 @@ static void AboutDialog(HWND hWnd) {
 }
 
 
-/*----- サウンドを鳴らす ------------------------------------------------------
-*
-*	Parameter
-*		Int num : サウンドの種類 (SND_xxx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SoundPlay(int Num)
-{
-	if(Sound[Num].On == YES)
-		sndPlaySound(Sound[Num].Fname, SND_ASYNC | SND_NODEFAULT);
-
-	return;
+// サウンドを鳴らす
+void SoundPlay(int Num) {
+	if (Sound[Num].On == YES)
+		sndPlaySoundW(u8(Sound[Num].Fname).c_str(), SND_ASYNC | SND_NODEFAULT);
 }
 
 
@@ -3158,22 +3085,11 @@ BOOL IsMainThread()
 	return TRUE;
 }
 
-// 全設定暗号化対応
-int Restart()
-{
-	int Sts;
-	char* CommandLine;
-	STARTUPINFO si;
-	Sts = FFFTP_FAIL;
-	if(CommandLine = (char*)malloc(sizeof(char) * (strlen(GetCommandLine())  + 1)))
-	{
-		strcpy(CommandLine, GetCommandLine());
-		GetStartupInfo(&si);
-		if(ProcessInformation pi; CreateProcess(NULL, CommandLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-			Sts = FFFTP_SUCCESS;
-		free(CommandLine);
-	}
-	return Sts;
+void Restart() {
+	STARTUPINFOW si;
+	GetStartupInfoW(&si);
+	ProcessInformation pi;
+	CreateProcessW(nullptr, GetCommandLineW(), nullptr, nullptr, false, 0, nullptr, nullptr, &si, &pi);
 }
 
 void Terminate()

@@ -36,56 +36,18 @@
 
 static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffset, int xoffset2, int InRect);
 static int CellRectFromPoint(HWND hWnd, POINT  point, RECT *cellrect, int *col);
-static LRESULT CALLBACK TitleTipWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 /*===== ローカルなワーク =====*/
 
 static HWND hWndTips;	/* tipsのウインドウハンドル */
 
 
-
-/*----- リストビューティップスのウインドウを作成 ------------------------------
-*
-*	Parameter
-*		HWND hWnd : 親ウインドウのハンドル
-*		HINSTANCE hInst : インスタンスハンドル
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int InitListViewTips(HWND hWnd, HINSTANCE hInst)
-{
-	WNDCLASSEX wClass;
-	int Ret;
-
-	Ret = FFFTP_FAIL;
-
-	wClass.cbSize = sizeof(WNDCLASSEX);
-	wClass.style         = 0;
-	wClass.lpfnWndProc   = TitleTipWndProc;
-	wClass.cbClsExtra    = 0;
-	wClass.cbWndExtra    = 0;
-	wClass.hInstance     = hInst;
-	wClass.hIcon         = NULL;
-	wClass.hCursor       = NULL;
-	wClass.hbrBackground = (HBRUSH)CreateSolidBrush(GetSysColor(COLOR_INFOBK));
-	wClass.lpszMenuName  = NULL;
-	wClass.lpszClassName = "XTitleTip";
-	wClass.hIconSm       = NULL;
-	RegisterClassEx(&wClass);
-
-	hWndTips = CreateWindowEx(WS_EX_TOOLWINDOW | WS_EX_TOPMOST,
-				"XTitleTip", NULL,
-				WS_BORDER | WS_POPUP,
-				0, 0, 0, 0,
-				hWnd, NULL, hInst, NULL);
-
-	if(hWndTips != NULL)
-		Ret = FFFTP_SUCCESS;
-
-	return(Ret);
+// リストビューティップスのウインドウを作成
+int InitListViewTips(HWND hWnd, HINSTANCE hInst) {
+	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, DefWindowProcW, 0, 0, hInst, 0, 0, CreateSolidBrush(GetSysColor(COLOR_INFOBK)), nullptr, L"XTitleTip" };
+	RegisterClassExW(&classEx);
+	hWndTips = CreateWindowExW(WS_EX_TOOLWINDOW | WS_EX_TOPMOST, L"XTitleTip", nullptr, WS_BORDER | WS_POPUP, 0, 0, 0, 0, hWnd, 0, hInst, nullptr);
+	return hWndTips ? FFFTP_SUCCESS : FFFTP_FAIL;
 }
 
 
@@ -210,56 +172,27 @@ void CheckTipsDisplay(HWND hWnd, LPARAM lParam)
 *		なし
 *----------------------------------------------------------------------------*/
 
-static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffset, int xoffset2, int InRect)
-{
-	HDC dc;
-	HFONT pFont;
-	HFONT pFontDC;
-	RECT rectDisplay;
+static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffset, int xoffset2, int InRect) {
+	if (InRect != NO || GetFocus() == NULL)
+		return;
+
+	RectClientToScreen(hWnd, &rectTitle);
+	auto wText = u8(lpszTitleText);
+	auto font = (HFONT)SendMessageW(hWnd, WM_GETFONT, 0, 0);
+
+	auto dc = GetDC(hWndTips);
+	auto saved = (HFONT)SelectObject(dc, font);
+	SetTextColor(dc, GetSysColor(COLOR_INFOTEXT));
+	SetBkMode(dc, TRANSPARENT);
 	SIZE size;
-
-	if(InRect == NO)
-	{
-		if(GetFocus() != NULL)
-		{
-			RectClientToScreen(hWnd, &rectTitle);
-
-			/* ListViewウインドウのフォントを得る */
-			dc = GetDC(hWnd);
-			pFont = (HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0);
-			ReleaseDC(hWnd, dc);
-
-			dc = GetDC(hWndTips);
-			pFontDC = (HFONT)SelectObject(dc, pFont);
-
-			SetTextColor(dc, GetSysColor(COLOR_INFOTEXT));
-			SetBkMode(dc, TRANSPARENT);
-
-			rectDisplay = rectTitle;
-			GetTextExtentPoint32(dc, lpszTitleText, (int)strlen(lpszTitleText), &size);
-			rectDisplay.left += xoffset;
-			rectDisplay.right = rectDisplay.left + size.cx + 2;
-
-			if(rectDisplay.right > rectTitle.right-xoffset2)
-			{
-				rectDisplay.right += 1;
-
-				SetWindowPos(hWndTips, HWND_TOPMOST, 
-					rectDisplay.left, rectDisplay.top, 
-					rectDisplay.right - rectDisplay.left, 
-					rectDisplay.bottom - rectDisplay.top, 
-					SWP_SHOWWINDOW|SWP_NOACTIVATE );
-
-				TextOut(dc, 0, 0, lpszTitleText, (int)strlen(lpszTitleText));
-
-				SetCapture(hWnd);
-			}
-
-			SelectObject(dc, pFontDC);
-			ReleaseDC(hWndTips, dc);
-		}
+	GetTextExtentPoint32W(dc, wText.c_str(), size_as<int>(wText), &size);
+	if (rectTitle.right - rectTitle.left < size.cx + xoffset + xoffset2 + 2) {
+		SetWindowPos(hWndTips, HWND_TOPMOST, rectTitle.left + xoffset, rectTitle.top, size.cx + 3, rectTitle.bottom - rectTitle.top, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+		TextOutW(dc, 0, 0, wText.c_str(), size_as<int>(wText));
+		SetCapture(hWnd);
 	}
-	return;
+	SelectObject(dc, saved);
+	ReleaseDC(hWndTips, dc);
 }
 
 
@@ -288,9 +221,7 @@ static int CellRectFromPoint(HWND hWnd, POINT point, RECT *cellrect, int *col)
 	int Ret;
 
 	Ret = -1;
-	// 64ビット対応
-//	if((GetWindowLong(hWnd, GWL_STYLE) & LVS_TYPEMASK) == LVS_REPORT )
-	if((GetWindowLongPtr(hWnd, GWL_STYLE) & LVS_TYPEMASK) == LVS_REPORT )
+	if((GetWindowLongPtrW(hWnd, GWL_STYLE) & LVS_TYPEMASK) == LVS_REPORT )
 	{
 		row = ListView_GetTopIndex(hWnd);
 		bottom = row + ListView_GetCountPerPage(hWnd);
@@ -330,23 +261,3 @@ static int CellRectFromPoint(HWND hWnd, POINT point, RECT *cellrect, int *col)
 	}
 	return(Ret);
 }
-
-
-/*----- リストビューティップスウインドウのコールバック ------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		UINT message  : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		メッセージに対応する戻り値
-*----------------------------------------------------------------------------*/
-
-static LRESULT CALLBACK TitleTipWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	return(DefWindowProc(hWnd, message, wParam, lParam));
-}
-
-

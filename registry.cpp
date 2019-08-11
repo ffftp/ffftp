@@ -37,8 +37,8 @@ const int AES_BLOCK_SIZE = 16;
 //static void SaveIntNum(HKEY hKey, char *Key, int Num, int DefaultNum);
 static void SaveStr(void *Handle, char *Key, char *Str, char *DefaultStr);
 static void SaveIntNum(void *Handle, char *Key, int Num, int DefaultNum);
-static void MakeFontData(LOGFONT Font, HFONT hFont, char *Buf);
-static int RestoreFontData(char *Str, LOGFONT *Font);
+static std::wstring MakeFontData(HFONT hfont, LOGFONTW const& logFont);
+static std::optional<LOGFONTW> RestoreFontData(const wchar_t* str);
 
 static void EncodePassword(std::string_view const& Str, char *Buf);
 
@@ -51,7 +51,7 @@ static bool CreateAesKey(unsigned char *AesKey);
 static void SetRegType(int Type);
 static int OpenReg(char *Name, void **Handle);
 static int CreateReg(char *Name, void **Handle);
-static int CloseReg(void *Handle);
+static void CloseReg(void *Handle);
 static int OpenSubKey(void *Parent, char *Name, void **Handle);
 static int CreateSubKey(void *Parent, char *Name, void **Handle);
 static int CloseSubKey(void *Handle);
@@ -112,7 +112,7 @@ extern int RemoteTabWidth[6];
 extern char UserMailAdrs[USER_MAIL_LEN+1];
 extern char ViewerName[VIEWERS][FMAX_PATH+1];
 extern HFONT ListFont;
-extern LOGFONT ListLogFont;
+extern LOGFONTW ListLogFont;
 extern int LocalFileSort;
 extern int LocalDirSort;
 extern int RemoteFileSort;
@@ -170,7 +170,6 @@ extern int SuppressSave;
 
 extern int UpExistMode;
 extern int ExistMode;
-extern int DispIgnoreHide;
 extern int DispDrives;
 extern int MirUpDelNotify;
 extern int MirDownDelNotify;
@@ -513,7 +512,7 @@ void SaveRegistry(void)
 				WriteIntValueToReg(hKey4, "MirUNot", MirUpDelNotify);
 				WriteIntValueToReg(hKey4, "MirDNot", MirDownDelNotify);
 
-				MakeFontData(ListLogFont, ListFont, Str);
+				strcpy(Str, u8(MakeFontData(ListFont, ListLogFont)).c_str());
 				WriteStringToReg(hKey4, "ListFont", Str);
 				WriteIntValueToReg(hKey4, "ListHide", DispIgnoreHide);
 				WriteIntValueToReg(hKey4, "ListDrv", DispDrives);
@@ -1086,10 +1085,12 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "MirUNot", &MirUpDelNotify);
 			ReadIntValueFromReg(hKey4, "MirDNot", &MirDownDelNotify);
 
-			if(ReadStringFromReg(hKey4, "ListFont", Str, 256) == FFFTP_SUCCESS)
-			{
-				if(RestoreFontData(Str, &ListLogFont) == FFFTP_SUCCESS)
-					ListFont = CreateFontIndirect(&ListLogFont);
+			if (ReadStringFromReg(hKey4, "ListFont", Str, 256) == FFFTP_SUCCESS) {
+				if (auto logfont = RestoreFontData(u8(Str).c_str())) {
+					ListLogFont = *logfont;
+					ListFont = CreateFontIndirectW(&ListLogFont);
+				} else
+					ListLogFont = {};
 			}
 			ReadIntValueFromReg(hKey4, "ListHide", &DispIgnoreHide);
 			ReadIntValueFromReg(hKey4, "ListDrv", &DispDrives);
@@ -1410,59 +1411,6 @@ int LoadRegistry(void)
 }
 
 
-/*----- 隠しドライブ情報を取得 ------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		DWORD 
-*			YES/NO=設定無し
-*----------------------------------------------------------------------------*/
-
-DWORD LoadHideDriveListRegistry(void)
-{
-	HKEY hKey1;
-	HKEY hKey2;
-	HKEY hKey3;
-	HKEY hKey4;
-	HKEY hKey5;
-	HKEY hKey6;
-	DWORD Size;
-	DWORD Type;
-	DWORD Ret;
-
-	Ret = 0;
-	if(RegOpenKeyEx(HKEY_CURRENT_USER, "Software", 0, KEY_READ, &hKey1) == ERROR_SUCCESS)
-	{
-		if(RegOpenKeyEx(hKey1, "Microsoft", 0, KEY_READ, &hKey2) == ERROR_SUCCESS)
-		{
-			if(RegOpenKeyEx(hKey2, "Windows", 0, KEY_READ, &hKey3) == ERROR_SUCCESS)
-			{
-				if(RegOpenKeyEx(hKey3, "CurrentVersion", 0, KEY_READ, &hKey4) == ERROR_SUCCESS)
-				{
-					if(RegOpenKeyEx(hKey4, "Policies", 0, KEY_READ, &hKey5) == ERROR_SUCCESS)
-					{
-						if(RegOpenKeyEx(hKey5, "Explorer", 0, KEY_READ, &hKey6) == ERROR_SUCCESS)
-						{
-							Size = sizeof(DWORD);
-							RegQueryValueEx(hKey6, "NoDrives", NULL, &Type, (BYTE *)&Ret, &Size);
-							RegCloseKey(hKey6);
-						}
-						RegCloseKey(hKey5);
-					}
-					RegCloseKey(hKey4);
-				}
-				RegCloseKey(hKey3);
-			}
-			RegCloseKey(hKey2);
-		}
-		RegCloseKey(hKey1);
-	}
-	return(Ret);
-}
-
-
 /*----- レジストリの設定値をクリア --------------------------------------------
 *
 *	Parameter
@@ -1632,71 +1580,32 @@ static void SaveIntNum(void *Handle, char *Key, int Num, int DefaultNum)
 }
 
 
-/*----- LOGFONTデータを文字列に変換する ---------------------------------------
-*
-*	Parameter
-*		LOGFONT Font : フォントデータ
-*		HFONT hFont : フォントのハンドル
-*			NULL = デフォルトのフォント
-*		char *Buf : バッファ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void MakeFontData(LOGFONT Font, HFONT hFont, char *Buf)
-{
-	*Buf = NUL;
-	if(hFont != NULL)
-		sprintf(Buf, "%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %s",
-			Font.lfHeight, Font.lfWidth, Font.lfEscapement, Font.lfOrientation,
-			Font.lfWeight, Font.lfItalic, Font.lfUnderline, Font.lfStrikeOut,
-			Font.lfCharSet, Font.lfOutPrecision, Font.lfClipPrecision,
-			Font.lfQuality, Font.lfPitchAndFamily, Font.lfFaceName);
-	return;
+// LOGFONTデータを文字列に変換する
+static std::wstring MakeFontData(HFONT hfont, LOGFONTW const& logfont) {
+	if (!hfont)
+		return {};
+	wchar_t buffer[1024];
+	swprintf(buffer, std::size(buffer), L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %s",
+		logfont.lfHeight, logfont.lfWidth, logfont.lfEscapement, logfont.lfOrientation, logfont.lfWeight,
+		logfont.lfItalic, logfont.lfUnderline, logfont.lfStrikeOut, logfont.lfCharSet,
+		logfont.lfOutPrecision, logfont.lfClipPrecision, logfont.lfQuality, logfont.lfPitchAndFamily, logfont.lfFaceName
+	);
+	return buffer;
 }
 
 
-/*----- 文字列をLOGFONTデータに変換する ---------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*		LOGFONT *Font : フォントデータ
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL=変換できない
-*----------------------------------------------------------------------------*/
-
-static int RestoreFontData(char *Str, LOGFONT *Font)
-{
-	int i;
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	if(sscanf(Str, "%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu",
-			&(Font->lfHeight), &(Font->lfWidth), &(Font->lfEscapement), &(Font->lfOrientation),
-			&(Font->lfWeight), &(Font->lfItalic), &(Font->lfUnderline), &(Font->lfStrikeOut),
-			&(Font->lfCharSet), &(Font->lfOutPrecision), &(Font->lfClipPrecision),
-			&(Font->lfQuality), &(Font->lfPitchAndFamily)) == 13)
-	{
-		for(i = 13; i > 0; i--)
-		{
-			if((Str = strchr(Str, ' ')) == NULL)
-				break;
-			Str++;
-		}
-		if(i == 0)
-		{
-			strcpy(Font->lfFaceName, Str);
-			Sts = FFFTP_SUCCESS;
-		}
-	}
-
-	if(Sts == FFFTP_FAIL)
-		memset(Font, NUL, sizeof(LOGFONT));
-
-	return(Sts);
+// 文字列をLOGFONTデータに変換する
+static std::optional<LOGFONTW> RestoreFontData(const wchar_t* str) {
+	LOGFONTW logfont;
+	int offset;
+	auto read = swscanf(str, L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
+		&logfont.lfHeight, &logfont.lfWidth, &logfont.lfEscapement, &logfont.lfOrientation, &logfont.lfWeight,
+		&logfont.lfItalic, &logfont.lfUnderline, &logfont.lfStrikeOut, &logfont.lfCharSet,
+		&logfont.lfOutPrecision, &logfont.lfClipPrecision, &logfont.lfQuality, &logfont.lfPitchAndFamily, &offset);
+	if (read != 13)
+		return {};
+	wcscpy(logfont.lfFaceName, str + offset);
+	return logfont;
 }
 
 // パスワードを暗号化する(AES)
@@ -1976,7 +1885,7 @@ typedef struct regdatatbl_reg {
 
 /*===== プロトタイプ =====*/
 
-static BOOL WriteOutRegToFile(REGDATATBL *Pos);
+static void WriteOutRegToFile(REGDATATBL *Pos);
 static int ReadInReg(char *Name, REGDATATBL **Handle);
 // 暗号化通信対応
 //static int StrCatOut(char *Src, int Len, char *Dst);
@@ -2102,189 +2011,78 @@ static int CreateReg(char *Name, void **Handle)
 }
 
 
-/*----- レジストリ/INIファイルをクローズする ----------------------------------
-*
-*	Parameter
-*		void *Handle : ハンドル
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int CloseReg(void *Handle)
-{
-	REGDATATBL *Pos;
-	REGDATATBL *Next;
-	// ポータブル版判定
-//	FILE *Strm;
-
-	if(TmpRegType == REGTYPE_REG)
-	{
-		// 全設定暗号化対応
-//		RegCloseKey(Handle);
+// レジストリ/INIファイルをクローズする
+static void CloseReg(void *Handle) {
+	if (TmpRegType == REGTYPE_REG) {
 		RegCloseKey(((REGDATATBL_REG *)Handle)->hKey);
 		free(Handle);
-
-		/* INIファイルを削除 */
-		// ポータブル版判定
-//		if((Strm = fopen(AskIniFilePath(), "rt")) != NULL)
-//		{
-//			fclose(Strm);
-//			MoveFileToTrashCan(AskIniFilePath());
-//		}
-	}
-	else
-	{
-		if(((REGDATATBL *)Handle)->Mode == 1)
-		{
-			if(WriteOutRegToFile((REGDATATBL*)Handle) == TRUE)
-			{
-//				/* レジストリをクリア */
-//				ClearRegistry();
-			}
-		}
+	} else {
+		if (((REGDATATBL *)Handle)->Mode == 1)
+			WriteOutRegToFile((REGDATATBL*)Handle);
 		/* テーブルを削除 */
-		Pos = (REGDATATBL*)Handle;
-		while(Pos != NULL)
-		{
-			Next = Pos->Next;
+		for (auto Pos = (REGDATATBL*)Handle; Pos;) {
+			auto Next = Pos->Next;
 			free(Pos);
 			Pos = Next;
 		}
 	}
-	return(FFFTP_SUCCESS);
 }
 
 
-/*----- レジストリ情報をINIファイルに書き込む ---------------------------------
-*
-*	Parameter
-*		REGDATATBL *Pos : レジストリデータ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static BOOL WriteOutRegToFile(REGDATATBL *Pos)
-{
-	FILE *Strm;
-	char *Disp;
-	BOOL Ret;
-
-	Ret = FALSE;
-	if((Strm = fopen(AskIniFilePath(), "wt")) != NULL)
-	{
-		fprintf(Strm, MSGJPN239);
-		while(Pos != NULL)
-		{
-			fprintf(Strm, "\n[%s]\n", Pos->KeyName);
-
-			Disp = Pos->ValTbl;
-			while(Disp < (Pos->ValTbl + Pos->ValLen))
-			{
-				fprintf(Strm, "%s\n", Disp);
-				Disp = Disp + strlen(Disp) + 1;
-			}
-			Pos = Pos->Next;
-		}
-		fclose(Strm);
-		Ret = TRUE;
-	}
-	else
-		// バグ修正
-//		MessageBox(NULL, MSGJPN240, "FFFTP", MB_OK);
+// レジストリ情報をINIファイルに書き込む
+static void WriteOutRegToFile(REGDATATBL *Pos) {
+	std::ofstream of{ fs::u8path(AskIniFilePath()) };
+	if (!of) {
 		MessageBox(GetMainHwnd(), MSGJPN240, "FFFTP", MB_OK | MB_ICONERROR);
-
-	return(Ret);
+		return;
+	}
+	of << MSGJPN239;
+	for (; Pos; Pos = Pos->Next) {
+		of << "\n[" << Pos->KeyName << "]\n";
+		for (auto Disp = Pos->ValTbl; Disp < Pos->ValTbl + Pos->ValLen; Disp += strlen(Disp) + 1)
+			of << Disp << "\n";
+	}
 }
 
 
-/*----- INIファイルからレジストリ情報を読み込む -------------------------------
-*
-*	Parameter
-*		char *Name : 名前
-*		void *Handle : ハンドル
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int ReadInReg(char *Name, REGDATATBL **Handle)
-{
-	FILE *Strm;
-	char *Buf;
-	char *Tmp;
-	char *Data;
-	REGDATATBL *New;
-	REGDATATBL *Pos;
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	*Handle = NULL;
-	// バグ修正
-	New = NULL;
-
-	if((Strm = fopen(AskIniFilePath(), "rt")) != NULL)
-	{
-		if((Buf = (char*)malloc(REG_SECT_MAX)) != NULL)
-		{
-			while(fgets(Buf, REG_SECT_MAX, Strm) != NULL)
-			{
-				if(*Buf != '#')
-				{
-					if((Tmp = strchr(Buf, '\n')) != NULL)
-						*Tmp = NUL;
-
-					if(*Buf == '[')
-					{
-						if((New = (REGDATATBL*)malloc(sizeof(REGDATATBL))) != NULL)
-						{
-							if((Tmp = strchr(Buf, ']')) != NULL)
-								*Tmp = NUL;
-							// バグ修正
-//							strcpy(New->KeyName, Buf+1);
-							strncpy(New->KeyName, Buf+1, 80);
-							New->KeyName[80] = NUL;
-							New->ValLen = 0;
-							New->Next = NULL;
-							Data = New->ValTbl;
-						}
-						if(*Handle == NULL)
-							*Handle = New;
-						else
-						{
-							Pos = *Handle;
-							while(Pos->Next != NULL)
-								Pos = Pos->Next;
-							Pos->Next = New;
-						}
-					}
-					else if(strlen(Buf) > 0)
-					{
-						// バグ修正
-//						strcpy(Data, Buf);
-//						Data += strlen(Buf) + 1;
-//						New->ValLen += strlen(Buf) + 1;
-						if(Data != NULL && New != NULL)
-						{
-							if(New->ValLen + strlen(Buf) + 1 <= REG_SECT_MAX)
-							{
-								strcpy(Data, Buf);
-								Data += strlen(Buf) + 1;
-								New->ValLen += (int)strlen(Buf) + 1;
-							}
-						}
-					}
-				}
+// INIファイルからレジストリ情報を読み込む
+static int ReadInReg(char *Name, REGDATATBL **Handle) {
+	*Handle = nullptr;
+	std::ifstream is{ fs::u8path(AskIniFilePath()) };
+	if (!is)
+		return FFFTP_FAIL;
+	REGDATATBL *New = nullptr;
+	char *Data = nullptr;
+	for (std::string line; getline(is, line);) {
+		if (empty(line) || line[0] == '#')
+			continue;
+		if (line[0] == '[') {
+			if ((New = (REGDATATBL*)malloc(sizeof(REGDATATBL))) != NULL) {
+				if (auto p = strchr(data(line), ']'))
+					*p = NUL;
+				strncpy(New->KeyName, &line[1], 80);
+				New->KeyName[80] = NUL;
+				New->ValLen = 0;
+				New->Next = NULL;
+				Data = New->ValTbl;
 			}
-			Sts = FFFTP_SUCCESS;
-			free(Buf);
+			if (*Handle == NULL)
+				*Handle = New;
+			else {
+				auto Pos = *Handle;
+				while (Pos->Next != NULL)
+					Pos = Pos->Next;
+				Pos->Next = New;
+			}
+		} else {
+			if (New && New->ValLen + size_as<int>(line) + 1 <= REG_SECT_MAX) {
+				strcpy(Data, &line[0]);
+				Data += size(line) + 1;
+				New->ValLen += size_as<int>(line) + 1;
+			}
 		}
-		fclose(Strm);
 	}
-	return(Sts);
+	return FFFTP_SUCCESS;
 }
 
 

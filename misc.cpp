@@ -587,59 +587,34 @@ void MakeSizeString(double Size, char *Buf) {
 }
 
 
-/*----- StaticTextの領域に収まるようにパス名を整形して表示 --------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		char *Str : 文字列 (長さはFMAX_PATH以下)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
+// StaticTextの領域に収まるようにパス名を整形して表示
+void DispStaticText(HWND hWnd, char *Str) {
+	RECT rect;
+	GetClientRect(hWnd, &rect);
+	auto width = rect.right - rect.left;
 
-void DispStaticText(HWND hWnd, char *Str)
-{
-	char Buf[FMAX_PATH+1];
-	char *Pos;
-	char *Tmp;
-	RECT Rect;
-	SIZE fSize;
-	HDC hDC;
-	int Force;
-
-	GetClientRect(hWnd, &Rect);
-	Rect.right -= Rect.left;
-
-	hDC = GetDC(hWnd);
-	strcpy(Buf, Str);
-	Pos = Buf;
-	Force = NO;
-	while(Force == NO)
-	{
-		GetTextExtentPoint32(hDC, Pos, (int)strlen(Pos), &fSize);
-
-		if(fSize.cx <= Rect.right)
+	auto dc = GetDC(hWnd);
+	auto wStr = u8(Str);
+	auto p = wStr.data();
+	for (;;) {
+		int len = (int)wcslen(p);
+		if (len <= 4)
 			break;
-
-		if(_mbslen((const unsigned char*)Pos) <= 4)
-			Force = YES;
-		else
-		{
-			Pos = (char*)_mbsninc((const unsigned char*)Pos, 4);
-			if((Tmp = (char*)_mbschr((const unsigned char*)Pos, '\\')) == NULL)
-				Tmp = (char*)_mbschr((const unsigned char*)Pos, '/');
-
-			if(Tmp == NULL)
-				Tmp = (char*)_mbsninc((const unsigned char*)Pos, 4);
-
-			Pos = Tmp - 3;
-			memset(Pos, '.', 3);
-		}
+		SIZE size;
+		GetTextExtentPoint32W(dc, p, len, &size);
+		if (size.cx <= rect.right)
+			break;
+		p += 4;
+		auto q = wcschr(p, L'\\');
+		if (q == NULL)
+			q = wcschr(p, L'/');
+		if (q == NULL)
+			q = p + 4;
+		p = q - 3;
+		std::fill_n(p, 3, L'.');
 	}
-	ReleaseDC(hWnd, hDC);
-
-	SendMessage(hWnd, WM_SETTEXT, 0, (LPARAM)Pos);
-	return;
+	ReleaseDC(hWnd, dc);
+	SendMessageW(hWnd, WM_SETTEXT, 0, (LPARAM)p);
 }
 
 
@@ -1232,41 +1207,6 @@ int SelectDir(HWND hWnd, char *Buf, int MaxLen) {
 }
 
 
-/*----- ファイルが読み取り可能かどうかを返す ----------------------------------
-*
-*	Parameter
-*		char *Fname : ファイル名
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int CheckFileReadable(char *Fname)
-{
-	int Sts;
-	HANDLE iFileHandle;
-	SECURITY_ATTRIBUTES Sec;
-
-	Sts = FFFTP_FAIL;
-
-	Sec.nLength = sizeof(SECURITY_ATTRIBUTES);
-	Sec.lpSecurityDescriptor = NULL;
-	Sec.bInheritHandle = FALSE;
-
-	if((iFileHandle = CreateFile(Fname, GENERIC_READ,
-		FILE_SHARE_READ|FILE_SHARE_WRITE, &Sec, OPEN_EXISTING, 0, NULL)) != INVALID_HANDLE_VALUE)
-	{
-		Sts = FFFTP_SUCCESS;
-		CloseHandle(iFileHandle);
-	}
-	return(Sts);
-}
-
-
-
-
-
 int max1(int n, int m)
 {
 	if(n > m)
@@ -1325,36 +1265,6 @@ void SwapInt(int *Num1, int *Num2)
 }
 
 
-/*----- 指定されたフォルダがあるかどうかチェック -------------------------------
-*
-*	Parameter
-*		char *Path : パス
-*
-*	Return Value
-*		int ステータス (YES/NO)
-*----------------------------------------------------------------------------*/
-
-int IsFolderExist(char *Path)
-{
-	int Sts;
-	char Tmp[FMAX_PATH+1];
-	DWORD Attr;
-
-	Sts = YES;
-	if(strlen(Path) > 0)
-	{
-		strcpy(Tmp, Path);
-		if(_mbscmp((const unsigned char*)Tmp+1, (const unsigned char*)":\\") != 0)
-			RemoveYenTail(Tmp);
-
-		Attr = GetFileAttributes(Tmp);
-		if((Attr == 0xFFFFFFFF) || ((Attr & FILE_ATTRIBUTE_DIRECTORY) == 0))
-			Sts = NO;
-	}
-	return(Sts);
-}
-
-
 /*----- テーブルにしたがって数値を登録 -----------------------------------------
 *
 *	Parameter
@@ -1391,36 +1301,13 @@ int ConvertNum(int x, int Dir, const INTCONVTBL *Tbl, int Num)
 }
 
 
-
-
-
-
-/*----- ファイルをゴミ箱に削除 ------------------------------------------------
-*
-*	Parameter
-*		char *Path : ファイル名
-*
-*	Return Value
-*		int ステータス (0=正常終了)
-*----------------------------------------------------------------------------*/
-
-int MoveFileToTrashCan(char *Path)
-{
-	SHFILEOPSTRUCT FileOp;
-	char Tmp[FMAX_PATH+2];
-
-	memset(Tmp, 0, FMAX_PATH+2);
-	strcpy(Tmp, Path);
-	FileOp.hwnd = NULL;
-	FileOp.wFunc = FO_DELETE;
-	FileOp.pFrom = Tmp;
-	FileOp.pTo = "";
-	FileOp.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_ALLOWUNDO;
-	FileOp.lpszProgressTitle = "";
-	return(SHFileOperation(&FileOp));
+// ファイルをゴミ箱に削除
+int MoveFileToTrashCan(const char *Path) {
+	auto wPath = u8(Path);
+	wPath += L'\0';			// for PCZZSTR
+	SHFILEOPSTRUCTW op{ 0, FO_DELETE, wPath.c_str(), nullptr, FOF_SILENT | FOF_NOCONFIRMATION | FOF_ALLOWUNDO | FOF_NOERRORUI };
+	return SHFileOperationW(&op);
 }
-
-
 
 
 LONGLONG MakeLongLong(DWORD High, DWORD Low)
@@ -1460,45 +1347,29 @@ char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma)
 }
 
 
-// 異なるファイルが表示されるバグ修正
-
 // ShellExecute等で使用されるファイル名を修正
 // UNCでない場合に末尾の半角スペースは無視されるため拡張子が補完されなくなるまで半角スペースを追加
 // 現在UNC対応の予定は無い
-char* MakeDistinguishableFileName(char* Out, char* In)
-{
-	char* Fname;
-	char Tmp[FMAX_PATH+1];
-	char Tmp2[FMAX_PATH+3];
-	HANDLE hFind;
-	WIN32_FIND_DATA Find;
-	if(strlen(GetFileExt(GetFileName(In))) > 0)
+char* MakeDistinguishableFileName(char* Out, char* In) {
+	if (strlen(GetFileExt(GetFileName(In))) > 0)
 		strcpy(Out, In);
-	else
-	{
-		Fname = GetFileName(In);
-		strcpy(Tmp, In);
-		strcpy(Tmp2, Tmp);
-		strcat(Tmp2, ".*");
-		while(strlen(Tmp) < FMAX_PATH && (hFind = FindFirstFile(Tmp2, &Find)) != INVALID_HANDLE_VALUE)
-		{
-			do
-			{
-				if(strcmp(Find.cFileName, Fname) != 0)
+	else {
+		auto const Fname = u8(GetFileName(In));
+		auto current = u8(In);
+		WIN32_FIND_DATAW data;
+		for (HANDLE handle; (handle = FindFirstFileW((current + L".*"sv).c_str(), &data)) != INVALID_HANDLE_VALUE; current += L' ') {
+			bool invalid = false;
+			do {
+				if (data.cFileName != Fname) {
+					invalid = true;
 					break;
-			}
-			while(FindNextFile(hFind, &Find));
-			FindClose(hFind);
-			if(strcmp(Find.cFileName, Fname) != 0)
-			{
-				strcat(Tmp, " ");
-				strcpy(Tmp2, Tmp);
-				strcat(Tmp2, ".*");
-			}
-			else
+				}
+			} while (FindNextFileW(handle, &data));
+			FindClose(handle);
+			if (!invalid)
 				break;
 		}
-		strcpy(Out, Tmp);
+		strcpy(Out, u8(current).c_str());
 	}
 	return Out;
 }

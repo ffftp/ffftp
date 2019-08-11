@@ -11,75 +11,18 @@
 
 #ifndef DO_NOT_REPLACE
 
-#undef WinMain
-#define WinMain WinMainM
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow);
-#undef LoadLibrary
-#define LoadLibrary LoadLibraryM
-HMODULE LoadLibraryM(LPCSTR lpLibFileName);
-#undef CreateFile
-#define CreateFile CreateFileM
-HANDLE CreateFileM(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
 #undef MessageBox
 #define MessageBox MessageBoxM
 int MessageBoxM(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
-#undef FindFirstFile
-#define FindFirstFile FindFirstFileM
-HANDLE FindFirstFileM(LPCSTR lpFileName, LPWIN32_FIND_DATAA lpFindFileData);
-#undef FindNextFile
-#define FindNextFile FindNextFileM
-BOOL FindNextFileM(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData);
-#undef FindFirstChangeNotification
-#define FindFirstChangeNotification FindFirstChangeNotificationM
-HANDLE FindFirstChangeNotificationM(LPCSTR lpPathName, BOOL bWatchSubtree, DWORD dwNotifyFilter);
-#undef GetLogicalDriveStrings
-#define GetLogicalDriveStrings GetLogicalDriveStringsM
-DWORD GetLogicalDriveStringsM(DWORD nBufferLength, LPSTR lpBuffer);
-#undef RegisterClassEx
-#define RegisterClassEx RegisterClassExM
-ATOM RegisterClassExM(CONST WNDCLASSEXA * v0);
-#undef CreateWindowEx
-#define CreateWindowEx CreateWindowExM
-HWND CreateWindowExM(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
-#undef GetWindowLong
-#define GetWindowLong GetWindowLongM
-LONG GetWindowLongM(HWND hWnd, int nIndex);
-#undef SetWindowLong
-#define SetWindowLong SetWindowLongM
-LONG SetWindowLongM(HWND hWnd, int nIndex, LONG dwNewLong);
-#undef GetWindowLongPtr
-#define GetWindowLongPtr GetWindowLongPtrM
-LONG_PTR GetWindowLongPtrM(HWND hWnd, int nIndex);
-#undef SetWindowLongPtr
-#define SetWindowLongPtr SetWindowLongPtrM
-LONG_PTR SetWindowLongPtrM(HWND hWnd, int nIndex, LONG_PTR dwNewLong);
-#undef DefWindowProc
-#define DefWindowProc DefWindowProcM
-LRESULT DefWindowProcM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-#undef CallWindowProc
-#define CallWindowProc CallWindowProcM
-LRESULT CallWindowProcM(WNDPROC lpPrevWndFunc, HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 #undef SendMessage
 #define SendMessage SendMessageM
 LRESULT SendMessageM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-#undef DefDlgProc
-#define DefDlgProc DefDlgProcM
-LRESULT DefDlgProcM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 #undef SendDlgItemMessage
 #define SendDlgItemMessage SendDlgItemMessageM
 LRESULT SendDlgItemMessageM(HWND hDlg, int nIDDlgItem, UINT Msg, WPARAM wParam, LPARAM lParam);
-#undef SetWindowText
-#define SetWindowText SetWindowTextM
-BOOL SetWindowTextM(HWND hWnd, LPCSTR lpString);
 #undef DragQueryFile
 #define DragQueryFile DragQueryFileM
 UINT DragQueryFileM(HDROP hDrop, UINT iFile, LPSTR lpszFile, UINT cch);
-#undef GetCommandLine
-#define GetCommandLine GetCommandLineM
-LPSTR GetCommandLineM();
-#undef GetFileAttributes
-#define GetFileAttributes GetFileAttributesM
-DWORD GetFileAttributesM(LPCSTR lpFileName);
 #undef RegOpenKeyEx
 #define RegOpenKeyEx RegOpenKeyExM
 LSTATUS RegOpenKeyExM(HKEY hKey, LPCSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult);
@@ -95,57 +38,9 @@ LSTATUS RegQueryValueExM(HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDW
 #undef RegSetValueEx
 #define RegSetValueEx RegSetValueExM
 LSTATUS RegSetValueExM(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, CONST BYTE* lpData, DWORD cbData);
-#undef TextOut
-#define TextOut TextOutM
-BOOL TextOutM(HDC hdc, int x, int y, LPCSTR lpString, int c);
-#undef GetTextExtentPoint32
-#define GetTextExtentPoint32 GetTextExtentPoint32M
-BOOL GetTextExtentPoint32M(HDC hdc, LPCSTR lpString, int c, LPSIZE psizl);
-#undef CreateProcess
-#define CreateProcess CreateProcessM
-BOOL CreateProcessM(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation);
-#undef FindExecutable
-#define FindExecutable FindExecutableM
-HINSTANCE FindExecutableM(LPCSTR lpFile, LPCSTR lpDirectory, LPSTR lpResult);
-#undef ShellExecute
-#define ShellExecute ShellExecuteM
-HINSTANCE ShellExecuteM(HWND hwnd, LPCSTR lpOperation, LPCSTR lpFile, LPCSTR lpParameters, LPCSTR lpDirectory, INT nShowCmd);
-#undef ShellExecuteEx
-#define ShellExecuteEx ShellExecuteExM
-BOOL ShellExecuteExM(LPSHELLEXECUTEINFOA lpExecInfo);
-#undef SHFileOperation
-#define SHFileOperation SHFileOperationM
-int SHFileOperationM(LPSHFILEOPSTRUCTA lpFileOp);
 #undef AppendMenu
 #define AppendMenu AppendMenuM
 BOOL AppendMenuM(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, LPCSTR lpNewItem);
-#undef GetMenuItemInfo
-#define GetMenuItemInfo GetMenuItemInfoM
-BOOL GetMenuItemInfoM(HMENU hmenu, UINT item, BOOL fByPosition, LPMENUITEMINFOA lpmii);
-#undef CreateFontIndirect
-#define CreateFontIndirect CreateFontIndirectM
-HFONT CreateFontIndirectM(CONST LOGFONTA *lplf);
-#undef ChooseFont
-#define ChooseFont ChooseFontM
-BOOL ChooseFontM(LPCHOOSEFONTA v0);
-#undef CreateDialogParam
-#define CreateDialogParam CreateDialogParamM
-HWND CreateDialogParamM(HINSTANCE hInstance, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
-#undef sndPlaySound
-#define sndPlaySound sndPlaySoundM
-BOOL sndPlaySoundM(LPCSTR pszSound, UINT fuSound);
-#undef MoveFile
-#define MoveFile MoveFileM
-BOOL MoveFileM(LPCSTR lpExistingFileName, LPCSTR lpNewFileName);
-#undef CreateDirectory
-#define CreateDirectory CreateDirectoryM
-BOOL CreateDirectoryM(LPCSTR lpPathName, LPSECURITY_ATTRIBUTES lpSecurityAttributes);
-#undef mkdir
-#define mkdir _mkdirM
-int mkdirM(const char * _Path);
-#undef _mkdir
-#define _mkdir _mkdirM
-int _mkdirM(const char * _Path);
 #undef _mbslen
 #define _mbslen _mbslenM
 size_t _mbslenM(const unsigned char * _Str);
@@ -176,12 +71,6 @@ unsigned char * _mbsuprM(unsigned char * _String);
 #undef _mbsninc
 #define _mbsninc _mbsnincM
 unsigned char * _mbsnincM(const unsigned char * _Str, size_t _Count);
-#undef fopen
-#define fopen fopenM
-FILE * fopenM(const char * _Filename, const char * _Mode);
-
-#undef CreateWindow
-#define CreateWindow(lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam) CreateWindowEx(0L, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam)
 
 #endif
 
@@ -229,8 +118,6 @@ BOOL FixStringM(LPSTR pDst, LPCSTR pSrc);
 void FreeDuplicatedString(void* p);
 int MultiByteToWideCharAlternative(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar);
 int WideCharToMultiByteAlternative(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar);
-
-int WINAPI WinMainM(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow);
 
 #endif
 

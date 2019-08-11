@@ -1371,8 +1371,7 @@ void ResetAutoExitFlg(void);
 int AskAutoExit(void);
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 BOOL IsMainThread();
-// 全設定暗号化対応
-int Restart();
+void Restart();
 void Terminate();
 // タスクバー進捗表示
 int LoadTaskbarList3();
@@ -1656,8 +1655,6 @@ void DoLocalRMD(char *Path);
 void DoLocalDELE(char *Path);
 void DoLocalRENAME(char *Src, char *Dst);
 void DispFileProperty(char *Fname);
-HANDLE FindFirstFileAttr(char *Fname, WIN32_FIND_DATA *FindData, int IgnHide);
-BOOL FindNextFileAttr(HANDLE hFind, WIN32_FIND_DATA *FindData, int IgnHide);
 
 /*===== remote.c =====*/
 
@@ -1801,7 +1798,6 @@ void SetMasterPassword( const char* );
 void GetMasterPassword(char*);
 int GetMasterPasswordStatus(void);
 int ValidateMasterPassword(void);
-DWORD LoadHideDriveListRegistry(void);
 void SaveSettingsToFile(void);
 int LoadSettingsFromFile(void);
 // ポータブル版判定
@@ -1867,14 +1863,12 @@ void AttrValue2String(int Attr, char *Buf, int ShowNumber);
 void FormatIniString(char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 int SelectDir(HWND hWnd, char *Buf, int MaxLen);
-int CheckFileReadable(char *Fname);
 int max1(int n, int m);
 int min1(int n, int m);
 void ExcEndianDWORD(DWORD *x);
 void SwapInt(int *Num1, int *Num2);
-int IsFolderExist(char *Path);
 int ConvertNum(int x, int Dir, const INTCONVTBL *Tbl, int Num);
-int MoveFileToTrashCan(char *Path);
+int MoveFileToTrashCan(const char *Path);
 LONGLONG MakeLongLong(DWORD High, DWORD Low);
 char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma);
 // 異なるファイルが表示されるバグ修正
@@ -1944,6 +1938,7 @@ int CheckClosedAndReconnect(void);
 int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
 
 
+extern int DispIgnoreHide;
 extern HCRYPTPROV HCryptProv;
 
 template<class Target, class Source>
@@ -2120,3 +2115,29 @@ struct ProcessInformation : PROCESS_INFORMATION {
 			CloseHandle(hProcess);
 	}
 };
+template<class Fn>
+static inline void FindFile(fs::path const& fileName, Fn&& fn) {
+	WIN32_FIND_DATAW data;
+	if (auto handle = FindFirstFileW(fileName.c_str(), &data); handle != INVALID_HANDLE_VALUE) {
+		do {
+			if (DispIgnoreHide == YES && (data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN))
+				continue;
+			if (std::wstring_view filename{ data.cFileName }; filename == L"."sv || filename == L".."sv)
+				continue;
+			fn(data);
+		} while (FindNextFileW(handle, &data));
+		FindClose(handle);
+	}
+}
+template<class Fn>
+static inline void GetDrives(Fn&& fn) {
+	auto drives = GetLogicalDrives();
+	DWORD nodrives = 0;
+	DWORD size = sizeof(DWORD);
+	SHRegGetUSValueW(LR"(Software\Microsoft\Windows\CurrentVersion\Policies\Explorer)", L"NoDrives", nullptr, &nodrives, &size, false, nullptr, 0);
+	for (int i = 0; i < sizeof(DWORD) * 8; i++)
+		if ((drives & 1 << i) != 0 && (nodrives & 1 << i) == 0) {
+			wchar_t drive[] = { wchar_t(L'A' + i), L':', L'\\', 0 };
+			fn(drive);
+		}
+}
