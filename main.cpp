@@ -295,20 +295,8 @@ static auto const& helpPath() {
 }
 
 
-/*----- メインルーチン --------------------------------------------------------
-*
-*	Parameter
-*		HINSTANCE hInstance : このアプリケーションのこのインスタンスのハンドル
-*		HINSTANCE hPrevInstance : このアプリケーションの直前のインスタンスのハンドル
-*		LPSTR lpszCmdLine : アプリケーションが起動したときのコマンドラインをさすロングポインタ
-*		int cmdShow : 最初に表示するウインドウの形式。
-*
-*	Return Value
-*		int 最後のメッセージのwParam
-*----------------------------------------------------------------------------*/
-
-int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmdShow)
-{
+// メインルーチン
+int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in LPWSTR lpCmdLine, __in int nShowCmd) {
 #if _WIN32_WINNT < _WIN32_WINNT_VISTA
 	{
 		wchar_t moduleFileName[FMAX_PATH];
@@ -379,8 +367,7 @@ int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	Ret = FALSE;
 	hWndFtp = NULL;
 	hInstFtp = hInstance;
-	if(InitApp(lpszCmdLine, cmdShow) == FFFTP_SUCCESS)
-	{
+	if (auto u8CmdLine = u8(lpCmdLine); InitApp(data(u8CmdLine), nShowCmd) == FFFTP_SUCCESS) {
 		for(;;)
 		{
 			Sts = GetMessage(&Msg, NULL, 0, 0);

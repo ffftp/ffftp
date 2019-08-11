@@ -789,18 +789,6 @@ int WideCharToMultiByteAlternative(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideC
 #define END_ROUTINE						}while(0);end_of_routine:
 #define QUIT_ROUTINE					goto end_of_routine;
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
-{
-	int r = 0;
-	char* pm0 = NULL;
-START_ROUTINE
-	pm0 = DuplicateWtoM(lpCmdLine, -1);
-	r = WinMainM(hInstance, hPrevInstance, pm0, nCmdShow);
-END_ROUTINE
-	FreeDuplicatedString(pm0);
-	return r;
-}
-
 int MessageBoxM(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
 {
 	int r = IDOK;
