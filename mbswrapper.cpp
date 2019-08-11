@@ -804,30 +804,6 @@ END_ROUTINE
 	return r;
 }
 
-LRESULT DefWindowProcM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
-{
-	LRESULT r = 0;
-START_ROUTINE
-	if(IsWindowUnicode(hWnd))
-		r = DefWindowProcW(hWnd, Msg, wParam, lParam);
-	else
-		r = DefWindowProcA(hWnd, Msg, wParam, lParam);
-END_ROUTINE
-	return r;
-}
-
-LRESULT CallWindowProcM(WNDPROC lpPrevWndFunc, HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
-{
-	LRESULT r = 0;
-START_ROUTINE
-	if(IsWindowUnicode(hWnd))
-		r = CallWindowProcW(lpPrevWndFunc, hWnd, Msg, wParam, lParam);
-	else
-		r = CallWindowProcA(lpPrevWndFunc, hWnd, Msg, wParam, lParam);
-END_ROUTINE
-	return r;
-}
-
 LRESULT SendMessageM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT r = 0;
@@ -1192,19 +1168,6 @@ START_ROUTINE
 END_ROUTINE
 	FreeDuplicatedString(pw0);
 	FreeDuplicatedString(pw1);
-	return r;
-}
-
-LRESULT DefDlgProcM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
-{
-	LRESULT r = 0;
-START_ROUTINE
-	// WNDPROCがShift_JIS用であるため
-	if(IsWindowUnicode(hWnd))
-		r = DefDlgProcW(hWnd, Msg, wParam, lParam);
-	else
-		r = DefDlgProcA(hWnd, Msg, wParam, lParam);
-END_ROUTINE
 	return r;
 }
 

@@ -36,7 +36,6 @@
 
 static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffset, int xoffset2, int InRect);
 static int CellRectFromPoint(HWND hWnd, POINT  point, RECT *cellrect, int *col);
-static LRESULT CALLBACK TitleTipWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 /*===== ローカルなワーク =====*/
 
@@ -45,7 +44,7 @@ static HWND hWndTips;	/* tipsのウインドウハンドル */
 
 // リストビューティップスのウインドウを作成
 int InitListViewTips(HWND hWnd, HINSTANCE hInst) {
-	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, TitleTipWndProc, 0, 0, hInst, 0, 0, CreateSolidBrush(GetSysColor(COLOR_INFOBK)), nullptr, L"XTitleTip" };
+	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, DefWindowProcW, 0, 0, hInst, 0, 0, CreateSolidBrush(GetSysColor(COLOR_INFOBK)), nullptr, L"XTitleTip" };
 	RegisterClassExW(&classEx);
 	hWndTips = CreateWindowExW(WS_EX_TOOLWINDOW | WS_EX_TOPMOST, L"XTitleTip", nullptr, WS_BORDER | WS_POPUP, 0, 0, 0, 0, hWnd, 0, hInst, nullptr);
 	return hWndTips ? FFFTP_SUCCESS : FFFTP_FAIL;
@@ -262,23 +261,3 @@ static int CellRectFromPoint(HWND hWnd, POINT point, RECT *cellrect, int *col)
 	}
 	return(Ret);
 }
-
-
-/*----- リストビューティップスウインドウのコールバック ------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		UINT message  : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		メッセージに対応する戻り値
-*----------------------------------------------------------------------------*/
-
-static LRESULT CALLBACK TitleTipWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	return(DefWindowProc(hWnd, message, wParam, lParam));
-}
-
-

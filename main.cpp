@@ -1793,13 +1793,13 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				ResizeWindowProc();
 			}
 			else
-				return(DefWindowProc(hWnd, message, wParam, lParam));
+				return DefWindowProcW(hWnd, message, wParam, lParam);
 			break;
 
 		case WM_MOVING :
 			WinPosX = ((RECT *)lParam)->left;
 			WinPosY = ((RECT *)lParam)->top;
-			return(DefWindowProc(hWnd, message, wParam, lParam));
+			return DefWindowProcW(hWnd, message, wParam, lParam);
 
 		case WM_SETFOCUS :
 			SetFocus(hWndCurFocus);
@@ -1873,12 +1873,12 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 		case WM_CLOSE :
 			if (AskTransferNow() == NO || Dialog(hInstFtp, exit_dlg, hWnd)) {
 				ExitProc(hWnd);
-				return(DefWindowProc(hWnd, message, wParam, lParam));
+				return DefWindowProcW(hWnd, message, wParam, lParam);
 			}
 			break;
 
 		default :
-			return(DefWindowProc(hWnd, message, wParam, lParam));
+			return DefWindowProcW(hWnd, message, wParam, lParam);
 	}
 	return(0L);
 }

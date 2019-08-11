@@ -576,7 +576,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 				break;
 			}
 			EraseListViewTips();
-			return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
+			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 
 		case WM_KEYDOWN:
 			if(wParam == 0x09)
@@ -585,20 +585,20 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 				break;
 			}
 			EraseListViewTips();
-			return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
+			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 
 		case WM_SETFOCUS :
 			SetFocusHwnd(hWnd);
 			MakeButtonsFocus();
 			DispCurrentWindow(Win);
 			DispSelectedSpace();
-			return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
+			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 
 		case WM_KILLFOCUS :
 			EraseListViewTips();
 			MakeButtonsFocus();
 			DispCurrentWindow(-1);
-			return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
+			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 
 		case WM_DROPFILES :
 			// 同時接続対応
@@ -632,7 +632,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			DragPoint.x = LOWORD(lParam);
 			DragPoint.y = HIWORD(lParam);
 			hWndDragStart = hWnd;
-			return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
+			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 			break;
 
 		case WM_LBUTTONUP :
@@ -669,7 +669,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 
 				}
 			}
-			return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
+			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 
 		case WM_DRAGDROP:  
 			// OLE D&Dを開始する (yutaka)
@@ -862,7 +862,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			if(AskUserOpeDisabled() == YES)
 				break;
 			/* ここでファイルを選ぶ */
-			CallWindowProc(ProcPtr, hWnd, message, wParam, lParam);
+			CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 
 			EraseListViewTips();
 			SetFocus(hWnd);
@@ -918,12 +918,12 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 
 				}
 				else
-					return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
+					return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 			}
 			else
 			{
 				CheckTipsDisplay(hWnd, lParam);
-				return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
+				return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 			}
 			break;
 
@@ -949,14 +949,14 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 //					PostMessage(hWndPnt, WM_VSCROLL, MAKEWPARAM(SB_ENDSCROLL, 0), 0);
 				}
 				else if(hWndPnt == hWnd)
-					return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
+					return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 				else if((hWndPnt == hWndDst) || (hWndPnt == GetTaskWnd()))
 					PostMessage(hWndPnt, message, wParam, lParam);
 			}
 			break;
 
 		default :
-			return(CallWindowProc(ProcPtr, hWnd, message, wParam, lParam));
+			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 	}
 	return(0L);
 }

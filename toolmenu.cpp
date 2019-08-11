@@ -454,11 +454,11 @@ static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wPara
 				}
 			}
 			else
-				return(CallWindowProc(HistEditBoxProcPtr, hWnd, message, wParam, lParam));
+				return CallWindowProcW(HistEditBoxProcPtr, hWnd, message, wParam, lParam);
 			break;
 
 		default :
-			return(CallWindowProc(HistEditBoxProcPtr, hWnd, message, wParam, lParam));
+			return CallWindowProcW(HistEditBoxProcPtr, hWnd, message, wParam, lParam);
 	}
 	return(0L);
 }
@@ -1943,7 +1943,7 @@ static LRESULT CALLBACK CountermeasureTbarMainProc(HWND hWnd,UINT uMessage,WPARA
 	case WM_RBUTTONUP :
 		return TRUE;
 	}
-	return CallWindowProc(pOldTbarMainProc, hWnd, uMessage, wParam, lParam);
+	return CallWindowProcW(pOldTbarMainProc, hWnd, uMessage, wParam, lParam);
 }
 
 /*----- CreateToolbarEx のマウスクリック関連を無視する(TbarLocal用) ----------
@@ -1960,7 +1960,7 @@ static LRESULT CALLBACK CountermeasureTbarLocalProc(HWND hWnd,UINT uMessage,WPAR
 	case WM_RBUTTONUP :
 		return TRUE;
 	}
-	return CallWindowProc(pOldTbarLocalProc, hWnd, uMessage, wParam, lParam);
+	return CallWindowProcW(pOldTbarLocalProc, hWnd, uMessage, wParam, lParam);
 }
 
 /*----- CreateToolbarEx のマウスクリック関連を無視する(TbarRemote用) ---------
@@ -1977,6 +1977,6 @@ static LRESULT CALLBACK CountermeasureTbarRemoteProc(HWND hWnd,UINT uMessage,WPA
 	case WM_RBUTTONUP :
 		return TRUE;
 	}
-	return CallWindowProc(pOldTbarRemoteProc, hWnd, uMessage, wParam, lParam);
+	return CallWindowProcW(pOldTbarRemoteProc, hWnd, uMessage, wParam, lParam);
 }
 /********************************************* ここまで */
