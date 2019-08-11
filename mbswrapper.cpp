@@ -804,30 +804,6 @@ END_ROUTINE
 	return r;
 }
 
-LONG_PTR GetWindowLongPtrM(HWND hWnd, int nIndex)
-{
-	LONG_PTR r = 0;
-START_ROUTINE
-	if(IsWindowUnicode(hWnd))
-		r = GetWindowLongPtrW(hWnd, nIndex);
-	else
-		r = GetWindowLongPtrA(hWnd, nIndex);
-END_ROUTINE
-	return r;
-}
-
-LONG_PTR SetWindowLongPtrM(HWND hWnd, int nIndex, LONG_PTR dwNewLong)
-{
-	LONG_PTR r = 0;
-START_ROUTINE
-	if(IsWindowUnicode(hWnd))
-		r = SetWindowLongPtrW(hWnd, nIndex, dwNewLong);
-	else
-		r = SetWindowLongPtrA(hWnd, nIndex, dwNewLong);
-END_ROUTINE
-	return r;
-}
-
 LRESULT DefWindowProcM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT r = 0;

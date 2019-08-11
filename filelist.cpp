@@ -164,7 +164,7 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 
 	if(hWndListLocal != NULL)
 	{
-		LocalProcPtr = (WNDPROC)SetWindowLongPtr(hWndListLocal, GWLP_WNDPROC, (LONG_PTR)LocalWndProc);
+		LocalProcPtr = (WNDPROC)SetWindowLongPtrW(hWndListLocal, GWLP_WNDPROC, (LONG_PTR)LocalWndProc);
 
 		Tmp = (long)SendMessage(hWndListLocal, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
 		Tmp |= LVS_EX_FULLROWSELECT;
@@ -209,7 +209,7 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 
 	if(hWndListRemote != NULL)
 	{
-		RemoteProcPtr = (WNDPROC)SetWindowLongPtr(hWndListRemote, GWLP_WNDPROC, (LONG_PTR)RemoteWndProc);
+		RemoteProcPtr = (WNDPROC)SetWindowLongPtrW(hWndListRemote, GWLP_WNDPROC, (LONG_PTR)RemoteWndProc);
 
 		Tmp = (long)SendMessage(hWndListRemote, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
 		Tmp |= LVS_EX_FULLROWSELECT;
@@ -1014,27 +1014,19 @@ void SetListViewType(void)
 	switch(ListType)
 	{
 		case LVS_LIST :
-			lStyle = GetWindowLongPtr(GetLocalHwnd(), GWL_STYLE);
-			lStyle &= ~(LVS_REPORT | LVS_LIST);
-			lStyle |= LVS_LIST;
-			SetWindowLongPtr(GetLocalHwnd(), GWL_STYLE, lStyle);
+			lStyle = GetWindowLongPtrW(GetLocalHwnd(), GWL_STYLE);
+			SetWindowLongPtrW(GetLocalHwnd(), GWL_STYLE, lStyle & ~LVS_REPORT | LVS_LIST);
 
-			lStyle = GetWindowLongPtr(GetRemoteHwnd(), GWL_STYLE);
-			lStyle &= ~(LVS_REPORT | LVS_LIST);
-			lStyle |= LVS_LIST;
-			SetWindowLongPtr(GetRemoteHwnd(), GWL_STYLE, lStyle);
+			lStyle = GetWindowLongPtrW(GetRemoteHwnd(), GWL_STYLE);
+			SetWindowLongPtrW(GetRemoteHwnd(), GWL_STYLE, lStyle & ~LVS_REPORT | LVS_LIST);
 			break;
 
 		default :
-			lStyle = GetWindowLongPtr(GetLocalHwnd(), GWL_STYLE);
-			lStyle &= ~(LVS_REPORT | LVS_LIST);
-			lStyle |= LVS_REPORT;
-			SetWindowLongPtr(GetLocalHwnd(), GWL_STYLE, lStyle);
+			lStyle = GetWindowLongPtrW(GetLocalHwnd(), GWL_STYLE);
+			SetWindowLongPtrW(GetLocalHwnd(), GWL_STYLE, lStyle & ~LVS_LIST | LVS_REPORT);
 
-			lStyle = GetWindowLongPtr(GetRemoteHwnd(), GWL_STYLE);
-			lStyle &= ~(LVS_REPORT | LVS_LIST);
-			lStyle |= LVS_REPORT;
-			SetWindowLongPtr(GetRemoteHwnd(), GWL_STYLE, lStyle);
+			lStyle = GetWindowLongPtrW(GetRemoteHwnd(), GWL_STYLE);
+			SetWindowLongPtrW(GetRemoteHwnd(), GWL_STYLE, lStyle & ~LVS_LIST | LVS_REPORT);
 			break;
 	}
 	return;

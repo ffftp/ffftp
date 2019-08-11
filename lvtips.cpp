@@ -222,7 +222,7 @@ static int CellRectFromPoint(HWND hWnd, POINT point, RECT *cellrect, int *col)
 	int Ret;
 
 	Ret = -1;
-	if((GetWindowLongPtr(hWnd, GWL_STYLE) & LVS_TYPEMASK) == LVS_REPORT )
+	if((GetWindowLongPtrW(hWnd, GWL_STYLE) & LVS_TYPEMASK) == LVS_REPORT )
 	{
 		row = ListView_GetTopIndex(hWnd);
 		bottom = row + ListView_GetCountPerPage(hWnd);
