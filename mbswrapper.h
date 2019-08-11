@@ -14,12 +14,6 @@
 #undef MessageBox
 #define MessageBox MessageBoxM
 int MessageBoxM(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
-#undef GetWindowLong
-#define GetWindowLong GetWindowLongM
-LONG GetWindowLongM(HWND hWnd, int nIndex);
-#undef SetWindowLong
-#define SetWindowLong SetWindowLongM
-LONG SetWindowLongM(HWND hWnd, int nIndex, LONG dwNewLong);
 #undef GetWindowLongPtr
 #define GetWindowLongPtr GetWindowLongPtrM
 LONG_PTR GetWindowLongPtrM(HWND hWnd, int nIndex);

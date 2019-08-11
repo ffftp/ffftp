@@ -164,8 +164,6 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 
 	if(hWndListLocal != NULL)
 	{
-		// 64ビット対応
-//		LocalProcPtr = (WNDPROC)SetWindowLong(hWndListLocal, GWL_WNDPROC, (LONG)LocalWndProc);
 		LocalProcPtr = (WNDPROC)SetWindowLongPtr(hWndListLocal, GWLP_WNDPROC, (LONG_PTR)LocalWndProc);
 
 		Tmp = (long)SendMessage(hWndListLocal, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
@@ -211,8 +209,6 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 
 	if(hWndListRemote != NULL)
 	{
-		// 64ビット対応
-//		RemoteProcPtr = (WNDPROC)SetWindowLong(hWndListRemote, GWL_WNDPROC, (LONG)RemoteWndProc);
 		RemoteProcPtr = (WNDPROC)SetWindowLongPtr(hWndListRemote, GWLP_WNDPROC, (LONG_PTR)RemoteWndProc);
 
 		Tmp = (long)SendMessage(hWndListRemote, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
@@ -1018,42 +1014,26 @@ void SetListViewType(void)
 	switch(ListType)
 	{
 		case LVS_LIST :
-			// 64ビット対応
-//			lStyle = GetWindowLong(GetLocalHwnd(), GWL_STYLE);
 			lStyle = GetWindowLongPtr(GetLocalHwnd(), GWL_STYLE);
 			lStyle &= ~(LVS_REPORT | LVS_LIST);
 			lStyle |= LVS_LIST;
-			// 64ビット対応
-//			SetWindowLong(GetLocalHwnd(), GWL_STYLE, lStyle);
 			SetWindowLongPtr(GetLocalHwnd(), GWL_STYLE, lStyle);
 
-			// 64ビット対応
-//			lStyle = GetWindowLong(GetRemoteHwnd(), GWL_STYLE);
 			lStyle = GetWindowLongPtr(GetRemoteHwnd(), GWL_STYLE);
 			lStyle &= ~(LVS_REPORT | LVS_LIST);
 			lStyle |= LVS_LIST;
-			// 64ビット対応
-//			SetWindowLong(GetRemoteHwnd(), GWL_STYLE, lStyle);
 			SetWindowLongPtr(GetRemoteHwnd(), GWL_STYLE, lStyle);
 			break;
 
 		default :
-			// 64ビット対応
-//			lStyle = GetWindowLong(GetLocalHwnd(), GWL_STYLE);
 			lStyle = GetWindowLongPtr(GetLocalHwnd(), GWL_STYLE);
 			lStyle &= ~(LVS_REPORT | LVS_LIST);
 			lStyle |= LVS_REPORT;
-			// 64ビット対応
-//			SetWindowLong(GetLocalHwnd(), GWL_STYLE, lStyle);
 			SetWindowLongPtr(GetLocalHwnd(), GWL_STYLE, lStyle);
 
-			// 64ビット対応
-//			lStyle = GetWindowLong(GetRemoteHwnd(), GWL_STYLE);
 			lStyle = GetWindowLongPtr(GetRemoteHwnd(), GWL_STYLE);
 			lStyle &= ~(LVS_REPORT | LVS_LIST);
 			lStyle |= LVS_REPORT;
-			// 64ビット対応
-//			SetWindowLong(GetRemoteHwnd(), GWL_STYLE, lStyle);
 			SetWindowLongPtr(GetRemoteHwnd(), GWL_STYLE, lStyle);
 			break;
 	}

@@ -804,30 +804,6 @@ END_ROUTINE
 	return r;
 }
 
-LONG GetWindowLongM(HWND hWnd, int nIndex)
-{
-	LONG r = 0;
-START_ROUTINE
-	if(IsWindowUnicode(hWnd))
-		r = GetWindowLongW(hWnd, nIndex);
-	else
-		r = GetWindowLongA(hWnd, nIndex);
-END_ROUTINE
-	return r;
-}
-
-LONG SetWindowLongM(HWND hWnd, int nIndex, LONG dwNewLong)
-{
-	LONG r = 0;
-START_ROUTINE
-	if(IsWindowUnicode(hWnd))
-		r = SetWindowLongW(hWnd, nIndex, dwNewLong);
-	else
-		r = SetWindowLongA(hWnd, nIndex, dwNewLong);
-END_ROUTINE
-	return r;
-}
-
 LONG_PTR GetWindowLongPtrM(HWND hWnd, int nIndex)
 {
 	LONG_PTR r = 0;
