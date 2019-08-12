@@ -2653,13 +2653,6 @@ BEGIN
     IDS_MSGJPN338           "Skip all"
     IDS_MSGJPN341           "Enable or disable stateful FTP filtering of Windows Firewall.\nIt works only on Windows Vista or later.\nEnabling or disabling may improve communication conditions.\nChoose 'Yes' to enable or 'No' to disable it."
     IDS_MSGJPN342           "Failed to turn on/off stateful FTP filtering."
-    IDS_MSGJPN343           "Determination result of the filename Kanji code is %s."
-    IDS_MSGJPN344           "Failed to determine the filename Kanji code."
-    IDS_MSGJPN345           "Shift_JIS"
-    IDS_MSGJPN346           "JIS"
-    IDS_MSGJPN347           "EUC"
-    IDS_MSGJPN348           "UTF-8"
-    IDS_MSGJPN349           "UTF-8 HFS+"
     IDS_MSGJPN350           "The settings of a newer version are detected.\nThe settings may not be read correctly, or they will be changed when they are overwritten for this version.\nChoose 'Yes' to overwrite settings for this version.\nChoose 'No' to save settings to the INI file.\nChoose 'Cancel' to load settings as read only."
 END
 

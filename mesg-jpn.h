@@ -270,13 +270,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN338 (std::data(msgs[10000+338])) /* 全てスキップ */
 #define MSGJPN341 (std::data(msgs[10000+341])) /* WindowsファイアウォールのステートフルFTPフィルタの有効無効を設定します.\nこれはWindows Vista以降でのみ動作します.\n有効化または無効化することで通信状態が改善されることがあります.\n有効化するには「はい」,無効化するには「いいえ」を選択してください. */
 #define MSGJPN342 (std::data(msgs[10000+342])) /* ステートフルFTPフィルタを設定できませんでした. */
-#define MSGJPN343 (std::data(msgs[10000+343])) /* ファイル名の漢字コードの判別結果は%sです. */
-#define MSGJPN344 (std::data(msgs[10000+344])) /* ファイル名の漢字コードを判別できませんでした. */
-#define MSGJPN345 (std::data(msgs[10000+345])) /* Shift_JIS */
-#define MSGJPN346 (std::data(msgs[10000+346])) /* JIS */
-#define MSGJPN347 (std::data(msgs[10000+347])) /* EUC */
-#define MSGJPN348 (std::data(msgs[10000+348])) /* UTF-8 */
-#define MSGJPN349 (std::data(msgs[10000+349])) /* UTF-8 HFS+ */
 #define MSGJPN350 (std::data(msgs[10000+350])) /* 新しいバージョンの設定が検出されました.\nこのバージョンでは一部の設定が正しく読み込まれない,またはこのバージョンで設定を上書きすると設定が変化する可能性があります.\nこのバージョン用に設定を上書きして保存するには「はい」を選択してください.\n設定をレジストリではなくINIファイルに保存するには「いいえ」を選択してください.\n読み取り専用で設定を読み込むには「キャンセル」を選択してください. */
 #define MSGJPN355 (std::data(msgs[10000+355])) /* 一つ上のフォルダへ移動(&P)... */
 #define MSGJPN357 (std::data(msgs[10000+357])) /* 設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください. */

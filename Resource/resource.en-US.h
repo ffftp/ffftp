@@ -738,13 +738,6 @@
 #define IDS_MSGJPN338                   10338
 #define IDS_MSGJPN341                   10341
 #define IDS_MSGJPN342                   10342
-#define IDS_MSGJPN343                   10343
-#define IDS_MSGJPN344                   10344
-#define IDS_MSGJPN345                   10345
-#define IDS_MSGJPN346                   10346
-#define IDS_MSGJPN347                   10347
-#define IDS_MSGJPN348                   10348
-#define IDS_MSGJPN349                   10349
 #define IDS_MSGJPN350                   10350
 #define IDS_MSGJPN355                   10355
 #define IDS_MSGJPN357                   10357
