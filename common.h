@@ -484,9 +484,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 #define LIST_MASKFLG	0xFF
 
-// UTF-8対応
-#define LIST_RAW_NAME	0x80000000
-
 /* ファイル一覧情報例 ---------------
 
 *LIST_UNIX_10

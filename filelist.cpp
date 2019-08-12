@@ -74,7 +74,6 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day);
 static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day);
 static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute);
 static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day);
-static int CheckSpecialDirName(char *Fname);
 static int AskFilterStr(const char *Fname, int Type);
 static int atoi_n(const char *Str, int Len);
 
@@ -2503,9 +2502,6 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 		return {};
 	std::vector<std::variant<FILELIST, std::string>> lines;
 	for (std::string line; getline(is, line);) {
-		if (convert)
-			line = ConvertFrom(line, AskHostNameKanji());
-
 		/* VAX VMSではファイル情報が複数行にわかれている	*/
 		/* それを１行にまとめる							*/
 		if (AskHostType() == HTYPE_VMS) {
@@ -2517,15 +2513,22 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 		line.erase(std::remove(begin(line), end(line), '\r'), end(line));
 		std::replace(begin(line), end(line), '\b', ' ');
 		if (auto list = AnalyzeFileInfo(data(line)); list != LIST_UNKNOWN) {
-			char file[FMAX_PATH + 1];
+			char buf[FMAX_PATH + 1];
 			LONGLONG size;
 			FILETIME time;
 			int attr;
 			char owner[OWNER_NAME_LEN + 1];
 			int link;
 			int infoExist;
-			auto node = ResolveFileInfo(data(line), list | (convert ? 0 : LIST_RAW_NAME), file, &size, &time, &attr, owner, &link, &infoExist);
-			lines.emplace_back(std::in_place_type<FILELIST>, file, (char)node, (char)link, size, attr, time, owner, (char)infoExist);
+			auto node = ResolveFileInfo(data(line), list, buf, &size, &time, &attr, owner, &link, &infoExist);
+			auto file = convert ? ConvertFrom(buf, AskHostNameKanji()) : buf;
+			if (convert && node != NODE_NONE && !empty(file)) {
+				if (auto last = file.back(); last == '/' || last == '\\')
+					file.resize(file.size() - 1);
+				if (empty(file) || file == "."sv || file == ".."sv)
+					node = NODE_NONE;
+			}
+			lines.emplace_back(std::in_place_type<FILELIST>, file.c_str(), (char)node, (char)link, size, attr, time, owner, (char)infoExist);
 		} else
 			lines.emplace_back(line);
 	}
@@ -4739,27 +4742,6 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			break;
 	}
 
-	// UTF-8対応
-//	if((Ret != NODE_NONE) && (strlen(Fname) > 0))
-	if(!(OrgListType & LIST_RAW_NAME) && (Ret != NODE_NONE) && (strlen(Fname) > 0))
-	{
-		// UTF-8対応
-//		if(CheckSpecialDirName(Fname) == YES)
-//			Ret = NODE_NONE;
-//		else
-//			ChangeFnameRemote2Local(Fname, FMAX_PATH);
-		// UTF-8の冗長表現によるディレクトリトラバーサル対策
-		FixStringM(Fname, Fname);
-		// 0x5Cが含まれる文字列を扱えないバグ修正
-		if((_mbscmp(_mbsninc((const unsigned char*)Fname, _mbslen((const unsigned char*)Fname) - 1), (const unsigned char*)"/") == 0)
-			|| (_mbscmp(_mbsninc((const unsigned char*)Fname, _mbslen((const unsigned char*)Fname) - 1), (const unsigned char*)"\\") == 0))
-			*(Fname + strlen(Fname) - 1) = NUL;
-		if(CheckSpecialDirName(Fname) == YES)
-			Ret = NODE_NONE;
-		// 文字コードが正しくないために長さが0になったファイル名は表示しない
-		if(strlen(Fname) == 0)
-			Ret = NODE_NONE;
-	}
 	return(Ret);
 }
 
@@ -5154,28 +5136,6 @@ int Assume1900or2000(int Year)
 	else
 		Year += 2000;
 	return(Year);
-}
-
-
-
-/*----- "."や".."かどうかを返す -----------------------------------------------
-*
-*	Parameter
-*		char *Fname : ファイル名
-*
-*	Return Value
-*		int ステータス (YES="."か".."のどちらか/NO)
-*----------------------------------------------------------------------------*/
-
-static int CheckSpecialDirName(char *Fname)
-{
-	int Sts;
-
-	Sts = NO;
-	if((strcmp(Fname, ".") == 0) || (strcmp(Fname, "..") == 0))
-		Sts = YES;
-
-	return(Sts);
 }
 
 
