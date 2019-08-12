@@ -21,9 +21,7 @@ static auto convert(std::string_view input, DWORD incp, DWORD outcp, void (*upda
 	for (;; ++scale) {
 		auto inlen = size_as<INT>(input), wlen = inlen * scale;
 		wstr.resize(wlen);
-		auto hr = convertINetMultiByteToUnicode(&mb2u, incp, data(input), &inlen, data(wstr), &wlen);
-		assert(hr == S_OK);
-		if (inlen == size_as<INT>(input)) {
+		if (auto hr = convertINetMultiByteToUnicode(&mb2u, incp, data(input), &inlen, data(wstr), &wlen); hr == S_OK && inlen == size_as<INT>(input)) {
 			wstr.resize(wlen);
 			break;
 		}
@@ -32,9 +30,7 @@ static auto convert(std::string_view input, DWORD incp, DWORD outcp, void (*upda
 	for (std::string output;; ++scale) {
 		auto wlen = size_as<INT>(wstr), outlen = wlen * scale;
 		output.resize(outlen);
-		auto hr = convertINetUnicodeToMultiByte(&u2mb, outcp, data(wstr), &wlen, data(output), &outlen);
-		assert(hr == S_OK);
-		if (wlen == size_as<INT>(wstr)) {
+		if (auto hr = convertINetUnicodeToMultiByte(&u2mb, outcp, data(wstr), &wlen, data(output), &outlen); hr == S_OK && wlen == size_as<INT>(wstr)) {
 			output.resize(outlen);
 			return output;
 		}
