@@ -1740,6 +1740,7 @@ class CodeDetector {
 public:
 	void Test(std::string_view str);
 	int result() const {
+		DoPrintf("CodeDetector::result(): utf8 %d, sjis %d, euc %d, jis %d, nfc %d, nfd %d", utf8, sjis, euc, jis, int(nfc), int(nfd));
 		auto& [_, id] = std::max<std::tuple<int, int>>({
 			{ utf8, KANJI_UTF8N },
 			{ sjis, KANJI_SJIS },

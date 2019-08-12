@@ -184,27 +184,6 @@ void ConnectProc(int Type, int Num)
 				{
 					if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
 						CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-					switch(CurHost.CurNameKanjiCode)
-					{
-					case KANJI_SJIS:
-						SetTaskMsg(MSGJPN343, MSGJPN345);
-						break;
-					case KANJI_JIS:
-						SetTaskMsg(MSGJPN343, MSGJPN346);
-						break;
-					case KANJI_EUC:
-						SetTaskMsg(MSGJPN343, MSGJPN347);
-						break;
-					case KANJI_UTF8N:
-						SetTaskMsg(MSGJPN343, MSGJPN348);
-						break;
-					case KANJI_UTF8HFSX:
-						SetTaskMsg(MSGJPN343, MSGJPN349);
-						break;
-					default:
-						SetTaskMsg(MSGJPN344);
-						break;
-					}
 				}
 
 				strcpy(TitleHostName, CurHost.HostName);
@@ -327,26 +306,6 @@ void QuickConnectProc() {
 				if (CurHost.CurNameKanjiCode == KANJI_AUTO) {
 					if (DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
 						CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-					switch (CurHost.CurNameKanjiCode) {
-					case KANJI_SJIS:
-						SetTaskMsg(MSGJPN343, MSGJPN345);
-						break;
-					case KANJI_JIS:
-						SetTaskMsg(MSGJPN343, MSGJPN346);
-						break;
-					case KANJI_EUC:
-						SetTaskMsg(MSGJPN343, MSGJPN347);
-						break;
-					case KANJI_UTF8N:
-						SetTaskMsg(MSGJPN343, MSGJPN348);
-						break;
-					case KANJI_UTF8HFSX:
-						SetTaskMsg(MSGJPN343, MSGJPN349);
-						break;
-					default:
-						SetTaskMsg(MSGJPN344);
-						break;
-					}
 				}
 
 				strcpy(TitleHostName, CurHost.HostAdrs);
@@ -453,27 +412,6 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 			{
 				if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
 					CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-				switch(CurHost.CurNameKanjiCode)
-				{
-				case KANJI_SJIS:
-					SetTaskMsg(MSGJPN343, MSGJPN345);
-					break;
-				case KANJI_JIS:
-					SetTaskMsg(MSGJPN343, MSGJPN346);
-					break;
-				case KANJI_EUC:
-					SetTaskMsg(MSGJPN343, MSGJPN347);
-					break;
-				case KANJI_UTF8N:
-					SetTaskMsg(MSGJPN343, MSGJPN348);
-					break;
-				case KANJI_UTF8HFSX:
-					SetTaskMsg(MSGJPN343, MSGJPN349);
-					break;
-				default:
-					SetTaskMsg(MSGJPN344);
-					break;
-				}
 			}
 
 			strcpy(TitleHostName, CurHost.HostAdrs);
@@ -564,27 +502,6 @@ void HistoryConnectProc(int MenuCmd)
 				{
 					if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
 						CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-					switch(CurHost.CurNameKanjiCode)
-					{
-					case KANJI_SJIS:
-						SetTaskMsg(MSGJPN343, MSGJPN345);
-						break;
-					case KANJI_JIS:
-						SetTaskMsg(MSGJPN343, MSGJPN346);
-						break;
-					case KANJI_EUC:
-						SetTaskMsg(MSGJPN343, MSGJPN347);
-						break;
-					case KANJI_UTF8N:
-						SetTaskMsg(MSGJPN343, MSGJPN348);
-						break;
-					case KANJI_UTF8HFSX:
-						SetTaskMsg(MSGJPN343, MSGJPN349);
-						break;
-					default:
-						SetTaskMsg(MSGJPN344);
-						break;
-					}
 				}
 
 				strcpy(TitleHostName, CurHost.HostAdrs);
