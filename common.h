@@ -1830,7 +1830,6 @@ bool ConnectRas(bool dialup, bool explicitly, bool confirm, std::wstring const& 
 void SetYenTail(char *Str);
 void RemoveYenTail(char *Str);
 void SetSlashTail(char *Str);
-void RemoveReturnCode(char *Str);
 void ReplaceAll(char *Str, char Src, char Dst);
 int IsDigitSym(int Ch, int Sym);
 int StrAllSameChar(char *Str, char Ch);

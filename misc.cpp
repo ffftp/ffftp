@@ -111,30 +111,6 @@ void SetSlashTail(char *Str)
 }
 
 
-/*----- 文字列から改行コードを取り除く ----------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		オリジナルの文字列 char *Str が変更されます。
-*----------------------------------------------------------------------------*/
-
-void RemoveReturnCode(char *Str)
-{
-	char *Pos;
-
-	if((Pos = strchr(Str, 0x0D)) != NULL)
-		*Pos = NUL;
-	if((Pos = strchr(Str, 0x0A)) != NULL)
-		*Pos = NUL;
-	return;
-}
-
-
 /*----- 文字列内の特定の文字を全て置き換える ----------------------------------
 *
 *	Parameter
