@@ -107,6 +107,7 @@ extern int DispFileIcon;
 extern int DispTimeSeconds;
 // ファイルの属性を数字で表示
 extern int DispPermissionsNumber;
+extern HOSTDATA CurHost;
 
 /*===== ローカルなワーク =====*/
 
@@ -2495,7 +2496,6 @@ void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base) {
 
 
 // ファイル一覧情報の１行を取得
-//   Vax VMSの時は、複数行のファイル情報を１行にまとめる
 static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLine(int Num, bool convert) {
 	std::ifstream is{ MakeCacheFileName(Num), std::ios::binary };
 	if (!is)
@@ -2521,16 +2521,34 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 			int link;
 			int infoExist;
 			auto node = ResolveFileInfo(data(line), list, buf, &size, &time, &attr, owner, &link, &infoExist);
-			auto file = convert ? ConvertFrom(buf, AskHostNameKanji()) : buf;
-			if (convert && node != NODE_NONE && !empty(file)) {
-				if (auto last = file.back(); last == '/' || last == '\\')
-					file.resize(file.size() - 1);
-				if (empty(file) || file == "."sv || file == ".."sv)
-					node = NODE_NONE;
-			}
-			lines.emplace_back(std::in_place_type<FILELIST>, file.c_str(), (char)node, (char)link, size, attr, time, owner, (char)infoExist);
+			lines.emplace_back(std::in_place_type<FILELIST>, buf, (char)node, (char)link, size, attr, time, owner, (char)infoExist);
 		} else
 			lines.emplace_back(line);
+	}
+	if (convert) {
+		if (CurHost.NameKanjiCode == KANJI_AUTO) {
+			CodeDetector cd;
+			for (auto& line : lines)
+				std::visit([&cd](auto&& arg) {
+					if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>)
+						if (arg.Node != NODE_NONE && 0 < strlen(arg.File))
+							cd.Test(arg.File);
+				}, line);
+			CurHost.CurNameKanjiCode = cd.result();
+		} else
+			CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
+		for (auto& line : lines)
+			std::visit([](auto&& arg) {
+				if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>)
+					if (arg.Node != NODE_NONE && 0 < strlen(arg.File)) {
+						auto file = ConvertFrom(arg.File, CurHost.CurNameKanjiCode);
+						if (auto last = file.back(); last == '/' || last == '\\')
+							file.resize(file.size() - 1);
+						if (empty(file) || file == "."sv || file == ".."sv)
+							arg.Node = NODE_NONE;
+						strcpy(arg.File, file.c_str());
+					}
+			}, line);
 	}
 	return lines;
 }

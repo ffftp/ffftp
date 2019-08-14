@@ -76,7 +76,7 @@ static int Anonymous;
 static int TryConnect = NO;
 static SOCKET CmdCtrlSocket = INVALID_SOCKET;
 static SOCKET TrnCtrlSocket = INVALID_SOCKET;
-static HOSTDATA CurHost;
+HOSTDATA CurHost;
 
 #if defined(HAVE_TANDEM)
 static int Oss = NO;  /* OSS ファイルシステムへアクセスしている場合は YES */
