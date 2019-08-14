@@ -114,7 +114,6 @@ DWORD GetNextCharW(LPCWSTR lpString, LPCWSTR pLimit, LPCWSTR* ppNext);
 int PutNextCharW(LPWSTR lpString, LPWSTR pLimit, LPWSTR* ppNext, DWORD Code);
 int GetCodeCountM(LPCSTR lpString, int CharCount);
 int GetCodeCountW(LPCWSTR lpString, int CharCount);
-BOOL FixStringM(LPSTR pDst, LPCSTR pSrc);
 void FreeDuplicatedString(void* p);
 int MultiByteToWideCharAlternative(UINT CodePage, DWORD dwFlags, LPCSTR lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar);
 int WideCharToMultiByteAlternative(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCSTR lpDefaultChar, LPBOOL lpUsedDefaultChar);

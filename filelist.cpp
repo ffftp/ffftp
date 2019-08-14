@@ -55,9 +55,7 @@ static void DispListList(FILELIST *Pos, char *Title);
 static int MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
 static int MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
 static void CopyTmpListToFileList(FILELIST **Base, FILELIST *List);
-// 文字化け対策
-//static int GetListOneLine(char *Buf, int Max, FILE *Fd);
-static int GetListOneLine(char *Buf, int Max, FILE *Fd, int Convert);
+static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLine(int Num);
 static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir);
 static int MakeLocalTree(const char *Path, FILELIST **Base);
 static void AddFileList(FILELIST *Pkt, FILELIST **Base);
@@ -76,7 +74,6 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day);
 static int GetYearMonthDay(char *Str, WORD *Year, WORD *Month, WORD *Day);
 static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute);
 static int GetVMSdate(char *Str, WORD *Year, WORD *Month, WORD *Day);
-static int CheckSpecialDirName(char *Fname);
 static int AskFilterStr(const char *Fname, int Type);
 static int atoi_n(const char *Str, int Len);
 
@@ -110,6 +107,7 @@ extern int DispFileIcon;
 extern int DispTimeSeconds;
 // ファイルの属性を数字で表示
 extern int DispPermissionsNumber;
+extern HOSTDATA CurHost;
 
 /*===== ローカルなワーク =====*/
 
@@ -1033,95 +1031,43 @@ void SetListViewType(void)
 }
 
 
-/*----- ホスト側のファイル一覧ウインドウにファイル名をセット ------------------
-*
-*	Parameter
-*		int Mode : キャッシュモード (CACHE_xxx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void GetRemoteDirForWnd(int Mode, int *CancelCheckWork)
-{
-	FILE *fd;
-	LONGLONG Size;
-	char Str[FMAX_PATH+1];
-	char Buf[FMAX_PATH+1];
-	FILETIME Time;
-	int Attr;
-	int Type;
-	int ListType;
-	std::vector<FILELIST> files;
-	char Owner[OWNER_NAME_LEN+1];
-	int Link;
-	int InfoExist;
-
-	if(AskConnecting() == YES)
-	{
-//		SetCursor(LoadCursor(NULL, IDC_WAIT));
+// ホスト側のファイル一覧ウインドウにファイル名をセット
+void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
+	if (AskConnecting() == YES) {
 		DisableUserOpe();
 
+		char Buf[FMAX_PATH+1];
 		AskRemoteCurDir(Buf, FMAX_PATH);
 		SetRemoteDirHist(Buf);
 
-		Type = Mode == CACHE_LASTREAD ? FTP_COMPLETE : DoDirListCmdSkt("", "", 0, CancelCheckWork);
-
-		if(Type == FTP_COMPLETE)
-		{
-			if((fd = _wfopen(MakeCacheFileName(0).c_str(), L"rb"))!=NULL)
-			{
-				ListType = LIST_UNKNOWN;
-
-				// 文字化け対策
-//				while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
-				while(GetListOneLine(Str, FMAX_PATH, fd, YES) == FFFTP_SUCCESS)
-				{
-					if((ListType = AnalyzeFileInfo(Str)) != LIST_UNKNOWN)
-					{
-						if((Type = ResolveFileInfo(Str, ListType, Buf, &Size, &Time, &Attr, Owner, &Link, &InfoExist)) != NODE_NONE)
-						{
-							if(AskFilterStr(Buf, Type) == YES)
-							{
-								if((DotFile == YES) || (Buf[0] != '.'))
-									files.emplace_back(Buf, Type, Link, Size, Attr, Time, Owner, InfoExist);
-							}
-						}
-					}
-				}
-				fclose(fd);
-
+		if (Mode == CACHE_LASTREAD || DoDirListCmdSkt("", "", 0, CancelCheckWork) == FTP_COMPLETE) {
+			if (auto lines = GetListLine(0)) {
+				std::vector<FILELIST> files;
+				for (auto& line : *lines)
+					std::visit([&files](auto&& arg) {
+						if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>)
+							if (arg.Node != NODE_NONE && AskFilterStr(arg.File, arg.Node) == YES && (DotFile == YES || arg.File[0] != '.'))
+								files.emplace_back(arg);
+					}, line);
 				DispFileList2View(GetRemoteHwnd(), files);
 
 				// 先頭のアイテムを選択
 				ListView_SetItemState(GetRemoteHwnd(), 0, LVIS_FOCUSED, LVIS_FOCUSED);
-			}
-			else
-			{
+			} else {
 				SetTaskMsg(MSGJPN048);
 				SendMessage(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
 			}
-		}
-		else
-		{
+		} else {
 #if defined(HAVE_OPENVMS)
 			/* OpenVMSの場合空ディレクトリ移動の時に出るので、メッセージだけ出さない
 			 * ようにする(VIEWはクリアして良い) */
 			if (AskHostType() != HTYPE_VMS)
 #endif
-			SetTaskMsg(MSGJPN049);
+				SetTaskMsg(MSGJPN049);
 			SendMessage(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
 		}
-
-//		SetCursor(LoadCursor(NULL, IDC_ARROW));
 		EnableUserOpe();
-
 	}
-
-//#pragma aaa
-//DoPrintf("===== GetRemoteDirForWnd Done");
-
-	return;
 }
 
 
@@ -2523,157 +2469,86 @@ static void CopyTmpListToFileList(FILELIST **Base, FILELIST *List)
 }
 
 
-/*----- ホスト側のファイル情報をファイルリストに登録 --------------------------
-*
-*	Parameter
-*		int Num : テンポラリファイルのファイル名番号 (_ffftp.???)
-*		char *Path : パス名
-*		int IncDir : 再帰検索の方法 (RDIR_xxx)
-*		FILELIST **Base : ファイルリストの先頭
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base)
-{
+// ホスト側のファイル情報をファイルリストに登録
+void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base) {
 	char Dir[FMAX_PATH+1];
-	char Name[FMAX_PATH+1];
-	LONGLONG Size;
-	FILETIME Time;
-	int Attr;
-	FILELIST Pkt;
-	FILE *fd;
-	int Node;
-	int ListType;
-	char Owner[OWNER_NAME_LEN+1];
-	int Link;
-	int InfoExist;
-
-	if((fd = _wfopen(MakeCacheFileName(Num).c_str(), L"rb")) != NULL)
-	{
-		strcpy(Dir, Path);
-
-		ListType = LIST_UNKNOWN;
-
-		char Str[FMAX_PATH+1];
-		// 文字化け対策
-//		while(GetListOneLine(Str, FMAX_PATH, fd) == FFFTP_SUCCESS)
-		while(GetListOneLine(Str, FMAX_PATH, fd, YES) == FFFTP_SUCCESS)
-		{
-			if((ListType = AnalyzeFileInfo(Str)) == LIST_UNKNOWN)
-			{
-				if(MakeDirPath(Str, ListType, Path, Dir) == FFFTP_SUCCESS)
-				{
-					if(IncDir == RDIR_NLST)
-					{
-						// 変数が未初期化のバグ修正
-						memset(&Pkt, 0, sizeof(FILELIST));
-
-						strcpy(Pkt.File, Dir);
-						Pkt.Node = NODE_DIR;
-						Pkt.Size = 0;
-						Pkt.Attr = 0;
-						memset(&Pkt.Time, 0, sizeof(FILETIME));
-						AddFileList(&Pkt, Base);
-					}
-				}
-			}
-			else
-			{
-				Node = ResolveFileInfo(Str, ListType, Name, &Size, &Time, &Attr, Owner, &Link, &InfoExist);
-
-				if(AskFilterStr(Name, Node) == YES)
-				{
-					if((Node == NODE_FILE) ||
-					   ((IncDir == RDIR_CWD) && (Node == NODE_DIR)))
-					{
-						// 変数が未初期化のバグ修正
-						memset(&Pkt, 0, sizeof(FILELIST));
-
-						strcpy(Pkt.File, Dir);
-						if(strlen(Pkt.File) > 0)
+	strcpy(Dir, Path);
+	if (auto lines = GetListLine(Num))
+		for (auto& line : *lines)
+			std::visit([&Path, IncDir, Base, &Dir](auto&& arg) {
+				if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>) {
+					if (AskFilterStr(arg.File, arg.Node) == YES && (arg.Node == NODE_FILE || IncDir == RDIR_CWD && arg.Node == NODE_DIR)) {
+						FILELIST Pkt{ Dir, arg.Node, arg.Link, arg.Size, arg.Attr, arg.Time, nullptr, arg.InfoExist };
+						if (0 < strlen(Pkt.File))
 							SetSlashTail(Pkt.File);
-						strcat(Pkt.File, Name);
-						Pkt.Node = Node;
-						Pkt.Link = Link;
-						Pkt.Size = Size;
-						Pkt.Attr = Attr;
-						Pkt.Time = Time;
-						Pkt.InfoExist = InfoExist;
+						strcat(Pkt.File, arg.File);
+						AddFileList(&Pkt, Base);
+					}
+				} else {
+					static_assert(std::is_same_v<std::decay_t<decltype(arg)>, std::string>);
+					if (MakeDirPath(data(arg), LIST_UNKNOWN, Path, Dir) == FFFTP_SUCCESS && IncDir == RDIR_NLST) {
+						FILELIST Pkt{ Dir, NODE_DIR, 0, 0, 0, {}, nullptr, 0 };
 						AddFileList(&Pkt, Base);
 					}
 				}
-			}
-		}
-		fclose(fd);
-	}
-	return;
+			}, line);
 }
 
 
-/*----- ファイル一覧情報の１行を取得 ------------------------------------------
-*
-*	Parameter
-*		char *Buf : １行の情報をセットするバッファ
-*		int Max : 最大文字数
-*		FILE *Fd : ストリーム
-*
-*	Return Value
-*		int ステータス (FFFTP_SUCCESS/FFFTP_FAIL)
-*
-*	Note
-*		VAX VMS以外の時は fgets(Buf, Max, Fd) と同じ
-*		Vax VMSの時は、複数行のファイル情報を１行にまとめる
-*----------------------------------------------------------------------------*/
-
-// 文字化け対策
-//static int GetListOneLine(char *Buf, int Max, FILE *Fd)
-static int GetListOneLine(char *Buf, int Max, FILE *Fd, int Convert)
-{
-	char Tmp[FMAX_PATH+1];
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	while((Sts == FFFTP_FAIL) && (fgets(Buf, Max, Fd) != NULL))
-	{
-		Sts = FFFTP_SUCCESS;
-		// 文字化け対策
-		if(Convert == YES)
-			strncpy(Buf, ConvertFrom(Buf, AskHostNameKanji()).c_str(), Max);
-		RemoveReturnCode(Buf);
-		ReplaceAll(Buf, '\x08', ' ');
-
+// ファイル一覧情報の１行を取得
+static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLine(int Num) {
+	std::ifstream is{ MakeCacheFileName(Num), std::ios::binary };
+	if (!is)
+		return {};
+	std::vector<std::variant<FILELIST, std::string>> lines;
+	for (std::string line; getline(is, line);) {
 		/* VAX VMSではファイル情報が複数行にわかれている	*/
-		/* それを１行にまとめる								*/
-		if(AskHostType() == HTYPE_VMS)
-		{
-			if(strchr(Buf, ';') == NULL)	/* ファイル名以外の行 */
-				Sts = FFFTP_FAIL;
-			else
-			{
-				Max -= (int)strlen(Buf);
-				while(strchr(Buf, ')') == NULL)
-				{
-					if(fgets(Tmp, FMAX_PATH, Fd) != NULL)
-					{
-						RemoveReturnCode(Tmp);
-						ReplaceAll(Buf, '\x08', ' ');
-						if((int)strlen(Tmp) > Max)
-							Tmp[Max] = NUL;
-						Max -= (int)strlen(Tmp);
-						strcat(Buf, Tmp);
-					}
-					else
-						break;
-				}
-			}
+		/* それを１行にまとめる							*/
+		if (AskHostType() == HTYPE_VMS) {
+			if (std::find(begin(line), end(line), ';') == end(line))	/* ファイル名以外の行 */
+				continue;
+			for (std::string tmp; std::find(begin(line), end(line), ')') == end(line) && getline(is, tmp);)
+				line += tmp;
 		}
+		line.erase(std::remove(begin(line), end(line), '\r'), end(line));
+		std::replace(begin(line), end(line), '\b', ' ');
+		if (auto list = AnalyzeFileInfo(data(line)); list != LIST_UNKNOWN) {
+			char buf[FMAX_PATH + 1];
+			LONGLONG size;
+			FILETIME time;
+			int attr;
+			char owner[OWNER_NAME_LEN + 1];
+			int link;
+			int infoExist;
+			auto node = ResolveFileInfo(data(line), list, buf, &size, &time, &attr, owner, &link, &infoExist);
+			lines.emplace_back(std::in_place_type<FILELIST>, buf, (char)node, (char)link, size, attr, time, owner, (char)infoExist);
+		} else
+			lines.emplace_back(line);
 	}
-
-//	DoPrintf("List : %s", Buf);
-
-	return(Sts);
+	if (CurHost.NameKanjiCode == KANJI_AUTO) {
+		CodeDetector cd;
+		for (auto& line : lines)
+			std::visit([&cd](auto&& arg) {
+				if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>)
+					if (arg.Node != NODE_NONE && 0 < strlen(arg.File))
+						cd.Test(arg.File);
+			}, line);
+		CurHost.CurNameKanjiCode = cd.result();
+	} else
+		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
+	for (auto& line : lines)
+		std::visit([](auto&& arg) {
+			if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>)
+				if (arg.Node != NODE_NONE && 0 < strlen(arg.File)) {
+					auto file = ConvertFrom(arg.File, CurHost.CurNameKanjiCode);
+					if (auto last = file.back(); last == '/' || last == '\\')
+						file.resize(file.size() - 1);
+					if (empty(file) || file == "."sv || file == ".."sv)
+						arg.Node = NODE_NONE;
+					strcpy(arg.File, file.c_str());
+				}
+		}, line);
+	return lines;
 }
 
 
@@ -4883,27 +4758,6 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 			break;
 	}
 
-	// UTF-8対応
-//	if((Ret != NODE_NONE) && (strlen(Fname) > 0))
-	if(!(OrgListType & LIST_RAW_NAME) && (Ret != NODE_NONE) && (strlen(Fname) > 0))
-	{
-		// UTF-8対応
-//		if(CheckSpecialDirName(Fname) == YES)
-//			Ret = NODE_NONE;
-//		else
-//			ChangeFnameRemote2Local(Fname, FMAX_PATH);
-		// UTF-8の冗長表現によるディレクトリトラバーサル対策
-		FixStringM(Fname, Fname);
-		// 0x5Cが含まれる文字列を扱えないバグ修正
-		if((_mbscmp(_mbsninc((const unsigned char*)Fname, _mbslen((const unsigned char*)Fname) - 1), (const unsigned char*)"/") == 0)
-			|| (_mbscmp(_mbsninc((const unsigned char*)Fname, _mbslen((const unsigned char*)Fname) - 1), (const unsigned char*)"\\") == 0))
-			*(Fname + strlen(Fname) - 1) = NUL;
-		if(CheckSpecialDirName(Fname) == YES)
-			Ret = NODE_NONE;
-		// 文字コードが正しくないために長さが0になったファイル名は表示しない
-		if(strlen(Fname) == 0)
-			Ret = NODE_NONE;
-	}
 	return(Ret);
 }
 
@@ -5301,28 +5155,6 @@ int Assume1900or2000(int Year)
 }
 
 
-
-/*----- "."や".."かどうかを返す -----------------------------------------------
-*
-*	Parameter
-*		char *Fname : ファイル名
-*
-*	Return Value
-*		int ステータス (YES="."か".."のどちらか/NO)
-*----------------------------------------------------------------------------*/
-
-static int CheckSpecialDirName(char *Fname)
-{
-	int Sts;
-
-	Sts = NO;
-	if((strcmp(Fname, ".") == 0) || (strcmp(Fname, "..") == 0))
-		Sts = YES;
-
-	return(Sts);
-}
-
-
 // フィルタに指定されたファイル名かどうかを返す
 static int AskFilterStr(const char *Fname, int Type) {
 	static std::wregex re{ L";" };
@@ -5387,40 +5219,4 @@ static int atoi_n(const char *Str, int Len)
 		free(Tmp);
 	}
 	return(Ret);
-}
-
-
-
-
-// UTF-8対応
-// ファイル一覧から漢字コードを推測
-// 優先度はUTF-8、Shift_JIS、EUC、JIS、UTF-8 HFS+の順
-int AnalyzeNameKanjiCode(int Num)
-{
-	char Name[FMAX_PATH+1];
-	LONGLONG Size;
-	FILETIME Time;
-	int Attr;
-	FILE *fd;
-	int Node;
-	int ListType;
-	char Owner[OWNER_NAME_LEN+1];
-	int Link;
-	int InfoExist;
-	CodeDetector cd;
-	if((fd = _wfopen(MakeCacheFileName(Num).c_str(), L"rb")) != NULL)
-	{
-		char Str[FMAX_PATH+1];
-		while(GetListOneLine(Str, FMAX_PATH, fd, NO) == FFFTP_SUCCESS)
-		{
-			if((ListType = AnalyzeFileInfo(Str)) != LIST_UNKNOWN)
-			{
-				strcpy(Name, "");
-				Node = ResolveFileInfo(Str, ListType | LIST_RAW_NAME, Name, &Size, &Time, &Attr, Owner, &Link, &InfoExist);
-				cd.Test(Name);
-			}
-		}
-		fclose(fd);
-	}
-	return cd.result();
 }

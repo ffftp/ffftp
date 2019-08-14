@@ -76,7 +76,7 @@ static int Anonymous;
 static int TryConnect = NO;
 static SOCKET CmdCtrlSocket = INVALID_SOCKET;
 static SOCKET TrnCtrlSocket = INVALID_SOCKET;
-static HOSTDATA CurHost;
+HOSTDATA CurHost;
 
 #if defined(HAVE_TANDEM)
 static int Oss = NO;  /* OSS ファイルシステムへアクセスしている場合は YES */
@@ -177,13 +177,6 @@ void ConnectProc(int Type, int Num)
 							SetHostEncryption(AskCurrentHost(), NO, NO, NO, CurHost.UseSFTP);
 					}
 					break;
-				}
-
-				// UTF-8対応
-				if(CurHost.CurNameKanjiCode == KANJI_AUTO)
-				{
-					if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
-						CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
 				}
 
 				strcpy(TitleHostName, CurHost.HostName);
@@ -302,12 +295,6 @@ void QuickConnectProc() {
 			TrnCtrlSocket = CmdCtrlSocket;
 
 			if (CmdCtrlSocket != INVALID_SOCKET) {
-				// UTF-8対応
-				if (CurHost.CurNameKanjiCode == KANJI_AUTO) {
-					if (DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
-						CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-				}
-
 				strcpy(TitleHostName, CurHost.HostAdrs);
 				// タイトルバーにユーザー名表示対応
 				strcpy(TitleUserName, CurHost.UserName);
@@ -407,13 +394,6 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 
 		if(CmdCtrlSocket != INVALID_SOCKET)
 		{
-			// UTF-8対応
-			if(CurHost.CurNameKanjiCode == KANJI_AUTO)
-			{
-				if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
-					CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-			}
-
 			strcpy(TitleHostName, CurHost.HostAdrs);
 			// タイトルバーにユーザー名表示対応
 			strcpy(TitleUserName, CurHost.UserName);
@@ -497,13 +477,6 @@ void HistoryConnectProc(int MenuCmd)
 
 			if(CmdCtrlSocket != INVALID_SOCKET)
 			{
-				// UTF-8対応
-				if(CurHost.CurNameKanjiCode == KANJI_AUTO)
-				{
-					if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
-						CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-				}
-
 				strcpy(TitleHostName, CurHost.HostAdrs);
 				// タイトルバーにユーザー名表示対応
 				strcpy(TitleUserName, CurHost.UserName);

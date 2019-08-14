@@ -484,9 +484,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 #define LIST_MASKFLG	0xFF
 
-// UTF-8対応
-#define LIST_RAW_NAME	0x80000000
-
 /* ファイル一覧情報例 ---------------
 
 *LIST_UNIX_10
@@ -1423,8 +1420,6 @@ FILELIST *SearchFileList(char *Fname, FILELIST *Base, int Caps);
 int Assume1900or2000(int Year);
 void SetFilter(int *CancelCheckWork);
 void doDeleteRemoteFile(void);
-// UTF-8対応
-int AnalyzeNameKanjiCode(int Num);
 
 
 /*===== toolmenu.c =====*/
@@ -1830,7 +1825,6 @@ bool ConnectRas(bool dialup, bool explicitly, bool confirm, std::wstring const& 
 void SetYenTail(char *Str);
 void RemoveYenTail(char *Str);
 void SetSlashTail(char *Str);
-void RemoveReturnCode(char *Str);
 void ReplaceAll(char *Str, char Src, char Dst);
 int IsDigitSym(int Ch, int Sym);
 int StrAllSameChar(char *Str, char Ch);
