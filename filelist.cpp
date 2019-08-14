@@ -55,7 +55,7 @@ static void DispListList(FILELIST *Pos, char *Title);
 static int MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
 static int MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
 static void CopyTmpListToFileList(FILELIST **Base, FILELIST *List);
-static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLine(int Num, bool convert);
+static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLine(int Num);
 static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir);
 static int MakeLocalTree(const char *Path, FILELIST **Base);
 static void AddFileList(FILELIST *Pkt, FILELIST **Base);
@@ -1041,7 +1041,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 		SetRemoteDirHist(Buf);
 
 		if (Mode == CACHE_LASTREAD || DoDirListCmdSkt("", "", 0, CancelCheckWork) == FTP_COMPLETE) {
-			if (auto lines = GetListLine(0, true)) {
+			if (auto lines = GetListLine(0)) {
 				std::vector<FILELIST> files;
 				for (auto& line : *lines)
 					std::visit([&files](auto&& arg) {
@@ -2473,7 +2473,7 @@ static void CopyTmpListToFileList(FILELIST **Base, FILELIST *List)
 void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base) {
 	char Dir[FMAX_PATH+1];
 	strcpy(Dir, Path);
-	if (auto lines = GetListLine(Num, true))
+	if (auto lines = GetListLine(Num))
 		for (auto& line : *lines)
 			std::visit([&Path, IncDir, Base, &Dir](auto&& arg) {
 				if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>) {
@@ -2496,7 +2496,7 @@ void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base) {
 
 
 // ファイル一覧情報の１行を取得
-static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLine(int Num, bool convert) {
+static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLine(int Num) {
 	std::ifstream is{ MakeCacheFileName(Num), std::ios::binary };
 	if (!is)
 		return {};
@@ -2525,31 +2525,29 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 		} else
 			lines.emplace_back(line);
 	}
-	if (convert) {
-		if (CurHost.NameKanjiCode == KANJI_AUTO) {
-			CodeDetector cd;
-			for (auto& line : lines)
-				std::visit([&cd](auto&& arg) {
-					if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>)
-						if (arg.Node != NODE_NONE && 0 < strlen(arg.File))
-							cd.Test(arg.File);
-				}, line);
-			CurHost.CurNameKanjiCode = cd.result();
-		} else
-			CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
+	if (CurHost.NameKanjiCode == KANJI_AUTO) {
+		CodeDetector cd;
 		for (auto& line : lines)
-			std::visit([](auto&& arg) {
+			std::visit([&cd](auto&& arg) {
 				if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>)
-					if (arg.Node != NODE_NONE && 0 < strlen(arg.File)) {
-						auto file = ConvertFrom(arg.File, CurHost.CurNameKanjiCode);
-						if (auto last = file.back(); last == '/' || last == '\\')
-							file.resize(file.size() - 1);
-						if (empty(file) || file == "."sv || file == ".."sv)
-							arg.Node = NODE_NONE;
-						strcpy(arg.File, file.c_str());
-					}
+					if (arg.Node != NODE_NONE && 0 < strlen(arg.File))
+						cd.Test(arg.File);
 			}, line);
-	}
+		CurHost.CurNameKanjiCode = cd.result();
+	} else
+		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
+	for (auto& line : lines)
+		std::visit([](auto&& arg) {
+			if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>)
+				if (arg.Node != NODE_NONE && 0 < strlen(arg.File)) {
+					auto file = ConvertFrom(arg.File, CurHost.CurNameKanjiCode);
+					if (auto last = file.back(); last == '/' || last == '\\')
+						file.resize(file.size() - 1);
+					if (empty(file) || file == "."sv || file == ".."sv)
+						arg.Node = NODE_NONE;
+					strcpy(arg.File, file.c_str());
+				}
+		}, line);
 	return lines;
 }
 
@@ -5221,18 +5219,4 @@ static int atoi_n(const char *Str, int Len)
 		free(Tmp);
 	}
 	return(Ret);
-}
-
-
-// ファイル一覧から漢字コードを推測
-//   優先度はUTF-8、Shift_JIS、EUC、JIS、UTF-8 HFS+の順
-int AnalyzeNameKanjiCode(int Num) {
-	CodeDetector cd;
-	if (auto lines = GetListLine(0, false))
-		for (auto& line : *lines)
-			std::visit([&cd](auto&& arg) {
-				if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>)
-					cd.Test(arg.File);
-			}, line);
-	return cd.result();
 }

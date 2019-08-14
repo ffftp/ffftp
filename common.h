@@ -1420,8 +1420,6 @@ FILELIST *SearchFileList(char *Fname, FILELIST *Base, int Caps);
 int Assume1900or2000(int Year);
 void SetFilter(int *CancelCheckWork);
 void doDeleteRemoteFile(void);
-// UTF-8対応
-int AnalyzeNameKanjiCode(int Num);
 
 
 /*===== toolmenu.c =====*/

@@ -179,13 +179,6 @@ void ConnectProc(int Type, int Num)
 					break;
 				}
 
-				// UTF-8対応
-				if(CurHost.CurNameKanjiCode == KANJI_AUTO)
-				{
-					if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
-						CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-				}
-
 				strcpy(TitleHostName, CurHost.HostName);
 				// タイトルバーにユーザー名表示対応
 				strcpy(TitleUserName, CurHost.UserName);
@@ -302,12 +295,6 @@ void QuickConnectProc() {
 			TrnCtrlSocket = CmdCtrlSocket;
 
 			if (CmdCtrlSocket != INVALID_SOCKET) {
-				// UTF-8対応
-				if (CurHost.CurNameKanjiCode == KANJI_AUTO) {
-					if (DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
-						CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-				}
-
 				strcpy(TitleHostName, CurHost.HostAdrs);
 				// タイトルバーにユーザー名表示対応
 				strcpy(TitleUserName, CurHost.UserName);
@@ -407,13 +394,6 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 
 		if(CmdCtrlSocket != INVALID_SOCKET)
 		{
-			// UTF-8対応
-			if(CurHost.CurNameKanjiCode == KANJI_AUTO)
-			{
-				if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
-					CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-			}
-
 			strcpy(TitleHostName, CurHost.HostAdrs);
 			// タイトルバーにユーザー名表示対応
 			strcpy(TitleUserName, CurHost.UserName);
@@ -497,13 +477,6 @@ void HistoryConnectProc(int MenuCmd)
 
 			if(CmdCtrlSocket != INVALID_SOCKET)
 			{
-				// UTF-8対応
-				if(CurHost.CurNameKanjiCode == KANJI_AUTO)
-				{
-					if(DoDirListCmdSkt("", "", 999, &CancelFlg) == FTP_COMPLETE)
-						CurHost.CurNameKanjiCode = AnalyzeNameKanjiCode(999);
-				}
-
 				strcpy(TitleHostName, CurHost.HostAdrs);
 				// タイトルバーにユーザー名表示対応
 				strcpy(TitleUserName, CurHost.UserName);
