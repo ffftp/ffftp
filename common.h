@@ -1283,7 +1283,6 @@ typedef struct filelist {
 	char InfoExist;					/* ファイル一覧に存在した情報のフラグ (FINFO_xxx) */
 	// ファイルアイコン表示対応
 	int ImageId;					/* アイコン画像番号 */
-	struct filelist *Next;
 	filelist() = default;
 	filelist(const char* file, char node, char link, LONGLONG size, int attr, FILETIME time, const char* owner, char infoExist) : Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, InfoExist{ infoExist } {
 		strcpy(File, file);
@@ -1390,7 +1389,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork);
 void GetLocalDirForWnd(void);
 void ReSortDispList(int Win, int *CancelCheckWork);
 bool CheckFname(std::wstring str, std::wstring const& regexp);
-void SelectFileInList(HWND hWnd, int Type, FILELIST *Base);
+void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base);
 void FindFileInList(HWND hWnd, int Type);
 int GetCurrentItem(int Win);
 int GetItemCount(int Win);
@@ -1409,14 +1408,14 @@ int GetNodeType(int Win, int Pos);
 void GetNodeOwner(int Win, int Pos, char *Buf, int Max);
 void EraseRemoteDirForWnd(void);
 double GetSelectedTotalSize(int Win);
-// ファイル一覧バグ修正
-//void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *CancelCheckWork);
-int MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *CancelCheckWork);
-void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base);
+int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Base, int *CancelCheckWork);
+void MakeDroppedFileList(WPARAM wParam, char *Cur, std::vector<FILELIST>& Base);
 void MakeDroppedDir(WPARAM wParam, char *Cur);
-void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base);
-void DeleteFileList(FILELIST **Base);
-FILELIST *SearchFileList(char *Fname, FILELIST *Base, int Caps);
+void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, std::vector<FILELIST>& Base);
+const FILELIST* SearchFileList(const char* Fname, std::vector<FILELIST> const& Base, int Caps);
+static inline FILELIST* SearchFileList(const char* Fname, std::vector<FILELIST>& Base, int Caps) {
+	return const_cast<FILELIST*>(SearchFileList(Fname, static_cast<std::vector<FILELIST> const&>(Base), Caps));
+}
 int Assume1900or2000(int Year);
 void SetFilter(int *CancelCheckWork);
 void doDeleteRemoteFile(void);
@@ -1648,7 +1647,7 @@ void DoLocalMKD(char *Path);
 void DoLocalPWD(char *Buf);
 void DoLocalRMD(char *Path);
 void DoLocalDELE(char *Path);
-void DoLocalRENAME(char *Src, char *Dst);
+void DoLocalRENAME(const char *Src, const char *Dst);
 void DispFileProperty(char *Fname);
 
 /*===== remote.c =====*/
@@ -1659,7 +1658,7 @@ int DoMKD(char *Path);
 void InitPWDcommand();
 int DoRMD(char *Path);
 int DoDELE(char *Path);
-int DoRENAME(char *Src, char *Dst);
+int DoRENAME(const char *Src, const char *Dst);
 int DoCHMOD(const char *Path, const char *Mode);
 // 同時接続対応
 //int DoSIZE(char *Path, LONGLONG *Size);

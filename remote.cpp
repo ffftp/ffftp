@@ -369,7 +369,7 @@ int DoDELE(char *Path)
 *		int 応答コードの１桁目
 *----------------------------------------------------------------------------*/
 
-int DoRENAME(char *Src, char *Dst)
+int DoRENAME(const char *Src, const char *Dst)
 {
 	int Sts;
 

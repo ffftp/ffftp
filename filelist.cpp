@@ -48,17 +48,13 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files);
 //static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist);
 static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist, int ImageId);
 static int GetImageIndex(int Win, int Pos);
-static void DispListList(FILELIST *Pos, char *Title);
-// ファイル一覧バグ修正
-//static void MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
-//static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
-static int MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
-static int MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork);
-static void CopyTmpListToFileList(FILELIST **Base, FILELIST *List);
+static int MakeRemoteTree1(char *Path, char *Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
+static int MakeRemoteTree2(char *Path, char *Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
+static void CopyTmpListToFileList(std::vector<FILELIST>& Base, std::vector<FILELIST> const& List);
 static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLine(int Num);
 static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir);
-static int MakeLocalTree(const char *Path, FILELIST **Base);
-static void AddFileList(FILELIST *Pkt, FILELIST **Base);
+static int MakeLocalTree(const char *Path, std::vector<FILELIST>& Base);
+static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base);
 static int AnalyzeFileInfo(char *Str);
 static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day);
 static int CheckHHMMformat(char *Str);
@@ -131,8 +127,8 @@ static int StratusMode;			/* 0=ファイル, 1=ディレクトリ, 2=リンク *
 
 
 // リモートファイルリスト (2007.9.3 yutaka)
-static FILELIST *remoteFileListBase;
-static FILELIST *remoteFileListBaseNoExpand;
+static std::vector<FILELIST> remoteFileListBase;
+static std::vector<FILELIST> remoteFileListBaseNoExpand;
 static char remoteFileDir[FMAX_PATH + 1];
 
 
@@ -356,11 +352,10 @@ static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 
 static void doTransferRemoteFile(void)
 {
-	FILELIST *FileListBase, *FileListBaseNoExpand;
 	char LocDir[FMAX_PATH+1];
 
 	// すでにリモートから転送済みなら何もしない。(2007.9.3 yutaka)
-	if (remoteFileListBase != NULL)
+	if (!empty(remoteFileListBase))
 		return;
 
 	// 特定の操作を行うと異常終了するバグ修正
@@ -377,10 +372,10 @@ static void doTransferRemoteFile(void)
 		Sleep(10);
 	}
 
-	FileListBase = NULL;
-	MakeSelectedFileList(WIN_REMOTE, YES, NO, &FileListBase, &CancelFlg);
-	FileListBaseNoExpand = NULL;
-	MakeSelectedFileList(WIN_REMOTE, NO, NO, &FileListBaseNoExpand, &CancelFlg);
+	std::vector<FILELIST> FileListBase;
+	MakeSelectedFileList(WIN_REMOTE, YES, NO, FileListBase, &CancelFlg);
+	std::vector<FILELIST> FileListBaseNoExpand;
+	MakeSelectedFileList(WIN_REMOTE, NO, NO, FileListBaseNoExpand, &CancelFlg);
 
 	// set temporary folder
 	AskLocalCurDir(LocDir, FMAX_PATH);
@@ -388,8 +383,8 @@ static void doTransferRemoteFile(void)
 	auto tmp = tempDirectory() / L"file";
 	if (auto const created = !fs::create_directory(tmp); !created) {
 		// 既存のファイルを削除する
-		for (auto pf = FileListBase; pf; pf = pf->Next)
-			fs::remove(tmp / fs::u8path(pf->File));
+		for (auto const& f : FileListBase)
+			fs::remove(tmp / fs::u8path(f.File));
 	}
 
 	// 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
@@ -441,8 +436,8 @@ static void doTransferRemoteFile(void)
 	SuppressRefresh = 0;
 	GetLocalDirForWnd();
 
-	remoteFileListBase = FileListBase;  // あとでフリーすること
-	remoteFileListBaseNoExpand = FileListBaseNoExpand;  // あとでフリーすること
+	remoteFileListBase = std::move(FileListBase);
+	remoteFileListBaseNoExpand = std::move(FileListBaseNoExpand);
 	strncpy_s(remoteFileDir, sizeof(remoteFileDir), tmp.u8string().c_str(), _TRUNCATE);
 }
 
@@ -462,16 +457,12 @@ int isDirectory(char *fn)
 // テンポラリのファイルおよびフォルダを削除する。
 void doDeleteRemoteFile(void)
 {
-	if (remoteFileListBase != NULL) {
+	if (!empty(remoteFileListBase)) {
 		MoveFileToTrashCan(remoteFileDir);
-		DeleteFileList(&remoteFileListBase);
-		remoteFileListBase = NULL;
+		remoteFileListBase.clear();
 	}
 
-	if (remoteFileListBaseNoExpand != NULL)	{
-		DeleteFileList(&remoteFileListBaseNoExpand);
-		remoteFileListBaseNoExpand = NULL;
-	}
+	remoteFileListBaseNoExpand.clear();
 }
 
 
@@ -686,13 +677,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 				{
 					char **FileNameList;
 					int filelen;
-					int i, j, filenum = 0;
-
-					FILELIST *FileListBase, *FileListBaseNoExpand, *pf;
-					// 特定の操作を行うと異常終了するバグ修正
-//					int CancelFlg = NO;
+					std::vector<FILELIST> FileListBase, FileListBaseNoExpand;
 					char LocDir[FMAX_PATH+1];
-					char *PathDir;
+					char *PathDir = nullptr;
 
 					// 特定の操作を行うと異常終了するバグ修正
 					GetCursorPos(&DropPoint);
@@ -701,29 +688,17 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					DisableUserOpe();
 					CancelFlg = NO;
 
-					// 変数が未初期化のバグ修正
-					FileListBaseNoExpand = NULL;
 					// ローカル側で選ばれているファイルをFileListBaseに登録
 					if (hWndDragStart == hWndListLocal) {
 						AskLocalCurDir(LocDir, FMAX_PATH);
 						PathDir = LocDir;
 
-						FileListBase = NULL;
-						// ローカル側からアプリケーションにD&Dできないバグ修正
-//						MakeSelectedFileList(WIN_LOCAL, YES, NO, &FileListBase, &CancelFlg);			
 						if(hWndPnt != hWndListRemote && hWndPnt != hWndListLocal && hWndParent != hWndListRemote && hWndParent != hWndListLocal)
-							MakeSelectedFileList(WIN_LOCAL, NO, NO, &FileListBase, &CancelFlg);			
+							MakeSelectedFileList(WIN_LOCAL, NO, NO, FileListBase, &CancelFlg);			
 						FileListBaseNoExpand = FileListBase;
 
 					} else if (hWndDragStart == hWndListRemote) {
-						// 特定の操作を行うと異常終了するバグ修正
-//						GetCursorPos(&Point);
-//						hWndPnt = WindowFromPoint(Point);
-//						hWndParent = GetParent(hWndPnt);
-						if (hWndPnt == hWndListRemote || hWndPnt == hWndListLocal ||
-							hWndParent == hWndListRemote || hWndParent == hWndListLocal) {
-							FileListBase = NULL;
-
+						if (hWndPnt == hWndListRemote || hWndPnt == hWndListLocal || hWndParent == hWndListRemote || hWndParent == hWndListLocal) {
 						} else {
 							// 選択されているリモートファイルのリストアップ
 							// このタイミングでリモートからローカルの一時フォルダへダウンロードする
@@ -736,15 +711,13 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 
 					} 
 
+					auto const& pf =
 #if defined(HAVE_TANDEM)
-					if(FileListBaseNoExpand == NULL)
-						pf = FileListBase;
-					else
+						empty(FileListBaseNoExpand) ? FileListBase :
 #endif
-					pf = FileListBaseNoExpand;
+						FileListBaseNoExpand;
 					// 特定の操作を行うと異常終了するバグ修正
-					if(pf != NULL)
-					{
+					if (!empty(pf)) {
 						Dragging = NO;
 						ReleaseCapture();
 						hCsrDrg = LoadCursor(NULL, IDC_ARROW);
@@ -754,11 +727,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					}
 					EnableUserOpe();
 					// ドロップ先が他プロセスかつカーソルが自プロセスのドロップ可能なウィンドウ上にある場合の対策
-					if(pf != NULL)
+					if (!empty(pf))
 						EnableWindow(GetMainHwnd(), FALSE);
-					for (filenum = 0; pf ; filenum++) {
-						pf = pf->Next;
-					}
+					int filenum = size_as<int>(pf);
 					// ファイルが未選択の場合は何もしない。(yutaka)
 					if (filenum <= 0) {
 						*((HANDLE *)lParam) = NULL;
@@ -770,21 +741,14 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					if(FileNameList == NULL){
 						abort();
 					}
-					pf = FileListBaseNoExpand;
-					for (j = 0; pf ; j++) {
-						filelen = (int)strlen(PathDir) + 1 + (int)strlen(pf->File) + 1;
+					int j = 0;
+					for (auto const& f : FileListBaseNoExpand) {
+						filelen = (int)strlen(PathDir) + 1 + (int)strlen(f.File) + 1;
 						FileNameList[j] = (char *)GlobalAlloc(GPTR, filelen);
 						strncpy_s(FileNameList[j], filelen, PathDir, _TRUNCATE);
 						strncat_s(FileNameList[j], filelen, "\\", _TRUNCATE);
-						strncat_s(FileNameList[j], filelen, pf->File, _TRUNCATE);
-						pf = pf->Next;
-#if 0
-						if (FileListBase->Node == NODE_DIR) { 
-							// フォルダを掴んだ場合はそれ以降展開しない
-							filenum = 1;
-							break;
-						}
-#endif
+						strncat_s(FileNameList[j], filelen, f.File, _TRUNCATE);
+						j++;
 					}
 					
 					/* ドロップファイルリストの作成 */
@@ -792,17 +756,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					*((HANDLE *)lParam) = CreateDropFileMem(FileNameList, filenum);
 
 					/* ファイル名の配列を解放する */
-					for (i = 0; i < filenum ; i++) {
+					for (int i = 0; i < filenum ; i++)
 						GlobalFree(FileNameList[i]);
-					}
 					GlobalFree(FileNameList);
-
-					if (hWndDragStart == hWndListLocal) {
-						DeleteFileList(&FileListBase);
-					} else {
-						// あとでファイル削除してフリーする
-					}
-
 					return (TRUE);
 				}
 				break;
@@ -1332,7 +1288,7 @@ bool CheckFname(std::wstring str, std::wstring const& regexp) {
 
 
 // ファイル一覧ウインドウのファイルを選択する
-void SelectFileInList(HWND hWnd, int Type, FILELIST *Base) {
+void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 	static bool IgnoreNew = false;
 	static bool IgnoreOld = false;
 	static bool IgnoreExist = false;
@@ -2027,11 +1983,7 @@ double GetSelectedTotalSize(int Win)
 *		なし
 *----------------------------------------------------------------------------*/
 
-// ファイル一覧バグ修正
-//void MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *CancelCheckWork)
-int MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *CancelCheckWork)
-{
-	// ファイル一覧バグ修正
+int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Base, int *CancelCheckWork) {
 	int Sts;
 	int Pos;
 	char Name[FMAX_PATH+1];
@@ -2075,7 +2027,7 @@ int MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Can
 				}
 
 				if(Ignore == NO)
-					AddFileList(&Pkt, Base);
+					AddFileList(Pkt, Base);
 			}
 			Pos = GetNextSelected(Win, Pos, All);
 		}
@@ -2115,20 +2067,8 @@ int MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Can
 						Pkt.Attr = 0;
 						Pkt.Size = 0;
 						memset(&Pkt.Time, 0, sizeof(FILETIME));
-						AddFileList(&Pkt, Base);
+						AddFileList(Pkt, Base);
 
-//						if(Win == WIN_LOCAL)
-//							MakeLocalTree(Name, Base);
-//						else
-//						{
-//							AskRemoteCurDir(Cur, FMAX_PATH);
-//
-//							if((AskListCmdMode() == NO) &&
-//							   (AskUseNLST_R() == YES))
-//								MakeRemoteTree1(Name, Cur, Base, CancelCheckWork);
-//							else
-//								MakeRemoteTree2(Name, Cur, Base, CancelCheckWork);
-//						}
 						if(GetImageIndex(Win, Pos) != 4) { // symlink
 							if(Win == WIN_LOCAL)
 							// ファイル一覧バグ修正
@@ -2156,9 +2096,6 @@ int MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Can
 									if(MakeRemoteTree2(Name, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
 										Sts = FFFTP_FAIL;
 								}
-
-//DispListList(*Base, "LIST");
-
 							}
 						}
 					}
@@ -2173,21 +2110,6 @@ int MakeSelectedFileList(int Win, int Expand, int All, FILELIST **Base, int *Can
 }
 
 
-/* デバッグ用 */
-/* ファイルリストの内容を表示 */
-static void DispListList(FILELIST *Pos, char *Title)
-{
-	DoPrintf("############ %s ############", Title);
-	while(Pos != NULL)
-	{
-		DoPrintf("%d %s", Pos->Node, Pos->File);
-		Pos = Pos->Next;
-	}
-	DoPrintf("############ END ############");
-	return;
-}
-
-
 /*----- Drag&Dropされたファイルをリストに登録する -----------------------------
 *
 *	Parameter
@@ -2199,8 +2121,7 @@ static void DispListList(FILELIST *Pos, char *Title)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
-{
+void MakeDroppedFileList(WPARAM wParam, char *Cur, std::vector<FILELIST>& Base) {
 	int Max;
 	int i;
 	char Name[FMAX_PATH+1];
@@ -2249,7 +2170,7 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
 			Pkt.Size = LONGLONG(attr.nFileSizeHigh) << 32 | attr.nFileSizeLow;
 			Pkt.InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE);
 #endif
-			AddFileList(&Pkt, Base);
+			AddFileList(Pkt, Base);
 		}
 	}
 
@@ -2266,7 +2187,7 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, FILELIST **Base)
 
 			Pkt.Node = NODE_DIR;
 			strcpy(Pkt.File, GetFileName(Name));
-			AddFileList(&Pkt, Base);
+			AddFileList(Pkt, Base);
 
 			MakeLocalTree(Pkt.File, Base);
 		}
@@ -2316,11 +2237,7 @@ void MakeDroppedDir(WPARAM wParam, char *Cur)
 *		NLST -alLR を使う
 *----------------------------------------------------------------------------*/
 
-// ファイル一覧バグ修正
-//static void MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork)
-static int MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork)
-{
-	// ファイル一覧バグ修正
+static int MakeRemoteTree1(char *Path, char *Cur, std::vector<FILELIST>& Base, int *CancelCheckWork) {
 	int Ret;
 	int Sts;
 
@@ -2333,15 +2250,11 @@ static int MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCh
 		DoCWD(Cur, NO, NO, NO);
 
 		if(Sts == FTP_COMPLETE)
-		// ファイル一覧バグ修正
-//			AddRemoteTreeToFileList(999, Path, RDIR_NLST, Base);
 		{
 			AddRemoteTreeToFileList(999, Path, RDIR_NLST, Base);
 			Ret = FFFTP_SUCCESS;
 		}
 	}
-	// ファイル一覧バグ修正
-//	return;
 	return(Ret);
 }
 
@@ -2360,16 +2273,9 @@ static int MakeRemoteTree1(char *Path, char *Cur, FILELIST **Base, int *CancelCh
 *		各フォルダに移動してリストを取得
 *----------------------------------------------------------------------------*/
 
-// ファイル一覧バグ修正
-//static void MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork)
-static int MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCheckWork)
-{
-	// ファイル一覧バグ修正
+static int MakeRemoteTree2(char *Path, char *Cur, std::vector<FILELIST>& Base, int *CancelCheckWork) {
 	int Ret;
 	int Sts;
-	FILELIST *CurList;
-	FILELIST *Pos;
-	FILELIST Pkt;
 
 	// ファイル一覧バグ修正
 	Ret = FFFTP_FAIL;
@@ -2393,51 +2299,33 @@ static int MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCh
 
 		if(Sts == FTP_COMPLETE)
 		{
-			CurList = NULL;
-			AddRemoteTreeToFileList(999, Path, RDIR_CWD, &CurList);
+			std::vector<FILELIST> CurList;
+			AddRemoteTreeToFileList(999, Path, RDIR_CWD, CurList);
 			CopyTmpListToFileList(Base, CurList);
 
 			// ファイル一覧バグ修正
 			Ret = FFFTP_SUCCESS;
 
-			Pos = CurList;
-			while(Pos != NULL)
-			{
-				if(Pos->Node == NODE_DIR)
-				{
-					// 変数が未初期化のバグ修正
-					memset(&Pkt, 0, sizeof(FILELIST));
-
+			for (auto const& f : CurList)
+				if (f.Node == NODE_DIR) {
+					FILELIST Pkt{};
 					/* まずディレクトリ名をセット */
-					strcpy(Pkt.File, Pos->File);
-//					Pkt.Node = NODE_DIR;
-					Pkt.Link = Pos->Link;
-					if(Pkt.Link == YES)
+					strcpy(Pkt.File, f.File);
+					Pkt.Link = f.Link;
+					if (Pkt.Link == YES)
 						Pkt.Node = NODE_FILE;
 					else
 						Pkt.Node = NODE_DIR;
 					Pkt.Size = 0;
 					Pkt.Attr = 0;
 					memset(&Pkt.Time, 0, sizeof(FILETIME));
-					AddFileList(&Pkt, Base);
+					AddFileList(Pkt, Base);
 
-					/* そのディレクトリの中を検索 */
-//					MakeRemoteTree2(Pos->File, Cur, Base, CancelCheckWork);
-					if(Pkt.Link == NO)
-					// ファイル一覧バグ修正
-//						MakeRemoteTree2(Pos->File, Cur, Base, CancelCheckWork);
-					{
-						if(MakeRemoteTree2(Pos->File, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
-							Ret = FFFTP_FAIL;
-					}
+					if (Pkt.Link == NO && MakeRemoteTree2(const_cast<char*>(f.File), Cur, Base, CancelCheckWork) == FFFTP_FAIL)
+						Ret = FFFTP_FAIL;
 				}
-				Pos = Pos->Next;
-			}
-			DeleteFileList(&CurList);
 		}
 	}
-	// ファイル一覧バグ修正
-//	return;
 	return(Ret);
 }
 
@@ -2456,39 +2344,33 @@ static int MakeRemoteTree2(char *Path, char *Cur, FILELIST **Base, int *CancelCh
 *		ディレクトリの情報はコピーしない
 *----------------------------------------------------------------------------*/
 
-static void CopyTmpListToFileList(FILELIST **Base, FILELIST *List)
-{
-	while(List != NULL)
-	{
-		if(List->Node == NODE_FILE)
-			AddFileList(List, Base);
-
-		List = List->Next;
-	}
-	return;
+static void CopyTmpListToFileList(std::vector<FILELIST>& Base, std::vector<FILELIST> const& List) {
+	for (auto& f : List)
+		if (f.Node == NODE_FILE)
+			AddFileList(f, Base);
 }
 
 
 // ホスト側のファイル情報をファイルリストに登録
-void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, FILELIST **Base) {
+void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, std::vector<FILELIST>& Base) {
 	char Dir[FMAX_PATH+1];
 	strcpy(Dir, Path);
 	if (auto lines = GetListLine(Num))
 		for (auto& line : *lines)
-			std::visit([&Path, IncDir, Base, &Dir](auto&& arg) {
+			std::visit([&Path, IncDir, &Base, &Dir](auto&& arg) {
 				if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>) {
 					if (AskFilterStr(arg.File, arg.Node) == YES && (arg.Node == NODE_FILE || IncDir == RDIR_CWD && arg.Node == NODE_DIR)) {
 						FILELIST Pkt{ Dir, arg.Node, arg.Link, arg.Size, arg.Attr, arg.Time, nullptr, arg.InfoExist };
 						if (0 < strlen(Pkt.File))
 							SetSlashTail(Pkt.File);
 						strcat(Pkt.File, arg.File);
-						AddFileList(&Pkt, Base);
+						AddFileList(Pkt, Base);
 					}
 				} else {
 					static_assert(std::is_same_v<std::decay_t<decltype(arg)>, std::string>);
 					if (MakeDirPath(data(arg), LIST_UNKNOWN, Path, Dir) == FFFTP_SUCCESS && IncDir == RDIR_NLST) {
 						FILELIST Pkt{ Dir, NODE_DIR, 0, 0, 0, {}, nullptr, 0 };
-						AddFileList(&Pkt, Base);
+						AddFileList(Pkt, Base);
 					}
 				}
 			}, line);
@@ -2609,7 +2491,7 @@ static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir)
 
 
 // ローカル側のサブディレクトリ以下のファイルをリストに登録する
-static int MakeLocalTree(const char *Path, FILELIST **Base) {
+static int MakeLocalTree(const char *Path, std::vector<FILELIST>& Base) {
 	auto const path = fs::u8path(Path);
 	auto const src = path / L"*";
 	FindFile(src, [&path, &Base](WIN32_FIND_DATAW const& data) {
@@ -2627,7 +2509,7 @@ static int MakeLocalTree(const char *Path, FILELIST **Base) {
 			TmpStime.wMilliseconds = 0;
 			SystemTimeToFileTime(&TmpStime, &Pkt.Time);
 		}
-		AddFileList(&Pkt, Base);
+		AddFileList(Pkt, Base);
 	});
 
 	std::optional<bool> result;
@@ -2641,7 +2523,7 @@ static int MakeLocalTree(const char *Path, FILELIST **Base) {
 		strcpy(Pkt.File, src.c_str());
 		ReplaceAll(Pkt.File, '\\', '/');
 		Pkt.Node = NODE_DIR;
-		AddFileList(&Pkt, Base);
+		AddFileList(Pkt, Base);
 		if (MakeLocalTree(src.c_str(), Base) == FFFTP_FAIL)
 			result = false;
 	});
@@ -2659,66 +2541,14 @@ static int MakeLocalTree(const char *Path, FILELIST **Base) {
 *		なし
 *----------------------------------------------------------------------------*/
 
-static void AddFileList(FILELIST *Pkt, FILELIST **Base)
-{
-	FILELIST *Pos;
-	FILELIST *Prev;
-
-	DoPrintf("FileList : NODE=%d : %s", Pkt->Node, Pkt->File);
-
+static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base) {
+	DoPrintf("FileList : NODE=%d : %s", Pkt.Node, Pkt.File);
 	/* リストの重複を取り除く */
-	Pos = *Base;
-	while(Pos != NULL)
-	{
-		if(strcmp(Pkt->File, Pos->File) == 0)
-		{
-			DoPrintf(" --> Duplicate!!");
-			break;
-		}
-		Prev = Pos;
-		Pos = Pos->Next;
+	if (std::any_of(begin(Base), end(Base), [name = Pkt.File](auto const& f) { return strcmp(name, f.File) == 0; })) {
+		DoPrintf(" --> Duplicate!!");
+		return;
 	}
-
-	if(Pos == NULL)		/* 重複していないので登録する */
-	{
-		if((Pos = (FILELIST*)malloc(sizeof(FILELIST))) != NULL)
-		{
-			memcpy(Pos, Pkt, sizeof(FILELIST));
-			Pos->Next = NULL;
-
-			if(*Base == NULL)
-				*Base = Pos;
-			else
-				Prev->Next = Pos;
-		}
-	}
-	return;
-}
-
-
-/*----- ファイルリストをクリアする --------------------------------------------
-*
-*	Parameter
-*		FILELIST **Base : ファイルリストの先頭
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DeleteFileList(FILELIST **Base)
-{
-	FILELIST *New;
-	FILELIST *Next;
-
-	New = *Base;
-	while(New != NULL)
-	{
-		Next = New->Next;
-		free(New);
-		New = Next;
-	}
-	*Base = NULL;
-	return;
+	Base.emplace_back(Pkt);
 }
 
 
@@ -2734,35 +2564,23 @@ void DeleteFileList(FILELIST **Base)
 *			NULL=見つからない
 *----------------------------------------------------------------------------*/
 
-FILELIST *SearchFileList(char *Fname, FILELIST *Base, int Caps)
-{
-	char Tmp[FMAX_PATH+1];
-
-	while(Base != NULL)
-	{
-		if(Caps == COMP_STRICT)
-		{
-			if(_mbscmp((const unsigned char*)Fname, (const unsigned char*)Base->File) == 0)
-				break;
-		}
-		else
-		{
-			if(_mbsicmp((const unsigned char*)Fname, (const unsigned char*)Base->File) == 0)
-			{
-				if(Caps == COMP_IGNORE)
-					break;
-				else
-				{
-					strcpy(Tmp, Base->File);
-					_mbslwr((unsigned char*)Tmp);
-					if(_mbscmp((const unsigned char*)Tmp, (const unsigned char*)Base->File) == 0)
-						break;
-				}
+const FILELIST* SearchFileList(const char* Fname, std::vector<FILELIST> const& Base, int Caps) {
+	for (auto p = data(Base), end = data(Base) + size(Base); p != end; ++p)
+		if (Caps == COMP_STRICT) {
+			if (_mbscmp((const unsigned char*)Fname, (const unsigned char*)p->File) == 0)
+				return p;
+		} else {
+			if (_mbsicmp((const unsigned char*)Fname, (const unsigned char*)p->File) == 0) {
+				if (Caps == COMP_IGNORE)
+					return p;
+				char Tmp[FMAX_PATH + 1];
+				strcpy(Tmp, p->File);
+				_mbslwr((unsigned char*)Tmp);
+				if (_mbscmp((const unsigned char*)Tmp, (const unsigned char*)p->File) == 0)
+					return p;
 			}
 		}
-		Base = Base->Next;
-	}
-	return(Base);
+	return nullptr;
 }
 
 
