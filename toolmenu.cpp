@@ -223,25 +223,11 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	/*===== メインのツールバー =====*/
 
-	// 高DPI対応
-//	hWndTbarMain = CreateToolbarEx(
-//				hWnd,
-//				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_TOP | TBSTYLE_FLAT,
-//				1,
-//				27,
-//				hInst,
-//				main_toolbar_bmp,
-//				TbarDataMain,
-//				sizeof(TbarDataMain)/sizeof(TBBUTTON),
-//				16,16,
-//				16,16,
-//				sizeof(TBBUTTON));
 	hOriginal = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(main_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
-	if(hOriginal != NULL)
-	{
-		hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
-		DeleteObject(hOriginal);
-	}
+	if (!hOriginal)
+		return FFFTP_FAIL;
+	hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
+	DeleteObject(hOriginal);
 	hWndTbarMain = CreateToolbarEx(
 				hWnd,
 				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_TOP | TBSTYLE_FLAT,
@@ -270,25 +256,11 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	/*===== ローカルのツールバー =====*/
 
-	// 高DPI対応
-//	hWndTbarLocal = CreateToolbarEx(
-//				hWnd,
-//				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE | TBSTYLE_FLAT,
-//				2,
-//				2,
-//				hInst,
-//				remote_toolbar_bmp,
-//				TbarDataLocal,
-//				sizeof(TbarDataLocal)/sizeof(TBBUTTON),
-//				16,16,
-//				16,16,
-//				sizeof(TBBUTTON));
 	hOriginal = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
-	if(hOriginal != NULL)
-	{
-		hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
-		DeleteObject(hOriginal);
-	}
+	if (!hOriginal)
+		return FFFTP_FAIL;
+	hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
+	DeleteObject(hOriginal);
 	hWndTbarLocal = CreateToolbarEx(
 				hWnd,
 				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE | TBSTYLE_FLAT,
@@ -338,25 +310,11 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	/*===== ホストのツールバー =====*/
 
-	// 高DPI対応
-//	hWndTbarRemote = CreateToolbarEx(
-//				hWnd,
-//				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE | TBSTYLE_FLAT,
-//				3,
-//				2,
-//				hInst,
-//				remote_toolbar_bmp,
-//				TbarDataRemote,
-//				sizeof(TbarDataRemote)/sizeof(TBBUTTON),
-//				16,16,
-//				16,16,
-//				sizeof(TBBUTTON));
 	hOriginal = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
-	if(hOriginal != NULL)
-	{
-		hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
-		DeleteObject(hOriginal);
-	}
+	if (!hOriginal)
+		return FFFTP_FAIL;
+	hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
+	DeleteObject(hOriginal);
 	hWndTbarRemote = CreateToolbarEx(
 				hWnd,
 				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE | TBSTYLE_FLAT,

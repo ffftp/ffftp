@@ -679,7 +679,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					int filelen;
 					std::vector<FILELIST> FileListBase, FileListBaseNoExpand;
 					char LocDir[FMAX_PATH+1];
-					char *PathDir;
+					char *PathDir = nullptr;
 
 					// 特定の操作を行うと異常終了するバグ修正
 					GetCursorPos(&DropPoint);
