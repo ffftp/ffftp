@@ -887,11 +887,10 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						FindNextChangeNotification(ChangeNotification);
 						if(AutoRefreshFileList == YES)
 						{
-							FILELIST* Base;
 							char Name[FMAX_PATH+1];
 							int Pos;
-							Base = NULL;
-							MakeSelectedFileList(WIN_LOCAL, NO, NO, &Base, &CancelFlg);
+							std::vector<FILELIST> Base;
+							MakeSelectedFileList(WIN_LOCAL, NO, NO, Base, &CancelFlg);
 							GetHotSelected(WIN_LOCAL, Name);
 							Pos = (int)SendMessage(GetLocalHwnd(), LVM_GETTOPINDEX, 0, 0);
 							GetLocalDirForWnd();
@@ -1377,15 +1376,11 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_SELECT_ALL :
-					// ローカル側自動更新
-//					SelectFileInList(hWndCurFocus, SELECT_ALL);
-					SelectFileInList(hWndCurFocus, SELECT_ALL, NULL);
+					SelectFileInList(hWndCurFocus, SELECT_ALL, {});
 					break;
 
 				case MENU_SELECT :
-					// ローカル側自動更新
-//					SelectFileInList(hWndCurFocus, SELECT_REGEXP);
-					SelectFileInList(hWndCurFocus, SELECT_REGEXP, NULL);
+					SelectFileInList(hWndCurFocus, SELECT_REGEXP, {});
 					break;
 
 				case MENU_FIND :

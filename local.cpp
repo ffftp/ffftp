@@ -73,7 +73,7 @@ void DoLocalDELE(char *Path) {
 
 
 // ローカル側のファイル名変更
-void DoLocalRENAME(char *Src, char *Dst) {
+void DoLocalRENAME(const char *Src, const char *Dst) {
 	SetTaskMsg(">>REN %s %s", Src, Dst);
 	std::error_code ec;
 	fs::rename(fs::u8path(Src), fs::u8path(Dst), ec);
