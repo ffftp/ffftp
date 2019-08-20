@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.4.0 (FTP Client software)
+[Software Name]  FFFTP Ver.4.1 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018-2019, KURATA Sayuri.
@@ -29,15 +29,12 @@ following menu.
 File -> Settings -> Change Master password
 
 
-Changes at 4.0
+Changes at 4.1
 --------------
 
-- Detect kanji code each directories. #73, #99, #111
-- Use C++17 filesystem library. #106
-- refactor mbswrapper. #105
-- fix preview remote file. #103
-- fix remove read only attribute. #104
-- fix fail kanji code convertion. #107
+- fix upload error. #117
+- fix change directory error. #114
+- enable compile time security check. #113
 
 
 Outline
