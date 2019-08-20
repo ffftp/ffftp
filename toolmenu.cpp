@@ -1679,7 +1679,8 @@ void AskRemoteCurDir(char *Buf, int Max)
 
 // カレントディレクトリを設定する
 void SetCurrentDirAsDirHist() {
-	fs::current_path(fs::u8path(LocalCurDir));
+	std::error_code ec;
+	fs::current_path(fs::u8path(LocalCurDir), ec);
 }
 
 
