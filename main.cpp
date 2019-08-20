@@ -565,8 +565,8 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			{
 				hWndCurFocus = GetLocalHwnd();
 
-				if(strlen(DefaultLocalPath) > 0)
-					fs::current_path(fs::u8path(DefaultLocalPath));
+				if (std::error_code ec; strlen(DefaultLocalPath) > 0)
+					fs::current_path(fs::u8path(DefaultLocalPath), ec);
 
 				SetSortTypeImm(LocalFileSort, LocalDirSort, RemoteFileSort, RemoteDirSort);
 				SetTransferTypeImm(TransMode);

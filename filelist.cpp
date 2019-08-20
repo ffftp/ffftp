@@ -2175,7 +2175,8 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, std::vector<FILELIST>& Base) 
 	}
 
 	auto const saved = fs::current_path();
-	fs::current_path(fs::u8path(Cur));
+	std::error_code ec;
+	fs::current_path(fs::u8path(Cur), ec);
 	for(i = 0; i < Max; i++)
 	{
 		DragQueryFile((HDROP)wParam, i, Name, FMAX_PATH);
