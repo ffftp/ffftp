@@ -1088,14 +1088,14 @@ void GetLocalDirForWnd(void)
 		if (DotFile != YES && data.cFileName[0] == L'.')
 			return;
 		if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			files.emplace_back(u8(data.cFileName).c_str(), NODE_DIR, NO, MakeLongLong(data.nFileSizeHigh, data.nFileSizeLow), 0, data.ftLastWriteTime, "", FINFO_ALL);
+			files.emplace_back(u8(data.cFileName).c_str(), NODE_DIR, NO, MakeLongLong(data.nFileSizeHigh, data.nFileSizeLow), 0, data.ftLastWriteTime, FINFO_ALL);
 		else if (AskFilterStr(u8(data.cFileName).c_str(), NODE_FILE) == YES)
-			files.emplace_back(u8(data.cFileName).c_str(), NODE_FILE, NO, MakeLongLong(data.nFileSizeHigh, data.nFileSizeLow), 0, data.ftLastWriteTime, "", FINFO_ALL);
+			files.emplace_back(u8(data.cFileName).c_str(), NODE_FILE, NO, MakeLongLong(data.nFileSizeHigh, data.nFileSizeLow), 0, data.ftLastWriteTime, FINFO_ALL);
 	});
 
 	/* ドライブ */
 	if (DispDrives)
-		GetDrives([&files](const wchar_t drive[]) { files.emplace_back(u8(drive).c_str(), NODE_DRIVE, NO, 0, 0, FILETIME{}, "", FINFO_ALL); });
+		GetDrives([&files](const wchar_t drive[]) { files.emplace_back(u8(drive).c_str(), NODE_DRIVE, NO, 0, 0, FILETIME{}, FINFO_ALL); });
 
 	// ファイルアイコン表示対応
 	RefreshIconImageList(files);
@@ -2361,7 +2361,7 @@ void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, std::vector<FILELI
 			std::visit([&Path, IncDir, &Base, &Dir](auto&& arg) {
 				if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>) {
 					if (AskFilterStr(arg.File, arg.Node) == YES && (arg.Node == NODE_FILE || IncDir == RDIR_CWD && arg.Node == NODE_DIR)) {
-						FILELIST Pkt{ Dir, arg.Node, arg.Link, arg.Size, arg.Attr, arg.Time, nullptr, arg.InfoExist };
+						FILELIST Pkt{ Dir, arg.Node, arg.Link, arg.Size, arg.Attr, arg.Time, arg.InfoExist };
 						if (0 < strlen(Pkt.File))
 							SetSlashTail(Pkt.File);
 						strcat(Pkt.File, arg.File);
@@ -2369,10 +2369,8 @@ void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, std::vector<FILELI
 					}
 				} else {
 					static_assert(std::is_same_v<std::decay_t<decltype(arg)>, std::string>);
-					if (MakeDirPath(data(arg), LIST_UNKNOWN, Path, Dir) == FFFTP_SUCCESS && IncDir == RDIR_NLST) {
-						FILELIST Pkt{ Dir, NODE_DIR, 0, 0, 0, {}, nullptr, 0 };
-						AddFileList(Pkt, Base);
-					}
+					if (MakeDirPath(data(arg), LIST_UNKNOWN, Path, Dir) == FFFTP_SUCCESS && IncDir == RDIR_NLST)
+						AddFileList({ Dir, NODE_DIR }, Base);
 				}
 			}, line);
 }

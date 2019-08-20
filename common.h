@@ -1273,17 +1273,22 @@ typedef struct transpacket {
 /*===== ファイルリスト =====*/
 
 typedef struct filelist {
-	char File[FMAX_PATH+1];			/* ファイル名 */
-	char Node;						/* 種類 (NODE_xxx) */
-	char Link;						/* リンクファイルかどうか (YES/NO) */
-	LONGLONG Size;					/* ファイルサイズ */
-	int Attr;						/* 属性 */
-	FILETIME Time;					/* 時間(UTC) */
-	char Owner[OWNER_NAME_LEN+1];	/* オーナ名 */
-	char InfoExist;					/* ファイル一覧に存在した情報のフラグ (FINFO_xxx) */
-	// ファイルアイコン表示対応
-	int ImageId;					/* アイコン画像番号 */
+	char File[FMAX_PATH + 1] = {};			/* ファイル名 */
+	char Node = 0;							/* 種類 (NODE_xxx) */
+	char Link = 0;							/* リンクファイルかどうか (YES/NO) */
+	LONGLONG Size = 0;						/* ファイルサイズ */
+	int Attr = 0;							/* 属性 */
+	FILETIME Time = {};						/* 時間(UTC) */
+	char Owner[OWNER_NAME_LEN + 1] = {};	/* オーナ名 */
+	char InfoExist = 0;						/* ファイル一覧に存在した情報のフラグ (FINFO_xxx) */
+	int ImageId = 0;						/* アイコン画像番号 */
 	filelist() = default;
+	filelist(const char* file, char node) : Node{ node } {
+		strcpy(File, file);
+	}
+	filelist(const char* file, char node, char link, LONGLONG size, int attr, FILETIME time, char infoExist) : Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, InfoExist{ infoExist } {
+		strcpy(File, file);
+	}
 	filelist(const char* file, char node, char link, LONGLONG size, int attr, FILETIME time, const char* owner, char infoExist) : Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, InfoExist{ infoExist } {
 		strcpy(File, file);
 		strcpy(Owner, owner);
