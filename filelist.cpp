@@ -1086,11 +1086,12 @@ void GetLocalDirForWnd(void)
 	/* ディレクトリ／ファイル */
 	FindFile(fs::u8path(Scan) / L"*", [&files](WIN32_FIND_DATAW const& data) {
 		if (DotFile != YES && data.cFileName[0] == L'.')
-			return;
+			return true;
 		if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			files.emplace_back(u8(data.cFileName).c_str(), NODE_DIR, NO, MakeLongLong(data.nFileSizeHigh, data.nFileSizeLow), 0, data.ftLastWriteTime, FINFO_ALL);
 		else if (AskFilterStr(u8(data.cFileName).c_str(), NODE_FILE) == YES)
 			files.emplace_back(u8(data.cFileName).c_str(), NODE_FILE, NO, MakeLongLong(data.nFileSizeHigh, data.nFileSizeLow), 0, data.ftLastWriteTime, FINFO_ALL);
+		return true;
 	});
 
 	/* ドライブ */
@@ -2495,7 +2496,7 @@ static int MakeLocalTree(const char *Path, std::vector<FILELIST>& Base) {
 	auto const src = path / L"*";
 	FindFile(src, [&path, &Base](WIN32_FIND_DATAW const& data) {
 		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) || AskFilterStr(u8(data.cFileName).c_str(), NODE_FILE) != YES)
-			return;
+			return true;
 		FILELIST Pkt{};
 		auto const src = (path / data.cFileName).u8string();
 		strcpy(Pkt.File, src.c_str());
@@ -2509,24 +2510,21 @@ static int MakeLocalTree(const char *Path, std::vector<FILELIST>& Base) {
 			SystemTimeToFileTime(&TmpStime, &Pkt.Time);
 		}
 		AddFileList(Pkt, Base);
+		return true;
 	});
 
-	std::optional<bool> result;
-	FindFile(src, [&path, &Base, &result](WIN32_FIND_DATAW const& data) {
-		if (!result.has_value())
-			result = true;
+	auto result = FindFile(src, [&path, &Base](WIN32_FIND_DATAW const& data) {
 		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
-			return;
+			return true;
 		FILELIST Pkt{};
 		auto const src = (path / data.cFileName).u8string();
 		strcpy(Pkt.File, src.c_str());
 		ReplaceAll(Pkt.File, '\\', '/');
 		Pkt.Node = NODE_DIR;
 		AddFileList(Pkt, Base);
-		if (MakeLocalTree(src.c_str(), Base) == FFFTP_FAIL)
-			result = false;
+		return MakeLocalTree(src.c_str(), Base) == FFFTP_SUCCESS;
 	});
-	return result.value_or(false) ? FFFTP_SUCCESS : FFFTP_FAIL;
+	return result ? FFFTP_SUCCESS : FFFTP_FAIL;
 }
 
 
