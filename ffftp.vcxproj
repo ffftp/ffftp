@@ -21,22 +21,22 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5D9496DB-45AF-4389-8FEE-27C9A2FA207A}</ProjectGuid>
     <RootNamespace>ffftp</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -102,10 +102,10 @@
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalDependencies>normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;Normaliz.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <MinimumRequiredVersion>5.01</MinimumRequiredVersion>
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
-      <PreprocessorDefinitions>_USING_V110_SDK71_</PreprocessorDefinitions>
     </MuiResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -161,10 +161,10 @@
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalDependencies>normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;Normaliz.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <MinimumRequiredVersion>5.01</MinimumRequiredVersion>
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
-      <PreprocessorDefinitions>_USING_V110_SDK71_</PreprocessorDefinitions>
     </MuiResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
