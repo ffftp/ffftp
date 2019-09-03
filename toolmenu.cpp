@@ -223,7 +223,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	/*===== メインのツールバー =====*/
 
-	hOriginal = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(main_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
+	hOriginal = (HBITMAP)LoadImageW(hInst, MAKEINTRESOURCEW(main_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
 	if (!hOriginal)
 		return FFFTP_FAIL;
 	hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
@@ -256,7 +256,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	/*===== ローカルのツールバー =====*/
 
-	hOriginal = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
+	hOriginal = (HBITMAP)LoadImageW(hInst, MAKEINTRESOURCEW(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
 	if (!hOriginal)
 		return FFFTP_FAIL;
 	hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
@@ -310,7 +310,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	/*===== ホストのツールバー =====*/
 
-	hOriginal = (HBITMAP)LoadImage(hInst, MAKEINTRESOURCE(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
+	hOriginal = (HBITMAP)LoadImageW(hInst, MAKEINTRESOURCEW(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
 	if (!hOriginal)
 		return FFFTP_FAIL;
 	hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
