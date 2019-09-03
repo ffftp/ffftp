@@ -394,7 +394,7 @@ static void doTransferRemoteFile(void)
 	SetLocalDirHist(tmp.u8string().c_str());
 
 	// FFFTPにダウンロード要求を出し、ダウンロードの完了を待つ。
-	PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
+	PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
 
 	// 特定の操作を行うと異常終了するバグ修正
 	while(1)
@@ -509,7 +509,7 @@ static void doDragDrop(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 //	GetCursorPos(&pt);
 	pt = DropPoint;
 	ScreenToClient(hWnd, &pt);
-	PostMessage(hWnd,WM_LBUTTONUP,0,MAKELPARAM(pt.x,pt.y));
+	PostMessageW(hWnd,WM_LBUTTONUP,0,MAKELPARAM(pt.x,pt.y));
 	// ドロップ先が他プロセスかつカーソルが自プロセスのドロップ可能なウィンドウ上にある場合の対策
 	EnableWindow(GetMainHwnd(), TRUE);
 }
@@ -642,9 +642,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 				if(hWndPnt == hWndDst)  // local <-> remote 
 				{
 					if(hWndPnt == hWndListRemote) {
-						PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
+						PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
 					} else if(hWndPnt == hWndListLocal) {
-						PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
+						PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
 					}
 				} else { // 同一ウィンドウ内の場合 (yutaka)
 					if (hWndDragStart == hWndListRemote && hWndPnt == hWndListRemote) {
@@ -868,7 +868,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					}
 
 					// OLE D&Dの開始を指示する
-					PostMessage(hWnd, WM_DRAGDROP, MAKEWPARAM(wParam, lParam), 0);
+					PostMessageW(hWnd, WM_DRAGDROP, MAKEWPARAM(wParam, lParam), 0);
 
 				}
 				else
@@ -899,13 +899,12 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					(hWndPnt == hWndListLocal) || 
 					(hWndPnt == GetTaskWnd())))
 				{
-					PostMessage(hWndPnt, WM_VSCROLL, zDelta > 0 ? MAKEWPARAM(SB_PAGEUP, 0) : MAKEWPARAM(SB_PAGEDOWN, 0), 0);
-//					PostMessage(hWndPnt, WM_VSCROLL, MAKEWPARAM(SB_ENDSCROLL, 0), 0);
+					PostMessageW(hWndPnt, WM_VSCROLL, zDelta > 0 ? MAKEWPARAM(SB_PAGEUP, 0) : MAKEWPARAM(SB_PAGEDOWN, 0), 0);
 				}
 				else if(hWndPnt == hWnd)
 					return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 				else if((hWndPnt == hWndDst) || (hWndPnt == GetTaskWnd()))
-					PostMessage(hWndPnt, message, wParam, lParam);
+					PostMessageW(hWndPnt, message, wParam, lParam);
 			}
 			break;
 

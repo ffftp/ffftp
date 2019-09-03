@@ -800,7 +800,7 @@ int AddPortMapping(const char* Adrs, int Port, char* ExtAdrs) {
 			Data.Adrs = Adrs;
 			Data.Port = Port;
 			Data.ExtAdrs = ExtAdrs;
-			if (PostMessage(GetMainHwnd(), WM_ADDPORTMAPPING, 0, (LPARAM)&Data))
+			if (PostMessageW(GetMainHwnd(), WM_ADDPORTMAPPING, 0, (LPARAM)&Data))
 				if (WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
 					result = Data.r;
 			CloseHandle(Data.h);
@@ -818,7 +818,7 @@ int RemovePortMapping(int Port) {
 	} else {
 		if (REMOVEPORTMAPPINGDATA Data; Data.h = CreateEventW(NULL, TRUE, FALSE, NULL)) {
 			Data.Port = Port;
-			if (PostMessage(GetMainHwnd(), WM_REMOVEPORTMAPPING, 0, (LPARAM)&Data))
+			if (PostMessageW(GetMainHwnd(), WM_REMOVEPORTMAPPING, 0, (LPARAM)&Data))
 				if (WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
 					result = Data.r;
 			CloseHandle(Data.h);

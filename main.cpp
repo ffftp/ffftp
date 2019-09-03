@@ -1012,9 +1012,9 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 				case MENU_UPDIR :
 					if(hWndCurFocus == GetLocalHwnd())
-						PostMessage(hWnd, WM_COMMAND, MAKEWPARAM(MENU_LOCAL_UPDIR, 0), 0);
+						PostMessageW(hWnd, WM_COMMAND, MAKEWPARAM(MENU_LOCAL_UPDIR, 0), 0);
 					else
-						PostMessage(hWnd, WM_COMMAND, MAKEWPARAM(MENU_REMOTE_UPDIR, 0), 0);
+						PostMessageW(hWnd, WM_COMMAND, MAKEWPARAM(MENU_REMOTE_UPDIR, 0), 0);
 					break;
 
 				case MENU_DCLICK :
@@ -1230,12 +1230,12 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_EXIT :
-					PostMessage(hWnd, WM_CLOSE, 0, 0L);
+					PostMessageW(hWnd, WM_CLOSE, 0, 0L);
 					break;
 
 				case MENU_AUTO_EXIT :
 					if(AutoExit == YES)
-						PostMessage(hWnd, WM_CLOSE, 0, 0L);
+						PostMessageW(hWnd, WM_CLOSE, 0, 0L);
 					break;
 
 				case MENU_ABOUT :
@@ -1422,7 +1422,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					{
 						MessageBox(hWnd, MSGJPN292, "FFFTP", MB_OK);
 						SaveExit = NO;
-						PostMessage(hWnd, WM_CLOSE, 0, 0L);
+						PostMessageW(hWnd, WM_CLOSE, 0, 0L);
 					}
 					break;
 
@@ -1433,7 +1433,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						// ポータブル版判定
 						ClearIni();
 						SaveExit = NO;
-						PostMessage(hWnd, WM_CLOSE, 0, 0L);
+						PostMessageW(hWnd, WM_CLOSE, 0, 0L);
 					}
 					break;
 				case MENU_CHANGEPASSWD:	/* 2010.01.31 genta */
@@ -1812,14 +1812,13 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 		case WM_REFRESH_LOCAL_FLG :
 			// 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
-//			PostMessage(hWnd,  WM_COMMAND, MAKEWPARAM(REFRESH_LOCAL, 0), 0);
 			if(SuppressRefresh == 0)
-				PostMessage(hWnd,  WM_COMMAND, MAKEWPARAM(REFRESH_LOCAL, 0), 0);
+				PostMessageW(hWnd,  WM_COMMAND, MAKEWPARAM(REFRESH_LOCAL, 0), 0);
 			break;
 
 		case WM_REFRESH_REMOTE_FLG :
 			if(SuppressRefresh == 0)
-				PostMessage(hWnd,  WM_COMMAND, MAKEWPARAM(REFRESH_REMOTE, 0), 0);
+				PostMessageW(hWnd,  WM_COMMAND, MAKEWPARAM(REFRESH_REMOTE, 0), 0);
 			break;
 
 		// UPnP対応
@@ -1943,7 +1942,7 @@ static void StartupProc(char *Cmd)
 	if(Sts == 0)
 	{
 		if(ConnectOnStart == YES)
-			PostMessage(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_CONNECT, 0), 0);
+			PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_CONNECT, 0), 0);
 	}
 	else if(Sts == 1)
 	{
@@ -1951,7 +1950,7 @@ static void StartupProc(char *Cmd)
 	}
 	else if(Sts == 2)
 	{
-		PostMessage(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_CONNECT_NUM, CmdOption), (LPARAM)AutoConnect);
+		PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_CONNECT_NUM, CmdOption), (LPARAM)AutoConnect);
 	}
 	return;
 }
@@ -2332,7 +2331,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							ExecViewer(Local, App);
 						}
 						else
-							PostMessage(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
+							PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
 					}
 					else
 						ChangeDir(WIN_LOCAL, Tmp);
@@ -2421,7 +2420,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							}
 						}
 						else
-							PostMessage(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
+							PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
 					}
 					else
 						ChangeDir(WIN_REMOTE, Tmp);
