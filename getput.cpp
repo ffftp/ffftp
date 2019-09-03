@@ -171,10 +171,10 @@ int MakeTransferThread(void)
 	unsigned int dwID;
 	int i;
 
-	hListAccMutex = CreateMutex( NULL, FALSE, NULL );
-	hRunMutex = CreateMutex( NULL, TRUE, NULL );
+	hListAccMutex = CreateMutexW( NULL, FALSE, NULL );
+	hRunMutex = CreateMutexW( NULL, TRUE, NULL );
 	// 同時接続対応
-	hErrMsgMutex = CreateMutex( NULL, FALSE, NULL );
+	hErrMsgMutex = CreateMutexW( NULL, FALSE, NULL );
 
 	ClearAll = NO;
 	ForceAbort = NO;
