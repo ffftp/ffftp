@@ -676,7 +676,7 @@ static int MakeAllWindows(int cmdShow)
 
 	if(hWndFtp != NULL)
 	{
-		SystemParametersInfo(SPI_GETWORKAREA, 0, &Rect1, 0);
+		SystemParametersInfoW(SPI_GETWORKAREA, 0, &Rect1, 0);
 		GetWindowRect(hWndFtp, &Rect2);
 		if(Rect2.bottom > Rect1.bottom)
 		{
