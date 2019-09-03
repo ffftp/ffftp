@@ -1411,69 +1411,9 @@ int LoadRegistry(void)
 }
 
 
-/*----- レジストリの設定値をクリア --------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void ClearRegistry(void)
-{
-	HKEY hKey2;
-	HKEY hKey3;
-	HKEY hKey4;
-	DWORD Dispos;
-	char Str[20];
-	int i;
-
-	if(RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Sota", 0, "", REG_OPTION_NON_VOLATILE, KEY_CREATE_SUB_KEY, NULL, &hKey2, &Dispos) == ERROR_SUCCESS)
-	{
-		if(RegCreateKeyEx(hKey2, "FFFTP", 0, "", REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey3, &Dispos) == ERROR_SUCCESS)
-		{
-			if(RegCreateKeyEx(hKey3, "Options", 0, "", REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey4, &Dispos) == ERROR_SUCCESS)
-			{
-				for(i = 0; ; i++)
-				{
-					sprintf(Str, "Host%d", i);
-					if(RegDeleteKey(hKey4, Str) != ERROR_SUCCESS)
-						break;
-				}
-				for(i = 0; ; i++)
-				{
-					sprintf(Str, "History%d", i);
-					if(RegDeleteKey(hKey4, Str) != ERROR_SUCCESS)
-						break;
-				}
-				RegCloseKey(hKey4);
-			}
-			RegDeleteKey(hKey3, "Options");
-			// 全設定暗号化対応
-			if(RegCreateKeyEx(hKey3, "EncryptedOptions", 0, "", REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey4, &Dispos) == ERROR_SUCCESS)
-			{
-				for(i = 0; ; i++)
-				{
-					sprintf(Str, "Host%d", i);
-					if(RegDeleteKey(hKey4, Str) != ERROR_SUCCESS)
-						break;
-				}
-				for(i = 0; ; i++)
-				{
-					sprintf(Str, "History%d", i);
-					if(RegDeleteKey(hKey4, Str) != ERROR_SUCCESS)
-						break;
-				}
-				RegCloseKey(hKey4);
-			}
-			RegDeleteKey(hKey3, "EncryptedOptions");
-			RegCloseKey(hKey3);
-		}
-		RegDeleteKey(hKey2, "FFFTP");
-		RegCloseKey(hKey2);
-	}
-	return;
+// レジストリの設定値をクリア
+void ClearRegistry() {
+	SHDeleteKeyW(HKEY_CURRENT_USER, LR"(Software\Sota\FFFTP)");
 }
 
 
@@ -2244,9 +2184,7 @@ static int DeleteSubKey(void *Handle, char *Name)
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		// 全設定暗号化対応
-//		if(RegDeleteKey(Handle, Name) == ERROR_SUCCESS)
-		if(RegDeleteKey(((REGDATATBL_REG *)Handle)->hKey, Name) == ERROR_SUCCESS)
+		if(RegDeleteKeyW(((REGDATATBL_REG *)Handle)->hKey, u8(Name).c_str()) == ERROR_SUCCESS)
 			Sts = FFFTP_SUCCESS;
 	}
 	else

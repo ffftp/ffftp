@@ -1791,7 +1791,7 @@ void EditBookMark();
 
 void SaveRegistry(void);
 int LoadRegistry(void);
-void ClearRegistry(void);
+void ClearRegistry();
 // ポータブル版判定
 void ClearIni(void);
 void SetMasterPassword( const char* );
