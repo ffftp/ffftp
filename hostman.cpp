@@ -68,7 +68,7 @@ HOSTDATA DefaultHost;
 struct HostList {
 	using result_t = int;
 	Resizable<Controls<HOST_NEW, HOST_FOLDER, HOST_SET, HOST_COPY, HOST_DEL, HOST_DOWN, HOST_UP, HOST_SET_DEFAULT, IDHELP, HOST_SIZEGRIP>, Controls<IDOK, IDCANCEL, HOST_SIZEGRIP>, Controls<HOST_LIST>> resizable{ HostDlgSize };
-	HIMAGELIST hImage = ImageList_LoadBitmap(GetFtpInst(), MAKEINTRESOURCE(hlist_bmp), 16, 8, RGB(255, 0, 0));
+	HIMAGELIST hImage = ImageList_LoadImageW(GetFtpInst(), MAKEINTRESOURCEW(hlist_bmp), 16, 8, RGB(255, 0, 0), IMAGE_BITMAP, 0);
 	~HostList() {
 		ImageList_Destroy(hImage);
 	}

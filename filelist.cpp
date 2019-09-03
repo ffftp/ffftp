@@ -167,7 +167,7 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 		if(ListFont != NULL)
 			SendMessage(hWndListLocal, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
 
-		ListImg = ImageList_LoadBitmap(hInst, MAKEINTRESOURCE(dirattr_bmp), 16, 9, RGB(255,0,0));
+		ListImg = ImageList_LoadImageW(hInst, MAKEINTRESOURCEW(dirattr_bmp), 16, 9, RGB(255,0,0), IMAGE_BITMAP, 0);
 		SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
 		ShowWindow(hWndListLocal, SW_SHOW);
 
