@@ -201,7 +201,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN251 (std::data(msgs[10000+251])) /* Err: シード文字列 */
 #define MSGJPN252 (std::data(msgs[10000+252])) /* Err: シード文字列 */
 #define MSGJPN253 (std::data(msgs[10000+253])) /* Err: シーケンス番号 */
-#define MSGJPN254 (std::data(msgs[10000+254])) /* MS Shell Dlg */
 #define MSGJPN255 (std::data(msgs[10000+255])) /* アップロード(&U) */
 #define MSGJPN256 (std::data(msgs[10000+256])) /* 名前を変えてアップロード(&P)... */
 #define MSGJPN257 (std::data(msgs[10000+257])) /* 全てをアップロード */
