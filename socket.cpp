@@ -227,8 +227,8 @@ auto getCertContext(CtxtHandle& context) {
 void ShowCertificate() {
 	if (auto context = getContext(AskCmdCtrlSkt()))
 		if (auto certContext = getCertContext(context->context)) {
-			CRYPTUI_VIEWCERTIFICATE_STRUCT certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCT, 0, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext.get() };
-			CryptUIDlgViewCertificate(&certViewInfo, nullptr);
+			CRYPTUI_VIEWCERTIFICATE_STRUCTW certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCTW, 0, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext.get() };
+			CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
 		}
 }
 
