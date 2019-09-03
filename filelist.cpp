@@ -362,10 +362,10 @@ static void doTransferRemoteFile(void)
 	while(1)
 	{
 		MSG msg;
-		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		if(PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			DispatchMessageW(&msg);
 		}
 		else if(AskTransferNow() == NO)
 			break;
@@ -401,9 +401,9 @@ static void doTransferRemoteFile(void)
 	{
 		MSG msg;
 
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+		if (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
 			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			DispatchMessageW(&msg);
 
 		} else {
 			// 転送スレッドが動き出したら抜ける。
@@ -418,10 +418,10 @@ static void doTransferRemoteFile(void)
 	while(1)
 	{
 		MSG msg;
-		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		if(PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			DispatchMessageW(&msg);
 		}
 		else if(AskTransferNow() == NO)
 			break;

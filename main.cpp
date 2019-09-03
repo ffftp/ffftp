@@ -370,7 +370,7 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 	if (auto u8CmdLine = u8(lpCmdLine); InitApp(data(u8CmdLine), nShowCmd) == FFFTP_SUCCESS) {
 		for(;;)
 		{
-			Sts = GetMessage(&Msg, NULL, 0, 0);
+			Sts = GetMessageW(&Msg, NULL, 0, 0);
 			if((Sts == 0) || (Sts == -1))
 				break;
 
@@ -382,10 +382,10 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 				   (Msg.hwnd == GetRemoteHistEditHwnd()) ||
 				   ((hHelpWin != NULL) && (GetAncestor(Msg.hwnd, GA_ROOT) == hHelpWin)) ||
 				   GetHideUI() == YES ||
-				   (TranslateAccelerator(hWndFtp, Accel, &Msg) == 0))
+				   (TranslateAcceleratorW(hWndFtp, Accel, &Msg) == 0))
 				{
 					TranslateMessage(&Msg);
-					DispatchMessage(&Msg);
+					DispatchMessageW(&Msg);
 				}
 			}
 		}
@@ -440,7 +440,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		MessageBox(NULL, ReturnWSError(Err), "FFFTP - Startup", MB_OK);
 	else
 	{
-		Accel = LoadAccelerators(hInstFtp, MAKEINTRESOURCE(ffftp_accel));
+		Accel = LoadAcceleratorsW(hInstFtp, MAKEINTRESOURCEW(ffftp_accel));
 
 		// 高DPI対応
 		WinWidth = CalcPixelX(WinWidth);
@@ -2965,7 +2965,7 @@ int BackgrndMessageProc(void)
 	int Ret;
 
 	Ret = NO;
-	while(PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE))
+	while(PeekMessageW(&Msg, NULL, 0, 0, PM_REMOVE))
 	{
 		if(!IsMainThread() || !HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
 		{
@@ -2975,7 +2975,7 @@ int BackgrndMessageProc(void)
 			   (Msg.hwnd == GetRemoteHistEditHwnd()) ||
 			   ((hHelpWin != NULL) && (Msg.hwnd == hHelpWin)) ||
 			   GetHideUI() == YES ||
-			   (TranslateAccelerator(GetMainHwnd(), Accel, &Msg) == 0))
+			   (TranslateAcceleratorW(GetMainHwnd(), Accel, &Msg) == 0))
 			{
 				if(Msg.message == WM_QUIT)
 				{
@@ -2984,7 +2984,7 @@ int BackgrndMessageProc(void)
 					break;
 				}
 				TranslateMessage(&Msg);
-				DispatchMessage(&Msg);
+				DispatchMessageW(&Msg);
 			}
 		}
 	}
