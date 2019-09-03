@@ -171,10 +171,10 @@ int MakeTransferThread(void)
 	unsigned int dwID;
 	int i;
 
-	hListAccMutex = CreateMutex( NULL, FALSE, NULL );
-	hRunMutex = CreateMutex( NULL, TRUE, NULL );
+	hListAccMutex = CreateMutexW( NULL, FALSE, NULL );
+	hRunMutex = CreateMutexW( NULL, TRUE, NULL );
 	// 同時接続対応
-	hErrMsgMutex = CreateMutex( NULL, FALSE, NULL );
+	hErrMsgMutex = CreateMutexW( NULL, FALSE, NULL );
 
 	ClearAll = NO;
 	ForceAbort = NO;
@@ -408,7 +408,7 @@ void AddTransFileList(TRANSPACKET *Pkt)
 			// タスクバー進捗表示
 			TransferSizeLeft += Pkt->Size;
 			TransferSizeTotal += Pkt->Size;
-			PostMessage(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
+			PostMessageW(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 		}
 	}
 	// 同時接続対応
@@ -486,7 +486,7 @@ void AppendTransFileList(TRANSPACKET *Pkt)
 			// タスクバー進捗表示
 			TransferSizeLeft += Pkt->Size;
 			TransferSizeTotal += Pkt->Size;
-			PostMessage(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
+			PostMessageW(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 		}
 		Pkt = Pkt->Next;
 	}
@@ -585,7 +585,7 @@ static void EraseTransFileList(void)
 	// タスクバー進捗表示
 	TransferSizeLeft = 0;
 	TransferSizeTotal = 0;
-	PostMessage(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
+	PostMessageW(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 	ReleaseMutex(hListAccMutex);
 	// 同時接続対応
 	WaitForMainThread = NO;
@@ -760,7 +760,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			if(TrnSkt != INVALID_SOCKET && AskErrorReconnect() == YES && LastError == YES)
 			{
 				ReleaseMutex(hListAccMutex);
-				PostMessage(GetMainHwnd(), WM_RECONNECTSOCKET, 0, 0);
+				PostMessageW(GetMainHwnd(), WM_RECONNECTSOCKET, 0, 0);
 				Sleep(100);
 				TrnSkt = INVALID_SOCKET;
 //				WaitForSingleObject(hListAccMutex, INFINITE);
@@ -858,7 +858,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				   (strncmp(Pos->Cmd, "L-", 2) == 0) ||
 				   (strncmp(Pos->Cmd, "R-", 2) == 0))
 				{
-					hWndTrans = CreateDialog(GetFtpInst(), MAKEINTRESOURCE(transfer_dlg), HWND_DESKTOP, (DLGPROC)TransDlgProc);
+					hWndTrans = CreateDialogW(GetFtpInst(), MAKEINTRESOURCEW(transfer_dlg), HWND_DESKTOP, (DLGPROC)TransDlgProc);
 					if(MoveToForeground == YES)
 						SetForegroundWindow(hWndTrans);
 					ShowWindow(hWndTrans, SW_SHOWNOACTIVATE);
@@ -1221,7 +1221,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 							TransferSizeLeft = 0;
 						if(TransFiles == 0)
 							TransferSizeTotal = 0;
-						PostMessage(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
+						PostMessageW(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 					}
 //					Pos = TransPacketBase;
 //					TransPacketBase = TransPacketBase->Next;
@@ -1255,13 +1255,13 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				if(AskAutoExit() == NO)
 				{
 					if(Down == YES)
-						PostMessage(GetMainHwnd(), WM_REFRESH_LOCAL_FLG, 0, 0);
+						PostMessageW(GetMainHwnd(), WM_REFRESH_LOCAL_FLG, 0, 0);
 					if(Up == YES)
-						PostMessage(GetMainHwnd(), WM_REFRESH_REMOTE_FLG, 0, 0);
+						PostMessageW(GetMainHwnd(), WM_REFRESH_REMOTE_FLG, 0, 0);
 				}
 				Down = NO;
 				Up = NO;
-				PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_AUTO_EXIT, 0), 0);
+				PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_AUTO_EXIT, 0), 0);
 				GoExit = NO;
 			}
 
@@ -1272,21 +1272,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				{
 					DestroyWindow(hWndTrans);
 					hWndTrans = NULL;
-
-//					if(GoExit == YES)
-//					{
-//						SoundPlay(SND_TRANS);
-//
-//						if(AskAutoExit() == NO)
-//						{
-//							if(Down == YES)
-//								PostMessage(GetMainHwnd(), WM_REFRESH_LOCAL_FLG, 0, 0);
-//							if(Up == YES)
-//								PostMessage(GetMainHwnd(), WM_REFRESH_REMOTE_FLG, 0, 0);
-//						}
-//						Down = NO;
-//						Up = NO;
-//					}
 				}
 			}
 			BackgrndMessageProc();
@@ -2975,9 +2960,9 @@ int MarkFileAsDownloadedFromInternet(char* Fname) {
 		if (persistFile->Save(_bstr_t{ u8(Fname).c_str() }, FALSE) == S_OK)
 			return FFFTP_SUCCESS;
 	} else {
-		if (Data.h = CreateEvent(NULL, TRUE, FALSE, NULL)) {
+		if (Data.h = CreateEventW(NULL, TRUE, FALSE, NULL)) {
 			Data.Fname = Fname;
-			if (PostMessage(GetMainHwnd(), WM_MARKFILEASDOWNLOADEDFROMINTERNET, 0, (LPARAM)&Data))
+			if (PostMessageW(GetMainHwnd(), WM_MARKFILEASDOWNLOADEDFROMINTERNET, 0, (LPARAM)&Data))
 				if (WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
 					result = Data.r;
 			CloseHandle(Data.h);

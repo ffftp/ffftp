@@ -730,7 +730,7 @@ void SwitchOSSProc(void)
 	if (DoPWD(Buf) == FTP_COMPLETE)
 		SetRemoteDirHist(Buf);
 	/* ファイルリスト再読み込み */
-	PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(REFRESH_REMOTE, 0), 0);
+	PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(REFRESH_REMOTE, 0), 0);
 
 	return;
 }

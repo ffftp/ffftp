@@ -1427,7 +1427,7 @@ HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNum
 		{
 			if(hDstDC = CreateCompatibleDC(hDC))
 			{
-				if(GetObject(hBitmap, sizeof(BITMAP), &Bitmap) > 0)
+				if(GetObjectW(hBitmap, sizeof(BITMAP), &Bitmap) > 0)
 				{
 					if(UnitSizeX == 0)
 						UnitSizeX = Bitmap.bmWidth;

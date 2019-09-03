@@ -86,7 +86,7 @@ void DispSelectedSpace() {
 // ローカル側の空き容量を表示
 void DispLocalFreeSpace(char *Path) {
 	char size[40] = "??";
-	if (ULARGE_INTEGER a; GetDiskFreeSpaceExA(Path, &a, nullptr, nullptr) != 0)
+	if (ULARGE_INTEGER a; GetDiskFreeSpaceExW(fs::u8path(Path).c_str(), &a, nullptr, nullptr) != 0)
 		MakeSizeString((double)a.QuadPart, size);
 	char text[40];
 	sprintf(text, MSGJPN248, size);

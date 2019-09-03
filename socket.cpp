@@ -227,8 +227,8 @@ auto getCertContext(CtxtHandle& context) {
 void ShowCertificate() {
 	if (auto context = getContext(AskCmdCtrlSkt()))
 		if (auto certContext = getCertContext(context->context)) {
-			CRYPTUI_VIEWCERTIFICATE_STRUCT certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCT, 0, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext.get() };
-			CryptUIDlgViewCertificate(&certViewInfo, nullptr);
+			CRYPTUI_VIEWCERTIFICATE_STRUCTW certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCTW, 0, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext.get() };
+			CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
 		}
 }
 
@@ -796,11 +796,11 @@ int AddPortMapping(const char* Adrs, int Port, char* ExtAdrs) {
 				return FFFTP_SUCCESS;
 			}
 	} else {
-		if (ADDPORTMAPPINGDATA Data; Data.h = CreateEvent(NULL, TRUE, FALSE, NULL)) {
+		if (ADDPORTMAPPINGDATA Data; Data.h = CreateEventW(NULL, TRUE, FALSE, NULL)) {
 			Data.Adrs = Adrs;
 			Data.Port = Port;
 			Data.ExtAdrs = ExtAdrs;
-			if (PostMessage(GetMainHwnd(), WM_ADDPORTMAPPING, 0, (LPARAM)&Data))
+			if (PostMessageW(GetMainHwnd(), WM_ADDPORTMAPPING, 0, (LPARAM)&Data))
 				if (WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
 					result = Data.r;
 			CloseHandle(Data.h);
@@ -816,9 +816,9 @@ int RemovePortMapping(int Port) {
 		if (staticPortMappingCollection->Remove(Port, TCP) == S_OK)
 			return FFFTP_SUCCESS;
 	} else {
-		if (REMOVEPORTMAPPINGDATA Data; Data.h = CreateEvent(NULL, TRUE, FALSE, NULL)) {
+		if (REMOVEPORTMAPPINGDATA Data; Data.h = CreateEventW(NULL, TRUE, FALSE, NULL)) {
 			Data.Port = Port;
-			if (PostMessage(GetMainHwnd(), WM_REMOVEPORTMAPPING, 0, (LPARAM)&Data))
+			if (PostMessageW(GetMainHwnd(), WM_REMOVEPORTMAPPING, 0, (LPARAM)&Data))
 				if (WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
 					result = Data.r;
 			CloseHandle(Data.h);

@@ -167,7 +167,7 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 		if(ListFont != NULL)
 			SendMessage(hWndListLocal, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
 
-		ListImg = ImageList_LoadBitmap(hInst, MAKEINTRESOURCE(dirattr_bmp), 16, 9, RGB(255,0,0));
+		ListImg = ImageList_LoadImageW(hInst, MAKEINTRESOURCEW(dirattr_bmp), 16, 9, RGB(255,0,0), IMAGE_BITMAP, 0);
 		SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
 		ShowWindow(hWndListLocal, SW_SHOW);
 
@@ -362,10 +362,10 @@ static void doTransferRemoteFile(void)
 	while(1)
 	{
 		MSG msg;
-		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		if(PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			DispatchMessageW(&msg);
 		}
 		else if(AskTransferNow() == NO)
 			break;
@@ -394,16 +394,16 @@ static void doTransferRemoteFile(void)
 	SetLocalDirHist(tmp.u8string().c_str());
 
 	// FFFTPにダウンロード要求を出し、ダウンロードの完了を待つ。
-	PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
+	PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
 
 	// 特定の操作を行うと異常終了するバグ修正
 	while(1)
 	{
 		MSG msg;
 
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+		if (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)) {
 			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			DispatchMessageW(&msg);
 
 		} else {
 			// 転送スレッドが動き出したら抜ける。
@@ -418,10 +418,10 @@ static void doTransferRemoteFile(void)
 	while(1)
 	{
 		MSG msg;
-		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		if(PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+			DispatchMessageW(&msg);
 		}
 		else if(AskTransferNow() == NO)
 			break;
@@ -509,7 +509,7 @@ static void doDragDrop(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 //	GetCursorPos(&pt);
 	pt = DropPoint;
 	ScreenToClient(hWnd, &pt);
-	PostMessage(hWnd,WM_LBUTTONUP,0,MAKELPARAM(pt.x,pt.y));
+	PostMessageW(hWnd,WM_LBUTTONUP,0,MAKELPARAM(pt.x,pt.y));
 	// ドロップ先が他プロセスかつカーソルが自プロセスのドロップ可能なウィンドウ上にある場合の対策
 	EnableWindow(GetMainHwnd(), TRUE);
 }
@@ -642,9 +642,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 				if(hWndPnt == hWndDst)  // local <-> remote 
 				{
 					if(hWndPnt == hWndListRemote) {
-						PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
+						PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
 					} else if(hWndPnt == hWndListLocal) {
-						PostMessage(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
+						PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
 					}
 				} else { // 同一ウィンドウ内の場合 (yutaka)
 					if (hWndDragStart == hWndListRemote && hWndPnt == hWndListRemote) {
@@ -868,7 +868,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					}
 
 					// OLE D&Dの開始を指示する
-					PostMessage(hWnd, WM_DRAGDROP, MAKEWPARAM(wParam, lParam), 0);
+					PostMessageW(hWnd, WM_DRAGDROP, MAKEWPARAM(wParam, lParam), 0);
 
 				}
 				else
@@ -899,13 +899,12 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					(hWndPnt == hWndListLocal) || 
 					(hWndPnt == GetTaskWnd())))
 				{
-					PostMessage(hWndPnt, WM_VSCROLL, zDelta > 0 ? MAKEWPARAM(SB_PAGEUP, 0) : MAKEWPARAM(SB_PAGEDOWN, 0), 0);
-//					PostMessage(hWndPnt, WM_VSCROLL, MAKEWPARAM(SB_ENDSCROLL, 0), 0);
+					PostMessageW(hWndPnt, WM_VSCROLL, zDelta > 0 ? MAKEWPARAM(SB_PAGEUP, 0) : MAKEWPARAM(SB_PAGEDOWN, 0), 0);
 				}
 				else if(hWndPnt == hWnd)
 					return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 				else if((hWndPnt == hWndDst) || (hWndPnt == GetTaskWnd()))
-					PostMessage(hWndPnt, message, wParam, lParam);
+					PostMessageW(hWndPnt, message, wParam, lParam);
 			}
 			break;
 
@@ -1040,7 +1039,7 @@ void RefreshIconImageList(std::vector<FILELIST>& files)
 		ShowWindow(hWndListRemote, SW_SHOW);
 		ImageList_Destroy(ListImgFileIcon);
 		ListImgFileIcon = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR32, 0, 1);
-		hBitmap = LoadBitmap(GetFtpInst(), MAKEINTRESOURCE(dirattr16_bmp));
+		hBitmap = LoadBitmapW(GetFtpInst(), MAKEINTRESOURCEW(dirattr16_bmp));
 		ImageList_AddMasked(ListImgFileIcon, hBitmap, RGB(255, 0, 0));
 		DeleteObject(hBitmap);
 		int ImageId = 0;

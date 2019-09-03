@@ -2560,7 +2560,6 @@ BEGIN
     IDS_MSGJPN251           "Err: Seed"
     IDS_MSGJPN252           "Err: Seed"
     IDS_MSGJPN253           "Err: Sequence#"
-    IDS_MSGJPN254           "MS Shell Dlg"
     IDS_MSGJPN255           "&Upload"
 END
 

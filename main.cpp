@@ -370,7 +370,7 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 	if (auto u8CmdLine = u8(lpCmdLine); InitApp(data(u8CmdLine), nShowCmd) == FFFTP_SUCCESS) {
 		for(;;)
 		{
-			Sts = GetMessage(&Msg, NULL, 0, 0);
+			Sts = GetMessageW(&Msg, NULL, 0, 0);
 			if((Sts == 0) || (Sts == -1))
 				break;
 
@@ -382,10 +382,10 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 				   (Msg.hwnd == GetRemoteHistEditHwnd()) ||
 				   ((hHelpWin != NULL) && (GetAncestor(Msg.hwnd, GA_ROOT) == hHelpWin)) ||
 				   GetHideUI() == YES ||
-				   (TranslateAccelerator(hWndFtp, Accel, &Msg) == 0))
+				   (TranslateAcceleratorW(hWndFtp, Accel, &Msg) == 0))
 				{
 					TranslateMessage(&Msg);
-					DispatchMessage(&Msg);
+					DispatchMessageW(&Msg);
 				}
 			}
 		}
@@ -440,7 +440,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		MessageBox(NULL, ReturnWSError(Err), "FFFTP - Startup", MB_OK);
 	else
 	{
-		Accel = LoadAccelerators(hInstFtp, MAKEINTRESOURCE(ffftp_accel));
+		Accel = LoadAcceleratorsW(hInstFtp, MAKEINTRESOURCEW(ffftp_accel));
 
 		// 高DPI対応
 		WinWidth = CalcPixelX(WinWidth);
@@ -676,7 +676,7 @@ static int MakeAllWindows(int cmdShow)
 
 	if(hWndFtp != NULL)
 	{
-		SystemParametersInfo(SPI_GETWORKAREA, 0, &Rect1, 0);
+		SystemParametersInfoW(SPI_GETWORKAREA, 0, &Rect1, 0);
 		GetWindowRect(hWndFtp, &Rect2);
 		if(Rect2.bottom > Rect1.bottom)
 		{
@@ -1012,9 +1012,9 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 				case MENU_UPDIR :
 					if(hWndCurFocus == GetLocalHwnd())
-						PostMessage(hWnd, WM_COMMAND, MAKEWPARAM(MENU_LOCAL_UPDIR, 0), 0);
+						PostMessageW(hWnd, WM_COMMAND, MAKEWPARAM(MENU_LOCAL_UPDIR, 0), 0);
 					else
-						PostMessage(hWnd, WM_COMMAND, MAKEWPARAM(MENU_REMOTE_UPDIR, 0), 0);
+						PostMessageW(hWnd, WM_COMMAND, MAKEWPARAM(MENU_REMOTE_UPDIR, 0), 0);
 					break;
 
 				case MENU_DCLICK :
@@ -1230,12 +1230,12 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_EXIT :
-					PostMessage(hWnd, WM_CLOSE, 0, 0L);
+					PostMessageW(hWnd, WM_CLOSE, 0, 0L);
 					break;
 
 				case MENU_AUTO_EXIT :
 					if(AutoExit == YES)
-						PostMessage(hWnd, WM_CLOSE, 0, 0L);
+						PostMessageW(hWnd, WM_CLOSE, 0, 0L);
 					break;
 
 				case MENU_ABOUT :
@@ -1422,7 +1422,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					{
 						MessageBox(hWnd, MSGJPN292, "FFFTP", MB_OK);
 						SaveExit = NO;
-						PostMessage(hWnd, WM_CLOSE, 0, 0L);
+						PostMessageW(hWnd, WM_CLOSE, 0, 0L);
 					}
 					break;
 
@@ -1433,7 +1433,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						// ポータブル版判定
 						ClearIni();
 						SaveExit = NO;
-						PostMessage(hWnd, WM_CLOSE, 0, 0L);
+						PostMessageW(hWnd, WM_CLOSE, 0, 0L);
 					}
 					break;
 				case MENU_CHANGEPASSWD:	/* 2010.01.31 genta */
@@ -1812,14 +1812,13 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 		case WM_REFRESH_LOCAL_FLG :
 			// 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
-//			PostMessage(hWnd,  WM_COMMAND, MAKEWPARAM(REFRESH_LOCAL, 0), 0);
 			if(SuppressRefresh == 0)
-				PostMessage(hWnd,  WM_COMMAND, MAKEWPARAM(REFRESH_LOCAL, 0), 0);
+				PostMessageW(hWnd,  WM_COMMAND, MAKEWPARAM(REFRESH_LOCAL, 0), 0);
 			break;
 
 		case WM_REFRESH_REMOTE_FLG :
 			if(SuppressRefresh == 0)
-				PostMessage(hWnd,  WM_COMMAND, MAKEWPARAM(REFRESH_REMOTE, 0), 0);
+				PostMessageW(hWnd,  WM_COMMAND, MAKEWPARAM(REFRESH_REMOTE, 0), 0);
 			break;
 
 		// UPnP対応
@@ -1943,7 +1942,7 @@ static void StartupProc(char *Cmd)
 	if(Sts == 0)
 	{
 		if(ConnectOnStart == YES)
-			PostMessage(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_CONNECT, 0), 0);
+			PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_CONNECT, 0), 0);
 	}
 	else if(Sts == 1)
 	{
@@ -1951,7 +1950,7 @@ static void StartupProc(char *Cmd)
 	}
 	else if(Sts == 2)
 	{
-		PostMessage(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_CONNECT_NUM, CmdOption), (LPARAM)AutoConnect);
+		PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_CONNECT_NUM, CmdOption), (LPARAM)AutoConnect);
 	}
 	return;
 }
@@ -2332,7 +2331,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							ExecViewer(Local, App);
 						}
 						else
-							PostMessage(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
+							PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
 					}
 					else
 						ChangeDir(WIN_LOCAL, Tmp);
@@ -2421,7 +2420,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							}
 						}
 						else
-							PostMessage(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
+							PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
 					}
 					else
 						ChangeDir(WIN_REMOTE, Tmp);
@@ -2965,7 +2964,7 @@ int BackgrndMessageProc(void)
 	int Ret;
 
 	Ret = NO;
-	while(PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE))
+	while(PeekMessageW(&Msg, NULL, 0, 0, PM_REMOVE))
 	{
 		if(!IsMainThread() || !HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
 		{
@@ -2975,7 +2974,7 @@ int BackgrndMessageProc(void)
 			   (Msg.hwnd == GetRemoteHistEditHwnd()) ||
 			   ((hHelpWin != NULL) && (Msg.hwnd == hHelpWin)) ||
 			   GetHideUI() == YES ||
-			   (TranslateAccelerator(GetMainHwnd(), Accel, &Msg) == 0))
+			   (TranslateAcceleratorW(GetMainHwnd(), Accel, &Msg) == 0))
 			{
 				if(Msg.message == WM_QUIT)
 				{
@@ -2984,7 +2983,7 @@ int BackgrndMessageProc(void)
 					break;
 				}
 				TranslateMessage(&Msg);
-				DispatchMessage(&Msg);
+				DispatchMessageW(&Msg);
 			}
 		}
 	}
