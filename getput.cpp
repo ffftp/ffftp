@@ -858,7 +858,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				   (strncmp(Pos->Cmd, "L-", 2) == 0) ||
 				   (strncmp(Pos->Cmd, "R-", 2) == 0))
 				{
-					hWndTrans = CreateDialog(GetFtpInst(), MAKEINTRESOURCE(transfer_dlg), HWND_DESKTOP, (DLGPROC)TransDlgProc);
+					hWndTrans = CreateDialogW(GetFtpInst(), MAKEINTRESOURCEW(transfer_dlg), HWND_DESKTOP, (DLGPROC)TransDlgProc);
 					if(MoveToForeground == YES)
 						SetForegroundWindow(hWndTrans);
 					ShowWindow(hWndTrans, SW_SHOWNOACTIVATE);
