@@ -796,7 +796,7 @@ int AddPortMapping(const char* Adrs, int Port, char* ExtAdrs) {
 				return FFFTP_SUCCESS;
 			}
 	} else {
-		if (ADDPORTMAPPINGDATA Data; Data.h = CreateEvent(NULL, TRUE, FALSE, NULL)) {
+		if (ADDPORTMAPPINGDATA Data; Data.h = CreateEventW(NULL, TRUE, FALSE, NULL)) {
 			Data.Adrs = Adrs;
 			Data.Port = Port;
 			Data.ExtAdrs = ExtAdrs;
@@ -816,7 +816,7 @@ int RemovePortMapping(int Port) {
 		if (staticPortMappingCollection->Remove(Port, TCP) == S_OK)
 			return FFFTP_SUCCESS;
 	} else {
-		if (REMOVEPORTMAPPINGDATA Data; Data.h = CreateEvent(NULL, TRUE, FALSE, NULL)) {
+		if (REMOVEPORTMAPPINGDATA Data; Data.h = CreateEventW(NULL, TRUE, FALSE, NULL)) {
 			Data.Port = Port;
 			if (PostMessage(GetMainHwnd(), WM_REMOVEPORTMAPPING, 0, (LPARAM)&Data))
 				if (WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)

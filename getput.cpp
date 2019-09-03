@@ -2975,7 +2975,7 @@ int MarkFileAsDownloadedFromInternet(char* Fname) {
 		if (persistFile->Save(_bstr_t{ u8(Fname).c_str() }, FALSE) == S_OK)
 			return FFFTP_SUCCESS;
 	} else {
-		if (Data.h = CreateEvent(NULL, TRUE, FALSE, NULL)) {
+		if (Data.h = CreateEventW(NULL, TRUE, FALSE, NULL)) {
 			Data.Fname = Fname;
 			if (PostMessage(GetMainHwnd(), WM_MARKFILEASDOWNLOADEDFROMINTERNET, 0, (LPARAM)&Data))
 				if (WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
