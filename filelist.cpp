@@ -1040,7 +1040,7 @@ void RefreshIconImageList(std::vector<FILELIST>& files)
 		ShowWindow(hWndListRemote, SW_SHOW);
 		ImageList_Destroy(ListImgFileIcon);
 		ListImgFileIcon = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR32, 0, 1);
-		hBitmap = LoadBitmap(GetFtpInst(), MAKEINTRESOURCE(dirattr16_bmp));
+		hBitmap = LoadBitmapW(GetFtpInst(), MAKEINTRESOURCEW(dirattr16_bmp));
 		ImageList_AddMasked(ListImgFileIcon, hBitmap, RGB(255, 0, 0));
 		DeleteObject(hBitmap);
 		int ImageId = 0;
