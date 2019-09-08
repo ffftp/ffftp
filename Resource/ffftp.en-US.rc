@@ -234,6 +234,45 @@ BEGIN
     END
 END
 
+popup_menu MENU
+BEGIN
+    POPUP "local"
+    BEGIN
+        MENUITEM "&Open",                       MENU_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "&Upload",                     MENU_UPLOAD
+        MENUITEM "U&pload As...",               MENU_UPLOAD_AS
+        MENUITEM "Up&load All",                 MENU_UPLOAD_ALL
+        MENUITEM "&Delete",                     MENU_DELETE
+        MENUITEM "&Rename...",                  MENU_RENAME
+        MENUITEM "&New Folder...",              MENU_MKDIR
+        MENUITEM SEPARATOR
+        MENUITEM "&File Size...",               MENU_FILESIZE
+        MENUITEM SEPARATOR
+        MENUITEM "R&efresh File List",          REFRESH_LOCAL
+    END
+    POPUP "remote"
+    BEGIN
+        MENUITEM "&Open",                       MENU_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "&Download",                   MENU_DOWNLOAD
+        MENUITEM "D&ownload As...",             MENU_DOWNLOAD_AS
+        MENUITEM "Do&wnliad as File",           MENU_DOWNLOAD_AS_FILE
+        MENUITEM "Dow&nload All",               MENU_DOWNLOAD_ALL
+        MENUITEM "De&lete...",                  MENU_DELETE
+        MENUITEM "&Rename...",                  MENU_RENAME
+        MENUITEM "&Change Permission...",       MENU_CHMOD
+        MENUITEM "&New Folder...",              MENU_MKDIR
+        MENUITEM "Copy &URL to Clipboard",      MENU_URL_COPY
+        MENUITEM "OSS<->GUARDIAN Switch(&O)",   MENU_SWITCH_OSS
+        MENUITEM "Move to &parent folder...",   MENU_REMOTE_MOVE_UPDIR
+        MENUITEM SEPARATOR
+        MENUITEM "&File Size...",               MENU_FILESIZE
+        MENUITEM SEPARATOR
+        MENUITEM "R&efresh File List",          REFRESH_REMOTE
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2560,35 +2599,10 @@ BEGIN
     IDS_MSGJPN251           "Err: Seed"
     IDS_MSGJPN252           "Err: Seed"
     IDS_MSGJPN253           "Err: Sequence#"
-    IDS_MSGJPN255           "&Upload"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN256           "U&pload As..."
-    IDS_MSGJPN257           "Up&load All"
-    IDS_MSGJPN258           "&Delete"
-    IDS_MSGJPN259           "&Rename..."
-    IDS_MSGJPN260           "&New Folder..."
-    IDS_MSGJPN261           "&File Size..."
-    IDS_MSGJPN262           "R&efresh File List"
-    IDS_MSGJPN263           "&Download"
-    IDS_MSGJPN264           "D&ownload As..."
-    IDS_MSGJPN265           "Do&wnliad as File"
-    IDS_MSGJPN266           "Dow&nload All"
-    IDS_MSGJPN267           "De&lete..."
-    IDS_MSGJPN268           "&Rename..."
-    IDS_MSGJPN269           "&Change Permission..."
-    IDS_MSGJPN270           "&New Folder..."
-    IDS_MSGJPN271           "Copy &URL to Clipboard"
-END
-
-STRINGTABLE
-BEGIN
-    IDS_MSGJPN272           "&File Size..."
-    IDS_MSGJPN273           "R&efresh File List"
-    IDS_MSGJPN274           "&Open"
-    IDS_MSGJPN275           "Open in %s (&%d)"
     IDS_MSGJPN278           "Reason: %s"
     IDS_MSGJPN279           "Cannnot get Listen Socket"
     IDS_MSGJPN280           "Cannnot get Data Socket"
@@ -2657,7 +2671,6 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN355           "Move to &parent folder..."
     IDS_MSGJPN357           "Failed to export the settings.\nPlease change saving path or format."
     IDS_MSGJPN358           "Software update has been completed.\nA backup copy of the previous version is in the following location.\n%s"
     IDS_MSGJPN359           "Failed to update the software.\nPlease get the latest version from our web site and update it manually."
@@ -2667,7 +2680,6 @@ END
 STRINGTABLE
 BEGIN
     IDS_MSGJPN2000          "NonStop Server"
-    IDS_MSGJPN2001          "OSS<->GUARDIAN Switch(&O)"
 END
 
 STRINGTABLE
@@ -2694,6 +2706,7 @@ BEGIN
     IDS_LOAD_SETTING        "Load Settings"
     IDS_OPTION              "Option"
     IDS_HOSTSETTING         "Host Setting"
+    IDS_OPEN_WITH           "Open with %s (&%d)"
 END
 
 #endif    // English (United States) resources

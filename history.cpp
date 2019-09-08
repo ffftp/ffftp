@@ -370,7 +370,7 @@ static void AddOneFnameToMenu(char *Host, char *User, char *Remote, int Num)
 	hMenu = GetSubMenu(GetMenu(GetMainHwnd()), 0);
 
 	if(Num == 0)
-		AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
+		AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
 
 	if(Num < 9)
 		sprintf(Tmp, "&%d %s (%s) %s", Num+1, Host, User, Remote);
@@ -379,7 +379,7 @@ static void AddOneFnameToMenu(char *Host, char *User, char *Remote, int Num)
 	else
 		sprintf(Tmp, "&* %s (%s) %s", Host, User, Remote);
 
-	AppendMenu(hMenu, MF_STRING, MenuHistId[Num], Tmp);
+	AppendMenuW(hMenu, MF_STRING, MenuHistId[Num], u8(Tmp).c_str());
 
 	return;
 }

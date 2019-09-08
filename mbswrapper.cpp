@@ -1237,23 +1237,6 @@ END_ROUTINE
 	return r;
 }
 
-BOOL AppendMenuM(HMENU hMenu, UINT uFlags, UINT_PTR uIDNewItem, LPCSTR lpNewItem)
-{
-	int r = 0;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	if(uFlags & (MF_BITMAP | MF_OWNERDRAW))
-		r = AppendMenuW(hMenu, uFlags, uIDNewItem, (LPCWSTR)lpNewItem);
-	else
-	{
-		pw0 = DuplicateMtoW(lpNewItem, -1);
-		r = AppendMenuW(hMenu, uFlags, uIDNewItem, pw0);
-	}
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 size_t _mbslenM(const unsigned char * _Str)
 {
 	size_t r = 0;

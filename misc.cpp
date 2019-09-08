@@ -374,29 +374,6 @@ char *GetFileName(char *Path)
 }
 
 
-/*----- ツールの表示名を返す --------------------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		char * : 表示名
-*----------------------------------------------------------------------------*/
-
-char *GetToolName(char *Path)
-{
-	char *Pos;
-
-	if((Pos = (char*)_mbschr((const unsigned char*)Path, ':')) != NULL)
-		Path = Pos + 1;
-
-	if((Pos = (char*)_mbsrchr((const unsigned char*)Path, '\\')) != NULL)
-		Path = Pos + 1;
-
-	return(Path);
-}
-
-
 /*----- パス名の中の拡張子の先頭を返す ----------------------------------------
 *
 *	Parameter

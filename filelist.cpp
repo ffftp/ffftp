@@ -821,9 +821,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			EraseListViewTips();
 			SetFocus(hWnd);
 			if(hWnd == hWndListRemote)
-				RemoteRbuttonMenu(0);
+				ShowPopupMenu(WIN_REMOTE, 0);
 			else if(hWnd == hWndListLocal)
-				LocalRbuttonMenu(0);
+				ShowPopupMenu(WIN_LOCAL, 0);
 			break;
 
 		case WM_LBUTTONDBLCLK :

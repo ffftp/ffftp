@@ -1481,8 +1481,7 @@ void AskLocalCurDir(char *Buf, int Max);
 void AskRemoteCurDir(char *Buf, int Max);
 void SetCurrentDirAsDirHist();
 void DispDotFileMode(void);
-void LocalRbuttonMenu(int Pos);
-void RemoteRbuttonMenu(int Pos);
+void ShowPopupMenu(int Win, int Pos);
 
 /*===== statuswin.c =====*/
 
@@ -1840,7 +1839,6 @@ int GetOneField(char *Str, char *Buf, int Max);
 void RemoveComma(char *Str);
 char *GetFileName(char *Path);
 char *GetFileExt(char *Path);
-char *GetToolName(char *Path);
 void RemoveFileName(char *Path, char *Buf);
 void GetUpperDir(char *Path);
 void GetUpperDirEraseTopSlash(char *Path);

@@ -201,27 +201,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN251 (std::data(msgs[10000+251])) /* Err: シード文字列 */
 #define MSGJPN252 (std::data(msgs[10000+252])) /* Err: シード文字列 */
 #define MSGJPN253 (std::data(msgs[10000+253])) /* Err: シーケンス番号 */
-#define MSGJPN255 (std::data(msgs[10000+255])) /* アップロード(&U) */
-#define MSGJPN256 (std::data(msgs[10000+256])) /* 名前を変えてアップロード(&P)... */
-#define MSGJPN257 (std::data(msgs[10000+257])) /* 全てをアップロード */
-#define MSGJPN258 (std::data(msgs[10000+258])) /* 削除(&R) */
-#define MSGJPN259 (std::data(msgs[10000+259])) /* 名前変更(&N)... */
-#define MSGJPN260 (std::data(msgs[10000+260])) /* フォルダ作成(&K)... */
-#define MSGJPN261 (std::data(msgs[10000+261])) /* ファイル容量計算(&Z) */
-#define MSGJPN262 (std::data(msgs[10000+262])) /* 最新の情報に更新(&F) */
-#define MSGJPN263 (std::data(msgs[10000+263])) /* ダウンロード(&D) */
-#define MSGJPN264 (std::data(msgs[10000+264])) /* 名前を変えてダウンロード(&W)... */
-#define MSGJPN265 (std::data(msgs[10000+265])) /* ファイルとしてダウンロード(&I) */
-#define MSGJPN266 (std::data(msgs[10000+266])) /* 全てをダウンロード */
-#define MSGJPN267 (std::data(msgs[10000+267])) /* 削除(&R) */
-#define MSGJPN268 (std::data(msgs[10000+268])) /* 名前変更(&N)... */
-#define MSGJPN269 (std::data(msgs[10000+269])) /* 属性変更(&A)... */
-#define MSGJPN270 (std::data(msgs[10000+270])) /* フォルダ作成(&K)... */
-#define MSGJPN271 (std::data(msgs[10000+271])) /* URLをクリップボードへコピー(&C) */
-#define MSGJPN272 (std::data(msgs[10000+272])) /* ファイル容量計算(&Z) */
-#define MSGJPN273 (std::data(msgs[10000+273])) /* 最新の情報に更新(&F) */
-#define MSGJPN274 (std::data(msgs[10000+274])) /* 開く(&O) */
-#define MSGJPN275 (std::data(msgs[10000+275])) /* %sで開く(&%d) */
 #define MSGJPN278 (std::data(msgs[10000+278])) /* 理由: %s */
 #define MSGJPN279 (std::data(msgs[10000+279])) /* Listenソケットが取得できません */
 #define MSGJPN280 (std::data(msgs[10000+280])) /* Dataソケットが取得できません */
@@ -270,12 +249,10 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN341 (std::data(msgs[10000+341])) /* WindowsファイアウォールのステートフルFTPフィルタの有効無効を設定します.\nこれはWindows Vista以降でのみ動作します.\n有効化または無効化することで通信状態が改善されることがあります.\n有効化するには「はい」,無効化するには「いいえ」を選択してください. */
 #define MSGJPN342 (std::data(msgs[10000+342])) /* ステートフルFTPフィルタを設定できませんでした. */
 #define MSGJPN350 (std::data(msgs[10000+350])) /* 新しいバージョンの設定が検出されました.\nこのバージョンでは一部の設定が正しく読み込まれない,またはこのバージョンで設定を上書きすると設定が変化する可能性があります.\nこのバージョン用に設定を上書きして保存するには「はい」を選択してください.\n設定をレジストリではなくINIファイルに保存するには「いいえ」を選択してください.\n読み取り専用で設定を読み込むには「キャンセル」を選択してください. */
-#define MSGJPN355 (std::data(msgs[10000+355])) /* 一つ上のフォルダへ移動(&P)... */
 #define MSGJPN357 (std::data(msgs[10000+357])) /* 設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください. */
 #define MSGJPN358 (std::data(msgs[10000+358])) /* ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s */
 #define MSGJPN359 (std::data(msgs[10000+359])) /* ソフトウェアの更新に失敗しました.\nWebサイトから最新版を入手して手動で更新してください. */
 #define MSGJPN365 (std::data(msgs[10000+365])) /* この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください. */
 #if defined(HAVE_TANDEM)
 #define MSGJPN2000 (std::data(msgs[10000+2000])) /* NonStop Server */
-#define MSGJPN2001 (std::data(msgs[10000+2001])) /* OSS<->GUARDIAN 切り替え(&O) */
 #endif

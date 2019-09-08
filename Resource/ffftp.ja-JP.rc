@@ -234,6 +234,45 @@ BEGIN
     END
 END
 
+popup_menu MENU
+BEGIN
+    POPUP "local"
+    BEGIN
+        MENUITEM "開く(&O)",                      MENU_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "アップロード(&U)",                  MENU_UPLOAD
+        MENUITEM "名前を変えてアップロード(&P)...",         MENU_UPLOAD_AS
+        MENUITEM "全てをアップロード",                   MENU_UPLOAD_ALL
+        MENUITEM "削除(&R)",                      MENU_DELETE
+        MENUITEM "名前変更(&N)... ",                MENU_RENAME
+        MENUITEM "フォルダ作成(&K)...",               MENU_MKDIR
+        MENUITEM SEPARATOR
+        MENUITEM "ファイル容量計算(&Z)",                MENU_FILESIZE
+        MENUITEM SEPARATOR
+        MENUITEM "最新の情報に更新(&F)",                REFRESH_LOCAL
+    END
+    POPUP "remote"
+    BEGIN
+        MENUITEM "開く(&O)",                      MENU_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "ダウンロード(&D)",                  MENU_DOWNLOAD
+        MENUITEM "名前を変えてダウンロード(&W)...",         MENU_DOWNLOAD_AS
+        MENUITEM "ファイルとしてダウンロード(&I)",           MENU_DOWNLOAD_AS_FILE
+        MENUITEM "全てをダウンロード",                   MENU_DOWNLOAD_ALL
+        MENUITEM "削除(&R)",                      MENU_DELETE
+        MENUITEM "名前変更(&N)...",                 MENU_RENAME
+        MENUITEM "属性変更(&A)...",                 MENU_CHMOD
+        MENUITEM "フォルダ作成(&K)...",               MENU_MKDIR
+        MENUITEM "URLをクリップボードへコピー(&C)",         MENU_URL_COPY
+        MENUITEM "OSS<->GUARDIAN 切り替え(&O)",     MENU_SWITCH_OSS
+        MENUITEM "一つ上のフォルダへ移動(&P)...",          MENU_REMOTE_MOVE_UPDIR
+        MENUITEM SEPARATOR
+        MENUITEM "ファイル容量計算(&Z)",                MENU_FILESIZE
+        MENUITEM SEPARATOR
+        MENUITEM "最新の情報に更新(&F)",                REFRESH_REMOTE
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2522,35 +2561,10 @@ BEGIN
     IDS_MSGJPN251           "Err: シード文字列"
     IDS_MSGJPN252           "Err: シード文字列"
     IDS_MSGJPN253           "Err: シーケンス番号"
-    IDS_MSGJPN255           "アップロード(&U)"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN256           "名前を変えてアップロード(&P)..."
-    IDS_MSGJPN257           "全てをアップロード"
-    IDS_MSGJPN258           "削除(&R)"
-    IDS_MSGJPN259           "名前変更(&N)..."
-    IDS_MSGJPN260           "フォルダ作成(&K)..."
-    IDS_MSGJPN261           "ファイル容量計算(&Z)"
-    IDS_MSGJPN262           "最新の情報に更新(&F)"
-    IDS_MSGJPN263           "ダウンロード(&D)"
-    IDS_MSGJPN264           "名前を変えてダウンロード(&W)..."
-    IDS_MSGJPN265           "ファイルとしてダウンロード(&I)"
-    IDS_MSGJPN266           "全てをダウンロード"
-    IDS_MSGJPN267           "削除(&R)"
-    IDS_MSGJPN268           "名前変更(&N)..."
-    IDS_MSGJPN269           "属性変更(&A)..."
-    IDS_MSGJPN270           "フォルダ作成(&K)..."
-    IDS_MSGJPN271           "URLをクリップボードへコピー(&C)"
-END
-
-STRINGTABLE
-BEGIN
-    IDS_MSGJPN272           "ファイル容量計算(&Z)"
-    IDS_MSGJPN273           "最新の情報に更新(&F)"
-    IDS_MSGJPN274           "開く(&O)"
-    IDS_MSGJPN275           "%sで開く(&%d)"
     IDS_MSGJPN278           "理由: %s"
     IDS_MSGJPN279           "Listenソケットが取得できません"
     IDS_MSGJPN280           "Dataソケットが取得できません"
@@ -2619,7 +2633,6 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN355           "一つ上のフォルダへ移動(&P)..."
     IDS_MSGJPN357           "設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください."
     IDS_MSGJPN358           "ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s"
     IDS_MSGJPN359           "ソフトウェアの更新に失敗しました.\nWebサイトから最新版を入手して手動で更新してください."
@@ -2629,7 +2642,6 @@ END
 STRINGTABLE
 BEGIN
     IDS_MSGJPN2000          "NonStop Server"
-    IDS_MSGJPN2001          "OSS<->GUARDIAN 切り替え(&O)"
 END
 
 STRINGTABLE
@@ -2656,6 +2668,7 @@ BEGIN
     IDS_LOAD_SETTING        "設定を読み込む"
     IDS_OPTION              "オプション"
     IDS_HOSTSETTING         "ホストの設定"
+    IDS_OPEN_WITH           "%sで開く(&%d)"
 END
 
 #endif    // Japanese (Japan) resources
