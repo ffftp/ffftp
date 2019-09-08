@@ -32,7 +32,6 @@
 
 /*===== プロトタイプ =====*/
 
-static void AddOpenMenu(HMENU hMenu, UINT Flg);
 static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 /* 2007/09/21 sunasunamix  ここから *********************/
@@ -1706,185 +1705,74 @@ void DispDotFileMode(void)
 }
 
 
-/*----- ローカル側の右ボタンメニューを表示 ------------------------------------------------
-*
-*	Parameter
-*		int Pos : メニューの位置
-*					0=マウスカーソルの位置
-*					1=ウインドウの左上
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void LocalRbuttonMenu(int Pos)
-{
-	HMENU hMenu;
-	POINT point;
-	RECT Rect;
-	UINT Flg1;
-	UINT Flg2;
-	UINT Flg3;
-	int Count;
-
-	// デッドロック対策
-//	if(HideUI == NO)
-	if(HideUI == 0)
-	{
-		Flg1 = 0;
-		if(AskConnecting() == NO)
-			Flg1 = MF_GRAYED;
-
-		Count = GetSelectedCount(WIN_LOCAL);
-		Flg2 = 0;
-		if(Count == 0)
-			Flg2 = MF_GRAYED;
-
-		Flg3 = 0;
-		if(Count != 1)
-			Flg3 = MF_GRAYED;
-
-		hMenu = CreatePopupMenu();
-		AddOpenMenu(hMenu, Flg3);
-		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_UPLOAD, MSGJPN255);
-		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_UPLOAD_AS, MSGJPN256);
-		AppendMenu(hMenu, MF_STRING | Flg1, MENU_UPLOAD_ALL, MSGJPN257);
-		AppendMenu(hMenu, MF_STRING | Flg2, MENU_DELETE, MSGJPN258);
-		AppendMenu(hMenu, MF_STRING | Flg2, MENU_RENAME, MSGJPN259);
-		AppendMenu(hMenu, MF_STRING , MENU_MKDIR, MSGJPN260);
-		AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
-		AppendMenu(hMenu, MF_STRING , MENU_FILESIZE, MSGJPN261);
-		AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
-		AppendMenu(hMenu, MF_STRING, REFRESH_LOCAL, MSGJPN262);
-
-		if(Pos == 0)
-			GetCursorPos(&point);
-		else
-		{
-			GetWindowRect(GetLocalHwnd(), &Rect);
-			point.x = Rect.left + 20;
-			point.y = Rect.top + 20;
+// 右ボタンメニューを表示
+void ShowPopupMenu(int Win, int Pos) {
+	if (HideUI != 0)
+		return;
+	auto selectCount = GetSelectedCount(Win);
+	auto connecting = AskConnecting() == YES;
+	auto selecting = 0 < selectCount;
+	auto canOpen = selectCount == 1 && (Win == WIN_LOCAL || connecting);
+	auto menu = LoadMenuW(GetFtpInst(), MAKEINTRESOURCEW(popup_menu));
+	auto submenu = GetSubMenu(menu, Win);
+	EnableMenuItem(submenu, MENU_OPEN, canOpen ? 0 : MF_GRAYED);
+	constexpr UINT MenuID[VIEWERS] = { MENU_OPEN1, MENU_OPEN2, MENU_OPEN3 };
+	for (int i = VIEWERS - 1; i >= 0; i--) {
+		if (strlen(ViewerName[i]) != 0) {
+			static auto const format = GetString(IDS_OPEN_WITH);
+			wchar_t text[FMAX_PATH + 1];
+			swprintf_s(text, format.c_str(), fs::u8path(ViewerName[i]).filename().c_str(), i + 1);
+			MENUITEMINFOW mii{ sizeof(MENUITEMINFOW), MIIM_FTYPE | MIIM_STATE | MIIM_ID | MIIM_STRING, MFT_STRING, UINT(canOpen ? 0 : MFS_GRAYED), MenuID[i] };
+			mii.dwTypeData = text;
+			InsertMenuItemW(submenu, 1, true, &mii);
 		}
-		TrackPopupMenu(hMenu, TPM_LEFTBUTTON | TPM_RIGHTBUTTON, point.x, point.y, 0, GetMainHwnd(), NULL);
-
-		DestroyMenu(hMenu);
 	}
-	return;
-}
-
-
-/*----- ホスト側の右ボタンメニューを表示 --------------------------------------
-*
-*	Parameter
-*		int Pos : メニューの位置
-*					0=マウスカーソルの位置
-*					1=ウインドウの左上
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void RemoteRbuttonMenu(int Pos)
-{
-	HMENU hMenu;
-	POINT point;
-	RECT Rect;
-	UINT Flg1;
-	UINT Flg2;
-	UINT Flg3;
-	int Count;
-
-	// デッドロック対策
-//	if(HideUI == NO)
-	if(HideUI == 0)
-	{
-		Flg1 = 0;
-		if(AskConnecting() == NO)
-			Flg1 = MF_GRAYED;
-
-		Count = GetSelectedCount(WIN_REMOTE);
-		Flg2 = 0;
-		if(Count == 0)
-			Flg2 = MF_GRAYED;
-
-		Flg3 = 0;
-		if(Count != 1)
-			Flg3 = MF_GRAYED;
-
-		hMenu = CreatePopupMenu();
-		AddOpenMenu(hMenu, Flg1 | Flg3);
-		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_DOWNLOAD, MSGJPN263);
-		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_DOWNLOAD_AS, MSGJPN264);
-		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_DOWNLOAD_AS_FILE, MSGJPN265);
-		AppendMenu(hMenu, MF_STRING | Flg1, MENU_DOWNLOAD_ALL, MSGJPN266);
-		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_DELETE, MSGJPN267);
-		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_RENAME, MSGJPN268);
+	if (Win == WIN_LOCAL) {
+		EnableMenuItem(submenu, MENU_UPLOAD, selecting && connecting ? 0 : MF_GRAYED);
+		EnableMenuItem(submenu, MENU_UPLOAD_AS, selecting && connecting ? 0 : MF_GRAYED);
+		EnableMenuItem(submenu, MENU_UPLOAD_ALL, connecting ? 0 : MF_GRAYED);
+		EnableMenuItem(submenu, MENU_DELETE, selecting ? 0 : MF_GRAYED);
+		EnableMenuItem(submenu, MENU_RENAME, selecting ? 0 : MF_GRAYED);
+	} else {
+		EnableMenuItem(submenu, MENU_DOWNLOAD, selecting && connecting ? 0 : MF_GRAYED);
+		EnableMenuItem(submenu, MENU_DOWNLOAD_AS, selecting && connecting ? 0 : MF_GRAYED);
+		EnableMenuItem(submenu, MENU_DOWNLOAD_AS_FILE, selecting && connecting ? 0 : MF_GRAYED);
+		EnableMenuItem(submenu, MENU_DOWNLOAD_ALL, connecting ? 0 : MF_GRAYED);
+		EnableMenuItem(submenu, MENU_DELETE, selecting && connecting ? 0 : MF_GRAYED);
+		EnableMenuItem(submenu, MENU_RENAME, selecting && connecting ? 0 : MF_GRAYED);
 #if defined(HAVE_TANDEM)
 		/* HP NonStop Server では CHMOD の仕様が異なるため使用不可 */
-		if (AskRealHostType() != HTYPE_TANDEM)
+		if (AskRealHostType() == HTYPE_TANDEM)
+			RemoveMenu(submenu, MENU_CHMOD, MF_BYCOMMAND);
+		else
 #endif
-		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_CHMOD, MSGJPN269);
-		AppendMenu(hMenu, MF_STRING | Flg1, MENU_MKDIR, MSGJPN270);
-		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_URL_COPY, MSGJPN271);
+			EnableMenuItem(submenu, MENU_CHMOD, selecting && connecting ? 0 : MF_GRAYED);
+		EnableMenuItem(submenu, MENU_MKDIR, connecting ? 0 : MF_GRAYED);
+		EnableMenuItem(submenu, MENU_URL_COPY, selecting && connecting ? 0 : MF_GRAYED);
 #if defined(HAVE_TANDEM)
 		/* OSS モードのときに表示されるように AskRealHostType() を使用する */
 		if (AskRealHostType() == HTYPE_TANDEM)
-			AppendMenu(hMenu, MF_STRING | Flg1, MENU_SWITCH_OSS, MSGJPN2001);
-#endif
-		// 上位のディレクトリへ移動対応
-		AppendMenu(hMenu, MF_STRING | Flg1 | Flg2, MENU_REMOTE_MOVE_UPDIR, MSGJPN355);
-		AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
-		AppendMenu(hMenu, MF_STRING | Flg1, MENU_FILESIZE, MSGJPN272);
-		AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
-		AppendMenu(hMenu, MF_STRING | Flg1, REFRESH_REMOTE, MSGJPN273);
-
-		if(Pos == 0)
-			GetCursorPos(&point);
+			EnableMenuItem(submenu, MENU_SWITCH_OSS, connecting ? 0 : MF_GRAYED);
 		else
-		{
-			GetWindowRect(GetRemoteHwnd(), &Rect);
-			point.x = Rect.left + 20;
-			point.y = Rect.top + 20;
-		}
-		if(TrackPopupMenu(hMenu, TPM_LEFTBUTTON | TPM_RIGHTBUTTON, point.x, point.y, 0, GetMainHwnd(), NULL) == 0)
-			Count = GetLastError();
-
-		DestroyMenu(hMenu);
+#endif
+			RemoveMenu(submenu, MENU_SWITCH_OSS, MF_BYCOMMAND);
+		EnableMenuItem(submenu, MENU_REMOTE_MOVE_UPDIR, selecting && connecting ? 0 : MF_GRAYED);
+		EnableMenuItem(submenu, MENU_FILESIZE, connecting ? 0 : MF_GRAYED);
+		EnableMenuItem(submenu, REFRESH_REMOTE, connecting ? 0 : MF_GRAYED);
 	}
-	return;
+	POINT point;
+	if (Pos == 0)
+		GetCursorPos(&point);
+	else {
+		RECT Rect;
+		GetWindowRect(Win == WIN_LOCAL ? GetLocalHwnd() : GetRemoteHwnd(), &Rect);
+		point.x = Rect.left + 20;
+		point.y = Rect.top + 20;
+	}
+	TrackPopupMenu(submenu, TPM_LEFTBUTTON | TPM_RIGHTBUTTON, point.x, point.y, 0, GetMainHwnd(), NULL);
+	DestroyMenu(menu);
 }
 
-
-/*----- 右ボタンメニューに「開く」を追加  -------------------------------------
-*
-*	Parameter
-*		HMENU hMenu : メニューハンドル
-*		UINT Flg : フラグ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void AddOpenMenu(HMENU hMenu, UINT Flg)
-{
-	static const UINT MenuID[VIEWERS] = { MENU_OPEN1, MENU_OPEN2, MENU_OPEN3 };
-	char Tmp[FMAX_PATH+1];
-	int i;
-
-	// ローカルフォルダを開く
-//	AppendMenu(hMenu, MF_STRING | Flg, MENU_DCLICK, MSGJPN274);
-	AppendMenu(hMenu, MF_STRING | Flg, MENU_OPEN, MSGJPN274);
-	for(i = 0; i < VIEWERS; i++)
-	{
-		if(strlen(ViewerName[i]) != 0)
-		{
-			sprintf(Tmp, MSGJPN275, GetToolName(ViewerName[i]), i+1);
-			AppendMenu(hMenu, MF_STRING | Flg, MenuID[i], Tmp);
-		}
-	}
-	AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
-	return;
-}
 
 /* 2007/09/21 sunasunamix  ここから *********************/
 

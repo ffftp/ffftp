@@ -1498,9 +1498,9 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				case MENU_APPKEY :
 					EraseListViewTips();
 					if(hWndCurFocus == GetRemoteHwnd())
-						RemoteRbuttonMenu(1);
+						ShowPopupMenu(WIN_REMOTE, 1);
 					else if(hWndCurFocus == GetLocalHwnd())
-						LocalRbuttonMenu(1);
+						ShowPopupMenu(WIN_LOCAL, 1);
 					break;
 
 #if defined(HAVE_TANDEM)
