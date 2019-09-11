@@ -1111,25 +1111,6 @@ END_ROUTINE
 	return r;
 }
 
-UINT DragQueryFileM(HDROP hDrop, UINT iFile, LPSTR lpszFile, UINT cch)
-{
-	UINT r = 0;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	if(iFile == (UINT)-1)
-		r = DragQueryFileW(hDrop, iFile, (LPWSTR)lpszFile, cch);
-	else
-	{
-		pw0 = AllocateStringW(cch * 4);
-		DragQueryFileW(hDrop, iFile, pw0, cch * 4);
-		WtoM(lpszFile, cch, pw0, -1);
-		r = TerminateStringM(lpszFile, cch);
-	}
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 LSTATUS RegOpenKeyExM(HKEY hKey, LPCSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult)
 {
 	LSTATUS r = 0;
