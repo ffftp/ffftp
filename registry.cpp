@@ -1856,47 +1856,22 @@ static void SetRegType(int Type)
 }
 
 
-/*----- レジストリ/INIファイルをオープンする（読み込み）-----------------------
-*
-*	Parameter
-*		char *Name : レジストリ名
-*		void **Handle : ハンドルを返すワーク
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int OpenReg(char *Name, void **Handle)
-{
-	int Sts;
-	char Tmp[FMAX_PATH+1];
-
-	Sts = FFFTP_FAIL;
-	if(TmpRegType == REGTYPE_REG)
-	{
-		// 全設定暗号化対応
-//		strcpy(Tmp, "Software\\Sota\\");
-//		strcat(Tmp, Name);
-//		if(RegOpenKeyEx(HKEY_CURRENT_USER, Tmp, 0, KEY_READ, (HKEY *)Handle) == ERROR_SUCCESS)
-//			Sts = FFFTP_SUCCESS;
-		if((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL)
-		{
-			strcpy(((REGDATATBL_REG *)(*Handle))->KeyName, Name);
-			strcpy(Tmp, "Software\\Sota\\");
-			strcat(Tmp, Name);
-			if(RegOpenKeyEx(HKEY_CURRENT_USER, Tmp, 0, KEY_READ, &(((REGDATATBL_REG *)(*Handle))->hKey)) == ERROR_SUCCESS)
-				Sts = FFFTP_SUCCESS;
-			if(Sts != FFFTP_SUCCESS)
-				free(*Handle);
+// レジストリ/INIファイルをオープンする（読み込み）
+static int OpenReg(char* Name, void** Handle) {
+	if (TmpRegType == REGTYPE_REG) {
+		if ((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL) {
+			strcpy(((REGDATATBL_REG*)*Handle)->KeyName, Name);
+			if (RegOpenKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, KEY_READ, &((REGDATATBL_REG*)*Handle)->hKey) == ERROR_SUCCESS)
+				return FFFTP_SUCCESS;
+			free(*Handle);
+		}
+	} else {
+		if (ReadInReg(Name, (REGDATATBL**)Handle) == FFFTP_SUCCESS) {
+			((REGDATATBL*)*Handle)->Mode = 0;
+			return FFFTP_SUCCESS;
 		}
 	}
-	else
-	{
-		if((Sts = ReadInReg(Name, (REGDATATBL **)Handle)) == FFFTP_SUCCESS)
-			((REGDATATBL *)(*Handle))->Mode = 0;
-	}
-	return(Sts);
+	return FFFTP_FAIL;
 }
 
 
@@ -2026,59 +2001,29 @@ static int ReadInReg(char *Name, REGDATATBL **Handle) {
 }
 
 
-/*----- サブキーをオープンする ------------------------------------------------
-*
-*	Parameter
-*		void *Parent : 親のハンドル
-*		char *Name : 名前
-*		void **Handle : ハンドルを返すワーク
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int OpenSubKey(void *Parent, char *Name, void **Handle)
-{
-	int Sts;
-	char Key[80];
-	REGDATATBL *Pos;
-
-	Sts = FFFTP_FAIL;
-	if(TmpRegType == REGTYPE_REG)
-	{
-		// 全設定暗号化対応
-//		if(RegOpenKeyEx(Parent, Name, 0, KEY_READ, (HKEY *)Handle) == ERROR_SUCCESS)
-//			Sts = FFFTP_SUCCESS;
-		if((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL)
-		{
-			strcpy(((REGDATATBL_REG *)(*Handle))->KeyName, ((REGDATATBL_REG *)Parent)->KeyName);
-			strcat(((REGDATATBL_REG *)(*Handle))->KeyName, "\\");
-			strcat(((REGDATATBL_REG *)(*Handle))->KeyName, Name);
-			if(RegOpenKeyEx(((REGDATATBL_REG *)Parent)->hKey, Name, 0, KEY_READ, &(((REGDATATBL_REG *)(*Handle))->hKey)) == ERROR_SUCCESS)
-				Sts = FFFTP_SUCCESS;
-			if(Sts != FFFTP_SUCCESS)
-				free(*Handle);
+// サブキーをオープンする
+static int OpenSubKey(void* Parent, char* Name, void** Handle) {
+	if (TmpRegType == REGTYPE_REG) {
+		if ((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL) {
+			strcpy(((REGDATATBL_REG*)*Handle)->KeyName, ((REGDATATBL_REG*)Parent)->KeyName);
+			strcat(((REGDATATBL_REG*)*Handle)->KeyName, "\\");
+			strcat(((REGDATATBL_REG*)*Handle)->KeyName, Name);
+			if (RegOpenKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, KEY_READ, &((REGDATATBL_REG*)*Handle)->hKey) == ERROR_SUCCESS)
+				return FFFTP_SUCCESS;
+			free(*Handle);
 		}
-	}
-	else
-	{
-		strcpy(Key, ((REGDATATBL *)Parent)->KeyName);
+	} else {
+		char Key[80];
+		strcpy(Key, ((REGDATATBL*)Parent)->KeyName);
 		strcat(Key, "\\");
 		strcat(Key, Name);
-		Pos = (REGDATATBL*)Parent;
-		while(Pos != NULL)
-		{
-			if(strcmp(Pos->KeyName, Key) == 0)
-			{
+		for (auto Pos = (REGDATATBL*)Parent; Pos; Pos = Pos->Next)
+			if (strcmp(Pos->KeyName, Key) == 0) {
 				*Handle = Pos;
-				Sts = FFFTP_SUCCESS;
-				break;
+				return FFFTP_SUCCESS;
 			}
-			Pos = Pos->Next;
-		}
 	}
-	return(Sts);
+	return FFFTP_FAIL;
 }
 
 
