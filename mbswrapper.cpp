@@ -1110,19 +1110,6 @@ START_ROUTINE
 END_ROUTINE
 	return r;
 }
-
-LSTATUS RegDeleteValueM(HKEY hKey, LPCSTR lpValueName)
-{
-	LSTATUS r = 0;
-	wchar_t* pw0 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpValueName, -1);
-	r = RegDeleteValueW(hKey, pw0);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	return r;
-}
-
 LSTATUS RegQueryValueExM(HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData)
 {
 	LSTATUS r = 0;

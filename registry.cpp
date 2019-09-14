@@ -2085,34 +2085,13 @@ static int DeleteSubKey(void *Handle, char *Name)
 }
 
 
-/*----- 値を削除する ----------------------------------------------------------
-*
-*	Parameter
-*		void *Handle : ハンドル
-*		char *Name : 名前
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int DeleteValue(void *Handle, char *Name)
-{
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	if(TmpRegType == REGTYPE_REG)
-	{
-		// 全設定暗号化対応
-//		if(RegDeleteValue(Handle, Name) == ERROR_SUCCESS)
-		if(RegDeleteValue(((REGDATATBL_REG *)Handle)->hKey, Name) == ERROR_SUCCESS)
-			Sts = FFFTP_SUCCESS;
+// 値を削除する
+static int DeleteValue(void* Handle, char* Name) {
+	if (TmpRegType == REGTYPE_REG) {
+		if (RegDeleteValueW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str()) == ERROR_SUCCESS)
+			return FFFTP_SUCCESS;
 	}
-	else
-	{
-		Sts = FFFTP_FAIL;
-	}
-	return(Sts);
+	return FFFTP_FAIL;
 }
 
 

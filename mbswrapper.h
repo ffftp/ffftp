@@ -20,9 +20,6 @@ LRESULT SendMessageM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 #undef SendDlgItemMessage
 #define SendDlgItemMessage SendDlgItemMessageM
 LRESULT SendDlgItemMessageM(HWND hDlg, int nIDDlgItem, UINT Msg, WPARAM wParam, LPARAM lParam);
-#undef RegDeleteValue
-#define RegDeleteValue RegDeleteValueM
-LSTATUS RegDeleteValueM(HKEY hKey, LPCSTR lpValueName);
 #undef RegQueryValueEx
 #define RegQueryValueEx RegQueryValueExM
 LSTATUS RegQueryValueExM(HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData);
