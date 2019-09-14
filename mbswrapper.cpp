@@ -1111,21 +1111,6 @@ END_ROUTINE
 	return r;
 }
 
-LSTATUS RegCreateKeyExM(HKEY hKey, LPCSTR lpSubKey, DWORD Reserved, LPSTR lpClass, DWORD dwOptions, REGSAM samDesired, CONST LPSECURITY_ATTRIBUTES lpSecurityAttributes, PHKEY phkResult, LPDWORD lpdwDisposition)
-{
-	LSTATUS r = 0;
-	wchar_t* pw0 = NULL;
-	wchar_t* pw1 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpSubKey, -1);
-	pw1 = DuplicateMtoW(lpClass, -1);
-	r = RegCreateKeyExW(hKey, pw0, Reserved, pw1, dwOptions, samDesired, lpSecurityAttributes, phkResult, lpdwDisposition);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	FreeDuplicatedString(pw1);
-	return r;
-}
-
 LSTATUS RegDeleteValueM(HKEY hKey, LPCSTR lpValueName)
 {
 	LSTATUS r = 0;

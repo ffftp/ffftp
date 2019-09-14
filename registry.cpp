@@ -1875,54 +1875,25 @@ static int OpenReg(char* Name, void** Handle) {
 }
 
 
-/*----- レジストリ/INIファイルを作成する（書き込み）---------------------------
-*
-*	Parameter
-*		char *Name : レジストリ名
-*		void **Handle : ハンドルを返すワーク
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int CreateReg(char *Name, void **Handle)
-{
-	int Sts;
-	char Tmp[FMAX_PATH+1];
-	DWORD Dispos;
-
-	Sts = FFFTP_FAIL;
-	if(TmpRegType == REGTYPE_REG)
-	{
-		// 全設定暗号化対応
-//		strcpy(Tmp, "Software\\Sota\\");
-//		strcat(Tmp, Name);
-//		if(RegCreateKeyEx(HKEY_CURRENT_USER, Tmp, 0, "", REG_OPTION_NON_VOLATILE, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, NULL, (HKEY *)Handle, &Dispos) == ERROR_SUCCESS)
-//			Sts = FFFTP_SUCCESS;
-		if((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL)
-		{
-			strcpy(((REGDATATBL_REG *)(*Handle))->KeyName, Name);
-			strcpy(Tmp, "Software\\Sota\\");
-			strcat(Tmp, Name);
-			if(RegCreateKeyEx(HKEY_CURRENT_USER, Tmp, 0, "", REG_OPTION_NON_VOLATILE, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, NULL, &(((REGDATATBL_REG *)(*Handle))->hKey), &Dispos) == ERROR_SUCCESS)
-				Sts = FFFTP_SUCCESS;
-			if(Sts != FFFTP_SUCCESS)
-				free(*Handle);
+// レジストリ/INIファイルを作成する（書き込み）
+static int CreateReg(char* Name, void** Handle) {
+	if (TmpRegType == REGTYPE_REG) {
+		if ((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL) {
+			strcpy(((REGDATATBL_REG*)(*Handle))->KeyName, Name);
+			if (RegCreateKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, nullptr, 0, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, nullptr, &((REGDATATBL_REG*)*Handle)->hKey, nullptr) == ERROR_SUCCESS)
+				return FFFTP_SUCCESS;
+			free(*Handle);
+		}
+	} else {
+		if ((*Handle = malloc(sizeof(REGDATATBL))) != NULL) {
+			strcpy(((REGDATATBL*)*Handle)->KeyName, Name);
+			((REGDATATBL*)*Handle)->ValLen = 0;
+			((REGDATATBL*)*Handle)->Next = NULL;
+			((REGDATATBL*)*Handle)->Mode = 1;
+			return FFFTP_SUCCESS;
 		}
 	}
-	else
-	{
-		if((*Handle = malloc(sizeof(REGDATATBL))) != NULL)
-		{
-			strcpy(((REGDATATBL *)(*Handle))->KeyName, Name);
-			((REGDATATBL *)(*Handle))->ValLen = 0;
-			((REGDATATBL *)(*Handle))->Next = NULL;
-			((REGDATATBL *)(*Handle))->Mode = 1;
-			Sts = FFFTP_SUCCESS;
-		}
-	}
-	return(Sts);
+	return FFFTP_FAIL;
 }
 
 
@@ -2027,60 +1998,34 @@ static int OpenSubKey(void* Parent, char* Name, void** Handle) {
 }
 
 
-/*----- サブキーを作成する ----------------------------------------------------
-*
-*	Parameter
-*		void *Parent : 親のハンドル
-*		char *Name : 名前
-*		void **Handle : ハンドルを返すワーク
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int CreateSubKey(void *Parent, char *Name, void **Handle)
-{
-	int Sts;
-	DWORD Dispos;
-	REGDATATBL *Pos;
-
-	Sts = FFFTP_FAIL;
-	if(TmpRegType == REGTYPE_REG)
-	{
-		// 全設定暗号化対応
-//		if(RegCreateKeyEx(Parent, Name, 0, "", REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, (HKEY *)Handle, &Dispos) == ERROR_SUCCESS)
-//			Sts = FFFTP_SUCCESS;
-		if((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL)
-		{
-			strcpy(((REGDATATBL_REG *)(*Handle))->KeyName, ((REGDATATBL_REG *)Parent)->KeyName);
-			strcat(((REGDATATBL_REG *)(*Handle))->KeyName, "\\");
-			strcat(((REGDATATBL_REG *)(*Handle))->KeyName, Name);
-			if(RegCreateKeyEx(((REGDATATBL_REG *)Parent)->hKey, Name, 0, "", REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, &(((REGDATATBL_REG *)(*Handle))->hKey), &Dispos) == ERROR_SUCCESS)
-				Sts = FFFTP_SUCCESS;
-			if(Sts != FFFTP_SUCCESS)
-				free(*Handle);
+// サブキーを作成する
+static int CreateSubKey(void* Parent, char* Name, void** Handle) {
+	if (TmpRegType == REGTYPE_REG) {
+		if ((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL) {
+			strcpy(((REGDATATBL_REG*)(*Handle))->KeyName, ((REGDATATBL_REG*)Parent)->KeyName);
+			strcat(((REGDATATBL_REG*)(*Handle))->KeyName, "\\");
+			strcat(((REGDATATBL_REG*)(*Handle))->KeyName, Name);
+			if (RegCreateKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, nullptr, 0, KEY_SET_VALUE, nullptr, &(((REGDATATBL_REG*)(*Handle))->hKey), nullptr) == ERROR_SUCCESS)
+				return FFFTP_SUCCESS;
+			free(*Handle);
 		}
-	}
-	else
-	{
-		if((*Handle = malloc(sizeof(REGDATATBL))) != NULL)
-		{
-			strcpy(((REGDATATBL *)(*Handle))->KeyName, ((REGDATATBL *)Parent)->KeyName);
-			strcat(((REGDATATBL *)(*Handle))->KeyName, "\\");
-			strcat(((REGDATATBL *)(*Handle))->KeyName, Name);
+	} else {
+		if ((*Handle = malloc(sizeof(REGDATATBL))) != NULL) {
+			strcpy(((REGDATATBL*)(*Handle))->KeyName, ((REGDATATBL*)Parent)->KeyName);
+			strcat(((REGDATATBL*)(*Handle))->KeyName, "\\");
+			strcat(((REGDATATBL*)(*Handle))->KeyName, Name);
 
-			((REGDATATBL *)(*Handle))->ValLen = 0;
-			((REGDATATBL *)(*Handle))->Next = NULL;
+			((REGDATATBL*)(*Handle))->ValLen = 0;
+			((REGDATATBL*)(*Handle))->Next = NULL;
 
-			Pos = (REGDATATBL *)Parent;
-			while(Pos->Next != NULL)
+			auto Pos = (REGDATATBL*)Parent;
+			while (Pos->Next)
 				Pos = Pos->Next;
-			Pos->Next = (regdatatbl*)*Handle;
-			Sts = FFFTP_SUCCESS;
+			Pos->Next = (regdatatbl*)* Handle;
+			return FFFTP_SUCCESS;
 		}
 	}
-	return(Sts);
+	return FFFTP_FAIL;
 }
 
 
