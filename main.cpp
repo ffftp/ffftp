@@ -76,7 +76,7 @@ static const wchar_t FtpClass[] = L"FFFTPWin";
 static const wchar_t WebURL[] = L"https://github.com/ffftp/ffftp";
 
 static HINSTANCE hInstFtp;
-static HWND hWndFtp = NULL;
+static HWND hWndFtp;
 static HWND hWndCurFocus = NULL;
 
 static HACCEL Accel;
@@ -367,7 +367,6 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 	}
 
 	Ret = FALSE;
-	hWndFtp = NULL;
 	if (auto u8CmdLine = u8(lpCmdLine); InitApp(data(u8CmdLine), nShowCmd) == FFFTP_SUCCESS) {
 		for(;;)
 		{
@@ -383,7 +382,7 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 				   (Msg.hwnd == GetRemoteHistEditHwnd()) ||
 				   ((hHelpWin != NULL) && (GetAncestor(Msg.hwnd, GA_ROOT) == hHelpWin)) ||
 				   GetHideUI() == YES ||
-				   (TranslateAcceleratorW(hWndFtp, Accel, &Msg) == 0))
+				   (TranslateAcceleratorW(GetMainHwnd(), Accel, &Msg) == 0))
 				{
 					TranslateMessage(&Msg);
 					DispatchMessageW(&Msg);
@@ -666,42 +665,42 @@ static int MakeAllWindows(int cmdShow)
 	if(hWndFtp != NULL)
 	{
 		SystemParametersInfoW(SPI_GETWORKAREA, 0, &Rect1, 0);
-		GetWindowRect(hWndFtp, &Rect2);
+		GetWindowRect(GetMainHwnd(), &Rect2);
 		if(Rect2.bottom > Rect1.bottom)
 		{
 			Rect2.top = max1(0, Rect2.top - (Rect2.bottom - Rect1.bottom));
-			MoveWindow(hWndFtp, Rect2.left, Rect2.top, WinWidth, WinHeight, FALSE);
+			MoveWindow(GetMainHwnd(), Rect2.left, Rect2.top, WinWidth, WinHeight, FALSE);
 		}
 
 		/*===== ステイタスバー =====*/
 
-		StsSbar = MakeStatusBarWindow(hWndFtp, GetFtpInst());
+		StsSbar = MakeStatusBarWindow(GetMainHwnd(), GetFtpInst());
 
 		CalcWinSize();
 
 		/*===== ツールバー =====*/
 
-		StsTbar = MakeToolBarWindow(hWndFtp, GetFtpInst());
+		StsTbar = MakeToolBarWindow(GetMainHwnd(), GetFtpInst());
 
 		/*===== ファイルリストウインドウ =====*/
 
-		StsList = MakeListWin(hWndFtp, GetFtpInst());
+		StsList = MakeListWin(GetMainHwnd(), GetFtpInst());
 
 		/*==== タスクウインドウ ====*/
 
-		StsTask = MakeTaskWindow(hWndFtp, GetFtpInst());
+		StsTask = MakeTaskWindow(GetMainHwnd(), GetFtpInst());
 
 		if((cmdShow != SW_MINIMIZE) && (cmdShow != SW_SHOWMINIMIZED) && (cmdShow != SW_SHOWMINNOACTIVE) &&
 		   (Sizing == SW_MAXIMIZE))
 			cmdShow = SW_MAXIMIZE;
 
-		ShowWindow(hWndFtp, cmdShow);
+		ShowWindow(GetMainHwnd(), cmdShow);
 
 		/*==== ソケットウインドウ ====*/
 
-		StsSocket = MakeSocketWin(hWndFtp, GetFtpInst());
+		StsSocket = MakeSocketWin(GetMainHwnd(), GetFtpInst());
 
-		StsLvtips = InitListViewTips(hWndFtp, GetFtpInst());
+		StsLvtips = InitListViewTips(GetMainHwnd(), GetFtpInst());
 	}
 
 	Sts = FFFTP_SUCCESS;
@@ -734,54 +733,17 @@ void DispWindowTitle() {
 }
 
 
-/*----- 全てのオブジェクトを削除 ----------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void DeleteAllObject(void)
-{
-//move to WM_DESTROY
+// 全てのオブジェクトを削除
+static void DeleteAllObject() {
 	WSACleanup();
-
-//test システム任せ
-//	if(ListFont != NULL)
-//		DeleteObject(ListFont);
-//	if(RootColorBrush != NULL)
-//		DeleteObject(RootColorBrush);
-
-//test システム任せ
-//	DeleteListViewTips();
-//	DeleteListWin();
-//	DeleteStatusBarWindow();
-//	DeleteTaskWindow();
-//	DeleteToolBarWindow();
-//	DeleteSocketWin();
-
-//move to WM_DESTROY
-	if(hWndFtp != NULL)
+	if (hWndFtp != NULL)
 		DestroyWindow(hWndFtp);
-
-	return;
 }
 
 
-/*----- メインウインドウのウインドウハンドルを返す ----------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetMainHwnd(void)
-{
-	return(hWndFtp);
+// メインウインドウのウインドウハンドルを返す
+HWND GetMainHwnd() {
+	return hWndFtp;
 }
 
 
@@ -1835,8 +1797,6 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				FindCloseChangeNotification(ChangeNotification);
 			// タスクバー進捗表示
 			KillTimer(hWnd, 2);
-//			WSACleanup();
-//			DestroyWindow(hWndFtp);
 			PostQuitMessage(0);
 			break;
 
@@ -1922,7 +1882,7 @@ static void StartupProc(char *Cmd)
 	if(Sts == 0)
 	{
 		if(ConnectOnStart == YES)
-			PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_CONNECT, 0), 0);
+			PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_CONNECT, 0), 0);
 	}
 	else if(Sts == 1)
 	{
@@ -1930,7 +1890,7 @@ static void StartupProc(char *Cmd)
 	}
 	else if(Sts == 2)
 	{
-		PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_CONNECT_NUM, CmdOption), (LPARAM)AutoConnect);
+		PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_CONNECT_NUM, CmdOption), (LPARAM)AutoConnect);
 	}
 	return;
 }
@@ -2311,7 +2271,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							ExecViewer(Local, App);
 						}
 						else
-							PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
+							PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
 					}
 					else
 						ChangeDir(WIN_LOCAL, Tmp);
@@ -2400,7 +2360,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							}
 						}
 						else
-							PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
+							PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
 					}
 					else
 						ChangeDir(WIN_REMOTE, Tmp);
@@ -2485,42 +2445,12 @@ static void ChangeDir(int Win, char *Path)
 
 static void ResizeWindowProc(void)
 {
-#if 0
 	RECT Rect;
-	int RemotePosX;
 
-	GetClientRect(hWndFtp, &Rect);
+	GetClientRect(GetMainHwnd(), &Rect);
 	SendMessage(GetSbarWnd(), WM_SIZE, SIZE_RESTORED, MAKELPARAM(Rect.right, Rect.bottom));
 
 	CalcWinSize();
-	SetWindowPos(GetMainTbarWnd(), 0, 0, 0, WinWidth, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
-
-	SetWindowPos(GetLocalTbarWnd(), 0, 0, TOOLWIN_HEIGHT, LocalWidth, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
-	SendMessage(GetLocalTbarWnd(), TB_GETITEMRECT, 3, (LPARAM)&Rect);
-	SetWindowPos(GetLocalHistHwnd(), 0, Rect.right, Rect.top, LocalWidth - Rect.right, 200, SWP_NOACTIVATE | SWP_NOZORDER);
-	SetWindowPos(GetLocalHwnd(), 0, 0, TOOLWIN_HEIGHT*2, LocalWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-
-	RemotePosX = LocalWidth + SepaWidth;
-	if(SplitVertical == YES)
-		RemotePosX = 0;
-
-	SetWindowPos(GetRemoteTbarWnd(), 0, RemotePosX, TOOLWIN_HEIGHT, RemoteWidth, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
-	SendMessage(GetRemoteTbarWnd(), TB_GETITEMRECT, 3, (LPARAM)&Rect);
-	SetWindowPos(GetRemoteHistHwnd(), 0, Rect.right, Rect.top, RemoteWidth - Rect.right, 200, SWP_NOACTIVATE | SWP_NOZORDER);
-	SetWindowPos(GetRemoteHwnd(), 0, RemotePosX, TOOLWIN_HEIGHT*2, RemoteWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-
-	SetWindowPos(GetTaskWnd(), 0, 0, TOOLWIN_HEIGHT*2+ListHeight+SepaWidth, ClientWidth, TaskHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-#else
-	RECT Rect;
-
-	GetClientRect(hWndFtp, &Rect);
-	SendMessage(GetSbarWnd(), WM_SIZE, SIZE_RESTORED, MAKELPARAM(Rect.right, Rect.bottom));
-
-	CalcWinSize();
-	// 高DPI対応
-//	SetWindowPos(GetMainTbarWnd(), 0, 0, 0, Rect.right, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
-//	SetWindowPos(GetLocalTbarWnd(), 0, 0, TOOLWIN_HEIGHT, LocalWidth, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
-//	SetWindowPos(GetRemoteTbarWnd(), 0, LocalWidth + SepaWidth, TOOLWIN_HEIGHT, RemoteWidth, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetMainTbarWnd(), 0, 0, 0, Rect.right, AskToolWinHeight(), SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetLocalTbarWnd(), 0, 0, AskToolWinHeight(), LocalWidth, AskToolWinHeight(), SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetRemoteTbarWnd(), 0, LocalWidth + SepaWidth, AskToolWinHeight(), RemoteWidth, AskToolWinHeight(), SWP_NOACTIVATE | SWP_NOZORDER);
@@ -2528,16 +2458,9 @@ static void ResizeWindowProc(void)
 	SetWindowPos(GetLocalHistHwnd(), 0, Rect.right, Rect.top, LocalWidth - Rect.right, 200, SWP_NOACTIVATE | SWP_NOZORDER);
 	SendMessage(GetRemoteTbarWnd(), TB_GETITEMRECT, 3, (LPARAM)&Rect);
 	SetWindowPos(GetRemoteHistHwnd(), 0, Rect.right, Rect.top, RemoteWidth - Rect.right, 200, SWP_NOACTIVATE | SWP_NOZORDER);
-	// 高DPI対応
-//	SetWindowPos(GetLocalHwnd(), 0, 0, TOOLWIN_HEIGHT*2, LocalWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-//	SetWindowPos(GetRemoteHwnd(), 0, LocalWidth + SepaWidth, TOOLWIN_HEIGHT*2, RemoteWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-//	SetWindowPos(GetTaskWnd(), 0, 0, TOOLWIN_HEIGHT*2+ListHeight+SepaWidth, ClientWidth, TaskHeight, SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetLocalHwnd(), 0, 0, AskToolWinHeight()*2, LocalWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetRemoteHwnd(), 0, LocalWidth + SepaWidth, AskToolWinHeight()*2, RemoteWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetTaskWnd(), 0, 0, AskToolWinHeight()*2+ListHeight+SepaWidth, ClientWidth, TaskHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-#endif
-
-	return;
 }
 
 
@@ -2554,7 +2477,7 @@ static void CalcWinSize(void)
 {
 	RECT Rect;
 
-	GetWindowRect(hWndFtp, &Rect);
+	GetWindowRect(GetMainHwnd(), &Rect);
 
 	if(Sizing != SW_MAXIMIZE)
 	{
@@ -2562,7 +2485,7 @@ static void CalcWinSize(void)
 		WinHeight = Rect.bottom - Rect.top;
 	}
 
-	GetClientRect(hWndFtp, &Rect);
+	GetClientRect(GetMainHwnd(), &Rect);
 
 	ClientWidth = Rect.right;
 	ClientHeight = Rect.bottom;
@@ -2631,7 +2554,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 		   (y > AskToolWinHeight()) && (y < (AskToolWinHeight() * 2 + ListHeight)))
 		{
 			/* 境界位置変更用カーソルに変更 */
-			SetCapture(hWndFtp);
+			SetCapture(GetMainHwnd());
 			hCursor = LoadCursor(GetFtpInst(), MAKEINTRESOURCE(resize_lr_csr));
 			SetCursor(hCursor);
 			Resizing = RESIZE_PREPARE;
@@ -2642,7 +2565,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 		else if((y >= AskToolWinHeight()*2+ListHeight) && (y <= AskToolWinHeight()*2+ListHeight+SepaWidth))
 		{
 			/* 境界位置変更用カーソルに変更 */
-			SetCapture(hWndFtp);
+			SetCapture(GetMainHwnd());
 			hCursor = LoadCursor(GetFtpInst(), MAKEINTRESOURCE(resize_ud_csr));
 			SetCursor(hCursor);
 			Resizing = RESIZE_PREPARE;
@@ -2655,7 +2578,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 		{
 			/* 境界位置変更開始 */
 			Resizing = RESIZE_ON;
-			GetWindowRect(hWndFtp, &Rect);
+			GetWindowRect(GetMainHwnd(), &Rect);
 			GetClientRect(GetSbarWnd(), &Rect1);
 			Rect.left += GetSystemMetrics(SM_CXFRAME);
 			Rect.right -= GetSystemMetrics(SM_CXFRAME);
@@ -2693,7 +2616,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 			LocalWidth = x;
 		else
 		{
-			GetClientRect(hWndFtp, &Rect);
+			GetClientRect(GetMainHwnd(), &Rect);
 			GetClientRect(GetSbarWnd(), &Rect1);
 			TaskHeight = max1(0, Rect.bottom - y - Rect1.bottom);
 		}
