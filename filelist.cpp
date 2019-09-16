@@ -590,23 +590,16 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 
 		case WM_DROPFILES :
-			// 同時接続対応
-			if(AskUserOpeDisabled() == YES)
-				break;
-			// ドラッグ中は処理しない。ドラッグ後にWM_LBUTTONDOWNが飛んでくるため、そこで処理する。
-			if (Dragging == YES) 
-				return (FALSE);
-
-			if(hWnd == hWndListRemote)
-			{
-				if(AskConnecting() == YES)
-					UploadDragProc(wParam);
-			}
-			else if(hWnd == hWndListLocal)
-			{
-				ChangeDirDropFileProc(wParam);
-			}
-			break;
+			if (AskUserOpeDisabled() != YES)
+				if (Dragging != YES) {		// ドラッグ中は処理しない。ドラッグ後にWM_LBUTTONDOWNが飛んでくるため、そこで処理する。
+					if (hWnd == hWndListRemote) {
+						if (AskConnecting() == YES)
+							UploadDragProc(wParam);
+					} else if (hWnd == hWndListLocal)
+						ChangeDirDropFileProc(wParam);
+				}
+			DragFinish((HDROP)wParam);
+			return 0;
 
 		case WM_LBUTTONDOWN :
 			// 特定の操作を行うと異常終了するバグ修正
@@ -2110,65 +2103,42 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 }
 
 
-/*----- Drag&Dropされたファイルをリストに登録する -----------------------------
-*
-*	Parameter
-*		WPARAM wParam : ドロップされたファイルの情報
-*		char *Cur : カレントディレクトリを返すバッファ
-*		FILELIST **Base : ファイルリストの先頭
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
+static inline fs::path DragFile(HDROP hdrop, UINT index) {
+	auto const length1 = DragQueryFileW(hdrop, index, nullptr, 0);
+	std::wstring buffer(length1, L'\0');
+	auto const length2 = DragQueryFileW(hdrop, index, data(buffer), length1 + 1);
+	assert(length1 == length2);
+	return std::move(buffer);
+}
 
-void MakeDroppedFileList(WPARAM wParam, char *Cur, std::vector<FILELIST>& Base) {
-	int Max;
-	int i;
-	char Name[FMAX_PATH+1];
-	FILELIST Pkt;
-	// タイムスタンプのバグ修正
-	SYSTEMTIME TmpStime;
+// Drag&Dropされたファイルをリストに登録する
+void MakeDroppedFileList(WPARAM wParam, char* Cur, std::vector<FILELIST>& Base) {
+	int count = DragQueryFileW((HDROP)wParam, 0xFFFFFFFF, NULL, 0);
 
-	Max = DragQueryFile((HDROP)wParam, 0xFFFFFFFF, NULL, 0);
+	auto const baseDirectory = DragFile((HDROP)wParam, 0).parent_path();
+	strncpy(Cur, baseDirectory.u8string().c_str(), FMAX_PATH);
 
-	DragQueryFile((HDROP)wParam, 0, Cur, FMAX_PATH);
-	GetUpperDir(Cur);
-
-	for(i = 0; i < Max; i++)
-	{
-		DragQueryFile((HDROP)wParam, i, Name, FMAX_PATH);
-
+	std::vector<fs::path> directories;
+	for (int i = 0; i < count; i++) {
+		auto const path = DragFile((HDROP)wParam, i);
 		WIN32_FILE_ATTRIBUTE_DATA attr;
-		if (!GetFileAttributesExW(fs::u8path(Name).c_str(), GetFileExInfoStandard, &attr))
+		if (!GetFileAttributesExW(path.c_str(), GetFileExInfoStandard, &attr))
 			continue;
-		if((attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
-		{
-			// 変数が未初期化のバグ修正
-			memset(&Pkt, 0, sizeof(FILELIST));
-
+		if (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			directories.emplace_back(path);
+		else {
+			FILELIST Pkt{};
 			Pkt.Node = NODE_FILE;
-			strcpy(Pkt.File, GetFileName(Name));
-
-			memset(&Pkt.Time, 0, sizeof(FILETIME));
-#if defined(HAVE_TANDEM)
-			/* Guardian スペースへのアップロードのためにサイズが必要 */
-			Pkt.Size = 0;
-			Pkt.InfoExist = 0;
-#endif
-			Pkt.Time = attr.ftLastWriteTime;
-			// タイムスタンプのバグ修正
-			if(FileTimeToSystemTime(&Pkt.Time, &TmpStime))
-			{
-				if(DispTimeSeconds == NO)
+			strcpy(Pkt.File, path.filename().u8string().c_str());
+			if (SYSTEMTIME TmpStime; FileTimeToSystemTime(&attr.ftLastWriteTime, &TmpStime)) {
+				if (DispTimeSeconds == NO)
 					TmpStime.wSecond = 0;
 				TmpStime.wMilliseconds = 0;
 				SystemTimeToFileTime(&TmpStime, &Pkt.Time);
 			}
-			else
-				memset(&Pkt.Time, 0, sizeof(FILETIME));
 #if defined(HAVE_TANDEM)
 			Pkt.Size = LONGLONG(attr.nFileSizeHigh) << 32 | attr.nFileSizeLow;
-			Pkt.InfoExist |= (FINFO_TIME | FINFO_DATE | FINFO_SIZE);
+			Pkt.InfoExist = FINFO_TIME | FINFO_DATE | FINFO_SIZE;
 #endif
 			AddFileList(Pkt, Base);
 		}
@@ -2176,51 +2146,21 @@ void MakeDroppedFileList(WPARAM wParam, char *Cur, std::vector<FILELIST>& Base) 
 
 	auto const saved = fs::current_path();
 	std::error_code ec;
-	fs::current_path(fs::u8path(Cur), ec);
-	for(i = 0; i < Max; i++)
-	{
-		DragQueryFile((HDROP)wParam, i, Name, FMAX_PATH);
-
-		if(GetFileAttributesW(fs::u8path(Name).c_str()) & FILE_ATTRIBUTE_DIRECTORY)
-		{
-			// 変数が未初期化のバグ修正
-			memset(&Pkt, 0, sizeof(FILELIST));
-
-			Pkt.Node = NODE_DIR;
-			strcpy(Pkt.File, GetFileName(Name));
-			AddFileList(Pkt, Base);
-
-			MakeLocalTree(Pkt.File, Base);
-		}
+	fs::current_path(baseDirectory, ec);
+	for (auto const& path : directories) {
+		FILELIST Pkt{};
+		Pkt.Node = NODE_DIR;
+		strcpy(Pkt.File, path.filename().u8string().c_str());
+		AddFileList(Pkt, Base);
+		MakeLocalTree(Pkt.File, Base);
 	}
 	fs::current_path(saved);
-
-	DragFinish((HDROP)wParam);
-
-	return;
 }
 
 
-/*----- Drag&Dropされたファイルがあるフォルダを取得する -----------------------
-*
-*	Parameter
-*		WPARAM wParam : ドロップされたファイルの情報
-*		char *Cur : カレントディレクトリを返すバッファ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void MakeDroppedDir(WPARAM wParam, char *Cur)
-{
-	int Max;
-
-	Max = DragQueryFile((HDROP)wParam, 0xFFFFFFFF, NULL, 0);
-	DragQueryFile((HDROP)wParam, 0, Cur, FMAX_PATH);
-	GetUpperDir(Cur);
-	DragFinish((HDROP)wParam);
-
-	return;
+// Drag&Dropされたファイルがあるフォルダを取得する
+void MakeDroppedDir(WPARAM wParam, char* Cur) {
+	strncpy(Cur, DragFile((HDROP)wParam, 0).parent_path().u8string().c_str(), FMAX_PATH);
 }
 
 

@@ -1856,98 +1856,44 @@ static void SetRegType(int Type)
 }
 
 
-/*----- レジストリ/INIファイルをオープンする（読み込み）-----------------------
-*
-*	Parameter
-*		char *Name : レジストリ名
-*		void **Handle : ハンドルを返すワーク
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int OpenReg(char *Name, void **Handle)
-{
-	int Sts;
-	char Tmp[FMAX_PATH+1];
-
-	Sts = FFFTP_FAIL;
-	if(TmpRegType == REGTYPE_REG)
-	{
-		// 全設定暗号化対応
-//		strcpy(Tmp, "Software\\Sota\\");
-//		strcat(Tmp, Name);
-//		if(RegOpenKeyEx(HKEY_CURRENT_USER, Tmp, 0, KEY_READ, (HKEY *)Handle) == ERROR_SUCCESS)
-//			Sts = FFFTP_SUCCESS;
-		if((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL)
-		{
-			strcpy(((REGDATATBL_REG *)(*Handle))->KeyName, Name);
-			strcpy(Tmp, "Software\\Sota\\");
-			strcat(Tmp, Name);
-			if(RegOpenKeyEx(HKEY_CURRENT_USER, Tmp, 0, KEY_READ, &(((REGDATATBL_REG *)(*Handle))->hKey)) == ERROR_SUCCESS)
-				Sts = FFFTP_SUCCESS;
-			if(Sts != FFFTP_SUCCESS)
-				free(*Handle);
+// レジストリ/INIファイルをオープンする（読み込み）
+static int OpenReg(char* Name, void** Handle) {
+	if (TmpRegType == REGTYPE_REG) {
+		if ((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL) {
+			strcpy(((REGDATATBL_REG*)*Handle)->KeyName, Name);
+			if (RegOpenKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, KEY_READ, &((REGDATATBL_REG*)*Handle)->hKey) == ERROR_SUCCESS)
+				return FFFTP_SUCCESS;
+			free(*Handle);
+		}
+	} else {
+		if (ReadInReg(Name, (REGDATATBL**)Handle) == FFFTP_SUCCESS) {
+			((REGDATATBL*)*Handle)->Mode = 0;
+			return FFFTP_SUCCESS;
 		}
 	}
-	else
-	{
-		if((Sts = ReadInReg(Name, (REGDATATBL **)Handle)) == FFFTP_SUCCESS)
-			((REGDATATBL *)(*Handle))->Mode = 0;
-	}
-	return(Sts);
+	return FFFTP_FAIL;
 }
 
 
-/*----- レジストリ/INIファイルを作成する（書き込み）---------------------------
-*
-*	Parameter
-*		char *Name : レジストリ名
-*		void **Handle : ハンドルを返すワーク
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int CreateReg(char *Name, void **Handle)
-{
-	int Sts;
-	char Tmp[FMAX_PATH+1];
-	DWORD Dispos;
-
-	Sts = FFFTP_FAIL;
-	if(TmpRegType == REGTYPE_REG)
-	{
-		// 全設定暗号化対応
-//		strcpy(Tmp, "Software\\Sota\\");
-//		strcat(Tmp, Name);
-//		if(RegCreateKeyEx(HKEY_CURRENT_USER, Tmp, 0, "", REG_OPTION_NON_VOLATILE, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, NULL, (HKEY *)Handle, &Dispos) == ERROR_SUCCESS)
-//			Sts = FFFTP_SUCCESS;
-		if((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL)
-		{
-			strcpy(((REGDATATBL_REG *)(*Handle))->KeyName, Name);
-			strcpy(Tmp, "Software\\Sota\\");
-			strcat(Tmp, Name);
-			if(RegCreateKeyEx(HKEY_CURRENT_USER, Tmp, 0, "", REG_OPTION_NON_VOLATILE, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, NULL, &(((REGDATATBL_REG *)(*Handle))->hKey), &Dispos) == ERROR_SUCCESS)
-				Sts = FFFTP_SUCCESS;
-			if(Sts != FFFTP_SUCCESS)
-				free(*Handle);
+// レジストリ/INIファイルを作成する（書き込み）
+static int CreateReg(char* Name, void** Handle) {
+	if (TmpRegType == REGTYPE_REG) {
+		if ((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL) {
+			strcpy(((REGDATATBL_REG*)(*Handle))->KeyName, Name);
+			if (RegCreateKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, nullptr, 0, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, nullptr, &((REGDATATBL_REG*)*Handle)->hKey, nullptr) == ERROR_SUCCESS)
+				return FFFTP_SUCCESS;
+			free(*Handle);
+		}
+	} else {
+		if ((*Handle = malloc(sizeof(REGDATATBL))) != NULL) {
+			strcpy(((REGDATATBL*)*Handle)->KeyName, Name);
+			((REGDATATBL*)*Handle)->ValLen = 0;
+			((REGDATATBL*)*Handle)->Next = NULL;
+			((REGDATATBL*)*Handle)->Mode = 1;
+			return FFFTP_SUCCESS;
 		}
 	}
-	else
-	{
-		if((*Handle = malloc(sizeof(REGDATATBL))) != NULL)
-		{
-			strcpy(((REGDATATBL *)(*Handle))->KeyName, Name);
-			((REGDATATBL *)(*Handle))->ValLen = 0;
-			((REGDATATBL *)(*Handle))->Next = NULL;
-			((REGDATATBL *)(*Handle))->Mode = 1;
-			Sts = FFFTP_SUCCESS;
-		}
-	}
-	return(Sts);
+	return FFFTP_FAIL;
 }
 
 
@@ -2026,116 +1972,60 @@ static int ReadInReg(char *Name, REGDATATBL **Handle) {
 }
 
 
-/*----- サブキーをオープンする ------------------------------------------------
-*
-*	Parameter
-*		void *Parent : 親のハンドル
-*		char *Name : 名前
-*		void **Handle : ハンドルを返すワーク
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int OpenSubKey(void *Parent, char *Name, void **Handle)
-{
-	int Sts;
-	char Key[80];
-	REGDATATBL *Pos;
-
-	Sts = FFFTP_FAIL;
-	if(TmpRegType == REGTYPE_REG)
-	{
-		// 全設定暗号化対応
-//		if(RegOpenKeyEx(Parent, Name, 0, KEY_READ, (HKEY *)Handle) == ERROR_SUCCESS)
-//			Sts = FFFTP_SUCCESS;
-		if((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL)
-		{
-			strcpy(((REGDATATBL_REG *)(*Handle))->KeyName, ((REGDATATBL_REG *)Parent)->KeyName);
-			strcat(((REGDATATBL_REG *)(*Handle))->KeyName, "\\");
-			strcat(((REGDATATBL_REG *)(*Handle))->KeyName, Name);
-			if(RegOpenKeyEx(((REGDATATBL_REG *)Parent)->hKey, Name, 0, KEY_READ, &(((REGDATATBL_REG *)(*Handle))->hKey)) == ERROR_SUCCESS)
-				Sts = FFFTP_SUCCESS;
-			if(Sts != FFFTP_SUCCESS)
-				free(*Handle);
+// サブキーをオープンする
+static int OpenSubKey(void* Parent, char* Name, void** Handle) {
+	if (TmpRegType == REGTYPE_REG) {
+		if ((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL) {
+			strcpy(((REGDATATBL_REG*)*Handle)->KeyName, ((REGDATATBL_REG*)Parent)->KeyName);
+			strcat(((REGDATATBL_REG*)*Handle)->KeyName, "\\");
+			strcat(((REGDATATBL_REG*)*Handle)->KeyName, Name);
+			if (RegOpenKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, KEY_READ, &((REGDATATBL_REG*)*Handle)->hKey) == ERROR_SUCCESS)
+				return FFFTP_SUCCESS;
+			free(*Handle);
 		}
-	}
-	else
-	{
-		strcpy(Key, ((REGDATATBL *)Parent)->KeyName);
+	} else {
+		char Key[80];
+		strcpy(Key, ((REGDATATBL*)Parent)->KeyName);
 		strcat(Key, "\\");
 		strcat(Key, Name);
-		Pos = (REGDATATBL*)Parent;
-		while(Pos != NULL)
-		{
-			if(strcmp(Pos->KeyName, Key) == 0)
-			{
+		for (auto Pos = (REGDATATBL*)Parent; Pos; Pos = Pos->Next)
+			if (strcmp(Pos->KeyName, Key) == 0) {
 				*Handle = Pos;
-				Sts = FFFTP_SUCCESS;
-				break;
+				return FFFTP_SUCCESS;
 			}
-			Pos = Pos->Next;
-		}
 	}
-	return(Sts);
+	return FFFTP_FAIL;
 }
 
 
-/*----- サブキーを作成する ----------------------------------------------------
-*
-*	Parameter
-*		void *Parent : 親のハンドル
-*		char *Name : 名前
-*		void **Handle : ハンドルを返すワーク
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int CreateSubKey(void *Parent, char *Name, void **Handle)
-{
-	int Sts;
-	DWORD Dispos;
-	REGDATATBL *Pos;
-
-	Sts = FFFTP_FAIL;
-	if(TmpRegType == REGTYPE_REG)
-	{
-		// 全設定暗号化対応
-//		if(RegCreateKeyEx(Parent, Name, 0, "", REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, (HKEY *)Handle, &Dispos) == ERROR_SUCCESS)
-//			Sts = FFFTP_SUCCESS;
-		if((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL)
-		{
-			strcpy(((REGDATATBL_REG *)(*Handle))->KeyName, ((REGDATATBL_REG *)Parent)->KeyName);
-			strcat(((REGDATATBL_REG *)(*Handle))->KeyName, "\\");
-			strcat(((REGDATATBL_REG *)(*Handle))->KeyName, Name);
-			if(RegCreateKeyEx(((REGDATATBL_REG *)Parent)->hKey, Name, 0, "", REG_OPTION_NON_VOLATILE, KEY_SET_VALUE, NULL, &(((REGDATATBL_REG *)(*Handle))->hKey), &Dispos) == ERROR_SUCCESS)
-				Sts = FFFTP_SUCCESS;
-			if(Sts != FFFTP_SUCCESS)
-				free(*Handle);
+// サブキーを作成する
+static int CreateSubKey(void* Parent, char* Name, void** Handle) {
+	if (TmpRegType == REGTYPE_REG) {
+		if ((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL) {
+			strcpy(((REGDATATBL_REG*)(*Handle))->KeyName, ((REGDATATBL_REG*)Parent)->KeyName);
+			strcat(((REGDATATBL_REG*)(*Handle))->KeyName, "\\");
+			strcat(((REGDATATBL_REG*)(*Handle))->KeyName, Name);
+			if (RegCreateKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, nullptr, 0, KEY_SET_VALUE, nullptr, &(((REGDATATBL_REG*)(*Handle))->hKey), nullptr) == ERROR_SUCCESS)
+				return FFFTP_SUCCESS;
+			free(*Handle);
 		}
-	}
-	else
-	{
-		if((*Handle = malloc(sizeof(REGDATATBL))) != NULL)
-		{
-			strcpy(((REGDATATBL *)(*Handle))->KeyName, ((REGDATATBL *)Parent)->KeyName);
-			strcat(((REGDATATBL *)(*Handle))->KeyName, "\\");
-			strcat(((REGDATATBL *)(*Handle))->KeyName, Name);
+	} else {
+		if ((*Handle = malloc(sizeof(REGDATATBL))) != NULL) {
+			strcpy(((REGDATATBL*)(*Handle))->KeyName, ((REGDATATBL*)Parent)->KeyName);
+			strcat(((REGDATATBL*)(*Handle))->KeyName, "\\");
+			strcat(((REGDATATBL*)(*Handle))->KeyName, Name);
 
-			((REGDATATBL *)(*Handle))->ValLen = 0;
-			((REGDATATBL *)(*Handle))->Next = NULL;
+			((REGDATATBL*)(*Handle))->ValLen = 0;
+			((REGDATATBL*)(*Handle))->Next = NULL;
 
-			Pos = (REGDATATBL *)Parent;
-			while(Pos->Next != NULL)
+			auto Pos = (REGDATATBL*)Parent;
+			while (Pos->Next)
 				Pos = Pos->Next;
-			Pos->Next = (regdatatbl*)*Handle;
-			Sts = FFFTP_SUCCESS;
+			Pos->Next = (regdatatbl*)* Handle;
+			return FFFTP_SUCCESS;
 		}
 	}
-	return(Sts);
+	return FFFTP_FAIL;
 }
 
 
@@ -2195,34 +2085,13 @@ static int DeleteSubKey(void *Handle, char *Name)
 }
 
 
-/*----- 値を削除する ----------------------------------------------------------
-*
-*	Parameter
-*		void *Handle : ハンドル
-*		char *Name : 名前
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int DeleteValue(void *Handle, char *Name)
-{
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	if(TmpRegType == REGTYPE_REG)
-	{
-		// 全設定暗号化対応
-//		if(RegDeleteValue(Handle, Name) == ERROR_SUCCESS)
-		if(RegDeleteValue(((REGDATATBL_REG *)Handle)->hKey, Name) == ERROR_SUCCESS)
-			Sts = FFFTP_SUCCESS;
+// 値を削除する
+static int DeleteValue(void* Handle, char* Name) {
+	if (TmpRegType == REGTYPE_REG) {
+		if (RegDeleteValueW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str()) == ERROR_SUCCESS)
+			return FFFTP_SUCCESS;
 	}
-	else
-	{
-		Sts = FFFTP_FAIL;
-	}
-	return(Sts);
+	return FFFTP_FAIL;
 }
 
 
@@ -2250,9 +2119,7 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 	if(TmpRegType == REGTYPE_REG)
 	{
 		Size = sizeof(int);
-		// 全設定暗号化対応
-//		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Value, &Size) == ERROR_SUCCESS)
-		if(RegQueryValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, NULL, NULL, (BYTE *)Value, &Size) == ERROR_SUCCESS)
+		if (RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), nullptr, nullptr, (BYTE*)Value, &Size) == ERROR_SUCCESS)
 			Sts = FFFTP_SUCCESS;
 	}
 	else
@@ -2313,9 +2180,7 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 		MaskSettingsData(Path, (int)strlen(Path), &Value, sizeof(int), NO);
 	}
 	if(TmpRegType == REGTYPE_REG)
-		// 全設定暗号化対応
-//		RegSetValueEx(Handle, Name, 0, REG_DWORD, (CONST BYTE *)&Value, sizeof(int));
-		RegSetValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, 0, REG_DWORD, (CONST BYTE *)&Value, sizeof(int));
+		RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_DWORD, (CONST BYTE*)&Value, sizeof(int));
 	else
 	{
 		Pos = (REGDATATBL *)Handle;
@@ -2362,13 +2227,24 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		// 全設定暗号化対応
-//		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
-		if(RegQueryValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
-		{
-			if(*(Str + Size - 1) != NUL)
-				*(Str + Size) = NUL;
-			Sts = FFFTP_SUCCESS;
+		auto const wName = u8(Name);
+		if (DWORD type, count; RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, &type, nullptr, &count) == ERROR_SUCCESS) {
+			LRESULT result;
+			if (type == REG_BINARY)
+				result = RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, nullptr, (BYTE*)Str, &Size);
+			else {
+				if (std::wstring wbuffer(count / sizeof(wchar_t), L'\0'); (result = RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, nullptr, data_as<BYTE>(wbuffer), &count)) == ERROR_SUCCESS) {
+					auto const buffer = u8(wbuffer);
+					if (size_as<DWORD>(buffer) < Size)
+						Size = size_as<DWORD>(buffer);
+					std::copy_n(begin(buffer), Size, Str);
+				}
+			}
+			if (result == ERROR_SUCCESS) {
+				if (*(Str + Size - 1) != NUL)
+					*(Str + Size) = NUL;
+				Sts = FFFTP_SUCCESS;
+			}
 		}
 	}
 	else
@@ -2456,11 +2332,14 @@ static int WriteStringToReg(void *Handle, char *Name, char *Str)
 		strcat(Path, Name);
 		MaskSettingsData(Path, (int)strlen(Path), Str, (DWORD)strlen(Str) + 1, YES);
 	}
-	if(TmpRegType == REGTYPE_REG)
-	// 全設定暗号化対応
-//		RegSetValueEx(Handle, Name, 0, REG_SZ, (CONST BYTE *)Str, strlen(Str)+1);
-		RegSetValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, 0, EncryptSettings == YES ? REG_BINARY : REG_SZ, (CONST BYTE *)Str, (DWORD)strlen(Str)+1);
-	else
+	if (TmpRegType == REGTYPE_REG) {
+		if (EncryptSettings == YES)
+			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Str, (DWORD)strlen(Str) + 1);
+		else {
+			auto const wStr = u8(Str, strlen(Str) + 1);
+			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_SZ, data_as<BYTE>(wStr), size_as<DWORD>(wStr) * sizeof(wchar_t));
+		}
+	} else
 	{
 		Pos = (REGDATATBL *)Handle;
 		Data = Pos->ValTbl + Pos->ValLen;
@@ -2506,13 +2385,24 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		// 全設定暗号化対応
-//		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
-		if(RegQueryValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
-		{
-			if(*(Str + Size - 1) != NUL)
-				*(Str + Size) = NUL;
-			Sts = FFFTP_SUCCESS;
+		auto const wName = u8(Name);
+		if (DWORD type, count; RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, &type, nullptr, &count) == ERROR_SUCCESS) {
+			LRESULT result;
+			if (type == REG_BINARY)
+				result = RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, nullptr, (BYTE*)Str, &Size);
+			else {
+				if (std::wstring wbuffer(count / sizeof(wchar_t), L'\0'); (result = RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, nullptr, data_as<BYTE>(wbuffer), &count)) == ERROR_SUCCESS) {
+					auto const buffer = u8(wbuffer);
+					if (size_as<DWORD>(buffer) < Size)
+						Size = size_as<DWORD>(buffer);
+					std::copy_n(begin(buffer), Size, Str);
+				}
+			}
+			if (result == ERROR_SUCCESS) {
+				if (*(Str + Size - 1) != NUL)
+					*(Str + Size) = NUL;
+				Sts = FFFTP_SUCCESS;
+			}
 		}
 	}
 	else
@@ -2603,11 +2493,14 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 		strcat(Path, Name);
 		MaskSettingsData(Path, (int)strlen(Path), Str, StrMultiLen(Str) + 1, YES);
 	}
-	if(TmpRegType == REGTYPE_REG)
-	// 全設定暗号化対応
-//		RegSetValueEx(Handle, Name, 0, REG_MULTI_SZ, (CONST BYTE *)Str, StrMultiLen(Str)+1);
-		RegSetValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, 0, EncryptSettings == YES ? REG_BINARY : REG_MULTI_SZ, (CONST BYTE *)Str, StrMultiLen(Str)+1);
-	else
+	if (TmpRegType == REGTYPE_REG) {
+		if (EncryptSettings == YES)
+			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Str, StrMultiLen(Str) + 1);
+		else {
+			auto const wStr = u8(Str, StrMultiLen(Str) + 1);
+			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_MULTI_SZ, data_as<BYTE>(wStr), size_as<DWORD>(wStr) * sizeof(wchar_t));
+		}
+	} else
 	{
 		Pos = (REGDATATBL *)Handle;
 		Data = Pos->ValTbl + Pos->ValLen;
@@ -2649,9 +2542,7 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		// 全設定暗号化対応
-//		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Bin, &Size) == ERROR_SUCCESS)
-		if(RegQueryValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, NULL, NULL, (BYTE *)Bin, &Size) == ERROR_SUCCESS)
+		if (RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), nullptr, nullptr, (BYTE*)Bin, &Size) == ERROR_SUCCESS)
 			Sts = FFFTP_SUCCESS;
 	}
 	else
@@ -2713,9 +2604,7 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 		MaskSettingsData(Path, (int)strlen(Path), Bin, Len, NO);
 	}
 	if(TmpRegType == REGTYPE_REG)
-	// 全設定暗号化対応
-//		RegSetValueEx(Handle, Name, 0, REG_BINARY, (CONST BYTE *)Bin, Len);
-		RegSetValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, 0, REG_BINARY, (CONST BYTE *)Bin, Len);
+		RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Bin, Len);
 	else
 	{
 		Pos = (REGDATATBL *)Handle;
