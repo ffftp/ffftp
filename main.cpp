@@ -302,12 +302,14 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 		wchar_t moduleFileName[FMAX_PATH];
 		GetModuleFileNameW(nullptr, moduleFileName, FMAX_PATH);
 		auto const fileName = fs::path{ moduleFileName }.filename();
-		hInstance = LoadMUILibraryW(fileName.c_str(), MUI_LANGUAGE_NAME, GetUserDefaultUILanguage());
-		if (hInstance == NULL)
-			hInstance = LoadMUILibraryW(fileName.c_str(), MUI_LANGUAGE_NAME, LANG_NEUTRAL);
+		hInstFtp = LoadMUILibraryW(fileName.c_str(), MUI_LANGUAGE_NAME, GetUserDefaultUILanguage());
+		if (hInstFtp == NULL)
+			hInstFtp = LoadMUILibraryW(fileName.c_str(), MUI_LANGUAGE_NAME, LANG_NEUTRAL);
 	}
+#else
+	hInstFtp = hInstance;
 #endif
-	EnumResourceNames(hInstance, RT_STRING, [](auto hModule, auto lpType, auto lpName, auto lParam) -> BOOL {
+	EnumResourceNames(GetFtpInst(), RT_STRING, [](auto hModule, auto lpType, auto lpName, auto lParam) -> BOOL {
 		wchar_t buffer[1024];
 		if (IS_INTRESOURCE(lpName))
 			for (int id = (PtrToInt(lpName) - 1) * 16, end = id + 16; id < end; id++)
@@ -355,18 +357,17 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 #endif
 
 	if (!CryptAcquireContextW(&HCryptProv, nullptr, nullptr, PROV_RSA_AES, CRYPT_VERIFYCONTEXT)) {
-		Message(nullptr, hInstance, IDS_ERR_CRYPTO, IDS_APP, MB_OK | MB_ICONERROR);
+		Message(nullptr, GetFtpInst(), IDS_ERR_CRYPTO, IDS_APP, MB_OK | MB_ICONERROR);
 		return 0;
 	}
 
 	if (!LoadSSL()) {
-		Message(nullptr, hInstance, IDS_ERR_SSL, IDS_APP, MB_OK | MB_ICONERROR);
+		Message(nullptr, GetFtpInst(), IDS_ERR_SSL, IDS_APP, MB_OK | MB_ICONERROR);
 		return 0;
 	}
 
 	Ret = FALSE;
 	hWndFtp = NULL;
-	hInstFtp = hInstance;
 	if (auto u8CmdLine = u8(lpCmdLine); InitApp(data(u8CmdLine), nShowCmd) == FFFTP_SUCCESS) {
 		for(;;)
 		{
@@ -391,7 +392,7 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 		}
 		Ret = (int)Msg.wParam;
 	}
-	UnregisterClassW(FtpClass, hInstFtp);
+	UnregisterClassW(FtpClass, GetFtpInst());
 	FreeSSL();
 	CryptReleaseContext(HCryptProv, 0);
 	// ゾーンID設定追加
@@ -406,19 +407,7 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 }
 
 
-/*----- アプリケーションの初期設定 --------------------------------------------
-*
-*	Parameter
-*		HINSTANCE hInstance : このアプリケーションのこのインスタンスのハンドル
-*		HINSTANCE hPrevInstance : このアプリケーションの直前のインスタンスのハンドル
-*		LPSTR lpszCmdLine : アプリケーションが起動したときのコマンドラインをさすロングポインタ
-*		int cmdShow : 最初に表示するウインドウの形式。
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
+// アプリケーションの初期設定
 static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 {
 	int sts;
@@ -440,7 +429,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		MessageBoxW(GetMainHwnd(), GetErrorMessage(Err).c_str(), GetString(IDS_APP).c_str(), MB_OK);
 	else
 	{
-		Accel = LoadAcceleratorsW(hInstFtp, MAKEINTRESOURCEW(ffftp_accel));
+		Accel = LoadAcceleratorsW(GetFtpInst(), MAKEINTRESOURCEW(ffftp_accel));
 
 		// 高DPI対応
 		WinWidth = CalcPixelX(WinWidth);
@@ -660,7 +649,7 @@ static int MakeAllWindows(int cmdShow)
 
 	RootColorBrush = CreateSolidBrush(GetSysColor(COLOR_3DFACE));
 
-	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, FtpWndProc, 0, 0, hInstFtp, LoadIconW(hInstFtp, MAKEINTRESOURCEW(ffftp)), 0, RootColorBrush, MAKEINTRESOURCEW(main_menu), FtpClass };
+	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, FtpWndProc, 0, 0, GetFtpInst(), LoadIconW(GetFtpInst(), MAKEINTRESOURCEW(ffftp)), 0, RootColorBrush, MAKEINTRESOURCEW(main_menu), FtpClass };
 	RegisterClassExW(&classEx);
 
 	// 高DPI対応
@@ -672,7 +661,7 @@ static int MakeAllWindows(int cmdShow)
 		WinPosX = CW_USEDEFAULT;
 		WinPosY = 0;
 	}
-	hWndFtp = CreateWindowExW(0, FtpClass, L"FFFTP", WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, WinPosX, WinPosY, WinWidth, WinHeight, HWND_DESKTOP, 0, hInstFtp, nullptr);
+	hWndFtp = CreateWindowExW(0, FtpClass, L"FFFTP", WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, WinPosX, WinPosY, WinWidth, WinHeight, HWND_DESKTOP, 0, GetFtpInst(), nullptr);
 
 	if(hWndFtp != NULL)
 	{
@@ -686,21 +675,21 @@ static int MakeAllWindows(int cmdShow)
 
 		/*===== ステイタスバー =====*/
 
-		StsSbar = MakeStatusBarWindow(hWndFtp, hInstFtp);
+		StsSbar = MakeStatusBarWindow(hWndFtp, GetFtpInst());
 
 		CalcWinSize();
 
 		/*===== ツールバー =====*/
 
-		StsTbar = MakeToolBarWindow(hWndFtp, hInstFtp);
+		StsTbar = MakeToolBarWindow(hWndFtp, GetFtpInst());
 
 		/*===== ファイルリストウインドウ =====*/
 
-		StsList = MakeListWin(hWndFtp, hInstFtp);
+		StsList = MakeListWin(hWndFtp, GetFtpInst());
 
 		/*==== タスクウインドウ ====*/
 
-		StsTask = MakeTaskWindow(hWndFtp, hInstFtp);
+		StsTask = MakeTaskWindow(hWndFtp, GetFtpInst());
 
 		if((cmdShow != SW_MINIMIZE) && (cmdShow != SW_SHOWMINIMIZED) && (cmdShow != SW_SHOWMINNOACTIVE) &&
 		   (Sizing == SW_MAXIMIZE))
@@ -710,9 +699,9 @@ static int MakeAllWindows(int cmdShow)
 
 		/*==== ソケットウインドウ ====*/
 
-		StsSocket = MakeSocketWin(hWndFtp, hInstFtp);
+		StsSocket = MakeSocketWin(hWndFtp, GetFtpInst());
 
-		StsLvtips = InitListViewTips(hWndFtp, hInstFtp);
+		StsLvtips = InitListViewTips(hWndFtp, GetFtpInst());
 	}
 
 	Sts = FFFTP_SUCCESS;
@@ -827,18 +816,9 @@ void SetFocusHwnd(HWND hWnd)
 }
 
 
-/*----- プログラムのインスタンスを返す ----------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HINSTANCE インスタンス
-*----------------------------------------------------------------------------*/
-
-HINSTANCE GetFtpInst(void)
-{
-	return(hInstFtp);
+// プログラムのインスタンスを返す
+HINSTANCE GetFtpInst() {
+	return hInstFtp;
 }
 
 
@@ -1427,7 +1407,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_REGINIT :
-					if(Dialog(hInstFtp, reginit_dlg, hWnd))
+					if(Dialog(GetFtpInst(), reginit_dlg, hWnd))
 					{
 						ClearRegistry();
 						// ポータブル版判定
@@ -1440,7 +1420,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					if( GetMasterPasswordStatus() != PASSWORD_OK )
 					{
 						/* 強制的に設定するか確認 */
-						if (!Dialog(hInstFtp, forcepasschange_dlg, hWnd))
+						if (!Dialog(GetFtpInst(), forcepasschange_dlg, hWnd))
 							break;
 						if(EnterMasterPasswordAndSet(true, hWnd) != 0)
 							SetTaskMsg(MSGJPN303);
@@ -1586,7 +1566,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					// UTF-8対応
 					// lptttは単なる警告回避用
 					wlpttt = (LPTOOLTIPTEXTW)lParam;
-					lpttt->hinst = hInstFtp;
+					lpttt->hinst = GetFtpInst();
 					switch(lpttt->hdr.idFrom)
 					{
 						case MENU_CONNECT :
@@ -1865,7 +1845,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			return(TRUE);
 
 		case WM_CLOSE :
-			if (AskTransferNow() == NO || Dialog(hInstFtp, exit_dlg, hWnd)) {
+			if (AskTransferNow() == NO || Dialog(GetFtpInst(), exit_dlg, hWnd)) {
 				ExitProc(hWnd);
 				return DefWindowProcW(hWnd, message, wParam, lParam);
 			}
@@ -2652,7 +2632,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 		{
 			/* 境界位置変更用カーソルに変更 */
 			SetCapture(hWndFtp);
-			hCursor = LoadCursor(hInstFtp, MAKEINTRESOURCE(resize_lr_csr));
+			hCursor = LoadCursor(GetFtpInst(), MAKEINTRESOURCE(resize_lr_csr));
 			SetCursor(hCursor);
 			Resizing = RESIZE_PREPARE;
 			ResizePos = RESIZE_HPOS;
@@ -2663,7 +2643,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 		{
 			/* 境界位置変更用カーソルに変更 */
 			SetCapture(hWndFtp);
-			hCursor = LoadCursor(hInstFtp, MAKEINTRESOURCE(resize_ud_csr));
+			hCursor = LoadCursor(GetFtpInst(), MAKEINTRESOURCE(resize_ud_csr));
 			SetCursor(hCursor);
 			Resizing = RESIZE_PREPARE;
 			ResizePos = RESIZE_VPOS;
@@ -2902,7 +2882,7 @@ static void AboutDialog(HWND hWnd) {
 			}
 		}
 	};
-	Dialog(hInstFtp, about_dlg, hWnd, About{});
+	Dialog(GetFtpInst(), about_dlg, hWnd, About{});
 }
 
 
