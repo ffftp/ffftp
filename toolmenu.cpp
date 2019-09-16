@@ -201,18 +201,8 @@ static const int HideMenus[] = {
 
 
 
-/*----- ツールバーを作成する --------------------------------------------------
-*
-*	Parameter
-*		HWND hWnd : 親ウインドウのウインドウハンドル
-*		HINSTANCE hInst : インスタンスハンドル
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
+// ツールバーを作成する
+int MakeToolBarWindow()
 {
 	int Sts;
 	RECT Rect1;
@@ -222,13 +212,13 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	/*===== メインのツールバー =====*/
 
-	hOriginal = (HBITMAP)LoadImageW(hInst, MAKEINTRESOURCEW(main_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
+	hOriginal = (HBITMAP)LoadImageW(GetFtpInst(), MAKEINTRESOURCEW(main_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
 	if (!hOriginal)
 		return FFFTP_FAIL;
 	hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
 	DeleteObject(hOriginal);
 	hWndTbarMain = CreateToolbarEx(
-				hWnd,
+				GetMainHwnd(),
 				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_TOP | TBSTYLE_FLAT,
 				1,
 				30,
@@ -247,7 +237,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 	{
 		pOldTbarMainProc = (WNDPROC)SetWindowLongPtrW(hWndTbarMain, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarMainProc);
 
-		GetClientRect(hWnd, &Rect1);
+		GetClientRect(GetMainHwnd(), &Rect1);
 		// 高DPI対応
 //		MoveWindow(hWndTbarMain, 0, 0, Rect1.right, TOOLWIN_HEIGHT, FALSE);
 		MoveWindow(hWndTbarMain, 0, 0, Rect1.right, AskToolWinHeight(), FALSE);
@@ -255,13 +245,13 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	/*===== ローカルのツールバー =====*/
 
-	hOriginal = (HBITMAP)LoadImageW(hInst, MAKEINTRESOURCEW(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
+	hOriginal = (HBITMAP)LoadImageW(GetFtpInst(), MAKEINTRESOURCEW(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
 	if (!hOriginal)
 		return FFFTP_FAIL;
 	hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
 	DeleteObject(hOriginal);
 	hWndTbarLocal = CreateToolbarEx(
-				hWnd,
+				GetMainHwnd(),
 				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE | TBSTYLE_FLAT,
 				2,
 				2,
@@ -289,7 +279,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 		SendMessage(hWndTbarLocal, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
 		DlgFont = CreateFontW(Rect1.bottom-Rect1.top-CalcPixelY(8), 0, 0, 0, 0, FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH,L"MS Shell Dlg");
 
-		hWndDirLocal = CreateWindowExW(WS_EX_CLIENTEDGE, WC_COMBOBOXW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_SORT | CBS_AUTOHSCROLL, Rect1.right, Rect1.top, LocalWidth - Rect1.right, CalcPixelY(200), hWndTbarLocal, (HMENU)COMBO_LOCAL, hInst, nullptr);
+		hWndDirLocal = CreateWindowExW(WS_EX_CLIENTEDGE, WC_COMBOBOXW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_SORT | CBS_AUTOHSCROLL, Rect1.right, Rect1.top, LocalWidth - Rect1.right, CalcPixelY(200), hWndTbarLocal, (HMENU)COMBO_LOCAL, GetFtpInst(), nullptr);
 
 		if(hWndDirLocal != NULL)
 		{
@@ -309,13 +299,13 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 
 	/*===== ホストのツールバー =====*/
 
-	hOriginal = (HBITMAP)LoadImageW(hInst, MAKEINTRESOURCEW(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
+	hOriginal = (HBITMAP)LoadImageW(GetFtpInst(), MAKEINTRESOURCEW(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
 	if (!hOriginal)
 		return FFFTP_FAIL;
 	hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
 	DeleteObject(hOriginal);
 	hWndTbarRemote = CreateToolbarEx(
-				hWnd,
+				GetMainHwnd(),
 				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE | TBSTYLE_FLAT,
 				3,
 				2,
@@ -341,7 +331,7 @@ int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst)
 		/*===== ホストのディレクトリ名ウインドウ =====*/
 
 		SendMessage(hWndTbarRemote, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
-		hWndDirRemote = CreateWindowExW(WS_EX_CLIENTEDGE, WC_COMBOBOXW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL, Rect1.right, Rect1.top, RemoteWidth - Rect1.right, CalcPixelY(200), hWndTbarRemote, (HMENU)COMBO_REMOTE, hInst, nullptr);
+		hWndDirRemote = CreateWindowExW(WS_EX_CLIENTEDGE, WC_COMBOBOXW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL, Rect1.right, Rect1.top, RemoteWidth - Rect1.right, CalcPixelY(200), hWndTbarRemote, (HMENU)COMBO_REMOTE, GetFtpInst(), nullptr);
 
 		if(hWndDirRemote != NULL)
 		{

@@ -674,21 +674,21 @@ static int MakeAllWindows(int cmdShow)
 
 		/*===== ステイタスバー =====*/
 
-		StsSbar = MakeStatusBarWindow(GetMainHwnd(), GetFtpInst());
+		StsSbar = MakeStatusBarWindow();
 
 		CalcWinSize();
 
 		/*===== ツールバー =====*/
 
-		StsTbar = MakeToolBarWindow(GetMainHwnd(), GetFtpInst());
+		StsTbar = MakeToolBarWindow();
 
 		/*===== ファイルリストウインドウ =====*/
 
-		StsList = MakeListWin(GetMainHwnd(), GetFtpInst());
+		StsList = MakeListWin();
 
 		/*==== タスクウインドウ ====*/
 
-		StsTask = MakeTaskWindow(GetMainHwnd(), GetFtpInst());
+		StsTask = MakeTaskWindow();
 
 		if((cmdShow != SW_MINIMIZE) && (cmdShow != SW_SHOWMINIMIZED) && (cmdShow != SW_SHOWMINNOACTIVE) &&
 		   (Sizing == SW_MAXIMIZE))
@@ -698,9 +698,9 @@ static int MakeAllWindows(int cmdShow)
 
 		/*==== ソケットウインドウ ====*/
 
-		StsSocket = MakeSocketWin(GetMainHwnd(), GetFtpInst());
+		StsSocket = MakeSocketWin();
 
-		StsLvtips = InitListViewTips(GetMainHwnd(), GetFtpInst());
+		StsLvtips = InitListViewTips();
 	}
 
 	Sts = FFFTP_SUCCESS;

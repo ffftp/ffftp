@@ -68,7 +68,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
 static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
 static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *CancelCheckWork);
 static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
-static bool DispUpDownErrDialog(int ResID, HWND hWnd, TRANSPACKET *Pkt);
+static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt);
 static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode, int *CancelCheckWork);
 static int DoUpload(SOCKET cSkt, TRANSPACKET *Pkt);
 static int UploadNonPassive(TRANSPACKET *Pkt);
@@ -1812,7 +1812,7 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 					{
 						// タスクバー進捗表示
 						TransferErrorDisplay++;
-						if(TransferErrorNotify == YES && !DispUpDownErrDialog(downerr_dlg, Pkt->hWndTrans, Pkt))
+						if(TransferErrorNotify == YES && !DispUpDownErrDialog(downerr_dlg, Pkt))
 							ClearAll = YES;
 						else
 						{
@@ -1848,7 +1848,7 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 
 
 // ダウンロード／アップロードエラーのダイアログを表示
-static bool DispUpDownErrDialog(int ResID, HWND hWnd, TRANSPACKET *Pkt) {
+static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt) {
 	struct Data {
 		using result_t = bool;
 		using DownExistButton = RadioButton<DOWN_EXIST_OVW, DOWN_EXIST_RESUME, DOWN_EXIST_IGNORE>;
@@ -1877,10 +1877,8 @@ static bool DispUpDownErrDialog(int ResID, HWND hWnd, TRANSPACKET *Pkt) {
 			}
 		}
 	};
-	if (hWnd == NULL)
-		hWnd = GetMainHwnd();
 	SoundPlay(SND_ERROR);
-	return Dialog(GetFtpInst(), ResID, hWnd, Data{ Pkt });
+	return Dialog(GetFtpInst(), ResID, Pkt->hWndTrans, Data{ Pkt });
 }
 
 
@@ -2399,7 +2397,7 @@ static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 					{
 						// タスクバー進捗表示
 						TransferErrorDisplay++;
-						if(TransferErrorNotify == YES && !DispUpDownErrDialog(uperr_dlg, Pkt->hWndTrans, Pkt))
+						if(TransferErrorNotify == YES && !DispUpDownErrDialog(uperr_dlg, Pkt))
 							ClearAll = YES;
 						else
 						{

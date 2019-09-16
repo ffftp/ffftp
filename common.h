@@ -1385,7 +1385,7 @@ int AskToolWinHeight(void);
 
 /*===== filelist.c =====*/
 
-int MakeListWin(HWND hWnd, HINSTANCE hInst);
+int MakeListWin();
 void DeleteListWin(void);
 HWND GetLocalHwnd(void);
 HWND GetRemoteHwnd(void);
@@ -1429,7 +1429,7 @@ void doDeleteRemoteFile(void);
 
 /*===== toolmenu.c =====*/
 
-int MakeToolBarWindow(HWND hWnd, HINSTANCE hInst);
+int MakeToolBarWindow();
 void DeleteToolBarWindow(void);
 HWND GetMainTbarWnd(void);
 HWND GetLocalHistHwnd(void);
@@ -1485,7 +1485,7 @@ void ShowPopupMenu(int Win, int Pos);
 
 /*===== statuswin.c =====*/
 
-int MakeStatusBarWindow(HWND hWnd, HINSTANCE hInst);
+int MakeStatusBarWindow();
 void DeleteStatusBarWindow(void);
 HWND GetSbarWnd(void);
 void UpdateStatusBar();
@@ -1498,7 +1498,7 @@ bool NotifyStatusBar(const NMHDR* hdr);
 
 /*===== taskwin.c =====*/
 
-int MakeTaskWindow(HWND hWnd, HINSTANCE hInst);
+int MakeTaskWindow();
 void DeleteTaskWindow(void);
 HWND GetTaskWnd(void);
 void _SetTaskMsg(const char* format, ...);
@@ -1811,7 +1811,7 @@ void SaveSettingsToWinSCPIni();
 
 /*===== lvtips.c =====*/
 
-int InitListViewTips(HWND hWnd, HINSTANCE hInst);
+int InitListViewTips();
 void DeleteListViewTips(void);
 void EraseListViewTips(void);
 HWND GetListViewTipsHwnd(void);
@@ -1909,7 +1909,7 @@ void ShowCertificate();
 BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName);
 bool IsSecureConnection();
 BOOL IsSSLAttached(SOCKET s);
-int MakeSocketWin(HWND hWnd, HINSTANCE hInst);
+int MakeSocketWin();
 void DeleteSocketWin(void);
 void SetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::string, int>> const& target);
 void SetAsyncTableDataMapPort(SOCKET s, int Port);

@@ -449,11 +449,11 @@ static int FTPS_recv(SOCKET s, char* buf, int len, int flags) {
 }
 
 
-int MakeSocketWin(HWND hWnd, HINSTANCE hInst) {
+int MakeSocketWin() {
 	auto const className = L"FFFTPSocketWnd";
-	WNDCLASSEXW wcx{ sizeof(WNDCLASSEXW), 0, SocketWndProc, 0, 0, hInst, nullptr, nullptr, CreateSolidBrush(GetSysColor(COLOR_INFOBK)), nullptr, className, };
+	WNDCLASSEXW wcx{ sizeof(WNDCLASSEXW), 0, SocketWndProc, 0, 0, GetFtpInst(), nullptr, nullptr, CreateSolidBrush(GetSysColor(COLOR_INFOBK)), nullptr, className, };
 	RegisterClassExW(&wcx);
-	if (hWndSocket = CreateWindowExW(0, className, nullptr, WS_BORDER | WS_POPUP, 0, 0, 0, 0, hWnd, nullptr, hInst, nullptr)) {
+	if (hWndSocket = CreateWindowExW(0, className, nullptr, WS_BORDER | WS_POPUP, 0, 0, 0, 0, GetMainHwnd(), nullptr, GetFtpInst(), nullptr)) {
 		Signal.clear();
 		return FFFTP_SUCCESS;
 	}

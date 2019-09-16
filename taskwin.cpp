@@ -62,9 +62,9 @@ static VOID CALLBACK Writer(HWND hwnd, UINT, UINT_PTR, DWORD) {
 }
 
 // タスクウインドウを作成する
-int MakeTaskWindow(HWND hWnd, HINSTANCE hInst) {
+int MakeTaskWindow() {
 	constexpr DWORD style = WS_CHILD | WS_BORDER | ES_AUTOVSCROLL | WS_VSCROLL | ES_MULTILINE | ES_READONLY | WS_CLIPSIBLINGS;
-	hWndTask = CreateWindowExW(WS_EX_CLIENTEDGE, WC_EDITW, nullptr, style, 0, AskToolWinHeight() * 2 + ListHeight + SepaWidth, ClientWidth, TaskHeight, hWnd, 0, hInst, nullptr);
+	hWndTask = CreateWindowExW(WS_EX_CLIENTEDGE, WC_EDITW, nullptr, style, 0, AskToolWinHeight() * 2 + ListHeight + SepaWidth, ClientWidth, TaskHeight, GetMainHwnd(), 0, GetFtpInst(), nullptr);
 	if (hWndTask == NULL)
 		return FFFTP_FAIL;
 

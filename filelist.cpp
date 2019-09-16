@@ -132,18 +132,8 @@ static std::vector<FILELIST> remoteFileListBaseNoExpand;
 static char remoteFileDir[FMAX_PATH + 1];
 
 
-/*----- ファイルリストウインドウを作成する ------------------------------------
-*
-*	Parameter
-*		HWND hWnd : 親ウインドウのウインドウハンドル
-*		HINSTANCE hInst : インスタンスハンドル
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int MakeListWin(HWND hWnd, HINSTANCE hInst)
+// ファイルリストウインドウを作成する
+int MakeListWin()
 {
 	int Sts;
 	LV_COLUMN LvCol;
@@ -154,7 +144,7 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 
 	/*===== ローカル側のリストビュー =====*/
 
-	hWndListLocal = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS, 0, AskToolWinHeight() * 2, LocalWidth, ListHeight, GetMainHwnd(), 0, hInst, nullptr);
+	hWndListLocal = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS, 0, AskToolWinHeight() * 2, LocalWidth, ListHeight, GetMainHwnd(), 0, GetFtpInst(), nullptr);
 
 	if(hWndListLocal != NULL)
 	{
@@ -167,7 +157,7 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 		if(ListFont != NULL)
 			SendMessage(hWndListLocal, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
 
-		ListImg = ImageList_LoadImageW(hInst, MAKEINTRESOURCEW(dirattr_bmp), 16, 9, RGB(255,0,0), IMAGE_BITMAP, 0);
+		ListImg = ImageList_LoadImageW(GetFtpInst(), MAKEINTRESOURCEW(dirattr_bmp), 16, 9, RGB(255,0,0), IMAGE_BITMAP, 0);
 		SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
 		ShowWindow(hWndListLocal, SW_SHOW);
 
@@ -199,7 +189,7 @@ int MakeListWin(HWND hWnd, HINSTANCE hInst)
 
 	/*===== ホスト側のリストビュー =====*/
 
-	hWndListRemote = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS, LocalWidth + SepaWidth, AskToolWinHeight() * 2, RemoteWidth, ListHeight, GetMainHwnd(), 0, hInst, nullptr);
+	hWndListRemote = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS, LocalWidth + SepaWidth, AskToolWinHeight() * 2, RemoteWidth, ListHeight, GetMainHwnd(), 0, GetFtpInst(), nullptr);
 
 	if(hWndListRemote != NULL)
 	{

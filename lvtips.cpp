@@ -43,10 +43,10 @@ static HWND hWndTips;	/* tipsのウインドウハンドル */
 
 
 // リストビューティップスのウインドウを作成
-int InitListViewTips(HWND hWnd, HINSTANCE hInst) {
-	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, DefWindowProcW, 0, 0, hInst, 0, 0, CreateSolidBrush(GetSysColor(COLOR_INFOBK)), nullptr, L"XTitleTip" };
+int InitListViewTips() {
+	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, DefWindowProcW, 0, 0, GetFtpInst(), 0, 0, CreateSolidBrush(GetSysColor(COLOR_INFOBK)), nullptr, L"XTitleTip" };
 	RegisterClassExW(&classEx);
-	hWndTips = CreateWindowExW(WS_EX_TOOLWINDOW | WS_EX_TOPMOST, L"XTitleTip", nullptr, WS_BORDER | WS_POPUP, 0, 0, 0, 0, hWnd, 0, hInst, nullptr);
+	hWndTips = CreateWindowExW(WS_EX_TOOLWINDOW | WS_EX_TOPMOST, L"XTitleTip", nullptr, WS_BORDER | WS_POPUP, 0, 0, 0, 0, GetMainHwnd(), 0, GetFtpInst(), nullptr);
 	return hWndTips ? FFFTP_SUCCESS : FFFTP_FAIL;
 }
 
