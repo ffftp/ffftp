@@ -2119,9 +2119,7 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 	if(TmpRegType == REGTYPE_REG)
 	{
 		Size = sizeof(int);
-		// 全設定暗号化対応
-//		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Value, &Size) == ERROR_SUCCESS)
-		if(RegQueryValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, NULL, NULL, (BYTE *)Value, &Size) == ERROR_SUCCESS)
+		if (RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), nullptr, nullptr, (BYTE*)Value, &Size) == ERROR_SUCCESS)
 			Sts = FFFTP_SUCCESS;
 	}
 	else
@@ -2182,9 +2180,7 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 		MaskSettingsData(Path, (int)strlen(Path), &Value, sizeof(int), NO);
 	}
 	if(TmpRegType == REGTYPE_REG)
-		// 全設定暗号化対応
-//		RegSetValueEx(Handle, Name, 0, REG_DWORD, (CONST BYTE *)&Value, sizeof(int));
-		RegSetValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, 0, REG_DWORD, (CONST BYTE *)&Value, sizeof(int));
+		RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_DWORD, (CONST BYTE*)&Value, sizeof(int));
 	else
 	{
 		Pos = (REGDATATBL *)Handle;
@@ -2231,13 +2227,24 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		// 全設定暗号化対応
-//		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
-		if(RegQueryValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
-		{
-			if(*(Str + Size - 1) != NUL)
-				*(Str + Size) = NUL;
-			Sts = FFFTP_SUCCESS;
+		auto const wName = u8(Name);
+		if (DWORD type, count; RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, &type, nullptr, &count) == ERROR_SUCCESS) {
+			LRESULT result;
+			if (type == REG_BINARY)
+				result = RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, nullptr, (BYTE*)Str, &Size);
+			else {
+				if (std::wstring wbuffer(count / sizeof(wchar_t), L'\0'); (result = RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, nullptr, data_as<BYTE>(wbuffer), &count)) == ERROR_SUCCESS) {
+					auto const buffer = u8(wbuffer);
+					if (size_as<DWORD>(buffer) < Size)
+						Size = size_as<DWORD>(buffer);
+					std::copy_n(begin(buffer), Size, Str);
+				}
+			}
+			if (result == ERROR_SUCCESS) {
+				if (*(Str + Size - 1) != NUL)
+					*(Str + Size) = NUL;
+				Sts = FFFTP_SUCCESS;
+			}
 		}
 	}
 	else
@@ -2325,11 +2332,14 @@ static int WriteStringToReg(void *Handle, char *Name, char *Str)
 		strcat(Path, Name);
 		MaskSettingsData(Path, (int)strlen(Path), Str, (DWORD)strlen(Str) + 1, YES);
 	}
-	if(TmpRegType == REGTYPE_REG)
-	// 全設定暗号化対応
-//		RegSetValueEx(Handle, Name, 0, REG_SZ, (CONST BYTE *)Str, strlen(Str)+1);
-		RegSetValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, 0, EncryptSettings == YES ? REG_BINARY : REG_SZ, (CONST BYTE *)Str, (DWORD)strlen(Str)+1);
-	else
+	if (TmpRegType == REGTYPE_REG) {
+		if (EncryptSettings == YES)
+			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Str, (DWORD)strlen(Str) + 1);
+		else {
+			auto const wStr = u8(Str, strlen(Str) + 1);
+			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_SZ, data_as<BYTE>(wStr), size_as<DWORD>(wStr) * sizeof(wchar_t));
+		}
+	} else
 	{
 		Pos = (REGDATATBL *)Handle;
 		Data = Pos->ValTbl + Pos->ValLen;
@@ -2375,13 +2385,24 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		// 全設定暗号化対応
-//		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
-		if(RegQueryValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, NULL, NULL, (BYTE *)Str, &Size) == ERROR_SUCCESS)
-		{
-			if(*(Str + Size - 1) != NUL)
-				*(Str + Size) = NUL;
-			Sts = FFFTP_SUCCESS;
+		auto const wName = u8(Name);
+		if (DWORD type, count; RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, &type, nullptr, &count) == ERROR_SUCCESS) {
+			LRESULT result;
+			if (type == REG_BINARY)
+				result = RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, nullptr, (BYTE*)Str, &Size);
+			else {
+				if (std::wstring wbuffer(count / sizeof(wchar_t), L'\0'); (result = RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, nullptr, data_as<BYTE>(wbuffer), &count)) == ERROR_SUCCESS) {
+					auto const buffer = u8(wbuffer);
+					if (size_as<DWORD>(buffer) < Size)
+						Size = size_as<DWORD>(buffer);
+					std::copy_n(begin(buffer), Size, Str);
+				}
+			}
+			if (result == ERROR_SUCCESS) {
+				if (*(Str + Size - 1) != NUL)
+					*(Str + Size) = NUL;
+				Sts = FFFTP_SUCCESS;
+			}
 		}
 	}
 	else
@@ -2472,11 +2493,14 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 		strcat(Path, Name);
 		MaskSettingsData(Path, (int)strlen(Path), Str, StrMultiLen(Str) + 1, YES);
 	}
-	if(TmpRegType == REGTYPE_REG)
-	// 全設定暗号化対応
-//		RegSetValueEx(Handle, Name, 0, REG_MULTI_SZ, (CONST BYTE *)Str, StrMultiLen(Str)+1);
-		RegSetValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, 0, EncryptSettings == YES ? REG_BINARY : REG_MULTI_SZ, (CONST BYTE *)Str, StrMultiLen(Str)+1);
-	else
+	if (TmpRegType == REGTYPE_REG) {
+		if (EncryptSettings == YES)
+			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Str, StrMultiLen(Str) + 1);
+		else {
+			auto const wStr = u8(Str, StrMultiLen(Str) + 1);
+			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_MULTI_SZ, data_as<BYTE>(wStr), size_as<DWORD>(wStr) * sizeof(wchar_t));
+		}
+	} else
 	{
 		Pos = (REGDATATBL *)Handle;
 		Data = Pos->ValTbl + Pos->ValLen;
@@ -2518,9 +2542,7 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		// 全設定暗号化対応
-//		if(RegQueryValueEx(Handle, Name, NULL, NULL, (BYTE *)Bin, &Size) == ERROR_SUCCESS)
-		if(RegQueryValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, NULL, NULL, (BYTE *)Bin, &Size) == ERROR_SUCCESS)
+		if (RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), nullptr, nullptr, (BYTE*)Bin, &Size) == ERROR_SUCCESS)
 			Sts = FFFTP_SUCCESS;
 	}
 	else
@@ -2582,9 +2604,7 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 		MaskSettingsData(Path, (int)strlen(Path), Bin, Len, NO);
 	}
 	if(TmpRegType == REGTYPE_REG)
-	// 全設定暗号化対応
-//		RegSetValueEx(Handle, Name, 0, REG_BINARY, (CONST BYTE *)Bin, Len);
-		RegSetValueEx(((REGDATATBL_REG *)Handle)->hKey, Name, 0, REG_BINARY, (CONST BYTE *)Bin, Len);
+		RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Bin, Len);
 	else
 	{
 		Pos = (REGDATATBL *)Handle;

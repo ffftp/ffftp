@@ -20,12 +20,6 @@ LRESULT SendMessageM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 #undef SendDlgItemMessage
 #define SendDlgItemMessage SendDlgItemMessageM
 LRESULT SendDlgItemMessageM(HWND hDlg, int nIDDlgItem, UINT Msg, WPARAM wParam, LPARAM lParam);
-#undef RegQueryValueEx
-#define RegQueryValueEx RegQueryValueExM
-LSTATUS RegQueryValueExM(HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData);
-#undef RegSetValueEx
-#define RegSetValueEx RegSetValueExM
-LSTATUS RegSetValueExM(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, CONST BYTE* lpData, DWORD cbData);
 #undef _mbslen
 #define _mbslen _mbslenM
 size_t _mbslenM(const unsigned char * _Str);
