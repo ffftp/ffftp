@@ -2005,9 +2005,14 @@ static inline auto replace(std::basic_string_view<Char> input, std::basic_regex<
 	replaced.append(last, data(input) + size(input));
 	return replaced;
 }
-static inline auto Message(HWND owner, HINSTANCE instance, int textId, int captionId, DWORD style) {
-	MSGBOXPARAMSW msgBoxParams{ sizeof MSGBOXPARAMSW, owner, instance, MAKEINTRESOURCEW(textId), MAKEINTRESOURCEW(captionId), style, nullptr, 0, nullptr, LANG_NEUTRAL };
+template<int captionId = IDS_APP>
+static inline auto Message(HWND owner, int textId, DWORD style) {
+	MSGBOXPARAMSW msgBoxParams{ sizeof MSGBOXPARAMSW, owner, GetFtpInst(), MAKEINTRESOURCEW(textId), MAKEINTRESOURCEW(captionId), style, nullptr, 0, nullptr, LANG_NEUTRAL };
 	return MessageBoxIndirectW(&msgBoxParams);
+}
+template<int captionId = IDS_APP>
+static inline auto Message(int textId, DWORD style) {
+	return Message<captionId>(GetMainHwnd(), textId, style);
 }
 static auto GetString(UINT id) {
 	wchar_t buffer[1024];

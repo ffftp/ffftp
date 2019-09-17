@@ -357,12 +357,12 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 #endif
 
 	if (!CryptAcquireContextW(&HCryptProv, nullptr, nullptr, PROV_RSA_AES, CRYPT_VERIFYCONTEXT)) {
-		Message(nullptr, GetFtpInst(), IDS_ERR_CRYPTO, IDS_APP, MB_OK | MB_ICONERROR);
+		Message(IDS_ERR_CRYPTO, MB_OK | MB_ICONERROR);
 		return 0;
 	}
 
 	if (!LoadSSL()) {
-		Message(nullptr, GetFtpInst(), IDS_ERR_SSL, IDS_APP, MB_OK | MB_ICONERROR);
+		Message(IDS_ERR_SSL, MB_OK | MB_ICONERROR);
 		return 0;
 	}
 
