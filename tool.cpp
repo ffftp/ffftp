@@ -80,7 +80,7 @@ void OtpCalcTool() {
 
 
 void TurnStatefulFTPFilter() {
-	if (auto ID = MessageBox(GetMainHwnd(), MSGJPN341, "FFFTP", MB_YESNOCANCEL); ID == IDYES || ID == IDNO)
+	if (auto ID = Message(IDS_MSGJPN341, MB_YESNOCANCEL); ID == IDYES || ID == IDNO)
 		if (PtrToInt(ShellExecuteW(NULL, L"runas", L"netsh", ID == IDYES ? L"advfirewall set global statefulftp enable" : L"advfirewall set global statefulftp disable", systemDirectory().c_str(), SW_SHOW)) <= 32)
-			MessageBox(GetMainHwnd(), MSGJPN342, "FFFTP", MB_OK | MB_ICONERROR);
+			Message(IDS_MSGJPN342, MB_OK | MB_ICONERROR);
 }

@@ -187,7 +187,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN220 (std::data(msgs[10000+220])) /* ダイアルアップを切断しています. */
 #define MSGJPN221 (std::data(msgs[10000+221])) /* ダイアルアップで接続しています. */
 #define MSGJPN239 (std::data(msgs[10000+239])) /* # このファイルは編集しないでください.\n */
-#define MSGJPN240 (std::data(msgs[10000+240])) /* INIファイルに設定が保存できません */
 #define MSGJPN241 (std::data(msgs[10000+241])) /* 送信はタイムアウトで失敗しました. */
 #define MSGJPN242 (std::data(msgs[10000+242])) /* 受信はタイムアウトで失敗しました. */
 #define MSGJPN243 (std::data(msgs[10000+243])) /* 受信はタイムアウトで失敗しました. */
@@ -207,21 +206,15 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN281 (std::data(msgs[10000+281])) /* PASVモードで接続できません */
 #define MSGJPN282 (std::data(msgs[10000+282])) /* INIファイル名が指定されていません */
 #define MSGJPN283 (std::data(msgs[10000+283])) /* INIファイル指定:  */
-#define MSGJPN285 (std::data(msgs[10000+285])) /* レジストリエディタが起動できませんでした */
 #define MSGJPN289 (std::data(msgs[10000+289])) /* Agilent Logic analyzer */
-#define MSGJPN292 (std::data(msgs[10000+292])) /* 設定をファイルから復元するためには,FFFTPを再起動してください. */
-#define MSGJPN293 (std::data(msgs[10000+293])) /* 設定ファイルは拡張子が.regか.iniでなければなりません. */
 #define MSGJPN294 (std::data(msgs[10000+294])) /* USER FWユーザー名:FWパスワード@ホスト名 */
 #define MSGJPN295 (std::data(msgs[10000+295])) /* シバソク WL */
-#define MSGJPN296 (std::data(msgs[10000+296])) /* 読み取り専用ファイルです.読み取り専用属性を解除しますか？ */
 #define MSGJPN297 (std::data(msgs[10000+297])) /* %s は不正なファイル名です.\r\nこのファイルはダウンロードされません. */
-#define MSGJPN298 (std::data(msgs[10000+298])) /* OLEの初期化に失敗しました. */
 #define MSGJPN299 (std::data(msgs[10000+299])) /* コマンドラインにマスターパスワードが指定されていません */
 #define MSGJPN300 (std::data(msgs[10000+300])) /* デフォルトのマスターパスワードが使われます.\r\nマルウェアの攻撃を防ぐため,固有のマスターパスワードを設定することをおすすめします */
 #define MSGJPN301 (std::data(msgs[10000+301])) /* マスターパスワードが設定と一致しません.安全のため設定の保存を行いません. */
 #define MSGJPN302 (std::data(msgs[10000+302])) /* 確認用データが壊れているため,マスターパスワードの正当性を確認できませんでした. */
 #define MSGJPN303 (std::data(msgs[10000+303])) /* マスターパスワードを変更しました */
-#define MSGJPN304 (std::data(msgs[10000+304])) /* 指定されたマスターパスワードが登録されたものと一致しません.\r\n再度入力しますか？\r\n「いいえ」を選ぶと記憶されたFTPパスワードは利用できません. */
 #define MSGJPN305 (std::data(msgs[10000+305])) /* Shift_JIS */
 #define MSGJPN306 (std::data(msgs[10000+306])) /* UTF-8 */
 #define MSGJPN307 (std::data(msgs[10000+307])) /* ホストの漢字コードはShift_JIS */
@@ -238,7 +231,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN322 (std::data(msgs[10000+322])) /* デバッガが検出されました. */
 #define MSGJPN323 (std::data(msgs[10000+323])) /* 信頼できないDLLをアンロードできませんでした. */
 #define MSGJPN324 (std::data(msgs[10000+324])) /* プロセスの保護に必要な関数をフックできませんでした. */
-#define MSGJPN325 (std::data(msgs[10000+325])) /* 新しいマスターパスワードが一致しません. */
 #define MSGJPN329 (std::data(msgs[10000+329])) /* UTF-8 BOM */
 #define MSGJPN330 (std::data(msgs[10000+330])) /* ホストの漢字コードはUTF-8 BOM */
 #define MSGJPN331 (std::data(msgs[10000+331])) /* ローカルの漢字コードはUTF-8 BOM */
@@ -246,13 +238,8 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN336 (std::data(msgs[10000+336])) /* 全て後で上書き */
 #define MSGJPN337 (std::data(msgs[10000+337])) /* 全て後でリジューム */
 #define MSGJPN338 (std::data(msgs[10000+338])) /* 全てスキップ */
-#define MSGJPN341 (std::data(msgs[10000+341])) /* WindowsファイアウォールのステートフルFTPフィルタの有効無効を設定します.\nこれはWindows Vista以降でのみ動作します.\n有効化または無効化することで通信状態が改善されることがあります.\n有効化するには「はい」,無効化するには「いいえ」を選択してください. */
-#define MSGJPN342 (std::data(msgs[10000+342])) /* ステートフルFTPフィルタを設定できませんでした. */
-#define MSGJPN350 (std::data(msgs[10000+350])) /* 新しいバージョンの設定が検出されました.\nこのバージョンでは一部の設定が正しく読み込まれない,またはこのバージョンで設定を上書きすると設定が変化する可能性があります.\nこのバージョン用に設定を上書きして保存するには「はい」を選択してください.\n設定をレジストリではなくINIファイルに保存するには「いいえ」を選択してください.\n読み取り専用で設定を読み込むには「キャンセル」を選択してください. */
-#define MSGJPN357 (std::data(msgs[10000+357])) /* 設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください. */
 #define MSGJPN358 (std::data(msgs[10000+358])) /* ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s */
 #define MSGJPN359 (std::data(msgs[10000+359])) /* ソフトウェアの更新に失敗しました.\nWebサイトから最新版を入手して手動で更新してください. */
-#define MSGJPN365 (std::data(msgs[10000+365])) /* この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください. */
 #if defined(HAVE_TANDEM)
 #define MSGJPN2000 (std::data(msgs[10000+2000])) /* NonStop Server */
 #endif

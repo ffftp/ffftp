@@ -1431,7 +1431,7 @@ void SaveSettingsToFile() {
 			fs::remove(path);
 			STARTUPINFOW si{ sizeof(STARTUPINFOW) };
 			if (ProcessInformation pi; !CreateProcessW(nullptr, commandLine, nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory().c_str(), &si, &pi))
-				MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
+				Message(IDS_MSGJPN285, MB_OK | MB_ICONERROR);
 		}
 	} else {
 		if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FFFTP-Backup.ini", L"ini", { FileType::Ini, FileType::All }); !std::empty(path))
@@ -1449,12 +1449,12 @@ int LoadSettingsFromFile() {
 			STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, STARTF_USESHOWWINDOW, SW_HIDE };
 			if (ProcessInformation pi; CreateProcessW(nullptr, commandLine, nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory().c_str(), &si, &pi))
 				return YES;
-			MessageBox(GetMainHwnd(), MSGJPN285, "FFFTP", MB_OK | MB_ICONERROR);
+			Message(IDS_MSGJPN285, MB_OK | MB_ICONERROR);
 		} else if (ieq(path.extension(), L".ini"s)) {
 			CopyFileW(path.c_str(), u8(AskIniFilePath()).c_str(), FALSE);
 			return YES;
 		} else
-			MessageBox(GetMainHwnd(), MSGJPN293, "FFFTP", MB_OK | MB_ICONERROR);
+			Message(IDS_MSGJPN293, MB_OK | MB_ICONERROR);
 	}
 	return NO;
 }
@@ -1919,7 +1919,7 @@ static void CloseReg(void *Handle) {
 static void WriteOutRegToFile(REGDATATBL *Pos) {
 	std::ofstream of{ fs::u8path(AskIniFilePath()) };
 	if (!of) {
-		MessageBox(GetMainHwnd(), MSGJPN240, "FFFTP", MB_OK | MB_ICONERROR);
+		Message(IDS_MSGJPN240, MB_OK | MB_ICONERROR);
 		return;
 	}
 	of << MSGJPN239;
@@ -3154,7 +3154,7 @@ void SaveSettingsToFileZillaXml()
 			fclose(f);
 		}
 		else
-			MessageBox(GetMainHwnd(), MSGJPN357, "FFFTP", MB_OK | MB_ICONERROR);
+			Message(IDS_MSGJPN357, MB_OK | MB_ICONERROR);
 	}
 }
 
@@ -3226,7 +3226,7 @@ void SaveSettingsToWinSCPIni()
 	HOSTDATA Host;
 	char Tmp[FMAX_PATH+1];
 	char* p1;
-	MessageBox(GetMainHwnd(), MSGJPN365, "FFFTP", MB_OK);
+	Message(IDS_MSGJPN365, MB_OK);
 	if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"WinSCP.ini", L"ini", { FileType::Ini, FileType::All }); !std::empty(path))
 	{
 		if((f = _wfopen(path.c_str(), L"at")) != NULL)
@@ -3413,6 +3413,6 @@ void SaveSettingsToWinSCPIni()
 			fclose(f);
 		}
 		else
-			MessageBox(GetMainHwnd(), MSGJPN357, "FFFTP", MB_OK | MB_ICONERROR);
+			Message(IDS_MSGJPN357, MB_OK | MB_ICONERROR);
 	}
 }

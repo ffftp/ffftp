@@ -330,7 +330,7 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 
 	// yutaka
 	if(OleInitialize(NULL) != S_OK){
-		MessageBox(NULL, MSGJPN298, "FFFTP", MB_OK | MB_ICONERROR);
+		Message(IDS_MSGJPN298, MB_OK | MB_ICONERROR);
 		return 0;
 	}
 
@@ -463,7 +463,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			{
 				if(IsRegAvailable() == YES && IsIniAvailable() == NO)
 				{
-					switch(MessageBox(GetMainHwnd(), MSGJPN350, "FFFTP", MB_YESNOCANCEL | MB_DEFBUTTON2))
+					switch(Message(IDS_MSGJPN350, MB_YESNOCANCEL | MB_DEFBUTTON2))
 					{
 						case IDCANCEL:
 							ReadOnlySettings = YES;
@@ -512,7 +512,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			
 			if( useDefautPassword != 2 ){
 				/* 再トライするか確認 */
-				if( MessageBox(NULL, MSGJPN304, "FFFTP", MB_YESNO | MB_ICONEXCLAMATION) == IDNO ){
+				if( Message(IDS_MSGJPN304, MB_YESNO | MB_ICONEXCLAMATION) == IDNO ){
 					useDefautPassword = 0; /* 不一致なので，もはやデフォルトかどうかは分からない */
 					break;
 				}
@@ -1362,7 +1362,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				case MENU_REGLOAD :
 					if(LoadSettingsFromFile() == YES)
 					{
-						MessageBox(hWnd, MSGJPN292, "FFFTP", MB_OK);
+						Message(IDS_MSGJPN292, MB_OK);
 						SaveExit = NO;
 						PostMessageW(hWnd, WM_CLOSE, 0, 0L);
 					}
@@ -2951,7 +2951,7 @@ int EnterMasterPasswordAndSet(bool newpassword, HWND hWnd)
 			}
 			if(strcmp(buf, buf1) != 0)
 			{
-				MessageBox(hWnd, MSGJPN325, "FFFTP", MB_OK | MB_ICONERROR);
+				Message(hWnd, IDS_MSGJPN325, MB_OK | MB_ICONERROR);
 				return 0;
 			}
 		}
