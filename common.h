@@ -1693,7 +1693,6 @@ int _command(SOCKET cSkt, char* Reply, int* CancelCheckWork, const char* fmt, ..
 #endif
 int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char *Tmp);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
-char *ReturnWSError(UINT Error);
 void ReportWSError(char *Msg, UINT Error);
 
 /*===== getput.c =====*/
@@ -2141,4 +2140,11 @@ static inline void GetDrives(Fn&& fn) {
 			wchar_t drive[] = { wchar_t(L'A' + i), L':', L'\\', 0 };
 			fn(drive);
 		}
+}
+static auto GetErrorMessage(int lastError) {
+	wchar_t* buffer;
+	auto length = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, nullptr, lastError, 0, reinterpret_cast<LPWSTR>(&buffer), 0, nullptr);
+	std::wstring message(buffer, buffer + length);
+	LocalFree(buffer);
+	return std::move(message);
 }

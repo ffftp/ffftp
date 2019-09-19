@@ -437,7 +437,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 	HtmlHelpW(NULL, NULL, HH_INITIALIZE, (DWORD_PTR)&dwCookie);
 
 	if((Err = WSAStartup((WORD)0x0202, &WSAData)) != 0)
-		MessageBox(NULL, ReturnWSError(Err), "FFFTP - Startup", MB_OK);
+		MessageBoxW(GetMainHwnd(), GetErrorMessage(Err).c_str(), GetString(IDS_APP).c_str(), MB_OK);
 	else
 	{
 		Accel = LoadAcceleratorsW(hInstFtp, MAKEINTRESOURCEW(ffftp_accel));
