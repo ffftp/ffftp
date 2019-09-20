@@ -2547,7 +2547,6 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN240           "INIファイルに設定が保存できません"
     IDS_MSGJPN241           "送信はタイムアウトで失敗しました."
     IDS_MSGJPN242           "受信はタイムアウトで失敗しました."
     IDS_MSGJPN243           "受信はタイムアウトで失敗しました."
@@ -2571,19 +2570,14 @@ BEGIN
     IDS_MSGJPN281           "PASVモードで接続できません"
     IDS_MSGJPN282           "INIファイル名が指定されていません"
     IDS_MSGJPN283           "INIファイル指定: "
-    IDS_MSGJPN285           "レジストリエディタが起動できませんでした"
 END
 
 STRINGTABLE
 BEGIN
     IDS_MSGJPN289           "Agilent Logic analyzer"
-    IDS_MSGJPN292           "設定をファイルから復元するためには,FFFTPを再起動してください."
-    IDS_MSGJPN293           "設定ファイルは拡張子が.regか.iniでなければなりません."
     IDS_MSGJPN294           "USER FWユーザー名:FWパスワード@ホスト名"
     IDS_MSGJPN295           "シバソク WL"
-    IDS_MSGJPN296           "読み取り専用ファイルです.読み取り専用属性を解除しますか？"
     IDS_MSGJPN297           "%s は不正なファイル名です.\r\nこのファイルはダウンロードされません."
-    IDS_MSGJPN298           "OLEの初期化に失敗しました."
     IDS_MSGJPN299           "コマンドラインにマスターパスワードが指定されていません"
     IDS_MSGJPN300           "デフォルトのマスターパスワードが使われます.\r\nマルウェアの攻撃を防ぐため,固有のマスターパスワードを設定することをおすすめします"
     IDS_MSGJPN301           "マスターパスワードが設定と一致しません.安全のため設定の保存を行いません."
@@ -2593,7 +2587,6 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN304           "指定されたマスターパスワードが登録されたものと一致しません.\r\n再度入力しますか？\r\n「いいえ」を選ぶと記憶されたFTPパスワードは利用できません."
     IDS_MSGJPN305           "Shift_JIS"
     IDS_MSGJPN306           "UTF-8"
     IDS_MSGJPN307           "ホストの漢字コードはShift_JIS"
@@ -2614,7 +2607,6 @@ BEGIN
     IDS_MSGJPN322           "デバッガが検出されました."
     IDS_MSGJPN323           "信頼できないDLLをアンロードできませんでした."
     IDS_MSGJPN324           "プロセスの保護に必要な関数をフックできませんでした."
-    IDS_MSGJPN325           "新しいマスターパスワードが一致しません."
     IDS_MSGJPN329           "UTF-8 BOM"
     IDS_MSGJPN330           "ホストの漢字コードはUTF-8 BOM"
     IDS_MSGJPN331           "ローカルの漢字コードはUTF-8 BOM"
@@ -2626,17 +2618,12 @@ BEGIN
     IDS_MSGJPN336           "全て後で上書き"
     IDS_MSGJPN337           "全て後でリジューム"
     IDS_MSGJPN338           "全てスキップ"
-    IDS_MSGJPN341           "WindowsファイアウォールのステートフルFTPフィルタの有効無効を設定します.\nこれはWindows Vista以降でのみ動作します.\n有効化または無効化することで通信状態が改善されることがあります.\n有効化するには「はい」,無効化するには「いいえ」を選択してください."
-    IDS_MSGJPN342           "ステートフルFTPフィルタを設定できませんでした."
-    IDS_MSGJPN350           "新しいバージョンの設定が検出されました.\nこのバージョンでは一部の設定が正しく読み込まれない,またはこのバージョンで設定を上書きすると設定が変化する可能性があります.\nこのバージョン用に設定を上書きして保存するには「はい」を選択してください.\n設定をレジストリではなくINIファイルに保存するには「いいえ」を選択してください.\n読み取り専用で設定を読み込むには「キャンセル」を選択してください."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN357           "設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください."
     IDS_MSGJPN358           "ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s"
-    IDS_MSGJPN359           "ソフトウェアの更新に失敗しました.\nWebサイトから最新版を入手して手動で更新してください."
-    IDS_MSGJPN365           "この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください."
+    IDS_MSGJPN359           "この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください."
 END
 
 STRINGTABLE
@@ -2669,6 +2656,26 @@ BEGIN
     IDS_OPTION              "オプション"
     IDS_HOSTSETTING         "ホストの設定"
     IDS_OPEN_WITH           "%sで開く(&%d)"
+    IDS_CANT_SAVE_TO_INI    "INIファイルに設定が保存できません"
+    IDS_FAIL_TO_EXEC_REDEDIT "レジストリエディタが起動できませんでした"
+    IDS_NEED_RESTART        "設定をファイルから復元するためには,FFFTPを再起動してください."
+    IDS_MUST_BE_REG_OR_INI  "設定ファイルは拡張子が.regか.iniでなければなりません."
+    IDS_REMOVE_READONLY     "読み取り専用ファイルです.読み取り専用属性を解除しますか？"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_FAIL_TO_INIT_OLE    "OLEの初期化に失敗しました."
+    IDS_MASTER_PASSWORD_INCORRECT 
+                            "指定されたマスターパスワードが登録されたものと一致しません.\r\n再度入力しますか？\r\n「いいえ」を選ぶと記憶されたFTPパスワードは利用できません."
+    IDS_PASSWORD_ISNOT_IDENTICAL "新しいマスターパスワードが一致しません."
+    IDS_MANAGE_STATEFUL_FTP "WindowsファイアウォールのステートフルFTPフィルタの有効無効を設定します.\nこれはWindows Vista以降でのみ動作します.\n有効化または無効化することで通信状態が改善されることがあります.\n有効化するには「はい」,無効化するには「いいえ」を選択してください."
+    IDS_FAIL_TO_MANAGE_STATEFUL_FTP "ステートフルFTPフィルタを設定できませんでした."
+    IDS_FOUND_NEW_VERSION_INI 
+                            "新しいバージョンの設定が検出されました.\nこのバージョンでは一部の設定が正しく読み込まれない,またはこのバージョンで設定を上書きすると設定が変化する可能性があります.\nこのバージョン用に設定を上書きして保存するには「はい」を選択してください.\n設定をレジストリではなくINIファイルに保存するには「いいえ」を選択してください.\n読み取り専用で設定を読み込むには「キャンセル」を選択してください."
+    IDS_FAIL_TO_EXPORT      "設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください."
+    IDS_NEED_EXSITING_WINSCP_INI 
+                            "この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください."
 END
 
 #endif    // Japanese (Japan) resources

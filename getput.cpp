@@ -1658,7 +1658,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 	char buf[BUFSIZE];
 	Pkt->Abort = ABORT_NONE;
 	if (auto attr = GetFileAttributesW(fs::u8path(Pkt->LocalFile).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_READONLY))
-		if (Message<IDS_MSGJPN086>(IDS_MSGJPN296, MB_YESNO) == IDYES)
+		if (Message<IDS_MSGJPN086>(IDS_REMOVE_READONLY, MB_YESNO) == IDYES)
 			SetFileAttributesW(fs::u8path(Pkt->LocalFile).c_str(), attr & ~FILE_ATTRIBUTE_READONLY);
 
 	auto opened = false;

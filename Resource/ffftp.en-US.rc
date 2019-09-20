@@ -2585,7 +2585,6 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN240           "Cannnot save to INI file"
     IDS_MSGJPN241           "Failed transmit cause of timeout"
     IDS_MSGJPN242           "Failed receive cause of timeout"
     IDS_MSGJPN243           "Failed receive cause of timeout"
@@ -2609,19 +2608,14 @@ BEGIN
     IDS_MSGJPN281           "Cannnot connect with PASV mode"
     IDS_MSGJPN282           "INI filename is not specified"
     IDS_MSGJPN283           "INI file: "
-    IDS_MSGJPN285           "Failed to execute Registory Editor."
 END
 
 STRINGTABLE
 BEGIN
     IDS_MSGJPN289           "Agilent Logic analyzer"
-    IDS_MSGJPN292           "Restart FFFTP to take effect."
-    IDS_MSGJPN293           "File must be *.reg or *.ini."
     IDS_MSGJPN294           "USER FW user:FW password@host"
     IDS_MSGJPN295           "ShibaSoku WL"
-    IDS_MSGJPN296           "This is a read-only file. Remove the read-only attribute?"
     IDS_MSGJPN297           "%s is invalid path.\r\nFFFTP doesn't download this file."
-    IDS_MSGJPN298           "Failed to initialize the OLE."
     IDS_MSGJPN299           "Master password is not specified in the command line"
     IDS_MSGJPN300           "Default master password is chosen.\r\nSet your own master password in command line to prevent sniff of malwares"
     IDS_MSGJPN301           "Master password is not for the current configuration. Configration will not be overwritten in this session."
@@ -2631,7 +2625,6 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN304           "Speecified master password is not correct.\r\nAre you sure you want to re-enter?\r\nNo memorized FTP password is available if you choose 'NO'"
     IDS_MSGJPN305           "Shift_JIS"
     IDS_MSGJPN306           "UTF-8"
     IDS_MSGJPN307           "Shift_JIS Kanji Code"
@@ -2652,7 +2645,6 @@ BEGIN
     IDS_MSGJPN322           "Debugger was detected."
     IDS_MSGJPN323           "Failed to unload untrustworthy DLLs."
     IDS_MSGJPN324           "Failed to hook required functions to protect the process."
-    IDS_MSGJPN325           "New master passwords are not identical."
     IDS_MSGJPN329           "UTF-8 BOM"
     IDS_MSGJPN330           "UTF-8 BOM Kanji Code"
     IDS_MSGJPN331           "UTF-8 BOM Kanji Code (Local)"
@@ -2664,17 +2656,12 @@ BEGIN
     IDS_MSGJPN336           "Overwrite all later"
     IDS_MSGJPN337           "Resume all later"
     IDS_MSGJPN338           "Skip all"
-    IDS_MSGJPN341           "Enable or disable stateful FTP filtering of Windows Firewall.\nIt works only on Windows Vista or later.\nEnabling or disabling may improve communication conditions.\nChoose 'Yes' to enable or 'No' to disable it."
-    IDS_MSGJPN342           "Failed to turn on/off stateful FTP filtering."
-    IDS_MSGJPN350           "The settings of a newer version are detected.\nThe settings may not be read correctly, or they will be changed when they are overwritten for this version.\nChoose 'Yes' to overwrite settings for this version.\nChoose 'No' to save settings to the INI file.\nChoose 'Cancel' to load settings as read only."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN357           "Failed to export the settings.\nPlease change saving path or format."
     IDS_MSGJPN358           "Software update has been completed.\nA backup copy of the previous version is in the following location.\n%s"
     IDS_MSGJPN359           "Failed to update the software.\nPlease get the latest version from our web site and update it manually."
-    IDS_MSGJPN365           "The all settings will be lost after loading an INI file newly created with this feature into WinSCP.\nPlease choose an existing WinSCP.ini if you already use WinSCP and want to migrate hosts settings only."
 END
 
 STRINGTABLE
@@ -2707,6 +2694,27 @@ BEGIN
     IDS_OPTION              "Option"
     IDS_HOSTSETTING         "Host Setting"
     IDS_OPEN_WITH           "Open with %s (&%d)"
+    IDS_CANT_SAVE_TO_INI    "Cannnot save to INI file"
+    IDS_FAIL_TO_EXEC_REDEDIT "Failed to execute Registory Editor."
+    IDS_NEED_RESTART        "Restart FFFTP to take effect."
+    IDS_MUST_BE_REG_OR_INI  "File must be *.reg or *.ini."
+    IDS_REMOVE_READONLY     "This is a read-only file. Remove the read-only attribute?"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_FAIL_TO_INIT_OLE    "Failed to initialize the OLE."
+    IDS_MASTER_PASSWORD_INCORRECT 
+                            "Speecified master password is not correct.\r\nAre you sure you want to re-enter?\r\nNo memorized FTP password is available if you choose 'NO'"
+    IDS_PASSWORD_ISNOT_IDENTICAL "New master passwords are not identical."
+    IDS_MANAGE_STATEFUL_FTP "Enable or disable stateful FTP filtering of Windows Firewall.\nIt works only on Windows Vista or later.\nEnabling or disabling may improve communication conditions.\nChoose 'Yes' to enable or 'No' to disable it."
+    IDS_FAIL_TO_MANAGE_STATEFUL_FTP 
+                            "Failed to turn on/off stateful FTP filtering."
+    IDS_FOUND_NEW_VERSION_INI 
+                            "The settings of a newer version are detected.\nThe settings may not be read correctly, or they will be changed when they are overwritten for this version.\nChoose 'Yes' to overwrite settings for this version.\nChoose 'No' to save settings to the INI file.\nChoose 'Cancel' to load settings as read only."
+    IDS_FAIL_TO_EXPORT      "Failed to export the settings.\nPlease change saving path or format."
+    IDS_NEED_EXSITING_WINSCP_INI 
+                            "The all settings will be lost after loading an INI file newly created with this feature into WinSCP.\nPlease choose an existing WinSCP.ini if you already use WinSCP and want to migrate hosts settings only."
 END
 
 #endif    // English (United States) resources
