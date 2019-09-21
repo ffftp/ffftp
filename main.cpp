@@ -76,7 +76,7 @@ static const wchar_t FtpClass[] = L"FFFTPWin";
 static const wchar_t WebURL[] = L"https://github.com/ffftp/ffftp";
 
 static HINSTANCE hInstFtp;
-static HWND hWndFtp = NULL;
+static HWND hWndFtp;
 static HWND hWndCurFocus = NULL;
 
 static HACCEL Accel;
@@ -302,12 +302,14 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 		wchar_t moduleFileName[FMAX_PATH];
 		GetModuleFileNameW(nullptr, moduleFileName, FMAX_PATH);
 		auto const fileName = fs::path{ moduleFileName }.filename();
-		hInstance = LoadMUILibraryW(fileName.c_str(), MUI_LANGUAGE_NAME, GetUserDefaultUILanguage());
-		if (hInstance == NULL)
-			hInstance = LoadMUILibraryW(fileName.c_str(), MUI_LANGUAGE_NAME, LANG_NEUTRAL);
+		hInstFtp = LoadMUILibraryW(fileName.c_str(), MUI_LANGUAGE_NAME, GetUserDefaultUILanguage());
+		if (hInstFtp == NULL)
+			hInstFtp = LoadMUILibraryW(fileName.c_str(), MUI_LANGUAGE_NAME, LANG_NEUTRAL);
 	}
+#else
+	hInstFtp = hInstance;
 #endif
-	EnumResourceNames(hInstance, RT_STRING, [](auto hModule, auto lpType, auto lpName, auto lParam) -> BOOL {
+	EnumResourceNames(GetFtpInst(), RT_STRING, [](auto hModule, auto lpType, auto lpName, auto lParam) -> BOOL {
 		wchar_t buffer[1024];
 		if (IS_INTRESOURCE(lpName))
 			for (int id = (PtrToInt(lpName) - 1) * 16, end = id + 16; id < end; id++)
@@ -328,7 +330,7 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 
 	// yutaka
 	if(OleInitialize(NULL) != S_OK){
-		MessageBox(NULL, MSGJPN298, "FFFTP", MB_OK | MB_ICONERROR);
+		Message(IDS_FAIL_TO_INIT_OLE, MB_OK | MB_ICONERROR);
 		return 0;
 	}
 
@@ -355,18 +357,16 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 #endif
 
 	if (!CryptAcquireContextW(&HCryptProv, nullptr, nullptr, PROV_RSA_AES, CRYPT_VERIFYCONTEXT)) {
-		Message(nullptr, hInstance, IDS_ERR_CRYPTO, IDS_APP, MB_OK | MB_ICONERROR);
+		Message(IDS_ERR_CRYPTO, MB_OK | MB_ICONERROR);
 		return 0;
 	}
 
 	if (!LoadSSL()) {
-		Message(nullptr, hInstance, IDS_ERR_SSL, IDS_APP, MB_OK | MB_ICONERROR);
+		Message(IDS_ERR_SSL, MB_OK | MB_ICONERROR);
 		return 0;
 	}
 
 	Ret = FALSE;
-	hWndFtp = NULL;
-	hInstFtp = hInstance;
 	if (auto u8CmdLine = u8(lpCmdLine); InitApp(data(u8CmdLine), nShowCmd) == FFFTP_SUCCESS) {
 		for(;;)
 		{
@@ -382,7 +382,7 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 				   (Msg.hwnd == GetRemoteHistEditHwnd()) ||
 				   ((hHelpWin != NULL) && (GetAncestor(Msg.hwnd, GA_ROOT) == hHelpWin)) ||
 				   GetHideUI() == YES ||
-				   (TranslateAcceleratorW(hWndFtp, Accel, &Msg) == 0))
+				   (TranslateAcceleratorW(GetMainHwnd(), Accel, &Msg) == 0))
 				{
 					TranslateMessage(&Msg);
 					DispatchMessageW(&Msg);
@@ -391,7 +391,7 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 		}
 		Ret = (int)Msg.wParam;
 	}
-	UnregisterClassW(FtpClass, hInstFtp);
+	UnregisterClassW(FtpClass, GetFtpInst());
 	FreeSSL();
 	CryptReleaseContext(HCryptProv, 0);
 	// ゾーンID設定追加
@@ -406,19 +406,7 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 }
 
 
-/*----- アプリケーションの初期設定 --------------------------------------------
-*
-*	Parameter
-*		HINSTANCE hInstance : このアプリケーションのこのインスタンスのハンドル
-*		HINSTANCE hPrevInstance : このアプリケーションの直前のインスタンスのハンドル
-*		LPSTR lpszCmdLine : アプリケーションが起動したときのコマンドラインをさすロングポインタ
-*		int cmdShow : 最初に表示するウインドウの形式。
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
+// アプリケーションの初期設定
 static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 {
 	int sts;
@@ -440,7 +428,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		MessageBoxW(GetMainHwnd(), GetErrorMessage(Err).c_str(), GetString(IDS_APP).c_str(), MB_OK);
 	else
 	{
-		Accel = LoadAcceleratorsW(hInstFtp, MAKEINTRESOURCEW(ffftp_accel));
+		Accel = LoadAcceleratorsW(GetFtpInst(), MAKEINTRESOURCEW(ffftp_accel));
 
 		// 高DPI対応
 		WinWidth = CalcPixelX(WinWidth);
@@ -475,7 +463,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			{
 				if(IsRegAvailable() == YES && IsIniAvailable() == NO)
 				{
-					switch(MessageBox(GetMainHwnd(), MSGJPN350, "FFFTP", MB_YESNOCANCEL | MB_DEFBUTTON2))
+					switch(Message(IDS_FOUND_NEW_VERSION_INI, MB_YESNOCANCEL | MB_DEFBUTTON2))
 					{
 						case IDCANCEL:
 							ReadOnlySettings = YES;
@@ -524,7 +512,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			
 			if( useDefautPassword != 2 ){
 				/* 再トライするか確認 */
-				if( MessageBox(NULL, MSGJPN304, "FFFTP", MB_YESNO | MB_ICONEXCLAMATION) == IDNO ){
+				if( Message(IDS_MASTER_PASSWORD_INCORRECT, MB_YESNO | MB_ICONEXCLAMATION) == IDNO ){
 					useDefautPassword = 0; /* 不一致なので，もはやデフォルトかどうかは分からない */
 					break;
 				}
@@ -660,7 +648,7 @@ static int MakeAllWindows(int cmdShow)
 
 	RootColorBrush = CreateSolidBrush(GetSysColor(COLOR_3DFACE));
 
-	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, FtpWndProc, 0, 0, hInstFtp, LoadIconW(hInstFtp, MAKEINTRESOURCEW(ffftp)), 0, RootColorBrush, MAKEINTRESOURCEW(main_menu), FtpClass };
+	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, FtpWndProc, 0, 0, GetFtpInst(), LoadIconW(GetFtpInst(), MAKEINTRESOURCEW(ffftp)), 0, RootColorBrush, MAKEINTRESOURCEW(main_menu), FtpClass };
 	RegisterClassExW(&classEx);
 
 	// 高DPI対応
@@ -672,47 +660,47 @@ static int MakeAllWindows(int cmdShow)
 		WinPosX = CW_USEDEFAULT;
 		WinPosY = 0;
 	}
-	hWndFtp = CreateWindowExW(0, FtpClass, L"FFFTP", WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, WinPosX, WinPosY, WinWidth, WinHeight, HWND_DESKTOP, 0, hInstFtp, nullptr);
+	hWndFtp = CreateWindowExW(0, FtpClass, L"FFFTP", WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, WinPosX, WinPosY, WinWidth, WinHeight, HWND_DESKTOP, 0, GetFtpInst(), nullptr);
 
 	if(hWndFtp != NULL)
 	{
 		SystemParametersInfoW(SPI_GETWORKAREA, 0, &Rect1, 0);
-		GetWindowRect(hWndFtp, &Rect2);
+		GetWindowRect(GetMainHwnd(), &Rect2);
 		if(Rect2.bottom > Rect1.bottom)
 		{
 			Rect2.top = max1(0, Rect2.top - (Rect2.bottom - Rect1.bottom));
-			MoveWindow(hWndFtp, Rect2.left, Rect2.top, WinWidth, WinHeight, FALSE);
+			MoveWindow(GetMainHwnd(), Rect2.left, Rect2.top, WinWidth, WinHeight, FALSE);
 		}
 
 		/*===== ステイタスバー =====*/
 
-		StsSbar = MakeStatusBarWindow(hWndFtp, hInstFtp);
+		StsSbar = MakeStatusBarWindow();
 
 		CalcWinSize();
 
 		/*===== ツールバー =====*/
 
-		StsTbar = MakeToolBarWindow(hWndFtp, hInstFtp);
+		StsTbar = MakeToolBarWindow();
 
 		/*===== ファイルリストウインドウ =====*/
 
-		StsList = MakeListWin(hWndFtp, hInstFtp);
+		StsList = MakeListWin();
 
 		/*==== タスクウインドウ ====*/
 
-		StsTask = MakeTaskWindow(hWndFtp, hInstFtp);
+		StsTask = MakeTaskWindow();
 
 		if((cmdShow != SW_MINIMIZE) && (cmdShow != SW_SHOWMINIMIZED) && (cmdShow != SW_SHOWMINNOACTIVE) &&
 		   (Sizing == SW_MAXIMIZE))
 			cmdShow = SW_MAXIMIZE;
 
-		ShowWindow(hWndFtp, cmdShow);
+		ShowWindow(GetMainHwnd(), cmdShow);
 
 		/*==== ソケットウインドウ ====*/
 
-		StsSocket = MakeSocketWin(hWndFtp, hInstFtp);
+		StsSocket = MakeSocketWin();
 
-		StsLvtips = InitListViewTips(hWndFtp, hInstFtp);
+		StsLvtips = InitListViewTips();
 	}
 
 	Sts = FFFTP_SUCCESS;
@@ -745,54 +733,17 @@ void DispWindowTitle() {
 }
 
 
-/*----- 全てのオブジェクトを削除 ----------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void DeleteAllObject(void)
-{
-//move to WM_DESTROY
+// 全てのオブジェクトを削除
+static void DeleteAllObject() {
 	WSACleanup();
-
-//test システム任せ
-//	if(ListFont != NULL)
-//		DeleteObject(ListFont);
-//	if(RootColorBrush != NULL)
-//		DeleteObject(RootColorBrush);
-
-//test システム任せ
-//	DeleteListViewTips();
-//	DeleteListWin();
-//	DeleteStatusBarWindow();
-//	DeleteTaskWindow();
-//	DeleteToolBarWindow();
-//	DeleteSocketWin();
-
-//move to WM_DESTROY
-	if(hWndFtp != NULL)
+	if (hWndFtp != NULL)
 		DestroyWindow(hWndFtp);
-
-	return;
 }
 
 
-/*----- メインウインドウのウインドウハンドルを返す ----------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetMainHwnd(void)
-{
-	return(hWndFtp);
+// メインウインドウのウインドウハンドルを返す
+HWND GetMainHwnd() {
+	return hWndFtp;
 }
 
 
@@ -827,18 +778,9 @@ void SetFocusHwnd(HWND hWnd)
 }
 
 
-/*----- プログラムのインスタンスを返す ----------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HINSTANCE インスタンス
-*----------------------------------------------------------------------------*/
-
-HINSTANCE GetFtpInst(void)
-{
-	return(hInstFtp);
+// プログラムのインスタンスを返す
+HINSTANCE GetFtpInst() {
+	return hInstFtp;
 }
 
 
@@ -1420,14 +1362,14 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				case MENU_REGLOAD :
 					if(LoadSettingsFromFile() == YES)
 					{
-						MessageBox(hWnd, MSGJPN292, "FFFTP", MB_OK);
+						Message(IDS_NEED_RESTART, MB_OK);
 						SaveExit = NO;
 						PostMessageW(hWnd, WM_CLOSE, 0, 0L);
 					}
 					break;
 
 				case MENU_REGINIT :
-					if(Dialog(hInstFtp, reginit_dlg, hWnd))
+					if(Dialog(GetFtpInst(), reginit_dlg, hWnd))
 					{
 						ClearRegistry();
 						// ポータブル版判定
@@ -1440,7 +1382,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					if( GetMasterPasswordStatus() != PASSWORD_OK )
 					{
 						/* 強制的に設定するか確認 */
-						if (!Dialog(hInstFtp, forcepasschange_dlg, hWnd))
+						if (!Dialog(GetFtpInst(), forcepasschange_dlg, hWnd))
 							break;
 						if(EnterMasterPasswordAndSet(true, hWnd) != 0)
 							SetTaskMsg(MSGJPN303);
@@ -1586,7 +1528,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					// UTF-8対応
 					// lptttは単なる警告回避用
 					wlpttt = (LPTOOLTIPTEXTW)lParam;
-					lpttt->hinst = hInstFtp;
+					lpttt->hinst = GetFtpInst();
 					switch(lpttt->hdr.idFrom)
 					{
 						case MENU_CONNECT :
@@ -1855,8 +1797,6 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				FindCloseChangeNotification(ChangeNotification);
 			// タスクバー進捗表示
 			KillTimer(hWnd, 2);
-//			WSACleanup();
-//			DestroyWindow(hWndFtp);
 			PostQuitMessage(0);
 			break;
 
@@ -1865,7 +1805,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			return(TRUE);
 
 		case WM_CLOSE :
-			if (AskTransferNow() == NO || Dialog(hInstFtp, exit_dlg, hWnd)) {
+			if (AskTransferNow() == NO || Dialog(GetFtpInst(), exit_dlg, hWnd)) {
 				ExitProc(hWnd);
 				return DefWindowProcW(hWnd, message, wParam, lParam);
 			}
@@ -1942,7 +1882,7 @@ static void StartupProc(char *Cmd)
 	if(Sts == 0)
 	{
 		if(ConnectOnStart == YES)
-			PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_CONNECT, 0), 0);
+			PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_CONNECT, 0), 0);
 	}
 	else if(Sts == 1)
 	{
@@ -1950,7 +1890,7 @@ static void StartupProc(char *Cmd)
 	}
 	else if(Sts == 2)
 	{
-		PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_CONNECT_NUM, CmdOption), (LPARAM)AutoConnect);
+		PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_CONNECT_NUM, CmdOption), (LPARAM)AutoConnect);
 	}
 	return;
 }
@@ -2331,7 +2271,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							ExecViewer(Local, App);
 						}
 						else
-							PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
+							PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
 					}
 					else
 						ChangeDir(WIN_LOCAL, Tmp);
@@ -2420,7 +2360,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							}
 						}
 						else
-							PostMessageW(hWndFtp, WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
+							PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
 					}
 					else
 						ChangeDir(WIN_REMOTE, Tmp);
@@ -2505,42 +2445,12 @@ static void ChangeDir(int Win, char *Path)
 
 static void ResizeWindowProc(void)
 {
-#if 0
 	RECT Rect;
-	int RemotePosX;
 
-	GetClientRect(hWndFtp, &Rect);
+	GetClientRect(GetMainHwnd(), &Rect);
 	SendMessage(GetSbarWnd(), WM_SIZE, SIZE_RESTORED, MAKELPARAM(Rect.right, Rect.bottom));
 
 	CalcWinSize();
-	SetWindowPos(GetMainTbarWnd(), 0, 0, 0, WinWidth, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
-
-	SetWindowPos(GetLocalTbarWnd(), 0, 0, TOOLWIN_HEIGHT, LocalWidth, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
-	SendMessage(GetLocalTbarWnd(), TB_GETITEMRECT, 3, (LPARAM)&Rect);
-	SetWindowPos(GetLocalHistHwnd(), 0, Rect.right, Rect.top, LocalWidth - Rect.right, 200, SWP_NOACTIVATE | SWP_NOZORDER);
-	SetWindowPos(GetLocalHwnd(), 0, 0, TOOLWIN_HEIGHT*2, LocalWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-
-	RemotePosX = LocalWidth + SepaWidth;
-	if(SplitVertical == YES)
-		RemotePosX = 0;
-
-	SetWindowPos(GetRemoteTbarWnd(), 0, RemotePosX, TOOLWIN_HEIGHT, RemoteWidth, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
-	SendMessage(GetRemoteTbarWnd(), TB_GETITEMRECT, 3, (LPARAM)&Rect);
-	SetWindowPos(GetRemoteHistHwnd(), 0, Rect.right, Rect.top, RemoteWidth - Rect.right, 200, SWP_NOACTIVATE | SWP_NOZORDER);
-	SetWindowPos(GetRemoteHwnd(), 0, RemotePosX, TOOLWIN_HEIGHT*2, RemoteWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-
-	SetWindowPos(GetTaskWnd(), 0, 0, TOOLWIN_HEIGHT*2+ListHeight+SepaWidth, ClientWidth, TaskHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-#else
-	RECT Rect;
-
-	GetClientRect(hWndFtp, &Rect);
-	SendMessage(GetSbarWnd(), WM_SIZE, SIZE_RESTORED, MAKELPARAM(Rect.right, Rect.bottom));
-
-	CalcWinSize();
-	// 高DPI対応
-//	SetWindowPos(GetMainTbarWnd(), 0, 0, 0, Rect.right, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
-//	SetWindowPos(GetLocalTbarWnd(), 0, 0, TOOLWIN_HEIGHT, LocalWidth, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
-//	SetWindowPos(GetRemoteTbarWnd(), 0, LocalWidth + SepaWidth, TOOLWIN_HEIGHT, RemoteWidth, TOOLWIN_HEIGHT, SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetMainTbarWnd(), 0, 0, 0, Rect.right, AskToolWinHeight(), SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetLocalTbarWnd(), 0, 0, AskToolWinHeight(), LocalWidth, AskToolWinHeight(), SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetRemoteTbarWnd(), 0, LocalWidth + SepaWidth, AskToolWinHeight(), RemoteWidth, AskToolWinHeight(), SWP_NOACTIVATE | SWP_NOZORDER);
@@ -2548,16 +2458,9 @@ static void ResizeWindowProc(void)
 	SetWindowPos(GetLocalHistHwnd(), 0, Rect.right, Rect.top, LocalWidth - Rect.right, 200, SWP_NOACTIVATE | SWP_NOZORDER);
 	SendMessage(GetRemoteTbarWnd(), TB_GETITEMRECT, 3, (LPARAM)&Rect);
 	SetWindowPos(GetRemoteHistHwnd(), 0, Rect.right, Rect.top, RemoteWidth - Rect.right, 200, SWP_NOACTIVATE | SWP_NOZORDER);
-	// 高DPI対応
-//	SetWindowPos(GetLocalHwnd(), 0, 0, TOOLWIN_HEIGHT*2, LocalWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-//	SetWindowPos(GetRemoteHwnd(), 0, LocalWidth + SepaWidth, TOOLWIN_HEIGHT*2, RemoteWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-//	SetWindowPos(GetTaskWnd(), 0, 0, TOOLWIN_HEIGHT*2+ListHeight+SepaWidth, ClientWidth, TaskHeight, SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetLocalHwnd(), 0, 0, AskToolWinHeight()*2, LocalWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetRemoteHwnd(), 0, LocalWidth + SepaWidth, AskToolWinHeight()*2, RemoteWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetTaskWnd(), 0, 0, AskToolWinHeight()*2+ListHeight+SepaWidth, ClientWidth, TaskHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-#endif
-
-	return;
 }
 
 
@@ -2574,7 +2477,7 @@ static void CalcWinSize(void)
 {
 	RECT Rect;
 
-	GetWindowRect(hWndFtp, &Rect);
+	GetWindowRect(GetMainHwnd(), &Rect);
 
 	if(Sizing != SW_MAXIMIZE)
 	{
@@ -2582,7 +2485,7 @@ static void CalcWinSize(void)
 		WinHeight = Rect.bottom - Rect.top;
 	}
 
-	GetClientRect(hWndFtp, &Rect);
+	GetClientRect(GetMainHwnd(), &Rect);
 
 	ClientWidth = Rect.right;
 	ClientHeight = Rect.bottom;
@@ -2651,8 +2554,8 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 		   (y > AskToolWinHeight()) && (y < (AskToolWinHeight() * 2 + ListHeight)))
 		{
 			/* 境界位置変更用カーソルに変更 */
-			SetCapture(hWndFtp);
-			hCursor = LoadCursor(hInstFtp, MAKEINTRESOURCE(resize_lr_csr));
+			SetCapture(GetMainHwnd());
+			hCursor = LoadCursor(GetFtpInst(), MAKEINTRESOURCE(resize_lr_csr));
 			SetCursor(hCursor);
 			Resizing = RESIZE_PREPARE;
 			ResizePos = RESIZE_HPOS;
@@ -2662,8 +2565,8 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 		else if((y >= AskToolWinHeight()*2+ListHeight) && (y <= AskToolWinHeight()*2+ListHeight+SepaWidth))
 		{
 			/* 境界位置変更用カーソルに変更 */
-			SetCapture(hWndFtp);
-			hCursor = LoadCursor(hInstFtp, MAKEINTRESOURCE(resize_ud_csr));
+			SetCapture(GetMainHwnd());
+			hCursor = LoadCursor(GetFtpInst(), MAKEINTRESOURCE(resize_ud_csr));
 			SetCursor(hCursor);
 			Resizing = RESIZE_PREPARE;
 			ResizePos = RESIZE_VPOS;
@@ -2675,7 +2578,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 		{
 			/* 境界位置変更開始 */
 			Resizing = RESIZE_ON;
-			GetWindowRect(hWndFtp, &Rect);
+			GetWindowRect(GetMainHwnd(), &Rect);
 			GetClientRect(GetSbarWnd(), &Rect1);
 			Rect.left += GetSystemMetrics(SM_CXFRAME);
 			Rect.right -= GetSystemMetrics(SM_CXFRAME);
@@ -2713,7 +2616,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 			LocalWidth = x;
 		else
 		{
-			GetClientRect(hWndFtp, &Rect);
+			GetClientRect(GetMainHwnd(), &Rect);
 			GetClientRect(GetSbarWnd(), &Rect1);
 			TaskHeight = max1(0, Rect.bottom - y - Rect1.bottom);
 		}
@@ -2902,7 +2805,7 @@ static void AboutDialog(HWND hWnd) {
 			}
 		}
 	};
-	Dialog(hInstFtp, about_dlg, hWnd, About{});
+	Dialog(GetFtpInst(), about_dlg, hWnd, About{});
 }
 
 
@@ -3048,7 +2951,7 @@ int EnterMasterPasswordAndSet(bool newpassword, HWND hWnd)
 			}
 			if(strcmp(buf, buf1) != 0)
 			{
-				MessageBox(hWnd, MSGJPN325, "FFFTP", MB_OK | MB_ICONERROR);
+				Message(hWnd, IDS_PASSWORD_ISNOT_IDENTICAL, MB_OK | MB_ICONERROR);
 				return 0;
 			}
 		}
