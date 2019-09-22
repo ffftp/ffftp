@@ -11,9 +11,6 @@
 
 #ifndef DO_NOT_REPLACE
 
-#undef MessageBox
-#define MessageBox MessageBoxM
-int MessageBoxM(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
 #undef SendMessage
 #define SendMessage SendMessageM
 LRESULT SendMessageM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);

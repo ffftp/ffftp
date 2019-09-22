@@ -2577,7 +2577,6 @@ BEGIN
     IDS_MSGJPN289           "Agilent Logic analyzer"
     IDS_MSGJPN294           "USER FWユーザー名:FWパスワード@ホスト名"
     IDS_MSGJPN295           "シバソク WL"
-    IDS_MSGJPN297           "%s は不正なファイル名です.\r\nこのファイルはダウンロードされません."
     IDS_MSGJPN299           "コマンドラインにマスターパスワードが指定されていません"
     IDS_MSGJPN300           "デフォルトのマスターパスワードが使われます.\r\nマルウェアの攻撃を防ぐため,固有のマスターパスワードを設定することをおすすめします"
     IDS_MSGJPN301           "マスターパスワードが設定と一致しません.安全のため設定の保存を行いません."
@@ -2676,6 +2675,7 @@ BEGIN
     IDS_FAIL_TO_EXPORT      "設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください."
     IDS_NEED_EXSITING_WINSCP_INI 
                             "この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください."
+    IDS_INVALID_PATH        "%s は不正なファイル名です.\r\nこのファイルはダウンロードされません."
 END
 
 #endif    // Japanese (Japan) resources

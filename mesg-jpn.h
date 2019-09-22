@@ -209,7 +209,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN289 (std::data(msgs[10000+289])) /* Agilent Logic analyzer */
 #define MSGJPN294 (std::data(msgs[10000+294])) /* USER FWユーザー名:FWパスワード@ホスト名 */
 #define MSGJPN295 (std::data(msgs[10000+295])) /* シバソク WL */
-#define MSGJPN297 (std::data(msgs[10000+297])) /* %s は不正なファイル名です.\r\nこのファイルはダウンロードされません. */
 #define MSGJPN299 (std::data(msgs[10000+299])) /* コマンドラインにマスターパスワードが指定されていません */
 #define MSGJPN300 (std::data(msgs[10000+300])) /* デフォルトのマスターパスワードが使われます.\r\nマルウェアの攻撃を防ぐため,固有のマスターパスワードを設定することをおすすめします */
 #define MSGJPN301 (std::data(msgs[10000+301])) /* マスターパスワードが設定と一致しません.安全のため設定の保存を行いません. */
