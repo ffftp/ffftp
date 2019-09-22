@@ -499,7 +499,7 @@ static int AskAsyncDone(SOCKET s, int *Error, int Mask) {
 	}
 	if (Mask & FD_CLOSE)
 		return YES;
-	MessageBox(GetMainHwnd(), "AskAsyncDone called with unregisterd socket.", "FFFTP inner error", MB_OK);
+	MessageBoxW(GetMainHwnd(), L"AskAsyncDone called with unregisterd socket.", L"FFFTP inner error", MB_OK);
 	exit(1);
 }
 

@@ -720,21 +720,6 @@ int WideCharToMultiByteAlternative(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideC
 #define END_ROUTINE						}while(0);end_of_routine:
 #define QUIT_ROUTINE					goto end_of_routine;
 
-int MessageBoxM(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
-{
-	int r = IDOK;
-	wchar_t* pw0 = NULL;
-	wchar_t* pw1 = NULL;
-START_ROUTINE
-	pw0 = DuplicateMtoW(lpText, -1);
-	pw1 = DuplicateMtoW(lpCaption, -1);
-	r = MessageBoxW(hWnd, pw0, pw1, uType);
-END_ROUTINE
-	FreeDuplicatedString(pw0);
-	FreeDuplicatedString(pw1);
-	return r;
-}
-
 LRESULT SendMessageM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT r = 0;

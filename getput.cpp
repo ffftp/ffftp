@@ -2843,34 +2843,19 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt) {
 }
 
 
-/*----- ダウンロード時の不正なパスをチェック ----------------------------------
-*
-*	Parameter
-*		TRANSPACKET *packet : ダウンロード情報
-*
-*	Return Value
-*		int YES=不正なパス/NO=問題ないパス
-*----------------------------------------------------------------------------*/
-int CheckPathViolation(TRANSPACKET *packet)
-{
-	int result = NO;
-	char *msg;
-
-	if((strncmp(packet->RemoteFile, "..\\", 3) == 0) ||
-	   (strncmp(packet->RemoteFile, "../", 3) == 0) ||
-	   (strstr(packet->RemoteFile, "\\..\\") != NULL) ||
-	   (strstr(packet->RemoteFile, "/../") != NULL))
-	{
-		msg = (char*)malloc(strlen(MSGJPN297) + strlen(packet->RemoteFile) + 1);
-		if(msg)
-		{
-			sprintf(msg, MSGJPN297, packet->RemoteFile);
-			MessageBox(GetMainHwnd(), msg, MSGJPN086, MB_OK);
-			free(msg);
-		}
-		result = YES;
+// ダウンロード時の不正なパスをチェック
+//   YES=不正なパス/NO=問題ないパス
+int CheckPathViolation(TRANSPACKET* packet) {
+	static std::wregex re{ LR"((?:^|[/\\])\.\.[/\\])" };
+	if (auto const name = u8(packet->RemoteFile); std::regex_search(name, re)) {
+		auto const format = GetString(IDS_INVALID_PATH);
+		auto const length = _scwprintf(format.c_str(), name.c_str());
+		std::wstring message(length, L'\0');
+		swprintf(data(message), length, format.c_str(), name.c_str());
+		MessageBoxW(GetMainHwnd(), message.c_str(), GetString(IDS_MSGJPN086).c_str(), MB_OK);
+		return YES;
 	}
-	return(result);
+	return NO;
 }
 
 

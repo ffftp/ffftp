@@ -148,6 +148,7 @@
 #define IDS_FOUND_NEW_VERSION_INI       229
 #define IDS_FAIL_TO_EXPORT              230
 #define IDS_NEED_EXSITING_WINSCP_INI    231
+#define IDS_INVALID_PATH                232
 #define TRANS_TIME_BAR                  1002
 #define TRANS_TEXT                      1003
 #define TRANS_REMOTE                    1003
@@ -692,7 +693,6 @@
 #define IDS_MSGJPN289                   10289
 #define IDS_MSGJPN294                   10294
 #define IDS_MSGJPN295                   10295
-#define IDS_MSGJPN297                   10297
 #define IDS_MSGJPN299                   10299
 #define IDS_MSGJPN300                   10300
 #define IDS_MSGJPN301                   10301
