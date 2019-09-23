@@ -1845,7 +1845,6 @@ void MakeSizeString(double Size, char *Buf);
 void DispStaticText(HWND hWnd, char *Str);
 int StrMultiLen(char *Str);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
-int hex2bin(char Ch);
 int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char *Pass, int *Port);
 int TimeString2FileTime(char *Time, FILETIME *Buf);
 // タイムスタンプのバグ修正

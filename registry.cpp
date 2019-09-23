@@ -1737,8 +1737,8 @@ static void DecodePassword3(char *Str, char *Buf) {
 			std::vector<unsigned char> buffer(encodedLength + 1, 0);	// NUL終端用に１バイト追加
 			unsigned char iv[AES_BLOCK_SIZE];
 			for (auto& item : iv) {
-				item = hex2bin(*Str++) << 4;
-				item |= hex2bin(*Str++);
+				std::from_chars(Str, Str + 2, item, 16);
+				Str += 2;
 			}
 			if (*Str++ == ':') {
 				// PLAINTEXTKEYBLOB structure https://msdn.microsoft.com/en-us/library/jj650836(v=vs.85).aspx
@@ -1749,9 +1749,8 @@ static void DecodePassword3(char *Str, char *Buf) {
 				} keyBlob{ { PLAINTEXTKEYBLOB, CUR_BLOB_VERSION, 0, CALG_AES_256 }, 32 };
 				if (CreateAesKey(keyBlob.rgbKeyData)) {
 					for (DWORD i = 0; i < encodedLength; i++) {
-						auto item = hex2bin(*Str++) << 4;
-						item |= hex2bin(*Str++);
-						buffer[i] = static_cast<unsigned char>(item);
+						std::from_chars(Str, Str + 2, buffer[i], 16);
+						Str += 2;
 					}
 					if (HCRYPTKEY hkey; CryptImportKey(HCryptProv, reinterpret_cast<const BYTE*>(&keyBlob), sizeof keyBlob, 0, 0, &hkey)) {
 						if (DWORD mode = CRYPT_MODE_CBC; CryptSetKeyParam(hkey, KP_MODE, reinterpret_cast<const BYTE*>(&mode), 0))
