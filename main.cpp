@@ -374,7 +374,7 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 			if((Sts == 0) || (Sts == -1))
 				break;
 
-			if(!HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
+			if(__pragma(warning(suppress:6387)) !HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
 			{ 
 				/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
 				/* コンボボックス内ではアクセラレータを無効にする */
@@ -422,7 +422,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 
 	sts = FFFTP_FAIL;
 	
-	HtmlHelpW(NULL, NULL, HH_INITIALIZE, (DWORD_PTR)&dwCookie);
+	__pragma(warning(suppress:6387)) HtmlHelpW(NULL, NULL, HH_INITIALIZE, (DWORD_PTR)&dwCookie);
 
 	if((Err = WSAStartup((WORD)0x0202, &WSAData)) != 0)
 		MessageBoxW(GetMainHwnd(), GetErrorMessage(Err).c_str(), GetString(IDS_APP).c_str(), MB_OK);
@@ -2221,7 +2221,7 @@ static void ExitProc(HWND hWnd)
 		DisconnectRas(RasCloseNotify != NO);
 	}
 	DeleteAllObject();
-	HtmlHelpW(NULL, NULL, HH_UNINITIALIZE, dwCookie); 
+	__pragma(warning(suppress:6387)) HtmlHelpW(NULL, NULL, HH_UNINITIALIZE, dwCookie);
 	return;
 }
 
@@ -2860,7 +2860,7 @@ int BackgrndMessageProc(void)
 	Ret = NO;
 	while(PeekMessageW(&Msg, NULL, 0, 0, PM_REMOVE))
 	{
-		if(!IsMainThread() || !HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
+		if(!IsMainThread() || __pragma(warning(suppress:6387)) !HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
 		{
 			/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
 			/* コンボボックス内ではアクセラレータを無効にする */

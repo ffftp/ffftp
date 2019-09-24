@@ -228,7 +228,7 @@ void ShowCertificate() {
 	if (auto context = getContext(AskCmdCtrlSkt()))
 		if (auto certContext = getCertContext(context->context)) {
 			CRYPTUI_VIEWCERTIFICATE_STRUCTW certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCTW, 0, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext.get() };
-			CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
+			__pragma(warning(suppress:6387)) CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
 		}
 }
 
@@ -251,7 +251,7 @@ struct CertDialog {
 			break;
 		case IDC_SHOWCERT:
 			CRYPTUI_VIEWCERTIFICATE_STRUCTW certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCTW, hdlg, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext.get() };
-			CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
+			__pragma(warning(suppress:6387)) CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
 			break;
 		}
 	}

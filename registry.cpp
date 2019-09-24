@@ -59,7 +59,7 @@ static int DeleteSubKey(void *Handle, char *Name);
 static int DeleteValue(void *Handle, char *Name);
 static int ReadIntValueFromReg(void *Handle, char *Name, int *Value);
 static int WriteIntValueToReg(void *Handle, char *Name, int Value);
-static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size);
+static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char *Str, DWORD Size);
 static int WriteStringToReg(void *Handle, char *Name, char *Str);
 static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Size);
 static int WriteMultiStringToReg(void *Handle, char *Name, char *Str);
@@ -2212,7 +2212,7 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
+static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char *Str, DWORD Size)
 {
 	int Sts;
 	char *Pos;
