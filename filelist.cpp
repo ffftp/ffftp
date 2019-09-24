@@ -1031,7 +1031,7 @@ void RefreshIconImageList(std::vector<FILELIST>& files)
 			auto fullpath = fs::u8path(file.File);
 			if (file.Node != NODE_DRIVE)
 				fullpath = fs::current_path() / fullpath;
-			if (SHFILEINFOW fi; SHGetFileInfoW(fullpath.c_str(), 0, &fi, sizeof(SHFILEINFOW), SHGFI_SMALLICON | SHGFI_ICON)) {
+			if (SHFILEINFOW fi; __pragma(warning(suppress:6001)) SHGetFileInfoW(fullpath.c_str(), 0, &fi, sizeof(SHFILEINFOW), SHGFI_SMALLICON | SHGFI_ICON)) {
 				if (ImageList_AddIcon(ListImgFileIcon, fi.hIcon) >= 0)
 					file.ImageId = ImageId++;
 				DestroyIcon(fi.hIcon);

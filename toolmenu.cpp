@@ -1406,29 +1406,18 @@ void SetSortTypeByColumn(int Win, int Tab)
 *		int ソート方法 (SORT_xxx)
 *----------------------------------------------------------------------------*/
 
-int AskSortType(int Name)
-{
-	int Ret;
-
-	switch(Name)
-	{
-		case ITEM_LFILE :
-			Ret = TmpLocalFileSort;
-			break;
-
-		case ITEM_LDIR :
-			Ret = TmpLocalDirSort;
-			break;
-
-		case ITEM_RFILE :
-			Ret = TmpRemoteFileSort;
-			break;
-
-		case ITEM_RDIR :
-			Ret = TmpRemoteDirSort;
-			break;
+int AskSortType(int Name) {
+	switch (Name) {
+	case ITEM_LFILE:
+		return TmpLocalFileSort;
+	case ITEM_LDIR:
+		return TmpLocalDirSort;
+	case ITEM_RFILE:
+		return TmpRemoteFileSort;
+	case ITEM_RDIR:
+		return TmpRemoteDirSort;
 	}
-	return(Ret);
+	return TmpLocalFileSort;
 }
 
 

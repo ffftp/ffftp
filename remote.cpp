@@ -211,8 +211,8 @@ int DoCWDStepByStep(char *Path, char *Cur)
 static int DoPWD(char *Buf)
 {
 	char *Pos;
-	char Tmp[1024];
-	int Sts;
+	char Tmp[1024] = "";
+	int Sts = 0;
 
 	if(PwdCommandType == PWD_XPWD)
 	{

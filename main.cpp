@@ -2243,7 +2243,6 @@ void DoubleClickProc(int Win, int Mode, int App)
 	int Type;
 	char Local[FMAX_PATH+1];
 	char Tmp[FMAX_PATH+1];
-	int Sts;
 	int UseDiffViewer;
 
 	if(AskUserOpeDisabled() == NO)
@@ -2327,23 +2326,15 @@ void DoubleClickProc(int Win, int Mode, int App)
 							MainTransPkt.hWndTrans = NULL;
 							MainTransPkt.Next = NULL;
 
-							DisableUserOpe();
-
 							/* 不正なパスを検出 */
-							if(CheckPathViolation(&MainTransPkt) == NO)
-							{
-//								if((Sts = DoDownload(AskCmdCtrlSkt(), &MainTransPkt, NO)) == 429)
-//								{
-//									ReConnectCmdSkt();
-									// 同時接続対応
-									CancelFlg = NO;
-									Sts = DoDownload(AskCmdCtrlSkt(), &MainTransPkt, NO, &CancelFlg);
-									// ゾーンID設定追加
-									if(MarkAsInternet == YES && IsZoneIDLoaded() == YES)
-										MarkFileAsDownloadedFromInternet(data(remotePath));
-//								}
+							int Sts = 0;
+							DisableUserOpe();
+							if (CheckPathViolation(&MainTransPkt) == NO) {
+								CancelFlg = NO;
+								Sts = DoDownload(AskCmdCtrlSkt(), &MainTransPkt, NO, &CancelFlg);
+								if (MarkAsInternet == YES && IsZoneIDLoaded() == YES)
+									MarkFileAsDownloadedFromInternet(data(remotePath));
 							}
-
 							EnableUserOpe();
 
 							AddTempFileList(data(remotePath));

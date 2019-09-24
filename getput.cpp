@@ -1540,7 +1540,6 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 
 static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 {
-	int iRetCode;
 	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
 	// 念のため
 //	char Buf[1024];
@@ -1553,17 +1552,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	int Flg;
 	char Reply[ERR_MSG_LEN+7];
 
-	// IPv6対応
-//	iRetCode = command(Pkt->ctrl_skt, Buf, CancelCheckWork, "PASV");
-	switch(AskCurNetType())
-	{
-	case NTYPE_IPV4:
-		iRetCode = command(Pkt->ctrl_skt, Buf, CancelCheckWork, "PASV");
-		break;
-	case NTYPE_IPV6:
-		iRetCode = command(Pkt->ctrl_skt, Buf, CancelCheckWork, "EPSV");
-		break;
-	}
+	int iRetCode = command(Pkt->ctrl_skt, Buf, CancelCheckWork, AskCurNetType() == NTYPE_IPV6 ? "EPSV" : "PASV");
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
 		// IPv6対応
@@ -1673,7 +1662,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		CodeConverter cc{ Pkt->KanjiCode, Pkt->KanjiCodeDesired, Pkt->KanaCnv != NO };
 
 		/*===== ファイルを受信するループ =====*/
-		int read;
+		int read = 0;
 		while (Pkt->Abort == ABORT_NONE && ForceAbort == NO) {
 			if (int timeout; (read = do_recv(dSkt, buf, BUFSIZE, 0, &timeout, CancelCheckWork)) <= 0) {
 				if (timeout == YES) {

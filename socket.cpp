@@ -168,7 +168,7 @@ BOOL LoadSSL() {
 		return FALSE;
 	}
 	SecPkgCred_SupportedProtocols sp;
-	if (auto ss = QueryCredentialsAttributesW(&credential, SECPKG_ATTR_SUPPORTED_PROTOCOLS, &sp); ss != SEC_E_OK) {
+	if (__pragma(warning(suppress:6001)) auto ss = QueryCredentialsAttributesW(&credential, SECPKG_ATTR_SUPPORTED_PROTOCOLS, &sp); ss != SEC_E_OK) {
 		_RPTWN(_CRT_WARN, L"QueryCredentialsAttributes error: %08X.\n", ss);
 		return FALSE;
 	}
@@ -327,7 +327,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName)
 		unsigned long attr = 0;
 		if (first) {
 			first = false;
-			ss = InitializeSecurityContextW(&credential, nullptr, node, contextReq, 0, 0, nullptr, 0, &context, &outDesc, &attr, nullptr);
+			__pragma(warning(suppress:6001)) ss = InitializeSecurityContextW(&credential, nullptr, node, contextReq, 0, 0, nullptr, 0, &context, &outDesc, &attr, nullptr);
 		} else {
 			for (;;) {
 				char buffer[8192];
