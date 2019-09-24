@@ -459,25 +459,24 @@ void doDeleteRemoteFile(void)
 // yutaka
 // cf. http://www.nakka.com/lib/
 /* ドロップファイルの作成 */
-static HDROP CreateDropFileMem(char** FileName, int cnt) {
-	std::vector<std::wstring> wFileNames(cnt);
-	for (int i = 0; i < cnt; i++)
-		wFileNames[i] = u8(FileName[i]);
-	auto extra = std::reduce(begin(wFileNames), end(wFileNames), 0, [](auto l, auto const& r) { return l + size_as<int>(r) + 1; }) + 1;
-	auto drop = (HDROP)GlobalAlloc(GHND, sizeof DROPFILES + extra * sizeof(wchar_t));
-	if (drop) {
-		auto dropfiles = reinterpret_cast<DROPFILES*>(GlobalLock(drop));
-		*dropfiles = { sizeof DROPFILES, {}, false, true };
-		/* 構造体の後ろにファイル名のリストをコピーする。(ファイル名\0ファイル名\0ファイル名\0\0) */
-		auto ptr = reinterpret_cast<wchar_t*>(dropfiles + 1);
-		for (auto const& wFileName : wFileNames) {
-			wcscpy(ptr, wFileName.c_str());
-			ptr += size(wFileName) + 1;
-		}
-		*ptr = L'\0';
-		GlobalUnlock(drop);
+static HDROP CreateDropFileMem(std::vector<fs::path> const& filenames) {
+	// 構造体の後ろに続くファイル名のリスト（ファイル名\0ファイル名\0ファイル名\0\0）
+	std::wstring extra;
+	for (auto const& filename : filenames) {
+		extra += filename;
+		extra += L'\0';
 	}
-	return drop;
+	extra += L'\0';
+	if (auto drop = (HDROP)GlobalAlloc(GHND, sizeof(DROPFILES) + size(extra) * sizeof(wchar_t))) {
+		if (auto dropfiles = reinterpret_cast<DROPFILES*>(GlobalLock(drop))) {
+			*dropfiles = { sizeof(DROPFILES), {}, false, true };
+			std::copy(begin(extra), end(extra), reinterpret_cast<wchar_t*>(dropfiles + 1));
+			GlobalUnlock(drop);
+			return drop;
+		}
+		GlobalFree(drop);
+	}
+	return 0;
 }
 
 
@@ -658,11 +657,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			{
 			case CF_HDROP:		/* ファイル */
 				{
-					char **FileNameList;
-					int filelen;
 					std::vector<FILELIST> FileListBase, FileListBaseNoExpand;
 					char LocDir[FMAX_PATH+1];
-					char *PathDir = nullptr;
+					fs::path PathDir;
 
 					// 特定の操作を行うと異常終了するバグ修正
 					GetCursorPos(&DropPoint);
@@ -674,7 +671,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					// ローカル側で選ばれているファイルをFileListBaseに登録
 					if (hWndDragStart == hWndListLocal) {
 						AskLocalCurDir(LocDir, FMAX_PATH);
-						PathDir = LocDir;
+						PathDir = fs::u8path(LocDir);
 
 						if(hWndPnt != hWndListRemote && hWndPnt != hWndListLocal && hWndParent != hWndListRemote && hWndParent != hWndListLocal)
 							MakeSelectedFileList(WIN_LOCAL, NO, NO, FileListBase, &CancelFlg);			
@@ -687,7 +684,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 							// このタイミングでリモートからローカルの一時フォルダへダウンロードする
 							// (2007.8.31 yutaka)
 							doTransferRemoteFile();
-							PathDir = remoteFileDir;
+							PathDir = fs::u8path(remoteFileDir);
 							FileListBase = remoteFileListBase;
 							FileListBaseNoExpand = remoteFileListBaseNoExpand;
 						}
@@ -709,40 +706,23 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 						EnableWindow(GetMainHwnd(), FALSE);
 					}
 					EnableUserOpe();
+
+					if (empty(pf)) {
+						// ファイルが未選択の場合は何もしない。(yutaka)
+						*(HANDLE*)lParam = NULL;
+						return FALSE;
+					}
 					// ドロップ先が他プロセスかつカーソルが自プロセスのドロップ可能なウィンドウ上にある場合の対策
-					if (!empty(pf))
-						EnableWindow(GetMainHwnd(), FALSE);
-					int filenum = size_as<int>(pf);
-					// ファイルが未選択の場合は何もしない。(yutaka)
-					if (filenum <= 0) {
-						*((HANDLE *)lParam) = NULL;
-						return (FALSE);
-					}
-					
-					/* ファイル名の配列を作成する */
-					FileNameList = (char **)GlobalAlloc(GPTR,sizeof(char *) * filenum);
-					if(FileNameList == NULL){
-						abort();
-					}
-					int j = 0;
-					for (auto const& f : FileListBaseNoExpand) {
-						filelen = (int)strlen(PathDir) + 1 + (int)strlen(f.File) + 1;
-						FileNameList[j] = (char *)GlobalAlloc(GPTR, filelen);
-						strncpy_s(FileNameList[j], filelen, PathDir, _TRUNCATE);
-						strncat_s(FileNameList[j], filelen, "\\", _TRUNCATE);
-						strncat_s(FileNameList[j], filelen, f.File, _TRUNCATE);
-						j++;
-					}
+					EnableWindow(GetMainHwnd(), FALSE);
 					
 					/* ドロップファイルリストの作成 */
+					/* ファイル名の配列を作成する */
 					/* NTの場合はUNICODEになるようにする */
-					*((HANDLE *)lParam) = CreateDropFileMem(FileNameList, filenum);
-
-					/* ファイル名の配列を解放する */
-					for (int i = 0; i < filenum ; i++)
-						GlobalFree(FileNameList[i]);
-					GlobalFree(FileNameList);
-					return (TRUE);
+					std::vector<fs::path> filenames;
+					for (auto const& f : FileListBaseNoExpand)
+						filenames.emplace_back(PathDir / fs::u8path(f.File));
+					*(HANDLE*)lParam = CreateDropFileMem(filenames);
+					return TRUE;
 				}
 				break;
 
