@@ -957,11 +957,7 @@ static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
 		else
 		{
 			if(IsDigit(*Buf) && IsDigit(*(Buf+1)) && IsDigit(*(Buf+2)))
-			{
-				memset(Tmp, NUL, 4);
-				strncpy(Tmp, Buf, 3);
-				ResCode = atoi(Tmp);
-			}
+				std::from_chars(Buf, Buf + 3, ResCode);
 
 			/* 末尾の CR,LF,スペースを取り除く */
 			while((i=(int)strlen(Buf))>2 &&

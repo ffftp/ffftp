@@ -231,7 +231,7 @@ void SetMasterPassword( const char* Password )
 {
 	ZeroMemory( SecretKey, MAX_PASSWORD_LEN + 12 );
 	if( Password != NULL ){
-		strncpy( SecretKey, Password, MAX_PASSWORD_LEN );
+		strncpy_s(SecretKey, Password, MAX_PASSWORD_LEN);
 	}
 	else {
 		strcpy( SecretKey, DEFAULT_PASSWORD );
