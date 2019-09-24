@@ -37,7 +37,7 @@ class Resizable<Controls<anchorRight...>, Controls<anchorBottom...>, Controls<an
 		SetWindowPos(control, 0, 0, 0, r.right - r.left + dx, r.bottom - r.top + dy, SWP_NOMOVE | flags);
 	}
 public:
-	Resizable(SIZE& current) : current{ current } {}
+	Resizable(SIZE& current) : minimum{}, current { current } {}
 	Resizable(SIZE&&) = delete;
 	void OnSize(HWND dialog, LONG cx, LONG cy) {
 		LONG dx = cx - current.cx, dy = cy - current.cy;

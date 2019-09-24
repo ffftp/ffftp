@@ -46,10 +46,10 @@
 
 
 struct AsyncSignal {
-	int Event;
-	int Error;
+	int Event = 0;
+	int Error = 0;
 	std::variant<sockaddr_storage, std::tuple<std::string, int>> Target;
-	int MapPort;
+	int MapPort = 0;
 };
 
 

@@ -218,8 +218,8 @@ void QuickConnectProc() {
 		std::wstring hostname;
 		std::wstring username;
 		std::wstring password;
-		bool firewall;
-		bool passive;
+		bool firewall = false;
+		bool passive = false;
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, QHOST_HOST, CB_LIMITTEXT, FMAX_PATH, 0);
 			SendDlgItemMessageW(hDlg, QHOST_HOST, WM_SETTEXT, 0, (LPARAM)L"");

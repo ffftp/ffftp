@@ -100,7 +100,7 @@ namespace OleDragDrop {
 				}
 			}
 		public:
-			DropTarget(HWND hWnd, UINT msgNotify, CLIPFORMAT* clipFormats, size_t count) : msgNotify{ msgNotify }, Common{ hWnd, clipFormats, count } {}
+			DropTarget(HWND hWnd, UINT msgNotify, CLIPFORMAT* clipFormats, size_t count) : msgNotify{ msgNotify }, notifyData{}, Common{ hWnd, clipFormats, count } {}
 
 			// IDropTarget
 			STDMETHODIMP DragEnter(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) override {

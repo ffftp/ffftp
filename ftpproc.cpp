@@ -899,7 +899,7 @@ void UploadListProc(int ChName, int All)
 		using result_t = bool;
 		int win;
 		int filecode;
-		UpDownAsWithExt(int win) : win{ win } {}
+		UpDownAsWithExt(int win) : win{ win }, filecode{} {}
 		INT_PTR OnInit(HWND hDlg) {
 			SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)(win == WIN_LOCAL ? MSGJPN064 : MSGJPN065));
 			SendDlgItemMessageW(hDlg, UPDOWNAS_NEW, EM_LIMITTEXT, FMAX_PATH, 0);
