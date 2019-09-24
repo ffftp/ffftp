@@ -1081,7 +1081,7 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 		if ((Sort & SORT_MASK_ORD) == SORT_EXT && test(Cmp = _mbsicmp((const unsigned char*)GetFileExt(l.File), (const unsigned char*)GetFileExt(r.File))))
 			return true;
 #if defined(HAVE_TANDEM)
-		if (AskHostType() == HTYPE_TANDEM && (Sort & SORT_MASK_ORD) == SORT_EXT && test(Cmp = l.Attr - r.Attr))
+		if (AskHostType() == HTYPE_TANDEM && (Sort & SORT_MASK_ORD) == SORT_EXT && test(Cmp = (LONGLONG)l.Attr - r.Attr))
 			return true;
 #endif
 		if ((Sort & SORT_MASK_ORD) == SORT_SIZE && test(Cmp = l.Size - r.Size))
