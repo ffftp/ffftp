@@ -116,7 +116,7 @@ void DispDownloadSize(LONGLONG Size) {
 bool NotifyStatusBar(const NMHDR* hdr) {
 	if (hdr->hwndFrom != hWndSbar)
 		return false;
-	if (hdr->code == NM_CLICK)
+	if (hdr->code == __pragma(warning(suppress:26454)) NM_CLICK)
 		if (auto mouse = reinterpret_cast<const NMMOUSE*>(hdr); mouse->dwItemSpec == 0)
 			ShowCertificate();
 	return true;

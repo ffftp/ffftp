@@ -1538,7 +1538,7 @@ static std::wstring MakeFontData(HFONT hfont, LOGFONTW const& logfont) {
 static std::optional<LOGFONTW> RestoreFontData(const wchar_t* str) {
 	LOGFONTW logfont;
 	int offset;
-	auto read = swscanf(str, L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
+	__pragma(warning(suppress:6328)) auto read = swscanf(str, L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
 		&logfont.lfHeight, &logfont.lfWidth, &logfont.lfEscapement, &logfont.lfOrientation, &logfont.lfWeight,
 		&logfont.lfItalic, &logfont.lfUnderline, &logfont.lfStrikeOut, &logfont.lfCharSet,
 		&logfont.lfOutPrecision, &logfont.lfClipPrecision, &logfont.lfQuality, &logfont.lfPitchAndFamily, &offset);
