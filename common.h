@@ -1353,7 +1353,6 @@ typedef struct
 
 fs::path systemDirectory();
 fs::path const& tempDirectory();
-int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmdShow);
 void DispWindowTitle();
 HWND GetMainHwnd(void);
 HWND GetFocusHwnd(void);
