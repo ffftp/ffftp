@@ -3158,7 +3158,7 @@ void SaveSettingsToFileZillaXml()
 }
 
 // WinSCP INI形式エクスポート対応
-void WriteWinSCPString(FILE* f, const char* s)
+void WriteWinSCPString(FILE* f, _In_z_ const char* s)
 {
 	const char* p;
 	p = s;
