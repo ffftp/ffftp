@@ -739,7 +739,7 @@ void SwitchOSSProc(void)
 
 // コマンドを送りリプライを待つ
 // ホストのファイル名の漢字コードに応じて、ここで漢字コードの変換を行なう
-int _command(SOCKET cSkt, char* Reply, int* CancelCheckWork, const char* fmt, ...) {
+int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const char* fmt, ...) {
 	if (cSkt == INVALID_SOCKET)
 		return 429;
 	char Cmd[FMAX_PATH * 2];

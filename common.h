@@ -1499,19 +1499,9 @@ bool NotifyStatusBar(const NMHDR* hdr);
 int MakeTaskWindow();
 void DeleteTaskWindow(void);
 HWND GetTaskWnd(void);
-void _SetTaskMsg(const char* format, ...);
-#ifdef _DEBUG
-#define SetTaskMsg(...) do { char buffer_SetTaskMsg[10240 + 3]; sprintf(buffer_SetTaskMsg, __VA_ARGS__); _SetTaskMsg(buffer_SetTaskMsg); } while(0)
-#else
-#define SetTaskMsg(...) _SetTaskMsg(__VA_ARGS__)
-#endif
+void SetTaskMsg(_In_z_ _Printf_format_string_ const char* format, ...);
 void DispTaskMsg(void);
-void _DoPrintf(const char* format, ...);
-#ifdef _DEBUG
-#define DoPrintf(...) do { char buffer_DoPrintf[10240]; sprintf(buffer_DoPrintf, __VA_ARGS__); _DoPrintf(buffer_DoPrintf); } while(0)
-#else
-#define DoPrintf(...) _DoPrintf(__VA_ARGS__)
-#endif
+void DoPrintf(_In_z_ _Printf_format_string_ const char* format, ...);
 
 /*===== hostman.c =====*/
 
@@ -1683,12 +1673,7 @@ int DoDirListCmdSkt(char *AddOpt, char *Path, int Num, int *CancelCheckWork);
 void SwitchOSSProc(void);
 #endif
 #define CommandProcTrn(CSKT, REPLY, CANCELCHECKWORK, ...) (command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
-int _command(SOCKET cSkt, char* Reply, int* CancelCheckWork, const char* fmt, ...);
-#ifdef _DEBUG
-#define command(CSKT, REPLY, CANCELCHECKWORK, ...) (_scprintf(__VA_ARGS__), _command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
-#else
-#define command(CSKT, REPLY, CANCELCHECKWORK, ...) (_command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
-#endif
+int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const char* fmt, ...);
 int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char *Tmp);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
 void ReportWSError(char *Msg, UINT Error);
