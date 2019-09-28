@@ -211,8 +211,8 @@ int DoCWDStepByStep(char *Path, char *Cur)
 static int DoPWD(char *Buf)
 {
 	char *Pos;
-	char Tmp[1024];
-	int Sts;
+	char Tmp[1024] = "";
+	int Sts = 0;
 
 	if(PwdCommandType == PWD_XPWD)
 	{
@@ -739,7 +739,7 @@ void SwitchOSSProc(void)
 
 // コマンドを送りリプライを待つ
 // ホストのファイル名の漢字コードに応じて、ここで漢字コードの変換を行なう
-int _command(SOCKET cSkt, char* Reply, int* CancelCheckWork, const char* fmt, ...) {
+int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const char* fmt, ...) {
 	if (cSkt == INVALID_SOCKET)
 		return 429;
 	char Cmd[FMAX_PATH * 2];
@@ -957,11 +957,7 @@ static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
 		else
 		{
 			if(IsDigit(*Buf) && IsDigit(*(Buf+1)) && IsDigit(*(Buf+2)))
-			{
-				memset(Tmp, NUL, 4);
-				strncpy(Tmp, Buf, 3);
-				ResCode = atoi(Tmp);
-			}
+				std::from_chars(Buf, Buf + 3, ResCode);
 
 			/* 末尾の CR,LF,スペースを取り除く */
 			while((i=(int)strlen(Buf))>2 &&

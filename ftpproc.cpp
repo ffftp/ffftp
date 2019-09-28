@@ -99,13 +99,13 @@ int MakeDirFromLocalPath(char* LocalFile, char* Old)
 	char* pDelimiter;
 	char* pNext;
 	char* Cat;
-	int Len;
+	size_t Len;
 	int Make;
 	pDelimiter = LocalFile;
 	Make = NO;
 	while(pNext = strchr(pDelimiter, '\\'))
 	{
-		Len = (int)(pNext - LocalFile);
+		Len = pNext - LocalFile;
 		strncpy(Pkt.LocalFile, LocalFile, Len);
 		Pkt.LocalFile[Len] = '\0';
 		if(strncmp(LocalFile, Old, Len + 1) != 0)
@@ -838,13 +838,13 @@ int MakeDirFromRemotePath(char* RemoteFile, char* Old, int FirstAdd)
 	char* pDelimiter;
 	char* pNext;
 	char* Cat;
-	int Len;
+	size_t Len;
 	int Make;
 	pDelimiter = RemoteFile;
 	Make = NO;
 	while(pNext = strchr(pDelimiter, '/'))
 	{
-		Len = (int)(pNext - RemoteFile);
+		Len = pNext - RemoteFile;
 		strncpy(Pkt.RemoteFile, RemoteFile, Len);
 		Pkt.RemoteFile[Len] = '\0';
 		if(strncmp(RemoteFile, Old, Len + 1) != 0)
@@ -899,7 +899,7 @@ void UploadListProc(int ChName, int All)
 		using result_t = bool;
 		int win;
 		int filecode;
-		UpDownAsWithExt(int win) : win{ win } {}
+		UpDownAsWithExt(int win) : win{ win }, filecode{} {}
 		INT_PTR OnInit(HWND hDlg) {
 			SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)(win == WIN_LOCAL ? MSGJPN064 : MSGJPN065));
 			SendDlgItemMessageW(hDlg, UPDOWNAS_NEW, EM_LIMITTEXT, FMAX_PATH, 0);

@@ -90,18 +90,12 @@ HWND GetTaskWnd() {
 
 
 // タスクメッセージを表示する
-// デバッグビルドではフォーマット済み文字列が渡される
-void _SetTaskMsg(const char* format, ...) {
+void SetTaskMsg(_In_z_ _Printf_format_string_ const char* format, ...) {
 	char buffer[10240 + 3];
-#ifdef _DEBUG
-	strcpy(buffer, format);
-	size_t result = strlen(buffer);
-#else
 	va_list args;
 	va_start(args, format);
 	int result = vsprintf(buffer, format, args);
 	va_end(args);
-#endif
 	if (0 < result) {
 		strcat(buffer, "\r\n");
 		auto wbuffer = u8(buffer);
@@ -125,20 +119,14 @@ void DispTaskMsg() {
 
 
 // デバッグコンソールにメッセージを表示する
-// デバッグビルドではフォーマット済み文字列が渡される
-void _DoPrintf(const char* format, ...) {
+void DoPrintf(_In_z_ _Printf_format_string_ const char* format, ...) {
 	if (DebugConsole != YES)
 		return;
-#ifdef _DEBUG
-	const char* buffer = format;
-	size_t result = strlen(buffer);
-#else
 	char buffer[10240];
 	va_list args;
 	va_start(args, format);
 	int result = vsprintf(buffer, format, args);
 	va_end(args);
-#endif
 	if (0 < result)
 		SetTaskMsg("## %s", buffer);
 }

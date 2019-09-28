@@ -54,7 +54,7 @@ static int MakeAllWindows(int cmdShow);
 static void DeleteAllObject(void);
 static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void StartupProc(char *Cmd);
-static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc, int Max);
+static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc, size_t Max);
 static int CheckIniFileName(char *Str, char *Ini);
 static int CheckMasterPassword(char *Str, char *Ini);
 static int GetTokenAfterOption(char *Str, char *Result, const char* Opt1, const char* Opt2 );
@@ -374,7 +374,7 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 			if((Sts == 0) || (Sts == -1))
 				break;
 
-			if(!HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
+			if(__pragma(warning(suppress:6387)) !HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
 			{ 
 				/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
 				/* コンボボックス内ではアクセラレータを無効にする */
@@ -422,7 +422,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 
 	sts = FFFTP_FAIL;
 	
-	HtmlHelpW(NULL, NULL, HH_INITIALIZE, (DWORD_PTR)&dwCookie);
+	__pragma(warning(suppress:6387)) HtmlHelpW(NULL, NULL, HH_INITIALIZE, (DWORD_PTR)&dwCookie);
 
 	if((Err = WSAStartup((WORD)0x0202, &WSAData)) != 0)
 		MessageBoxW(GetMainHwnd(), GetErrorMessage(Err).c_str(), GetString(IDS_APP).c_str(), MB_OK);
@@ -1930,7 +1930,7 @@ static void StartupProc(char *Cmd)
 *		-z	--mpasswd	(CheckMasterPasswordで検索)	2010.01.30 genta 追加
 *----------------------------------------------------------------------------*/
 
-static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc, int Max)
+static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc, size_t Max)
 {
 	int Ret;
 	char Tmp[FMAX_PATH+1];
@@ -2221,7 +2221,7 @@ static void ExitProc(HWND hWnd)
 		DisconnectRas(RasCloseNotify != NO);
 	}
 	DeleteAllObject();
-	HtmlHelpW(NULL, NULL, HH_UNINITIALIZE, dwCookie); 
+	__pragma(warning(suppress:6387)) HtmlHelpW(NULL, NULL, HH_UNINITIALIZE, dwCookie);
 	return;
 }
 
@@ -2243,7 +2243,6 @@ void DoubleClickProc(int Win, int Mode, int App)
 	int Type;
 	char Local[FMAX_PATH+1];
 	char Tmp[FMAX_PATH+1];
-	int Sts;
 	int UseDiffViewer;
 
 	if(AskUserOpeDisabled() == NO)
@@ -2327,23 +2326,15 @@ void DoubleClickProc(int Win, int Mode, int App)
 							MainTransPkt.hWndTrans = NULL;
 							MainTransPkt.Next = NULL;
 
-							DisableUserOpe();
-
 							/* 不正なパスを検出 */
-							if(CheckPathViolation(&MainTransPkt) == NO)
-							{
-//								if((Sts = DoDownload(AskCmdCtrlSkt(), &MainTransPkt, NO)) == 429)
-//								{
-//									ReConnectCmdSkt();
-									// 同時接続対応
-									CancelFlg = NO;
-									Sts = DoDownload(AskCmdCtrlSkt(), &MainTransPkt, NO, &CancelFlg);
-									// ゾーンID設定追加
-									if(MarkAsInternet == YES && IsZoneIDLoaded() == YES)
-										MarkFileAsDownloadedFromInternet(data(remotePath));
-//								}
+							int Sts = 0;
+							DisableUserOpe();
+							if (CheckPathViolation(&MainTransPkt) == NO) {
+								CancelFlg = NO;
+								Sts = DoDownload(AskCmdCtrlSkt(), &MainTransPkt, NO, &CancelFlg);
+								if (MarkAsInternet == YES && IsZoneIDLoaded() == YES)
+									MarkFileAsDownloadedFromInternet(data(remotePath));
 							}
-
 							EnableUserOpe();
 
 							AddTempFileList(data(remotePath));
@@ -2869,7 +2860,7 @@ int BackgrndMessageProc(void)
 	Ret = NO;
 	while(PeekMessageW(&Msg, NULL, 0, 0, PM_REMOVE))
 	{
-		if(!IsMainThread() || !HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
+		if(!IsMainThread() || __pragma(warning(suppress:6387)) !HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
 		{
 			/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
 			/* コンボボックス内ではアクセラレータを無効にする */

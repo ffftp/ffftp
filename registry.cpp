@@ -59,7 +59,7 @@ static int DeleteSubKey(void *Handle, char *Name);
 static int DeleteValue(void *Handle, char *Name);
 static int ReadIntValueFromReg(void *Handle, char *Name, int *Value);
 static int WriteIntValueToReg(void *Handle, char *Name, int Value);
-static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size);
+static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char *Str, DWORD Size);
 static int WriteStringToReg(void *Handle, char *Name, char *Str);
 static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Size);
 static int WriteMultiStringToReg(void *Handle, char *Name, char *Str);
@@ -231,7 +231,7 @@ void SetMasterPassword( const char* Password )
 {
 	ZeroMemory( SecretKey, MAX_PASSWORD_LEN + 12 );
 	if( Password != NULL ){
-		strncpy( SecretKey, Password, MAX_PASSWORD_LEN );
+		strncpy_s(SecretKey, Password, MAX_PASSWORD_LEN);
 	}
 	else {
 		strcpy( SecretKey, DEFAULT_PASSWORD );
@@ -1538,7 +1538,7 @@ static std::wstring MakeFontData(HFONT hfont, LOGFONTW const& logfont) {
 static std::optional<LOGFONTW> RestoreFontData(const wchar_t* str) {
 	LOGFONTW logfont;
 	int offset;
-	auto read = swscanf(str, L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
+	__pragma(warning(suppress:6328)) auto read = swscanf(str, L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
 		&logfont.lfHeight, &logfont.lfWidth, &logfont.lfEscapement, &logfont.lfOrientation, &logfont.lfWeight,
 		&logfont.lfItalic, &logfont.lfUnderline, &logfont.lfStrikeOut, &logfont.lfCharSet,
 		&logfont.lfOutPrecision, &logfont.lfClipPrecision, &logfont.lfQuality, &logfont.lfPitchAndFamily, &offset);
@@ -1560,7 +1560,7 @@ static void EncodePassword(std::string_view const& Str, char *Buf) {
 		std::copy(begin(Str), end(Str), begin(buffer));
 
 		/* PAD部分を乱数で埋める StrPad[StrLen](が有効な場合) は NUL */
-		if (paddedLength <= length + 1 || CryptGenRandom(HCryptProv, paddedLength - length - 1, &buffer[length + 1]))
+		if (paddedLength <= length + 1 || CryptGenRandom(HCryptProv, paddedLength - length - 1, &buffer[(size_t)length + 1]))
 			// IVの初期化
 			if (unsigned char iv[AES_BLOCK_SIZE]; CryptGenRandom(HCryptProv, size_as<DWORD>(iv), iv)) {
 				*p++ = '0';
@@ -1734,11 +1734,11 @@ static void DecodePassword3(char *Str, char *Buf) {
 		Buf[0] = NUL;
 		if (auto length = DWORD(strlen(Str)); AES_BLOCK_SIZE * 2 + 1 < length) {
 			DWORD encodedLength = (length - 1) / 2 - AES_BLOCK_SIZE;
-			std::vector<unsigned char> buffer(encodedLength + 1, 0);	// NUL終端用に１バイト追加
+			std::vector<unsigned char> buffer((size_t)encodedLength + 1, 0);	// NUL終端用に１バイト追加
 			unsigned char iv[AES_BLOCK_SIZE];
 			for (auto& item : iv) {
-				item = hex2bin(*Str++) << 4;
-				item |= hex2bin(*Str++);
+				std::from_chars(Str, Str + 2, item, 16);
+				Str += 2;
 			}
 			if (*Str++ == ':') {
 				// PLAINTEXTKEYBLOB structure https://msdn.microsoft.com/en-us/library/jj650836(v=vs.85).aspx
@@ -1749,9 +1749,8 @@ static void DecodePassword3(char *Str, char *Buf) {
 				} keyBlob{ { PLAINTEXTKEYBLOB, CUR_BLOB_VERSION, 0, CALG_AES_256 }, 32 };
 				if (CreateAesKey(keyBlob.rgbKeyData)) {
 					for (DWORD i = 0; i < encodedLength; i++) {
-						auto item = hex2bin(*Str++) << 4;
-						item |= hex2bin(*Str++);
-						buffer[i] = static_cast<unsigned char>(item);
+						std::from_chars(Str, Str + 2, buffer[i], 16);
+						Str += 2;
 					}
 					if (HCRYPTKEY hkey; CryptImportKey(HCryptProv, reinterpret_cast<const BYTE*>(&keyBlob), sizeof keyBlob, 0, 0, &hkey)) {
 						if (DWORD mode = CRYPT_MODE_CBC; CryptSetKeyParam(hkey, KP_MODE, reinterpret_cast<const BYTE*>(&mode), 0))
@@ -1778,7 +1777,7 @@ static bool CreateAesKey(unsigned char *AesKey) {
 	int ResIndex;
 
 	HashKeyLen = (uint32_t)strlen(SecretKey) + 16;
-	if((HashKey = (char*)malloc(HashKeyLen + 1)) == NULL){
+	if((HashKey = (char*)malloc((size_t)HashKeyLen + 1)) == NULL){
 		return false;
 	}
 
@@ -2213,7 +2212,7 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
+static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char *Str, DWORD Size)
 {
 	int Sts;
 	char *Pos;
@@ -2265,9 +2264,9 @@ static int ReadStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 				Sts = FFFTP_SUCCESS;
 				break;
 			case KANJI_SJIS:
-				if(pa0 = AllocateStringA(Size * 4))
+				if(pa0 = AllocateStringA((size_t)Size * 4))
 				{
-					if(pw0 = AllocateStringW(Size * 4 * 4))
+					if(pw0 = AllocateStringW((size_t)Size * 4 * 4))
 					{
 						TempSize = min1((Size * 4) - 1, (int)strlen(Pos));
 						TempSize = StrReadIn(Pos, TempSize, pa0);
@@ -2424,9 +2423,9 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 				Sts = FFFTP_SUCCESS;
 				break;
 			case KANJI_SJIS:
-				if(pa0 = AllocateStringA(Size * 4))
+				if(pa0 = AllocateStringA((size_t)Size * 4))
 				{
-					if(pw0 = AllocateStringW(Size * 4 * 4))
+					if(pw0 = AllocateStringW((size_t)Size * 4 * 4))
 					{
 						TempSize = min1((Size * 4) - 2, (int)strlen(Pos));
 						TempSize = StrReadIn(Pos, TempSize, pa0);
@@ -2497,7 +2496,7 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 		if (EncryptSettings == YES)
 			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Str, StrMultiLen(Str) + 1);
 		else {
-			auto const wStr = u8(Str, StrMultiLen(Str) + 1);
+			auto const wStr = u8(Str, (size_t)StrMultiLen(Str) + 1);
 			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_MULTI_SZ, data_as<BYTE>(wStr), size_as<DWORD>(wStr) * sizeof(wchar_t));
 		}
 	} else
@@ -3159,7 +3158,7 @@ void SaveSettingsToFileZillaXml()
 }
 
 // WinSCP INI形式エクスポート対応
-void WriteWinSCPString(FILE* f, const char* s)
+void WriteWinSCPString(FILE* f, _In_z_ const char* s)
 {
 	const char* p;
 	p = s;

@@ -598,7 +598,7 @@ struct Firewall {
 		{ TRUE,  TRUE,  FALSE, FALSE, TRUE,  TRUE  }
 	};
 	static INT_PTR OnInit(HWND hDlg) {
-		auto Type = ConvertNum(FwallType, 1, TypeTbl, sizeof(TypeTbl) / sizeof(INTCONVTBL));
+		UINT_PTR Type = ConvertNum(FwallType, 1, TypeTbl, sizeof(TypeTbl) / sizeof(INTCONVTBL));
 		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN204);
 		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN205);
 		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN206);

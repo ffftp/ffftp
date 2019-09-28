@@ -632,30 +632,6 @@ void RectClientToScreen(HWND hWnd, RECT *Rect)
 }
 
 
-/*----- 16進文字をバイナリに変換 ----------------------------------------------
-*
-*	Parameter
-*		char Ch : 16進文字
-*
-*	Return Value
-*		int バイナリ値
-*----------------------------------------------------------------------------*/
-
-int hex2bin(char Ch)
-{
-	int Ret;
-
-	if((Ch >= '0') && (Ch <= '9'))
-		Ret = Ch - '0';
-	else if((Ch >= 'A') && (Ch <= 'F'))
-		Ret = Ch - 'A' + 10;
-	else if((Ch >= 'a') && (Ch <= 'f'))
-		Ret = Ch - 'a' + 10;
-
-	return(Ret);
-}
-
-
 /*----- ＵＮＣ文字列を分解する ------------------------------------------------
 *
 *	Parameter
@@ -723,8 +699,6 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 
 	if((Pos2 = (char*)_mbschr((const unsigned char*)Pos1, ':')) != NULL)
 	{
-		// IPv6対応
-//		memcpy(Host, Pos1, min1(Pos2-Pos1, HOST_ADRS_LEN));
 		if(strlen(Host) == 0)
 			memcpy(Host, Pos1, min1((int)(Pos2-Pos1), HOST_ADRS_LEN));
 		Pos2++;
@@ -743,8 +717,6 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 	}
 	else if((Pos2 = (char*)_mbschr((const unsigned char*)Pos1, '/')) != NULL)
 	{
-		// IPv6対応
-//		memcpy(Host, Pos1, min1(Pos2-Pos1, HOST_ADRS_LEN));
 		if(strlen(Host) == 0)
 			memcpy(Host, Pos1, min1((int)(Pos2-Pos1), HOST_ADRS_LEN));
 		RemoveFileName(Pos2, Path);
@@ -752,10 +724,8 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 	}
 	else
 	{
-		// IPv6対応
-//		strncpy(Host, Pos1, HOST_ADRS_LEN);
-		if(strlen(Host) == 0)
-			strncpy(Host, Pos1, HOST_ADRS_LEN);
+		if (strlen(Host) == 0)
+			strncpy_s(Host, HOST_ADRS_LEN + 1, Pos1, HOST_ADRS_LEN);
 	}
 
 	Sts = FFFTP_FAIL;
@@ -985,10 +955,7 @@ int AttrString2Value(char *Str)
 			Ret |= 0x1;
 	}
 	else if(strlen(Str) >= 3)
-	{
-		strncpy(Tmp, Str, 3);
-		Ret = strtol(Tmp, NULL, 16);
-	}
+		std::from_chars(Str, Str + 3, Ret, 16);
 
 	return(Ret);
 }
@@ -1143,7 +1110,7 @@ fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFi
 *			TRUE/FALSE=取消
 *----------------------------------------------------------------------------*/
 
-int SelectDir(HWND hWnd, char *Buf, int MaxLen) {
+int SelectDir(HWND hWnd, char *Buf, size_t MaxLen) {
 	int result = FALSE;
 	auto const cwd = fs::current_path();
 	wchar_t buffer[FMAX_PATH + 1];

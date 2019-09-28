@@ -293,7 +293,9 @@ struct HostList {
 					}
 				}
 
+				__assume(Data1);
 				if (Data2 == NULL && Level1 > 0 || Level1 > Level2) {
+					__assume(Data1->Parent);
 					//Data1のParentのNextへ
 					Data2 = Data1->Parent;
 
@@ -318,6 +320,7 @@ struct HostList {
 					if (Data1->Parent == NULL && HostListTop == Data1)
 						HostListTop = Data2;
 				} else if (Level1 == Level2) {
+					__assume(Data2);
 					if (Data2->Set.Level & SET_LEVEL_GROUP) {
 						//Data2のChildへ
 						if (Data1->Next != NULL)
@@ -1502,7 +1505,7 @@ struct Advanced {
 				sprintf(Tmp, "GMT%+02d:00", i);
 			SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_ADDSTRING, 0, (LPARAM)Tmp);
 		}
-		SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_SETCURSEL, TmpHost.TimeZone + 12, 0);
+		SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_SETCURSEL, (UINT_PTR)TmpHost.TimeZone + 12, 0);
 
 		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN134);
 		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN135);

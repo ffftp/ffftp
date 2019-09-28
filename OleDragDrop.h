@@ -10,6 +10,8 @@
 // refactored by Kurata Sayuri.
 
 #pragma once
+#include <optional>
+#include <tuple>
 #include <vector>
 #include <Windows.h>
 #include <UrlMon.h>			// for CreateFormatEnumerator
@@ -68,26 +70,25 @@ namespace OleDragDrop {
 			NotifyData notifyData;
 			void Notify(NotifyType notifyType, IDataObject* dataObject, DWORD grfKeyState, POINTL* ppt, DWORD* effect) {
 				/* 対応しているクリップボードフォーマットがあるか調べる */
-				STGMEDIUM sm;
-				CLIPFORMAT cfFormat = 0;
+				std::optional<std::tuple<CLIPFORMAT, STGMEDIUM>> found;
 				if (dataObject)
 					for (auto formatEtc : formatEtcs)
-						if (dataObject->QueryGetData(&formatEtc) == S_OK && dataObject->GetData(&formatEtc, &sm) == S_OK) {
-							cfFormat = formatEtc.cfFormat;
+						if (STGMEDIUM sm; dataObject->QueryGetData(&formatEtc) == S_OK && dataObject->GetData(&formatEtc, &sm) == S_OK) {
+							found = { formatEtc.cfFormat, sm };
 							break;
 						}
 
 				/* ウィンドウにイベントを通知する */
 				notifyData.ppt = ppt;
 				notifyData.grfKeyState = grfKeyState;
-				notifyData.cfFormat = cfFormat;
-				notifyData.hMem = sm.hGlobal;
+				notifyData.cfFormat = found ? std::get<0>(*found) : 0;
+				notifyData.hMem = found ? std::get<1>(*found).hGlobal : 0;
 				notifyData.pdo = dataObject;
 				SendMessageW(msgNotify, static_cast<int>(notifyType), (LPARAM)&notifyData);
 
 				/* クリップボード形式のデータの解放 */
-				if (cfFormat)
-					ReleaseStgMedium(&sm);
+				if (found)
+					ReleaseStgMedium(&std::get<1>(*found));
 
 				/* 効果の設定 */
 				if (effect) {
@@ -99,7 +100,7 @@ namespace OleDragDrop {
 				}
 			}
 		public:
-			DropTarget(HWND hWnd, UINT msgNotify, CLIPFORMAT* clipFormats, size_t count) : msgNotify{ msgNotify }, Common{ hWnd, clipFormats, count } {}
+			DropTarget(HWND hWnd, UINT msgNotify, CLIPFORMAT* clipFormats, size_t count) : msgNotify{ msgNotify }, notifyData{}, Common{ hWnd, clipFormats, count } {}
 
 			// IDropTarget
 			STDMETHODIMP DragEnter(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect) override {

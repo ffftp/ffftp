@@ -218,8 +218,8 @@ void QuickConnectProc() {
 		std::wstring hostname;
 		std::wstring username;
 		std::wstring password;
-		bool firewall;
-		bool passive;
+		bool firewall = false;
+		bool passive = false;
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, QHOST_HOST, CB_LIMITTEXT, FMAX_PATH, 0);
 			SendDlgItemMessageW(hDlg, QHOST_HOST, WM_SETTEXT, 0, (LPARAM)L"");
@@ -931,43 +931,20 @@ static void SaveCurrentSetToHistory(void)
 }
 
 
-/*----- コマンドコントロールソケットの再接続 ----------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int ReConnectCmdSkt(void)
-{
-	int Sts;
-
-
-	// 同時接続対応
-//	if(CmdCtrlSocket != TrnCtrlSocket)
-//		do_closesocket(TrnCtrlSocket);
-//	TrnCtrlSocket = INVALID_SOCKET;
-
-	// 同時接続対応
-//	Sts = ReConnectSkt(&CmdCtrlSocket);
-	if(AskShareProh() == YES && AskTransferNow() == YES)
+// コマンドコントロールソケットの再接続
+int ReConnectCmdSkt() {
+	int result;
+	if (AskShareProh() == YES && AskTransferNow() == YES) {
 		SktShareProh();
-	else
-	{
-		if(CmdCtrlSocket == TrnCtrlSocket)
+		result = FFFTP_SUCCESS;
+	} else {
+		if (CmdCtrlSocket == TrnCtrlSocket)
 			TrnCtrlSocket = INVALID_SOCKET;
-		Sts = ReConnectSkt(&CmdCtrlSocket);
+		result = ReConnectSkt(&CmdCtrlSocket);
 	}
-
-	// 同時接続対応
-//	TrnCtrlSocket = CmdCtrlSocket;
-	if(TrnCtrlSocket == INVALID_SOCKET)
+	if (TrnCtrlSocket == INVALID_SOCKET)
 		TrnCtrlSocket = CmdCtrlSocket;
-
-	return(Sts);
+	return result;
 }
 
 

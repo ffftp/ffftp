@@ -46,10 +46,10 @@
 
 
 struct AsyncSignal {
-	int Event;
-	int Error;
+	int Event = 0;
+	int Error = 0;
 	std::variant<sockaddr_storage, std::tuple<std::string, int>> Target;
-	int MapPort;
+	int MapPort = 0;
 };
 
 
@@ -122,7 +122,7 @@ struct Context {
 		std::vector<char> result;
 		while (!empty(plain)) {
 			auto dataLength = std::min(size_as<unsigned long>(plain), streamSizes.cbMaximumMessage);
-			auto offset = size_as<unsigned long>(result);
+			auto offset = size(result);
 			result.resize(offset + streamSizes.cbHeader + dataLength + streamSizes.cbTrailer);
 			std::copy_n(begin(plain), dataLength, begin(result) + offset + streamSizes.cbHeader);
 			SecBuffer buffer[]{
@@ -168,7 +168,7 @@ BOOL LoadSSL() {
 		return FALSE;
 	}
 	SecPkgCred_SupportedProtocols sp;
-	if (auto ss = QueryCredentialsAttributesW(&credential, SECPKG_ATTR_SUPPORTED_PROTOCOLS, &sp); ss != SEC_E_OK) {
+	if (__pragma(warning(suppress:6001)) auto ss = QueryCredentialsAttributesW(&credential, SECPKG_ATTR_SUPPORTED_PROTOCOLS, &sp); ss != SEC_E_OK) {
 		_RPTWN(_CRT_WARN, L"QueryCredentialsAttributes error: %08X.\n", ss);
 		return FALSE;
 	}
@@ -228,7 +228,7 @@ void ShowCertificate() {
 	if (auto context = getContext(AskCmdCtrlSkt()))
 		if (auto certContext = getCertContext(context->context)) {
 			CRYPTUI_VIEWCERTIFICATE_STRUCTW certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCTW, 0, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext.get() };
-			CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
+			__pragma(warning(suppress:6387)) CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
 		}
 }
 
@@ -251,7 +251,7 @@ struct CertDialog {
 			break;
 		case IDC_SHOWCERT:
 			CRYPTUI_VIEWCERTIFICATE_STRUCTW certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCTW, hdlg, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext.get() };
-			CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
+			__pragma(warning(suppress:6387)) CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
 			break;
 		}
 	}
@@ -327,7 +327,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName)
 		unsigned long attr = 0;
 		if (first) {
 			first = false;
-			ss = InitializeSecurityContextW(&credential, nullptr, node, contextReq, 0, 0, nullptr, 0, &context, &outDesc, &attr, nullptr);
+			__pragma(warning(suppress:6001)) ss = InitializeSecurityContextW(&credential, nullptr, node, contextReq, 0, 0, nullptr, 0, &context, &outDesc, &attr, nullptr);
 		} else {
 			for (;;) {
 				char buffer[8192];
@@ -410,7 +410,7 @@ static int FTPS_recv(SOCKET s, char* buf, int len, int flags) {
 
 	if (empty(context->readPlain)) {
 		auto offset = size_as<int>(context->readRaw);
-		context->readRaw.resize(context->streamSizes.cbHeader + context->streamSizes.cbMaximumMessage + context->streamSizes.cbTrailer);
+		context->readRaw.resize((size_t)context->streamSizes.cbHeader + context->streamSizes.cbMaximumMessage + context->streamSizes.cbTrailer);
 		auto read = recv(s, data(context->readRaw) + offset, size_as<int>(context->readRaw) - offset, 0);
 		if (read <= 0) {
 			context->readRaw.resize(offset);
@@ -423,7 +423,7 @@ static int FTPS_recv(SOCKET s, char* buf, int len, int flags) {
 			return read;
 		}
 		_RPTWN(_CRT_WARN, L"FTPS_recv recv: %d bytes.\n", read);
-		context->readRaw.resize(offset + read);
+		context->readRaw.resize((size_t)offset + read);
 		context->Decypt();
 	}
 

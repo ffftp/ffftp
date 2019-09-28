@@ -1353,7 +1353,6 @@ typedef struct
 
 fs::path systemDirectory();
 fs::path const& tempDirectory();
-int PASCAL WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, int cmdShow);
 void DispWindowTitle();
 HWND GetMainHwnd(void);
 HWND GetFocusHwnd(void);
@@ -1476,8 +1475,8 @@ void DispSyncMoveMode(void);
 int AskSyncMoveMode(void);
 void SetRemoteDirHist(char *Path);
 void SetLocalDirHist(const char *Path);
-void AskLocalCurDir(char *Buf, int Max);
-void AskRemoteCurDir(char *Buf, int Max);
+void AskLocalCurDir(char *Buf, size_t Max);
+void AskRemoteCurDir(char *Buf, size_t Max);
 void SetCurrentDirAsDirHist();
 void DispDotFileMode(void);
 void ShowPopupMenu(int Win, int Pos);
@@ -1500,19 +1499,9 @@ bool NotifyStatusBar(const NMHDR* hdr);
 int MakeTaskWindow();
 void DeleteTaskWindow(void);
 HWND GetTaskWnd(void);
-void _SetTaskMsg(const char* format, ...);
-#ifdef _DEBUG
-#define SetTaskMsg(...) do { char buffer_SetTaskMsg[10240 + 3]; sprintf(buffer_SetTaskMsg, __VA_ARGS__); _SetTaskMsg(buffer_SetTaskMsg); } while(0)
-#else
-#define SetTaskMsg(...) _SetTaskMsg(__VA_ARGS__)
-#endif
+void SetTaskMsg(_In_z_ _Printf_format_string_ const char* format, ...);
 void DispTaskMsg(void);
-void _DoPrintf(const char* format, ...);
-#ifdef _DEBUG
-#define DoPrintf(...) do { char buffer_DoPrintf[10240]; sprintf(buffer_DoPrintf, __VA_ARGS__); _DoPrintf(buffer_DoPrintf); } while(0)
-#else
-#define DoPrintf(...) _DoPrintf(__VA_ARGS__)
-#endif
+void DoPrintf(_In_z_ _Printf_format_string_ const char* format, ...);
 
 /*===== hostman.c =====*/
 
@@ -1684,12 +1673,7 @@ int DoDirListCmdSkt(char *AddOpt, char *Path, int Num, int *CancelCheckWork);
 void SwitchOSSProc(void);
 #endif
 #define CommandProcTrn(CSKT, REPLY, CANCELCHECKWORK, ...) (command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
-int _command(SOCKET cSkt, char* Reply, int* CancelCheckWork, const char* fmt, ...);
-#ifdef _DEBUG
-#define command(CSKT, REPLY, CANCELCHECKWORK, ...) (_scprintf(__VA_ARGS__), _command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
-#else
-#define command(CSKT, REPLY, CANCELCHECKWORK, ...) (_command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
-#endif
+int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const char* fmt, ...);
 int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char *Tmp);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
 void ReportWSError(char *Msg, UINT Error);
@@ -1779,7 +1763,7 @@ void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize);
 
 void ClearBookMark();
 void AddCurDirToBookMark(int Win);
-std::tuple<std::wstring, std::wstring> AskBookMarkText(int MarkID);
+std::tuple<std::wstring, std::wstring> AskBookMarkText(size_t MarkID);
 void SaveBookMark();
 void LoadBookMark();
 void EditBookMark();
@@ -1845,7 +1829,6 @@ void MakeSizeString(double Size, char *Buf);
 void DispStaticText(HWND hWnd, char *Str);
 int StrMultiLen(char *Str);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
-int hex2bin(char Ch);
 int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char *Pass, int *Port);
 int TimeString2FileTime(char *Time, FILETIME *Buf);
 // タイムスタンプのバグ修正
@@ -1858,7 +1841,7 @@ int AttrString2Value(char *Str);
 void AttrValue2String(int Attr, char *Buf, int ShowNumber);
 void FormatIniString(char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
-int SelectDir(HWND hWnd, char *Buf, int MaxLen);
+int SelectDir(HWND hWnd, char *Buf, size_t MaxLen);
 int max1(int n, int m);
 int min1(int n, int m);
 void ExcEndianDWORD(DWORD *x);
@@ -2066,15 +2049,15 @@ static inline auto NormalizeString(NORM_FORM form, std::wstring_view src) {
 		return std::wstring{ src };
 	return convert<wchar_t>([form](auto src, auto srclen, auto dst, auto dstlen) { return NormalizeString(form, src, srclen, dst, dstlen); }, src);
 }
-static inline auto InputDialog(int dialogId, HWND parent, char *Title, char *Buf, int maxlength = 0, int* flag = nullptr, int helpTopicId = IDH_HELP_TOPIC_0000001) {
+static inline auto InputDialog(int dialogId, HWND parent, char *Title, char *Buf, size_t maxlength = 0, int* flag = nullptr, int helpTopicId = IDH_HELP_TOPIC_0000001) {
 	struct Data {
 		using result_t = bool;
 		char* Title;
 		char* Buf;
-		int maxlength;
+		size_t maxlength;
 		int* flag;
 		int helpTopicId;
-		Data(char* Title, char* Buf, int maxlength, int* flag, int helpTopicId) : Title{ Title }, Buf{ Buf }, maxlength{ maxlength }, flag{ flag }, helpTopicId{ helpTopicId } {}
+		Data(char* Title, char* Buf, size_t maxlength, int* flag, int helpTopicId) : Title{ Title }, Buf{ Buf }, maxlength{ maxlength }, flag{ flag }, helpTopicId{ helpTopicId } {}
 		INT_PTR OnInit(HWND hDlg) {
 			if (Title)
 				SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)Title);
