@@ -1560,7 +1560,7 @@ static void EncodePassword(std::string_view const& Str, char *Buf) {
 		std::copy(begin(Str), end(Str), begin(buffer));
 
 		/* PAD部分を乱数で埋める StrPad[StrLen](が有効な場合) は NUL */
-		if (paddedLength <= length + 1 || CryptGenRandom(HCryptProv, paddedLength - length - 1, &buffer[length + 1]))
+		if (paddedLength <= length + 1 || CryptGenRandom(HCryptProv, paddedLength - length - 1, &buffer[(size_t)length + 1]))
 			// IVの初期化
 			if (unsigned char iv[AES_BLOCK_SIZE]; CryptGenRandom(HCryptProv, size_as<DWORD>(iv), iv)) {
 				*p++ = '0';
@@ -1734,7 +1734,7 @@ static void DecodePassword3(char *Str, char *Buf) {
 		Buf[0] = NUL;
 		if (auto length = DWORD(strlen(Str)); AES_BLOCK_SIZE * 2 + 1 < length) {
 			DWORD encodedLength = (length - 1) / 2 - AES_BLOCK_SIZE;
-			std::vector<unsigned char> buffer(encodedLength + 1, 0);	// NUL終端用に１バイト追加
+			std::vector<unsigned char> buffer((size_t)encodedLength + 1, 0);	// NUL終端用に１バイト追加
 			unsigned char iv[AES_BLOCK_SIZE];
 			for (auto& item : iv) {
 				std::from_chars(Str, Str + 2, item, 16);
@@ -1777,7 +1777,7 @@ static bool CreateAesKey(unsigned char *AesKey) {
 	int ResIndex;
 
 	HashKeyLen = (uint32_t)strlen(SecretKey) + 16;
-	if((HashKey = (char*)malloc(HashKeyLen + 1)) == NULL){
+	if((HashKey = (char*)malloc((size_t)HashKeyLen + 1)) == NULL){
 		return false;
 	}
 
@@ -2264,9 +2264,9 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 				Sts = FFFTP_SUCCESS;
 				break;
 			case KANJI_SJIS:
-				if(pa0 = AllocateStringA(Size * 4))
+				if(pa0 = AllocateStringA((size_t)Size * 4))
 				{
-					if(pw0 = AllocateStringW(Size * 4 * 4))
+					if(pw0 = AllocateStringW((size_t)Size * 4 * 4))
 					{
 						TempSize = min1((Size * 4) - 1, (int)strlen(Pos));
 						TempSize = StrReadIn(Pos, TempSize, pa0);
@@ -2423,9 +2423,9 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 				Sts = FFFTP_SUCCESS;
 				break;
 			case KANJI_SJIS:
-				if(pa0 = AllocateStringA(Size * 4))
+				if(pa0 = AllocateStringA((size_t)Size * 4))
 				{
-					if(pw0 = AllocateStringW(Size * 4 * 4))
+					if(pw0 = AllocateStringW((size_t)Size * 4 * 4))
 					{
 						TempSize = min1((Size * 4) - 2, (int)strlen(Pos));
 						TempSize = StrReadIn(Pos, TempSize, pa0);
@@ -2496,7 +2496,7 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 		if (EncryptSettings == YES)
 			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Str, StrMultiLen(Str) + 1);
 		else {
-			auto const wStr = u8(Str, StrMultiLen(Str) + 1);
+			auto const wStr = u8(Str, (size_t)StrMultiLen(Str) + 1);
 			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_MULTI_SZ, data_as<BYTE>(wStr), size_as<DWORD>(wStr) * sizeof(wchar_t));
 		}
 	} else

@@ -1475,8 +1475,8 @@ void DispSyncMoveMode(void);
 int AskSyncMoveMode(void);
 void SetRemoteDirHist(char *Path);
 void SetLocalDirHist(const char *Path);
-void AskLocalCurDir(char *Buf, int Max);
-void AskRemoteCurDir(char *Buf, int Max);
+void AskLocalCurDir(char *Buf, size_t Max);
+void AskRemoteCurDir(char *Buf, size_t Max);
 void SetCurrentDirAsDirHist();
 void DispDotFileMode(void);
 void ShowPopupMenu(int Win, int Pos);
@@ -1778,7 +1778,7 @@ void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize);
 
 void ClearBookMark();
 void AddCurDirToBookMark(int Win);
-std::tuple<std::wstring, std::wstring> AskBookMarkText(int MarkID);
+std::tuple<std::wstring, std::wstring> AskBookMarkText(size_t MarkID);
 void SaveBookMark();
 void LoadBookMark();
 void EditBookMark();
@@ -1856,7 +1856,7 @@ int AttrString2Value(char *Str);
 void AttrValue2String(int Attr, char *Buf, int ShowNumber);
 void FormatIniString(char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
-int SelectDir(HWND hWnd, char *Buf, int MaxLen);
+int SelectDir(HWND hWnd, char *Buf, size_t MaxLen);
 int max1(int n, int m);
 int min1(int n, int m);
 void ExcEndianDWORD(DWORD *x);
@@ -2064,15 +2064,15 @@ static inline auto NormalizeString(NORM_FORM form, std::wstring_view src) {
 		return std::wstring{ src };
 	return convert<wchar_t>([form](auto src, auto srclen, auto dst, auto dstlen) { return NormalizeString(form, src, srclen, dst, dstlen); }, src);
 }
-static inline auto InputDialog(int dialogId, HWND parent, char *Title, char *Buf, int maxlength = 0, int* flag = nullptr, int helpTopicId = IDH_HELP_TOPIC_0000001) {
+static inline auto InputDialog(int dialogId, HWND parent, char *Title, char *Buf, size_t maxlength = 0, int* flag = nullptr, int helpTopicId = IDH_HELP_TOPIC_0000001) {
 	struct Data {
 		using result_t = bool;
 		char* Title;
 		char* Buf;
-		int maxlength;
+		size_t maxlength;
 		int* flag;
 		int helpTopicId;
-		Data(char* Title, char* Buf, int maxlength, int* flag, int helpTopicId) : Title{ Title }, Buf{ Buf }, maxlength{ maxlength }, flag{ flag }, helpTopicId{ helpTopicId } {}
+		Data(char* Title, char* Buf, size_t maxlength, int* flag, int helpTopicId) : Title{ Title }, Buf{ Buf }, maxlength{ maxlength }, flag{ flag }, helpTopicId{ helpTopicId } {}
 		INT_PTR OnInit(HWND hDlg) {
 			if (Title)
 				SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)Title);

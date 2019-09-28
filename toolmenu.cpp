@@ -1582,13 +1582,13 @@ int AskSyncMoveMode(void)
 
 void SetRemoteDirHist(char *Path)
 {
-	int i;
+	LONG_PTR i;
 
-	if((i = (int)SendMessage(hWndDirRemote, CB_FINDSTRINGEXACT, 0, (LPARAM)Path)) != CB_ERR)
+	if((i = SendMessage(hWndDirRemote, CB_FINDSTRINGEXACT, 0, (LPARAM)Path)) != CB_ERR)
 		SendMessage(hWndDirRemote, CB_DELETESTRING, i, 0);
 
 	SendMessage(hWndDirRemote, CB_ADDSTRING, 0, (LPARAM)Path);
-	i = (int)SendMessage(hWndDirRemote, CB_GETCOUNT, 0, 0);
+	i = SendMessage(hWndDirRemote, CB_GETCOUNT, 0, 0);
 	SendMessage(hWndDirRemote, CB_SETCURSEL, i-1, 0);
 
 	strcpy(RemoteCurDir, Path);
@@ -1629,7 +1629,7 @@ void SetLocalDirHist(const char *Path)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void AskLocalCurDir(char *Buf, int Max)
+void AskLocalCurDir(char *Buf, size_t Max)
 {
 	memset(Buf, 0, Max);
 	strncpy(Buf, LocalCurDir, Max-1);
@@ -1647,7 +1647,7 @@ void AskLocalCurDir(char *Buf, int Max)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void AskRemoteCurDir(char *Buf, int Max)
+void AskRemoteCurDir(char *Buf, size_t Max)
 {
 	memset(Buf, 0, Max);
 	strncpy(Buf, RemoteCurDir, Max-1);

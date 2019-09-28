@@ -224,7 +224,7 @@ int WtoAMultiString(LPSTR pDst, int size, LPCWSTR pSrc)
 }
 
 // マルチバイト文字列用のメモリを確保
-char* AllocateStringM(int size)
+char* AllocateStringM(size_t size)
 {
 	char* p;
 	// 0が指定される場合があるため1文字分追加
@@ -236,7 +236,7 @@ char* AllocateStringM(int size)
 }
 
 // ワイド文字列用のメモリを確保
-wchar_t* AllocateStringW(int size)
+wchar_t* AllocateStringW(size_t size)
 {
 	wchar_t* p;
 	// 0が指定される場合があるため1文字分追加
@@ -248,7 +248,7 @@ wchar_t* AllocateStringW(int size)
 }
 
 // Shift_JIS文字列用のメモリを確保
-char* AllocateStringA(int size)
+char* AllocateStringA(size_t size)
 {
 	char* p;
 	// 0が指定される場合があるため1文字分追加
@@ -269,7 +269,7 @@ wchar_t* DuplicateMtoW(LPCSTR lpString, int c)
 		return (wchar_t*)lpString;
 	if(c < 0)
 		c = (int)strlen(lpString);
-	p = AllocateStringW(MtoW(NULL, 0, lpString, c) + 1);
+	p = AllocateStringW((size_t)MtoW(NULL, 0, lpString, c) + 1);
 	if(p)
 	{
 		i = MtoW(p, 65535, lpString, c);
@@ -341,7 +341,7 @@ char* DuplicateWtoM(LPCWSTR lpString, int c)
 		return (char*)lpString;
 	if(c < 0)
 		c = (int)wcslen(lpString);
-	p = AllocateStringM(WtoM(NULL, 0, lpString, c) + 1);
+	p = AllocateStringM((size_t)WtoM(NULL, 0, lpString, c) + 1);
 	if(p)
 	{
 		i = WtoM(p, 65535, lpString, c);
@@ -360,7 +360,7 @@ wchar_t* DuplicateAtoW(LPCSTR lpString, int c)
 		return (wchar_t*)lpString;
 	if(c < 0)
 		c = (int)strlen(lpString);
-	p = AllocateStringW(AtoW(NULL, 0, lpString, c) + 1);
+	p = AllocateStringW((size_t)AtoW(NULL, 0, lpString, c) + 1);
 	if(p)
 	{
 		i = AtoW(p, 65535, lpString, c);
@@ -379,7 +379,7 @@ char* DuplicateWtoA(LPCWSTR lpString, int c)
 		return (char*)lpString;
 	if(c < 0)
 		c = (int)wcslen(lpString);
-	p = AllocateStringA(WtoA(NULL, 0, lpString, c) + 1);
+	p = AllocateStringA((size_t)WtoA(NULL, 0, lpString, c) + 1);
 	if(p)
 	{
 		i = WtoA(p, 65535, lpString, c);
@@ -745,7 +745,7 @@ START_ROUTINE
 		r = SendMessageW(hWnd, WM_SETTEXT, wParam, (LPARAM)pw0);
 		break;
 	case WM_GETTEXT:
-		pw0 = AllocateStringW((int)wParam * 4);
+		pw0 = AllocateStringW((size_t)wParam * 4);
 		SendMessageW(hWnd, WM_GETTEXT, wParam * 4, (LPARAM)pw0);
 		WtoM((LPSTR)lParam, (int)wParam, pw0, -1);
 		r = TerminateStringM((LPSTR)lParam, (int)wParam);
@@ -754,7 +754,7 @@ START_ROUTINE
 		Size = (int)SendMessageW(hWnd, WM_GETTEXTLENGTH, wParam, lParam) + 1;
 		pw0 = AllocateStringW(Size);
 		SendMessageW(hWnd, WM_GETTEXT, (WPARAM)Size, (LPARAM)pw0);
-		r = WtoM(NULL, 0, pw0, -1) - 1;
+		r = (LRESULT)WtoM(NULL, 0, pw0, -1) - 1;
 		break;
 	default:
 		GetClassNameW(hWnd, ClassName, sizeof(ClassName) / sizeof(wchar_t));
@@ -778,7 +778,7 @@ START_ROUTINE
 				Size = (int)SendMessageW(hWnd, CB_GETLBTEXTLEN, wParam, 0) + 1;
 				pw0 = AllocateStringW(Size);
 				SendMessageW(hWnd, WM_GETTEXT, wParam, (LPARAM)pw0);
-				r = WtoM(NULL, 0, pw0, -1) - 1;
+				r = (LRESULT)WtoM(NULL, 0, pw0, -1) - 1;
 				break;
 			case CB_INSERTSTRING:
 				pw0 = DuplicateMtoW((LPCSTR)lParam, -1);
@@ -817,7 +817,7 @@ START_ROUTINE
 				Size = (int)SendMessageW(hWnd, LB_GETTEXTLEN, wParam, 0) + 1;
 				pw0 = AllocateStringW(Size);
 				SendMessageW(hWnd, WM_GETTEXT, wParam, (LPARAM)pw0);
-				r = WtoM(NULL, 0, pw0, -1) - 1;
+				r = (LRESULT)WtoM(NULL, 0, pw0, -1) - 1;
 				break;
 			default:
 				r = SendMessageW(hWnd, Msg, wParam, lParam);

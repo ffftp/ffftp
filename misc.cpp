@@ -1110,7 +1110,7 @@ fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFi
 *			TRUE/FALSE=取消
 *----------------------------------------------------------------------------*/
 
-int SelectDir(HWND hWnd, char *Buf, int MaxLen) {
+int SelectDir(HWND hWnd, char *Buf, size_t MaxLen) {
 	int result = FALSE;
 	auto const cwd = fs::current_path();
 	wchar_t buffer[FMAX_PATH + 1];

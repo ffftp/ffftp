@@ -84,7 +84,7 @@ void AddCurDirToBookMark(int Win) {
 }
 
 // 指定のIDを持つブックマークのパスを返す
-std::tuple<std::wstring, std::wstring> AskBookMarkText(int MarkID) {
+std::tuple<std::wstring, std::wstring> AskBookMarkText(size_t MarkID) {
 	auto bookmark = bookmarks[MarkID - MENU_BMARK_TOP];
 	return { bookmark.local, bookmark.remote };
 }

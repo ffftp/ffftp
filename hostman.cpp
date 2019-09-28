@@ -1505,7 +1505,7 @@ struct Advanced {
 				sprintf(Tmp, "GMT%+02d:00", i);
 			SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_ADDSTRING, 0, (LPARAM)Tmp);
 		}
-		SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_SETCURSEL, TmpHost.TimeZone + 12, 0);
+		SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_SETCURSEL, (UINT_PTR)TmpHost.TimeZone + 12, 0);
 
 		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN134);
 		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN135);

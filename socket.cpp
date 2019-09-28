@@ -122,7 +122,7 @@ struct Context {
 		std::vector<char> result;
 		while (!empty(plain)) {
 			auto dataLength = std::min(size_as<unsigned long>(plain), streamSizes.cbMaximumMessage);
-			auto offset = size_as<unsigned long>(result);
+			auto offset = size(result);
 			result.resize(offset + streamSizes.cbHeader + dataLength + streamSizes.cbTrailer);
 			std::copy_n(begin(plain), dataLength, begin(result) + offset + streamSizes.cbHeader);
 			SecBuffer buffer[]{
@@ -410,7 +410,7 @@ static int FTPS_recv(SOCKET s, char* buf, int len, int flags) {
 
 	if (empty(context->readPlain)) {
 		auto offset = size_as<int>(context->readRaw);
-		context->readRaw.resize(context->streamSizes.cbHeader + context->streamSizes.cbMaximumMessage + context->streamSizes.cbTrailer);
+		context->readRaw.resize((size_t)context->streamSizes.cbHeader + context->streamSizes.cbMaximumMessage + context->streamSizes.cbTrailer);
 		auto read = recv(s, data(context->readRaw) + offset, size_as<int>(context->readRaw) - offset, 0);
 		if (read <= 0) {
 			context->readRaw.resize(offset);
@@ -423,7 +423,7 @@ static int FTPS_recv(SOCKET s, char* buf, int len, int flags) {
 			return read;
 		}
 		_RPTWN(_CRT_WARN, L"FTPS_recv recv: %d bytes.\n", read);
-		context->readRaw.resize(offset + read);
+		context->readRaw.resize((size_t)offset + read);
 		context->Decypt();
 	}
 

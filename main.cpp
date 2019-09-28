@@ -54,7 +54,7 @@ static int MakeAllWindows(int cmdShow);
 static void DeleteAllObject(void);
 static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void StartupProc(char *Cmd);
-static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc, int Max);
+static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc, size_t Max);
 static int CheckIniFileName(char *Str, char *Ini);
 static int CheckMasterPassword(char *Str, char *Ini);
 static int GetTokenAfterOption(char *Str, char *Result, const char* Opt1, const char* Opt2 );
@@ -1930,7 +1930,7 @@ static void StartupProc(char *Cmd)
 *		-z	--mpasswd	(CheckMasterPasswordで検索)	2010.01.30 genta 追加
 *----------------------------------------------------------------------------*/
 
-static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc, int Max)
+static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc, size_t Max)
 {
 	int Ret;
 	char Tmp[FMAX_PATH+1];
