@@ -1146,22 +1146,6 @@ int min1(int n, int m)
 }
 
 
-void ExcEndianDWORD(DWORD *x)
-{
-	BYTE *Pos;
-	BYTE Tmp;
-
-	Pos = (BYTE *)x;
-	Tmp = *(Pos + 0);
-	*(Pos + 0) = *(Pos + 3);
-	*(Pos + 3) = Tmp;
-	Tmp = *(Pos + 1);
-	*(Pos + 1) = *(Pos + 2);
-	*(Pos + 2) = Tmp;
-	return;
-}
-
-
 // ファイルをゴミ箱に削除
 int MoveFileToTrashCan(const char *Path) {
 	auto wPath = u8(Path);
