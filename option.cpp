@@ -581,11 +581,7 @@ struct Connecting {
 struct Firewall {
 	static constexpr WORD dialogId = opt_fire_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
-	static constexpr INTCONVTBL TypeTbl[] = {
-		{ 0, 0 }, { 1, 1 }, { 2, 2 }, { 3, 8 }, 
-		{ 4, 3 }, { 5, 4 }, { 6, 5 }, { 7, 6 }, 
-		{ 8, 7 }, { 9, 9 }
-	};
+	static constexpr int firewallTypes[] = { 0, 1, 2, 8, 3, 4, 5, 6, 7, 9 };
 	static constexpr int HideTbl[9][6] = {
 		{ TRUE,  TRUE,  TRUE,  FALSE, TRUE,  FALSE },
 		{ TRUE,  TRUE,  TRUE,  FALSE, FALSE, TRUE  },
@@ -598,7 +594,7 @@ struct Firewall {
 		{ TRUE,  TRUE,  FALSE, FALSE, TRUE,  TRUE  }
 	};
 	static INT_PTR OnInit(HWND hDlg) {
-		UINT_PTR Type = ConvertNum(FwallType, 1, TypeTbl, sizeof(TypeTbl) / sizeof(INTCONVTBL));
+		UINT_PTR Type = std::distance(std::begin(firewallTypes), std::find(std::begin(firewallTypes), std::end(firewallTypes), FwallType));
 		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN204);
 		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN205);
 		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN206);
@@ -644,7 +640,7 @@ struct Firewall {
 		switch (nmh->code) {
 		case PSN_APPLY: {
 			auto Type = (int)SendDlgItemMessage(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0) + 1;
-			FwallType = ConvertNum(Type, 0, TypeTbl, sizeof(TypeTbl) / sizeof(INTCONVTBL));
+			FwallType = firewallTypes[Type];
 			SendDlgItemMessage(hDlg, FIRE_HOST, WM_GETTEXT, HOST_ADRS_LEN + 1, (LPARAM)FwallHost);
 			SendDlgItemMessage(hDlg, FIRE_USER, WM_GETTEXT, USER_NAME_LEN + 1, (LPARAM)FwallUser);
 			SendDlgItemMessage(hDlg, FIRE_PASS, WM_GETTEXT, PASSWORD_LEN, (LPARAM)FwallPass);

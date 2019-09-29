@@ -1312,14 +1312,6 @@ typedef struct {
 } SOUNDFILE;
 
 
-/*===== 数値変換用 =====*/
-
-typedef struct {
-	int Num1;
-	int Num2;
-} INTCONVTBL;
-
-
 // UPnP対応
 typedef struct
 {
@@ -1846,7 +1838,6 @@ int max1(int n, int m);
 int min1(int n, int m);
 void ExcEndianDWORD(DWORD *x);
 void SwapInt(int *Num1, int *Num2);
-int ConvertNum(int x, int Dir, const INTCONVTBL *Tbl, int Num);
 int MoveFileToTrashCan(const char *Path);
 LONGLONG MakeLongLong(DWORD High, DWORD Low);
 char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma);

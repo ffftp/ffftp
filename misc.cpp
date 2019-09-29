@@ -1185,42 +1185,6 @@ void SwapInt(int *Num1, int *Num2)
 }
 
 
-/*----- テーブルにしたがって数値を登録 -----------------------------------------
-*
-*	Parameter
-*		int x : 数値
-*		int Dir : 変換方向
-*		INTCONVTBL *Tbl : テーブル
-*		int Num : テーブルの数値の数
-*
-*	Return Value
-*		int 数値
-*----------------------------------------------------------------------------*/
-
-int ConvertNum(int x, int Dir, const INTCONVTBL *Tbl, int Num)
-{
-	int i;
-	int Ret;
-
-	Ret = x;
-	for(i = 0; i < Num; i++)
-	{
-		if((Dir == 0) && (Tbl->Num1 == x))
-		{
-			Ret = Tbl->Num2;
-			break;
-		}
-		else if((Dir == 1) && (Tbl->Num2 == x))
-		{
-			Ret = Tbl->Num1;
-			break;
-		}
-		Tbl++;
-	}
-	return(Ret);
-}
-
-
 // ファイルをゴミ箱に削除
 int MoveFileToTrashCan(const char *Path) {
 	auto wPath = u8(Path);
