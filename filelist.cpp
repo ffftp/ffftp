@@ -128,7 +128,7 @@ static int StratusMode;			/* 0=ファイル, 1=ディレクトリ, 2=リンク *
 // リモートファイルリスト (2007.9.3 yutaka)
 static std::vector<FILELIST> remoteFileListBase;
 static std::vector<FILELIST> remoteFileListBaseNoExpand;
-static char remoteFileDir[FMAX_PATH + 1];
+static fs::path remoteFileDir;
 
 
 // ファイルリストウインドウを作成する
@@ -427,7 +427,7 @@ static void doTransferRemoteFile(void)
 
 	remoteFileListBase = std::move(FileListBase);
 	remoteFileListBaseNoExpand = std::move(FileListBaseNoExpand);
-	strncpy_s(remoteFileDir, sizeof(remoteFileDir), tmp.u8string().c_str(), _TRUNCATE);
+	remoteFileDir = std::move(tmp);
 }
 
 
@@ -447,7 +447,7 @@ int isDirectory(char *fn)
 void doDeleteRemoteFile(void)
 {
 	if (!empty(remoteFileListBase)) {
-		MoveFileToTrashCan(remoteFileDir);
+		 fs::remove_all(remoteFileDir, std::error_code{});
 		remoteFileListBase.clear();
 	}
 
@@ -683,7 +683,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 							// このタイミングでリモートからローカルの一時フォルダへダウンロードする
 							// (2007.8.31 yutaka)
 							doTransferRemoteFile();
-							PathDir = fs::u8path(remoteFileDir);
+							PathDir = remoteFileDir;
 							FileListBase = remoteFileListBase;
 							FileListBaseNoExpand = remoteFileListBaseNoExpand;
 						}
