@@ -1837,7 +1837,6 @@ int SelectDir(HWND hWnd, char *Buf, size_t MaxLen);
 int max1(int n, int m);
 int min1(int n, int m);
 void ExcEndianDWORD(DWORD *x);
-void SwapInt(int *Num1, int *Num2);
 int MoveFileToTrashCan(const char *Path);
 LONGLONG MakeLongLong(DWORD High, DWORD Low);
 char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma);

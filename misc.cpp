@@ -1162,29 +1162,6 @@ void ExcEndianDWORD(DWORD *x)
 }
 
 
-
-
-/*----- int値の入れ替え -------------------------------------------------------
-*
-*	Parameter
-*		int *Num1 : 数値１
-*		int *Num2 : 数値２
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SwapInt(int *Num1, int *Num2)
-{
-	int Tmp;
-
-	Tmp = *Num1;
-	*Num1 = *Num2;
-	*Num2 = Tmp;
-	return;
-}
-
-
 // ファイルをゴミ箱に削除
 int MoveFileToTrashCan(const char *Path) {
 	auto wPath = u8(Path);
