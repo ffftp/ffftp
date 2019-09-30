@@ -45,6 +45,7 @@
 #include <numeric>
 #include <optional>
 #include <regex>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -1835,7 +1836,7 @@ void FormatIniString(char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 int SelectDir(HWND hWnd, char *Buf, size_t MaxLen);
 int MoveFileToTrashCan(const char *Path);
-char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma);
+std::string MakeNumString(LONGLONG Num);
 // 異なるファイルが表示されるバグ修正
 char* MakeDistinguishableFileName(char* Out, char* In);
 #if defined(HAVE_TANDEM)

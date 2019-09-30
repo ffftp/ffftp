@@ -1136,28 +1136,11 @@ int MoveFileToTrashCan(const char *Path) {
 }
 
 
-char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma)
-{
-	int i;
-	char *Pos;
-
-	Pos = Buf;
-	*Pos = '\0';
-
-	i = 1;
-	do
-	{
-		*Pos++ = (char)(Num % 10) + '0';
-		Num /= 10;
-		if((Comma == TRUE) && ((i % 3) == 0) && (Num != 0))
-			*Pos++ = ',';
-		i++;
-	}
-	while(Num != 0);
-	*Pos = NUL;
-	_strrev(Buf);
-
-	return(Buf);
+std::string MakeNumString(LONGLONG Num) {
+	std::stringstream ss;
+	ss.imbue(std::locale{ "" });
+	ss << std::fixed << Num;
+	return ss.str();
 }
 
 

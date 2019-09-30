@@ -1169,7 +1169,7 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 	else if(Type == NODE_DRIVE)
 		strcpy(Tmp, "<DRIVE>");
 	else if(Size >= 0)
-		MakeNumString(Size, Tmp, TRUE);
+		strcpy(Tmp, MakeNumString(Size).c_str());
 	else
 		strcpy(Tmp, "");
 	LvItem.mask = LVIF_TEXT;

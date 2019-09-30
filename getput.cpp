@@ -1908,8 +1908,7 @@ static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int 
 	*Mode = CREATE_ALWAYS;
 	if (ProcMode == EXIST_RESUME) {
 		char Reply[ERR_MSG_LEN + 7];
-		char Tmp[40];
-		auto iRetCode = command(Pkt->ctrl_skt, Reply, CancelCheckWork, "REST %s", MakeNumString(Size, Tmp, FALSE));
+		auto iRetCode = command(Pkt->ctrl_skt, Reply, CancelCheckWork, "REST %lld", Size);
 		if (iRetCode / 100 < FTP_RETRY) {
 			/* リジューム */
 			if (Pkt->hWndTrans != NULL)
@@ -2549,8 +2548,6 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt)
 	int Per;
 	LONGLONG Bps;
 	LONGLONG Transed;
-	char Num1[40];
-	char Num2[40];
 	char Tmp[80];
 	char Str[80];
 	char *Pos;
@@ -2583,17 +2580,17 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt)
 				if(Pkt->Size <= 0)
 					sprintf(Tmp, "%lld ", Pkt->ExistSize);
 				else if(Pkt->Size < 1024)
-					sprintf(Tmp, "%s / %s ", MakeNumString(Pkt->ExistSize, Num1, TRUE), MakeNumString(Pkt->Size, Num2, TRUE));
+					sprintf(Tmp, "%s / %s ", MakeNumString(Pkt->ExistSize).c_str(), MakeNumString(Pkt->Size).c_str());
 				else
-					sprintf(Tmp, "%sk / %sk ", MakeNumString(Pkt->ExistSize/1024, Num1, TRUE), MakeNumString(Pkt->Size/1024, Num2, TRUE));
+					sprintf(Tmp, "%sk / %sk ", MakeNumString(Pkt->ExistSize/1024).c_str(), MakeNumString(Pkt->Size/1024).c_str());
 				strcpy(Str, Tmp);
 
 				if(Bps == 0)
 					sprintf(Tmp, "( 0 B/S )");
 				else if(Bps < 1000)
-					sprintf(Tmp, "( %s B/S )", MakeNumString(Bps, Num1, TRUE));
+					sprintf(Tmp, "( %s B/S )", MakeNumString(Bps).c_str());
 				else
-					sprintf(Tmp, "( %s.%02d KB/S )", MakeNumString(Bps/1000, Num1, TRUE), (int)((Bps%1000)/10));
+					sprintf(Tmp, "( %s.%02d KB/S )", MakeNumString(Bps/1000).c_str(), (int)((Bps%1000)/10));
 				strcat(Str, Tmp);
 
 				if((Bps > 0) && (Pkt->Size > 0) && (Transed >= 0))
