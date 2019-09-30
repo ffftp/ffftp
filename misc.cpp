@@ -1136,18 +1136,6 @@ int MoveFileToTrashCan(const char *Path) {
 }
 
 
-LONGLONG MakeLongLong(DWORD High, DWORD Low)
-{
-	LONGLONG z;
-	LONGLONG x1, y1;
-
-	x1 = (LONGLONG)Low;
-	y1 = (LONGLONG)High;
-	z = x1 | (y1 << 32);
-	return(z);
-}
-
-
 char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma)
 {
 	int i;

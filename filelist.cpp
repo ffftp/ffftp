@@ -1049,9 +1049,9 @@ void GetLocalDirForWnd(void)
 		if (DotFile != YES && data.cFileName[0] == L'.')
 			return true;
 		if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			files.emplace_back(u8(data.cFileName).c_str(), NODE_DIR, NO, MakeLongLong(data.nFileSizeHigh, data.nFileSizeLow), 0, data.ftLastWriteTime, FINFO_ALL);
+			files.emplace_back(u8(data.cFileName).c_str(), NODE_DIR, NO, LONGLONG(data.nFileSizeHigh) << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, FINFO_ALL);
 		else if (AskFilterStr(u8(data.cFileName).c_str(), NODE_FILE) == YES)
-			files.emplace_back(u8(data.cFileName).c_str(), NODE_FILE, NO, MakeLongLong(data.nFileSizeHigh, data.nFileSizeLow), 0, data.ftLastWriteTime, FINFO_ALL);
+			files.emplace_back(u8(data.cFileName).c_str(), NODE_FILE, NO, LONGLONG(data.nFileSizeHigh) << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, FINFO_ALL);
 		return true;
 	});
 
@@ -2410,7 +2410,7 @@ static int MakeLocalTree(const char *Path, std::vector<FILELIST>& Base) {
 		strcpy(Pkt.File, src.c_str());
 		ReplaceAll(Pkt.File, '\\', '/');
 		Pkt.Node = NODE_FILE;
-		Pkt.Size = MakeLongLong(data.nFileSizeHigh, data.nFileSizeLow);
+		Pkt.Size = LONGLONG(data.nFileSizeHigh) << 32 | data.nFileSizeLow;
 		if (SYSTEMTIME TmpStime; FileTimeToSystemTime(&data.ftLastWriteTime, &TmpStime)) {
 			if (DispTimeSeconds == NO)
 				TmpStime.wSecond = 0;
