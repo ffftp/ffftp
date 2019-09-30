@@ -30,12 +30,6 @@
 #include "common.h"
 
 
-/*===== ローカルなワーク =====*/
-
-static int DisplayDPIX;
-static int DisplayDPIY;
-
-
 /*----- 文字列の最後に "\" を付ける -------------------------------------------
 *
 *	Parameter
@@ -1203,31 +1197,27 @@ void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size)
 }
 #endif
 
-// 高DPI対応
-void QueryDisplayDPI()
-{
-	HDC hDC;
-	if(DisplayDPIX == 0)
-	{
-		if(hDC = GetDC(NULL))
-		{
-			DisplayDPIX = GetDeviceCaps(hDC, LOGPIXELSX);
-			DisplayDPIY = GetDeviceCaps(hDC, LOGPIXELSY);
-			ReleaseDC(NULL, hDC);
+static auto QueryDisplayDPI() {
+	static auto dpi = [] {
+		int x = 0, y = 0;
+		if (auto dc = GetDC(0)) {
+			x = GetDeviceCaps(dc, LOGPIXELSX);
+			y = GetDeviceCaps(dc, LOGPIXELSY);
+			ReleaseDC(0, dc);
 		}
-	}
+		return std::tuple<int, int>{ x, y };
+	}();
+	return dpi;
 }
 
-int CalcPixelX(int x)
-{
-	QueryDisplayDPI();
-	return (x * DisplayDPIX + 96 / 2) / 96;
+int CalcPixelX(int x) {
+	auto [dpix, _] = QueryDisplayDPI();
+	return (x * dpix + 96 / 2) / 96;
 }
 
-int CalcPixelY(int y)
-{
-	QueryDisplayDPI();
-	return (y * DisplayDPIY + 96 / 2) / 96;
+int CalcPixelY(int y) {
+	auto [_, dpiy] = QueryDisplayDPI();
+	return (y * dpiy + 96 / 2) / 96;
 }
 
 HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNumerator, int ScaleDenominator)

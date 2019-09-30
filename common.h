@@ -1842,8 +1842,6 @@ char* MakeDistinguishableFileName(char* Out, char* In);
 #if defined(HAVE_TANDEM)
 void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size);
 #endif
-// 高DPI対応
-void QueryDisplayDPI();
 int CalcPixelX(int x);
 int CalcPixelY(int y);
 HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNumerator, int ScaleDenominator);
