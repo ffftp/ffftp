@@ -38,7 +38,7 @@
 /*===== プロトタイプ =====*/
 
 static int DoPWD(char *Buf);
-static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork);
+static std::tuple<int, std::string> ReadOneLine(SOCKET cSkt, int* CancelCheckWork);
 static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, int *CancelCheckWork);
 static void ChangeSepaLocal2Remote(char *Fname);
 static void ChangeSepaRemote2Local(char *Fname);
@@ -798,9 +798,10 @@ int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char
 		do
 		{
 			iContinue = NO;
-			iRetCode = ReadOneLine(cSkt, Tmp, ONELINE_BUF_SIZE, CancelCheckWork);
+			std::string line;
+			std::tie(iRetCode, line) = ReadOneLine(cSkt, CancelCheckWork);
 
-			strncpy(Tmp, ConvertFrom(Tmp, AskHostNameKanji()).c_str(), ONELINE_BUF_SIZE);
+			strncpy(Tmp, ConvertFrom(line, AskHostNameKanji()).c_str(), ONELINE_BUF_SIZE);
 			SetTaskMsg("%s", Tmp);
 
 			if(Buf != NULL)
@@ -816,7 +817,7 @@ int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char
 					}
 				}
 				strncat(Buf, Tmp, Max);
-				Max = max1(0, Max-(int)strlen(Tmp));
+				Max = std::max(0, Max-(int)strlen(Tmp));
 
 //				strncpy(Buf, Tmp, Max);
 			}
@@ -847,125 +848,50 @@ int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char
 }
 
 
-/*----- １行分のデータを受け取る ----------------------------------------------
-*
-*	Parameter
-*		SOCKET cSkt : コントロールソケット
-*		char *Buf : メッセージを受け取るバッファ
-*		int Max : バッファのサイズ
-*		int *CancelCheckWork : 
-*
-*	Return Value
-*		int 応答コード
-*----------------------------------------------------------------------------*/
+// １行分のデータを受け取る
+static std::tuple<int, std::string> ReadOneLine(SOCKET cSkt, int* CancelCheckWork) {
+	if (cSkt == INVALID_SOCKET)
+		return { 0, {} };
 
-static int ReadOneLine(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork)
-{
-	char *Pos;
-	int SizeOnce;
-	int CopySize;
-	int ResCode;
-	int i;
-//	fd_set ReadFds;
-//	struct timeval Tout;
-//	struct timeval *ToutPtr;
-	char Tmp[1024];
-	int TimeOutErr;
-
-	ResCode = 0;
-	if(cSkt != INVALID_SOCKET)
-	{
-		memset(Buf, NUL, Max);
-		Max--;					/* 末尾のNULLのぶん */
-		Pos = Buf;
-
-		for(;;)
-		{
-//			FD_ZERO(&ReadFds);
-//			FD_SET(cSkt, &ReadFds);
-//			ToutPtr = NULL;
-//			if(TimeOut != 0)
-//			{
-//				Tout.tv_sec = TimeOut;
-//				Tout.tv_usec = 0;
-//				ToutPtr = &Tout;
-//			}
-//			i = select(0, &ReadFds, NULL, NULL, ToutPtr);
-//			if(i == SOCKET_ERROR)
-//			{
-//				ReportWSError("select", WSAGetLastError());
-//				SizeOnce = -1;
-//				break;
-//			}
-//			else if(i == 0)
-//			{
-//				SetTaskMsg(MSGJPN242);
-//				SizeOnce = -2;
-//				break;
-//			}
-
-			/* LFまでを受信するために、最初はPEEKで受信 */
-			if((SizeOnce = do_recv(cSkt, (LPSTR)Tmp, 1024, MSG_PEEK, &TimeOutErr, CancelCheckWork)) <= 0)
-			{
-				if(TimeOutErr == YES)
-				{
-					SetTaskMsg(MSGJPN242);
-					SizeOnce = -2;
-				}
-				else if(SizeOnce == SOCKET_ERROR)
-				{
-					SizeOnce = -1;
-				}
-				break;
-			}
-
-			/* LFを探して、あったらそこまでの長さをセット */
-			for(i = 0; i < SizeOnce ; i++)
-			{
-				if(*(Tmp + i) == NUL || *(Tmp + i) == 0x0A)
-				{
-					SizeOnce = i + 1;
-					break;
-				}
-			}
-
-			/* 本受信 */
-			if((SizeOnce = do_recv(cSkt, Tmp, SizeOnce, 0, &TimeOutErr, CancelCheckWork)) <= 0)
-				break;
-
-			CopySize = min1(Max, SizeOnce);
-			memcpy(Pos, Tmp, CopySize);
-			Pos += CopySize;
-			Max -= CopySize;
-
-			/* データがLFで終わっていたら１行終わり */
-			if(*(Tmp + SizeOnce - 1) == 0x0A)
-				break;
+	int read;
+	std::string line;
+	for (char buffer[1024];;) {
+		int TimeOutErr;
+		/* LFまでを受信するために、最初はPEEKで受信 */
+		if ((read = do_recv(cSkt, buffer, size_as<int>(buffer), MSG_PEEK, &TimeOutErr, CancelCheckWork)) <= 0) {
+			if (TimeOutErr == YES) {
+				SetTaskMsg(MSGJPN242);
+				read = -2;
+			} else if (read == SOCKET_ERROR)
+				read = -1;
+			break;
 		}
-		*Pos = NUL;
-
-		if(SizeOnce <= 0)
-		{
-			ResCode = 429;
-			memset(Buf, 0, Max);
-
-			if((SizeOnce == -2) || (AskTransferNow() == YES))
-			// 転送中に全て中止を行うと不正なデータが得られる場合のバグ修正
-//				DisconnectSet();
-				cSkt = DoClose(cSkt);
-		}
-		else
-		{
-			if(IsDigit(*Buf) && IsDigit(*(Buf+1)) && IsDigit(*(Buf+2)))
-				std::from_chars(Buf, Buf + 3, ResCode);
-
-			/* 末尾の CR,LF,スペースを取り除く */
-			while((i=(int)strlen(Buf))>2 &&
-				  (Buf[i-1]==0x0a || Buf[i-1]==0x0d || Buf[i-1]==' '))
-				Buf[i-1]=0;
-		}
+		/* LFを探して、あったらそこまでの長さをセット */
+		assert(std::find(buffer, buffer + read, '\0') == buffer + read);
+		if (auto lf = std::find(buffer, buffer + read, '\n'); lf != buffer + read)
+			read = (int)(lf - buffer + 1);
+		/* 本受信 */
+		if ((read = do_recv(cSkt, buffer, read, 0, &TimeOutErr, CancelCheckWork)) <= 0)
+			break;
+		line.append(buffer, buffer + read);
+		/* データがLFで終わっていたら１行終わり */
+		if (line.back() == '\n')
+			break;
 	}
-	return(ResCode);
+	if (read <= 0) {
+		if (read == -2 || AskTransferNow() == YES)
+			cSkt = DoClose(cSkt);
+		return { 429, {} };
+	}
+
+	int replyCode = 0;
+	if (IsDigit(line[0]) && IsDigit(line[1]) && IsDigit(line[2]))
+		std::from_chars(data(line), data(line) + 3, replyCode);
+
+	/* 末尾の CR,LF,スペースを取り除く */
+	static std::regex re{ R"([\r\n ]+$)" };
+	line = std::regex_replace(line, re, "");
+	return { replyCode, std::move(line) };
 }
 
 

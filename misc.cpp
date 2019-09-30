@@ -679,7 +679,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 
 		if((Pos2 = (char*)_mbschr((const unsigned char*)Tmp, ':')) != NULL)
 		{
-			memcpy(User, Tmp, min1((int)(Pos2-Tmp), USER_NAME_LEN));
+			memcpy(User, Tmp, std::min(Pos2-Tmp, (ptrdiff_t)USER_NAME_LEN));
 			strncpy(Pass, Pos2+1, PASSWORD_LEN);
 		}
 		else
@@ -692,7 +692,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 		Pos1 = Pos2 + 1;
 		if((Pos2 = (char*)_mbschr((const unsigned char*)Pos2, ']')) != NULL)
 		{
-			memcpy(Host, Pos1, min1((int)(Pos2-Pos1), HOST_ADRS_LEN));
+			memcpy(Host, Pos1, std::min(Pos2-Pos1, (ptrdiff_t)HOST_ADRS_LEN));
 			Pos1 = Pos2 + 1;
 		}
 	}
@@ -700,7 +700,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 	if((Pos2 = (char*)_mbschr((const unsigned char*)Pos1, ':')) != NULL)
 	{
 		if(strlen(Host) == 0)
-			memcpy(Host, Pos1, min1((int)(Pos2-Pos1), HOST_ADRS_LEN));
+			memcpy(Host, Pos1, std::min(Pos2-Pos1, (ptrdiff_t)HOST_ADRS_LEN));
 		Pos2++;
 		if(IsDigit(*Pos2))
 		{
@@ -718,7 +718,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 	else if((Pos2 = (char*)_mbschr((const unsigned char*)Pos1, '/')) != NULL)
 	{
 		if(strlen(Host) == 0)
-			memcpy(Host, Pos1, min1((int)(Pos2-Pos1), HOST_ADRS_LEN));
+			memcpy(Host, Pos1, std::min(Pos2-Pos1, (ptrdiff_t)HOST_ADRS_LEN));
 		RemoveFileName(Pos2, Path);
 		strncpy(File, GetFileName(Pos2), FMAX_PATH);
 	}
@@ -1124,25 +1124,6 @@ int SelectDir(HWND hWnd, char *Buf, size_t MaxLen) {
 	}
 	fs::current_path(cwd);
 	return result;
-}
-
-
-int max1(int n, int m)
-{
-	if(n > m)
-		return(n);
-	else
-		return(m);
-}
-
-
-
-int min1(int n, int m)
-{
-	if(n < m)
-		return(n);
-	else
-		return(m);
 }
 
 
