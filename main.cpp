@@ -668,7 +668,7 @@ static int MakeAllWindows(int cmdShow)
 		GetWindowRect(GetMainHwnd(), &Rect2);
 		if(Rect2.bottom > Rect1.bottom)
 		{
-			Rect2.top = max1(0, Rect2.top - (Rect2.bottom - Rect1.bottom));
+			Rect2.top = std::max(0L, Rect2.top - (Rect2.bottom - Rect1.bottom));
 			MoveWindow(GetMainHwnd(), Rect2.left, Rect2.top, WinWidth, WinHeight, FALSE);
 		}
 
@@ -2482,17 +2482,12 @@ static void CalcWinSize(void)
 	ClientHeight = Rect.bottom;
 
 	SepaWidth = 4;
-	LocalWidth = max1(0, min1(LocalWidth, ClientWidth - SepaWidth));
-	RemoteWidth = max1(0, ClientWidth - LocalWidth - SepaWidth);
-//	TaskHeight = min1(TaskHeight, max1(0, ClientHeight - TOOLWIN_HEIGHT * 2 - SepaWidth));
+	LocalWidth = std::clamp(LocalWidth, 0, ClientWidth - SepaWidth);
+	RemoteWidth = std::max(0, ClientWidth - LocalWidth - SepaWidth);
 
 	GetClientRect(GetSbarWnd(), &Rect);
 
-	// 高DPI対応
-//	ListHeight = max1(0, ClientHeight - TOOLWIN_HEIGHT * 2 - TaskHeight - SepaWidth - Rect.bottom);
-	ListHeight = max1(0, ClientHeight - AskToolWinHeight() * 2 - TaskHeight - SepaWidth - Rect.bottom);
-
-	return;
+	ListHeight = std::max(0L, ClientHeight - AskToolWinHeight() * 2 - TaskHeight - SepaWidth - Rect.bottom);
 }
 
 
@@ -2609,7 +2604,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 		{
 			GetClientRect(GetMainHwnd(), &Rect);
 			GetClientRect(GetSbarWnd(), &Rect1);
-			TaskHeight = max1(0, Rect.bottom - y - Rect1.bottom);
+			TaskHeight = std::max(0L, Rect.bottom - y - Rect1.bottom);
 		}
 		ResizeWindowProc();
 

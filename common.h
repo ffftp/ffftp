@@ -45,6 +45,7 @@
 #include <numeric>
 #include <optional>
 #include <regex>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -1312,14 +1313,6 @@ typedef struct {
 } SOUNDFILE;
 
 
-/*===== 数値変換用 =====*/
-
-typedef struct {
-	int Num1;
-	int Num2;
-} INTCONVTBL;
-
-
 // UPnP対応
 typedef struct
 {
@@ -1842,21 +1835,13 @@ void AttrValue2String(int Attr, char *Buf, int ShowNumber);
 void FormatIniString(char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 int SelectDir(HWND hWnd, char *Buf, size_t MaxLen);
-int max1(int n, int m);
-int min1(int n, int m);
-void ExcEndianDWORD(DWORD *x);
-void SwapInt(int *Num1, int *Num2);
-int ConvertNum(int x, int Dir, const INTCONVTBL *Tbl, int Num);
 int MoveFileToTrashCan(const char *Path);
-LONGLONG MakeLongLong(DWORD High, DWORD Low);
-char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma);
+std::string MakeNumString(LONGLONG Num);
 // 異なるファイルが表示されるバグ修正
 char* MakeDistinguishableFileName(char* Out, char* In);
 #if defined(HAVE_TANDEM)
 void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size);
 #endif
-// 高DPI対応
-void QueryDisplayDPI();
 int CalcPixelX(int x);
 int CalcPixelY(int y);
 HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNumerator, int ScaleDenominator);

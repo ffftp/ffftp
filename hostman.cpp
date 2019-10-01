@@ -175,7 +175,7 @@ struct HostList {
 				if (Level1 == YES && Dialog(GetFtpInst(), groupdel_dlg, hDlg) || Level1 == NO && Dialog(GetFtpInst(), hostdel_dlg, hDlg)) {
 					DelHostFromList(CurrentHost);
 					if (CurrentHost >= Hosts)
-						CurrentHost = max1(0, Hosts - 1);
+						CurrentHost = std::max(0, Hosts - 1);
 					SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
 				}
 			}

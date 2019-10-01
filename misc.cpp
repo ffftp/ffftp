@@ -30,12 +30,6 @@
 #include "common.h"
 
 
-/*===== ローカルなワーク =====*/
-
-static int DisplayDPIX;
-static int DisplayDPIY;
-
-
 /*----- 文字列の最後に "\" を付ける -------------------------------------------
 *
 *	Parameter
@@ -53,32 +47,6 @@ void SetYenTail(char *Str)
 	if(_mbscmp(_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), (const unsigned char*)"\\") != 0)
 		strcat(Str, "\\");
 
-	return;;
-}
-
-
-/*----- 文字列の最後の "\" を取り除く -----------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		オリジナルの文字列 char *Str が変更されます。
-*----------------------------------------------------------------------------*/
-
-void RemoveYenTail(char *Str)
-{
-	char *Pos;
-
-	if(strlen(Str) > 0)
-	{
-		Pos = (char*)_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1);
-		if(_mbscmp((const unsigned char*)Pos, (const unsigned char*)"\\") == 0)
-			*Pos = NUL;
-	}
 	return;;
 }
 
@@ -679,7 +647,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 
 		if((Pos2 = (char*)_mbschr((const unsigned char*)Tmp, ':')) != NULL)
 		{
-			memcpy(User, Tmp, min1((int)(Pos2-Tmp), USER_NAME_LEN));
+			memcpy(User, Tmp, std::min(Pos2-Tmp, (ptrdiff_t)USER_NAME_LEN));
 			strncpy(Pass, Pos2+1, PASSWORD_LEN);
 		}
 		else
@@ -692,7 +660,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 		Pos1 = Pos2 + 1;
 		if((Pos2 = (char*)_mbschr((const unsigned char*)Pos2, ']')) != NULL)
 		{
-			memcpy(Host, Pos1, min1((int)(Pos2-Pos1), HOST_ADRS_LEN));
+			memcpy(Host, Pos1, std::min(Pos2-Pos1, (ptrdiff_t)HOST_ADRS_LEN));
 			Pos1 = Pos2 + 1;
 		}
 	}
@@ -700,7 +668,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 	if((Pos2 = (char*)_mbschr((const unsigned char*)Pos1, ':')) != NULL)
 	{
 		if(strlen(Host) == 0)
-			memcpy(Host, Pos1, min1((int)(Pos2-Pos1), HOST_ADRS_LEN));
+			memcpy(Host, Pos1, std::min(Pos2-Pos1, (ptrdiff_t)HOST_ADRS_LEN));
 		Pos2++;
 		if(IsDigit(*Pos2))
 		{
@@ -718,7 +686,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 	else if((Pos2 = (char*)_mbschr((const unsigned char*)Pos1, '/')) != NULL)
 	{
 		if(strlen(Host) == 0)
-			memcpy(Host, Pos1, min1((int)(Pos2-Pos1), HOST_ADRS_LEN));
+			memcpy(Host, Pos1, std::min(Pos2-Pos1, (ptrdiff_t)HOST_ADRS_LEN));
 		RemoveFileName(Pos2, Path);
 		strncpy(File, GetFileName(Pos2), FMAX_PATH);
 	}
@@ -1127,100 +1095,6 @@ int SelectDir(HWND hWnd, char *Buf, size_t MaxLen) {
 }
 
 
-int max1(int n, int m)
-{
-	if(n > m)
-		return(n);
-	else
-		return(m);
-}
-
-
-
-int min1(int n, int m)
-{
-	if(n < m)
-		return(n);
-	else
-		return(m);
-}
-
-
-void ExcEndianDWORD(DWORD *x)
-{
-	BYTE *Pos;
-	BYTE Tmp;
-
-	Pos = (BYTE *)x;
-	Tmp = *(Pos + 0);
-	*(Pos + 0) = *(Pos + 3);
-	*(Pos + 3) = Tmp;
-	Tmp = *(Pos + 1);
-	*(Pos + 1) = *(Pos + 2);
-	*(Pos + 2) = Tmp;
-	return;
-}
-
-
-
-
-/*----- int値の入れ替え -------------------------------------------------------
-*
-*	Parameter
-*		int *Num1 : 数値１
-*		int *Num2 : 数値２
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SwapInt(int *Num1, int *Num2)
-{
-	int Tmp;
-
-	Tmp = *Num1;
-	*Num1 = *Num2;
-	*Num2 = Tmp;
-	return;
-}
-
-
-/*----- テーブルにしたがって数値を登録 -----------------------------------------
-*
-*	Parameter
-*		int x : 数値
-*		int Dir : 変換方向
-*		INTCONVTBL *Tbl : テーブル
-*		int Num : テーブルの数値の数
-*
-*	Return Value
-*		int 数値
-*----------------------------------------------------------------------------*/
-
-int ConvertNum(int x, int Dir, const INTCONVTBL *Tbl, int Num)
-{
-	int i;
-	int Ret;
-
-	Ret = x;
-	for(i = 0; i < Num; i++)
-	{
-		if((Dir == 0) && (Tbl->Num1 == x))
-		{
-			Ret = Tbl->Num2;
-			break;
-		}
-		else if((Dir == 1) && (Tbl->Num2 == x))
-		{
-			Ret = Tbl->Num1;
-			break;
-		}
-		Tbl++;
-	}
-	return(Ret);
-}
-
-
 // ファイルをゴミ箱に削除
 int MoveFileToTrashCan(const char *Path) {
 	auto wPath = u8(Path);
@@ -1230,40 +1104,11 @@ int MoveFileToTrashCan(const char *Path) {
 }
 
 
-LONGLONG MakeLongLong(DWORD High, DWORD Low)
-{
-	LONGLONG z;
-	LONGLONG x1, y1;
-
-	x1 = (LONGLONG)Low;
-	y1 = (LONGLONG)High;
-	z = x1 | (y1 << 32);
-	return(z);
-}
-
-
-char *MakeNumString(LONGLONG Num, char *Buf, BOOL Comma)
-{
-	int i;
-	char *Pos;
-
-	Pos = Buf;
-	*Pos = '\0';
-
-	i = 1;
-	do
-	{
-		*Pos++ = (char)(Num % 10) + '0';
-		Num /= 10;
-		if((Comma == TRUE) && ((i % 3) == 0) && (Num != 0))
-			*Pos++ = ',';
-		i++;
-	}
-	while(Num != 0);
-	*Pos = NUL;
-	_strrev(Buf);
-
-	return(Buf);
+std::string MakeNumString(LONGLONG Num) {
+	std::stringstream ss;
+	ss.imbue(std::locale{ "" });
+	ss << std::fixed << Num;
+	return ss.str();
 }
 
 
@@ -1326,31 +1171,27 @@ void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size)
 }
 #endif
 
-// 高DPI対応
-void QueryDisplayDPI()
-{
-	HDC hDC;
-	if(DisplayDPIX == 0)
-	{
-		if(hDC = GetDC(NULL))
-		{
-			DisplayDPIX = GetDeviceCaps(hDC, LOGPIXELSX);
-			DisplayDPIY = GetDeviceCaps(hDC, LOGPIXELSY);
-			ReleaseDC(NULL, hDC);
+static auto QueryDisplayDPI() {
+	static auto dpi = [] {
+		int x = 0, y = 0;
+		if (auto dc = GetDC(0)) {
+			x = GetDeviceCaps(dc, LOGPIXELSX);
+			y = GetDeviceCaps(dc, LOGPIXELSY);
+			ReleaseDC(0, dc);
 		}
-	}
+		return std::tuple<int, int>{ x, y };
+	}();
+	return dpi;
 }
 
-int CalcPixelX(int x)
-{
-	QueryDisplayDPI();
-	return (x * DisplayDPIX + 96 / 2) / 96;
+int CalcPixelX(int x) {
+	auto [dpix, _] = QueryDisplayDPI();
+	return (x * dpix + 96 / 2) / 96;
 }
 
-int CalcPixelY(int y)
-{
-	QueryDisplayDPI();
-	return (y * DisplayDPIY + 96 / 2) / 96;
+int CalcPixelY(int y) {
+	auto [_, dpiy] = QueryDisplayDPI();
+	return (y * dpiy + 96 / 2) / 96;
 }
 
 HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNumerator, int ScaleDenominator)

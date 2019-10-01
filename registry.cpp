@@ -979,10 +979,10 @@ int LoadRegistry(void)
 			ReadIntValueFromReg(hKey4, "WinHeight", &WinHeight);
 			ReadIntValueFromReg(hKey4, "LocalWidth", &LocalWidth);
 			/* ↓旧バージョンのバグ対策 */
-			LocalWidth = max1(0, LocalWidth);
+			LocalWidth = std::max(0, LocalWidth);
 			ReadIntValueFromReg(hKey4, "TaskHeight", &TaskHeight);
 			/* ↓旧バージョンのバグ対策 */
-			TaskHeight = max1(0, TaskHeight);
+			TaskHeight = std::max(0, TaskHeight);
 			ReadBinaryFromReg(hKey4, "LocalColm", &LocalTabWidth, sizeof(LocalTabWidth));
 			ReadBinaryFromReg(hKey4, "RemoteColm", &RemoteTabWidth, sizeof(RemoteTabWidth));
 			ReadIntValueFromReg(hKey4, "SwCmd", &Sizing);
@@ -2250,15 +2250,10 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 	{
 		if((Pos = ScanValue(Handle, Name)) != NULL)
 		{
-			// UTF-8対応
-//			Size = min1(Size-1, strlen(Pos));
-//			Size = StrReadIn(Pos, Size, Str);
-//			*(Str + Size) = NUL;
-//			Sts = FFFTP_SUCCESS;
 			switch(IniKanjiCode)
 			{
 			case KANJI_NOCNV:
-				TempSize = min1(Size-1, (int)strlen(Pos));
+				TempSize = std::min(Size-1, (DWORD)strlen(Pos));
 				TempSize = StrReadIn(Pos, TempSize, Str);
 				*(Str + TempSize) = NUL;
 				Sts = FFFTP_SUCCESS;
@@ -2268,7 +2263,7 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 				{
 					if(pw0 = AllocateStringW((size_t)Size * 4 * 4))
 					{
-						TempSize = min1((Size * 4) - 1, (int)strlen(Pos));
+						TempSize = std::min((Size * 4) - 1, (DWORD)strlen(Pos));
 						TempSize = StrReadIn(Pos, TempSize, pa0);
 						*(pa0 + TempSize) = NUL;
 						AtoW(pw0, Size * 4 * 4, pa0, -1);
@@ -2408,15 +2403,10 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 	{
 		if((Pos = ScanValue(Handle, Name)) != NULL)
 		{
-			// UTF-8対応
-//			Size = min1(Size-1, strlen(Pos));
-//			Size = StrReadIn(Pos, Size, Str);
-//			*(Str + Size) = NUL;
-//			Sts = FFFTP_SUCCESS;
 			switch(IniKanjiCode)
 			{
 			case KANJI_NOCNV:
-				TempSize = min1(Size - 2, (int)strlen(Pos));
+				TempSize = std::min(Size - 2, (DWORD)strlen(Pos));
 				TempSize = StrReadIn(Pos, TempSize, Str);
 				*(Str + TempSize) = NUL;
 				*(Str + TempSize + 1) = NUL;
@@ -2427,7 +2417,7 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 				{
 					if(pw0 = AllocateStringW((size_t)Size * 4 * 4))
 					{
-						TempSize = min1((Size * 4) - 2, (int)strlen(Pos));
+						TempSize = std::min((Size * 4) - 2, (DWORD)strlen(Pos));
 						TempSize = StrReadIn(Pos, TempSize, pa0);
 						*(pa0 + TempSize) = NUL;
 						*(pa0 + TempSize + 1) = NUL;
@@ -2548,7 +2538,7 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 	{
 		if((Pos = ScanValue(Handle, Name)) != NULL)
 		{
-			Size = min1(Size, (int)strlen(Pos));
+			Size = std::min(Size, (DWORD)strlen(Pos));
 			Size = StrReadIn(Pos, Size, (char*)Bin);
 			Sts = FFFTP_SUCCESS;
 		}
