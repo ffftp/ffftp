@@ -51,32 +51,6 @@ void SetYenTail(char *Str)
 }
 
 
-/*----- 文字列の最後の "\" を取り除く -----------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		オリジナルの文字列 char *Str が変更されます。
-*----------------------------------------------------------------------------*/
-
-void RemoveYenTail(char *Str)
-{
-	char *Pos;
-
-	if(strlen(Str) > 0)
-	{
-		Pos = (char*)_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1);
-		if(_mbscmp((const unsigned char*)Pos, (const unsigned char*)"\\") == 0)
-			*Pos = NUL;
-	}
-	return;;
-}
-
-
 /*----- 文字列の最後に "/" を付ける -------------------------------------------
 *
 *	Parameter
