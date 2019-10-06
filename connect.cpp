@@ -1876,11 +1876,15 @@ static inline bool SocksRecv(SOCKET s, T& buffer, int* CancelCheckWork) {
 
 // SOCKS5の認証を行う
 static bool Socks5Authenticate(SOCKET s, int* CancelCheckWork) {
+	// RFC 1928 SOCKS Protocol Version 5
+	constexpr uint8_t NO_AUTHENTICATION_REQUIRED = 0;
+	constexpr uint8_t USERNAME_PASSWORD = 2;
+
 	std::vector<uint8_t> buffer;
 	if (FwallType == FWALL_SOCKS5_NOAUTH)
-		buffer = { 5, 1, 0 };			// VER, NMETHODS, METHODS
+		buffer = { 5, 1, NO_AUTHENTICATION_REQUIRED };						// VER, NMETHODS, METHODS
 	else
-		buffer = { 5, 2, 0, 1 };		// VER, NMETHODS, METHODS
+		buffer = { 5, 2, NO_AUTHENTICATION_REQUIRED, USERNAME_PASSWORD };	// VER, NMETHODS, METHODS
 	#pragma pack(push, 1)
 	struct {
 		uint8_t VER;
@@ -1892,9 +1896,9 @@ static bool Socks5Authenticate(SOCKET s, int* CancelCheckWork) {
 		SetTaskMsg(MSGJPN036);
 		return false;
 	}
-	if (reply.METHOD == 0)
+	if (reply.METHOD == NO_AUTHENTICATION_REQUIRED)
 		DoPrintf("SOCKS5 No Authentication");
-	else if (reply.METHOD == 1) {
+	else if (reply.METHOD == USERNAME_PASSWORD) {
 		// RFC 1929 Username/Password Authentication for SOCKS V5
 		DoPrintf("SOCKS5 User/Pass Authentication");
 		auto ulen = (uint8_t)strlen(FwallUser);
