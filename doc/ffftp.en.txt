@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.4.2 (FTP Client software)
+[Software Name]  FFFTP Ver.4.3 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018-2019, KURATA Sayuri.
@@ -29,13 +29,13 @@ following menu.
 File -> Settings -> Change Master password
 
 
-Changes at 4.2
+Changes at 4.3
 --------------
 
-- use vs2019. #125, #75, #109
-- fix kanji code detection. #120
-- fix upload error. #123
-- reduce use of ansi api. #59
+- Fix SOCKS5 Auth. #141
+- Remove temp files, not move to recycle bin. #138
+- Enable Code Analysis. #133, #135, #137
+- Support build with VS2019 16.4. #136
 
 
 Outline
