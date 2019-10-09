@@ -1133,7 +1133,7 @@ static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size,
 	char Tmp[20];
 
 	if(Pos == -1)
-		Pos = (int)SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0);
+		Pos = (int)SendMessageW(hWnd, LVM_GETITEMCOUNT, 0, 0);
 
 	// 変数が未初期化のバグ修正
 	memset(&LvItem, 0, sizeof(LV_ITEM));
@@ -1445,7 +1445,7 @@ int GetItemCount(int Win)
 	if(Win == WIN_REMOTE)
 		hWnd = GetRemoteHwnd();
 
-	return (int)(SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0));
+	return (int)(SendMessageW(hWnd, LVM_GETITEMCOUNT, 0, 0));
 }
 
 

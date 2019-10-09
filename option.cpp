@@ -846,7 +846,7 @@ static void AddFnameAttrToListView(HWND hDlg, char *Fname, char *Attr)
 	GetFnameAttrFromListView(hDlg, Buf);
 	if(StrMultiLen(Buf) + strlen(Fname) + strlen(Attr) + 2 <= DEFATTRLIST_LEN)
 	{
-		Num = (int)SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETITEMCOUNT, 0, 0);
+		Num = (int)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETITEMCOUNT, 0, 0);
 
 		LvItem.mask = LVIF_TEXT;
 		LvItem.iItem = Num;
@@ -885,7 +885,7 @@ static void GetFnameAttrFromListView(HWND hDlg, char *Buf)
 	int i;
 	LV_ITEM LvItem;
 
-	Num = (int)SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETITEMCOUNT, 0, 0);
+	Num = (int)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETITEMCOUNT, 0, 0);
 	for(i = 0; i < Num; i++)
 	{
 		LvItem.mask = LVIF_TEXT;

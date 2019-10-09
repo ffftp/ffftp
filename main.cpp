@@ -838,7 +838,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 							GetLocalDirForWnd();
 							SelectFileInList(GetLocalHwnd(), SELECT_LIST, Base);
 							SetHotSelected(WIN_LOCAL, Name);
-							SendMessage(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)(SendMessage(GetLocalHwnd(), LVM_GETITEMCOUNT, 0, 0) - 1), (LPARAM)TRUE);
+							SendMessage(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)(SendMessageW(GetLocalHwnd(), LVM_GETITEMCOUNT, 0, 0) - 1), (LPARAM)TRUE);
 							SendMessage(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)Pos, (LPARAM)TRUE);
 						}
 					}
