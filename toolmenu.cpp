@@ -289,7 +289,7 @@ int MakeToolBarWindow()
 				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtrW(hWndDirLocalEdit, GWLP_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
 
 			SendMessage(hWndDirLocal, WM_SETFONT, (WPARAM)DlgFont, MAKELPARAM(TRUE, 0));
-			SendMessage(hWndDirLocal, CB_LIMITTEXT, FMAX_PATH, 0);
+			SendMessageW(hWndDirLocal, CB_LIMITTEXT, FMAX_PATH, 0);
 
 			/* ドライブ名をセットしておく */
 			GetDrives([](const wchar_t drive[]) { SetLocalDirHist(u8(drive).c_str()); });
@@ -341,7 +341,7 @@ int MakeToolBarWindow()
 				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtrW(hWndDirRemoteEdit, GWLP_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
 
 			SendMessage(hWndDirRemote, WM_SETFONT, (WPARAM)DlgFont, MAKELPARAM(TRUE, 0));
-			SendMessage(hWndDirRemote, CB_LIMITTEXT, FMAX_PATH, 0);
+			SendMessageW(hWndDirRemote, CB_LIMITTEXT, FMAX_PATH, 0);
 			SendMessageW(hWndDirRemote, CB_SETCURSEL, 0, 0);
 		}
 	}
