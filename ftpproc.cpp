@@ -2259,7 +2259,7 @@ void ChangeDirComboProc(HWND hWnd)
 	// 同時接続対応
 	CancelFlg = NO;
 
-	if((i = (int)SendMessage(hWnd, CB_GETCURSEL, 0, 0)) != CB_ERR)
+	if((i = (int)SendMessageW(hWnd, CB_GETCURSEL, 0, 0)) != CB_ERR)
 	{
 		SendMessage(hWnd, CB_GETLBTEXT, i, (LPARAM)Tmp);
 

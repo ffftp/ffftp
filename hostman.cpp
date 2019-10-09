@@ -1527,8 +1527,8 @@ struct Advanced {
 			SendDlgItemMessage(hDlg, HSET_PORT, WM_GETTEXT, 5 + 1, (LPARAM)Tmp);
 			TmpHost.Port = atoi(Tmp);
 			SendDlgItemMessage(hDlg, HSET_ACCOUNT, WM_GETTEXT, ACCOUNT_LEN + 1, (LPARAM)TmpHost.Account);
-			TmpHost.TimeZone = (int)SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_GETCURSEL, 0, 0) - 12;
-			TmpHost.Security = (int)SendDlgItemMessage(hDlg, HSET_SECURITY, CB_GETCURSEL, 0, 0);
+			TmpHost.TimeZone = (int)SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_GETCURSEL, 0, 0) - 12;
+			TmpHost.Security = (int)SendDlgItemMessageW(hDlg, HSET_SECURITY, CB_GETCURSEL, 0, 0);
 			SendDlgItemMessage(hDlg, HSET_INITCMD, WM_GETTEXT, INITCMD_LEN + 1, (LPARAM)TmpHost.InitCmd);
 			return PSNRET_NOERROR;
 		}
@@ -1711,7 +1711,7 @@ struct Special {
 			TmpHost.UseMLSD = (int)SendDlgItemMessageW(hDlg, HSET_MLSDCMD, BM_GETCHECK, 0, 0);
 			TmpHost.UseNLST_R = (int)SendDlgItemMessageW(hDlg, HSET_NLST_R, BM_GETCHECK, 0, 0);
 			TmpHost.NoFullPath = (int)SendDlgItemMessageW(hDlg, HSET_FULLPATH, BM_GETCHECK, 0, 0);
-			TmpHost.HostType = (int)SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0);
+			TmpHost.HostType = (int)SendDlgItemMessageW(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000032);
@@ -1737,7 +1737,7 @@ struct Special {
 			}
 			break;
 		case HSET_HOSTTYPE:
-			if (auto Num = (int)SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0); Num == 2) {
+			if (auto Num = (int)SendDlgItemMessageW(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0); Num == 2) {
 				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), FALSE);
@@ -1833,7 +1833,7 @@ struct Feature {
 			TmpHost.ReuseCmdSkt = (int)SendDlgItemMessageW(hDlg, HSET_REUSE_SOCKET, BM_GETCHECK, 0, 0);
 			TmpHost.NoopInterval = GetDecimalText(hDlg, HSET_NOOP_INTERVAL);
 			CheckRange2(&TmpHost.NoopInterval, 300, 0);
-			switch (SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_GETCURSEL, 0, 0)) {
+			switch (SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_GETCURSEL, 0, 0)) {
 			case 0:
 				TmpHost.TransferErrorMode = EXIST_OVW;
 				TmpHost.TransferErrorNotify = YES;

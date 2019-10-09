@@ -639,7 +639,7 @@ struct Firewall {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY: {
-			auto Type = (int)SendDlgItemMessage(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0) + 1;
+			auto Type = (int)SendDlgItemMessageW(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0) + 1;
 			FwallType = firewallTypes[Type];
 			SendDlgItemMessage(hDlg, FIRE_HOST, WM_GETTEXT, HOST_ADRS_LEN + 1, (LPARAM)FwallHost);
 			SendDlgItemMessage(hDlg, FIRE_USER, WM_GETTEXT, USER_NAME_LEN + 1, (LPARAM)FwallUser);
@@ -653,7 +653,7 @@ struct Firewall {
 			PasvDefault = (int)SendDlgItemMessageW(hDlg, FIRE_PASV, BM_GETCHECK, 0, 0);
 			FwallResolve = (int)SendDlgItemMessageW(hDlg, FIRE_RESOLV, BM_GETCHECK, 0, 0);
 			FwallLower = (int)SendDlgItemMessageW(hDlg, FIRE_LOWER, BM_GETCHECK, 0, 0);
-			FwallSecurity = (int)SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_GETCURSEL, 0, 0);
+			FwallSecurity = (int)SendDlgItemMessageW(hDlg, FIRE_SECURITY, CB_GETCURSEL, 0, 0);
 			FwallNoSaveUser = (int)SendDlgItemMessageW(hDlg, FIRE_SHARED, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		}
@@ -666,7 +666,7 @@ struct Firewall {
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
 		case FIRE_TYPE: {
-			auto Num = (int)SendDlgItemMessage(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0);
+			auto Num = (int)SendDlgItemMessageW(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0);
 			EnableWindow(GetDlgItem(hDlg, FIRE_USER), HideTbl[Num][0]);
 			EnableWindow(GetDlgItem(hDlg, FIRE_PASS), HideTbl[Num][1]);
 			EnableWindow(GetDlgItem(hDlg, FIRE_SECURITY), HideTbl[Num][2]);
