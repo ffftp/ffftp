@@ -889,15 +889,15 @@ void DispTransferType(void)
 	switch(TmpTransMode)
 	{
 		case TYPE_A :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_TEXT, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_TEXT, MAKELONG(TRUE, 0));
 			break;
 
 		case TYPE_I :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_BINARY, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_BINARY, MAKELONG(TRUE, 0));
 			break;
 
 		default :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_AUTO, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_AUTO, MAKELONG(TRUE, 0));
 			break;
 	}
 	return;
@@ -1033,27 +1033,27 @@ void DispHostKanjiCode(void)
 	{
 		// UTF-8対応
 		case KANJI_SJIS :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_SJIS, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_SJIS, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_EUC :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_EUC, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_EUC, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_JIS :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_JIS, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_JIS, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_UTF8N :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_UTF8N, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_UTF8N, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_UTF8BOM :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
 			break;
 
 		default :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_NONE, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_NONE, MAKELONG(TRUE, 0));
 			break;
 	}
 	return;
@@ -1176,23 +1176,23 @@ void DispLocalKanjiCode(void)
 	{
 		// UTF-8対応
 		case KANJI_SJIS :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_SJIS, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_SJIS, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_EUC :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_EUC, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_EUC, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_JIS :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_JIS, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_JIS, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_UTF8N :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_UTF8BOM :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
 			break;
 	}
 	return;
@@ -1301,9 +1301,9 @@ void SetHostKanaCnv(void)
 void DispHostKanaCnv(void)
 {
 	if(TmpHostKanaCnv != 0)
-		SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
+		SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
 	else
-		SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
+		SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
 	return;
 }
 
@@ -1469,13 +1469,13 @@ void DispListType(void)
 	switch(ListType)
 	{
 		case LVS_LIST :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_LIST, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_LIST, MAKELONG(TRUE, 0));
 			CheckMenuItem(GetMenu(hWndMain), MENU_LIST, MF_CHECKED);
 			CheckMenuItem(GetMenu(hWndMain), MENU_REPORT, MF_UNCHECKED);
 			break;
 
 		default :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_REPORT, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_REPORT, MAKELONG(TRUE, 0));
 			CheckMenuItem(GetMenu(hWndMain), MENU_REPORT, MF_CHECKED);
 			CheckMenuItem(GetMenu(hWndMain), MENU_LIST, MF_UNCHECKED);
 			break;
@@ -1535,12 +1535,12 @@ void DispSyncMoveMode(void)
 {
 	if(SyncMove != 0)
 	{
-		SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_SYNC, MAKELONG(TRUE, 0));
+		SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_SYNC, MAKELONG(TRUE, 0));
 		CheckMenuItem(GetMenu(GetMainHwnd()), MENU_SYNC, MF_CHECKED);
 	}
 	else
 	{
-		SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_SYNC, MAKELONG(FALSE, 0));
+		SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_SYNC, MAKELONG(FALSE, 0));
 		CheckMenuItem(GetMenu(GetMainHwnd()), MENU_SYNC, MF_UNCHECKED);
 	}
 	return;
