@@ -1058,7 +1058,7 @@ void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize)
 	if(Len > 0)
 	{
 		Len++;
-		Num = (int)SendDlgItemMessage(hDlg, CtrlList, LB_GETCOUNT, 0, 0);
+		Num = (int)SendDlgItemMessageW(hDlg, CtrlList, LB_GETCOUNT, 0, 0);
 		for(i = 0; i < Num; i++)
 		{
 			SendDlgItemMessage(hDlg, CtrlList, LB_GETTEXT, i, (LPARAM)Tmp);
@@ -1122,7 +1122,7 @@ void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize)
 	int i;
 
 	memset(Buf, NUL, BufSize);
-	Num = (int)SendDlgItemMessage(hDlg, CtrlList, LB_GETCOUNT, 0, 0);
+	Num = (int)SendDlgItemMessageW(hDlg, CtrlList, LB_GETCOUNT, 0, 0);
 	for(i = 0; i < Num; i++)
 	{
 		SendDlgItemMessage(hDlg, CtrlList, LB_GETTEXT, i, (LPARAM)Tmp);
