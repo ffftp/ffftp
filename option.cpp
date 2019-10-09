@@ -179,7 +179,7 @@ struct Transfer1 {
 		SendDlgItemMessageW(hDlg, TRMODE_SEMICOLON, BM_SETCHECK, VaxSemicolon, 0);
 		SendDlgItemMessageW(hDlg, TRMODE_MAKEDIR, BM_SETCHECK, MakeAllDir, 0);
 		SendDlgItemMessageW(hDlg, TRMODE_LISTERROR, BM_SETCHECK, AbortOnListError, 0);
-		SendMessage(hDlg, WM_COMMAND, MAKEWPARAM(TRMODE_EXT_LIST, 0), 0);
+		SendMessageW(hDlg, WM_COMMAND, MAKEWPARAM(TRMODE_EXT_LIST, 0), 0);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
