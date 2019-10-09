@@ -237,7 +237,7 @@ struct Transfer2 {
 		char Tmp[FMAX_PATH + 1];
 		sprintf(Tmp, "%d", TimeOut);
 		SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT, WM_SETTEXT, 0, (LPARAM)Tmp);
-		SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT_SPN, UDM_SETRANGE, 0, MAKELONG(300, 0));
+		SendDlgItemMessageW(hDlg, TRMODE2_TIMEOUT_SPN, UDM_SETRANGE, 0, MAKELONG(300, 0));
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -537,7 +537,7 @@ struct Connecting {
 			EnableWindow(GetDlgItem(hDlg, CONNECT_CLOSE_NOTIFY), FALSE);
 		SendDlgItemMessageW(hDlg, CONNECT_HIST, EM_LIMITTEXT, (WPARAM)2, 0);
 		SetDecimalText(hDlg, CONNECT_HIST, FileHist);
-		SendDlgItemMessage(hDlg, CONNECT_HIST_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(HISTORY_MAX, 0));
+		SendDlgItemMessageW(hDlg, CONNECT_HIST_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(HISTORY_MAX, 0));
 		SendDlgItemMessageW(hDlg, CONNECT_QUICK_ANONY, BM_SETCHECK, QuickAnonymous, 0);
 		SendDlgItemMessageW(hDlg, CONNECT_HIST_PASS, BM_SETCHECK, PassToHist, 0);
 		SendDlgItemMessageW(hDlg, CONNECT_SENDQUIT, BM_SETCHECK, SendQuit, 0);
