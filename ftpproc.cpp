@@ -2535,25 +2535,25 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 static void SetAttrToDialog(HWND hDlg, int Attr)
 {
 	if(Attr & 0x400)
-		SendDlgItemMessage(hDlg, PERM_O_READ, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_O_READ, BM_SETCHECK, 1, 0);
 	if(Attr & 0x200)
-		SendDlgItemMessage(hDlg, PERM_O_WRITE, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_O_WRITE, BM_SETCHECK, 1, 0);
 	if(Attr & 0x100)
-		SendDlgItemMessage(hDlg, PERM_O_EXEC, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_O_EXEC, BM_SETCHECK, 1, 0);
 
 	if(Attr & 0x40)
-		SendDlgItemMessage(hDlg, PERM_G_READ, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_G_READ, BM_SETCHECK, 1, 0);
 	if(Attr & 0x20)
-		SendDlgItemMessage(hDlg, PERM_G_WRITE, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_G_WRITE, BM_SETCHECK, 1, 0);
 	if(Attr & 0x10)
-		SendDlgItemMessage(hDlg, PERM_G_EXEC, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_G_EXEC, BM_SETCHECK, 1, 0);
 
 	if(Attr & 0x4)
-		SendDlgItemMessage(hDlg, PERM_A_READ, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_A_READ, BM_SETCHECK, 1, 0);
 	if(Attr & 0x2)
-		SendDlgItemMessage(hDlg, PERM_A_WRITE, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_A_WRITE, BM_SETCHECK, 1, 0);
 	if(Attr & 0x1)
-		SendDlgItemMessage(hDlg, PERM_A_EXEC, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_A_EXEC, BM_SETCHECK, 1, 0);
 
 	return;
 }

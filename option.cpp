@@ -174,11 +174,11 @@ struct Transfer1 {
 	static INT_PTR OnInit(HWND hDlg) {
 		SetMultiTextToList(hDlg, TRMODE_EXT_LIST, AsciiExt);
 		ModeButton::Set(hDlg, AskTransferType());
-		SendDlgItemMessage(hDlg, TRMODE_TIME, BM_SETCHECK, SaveTimeStamp, 0);
-		SendDlgItemMessage(hDlg, TRMODE_EOF, BM_SETCHECK, RmEOF, 0);
-		SendDlgItemMessage(hDlg, TRMODE_SEMICOLON, BM_SETCHECK, VaxSemicolon, 0);
-		SendDlgItemMessage(hDlg, TRMODE_MAKEDIR, BM_SETCHECK, MakeAllDir, 0);
-		SendDlgItemMessage(hDlg, TRMODE_LISTERROR, BM_SETCHECK, AbortOnListError, 0);
+		SendDlgItemMessageW(hDlg, TRMODE_TIME, BM_SETCHECK, SaveTimeStamp, 0);
+		SendDlgItemMessageW(hDlg, TRMODE_EOF, BM_SETCHECK, RmEOF, 0);
+		SendDlgItemMessageW(hDlg, TRMODE_SEMICOLON, BM_SETCHECK, VaxSemicolon, 0);
+		SendDlgItemMessageW(hDlg, TRMODE_MAKEDIR, BM_SETCHECK, MakeAllDir, 0);
+		SendDlgItemMessageW(hDlg, TRMODE_LISTERROR, BM_SETCHECK, AbortOnListError, 0);
 		SendMessage(hDlg, WM_COMMAND, MAKEWPARAM(TRMODE_EXT_LIST, 0), 0);
 		return TRUE;
 	}
@@ -299,7 +299,7 @@ struct Transfer3 {
 			Fname = strchr(Attr, NUL) + 1;
 		}
 
-		SendDlgItemMessage(hDlg, TRMODE3_FOLDER, BM_SETCHECK, FolderAttr, 0);
+		SendDlgItemMessageW(hDlg, TRMODE3_FOLDER, BM_SETCHECK, FolderAttr, 0);
 		if (FolderAttr == NO)
 			EnableWindow(GetDlgItem(hDlg, TRMODE3_FOLDER_ATTR), FALSE);
 
@@ -352,9 +352,9 @@ struct Transfer4 {
 	static INT_PTR OnInit(HWND hDlg) {
 		KanjiButton::Set(hDlg, AskLocalKanjiCode());
 		if (IsZoneIDLoaded())
-			SendDlgItemMessage(hDlg, TRMODE4_MARK_INTERNET, BM_SETCHECK, MarkAsInternet, 0);
+			SendDlgItemMessageW(hDlg, TRMODE4_MARK_INTERNET, BM_SETCHECK, MarkAsInternet, 0);
 		else {
-			SendDlgItemMessage(hDlg, TRMODE4_MARK_INTERNET, BM_SETCHECK, BST_UNCHECKED, 0);
+			SendDlgItemMessageW(hDlg, TRMODE4_MARK_INTERNET, BM_SETCHECK, BST_UNCHECKED, 0);
 			EnableWindow(GetDlgItem(hDlg, TRMODE4_MARK_INTERNET), FALSE);
 		}
 		return TRUE;
@@ -381,10 +381,10 @@ struct Mirroring {
 	static INT_PTR OnInit(HWND hDlg) {
 		SetMultiTextToList(hDlg, MIRROR_NOTRN_LIST, MirrorNoTrn);
 		SetMultiTextToList(hDlg, MIRROR_NODEL_LIST, MirrorNoDel);
-		SendDlgItemMessage(hDlg, MIRROR_LOW, BM_SETCHECK, MirrorFnameCnv, 0);
-		SendDlgItemMessage(hDlg, MIRROR_UPDEL_NOTIFY, BM_SETCHECK, MirUpDelNotify, 0);
-		SendDlgItemMessage(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_SETCHECK, MirDownDelNotify, 0);
-		SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_SETCHECK, MirrorNoTransferContents, 0);
+		SendDlgItemMessageW(hDlg, MIRROR_LOW, BM_SETCHECK, MirrorFnameCnv, 0);
+		SendDlgItemMessageW(hDlg, MIRROR_UPDEL_NOTIFY, BM_SETCHECK, MirUpDelNotify, 0);
+		SendDlgItemMessageW(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_SETCHECK, MirDownDelNotify, 0);
+		SendDlgItemMessageW(hDlg, MIRROR_NO_TRANSFER, BM_SETCHECK, MirrorNoTransferContents, 0);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -463,10 +463,10 @@ struct View1 {
 		TmpFont = ListLogFont;
 		if (ListFont != NULL)
 			SendDlgItemMessageW(hDlg, DISP_FONT, WM_SETTEXT, 0, (LPARAM)TmpFont.lfFaceName);
-		SendDlgItemMessage(hDlg, DISP_HIDE, BM_SETCHECK, DispIgnoreHide, 0);
-		SendDlgItemMessage(hDlg, DISP_DRIVE, BM_SETCHECK, DispDrives, 0);
-		SendDlgItemMessage(hDlg, DISP_ICON, BM_SETCHECK, DispFileIcon, 0);
-		SendDlgItemMessage(hDlg, DISP_SECOND, BM_SETCHECK, DispTimeSeconds, 0);
+		SendDlgItemMessageW(hDlg, DISP_HIDE, BM_SETCHECK, DispIgnoreHide, 0);
+		SendDlgItemMessageW(hDlg, DISP_DRIVE, BM_SETCHECK, DispDrives, 0);
+		SendDlgItemMessageW(hDlg, DISP_ICON, BM_SETCHECK, DispFileIcon, 0);
+		SendDlgItemMessageW(hDlg, DISP_SECOND, BM_SETCHECK, DispTimeSeconds, 0);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -503,9 +503,9 @@ struct View2 {
 	static constexpr WORD dialogId = opt_disp2_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, DISP2_PERMIT_NUM, BM_SETCHECK, DispPermissionsNumber, 0);
-		SendDlgItemMessage(hDlg, DISP2_AUTO_REFRESH, BM_SETCHECK, AutoRefreshFileList, 0);
-		SendDlgItemMessage(hDlg, DISP2_REMOVE_OLD_LOG, BM_SETCHECK, RemoveOldLog, 0);
+		SendDlgItemMessageW(hDlg, DISP2_PERMIT_NUM, BM_SETCHECK, DispPermissionsNumber, 0);
+		SendDlgItemMessageW(hDlg, DISP2_AUTO_REFRESH, BM_SETCHECK, AutoRefreshFileList, 0);
+		SendDlgItemMessageW(hDlg, DISP2_REMOVE_OLD_LOG, BM_SETCHECK, RemoveOldLog, 0);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -527,22 +527,22 @@ struct Connecting {
 	static constexpr WORD dialogId = opt_connect_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, CONNECT_CONNECT, BM_SETCHECK, ConnectOnStart, 0);
-		SendDlgItemMessage(hDlg, CONNECT_OLDDLG, BM_SETCHECK, ConnectAndSet, 0);
-		SendDlgItemMessage(hDlg, CONNECT_RASCLOSE, BM_SETCHECK, RasClose, 0);
+		SendDlgItemMessageW(hDlg, CONNECT_CONNECT, BM_SETCHECK, ConnectOnStart, 0);
+		SendDlgItemMessageW(hDlg, CONNECT_OLDDLG, BM_SETCHECK, ConnectAndSet, 0);
+		SendDlgItemMessageW(hDlg, CONNECT_RASCLOSE, BM_SETCHECK, RasClose, 0);
 		if (NoRasControl != NO)
 			EnableWindow(GetDlgItem(hDlg, CONNECT_RASCLOSE), FALSE);
-		SendDlgItemMessage(hDlg, CONNECT_CLOSE_NOTIFY, BM_SETCHECK, RasCloseNotify, 0);
+		SendDlgItemMessageW(hDlg, CONNECT_CLOSE_NOTIFY, BM_SETCHECK, RasCloseNotify, 0);
 		if (RasClose == NO || NoRasControl != NO)
 			EnableWindow(GetDlgItem(hDlg, CONNECT_CLOSE_NOTIFY), FALSE);
 		SendDlgItemMessage(hDlg, CONNECT_HIST, EM_LIMITTEXT, (WPARAM)2, 0);
 		SetDecimalText(hDlg, CONNECT_HIST, FileHist);
 		SendDlgItemMessage(hDlg, CONNECT_HIST_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(HISTORY_MAX, 0));
-		SendDlgItemMessage(hDlg, CONNECT_QUICK_ANONY, BM_SETCHECK, QuickAnonymous, 0);
-		SendDlgItemMessage(hDlg, CONNECT_HIST_PASS, BM_SETCHECK, PassToHist, 0);
-		SendDlgItemMessage(hDlg, CONNECT_SENDQUIT, BM_SETCHECK, SendQuit, 0);
-		SendDlgItemMessage(hDlg, CONNECT_NORAS, BM_SETCHECK, NoRasControl, 0);
-		SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_SETCHECK, UPnPEnabled, 0);
+		SendDlgItemMessageW(hDlg, CONNECT_QUICK_ANONY, BM_SETCHECK, QuickAnonymous, 0);
+		SendDlgItemMessageW(hDlg, CONNECT_HIST_PASS, BM_SETCHECK, PassToHist, 0);
+		SendDlgItemMessageW(hDlg, CONNECT_SENDQUIT, BM_SETCHECK, SendQuit, 0);
+		SendDlgItemMessageW(hDlg, CONNECT_NORAS, BM_SETCHECK, NoRasControl, 0);
+		SendDlgItemMessageW(hDlg, CONNECT_UPNP, BM_SETCHECK, UPnPEnabled, 0);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -621,10 +621,10 @@ struct Firewall {
 		sprintf(Tmp, "%c", FwallDelimiter);
 		SendDlgItemMessage(hDlg, FIRE_DELIMIT, WM_SETTEXT, 0, (LPARAM)Tmp);
 
-		SendDlgItemMessage(hDlg, FIRE_USEIT, BM_SETCHECK, FwallDefault, 0);
-		SendDlgItemMessage(hDlg, FIRE_PASV, BM_SETCHECK, PasvDefault, 0);
-		SendDlgItemMessage(hDlg, FIRE_RESOLV, BM_SETCHECK, FwallResolve, 0);
-		SendDlgItemMessage(hDlg, FIRE_LOWER, BM_SETCHECK, FwallLower, 0);
+		SendDlgItemMessageW(hDlg, FIRE_USEIT, BM_SETCHECK, FwallDefault, 0);
+		SendDlgItemMessageW(hDlg, FIRE_PASV, BM_SETCHECK, PasvDefault, 0);
+		SendDlgItemMessageW(hDlg, FIRE_RESOLV, BM_SETCHECK, FwallResolve, 0);
+		SendDlgItemMessageW(hDlg, FIRE_LOWER, BM_SETCHECK, FwallLower, 0);
 
 		SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN212);
 		SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN213);
@@ -633,7 +633,7 @@ struct Firewall {
 		SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN216);
 		SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_SETCURSEL, FwallSecurity, 0);
 
-		SendDlgItemMessage(hDlg, FIRE_SHARED, BM_SETCHECK, FwallNoSaveUser, 0);
+		SendDlgItemMessageW(hDlg, FIRE_SHARED, BM_SETCHECK, FwallNoSaveUser, 0);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -731,9 +731,9 @@ struct Sounds {
 	static constexpr WORD dialogId = opt_sound_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, SOUND_CONNECT, BM_SETCHECK, Sound[SND_CONNECT].On, 0);
-		SendDlgItemMessage(hDlg, SOUND_TRANS, BM_SETCHECK, Sound[SND_TRANS].On, 0);
-		SendDlgItemMessage(hDlg, SOUND_ERROR, BM_SETCHECK, Sound[SND_ERROR].On, 0);
+		SendDlgItemMessageW(hDlg, SOUND_CONNECT, BM_SETCHECK, Sound[SND_CONNECT].On, 0);
+		SendDlgItemMessageW(hDlg, SOUND_TRANS, BM_SETCHECK, Sound[SND_TRANS].On, 0);
+		SendDlgItemMessageW(hDlg, SOUND_ERROR, BM_SETCHECK, Sound[SND_ERROR].On, 0);
 
 		SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
 		SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
@@ -795,12 +795,12 @@ struct Other {
 	static constexpr WORD dialogId = opt_misc_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, MISC_WINPOS, BM_SETCHECK, SaveWinPos, 0);
-		SendDlgItemMessage(hDlg, MISC_DEBUG, BM_SETCHECK, DebugConsole, 0);
-		SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_SETCHECK, RegType, 0);
+		SendDlgItemMessageW(hDlg, MISC_WINPOS, BM_SETCHECK, SaveWinPos, 0);
+		SendDlgItemMessageW(hDlg, MISC_DEBUG, BM_SETCHECK, DebugConsole, 0);
+		SendDlgItemMessageW(hDlg, MISC_REGTYPE, BM_SETCHECK, RegType, 0);
 		if (AskForceIni() == YES)
 			EnableWindow(GetDlgItem(hDlg, MISC_REGTYPE), FALSE);
-		SendDlgItemMessage(hDlg, MISC_ENCRYPT_SETTINGS, BM_SETCHECK, EncryptAllSettings, 0);
+		SendDlgItemMessageW(hDlg, MISC_ENCRYPT_SETTINGS, BM_SETCHECK, EncryptAllSettings, 0);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {

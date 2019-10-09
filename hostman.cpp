@@ -1422,8 +1422,8 @@ struct General {
 		SendDlgItemMessage(hDlg, HSET_PASS, WM_SETTEXT, 0, (LPARAM)TmpHost.PassWord);
 		SendDlgItemMessage(hDlg, HSET_LOCAL, WM_SETTEXT, 0, (LPARAM)TmpHost.LocalInitDir);
 		SendDlgItemMessage(hDlg, HSET_REMOTE, WM_SETTEXT, 0, (LPARAM)TmpHost.RemoteInitDir);
-		SendDlgItemMessage(hDlg, HSET_ANONYMOUS, BM_SETCHECK, TmpHost.Anonymous, 0);
-		SendDlgItemMessage(hDlg, HSET_LASTDIR, BM_SETCHECK, TmpHost.LastDir, 0);
+		SendDlgItemMessageW(hDlg, HSET_ANONYMOUS, BM_SETCHECK, TmpHost.Anonymous, 0);
+		SendDlgItemMessageW(hDlg, HSET_LASTDIR, BM_SETCHECK, TmpHost.LastDir, 0);
 		if (AskConnecting() == NO)
 			EnableWindow(GetDlgItem(hDlg, HSET_REMOTE_CUR), FALSE);
 		return TRUE;
@@ -1493,9 +1493,9 @@ struct Advanced {
 		SendDlgItemMessage(hDlg, HSET_PORT, WM_SETTEXT, 0, (LPARAM)Tmp);
 		SendDlgItemMessage(hDlg, HSET_ACCOUNT, EM_LIMITTEXT, ACCOUNT_LEN, 0);
 		SendDlgItemMessage(hDlg, HSET_ACCOUNT, WM_SETTEXT, 0, (LPARAM)TmpHost.Account);
-		SendDlgItemMessage(hDlg, HSET_PASV, BM_SETCHECK, TmpHost.Pasv, 0);
-		SendDlgItemMessage(hDlg, HSET_FIREWALL, BM_SETCHECK, TmpHost.FireWall, 0);
-		SendDlgItemMessage(hDlg, HSET_SYNCMOVE, BM_SETCHECK, TmpHost.SyncMove, 0);
+		SendDlgItemMessageW(hDlg, HSET_PASV, BM_SETCHECK, TmpHost.Pasv, 0);
+		SendDlgItemMessageW(hDlg, HSET_FIREWALL, BM_SETCHECK, TmpHost.FireWall, 0);
+		SendDlgItemMessageW(hDlg, HSET_SYNCMOVE, BM_SETCHECK, TmpHost.SyncMove, 0);
 		for (int i = -12; i <= 12; i++) {
 			if (i == 0)
 				sprintf(Tmp, "GMT");
@@ -1557,11 +1557,11 @@ struct KanjiCode {
 	using NameKanjiButton = RadioButton<HSET_FN_AUTO_CNV, HSET_FN_SJIS_CNV, HSET_FN_JIS_CNV, HSET_FN_EUC_CNV, HSET_FN_SMH_CNV, HSET_FN_SMC_CNV, HSET_FN_UTF8N_CNV, HSET_FN_UTF8HFSX_CNV>;
 	static INT_PTR OnInit(HWND hDlg) {
 		KanjiButton::Set(hDlg, TmpHost.KanjiCode);
-		SendDlgItemMessage(hDlg, HSET_HANCNV, BM_SETCHECK, TmpHost.KanaCnv, 0);
+		SendDlgItemMessageW(hDlg, HSET_HANCNV, BM_SETCHECK, TmpHost.KanaCnv, 0);
 		NameKanjiButton::Set(hDlg, TmpHost.NameKanjiCode);
 		if (!SupportIdn)
 			EnableWindow(GetDlgItem(hDlg, HSET_FN_UTF8HFSX_CNV), FALSE);
-		SendDlgItemMessage(hDlg, HSET_FN_HANCNV, BM_SETCHECK, TmpHost.NameKanaCnv, 0);
+		SendDlgItemMessageW(hDlg, HSET_FN_HANCNV, BM_SETCHECK, TmpHost.NameKanaCnv, 0);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -1610,9 +1610,9 @@ struct Dialup {
 	static constexpr WORD dialogId = hset_dialup_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, HSET_DIALUP, BM_SETCHECK, TmpHost.Dialup, 0);
-		SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_SETCHECK, TmpHost.DialupAlways, 0);
-		SendDlgItemMessage(hDlg, HSET_DIALNOTIFY, BM_SETCHECK, TmpHost.DialupNotify, 0);
+		SendDlgItemMessageW(hDlg, HSET_DIALUP, BM_SETCHECK, TmpHost.Dialup, 0);
+		SendDlgItemMessageW(hDlg, HSET_DIALUSETHIS, BM_SETCHECK, TmpHost.DialupAlways, 0);
+		SendDlgItemMessageW(hDlg, HSET_DIALNOTIFY, BM_SETCHECK, TmpHost.DialupNotify, 0);
 		if (NoRasControl != NO)
 			EnableWindow(GetDlgItem(hDlg, HSET_DIALUP), FALSE);
 		if (TmpHost.DialupAlways == NO || NoRasControl != NO)
@@ -1670,14 +1670,14 @@ struct Special {
 		SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_SETTEXT, 0, (LPARAM)TmpHost.ChmodCmd);
 		SendDlgItemMessage(hDlg, HSET_LS_FNAME, EM_LIMITTEXT, NLST_NAME_LEN, 0);
 		SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_SETTEXT, 0, (LPARAM)TmpHost.LsName);
-		SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_SETCHECK, TmpHost.ListCmdOnly, 0);
+		SendDlgItemMessageW(hDlg, HSET_LISTCMD, BM_SETCHECK, TmpHost.ListCmdOnly, 0);
 		if (TmpHost.ListCmdOnly == YES)
 			EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
 		else
 			EnableWindow(GetDlgItem(hDlg, HSET_MLSDCMD), FALSE);
-		SendDlgItemMessage(hDlg, HSET_MLSDCMD, BM_SETCHECK, TmpHost.UseMLSD, 0);
-		SendDlgItemMessage(hDlg, HSET_NLST_R, BM_SETCHECK, TmpHost.UseNLST_R, 0);
-		SendDlgItemMessage(hDlg, HSET_FULLPATH, BM_SETCHECK, TmpHost.NoFullPath, 0);
+		SendDlgItemMessageW(hDlg, HSET_MLSDCMD, BM_SETCHECK, TmpHost.UseMLSD, 0);
+		SendDlgItemMessageW(hDlg, HSET_NLST_R, BM_SETCHECK, TmpHost.UseNLST_R, 0);
+		SendDlgItemMessageW(hDlg, HSET_FULLPATH, BM_SETCHECK, TmpHost.NoFullPath, 0);
 		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN139);
 		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN140);
 		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN141);
@@ -1746,7 +1746,7 @@ struct Special {
 			else if (Num == HTYPE_TANDEM) /* Tandem */
 			{
 				/* Tandem を選択すると自動的に LIST にチェックをいれる */
-				SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_SETCHECK, 1, 0);
+				SendDlgItemMessageW(hDlg, HSET_LISTCMD, BM_SETCHECK, 1, 0);
 				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), FALSE);
@@ -1776,9 +1776,9 @@ struct Encryption {
 	static constexpr WORD dialogId = hset_crypt_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_SETCHECK, TmpHost.UseNoEncryption, 0);
-		SendDlgItemMessage(hDlg, HSET_FTPES, BM_SETCHECK, TmpHost.UseFTPES, 0);
-		SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, TmpHost.UseFTPIS, 0);
+		SendDlgItemMessageW(hDlg, HSET_NO_ENCRYPTION, BM_SETCHECK, TmpHost.UseNoEncryption, 0);
+		SendDlgItemMessageW(hDlg, HSET_FTPES, BM_SETCHECK, TmpHost.UseFTPES, 0);
+		SendDlgItemMessageW(hDlg, HSET_FTPIS, BM_SETCHECK, TmpHost.UseFTPIS, 0);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -1803,7 +1803,7 @@ struct Feature {
 		SendDlgItemMessage(hDlg, HSET_THREAD_COUNT, EM_LIMITTEXT, (WPARAM)1, 0);
 		SetDecimalText(hDlg, HSET_THREAD_COUNT, TmpHost.MaxThreadCount);
 		SendDlgItemMessage(hDlg, HSET_THREAD_COUNT_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(MAX_DATA_CONNECTION, 1));
-		SendDlgItemMessage(hDlg, HSET_REUSE_SOCKET, BM_SETCHECK, TmpHost.ReuseCmdSkt, 0);
+		SendDlgItemMessageW(hDlg, HSET_REUSE_SOCKET, BM_SETCHECK, TmpHost.ReuseCmdSkt, 0);
 		SendDlgItemMessage(hDlg, HSET_NOOP_INTERVAL, EM_LIMITTEXT, (WPARAM)3, 0);
 		SetDecimalText(hDlg, HSET_NOOP_INTERVAL, TmpHost.NoopInterval);
 		SendDlgItemMessage(hDlg, HSET_NOOP_INTERVAL_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(300, 0));
@@ -1821,8 +1821,8 @@ struct Feature {
 			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 3, 0);
 		else
 			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
-		SendDlgItemMessage(hDlg, HSET_ERROR_RECONNECT, BM_SETCHECK, TmpHost.TransferErrorReconnect, 0);
-		SendDlgItemMessage(hDlg, HSET_NO_PASV_ADRS, BM_SETCHECK, TmpHost.NoPasvAdrs, 0);
+		SendDlgItemMessageW(hDlg, HSET_ERROR_RECONNECT, BM_SETCHECK, TmpHost.TransferErrorReconnect, 0);
+		SendDlgItemMessageW(hDlg, HSET_NO_PASV_ADRS, BM_SETCHECK, TmpHost.NoPasvAdrs, 0);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
