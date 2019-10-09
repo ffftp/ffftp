@@ -1580,7 +1580,7 @@ void SetRemoteDirHist(char *Path)
 	LONG_PTR i;
 
 	if((i = SendMessage(hWndDirRemote, CB_FINDSTRINGEXACT, 0, (LPARAM)Path)) != CB_ERR)
-		SendMessage(hWndDirRemote, CB_DELETESTRING, i, 0);
+		SendMessageW(hWndDirRemote, CB_DELETESTRING, i, 0);
 
 	SendMessage(hWndDirRemote, CB_ADDSTRING, 0, (LPARAM)Path);
 	i = SendMessageW(hWndDirRemote, CB_GETCOUNT, 0, 0);
