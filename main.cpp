@@ -2439,7 +2439,7 @@ static void ResizeWindowProc(void)
 	RECT Rect;
 
 	GetClientRect(GetMainHwnd(), &Rect);
-	SendMessage(GetSbarWnd(), WM_SIZE, SIZE_RESTORED, MAKELPARAM(Rect.right, Rect.bottom));
+	SendMessageW(GetSbarWnd(), WM_SIZE, SIZE_RESTORED, MAKELPARAM(Rect.right, Rect.bottom));
 
 	CalcWinSize();
 	SetWindowPos(GetMainTbarWnd(), 0, 0, 0, Rect.right, AskToolWinHeight(), SWP_NOACTIVATE | SWP_NOZORDER);
