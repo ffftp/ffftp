@@ -333,7 +333,7 @@ struct Transfer3 {
 			break;
 		case TRMODE3_DEL:
 			if (auto Tmp = (long)SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETNEXTITEM, -1, MAKELPARAM(LVNI_ALL | LVNI_SELECTED, 0)); Tmp != -1)
-				SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_DELETEITEM, Tmp, 0);
+				SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_DELETEITEM, Tmp, 0);
 			break;
 		case TRMODE3_FOLDER:
 			if (SendDlgItemMessageW(hDlg, TRMODE3_FOLDER, BM_GETCHECK, 0, 0) == 1)
