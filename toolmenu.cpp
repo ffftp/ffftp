@@ -1583,7 +1583,7 @@ void SetRemoteDirHist(char *Path)
 		SendMessage(hWndDirRemote, CB_DELETESTRING, i, 0);
 
 	SendMessage(hWndDirRemote, CB_ADDSTRING, 0, (LPARAM)Path);
-	i = SendMessage(hWndDirRemote, CB_GETCOUNT, 0, 0);
+	i = SendMessageW(hWndDirRemote, CB_GETCOUNT, 0, 0);
 	SendMessageW(hWndDirRemote, CB_SETCURSEL, i-1, 0);
 
 	strcpy(RemoteCurDir, Path);
