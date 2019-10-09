@@ -218,7 +218,7 @@ struct Transfer1 {
 				AddTextToListBox(hDlg, Tmp, TRMODE_EXT_LIST, ASCII_EXT_LEN + 1);
 			break;
 		case TRMODE_DEL:
-			if (auto Num = (int)SendDlgItemMessage(hDlg, TRMODE_EXT_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
+			if (auto Num = (int)SendDlgItemMessageW(hDlg, TRMODE_EXT_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
 				SendDlgItemMessageW(hDlg, TRMODE_EXT_LIST, LB_DELETESTRING, Num, 0);
 			break;
 		}
@@ -414,11 +414,11 @@ struct Mirroring {
 				AddTextToListBox(hDlg, Tmp, MIRROR_NODEL_LIST, MIRROR_LEN + 1);
 			break;
 		case MIRROR_NOTRN_DEL:
-			if (auto Num = (int)SendDlgItemMessage(hDlg, MIRROR_NOTRN_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
+			if (auto Num = (int)SendDlgItemMessageW(hDlg, MIRROR_NOTRN_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
 				SendDlgItemMessageW(hDlg, MIRROR_NOTRN_LIST, LB_DELETESTRING, Num, 0);
 			break;
 		case MIRROR_NODEL_DEL:
-			if (auto Num = (int)SendDlgItemMessage(hDlg, MIRROR_NODEL_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
+			if (auto Num = (int)SendDlgItemMessageW(hDlg, MIRROR_NODEL_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
 				SendDlgItemMessageW(hDlg, MIRROR_NODEL_LIST, LB_DELETESTRING, Num, 0);
 			break;
 		}
