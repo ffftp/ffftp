@@ -417,7 +417,7 @@ struct MirrorList {
 			auto Num = (int)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELITEMS, size_as<WPARAM>(List), (LPARAM)data(List));
 			for (Num--; Num >= 0; Num--)
 				if (RemoveTmpTransFileListItem(Base, List[Num]) == FFFTP_SUCCESS)
-					SendDlgItemMessage(hDlg, MIRROR_LIST, LB_DELETESTRING, List[Num], 0);
+					SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_DELETESTRING, List[Num], 0);
 				else
 					MessageBeep(-1);
 			CountMirrorFiles(hDlg, *Base);

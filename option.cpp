@@ -219,7 +219,7 @@ struct Transfer1 {
 			break;
 		case TRMODE_DEL:
 			if (auto Num = (int)SendDlgItemMessage(hDlg, TRMODE_EXT_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
-				SendDlgItemMessage(hDlg, TRMODE_EXT_LIST, LB_DELETESTRING, Num, 0);
+				SendDlgItemMessageW(hDlg, TRMODE_EXT_LIST, LB_DELETESTRING, Num, 0);
 			break;
 		}
 	}
@@ -415,11 +415,11 @@ struct Mirroring {
 			break;
 		case MIRROR_NOTRN_DEL:
 			if (auto Num = (int)SendDlgItemMessage(hDlg, MIRROR_NOTRN_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
-				SendDlgItemMessage(hDlg, MIRROR_NOTRN_LIST, LB_DELETESTRING, Num, 0);
+				SendDlgItemMessageW(hDlg, MIRROR_NOTRN_LIST, LB_DELETESTRING, Num, 0);
 			break;
 		case MIRROR_NODEL_DEL:
 			if (auto Num = (int)SendDlgItemMessage(hDlg, MIRROR_NODEL_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
-				SendDlgItemMessage(hDlg, MIRROR_NODEL_LIST, LB_DELETESTRING, Num, 0);
+				SendDlgItemMessageW(hDlg, MIRROR_NODEL_LIST, LB_DELETESTRING, Num, 0);
 			break;
 		}
 	}
