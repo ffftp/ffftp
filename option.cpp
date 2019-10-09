@@ -271,9 +271,7 @@ struct Transfer3 {
 	static constexpr WORD dialogId = opt_trmode3_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		auto Tmp = (long)SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
-		Tmp |= LVS_EX_FULLROWSELECT;
-		SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
+		SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 
 		RECT Rect;
 		GetClientRect(GetDlgItem(hDlg, TRMODE3_LIST), &Rect);

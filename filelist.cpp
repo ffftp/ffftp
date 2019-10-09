@@ -136,7 +136,6 @@ int MakeListWin()
 {
 	int Sts;
 	LV_COLUMN LvCol;
-	long Tmp;
 
 	// 変数が未初期化のバグ修正
 	memset(&LvCol, 0, sizeof(LV_COLUMN));
@@ -149,9 +148,7 @@ int MakeListWin()
 	{
 		LocalProcPtr = (WNDPROC)SetWindowLongPtrW(hWndListLocal, GWLP_WNDPROC, (LONG_PTR)LocalWndProc);
 
-		Tmp = (long)SendMessage(hWndListLocal, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
-		Tmp |= LVS_EX_FULLROWSELECT;
-		SendMessage(hWndListLocal, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
+		SendMessageW(hWndListLocal, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 
 		if(ListFont != NULL)
 			SendMessage(hWndListLocal, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
@@ -194,9 +191,7 @@ int MakeListWin()
 	{
 		RemoteProcPtr = (WNDPROC)SetWindowLongPtrW(hWndListRemote, GWLP_WNDPROC, (LONG_PTR)RemoteWndProc);
 
-		Tmp = (long)SendMessage(hWndListRemote, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
-		Tmp |= LVS_EX_FULLROWSELECT;
-		SendMessage(hWndListRemote, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
+		SendMessageW(hWndListRemote, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 
 		if(ListFont != NULL)
 			SendMessage(hWndListRemote, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
