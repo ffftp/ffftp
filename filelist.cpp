@@ -151,7 +151,7 @@ int MakeListWin()
 		SendMessageW(hWndListLocal, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 
 		if(ListFont != NULL)
-			SendMessage(hWndListLocal, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
+			SendMessageW(hWndListLocal, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
 
 		ListImg = ImageList_LoadImageW(GetFtpInst(), MAKEINTRESOURCEW(dirattr_bmp), 16, 9, RGB(255,0,0), IMAGE_BITMAP, 0);
 		SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
@@ -194,7 +194,7 @@ int MakeListWin()
 		SendMessageW(hWndListRemote, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 
 		if(ListFont != NULL)
-			SendMessage(hWndListRemote, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
+			SendMessageW(hWndListRemote, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
 
 		SendMessage(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
 		ShowWindow(hWndListRemote, SW_SHOW);
