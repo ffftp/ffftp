@@ -604,7 +604,7 @@ struct Firewall {
 		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN210);
 		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN211);
 		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN294);
-		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_SETCURSEL, Type - 1, 0);
+		SendDlgItemMessageW(hDlg, FIRE_TYPE, CB_SETCURSEL, Type - 1, 0);
 
 		SendDlgItemMessageW(hDlg, FIRE_HOST, EM_LIMITTEXT, HOST_ADRS_LEN, 0);
 		SendDlgItemMessageW(hDlg, FIRE_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
@@ -631,7 +631,7 @@ struct Firewall {
 		SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN214);
 		SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN215);
 		SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN216);
-		SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_SETCURSEL, FwallSecurity, 0);
+		SendDlgItemMessageW(hDlg, FIRE_SECURITY, CB_SETCURSEL, FwallSecurity, 0);
 
 		SendDlgItemMessageW(hDlg, FIRE_SHARED, BM_SETCHECK, FwallNoSaveUser, 0);
 		return TRUE;

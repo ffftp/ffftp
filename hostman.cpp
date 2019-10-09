@@ -1505,14 +1505,14 @@ struct Advanced {
 				sprintf(Tmp, "GMT%+02d:00", i);
 			SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_ADDSTRING, 0, (LPARAM)Tmp);
 		}
-		SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_SETCURSEL, (UINT_PTR)TmpHost.TimeZone + 12, 0);
+		SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_SETCURSEL, (UINT_PTR)TmpHost.TimeZone + 12, 0);
 
 		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN134);
 		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN135);
 		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN136);
 		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN137);
 		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN138);
-		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_SETCURSEL, TmpHost.Security, 0);
+		SendDlgItemMessageW(hDlg, HSET_SECURITY, CB_SETCURSEL, TmpHost.Security, 0);
 		SendDlgItemMessageW(hDlg, HSET_INITCMD, EM_LIMITTEXT, INITCMD_LEN, 0);
 		SendDlgItemMessage(hDlg, HSET_INITCMD, WM_SETTEXT, 0, (LPARAM)TmpHost.InitCmd);
 		return TRUE;
@@ -1689,7 +1689,7 @@ struct Special {
 #if defined(HAVE_TANDEM)
 		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN2000);
 #endif
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_SETCURSEL, TmpHost.HostType, 0);
+		SendDlgItemMessageW(hDlg, HSET_HOSTTYPE, CB_SETCURSEL, TmpHost.HostType, 0);
 #if defined(HAVE_TANDEM)
 		if (TmpHost.HostType == 2 || TmpHost.HostType == HTYPE_TANDEM)  /* VAX or Tandem */
 #else
@@ -1812,15 +1812,15 @@ struct Feature {
 		SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN337);
 		SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN338);
 		if (TmpHost.TransferErrorNotify == YES)
-			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
+			SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
 		else if (TmpHost.TransferErrorMode == EXIST_OVW)
-			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 1, 0);
+			SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 1, 0);
 		else if (TmpHost.TransferErrorMode == EXIST_RESUME)
-			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 2, 0);
+			SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 2, 0);
 		else if (TmpHost.TransferErrorMode == EXIST_IGNORE)
-			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 3, 0);
+			SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 3, 0);
 		else
-			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
+			SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
 		SendDlgItemMessageW(hDlg, HSET_ERROR_RECONNECT, BM_SETCHECK, TmpHost.TransferErrorReconnect, 0);
 		SendDlgItemMessageW(hDlg, HSET_NO_PASV_ADRS, BM_SETCHECK, TmpHost.NoPasvAdrs, 0);
 		return TRUE;
