@@ -188,11 +188,11 @@ struct Transfer1 {
 			SetTransferTypeImm(ModeButton::Get(hDlg));
 			SaveTransferType();
 			GetMultiTextFromList(hDlg, TRMODE_EXT_LIST, AsciiExt, ASCII_EXT_LEN + 1);
-			SaveTimeStamp = (int)SendDlgItemMessage(hDlg, TRMODE_TIME, BM_GETCHECK, 0, 0);
-			RmEOF = (int)SendDlgItemMessage(hDlg, TRMODE_EOF, BM_GETCHECK, 0, 0);
-			VaxSemicolon = (int)SendDlgItemMessage(hDlg, TRMODE_SEMICOLON, BM_GETCHECK, 0, 0);
-			MakeAllDir = (int)SendDlgItemMessage(hDlg, TRMODE_MAKEDIR, BM_GETCHECK, 0, 0);
-			AbortOnListError = (int)SendDlgItemMessage(hDlg, TRMODE_LISTERROR, BM_GETCHECK, 0, 0);
+			SaveTimeStamp = (int)SendDlgItemMessageW(hDlg, TRMODE_TIME, BM_GETCHECK, 0, 0);
+			RmEOF = (int)SendDlgItemMessageW(hDlg, TRMODE_EOF, BM_GETCHECK, 0, 0);
+			VaxSemicolon = (int)SendDlgItemMessageW(hDlg, TRMODE_SEMICOLON, BM_GETCHECK, 0, 0);
+			MakeAllDir = (int)SendDlgItemMessageW(hDlg, TRMODE_MAKEDIR, BM_GETCHECK, 0, 0);
+			AbortOnListError = (int)SendDlgItemMessageW(hDlg, TRMODE_LISTERROR, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000042);
@@ -316,7 +316,7 @@ struct Transfer3 {
 			char TmpStr[10];
 			SendDlgItemMessage(hDlg, TRMODE3_FOLDER_ATTR, WM_GETTEXT, 5 + 1, (LPARAM)TmpStr);
 			FolderAttrNum = atoi(TmpStr);
-			FolderAttr = (int)SendDlgItemMessage(hDlg, TRMODE3_FOLDER, BM_GETCHECK, 0, 0);
+			FolderAttr = (int)SendDlgItemMessageW(hDlg, TRMODE3_FOLDER, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		}
 		case PSN_HELP:
@@ -336,7 +336,7 @@ struct Transfer3 {
 				SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_DELETEITEM, Tmp, 0);
 			break;
 		case TRMODE3_FOLDER:
-			if (SendDlgItemMessage(hDlg, TRMODE3_FOLDER, BM_GETCHECK, 0, 0) == 1)
+			if (SendDlgItemMessageW(hDlg, TRMODE3_FOLDER, BM_GETCHECK, 0, 0) == 1)
 				EnableWindow(GetDlgItem(hDlg, TRMODE3_FOLDER_ATTR), TRUE);
 			else
 				EnableWindow(GetDlgItem(hDlg, TRMODE3_FOLDER_ATTR), FALSE);
@@ -365,7 +365,7 @@ struct Transfer4 {
 			SetLocalKanjiCodeImm(KanjiButton::Get(hDlg));
 			SaveLocalKanjiCode();
 			if (IsZoneIDLoaded())
-				MarkAsInternet = (int)SendDlgItemMessage(hDlg, TRMODE4_MARK_INTERNET, BM_GETCHECK, 0, 0);
+				MarkAsInternet = (int)SendDlgItemMessageW(hDlg, TRMODE4_MARK_INTERNET, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000067);
@@ -392,10 +392,10 @@ struct Mirroring {
 		case PSN_APPLY:
 			GetMultiTextFromList(hDlg, MIRROR_NOTRN_LIST, MirrorNoTrn, MIRROR_LEN + 1);
 			GetMultiTextFromList(hDlg, MIRROR_NODEL_LIST, MirrorNoDel, MIRROR_LEN + 1);
-			MirrorFnameCnv = (int)SendDlgItemMessage(hDlg, MIRROR_LOW, BM_GETCHECK, 0, 0);
-			MirUpDelNotify = (int)SendDlgItemMessage(hDlg, MIRROR_UPDEL_NOTIFY, BM_GETCHECK, 0, 0);
-			MirDownDelNotify = (int)SendDlgItemMessage(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_GETCHECK, 0, 0);
-			MirrorNoTransferContents = (int)SendDlgItemMessage(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
+			MirrorFnameCnv = (int)SendDlgItemMessageW(hDlg, MIRROR_LOW, BM_GETCHECK, 0, 0);
+			MirUpDelNotify = (int)SendDlgItemMessageW(hDlg, MIRROR_UPDEL_NOTIFY, BM_GETCHECK, 0, 0);
+			MirDownDelNotify = (int)SendDlgItemMessageW(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_GETCHECK, 0, 0);
+			MirrorNoTransferContents = (int)SendDlgItemMessageW(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000045);
@@ -472,10 +472,10 @@ struct View1 {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			DispIgnoreHide = (int)SendDlgItemMessage(hDlg, DISP_HIDE, BM_GETCHECK, 0, 0);
-			DispDrives = (int)SendDlgItemMessage(hDlg, DISP_DRIVE, BM_GETCHECK, 0, 0);
-			DispFileIcon = (int)SendDlgItemMessage(hDlg, DISP_ICON, BM_GETCHECK, 0, 0);
-			DispTimeSeconds = (int)SendDlgItemMessage(hDlg, DISP_SECOND, BM_GETCHECK, 0, 0);
+			DispIgnoreHide = (int)SendDlgItemMessageW(hDlg, DISP_HIDE, BM_GETCHECK, 0, 0);
+			DispDrives = (int)SendDlgItemMessageW(hDlg, DISP_DRIVE, BM_GETCHECK, 0, 0);
+			DispFileIcon = (int)SendDlgItemMessageW(hDlg, DISP_ICON, BM_GETCHECK, 0, 0);
+			DispTimeSeconds = (int)SendDlgItemMessageW(hDlg, DISP_SECOND, BM_GETCHECK, 0, 0);
 			if (wcslen(TmpFont.lfFaceName) > 0) {
 				ListLogFont = TmpFont;
 				ListFont = CreateFontIndirectW(&ListLogFont);
@@ -511,9 +511,9 @@ struct View2 {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			DispPermissionsNumber = (int)SendDlgItemMessage(hDlg, DISP2_PERMIT_NUM, BM_GETCHECK, 0, 0);
-			AutoRefreshFileList = (int)SendDlgItemMessage(hDlg, DISP2_AUTO_REFRESH, BM_GETCHECK, 0, 0);
-			RemoveOldLog = (int)SendDlgItemMessage(hDlg, DISP2_REMOVE_OLD_LOG, BM_GETCHECK, 0, 0);
+			DispPermissionsNumber = (int)SendDlgItemMessageW(hDlg, DISP2_PERMIT_NUM, BM_GETCHECK, 0, 0);
+			AutoRefreshFileList = (int)SendDlgItemMessageW(hDlg, DISP2_AUTO_REFRESH, BM_GETCHECK, 0, 0);
+			RemoveOldLog = (int)SendDlgItemMessageW(hDlg, DISP2_REMOVE_OLD_LOG, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000068);
@@ -548,17 +548,17 @@ struct Connecting {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			ConnectOnStart = (int)SendDlgItemMessage(hDlg, MISC_CONNECT, BM_GETCHECK, 0, 0);
-			ConnectAndSet = (int)SendDlgItemMessage(hDlg, MISC_OLDDLG, BM_GETCHECK, 0, 0);
-			RasClose = (int)SendDlgItemMessage(hDlg, CONNECT_RASCLOSE, BM_GETCHECK, 0, 0);
-			RasCloseNotify = (int)SendDlgItemMessage(hDlg, CONNECT_CLOSE_NOTIFY, BM_GETCHECK, 0, 0);
+			ConnectOnStart = (int)SendDlgItemMessageW(hDlg, MISC_CONNECT, BM_GETCHECK, 0, 0);
+			ConnectAndSet = (int)SendDlgItemMessageW(hDlg, MISC_OLDDLG, BM_GETCHECK, 0, 0);
+			RasClose = (int)SendDlgItemMessageW(hDlg, CONNECT_RASCLOSE, BM_GETCHECK, 0, 0);
+			RasCloseNotify = (int)SendDlgItemMessageW(hDlg, CONNECT_CLOSE_NOTIFY, BM_GETCHECK, 0, 0);
 			FileHist = GetDecimalText(hDlg, CONNECT_HIST);
 			CheckRange2(&FileHist, HISTORY_MAX, 0);
-			QuickAnonymous = (int)SendDlgItemMessage(hDlg, CONNECT_QUICK_ANONY, BM_GETCHECK, 0, 0);
-			PassToHist = (int)SendDlgItemMessage(hDlg, CONNECT_HIST_PASS, BM_GETCHECK, 0, 0);
-			SendQuit = (int)SendDlgItemMessage(hDlg, CONNECT_SENDQUIT, BM_GETCHECK, 0, 0);
-			NoRasControl = (int)SendDlgItemMessage(hDlg, CONNECT_NORAS, BM_GETCHECK, 0, 0);
-			UPnPEnabled = (int)SendDlgItemMessage(hDlg, CONNECT_UPNP, BM_GETCHECK, 0, 0);
+			QuickAnonymous = (int)SendDlgItemMessageW(hDlg, CONNECT_QUICK_ANONY, BM_GETCHECK, 0, 0);
+			PassToHist = (int)SendDlgItemMessageW(hDlg, CONNECT_HIST_PASS, BM_GETCHECK, 0, 0);
+			SendQuit = (int)SendDlgItemMessageW(hDlg, CONNECT_SENDQUIT, BM_GETCHECK, 0, 0);
+			NoRasControl = (int)SendDlgItemMessageW(hDlg, CONNECT_NORAS, BM_GETCHECK, 0, 0);
+			UPnPEnabled = (int)SendDlgItemMessageW(hDlg, CONNECT_UPNP, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000048);
@@ -569,7 +569,7 @@ struct Connecting {
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
 		case CONNECT_RASCLOSE:
-			if (SendDlgItemMessage(hDlg, CONNECT_RASCLOSE, BM_GETCHECK, 0, 0) == 1)
+			if (SendDlgItemMessageW(hDlg, CONNECT_RASCLOSE, BM_GETCHECK, 0, 0) == 1)
 				EnableWindow(GetDlgItem(hDlg, CONNECT_CLOSE_NOTIFY), TRUE);
 			else
 				EnableWindow(GetDlgItem(hDlg, CONNECT_CLOSE_NOTIFY), FALSE);
@@ -649,12 +649,12 @@ struct Firewall {
 			FwallPort = atoi(Tmp);
 			SendDlgItemMessage(hDlg, FIRE_DELIMIT, WM_GETTEXT, 5, (LPARAM)Tmp);
 			FwallDelimiter = Tmp[0];
-			FwallDefault = (int)SendDlgItemMessage(hDlg, FIRE_USEIT, BM_GETCHECK, 0, 0);
-			PasvDefault = (int)SendDlgItemMessage(hDlg, FIRE_PASV, BM_GETCHECK, 0, 0);
-			FwallResolve = (int)SendDlgItemMessage(hDlg, FIRE_RESOLV, BM_GETCHECK, 0, 0);
-			FwallLower = (int)SendDlgItemMessage(hDlg, FIRE_LOWER, BM_GETCHECK, 0, 0);
+			FwallDefault = (int)SendDlgItemMessageW(hDlg, FIRE_USEIT, BM_GETCHECK, 0, 0);
+			PasvDefault = (int)SendDlgItemMessageW(hDlg, FIRE_PASV, BM_GETCHECK, 0, 0);
+			FwallResolve = (int)SendDlgItemMessageW(hDlg, FIRE_RESOLV, BM_GETCHECK, 0, 0);
+			FwallLower = (int)SendDlgItemMessageW(hDlg, FIRE_LOWER, BM_GETCHECK, 0, 0);
 			FwallSecurity = (int)SendDlgItemMessage(hDlg, FIRE_SECURITY, CB_GETCURSEL, 0, 0);
-			FwallNoSaveUser = (int)SendDlgItemMessage(hDlg, FIRE_SHARED, BM_GETCHECK, 0, 0);
+			FwallNoSaveUser = (int)SendDlgItemMessageW(hDlg, FIRE_SHARED, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		}
 		case PSN_HELP:
@@ -746,9 +746,9 @@ struct Sounds {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			Sound[SND_CONNECT].On = (int)SendDlgItemMessage(hDlg, SOUND_CONNECT, BM_GETCHECK, 0, 0);
-			Sound[SND_TRANS].On = (int)SendDlgItemMessage(hDlg, SOUND_TRANS, BM_GETCHECK, 0, 0);
-			Sound[SND_ERROR].On = (int)SendDlgItemMessage(hDlg, SOUND_ERROR, BM_GETCHECK, 0, 0);
+			Sound[SND_CONNECT].On = (int)SendDlgItemMessageW(hDlg, SOUND_CONNECT, BM_GETCHECK, 0, 0);
+			Sound[SND_TRANS].On = (int)SendDlgItemMessageW(hDlg, SOUND_TRANS, BM_GETCHECK, 0, 0);
+			Sound[SND_ERROR].On = (int)SendDlgItemMessageW(hDlg, SOUND_ERROR, BM_GETCHECK, 0, 0);
 			SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Sound[SND_CONNECT].Fname);
 			SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Sound[SND_TRANS].Fname);
 			SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Sound[SND_ERROR].Fname);
@@ -806,11 +806,11 @@ struct Other {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			SaveWinPos = (int)SendDlgItemMessage(hDlg, MISC_WINPOS, BM_GETCHECK, 0, 0);
-			DebugConsole = (int)SendDlgItemMessage(hDlg, MISC_DEBUG, BM_GETCHECK, 0, 0);
+			SaveWinPos = (int)SendDlgItemMessageW(hDlg, MISC_WINPOS, BM_GETCHECK, 0, 0);
+			DebugConsole = (int)SendDlgItemMessageW(hDlg, MISC_DEBUG, BM_GETCHECK, 0, 0);
 			if (AskForceIni() == NO)
-				RegType = (int)SendDlgItemMessage(hDlg, MISC_REGTYPE, BM_GETCHECK, 0, 0);
-			EncryptAllSettings = (int)SendDlgItemMessage(hDlg, MISC_ENCRYPT_SETTINGS, BM_GETCHECK, 0, 0);
+				RegType = (int)SendDlgItemMessageW(hDlg, MISC_REGTYPE, BM_GETCHECK, 0, 0);
+			EncryptAllSettings = (int)SendDlgItemMessageW(hDlg, MISC_ENCRYPT_SETTINGS, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000052);
@@ -934,19 +934,19 @@ int SortSetting() {
 			switch (id) {
 			case IDOK: {
 				auto LFsort = LsortOrdButton::Get(hDlg);
-				if (SendDlgItemMessage(hDlg, SORT_LFILE_REV, BM_GETCHECK, 0, 0) == 1)
+				if (SendDlgItemMessageW(hDlg, SORT_LFILE_REV, BM_GETCHECK, 0, 0) == 1)
 					LFsort |= SORT_DESCENT;
 				auto LDsort = LDirsortOrdButton::Get(hDlg);
-				if (SendDlgItemMessage(hDlg, SORT_LDIR_REV, BM_GETCHECK, 0, 0) == 1)
+				if (SendDlgItemMessageW(hDlg, SORT_LDIR_REV, BM_GETCHECK, 0, 0) == 1)
 					LDsort |= SORT_DESCENT;
 				auto RFsort = RsortOrdButton::Get(hDlg);
-				if (SendDlgItemMessage(hDlg, SORT_RFILE_REV, BM_GETCHECK, 0, 0) == 1)
+				if (SendDlgItemMessageW(hDlg, SORT_RFILE_REV, BM_GETCHECK, 0, 0) == 1)
 					RFsort |= SORT_DESCENT;
 				auto RDsort = RDirsortOrdButton::Get(hDlg);
-				if (SendDlgItemMessage(hDlg, SORT_RDIR_REV, BM_GETCHECK, 0, 0) == 1)
+				if (SendDlgItemMessageW(hDlg, SORT_RDIR_REV, BM_GETCHECK, 0, 0) == 1)
 					RDsort |= SORT_DESCENT;
 				SetSortTypeImm(LFsort, LDsort, RFsort, RDsort);
-				SetSaveSortToHost((int)SendDlgItemMessage(hDlg, SORT_SAVEHOST, BM_GETCHECK, 0, 0));
+				SetSaveSortToHost((int)SendDlgItemMessageW(hDlg, SORT_SAVEHOST, BM_GETCHECK, 0, 0));
 				EndDialog(hDlg, YES);
 				break;
 			}

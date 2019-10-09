@@ -1438,8 +1438,8 @@ struct General {
 			SendDlgItemMessage(hDlg, HSET_PASS, WM_GETTEXT, PASSWORD_LEN + 1, (LPARAM)TmpHost.PassWord);
 			SendDlgItemMessage(hDlg, HSET_LOCAL, WM_GETTEXT, INIT_DIR_LEN + 1, (LPARAM)TmpHost.LocalInitDir);
 			SendDlgItemMessage(hDlg, HSET_REMOTE, WM_GETTEXT, INIT_DIR_LEN + 1, (LPARAM)TmpHost.RemoteInitDir);
-			TmpHost.Anonymous = (int)SendDlgItemMessage(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0);
-			TmpHost.LastDir = (int)SendDlgItemMessage(hDlg, HSET_LASTDIR, BM_GETCHECK, 0, 0);
+			TmpHost.Anonymous = (int)SendDlgItemMessageW(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0);
+			TmpHost.LastDir = (int)SendDlgItemMessageW(hDlg, HSET_LASTDIR, BM_GETCHECK, 0, 0);
 			if ((strlen(TmpHost.HostName) == 0) && (strlen(TmpHost.HostAdrs) > 0)) {
 				memset(TmpHost.HostName, NUL, HOST_NAME_LEN + 1);
 				strncpy(TmpHost.HostName, TmpHost.HostAdrs, HOST_NAME_LEN);
@@ -1467,7 +1467,7 @@ struct General {
 			break;
 		}
 		case HSET_ANONYMOUS:
-			if (SendDlgItemMessage(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0) == 1) {
+			if (SendDlgItemMessageW(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0) == 1) {
 				SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)"anonymous");
 				auto wStyle = GetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
 				SetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle & ~ES_PASSWORD);
@@ -1520,9 +1520,9 @@ struct Advanced {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY: {
-			TmpHost.Pasv = (int)SendDlgItemMessage(hDlg, HSET_PASV, BM_GETCHECK, 0, 0);
-			TmpHost.FireWall = (int)SendDlgItemMessage(hDlg, HSET_FIREWALL, BM_GETCHECK, 0, 0);
-			TmpHost.SyncMove = (int)SendDlgItemMessage(hDlg, HSET_SYNCMOVE, BM_GETCHECK, 0, 0);
+			TmpHost.Pasv = (int)SendDlgItemMessageW(hDlg, HSET_PASV, BM_GETCHECK, 0, 0);
+			TmpHost.FireWall = (int)SendDlgItemMessageW(hDlg, HSET_FIREWALL, BM_GETCHECK, 0, 0);
+			TmpHost.SyncMove = (int)SendDlgItemMessageW(hDlg, HSET_SYNCMOVE, BM_GETCHECK, 0, 0);
 			char Tmp[20];
 			SendDlgItemMessage(hDlg, HSET_PORT, WM_GETTEXT, 5 + 1, (LPARAM)Tmp);
 			TmpHost.Port = atoi(Tmp);
@@ -1568,9 +1568,9 @@ struct KanjiCode {
 		switch (nmh->code) {
 		case PSN_APPLY:
 			TmpHost.KanjiCode = KanjiButton::Get(hDlg);
-			TmpHost.KanaCnv = (int)SendDlgItemMessage(hDlg, HSET_HANCNV, BM_GETCHECK, 0, 0);
+			TmpHost.KanaCnv = (int)SendDlgItemMessageW(hDlg, HSET_HANCNV, BM_GETCHECK, 0, 0);
 			TmpHost.NameKanjiCode = NameKanjiButton::Get(hDlg);
-			TmpHost.NameKanaCnv = (int)SendDlgItemMessage(hDlg, HSET_FN_HANCNV, BM_GETCHECK, 0, 0);
+			TmpHost.NameKanaCnv = (int)SendDlgItemMessageW(hDlg, HSET_FN_HANCNV, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000030);
@@ -1628,9 +1628,9 @@ struct Dialup {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			TmpHost.Dialup = (int)SendDlgItemMessage(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0);
-			TmpHost.DialupAlways = (int)SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0);
-			TmpHost.DialupNotify = (int)SendDlgItemMessage(hDlg, HSET_DIALNOTIFY, BM_GETCHECK, 0, 0);
+			TmpHost.Dialup = (int)SendDlgItemMessageW(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0);
+			TmpHost.DialupAlways = (int)SendDlgItemMessageW(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0);
+			TmpHost.DialupNotify = (int)SendDlgItemMessageW(hDlg, HSET_DIALNOTIFY, BM_GETCHECK, 0, 0);
 			SendDlgItemMessage(hDlg, HSET_DIALENTRY, WM_GETTEXT, RAS_NAME_LEN + 1, (LPARAM)TmpHost.DialEntry);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
@@ -1642,7 +1642,7 @@ struct Dialup {
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
 		case HSET_DIALUP:
-			if (SendDlgItemMessage(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0) == 0) {
+			if (SendDlgItemMessageW(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0) == 0) {
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALENTRY), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALUSETHIS), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), FALSE);
@@ -1653,7 +1653,7 @@ struct Dialup {
 			}
 			[[fallthrough]];
 		case HSET_DIALUSETHIS:
-			if (SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0) == 0)
+			if (SendDlgItemMessageW(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0) == 0)
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), FALSE);
 			else
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), TRUE);
@@ -1707,10 +1707,10 @@ struct Special {
 		case PSN_APPLY:
 			SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_GETTEXT, CHMOD_CMD_LEN + 1, (LPARAM)TmpHost.ChmodCmd);
 			SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_GETTEXT, NLST_NAME_LEN + 1, (LPARAM)TmpHost.LsName);
-			TmpHost.ListCmdOnly = (int)SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0);
-			TmpHost.UseMLSD = (int)SendDlgItemMessage(hDlg, HSET_MLSDCMD, BM_GETCHECK, 0, 0);
-			TmpHost.UseNLST_R = (int)SendDlgItemMessage(hDlg, HSET_NLST_R, BM_GETCHECK, 0, 0);
-			TmpHost.NoFullPath = (int)SendDlgItemMessage(hDlg, HSET_FULLPATH, BM_GETCHECK, 0, 0);
+			TmpHost.ListCmdOnly = (int)SendDlgItemMessageW(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0);
+			TmpHost.UseMLSD = (int)SendDlgItemMessageW(hDlg, HSET_MLSDCMD, BM_GETCHECK, 0, 0);
+			TmpHost.UseNLST_R = (int)SendDlgItemMessageW(hDlg, HSET_NLST_R, BM_GETCHECK, 0, 0);
+			TmpHost.NoFullPath = (int)SendDlgItemMessageW(hDlg, HSET_FULLPATH, BM_GETCHECK, 0, 0);
 			TmpHost.HostType = (int)SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
@@ -1728,7 +1728,7 @@ struct Special {
 			SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_SETTEXT, 0, (LPARAM)LS_FNAME);
 			break;
 		case HSET_LISTCMD:
-			if (SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0) == 0) {
+			if (SendDlgItemMessageW(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0) == 0) {
 				EnableWindow(GetDlgItem(hDlg, HSET_MLSDCMD), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), TRUE);
 			} else {
@@ -1751,7 +1751,7 @@ struct Special {
 				EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), FALSE);
 			} else {
-				if (SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0) == 0) {
+				if (SendDlgItemMessageW(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0) == 0) {
 					EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), TRUE);
 					EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), TRUE);
 				} else {
@@ -1784,9 +1784,9 @@ struct Encryption {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			TmpHost.UseNoEncryption = (int)SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_GETCHECK, 0, 0);
-			TmpHost.UseFTPES = (int)SendDlgItemMessage(hDlg, HSET_FTPES, BM_GETCHECK, 0, 0);
-			TmpHost.UseFTPIS = (int)SendDlgItemMessage(hDlg, HSET_FTPIS, BM_GETCHECK, 0, 0);
+			TmpHost.UseNoEncryption = (int)SendDlgItemMessageW(hDlg, HSET_NO_ENCRYPTION, BM_GETCHECK, 0, 0);
+			TmpHost.UseFTPES = (int)SendDlgItemMessageW(hDlg, HSET_FTPES, BM_GETCHECK, 0, 0);
+			TmpHost.UseFTPIS = (int)SendDlgItemMessageW(hDlg, HSET_FTPIS, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000065);
@@ -1830,7 +1830,7 @@ struct Feature {
 		case PSN_APPLY:
 			TmpHost.MaxThreadCount = GetDecimalText(hDlg, HSET_THREAD_COUNT);
 			CheckRange2(&TmpHost.MaxThreadCount, MAX_DATA_CONNECTION, 1);
-			TmpHost.ReuseCmdSkt = (int)SendDlgItemMessage(hDlg, HSET_REUSE_SOCKET, BM_GETCHECK, 0, 0);
+			TmpHost.ReuseCmdSkt = (int)SendDlgItemMessageW(hDlg, HSET_REUSE_SOCKET, BM_GETCHECK, 0, 0);
 			TmpHost.NoopInterval = GetDecimalText(hDlg, HSET_NOOP_INTERVAL);
 			CheckRange2(&TmpHost.NoopInterval, 300, 0);
 			switch (SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_GETCURSEL, 0, 0)) {
@@ -1851,8 +1851,8 @@ struct Feature {
 				TmpHost.TransferErrorNotify = NO;
 				break;
 			}
-			TmpHost.TransferErrorReconnect = (int)SendDlgItemMessage(hDlg, HSET_ERROR_RECONNECT, BM_GETCHECK, 0, 0);
-			TmpHost.NoPasvAdrs = (int)SendDlgItemMessage(hDlg, HSET_NO_PASV_ADRS, BM_GETCHECK, 0, 0);
+			TmpHost.TransferErrorReconnect = (int)SendDlgItemMessageW(hDlg, HSET_ERROR_RECONNECT, BM_GETCHECK, 0, 0);
+			TmpHost.NoPasvAdrs = (int)SendDlgItemMessageW(hDlg, HSET_NO_PASV_ADRS, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000066);

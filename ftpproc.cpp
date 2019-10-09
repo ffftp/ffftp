@@ -2574,25 +2574,25 @@ static int GetAttrFromDialog(HWND hDlg)
 
 	Ret = 0;
 
-	if(SendDlgItemMessage(hDlg, PERM_O_READ, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_O_READ, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x400;
-	if(SendDlgItemMessage(hDlg, PERM_O_WRITE, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_O_WRITE, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x200;
-	if(SendDlgItemMessage(hDlg, PERM_O_EXEC, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_O_EXEC, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x100;
 
-	if(SendDlgItemMessage(hDlg, PERM_G_READ, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_G_READ, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x40;
-	if(SendDlgItemMessage(hDlg, PERM_G_WRITE, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_G_WRITE, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x20;
-	if(SendDlgItemMessage(hDlg, PERM_G_EXEC, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_G_EXEC, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x10;
 
-	if(SendDlgItemMessage(hDlg, PERM_A_READ, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_A_READ, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x4;
-	if(SendDlgItemMessage(hDlg, PERM_A_WRITE, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_A_WRITE, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x2;
-	if(SendDlgItemMessage(hDlg, PERM_A_EXEC, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_A_EXEC, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x1;
 
 	return(Ret);
@@ -2651,7 +2651,7 @@ void CalcFileSizeProc() {
 		void OnCommand(HWND hDlg, WORD id) {
 			switch (id) {
 			case IDOK:
-				EndDialog(hDlg, SendDlgItemMessage(hDlg, FSNOTIFY_SEL_ONLY, BM_GETCHECK, 0, 0) == 1 ? NO : YES);
+				EndDialog(hDlg, SendDlgItemMessageW(hDlg, FSNOTIFY_SEL_ONLY, BM_GETCHECK, 0, 0) == 1 ? NO : YES);
 				break;
 			case IDCANCEL:
 				EndDialog(hDlg, NO_ALL);
