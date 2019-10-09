@@ -1410,12 +1410,12 @@ struct General {
 	static constexpr WORD dialogId = hset_main_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, HSET_HOST, EM_LIMITTEXT, HOST_NAME_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_ADRS, EM_LIMITTEXT, HOST_ADRS_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_LOCAL, EM_LIMITTEXT, INIT_DIR_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_REMOTE, EM_LIMITTEXT, INIT_DIR_LEN, 0);
+		SendDlgItemMessageW(hDlg, HSET_HOST, EM_LIMITTEXT, HOST_NAME_LEN, 0);
+		SendDlgItemMessageW(hDlg, HSET_ADRS, EM_LIMITTEXT, HOST_ADRS_LEN, 0);
+		SendDlgItemMessageW(hDlg, HSET_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
+		SendDlgItemMessageW(hDlg, HSET_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
+		SendDlgItemMessageW(hDlg, HSET_LOCAL, EM_LIMITTEXT, INIT_DIR_LEN, 0);
+		SendDlgItemMessageW(hDlg, HSET_REMOTE, EM_LIMITTEXT, INIT_DIR_LEN, 0);
 		SendDlgItemMessage(hDlg, HSET_HOST, WM_SETTEXT, 0, (LPARAM)TmpHost.HostName);
 		SendDlgItemMessage(hDlg, HSET_ADRS, WM_SETTEXT, 0, (LPARAM)TmpHost.HostAdrs);
 		SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)TmpHost.UserName);
@@ -1487,11 +1487,11 @@ struct Advanced {
 	static constexpr WORD dialogId = hset_adv_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, HSET_PORT, EM_LIMITTEXT, 5, 0);
+		SendDlgItemMessageW(hDlg, HSET_PORT, EM_LIMITTEXT, 5, 0);
 		char Tmp[20];
 		sprintf(Tmp, "%d", TmpHost.Port);
 		SendDlgItemMessage(hDlg, HSET_PORT, WM_SETTEXT, 0, (LPARAM)Tmp);
-		SendDlgItemMessage(hDlg, HSET_ACCOUNT, EM_LIMITTEXT, ACCOUNT_LEN, 0);
+		SendDlgItemMessageW(hDlg, HSET_ACCOUNT, EM_LIMITTEXT, ACCOUNT_LEN, 0);
 		SendDlgItemMessage(hDlg, HSET_ACCOUNT, WM_SETTEXT, 0, (LPARAM)TmpHost.Account);
 		SendDlgItemMessageW(hDlg, HSET_PASV, BM_SETCHECK, TmpHost.Pasv, 0);
 		SendDlgItemMessageW(hDlg, HSET_FIREWALL, BM_SETCHECK, TmpHost.FireWall, 0);
@@ -1513,7 +1513,7 @@ struct Advanced {
 		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN137);
 		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN138);
 		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_SETCURSEL, TmpHost.Security, 0);
-		SendDlgItemMessage(hDlg, HSET_INITCMD, EM_LIMITTEXT, INITCMD_LEN, 0);
+		SendDlgItemMessageW(hDlg, HSET_INITCMD, EM_LIMITTEXT, INITCMD_LEN, 0);
 		SendDlgItemMessage(hDlg, HSET_INITCMD, WM_SETTEXT, 0, (LPARAM)TmpHost.InitCmd);
 		return TRUE;
 	}
@@ -1666,9 +1666,9 @@ struct Special {
 	static constexpr WORD dialogId = hset_adv2_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, EM_LIMITTEXT, CHMOD_CMD_LEN, 0);
+		SendDlgItemMessageW(hDlg, HSET_CHMOD_CMD, EM_LIMITTEXT, CHMOD_CMD_LEN, 0);
 		SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_SETTEXT, 0, (LPARAM)TmpHost.ChmodCmd);
-		SendDlgItemMessage(hDlg, HSET_LS_FNAME, EM_LIMITTEXT, NLST_NAME_LEN, 0);
+		SendDlgItemMessageW(hDlg, HSET_LS_FNAME, EM_LIMITTEXT, NLST_NAME_LEN, 0);
 		SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_SETTEXT, 0, (LPARAM)TmpHost.LsName);
 		SendDlgItemMessageW(hDlg, HSET_LISTCMD, BM_SETCHECK, TmpHost.ListCmdOnly, 0);
 		if (TmpHost.ListCmdOnly == YES)
@@ -1800,11 +1800,11 @@ struct Feature {
 	static constexpr WORD dialogId = hset_adv3_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, HSET_THREAD_COUNT, EM_LIMITTEXT, (WPARAM)1, 0);
+		SendDlgItemMessageW(hDlg, HSET_THREAD_COUNT, EM_LIMITTEXT, (WPARAM)1, 0);
 		SetDecimalText(hDlg, HSET_THREAD_COUNT, TmpHost.MaxThreadCount);
 		SendDlgItemMessage(hDlg, HSET_THREAD_COUNT_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(MAX_DATA_CONNECTION, 1));
 		SendDlgItemMessageW(hDlg, HSET_REUSE_SOCKET, BM_SETCHECK, TmpHost.ReuseCmdSkt, 0);
-		SendDlgItemMessage(hDlg, HSET_NOOP_INTERVAL, EM_LIMITTEXT, (WPARAM)3, 0);
+		SendDlgItemMessageW(hDlg, HSET_NOOP_INTERVAL, EM_LIMITTEXT, (WPARAM)3, 0);
 		SetDecimalText(hDlg, HSET_NOOP_INTERVAL, TmpHost.NoopInterval);
 		SendDlgItemMessage(hDlg, HSET_NOOP_INTERVAL_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(300, 0));
 		SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN335);

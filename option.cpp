@@ -150,7 +150,7 @@ struct User {
 	static constexpr WORD dialogId = opt_user_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, USER_ADRS, EM_LIMITTEXT, PASSWORD_LEN, 0);
+		SendDlgItemMessageW(hDlg, USER_ADRS, EM_LIMITTEXT, PASSWORD_LEN, 0);
 		SendDlgItemMessage(hDlg, USER_ADRS, WM_SETTEXT, 0, (LPARAM)UserMailAdrs);
 		return TRUE;
 	}
@@ -230,10 +230,10 @@ struct Transfer2 {
 	static constexpr DWORD flag = PSP_HASHELP;
 	using CnvButton = RadioButton<TRMODE2_NOCNV, TRMODE2_LOWER, TRMODE2_UPPER>;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, TRMODE2_LOCAL, EM_LIMITTEXT, FMAX_PATH, 0);
+		SendDlgItemMessageW(hDlg, TRMODE2_LOCAL, EM_LIMITTEXT, FMAX_PATH, 0);
 		SendDlgItemMessage(hDlg, TRMODE2_LOCAL, WM_SETTEXT, 0, (LPARAM)DefaultLocalPath);
 		CnvButton::Set(hDlg, FnameCnv);
-		SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT, EM_LIMITTEXT, (WPARAM)5, 0);
+		SendDlgItemMessageW(hDlg, TRMODE2_TIMEOUT, EM_LIMITTEXT, (WPARAM)5, 0);
 		char Tmp[FMAX_PATH + 1];
 		sprintf(Tmp, "%d", TimeOut);
 		SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT, WM_SETTEXT, 0, (LPARAM)Tmp);
@@ -303,7 +303,7 @@ struct Transfer3 {
 		if (FolderAttr == NO)
 			EnableWindow(GetDlgItem(hDlg, TRMODE3_FOLDER_ATTR), FALSE);
 
-		SendDlgItemMessage(hDlg, TRMODE3_FOLDER_ATTR, EM_LIMITTEXT, (WPARAM)5, 0);
+		SendDlgItemMessageW(hDlg, TRMODE3_FOLDER_ATTR, EM_LIMITTEXT, (WPARAM)5, 0);
 		char TmpStr[10];
 		sprintf(TmpStr, "%03d", FolderAttrNum);
 		SendDlgItemMessage(hDlg, TRMODE3_FOLDER_ATTR, WM_SETTEXT, 0, (LPARAM)TmpStr);
@@ -535,7 +535,7 @@ struct Connecting {
 		SendDlgItemMessageW(hDlg, CONNECT_CLOSE_NOTIFY, BM_SETCHECK, RasCloseNotify, 0);
 		if (RasClose == NO || NoRasControl != NO)
 			EnableWindow(GetDlgItem(hDlg, CONNECT_CLOSE_NOTIFY), FALSE);
-		SendDlgItemMessage(hDlg, CONNECT_HIST, EM_LIMITTEXT, (WPARAM)2, 0);
+		SendDlgItemMessageW(hDlg, CONNECT_HIST, EM_LIMITTEXT, (WPARAM)2, 0);
 		SetDecimalText(hDlg, CONNECT_HIST, FileHist);
 		SendDlgItemMessage(hDlg, CONNECT_HIST_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(HISTORY_MAX, 0));
 		SendDlgItemMessageW(hDlg, CONNECT_QUICK_ANONY, BM_SETCHECK, QuickAnonymous, 0);
@@ -606,11 +606,11 @@ struct Firewall {
 		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN294);
 		SendDlgItemMessage(hDlg, FIRE_TYPE, CB_SETCURSEL, Type - 1, 0);
 
-		SendDlgItemMessage(hDlg, FIRE_HOST, EM_LIMITTEXT, HOST_ADRS_LEN, 0);
-		SendDlgItemMessage(hDlg, FIRE_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
-		SendDlgItemMessage(hDlg, FIRE_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
-		SendDlgItemMessage(hDlg, FIRE_PORT, EM_LIMITTEXT, 5, 0);
-		SendDlgItemMessage(hDlg, FIRE_DELIMIT, EM_LIMITTEXT, 1, 0);
+		SendDlgItemMessageW(hDlg, FIRE_HOST, EM_LIMITTEXT, HOST_ADRS_LEN, 0);
+		SendDlgItemMessageW(hDlg, FIRE_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
+		SendDlgItemMessageW(hDlg, FIRE_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
+		SendDlgItemMessageW(hDlg, FIRE_PORT, EM_LIMITTEXT, 5, 0);
+		SendDlgItemMessageW(hDlg, FIRE_DELIMIT, EM_LIMITTEXT, 1, 0);
 
 		SendDlgItemMessage(hDlg, FIRE_HOST, WM_SETTEXT, 0, (LPARAM)FwallHost);
 		SendDlgItemMessage(hDlg, FIRE_USER, WM_SETTEXT, 0, (LPARAM)FwallUser);
@@ -683,9 +683,9 @@ struct Tool {
 	static constexpr WORD dialogId = opt_tool_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, TOOL_EDITOR1, EM_LIMITTEXT, FMAX_PATH, 0);
-		SendDlgItemMessage(hDlg, TOOL_EDITOR2, EM_LIMITTEXT, FMAX_PATH, 0);
-		SendDlgItemMessage(hDlg, TOOL_EDITOR3, EM_LIMITTEXT, FMAX_PATH, 0);
+		SendDlgItemMessageW(hDlg, TOOL_EDITOR1, EM_LIMITTEXT, FMAX_PATH, 0);
+		SendDlgItemMessageW(hDlg, TOOL_EDITOR2, EM_LIMITTEXT, FMAX_PATH, 0);
+		SendDlgItemMessageW(hDlg, TOOL_EDITOR3, EM_LIMITTEXT, FMAX_PATH, 0);
 		SendDlgItemMessage(hDlg, TOOL_EDITOR1, WM_SETTEXT, 0, (LPARAM)ViewerName[0]);
 		SendDlgItemMessage(hDlg, TOOL_EDITOR2, WM_SETTEXT, 0, (LPARAM)ViewerName[1]);
 		SendDlgItemMessage(hDlg, TOOL_EDITOR3, WM_SETTEXT, 0, (LPARAM)ViewerName[2]);
@@ -735,9 +735,9 @@ struct Sounds {
 		SendDlgItemMessageW(hDlg, SOUND_TRANS, BM_SETCHECK, Sound[SND_TRANS].On, 0);
 		SendDlgItemMessageW(hDlg, SOUND_ERROR, BM_SETCHECK, Sound[SND_ERROR].On, 0);
 
-		SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
-		SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
-		SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
+		SendDlgItemMessageW(hDlg, SOUND_CONNECT_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
+		SendDlgItemMessageW(hDlg, SOUND_TRANS_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
+		SendDlgItemMessageW(hDlg, SOUND_ERROR_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
 		SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, WM_SETTEXT, 0, (LPARAM)Sound[SND_CONNECT].Fname);
 		SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, WM_SETTEXT, 0, (LPARAM)Sound[SND_TRANS].Fname);
 		SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_SETTEXT, 0, (LPARAM)Sound[SND_ERROR].Fname);
