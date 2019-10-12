@@ -776,10 +776,6 @@ START_ROUTINE
 				pw0 = DuplicateMtoW((LPCSTR)lParam, -1);
 				r = SendMessageW(hWnd, CB_INSERTSTRING, wParam, (LPARAM)pw0);
 				break;
-			case CB_FINDSTRINGEXACT:
-				pw0 = DuplicateMtoW((LPCSTR)lParam, -1);
-				r = SendMessageW(hWnd, CB_FINDSTRINGEXACT, wParam, (LPARAM)pw0);
-				break;
 			default:
 				r = SendMessageW(hWnd, Msg, wParam, lParam);
 				break;

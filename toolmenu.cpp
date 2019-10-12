@@ -1579,7 +1579,7 @@ void SetRemoteDirHist(char *Path)
 {
 	LONG_PTR i;
 
-	if((i = SendMessage(hWndDirRemote, CB_FINDSTRINGEXACT, 0, (LPARAM)Path)) != CB_ERR)
+	if((i = SendMessageW(hWndDirRemote, CB_FINDSTRINGEXACT, 0, (LPARAM)u8(Path).c_str())) != CB_ERR)
 		SendMessageW(hWndDirRemote, CB_DELETESTRING, i, 0);
 
 	SendMessageW(hWndDirRemote, CB_ADDSTRING, 0, (LPARAM)u8(Path).c_str());
@@ -1604,9 +1604,9 @@ void SetLocalDirHist(const char *Path)
 {
 	int i;
 
-	if((i = (int)SendMessage(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)Path)) == CB_ERR)
+	if((i = (int)SendMessageW(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)u8(Path).c_str())) == CB_ERR)
 		SendMessageW(hWndDirLocal, CB_ADDSTRING, 0, (LPARAM)u8(Path).c_str());
-	i = (int)SendMessage(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)Path);
+	i = (int)SendMessageW(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)u8(Path).c_str());
 	SendMessageW(hWndDirLocal, CB_SETCURSEL, i, 0);
 
 	strcpy(LocalCurDir, Path);
