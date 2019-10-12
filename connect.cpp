@@ -222,14 +222,14 @@ void QuickConnectProc() {
 		bool passive = false;
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, QHOST_HOST, CB_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessageW(hDlg, QHOST_HOST, WM_SETTEXT, 0, (LPARAM)L"");
+			SetText(hDlg, QHOST_HOST, L"");
 			SendDlgItemMessageW(hDlg, QHOST_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
 			if (QuickAnonymous == YES) {
-				SendDlgItemMessageW(hDlg, QHOST_USER, WM_SETTEXT, 0, (LPARAM)L"anonymous");
-				SendDlgItemMessageW(hDlg, QHOST_PASS, WM_SETTEXT, 0, (LPARAM)u8(UserMailAdrs).c_str());
+				SetText(hDlg, QHOST_USER, L"anonymous");
+				SetText(hDlg, QHOST_PASS, u8(UserMailAdrs));
 			} else {
-				SendDlgItemMessageW(hDlg, QHOST_USER, WM_SETTEXT, 0, (LPARAM)L"");
-				SendDlgItemMessageW(hDlg, QHOST_PASS, WM_SETTEXT, 0, (LPARAM)L"");
+				SetText(hDlg, QHOST_USER, L"");
+				SetText(hDlg, QHOST_PASS, L"");
 			}
 			SendDlgItemMessageW(hDlg, QHOST_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
 			SendDlgItemMessageW(hDlg, QHOST_FWALL, BM_SETCHECK, FwallDefault, 0);

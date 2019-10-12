@@ -63,7 +63,7 @@ void OtpCalcTool() {
 						strcpy(Tmp, MSGJPN252);
 				} else
 					strcpy(Tmp, MSGJPN253);
-				SendDlgItemMessage(hDlg, OTPCALC_RES, WM_SETTEXT, 0, (LPARAM)Tmp);
+				SetText(hDlg, OTPCALC_RES, u8(Tmp));
 				break;
 			}
 			case IDCANCEL:

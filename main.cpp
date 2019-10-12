@@ -2779,7 +2779,7 @@ static void AboutDialog(HWND hWnd) {
 		using result_t = int;
 		static INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, ABOUT_URL, EM_LIMITTEXT, 256, 0);
-			SendDlgItemMessageW(hDlg, ABOUT_URL, WM_SETTEXT, 0, (LPARAM)WebURL);
+			SetText(hDlg, ABOUT_URL, WebURL);
 			return TRUE;
 		}
 		static void OnCommand(HWND hDlg, WORD id) {

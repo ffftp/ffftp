@@ -1416,12 +1416,12 @@ struct General {
 		SendDlgItemMessageW(hDlg, HSET_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
 		SendDlgItemMessageW(hDlg, HSET_LOCAL, EM_LIMITTEXT, INIT_DIR_LEN, 0);
 		SendDlgItemMessageW(hDlg, HSET_REMOTE, EM_LIMITTEXT, INIT_DIR_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_HOST, WM_SETTEXT, 0, (LPARAM)TmpHost.HostName);
-		SendDlgItemMessage(hDlg, HSET_ADRS, WM_SETTEXT, 0, (LPARAM)TmpHost.HostAdrs);
-		SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)TmpHost.UserName);
-		SendDlgItemMessage(hDlg, HSET_PASS, WM_SETTEXT, 0, (LPARAM)TmpHost.PassWord);
-		SendDlgItemMessage(hDlg, HSET_LOCAL, WM_SETTEXT, 0, (LPARAM)TmpHost.LocalInitDir);
-		SendDlgItemMessage(hDlg, HSET_REMOTE, WM_SETTEXT, 0, (LPARAM)TmpHost.RemoteInitDir);
+		SetText(hDlg, HSET_HOST, u8(TmpHost.HostName));
+		SetText(hDlg, HSET_ADRS, u8(TmpHost.HostAdrs));
+		SetText(hDlg, HSET_USER, u8(TmpHost.UserName));
+		SetText(hDlg, HSET_PASS, u8(TmpHost.PassWord));
+		SetText(hDlg, HSET_LOCAL, u8(TmpHost.LocalInitDir));
+		SetText(hDlg, HSET_REMOTE, u8(TmpHost.RemoteInitDir));
 		SendDlgItemMessageW(hDlg, HSET_ANONYMOUS, BM_SETCHECK, TmpHost.Anonymous, 0);
 		SendDlgItemMessageW(hDlg, HSET_LASTDIR, BM_SETCHECK, TmpHost.LastDir, 0);
 		if (AskConnecting() == NO)
@@ -1458,25 +1458,25 @@ struct General {
 		switch (id) {
 		case HSET_LOCAL_BR:
 			if (SelectDir(hDlg, TmpHost.LocalInitDir, INIT_DIR_LEN) == TRUE)
-				SendDlgItemMessage(hDlg, HSET_LOCAL, WM_SETTEXT, 0, (LPARAM)TmpHost.LocalInitDir);
+				SetText(hDlg, HSET_LOCAL, u8(TmpHost.LocalInitDir));
 			break;
 		case HSET_REMOTE_CUR: {
 			char Tmp[FMAX_PATH + 1];
 			AskRemoteCurDir(Tmp, FMAX_PATH);
-			SendDlgItemMessage(hDlg, HSET_REMOTE, WM_SETTEXT, 0, (LPARAM)Tmp);
+			SetText(hDlg, HSET_REMOTE, u8(Tmp));
 			break;
 		}
 		case HSET_ANONYMOUS:
 			if (SendDlgItemMessageW(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0) == 1) {
-				SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)"anonymous");
+				SetText(hDlg, HSET_USER, L"anonymous");
 				auto wStyle = GetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
 				SetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle & ~ES_PASSWORD);
-				SendDlgItemMessage(hDlg, HSET_PASS, WM_SETTEXT, 0, (LPARAM)UserMailAdrs);
+				SetText(hDlg, HSET_PASS, u8(UserMailAdrs));
 			} else {
-				SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)"");
+				SetText(hDlg, HSET_USER, L"");
 				auto wStyle = GetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
 				SetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle | ES_PASSWORD);
-				SendDlgItemMessage(hDlg, HSET_PASS, WM_SETTEXT, 0, (LPARAM)"");
+				SetText(hDlg, HSET_PASS, L"");
 			}
 			break;
 		}
@@ -1490,9 +1490,9 @@ struct Advanced {
 		SendDlgItemMessageW(hDlg, HSET_PORT, EM_LIMITTEXT, 5, 0);
 		char Tmp[20];
 		sprintf(Tmp, "%d", TmpHost.Port);
-		SendDlgItemMessage(hDlg, HSET_PORT, WM_SETTEXT, 0, (LPARAM)Tmp);
+		SetText(hDlg, HSET_PORT, u8(Tmp));
 		SendDlgItemMessageW(hDlg, HSET_ACCOUNT, EM_LIMITTEXT, ACCOUNT_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_ACCOUNT, WM_SETTEXT, 0, (LPARAM)TmpHost.Account);
+		SetText(hDlg, HSET_ACCOUNT, u8(TmpHost.Account));
 		SendDlgItemMessageW(hDlg, HSET_PASV, BM_SETCHECK, TmpHost.Pasv, 0);
 		SendDlgItemMessageW(hDlg, HSET_FIREWALL, BM_SETCHECK, TmpHost.FireWall, 0);
 		SendDlgItemMessageW(hDlg, HSET_SYNCMOVE, BM_SETCHECK, TmpHost.SyncMove, 0);
@@ -1514,7 +1514,7 @@ struct Advanced {
 		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN138);
 		SendDlgItemMessageW(hDlg, HSET_SECURITY, CB_SETCURSEL, TmpHost.Security, 0);
 		SendDlgItemMessageW(hDlg, HSET_INITCMD, EM_LIMITTEXT, INITCMD_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_INITCMD, WM_SETTEXT, 0, (LPARAM)TmpHost.InitCmd);
+		SetText(hDlg, HSET_INITCMD, u8(TmpHost.InitCmd));
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -1543,7 +1543,7 @@ struct Advanced {
 		case HSET_PORT_NOR: {
 			char Tmp[20];
 			sprintf(Tmp, "%d", PORT_NOR);
-			SendDlgItemMessage(hDlg, HSET_PORT, WM_SETTEXT, 0, (LPARAM)Tmp);
+			SetText(hDlg, HSET_PORT, u8(Tmp));
 			break;
 		}
 		}
@@ -1667,9 +1667,9 @@ struct Special {
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
 		SendDlgItemMessageW(hDlg, HSET_CHMOD_CMD, EM_LIMITTEXT, CHMOD_CMD_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_SETTEXT, 0, (LPARAM)TmpHost.ChmodCmd);
+		SetText(hDlg, HSET_CHMOD_CMD, u8(TmpHost.ChmodCmd));
 		SendDlgItemMessageW(hDlg, HSET_LS_FNAME, EM_LIMITTEXT, NLST_NAME_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_SETTEXT, 0, (LPARAM)TmpHost.LsName);
+		SetText(hDlg, HSET_LS_FNAME, u8(TmpHost.LsName));
 		SendDlgItemMessageW(hDlg, HSET_LISTCMD, BM_SETCHECK, TmpHost.ListCmdOnly, 0);
 		if (TmpHost.ListCmdOnly == YES)
 			EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
@@ -1722,10 +1722,10 @@ struct Special {
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
 		case HSET_CHMOD_NOR:
-			SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_SETTEXT, 0, (LPARAM)CHMOD_CMD_NOR);
+			SetText(hDlg, HSET_CHMOD_CMD, u8(CHMOD_CMD_NOR));
 			break;
 		case HSET_LS_FNAME_NOR:
-			SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_SETTEXT, 0, (LPARAM)LS_FNAME);
+			SetText(hDlg, HSET_LS_FNAME, u8(LS_FNAME));
 			break;
 		case HSET_LISTCMD:
 			if (SendDlgItemMessageW(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0) == 0) {

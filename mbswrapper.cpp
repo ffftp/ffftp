@@ -740,10 +740,6 @@ LRESULT SendMessageM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 START_ROUTINE
 	switch(Msg)
 	{
-	case WM_SETTEXT:
-		pw0 = DuplicateMtoW((LPCSTR)lParam, -1);
-		r = SendMessageW(hWnd, WM_SETTEXT, wParam, (LPARAM)pw0);
-		break;
 	case WM_GETTEXT:
 		pw0 = AllocateStringW((size_t)wParam * 4);
 		SendMessageW(hWnd, WM_GETTEXT, wParam * 4, (LPARAM)pw0);

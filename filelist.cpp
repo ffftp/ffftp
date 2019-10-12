@@ -1253,7 +1253,7 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 		using result_t = bool;
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, SEL_FNAME, EM_LIMITTEXT, 40, 0);
-			SendDlgItemMessageW(hDlg, SEL_FNAME, WM_SETTEXT, 0, (LPARAM)u8(FindStr).c_str());
+			SetText(hDlg, SEL_FNAME, u8(FindStr));
 			SendDlgItemMessageW(hDlg, SEL_REGEXP, BM_SETCHECK, FindMode, 0);
 			SendDlgItemMessageW(hDlg, SEL_NOOLD, BM_SETCHECK, IgnoreOld ? BST_CHECKED : BST_UNCHECKED, 0);
 			SendDlgItemMessageW(hDlg, SEL_NONEW, BM_SETCHECK, IgnoreNew ? BST_CHECKED : BST_UNCHECKED, 0);
@@ -4892,7 +4892,7 @@ void SetFilter(int *CancelCheckWork) {
 		using result_t = bool;
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, FILTER_STR, EM_LIMITTEXT, FILTER_EXT_LEN + 1, 0);
-			SendDlgItemMessageW(hDlg, FILTER_STR, WM_SETTEXT, 0, (LPARAM)u8(FilterStr).c_str());
+			SetText(hDlg, FILTER_STR, u8(FilterStr));
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {

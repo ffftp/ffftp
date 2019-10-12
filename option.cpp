@@ -139,7 +139,7 @@ struct DefAttr {
 			break;
 		case DEFATTR_ATTR_BR:
 			if (auto newattr = ChmodDialog(GetText(hDlg, DEFATTR_ATTR)))
-				SendDlgItemMessageW(hDlg, DEFATTR_ATTR, WM_SETTEXT, 0, (LPARAM)newattr->c_str());
+				SetText(hDlg, DEFATTR_ATTR, newattr->c_str());
 			break;
 		}
 	}
@@ -151,7 +151,7 @@ struct User {
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
 		SendDlgItemMessageW(hDlg, USER_ADRS, EM_LIMITTEXT, PASSWORD_LEN, 0);
-		SendDlgItemMessage(hDlg, USER_ADRS, WM_SETTEXT, 0, (LPARAM)UserMailAdrs);
+		SetText(hDlg, USER_ADRS, u8(UserMailAdrs));
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -231,12 +231,12 @@ struct Transfer2 {
 	using CnvButton = RadioButton<TRMODE2_NOCNV, TRMODE2_LOWER, TRMODE2_UPPER>;
 	static INT_PTR OnInit(HWND hDlg) {
 		SendDlgItemMessageW(hDlg, TRMODE2_LOCAL, EM_LIMITTEXT, FMAX_PATH, 0);
-		SendDlgItemMessage(hDlg, TRMODE2_LOCAL, WM_SETTEXT, 0, (LPARAM)DefaultLocalPath);
+		SetText(hDlg, TRMODE2_LOCAL, u8(DefaultLocalPath));
 		CnvButton::Set(hDlg, FnameCnv);
 		SendDlgItemMessageW(hDlg, TRMODE2_TIMEOUT, EM_LIMITTEXT, (WPARAM)5, 0);
 		char Tmp[FMAX_PATH + 1];
 		sprintf(Tmp, "%d", TimeOut);
-		SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT, WM_SETTEXT, 0, (LPARAM)Tmp);
+		SetText(hDlg, TRMODE2_TIMEOUT, u8(Tmp));
 		SendDlgItemMessageW(hDlg, TRMODE2_TIMEOUT_SPN, UDM_SETRANGE, 0, MAKELONG(300, 0));
 		return TRUE;
 	}
@@ -261,7 +261,7 @@ struct Transfer2 {
 		switch (id) {
 		case TRMODE2_LOCAL_BR:
 			if (char Tmp[FMAX_PATH + 1]; SelectDir(hDlg, Tmp, FMAX_PATH) == TRUE)
-				SendDlgItemMessage(hDlg, TRMODE2_LOCAL, WM_SETTEXT, 0, (LPARAM)Tmp);
+				SetText(hDlg, TRMODE2_LOCAL, u8(Tmp));
 			break;
 		}
 	}
@@ -304,7 +304,7 @@ struct Transfer3 {
 		SendDlgItemMessageW(hDlg, TRMODE3_FOLDER_ATTR, EM_LIMITTEXT, (WPARAM)5, 0);
 		char TmpStr[10];
 		sprintf(TmpStr, "%03d", FolderAttrNum);
-		SendDlgItemMessage(hDlg, TRMODE3_FOLDER_ATTR, WM_SETTEXT, 0, (LPARAM)TmpStr);
+		SetText(hDlg, TRMODE3_FOLDER_ATTR, u8(TmpStr));
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -460,7 +460,7 @@ struct View1 {
 	static INT_PTR OnInit(HWND hDlg) {
 		TmpFont = ListLogFont;
 		if (ListFont != NULL)
-			SendDlgItemMessageW(hDlg, DISP_FONT, WM_SETTEXT, 0, (LPARAM)TmpFont.lfFaceName);
+			SetText(hDlg, DISP_FONT, TmpFont.lfFaceName);
 		SendDlgItemMessageW(hDlg, DISP_HIDE, BM_SETCHECK, DispIgnoreHide, 0);
 		SendDlgItemMessageW(hDlg, DISP_DRIVE, BM_SETCHECK, DispDrives, 0);
 		SendDlgItemMessageW(hDlg, DISP_ICON, BM_SETCHECK, DispFileIcon, 0);
@@ -491,7 +491,7 @@ struct View1 {
 		case DISP_FONT_BR:
 			chooseFont = { sizeof(CHOOSEFONTW), hDlg, 0, &TmpFont, 0, CF_FORCEFONTEXIST | CF_SCREENFONTS | CF_INITTOLOGFONTSTRUCT, 0, 0, nullptr, nullptr, 0, nullptr, SCREEN_FONTTYPE };
 			if (ChooseFontW(&chooseFont))
-				SendDlgItemMessageW(hDlg, DISP_FONT, WM_SETTEXT, 0, (LPARAM)TmpFont.lfFaceName);
+				SetText(hDlg, DISP_FONT, TmpFont.lfFaceName);
 			break;
 		}
 	}
@@ -610,14 +610,14 @@ struct Firewall {
 		SendDlgItemMessageW(hDlg, FIRE_PORT, EM_LIMITTEXT, 5, 0);
 		SendDlgItemMessageW(hDlg, FIRE_DELIMIT, EM_LIMITTEXT, 1, 0);
 
-		SendDlgItemMessage(hDlg, FIRE_HOST, WM_SETTEXT, 0, (LPARAM)FwallHost);
-		SendDlgItemMessage(hDlg, FIRE_USER, WM_SETTEXT, 0, (LPARAM)FwallUser);
-		SendDlgItemMessage(hDlg, FIRE_PASS, WM_SETTEXT, 0, (LPARAM)FwallPass);
+		SetText(hDlg, FIRE_HOST, u8(FwallHost));
+		SetText(hDlg, FIRE_USER, u8(FwallUser));
+		SetText(hDlg, FIRE_PASS, u8(FwallPass));
 		char Tmp[10];
 		sprintf(Tmp, "%d", FwallPort);
-		SendDlgItemMessage(hDlg, FIRE_PORT, WM_SETTEXT, 0, (LPARAM)Tmp);
+		SetText(hDlg, FIRE_PORT, u8(Tmp));
 		sprintf(Tmp, "%c", FwallDelimiter);
-		SendDlgItemMessage(hDlg, FIRE_DELIMIT, WM_SETTEXT, 0, (LPARAM)Tmp);
+		SetText(hDlg, FIRE_DELIMIT, u8(Tmp));
 
 		SendDlgItemMessageW(hDlg, FIRE_USEIT, BM_SETCHECK, FwallDefault, 0);
 		SendDlgItemMessageW(hDlg, FIRE_PASV, BM_SETCHECK, PasvDefault, 0);
@@ -684,9 +684,9 @@ struct Tool {
 		SendDlgItemMessageW(hDlg, TOOL_EDITOR1, EM_LIMITTEXT, FMAX_PATH, 0);
 		SendDlgItemMessageW(hDlg, TOOL_EDITOR2, EM_LIMITTEXT, FMAX_PATH, 0);
 		SendDlgItemMessageW(hDlg, TOOL_EDITOR3, EM_LIMITTEXT, FMAX_PATH, 0);
-		SendDlgItemMessage(hDlg, TOOL_EDITOR1, WM_SETTEXT, 0, (LPARAM)ViewerName[0]);
-		SendDlgItemMessage(hDlg, TOOL_EDITOR2, WM_SETTEXT, 0, (LPARAM)ViewerName[1]);
-		SendDlgItemMessage(hDlg, TOOL_EDITOR3, WM_SETTEXT, 0, (LPARAM)ViewerName[2]);
+		SetText(hDlg, TOOL_EDITOR1, u8(ViewerName[0]));
+		SetText(hDlg, TOOL_EDITOR2, u8(ViewerName[1]));
+		SetText(hDlg, TOOL_EDITOR3, u8(ViewerName[2]));
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -710,13 +710,13 @@ struct Tool {
 			if (auto const path = SelectFile(true, hDlg, IDS_SELECT_VIEWER, L"", nullptr, { FileType::Executable, FileType::All }); !std::empty(path)) {
 				switch (id) {
 				case TOOL_EDITOR1_BR:
-					SendDlgItemMessageW(hDlg, TOOL_EDITOR1, WM_SETTEXT, 0, (LPARAM)path.c_str());
+					SetText(hDlg, TOOL_EDITOR1, path);
 					break;
 				case TOOL_EDITOR2_BR:
-					SendDlgItemMessageW(hDlg, TOOL_EDITOR2, WM_SETTEXT, 0, (LPARAM)path.c_str());
+					SetText(hDlg, TOOL_EDITOR2, path);
 					break;
 				case TOOL_EDITOR3_BR:
-					SendDlgItemMessageW(hDlg, TOOL_EDITOR3, WM_SETTEXT, 0, (LPARAM)path.c_str());
+					SetText(hDlg, TOOL_EDITOR3, path);
 					break;
 				}
 			}
@@ -736,9 +736,9 @@ struct Sounds {
 		SendDlgItemMessageW(hDlg, SOUND_CONNECT_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
 		SendDlgItemMessageW(hDlg, SOUND_TRANS_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
 		SendDlgItemMessageW(hDlg, SOUND_ERROR_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
-		SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, WM_SETTEXT, 0, (LPARAM)Sound[SND_CONNECT].Fname);
-		SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, WM_SETTEXT, 0, (LPARAM)Sound[SND_TRANS].Fname);
-		SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_SETTEXT, 0, (LPARAM)Sound[SND_ERROR].Fname);
+		SetText(hDlg, SOUND_CONNECT_WAV, u8(Sound[SND_CONNECT].Fname));
+		SetText(hDlg, SOUND_TRANS_WAV, u8(Sound[SND_TRANS].Fname));
+		SetText(hDlg, SOUND_ERROR_WAV, u8(Sound[SND_ERROR].Fname));
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -765,13 +765,13 @@ struct Sounds {
 			if (auto const path = SelectFile(true, hDlg, IDS_SELECT_AUDIOFILE, L"", nullptr, { FileType::Audio, FileType::All }); !std::empty(path)) {
 				switch (id) {
 				case SOUND_CONNECT_BR:
-					SendDlgItemMessageW(hDlg, SOUND_CONNECT_WAV, WM_SETTEXT, 0, (LPARAM)path.c_str());
+					SetText(hDlg, SOUND_CONNECT_WAV, path);
 					break;
 				case SOUND_TRANS_BR:
-					SendDlgItemMessageW(hDlg, SOUND_TRANS_WAV, WM_SETTEXT, 0, (LPARAM)path.c_str());
+					SetText(hDlg, SOUND_TRANS_WAV, path);
 					break;
 				case SOUND_ERROR_BR:
-					SendDlgItemMessageW(hDlg, SOUND_ERROR_WAV, WM_SETTEXT, 0, (LPARAM)path.c_str());
+					SetText(hDlg, SOUND_ERROR_WAV, path);
 					break;
 				}
 			}
@@ -1000,7 +1000,7 @@ void SetDecimalText(HWND hDlg, int Ctrl, int Num)
 	char Tmp[40];
 
 	sprintf(Tmp, "%d", Num);
-	SendDlgItemMessage(hDlg, Ctrl, WM_SETTEXT, 0, (LPARAM)Tmp);
+	SetText(hDlg, Ctrl, u8(Tmp));
 	return;
 }
 

@@ -57,18 +57,10 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN063 (std::data(msgs[10000+63])) /* 削除するファイル/フォルダはありません. */
 #define MSGJPN064 (std::data(msgs[10000+64])) /* 名前を変更してアップロード */
 #define MSGJPN065 (std::data(msgs[10000+65])) /* 名前を変更してダウンロード */
-#define MSGJPN066 (std::data(msgs[10000+66])) /* 削除（ローカル） */
-#define MSGJPN067 (std::data(msgs[10000+67])) /* 削除（ホスト） */
-#define MSGJPN068 (std::data(msgs[10000+68])) /* 名前変更（ローカル） */
-#define MSGJPN069 (std::data(msgs[10000+69])) /* 名前変更（ホスト） */
 #define MSGJPN070 (std::data(msgs[10000+70])) /* フォルダ作成（ローカル） */
 #define MSGJPN071 (std::data(msgs[10000+71])) /* フォルダ作成（ホスト） */
 #define MSGJPN072 (std::data(msgs[10000+72])) /* フォルダ変更（ローカル） */
 #define MSGJPN073 (std::data(msgs[10000+73])) /* フォルダ変更（ホスト） */
-#define MSGJPN074 (std::data(msgs[10000+74])) /* ローカル側のファイル容量を計算します. */
-#define MSGJPN075 (std::data(msgs[10000+75])) /* ホスト側のファイル容量を計算します. */
-#define MSGJPN076 (std::data(msgs[10000+76])) /* ローカル側のファイル容量 */
-#define MSGJPN077 (std::data(msgs[10000+77])) /* ホスト側のファイル容量 */
 #define MSGJPN078 (std::data(msgs[10000+78])) /* フォルダ作成 */
 #define MSGJPN079 (std::data(msgs[10000+79])) /* フォルダ作成 */
 #define MSGJPN080 (std::data(msgs[10000+80])) /* フォルダ削除 */
@@ -110,13 +102,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN116 (std::data(msgs[10000+116])) /* アップロードは正常終了しました. */
 #define MSGJPN117 (std::data(msgs[10000+117])) /* 完了 */
 #define MSGJPN118 (std::data(msgs[10000+118])) /* 中止 */
-#define MSGJPN119 (std::data(msgs[10000+119])) /* バイナリ */
-#define MSGJPN120 (std::data(msgs[10000+120])) /* アスキー */
-#define MSGJPN121 (std::data(msgs[10000+121])) /* 無変換 */
-#define MSGJPN122 (std::data(msgs[10000+122])) /* JIS */
-#define MSGJPN123 (std::data(msgs[10000+123])) /* EUC */
-#define MSGJPN124 (std::data(msgs[10000+124])) /* 削除（ローカル） */
-#define MSGJPN125 (std::data(msgs[10000+125])) /* 削除（ホスト） */
 #define MSGJPN133 (std::data(msgs[10000+133])) /* GMT%+02d:00 (日本) */
 #define MSGJPN134 (std::data(msgs[10000+134])) /* 使用しない */
 #define MSGJPN135 (std::data(msgs[10000+135])) /* 自動認識 */
@@ -214,8 +199,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN301 (std::data(msgs[10000+301])) /* マスターパスワードが設定と一致しません.安全のため設定の保存を行いません. */
 #define MSGJPN302 (std::data(msgs[10000+302])) /* 確認用データが壊れているため,マスターパスワードの正当性を確認できませんでした. */
 #define MSGJPN303 (std::data(msgs[10000+303])) /* マスターパスワードを変更しました */
-#define MSGJPN305 (std::data(msgs[10000+305])) /* Shift_JIS */
-#define MSGJPN306 (std::data(msgs[10000+306])) /* UTF-8 */
 #define MSGJPN307 (std::data(msgs[10000+307])) /* ホストの漢字コードはShift_JIS */
 #define MSGJPN308 (std::data(msgs[10000+308])) /* ホストの漢字コードはUTF-8 */
 #define MSGJPN309 (std::data(msgs[10000+309])) /* ローカルの漢字コードはShift_JIS */
@@ -230,7 +213,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN322 (std::data(msgs[10000+322])) /* デバッガが検出されました. */
 #define MSGJPN323 (std::data(msgs[10000+323])) /* 信頼できないDLLをアンロードできませんでした. */
 #define MSGJPN324 (std::data(msgs[10000+324])) /* プロセスの保護に必要な関数をフックできませんでした. */
-#define MSGJPN329 (std::data(msgs[10000+329])) /* UTF-8 BOM */
 #define MSGJPN330 (std::data(msgs[10000+330])) /* ホストの漢字コードはUTF-8 BOM */
 #define MSGJPN331 (std::data(msgs[10000+331])) /* ローカルの漢字コードはUTF-8 BOM */
 #define MSGJPN335 (std::data(msgs[10000+335])) /* 毎回尋ねる */

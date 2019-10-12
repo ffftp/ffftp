@@ -749,7 +749,7 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 		DownExistDialog(TRANSPACKET* Pkt) : Pkt{ Pkt } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, DOWN_EXIST_NAME, EM_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, DOWN_EXIST_NAME, WM_SETTEXT, 0, (LPARAM)Pkt->LocalFile);
+			SetText(hDlg, DOWN_EXIST_NAME, u8(Pkt->LocalFile));
 			if (Pkt->Type == TYPE_A || Pkt->ExistSize <= 0)
 				EnableWindow(GetDlgItem(hDlg, DOWN_EXIST_RESUME), FALSE);
 			DownExistButton::Set(hDlg, ExistMode);
@@ -901,12 +901,12 @@ void UploadListProc(int ChName, int All)
 		int filecode;
 		UpDownAsWithExt(int win) : win{ win }, filecode{} {}
 		INT_PTR OnInit(HWND hDlg) {
-			SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)(win == WIN_LOCAL ? MSGJPN064 : MSGJPN065));
+			SetText(hDlg, GetString(win == WIN_LOCAL ? IDS_MSGJPN064 : IDS_MSGJPN065));
 			SendDlgItemMessageW(hDlg, UPDOWNAS_NEW, EM_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, UPDOWNAS_NEW, WM_SETTEXT, 0, (LPARAM)TmpString);
-			SendDlgItemMessage(hDlg, UPDOWNAS_TEXT, WM_SETTEXT, 0, (LPARAM)TmpString);
+			SetText(hDlg, UPDOWNAS_NEW, u8(TmpString));
+			SetText(hDlg, UPDOWNAS_TEXT, u8(TmpString));
 			SendDlgItemMessageW(hDlg, UPDOWNAS_FILECODE, EM_LIMITTEXT, 4, 0);
-			SendDlgItemMessageW(hDlg, UPDOWNAS_FILECODE, WM_SETTEXT, 0, (LPARAM)L"0");
+			SetText(hDlg, UPDOWNAS_FILECODE, L"0");
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
@@ -1600,19 +1600,19 @@ static void CountMirrorFiles(HWND hDlg, TRANSPACKET *Pkt)
 		sprintf(Tmp, MSGJPN058, Copy);
 	else
 		sprintf(Tmp, MSGJPN059);
-	SendDlgItemMessage(hDlg, MIRROR_COPYNUM, WM_SETTEXT, 0, (LPARAM)Tmp);
+	SetText(hDlg, MIRROR_COPYNUM, u8(Tmp));
 
 	if(Make != 0)
 		sprintf(Tmp, MSGJPN060, Make);
 	else
 		sprintf(Tmp, MSGJPN061);
-	SendDlgItemMessage(hDlg, MIRROR_MAKENUM, WM_SETTEXT, 0, (LPARAM)Tmp);
+	SetText(hDlg, MIRROR_MAKENUM, u8(Tmp));
 
 	if(Del != 0)
 		sprintf(Tmp, MSGJPN062, Del);
 	else
 		sprintf(Tmp, MSGJPN063);
-	SendDlgItemMessage(hDlg, MIRROR_DELNUM, WM_SETTEXT, 0, (LPARAM)Tmp);
+	SetText(hDlg, MIRROR_DELNUM, u8(Tmp));
 
 	return;
 }
@@ -1664,7 +1664,7 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, std::vector<FILELIST> const& ListLi
 		UpExistDialog(TRANSPACKET* Pkt) : Pkt{ Pkt } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, UP_EXIST_NAME, EM_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, UP_EXIST_NAME, WM_SETTEXT, 0, (LPARAM)Pkt->RemoteFile);
+			SetText(hDlg, UP_EXIST_NAME, u8(Pkt->RemoteFile));
 			if (Pkt->Type == TYPE_A || Pkt->ExistSize <= 0)
 				EnableWindow(GetDlgItem(hDlg, UP_EXIST_RESUME), FALSE);
 			UpExistButton::Set(hDlg, UpExistMode);
@@ -1743,10 +1743,10 @@ static bool UpDownAsDialog(int win) {
 		int win;
 		Data(int win) : win{ win } {}
 		INT_PTR OnInit(HWND hDlg) {
-			SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)(win == WIN_LOCAL ? MSGJPN064 : MSGJPN065));
+			SetText(hDlg, GetString(win == WIN_LOCAL ? IDS_MSGJPN064 : IDS_MSGJPN065));
 			SendDlgItemMessageW(hDlg, UPDOWNAS_NEW, EM_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, UPDOWNAS_NEW, WM_SETTEXT, 0, (LPARAM)TmpString);
-			SendDlgItemMessage(hDlg, UPDOWNAS_TEXT, WM_SETTEXT, 0, (LPARAM)TmpString);
+			SetText(hDlg, UPDOWNAS_NEW, u8(TmpString));
+			SetText(hDlg, UPDOWNAS_TEXT, u8(TmpString));
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
@@ -1884,8 +1884,8 @@ static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, char 
 		int win;
 		DeleteDialog(int win) : win{ win } {}
 		INT_PTR OnInit(HWND hDlg) {
-			SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)(win == WIN_LOCAL ? MSGJPN066 : MSGJPN067));
-			SendDlgItemMessage(hDlg, DELETE_TEXT, WM_SETTEXT, 0, (LPARAM)TmpString);
+			SetText(hDlg, GetString(win == WIN_LOCAL ? IDS_MSGJPN066 : IDS_MSGJPN067));
+			SetText(hDlg, DELETE_TEXT, u8(TmpString));
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
@@ -1981,10 +1981,10 @@ void RenameProc(void)
 		int win;
 		RenameDialog(int win) : win{ win } {}
 		INT_PTR OnInit(HWND hDlg) {
-			SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)(win == WIN_LOCAL ? MSGJPN068 : MSGJPN069));
+			SetText(hDlg, GetString(win == WIN_LOCAL ? IDS_MSGJPN068 : IDS_MSGJPN069));
 			SendDlgItemMessageW(hDlg, RENAME_NEW, EM_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, RENAME_NEW, WM_SETTEXT, 0, (LPARAM)TmpString);
-			SendDlgItemMessage(hDlg, RENAME_TEXT, WM_SETTEXT, 0, (LPARAM)TmpString);
+			SetText(hDlg, RENAME_NEW, u8(TmpString));
+			SetText(hDlg, RENAME_TEXT, u8(TmpString));
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
@@ -2072,7 +2072,7 @@ void MoveRemoteFileProc(int drop_index)
 		std::wstring const& file;
 		Data(std::wstring const& file) : file{ file } {}
 		INT_PTR OnInit(HWND hDlg) {
-			SendDlgItemMessageW(hDlg, COMMON_TEXT, WM_SETTEXT, 0, (LPARAM)file.c_str());
+			SetText(hDlg, COMMON_TEXT, file);
 			return TRUE;
 		}
 		static void OnCommand(HWND hDlg, WORD id) {
@@ -2482,7 +2482,7 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 		Data(std::wstring const& attr) : attr{ attr } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, PERM_NOW, EM_LIMITTEXT, 4, 0);
-			SendDlgItemMessageW(hDlg, PERM_NOW, WM_SETTEXT, 0, (LPARAM)attr.c_str());
+			SetText(hDlg, PERM_NOW, attr);
 			SetAttrToDialog(hDlg, std::stoi(attr, nullptr, 16));
 			return TRUE;
 		}
@@ -2507,7 +2507,7 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 				auto Tmp = GetAttrFromDialog(hDlg);
 				wchar_t buffer[5];
 				swprintf(buffer, std::size(buffer), L"%03X", Tmp);
-				SendDlgItemMessageW(hDlg, PERM_NOW, WM_SETTEXT, 0, (LPARAM)buffer);
+				SetText(hDlg, PERM_NOW, buffer);
 				break;
 			}
 			case IDHELP:
@@ -2645,7 +2645,7 @@ void CalcFileSizeProc() {
 		int win;
 		SizeNotify(int win) : win{ win } {}
 		INT_PTR OnInit(HWND hDlg) {
-			SendDlgItemMessage(hDlg, FSNOTIFY_TITLE, WM_SETTEXT, 0, (LPARAM)(win == WIN_LOCAL ? MSGJPN074 : MSGJPN075));
+			SetText(hDlg, FSNOTIFY_TITLE, GetString(win == WIN_LOCAL ? IDS_MSGJPN074 : IDS_MSGJPN075));
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
@@ -2665,8 +2665,8 @@ void CalcFileSizeProc() {
 		const char* size;
 		Size(int win, const char* size) : win{ win }, size{ size } {}
 		INT_PTR OnInit(HWND hDlg) {
-			SendDlgItemMessage(hDlg, FSIZE_TITLE, WM_SETTEXT, 0, (LPARAM)(win == WIN_LOCAL ? MSGJPN076 : MSGJPN077));
-			SendDlgItemMessage(hDlg, FSIZE_SIZE, WM_SETTEXT, 0, (LPARAM)size);
+			SetText(hDlg, FSIZE_TITLE, GetString(win == WIN_LOCAL ? IDS_MSGJPN076 : IDS_MSGJPN077));
+			SetText(hDlg, FSIZE_SIZE, u8(size));
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {

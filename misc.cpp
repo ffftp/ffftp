@@ -535,7 +535,7 @@ void DispStaticText(HWND hWnd, char *Str) {
 		std::fill_n(p, 3, L'.');
 	}
 	ReleaseDC(hWnd, dc);
-	SendMessageW(hWnd, WM_SETTEXT, 0, (LPARAM)p);
+	SetText(hWnd, p);
 }
 
 
