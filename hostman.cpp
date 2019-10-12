@@ -1503,15 +1503,12 @@ struct Advanced {
 				sprintf(Tmp, MSGJPN133, i);
 			else
 				sprintf(Tmp, "GMT%+02d:00", i);
-			SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_ADDSTRING, 0, (LPARAM)Tmp);
+			SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_ADDSTRING, 0, (LPARAM)u8(Tmp).c_str());
 		}
 		SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_SETCURSEL, (UINT_PTR)TmpHost.TimeZone + 12, 0);
 
-		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN134);
-		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN135);
-		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN136);
-		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN137);
-		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN138);
+		for (auto resourceId : { IDS_MSGJPN134, IDS_MSGJPN135, IDS_MSGJPN136, IDS_MSGJPN137, IDS_MSGJPN138 })
+			SendDlgItemMessageW(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)GetString(resourceId).c_str());
 		SendDlgItemMessageW(hDlg, HSET_SECURITY, CB_SETCURSEL, TmpHost.Security, 0);
 		SendDlgItemMessageW(hDlg, HSET_INITCMD, EM_LIMITTEXT, INITCMD_LEN, 0);
 		SetText(hDlg, HSET_INITCMD, u8(TmpHost.InitCmd));
@@ -1678,16 +1675,10 @@ struct Special {
 		SendDlgItemMessageW(hDlg, HSET_MLSDCMD, BM_SETCHECK, TmpHost.UseMLSD, 0);
 		SendDlgItemMessageW(hDlg, HSET_NLST_R, BM_SETCHECK, TmpHost.UseNLST_R, 0);
 		SendDlgItemMessageW(hDlg, HSET_FULLPATH, BM_SETCHECK, TmpHost.NoFullPath, 0);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN139);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN140);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN141);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN142);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN143);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN144);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN289);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN295);
+		for (auto resourceId : { IDS_MSGJPN139, IDS_MSGJPN140, IDS_MSGJPN141, IDS_MSGJPN142, IDS_MSGJPN143, IDS_MSGJPN144, IDS_MSGJPN289, IDS_MSGJPN295 })
+			SendDlgItemMessageW(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)GetString(resourceId).c_str());
 #if defined(HAVE_TANDEM)
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN2000);
+		SendDlgItemMessageW(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_MSGJPN2000).c_str());
 #endif
 		SendDlgItemMessageW(hDlg, HSET_HOSTTYPE, CB_SETCURSEL, TmpHost.HostType, 0);
 #if defined(HAVE_TANDEM)
@@ -1807,10 +1798,8 @@ struct Feature {
 		SendDlgItemMessageW(hDlg, HSET_NOOP_INTERVAL, EM_LIMITTEXT, (WPARAM)3, 0);
 		SetDecimalText(hDlg, HSET_NOOP_INTERVAL, TmpHost.NoopInterval);
 		SendDlgItemMessageW(hDlg, HSET_NOOP_INTERVAL_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(300, 0));
-		SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN335);
-		SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN336);
-		SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN337);
-		SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN338);
+		for (auto resourceId : { IDS_MSGJPN335, IDS_MSGJPN336, IDS_MSGJPN337, IDS_MSGJPN338 })
+			SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)GetString(resourceId).c_str());
 		if (TmpHost.TransferErrorNotify == YES)
 			SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
 		else if (TmpHost.TransferErrorMode == EXIST_OVW)

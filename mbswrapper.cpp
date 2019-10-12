@@ -758,10 +758,6 @@ START_ROUTINE
 		{
 			switch(Msg)
 			{
-			case CB_ADDSTRING:
-				pw0 = DuplicateMtoW((LPCSTR)lParam, -1);
-				r = SendMessageW(hWnd, CB_ADDSTRING, wParam, (LPARAM)pw0);
-				break;
 			case CB_GETLBTEXT:
 				Size = (int)SendMessageW(hWnd, CB_GETLBTEXTLEN, wParam, 0) + 1;
 				pw0 = AllocateStringW(Size);

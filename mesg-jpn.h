@@ -103,17 +103,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN117 (std::data(msgs[10000+117])) /* 完了 */
 #define MSGJPN118 (std::data(msgs[10000+118])) /* 中止 */
 #define MSGJPN133 (std::data(msgs[10000+133])) /* GMT%+02d:00 (日本) */
-#define MSGJPN134 (std::data(msgs[10000+134])) /* 使用しない */
-#define MSGJPN135 (std::data(msgs[10000+135])) /* 自動認識 */
-#define MSGJPN136 (std::data(msgs[10000+136])) /* OTP MD4, S/KEY */
-#define MSGJPN137 (std::data(msgs[10000+137])) /* OTP MD5 */
-#define MSGJPN138 (std::data(msgs[10000+138])) /* OTP SHA-1 */
-#define MSGJPN139 (std::data(msgs[10000+139])) /* 自動認識 */
-#define MSGJPN140 (std::data(msgs[10000+140])) /* ACOS */
-#define MSGJPN141 (std::data(msgs[10000+141])) /* VAX VMS */
-#define MSGJPN142 (std::data(msgs[10000+142])) /* IRMX */
-#define MSGJPN143 (std::data(msgs[10000+143])) /* ACOS-4 */
-#define MSGJPN144 (std::data(msgs[10000+144])) /* Stratus */
 #define MSGJPN145 (std::data(msgs[10000+145])) /* フォルダを変更できません. */
 #define MSGJPN146 (std::data(msgs[10000+146])) /* フォルダを作成できません. */
 #define MSGJPN147 (std::data(msgs[10000+147])) /* フォルダを削除できません. */
@@ -156,19 +145,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN201 (std::data(msgs[10000+201])) /* 属性 */
 #define MSGJPN202 (std::data(msgs[10000+202])) /* ファイル名 */
 #define MSGJPN203 (std::data(msgs[10000+203])) /* ファイル名 */
-#define MSGJPN204 (std::data(msgs[10000+204])) /* FWユーザー名→ FWパスワード→ SITE ホスト名 */
-#define MSGJPN205 (std::data(msgs[10000+205])) /* FWユーザー名→ FWパスワード→ USER ユーザー名@ホスト名 */
-#define MSGJPN206 (std::data(msgs[10000+206])) /* FWユーザー名→ FWパスワード */
-#define MSGJPN207 (std::data(msgs[10000+207])) /* USER ユーザー名@ホスト名 */
-#define MSGJPN208 (std::data(msgs[10000+208])) /* OPEN ホスト名 */
-#define MSGJPN209 (std::data(msgs[10000+209])) /* SOCKS4 */
-#define MSGJPN210 (std::data(msgs[10000+210])) /* SOCKS5 (認証なし) */
-#define MSGJPN211 (std::data(msgs[10000+211])) /* SOCKS5 (ユーザー名,パスワード認証) */
-#define MSGJPN212 (std::data(msgs[10000+212])) /* 使用しない */
-#define MSGJPN213 (std::data(msgs[10000+213])) /* 自動認識 */
-#define MSGJPN214 (std::data(msgs[10000+214])) /* OTP MD4,S/KEY */
-#define MSGJPN215 (std::data(msgs[10000+215])) /* OTP MD5 */
-#define MSGJPN216 (std::data(msgs[10000+216])) /* OTP SHA-1 */
 #define MSGJPN220 (std::data(msgs[10000+220])) /* ダイアルアップを切断しています. */
 #define MSGJPN221 (std::data(msgs[10000+221])) /* ダイアルアップで接続しています. */
 #define MSGJPN239 (std::data(msgs[10000+239])) /* # このファイルは編集しないでください.\n */
@@ -191,9 +167,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN281 (std::data(msgs[10000+281])) /* PASVモードで接続できません */
 #define MSGJPN282 (std::data(msgs[10000+282])) /* INIファイル名が指定されていません */
 #define MSGJPN283 (std::data(msgs[10000+283])) /* INIファイル指定:  */
-#define MSGJPN289 (std::data(msgs[10000+289])) /* Agilent Logic analyzer */
-#define MSGJPN294 (std::data(msgs[10000+294])) /* USER FWユーザー名:FWパスワード@ホスト名 */
-#define MSGJPN295 (std::data(msgs[10000+295])) /* シバソク WL */
 #define MSGJPN299 (std::data(msgs[10000+299])) /* コマンドラインにマスターパスワードが指定されていません */
 #define MSGJPN300 (std::data(msgs[10000+300])) /* デフォルトのマスターパスワードが使われます.\r\nマルウェアの攻撃を防ぐため,固有のマスターパスワードを設定することをおすすめします */
 #define MSGJPN301 (std::data(msgs[10000+301])) /* マスターパスワードが設定と一致しません.安全のため設定の保存を行いません. */
@@ -215,12 +188,5 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN324 (std::data(msgs[10000+324])) /* プロセスの保護に必要な関数をフックできませんでした. */
 #define MSGJPN330 (std::data(msgs[10000+330])) /* ホストの漢字コードはUTF-8 BOM */
 #define MSGJPN331 (std::data(msgs[10000+331])) /* ローカルの漢字コードはUTF-8 BOM */
-#define MSGJPN335 (std::data(msgs[10000+335])) /* 毎回尋ねる */
-#define MSGJPN336 (std::data(msgs[10000+336])) /* 全て後で上書き */
-#define MSGJPN337 (std::data(msgs[10000+337])) /* 全て後でリジューム */
-#define MSGJPN338 (std::data(msgs[10000+338])) /* 全てスキップ */
 #define MSGJPN358 (std::data(msgs[10000+358])) /* ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s */
 #define MSGJPN359 (std::data(msgs[10000+359])) /* ソフトウェアの更新に失敗しました.\nWebサイトから最新版を入手して手動で更新してください. */
-#if defined(HAVE_TANDEM)
-#define MSGJPN2000 (std::data(msgs[10000+2000])) /* NonStop Server */
-#endif
