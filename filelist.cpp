@@ -1089,13 +1089,13 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 		return false;
 	});
 
-	SendMessage(hWnd, WM_SETREDRAW, (WPARAM)FALSE, 0);
+	SendMessageW(hWnd, WM_SETREDRAW, false, 0);
 	SendMessage(hWnd, LVM_DELETEALLITEMS, 0, 0);
 
 	for (auto& file : files)
 		AddListView(hWnd, -1, file.File, file.Node, file.Size, &file.Time, file.Attr, file.Owner, file.Link, file.InfoExist, file.ImageId);
 
-	SendMessage(hWnd, WM_SETREDRAW, (WPARAM)TRUE, 0);
+	SendMessageW(hWnd, WM_SETREDRAW, true, 0);
 	UpdateWindow(hWnd);
 
 	DispSelectedSpace();

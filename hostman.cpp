@@ -1235,7 +1235,7 @@ static void SendAllHostNames(HWND hWnd, int Cur)
 	hItemCur = NULL;
 
 	/* ちらつくので再描画禁止 */
-	SendMessage(hWnd, WM_SETREDRAW, (WPARAM)FALSE, 0);
+	SendMessageW(hWnd, WM_SETREDRAW, false, 0);
 
 	SendMessage(hWnd, TVM_DELETEITEM, 0, (LPARAM)TVI_ROOT);		/* 全てを削除 */
 
@@ -1286,7 +1286,7 @@ static void SendAllHostNames(HWND hWnd, int Cur)
 	}
 
 	/* 再描画 */
-	SendMessage(hWnd, WM_SETREDRAW, (WPARAM)TRUE, 0);
+	SendMessageW(hWnd, WM_SETREDRAW, true, 0);
 
 	if(hItemCur != NULL)
 	{
