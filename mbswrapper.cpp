@@ -975,19 +975,6 @@ START_ROUTINE
 				break;
 			}
 		}
-		else if(_wcsicmp(ClassName, STATUSCLASSNAMEW) == 0)
-		{
-			switch(Msg)
-			{
-			case SB_SETTEXTA:
-				pw0 = DuplicateMtoW((LPCSTR)lParam, -1);
-				r = SendMessageW(hWnd, SB_SETTEXTW, wParam, (LPARAM)pw0);
-				break;
-			default:
-				r = SendMessageW(hWnd, Msg, wParam, lParam);
-				break;
-			}
-		}
 		else if(_wcsicmp(ClassName, WC_TREEVIEWW) == 0)
 		{
 			switch(Msg)

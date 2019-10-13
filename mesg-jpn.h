@@ -152,8 +152,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN242 (std::data(msgs[10000+242])) /* 受信はタイムアウトで失敗しました. */
 #define MSGJPN243 (std::data(msgs[10000+243])) /* 受信はタイムアウトで失敗しました. */
 #define MSGJPN244 (std::data(msgs[10000+244])) /* 固定長の受信が失敗しました */
-#define MSGJPN245 (std::data(msgs[10000+245])) /* ローカル */
-#define MSGJPN246 (std::data(msgs[10000+246])) /* ホスト */
 #define MSGJPN247 (std::data(msgs[10000+247])) /* 選択%d個（%s） */
 #define MSGJPN248 (std::data(msgs[10000+248])) /* ローカル空 %s */
 #define MSGJPN249 (std::data(msgs[10000+249])) /* 転送待ちファイル%d個 */
