@@ -914,7 +914,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 				ListView_SetItemState(GetRemoteHwnd(), 0, LVIS_FOCUSED, LVIS_FOCUSED);
 			} else {
 				SetTaskMsg(MSGJPN048);
-				SendMessage(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
+				SendMessageW(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
 			}
 		} else {
 #if defined(HAVE_OPENVMS)
@@ -923,7 +923,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 			if (AskHostType() != HTYPE_VMS)
 #endif
 				SetTaskMsg(MSGJPN049);
-			SendMessage(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
+			SendMessageW(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
 		}
 		EnableUserOpe();
 	}
@@ -1037,7 +1037,7 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 	});
 
 	SendMessageW(hWnd, WM_SETREDRAW, false, 0);
-	SendMessage(hWnd, LVM_DELETEALLITEMS, 0, 0);
+	SendMessageW(hWnd, LVM_DELETEALLITEMS, 0, 0);
 
 	for (auto& file : files)
 		AddListView(hWnd, -1, file.File, file.Node, file.Size, &file.Time, file.Attr, file.Owner, file.Link, file.InfoExist, file.ImageId);
@@ -1831,7 +1831,7 @@ void GetNodeOwner(int Win, int Pos, char *Buf, int Max)
 
 void EraseRemoteDirForWnd(void)
 {
-	SendMessage(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
+	SendMessageW(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
 	SendMessageW(GetRemoteHistHwnd(), CB_RESETCONTENT, 0, 0);
 	return;
 }
