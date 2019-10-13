@@ -135,10 +135,6 @@ static fs::path remoteFileDir;
 int MakeListWin()
 {
 	int Sts;
-	LV_COLUMN LvCol;
-
-	// 変数が未初期化のバグ修正
-	memset(&LvCol, 0, sizeof(LV_COLUMN));
 
 	/*===== ローカル側のリストビュー =====*/
 
@@ -157,30 +153,18 @@ int MakeListWin()
 		SendMessageW(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
 		ShowWindow(hWndListLocal, SW_SHOW);
 
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = LocalTabWidth[0];
-		LvCol.pszText = MSGJPN038;
-		LvCol.iSubItem = 0;
-		SendMessage(hWndListLocal, LVM_INSERTCOLUMN, 0, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = LocalTabWidth[1];
-		LvCol.pszText = MSGJPN039;
-		LvCol.iSubItem = 1;
-		SendMessage(hWndListLocal, LVM_INSERTCOLUMN, 1, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM | LVCF_FMT;
-		LvCol.fmt = LVCFMT_RIGHT;
-		LvCol.cx = LocalTabWidth[2];
-		LvCol.pszText = MSGJPN040;
-		LvCol.iSubItem = 2;
-		SendMessage(hWndListLocal, LVM_INSERTCOLUMN, 2, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = LocalTabWidth[3];
-		LvCol.pszText = MSGJPN041;
-		LvCol.iSubItem = 3;
-		SendMessage(hWndListLocal, LVM_INSERTCOLUMN, 3, (LPARAM)&LvCol);
+		constexpr std::tuple<int, int> columns[] = {
+			{ LVCFMT_LEFT, IDS_MSGJPN038 },
+			{ LVCFMT_LEFT, IDS_MSGJPN039 },
+			{ LVCFMT_RIGHT, IDS_MSGJPN040 },
+			{ LVCFMT_LEFT, IDS_MSGJPN041 },
+		};
+		int i = 0;
+		for (auto [fmt, resourceId] : columns) {
+			auto text = GetString(resourceId);
+			LVCOLUMNW column{ LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM, fmt, LocalTabWidth[i], data(text), 0, i };
+			SendMessageW(hWndListLocal, LVM_INSERTCOLUMNW, i++, (LPARAM)&column);
+		}
 	}
 
 	/*===== ホスト側のリストビュー =====*/
@@ -199,42 +183,20 @@ int MakeListWin()
 		SendMessageW(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
 		ShowWindow(hWndListRemote, SW_SHOW);
 
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = RemoteTabWidth[0];
-		LvCol.pszText = MSGJPN042;
-		LvCol.iSubItem = 0;
-		SendMessage(hWndListRemote, LVM_INSERTCOLUMN, 0, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = RemoteTabWidth[1];
-		LvCol.pszText = MSGJPN043;
-		LvCol.iSubItem = 1;
-		SendMessage(hWndListRemote, LVM_INSERTCOLUMN, 1, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM | LVCF_FMT;
-		LvCol.fmt = LVCFMT_RIGHT;
-		LvCol.cx = RemoteTabWidth[2];
-		LvCol.pszText = MSGJPN044;
-		LvCol.iSubItem = 2;
-		SendMessage(hWndListRemote, LVM_INSERTCOLUMN, 2, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = RemoteTabWidth[3];
-		LvCol.pszText = MSGJPN045;
-		LvCol.iSubItem = 3;
-		SendMessage(hWndListRemote, LVM_INSERTCOLUMN, 3, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = RemoteTabWidth[4];
-		LvCol.pszText = MSGJPN046;
-		LvCol.iSubItem = 4;
-		SendMessage(hWndListRemote, LVM_INSERTCOLUMN, 4, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = RemoteTabWidth[5];
-		LvCol.pszText = MSGJPN047;
-		LvCol.iSubItem = 5;
-		SendMessage(hWndListRemote, LVM_INSERTCOLUMN, 5, (LPARAM)&LvCol);
+		constexpr std::tuple<int, int> columns[] = {
+			{ LVCFMT_LEFT, IDS_MSGJPN042 },
+			{ LVCFMT_LEFT, IDS_MSGJPN043 },
+			{ LVCFMT_RIGHT, IDS_MSGJPN044 },
+			{ LVCFMT_LEFT, IDS_MSGJPN045 },
+			{ LVCFMT_LEFT, IDS_MSGJPN046 },
+			{ LVCFMT_LEFT, IDS_MSGJPN047 },
+		};
+		int i = 0;
+		for (auto [fmt, resourceId] : columns) {
+			auto text = GetString(resourceId);
+			LVCOLUMNW column{ LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM, fmt, RemoteTabWidth[i], data(text), 0, i };
+			SendMessageW(hWndListRemote, LVM_INSERTCOLUMNW, i++, (LPARAM)&column);
+		}
 	}
 
 	Sts = FFFTP_SUCCESS;

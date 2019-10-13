@@ -880,23 +880,6 @@ START_ROUTINE
 				pmLVColumn->iImage = wLVColumn.iImage;
 				pmLVColumn->iOrder = wLVColumn.iOrder;
 				break;
-			case LVM_INSERTCOLUMNA:
-				pmLVColumn = (LVCOLUMNA*)lParam;
-				wLVColumn.mask = pmLVColumn->mask;
-				wLVColumn.fmt = pmLVColumn->fmt;
-				wLVColumn.cx = pmLVColumn->cx;
-				if(pmLVColumn->mask & LVCF_TEXT)
-				{
-					pw0 = DuplicateMtoW(pmLVColumn->pszText, -1);
-					wLVColumn.pszText = pw0;
-					// TODO: cchTextMaxの確認
-					wLVColumn.cchTextMax = pmLVColumn->cchTextMax;
-				}
-				wLVColumn.iSubItem = pmLVColumn->iSubItem;
-				wLVColumn.iImage = pmLVColumn->iImage;
-				wLVColumn.iOrder = pmLVColumn->iOrder;
-				r = SendMessageW(hWnd, LVM_INSERTCOLUMNW, wParam, (LPARAM)&wLVColumn);
-				break;
 			case LVM_GETITEMTEXTA:
 				pmLVItem = (LVITEMA*)lParam;
 				wLVItem.mask = pmLVItem->mask;

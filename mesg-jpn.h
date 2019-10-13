@@ -29,16 +29,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN035 (std::data(msgs[10000+35])) /* SOCKS4のコマンドに対するリプライが受信できませんでした */
 #define MSGJPN036 (std::data(msgs[10000+36])) /* SOCKSサーバーの認証方式が異なります. */
 #define MSGJPN037 (std::data(msgs[10000+37])) /* SOCKSサーバーに認証されませんでした. */
-#define MSGJPN038 (std::data(msgs[10000+38])) /* 名前 */
-#define MSGJPN039 (std::data(msgs[10000+39])) /* 日付 */
-#define MSGJPN040 (std::data(msgs[10000+40])) /* サイズ */
-#define MSGJPN041 (std::data(msgs[10000+41])) /* 種類 */
-#define MSGJPN042 (std::data(msgs[10000+42])) /* 名前 */
-#define MSGJPN043 (std::data(msgs[10000+43])) /* 日付 */
-#define MSGJPN044 (std::data(msgs[10000+44])) /* サイズ */
-#define MSGJPN045 (std::data(msgs[10000+45])) /* 種類 */
-#define MSGJPN046 (std::data(msgs[10000+46])) /* 属性 */
-#define MSGJPN047 (std::data(msgs[10000+47])) /* 所有者 */
 #define MSGJPN048 (std::data(msgs[10000+48])) /* テンポラリファイルが読み出せません. */
 #define MSGJPN049 (std::data(msgs[10000+49])) /* ファイル一覧の取得に失敗しました. */
 #define MSGJPN050 (std::data(msgs[10000+50])) /* 検索（ローカル） */
@@ -141,8 +131,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN182 (std::data(msgs[10000+182])) /* ビューアの起動に失敗しました. (ERROR=%d) */
 #define MSGJPN185 (std::data(msgs[10000+185])) /* フォルダを選択してください */
 #define MSGJPN199 (std::data(msgs[10000+199])) /* ファイル名 */
-#define MSGJPN200 (std::data(msgs[10000+200])) /* ファイル名 */
-#define MSGJPN201 (std::data(msgs[10000+201])) /* 属性 */
 #define MSGJPN202 (std::data(msgs[10000+202])) /* ファイル名 */
 #define MSGJPN203 (std::data(msgs[10000+203])) /* ファイル名 */
 #define MSGJPN220 (std::data(msgs[10000+220])) /* ダイアルアップを切断しています. */
