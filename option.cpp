@@ -30,8 +30,19 @@
 #include "common.h"
 
 
-/*===== プロトタイプ =====*/
-
+static auto GetMultiTextFromList(HWND hdlg, int id) {
+	std::wstring lines;
+	std::wstring line;
+	for (int i = 0, count = (int)SendDlgItemMessageW(hdlg, id, LB_GETCOUNT, 0, 0); i < count; i++) {
+		auto length = SendDlgItemMessageW(hdlg, id, LB_GETTEXTLEN, i, 0);
+		line.resize(length);
+		length = SendDlgItemMessageW(hdlg, id, LB_GETTEXT, i, (LPARAM)data(line));
+		lines.append(begin(line), begin(line) + length);
+		lines += L'\0';
+	}
+	lines += L'\0';
+	return lines;
+}
 static void AddFnameAttrToListView(HWND hDlg, char *Fname, char *Attr);
 static void GetFnameAttrFromListView(HWND hDlg, char *Buf);
 int GetDecimalText(HWND hDlg, int Ctrl);
@@ -1022,33 +1033,14 @@ void CheckRange2(int *Cur, int Max, int Min)
 *	Return Value
 *		なし
 *----------------------------------------------------------------------------*/
-
-// hostman.cで使用
-//static void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize)
-void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize)
-{
-	char Tmp[FMAX_PATH+1];
-	int Num;
-	int i;
-	int Len;
-
-	Len = (int)strlen(Str);
-	if(Len > 0)
-	{
-		Len++;
-		Num = (int)SendDlgItemMessageW(hDlg, CtrlList, LB_GETCOUNT, 0, 0);
-		for(i = 0; i < Num; i++)
-		{
-			SendDlgItemMessage(hDlg, CtrlList, LB_GETTEXT, i, (LPARAM)Tmp);
-			Len += (int)strlen(Tmp) + 1;
-		}
-
-		if(Len > (BufSize-1))
+void AddTextToListBox(HWND hDlg, char* Str, int CtrlList, int BufSize) {
+	if (int Len = (int)strlen(Str); Len > 0) {
+		Len += 1 + size_as<int>(u8(GetMultiTextFromList(hDlg, CtrlList)));
+		if (Len > (BufSize - 1))
 			MessageBeep(-1);
 		else
 			SendDlgItemMessageW(hDlg, CtrlList, LB_ADDSTRING, 0, (LPARAM)u8(Str).c_str());
 	}
-	return;
 }
 
 
@@ -1090,23 +1082,8 @@ void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text)
 *	Return Value
 *		なし
 *----------------------------------------------------------------------------*/
-
-// hostman.cで使用
-//static void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize)
-void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize)
-{
-	char Tmp[FMAX_PATH+1];
-	int Num;
-	int i;
-
-	memset(Buf, NUL, BufSize);
-	Num = (int)SendDlgItemMessageW(hDlg, CtrlList, LB_GETCOUNT, 0, 0);
-	for(i = 0; i < Num; i++)
-	{
-		SendDlgItemMessage(hDlg, CtrlList, LB_GETTEXT, i, (LPARAM)Tmp);
-		strcpy(Buf + StrMultiLen(Buf), Tmp);
-	}
-	return;
+void GetMultiTextFromList(HWND hDlg, int CtrlList, char* Buf, int BufSize) {
+	auto u8lines = u8(GetMultiTextFromList(hDlg, CtrlList));
+	memset(Buf, 0, BufSize);
+	memcpy(Buf, u8lines.c_str(), std::min(size(u8lines), (size_t)BufSize));
 }
-
-

@@ -774,20 +774,6 @@ START_ROUTINE
 				pw0 = DuplicateMtoW((LPCSTR)lParam, -1);
 				r = SendMessageW(hWnd, LB_INSERTSTRING, wParam, (LPARAM)pw0);
 				break;
-			case LB_GETTEXT:
-				Size = (int)SendMessageW(hWnd, LB_GETTEXTLEN, wParam, 0) + 1;
-				pw0 = AllocateStringW(Size);
-				SendMessageW(hWnd, LB_GETTEXT, wParam, (LPARAM)pw0);
-				// バッファ長不明のためオーバーランの可能性あり
-				WtoM((LPSTR)lParam, Size * 4, pw0, -1);
-				r = TerminateStringM((LPSTR)lParam, Size * 4);
-				break;
-			case LB_GETTEXTLEN:
-				Size = (int)SendMessageW(hWnd, LB_GETTEXTLEN, wParam, 0) + 1;
-				pw0 = AllocateStringW(Size);
-				SendMessageW(hWnd, WM_GETTEXT, wParam, (LPARAM)pw0);
-				r = (LRESULT)WtoM(NULL, 0, pw0, -1) - 1;
-				break;
 			default:
 				r = SendMessageW(hWnd, Msg, wParam, lParam);
 				break;
