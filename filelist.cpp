@@ -1323,19 +1323,9 @@ void FindFileInList(HWND hWnd, int Type) {
 *		int アイテム番号
 *----------------------------------------------------------------------------*/
 
-int GetCurrentItem(int Win)
-{
-	HWND hWnd;
-	int Ret;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	if((Ret = (int)SendMessage(hWnd, LVM_GETNEXTITEM, -1, MAKELPARAM(LVNI_ALL | LVNI_FOCUSED, 0))) == -1)
-		Ret = 0;
-
-	return(Ret);
+int GetCurrentItem(int Win) {
+	auto Ret = (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, -1, LVNI_ALL | LVNI_FOCUSED);
+	return Ret == -1 ? 0 : Ret;
 }
 
 
@@ -1392,20 +1382,8 @@ int GetSelectedCount(int Win)
 *			-1 = 選択されていない
 *----------------------------------------------------------------------------*/
 
-int GetFirstSelected(int Win, int All)
-{
-	HWND hWnd;
-	int Ope;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	Ope = LVNI_SELECTED;
-	if(All == YES)
-		Ope = LVNI_ALL;
-
-	return (int)(SendMessage(hWnd, LVM_GETNEXTITEM, (WPARAM)-1, (LPARAM)MAKELPARAM(Ope, 0)));
+int GetFirstSelected(int Win, int All) {
+	return GetNextSelected(Win, -1, All);
 }
 
 
@@ -1421,37 +1399,16 @@ int GetFirstSelected(int Win, int All)
 *			-1 = 選択されていない
 *----------------------------------------------------------------------------*/
 
-int GetNextSelected(int Win, int Pos, int All)
-{
-	HWND hWnd;
-	int Ope;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	Ope = LVNI_SELECTED;
-	if(All == YES)
-		Ope = LVNI_ALL;
-
-	return (int)(SendMessage(hWnd, LVM_GETNEXTITEM, (WPARAM)Pos, (LPARAM)MAKELPARAM(Ope, 0)));
+int GetNextSelected(int Win, int Pos, int All) {
+	return (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, Pos, All == YES ? LVNI_ALL : LVNI_SELECTED);
 }
 
 
 // ローカル側自動更新
-int GetHotSelected(int Win, char *Fname)
-{
-	HWND hWnd;
-	int Pos;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	Pos = (int)SendMessage(hWnd, LVM_GETNEXTITEM, (WPARAM)-1, (LPARAM)MAKELPARAM(LVNI_FOCUSED, 0));
-	if(Pos != -1)
+int GetHotSelected(int Win, char* Fname) {
+	auto Pos = (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, -1, LVNI_FOCUSED);
+	if (Pos != -1)
 		GetNodeName(Win, Pos, Fname, FMAX_PATH);
-
 	return Pos;
 }
 
