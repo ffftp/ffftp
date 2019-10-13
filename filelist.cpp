@@ -1066,99 +1066,68 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 *	Return Value
 *		なし
 *----------------------------------------------------------------------------*/
-
-// ファイルアイコン表示対応
-//static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist)
-static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist, int ImageId)
-{
-	LV_ITEM LvItem;
+static void AddListView(HWND hWnd, int Pos, char* Name, int Type, LONGLONG Size, FILETIME* Time, int Attr, char* Owner, int Link, int InfoExist, int ImageId) {
+	LVITEMW item;
 	char Tmp[20];
 
-	if(Pos == -1)
-		Pos = (int)SendMessageW(hWnd, LVM_GETITEMCOUNT, 0, 0);
-
-	// 変数が未初期化のバグ修正
-	memset(&LvItem, 0, sizeof(LV_ITEM));
 	/* アイコン/ファイル名 */
-	LvItem.mask = LVIF_TEXT | LVIF_IMAGE;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 0;
-	LvItem.pszText = Name;
-	if((Type == NODE_FILE) && (AskTransferTypeAssoc(Name, TYPE_X) == TYPE_I))
+	if (Pos == -1)
+		Pos = std::numeric_limits<int>::max();
+	auto wName = u8(Name);
+	if (Type == NODE_FILE && AskTransferTypeAssoc(Name, TYPE_X) == TYPE_I)
 		Type = 3;
-	if(Link == NO)
-		LvItem.iImage = Type;
-	else
-		LvItem.iImage = 4;
-	// ファイルアイコン表示対応
-	if(DispFileIcon == YES && hWnd == GetLocalHwnd())
-		LvItem.iImage = ImageId + 5;
-	LvItem.iItem = (int)SendMessage(hWnd, LVM_INSERTITEM, 0, (LPARAM)&LvItem);
+	item = { .mask = LVIF_TEXT | LVIF_IMAGE, .iItem = Pos, .pszText = data(wName), .iImage = DispFileIcon == YES && hWnd == GetLocalHwnd() ? ImageId + 5 : Link == NO ? Type : 4 };
+	Pos = (int)SendMessageW(hWnd, LVM_INSERTITEMW, 0, (LPARAM)&item);
 
 	/* 日付/時刻 */
-	// タイムスタンプのバグ修正
-//	FileTime2TimeString(Time, Tmp, DISPFORM_LEGACY, InfoExist);
 	FileTime2TimeString(Time, Tmp, DISPFORM_LEGACY, InfoExist, DispTimeSeconds);
-	LvItem.mask = LVIF_TEXT;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 1;
-	LvItem.pszText = Tmp;
-	LvItem.iItem = (int)SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
+	auto wTime = u8(Tmp);
+	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 1, .pszText = data(wTime) };
+	SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 	/* サイズ */
-	if(Type == NODE_DIR)
+	if (Type == NODE_DIR)
 		strcpy(Tmp, "<DIR>");
-	else if(Type == NODE_DRIVE)
+	else if (Type == NODE_DRIVE)
 		strcpy(Tmp, "<DRIVE>");
-	else if(Size >= 0)
+	else if (Size >= 0)
 		strcpy(Tmp, MakeNumString(Size).c_str());
 	else
 		strcpy(Tmp, "");
-	LvItem.mask = LVIF_TEXT;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 2;
-	LvItem.pszText = Tmp;
-	LvItem.iItem = (int)SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
+	auto wSize = u8(Tmp);
+	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 2, .pszText = data(wSize) };
+	SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 	/* 拡張子 */
-	LvItem.mask = LVIF_TEXT;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 3;
 #if defined(HAVE_TANDEM)
-	if (AskHostType() == HTYPE_TANDEM) {
+	if (AskHostType() == HTYPE_TANDEM)
 		_itoa_s(Attr, Tmp, sizeof(Tmp), 10);
-		LvItem.pszText = Tmp;
-	} else
+	else
 #endif
-	LvItem.pszText = GetFileExt(Name);
-	LvItem.iItem = (int)SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
+		strncpy_s(Tmp, GetFileExt(Name), _TRUNCATE);
+	auto wExt = u8(Tmp);
+	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 3, .pszText = data(wExt) };
+	SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
-	if(hWnd == GetRemoteHwnd())
-	{
+	if (hWnd == GetRemoteHwnd()) {
 		/* 属性 */
-		strcpy(Tmp, "");
 #if defined(HAVE_TANDEM)
-		if((InfoExist & FINFO_ATTR) && (AskHostType() != HTYPE_TANDEM))
+		if ((InfoExist & FINFO_ATTR) && (AskHostType() != HTYPE_TANDEM))
 #else
-		if(InfoExist & FINFO_ATTR)
+		if (InfoExist & FINFO_ATTR)
 #endif
-			// ファイルの属性を数字で表示
-//			AttrValue2String(Attr, Tmp);
 			AttrValue2String(Attr, Tmp, DispPermissionsNumber);
-		LvItem.mask = LVIF_TEXT;
-		LvItem.iItem = Pos;
-		LvItem.iSubItem = 4;
-		LvItem.pszText = Tmp;
-		LvItem.iItem = (int)SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
+		else
+			strcpy(Tmp, "");
+		auto wAttr = u8(Tmp);
+		item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 4, .pszText = data(wAttr) };
+		SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 		/* オーナ名 */
-		LvItem.mask = LVIF_TEXT;
-		LvItem.iItem = Pos;
-		LvItem.iSubItem = 5;
-		LvItem.pszText = Owner;
-		LvItem.iItem = (int)SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
+		auto wOwner = u8(Owner);
+		item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 5, .pszText = data(wOwner) };
+		SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 	}
-	return;
 }
 
 

@@ -827,33 +827,18 @@ void SetOption() {
 *		なし
 *----------------------------------------------------------------------------*/
 
-static void AddFnameAttrToListView(HWND hDlg, char *Fname, char *Attr)
-{
-	int Num;
-	LV_ITEM LvItem;
-	char Buf[DEFATTRLIST_LEN+1];
-
+static void AddFnameAttrToListView(HWND hDlg, char* Fname, char* Attr) {
+	char Buf[DEFATTRLIST_LEN + 1];
 	GetFnameAttrFromListView(hDlg, Buf);
-	if(StrMultiLen(Buf) + strlen(Fname) + strlen(Attr) + 2 <= DEFATTRLIST_LEN)
-	{
-		Num = (int)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETITEMCOUNT, 0, 0);
-
-		LvItem.mask = LVIF_TEXT;
-		LvItem.iItem = Num;
-		LvItem.iSubItem = 0;
-		LvItem.pszText = Fname;
-		SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_INSERTITEM, 0, (LPARAM)&LvItem);
-
-		LvItem.mask = LVIF_TEXT;
-		LvItem.iItem = Num;
-		LvItem.iSubItem = 1;
-		LvItem.pszText = Attr;
-		SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_SETITEM, 0, (LPARAM)&LvItem);
-	}
-	else
+	if (StrMultiLen(Buf) + strlen(Fname) + strlen(Attr) + 2 <= DEFATTRLIST_LEN) {
+		auto wFname = u8(Fname);
+		LVITEMW item = { .mask = LVIF_TEXT, .iItem = std::numeric_limits<int>::max(), .pszText = data(wFname) };
+		auto index = (int)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_INSERTITEMW, 0, (LPARAM)&item);
+		auto wAttr = u8(Attr);
+		item = { .mask = LVIF_TEXT, .iItem = index, .iSubItem = 1, .pszText = data(wAttr) };
+		SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_SETITEMW, 0, (LPARAM)&item);
+	} else
 		MessageBeep(-1);
-
-	return;
 }
 
 

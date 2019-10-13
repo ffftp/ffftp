@@ -799,44 +799,6 @@ START_ROUTINE
 				pmLVItem->lParam = wLVItem.lParam;
 				pmLVItem->iIndent = wLVItem.iIndent;
 				break;
-			case LVM_SETITEMA:
-				pmLVItem = (LVITEMA*)lParam;
-				wLVItem.mask = pmLVItem->mask;
-				wLVItem.iItem = pmLVItem->iItem;
-				wLVItem.iSubItem = pmLVItem->iSubItem;
-				wLVItem.state = pmLVItem->state;
-				wLVItem.stateMask = pmLVItem->stateMask;
-				if(pmLVItem->mask & LVIF_TEXT)
-				{
-					pw0 = DuplicateMtoW(pmLVItem->pszText, -1);
-					wLVItem.pszText = pw0;
-					// TODO: cchTextMaxの確認
-					wLVItem.cchTextMax = pmLVItem->cchTextMax;
-				}
-				wLVItem.iImage = pmLVItem->iImage;
-				wLVItem.lParam = pmLVItem->lParam;
-				wLVItem.iIndent = pmLVItem->iIndent;
-				r = SendMessageW(hWnd, LVM_SETITEMW, wParam, (LPARAM)&wLVItem);
-				break;
-			case LVM_INSERTITEMA:
-				pmLVItem = (LVITEMA*)lParam;
-				wLVItem.mask = pmLVItem->mask;
-				wLVItem.iItem = pmLVItem->iItem;
-				wLVItem.iSubItem = pmLVItem->iSubItem;
-				wLVItem.state = pmLVItem->state;
-				wLVItem.stateMask = pmLVItem->stateMask;
-				if(pmLVItem->mask & LVIF_TEXT)
-				{
-					pw0 = DuplicateMtoW(pmLVItem->pszText, -1);
-					wLVItem.pszText = pw0;
-					// TODO: cchTextMaxの確認
-					wLVItem.cchTextMax = pmLVItem->cchTextMax;
-				}
-				wLVItem.iImage = pmLVItem->iImage;
-				wLVItem.lParam = pmLVItem->lParam;
-				wLVItem.iIndent = pmLVItem->iIndent;
-				r = SendMessageW(hWnd, LVM_INSERTITEMW, wParam, (LPARAM)&wLVItem);
-				break;
 			case LVM_FINDITEMA:
 				pmLVFindInfo = (LVFINDINFOA*)lParam;
 				wLVFindInfo.flags = pmLVFindInfo->flags;
