@@ -1431,13 +1431,13 @@ struct General {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			SendDlgItemMessage(hDlg, HSET_HOST, WM_GETTEXT, HOST_NAME_LEN + 1, (LPARAM)TmpHost.HostName);
-			SendDlgItemMessage(hDlg, HSET_ADRS, WM_GETTEXT, HOST_ADRS_LEN + 1, (LPARAM)TmpHost.HostAdrs);
+			strncpy_s(TmpHost.HostName, HOST_NAME_LEN + 1, u8(GetText(hDlg, HSET_HOST)).c_str(), _TRUNCATE);
+			strncpy_s(TmpHost.HostAdrs, HOST_ADRS_LEN + 1, u8(GetText(hDlg, HSET_ADRS)).c_str(), _TRUNCATE);
 			RemoveTailingSpaces(TmpHost.HostAdrs);
-			SendDlgItemMessage(hDlg, HSET_USER, WM_GETTEXT, USER_NAME_LEN + 1, (LPARAM)TmpHost.UserName);
-			SendDlgItemMessage(hDlg, HSET_PASS, WM_GETTEXT, PASSWORD_LEN + 1, (LPARAM)TmpHost.PassWord);
-			SendDlgItemMessage(hDlg, HSET_LOCAL, WM_GETTEXT, INIT_DIR_LEN + 1, (LPARAM)TmpHost.LocalInitDir);
-			SendDlgItemMessage(hDlg, HSET_REMOTE, WM_GETTEXT, INIT_DIR_LEN + 1, (LPARAM)TmpHost.RemoteInitDir);
+			strncpy_s(TmpHost.UserName, USER_NAME_LEN + 1, u8(GetText(hDlg, HSET_USER)).c_str(), _TRUNCATE);
+			strncpy_s(TmpHost.PassWord, PASSWORD_LEN + 1, u8(GetText(hDlg, HSET_PASS)).c_str(), _TRUNCATE);
+			strncpy_s(TmpHost.LocalInitDir, INIT_DIR_LEN + 1, u8(GetText(hDlg, HSET_LOCAL)).c_str(), _TRUNCATE);
+			strncpy_s(TmpHost.RemoteInitDir, INIT_DIR_LEN + 1, u8(GetText(hDlg, HSET_REMOTE)).c_str(), _TRUNCATE);
 			TmpHost.Anonymous = (int)SendDlgItemMessageW(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0);
 			TmpHost.LastDir = (int)SendDlgItemMessageW(hDlg, HSET_LASTDIR, BM_GETCHECK, 0, 0);
 			if ((strlen(TmpHost.HostName) == 0) && (strlen(TmpHost.HostAdrs) > 0)) {
@@ -1520,13 +1520,11 @@ struct Advanced {
 			TmpHost.Pasv = (int)SendDlgItemMessageW(hDlg, HSET_PASV, BM_GETCHECK, 0, 0);
 			TmpHost.FireWall = (int)SendDlgItemMessageW(hDlg, HSET_FIREWALL, BM_GETCHECK, 0, 0);
 			TmpHost.SyncMove = (int)SendDlgItemMessageW(hDlg, HSET_SYNCMOVE, BM_GETCHECK, 0, 0);
-			char Tmp[20];
-			SendDlgItemMessage(hDlg, HSET_PORT, WM_GETTEXT, 5 + 1, (LPARAM)Tmp);
-			TmpHost.Port = atoi(Tmp);
-			SendDlgItemMessage(hDlg, HSET_ACCOUNT, WM_GETTEXT, ACCOUNT_LEN + 1, (LPARAM)TmpHost.Account);
+			TmpHost.Port = stoi(GetText(hDlg, HSET_PORT));
+			strncpy_s(TmpHost.Account, ACCOUNT_LEN + 1, u8(GetText(hDlg, HSET_ACCOUNT)).c_str(), _TRUNCATE);
 			TmpHost.TimeZone = (int)SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_GETCURSEL, 0, 0) - 12;
 			TmpHost.Security = (int)SendDlgItemMessageW(hDlg, HSET_SECURITY, CB_GETCURSEL, 0, 0);
-			SendDlgItemMessage(hDlg, HSET_INITCMD, WM_GETTEXT, INITCMD_LEN + 1, (LPARAM)TmpHost.InitCmd);
+			strncpy_s(TmpHost.InitCmd, INITCMD_LEN + 1, u8(GetText(hDlg, HSET_INITCMD)).c_str(), _TRUNCATE);
 			return PSNRET_NOERROR;
 		}
 		case PSN_HELP:
@@ -1628,7 +1626,7 @@ struct Dialup {
 			TmpHost.Dialup = (int)SendDlgItemMessageW(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0);
 			TmpHost.DialupAlways = (int)SendDlgItemMessageW(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0);
 			TmpHost.DialupNotify = (int)SendDlgItemMessageW(hDlg, HSET_DIALNOTIFY, BM_GETCHECK, 0, 0);
-			SendDlgItemMessage(hDlg, HSET_DIALENTRY, WM_GETTEXT, RAS_NAME_LEN + 1, (LPARAM)TmpHost.DialEntry);
+			strncpy_s(TmpHost.DialEntry, RAS_NAME_LEN + 1, u8(GetText(hDlg, HSET_DIALENTRY)).c_str(), _TRUNCATE);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000031);
@@ -1696,8 +1694,8 @@ struct Special {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_GETTEXT, CHMOD_CMD_LEN + 1, (LPARAM)TmpHost.ChmodCmd);
-			SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_GETTEXT, NLST_NAME_LEN + 1, (LPARAM)TmpHost.LsName);
+			strncpy_s(TmpHost.ChmodCmd, CHMOD_CMD_LEN + 1, u8(GetText(hDlg, HSET_CHMOD_CMD)).c_str(), _TRUNCATE);
+			strncpy_s(TmpHost.LsName, NLST_NAME_LEN + 1, u8(GetText(hDlg, HSET_LS_FNAME)).c_str(), _TRUNCATE);
 			TmpHost.ListCmdOnly = (int)SendDlgItemMessageW(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0);
 			TmpHost.UseMLSD = (int)SendDlgItemMessageW(hDlg, HSET_MLSDCMD, BM_GETCHECK, 0, 0);
 			TmpHost.UseNLST_R = (int)SendDlgItemMessageW(hDlg, HSET_NLST_R, BM_GETCHECK, 0, 0);

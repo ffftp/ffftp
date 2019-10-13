@@ -738,21 +738,6 @@ LRESULT SendMessageM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	TVINSERTSTRUCTW wTVInsert;
 	wchar_t ClassName[MAX_PATH];
 START_ROUTINE
-	switch(Msg)
-	{
-	case WM_GETTEXT:
-		pw0 = AllocateStringW((size_t)wParam * 4);
-		SendMessageW(hWnd, WM_GETTEXT, wParam * 4, (LPARAM)pw0);
-		WtoM((LPSTR)lParam, (int)wParam, pw0, -1);
-		r = TerminateStringM((LPSTR)lParam, (int)wParam);
-		break;
-	case WM_GETTEXTLENGTH:
-		Size = (int)SendMessageW(hWnd, WM_GETTEXTLENGTH, wParam, lParam) + 1;
-		pw0 = AllocateStringW(Size);
-		SendMessageW(hWnd, WM_GETTEXT, (WPARAM)Size, (LPARAM)pw0);
-		r = (LRESULT)WtoM(NULL, 0, pw0, -1) - 1;
-		break;
-	default:
 		GetClassNameW(hWnd, ClassName, sizeof(ClassName) / sizeof(wchar_t));
 		if(_wcsicmp(ClassName, WC_COMBOBOXW) == 0)
 		{
@@ -1054,8 +1039,6 @@ START_ROUTINE
 		}
 		else
 			r = SendMessageW(hWnd, Msg, wParam, lParam);
-		break;
-	}
 END_ROUTINE
 	FreeDuplicatedString(pw0);
 	FreeDuplicatedString(pw1);

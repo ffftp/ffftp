@@ -373,7 +373,7 @@ static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wPara
 			{
 				if(hWnd == hWndDirLocalEdit)
 				{
-					SendMessage(hWndDirLocalEdit, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Tmp);
+					strncpy_s(Tmp, FMAX_PATH+1, u8(GetText(hWndDirLocalEdit)).c_str(), _TRUNCATE);
 					DoLocalCWD(Tmp);
 					GetLocalDirForWnd();
 				}
@@ -381,7 +381,7 @@ static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wPara
 				{
 					// 同時接続対応
 					CancelFlg = NO;
-					SendMessage(hWndDirRemoteEdit, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Tmp);
+					strncpy_s(Tmp, FMAX_PATH+1, u8(GetText(hWndDirRemoteEdit)).c_str(), _TRUNCATE);
 					if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 					{
 						if(DoCWD(Tmp, YES, NO, YES) < FTP_RETRY)

@@ -762,7 +762,7 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 				[[fallthrough]];
 			case IDOK:
 				ExistMode = DownExistButton::Get(hDlg);
-				SendDlgItemMessage(hDlg, DOWN_EXIST_NAME, WM_GETTEXT, FMAX_PATH, (LPARAM)Pkt->LocalFile);
+				strncpy_s(Pkt->LocalFile, FMAX_PATH, u8(GetText(hDlg, DOWN_EXIST_NAME)).c_str(), _TRUNCATE);
 				EndDialog(hDlg, true);
 				break;
 			case IDCANCEL:
@@ -912,7 +912,7 @@ void UploadListProc(int ChName, int All)
 		void OnCommand(HWND hDlg, WORD id) {
 			switch (id) {
 			case IDOK:
-				SendDlgItemMessage(hDlg, UPDOWNAS_NEW, WM_GETTEXT, FMAX_PATH, (LPARAM)TmpString);
+				strncpy_s(TmpString, FMAX_PATH, u8(GetText(hDlg, UPDOWNAS_NEW)).c_str(), _TRUNCATE);
 				filecode = std::stoi(GetText(hDlg, UPDOWNAS_FILECODE));
 				EndDialog(hDlg, true);
 				break;
@@ -1677,7 +1677,7 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, std::vector<FILELIST> const& ListLi
 				[[fallthrough]];
 			case IDOK:
 				UpExistMode = UpExistButton::Get(hDlg);
-				SendDlgItemMessage(hDlg, UP_EXIST_NAME, WM_GETTEXT, FMAX_PATH, (LPARAM)Pkt->RemoteFile);
+				strncpy_s(Pkt->RemoteFile, FMAX_PATH, u8(GetText(hDlg, UP_EXIST_NAME)).c_str(), _TRUNCATE);
 				EndDialog(hDlg, true);
 				break;
 			case IDCANCEL:
@@ -1752,7 +1752,7 @@ static bool UpDownAsDialog(int win) {
 		void OnCommand(HWND hDlg, WORD id) {
 			switch (id) {
 			case IDOK:
-				SendDlgItemMessage(hDlg, UPDOWNAS_NEW, WM_GETTEXT, FMAX_PATH, (LPARAM)TmpString);
+				strncpy_s(TmpString, FMAX_PATH, u8(GetText(hDlg, UPDOWNAS_NEW)).c_str(), _TRUNCATE);
 				EndDialog(hDlg, true);
 				break;
 			case UPDOWNAS_STOP:
@@ -1990,7 +1990,7 @@ void RenameProc(void)
 		void OnCommand(HWND hDlg, WORD id) {
 			switch (id) {
 			case IDOK:
-				SendDlgItemMessage(hDlg, RENAME_NEW, WM_GETTEXT, FMAX_PATH, (LPARAM)TmpString);
+				strncpy_s(TmpString, FMAX_PATH, u8(GetText(hDlg, RENAME_NEW)).c_str(), _TRUNCATE);
 				EndDialog(hDlg, YES);
 				break;
 			case IDCANCEL:

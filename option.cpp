@@ -157,7 +157,7 @@ struct User {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			SendDlgItemMessage(hDlg, USER_ADRS, WM_GETTEXT, USER_MAIL_LEN + 1, (LPARAM)UserMailAdrs);
+			strncpy_s(UserMailAdrs, USER_MAIL_LEN + 1, u8(GetText(hDlg, USER_ADRS)).c_str(), _TRUNCATE);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000041);
@@ -243,11 +243,9 @@ struct Transfer2 {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY: {
-			SendDlgItemMessage(hDlg, TRMODE2_LOCAL, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)DefaultLocalPath);
+			strncpy_s(DefaultLocalPath, FMAX_PATH + 1, u8(GetText(hDlg, TRMODE2_LOCAL)).c_str(), _TRUNCATE);
 			FnameCnv = CnvButton::Get(hDlg);
-			char Tmp[FMAX_PATH + 1];
-			SendDlgItemMessage(hDlg, TRMODE2_TIMEOUT, WM_GETTEXT, 5 + 1, (LPARAM)Tmp);
-			TimeOut = atoi(Tmp);
+			TimeOut = stoi(GetText(hDlg, TRMODE2_TIMEOUT));
 			CheckRange2(&TimeOut, 300, 0);
 			return PSNRET_NOERROR;
 		}
@@ -311,9 +309,7 @@ struct Transfer3 {
 		switch (nmh->code) {
 		case PSN_APPLY: {
 			GetFnameAttrFromListView(hDlg, DefAttrList);
-			char TmpStr[10];
-			SendDlgItemMessage(hDlg, TRMODE3_FOLDER_ATTR, WM_GETTEXT, 5 + 1, (LPARAM)TmpStr);
-			FolderAttrNum = atoi(TmpStr);
+			FolderAttrNum = stoi(GetText(hDlg, TRMODE3_FOLDER_ATTR));
 			FolderAttr = (int)SendDlgItemMessageW(hDlg, TRMODE3_FOLDER, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		}
@@ -629,14 +625,11 @@ struct Firewall {
 		case PSN_APPLY: {
 			auto Type = (int)SendDlgItemMessageW(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0) + 1;
 			FwallType = firewallTypes[Type];
-			SendDlgItemMessage(hDlg, FIRE_HOST, WM_GETTEXT, HOST_ADRS_LEN + 1, (LPARAM)FwallHost);
-			SendDlgItemMessage(hDlg, FIRE_USER, WM_GETTEXT, USER_NAME_LEN + 1, (LPARAM)FwallUser);
-			SendDlgItemMessage(hDlg, FIRE_PASS, WM_GETTEXT, PASSWORD_LEN, (LPARAM)FwallPass);
-			char Tmp[10];
-			SendDlgItemMessage(hDlg, FIRE_PORT, WM_GETTEXT, 5 + 1, (LPARAM)Tmp);
-			FwallPort = atoi(Tmp);
-			SendDlgItemMessage(hDlg, FIRE_DELIMIT, WM_GETTEXT, 5, (LPARAM)Tmp);
-			FwallDelimiter = Tmp[0];
+			strncpy_s(FwallHost, HOST_ADRS_LEN + 1, u8(GetText(hDlg, FIRE_HOST)).c_str(), _TRUNCATE);
+			strncpy_s(FwallUser, USER_NAME_LEN + 1, u8(GetText(hDlg, FIRE_USER)).c_str(), _TRUNCATE);
+			strncpy_s(FwallPass, PASSWORD_LEN, u8(GetText(hDlg, FIRE_PASS)).c_str(), _TRUNCATE);
+			FwallPort = stoi(GetText(hDlg, FIRE_PORT));
+			FwallDelimiter = u8(GetText(hDlg, FIRE_DELIMIT))[0];
 			FwallDefault = (int)SendDlgItemMessageW(hDlg, FIRE_USEIT, BM_GETCHECK, 0, 0);
 			PasvDefault = (int)SendDlgItemMessageW(hDlg, FIRE_PASV, BM_GETCHECK, 0, 0);
 			FwallResolve = (int)SendDlgItemMessageW(hDlg, FIRE_RESOLV, BM_GETCHECK, 0, 0);
@@ -682,9 +675,9 @@ struct Tool {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			SendDlgItemMessage(hDlg, TOOL_EDITOR1, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)ViewerName[0]);
-			SendDlgItemMessage(hDlg, TOOL_EDITOR2, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)ViewerName[1]);
-			SendDlgItemMessage(hDlg, TOOL_EDITOR3, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)ViewerName[2]);
+			strncpy_s(ViewerName[0], FMAX_PATH + 1, u8(GetText(hDlg, TOOL_EDITOR1)).c_str(), _TRUNCATE);
+			strncpy_s(ViewerName[1], FMAX_PATH + 1, u8(GetText(hDlg, TOOL_EDITOR2)).c_str(), _TRUNCATE);
+			strncpy_s(ViewerName[2], FMAX_PATH + 1, u8(GetText(hDlg, TOOL_EDITOR3)).c_str(), _TRUNCATE);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000050);
@@ -737,9 +730,9 @@ struct Sounds {
 			Sound[SND_CONNECT].On = (int)SendDlgItemMessageW(hDlg, SOUND_CONNECT, BM_GETCHECK, 0, 0);
 			Sound[SND_TRANS].On = (int)SendDlgItemMessageW(hDlg, SOUND_TRANS, BM_GETCHECK, 0, 0);
 			Sound[SND_ERROR].On = (int)SendDlgItemMessageW(hDlg, SOUND_ERROR, BM_GETCHECK, 0, 0);
-			SendDlgItemMessage(hDlg, SOUND_CONNECT_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Sound[SND_CONNECT].Fname);
-			SendDlgItemMessage(hDlg, SOUND_TRANS_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Sound[SND_TRANS].Fname);
-			SendDlgItemMessage(hDlg, SOUND_ERROR_WAV, WM_GETTEXT, FMAX_PATH + 1, (LPARAM)Sound[SND_ERROR].Fname);
+			strncpy_s(Sound[SND_CONNECT].Fname, FMAX_PATH + 1, u8(GetText(hDlg, SOUND_CONNECT_WAV)).c_str(), _TRUNCATE);
+			strncpy_s(Sound[SND_TRANS].Fname, FMAX_PATH + 1, u8(GetText(hDlg, SOUND_TRANS_WAV)).c_str(), _TRUNCATE);
+			strncpy_s(Sound[SND_ERROR].Fname, FMAX_PATH + 1, u8(GetText(hDlg, SOUND_ERROR_WAV)).c_str(), _TRUNCATE);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000051);
@@ -965,10 +958,7 @@ int SortSetting() {
 //static int GetDecimalText(HWND hDlg, int Ctrl)
 int GetDecimalText(HWND hDlg, int Ctrl)
 {
-	char Tmp[40];
-
-	SendDlgItemMessage(hDlg, Ctrl, WM_GETTEXT, (WPARAM)39, (LPARAM)Tmp);
-	return(atoi(Tmp));
+	return stoi(GetText(hDlg, Ctrl));
 }
 
 

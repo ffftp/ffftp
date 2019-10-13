@@ -46,8 +46,8 @@ void OtpCalcTool() {
 			case IDOK: {
 				char Tmp[41];
 				char Pass[PASSWORD_LEN + 1];
-				SendDlgItemMessage(hDlg, OTPCALC_KEY, WM_GETTEXT, 41, (LPARAM)Tmp);
-				SendDlgItemMessage(hDlg, OTPCALC_PASS, WM_GETTEXT, PASSWORD_LEN + 1, (LPARAM)Pass);
+				strncpy_s(Tmp, 41, u8(GetText(hDlg, OTPCALC_KEY)).c_str(), _TRUNCATE);
+				strncpy_s(Pass, PASSWORD_LEN + 1, u8(GetText(hDlg, OTPCALC_PASS)).c_str(), _TRUNCATE);
 				auto Pos = Tmp;
 				while (*Pos == ' ')
 					Pos++;

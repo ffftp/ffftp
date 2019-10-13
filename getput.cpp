@@ -2554,7 +2554,7 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt)
 
 	if(hWnd != NULL)
 	{
-		SendMessage(hWnd, WM_GETTEXT, 79, (LPARAM)Str);
+		strncpy_s(Str, 79, u8(GetText(hWnd)).c_str(), _TRUNCATE);
 		if((Pos = strchr(Str, ')')) != NULL)
 			Pos ++;
 		else
