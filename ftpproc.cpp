@@ -2250,30 +2250,21 @@ void MkdirProc(void)
 *	Return Value
 *		なし
 *----------------------------------------------------------------------------*/
-
-void ChangeDirComboProc(HWND hWnd)
-{
+void ChangeDirComboProc(HWND hWnd) {
 	char Tmp[FMAX_PATH+1];
-	int i;
-
-	// 同時接続対応
 	CancelFlg = NO;
-
-	if((i = (int)SendMessageW(hWnd, CB_GETCURSEL, 0, 0)) != CB_ERR)
-	{
-		SendMessage(hWnd, CB_GETLBTEXT, i, (LPARAM)Tmp);
-
-		if(hWnd == GetLocalHistHwnd())
-		{
+	if (auto i = (int)SendMessageW(hWnd, CB_GETCURSEL, 0, 0); i != CB_ERR) {
+		auto length = SendMessageW(hWnd, CB_GETLBTEXTLEN, i, 0);
+		std::wstring text(length, L'\0');
+		length = SendMessageW(hWnd, CB_GETLBTEXT, i, (LPARAM)data(text));
+		strncpy_s(Tmp, u8(text.c_str(), length).c_str(), _TRUNCATE);
+		if (hWnd == GetLocalHistHwnd()) {
 			DisableUserOpe();
 			DoLocalCWD(Tmp);
 			GetLocalDirForWnd();
 			EnableUserOpe();
-		}
-		else
-		{
-			if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
-			{
+		} else {
+			if (CheckClosedAndReconnect() == FFFTP_SUCCESS) {
 				DisableUserOpe();
 				if(DoCWD(Tmp, YES, NO, YES) < FTP_RETRY)
 					GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
@@ -2281,7 +2272,6 @@ void ChangeDirComboProc(HWND hWnd)
 			}
 		}
 	}
-	return;
 }
 
 
