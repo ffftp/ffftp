@@ -770,10 +770,6 @@ START_ROUTINE
 		{
 			switch(Msg)
 			{
-			case LB_ADDSTRING:
-				pw0 = DuplicateMtoW((LPCSTR)lParam, -1);
-				r = SendMessageW(hWnd, LB_ADDSTRING, wParam, (LPARAM)pw0);
-				break;
 			case LB_INSERTSTRING:
 				pw0 = DuplicateMtoW((LPCSTR)lParam, -1);
 				r = SendMessageW(hWnd, LB_INSERTSTRING, wParam, (LPARAM)pw0);

@@ -399,7 +399,7 @@ struct MirrorList {
 			else if (strncmp(Pos->Cmd, "RETR", 4) == 0)
 				sprintf(Tmp, MSGJPN057, Pos->LocalFile);
 			if (strlen(Tmp) > 0)
-				SendDlgItemMessage(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)Tmp);
+				SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)u8(Tmp).c_str());
 		}
 		CountMirrorFiles(hDlg, *Base);
 		EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), FALSE);

@@ -1046,7 +1046,7 @@ void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize)
 		if(Len > (BufSize-1))
 			MessageBeep(-1);
 		else
-			SendDlgItemMessage(hDlg, CtrlList, LB_ADDSTRING, 0, (LPARAM)Str);
+			SendDlgItemMessageW(hDlg, CtrlList, LB_ADDSTRING, 0, (LPARAM)u8(Str).c_str());
 	}
 	return;
 }
@@ -1072,7 +1072,7 @@ void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text)
 	Pos = Text;
 	while(*Pos != NUL)
 	{
-		SendDlgItemMessage(hDlg, CtrlList, LB_ADDSTRING, 0, (LPARAM)Pos);
+		SendDlgItemMessageW(hDlg, CtrlList, LB_ADDSTRING, 0, (LPARAM)u8(Pos).c_str());
 		Pos += strlen(Pos) + 1;
 	}
 	return;
