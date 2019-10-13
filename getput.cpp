@@ -882,8 +882,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			}
 
 			if(hWndTrans != NULL)
-//				SendMessage(hWndTrans, WM_SET_PACKET, 0, (LPARAM)TransPacketBase);
-				SendMessage(hWndTrans, WM_SET_PACKET, 0, (LPARAM)Pos);
+				SendMessageW(hWndTrans, WM_SET_PACKET, 0, (LPARAM)Pos);
 
 			// 中断後に受信バッファに応答が残っていると次のコマンドの応答が正しく処理できない
 			RemoveReceivedData(TrnSkt);
@@ -1238,7 +1237,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				}
 			}
 			if(hWndTrans != NULL)
-				SendMessage(hWndTrans, WM_SET_PACKET, 0, 0);
+				SendMessageW(hWndTrans, WM_SET_PACKET, 0, 0);
 			if(Pos != NULL)
 				strcpy(Pos->Cmd, "");
 			LastUsed = timeGetTime();
