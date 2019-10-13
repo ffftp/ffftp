@@ -41,7 +41,7 @@ int MakeStatusBarWindow() {
 	for (auto& part : parts)
 		if (part != -1)
 			part = CalcPixelX(part);
-	SendMessage(hWndSbar, SB_SETPARTS, size_as<WPARAM>(parts), (LPARAM)parts);
+	SendMessageW(hWndSbar, SB_SETPARTS, size_as<WPARAM>(parts), (LPARAM)parts);
 	return FFFTP_SUCCESS;
 }
 
