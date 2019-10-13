@@ -761,7 +761,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 				if((Dragging == NO) && 
 				   (hWnd == hWndDragStart) &&
 				   (AskConnecting() == YES) &&
-				   (SendMessage(hWnd, LVM_GETSELECTEDCOUNT, 0, 0) > 0) &&
+				   (SendMessageW(hWnd, LVM_GETSELECTEDCOUNT, 0, 0) > 0) &&
 				   ((abs((short)LOWORD(lParam) - DragPoint.x) > 5) ||
 					(abs((short)HIWORD(lParam) - DragPoint.y) > 5)))
 				{
@@ -1423,7 +1423,7 @@ int GetSelectedCount(int Win)
 	if(Win == WIN_REMOTE)
 		hWnd = GetRemoteHwnd();
 
-	return (int)(SendMessage(hWnd, LVM_GETSELECTEDCOUNT, 0, 0));
+	return (int)(SendMessageW(hWnd, LVM_GETSELECTEDCOUNT, 0, 0));
 }
 
 
