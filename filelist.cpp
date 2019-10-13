@@ -1885,7 +1885,7 @@ void GetNodeOwner(int Win, int Pos, char *Buf, int Max)
 void EraseRemoteDirForWnd(void)
 {
 	SendMessage(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
-	SendMessage(GetRemoteHistHwnd(), CB_RESETCONTENT, 0, 0);
+	SendMessageW(GetRemoteHistHwnd(), CB_RESETCONTENT, 0, 0);
 	return;
 }
 
