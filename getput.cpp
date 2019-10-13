@@ -2615,7 +2615,7 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt)
 			Per = (int)(Pkt->ExistSize * 100 / Pkt->Size);
 		else
 			Per = (int)((Pkt->ExistSize/1024) * 100 / (Pkt->Size/1024));
-		SendDlgItemMessage(hWnd, TRANS_TIME_BAR, PBM_SETPOS, Per, 0);
+		SendDlgItemMessageW(hWnd, TRANS_TIME_BAR, PBM_SETPOS, Per, 0);
 	}
 	return;
 }
@@ -2645,9 +2645,9 @@ static void DispTransFileInfo(TRANSPACKET *Pkt, char *Title, int SkipButton, int
 		SetText(Pkt->hWndTrans, u8(Tmp));
 		SetText(Pkt->hWndTrans, TRANS_STATUS, L"");
 
-		SendDlgItemMessage(Pkt->hWndTrans, TRANS_TIME_BAR, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
-		SendDlgItemMessage(Pkt->hWndTrans, TRANS_TIME_BAR, PBM_SETSTEP, 1, 0);
-		SendDlgItemMessage(Pkt->hWndTrans, TRANS_TIME_BAR, PBM_SETPOS, 0, 0);
+		SendDlgItemMessageW(Pkt->hWndTrans, TRANS_TIME_BAR, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
+		SendDlgItemMessageW(Pkt->hWndTrans, TRANS_TIME_BAR, PBM_SETSTEP, 1, 0);
+		SendDlgItemMessageW(Pkt->hWndTrans, TRANS_TIME_BAR, PBM_SETPOS, 0, 0);
 
 		if(Info == YES)
 		{
