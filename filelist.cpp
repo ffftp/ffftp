@@ -842,29 +842,14 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 *	Return Value
 *		なし
 *----------------------------------------------------------------------------*/
-
-void GetListTabWidth(void)
-{
-	LV_COLUMN LvCol;
+void GetListTabWidth(void) {
 	int i;
-
-	// 変数が未初期化のバグ修正
-	memset(&LvCol, 0, sizeof(LV_COLUMN));
-
-	for(i = 0; i <= 3; i++)
-	{
-		LvCol.mask = LVCF_WIDTH;
-		if(SendMessage(hWndListLocal, LVM_GETCOLUMN, i, (LPARAM)&LvCol) == TRUE)
-			LocalTabWidth[i] = LvCol.cx;
-	}
-
-	for(i = 0; i <= 5; i++)
-	{
-		LvCol.mask = LVCF_WIDTH;
-		if(SendMessage(hWndListRemote, LVM_GETCOLUMN, i, (LPARAM)&LvCol) == TRUE)
-			RemoteTabWidth[i] = LvCol.cx;
-	}
-	return;
+	i = 0;
+	for (auto& width : LocalTabWidth)
+		width = (int)SendMessageW(hWndListLocal, LVM_GETCOLUMNWIDTH, i++, 0);
+	i = 0;
+	for (auto& width : RemoteTabWidth)
+		width = (int)SendMessageW(hWndListRemote, LVM_GETCOLUMNWIDTH, i++, 0);
 }
 
 

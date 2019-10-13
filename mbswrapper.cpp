@@ -730,8 +730,6 @@ LRESULT SendMessageM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	LVITEMW wLVItem;
 	LVFINDINFOA* pmLVFindInfo;
 	LVFINDINFOW wLVFindInfo;
-	LVCOLUMNA* pmLVColumn;
-	LVCOLUMNW wLVColumn;
 	TVITEMEXA* pmTVItem;
 	TVITEMEXW wTVItem;
 	TVINSERTSTRUCTA* pmTVInsert;
@@ -851,34 +849,6 @@ START_ROUTINE
 				wLVFindInfo.pt = pmLVFindInfo->pt;
 				wLVFindInfo.vkDirection = pmLVFindInfo->vkDirection;
 				r = SendMessageW(hWnd, LVM_FINDITEMW, wParam, (LPARAM)&wLVFindInfo);
-				break;
-			case LVM_GETCOLUMNA:
-				pmLVColumn = (LVCOLUMNA*)lParam;
-				wLVColumn.mask = pmLVColumn->mask;
-				wLVColumn.fmt = pmLVColumn->fmt;
-				wLVColumn.cx = pmLVColumn->cx;
-				Size = pmLVColumn->cchTextMax * 4;
-				if(pmLVColumn->mask & LVCF_TEXT)
-				{
-					pw0 = AllocateStringW(Size);
-					wLVColumn.pszText = pw0;
-					wLVColumn.cchTextMax = Size;
-				}
-				wLVColumn.iSubItem = pmLVColumn->iSubItem;
-				wLVColumn.iImage = pmLVColumn->iImage;
-				wLVColumn.iOrder = pmLVColumn->iOrder;
-				r = SendMessageW(hWnd, LVM_GETCOLUMNW, wParam, (LPARAM)&wLVColumn);
-				pmLVColumn->mask = wLVColumn.mask;
-				pmLVColumn->fmt = wLVColumn.fmt;
-				pmLVColumn->cx = wLVColumn.cx;
-				if(pmLVColumn->mask & LVCF_TEXT)
-				{
-					WtoM(pmLVColumn->pszText, pmLVColumn->cchTextMax, wLVColumn.pszText, -1);
-					TerminateStringM(pmLVColumn->pszText, pmLVColumn->cchTextMax);
-				}
-				pmLVColumn->iSubItem = wLVColumn.iSubItem;
-				pmLVColumn->iImage = wLVColumn.iImage;
-				pmLVColumn->iOrder = wLVColumn.iOrder;
 				break;
 			case LVM_GETITEMTEXTA:
 				pmLVItem = (LVITEMA*)lParam;
