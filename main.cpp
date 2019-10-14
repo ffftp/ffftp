@@ -834,7 +834,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 							std::vector<FILELIST> Base;
 							MakeSelectedFileList(WIN_LOCAL, NO, NO, Base, &CancelFlg);
 							GetHotSelected(WIN_LOCAL, Name);
-							Pos = (int)SendMessage(GetLocalHwnd(), LVM_GETTOPINDEX, 0, 0);
+							Pos = (int)SendMessageW(GetLocalHwnd(), LVM_GETTOPINDEX, 0, 0);
 							GetLocalDirForWnd();
 							SelectFileInList(GetLocalHwnd(), SELECT_LIST, Base);
 							SetHotSelected(WIN_LOCAL, Name);
