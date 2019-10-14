@@ -1271,8 +1271,7 @@ static void SendAllHostNames(HWND hWnd, int Cur)
 
 	if(hItemCur != NULL)
 	{
-		SendMessage(hWnd, TVM_SELECTITEM, TVGN_CARET, (LPARAM)hItemCur);
-//		SendMessage(hWnd, TVM_ENSUREVISIBLE, 0, (LPARAM)hItemCur);
+		SendMessageW(hWnd, TVM_SELECTITEM, TVGN_CARET, (LPARAM)hItemCur);
 	}
 	UpdateWindow(hWnd);
 
