@@ -728,8 +728,6 @@ LRESULT SendMessageM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	int Size;
 	LVITEMA* pmLVItem;
 	LVITEMW wLVItem;
-	LVFINDINFOA* pmLVFindInfo;
-	LVFINDINFOW wLVFindInfo;
 	TVITEMEXA* pmTVItem;
 	TVITEMEXW wTVItem;
 	TVINSERTSTRUCTA* pmTVInsert;
@@ -798,19 +796,6 @@ START_ROUTINE
 				pmLVItem->iImage = wLVItem.iImage;
 				pmLVItem->lParam = wLVItem.lParam;
 				pmLVItem->iIndent = wLVItem.iIndent;
-				break;
-			case LVM_FINDITEMA:
-				pmLVFindInfo = (LVFINDINFOA*)lParam;
-				wLVFindInfo.flags = pmLVFindInfo->flags;
-				if(pmLVFindInfo->flags & (LVFI_STRING | LVFI_PARTIAL))
-				{
-					pw0 = DuplicateMtoW(pmLVFindInfo->psz, -1);
-					wLVFindInfo.psz = pw0;
-				}
-				wLVFindInfo.lParam = pmLVFindInfo->lParam;
-				wLVFindInfo.pt = pmLVFindInfo->pt;
-				wLVFindInfo.vkDirection = pmLVFindInfo->vkDirection;
-				r = SendMessageW(hWnd, LVM_FINDITEMW, wParam, (LPARAM)&wLVFindInfo);
 				break;
 			case LVM_GETITEMTEXTA:
 				pmLVItem = (LVITEMA*)lParam;

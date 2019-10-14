@@ -1451,20 +1451,10 @@ int SetHotSelected(int Win, char *Fname)
 *			-1=見つからなかった
 *----------------------------------------------------------------------------*/
 
-int FindNameNode(int Win, char *Name)
-{
-	LV_FINDINFO FindInfo;
-	HWND hWnd;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	// 変数が未初期化のバグ修正
-	memset(&FindInfo, 0, sizeof(LV_FINDINFO));
-	FindInfo.flags = LVFI_STRING;
-	FindInfo.psz = Name;
-	return (int)(SendMessage(hWnd, LVM_FINDITEM, -1, (LPARAM)&FindInfo));
+int FindNameNode(int Win, char* Name) {
+	auto wName = u8(Name);
+	LVFINDINFOW fi{ LVFI_STRING, wName.c_str() };
+	return (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_FINDITEMW, -1, (LPARAM)&fi);
 }
 
 
