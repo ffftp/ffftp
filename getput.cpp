@@ -882,8 +882,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			}
 
 			if(hWndTrans != NULL)
-//				SendMessage(hWndTrans, WM_SET_PACKET, 0, (LPARAM)TransPacketBase);
-				SendMessage(hWndTrans, WM_SET_PACKET, 0, (LPARAM)Pos);
+				SendMessageW(hWndTrans, WM_SET_PACKET, 0, (LPARAM)Pos);
 
 			// 中断後に受信バッファに応答が残っていると次のコマンドの応答が正しく処理できない
 			RemoveReceivedData(TrnSkt);
@@ -1238,7 +1237,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				}
 			}
 			if(hWndTrans != NULL)
-				SendMessage(hWndTrans, WM_SET_PACKET, 0, 0);
+				SendMessageW(hWndTrans, WM_SET_PACKET, 0, 0);
 			if(Pos != NULL)
 				strcpy(Pos->Cmd, "");
 			LastUsed = timeGetTime();
@@ -1844,8 +1843,8 @@ static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt) {
 		TRANSPACKET* Pkt;
 		Data(TRANSPACKET* Pkt) : Pkt{ Pkt } {}
 		INT_PTR OnInit(HWND hDlg) {
-			SendDlgItemMessage(hDlg, UPDOWN_ERR_FNAME, WM_SETTEXT, 0, (LPARAM)Pkt->RemoteFile);
-			SendDlgItemMessage(hDlg, UPDOWN_ERR_MSG, WM_SETTEXT, 0, (LPARAM)GetErrMsg());
+			SetText(hDlg, UPDOWN_ERR_FNAME, u8(Pkt->RemoteFile));
+			SetText(hDlg, UPDOWN_ERR_MSG, u8(GetErrMsg()));
 			if (Pkt->Type == TYPE_A || Pkt->ExistSize <= 0)
 				EnableWindow(GetDlgItem(hDlg, DOWN_EXIST_RESUME), FALSE);
 			DownExistButton::Set(hDlg, TransferErrorMode);
@@ -2554,13 +2553,13 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt)
 
 	if(hWnd != NULL)
 	{
-		SendMessage(hWnd, WM_GETTEXT, 79, (LPARAM)Str);
+		strncpy_s(Str, 79, u8(GetText(hWnd)).c_str(), _TRUNCATE);
 		if((Pos = strchr(Str, ')')) != NULL)
 			Pos ++;
 		else
 			Pos = Str;
 		sprintf(Tmp, "(%d)%s", AskTransferFileNum(), Pos);
-		SendMessage(hWnd, WM_SETTEXT, 0, (LPARAM)Tmp);
+		SetText(hWnd, u8(Tmp));
 
 		if(Pkt->Abort == ABORT_NONE)
 		{
@@ -2607,7 +2606,7 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt)
 		else
 			strcpy(Str, MSGJPN118);
 
-		SendDlgItemMessage(hWnd, TRANS_STATUS, WM_SETTEXT, 0, (LPARAM)Str);
+		SetText(hWnd, TRANS_STATUS, u8(Str));
 
 		if(Pkt->Size <= 0)
 			Per = 0;
@@ -2615,7 +2614,7 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt)
 			Per = (int)(Pkt->ExistSize * 100 / Pkt->Size);
 		else
 			Per = (int)((Pkt->ExistSize/1024) * 100 / (Pkt->Size/1024));
-		SendDlgItemMessage(hWnd, TRANS_TIME_BAR, PBM_SETPOS, Per, 0);
+		SendDlgItemMessageW(hWnd, TRANS_TIME_BAR, PBM_SETPOS, Per, 0);
 	}
 	return;
 }
@@ -2642,12 +2641,12 @@ static void DispTransFileInfo(TRANSPACKET *Pkt, char *Title, int SkipButton, int
 		EnableWindow(GetDlgItem(Pkt->hWndTrans, IDCANCEL), SkipButton);
 
 		sprintf(Tmp, "(%d)%s", AskTransferFileNum(), Title);
-		SendMessage(Pkt->hWndTrans, WM_SETTEXT, 0, (LPARAM)Tmp);
-		SendDlgItemMessage(Pkt->hWndTrans, TRANS_STATUS, WM_SETTEXT, 0, (LPARAM)"");
+		SetText(Pkt->hWndTrans, u8(Tmp));
+		SetText(Pkt->hWndTrans, TRANS_STATUS, L"");
 
-		SendDlgItemMessage(Pkt->hWndTrans, TRANS_TIME_BAR, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
-		SendDlgItemMessage(Pkt->hWndTrans, TRANS_TIME_BAR, PBM_SETSTEP, 1, 0);
-		SendDlgItemMessage(Pkt->hWndTrans, TRANS_TIME_BAR, PBM_SETPOS, 0, 0);
+		SendDlgItemMessageW(Pkt->hWndTrans, TRANS_TIME_BAR, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
+		SendDlgItemMessageW(Pkt->hWndTrans, TRANS_TIME_BAR, PBM_SETSTEP, 1, 0);
+		SendDlgItemMessageW(Pkt->hWndTrans, TRANS_TIME_BAR, PBM_SETPOS, 0, 0);
 
 		if(Info == YES)
 		{
@@ -2655,30 +2654,30 @@ static void DispTransFileInfo(TRANSPACKET *Pkt, char *Title, int SkipButton, int
 			DispStaticText(GetDlgItem(Pkt->hWndTrans, TRANS_LOCAL), Pkt->LocalFile);
 
 			if(Pkt->Type == TYPE_I)
-				SendDlgItemMessage(Pkt->hWndTrans, TRANS_MODE, WM_SETTEXT, 0, (LPARAM)MSGJPN119);
+				SetText(Pkt->hWndTrans, TRANS_MODE, GetString(IDS_MSGJPN119));
 			else if(Pkt->Type == TYPE_A)
-				SendDlgItemMessage(Pkt->hWndTrans, TRANS_MODE, WM_SETTEXT, 0, (LPARAM)MSGJPN120);
+				SetText(Pkt->hWndTrans, TRANS_MODE, GetString(IDS_MSGJPN120));
 
 			// UTF-8対応
 			if(Pkt->KanjiCode == KANJI_NOCNV)
-				SendDlgItemMessage(Pkt->hWndTrans, TRANS_KANJI, WM_SETTEXT, 0, (LPARAM)MSGJPN121);
+				SetText(Pkt->hWndTrans, TRANS_KANJI, GetString(IDS_MSGJPN121));
 			else if(Pkt->KanjiCode == KANJI_SJIS)
-				SendDlgItemMessage(Pkt->hWndTrans, TRANS_KANJI, WM_SETTEXT, 0, (LPARAM)MSGJPN305);
+				SetText(Pkt->hWndTrans, TRANS_KANJI, GetString(IDS_MSGJPN305));
 			else if(Pkt->KanjiCode == KANJI_JIS)
-				SendDlgItemMessage(Pkt->hWndTrans, TRANS_KANJI, WM_SETTEXT, 0, (LPARAM)MSGJPN122);
+				SetText(Pkt->hWndTrans, TRANS_KANJI, GetString(IDS_MSGJPN122));
 			else if(Pkt->KanjiCode == KANJI_EUC)
-				SendDlgItemMessage(Pkt->hWndTrans, TRANS_KANJI, WM_SETTEXT, 0, (LPARAM)MSGJPN123);
+				SetText(Pkt->hWndTrans, TRANS_KANJI, GetString(IDS_MSGJPN123));
 			else if(Pkt->KanjiCode == KANJI_UTF8N)
-				SendDlgItemMessage(Pkt->hWndTrans, TRANS_KANJI, WM_SETTEXT, 0, (LPARAM)MSGJPN306);
+				SetText(Pkt->hWndTrans, TRANS_KANJI, GetString(IDS_MSGJPN306));
 			else if(Pkt->KanjiCode == KANJI_UTF8BOM)
-				SendDlgItemMessage(Pkt->hWndTrans, TRANS_KANJI, WM_SETTEXT, 0, (LPARAM)MSGJPN329);
+				SetText(Pkt->hWndTrans, TRANS_KANJI, GetString(IDS_MSGJPN329));
 		}
 		else
 		{
-			SendDlgItemMessage(Pkt->hWndTrans, TRANS_REMOTE, WM_SETTEXT, 0, (LPARAM)"");
-			SendDlgItemMessage(Pkt->hWndTrans, TRANS_LOCAL, WM_SETTEXT, 0, (LPARAM)"");
-			SendDlgItemMessage(Pkt->hWndTrans, TRANS_MODE, WM_SETTEXT, 0, (LPARAM)"");
-			SendDlgItemMessage(Pkt->hWndTrans, TRANS_KANJI, WM_SETTEXT, 0, (LPARAM)"");
+			SetText(Pkt->hWndTrans, TRANS_REMOTE, L"");
+			SetText(Pkt->hWndTrans, TRANS_LOCAL, L"");
+			SetText(Pkt->hWndTrans, TRANS_MODE, L"");
+			SetText(Pkt->hWndTrans, TRANS_KANJI, L"");
 		}
 	}
 	return;
@@ -2795,11 +2794,11 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt) {
 		Data(int Cur, TRANSPACKET* Pkt) : Cur{ Cur }, Pkt{ Pkt } {}
 		INT_PTR OnInit(HWND hDlg) {
 			if (Cur == WIN_LOCAL) {
-				SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)MSGJPN124);
-				SendDlgItemMessage(hDlg, DELETE_TEXT, WM_SETTEXT, 0, (LPARAM)Pkt->LocalFile);
+				SetText(hDlg, GetString(IDS_MSGJPN124));
+				SetText(hDlg, DELETE_TEXT, u8(Pkt->LocalFile));
 			} else {
-				SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)MSGJPN125);
-				SendDlgItemMessage(hDlg, DELETE_TEXT, WM_SETTEXT, 0, (LPARAM)Pkt->RemoteFile);
+				SetText(hDlg, GetString(IDS_MSGJPN125));
+				SetText(hDlg, DELETE_TEXT, u8(Pkt->RemoteFile));
 			}
 			return TRUE;
 		}

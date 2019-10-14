@@ -399,7 +399,7 @@ struct MirrorList {
 			else if (strncmp(Pos->Cmd, "RETR", 4) == 0)
 				sprintf(Tmp, MSGJPN057, Pos->LocalFile);
 			if (strlen(Tmp) > 0)
-				SendDlgItemMessage(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)Tmp);
+				SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)u8(Tmp).c_str());
 		}
 		CountMirrorFiles(hDlg, *Base);
 		EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), FALSE);
@@ -417,7 +417,7 @@ struct MirrorList {
 			auto Num = (int)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELITEMS, size_as<WPARAM>(List), (LPARAM)data(List));
 			for (Num--; Num >= 0; Num--)
 				if (RemoveTmpTransFileListItem(Base, List[Num]) == FFFTP_SUCCESS)
-					SendDlgItemMessage(hDlg, MIRROR_LIST, LB_DELETESTRING, List[Num], 0);
+					SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_DELETESTRING, List[Num], 0);
 				else
 					MessageBeep(-1);
 			CountMirrorFiles(hDlg, *Base);
@@ -749,7 +749,7 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 		DownExistDialog(TRANSPACKET* Pkt) : Pkt{ Pkt } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, DOWN_EXIST_NAME, EM_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, DOWN_EXIST_NAME, WM_SETTEXT, 0, (LPARAM)Pkt->LocalFile);
+			SetText(hDlg, DOWN_EXIST_NAME, u8(Pkt->LocalFile));
 			if (Pkt->Type == TYPE_A || Pkt->ExistSize <= 0)
 				EnableWindow(GetDlgItem(hDlg, DOWN_EXIST_RESUME), FALSE);
 			DownExistButton::Set(hDlg, ExistMode);
@@ -762,7 +762,7 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 				[[fallthrough]];
 			case IDOK:
 				ExistMode = DownExistButton::Get(hDlg);
-				SendDlgItemMessage(hDlg, DOWN_EXIST_NAME, WM_GETTEXT, FMAX_PATH, (LPARAM)Pkt->LocalFile);
+				strncpy_s(Pkt->LocalFile, FMAX_PATH, u8(GetText(hDlg, DOWN_EXIST_NAME)).c_str(), _TRUNCATE);
 				EndDialog(hDlg, true);
 				break;
 			case IDCANCEL:
@@ -901,18 +901,18 @@ void UploadListProc(int ChName, int All)
 		int filecode;
 		UpDownAsWithExt(int win) : win{ win }, filecode{} {}
 		INT_PTR OnInit(HWND hDlg) {
-			SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)(win == WIN_LOCAL ? MSGJPN064 : MSGJPN065));
+			SetText(hDlg, GetString(win == WIN_LOCAL ? IDS_MSGJPN064 : IDS_MSGJPN065));
 			SendDlgItemMessageW(hDlg, UPDOWNAS_NEW, EM_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, UPDOWNAS_NEW, WM_SETTEXT, 0, (LPARAM)TmpString);
-			SendDlgItemMessage(hDlg, UPDOWNAS_TEXT, WM_SETTEXT, 0, (LPARAM)TmpString);
+			SetText(hDlg, UPDOWNAS_NEW, u8(TmpString));
+			SetText(hDlg, UPDOWNAS_TEXT, u8(TmpString));
 			SendDlgItemMessageW(hDlg, UPDOWNAS_FILECODE, EM_LIMITTEXT, 4, 0);
-			SendDlgItemMessageW(hDlg, UPDOWNAS_FILECODE, WM_SETTEXT, 0, (LPARAM)L"0");
+			SetText(hDlg, UPDOWNAS_FILECODE, L"0");
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
 			switch (id) {
 			case IDOK:
-				SendDlgItemMessage(hDlg, UPDOWNAS_NEW, WM_GETTEXT, FMAX_PATH, (LPARAM)TmpString);
+				strncpy_s(TmpString, FMAX_PATH, u8(GetText(hDlg, UPDOWNAS_NEW)).c_str(), _TRUNCATE);
 				filecode = std::stoi(GetText(hDlg, UPDOWNAS_FILECODE));
 				EndDialog(hDlg, true);
 				break;
@@ -1600,19 +1600,19 @@ static void CountMirrorFiles(HWND hDlg, TRANSPACKET *Pkt)
 		sprintf(Tmp, MSGJPN058, Copy);
 	else
 		sprintf(Tmp, MSGJPN059);
-	SendDlgItemMessage(hDlg, MIRROR_COPYNUM, WM_SETTEXT, 0, (LPARAM)Tmp);
+	SetText(hDlg, MIRROR_COPYNUM, u8(Tmp));
 
 	if(Make != 0)
 		sprintf(Tmp, MSGJPN060, Make);
 	else
 		sprintf(Tmp, MSGJPN061);
-	SendDlgItemMessage(hDlg, MIRROR_MAKENUM, WM_SETTEXT, 0, (LPARAM)Tmp);
+	SetText(hDlg, MIRROR_MAKENUM, u8(Tmp));
 
 	if(Del != 0)
 		sprintf(Tmp, MSGJPN062, Del);
 	else
 		sprintf(Tmp, MSGJPN063);
-	SendDlgItemMessage(hDlg, MIRROR_DELNUM, WM_SETTEXT, 0, (LPARAM)Tmp);
+	SetText(hDlg, MIRROR_DELNUM, u8(Tmp));
 
 	return;
 }
@@ -1664,7 +1664,7 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, std::vector<FILELIST> const& ListLi
 		UpExistDialog(TRANSPACKET* Pkt) : Pkt{ Pkt } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, UP_EXIST_NAME, EM_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, UP_EXIST_NAME, WM_SETTEXT, 0, (LPARAM)Pkt->RemoteFile);
+			SetText(hDlg, UP_EXIST_NAME, u8(Pkt->RemoteFile));
 			if (Pkt->Type == TYPE_A || Pkt->ExistSize <= 0)
 				EnableWindow(GetDlgItem(hDlg, UP_EXIST_RESUME), FALSE);
 			UpExistButton::Set(hDlg, UpExistMode);
@@ -1677,7 +1677,7 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, std::vector<FILELIST> const& ListLi
 				[[fallthrough]];
 			case IDOK:
 				UpExistMode = UpExistButton::Get(hDlg);
-				SendDlgItemMessage(hDlg, UP_EXIST_NAME, WM_GETTEXT, FMAX_PATH, (LPARAM)Pkt->RemoteFile);
+				strncpy_s(Pkt->RemoteFile, FMAX_PATH, u8(GetText(hDlg, UP_EXIST_NAME)).c_str(), _TRUNCATE);
 				EndDialog(hDlg, true);
 				break;
 			case IDCANCEL:
@@ -1743,16 +1743,16 @@ static bool UpDownAsDialog(int win) {
 		int win;
 		Data(int win) : win{ win } {}
 		INT_PTR OnInit(HWND hDlg) {
-			SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)(win == WIN_LOCAL ? MSGJPN064 : MSGJPN065));
+			SetText(hDlg, GetString(win == WIN_LOCAL ? IDS_MSGJPN064 : IDS_MSGJPN065));
 			SendDlgItemMessageW(hDlg, UPDOWNAS_NEW, EM_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, UPDOWNAS_NEW, WM_SETTEXT, 0, (LPARAM)TmpString);
-			SendDlgItemMessage(hDlg, UPDOWNAS_TEXT, WM_SETTEXT, 0, (LPARAM)TmpString);
+			SetText(hDlg, UPDOWNAS_NEW, u8(TmpString));
+			SetText(hDlg, UPDOWNAS_TEXT, u8(TmpString));
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
 			switch (id) {
 			case IDOK:
-				SendDlgItemMessage(hDlg, UPDOWNAS_NEW, WM_GETTEXT, FMAX_PATH, (LPARAM)TmpString);
+				strncpy_s(TmpString, FMAX_PATH, u8(GetText(hDlg, UPDOWNAS_NEW)).c_str(), _TRUNCATE);
 				EndDialog(hDlg, true);
 				break;
 			case UPDOWNAS_STOP:
@@ -1884,8 +1884,8 @@ static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, char 
 		int win;
 		DeleteDialog(int win) : win{ win } {}
 		INT_PTR OnInit(HWND hDlg) {
-			SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)(win == WIN_LOCAL ? MSGJPN066 : MSGJPN067));
-			SendDlgItemMessage(hDlg, DELETE_TEXT, WM_SETTEXT, 0, (LPARAM)TmpString);
+			SetText(hDlg, GetString(win == WIN_LOCAL ? IDS_MSGJPN066 : IDS_MSGJPN067));
+			SetText(hDlg, DELETE_TEXT, u8(TmpString));
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
@@ -1981,16 +1981,16 @@ void RenameProc(void)
 		int win;
 		RenameDialog(int win) : win{ win } {}
 		INT_PTR OnInit(HWND hDlg) {
-			SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)(win == WIN_LOCAL ? MSGJPN068 : MSGJPN069));
+			SetText(hDlg, GetString(win == WIN_LOCAL ? IDS_MSGJPN068 : IDS_MSGJPN069));
 			SendDlgItemMessageW(hDlg, RENAME_NEW, EM_LIMITTEXT, FMAX_PATH, 0);
-			SendDlgItemMessage(hDlg, RENAME_NEW, WM_SETTEXT, 0, (LPARAM)TmpString);
-			SendDlgItemMessage(hDlg, RENAME_TEXT, WM_SETTEXT, 0, (LPARAM)TmpString);
+			SetText(hDlg, RENAME_NEW, u8(TmpString));
+			SetText(hDlg, RENAME_TEXT, u8(TmpString));
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
 			switch (id) {
 			case IDOK:
-				SendDlgItemMessage(hDlg, RENAME_NEW, WM_GETTEXT, FMAX_PATH, (LPARAM)TmpString);
+				strncpy_s(TmpString, FMAX_PATH, u8(GetText(hDlg, RENAME_NEW)).c_str(), _TRUNCATE);
 				EndDialog(hDlg, YES);
 				break;
 			case IDCANCEL:
@@ -2072,7 +2072,7 @@ void MoveRemoteFileProc(int drop_index)
 		std::wstring const& file;
 		Data(std::wstring const& file) : file{ file } {}
 		INT_PTR OnInit(HWND hDlg) {
-			SendDlgItemMessageW(hDlg, COMMON_TEXT, WM_SETTEXT, 0, (LPARAM)file.c_str());
+			SetText(hDlg, COMMON_TEXT, file);
 			return TRUE;
 		}
 		static void OnCommand(HWND hDlg, WORD id) {
@@ -2250,30 +2250,21 @@ void MkdirProc(void)
 *	Return Value
 *		なし
 *----------------------------------------------------------------------------*/
-
-void ChangeDirComboProc(HWND hWnd)
-{
+void ChangeDirComboProc(HWND hWnd) {
 	char Tmp[FMAX_PATH+1];
-	int i;
-
-	// 同時接続対応
 	CancelFlg = NO;
-
-	if((i = (int)SendMessage(hWnd, CB_GETCURSEL, 0, 0)) != CB_ERR)
-	{
-		SendMessage(hWnd, CB_GETLBTEXT, i, (LPARAM)Tmp);
-
-		if(hWnd == GetLocalHistHwnd())
-		{
+	if (auto i = (int)SendMessageW(hWnd, CB_GETCURSEL, 0, 0); i != CB_ERR) {
+		auto length = SendMessageW(hWnd, CB_GETLBTEXTLEN, i, 0);
+		std::wstring text(length, L'\0');
+		length = SendMessageW(hWnd, CB_GETLBTEXT, i, (LPARAM)data(text));
+		strncpy_s(Tmp, u8(text.c_str(), length).c_str(), _TRUNCATE);
+		if (hWnd == GetLocalHistHwnd()) {
 			DisableUserOpe();
 			DoLocalCWD(Tmp);
 			GetLocalDirForWnd();
 			EnableUserOpe();
-		}
-		else
-		{
-			if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
-			{
+		} else {
+			if (CheckClosedAndReconnect() == FFFTP_SUCCESS) {
 				DisableUserOpe();
 				if(DoCWD(Tmp, YES, NO, YES) < FTP_RETRY)
 					GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
@@ -2281,7 +2272,6 @@ void ChangeDirComboProc(HWND hWnd)
 			}
 		}
 	}
-	return;
 }
 
 
@@ -2482,7 +2472,7 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 		Data(std::wstring const& attr) : attr{ attr } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, PERM_NOW, EM_LIMITTEXT, 4, 0);
-			SendDlgItemMessageW(hDlg, PERM_NOW, WM_SETTEXT, 0, (LPARAM)attr.c_str());
+			SetText(hDlg, PERM_NOW, attr);
 			SetAttrToDialog(hDlg, std::stoi(attr, nullptr, 16));
 			return TRUE;
 		}
@@ -2507,7 +2497,7 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 				auto Tmp = GetAttrFromDialog(hDlg);
 				wchar_t buffer[5];
 				swprintf(buffer, std::size(buffer), L"%03X", Tmp);
-				SendDlgItemMessageW(hDlg, PERM_NOW, WM_SETTEXT, 0, (LPARAM)buffer);
+				SetText(hDlg, PERM_NOW, buffer);
 				break;
 			}
 			case IDHELP:
@@ -2535,25 +2525,25 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 static void SetAttrToDialog(HWND hDlg, int Attr)
 {
 	if(Attr & 0x400)
-		SendDlgItemMessage(hDlg, PERM_O_READ, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_O_READ, BM_SETCHECK, 1, 0);
 	if(Attr & 0x200)
-		SendDlgItemMessage(hDlg, PERM_O_WRITE, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_O_WRITE, BM_SETCHECK, 1, 0);
 	if(Attr & 0x100)
-		SendDlgItemMessage(hDlg, PERM_O_EXEC, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_O_EXEC, BM_SETCHECK, 1, 0);
 
 	if(Attr & 0x40)
-		SendDlgItemMessage(hDlg, PERM_G_READ, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_G_READ, BM_SETCHECK, 1, 0);
 	if(Attr & 0x20)
-		SendDlgItemMessage(hDlg, PERM_G_WRITE, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_G_WRITE, BM_SETCHECK, 1, 0);
 	if(Attr & 0x10)
-		SendDlgItemMessage(hDlg, PERM_G_EXEC, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_G_EXEC, BM_SETCHECK, 1, 0);
 
 	if(Attr & 0x4)
-		SendDlgItemMessage(hDlg, PERM_A_READ, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_A_READ, BM_SETCHECK, 1, 0);
 	if(Attr & 0x2)
-		SendDlgItemMessage(hDlg, PERM_A_WRITE, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_A_WRITE, BM_SETCHECK, 1, 0);
 	if(Attr & 0x1)
-		SendDlgItemMessage(hDlg, PERM_A_EXEC, BM_SETCHECK, 1, 0);
+		SendDlgItemMessageW(hDlg, PERM_A_EXEC, BM_SETCHECK, 1, 0);
 
 	return;
 }
@@ -2574,25 +2564,25 @@ static int GetAttrFromDialog(HWND hDlg)
 
 	Ret = 0;
 
-	if(SendDlgItemMessage(hDlg, PERM_O_READ, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_O_READ, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x400;
-	if(SendDlgItemMessage(hDlg, PERM_O_WRITE, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_O_WRITE, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x200;
-	if(SendDlgItemMessage(hDlg, PERM_O_EXEC, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_O_EXEC, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x100;
 
-	if(SendDlgItemMessage(hDlg, PERM_G_READ, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_G_READ, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x40;
-	if(SendDlgItemMessage(hDlg, PERM_G_WRITE, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_G_WRITE, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x20;
-	if(SendDlgItemMessage(hDlg, PERM_G_EXEC, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_G_EXEC, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x10;
 
-	if(SendDlgItemMessage(hDlg, PERM_A_READ, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_A_READ, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x4;
-	if(SendDlgItemMessage(hDlg, PERM_A_WRITE, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_A_WRITE, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x2;
-	if(SendDlgItemMessage(hDlg, PERM_A_EXEC, BM_GETCHECK, 0, 0) == 1)
+	if(SendDlgItemMessageW(hDlg, PERM_A_EXEC, BM_GETCHECK, 0, 0) == 1)
 		Ret |= 0x1;
 
 	return(Ret);
@@ -2645,13 +2635,13 @@ void CalcFileSizeProc() {
 		int win;
 		SizeNotify(int win) : win{ win } {}
 		INT_PTR OnInit(HWND hDlg) {
-			SendDlgItemMessage(hDlg, FSNOTIFY_TITLE, WM_SETTEXT, 0, (LPARAM)(win == WIN_LOCAL ? MSGJPN074 : MSGJPN075));
+			SetText(hDlg, FSNOTIFY_TITLE, GetString(win == WIN_LOCAL ? IDS_MSGJPN074 : IDS_MSGJPN075));
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
 			switch (id) {
 			case IDOK:
-				EndDialog(hDlg, SendDlgItemMessage(hDlg, FSNOTIFY_SEL_ONLY, BM_GETCHECK, 0, 0) == 1 ? NO : YES);
+				EndDialog(hDlg, SendDlgItemMessageW(hDlg, FSNOTIFY_SEL_ONLY, BM_GETCHECK, 0, 0) == 1 ? NO : YES);
 				break;
 			case IDCANCEL:
 				EndDialog(hDlg, NO_ALL);
@@ -2665,8 +2655,8 @@ void CalcFileSizeProc() {
 		const char* size;
 		Size(int win, const char* size) : win{ win }, size{ size } {}
 		INT_PTR OnInit(HWND hDlg) {
-			SendDlgItemMessage(hDlg, FSIZE_TITLE, WM_SETTEXT, 0, (LPARAM)(win == WIN_LOCAL ? MSGJPN076 : MSGJPN077));
-			SendDlgItemMessage(hDlg, FSIZE_SIZE, WM_SETTEXT, 0, (LPARAM)size);
+			SetText(hDlg, FSIZE_TITLE, GetString(win == WIN_LOCAL ? IDS_MSGJPN076 : IDS_MSGJPN077));
+			SetText(hDlg, FSIZE_SIZE, u8(size));
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {

@@ -41,7 +41,7 @@ int MakeStatusBarWindow() {
 	for (auto& part : parts)
 		if (part != -1)
 			part = CalcPixelX(part);
-	SendMessage(hWndSbar, SB_SETPARTS, size_as<WPARAM>(parts), (LPARAM)parts);
+	SendMessageW(hWndSbar, SB_SETPARTS, size_as<WPARAM>(parts), (LPARAM)parts);
 	return FFFTP_SUCCESS;
 }
 
@@ -67,8 +67,8 @@ void UpdateStatusBar() {
 
 // カレントウインドウを表示
 void DispCurrentWindow(int Win) {
-	auto text = Win == WIN_LOCAL ? MSGJPN245 : Win == WIN_REMOTE ? MSGJPN246 : "";
-	SendMessage(hWndSbar, SB_SETTEXT, MAKEWORD(1, 0), (LPARAM)text);
+	auto resourceId = Win == WIN_LOCAL ? IDS_MSGJPN245 : Win == WIN_REMOTE ? IDS_MSGJPN246 : 0;
+	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(1, 0), (LPARAM)(resourceId == 0 ? L"" : GetString(resourceId).c_str()));
 }
 
 
@@ -79,7 +79,7 @@ void DispSelectedSpace() {
 	MakeSizeString(GetSelectedTotalSize(Win), size);
 	char text[50];
 	sprintf(text, MSGJPN247, GetSelectedCount(Win), size);
-	SendMessage(hWndSbar, SB_SETTEXT, MAKEWORD(2, 0), (LPARAM)text);
+	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(2, 0), (LPARAM)u8(text).c_str());
 }
 
 
@@ -90,7 +90,7 @@ void DispLocalFreeSpace(char *Path) {
 		MakeSizeString((double)a.QuadPart, size);
 	char text[40];
 	sprintf(text, MSGJPN248, size);
-	SendMessage(hWndSbar, SB_SETTEXT, MAKEWORD(3, 0), (LPARAM)text);
+	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(3, 0), (LPARAM)u8(text).c_str());
 }
 
 
@@ -98,7 +98,7 @@ void DispLocalFreeSpace(char *Path) {
 void DispTransferFiles() {
 	char text[50];
 	sprintf(text, MSGJPN249, AskTransferFileNum());
-	SendMessage(hWndSbar, SB_SETTEXT, MAKEWORD(4, 0), (LPARAM)text);
+	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(4, 0), (LPARAM)u8(text).c_str());
 }
 
 
@@ -110,7 +110,7 @@ void DispDownloadSize(LONGLONG Size) {
 		MakeSizeString((double)Size, Tmp);
 		sprintf(text, MSGJPN250, Tmp);
 	}
-	SendMessage(hWndSbar, SB_SETTEXT, MAKEWORD(5, 0), (LPARAM)text);
+	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(5, 0), (LPARAM)u8(text).c_str());
 }
 
 bool NotifyStatusBar(const NMHDR* hdr) {

@@ -834,12 +834,12 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 							std::vector<FILELIST> Base;
 							MakeSelectedFileList(WIN_LOCAL, NO, NO, Base, &CancelFlg);
 							GetHotSelected(WIN_LOCAL, Name);
-							Pos = (int)SendMessage(GetLocalHwnd(), LVM_GETTOPINDEX, 0, 0);
+							Pos = (int)SendMessageW(GetLocalHwnd(), LVM_GETTOPINDEX, 0, 0);
 							GetLocalDirForWnd();
 							SelectFileInList(GetLocalHwnd(), SELECT_LIST, Base);
 							SetHotSelected(WIN_LOCAL, Name);
-							SendMessage(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)(SendMessage(GetLocalHwnd(), LVM_GETITEMCOUNT, 0, 0) - 1), (LPARAM)TRUE);
-							SendMessage(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)Pos, (LPARAM)TRUE);
+							SendMessageW(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)(SendMessageW(GetLocalHwnd(), LVM_GETITEMCOUNT, 0, 0) - 1), true);
+							SendMessageW(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)Pos, true);
 						}
 					}
 				}
@@ -1141,9 +1141,9 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					SetOption();
 					if(ListFont != NULL)
 					{
-						SendMessage(GetLocalHwnd(), WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
-						SendMessage(GetRemoteHwnd(), WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
-						SendMessage(GetTaskWnd(), WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
+						SendMessageW(GetLocalHwnd(), WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
+						SendMessageW(GetRemoteHwnd(), WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
+						SendMessageW(GetTaskWnd(), WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
 					}
 					GetLocalDirForWnd();
 					DispTransferType();
@@ -2439,15 +2439,15 @@ static void ResizeWindowProc(void)
 	RECT Rect;
 
 	GetClientRect(GetMainHwnd(), &Rect);
-	SendMessage(GetSbarWnd(), WM_SIZE, SIZE_RESTORED, MAKELPARAM(Rect.right, Rect.bottom));
+	SendMessageW(GetSbarWnd(), WM_SIZE, SIZE_RESTORED, MAKELPARAM(Rect.right, Rect.bottom));
 
 	CalcWinSize();
 	SetWindowPos(GetMainTbarWnd(), 0, 0, 0, Rect.right, AskToolWinHeight(), SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetLocalTbarWnd(), 0, 0, AskToolWinHeight(), LocalWidth, AskToolWinHeight(), SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetRemoteTbarWnd(), 0, LocalWidth + SepaWidth, AskToolWinHeight(), RemoteWidth, AskToolWinHeight(), SWP_NOACTIVATE | SWP_NOZORDER);
-	SendMessage(GetLocalTbarWnd(), TB_GETITEMRECT, 3, (LPARAM)&Rect);
+	SendMessageW(GetLocalTbarWnd(), TB_GETITEMRECT, 3, (LPARAM)&Rect);
 	SetWindowPos(GetLocalHistHwnd(), 0, Rect.right, Rect.top, LocalWidth - Rect.right, 200, SWP_NOACTIVATE | SWP_NOZORDER);
-	SendMessage(GetRemoteTbarWnd(), TB_GETITEMRECT, 3, (LPARAM)&Rect);
+	SendMessageW(GetRemoteTbarWnd(), TB_GETITEMRECT, 3, (LPARAM)&Rect);
 	SetWindowPos(GetRemoteHistHwnd(), 0, Rect.right, Rect.top, RemoteWidth - Rect.right, 200, SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetLocalHwnd(), 0, 0, AskToolWinHeight()*2, LocalWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
 	SetWindowPos(GetRemoteHwnd(), 0, LocalWidth + SepaWidth, AskToolWinHeight()*2, RemoteWidth, ListHeight, SWP_NOACTIVATE | SWP_NOZORDER);
@@ -2779,7 +2779,7 @@ static void AboutDialog(HWND hWnd) {
 		using result_t = int;
 		static INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, ABOUT_URL, EM_LIMITTEXT, 256, 0);
-			SendDlgItemMessageW(hDlg, ABOUT_URL, WM_SETTEXT, 0, (LPARAM)WebURL);
+			SetText(hDlg, ABOUT_URL, WebURL);
 			return TRUE;
 		}
 		static void OnCommand(HWND hDlg, WORD id) {

@@ -126,9 +126,9 @@ struct Editor {
 		SendDlgItemMessageW(hDlg, BEDIT_LOCAL, EM_LIMITTEXT, FMAX_PATH - 1, 0);
 		SendDlgItemMessageW(hDlg, BEDIT_REMOTE, EM_LIMITTEXT, FMAX_PATH - 1, 0);
 		if (!empty(bookmark.remote))
-			SendDlgItemMessageW(hDlg, BEDIT_REMOTE, WM_SETTEXT, 0, (LPARAM)bookmark.remote.c_str());
+			SetText(hDlg, BEDIT_REMOTE, bookmark.remote);
 		if (!empty(bookmark.local))
-			SendDlgItemMessageW(hDlg, BEDIT_LOCAL, WM_SETTEXT, 0, (LPARAM)bookmark.local.c_str());
+			SetText(hDlg, BEDIT_LOCAL, bookmark.local);
 		else {
 			/* ホスト側にカーソルを移動しておく */
 			SetFocus(GetDlgItem(hDlg, BEDIT_REMOTE));

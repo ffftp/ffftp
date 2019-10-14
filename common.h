@@ -1823,12 +1823,12 @@ void DispStaticText(HWND hWnd, char *Str);
 int StrMultiLen(char *Str);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
 int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char *Pass, int *Port);
-int TimeString2FileTime(char *Time, FILETIME *Buf);
+int TimeString2FileTime(const char *Time, FILETIME *Buf);
 // タイムスタンプのバグ修正
 //void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist);
 void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist, int ShowSeconds);
 void SpecificLocalFileTime2FileTime(FILETIME *Time, int TimeZone);
-int AttrString2Value(char *Str);
+int AttrString2Value(const char *Str);
 // ファイルの属性を数字で表示
 //void AttrValue2String(int Attr, char *Buf);
 void AttrValue2String(int Attr, char *Buf, int ShowNumber);
@@ -1998,6 +1998,18 @@ static auto GetText(HWND hwnd) {
 static inline auto GetText(HWND hdlg, int id) {
 	return GetText(GetDlgItem(hdlg, id));
 }
+static inline void SetText(HWND hwnd, const wchar_t* text) {
+	SendMessageW(hwnd, WM_SETTEXT, 0, (LPARAM)text);
+}
+static inline void SetText(HWND hdlg, int id, const wchar_t* text) {
+	SendDlgItemMessageW(hdlg, id, WM_SETTEXT, 0, (LPARAM)text);
+}
+static inline void SetText(HWND hwnd, const std::wstring& text) {
+	SetText(hwnd, text.c_str());
+}
+static inline void SetText(HWND hdlg, int id, const std::wstring& text) {
+	SetText(hdlg, id, text.c_str());
+}
 static inline auto AddressPortToString(const SOCKADDR* sa, size_t salen) {
 	std::wstring string(sizeof "[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff%4294967295]:65535" - 1, L'\0');
 	auto length = size_as<DWORD>(string) + 1;
@@ -2045,9 +2057,9 @@ static inline auto InputDialog(int dialogId, HWND parent, char *Title, char *Buf
 		Data(char* Title, char* Buf, size_t maxlength, int* flag, int helpTopicId) : Title{ Title }, Buf{ Buf }, maxlength{ maxlength }, flag{ flag }, helpTopicId{ helpTopicId } {}
 		INT_PTR OnInit(HWND hDlg) {
 			if (Title)
-				SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM)Title);
+				SetText(hDlg, u8(Title));
 			SendDlgItemMessageW(hDlg, INP_INPSTR, EM_LIMITTEXT, maxlength - 1, 0);
-			SendDlgItemMessage(hDlg, INP_INPSTR, WM_SETTEXT, 0, (LPARAM)Buf);
+			SetText(hDlg, INP_INPSTR, u8(Buf));
 			if (flag)
 				SendDlgItemMessageW(hDlg, INP_ANONYMOUS, BM_SETCHECK, *flag, 0);
 			return TRUE;
@@ -2068,7 +2080,7 @@ static inline auto InputDialog(int dialogId, HWND parent, char *Title, char *Buf
 				break;
 			case INP_BROWSE:
 				if (char Tmp[FMAX_PATH + 1]; SelectDir(hDlg, Tmp, FMAX_PATH) == TRUE)
-					SendDlgItemMessage(hDlg, INP_INPSTR, WM_SETTEXT, 0, (LPARAM)Tmp);
+					SetText(hDlg, INP_INPSTR, u8(Tmp));
 				break;
 			}
 		}

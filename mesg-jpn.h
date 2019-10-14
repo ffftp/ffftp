@@ -29,16 +29,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN035 (std::data(msgs[10000+35])) /* SOCKS4のコマンドに対するリプライが受信できませんでした */
 #define MSGJPN036 (std::data(msgs[10000+36])) /* SOCKSサーバーの認証方式が異なります. */
 #define MSGJPN037 (std::data(msgs[10000+37])) /* SOCKSサーバーに認証されませんでした. */
-#define MSGJPN038 (std::data(msgs[10000+38])) /* 名前 */
-#define MSGJPN039 (std::data(msgs[10000+39])) /* 日付 */
-#define MSGJPN040 (std::data(msgs[10000+40])) /* サイズ */
-#define MSGJPN041 (std::data(msgs[10000+41])) /* 種類 */
-#define MSGJPN042 (std::data(msgs[10000+42])) /* 名前 */
-#define MSGJPN043 (std::data(msgs[10000+43])) /* 日付 */
-#define MSGJPN044 (std::data(msgs[10000+44])) /* サイズ */
-#define MSGJPN045 (std::data(msgs[10000+45])) /* 種類 */
-#define MSGJPN046 (std::data(msgs[10000+46])) /* 属性 */
-#define MSGJPN047 (std::data(msgs[10000+47])) /* 所有者 */
 #define MSGJPN048 (std::data(msgs[10000+48])) /* テンポラリファイルが読み出せません. */
 #define MSGJPN049 (std::data(msgs[10000+49])) /* ファイル一覧の取得に失敗しました. */
 #define MSGJPN050 (std::data(msgs[10000+50])) /* 検索（ローカル） */
@@ -57,18 +47,10 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN063 (std::data(msgs[10000+63])) /* 削除するファイル/フォルダはありません. */
 #define MSGJPN064 (std::data(msgs[10000+64])) /* 名前を変更してアップロード */
 #define MSGJPN065 (std::data(msgs[10000+65])) /* 名前を変更してダウンロード */
-#define MSGJPN066 (std::data(msgs[10000+66])) /* 削除（ローカル） */
-#define MSGJPN067 (std::data(msgs[10000+67])) /* 削除（ホスト） */
-#define MSGJPN068 (std::data(msgs[10000+68])) /* 名前変更（ローカル） */
-#define MSGJPN069 (std::data(msgs[10000+69])) /* 名前変更（ホスト） */
 #define MSGJPN070 (std::data(msgs[10000+70])) /* フォルダ作成（ローカル） */
 #define MSGJPN071 (std::data(msgs[10000+71])) /* フォルダ作成（ホスト） */
 #define MSGJPN072 (std::data(msgs[10000+72])) /* フォルダ変更（ローカル） */
 #define MSGJPN073 (std::data(msgs[10000+73])) /* フォルダ変更（ホスト） */
-#define MSGJPN074 (std::data(msgs[10000+74])) /* ローカル側のファイル容量を計算します. */
-#define MSGJPN075 (std::data(msgs[10000+75])) /* ホスト側のファイル容量を計算します. */
-#define MSGJPN076 (std::data(msgs[10000+76])) /* ローカル側のファイル容量 */
-#define MSGJPN077 (std::data(msgs[10000+77])) /* ホスト側のファイル容量 */
 #define MSGJPN078 (std::data(msgs[10000+78])) /* フォルダ作成 */
 #define MSGJPN079 (std::data(msgs[10000+79])) /* フォルダ作成 */
 #define MSGJPN080 (std::data(msgs[10000+80])) /* フォルダ削除 */
@@ -110,25 +92,7 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN116 (std::data(msgs[10000+116])) /* アップロードは正常終了しました. */
 #define MSGJPN117 (std::data(msgs[10000+117])) /* 完了 */
 #define MSGJPN118 (std::data(msgs[10000+118])) /* 中止 */
-#define MSGJPN119 (std::data(msgs[10000+119])) /* バイナリ */
-#define MSGJPN120 (std::data(msgs[10000+120])) /* アスキー */
-#define MSGJPN121 (std::data(msgs[10000+121])) /* 無変換 */
-#define MSGJPN122 (std::data(msgs[10000+122])) /* JIS */
-#define MSGJPN123 (std::data(msgs[10000+123])) /* EUC */
-#define MSGJPN124 (std::data(msgs[10000+124])) /* 削除（ローカル） */
-#define MSGJPN125 (std::data(msgs[10000+125])) /* 削除（ホスト） */
 #define MSGJPN133 (std::data(msgs[10000+133])) /* GMT%+02d:00 (日本) */
-#define MSGJPN134 (std::data(msgs[10000+134])) /* 使用しない */
-#define MSGJPN135 (std::data(msgs[10000+135])) /* 自動認識 */
-#define MSGJPN136 (std::data(msgs[10000+136])) /* OTP MD4, S/KEY */
-#define MSGJPN137 (std::data(msgs[10000+137])) /* OTP MD5 */
-#define MSGJPN138 (std::data(msgs[10000+138])) /* OTP SHA-1 */
-#define MSGJPN139 (std::data(msgs[10000+139])) /* 自動認識 */
-#define MSGJPN140 (std::data(msgs[10000+140])) /* ACOS */
-#define MSGJPN141 (std::data(msgs[10000+141])) /* VAX VMS */
-#define MSGJPN142 (std::data(msgs[10000+142])) /* IRMX */
-#define MSGJPN143 (std::data(msgs[10000+143])) /* ACOS-4 */
-#define MSGJPN144 (std::data(msgs[10000+144])) /* Stratus */
 #define MSGJPN145 (std::data(msgs[10000+145])) /* フォルダを変更できません. */
 #define MSGJPN146 (std::data(msgs[10000+146])) /* フォルダを作成できません. */
 #define MSGJPN147 (std::data(msgs[10000+147])) /* フォルダを削除できません. */
@@ -167,23 +131,8 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN182 (std::data(msgs[10000+182])) /* ビューアの起動に失敗しました. (ERROR=%d) */
 #define MSGJPN185 (std::data(msgs[10000+185])) /* フォルダを選択してください */
 #define MSGJPN199 (std::data(msgs[10000+199])) /* ファイル名 */
-#define MSGJPN200 (std::data(msgs[10000+200])) /* ファイル名 */
-#define MSGJPN201 (std::data(msgs[10000+201])) /* 属性 */
 #define MSGJPN202 (std::data(msgs[10000+202])) /* ファイル名 */
 #define MSGJPN203 (std::data(msgs[10000+203])) /* ファイル名 */
-#define MSGJPN204 (std::data(msgs[10000+204])) /* FWユーザー名→ FWパスワード→ SITE ホスト名 */
-#define MSGJPN205 (std::data(msgs[10000+205])) /* FWユーザー名→ FWパスワード→ USER ユーザー名@ホスト名 */
-#define MSGJPN206 (std::data(msgs[10000+206])) /* FWユーザー名→ FWパスワード */
-#define MSGJPN207 (std::data(msgs[10000+207])) /* USER ユーザー名@ホスト名 */
-#define MSGJPN208 (std::data(msgs[10000+208])) /* OPEN ホスト名 */
-#define MSGJPN209 (std::data(msgs[10000+209])) /* SOCKS4 */
-#define MSGJPN210 (std::data(msgs[10000+210])) /* SOCKS5 (認証なし) */
-#define MSGJPN211 (std::data(msgs[10000+211])) /* SOCKS5 (ユーザー名,パスワード認証) */
-#define MSGJPN212 (std::data(msgs[10000+212])) /* 使用しない */
-#define MSGJPN213 (std::data(msgs[10000+213])) /* 自動認識 */
-#define MSGJPN214 (std::data(msgs[10000+214])) /* OTP MD4,S/KEY */
-#define MSGJPN215 (std::data(msgs[10000+215])) /* OTP MD5 */
-#define MSGJPN216 (std::data(msgs[10000+216])) /* OTP SHA-1 */
 #define MSGJPN220 (std::data(msgs[10000+220])) /* ダイアルアップを切断しています. */
 #define MSGJPN221 (std::data(msgs[10000+221])) /* ダイアルアップで接続しています. */
 #define MSGJPN239 (std::data(msgs[10000+239])) /* # このファイルは編集しないでください.\n */
@@ -191,8 +140,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN242 (std::data(msgs[10000+242])) /* 受信はタイムアウトで失敗しました. */
 #define MSGJPN243 (std::data(msgs[10000+243])) /* 受信はタイムアウトで失敗しました. */
 #define MSGJPN244 (std::data(msgs[10000+244])) /* 固定長の受信が失敗しました */
-#define MSGJPN245 (std::data(msgs[10000+245])) /* ローカル */
-#define MSGJPN246 (std::data(msgs[10000+246])) /* ホスト */
 #define MSGJPN247 (std::data(msgs[10000+247])) /* 選択%d個（%s） */
 #define MSGJPN248 (std::data(msgs[10000+248])) /* ローカル空 %s */
 #define MSGJPN249 (std::data(msgs[10000+249])) /* 転送待ちファイル%d個 */
@@ -206,16 +153,11 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN281 (std::data(msgs[10000+281])) /* PASVモードで接続できません */
 #define MSGJPN282 (std::data(msgs[10000+282])) /* INIファイル名が指定されていません */
 #define MSGJPN283 (std::data(msgs[10000+283])) /* INIファイル指定:  */
-#define MSGJPN289 (std::data(msgs[10000+289])) /* Agilent Logic analyzer */
-#define MSGJPN294 (std::data(msgs[10000+294])) /* USER FWユーザー名:FWパスワード@ホスト名 */
-#define MSGJPN295 (std::data(msgs[10000+295])) /* シバソク WL */
 #define MSGJPN299 (std::data(msgs[10000+299])) /* コマンドラインにマスターパスワードが指定されていません */
 #define MSGJPN300 (std::data(msgs[10000+300])) /* デフォルトのマスターパスワードが使われます.\r\nマルウェアの攻撃を防ぐため,固有のマスターパスワードを設定することをおすすめします */
 #define MSGJPN301 (std::data(msgs[10000+301])) /* マスターパスワードが設定と一致しません.安全のため設定の保存を行いません. */
 #define MSGJPN302 (std::data(msgs[10000+302])) /* 確認用データが壊れているため,マスターパスワードの正当性を確認できませんでした. */
 #define MSGJPN303 (std::data(msgs[10000+303])) /* マスターパスワードを変更しました */
-#define MSGJPN305 (std::data(msgs[10000+305])) /* Shift_JIS */
-#define MSGJPN306 (std::data(msgs[10000+306])) /* UTF-8 */
 #define MSGJPN307 (std::data(msgs[10000+307])) /* ホストの漢字コードはShift_JIS */
 #define MSGJPN308 (std::data(msgs[10000+308])) /* ホストの漢字コードはUTF-8 */
 #define MSGJPN309 (std::data(msgs[10000+309])) /* ローカルの漢字コードはShift_JIS */
@@ -230,15 +172,7 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN322 (std::data(msgs[10000+322])) /* デバッガが検出されました. */
 #define MSGJPN323 (std::data(msgs[10000+323])) /* 信頼できないDLLをアンロードできませんでした. */
 #define MSGJPN324 (std::data(msgs[10000+324])) /* プロセスの保護に必要な関数をフックできませんでした. */
-#define MSGJPN329 (std::data(msgs[10000+329])) /* UTF-8 BOM */
 #define MSGJPN330 (std::data(msgs[10000+330])) /* ホストの漢字コードはUTF-8 BOM */
 #define MSGJPN331 (std::data(msgs[10000+331])) /* ローカルの漢字コードはUTF-8 BOM */
-#define MSGJPN335 (std::data(msgs[10000+335])) /* 毎回尋ねる */
-#define MSGJPN336 (std::data(msgs[10000+336])) /* 全て後で上書き */
-#define MSGJPN337 (std::data(msgs[10000+337])) /* 全て後でリジューム */
-#define MSGJPN338 (std::data(msgs[10000+338])) /* 全てスキップ */
 #define MSGJPN358 (std::data(msgs[10000+358])) /* ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s */
 #define MSGJPN359 (std::data(msgs[10000+359])) /* ソフトウェアの更新に失敗しました.\nWebサイトから最新版を入手して手動で更新してください. */
-#if defined(HAVE_TANDEM)
-#define MSGJPN2000 (std::data(msgs[10000+2000])) /* NonStop Server */
-#endif

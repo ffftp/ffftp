@@ -276,7 +276,7 @@ int MakeToolBarWindow()
 
 		/*===== ローカルのディレクトリ名ウインドウ =====*/
 
-		SendMessage(hWndTbarLocal, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
+		SendMessageW(hWndTbarLocal, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
 		DlgFont = CreateFontW(Rect1.bottom-Rect1.top-CalcPixelY(8), 0, 0, 0, 0, FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH,L"MS Shell Dlg");
 
 		hWndDirLocal = CreateWindowExW(WS_EX_CLIENTEDGE, WC_COMBOBOXW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_SORT | CBS_AUTOHSCROLL, Rect1.right, Rect1.top, LocalWidth - Rect1.right, CalcPixelY(200), hWndTbarLocal, (HMENU)COMBO_LOCAL, GetFtpInst(), nullptr);
@@ -288,12 +288,12 @@ int MakeToolBarWindow()
 			if(hWndDirLocalEdit != NULL)
 				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtrW(hWndDirLocalEdit, GWLP_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
 
-			SendMessage(hWndDirLocal, WM_SETFONT, (WPARAM)DlgFont, MAKELPARAM(TRUE, 0));
-			SendMessage(hWndDirLocal, CB_LIMITTEXT, FMAX_PATH, 0);
+			SendMessageW(hWndDirLocal, WM_SETFONT, (WPARAM)DlgFont, MAKELPARAM(TRUE, 0));
+			SendMessageW(hWndDirLocal, CB_LIMITTEXT, FMAX_PATH, 0);
 
 			/* ドライブ名をセットしておく */
 			GetDrives([](const wchar_t drive[]) { SetLocalDirHist(u8(drive).c_str()); });
-			SendMessage(hWndDirLocal, CB_SETCURSEL, 0, 0);
+			SendMessageW(hWndDirLocal, CB_SETCURSEL, 0, 0);
 		}
 	}
 
@@ -330,7 +330,7 @@ int MakeToolBarWindow()
 
 		/*===== ホストのディレクトリ名ウインドウ =====*/
 
-		SendMessage(hWndTbarRemote, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
+		SendMessageW(hWndTbarRemote, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
 		hWndDirRemote = CreateWindowExW(WS_EX_CLIENTEDGE, WC_COMBOBOXW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL, Rect1.right, Rect1.top, RemoteWidth - Rect1.right, CalcPixelY(200), hWndTbarRemote, (HMENU)COMBO_REMOTE, GetFtpInst(), nullptr);
 
 		if(hWndDirRemote != NULL)
@@ -340,9 +340,9 @@ int MakeToolBarWindow()
 			if(hWndDirRemoteEdit != NULL)
 				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtrW(hWndDirRemoteEdit, GWLP_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
 
-			SendMessage(hWndDirRemote, WM_SETFONT, (WPARAM)DlgFont, MAKELPARAM(TRUE, 0));
-			SendMessage(hWndDirRemote, CB_LIMITTEXT, FMAX_PATH, 0);
-			SendMessage(hWndDirRemote, CB_SETCURSEL, 0, 0);
+			SendMessageW(hWndDirRemote, WM_SETFONT, (WPARAM)DlgFont, MAKELPARAM(TRUE, 0));
+			SendMessageW(hWndDirRemote, CB_LIMITTEXT, FMAX_PATH, 0);
+			SendMessageW(hWndDirRemote, CB_SETCURSEL, 0, 0);
 		}
 	}
 
@@ -373,7 +373,7 @@ static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wPara
 			{
 				if(hWnd == hWndDirLocalEdit)
 				{
-					SendMessage(hWndDirLocalEdit, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Tmp);
+					strncpy_s(Tmp, FMAX_PATH+1, u8(GetText(hWndDirLocalEdit)).c_str(), _TRUNCATE);
 					DoLocalCWD(Tmp);
 					GetLocalDirForWnd();
 				}
@@ -381,7 +381,7 @@ static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wPara
 				{
 					// 同時接続対応
 					CancelFlg = NO;
-					SendMessage(hWndDirRemoteEdit, WM_GETTEXT, FMAX_PATH+1, (LPARAM)Tmp);
+					strncpy_s(Tmp, FMAX_PATH+1, u8(GetText(hWndDirRemoteEdit)).c_str(), _TRUNCATE);
 					if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 					{
 						if(DoCWD(Tmp, YES, NO, YES) < FTP_RETRY)
@@ -601,7 +601,7 @@ void MakeButtonsFocus(void)
 			EnableMenuItem(GetMenu(hWndMain), MENU_MIRROR_UPLOAD, MF_ENABLED);
 			EnableMenuItem(GetMenu(hWndMain), MENU_MIRROR_DOWNLOAD, MF_ENABLED);
 			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_NAME, MF_ENABLED);
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_MIRROR_UPLOAD, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MIRROR_UPLOAD, MAKELONG(TRUE, 0));
 		}
 		else
 		{
@@ -613,24 +613,24 @@ void MakeButtonsFocus(void)
 			EnableMenuItem(GetMenu(hWndMain), MENU_MIRROR_UPLOAD, MF_GRAYED);
 			EnableMenuItem(GetMenu(hWndMain), MENU_MIRROR_DOWNLOAD, MF_GRAYED);
 			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_NAME, MF_GRAYED);
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_MIRROR_UPLOAD, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MIRROR_UPLOAD, MAKELONG(FALSE, 0));
 		}
 
 		if(hWndFocus == GetLocalHwnd())
 		{
 			if((AskConnecting() == YES) && (Count > 0))
 			{
-				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(TRUE, 0));
+				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(TRUE, 0));
 				EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD, MF_ENABLED);
 				EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD_AS, MF_ENABLED);
 			}
 			else
 			{
-				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(FALSE, 0));
+				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(FALSE, 0));
 				EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD, MF_GRAYED);
 				EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD_AS, MF_GRAYED);
 			}
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(FALSE, 0));
 			EnableMenuItem(GetMenu(hWndMain), MENU_SOMECMD, MF_GRAYED);
 			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD, MF_GRAYED);
 			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS, MF_GRAYED);
@@ -650,19 +650,19 @@ void MakeButtonsFocus(void)
 
 			if((AskConnecting() == YES) && (Count > 0))
 			{
-				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(TRUE, 0));
+				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(TRUE, 0));
 				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD, MF_ENABLED);
 				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS, MF_ENABLED);
 				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS_FILE, MF_ENABLED);
 			}
 			else
 			{
-				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(FALSE, 0));
+				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(FALSE, 0));
 				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD, MF_GRAYED);
 				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS, MF_GRAYED);
 				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS_FILE, MF_GRAYED);
 			}
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(FALSE, 0));
 			EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD, MF_GRAYED);
 			EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD_AS, MF_GRAYED);
 		}
@@ -671,9 +671,9 @@ void MakeButtonsFocus(void)
 		{
 			if(Count > 0)
 			{
-				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_DELETE, MAKELONG(TRUE, 0));
+				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DELETE, MAKELONG(TRUE, 0));
 				EnableMenuItem(GetMenu(hWndMain), MENU_DELETE, MF_ENABLED);
-				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_RENAME, MAKELONG(TRUE, 0));
+				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_RENAME, MAKELONG(TRUE, 0));
 				EnableMenuItem(GetMenu(hWndMain), MENU_RENAME, MF_ENABLED);
 
 				EnableMenuItem(GetMenu(hWndMain), MENU_CHMOD, MF_ENABLED);
@@ -681,9 +681,9 @@ void MakeButtonsFocus(void)
 			}
 			else
 			{
-				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_DELETE, MAKELONG(FALSE, 0));
+				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DELETE, MAKELONG(FALSE, 0));
 				EnableMenuItem(GetMenu(hWndMain), MENU_DELETE, MF_GRAYED);
-				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_RENAME, MAKELONG(FALSE, 0));
+				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_RENAME, MAKELONG(FALSE, 0));
 				EnableMenuItem(GetMenu(hWndMain), MENU_RENAME, MF_GRAYED);
 
 				EnableMenuItem(GetMenu(hWndMain), MENU_CHMOD, MF_GRAYED);
@@ -691,31 +691,31 @@ void MakeButtonsFocus(void)
 
 			if((hWndFocus == GetLocalHwnd()) || (AskConnecting() == YES))
 			{
-				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_MKDIR, MAKELONG(TRUE, 0));
+				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MKDIR, MAKELONG(TRUE, 0));
 				EnableMenuItem(GetMenu(hWndMain), MENU_MKDIR, MF_ENABLED);
 				EnableMenuItem(GetMenu(hWndMain), MENU_FILESIZE, MF_ENABLED);
 			}
 			else
 			{
-				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_MKDIR, MAKELONG(FALSE, 0));
+				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MKDIR, MAKELONG(FALSE, 0));
 				EnableMenuItem(GetMenu(hWndMain), MENU_MKDIR, MF_GRAYED);
 				EnableMenuItem(GetMenu(hWndMain), MENU_FILESIZE, MF_GRAYED);
 			}
 		}
 		else
 		{
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(FALSE, 0));
 			EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD, MF_GRAYED);
 			EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD_AS, MF_GRAYED);
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(FALSE, 0));
 			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD, MF_GRAYED);
 			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS, MF_GRAYED);
 			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS_FILE, MF_GRAYED);
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_DELETE, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DELETE, MAKELONG(FALSE, 0));
 			EnableMenuItem(GetMenu(hWndMain), MENU_DELETE, MF_GRAYED);
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_RENAME, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_RENAME, MAKELONG(FALSE, 0));
 			EnableMenuItem(GetMenu(hWndMain), MENU_RENAME, MF_GRAYED);
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_MKDIR, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MKDIR, MAKELONG(FALSE, 0));
 			EnableMenuItem(GetMenu(hWndMain), MENU_MKDIR, MF_GRAYED);
 			EnableMenuItem(GetMenu(hWndMain), MENU_CHMOD, MF_GRAYED);
 			EnableMenuItem(GetMenu(hWndMain), MENU_FILESIZE, MF_GRAYED);
@@ -746,9 +746,9 @@ void DisableUserOpe(void)
 	for(i = 0; i < sizeof(HideMenus) / sizeof(int); i++)
 	{
 		EnableMenuItem(GetMenu(GetMainHwnd()), HideMenus[i], MF_GRAYED);
-		SendMessage(hWndTbarMain, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(FALSE, 0));
-		SendMessage(hWndTbarLocal, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(FALSE, 0));
-		SendMessage(hWndTbarRemote, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(FALSE, 0));
+		SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(FALSE, 0));
+		SendMessageW(hWndTbarLocal, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(FALSE, 0));
+		SendMessageW(hWndTbarRemote, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(FALSE, 0));
 	}
 
 	EnableWindow(hWndDirLocal, FALSE);
@@ -780,9 +780,9 @@ void EnableUserOpe(void)
 		for(i = 0; i < sizeof(HideMenus) / sizeof(int); i++)
 		{
 			EnableMenuItem(GetMenu(GetMainHwnd()), HideMenus[i], MF_ENABLED);
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(TRUE, 0));
-			SendMessage(hWndTbarLocal, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(TRUE, 0));
-			SendMessage(hWndTbarRemote, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarLocal, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarRemote, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(TRUE, 0));
 		}
 		EnableWindow(hWndDirLocal, TRUE);
 		EnableWindow(hWndDirRemote, TRUE);
@@ -889,15 +889,15 @@ void DispTransferType(void)
 	switch(TmpTransMode)
 	{
 		case TYPE_A :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_TEXT, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_TEXT, MAKELONG(TRUE, 0));
 			break;
 
 		case TYPE_I :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_BINARY, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_BINARY, MAKELONG(TRUE, 0));
 			break;
 
 		default :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_AUTO, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_AUTO, MAKELONG(TRUE, 0));
 			break;
 	}
 	return;
@@ -1033,27 +1033,27 @@ void DispHostKanjiCode(void)
 	{
 		// UTF-8対応
 		case KANJI_SJIS :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_SJIS, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_SJIS, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_EUC :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_EUC, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_EUC, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_JIS :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_JIS, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_JIS, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_UTF8N :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_UTF8N, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_UTF8N, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_UTF8BOM :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
 			break;
 
 		default :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_NONE, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_NONE, MAKELONG(TRUE, 0));
 			break;
 	}
 	return;
@@ -1090,29 +1090,24 @@ void HideHostKanjiButton(void)
 	{
 		// UTF-8対応
 		case TYPE_I : 
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_SJIS, MAKELONG(FALSE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_EUC, MAKELONG(FALSE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_JIS, MAKELONG(FALSE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_UTF8N, MAKELONG(FALSE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_UTF8BOM, MAKELONG(FALSE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_NONE, MAKELONG(FALSE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_SJIS, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_EUC, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_JIS, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_UTF8N, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_UTF8BOM, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_NONE, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
 			break;
 
 		default :
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_SJIS, MAKELONG(TRUE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_EUC, MAKELONG(TRUE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_JIS, MAKELONG(TRUE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_UTF8N, MAKELONG(TRUE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_NONE, MAKELONG(TRUE, 0));
-//			if(TmpHostKanjiCode != KANJI_NOCNV)
-//				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
-//			else
-//				SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
-//			break;
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_SJIS, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_EUC, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_JIS, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_UTF8N, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_NONE, MAKELONG(TRUE, 0));
 			// 現在カナ変換はShift_JIS、JIS、EUC間でのみ機能する
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
 			switch(TmpHostKanjiCode)
 			{
 			case KANJI_SJIS:
@@ -1123,7 +1118,7 @@ void HideHostKanjiButton(void)
 				case KANJI_SJIS:
 				case KANJI_JIS:
 				case KANJI_EUC:
-					SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
+					SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
 					break;
 				}
 				break;
@@ -1181,23 +1176,23 @@ void DispLocalKanjiCode(void)
 	{
 		// UTF-8対応
 		case KANJI_SJIS :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_SJIS, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_SJIS, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_EUC :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_EUC, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_EUC, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_JIS :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_JIS, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_JIS, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_UTF8N :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(TRUE, 0));
 			break;
 
 		case KANJI_UTF8BOM :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
 			break;
 	}
 	return;
@@ -1214,21 +1209,21 @@ void HideLocalKanjiButton(void)
 	{
 		// UTF-8対応
 		case TYPE_I : 
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_SJIS, MAKELONG(FALSE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_EUC, MAKELONG(FALSE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_JIS, MAKELONG(FALSE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(FALSE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8BOM, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_SJIS, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_EUC, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_JIS, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8BOM, MAKELONG(FALSE, 0));
 			break;
 
 		default :
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_SJIS, MAKELONG(TRUE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_EUC, MAKELONG(TRUE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_JIS, MAKELONG(TRUE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(TRUE, 0));
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_SJIS, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_EUC, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_JIS, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
 			// 現在カナ変換はShift_JIS、JIS、EUC間でのみ機能する
-			SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
 			switch(TmpHostKanjiCode)
 			{
 			case KANJI_SJIS:
@@ -1239,7 +1234,7 @@ void HideLocalKanjiButton(void)
 				case KANJI_SJIS:
 				case KANJI_JIS:
 				case KANJI_EUC:
-					SendMessage(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
+					SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
 					break;
 				}
 				break;
@@ -1306,9 +1301,9 @@ void SetHostKanaCnv(void)
 void DispHostKanaCnv(void)
 {
 	if(TmpHostKanaCnv != 0)
-		SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
+		SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
 	else
-		SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
+		SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
 	return;
 }
 
@@ -1474,13 +1469,13 @@ void DispListType(void)
 	switch(ListType)
 	{
 		case LVS_LIST :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_LIST, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_LIST, MAKELONG(TRUE, 0));
 			CheckMenuItem(GetMenu(hWndMain), MENU_LIST, MF_CHECKED);
 			CheckMenuItem(GetMenu(hWndMain), MENU_REPORT, MF_UNCHECKED);
 			break;
 
 		default :
-			SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_REPORT, MAKELONG(TRUE, 0));
+			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_REPORT, MAKELONG(TRUE, 0));
 			CheckMenuItem(GetMenu(hWndMain), MENU_REPORT, MF_CHECKED);
 			CheckMenuItem(GetMenu(hWndMain), MENU_LIST, MF_UNCHECKED);
 			break;
@@ -1540,12 +1535,12 @@ void DispSyncMoveMode(void)
 {
 	if(SyncMove != 0)
 	{
-		SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_SYNC, MAKELONG(TRUE, 0));
+		SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_SYNC, MAKELONG(TRUE, 0));
 		CheckMenuItem(GetMenu(GetMainHwnd()), MENU_SYNC, MF_CHECKED);
 	}
 	else
 	{
-		SendMessage(hWndTbarMain, TB_CHECKBUTTON, MENU_SYNC, MAKELONG(FALSE, 0));
+		SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_SYNC, MAKELONG(FALSE, 0));
 		CheckMenuItem(GetMenu(GetMainHwnd()), MENU_SYNC, MF_UNCHECKED);
 	}
 	return;
@@ -1584,12 +1579,12 @@ void SetRemoteDirHist(char *Path)
 {
 	LONG_PTR i;
 
-	if((i = SendMessage(hWndDirRemote, CB_FINDSTRINGEXACT, 0, (LPARAM)Path)) != CB_ERR)
-		SendMessage(hWndDirRemote, CB_DELETESTRING, i, 0);
+	if((i = SendMessageW(hWndDirRemote, CB_FINDSTRINGEXACT, 0, (LPARAM)u8(Path).c_str())) != CB_ERR)
+		SendMessageW(hWndDirRemote, CB_DELETESTRING, i, 0);
 
-	SendMessage(hWndDirRemote, CB_ADDSTRING, 0, (LPARAM)Path);
-	i = SendMessage(hWndDirRemote, CB_GETCOUNT, 0, 0);
-	SendMessage(hWndDirRemote, CB_SETCURSEL, i-1, 0);
+	SendMessageW(hWndDirRemote, CB_ADDSTRING, 0, (LPARAM)u8(Path).c_str());
+	i = SendMessageW(hWndDirRemote, CB_GETCOUNT, 0, 0);
+	SendMessageW(hWndDirRemote, CB_SETCURSEL, i-1, 0);
 
 	strcpy(RemoteCurDir, Path);
 	return;
@@ -1609,10 +1604,10 @@ void SetLocalDirHist(const char *Path)
 {
 	int i;
 
-	if((i = (int)SendMessage(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)Path)) == CB_ERR)
-		SendMessage(hWndDirLocal, CB_ADDSTRING, 0, (LPARAM)Path);
-	i = (int)SendMessage(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)Path);
-	SendMessage(hWndDirLocal, CB_SETCURSEL, i, 0);
+	if((i = (int)SendMessageW(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)u8(Path).c_str())) == CB_ERR)
+		SendMessageW(hWndDirLocal, CB_ADDSTRING, 0, (LPARAM)u8(Path).c_str());
+	i = (int)SendMessageW(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)u8(Path).c_str());
+	SendMessageW(hWndDirLocal, CB_SETCURSEL, i, 0);
 
 	strcpy(LocalCurDir, Path);
 	return;

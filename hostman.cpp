@@ -1226,7 +1226,6 @@ static void SendAllHostNames(HWND hWnd, int Cur)
 {
 	int i;
 	HOSTLISTDATA *Pos;
-	TV_INSERTSTRUCT tvIns;
 	HTREEITEM hItem;
 	HTREEITEM hItemCur;
 	HTREEITEM *Level;
@@ -1235,47 +1234,29 @@ static void SendAllHostNames(HWND hWnd, int Cur)
 	hItemCur = NULL;
 
 	/* ちらつくので再描画禁止 */
-	SendMessage(hWnd, WM_SETREDRAW, (WPARAM)FALSE, 0);
+	SendMessageW(hWnd, WM_SETREDRAW, false, 0);
 
-	SendMessage(hWnd, TVM_DELETEITEM, 0, (LPARAM)TVI_ROOT);		/* 全てを削除 */
+	SendMessageW(hWnd, TVM_DELETEITEM, 0, (LPARAM)TVI_ROOT);		/* 全てを削除 */
 
 	if((Level = (HTREEITEM*)malloc(sizeof(HTREEITEM*) * Hosts + 1)) != NULL)
 	{
 		Pos = HostListTop;
 		for(i = 0; i < Hosts; i++)
 		{
-			if(Pos->Set.Level & SET_LEVEL_GROUP)
-			{
-				tvIns.item.iImage = 0;
-				tvIns.item.iSelectedImage = 0;
-			}
-			else
-			{
-				tvIns.item.iImage = 2;
-				tvIns.item.iSelectedImage = 2;
-			}
-
 			CurLevel = GetNodeLevel(i);
-			if(CurLevel == 0)
-				tvIns.hParent = TVI_ROOT;
-			else
-				tvIns.hParent = Level[CurLevel - 1];
-
-			tvIns.hInsertAfter = TVI_LAST;
-			tvIns.item.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_CHILDREN;
-	//		tvIns.item.hItem = 0;
-	//		tvIns.item.state = 0;
-	//		tvIns.item.stateMask = 0;
-			tvIns.item.pszText = Pos->Set.HostName;
-			tvIns.item.cchTextMax = 0;
-			tvIns.item.cChildren = 1;
-			tvIns.item.lParam = i;
-			hItem = (HTREEITEM)SendMessage(hWnd, TVM_INSERTITEM, 0, (LPARAM)&tvIns);
+			auto whost = u8(Pos->Set.HostName);
+			TVINSERTSTRUCTW is{
+				.hParent = CurLevel == 0 ? TVI_ROOT : Level[CurLevel - 1],
+				.hInsertAfter = TVI_LAST,
+				.item = { .mask = TVIF_TEXT | TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM, .pszText = data(whost), .cChildren = 1, .lParam = i },
+			};
+			if (!(Pos->Set.Level & SET_LEVEL_GROUP))
+				is.item.iImage = is.item.iSelectedImage = 2;
+			hItem = (HTREEITEM)SendMessageW(hWnd, TVM_INSERTITEMW, 0, (LPARAM)&is);
 
 			if(Pos->Set.Level & SET_LEVEL_GROUP)
 				Level[CurLevel] = hItem;
 
-//			DoPrintf("%d = %x", i, hItem);
 			if(i == Cur)
 			{
 				hItemCur = hItem;
@@ -1286,12 +1267,11 @@ static void SendAllHostNames(HWND hWnd, int Cur)
 	}
 
 	/* 再描画 */
-	SendMessage(hWnd, WM_SETREDRAW, (WPARAM)TRUE, 0);
+	SendMessageW(hWnd, WM_SETREDRAW, true, 0);
 
 	if(hItemCur != NULL)
 	{
-		SendMessage(hWnd, TVM_SELECTITEM, TVGN_CARET, (LPARAM)hItemCur);
-//		SendMessage(hWnd, TVM_ENSUREVISIBLE, 0, (LPARAM)hItemCur);
+		SendMessageW(hWnd, TVM_SELECTITEM, TVGN_CARET, (LPARAM)hItemCur);
 	}
 	UpdateWindow(hWnd);
 
@@ -1410,20 +1390,20 @@ struct General {
 	static constexpr WORD dialogId = hset_main_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, HSET_HOST, EM_LIMITTEXT, HOST_NAME_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_ADRS, EM_LIMITTEXT, HOST_ADRS_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_LOCAL, EM_LIMITTEXT, INIT_DIR_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_REMOTE, EM_LIMITTEXT, INIT_DIR_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_HOST, WM_SETTEXT, 0, (LPARAM)TmpHost.HostName);
-		SendDlgItemMessage(hDlg, HSET_ADRS, WM_SETTEXT, 0, (LPARAM)TmpHost.HostAdrs);
-		SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)TmpHost.UserName);
-		SendDlgItemMessage(hDlg, HSET_PASS, WM_SETTEXT, 0, (LPARAM)TmpHost.PassWord);
-		SendDlgItemMessage(hDlg, HSET_LOCAL, WM_SETTEXT, 0, (LPARAM)TmpHost.LocalInitDir);
-		SendDlgItemMessage(hDlg, HSET_REMOTE, WM_SETTEXT, 0, (LPARAM)TmpHost.RemoteInitDir);
-		SendDlgItemMessage(hDlg, HSET_ANONYMOUS, BM_SETCHECK, TmpHost.Anonymous, 0);
-		SendDlgItemMessage(hDlg, HSET_LASTDIR, BM_SETCHECK, TmpHost.LastDir, 0);
+		SendDlgItemMessageW(hDlg, HSET_HOST, EM_LIMITTEXT, HOST_NAME_LEN, 0);
+		SendDlgItemMessageW(hDlg, HSET_ADRS, EM_LIMITTEXT, HOST_ADRS_LEN, 0);
+		SendDlgItemMessageW(hDlg, HSET_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
+		SendDlgItemMessageW(hDlg, HSET_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
+		SendDlgItemMessageW(hDlg, HSET_LOCAL, EM_LIMITTEXT, INIT_DIR_LEN, 0);
+		SendDlgItemMessageW(hDlg, HSET_REMOTE, EM_LIMITTEXT, INIT_DIR_LEN, 0);
+		SetText(hDlg, HSET_HOST, u8(TmpHost.HostName));
+		SetText(hDlg, HSET_ADRS, u8(TmpHost.HostAdrs));
+		SetText(hDlg, HSET_USER, u8(TmpHost.UserName));
+		SetText(hDlg, HSET_PASS, u8(TmpHost.PassWord));
+		SetText(hDlg, HSET_LOCAL, u8(TmpHost.LocalInitDir));
+		SetText(hDlg, HSET_REMOTE, u8(TmpHost.RemoteInitDir));
+		SendDlgItemMessageW(hDlg, HSET_ANONYMOUS, BM_SETCHECK, TmpHost.Anonymous, 0);
+		SendDlgItemMessageW(hDlg, HSET_LASTDIR, BM_SETCHECK, TmpHost.LastDir, 0);
 		if (AskConnecting() == NO)
 			EnableWindow(GetDlgItem(hDlg, HSET_REMOTE_CUR), FALSE);
 		return TRUE;
@@ -1431,15 +1411,15 @@ struct General {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			SendDlgItemMessage(hDlg, HSET_HOST, WM_GETTEXT, HOST_NAME_LEN + 1, (LPARAM)TmpHost.HostName);
-			SendDlgItemMessage(hDlg, HSET_ADRS, WM_GETTEXT, HOST_ADRS_LEN + 1, (LPARAM)TmpHost.HostAdrs);
+			strncpy_s(TmpHost.HostName, HOST_NAME_LEN + 1, u8(GetText(hDlg, HSET_HOST)).c_str(), _TRUNCATE);
+			strncpy_s(TmpHost.HostAdrs, HOST_ADRS_LEN + 1, u8(GetText(hDlg, HSET_ADRS)).c_str(), _TRUNCATE);
 			RemoveTailingSpaces(TmpHost.HostAdrs);
-			SendDlgItemMessage(hDlg, HSET_USER, WM_GETTEXT, USER_NAME_LEN + 1, (LPARAM)TmpHost.UserName);
-			SendDlgItemMessage(hDlg, HSET_PASS, WM_GETTEXT, PASSWORD_LEN + 1, (LPARAM)TmpHost.PassWord);
-			SendDlgItemMessage(hDlg, HSET_LOCAL, WM_GETTEXT, INIT_DIR_LEN + 1, (LPARAM)TmpHost.LocalInitDir);
-			SendDlgItemMessage(hDlg, HSET_REMOTE, WM_GETTEXT, INIT_DIR_LEN + 1, (LPARAM)TmpHost.RemoteInitDir);
-			TmpHost.Anonymous = (int)SendDlgItemMessage(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0);
-			TmpHost.LastDir = (int)SendDlgItemMessage(hDlg, HSET_LASTDIR, BM_GETCHECK, 0, 0);
+			strncpy_s(TmpHost.UserName, USER_NAME_LEN + 1, u8(GetText(hDlg, HSET_USER)).c_str(), _TRUNCATE);
+			strncpy_s(TmpHost.PassWord, PASSWORD_LEN + 1, u8(GetText(hDlg, HSET_PASS)).c_str(), _TRUNCATE);
+			strncpy_s(TmpHost.LocalInitDir, INIT_DIR_LEN + 1, u8(GetText(hDlg, HSET_LOCAL)).c_str(), _TRUNCATE);
+			strncpy_s(TmpHost.RemoteInitDir, INIT_DIR_LEN + 1, u8(GetText(hDlg, HSET_REMOTE)).c_str(), _TRUNCATE);
+			TmpHost.Anonymous = (int)SendDlgItemMessageW(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0);
+			TmpHost.LastDir = (int)SendDlgItemMessageW(hDlg, HSET_LASTDIR, BM_GETCHECK, 0, 0);
 			if ((strlen(TmpHost.HostName) == 0) && (strlen(TmpHost.HostAdrs) > 0)) {
 				memset(TmpHost.HostName, NUL, HOST_NAME_LEN + 1);
 				strncpy(TmpHost.HostName, TmpHost.HostAdrs, HOST_NAME_LEN);
@@ -1458,25 +1438,25 @@ struct General {
 		switch (id) {
 		case HSET_LOCAL_BR:
 			if (SelectDir(hDlg, TmpHost.LocalInitDir, INIT_DIR_LEN) == TRUE)
-				SendDlgItemMessage(hDlg, HSET_LOCAL, WM_SETTEXT, 0, (LPARAM)TmpHost.LocalInitDir);
+				SetText(hDlg, HSET_LOCAL, u8(TmpHost.LocalInitDir));
 			break;
 		case HSET_REMOTE_CUR: {
 			char Tmp[FMAX_PATH + 1];
 			AskRemoteCurDir(Tmp, FMAX_PATH);
-			SendDlgItemMessage(hDlg, HSET_REMOTE, WM_SETTEXT, 0, (LPARAM)Tmp);
+			SetText(hDlg, HSET_REMOTE, u8(Tmp));
 			break;
 		}
 		case HSET_ANONYMOUS:
-			if (SendDlgItemMessage(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0) == 1) {
-				SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)"anonymous");
+			if (SendDlgItemMessageW(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0) == 1) {
+				SetText(hDlg, HSET_USER, L"anonymous");
 				auto wStyle = GetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
 				SetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle & ~ES_PASSWORD);
-				SendDlgItemMessage(hDlg, HSET_PASS, WM_SETTEXT, 0, (LPARAM)UserMailAdrs);
+				SetText(hDlg, HSET_PASS, u8(UserMailAdrs));
 			} else {
-				SendDlgItemMessage(hDlg, HSET_USER, WM_SETTEXT, 0, (LPARAM)"");
+				SetText(hDlg, HSET_USER, L"");
 				auto wStyle = GetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
 				SetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle | ES_PASSWORD);
-				SendDlgItemMessage(hDlg, HSET_PASS, WM_SETTEXT, 0, (LPARAM)"");
+				SetText(hDlg, HSET_PASS, L"");
 			}
 			break;
 		}
@@ -1487,15 +1467,15 @@ struct Advanced {
 	static constexpr WORD dialogId = hset_adv_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, HSET_PORT, EM_LIMITTEXT, 5, 0);
+		SendDlgItemMessageW(hDlg, HSET_PORT, EM_LIMITTEXT, 5, 0);
 		char Tmp[20];
 		sprintf(Tmp, "%d", TmpHost.Port);
-		SendDlgItemMessage(hDlg, HSET_PORT, WM_SETTEXT, 0, (LPARAM)Tmp);
-		SendDlgItemMessage(hDlg, HSET_ACCOUNT, EM_LIMITTEXT, ACCOUNT_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_ACCOUNT, WM_SETTEXT, 0, (LPARAM)TmpHost.Account);
-		SendDlgItemMessage(hDlg, HSET_PASV, BM_SETCHECK, TmpHost.Pasv, 0);
-		SendDlgItemMessage(hDlg, HSET_FIREWALL, BM_SETCHECK, TmpHost.FireWall, 0);
-		SendDlgItemMessage(hDlg, HSET_SYNCMOVE, BM_SETCHECK, TmpHost.SyncMove, 0);
+		SetText(hDlg, HSET_PORT, u8(Tmp));
+		SendDlgItemMessageW(hDlg, HSET_ACCOUNT, EM_LIMITTEXT, ACCOUNT_LEN, 0);
+		SetText(hDlg, HSET_ACCOUNT, u8(TmpHost.Account));
+		SendDlgItemMessageW(hDlg, HSET_PASV, BM_SETCHECK, TmpHost.Pasv, 0);
+		SendDlgItemMessageW(hDlg, HSET_FIREWALL, BM_SETCHECK, TmpHost.FireWall, 0);
+		SendDlgItemMessageW(hDlg, HSET_SYNCMOVE, BM_SETCHECK, TmpHost.SyncMove, 0);
 		for (int i = -12; i <= 12; i++) {
 			if (i == 0)
 				sprintf(Tmp, "GMT");
@@ -1503,33 +1483,28 @@ struct Advanced {
 				sprintf(Tmp, MSGJPN133, i);
 			else
 				sprintf(Tmp, "GMT%+02d:00", i);
-			SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_ADDSTRING, 0, (LPARAM)Tmp);
+			SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_ADDSTRING, 0, (LPARAM)u8(Tmp).c_str());
 		}
-		SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_SETCURSEL, (UINT_PTR)TmpHost.TimeZone + 12, 0);
+		SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_SETCURSEL, (UINT_PTR)TmpHost.TimeZone + 12, 0);
 
-		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN134);
-		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN135);
-		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN136);
-		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN137);
-		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)MSGJPN138);
-		SendDlgItemMessage(hDlg, HSET_SECURITY, CB_SETCURSEL, TmpHost.Security, 0);
-		SendDlgItemMessage(hDlg, HSET_INITCMD, EM_LIMITTEXT, INITCMD_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_INITCMD, WM_SETTEXT, 0, (LPARAM)TmpHost.InitCmd);
+		for (auto resourceId : { IDS_MSGJPN134, IDS_MSGJPN135, IDS_MSGJPN136, IDS_MSGJPN137, IDS_MSGJPN138 })
+			SendDlgItemMessageW(hDlg, HSET_SECURITY, CB_ADDSTRING, 0, (LPARAM)GetString(resourceId).c_str());
+		SendDlgItemMessageW(hDlg, HSET_SECURITY, CB_SETCURSEL, TmpHost.Security, 0);
+		SendDlgItemMessageW(hDlg, HSET_INITCMD, EM_LIMITTEXT, INITCMD_LEN, 0);
+		SetText(hDlg, HSET_INITCMD, u8(TmpHost.InitCmd));
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY: {
-			TmpHost.Pasv = (int)SendDlgItemMessage(hDlg, HSET_PASV, BM_GETCHECK, 0, 0);
-			TmpHost.FireWall = (int)SendDlgItemMessage(hDlg, HSET_FIREWALL, BM_GETCHECK, 0, 0);
-			TmpHost.SyncMove = (int)SendDlgItemMessage(hDlg, HSET_SYNCMOVE, BM_GETCHECK, 0, 0);
-			char Tmp[20];
-			SendDlgItemMessage(hDlg, HSET_PORT, WM_GETTEXT, 5 + 1, (LPARAM)Tmp);
-			TmpHost.Port = atoi(Tmp);
-			SendDlgItemMessage(hDlg, HSET_ACCOUNT, WM_GETTEXT, ACCOUNT_LEN + 1, (LPARAM)TmpHost.Account);
-			TmpHost.TimeZone = (int)SendDlgItemMessage(hDlg, HSET_TIMEZONE, CB_GETCURSEL, 0, 0) - 12;
-			TmpHost.Security = (int)SendDlgItemMessage(hDlg, HSET_SECURITY, CB_GETCURSEL, 0, 0);
-			SendDlgItemMessage(hDlg, HSET_INITCMD, WM_GETTEXT, INITCMD_LEN + 1, (LPARAM)TmpHost.InitCmd);
+			TmpHost.Pasv = (int)SendDlgItemMessageW(hDlg, HSET_PASV, BM_GETCHECK, 0, 0);
+			TmpHost.FireWall = (int)SendDlgItemMessageW(hDlg, HSET_FIREWALL, BM_GETCHECK, 0, 0);
+			TmpHost.SyncMove = (int)SendDlgItemMessageW(hDlg, HSET_SYNCMOVE, BM_GETCHECK, 0, 0);
+			TmpHost.Port = stoi(GetText(hDlg, HSET_PORT));
+			strncpy_s(TmpHost.Account, ACCOUNT_LEN + 1, u8(GetText(hDlg, HSET_ACCOUNT)).c_str(), _TRUNCATE);
+			TmpHost.TimeZone = (int)SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_GETCURSEL, 0, 0) - 12;
+			TmpHost.Security = (int)SendDlgItemMessageW(hDlg, HSET_SECURITY, CB_GETCURSEL, 0, 0);
+			strncpy_s(TmpHost.InitCmd, INITCMD_LEN + 1, u8(GetText(hDlg, HSET_INITCMD)).c_str(), _TRUNCATE);
 			return PSNRET_NOERROR;
 		}
 		case PSN_HELP:
@@ -1543,7 +1518,7 @@ struct Advanced {
 		case HSET_PORT_NOR: {
 			char Tmp[20];
 			sprintf(Tmp, "%d", PORT_NOR);
-			SendDlgItemMessage(hDlg, HSET_PORT, WM_SETTEXT, 0, (LPARAM)Tmp);
+			SetText(hDlg, HSET_PORT, u8(Tmp));
 			break;
 		}
 		}
@@ -1557,20 +1532,20 @@ struct KanjiCode {
 	using NameKanjiButton = RadioButton<HSET_FN_AUTO_CNV, HSET_FN_SJIS_CNV, HSET_FN_JIS_CNV, HSET_FN_EUC_CNV, HSET_FN_SMH_CNV, HSET_FN_SMC_CNV, HSET_FN_UTF8N_CNV, HSET_FN_UTF8HFSX_CNV>;
 	static INT_PTR OnInit(HWND hDlg) {
 		KanjiButton::Set(hDlg, TmpHost.KanjiCode);
-		SendDlgItemMessage(hDlg, HSET_HANCNV, BM_SETCHECK, TmpHost.KanaCnv, 0);
+		SendDlgItemMessageW(hDlg, HSET_HANCNV, BM_SETCHECK, TmpHost.KanaCnv, 0);
 		NameKanjiButton::Set(hDlg, TmpHost.NameKanjiCode);
 		if (!SupportIdn)
 			EnableWindow(GetDlgItem(hDlg, HSET_FN_UTF8HFSX_CNV), FALSE);
-		SendDlgItemMessage(hDlg, HSET_FN_HANCNV, BM_SETCHECK, TmpHost.NameKanaCnv, 0);
+		SendDlgItemMessageW(hDlg, HSET_FN_HANCNV, BM_SETCHECK, TmpHost.NameKanaCnv, 0);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
 			TmpHost.KanjiCode = KanjiButton::Get(hDlg);
-			TmpHost.KanaCnv = (int)SendDlgItemMessage(hDlg, HSET_HANCNV, BM_GETCHECK, 0, 0);
+			TmpHost.KanaCnv = (int)SendDlgItemMessageW(hDlg, HSET_HANCNV, BM_GETCHECK, 0, 0);
 			TmpHost.NameKanjiCode = NameKanjiButton::Get(hDlg);
-			TmpHost.NameKanaCnv = (int)SendDlgItemMessage(hDlg, HSET_FN_HANCNV, BM_GETCHECK, 0, 0);
+			TmpHost.NameKanaCnv = (int)SendDlgItemMessageW(hDlg, HSET_FN_HANCNV, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000030);
@@ -1610,9 +1585,9 @@ struct Dialup {
 	static constexpr WORD dialogId = hset_dialup_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, HSET_DIALUP, BM_SETCHECK, TmpHost.Dialup, 0);
-		SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_SETCHECK, TmpHost.DialupAlways, 0);
-		SendDlgItemMessage(hDlg, HSET_DIALNOTIFY, BM_SETCHECK, TmpHost.DialupNotify, 0);
+		SendDlgItemMessageW(hDlg, HSET_DIALUP, BM_SETCHECK, TmpHost.Dialup, 0);
+		SendDlgItemMessageW(hDlg, HSET_DIALUSETHIS, BM_SETCHECK, TmpHost.DialupAlways, 0);
+		SendDlgItemMessageW(hDlg, HSET_DIALNOTIFY, BM_SETCHECK, TmpHost.DialupNotify, 0);
 		if (NoRasControl != NO)
 			EnableWindow(GetDlgItem(hDlg, HSET_DIALUP), FALSE);
 		if (TmpHost.DialupAlways == NO || NoRasControl != NO)
@@ -1628,10 +1603,10 @@ struct Dialup {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			TmpHost.Dialup = (int)SendDlgItemMessage(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0);
-			TmpHost.DialupAlways = (int)SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0);
-			TmpHost.DialupNotify = (int)SendDlgItemMessage(hDlg, HSET_DIALNOTIFY, BM_GETCHECK, 0, 0);
-			SendDlgItemMessage(hDlg, HSET_DIALENTRY, WM_GETTEXT, RAS_NAME_LEN + 1, (LPARAM)TmpHost.DialEntry);
+			TmpHost.Dialup = (int)SendDlgItemMessageW(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0);
+			TmpHost.DialupAlways = (int)SendDlgItemMessageW(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0);
+			TmpHost.DialupNotify = (int)SendDlgItemMessageW(hDlg, HSET_DIALNOTIFY, BM_GETCHECK, 0, 0);
+			strncpy_s(TmpHost.DialEntry, RAS_NAME_LEN + 1, u8(GetText(hDlg, HSET_DIALENTRY)).c_str(), _TRUNCATE);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000031);
@@ -1642,7 +1617,7 @@ struct Dialup {
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
 		case HSET_DIALUP:
-			if (SendDlgItemMessage(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0) == 0) {
+			if (SendDlgItemMessageW(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0) == 0) {
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALENTRY), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALUSETHIS), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), FALSE);
@@ -1653,7 +1628,7 @@ struct Dialup {
 			}
 			[[fallthrough]];
 		case HSET_DIALUSETHIS:
-			if (SendDlgItemMessage(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0) == 0)
+			if (SendDlgItemMessageW(hDlg, HSET_DIALUSETHIS, BM_GETCHECK, 0, 0) == 0)
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), FALSE);
 			else
 				EnableWindow(GetDlgItem(hDlg, HSET_DIALNOTIFY), TRUE);
@@ -1666,30 +1641,24 @@ struct Special {
 	static constexpr WORD dialogId = hset_adv2_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, EM_LIMITTEXT, CHMOD_CMD_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_SETTEXT, 0, (LPARAM)TmpHost.ChmodCmd);
-		SendDlgItemMessage(hDlg, HSET_LS_FNAME, EM_LIMITTEXT, NLST_NAME_LEN, 0);
-		SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_SETTEXT, 0, (LPARAM)TmpHost.LsName);
-		SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_SETCHECK, TmpHost.ListCmdOnly, 0);
+		SendDlgItemMessageW(hDlg, HSET_CHMOD_CMD, EM_LIMITTEXT, CHMOD_CMD_LEN, 0);
+		SetText(hDlg, HSET_CHMOD_CMD, u8(TmpHost.ChmodCmd));
+		SendDlgItemMessageW(hDlg, HSET_LS_FNAME, EM_LIMITTEXT, NLST_NAME_LEN, 0);
+		SetText(hDlg, HSET_LS_FNAME, u8(TmpHost.LsName));
+		SendDlgItemMessageW(hDlg, HSET_LISTCMD, BM_SETCHECK, TmpHost.ListCmdOnly, 0);
 		if (TmpHost.ListCmdOnly == YES)
 			EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
 		else
 			EnableWindow(GetDlgItem(hDlg, HSET_MLSDCMD), FALSE);
-		SendDlgItemMessage(hDlg, HSET_MLSDCMD, BM_SETCHECK, TmpHost.UseMLSD, 0);
-		SendDlgItemMessage(hDlg, HSET_NLST_R, BM_SETCHECK, TmpHost.UseNLST_R, 0);
-		SendDlgItemMessage(hDlg, HSET_FULLPATH, BM_SETCHECK, TmpHost.NoFullPath, 0);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN139);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN140);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN141);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN142);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN143);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN144);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN289);
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN295);
+		SendDlgItemMessageW(hDlg, HSET_MLSDCMD, BM_SETCHECK, TmpHost.UseMLSD, 0);
+		SendDlgItemMessageW(hDlg, HSET_NLST_R, BM_SETCHECK, TmpHost.UseNLST_R, 0);
+		SendDlgItemMessageW(hDlg, HSET_FULLPATH, BM_SETCHECK, TmpHost.NoFullPath, 0);
+		for (auto resourceId : { IDS_MSGJPN139, IDS_MSGJPN140, IDS_MSGJPN141, IDS_MSGJPN142, IDS_MSGJPN143, IDS_MSGJPN144, IDS_MSGJPN289, IDS_MSGJPN295 })
+			SendDlgItemMessageW(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)GetString(resourceId).c_str());
 #if defined(HAVE_TANDEM)
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)MSGJPN2000);
+		SendDlgItemMessageW(hDlg, HSET_HOSTTYPE, CB_ADDSTRING, 0, (LPARAM)GetString(IDS_MSGJPN2000).c_str());
 #endif
-		SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_SETCURSEL, TmpHost.HostType, 0);
+		SendDlgItemMessageW(hDlg, HSET_HOSTTYPE, CB_SETCURSEL, TmpHost.HostType, 0);
 #if defined(HAVE_TANDEM)
 		if (TmpHost.HostType == 2 || TmpHost.HostType == HTYPE_TANDEM)  /* VAX or Tandem */
 #else
@@ -1705,13 +1674,13 @@ struct Special {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_GETTEXT, CHMOD_CMD_LEN + 1, (LPARAM)TmpHost.ChmodCmd);
-			SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_GETTEXT, NLST_NAME_LEN + 1, (LPARAM)TmpHost.LsName);
-			TmpHost.ListCmdOnly = (int)SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0);
-			TmpHost.UseMLSD = (int)SendDlgItemMessage(hDlg, HSET_MLSDCMD, BM_GETCHECK, 0, 0);
-			TmpHost.UseNLST_R = (int)SendDlgItemMessage(hDlg, HSET_NLST_R, BM_GETCHECK, 0, 0);
-			TmpHost.NoFullPath = (int)SendDlgItemMessage(hDlg, HSET_FULLPATH, BM_GETCHECK, 0, 0);
-			TmpHost.HostType = (int)SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0);
+			strncpy_s(TmpHost.ChmodCmd, CHMOD_CMD_LEN + 1, u8(GetText(hDlg, HSET_CHMOD_CMD)).c_str(), _TRUNCATE);
+			strncpy_s(TmpHost.LsName, NLST_NAME_LEN + 1, u8(GetText(hDlg, HSET_LS_FNAME)).c_str(), _TRUNCATE);
+			TmpHost.ListCmdOnly = (int)SendDlgItemMessageW(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0);
+			TmpHost.UseMLSD = (int)SendDlgItemMessageW(hDlg, HSET_MLSDCMD, BM_GETCHECK, 0, 0);
+			TmpHost.UseNLST_R = (int)SendDlgItemMessageW(hDlg, HSET_NLST_R, BM_GETCHECK, 0, 0);
+			TmpHost.NoFullPath = (int)SendDlgItemMessageW(hDlg, HSET_FULLPATH, BM_GETCHECK, 0, 0);
+			TmpHost.HostType = (int)SendDlgItemMessageW(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000032);
@@ -1722,13 +1691,13 @@ struct Special {
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
 		case HSET_CHMOD_NOR:
-			SendDlgItemMessage(hDlg, HSET_CHMOD_CMD, WM_SETTEXT, 0, (LPARAM)CHMOD_CMD_NOR);
+			SetText(hDlg, HSET_CHMOD_CMD, u8(CHMOD_CMD_NOR));
 			break;
 		case HSET_LS_FNAME_NOR:
-			SendDlgItemMessage(hDlg, HSET_LS_FNAME, WM_SETTEXT, 0, (LPARAM)LS_FNAME);
+			SetText(hDlg, HSET_LS_FNAME, u8(LS_FNAME));
 			break;
 		case HSET_LISTCMD:
-			if (SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0) == 0) {
+			if (SendDlgItemMessageW(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0) == 0) {
 				EnableWindow(GetDlgItem(hDlg, HSET_MLSDCMD), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), TRUE);
 			} else {
@@ -1737,7 +1706,7 @@ struct Special {
 			}
 			break;
 		case HSET_HOSTTYPE:
-			if (auto Num = (int)SendDlgItemMessage(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0); Num == 2) {
+			if (auto Num = (int)SendDlgItemMessageW(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0); Num == 2) {
 				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), FALSE);
@@ -1746,12 +1715,12 @@ struct Special {
 			else if (Num == HTYPE_TANDEM) /* Tandem */
 			{
 				/* Tandem を選択すると自動的に LIST にチェックをいれる */
-				SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_SETCHECK, 1, 0);
+				SendDlgItemMessageW(hDlg, HSET_LISTCMD, BM_SETCHECK, 1, 0);
 				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), FALSE);
 			} else {
-				if (SendDlgItemMessage(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0) == 0) {
+				if (SendDlgItemMessageW(hDlg, HSET_LISTCMD, BM_GETCHECK, 0, 0) == 0) {
 					EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), TRUE);
 					EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), TRUE);
 				} else {
@@ -1776,17 +1745,17 @@ struct Encryption {
 	static constexpr WORD dialogId = hset_crypt_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_SETCHECK, TmpHost.UseNoEncryption, 0);
-		SendDlgItemMessage(hDlg, HSET_FTPES, BM_SETCHECK, TmpHost.UseFTPES, 0);
-		SendDlgItemMessage(hDlg, HSET_FTPIS, BM_SETCHECK, TmpHost.UseFTPIS, 0);
+		SendDlgItemMessageW(hDlg, HSET_NO_ENCRYPTION, BM_SETCHECK, TmpHost.UseNoEncryption, 0);
+		SendDlgItemMessageW(hDlg, HSET_FTPES, BM_SETCHECK, TmpHost.UseFTPES, 0);
+		SendDlgItemMessageW(hDlg, HSET_FTPIS, BM_SETCHECK, TmpHost.UseFTPIS, 0);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			TmpHost.UseNoEncryption = (int)SendDlgItemMessage(hDlg, HSET_NO_ENCRYPTION, BM_GETCHECK, 0, 0);
-			TmpHost.UseFTPES = (int)SendDlgItemMessage(hDlg, HSET_FTPES, BM_GETCHECK, 0, 0);
-			TmpHost.UseFTPIS = (int)SendDlgItemMessage(hDlg, HSET_FTPIS, BM_GETCHECK, 0, 0);
+			TmpHost.UseNoEncryption = (int)SendDlgItemMessageW(hDlg, HSET_NO_ENCRYPTION, BM_GETCHECK, 0, 0);
+			TmpHost.UseFTPES = (int)SendDlgItemMessageW(hDlg, HSET_FTPES, BM_GETCHECK, 0, 0);
+			TmpHost.UseFTPIS = (int)SendDlgItemMessageW(hDlg, HSET_FTPIS, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000065);
@@ -1800,29 +1769,27 @@ struct Feature {
 	static constexpr WORD dialogId = hset_adv3_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessage(hDlg, HSET_THREAD_COUNT, EM_LIMITTEXT, (WPARAM)1, 0);
+		SendDlgItemMessageW(hDlg, HSET_THREAD_COUNT, EM_LIMITTEXT, (WPARAM)1, 0);
 		SetDecimalText(hDlg, HSET_THREAD_COUNT, TmpHost.MaxThreadCount);
-		SendDlgItemMessage(hDlg, HSET_THREAD_COUNT_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(MAX_DATA_CONNECTION, 1));
-		SendDlgItemMessage(hDlg, HSET_REUSE_SOCKET, BM_SETCHECK, TmpHost.ReuseCmdSkt, 0);
-		SendDlgItemMessage(hDlg, HSET_NOOP_INTERVAL, EM_LIMITTEXT, (WPARAM)3, 0);
+		SendDlgItemMessageW(hDlg, HSET_THREAD_COUNT_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(MAX_DATA_CONNECTION, 1));
+		SendDlgItemMessageW(hDlg, HSET_REUSE_SOCKET, BM_SETCHECK, TmpHost.ReuseCmdSkt, 0);
+		SendDlgItemMessageW(hDlg, HSET_NOOP_INTERVAL, EM_LIMITTEXT, (WPARAM)3, 0);
 		SetDecimalText(hDlg, HSET_NOOP_INTERVAL, TmpHost.NoopInterval);
-		SendDlgItemMessage(hDlg, HSET_NOOP_INTERVAL_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(300, 0));
-		SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN335);
-		SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN336);
-		SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN337);
-		SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)MSGJPN338);
+		SendDlgItemMessageW(hDlg, HSET_NOOP_INTERVAL_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(300, 0));
+		for (auto resourceId : { IDS_MSGJPN335, IDS_MSGJPN336, IDS_MSGJPN337, IDS_MSGJPN338 })
+			SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)GetString(resourceId).c_str());
 		if (TmpHost.TransferErrorNotify == YES)
-			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
+			SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
 		else if (TmpHost.TransferErrorMode == EXIST_OVW)
-			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 1, 0);
+			SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 1, 0);
 		else if (TmpHost.TransferErrorMode == EXIST_RESUME)
-			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 2, 0);
+			SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 2, 0);
 		else if (TmpHost.TransferErrorMode == EXIST_IGNORE)
-			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 3, 0);
+			SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 3, 0);
 		else
-			SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
-		SendDlgItemMessage(hDlg, HSET_ERROR_RECONNECT, BM_SETCHECK, TmpHost.TransferErrorReconnect, 0);
-		SendDlgItemMessage(hDlg, HSET_NO_PASV_ADRS, BM_SETCHECK, TmpHost.NoPasvAdrs, 0);
+			SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_SETCURSEL, 0, 0);
+		SendDlgItemMessageW(hDlg, HSET_ERROR_RECONNECT, BM_SETCHECK, TmpHost.TransferErrorReconnect, 0);
+		SendDlgItemMessageW(hDlg, HSET_NO_PASV_ADRS, BM_SETCHECK, TmpHost.NoPasvAdrs, 0);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -1830,10 +1797,10 @@ struct Feature {
 		case PSN_APPLY:
 			TmpHost.MaxThreadCount = GetDecimalText(hDlg, HSET_THREAD_COUNT);
 			CheckRange2(&TmpHost.MaxThreadCount, MAX_DATA_CONNECTION, 1);
-			TmpHost.ReuseCmdSkt = (int)SendDlgItemMessage(hDlg, HSET_REUSE_SOCKET, BM_GETCHECK, 0, 0);
+			TmpHost.ReuseCmdSkt = (int)SendDlgItemMessageW(hDlg, HSET_REUSE_SOCKET, BM_GETCHECK, 0, 0);
 			TmpHost.NoopInterval = GetDecimalText(hDlg, HSET_NOOP_INTERVAL);
 			CheckRange2(&TmpHost.NoopInterval, 300, 0);
-			switch (SendDlgItemMessage(hDlg, HSET_ERROR_MODE, CB_GETCURSEL, 0, 0)) {
+			switch (SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_GETCURSEL, 0, 0)) {
 			case 0:
 				TmpHost.TransferErrorMode = EXIST_OVW;
 				TmpHost.TransferErrorNotify = YES;
@@ -1851,8 +1818,8 @@ struct Feature {
 				TmpHost.TransferErrorNotify = NO;
 				break;
 			}
-			TmpHost.TransferErrorReconnect = (int)SendDlgItemMessage(hDlg, HSET_ERROR_RECONNECT, BM_GETCHECK, 0, 0);
-			TmpHost.NoPasvAdrs = (int)SendDlgItemMessage(hDlg, HSET_NO_PASV_ADRS, BM_GETCHECK, 0, 0);
+			TmpHost.TransferErrorReconnect = (int)SendDlgItemMessageW(hDlg, HSET_ERROR_RECONNECT, BM_GETCHECK, 0, 0);
+			TmpHost.NoPasvAdrs = (int)SendDlgItemMessageW(hDlg, HSET_NO_PASV_ADRS, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000066);

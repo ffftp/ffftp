@@ -135,11 +135,6 @@ static fs::path remoteFileDir;
 int MakeListWin()
 {
 	int Sts;
-	LV_COLUMN LvCol;
-	long Tmp;
-
-	// 変数が未初期化のバグ修正
-	memset(&LvCol, 0, sizeof(LV_COLUMN));
 
 	/*===== ローカル側のリストビュー =====*/
 
@@ -149,41 +144,27 @@ int MakeListWin()
 	{
 		LocalProcPtr = (WNDPROC)SetWindowLongPtrW(hWndListLocal, GWLP_WNDPROC, (LONG_PTR)LocalWndProc);
 
-		Tmp = (long)SendMessage(hWndListLocal, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
-		Tmp |= LVS_EX_FULLROWSELECT;
-		SendMessage(hWndListLocal, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
+		SendMessageW(hWndListLocal, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 
 		if(ListFont != NULL)
-			SendMessage(hWndListLocal, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
+			SendMessageW(hWndListLocal, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
 
 		ListImg = ImageList_LoadImageW(GetFtpInst(), MAKEINTRESOURCEW(dirattr_bmp), 16, 9, RGB(255,0,0), IMAGE_BITMAP, 0);
-		SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
+		SendMessageW(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
 		ShowWindow(hWndListLocal, SW_SHOW);
 
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = LocalTabWidth[0];
-		LvCol.pszText = MSGJPN038;
-		LvCol.iSubItem = 0;
-		SendMessage(hWndListLocal, LVM_INSERTCOLUMN, 0, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = LocalTabWidth[1];
-		LvCol.pszText = MSGJPN039;
-		LvCol.iSubItem = 1;
-		SendMessage(hWndListLocal, LVM_INSERTCOLUMN, 1, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM | LVCF_FMT;
-		LvCol.fmt = LVCFMT_RIGHT;
-		LvCol.cx = LocalTabWidth[2];
-		LvCol.pszText = MSGJPN040;
-		LvCol.iSubItem = 2;
-		SendMessage(hWndListLocal, LVM_INSERTCOLUMN, 2, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = LocalTabWidth[3];
-		LvCol.pszText = MSGJPN041;
-		LvCol.iSubItem = 3;
-		SendMessage(hWndListLocal, LVM_INSERTCOLUMN, 3, (LPARAM)&LvCol);
+		constexpr std::tuple<int, int> columns[] = {
+			{ LVCFMT_LEFT, IDS_MSGJPN038 },
+			{ LVCFMT_LEFT, IDS_MSGJPN039 },
+			{ LVCFMT_RIGHT, IDS_MSGJPN040 },
+			{ LVCFMT_LEFT, IDS_MSGJPN041 },
+		};
+		int i = 0;
+		for (auto [fmt, resourceId] : columns) {
+			auto text = GetString(resourceId);
+			LVCOLUMNW column{ LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM, fmt, LocalTabWidth[i], data(text), 0, i };
+			SendMessageW(hWndListLocal, LVM_INSERTCOLUMNW, i++, (LPARAM)&column);
+		}
 	}
 
 	/*===== ホスト側のリストビュー =====*/
@@ -194,52 +175,28 @@ int MakeListWin()
 	{
 		RemoteProcPtr = (WNDPROC)SetWindowLongPtrW(hWndListRemote, GWLP_WNDPROC, (LONG_PTR)RemoteWndProc);
 
-		Tmp = (long)SendMessage(hWndListRemote, LVM_GETEXTENDEDLISTVIEWSTYLE, 0, 0);
-		Tmp |= LVS_EX_FULLROWSELECT;
-		SendMessage(hWndListRemote, LVM_SETEXTENDEDLISTVIEWSTYLE, 0, (LPARAM)Tmp);
+		SendMessageW(hWndListRemote, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 
 		if(ListFont != NULL)
-			SendMessage(hWndListRemote, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
+			SendMessageW(hWndListRemote, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
 
-		SendMessage(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
+		SendMessageW(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
 		ShowWindow(hWndListRemote, SW_SHOW);
 
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = RemoteTabWidth[0];
-		LvCol.pszText = MSGJPN042;
-		LvCol.iSubItem = 0;
-		SendMessage(hWndListRemote, LVM_INSERTCOLUMN, 0, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = RemoteTabWidth[1];
-		LvCol.pszText = MSGJPN043;
-		LvCol.iSubItem = 1;
-		SendMessage(hWndListRemote, LVM_INSERTCOLUMN, 1, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM | LVCF_FMT;
-		LvCol.fmt = LVCFMT_RIGHT;
-		LvCol.cx = RemoteTabWidth[2];
-		LvCol.pszText = MSGJPN044;
-		LvCol.iSubItem = 2;
-		SendMessage(hWndListRemote, LVM_INSERTCOLUMN, 2, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = RemoteTabWidth[3];
-		LvCol.pszText = MSGJPN045;
-		LvCol.iSubItem = 3;
-		SendMessage(hWndListRemote, LVM_INSERTCOLUMN, 3, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = RemoteTabWidth[4];
-		LvCol.pszText = MSGJPN046;
-		LvCol.iSubItem = 4;
-		SendMessage(hWndListRemote, LVM_INSERTCOLUMN, 4, (LPARAM)&LvCol);
-
-		LvCol.mask = LVCF_TEXT | LVCF_WIDTH | LVCF_SUBITEM;
-		LvCol.cx = RemoteTabWidth[5];
-		LvCol.pszText = MSGJPN047;
-		LvCol.iSubItem = 5;
-		SendMessage(hWndListRemote, LVM_INSERTCOLUMN, 5, (LPARAM)&LvCol);
+		constexpr std::tuple<int, int> columns[] = {
+			{ LVCFMT_LEFT, IDS_MSGJPN042 },
+			{ LVCFMT_LEFT, IDS_MSGJPN043 },
+			{ LVCFMT_RIGHT, IDS_MSGJPN044 },
+			{ LVCFMT_LEFT, IDS_MSGJPN045 },
+			{ LVCFMT_LEFT, IDS_MSGJPN046 },
+			{ LVCFMT_LEFT, IDS_MSGJPN047 },
+		};
+		int i = 0;
+		for (auto [fmt, resourceId] : columns) {
+			auto text = GetString(resourceId);
+			LVCOLUMNW column{ LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM, fmt, RemoteTabWidth[i], data(text), 0, i };
+			SendMessageW(hWndListRemote, LVM_INSERTCOLUMNW, i++, (LPARAM)&column);
+		}
 	}
 
 	Sts = FFFTP_SUCCESS;
@@ -804,7 +761,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 				if((Dragging == NO) && 
 				   (hWnd == hWndDragStart) &&
 				   (AskConnecting() == YES) &&
-				   (SendMessage(hWnd, LVM_GETSELECTEDCOUNT, 0, 0) > 0) &&
+				   (SendMessageW(hWnd, LVM_GETSELECTEDCOUNT, 0, 0) > 0) &&
 				   ((abs((short)LOWORD(lParam) - DragPoint.x) > 5) ||
 					(abs((short)HIWORD(lParam) - DragPoint.y) > 5)))
 				{
@@ -885,29 +842,14 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 *	Return Value
 *		なし
 *----------------------------------------------------------------------------*/
-
-void GetListTabWidth(void)
-{
-	LV_COLUMN LvCol;
+void GetListTabWidth(void) {
 	int i;
-
-	// 変数が未初期化のバグ修正
-	memset(&LvCol, 0, sizeof(LV_COLUMN));
-
-	for(i = 0; i <= 3; i++)
-	{
-		LvCol.mask = LVCF_WIDTH;
-		if(SendMessage(hWndListLocal, LVM_GETCOLUMN, i, (LPARAM)&LvCol) == TRUE)
-			LocalTabWidth[i] = LvCol.cx;
-	}
-
-	for(i = 0; i <= 5; i++)
-	{
-		LvCol.mask = LVCF_WIDTH;
-		if(SendMessage(hWndListRemote, LVM_GETCOLUMN, i, (LPARAM)&LvCol) == TRUE)
-			RemoteTabWidth[i] = LvCol.cx;
-	}
-	return;
+	i = 0;
+	for (auto& width : LocalTabWidth)
+		width = (int)SendMessageW(hWndListLocal, LVM_GETCOLUMNWIDTH, i++, 0);
+	i = 0;
+	for (auto& width : RemoteTabWidth)
+		width = (int)SendMessageW(hWndListRemote, LVM_GETCOLUMNWIDTH, i++, 0);
 }
 
 
@@ -972,7 +914,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 				ListView_SetItemState(GetRemoteHwnd(), 0, LVIS_FOCUSED, LVIS_FOCUSED);
 			} else {
 				SetTaskMsg(MSGJPN048);
-				SendMessage(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
+				SendMessageW(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
 			}
 		} else {
 #if defined(HAVE_OPENVMS)
@@ -981,7 +923,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 			if (AskHostType() != HTYPE_VMS)
 #endif
 				SetTaskMsg(MSGJPN049);
-			SendMessage(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
+			SendMessageW(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
 		}
 		EnableUserOpe();
 	}
@@ -995,9 +937,9 @@ void RefreshIconImageList(std::vector<FILELIST>& files)
 	
 	if(DispFileIcon == YES)
 	{
-		SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)NULL);
+		SendMessageW(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)NULL);
 		ShowWindow(hWndListLocal, SW_SHOW);
-		SendMessage(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)NULL);
+		SendMessageW(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)NULL);
 		ShowWindow(hWndListRemote, SW_SHOW);
 		ImageList_Destroy(ListImgFileIcon);
 		ListImgFileIcon = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR32, 0, 1);
@@ -1016,16 +958,16 @@ void RefreshIconImageList(std::vector<FILELIST>& files)
 				DestroyIcon(fi.hIcon);
 			}
 		}
-		SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImgFileIcon);
+		SendMessageW(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImgFileIcon);
 		ShowWindow(hWndListLocal, SW_SHOW);
-		SendMessage(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImgFileIcon);
+		SendMessageW(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImgFileIcon);
 		ShowWindow(hWndListRemote, SW_SHOW);
 	}
 	else
 	{
-		SendMessage(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
+		SendMessageW(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
 		ShowWindow(hWndListLocal, SW_SHOW);
-		SendMessage(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
+		SendMessageW(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
 		ShowWindow(hWndListRemote, SW_SHOW);
 	}
 }
@@ -1094,13 +1036,13 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 		return false;
 	});
 
-	SendMessage(hWnd, WM_SETREDRAW, (WPARAM)FALSE, 0);
-	SendMessage(hWnd, LVM_DELETEALLITEMS, 0, 0);
+	SendMessageW(hWnd, WM_SETREDRAW, false, 0);
+	SendMessageW(hWnd, LVM_DELETEALLITEMS, 0, 0);
 
 	for (auto& file : files)
 		AddListView(hWnd, -1, file.File, file.Node, file.Size, &file.Time, file.Attr, file.Owner, file.Link, file.InfoExist, file.ImageId);
 
-	SendMessage(hWnd, WM_SETREDRAW, (WPARAM)TRUE, 0);
+	SendMessageW(hWnd, WM_SETREDRAW, true, 0);
 	UpdateWindow(hWnd);
 
 	DispSelectedSpace();
@@ -1124,99 +1066,68 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 *	Return Value
 *		なし
 *----------------------------------------------------------------------------*/
-
-// ファイルアイコン表示対応
-//static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist)
-static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist, int ImageId)
-{
-	LV_ITEM LvItem;
+static void AddListView(HWND hWnd, int Pos, char* Name, int Type, LONGLONG Size, FILETIME* Time, int Attr, char* Owner, int Link, int InfoExist, int ImageId) {
+	LVITEMW item;
 	char Tmp[20];
 
-	if(Pos == -1)
-		Pos = (int)SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0);
-
-	// 変数が未初期化のバグ修正
-	memset(&LvItem, 0, sizeof(LV_ITEM));
 	/* アイコン/ファイル名 */
-	LvItem.mask = LVIF_TEXT | LVIF_IMAGE;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 0;
-	LvItem.pszText = Name;
-	if((Type == NODE_FILE) && (AskTransferTypeAssoc(Name, TYPE_X) == TYPE_I))
+	if (Pos == -1)
+		Pos = std::numeric_limits<int>::max();
+	auto wName = u8(Name);
+	if (Type == NODE_FILE && AskTransferTypeAssoc(Name, TYPE_X) == TYPE_I)
 		Type = 3;
-	if(Link == NO)
-		LvItem.iImage = Type;
-	else
-		LvItem.iImage = 4;
-	// ファイルアイコン表示対応
-	if(DispFileIcon == YES && hWnd == GetLocalHwnd())
-		LvItem.iImage = ImageId + 5;
-	LvItem.iItem = (int)SendMessage(hWnd, LVM_INSERTITEM, 0, (LPARAM)&LvItem);
+	item = { .mask = LVIF_TEXT | LVIF_IMAGE, .iItem = Pos, .pszText = data(wName), .iImage = DispFileIcon == YES && hWnd == GetLocalHwnd() ? ImageId + 5 : Link == NO ? Type : 4 };
+	Pos = (int)SendMessageW(hWnd, LVM_INSERTITEMW, 0, (LPARAM)&item);
 
 	/* 日付/時刻 */
-	// タイムスタンプのバグ修正
-//	FileTime2TimeString(Time, Tmp, DISPFORM_LEGACY, InfoExist);
 	FileTime2TimeString(Time, Tmp, DISPFORM_LEGACY, InfoExist, DispTimeSeconds);
-	LvItem.mask = LVIF_TEXT;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 1;
-	LvItem.pszText = Tmp;
-	LvItem.iItem = (int)SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
+	auto wTime = u8(Tmp);
+	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 1, .pszText = data(wTime) };
+	SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 	/* サイズ */
-	if(Type == NODE_DIR)
+	if (Type == NODE_DIR)
 		strcpy(Tmp, "<DIR>");
-	else if(Type == NODE_DRIVE)
+	else if (Type == NODE_DRIVE)
 		strcpy(Tmp, "<DRIVE>");
-	else if(Size >= 0)
+	else if (Size >= 0)
 		strcpy(Tmp, MakeNumString(Size).c_str());
 	else
 		strcpy(Tmp, "");
-	LvItem.mask = LVIF_TEXT;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 2;
-	LvItem.pszText = Tmp;
-	LvItem.iItem = (int)SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
+	auto wSize = u8(Tmp);
+	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 2, .pszText = data(wSize) };
+	SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 	/* 拡張子 */
-	LvItem.mask = LVIF_TEXT;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 3;
 #if defined(HAVE_TANDEM)
-	if (AskHostType() == HTYPE_TANDEM) {
+	if (AskHostType() == HTYPE_TANDEM)
 		_itoa_s(Attr, Tmp, sizeof(Tmp), 10);
-		LvItem.pszText = Tmp;
-	} else
+	else
 #endif
-	LvItem.pszText = GetFileExt(Name);
-	LvItem.iItem = (int)SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
+		strncpy_s(Tmp, GetFileExt(Name), _TRUNCATE);
+	auto wExt = u8(Tmp);
+	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 3, .pszText = data(wExt) };
+	SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
-	if(hWnd == GetRemoteHwnd())
-	{
+	if (hWnd == GetRemoteHwnd()) {
 		/* 属性 */
-		strcpy(Tmp, "");
 #if defined(HAVE_TANDEM)
-		if((InfoExist & FINFO_ATTR) && (AskHostType() != HTYPE_TANDEM))
+		if ((InfoExist & FINFO_ATTR) && (AskHostType() != HTYPE_TANDEM))
 #else
-		if(InfoExist & FINFO_ATTR)
+		if (InfoExist & FINFO_ATTR)
 #endif
-			// ファイルの属性を数字で表示
-//			AttrValue2String(Attr, Tmp);
 			AttrValue2String(Attr, Tmp, DispPermissionsNumber);
-		LvItem.mask = LVIF_TEXT;
-		LvItem.iItem = Pos;
-		LvItem.iSubItem = 4;
-		LvItem.pszText = Tmp;
-		LvItem.iItem = (int)SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
+		else
+			strcpy(Tmp, "");
+		auto wAttr = u8(Tmp);
+		item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 4, .pszText = data(wAttr) };
+		SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 		/* オーナ名 */
-		LvItem.mask = LVIF_TEXT;
-		LvItem.iItem = Pos;
-		LvItem.iSubItem = 5;
-		LvItem.pszText = Owner;
-		LvItem.iItem = (int)SendMessage(hWnd, LVM_SETITEM, 0, (LPARAM)&LvItem);
+		auto wOwner = u8(Owner);
+		item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 5, .pszText = data(wOwner) };
+		SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 	}
-	return;
 }
 
 
@@ -1258,7 +1169,7 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 		using result_t = bool;
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, SEL_FNAME, EM_LIMITTEXT, 40, 0);
-			SendDlgItemMessageW(hDlg, SEL_FNAME, WM_SETTEXT, 0, (LPARAM)u8(FindStr).c_str());
+			SetText(hDlg, SEL_FNAME, u8(FindStr));
 			SendDlgItemMessageW(hDlg, SEL_REGEXP, BM_SETCHECK, FindMode, 0);
 			SendDlgItemMessageW(hDlg, SEL_NOOLD, BM_SETCHECK, IgnoreOld ? BST_CHECKED : BST_UNCHECKED, 0);
 			SendDlgItemMessageW(hDlg, SEL_NONEW, BM_SETCHECK, IgnoreNew ? BST_CHECKED : BST_UNCHECKED, 0);
@@ -1412,19 +1323,9 @@ void FindFileInList(HWND hWnd, int Type) {
 *		int アイテム番号
 *----------------------------------------------------------------------------*/
 
-int GetCurrentItem(int Win)
-{
-	HWND hWnd;
-	int Ret;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	if((Ret = (int)SendMessage(hWnd, LVM_GETNEXTITEM, -1, MAKELPARAM(LVNI_ALL | LVNI_FOCUSED, 0))) == -1)
-		Ret = 0;
-
-	return(Ret);
+int GetCurrentItem(int Win) {
+	auto Ret = (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, -1, LVNI_ALL | LVNI_FOCUSED);
+	return Ret == -1 ? 0 : Ret;
 }
 
 
@@ -1445,7 +1346,7 @@ int GetItemCount(int Win)
 	if(Win == WIN_REMOTE)
 		hWnd = GetRemoteHwnd();
 
-	return (int)(SendMessage(hWnd, LVM_GETITEMCOUNT, 0, 0));
+	return (int)(SendMessageW(hWnd, LVM_GETITEMCOUNT, 0, 0));
 }
 
 
@@ -1466,7 +1367,7 @@ int GetSelectedCount(int Win)
 	if(Win == WIN_REMOTE)
 		hWnd = GetRemoteHwnd();
 
-	return (int)(SendMessage(hWnd, LVM_GETSELECTEDCOUNT, 0, 0));
+	return (int)(SendMessageW(hWnd, LVM_GETSELECTEDCOUNT, 0, 0));
 }
 
 
@@ -1481,20 +1382,8 @@ int GetSelectedCount(int Win)
 *			-1 = 選択されていない
 *----------------------------------------------------------------------------*/
 
-int GetFirstSelected(int Win, int All)
-{
-	HWND hWnd;
-	int Ope;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	Ope = LVNI_SELECTED;
-	if(All == YES)
-		Ope = LVNI_ALL;
-
-	return (int)(SendMessage(hWnd, LVM_GETNEXTITEM, (WPARAM)-1, (LPARAM)MAKELPARAM(Ope, 0)));
+int GetFirstSelected(int Win, int All) {
+	return GetNextSelected(Win, -1, All);
 }
 
 
@@ -1510,37 +1399,16 @@ int GetFirstSelected(int Win, int All)
 *			-1 = 選択されていない
 *----------------------------------------------------------------------------*/
 
-int GetNextSelected(int Win, int Pos, int All)
-{
-	HWND hWnd;
-	int Ope;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	Ope = LVNI_SELECTED;
-	if(All == YES)
-		Ope = LVNI_ALL;
-
-	return (int)(SendMessage(hWnd, LVM_GETNEXTITEM, (WPARAM)Pos, (LPARAM)MAKELPARAM(Ope, 0)));
+int GetNextSelected(int Win, int Pos, int All) {
+	return (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, Pos, All == YES ? LVNI_ALL : LVNI_SELECTED);
 }
 
 
 // ローカル側自動更新
-int GetHotSelected(int Win, char *Fname)
-{
-	HWND hWnd;
-	int Pos;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	Pos = (int)SendMessage(hWnd, LVM_GETNEXTITEM, (WPARAM)-1, (LPARAM)MAKELPARAM(LVNI_FOCUSED, 0));
-	if(Pos != -1)
+int GetHotSelected(int Win, char* Fname) {
+	auto Pos = (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, -1, LVNI_FOCUSED);
+	if (Pos != -1)
 		GetNodeName(Win, Pos, Fname, FMAX_PATH);
-
 	return Pos;
 }
 
@@ -1550,7 +1418,6 @@ int SetHotSelected(int Win, char *Fname)
 	int i;
 	int Num;
 	char Name[FMAX_PATH+1];
-	LV_ITEM LvItem;
 	int Pos;
 
 	hWnd = GetLocalHwnd();
@@ -1558,22 +1425,16 @@ int SetHotSelected(int Win, char *Fname)
 		hWnd = GetRemoteHwnd();
 
 	Num = GetItemCount(Win);
-	memset(&LvItem, 0, sizeof(LV_ITEM));
 	Pos = -1;
 	for(i = 0; i < Num; i++)
 	{
-		LvItem.state = 0;
 		GetNodeName(Win, i, Name, FMAX_PATH);
-		if(_mbscmp((const unsigned char*)Fname, (const unsigned char*)Name) == 0)
-		{
+		LVITEMW item{ .stateMask = LVIS_FOCUSED };
+		if (_mbscmp((const unsigned char*)Fname, (const unsigned char*)Name) == 0) {
 			Pos = i;
-			LvItem.state = LVIS_FOCUSED;
+			item.state = LVIS_FOCUSED;
 		}
-		LvItem.mask = LVIF_STATE;
-		LvItem.iItem = i;
-		LvItem.stateMask = LVIS_FOCUSED;
-		LvItem.iSubItem = 0;
-		SendMessage(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&LvItem);
+		SendMessageW(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&item);
 	}
 
 	return Pos;
@@ -1590,22 +1451,19 @@ int SetHotSelected(int Win, char *Fname)
 *			-1=見つからなかった
 *----------------------------------------------------------------------------*/
 
-int FindNameNode(int Win, char *Name)
-{
-	LV_FINDINFO FindInfo;
-	HWND hWnd;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	// 変数が未初期化のバグ修正
-	memset(&FindInfo, 0, sizeof(LV_FINDINFO));
-	FindInfo.flags = LVFI_STRING;
-	FindInfo.psz = Name;
-	return (int)(SendMessage(hWnd, LVM_FINDITEM, -1, (LPARAM)&FindInfo));
+int FindNameNode(int Win, char* Name) {
+	auto wName = u8(Name);
+	LVFINDINFOW fi{ LVFI_STRING, wName.c_str() };
+	return (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_FINDITEMW, -1, (LPARAM)&fi);
 }
 
+
+static std::wstring GetItemText(int Win, int index, int subitem) {
+	wchar_t buffer[260 + 1];
+	LVITEMW item{ .iSubItem = subitem, .pszText = buffer, .cchTextMax = size_as<int>(buffer) };
+	SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETITEMTEXTW, index, (LPARAM)&item);
+	return buffer;
+}
 
 /*----- 指定位置のアイテムの名前を返す ----------------------------------------
 *
@@ -1619,24 +1477,9 @@ int FindNameNode(int Win, char *Name)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void GetNodeName(int Win, int Pos, char *Buf, int Max)
-{
-	HWND hWnd;
-	LV_ITEM LvItem;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	// 変数が未初期化のバグ修正
-	memset(&LvItem, 0, sizeof(LV_ITEM));
-	LvItem.mask = LVIF_TEXT;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 0;
-	LvItem.pszText = Buf;
-	LvItem.cchTextMax = Max;
-	SendMessage(hWnd, LVM_GETITEM, 0, (LPARAM)&LvItem);
-	return;
+void GetNodeName(int Win, int Pos, char* Buf, int Max) {
+	auto name = GetItemText(Win, Pos, 0);
+	strncpy_s(Buf, Max, u8(name).c_str(), _TRUNCATE);
 }
 
 
@@ -1652,27 +1495,9 @@ void GetNodeName(int Win, int Pos, char *Buf, int Max)
 *			YES/NO=日付情報がなかった
 *----------------------------------------------------------------------------*/
 
-int GetNodeTime(int Win, int Pos, FILETIME *Buf)
-{
-	HWND hWnd;
-	LV_ITEM LvItem;
-	char Tmp[20];
-	int Ret;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	// 変数が未初期化のバグ修正
-	memset(&LvItem, 0, sizeof(LV_ITEM));
-	LvItem.mask = LVIF_TEXT;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 1;
-	LvItem.pszText = Tmp;
-	LvItem.cchTextMax = 20;
-	SendMessage(hWnd, LVM_GETITEM, 0, (LPARAM)&LvItem);
-	Ret = TimeString2FileTime(Tmp, Buf);
-	return(Ret);
+int GetNodeTime(int Win, int Pos, FILETIME* Buf) {
+	auto time = GetItemText(Win, Pos, 1);
+	return TimeString2FileTime(u8(time).c_str(), Buf);
 }
 
 
@@ -1688,41 +1513,15 @@ int GetNodeTime(int Win, int Pos, FILETIME *Buf)
 *			YES/NO=サイズ情報がなかった
 *----------------------------------------------------------------------------*/
 
-int GetNodeSize(int Win, int Pos, LONGLONG *Buf)
-{
-	HWND hWnd;
-	LV_ITEM LvItem;
-	char Tmp[40];
-	int Ret;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	// 変数が未初期化のバグ修正
-	memset(&LvItem, 0, sizeof(LV_ITEM));
-	LvItem.mask = LVIF_TEXT;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 2;
-	LvItem.pszText = Tmp;
-	LvItem.cchTextMax = 20;
-	SendMessage(hWnd, LVM_GETITEM, 0, (LPARAM)&LvItem);
-	*Buf = -1;
-	Ret = NO;
-#if defined(HAVE_TANDEM)
-	if(AskHostType() == HTYPE_TANDEM) {
-		RemoveComma(Tmp);
-		*Buf = _atoi64(Tmp);
-		Ret = YES;
-	} else
-#endif
-	if(strlen(Tmp) > 0)
-	{
-		RemoveComma(Tmp);
-		*Buf = _atoi64(Tmp);
-		Ret = YES;
+int GetNodeSize(int Win, int Pos, LONGLONG* Buf) {
+	if (auto size = GetItemText(Win, Pos, 2); !empty(size)) {
+		size.erase(std::remove(begin(size), end(size), L','), end(size));
+		*Buf = stoll(size);
+		return YES;
+	} else {
+		*Buf = -1;
+		return NO;
 	}
-	return(Ret);
 }
 
 
@@ -1738,41 +1537,24 @@ int GetNodeSize(int Win, int Pos, LONGLONG *Buf)
 *			YES/NO=サイズ情報がなかった
 *----------------------------------------------------------------------------*/
 
-int GetNodeAttr(int Win, int Pos, int *Buf)
-{
-	LV_ITEM LvItem;
-	char Tmp[20];
-	int Ret;
-
-	*Buf = 0;
-	Ret = NO;
-	if(Win == WIN_REMOTE)
-	{
-		// 変数が未初期化のバグ修正
-		memset(&LvItem, 0, sizeof(LV_ITEM));
-		LvItem.mask = LVIF_TEXT;
-		LvItem.iItem = Pos;
+int GetNodeAttr(int Win, int Pos, int* Buf) {
+	if (Win == WIN_REMOTE) {
+		auto subitem =
 #if defined(HAVE_TANDEM)
-		if(AskHostType() == HTYPE_TANDEM)
-			LvItem.iSubItem = 3;
-		else
+			AskHostType() == HTYPE_TANDEM ? 3 :
 #endif
-		LvItem.iSubItem = 4;
-		LvItem.pszText = Tmp;
-		LvItem.cchTextMax = 20;
-		SendMessage(GetRemoteHwnd(), LVM_GETITEM, 0, (LPARAM)&LvItem);
-		if(strlen(Tmp) > 0)
-		{
+			4;
+		if (auto attr = GetItemText(WIN_REMOTE, Pos, subitem); !empty(attr)) {
+			*Buf =
 #if defined(HAVE_TANDEM)
-			if(AskHostType() == HTYPE_TANDEM)
-				*Buf = atoi(Tmp);
-			else
+				AskHostType() == HTYPE_TANDEM ? stoi(attr) :
 #endif
-			*Buf = AttrString2Value(Tmp);
-			Ret = YES;
+				AttrString2Value(u8(attr).c_str());
+			return YES;
 		}
 	}
-	return(Ret);
+	*Buf = 0;
+	return NO;
 }
 
 
@@ -1786,34 +1568,9 @@ int GetNodeAttr(int Win, int Pos, int *Buf)
 *		int タイプ (NODE_xxx)
 *----------------------------------------------------------------------------*/
 
-int GetNodeType(int Win, int Pos)
-{
-	char Tmp[20];
-	LV_ITEM LvItem;
-	int Ret;
-	HWND hWnd;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	// 変数が未初期化のバグ修正
-	memset(&LvItem, 0, sizeof(LV_ITEM));
-	LvItem.mask = LVIF_TEXT;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 2;
-	LvItem.pszText = Tmp;
-	LvItem.cchTextMax = 20;
-	SendMessage(hWnd, LVM_GETITEM, 0, (LPARAM)&LvItem);
-
-	if(strcmp(Tmp, "<DIR>") == 0)
-		Ret = NODE_DIR;
-	else if(strcmp(Tmp, "<DRIVE>") == 0)
-		Ret = NODE_DRIVE;
-	else
-		Ret = NODE_FILE;
-
-	return(Ret);
+int GetNodeType(int Win, int Pos) {
+	auto type = GetItemText(Win, Pos, 2);
+	return type == L"<DIR>"sv ? NODE_DIR : type == L"<DRIVE>"sv ? NODE_DRIVE : NODE_FILE;
 }
 
 
@@ -1827,22 +1584,10 @@ int GetNodeType(int Win, int Pos)
 *		int イメージ番号
 *			4 Symlink
 *----------------------------------------------------------------------------*/
-static int GetImageIndex(int Win, int Pos)
-{
-	HWND hWnd;
-	LV_ITEM LvItem;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	// 変数が未初期化のバグ修正
-	memset(&LvItem, 0, sizeof(LV_ITEM));
-	LvItem.mask = LVIF_IMAGE;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 0;
-	SendMessage(hWnd, LVM_GETITEM, 0, (LPARAM)&LvItem);
-	return LvItem.iImage;
+static int GetImageIndex(int Win, int Pos) {
+	LVITEMW item{ .mask = LVIF_IMAGE, .iItem = Pos, .iSubItem = 0 };
+	SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETITEMW, 0, (LPARAM)&item);
+	return item.iImage;
 }
 
 
@@ -1858,23 +1603,12 @@ static int GetImageIndex(int Win, int Pos)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void GetNodeOwner(int Win, int Pos, char *Buf, int Max)
-{
-	LV_ITEM LvItem;
-
-	strcpy(Buf, "");
-	if(Win == WIN_REMOTE)
-	{
-		// 変数が未初期化のバグ修正
-		memset(&LvItem, 0, sizeof(LV_ITEM));
-		LvItem.mask = LVIF_TEXT;
-		LvItem.iItem = Pos;
-		LvItem.iSubItem = 5;
-		LvItem.pszText = Buf;
-		LvItem.cchTextMax = Max;
-		SendMessage(GetRemoteHwnd(), LVM_GETITEM, 0, (LPARAM)&LvItem);
-	}
-	return;
+void GetNodeOwner(int Win, int Pos, char* Buf, int Max) {
+	if (Win == WIN_REMOTE) {
+		auto owner = GetItemText(WIN_REMOTE, Pos, 5);
+		strncpy_s(Buf, Max, u8(owner).c_str(), _TRUNCATE);
+	} else
+		strcpy(Buf, "");
 }
 
 
@@ -1889,8 +1623,8 @@ void GetNodeOwner(int Win, int Pos, char *Buf, int Max)
 
 void EraseRemoteDirForWnd(void)
 {
-	SendMessage(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
-	SendMessage(GetRemoteHistHwnd(), CB_RESETCONTENT, 0, 0);
+	SendMessageW(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
+	SendMessageW(GetRemoteHistHwnd(), CB_RESETCONTENT, 0, 0);
 	return;
 }
 
@@ -4897,7 +4631,7 @@ void SetFilter(int *CancelCheckWork) {
 		using result_t = bool;
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, FILTER_STR, EM_LIMITTEXT, FILTER_EXT_LEN + 1, 0);
-			SendDlgItemMessageW(hDlg, FILTER_STR, WM_SETTEXT, 0, (LPARAM)u8(FilterStr).c_str());
+			SetText(hDlg, FILTER_STR, u8(FilterStr));
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
