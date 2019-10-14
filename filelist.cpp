@@ -1418,7 +1418,6 @@ int SetHotSelected(int Win, char *Fname)
 	int i;
 	int Num;
 	char Name[FMAX_PATH+1];
-	LV_ITEM LvItem;
 	int Pos;
 
 	hWnd = GetLocalHwnd();
@@ -1426,22 +1425,16 @@ int SetHotSelected(int Win, char *Fname)
 		hWnd = GetRemoteHwnd();
 
 	Num = GetItemCount(Win);
-	memset(&LvItem, 0, sizeof(LV_ITEM));
 	Pos = -1;
 	for(i = 0; i < Num; i++)
 	{
-		LvItem.state = 0;
 		GetNodeName(Win, i, Name, FMAX_PATH);
-		if(_mbscmp((const unsigned char*)Fname, (const unsigned char*)Name) == 0)
-		{
+		LVITEMW item{ .stateMask = LVIS_FOCUSED };
+		if (_mbscmp((const unsigned char*)Fname, (const unsigned char*)Name) == 0) {
 			Pos = i;
-			LvItem.state = LVIS_FOCUSED;
+			item.state = LVIS_FOCUSED;
 		}
-		LvItem.mask = LVIF_STATE;
-		LvItem.iItem = i;
-		LvItem.stateMask = LVIS_FOCUSED;
-		LvItem.iSubItem = 0;
-		SendMessage(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&LvItem);
+		SendMessageW(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&item);
 	}
 
 	return Pos;
