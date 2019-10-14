@@ -728,8 +728,6 @@ LRESULT SendMessageM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	int Size;
 	TVITEMEXA* pmTVItem;
 	TVITEMEXW wTVItem;
-	TVINSERTSTRUCTA* pmTVInsert;
-	TVINSERTSTRUCTW wTVInsert;
 	wchar_t ClassName[MAX_PATH];
 START_ROUTINE
 		GetClassNameW(hWnd, ClassName, sizeof(ClassName) / sizeof(wchar_t));
@@ -804,32 +802,6 @@ START_ROUTINE
 //				pmTVItem->hwnd = wTVItem.hwnd;
 //				pmTVItem->iExpandedImage = wTVItem.iExpandedImage;
 //				pmTVItem->iReserved = wTVItem.iReserved;
-				break;
-			case TVM_INSERTITEMA:
-				pmTVInsert = (TVINSERTSTRUCTA*)lParam;
-				wTVInsert.hParent = pmTVInsert->hParent;
-				wTVInsert.hInsertAfter = pmTVInsert->hInsertAfter;
-				wTVInsert.itemex.mask = pmTVInsert->itemex.mask;
-				wTVInsert.itemex.hItem = pmTVInsert->itemex.hItem;
-				wTVInsert.itemex.state = pmTVInsert->itemex.state;
-				wTVInsert.itemex.stateMask = pmTVInsert->itemex.stateMask;
-				if(pmTVInsert->itemex.mask & TVIF_TEXT)
-				{
-					pw0 = DuplicateMtoW(pmTVInsert->itemex.pszText, -1);
-					wTVInsert.itemex.pszText = pw0;
-					// TODO: cchTextMaxの確認
-					wTVInsert.itemex.cchTextMax = pmTVInsert->itemex.cchTextMax;
-				}
-				wTVInsert.itemex.iImage = pmTVInsert->itemex.iImage;
-				wTVInsert.itemex.iSelectedImage = pmTVInsert->itemex.iSelectedImage;
-				wTVInsert.itemex.cChildren = pmTVInsert->itemex.cChildren;
-				wTVInsert.itemex.lParam = pmTVInsert->itemex.lParam;
-				wTVInsert.itemex.iIntegral = pmTVInsert->itemex.iIntegral;
-//				wTVInsert.itemex.uStateEx = pmTVInsert->itemex.uStateEx;
-//				wTVInsert.itemex.hwnd = pmTVInsert->itemex.hwnd;
-//				wTVInsert.itemex.iExpandedImage = pmTVInsert->itemex.iExpandedImage;
-//				wTVInsert.itemex.iReserved = pmTVInsert->itemex.iReserved;
-				r = SendMessageW(hWnd, TVM_INSERTITEMW, wParam, (LPARAM)&wTVInsert);
 				break;
 			default:
 				r = SendMessageW(hWnd, Msg, wParam, lParam);

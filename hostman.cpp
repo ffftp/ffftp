@@ -1226,7 +1226,6 @@ static void SendAllHostNames(HWND hWnd, int Cur)
 {
 	int i;
 	HOSTLISTDATA *Pos;
-	TV_INSERTSTRUCT tvIns;
 	HTREEITEM hItem;
 	HTREEITEM hItemCur;
 	HTREEITEM *Level;
@@ -1237,45 +1236,27 @@ static void SendAllHostNames(HWND hWnd, int Cur)
 	/* ちらつくので再描画禁止 */
 	SendMessageW(hWnd, WM_SETREDRAW, false, 0);
 
-	SendMessage(hWnd, TVM_DELETEITEM, 0, (LPARAM)TVI_ROOT);		/* 全てを削除 */
+	SendMessageW(hWnd, TVM_DELETEITEM, 0, (LPARAM)TVI_ROOT);		/* 全てを削除 */
 
 	if((Level = (HTREEITEM*)malloc(sizeof(HTREEITEM*) * Hosts + 1)) != NULL)
 	{
 		Pos = HostListTop;
 		for(i = 0; i < Hosts; i++)
 		{
-			if(Pos->Set.Level & SET_LEVEL_GROUP)
-			{
-				tvIns.item.iImage = 0;
-				tvIns.item.iSelectedImage = 0;
-			}
-			else
-			{
-				tvIns.item.iImage = 2;
-				tvIns.item.iSelectedImage = 2;
-			}
-
 			CurLevel = GetNodeLevel(i);
-			if(CurLevel == 0)
-				tvIns.hParent = TVI_ROOT;
-			else
-				tvIns.hParent = Level[CurLevel - 1];
-
-			tvIns.hInsertAfter = TVI_LAST;
-			tvIns.item.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_CHILDREN;
-	//		tvIns.item.hItem = 0;
-	//		tvIns.item.state = 0;
-	//		tvIns.item.stateMask = 0;
-			tvIns.item.pszText = Pos->Set.HostName;
-			tvIns.item.cchTextMax = 0;
-			tvIns.item.cChildren = 1;
-			tvIns.item.lParam = i;
-			hItem = (HTREEITEM)SendMessage(hWnd, TVM_INSERTITEM, 0, (LPARAM)&tvIns);
+			auto whost = u8(Pos->Set.HostName);
+			TVINSERTSTRUCTW is{
+				.hParent = CurLevel == 0 ? TVI_ROOT : Level[CurLevel - 1],
+				.hInsertAfter = TVI_LAST,
+				.item = { .mask = TVIF_TEXT | TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM, .pszText = data(whost), .cChildren = 1, .lParam = i },
+			};
+			if (!(Pos->Set.Level & SET_LEVEL_GROUP))
+				is.item.iImage = is.item.iSelectedImage = 2;
+			hItem = (HTREEITEM)SendMessageW(hWnd, TVM_INSERTITEMW, 0, (LPARAM)&is);
 
 			if(Pos->Set.Level & SET_LEVEL_GROUP)
 				Level[CurLevel] = hItem;
 
-//			DoPrintf("%d = %x", i, hItem);
 			if(i == Cur)
 			{
 				hItemCur = hItem;
