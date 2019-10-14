@@ -715,7 +715,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 *			YES/NO=日付情報がなかった
 *----------------------------------------------------------------------------*/
 
-int TimeString2FileTime(char *Time, FILETIME *Buf)
+int TimeString2FileTime(const char *Time, FILETIME *Buf)
 {
 	SYSTEMTIME sTime;
 	FILETIME fTime;
@@ -867,7 +867,7 @@ void SpecificLocalFileTime2FileTime(FILETIME *Time, int TimeZone)
 *		int 値
 *----------------------------------------------------------------------------*/
 
-int AttrString2Value(char *Str)
+int AttrString2Value(const char *Str)
 {
 	int Ret;
 	char Tmp[10];

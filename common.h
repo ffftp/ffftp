@@ -1823,12 +1823,12 @@ void DispStaticText(HWND hWnd, char *Str);
 int StrMultiLen(char *Str);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
 int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char *Pass, int *Port);
-int TimeString2FileTime(char *Time, FILETIME *Buf);
+int TimeString2FileTime(const char *Time, FILETIME *Buf);
 // タイムスタンプのバグ修正
 //void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist);
 void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist, int ShowSeconds);
 void SpecificLocalFileTime2FileTime(FILETIME *Time, int TimeZone);
-int AttrString2Value(char *Str);
+int AttrString2Value(const char *Str);
 // ファイルの属性を数字で表示
 //void AttrValue2String(int Attr, char *Buf);
 void AttrValue2String(int Attr, char *Buf, int ShowNumber);

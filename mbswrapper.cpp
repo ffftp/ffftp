@@ -726,8 +726,6 @@ LRESULT SendMessageM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	wchar_t* pw0 = NULL;
 	wchar_t* pw1 = NULL;
 	int Size;
-	LVITEMA* pmLVItem;
-	LVITEMW wLVItem;
 	TVITEMEXA* pmTVItem;
 	TVITEMEXW wTVItem;
 	TVINSERTSTRUCTA* pmTVInsert;
@@ -755,73 +753,6 @@ START_ROUTINE
 			case LB_INSERTSTRING:
 				pw0 = DuplicateMtoW((LPCSTR)lParam, -1);
 				r = SendMessageW(hWnd, LB_INSERTSTRING, wParam, (LPARAM)pw0);
-				break;
-			default:
-				r = SendMessageW(hWnd, Msg, wParam, lParam);
-				break;
-			}
-		}
-		else if(_wcsicmp(ClassName, WC_LISTVIEWW) == 0)
-		{
-			switch(Msg)
-			{
-			case LVM_GETITEMA:
-				pmLVItem = (LVITEMA*)lParam;
-				wLVItem.mask = pmLVItem->mask;
-				wLVItem.iItem = pmLVItem->iItem;
-				wLVItem.iSubItem = pmLVItem->iSubItem;
-				wLVItem.state = pmLVItem->state;
-				wLVItem.stateMask = pmLVItem->stateMask;
-				if(pmLVItem->mask & LVIF_TEXT)
-				{
-					Size = pmLVItem->cchTextMax * 4;
-					pw0 = AllocateStringW(Size);
-					wLVItem.pszText = pw0;
-					wLVItem.cchTextMax = Size;
-				}
-				wLVItem.iImage = pmLVItem->iImage;
-				wLVItem.lParam = pmLVItem->lParam;
-				wLVItem.iIndent = pmLVItem->iIndent;
-				r = SendMessageW(hWnd, LVM_GETITEMW, wParam, (LPARAM)&wLVItem);
-				pmLVItem->mask = wLVItem.mask;
-				pmLVItem->iItem = wLVItem.iItem;
-				pmLVItem->iSubItem = wLVItem.iSubItem;
-				pmLVItem->state = wLVItem.state;
-				pmLVItem->stateMask = wLVItem.stateMask;
-				if(pmLVItem->mask & LVIF_TEXT)
-				{
-					WtoM(pmLVItem->pszText, pmLVItem->cchTextMax, wLVItem.pszText, -1);
-					TerminateStringM(pmLVItem->pszText, pmLVItem->cchTextMax);
-				}
-				pmLVItem->iImage = wLVItem.iImage;
-				pmLVItem->lParam = wLVItem.lParam;
-				pmLVItem->iIndent = wLVItem.iIndent;
-				break;
-			case LVM_GETITEMTEXTA:
-				pmLVItem = (LVITEMA*)lParam;
-				wLVItem.mask = pmLVItem->mask;
-				wLVItem.iItem = pmLVItem->iItem;
-				wLVItem.iSubItem = pmLVItem->iSubItem;
-				wLVItem.state = pmLVItem->state;
-				wLVItem.stateMask = pmLVItem->stateMask;
-				Size = pmLVItem->cchTextMax * 4;
-				pw0 = AllocateStringW(Size);
-				wLVItem.pszText = pw0;
-				wLVItem.cchTextMax = Size;
-				wLVItem.iImage = pmLVItem->iImage;
-				wLVItem.lParam = pmLVItem->lParam;
-				wLVItem.iIndent = pmLVItem->iIndent;
-				r = SendMessageW(hWnd, LVM_GETITEMTEXTW, wParam, (LPARAM)&wLVItem);
-				pmLVItem->mask = wLVItem.mask;
-				pmLVItem->iItem = wLVItem.iItem;
-				pmLVItem->iSubItem = wLVItem.iSubItem;
-				pmLVItem->state = wLVItem.state;
-				pmLVItem->stateMask = wLVItem.stateMask;
-				WtoM(pmLVItem->pszText, pmLVItem->cchTextMax, wLVItem.pszText, -1);
-				TerminateStringM(pmLVItem->pszText, pmLVItem->cchTextMax);
-				pmLVItem->iImage = wLVItem.iImage;
-				pmLVItem->lParam = wLVItem.lParam;
-				pmLVItem->iIndent = wLVItem.iIndent;
 				break;
 			default:
 				r = SendMessageW(hWnd, Msg, wParam, lParam);

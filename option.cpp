@@ -854,34 +854,23 @@ static void AddFnameAttrToListView(HWND hDlg, char* Fname, char* Attr) {
 *		なし
 *----------------------------------------------------------------------------*/
 
-static void GetFnameAttrFromListView(HWND hDlg, char *Buf)
-{
-	int Num;
-	int i;
-	LV_ITEM LvItem;
-
-	Num = (int)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETITEMCOUNT, 0, 0);
-	for(i = 0; i < Num; i++)
-	{
-		LvItem.mask = LVIF_TEXT;
-		LvItem.iItem = i;
-		LvItem.iSubItem = 0;
-		LvItem.pszText = Buf;
-		LvItem.cchTextMax = FMAX_PATH;
-		SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETITEM, 0, (LPARAM)&LvItem);
-		Buf = strchr(Buf, NUL) + 1;
-
-		LvItem.mask = LVIF_TEXT;
-		LvItem.iItem = i;
-		LvItem.iSubItem = 1;
-		LvItem.pszText = Buf;
-		LvItem.cchTextMax = FMAX_PATH;
-		SendDlgItemMessage(hDlg, TRMODE3_LIST, LVM_GETITEM, 0, (LPARAM)&LvItem);
-		Buf = strchr(Buf, NUL) + 1;
+static void GetFnameAttrFromListView(HWND hDlg, char* Buf) {
+	std::wstring lines;
+	wchar_t buffer[260 + 1];
+	LVITEMW item;
+	for (int i = 0, count = (int)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETITEMCOUNT, 0, 0); i < count; i++) {
+		item = { .mask = LVIF_TEXT, .iItem = i, .iSubItem = 0, .pszText = buffer, .cchTextMax = size_as<int>(buffer) };
+		SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETITEMW, 0, (LPARAM)&item);
+		lines += buffer;
+		lines += L'\0';
+		item = { .mask = LVIF_TEXT, .iItem = i, .iSubItem = 1, .pszText = buffer, .cchTextMax = size_as<int>(buffer) };
+		SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETITEMW, 0, (LPARAM)&item);
+		lines += buffer;
+		lines += L'\0';
 	}
-	*Buf = NUL;
-
-	return;
+	lines += L'\0';
+	auto u8lines = u8(lines);
+	std::copy(begin(u8lines), end(u8lines), Buf);
 }
 
 

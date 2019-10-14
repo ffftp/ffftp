@@ -1458,6 +1458,13 @@ int FindNameNode(int Win, char* Name) {
 }
 
 
+static std::wstring GetItemText(int Win, int index, int subitem) {
+	wchar_t buffer[260 + 1];
+	LVITEMW item{ .iSubItem = subitem, .pszText = buffer, .cchTextMax = size_as<int>(buffer) };
+	SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETITEMTEXTW, index, (LPARAM)&item);
+	return buffer;
+}
+
 /*----- 指定位置のアイテムの名前を返す ----------------------------------------
 *
 *	Parameter
@@ -1470,24 +1477,9 @@ int FindNameNode(int Win, char* Name) {
 *		なし
 *----------------------------------------------------------------------------*/
 
-void GetNodeName(int Win, int Pos, char *Buf, int Max)
-{
-	HWND hWnd;
-	LV_ITEM LvItem;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	// 変数が未初期化のバグ修正
-	memset(&LvItem, 0, sizeof(LV_ITEM));
-	LvItem.mask = LVIF_TEXT;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 0;
-	LvItem.pszText = Buf;
-	LvItem.cchTextMax = Max;
-	SendMessage(hWnd, LVM_GETITEM, 0, (LPARAM)&LvItem);
-	return;
+void GetNodeName(int Win, int Pos, char* Buf, int Max) {
+	auto name = GetItemText(Win, Pos, 0);
+	strncpy_s(Buf, Max, u8(name).c_str(), _TRUNCATE);
 }
 
 
@@ -1503,27 +1495,9 @@ void GetNodeName(int Win, int Pos, char *Buf, int Max)
 *			YES/NO=日付情報がなかった
 *----------------------------------------------------------------------------*/
 
-int GetNodeTime(int Win, int Pos, FILETIME *Buf)
-{
-	HWND hWnd;
-	LV_ITEM LvItem;
-	char Tmp[20];
-	int Ret;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	// 変数が未初期化のバグ修正
-	memset(&LvItem, 0, sizeof(LV_ITEM));
-	LvItem.mask = LVIF_TEXT;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 1;
-	LvItem.pszText = Tmp;
-	LvItem.cchTextMax = 20;
-	SendMessage(hWnd, LVM_GETITEM, 0, (LPARAM)&LvItem);
-	Ret = TimeString2FileTime(Tmp, Buf);
-	return(Ret);
+int GetNodeTime(int Win, int Pos, FILETIME* Buf) {
+	auto time = GetItemText(Win, Pos, 1);
+	return TimeString2FileTime(u8(time).c_str(), Buf);
 }
 
 
@@ -1539,41 +1513,15 @@ int GetNodeTime(int Win, int Pos, FILETIME *Buf)
 *			YES/NO=サイズ情報がなかった
 *----------------------------------------------------------------------------*/
 
-int GetNodeSize(int Win, int Pos, LONGLONG *Buf)
-{
-	HWND hWnd;
-	LV_ITEM LvItem;
-	char Tmp[40];
-	int Ret;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	// 変数が未初期化のバグ修正
-	memset(&LvItem, 0, sizeof(LV_ITEM));
-	LvItem.mask = LVIF_TEXT;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 2;
-	LvItem.pszText = Tmp;
-	LvItem.cchTextMax = 20;
-	SendMessage(hWnd, LVM_GETITEM, 0, (LPARAM)&LvItem);
-	*Buf = -1;
-	Ret = NO;
-#if defined(HAVE_TANDEM)
-	if(AskHostType() == HTYPE_TANDEM) {
-		RemoveComma(Tmp);
-		*Buf = _atoi64(Tmp);
-		Ret = YES;
-	} else
-#endif
-	if(strlen(Tmp) > 0)
-	{
-		RemoveComma(Tmp);
-		*Buf = _atoi64(Tmp);
-		Ret = YES;
+int GetNodeSize(int Win, int Pos, LONGLONG* Buf) {
+	if (auto size = GetItemText(Win, Pos, 2); !empty(size)) {
+		size.erase(std::remove(begin(size), end(size), L','), end(size));
+		*Buf = stoll(size);
+		return YES;
+	} else {
+		*Buf = -1;
+		return NO;
 	}
-	return(Ret);
 }
 
 
@@ -1589,41 +1537,24 @@ int GetNodeSize(int Win, int Pos, LONGLONG *Buf)
 *			YES/NO=サイズ情報がなかった
 *----------------------------------------------------------------------------*/
 
-int GetNodeAttr(int Win, int Pos, int *Buf)
-{
-	LV_ITEM LvItem;
-	char Tmp[20];
-	int Ret;
-
-	*Buf = 0;
-	Ret = NO;
-	if(Win == WIN_REMOTE)
-	{
-		// 変数が未初期化のバグ修正
-		memset(&LvItem, 0, sizeof(LV_ITEM));
-		LvItem.mask = LVIF_TEXT;
-		LvItem.iItem = Pos;
+int GetNodeAttr(int Win, int Pos, int* Buf) {
+	if (Win == WIN_REMOTE) {
+		auto subitem =
 #if defined(HAVE_TANDEM)
-		if(AskHostType() == HTYPE_TANDEM)
-			LvItem.iSubItem = 3;
-		else
+			AskHostType() == HTYPE_TANDEM ? 3 :
 #endif
-		LvItem.iSubItem = 4;
-		LvItem.pszText = Tmp;
-		LvItem.cchTextMax = 20;
-		SendMessage(GetRemoteHwnd(), LVM_GETITEM, 0, (LPARAM)&LvItem);
-		if(strlen(Tmp) > 0)
-		{
+			4;
+		if (auto attr = GetItemText(WIN_REMOTE, Pos, subitem); !empty(attr)) {
+			*Buf =
 #if defined(HAVE_TANDEM)
-			if(AskHostType() == HTYPE_TANDEM)
-				*Buf = atoi(Tmp);
-			else
+				AskHostType() == HTYPE_TANDEM ? stoi(attr) :
 #endif
-			*Buf = AttrString2Value(Tmp);
-			Ret = YES;
+				AttrString2Value(u8(attr).c_str());
+			return YES;
 		}
 	}
-	return(Ret);
+	*Buf = 0;
+	return NO;
 }
 
 
@@ -1637,34 +1568,9 @@ int GetNodeAttr(int Win, int Pos, int *Buf)
 *		int タイプ (NODE_xxx)
 *----------------------------------------------------------------------------*/
 
-int GetNodeType(int Win, int Pos)
-{
-	char Tmp[20];
-	LV_ITEM LvItem;
-	int Ret;
-	HWND hWnd;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	// 変数が未初期化のバグ修正
-	memset(&LvItem, 0, sizeof(LV_ITEM));
-	LvItem.mask = LVIF_TEXT;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 2;
-	LvItem.pszText = Tmp;
-	LvItem.cchTextMax = 20;
-	SendMessage(hWnd, LVM_GETITEM, 0, (LPARAM)&LvItem);
-
-	if(strcmp(Tmp, "<DIR>") == 0)
-		Ret = NODE_DIR;
-	else if(strcmp(Tmp, "<DRIVE>") == 0)
-		Ret = NODE_DRIVE;
-	else
-		Ret = NODE_FILE;
-
-	return(Ret);
+int GetNodeType(int Win, int Pos) {
+	auto type = GetItemText(Win, Pos, 2);
+	return type == L"<DIR>"sv ? NODE_DIR : type == L"<DRIVE>"sv ? NODE_DRIVE : NODE_FILE;
 }
 
 
@@ -1678,22 +1584,10 @@ int GetNodeType(int Win, int Pos)
 *		int イメージ番号
 *			4 Symlink
 *----------------------------------------------------------------------------*/
-static int GetImageIndex(int Win, int Pos)
-{
-	HWND hWnd;
-	LV_ITEM LvItem;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	// 変数が未初期化のバグ修正
-	memset(&LvItem, 0, sizeof(LV_ITEM));
-	LvItem.mask = LVIF_IMAGE;
-	LvItem.iItem = Pos;
-	LvItem.iSubItem = 0;
-	SendMessage(hWnd, LVM_GETITEM, 0, (LPARAM)&LvItem);
-	return LvItem.iImage;
+static int GetImageIndex(int Win, int Pos) {
+	LVITEMW item{ .mask = LVIF_IMAGE, .iItem = Pos, .iSubItem = 0 };
+	SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETITEMW, 0, (LPARAM)&item);
+	return item.iImage;
 }
 
 
@@ -1709,23 +1603,12 @@ static int GetImageIndex(int Win, int Pos)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void GetNodeOwner(int Win, int Pos, char *Buf, int Max)
-{
-	LV_ITEM LvItem;
-
-	strcpy(Buf, "");
-	if(Win == WIN_REMOTE)
-	{
-		// 変数が未初期化のバグ修正
-		memset(&LvItem, 0, sizeof(LV_ITEM));
-		LvItem.mask = LVIF_TEXT;
-		LvItem.iItem = Pos;
-		LvItem.iSubItem = 5;
-		LvItem.pszText = Buf;
-		LvItem.cchTextMax = Max;
-		SendMessage(GetRemoteHwnd(), LVM_GETITEM, 0, (LPARAM)&LvItem);
-	}
-	return;
+void GetNodeOwner(int Win, int Pos, char* Buf, int Max) {
+	if (Win == WIN_REMOTE) {
+		auto owner = GetItemText(WIN_REMOTE, Pos, 5);
+		strncpy_s(Buf, Max, u8(owner).c_str(), _TRUNCATE);
+	} else
+		strcpy(Buf, "");
 }
 
 
