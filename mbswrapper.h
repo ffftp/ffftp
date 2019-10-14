@@ -11,12 +11,6 @@
 
 #ifndef DO_NOT_REPLACE
 
-#undef SendMessage
-#define SendMessage SendMessageM
-LRESULT SendMessageM(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-#undef SendDlgItemMessage
-#define SendDlgItemMessage SendDlgItemMessageM
-LRESULT SendDlgItemMessageM(HWND hDlg, int nIDDlgItem, UINT Msg, WPARAM wParam, LPARAM lParam);
 #undef _mbslen
 #define _mbslen _mbslenM
 size_t _mbslenM(const unsigned char * _Str);
