@@ -256,7 +256,7 @@ struct Transfer2 {
 		case PSN_APPLY: {
 			strncpy_s(DefaultLocalPath, FMAX_PATH + 1, u8(GetText(hDlg, TRMODE2_LOCAL)).c_str(), _TRUNCATE);
 			FnameCnv = CnvButton::Get(hDlg);
-			TimeOut = stoi(GetText(hDlg, TRMODE2_TIMEOUT));
+			TimeOut = GetDecimalText(hDlg, TRMODE2_TIMEOUT);
 			CheckRange2(&TimeOut, 300, 0);
 			return PSNRET_NOERROR;
 		}
@@ -318,7 +318,7 @@ struct Transfer3 {
 		switch (nmh->code) {
 		case PSN_APPLY: {
 			GetFnameAttrFromListView(hDlg, DefAttrList);
-			FolderAttrNum = stoi(GetText(hDlg, TRMODE3_FOLDER_ATTR));
+			FolderAttrNum = GetDecimalText(hDlg, TRMODE3_FOLDER_ATTR);
 			FolderAttr = (int)SendDlgItemMessageW(hDlg, TRMODE3_FOLDER, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
 		}
@@ -637,7 +637,7 @@ struct Firewall {
 			strncpy_s(FwallHost, HOST_ADRS_LEN + 1, u8(GetText(hDlg, FIRE_HOST)).c_str(), _TRUNCATE);
 			strncpy_s(FwallUser, USER_NAME_LEN + 1, u8(GetText(hDlg, FIRE_USER)).c_str(), _TRUNCATE);
 			strncpy_s(FwallPass, PASSWORD_LEN, u8(GetText(hDlg, FIRE_PASS)).c_str(), _TRUNCATE);
-			FwallPort = stoi(GetText(hDlg, FIRE_PORT));
+			FwallPort = GetDecimalText(hDlg, FIRE_PORT);
 			FwallDelimiter = u8(GetText(hDlg, FIRE_DELIMIT))[0];
 			FwallDefault = (int)SendDlgItemMessageW(hDlg, FIRE_USEIT, BM_GETCHECK, 0, 0);
 			PasvDefault = (int)SendDlgItemMessageW(hDlg, FIRE_PASV, BM_GETCHECK, 0, 0);
@@ -927,21 +927,10 @@ int SortSetting() {
 }
 
 
-/*----- ダイアログのコントロールから１０進数を取得 ----------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		int Ctrl : コントロールのID
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-// hostman.cで使用
-//static int GetDecimalText(HWND hDlg, int Ctrl)
-int GetDecimalText(HWND hDlg, int Ctrl)
-{
-	return stoi(GetText(hDlg, Ctrl));
+// ダイアログのコントロールから１０進数を取得
+int GetDecimalText(HWND hDlg, int Ctrl) {
+	auto const text = GetText(hDlg, Ctrl);
+	return !empty(text) && std::iswdigit(text[0]) ? stoi(text) : 0;
 }
 
 

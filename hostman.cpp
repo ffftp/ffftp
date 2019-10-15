@@ -1500,7 +1500,7 @@ struct Advanced {
 			TmpHost.Pasv = (int)SendDlgItemMessageW(hDlg, HSET_PASV, BM_GETCHECK, 0, 0);
 			TmpHost.FireWall = (int)SendDlgItemMessageW(hDlg, HSET_FIREWALL, BM_GETCHECK, 0, 0);
 			TmpHost.SyncMove = (int)SendDlgItemMessageW(hDlg, HSET_SYNCMOVE, BM_GETCHECK, 0, 0);
-			TmpHost.Port = stoi(GetText(hDlg, HSET_PORT));
+			TmpHost.Port = GetDecimalText(hDlg, HSET_PORT);
 			strncpy_s(TmpHost.Account, ACCOUNT_LEN + 1, u8(GetText(hDlg, HSET_ACCOUNT)).c_str(), _TRUNCATE);
 			TmpHost.TimeZone = (int)SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_GETCURSEL, 0, 0) - 12;
 			TmpHost.Security = (int)SendDlgItemMessageW(hDlg, HSET_SECURITY, CB_GETCURSEL, 0, 0);

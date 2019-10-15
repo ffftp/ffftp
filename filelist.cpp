@@ -1516,7 +1516,7 @@ int GetNodeTime(int Win, int Pos, FILETIME* Buf) {
 int GetNodeSize(int Win, int Pos, LONGLONG* Buf) {
 	if (auto size = GetItemText(Win, Pos, 2); !empty(size)) {
 		size.erase(std::remove(begin(size), end(size), L','), end(size));
-		*Buf = stoll(size);
+		*Buf = !empty(size) && std::iswdigit(size[0]) ? stoll(size) : 0;
 		return YES;
 	} else {
 		*Buf = -1;
@@ -1547,7 +1547,7 @@ int GetNodeAttr(int Win, int Pos, int* Buf) {
 		if (auto attr = GetItemText(WIN_REMOTE, Pos, subitem); !empty(attr)) {
 			*Buf =
 #if defined(HAVE_TANDEM)
-				AskHostType() == HTYPE_TANDEM ? stoi(attr) :
+				AskHostType() == HTYPE_TANDEM ? (std::iswdigit(attr[0]) ? stoi(attr) : 0) :
 #endif
 				AttrString2Value(u8(attr).c_str());
 			return YES;
