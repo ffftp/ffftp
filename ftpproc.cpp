@@ -913,7 +913,7 @@ void UploadListProc(int ChName, int All)
 			switch (id) {
 			case IDOK:
 				strncpy_s(TmpString, FMAX_PATH, u8(GetText(hDlg, UPDOWNAS_NEW)).c_str(), _TRUNCATE);
-				filecode = std::stoi(GetText(hDlg, UPDOWNAS_FILECODE));
+				filecode = GetDecimalText(hDlg, UPDOWNAS_FILECODE);
 				EndDialog(hDlg, true);
 				break;
 			case UPDOWNAS_STOP:
@@ -2473,7 +2473,7 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, PERM_NOW, EM_LIMITTEXT, 4, 0);
 			SetText(hDlg, PERM_NOW, attr);
-			SetAttrToDialog(hDlg, std::stoi(attr, nullptr, 16));
+			SetAttrToDialog(hDlg, !empty(attr) && std::iswdigit(attr[0]) ? stoi(attr, nullptr, 16) : 0);
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
