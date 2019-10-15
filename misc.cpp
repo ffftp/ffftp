@@ -44,7 +44,7 @@
 
 void SetYenTail(char *Str)
 {
-	if(_mbscmp(_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), (const unsigned char*)"\\") != 0)
+	if(strcmp((const char*)_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), "\\") != 0)
 		strcat(Str, "\\");
 
 	return;;
@@ -68,11 +68,11 @@ void SetSlashTail(char *Str)
 #if defined(HAVE_TANDEM)
 	/* Tandem では / の代わりに . を追加 */
 	if(AskHostType() == HTYPE_TANDEM) {
-		if(_mbscmp(_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), (const unsigned char*)".") != 0)
+		if(strcmp((const char*)_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), ".") != 0)
 			strcat(Str, ".");
 	} else
 #endif
-	if(_mbscmp(_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), (const unsigned char*)"/") != 0)
+	if(strcmp((const char*)_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), "/") != 0)
 		strcat(Str, "/");
 
 	return;
@@ -356,8 +356,8 @@ char *GetFileExt(char *Path)
 	char *Ret;
 
 	Ret = (char*)_mbschr((const unsigned char*)Path, NUL);
-	if((_mbscmp((const unsigned char*)Path, (const unsigned char*)".") != 0) &&
-	   (_mbscmp((const unsigned char*)Path, (const unsigned char*)"..") != 0))
+	if((strcmp(Path, ".") != 0) &&
+	   (strcmp(Path, "..") != 0))
 	{
 		while((Path = (char*)_mbschr((const unsigned char*)Path, '.')) != NULL)
 		{
@@ -634,7 +634,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 
 	ReplaceAll(unc, '\\', '/');
 
-	if((Pos1 = (char*)_mbsstr((const unsigned char*)unc, (const unsigned char*)"//")) != NULL)
+	if((Pos1 = strstr(unc, "//")) != NULL)
 		Pos1 += 2;
 	else
 		Pos1 = unc;

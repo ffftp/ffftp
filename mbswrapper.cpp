@@ -768,33 +768,6 @@ END_ROUTINE
 	return r;
 }
 
-unsigned char * _mbsstrM(const unsigned char * _Str, const unsigned char * _Substr)
-{
-	unsigned char* r = NULL;
-START_ROUTINE
-	r = (unsigned char*)strstr((char* const)_Str, (const char* const)_Substr);
-END_ROUTINE
-	return r;
-}
-
-int _mbscmpM(const unsigned char * _Str1, const unsigned char * _Str2)
-{
-	int r = 0;
-START_ROUTINE
-	r = strcmp((const char*)_Str1, (const char*)_Str2);
-END_ROUTINE
-	return r;
-}
-
-int _mbsicmpM(const unsigned char * _Str1, const unsigned char * _Str2)
-{
-	int r = 0;
-START_ROUTINE
-	r = _stricmp((const char*)_Str1, (const char*)_Str2);
-END_ROUTINE
-	return r;
-}
-
 int _mbsncmpM(const unsigned char * _Str1, const unsigned char * _Str2, size_t _MaxCount)
 {
 	int r = 0;
@@ -814,24 +787,6 @@ START_ROUTINE
 			break;
 	}
 	r = c1 - c2;
-END_ROUTINE
-	return r;
-}
-
-unsigned char * _mbslwrM(unsigned char * _String)
-{
-	unsigned char* r = NULL;
-START_ROUTINE
-	r = (unsigned char*)_strlwr((char*)_String);
-END_ROUTINE
-	return r;
-}
-
-unsigned char * _mbsuprM(unsigned char * _String)
-{
-	unsigned char* r = NULL;
-START_ROUTINE
-	r = (unsigned char*)_strupr((char*)_String);
 END_ROUTINE
 	return r;
 }

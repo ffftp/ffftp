@@ -20,24 +20,9 @@ unsigned char * _mbschrM(const unsigned char * _Str, unsigned int _Ch);
 #undef _mbsrchr
 #define _mbsrchr _mbsrchrM
 unsigned char * _mbsrchrM(const unsigned char * _Str, unsigned int _Ch);
-#undef _mbsstr
-#define _mbsstr _mbsstrM
-unsigned char * _mbsstrM(const unsigned char * _Str, const unsigned char * _Substr);
-#undef _mbscmp
-#define _mbscmp _mbscmpM
-int _mbscmpM(const unsigned char * _Str1, const unsigned char * _Str2);
-#undef _mbsicmp
-#define _mbsicmp _mbsicmpM
-int _mbsicmpM(const unsigned char * _Str1, const unsigned char * _Str2);
 #undef _mbsncmp
 #define _mbsncmp _mbsncmpM
 int _mbsncmpM(const unsigned char * _Str1, const unsigned char * _Str2, size_t _MaxCount);
-#undef _mbslwr
-#define _mbslwr _mbslwrM
-unsigned char * _mbslwrM(unsigned char * _String);
-#undef _mbsupr
-#define _mbsupr _mbsuprM
-unsigned char * _mbsuprM(unsigned char * _String);
 #undef _mbsninc
 #define _mbsninc _mbsnincM
 unsigned char * _mbsnincM(const unsigned char * _Str, size_t _Count);
