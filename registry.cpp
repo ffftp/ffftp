@@ -3089,7 +3089,7 @@ void SaveSettingsToFileZillaXml()
 							else
 								p2 = strchr(p1, '\0');
 							if(*p1 != '\0')
-								fprintf(f, " %zu %s", _mbslen((const unsigned char*)p1), p1);
+								fprintf(f, " %zu %s", size(u8(p1)), p1);
 							p1 = p2;
 						}
 						fputs("</RemoteDir>\n", f);
@@ -3114,7 +3114,7 @@ void SaveSettingsToFileZillaXml()
 							else
 								p2 = strchr(p1, '\0');
 							if(*p1 != '\0')
-								fprintf(f, " %zu %s", _mbslen((const unsigned char*)p1), p1);
+								fprintf(f, " %zu %s", size(u8(p1)), p1);
 							p1 = p2;
 						}
 						fputs("</RemoteDir>\n", f);

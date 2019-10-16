@@ -719,15 +719,3 @@ int WideCharToMultiByteAlternative(UINT CodePage, DWORD dwFlags, LPCWSTR lpWideC
 #define START_ROUTINE					do{
 #define END_ROUTINE						}while(0);end_of_routine:
 #define QUIT_ROUTINE					goto end_of_routine;
-
-size_t _mbslenM(const unsigned char * _Str)
-{
-	size_t r = 0;
-START_ROUTINE
-	while(GetNextCharM((LPCSTR)_Str, NULL, (LPCSTR*)&_Str) > 0)
-	{
-		r++;
-	}
-END_ROUTINE
-	return r;
-}

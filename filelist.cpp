@@ -4461,7 +4461,7 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 	char *Pos;
 
 	Ret = FFFTP_FAIL;
-	if((_mbslen((const unsigned char*)Str) >= 3) && (isdigit(Str[0]) != 0))
+	if(strlen(Str) >= 3 && isdigit(Str[0]))
 	{
 		*Hour = atoi(Str);
 		if(*Hour <= 24)

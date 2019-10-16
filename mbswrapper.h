@@ -11,9 +11,6 @@
 
 #ifndef DO_NOT_REPLACE
 
-#undef _mbslen
-#define _mbslen _mbslenM
-size_t _mbslenM(const unsigned char * _Str);
 
 #endif
 
