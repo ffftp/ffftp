@@ -14,12 +14,6 @@
 #undef _mbslen
 #define _mbslen _mbslenM
 size_t _mbslenM(const unsigned char * _Str);
-#undef _mbschr
-#define _mbschr _mbschrM
-unsigned char * _mbschrM(const unsigned char * _Str, unsigned int _Ch);
-#undef _mbsrchr
-#define _mbsrchr _mbsrchrM
-unsigned char * _mbsrchrM(const unsigned char * _Str, unsigned int _Ch);
 #undef _mbsncmp
 #define _mbsncmp _mbsncmpM
 int _mbsncmpM(const unsigned char * _Str1, const unsigned char * _Str2, size_t _MaxCount);

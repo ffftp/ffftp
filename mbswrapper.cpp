@@ -732,42 +732,6 @@ END_ROUTINE
 	return r;
 }
 
-unsigned char * _mbschrM(const unsigned char * _Str, unsigned int _Ch)
-{
-	unsigned char* r = NULL;
-	unsigned int c;
-	unsigned char* p;
-START_ROUTINE
-	while((c = GetNextCharM((LPCSTR)_Str, NULL, (LPCSTR*)&p)) > 0)
-	{
-		if(c == _Ch)
-			break;
-		_Str = p;
-	}
-	if(c == _Ch)
-		r = (unsigned char*)_Str;
-END_ROUTINE
-	return r;
-}
-
-unsigned char * _mbsrchrM(const unsigned char * _Str, unsigned int _Ch)
-{
-	unsigned char* r = NULL;
-	unsigned int c;
-	unsigned char* p;
-START_ROUTINE
-	while((c = GetNextCharM((LPCSTR)_Str, NULL, (LPCSTR*)&p)) > 0)
-	{
-		if(c == _Ch)
-			r = (unsigned char*)_Str;
-		_Str = p;
-	}
-	if(c == _Ch)
-		r = (unsigned char*)_Str;
-END_ROUTINE
-	return r;
-}
-
 int _mbsncmpM(const unsigned char * _Str1, const unsigned char * _Str2, size_t _MaxCount)
 {
 	int r = 0;

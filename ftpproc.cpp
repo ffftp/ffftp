@@ -2882,45 +2882,16 @@ void ReformVMSDirName(char *DirName, int Flg)
 #endif
 
 
-/*----- ファイル名に使えない文字がないかチェックし名前を変更する --------------
-*
-*	Parameter
-*		char *Fname : ファイル名
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL=中止する
-*
-*	Note
-*		Fnameを直接書きかえる
-*----------------------------------------------------------------------------*/
-
-static int RenameUnuseableName(char *Fname)
-{
-	int Ret;
-
-	Ret = FFFTP_SUCCESS;
-	while(1)
-	{
-		if((_mbschr((const unsigned char *)Fname, ':') != NULL) ||
-		   (_mbschr((const unsigned char *)Fname, '*') != NULL) ||
-		   (_mbschr((const unsigned char *)Fname, '?') != NULL) ||
-		   (_mbschr((const unsigned char *)Fname, '<') != NULL) ||
-		   (_mbschr((const unsigned char *)Fname, '>') != NULL) ||
-		   (_mbschr((const unsigned char *)Fname, '|') != NULL) ||
-		   (_mbschr((const unsigned char *)Fname, '\x22') != NULL) ||
-		   (_mbschr((const unsigned char *)Fname, '\\') != NULL))
-		{
-			if (!InputDialog(forcerename_dlg, GetMainHwnd(), NULL, Fname, FMAX_PATH+1))
-			{
-				Ret = FFFTP_FAIL;
-				break;
-			}
-		}
-		else
-			break;
+// ファイル名に使えない文字がないかチェックし名前を変更する
+//   Fnameを直接書きかえる
+static int RenameUnuseableName(char* Fname) {
+	static std::regex re{ R"([:*?<>|"\\])" };
+	for (;;) {
+		if (!std::regex_search(Fname, re))
+			return FFFTP_SUCCESS;
+		if (!InputDialog(forcerename_dlg, GetMainHwnd(), NULL, Fname, FMAX_PATH + 1))
+			return FFFTP_FAIL;
 	}
-	return(Ret);
 }
 
 
