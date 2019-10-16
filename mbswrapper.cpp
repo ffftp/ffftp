@@ -731,16 +731,3 @@ START_ROUTINE
 END_ROUTINE
 	return r;
 }
-
-unsigned char * _mbsnincM(const unsigned char * _Str, size_t _Count)
-{
-	unsigned char* r = NULL;
-START_ROUTINE
-	while(_Count > 0 && GetNextCharM((LPCSTR)_Str, NULL, (LPCSTR*)&_Str) > 0)
-	{
-		_Count--;
-	}
-	r = (unsigned char*)_Str;
-END_ROUTINE
-	return r;
-}

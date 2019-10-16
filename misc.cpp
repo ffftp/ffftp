@@ -42,12 +42,9 @@
 *		オリジナルの文字列 char *Str が変更されます。
 *----------------------------------------------------------------------------*/
 
-void SetYenTail(char *Str)
-{
-	if(strcmp((const char*)_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), "\\") != 0)
+void SetYenTail(char* Str) {
+	if (Str[strlen(Str) - 1] != '\\')
 		strcat(Str, "\\");
-
-	return;;
 }
 
 
@@ -63,19 +60,16 @@ void SetYenTail(char *Str)
 *		オリジナルの文字列 char *Str が変更されます。
 *----------------------------------------------------------------------------*/
 
-void SetSlashTail(char *Str)
-{
+void SetSlashTail(char* Str) {
 #if defined(HAVE_TANDEM)
 	/* Tandem では / の代わりに . を追加 */
-	if(AskHostType() == HTYPE_TANDEM) {
-		if(strcmp((const char*)_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), ".") != 0)
+	if (AskHostType() == HTYPE_TANDEM) {
+		if (Str[strlen(Str) - 1] != '.')
 			strcat(Str, ".");
 	} else
 #endif
-	if(strcmp((const char*)_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), "/") != 0)
-		strcat(Str, "/");
-
-	return;
+		if (Str[strlen(Str) - 1] != '/')
+			strcat(Str, "/");
 }
 
 
