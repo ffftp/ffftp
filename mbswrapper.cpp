@@ -732,29 +732,6 @@ END_ROUTINE
 	return r;
 }
 
-int _mbsncmpM(const unsigned char * _Str1, const unsigned char * _Str2, size_t _MaxCount)
-{
-	int r = 0;
-	DWORD c1;
-	DWORD c2;
-START_ROUTINE
-	c1 = 0;
-	c2 = 0;
-	while(_MaxCount > 0)
-	{
-		c1 = GetNextCharM((LPCSTR)_Str1, NULL, (LPCSTR*)&_Str1);
-		c2 = GetNextCharM((LPCSTR)_Str2, NULL, (LPCSTR*)&_Str2);
-		if(c1 != c2)
-			break;
-		_MaxCount--;
-		if(c1 == 0 || c2 == 0)
-			break;
-	}
-	r = c1 - c2;
-END_ROUTINE
-	return r;
-}
-
 unsigned char * _mbsnincM(const unsigned char * _Str, size_t _Count)
 {
 	unsigned char* r = NULL;

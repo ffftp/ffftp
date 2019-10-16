@@ -4374,7 +4374,7 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day)
 						}
 					}
 				}
-				else if(_mbsncmp((const unsigned char*)Pos, (const unsigned char*)"/", 1) == 0)
+				else if(*Pos == '/')
 				{
 					/* 「10/」のような日付を返すものがある */
 					Pos += 1;
