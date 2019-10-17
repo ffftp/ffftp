@@ -799,9 +799,6 @@ HINSTANCE GetFtpInst() {
 static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	PAINTSTRUCT ps;
-	LPTOOLTIPTEXT lpttt;
-	// UTF-8対応
-	LPTOOLTIPTEXTW wlpttt;
 	RECT Rect;
 
 	int TmpTransType;
@@ -1521,162 +1518,57 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			switch(((LPNMHDR)lParam)->code)
 			{
 				/* ツールチップコントロールメッセージの処理 */
-				// UTF-8対応
-//				case TTN_NEEDTEXT:
-				case TTN_NEEDTEXTW:
-					lpttt = (LPTOOLTIPTEXT)lParam;
-					// UTF-8対応
-					// lptttは単なる警告回避用
-					wlpttt = (LPTOOLTIPTEXTW)lParam;
-					lpttt->hinst = GetFtpInst();
-					switch(lpttt->hdr.idFrom)
-					{
-						case MENU_CONNECT :
-							lpttt->lpszText = MSGJPN154;
-							break;
-
-						case MENU_QUICK :
-							lpttt->lpszText = MSGJPN155;
-							break;
-
-						case MENU_DISCONNECT :
-							lpttt->lpszText = MSGJPN156;
-							break;
-
-						case MENU_DOWNLOAD :
-							lpttt->lpszText = MSGJPN157;
-							break;
+				case TTN_GETDISPINFOW:
+				{
+					static constexpr std::tuple<int, int> map[] = {
+						{ MENU_CONNECT, IDS_MSGJPN154 },
+						{ MENU_QUICK, IDS_MSGJPN155 },
+						{ MENU_DISCONNECT, IDS_MSGJPN156 },
+						{ MENU_DOWNLOAD, IDS_MSGJPN157 },
 #if defined(HAVE_TANDEM)
-						case MENU_DOWNLOAD_AS :
-							lpttt->lpszText = MSGJPN065;
-							break;
-
-						case MENU_UPLOAD_AS :
-							lpttt->lpszText = MSGJPN064;
-							break;
+						{ MENU_DOWNLOAD_AS, IDS_MSGJPN065 },
+						{ MENU_UPLOAD_AS, IDS_MSGJPN064 },
 #endif
-						case MENU_UPLOAD :
-							lpttt->lpszText = MSGJPN158;
+						{ MENU_UPLOAD, IDS_MSGJPN158 },
+						{ MENU_MIRROR_UPLOAD, IDS_MSGJPN159 },
+						{ MENU_DELETE, IDS_MSGJPN160 },
+						{ MENU_RENAME, IDS_MSGJPN161 },
+						{ MENU_MKDIR, IDS_MSGJPN162 },
+						{ MENU_LOCAL_UPDIR, IDS_MSGJPN163 },
+						{ MENU_REMOTE_UPDIR, IDS_MSGJPN163 },
+						{ MENU_LOCAL_CHDIR, IDS_MSGJPN164 },
+						{ MENU_REMOTE_CHDIR, IDS_MSGJPN164 },
+						{ MENU_TEXT, IDS_MSGJPN165 },
+						{ MENU_BINARY, IDS_MSGJPN166 },
+						{ MENU_AUTO, IDS_MSGJPN167 },
+						{ MENU_REFRESH, IDS_MSGJPN168 },
+						{ MENU_LIST, IDS_MSGJPN169 },
+						{ MENU_REPORT, IDS_MSGJPN170 },
+						{ MENU_KNJ_SJIS, IDS_MSGJPN307 },
+						{ MENU_KNJ_EUC, IDS_MSGJPN171 },
+						{ MENU_KNJ_JIS, IDS_MSGJPN172 },
+						{ MENU_KNJ_UTF8N, IDS_MSGJPN308 },
+						{ MENU_KNJ_UTF8BOM, IDS_MSGJPN330 },
+						{ MENU_KNJ_NONE, IDS_MSGJPN173 },
+						{ MENU_L_KNJ_SJIS, IDS_MSGJPN309 },
+						{ MENU_L_KNJ_EUC, IDS_MSGJPN310 },
+						{ MENU_L_KNJ_JIS, IDS_MSGJPN311 },
+						{ MENU_L_KNJ_UTF8N, IDS_MSGJPN312 },
+						{ MENU_L_KNJ_UTF8BOM, IDS_MSGJPN331 },
+						{ MENU_KANACNV, IDS_MSGJPN174 },
+						{ MENU_SYNC, IDS_MSGJPN175 },
+						{ MENU_ABORT, IDS_MSGJPN176 },
+					};
+					auto di = reinterpret_cast<NMTTDISPINFOW*>(lParam);
+					for (auto [menuId, resourceId] : map) {
+						if (di->hdr.idFrom == menuId) {
+							di->lpszText = MAKEINTRESOURCEW(resourceId);
+							di->hinst = GetFtpInst();
 							break;
-
-						case MENU_MIRROR_UPLOAD :
-							lpttt->lpszText = MSGJPN159;
-							break;
-
-						case MENU_DELETE :
-							lpttt->lpszText = MSGJPN160;
-							break;
-
-						case MENU_RENAME :
-							lpttt->lpszText = MSGJPN161;
-							break;
-
-						case MENU_MKDIR :
-							lpttt->lpszText = MSGJPN162;
-							break;
-
-						case MENU_LOCAL_UPDIR :
-						case MENU_REMOTE_UPDIR :
-							lpttt->lpszText = MSGJPN163;
-							break;
-
-						case MENU_LOCAL_CHDIR :
-						case MENU_REMOTE_CHDIR :
-							lpttt->lpszText = MSGJPN164;
-							break;
-
-						case MENU_TEXT :
-							lpttt->lpszText = MSGJPN165;
-							break;
-
-						case MENU_BINARY :
-							lpttt->lpszText = MSGJPN166;
-							break;
-
-						case MENU_AUTO :
-							lpttt->lpszText = MSGJPN167;
-							break;
-
-						case MENU_REFRESH :
-							lpttt->lpszText = MSGJPN168;
-							break;
-
-						case MENU_LIST :
-							lpttt->lpszText = MSGJPN169;
-							break;
-
-						case MENU_REPORT :
-							lpttt->lpszText = MSGJPN170;
-							break;
-
-						case MENU_KNJ_SJIS :
-							lpttt->lpszText = MSGJPN307;
-							break;
-
-						case MENU_KNJ_EUC :
-							lpttt->lpszText = MSGJPN171;
-							break;
-
-						case MENU_KNJ_JIS :
-							lpttt->lpszText = MSGJPN172;
-							break;
-
-						case MENU_KNJ_UTF8N :
-							lpttt->lpszText = MSGJPN308;
-							break;
-
-						case MENU_KNJ_UTF8BOM :
-							lpttt->lpszText = MSGJPN330;
-							break;
-
-						case MENU_KNJ_NONE :
-							lpttt->lpszText = MSGJPN173;
-							break;
-
-						case MENU_L_KNJ_SJIS :
-							lpttt->lpszText = MSGJPN309;
-							break;
-
-						case MENU_L_KNJ_EUC :
-							lpttt->lpszText = MSGJPN310;
-							break;
-
-						case MENU_L_KNJ_JIS :
-							lpttt->lpszText = MSGJPN311;
-							break;
-
-						case MENU_L_KNJ_UTF8N :
-							lpttt->lpszText = MSGJPN312;
-							break;
-
-						case MENU_L_KNJ_UTF8BOM :
-							lpttt->lpszText = MSGJPN331;
-							break;
-
-						case MENU_KANACNV :
-							lpttt->lpszText = MSGJPN174;
-							break;
-
-						case MENU_SYNC :
-							lpttt->lpszText = MSGJPN175;
-							break;
-
-						case MENU_ABORT :
-							lpttt->lpszText = MSGJPN176;
-							break;
-					}
-					// UTF-8対応
-					// UTF-8からUTF-16 LEへ変換
-					{
-						static wchar_t StringBufferUTF16[1024];
-						if(lpttt->lpszText)
-						{
-							MtoW(StringBufferUTF16, sizeof(StringBufferUTF16)/ sizeof(wchar_t), lpttt->lpszText, -1);
-							wlpttt->lpszText = StringBufferUTF16;
 						}
 					}
 					break;
-
+				}
 				case LVN_COLUMNCLICK :
 					if(((NMHDR *)lParam)->hwndFrom == GetLocalHwnd())
 					{

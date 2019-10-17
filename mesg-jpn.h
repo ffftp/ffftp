@@ -45,8 +45,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN061 (std::data(msgs[10000+61])) /* 作成するフォルダはありません. */
 #define MSGJPN062 (std::data(msgs[10000+62])) /* %d個のファイル/フォルダを削除します. */
 #define MSGJPN063 (std::data(msgs[10000+63])) /* 削除するファイル/フォルダはありません. */
-#define MSGJPN064 (std::data(msgs[10000+64])) /* 名前を変更してアップロード */
-#define MSGJPN065 (std::data(msgs[10000+65])) /* 名前を変更してダウンロード */
 #define MSGJPN070 (std::data(msgs[10000+70])) /* フォルダ作成（ローカル） */
 #define MSGJPN071 (std::data(msgs[10000+71])) /* フォルダ作成（ホスト） */
 #define MSGJPN072 (std::data(msgs[10000+72])) /* フォルダ変更（ローカル） */
@@ -100,29 +98,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN149 (std::data(msgs[10000+149])) /* ファイルを削除できません. */
 #define MSGJPN150 (std::data(msgs[10000+150])) /* ファイルを削除できません. */
 #define MSGJPN151 (std::data(msgs[10000+151])) /* ファイル名変更ができません. */
-#define MSGJPN154 (std::data(msgs[10000+154])) /* 接続 */
-#define MSGJPN155 (std::data(msgs[10000+155])) /* クイック接続 */
-#define MSGJPN156 (std::data(msgs[10000+156])) /* 切断 */
-#define MSGJPN157 (std::data(msgs[10000+157])) /* ダウンロード */
-#define MSGJPN158 (std::data(msgs[10000+158])) /* アップロード */
-#define MSGJPN159 (std::data(msgs[10000+159])) /* ミラーリングアップロード */
-#define MSGJPN160 (std::data(msgs[10000+160])) /* 削除 */
-#define MSGJPN161 (std::data(msgs[10000+161])) /* 名前変更 */
-#define MSGJPN162 (std::data(msgs[10000+162])) /* フォルダ作成 */
-#define MSGJPN163 (std::data(msgs[10000+163])) /* 一つ上のフォルダへ */
-#define MSGJPN164 (std::data(msgs[10000+164])) /* フォルダの移動 */
-#define MSGJPN165 (std::data(msgs[10000+165])) /* アスキー転送モード */
-#define MSGJPN166 (std::data(msgs[10000+166])) /* バイナリ転送モード */
-#define MSGJPN167 (std::data(msgs[10000+167])) /* ファイル名で転送モード切替え */
-#define MSGJPN168 (std::data(msgs[10000+168])) /* 表示を更新 */
-#define MSGJPN169 (std::data(msgs[10000+169])) /* 一覧 */
-#define MSGJPN170 (std::data(msgs[10000+170])) /* 詳細 */
-#define MSGJPN171 (std::data(msgs[10000+171])) /* ホストの漢字コードはEUC */
-#define MSGJPN172 (std::data(msgs[10000+172])) /* ホストの漢字コードはJIS */
-#define MSGJPN173 (std::data(msgs[10000+173])) /* 漢字コードの変換なし */
-#define MSGJPN174 (std::data(msgs[10000+174])) /* 半角カナを全角に変換 */
-#define MSGJPN175 (std::data(msgs[10000+175])) /* フォルダ同時移動 */
-#define MSGJPN176 (std::data(msgs[10000+176])) /* 受信中止 */
 #define MSGJPN177 (std::data(msgs[10000+177])) /* 設定名「%s」はありません. */
 #define MSGJPN178 (std::data(msgs[10000+178])) /* 設定名が指定されていません. */
 #define MSGJPN179 (std::data(msgs[10000+179])) /* ホスト名と設定名の両方が指定されています. */
@@ -158,12 +133,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN301 (std::data(msgs[10000+301])) /* マスターパスワードが設定と一致しません.安全のため設定の保存を行いません. */
 #define MSGJPN302 (std::data(msgs[10000+302])) /* 確認用データが壊れているため,マスターパスワードの正当性を確認できませんでした. */
 #define MSGJPN303 (std::data(msgs[10000+303])) /* マスターパスワードを変更しました */
-#define MSGJPN307 (std::data(msgs[10000+307])) /* ホストの漢字コードはShift_JIS */
-#define MSGJPN308 (std::data(msgs[10000+308])) /* ホストの漢字コードはUTF-8 */
-#define MSGJPN309 (std::data(msgs[10000+309])) /* ローカルの漢字コードはShift_JIS */
-#define MSGJPN310 (std::data(msgs[10000+310])) /* ローカルの漢字コードはEUC */
-#define MSGJPN311 (std::data(msgs[10000+311])) /* ローカルの漢字コードはJIS */
-#define MSGJPN312 (std::data(msgs[10000+312])) /* ローカルの漢字コードはUTF-8 */
 #define MSGJPN314 (std::data(msgs[10000+314])) /* 通信は暗号化されていません.\r\n第三者にパスワードおよび内容を傍受される可能性があります. */
 #define MSGJPN315 (std::data(msgs[10000+315])) /* FTP over Explicit SSL/TLS (FTPES)を使用します. */
 #define MSGJPN316 (std::data(msgs[10000+316])) /* FTP over Implicit SSL/TLS (FTPIS)を使用します. */
@@ -172,7 +141,5 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN322 (std::data(msgs[10000+322])) /* デバッガが検出されました. */
 #define MSGJPN323 (std::data(msgs[10000+323])) /* 信頼できないDLLをアンロードできませんでした. */
 #define MSGJPN324 (std::data(msgs[10000+324])) /* プロセスの保護に必要な関数をフックできませんでした. */
-#define MSGJPN330 (std::data(msgs[10000+330])) /* ホストの漢字コードはUTF-8 BOM */
-#define MSGJPN331 (std::data(msgs[10000+331])) /* ローカルの漢字コードはUTF-8 BOM */
 #define MSGJPN358 (std::data(msgs[10000+358])) /* ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s */
 #define MSGJPN359 (std::data(msgs[10000+359])) /* ソフトウェアの更新に失敗しました.\nWebサイトから最新版を入手して手動で更新してください. */
