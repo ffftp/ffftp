@@ -30,11 +30,10 @@
 #include "common.h"
 const int AES_BLOCK_SIZE = 16;
 
-/*===== プロトタイプ =====*/
+static inline auto a2w(std::string_view text) {
+	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) { return MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, src, srclen, dst, dstlen); }, text);
+}
 
-// バグ修正
-//static void SaveStr(HKEY hKey, char *Key, char *Str, char *DefaultStr);
-//static void SaveIntNum(HKEY hKey, char *Key, int Num, int DefaultNum);
 static void SaveStr(void *Handle, char *Key, char *Str, char *DefaultStr);
 static void SaveIntNum(void *Handle, char *Key, int Num, int DefaultNum);
 static std::wstring MakeFontData(HFONT hfont, LOGFONTW const& logFont);
@@ -2216,10 +2215,6 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 {
 	int Sts;
 	char *Pos;
-	// UTF-8対応
-	DWORD TempSize;
-	char* pa0;
-	wchar_t* pw0;
 	// 全設定暗号化対応
 	char Path[80];
 
@@ -2250,32 +2245,15 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 	{
 		if((Pos = ScanValue(Handle, Name)) != NULL)
 		{
-			switch(IniKanjiCode)
-			{
-			case KANJI_NOCNV:
-				TempSize = std::min(Size-1, (DWORD)strlen(Pos));
-				TempSize = StrReadIn(Pos, TempSize, Str);
-				*(Str + TempSize) = NUL;
-				Sts = FFFTP_SUCCESS;
-				break;
-			case KANJI_SJIS:
-				if(pa0 = AllocateStringA((size_t)Size * 4))
-				{
-					if(pw0 = AllocateStringW((size_t)Size * 4 * 4))
-					{
-						TempSize = std::min((Size * 4) - 1, (DWORD)strlen(Pos));
-						TempSize = StrReadIn(Pos, TempSize, pa0);
-						*(pa0 + TempSize) = NUL;
-						AtoW(pw0, Size * 4 * 4, pa0, -1);
-						WtoM(Str, Size, pw0, -1);
-						TerminateStringM(Str, Size);
-						Sts = FFFTP_SUCCESS;
-						FreeDuplicatedString(pw0);
-					}
-					FreeDuplicatedString(pa0);
-				}
-				break;
+			auto TempSize = std::min(Size-1, (DWORD)strlen(Pos));
+			TempSize = StrReadIn(Pos, TempSize, Str);
+			if (IniKanjiCode == KANJI_SJIS) {
+				auto u8str = u8(a2w(Str));
+				TempSize = std::min(Size - 1, size_as<DWORD>(u8str));
+				std::copy_n(begin(u8str), TempSize, Str);
 			}
+			*(Str + TempSize) = NUL;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	// 全設定暗号化対応
@@ -2369,10 +2347,6 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 {
 	int Sts;
 	char *Pos;
-	// UTF-8対応
-	DWORD TempSize;
-	char* pa0;
-	wchar_t* pw0;
 	// 全設定暗号化対応
 	char Path[80];
 
@@ -2403,35 +2377,16 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 	{
 		if((Pos = ScanValue(Handle, Name)) != NULL)
 		{
-			switch(IniKanjiCode)
-			{
-			case KANJI_NOCNV:
-				TempSize = std::min(Size - 2, (DWORD)strlen(Pos));
-				TempSize = StrReadIn(Pos, TempSize, Str);
-				*(Str + TempSize) = NUL;
-				*(Str + TempSize + 1) = NUL;
-				Sts = FFFTP_SUCCESS;
-				break;
-			case KANJI_SJIS:
-				if(pa0 = AllocateStringA((size_t)Size * 4))
-				{
-					if(pw0 = AllocateStringW((size_t)Size * 4 * 4))
-					{
-						TempSize = std::min((Size * 4) - 2, (DWORD)strlen(Pos));
-						TempSize = StrReadIn(Pos, TempSize, pa0);
-						*(pa0 + TempSize) = NUL;
-						*(pa0 + TempSize + 1) = NUL;
-						AtoWMultiString(pw0, Size * 4 * 4, pa0);
-						WtoMMultiString(Str, Size, pw0);
-						TerminateStringM(Str, Size);
-						TerminateStringM(Str, Size - 1);
-						Sts = FFFTP_SUCCESS;
-						FreeDuplicatedString(pw0);
-					}
-					FreeDuplicatedString(pa0);
-				}
-				break;
+			auto TempSize = std::min(Size - 2, (DWORD)strlen(Pos));
+			TempSize = StrReadIn(Pos, TempSize, Str);
+			if (IniKanjiCode == KANJI_SJIS) {
+				auto u8str = u8(a2w({ Str, TempSize }));
+				TempSize = std::min(Size - 2, size_as<DWORD>(u8str));
+				std::copy_n(begin(u8str), TempSize, Str);
 			}
+			*(Str + TempSize) = NUL;
+			*(Str + TempSize + 1) = NUL;
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	// 全設定暗号化対応
