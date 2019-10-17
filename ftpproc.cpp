@@ -112,9 +112,9 @@ int MakeDirFromLocalPath(char* LocalFile, char* Old)
 		{
 			Cat = Pkt.LocalFile + (pDelimiter - LocalFile);
 			if(FnameCnv == FNAME_LOWER)
-				_mbslwr((unsigned char*)Cat);
+				_strlwr(Cat);
 			else if(FnameCnv == FNAME_UPPER)
-				_mbsupr((unsigned char*)Cat);
+				_strupr(Cat);
 			ReplaceAll(Pkt.LocalFile, '/', '\\');
 
 			strcpy(Pkt.Cmd, "MKD ");
@@ -164,9 +164,9 @@ void DownloadProc(int ChName, int ForceFile, int All)
 			strcpy(TmpString, f.File);
 			if (ChName == NO || ForceFile == NO && f.Node == NODE_DIR) {
 				if (FnameCnv == FNAME_LOWER)
-					_mbslwr((unsigned char*)TmpString);
+					_strlwr(TmpString);
 				else if (FnameCnv == FNAME_UPPER)
-					_mbsupr((unsigned char*)TmpString);
+					_strupr(TmpString);
 				RemoveAfterSemicolon(TmpString);
 				if (RenameUnuseableName(TmpString) == FFFTP_FAIL)
 					break;
@@ -292,9 +292,9 @@ void DirectDownloadProc(char *Fname)
 			SetYenTail(Pkt.LocalFile);
 			strcpy(TmpString, Fname);
 			if(FnameCnv == FNAME_LOWER)
-				_mbslwr((unsigned char*)TmpString);
+				_strlwr(TmpString);
 			else if(FnameCnv == FNAME_UPPER)
-				_mbsupr((unsigned char*)TmpString);
+				_strupr(TmpString);
 			RemoveAfterSemicolon(TmpString);
 
 			if(RenameUnuseableName(TmpString) == FFFTP_SUCCESS)
@@ -569,7 +569,7 @@ void MirrorDownloadProc(int Notify)
 					strcat(Pkt.LocalFile, f.File);
 
 					if (MirrorFnameCnv == YES)
-						_mbslwr((unsigned char*)Cat);
+						_strlwr(Cat);
 
 					RemoveAfterSemicolon(Cat);
 					ReplaceAll(Pkt.LocalFile, '/', '\\');
@@ -851,9 +851,9 @@ int MakeDirFromRemotePath(char* RemoteFile, char* Old, int FirstAdd)
 		{
 			Cat = Pkt.RemoteFile + (pDelimiter - RemoteFile);
 			if(FnameCnv == FNAME_LOWER)
-				_mbslwr((unsigned char*)Cat);
+				_strlwr(Cat);
 			else if(FnameCnv == FNAME_UPPER)
-				_mbsupr((unsigned char*)Cat);
+				_strupr(Cat);
 #if defined(HAVE_TANDEM)
 			Pkt.FileCode = 0;
 			Pkt.PriExt = DEF_PRIEXT;
@@ -960,9 +960,9 @@ void UploadListProc(int ChName, int All)
 			if (ChName == NO || f.Node == NODE_DIR) {
 				strcat(Pkt.RemoteFile, f.File);
 				if(FnameCnv == FNAME_LOWER)
-					_mbslwr((unsigned char*)Cat);
+					_strlwr(Cat);
 				else if(FnameCnv == FNAME_UPPER)
-					_mbsupr((unsigned char*)Cat);
+					_strupr(Cat);
 #if defined(HAVE_TANDEM)
 				Pkt.FileCode = 0;
 				Pkt.PriExt = DEF_PRIEXT;
@@ -1153,9 +1153,9 @@ void UploadDragProc(WPARAM wParam)
 
 			strcat(Pkt.RemoteFile, f.File);
 			if(FnameCnv == FNAME_LOWER)
-				_mbslwr((unsigned char*)Cat);
+				_strlwr(Cat);
 			else if(FnameCnv == FNAME_UPPER)
-				_mbsupr((unsigned char*)Cat);
+				_strupr(Cat);
 			ReplaceAll(Pkt.RemoteFile, '\\', '/');
 #if defined(HAVE_TANDEM)
 			Pkt.FileCode = 0;
@@ -1432,7 +1432,7 @@ void MirrorUploadProc(int Notify)
 					strcat(Pkt.RemoteFile, f.File);
 
 					if (MirrorFnameCnv == YES)
-						_mbslwr((unsigned char*)Cat);
+						_strlwr(Cat);
 
 					ReplaceAll(Pkt.RemoteFile, '\\', '/');
 
@@ -2882,45 +2882,16 @@ void ReformVMSDirName(char *DirName, int Flg)
 #endif
 
 
-/*----- ファイル名に使えない文字がないかチェックし名前を変更する --------------
-*
-*	Parameter
-*		char *Fname : ファイル名
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL=中止する
-*
-*	Note
-*		Fnameを直接書きかえる
-*----------------------------------------------------------------------------*/
-
-static int RenameUnuseableName(char *Fname)
-{
-	int Ret;
-
-	Ret = FFFTP_SUCCESS;
-	while(1)
-	{
-		if((_mbschr((const unsigned char *)Fname, ':') != NULL) ||
-		   (_mbschr((const unsigned char *)Fname, '*') != NULL) ||
-		   (_mbschr((const unsigned char *)Fname, '?') != NULL) ||
-		   (_mbschr((const unsigned char *)Fname, '<') != NULL) ||
-		   (_mbschr((const unsigned char *)Fname, '>') != NULL) ||
-		   (_mbschr((const unsigned char *)Fname, '|') != NULL) ||
-		   (_mbschr((const unsigned char *)Fname, '\x22') != NULL) ||
-		   (_mbschr((const unsigned char *)Fname, '\\') != NULL))
-		{
-			if (!InputDialog(forcerename_dlg, GetMainHwnd(), NULL, Fname, FMAX_PATH+1))
-			{
-				Ret = FFFTP_FAIL;
-				break;
-			}
-		}
-		else
-			break;
+// ファイル名に使えない文字がないかチェックし名前を変更する
+//   Fnameを直接書きかえる
+static int RenameUnuseableName(char* Fname) {
+	static std::regex re{ R"([:*?<>|"\\])" };
+	for (;;) {
+		if (!std::regex_search(Fname, re))
+			return FFFTP_SUCCESS;
+		if (!InputDialog(forcerename_dlg, GetMainHwnd(), NULL, Fname, FMAX_PATH + 1))
+			return FFFTP_FAIL;
 	}
-	return(Ret);
 }
 
 

@@ -42,12 +42,9 @@
 *		オリジナルの文字列 char *Str が変更されます。
 *----------------------------------------------------------------------------*/
 
-void SetYenTail(char *Str)
-{
-	if(_mbscmp(_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), (const unsigned char*)"\\") != 0)
+void SetYenTail(char* Str) {
+	if (Str[strlen(Str) - 1] != '\\')
 		strcat(Str, "\\");
-
-	return;;
 }
 
 
@@ -63,19 +60,16 @@ void SetYenTail(char *Str)
 *		オリジナルの文字列 char *Str が変更されます。
 *----------------------------------------------------------------------------*/
 
-void SetSlashTail(char *Str)
-{
+void SetSlashTail(char* Str) {
 #if defined(HAVE_TANDEM)
 	/* Tandem では / の代わりに . を追加 */
-	if(AskHostType() == HTYPE_TANDEM) {
-		if(_mbscmp(_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), (const unsigned char*)".") != 0)
+	if (AskHostType() == HTYPE_TANDEM) {
+		if (Str[strlen(Str) - 1] != '.')
 			strcat(Str, ".");
 	} else
 #endif
-	if(_mbscmp(_mbsninc((const unsigned char*)Str, _mbslen((const unsigned char*)Str) - 1), (const unsigned char*)"/") != 0)
-		strcat(Str, "/");
-
-	return;
+		if (Str[strlen(Str) - 1] != '/')
+			strcat(Str, "/");
 }
 
 
@@ -90,19 +84,15 @@ void SetSlashTail(char *Str)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void ReplaceAll(char *Str, char Src, char Dst)
-{
-	char *Pos;
-
-/* Tandem ではノード名の変換を行わない */
-/* 最初の1文字が \ でもそのままにする */
+void ReplaceAll(char* Str, char Src, char Dst) {
 #if defined(HAVE_TANDEM)
+	/* Tandem ではノード名の変換を行わない */
+	/* 最初の1文字が \ でもそのままにする */
 	if (AskRealHostType() == HTYPE_TANDEM && strlen(Str) > 0)
 		Str++;
 #endif
-	while((Pos = (char*)_mbschr((const unsigned char*)Str, Src)) != NULL)
+	for (char* Pos; (Pos = strchr(Str, Src)) != NULL;)
 		*Pos = Dst;
-	return;
 }
 
 
@@ -324,18 +314,18 @@ char *GetFileName(char *Path)
 {
 	char *Pos;
 
-	if((Pos = (char*)_mbschr((const unsigned char*)Path, ':')) != NULL)
+	if((Pos = strchr(Path, ':')) != NULL)
 		Path = Pos + 1;
 
-	if((Pos = (char*)_mbsrchr((const unsigned char*)Path, '\\')) != NULL)
+	if((Pos = strrchr(Path, '\\')) != NULL)
 		Path = Pos + 1;
 
-	if((Pos = (char*)_mbsrchr((const unsigned char*)Path, '/')) != NULL)
+	if((Pos = strrchr(Path, '/')) != NULL)
 		Path = Pos + 1;
 
 #if defined(HAVE_TANDEM)
 	/* Tandem は . がデリミッタとなる */
-	if((AskHostType() == HTYPE_TANDEM) && ((Pos = (char*)_mbsrchr((const unsigned char*)Path, '.')) != NULL))
+	if((AskHostType() == HTYPE_TANDEM) && ((Pos = strrchr(Path, '.')) != NULL))
 		Path = Pos + 1;
 #endif
 	return(Path);
@@ -355,11 +345,11 @@ char *GetFileExt(char *Path)
 {
 	char *Ret;
 
-	Ret = (char*)_mbschr((const unsigned char*)Path, NUL);
-	if((_mbscmp((const unsigned char*)Path, (const unsigned char*)".") != 0) &&
-	   (_mbscmp((const unsigned char*)Path, (const unsigned char*)"..") != 0))
+	Ret = Path + strlen(Path);
+	if((strcmp(Path, ".") != 0) &&
+	   (strcmp(Path, "..") != 0))
 	{
-		while((Path = (char*)_mbschr((const unsigned char*)Path, '.')) != NULL)
+		while((Path = strchr(Path, '.')) != NULL)
 		{
 			Path++;
 			Ret = Path;
@@ -388,9 +378,9 @@ void RemoveFileName(char *Path, char *Buf)
 
 	strcpy(Buf, Path);
 
-	if((Pos = (char*)_mbsrchr((const unsigned char*)Buf, '/')) != NULL)
+	if((Pos = strrchr(Buf, '/')) != NULL)
 		*Pos = NUL;
-	else if((Pos = (char*)_mbsrchr((const unsigned char*)Buf, '\\')) != NULL)
+	else if((Pos = strrchr(Buf, '\\')) != NULL)
 	{
 		if((Pos == Buf) || 
 		   ((Pos != Buf) && (*(Pos - 1) != ':')))
@@ -420,12 +410,12 @@ void GetUpperDir(char *Path)
 	char *Top;
 	char *Pos;
 
-	if(((Top = (char*)_mbschr((const unsigned char*)Path, '/')) != NULL) ||
-	   ((Top = (char*)_mbschr((const unsigned char*)Path, '\\')) != NULL))
+	if(((Top = strchr(Path, '/')) != NULL) ||
+	   ((Top = strchr(Path, '\\')) != NULL))
 	{
 		Top++;
-		if(((Pos = (char*)_mbsrchr((const unsigned char*)Top, '/')) != NULL) ||
-		   ((Pos = (char*)_mbsrchr((const unsigned char*)Top, '\\')) != NULL))
+		if(((Pos = strrchr(Top, '/')) != NULL) ||
+		   ((Pos = strrchr(Top, '\\')) != NULL))
 			*Pos = NUL;
 		else
 			*Top = NUL;
@@ -453,8 +443,8 @@ void GetUpperDirEraseTopSlash(char *Path)
 {
 	char *Pos;
 
-	if(((Pos = (char*)_mbsrchr((const unsigned char*)Path, '/')) != NULL) ||
-	   ((Pos = (char*)_mbsrchr((const unsigned char*)Path, '\\')) != NULL))
+	if(((Pos = strrchr(Path, '/')) != NULL) ||
+	   ((Pos = strrchr(Path, '\\')) != NULL))
 		*Pos = NUL;
 	else
 		*Path = NUL;
@@ -481,8 +471,8 @@ int AskDirLevel(char *Path)
 	int Level;
 
 	Level = 0;
-	while(((Pos = (char*)_mbschr((const unsigned char*)Path, '/')) != NULL) ||
-		  ((Pos = (char*)_mbschr((const unsigned char*)Path, '\\')) != NULL))
+	while(((Pos = strchr(Path, '/')) != NULL) ||
+		  ((Pos = strchr(Path, '\\')) != NULL))
 	{
 		Path = Pos + 1;
 		Level++;
@@ -634,18 +624,18 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 
 	ReplaceAll(unc, '\\', '/');
 
-	if((Pos1 = (char*)_mbsstr((const unsigned char*)unc, (const unsigned char*)"//")) != NULL)
+	if((Pos1 = strstr(unc, "//")) != NULL)
 		Pos1 += 2;
 	else
 		Pos1 = unc;
 
-	if((Pos2 = (char*)_mbschr((const unsigned char*)Pos1, '@')) != NULL)
+	if((Pos2 = strchr(Pos1, '@')) != NULL)
 	{
 		memset(Tmp, NUL, FMAX_PATH+1);
 		memcpy(Tmp, Pos1, Pos2-Pos1);
 		Pos1 = Pos2 + 1;
 
-		if((Pos2 = (char*)_mbschr((const unsigned char*)Tmp, ':')) != NULL)
+		if((Pos2 = strchr(Tmp, ':')) != NULL)
 		{
 			memcpy(User, Tmp, std::min(Pos2-Tmp, (ptrdiff_t)USER_NAME_LEN));
 			strncpy(Pass, Pos2+1, PASSWORD_LEN);
@@ -655,17 +645,17 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 	}
 
 	// IPv6対応
-	if((Pos2 = (char*)_mbschr((const unsigned char*)Pos1, '[')) != NULL && Pos2 < (char*)_mbschr((const unsigned char*)Pos1, ':'))
+	if((Pos2 = strchr(Pos1, '[')) != NULL && Pos2 < strchr(Pos1, ':'))
 	{
 		Pos1 = Pos2 + 1;
-		if((Pos2 = (char*)_mbschr((const unsigned char*)Pos2, ']')) != NULL)
+		if((Pos2 = strchr(Pos2, ']')) != NULL)
 		{
 			memcpy(Host, Pos1, std::min(Pos2-Pos1, (ptrdiff_t)HOST_ADRS_LEN));
 			Pos1 = Pos2 + 1;
 		}
 	}
 
-	if((Pos2 = (char*)_mbschr((const unsigned char*)Pos1, ':')) != NULL)
+	if((Pos2 = strchr(Pos1, ':')) != NULL)
 	{
 		if(strlen(Host) == 0)
 			memcpy(Host, Pos1, std::min(Pos2-Pos1, (ptrdiff_t)HOST_ADRS_LEN));
@@ -683,7 +673,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 		RemoveFileName(Pos2, Path);
 		strncpy(File, GetFileName(Pos2), FMAX_PATH);
 	}
-	else if((Pos2 = (char*)_mbschr((const unsigned char*)Pos1, '/')) != NULL)
+	else if((Pos2 = strchr(Pos1, '/')) != NULL)
 	{
 		if(strlen(Host) == 0)
 			memcpy(Host, Pos1, std::min(Pos2-Pos1, (ptrdiff_t)HOST_ADRS_LEN));

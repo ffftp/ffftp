@@ -1020,7 +1020,8 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 		auto Sort = AskSortType(hWnd == GetRemoteHwnd() ? l.Node == NODE_DIR ? ITEM_RDIR : ITEM_RFILE : l.Node == NODE_DIR ? ITEM_LDIR : ITEM_LFILE);
 		auto test = [ascent = (Sort & SORT_GET_ORD) == SORT_ASCENT](auto r) { return ascent ? r < 0 : r > 0; };
 		LONGLONG Cmp = 0;
-		if ((Sort & SORT_MASK_ORD) == SORT_EXT && test(Cmp = _mbsicmp((const unsigned char*)GetFileExt(l.File), (const unsigned char*)GetFileExt(r.File))))
+		auto lf = fs::u8path(l.File), rf = fs::u8path(r.File);
+		if ((Sort & SORT_MASK_ORD) == SORT_EXT && test(Cmp = _wcsicmp(lf.extension().c_str(), rf.extension().c_str())))
 			return true;
 #if defined(HAVE_TANDEM)
 		if (AskHostType() == HTYPE_TANDEM && (Sort & SORT_MASK_ORD) == SORT_EXT && test(Cmp = (LONGLONG)l.Attr - r.Attr))
@@ -1031,7 +1032,7 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 		if ((Sort & SORT_MASK_ORD) == SORT_DATE && test(Cmp = CompareFileTime(&l.Time, &r.Time)))
 			return true;
 		if ((Sort & SORT_MASK_ORD) == SORT_NAME || Cmp == 0)
-			if (test(_mbsicmp((const unsigned char*)l.File, (const unsigned char*)r.File)))
+			if (test(_wcsicmp(lf.c_str(), rf.c_str())))
 				return true;
 		return false;
 	});
@@ -1412,31 +1413,18 @@ int GetHotSelected(int Win, char* Fname) {
 	return Pos;
 }
 
-int SetHotSelected(int Win, char *Fname)
-{
-	HWND hWnd;
-	int i;
-	int Num;
-	char Name[FMAX_PATH+1];
-	int Pos;
-
-	hWnd = GetLocalHwnd();
-	if(Win == WIN_REMOTE)
-		hWnd = GetRemoteHwnd();
-
-	Num = GetItemCount(Win);
-	Pos = -1;
-	for(i = 0; i < Num; i++)
-	{
-		GetNodeName(Win, i, Name, FMAX_PATH);
+int SetHotSelected(int Win, char* Fname) {
+	auto wFname = u8(Fname);
+	auto hWnd = Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd();
+	int Pos = -1;
+	for (int i = 0, Num = GetItemCount(Win); i < Num; i++) {
 		LVITEMW item{ .stateMask = LVIS_FOCUSED };
-		if (_mbscmp((const unsigned char*)Fname, (const unsigned char*)Name) == 0) {
+		if (wFname == GetNodeName(Win, i)) {
 			Pos = i;
 			item.state = LVIS_FOCUSED;
 		}
 		SendMessageW(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&item);
 	}
-
 	return Pos;
 }
 
@@ -1461,8 +1449,13 @@ int FindNameNode(int Win, char* Name) {
 static std::wstring GetItemText(int Win, int index, int subitem) {
 	wchar_t buffer[260 + 1];
 	LVITEMW item{ .iSubItem = subitem, .pszText = buffer, .cchTextMax = size_as<int>(buffer) };
-	SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETITEMTEXTW, index, (LPARAM)&item);
-	return buffer;
+	auto length = SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETITEMTEXTW, index, (LPARAM)&item);
+	return { buffer, (size_t)length };
+}
+
+// 指定位置のアイテムの名前を返す
+std::wstring GetNodeName(int Win, int Pos) {
+	return GetItemText(Win, Pos, 0);
 }
 
 /*----- 指定位置のアイテムの名前を返す ----------------------------------------
@@ -1478,8 +1471,7 @@ static std::wstring GetItemText(int Win, int index, int subitem) {
 *----------------------------------------------------------------------------*/
 
 void GetNodeName(int Win, int Pos, char* Buf, int Max) {
-	auto name = GetItemText(Win, Pos, 0);
-	strncpy_s(Buf, Max, u8(name).c_str(), _TRUNCATE);
+	strncpy_s(Buf, Max, u8(GetNodeName(Win, Pos)).c_str(), _TRUNCATE);
 }
 
 
@@ -2206,16 +2198,16 @@ static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base) {
 const FILELIST* SearchFileList(const char* Fname, std::vector<FILELIST> const& Base, int Caps) {
 	for (auto p = data(Base), end = data(Base) + size(Base); p != end; ++p)
 		if (Caps == COMP_STRICT) {
-			if (_mbscmp((const unsigned char*)Fname, (const unsigned char*)p->File) == 0)
+			if (strcmp(Fname, p->File) == 0)
 				return p;
 		} else {
-			if (_mbsicmp((const unsigned char*)Fname, (const unsigned char*)p->File) == 0) {
+			if (_stricmp(Fname, p->File) == 0) {
 				if (Caps == COMP_IGNORE)
 					return p;
 				char Tmp[FMAX_PATH + 1];
 				strcpy(Tmp, p->File);
-				_mbslwr((unsigned char*)Tmp);
-				if (_mbscmp((const unsigned char*)Tmp, (const unsigned char*)p->File) == 0)
+				_strlwr(Tmp);
+				if (strcmp(Tmp, p->File) == 0)
 					return p;
 			}
 		}
@@ -4196,12 +4188,6 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 				if(strchr("dl", *Str) != NULL)
 				{
-					// 0x5Cが含まれる文字列を扱えないバグ修正
-//					if((_mbscmp(_mbsninc(Fname, _mbslen(Fname) - 1), "/") == 0) ||
-//					   (_mbscmp(_mbsninc(Fname, _mbslen(Fname) - 1), "\\") == 0))
-//					{
-//						*(Fname + strlen(Fname) - 1) = NUL;
-//					}
 					Ret = NODE_DIR;
 					if(*Str == 'l')
 						*Link = YES;
@@ -4388,7 +4374,7 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day)
 						}
 					}
 				}
-				else if(_mbsncmp((const unsigned char*)Pos, (const unsigned char*)"/", 1) == 0)
+				else if(*Pos == '/')
 				{
 					/* 「10/」のような日付を返すものがある */
 					Pos += 1;
@@ -4475,12 +4461,12 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 	char *Pos;
 
 	Ret = FFFTP_FAIL;
-	if((_mbslen((const unsigned char*)Str) >= 3) && (isdigit(Str[0]) != 0))
+	if(strlen(Str) >= 3 && isdigit(Str[0]))
 	{
 		*Hour = atoi(Str);
 		if(*Hour <= 24)
 		{
-			if((Pos = (char*)_mbschr((const unsigned char*)Str, ':')) != NULL)
+			if((Pos = strchr(Str, ':')) != NULL)
 			{
 				Pos++;
 				if(IsDigit(*Pos) != 0)
