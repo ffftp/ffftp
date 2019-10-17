@@ -57,9 +57,6 @@
     <ClCompile Include="lvtips.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mbswrapper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="option.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -104,9 +101,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mbswrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Resource\resource.en-US.h">

@@ -233,12 +233,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="mbswrapper.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="misc.cpp" />
     <ClCompile Include="option.cpp" />
     <ClCompile Include="ras.cpp" />
@@ -256,7 +250,6 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="dialog.h" />
     <ClInclude Include="helpid.h" />
-    <ClInclude Include="mbswrapper.h" />
     <ClInclude Include="mesg-jpn.h" />
     <ClInclude Include="OleDragDrop.h" />
     <ClInclude Include="Resource\resource.en-US.h" />

@@ -63,12 +63,15 @@
 #include <ObjBase.h>			// for COM interface, define `interface` macro.
 #include <windowsx.h>
 #include <winsock2.h>
+#include <CommCtrl.h>
 #include <commdlg.h>
 #include <MLang.h>
 #include <MMSystem.h>
 #include <mstcpip.h>
 #include <shellapi.h>
+#include <ShlObj.h>
 #include <Shlwapi.h>
+#include <ShObjIdl.h>
 #include <WinCrypt.h>
 #include <WS2tcpip.h>
 #include "wrl/client.h"
@@ -77,7 +80,6 @@
 #include "config.h"
 #include "dialog.h"
 #include "helpid.h"
-#include "mbswrapper.h"
 #include "Resource/resource.ja-JP.h"
 #include "mesg-jpn.h"
 // IdnToAscii()、NormalizeString()共にVistaからNormaliz.dllからKERNEL32.dllに移されている。
