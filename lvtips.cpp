@@ -34,7 +34,7 @@
 
 /*===== プロトタイプ =====*/
 
-static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffset, int xoffset2, int InRect);
+static void TipsShow(HWND hWnd, RECT rectTitle, std::wstring_view text, int xoffset, int xoffset2, int InRect);
 static int CellRectFromPoint(HWND hWnd, POINT  point, RECT *cellrect, int *col);
 
 /*===== ローカルなワーク =====*/
@@ -110,51 +110,37 @@ HWND GetListViewTipsHwnd(void)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void CheckTipsDisplay(HWND hWnd, LPARAM lParam)
-{
-	RECT cellrect;
+void CheckTipsDisplay(HWND hWnd, LPARAM lParam) {
 	static RECT cur_rect;
 	static int InRect;
-	POINT Point;
-	int row, col;
-	int offset;
-	int offset2;
-	RECT rcLabel;
-	char Buf[256];
-
-	Point.x = LOWORD(lParam);
-	Point.y = HIWORD(lParam);
-	if(InRect == NO)
-	{
-		row = CellRectFromPoint(hWnd, Point, &cellrect, &col);
-		if(row != -1)
-		{
-			cur_rect=cellrect;
-			offset = 6;
-			offset2 = offset;
-			if( col == 0 ) 
-			{
-				ListView_GetItemRect(hWnd,  row, &rcLabel, LVIR_LABEL);
+	POINT Point{ LOWORD(lParam), HIWORD(lParam) };
+	if (InRect == NO) {
+		RECT cellrect;
+		int col;
+		int row = CellRectFromPoint(hWnd, Point, &cellrect, &col);
+		if (row != -1) {
+			cur_rect = cellrect;
+			int offset = 6;
+			int offset2 = offset;
+			if (col == 0) {
+				RECT rcLabel;
+				ListView_GetItemRect(hWnd, row, &rcLabel, LVIR_LABEL);
 				offset = rcLabel.left - cellrect.left + offset / 2;
 				offset2 = 1;
 			}
 			cellrect.top--;
-			strcpy(Buf, "");
-			ListView_GetItemText(hWnd,  row, col, Buf, 256 );
-			if(strlen(Buf) > 0)
-				TipsShow(hWnd, cellrect, Buf, offset-1, offset2-1, InRect);
+			wchar_t buffer[256 + 1] = L"";
+			LVITEMW item{ .iSubItem = col, .pszText = buffer, .cchTextMax = size_as<int>(buffer) };
+			if (auto length = SendMessageW(hWnd, LVM_GETITEMTEXTW, row, (LPARAM)&item); 0 < length)
+				TipsShow(hWnd, cellrect, { buffer, (size_t)length }, offset - 1, offset2 - 1, InRect);
 			InRect = YES;
 		}
-	}
-	else
-	{
-		if(PtInRect(&cur_rect, Point) == FALSE)
-		{
+	} else {
+		if (PtInRect(&cur_rect, Point) == FALSE) {
 			EraseListViewTips();
 			InRect = NO;
 		}
 	}
-	return;
 }
 
 
@@ -172,12 +158,11 @@ void CheckTipsDisplay(HWND hWnd, LPARAM lParam)
 *		なし
 *----------------------------------------------------------------------------*/
 
-static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffset, int xoffset2, int InRect) {
+static void TipsShow(HWND hWnd, RECT rectTitle, std::wstring_view text, int xoffset, int xoffset2, int InRect) {
 	if (InRect != NO || GetFocus() == NULL)
 		return;
 
 	RectClientToScreen(hWnd, &rectTitle);
-	auto wText = u8(lpszTitleText);
 	auto font = (HFONT)SendMessageW(hWnd, WM_GETFONT, 0, 0);
 
 	auto dc = GetDC(hWndTips);
@@ -185,10 +170,10 @@ static void TipsShow(HWND hWnd, RECT rectTitle, LPCTSTR lpszTitleText, int xoffs
 	SetTextColor(dc, GetSysColor(COLOR_INFOTEXT));
 	SetBkMode(dc, TRANSPARENT);
 	SIZE size;
-	GetTextExtentPoint32W(dc, wText.c_str(), size_as<int>(wText), &size);
+	GetTextExtentPoint32W(dc, data(text), size_as<int>(text), &size);
 	if (rectTitle.right - rectTitle.left < size.cx + xoffset + xoffset2 + 2) {
 		SetWindowPos(hWndTips, HWND_TOPMOST, rectTitle.left + xoffset, rectTitle.top, size.cx + 3, rectTitle.bottom - rectTitle.top, SWP_SHOWWINDOW | SWP_NOACTIVATE);
-		TextOutW(dc, 0, 0, wText.c_str(), size_as<int>(wText));
+		TextOutW(dc, 0, 0, data(text), size_as<int>(text));
 		SetCapture(hWnd);
 	}
 	SelectObject(dc, saved);
