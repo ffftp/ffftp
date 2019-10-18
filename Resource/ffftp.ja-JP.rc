@@ -1,5 +1,7 @@
 // Microsoft Visual C++ generated resource script.
 //
+#pragma code_page(65001)
+
 #include "resource.ja-JP.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
@@ -17,7 +19,6 @@
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
 LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
-#pragma code_page(932)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -88,94 +89,94 @@ dirattr16_bmp           BITMAP                  "list_16.bmp"
 
 main_menu MENU
 BEGIN
-    POPUP "�ڑ�(&F)"
+    POPUP "接続(&F)"
     BEGIN
-        MENUITEM "�ڑ�(&C)...\tCtrl+C",           MENU_CONNECT
-        MENUITEM "�N�C�b�N�ڑ�(&Q)...\tCtrl+Q",       MENU_QUICK
-        MENUITEM "�ؒf(&R)",                      MENU_DISCONNECT
+        MENUITEM "接続(&C)...\tCtrl+C",           MENU_CONNECT
+        MENUITEM "クイック接続(&Q)...\tCtrl+Q",       MENU_QUICK
+        MENUITEM "切断(&R)",                      MENU_DISCONNECT
         MENUITEM SEPARATOR
-        MENUITEM "�z�X�g�̐ݒ�(&H)...",               MENU_SET_CONNECT
-        POPUP "�ݒ�(&S)"
+        MENUITEM "ホストの設定(&H)...",               MENU_SET_CONNECT
+        POPUP "設定(&S)"
         BEGIN
-            MENUITEM "WS_FTP����ݒ���C���|�[�g(&W)...",     MENU_IMPORT_WS
-            MENUITEM "�ݒ���t�@�C���ɕۑ�(&S)...",           MENU_REGSAVE
-            MENUITEM "�ݒ���t�@�C�����畜��(&L)...",          MENU_REGLOAD
-            MENUITEM "�}�X�^�[�p�X���[�h�̕ύX(&M)...",         MENU_CHANGEPASSWD
-            MENUITEM "FileZilla XML�ɐݒ���G�N�X�|�[�g...",  MENU_EXPORT_FILEZILLA_XML
-            MENUITEM "WinSCP INI�ɐݒ���G�N�X�|�[�g...",     MENU_EXPORT_WINSCP_INI
+            MENUITEM "WS_FTPから設定をインポート(&W)...",     MENU_IMPORT_WS
+            MENUITEM "設定をファイルに保存(&S)...",           MENU_REGSAVE
+            MENUITEM "設定をファイルから復元(&L)...",          MENU_REGLOAD
+            MENUITEM "マスターパスワードの変更(&M)...",         MENU_CHANGEPASSWD
+            MENUITEM "FileZilla XMLに設定をエクスポート...",  MENU_EXPORT_FILEZILLA_XML
+            MENUITEM "WinSCP INIに設定をエクスポート...",     MENU_EXPORT_WINSCP_INI
             MENUITEM SEPARATOR
-            MENUITEM "�S�ݒ�̏���...",                   MENU_REGINIT
+            MENUITEM "全設定の消去...",                   MENU_REGINIT
         END
         MENUITEM SEPARATOR
-        MENUITEM "�I��(&X)",                      MENU_EXIT
+        MENUITEM "終了(&X)",                      MENU_EXIT
     END
-    POPUP "�R�}���h(&C)"
+    POPUP "コマンド(&C)"
     BEGIN
-        MENUITEM "�_�E�����[�h(&D)\tCtrl+D",          MENU_DOWNLOAD
-        MENUITEM "�A�b�v���[�h(&U)\tCtrl+U",          MENU_UPLOAD
-        MENUITEM "���O��ς��ă_�E�����[�h(&O)...",         MENU_DOWNLOAD_AS
-        MENUITEM "���O��ς��ăA�b�v���[�h(&P)...",         MENU_UPLOAD_AS
-        MENUITEM "���O���w�肵�ă_�E�����[�h(&G)...",        MENU_DOWNLOAD_NAME
-        MENUITEM "�t�@�C���Ƃ��ă_�E�����[�h(&F)",           MENU_DOWNLOAD_AS_FILE
+        MENUITEM "ダウンロード(&D)\tCtrl+D",          MENU_DOWNLOAD
+        MENUITEM "アップロード(&U)\tCtrl+U",          MENU_UPLOAD
+        MENUITEM "名前を変えてダウンロード(&O)...",         MENU_DOWNLOAD_AS
+        MENUITEM "名前を変えてアップロード(&P)...",         MENU_UPLOAD_AS
+        MENUITEM "名前を指定してダウンロード(&G)...",        MENU_DOWNLOAD_NAME
+        MENUITEM "ファイルとしてダウンロード(&F)",           MENU_DOWNLOAD_AS_FILE
         MENUITEM SEPARATOR
-        MENUITEM "�~���[�����O�A�b�v���[�h(&M)...\tCtrl+Shift+U", MENU_MIRROR_UPLOAD
-        MENUITEM "�t�@�C���e�ʌv�Z(&Z)...",             MENU_FILESIZE
-        MENUITEM "�~���[�����O�_�E�����[�h(&L)...\tCtrl+Shift+D", MENU_MIRROR_DOWNLOAD
+        MENUITEM "ミラーリングアップロード(&M)...\tCtrl+Shift+U", MENU_MIRROR_UPLOAD
+        MENUITEM "ファイル容量計算(&Z)...",             MENU_FILESIZE
+        MENUITEM "ミラーリングダウンロード(&L)...\tCtrl+Shift+D", MENU_MIRROR_DOWNLOAD
         MENUITEM SEPARATOR
-        MENUITEM "�폜(&R)...\tDel",              MENU_DELETE
-        MENUITEM "���O�ύX(&N)...\tCtrl+N",         MENU_RENAME
-        MENUITEM "�����ύX(&A)...\tCtrl+T",         MENU_CHMOD
-        MENUITEM "�t�H���_�쐬(&K)...\tCtrl+K",       MENU_MKDIR
-        MENUITEM "�C�ӂ̃R�}���h(&C)...",              MENU_SOMECMD
+        MENUITEM "削除(&R)...\tDel",              MENU_DELETE
+        MENUITEM "名前変更(&N)...\tCtrl+N",         MENU_RENAME
+        MENUITEM "属性変更(&A)...\tCtrl+T",         MENU_CHMOD
+        MENUITEM "フォルダ作成(&K)...\tCtrl+K",       MENU_MKDIR
+        MENUITEM "任意のコマンド(&C)...",              MENU_SOMECMD
         MENUITEM SEPARATOR
-        MENUITEM "�t�H���_�����ړ�(&S)",                MENU_SYNC
+        MENUITEM "フォルダ同時移動(&S)",                MENU_SYNC
     END
-    POPUP "�u�b�N�}�[�N(&B)"
+    POPUP "ブックマーク(&B)"
     BEGIN
-        MENUITEM "�ǉ� - �z�X�g��(&H)",               MENU_BMARK_ADD
-        MENUITEM "�ǉ� - ���[�J����(&L)",              MENU_BMARK_ADD_LOCAL
-        MENUITEM "�ǉ��|����(&B)",                   MENU_BMARK_ADD_BOTH
-        MENUITEM "�ҏW(&E)...\tCtrl+B",           MENU_BMARK_EDIT
+        MENUITEM "追加 - ホスト側(&H)",               MENU_BMARK_ADD
+        MENUITEM "追加 - ローカル側(&L)",              MENU_BMARK_ADD_LOCAL
+        MENUITEM "追加－両方(&B)",                   MENU_BMARK_ADD_BOTH
+        MENUITEM "編集(&E)...\tCtrl+B",           MENU_BMARK_EDIT
         MENUITEM SEPARATOR
     END
-    POPUP "�\��(&V)"
+    POPUP "表示(&V)"
     BEGIN
-        MENUITEM "�t�B���^(&L)...\tCtrl+Y",         MENU_FILTER
+        MENUITEM "フィルタ(&L)...\tCtrl+Y",         MENU_FILTER
         MENUITEM SEPARATOR
-        MENUITEM "����(&F)...\tCtrl+F",           MENU_FIND
-        MENUITEM "��������(&N)\tF3",                MENU_FINDNEXT
+        MENUITEM "検索(&F)...\tCtrl+F",           MENU_FIND
+        MENUITEM "次を検索(&N)\tF3",                MENU_FINDNEXT
         MENUITEM SEPARATOR
-        MENUITEM "�I��(U)...\tCtrl+S",            MENU_SELECT
-        MENUITEM "�S�I��/����(&A)\tCtrl+A",          MENU_SELECT_ALL
+        MENUITEM "選択(U)...\tCtrl+S",            MENU_SELECT
+        MENUITEM "全選択/解除(&A)\tCtrl+A",          MENU_SELECT_ALL
         MENUITEM SEPARATOR
-        POPUP "�`��(&T)"
+        POPUP "形式(&T)"
         BEGIN
-            MENUITEM "�ꗗ(&L)",                      MENU_LIST
-            MENUITEM "�ڍ�(&D)",                      MENU_REPORT
+            MENUITEM "一覧(&L)",                      MENU_LIST
+            MENUITEM "詳細(&D)",                      MENU_REPORT
         END
-        MENUITEM "�\�[�g(&S)...",                  MENU_SORT
-        MENUITEM ".�Ŏn�܂�t�@�C����\��(&D)",            MENU_DOTFILE
+        MENUITEM "ソート(&S)...",                  MENU_SORT
+        MENUITEM ".で始まるファイルを表示(&D)",            MENU_DOTFILE
         MENUITEM SEPARATOR
-        MENUITEM "�t�@�C���ꗗ���r���[�A�ŕ\��(&I)",          MENU_DIRINFO
-        MENUITEM "�������e���r���[�A�ŕ\��(&W)",            MENU_TASKINFO
+        MENUITEM "ファイル一覧をビューアで表示(&I)",          MENU_DIRINFO
+        MENUITEM "処理内容をビューアで表示(&W)",            MENU_TASKINFO
         MENUITEM SEPARATOR
-        MENUITEM "�ŐV�̏��ɍX�V(&R)\tF5",            MENU_REFRESH
+        MENUITEM "最新の情報に更新(&R)\tF5",            MENU_REFRESH
     END
-    POPUP "�c�[��(&T)"
+    POPUP "ツール(&T)"
     BEGIN
-        MENUITEM "�����^�C���p�X���[�h�v�Z(&O)...",         MENU_OTPCALC
-        MENUITEM "Windows�t�@�C�A�E�H�[���̃X�e�[�g�t��FTP�t�B���^�̐ݒ�(&F)...", MENU_FW_FTP_FILTER
+        MENUITEM "ワンタイムパスワード計算(&O)...",         MENU_OTPCALC
+        MENUITEM "WindowsファイアウォールのステートフルFTPフィルタの設定(&F)...", MENU_FW_FTP_FILTER
     END
-    POPUP "�I�v�V����(&O)"
+    POPUP "オプション(&O)"
     BEGIN
-        MENUITEM "���ݒ�(&S)...",                 MENU_OPTION
+        MENUITEM "環境設定(&S)...",                 MENU_OPTION
     END
-    POPUP "�w���v(&H)"
+    POPUP "ヘルプ(&H)"
     BEGIN
-        MENUITEM "�ڎ�(&C)\tF1",                  MENU_HELP
-        MENUITEM "�E�F�u�T�C�g���J��(&W)",               MENU_HELP_TROUBLE
+        MENUITEM "目次(&C)\tF1",                  MENU_HELP
+        MENUITEM "ウェブサイトを開く(&W)",               MENU_HELP_TROUBLE
         MENUITEM SEPARATOR
-        MENUITEM "FFFTP�ɂ���(&A)...",            MENU_ABOUT
+        MENUITEM "FFFTPについて(&A)...",            MENU_ABOUT
     END
 END
 
@@ -183,54 +184,54 @@ dummy_menu MENU
 BEGIN
     POPUP "dummy"
     BEGIN
-        MENUITEM "���(remote)",                  MENU_REMOTE_UPDIR
-        MENUITEM "���(local)",                   MENU_LOCAL_UPDIR
-        MENUITEM "���(����)",                      MENU_UPDIR
+        MENUITEM "上へ(remote)",                  MENU_REMOTE_UPDIR
+        MENUITEM "上へ(local)",                   MENU_LOCAL_UPDIR
+        MENUITEM "上へ(共通)",                      MENU_UPDIR
         MENUITEM "COMBO_LOCAL",                 COMBO_LOCAL
         MENUITEM "COMBO REMOTE",                COMBO_REMOTE
         MENUITEM "Text Mode",                   MENU_TEXT
         MENUITEM "Binary Mode",                 MENU_BINARY
         MENUITEM "Auto Mode",                   MENU_AUTO
-        MENUITEM "�ĕ\��(local)",                  REFRESH_LOCAL
-        MENUITEM "�ĕ\��(remote)",                 REFRESH_REMOTE
+        MENUITEM "再表示(local)",                  REFRESH_LOCAL
+        MENUITEM "再表示(remote)",                 REFRESH_REMOTE
         MENUITEM "CHDIR(remote)",               MENU_REMOTE_CHDIR
         MENUITEM "CHDIR(local)",                MENU_LOCAL_CHDIR
         MENUITEM "KANJI EUC",                   MENU_KNJ_EUC
         MENUITEM "KANJI JIS",                   MENU_KNJ_JIS
         MENUITEM "KANJI NONE",                  MENU_KNJ_NONE
-        MENUITEM "�_�u���N���b�N",                     MENU_DCLICK
-        MENUITEM "���p�J�i�ϊ�",                      MENU_KANACNV
-        MENUITEM "�J��1",                         MENU_OPEN1
-        MENUITEM "�J��2",                         MENU_OPEN2
-        MENUITEM "�J��3",                         MENU_OPEN3
-        MENUITEM "�ڑ��i�ԍ��w��j",                    MENU_CONNECT_NUM
-        MENUITEM "�q�X�g��1",                       MENU_HIST_1
-        MENUITEM "�q�X�g��2",                       MENU_HIST_2
-        MENUITEM "�q�X�g��3",                       MENU_HIST_3
-        MENUITEM "�q�X�g��4",                       MENU_HIST_4
-        MENUITEM "�q�X�g��5",                       MENU_HIST_5
-        MENUITEM "�q�X�g��6",                       MENU_HIST_6
-        MENUITEM "�q�X�g��7",                       MENU_HIST_7
-        MENUITEM "�q�X�g��8",                       MENU_HIST_8
-        MENUITEM "�q�X�g��9",                       MENU_HIST_9
-        MENUITEM "�q�X�g��10",                      MENU_HIST_10
-        MENUITEM "�q�X�g��11",                      MENU_HIST_11
-        MENUITEM "�q�X�g��12",                      MENU_HIST_12
-        MENUITEM "�q�X�g��13",                      MENU_HIST_13
-        MENUITEM "�q�X�g��14",                      MENU_HIST_14
-        MENUITEM "�q�X�g��15",                      MENU_HIST_15
-        MENUITEM "�q�X�g��16",                      MENU_HIST_16
-        MENUITEM "�q�X�g��17",                      MENU_HIST_17
-        MENUITEM "�q�X�g��18",                      MENU_HIST_18
-        MENUITEM "�q�X�g��19",                      MENU_HIST_19
-        MENUITEM "�q�X�g��20",                      MENU_HIST_20
-        MENUITEM "�����I��",                        MENU_AUTO_EXIT
-        MENUITEM "���~",                          MENU_ABORT
-        MENUITEM "URL���N���b�v�{�[�h��",                MENU_URL_COPY
-        MENUITEM "�S�Ă��_�E�����[�h",                   MENU_DOWNLOAD_ALL
-        MENUITEM "�S�Ă��A�b�v���[�h",                   MENU_UPLOAD_ALL
-        MENUITEM "OSS<->GUARDIAN �؂�ւ�",         MENU_SWITCH_OSS
-        MENUITEM "���̃t�H���_�ֈړ�",                 MENU_REMOTE_MOVE_UPDIR
+        MENUITEM "ダブルクリック",                     MENU_DCLICK
+        MENUITEM "半角カナ変換",                      MENU_KANACNV
+        MENUITEM "開く1",                         MENU_OPEN1
+        MENUITEM "開く2",                         MENU_OPEN2
+        MENUITEM "開く3",                         MENU_OPEN3
+        MENUITEM "接続（番号指定）",                    MENU_CONNECT_NUM
+        MENUITEM "ヒストリ1",                       MENU_HIST_1
+        MENUITEM "ヒストリ2",                       MENU_HIST_2
+        MENUITEM "ヒストリ3",                       MENU_HIST_3
+        MENUITEM "ヒストリ4",                       MENU_HIST_4
+        MENUITEM "ヒストリ5",                       MENU_HIST_5
+        MENUITEM "ヒストリ6",                       MENU_HIST_6
+        MENUITEM "ヒストリ7",                       MENU_HIST_7
+        MENUITEM "ヒストリ8",                       MENU_HIST_8
+        MENUITEM "ヒストリ9",                       MENU_HIST_9
+        MENUITEM "ヒストリ10",                      MENU_HIST_10
+        MENUITEM "ヒストリ11",                      MENU_HIST_11
+        MENUITEM "ヒストリ12",                      MENU_HIST_12
+        MENUITEM "ヒストリ13",                      MENU_HIST_13
+        MENUITEM "ヒストリ14",                      MENU_HIST_14
+        MENUITEM "ヒストリ15",                      MENU_HIST_15
+        MENUITEM "ヒストリ16",                      MENU_HIST_16
+        MENUITEM "ヒストリ17",                      MENU_HIST_17
+        MENUITEM "ヒストリ18",                      MENU_HIST_18
+        MENUITEM "ヒストリ19",                      MENU_HIST_19
+        MENUITEM "ヒストリ20",                      MENU_HIST_20
+        MENUITEM "自動終了",                        MENU_AUTO_EXIT
+        MENUITEM "中止",                          MENU_ABORT
+        MENUITEM "URLをクリップボードへ",                MENU_URL_COPY
+        MENUITEM "全てをダウンロード",                   MENU_DOWNLOAD_ALL
+        MENUITEM "全てをアップロード",                   MENU_UPLOAD_ALL
+        MENUITEM "OSS<->GUARDIAN 切り替え",         MENU_SWITCH_OSS
+        MENUITEM "一つ上のフォルダへ移動",                 MENU_REMOTE_MOVE_UPDIR
     END
 END
 
@@ -238,38 +239,38 @@ popup_menu MENU
 BEGIN
     POPUP "local"
     BEGIN
-        MENUITEM "�J��(&O)",                      MENU_OPEN
+        MENUITEM "開く(&O)",                      MENU_OPEN
         MENUITEM SEPARATOR
-        MENUITEM "�A�b�v���[�h(&U)",                  MENU_UPLOAD
-        MENUITEM "���O��ς��ăA�b�v���[�h(&P)...",         MENU_UPLOAD_AS
-        MENUITEM "�S�Ă��A�b�v���[�h",                   MENU_UPLOAD_ALL
-        MENUITEM "�폜(&R)",                      MENU_DELETE
-        MENUITEM "���O�ύX(&N)... ",                MENU_RENAME
-        MENUITEM "�t�H���_�쐬(&K)...",               MENU_MKDIR
+        MENUITEM "アップロード(&U)",                  MENU_UPLOAD
+        MENUITEM "名前を変えてアップロード(&P)...",         MENU_UPLOAD_AS
+        MENUITEM "全てをアップロード",                   MENU_UPLOAD_ALL
+        MENUITEM "削除(&R)",                      MENU_DELETE
+        MENUITEM "名前変更(&N)... ",                MENU_RENAME
+        MENUITEM "フォルダ作成(&K)...",               MENU_MKDIR
         MENUITEM SEPARATOR
-        MENUITEM "�t�@�C���e�ʌv�Z(&Z)",                MENU_FILESIZE
+        MENUITEM "ファイル容量計算(&Z)",                MENU_FILESIZE
         MENUITEM SEPARATOR
-        MENUITEM "�ŐV�̏��ɍX�V(&F)",                REFRESH_LOCAL
+        MENUITEM "最新の情報に更新(&F)",                REFRESH_LOCAL
     END
     POPUP "remote"
     BEGIN
-        MENUITEM "�J��(&O)",                      MENU_OPEN
+        MENUITEM "開く(&O)",                      MENU_OPEN
         MENUITEM SEPARATOR
-        MENUITEM "�_�E�����[�h(&D)",                  MENU_DOWNLOAD
-        MENUITEM "���O��ς��ă_�E�����[�h(&W)...",         MENU_DOWNLOAD_AS
-        MENUITEM "�t�@�C���Ƃ��ă_�E�����[�h(&I)",           MENU_DOWNLOAD_AS_FILE
-        MENUITEM "�S�Ă��_�E�����[�h",                   MENU_DOWNLOAD_ALL
-        MENUITEM "�폜(&R)",                      MENU_DELETE
-        MENUITEM "���O�ύX(&N)...",                 MENU_RENAME
-        MENUITEM "�����ύX(&A)...",                 MENU_CHMOD
-        MENUITEM "�t�H���_�쐬(&K)...",               MENU_MKDIR
-        MENUITEM "URL���N���b�v�{�[�h�փR�s�[(&C)",         MENU_URL_COPY
-        MENUITEM "OSS<->GUARDIAN �؂�ւ�(&O)",     MENU_SWITCH_OSS
-        MENUITEM "���̃t�H���_�ֈړ�(&P)...",          MENU_REMOTE_MOVE_UPDIR
+        MENUITEM "ダウンロード(&D)",                  MENU_DOWNLOAD
+        MENUITEM "名前を変えてダウンロード(&W)...",         MENU_DOWNLOAD_AS
+        MENUITEM "ファイルとしてダウンロード(&I)",           MENU_DOWNLOAD_AS_FILE
+        MENUITEM "全てをダウンロード",                   MENU_DOWNLOAD_ALL
+        MENUITEM "削除(&R)",                      MENU_DELETE
+        MENUITEM "名前変更(&N)...",                 MENU_RENAME
+        MENUITEM "属性変更(&A)...",                 MENU_CHMOD
+        MENUITEM "フォルダ作成(&K)...",               MENU_MKDIR
+        MENUITEM "URLをクリップボードへコピー(&C)",         MENU_URL_COPY
+        MENUITEM "OSS<->GUARDIAN 切り替え(&O)",     MENU_SWITCH_OSS
+        MENUITEM "一つ上のフォルダへ移動(&P)...",          MENU_REMOTE_MOVE_UPDIR
         MENUITEM SEPARATOR
-        MENUITEM "�t�@�C���e�ʌv�Z(&Z)",                MENU_FILESIZE
+        MENUITEM "ファイル容量計算(&Z)",                MENU_FILESIZE
         MENUITEM SEPARATOR
-        MENUITEM "�ŐV�̏��ɍX�V(&F)",                REFRESH_REMOTE
+        MENUITEM "最新の情報に更新(&F)",                REFRESH_REMOTE
     END
 END
 
@@ -281,36 +282,36 @@ END
 
 about_dlg DIALOGEX 0, 0, 343, 267
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "FFFTP�ɂ���"
+CAPTION "FFFTPについて"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,145,246,50,14
     ICON            ffftp,-1,7,4,20,20
     CTEXT           "FFFTP Ver 4.3",-1,113,11,90,8
-    CTEXT           "FFFTP��freeware�ł�",-1,7,220,305,8
-    CTEXT           "Copyright(C) 1997-2010 Sota & �����͂������������X",-1,7,25,305,8,SS_NOPREFIX
-    CTEXT           "Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, ���ȁ[, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, �ӂ�����, potato)\nCopyright (C) 2018-2019, �q�c���S��",-1,7,37,305,32,SS_NOPREFIX
+    CTEXT           "FFFTPはfreewareです",-1,7,220,305,8
+    CTEXT           "Copyright(C) 1997-2010 Sota & ご協力いただいた方々",-1,7,25,305,8,SS_NOPREFIX
+    CTEXT           "Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato)\nCopyright (C) 2018-2019, 倉田佐祐理",-1,7,37,305,32,SS_NOPREFIX
     EDITTEXT        ABOUT_URL,7,76,305,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
-    CTEXT           "OLE D&&D�@�\ by ���c�L����Anakka����\n�z�X�g���ł̃t�@�C���ړ��@�\ by ���c�L����\n�������̋@�\ by miau����\n�}�X�^�[�p�X���[�h�@�\ by ���񂰂񂳂�\nAES�Í��� by Moca����\n\n���A�����̕��̂����͂����������܂����B",-1,7,143,305,60
+    CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,143,305,60
 END
 
 transfer_dlg DIALOG 0, 0, 199, 91
 STYLE DS_SETFONT | DS_MODALFRAME | WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU
 FONT 9, "MS Shell Dlg"
 BEGIN
-    PUSHBUTTON      "���̃t�@�C���𒆎~",IDCANCEL,7,73,74,14
-    PUSHBUTTON      "���ȍ~���~",TRANS_STOP_NEXT,93,73,46,14
-    PUSHBUTTON      "�S�Ē��~",TRANS_STOP_ALL,150,73,42,14
-    LTEXT           "�z�X�g:",-1,7,5,40,8
+    PUSHBUTTON      "このファイルを中止",IDCANCEL,7,73,74,14
+    PUSHBUTTON      "次以降中止",TRANS_STOP_NEXT,93,73,46,14
+    PUSHBUTTON      "全て中止",TRANS_STOP_ALL,150,73,42,14
+    LTEXT           "ホスト:",-1,7,5,40,8
     LTEXT           "",TRANS_REMOTE,45,5,147,8,SS_NOPREFIX
-    LTEXT           "���[�J��:",-1,7,18,40,8
+    LTEXT           "ローカル:",-1,7,18,40,8
     LTEXT           "",TRANS_LOCAL,45,18,147,8,SS_NOPREFIX
-    LTEXT           "��:",-1,7,44,40,8
+    LTEXT           "状況:",-1,7,44,40,8
     LTEXT           "",TRANS_STATUS,45,44,147,8
     CONTROL         "Progress1",TRANS_TIME_BAR,"msctls_progress32",0x0,7,58,185,9
-    LTEXT           "�]�����[�h:",-1,7,31,40,8
+    LTEXT           "転送モード:",-1,7,31,40,8
     LTEXT           "",TRANS_MODE,45,31,48,8
-    LTEXT           "�R�[�h�ϊ�:",-1,98,31,39,8
+    LTEXT           "コード変換:",-1,98,31,39,8
     LTEXT           "",TRANS_KANJI,136,31,56,8
 END
 
@@ -320,65 +321,65 @@ FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        RENAME_NEW,7,34,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,9,51,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,68,51,50,14
-    PUSHBUTTON      "���~(&S)",RENAME_STOP,128,51,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,68,51,50,14
+    PUSHBUTTON      "中止(&S)",RENAME_STOP,128,51,50,14
     LTEXT           "",RENAME_TEXT,7,7,173,8,SS_NOPREFIX
-    LTEXT           "�̐V�������O����͂��Ă��������B",-1,15,20,133,8
+    LTEXT           "の新しい名前を入力してください。",-1,15,20,133,8
 END
 
 delete_dlg DIALOG 0, 0, 209, 55
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 FONT 9, "MS Shell Dlg"
 BEGIN
-    DEFPUSHBUTTON   "�͂�(&Y)",IDOK,7,37,45,14
-    PUSHBUTTON      "������(&N)",DELETE_NO,57,37,44,14
-    PUSHBUTTON      "�S�č폜(&A)",DELETE_ALL,107,37,45,14
-    PUSHBUTTON      "���~(&S)",IDCANCEL,157,37,45,14
+    DEFPUSHBUTTON   "はい(&Y)",IDOK,7,37,45,14
+    PUSHBUTTON      "いいえ(&N)",DELETE_NO,57,37,44,14
+    PUSHBUTTON      "全て削除(&A)",DELETE_ALL,107,37,45,14
+    PUSHBUTTON      "中止(&S)",IDCANCEL,157,37,45,14
     LTEXT           "",DELETE_TEXT,7,7,195,8,SS_NOPREFIX
-    LTEXT           "���폜���܂����H",-1,17,21,167,8
+    LTEXT           "を削除しますか？",-1,17,21,167,8
 END
 
 hostlist_dlg DIALOG 0, 0, 232, 136
 STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "�z�X�g�ꗗ"
+CAPTION "ホスト一覧"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "Tree1",HOST_LIST,"SysTreeView32",TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS | TVS_FULLROWSELECT | WS_BORDER | WS_TABSTOP,7,6,152,105
-    DEFPUSHBUTTON   "�ڑ�(&S)",IDOK,27,118,50,14
-    PUSHBUTTON      "����(&O)",IDCANCEL,91,118,50,14
-    PUSHBUTTON      "�V�K�z�X�g(&N)...",HOST_NEW,165,6,60,14
-    PUSHBUTTON      "�V�K�O���[�v(&G)...",HOST_FOLDER,165,22,60,14
-    PUSHBUTTON      "�ݒ�ύX(&M)...",HOST_SET,165,38,60,14
-    PUSHBUTTON      "�R�s�[(&C)",HOST_COPY,165,54,60,14
-    PUSHBUTTON      "�폜(&D)...",HOST_DEL,165,70,60,14
-    PUSHBUTTON      "��",HOST_UP,165,86,14,14
-    PUSHBUTTON      "��",HOST_DOWN,184,86,14,14
-    PUSHBUTTON      "����̐ݒ�(&F)...",HOST_SET_DEFAULT,165,102,60,14
+    DEFPUSHBUTTON   "接続(&S)",IDOK,27,118,50,14
+    PUSHBUTTON      "閉じる(&O)",IDCANCEL,91,118,50,14
+    PUSHBUTTON      "新規ホスト(&N)...",HOST_NEW,165,6,60,14
+    PUSHBUTTON      "新規グループ(&G)...",HOST_FOLDER,165,22,60,14
+    PUSHBUTTON      "設定変更(&M)...",HOST_SET,165,38,60,14
+    PUSHBUTTON      "コピー(&C)",HOST_COPY,165,54,60,14
+    PUSHBUTTON      "削除(&D)...",HOST_DEL,165,70,60,14
+    PUSHBUTTON      "↑",HOST_UP,165,86,14,14
+    PUSHBUTTON      "↓",HOST_DOWN,184,86,14,14
+    PUSHBUTTON      "既定の設定(&F)...",HOST_SET_DEFAULT,165,102,60,14
     SCROLLBAR       HOST_SIZEGRIP,222,122,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
-    PUSHBUTTON      "�w���v",9,165,118,60,14
+    PUSHBUTTON      "ヘルプ",9,165,118,60,14
 END
 
 hset_main_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "��{"
+CAPTION "基本"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "�z�X�g�̐ݒ薼(&T)",-1,7,7,94,8
+    LTEXT           "ホストの設定名(&T)",-1,7,7,94,8
     EDITTEXT        HSET_HOST,7,17,94,12,ES_AUTOHSCROLL
-    LTEXT           "�z�X�g���i�A�h���X�j(&N)",-1,107,7,73,8
+    LTEXT           "ホスト名（アドレス）(&N)",-1,107,7,73,8
     EDITTEXT        HSET_ADRS,106,17,94,12,ES_AUTOHSCROLL
-    LTEXT           "���[�U�[��(&U)",-1,7,35,60,8
+    LTEXT           "ユーザー名(&U)",-1,7,35,60,8
     EDITTEXT        HSET_USER,7,45,66,12,ES_AUTOHSCROLL
-    LTEXT           "�p�X���[�h/�p�X�t���[�Y(&P)",-1,79,35,94,8
+    LTEXT           "パスワード/パスフレーズ(&P)",-1,79,35,94,8
     EDITTEXT        HSET_PASS,79,45,64,12,ES_PASSWORD | ES_AUTOHSCROLL
     CONTROL         "an&onymous",HSET_ANONYMOUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,150,47,50,10
-    LTEXT           "���[�J���̏����t�H���_(&L)",-1,7,63,89,8
+    LTEXT           "ローカルの初期フォルダ(&L)",-1,7,63,89,8
     EDITTEXT        HSET_LOCAL,7,73,137,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",HSET_LOCAL_BR,145,73,12,14
-    LTEXT           "�z�X�g�̏����t�H���_(&R)",-1,7,91,94,8
+    LTEXT           "ホストの初期フォルダ(&R)",-1,7,91,94,8
     EDITTEXT        HSET_REMOTE,7,101,137,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "���݂̃t�H���_",HSET_REMOTE_CUR,145,101,55,14
-    CONTROL         "�Ō�ɃA�N�Z�X�����t�H���_������̏����t�H���_�Ƃ���(&F)",HSET_LASTDIR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,193,10
+    PUSHBUTTON      "現在のフォルダ",HSET_REMOTE_CUR,145,101,55,14
+    CONTROL         "最後にアクセスしたフォルダを次回の初期フォルダとする(&F)",HSET_LASTDIR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,193,10
 END
 
 FILEOPENORD_1 DIALOG 109, 35, 165, 134
@@ -386,12 +387,12 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Open"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "�t�H���_(&D):",-1,7,6,92,9
+    LTEXT           "フォルダ(&D):",-1,7,6,92,9
     LISTBOX         lst2,7,32,92,68,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "�h���C�u(&V):",stc4,7,104,92,9
+    LTEXT           "ドライブ(&V):",stc4,7,104,92,9
     COMBOBOX        cmb2,7,114,92,68,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | CBS_AUTOHSCROLL | CBS_SORT | CBS_HASSTRINGS | WS_BORDER | WS_VSCROLL | WS_TABSTOP
     DEFPUSHBUTTON   "OK",IDOK,105,6,50,14,WS_GROUP
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,105,24,50,14,WS_GROUP
+    PUSHBUTTON      "キャンセル",IDCANCEL,105,24,50,14,WS_GROUP
     PUSHBUTTON      "&Help",psh15,105,46,50,14,WS_GROUP
     CONTROL         "&Read Only",chx1,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,105,68,50,12
     LISTBOX         lst1,102,99,20,20,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_DISABLENOSCROLL | NOT WS_VISIBLE | WS_VSCROLL
@@ -404,88 +405,88 @@ END
 
 opt_user_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "���[�U�["
+CAPTION "ユーザー"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "���[���A�h���X(&M)",-1,7,7,59,8
+    LTEXT           "メールアドレス(&M)",-1,7,7,59,8
     EDITTEXT        USER_ADRS,7,18,196,12,ES_AUTOHSCROLL
-    LTEXT           "���[���A�h���X��anonymous FTP�̃p�X���[�h�Ƃ��Ďg�p����܂��B",-1,28,36,169,18,SS_SUNKEN
+    LTEXT           "メールアドレスはanonymous FTPのパスワードとして使用されます。",-1,28,36,169,18,SS_SUNKEN
 END
 
 opt_tool_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "�c�[��"
+CAPTION "ツール"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "�r���[�A1(&1)",-1,7,7,39,8
+    LTEXT           "ビューア1(&1)",-1,7,7,39,8
     EDITTEXT        TOOL_EDITOR1,7,18,183,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",TOOL_EDITOR1_BR,191,18,12,13
-    LTEXT           "�r���[�A2(&2)",-1,7,63,39,8
+    LTEXT           "ビューア2(&2)",-1,7,63,39,8
     EDITTEXT        TOOL_EDITOR2,7,74,183,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",TOOL_EDITOR2_BR,191,74,12,13
-    LTEXT           "�r���[�A3(&3)",-1,7,93,39,8
+    LTEXT           "ビューア3(&3)",-1,7,93,39,8
     EDITTEXT        TOOL_EDITOR3,7,104,183,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",TOOL_EDITOR3_BR,191,104,12,13
-    LTEXT           "�r���[�A1�́A�A�v���P�[�V�����Ɋ֘A�Â����Ă��Ȃ��t�@�C�����u�J���v�ŊJ���Ƃ��ɂ��g�p���܂��B\n�܂��A�u�t�@�C���ꗗ���̏ڍו\���v�ł��g�p���܂��B",-1,19,33,184,27,SS_SUNKEN
-    LTEXT           "�r���[�A2�A3�̓}�E�X�E�{�^���N���b�N�Ŏg�p�ł��܂��B",-1,14,124,184,8
+    LTEXT           "ビューア1は、アプリケーションに関連づけられていないファイルを「開く」で開くときにも使用します。\nまた、「ファイル一覧情報の詳細表示」でも使用します。",-1,19,33,184,27,SS_SUNKEN
+    LTEXT           "ビューア2、3はマウス右ボタンクリックで使用できます。",-1,14,124,184,8
 END
 
 chmod_dlg DIALOG 0, 0, 171, 109
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "�����̕ύX"
+CAPTION "属性の変更"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "���݂̑���",-1,77,74,47,8
+    LTEXT           "現在の属性",-1,77,74,47,8
     EDITTEXT        PERM_NOW,124,72,25,12,ES_AUTOHSCROLL | ES_NUMBER
-    GROUPBOX        "�I�[�i�[",-1,7,7,48,58
-    CONTROL         "�ďo",PERM_O_READ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,21,30,10
-    CONTROL         "����",PERM_O_WRITE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,35,30,10
-    CONTROL         "���s",PERM_O_EXEC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,50,30,10
-    GROUPBOX        "�O���[�v",-1,61,7,48,58
-    CONTROL         "�ďo",PERM_G_READ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,71,21,30,10
-    CONTROL         "����",PERM_G_WRITE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,71,35,30,10
-    CONTROL         "���s",PERM_G_EXEC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,71,49,30,10
-    GROUPBOX        "���̑�",-1,116,8,48,58
-    CONTROL         "�ďo",PERM_A_READ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,126,22,30,10
-    CONTROL         "����",PERM_A_WRITE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,126,36,30,10
-    CONTROL         "���s",PERM_A_EXEC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,126,51,30,10
+    GROUPBOX        "オーナー",-1,7,7,48,58
+    CONTROL         "呼出",PERM_O_READ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,21,30,10
+    CONTROL         "書込",PERM_O_WRITE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,35,30,10
+    CONTROL         "実行",PERM_O_EXEC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,50,30,10
+    GROUPBOX        "グループ",-1,61,7,48,58
+    CONTROL         "呼出",PERM_G_READ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,71,21,30,10
+    CONTROL         "書込",PERM_G_WRITE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,71,35,30,10
+    CONTROL         "実行",PERM_G_EXEC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,71,49,30,10
+    GROUPBOX        "その他",-1,116,8,48,58
+    CONTROL         "呼出",PERM_A_READ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,126,22,30,10
+    CONTROL         "書込",PERM_A_WRITE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,126,36,30,10
+    CONTROL         "実行",PERM_A_EXEC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,126,51,30,10
     CONTROL         "",-1,"Static",SS_BLACKFRAME,73,69,90,18
     DEFPUSHBUTTON   "OK",IDOK,7,92,48,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,61,92,48,14
-    PUSHBUTTON      "�w���v",9,116,92,48,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,61,92,48,14
+    PUSHBUTTON      "ヘルプ",9,116,92,48,14
 END
 
 sort_dlg DIALOG 0, 0, 187, 197
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "�\�[�g"
+CAPTION "ソート"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    GROUPBOX        "���[�J��",-1,7,7,81,150
-    GROUPBOX        "�t�@�C����(&1)",-1,10,17,74,80,WS_GROUP
-    CONTROL         "�t�@�C������",SORT_LFILE_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,15,30,66,10
-    CONTROL         "�g���q��",SORT_LFILE_EXT,"Button",BS_AUTORADIOBUTTON,15,42,66,10
-    CONTROL         "�T�C�Y��",SORT_LFILE_SIZE,"Button",BS_AUTORADIOBUTTON,15,55,66,10
-    CONTROL         "���t��",SORT_LFILE_DATE,"Button",BS_AUTORADIOBUTTON,15,68,66,10
-    CONTROL         "�t��",SORT_LFILE_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,81,66,10
-    GROUPBOX        "�t�H���_��(&2)",-1,10,100,74,52,WS_GROUP
-    CONTROL         "�t�@�C������",SORT_LDIR_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,15,112,66,10
-    CONTROL         "���t��",SORT_LDIR_DATE,"Button",BS_AUTORADIOBUTTON,15,124,66,10
-    CONTROL         "�t��",SORT_LDIR_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,137,66,10
-    GROUPBOX        "�z�X�g",-1,98,7,82,150
-    GROUPBOX        "�t�@�C����(&3)",-1,102,17,74,80,WS_GROUP
-    CONTROL         "�t�@�C������",SORT_RFILE_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,107,30,66,10
-    CONTROL         "�g���q��",SORT_RFILE_EXT,"Button",BS_AUTORADIOBUTTON,107,42,66,10
-    CONTROL         "�T�C�Y��",SORT_RFILE_SIZE,"Button",BS_AUTORADIOBUTTON,107,55,66,10
-    CONTROL         "���t��",SORT_RFILE_DATE,"Button",BS_AUTORADIOBUTTON,107,68,66,10
-    CONTROL         "�t��",SORT_RFILE_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,107,81,66,10
-    GROUPBOX        "�t�H���_��(&4)",-1,102,100,74,52,WS_GROUP
-    CONTROL         "�t�@�C������",SORT_RDIR_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,107,112,66,10
-    CONTROL         "���t��",SORT_RDIR_DATE,"Button",BS_AUTORADIOBUTTON,107,124,66,10
-    CONTROL         "�t��",SORT_RDIR_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,107,137,66,10
-    CONTROL         "�z�X�g���ƂɃ\�[�g�̕��@���L������(&S)",SORT_SAVEHOST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,164,156,10
+    GROUPBOX        "ローカル",-1,7,7,81,150
+    GROUPBOX        "ファイル名(&1)",-1,10,17,74,80,WS_GROUP
+    CONTROL         "ファイル名順",SORT_LFILE_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,15,30,66,10
+    CONTROL         "拡張子順",SORT_LFILE_EXT,"Button",BS_AUTORADIOBUTTON,15,42,66,10
+    CONTROL         "サイズ順",SORT_LFILE_SIZE,"Button",BS_AUTORADIOBUTTON,15,55,66,10
+    CONTROL         "日付順",SORT_LFILE_DATE,"Button",BS_AUTORADIOBUTTON,15,68,66,10
+    CONTROL         "逆順",SORT_LFILE_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,81,66,10
+    GROUPBOX        "フォルダ名(&2)",-1,10,100,74,52,WS_GROUP
+    CONTROL         "ファイル名順",SORT_LDIR_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,15,112,66,10
+    CONTROL         "日付順",SORT_LDIR_DATE,"Button",BS_AUTORADIOBUTTON,15,124,66,10
+    CONTROL         "逆順",SORT_LDIR_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,137,66,10
+    GROUPBOX        "ホスト",-1,98,7,82,150
+    GROUPBOX        "ファイル名(&3)",-1,102,17,74,80,WS_GROUP
+    CONTROL         "ファイル名順",SORT_RFILE_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,107,30,66,10
+    CONTROL         "拡張子順",SORT_RFILE_EXT,"Button",BS_AUTORADIOBUTTON,107,42,66,10
+    CONTROL         "サイズ順",SORT_RFILE_SIZE,"Button",BS_AUTORADIOBUTTON,107,55,66,10
+    CONTROL         "日付順",SORT_RFILE_DATE,"Button",BS_AUTORADIOBUTTON,107,68,66,10
+    CONTROL         "逆順",SORT_RFILE_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,107,81,66,10
+    GROUPBOX        "フォルダ名(&4)",-1,102,100,74,52,WS_GROUP
+    CONTROL         "ファイル名順",SORT_RDIR_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,107,112,66,10
+    CONTROL         "日付順",SORT_RDIR_DATE,"Button",BS_AUTORADIOBUTTON,107,124,66,10
+    CONTROL         "逆順",SORT_RDIR_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,107,137,66,10
+    CONTROL         "ホストごとにソートの方法を記憶する(&S)",SORT_SAVEHOST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,164,156,10
     DEFPUSHBUTTON   "OK",IDOK,11,179,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,69,179,50,14
-    PUSHBUTTON      "�w���v",9,127,179,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,69,179,50,14
+    PUSHBUTTON      "ヘルプ",9,127,179,50,14
 END
 
 mkdir_dlg DIALOG 0, 0, 187, 58
@@ -494,155 +495,155 @@ FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        INP_INPSTR,7,21,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,36,40,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,102,40,50,14
-    LTEXT           "�쐬����t�H���_�̖��O����͂��Ă��������B",-1,7,7,160,8
+    PUSHBUTTON      "キャンセル",IDCANCEL,102,40,50,14
+    LTEXT           "作成するフォルダの名前を入力してください。",-1,7,7,160,8
 END
 
 opt_misc_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "���̑�"
+CAPTION "その他"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    CONTROL         "�E�C���h�E�ʒu��ۑ�����(&W)",MISC_WINPOS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
-    CONTROL         "�ݒ�����W�X�g���łȂ�INI�t�@�C���ɕۑ����� (&I)",MISC_REGTYPE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,95,173,10
-    CONTROL         "�}�X�^�[�p�X���[�h�őS�ݒ���Í������� (&E)",MISC_ENCRYPT_SETTINGS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,111,173,10
-    CONTROL         "�f�o�b�O",MISC_DEBUG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,164,127,40,10
+    CONTROL         "ウインドウ位置を保存する(&W)",MISC_WINPOS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
+    CONTROL         "設定をレジストリでなくINIファイルに保存する (&I)",MISC_REGTYPE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,95,173,10
+    CONTROL         "マスターパスワードで全設定を暗号化する (&E)",MISC_ENCRYPT_SETTINGS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,111,173,10
+    CONTROL         "デバッグ",MISC_DEBUG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,164,127,40,10
 END
 
 hostname_dlg DIALOG 0, 0, 187, 93
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�ڑ���"
+CAPTION "接続先"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "�z�X�g���i�A�h���X�j�܂���URL(&H)",-1,7,6,130,8
+    LTEXT           "ホスト名（アドレス）またはURL(&H)",-1,7,6,130,8
     COMBOBOX        QHOST_HOST,7,16,173,86,CBS_DROPDOWN | CBS_AUTOHSCROLL | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "���[�U�[��(&U)",-1,7,34,57,8
+    LTEXT           "ユーザー名(&U)",-1,7,34,57,8
     EDITTEXT        QHOST_USER,7,44,80,12,ES_AUTOHSCROLL
-    LTEXT           "�p�X���[�h/�p�X�t���[�Y(&P)",-1,99,34,87,8
+    LTEXT           "パスワード/パスフレーズ(&P)",-1,99,34,87,8
     EDITTEXT        QHOST_PASS,99,44,80,12,ES_PASSWORD | ES_AUTOHSCROLL
-    CONTROL         "FireWall���g��(&F)",QHOST_FWALL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,61,75,10
-    CONTROL         "PASV���[�h���g��(&V)",QHOST_PASV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,84,61,83,10
+    CONTROL         "FireWallを使う(&F)",QHOST_FWALL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,61,75,10
+    CONTROL         "PASVモードを使う(&V)",QHOST_PASV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,84,61,83,10
     DEFPUSHBUTTON   "OK",IDOK,36,75,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,101,75,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,101,75,50,14
 END
 
 passwd_dlg DIALOG 0, 0, 187, 43
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�p�X���[�h/�p�X�t���[�Y"
+CAPTION "パスワード/パスフレーズ"
 FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_PASSWORD | ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,36,25,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,101,25,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,101,25,50,14
 END
 
 newmasterpasswd_dlg DIALOGEX 0, 0, 187, 43
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�V�����}�X�^�[�p�X���[�h��2�����Ă�������"
+CAPTION "新しいマスターパスワードを2回入れてください"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_PASSWORD | ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,16,25,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,68,25,50,14
-    PUSHBUTTON      "�w���v",IDHELP,120,25,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,68,25,50,14
+    PUSHBUTTON      "ヘルプ",IDHELP,120,25,50,14
 END
 
 username_dlg DIALOG 0, 0, 187, 58
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "���[�U�[��"
+CAPTION "ユーザー名"
 FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
     CONTROL         "Anonymous(&A)",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,25,73,10
     DEFPUSHBUTTON   "OK",IDOK,36,40,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,101,40,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,101,40,50,14
 END
 
 chdir_dlg DIALOG 0, 0, 187, 43
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�t�H���_"
+CAPTION "フォルダ"
 FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,36,25,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,101,25,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,101,25,50,14
 END
 
 exit_dlg DIALOG 0, 0, 143, 64
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "FFFTP�̏I��"
+CAPTION "FFFTPの終了"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    DEFPUSHBUTTON   "�L�����Z��",IDCANCEL,16,46,50,14
-    PUSHBUTTON      "�����I��",IDOK,76,46,50,14
-    LTEXT           "�t�@�C���]�����ł��B\n\n�t�@�C���]�����I�����Ă���AFFFTP���I�������Ă��������B",-1,7,7,129,33
+    DEFPUSHBUTTON   "キャンセル",IDCANCEL,16,46,50,14
+    PUSHBUTTON      "強制終了",IDOK,76,46,50,14
+    LTEXT           "ファイル転送中です。\n\nファイル転送が終了してから、FFFTPを終了させてください。",-1,7,7,129,33
 END
 
 forcepasschange_dlg DIALOG 0, 0, 211, 64
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�}�X�^�[�p�X���[�h�����ύX�̊m�F"
+CAPTION "マスターパスワード強制変更の確認"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "�N�����Ƀ}�X�^�[�p�X���[�h�̑Ó������m�F�ł��܂���ł����B�����I�ɍĐݒ肷��Ɠo�^����Ă���FTP�p�X���[�h�͖����ɂȂ�܂��B\r\n�}�X�^�[�p�X���[�h�������I�ɕύX���܂����H",-1,7,7,196,36
-    DEFPUSHBUTTON   "�͂�",IDOK,48,42,50,14
-    PUSHBUTTON      "������",IDCANCEL,112,42,50,14
+    LTEXT           "起動時にマスターパスワードの妥当性を確認できませんでした。強制的に再設定すると登録されているFTPパスワードは無効になります。\r\nマスターパスワードを強制的に変更しますか？",-1,7,7,196,36
+    DEFPUSHBUTTON   "はい",IDOK,48,42,50,14
+    PUSHBUTTON      "いいえ",IDCANCEL,112,42,50,14
 END
 
 opt_trmode2_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "�]��2"
+CAPTION "転送2"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    GROUPBOX        "�t�@�C�����̕ύX",-1,7,7,196,69
-    CONTROL         "�t�@�C������S�ď������ɂ��ē]��(&L)",TRMODE2_LOWER,"Button",BS_AUTORADIOBUTTON | WS_GROUP,13,18,143,10
-    CONTROL         "�t�@�C������S�đ啶���ɂ��ē]��(&U)",TRMODE2_UPPER,"Button",BS_AUTORADIOBUTTON,13,30,143,10
-    CONTROL         "���̂܂܂̃t�@�C�����œ]��(&N)",TRMODE2_NOCNV,"Button",BS_AUTORADIOBUTTON,13,42,143,10
-    LTEXT           "�l�b�g���[�N�^�C���A�E�g����(&T)",-1,7,80,131,8
+    GROUPBOX        "ファイル名の変更",-1,7,7,196,69
+    CONTROL         "ファイル名を全て小文字にして転送(&L)",TRMODE2_LOWER,"Button",BS_AUTORADIOBUTTON | WS_GROUP,13,18,143,10
+    CONTROL         "ファイル名を全て大文字にして転送(&U)",TRMODE2_UPPER,"Button",BS_AUTORADIOBUTTON,13,30,143,10
+    CONTROL         "そのままのファイル名で転送(&N)",TRMODE2_NOCNV,"Button",BS_AUTORADIOBUTTON,13,42,143,10
+    LTEXT           "ネットワークタイムアウト時間(&T)",-1,7,80,131,8
     EDITTEXT        TRMODE2_TIMEOUT,7,90,26,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Spin1",TRMODE2_TIMEOUT_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,33,90,9,14
-    LTEXT           "�i0�`300�b; 0=�^�C���A�E�g�Ȃ��j",-1,45,94,107,8
-    LTEXT           "�f�t�H���g�̃��[�J���t�H���_(&D)",-1,7,108,196,8
+    LTEXT           "（0～300秒; 0=タイムアウトなし）",-1,45,94,107,8
+    LTEXT           "デフォルトのローカルフォルダ(&D)",-1,7,108,196,8
     EDITTEXT        TRMODE2_LOCAL,7,118,182,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",TRMODE2_LOCAL_BR,190,118,13,13
-    LTEXT           "�~���[�����O�A�b�v���[�h���̐ݒ�́A�u�~���[�����O�v�^�u�̒��ɂ���܂��B",-1,18,56,181,17,SS_SUNKEN
+    LTEXT           "ミラーリングアップロード時の設定は、「ミラーリング」タブの中にあります。",-1,18,56,181,17,SS_SUNKEN
 END
 
 opt_notify_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "����"
+CAPTION "操作"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    GROUPBOX        "�������O�̃t�@�C�������鎞",-1,7,7,196,66,WS_GROUP
-    GROUPBOX        "�_�E�����[�h��",-1,11,20,188,23,WS_GROUP
-    CONTROL         "�㏑��(&O)",NOTIFY_D_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,30,50,10
-    CONTROL         "�m�F�_�C�A���O��\��(&D)",NOTIFY_D_DLG,"Button",BS_AUTORADIOBUTTON,80,30,94,10
-    GROUPBOX        "�A�b�v���[�h��",-1,11,46,188,23,WS_GROUP
-    CONTROL         "�㏑��(&W)",NOTIFY_U_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,56,48,10
-    CONTROL         "�m�F�_�C�A���O��\��(&U)",NOTIFY_U_DLG,"Button",BS_AUTORADIOBUTTON,80,56,106,10
-    GROUPBOX        "�}�E�X�̃_�u���N���b�N�̓���",-1,7,77,196,24,WS_GROUP
-    CONTROL         "�J��(&P)",NOTIFY_OPEN,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,87,53,10
-    CONTROL         "�_�E�����[�h(&L)",NOTIFY_DOWNLOAD,"Button",BS_AUTORADIOBUTTON,80,87,102,10
-    GROUPBOX        "�z�X�g���t�@�C���ړ��@�\",-1,8,106,196,26,WS_GROUP
-    CONTROL         "�m�F�Ȃ�(&N)",NOTIFY_M_NODLG,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,118,56,10
-    CONTROL         "�m�F����(&Y)",NOTIFY_M_DLG,"Button",BS_AUTORADIOBUTTON,80,118,56,10
-    CONTROL         "�g�p���Ȃ�(&K)",NOTIFY_M_DISABLE,"Button",BS_AUTORADIOBUTTON,142,118,56,10
+    GROUPBOX        "同じ名前のファイルがある時",-1,7,7,196,66,WS_GROUP
+    GROUPBOX        "ダウンロード時",-1,11,20,188,23,WS_GROUP
+    CONTROL         "上書き(&O)",NOTIFY_D_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,30,50,10
+    CONTROL         "確認ダイアログを表示(&D)",NOTIFY_D_DLG,"Button",BS_AUTORADIOBUTTON,80,30,94,10
+    GROUPBOX        "アップロード時",-1,11,46,188,23,WS_GROUP
+    CONTROL         "上書き(&W)",NOTIFY_U_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,56,48,10
+    CONTROL         "確認ダイアログを表示(&U)",NOTIFY_U_DLG,"Button",BS_AUTORADIOBUTTON,80,56,106,10
+    GROUPBOX        "マウスのダブルクリックの動作",-1,7,77,196,24,WS_GROUP
+    CONTROL         "開く(&P)",NOTIFY_OPEN,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,87,53,10
+    CONTROL         "ダウンロード(&L)",NOTIFY_DOWNLOAD,"Button",BS_AUTORADIOBUTTON,80,87,102,10
+    GROUPBOX        "ホスト内ファイル移動機能",-1,8,106,196,26,WS_GROUP
+    CONTROL         "確認なし(&N)",NOTIFY_M_NODLG,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,118,56,10
+    CONTROL         "確認あり(&Y)",NOTIFY_M_DLG,"Button",BS_AUTORADIOBUTTON,80,118,56,10
+    CONTROL         "使用しない(&K)",NOTIFY_M_DISABLE,"Button",BS_AUTORADIOBUTTON,142,118,56,10
 END
 
 bmark_dlg DIALOG 0, 0, 222, 109
 STYLE DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "�u�b�N�}�[�N"
+CAPTION "ブックマーク"
 FONT 9, "MS Shell Dlg"
 BEGIN
     LISTBOX         BMARK_LIST,7,7,152,75,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    DEFPUSHBUTTON   "����(&O)",IDOK,91,90,50,14
-    PUSHBUTTON      "�W�����v(&J)",BMARK_JUMP,27,90,50,14
-    PUSHBUTTON      "�V�K�ǉ�(&N)...",BMARK_NEW,165,7,50,14
-    PUSHBUTTON      "�ύX(&M)...",BMARK_SET,165,26,50,14
-    PUSHBUTTON      "�폜(&D)",BMARK_DEL,165,45,50,14
-    PUSHBUTTON      "��",BMARK_UP,165,65,15,14
-    PUSHBUTTON      "��",BMARK_DOWN,184,65,15,14
+    DEFPUSHBUTTON   "閉じる(&O)",IDOK,91,90,50,14
+    PUSHBUTTON      "ジャンプ(&J)",BMARK_JUMP,27,90,50,14
+    PUSHBUTTON      "新規追加(&N)...",BMARK_NEW,165,7,50,14
+    PUSHBUTTON      "変更(&M)...",BMARK_SET,165,26,50,14
+    PUSHBUTTON      "削除(&D)",BMARK_DEL,165,45,50,14
+    PUSHBUTTON      "↑",BMARK_UP,165,65,15,14
+    PUSHBUTTON      "↓",BMARK_DOWN,184,65,15,14
     SCROLLBAR       BMARK_SIZEGRIP,212,96,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
-    PUSHBUTTON      "�w���v",9,165,90,50,14
+    PUSHBUTTON      "ヘルプ",9,165,90,50,14
 END
 
 opt_fire_dlg DIALOG 0, 0, 211, 155
@@ -650,56 +651,56 @@ STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "FireWall"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "FireWall�̃^�C�v(&T)",-1,7,7,90,8
+    LTEXT           "FireWallのタイプ(&T)",-1,7,7,90,8
     COMBOBOX        FIRE_TYPE,7,16,197,104,CBS_DROPDOWNLIST | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "FireWall�z�X�g(&H)",-1,7,32,80,8
+    LTEXT           "FireWallホスト(&H)",-1,7,32,80,8
     EDITTEXT        FIRE_HOST,7,41,150,12,ES_AUTOHSCROLL
-    LTEXT           "�|�[�g(&O)",-1,168,32,36,8
+    LTEXT           "ポート(&O)",-1,168,32,36,8
     EDITTEXT        FIRE_PORT,169,41,35,12,ES_AUTOHSCROLL | ES_NUMBER
-    LTEXT           "FireWall���[�U�[��(&U)",-1,7,56,76,8
+    LTEXT           "FireWallユーザー名(&U)",-1,7,56,76,8
     EDITTEXT        FIRE_USER,7,65,68,12,ES_AUTOHSCROLL
-    LTEXT           "FireWall�p�X���[�h(&P)",-1,89,56,76,8
+    LTEXT           "FireWallパスワード(&P)",-1,89,56,76,8
     EDITTEXT        FIRE_PASS,89,65,68,12,ES_PASSWORD | ES_AUTOHSCROLL
-    LTEXT           "@�̕ύX(&D)",-1,168,55,41,8
+    LTEXT           "@の変更(&D)",-1,168,55,41,8
     EDITTEXT        FIRE_DELIMIT,169,65,35,12,ES_AUTOHSCROLL
-    LTEXT           "�Z�L�����e�B(&Q)",-1,7,80,63,8
+    LTEXT           "セキュリティ(&Q)",-1,7,80,63,8
     COMBOBOX        FIRE_SECURITY,7,89,57,75,CBS_DROPDOWNLIST | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "�z�X�g�̌�����SOCKS�T�[�o�[�ɔC����(&R)",FIRE_RESOLV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,71,83,139,10
-    CONTROL         "OPEN/SITE�R�}���h���������ɂ���(&L)",FIRE_LOWER,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,71,96,139,10
-    CONTROL         "�z�X�g�ꗗ�ɖ��o�^�̃z�X�g��FireWall���g���Đڑ�(&E)",FIRE_USEIT,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,109,197,10
-    CONTROL         "�z�X�g�ꗗ�ɖ��o�^�̃z�X�g��PASV���[�h���g��(&V)",FIRE_PASV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,122,197,10
-    CONTROL         "FireWall���[�U�[��/�p�X���[�h��ۑ����Ȃ�(&N)",FIRE_SHARED,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,135,197,10
+    CONTROL         "ホストの検索はSOCKSサーバーに任せる(&R)",FIRE_RESOLV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,71,83,139,10
+    CONTROL         "OPEN/SITEコマンドを小文字にする(&L)",FIRE_LOWER,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,71,96,139,10
+    CONTROL         "ホスト一覧に未登録のホストはFireWallを使って接続(&E)",FIRE_USEIT,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,109,197,10
+    CONTROL         "ホスト一覧に未登録のホストはPASVモードを使う(&V)",FIRE_PASV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,122,197,10
+    CONTROL         "FireWallユーザー名/パスワードを保存しない(&N)",FIRE_SHARED,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,135,197,10
 END
 
 hset_adv_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "�g��"
+CAPTION "拡張"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    CONTROL         "FireWall���g��(&F)",HSET_FIREWALL,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,92,10
-    CONTROL         "PASV���[�h���g��(&V)",HSET_PASV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,22,92,10
-    CONTROL         "�t�H���_�����ړ����g��(&S)",HSET_SYNCMOVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,37,93,10
-    LTEXT           "�|�[�g�ԍ�(&X)",-1,7,56,54,8
+    CONTROL         "FireWallを使う(&F)",HSET_FIREWALL,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,92,10
+    CONTROL         "PASVモードを使う(&V)",HSET_PASV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,22,92,10
+    CONTROL         "フォルダ同時移動を使う(&S)",HSET_SYNCMOVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,37,93,10
+    LTEXT           "ポート番号(&X)",-1,7,56,54,8
     EDITTEXT        HSET_PORT,7,66,22,12,ES_AUTOHSCROLL | ES_NUMBER
-    PUSHBUTTON      "�W��",HSET_PORT_NOR,30,66,25,13
-    LTEXT           "�A�J�E���g(&C)",-1,7,87,65,8
+    PUSHBUTTON      "標準",HSET_PORT_NOR,30,66,25,13
+    LTEXT           "アカウント(&C)",-1,7,87,65,8
     EDITTEXT        HSET_ACCOUNT,7,97,62,12,ES_AUTOHSCROLL
-    LTEXT           "�z�X�g�̃^�C���]�[��(&T)",-1,103,7,81,8
+    LTEXT           "ホストのタイムゾーン(&T)",-1,103,7,81,8
     COMBOBOX        HSET_TIMEZONE,103,17,71,102,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "�Z�L�����e�B(&Q)",-1,103,35,72,8
+    LTEXT           "セキュリティ(&Q)",-1,103,35,72,8
     COMBOBOX        HSET_SECURITY,103,45,71,75,CBS_DROPDOWNLIST | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "�ڑ����Ƀz�X�g�ɑ���R�}���h(&I)",-1,103,65,97,8
+    LTEXT           "接続時にホストに送るコマンド(&I)",-1,103,65,97,8
     EDITTEXT        HSET_INITCMD,103,76,92,30,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN
 END
 
 diskfull_dlg DIALOG 0, 0, 159, 42
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "FFFTP: �G���["
+CAPTION "FFFTP: エラー"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    DEFPUSHBUTTON   "���̃t�@�C���𒆎~",IDOK,7,24,82,14
-    PUSHBUTTON      "�S�Ē��~",IDCANCEL,102,24,50,14
-    CTEXT           "�f�B�X�N�������ς��ł��B",-1,7,6,145,10
+    DEFPUSHBUTTON   "このファイルを中止",IDOK,7,24,82,14
+    PUSHBUTTON      "全て中止",IDCANCEL,102,24,50,14
+    CTEXT           "ディスクがいっぱいです。",-1,7,6,145,10
 END
 
 find_dlg DIALOG 0, 0, 187, 56
@@ -707,79 +708,79 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
-    CONTROL         "���K�\��(&R)",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,24,121,10
+    CONTROL         "正規表現(&R)",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,24,121,10
     DEFPUSHBUTTON   "OK",IDOK,36,38,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,101,38,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,101,38,50,14
 END
 
 opt_sound_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "�T�E���h"
+CAPTION "サウンド"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    CONTROL         "�ڑ�����Wave�t�@�C����炷(&C)",SOUND_CONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,9,196,10
+    CONTROL         "接続時にWaveファイルを鳴らす(&C)",SOUND_CONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,9,196,10
     EDITTEXT        SOUND_CONNECT_WAV,31,22,116,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",SOUND_CONNECT_BR,148,21,13,13
-    PUSHBUTTON      "�e�X�g",SOUND_CONNECT_TEST,166,21,37,13
-    CONTROL         "�]���I������Wave�t�@�C����炷(&T)",SOUND_TRANS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,196,10
+    PUSHBUTTON      "テスト",SOUND_CONNECT_TEST,166,21,37,13
+    CONTROL         "転送終了時にWaveファイルを鳴らす(&T)",SOUND_TRANS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,196,10
     EDITTEXT        SOUND_TRANS_WAV,31,55,116,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",SOUND_TRANS_BR,148,55,13,13
-    PUSHBUTTON      "�e�X�g",SOUND_TRANS_TEST,166,55,37,13
-    CONTROL         "�G���[�̎�Wave�t�@�C����炷(&E)",SOUND_ERROR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,75,196,10
+    PUSHBUTTON      "テスト",SOUND_TRANS_TEST,166,55,37,13
+    CONTROL         "エラーの時Waveファイルを鳴らす(&E)",SOUND_ERROR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,75,196,10
     EDITTEXT        SOUND_ERROR_WAV,31,88,116,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",SOUND_ERROR_BR,148,88,13,13
-    PUSHBUTTON      "�e�X�g",SOUND_ERROR_TEST,166,88,37,13
+    PUSHBUTTON      "テスト",SOUND_ERROR_TEST,166,88,37,13
 END
 
 downerr_dlg DIALOG 0, 0, 223, 103
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
-CAPTION "FFFTP: �G���["
+CAPTION "FFFTP: エラー"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    CONTROL         "��ŏ㏑��(&O)",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,46,99,10
-    CONTROL         "��Ń��W���[��(&R)",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,58,99,10
-    CONTROL         "�_�E�����[�h���Ȃ�(&N)",DOWN_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,70,99,10
+    CONTROL         "後で上書き(&O)",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,46,99,10
+    CONTROL         "後でリジューム(&R)",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,58,99,10
+    CONTROL         "ダウンロードしない(&N)",DOWN_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,70,99,10
     DEFPUSHBUTTON   "OK",IDOK,8,85,50,14,WS_GROUP
-    PUSHBUTTON      "�ȍ~�S��(&A)",IDOK_ALL,63,85,50,14
-    PUSHBUTTON      "�S�Ē��~(&S)",IDCANCEL,118,85,50,14
-    PUSHBUTTON      "�w���v",9,173,85,41,14
-    LTEXT           "���_�E�����[�h�ł��܂���ł����B",-1,7,16,184,10
+    PUSHBUTTON      "以降全て(&A)",IDOK_ALL,63,85,50,14
+    PUSHBUTTON      "全て中止(&S)",IDCANCEL,118,85,50,14
+    PUSHBUTTON      "ヘルプ",9,173,85,41,14
+    LTEXT           "がダウンロードできませんでした。",-1,7,16,184,10
     LTEXT           "",UPDOWN_ERR_FNAME,7,4,184,8,SS_NOPREFIX
     EDITTEXT        UPDOWN_ERR_MSG,7,28,209,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER,WS_EX_STATICEDGE
 END
 
 uperr_dlg DIALOG 0, 0, 223, 103
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
-CAPTION "FFFTP: �G���["
+CAPTION "FFFTP: エラー"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    CONTROL         "��ŏ㏑��(&O)",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,46,99,10
-    CONTROL         "��Ń��W���[��(&R)",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,58,99,10
-    CONTROL         "�A�b�v���[�h���Ȃ�(&N)",DOWN_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,70,99,10
+    CONTROL         "後で上書き(&O)",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,46,99,10
+    CONTROL         "後でリジューム(&R)",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,58,99,10
+    CONTROL         "アップロードしない(&N)",DOWN_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,70,99,10
     DEFPUSHBUTTON   "OK",IDOK,8,85,50,14,WS_GROUP
-    PUSHBUTTON      "�ȍ~�S��(&A)",IDOK_ALL,63,85,50,14
-    PUSHBUTTON      "�S�Ē��~(&S)",IDCANCEL,118,85,50,14
-    PUSHBUTTON      "�w���v",9,173,85,41,14
-    LTEXT           "���A�b�v���[�h�ł��܂���ł����B",-1,7,16,184,10
+    PUSHBUTTON      "以降全て(&A)",IDOK_ALL,63,85,50,14
+    PUSHBUTTON      "全て中止(&S)",IDCANCEL,118,85,50,14
+    PUSHBUTTON      "ヘルプ",9,173,85,41,14
+    LTEXT           "がアップロードできませんでした。",-1,7,16,184,10
     LTEXT           "",UPDOWN_ERR_FNAME,7,4,184,8,SS_NOPREFIX
     EDITTEXT        UPDOWN_ERR_MSG,7,28,209,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER,WS_EX_STATICEDGE
 END
 
 hset_code_dlg DIALOGEX 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "�����R�[�h"
+CAPTION "文字コード"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    GROUPBOX        "�z�X�g�̊����R�[�h(&K)",-1,7,7,98,106,WS_GROUP
-    CONTROL         "���ϊ�",HSET_NO_CNV,"Button",BS_AUTORADIOBUTTON | WS_GROUP,12,21,81,10
+    GROUPBOX        "ホストの漢字コード(&K)",-1,7,7,98,106,WS_GROUP
+    CONTROL         "無変換",HSET_NO_CNV,"Button",BS_AUTORADIOBUTTON | WS_GROUP,12,21,81,10
     CONTROL         "Shift_JIS",HSET_SJIS_CNV,"Button",BS_AUTORADIOBUTTON,12,33,81,10
     CONTROL         "JIS",HSET_JIS_CNV,"Button",BS_AUTORADIOBUTTON,12,45,41,10
     CONTROL         "EUC",HSET_EUC_CNV,"Button",BS_AUTORADIOBUTTON,12,57,41,10
     CONTROL         "UTF-8",HSET_UTF8N_CNV,"Button",BS_AUTORADIOBUTTON,12,69,41,10
     CONTROL         "UTF-8 BOM",HSET_UTF8BOM_CNV,"Button",BS_AUTORADIOBUTTON,12,81,81,10
-    CONTROL         "���p�J�i��S�p�ɕϊ�",HSET_HANCNV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,12,98,87,10
-    GROUPBOX        "�t�@�C�����̊����R�[�h(&N)",-1,110,7,90,127,WS_GROUP
-    CONTROL         "����",HSET_FN_AUTO_CNV,"Button",BS_AUTORADIOBUTTON | WS_GROUP,114,21,65,10
+    CONTROL         "半角カナを全角に変換",HSET_HANCNV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,12,98,87,10
+    GROUPBOX        "ファイル名の漢字コード(&N)",-1,110,7,90,127,WS_GROUP
+    CONTROL         "自動",HSET_FN_AUTO_CNV,"Button",BS_AUTORADIOBUTTON | WS_GROUP,114,21,65,10
     CONTROL         "Shift_JIS",HSET_FN_SJIS_CNV,"Button",BS_AUTORADIOBUTTON,114,33,81,10
     CONTROL         "JIS",HSET_FN_JIS_CNV,"Button",BS_AUTORADIOBUTTON,114,45,81,10
     CONTROL         "EUC",HSET_FN_EUC_CNV,"Button",BS_AUTORADIOBUTTON,114,57,81,10
@@ -787,59 +788,59 @@ BEGIN
     CONTROL         "Samba-CAP",HSET_FN_SMC_CNV,"Button",BS_AUTORADIOBUTTON,114,81,81,10
     CONTROL         "UTF-8",HSET_FN_UTF8N_CNV,"Button",BS_AUTORADIOBUTTON,114,93,81,10
     CONTROL         "UTF-8 HFS+",HSET_FN_UTF8HFSX_CNV,"Button",BS_AUTORADIOBUTTON,114,105,81,10
-    CONTROL         "���p�J�i��S�p�ɕϊ�",HSET_FN_HANCNV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,114,119,81,10
+    CONTROL         "半角カナを全角に変換",HSET_FN_HANCNV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,114,119,81,10
 END
 
 opt_trmode1_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "�]��1"
+CAPTION "転送1"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    GROUPBOX        "�]�����[�h",-1,7,7,93,56
-    CONTROL         "��ɃA�X�L�[���[�h(&A)",TRMODE_ASCII,"Button",BS_AUTORADIOBUTTON | WS_GROUP,13,19,85,10
-    CONTROL         "��Ƀo�C�i�����[�h(&B)",TRMODE_BIN,"Button",BS_AUTORADIOBUTTON,13,33,84,10
-    CONTROL         "�t�@�C�����Őؑւ�(&X)",TRMODE_AUTO,"Button",BS_AUTORADIOBUTTON,13,47,81,10
-    LTEXT           "��",-1,98,49,8,8
-    GROUPBOX        "�A�X�L�[���[�h�̃t�@�C����(&F)",-1,104,7,99,70,WS_GROUP
+    GROUPBOX        "転送モード",-1,7,7,93,56
+    CONTROL         "常にアスキーモード(&A)",TRMODE_ASCII,"Button",BS_AUTORADIOBUTTON | WS_GROUP,13,19,85,10
+    CONTROL         "常にバイナリモード(&B)",TRMODE_BIN,"Button",BS_AUTORADIOBUTTON,13,33,84,10
+    CONTROL         "ファイル名で切替え(&X)",TRMODE_AUTO,"Button",BS_AUTORADIOBUTTON,13,47,81,10
+    LTEXT           "→",-1,98,49,8,8
+    GROUPBOX        "アスキーモードのファイル名(&F)",-1,104,7,99,70,WS_GROUP
     LISTBOX         TRMODE_EXT_LIST,109,19,53,53,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "�ǉ�(&I)...",TRMODE_ADD,167,19,31,14
-    PUSHBUTTON      "�폜",TRMODE_DEL,167,38,31,14
-    CONTROL         "�A�X�L�[���[�h�ŃA�b�v���[�h���AEOF(Ctrl-Z)����菜��(&Z)",TRMODE_EOF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,80,196,10
-    CONTROL         "�A�b�v���[�h/�_�E�����[�h����t�@�C���̃^�C���X�^���v���ێ�(&T)",TRMODE_TIME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,94,196,10
-    CONTROL         "�t�@�C�����̃Z�~�R�����ȍ~�͎�菜���ă_�E�����[�h(&S)",TRMODE_SEMICOLON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,196,10
-    CONTROL         "�t�@�C������ς��ē]�������ꍇ�Ƀf�B���N�g�����쐬(&D)",TRMODE_MAKEDIR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,196,10
-    CONTROL         "�t�@�C���ꗗ�̎擾�Ɏ��s�����ꍇ�ɓ]���𒆎~(&L)",TRMODE_LISTERROR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,136,196,10
+    PUSHBUTTON      "追加(&I)...",TRMODE_ADD,167,19,31,14
+    PUSHBUTTON      "削除",TRMODE_DEL,167,38,31,14
+    CONTROL         "アスキーモードでアップロード時、EOF(Ctrl-Z)を取り除く(&Z)",TRMODE_EOF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,80,196,10
+    CONTROL         "アップロード/ダウンロードするファイルのタイムスタンプを維持(&T)",TRMODE_TIME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,94,196,10
+    CONTROL         "ファイル名のセミコロン以降は取り除いてダウンロード(&S)",TRMODE_SEMICOLON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,196,10
+    CONTROL         "ファイル名を変えて転送した場合にディレクトリを作成(&D)",TRMODE_MAKEDIR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,196,10
+    CONTROL         "ファイル一覧の取得に失敗した場合に転送を中止(&L)",TRMODE_LISTERROR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,136,196,10
 END
 
 up_exist_dlg DIALOG 0, 0, 223, 131
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
-CAPTION "�A�b�v���[�h�̊m�F"
+CAPTION "アップロードの確認"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    CONTROL         "�㏑��(&O)",UP_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,38,99,10
-    CONTROL         "�V������Ώ㏑��(&T)",UP_EXIST_NEW,"Button",BS_AUTORADIOBUTTON,7,50,99,10
-    CONTROL         "�傫����Ώ㏑��(&L)",UP_EXIST_LARGE,"Button",BS_AUTORADIOBUTTON,7,62,99,10
-    CONTROL         "�ĊJ�i���W���[���j(&R)",UP_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,74,99,10
-    CONTROL         "�z�X�g�����O��t����(&M)",UP_EXIST_UNIQUE,"Button",BS_AUTORADIOBUTTON,7,86,99,10
-    CONTROL         "�A�b�v���[�h���Ȃ�(&N)",UP_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,98,99,10
-    LTEXT           "�Ⴄ���O�ŃA�b�v���[�h���鎞�́A���O��ύX���āu�㏑���v�������Ă��������B",-1,113,39,103,41
+    CONTROL         "上書き(&O)",UP_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,38,99,10
+    CONTROL         "新しければ上書き(&T)",UP_EXIST_NEW,"Button",BS_AUTORADIOBUTTON,7,50,99,10
+    CONTROL         "大きければ上書き(&L)",UP_EXIST_LARGE,"Button",BS_AUTORADIOBUTTON,7,62,99,10
+    CONTROL         "再開（リジューム）(&R)",UP_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,74,99,10
+    CONTROL         "ホストが名前を付ける(&M)",UP_EXIST_UNIQUE,"Button",BS_AUTORADIOBUTTON,7,86,99,10
+    CONTROL         "アップロードしない(&N)",UP_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,98,99,10
+    LTEXT           "違う名前でアップロードする時は、名前を変更して「上書き」を押してください。",-1,113,39,103,41
     DEFPUSHBUTTON   "OK",IDOK,8,113,50,14,WS_GROUP
-    PUSHBUTTON      "�ȍ~�S��(&A)",IDOK_ALL,63,113,50,14
-    PUSHBUTTON      "�S�Ē��~(&S)",IDCANCEL,118,113,50,14
-    PUSHBUTTON      "�w���v",9,173,113,41,14
-    LTEXT           "�z�X�g�ɓ������O�̃t�@�C��������܂�",-1,7,7,184,8
+    PUSHBUTTON      "以降全て(&A)",IDOK_ALL,63,113,50,14
+    PUSHBUTTON      "全て中止(&S)",IDCANCEL,118,113,50,14
+    PUSHBUTTON      "ヘルプ",9,173,113,41,14
+    LTEXT           "ホストに同じ名前のファイルがあります",-1,7,7,184,8
     EDITTEXT        UP_EXIST_NAME,7,20,209,12,ES_AUTOHSCROLL
 END
 
 reginit_dlg DIALOG 0, 0, 155, 87
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�S�ݒ�̏���"
+CAPTION "全設定の消去"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    DEFPUSHBUTTON   "������",IDCANCEL,41,49,71,31
-    PUSHBUTTON      "����",IDOK,125,66,23,14,NOT WS_TABSTOP
-    LTEXT           "�z�X�g�̐ݒ���܂߁AFFFTP�֌W�̑S�Ă̐ݒ�����������ďI�����܂��B",-1,28,7,120,24
-    CTEXT           "�ݒ���������܂����H",-1,7,33,141,8
+    DEFPUSHBUTTON   "いいえ",IDCANCEL,41,49,71,31
+    PUSHBUTTON      "消去",IDOK,125,66,23,14,NOT WS_TABSTOP
+    LTEXT           "ホストの設定を含め、FFFTP関係の全ての設定情報を消去して終了します。",-1,28,7,120,24
+    CTEXT           "設定を消去しますか？",-1,7,33,141,8
     ICON            notify,-1,7,7,18,21
 END
 
@@ -849,153 +850,153 @@ FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        UPDOWNAS_NEW,7,34,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,35,51,50,14
-    PUSHBUTTON      "���~(&S)",UPDOWNAS_STOP,101,51,50,14
+    PUSHBUTTON      "中止(&S)",UPDOWNAS_STOP,101,51,50,14
     LTEXT           "",UPDOWNAS_TEXT,7,7,173,8,SS_NOPREFIX
-    LTEXT           "�̖��O��ύX���Ă��������B",-1,15,20,133,8
+    LTEXT           "の名前を変更してください。",-1,15,20,133,8
 END
 
 re_passwd_dlg DIALOG 0, 0, 187, 62
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�p�X���[�h"
+CAPTION "パスワード"
 FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        INP_INPSTR,7,27,173,12,ES_PASSWORD | ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,36,44,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,101,44,50,14
-    LTEXT           "���O�C���ł��܂���B\n�������p�X���[�h����͂��Ă��������B",-1,7,7,173,19
+    PUSHBUTTON      "キャンセル",IDCANCEL,101,44,50,14
+    LTEXT           "ログインできません。\n正しいパスワードを入力してください。",-1,7,7,173,19
 END
 
 savepass_dlg DIALOG 0, 0, 146, 50
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�p�X���[�h�̕ۑ�"
+CAPTION "パスワードの保存"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "�������p�X���[�h���z�X�g�̐ݒ�ɕۑ����܂����H",-1,7,7,132,17
-    DEFPUSHBUTTON   "�͂�",IDOK,17,29,50,14
-    PUSHBUTTON      "������",IDCANCEL,78,29,50,14
+    LTEXT           "正しいパスワードをホストの設定に保存しますか？",-1,7,7,132,17
+    DEFPUSHBUTTON   "はい",IDOK,17,29,50,14
+    PUSHBUTTON      "いいえ",IDCANCEL,78,29,50,14
 END
 
 sel_local_dlg DIALOG 0, 0, 187, 106
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "�I���i���[�J���j"
+CAPTION "選択（ローカル）"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "�I������t�@�C��(&F)",-1,7,7,109,8
+    LTEXT           "選択するファイル(&F)",-1,7,7,109,8
     EDITTEXT        SEL_FNAME,7,17,173,12,ES_AUTOHSCROLL
-    CONTROL         "���K�\��(&R)",SEL_REGEXP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,34,160,10
-    CONTROL         "�z�X�g�̕����V�����t�@�C���͏��O(&N)",SEL_NOOLD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,47,160,10
-    CONTROL         "�z�X�g�̕����Â��t�@�C���͏��O(&O)",SEL_NONEW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,60,160,10
-    CONTROL         "�z�X�g�Ɋ��ɂ���t�@�C���͏��O(&X)",SEL_NOEXIST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,73,160,10
+    CONTROL         "正規表現(&R)",SEL_REGEXP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,34,160,10
+    CONTROL         "ホストの方が新しいファイルは除外(&N)",SEL_NOOLD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,47,160,10
+    CONTROL         "ホストの方が古いファイルは除外(&O)",SEL_NONEW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,60,160,10
+    CONTROL         "ホストに既にあるファイルは除外(&X)",SEL_NOEXIST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,73,160,10
     DEFPUSHBUTTON   "OK",IDOK,10,88,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,68,88,50,14
-    PUSHBUTTON      "�w���v",9,126,88,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,68,88,50,14
+    PUSHBUTTON      "ヘルプ",9,126,88,50,14
 END
 
 sel_remote_dlg DIALOG 0, 0, 187, 106
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "�I���i�z�X�g�j"
+CAPTION "選択（ホスト）"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "�I������t�@�C��(&F)",-1,7,7,109,8
+    LTEXT           "選択するファイル(&F)",-1,7,7,109,8
     EDITTEXT        SEL_FNAME,7,17,173,12,ES_AUTOHSCROLL
-    CONTROL         "���K�\��(&R)",SEL_REGEXP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,34,160,10
-    CONTROL         "���[�J���̕����V�����t�@�C���͏��O(&N)",SEL_NOOLD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,47,160,10
-    CONTROL         "���[�J���̕����Â��t�@�C���͏��O(&O)",SEL_NONEW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,60,160,10
-    CONTROL         "���[�J���Ɋ��ɂ���t�@�C���͏��O(&X)",SEL_NOEXIST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,73,160,10
+    CONTROL         "正規表現(&R)",SEL_REGEXP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,34,160,10
+    CONTROL         "ローカルの方が新しいファイルは除外(&N)",SEL_NOOLD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,47,160,10
+    CONTROL         "ローカルの方が古いファイルは除外(&O)",SEL_NONEW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,60,160,10
+    CONTROL         "ローカルに既にあるファイルは除外(&X)",SEL_NOEXIST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,73,160,10
     DEFPUSHBUTTON   "OK",IDOK,10,88,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,68,88,50,14
-    PUSHBUTTON      "�w���v",9,126,88,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,68,88,50,14
+    PUSHBUTTON      "ヘルプ",9,126,88,50,14
 END
 
 mirror_up_dlg DIALOG 0, 0, 195, 135
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�~���[�����O�A�b�v���[�h"
+CAPTION "ミラーリングアップロード"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    DEFPUSHBUTTON   "�������e�\��",MIRRORUP_DISP,51,114,50,14
-    PUSHBUTTON      "�J�n(&S)",IDOK,7,114,41,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,104,114,45,14
-    PUSHBUTTON      "�w���v",9,152,114,33,14
+    DEFPUSHBUTTON   "処理内容表示",MIRRORUP_DISP,51,114,50,14
+    PUSHBUTTON      "開始(&S)",IDOK,7,114,41,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,104,114,45,14
+    PUSHBUTTON      "ヘルプ",9,152,114,33,14
     LTEXT           "",-1,7,20,181,76,SS_SUNKEN | NOT WS_GROUP
-    LTEXT           "�~���[�����O�A�b�v���[�h�͎��̏������s���܂��B\n\n  �����[�J�������z�X�g���ւ̃R�s�[\n\n  ���z�X�g���̃t�@�C���̍폜\n\n�������e�\���������ƁA�R�s�[/�폜����t�@�C���̈ꗗ��\�����܂��B",-1,35,26,146,66
-    CTEXT           "�~���[�����O�A�b�v���[�h���J�n���܂��B",-1,7,7,181,8
-    LTEXT           "����L���m�F���Ă�������",-1,17,102,100,8
+    LTEXT           "ミラーリングアップロードは次の処理を行います。\n\n  ●ローカル側→ホスト側へのコピー\n\n  ●ホスト側のファイルの削除\n\n処理内容表示を押すと、コピー/削除するファイルの一覧を表示します。",-1,35,26,146,66
+    CTEXT           "ミラーリングアップロードを開始します。",-1,7,7,181,8
+    LTEXT           "↑上記を確認してください",-1,17,102,100,8
     ICON            notify,-1,12,46,20,20
 END
 
 account_dlg DIALOG 0, 0, 187, 42
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�A�J�E���g"
+CAPTION "アカウント"
 FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,36,24,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,101,24,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,101,24,50,14
 END
 
 opt_mirror_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "�~���[�����O"
+CAPTION "ミラーリング"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    GROUPBOX        "�]�����Ȃ��t�@�C����(&F)",-1,7,7,95,80,WS_GROUP
+    GROUPBOX        "転送しないファイル名(&F)",-1,7,7,95,80,WS_GROUP
     LISTBOX         MIRROR_NOTRN_LIST,12,20,50,63,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "�ǉ�(&I)...",MIRROR_NOTRN_ADD,66,20,31,14
-    PUSHBUTTON      "�폜",MIRROR_NOTRN_DEL,66,37,31,14
-    LTEXT           "�t�H���_�����w��ł��܂�",-1,65,56,33,26,SS_SUNKEN
-    GROUPBOX        "�폜���Ȃ��t�@�C����(&R)",-1,108,7,95,80,WS_GROUP
+    PUSHBUTTON      "追加(&I)...",MIRROR_NOTRN_ADD,66,20,31,14
+    PUSHBUTTON      "削除",MIRROR_NOTRN_DEL,66,37,31,14
+    LTEXT           "フォルダ名も指定できます",-1,65,56,33,26,SS_SUNKEN
+    GROUPBOX        "削除しないファイル名(&R)",-1,108,7,95,80,WS_GROUP
     LISTBOX         MIRROR_NODEL_LIST,113,20,50,63,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "�ǉ�(&A)...",MIRROR_NODEL_ADD,167,20,31,14
-    PUSHBUTTON      "�폜",MIRROR_NODEL_DEL,167,37,31,14
-    LTEXT           "�t�H���_�����w��ł��܂�",-1,166,56,33,25,SS_SUNKEN
-    CONTROL         "�t�@�C������S�ď������ɂ��ē]��(&L)",MIRROR_LOW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,97,174,10
-    CONTROL         "�~���[�����O�A�b�v���[�h�Ńt�@�C���폜�O�Ɋm�F(&U)",MIRROR_UPDEL_NOTIFY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,111,174,10
-    CONTROL         "�~���[�����O�_�E�����[�h�Ńt�@�C���폜�O�Ɋm�F(&D)",MIRROR_DOWNDEL_NOTIFY,
+    PUSHBUTTON      "追加(&A)...",MIRROR_NODEL_ADD,167,20,31,14
+    PUSHBUTTON      "削除",MIRROR_NODEL_DEL,167,37,31,14
+    LTEXT           "フォルダ名も指定できます",-1,166,56,33,25,SS_SUNKEN
+    CONTROL         "ファイル名を全て小文字にして転送(&L)",MIRROR_LOW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,97,174,10
+    CONTROL         "ミラーリングアップロードでファイル削除前に確認(&U)",MIRROR_UPDEL_NOTIFY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,111,174,10
+    CONTROL         "ミラーリングダウンロードでファイル削除前に確認(&D)",MIRROR_DOWNDEL_NOTIFY,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,125,174,10
-    CONTROL         "�~���[�����O�Ńt�@�C�����e��]�����Ȃ�(&F)",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,139,174,10
+    CONTROL         "ミラーリングでファイル内容を転送しない(&F)",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,139,174,10
 END
 
 somecmd_dlg DIALOG 0, 0, 187, 61
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�C�ӂ̃R�}���h"
+CAPTION "任意のコマンド"
 FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,10,43,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,68,43,50,14
-    PUSHBUTTON      "�w���v",9,126,43,50,14
-    LTEXT           "�t�@�C���̓]����K�v�Ƃ���R�}���h�͎w��ł��܂���B",-1,7,24,173,15
+    PUSHBUTTON      "キャンセル",IDCANCEL,68,43,50,14
+    PUSHBUTTON      "ヘルプ",9,126,43,50,14
+    LTEXT           "ファイルの転送を必要とするコマンドは指定できません。",-1,7,24,173,15
 END
 
 downname_dlg DIALOG 0, 0, 187, 42
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�_�E�����[�h����t�@�C��"
+CAPTION "ダウンロードするファイル"
 FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        INP_INPSTR,7,6,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,36,24,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,101,24,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,101,24,50,14
 END
 
 opt_connect_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "�ڑ�/�ؒf"
+CAPTION "接続/切断"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    CONTROL         "�N�����ɐڑ��_�C�A���O��\������(&C)",CONNECT_CONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
-    CONTROL         "�ڑ��_�C�A���O�Ńz�X�g�̐ݒ���s��(&O)",CONNECT_OLDDLG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,20,173,10
-    CONTROL         "�v���O�����I�����Ƀ_�C�A���A�b�v(RAS)��ؒf����(&D)",CONNECT_RASCLOSE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,33,196,10
-    CONTROL         "�_�C�A���A�b�v(RAS)�ؒf�̊m�F���s��(&N)",CONNECT_CLOSE_NOTIFY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,27,48,161,10
-    LTEXT           "�ڑ��z�X�g�̃q�X�g����(&H)",-1,7,65,91,8
+    CONTROL         "起動時に接続ダイアログを表示する(&C)",CONNECT_CONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
+    CONTROL         "接続ダイアログでホストの設定も行う(&O)",CONNECT_OLDDLG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,20,173,10
+    CONTROL         "プログラム終了時にダイアルアップ(RAS)を切断する(&D)",CONNECT_RASCLOSE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,33,196,10
+    CONTROL         "ダイアルアップ(RAS)切断の確認を行う(&N)",CONNECT_CLOSE_NOTIFY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,27,48,161,10
+    LTEXT           "接続ホストのヒストリ個数(&H)",-1,7,65,91,8
     EDITTEXT        CONNECT_HIST,99,63,17,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Spin1",CONNECT_HIST_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,116,62,9,14
-    LTEXT           "(0�`20)",-1,129,65,31,8
-    CONTROL         "�ڑ��q�X�g���Ƀp�X���[�h���L������(&P)",CONNECT_HIST_PASS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,80,129,10
-    CONTROL         "�N�C�b�N�ڑ���anonymous-FTP����{�Ƃ���(&A)",CONNECT_QUICK_ANONY,
+    LTEXT           "(0～20)",-1,129,65,31,8
+    CONTROL         "接続ヒストリにパスワードも記憶する(&P)",CONNECT_HIST_PASS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,80,129,10
+    CONTROL         "クイック接続はanonymous-FTPを基本とする(&A)",CONNECT_QUICK_ANONY,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,94,196,10
-    CONTROL         "�ؒf����QUIT�R�}���h�𑗂�(&Q)",CONNECT_SENDQUIT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,173,10
-    CONTROL         "RAS�̐�����s��Ȃ�(&R)",CONNECT_NORAS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,173,10
-    CONTROL         "��PASV���[�h����UPnP�̐�������s����(&U)",CONNECT_UPNP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,136,173,10
+    CONTROL         "切断時にQUITコマンドを送る(&Q)",CONNECT_SENDQUIT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,173,10
+    CONTROL         "RASの制御を行わない(&R)",CONNECT_NORAS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,173,10
+    CONTROL         "非PASVモード時にUPnPの制御を試行する(&U)",CONNECT_UPNP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,136,173,10
 END
 
 rasnotify_dlg DIALOG 0, 0, 158, 46
@@ -1003,91 +1004,91 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "FFFTP"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    DEFPUSHBUTTON   "�͂�",IDOK,23,25,50,14
-    PUSHBUTTON      "������",IDCANCEL,86,25,50,14
-    CTEXT           "�_�C�A���A�b�v�ڑ���ؒf���܂����H",-1,7,7,144,8
+    DEFPUSHBUTTON   "はい",IDOK,23,25,50,14
+    PUSHBUTTON      "いいえ",IDCANCEL,86,25,50,14
+    CTEXT           "ダイアルアップ接続を切断しますか？",-1,7,7,144,8
 END
 
 filesize_dlg DIALOG 0, 0, 131, 76
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "�t�@�C���e��"
+CAPTION "ファイル容量"
 FONT 9, "MS Shell Dlg"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,42,55,50,14
     CTEXT           "",FSIZE_SIZE,7,18,117,8
     CTEXT           "",FSIZE_TITLE,7,7,117,8
-    LTEXT           "�T�u�t�H���_�ȉ��̃t�@�C���̗e�ʂ��܂݂܂��B",-1,7,30,117,19,SS_SUNKEN
+    LTEXT           "サブフォルダ以下のファイルの容量を含みます。",-1,7,30,117,19,SS_SUNKEN
 END
 
 filesize_notify_dlg DIALOG 0, 0, 155, 70
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "�t�@�C���e��"
+CAPTION "ファイル容量"
 FONT 9, "MS Shell Dlg"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,23,49,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,82,49,50,14
-    CONTROL         "�I�������t�@�C�������v�Z����(&S)",FSNOTIFY_SEL_ONLY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,33,141,10
+    PUSHBUTTON      "キャンセル",IDCANCEL,82,49,50,14
+    CONTROL         "選択したファイルだけ計算する(&S)",FSNOTIFY_SEL_ONLY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,33,141,10
     CTEXT           "",FSNOTIFY_TITLE,7,7,142,8
-    CTEXT           "�i�v�Z�Ɏ��Ԃ�������ꍇ������܂��j",FSNOTIFY_TITLE,7,19,141,8
+    CTEXT           "（計算に時間がかかる場合があります）",FSNOTIFY_TITLE,7,19,141,8
 END
 
 hset_adv2_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "���x"
+CAPTION "高度"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    CONTROL         "LIST�R�}���h�Ńt�@�C���ꗗ���擾(&L)",HSET_LISTCMD,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,131,10
-    CONTROL         "�\�ł����MLSD�R�}���h�ňꗗ���擾(&M)",HSET_MLSDCMD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
-    CONTROL         "NLST -R ���g���č����ɍċA����(&N)",HSET_NLST_R,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
-    CONTROL         "�t���p�X�Ńt�@�C�����A�N�Z�X���Ȃ�(&F)",HSET_FULLPATH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,49,148,10
-    LTEXT           "�����ύX�R�}���h(&A)",-1,7,65,83,8
+    CONTROL         "LISTコマンドでファイル一覧を取得(&L)",HSET_LISTCMD,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,131,10
+    CONTROL         "可能であればMLSDコマンドで一覧を取得(&M)",HSET_MLSDCMD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
+    CONTROL         "NLST -R を使って高速に再帰検索(&N)",HSET_NLST_R,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
+    CONTROL         "フルパスでファイルをアクセスしない(&F)",HSET_FULLPATH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,49,148,10
+    LTEXT           "属性変更コマンド(&A)",-1,7,65,83,8
     EDITTEXT        HSET_CHMOD_CMD,7,75,62,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "�W��",HSET_CHMOD_NOR,70,75,25,13
-    LTEXT           "�z�X�g�̎��(&H)",-1,7,94,69,8
+    PUSHBUTTON      "標準",HSET_CHMOD_NOR,70,75,25,13
+    LTEXT           "ホストの種類(&H)",-1,7,94,69,8
     COMBOBOX        HSET_HOSTTYPE,7,104,71,75,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "NLST�t�@�C����/�I�v�V����",-1,7,123,89,8
+    LTEXT           "NLSTファイル名/オプション",-1,7,123,89,8
     EDITTEXT        HSET_LS_FNAME,7,133,62,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "�W��",HSET_LS_FNAME_NOR,70,133,25,13
+    PUSHBUTTON      "標準",HSET_LS_FNAME_NOR,70,133,25,13
 END
 
 cwderr_dlg DIALOG 0, 0, 154, 69
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "�G���["
+CAPTION "エラー"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    PUSHBUTTON      "���~",IDCANCEL,51,48,50,14
-    LTEXT           "�T�u�f�B���N�g���ֈړ��ł��Ȃ����߁A���������s�ł��܂���B",-1,7,7,140,18
-    CTEXT           "�����𒆎~���܂��B",-1,7,31,140,8
+    PUSHBUTTON      "中止",IDCANCEL,51,48,50,14
+    LTEXT           "サブディレクトリへ移動できないため、処理が続行できません。",-1,7,7,140,18
+    CTEXT           "処理を中止します。",-1,7,31,140,8
 END
 
 opt_trmode3_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "�]��3"
+CAPTION "転送3"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    GROUPBOX        "�A�b�v���[�h����t�@�C���̑���(&P)",-1,7,7,124,95
+    GROUPBOX        "アップロードするファイルの属性(&P)",-1,7,7,124,95
     CONTROL         "List1",TRMODE3_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,13,20,78,77
-    PUSHBUTTON      "�ǉ�(&A)...",TRMODE3_ADD,95,20,31,14
-    PUSHBUTTON      "�폜",TRMODE3_DEL,95,38,31,14
-    CONTROL         "�A�b�v���[�h���ɍ쐬����t�H���_�̑������w�肷��(&F)",TRMODE3_FOLDER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,109,182,10
-    LTEXT           "����",-1,18,125,18,8
+    PUSHBUTTON      "追加(&A)...",TRMODE3_ADD,95,20,31,14
+    PUSHBUTTON      "削除",TRMODE3_DEL,95,38,31,14
+    CONTROL         "アップロード時に作成するフォルダの属性を指定する(&F)",TRMODE3_FOLDER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,109,182,10
+    LTEXT           "属性",-1,18,125,18,8
     EDITTEXT        TRMODE3_FOLDER_ATTR,37,123,29,12,ES_AUTOHSCROLL | ES_NUMBER
 END
 
 def_attr_dlg DIALOG 0, 0, 123, 69
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "�f�t�H���g�����̐ݒ�"
+CAPTION "デフォルト属性の設定"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "�t�@�C����(&F)",-1,7,7,49,8
+    LTEXT           "ファイル名(&F)",-1,7,7,49,8
     EDITTEXT        DEFATTR_FNAME,7,18,47,12,ES_AUTOHSCROLL
-    LTEXT           "��",-1,58,20,8,8
-    LTEXT           "����(&A)",-1,71,7,40,8
+    LTEXT           "→",-1,58,20,8,8
+    LTEXT           "属性(&A)",-1,71,7,40,8
     EDITTEXT        DEFATTR_ATTR,71,18,31,12,ES_AUTOHSCROLL | ES_NUMBER
     PUSHBUTTON      "...",DEFATTR_ATTR_BR,102,18,13,12
-    LTEXT           "(��: 644)",-1,72,35,28,8
+    LTEXT           "(例: 644)",-1,72,35,28,8
     DEFPUSHBUTTON   "OK",IDOK,7,48,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,66,48,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,66,48,50,14
 END
 
 fname_in_dlg DIALOG 0, 0, 86, 44
@@ -1096,51 +1097,51 @@ FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,72,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,7,26,33,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,46,26,33,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,46,26,33,14
 END
 
 otp_notify_dlg DIALOG 0, 0, 141, 60
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�����^�C���p�X���[�h"
+CAPTION "ワンタイムパスワード"
 FONT 9, "MS Shell Dlg"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,45,39,50,14
-    LTEXT           "�����^�C���p�X���[�h�̃V�[�P���X�ԍ���10�ȉ��ɂȂ�܂����B\n�V�[�P���X���X�V���Ă��������B",-1,7,7,127,24
+    LTEXT           "ワンタイムパスワードのシーケンス番号が10以下になりました。\nシーケンスを更新してください。",-1,7,7,127,24
 END
 
 otp_calc_dlg DIALOG 0, 0, 187, 104
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "�����^�C���p�X���[�h�̌v�Z"
+CAPTION "ワンタイムパスワードの計算"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "�`�������W(&C)",-1,7,10,52,8
+    LTEXT           "チャレンジ(&C)",-1,7,10,52,8
     EDITTEXT        OTPCALC_KEY,61,7,119,12,ES_AUTOHSCROLL
-    LTEXT           "�p�X�t���[�Y(&P)",-1,7,26,52,8
+    LTEXT           "パスフレーズ(&P)",-1,7,26,52,8
     EDITTEXT        OTPCALC_PASS,61,23,119,12,ES_PASSWORD | ES_AUTOHSCROLL
-    LTEXT           "���X�|���X(&R)",-1,7,42,52,8
+    LTEXT           "レスポンス(&R)",-1,7,42,52,8
     EDITTEXT        OTPCALC_RES,61,39,119,12,ES_AUTOHSCROLL | ES_READONLY
-    GROUPBOX        "�A���S���Y��",-1,42,54,138,23
+    GROUPBOX        "アルゴリズム",-1,42,54,138,23
     CONTROL         "MD&4, S/KEY",OTPCALC_MD4,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,49,64,52,10
     CONTROL         "MD&5",OTPCALC_MD5,"Button",BS_AUTORADIOBUTTON,107,64,29,10
     CONTROL         "SHA-&1",OTPCALC_SHA1,"Button",BS_AUTORADIOBUTTON,140,64,36,10
-    DEFPUSHBUTTON   "�v�Z",IDOK,10,83,50,14,WS_GROUP
-    PUSHBUTTON      "�I��",IDCANCEL,68,83,50,14
-    PUSHBUTTON      "�w���v",9,126,83,50,14
+    DEFPUSHBUTTON   "計算",IDOK,10,83,50,14,WS_GROUP
+    PUSHBUTTON      "終了",IDCANCEL,68,83,50,14
+    PUSHBUTTON      "ヘルプ",9,126,83,50,14
 END
 
 mirror_notify_dlg DIALOGEX 0, 0, 174, 171
 STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "�~���[�����O�A�b�v���[�h"
+CAPTION "ミラーリングアップロード"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "���̃t�@�C����]��/�폜���܂��B",-1,7,6,160,8
+    LTEXT           "次のファイルを転送/削除します。",-1,7,6,160,8
     LISTBOX         MIRROR_LIST,7,16,160,78,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "�t�@�C�����e��]�����Ȃ�(&F)",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,98,10
-    DEFPUSHBUTTON   "���s",IDOK,7,153,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,62,153,50,14
+    CONTROL         "ファイル内容を転送しない(&F)",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,98,10
+    DEFPUSHBUTTON   "実行",IDOK,7,153,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,62,153,50,14
     SCROLLBAR       MIRROR_SIZEGRIP,164,158,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
-    PUSHBUTTON      "�w���v",9,117,153,50,14
-    PUSHBUTTON      "�ꗗ����폜",MIRROR_DEL,111,96,56,14,NOT WS_TABSTOP
+    PUSHBUTTON      "ヘルプ",9,117,153,50,14
+    PUSHBUTTON      "一覧から削除",MIRROR_DEL,111,96,56,14,NOT WS_TABSTOP
     LTEXT           "",MIRROR_COPYNUM,7,115,160,8
     LTEXT           "",MIRROR_MAKENUM,7,126,160,8
     LTEXT           "",MIRROR_DELNUM,7,137,160,8
@@ -1148,17 +1149,17 @@ END
 
 mirrordown_notify_dlg DIALOG 0, 0, 174, 171
 STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "�~���[�����O�_�E�����[�h"
+CAPTION "ミラーリングダウンロード"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "���̃t�@�C����]��/�폜���܂��B",-1,7,6,160,8
+    LTEXT           "次のファイルを転送/削除します。",-1,7,6,160,8
     LISTBOX         MIRROR_LIST,7,16,160,78,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "�t�@�C�����e��]�����Ȃ�(&F)",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,98,10
-    DEFPUSHBUTTON   "���s",IDOK,7,153,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,62,153,50,14
+    CONTROL         "ファイル内容を転送しない(&F)",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,98,10
+    DEFPUSHBUTTON   "実行",IDOK,7,153,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,62,153,50,14
     SCROLLBAR       MIRROR_SIZEGRIP,164,158,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
-    PUSHBUTTON      "�w���v",9,117,153,50,14
-    PUSHBUTTON      "�ꗗ����폜",MIRROR_DEL,111,96,56,14,NOT WS_TABSTOP
+    PUSHBUTTON      "ヘルプ",9,117,153,50,14
+    PUSHBUTTON      "一覧から削除",MIRROR_DEL,111,96,56,14,NOT WS_TABSTOP
     LTEXT           "",MIRROR_COPYNUM,7,115,160,8
     LTEXT           "",MIRROR_MAKENUM,7,126,160,8
     LTEXT           "",MIRROR_DELNUM,7,137,160,8
@@ -1166,124 +1167,124 @@ END
 
 mirror_down_dlg DIALOG 0, 0, 195, 155
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�~���[�����O�_�E�����[�h"
+CAPTION "ミラーリングダウンロード"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    DEFPUSHBUTTON   "�������e�\���֐i��(&S)",MIRRORUP_DISP,7,134,85,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,97,134,50,14
-    PUSHBUTTON      "�w���v",9,152,134,36,14
+    DEFPUSHBUTTON   "処理内容表示へ進む(&S)",MIRRORUP_DISP,7,134,85,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,97,134,50,14
+    PUSHBUTTON      "ヘルプ",9,152,134,36,14
     LTEXT           "",-1,7,19,181,78,SS_SUNKEN | NOT WS_GROUP
-    LTEXT           "�~���[�����O�_�E�����[�h�͎��̏������s���܂��B\n\n  ���z�X�g�������[�J�����ւ̃R�s�[\n\n  �����[�J�����̃t�@�C���̍폜\n\n���[�J�����̃t�@�C�����폜���鏈�����܂݂܂��B\n�����ӂ��������B",-1,35,26,146,64
-    CTEXT           "�~���[�����O�_�E�����[�h���J�n���܂��B",-1,7,7,181,8
-    CTEXT           "���� �_�E�����[�h�ł� ����",-1,7,105,181,8
-    LTEXT           "����L���m�F���Ă�������",-1,22,121,94,8
+    LTEXT           "ミラーリングダウンロードは次の処理を行います。\n\n  ●ホスト側→ローカル側へのコピー\n\n  ●ローカル側のファイルの削除\n\nローカル側のファイルを削除する処理を含みます。\nご注意ください。",-1,35,26,146,64
+    CTEXT           "ミラーリングダウンロードを開始します。",-1,7,7,181,8
+    CTEXT           "★★ ダウンロードです ★★",-1,7,105,181,8
+    LTEXT           "↑上記を確認してください",-1,22,121,94,8
     ICON            notify,-1,12,34,20,20
 END
 
 chdir_br_dlg DIALOG 0, 0, 187, 43
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�t�H���_"
+CAPTION "フォルダ"
 FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        INP_INPSTR,7,8,159,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",INP_BROWSE,167,7,13,14
     DEFPUSHBUTTON   "OK",IDOK,36,25,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,101,25,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,101,25,50,14
 END
 
 filter_dlg DIALOG 0, 0, 187, 79
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�t�B���^"
+CAPTION "フィルタ"
 FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        FILTER_STR,7,8,147,12,ES_AUTOHSCROLL
-    LTEXT           "�����̃t�B���^���w�肷��Ƃ��̓Z�~�R�����ŋ�؂��Ă��������B�i�� *.txt;*.log�j\n�t�B���^�̐ݒ�̓t�@�C���̓]���ɂ��e�����܂��B",-1,13,29,167,27
+    LTEXT           "複数のフィルタを指定するときはセミコロンで区切ってください。（→ *.txt;*.log）\nフィルタの設定はファイルの転送にも影響します。",-1,13,29,167,27
     DEFPUSHBUTTON   "OK",IDOK,7,61,41,14
-    PUSHBUTTON      "�S�\��",FILTER_NOR,51,61,41,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,95,61,41,14
-    PUSHBUTTON      "�w���v",9,139,61,41,14
+    PUSHBUTTON      "全表示",FILTER_NOR,51,61,41,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,95,61,41,14
+    PUSHBUTTON      "ヘルプ",9,139,61,41,14
 END
 
 group_dlg DIALOG 0, 0, 187, 42
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�O���[�v��"
+CAPTION "グループ名"
 FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,36,24,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,101,24,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,101,24,50,14
 END
 
 hostdel_dlg DIALOG 0, 0, 134, 39
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�z�X�g�̍폜"
+CAPTION "ホストの削除"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    DEFPUSHBUTTON   "�͂�(&Y)",IDOK,11,21,50,14
-    PUSHBUTTON      "������(&N)",IDCANCEL,73,21,50,14
-    LTEXT           "�z�X�g�̐ݒ���폜���܂����H",-1,7,6,120,10
+    DEFPUSHBUTTON   "はい(&Y)",IDOK,11,21,50,14
+    PUSHBUTTON      "いいえ(&N)",IDCANCEL,73,21,50,14
+    LTEXT           "ホストの設定を削除しますか？",-1,7,6,120,10
 END
 
 groupdel_dlg DIALOG 0, 0, 135, 47
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�O���[�v�̍폜"
+CAPTION "グループの削除"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    DEFPUSHBUTTON   "�͂�(&Y)",IDOK,11,29,50,14
-    PUSHBUTTON      "������(&N)",IDCANCEL,73,29,50,14
-    LTEXT           "�O���[�v�ƃO���[�v���̑S�Ẵz�X�g�̐ݒ���폜���܂����H",-1,7,6,121,18
+    DEFPUSHBUTTON   "はい(&Y)",IDOK,11,29,50,14
+    PUSHBUTTON      "いいえ(&N)",IDCANCEL,73,29,50,14
+    LTEXT           "グループとグループ内の全てのホストの設定を削除しますか？",-1,7,6,121,18
 END
 
 hostconnect_dlg DIALOG 0, 0, 166, 106
 STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "�z�X�g�ꗗ"
+CAPTION "ホスト一覧"
 FONT 9, "MS Shell Dlg"
 BEGIN
     CONTROL         "Tree1",HOST_LIST,"SysTreeView32",TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS | TVS_FULLROWSELECT | WS_BORDER | WS_TABSTOP,7,6,152,75
-    DEFPUSHBUTTON   "�ڑ�(&S)",IDOK,20,88,50,14
-    PUSHBUTTON      "����(&O)",IDCANCEL,96,88,50,14
+    DEFPUSHBUTTON   "接続(&S)",IDOK,20,88,50,14
+    PUSHBUTTON      "閉じる(&O)",IDCANCEL,96,88,50,14
     SCROLLBAR       HOST_SIZEGRIP,156,92,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
-    PUSHBUTTON      "�V�K�z�X�g(&N)...",HOST_NEW,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
-    PUSHBUTTON      "�V�K�O���[�v(&G)...",HOST_FOLDER,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
-    PUSHBUTTON      "�ݒ�ύX(&M)...",HOST_SET,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
-    PUSHBUTTON      "�R�s�[(&C)",HOST_COPY,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
-    PUSHBUTTON      "�폜(&D)...",HOST_DEL,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
-    PUSHBUTTON      "��",HOST_UP,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
-    PUSHBUTTON      "��",HOST_DOWN,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "新規ホスト(&N)...",HOST_NEW,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "新規グループ(&G)...",HOST_FOLDER,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "設定変更(&M)...",HOST_SET,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "コピー(&C)",HOST_COPY,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "削除(&D)...",HOST_DEL,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "↑",HOST_UP,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "↓",HOST_DOWN,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
 END
 
 noresume_dlg DIALOG 0, 0, 191, 47
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
-CAPTION "FFFTP: �G���["
+CAPTION "FFFTP: エラー"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    DEFPUSHBUTTON   "�͂�",IDOK,7,29,45,14
-    PUSHBUTTON      "���̃t�@�C���𒆎~",IDCANCEL,56,29,78,14
-    PUSHBUTTON      "�S�Ē��~",RESUME_CANCEL_ALL,140,29,45,14
-    LTEXT           "���̃z�X�g�̓��W���[�����T�|�[�g���Ă��܂���B\n�㏑�����܂����H",-1,7,4,177,17
+    DEFPUSHBUTTON   "はい",IDOK,7,29,45,14
+    PUSHBUTTON      "このファイルを中止",IDCANCEL,56,29,78,14
+    PUSHBUTTON      "全て中止",RESUME_CANCEL_ALL,140,29,45,14
+    LTEXT           "このホストはリジュームをサポートしていません。\n上書きしますか？",-1,7,4,177,17
 END
 
 forcerename_dlg DIALOG 0, 0, 187, 67
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�_�E�����[�h"
+CAPTION "ダウンロード"
 FONT 9, "MS Shell Dlg"
 BEGIN
     EDITTEXT        INP_INPSTR,7,29,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,31,49,50,14
-    PUSHBUTTON      "���~",IDCANCEL,104,49,50,14
-    LTEXT           "�t�@�C���A�t�H���_���Ɏg���Ȃ�����������܂��B\n���O��ύX���Ă��������B",IDC_STATIC,7,7,173,16
+    PUSHBUTTON      "中止",IDCANCEL,104,49,50,14
+    LTEXT           "ファイル、フォルダ名に使えない文字があります。\n名前を変更してください。",IDC_STATIC,7,7,173,16
 END
 
 hset_dialup_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "�_�C�A���A�b�v"
+CAPTION "ダイアルアップ"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    CONTROL         "�_�C�A���A�b�v�Őڑ�����(&D)",HSET_DIALUP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,110,10
-    LTEXT           "�ڑ�����d�b���G���g��(&E)",-1,19,23,97,8
+    CONTROL         "ダイアルアップで接続する(&D)",HSET_DIALUP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,110,10
+    LTEXT           "接続する電話帳エントリ(&E)",-1,19,23,97,8
     COMBOBOX        HSET_DIALENTRY,19,33,181,101,CBS_DROPDOWNLIST | CBS_SORT | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "�ʂ̃G���g���֐ڑ����ł���L�֐ڑ����Ȃ���(&A)",HSET_DIALUSETHIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,53,181,10
-    CONTROL         "�ڑ����Ȃ����ۂɊm�F����(&N)",HSET_DIALNOTIFY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,31,67,116,10
+    CONTROL         "別のエントリへ接続中でも上記へ接続しなおす(&A)",HSET_DIALUSETHIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,53,181,10
+    CONTROL         "接続しなおす際に確認する(&N)",HSET_DIALNOTIFY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,31,67,116,10
 END
 
 rasreconnect_dlg DIALOG 0, 0, 159, 67
@@ -1291,72 +1292,72 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "FFFTP"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    DEFPUSHBUTTON   "�͂�",IDOK,16,46,50,14
-    PUSHBUTTON      "���݂̐ڑ���ێ�",IDCANCEL,76,46,66,14
-    LTEXT           "���ݐڑ����̃_�C�A���A�b�v��ؒf����,�A�_�C�A���A�b�v�̐ڑ����ύX���܂��B",-1,7,7,145,16
-    CTEXT           "��낵���ł����H",-1,7,30,145,8
+    DEFPUSHBUTTON   "はい",IDOK,16,46,50,14
+    PUSHBUTTON      "現在の接続を保持",IDCANCEL,76,46,66,14
+    LTEXT           "現在接続中のダイアルアップを切断して,、ダイアルアップの接続先を変更します。",-1,7,7,145,16
+    CTEXT           "よろしいですか？",-1,7,30,145,8
 END
 
 opt_disp1_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "�\��1"
+CAPTION "表示1"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    PUSHBUTTON      "�ύX(&F)",DISP_FONT_BR,167,7,36,14,WS_GROUP
+    PUSHBUTTON      "変更(&F)",DISP_FONT_BR,167,7,36,14,WS_GROUP
     LTEXT           "",-1,7,8,159,14,SS_NOPREFIX | SS_SUNKEN
-    LTEXT           "�t�H���g:",-1,9,11,29,8
+    LTEXT           "フォント:",-1,9,11,29,8
     LTEXT           "",DISP_FONT,40,11,123,8
-    CONTROL         "�B�������̃t�@�C���A�t�H���_�͕\�����Ȃ�(&H)",DISP_HIDE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,30,172,10
-    LTEXT           "�B�������̃t�@�C����\�����Ȃ��悤�ɂ���ƁA�~���[�����O�A�b�v���[�h�ł��B�������̃t�@�C���̓A�b�v���[�h���Ȃ��悤�ɂȂ�܂��B",-1,29,44,167,27,SS_SUNKEN
-    CONTROL         "���[�J�����̃t�@�C���ꗗ�Ƀh���C�u�����\������(&D)",DISP_DRIVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,79,172,10
-    CONTROL         "���[�J�����̃t�@�C���ꗗ�ɃA�C�R����\������(&I)",DISP_ICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,93,172,10
-    CONTROL         "�t�@�C���̃^�C���X�^���v�̕b�P�ʂ�\������(&S)",DISP_SECOND,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,107,172,10
-    LTEXT           "�^�C���X�^���v�̕b�P�ʂ�\������悤�ɂ���ƁA�~���[�����O�A�b�v���[�h���ɂ�����X�V�����̔�r�ŕb�P�ʂ𖳎����Ȃ��悤�ɂȂ�܂��B",-1,29,121,167,27,SS_SUNKEN
+    CONTROL         "隠し属性のファイル、フォルダは表示しない(&H)",DISP_HIDE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,30,172,10
+    LTEXT           "隠し属性のファイルを表示しないようにすると、ミラーリングアップロードでも隠し属性のファイルはアップロードしないようになります。",-1,29,44,167,27,SS_SUNKEN
+    CONTROL         "ローカル側のファイル一覧にドライブ名も表示する(&D)",DISP_DRIVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,79,172,10
+    CONTROL         "ローカル側のファイル一覧にアイコンを表示する(&I)",DISP_ICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,93,172,10
+    CONTROL         "ファイルのタイムスタンプの秒単位を表示する(&S)",DISP_SECOND,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,107,172,10
+    LTEXT           "タイムスタンプの秒単位を表示するようにすると、ミラーリングアップロード等における更新日時の比較で秒単位を無視しないようになります。",-1,29,121,167,27,SS_SUNKEN
 END
 
 bmark_edit_dlg DIALOG 0, 0, 187, 83
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "�u�b�N�}�[�N"
+CAPTION "ブックマーク"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "���[�J�����̃t�H���_��(&L)",-1,7,7,173,8
+    LTEXT           "ローカル側のフォルダ名(&L)",-1,7,7,173,8
     EDITTEXT        BEDIT_LOCAL,7,17,173,12,ES_AUTOHSCROLL
-    LTEXT           "�z�X�g���̃t�H���_(&H)",-1,7,37,173,8
+    LTEXT           "ホスト側のフォルダ(&H)",-1,7,37,173,8
     EDITTEXT        BEDIT_REMOTE,7,47,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,36,65,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,101,65,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,101,65,50,14
 END
 
 down_exist_dlg DIALOG 0, 0, 223, 120
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
-CAPTION "�_�E�����[�h�̊m�F"
+CAPTION "ダウンロードの確認"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    CONTROL         "�㏑��(&O)",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,39,99,10
-    CONTROL         "�V������Ώ㏑��(&T)",DOWN_EXIST_NEW,"Button",BS_AUTORADIOBUTTON,7,51,99,10
-    CONTROL         "�傫����Ώ㏑��(&L)",DOWN_EXIST_LARGE,"Button",BS_AUTORADIOBUTTON,7,63,99,10
-    CONTROL         "�ĊJ�i���W���[���j(&R)",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,75,99,10
-    CONTROL         "�_�E�����[�h���Ȃ�(&N)",DOWN_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,87,99,10
-    LTEXT           "�Ⴄ���O�Ń_�E�����[�h���鎞�́A���O��ύX���āu�㏑���v�������Ă��������B",-1,113,40,103,39
+    CONTROL         "上書き(&O)",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,39,99,10
+    CONTROL         "新しければ上書き(&T)",DOWN_EXIST_NEW,"Button",BS_AUTORADIOBUTTON,7,51,99,10
+    CONTROL         "大きければ上書き(&L)",DOWN_EXIST_LARGE,"Button",BS_AUTORADIOBUTTON,7,63,99,10
+    CONTROL         "再開（リジューム）(&R)",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,75,99,10
+    CONTROL         "ダウンロードしない(&N)",DOWN_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,87,99,10
+    LTEXT           "違う名前でダウンロードする時は、名前を変更して「上書き」を押してください。",-1,113,40,103,39
     DEFPUSHBUTTON   "OK",IDOK,8,102,50,14,WS_GROUP
-    PUSHBUTTON      "�ȍ~�S��(&A)",IDOK_ALL,63,102,50,14
-    PUSHBUTTON      "�S�Ē��~(&S)",IDCANCEL,118,102,50,14
-    PUSHBUTTON      "�w���v",9,173,102,41,14
-    LTEXT           "���[�J�����ɓ������O�̃t�@�C��������܂�",-1,7,7,184,8
+    PUSHBUTTON      "以降全て(&A)",IDOK_ALL,63,102,50,14
+    PUSHBUTTON      "全て中止(&S)",IDCANCEL,118,102,50,14
+    PUSHBUTTON      "ヘルプ",9,173,102,41,14
+    LTEXT           "ローカル側に同じ名前のファイルがあります",-1,7,7,184,8
     EDITTEXT        DOWN_EXIST_NAME,7,20,209,12,ES_AUTOHSCROLL
 END
 
 move_notify_dlg DIALOGEX 0, 0, 201, 82
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "�t�@�C����t�H���_�̈ړ�"
+CAPTION "ファイルやフォルダの移動"
 FONT 9, "MS Shell Dlg", 400, 0, 0x80
 BEGIN
-    DEFPUSHBUTTON   "�͂�",IDOK,44,61,50,14
-    PUSHBUTTON      "������",IDCANCEL,107,61,50,14
-    LTEXT           "�I�������t�@�C����t�H���_��",-1,7,7,88,8
-    LTEXT           "�X�^�e�B�b�N",COMMON_TEXT,7,20,187,8
-    LTEXT           "�t�H���_�Ɉړ����܂����H",-1,7,33,80,8
-    LTEXT           "�i�R�s�[�ł͂���܂���B�ړ��ł��B�j",-1,7,47,112,8
+    DEFPUSHBUTTON   "はい",IDOK,44,61,50,14
+    PUSHBUTTON      "いいえ",IDCANCEL,107,61,50,14
+    LTEXT           "選択したファイルやフォルダを",-1,7,7,88,8
+    LTEXT           "スタティック",COMMON_TEXT,7,20,187,8
+    LTEXT           "フォルダに移動しますか？",-1,7,33,80,8
+    LTEXT           "（コピーではありません。移動です。）",-1,7,47,112,8
 END
 
 masterpasswd_dlg DIALOGEX 65535, 65535, 187, 56
@@ -1364,61 +1365,61 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
 CAPTION "FFFTP"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "�ݒ肳��Ă���}�X�^�[�p�X���[�h����͂��Ă�������",-1,7,7,153,8
+    LTEXT           "設定されているマスターパスワードを入力してください",-1,7,7,153,8
     EDITTEXT        INP_INPSTR,7,19,173,12,ES_PASSWORD | ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,14,36,50,14
-    PUSHBUTTON      "�L�����Z��",IDCANCEL,68,36,50,14
-    PUSHBUTTON      "�w���v",IDHELP,122,36,50,14
+    PUSHBUTTON      "キャンセル",IDCANCEL,68,36,50,14
+    PUSHBUTTON      "ヘルプ",IDHELP,122,36,50,14
 END
 
 hset_crypt_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "�Í���"
+CAPTION "暗号化"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    CONTROL         "�Í����Ȃ��Őڑ�������(&A)",HSET_NO_ENCRYPTION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,148,10
-    CONTROL         "FTPS (Explicit)�Őڑ�(&E)",HSET_FTPES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
-    CONTROL         "FTPS (Implicit)�Őڑ�(&I)",HSET_FTPIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
+    CONTROL         "暗号化なしで接続を許可(&A)",HSET_NO_ENCRYPTION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,148,10
+    CONTROL         "FTPS (Explicit)で接続(&E)",HSET_FTPES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
+    CONTROL         "FTPS (Implicit)で接続(&I)",HSET_FTPIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
 END
 
 hset_adv3_dlg DIALOG 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "����@�\"
+CAPTION "特殊機能"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "�ő哯���ڑ���(&M)",-1,7,10,64,8
+    LTEXT           "最大同時接続数(&M)",-1,7,10,64,8
     EDITTEXT        HSET_THREAD_COUNT,72,8,17,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Spin1",HSET_THREAD_COUNT_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,7,9,14
-    LTEXT           "(1�`4)",-1,102,10,31,8
-    CONTROL         "���C���E�B���h�E�̃\�P�b�g���ė��p(&S)",HSET_REUSE_SOCKET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,27,148,10
-    CONTROL         "PASV�ŕԂ����A�h���X�𖳎�(&A)",HSET_NO_PASV_ADRS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,41,148,10
-    LTEXT           "�ڑ��ێ��p�R�}���h����(&K)",-1,7,58,84,8
+    LTEXT           "(1～4)",-1,102,10,31,8
+    CONTROL         "メインウィンドウのソケットを再利用(&S)",HSET_REUSE_SOCKET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,27,148,10
+    CONTROL         "PASVで返されるアドレスを無視(&A)",HSET_NO_PASV_ADRS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,41,148,10
+    LTEXT           "接続維持用コマンド周期(&K)",-1,7,58,84,8
     EDITTEXT        HSET_NOOP_INTERVAL,92,56,17,12,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Spin1",HSET_NOOP_INTERVAL_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,109,55,9,14
-    LTEXT           "(0�`300�b; 0=����)",-1,122,58,76,8
-    LTEXT           "�]���G���[���̏���(&E)",-1,7,75,81,8
+    LTEXT           "(0～300秒; 0=無効)",-1,122,58,76,8
+    LTEXT           "転送エラー時の処理(&E)",-1,7,75,81,8
     COMBOBOX        HSET_ERROR_MODE,7,85,71,75,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "�]���G���[��ɍĐڑ�(&R)",HSET_ERROR_RECONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,84,85,102,10
+    CONTROL         "転送エラー後に再接続(&R)",HSET_ERROR_RECONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,84,85,102,10
 END
 
 savecrypt_dlg DIALOG 0, 0, 146, 62
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-CAPTION "�Í����̏�Ԃ̕ۑ�"
+CAPTION "暗号化の状態の保存"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "���݂̈Í����̏�Ԃ�ۑ����܂����H\r\n�u�͂��v��I������Ǝ��񂩂瑼�̈Í������������s���Ȃ��Ȃ�܂��B",-1,7,7,132,29
-    DEFPUSHBUTTON   "�͂�",IDOK,17,41,50,14
-    PUSHBUTTON      "������",IDCANCEL,78,41,50,14
+    LTEXT           "現在の暗号化の状態を保存しますか？\r\n「はい」を選択すると次回から他の暗号化方式を試行しなくなります。",-1,7,7,132,29
+    DEFPUSHBUTTON   "はい",IDOK,17,41,50,14
+    PUSHBUTTON      "いいえ",IDCANCEL,78,41,50,14
 END
 
 updatesslroot_dlg DIALOG 0, 0, 211, 64
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
-CAPTION "SSL���[�g�ؖ������X�V"
+CAPTION "SSLルート証明書を更新"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "SSL���[�g�ؖ����̕ύX�����o����܂����B�蓮�ŏؖ������X�V���Ă��Ȃ��ꍇ�A�}���E�F�A�Ȃǂɂ���₂��ꂽ�\��������܂��B\r\n�ύX���ꂽ�ؖ������g�p���܂����B",-1,7,7,196,36
-    DEFPUSHBUTTON   "������",IDCANCEL,112,42,50,14
-    PUSHBUTTON      "�͂�",IDOK,48,42,50,14
+    LTEXT           "SSLルート証明書の変更が検出されました。手動で証明書を更新していない場合、マルウェアなどにより改竄された可能性があります。\r\n変更された証明書を使用しますか。",-1,7,7,196,36
+    DEFPUSHBUTTON   "いいえ",IDCANCEL,112,42,50,14
+    PUSHBUTTON      "はい",IDOK,48,42,50,14
 END
 
 updown_as_with_ext_dlg DIALOGEX 0, 0, 187, 89
@@ -1427,69 +1428,69 @@ FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     EDITTEXT        UPDOWNAS_NEW,7,34,173,12,ES_AUTOHSCROLL
     LTEXT           "",UPDOWNAS_TEXT,7,7,173,8,SS_NOPREFIX
-    LTEXT           "�̖��O��ύX���Ă��������B",-1,15,20,133,8
-    LTEXT           "�t�@�C���R�[�h",-1,10,51,44,8
+    LTEXT           "の名前を変更してください。",-1,15,20,133,8
+    LTEXT           "ファイルコード",-1,10,51,44,8
     EDITTEXT        UPDOWNAS_FILECODE,55,49,21,12,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
     DEFPUSHBUTTON   "OK",IDOK,35,66,50,14
-    PUSHBUTTON      "���~(&S)",UPDOWNAS_STOP,101,66,50,14
+    PUSHBUTTON      "中止(&S)",UPDOWNAS_STOP,101,66,50,14
 END
 
 ini_from_reg_dlg DIALOG 0, 0, 211, 64
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
-CAPTION "���W�X�g���̐ݒ�̃C���|�[�g"
+CAPTION "レジストリの設定のインポート"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "INI�t�@�C�����g�p����悤�ɐݒ肳��Ă��܂����AINI�t�@�C���ł͂Ȃ����W�X�g���ɐݒ肪���݂��邱�Ƃ����o���܂����B\r\n���W�X�g���̐ݒ���C���|�[�g���܂����B",-1,7,7,196,36
-    DEFPUSHBUTTON   "�͂�",IDOK,48,42,50,14
-    PUSHBUTTON      "������",IDCANCEL,112,42,50,14
+    LTEXT           "INIファイルを使用するように設定されていますが、INIファイルではなくレジストリに設定が存在することを検出しました。\r\nレジストリの設定をインポートしますか。",-1,7,7,196,36
+    DEFPUSHBUTTON   "はい",IDOK,48,42,50,14
+    PUSHBUTTON      "いいえ",IDCANCEL,112,42,50,14
 END
 
 opt_trmode4_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "�]��4"
+CAPTION "転送4"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    GROUPBOX        "���[�J���̊����R�[�h(&L)",-1,7,7,98,82,WS_GROUP
+    GROUPBOX        "ローカルの漢字コード(&L)",-1,7,7,98,82,WS_GROUP
     CONTROL         "Shift_JIS",TRMODE4_SJIS_CNV,"Button",BS_AUTORADIOBUTTON | WS_GROUP,12,21,81,10
     CONTROL         "JIS",TRMODE4_JIS_CNV,"Button",BS_AUTORADIOBUTTON,12,33,41,10
     CONTROL         "EUC",TRMODE4_EUC_CNV,"Button",BS_AUTORADIOBUTTON,12,45,41,10
     CONTROL         "UTF-8",TRMODE4_UTF8N_CNV,"Button",BS_AUTORADIOBUTTON,12,57,41,10
     CONTROL         "UTF-8 BOM",TRMODE4_UTF8BOM_CNV,"Button",BS_AUTORADIOBUTTON,12,69,81,10
-    CONTROL         "�C���^�[�l�b�g������肵�����̂Ƃ��ăt�@�C���ɏ���t������(&I)",TRMODE4_MARK_INTERNET,
+    CONTROL         "インターネットから入手したものとしてファイルに情報を付加する(&I)",TRMODE4_MARK_INTERNET,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,96,196,10
 END
 
 opt_disp2_dlg DIALOG 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "�\��2"
+CAPTION "表示2"
 FONT 9, "MS Shell Dlg"
 BEGIN
-    CONTROL         "�t�@�C���̑����𐔎��ŕ\������(&P)",DISP2_PERMIT_NUM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,196,10
-    CONTROL         "�t�@�C���ꗗ�������ōX�V����(&R)",DISP2_AUTO_REFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,196,10
-    CONTROL         "�Â��������e��\�����Ȃ�(&L)",DISP2_REMOVE_OLD_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,196,10
+    CONTROL         "ファイルの属性を数字で表示する(&P)",DISP2_PERMIT_NUM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,196,10
+    CONTROL         "ファイル一覧を自動で更新する(&R)",DISP2_AUTO_REFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,196,10
+    CONTROL         "古い処理内容を表示しない(&L)",DISP2_REMOVE_OLD_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,196,10
 END
 
 corruptsettings_dlg DIALOGEX 0, 0, 232, 64
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
-CAPTION "�ݒ肪�j�����Ă��܂�"
+CAPTION "設定が破損しています"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "�Í������ꂽ�ݒ�̔j���܂��͉�₂����o����܂����B\r\n�ǂݍ��ނƈُ��~��ݒ�̏����Ȃǂ̕s�����������\��������܂��B",-1,7,7,217,36
-    DEFPUSHBUTTON   "�I��",IDCANCEL,8,42,50,14
-    PUSHBUTTON      "�S�ď���",IDABORT,63,42,50,14
-    PUSHBUTTON      "�ǂݎ���p",IDRETRY,118,42,50,14
-    PUSHBUTTON      "����",IDIGNORE,173,42,50,14
+    LTEXT           "暗号化された設定の破損または改竄が検出されました。\r\n読み込むと異常停止や設定の消失などの不具合が発生する可能性があります。",-1,7,7,217,36
+    DEFPUSHBUTTON   "終了",IDCANCEL,8,42,50,14
+    PUSHBUTTON      "全て消去",IDABORT,63,42,50,14
+    PUSHBUTTON      "読み取り専用",IDRETRY,118,42,50,14
+    PUSHBUTTON      "無視",IDIGNORE,173,42,50,14
 END
 
 certerr_dlg DIALOGEX 0, 0, 187, 42
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
-CAPTION "�ی삳��Ă��܂���"
+CAPTION "保護されていません"
 FONT 9, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    LTEXT           "���̃T�C�g�ւ̐ڑ��͕ی삳��Ă��܂���B���s���܂����H",IDC_STATIC,7,7,173,8
+    LTEXT           "このサイトへの接続は保護されていません。続行しますか？",IDC_STATIC,7,7,173,8
     PUSHBUTTON      "&Yes",IDYES,7,21,50,14
     PUSHBUTTON      "&No",IDNO,64,21,50,14
-    PUSHBUTTON      "�ؖ�����\��...",IDC_SHOWCERT,121,21,59,14
+    PUSHBUTTON      "証明書を表示...",IDC_SHOWCERT,121,21,59,14
 END
 
 
@@ -2194,12 +2195,12 @@ BEGIN
     BEGIN
         BLOCK "080004b0"
         BEGIN
-            VALUE "Comments", "����̓t���[�\�t�g�E�G�A�ł��B"
+            VALUE "Comments", "これはフリーソフトウエアです。"
             VALUE "CompanyName", "Sota, FFFTP Project"
             VALUE "FileDescription", "FFFTP"
             VALUE "FileVersion", "4.3.0.0"
             VALUE "InternalName", "FFFTP"
-            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & �����͂������������X\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, ���ȁ[, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, �ӂ�����, potato).\r\nCopyright (C) 2018-2019, �q�c���S��."
+            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato).\r\nCopyright (C) 2018-2019, 倉田佐祐理."
             VALUE "OriginalFilename", "FFFTP.exe"
             VALUE "ProductName", "FFFTP"
             VALUE "ProductVersion", "4.3.0.0"
@@ -2300,162 +2301,162 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN001           "�ڑ��𒆎~���܂���."
-    IDS_MSGJPN002           "�ڑ��𒆎~���܂���."
-    IDS_MSGJPN003           "\r\n�Đڑ����܂�.\r\n"
-    IDS_MSGJPN004           "�ؒf���܂���"
-    IDS_MSGJPN005           "�ڑ����ؒf����܂���."
-    IDS_MSGJPN006           "FireWall�Ƀ��O�C���ł��܂���."
-    IDS_MSGJPN007           "�z�X�g %s �ɐڑ��ł��܂���."
-    IDS_MSGJPN008           "���O�C���ł��܂���."
-    IDS_MSGJPN009           "�ڑ��ł��܂���."
-    IDS_MSGJPN010           "FireWall�̃z�X�g�����ݒ肳��Ă��܂���."
-    IDS_MSGJPN011           "�z�X�g��������܂���."
-    IDS_MSGJPN012           "MD5���g�p���܂�."
-    IDS_MSGJPN013           "SHA-1���g�p���܂�."
-    IDS_MSGJPN014           "MD4(S/KEY)���g�p���܂�."
-    IDS_MSGJPN015           "�����^�C���p�X���[�h�������ł��܂���"
+    IDS_MSGJPN001           "接続を中止しました."
+    IDS_MSGJPN002           "接続を中止しました."
+    IDS_MSGJPN003           "\r\n再接続します.\r\n"
+    IDS_MSGJPN004           "切断しました"
+    IDS_MSGJPN005           "接続が切断されました."
+    IDS_MSGJPN006           "FireWallにログインできません."
+    IDS_MSGJPN007           "ホスト %s に接続できません."
+    IDS_MSGJPN008           "ログインできません."
+    IDS_MSGJPN009           "接続できません."
+    IDS_MSGJPN010           "FireWallのホスト名が設定されていません."
+    IDS_MSGJPN011           "ホスト名がありません."
+    IDS_MSGJPN012           "MD5を使用します."
+    IDS_MSGJPN013           "SHA-1を使用します."
+    IDS_MSGJPN014           "MD4(S/KEY)を使用します."
+    IDS_MSGJPN015           "ワンタイムパスワードが処理できません"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN017           "%s�z�X�g %s (%s) �ɐڑ����Ă��܂�."
-    IDS_MSGJPN019           "�z�X�g %s ��������܂���."
-    IDS_MSGJPN021           "SOCKS�T�[�o�[ %s ��������܂���."
-    IDS_MSGJPN022           "SOCKS�T�[�o�[ %s �ɐڑ����Ă��܂�."
-    IDS_MSGJPN023           "SOCKS�T�[�o�[�ɐڑ��ł��܂���. (Err=%d)"
-    IDS_MSGJPN025           "�ڑ����܂���."
-    IDS_MSGJPN026           "�ڑ��ł��܂���."
-    IDS_MSGJPN027           "�\�P�b�g���쐬�ł��܂���."
-    IDS_MSGJPN031           "%s�R�}���h���󂯕t�����܂���."
+    IDS_MSGJPN017           "%sホスト %s (%s) に接続しています."
+    IDS_MSGJPN019           "ホスト %s が見つかりません."
+    IDS_MSGJPN021           "SOCKSサーバー %s が見つかりません."
+    IDS_MSGJPN022           "SOCKSサーバー %s に接続しています."
+    IDS_MSGJPN023           "SOCKSサーバーに接続できません. (Err=%d)"
+    IDS_MSGJPN025           "接続しました."
+    IDS_MSGJPN026           "接続できません."
+    IDS_MSGJPN027           "ソケットが作成できません."
+    IDS_MSGJPN031           "%sコマンドが受け付けられません."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN033           "SOCKS�̃R�}���h������܂���ł��� (Cmd = %04X)"
-    IDS_MSGJPN034           "SOCKS5�̃R�}���h�ɑ΂��郊�v���C����M�ł��܂���ł���"
-    IDS_MSGJPN035           "SOCKS4�̃R�}���h�ɑ΂��郊�v���C����M�ł��܂���ł���"
-    IDS_MSGJPN036           "SOCKS�T�[�o�[�̔F�ؕ������قȂ�܂�."
-    IDS_MSGJPN037           "SOCKS�T�[�o�[�ɔF�؂���܂���ł���."
-    IDS_MSGJPN038           "���O"
-    IDS_MSGJPN039           "���t"
-    IDS_MSGJPN040           "�T�C�Y"
-    IDS_MSGJPN041           "���"
-    IDS_MSGJPN042           "���O"
-    IDS_MSGJPN043           "���t"
-    IDS_MSGJPN044           "�T�C�Y"
-    IDS_MSGJPN045           "���"
-    IDS_MSGJPN046           "����"
-    IDS_MSGJPN047           "���L��"
+    IDS_MSGJPN033           "SOCKSのコマンドが送れませんでした (Cmd = %04X)"
+    IDS_MSGJPN034           "SOCKS5のコマンドに対するリプライが受信できませんでした"
+    IDS_MSGJPN035           "SOCKS4のコマンドに対するリプライが受信できませんでした"
+    IDS_MSGJPN036           "SOCKSサーバーの認証方式が異なります."
+    IDS_MSGJPN037           "SOCKSサーバーに認証されませんでした."
+    IDS_MSGJPN038           "名前"
+    IDS_MSGJPN039           "日付"
+    IDS_MSGJPN040           "サイズ"
+    IDS_MSGJPN041           "種類"
+    IDS_MSGJPN042           "名前"
+    IDS_MSGJPN043           "日付"
+    IDS_MSGJPN044           "サイズ"
+    IDS_MSGJPN045           "種類"
+    IDS_MSGJPN046           "属性"
+    IDS_MSGJPN047           "所有者"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN048           "�e���|�����t�@�C�����ǂݏo���܂���."
-    IDS_MSGJPN049           "�t�@�C���ꗗ�̎擾�Ɏ��s���܂���."
-    IDS_MSGJPN050           "�����i���[�J���j"
-    IDS_MSGJPN051           "�����i�z�X�g�j"
-    IDS_MSGJPN052           "�폜: %s"
-    IDS_MSGJPN053           "�쐬: %s"
-    IDS_MSGJPN054           "�]��: %s"
-    IDS_MSGJPN055           "�폜: %s"
-    IDS_MSGJPN056           "�쐬: %s"
-    IDS_MSGJPN057           "�]��: %s"
-    IDS_MSGJPN058           "%d�̃t�@�C����]�����܂�."
-    IDS_MSGJPN059           "�]������t�@�C���͂���܂���."
-    IDS_MSGJPN060           "%d�̃t�H���_���쐬���܂�."
-    IDS_MSGJPN061           "�쐬����t�H���_�͂���܂���."
-    IDS_MSGJPN062           "%d�̃t�@�C��/�t�H���_���폜���܂�."
-    IDS_MSGJPN063           "�폜����t�@�C��/�t�H���_�͂���܂���."
+    IDS_MSGJPN048           "テンポラリファイルが読み出せません."
+    IDS_MSGJPN049           "ファイル一覧の取得に失敗しました."
+    IDS_MSGJPN050           "検索（ローカル）"
+    IDS_MSGJPN051           "検索（ホスト）"
+    IDS_MSGJPN052           "削除: %s"
+    IDS_MSGJPN053           "作成: %s"
+    IDS_MSGJPN054           "転送: %s"
+    IDS_MSGJPN055           "削除: %s"
+    IDS_MSGJPN056           "作成: %s"
+    IDS_MSGJPN057           "転送: %s"
+    IDS_MSGJPN058           "%d個のファイルを転送します."
+    IDS_MSGJPN059           "転送するファイルはありません."
+    IDS_MSGJPN060           "%d個のフォルダを作成します."
+    IDS_MSGJPN061           "作成するフォルダはありません."
+    IDS_MSGJPN062           "%d個のファイル/フォルダを削除します."
+    IDS_MSGJPN063           "削除するファイル/フォルダはありません."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN064           "���O��ύX���ăA�b�v���[�h"
-    IDS_MSGJPN065           "���O��ύX���ă_�E�����[�h"
-    IDS_MSGJPN066           "�폜�i���[�J���j"
-    IDS_MSGJPN067           "�폜�i�z�X�g�j"
-    IDS_MSGJPN068           "���O�ύX�i���[�J���j"
-    IDS_MSGJPN069           "���O�ύX�i�z�X�g�j"
-    IDS_MSGJPN070           "�t�H���_�쐬�i���[�J���j"
-    IDS_MSGJPN071           "�t�H���_�쐬�i�z�X�g�j"
-    IDS_MSGJPN072           "�t�H���_�ύX�i���[�J���j"
-    IDS_MSGJPN073           "�t�H���_�ύX�i�z�X�g�j"
-    IDS_MSGJPN074           "���[�J�����̃t�@�C���e�ʂ��v�Z���܂�."
-    IDS_MSGJPN075           "�z�X�g���̃t�@�C���e�ʂ��v�Z���܂�."
-    IDS_MSGJPN076           "���[�J�����̃t�@�C���e��"
-    IDS_MSGJPN077           "�z�X�g���̃t�@�C���e��"
-    IDS_MSGJPN078           "�t�H���_�쐬"
-    IDS_MSGJPN079           "�t�H���_�쐬"
+    IDS_MSGJPN064           "名前を変更してアップロード"
+    IDS_MSGJPN065           "名前を変更してダウンロード"
+    IDS_MSGJPN066           "削除（ローカル）"
+    IDS_MSGJPN067           "削除（ホスト）"
+    IDS_MSGJPN068           "名前変更（ローカル）"
+    IDS_MSGJPN069           "名前変更（ホスト）"
+    IDS_MSGJPN070           "フォルダ作成（ローカル）"
+    IDS_MSGJPN071           "フォルダ作成（ホスト）"
+    IDS_MSGJPN072           "フォルダ変更（ローカル）"
+    IDS_MSGJPN073           "フォルダ変更（ホスト）"
+    IDS_MSGJPN074           "ローカル側のファイル容量を計算します."
+    IDS_MSGJPN075           "ホスト側のファイル容量を計算します."
+    IDS_MSGJPN076           "ローカル側のファイル容量"
+    IDS_MSGJPN077           "ホスト側のファイル容量"
+    IDS_MSGJPN078           "フォルダ作成"
+    IDS_MSGJPN079           "フォルダ作成"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN080           "�t�H���_�폜"
-    IDS_MSGJPN081           "�t�@�C���폜"
-    IDS_MSGJPN082           "�t�H���_�쐬"
-    IDS_MSGJPN083           "�t�H���_�폜"
-    IDS_MSGJPN084           "�t�@�C���폜"
-    IDS_MSGJPN085           "%s�Ƃ������O�̃t�@�C���̓_�E�����[�h�ł��܂���."
-    IDS_MSGJPN086           "�_�E�����[�h"
-    IDS_MSGJPN087           "�t�@�C���ꗗ�擾"
-    IDS_MSGJPN088           "�X�L�b�v"
-    IDS_MSGJPN089           "�t�@�C�� %s �̓X�L�b�v���܂�."
-    IDS_MSGJPN090           "�R�}���h���󂯕t�����܂���."
-    IDS_MSGJPN091           "�_�E�����[�h�̂��߂�"
-    IDS_MSGJPN092           "�R�}���h���󂯕t�����܂���."
-    IDS_MSGJPN093           "�A�h���X���擾�ł��܂���."
-    IDS_MSGJPN094           "��M�̓^�C���A�E�g�Ŏ��s���܂���."
-    IDS_MSGJPN095           "�t�@�C�� %s ���쐬�ł��܂���."
+    IDS_MSGJPN080           "フォルダ削除"
+    IDS_MSGJPN081           "ファイル削除"
+    IDS_MSGJPN082           "フォルダ作成"
+    IDS_MSGJPN083           "フォルダ削除"
+    IDS_MSGJPN084           "ファイル削除"
+    IDS_MSGJPN085           "%sという名前のファイルはダウンロードできません."
+    IDS_MSGJPN086           "ダウンロード"
+    IDS_MSGJPN087           "ファイル一覧取得"
+    IDS_MSGJPN088           "スキップ"
+    IDS_MSGJPN089           "ファイル %s はスキップします."
+    IDS_MSGJPN090           "コマンドが受け付けられません."
+    IDS_MSGJPN091           "ダウンロードのために"
+    IDS_MSGJPN092           "コマンドが受け付けられません."
+    IDS_MSGJPN093           "アドレスが取得できません."
+    IDS_MSGJPN094           "受信はタイムアウトで失敗しました."
+    IDS_MSGJPN095           "ファイル %s が作成できません."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN096           "�f�B�X�N�������ς��ŏ������߂܂���."
-    IDS_MSGJPN097           "�t�@�C���ꗗ�̎擾�𒆎~���܂���."
-    IDS_MSGJPN098           "�t�@�C���ꗗ"
-    IDS_MSGJPN099           "�_�E�����[�h�𒆎~���܂���. (%lld Sec. %lld B/S)."
-    IDS_MSGJPN100           "�_�E�����[�h�𒆎~���܂���."
-    IDS_MSGJPN101           "�t�@�C���ꗗ�̎擾�͐���I�����܂���. (%lld Bytes)"
-    IDS_MSGJPN102           "�_�E�����[�h�͐���I�����܂���. (%d Sec. %d B/S)."
-    IDS_MSGJPN103           "�_�E�����[�h�͐���I�����܂���. (%lld Bytes)"
-    IDS_MSGJPN104           "�A�b�v���[�h"
-    IDS_MSGJPN105           "�t�@�C�� %s ���ǂݏo���܂���."
-    IDS_MSGJPN106           "�X�L�b�v"
-    IDS_MSGJPN107           "�t�@�C�� %s �̓X�L�b�v���܂�."
-    IDS_MSGJPN108           "�R�}���h���󂯕t�����܂���."
-    IDS_MSGJPN109           "�A�b�v���[�h�̂��߂�"
-    IDS_MSGJPN110           "�R�}���h���󂯕t�����܂���."
-    IDS_MSGJPN111           "�A�h���X���擾�ł��܂���."
+    IDS_MSGJPN096           "ディスクがいっぱいで書き込めません."
+    IDS_MSGJPN097           "ファイル一覧の取得を中止しました."
+    IDS_MSGJPN098           "ファイル一覧"
+    IDS_MSGJPN099           "ダウンロードを中止しました. (%lld Sec. %lld B/S)."
+    IDS_MSGJPN100           "ダウンロードを中止しました."
+    IDS_MSGJPN101           "ファイル一覧の取得は正常終了しました. (%lld Bytes)"
+    IDS_MSGJPN102           "ダウンロードは正常終了しました. (%d Sec. %d B/S)."
+    IDS_MSGJPN103           "ダウンロードは正常終了しました. (%lld Bytes)"
+    IDS_MSGJPN104           "アップロード"
+    IDS_MSGJPN105           "ファイル %s が読み出せません."
+    IDS_MSGJPN106           "スキップ"
+    IDS_MSGJPN107           "ファイル %s はスキップします."
+    IDS_MSGJPN108           "コマンドが受け付けられません."
+    IDS_MSGJPN109           "アップロードのために"
+    IDS_MSGJPN110           "コマンドが受け付けられません."
+    IDS_MSGJPN111           "アドレスが取得できません."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN112           "�t�@�C�� %s ���I�[�v���ł��܂���."
-    IDS_MSGJPN113           "�A�b�v���[�h�𒆎~���܂���. (%lld Sec. %lld B/S)."
-    IDS_MSGJPN114           "�A�b�v���[�h�𒆎~���܂���."
-    IDS_MSGJPN115           "�A�b�v���[�h�͐���I�����܂���. (%d Sec. %d B/S)."
-    IDS_MSGJPN116           "�A�b�v���[�h�͐���I�����܂���."
-    IDS_MSGJPN117           "����"
-    IDS_MSGJPN118           "���~"
-    IDS_MSGJPN119           "�o�C�i��"
-    IDS_MSGJPN120           "�A�X�L�["
-    IDS_MSGJPN121           "���ϊ�"
+    IDS_MSGJPN112           "ファイル %s がオープンできません."
+    IDS_MSGJPN113           "アップロードを中止しました. (%lld Sec. %lld B/S)."
+    IDS_MSGJPN114           "アップロードを中止しました."
+    IDS_MSGJPN115           "アップロードは正常終了しました. (%d Sec. %d B/S)."
+    IDS_MSGJPN116           "アップロードは正常終了しました."
+    IDS_MSGJPN117           "完了"
+    IDS_MSGJPN118           "中止"
+    IDS_MSGJPN119           "バイナリ"
+    IDS_MSGJPN120           "アスキー"
+    IDS_MSGJPN121           "無変換"
     IDS_MSGJPN122           "JIS"
     IDS_MSGJPN123           "EUC"
-    IDS_MSGJPN124           "�폜�i���[�J���j"
-    IDS_MSGJPN125           "�폜�i�z�X�g�j"
+    IDS_MSGJPN124           "削除（ローカル）"
+    IDS_MSGJPN125           "削除（ホスト）"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN133           "GMT%+02d:00 (���{)"
-    IDS_MSGJPN134           "�g�p���Ȃ�"
-    IDS_MSGJPN135           "�����F��"
+    IDS_MSGJPN133           "GMT%+02d:00 (日本)"
+    IDS_MSGJPN134           "使用しない"
+    IDS_MSGJPN135           "自動認識"
     IDS_MSGJPN136           "OTP MD4, S/KEY"
     IDS_MSGJPN137           "OTP MD5"
     IDS_MSGJPN138           "OTP SHA-1"
-    IDS_MSGJPN139           "�����F��"
+    IDS_MSGJPN139           "自動認識"
     IDS_MSGJPN140           "ACOS"
     IDS_MSGJPN141           "VAX VMS"
     IDS_MSGJPN142           "IRMX"
@@ -2465,164 +2466,164 @@ END
 STRINGTABLE
 BEGIN
     IDS_MSGJPN144           "Stratus"
-    IDS_MSGJPN145           "�t�H���_��ύX�ł��܂���."
-    IDS_MSGJPN146           "�t�H���_���쐬�ł��܂���."
-    IDS_MSGJPN147           "�t�H���_���폜�ł��܂���."
-    IDS_MSGJPN148           "�t�H���_���폜�ł��܂���."
-    IDS_MSGJPN149           "�t�@�C�����폜�ł��܂���."
-    IDS_MSGJPN150           "�t�@�C�����폜�ł��܂���."
-    IDS_MSGJPN151           "�t�@�C�����ύX���ł��܂���."
-    IDS_MSGJPN154           "�ڑ�"
-    IDS_MSGJPN155           "�N�C�b�N�ڑ�"
-    IDS_MSGJPN156           "�ؒf"
-    IDS_MSGJPN157           "�_�E�����[�h"
-    IDS_MSGJPN158           "�A�b�v���[�h"
-    IDS_MSGJPN159           "�~���[�����O�A�b�v���[�h"
+    IDS_MSGJPN145           "フォルダを変更できません."
+    IDS_MSGJPN146           "フォルダを作成できません."
+    IDS_MSGJPN147           "フォルダを削除できません."
+    IDS_MSGJPN148           "フォルダを削除できません."
+    IDS_MSGJPN149           "ファイルを削除できません."
+    IDS_MSGJPN150           "ファイルを削除できません."
+    IDS_MSGJPN151           "ファイル名変更ができません."
+    IDS_MSGJPN154           "接続"
+    IDS_MSGJPN155           "クイック接続"
+    IDS_MSGJPN156           "切断"
+    IDS_MSGJPN157           "ダウンロード"
+    IDS_MSGJPN158           "アップロード"
+    IDS_MSGJPN159           "ミラーリングアップロード"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN160           "�폜"
-    IDS_MSGJPN161           "���O�ύX"
-    IDS_MSGJPN162           "�t�H���_�쐬"
-    IDS_MSGJPN163           "���̃t�H���_��"
-    IDS_MSGJPN164           "�t�H���_�̈ړ�"
-    IDS_MSGJPN165           "�A�X�L�[�]�����[�h"
-    IDS_MSGJPN166           "�o�C�i���]�����[�h"
-    IDS_MSGJPN167           "�t�@�C�����œ]�����[�h�ؑւ�"
-    IDS_MSGJPN168           "�\�����X�V"
-    IDS_MSGJPN169           "�ꗗ"
-    IDS_MSGJPN170           "�ڍ�"
-    IDS_MSGJPN171           "�z�X�g�̊����R�[�h��EUC"
-    IDS_MSGJPN172           "�z�X�g�̊����R�[�h��JIS"
-    IDS_MSGJPN173           "�����R�[�h�̕ϊ��Ȃ�"
-    IDS_MSGJPN174           "���p�J�i��S�p�ɕϊ�"
-    IDS_MSGJPN175           "�t�H���_�����ړ�"
+    IDS_MSGJPN160           "削除"
+    IDS_MSGJPN161           "名前変更"
+    IDS_MSGJPN162           "フォルダ作成"
+    IDS_MSGJPN163           "一つ上のフォルダへ"
+    IDS_MSGJPN164           "フォルダの移動"
+    IDS_MSGJPN165           "アスキー転送モード"
+    IDS_MSGJPN166           "バイナリ転送モード"
+    IDS_MSGJPN167           "ファイル名で転送モード切替え"
+    IDS_MSGJPN168           "表示を更新"
+    IDS_MSGJPN169           "一覧"
+    IDS_MSGJPN170           "詳細"
+    IDS_MSGJPN171           "ホストの漢字コードはEUC"
+    IDS_MSGJPN172           "ホストの漢字コードはJIS"
+    IDS_MSGJPN173           "漢字コードの変換なし"
+    IDS_MSGJPN174           "半角カナを全角に変換"
+    IDS_MSGJPN175           "フォルダ同時移動"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN176           "��M���~"
-    IDS_MSGJPN177           "�ݒ薼�u%s�v�͂���܂���."
-    IDS_MSGJPN178           "�ݒ薼���w�肳��Ă��܂���."
-    IDS_MSGJPN179           "�z�X�g���Ɛݒ薼�̗������w�肳��Ă��܂�."
-    IDS_MSGJPN180           "�I�v�V�����u%s�v���Ԉ���Ă��܂�."
-    IDS_MSGJPN181           "�z�X�g���Ɛݒ薼�̗������w�肳��Ă��܂�."
-    IDS_MSGJPN182           "�r���[�A�̋N���Ɏ��s���܂���. (ERROR=%d)"
-    IDS_MSGJPN185           "�t�H���_��I�����Ă�������"
+    IDS_MSGJPN176           "受信中止"
+    IDS_MSGJPN177           "設定名「%s」はありません."
+    IDS_MSGJPN178           "設定名が指定されていません."
+    IDS_MSGJPN179           "ホスト名と設定名の両方が指定されています."
+    IDS_MSGJPN180           "オプション「%s」が間違っています."
+    IDS_MSGJPN181           "ホスト名と設定名の両方が指定されています."
+    IDS_MSGJPN182           "ビューアの起動に失敗しました. (ERROR=%d)"
+    IDS_MSGJPN185           "フォルダを選択してください"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN199           "�t�@�C����"
-    IDS_MSGJPN200           "�t�@�C����"
-    IDS_MSGJPN201           "����"
-    IDS_MSGJPN202           "�t�@�C����"
-    IDS_MSGJPN203           "�t�@�C����"
-    IDS_MSGJPN204           "FW���[�U�[���� FW�p�X���[�h�� SITE �z�X�g��"
-    IDS_MSGJPN205           "FW���[�U�[���� FW�p�X���[�h�� USER ���[�U�[��@�z�X�g��"
-    IDS_MSGJPN206           "FW���[�U�[���� FW�p�X���[�h"
-    IDS_MSGJPN207           "USER ���[�U�[��@�z�X�g��"
+    IDS_MSGJPN199           "ファイル名"
+    IDS_MSGJPN200           "ファイル名"
+    IDS_MSGJPN201           "属性"
+    IDS_MSGJPN202           "ファイル名"
+    IDS_MSGJPN203           "ファイル名"
+    IDS_MSGJPN204           "FWユーザー名→ FWパスワード→ SITE ホスト名"
+    IDS_MSGJPN205           "FWユーザー名→ FWパスワード→ USER ユーザー名@ホスト名"
+    IDS_MSGJPN206           "FWユーザー名→ FWパスワード"
+    IDS_MSGJPN207           "USER ユーザー名@ホスト名"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN208           "OPEN �z�X�g��"
+    IDS_MSGJPN208           "OPEN ホスト名"
     IDS_MSGJPN209           "SOCKS4"
-    IDS_MSGJPN210           "SOCKS5 (�F�؂Ȃ�)"
-    IDS_MSGJPN211           "SOCKS5 (���[�U�[��,�p�X���[�h�F��)"
-    IDS_MSGJPN212           "�g�p���Ȃ�"
-    IDS_MSGJPN213           "�����F��"
+    IDS_MSGJPN210           "SOCKS5 (認証なし)"
+    IDS_MSGJPN211           "SOCKS5 (ユーザー名,パスワード認証)"
+    IDS_MSGJPN212           "使用しない"
+    IDS_MSGJPN213           "自動認識"
     IDS_MSGJPN214           "OTP MD4,S/KEY"
     IDS_MSGJPN215           "OTP MD5"
     IDS_MSGJPN216           "OTP SHA-1"
-    IDS_MSGJPN220           "�_�C�A���A�b�v��ؒf���Ă��܂�."
-    IDS_MSGJPN221           "�_�C�A���A�b�v�Őڑ����Ă��܂�."
+    IDS_MSGJPN220           "ダイアルアップを切断しています."
+    IDS_MSGJPN221           "ダイアルアップで接続しています."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN239           "# ���̃t�@�C���͕ҏW���Ȃ��ł�������.\n"
+    IDS_MSGJPN239           "# このファイルは編集しないでください.\n"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN241           "���M�̓^�C���A�E�g�Ŏ��s���܂���."
-    IDS_MSGJPN242           "��M�̓^�C���A�E�g�Ŏ��s���܂���."
-    IDS_MSGJPN243           "��M�̓^�C���A�E�g�Ŏ��s���܂���."
-    IDS_MSGJPN244           "�Œ蒷�̎�M�����s���܂���"
-    IDS_MSGJPN245           "���[�J��"
-    IDS_MSGJPN246           "�z�X�g"
-    IDS_MSGJPN247           "�I��%d�i%s�j"
-    IDS_MSGJPN248           "���[�J���� %s"
-    IDS_MSGJPN249           "�]���҂��t�@�C��%d��"
-    IDS_MSGJPN250           "��M�� %s"
-    IDS_MSGJPN251           "Err: �V�[�h������"
-    IDS_MSGJPN252           "Err: �V�[�h������"
-    IDS_MSGJPN253           "Err: �V�[�P���X�ԍ�"
+    IDS_MSGJPN241           "送信はタイムアウトで失敗しました."
+    IDS_MSGJPN242           "受信はタイムアウトで失敗しました."
+    IDS_MSGJPN243           "受信はタイムアウトで失敗しました."
+    IDS_MSGJPN244           "固定長の受信が失敗しました"
+    IDS_MSGJPN245           "ローカル"
+    IDS_MSGJPN246           "ホスト"
+    IDS_MSGJPN247           "選択%d個（%s）"
+    IDS_MSGJPN248           "ローカル空 %s"
+    IDS_MSGJPN249           "転送待ちファイル%d個"
+    IDS_MSGJPN250           "受信中 %s"
+    IDS_MSGJPN251           "Err: シード文字列"
+    IDS_MSGJPN252           "Err: シード文字列"
+    IDS_MSGJPN253           "Err: シーケンス番号"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN278           "���R: %s"
-    IDS_MSGJPN279           "Listen�\�P�b�g���擾�ł��܂���"
-    IDS_MSGJPN280           "Data�\�P�b�g���擾�ł��܂���"
-    IDS_MSGJPN281           "PASV���[�h�Őڑ��ł��܂���"
-    IDS_MSGJPN282           "INI�t�@�C�������w�肳��Ă��܂���"
-    IDS_MSGJPN283           "INI�t�@�C���w��: "
+    IDS_MSGJPN278           "理由: %s"
+    IDS_MSGJPN279           "Listenソケットが取得できません"
+    IDS_MSGJPN280           "Dataソケットが取得できません"
+    IDS_MSGJPN281           "PASVモードで接続できません"
+    IDS_MSGJPN282           "INIファイル名が指定されていません"
+    IDS_MSGJPN283           "INIファイル指定: "
 END
 
 STRINGTABLE
 BEGIN
     IDS_MSGJPN289           "Agilent Logic analyzer"
-    IDS_MSGJPN294           "USER FW���[�U�[��:FW�p�X���[�h@�z�X�g��"
-    IDS_MSGJPN295           "�V�o�\�N WL"
-    IDS_MSGJPN299           "�R�}���h���C���Ƀ}�X�^�[�p�X���[�h���w�肳��Ă��܂���"
-    IDS_MSGJPN300           "�f�t�H���g�̃}�X�^�[�p�X���[�h���g���܂�.\r\n�}���E�F�A�̍U����h������,�ŗL�̃}�X�^�[�p�X���[�h��ݒ肷�邱�Ƃ��������߂��܂�"
-    IDS_MSGJPN301           "�}�X�^�[�p�X���[�h���ݒ�ƈ�v���܂���.���S�̂��ߐݒ�̕ۑ����s���܂���."
-    IDS_MSGJPN302           "�m�F�p�f�[�^�����Ă��邽��,�}�X�^�[�p�X���[�h�̐��������m�F�ł��܂���ł���."
-    IDS_MSGJPN303           "�}�X�^�[�p�X���[�h��ύX���܂���"
+    IDS_MSGJPN294           "USER FWユーザー名:FWパスワード@ホスト名"
+    IDS_MSGJPN295           "シバソク WL"
+    IDS_MSGJPN299           "コマンドラインにマスターパスワードが指定されていません"
+    IDS_MSGJPN300           "デフォルトのマスターパスワードが使われます.\r\nマルウェアの攻撃を防ぐため,固有のマスターパスワードを設定することをおすすめします"
+    IDS_MSGJPN301           "マスターパスワードが設定と一致しません.安全のため設定の保存を行いません."
+    IDS_MSGJPN302           "確認用データが壊れているため,マスターパスワードの正当性を確認できませんでした."
+    IDS_MSGJPN303           "マスターパスワードを変更しました"
 END
 
 STRINGTABLE
 BEGIN
     IDS_MSGJPN305           "Shift_JIS"
     IDS_MSGJPN306           "UTF-8"
-    IDS_MSGJPN307           "�z�X�g�̊����R�[�h��Shift_JIS"
-    IDS_MSGJPN308           "�z�X�g�̊����R�[�h��UTF-8"
-    IDS_MSGJPN309           "���[�J���̊����R�[�h��Shift_JIS"
-    IDS_MSGJPN310           "���[�J���̊����R�[�h��EUC"
-    IDS_MSGJPN311           "���[�J���̊����R�[�h��JIS"
-    IDS_MSGJPN312           "���[�J���̊����R�[�h��UTF-8"
-    IDS_MSGJPN314           "�ʐM�͈Í�������Ă��܂���.\r\n��O�҂Ƀp�X���[�h����ѓ��e��T�󂳂��\��������܂�."
-    IDS_MSGJPN315           "FTP over Explicit SSL/TLS (FTPES)���g�p���܂�."
-    IDS_MSGJPN316           "FTP over Implicit SSL/TLS (FTPIS)���g�p���܂�."
-    IDS_MSGJPN317           "SSH FTP (SFTP)���g�p���܂�."
+    IDS_MSGJPN307           "ホストの漢字コードはShift_JIS"
+    IDS_MSGJPN308           "ホストの漢字コードはUTF-8"
+    IDS_MSGJPN309           "ローカルの漢字コードはShift_JIS"
+    IDS_MSGJPN310           "ローカルの漢字コードはEUC"
+    IDS_MSGJPN311           "ローカルの漢字コードはJIS"
+    IDS_MSGJPN312           "ローカルの漢字コードはUTF-8"
+    IDS_MSGJPN314           "通信は暗号化されていません.\r\n第三者にパスワードおよび内容を傍受される可能性があります."
+    IDS_MSGJPN315           "FTP over Explicit SSL/TLS (FTPES)を使用します."
+    IDS_MSGJPN316           "FTP over Implicit SSL/TLS (FTPIS)を使用します."
+    IDS_MSGJPN317           "SSH FTP (SFTP)を使用します."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN321           "�v���Z�X�̕ی�ɕK�v�Ȋ֐����擾�ł��܂���ł���."
-    IDS_MSGJPN322           "�f�o�b�K�����o����܂���."
-    IDS_MSGJPN323           "�M���ł��Ȃ�DLL���A�����[�h�ł��܂���ł���."
-    IDS_MSGJPN324           "�v���Z�X�̕ی�ɕK�v�Ȋ֐����t�b�N�ł��܂���ł���."
+    IDS_MSGJPN321           "プロセスの保護に必要な関数を取得できませんでした."
+    IDS_MSGJPN322           "デバッガが検出されました."
+    IDS_MSGJPN323           "信頼できないDLLをアンロードできませんでした."
+    IDS_MSGJPN324           "プロセスの保護に必要な関数をフックできませんでした."
     IDS_MSGJPN329           "UTF-8 BOM"
-    IDS_MSGJPN330           "�z�X�g�̊����R�[�h��UTF-8 BOM"
-    IDS_MSGJPN331           "���[�J���̊����R�[�h��UTF-8 BOM"
-    IDS_MSGJPN335           "����q�˂�"
+    IDS_MSGJPN330           "ホストの漢字コードはUTF-8 BOM"
+    IDS_MSGJPN331           "ローカルの漢字コードはUTF-8 BOM"
+    IDS_MSGJPN335           "毎回尋ねる"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN336           "�S�Č�ŏ㏑��"
-    IDS_MSGJPN337           "�S�Č�Ń��W���[��"
-    IDS_MSGJPN338           "�S�ăX�L�b�v"
+    IDS_MSGJPN336           "全て後で上書き"
+    IDS_MSGJPN337           "全て後でリジューム"
+    IDS_MSGJPN338           "全てスキップ"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN358           "�\�t�g�E�F�A�̍X�V���������܂���.\n�ȑO�̃o�[�W�����̃o�b�N�A�b�v�R�s�[�͈ȉ��̏ꏊ�ɂ���܂�.\n%s"
-    IDS_MSGJPN359           "���̋@�\�ŐV�K�쐬����INI�t�@�C����WinSCP�œǂݍ��ނƑS�Ă̐ݒ肪�����܂�.\n���ł�WinSCP�����g���ł���z�X�g�̐ݒ�݈̂ڍs�������ꍇ�͊�����WinSCP.ini��I�����Ă�������."
+    IDS_MSGJPN358           "ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s"
+    IDS_MSGJPN359           "この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください."
 END
 
 STRINGTABLE
@@ -2633,49 +2634,49 @@ END
 STRINGTABLE
 BEGIN
     IDS_APP                 "FFFTP"
-    IDS_ERR_CRYPTO          "�Í����C�u�����̏������Ɏ��s���܂���.\n�A�v���P�[�V�������I�����܂�."
-    IDS_ERR_SSL             "SSL�̏������Ɏ��s���܂���.\n�A�v���P�[�V�������I�����܂�."
-    IDS_SECURE              "�ی삳��Ă��܂�"
-    IDS_NOTSECURE           "�ی삳��Ă��܂���"
-    IDS_FILETYPE_ALL        "���ׂẴt�@�C��\t*.*\t"
-    IDS_FILETYPE_EXECUTABLE "���s�\�t�@�C�� (*.exe;*.com;*.bat)\t*.exe;*.com;*.bat\t"
-    IDS_FILETYPE_AUDIO      "�I�[�f�B�I �t�@�C�� (*.wav)\t*.wav\t"
+    IDS_ERR_CRYPTO          "暗号ライブラリの初期化に失敗しました.\nアプリケーションを終了します."
+    IDS_ERR_SSL             "SSLの初期化に失敗しました.\nアプリケーションを終了します."
+    IDS_SECURE              "保護されています"
+    IDS_NOTSECURE           "保護されていません"
+    IDS_FILETYPE_ALL        "すべてのファイル\t*.*\t"
+    IDS_FILETYPE_EXECUTABLE "実行可能ファイル (*.exe;*.com;*.bat)\t*.exe;*.com;*.bat\t"
+    IDS_FILETYPE_AUDIO      "オーディオ ファイル (*.wav)\t*.wav\t"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_FILETYPE_REG        "�o�^�t�@�C�� (*.reg)\t*.reg\t"
-    IDS_FILETYPE_INI        "INI �t�@�C�� (*.ini)\t*.ini\t"
-    IDS_FILETYPE_XML        "XML �t�@�C�� (*.xml)\t*.xml\t"
-    IDS_OPEN_WSFTPINI       "WS_FTP.INI���J��"
-    IDS_SELECT_VIEWER       "�r���[�A�[��I������"
-    IDS_SELECT_AUDIOFILE    "�I�[�f�B�I�t�@�C����I������"
-    IDS_SAVE_SETTING        "�ݒ��ۑ�����"
-    IDS_LOAD_SETTING        "�ݒ��ǂݍ���"
-    IDS_OPTION              "�I�v�V����"
-    IDS_HOSTSETTING         "�z�X�g�̐ݒ�"
-    IDS_OPEN_WITH           "%s�ŊJ��(&%d)"
-    IDS_CANT_SAVE_TO_INI    "INI�t�@�C���ɐݒ肪�ۑ��ł��܂���"
-    IDS_FAIL_TO_EXEC_REDEDIT "���W�X�g���G�f�B�^���N���ł��܂���ł���"
-    IDS_NEED_RESTART        "�ݒ���t�@�C�����畜�����邽�߂ɂ�,FFFTP���ċN�����Ă�������."
-    IDS_MUST_BE_REG_OR_INI  "�ݒ�t�@�C���͊g���q��.reg��.ini�łȂ���΂Ȃ�܂���."
-    IDS_REMOVE_READONLY     "�ǂݎ���p�t�@�C���ł�.�ǂݎ���p�������������܂����H"
+    IDS_FILETYPE_REG        "登録ファイル (*.reg)\t*.reg\t"
+    IDS_FILETYPE_INI        "INI ファイル (*.ini)\t*.ini\t"
+    IDS_FILETYPE_XML        "XML ファイル (*.xml)\t*.xml\t"
+    IDS_OPEN_WSFTPINI       "WS_FTP.INIを開く"
+    IDS_SELECT_VIEWER       "ビューアーを選択する"
+    IDS_SELECT_AUDIOFILE    "オーディオファイルを選択する"
+    IDS_SAVE_SETTING        "設定を保存する"
+    IDS_LOAD_SETTING        "設定を読み込む"
+    IDS_OPTION              "オプション"
+    IDS_HOSTSETTING         "ホストの設定"
+    IDS_OPEN_WITH           "%sで開く(&%d)"
+    IDS_CANT_SAVE_TO_INI    "INIファイルに設定が保存できません"
+    IDS_FAIL_TO_EXEC_REDEDIT "レジストリエディタが起動できませんでした"
+    IDS_NEED_RESTART        "設定をファイルから復元するためには,FFFTPを再起動してください."
+    IDS_MUST_BE_REG_OR_INI  "設定ファイルは拡張子が.regか.iniでなければなりません."
+    IDS_REMOVE_READONLY     "読み取り専用ファイルです.読み取り専用属性を解除しますか？"
 END
 
 STRINGTABLE
 BEGIN
-    IDS_FAIL_TO_INIT_OLE    "OLE�̏������Ɏ��s���܂���."
+    IDS_FAIL_TO_INIT_OLE    "OLEの初期化に失敗しました."
     IDS_MASTER_PASSWORD_INCORRECT 
-                            "�w�肳�ꂽ�}�X�^�[�p�X���[�h���o�^���ꂽ���̂ƈ�v���܂���.\r\n�ēx���͂��܂����H\r\n�u�������v��I�ԂƋL�����ꂽFTP�p�X���[�h�͗��p�ł��܂���."
-    IDS_PASSWORD_ISNOT_IDENTICAL "�V�����}�X�^�[�p�X���[�h����v���܂���."
-    IDS_MANAGE_STATEFUL_FTP "Windows�t�@�C�A�E�H�[���̃X�e�[�g�t��FTP�t�B���^�̗L��������ݒ肵�܂�.\n�����Windows Vista�ȍ~�ł̂ݓ��삵�܂�.\n�L�����܂��͖��������邱�ƂŒʐM��Ԃ����P����邱�Ƃ�����܂�.\n�L��������ɂ́u�͂��v,����������ɂ́u�������v��I�����Ă�������."
-    IDS_FAIL_TO_MANAGE_STATEFUL_FTP "�X�e�[�g�t��FTP�t�B���^��ݒ�ł��܂���ł���."
+                            "指定されたマスターパスワードが登録されたものと一致しません.\r\n再度入力しますか？\r\n「いいえ」を選ぶと記憶されたFTPパスワードは利用できません."
+    IDS_PASSWORD_ISNOT_IDENTICAL "新しいマスターパスワードが一致しません."
+    IDS_MANAGE_STATEFUL_FTP "WindowsファイアウォールのステートフルFTPフィルタの有効無効を設定します.\nこれはWindows Vista以降でのみ動作します.\n有効化または無効化することで通信状態が改善されることがあります.\n有効化するには「はい」,無効化するには「いいえ」を選択してください."
+    IDS_FAIL_TO_MANAGE_STATEFUL_FTP "ステートフルFTPフィルタを設定できませんでした."
     IDS_FOUND_NEW_VERSION_INI 
-                            "�V�����o�[�W�����̐ݒ肪���o����܂���.\n���̃o�[�W�����ł͈ꕔ�̐ݒ肪�������ǂݍ��܂�Ȃ�,�܂��͂��̃o�[�W�����Őݒ���㏑������Ɛݒ肪�ω�����\��������܂�.\n���̃o�[�W�����p�ɐݒ���㏑�����ĕۑ�����ɂ́u�͂��v��I�����Ă�������.\n�ݒ�����W�X�g���ł͂Ȃ�INI�t�@�C���ɕۑ�����ɂ́u�������v��I�����Ă�������.\n�ǂݎ���p�Őݒ��ǂݍ��ނɂ́u�L�����Z���v��I�����Ă�������."
-    IDS_FAIL_TO_EXPORT      "�ݒ�̃G�N�X�|�[�g�Ɏ��s���܂���.\n�ۑ�����ꏊ��`����ύX���Ă�������."
+                            "新しいバージョンの設定が検出されました.\nこのバージョンでは一部の設定が正しく読み込まれない,またはこのバージョンで設定を上書きすると設定が変化する可能性があります.\nこのバージョン用に設定を上書きして保存するには「はい」を選択してください.\n設定をレジストリではなくINIファイルに保存するには「いいえ」を選択してください.\n読み取り専用で設定を読み込むには「キャンセル」を選択してください."
+    IDS_FAIL_TO_EXPORT      "設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください."
     IDS_NEED_EXSITING_WINSCP_INI 
-                            "���̋@�\�ŐV�K�쐬����INI�t�@�C����WinSCP�œǂݍ��ނƑS�Ă̐ݒ肪�����܂�.\n���ł�WinSCP�����g���ł���z�X�g�̐ݒ�݈̂ڍs�������ꍇ�͊�����WinSCP.ini��I�����Ă�������."
-    IDS_INVALID_PATH        "%s �͕s���ȃt�@�C�����ł�.\r\n���̃t�@�C���̓_�E�����[�h����܂���."
+                            "この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください."
+    IDS_INVALID_PATH        "%s は不正なファイル名です.\r\nこのファイルはダウンロードされません."
 END
 
 #endif    // Japanese (Japan) resources
