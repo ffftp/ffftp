@@ -34,6 +34,10 @@ static inline auto a2w(std::string_view text) {
 	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) { return MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, src, srclen, dst, dstlen); }, text);
 }
 
+struct Config {
+	char KeyName[80 + 1];
+};
+
 static void SaveStr(void *Handle, char *Key, char *Str, char *DefaultStr);
 static void SaveIntNum(void *Handle, char *Key, int Num, int DefaultNum);
 static std::wstring MakeFontData(HFONT hfont, LOGFONTW const& logFont);
@@ -1810,20 +1814,14 @@ static bool CreateAesKey(unsigned char *AesKey) {
 
 /*===== レジストリとINIファイルのアクセス処理 ============*/
 
-
-/*===== INIファイル用のレジストリデータ =====*/
-
-typedef struct regdatatbl {
-	char KeyName[80+1];			/* キー名 */
+typedef struct regdatatbl : Config {
 	char ValTbl[REG_SECT_MAX];	/* 値のテーブル */
 	int ValLen;					/* 値データのバイト数 */
 	int Mode;					/* キーのモード */
 	struct regdatatbl *Next;
 } REGDATATBL;
 
-// 全設定暗号化対応
-typedef struct regdatatbl_reg {
-	char KeyName[80+1];			/* キー名 */
+typedef struct regdatatbl_reg : Config {
 	HKEY hKey;
 } REGDATATBL_REG;
 
@@ -2139,10 +2137,7 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 	{
 		if(EncryptSettings == YES)
 		{
-			if(TmpRegType == REGTYPE_REG)
-				strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
-			else
-				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+			strcpy(Path, ((Config*)Handle)->KeyName);
 			strcat(Path, "\\");
 			strcat(Path, Name);
 			UnmaskSettingsData(Path, Value, sizeof(int), false);
@@ -2175,10 +2170,7 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		if(TmpRegType == REGTYPE_REG)
-			strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
-		else
-			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+		strcpy(Path, ((Config*)Handle)->KeyName);
 		strcat(Path, "\\");
 		strcat(Path, Name);
 		MaskSettingsData(Path, &Value, sizeof(int), false);
@@ -2267,10 +2259,7 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 	{
 		if(EncryptSettings == YES)
 		{
-			if(TmpRegType == REGTYPE_REG)
-				strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
-			else
-				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+			strcpy(Path, ((Config*)Handle)->KeyName);
 			strcat(Path, "\\");
 			strcat(Path, Name);
 			UnmaskSettingsData(Path, Str, (DWORD)strlen(Str) + 1, true);
@@ -2302,10 +2291,7 @@ static int WriteStringToReg(void *Handle, char *Name, char *Str)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		if(TmpRegType == REGTYPE_REG)
-			strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
-		else
-			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+		strcpy(Path, ((Config*)Handle)->KeyName);
 		strcat(Path, "\\");
 		strcat(Path, Name);
 		MaskSettingsData(Path, Str, (DWORD)strlen(Str) + 1, true);
@@ -2400,10 +2386,7 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 	{
 		if(EncryptSettings == YES)
 		{
-			if(TmpRegType == REGTYPE_REG)
-				strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
-			else
-				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+			strcpy(Path, ((Config*)Handle)->KeyName);
 			strcat(Path, "\\");
 			strcat(Path, Name);
 			UnmaskSettingsData(Path, Str, StrMultiLen(Str) + 1, true);
@@ -2435,10 +2418,7 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		if(TmpRegType == REGTYPE_REG)
-			strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
-		else
-			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+		strcpy(Path, ((Config*)Handle)->KeyName);
 		strcat(Path, "\\");
 		strcat(Path, Name);
 		MaskSettingsData(Path, Str, StrMultiLen(Str) + 1, true);
@@ -2509,10 +2489,7 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 	{
 		if(EncryptSettings == YES)
 		{
-			if(TmpRegType == REGTYPE_REG)
-				strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
-			else
-				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+			strcpy(Path, ((Config*)Handle)->KeyName);
 			strcat(Path, "\\");
 			strcat(Path, Name);
 			UnmaskSettingsData(Path, Bin, Size, false);
@@ -2545,10 +2522,7 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		if(TmpRegType == REGTYPE_REG)
-			strcpy(Path, ((REGDATATBL_REG *)Handle)->KeyName);
-		else
-			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
+		strcpy(Path, ((Config*)Handle)->KeyName);
 		strcat(Path, "\\");
 		strcat(Path, Name);
 		MaskSettingsData(Path, Bin, Len, false);
