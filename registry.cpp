@@ -76,11 +76,8 @@ void CreatePasswordHash( char* Password, int length, char* HashStr, int StretchC
 void SetHashSalt( DWORD salt );
 // 全設定暗号化対応
 void SetHashSalt1(void* Salt, int Length);
-
-// 全設定暗号化対応
-void GetMaskWithHMACSHA1(DWORD IV, const char* Salt, int SaltLength, void* pHash);
-void MaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size, int EscapeZero);
-void UnmaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size, int EscapeZero);
+static void MaskSettingsData(std::string_view salt, void* Data, DWORD Size, bool EscapeZero);
+static void UnmaskSettingsData(std::string_view salt, void* Data, DWORD Size, bool EscapeZero);
 
 /* 2010.01.30 genta 追加 */
 static char SecretKey[FMAX_PATH+1];
@@ -206,15 +203,24 @@ extern int FwallNoSaveUser;
 extern int MarkAsInternet;
 
 
-void sha_memory(const char* mem, DWORD length, uint32_t* buffer) {
+static void sha1(_In_reads_bytes_(datalen) const void* data, DWORD datalen, _Out_writes_bytes_(20) BYTE* buffer) {
+	HCRYPTHASH hash;
+	auto result = CryptCreateHash(HCryptProv, CALG_SHA1, 0, 0, &hash);
+	assert(result);
+	result = CryptHashData(hash, reinterpret_cast<const BYTE*>(data), datalen, 0);
+	assert(result);
+	DWORD hashlen = 20;
+	result = CryptGetHashParam(hash, HP_HASHVAL, buffer, &hashlen, 0);
+	assert(result && hashlen == 20);
+	result = CryptDestroyHash(hash);
+	assert(result);
+}
+
+static void sha_memory(const char* mem, DWORD length, uint32_t* buffer) {
 	// ビット反転の必要がある
-	if (HCRYPTHASH hash; CryptCreateHash(HCryptProv, CALG_SHA1, 0, 0, &hash)) {
-		if (CryptHashData(hash, reinterpret_cast<const BYTE*>(mem), length, 0))
-			if (DWORD hashlen = 20; CryptGetHashParam(hash, HP_HASHVAL, reinterpret_cast<BYTE*>(buffer), &hashlen, 0))
-				for (DWORD i = 0, end = hashlen / sizeof uint32_t; i < end; i++)
-					buffer[i] = _byteswap_ulong(buffer[i]);
-		CryptDestroyHash(hash);
-	}
+	sha1(mem, length, reinterpret_cast<BYTE*>(buffer));
+	for (int i = 0; i < 5; i++)
+		buffer[i] = _byteswap_ulong(buffer[i]);
 }
 
 
@@ -2139,7 +2145,7 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 			strcat(Path, "\\");
 			strcat(Path, Name);
-			UnmaskSettingsData(Path, (int)strlen(Path), Value, sizeof(int), NO);
+			UnmaskSettingsData(Path, Value, sizeof(int), false);
 		}
 	}
 	return(Sts);
@@ -2175,7 +2181,7 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 		strcat(Path, "\\");
 		strcat(Path, Name);
-		MaskSettingsData(Path, (int)strlen(Path), &Value, sizeof(int), NO);
+		MaskSettingsData(Path, &Value, sizeof(int), false);
 	}
 	if(TmpRegType == REGTYPE_REG)
 		RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_DWORD, (CONST BYTE*)&Value, sizeof(int));
@@ -2192,7 +2198,7 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		UnmaskSettingsData(Path, (int)strlen(Path), &Value, sizeof(int), NO);
+		UnmaskSettingsData(Path, &Value, sizeof(int), false);
 	}
 	return(FFFTP_SUCCESS);
 }
@@ -2267,7 +2273,7 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 			strcat(Path, "\\");
 			strcat(Path, Name);
-			UnmaskSettingsData(Path, (int)strlen(Path), Str, (DWORD)strlen(Str) + 1, YES);
+			UnmaskSettingsData(Path, Str, (DWORD)strlen(Str) + 1, true);
 		}
 	}
 	return(Sts);
@@ -2302,7 +2308,7 @@ static int WriteStringToReg(void *Handle, char *Name, char *Str)
 			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 		strcat(Path, "\\");
 		strcat(Path, Name);
-		MaskSettingsData(Path, (int)strlen(Path), Str, (DWORD)strlen(Str) + 1, YES);
+		MaskSettingsData(Path, Str, (DWORD)strlen(Str) + 1, true);
 	}
 	if (TmpRegType == REGTYPE_REG) {
 		if (EncryptSettings == YES)
@@ -2324,7 +2330,7 @@ static int WriteStringToReg(void *Handle, char *Name, char *Str)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		UnmaskSettingsData(Path, (int)strlen(Path), Str, (DWORD)strlen(Str) + 1, YES);
+		UnmaskSettingsData(Path, Str, (DWORD)strlen(Str) + 1, true);
 	}
 	return(FFFTP_SUCCESS);
 }
@@ -2400,7 +2406,7 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 			strcat(Path, "\\");
 			strcat(Path, Name);
-			UnmaskSettingsData(Path, (int)strlen(Path), Str, StrMultiLen(Str) + 1, YES);
+			UnmaskSettingsData(Path, Str, StrMultiLen(Str) + 1, true);
 		}
 	}
 	return(Sts);
@@ -2435,7 +2441,7 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 		strcat(Path, "\\");
 		strcat(Path, Name);
-		MaskSettingsData(Path, (int)strlen(Path), Str, StrMultiLen(Str) + 1, YES);
+		MaskSettingsData(Path, Str, StrMultiLen(Str) + 1, true);
 	}
 	if (TmpRegType == REGTYPE_REG) {
 		if (EncryptSettings == YES)
@@ -2457,7 +2463,7 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		UnmaskSettingsData(Path, (int)strlen(Path), Str, StrMultiLen(Str) + 1, YES);
+		UnmaskSettingsData(Path, Str, StrMultiLen(Str) + 1, true);
 	}
 	return(FFFTP_SUCCESS);
 }
@@ -2509,7 +2515,7 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 				strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 			strcat(Path, "\\");
 			strcat(Path, Name);
-			UnmaskSettingsData(Path, (int)strlen(Path), Bin, Size, NO);
+			UnmaskSettingsData(Path, Bin, Size, false);
 		}
 	}
 	return(Sts);
@@ -2545,7 +2551,7 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 			strcpy(Path, ((REGDATATBL *)Handle)->KeyName);
 		strcat(Path, "\\");
 		strcat(Path, Name);
-		MaskSettingsData(Path, (int)strlen(Path), Bin, Len, NO);
+		MaskSettingsData(Path, Bin, Len, false);
 	}
 	if(TmpRegType == REGTYPE_REG)
 		RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Bin, Len);
@@ -2562,7 +2568,7 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 	{
-		UnmaskSettingsData(Path, (int)strlen(Path), Bin, Len, NO);
+		UnmaskSettingsData(Path, Bin, Len, false);
 	}
 	return(FFFTP_SUCCESS);
 }
@@ -2812,62 +2818,33 @@ void SetHashSalt1(void* Salt, int Length)
 		SecretKeyLength = (int)strlen(SecretKey) + 1;
 }
 
-
-// 全設定暗号化対応
-void GetMaskWithHMACSHA1(DWORD Nonce, const char* Salt, int SaltLength, void* pHash)
-{
-	BYTE Key[FMAX_PATH*2+1];
-	uint32_t Hash[5];
-	DWORD i;
-	for(i = 0; i < 16; i++)
-	{
-		Nonce = ~Nonce;
-		Nonce *= 1566083941;
-		Nonce = _byteswap_ulong(Nonce);
-		memcpy(&Key[i * 4], &Nonce, 4);
-	}
-	memcpy(&Key[64], Salt, SaltLength);
-	memcpy(&Key[64 + SaltLength], SecretKey, SecretKeyLength);
-	sha_memory((const char*)Key, 64 + SaltLength + SecretKeyLength, Hash);
-	// sha.cはビッグエンディアンのため
-	for(i = 0; i < 5; i++)
-		Hash[i] = _byteswap_ulong(Hash[i]);
-	memcpy(&Key[0], &Hash, 20);
-	memset(&Key[20], 0, 44);
-	for(i = 0; i < 64; i++)
-		Key[i] ^= 0x36;
-	sha_memory((const char*)Key, 64, Hash);
-	// sha.cはビッグエンディアンのため
-	for(i = 0; i < 5; i++)
-		Hash[i] = _byteswap_ulong(Hash[i]);
-	memcpy(&Key[64], &Hash, 20);
-	for(i = 0; i < 64; i++)
-		Key[i] ^= 0x6a;
-	sha_memory((const char*)Key, 84, Hash);
-	// sha.cはビッグエンディアンのため
-	for(i = 0; i < 5; i++)
-		Hash[i] = _byteswap_ulong(Hash[i]);
-	memcpy(pHash, &Hash, 20);
-}
-
-void MaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size, int EscapeZero)
-{
-	BYTE* p;
-	DWORD i;
-	BYTE Mask[20];
-	p = (BYTE*)Data;
-	for(i = 0; i < Size; i++)
-	{
-		if(i % 20 == 0)
-			GetMaskWithHMACSHA1(i, Salt, SaltLength, &Mask);
-		if(EscapeZero == NO || (p[i] != 0 && p[i] != Mask[i % 20]))
-			p[i] ^= Mask[i % 20];
+static void MaskSettingsData(std::string_view salt, void* Data, DWORD Size, bool EscapeZero) {
+	BYTE mask[20];
+	auto p = reinterpret_cast<BYTE*>(Data);
+	for (DWORD i = 0; i < Size; i++) {
+		if (i % 20 == 0) {
+			BYTE buffer[FMAX_PATH * 2 + 1];
+			for (DWORD nonce = i, j = 0; j < 16; j++)
+				reinterpret_cast<DWORD*>(buffer)[j] = nonce = _byteswap_ulong(~nonce * 1566083941);
+			memcpy(buffer + 64, data(salt), size(salt));
+			memcpy(buffer + 64 + size(salt), SecretKey, SecretKeyLength);
+			sha1(buffer, 64 + size_as<DWORD>(salt) + SecretKeyLength, buffer);
+			for (int j = 0; j < 20; j++)
+				buffer[j] ^= 0x36;
+			for (int j = 20; j < 64; j++)
+				buffer[j] = 0x36;
+			sha1(buffer, 64, buffer + 64);
+			for (int j = 0; j < 64; j++)
+				buffer[j] ^= 0x6a;
+			sha1(buffer, 84, mask);
+		}
+		if (!EscapeZero || p[i] != 0 && p[i] != mask[i % 20])
+			p[i] ^= mask[i % 20];
 	}
 }
 
-void UnmaskSettingsData(const char* Salt, int SaltLength, void* Data, DWORD Size, int EscapeZero)
-{
-	MaskSettingsData(Salt, SaltLength, Data, Size, EscapeZero);
+static void UnmaskSettingsData(std::string_view salt, void* Data, DWORD Size, bool EscapeZero) {
+	MaskSettingsData(salt, Data, Size, EscapeZero);
 }
 
 // ポータブル版判定
