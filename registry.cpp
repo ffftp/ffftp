@@ -61,13 +61,13 @@ static int CloseSubKey(void *Handle);
 static int DeleteSubKey(void *Handle, char *Name);
 static int DeleteValue(void *Handle, char *Name);
 static int ReadIntValueFromReg(void *Handle, char *Name, int *Value);
-static int WriteIntValueToReg(void *Handle, char *Name, int Value);
+static void WriteIntValueToReg(void *Handle, char *Name, int Value);
 static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char *Str, DWORD Size);
-static int WriteStringToReg(void *Handle, char *Name, char *Str);
+static void WriteStringToReg(void *Handle, char *Name, char *Str);
 static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Size);
-static int WriteMultiStringToReg(void *Handle, char *Name, char *Str);
+static void WriteMultiStringToReg(void *Handle, char *Name, char *Str);
 static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size);
-static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len);
+static void WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len);
 // 暗号化通信対応
 static int StrCatOut(char *Src, int Len, char *Dst);
 static int StrReadIn(char *Src, int Max, char *Dst);
@@ -2152,7 +2152,7 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static int WriteIntValueToReg(void *Handle, char *Name, int Value)
+static void WriteIntValueToReg(void *Handle, char *Name, int Value)
 {
 	REGDATATBL *Pos;
 	char *Data;
@@ -2176,7 +2176,6 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, &Value, sizeof(int), false);
-	return(FFFTP_SUCCESS);
 }
 
 
@@ -2258,7 +2257,7 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static int WriteStringToReg(void *Handle, char *Name, char *Str)
+static void WriteStringToReg(void *Handle, char *Name, char *Str)
 {
 	REGDATATBL *Pos;
 	char *Data;
@@ -2286,7 +2285,6 @@ static int WriteStringToReg(void *Handle, char *Name, char *Str)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
-	return(FFFTP_SUCCESS);
 }
 
 
@@ -2369,7 +2367,7 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
+static void WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 {
 	REGDATATBL *Pos;
 	char *Data;
@@ -2397,7 +2395,6 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
-	return(FFFTP_SUCCESS);
 }
 
 
@@ -2457,7 +2454,7 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
+static void WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 {
 	REGDATATBL *Pos;
 	char *Data;
@@ -2480,7 +2477,6 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Bin, Len, false);
-	return(FFFTP_SUCCESS);
 }
 
 
