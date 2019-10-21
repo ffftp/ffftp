@@ -2114,8 +2114,6 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 	int Sts;
 	DWORD Size;
 	char *Pos;
-	// 全設定暗号化対応
-	char Path[80];
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
@@ -2136,12 +2134,7 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 	if(Sts == FFFTP_SUCCESS)
 	{
 		if(EncryptSettings == YES)
-		{
-			strcpy(Path, ((Config*)Handle)->KeyName);
-			strcat(Path, "\\");
-			strcat(Path, Name);
-			UnmaskSettingsData(Path, Value, sizeof(int), false);
-		}
+			UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Value, sizeof(int), false);
 	}
 	return(Sts);
 }
@@ -2164,17 +2157,10 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 	REGDATATBL *Pos;
 	char *Data;
 	char Tmp[20];
-	// 全設定暗号化対応
-	char Path[80];
 
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
-	{
-		strcpy(Path, ((Config*)Handle)->KeyName);
-		strcat(Path, "\\");
-		strcat(Path, Name);
-		MaskSettingsData(Path, &Value, sizeof(int), false);
-	}
+		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, &Value, sizeof(int), false);
 	if(TmpRegType == REGTYPE_REG)
 		RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_DWORD, (CONST BYTE*)&Value, sizeof(int));
 	else
@@ -2189,9 +2175,7 @@ static int WriteIntValueToReg(void *Handle, char *Name, int Value)
 	}
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
-	{
-		UnmaskSettingsData(Path, &Value, sizeof(int), false);
-	}
+		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, &Value, sizeof(int), false);
 	return(FFFTP_SUCCESS);
 }
 
@@ -2213,8 +2197,6 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 {
 	int Sts;
 	char *Pos;
-	// 全設定暗号化対応
-	char Path[80];
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
@@ -2258,12 +2240,7 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 	if(Sts == FFFTP_SUCCESS)
 	{
 		if(EncryptSettings == YES)
-		{
-			strcpy(Path, ((Config*)Handle)->KeyName);
-			strcat(Path, "\\");
-			strcat(Path, Name);
-			UnmaskSettingsData(Path, Str, (DWORD)strlen(Str) + 1, true);
-		}
+			UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
 	}
 	return(Sts);
 }
@@ -2285,17 +2262,10 @@ static int WriteStringToReg(void *Handle, char *Name, char *Str)
 {
 	REGDATATBL *Pos;
 	char *Data;
-	// 全設定暗号化対応
-	char Path[80];
 
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
-	{
-		strcpy(Path, ((Config*)Handle)->KeyName);
-		strcat(Path, "\\");
-		strcat(Path, Name);
-		MaskSettingsData(Path, Str, (DWORD)strlen(Str) + 1, true);
-	}
+		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
 	if (TmpRegType == REGTYPE_REG) {
 		if (EncryptSettings == YES)
 			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Str, (DWORD)strlen(Str) + 1);
@@ -2315,9 +2285,7 @@ static int WriteStringToReg(void *Handle, char *Name, char *Str)
 	}
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
-	{
-		UnmaskSettingsData(Path, Str, (DWORD)strlen(Str) + 1, true);
-	}
+		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
 	return(FFFTP_SUCCESS);
 }
 
@@ -2339,8 +2307,6 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 {
 	int Sts;
 	char *Pos;
-	// 全設定暗号化対応
-	char Path[80];
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
@@ -2385,12 +2351,7 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 	if(Sts == FFFTP_SUCCESS)
 	{
 		if(EncryptSettings == YES)
-		{
-			strcpy(Path, ((Config*)Handle)->KeyName);
-			strcat(Path, "\\");
-			strcat(Path, Name);
-			UnmaskSettingsData(Path, Str, StrMultiLen(Str) + 1, true);
-		}
+			UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
 	}
 	return(Sts);
 }
@@ -2412,17 +2373,10 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 {
 	REGDATATBL *Pos;
 	char *Data;
-	// 全設定暗号化対応
-	char Path[80];
 
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
-	{
-		strcpy(Path, ((Config*)Handle)->KeyName);
-		strcat(Path, "\\");
-		strcat(Path, Name);
-		MaskSettingsData(Path, Str, StrMultiLen(Str) + 1, true);
-	}
+		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
 	if (TmpRegType == REGTYPE_REG) {
 		if (EncryptSettings == YES)
 			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Str, StrMultiLen(Str) + 1);
@@ -2442,9 +2396,7 @@ static int WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 	}
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
-	{
-		UnmaskSettingsData(Path, Str, StrMultiLen(Str) + 1, true);
-	}
+		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
 	return(FFFTP_SUCCESS);
 }
 
@@ -2466,8 +2418,6 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 {
 	int Sts;
 	char *Pos;
-	// 全設定暗号化対応
-	char Path[80];
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
@@ -2488,12 +2438,7 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 	if(Sts == FFFTP_SUCCESS)
 	{
 		if(EncryptSettings == YES)
-		{
-			strcpy(Path, ((Config*)Handle)->KeyName);
-			strcat(Path, "\\");
-			strcat(Path, Name);
-			UnmaskSettingsData(Path, Bin, Size, false);
-		}
+			UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Bin, Size, false);
 	}
 	return(Sts);
 }
@@ -2516,17 +2461,10 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 {
 	REGDATATBL *Pos;
 	char *Data;
-	// 全設定暗号化対応
-	char Path[80];
 
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
-	{
-		strcpy(Path, ((Config*)Handle)->KeyName);
-		strcat(Path, "\\");
-		strcat(Path, Name);
-		MaskSettingsData(Path, Bin, Len, false);
-	}
+		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Bin, Len, false);
 	if(TmpRegType == REGTYPE_REG)
 		RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Bin, Len);
 	else
@@ -2541,9 +2479,7 @@ static int WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 	}
 	// 全設定暗号化対応
 	if(EncryptSettings == YES)
-	{
-		UnmaskSettingsData(Path, Bin, Len, false);
-	}
+		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Bin, Len, false);
 	return(FFFTP_SUCCESS);
 }
 
