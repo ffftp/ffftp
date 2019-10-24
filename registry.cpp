@@ -68,9 +68,6 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 static void WriteMultiStringToReg(void *Handle, char *Name, char *Str);
 static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size);
 static void WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len);
-// 暗号化通信対応
-static int StrCatOut(char *Src, int Len, char *Dst);
-static int StrReadIn(char *Src, int Max, char *Dst);
 
 // 全設定暗号化対応
 //int CheckPasswordValidity( char* Password, int length, const char* HashStr );
@@ -1819,6 +1816,40 @@ typedef struct regdatatbl : Config {
 	int ValLen;					/* 値データのバイト数 */
 	int Mode;					/* キーのモード */
 	struct regdatatbl *Next;
+	const char* Scan(std::string_view name) const {
+		for (auto p = ValTbl; p < ValTbl + ValLen; p += strlen(p) + 1)
+			if (strncmp(data(name), p, size(name)) == 0 && p[size(name)] == '=')
+				return p + size(name) + 1;
+		return nullptr;
+	}
+	std::optional<int> ReadInt(std::string_view name) const {
+		if (auto const p = Scan(name))
+			return atoi(p);
+		return {};
+	}
+	std::optional<std::string> ReadValue(std::string_view name) const {
+		static std::regex re{ R"(\\([0-9A-F]{2})|\\\\)" };
+		if (auto const p = Scan(name)) {
+			auto const value = replace({ p }, re, [](auto const& m) { return m[1].matched ? std::stoi(m[1], nullptr, 16) : '\\'; });
+			return IniKanjiCode == KANJI_SJIS ? u8(a2w(value)) : value;
+		}
+		return {};
+	}
+	void Write(const char* name, int value) {
+		ValLen += sprintf(ValTbl + ValLen, "%s=%d", name, value) + 1;
+	}
+	void Write(const char* name, std::string_view value) {
+		ValLen += sprintf(ValTbl + ValLen, "%s=", name);
+		for (auto it = begin(value); it != end(value); ++it)
+			if (*it == '\\') {
+				ValTbl[ValLen++] = '\\';
+				ValTbl[ValLen++] = '\\';
+			} else if (0x20 <= *it && *it < 0x7F)
+				ValTbl[ValLen++] = *it;
+			else
+				ValLen += sprintf(ValTbl + ValLen, "\\%02X", (unsigned char)*it);
+		ValTbl[ValLen++] = '\0';
+	}
 } REGDATATBL;
 
 typedef struct regdatatbl_reg : Config {
@@ -1829,10 +1860,6 @@ typedef struct regdatatbl_reg : Config {
 
 static void WriteOutRegToFile(REGDATATBL *Pos);
 static int ReadInReg(char *Name, REGDATATBL **Handle);
-// 暗号化通信対応
-//static int StrCatOut(char *Src, int Len, char *Dst);
-//static int StrReadIn(char *Src, int Max, char *Dst);
-static char *ScanValue(void *Handle, char *Name);
 
 
 /*===== ローカルなワーク =====*/
@@ -2113,7 +2140,6 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 {
 	int Sts;
 	DWORD Size;
-	char *Pos;
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
@@ -2124,9 +2150,8 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 	}
 	else
 	{
-		if((Pos = ScanValue(Handle, Name)) != NULL)
-		{
-			*Value = atoi(Pos);
+		if (auto const read = reinterpret_cast<const REGDATATBL*>(Handle)->ReadInt(Name)) {
+			*Value = *read;
 			Sts = FFFTP_SUCCESS;
 		}
 	}
@@ -2154,26 +2179,12 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 
 static void WriteIntValueToReg(void *Handle, char *Name, int Value)
 {
-	REGDATATBL *Pos;
-	char *Data;
-	char Tmp[20];
-
-	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, &Value, sizeof(int), false);
 	if(TmpRegType == REGTYPE_REG)
 		RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_DWORD, (CONST BYTE*)&Value, sizeof(int));
 	else
-	{
-		Pos = (REGDATATBL *)Handle;
-		Data = Pos->ValTbl + Pos->ValLen;
-		strcpy(Data, Name);
-		strcat(Data, "=");
-		sprintf(Tmp, "%d", Value);
-		strcat(Data, Tmp);
-		Pos->ValLen += (int)strlen(Data) + 1;
-	}
-	// 全設定暗号化対応
+		reinterpret_cast<REGDATATBL*>(Handle)->Write(Name, Value);
 	if(EncryptSettings == YES)
 		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, &Value, sizeof(int), false);
 }
@@ -2195,7 +2206,6 @@ static void WriteIntValueToReg(void *Handle, char *Name, int Value)
 static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char *Str, DWORD Size)
 {
 	int Sts;
-	char *Pos;
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
@@ -2222,16 +2232,8 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 	}
 	else
 	{
-		if((Pos = ScanValue(Handle, Name)) != NULL)
-		{
-			auto TempSize = std::min(Size-1, (DWORD)strlen(Pos));
-			TempSize = StrReadIn(Pos, TempSize, Str);
-			if (IniKanjiCode == KANJI_SJIS) {
-				auto u8str = u8(a2w(Str));
-				TempSize = std::min(Size - 1, size_as<DWORD>(u8str));
-				std::copy_n(begin(u8str), TempSize, Str);
-			}
-			*(Str + TempSize) = NUL;
+		if (auto const read = reinterpret_cast<const REGDATATBL*>(Handle)->ReadValue(Name)) {
+			strncpy_s(Str, Size, read->c_str(), _TRUNCATE);
 			Sts = FFFTP_SUCCESS;
 		}
 	}
@@ -2259,10 +2261,6 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 
 static void WriteStringToReg(void *Handle, char *Name, char *Str)
 {
-	REGDATATBL *Pos;
-	char *Data;
-
-	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
 	if (TmpRegType == REGTYPE_REG) {
@@ -2273,16 +2271,7 @@ static void WriteStringToReg(void *Handle, char *Name, char *Str)
 			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_SZ, data_as<BYTE>(wStr), size_as<DWORD>(wStr) * sizeof(wchar_t));
 		}
 	} else
-	{
-		Pos = (REGDATATBL *)Handle;
-		Data = Pos->ValTbl + Pos->ValLen;
-		strcpy(Data, Name);
-		strcat(Data, "=");
-		Pos->ValLen += (int)strlen(Data);
-		Data = Pos->ValTbl + Pos->ValLen;
-		Pos->ValLen += StrCatOut(Str, (int)strlen(Str), Data) + 1;
-	}
-	// 全設定暗号化対応
+		reinterpret_cast<REGDATATBL*>(Handle)->Write(Name, Str);
 	if(EncryptSettings == YES)
 		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
 }
@@ -2304,7 +2293,6 @@ static void WriteStringToReg(void *Handle, char *Name, char *Str)
 static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
 {
 	int Sts;
-	char *Pos;
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
@@ -2331,17 +2319,10 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 	}
 	else
 	{
-		if((Pos = ScanValue(Handle, Name)) != NULL)
-		{
-			auto TempSize = std::min(Size - 2, (DWORD)strlen(Pos));
-			TempSize = StrReadIn(Pos, TempSize, Str);
-			if (IniKanjiCode == KANJI_SJIS) {
-				auto u8str = u8(a2w({ Str, TempSize }));
-				TempSize = std::min(Size - 2, size_as<DWORD>(u8str));
-				std::copy_n(begin(u8str), TempSize, Str);
-			}
-			*(Str + TempSize) = NUL;
-			*(Str + TempSize + 1) = NUL;
+		if (auto const read = reinterpret_cast<const REGDATATBL*>(Handle)->ReadValue(Name)) {
+			auto const len = std::min(read->size(), (size_t)Size - 1);
+			std::copy_n(read->data(), len, Str);
+			Str[len] = '\0';
 			Sts = FFFTP_SUCCESS;
 		}
 	}
@@ -2369,10 +2350,6 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 
 static void WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 {
-	REGDATATBL *Pos;
-	char *Data;
-
-	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
 	if (TmpRegType == REGTYPE_REG) {
@@ -2383,16 +2360,7 @@ static void WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_MULTI_SZ, data_as<BYTE>(wStr), size_as<DWORD>(wStr) * sizeof(wchar_t));
 		}
 	} else
-	{
-		Pos = (REGDATATBL *)Handle;
-		Data = Pos->ValTbl + Pos->ValLen;
-		strcpy(Data, Name);
-		strcat(Data, "=");
-		Pos->ValLen += (int)strlen(Data);
-		Data = Pos->ValTbl + Pos->ValLen;
-		Pos->ValLen += StrCatOut(Str, StrMultiLen(Str), Data) + 1;
-	}
-	// 全設定暗号化対応
+		reinterpret_cast<REGDATATBL*>(Handle)->Write(Name, { Str, (size_t)StrMultiLen(Str) });
 	if(EncryptSettings == YES)
 		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
 }
@@ -2414,7 +2382,6 @@ static void WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 {
 	int Sts;
-	char *Pos;
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
@@ -2424,10 +2391,8 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 	}
 	else
 	{
-		if((Pos = ScanValue(Handle, Name)) != NULL)
-		{
-			Size = std::min(Size, (DWORD)strlen(Pos));
-			Size = StrReadIn(Pos, Size, (char*)Bin);
+		if (auto const read = reinterpret_cast<const REGDATATBL*>(Handle)->ReadValue(Name)) {
+			std::copy_n(read->data(), std::min(read->size(), (size_t)Size), reinterpret_cast<char*>(Bin));
 			Sts = FFFTP_SUCCESS;
 		}
 	}
@@ -2456,149 +2421,14 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 
 static void WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 {
-	REGDATATBL *Pos;
-	char *Data;
-
-	// 全設定暗号化対応
 	if(EncryptSettings == YES)
 		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Bin, Len, false);
 	if(TmpRegType == REGTYPE_REG)
 		RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Bin, Len);
 	else
-	{
-		Pos = (REGDATATBL *)Handle;
-		Data = Pos->ValTbl + Pos->ValLen;
-		strcpy(Data, Name);
-		strcat(Data, "=");
-		Pos->ValLen += (int)strlen(Data);
-		Data = Pos->ValTbl + Pos->ValLen;
-		Pos->ValLen += StrCatOut((char*)Bin, Len, Data) + 1;
-	}
-	// 全設定暗号化対応
+		reinterpret_cast<REGDATATBL*>(Handle)->Write(Name, { reinterpret_cast<const char*>(Bin), (size_t)Len });
 	if(EncryptSettings == YES)
 		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Bin, Len, false);
-}
-
-
-/*----- 文字列をバッファに追加書き込みする ------------------------------------
-*
-*	Parameter
-*		char *Src : 文字列
-*		int len : 文字列の長さ
-*		char *Dst : 書き込みするバッファ
-*
-*	Return Value
-*		int 追加したバイト数
-*----------------------------------------------------------------------------*/
-
-static int StrCatOut(char *Src, int Len, char *Dst)
-{
-	int Count;
-
-	Dst += strlen(Dst);
-	Count = 0;
-	for(; Len > 0; Len--)
-	{
-		if(*Src == '\\')
-		{
-			*Dst++ = '\\';
-			*Dst++ = '\\';
-			Count += 2;
-		}
-		else if((*Src >= 0x20) && (*Src <= 0x7E))
-		{
-			*Dst++ = *Src;
-			Count++;
-		}
-		else
-		{
-			sprintf(Dst, "\\%02X", *(unsigned char *)Src);
-			Dst += 3;
-			Count += 3;
-		}
-		Src++;
-	}
-	*Dst = NUL;
-	return(Count);
-}
-
-
-/*----- 文字列をバッファに読み込む --------------------------------------------
-*
-*	Parameter
-*		char *Src : 文字列
-*		int Max : 最大サイズ
-*		char *Dst : 書き込みするバッファ
-*
-*	Return Value
-*		int 読み込んだバイト数
-*----------------------------------------------------------------------------*/
-
-static int StrReadIn(char *Src, int Max, char *Dst)
-{
-	int Count;
-	int Tmp;
-
-	Count = 0;
-	while(*Src != NUL)
-	{
-		if(Count >= Max)
-			break;
-
-		if(*Src == '\\')
-		{
-			Src++;
-			if(*Src == '\\')
-				*Dst = '\\';
-			else
-			{
-				sscanf(Src, "%02x", &Tmp);
-				*Dst = Tmp;
-				Src++;
-			}
-		}
-		else
-			*Dst = *Src;
-
-		Count++;
-		Dst++;
-		Src++;
-	}
-	return(Count);
-}
-
-
-/*----- 値を検索する ----------------------------------------------------------
-*
-*	Parameter
-*		char *Handle : ハンドル
-*		char *Name : 名前
-*
-*	Return Value
-*		char *値データの先頭
-*			NULL=指定の名前の値が見つからない
-*----------------------------------------------------------------------------*/
-
-static char *ScanValue(void *Handle, char *Name)
-{
-	REGDATATBL *Cur;
-	char *Pos;
-	char *Ret;
-
-	Ret = NULL;
-	Cur = (REGDATATBL*)Handle;
-	Pos = Cur->ValTbl;
-	while(Pos < (Cur->ValTbl + Cur->ValLen))
-	{
-		if((strncmp(Name, Pos, strlen(Name)) == 0) &&
-		   (*(Pos + strlen(Name)) == '='))
-		{
-			Ret = Pos + strlen(Name) + 1;
-			break;
-		}
-		Pos += strlen(Pos) + 1;
-	}
-	return(Ret);
 }
 
 
