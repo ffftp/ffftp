@@ -42,8 +42,8 @@ struct Config {
 	virtual void Write(const char* name, std::string_view value, DWORD type) = 0;
 };
 
-static void SaveStr(void *Handle, char *Key, char *Str, char *DefaultStr);
-static void SaveIntNum(void *Handle, char *Key, int Num, int DefaultNum);
+static void SaveStr(Config* Handle, char *Key, char *Str, char *DefaultStr);
+static void SaveIntNum(Config* Handle, char *Key, int Num, int DefaultNum);
 static std::wstring MakeFontData(HFONT hfont, LOGFONTW const& logFont);
 static std::optional<LOGFONTW> RestoreFontData(const wchar_t* str);
 
@@ -56,22 +56,22 @@ static void DecodePassword3(char *Str, char *Buf);
 static bool CreateAesKey(unsigned char *AesKey);
 
 static void SetRegType(int Type);
-static int OpenReg(char *Name, void **Handle);
-static int CreateReg(char *Name, void **Handle);
-static void CloseReg(void *Handle);
-static int OpenSubKey(void *Parent, char *Name, void **Handle);
-static int CreateSubKey(void *Parent, char *Name, void **Handle);
-static int CloseSubKey(void *Handle);
-static int DeleteSubKey(void *Handle, char *Name);
-static int DeleteValue(void *Handle, char *Name);
-static int ReadIntValueFromReg(void *Handle, char *Name, int *Value);
-static void WriteIntValueToReg(void *Handle, char *Name, int Value);
-static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char *Str, DWORD Size);
-static void WriteStringToReg(void *Handle, char *Name, char *Str);
-static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Size);
-static void WriteMultiStringToReg(void *Handle, char *Name, char *Str);
-static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size);
-static void WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len);
+static int OpenReg(char *Name, Config** Handle);
+static int CreateReg(char *Name, Config** Handle);
+static void CloseReg(Config* Handle);
+static int OpenSubKey(Config* Parent, char *Name, Config** Handle);
+static int CreateSubKey(Config* Parent, char *Name, Config** Handle);
+static int CloseSubKey(Config* Handle);
+static int DeleteSubKey(Config* Handle, char *Name);
+static int DeleteValue(Config* Handle, char *Name);
+static int ReadIntValueFromReg(Config* Handle, char *Name, int *Value);
+static void WriteIntValueToReg(Config* Handle, char *Name, int Value);
+static int ReadStringFromReg(Config* Handle, char *Name, _Out_writes_z_(Size) char *Str, DWORD Size);
+static void WriteStringToReg(Config* Handle, char *Name, char *Str);
+static int ReadMultiStringFromReg(Config* Handle, char *Name, char *Str, DWORD Size);
+static void WriteMultiStringToReg(Config* Handle, char *Name, char *Str);
+static int ReadBinaryFromReg(Config* Handle, char *Name, void *Bin, DWORD Size);
+static void WriteBinaryToReg(Config* Handle, char *Name, void *Bin, int Len);
 
 // 全設定暗号化対応
 //int CheckPasswordValidity( char* Password, int length, const char* HashStr );
@@ -284,7 +284,7 @@ int GetMasterPasswordStatus(void)
 
 int ValidateMasterPassword(void)
 {
-	void *hKey3;
+	Config* hKey3;
 	int i;
 
 	SetRegType(REGTYPE_INI);
@@ -377,9 +377,9 @@ int ValidateMasterPassword(void)
 
 void SaveRegistry(void)
 {
-	void *hKey3;
-	void *hKey4;
-	void *hKey5;
+	Config* hKey3;
+	Config* hKey4;
+	Config* hKey5;
 	// 暗号化通信対応
 //	char Str[FMAX_PATH+1];
 	char Str[PRIVATE_KEY_LEN*4+1];
@@ -900,9 +900,9 @@ int LoadRegistry(void)
 				EndDialog(hDlg, id);
 		}
 	};
-	void *hKey3;
-	void *hKey4;
-	void *hKey5;
+	Config* hKey3;
+	Config* hKey4;
+	Config* hKey5;
 	int i;
 	int Sets;
 	// 暗号化通信対応
@@ -1485,9 +1485,7 @@ int LoadSettingsFromFile() {
 *		文字列がデフォルトの文字列と同じならセーブしない
 *----------------------------------------------------------------------------*/
 
-// バグ修正
-//static void SaveStr(HKEY hKey, char *Key, char *Str, char *DefaultStr)
-static void SaveStr(void *Handle, char *Key, char *Str, char *DefaultStr)
+static void SaveStr(Config* Handle, char *Key, char *Str, char *DefaultStr)
 {
 	if((DefaultStr != NULL) && (strcmp(Str, DefaultStr) == 0))
 //		DeleteValue(hKey, Key);
@@ -1515,9 +1513,7 @@ static void SaveStr(void *Handle, char *Key, char *Str, char *DefaultStr)
 *		数値がデフォルトの値と同じならセーブしない
 *----------------------------------------------------------------------------*/
 
-// バグ修正
-//static void SaveIntNum(HKEY hKey, char *Key, int Num, int DefaultNum)
-static void SaveIntNum(void *Handle, char *Key, int Num, int DefaultNum)
+static void SaveIntNum(Config* Handle, char *Key, int Num, int DefaultNum)
 {
 	if(Num == DefaultNum)
 //		DeleteValue(hKey, Key);
@@ -1922,10 +1918,10 @@ static void SetRegType(int Type)
 
 
 // レジストリ/INIファイルをオープンする（読み込み）
-static int OpenReg(char* Name, void** Handle) {
+static int OpenReg(char* Name, Config** Handle) {
 	if (TmpRegType == REGTYPE_REG) {
 		*Handle = new REGDATATBL_REG;
-		strcpy(((REGDATATBL_REG*)*Handle)->KeyName, Name);
+		strcpy((*Handle)->KeyName, Name);
 		if (RegOpenKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, KEY_READ, &((REGDATATBL_REG*)*Handle)->hKey) == ERROR_SUCCESS)
 			return FFFTP_SUCCESS;
 		delete (REGDATATBL_REG*)*Handle;
@@ -1940,16 +1936,16 @@ static int OpenReg(char* Name, void** Handle) {
 
 
 // レジストリ/INIファイルを作成する（書き込み）
-static int CreateReg(char* Name, void** Handle) {
+static int CreateReg(char* Name, Config** Handle) {
 	if (TmpRegType == REGTYPE_REG) {
 		*Handle = new REGDATATBL_REG;
-		strcpy(((REGDATATBL_REG*)(*Handle))->KeyName, Name);
+		strcpy((*Handle)->KeyName, Name);
 		if (RegCreateKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, nullptr, 0, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, nullptr, &((REGDATATBL_REG*)*Handle)->hKey, nullptr) == ERROR_SUCCESS)
 			return FFFTP_SUCCESS;
 		delete (REGDATATBL_REG*)*Handle;
 	} else {
 		*Handle = new REGDATATBL;
-		strcpy(((REGDATATBL*)*Handle)->KeyName, Name);
+		strcpy((*Handle)->KeyName, Name);
 		((REGDATATBL*)*Handle)->ValLen = 0;
 		((REGDATATBL*)*Handle)->Next = NULL;
 		((REGDATATBL*)*Handle)->Mode = 1;
@@ -1960,7 +1956,7 @@ static int CreateReg(char* Name, void** Handle) {
 
 
 // レジストリ/INIファイルをクローズする
-static void CloseReg(void *Handle) {
+static void CloseReg(Config* Handle) {
 	if (TmpRegType == REGTYPE_REG) {
 		RegCloseKey(((REGDATATBL_REG *)Handle)->hKey);
 		delete (REGDATATBL_REG*)Handle;
@@ -2034,18 +2030,18 @@ static int ReadInReg(char *Name, REGDATATBL **Handle) {
 
 
 // サブキーをオープンする
-static int OpenSubKey(void* Parent, char* Name, void** Handle) {
+static int OpenSubKey(Config* Parent, char* Name, Config** Handle) {
 	if (TmpRegType == REGTYPE_REG) {
 		*Handle = new REGDATATBL_REG;
-		strcpy(((REGDATATBL_REG*)*Handle)->KeyName, ((REGDATATBL_REG*)Parent)->KeyName);
-		strcat(((REGDATATBL_REG*)*Handle)->KeyName, "\\");
-		strcat(((REGDATATBL_REG*)*Handle)->KeyName, Name);
+		strcpy((*Handle)->KeyName, Parent->KeyName);
+		strcat((*Handle)->KeyName, "\\");
+		strcat((*Handle)->KeyName, Name);
 		if (RegOpenKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, KEY_READ, &((REGDATATBL_REG*)*Handle)->hKey) == ERROR_SUCCESS)
 			return FFFTP_SUCCESS;
 		delete (REGDATATBL_REG*)*Handle;
 	} else {
 		char Key[80];
-		strcpy(Key, ((REGDATATBL*)Parent)->KeyName);
+		strcpy(Key, Parent->KeyName);
 		strcat(Key, "\\");
 		strcat(Key, Name);
 		for (auto Pos = (REGDATATBL*)Parent; Pos; Pos = Pos->Next)
@@ -2059,20 +2055,20 @@ static int OpenSubKey(void* Parent, char* Name, void** Handle) {
 
 
 // サブキーを作成する
-static int CreateSubKey(void* Parent, char* Name, void** Handle) {
+static int CreateSubKey(Config* Parent, char* Name, Config** Handle) {
 	if (TmpRegType == REGTYPE_REG) {
 		*Handle = new REGDATATBL_REG;
-		strcpy(((REGDATATBL_REG*)(*Handle))->KeyName, ((REGDATATBL_REG*)Parent)->KeyName);
-		strcat(((REGDATATBL_REG*)(*Handle))->KeyName, "\\");
-		strcat(((REGDATATBL_REG*)(*Handle))->KeyName, Name);
+		strcpy((*Handle)->KeyName, Parent->KeyName);
+		strcat((*Handle)->KeyName, "\\");
+		strcat((*Handle)->KeyName, Name);
 		if (RegCreateKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, nullptr, 0, KEY_SET_VALUE, nullptr, &(((REGDATATBL_REG*)(*Handle))->hKey), nullptr) == ERROR_SUCCESS)
 			return FFFTP_SUCCESS;
 		delete (REGDATATBL_REG*)*Handle;
 	} else {
 		*Handle = new REGDATATBL;
-		strcpy(((REGDATATBL*)(*Handle))->KeyName, ((REGDATATBL*)Parent)->KeyName);
-		strcat(((REGDATATBL*)(*Handle))->KeyName, "\\");
-		strcat(((REGDATATBL*)(*Handle))->KeyName, Name);
+		strcpy((*Handle)->KeyName, Parent->KeyName);
+		strcat((*Handle)->KeyName, "\\");
+		strcat((*Handle)->KeyName, Name);
 
 		((REGDATATBL*)(*Handle))->ValLen = 0;
 		((REGDATATBL*)(*Handle))->Next = NULL;
@@ -2097,7 +2093,7 @@ static int CreateSubKey(void* Parent, char* Name, void** Handle) {
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static int CloseSubKey(void *Handle)
+static int CloseSubKey(Config* Handle)
 {
 	if(TmpRegType == REGTYPE_REG)
 	// 全設定暗号化対応
@@ -2125,7 +2121,7 @@ static int CloseSubKey(void *Handle)
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static int DeleteSubKey(void *Handle, char *Name)
+static int DeleteSubKey(Config* Handle, char *Name)
 {
 	int Sts;
 
@@ -2144,7 +2140,7 @@ static int DeleteSubKey(void *Handle, char *Name)
 
 
 // 値を削除する
-static int DeleteValue(void* Handle, char* Name) {
+static int DeleteValue(Config* Handle, char* Name) {
 	if (TmpRegType == REGTYPE_REG) {
 		if (RegDeleteValueW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str()) == ERROR_SUCCESS)
 			return FFFTP_SUCCESS;
@@ -2165,12 +2161,12 @@ static int DeleteValue(void* Handle, char* Name) {
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
+static int ReadIntValueFromReg(Config* Handle, char *Name, int *Value)
 {
 	int Sts;
 
 	Sts = FFFTP_FAIL;
-	if (auto const read = reinterpret_cast<const Config*>(Handle)->ReadInt(Name)) {
+	if (auto const read = Handle->ReadInt(Name)) {
 		*Value = *read;
 		Sts = FFFTP_SUCCESS;
 	}
@@ -2178,7 +2174,7 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 	if(Sts == FFFTP_SUCCESS)
 	{
 		if(EncryptSettings == YES)
-			UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Value, sizeof(int), false);
+			UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Value, sizeof(int), false);
 	}
 	return(Sts);
 }
@@ -2196,13 +2192,13 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static void WriteIntValueToReg(void *Handle, char *Name, int Value)
+static void WriteIntValueToReg(Config* Handle, char *Name, int Value)
 {
 	if(EncryptSettings == YES)
-		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, &Value, sizeof(int), false);
-	reinterpret_cast<Config*>(Handle)->Write(Name, Value);
+		MaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, &Value, sizeof(int), false);
+	Handle->Write(Name, Value);
 	if(EncryptSettings == YES)
-		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, &Value, sizeof(int), false);
+		UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, &Value, sizeof(int), false);
 }
 
 
@@ -2219,12 +2215,12 @@ static void WriteIntValueToReg(void *Handle, char *Name, int Value)
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char *Str, DWORD Size)
+static int ReadStringFromReg(Config* Handle, char *Name, _Out_writes_z_(Size) char *Str, DWORD Size)
 {
 	int Sts;
 
 	Sts = FFFTP_FAIL;
-	if (auto const read = reinterpret_cast<const Config*>(Handle)->ReadValue(Name)) {
+	if (auto const read = Handle->ReadValue(Name)) {
 		strncpy_s(Str, Size, read->c_str(), _TRUNCATE);
 		Sts = FFFTP_SUCCESS;
 	}
@@ -2232,7 +2228,7 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 	if(Sts == FFFTP_SUCCESS)
 	{
 		if(EncryptSettings == YES)
-			UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
+			UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
 	}
 	return(Sts);
 }
@@ -2250,13 +2246,13 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static void WriteStringToReg(void *Handle, char *Name, char *Str)
+static void WriteStringToReg(Config* Handle, char *Name, char *Str)
 {
 	if(EncryptSettings == YES)
-		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
-	reinterpret_cast<Config*>(Handle)->Write(Name, Str, REG_SZ);
+		MaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
+	Handle->Write(Name, Str, REG_SZ);
 	if(EncryptSettings == YES)
-		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
+		UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
 }
 
 
@@ -2273,12 +2269,12 @@ static void WriteStringToReg(void *Handle, char *Name, char *Str)
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Size)
+static int ReadMultiStringFromReg(Config* Handle, char *Name, char *Str, DWORD Size)
 {
 	int Sts;
 
 	Sts = FFFTP_FAIL;
-	if (auto const read = reinterpret_cast<const Config*>(Handle)->ReadValue(Name)) {
+	if (auto const read = Handle->ReadValue(Name)) {
 		auto const len = std::min(read->size(), (size_t)Size - 1);
 		std::copy_n(read->data(), len, Str);
 		Str[len] = '\0';
@@ -2288,7 +2284,7 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 	if(Sts == FFFTP_SUCCESS)
 	{
 		if(EncryptSettings == YES)
-			UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
+			UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
 	}
 	return(Sts);
 }
@@ -2306,13 +2302,13 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static void WriteMultiStringToReg(void *Handle, char *Name, char *Str)
+static void WriteMultiStringToReg(Config* Handle, char *Name, char *Str)
 {
 	if(EncryptSettings == YES)
-		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
-	reinterpret_cast<Config*>(Handle)->Write(Name, { Str, (size_t)StrMultiLen(Str) }, REG_MULTI_SZ);
+		MaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
+	Handle->Write(Name, { Str, (size_t)StrMultiLen(Str) }, REG_MULTI_SZ);
 	if(EncryptSettings == YES)
-		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
+		UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
 }
 
 
@@ -2329,12 +2325,12 @@ static void WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
+static int ReadBinaryFromReg(Config* Handle, char *Name, void *Bin, DWORD Size)
 {
 	int Sts;
 
 	Sts = FFFTP_FAIL;
-	if (auto const read = reinterpret_cast<const Config*>(Handle)->ReadValue(Name)) {
+	if (auto const read = Handle->ReadValue(Name)) {
 		std::copy_n(read->data(), std::min(read->size(), (size_t)Size), reinterpret_cast<char*>(Bin));
 		Sts = FFFTP_SUCCESS;
 	}
@@ -2342,7 +2338,7 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 	if(Sts == FFFTP_SUCCESS)
 	{
 		if(EncryptSettings == YES)
-			UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Bin, Size, false);
+			UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Bin, Size, false);
 	}
 	return(Sts);
 }
@@ -2361,13 +2357,13 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-static void WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
+static void WriteBinaryToReg(Config* Handle, char *Name, void *Bin, int Len)
 {
 	if(EncryptSettings == YES)
-		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Bin, Len, false);
-	reinterpret_cast<Config*>(Handle)->Write(Name, { reinterpret_cast<const char*>(Bin), (size_t)Len }, REG_BINARY);
+		MaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Bin, Len, false);
+	Handle->Write(Name, { reinterpret_cast<const char*>(Bin), (size_t)Len }, REG_BINARY);
 	if(EncryptSettings == YES)
-		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Bin, Len, false);
+		UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Bin, Len, false);
 }
 
 
@@ -2526,7 +2522,7 @@ static void UnmaskSettingsData(std::string_view salt, void* Data, DWORD Size, bo
 int IsRegAvailable()
 {
 	int Sts;
-	void* h;
+	Config* h;
 	Sts = NO;
 	SetRegType(REGTYPE_REG);
 	if(OpenReg("FFFTP", &h) == FFFTP_SUCCESS)
@@ -2540,7 +2536,7 @@ int IsRegAvailable()
 int IsIniAvailable()
 {
 	int Sts;
-	void* h;
+	Config* h;
 	Sts = NO;
 	SetRegType(REGTYPE_INI);
 	if(OpenReg("FFFTP", &h) == FFFTP_SUCCESS)
@@ -2554,7 +2550,7 @@ int IsIniAvailable()
 // バージョン確認
 int ReadSettingsVersion()
 {
-	void *hKey3;
+	Config *hKey3;
 	int i;
 	int Version;
 
