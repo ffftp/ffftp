@@ -1854,6 +1854,38 @@ typedef struct regdatatbl : Config {
 
 typedef struct regdatatbl_reg : Config {
 	HKEY hKey;
+	std::optional<int> ReadInt(std::string_view name) const {
+		if (DWORD value, size = sizeof(int); RegQueryValueExW(hKey, u8(name).c_str(), nullptr, nullptr, reinterpret_cast<BYTE*>(&value), &size) == ERROR_SUCCESS)
+			return value;
+		return {};
+	}
+	std::optional<std::string> ReadValue(std::string_view name) const {
+		auto const wName = u8(name);
+		if (DWORD type, count; RegQueryValueExW(hKey, wName.c_str(), nullptr, &type, nullptr, &count) == ERROR_SUCCESS) {
+			if (type == REG_BINARY) {
+				// TODO: EncryptSettings == YESの時、末尾に\0を含むが削除していない。
+				if (std::string value(count, '\0'); RegQueryValueExW(hKey, wName.c_str(), nullptr, nullptr, data_as<BYTE>(value), &count) == ERROR_SUCCESS)
+					return value;
+			} else {
+				// TODO: 末尾に\0が含まれているが削除していない。
+				assert(EncryptSettings != YES && (type == REG_SZ || type == REG_MULTI_SZ));
+				if (std::wstring value(count / sizeof(wchar_t), L'\0'); RegQueryValueExW(hKey, wName.c_str(), nullptr, nullptr, data_as<BYTE>(value), &count) == ERROR_SUCCESS)
+					return u8(value);
+			}
+		}
+		return {};
+	}
+	void Write(const char* name, int value) {
+		RegSetValueExW(hKey, u8(name).c_str(), 0, REG_DWORD, reinterpret_cast<CONST BYTE*>(&value), sizeof(int));
+	}
+	void Write(const char* name, std::string_view value, DWORD type) {
+		if (EncryptSettings == YES || type == REG_BINARY)
+			RegSetValueExW(hKey, u8(name).c_str(), 0, REG_BINARY, data_as<const BYTE>(value), type == REG_BINARY ? size_as<DWORD>(value) : size_as<DWORD>(value) + 1);
+		else {
+			auto const wvalue = u8(value);
+			RegSetValueExW(hKey, u8(name).c_str(), 0, type, data_as<const BYTE>(wvalue), (size_as<DWORD>(wvalue) + 1) * sizeof(wchar_t));
+		}
+	}
 } REGDATATBL_REG;
 
 /*===== プロトタイプ =====*/
@@ -2139,14 +2171,14 @@ static int DeleteValue(void* Handle, char* Name) {
 static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 {
 	int Sts;
-	DWORD Size;
 
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		Size = sizeof(int);
-		if (RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), nullptr, nullptr, (BYTE*)Value, &Size) == ERROR_SUCCESS)
+		if (auto const read = reinterpret_cast<const REGDATATBL_REG*>(Handle)->ReadInt(Name)) {
+			*Value = *read;
 			Sts = FFFTP_SUCCESS;
+		}
 	}
 	else
 	{
@@ -2182,7 +2214,7 @@ static void WriteIntValueToReg(void *Handle, char *Name, int Value)
 	if(EncryptSettings == YES)
 		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, &Value, sizeof(int), false);
 	if(TmpRegType == REGTYPE_REG)
-		RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_DWORD, (CONST BYTE*)&Value, sizeof(int));
+		reinterpret_cast<REGDATATBL_REG*>(Handle)->Write(Name, Value);
 	else
 		reinterpret_cast<REGDATATBL*>(Handle)->Write(Name, Value);
 	if(EncryptSettings == YES)
@@ -2210,24 +2242,9 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		auto const wName = u8(Name);
-		if (DWORD type, count; RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, &type, nullptr, &count) == ERROR_SUCCESS) {
-			LRESULT result;
-			if (type == REG_BINARY)
-				result = RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, nullptr, (BYTE*)Str, &Size);
-			else {
-				if (std::wstring wbuffer(count / sizeof(wchar_t), L'\0'); (result = RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, nullptr, data_as<BYTE>(wbuffer), &count)) == ERROR_SUCCESS) {
-					auto const buffer = u8(wbuffer);
-					if (size_as<DWORD>(buffer) < Size)
-						Size = size_as<DWORD>(buffer);
-					std::copy_n(begin(buffer), Size, Str);
-				}
-			}
-			if (result == ERROR_SUCCESS) {
-				if (*(Str + Size - 1) != NUL)
-					*(Str + Size) = NUL;
-				Sts = FFFTP_SUCCESS;
-			}
+		if (auto const read = reinterpret_cast<const REGDATATBL_REG*>(Handle)->ReadValue(Name)) {
+			strncpy_s(Str, Size, read->c_str(), _TRUNCATE);
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	else
@@ -2263,14 +2280,9 @@ static void WriteStringToReg(void *Handle, char *Name, char *Str)
 {
 	if(EncryptSettings == YES)
 		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
-	if (TmpRegType == REGTYPE_REG) {
-		if (EncryptSettings == YES)
-			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Str, (DWORD)strlen(Str) + 1);
-		else {
-			auto const wStr = u8(Str, strlen(Str) + 1);
-			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_SZ, data_as<BYTE>(wStr), size_as<DWORD>(wStr) * sizeof(wchar_t));
-		}
-	} else
+	if (TmpRegType == REGTYPE_REG)
+		reinterpret_cast<REGDATATBL_REG*>(Handle)->Write(Name, Str, REG_SZ);
+	else
 		reinterpret_cast<REGDATATBL*>(Handle)->Write(Name, Str);
 	if(EncryptSettings == YES)
 		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
@@ -2297,24 +2309,11 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		auto const wName = u8(Name);
-		if (DWORD type, count; RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, &type, nullptr, &count) == ERROR_SUCCESS) {
-			LRESULT result;
-			if (type == REG_BINARY)
-				result = RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, nullptr, (BYTE*)Str, &Size);
-			else {
-				if (std::wstring wbuffer(count / sizeof(wchar_t), L'\0'); (result = RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, wName.c_str(), nullptr, nullptr, data_as<BYTE>(wbuffer), &count)) == ERROR_SUCCESS) {
-					auto const buffer = u8(wbuffer);
-					if (size_as<DWORD>(buffer) < Size)
-						Size = size_as<DWORD>(buffer);
-					std::copy_n(begin(buffer), Size, Str);
-				}
-			}
-			if (result == ERROR_SUCCESS) {
-				if (*(Str + Size - 1) != NUL)
-					*(Str + Size) = NUL;
-				Sts = FFFTP_SUCCESS;
-			}
+		if (auto const read = reinterpret_cast<const REGDATATBL_REG*>(Handle)->ReadValue(Name)) {
+			auto const len = std::min(read->size(), (size_t)Size - 1);
+			std::copy_n(read->data(), len, Str);
+			Str[len] = '\0';
+			Sts = FFFTP_SUCCESS;
 		}
 	}
 	else
@@ -2352,14 +2351,9 @@ static void WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 {
 	if(EncryptSettings == YES)
 		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
-	if (TmpRegType == REGTYPE_REG) {
-		if (EncryptSettings == YES)
-			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Str, StrMultiLen(Str) + 1);
-		else {
-			auto const wStr = u8(Str, (size_t)StrMultiLen(Str) + 1);
-			RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_MULTI_SZ, data_as<BYTE>(wStr), size_as<DWORD>(wStr) * sizeof(wchar_t));
-		}
-	} else
+	if (TmpRegType == REGTYPE_REG)
+		reinterpret_cast<REGDATATBL_REG*>(Handle)->Write(Name, { Str, (size_t)StrMultiLen(Str) }, REG_MULTI_SZ);
+	else
 		reinterpret_cast<REGDATATBL*>(Handle)->Write(Name, { Str, (size_t)StrMultiLen(Str) });
 	if(EncryptSettings == YES)
 		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
@@ -2386,8 +2380,10 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 	Sts = FFFTP_FAIL;
 	if(TmpRegType == REGTYPE_REG)
 	{
-		if (RegQueryValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), nullptr, nullptr, (BYTE*)Bin, &Size) == ERROR_SUCCESS)
+		if (auto const read = reinterpret_cast<const REGDATATBL_REG*>(Handle)->ReadValue(Name)) {
+			std::copy_n(read->data(), std::min(read->size(), (size_t)Size), reinterpret_cast<char*>(Bin));
 			Sts = FFFTP_SUCCESS;
+		}
 	}
 	else
 	{
@@ -2423,8 +2419,8 @@ static void WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 {
 	if(EncryptSettings == YES)
 		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Bin, Len, false);
-	if(TmpRegType == REGTYPE_REG)
-		RegSetValueExW(((REGDATATBL_REG*)Handle)->hKey, u8(Name).c_str(), 0, REG_BINARY, (CONST BYTE*)Bin, Len);
+	if (TmpRegType == REGTYPE_REG)
+		reinterpret_cast<REGDATATBL_REG*>(Handle)->Write(Name, { reinterpret_cast<const char*>(Bin), (size_t)Len }, REG_BINARY);
 	else
 		reinterpret_cast<REGDATATBL*>(Handle)->Write(Name, { reinterpret_cast<const char*>(Bin), (size_t)Len });
 	if(EncryptSettings == YES)
