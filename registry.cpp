@@ -35,7 +35,11 @@ static inline auto a2w(std::string_view text) {
 }
 
 struct Config {
-	char KeyName[80 + 1];
+	char KeyName[80 + 1] = {};
+	virtual std::optional<int> ReadInt(std::string_view name) const = 0;
+	virtual std::optional<std::string> ReadValue(std::string_view name) const = 0;
+	virtual void Write(const char* name, int value) = 0;
+	virtual void Write(const char* name, std::string_view value, DWORD type) = 0;
 };
 
 static void SaveStr(void *Handle, char *Key, char *Str, char *DefaultStr);
@@ -1812,22 +1816,22 @@ static bool CreateAesKey(unsigned char *AesKey) {
 /*===== レジストリとINIファイルのアクセス処理 ============*/
 
 typedef struct regdatatbl : Config {
-	char ValTbl[REG_SECT_MAX];	/* 値のテーブル */
-	int ValLen;					/* 値データのバイト数 */
-	int Mode;					/* キーのモード */
-	struct regdatatbl *Next;
+	char ValTbl[REG_SECT_MAX] = {};
+	int ValLen = 0;
+	int Mode = 0;
+	struct regdatatbl *Next = nullptr;
 	const char* Scan(std::string_view name) const {
 		for (auto p = ValTbl; p < ValTbl + ValLen; p += strlen(p) + 1)
 			if (strncmp(data(name), p, size(name)) == 0 && p[size(name)] == '=')
 				return p + size(name) + 1;
 		return nullptr;
 	}
-	std::optional<int> ReadInt(std::string_view name) const {
+	std::optional<int> ReadInt(std::string_view name) const override {
 		if (auto const p = Scan(name))
 			return atoi(p);
 		return {};
 	}
-	std::optional<std::string> ReadValue(std::string_view name) const {
+	std::optional<std::string> ReadValue(std::string_view name) const override {
 		static std::regex re{ R"(\\([0-9A-F]{2})|\\\\)" };
 		if (auto const p = Scan(name)) {
 			auto const value = replace({ p }, re, [](auto const& m) { return m[1].matched ? std::stoi(m[1], nullptr, 16) : '\\'; });
@@ -1835,10 +1839,10 @@ typedef struct regdatatbl : Config {
 		}
 		return {};
 	}
-	void Write(const char* name, int value) {
+	void Write(const char* name, int value) override {
 		ValLen += sprintf(ValTbl + ValLen, "%s=%d", name, value) + 1;
 	}
-	void Write(const char* name, std::string_view value) {
+	void Write(const char* name, std::string_view value, DWORD) override {
 		ValLen += sprintf(ValTbl + ValLen, "%s=", name);
 		for (auto it = begin(value); it != end(value); ++it)
 			if (*it == '\\') {
@@ -1853,13 +1857,13 @@ typedef struct regdatatbl : Config {
 } REGDATATBL;
 
 typedef struct regdatatbl_reg : Config {
-	HKEY hKey;
-	std::optional<int> ReadInt(std::string_view name) const {
+	HKEY hKey = 0;
+	std::optional<int> ReadInt(std::string_view name) const override {
 		if (DWORD value, size = sizeof(int); RegQueryValueExW(hKey, u8(name).c_str(), nullptr, nullptr, reinterpret_cast<BYTE*>(&value), &size) == ERROR_SUCCESS)
 			return value;
 		return {};
 	}
-	std::optional<std::string> ReadValue(std::string_view name) const {
+	std::optional<std::string> ReadValue(std::string_view name) const override {
 		auto const wName = u8(name);
 		if (DWORD type, count; RegQueryValueExW(hKey, wName.c_str(), nullptr, &type, nullptr, &count) == ERROR_SUCCESS) {
 			if (type == REG_BINARY) {
@@ -1875,10 +1879,10 @@ typedef struct regdatatbl_reg : Config {
 		}
 		return {};
 	}
-	void Write(const char* name, int value) {
+	void Write(const char* name, int value) override {
 		RegSetValueExW(hKey, u8(name).c_str(), 0, REG_DWORD, reinterpret_cast<CONST BYTE*>(&value), sizeof(int));
 	}
-	void Write(const char* name, std::string_view value, DWORD type) {
+	void Write(const char* name, std::string_view value, DWORD type) override {
 		if (EncryptSettings == YES || type == REG_BINARY)
 			RegSetValueExW(hKey, u8(name).c_str(), 0, REG_BINARY, data_as<const BYTE>(value), type == REG_BINARY ? size_as<DWORD>(value) : size_as<DWORD>(value) + 1);
 		else {
@@ -2166,19 +2170,9 @@ static int ReadIntValueFromReg(void *Handle, char *Name, int *Value)
 	int Sts;
 
 	Sts = FFFTP_FAIL;
-	if(TmpRegType == REGTYPE_REG)
-	{
-		if (auto const read = reinterpret_cast<const REGDATATBL_REG*>(Handle)->ReadInt(Name)) {
-			*Value = *read;
-			Sts = FFFTP_SUCCESS;
-		}
-	}
-	else
-	{
-		if (auto const read = reinterpret_cast<const REGDATATBL*>(Handle)->ReadInt(Name)) {
-			*Value = *read;
-			Sts = FFFTP_SUCCESS;
-		}
+	if (auto const read = reinterpret_cast<const Config*>(Handle)->ReadInt(Name)) {
+		*Value = *read;
+		Sts = FFFTP_SUCCESS;
 	}
 	// 全設定暗号化対応
 	if(Sts == FFFTP_SUCCESS)
@@ -2206,10 +2200,7 @@ static void WriteIntValueToReg(void *Handle, char *Name, int Value)
 {
 	if(EncryptSettings == YES)
 		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, &Value, sizeof(int), false);
-	if(TmpRegType == REGTYPE_REG)
-		reinterpret_cast<REGDATATBL_REG*>(Handle)->Write(Name, Value);
-	else
-		reinterpret_cast<REGDATATBL*>(Handle)->Write(Name, Value);
+	reinterpret_cast<Config*>(Handle)->Write(Name, Value);
 	if(EncryptSettings == YES)
 		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, &Value, sizeof(int), false);
 }
@@ -2233,19 +2224,9 @@ static int ReadStringFromReg(void *Handle, char *Name, _Out_writes_z_(Size) char
 	int Sts;
 
 	Sts = FFFTP_FAIL;
-	if(TmpRegType == REGTYPE_REG)
-	{
-		if (auto const read = reinterpret_cast<const REGDATATBL_REG*>(Handle)->ReadValue(Name)) {
-			strncpy_s(Str, Size, read->c_str(), _TRUNCATE);
-			Sts = FFFTP_SUCCESS;
-		}
-	}
-	else
-	{
-		if (auto const read = reinterpret_cast<const REGDATATBL*>(Handle)->ReadValue(Name)) {
-			strncpy_s(Str, Size, read->c_str(), _TRUNCATE);
-			Sts = FFFTP_SUCCESS;
-		}
+	if (auto const read = reinterpret_cast<const Config*>(Handle)->ReadValue(Name)) {
+		strncpy_s(Str, Size, read->c_str(), _TRUNCATE);
+		Sts = FFFTP_SUCCESS;
 	}
 	// 全設定暗号化対応
 	if(Sts == FFFTP_SUCCESS)
@@ -2273,10 +2254,7 @@ static void WriteStringToReg(void *Handle, char *Name, char *Str)
 {
 	if(EncryptSettings == YES)
 		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
-	if (TmpRegType == REGTYPE_REG)
-		reinterpret_cast<REGDATATBL_REG*>(Handle)->Write(Name, Str, REG_SZ);
-	else
-		reinterpret_cast<REGDATATBL*>(Handle)->Write(Name, Str);
+	reinterpret_cast<Config*>(Handle)->Write(Name, Str, REG_SZ);
 	if(EncryptSettings == YES)
 		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
 }
@@ -2300,23 +2278,11 @@ static int ReadMultiStringFromReg(void *Handle, char *Name, char *Str, DWORD Siz
 	int Sts;
 
 	Sts = FFFTP_FAIL;
-	if(TmpRegType == REGTYPE_REG)
-	{
-		if (auto const read = reinterpret_cast<const REGDATATBL_REG*>(Handle)->ReadValue(Name)) {
-			auto const len = std::min(read->size(), (size_t)Size - 1);
-			std::copy_n(read->data(), len, Str);
-			Str[len] = '\0';
-			Sts = FFFTP_SUCCESS;
-		}
-	}
-	else
-	{
-		if (auto const read = reinterpret_cast<const REGDATATBL*>(Handle)->ReadValue(Name)) {
-			auto const len = std::min(read->size(), (size_t)Size - 1);
-			std::copy_n(read->data(), len, Str);
-			Str[len] = '\0';
-			Sts = FFFTP_SUCCESS;
-		}
+	if (auto const read = reinterpret_cast<const Config*>(Handle)->ReadValue(Name)) {
+		auto const len = std::min(read->size(), (size_t)Size - 1);
+		std::copy_n(read->data(), len, Str);
+		Str[len] = '\0';
+		Sts = FFFTP_SUCCESS;
 	}
 	// 全設定暗号化対応
 	if(Sts == FFFTP_SUCCESS)
@@ -2344,10 +2310,7 @@ static void WriteMultiStringToReg(void *Handle, char *Name, char *Str)
 {
 	if(EncryptSettings == YES)
 		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
-	if (TmpRegType == REGTYPE_REG)
-		reinterpret_cast<REGDATATBL_REG*>(Handle)->Write(Name, { Str, (size_t)StrMultiLen(Str) }, REG_MULTI_SZ);
-	else
-		reinterpret_cast<REGDATATBL*>(Handle)->Write(Name, { Str, (size_t)StrMultiLen(Str) });
+	reinterpret_cast<Config*>(Handle)->Write(Name, { Str, (size_t)StrMultiLen(Str) }, REG_MULTI_SZ);
 	if(EncryptSettings == YES)
 		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
 }
@@ -2371,19 +2334,9 @@ static int ReadBinaryFromReg(void *Handle, char *Name, void *Bin, DWORD Size)
 	int Sts;
 
 	Sts = FFFTP_FAIL;
-	if(TmpRegType == REGTYPE_REG)
-	{
-		if (auto const read = reinterpret_cast<const REGDATATBL_REG*>(Handle)->ReadValue(Name)) {
-			std::copy_n(read->data(), std::min(read->size(), (size_t)Size), reinterpret_cast<char*>(Bin));
-			Sts = FFFTP_SUCCESS;
-		}
-	}
-	else
-	{
-		if (auto const read = reinterpret_cast<const REGDATATBL*>(Handle)->ReadValue(Name)) {
-			std::copy_n(read->data(), std::min(read->size(), (size_t)Size), reinterpret_cast<char*>(Bin));
-			Sts = FFFTP_SUCCESS;
-		}
+	if (auto const read = reinterpret_cast<const Config*>(Handle)->ReadValue(Name)) {
+		std::copy_n(read->data(), std::min(read->size(), (size_t)Size), reinterpret_cast<char*>(Bin));
+		Sts = FFFTP_SUCCESS;
 	}
 	// 全設定暗号化対応
 	if(Sts == FFFTP_SUCCESS)
@@ -2412,10 +2365,7 @@ static void WriteBinaryToReg(void *Handle, char *Name, void *Bin, int Len)
 {
 	if(EncryptSettings == YES)
 		MaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Bin, Len, false);
-	if (TmpRegType == REGTYPE_REG)
-		reinterpret_cast<REGDATATBL_REG*>(Handle)->Write(Name, { reinterpret_cast<const char*>(Bin), (size_t)Len }, REG_BINARY);
-	else
-		reinterpret_cast<REGDATATBL*>(Handle)->Write(Name, { reinterpret_cast<const char*>(Bin), (size_t)Len });
+	reinterpret_cast<Config*>(Handle)->Write(Name, { reinterpret_cast<const char*>(Bin), (size_t)Len }, REG_BINARY);
 	if(EncryptSettings == YES)
 		UnmaskSettingsData(std::string{ ((Config*)Handle)->KeyName } +'\\' + Name, Bin, Len, false);
 }
