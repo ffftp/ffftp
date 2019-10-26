@@ -1920,12 +1920,11 @@ static void SetRegType(int Type)
 // レジストリ/INIファイルをオープンする（読み込み）
 static int OpenReg(char* Name, void** Handle) {
 	if (TmpRegType == REGTYPE_REG) {
-		if ((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL) {
-			strcpy(((REGDATATBL_REG*)*Handle)->KeyName, Name);
-			if (RegOpenKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, KEY_READ, &((REGDATATBL_REG*)*Handle)->hKey) == ERROR_SUCCESS)
-				return FFFTP_SUCCESS;
-			free(*Handle);
-		}
+		*Handle = new REGDATATBL_REG;
+		strcpy(((REGDATATBL_REG*)*Handle)->KeyName, Name);
+		if (RegOpenKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, KEY_READ, &((REGDATATBL_REG*)*Handle)->hKey) == ERROR_SUCCESS)
+			return FFFTP_SUCCESS;
+		delete (REGDATATBL_REG*)*Handle;
 	} else {
 		if (ReadInReg(Name, (REGDATATBL**)Handle) == FFFTP_SUCCESS) {
 			((REGDATATBL*)*Handle)->Mode = 0;
@@ -1939,20 +1938,18 @@ static int OpenReg(char* Name, void** Handle) {
 // レジストリ/INIファイルを作成する（書き込み）
 static int CreateReg(char* Name, void** Handle) {
 	if (TmpRegType == REGTYPE_REG) {
-		if ((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL) {
-			strcpy(((REGDATATBL_REG*)(*Handle))->KeyName, Name);
-			if (RegCreateKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, nullptr, 0, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, nullptr, &((REGDATATBL_REG*)*Handle)->hKey, nullptr) == ERROR_SUCCESS)
-				return FFFTP_SUCCESS;
-			free(*Handle);
-		}
-	} else {
-		if ((*Handle = malloc(sizeof(REGDATATBL))) != NULL) {
-			strcpy(((REGDATATBL*)*Handle)->KeyName, Name);
-			((REGDATATBL*)*Handle)->ValLen = 0;
-			((REGDATATBL*)*Handle)->Next = NULL;
-			((REGDATATBL*)*Handle)->Mode = 1;
+		*Handle = new REGDATATBL_REG;
+		strcpy(((REGDATATBL_REG*)(*Handle))->KeyName, Name);
+		if (RegCreateKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, nullptr, 0, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, nullptr, &((REGDATATBL_REG*)*Handle)->hKey, nullptr) == ERROR_SUCCESS)
 			return FFFTP_SUCCESS;
-		}
+		delete (REGDATATBL_REG*)*Handle;
+	} else {
+		*Handle = new REGDATATBL;
+		strcpy(((REGDATATBL*)*Handle)->KeyName, Name);
+		((REGDATATBL*)*Handle)->ValLen = 0;
+		((REGDATATBL*)*Handle)->Next = NULL;
+		((REGDATATBL*)*Handle)->Mode = 1;
+		return FFFTP_SUCCESS;
 	}
 	return FFFTP_FAIL;
 }
@@ -1962,14 +1959,14 @@ static int CreateReg(char* Name, void** Handle) {
 static void CloseReg(void *Handle) {
 	if (TmpRegType == REGTYPE_REG) {
 		RegCloseKey(((REGDATATBL_REG *)Handle)->hKey);
-		free(Handle);
+		delete (REGDATATBL_REG*)Handle;
 	} else {
 		if (((REGDATATBL *)Handle)->Mode == 1)
 			WriteOutRegToFile((REGDATATBL*)Handle);
 		/* テーブルを削除 */
 		for (auto Pos = (REGDATATBL*)Handle; Pos;) {
 			auto Next = Pos->Next;
-			free(Pos);
+			delete Pos;
 			Pos = Next;
 		}
 	}
@@ -2004,15 +2001,14 @@ static int ReadInReg(char *Name, REGDATATBL **Handle) {
 		if (empty(line) || line[0] == '#')
 			continue;
 		if (line[0] == '[') {
-			if ((New = (REGDATATBL*)malloc(sizeof(REGDATATBL))) != NULL) {
-				if (auto p = strchr(data(line), ']'))
-					*p = NUL;
-				strncpy(New->KeyName, &line[1], 80);
-				New->KeyName[80] = NUL;
-				New->ValLen = 0;
-				New->Next = NULL;
-				Data = New->ValTbl;
-			}
+			New = new REGDATATBL;
+			if (auto p = strchr(data(line), ']'))
+				*p = NUL;
+			strncpy(New->KeyName, &line[1], 80);
+			New->KeyName[80] = NUL;
+			New->ValLen = 0;
+			New->Next = NULL;
+			Data = New->ValTbl;
 			if (*Handle == NULL)
 				*Handle = New;
 			else {
@@ -2036,14 +2032,13 @@ static int ReadInReg(char *Name, REGDATATBL **Handle) {
 // サブキーをオープンする
 static int OpenSubKey(void* Parent, char* Name, void** Handle) {
 	if (TmpRegType == REGTYPE_REG) {
-		if ((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL) {
-			strcpy(((REGDATATBL_REG*)*Handle)->KeyName, ((REGDATATBL_REG*)Parent)->KeyName);
-			strcat(((REGDATATBL_REG*)*Handle)->KeyName, "\\");
-			strcat(((REGDATATBL_REG*)*Handle)->KeyName, Name);
-			if (RegOpenKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, KEY_READ, &((REGDATATBL_REG*)*Handle)->hKey) == ERROR_SUCCESS)
-				return FFFTP_SUCCESS;
-			free(*Handle);
-		}
+		*Handle = new REGDATATBL_REG;
+		strcpy(((REGDATATBL_REG*)*Handle)->KeyName, ((REGDATATBL_REG*)Parent)->KeyName);
+		strcat(((REGDATATBL_REG*)*Handle)->KeyName, "\\");
+		strcat(((REGDATATBL_REG*)*Handle)->KeyName, Name);
+		if (RegOpenKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, KEY_READ, &((REGDATATBL_REG*)*Handle)->hKey) == ERROR_SUCCESS)
+			return FFFTP_SUCCESS;
+		delete (REGDATATBL_REG*)*Handle;
 	} else {
 		char Key[80];
 		strcpy(Key, ((REGDATATBL*)Parent)->KeyName);
@@ -2062,29 +2057,27 @@ static int OpenSubKey(void* Parent, char* Name, void** Handle) {
 // サブキーを作成する
 static int CreateSubKey(void* Parent, char* Name, void** Handle) {
 	if (TmpRegType == REGTYPE_REG) {
-		if ((*Handle = malloc(sizeof(REGDATATBL_REG))) != NULL) {
-			strcpy(((REGDATATBL_REG*)(*Handle))->KeyName, ((REGDATATBL_REG*)Parent)->KeyName);
-			strcat(((REGDATATBL_REG*)(*Handle))->KeyName, "\\");
-			strcat(((REGDATATBL_REG*)(*Handle))->KeyName, Name);
-			if (RegCreateKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, nullptr, 0, KEY_SET_VALUE, nullptr, &(((REGDATATBL_REG*)(*Handle))->hKey), nullptr) == ERROR_SUCCESS)
-				return FFFTP_SUCCESS;
-			free(*Handle);
-		}
-	} else {
-		if ((*Handle = malloc(sizeof(REGDATATBL))) != NULL) {
-			strcpy(((REGDATATBL*)(*Handle))->KeyName, ((REGDATATBL*)Parent)->KeyName);
-			strcat(((REGDATATBL*)(*Handle))->KeyName, "\\");
-			strcat(((REGDATATBL*)(*Handle))->KeyName, Name);
-
-			((REGDATATBL*)(*Handle))->ValLen = 0;
-			((REGDATATBL*)(*Handle))->Next = NULL;
-
-			auto Pos = (REGDATATBL*)Parent;
-			while (Pos->Next)
-				Pos = Pos->Next;
-			Pos->Next = (regdatatbl*)* Handle;
+		*Handle = new REGDATATBL_REG;
+		strcpy(((REGDATATBL_REG*)(*Handle))->KeyName, ((REGDATATBL_REG*)Parent)->KeyName);
+		strcat(((REGDATATBL_REG*)(*Handle))->KeyName, "\\");
+		strcat(((REGDATATBL_REG*)(*Handle))->KeyName, Name);
+		if (RegCreateKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, nullptr, 0, KEY_SET_VALUE, nullptr, &(((REGDATATBL_REG*)(*Handle))->hKey), nullptr) == ERROR_SUCCESS)
 			return FFFTP_SUCCESS;
-		}
+		delete (REGDATATBL_REG*)*Handle;
+	} else {
+		*Handle = new REGDATATBL;
+		strcpy(((REGDATATBL*)(*Handle))->KeyName, ((REGDATATBL*)Parent)->KeyName);
+		strcat(((REGDATATBL*)(*Handle))->KeyName, "\\");
+		strcat(((REGDATATBL*)(*Handle))->KeyName, Name);
+
+		((REGDATATBL*)(*Handle))->ValLen = 0;
+		((REGDATATBL*)(*Handle))->Next = NULL;
+
+		auto Pos = (REGDATATBL*)Parent;
+		while (Pos->Next)
+			Pos = Pos->Next;
+		Pos->Next = (regdatatbl*)* Handle;
+		return FFFTP_SUCCESS;
 	}
 	return FFFTP_FAIL;
 }
@@ -2107,7 +2100,7 @@ static int CloseSubKey(void *Handle)
 //		RegCloseKey(Handle);
 	{
 		RegCloseKey(((REGDATATBL_REG *)Handle)->hKey);
-		free(Handle);
+		delete (REGDATATBL_REG*)Handle;
 	}
 	else
 	{
