@@ -1814,15 +1814,14 @@ static bool CreateAesKey(unsigned char *AesKey) {
 /*===== レジストリとINIファイルのアクセス処理 ============*/
 
 struct REGDATATBL : Config {
-	char ValTbl[REG_SECT_MAX] = {};
-	int ValLen = 0;
+	std::vector<std::string> lines;
 	bool root;
 	std::unique_ptr<REGDATATBL> Next;
 	REGDATATBL(std::string const& keyName, bool root) : Config{ keyName }, root{ root } {}
 	const char* Scan(std::string_view name) const {
-		for (auto p = ValTbl; p < ValTbl + ValLen; p += strlen(p) + 1)
-			if (strncmp(data(name), p, size(name)) == 0 && p[size(name)] == '=')
-				return p + size(name) + 1;
+		for (auto const& line : lines)
+			if (size(name) + 1 < size(line) && line.starts_with(name) && line[size(name)] == '=')
+				return data(line) + size(name) + 1;
 		return nullptr;
 	}
 	std::optional<int> ReadInt(std::string_view name) const override {
@@ -1839,19 +1838,21 @@ struct REGDATATBL : Config {
 		return {};
 	}
 	void Write(const char* name, int value) override {
-		ValLen += sprintf(ValTbl + ValLen, "%s=%d", name, value) + 1;
+		lines.push_back(std::string{ name } + '=' + std::to_string(value));
 	}
 	void Write(const char* name, std::string_view value, DWORD) override {
-		ValLen += sprintf(ValTbl + ValLen, "%s=", name);
+		auto line = std::string{ name } +'=';
 		for (auto it = begin(value); it != end(value); ++it)
-			if (*it == '\\') {
-				ValTbl[ValLen++] = '\\';
-				ValTbl[ValLen++] = '\\';
-			} else if (0x20 <= *it && *it < 0x7F)
-				ValTbl[ValLen++] = *it;
-			else
-				ValLen += sprintf(ValTbl + ValLen, "\\%02X", (unsigned char)*it);
-		ValTbl[ValLen++] = '\0';
+			if (0x20 <= *it && *it < 0x7F) {
+				if (*it == '\\')
+					line += '\\';
+				line += *it;
+			} else {
+				char buffer[4];
+				sprintf(buffer, "\\%02X", (unsigned char)*it);
+				line += buffer;
+			}
+		lines.push_back(std::move(line));
 	}
 };
 
@@ -1972,8 +1973,8 @@ static void WriteOutRegToFile(REGDATATBL *Pos) {
 	of << MSGJPN239;
 	for (; Pos; Pos = Pos->Next.get()) {
 		of << "\n[" << Pos->KeyName << "]\n";
-		for (auto Disp = Pos->ValTbl; Disp < Pos->ValTbl + Pos->ValLen; Disp += strlen(Disp) + 1)
-			of << Disp << "\n";
+		for (auto const& line : Pos->lines)
+			of << line << "\n";
 	}
 }
 
@@ -1985,7 +1986,6 @@ static int ReadInReg(char *Name, REGDATATBL **Handle) {
 	if (!is)
 		return FFFTP_FAIL;
 	REGDATATBL *New = nullptr;
-	char *Data = nullptr;
 	for (std::string line; getline(is, line);) {
 		if (empty(line) || line[0] == '#')
 			continue;
@@ -1993,7 +1993,6 @@ static int ReadInReg(char *Name, REGDATATBL **Handle) {
 			if (auto pos = line.find(']'); pos != std::string::npos)
 				line.resize(pos);
 			New = new REGDATATBL{ line.substr(1), false };
-			Data = New->ValTbl;
 			if (*Handle == NULL)
 				*Handle = New;
 			else {
@@ -2003,11 +2002,8 @@ static int ReadInReg(char *Name, REGDATATBL **Handle) {
 				Pos->Next.reset(New);
 			}
 		} else {
-			if (New && New->ValLen + size_as<int>(line) + 1 <= REG_SECT_MAX) {
-				strcpy(Data, &line[0]);
-				Data += size(line) + 1;
-				New->ValLen += size_as<int>(line) + 1;
-			}
+			if (New)
+				New->lines.push_back(line);
 		}
 	}
 	return FFFTP_SUCCESS;
