@@ -35,7 +35,9 @@ static inline auto a2w(std::string_view text) {
 }
 
 struct Config {
-	char KeyName[80 + 1] = {};
+	const std::string KeyName;
+	Config(std::string const& keyName) : KeyName{ keyName } {}
+	virtual ~Config() = default;
 	virtual std::optional<int> ReadInt(std::string_view name) const = 0;
 	virtual std::optional<std::string> ReadValue(std::string_view name) const = 0;
 	virtual void Write(const char* name, int value) = 0;
@@ -1811,11 +1813,12 @@ static bool CreateAesKey(unsigned char *AesKey) {
 
 /*===== レジストリとINIファイルのアクセス処理 ============*/
 
-typedef struct regdatatbl : Config {
+struct REGDATATBL : Config {
 	char ValTbl[REG_SECT_MAX] = {};
 	int ValLen = 0;
-	int Mode = 0;
-	struct regdatatbl *Next = nullptr;
+	bool root;
+	std::unique_ptr<REGDATATBL> Next;
+	REGDATATBL(std::string const& keyName, bool root) : Config{ keyName }, root{ root } {}
 	const char* Scan(std::string_view name) const {
 		for (auto p = ValTbl; p < ValTbl + ValLen; p += strlen(p) + 1)
 			if (strncmp(data(name), p, size(name)) == 0 && p[size(name)] == '=')
@@ -1850,10 +1853,11 @@ typedef struct regdatatbl : Config {
 				ValLen += sprintf(ValTbl + ValLen, "\\%02X", (unsigned char)*it);
 		ValTbl[ValLen++] = '\0';
 	}
-} REGDATATBL;
+};
 
-typedef struct regdatatbl_reg : Config {
-	HKEY hKey = 0;
+struct REGDATATBL_REG : Config {
+	HKEY hKey;
+	REGDATATBL_REG(std::string const& keyName, HKEY hkey) : Config{ keyName }, hKey{ hkey } {}
 	std::optional<int> ReadInt(std::string_view name) const override {
 		if (DWORD value, size = sizeof(int); RegQueryValueExW(hKey, u8(name).c_str(), nullptr, nullptr, reinterpret_cast<BYTE*>(&value), &size) == ERROR_SUCCESS)
 			return value;
@@ -1886,7 +1890,7 @@ typedef struct regdatatbl_reg : Config {
 			RegSetValueExW(hKey, u8(name).c_str(), 0, type, data_as<const BYTE>(wvalue), (size_as<DWORD>(wvalue) + 1) * sizeof(wchar_t));
 		}
 	}
-} REGDATATBL_REG;
+};
 
 /*===== プロトタイプ =====*/
 
@@ -1920,16 +1924,13 @@ static void SetRegType(int Type)
 // レジストリ/INIファイルをオープンする（読み込み）
 static int OpenReg(char* Name, Config** Handle) {
 	if (TmpRegType == REGTYPE_REG) {
-		*Handle = new REGDATATBL_REG;
-		strcpy((*Handle)->KeyName, Name);
-		if (RegOpenKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, KEY_READ, &((REGDATATBL_REG*)*Handle)->hKey) == ERROR_SUCCESS)
-			return FFFTP_SUCCESS;
-		delete (REGDATATBL_REG*)*Handle;
-	} else {
-		if (ReadInReg(Name, (REGDATATBL**)Handle) == FFFTP_SUCCESS) {
-			((REGDATATBL*)*Handle)->Mode = 0;
+		if (HKEY key; RegOpenKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, KEY_READ, &key) == ERROR_SUCCESS) {
+			*Handle = new REGDATATBL_REG{ Name, key };
 			return FFFTP_SUCCESS;
 		}
+	} else {
+		if (ReadInReg(Name, (REGDATATBL**)Handle) == FFFTP_SUCCESS)
+			return FFFTP_SUCCESS;
 	}
 	return FFFTP_FAIL;
 }
@@ -1938,17 +1939,12 @@ static int OpenReg(char* Name, Config** Handle) {
 // レジストリ/INIファイルを作成する（書き込み）
 static int CreateReg(char* Name, Config** Handle) {
 	if (TmpRegType == REGTYPE_REG) {
-		*Handle = new REGDATATBL_REG;
-		strcpy((*Handle)->KeyName, Name);
-		if (RegCreateKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, nullptr, 0, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, nullptr, &((REGDATATBL_REG*)*Handle)->hKey, nullptr) == ERROR_SUCCESS)
+		if (HKEY key; RegCreateKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, nullptr, 0, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, nullptr, &key, nullptr) == ERROR_SUCCESS) {
+			*Handle = new REGDATATBL_REG{ Name, key };
 			return FFFTP_SUCCESS;
-		delete (REGDATATBL_REG*)*Handle;
+		}
 	} else {
-		*Handle = new REGDATATBL;
-		strcpy((*Handle)->KeyName, Name);
-		((REGDATATBL*)*Handle)->ValLen = 0;
-		((REGDATATBL*)*Handle)->Next = NULL;
-		((REGDATATBL*)*Handle)->Mode = 1;
+		*Handle = new REGDATATBL{ Name, true };
 		return FFFTP_SUCCESS;
 	}
 	return FFFTP_FAIL;
@@ -1957,19 +1953,12 @@ static int CreateReg(char* Name, Config** Handle) {
 
 // レジストリ/INIファイルをクローズする
 static void CloseReg(Config* Handle) {
-	if (TmpRegType == REGTYPE_REG) {
+	if (TmpRegType == REGTYPE_REG)
 		RegCloseKey(((REGDATATBL_REG *)Handle)->hKey);
-		delete (REGDATATBL_REG*)Handle;
-	} else {
-		if (((REGDATATBL *)Handle)->Mode == 1)
+	else
+		if (((REGDATATBL*)Handle)->root)
 			WriteOutRegToFile((REGDATATBL*)Handle);
-		/* テーブルを削除 */
-		for (auto Pos = (REGDATATBL*)Handle; Pos;) {
-			auto Next = Pos->Next;
-			delete Pos;
-			Pos = Next;
-		}
-	}
+	delete Handle;
 }
 
 
@@ -1981,7 +1970,7 @@ static void WriteOutRegToFile(REGDATATBL *Pos) {
 		return;
 	}
 	of << MSGJPN239;
-	for (; Pos; Pos = Pos->Next) {
+	for (; Pos; Pos = Pos->Next.get()) {
 		of << "\n[" << Pos->KeyName << "]\n";
 		for (auto Disp = Pos->ValTbl; Disp < Pos->ValTbl + Pos->ValLen; Disp += strlen(Disp) + 1)
 			of << Disp << "\n";
@@ -2001,21 +1990,17 @@ static int ReadInReg(char *Name, REGDATATBL **Handle) {
 		if (empty(line) || line[0] == '#')
 			continue;
 		if (line[0] == '[') {
-			New = new REGDATATBL;
-			if (auto p = strchr(data(line), ']'))
-				*p = NUL;
-			strncpy(New->KeyName, &line[1], 80);
-			New->KeyName[80] = NUL;
-			New->ValLen = 0;
-			New->Next = NULL;
+			if (auto pos = line.find(']'); pos != std::string::npos)
+				line.resize(pos);
+			New = new REGDATATBL{ line.substr(1), false };
 			Data = New->ValTbl;
 			if (*Handle == NULL)
 				*Handle = New;
 			else {
 				auto Pos = *Handle;
-				while (Pos->Next != NULL)
-					Pos = Pos->Next;
-				Pos->Next = New;
+				while (Pos->Next)
+					Pos = Pos->Next.get();
+				Pos->Next.reset(New);
 			}
 		} else {
 			if (New && New->ValLen + size_as<int>(line) + 1 <= REG_SECT_MAX) {
@@ -2032,20 +2017,14 @@ static int ReadInReg(char *Name, REGDATATBL **Handle) {
 // サブキーをオープンする
 static int OpenSubKey(Config* Parent, char* Name, Config** Handle) {
 	if (TmpRegType == REGTYPE_REG) {
-		*Handle = new REGDATATBL_REG;
-		strcpy((*Handle)->KeyName, Parent->KeyName);
-		strcat((*Handle)->KeyName, "\\");
-		strcat((*Handle)->KeyName, Name);
-		if (RegOpenKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, KEY_READ, &((REGDATATBL_REG*)*Handle)->hKey) == ERROR_SUCCESS)
+		if (HKEY key; RegOpenKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, KEY_READ, &key) == ERROR_SUCCESS) {
+			*Handle = new REGDATATBL_REG{ Parent->KeyName + '\\' + Name, key };
 			return FFFTP_SUCCESS;
-		delete (REGDATATBL_REG*)*Handle;
+		}
 	} else {
-		char Key[80];
-		strcpy(Key, Parent->KeyName);
-		strcat(Key, "\\");
-		strcat(Key, Name);
-		for (auto Pos = (REGDATATBL*)Parent; Pos; Pos = Pos->Next)
-			if (strcmp(Pos->KeyName, Key) == 0) {
+		auto key = Parent->KeyName + '\\' + Name;
+		for (auto Pos = (REGDATATBL*)Parent; Pos; Pos = Pos->Next.get())
+			if (Pos->KeyName == key) {
 				*Handle = Pos;
 				return FFFTP_SUCCESS;
 			}
@@ -2057,26 +2036,16 @@ static int OpenSubKey(Config* Parent, char* Name, Config** Handle) {
 // サブキーを作成する
 static int CreateSubKey(Config* Parent, char* Name, Config** Handle) {
 	if (TmpRegType == REGTYPE_REG) {
-		*Handle = new REGDATATBL_REG;
-		strcpy((*Handle)->KeyName, Parent->KeyName);
-		strcat((*Handle)->KeyName, "\\");
-		strcat((*Handle)->KeyName, Name);
-		if (RegCreateKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, nullptr, 0, KEY_SET_VALUE, nullptr, &(((REGDATATBL_REG*)(*Handle))->hKey), nullptr) == ERROR_SUCCESS)
+		if (HKEY key; RegCreateKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, nullptr, 0, KEY_SET_VALUE, nullptr, &key, nullptr) == ERROR_SUCCESS) {
+			*Handle = new REGDATATBL_REG{ Parent->KeyName + '\\' + Name, key };
 			return FFFTP_SUCCESS;
-		delete (REGDATATBL_REG*)*Handle;
+		}
 	} else {
-		*Handle = new REGDATATBL;
-		strcpy((*Handle)->KeyName, Parent->KeyName);
-		strcat((*Handle)->KeyName, "\\");
-		strcat((*Handle)->KeyName, Name);
-
-		((REGDATATBL*)(*Handle))->ValLen = 0;
-		((REGDATATBL*)(*Handle))->Next = NULL;
-
+		*Handle = new REGDATATBL{ Parent->KeyName + '\\' + Name, false };
 		auto Pos = (REGDATATBL*)Parent;
 		while (Pos->Next)
-			Pos = Pos->Next;
-		Pos->Next = (regdatatbl*)* Handle;
+			Pos = Pos->Next.get();
+		Pos->Next.reset((REGDATATBL*)*Handle);
 		return FFFTP_SUCCESS;
 	}
 	return FFFTP_FAIL;
