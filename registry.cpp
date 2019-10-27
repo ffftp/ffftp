@@ -1814,12 +1814,12 @@ static bool CreateAesKey(unsigned char *AesKey) {
 /*===== レジストリとINIファイルのアクセス処理 ============*/
 
 struct REGDATATBL : Config {
-	std::vector<std::string> lines;
-	bool root;
-	std::unique_ptr<REGDATATBL> Next;
-	REGDATATBL(std::string const& keyName, bool root) : Config{ keyName }, root{ root } {}
+	std::shared_ptr<std::map<std::string, std::vector<std::string>>> map;
+	bool const update;
+	REGDATATBL(std::string const& keyName, bool update) : Config{ keyName }, map{ new std::map<std::string, std::vector<std::string>>{} }, update{ update } {}
+	REGDATATBL(std::string const& keyName, REGDATATBL& parent) : Config{ keyName }, map{ parent.map }, update{ false } {}
 	const char* Scan(std::string_view name) const {
-		for (auto const& line : lines)
+		for (auto const& line : (*map)[KeyName])
 			if (size(name) + 1 < size(line) && line.starts_with(name) && line[size(name)] == '=')
 				return data(line) + size(name) + 1;
 		return nullptr;
@@ -1838,7 +1838,7 @@ struct REGDATATBL : Config {
 		return {};
 	}
 	void Write(const char* name, int value) override {
-		lines.push_back(std::string{ name } + '=' + std::to_string(value));
+		(*map)[KeyName].push_back(std::string{ name } + '=' + std::to_string(value));
 	}
 	void Write(const char* name, std::string_view value, DWORD) override {
 		auto line = std::string{ name } +'=';
@@ -1852,7 +1852,7 @@ struct REGDATATBL : Config {
 				sprintf(buffer, "\\%02X", (unsigned char)*it);
 				line += buffer;
 			}
-		lines.push_back(std::move(line));
+		(*map)[KeyName].push_back(std::move(line));
 	}
 };
 
@@ -1957,7 +1957,7 @@ static void CloseReg(Config* Handle) {
 	if (TmpRegType == REGTYPE_REG)
 		RegCloseKey(((REGDATATBL_REG *)Handle)->hKey);
 	else
-		if (((REGDATATBL*)Handle)->root)
+		if (((REGDATATBL*)Handle)->update)
 			WriteOutRegToFile((REGDATATBL*)Handle);
 	delete Handle;
 }
@@ -1971,40 +1971,32 @@ static void WriteOutRegToFile(REGDATATBL *Pos) {
 		return;
 	}
 	of << MSGJPN239;
-	for (; Pos; Pos = Pos->Next.get()) {
-		of << "\n[" << Pos->KeyName << "]\n";
-		for (auto const& line : Pos->lines)
+	for (auto const& [key, lines] : *Pos->map) {
+		of << "\n[" << key << "]\n";
+		for (auto const& line : lines)
 			of << line << "\n";
 	}
 }
 
 
 // INIファイルからレジストリ情報を読み込む
-static int ReadInReg(char *Name, REGDATATBL **Handle) {
+static int ReadInReg(char* Name, REGDATATBL** Handle) {
 	*Handle = nullptr;
 	std::ifstream is{ fs::u8path(AskIniFilePath()) };
 	if (!is)
 		return FFFTP_FAIL;
-	REGDATATBL *New = nullptr;
+	std::string key{ Name };
+	auto root = new REGDATATBL{ key, false };
+	*Handle = root;
 	for (std::string line; getline(is, line);) {
 		if (empty(line) || line[0] == '#')
 			continue;
 		if (line[0] == '[') {
 			if (auto pos = line.find(']'); pos != std::string::npos)
 				line.resize(pos);
-			New = new REGDATATBL{ line.substr(1), false };
-			if (*Handle == NULL)
-				*Handle = New;
-			else {
-				auto Pos = *Handle;
-				while (Pos->Next)
-					Pos = Pos->Next.get();
-				Pos->Next.reset(New);
-			}
-		} else {
-			if (New)
-				New->lines.push_back(line);
-		}
+			key = line.substr(1);
+		} else
+			(*root->map)[key].push_back(line);
 	}
 	return FFFTP_SUCCESS;
 }
@@ -2018,12 +2010,10 @@ static int OpenSubKey(Config* Parent, char* Name, Config** Handle) {
 			return FFFTP_SUCCESS;
 		}
 	} else {
-		auto key = Parent->KeyName + '\\' + Name;
-		for (auto Pos = (REGDATATBL*)Parent; Pos; Pos = Pos->Next.get())
-			if (Pos->KeyName == key) {
-				*Handle = Pos;
-				return FFFTP_SUCCESS;
-			}
+		if (auto const keyName = Parent->KeyName + '\\' + Name; ((REGDATATBL*)Parent)->map->contains(keyName)) {
+			*Handle = new REGDATATBL{ keyName, *(REGDATATBL*)Parent };
+			return FFFTP_SUCCESS;
+		}
 	}
 	return FFFTP_FAIL;
 }
@@ -2037,11 +2027,7 @@ static int CreateSubKey(Config* Parent, char* Name, Config** Handle) {
 			return FFFTP_SUCCESS;
 		}
 	} else {
-		*Handle = new REGDATATBL{ Parent->KeyName + '\\' + Name, false };
-		auto Pos = (REGDATATBL*)Parent;
-		while (Pos->Next)
-			Pos = Pos->Next.get();
-		Pos->Next.reset((REGDATATBL*)*Handle);
+		*Handle = new REGDATATBL{ Parent->KeyName + '\\' + Name, *(REGDATATBL*)Parent };
 		return FFFTP_SUCCESS;
 	}
 	return FFFTP_FAIL;
@@ -2065,12 +2051,12 @@ static int CloseSubKey(Config* Handle)
 //		RegCloseKey(Handle);
 	{
 		RegCloseKey(((REGDATATBL_REG *)Handle)->hKey);
-		delete (REGDATATBL_REG*)Handle;
 	}
 	else
 	{
 		/* Nothing */
 	}
+	delete Handle;
 	return(FFFTP_SUCCESS);
 }
 
