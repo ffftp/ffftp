@@ -1818,6 +1818,21 @@ struct REGDATATBL : Config {
 	bool const update;
 	REGDATATBL(std::string const& keyName, bool update) : Config{ keyName }, map{ new std::map<std::string, std::vector<std::string>>{} }, update{ update } {}
 	REGDATATBL(std::string const& keyName, REGDATATBL& parent) : Config{ keyName }, map{ parent.map }, update{ false } {}
+	~REGDATATBL() override {
+		if (update) {
+			std::ofstream of{ fs::u8path(AskIniFilePath()) };
+			if (!of) {
+				Message(IDS_CANT_SAVE_TO_INI, MB_OK | MB_ICONERROR);
+				return;
+			}
+			of << MSGJPN239;
+			for (auto const& [key, lines] : *map) {
+				of << "\n[" << key << "]\n";
+				for (auto const& line : lines)
+					of << line << "\n";
+			}
+		}
+	}
 	const char* Scan(std::string_view name) const {
 		for (auto const& line : (*map)[KeyName])
 			if (size(name) + 1 < size(line) && line.starts_with(name) && line[size(name)] == '=')
@@ -1859,6 +1874,9 @@ struct REGDATATBL : Config {
 struct REGDATATBL_REG : Config {
 	HKEY hKey;
 	REGDATATBL_REG(std::string const& keyName, HKEY hkey) : Config{ keyName }, hKey{ hkey } {}
+	~REGDATATBL_REG() override {
+		RegCloseKey(hKey);
+	}
 	std::optional<int> ReadInt(std::string_view name) const override {
 		if (DWORD value, size = sizeof(int); RegQueryValueExW(hKey, u8(name).c_str(), nullptr, nullptr, reinterpret_cast<BYTE*>(&value), &size) == ERROR_SUCCESS)
 			return value;
@@ -1895,7 +1913,6 @@ struct REGDATATBL_REG : Config {
 
 /*===== プロトタイプ =====*/
 
-static void WriteOutRegToFile(REGDATATBL *Pos);
 static int ReadInReg(char *Name, REGDATATBL **Handle);
 
 
@@ -1954,28 +1971,7 @@ static int CreateReg(char* Name, Config** Handle) {
 
 // レジストリ/INIファイルをクローズする
 static void CloseReg(Config* Handle) {
-	if (TmpRegType == REGTYPE_REG)
-		RegCloseKey(((REGDATATBL_REG *)Handle)->hKey);
-	else
-		if (((REGDATATBL*)Handle)->update)
-			WriteOutRegToFile((REGDATATBL*)Handle);
 	delete Handle;
-}
-
-
-// レジストリ情報をINIファイルに書き込む
-static void WriteOutRegToFile(REGDATATBL *Pos) {
-	std::ofstream of{ fs::u8path(AskIniFilePath()) };
-	if (!of) {
-		Message(IDS_CANT_SAVE_TO_INI, MB_OK | MB_ICONERROR);
-		return;
-	}
-	of << MSGJPN239;
-	for (auto const& [key, lines] : *Pos->map) {
-		of << "\n[" << key << "]\n";
-		for (auto const& line : lines)
-			of << line << "\n";
-	}
 }
 
 
@@ -2046,16 +2042,6 @@ static int CreateSubKey(Config* Parent, char* Name, Config** Handle) {
 
 static int CloseSubKey(Config* Handle)
 {
-	if(TmpRegType == REGTYPE_REG)
-	// 全設定暗号化対応
-//		RegCloseKey(Handle);
-	{
-		RegCloseKey(((REGDATATBL_REG *)Handle)->hKey);
-	}
-	else
-	{
-		/* Nothing */
-	}
 	delete Handle;
 	return(FFFTP_SUCCESS);
 }
