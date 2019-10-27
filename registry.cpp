@@ -29,19 +29,90 @@
 
 #include "common.h"
 const int AES_BLOCK_SIZE = 16;
+static int EncryptSettings = NO;
+static void MaskSettingsData(std::string_view salt, void* Data, DWORD Size, bool EscapeZero);
+static void UnmaskSettingsData(std::string_view salt, void* Data, DWORD Size, bool EscapeZero);
 
 static inline auto a2w(std::string_view text) {
 	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) { return MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, src, srclen, dst, dstlen); }, text);
 }
 
-struct Config {
-	const std::string KeyName;
+class Config {
+protected:
 	Config(std::string const& keyName) : KeyName{ keyName } {}
-	virtual ~Config() = default;
 	virtual std::optional<int> ReadInt(std::string_view name) const = 0;
 	virtual std::optional<std::string> ReadValue(std::string_view name) const = 0;
 	virtual void Write(const char* name, int value) = 0;
 	virtual void Write(const char* name, std::string_view value, DWORD type) = 0;
+public:
+	const std::string KeyName;
+	virtual ~Config() = default;
+	int ReadIntValueFromReg(char* Name, int* Value) {
+		if (auto const read = ReadInt(Name)) {
+			*Value = *read;
+			if (EncryptSettings == YES)
+				UnmaskSettingsData(KeyName + '\\' + Name, Value, sizeof(int), false);
+			return FFFTP_SUCCESS;
+		}
+		return FFFTP_FAIL;
+	}
+	void WriteIntValueToReg(char* Name, int Value) {
+		if (EncryptSettings == YES)
+			MaskSettingsData(KeyName + '\\' + Name, &Value, sizeof(int), false);
+		Write(Name, Value);
+		if (EncryptSettings == YES)
+			UnmaskSettingsData(KeyName + '\\' + Name, &Value, sizeof(int), false);
+	}
+	int ReadStringFromReg(char* Name, _Out_writes_z_(Size) char* Str, DWORD Size) {
+		if (auto const read = ReadValue(Name)) {
+			strncpy_s(Str, Size, read->c_str(), _TRUNCATE);
+			if (EncryptSettings == YES)
+				UnmaskSettingsData(KeyName + '\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
+			return FFFTP_SUCCESS;
+		}
+		return FFFTP_FAIL;
+	}
+	void WriteStringToReg(char* Name, char* Str) {
+		if (EncryptSettings == YES)
+			MaskSettingsData(KeyName + '\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
+		Write(Name, Str, REG_SZ);
+		if (EncryptSettings == YES)
+			UnmaskSettingsData(KeyName + '\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
+	}
+	int ReadMultiStringFromReg(char* Name, char* Str, DWORD Size) {
+		if (auto const read = ReadValue(Name)) {
+			auto const len = std::min(read->size(), (size_t)Size - 1);
+			std::copy_n(read->data(), len, Str);
+			Str[len] = '\0';
+			if (EncryptSettings == YES)
+				UnmaskSettingsData(KeyName + '\\' + Name, Str, StrMultiLen(Str) + 1, true);
+			return FFFTP_SUCCESS;
+		}
+		return FFFTP_FAIL;
+	}
+	void WriteMultiStringToReg(char* Name, char* Str) {
+		if (EncryptSettings == YES)
+			MaskSettingsData(KeyName +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
+		Write(Name, { Str, (size_t)StrMultiLen(Str) }, REG_MULTI_SZ);
+		if (EncryptSettings == YES)
+			UnmaskSettingsData(KeyName + '\\' + Name, Str, StrMultiLen(Str) + 1, true);
+	}
+	int ReadBinaryFromReg(char* Name, void* Bin, DWORD Size) {
+		if (auto const read = ReadValue(Name)) {
+			std::copy_n(read->data(), std::min(read->size(), (size_t)Size), reinterpret_cast<char*>(Bin));
+			if (EncryptSettings == YES)
+				UnmaskSettingsData(KeyName + '\\' + Name, Bin, Size, false);
+			return FFFTP_SUCCESS;
+		}
+		return FFFTP_FAIL;
+	}
+	void WriteBinaryToReg(char* Name, void* Bin, int Len) {
+		if (EncryptSettings == YES)
+			MaskSettingsData(KeyName + '\\' + Name, Bin, Len, false);
+		Write(Name, { reinterpret_cast<const char*>(Bin), (size_t)Len }, REG_BINARY);
+		if (EncryptSettings == YES)
+			UnmaskSettingsData(KeyName + '\\' + Name, Bin, Len, false);
+	}
 };
 
 static void SaveStr(Config* Handle, char *Key, char *Str, char *DefaultStr);
@@ -66,14 +137,6 @@ static int CreateSubKey(Config* Parent, char *Name, Config** Handle);
 static int CloseSubKey(Config* Handle);
 static int DeleteSubKey(Config* Handle, char *Name);
 static int DeleteValue(Config* Handle, char *Name);
-static int ReadIntValueFromReg(Config* Handle, char *Name, int *Value);
-static void WriteIntValueToReg(Config* Handle, char *Name, int Value);
-static int ReadStringFromReg(Config* Handle, char *Name, _Out_writes_z_(Size) char *Str, DWORD Size);
-static void WriteStringToReg(Config* Handle, char *Name, char *Str);
-static int ReadMultiStringFromReg(Config* Handle, char *Name, char *Str, DWORD Size);
-static void WriteMultiStringToReg(Config* Handle, char *Name, char *Str);
-static int ReadBinaryFromReg(Config* Handle, char *Name, void *Bin, DWORD Size);
-static void WriteBinaryToReg(Config* Handle, char *Name, void *Bin, int Len);
 
 // 全設定暗号化対応
 //int CheckPasswordValidity( char* Password, int length, const char* HashStr );
@@ -83,8 +146,6 @@ void CreatePasswordHash( char* Password, int length, char* HashStr, int StretchC
 void SetHashSalt( DWORD salt );
 // 全設定暗号化対応
 void SetHashSalt1(void* Salt, int Length);
-static void MaskSettingsData(std::string_view salt, void* Data, DWORD Size, bool EscapeZero);
-static void UnmaskSettingsData(std::string_view salt, void* Data, DWORD Size, bool EscapeZero);
 
 /* 2010.01.30 genta 追加 */
 static char SecretKey[FMAX_PATH+1];
@@ -96,9 +157,6 @@ static ulong RndSource[9];
 
 // UTF-8対応
 static int IniKanjiCode = KANJI_NOCNV;
-
-// 全設定暗号化対応
-static int EncryptSettings = NO;
 static int EncryptSettingsError = NO;
 
 /*===== 外部参照 =====*/
@@ -305,31 +363,13 @@ int ValidateMasterPassword(void)
 		int stretch = 0;
 		unsigned char salt1[16];
 
-		// 全設定暗号化対応
-//		if( ReadIntValueFromReg(hKey3, "CredentialSalt", &salt)){
-//			SetHashSalt( salt );
-//		}
-//		if( ReadStringFromReg(hKey3, "CredentialCheck", checkbuf, sizeof( checkbuf )) == FFFTP_SUCCESS ){
-//			switch( CheckPasswordValidity( SecretKey, SecretKeyLength, checkbuf ) ){
-//			case 0: /* not match */
-//				IsMasterPasswordError = PASSWORD_UNMATCH;
-//				break;
-//			case 1: /* match */
-//				IsMasterPasswordError = PASSWORD_OK;
-//				break;
-//			case 2: /* invalid hash */
-//			default:
-//				IsMasterPasswordError = BAD_PASSWORD_HASH;
-//				break;
-//			}
-//		}
-		if(ReadStringFromReg(hKey3, "CredentialCheck1", checkbuf, sizeof(checkbuf)) == FFFTP_SUCCESS)
+		if(hKey3->ReadStringFromReg("CredentialCheck1", checkbuf, sizeof(checkbuf)) == FFFTP_SUCCESS)
 		{
-			if(ReadBinaryFromReg(hKey3, "CredentialSalt1", &salt1, sizeof(salt1)) == FFFTP_SUCCESS)
+			if(hKey3->ReadBinaryFromReg("CredentialSalt1", &salt1, sizeof(salt1)) == FFFTP_SUCCESS)
 				SetHashSalt1(&salt1, 16);
 			else
 				SetHashSalt1(NULL, 0);
-			ReadIntValueFromReg(hKey3, "CredentialStretch", &stretch);
+			hKey3->ReadIntValueFromReg("CredentialStretch", &stretch);
 			switch(CheckPasswordValidity(SecretKey, SecretKeyLength, checkbuf, stretch))
 			{
 			case 0:
@@ -343,9 +383,9 @@ int ValidateMasterPassword(void)
 				break;
 			}
 		}
-		else if(ReadStringFromReg(hKey3, "CredentialCheck", checkbuf, sizeof(checkbuf)) == FFFTP_SUCCESS)
+		else if(hKey3->ReadStringFromReg("CredentialCheck", checkbuf, sizeof(checkbuf)) == FFFTP_SUCCESS)
 		{
-			if(ReadIntValueFromReg(hKey3, "CredentialSalt", &salt) == FFFTP_SUCCESS)
+			if(hKey3->ReadIntValueFromReg("CredentialSalt", &salt) == FFFTP_SUCCESS)
 				SetHashSalt(salt);
 			else
 				SetHashSalt1(NULL, 0);
@@ -415,14 +455,7 @@ void SaveRegistry(void)
 		unsigned char salt1[16];
 		FILETIME ft[4];
 	
-		WriteIntValueToReg(hKey3, "Version", VER_NUM);
-		// 全設定暗号化対応
-//		WriteIntValueToReg(hKey3, "CredentialSalt", salt);
-//		
-//		SetHashSalt( salt );
-//		/* save password hash */
-//		CreatePasswordHash( SecretKey, SecretKeyLength, buf );
-//		WriteStringToReg(hKey3, "CredentialCheck", buf);
+		hKey3->WriteIntValueToReg("Version", VER_NUM);
 		if(EncryptAllSettings == YES)
 		{
 			GetProcessTimes(GetCurrentProcess(), &ft[0], &ft[1], &ft[2], &ft[3]);
@@ -431,24 +464,24 @@ void SaveRegistry(void)
 			memcpy(&salt1[8], &ft[2].dwLowDateTime, 4);
 			memcpy(&salt1[12], &ft[3].dwLowDateTime, 4);
 			SetHashSalt1(&salt1, 16);
-			WriteBinaryToReg(hKey3, "CredentialSalt1", &salt1, sizeof(salt1));
-			WriteIntValueToReg(hKey3, "CredentialStretch", 65535);
+			hKey3->WriteBinaryToReg("CredentialSalt1", &salt1, sizeof(salt1));
+			hKey3->WriteIntValueToReg("CredentialStretch", 65535);
 			CreatePasswordHash(SecretKey, SecretKeyLength, buf, 65535);
-			WriteStringToReg(hKey3, "CredentialCheck1", buf);
+			hKey3->WriteStringToReg("CredentialCheck1", buf);
 		}
 		else
 		{
 			SetHashSalt( salt );
-			WriteIntValueToReg(hKey3, "CredentialSalt", salt);
+			hKey3->WriteIntValueToReg("CredentialSalt", salt);
 			CreatePasswordHash(SecretKey, SecretKeyLength, buf, 0);
-			WriteStringToReg(hKey3, "CredentialCheck", buf);
+			hKey3->WriteStringToReg("CredentialCheck", buf);
 		}
 
 		// 全設定暗号化対応
-		WriteIntValueToReg(hKey3, "EncryptAll", EncryptAllSettings);
+		hKey3->WriteIntValueToReg("EncryptAll", EncryptAllSettings);
 		sprintf(Buf, "%d", EncryptAllSettings);
 		EncodePassword(Buf, Str);
-		WriteStringToReg(hKey3, "EncryptAllDetector", Str);
+		hKey3->WriteStringToReg("EncryptAllDetector", Str);
 		EncryptSettings = EncryptAllSettings;
 
 		// 全設定暗号化対応
@@ -459,117 +492,114 @@ void SaveRegistry(void)
 			strcpy(Str, "Options");
 		if(CreateSubKey(hKey3, Str, &hKey4) == FFFTP_SUCCESS)
 		{
-			WriteIntValueToReg(hKey4, "NoSave", SuppressSave);
+			hKey4->WriteIntValueToReg("NoSave", SuppressSave);
 
 			if(SuppressSave != YES)
 			{
-				WriteIntValueToReg(hKey4, "WinPosX", WinPosX);
-				WriteIntValueToReg(hKey4, "WinPosY", WinPosY);
-				WriteIntValueToReg(hKey4, "WinWidth", WinWidth);
-				WriteIntValueToReg(hKey4, "WinHeight", WinHeight);
-				WriteIntValueToReg(hKey4, "LocalWidth", LocalWidth);
-				WriteIntValueToReg(hKey4, "TaskHeight", TaskHeight);
-				WriteBinaryToReg(hKey4, "LocalColm", LocalTabWidth, sizeof(LocalTabWidth));
-				WriteBinaryToReg(hKey4, "RemoteColm", RemoteTabWidth, sizeof(RemoteTabWidth));
-				WriteIntValueToReg(hKey4, "SwCmd", Sizing);
+				hKey4->WriteIntValueToReg("WinPosX", WinPosX);
+				hKey4->WriteIntValueToReg("WinPosY", WinPosY);
+				hKey4->WriteIntValueToReg("WinWidth", WinWidth);
+				hKey4->WriteIntValueToReg("WinHeight", WinHeight);
+				hKey4->WriteIntValueToReg("LocalWidth", LocalWidth);
+				hKey4->WriteIntValueToReg("TaskHeight", TaskHeight);
+				hKey4->WriteBinaryToReg("LocalColm", LocalTabWidth, sizeof(LocalTabWidth));
+				hKey4->WriteBinaryToReg("RemoteColm", RemoteTabWidth, sizeof(RemoteTabWidth));
+				hKey4->WriteIntValueToReg("SwCmd", Sizing);
 
-				WriteStringToReg(hKey4, "UserMail", UserMailAdrs);
-				WriteStringToReg(hKey4, "Viewer", ViewerName[0]);
-				WriteStringToReg(hKey4, "Viewer2", ViewerName[1]);
-				WriteStringToReg(hKey4, "Viewer3", ViewerName[2]);
+				hKey4->WriteStringToReg("UserMail", UserMailAdrs);
+				hKey4->WriteStringToReg("Viewer", ViewerName[0]);
+				hKey4->WriteStringToReg("Viewer2", ViewerName[1]);
+				hKey4->WriteStringToReg("Viewer3", ViewerName[2]);
 
-				WriteIntValueToReg(hKey4, "TrType", TransMode);
-				WriteIntValueToReg(hKey4, "Recv", RecvMode);
-				WriteIntValueToReg(hKey4, "Send", SendMode);
-				WriteIntValueToReg(hKey4, "Move", MoveMode);
-				WriteStringToReg(hKey4, "Path", DefaultLocalPath);
-				WriteIntValueToReg(hKey4, "Time", SaveTimeStamp);
-				WriteIntValueToReg(hKey4, "EOF", RmEOF);
-				WriteIntValueToReg(hKey4, "Scolon", VaxSemicolon);
+				hKey4->WriteIntValueToReg("TrType", TransMode);
+				hKey4->WriteIntValueToReg("Recv", RecvMode);
+				hKey4->WriteIntValueToReg("Send", SendMode);
+				hKey4->WriteIntValueToReg("Move", MoveMode);
+				hKey4->WriteStringToReg("Path", DefaultLocalPath);
+				hKey4->WriteIntValueToReg("Time", SaveTimeStamp);
+				hKey4->WriteIntValueToReg("EOF", RmEOF);
+				hKey4->WriteIntValueToReg("Scolon", VaxSemicolon);
 
-				WriteIntValueToReg(hKey4, "RecvEx", ExistMode);
-				WriteIntValueToReg(hKey4, "SendEx", UpExistMode);
+				hKey4->WriteIntValueToReg("RecvEx", ExistMode);
+				hKey4->WriteIntValueToReg("SendEx", UpExistMode);
 
-				WriteIntValueToReg(hKey4, "LFsort", LocalFileSort);
-				WriteIntValueToReg(hKey4, "LDsort", LocalDirSort);
-				WriteIntValueToReg(hKey4, "RFsort", RemoteFileSort);
-				WriteIntValueToReg(hKey4, "RDsort", RemoteDirSort);
-				WriteIntValueToReg(hKey4, "SortSave", SortSave);
+				hKey4->WriteIntValueToReg("LFsort", LocalFileSort);
+				hKey4->WriteIntValueToReg("LDsort", LocalDirSort);
+				hKey4->WriteIntValueToReg("RFsort", RemoteFileSort);
+				hKey4->WriteIntValueToReg("RDsort", RemoteDirSort);
+				hKey4->WriteIntValueToReg("SortSave", SortSave);
 
-				WriteIntValueToReg(hKey4, "ListType", ListType);
-				WriteIntValueToReg(hKey4, "DotFile", DotFile);
-				WriteIntValueToReg(hKey4, "Dclick", DclickOpen);
+				hKey4->WriteIntValueToReg("ListType", ListType);
+				hKey4->WriteIntValueToReg("DotFile", DotFile);
+				hKey4->WriteIntValueToReg("Dclick", DclickOpen);
 
-				WriteIntValueToReg(hKey4, "ConS", ConnectOnStart);
-				WriteIntValueToReg(hKey4, "OldDlg", ConnectAndSet);
-				WriteIntValueToReg(hKey4, "RasClose", RasClose);
-				WriteIntValueToReg(hKey4, "RasNotify", RasCloseNotify);
-				WriteIntValueToReg(hKey4, "Qanony", QuickAnonymous);
-				WriteIntValueToReg(hKey4, "PassHist", PassToHist);
-				WriteIntValueToReg(hKey4, "SendQuit", SendQuit);
-				WriteIntValueToReg(hKey4, "NoRas", NoRasControl);
+				hKey4->WriteIntValueToReg("ConS", ConnectOnStart);
+				hKey4->WriteIntValueToReg("OldDlg", ConnectAndSet);
+				hKey4->WriteIntValueToReg("RasClose", RasClose);
+				hKey4->WriteIntValueToReg("RasNotify", RasCloseNotify);
+				hKey4->WriteIntValueToReg("Qanony", QuickAnonymous);
+				hKey4->WriteIntValueToReg("PassHist", PassToHist);
+				hKey4->WriteIntValueToReg("SendQuit", SendQuit);
+				hKey4->WriteIntValueToReg("NoRas", NoRasControl);
 
-				WriteIntValueToReg(hKey4, "Debug", DebugConsole);
-				WriteIntValueToReg(hKey4, "WinPos", SaveWinPos);
-				WriteIntValueToReg(hKey4, "RegExp", FindMode);
-				WriteIntValueToReg(hKey4, "Reg", RegType);
+				hKey4->WriteIntValueToReg("Debug", DebugConsole);
+				hKey4->WriteIntValueToReg("WinPos", SaveWinPos);
+				hKey4->WriteIntValueToReg("RegExp", FindMode);
+				hKey4->WriteIntValueToReg("Reg", RegType);
 
-				WriteMultiStringToReg(hKey4, "AsciiFile", AsciiExt);
-				WriteIntValueToReg(hKey4, "LowUp", FnameCnv);
-				WriteIntValueToReg(hKey4, "Tout", TimeOut);
+				hKey4->WriteMultiStringToReg("AsciiFile", AsciiExt);
+				hKey4->WriteIntValueToReg("LowUp", FnameCnv);
+				hKey4->WriteIntValueToReg("Tout", TimeOut);
 
-				WriteMultiStringToReg(hKey4, "NoTrn", MirrorNoTrn);
-				WriteMultiStringToReg(hKey4, "NoDel", MirrorNoDel);
-				WriteIntValueToReg(hKey4, "MirFile", MirrorFnameCnv);
-				WriteIntValueToReg(hKey4, "MirUNot", MirUpDelNotify);
-				WriteIntValueToReg(hKey4, "MirDNot", MirDownDelNotify);
+				hKey4->WriteMultiStringToReg("NoTrn", MirrorNoTrn);
+				hKey4->WriteMultiStringToReg("NoDel", MirrorNoDel);
+				hKey4->WriteIntValueToReg("MirFile", MirrorFnameCnv);
+				hKey4->WriteIntValueToReg("MirUNot", MirUpDelNotify);
+				hKey4->WriteIntValueToReg("MirDNot", MirDownDelNotify);
 
 				strcpy(Str, u8(MakeFontData(ListFont, ListLogFont)).c_str());
-				WriteStringToReg(hKey4, "ListFont", Str);
-				WriteIntValueToReg(hKey4, "ListHide", DispIgnoreHide);
-				WriteIntValueToReg(hKey4, "ListDrv", DispDrives);
+				hKey4->WriteStringToReg("ListFont", Str);
+				hKey4->WriteIntValueToReg("ListHide", DispIgnoreHide);
+				hKey4->WriteIntValueToReg("ListDrv", DispDrives);
 
-				WriteStringToReg(hKey4, "FwallHost", FwallHost);
-				// FireWall設定追加
-//				WriteStringToReg(hKey4, "FwallUser", FwallUser);
-//				EncodePassword(FwallPass, Str);
+				hKey4->WriteStringToReg("FwallHost", FwallHost);
 				if(FwallNoSaveUser == YES)
 				{
-					WriteStringToReg(hKey4, "FwallUser", "");
+					hKey4->WriteStringToReg("FwallUser", "");
 					EncodePassword("", Str);
 				}
 				else
 				{
-					WriteStringToReg(hKey4, "FwallUser", FwallUser);
+					hKey4->WriteStringToReg("FwallUser", FwallUser);
 					EncodePassword(FwallPass, Str);
 				}
-				WriteStringToReg(hKey4, "FwallPass", Str);
-				WriteIntValueToReg(hKey4, "FwallPort", FwallPort);
-				WriteIntValueToReg(hKey4, "FwallType", FwallType);
-				WriteIntValueToReg(hKey4, "FwallDef", FwallDefault);
-				WriteIntValueToReg(hKey4, "FwallSec", FwallSecurity);
-				WriteIntValueToReg(hKey4, "PasvDef", PasvDefault);
-				WriteIntValueToReg(hKey4, "FwallRes", FwallResolve);
-				WriteIntValueToReg(hKey4, "FwallLow", FwallLower);
-				WriteIntValueToReg(hKey4, "FwallDel", FwallDelimiter);
+				hKey4->WriteStringToReg("FwallPass", Str);
+				hKey4->WriteIntValueToReg("FwallPort", FwallPort);
+				hKey4->WriteIntValueToReg("FwallType", FwallType);
+				hKey4->WriteIntValueToReg("FwallDef", FwallDefault);
+				hKey4->WriteIntValueToReg("FwallSec", FwallSecurity);
+				hKey4->WriteIntValueToReg("PasvDef", PasvDefault);
+				hKey4->WriteIntValueToReg("FwallRes", FwallResolve);
+				hKey4->WriteIntValueToReg("FwallLow", FwallLower);
+				hKey4->WriteIntValueToReg("FwallDel", FwallDelimiter);
 
-				WriteIntValueToReg(hKey4, "SndConSw", Sound[SND_CONNECT].On);
-				WriteIntValueToReg(hKey4, "SndTrnSw", Sound[SND_TRANS].On);
-				WriteIntValueToReg(hKey4, "SndErrSw", Sound[SND_ERROR].On);
-				WriteStringToReg(hKey4, "SndCon", Sound[SND_CONNECT].Fname);
-				WriteStringToReg(hKey4, "SndTrn", Sound[SND_TRANS].Fname);
-				WriteStringToReg(hKey4, "SndErr", Sound[SND_ERROR].Fname);
+				hKey4->WriteIntValueToReg("SndConSw", Sound[SND_CONNECT].On);
+				hKey4->WriteIntValueToReg("SndTrnSw", Sound[SND_TRANS].On);
+				hKey4->WriteIntValueToReg("SndErrSw", Sound[SND_ERROR].On);
+				hKey4->WriteStringToReg("SndCon", Sound[SND_CONNECT].Fname);
+				hKey4->WriteStringToReg("SndTrn", Sound[SND_TRANS].Fname);
+				hKey4->WriteStringToReg("SndErr", Sound[SND_ERROR].Fname);
 
-				WriteMultiStringToReg(hKey4, "DefAttr", DefAttrList);
+				hKey4->WriteMultiStringToReg("DefAttr", DefAttrList);
 
-				WriteBinaryToReg(hKey4, "Hdlg", &HostDlgSize, sizeof(SIZE));
-				WriteBinaryToReg(hKey4, "Bdlg", &BmarkDlgSize, sizeof(SIZE));
-				WriteBinaryToReg(hKey4, "Mdlg", &MirrorDlgSize, sizeof(SIZE));
+				hKey4->WriteBinaryToReg("Hdlg", &HostDlgSize, sizeof(SIZE));
+				hKey4->WriteBinaryToReg("Bdlg", &BmarkDlgSize, sizeof(SIZE));
+				hKey4->WriteBinaryToReg("Mdlg", &MirrorDlgSize, sizeof(SIZE));
 
-				WriteIntValueToReg(hKey4, "FAttrSw", FolderAttr);
-				WriteIntValueToReg(hKey4, "FAttr", FolderAttrNum);
+				hKey4->WriteIntValueToReg("FAttrSw", FolderAttr);
+				hKey4->WriteIntValueToReg("FAttr", FolderAttrNum);
 
-				WriteIntValueToReg(hKey4, "HistNum", FileHist);
+				hKey4->WriteIntValueToReg("HistNum", FileHist);
 
 				/* Ver1.54a以前の形式のヒストリデータは削除 */
 				DeleteValue(hKey4, "Hist");
@@ -607,9 +637,9 @@ void SaveRegistry(void)
 							SaveIntNum(hKey5, "Type", Hist.HostType, DefaultHist.HostType);
 							SaveIntNum(hKey5, "Sync", Hist.SyncMove, DefaultHist.SyncMove);
 							SaveIntNum(hKey5, "Fpath", Hist.NoFullPath, DefaultHist.NoFullPath);
-							WriteBinaryToReg(hKey5, "Sort", &Hist.Sort, sizeof(Hist.Sort));
+							hKey5->WriteBinaryToReg("Sort", &Hist.Sort, sizeof(Hist.Sort));
 							SaveIntNum(hKey5, "Secu", Hist.Security, DefaultHist.Security);
-							WriteIntValueToReg(hKey5, "TrType", Hist.Type);
+							hKey5->WriteIntValueToReg("TrType", Hist.Type);
 							SaveIntNum(hKey5, "Dial", Hist.Dialup, DefaultHist.Dialup);
 							SaveIntNum(hKey5, "UseIt", Hist.DialupAlways, DefaultHist.DialupAlways);
 							SaveIntNum(hKey5, "Notify", Hist.DialupNotify, DefaultHist.DialupNotify);
@@ -641,7 +671,7 @@ void SaveRegistry(void)
 						}
 					}
 				}
-				WriteIntValueToReg(hKey4, "SavedHist", n);
+				hKey4->WriteIntValueToReg("SavedHist", n);
 
 				/* 余分なヒストリがあったら削除 */
 				for(; n < 999; n++)
@@ -656,7 +686,7 @@ void SaveRegistry(void)
 				{
 					CopyDefaultDefaultHost(&DefaultHost);
 					CopyDefaultHost(&Host);
-					WriteIntValueToReg(hKey5, "Set", Host.Level);
+					hKey5->WriteIntValueToReg("Set", Host.Level);
 					SaveStr(hKey5, "HostName", Host.HostName, DefaultHost.HostName);
 					SaveStr(hKey5, "HostAdrs", Host.HostAdrs, DefaultHost.HostAdrs);
 					SaveStr(hKey5, "UserName", Host.UserName, DefaultHost.UserName);
@@ -686,9 +716,9 @@ void SaveRegistry(void)
 					SaveIntNum(hKey5, "Type", Host.HostType, DefaultHost.HostType);
 					SaveIntNum(hKey5, "Sync", Host.SyncMove, DefaultHost.SyncMove);
 					SaveIntNum(hKey5, "Fpath", Host.NoFullPath, DefaultHost.NoFullPath);
-					WriteBinaryToReg(hKey5, "Sort", &Host.Sort, sizeof(Host.Sort));
+					hKey5->WriteBinaryToReg("Sort", &Host.Sort, sizeof(Host.Sort));
 					SaveIntNum(hKey5, "Secu", Host.Security, DefaultHost.Security);
-					WriteMultiStringToReg(hKey5, "Bmarks", Host.BookMark);
+					hKey5->WriteMultiStringToReg("Bmarks", Host.BookMark);
 					SaveIntNum(hKey5, "Dial", Host.Dialup, DefaultHost.Dialup);
 					SaveIntNum(hKey5, "UseIt", Host.DialupAlways, DefaultHost.DialupAlways);
 					SaveIntNum(hKey5, "Notify", Host.DialupNotify, DefaultHost.DialupNotify);
@@ -719,7 +749,7 @@ void SaveRegistry(void)
 					if(CreateSubKey(hKey4, Str, &hKey5) == FFFTP_SUCCESS)
 					{
 //						SaveIntNum(hKey5, "Set", Host.Level, DefaultHost.Level);
-						WriteIntValueToReg(hKey5, "Set", Host.Level);
+						hKey5->WriteIntValueToReg("Set", Host.Level);
 						SaveStr(hKey5, "HostName", Host.HostName, DefaultHost.HostName);
 						if((Host.Level & SET_LEVEL_GROUP) == 0)
 						{
@@ -753,10 +783,10 @@ void SaveRegistry(void)
 							SaveIntNum(hKey5, "Type", Host.HostType, DefaultHost.HostType);
 							SaveIntNum(hKey5, "Sync", Host.SyncMove, DefaultHost.SyncMove);
 							SaveIntNum(hKey5, "Fpath", Host.NoFullPath, DefaultHost.NoFullPath);
-							WriteBinaryToReg(hKey5, "Sort", &Host.Sort, sizeof(Host.Sort));
+							hKey5->WriteBinaryToReg("Sort", &Host.Sort, sizeof(Host.Sort));
 							SaveIntNum(hKey5, "Secu", Host.Security, DefaultHost.Security);
 
-							WriteMultiStringToReg(hKey5, "Bmarks", Host.BookMark);
+							hKey5->WriteMultiStringToReg("Bmarks", Host.BookMark);
 
 							SaveIntNum(hKey5, "Dial", Host.Dialup, DefaultHost.Dialup);
 							SaveIntNum(hKey5, "UseIt", Host.DialupAlways, DefaultHost.DialupAlways);
@@ -788,7 +818,7 @@ void SaveRegistry(void)
 					}
 					i++;
 				}
-				WriteIntValueToReg(hKey4, "SetNum", i);
+				hKey4->WriteIntValueToReg("SetNum", i);
 
 				/* 余分なホストの設定があったら削除 */
 				for(; i < 998; i++)
@@ -800,32 +830,32 @@ void SaveRegistry(void)
 
 				if((i = AskCurrentHost()) == HOSTNUM_NOENTRY)
 					i = 0;
-				WriteIntValueToReg(hKey4, "CurSet", i);
+				hKey4->WriteIntValueToReg("CurSet", i);
 
 				// ファイルアイコン表示対応
-				WriteIntValueToReg(hKey4, "ListIcon", DispFileIcon);
+				hKey4->WriteIntValueToReg("ListIcon", DispFileIcon);
 				// タイムスタンプのバグ修正
-				WriteIntValueToReg(hKey4, "ListSecond", DispTimeSeconds);
+				hKey4->WriteIntValueToReg("ListSecond", DispTimeSeconds);
 				// ファイルの属性を数字で表示
-				WriteIntValueToReg(hKey4, "ListPermitNum", DispPermissionsNumber);
+				hKey4->WriteIntValueToReg("ListPermitNum", DispPermissionsNumber);
 				// ディレクトリ自動作成
-				WriteIntValueToReg(hKey4, "MakeDir", MakeAllDir);
+				hKey4->WriteIntValueToReg("MakeDir", MakeAllDir);
 				// UTF-8対応
-				WriteIntValueToReg(hKey4, "Kanji", LocalKanjiCode);
+				hKey4->WriteIntValueToReg("Kanji", LocalKanjiCode);
 				// UPnP対応
-				WriteIntValueToReg(hKey4, "UPnP", UPnPEnabled);
+				hKey4->WriteIntValueToReg("UPnP", UPnPEnabled);
 				// ローカル側自動更新
-				WriteIntValueToReg(hKey4, "ListRefresh", AutoRefreshFileList);
+				hKey4->WriteIntValueToReg("ListRefresh", AutoRefreshFileList);
 				// 古い処理内容を消去
-				WriteIntValueToReg(hKey4, "OldLog", RemoveOldLog);
+				hKey4->WriteIntValueToReg("OldLog", RemoveOldLog);
 				// ファイル一覧バグ修正
-				WriteIntValueToReg(hKey4, "AbortListErr", AbortOnListError);
+				hKey4->WriteIntValueToReg("AbortListErr", AbortOnListError);
 				// ミラーリング設定追加
-				WriteIntValueToReg(hKey4, "MirNoTransfer", MirrorNoTransferContents);
+				hKey4->WriteIntValueToReg("MirNoTransfer", MirrorNoTransferContents);
 				// FireWall設定追加
-				WriteIntValueToReg(hKey4, "FwallShared", FwallNoSaveUser);
+				hKey4->WriteIntValueToReg("FwallShared", FwallNoSaveUser);
 				// ゾーンID設定追加
-				WriteIntValueToReg(hKey4, "MarkDFile", MarkAsInternet);
+				hKey4->WriteIntValueToReg("MarkDFile", MarkAsInternet);
 			}
 			CloseSubKey(hKey4);
 		}
@@ -938,7 +968,7 @@ int LoadRegistry(void)
 		int salt = 0;
 		Sts = YES;
 
-		ReadIntValueFromReg(hKey3, "Version", &Version);
+		hKey3->ReadIntValueFromReg("Version", &Version);
 		// UTF-8対応
 		if(Version < 1980)
 			IniKanjiCode = KANJI_SJIS;
@@ -948,9 +978,9 @@ int LoadRegistry(void)
 		{
 			if(GetMasterPasswordStatus() == PASSWORD_OK)
 			{
-				ReadIntValueFromReg(hKey3, "EncryptAll", &EncryptAllSettings);
+				hKey3->ReadIntValueFromReg("EncryptAll", &EncryptAllSettings);
 				sprintf(Buf, "%d", EncryptAllSettings);
-				ReadStringFromReg(hKey3, "EncryptAllDetector", Str, 255);
+				hKey3->ReadStringFromReg("EncryptAllDetector", Str, 255);
 				DecodePassword(Str, Buf2);
 				EncryptSettings = EncryptAllSettings;
 				if(strcmp(Buf, Buf2) != 0)
@@ -985,69 +1015,66 @@ int LoadRegistry(void)
 			strcpy(Str, "Options");
 		if(OpenSubKey(hKey3, Str, &hKey4) == FFFTP_SUCCESS)
 		{
-			ReadIntValueFromReg(hKey4, "WinPosX", &WinPosX);
-			ReadIntValueFromReg(hKey4, "WinPosY", &WinPosY);
-			ReadIntValueFromReg(hKey4, "WinWidth", &WinWidth);
-			ReadIntValueFromReg(hKey4, "WinHeight", &WinHeight);
-			ReadIntValueFromReg(hKey4, "LocalWidth", &LocalWidth);
+			hKey4->ReadIntValueFromReg("WinPosX", &WinPosX);
+			hKey4->ReadIntValueFromReg("WinPosY", &WinPosY);
+			hKey4->ReadIntValueFromReg("WinWidth", &WinWidth);
+			hKey4->ReadIntValueFromReg("WinHeight", &WinHeight);
+			hKey4->ReadIntValueFromReg("LocalWidth", &LocalWidth);
 			/* ↓旧バージョンのバグ対策 */
 			LocalWidth = std::max(0, LocalWidth);
-			ReadIntValueFromReg(hKey4, "TaskHeight", &TaskHeight);
+			hKey4->ReadIntValueFromReg("TaskHeight", &TaskHeight);
 			/* ↓旧バージョンのバグ対策 */
 			TaskHeight = std::max(0, TaskHeight);
-			ReadBinaryFromReg(hKey4, "LocalColm", &LocalTabWidth, sizeof(LocalTabWidth));
-			ReadBinaryFromReg(hKey4, "RemoteColm", &RemoteTabWidth, sizeof(RemoteTabWidth));
-			ReadIntValueFromReg(hKey4, "SwCmd", &Sizing);
+			hKey4->ReadBinaryFromReg("LocalColm", &LocalTabWidth, sizeof(LocalTabWidth));
+			hKey4->ReadBinaryFromReg("RemoteColm", &RemoteTabWidth, sizeof(RemoteTabWidth));
+			hKey4->ReadIntValueFromReg("SwCmd", &Sizing);
 
-			ReadStringFromReg(hKey4, "UserMail", UserMailAdrs, USER_MAIL_LEN+1);
-			ReadStringFromReg(hKey4, "Viewer", ViewerName[0], FMAX_PATH+1);
-			ReadStringFromReg(hKey4, "Viewer2", ViewerName[1], FMAX_PATH+1);
-			ReadStringFromReg(hKey4, "Viewer3", ViewerName[2], FMAX_PATH+1);
+			hKey4->ReadStringFromReg("UserMail", UserMailAdrs, USER_MAIL_LEN+1);
+			hKey4->ReadStringFromReg("Viewer", ViewerName[0], FMAX_PATH+1);
+			hKey4->ReadStringFromReg("Viewer2", ViewerName[1], FMAX_PATH+1);
+			hKey4->ReadStringFromReg("Viewer3", ViewerName[2], FMAX_PATH+1);
 
-			ReadIntValueFromReg(hKey4, "TrType", &TransMode);
-			ReadIntValueFromReg(hKey4, "Recv", &RecvMode);
-			ReadIntValueFromReg(hKey4, "Send", &SendMode);
-			ReadIntValueFromReg(hKey4, "Move", &MoveMode);
-			ReadStringFromReg(hKey4, "Path", DefaultLocalPath, FMAX_PATH+1);
-			ReadIntValueFromReg(hKey4, "Time", &SaveTimeStamp);
-			ReadIntValueFromReg(hKey4, "EOF", &RmEOF);
-			ReadIntValueFromReg(hKey4, "Scolon", &VaxSemicolon);
+			hKey4->ReadIntValueFromReg("TrType", &TransMode);
+			hKey4->ReadIntValueFromReg("Recv", &RecvMode);
+			hKey4->ReadIntValueFromReg("Send", &SendMode);
+			hKey4->ReadIntValueFromReg("Move", &MoveMode);
+			hKey4->ReadStringFromReg("Path", DefaultLocalPath, FMAX_PATH+1);
+			hKey4->ReadIntValueFromReg("Time", &SaveTimeStamp);
+			hKey4->ReadIntValueFromReg("EOF", &RmEOF);
+			hKey4->ReadIntValueFromReg("Scolon", &VaxSemicolon);
 
-			ReadIntValueFromReg(hKey4, "RecvEx", &ExistMode);
-			ReadIntValueFromReg(hKey4, "SendEx", &UpExistMode);
+			hKey4->ReadIntValueFromReg("RecvEx", &ExistMode);
+			hKey4->ReadIntValueFromReg("SendEx", &UpExistMode);
 
-			ReadIntValueFromReg(hKey4, "LFsort", &LocalFileSort);
-			ReadIntValueFromReg(hKey4, "LDsort", &LocalDirSort);
-			ReadIntValueFromReg(hKey4, "RFsort", &RemoteFileSort);
-			ReadIntValueFromReg(hKey4, "RDsort", &RemoteDirSort);
-			ReadIntValueFromReg(hKey4, "SortSave", &SortSave);
+			hKey4->ReadIntValueFromReg("LFsort", &LocalFileSort);
+			hKey4->ReadIntValueFromReg("LDsort", &LocalDirSort);
+			hKey4->ReadIntValueFromReg("RFsort", &RemoteFileSort);
+			hKey4->ReadIntValueFromReg("RDsort", &RemoteDirSort);
+			hKey4->ReadIntValueFromReg("SortSave", &SortSave);
 
-			ReadIntValueFromReg(hKey4, "ListType", &ListType);
-			ReadIntValueFromReg(hKey4, "DotFile", &DotFile);
-			ReadIntValueFromReg(hKey4, "Dclick", &DclickOpen);
+			hKey4->ReadIntValueFromReg("ListType", &ListType);
+			hKey4->ReadIntValueFromReg("DotFile", &DotFile);
+			hKey4->ReadIntValueFromReg("Dclick", &DclickOpen);
 
-			ReadIntValueFromReg(hKey4, "ConS", &ConnectOnStart);
-			ReadIntValueFromReg(hKey4, "OldDlg", &ConnectAndSet);
-			ReadIntValueFromReg(hKey4, "RasClose", &RasClose);
-			ReadIntValueFromReg(hKey4, "RasNotify", &RasCloseNotify);
-			ReadIntValueFromReg(hKey4, "Qanony", &QuickAnonymous);
-			ReadIntValueFromReg(hKey4, "PassHist", &PassToHist);
-			ReadIntValueFromReg(hKey4, "SendQuit", &SendQuit);
-			ReadIntValueFromReg(hKey4, "NoRas", &NoRasControl);
+			hKey4->ReadIntValueFromReg("ConS", &ConnectOnStart);
+			hKey4->ReadIntValueFromReg("OldDlg", &ConnectAndSet);
+			hKey4->ReadIntValueFromReg("RasClose", &RasClose);
+			hKey4->ReadIntValueFromReg("RasNotify", &RasCloseNotify);
+			hKey4->ReadIntValueFromReg("Qanony", &QuickAnonymous);
+			hKey4->ReadIntValueFromReg("PassHist", &PassToHist);
+			hKey4->ReadIntValueFromReg("SendQuit", &SendQuit);
+			hKey4->ReadIntValueFromReg("NoRas", &NoRasControl);
 
-			ReadIntValueFromReg(hKey4, "Debug", &DebugConsole);
-			ReadIntValueFromReg(hKey4, "WinPos", &SaveWinPos);
-			ReadIntValueFromReg(hKey4, "RegExp", &FindMode);
-			ReadIntValueFromReg(hKey4, "Reg", &RegType);
+			hKey4->ReadIntValueFromReg("Debug", &DebugConsole);
+			hKey4->ReadIntValueFromReg("WinPos", &SaveWinPos);
+			hKey4->ReadIntValueFromReg("RegExp", &FindMode);
+			hKey4->ReadIntValueFromReg("Reg", &RegType);
 
-			if(ReadMultiStringFromReg(hKey4, "AsciiFile", AsciiExt, ASCII_EXT_LEN+1) == FFFTP_FAIL)
+			if(hKey4->ReadMultiStringFromReg("AsciiFile", AsciiExt, ASCII_EXT_LEN+1) == FFFTP_FAIL)
 			{
 				/* 旧ASCIIモードの拡張子の設定を新しいものに変換 */
-				// アスキーモード判別の改良
-//				ReadStringFromReg(hKey4, "Ascii", Str, ASCII_EXT_LEN+1);
-//				memset(AsciiExt, NUL, ASCII_EXT_LEN+1);
 				Str[0] = NUL;
-				if(ReadStringFromReg(hKey4, "Ascii", Str, ASCII_EXT_LEN+1) == FFFTP_SUCCESS)
+				if(hKey4->ReadStringFromReg("Ascii", Str, ASCII_EXT_LEN+1) == FFFTP_SUCCESS)
 					memset(AsciiExt, NUL, ASCII_EXT_LEN+1);
 				Pos = Str;
 				while(*Pos != NUL)
@@ -1088,62 +1115,61 @@ int LoadRegistry(void)
 				}
 			}
 
-			ReadIntValueFromReg(hKey4, "LowUp", &FnameCnv);
-			ReadIntValueFromReg(hKey4, "Tout", &TimeOut);
+			hKey4->ReadIntValueFromReg("LowUp", &FnameCnv);
+			hKey4->ReadIntValueFromReg("Tout", &TimeOut);
 
-			ReadMultiStringFromReg(hKey4, "NoTrn", MirrorNoTrn, MIRROR_LEN+1);
-			ReadMultiStringFromReg(hKey4, "NoDel", MirrorNoDel, MIRROR_LEN+1);
-			ReadIntValueFromReg(hKey4, "MirFile", &MirrorFnameCnv);
-			ReadIntValueFromReg(hKey4, "MirUNot", &MirUpDelNotify);
-			ReadIntValueFromReg(hKey4, "MirDNot", &MirDownDelNotify);
+			hKey4->ReadMultiStringFromReg("NoTrn", MirrorNoTrn, MIRROR_LEN+1);
+			hKey4->ReadMultiStringFromReg("NoDel", MirrorNoDel, MIRROR_LEN+1);
+			hKey4->ReadIntValueFromReg("MirFile", &MirrorFnameCnv);
+			hKey4->ReadIntValueFromReg("MirUNot", &MirUpDelNotify);
+			hKey4->ReadIntValueFromReg("MirDNot", &MirDownDelNotify);
 
-			if (ReadStringFromReg(hKey4, "ListFont", Str, 256) == FFFTP_SUCCESS) {
+			if (hKey4->ReadStringFromReg("ListFont", Str, 256) == FFFTP_SUCCESS) {
 				if (auto logfont = RestoreFontData(u8(Str).c_str())) {
 					ListLogFont = *logfont;
 					ListFont = CreateFontIndirectW(&ListLogFont);
 				} else
 					ListLogFont = {};
 			}
-			ReadIntValueFromReg(hKey4, "ListHide", &DispIgnoreHide);
-			ReadIntValueFromReg(hKey4, "ListDrv", &DispDrives);
+			hKey4->ReadIntValueFromReg("ListHide", &DispIgnoreHide);
+			hKey4->ReadIntValueFromReg("ListDrv", &DispDrives);
 
-			ReadStringFromReg(hKey4, "FwallHost", FwallHost, HOST_ADRS_LEN+1);
-			ReadStringFromReg(hKey4, "FwallUser", FwallUser, USER_NAME_LEN+1);
-			ReadStringFromReg(hKey4, "FwallPass", Str, 255);
+			hKey4->ReadStringFromReg("FwallHost", FwallHost, HOST_ADRS_LEN+1);
+			hKey4->ReadStringFromReg("FwallUser", FwallUser, USER_NAME_LEN+1);
+			hKey4->ReadStringFromReg("FwallPass", Str, 255);
 			DecodePassword(Str, FwallPass);
-			ReadIntValueFromReg(hKey4, "FwallPort", &FwallPort);
-			ReadIntValueFromReg(hKey4, "FwallType", &FwallType);
-			ReadIntValueFromReg(hKey4, "FwallDef", &FwallDefault);
-			ReadIntValueFromReg(hKey4, "FwallSec", &FwallSecurity);
-			ReadIntValueFromReg(hKey4, "PasvDef", &PasvDefault);
-			ReadIntValueFromReg(hKey4, "FwallRes", &FwallResolve);
-			ReadIntValueFromReg(hKey4, "FwallLow", &FwallLower);
-			ReadIntValueFromReg(hKey4, "FwallDel", &FwallDelimiter);
+			hKey4->ReadIntValueFromReg("FwallPort", &FwallPort);
+			hKey4->ReadIntValueFromReg("FwallType", &FwallType);
+			hKey4->ReadIntValueFromReg("FwallDef", &FwallDefault);
+			hKey4->ReadIntValueFromReg("FwallSec", &FwallSecurity);
+			hKey4->ReadIntValueFromReg("PasvDef", &PasvDefault);
+			hKey4->ReadIntValueFromReg("FwallRes", &FwallResolve);
+			hKey4->ReadIntValueFromReg("FwallLow", &FwallLower);
+			hKey4->ReadIntValueFromReg("FwallDel", &FwallDelimiter);
 
-			ReadIntValueFromReg(hKey4, "SndConSw", &Sound[SND_CONNECT].On);
-			ReadIntValueFromReg(hKey4, "SndTrnSw", &Sound[SND_TRANS].On);
-			ReadIntValueFromReg(hKey4, "SndErrSw", &Sound[SND_ERROR].On);
-			ReadStringFromReg(hKey4, "SndCon", Sound[SND_CONNECT].Fname, FMAX_PATH+1);
-			ReadStringFromReg(hKey4, "SndTrn", Sound[SND_TRANS].Fname, FMAX_PATH+1);
-			ReadStringFromReg(hKey4, "SndErr", Sound[SND_ERROR].Fname, FMAX_PATH+1);
+			hKey4->ReadIntValueFromReg("SndConSw", &Sound[SND_CONNECT].On);
+			hKey4->ReadIntValueFromReg("SndTrnSw", &Sound[SND_TRANS].On);
+			hKey4->ReadIntValueFromReg("SndErrSw", &Sound[SND_ERROR].On);
+			hKey4->ReadStringFromReg("SndCon", Sound[SND_CONNECT].Fname, FMAX_PATH+1);
+			hKey4->ReadStringFromReg("SndTrn", Sound[SND_TRANS].Fname, FMAX_PATH+1);
+			hKey4->ReadStringFromReg("SndErr", Sound[SND_ERROR].Fname, FMAX_PATH+1);
 
-			ReadMultiStringFromReg(hKey4, "DefAttr", DefAttrList, DEFATTRLIST_LEN+1);
+			hKey4->ReadMultiStringFromReg("DefAttr", DefAttrList, DEFATTRLIST_LEN+1);
 
-			ReadBinaryFromReg(hKey4, "Hdlg", &HostDlgSize, sizeof(SIZE));
-			ReadBinaryFromReg(hKey4, "Bdlg", &BmarkDlgSize, sizeof(SIZE));
-			ReadBinaryFromReg(hKey4, "Mdlg", &MirrorDlgSize, sizeof(SIZE));
+			hKey4->ReadBinaryFromReg("Hdlg", &HostDlgSize, sizeof(SIZE));
+			hKey4->ReadBinaryFromReg("Bdlg", &BmarkDlgSize, sizeof(SIZE));
+			hKey4->ReadBinaryFromReg("Mdlg", &MirrorDlgSize, sizeof(SIZE));
 
-			ReadIntValueFromReg(hKey4, "FAttrSw", &FolderAttr);
-			ReadIntValueFromReg(hKey4, "FAttr", &FolderAttrNum);
+			hKey4->ReadIntValueFromReg("FAttrSw", &FolderAttr);
+			hKey4->ReadIntValueFromReg("FAttr", &FolderAttrNum);
 
-			ReadIntValueFromReg(hKey4, "NoSave", &SuppressSave);
+			hKey4->ReadIntValueFromReg("NoSave", &SuppressSave);
 
-			ReadIntValueFromReg(hKey4, "HistNum", &FileHist);
-//			ReadMultiStringFromReg(hKey4, "Hist", Hist, (FMAX_PATH+1)*HISTORY_MAX+1);
+			hKey4->ReadIntValueFromReg("HistNum", &FileHist);
 
 			/* ヒストリの設定を読み込む */
 			Sets = 0;
-			ReadIntValueFromReg(hKey4, "SavedHist", &Sets);
+			hKey4->ReadIntValueFromReg("SavedHist", &Sets);
 
 			for(i = 0; i < Sets; i++)
 			{
@@ -1152,59 +1178,59 @@ int LoadRegistry(void)
 				{
 					CopyDefaultHistory(&Hist);
 
-					ReadStringFromReg(hKey5, "HostAdrs", Hist.HostAdrs, HOST_ADRS_LEN+1);
-					ReadStringFromReg(hKey5, "UserName", Hist.UserName, USER_NAME_LEN+1);
-					ReadStringFromReg(hKey5, "Account", Hist.Account, ACCOUNT_LEN+1);
-					ReadStringFromReg(hKey5, "LocalDir", Hist.LocalInitDir, INIT_DIR_LEN+1);
-					ReadStringFromReg(hKey5, "RemoteDir", Hist.RemoteInitDir, INIT_DIR_LEN+1);
-					ReadStringFromReg(hKey5, "Chmod", Hist.ChmodCmd, CHMOD_CMD_LEN+1);
-					ReadStringFromReg(hKey5, "Nlst", Hist.LsName, NLST_NAME_LEN+1);
-					ReadStringFromReg(hKey5, "Init", Hist.InitCmd, INITCMD_LEN+1);
-					ReadIntValueFromReg(hKey5, "Port", &Hist.Port);
-					ReadIntValueFromReg(hKey5, "Kanji", &Hist.KanjiCode);
-					ReadIntValueFromReg(hKey5, "KanaCnv", &Hist.KanaCnv);
-					ReadIntValueFromReg(hKey5, "NameKanji", &Hist.NameKanjiCode);
-					ReadIntValueFromReg(hKey5, "NameKana", &Hist.NameKanaCnv);
-					ReadIntValueFromReg(hKey5, "Pasv", &Hist.Pasv);
-					ReadIntValueFromReg(hKey5, "Fwall", &Hist.FireWall);
-					ReadIntValueFromReg(hKey5, "List", &Hist.ListCmdOnly);
-					ReadIntValueFromReg(hKey5, "NLST-R", &Hist.UseNLST_R);
-					ReadIntValueFromReg(hKey5, "Tzone", &Hist.TimeZone);
-					ReadIntValueFromReg(hKey5, "Type", &Hist.HostType);
-					ReadIntValueFromReg(hKey5, "Sync", &Hist.SyncMove);
-					ReadIntValueFromReg(hKey5, "Fpath", &Hist.NoFullPath);
-					ReadBinaryFromReg(hKey5, "Sort", &Hist.Sort, sizeof(Hist.Sort));
-					ReadIntValueFromReg(hKey5, "Secu", &Hist.Security);
-					ReadIntValueFromReg(hKey5, "TrType", &Hist.Type);
+					hKey5->ReadStringFromReg("HostAdrs", Hist.HostAdrs, HOST_ADRS_LEN+1);
+					hKey5->ReadStringFromReg("UserName", Hist.UserName, USER_NAME_LEN+1);
+					hKey5->ReadStringFromReg("Account", Hist.Account, ACCOUNT_LEN+1);
+					hKey5->ReadStringFromReg("LocalDir", Hist.LocalInitDir, INIT_DIR_LEN+1);
+					hKey5->ReadStringFromReg("RemoteDir", Hist.RemoteInitDir, INIT_DIR_LEN+1);
+					hKey5->ReadStringFromReg("Chmod", Hist.ChmodCmd, CHMOD_CMD_LEN+1);
+					hKey5->ReadStringFromReg("Nlst", Hist.LsName, NLST_NAME_LEN+1);
+					hKey5->ReadStringFromReg("Init", Hist.InitCmd, INITCMD_LEN+1);
+					hKey5->ReadIntValueFromReg("Port", &Hist.Port);
+					hKey5->ReadIntValueFromReg("Kanji", &Hist.KanjiCode);
+					hKey5->ReadIntValueFromReg("KanaCnv", &Hist.KanaCnv);
+					hKey5->ReadIntValueFromReg("NameKanji", &Hist.NameKanjiCode);
+					hKey5->ReadIntValueFromReg("NameKana", &Hist.NameKanaCnv);
+					hKey5->ReadIntValueFromReg("Pasv", &Hist.Pasv);
+					hKey5->ReadIntValueFromReg("Fwall", &Hist.FireWall);
+					hKey5->ReadIntValueFromReg("List", &Hist.ListCmdOnly);
+					hKey5->ReadIntValueFromReg("NLST-R", &Hist.UseNLST_R);
+					hKey5->ReadIntValueFromReg("Tzone", &Hist.TimeZone);
+					hKey5->ReadIntValueFromReg("Type", &Hist.HostType);
+					hKey5->ReadIntValueFromReg("Sync", &Hist.SyncMove);
+					hKey5->ReadIntValueFromReg("Fpath", &Hist.NoFullPath);
+					hKey5->ReadBinaryFromReg("Sort", &Hist.Sort, sizeof(Hist.Sort));
+					hKey5->ReadIntValueFromReg("Secu", &Hist.Security);
+					hKey5->ReadIntValueFromReg("TrType", &Hist.Type);
 					strcpy(Str, "");
-					ReadStringFromReg(hKey5, "Password", Str, 255);
+					hKey5->ReadStringFromReg("Password", Str, 255);
 					DecodePassword(Str, Hist.PassWord);
-					ReadIntValueFromReg(hKey5, "Dial", &Hist.Dialup);
-					ReadIntValueFromReg(hKey5, "UseIt", &Hist.DialupAlways);
-					ReadIntValueFromReg(hKey5, "Notify", &Hist.DialupNotify);
-					ReadStringFromReg(hKey5, "DialTo", Hist.DialEntry, RAS_NAME_LEN+1);
+					hKey5->ReadIntValueFromReg("Dial", &Hist.Dialup);
+					hKey5->ReadIntValueFromReg("UseIt", &Hist.DialupAlways);
+					hKey5->ReadIntValueFromReg("Notify", &Hist.DialupNotify);
+					hKey5->ReadStringFromReg("DialTo", Hist.DialEntry, RAS_NAME_LEN+1);
 					// 暗号化通信対応
-					ReadIntValueFromReg(hKey5, "NoEncryption", &Hist.UseNoEncryption);
-					ReadIntValueFromReg(hKey5, "FTPES", &Hist.UseFTPES);
-					ReadIntValueFromReg(hKey5, "FTPIS", &Hist.UseFTPIS);
-					ReadIntValueFromReg(hKey5, "SFTP", &Hist.UseSFTP);
+					hKey5->ReadIntValueFromReg("NoEncryption", &Hist.UseNoEncryption);
+					hKey5->ReadIntValueFromReg("FTPES", &Hist.UseFTPES);
+					hKey5->ReadIntValueFromReg("FTPIS", &Hist.UseFTPIS);
+					hKey5->ReadIntValueFromReg("SFTP", &Hist.UseSFTP);
 					strcpy(Str, "");
-					ReadStringFromReg(hKey5, "PKey", Str, PRIVATE_KEY_LEN*4+1);
+					hKey5->ReadStringFromReg("PKey", Str, PRIVATE_KEY_LEN*4+1);
 					DecodePassword(Str, Hist.PrivateKey);
 					// 同時接続対応
-					ReadIntValueFromReg(hKey5, "ThreadCount", &Hist.MaxThreadCount);
-					ReadIntValueFromReg(hKey5, "ReuseCmdSkt", &Hist.ReuseCmdSkt);
+					hKey5->ReadIntValueFromReg("ThreadCount", &Hist.MaxThreadCount);
+					hKey5->ReadIntValueFromReg("ReuseCmdSkt", &Hist.ReuseCmdSkt);
 					// MLSD対応
-					ReadIntValueFromReg(hKey5, "MLSD", &Hist.UseMLSD);
+					hKey5->ReadIntValueFromReg("MLSD", &Hist.UseMLSD);
 					// 自動切断対策
-					ReadIntValueFromReg(hKey5, "Noop", &Hist.NoopInterval);
+					hKey5->ReadIntValueFromReg("Noop", &Hist.NoopInterval);
 					// 再転送対応
-					ReadIntValueFromReg(hKey5, "ErrMode", &Hist.TransferErrorMode);
-					ReadIntValueFromReg(hKey5, "ErrNotify", &Hist.TransferErrorNotify);
+					hKey5->ReadIntValueFromReg("ErrMode", &Hist.TransferErrorMode);
+					hKey5->ReadIntValueFromReg("ErrNotify", &Hist.TransferErrorNotify);
 					// セッションあたりの転送量制限対策
-					ReadIntValueFromReg(hKey5, "ErrReconnect", &Hist.TransferErrorReconnect);
+					hKey5->ReadIntValueFromReg("ErrReconnect", &Hist.TransferErrorReconnect);
 					// ホスト側の設定ミス対策
-					ReadIntValueFromReg(hKey5, "NoPasvAdrs", &Hist.NoPasvAdrs);
+					hKey5->ReadIntValueFromReg("NoPasvAdrs", &Hist.NoPasvAdrs);
 
 					CloseSubKey(hKey5);
 					AddHistoryToHistory(&Hist);
@@ -1215,61 +1241,61 @@ int LoadRegistry(void)
 			if(OpenSubKey(hKey4, "DefaultHost", &hKey5) == FFFTP_SUCCESS)
 			{
 				CopyDefaultDefaultHost(&Host);
-				ReadIntValueFromReg(hKey5, "Set", &Host.Level);
-				ReadStringFromReg(hKey5, "HostName", Host.HostName, HOST_NAME_LEN+1);
-				ReadStringFromReg(hKey5, "HostAdrs", Host.HostAdrs, HOST_ADRS_LEN+1);
-				ReadStringFromReg(hKey5, "UserName", Host.UserName, USER_NAME_LEN+1);
-				ReadStringFromReg(hKey5, "Account", Host.Account, ACCOUNT_LEN+1);
-				ReadStringFromReg(hKey5, "LocalDir", Host.LocalInitDir, INIT_DIR_LEN+1);
-				ReadStringFromReg(hKey5, "RemoteDir", Host.RemoteInitDir, INIT_DIR_LEN+1);
-				ReadStringFromReg(hKey5, "Chmod", Host.ChmodCmd, CHMOD_CMD_LEN+1);
-				ReadStringFromReg(hKey5, "Nlst", Host.LsName, NLST_NAME_LEN+1);
-				ReadStringFromReg(hKey5, "Init", Host.InitCmd, INITCMD_LEN+1);
-				ReadIntValueFromReg(hKey5, "Port", &Host.Port);
-				ReadIntValueFromReg(hKey5, "Anonymous", &Host.Anonymous);
-				ReadIntValueFromReg(hKey5, "Kanji", &Host.KanjiCode);
-				ReadIntValueFromReg(hKey5, "KanaCnv", &Host.KanaCnv);
-				ReadIntValueFromReg(hKey5, "NameKanji", &Host.NameKanjiCode);
-				ReadIntValueFromReg(hKey5, "NameKana", &Host.NameKanaCnv);
-				ReadIntValueFromReg(hKey5, "Pasv", &Host.Pasv);
-				ReadIntValueFromReg(hKey5, "Fwall", &Host.FireWall);
-				ReadIntValueFromReg(hKey5, "List", &Host.ListCmdOnly);
-				ReadIntValueFromReg(hKey5, "NLST-R", &Host.UseNLST_R);
-				ReadIntValueFromReg(hKey5, "Last", &Host.LastDir);
-				ReadIntValueFromReg(hKey5, "Tzone", &Host.TimeZone);
-				ReadIntValueFromReg(hKey5, "Type", &Host.HostType);
-				ReadIntValueFromReg(hKey5, "Sync", &Host.SyncMove);
-				ReadIntValueFromReg(hKey5, "Fpath", &Host.NoFullPath);
-				ReadBinaryFromReg(hKey5, "Sort", &Host.Sort, sizeof(Host.Sort));
-				ReadIntValueFromReg(hKey5, "Secu", &Host.Security);
+				hKey5->ReadIntValueFromReg("Set", &Host.Level);
+				hKey5->ReadStringFromReg("HostName", Host.HostName, HOST_NAME_LEN+1);
+				hKey5->ReadStringFromReg("HostAdrs", Host.HostAdrs, HOST_ADRS_LEN+1);
+				hKey5->ReadStringFromReg("UserName", Host.UserName, USER_NAME_LEN+1);
+				hKey5->ReadStringFromReg("Account", Host.Account, ACCOUNT_LEN+1);
+				hKey5->ReadStringFromReg("LocalDir", Host.LocalInitDir, INIT_DIR_LEN+1);
+				hKey5->ReadStringFromReg("RemoteDir", Host.RemoteInitDir, INIT_DIR_LEN+1);
+				hKey5->ReadStringFromReg("Chmod", Host.ChmodCmd, CHMOD_CMD_LEN+1);
+				hKey5->ReadStringFromReg("Nlst", Host.LsName, NLST_NAME_LEN+1);
+				hKey5->ReadStringFromReg("Init", Host.InitCmd, INITCMD_LEN+1);
+				hKey5->ReadIntValueFromReg("Port", &Host.Port);
+				hKey5->ReadIntValueFromReg("Anonymous", &Host.Anonymous);
+				hKey5->ReadIntValueFromReg("Kanji", &Host.KanjiCode);
+				hKey5->ReadIntValueFromReg("KanaCnv", &Host.KanaCnv);
+				hKey5->ReadIntValueFromReg("NameKanji", &Host.NameKanjiCode);
+				hKey5->ReadIntValueFromReg("NameKana", &Host.NameKanaCnv);
+				hKey5->ReadIntValueFromReg("Pasv", &Host.Pasv);
+				hKey5->ReadIntValueFromReg("Fwall", &Host.FireWall);
+				hKey5->ReadIntValueFromReg("List", &Host.ListCmdOnly);
+				hKey5->ReadIntValueFromReg("NLST-R", &Host.UseNLST_R);
+				hKey5->ReadIntValueFromReg("Last", &Host.LastDir);
+				hKey5->ReadIntValueFromReg("Tzone", &Host.TimeZone);
+				hKey5->ReadIntValueFromReg("Type", &Host.HostType);
+				hKey5->ReadIntValueFromReg("Sync", &Host.SyncMove);
+				hKey5->ReadIntValueFromReg("Fpath", &Host.NoFullPath);
+				hKey5->ReadBinaryFromReg("Sort", &Host.Sort, sizeof(Host.Sort));
+				hKey5->ReadIntValueFromReg("Secu", &Host.Security);
 				if(Host.Anonymous != YES)
 				{
 					strcpy(Str, "");
-					ReadStringFromReg(hKey5, "Password", Str, 255);
+					hKey5->ReadStringFromReg("Password", Str, 255);
 					DecodePassword(Str, Host.PassWord);
 				}
 				else
 					strcpy(Host.PassWord, UserMailAdrs);
-				ReadMultiStringFromReg(hKey5, "Bmarks", Host.BookMark, BOOKMARK_SIZE);
-				ReadIntValueFromReg(hKey5, "Dial", &Host.Dialup);
-				ReadIntValueFromReg(hKey5, "UseIt", &Host.DialupAlways);
-				ReadIntValueFromReg(hKey5, "Notify", &Host.DialupNotify);
-				ReadStringFromReg(hKey5, "DialTo", Host.DialEntry, RAS_NAME_LEN+1);
-				ReadIntValueFromReg(hKey5, "NoEncryption", &Host.UseNoEncryption);
-				ReadIntValueFromReg(hKey5, "FTPES", &Host.UseFTPES);
-				ReadIntValueFromReg(hKey5, "FTPIS", &Host.UseFTPIS);
-				ReadIntValueFromReg(hKey5, "SFTP", &Host.UseSFTP);
+				hKey5->ReadMultiStringFromReg("Bmarks", Host.BookMark, BOOKMARK_SIZE);
+				hKey5->ReadIntValueFromReg("Dial", &Host.Dialup);
+				hKey5->ReadIntValueFromReg("UseIt", &Host.DialupAlways);
+				hKey5->ReadIntValueFromReg("Notify", &Host.DialupNotify);
+				hKey5->ReadStringFromReg("DialTo", Host.DialEntry, RAS_NAME_LEN+1);
+				hKey5->ReadIntValueFromReg("NoEncryption", &Host.UseNoEncryption);
+				hKey5->ReadIntValueFromReg("FTPES", &Host.UseFTPES);
+				hKey5->ReadIntValueFromReg("FTPIS", &Host.UseFTPIS);
+				hKey5->ReadIntValueFromReg("SFTP", &Host.UseSFTP);
 				strcpy(Str, "");
-				ReadStringFromReg(hKey5, "PKey", Str, PRIVATE_KEY_LEN*4+1);
+				hKey5->ReadStringFromReg("PKey", Str, PRIVATE_KEY_LEN*4+1);
 				DecodePassword(Str, Host.PrivateKey);
-				ReadIntValueFromReg(hKey5, "ThreadCount", &Host.MaxThreadCount);
-				ReadIntValueFromReg(hKey5, "ReuseCmdSkt", &Host.ReuseCmdSkt);
-				ReadIntValueFromReg(hKey5, "MLSD", &Host.UseMLSD);
-				ReadIntValueFromReg(hKey5, "Noop", &Host.NoopInterval);
-				ReadIntValueFromReg(hKey5, "ErrMode", &Host.TransferErrorMode);
-				ReadIntValueFromReg(hKey5, "ErrNotify", &Host.TransferErrorNotify);
-				ReadIntValueFromReg(hKey5, "ErrReconnect", &Host.TransferErrorReconnect);
-				ReadIntValueFromReg(hKey5, "NoPasvAdrs", &Host.NoPasvAdrs);
+				hKey5->ReadIntValueFromReg("ThreadCount", &Host.MaxThreadCount);
+				hKey5->ReadIntValueFromReg("ReuseCmdSkt", &Host.ReuseCmdSkt);
+				hKey5->ReadIntValueFromReg("MLSD", &Host.UseMLSD);
+				hKey5->ReadIntValueFromReg("Noop", &Host.NoopInterval);
+				hKey5->ReadIntValueFromReg("ErrMode", &Host.TransferErrorMode);
+				hKey5->ReadIntValueFromReg("ErrNotify", &Host.TransferErrorNotify);
+				hKey5->ReadIntValueFromReg("ErrReconnect", &Host.TransferErrorReconnect);
+				hKey5->ReadIntValueFromReg("NoPasvAdrs", &Host.NoPasvAdrs);
 
 				CloseSubKey(hKey5);
 
@@ -1278,7 +1304,7 @@ int LoadRegistry(void)
 
 			/* ホストの設定を読み込む */
 			Sets = 0;
-			ReadIntValueFromReg(hKey4, "SetNum", &Sets);
+			hKey4->ReadIntValueFromReg("SetNum", &Sets);
 
 			for(i = 0; i < Sets; i++)
 			{
@@ -1297,66 +1323,66 @@ int LoadRegistry(void)
 					// 1.97b以前はデフォルトでShift_JIS
 					if(Version < 1980)
 						Host.NameKanjiCode = KANJI_SJIS;
-					ReadIntValueFromReg(hKey5, "Set", &Host.Level);
+					hKey5->ReadIntValueFromReg("Set", &Host.Level);
 
-					ReadStringFromReg(hKey5, "HostName", Host.HostName, HOST_NAME_LEN+1);
-					ReadStringFromReg(hKey5, "HostAdrs", Host.HostAdrs, HOST_ADRS_LEN+1);
-					ReadStringFromReg(hKey5, "UserName", Host.UserName, USER_NAME_LEN+1);
-					ReadStringFromReg(hKey5, "Account", Host.Account, ACCOUNT_LEN+1);
-					ReadStringFromReg(hKey5, "LocalDir", Host.LocalInitDir, INIT_DIR_LEN+1);
-					ReadStringFromReg(hKey5, "RemoteDir", Host.RemoteInitDir, INIT_DIR_LEN+1);
-					ReadStringFromReg(hKey5, "Chmod", Host.ChmodCmd, CHMOD_CMD_LEN+1);
-					ReadStringFromReg(hKey5, "Nlst", Host.LsName, NLST_NAME_LEN+1);
-					ReadStringFromReg(hKey5, "Init", Host.InitCmd, INITCMD_LEN+1);
-					ReadIntValueFromReg(hKey5, "Port", &Host.Port);
-					ReadIntValueFromReg(hKey5, "Anonymous", &Host.Anonymous);
-					ReadIntValueFromReg(hKey5, "Kanji", &Host.KanjiCode);
+					hKey5->ReadStringFromReg("HostName", Host.HostName, HOST_NAME_LEN+1);
+					hKey5->ReadStringFromReg("HostAdrs", Host.HostAdrs, HOST_ADRS_LEN+1);
+					hKey5->ReadStringFromReg("UserName", Host.UserName, USER_NAME_LEN+1);
+					hKey5->ReadStringFromReg("Account", Host.Account, ACCOUNT_LEN+1);
+					hKey5->ReadStringFromReg("LocalDir", Host.LocalInitDir, INIT_DIR_LEN+1);
+					hKey5->ReadStringFromReg("RemoteDir", Host.RemoteInitDir, INIT_DIR_LEN+1);
+					hKey5->ReadStringFromReg("Chmod", Host.ChmodCmd, CHMOD_CMD_LEN+1);
+					hKey5->ReadStringFromReg("Nlst", Host.LsName, NLST_NAME_LEN+1);
+					hKey5->ReadStringFromReg("Init", Host.InitCmd, INITCMD_LEN+1);
+					hKey5->ReadIntValueFromReg("Port", &Host.Port);
+					hKey5->ReadIntValueFromReg("Anonymous", &Host.Anonymous);
+					hKey5->ReadIntValueFromReg("Kanji", &Host.KanjiCode);
 					// 1.98b以前のUTF-8はBOMあり
 					if(Version < 1983)
 					{
 						if(Host.KanjiCode == KANJI_UTF8N)
 							Host.KanjiCode = KANJI_UTF8BOM;
 					}
-					ReadIntValueFromReg(hKey5, "KanaCnv", &Host.KanaCnv);
-					ReadIntValueFromReg(hKey5, "NameKanji", &Host.NameKanjiCode);
-					ReadIntValueFromReg(hKey5, "NameKana", &Host.NameKanaCnv);
-					ReadIntValueFromReg(hKey5, "Pasv", &Host.Pasv);
-					ReadIntValueFromReg(hKey5, "Fwall", &Host.FireWall);
-					ReadIntValueFromReg(hKey5, "List", &Host.ListCmdOnly);
-					ReadIntValueFromReg(hKey5, "NLST-R", &Host.UseNLST_R);
-					ReadIntValueFromReg(hKey5, "Last", &Host.LastDir);
-					ReadIntValueFromReg(hKey5, "Tzone", &Host.TimeZone);
-					ReadIntValueFromReg(hKey5, "Type", &Host.HostType);
-					ReadIntValueFromReg(hKey5, "Sync", &Host.SyncMove);
-					ReadIntValueFromReg(hKey5, "Fpath", &Host.NoFullPath);
-					ReadBinaryFromReg(hKey5, "Sort", &Host.Sort, sizeof(Host.Sort));
-					ReadIntValueFromReg(hKey5, "Secu", &Host.Security);
+					hKey5->ReadIntValueFromReg("KanaCnv", &Host.KanaCnv);
+					hKey5->ReadIntValueFromReg("NameKanji", &Host.NameKanjiCode);
+					hKey5->ReadIntValueFromReg("NameKana", &Host.NameKanaCnv);
+					hKey5->ReadIntValueFromReg("Pasv", &Host.Pasv);
+					hKey5->ReadIntValueFromReg("Fwall", &Host.FireWall);
+					hKey5->ReadIntValueFromReg("List", &Host.ListCmdOnly);
+					hKey5->ReadIntValueFromReg("NLST-R", &Host.UseNLST_R);
+					hKey5->ReadIntValueFromReg("Last", &Host.LastDir);
+					hKey5->ReadIntValueFromReg("Tzone", &Host.TimeZone);
+					hKey5->ReadIntValueFromReg("Type", &Host.HostType);
+					hKey5->ReadIntValueFromReg("Sync", &Host.SyncMove);
+					hKey5->ReadIntValueFromReg("Fpath", &Host.NoFullPath);
+					hKey5->ReadBinaryFromReg("Sort", &Host.Sort, sizeof(Host.Sort));
+					hKey5->ReadIntValueFromReg("Secu", &Host.Security);
 					if(Host.Anonymous != YES)
 					{
 						strcpy(Str, "");
-						ReadStringFromReg(hKey5, "Password", Str, 255);
+						hKey5->ReadStringFromReg("Password", Str, 255);
 						DecodePassword(Str, Host.PassWord);
 					}
 					else
 						strcpy(Host.PassWord, UserMailAdrs);
 
-					ReadMultiStringFromReg(hKey5, "Bmarks", Host.BookMark, BOOKMARK_SIZE);
+					hKey5->ReadMultiStringFromReg("Bmarks", Host.BookMark, BOOKMARK_SIZE);
 
-					ReadIntValueFromReg(hKey5, "Dial", &Host.Dialup);
-					ReadIntValueFromReg(hKey5, "UseIt", &Host.DialupAlways);
-					ReadIntValueFromReg(hKey5, "Notify", &Host.DialupNotify);
-					ReadStringFromReg(hKey5, "DialTo", Host.DialEntry, RAS_NAME_LEN+1);
+					hKey5->ReadIntValueFromReg("Dial", &Host.Dialup);
+					hKey5->ReadIntValueFromReg("UseIt", &Host.DialupAlways);
+					hKey5->ReadIntValueFromReg("Notify", &Host.DialupNotify);
+					hKey5->ReadStringFromReg("DialTo", Host.DialEntry, RAS_NAME_LEN+1);
 					// 暗号化通信対応
-					ReadIntValueFromReg(hKey5, "NoEncryption", &Host.UseNoEncryption);
-					ReadIntValueFromReg(hKey5, "FTPES", &Host.UseFTPES);
-					ReadIntValueFromReg(hKey5, "FTPIS", &Host.UseFTPIS);
-					ReadIntValueFromReg(hKey5, "SFTP", &Host.UseSFTP);
+					hKey5->ReadIntValueFromReg("NoEncryption", &Host.UseNoEncryption);
+					hKey5->ReadIntValueFromReg("FTPES", &Host.UseFTPES);
+					hKey5->ReadIntValueFromReg("FTPIS", &Host.UseFTPIS);
+					hKey5->ReadIntValueFromReg("SFTP", &Host.UseSFTP);
 					strcpy(Str, "");
-					ReadStringFromReg(hKey5, "PKey", Str, PRIVATE_KEY_LEN*4+1);
+					hKey5->ReadStringFromReg("PKey", Str, PRIVATE_KEY_LEN*4+1);
 					DecodePassword(Str, Host.PrivateKey);
 					// 同時接続対応
-					ReadIntValueFromReg(hKey5, "ThreadCount", &Host.MaxThreadCount);
-					ReadIntValueFromReg(hKey5, "ReuseCmdSkt", &Host.ReuseCmdSkt);
+					hKey5->ReadIntValueFromReg("ThreadCount", &Host.MaxThreadCount);
+					hKey5->ReadIntValueFromReg("ReuseCmdSkt", &Host.ReuseCmdSkt);
 					// 1.98d以前で同時接続数が1より大きい場合はソケットの再利用なし
 					if(Version < 1985)
 					{
@@ -1364,16 +1390,16 @@ int LoadRegistry(void)
 							Host.ReuseCmdSkt = NO;
 					}
 					// MLSD対応
-					ReadIntValueFromReg(hKey5, "MLSD", &Host.UseMLSD);
+					hKey5->ReadIntValueFromReg("MLSD", &Host.UseMLSD);
 					// 自動切断対策
-					ReadIntValueFromReg(hKey5, "Noop", &Host.NoopInterval);
+					hKey5->ReadIntValueFromReg("Noop", &Host.NoopInterval);
 					// 再転送対応
-					ReadIntValueFromReg(hKey5, "ErrMode", &Host.TransferErrorMode);
-					ReadIntValueFromReg(hKey5, "ErrNotify", &Host.TransferErrorNotify);
+					hKey5->ReadIntValueFromReg("ErrMode", &Host.TransferErrorMode);
+					hKey5->ReadIntValueFromReg("ErrNotify", &Host.TransferErrorNotify);
 					// セッションあたりの転送量制限対策
-					ReadIntValueFromReg(hKey5, "ErrReconnect", &Host.TransferErrorReconnect);
+					hKey5->ReadIntValueFromReg("ErrReconnect", &Host.TransferErrorReconnect);
 					// ホスト側の設定ミス対策
-					ReadIntValueFromReg(hKey5, "NoPasvAdrs", &Host.NoPasvAdrs);
+					hKey5->ReadIntValueFromReg("NoPasvAdrs", &Host.NoPasvAdrs);
 
 					CloseSubKey(hKey5);
 
@@ -1381,33 +1407,33 @@ int LoadRegistry(void)
 				}
 			}
 
-			ReadIntValueFromReg(hKey4, "CurSet", &Sets);
+			hKey4->ReadIntValueFromReg("CurSet", &Sets);
 			SetCurrentHost(Sets);
 
 			// ファイルアイコン表示対応
-			ReadIntValueFromReg(hKey4, "ListIcon", &DispFileIcon);
+			hKey4->ReadIntValueFromReg("ListIcon", &DispFileIcon);
 			// タイムスタンプのバグ修正
-			ReadIntValueFromReg(hKey4, "ListSecond", &DispTimeSeconds);
+			hKey4->ReadIntValueFromReg("ListSecond", &DispTimeSeconds);
 			// ファイルの属性を数字で表示
-			ReadIntValueFromReg(hKey4, "ListPermitNum", &DispPermissionsNumber);
+			hKey4->ReadIntValueFromReg("ListPermitNum", &DispPermissionsNumber);
 			// ディレクトリ自動作成
-			ReadIntValueFromReg(hKey4, "MakeDir", &MakeAllDir);
+			hKey4->ReadIntValueFromReg("MakeDir", &MakeAllDir);
 			// UTF-8対応
-			ReadIntValueFromReg(hKey4, "Kanji", &LocalKanjiCode);
+			hKey4->ReadIntValueFromReg("Kanji", &LocalKanjiCode);
 			// UPnP対応
-			ReadIntValueFromReg(hKey4, "UPnP", &UPnPEnabled);
+			hKey4->ReadIntValueFromReg("UPnP", &UPnPEnabled);
 			// ローカル側自動更新
-			ReadIntValueFromReg(hKey4, "ListRefresh", &AutoRefreshFileList);
+			hKey4->ReadIntValueFromReg("ListRefresh", &AutoRefreshFileList);
 			// 古い処理内容を消去
-			ReadIntValueFromReg(hKey4, "OldLog", &RemoveOldLog);
+			hKey4->ReadIntValueFromReg("OldLog", &RemoveOldLog);
 			// ファイル一覧バグ修正
-			ReadIntValueFromReg(hKey4, "AbortListErr", &AbortOnListError);
+			hKey4->ReadIntValueFromReg("AbortListErr", &AbortOnListError);
 			// ミラーリング設定追加
-			ReadIntValueFromReg(hKey4, "MirNoTransfer", &MirrorNoTransferContents);
+			hKey4->ReadIntValueFromReg("MirNoTransfer", &MirrorNoTransferContents);
 			// FireWall設定追加
-			ReadIntValueFromReg(hKey4, "FwallShared", &FwallNoSaveUser);
+			hKey4->ReadIntValueFromReg("FwallShared", &FwallNoSaveUser);
 			// ゾーンID設定追加
-			ReadIntValueFromReg(hKey4, "MarkDFile", &MarkAsInternet);
+			hKey4->ReadIntValueFromReg("MarkDFile", &MarkAsInternet);
 
 			CloseSubKey(hKey4);
 		}
@@ -1493,8 +1519,7 @@ static void SaveStr(Config* Handle, char *Key, char *Str, char *DefaultStr)
 //		DeleteValue(hKey, Key);
 		DeleteValue(Handle, Key);
 	else
-//		WriteStringToReg(hKey, Key, Str);
-		WriteStringToReg(Handle, Key, Str);
+		Handle->WriteStringToReg(Key, Str);
 
 	return;
 }
@@ -1521,8 +1546,7 @@ static void SaveIntNum(Config* Handle, char *Key, int Num, int DefaultNum)
 //		DeleteValue(hKey, Key);
 		DeleteValue(Handle, Key);
 	else
-//		WriteIntValueToReg(hKey, Key, Num);
-		WriteIntValueToReg(Handle, Key, Num);
+		Handle->WriteIntValueToReg(Key, Num);
 
 	return;
 }
@@ -2086,224 +2110,6 @@ static int DeleteValue(Config* Handle, char* Name) {
 }
 
 
-/*----- INT値を読み込む -------------------------------------------------------
-*
-*	Parameter
-*		void *Handle : ハンドル
-*		char *Name : 名前
-*		int *Value : INT値を返すワーク
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int ReadIntValueFromReg(Config* Handle, char *Name, int *Value)
-{
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	if (auto const read = Handle->ReadInt(Name)) {
-		*Value = *read;
-		Sts = FFFTP_SUCCESS;
-	}
-	// 全設定暗号化対応
-	if(Sts == FFFTP_SUCCESS)
-	{
-		if(EncryptSettings == YES)
-			UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Value, sizeof(int), false);
-	}
-	return(Sts);
-}
-
-
-/*----- INT値を書き込む -------------------------------------------------------
-*
-*	Parameter
-*		void *Handle : ハンドル
-*		char *Name : 名前
-*		int Value : INT値
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static void WriteIntValueToReg(Config* Handle, char *Name, int Value)
-{
-	if(EncryptSettings == YES)
-		MaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, &Value, sizeof(int), false);
-	Handle->Write(Name, Value);
-	if(EncryptSettings == YES)
-		UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, &Value, sizeof(int), false);
-}
-
-
-/*----- 文字列を読み込む ------------------------------------------------------
-*
-*	Parameter
-*		void *Handle : ハンドル
-*		char *Name : 名前
-*		char *Str : 文字列を返すワーク
-*		DWORD Size : 最大サイズ
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int ReadStringFromReg(Config* Handle, char *Name, _Out_writes_z_(Size) char *Str, DWORD Size)
-{
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	if (auto const read = Handle->ReadValue(Name)) {
-		strncpy_s(Str, Size, read->c_str(), _TRUNCATE);
-		Sts = FFFTP_SUCCESS;
-	}
-	// 全設定暗号化対応
-	if(Sts == FFFTP_SUCCESS)
-	{
-		if(EncryptSettings == YES)
-			UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
-	}
-	return(Sts);
-}
-
-
-/*----- 文字列を書き込む ------------------------------------------------------
-*
-*	Parameter
-*		void *Handle : ハンドル
-*		char *Name : 名前
-*		char *Str :文字列
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static void WriteStringToReg(Config* Handle, char *Name, char *Str)
-{
-	if(EncryptSettings == YES)
-		MaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
-	Handle->Write(Name, Str, REG_SZ);
-	if(EncryptSettings == YES)
-		UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
-}
-
-
-/*----- マルチ文字列を読み込む ------------------------------------------------
-*
-*	Parameter
-*		void *Handle : ハンドル
-*		char *Name : 名前
-*		char *Str : 文字列を返すワーク
-*		DWORD Size : 最大サイズ
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int ReadMultiStringFromReg(Config* Handle, char *Name, char *Str, DWORD Size)
-{
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	if (auto const read = Handle->ReadValue(Name)) {
-		auto const len = std::min(read->size(), (size_t)Size - 1);
-		std::copy_n(read->data(), len, Str);
-		Str[len] = '\0';
-		Sts = FFFTP_SUCCESS;
-	}
-	// 全設定暗号化対応
-	if(Sts == FFFTP_SUCCESS)
-	{
-		if(EncryptSettings == YES)
-			UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
-	}
-	return(Sts);
-}
-
-
-/*----- マルチ文字列を書き込む ------------------------------------------------
-*
-*	Parameter
-*		void *Handle : ハンドル
-*		char *Name : 名前
-*		char *Str : 文字列
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static void WriteMultiStringToReg(Config* Handle, char *Name, char *Str)
-{
-	if(EncryptSettings == YES)
-		MaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
-	Handle->Write(Name, { Str, (size_t)StrMultiLen(Str) }, REG_MULTI_SZ);
-	if(EncryptSettings == YES)
-		UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
-}
-
-
-/*----- バイナリを読み込む-----------------------------------------------------
-*
-*	Parameter
-*		void *Handle : ハンドル
-*		char *Name : 名前
-*		void *Bin : バイナリを返すワーク
-*		DWORD Size : 最大サイズ
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int ReadBinaryFromReg(Config* Handle, char *Name, void *Bin, DWORD Size)
-{
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	if (auto const read = Handle->ReadValue(Name)) {
-		std::copy_n(read->data(), std::min(read->size(), (size_t)Size), reinterpret_cast<char*>(Bin));
-		Sts = FFFTP_SUCCESS;
-	}
-	// 全設定暗号化対応
-	if(Sts == FFFTP_SUCCESS)
-	{
-		if(EncryptSettings == YES)
-			UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Bin, Size, false);
-	}
-	return(Sts);
-}
-
-
-/*----- バイナリを書き込む ----------------------------------------------------
-*
-*	Parameter
-*		void *Handle : ハンドル
-*		char *Name : 名前
-*		void *Bin : バイナリ
-*		int Len : 長さ
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static void WriteBinaryToReg(Config* Handle, char *Name, void *Bin, int Len)
-{
-	if(EncryptSettings == YES)
-		MaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Bin, Len, false);
-	Handle->Write(Name, { reinterpret_cast<const char*>(Bin), (size_t)Len }, REG_BINARY);
-	if(EncryptSettings == YES)
-		UnmaskSettingsData(std::string{ Handle->KeyName } +'\\' + Name, Bin, Len, false);
-}
-
-
 /*----------- パスワードの妥当性を確認する ------------------------------------
 *
 *	Parameter
@@ -2503,7 +2309,7 @@ int ReadSettingsVersion()
 	Version = INT_MAX;
 	if(i == FFFTP_SUCCESS)
 	{
-		ReadIntValueFromReg(hKey3, "Version", &Version);
+		hKey3->ReadIntValueFromReg("Version", &Version);
 		CloseReg(hKey3);
 	}
 	return Version;
