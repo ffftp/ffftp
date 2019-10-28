@@ -146,10 +146,8 @@ static void DecodePassword2(char *Str, char *Buf, const char *Key);
 static void DecodePassword3(char *Str, char *Buf);
 static bool CreateAesKey(unsigned char *AesKey);
 
-static void SetRegType(int Type);
-static int OpenReg(char *Name, Config** Handle);
-static int CreateReg(char *Name, Config** Handle);
-static void CloseReg(Config* Handle);
+static std::unique_ptr<Config> OpenReg(int type);
+static std::unique_ptr<Config> CreateReg(int type);
 
 // 全設定暗号化対応
 //int CheckPasswordValidity( char* Password, int length, const char* HashStr );
@@ -357,19 +355,10 @@ int GetMasterPasswordStatus(void)
 
 int ValidateMasterPassword(void)
 {
-	Config* hKey3;
-	int i;
-
-	SetRegType(REGTYPE_INI);
-	if((i = OpenReg("FFFTP", &hKey3)) != FFFTP_SUCCESS)
-	{
-		if(AskForceIni() == NO)
-		{
-			SetRegType(REGTYPE_REG);
-			i = OpenReg("FFFTP", &hKey3);
-		}
-	}
-	if(i == FFFTP_SUCCESS){
+	std::unique_ptr<Config> hKey3;
+	if (hKey3 = OpenReg(REGTYPE_INI); !hKey3 && AskForceIni() == NO)
+		hKey3 = OpenReg(REGTYPE_REG);
+	if(hKey3){
 		char checkbuf[48];
 		int salt = 0;
 		// 全設定暗号化対応
@@ -415,7 +404,6 @@ int ValidateMasterPassword(void)
 				break;
 			}
 		}
-		CloseReg(hKey3);
 		return YES;
 	}
 	return NO;
@@ -432,7 +420,6 @@ int ValidateMasterPassword(void)
 
 void SaveRegistry(void)
 {
-	Config* hKey3;
 	// 暗号化通信対応
 //	char Str[FMAX_PATH+1];
 	char Str[PRIVATE_KEY_LEN*4+1];
@@ -457,8 +444,7 @@ void SaveRegistry(void)
 	if(ReadOnlySettings == YES)
 		return;
 
-	SetRegType(RegType);
-	if(CreateReg("FFFTP", &hKey3) == FFFTP_SUCCESS)
+	if(auto hKey3 = CreateReg(RegType))
 	{
 		char buf[48];
 		int salt = GetTickCount();
@@ -909,7 +895,6 @@ void SaveRegistry(void)
 			hKey3->DeleteValue("CredentialStretch");
 			hKey3->DeleteValue("CredentialCheck1");
 		}
-		CloseReg(hKey3);
 	}
 	return;
 }
@@ -935,7 +920,7 @@ int LoadRegistry(void)
 				EndDialog(hDlg, id);
 		}
 	};
-	Config* hKey3;
+	std::unique_ptr<Config> hKey3;
 	int i;
 	int Sets;
 	// 暗号化通信対応
@@ -953,17 +938,9 @@ int LoadRegistry(void)
 
 	Sts = NO;
 
-	SetRegType(REGTYPE_INI);
-	if((i = OpenReg("FFFTP", &hKey3)) != FFFTP_SUCCESS)
-	{
-		if(AskForceIni() == NO)
-		{
-			SetRegType(REGTYPE_REG);
-			i = OpenReg("FFFTP", &hKey3);
-		}
-	}
-
-	if(i == FFFTP_SUCCESS)
+	if (hKey3 = OpenReg(REGTYPE_INI); !hKey3 && AskForceIni() == NO)
+		hKey3 = OpenReg(REGTYPE_REG);
+	if(hKey3)
 	{
 //		char checkbuf[48];
 		int salt = 0;
@@ -992,7 +969,6 @@ int LoadRegistry(void)
 						Terminate();
 						break;
 					case IDABORT:
-						CloseReg(hKey3);
 						ClearRegistry();
 						ClearIni();
 						Restart();
@@ -1433,7 +1409,6 @@ int LoadRegistry(void)
 		}
 		// 全設定暗号化対応
 		EncryptSettings = NO;
-		CloseReg(hKey3);
 	}
 	else
 	{
@@ -1899,90 +1874,43 @@ struct REGDATATBL_REG : Config {
 	}
 };
 
-/*===== プロトタイプ =====*/
-
-static int ReadInReg(char *Name, REGDATATBL **Handle);
-
-
-/*===== ローカルなワーク =====*/
-
-static int TmpRegType;
-
-
-
-/*----- レジストリのタイプを設定する ------------------------------------------
-*
-*	Parameter
-*		int Type : タイプ (REGTYPE_xxx)
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static void SetRegType(int Type)
-{
-	TmpRegType = Type;
-	return;
-}
-
 
 // レジストリ/INIファイルをオープンする（読み込み）
-static int OpenReg(char* Name, Config** Handle) {
-	if (TmpRegType == REGTYPE_REG) {
-		if (HKEY key; RegOpenKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, KEY_READ, &key) == ERROR_SUCCESS) {
-			*Handle = new REGDATATBL_REG{ Name, key };
-			return FFFTP_SUCCESS;
-		}
+static std::unique_ptr<Config> OpenReg(int type) {
+	auto name = "FFFTP"s;
+	if (type == REGTYPE_REG) {
+		if (HKEY key; RegOpenKeyExW(HKEY_CURRENT_USER, LR"(Software\Sota\FFFTP)", 0, KEY_READ, &key) == ERROR_SUCCESS)
+			return std::make_unique<REGDATATBL_REG>(name, key);
 	} else {
-		if (ReadInReg(Name, (REGDATATBL**)Handle) == FFFTP_SUCCESS)
-			return FFFTP_SUCCESS;
+		if (std::ifstream is{ fs::u8path(AskIniFilePath()) }) {
+			auto root = std::make_unique<REGDATATBL>(name, false);
+			for (std::string line; getline(is, line);) {
+				if (empty(line) || line[0] == '#')
+					continue;
+				if (line[0] == '[') {
+					if (auto pos = line.find(']'); pos != std::string::npos)
+						line.resize(pos);
+					name = line.substr(1);
+				} else
+					(*root->map)[name].push_back(line);
+			}
+			return root;
+		}
 	}
-	return FFFTP_FAIL;
+	return {};
 }
 
 
 // レジストリ/INIファイルを作成する（書き込み）
-static int CreateReg(char* Name, Config** Handle) {
-	if (TmpRegType == REGTYPE_REG) {
-		if (HKEY key; RegCreateKeyExW(HKEY_CURRENT_USER, (LR"(Software\Sota\)"sv + u8(Name)).c_str(), 0, nullptr, 0, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, nullptr, &key, nullptr) == ERROR_SUCCESS) {
-			*Handle = new REGDATATBL_REG{ Name, key };
-			return FFFTP_SUCCESS;
-		}
+static std::unique_ptr<Config> CreateReg(int type) {
+	auto name = "FFFTP"s;
+	if (type == REGTYPE_REG) {
+		if (HKEY key; RegCreateKeyExW(HKEY_CURRENT_USER, LR"(Software\Sota\FFFTP)", 0, nullptr, 0, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, nullptr, &key, nullptr) == ERROR_SUCCESS)
+			return std::make_unique<REGDATATBL_REG>(name, key);
 	} else {
-		*Handle = new REGDATATBL{ Name, true };
-		return FFFTP_SUCCESS;
+		return std::make_unique<REGDATATBL>(name, true);
 	}
-	return FFFTP_FAIL;
-}
-
-
-// レジストリ/INIファイルをクローズする
-static void CloseReg(Config* Handle) {
-	delete Handle;
-}
-
-
-// INIファイルからレジストリ情報を読み込む
-static int ReadInReg(char* Name, REGDATATBL** Handle) {
-	*Handle = nullptr;
-	std::ifstream is{ fs::u8path(AskIniFilePath()) };
-	if (!is)
-		return FFFTP_FAIL;
-	std::string key{ Name };
-	auto root = new REGDATATBL{ key, false };
-	*Handle = root;
-	for (std::string line; getline(is, line);) {
-		if (empty(line) || line[0] == '#')
-			continue;
-		if (line[0] == '[') {
-			if (auto pos = line.find(']'); pos != std::string::npos)
-				line.resize(pos);
-			key = line.substr(1);
-		} else
-			(*root->map)[key].push_back(line);
-	}
-	return FFFTP_SUCCESS;
+	return {};
 }
 
 
@@ -2138,56 +2066,22 @@ static void UnmaskSettingsData(std::string_view salt, void* Data, DWORD Size, bo
 }
 
 // ポータブル版判定
-int IsRegAvailable()
-{
-	int Sts;
-	Config* h;
-	Sts = NO;
-	SetRegType(REGTYPE_REG);
-	if(OpenReg("FFFTP", &h) == FFFTP_SUCCESS)
-	{
-		CloseReg(h);
-		Sts = YES;
-	}
-	return Sts;
+int IsRegAvailable() {
+	return OpenReg(REGTYPE_REG) ? YES : NO;
 }
 
-int IsIniAvailable()
-{
-	int Sts;
-	Config* h;
-	Sts = NO;
-	SetRegType(REGTYPE_INI);
-	if(OpenReg("FFFTP", &h) == FFFTP_SUCCESS)
-	{
-		CloseReg(h);
-		Sts = YES;
-	}
-	return Sts;
+int IsIniAvailable() {
+	return OpenReg(REGTYPE_INI) ? YES : NO;
 }
 
 // バージョン確認
-int ReadSettingsVersion()
-{
-	Config *hKey3;
-	int i;
-	int Version;
-
-	SetRegType(REGTYPE_INI);
-	if((i = OpenReg("FFFTP", &hKey3)) != FFFTP_SUCCESS)
-	{
-		if(AskForceIni() == NO)
-		{
-			SetRegType(REGTYPE_REG);
-			i = OpenReg("FFFTP", &hKey3);
-		}
-	}
-	Version = INT_MAX;
-	if(i == FFFTP_SUCCESS)
-	{
+int ReadSettingsVersion() {
+	std::unique_ptr<Config> hKey3;
+	if (hKey3 = OpenReg(REGTYPE_INI); !hKey3 && AskForceIni() == NO)
+		hKey3 = OpenReg(REGTYPE_REG);
+	int Version = INT_MAX;
+	if (hKey3)
 		hKey3->ReadIntValueFromReg("Version", &Version);
-		CloseReg(hKey3);
-	}
 	return Version;
 }
 
