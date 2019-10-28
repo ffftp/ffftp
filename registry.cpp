@@ -46,7 +46,10 @@ protected:
 	virtual void Write(const char* name, std::string_view value, DWORD type) = 0;
 public:
 	const std::string KeyName;
+	Config(Config const&) = delete;
 	virtual ~Config() = default;
+	virtual std::unique_ptr<Config> OpenSubKey(char* Name) = 0;
+	virtual std::unique_ptr<Config> CreateSubKey(char* Name) = 0;
 	int ReadIntValueFromReg(char* Name, int* Value) {
 		if (auto const read = ReadInt(Name)) {
 			*Value = *read;
@@ -147,9 +150,6 @@ static void SetRegType(int Type);
 static int OpenReg(char *Name, Config** Handle);
 static int CreateReg(char *Name, Config** Handle);
 static void CloseReg(Config* Handle);
-static int OpenSubKey(Config* Parent, char *Name, Config** Handle);
-static int CreateSubKey(Config* Parent, char *Name, Config** Handle);
-static int CloseSubKey(Config* Handle);
 
 // 全設定暗号化対応
 //int CheckPasswordValidity( char* Password, int length, const char* HashStr );
@@ -433,8 +433,6 @@ int ValidateMasterPassword(void)
 void SaveRegistry(void)
 {
 	Config* hKey3;
-	Config* hKey4;
-	Config* hKey5;
 	// 暗号化通信対応
 //	char Str[FMAX_PATH+1];
 	char Str[PRIVATE_KEY_LEN*4+1];
@@ -503,7 +501,7 @@ void SaveRegistry(void)
 			strcpy(Str, "EncryptedOptions");
 		else
 			strcpy(Str, "Options");
-		if(CreateSubKey(hKey3, Str, &hKey4) == FFFTP_SUCCESS)
+		if(auto hKey4 = hKey3->CreateSubKey(Str))
 		{
 			hKey4->WriteIntValueToReg("NoSave", SuppressSave);
 
@@ -625,7 +623,7 @@ void SaveRegistry(void)
 					if(GetHistoryByNum(i-1, &Hist) == FFFTP_SUCCESS)
 					{
 						sprintf(Str, "History%d", n);
-						if(CreateSubKey(hKey4, Str, &hKey5) == FFFTP_SUCCESS)
+						if(auto hKey5 = hKey4->CreateSubKey(Str))
 						{
 							hKey5->SaveStr("HostAdrs", Hist.HostAdrs, DefaultHist.HostAdrs);
 							hKey5->SaveStr("UserName", Hist.UserName, DefaultHist.UserName);
@@ -678,8 +676,6 @@ void SaveRegistry(void)
 							hKey5->SaveIntNum("ErrReconnect", Hist.TransferErrorReconnect, DefaultHist.TransferErrorReconnect);
 							// ホスト側の設定ミス対策
 							hKey5->SaveIntNum("NoPasvAdrs", Hist.NoPasvAdrs, DefaultHist.NoPasvAdrs);
-
-							CloseSubKey(hKey5);
 							n++;
 						}
 					}
@@ -695,7 +691,7 @@ void SaveRegistry(void)
 				}
 
 				// ホスト共通設定機能
-				if(CreateSubKey(hKey4, "DefaultHost", &hKey5) == FFFTP_SUCCESS)
+				if(auto hKey5 = hKey4->CreateSubKey("DefaultHost"))
 				{
 					CopyDefaultDefaultHost(&DefaultHost);
 					CopyDefaultHost(&Host);
@@ -750,7 +746,6 @@ void SaveRegistry(void)
 					hKey5->SaveIntNum("ErrNotify", Host.TransferErrorNotify, DefaultHost.TransferErrorNotify);
 					hKey5->SaveIntNum("ErrReconnect", Host.TransferErrorReconnect, DefaultHost.TransferErrorReconnect);
 					hKey5->SaveIntNum("NoPasvAdrs", Host.NoPasvAdrs, DefaultHost.NoPasvAdrs);
-					CloseSubKey(hKey5);
 				}
 
 				/* ホストの設定を保存 */
@@ -759,7 +754,7 @@ void SaveRegistry(void)
 				while(CopyHostFromList(i, &Host) == FFFTP_SUCCESS)
 				{
 					sprintf(Str, "Host%d", i);
-					if(CreateSubKey(hKey4, Str, &hKey5) == FFFTP_SUCCESS)
+					if(auto hKey5 = hKey4->CreateSubKey(Str))
 					{
 						hKey5->WriteIntValueToReg("Set", Host.Level);
 						hKey5->SaveStr("HostName", Host.HostName, DefaultHost.HostName);
@@ -826,7 +821,6 @@ void SaveRegistry(void)
 							// ホスト側の設定ミス対策
 							hKey5->SaveIntNum("NoPasvAdrs", Host.NoPasvAdrs, DefaultHost.NoPasvAdrs);
 						}
-						CloseSubKey(hKey5);
 					}
 					i++;
 				}
@@ -869,13 +863,12 @@ void SaveRegistry(void)
 				// ゾーンID設定追加
 				hKey4->WriteIntValueToReg("MarkDFile", MarkAsInternet);
 			}
-			CloseSubKey(hKey4);
 		}
 		// 全設定暗号化対応
 		EncryptSettings = NO;
 		if(EncryptAllSettings == YES)
 		{
-			if(OpenSubKey(hKey3, "Options", &hKey4) == FFFTP_SUCCESS)
+			if(auto hKey4 = hKey3->OpenSubKey("Options"))
 			{
 				for(i = 0; ; i++)
 				{
@@ -889,7 +882,6 @@ void SaveRegistry(void)
 					if(hKey4->DeleteSubKey(Str) != FFFTP_SUCCESS)
 						break;
 				}
-				CloseSubKey(hKey4);
 			}
 			hKey3->DeleteSubKey("Options");
 			hKey3->DeleteValue("CredentialSalt");
@@ -897,7 +889,7 @@ void SaveRegistry(void)
 		}
 		else
 		{
-			if(OpenSubKey(hKey3, "EncryptedOptions", &hKey4) == FFFTP_SUCCESS)
+			if(auto hKey4 = hKey3->OpenSubKey("EncryptedOptions"))
 			{
 				for(i = 0; ; i++)
 				{
@@ -911,7 +903,6 @@ void SaveRegistry(void)
 					if(hKey4->DeleteSubKey(Str) != FFFTP_SUCCESS)
 						break;
 				}
-				CloseSubKey(hKey4);
 			}
 			hKey3->DeleteSubKey("EncryptedOptions");
 			hKey3->DeleteValue("CredentialSalt1");
@@ -945,8 +936,6 @@ int LoadRegistry(void)
 		}
 	};
 	Config* hKey3;
-	Config* hKey4;
-	Config* hKey5;
 	int i;
 	int Sets;
 	// 暗号化通信対応
@@ -1025,7 +1014,7 @@ int LoadRegistry(void)
 			strcpy(Str, "EncryptedOptions");
 		else
 			strcpy(Str, "Options");
-		if(OpenSubKey(hKey3, Str, &hKey4) == FFFTP_SUCCESS)
+		if(auto hKey4 = hKey3->OpenSubKey(Str))
 		{
 			hKey4->ReadIntValueFromReg("WinPosX", &WinPosX);
 			hKey4->ReadIntValueFromReg("WinPosY", &WinPosY);
@@ -1186,7 +1175,7 @@ int LoadRegistry(void)
 			for(i = 0; i < Sets; i++)
 			{
 				sprintf(Str, "History%d", i);
-				if(OpenSubKey(hKey4, Str, &hKey5) == FFFTP_SUCCESS)
+				if(auto hKey5 = hKey4->OpenSubKey(Str))
 				{
 					CopyDefaultHistory(&Hist);
 
@@ -1244,13 +1233,12 @@ int LoadRegistry(void)
 					// ホスト側の設定ミス対策
 					hKey5->ReadIntValueFromReg("NoPasvAdrs", &Hist.NoPasvAdrs);
 
-					CloseSubKey(hKey5);
 					AddHistoryToHistory(&Hist);
 				}
 			}
 
 			// ホスト共通設定機能
-			if(OpenSubKey(hKey4, "DefaultHost", &hKey5) == FFFTP_SUCCESS)
+			if(auto hKey5 = hKey4->OpenSubKey("DefaultHost"))
 			{
 				CopyDefaultDefaultHost(&Host);
 				hKey5->ReadIntValueFromReg("Set", &Host.Level);
@@ -1309,8 +1297,6 @@ int LoadRegistry(void)
 				hKey5->ReadIntValueFromReg("ErrReconnect", &Host.TransferErrorReconnect);
 				hKey5->ReadIntValueFromReg("NoPasvAdrs", &Host.NoPasvAdrs);
 
-				CloseSubKey(hKey5);
-
 				SetDefaultHost(&Host);
 			}
 
@@ -1321,7 +1307,7 @@ int LoadRegistry(void)
 			for(i = 0; i < Sets; i++)
 			{
 				sprintf(Str, "Host%d", i);
-				if(OpenSubKey(hKey4, Str, &hKey5) == FFFTP_SUCCESS)
+				if(auto hKey5 = hKey4->OpenSubKey(Str))
 				{
 					CopyDefaultHost(&Host);
 					/* 下位互換性のため */
@@ -1413,8 +1399,6 @@ int LoadRegistry(void)
 					// ホスト側の設定ミス対策
 					hKey5->ReadIntValueFromReg("NoPasvAdrs", &Host.NoPasvAdrs);
 
-					CloseSubKey(hKey5);
-
 					AddHostToList(&Host, -1, Host.Level);
 				}
 			}
@@ -1446,8 +1430,6 @@ int LoadRegistry(void)
 			hKey4->ReadIntValueFromReg("FwallShared", &FwallNoSaveUser);
 			// ゾーンID設定追加
 			hKey4->ReadIntValueFromReg("MarkDFile", &MarkAsInternet);
-
-			CloseSubKey(hKey4);
 		}
 		// 全設定暗号化対応
 		EncryptSettings = NO;
@@ -1815,6 +1797,14 @@ struct REGDATATBL : Config {
 			}
 		}
 	}
+	std::unique_ptr<Config> OpenSubKey(char* Name) override {
+		if (auto const keyName = KeyName + '\\' + Name; map->contains(keyName))
+			return std::make_unique<REGDATATBL>(keyName, *this);
+		return {};
+	}
+	std::unique_ptr<Config> CreateSubKey(char* Name) override {
+		return std::make_unique<REGDATATBL>(KeyName + '\\' + Name, *this);
+	}
 	const char* Scan(std::string_view name) const {
 		for (auto const& line : (*map)[KeyName])
 			if (size(name) + 1 < size(line) && line.starts_with(name) && line[size(name)] == '=')
@@ -1858,6 +1848,16 @@ struct REGDATATBL_REG : Config {
 	REGDATATBL_REG(std::string const& keyName, HKEY hkey) : Config{ keyName }, hKey{ hkey } {}
 	~REGDATATBL_REG() override {
 		RegCloseKey(hKey);
+	}
+	std::unique_ptr<Config> OpenSubKey(char* Name) override {
+		if (HKEY key; RegOpenKeyExW(hKey, u8(Name).c_str(), 0, KEY_READ, &key) == ERROR_SUCCESS)
+			return std::make_unique<REGDATATBL_REG>(KeyName + '\\' + Name, key);
+		return {};
+	}
+	std::unique_ptr<Config> CreateSubKey(char* Name) override {
+		if (HKEY key; RegCreateKeyExW(hKey, u8(Name).c_str(), 0, nullptr, 0, KEY_SET_VALUE, nullptr, &key, nullptr) == ERROR_SUCCESS)
+			return std::make_unique<REGDATATBL_REG>(KeyName + '\\' + Name, key);
+		return {};
 	}
 	std::optional<int> ReadInt(std::string_view name) const override {
 		if (DWORD value, size = sizeof(int); RegQueryValueExW(hKey, u8(name).c_str(), nullptr, nullptr, reinterpret_cast<BYTE*>(&value), &size) == ERROR_SUCCESS)
@@ -1983,55 +1983,6 @@ static int ReadInReg(char* Name, REGDATATBL** Handle) {
 			(*root->map)[key].push_back(line);
 	}
 	return FFFTP_SUCCESS;
-}
-
-
-// サブキーをオープンする
-static int OpenSubKey(Config* Parent, char* Name, Config** Handle) {
-	if (TmpRegType == REGTYPE_REG) {
-		if (HKEY key; RegOpenKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, KEY_READ, &key) == ERROR_SUCCESS) {
-			*Handle = new REGDATATBL_REG{ Parent->KeyName + '\\' + Name, key };
-			return FFFTP_SUCCESS;
-		}
-	} else {
-		if (auto const keyName = Parent->KeyName + '\\' + Name; ((REGDATATBL*)Parent)->map->contains(keyName)) {
-			*Handle = new REGDATATBL{ keyName, *(REGDATATBL*)Parent };
-			return FFFTP_SUCCESS;
-		}
-	}
-	return FFFTP_FAIL;
-}
-
-
-// サブキーを作成する
-static int CreateSubKey(Config* Parent, char* Name, Config** Handle) {
-	if (TmpRegType == REGTYPE_REG) {
-		if (HKEY key; RegCreateKeyExW(((REGDATATBL_REG*)Parent)->hKey, u8(Name).c_str(), 0, nullptr, 0, KEY_SET_VALUE, nullptr, &key, nullptr) == ERROR_SUCCESS) {
-			*Handle = new REGDATATBL_REG{ Parent->KeyName + '\\' + Name, key };
-			return FFFTP_SUCCESS;
-		}
-	} else {
-		*Handle = new REGDATATBL{ Parent->KeyName + '\\' + Name, *(REGDATATBL*)Parent };
-		return FFFTP_SUCCESS;
-	}
-	return FFFTP_FAIL;
-}
-
-
-/*----- サブキーをクローズする ------------------------------------------------
-*
-*	Parameter
-*		void *Handle : ハンドル
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int CloseSubKey(Config* Handle)
-{
-	delete Handle;
-	return(FFFTP_SUCCESS);
 }
 
 
