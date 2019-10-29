@@ -30,108 +30,95 @@
 #include "common.h"
 const int AES_BLOCK_SIZE = 16;
 static int EncryptSettings = NO;
-static void MaskSettingsData(std::string_view salt, void* Data, DWORD Size, bool EscapeZero);
-static void UnmaskSettingsData(std::string_view salt, void* Data, DWORD Size, bool EscapeZero);
 
 static inline auto a2w(std::string_view text) {
 	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) { return MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, src, srclen, dst, dstlen); }, text);
 }
 
 class Config {
+	void Xor(std::string_view name, void* bin, DWORD len, bool preserveZero) const;
 protected:
+	const std::string KeyName;
 	Config(std::string const& keyName) : KeyName{ keyName } {}
 	virtual std::optional<int> ReadInt(std::string_view name) const = 0;
 	virtual std::optional<std::string> ReadValue(std::string_view name) const = 0;
-	virtual void Write(const char* name, int value) = 0;
-	virtual void Write(const char* name, std::string_view value, DWORD type) = 0;
+	virtual void Write(std::string_view name, int value) = 0;
+	virtual void Write(std::string_view name, std::string_view value, DWORD type) = 0;
 public:
-	const std::string KeyName;
 	Config(Config const&) = delete;
 	virtual ~Config() = default;
 	virtual std::unique_ptr<Config> OpenSubKey(char* Name) = 0;
 	virtual std::unique_ptr<Config> CreateSubKey(char* Name) = 0;
-	int ReadIntValueFromReg(char* Name, int* Value) {
-		if (auto const read = ReadInt(Name)) {
-			*Value = *read;
-			if (EncryptSettings == YES)
-				UnmaskSettingsData(KeyName + '\\' + Name, Value, sizeof(int), false);
+	int ReadIntValueFromReg(std::string_view name, int* value) const {
+		if (auto const read = ReadInt(name)) {
+			*value = *read;
+			Xor(name, value, sizeof(int), false);
 			return FFFTP_SUCCESS;
 		}
 		return FFFTP_FAIL;
 	}
-	void WriteIntValueToReg(char* Name, int Value) {
-		if (EncryptSettings == YES)
-			MaskSettingsData(KeyName + '\\' + Name, &Value, sizeof(int), false);
-		Write(Name, Value);
-		if (EncryptSettings == YES)
-			UnmaskSettingsData(KeyName + '\\' + Name, &Value, sizeof(int), false);
+	void WriteIntValueToReg(std::string_view name, int value) {
+		Xor(name, &value, sizeof(int), false);
+		Write(name, value);
+		Xor(name, &value, sizeof(int), false);
 	}
-	int ReadStringFromReg(char* Name, _Out_writes_z_(Size) char* Str, DWORD Size) {
-		if (auto const read = ReadValue(Name)) {
-			strncpy_s(Str, Size, read->c_str(), _TRUNCATE);
-			if (EncryptSettings == YES)
-				UnmaskSettingsData(KeyName + '\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
+	int ReadStringFromReg(std::string_view name, _Out_writes_z_(size) char* buffer, DWORD size) const {
+		if (auto const read = ReadValue(name)) {
+			strncpy_s(buffer, size, read->c_str(), _TRUNCATE);
+			Xor(name, buffer, (DWORD)strlen(buffer) + 1, true);
 			return FFFTP_SUCCESS;
 		}
 		return FFFTP_FAIL;
 	}
-	void WriteStringToReg(char* Name, char* Str) {
-		if (EncryptSettings == YES)
-			MaskSettingsData(KeyName + '\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
-		Write(Name, Str, REG_SZ);
-		if (EncryptSettings == YES)
-			UnmaskSettingsData(KeyName + '\\' + Name, Str, (DWORD)strlen(Str) + 1, true);
+	void WriteStringToReg(std::string_view name, _In_z_ char* str) {
+		Xor(name, str, (DWORD)strlen(str) + 1, true);
+		Write(name, str, REG_SZ);
+		Xor(name, str, (DWORD)strlen(str) + 1, true);
 	}
-	int ReadMultiStringFromReg(char* Name, char* Str, DWORD Size) {
-		if (auto const read = ReadValue(Name)) {
-			auto const len = std::min(read->size(), (size_t)Size - 1);
-			std::copy_n(read->data(), len, Str);
-			Str[len] = '\0';
-			if (EncryptSettings == YES)
-				UnmaskSettingsData(KeyName + '\\' + Name, Str, StrMultiLen(Str) + 1, true);
+	int ReadMultiStringFromReg(std::string_view name, _Out_writes_z_(size) char* buffer, DWORD size) const {
+		if (auto const read = ReadValue(name)) {
+			auto const len = std::min(read->size(), (size_t)size - 1);
+			std::copy_n(read->data(), len, buffer);
+			buffer[len] = '\0';
+			Xor(name, buffer, StrMultiLen(buffer) + 1, true);
 			return FFFTP_SUCCESS;
 		}
 		return FFFTP_FAIL;
 	}
-	void WriteMultiStringToReg(char* Name, char* Str) {
-		if (EncryptSettings == YES)
-			MaskSettingsData(KeyName +'\\' + Name, Str, StrMultiLen(Str) + 1, true);
-		Write(Name, { Str, (size_t)StrMultiLen(Str) }, REG_MULTI_SZ);
-		if (EncryptSettings == YES)
-			UnmaskSettingsData(KeyName + '\\' + Name, Str, StrMultiLen(Str) + 1, true);
+	void WriteMultiStringToReg(std::string_view name, char* str) {
+		Xor(name, str, StrMultiLen(str) + 1, true);
+		Write(name, { str, (size_t)StrMultiLen(str) }, REG_MULTI_SZ);
+		Xor(name, str, StrMultiLen(str) + 1, true);
 	}
-	int ReadBinaryFromReg(char* Name, void* Bin, DWORD Size) {
-		if (auto const read = ReadValue(Name)) {
-			std::copy_n(read->data(), std::min(read->size(), (size_t)Size), reinterpret_cast<char*>(Bin));
-			if (EncryptSettings == YES)
-				UnmaskSettingsData(KeyName + '\\' + Name, Bin, Size, false);
+	int ReadBinaryFromReg(std::string_view name, _Out_writes_(size) void* buffer, DWORD size) const {
+		if (auto const read = ReadValue(name)) {
+			std::copy_n(read->data(), std::min(read->size(), (size_t)size), reinterpret_cast<char*>(buffer));
+			Xor(name, buffer, size, false);
 			return FFFTP_SUCCESS;
 		}
 		return FFFTP_FAIL;
 	}
-	void WriteBinaryToReg(char* Name, void* Bin, int Len) {
-		if (EncryptSettings == YES)
-			MaskSettingsData(KeyName + '\\' + Name, Bin, Len, false);
-		Write(Name, { reinterpret_cast<const char*>(Bin), (size_t)Len }, REG_BINARY);
-		if (EncryptSettings == YES)
-			UnmaskSettingsData(KeyName + '\\' + Name, Bin, Len, false);
+	void WriteBinaryToReg(std::string_view name, void* bin, int len) {
+		Xor(name, bin, len, false);
+		Write(name, { reinterpret_cast<const char*>(bin), (size_t)len }, REG_BINARY);
+		Xor(name, bin, len, false);
 	}
-	virtual int DeleteSubKey(char* Name) {
+	virtual int DeleteSubKey(std::string_view name) {
 		return FFFTP_FAIL;
 	}
-	virtual void DeleteValue(char* Name) {
+	virtual void DeleteValue(std::string_view name) {
 	}
-	void SaveIntNum(char* Key, int Num, int DefaultNum) {
-		if (Num == DefaultNum)
-			DeleteValue(Key);
+	void SaveIntNum(std::string_view name, int value, int defaultValue) {
+		if (value == defaultValue)
+			DeleteValue(name);
 		else
-			WriteIntValueToReg(Key, Num);
+			WriteIntValueToReg(name, value);
 	}
-	void SaveStr(char* Key, char* Str, char* DefaultStr) {
-		if (DefaultStr && strcmp(Str, DefaultStr) == 0)
-			DeleteValue(Key);
+	void SaveStr(std::string_view name, char* str, std::string_view defaultStr) {
+		if (str == defaultStr)
+			DeleteValue(name);
 		else
-			WriteStringToReg(Key, Str);
+			WriteStringToReg(name, str);
 	}
 };
 
@@ -614,7 +601,7 @@ void SaveRegistry(void)
 							hKey5->SaveStr("HostAdrs", Hist.HostAdrs, DefaultHist.HostAdrs);
 							hKey5->SaveStr("UserName", Hist.UserName, DefaultHist.UserName);
 							hKey5->SaveStr("Account", Hist.Account, DefaultHist.Account);
-							hKey5->SaveStr("LocalDir", Hist.LocalInitDir, NULL);
+							hKey5->WriteStringToReg("LocalDir", Hist.LocalInitDir);
 							hKey5->SaveStr("RemoteDir", Hist.RemoteInitDir, DefaultHist.RemoteInitDir);
 							hKey5->SaveStr("Chmod", Hist.ChmodCmd, DefaultHist.ChmodCmd);
 							hKey5->SaveStr("Nlst", Hist.LsName, DefaultHist.LsName);
@@ -686,7 +673,7 @@ void SaveRegistry(void)
 					hKey5->SaveStr("HostAdrs", Host.HostAdrs, DefaultHost.HostAdrs);
 					hKey5->SaveStr("UserName", Host.UserName, DefaultHost.UserName);
 					hKey5->SaveStr("Account", Host.Account, DefaultHost.Account);
-					hKey5->SaveStr("LocalDir", Host.LocalInitDir, NULL);
+					hKey5->WriteStringToReg("LocalDir", Host.LocalInitDir);
 					hKey5->SaveStr("RemoteDir", Host.RemoteInitDir, DefaultHost.RemoteInitDir);
 					hKey5->SaveStr("Chmod", Host.ChmodCmd, DefaultHost.ChmodCmd);
 					hKey5->SaveStr("Nlst", Host.LsName, DefaultHost.LsName);
@@ -749,7 +736,7 @@ void SaveRegistry(void)
 							hKey5->SaveStr("HostAdrs", Host.HostAdrs, DefaultHost.HostAdrs);
 							hKey5->SaveStr("UserName", Host.UserName, DefaultHost.UserName);
 							hKey5->SaveStr("Account", Host.Account, DefaultHost.Account);
-							hKey5->SaveStr("LocalDir", Host.LocalInitDir, NULL);
+							hKey5->WriteStringToReg("LocalDir", Host.LocalInitDir);
 							hKey5->SaveStr("RemoteDir", Host.RemoteInitDir, DefaultHost.RemoteInitDir);
 							hKey5->SaveStr("Chmod", Host.ChmodCmd, DefaultHost.ChmodCmd);
 							hKey5->SaveStr("Nlst", Host.LsName, DefaultHost.LsName);
@@ -1799,10 +1786,10 @@ struct REGDATATBL : Config {
 		}
 		return {};
 	}
-	void Write(const char* name, int value) override {
+	void Write(std::string_view name, int value) override {
 		(*map)[KeyName].push_back(std::string{ name } + '=' + std::to_string(value));
 	}
-	void Write(const char* name, std::string_view value, DWORD) override {
+	void Write(std::string_view name, std::string_view value, DWORD) override {
 		auto line = std::string{ name } +'=';
 		for (auto it = begin(value); it != end(value); ++it)
 			if (0x20 <= *it && *it < 0x7F) {
@@ -1855,10 +1842,10 @@ struct REGDATATBL_REG : Config {
 		}
 		return {};
 	}
-	void Write(const char* name, int value) override {
+	void Write(std::string_view name, int value) override {
 		RegSetValueExW(hKey, u8(name).c_str(), 0, REG_DWORD, reinterpret_cast<CONST BYTE*>(&value), sizeof(int));
 	}
-	void Write(const char* name, std::string_view value, DWORD type) override {
+	void Write(std::string_view name, std::string_view value, DWORD type) override {
 		if (EncryptSettings == YES || type == REG_BINARY)
 			RegSetValueExW(hKey, u8(name).c_str(), 0, REG_BINARY, data_as<const BYTE>(value), type == REG_BINARY ? size_as<DWORD>(value) : size_as<DWORD>(value) + 1);
 		else {
@@ -1866,11 +1853,11 @@ struct REGDATATBL_REG : Config {
 			RegSetValueExW(hKey, u8(name).c_str(), 0, type, data_as<const BYTE>(wvalue), (size_as<DWORD>(wvalue) + 1) * sizeof(wchar_t));
 		}
 	}
-	int DeleteSubKey(char* Name) override {
-		return RegDeleteKeyW(hKey, u8(Name).c_str()) == ERROR_SUCCESS ? FFFTP_SUCCESS : FFFTP_FAIL;
+	int DeleteSubKey(std::string_view name) override {
+		return RegDeleteKeyW(hKey, u8(name).c_str()) == ERROR_SUCCESS ? FFFTP_SUCCESS : FFFTP_FAIL;
 	}
-	void DeleteValue(char* Name) override {
-		RegDeleteValueW(hKey, u8(Name).c_str());
+	void DeleteValue(std::string_view name) override {
+		RegDeleteValueW(hKey, u8(name).c_str());
 	}
 };
 
@@ -2036,10 +2023,13 @@ void SetHashSalt1(void* Salt, int Length)
 		SecretKeyLength = (int)strlen(SecretKey) + 1;
 }
 
-static void MaskSettingsData(std::string_view salt, void* Data, DWORD Size, bool EscapeZero) {
+void Config::Xor(std::string_view name, void* bin, DWORD len, bool preserveZero) const {
+	if (EncryptSettings != YES)
+		return;
+	auto const salt = KeyName + '\\' + name;
 	BYTE mask[20];
-	auto p = reinterpret_cast<BYTE*>(Data);
-	for (DWORD i = 0; i < Size; i++) {
+	auto p = reinterpret_cast<BYTE*>(bin);
+	for (DWORD i = 0; i < len; i++) {
 		if (i % 20 == 0) {
 			BYTE buffer[FMAX_PATH * 2 + 1];
 			for (DWORD nonce = i, j = 0; j < 16; j++)
@@ -2056,13 +2046,9 @@ static void MaskSettingsData(std::string_view salt, void* Data, DWORD Size, bool
 				buffer[j] ^= 0x6a;
 			sha1(buffer, 84, mask);
 		}
-		if (!EscapeZero || p[i] != 0 && p[i] != mask[i % 20])
+		if (!preserveZero || p[i] != 0 && p[i] != mask[i % 20])
 			p[i] ^= mask[i % 20];
 	}
-}
-
-static void UnmaskSettingsData(std::string_view salt, void* Data, DWORD Size, bool EscapeZero) {
-	MaskSettingsData(salt, Data, Size, EscapeZero);
 }
 
 // ポータブル版判定
