@@ -544,7 +544,7 @@ void DispStaticText(HWND hWnd, char *Str) {
 *			StrMultiLen("abc") = 終端が２つのNULでないので求められない
 *----------------------------------------------------------------------------*/
 
-int StrMultiLen(char *Str)
+int StrMultiLen(const char *Str)
 {
 	int Len;
 	int Tmp;

@@ -60,7 +60,6 @@ public:
 	void WriteIntValueToReg(std::string_view name, int value) {
 		Xor(name, &value, sizeof(int), false);
 		Write(name, value);
-		Xor(name, &value, sizeof(int), false);
 	}
 	int ReadStringFromReg(std::string_view name, _Out_writes_z_(size) char* buffer, DWORD size) const {
 		if (auto const read = ReadValue(name)) {
@@ -70,10 +69,10 @@ public:
 		}
 		return FFFTP_FAIL;
 	}
-	void WriteStringToReg(std::string_view name, _In_z_ char* str) {
-		Xor(name, str, (DWORD)strlen(str) + 1, true);
-		Write(name, str, REG_SZ);
-		Xor(name, str, (DWORD)strlen(str) + 1, true);
+	void WriteStringToReg(std::string_view name, std::string_view str) {
+		std::string value{ str };
+		Xor(name, data(value), size_as<DWORD>(value), true);
+		Write(name, value, REG_SZ);
 	}
 	int ReadMultiStringFromReg(std::string_view name, _Out_writes_z_(size) char* buffer, DWORD size) const {
 		if (auto const read = ReadValue(name)) {
@@ -85,10 +84,10 @@ public:
 		}
 		return FFFTP_FAIL;
 	}
-	void WriteMultiStringToReg(std::string_view name, char* str) {
-		Xor(name, str, StrMultiLen(str) + 1, true);
-		Write(name, { str, (size_t)StrMultiLen(str) }, REG_MULTI_SZ);
-		Xor(name, str, StrMultiLen(str) + 1, true);
+	void WriteMultiStringToReg(std::string_view name, const char* str) {
+		std::string value{ str, str + StrMultiLen(str) };
+		Xor(name, data(value), size_as<DWORD>(value), true);
+		Write(name, value, REG_MULTI_SZ);
 	}
 	int ReadBinaryFromReg(std::string_view name, _Out_writes_(size) void* buffer, DWORD size) const {
 		if (auto const read = ReadValue(name)) {
@@ -98,10 +97,10 @@ public:
 		}
 		return FFFTP_FAIL;
 	}
-	void WriteBinaryToReg(std::string_view name, void* bin, int len) {
-		Xor(name, bin, len, false);
-		Write(name, { reinterpret_cast<const char*>(bin), (size_t)len }, REG_BINARY);
-		Xor(name, bin, len, false);
+	void WriteBinaryToReg(std::string_view name, const void* bin, int len) {
+		std::string value{ reinterpret_cast<const char*>(bin), reinterpret_cast<const char*>(bin) + len };
+		Xor(name, data(value), size_as<DWORD>(value), false);
+		Write(name, value, REG_BINARY);
 	}
 	virtual int DeleteSubKey(std::string_view name) {
 		return FFFTP_FAIL;
@@ -114,7 +113,7 @@ public:
 		else
 			WriteIntValueToReg(name, value);
 	}
-	void SaveStr(std::string_view name, char* str, std::string_view defaultStr) {
+	void SaveStr(std::string_view name, std::string_view str, std::string_view defaultStr) {
 		if (str == defaultStr)
 			DeleteValue(name);
 		else
