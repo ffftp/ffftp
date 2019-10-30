@@ -40,18 +40,17 @@ class Config {
 protected:
 	const std::string KeyName;
 	Config(std::string const& keyName) : KeyName{ keyName } {}
-	virtual std::optional<int> ReadInt(std::string_view name) const = 0;
-	virtual std::optional<std::string> ReadValue(std::string_view name) const = 0;
-	virtual void Write(std::string_view name, int value) = 0;
-	virtual void Write(std::string_view name, std::string_view value, DWORD type) = 0;
+	virtual bool ReadInt(std::string_view name, int& value) const = 0;
+	virtual bool ReadValue(std::string_view name, std::string& value) const = 0;
+	virtual void WriteInt(std::string_view name, int value) = 0;
+	virtual void WriteValue(std::string_view name, std::string_view value, DWORD type) = 0;
 public:
 	Config(Config const&) = delete;
 	virtual ~Config() = default;
 	virtual std::unique_ptr<Config> OpenSubKey(char* Name) = 0;
 	virtual std::unique_ptr<Config> CreateSubKey(char* Name) = 0;
 	int ReadIntValueFromReg(std::string_view name, int* value) const {
-		if (auto const read = ReadInt(name)) {
-			*value = *read;
+		if (ReadInt(name, *value)) {
 			Xor(name, value, sizeof(int), false);
 			return FFFTP_SUCCESS;
 		}
@@ -59,12 +58,12 @@ public:
 	}
 	void WriteIntValueToReg(std::string_view name, int value) {
 		Xor(name, &value, sizeof(int), false);
-		Write(name, value);
+		WriteInt(name, value);
 	}
 	int ReadStringFromReg(std::string_view name, _Out_writes_z_(size) char* buffer, DWORD size) const {
-		if (auto const read = ReadValue(name)) {
-			strncpy_s(buffer, size, read->c_str(), _TRUNCATE);
-			Xor(name, buffer, (DWORD)strlen(buffer) + 1, true);
+		if (std::string value; ReadValue(name, value)) {
+			Xor(name, data(value), size_as<DWORD>(value), true);
+			strncpy_s(buffer, size, value.c_str(), _TRUNCATE);
 			return FFFTP_SUCCESS;
 		}
 		return FFFTP_FAIL;
@@ -72,14 +71,13 @@ public:
 	void WriteStringToReg(std::string_view name, std::string_view str) {
 		std::string value{ str };
 		Xor(name, data(value), size_as<DWORD>(value), true);
-		Write(name, value, REG_SZ);
+		WriteValue(name, value, REG_SZ);
 	}
 	int ReadMultiStringFromReg(std::string_view name, _Out_writes_z_(size) char* buffer, DWORD size) const {
-		if (auto const read = ReadValue(name)) {
-			auto const len = std::min(read->size(), (size_t)size - 1);
-			std::copy_n(read->data(), len, buffer);
-			buffer[len] = '\0';
-			Xor(name, buffer, StrMultiLen(buffer) + 1, true);
+		if (std::string value; ReadValue(name, value)) {
+			Xor(name, data(value), size_as<DWORD>(value), true);
+			auto p = std::copy_n(begin(value), std::min(value.size(), (size_t)size - 1), buffer);
+			*p = '\0';
 			return FFFTP_SUCCESS;
 		}
 		return FFFTP_FAIL;
@@ -87,12 +85,12 @@ public:
 	void WriteMultiStringToReg(std::string_view name, const char* str) {
 		std::string value{ str, str + StrMultiLen(str) };
 		Xor(name, data(value), size_as<DWORD>(value), true);
-		Write(name, value, REG_MULTI_SZ);
+		WriteValue(name, value, REG_MULTI_SZ);
 	}
 	int ReadBinaryFromReg(std::string_view name, _Out_writes_(size) void* buffer, DWORD size) const {
-		if (auto const read = ReadValue(name)) {
-			std::copy_n(read->data(), std::min(read->size(), (size_t)size), reinterpret_cast<char*>(buffer));
-			Xor(name, buffer, size, false);
+		if (std::string value; ReadValue(name, value)) {
+			Xor(name, data(value), size_as<DWORD>(value), false);
+			std::copy_n(begin(value), std::min(value.size(), (size_t)size), reinterpret_cast<char*>(buffer));
 			return FFFTP_SUCCESS;
 		}
 		return FFFTP_FAIL;
@@ -100,7 +98,7 @@ public:
 	void WriteBinaryToReg(std::string_view name, const void* bin, int len) {
 		std::string value{ reinterpret_cast<const char*>(bin), reinterpret_cast<const char*>(bin) + len };
 		Xor(name, data(value), size_as<DWORD>(value), false);
-		Write(name, value, REG_BINARY);
+		WriteValue(name, value, REG_BINARY);
 	}
 	virtual int DeleteSubKey(std::string_view name) {
 		return FFFTP_FAIL;
@@ -1772,23 +1770,27 @@ struct REGDATATBL : Config {
 				return data(line) + size(name) + 1;
 		return nullptr;
 	}
-	std::optional<int> ReadInt(std::string_view name) const override {
-		if (auto const p = Scan(name))
-			return atoi(p);
-		return {};
+	bool ReadInt(std::string_view name, int& value) const override {
+		if (auto const p = Scan(name)) {
+			value = atoi(p);
+			return true;
+		}
+		return false;
 	}
-	std::optional<std::string> ReadValue(std::string_view name) const override {
+	bool ReadValue(std::string_view name, std::string& value) const override {
 		static std::regex re{ R"(\\([0-9A-F]{2})|\\\\)" };
 		if (auto const p = Scan(name)) {
-			auto const value = replace({ p }, re, [](auto const& m) { return m[1].matched ? std::stoi(m[1], nullptr, 16) : '\\'; });
-			return IniKanjiCode == KANJI_SJIS ? u8(a2w(value)) : value;
+			value = replace({ p }, re, [](auto const& m) { return m[1].matched ? std::stoi(m[1], nullptr, 16) : '\\'; });
+			if (IniKanjiCode == KANJI_SJIS)
+				value = u8(a2w(value));
+			return true;
 		}
-		return {};
+		return false;
 	}
-	void Write(std::string_view name, int value) override {
+	void WriteInt(std::string_view name, int value) override {
 		(*map)[KeyName].push_back(std::string{ name } + '=' + std::to_string(value));
 	}
-	void Write(std::string_view name, std::string_view value, DWORD) override {
+	void WriteValue(std::string_view name, std::string_view value, DWORD) override {
 		auto line = std::string{ name } +'=';
 		for (auto it = begin(value); it != end(value); ++it)
 			if (0x20 <= *it && *it < 0x7F) {
@@ -1820,31 +1822,33 @@ struct REGDATATBL_REG : Config {
 			return std::make_unique<REGDATATBL_REG>(KeyName + '\\' + Name, key);
 		return {};
 	}
-	std::optional<int> ReadInt(std::string_view name) const override {
-		if (DWORD value, size = sizeof(int); RegQueryValueExW(hKey, u8(name).c_str(), nullptr, nullptr, reinterpret_cast<BYTE*>(&value), &size) == ERROR_SUCCESS)
-			return value;
-		return {};
+	bool ReadInt(std::string_view name, int& value) const override {
+		DWORD size = sizeof(int);
+		return RegQueryValueExW(hKey, u8(name).c_str(), nullptr, nullptr, reinterpret_cast<BYTE*>(&value), &size) == ERROR_SUCCESS;
 	}
-	std::optional<std::string> ReadValue(std::string_view name) const override {
+	bool ReadValue(std::string_view name, std::string& value) const override {
 		auto const wName = u8(name);
 		if (DWORD type, count; RegQueryValueExW(hKey, wName.c_str(), nullptr, &type, nullptr, &count) == ERROR_SUCCESS) {
 			if (type == REG_BINARY) {
 				// TODO: EncryptSettings == YESの時、末尾に\0を含むが削除していない。
-				if (std::string value(count, '\0'); RegQueryValueExW(hKey, wName.c_str(), nullptr, nullptr, data_as<BYTE>(value), &count) == ERROR_SUCCESS)
-					return value;
+				value.resize(count);
+				if (RegQueryValueExW(hKey, wName.c_str(), nullptr, nullptr, data_as<BYTE>(value), &count) == ERROR_SUCCESS)
+					return true;
 			} else {
 				// TODO: 末尾に\0が含まれているが削除していない。
 				assert(EncryptSettings != YES && (type == REG_SZ || type == REG_MULTI_SZ));
-				if (std::wstring value(count / sizeof(wchar_t), L'\0'); RegQueryValueExW(hKey, wName.c_str(), nullptr, nullptr, data_as<BYTE>(value), &count) == ERROR_SUCCESS)
-					return u8(value);
+				if (std::wstring wvalue(count / sizeof(wchar_t), L'\0'); RegQueryValueExW(hKey, wName.c_str(), nullptr, nullptr, data_as<BYTE>(wvalue), &count) == ERROR_SUCCESS) {
+					value = u8(wvalue);
+					return true;
+				}
 			}
 		}
-		return {};
+		return false;
 	}
-	void Write(std::string_view name, int value) override {
+	void WriteInt(std::string_view name, int value) override {
 		RegSetValueExW(hKey, u8(name).c_str(), 0, REG_DWORD, reinterpret_cast<CONST BYTE*>(&value), sizeof(int));
 	}
-	void Write(std::string_view name, std::string_view value, DWORD type) override {
+	void WriteValue(std::string_view name, std::string_view value, DWORD type) override {
 		if (EncryptSettings == YES || type == REG_BINARY)
 			RegSetValueExW(hKey, u8(name).c_str(), 0, REG_BINARY, data_as<const BYTE>(value), type == REG_BINARY ? size_as<DWORD>(value) : size_as<DWORD>(value) + 1);
 		else {
