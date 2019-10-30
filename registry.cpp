@@ -1736,12 +1736,12 @@ static bool CreateAesKey(unsigned char *AesKey) {
 
 /*===== レジストリとINIファイルのアクセス処理 ============*/
 
-struct REGDATATBL : Config {
+struct IniConfig : Config {
 	std::shared_ptr<std::map<std::string, std::vector<std::string>>> map;
 	bool const update;
-	REGDATATBL(std::string const& keyName, bool update) : Config{ keyName }, map{ new std::map<std::string, std::vector<std::string>>{} }, update{ update } {}
-	REGDATATBL(std::string const& keyName, REGDATATBL& parent) : Config{ keyName }, map{ parent.map }, update{ false } {}
-	~REGDATATBL() override {
+	IniConfig(std::string const& keyName, bool update) : Config{ keyName }, map{ new std::map<std::string, std::vector<std::string>>{} }, update{ update } {}
+	IniConfig(std::string const& keyName, IniConfig& parent) : Config{ keyName }, map{ parent.map }, update{ false } {}
+	~IniConfig() override {
 		if (update) {
 			std::ofstream of{ fs::u8path(AskIniFilePath()) };
 			if (!of) {
@@ -1758,11 +1758,11 @@ struct REGDATATBL : Config {
 	}
 	std::unique_ptr<Config> OpenSubKey(char* Name) override {
 		if (auto const keyName = KeyName + '\\' + Name; map->contains(keyName))
-			return std::make_unique<REGDATATBL>(keyName, *this);
+			return std::make_unique<IniConfig>(keyName, *this);
 		return {};
 	}
 	std::unique_ptr<Config> CreateSubKey(char* Name) override {
-		return std::make_unique<REGDATATBL>(KeyName + '\\' + Name, *this);
+		return std::make_unique<IniConfig>(KeyName + '\\' + Name, *this);
 	}
 	const char* Scan(std::string_view name) const {
 		for (auto const& line : (*map)[KeyName])
@@ -1806,20 +1806,20 @@ struct REGDATATBL : Config {
 	}
 };
 
-struct REGDATATBL_REG : Config {
+struct RegConfig : Config {
 	HKEY hKey;
-	REGDATATBL_REG(std::string const& keyName, HKEY hkey) : Config{ keyName }, hKey{ hkey } {}
-	~REGDATATBL_REG() override {
+	RegConfig(std::string const& keyName, HKEY hkey) : Config{ keyName }, hKey{ hkey } {}
+	~RegConfig() override {
 		RegCloseKey(hKey);
 	}
 	std::unique_ptr<Config> OpenSubKey(char* Name) override {
 		if (HKEY key; RegOpenKeyExW(hKey, u8(Name).c_str(), 0, KEY_READ, &key) == ERROR_SUCCESS)
-			return std::make_unique<REGDATATBL_REG>(KeyName + '\\' + Name, key);
+			return std::make_unique<RegConfig>(KeyName + '\\' + Name, key);
 		return {};
 	}
 	std::unique_ptr<Config> CreateSubKey(char* Name) override {
 		if (HKEY key; RegCreateKeyExW(hKey, u8(Name).c_str(), 0, nullptr, 0, KEY_SET_VALUE, nullptr, &key, nullptr) == ERROR_SUCCESS)
-			return std::make_unique<REGDATATBL_REG>(KeyName + '\\' + Name, key);
+			return std::make_unique<RegConfig>(KeyName + '\\' + Name, key);
 		return {};
 	}
 	bool ReadInt(std::string_view name, int& value) const override {
@@ -1870,10 +1870,10 @@ static std::unique_ptr<Config> OpenReg(int type) {
 	auto name = "FFFTP"s;
 	if (type == REGTYPE_REG) {
 		if (HKEY key; RegOpenKeyExW(HKEY_CURRENT_USER, LR"(Software\Sota\FFFTP)", 0, KEY_READ, &key) == ERROR_SUCCESS)
-			return std::make_unique<REGDATATBL_REG>(name, key);
+			return std::make_unique<RegConfig>(name, key);
 	} else {
 		if (std::ifstream is{ fs::u8path(AskIniFilePath()) }) {
-			auto root = std::make_unique<REGDATATBL>(name, false);
+			auto root = std::make_unique<IniConfig>(name, false);
 			for (std::string line; getline(is, line);) {
 				if (empty(line) || line[0] == '#')
 					continue;
@@ -1896,9 +1896,9 @@ static std::unique_ptr<Config> CreateReg(int type) {
 	auto name = "FFFTP"s;
 	if (type == REGTYPE_REG) {
 		if (HKEY key; RegCreateKeyExW(HKEY_CURRENT_USER, LR"(Software\Sota\FFFTP)", 0, nullptr, 0, KEY_CREATE_SUB_KEY | KEY_SET_VALUE, nullptr, &key, nullptr) == ERROR_SUCCESS)
-			return std::make_unique<REGDATATBL_REG>(name, key);
+			return std::make_unique<RegConfig>(name, key);
 	} else {
-		return std::make_unique<REGDATATBL>(name, true);
+		return std::make_unique<IniConfig>(name, true);
 	}
 	return {};
 }
