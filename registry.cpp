@@ -28,6 +28,8 @@
 /============================================================================*/
 
 #include "common.h"
+#include <xmllite.h>
+#pragma comment(lib, "xmllite.lib")
 const int AES_BLOCK_SIZE = 16;
 static int EncryptSettings = NO;
 
@@ -2075,180 +2077,89 @@ int ReadSettingsVersion() {
 }
 
 // FileZilla XML形式エクスポート対応
-void SaveSettingsToFileZillaXml()
-{
-	FILE* f;
-	TIME_ZONE_INFORMATION tzi;
-	int Level;
-	int i;
-	HOSTDATA Host;
-	char Tmp[FMAX_PATH+1];
-	char* p1;
-	char* p2;
-	if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FileZilla.xml", L"xml", { FileType::Xml,FileType::All }); !std::empty(path))
-	{
-		if((f = _wfopen(path.c_str(), L"wt")) != NULL)
-		{
-			fputs("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\n", f);
-			fputs("<FileZilla3>\n", f);
-			fputs("<Servers>\n", f);
-			GetTimeZoneInformation(&tzi);
-			Level = 0;
-			i = 0;
-			while(CopyHostFromList(i, &Host) == FFFTP_SUCCESS)
-			{
-				while((Host.Level & SET_LEVEL_MASK) < Level)
-				{
-					fputs("</Folder>\n", f);
-					Level--;
-				}
-				if(Host.Level & SET_LEVEL_GROUP)
-				{
-					fputs("<Folder expanded=\"1\">\n", f);
-					fprintf(f, "%s&#x0A;\n", Host.HostName);
-					Level++;
-				}
-				else
-				{
-					fputs("<Server>\n", f);
-					fprintf(f, "<Host>%s</Host>\n", Host.HostAdrs);
-					fprintf(f, "<Port>%d</Port>\n", Host.Port);
-					if(Host.UseNoEncryption == YES)
-						fprintf(f, "<Protocol>%s</Protocol>\n", "0");
-					else if(Host.UseFTPES == YES)
-						fprintf(f, "<Protocol>%s</Protocol>\n", "4");
-					else if(Host.UseFTPIS == YES)
-						fprintf(f, "<Protocol>%s</Protocol>\n", "3");
-					else
-						fprintf(f, "<Protocol>%s</Protocol>\n", "0");
-					fprintf(f, "<Type>%s</Type>\n", "0");
-					fprintf(f, "<User>%s</User>\n", Host.UserName);
-					fprintf(f, "<Pass>%s</Pass>\n", Host.PassWord);
-					fprintf(f, "<Account>%s</Account>\n", Host.Account);
-					if(Host.Anonymous == YES || strlen(Host.UserName) == 0)
-						fprintf(f, "<Logontype>%s</Logontype>\n", "0");
-					else
-						fprintf(f, "<Logontype>%s</Logontype>\n", "1");
-					fprintf(f, "<TimezoneOffset>%d</TimezoneOffset>\n", tzi.Bias + Host.TimeZone * 60);
-					if(Host.Pasv == YES)
-						fprintf(f, "<PasvMode>%s</PasvMode>\n", "MODE_PASSIVE");
-					else
-						fprintf(f, "<PasvMode>%s</PasvMode>\n", "MODE_ACTIVE");
-					fprintf(f, "<MaximumMultipleConnections>%d</MaximumMultipleConnections>\n", Host.MaxThreadCount);
-					switch(Host.NameKanjiCode)
-					{
-					case KANJI_SJIS:
-						fprintf(f, "<EncodingType>%s</EncodingType>\n", "Custom");
-						fprintf(f, "<CustomEncoding>%s</CustomEncoding>\n", "Shift_JIS");
-						break;
-					case KANJI_JIS:
-						// 非対応
-						fprintf(f, "<EncodingType>%s</EncodingType>\n", "Auto");
-						break;
-					case KANJI_EUC:
-						fprintf(f, "<EncodingType>%s</EncodingType>\n", "Custom");
-						fprintf(f, "<CustomEncoding>%s</CustomEncoding>\n", "EUC-JP");
-						break;
-					case KANJI_SMB_HEX:
-						// 非対応
-						fprintf(f, "<EncodingType>%s</EncodingType>\n", "Auto");
-						break;
-					case KANJI_SMB_CAP:
-						// 非対応
-						fprintf(f, "<EncodingType>%s</EncodingType>\n", "Auto");
-						break;
-					case KANJI_UTF8N:
-						fprintf(f, "<EncodingType>%s</EncodingType>\n", "UTF-8");
-						break;
-					case KANJI_UTF8HFSX:
-						// 非対応
-						fprintf(f, "<EncodingType>%s</EncodingType>\n", "Auto");
-						break;
-					default:
-						fprintf(f, "<EncodingType>%s</EncodingType>\n", "Auto");
-						break;
-					}
-					if(Host.FireWall == YES)
-						fprintf(f, "<BypassProxy>%s</BypassProxy>\n", "0");
-					else
-						fprintf(f, "<BypassProxy>%s</BypassProxy>\n", "1");
-					fprintf(f, "<Name>%s</Name>\n", Host.HostName);
-					fprintf(f, "<LocalDir>%s</LocalDir>\n", Host.LocalInitDir);
-					if(strchr(Host.RemoteInitDir, '\\') != NULL)
-					{
-						fputs("<RemoteDir>", f);
-						fputs("8 0", f);
-						strcpy(Tmp, Host.RemoteInitDir);
-						p1 = Tmp;
-						while(*p1 != '\0')
-						{
-							while(*p1 == '\\')
-							{
-								p1++;
-							}
-							if((p2 = strchr(p1, '\\')) != NULL)
-							{
-								*p2 = '\0';
-								p2++;
-							}
-							else
-								p2 = strchr(p1, '\0');
-							if(*p1 != '\0')
-								fprintf(f, " %zu %s", size(u8(p1)), p1);
-							p1 = p2;
+void SaveSettingsToFileZillaXml() {
+	static std::wregex unix{ LR"([^/]+)" }, dos{ LR"([^/\\]+)" };
+	if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FileZilla.xml", L"xml", { FileType::Xml,FileType::All }); !std::empty(path)) {
+		if (ComPtr<IStream> stream; SHCreateStreamOnFileEx(path.c_str(), STGM_WRITE | STGM_CREATE, FILE_ATTRIBUTE_NORMAL, 0, nullptr, &stream) == S_OK)
+			if (ComPtr<IXmlWriter> writer; CreateXmlWriter(IID_PPV_ARGS(&writer), nullptr) == S_OK) {
+				TIME_ZONE_INFORMATION tzi;
+				GetTimeZoneInformation(&tzi);
+				writer->SetOutput(stream.Get());
+				writer->SetProperty(XmlWriterProperty_Indent, TRUE);
+				writer->WriteStartDocument(XmlStandalone_Yes);
+				writer->WriteStartElement(nullptr, L"FileZilla3", nullptr);
+				writer->WriteStartElement(nullptr, L"Servers", nullptr);
+				int level = 0;
+				HOSTDATA host;
+				for (int i = 0; CopyHostFromList(i, &host) == FFFTP_SUCCESS; i++) {
+					while ((host.Level & SET_LEVEL_MASK) < level--)
+						writer->WriteEndElement();
+					if (host.Level & SET_LEVEL_GROUP) {
+						writer->WriteStartElement(nullptr, L"Folder", nullptr);
+						writer->WriteAttributeString(nullptr, L"expanded", nullptr, L"1");
+						writer->WriteString(u8(host.HostName).c_str());
+						writer->WriteCharEntity(L'\n');
+						level++;
+					} else {
+						writer->WriteStartElement(nullptr, L"Server", nullptr);
+						writer->WriteElementString(nullptr, L"Host", nullptr, u8(host.HostAdrs).c_str());
+						writer->WriteElementString(nullptr, L"Port", nullptr, std::to_wstring(host.Port).c_str());
+						writer->WriteElementString(nullptr, L"Protocol", nullptr, host.UseNoEncryption == YES ? L"0" : host.UseFTPES == YES ? L"4" : host.UseFTPIS == YES ? L"3" : L"0");
+						writer->WriteElementString(nullptr, L"Type", nullptr, L"0");
+						writer->WriteElementString(nullptr, L"User", nullptr, u8(host.UserName).c_str());
+						writer->WriteElementString(nullptr, L"Pass", nullptr, u8(host.PassWord).c_str());
+						writer->WriteElementString(nullptr, L"Account", nullptr, u8(host.Account).c_str());
+						writer->WriteElementString(nullptr, L"Logontype", nullptr, host.Anonymous == YES || strlen(host.UserName) == 0 ? L"0" : L"1");
+						writer->WriteElementString(nullptr, L"TimezoneOffset", nullptr, std::to_wstring(tzi.Bias + host.TimeZone * 60).c_str());
+						writer->WriteElementString(nullptr, L"PasvMode", nullptr, host.Pasv == YES ? L"MODE_PASSIVE" : L"MODE_ACTIVE");
+						writer->WriteElementString(nullptr, L"MaximumMultipleConnections", nullptr, std::to_wstring(host.MaxThreadCount).c_str());
+						switch (host.NameKanjiCode) {
+						case KANJI_SJIS:
+							writer->WriteElementString(nullptr, L"EncodingType", nullptr, L"Custom");
+							writer->WriteElementString(nullptr, L"CustomEncoding", nullptr, L"Shift_JIS");
+							break;
+						case KANJI_EUC:
+							writer->WriteElementString(nullptr, L"EncodingType", nullptr, L"Custom");
+							writer->WriteElementString(nullptr, L"CustomEncoding", nullptr, L"EUC-JP");
+							break;
+						case KANJI_UTF8N:
+							writer->WriteElementString(nullptr, L"EncodingType", nullptr, L"UTF-8");
+							break;
+						case KANJI_JIS:
+						case KANJI_SMB_HEX:
+						case KANJI_SMB_CAP:
+						case KANJI_UTF8HFSX:
+						default:
+							writer->WriteElementString(nullptr, L"EncodingType", nullptr, L"Auto");
+							break;
 						}
-						fputs("</RemoteDir>\n", f);
-					}
-					else if(strchr(Host.RemoteInitDir, '/') != NULL)
-					{
-						fputs("<RemoteDir>", f);
-						fputs("1 0", f);
-						strcpy(Tmp, Host.RemoteInitDir);
-						p1 = Tmp;
-						while(*p1 != '\0')
-						{
-							while(*p1 == '/')
-							{
-								p1++;
+						writer->WriteElementString(nullptr, L"BypassProxy", nullptr, host.FireWall == YES ? L"0" : L"1");
+						writer->WriteElementString(nullptr, L"Name", nullptr, u8(host.HostName).c_str());
+						writer->WriteElementString(nullptr, L"LocalDir", nullptr, u8(host.LocalInitDir).c_str());
+						auto remoteDir = u8(host.RemoteInitDir);
+						for (auto& [ch, prefix, re] : std::initializer_list<std::tuple<wchar_t, std::wstring_view, std::wregex>>{ { L'/', L"1 0"sv, unix }, { L'\\', L"8 0"sv, dos } })
+							if (remoteDir.find(ch) != std::wstring::npos) {
+								std::wstring encoded{ prefix };
+								for (std::wcregex_iterator it{ data(remoteDir), data(remoteDir) + size(remoteDir), re }, end; it != end; ++it) {
+									encoded += L' ';
+									encoded += std::to_wstring(it->length(0));
+									encoded += L' ';
+									encoded += { (*it)[0].first, (size_t)it->length(0) };
+								}
+								remoteDir = encoded;
+								break;
 							}
-							if((p2 = strchr(p1, '/')) != NULL)
-							{
-								*p2 = '\0';
-								p2++;
-							}
-							else
-								p2 = strchr(p1, '\0');
-							if(*p1 != '\0')
-								fprintf(f, " %zu %s", size(u8(p1)), p1);
-							p1 = p2;
-						}
-						fputs("</RemoteDir>\n", f);
+						writer->WriteElementString(nullptr, L"RemoteDir", nullptr, remoteDir.c_str());
+						writer->WriteElementString(nullptr, L"SyncBrowsing", nullptr, host.SyncMove == YES ? L"1" : L"0");
+						writer->WriteString(u8(host.HostName).c_str());
+						writer->WriteCharEntity(L'\n');
+						writer->WriteEndElement();	// </Server>
 					}
-					else
-						fprintf(f, "<RemoteDir>%s</RemoteDir>\n", Host.RemoteInitDir);
-					if(Host.SyncMove == YES)
-						fprintf(f, "<SyncBrowsing>%s</SyncBrowsing>\n", "1");
-					else
-						fprintf(f, "<SyncBrowsing>%s</SyncBrowsing>\n", "0");
-					fprintf(f, "%s&#x0A;\n", Host.HostName);
-					fputs("</Server>\n", f);
 				}
-				i++;
+				writer->WriteEndDocument();	// Closes any open elements or attributes, then closes the current document.
+				return;
 			}
-			while(Level > 0)
-			{
-				fputs("</Folder>\n", f);
-				Level--;
-			}
-			fputs("</Servers>\n", f);
-			// TODO: 環境設定
-//			fputs("<Settings>\n", f);
-//			fputs("</Settings>\n", f);
-			fputs("</FileZilla3>\n", f);
-			fclose(f);
-		}
-		else
-			Message(IDS_FAIL_TO_EXPORT, MB_OK | MB_ICONERROR);
+		Message(IDS_FAIL_TO_EXPORT, MB_OK | MB_ICONERROR);
 	}
 }
 
