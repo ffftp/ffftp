@@ -102,8 +102,8 @@ public:
 		Xor(name, data(value), size_as<DWORD>(value), false);
 		WriteValue(name, value, REG_BINARY);
 	}
-	virtual int DeleteSubKey(std::string_view name) {
-		return FFFTP_FAIL;
+	virtual bool DeleteSubKey(std::string_view name) {
+		return false;
 	}
 	virtual void DeleteValue(std::string_view name) {
 	}
@@ -658,7 +658,7 @@ void SaveRegistry(void)
 				for(; n < 999; n++)
 				{
 					sprintf(Str, "History%d", n);
-					if(hKey4->DeleteSubKey(Str) != FFFTP_SUCCESS)
+					if(!hKey4->DeleteSubKey(Str))
 						break;
 				}
 
@@ -802,7 +802,7 @@ void SaveRegistry(void)
 				for(; i < 998; i++)
 				{
 					sprintf(Str, "Host%d", i);
-					if(hKey4->DeleteSubKey(Str) != FFFTP_SUCCESS)
+					if(!hKey4->DeleteSubKey(Str))
 						break;
 				}
 
@@ -840,42 +840,12 @@ void SaveRegistry(void)
 		EncryptSettings = NO;
 		if(EncryptAllSettings == YES)
 		{
-			if(auto hKey4 = hKey3->OpenSubKey("Options"))
-			{
-				for(i = 0; ; i++)
-				{
-					sprintf(Str, "Host%d", i);
-					if(hKey4->DeleteSubKey(Str) != FFFTP_SUCCESS)
-						break;
-				}
-				for(i = 0; ; i++)
-				{
-					sprintf(Str, "History%d", i);
-					if(hKey4->DeleteSubKey(Str) != FFFTP_SUCCESS)
-						break;
-				}
-			}
 			hKey3->DeleteSubKey("Options");
 			hKey3->DeleteValue("CredentialSalt");
 			hKey3->DeleteValue("CredentialCheck");
 		}
 		else
 		{
-			if(auto hKey4 = hKey3->OpenSubKey("EncryptedOptions"))
-			{
-				for(i = 0; ; i++)
-				{
-					sprintf(Str, "Host%d", i);
-					if(hKey4->DeleteSubKey(Str) != FFFTP_SUCCESS)
-						break;
-				}
-				for(i = 0; ; i++)
-				{
-					sprintf(Str, "History%d", i);
-					if(hKey4->DeleteSubKey(Str) != FFFTP_SUCCESS)
-						break;
-				}
-			}
 			hKey3->DeleteSubKey("EncryptedOptions");
 			hKey3->DeleteValue("CredentialSalt1");
 			hKey3->DeleteValue("CredentialStretch");
@@ -1858,8 +1828,8 @@ struct RegConfig : Config {
 			RegSetValueExW(hKey, u8(name).c_str(), 0, type, data_as<const BYTE>(wvalue), (size_as<DWORD>(wvalue) + 1) * sizeof(wchar_t));
 		}
 	}
-	int DeleteSubKey(std::string_view name) override {
-		return RegDeleteKeyW(hKey, u8(name).c_str()) == ERROR_SUCCESS ? FFFTP_SUCCESS : FFFTP_FAIL;
+	bool DeleteSubKey(std::string_view name) override {
+		return SHDeleteKeyW(hKey, u8(name).c_str()) == ERROR_SUCCESS;
 	}
 	void DeleteValue(std::string_view name) override {
 		RegDeleteValueW(hKey, u8(name).c_str());
