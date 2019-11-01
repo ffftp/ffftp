@@ -134,10 +134,6 @@ static bool CreateAesKey(unsigned char *AesKey);
 
 static std::unique_ptr<Config> OpenReg(int type);
 static std::unique_ptr<Config> CreateReg(int type);
-
-// 全設定暗号化対応
-//int CheckPasswordValidity( char* Password, int length, const char* HashStr );
-//void CreatePasswordHash( char* Password, int length, char* HashStr );
 int CheckPasswordValidity( char* Password, int length, const char* HashStr, int StretchCount );
 void CreatePasswordHash( char* Password, int length, char* HashStr, int StretchCount );
 void SetHashSalt( DWORD salt );
@@ -358,18 +354,7 @@ int ValidateMasterPassword(void)
 			else
 				SetHashSalt1(NULL, 0);
 			hKey3->ReadIntValueFromReg("CredentialStretch", &stretch);
-			switch(CheckPasswordValidity(SecretKey, SecretKeyLength, checkbuf, stretch))
-			{
-			case 0:
-				IsMasterPasswordError = PASSWORD_UNMATCH;
-				break;
-			case 1:
-				IsMasterPasswordError = PASSWORD_OK;
-				break;
-			default:
-				IsMasterPasswordError = BAD_PASSWORD_HASH;
-				break;
-			}
+			IsMasterPasswordError = CheckPasswordValidity(SecretKey, SecretKeyLength, checkbuf, stretch);
 		}
 		else if(hKey3->ReadStringFromReg("CredentialCheck", checkbuf, sizeof(checkbuf)) == FFFTP_SUCCESS)
 		{
@@ -377,18 +362,7 @@ int ValidateMasterPassword(void)
 				SetHashSalt(salt);
 			else
 				SetHashSalt1(NULL, 0);
-			switch(CheckPasswordValidity(SecretKey, SecretKeyLength, checkbuf, 0))
-			{
-			case 0:
-				IsMasterPasswordError = PASSWORD_UNMATCH;
-				break;
-			case 1:
-				IsMasterPasswordError = PASSWORD_OK;
-				break;
-			default:
-				IsMasterPasswordError = BAD_PASSWORD_HASH;
-				break;
-			}
+			IsMasterPasswordError = CheckPasswordValidity(SecretKey, SecretKeyLength, checkbuf, 0);
 		}
 		return YES;
 	}
@@ -1876,19 +1850,7 @@ static std::unique_ptr<Config> CreateReg(int type) {
 }
 
 
-/*----------- パスワードの妥当性を確認する ------------------------------------
-*
-*	Parameter
-*		char *Password: パスワード文字列
-*		char *HashStr: SHA-1ハッシュ文字列
-*
-*	Return Value
-*		int 0 不一致
-*			1: 一致
-*			2: 異常
-*----------------------------------------------------------------------------*/
-// 全設定暗号化対応
-//int CheckPasswordValidity( char* Password, int length, const char* HashStr )
+// パスワードの妥当性を確認する
 int CheckPasswordValidity( char* Password, int length, const char* HashStr, int StretchCount )
 {
 	char Buf[MAX_PASSWORD_LEN + 32];
@@ -1900,17 +1862,17 @@ int CheckPasswordValidity( char* Password, int length, const char* HashStr, int 
 	const char* p = HashStr;
 	
 	/* 空文字列は一致したことにする */
-	if( HashStr[0] == NUL )	return 1;
+	if( HashStr[0] == NUL )	return PASSWORD_OK;
 
 	/* Hashをチェックするする*/
-	if( strlen(HashStr) != 40 )	return 2;
+	if( strlen(HashStr) != 40 )	return BAD_PASSWORD_HASH;
 
 	/* Hashをデコードする*/
 	for( i = 0; i < 5; i++ ){
 		ulong decode = 0;
 		for( j = 0; j < 8; j++ ){
 			if( *p < 0x40 || 0x40 + 15 < *p ){
-				return 2;
+				return BAD_PASSWORD_HASH;
 			}
 			decode = (decode << 4 ) + (*p - 0x40);
 			++p;
@@ -1928,9 +1890,9 @@ int CheckPasswordValidity( char* Password, int length, const char* HashStr, int 
 	}
 	
 	if( memcmp( (char*)hash1, (char*)hash2, sizeof( hash1 )) == 0 ){
-		return 1;
+		return PASSWORD_OK;
 	}
-	return 0;
+	return PASSWORD_UNMATCH;
 }
 
 /*----------- パスワードの妥当性チェックのための文字列を作成する ------------
