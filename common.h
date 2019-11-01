@@ -940,10 +940,6 @@ LIST_UNIX_70
 #define REGTYPE_REG		0		/* レジストリ */
 #define REGTYPE_INI		1		/* INIファイル */
 
-// UTF-8対応
-//#define REG_SECT_MAX	(16*1024)	/* レジストリの１セクションの最大データサイズ */
-#define REG_SECT_MAX	(64*1024)	/* レジストリの１セクションの最大データサイズ */
-
 /*===== ホスト設定で明示的に指定するホストのタイプ =====*/
 
 #define	HTYPE_AUTO		0		/* 自動 */
@@ -1092,10 +1088,6 @@ LIST_UNIX_70
 #define NTYPE_AUTO			0		/* 自動 */
 #define NTYPE_IPV4			1		/* TCP/IPv4 */
 #define NTYPE_IPV6			2		/* TCP/IPv6 */
-
-// 暗号化通信対応
-// REG_SECT_MAXの値を加味する必要がある
-#define MAX_CERT_CACHE_HASH 256
 
 
 /*=================================================
@@ -1823,7 +1815,7 @@ void GetUpperDirEraseTopSlash(char *Path);
 int AskDirLevel(char *Path);
 void MakeSizeString(double Size, char *Buf);
 void DispStaticText(HWND hWnd, char *Str);
-int StrMultiLen(char *Str);
+int StrMultiLen(const char *Str);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
 int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char *Pass, int *Port);
 int TimeString2FileTime(const char *Time, FILETIME *Buf);
