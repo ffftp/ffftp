@@ -314,32 +314,25 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 		return true;
 	}, 0);
 
-	MSG Msg;
-	int Ret;
-	BOOL Sts;
-
 	// マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 #ifdef DISABLE_MULTI_CPUS
 	SetProcessAffinityMask(GetCurrentProcess(), 1);
 #endif
 	MainThreadId = GetCurrentThreadId();
 
-	// yutaka
-	if(OleInitialize(NULL) != S_OK){
+	if (OleInitialize(nullptr) != S_OK) {
 		Message(IDS_FAIL_TO_INIT_OLE, MB_OK | MB_ICONERROR);
 		return 0;
 	}
 
 	LoadUPnP();
-	// タスクバー進捗表示
 	LoadTaskbarList3();
-	// ゾーンID設定追加
 	LoadZoneID();
 
 #if _WIN32_WINNT < _WIN32_WINNT_VISTA
 	// Vista以降およびIE7以降で導入済みとなる
 	SupportIdn = [] {
-		if (auto module = LoadLibraryW((systemDirectory() / L"Normaliz.dll").c_str()); module == NULL)
+		if (auto module = LoadLibraryW((systemDirectory() / L"Normaliz.dll"sv).c_str()); !module)
 			return false;
 		__HrLoadAllImportsForDll("Normaliz.dll");
 		return true;
@@ -358,42 +351,29 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 		return 0;
 	}
 
-	Ret = FALSE;
+	int exitCode = FALSE;
 	if (InitApp(nShowCmd) == FFFTP_SUCCESS) {
-		for(;;)
-		{
-			Sts = GetMessageW(&Msg, NULL, 0, 0);
-			if((Sts == 0) || (Sts == -1))
-				break;
-
-			if(__pragma(warning(suppress:6387)) !HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
-			{ 
-				/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
-				/* コンボボックス内ではアクセラレータを無効にする */
-				if((Msg.hwnd == GetLocalHistEditHwnd()) ||
-				   (Msg.hwnd == GetRemoteHistEditHwnd()) ||
-				   ((hHelpWin != NULL) && (GetAncestor(Msg.hwnd, GA_ROOT) == hHelpWin)) ||
-				   GetHideUI() == YES ||
-				   (TranslateAcceleratorW(GetMainHwnd(), Accel, &Msg) == 0))
-				{
-					TranslateMessage(&Msg);
-					DispatchMessageW(&Msg);
-				}
+		MSG msg;
+		while (GetMessageW(&msg, NULL, 0, 0)) {
+			if (__pragma(warning(suppress:6387)) HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&msg))
+				continue;
+			/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
+			/* コンボボックス内ではアクセラレータを無効にする */
+			if (msg.hwnd == GetLocalHistEditHwnd() || msg.hwnd == GetRemoteHistEditHwnd() || hHelpWin && GetAncestor(msg.hwnd, GA_ROOT) == hHelpWin || GetHideUI() == YES || TranslateAcceleratorW(GetMainHwnd(), Accel, &msg) == 0) {
+				TranslateMessage(&msg);
+				DispatchMessageW(&msg);
 			}
 		}
-		Ret = (int)Msg.wParam;
+		exitCode = (int)msg.wParam;
 	}
 	UnregisterClassW(FtpClass, GetFtpInst());
 	FreeSSL();
 	CryptReleaseContext(HCryptProv, 0);
-	// ゾーンID設定追加
 	FreeZoneID();
-	// タスクバー進捗表示
 	FreeTaskbarList3();
-	// UPnP対応
 	FreeUPnP();
 	OleUninitialize();
-	return(Ret);
+	return exitCode;
 }
 
 
