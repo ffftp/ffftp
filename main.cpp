@@ -334,8 +334,6 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 		return 0;
 	}
 
-	// UPnP対応
-	CoInitialize(NULL);
 	LoadUPnP();
 	// タスクバー進捗表示
 	LoadTaskbarList3();
@@ -398,7 +396,6 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 	FreeTaskbarList3();
 	// UPnP対応
 	FreeUPnP();
-	CoUninitialize();
 	OleUninitialize();
 	return(Ret);
 }
