@@ -1351,7 +1351,7 @@ void ExecViewer2(char *Fname1, char *Fname2, int App);
 void AddTempFileList(char *Fname);
 void SoundPlay(int Num);
 void ShowHelp(DWORD_PTR helpTopicId);
-char *AskIniFilePath(void);
+fs::path const& AskIniFilePath();
 int AskForceIni(void);
 int BackgrndMessageProc(void);
 void ResetAutoExitFlg(void);

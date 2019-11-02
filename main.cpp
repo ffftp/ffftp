@@ -93,7 +93,7 @@ static TEMPFILELIST *TempFiles = NULL;
 static int SaveExit = YES;
 static int AutoExit = NO;
 
-static char IniPath[FMAX_PATH+1];
+static fs::path IniPath;
 static int ForceIni = NO;
 
 TRANSPACKET MainTransPkt;		/* ファイル転送用パケット */
@@ -434,9 +434,9 @@ static int InitApp(int cmdShow)
 		if (auto it = std::find_if(begin(args), end(args), [](auto const& arg) { return ieq(arg, L"-n"sv) || ieq(arg, L"--ini"sv); }); it != end(args) && ++it != end(args)) {
 			ForceIni = YES;
 			RegType = REGTYPE_INI;
-			strcpy(IniPath, u8(*it).c_str());
+			IniPath = *it;
 		} else
-			strcpy(IniPath, (moduleDirectory() / L"ffftp.ini").u8string().c_str());
+			IniPath = moduleDirectory() / L"ffftp.ini"sv;
 		ImportPortable = NO;
 		if (isPortable()) {
 			ForceIni = YES;
@@ -565,7 +565,7 @@ static int InitApp(int cmdShow)
 					);
 
 					if(ForceIni)
-						SetTaskMsg("%s%s", MSGJPN283, IniPath);
+						SetTaskMsg("%s%s", MSGJPN283, IniPath.u8string().c_str());
 
 					DoPrintf("Help=%s", helpPath().u8string().c_str());
 
@@ -2420,18 +2420,9 @@ void ShowHelp(DWORD_PTR helpTopicId) {
 }
 
 
-/*----- INIファイルのパス名を返す ---------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		char *パス名
-*----------------------------------------------------------------------------*/
-
-char *AskIniFilePath(void)
-{
-	return(IniPath);
+// INIファイルのパス名を返す
+fs::path const& AskIniFilePath() {
+	return IniPath;
 }
 
 /*----- INIファイルのみを使うかどうかを返す -----------------------------------

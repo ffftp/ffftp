@@ -1355,7 +1355,7 @@ void ClearRegistry() {
 
 
 void ClearIni() {
-	fs::remove(fs::u8path(AskIniFilePath()));
+	fs::remove(AskIniFilePath());
 }
 
 
@@ -1372,7 +1372,7 @@ void SaveSettingsToFile() {
 		}
 	} else {
 		if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FFFTP-Backup.ini", L"ini", { FileType::Ini, FileType::All }); !std::empty(path))
-			CopyFileW(u8(AskIniFilePath()).c_str(), path.c_str(), FALSE);
+			CopyFileW(AskIniFilePath().c_str(), path.c_str(), FALSE);
 	}
 }
 
@@ -1388,7 +1388,7 @@ int LoadSettingsFromFile() {
 				return YES;
 			Message(IDS_FAIL_TO_EXEC_REDEDIT, MB_OK | MB_ICONERROR);
 		} else if (ieq(path.extension(), L".ini"s)) {
-			CopyFileW(path.c_str(), u8(AskIniFilePath()).c_str(), FALSE);
+			CopyFileW(path.c_str(), AskIniFilePath().c_str(), FALSE);
 			return YES;
 		} else
 			Message(IDS_MUST_BE_REG_OR_INI, MB_OK | MB_ICONERROR);
@@ -1689,7 +1689,7 @@ struct IniConfig : Config {
 	IniConfig(std::string const& keyName, IniConfig& parent) : Config{ keyName }, map{ parent.map }, update{ false } {}
 	~IniConfig() override {
 		if (update) {
-			std::ofstream of{ fs::u8path(AskIniFilePath()) };
+			std::ofstream of{ AskIniFilePath() };
 			if (!of) {
 				Message(IDS_CANT_SAVE_TO_INI, MB_OK | MB_ICONERROR);
 				return;
@@ -1818,7 +1818,7 @@ static std::unique_ptr<Config> OpenReg(int type) {
 		if (HKEY key; RegOpenKeyExW(HKEY_CURRENT_USER, LR"(Software\Sota\FFFTP)", 0, KEY_READ, &key) == ERROR_SUCCESS)
 			return std::make_unique<RegConfig>(name, key);
 	} else {
-		if (std::ifstream is{ fs::u8path(AskIniFilePath()) }) {
+		if (std::ifstream is{ AskIniFilePath() }) {
 			auto root = std::make_unique<IniConfig>(name, false);
 			for (std::string line; getline(is, line);) {
 				if (empty(line) || line[0] == '#')
