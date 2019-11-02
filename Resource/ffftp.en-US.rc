@@ -2546,7 +2546,6 @@ BEGIN
     IDS_MSGJPN178           "Host profile not specified."
     IDS_MSGJPN179           "Host name is only used as an alternative to profile name."
     IDS_MSGJPN180           "Wrong Option '%s'."
-    IDS_MSGJPN181           "Host name is only used as an alternative to profile name."
     IDS_MSGJPN182           "Failed to open viewer. (ERROR=%d)"
     IDS_MSGJPN185           "Select folder."
 END

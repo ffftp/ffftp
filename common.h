@@ -1955,6 +1955,14 @@ static inline auto u8(const Char* str, size_t len) {
 static auto ieq(std::wstring const& left, std::wstring const& right) {
 	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::towupper(l) == std::towupper(r); });
 }
+static auto ieq(std::wstring_view left, std::wstring_view right) {
+	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::towupper(l) == std::towupper(r); });
+}
+static auto lc(std::wstring_view source) {
+	std::wstring result{ source };
+	_wcslwr(data(result));
+	return result;
+}
 template<class Char, class Evaluator>
 static inline auto replace(std::basic_string_view<Char> input, std::basic_regex<Char> const& pattern, Evaluator&& evaluator) {
 	std::basic_string<Char> replaced;

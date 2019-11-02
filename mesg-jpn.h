@@ -102,7 +102,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN178 (std::data(msgs[10000+178])) /* 設定名が指定されていません. */
 #define MSGJPN179 (std::data(msgs[10000+179])) /* ホスト名と設定名の両方が指定されています. */
 #define MSGJPN180 (std::data(msgs[10000+180])) /* オプション「%s」が間違っています. */
-#define MSGJPN181 (std::data(msgs[10000+181])) /* ホスト名と設定名の両方が指定されています. */
 #define MSGJPN182 (std::data(msgs[10000+182])) /* ビューアの起動に失敗しました. (ERROR=%d) */
 #define MSGJPN185 (std::data(msgs[10000+185])) /* フォルダを選択してください */
 #define MSGJPN199 (std::data(msgs[10000+199])) /* ファイル名 */
