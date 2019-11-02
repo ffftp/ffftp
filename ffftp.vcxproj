@@ -119,7 +119,7 @@
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalDependencies>normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;XmlLite.dll;Normaliz.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>COMDLG32.dll;CRYPTUI.dll;RASAPI32.dll;RASDLG.dll;XmlLite.dll;Normaliz.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <MinimumRequiredVersion>5.01</MinimumRequiredVersion>
     </Link>
     <MuiResourceCompile>
@@ -150,7 +150,7 @@
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
       <AdditionalDependencies>normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;XmlLite.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>COMDLG32.dll;CRYPTUI.dll;RASAPI32.dll;RASDLG.dll;XmlLite.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
@@ -182,7 +182,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalDependencies>normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;XmlLite.dll;Normaliz.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>COMDLG32.dll;CRYPTUI.dll;RASAPI32.dll;RASDLG.dll;XmlLite.dll;Normaliz.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <MinimumRequiredVersion>5.01</MinimumRequiredVersion>
     </Link>
     <MuiResourceCompile>
@@ -213,7 +213,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX64</TargetMachine>
       <AdditionalDependencies>normaliz.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <DelayLoadDLLs>RASAPI32.dll;RASDLG.dll;XmlLite.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <DelayLoadDLLs>COMDLG32.dll;CRYPTUI.dll;RASAPI32.dll;RASDLG.dll;XmlLite.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
