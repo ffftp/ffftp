@@ -334,8 +334,6 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 		return 0;
 	}
 
-	InitCommonControls();
-
 	// UPnP対応
 	CoInitialize(NULL);
 	LoadUPnP();
