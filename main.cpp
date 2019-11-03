@@ -100,22 +100,17 @@ TRANSPACKET MainTransPkt;		/* ファイル転送用パケット */
 
 char TitleHostName[HOST_ADRS_LEN+1];
 char FilterStr[FILTER_EXT_LEN+1] = { "*" };
-// タイトルバーにユーザー名表示対応
 char TitleUserName[USER_NAME_LEN+1];
 
 int CancelFlg;
 
-// 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
-//static int SuppressRefresh = 0;
 int SuppressRefresh = 0;
 
 static DWORD dwCookie;
 
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 static DWORD MainThreadId;
-// ローカル側自動更新
 HANDLE ChangeNotification = INVALID_HANDLE_VALUE;
-// 高DPI対応
 static int ToolWinHeight;
 
 
@@ -129,14 +124,6 @@ bool SupportIdn;
 /* 設定値 */
 int WinPosX = CW_USEDEFAULT;
 int WinPosY = 0;
-// 機能が増えたためサイズ変更
-// VGAサイズに収まるようになっていたのをSVGAサイズに引き上げ
-//int WinWidth = 630;
-//int WinHeight = 393;
-//int LocalWidth = 309;
-//int TaskHeight = 50;
-//int LocalTabWidth[4] = { 120, 90, 60, 37 };
-//int RemoteTabWidth[6] = { 120, 90, 60, 37, 60, 60 };
 int WinWidth = 790;
 int WinHeight = 513;
 int LocalWidth = 389;
@@ -154,8 +141,6 @@ int TransMode = TYPE_X;
 int ConnectOnStart = YES;
 int DebugConsole = NO;
 int SaveWinPos = NO;
-// アスキーモード判別の改良
-//char AsciiExt[ASCII_EXT_LEN+1] = { "*.txt\0*.html\0*.htm\0*.cgi\0*.pl\0" };
 char AsciiExt[ASCII_EXT_LEN+1] = { "*.txt\0*.html\0*.htm\0*.cgi\0*.pl\0*.js\0*.vbs\0*.css\0*.rss\0*.rdf\0*.xml\0*.xhtml\0*.xht\0*.shtml\0*.shtm\0*.sh\0*.py\0*.rb\0*.properties\0*.sql\0*.asp\0*.aspx\0*.php\0*.htaccess\0" };
 int RecvMode = TRANS_DLG;
 int SendMode = TRANS_DLG;
@@ -182,8 +167,6 @@ int FwallSecurity = SECURITY_AUTO;
 int FwallResolve = NO;
 int FwallLower = NO;
 int FwallDelimiter = '@';
-// ルータ対策
-//int PasvDefault = NO;
 int PasvDefault = YES;
 char MirrorNoTrn[MIRROR_LEN+1] = { "*.bak\0" };
 char MirrorNoDel[MIRROR_LEN+1] = { "" };
@@ -210,36 +193,21 @@ int MirUpDelNotify = YES;
 int MirDownDelNotify = YES; 
 int FolderAttr = NO;
 int FolderAttrNum = 777;
-// ファイルアイコン表示対応
 int DispFileIcon = NO;
-// タイムスタンプのバグ修正
 int DispTimeSeconds = NO;
-// ファイルの属性を数字で表示
 int DispPermissionsNumber = NO;
-// ディレクトリ自動作成
 int MakeAllDir = YES;
-// UTF-8対応
 int LocalKanjiCode = KANJI_SJIS;
-// 自動切断対策
 int NoopEnable = NO;
-// UPnP対応
 int UPnPEnabled = NO;
 time_t LastDataConnectionTime = 0;
-// 全設定暗号化対応
 int EncryptAllSettings = NO;
-// ローカル側自動更新
 int AutoRefreshFileList = YES;
-// 古い処理内容を消去
 int RemoveOldLog = NO;
-// バージョン確認
 int ReadOnlySettings = NO;
-// ファイル一覧バグ修正
 int AbortOnListError = YES;
-// ミラーリング設定追加
 int MirrorNoTransferContents = NO; 
-// FireWall設定追加
 int FwallNoSaveUser = NO; 
-// ゾーンID設定追加
 int MarkAsInternet = YES; 
 
 
