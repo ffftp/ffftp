@@ -49,24 +49,19 @@
 
 /*===== プロトタイプ =====*/
 
-static int InitApp(LPSTR lpszCmdLine, int cmdShow);
-static int MakeAllWindows(int cmdShow);
+static int InitApp(int cmdShow);
+static bool MakeAllWindows(int cmdShow);
 static void DeleteAllObject(void);
 static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-static void StartupProc(char *Cmd);
-static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc, size_t Max);
-static int CheckIniFileName(char *Str, char *Ini);
-static int CheckMasterPassword(char *Str, char *Ini);
-static int GetTokenAfterOption(char *Str, char *Result, const char* Opt1, const char* Opt2 );
-static char *GetToken(char *Str, char *Buf);
+static void StartupProc(std::vector<std::wstring_view> const& args);
+static std::optional<int> AnalyzeComLine(std::vector<std::wstring_view> const& args, std::wstring& hostname, std::wstring& unc);
 static void ExitProc(HWND hWnd);
 static void ChangeDir(int Win, char *Path);
 static void ResizeWindowProc(void);
 static void CalcWinSize(void);
-// static void AskWindowPos(HWND hWnd);
 static void CheckResizeFrame(WPARAM Keys, int x, int y);
 static void DispDirInfo(void);
-static void DeleteAlltempFile(void);
+static void DeleteAlltempFile();
 static void AboutDialog(HWND hWnd);
 static int EnterMasterPasswordAndSet(bool newpassword, HWND hWnd);
 
@@ -80,7 +75,6 @@ static HWND hWndFtp;
 static HWND hWndCurFocus = NULL;
 
 static HACCEL Accel;
-static HBRUSH RootColorBrush = NULL;
 
 static int Resizing = RESIZE_OFF;
 static int ResizePos;
@@ -92,12 +86,12 @@ int SepaWidth;
 int RemoteWidth;
 int ListHeight;
 
-static TEMPFILELIST *TempFiles = NULL;
+static std::vector<fs::path> TempFiles;
 
 static int SaveExit = YES;
 static int AutoExit = NO;
 
-static char IniPath[FMAX_PATH+1];
+static fs::path IniPath;
 static int ForceIni = NO;
 
 TRANSPACKET MainTransPkt;		/* ファイル転送用パケット */
@@ -106,22 +100,17 @@ TRANSPACKET MainTransPkt;		/* ファイル転送用パケット */
 
 char TitleHostName[HOST_ADRS_LEN+1];
 char FilterStr[FILTER_EXT_LEN+1] = { "*" };
-// タイトルバーにユーザー名表示対応
 char TitleUserName[USER_NAME_LEN+1];
 
 int CancelFlg;
 
-// 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
-//static int SuppressRefresh = 0;
 int SuppressRefresh = 0;
 
 static DWORD dwCookie;
 
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 static DWORD MainThreadId;
-// ローカル側自動更新
 HANDLE ChangeNotification = INVALID_HANDLE_VALUE;
-// 高DPI対応
 static int ToolWinHeight;
 
 
@@ -135,14 +124,6 @@ bool SupportIdn;
 /* 設定値 */
 int WinPosX = CW_USEDEFAULT;
 int WinPosY = 0;
-// 機能が増えたためサイズ変更
-// VGAサイズに収まるようになっていたのをSVGAサイズに引き上げ
-//int WinWidth = 630;
-//int WinHeight = 393;
-//int LocalWidth = 309;
-//int TaskHeight = 50;
-//int LocalTabWidth[4] = { 120, 90, 60, 37 };
-//int RemoteTabWidth[6] = { 120, 90, 60, 37, 60, 60 };
 int WinWidth = 790;
 int WinHeight = 513;
 int LocalWidth = 389;
@@ -160,8 +141,6 @@ int TransMode = TYPE_X;
 int ConnectOnStart = YES;
 int DebugConsole = NO;
 int SaveWinPos = NO;
-// アスキーモード判別の改良
-//char AsciiExt[ASCII_EXT_LEN+1] = { "*.txt\0*.html\0*.htm\0*.cgi\0*.pl\0" };
 char AsciiExt[ASCII_EXT_LEN+1] = { "*.txt\0*.html\0*.htm\0*.cgi\0*.pl\0*.js\0*.vbs\0*.css\0*.rss\0*.rdf\0*.xml\0*.xhtml\0*.xht\0*.shtml\0*.shtm\0*.sh\0*.py\0*.rb\0*.properties\0*.sql\0*.asp\0*.aspx\0*.php\0*.htaccess\0" };
 int RecvMode = TRANS_DLG;
 int SendMode = TRANS_DLG;
@@ -188,8 +167,6 @@ int FwallSecurity = SECURITY_AUTO;
 int FwallResolve = NO;
 int FwallLower = NO;
 int FwallDelimiter = '@';
-// ルータ対策
-//int PasvDefault = NO;
 int PasvDefault = YES;
 char MirrorNoTrn[MIRROR_LEN+1] = { "*.bak\0" };
 char MirrorNoDel[MIRROR_LEN+1] = { "" };
@@ -216,36 +193,21 @@ int MirUpDelNotify = YES;
 int MirDownDelNotify = YES; 
 int FolderAttr = NO;
 int FolderAttrNum = 777;
-// ファイルアイコン表示対応
 int DispFileIcon = NO;
-// タイムスタンプのバグ修正
 int DispTimeSeconds = NO;
-// ファイルの属性を数字で表示
 int DispPermissionsNumber = NO;
-// ディレクトリ自動作成
 int MakeAllDir = YES;
-// UTF-8対応
 int LocalKanjiCode = KANJI_SJIS;
-// 自動切断対策
 int NoopEnable = NO;
-// UPnP対応
 int UPnPEnabled = NO;
 time_t LastDataConnectionTime = 0;
-// 全設定暗号化対応
 int EncryptAllSettings = NO;
-// ローカル側自動更新
 int AutoRefreshFileList = YES;
-// 古い処理内容を消去
 int RemoveOldLog = NO;
-// バージョン確認
 int ReadOnlySettings = NO;
-// ファイル一覧バグ修正
 int AbortOnListError = YES;
-// ミラーリング設定追加
 int MirrorNoTransferContents = NO; 
-// FireWall設定追加
 int FwallNoSaveUser = NO; 
-// ゾーンID設定追加
 int MarkAsInternet = YES; 
 
 
@@ -318,36 +280,25 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 		return true;
 	}, 0);
 
-	MSG Msg;
-	int Ret;
-	BOOL Sts;
-
 	// マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 #ifdef DISABLE_MULTI_CPUS
 	SetProcessAffinityMask(GetCurrentProcess(), 1);
 #endif
 	MainThreadId = GetCurrentThreadId();
 
-	// yutaka
-	if(OleInitialize(NULL) != S_OK){
+	if (OleInitialize(nullptr) != S_OK) {
 		Message(IDS_FAIL_TO_INIT_OLE, MB_OK | MB_ICONERROR);
 		return 0;
 	}
 
-	InitCommonControls();
-
-	// UPnP対応
-	CoInitialize(NULL);
 	LoadUPnP();
-	// タスクバー進捗表示
 	LoadTaskbarList3();
-	// ゾーンID設定追加
 	LoadZoneID();
 
 #if _WIN32_WINNT < _WIN32_WINNT_VISTA
 	// Vista以降およびIE7以降で導入済みとなる
 	SupportIdn = [] {
-		if (auto module = LoadLibraryW((systemDirectory() / L"Normaliz.dll").c_str()); module == NULL)
+		if (auto module = LoadLibraryW((systemDirectory() / L"Normaliz.dll"sv).c_str()); !module)
 			return false;
 		__HrLoadAllImportsForDll("Normaliz.dll");
 		return true;
@@ -366,53 +317,38 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 		return 0;
 	}
 
-	Ret = FALSE;
-	if (auto u8CmdLine = u8(lpCmdLine); InitApp(data(u8CmdLine), nShowCmd) == FFFTP_SUCCESS) {
-		for(;;)
-		{
-			Sts = GetMessageW(&Msg, NULL, 0, 0);
-			if((Sts == 0) || (Sts == -1))
-				break;
-
-			if(__pragma(warning(suppress:6387)) !HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&Msg))
-			{ 
-				/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
-				/* コンボボックス内ではアクセラレータを無効にする */
-				if((Msg.hwnd == GetLocalHistEditHwnd()) ||
-				   (Msg.hwnd == GetRemoteHistEditHwnd()) ||
-				   ((hHelpWin != NULL) && (GetAncestor(Msg.hwnd, GA_ROOT) == hHelpWin)) ||
-				   GetHideUI() == YES ||
-				   (TranslateAcceleratorW(GetMainHwnd(), Accel, &Msg) == 0))
-				{
-					TranslateMessage(&Msg);
-					DispatchMessageW(&Msg);
-				}
+	int exitCode = FALSE;
+	if (InitApp(nShowCmd) == FFFTP_SUCCESS) {
+		MSG msg;
+		while (GetMessageW(&msg, NULL, 0, 0)) {
+			if (__pragma(warning(suppress:6387)) HtmlHelpW(NULL, NULL, HH_PRETRANSLATEMESSAGE, (DWORD_PTR)&msg))
+				continue;
+			/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
+			/* コンボボックス内ではアクセラレータを無効にする */
+			if (msg.hwnd == GetLocalHistEditHwnd() || msg.hwnd == GetRemoteHistEditHwnd() || hHelpWin && GetAncestor(msg.hwnd, GA_ROOT) == hHelpWin || GetHideUI() == YES || TranslateAcceleratorW(GetMainHwnd(), Accel, &msg) == 0) {
+				TranslateMessage(&msg);
+				DispatchMessageW(&msg);
 			}
 		}
-		Ret = (int)Msg.wParam;
+		exitCode = (int)msg.wParam;
 	}
 	UnregisterClassW(FtpClass, GetFtpInst());
 	FreeSSL();
 	CryptReleaseContext(HCryptProv, 0);
-	// ゾーンID設定追加
 	FreeZoneID();
-	// タスクバー進捗表示
 	FreeTaskbarList3();
-	// UPnP対応
 	FreeUPnP();
-	CoUninitialize();
 	OleUninitialize();
-	return(Ret);
+	return exitCode;
 }
 
 
 // アプリケーションの初期設定
-static int InitApp(LPSTR lpszCmdLine, int cmdShow)
+static int InitApp(int cmdShow)
 {
 	int sts;
 	int Err;
 	WSADATA WSAData;
-	char PwdBuf[FMAX_PATH+1];
 	int useDefautPassword = 0; /* 警告文表示用 */
 	int masterpass;
 	// ポータブル版判定
@@ -440,15 +376,13 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		for(i = 0; i < sizeof(RemoteTabWidth) / sizeof(int); i++)
 			RemoteTabWidth[i] = CalcPixelX(RemoteTabWidth[i]);
 
-		if(CheckIniFileName(lpszCmdLine, IniPath) == 0)
-		{
-			strcpy(IniPath, (moduleDirectory() / L"ffftp.ini").u8string().c_str());
-		}
-		else
-		{
+		std::vector<std::wstring_view> args{ __wargv + 1, __wargv + __argc };
+		if (auto it = std::find_if(begin(args), end(args), [](auto const& arg) { return ieq(arg, L"-n"sv) || ieq(arg, L"--ini"sv); }); it != end(args) && ++it != end(args)) {
 			ForceIni = YES;
 			RegType = REGTYPE_INI;
-		}
+			IniPath = *it;
+		} else
+			IniPath = moduleDirectory() / L"ffftp.ini"sv;
 		ImportPortable = NO;
 		if (isPortable()) {
 			ForceIni = YES;
@@ -484,8 +418,6 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			RegType = REGTYPE_REG;
 		}
 
-//		AllocConsole();
-
 		/* 2010.02.01 genta マスターパスワードを入力させる
 		  -z オプションがあるときは最初だけスキップ
 		  -z オプションがないときは，デフォルトパスワードをまず試す
@@ -493,9 +425,9 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 		  パスワードが不一致なら再入力するか尋ねる．
 		  (破損していた場合はさせない)
 		*/
-		if( CheckMasterPassword(lpszCmdLine, PwdBuf))
+		if(auto it = std::find_if(begin(args), end(args), [](auto const& arg) { return ieq(arg, L"-z"sv) || ieq(arg, L"--mpasswd"sv); }); it != end(args) && ++it != end(args))
 		{
-			SetMasterPassword( PwdBuf );
+			SetMasterPassword(u8(*it).c_str());
 			useDefautPassword = 0;
 		}
 		else {
@@ -549,7 +481,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 			//タイマの精度を改善
 			timeBeginPeriod(1);
 
-			if(MakeAllWindows(cmdShow) == FFFTP_SUCCESS)
+			if(MakeAllWindows(cmdShow))
 			{
 				hWndCurFocus = GetLocalHwnd();
 
@@ -579,7 +511,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					);
 
 					if(ForceIni)
-						SetTaskMsg("%s%s", MSGJPN283, IniPath);
+						SetTaskMsg("%s%s", MSGJPN283, IniPath.u8string().c_str());
 
 					DoPrintf("Help=%s", helpPath().u8string().c_str());
 
@@ -591,7 +523,7 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 					MakeButtonsFocus();
 					DispTransferFiles();
 
-					StartupProc(lpszCmdLine);
+					StartupProc(args);
 					sts = FFFTP_SUCCESS;
 
 					/* セキュリティ警告文の表示 */
@@ -622,103 +554,53 @@ static int InitApp(LPSTR lpszCmdLine, int cmdShow)
 }
 
 
-/*----- ウインドウを作成する --------------------------------------------------
-*
-*	Parameter
-*		int cmdShow : 最初に表示するウインドウの形式。
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int MakeAllWindows(int cmdShow)
-{
-	RECT Rect1;
-	RECT Rect2;
-	int Sts;
-	int StsTask;
-	int StsSbar;
-	int StsTbar;
-	int StsList;
-	int StsLvtips;
-	int StsSocket;
-
-	/*===== メインウインドウ =====*/
-
-	RootColorBrush = CreateSolidBrush(GetSysColor(COLOR_3DFACE));
-
-	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, FtpWndProc, 0, 0, GetFtpInst(), LoadIconW(GetFtpInst(), MAKEINTRESOURCEW(ffftp)), 0, RootColorBrush, MAKEINTRESOURCEW(main_menu), FtpClass };
+// ウインドウを作成する
+static bool MakeAllWindows(int cmdShow) {
+	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, FtpWndProc, 0, 0, GetFtpInst(), LoadIconW(GetFtpInst(), MAKEINTRESOURCEW(ffftp)), 0, GetSysColorBrush(COLOR_3DFACE), MAKEINTRESOURCEW(main_menu), FtpClass };
 	RegisterClassExW(&classEx);
 
-	// 高DPI対応
-//	ToolWinHeight = TOOLWIN_HEIGHT;
 	ToolWinHeight = CalcPixelY(16) + 12;
 
-	if(SaveWinPos == NO)
-	{
+	if (SaveWinPos == NO) {
 		WinPosX = CW_USEDEFAULT;
 		WinPosY = 0;
 	}
 	hWndFtp = CreateWindowExW(0, FtpClass, L"FFFTP", WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, WinPosX, WinPosY, WinWidth, WinHeight, HWND_DESKTOP, 0, GetFtpInst(), nullptr);
+	if (!hWndFtp)
+		return false;
 
-	if(hWndFtp != NULL)
-	{
-		SystemParametersInfoW(SPI_GETWORKAREA, 0, &Rect1, 0);
-		GetWindowRect(GetMainHwnd(), &Rect2);
-		if(Rect2.bottom > Rect1.bottom)
-		{
-			Rect2.top = std::max(0L, Rect2.top - (Rect2.bottom - Rect1.bottom));
-			MoveWindow(GetMainHwnd(), Rect2.left, Rect2.top, WinWidth, WinHeight, FALSE);
-		}
+	RECT workArea;
+	SystemParametersInfoW(SPI_GETWORKAREA, 0, &workArea, 0);
+	RECT windowRect;
+	GetWindowRect(GetMainHwnd(), &windowRect);
+	if (workArea.bottom < windowRect.bottom)
+		MoveWindow(GetMainHwnd(), windowRect.left, std::max(0L, windowRect.top - windowRect.bottom + workArea.bottom), WinWidth, WinHeight, FALSE);
 
-		/*===== ステイタスバー =====*/
+	if (MakeStatusBarWindow() == FFFTP_FAIL)
+		return false;
 
-		StsSbar = MakeStatusBarWindow();
+	CalcWinSize();
 
-		CalcWinSize();
+	if (MakeToolBarWindow() == FFFTP_FAIL)
+		return false;
 
-		/*===== ツールバー =====*/
+	if (MakeListWin() == FFFTP_FAIL)
+		return false;
 
-		StsTbar = MakeToolBarWindow();
+	if (MakeTaskWindow() == FFFTP_FAIL)
+		return false;
 
-		/*===== ファイルリストウインドウ =====*/
+	ShowWindow(GetMainHwnd(), cmdShow != SW_MINIMIZE && cmdShow != SW_SHOWMINIMIZED && cmdShow != SW_SHOWMINNOACTIVE && Sizing == SW_MAXIMIZE ? SW_MAXIMIZE : cmdShow);
 
-		StsList = MakeListWin();
+	if (MakeSocketWin() == FFFTP_FAIL)
+		return false;
 
-		/*==== タスクウインドウ ====*/
+	if (InitListViewTips() == FFFTP_FAIL)
+		return false;
 
-		StsTask = MakeTaskWindow();
+	SetListViewType();
 
-		if((cmdShow != SW_MINIMIZE) && (cmdShow != SW_SHOWMINIMIZED) && (cmdShow != SW_SHOWMINNOACTIVE) &&
-		   (Sizing == SW_MAXIMIZE))
-			cmdShow = SW_MAXIMIZE;
-
-		ShowWindow(GetMainHwnd(), cmdShow);
-
-		/*==== ソケットウインドウ ====*/
-
-		StsSocket = MakeSocketWin();
-
-		StsLvtips = InitListViewTips();
-	}
-
-	Sts = FFFTP_SUCCESS;
-	if((hWndFtp == NULL) ||
-	   (StsTbar == FFFTP_FAIL) ||
-	   (StsList == FFFTP_FAIL) ||
-	   (StsSbar == FFFTP_FAIL) ||
-	   (StsTask == FFFTP_FAIL) ||
-	   (StsLvtips == FFFTP_FAIL) ||
-	   (StsSocket == FFFTP_FAIL))
-	{
-		Sts = FFFTP_FAIL;
-	}
-
-	if(Sts == FFFTP_SUCCESS)
-		SetListViewType();
-
-	return(Sts);
+	return true;
 }
 
 
@@ -1710,361 +1592,96 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 }
 
 
-/*----- プログラム開始時の処理 ------------------------------------------------
-*
-*	Parameter
-*		char *Cmd : コマンドライン文字列
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void StartupProc(char *Cmd)
-{
-	int Sts;
-	int AutoConnect;
-	int CmdOption;
-	int Kanji;
-	int Kana;
-	int FnameKanji;
-	int TrMode;
-	char unc[FMAX_PATH+1];
-
-	Sts = AnalyzeComLine(Cmd, &AutoConnect, &CmdOption, unc, FMAX_PATH);
-
-	TrMode = TYPE_DEFAULT;
-	Kanji = KANJI_NOCNV;
-	FnameKanji = KANJI_NOCNV;
-	Kana = YES;
-	if(CmdOption & OPT_ASCII)
-		TrMode = TYPE_A;
-	if(CmdOption & OPT_BINARY)
-		TrMode = TYPE_I;
-	if(CmdOption & OPT_EUC)
-		Kanji = KANJI_EUC;
-	if(CmdOption & OPT_JIS)
-		Kanji = KANJI_JIS;
-	if(CmdOption & OPT_EUC_NAME)
-		FnameKanji = KANJI_EUC;
-	if(CmdOption & OPT_JIS_NAME)
-		FnameKanji = KANJI_JIS;
-	if(CmdOption & OPT_KANA)
-		Kana = NO;
-
-	if(CmdOption & OPT_QUIT)
-		AutoExit = YES;
-
-	if(CmdOption & OPT_SAVEOFF)
-		SuppressSave = YES;
-	if(CmdOption & OPT_SAVEON)
-		SuppressSave = NO;
-
-	// UTF-8対応
-	if(CmdOption & OPT_SJIS)
-		Kanji = KANJI_SJIS;
-	if(CmdOption & OPT_UTF8N)
-		Kanji = KANJI_UTF8N;
-	if(CmdOption & OPT_UTF8BOM)
-		Kanji = KANJI_UTF8BOM;
-	if(CmdOption & OPT_SJIS_NAME)
-		FnameKanji = KANJI_SJIS;
-	if(CmdOption & OPT_UTF8N_NAME)
-		FnameKanji = KANJI_UTF8N;
-
-	if(Sts == 0)
-	{
-		if(ConnectOnStart == YES)
-			PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_CONNECT, 0), 0);
+// プログラム開始時の処理
+static void StartupProc(std::vector<std::wstring_view> const& args) {
+	std::wstring hostname;
+	std::wstring unc;
+	if (auto result = AnalyzeComLine(args, hostname, unc)) {
+		int opt = *result;
+		int Kanji = opt & OPT_UTF8BOM ? KANJI_UTF8BOM : opt & OPT_UTF8N ? KANJI_UTF8N : opt & OPT_SJIS ? KANJI_SJIS : opt & OPT_JIS ? KANJI_JIS : opt & OPT_EUC ? KANJI_EUC : KANJI_NOCNV;
+		int Kana = opt & OPT_KANA ? NO : YES;
+		int FnameKanji = opt & OPT_UTF8N_NAME ? KANJI_UTF8N : opt & OPT_SJIS_NAME ? KANJI_SJIS : opt & OPT_JIS_NAME ? KANJI_JIS : opt & OPT_EUC_NAME ? KANJI_EUC : KANJI_NOCNV;
+		int TrMode = opt & OPT_BINARY ? TYPE_I : opt & OPT_ASCII ? TYPE_A : TYPE_DEFAULT;
+		if (opt & OPT_QUIT)
+			AutoExit = YES;
+		if (opt & OPT_SAVEOFF)
+			SuppressSave = YES;
+		if (opt & OPT_SAVEON)
+			SuppressSave = NO;
+		if (empty(hostname) && empty(unc)) {
+			if (ConnectOnStart == YES)
+				PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_CONNECT, 0), 0);
+		} else if (empty(hostname) && !empty(unc)) {
+			auto u8unc = u8(unc);
+			DirectConnectProc(data(u8unc), Kanji, Kana, FnameKanji, TrMode);
+		} else if (!empty(hostname) && empty(unc)) {
+			auto u8hostname = u8(hostname);
+			if (int AutoConnect = SearchHostName(data(u8hostname)); AutoConnect == -1)
+				__pragma(warning(suppress:4474)) SetTaskMsg(MSGJPN177, u8hostname.c_str());
+			else
+				PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_CONNECT_NUM, opt), (LPARAM)AutoConnect);
+		} else {
+			SetTaskMsg(MSGJPN179);
+		}
 	}
-	else if(Sts == 1)
-	{
-		DirectConnectProc(unc, Kanji, Kana, FnameKanji, TrMode);
-	}
-	else if(Sts == 2)
-	{
-		PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_CONNECT_NUM, CmdOption), (LPARAM)AutoConnect);
-	}
-	return;
 }
 
 
-/*----- コマンドラインを解析 --------------------------------------------------
-*
-*	Parameter
-*		char *Str : コマンドライン文字列
-*		int *AutoConnect : 接続ホスト番号を返すワーク
-*		int *CmdOption : オプションを返すワーク
-*		char *unc : uncを返すワーク
-*		int Max : uncの最大長
-*
-*	Return Value
-*		int ステータス
-*			0=指定なし、1=URL指定、2=設定名指定、-1=エラー
-*
-*	Note
-*		-m	--mirror
-*		-d	--mirrordown
-*		-f	--force
-*		-q	--quit
-*		-s	--set
-*		-h	--help
-*		-e	--euc
-*		-j	--jis
-*		-a	--ascii
-*		-b	--binary
-*		-x	--auto
-*		-k	--kana
-*		-u	--eucname
-*		-i	--jisname
-*		-n  --ini		(CheckIniFileNameで検索)
-*			--saveoff
-*			--saveon
-*		-z	--mpasswd	(CheckMasterPasswordで検索)	2010.01.30 genta 追加
-*----------------------------------------------------------------------------*/
-
-static int AnalyzeComLine(char *Str, int *AutoConnect, int *CmdOption, char *unc, size_t Max)
-{
-	int Ret;
-	char Tmp[FMAX_PATH+1];
-
-	*AutoConnect = -1;
-	*CmdOption = 0;
-
-	Ret = 0;
-	memset(unc, NUL, Max+1);
-
-	while((Ret != -1) && ((Str = GetToken(Str, Tmp)) != NULL))
-	{
-		if(Tmp[0] == '-')
-		{
-			_strlwr(Tmp);
-			if((strcmp(&Tmp[1], "m") == 0) || (strcmp(&Tmp[1], "-mirror") == 0))
-				*CmdOption |= OPT_MIRROR;
-			else if((strcmp(&Tmp[1], "d") == 0) || (strcmp(&Tmp[1], "-mirrordown") == 0))
-				*CmdOption |= OPT_MIRRORDOWN;
-			// 廃止予定
-//			else if((strcmp(&Tmp[1], "e") == 0) || (strcmp(&Tmp[1], "-euc") == 0))
-//				*CmdOption |= OPT_EUC;
-//			else if((strcmp(&Tmp[1], "j") == 0) || (strcmp(&Tmp[1], "-jis") == 0))
-//				*CmdOption |= OPT_JIS;
-			else if((strcmp(&Tmp[1], "eu") == 0) || (strcmp(&Tmp[1], "e") == 0) || (strcmp(&Tmp[1], "-euc") == 0))
-				*CmdOption |= OPT_EUC;
-			else if((strcmp(&Tmp[1], "ji") == 0) || (strcmp(&Tmp[1], "j") == 0) || (strcmp(&Tmp[1], "-jis") == 0))
-				*CmdOption |= OPT_JIS;
-			else if((strcmp(&Tmp[1], "a") == 0) || (strcmp(&Tmp[1], "-ascii") == 0))
-				*CmdOption |= OPT_ASCII;
-			else if((strcmp(&Tmp[1], "b") == 0) || (strcmp(&Tmp[1], "-binary") == 0))
-				*CmdOption |= OPT_BINARY;
-			else if((strcmp(&Tmp[1], "x") == 0) || (strcmp(&Tmp[1], "-auto") == 0))
-				*CmdOption |= OPT_AUTO;
-			else if((strcmp(&Tmp[1], "f") == 0) || (strcmp(&Tmp[1], "-force") == 0))
-				*CmdOption |= OPT_FORCE;
-			else if((strcmp(&Tmp[1], "q") == 0) || (strcmp(&Tmp[1], "-quit") == 0))
-				*CmdOption |= OPT_QUIT;
-			else if((strcmp(&Tmp[1], "k") == 0) || (strcmp(&Tmp[1], "-kana") == 0))
-				*CmdOption |= OPT_KANA;
-			// 廃止予定
-//			else if((strcmp(&Tmp[1], "u") == 0) || (strcmp(&Tmp[1], "-eucname") == 0))
-//				*CmdOption |= OPT_EUC_NAME;
-//			else if((strcmp(&Tmp[1], "i") == 0) || (strcmp(&Tmp[1], "-jisname") == 0))
-//				*CmdOption |= OPT_JIS_NAME;
-			else if((strcmp(&Tmp[1], "eun") == 0) || (strcmp(&Tmp[1], "u") == 0) || (strcmp(&Tmp[1], "-eucname") == 0))
-				*CmdOption |= OPT_EUC_NAME;
-			else if((strcmp(&Tmp[1], "jin") == 0) || (strcmp(&Tmp[1], "i") == 0) || (strcmp(&Tmp[1], "-jisname") == 0))
-				*CmdOption |= OPT_JIS_NAME;
-			else if((strcmp(&Tmp[1], "n") == 0) || (strcmp(&Tmp[1], "-ini") == 0))
-			{
-				if((Str = GetToken(Str, Tmp)) == NULL)
-				{
+// コマンドラインを解析
+static std::optional<int> AnalyzeComLine(std::vector<std::wstring_view> const& args, std::wstring& hostname, std::wstring& unc) {
+	const std::map<std::wstring_view, int> map{
+		{ L"-m"sv, OPT_MIRROR }, { L"--mirror"sv, OPT_MIRROR },
+		{ L"-d"sv, OPT_MIRRORDOWN }, { L"--mirrordown"sv, OPT_MIRRORDOWN },
+		{ L"-eu"sv, OPT_EUC }, { L"-e"sv, OPT_EUC }, { L"--euc"sv, OPT_EUC },
+		{ L"-ji"sv, OPT_JIS }, { L"-j"sv, OPT_JIS }, { L"--jis"sv, OPT_JIS },
+		{ L"-a"sv, OPT_ASCII }, { L"--ascii"sv, OPT_ASCII },
+		{ L"-b"sv, OPT_BINARY }, { L"--binary"sv, OPT_BINARY },
+		{ L"-x"sv, OPT_AUTO }, { L"--auto"sv, OPT_AUTO },
+		{ L"-f"sv, OPT_FORCE }, { L"--force"sv, OPT_FORCE },
+		{ L"-q"sv, OPT_QUIT }, { L"--quit"sv, OPT_QUIT },
+		{ L"-k"sv, OPT_KANA }, { L"--kana"sv, OPT_KANA },
+		{ L"-eun"sv, OPT_EUC_NAME }, { L"-u"sv, OPT_EUC_NAME }, { L"--eucname"sv, OPT_EUC_NAME },
+		{ L"-jin"sv, OPT_JIS_NAME }, { L"-i"sv, OPT_JIS_NAME }, { L"--jisname"sv, OPT_JIS_NAME },
+		{ L"--saveoff"sv, OPT_SAVEOFF },
+		{ L"--saveon"sv, OPT_SAVEON },
+		{ L"-sj"sv, OPT_SJIS }, { L"--sjis"sv, OPT_SJIS },
+		{ L"-u8"sv, OPT_UTF8N }, { L"--utf8"sv, OPT_UTF8N },
+		{ L"-8b"sv, OPT_UTF8BOM }, { L"--utf8bom"sv, OPT_UTF8BOM },
+		{ L"-sjn"sv, OPT_SJIS_NAME }, { L"--sjisname"sv, OPT_SJIS_NAME },
+		{ L"-u8n"sv, OPT_UTF8N_NAME }, { L"--utf8name"sv, OPT_UTF8N_NAME },
+	};
+	int option = 0;
+	for (auto it = begin(args); it != end(args); ++it) {
+		if ((*it)[0] == L'-') {
+			auto key = lc(*it);
+			if (auto mapit = map.find(key); mapit != end(map)) {
+				option |= mapit->second;
+			} else if (key == L"-n"sv || key == L"--ini"sv) {
+				if (++it == end(args)) {
 					SetTaskMsg(MSGJPN282);
-					Ret = -1;
+					return {};
 				}
-			}
-			else if(strcmp(&Tmp[1], "-saveoff") == 0)
-				*CmdOption |= OPT_SAVEOFF;
-			else if(strcmp(&Tmp[1], "-saveon") == 0)
-				*CmdOption |= OPT_SAVEON;
-			else if((strcmp(&Tmp[1], "z") == 0) || (strcmp(&Tmp[1], "-mpasswd") == 0))
-			{	/* 2010.01.30 genta : Add master password option */
-				if((Str = GetToken(Str, Tmp)) == NULL)
-				{
+			} else if (key == L"-z"sv || key == L"--mpasswd"sv) {
+				if (++it == end(args)) {
 					SetTaskMsg(MSGJPN299);
-					Ret = -1;
+					return {};
 				}
-			}
-			else if((strcmp(&Tmp[1], "s") == 0) || (strcmp(&Tmp[1], "-set") == 0))
-			{
-				if(Ret == 0)
-				{
-					if((Str = GetToken(Str, Tmp)) != NULL)
-					{
-						if((*AutoConnect = SearchHostName(Tmp)) != -1)
-							Ret = 2;
-						else
-						{
-							__pragma(warning(suppress:4474)) SetTaskMsg(MSGJPN177, Tmp);
-							Ret = -1;
-						}
-					}
-					else
-					{
-						SetTaskMsg(MSGJPN178);
-						Ret = -1;
-					}
+			} else if (key == L"-s"sv || key == L"--set"sv) {
+				if (++it == end(args)) {
+					SetTaskMsg(MSGJPN178);
+					return {};
 				}
-				else
-				{
-					SetTaskMsg(MSGJPN179);
-					Ret = -1;
-				}
-			}
-			else if((strcmp(&Tmp[1], "h") == 0) || (strcmp(&Tmp[1], "-help") == 0))
-			{
+				hostname = *it;
+			} else if (key == L"-h"sv || key == L"--help"sv) {
 				ShowHelp(IDH_HELP_TOPIC_0000024);
+			} else {
+				__pragma(warning(suppress:4474)) SetTaskMsg(MSGJPN180, u8(*it).c_str());
+				return {};
 			}
-			// UTF-8対応
-			else if((strcmp(&Tmp[1], "sj") == 0) || (strcmp(&Tmp[1], "-sjis") == 0))
-				*CmdOption |= OPT_SJIS;
-			else if((strcmp(&Tmp[1], "u8") == 0) || (strcmp(&Tmp[1], "-utf8") == 0))
-				*CmdOption |= OPT_UTF8N;
-			else if((strcmp(&Tmp[1], "8b") == 0) || (strcmp(&Tmp[1], "-utf8bom") == 0))
-				*CmdOption |= OPT_UTF8BOM;
-			else if((strcmp(&Tmp[1], "sjn") == 0) || (strcmp(&Tmp[1], "-sjisname") == 0))
-				*CmdOption |= OPT_SJIS_NAME;
-			else if((strcmp(&Tmp[1], "u8n") == 0) || (strcmp(&Tmp[1], "-utf8name") == 0))
-				*CmdOption |= OPT_UTF8N_NAME;
-			else
-			{
-				__pragma(warning(suppress:4474)) SetTaskMsg(MSGJPN180, Tmp);
-				Ret = -1;
-			}
-		}
-		else
-		{
-			if(Ret == 0)
-			{
-				strncpy(unc, Tmp, Max);
-				Ret = 1;
-			}
-			else
-			{
-				SetTaskMsg(MSGJPN181);
-				Ret = -1;
-			}
-		}
+		} else
+			unc = *it;
 	}
-	return(Ret);
-}
-
-
-/*----- INIファイルのパス名の指定をチェック ------------------------------------
-*
-*	Parameter
-*		char *Str : コマンドライン文字列
-*		char *Ini : iniファイル名を返すワーク
-*
-*	Return Value
-*		int ステータス
-*			0=指定なし、1=あり
-*
-*	Note
-*		-n  --ini
-*----------------------------------------------------------------------------*/
-
-static int CheckIniFileName(char *Str, char *Ini)
-{
-	return GetTokenAfterOption( Str, Ini, "n", "-ini" );
-}
-
-/* マスターパスワードの指定をチェック */
-static int CheckMasterPassword(char *Str, char *Ini)
-{
-	return GetTokenAfterOption( Str, Ini, "z", "-mpasswd" );
-}
-
-/*----- オプションの後ろのトークンを取り出す ------------------------------------
-*
-*	Parameter
-*		char *Str : コマンドライン文字列
-*		char *Result : 取り出した文字列を格納するワーク
-*		const char* Opt1, *Opt2: オプション文字列(2つ)
-*
-*	Return Value
-*		int ステータス
-*			0=指定なし、1=あり
-*
-*	Note
-*		2010.01.30 genta マスターパスワード取り出しのため共通化
-*----------------------------------------------------------------------------*/
-static int GetTokenAfterOption(char *Str, char *Result, const char* Opt1, const char* Opt2 )
-{
-	int Ret = 0;
-	char Tmp[FMAX_PATH+1];
-
-	Result[0] = NUL;
-	while((Str = GetToken(Str, Tmp)) != NULL)
-	{
-		if(Tmp[0] == '-')
-		{
-			_strlwr(Tmp);
-			if((strcmp(&Tmp[1], Opt1) == 0) || (strcmp(&Tmp[1], Opt2) == 0))
-			{
-				if((Str = GetToken(Str, Result)) != NULL)
-					Ret = 1;
-				break;
-			}
-		}
-	}
-	return(Ret);
-}
-
-/*----- トークンを返す --------------------------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*		char *Buf : 文字列を返すバッファ
-*
-*	Return Value
-*		char *返したトークンの末尾
-*			NULL=終わり
-*----------------------------------------------------------------------------*/
-
-static char *GetToken(char *Str, char *Buf)
-{
-	int InQuote;
-
-	while(*Str != NUL)
-	{
-		if((*Str != ' ') && (*Str != '\t'))
-			break;
-		Str++;
-	}
-
-	if(*Str != NUL)
-	{
-		InQuote = 0;
-		while(*Str != NUL)
-		{
-			if(*Str == '\"')
-				InQuote = !InQuote;
-			else
-			{
-				if(((*Str == ' ') || (*Str == '\t')) &&
-				   (InQuote == 0))
-				{
-					break;
-				}
-				*Buf++ = *Str;
-			}
-			Str++;
-		}
-	}
-	else
-		Str = NULL;
-
-	*Buf = NUL;
-
-	return(Str);
+	return option;
 }
 
 
@@ -2383,30 +2000,6 @@ static void CalcWinSize(void)
 }
 
 
-#if 0
-/*----- ウインドウの表示位置を取得する ----------------------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void AskWindowPos(HWND hWnd)
-{
-	WINDOWPLACEMENT WinPlace;
-
-	WinPlace.length = sizeof(WINDOWPLACEMENT);
-	GetWindowPlacement(hWnd, &WinPlace);
-	WinPosX = WinPlace.rcNormalPosition.left;
-	WinPosY = WinPlace.rcNormalPosition.top;
-
-	return;
-}
-#endif
-
-
 /*----- ディレクトリリストとファイルリストの境界変更処理 ----------------------
 *
 *	Parameter
@@ -2602,66 +2195,17 @@ void ExecViewer2(char *Fname1, char *Fname2, int App)
 }
 
 
-/*----- テンポラリファイル名をテンポラリファイルリストに追加 ------------------
-*
-*	Parameter
-*		char *Fname : テンポラリファイル名
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void AddTempFileList(char *Fname)
-{
-	TEMPFILELIST *New;
-
-	if((New = (TEMPFILELIST*)malloc(sizeof(TEMPFILELIST))) != NULL)
-	{
-		if((New->Fname = (char*)malloc(strlen(Fname)+1)) != NULL)
-		{
-			strcpy(New->Fname, Fname);
-			if(TempFiles == NULL)
-				New->Next = NULL;
-			else
-				New->Next = TempFiles;
-			TempFiles = New;
-		}
-		else
-			free(New);
-	}
-	return;
+// テンポラリファイル名をテンポラリファイルリストに追加
+void AddTempFileList(fs::path const& file) {
+	TempFiles.push_back(file);
 }
 
 
-/*----- テンポラリファイルリストに登録されているファイルを全て削除 ------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void DeleteAlltempFile(void)
-{
-	TEMPFILELIST *Pos;
-	TEMPFILELIST *Next;
-
-	Pos = TempFiles;
-	while(Pos != NULL)
-	{
-		fs::remove(fs::u8path(Pos->Fname));
-
-		Next = Pos->Next;
-		free(Pos->Fname);
-		free(Pos);
-		Pos = Next;
-	}
-
-	// OLE D&Dのテンポラリを削除する (2007.9.11 yutaka)
+// テンポラリファイルリストに登録されているファイルを全て削除
+static void DeleteAlltempFile() {
+	for (auto const& file : TempFiles)
+		fs::remove(file);
 	doDeleteRemoteFile();
-
-	return;
 }
 
 
@@ -2699,18 +2243,9 @@ void ShowHelp(DWORD_PTR helpTopicId) {
 }
 
 
-/*----- INIファイルのパス名を返す ---------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		char *パス名
-*----------------------------------------------------------------------------*/
-
-char *AskIniFilePath(void)
-{
-	return(IniPath);
+// INIファイルのパス名を返す
+fs::path const& AskIniFilePath() {
+	return IniPath;
 }
 
 /*----- INIファイルのみを使うかどうかを返す -----------------------------------
