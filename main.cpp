@@ -50,7 +50,7 @@
 /*===== プロトタイプ =====*/
 
 static int InitApp(int cmdShow);
-static int MakeAllWindows(int cmdShow);
+static bool MakeAllWindows(int cmdShow);
 static void DeleteAllObject(void);
 static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void StartupProc(std::vector<std::wstring_view> const& args);
@@ -76,7 +76,6 @@ static HWND hWndFtp;
 static HWND hWndCurFocus = NULL;
 
 static HACCEL Accel;
-static HBRUSH RootColorBrush = NULL;
 
 static int Resizing = RESIZE_OFF;
 static int ResizePos;
@@ -515,7 +514,7 @@ static int InitApp(int cmdShow)
 			//タイマの精度を改善
 			timeBeginPeriod(1);
 
-			if(MakeAllWindows(cmdShow) == FFFTP_SUCCESS)
+			if(MakeAllWindows(cmdShow))
 			{
 				hWndCurFocus = GetLocalHwnd();
 
@@ -588,103 +587,53 @@ static int InitApp(int cmdShow)
 }
 
 
-/*----- ウインドウを作成する --------------------------------------------------
-*
-*	Parameter
-*		int cmdShow : 最初に表示するウインドウの形式。
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int MakeAllWindows(int cmdShow)
-{
-	RECT Rect1;
-	RECT Rect2;
-	int Sts;
-	int StsTask;
-	int StsSbar;
-	int StsTbar;
-	int StsList;
-	int StsLvtips;
-	int StsSocket;
-
-	/*===== メインウインドウ =====*/
-
-	RootColorBrush = CreateSolidBrush(GetSysColor(COLOR_3DFACE));
-
-	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, FtpWndProc, 0, 0, GetFtpInst(), LoadIconW(GetFtpInst(), MAKEINTRESOURCEW(ffftp)), 0, RootColorBrush, MAKEINTRESOURCEW(main_menu), FtpClass };
+// ウインドウを作成する
+static bool MakeAllWindows(int cmdShow) {
+	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, FtpWndProc, 0, 0, GetFtpInst(), LoadIconW(GetFtpInst(), MAKEINTRESOURCEW(ffftp)), 0, GetSysColorBrush(COLOR_3DFACE), MAKEINTRESOURCEW(main_menu), FtpClass };
 	RegisterClassExW(&classEx);
 
-	// 高DPI対応
-//	ToolWinHeight = TOOLWIN_HEIGHT;
 	ToolWinHeight = CalcPixelY(16) + 12;
 
-	if(SaveWinPos == NO)
-	{
+	if (SaveWinPos == NO) {
 		WinPosX = CW_USEDEFAULT;
 		WinPosY = 0;
 	}
 	hWndFtp = CreateWindowExW(0, FtpClass, L"FFFTP", WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, WinPosX, WinPosY, WinWidth, WinHeight, HWND_DESKTOP, 0, GetFtpInst(), nullptr);
+	if (!hWndFtp)
+		return false;
 
-	if(hWndFtp != NULL)
-	{
-		SystemParametersInfoW(SPI_GETWORKAREA, 0, &Rect1, 0);
-		GetWindowRect(GetMainHwnd(), &Rect2);
-		if(Rect2.bottom > Rect1.bottom)
-		{
-			Rect2.top = std::max(0L, Rect2.top - (Rect2.bottom - Rect1.bottom));
-			MoveWindow(GetMainHwnd(), Rect2.left, Rect2.top, WinWidth, WinHeight, FALSE);
-		}
+	RECT workArea;
+	SystemParametersInfoW(SPI_GETWORKAREA, 0, &workArea, 0);
+	RECT windowRect;
+	GetWindowRect(GetMainHwnd(), &windowRect);
+	if (workArea.bottom < windowRect.bottom)
+		MoveWindow(GetMainHwnd(), windowRect.left, std::max(0L, windowRect.top - windowRect.bottom + workArea.bottom), WinWidth, WinHeight, FALSE);
 
-		/*===== ステイタスバー =====*/
+	if (MakeStatusBarWindow() == FFFTP_FAIL)
+		return false;
 
-		StsSbar = MakeStatusBarWindow();
+	CalcWinSize();
 
-		CalcWinSize();
+	if (MakeToolBarWindow() == FFFTP_FAIL)
+		return false;
 
-		/*===== ツールバー =====*/
+	if (MakeListWin() == FFFTP_FAIL)
+		return false;
 
-		StsTbar = MakeToolBarWindow();
+	if (MakeTaskWindow() == FFFTP_FAIL)
+		return false;
 
-		/*===== ファイルリストウインドウ =====*/
+	ShowWindow(GetMainHwnd(), cmdShow != SW_MINIMIZE && cmdShow != SW_SHOWMINIMIZED && cmdShow != SW_SHOWMINNOACTIVE && Sizing == SW_MAXIMIZE ? SW_MAXIMIZE : cmdShow);
 
-		StsList = MakeListWin();
+	if (MakeSocketWin() == FFFTP_FAIL)
+		return false;
 
-		/*==== タスクウインドウ ====*/
+	if (InitListViewTips() == FFFTP_FAIL)
+		return false;
 
-		StsTask = MakeTaskWindow();
+	SetListViewType();
 
-		if((cmdShow != SW_MINIMIZE) && (cmdShow != SW_SHOWMINIMIZED) && (cmdShow != SW_SHOWMINNOACTIVE) &&
-		   (Sizing == SW_MAXIMIZE))
-			cmdShow = SW_MAXIMIZE;
-
-		ShowWindow(GetMainHwnd(), cmdShow);
-
-		/*==== ソケットウインドウ ====*/
-
-		StsSocket = MakeSocketWin();
-
-		StsLvtips = InitListViewTips();
-	}
-
-	Sts = FFFTP_SUCCESS;
-	if((hWndFtp == NULL) ||
-	   (StsTbar == FFFTP_FAIL) ||
-	   (StsList == FFFTP_FAIL) ||
-	   (StsSbar == FFFTP_FAIL) ||
-	   (StsTask == FFFTP_FAIL) ||
-	   (StsLvtips == FFFTP_FAIL) ||
-	   (StsSocket == FFFTP_FAIL))
-	{
-		Sts = FFFTP_FAIL;
-	}
-
-	if(Sts == FFFTP_SUCCESS)
-		SetListViewType();
-
-	return(Sts);
+	return true;
 }
 
 
