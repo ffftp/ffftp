@@ -59,7 +59,6 @@ static void ExitProc(HWND hWnd);
 static void ChangeDir(int Win, char *Path);
 static void ResizeWindowProc(void);
 static void CalcWinSize(void);
-// static void AskWindowPos(HWND hWnd);
 static void CheckResizeFrame(WPARAM Keys, int x, int y);
 static void DispDirInfo(void);
 static void DeleteAlltempFile(void);
@@ -2031,30 +2030,6 @@ static void CalcWinSize(void)
 
 	ListHeight = std::max(0L, ClientHeight - AskToolWinHeight() * 2 - TaskHeight - SepaWidth - Rect.bottom);
 }
-
-
-#if 0
-/*----- ウインドウの表示位置を取得する ----------------------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void AskWindowPos(HWND hWnd)
-{
-	WINDOWPLACEMENT WinPlace;
-
-	WinPlace.length = sizeof(WINDOWPLACEMENT);
-	GetWindowPlacement(hWnd, &WinPlace);
-	WinPosX = WinPlace.rcNormalPosition.left;
-	WinPosY = WinPlace.rcNormalPosition.top;
-
-	return;
-}
-#endif
 
 
 /*----- ディレクトリリストとファイルリストの境界変更処理 ----------------------
