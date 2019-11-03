@@ -113,7 +113,7 @@ void DispTaskMsg() {
 		return;
 	}
 	auto path = temp.u8string();
-	AddTempFileList(data(path));
+	AddTempFileList(temp);
 	ExecViewer(data(path), 0);
 }
 

@@ -1291,14 +1291,6 @@ typedef struct filelist {
 } FILELIST;
 
 
-/*===== テンポラリファイルリスト =====*/
-
-typedef struct tempfilelist {
-	char *Fname;				/* ファイル名 */
-	struct tempfilelist *Next;
-} TEMPFILELIST;
-
-
 /*===== サウンドファイル =====*/
 
 typedef struct {
@@ -1348,7 +1340,7 @@ HINSTANCE GetFtpInst(void);
 void DoubleClickProc(int Win, int Mode, int App);
 void ExecViewer(char *Fname, int App);
 void ExecViewer2(char *Fname1, char *Fname2, int App);
-void AddTempFileList(char *Fname);
+void AddTempFileList(fs::path const& file);
 void SoundPlay(int Num);
 void ShowHelp(DWORD_PTR helpTopicId);
 fs::path const& AskIniFilePath();
