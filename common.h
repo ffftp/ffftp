@@ -1625,7 +1625,7 @@ void DispFileProperty(char *Fname);
 
 /*===== remote.c =====*/
 
-int DoCWD(char *Path, int Disp, int ForceGet, int ErrorBell);
+int DoCWD(const char *Path, int Disp, int ForceGet, int ErrorBell);
 int DoCWDStepByStep(char *Path, char *Cur);
 int DoMKD(char *Path);
 void InitPWDcommand();

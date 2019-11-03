@@ -29,20 +29,6 @@
 
 #include "common.h"
 
-
-/*===== プロトタイプ =====*/
-
-static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-
-/* 2007/09/21 sunasunamix  ここから *********************/
-static LRESULT CALLBACK CountermeasureTbarMainProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam);
-static LRESULT CALLBACK CountermeasureTbarLocalProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam);
-static LRESULT CALLBACK CountermeasureTbarRemoteProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam);
-/********************************************* ここまで */
-
-
-/*===== 外部参照 =====*/
-
 extern int SepaWidth;
 extern int RemoteWidth;
 
@@ -70,8 +56,6 @@ static HWND hWndDirRemote = NULL;
 static HWND hWndDirLocalEdit = NULL;
 static HWND hWndDirRemoteEdit = NULL;
 
-static WNDPROC HistEditBoxProcPtr;
-
 static HFONT DlgFont = NULL;
 
 static int TmpTransMode;
@@ -91,13 +75,6 @@ static int SyncMove = NO;
 // デッドロック対策
 //static int HideUI = NO;
 static int HideUI = 0;
-
-
-/* 2007/09/21 sunasunamix  ここから *********************/
-static WNDPROC pOldTbarMainProc   = NULL;
-static WNDPROC pOldTbarLocalProc  = NULL;
-static WNDPROC pOldTbarRemoteProc = NULL;
-/********************************************* ここまで */
 
 
 /* 以前、コンボボックスにカレントフォルダを憶えさせていた流れで */
@@ -200,6 +177,39 @@ static const int HideMenus[] = {
 };
 
 
+static LRESULT CALLBACK IgnoreRightClick(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR, DWORD_PTR) {
+	switch (uMsg) {
+	case WM_RBUTTONDBLCLK:
+	case WM_RBUTTONDOWN:
+	case WM_RBUTTONUP:
+		return TRUE;
+	}
+	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
+
+
+static LRESULT CALLBACK HistoryEdit(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR isLocal) {
+	switch (uMsg) {
+	case WM_CHAR:
+		switch (wParam) {
+		case 0x0D:			/* リターンキーが押された */
+			if (isLocal) {
+				DoLocalCWD(u8(GetText(hWnd)).c_str());
+				GetLocalDirForWnd();
+			} else {
+				CancelFlg = NO;
+				if (CheckClosedAndReconnect() == FFFTP_SUCCESS && DoCWD(u8(GetText(hWnd)).c_str(), YES, NO, YES) < FTP_RETRY)
+					GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
+			}
+			return 0;
+		case 0x09:			/* TABキーが押された */
+			SetFocus(isLocal ? GetLocalHwnd() : GetRemoteHwnd());
+			return 0;
+		}
+	}
+	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
+
 
 // ツールバーを作成する
 int MakeToolBarWindow()
@@ -235,7 +245,7 @@ int MakeToolBarWindow()
 
 	if(hWndTbarMain != NULL)
 	{
-		pOldTbarMainProc = (WNDPROC)SetWindowLongPtrW(hWndTbarMain, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarMainProc);
+		SetWindowSubclass(hWndTbarMain, IgnoreRightClick, 0, 0);
 
 		GetClientRect(GetMainHwnd(), &Rect1);
 		// 高DPI対応
@@ -268,7 +278,7 @@ int MakeToolBarWindow()
 
 	if(hWndTbarLocal != NULL)
 	{
-		pOldTbarLocalProc = (WNDPROC)SetWindowLongPtrW(hWndTbarLocal, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarLocalProc);
+		SetWindowSubclass(hWndTbarLocal, IgnoreRightClick, 0, 0);
 
 		// 高DPI対応
 //		MoveWindow(hWndTbarLocal, 0, TOOLWIN_HEIGHT, LocalWidth, TOOLWIN_HEIGHT, FALSE);
@@ -286,7 +296,7 @@ int MakeToolBarWindow()
 			/* エディットコントロールを探す */
 			hWndDirLocalEdit = GetWindow(hWndDirLocal, GW_CHILD);
 			if(hWndDirLocalEdit != NULL)
-				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtrW(hWndDirLocalEdit, GWLP_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
+				SetWindowSubclass(hWndDirLocalEdit, HistoryEdit, 0, true/*isLocal*/);
 
 			SendMessageW(hWndDirLocal, WM_SETFONT, (WPARAM)DlgFont, MAKELPARAM(TRUE, 0));
 			SendMessageW(hWndDirLocal, CB_LIMITTEXT, FMAX_PATH, 0);
@@ -322,7 +332,7 @@ int MakeToolBarWindow()
 
 	if(hWndTbarRemote != NULL)
 	{
-		pOldTbarRemoteProc = (WNDPROC)SetWindowLongPtrW(hWndTbarRemote, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarRemoteProc);
+		SetWindowSubclass(hWndTbarRemote, IgnoreRightClick, 0, 0);
 
 		// 高DPI対応
 //		MoveWindow(hWndTbarRemote, LocalWidth + SepaWidth, TOOLWIN_HEIGHT, RemoteWidth, TOOLWIN_HEIGHT, FALSE);
@@ -338,7 +348,7 @@ int MakeToolBarWindow()
 			/* エディットコントロールを探す */
 			hWndDirRemoteEdit = GetWindow(hWndDirRemote, GW_CHILD);
 			if(hWndDirRemoteEdit != NULL)
-				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtrW(hWndDirRemoteEdit, GWLP_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
+				SetWindowSubclass(hWndDirRemoteEdit, HistoryEdit, 0, false/*isLocal*/);
 
 			SendMessageW(hWndDirRemote, WM_SETFONT, (WPARAM)DlgFont, MAKELPARAM(TRUE, 0));
 			SendMessageW(hWndDirRemote, CB_LIMITTEXT, FMAX_PATH, 0);
@@ -357,60 +367,6 @@ int MakeToolBarWindow()
 	}
 	return(Sts);
 }
-
-
-
-
-
-static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	char Tmp[FMAX_PATH+1];
-
-	switch (message)
-	{
-		case WM_CHAR :
-			if(wParam == 0x0D)		/* リターンキーが押された */
-			{
-				if(hWnd == hWndDirLocalEdit)
-				{
-					strncpy_s(Tmp, FMAX_PATH+1, u8(GetText(hWndDirLocalEdit)).c_str(), _TRUNCATE);
-					DoLocalCWD(Tmp);
-					GetLocalDirForWnd();
-				}
-				else
-				{
-					// 同時接続対応
-					CancelFlg = NO;
-					strncpy_s(Tmp, FMAX_PATH+1, u8(GetText(hWndDirRemoteEdit)).c_str(), _TRUNCATE);
-					if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
-					{
-						if(DoCWD(Tmp, YES, NO, YES) < FTP_RETRY)
-							GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
-					}
-				}
-			}
-			else if(wParam == 0x09)		/* TABキーが押された */
-			{
-				if(hWnd == hWndDirLocalEdit)
-				{
-					SetFocus(GetLocalHwnd());
-				}
-				else
-				{
-					SetFocus(GetRemoteHwnd());
-				}
-			}
-			else
-				return CallWindowProcW(HistEditBoxProcPtr, hWnd, message, wParam, lParam);
-			break;
-
-		default :
-			return CallWindowProcW(HistEditBoxProcPtr, hWnd, message, wParam, lParam);
-	}
-	return(0L);
-}
-
-
 
 
 /*----- ツールバーを削除 ------------------------------------------------------
@@ -1746,58 +1702,3 @@ void ShowPopupMenu(int Win, int Pos) {
 	TrackPopupMenu(submenu, TPM_LEFTBUTTON | TPM_RIGHTBUTTON, point.x, point.y, 0, GetMainHwnd(), NULL);
 	DestroyMenu(menu);
 }
-
-
-/* 2007/09/21 sunasunamix  ここから *********************/
-
-/*----- CreateToolbarEx のマウスクリック関連を無視する(TbarMain用) -----------
-*       (サブクラス化を行うためのウインドウプロシージャ)
-*----------------------------------------------------------------------------*/
-static LRESULT CALLBACK CountermeasureTbarMainProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam)
-{
-	switch (uMessage) {
-	case WM_DESTROY :
-		SetWindowLongPtrW(hWnd,GWLP_WNDPROC,(LONG_PTR)pOldTbarMainProc);
-		break;
-	case WM_RBUTTONDBLCLK :
-	case WM_RBUTTONDOWN :
-	case WM_RBUTTONUP :
-		return TRUE;
-	}
-	return CallWindowProcW(pOldTbarMainProc, hWnd, uMessage, wParam, lParam);
-}
-
-/*----- CreateToolbarEx のマウスクリック関連を無視する(TbarLocal用) ----------
-*       (サブクラス化を行うためのウインドウプロシージャ)
-*----------------------------------------------------------------------------*/
-static LRESULT CALLBACK CountermeasureTbarLocalProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam)
-{
-	switch (uMessage) {
-	case WM_DESTROY :
-		SetWindowLongPtrW(hWnd,GWLP_WNDPROC,(LONG_PTR)pOldTbarLocalProc);
-		break;
-	case WM_RBUTTONDBLCLK :
-	case WM_RBUTTONDOWN :
-	case WM_RBUTTONUP :
-		return TRUE;
-	}
-	return CallWindowProcW(pOldTbarLocalProc, hWnd, uMessage, wParam, lParam);
-}
-
-/*----- CreateToolbarEx のマウスクリック関連を無視する(TbarRemote用) ---------
-*       (サブクラス化を行うためのウインドウプロシージャ)
-*----------------------------------------------------------------------------*/
-static LRESULT CALLBACK CountermeasureTbarRemoteProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam)
-{
-	switch (uMessage) {
-	case WM_DESTROY :
-		SetWindowLongPtrW(hWnd,GWLP_WNDPROC,(LONG_PTR)pOldTbarRemoteProc);
-		break;
-	case WM_RBUTTONDBLCLK :
-	case WM_RBUTTONDOWN :
-	case WM_RBUTTONUP :
-		return TRUE;
-	}
-	return CallWindowProcW(pOldTbarRemoteProc, hWnd, uMessage, wParam, lParam);
-}
-/********************************************* ここまで */

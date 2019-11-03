@@ -78,7 +78,7 @@ static int PwdCommandType;
 *		int 応答コードの１桁目
 *----------------------------------------------------------------------------*/
 
-int DoCWD(char *Path, int Disp, int ForceGet, int ErrorBell)
+int DoCWD(const char *Path, int Disp, int ForceGet, int ErrorBell)
 {
 	int Sts;
 	char Buf[FMAX_PATH+1];
