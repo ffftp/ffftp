@@ -581,7 +581,7 @@ static bool MakeAllWindows(int cmdShow) {
 
 	CalcWinSize();
 
-	if (MakeToolBarWindow() == FFFTP_FAIL)
+	if (!MakeToolBarWindow())
 		return false;
 
 	if (MakeListWin() == FFFTP_FAIL)

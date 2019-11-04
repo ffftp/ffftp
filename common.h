@@ -1407,7 +1407,7 @@ void doDeleteRemoteFile(void);
 
 /*===== toolmenu.c =====*/
 
-int MakeToolBarWindow();
+bool MakeToolBarWindow();
 void DeleteToolBarWindow(void);
 HWND GetMainTbarWnd(void);
 HWND GetLocalHistHwnd(void);
@@ -1831,7 +1831,6 @@ void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size);
 #endif
 int CalcPixelX(int x);
 int CalcPixelY(int y);
-HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNumerator, int ScaleDenominator);
 
 /*===== opie.c =====*/
 
