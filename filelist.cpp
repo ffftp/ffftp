@@ -890,11 +890,7 @@ void SetListViewType(void)
 void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 	if (AskConnecting() == YES) {
 		DisableUserOpe();
-
-		char Buf[FMAX_PATH+1];
-		AskRemoteCurDir(Buf, FMAX_PATH);
-		SetRemoteDirHist(Buf);
-
+		SetRemoteDirHist(AskRemoteCurDir());
 		if (Mode == CACHE_LASTREAD || DoDirListCmdSkt("", "", 0, CancelCheckWork) == FTP_COMPLETE) {
 			if (auto lines = GetListLine(0)) {
 				std::vector<FILELIST> files;
@@ -1757,7 +1753,7 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 							}
 							else
 							{
-								AskRemoteCurDir(Cur, FMAX_PATH);
+								strcpy(Cur, u8(AskRemoteCurDir()).c_str());
 
 								if((AskListCmdMode() == NO) &&
 								   (AskUseNLST_R() == YES))

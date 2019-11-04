@@ -1895,7 +1895,7 @@ static void ChangeDir(int Win, char *Path)
 	{
 		if(strcmp(Path, "..") == 0)
 		{
-			AskRemoteCurDir(Remote, FMAX_PATH);
+			strcpy(Remote, u8(AskRemoteCurDir()).c_str());
 			if (AskLocalCurDir().filename() != u8(GetFileName(Remote)))
 				Sync = NO;
 		}

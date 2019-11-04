@@ -151,7 +151,7 @@ void DownloadProc(int ChName, int ForceFile, int All)
 		if(AskNoFullPathMode() == YES)
 		{
 			strcpy(Pkt.Cmd, "SETCUR");
-			AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+			strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 			AddTransFileList(&Pkt);
 		}
 
@@ -192,7 +192,7 @@ void DownloadProc(int ChName, int ForceFile, int All)
 				} else if (AskHostType() == HTYPE_ACOS_4) {
 					strcpy(Pkt.RemoteFile, f.File);
 				} else {
-					AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+					strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 					SetSlashTail(Pkt.RemoteFile);
 					strcat(Pkt.RemoteFile, f.File);
 					ReplaceAll(Pkt.RemoteFile, '\\', '/');
@@ -238,7 +238,7 @@ void DownloadProc(int ChName, int ForceFile, int All)
 		if(AskNoFullPathMode() == YES)
 		{
 			strcpy(Pkt.Cmd, "BACKCUR");
-			AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+			strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 			AddTransFileList(&Pkt);
 		}
 
@@ -282,7 +282,7 @@ void DirectDownloadProc(char *Fname)
 		if(AskNoFullPathMode() == YES)
 		{
 			strcpy(Pkt.Cmd, "SETCUR");
-			AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+			strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 			AddTransFileList(&Pkt);
 		}
 
@@ -317,7 +317,7 @@ void DirectDownloadProc(char *Fname)
 				}
 				else
 				{
-					AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+					strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 					SetSlashTail(Pkt.RemoteFile);
 					strcat(Pkt.RemoteFile, Fname);
 					ReplaceAll(Pkt.RemoteFile, '\\', '/');
@@ -352,7 +352,7 @@ void DirectDownloadProc(char *Fname)
 		if(AskNoFullPathMode() == YES)
 		{
 			strcpy(Pkt.Cmd, "BACKCUR");
-			AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+			strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 			AddTransFileList(&Pkt);
 		}
 
@@ -576,7 +576,7 @@ void MirrorDownloadProc(int Notify)
 						strcpy(Pkt.Cmd, "L-MKD ");
 						AddTmpTransFileList(&Pkt, &Base);
 					} else if (f.Node == NODE_FILE) {
-						AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+						strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 						SetSlashTail(Pkt.RemoteFile);
 						strcat(Pkt.RemoteFile, f.File);
 						ReplaceAll(Pkt.RemoteFile, '\\', '/');
@@ -601,7 +601,7 @@ void MirrorDownloadProc(int Notify)
 				if(AskNoFullPathMode() == YES)
 				{
 					strcpy(Pkt.Cmd, "SETCUR");
-					AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+					strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 					AddTransFileList(&Pkt);
 				}
 				AppendTransFileList(Base);
@@ -609,7 +609,7 @@ void MirrorDownloadProc(int Notify)
 				if(AskNoFullPathMode() == YES)
 				{
 					strcpy(Pkt.Cmd, "BACKCUR");
-					AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+					strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 					AddTransFileList(&Pkt);
 				}
 
@@ -871,7 +871,7 @@ int MakeDirFromRemotePath(char* RemoteFile, char* Old, int FirstAdd)
 			if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
 			{
 				strcpy(Pkt1.Cmd, "SETCUR");
-				AskRemoteCurDir(Pkt1.RemoteFile, FMAX_PATH);
+				strcpy(Pkt1.RemoteFile, u8(AskRemoteCurDir()).c_str());
 				AddTransFileList(&Pkt1);
 			}
 			FirstAdd = NO;
@@ -948,7 +948,7 @@ void UploadListProc(int ChName, int All)
 			// ファイル一覧バグ修正
 			if((AbortOnListError == YES) && (ListSts == FFFTP_FAIL))
 				break;
-			AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+			strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 			SetSlashTail(Pkt.RemoteFile);
 			Cat = strchr(Pkt.RemoteFile, NUL);
 			if (ChName == NO || f.Node == NODE_DIR) {
@@ -983,7 +983,7 @@ void UploadListProc(int ChName, int All)
 					break;
 			}
 			// バグ修正
-			AskRemoteCurDir(Tmp, FMAX_PATH);
+			strcpy(Tmp, u8(AskRemoteCurDir()).c_str());
 			SetSlashTail(Tmp);
 			if(strncmp(Pkt.RemoteFile, Tmp, strlen(Tmp)) != 0)
 			{
@@ -1014,7 +1014,7 @@ void UploadListProc(int ChName, int All)
 				// 同名ファイルチェック用
 				RemoteList.clear();
 
-				AskRemoteCurDir(Tmp, FMAX_PATH);
+				strcpy(Tmp, u8(AskRemoteCurDir()).c_str());
 				if(DoCWD(Pkt.RemoteFile, NO, NO, NO) == FTP_COMPLETE)
 				{
 					if(DoDirListCmdSkt("", "", 998, &CancelFlg) == FTP_COMPLETE)
@@ -1027,7 +1027,7 @@ void UploadListProc(int ChName, int All)
 					if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
 					{
 						strcpy(Pkt1.Cmd, "SETCUR");
-						AskRemoteCurDir(Pkt1.RemoteFile, FMAX_PATH);
+						strcpy(Pkt1.RemoteFile, u8(AskRemoteCurDir()).c_str());
 						AddTransFileList(&Pkt1);
 					}
 					FirstAdd = NO;
@@ -1073,7 +1073,7 @@ void UploadListProc(int ChName, int All)
 					if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
 					{
 						strcpy(Pkt1.Cmd, "SETCUR");
-						AskRemoteCurDir(Pkt1.RemoteFile, FMAX_PATH);
+						strcpy(Pkt1.RemoteFile, u8(AskRemoteCurDir()).c_str());
 						AddTransFileList(&Pkt1);
 					}
 					FirstAdd = NO;
@@ -1085,7 +1085,7 @@ void UploadListProc(int ChName, int All)
 		if((FirstAdd == NO) && (AskNoFullPathMode() == YES))
 		{
 			strcpy(Pkt.Cmd, "BACKCUR");
-			AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+			strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 			AddTransFileList(&Pkt);
 		}
 
@@ -1138,7 +1138,7 @@ void UploadDragProc(WPARAM wParam)
 		ExistNotify = YES;
 
 		for (auto const& f : FileListBase) {
-			AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+			strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 			SetSlashTail(Pkt.RemoteFile);
 			Cat = strchr(Pkt.RemoteFile, NUL);
 
@@ -1175,7 +1175,7 @@ void UploadDragProc(WPARAM wParam)
 				// 同名ファイルチェック用
 				RemoteList.clear();
 
-				AskRemoteCurDir(Tmp, FMAX_PATH);
+				strcpy(Tmp, u8(AskRemoteCurDir()).c_str());
 				if(DoCWD(Pkt.RemoteFile, NO, NO, NO) == FTP_COMPLETE)
 				{
 					if(DoDirListCmdSkt("", "", 998, &CancelFlg) == FTP_COMPLETE)
@@ -1187,7 +1187,7 @@ void UploadDragProc(WPARAM wParam)
 					if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
 					{
 						strcpy(Pkt1.Cmd, "SETCUR");
-						AskRemoteCurDir(Pkt1.RemoteFile, FMAX_PATH);
+						strcpy(Pkt1.RemoteFile, u8(AskRemoteCurDir()).c_str());
 						AddTransFileList(&Pkt1);
 					}
 					FirstAdd = NO;
@@ -1237,7 +1237,7 @@ void UploadDragProc(WPARAM wParam)
 					if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
 					{
 						strcpy(Pkt1.Cmd, "SETCUR");
-						AskRemoteCurDir(Pkt1.RemoteFile, FMAX_PATH);
+						strcpy(Pkt1.RemoteFile, u8(AskRemoteCurDir()).c_str());
 						AddTransFileList(&Pkt1);
 					}
 					FirstAdd = NO;
@@ -1249,7 +1249,7 @@ void UploadDragProc(WPARAM wParam)
 		if((FirstAdd == NO) && (AskNoFullPathMode() == YES))
 		{
 			strcpy(Pkt.Cmd, "BACKCUR");
-			AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+			strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 			AddTransFileList(&Pkt);
 		}
 
@@ -1405,7 +1405,7 @@ void MirrorUploadProc(int Notify)
 
 			for (auto const& f : RemoteListBase)
 				if (f.Attr == YES && f.Node == NODE_FILE) {
-					AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+					strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 					SetSlashTail(Pkt.RemoteFile);
 					strcat(Pkt.RemoteFile, f.File);
 					ReplaceAll(Pkt.RemoteFile, '\\', '/');
@@ -1417,7 +1417,7 @@ void MirrorUploadProc(int Notify)
 
 			for (auto const& f : LocalListBase) {
 				if (f.Attr == YES) {
-					AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+					strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 					SetSlashTail(Pkt.RemoteFile);
 					Cat = strchr(Pkt.RemoteFile, NUL);
 					strcat(Pkt.RemoteFile, f.File);
@@ -1460,7 +1460,7 @@ void MirrorUploadProc(int Notify)
 				if(AskNoFullPathMode() == YES)
 				{
 					strcpy(Pkt.Cmd, "SETCUR");
-					AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+					strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 					AddTransFileList(&Pkt);
 				}
 				AppendTransFileList(Base);
@@ -1468,7 +1468,7 @@ void MirrorUploadProc(int Notify)
 				if(AskNoFullPathMode() == YES)
 				{
 					strcpy(Pkt.Cmd, "BACKCUR");
-					AskRemoteCurDir(Pkt.RemoteFile, FMAX_PATH);
+					strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 					AddTransFileList(&Pkt);
 				}
 
@@ -1505,7 +1505,7 @@ void MirrorUploadProc(int Notify)
 static void MirrorDeleteAllDir(std::vector<FILELIST> const& Remote, TRANSPACKET *Pkt, TRANSPACKET **Base) {
 	for (auto it = rbegin(Remote); it != rend(Remote); ++it)
 		if (it->Node == NODE_DIR && it->Attr == YES) {
-			AskRemoteCurDir(Pkt->RemoteFile, FMAX_PATH);
+			strcpy(Pkt->RemoteFile, u8(AskRemoteCurDir()).c_str());
 			SetSlashTail(Pkt->RemoteFile);
 			strcat(Pkt->RemoteFile, it->File);
 			ReplaceAll(Pkt->RemoteFile, '\\', '/');
@@ -1788,7 +1788,7 @@ void DeleteProc(void)
 	{
 		// デッドロック対策
 		DisableUserOpe();
-		AskRemoteCurDir(CurDir, FMAX_PATH);
+		strcpy(CurDir, u8(AskRemoteCurDir()).c_str());
 		std::vector<FILELIST> FileListBase;
 		if(Win == WIN_LOCAL)
 			MakeSelectedFileList(Win, NO, NO, FileListBase, &CancelFlg);
@@ -1810,7 +1810,7 @@ void DeleteProc(void)
 
 		if(Win == WIN_REMOTE)
 		{
-			AskRemoteCurDir(Tmp, FMAX_PATH);
+			strcpy(Tmp, u8(AskRemoteCurDir()).c_str());
 			if(strcmp(Tmp, CurDir) != 0)
 				DoCWD(Tmp, NO, NO, NO);
 		}
@@ -1899,7 +1899,7 @@ static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, char 
 		strcpy(Path, (AskLocalCurDir() / fs::u8path(Dt.File)).u8string().c_str());
 	else
 	{
-		AskRemoteCurDir(Path, FMAX_PATH);
+		strcpy(Path, u8(AskRemoteCurDir()).c_str());
 		SetSlashTail(Path);
 		strcat(Path, Dt.File);
 		ReplaceAll(Path, '\\', '/');
@@ -2091,7 +2091,7 @@ void MoveRemoteFileProc(int drop_index)
 		return;
 	}
 
-	AskRemoteCurDir(HostDir, FMAX_PATH);
+	strcpy(HostDir, u8(AskRemoteCurDir()).c_str());
 
 	// ドロップ先のフォルダ名を得る
 	// 上位のディレクトリへ移動対応
@@ -2687,7 +2687,7 @@ void CopyURLtoClipBoard() {
 		baseAddress.append(L":").append(std::to_wstring(port));
 	{
 		char dir[FMAX_PATH + 1];
-		AskRemoteCurDir(dir, FMAX_PATH);
+		strcpy(dir, u8(AskRemoteCurDir()).c_str());
 		SetSlashTail(dir);
 		if (AskHostType() == HTYPE_VMS) {
 			baseAddress += L"/"sv;

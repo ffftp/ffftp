@@ -78,7 +78,7 @@ static int HideUI = 0;
 /* 以前、コンボボックスにカレントフォルダを憶えさせていた流れで */
 /* このファイルでカレントフォルダを憶えさせる */
 static fs::path LocalCurDir;
-static char RemoteCurDir[FMAX_PATH+1];
+static std::wstring RemoteCurDir;
 
 
 /* メインのツールバー */
@@ -1457,28 +1457,14 @@ int AskSyncMoveMode(void)
 *			ディレクトリヒストリ
 *===================================================*/
 
-/*----- ホスト側のヒストリ一覧ウインドウに登録 --------------------------------
-*
-*	Parameter
-*		char *Path : パス
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetRemoteDirHist(char *Path)
-{
-	LONG_PTR i;
-
-	if((i = SendMessageW(hWndDirRemote, CB_FINDSTRINGEXACT, 0, (LPARAM)u8(Path).c_str())) != CB_ERR)
-		SendMessageW(hWndDirRemote, CB_DELETESTRING, i, 0);
-
-	SendMessageW(hWndDirRemote, CB_ADDSTRING, 0, (LPARAM)u8(Path).c_str());
-	i = SendMessageW(hWndDirRemote, CB_GETCOUNT, 0, 0);
-	SendMessageW(hWndDirRemote, CB_SETCURSEL, i-1, 0);
-
-	strcpy(RemoteCurDir, Path);
-	return;
+// ホスト側のヒストリ一覧ウインドウに登録
+void SetRemoteDirHist(std::wstring const& path) {
+	auto index = SendMessageW(hWndDirRemote, CB_FINDSTRINGEXACT, 0, (LPARAM)path.c_str());
+	if (index != CB_ERR)
+		SendMessageW(hWndDirRemote, CB_DELETESTRING, index, 0);
+	index = SendMessageW(hWndDirRemote, CB_ADDSTRING, 0, (LPARAM)path.c_str());
+	SendMessageW(hWndDirRemote, CB_SETCURSEL, index, 0);
+	RemoteCurDir = path;
 }
 
 
@@ -1498,21 +1484,9 @@ fs::path const& AskLocalCurDir() {
 }
 
 
-/*----- ホストのカレントディレクトリを返す ------------------------------------
-*
-*	Parameter
-*		char *Buf : カレントディレクトリ名を返すバッファ
-*		int Max : バッファのサイズ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void AskRemoteCurDir(char *Buf, size_t Max)
-{
-	memset(Buf, 0, Max);
-	strncpy(Buf, RemoteCurDir, Max-1);
-	return;
+// ホストのカレントディレクトリを返す
+std::wstring const& AskRemoteCurDir() {
+	return RemoteCurDir;
 }
 
 
