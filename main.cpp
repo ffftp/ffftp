@@ -325,7 +325,7 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 				continue;
 			/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
 			/* コンボボックス内ではアクセラレータを無効にする */
-			if (msg.hwnd == GetLocalHistEditHwnd() || msg.hwnd == GetRemoteHistEditHwnd() || hHelpWin && GetAncestor(msg.hwnd, GA_ROOT) == hHelpWin || GetHideUI() == YES || TranslateAcceleratorW(GetMainHwnd(), Accel, &msg) == 0) {
+			if (msg.hwnd == GetLocalHistEditHwnd() || msg.hwnd == GetRemoteHistEditHwnd() || hHelpWin && GetAncestor(msg.hwnd, GA_ROOT) == hHelpWin || AskUserOpeDisabled() || TranslateAcceleratorW(GetMainHwnd(), Accel, &msg) == 0) {
 				TranslateMessage(&msg);
 				DispatchMessageW(&msg);
 			}
@@ -703,7 +703,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			case 1:
 				if(WaitForSingleObject(ChangeNotification, 0) == WAIT_OBJECT_0)
 				{
-					if(AskUserOpeDisabled() == NO)
+					if (!AskUserOpeDisabled())
 					{
 						FindNextChangeNotification(ChangeNotification);
 						if(AutoRefreshFileList == YES)
@@ -899,8 +899,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_REMOTE_UPDIR :
-					// デッドロック対策
-					if(AskUserOpeDisabled() == YES)
+					if (AskUserOpeDisabled())
 						break;
 					SuppressRefresh = 1;
 					SetCurrentDirAsDirHist();
@@ -909,8 +908,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_LOCAL_UPDIR :
-					// デッドロック対策
-					if(AskUserOpeDisabled() == YES)
+					if (AskUserOpeDisabled())
 						break;
 					SetCurrentDirAsDirHist();
 					ChangeDir(WIN_LOCAL, "..");
@@ -1112,8 +1110,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_REFRESH :
-					// デッドロック対策
-					if(AskUserOpeDisabled() == YES)
+					if (AskUserOpeDisabled())
 						break;
 					// 同時接続対応
 					CancelFlg = NO;
@@ -1137,15 +1134,13 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case REFRESH_LOCAL :
-					// デッドロック対策
-					if(AskUserOpeDisabled() == YES)
+					if (AskUserOpeDisabled())
 						break;
 					GetLocalDirForWnd();
 					break;
 
 				case REFRESH_REMOTE :
-					// デッドロック対策
-					if(AskUserOpeDisabled() == YES)
+					if (AskUserOpeDisabled())
 						break;
 					// 同時接続対応
 					CancelFlg = NO;
@@ -1213,8 +1208,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_DOTFILE :
-					// デッドロック対策
-					if(AskUserOpeDisabled() == YES)
+					if (AskUserOpeDisabled())
 						break;
 					// 同時接続対応
 					CancelFlg = NO;
@@ -1754,7 +1748,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 	char Tmp[FMAX_PATH+1];
 	int UseDiffViewer;
 
-	if(AskUserOpeDisabled() == NO)
+	if (!AskUserOpeDisabled())
 	{
 		SetCurrentDirAsDirHist();
 		if(GetSelectedCount(Win) == 1)
@@ -2279,7 +2273,7 @@ int BackgrndMessageProc(void)
 			if((Msg.hwnd == GetLocalHistEditHwnd()) ||
 			   (Msg.hwnd == GetRemoteHistEditHwnd()) ||
 			   ((hHelpWin != NULL) && (Msg.hwnd == hHelpWin)) ||
-			   GetHideUI() == YES ||
+				AskUserOpeDisabled() ||
 			   (TranslateAcceleratorW(GetMainHwnd(), Accel, &Msg) == 0))
 			{
 				if(Msg.message == WM_QUIT)

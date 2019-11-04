@@ -307,409 +307,161 @@ bool MakeToolBarWindow() {
 }
 
 
-/*----- ツールバーを削除 ------------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DeleteToolBarWindow(void)
-{
-	if(hWndTbarMain != NULL)
+// ツールバーを削除
+void DeleteToolBarWindow() {
+	if (hWndTbarMain != NULL)
 		DestroyWindow(hWndTbarMain);
-	if(hWndTbarLocal != NULL)
+	if (hWndTbarLocal != NULL)
 		DestroyWindow(hWndTbarLocal);
-	if(hWndTbarRemote != NULL)
+	if (hWndTbarRemote != NULL)
 		DestroyWindow(hWndTbarRemote);
-	if(hWndDirLocal != NULL)
+	if (hWndDirLocal != NULL)
 		DestroyWindow(hWndDirLocal);
-	if(hWndDirRemote != NULL)
+	if (hWndDirRemote != NULL)
 		DestroyWindow(hWndDirRemote);
-	return;
 }
 
 
-/*----- メインのツールバーのウインドウハンドルを返す --------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetMainTbarWnd(void)
-{
-	return(hWndTbarMain);
+// メインのツールバーのウインドウハンドルを返す
+HWND GetMainTbarWnd() {
+	return hWndTbarMain;
 }
 
 
-/*----- ローカル側のヒストリウインドウのウインドウハンドルを返す --------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetLocalHistHwnd(void)
-{
-	return(hWndDirLocal);
+// ローカル側のヒストリウインドウのウインドウハンドルを返す
+HWND GetLocalHistHwnd() {
+	return hWndDirLocal;
 }
 
 
-/*----- ホスト側のヒストリウインドウのウインドウハンドルを返す ----------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetRemoteHistHwnd(void)
-{
-	return(hWndDirRemote);
+// ホスト側のヒストリウインドウのウインドウハンドルを返す
+HWND GetRemoteHistHwnd() {
+	return hWndDirRemote;
 }
 
 
-/*----- ローカル側のヒストリエディットのウインドウハンドルを返す --------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetLocalHistEditHwnd(void)
-{
-	return(hWndDirLocalEdit);
+// ローカル側のヒストリエディットのウインドウハンドルを返す
+HWND GetLocalHistEditHwnd() {
+	return hWndDirLocalEdit;
 }
 
 
-/*----- ホスト側のヒストリエディットのウインドウハンドルを返す ----------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetRemoteHistEditHwnd(void)
-{
-	return(hWndDirRemoteEdit);
+// ホスト側のヒストリエディットのウインドウハンドルを返す
+HWND GetRemoteHistEditHwnd() {
+	return hWndDirRemoteEdit;
 }
 
 
-/*----- ローカル側のツールバーのウインドウハンドルを返す ----------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetLocalTbarWnd(void)
-{
-	return(hWndTbarLocal);
+// ローカル側のツールバーのウインドウハンドルを返す
+HWND GetLocalTbarWnd() {
+	return hWndTbarLocal;
 }
 
 
-/*----- ホスト側のツールバーのウインドウハンドルを返す ------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetRemoteTbarWnd(void)
-{
-	return(hWndTbarRemote);
+// ホスト側のツールバーのウインドウハンドルを返す
+HWND GetRemoteTbarWnd() {
+	return hWndTbarRemote;
 }
 
 
-/*----- HideUI の状態を返す ---------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int HideUI の状態
-*----------------------------------------------------------------------------*/
+// ツールボタン／メニューのハイド処理
+void MakeButtonsFocus() {
+	if (HideUI == 0) {
+		auto focus = GetFocus();
+		auto connected = AskConnecting() == YES;
+		auto selected = 0 < GetSelectedCount(focus == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL);
+		auto transferable = connected && selected;
+		auto operatable = focus == GetLocalHwnd() || connected;
+		auto menu = GetMenu(GetMainHwnd());
 
-int GetHideUI(void)
-{
-	// デッドロック対策
-//	return(HideUI);
-	return (HideUI > 0 ? YES : NO);
-}
-
-
-/*----- ツールボタン／メニューのハイド処理 ------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void MakeButtonsFocus(void)
-{
-	HWND hWndFocus;
-	HWND hWndMain;
-	int Count;
-	int Win;
-
-	// デッドロック対策
-//	if(HideUI == NO)
-	if(HideUI == 0)
-	{
-		hWndMain = GetMainHwnd();
-		hWndFocus = GetFocus();
-		Win = WIN_LOCAL;
-		if(hWndFocus == GetRemoteHwnd())
-			Win = WIN_REMOTE;
-
-		Count = GetSelectedCount(Win);
-
-		if(AskConnecting() == YES)
-		{
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_ADD, MF_ENABLED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_ADD_LOCAL, MF_ENABLED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_ADD_BOTH, MF_ENABLED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_EDIT, MF_ENABLED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DIRINFO, MF_ENABLED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_MIRROR_UPLOAD, MF_ENABLED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_MIRROR_DOWNLOAD, MF_ENABLED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_NAME, MF_ENABLED);
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MIRROR_UPLOAD, MAKELONG(TRUE, 0));
+		for (auto menuId : { MENU_BMARK_ADD, MENU_BMARK_ADD_LOCAL, MENU_BMARK_ADD_BOTH, MENU_BMARK_EDIT, MENU_DIRINFO, MENU_MIRROR_UPLOAD, MENU_MIRROR_DOWNLOAD, MENU_DOWNLOAD_NAME })
+			EnableMenuItem(menu, menuId, connected ? MF_ENABLED : MF_GRAYED);
+		SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MIRROR_UPLOAD, MAKELPARAM(connected, 0));
+		if (focus == GetLocalHwnd()) {
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELPARAM(transferable, 0));
+			EnableMenuItem(menu, MENU_UPLOAD, transferable ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(menu, MENU_UPLOAD_AS, transferable ? MF_ENABLED : MF_GRAYED);
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELPARAM(false, 0));
+			EnableMenuItem(menu, MENU_SOMECMD, MF_GRAYED);
+			EnableMenuItem(menu, MENU_DOWNLOAD, MF_GRAYED);
+			EnableMenuItem(menu, MENU_DOWNLOAD_AS, MF_GRAYED);
+			EnableMenuItem(menu, MENU_DOWNLOAD_AS_FILE, MF_GRAYED);
+		} else if (focus == GetRemoteHwnd()) {
+			EnableMenuItem(menu, MENU_SOMECMD, connected ? MF_ENABLED : MF_GRAYED);
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELPARAM(transferable, 0));
+			EnableMenuItem(menu, MENU_DOWNLOAD, transferable ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(menu, MENU_DOWNLOAD_AS, transferable ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(menu, MENU_DOWNLOAD_AS_FILE, transferable ? MF_ENABLED : MF_GRAYED);
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELPARAM(false, 0));
+			EnableMenuItem(menu, MENU_UPLOAD, MF_GRAYED);
+			EnableMenuItem(menu, MENU_UPLOAD_AS, MF_GRAYED);
 		}
-		else
-		{
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_ADD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_ADD_LOCAL, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_ADD_BOTH, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_EDIT, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DIRINFO, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_MIRROR_UPLOAD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_MIRROR_DOWNLOAD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_NAME, MF_GRAYED);
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MIRROR_UPLOAD, MAKELONG(FALSE, 0));
-		}
-
-		if(hWndFocus == GetLocalHwnd())
-		{
-			if((AskConnecting() == YES) && (Count > 0))
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(TRUE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD, MF_ENABLED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD_AS, MF_ENABLED);
+		if (focus == GetLocalHwnd() || focus == GetRemoteHwnd()) {
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DELETE, MAKELPARAM(selected, 0));
+			EnableMenuItem(menu, MENU_DELETE, selected ? MF_ENABLED : MF_GRAYED);
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_RENAME, MAKELPARAM(selected, 0));
+			EnableMenuItem(menu, MENU_RENAME, selected ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(menu, MENU_CHMOD, selected ? MF_ENABLED : MF_GRAYED);
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MKDIR, MAKELPARAM(operatable, 0));
+			EnableMenuItem(menu, MENU_MKDIR, operatable ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(menu, MENU_FILESIZE, operatable ? MF_ENABLED : MF_GRAYED);
+		} else {
+			for (auto menuId : { MENU_UPLOAD, MENU_DOWNLOAD, MENU_DELETE, MENU_RENAME, MENU_MKDIR }) {
+				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, menuId, MAKELPARAM(false, 0));
+				EnableMenuItem(menu, menuId, MF_GRAYED);
 			}
-			else
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(FALSE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD, MF_GRAYED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD_AS, MF_GRAYED);
-			}
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(FALSE, 0));
-			EnableMenuItem(GetMenu(hWndMain), MENU_SOMECMD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS_FILE, MF_GRAYED);
-		}
-
-		if(hWndFocus == GetRemoteHwnd())
-		{
-			if(AskConnecting() == YES)
-			{
-				EnableMenuItem(GetMenu(hWndMain), MENU_SOMECMD, MF_ENABLED);
-			}
-			else
-			{
-				EnableMenuItem(GetMenu(hWndMain), MENU_SOMECMD, MF_GRAYED);
-			}
-
-			if((AskConnecting() == YES) && (Count > 0))
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(TRUE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD, MF_ENABLED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS, MF_ENABLED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS_FILE, MF_ENABLED);
-			}
-			else
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(FALSE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD, MF_GRAYED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS, MF_GRAYED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS_FILE, MF_GRAYED);
-			}
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(FALSE, 0));
-			EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD_AS, MF_GRAYED);
-		}
-
-		if((hWndFocus == GetLocalHwnd()) || (hWndFocus == GetRemoteHwnd()))
-		{
-			if(Count > 0)
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DELETE, MAKELONG(TRUE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_DELETE, MF_ENABLED);
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_RENAME, MAKELONG(TRUE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_RENAME, MF_ENABLED);
-
-				EnableMenuItem(GetMenu(hWndMain), MENU_CHMOD, MF_ENABLED);
-
-			}
-			else
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DELETE, MAKELONG(FALSE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_DELETE, MF_GRAYED);
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_RENAME, MAKELONG(FALSE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_RENAME, MF_GRAYED);
-
-				EnableMenuItem(GetMenu(hWndMain), MENU_CHMOD, MF_GRAYED);
-			}
-
-			if((hWndFocus == GetLocalHwnd()) || (AskConnecting() == YES))
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MKDIR, MAKELONG(TRUE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_MKDIR, MF_ENABLED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_FILESIZE, MF_ENABLED);
-			}
-			else
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MKDIR, MAKELONG(FALSE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_MKDIR, MF_GRAYED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_FILESIZE, MF_GRAYED);
-			}
-		}
-		else
-		{
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(FALSE, 0));
-			EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD_AS, MF_GRAYED);
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(FALSE, 0));
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS_FILE, MF_GRAYED);
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DELETE, MAKELONG(FALSE, 0));
-			EnableMenuItem(GetMenu(hWndMain), MENU_DELETE, MF_GRAYED);
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_RENAME, MAKELONG(FALSE, 0));
-			EnableMenuItem(GetMenu(hWndMain), MENU_RENAME, MF_GRAYED);
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MKDIR, MAKELONG(FALSE, 0));
-			EnableMenuItem(GetMenu(hWndMain), MENU_MKDIR, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_CHMOD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_FILESIZE, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_SOMECMD, MF_GRAYED);
+			for (auto menuId : { MENU_UPLOAD_AS, MENU_DOWNLOAD_AS, MENU_DOWNLOAD_AS_FILE, MENU_CHMOD, MENU_FILESIZE, MENU_SOMECMD })
+				EnableMenuItem(menu, menuId, MF_GRAYED);
 		}
 	}
-	return;
 }
 
 
-/*----- ユーザの操作を禁止する ------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DisableUserOpe(void)
-{
-	int i;
-
-	// デッドロック対策
-//	HideUI = YES;
+// ユーザの操作を禁止する
+void DisableUserOpe() {
 	HideUI++;
-
-	for(i = 0; i < sizeof(HideMenus) / sizeof(int); i++)
-	{
-		EnableMenuItem(GetMenu(GetMainHwnd()), HideMenus[i], MF_GRAYED);
-		SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(FALSE, 0));
-		SendMessageW(hWndTbarLocal, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(FALSE, 0));
-		SendMessageW(hWndTbarRemote, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(FALSE, 0));
+	auto menu = GetMenu(GetMainHwnd());
+	for (auto menuId : HideMenus) {
+		EnableMenuItem(menu, menuId, MF_GRAYED);
+		SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, menuId, MAKELPARAM(false, 0));
+		SendMessageW(hWndTbarLocal, TB_ENABLEBUTTON, menuId, MAKELPARAM(false, 0));
+		SendMessageW(hWndTbarRemote, TB_ENABLEBUTTON, menuId, MAKELPARAM(false, 0));
 	}
-
-	EnableWindow(hWndDirLocal, FALSE);
-	EnableWindow(hWndDirRemote, FALSE);
-
-	return;
+	EnableWindow(hWndDirLocal, false);
+	EnableWindow(hWndDirRemote, false);
 }
 
 
-/*----- ユーザの操作を許可する ------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void EnableUserOpe(void)
-{
-	int i;
-
-	// デッドロック対策
-//	if(HideUI == YES)
-	if(HideUI > 0)
+// ユーザの操作を許可する
+void EnableUserOpe() {
+	if (0 < HideUI)
 		HideUI--;
-	if(HideUI == 0)
-	{
-		for(i = 0; i < sizeof(HideMenus) / sizeof(int); i++)
-		{
-			EnableMenuItem(GetMenu(GetMainHwnd()), HideMenus[i], MF_ENABLED);
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(TRUE, 0));
-			SendMessageW(hWndTbarLocal, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(TRUE, 0));
-			SendMessageW(hWndTbarRemote, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(TRUE, 0));
+	if (HideUI == 0) {
+		auto menu = GetMenu(GetMainHwnd());
+		for (auto menuId : HideMenus) {
+			EnableMenuItem(menu, menuId, MF_ENABLED);
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, menuId, MAKELPARAM(true, 0));
+			SendMessageW(hWndTbarLocal, TB_ENABLEBUTTON, menuId, MAKELPARAM(true, 0));
+			SendMessageW(hWndTbarRemote, TB_ENABLEBUTTON, menuId, MAKELPARAM(true, 0));
 		}
-		EnableWindow(hWndDirLocal, TRUE);
-		EnableWindow(hWndDirRemote, TRUE);
+		EnableWindow(hWndDirLocal, true);
+		EnableWindow(hWndDirRemote, true);
 
 		// 選択不可な漢字コードのボタンが表示されるバグを修正
 		HideHostKanjiButton();
 		HideLocalKanjiButton();
 
-		// バグ修正
-//		HideUI = NO;
-
-		// バグ修正
-		SetFocus(NULL);
+		SetFocus(0);
 		SetFocus(GetMainHwnd());
 
 		MakeButtonsFocus();
 	}
-	return;
 }
 
 
-/*----- ユーザの操作が禁止されているかどうかを返す ----------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int ステータス
-*			YES=禁止されている/NO
-*----------------------------------------------------------------------------*/
-
-int AskUserOpeDisabled(void)
-{
-	// デッドロック対策
-//	return(HideUI);
-	return (HideUI > 0 ? YES : NO);
+// ユーザの操作が禁止されているかどうかを返す
+bool AskUserOpeDisabled() {
+	return 0 < HideUI;
 }
 
 

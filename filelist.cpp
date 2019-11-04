@@ -533,7 +533,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 
 		case WM_DROPFILES :
-			if (AskUserOpeDisabled() != YES)
+			if (!AskUserOpeDisabled())
 				if (Dragging != YES) {		// ドラッグ中は処理しない。ドラッグ後にWM_LBUTTONDOWNが飛んでくるため、そこで処理する。
 					if (hWnd == hWndListRemote) {
 						if (AskConnecting() == YES)
@@ -545,8 +545,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			return 0;
 
 		case WM_LBUTTONDOWN :
-			// 特定の操作を行うと異常終了するバグ修正
-			if(AskUserOpeDisabled() == YES)
+			if (AskUserOpeDisabled())
 				break;
 			if(Dragging == YES)
 				break;
@@ -561,8 +560,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			break;
 
 		case WM_LBUTTONUP :
-			// 特定の操作を行うと異常終了するバグ修正
-			if(AskUserOpeDisabled() == YES)
+			if (AskUserOpeDisabled())
 				break;
 			if(Dragging == YES)
 			{
@@ -727,8 +725,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			break;
 
 		case WM_RBUTTONDOWN :
-			// 特定の操作を行うと異常終了するバグ修正
-			if(AskUserOpeDisabled() == YES)
+			if (AskUserOpeDisabled())
 				break;
 			/* ここでファイルを選ぶ */
 			CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
@@ -742,15 +739,13 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			break;
 
 		case WM_LBUTTONDBLCLK :
-			// 特定の操作を行うと異常終了するバグ修正
-			if(AskUserOpeDisabled() == YES)
+			if (AskUserOpeDisabled())
 				break;
 			DoubleClickProc(Win, NO, -1);
 			break;
 
 		case WM_MOUSEMOVE :
-			// 特定の操作を行うと異常終了するバグ修正
-			if(AskUserOpeDisabled() == YES)
+			if (AskUserOpeDisabled())
 				break;
 			if(wParam == MK_LBUTTON)
 			{
@@ -797,8 +792,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			break;
 
 		case WM_MOUSEWHEEL :
-			// デッドロック対策
-			if(AskUserOpeDisabled() == YES)
+			if (AskUserOpeDisabled())
 				break;
 			if(Dragging == NO)
 			{

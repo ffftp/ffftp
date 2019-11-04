@@ -2882,7 +2882,7 @@ static int RenameUnuseableName(char* Fname) {
 // NOOPコマンドでは効果が無いホストが多いためLISTコマンドを使用
 void NoopProc(int Force)
 {
-	if(Force == YES || (AskConnecting() == YES && AskUserOpeDisabled() == NO))
+	if(Force == YES || (AskConnecting() == YES && !AskUserOpeDisabled()))
 	{
 		if(AskReuseCmdSkt() == NO || (AskShareProh() == YES && AskTransferNow() == NO))
 		{
@@ -2898,7 +2898,7 @@ void NoopProc(int Force)
 // 同時接続対応
 void AbortRecoveryProc(void)
 {
-	if(AskConnecting() == YES && AskUserOpeDisabled() == NO)
+	if(AskConnecting() == YES && !AskUserOpeDisabled())
 	{
 		if(AskReuseCmdSkt() == NO || AskShareProh() == YES || AskTransferNow() == NO)
 		{
@@ -2919,7 +2919,7 @@ void AbortRecoveryProc(void)
 
 void ReconnectProc(void)
 {
-	if(AskConnecting() == YES && AskUserOpeDisabled() == NO)
+	if(AskConnecting() == YES && !AskUserOpeDisabled())
 	{
 		CancelFlg = NO;
 		DisableUserOpe();
