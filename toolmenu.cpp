@@ -77,7 +77,7 @@ static int HideUI = 0;
 
 /* 以前、コンボボックスにカレントフォルダを憶えさせていた流れで */
 /* このファイルでカレントフォルダを憶えさせる */
-static char LocalCurDir[FMAX_PATH+1];
+static fs::path LocalCurDir;
 static char RemoteCurDir[FMAX_PATH+1];
 
 
@@ -292,7 +292,7 @@ bool MakeToolBarWindow() {
 	std::tie(hWndDirLocal, hWndDirLocalEdit) = CreateComboBox(hWndTbarLocal, CBS_SORT, LocalWidth, COMBO_LOCAL, true, font);
 	if (hWndDirLocal == NULL)
 		return false;
-	GetDrives([](const wchar_t drive[]) { SetLocalDirHist(u8(drive).c_str()); });
+	GetDrives(SetLocalDirHist);
 	SendMessageW(hWndDirLocal, CB_SETCURSEL, 0, 0);
 
 	// remote toolbar
@@ -1482,44 +1482,19 @@ void SetRemoteDirHist(char *Path)
 }
 
 
-/*----- ローカル側のヒストリ一覧ウインドウに登録 -------------------------------
-*
-*	Parameter
-*		char *Path : パス
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetLocalDirHist(const char *Path)
-{
-	int i;
-
-	if((i = (int)SendMessageW(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)u8(Path).c_str())) == CB_ERR)
-		SendMessageW(hWndDirLocal, CB_ADDSTRING, 0, (LPARAM)u8(Path).c_str());
-	i = (int)SendMessageW(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)u8(Path).c_str());
-	SendMessageW(hWndDirLocal, CB_SETCURSEL, i, 0);
-
-	strcpy(LocalCurDir, Path);
-	return;
+// ローカル側のヒストリ一覧ウインドウに登録
+void SetLocalDirHist(fs::path const& path) {
+	auto index = SendMessageW(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)path.c_str());
+	if (index == CB_ERR)
+		index = SendMessageW(hWndDirLocal, CB_ADDSTRING, 0, (LPARAM)path.c_str());
+	SendMessageW(hWndDirLocal, CB_SETCURSEL, index, 0);
+	LocalCurDir = path;
 }
 
 
-/*----- ローカルのカレントディレクトリを返す ----------------------------------
-*
-*	Parameter
-*		char *Buf : カレントディレクトリ名を返すバッファ
-*		int Max : バッファのサイズ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void AskLocalCurDir(char *Buf, size_t Max)
-{
-	memset(Buf, 0, Max);
-	strncpy(Buf, LocalCurDir, Max-1);
-	return;
+// ローカルのカレントディレクトリを返す
+fs::path const& AskLocalCurDir() {
+	return LocalCurDir;
 }
 
 
@@ -1544,7 +1519,7 @@ void AskRemoteCurDir(char *Buf, size_t Max)
 // カレントディレクトリを設定する
 void SetCurrentDirAsDirHist() {
 	std::error_code ec;
-	fs::current_path(fs::u8path(LocalCurDir), ec);
+	fs::current_path(LocalCurDir, ec);
 }
 
 

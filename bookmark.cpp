@@ -74,13 +74,10 @@ static void AddBookMark(Args&&... args) {
 
 // カレントディレクトリをブックマークに追加
 void AddCurDirToBookMark(int Win) {
-	char local[FMAX_PATH + 1] = "";
 	char remote[FMAX_PATH + 1] = "";
-	if (Win != WIN_REMOTE)
-		AskLocalCurDir(local, FMAX_PATH);
 	if (Win != WIN_LOCAL)
 		AskRemoteCurDir(remote, FMAX_PATH);
-	AddBookMark(u8(local), u8(remote));
+	AddBookMark(Win != WIN_REMOTE ? AskLocalCurDir().native() : L""s, u8(remote));
 }
 
 // 指定のIDを持つブックマークのパスを返す

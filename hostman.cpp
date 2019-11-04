@@ -921,7 +921,7 @@ char *AskHostBookMark(int Num)
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-int SetHostDir(int Num, char *LocDir, char *HostDir)
+int SetHostDir(int Num, const char* LocDir, const char* HostDir)
 {
 	int Sts;
 	HOSTLISTDATA *Pos;

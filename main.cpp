@@ -1772,10 +1772,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 					{
 						if((DclickOpen == YES) || (Mode == YES))
 						{
-							AskLocalCurDir(Local, FMAX_PATH);
-							ReplaceAll(Local, '/', '\\');
-							SetYenTail(Local);
-							strcat(Local, Tmp);
+							strcpy(Local, (AskLocalCurDir() / fs::u8path(Tmp)).u8string().c_str());
 							ExecViewer(Local, App);
 						}
 						else
@@ -1849,10 +1846,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							AddTempFileList(data(remotePath));
 							if(Sts/100 == FTP_COMPLETE) {
 								if (UseDiffViewer == YES) {
-									AskLocalCurDir(Local, FMAX_PATH);
-									ReplaceAll(Local, '/', '\\');
-									SetYenTail(Local);
-									strcat(Local, Tmp);
+									strcpy(Local, (AskLocalCurDir() / fs::u8path(Tmp)).u8string().c_str());
 									ExecViewer2(Local, data(remotePath), App);
 								} else {
 									ExecViewer(data(remotePath), App);
@@ -1889,7 +1883,6 @@ void DoubleClickProc(int Win, int Mode, int App)
 static void ChangeDir(int Win, char *Path)
 {
 	int Sync;
-	char Local[FMAX_PATH+1];
 	char Remote[FMAX_PATH+1];
 
 	// 同時接続対応
@@ -1902,9 +1895,8 @@ static void ChangeDir(int Win, char *Path)
 	{
 		if(strcmp(Path, "..") == 0)
 		{
-			AskLocalCurDir(Local, FMAX_PATH);
 			AskRemoteCurDir(Remote, FMAX_PATH);
-			if(strcmp(GetFileName(Local), GetFileName(Remote)) != 0)
+			if (AskLocalCurDir().filename() != u8(GetFileName(Remote)))
 				Sync = NO;
 		}
 	}
@@ -2136,9 +2128,7 @@ void ExecViewer(char *Fname, int App) {
 	if (wchar_t result[MAX_PATH]; App == -1 && pFname.has_extension() && FindExecutableW(pFname.c_str(), nullptr, result) > (HINSTANCE)32) {
 		// 拡張子があるので関連付けを実行する
 		DoPrintf("ShellExecute - %s", Fname);
-		char CurDir[FMAX_PATH + 1];
-		AskLocalCurDir(CurDir, FMAX_PATH);
-		ShellExecuteW(0, L"open", pFname.c_str(), nullptr, fs::u8path(CurDir).c_str(), SW_SHOW);
+		ShellExecuteW(0, L"open", pFname.c_str(), nullptr, AskLocalCurDir().c_str(), SW_SHOW);
 	} else if (App == -1 && (GetFileAttributesW(pFname.c_str()) & FILE_ATTRIBUTE_DIRECTORY)) {
 		// ディレクトリなのでフォルダを開く
 		MakeDistinguishableFileName(ComLine, Fname);

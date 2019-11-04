@@ -871,7 +871,6 @@ char *AskHostUserName(void)
 void SaveCurrentSetToHost(void)
 {
 	int Host;
-	char LocDir[FMAX_PATH+1];
 	char HostDir[FMAX_PATH+1];
 	// 同時接続対応
 	HOSTDATA TmpHost;
@@ -887,9 +886,8 @@ void SaveCurrentSetToHost(void)
 			CopyHostFromListInConnect(Host, &TmpHost);
 			if(TmpHost.LastDir == YES)
 			{
-				AskLocalCurDir(LocDir, FMAX_PATH);
 				AskRemoteCurDir(HostDir, FMAX_PATH);
-				SetHostDir(AskCurrentHost(), LocDir, HostDir);
+				SetHostDir(AskCurrentHost(), AskLocalCurDir().u8string().c_str(), HostDir);
 			}
 			SetHostSort(AskCurrentHost(), AskSortType(ITEM_LFILE), AskSortType(ITEM_LDIR), AskSortType(ITEM_RFILE), AskSortType(ITEM_RDIR));
 		}
@@ -909,12 +907,10 @@ void SaveCurrentSetToHost(void)
 
 static void SaveCurrentSetToHistory(void)
 {
-	char LocDir[FMAX_PATH+1];
 	char HostDir[FMAX_PATH+1];
 
-	AskLocalCurDir(LocDir, FMAX_PATH);
 	AskRemoteCurDir(HostDir, FMAX_PATH);
-	strcpy(CurHost.LocalInitDir, LocDir);
+	strcpy(CurHost.LocalInitDir, AskLocalCurDir().u8string().c_str());
 	strcpy(CurHost.RemoteInitDir, HostDir);
 
 	CurHost.Sort = AskSortType(ITEM_LFILE) * 0x1000000 | AskSortType(ITEM_LDIR) * 0x10000 | AskSortType(ITEM_RFILE) * 0x100 | AskSortType(ITEM_RDIR);

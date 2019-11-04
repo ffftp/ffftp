@@ -159,7 +159,7 @@ void DownloadProc(int ChName, int ForceFile, int All)
 			// ファイル一覧バグ修正
 			if (AbortOnListError == YES && ListSts == FFFTP_FAIL)
 				break;
-			AskLocalCurDir(Pkt.LocalFile, FMAX_PATH);
+			strcpy(Pkt.LocalFile, AskLocalCurDir().u8string().c_str());
 			SetYenTail(Pkt.LocalFile);
 			strcpy(TmpString, f.File);
 			if (ChName == NO || ForceFile == NO && f.Node == NODE_DIR) {
@@ -288,7 +288,7 @@ void DirectDownloadProc(char *Fname)
 
 		if(strlen(Fname) > 0)
 		{
-			AskLocalCurDir(Pkt.LocalFile, FMAX_PATH);
+			strcpy(Pkt.LocalFile, AskLocalCurDir().u8string().c_str());
 			SetYenTail(Pkt.LocalFile);
 			strcpy(TmpString, Fname);
 			if(FnameCnv == FNAME_LOWER)
@@ -550,10 +550,7 @@ void MirrorDownloadProc(int Notify)
 
 			for (auto const& f : LocalListBase)
 				if (f.Attr == YES && f.Node == NODE_FILE) {
-					AskLocalCurDir(Pkt.LocalFile, FMAX_PATH);
-					SetYenTail(Pkt.LocalFile);
-					strcat(Pkt.LocalFile, f.File);
-					ReplaceAll(Pkt.LocalFile, '/', '\\');
+					strcpy(Pkt.LocalFile, (AskLocalCurDir() / fs::u8path(f.File)).u8string().c_str());
 					strcpy(Pkt.RemoteFile, "");
 					strcpy(Pkt.Cmd, "L-DELE ");
 					AddTmpTransFileList(&Pkt, &Base);
@@ -563,7 +560,7 @@ void MirrorDownloadProc(int Notify)
 
 			for (auto const& f : RemoteListBase)
 				if (f.Attr == YES) {
-					AskLocalCurDir(Pkt.LocalFile, FMAX_PATH);
+					strcpy(Pkt.LocalFile, AskLocalCurDir().u8string().c_str());
 					SetYenTail(Pkt.LocalFile);
 					Cat = strchr(Pkt.LocalFile, NUL);
 					strcat(Pkt.LocalFile, f.File);
@@ -690,10 +687,7 @@ static void DispMirrorFiles(std::vector<FILELIST> const& Local, std::vector<FILE
 static void MirrorDeleteAllLocalDir(std::vector<FILELIST> const& Local, TRANSPACKET *Pkt, TRANSPACKET **Base) {
 	for (auto it = rbegin(Local); it != rend(Local); ++it)
 		if (it->Node == NODE_DIR && it->Attr == YES) {
-			AskLocalCurDir(Pkt->LocalFile, FMAX_PATH);
-			SetYenTail(Pkt->LocalFile);
-			strcat(Pkt->LocalFile, it->File);
-			ReplaceAll(Pkt->LocalFile, '/', '\\');
+			strcpy(Pkt->LocalFile, (AskLocalCurDir() / fs::u8path(it->File)).u8string().c_str());
 			strcpy(Pkt->RemoteFile, "");
 			strcpy(Pkt->Cmd, "L-RMD ");
 			AddTmpTransFileList(Pkt, Base);
@@ -1045,10 +1039,7 @@ void UploadListProc(int ChName, int All)
 			else if(f.Node == NODE_FILE)
 			{
 				// ファイルの場合
-				AskLocalCurDir(Pkt.LocalFile, FMAX_PATH);
-				SetYenTail(Pkt.LocalFile);
-				strcat(Pkt.LocalFile, f.File);
-				ReplaceAll(Pkt.LocalFile, '/', '\\');
+				strcpy(Pkt.LocalFile, (AskLocalCurDir() / fs::u8path(f.File)).u8string().c_str());
 
 				strcpy(Pkt.Cmd, "STOR ");
 				Pkt.Type = AskTransferTypeAssoc(Pkt.LocalFile, AskTransferType());
@@ -1441,10 +1432,7 @@ void MirrorUploadProc(int Notify)
 						strcpy(Pkt.Cmd, "R-MKD ");
 						AddTmpTransFileList(&Pkt, &Base);
 					} else if (f.Node == NODE_FILE) {
-						AskLocalCurDir(Pkt.LocalFile, FMAX_PATH);
-						SetYenTail(Pkt.LocalFile);
-						strcat(Pkt.LocalFile, f.File);
-						ReplaceAll(Pkt.LocalFile, '/', '\\');
+						strcpy(Pkt.LocalFile, (AskLocalCurDir() / fs::u8path(f.File)).u8string().c_str());
 
 						strcpy(Pkt.Cmd, "STOR ");
 						Pkt.Type = AskTransferTypeAssoc(Pkt.LocalFile, AskTransferType());
@@ -1908,12 +1896,7 @@ static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, char 
 	char Path[FMAX_PATH+1];
 
 	if(Win == WIN_LOCAL)
-	{
-		AskLocalCurDir(Path, FMAX_PATH);
-		SetYenTail(Path);
-		strcat(Path, Dt.File);
-		ReplaceAll(Path, '/', '\\');
-	}
+		strcpy(Path, (AskLocalCurDir() / fs::u8path(Dt.File)).u8string().c_str());
 	else
 	{
 		AskRemoteCurDir(Path, FMAX_PATH);
