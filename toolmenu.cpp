@@ -192,8 +192,13 @@ static LRESULT CALLBACK HistoryEdit(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 static auto CreateToolbar(DWORD ws, UINT id, int bitmaps, HBITMAP image, const TBBUTTON* buttons, int size, int x, int y, int width, int height) {
 	ws |= WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT;
-	auto toolbar = CreateToolbarEx(GetMainHwnd(), ws, id, bitmaps, 0, (UINT_PTR)image, buttons, size, CalcPixelX(16), CalcPixelY(16), CalcPixelX(16), CalcPixelY(16), sizeof(TBBUTTON));
+	auto toolbar = CreateWindowExW(0, TOOLBARCLASSNAMEW, nullptr, ws, 0, 0, 0, 0, GetMainHwnd(), (HMENU)UIntToPtr(id), 0, nullptr);
 	if (toolbar) {
+		TBADDBITMAP addbitmap{ 0, (UINT_PTR)image };
+		SendMessageW(toolbar, TB_ADDBITMAP, bitmaps, (LPARAM)&addbitmap);
+		SendMessageW(toolbar, TB_SETBITMAPSIZE, 0, MAKELPARAM(CalcPixelX(16), CalcPixelY(16)));
+		SendMessageW(toolbar, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
+		SendMessageW(toolbar, TB_ADDBUTTONSW, size, (LPARAM)buttons);
 		SetWindowSubclass(toolbar, IgnoreRightClick, 0, 0);
 		MoveWindow(toolbar, x, y, width, height, false);
 	}
