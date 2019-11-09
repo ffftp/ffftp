@@ -105,17 +105,21 @@ struct Context {
 				{ 0, SECBUFFER_EMPTY, nullptr },
 			};
 			SecBufferDesc desc{ SECBUFFER_VERSION, size_as<unsigned long>(buffer), buffer };
-			if (readStatus = DecryptMessage(&context, &desc, 0, nullptr); readStatus != SEC_E_OK) {
+			if (readStatus = DecryptMessage(&context, &desc, 0, nullptr); readStatus == SEC_I_CONTEXT_EXPIRED) {
+				readRaw.clear();
+				break;
+			} else if (readStatus == SEC_E_OK) {
+				assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[1].BufferType == SECBUFFER_DATA && buffer[2].BufferType == SECBUFFER_STREAM_TRAILER);
+				readPlain.insert(end(readPlain), reinterpret_cast<const char*>(buffer[1].pvBuffer), reinterpret_cast<const char*>(buffer[1].pvBuffer) + buffer[1].cbBuffer);
+				if (buffer[3].BufferType != SECBUFFER_EXTRA) {
+					readRaw.clear();
+					break;
+				}
+				readRaw = std::vector<char>(reinterpret_cast<const char*>(buffer[3].pvBuffer), reinterpret_cast<const char*>(buffer[3].pvBuffer) + buffer[3].cbBuffer);
+			} else {
 				_RPTWN(_CRT_WARN, L"DecryptMessage error: %08X.\n", readStatus);
 				break;
 			}
-			assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[1].BufferType == SECBUFFER_DATA && buffer[2].BufferType == SECBUFFER_STREAM_TRAILER);
-			readPlain.insert(end(readPlain), reinterpret_cast<const char*>(buffer[1].pvBuffer), reinterpret_cast<const char*>(buffer[1].pvBuffer) + buffer[1].cbBuffer);
-			if (buffer[3].BufferType != SECBUFFER_EXTRA) {
-				readRaw.clear();
-				break;
-			}
-			readRaw = std::vector<char>(reinterpret_cast<const char*>(buffer[3].pvBuffer), reinterpret_cast<const char*>(buffer[3].pvBuffer) + buffer[3].cbBuffer);
 		}
 	}
 	std::vector<char> Encrypt(std::string_view plain) {
@@ -408,7 +412,7 @@ static int FTPS_recv(SOCKET s, char* buf, int len, int flags) {
 	if (!context)
 		return recv(s, buf, len, flags);
 
-	if (empty(context->readPlain)) {
+	if (empty(context->readPlain) && context->readStatus != SEC_I_CONTEXT_EXPIRED) {
 		auto offset = size_as<int>(context->readRaw);
 		context->readRaw.resize((size_t)context->streamSizes.cbHeader + context->streamSizes.cbMaximumMessage + context->streamSizes.cbTrailer);
 		auto read = recv(s, data(context->readRaw) + offset, size_as<int>(context->readRaw) - offset, 0);
