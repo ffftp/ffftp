@@ -871,8 +871,6 @@ char *AskHostUserName(void)
 void SaveCurrentSetToHost(void)
 {
 	int Host;
-	char LocDir[FMAX_PATH+1];
-	char HostDir[FMAX_PATH+1];
 	// 同時接続対応
 	HOSTDATA TmpHost;
 	TmpHost = CurHost;
@@ -886,11 +884,7 @@ void SaveCurrentSetToHost(void)
 //			if(CurHost.LastDir == YES)
 			CopyHostFromListInConnect(Host, &TmpHost);
 			if(TmpHost.LastDir == YES)
-			{
-				AskLocalCurDir(LocDir, FMAX_PATH);
-				AskRemoteCurDir(HostDir, FMAX_PATH);
-				SetHostDir(AskCurrentHost(), LocDir, HostDir);
-			}
+				SetHostDir(AskCurrentHost(), AskLocalCurDir().u8string().c_str(), u8(AskRemoteCurDir()).c_str());
 			SetHostSort(AskCurrentHost(), AskSortType(ITEM_LFILE), AskSortType(ITEM_LDIR), AskSortType(ITEM_RFILE), AskSortType(ITEM_RDIR));
 		}
 	}
@@ -909,13 +903,8 @@ void SaveCurrentSetToHost(void)
 
 static void SaveCurrentSetToHistory(void)
 {
-	char LocDir[FMAX_PATH+1];
-	char HostDir[FMAX_PATH+1];
-
-	AskLocalCurDir(LocDir, FMAX_PATH);
-	AskRemoteCurDir(HostDir, FMAX_PATH);
-	strcpy(CurHost.LocalInitDir, LocDir);
-	strcpy(CurHost.RemoteInitDir, HostDir);
+	strcpy(CurHost.LocalInitDir, AskLocalCurDir().u8string().c_str());
+	strcpy(CurHost.RemoteInitDir, u8(AskRemoteCurDir()).c_str());
 
 	CurHost.Sort = AskSortType(ITEM_LFILE) * 0x1000000 | AskSortType(ITEM_LDIR) * 0x10000 | AskSortType(ITEM_RFILE) * 0x100 | AskSortType(ITEM_RDIR);
 
@@ -1023,7 +1012,6 @@ int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
 
 static int ReConnectSkt(SOCKET *Skt)
 {
-	char Path[FMAX_PATH+1];
 	int Sts;
 
 	Sts = FFFTP_FAIL;
@@ -1041,8 +1029,7 @@ static int ReConnectSkt(SOCKET *Skt)
 	if((*Skt = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg)) != INVALID_SOCKET)
 	{
 		SendInitCommand(*Skt, CurHost.InitCmd, &CancelFlg);
-		AskRemoteCurDir(Path, FMAX_PATH);
-		DoCWD(Path, YES, YES, YES);
+		DoCWD(u8(AskRemoteCurDir()).c_str(), YES, YES, YES);
 		Sts = FFFTP_SUCCESS;
 	}
 	else

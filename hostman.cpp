@@ -921,7 +921,7 @@ char *AskHostBookMark(int Num)
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-int SetHostDir(int Num, char *LocDir, char *HostDir)
+int SetHostDir(int Num, const char* LocDir, const char* HostDir)
 {
 	int Sts;
 	HOSTLISTDATA *Pos;
@@ -1440,12 +1440,9 @@ struct General {
 			if (SelectDir(hDlg, TmpHost.LocalInitDir, INIT_DIR_LEN) == TRUE)
 				SetText(hDlg, HSET_LOCAL, u8(TmpHost.LocalInitDir));
 			break;
-		case HSET_REMOTE_CUR: {
-			char Tmp[FMAX_PATH + 1];
-			AskRemoteCurDir(Tmp, FMAX_PATH);
-			SetText(hDlg, HSET_REMOTE, u8(Tmp));
+		case HSET_REMOTE_CUR:
+			SetText(hDlg, HSET_REMOTE, AskRemoteCurDir());
 			break;
-		}
 		case HSET_ANONYMOUS:
 			if (SendDlgItemMessageW(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0) == 1) {
 				SetText(hDlg, HSET_USER, L"anonymous");

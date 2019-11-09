@@ -298,8 +298,6 @@ static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 
 static void doTransferRemoteFile(void)
 {
-	char LocDir[FMAX_PATH+1];
-
 	// すでにリモートから転送済みなら何もしない。(2007.9.3 yutaka)
 	if (!empty(remoteFileListBase))
 		return;
@@ -324,7 +322,7 @@ static void doTransferRemoteFile(void)
 	MakeSelectedFileList(WIN_REMOTE, NO, NO, FileListBaseNoExpand, &CancelFlg);
 
 	// set temporary folder
-	AskLocalCurDir(LocDir, FMAX_PATH);
+	auto& LocDir = AskLocalCurDir();
 
 	auto tmp = tempDirectory() / L"file";
 	if (auto const created = !fs::create_directory(tmp); !created) {
@@ -337,7 +335,7 @@ static void doTransferRemoteFile(void)
 	SuppressRefresh = 1;
 
 	// ダウンロード先をテンポラリに設定
-	SetLocalDirHist(tmp.u8string().c_str());
+	SetLocalDirHist(tmp);
 
 	// FFFTPにダウンロード要求を出し、ダウンロードの完了を待つ。
 	PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
@@ -535,7 +533,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 
 		case WM_DROPFILES :
-			if (AskUserOpeDisabled() != YES)
+			if (!AskUserOpeDisabled())
 				if (Dragging != YES) {		// ドラッグ中は処理しない。ドラッグ後にWM_LBUTTONDOWNが飛んでくるため、そこで処理する。
 					if (hWnd == hWndListRemote) {
 						if (AskConnecting() == YES)
@@ -547,8 +545,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			return 0;
 
 		case WM_LBUTTONDOWN :
-			// 特定の操作を行うと異常終了するバグ修正
-			if(AskUserOpeDisabled() == YES)
+			if (AskUserOpeDisabled())
 				break;
 			if(Dragging == YES)
 				break;
@@ -563,8 +560,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			break;
 
 		case WM_LBUTTONUP :
-			// 特定の操作を行うと異常終了するバグ修正
-			if(AskUserOpeDisabled() == YES)
+			if (AskUserOpeDisabled())
 				break;
 			if(Dragging == YES)
 			{
@@ -614,7 +610,6 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			case CF_HDROP:		/* ファイル */
 				{
 					std::vector<FILELIST> FileListBase, FileListBaseNoExpand;
-					char LocDir[FMAX_PATH+1];
 					fs::path PathDir;
 
 					// 特定の操作を行うと異常終了するバグ修正
@@ -626,8 +621,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 
 					// ローカル側で選ばれているファイルをFileListBaseに登録
 					if (hWndDragStart == hWndListLocal) {
-						AskLocalCurDir(LocDir, FMAX_PATH);
-						PathDir = fs::u8path(LocDir);
+						PathDir = AskLocalCurDir();
 
 						if(hWndPnt != hWndListRemote && hWndPnt != hWndListLocal && hWndParent != hWndListRemote && hWndParent != hWndListLocal)
 							MakeSelectedFileList(WIN_LOCAL, NO, NO, FileListBase, &CancelFlg);			
@@ -731,8 +725,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			break;
 
 		case WM_RBUTTONDOWN :
-			// 特定の操作を行うと異常終了するバグ修正
-			if(AskUserOpeDisabled() == YES)
+			if (AskUserOpeDisabled())
 				break;
 			/* ここでファイルを選ぶ */
 			CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
@@ -746,15 +739,13 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			break;
 
 		case WM_LBUTTONDBLCLK :
-			// 特定の操作を行うと異常終了するバグ修正
-			if(AskUserOpeDisabled() == YES)
+			if (AskUserOpeDisabled())
 				break;
 			DoubleClickProc(Win, NO, -1);
 			break;
 
 		case WM_MOUSEMOVE :
-			// 特定の操作を行うと異常終了するバグ修正
-			if(AskUserOpeDisabled() == YES)
+			if (AskUserOpeDisabled())
 				break;
 			if(wParam == MK_LBUTTON)
 			{
@@ -801,8 +792,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			break;
 
 		case WM_MOUSEWHEEL :
-			// デッドロック対策
-			if(AskUserOpeDisabled() == YES)
+			if (AskUserOpeDisabled())
 				break;
 			if(Dragging == NO)
 			{
@@ -894,11 +884,7 @@ void SetListViewType(void)
 void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 	if (AskConnecting() == YES) {
 		DisableUserOpe();
-
-		char Buf[FMAX_PATH+1];
-		AskRemoteCurDir(Buf, FMAX_PATH);
-		SetRemoteDirHist(Buf);
-
+		SetRemoteDirHist(AskRemoteCurDir());
 		if (Mode == CACHE_LASTREAD || DoDirListCmdSkt("", "", 0, CancelCheckWork) == FTP_COMPLETE) {
 			if (auto lines = GetListLine(0)) {
 				std::vector<FILELIST> files;
@@ -978,7 +964,7 @@ void GetLocalDirForWnd(void)
 	std::vector<FILELIST> files;
 
 	DoLocalPWD(Scan);
-	SetLocalDirHist(Scan);
+	SetLocalDirHist(fs::u8path(Scan));
 	DispLocalFreeSpace(Scan);
 
 	// ローカル側自動更新
@@ -1708,11 +1694,8 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 
 				Ignore = NO;
 				if((DispIgnoreHide == YES) && (Win == WIN_LOCAL))
-				{
-					AskLocalCurDir(Cur, FMAX_PATH);
-					if (auto attr = GetFileAttributesW((fs::u8path(Cur) / fs::u8path(Pkt.File)).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_HIDDEN))
+					if (auto attr = GetFileAttributesW((AskLocalCurDir() / fs::u8path(Pkt.File)).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_HIDDEN))
 						Ignore = YES;
-				}
 
 				if(Ignore == NO)
 					AddFileList(Pkt, Base);
@@ -1739,11 +1722,8 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 
 					Ignore = NO;
 					if((DispIgnoreHide == YES) && (Win == WIN_LOCAL))
-					{
-						AskLocalCurDir(Cur, FMAX_PATH);
-						if (auto attr = GetFileAttributesW((fs::u8path(Cur) / fs::u8path(Pkt.File)).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_HIDDEN))
+						if (auto attr = GetFileAttributesW((AskLocalCurDir() / fs::u8path(Pkt.File)).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_HIDDEN))
 							Ignore = YES;
-					}
 
 					if(Ignore == NO)
 					{
@@ -1767,7 +1747,7 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 							}
 							else
 							{
-								AskRemoteCurDir(Cur, FMAX_PATH);
+								strcpy(Cur, u8(AskRemoteCurDir()).c_str());
 
 								if((AskListCmdMode() == NO) &&
 								   (AskUseNLST_R() == YES))

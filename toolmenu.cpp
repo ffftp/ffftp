@@ -29,26 +29,9 @@
 
 #include "common.h"
 
-
-/*===== プロトタイプ =====*/
-
-static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-
-/* 2007/09/21 sunasunamix  ここから *********************/
-static LRESULT CALLBACK CountermeasureTbarMainProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam);
-static LRESULT CALLBACK CountermeasureTbarLocalProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam);
-static LRESULT CALLBACK CountermeasureTbarRemoteProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam);
-/********************************************* ここまで */
-
-
-/*===== 外部参照 =====*/
-
 extern int SepaWidth;
 extern int RemoteWidth;
-
 extern int CancelFlg;
-
-/* 設定値 */
 extern int DotFile;
 extern char AsciiExt[ASCII_EXT_LEN+1];
 extern int TransMode;
@@ -57,10 +40,7 @@ extern int LocalWidth;
 extern char ViewerName[VIEWERS][FMAX_PATH+1];
 extern int TransMode;
 extern int SortSave;
-// UTF-8対応
 extern int LocalKanjiCode;
-
-/*===== ローカルなワーク =====*/
 
 static HWND hWndTbarMain = NULL;
 static HWND hWndTbarLocal = NULL;
@@ -69,756 +49,384 @@ static HWND hWndDirLocal = NULL;
 static HWND hWndDirRemote = NULL;
 static HWND hWndDirLocalEdit = NULL;
 static HWND hWndDirRemoteEdit = NULL;
-
-static WNDPROC HistEditBoxProcPtr;
-
-static HFONT DlgFont = NULL;
-
 static int TmpTransMode;
 static int TmpHostKanjiCode;
 static int TmpHostKanaCnv;
-
 // TODO: ローカルの漢字コードをShift_JIS以外にも対応
 static int TmpLocalKanjiCode;
-
 static int TmpLocalFileSort;
 static int TmpLocalDirSort;
 static int TmpRemoteFileSort;
 static int TmpRemoteDirSort;
-
 static int SyncMove = NO;
-
-// デッドロック対策
-//static int HideUI = NO;
 static int HideUI = 0;
-
-
-/* 2007/09/21 sunasunamix  ここから *********************/
-static WNDPROC pOldTbarMainProc   = NULL;
-static WNDPROC pOldTbarLocalProc  = NULL;
-static WNDPROC pOldTbarRemoteProc = NULL;
-/********************************************* ここまで */
-
-
-/* 以前、コンボボックスにカレントフォルダを憶えさせていた流れで */
-/* このファイルでカレントフォルダを憶えさせる */
-static char LocalCurDir[FMAX_PATH+1];
-static char RemoteCurDir[FMAX_PATH+1];
+static fs::path LocalCurDir;
+static std::wstring RemoteCurDir;
 
 
 /* メインのツールバー */
-static TBBUTTON TbarDataMain[] = {
-	{ 0,  0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 },
-	{ 0,  MENU_CONNECT, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	{ 16, MENU_QUICK, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	{ 1,  MENU_DISCONNECT, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	{ 0,  0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 },
-	{ 2,  MENU_DOWNLOAD, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	{ 3,  MENU_UPLOAD, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	{ 0,  0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 },
-	{ 24, MENU_MIRROR_UPLOAD, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	{ 0,  0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 },
-	{ 4,  MENU_DELETE, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	{ 5,  MENU_RENAME, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	{ 6,  MENU_MKDIR, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	{ 0,  0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 },
-	{ 7,  MENU_TEXT, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 8,  MENU_BINARY, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 17, MENU_AUTO, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 0,  0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 },
-	{ 27, MENU_L_KNJ_SJIS, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 20, MENU_L_KNJ_EUC, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 21, MENU_L_KNJ_JIS, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 28, MENU_L_KNJ_UTF8N, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 29, MENU_L_KNJ_UTF8BOM, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 0,  0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 },
-	{ 27, MENU_KNJ_SJIS, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 20, MENU_KNJ_EUC, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 21, MENU_KNJ_JIS, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 28, MENU_KNJ_UTF8N, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 29, MENU_KNJ_UTF8BOM, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 22, MENU_KNJ_NONE, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 0,  0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 },
-	{ 23, MENU_KANACNV, TBSTATE_ENABLED, TBSTYLE_CHECK, 0, 0 },
-	{ 0,  0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 },
-	{ 15, MENU_REFRESH, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	{ 0,  0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 },
-	{ 18, MENU_LIST, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 19, MENU_REPORT, TBSTATE_ENABLED, TBSTYLE_CHECKGROUP, 0, 0 },
-	{ 0,  0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 },
-	{ 25, MENU_SYNC, TBSTATE_ENABLED, TBSTYLE_CHECK, 0, 0 },
-	{ 0,  0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 },
-	{ 26, MENU_ABORT, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 }
+static constexpr TBBUTTON mainButtons[] = {
+	{ .fsStyle = BTNS_SEP },
+	{  0,  MENU_CONNECT,      TBSTATE_ENABLED, BTNS_BUTTON },
+	{ 16, MENU_QUICK,         TBSTATE_ENABLED, BTNS_BUTTON },
+	{  1,  MENU_DISCONNECT,   TBSTATE_ENABLED, BTNS_BUTTON },
+	{ .fsStyle = BTNS_SEP },
+	{  2,  MENU_DOWNLOAD,     TBSTATE_ENABLED, BTNS_BUTTON },
+	{  3,  MENU_UPLOAD,       TBSTATE_ENABLED, BTNS_BUTTON },
+	{ .fsStyle = BTNS_SEP },
+	{ 24, MENU_MIRROR_UPLOAD, TBSTATE_ENABLED, BTNS_BUTTON },
+	{ .fsStyle = BTNS_SEP },
+	{  4,  MENU_DELETE,       TBSTATE_ENABLED, BTNS_BUTTON },
+	{  5,  MENU_RENAME,       TBSTATE_ENABLED, BTNS_BUTTON },
+	{  6,  MENU_MKDIR,        TBSTATE_ENABLED, BTNS_BUTTON },
+	{ .fsStyle = BTNS_SEP },
+	{  7,  MENU_TEXT,         TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{  8,  MENU_BINARY,       TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{ 17, MENU_AUTO,          TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{ .fsStyle = BTNS_SEP },
+	{ 27, MENU_L_KNJ_SJIS,    TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{ 20, MENU_L_KNJ_EUC,     TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{ 21, MENU_L_KNJ_JIS,     TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{ 28, MENU_L_KNJ_UTF8N,   TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{ 29, MENU_L_KNJ_UTF8BOM, TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{ .fsStyle = BTNS_SEP },
+	{ 27, MENU_KNJ_SJIS,      TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{ 20, MENU_KNJ_EUC,       TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{ 21, MENU_KNJ_JIS,       TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{ 28, MENU_KNJ_UTF8N,     TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{ 29, MENU_KNJ_UTF8BOM,   TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{ 22, MENU_KNJ_NONE,      TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{ .fsStyle = BTNS_SEP },
+	{ 23, MENU_KANACNV,       TBSTATE_ENABLED, BTNS_CHECK },
+	{ .fsStyle = BTNS_SEP },
+	{ 15, MENU_REFRESH,       TBSTATE_ENABLED, BTNS_BUTTON },
+	{ .fsStyle = BTNS_SEP },
+	{ 18, MENU_LIST,          TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{ 19, MENU_REPORT,        TBSTATE_ENABLED, BTNS_CHECKGROUP },
+	{ .fsStyle = BTNS_SEP },
+	{ 25, MENU_SYNC,          TBSTATE_ENABLED, BTNS_CHECK },
+	{ .fsStyle = BTNS_SEP },
+	{ 26, MENU_ABORT,         TBSTATE_ENABLED, BTNS_BUTTON },
 };
 
 /* ローカル側のツールバー */
-static TBBUTTON TbarDataLocal[] = {
-	{ 0, 0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 },
-	{ 0, MENU_LOCAL_UPDIR, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	{ 1, MENU_LOCAL_CHDIR, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	{ 0, 0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 }
+static constexpr TBBUTTON localButtons[] = {
+	{ .fsStyle = BTNS_SEP },
+	{ 0, MENU_LOCAL_UPDIR, TBSTATE_ENABLED, BTNS_BUTTON },
+	{ 1, MENU_LOCAL_CHDIR, TBSTATE_ENABLED, BTNS_BUTTON },
+	{ .fsStyle = BTNS_SEP },
 };
 
 /* ホスト側のツールバー */
-static TBBUTTON TbarDataRemote[] = {
-	{ 0, 0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 },
-	{ 0, MENU_REMOTE_UPDIR, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	{ 1, MENU_REMOTE_CHDIR, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0 },
-	{ 0, 0, TBSTATE_ENABLED, BTNS_SEP, 0, 0 }
+static constexpr TBBUTTON remoteButtons[] = {
+	{ .fsStyle = BTNS_SEP },
+	{ 0, MENU_REMOTE_UPDIR, TBSTATE_ENABLED, BTNS_BUTTON },
+	{ 1, MENU_REMOTE_CHDIR, TBSTATE_ENABLED, BTNS_BUTTON },
+	{ .fsStyle = BTNS_SEP },
 };
 
-/* 全ボタン／メニュー項目 */
-static const int HideMenus[] = {
-	MENU_CONNECT,		MENU_QUICK,			MENU_DISCONNECT,
-	MENU_SET_CONNECT,	MENU_IMPORT_WS,		MENU_EXIT,
-	MENU_DOWNLOAD,		MENU_UPLOAD,		MENU_DOWNLOAD_AS,	MENU_MIRROR_UPLOAD,
-	MENU_UPLOAD_AS,		MENU_DOWNLOAD_NAME,	MENU_MIRROR_UPLOAD,
-	MENU_FILESIZE,		MENU_DELETE,		MENU_RENAME,
-	MENU_CHMOD,			MENU_MKDIR,			MENU_SOMECMD,
-	MENU_SYNC,
-	MENU_BMARK_ADD,		MENU_BMARK_ADD_LOCAL, MENU_BMARK_ADD_BOTH,
-	MENU_BMARK_EDIT,
-	MENU_FILTER,		MENU_FIND,			MENU_FINDNEXT,		MENU_SELECT,
-	MENU_SELECT_ALL,	MENU_LIST,			MENU_REPORT,
-	MENU_SORT,			MENU_DOTFILE,
-	MENU_DIRINFO,		MENU_TASKINFO,		MENU_REFRESH,
-	MENU_OPTION,
-	MENU_OTPCALC,
-	MENU_HELP,			MENU_HELP_TROUBLE,	MENU_ABOUT,
-	MENU_REGINIT,
-	MENU_TEXT,			MENU_BINARY,		MENU_AUTO,
-	MENU_KNJ_SJIS,		MENU_KNJ_EUC,		MENU_KNJ_JIS,		MENU_KNJ_UTF8N,		MENU_KNJ_UTF8BOM,	MENU_KNJ_NONE,
-	MENU_L_KNJ_SJIS,	MENU_L_KNJ_EUC,		MENU_L_KNJ_JIS,		MENU_L_KNJ_UTF8N,	MENU_L_KNJ_UTF8BOM,
-	MENU_KANACNV,
-	MENU_LOCAL_UPDIR,	MENU_LOCAL_CHDIR,
-	MENU_REMOTE_UPDIR,	MENU_REMOTE_CHDIR,
-	MENU_HIST_1,		MENU_HIST_2,		MENU_HIST_3,		MENU_HIST_4,
-	MENU_HIST_5,		MENU_HIST_6,		MENU_HIST_7,		MENU_HIST_8,
-	MENU_HIST_9,		MENU_HIST_10,		MENU_HIST_11,		MENU_HIST_12,
-	MENU_HIST_13,		MENU_HIST_14,		MENU_HIST_15,		MENU_HIST_16,
-	MENU_HIST_17,		MENU_HIST_18,		MENU_HIST_19,		MENU_HIST_20
-};
 
+static HBITMAP GetImage(int iamgeId) {
+	HBITMAP resized = 0;
+	if (auto original = (HBITMAP)LoadImageW(GetFtpInst(), MAKEINTRESOURCEW(iamgeId), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS)) {
+		if (auto dc = GetDC(0)) {
+			if (auto src = CreateCompatibleDC(dc)) {
+				if (auto dest = CreateCompatibleDC(dc)) {
+					if (BITMAP bitmap; GetObjectW(original, sizeof(BITMAP), &bitmap) > 0) {
+						auto width = bitmap.bmWidth / 64 * CalcPixelX(16);
+						auto height = bitmap.bmHeight / 64 * CalcPixelY(16);
+						if (resized = CreateCompatibleBitmap(dc, width, height)) {
+							auto hSrcOld = SelectObject(src, original);
+							auto hDstOld = SelectObject(dest, resized);
+							SetStretchBltMode(dest, COLORONCOLOR);
+							StretchBlt(dest, 0, 0, width, height, src, 0, 0, bitmap.bmWidth, bitmap.bmHeight, SRCCOPY);
+							SelectObject(src, hSrcOld);
+							SelectObject(dest, hDstOld);
+						}
+					}
+					DeleteDC(dest);
+				}
+				DeleteDC(src);
+			}
+			ReleaseDC(0, dc);
+		}
+		DeleteObject(original);
+	}
+	return resized;
+}
+
+
+static LRESULT CALLBACK IgnoreRightClick(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR, DWORD_PTR) {
+	switch (uMsg) {
+	case WM_RBUTTONDBLCLK:
+	case WM_RBUTTONDOWN:
+	case WM_RBUTTONUP:
+		return TRUE;
+	}
+	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
+
+
+static LRESULT CALLBACK HistoryEdit(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR isLocal) {
+	switch (uMsg) {
+	case WM_CHAR:
+		switch (wParam) {
+		case 0x0D:			/* リターンキーが押された */
+			if (isLocal) {
+				DoLocalCWD(u8(GetText(hWnd)).c_str());
+				GetLocalDirForWnd();
+			} else {
+				CancelFlg = NO;
+				if (CheckClosedAndReconnect() == FFFTP_SUCCESS && DoCWD(u8(GetText(hWnd)).c_str(), YES, NO, YES) < FTP_RETRY)
+					GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
+			}
+			return 0;
+		case 0x09:			/* TABキーが押された */
+			SetFocus(isLocal ? GetLocalHwnd() : GetRemoteHwnd());
+			return 0;
+		}
+	}
+	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
+
+
+static auto CreateToolbar(DWORD ws, UINT id, int bitmaps, HBITMAP image, const TBBUTTON* buttons, int size, int x, int y, int width, int height) {
+	ws |= WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT;
+	auto toolbar = CreateWindowExW(0, TOOLBARCLASSNAMEW, nullptr, ws, 0, 0, 0, 0, GetMainHwnd(), (HMENU)UIntToPtr(id), 0, nullptr);
+	if (toolbar) {
+		TBADDBITMAP addbitmap{ 0, (UINT_PTR)image };
+		SendMessageW(toolbar, TB_ADDBITMAP, bitmaps, (LPARAM)&addbitmap);
+		SendMessageW(toolbar, TB_SETBITMAPSIZE, 0, MAKELPARAM(CalcPixelX(16), CalcPixelY(16)));
+		SendMessageW(toolbar, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
+		SendMessageW(toolbar, TB_ADDBUTTONSW, size, (LPARAM)buttons);
+		SetWindowSubclass(toolbar, IgnoreRightClick, 0, 0);
+		MoveWindow(toolbar, x, y, width, height, false);
+	}
+	return toolbar;
+}
+
+
+static std::tuple<HWND, HWND> CreateComboBox(HWND toolbar, DWORD style, int width, int menuId, bool isLocal, HFONT font) {
+	style |= WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL;
+	RECT rect;
+	SendMessageW(toolbar, TB_GETITEMRECT, 3, (LPARAM)&rect);
+	auto combobox = CreateWindowExW(WS_EX_CLIENTEDGE, WC_COMBOBOXW, nullptr, style, rect.right, rect.top, width - rect.right, CalcPixelY(200), toolbar, (HMENU)IntToPtr(menuId), GetFtpInst(), nullptr);
+	HWND edit = 0;
+	if (combobox) {
+		if (COMBOBOXINFO ci{ sizeof(COMBOBOXINFO) }; SendMessageW(combobox, CB_GETCOMBOBOXINFO, 0, (LPARAM)&ci)) {
+			__assume(ci.hwndItem);
+			edit = ci.hwndItem;
+			SetWindowSubclass(edit, HistoryEdit, 0, isLocal);
+		}
+		SendMessageW(combobox, WM_SETFONT, (WPARAM)font, MAKELPARAM(TRUE, 0));
+		SendMessageW(combobox, CB_LIMITTEXT, FMAX_PATH, 0);
+	}
+	return { combobox, edit };
+}
 
 
 // ツールバーを作成する
-int MakeToolBarWindow()
-{
-	int Sts;
-	RECT Rect1;
-	// 高DPI対応
-	HBITMAP hOriginal;
-	HBITMAP hResized;
+bool MakeToolBarWindow() {
+	auto mainImage = GetImage(main_toolbar_bmp);
+	if (!mainImage)
+		return false;
+	auto remoteImage = GetImage(remote_toolbar_bmp);
+	if (!mainImage)
+		return false;
+	RECT rect;
+	GetClientRect(GetMainHwnd(), &rect);
 
-	/*===== メインのツールバー =====*/
+	// main toolbar
+	if (hWndTbarMain = CreateToolbar(BTNS_SEP, 1, 30, mainImage, mainButtons, size_as<int>(mainButtons), 0, 0, rect.right, AskToolWinHeight()); !hWndTbarMain)
+		return false;
 
-	hOriginal = (HBITMAP)LoadImageW(GetFtpInst(), MAKEINTRESOURCEW(main_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
-	if (!hOriginal)
-		return FFFTP_FAIL;
-	hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
-	DeleteObject(hOriginal);
-	hWndTbarMain = CreateToolbarEx(
-				GetMainHwnd(),
-				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_TOP | TBSTYLE_FLAT,
-				1,
-				30,
-				NULL,
-				(UINT_PTR)hResized,
-				TbarDataMain,
-				sizeof(TbarDataMain)/sizeof(TBBUTTON),
-				CalcPixelX(16),CalcPixelY(16),
-				CalcPixelX(16),CalcPixelY(16),
-				sizeof(TBBUTTON));
-	if(hResized != NULL)
-		DeleteObject(hOriginal);
-	hResized = NULL;
+	// local toobar
+	if (hWndTbarLocal = CreateToolbar(BTNS_GROUP, 2, 2, remoteImage, localButtons, size_as<int>(localButtons), 0, AskToolWinHeight(), LocalWidth, AskToolWinHeight()); !hWndTbarLocal)
+		return false;
+	SendMessageW(hWndTbarLocal, TB_GETITEMRECT, 3, (LPARAM)&rect);
+	auto font = CreateFontW(rect.bottom - rect.top - CalcPixelY(8), 0, 0, 0, 0, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"MS Shell Dlg");
+	std::tie(hWndDirLocal, hWndDirLocalEdit) = CreateComboBox(hWndTbarLocal, CBS_SORT, LocalWidth, COMBO_LOCAL, true, font);
+	if (hWndDirLocal == NULL)
+		return false;
+	GetDrives(SetLocalDirHist);
+	SendMessageW(hWndDirLocal, CB_SETCURSEL, 0, 0);
 
-	if(hWndTbarMain != NULL)
-	{
-		pOldTbarMainProc = (WNDPROC)SetWindowLongPtrW(hWndTbarMain, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarMainProc);
+	// remote toolbar
+	if (hWndTbarRemote = CreateToolbar(BTNS_GROUP, 3, 2, remoteImage, remoteButtons, size_as<int>(remoteButtons), LocalWidth + SepaWidth, AskToolWinHeight(), RemoteWidth, AskToolWinHeight()); !hWndTbarRemote)
+		return false;
+	std::tie(hWndDirRemote, hWndDirRemoteEdit) = CreateComboBox(hWndTbarRemote, 0, RemoteWidth, COMBO_REMOTE, false, font);
+	if (hWndDirRemote == NULL)
+		return false;
+	SendMessageW(hWndDirRemote, CB_SETCURSEL, 0, 0);
 
-		GetClientRect(GetMainHwnd(), &Rect1);
-		// 高DPI対応
-//		MoveWindow(hWndTbarMain, 0, 0, Rect1.right, TOOLWIN_HEIGHT, FALSE);
-		MoveWindow(hWndTbarMain, 0, 0, Rect1.right, AskToolWinHeight(), FALSE);
-	}
-
-	/*===== ローカルのツールバー =====*/
-
-	hOriginal = (HBITMAP)LoadImageW(GetFtpInst(), MAKEINTRESOURCEW(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
-	if (!hOriginal)
-		return FFFTP_FAIL;
-	hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
-	DeleteObject(hOriginal);
-	hWndTbarLocal = CreateToolbarEx(
-				GetMainHwnd(),
-				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE | TBSTYLE_FLAT,
-				2,
-				2,
-				NULL,
-				(UINT_PTR)hResized,
-				TbarDataLocal,
-				sizeof(TbarDataLocal)/sizeof(TBBUTTON),
-				CalcPixelX(16),CalcPixelY(16),
-				CalcPixelX(16),CalcPixelY(16),
-				sizeof(TBBUTTON));
-	if(hResized != NULL)
-		DeleteObject(hOriginal);
-	hResized = NULL;
-
-	if(hWndTbarLocal != NULL)
-	{
-		pOldTbarLocalProc = (WNDPROC)SetWindowLongPtrW(hWndTbarLocal, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarLocalProc);
-
-		// 高DPI対応
-//		MoveWindow(hWndTbarLocal, 0, TOOLWIN_HEIGHT, LocalWidth, TOOLWIN_HEIGHT, FALSE);
-		MoveWindow(hWndTbarLocal, 0, AskToolWinHeight(), LocalWidth, AskToolWinHeight(), FALSE);
-
-		/*===== ローカルのディレクトリ名ウインドウ =====*/
-
-		SendMessageW(hWndTbarLocal, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
-		DlgFont = CreateFontW(Rect1.bottom-Rect1.top-CalcPixelY(8), 0, 0, 0, 0, FALSE,FALSE,FALSE,DEFAULT_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY,DEFAULT_PITCH,L"MS Shell Dlg");
-
-		hWndDirLocal = CreateWindowExW(WS_EX_CLIENTEDGE, WC_COMBOBOXW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_SORT | CBS_AUTOHSCROLL, Rect1.right, Rect1.top, LocalWidth - Rect1.right, CalcPixelY(200), hWndTbarLocal, (HMENU)COMBO_LOCAL, GetFtpInst(), nullptr);
-
-		if(hWndDirLocal != NULL)
-		{
-			/* エディットコントロールを探す */
-			hWndDirLocalEdit = GetWindow(hWndDirLocal, GW_CHILD);
-			if(hWndDirLocalEdit != NULL)
-				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtrW(hWndDirLocalEdit, GWLP_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
-
-			SendMessageW(hWndDirLocal, WM_SETFONT, (WPARAM)DlgFont, MAKELPARAM(TRUE, 0));
-			SendMessageW(hWndDirLocal, CB_LIMITTEXT, FMAX_PATH, 0);
-
-			/* ドライブ名をセットしておく */
-			GetDrives([](const wchar_t drive[]) { SetLocalDirHist(u8(drive).c_str()); });
-			SendMessageW(hWndDirLocal, CB_SETCURSEL, 0, 0);
-		}
-	}
-
-	/*===== ホストのツールバー =====*/
-
-	hOriginal = (HBITMAP)LoadImageW(GetFtpInst(), MAKEINTRESOURCEW(remote_toolbar_bmp), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
-	if (!hOriginal)
-		return FFFTP_FAIL;
-	hResized = ResizeBitmap(hOriginal, 64, 64, 16, 64);
-	DeleteObject(hOriginal);
-	hWndTbarRemote = CreateToolbarEx(
-				GetMainHwnd(),
-				WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | CCS_NORESIZE | TBSTYLE_FLAT,
-				3,
-				2,
-				NULL,
-				(UINT_PTR)hResized,
-				TbarDataRemote,
-				sizeof(TbarDataRemote)/sizeof(TBBUTTON),
-				CalcPixelX(16),CalcPixelY(16),
-				CalcPixelX(16),CalcPixelY(16),
-				sizeof(TBBUTTON));
-	if(hResized != NULL)
-		DeleteObject(hOriginal);
-	hResized = NULL;
-
-	if(hWndTbarRemote != NULL)
-	{
-		pOldTbarRemoteProc = (WNDPROC)SetWindowLongPtrW(hWndTbarRemote, GWLP_WNDPROC, (LONG_PTR)CountermeasureTbarRemoteProc);
-
-		// 高DPI対応
-//		MoveWindow(hWndTbarRemote, LocalWidth + SepaWidth, TOOLWIN_HEIGHT, RemoteWidth, TOOLWIN_HEIGHT, FALSE);
-		MoveWindow(hWndTbarRemote, LocalWidth + SepaWidth, AskToolWinHeight(), RemoteWidth, AskToolWinHeight(), FALSE);
-
-		/*===== ホストのディレクトリ名ウインドウ =====*/
-
-		SendMessageW(hWndTbarRemote, TB_GETITEMRECT, 3, (LPARAM)&Rect1);
-		hWndDirRemote = CreateWindowExW(WS_EX_CLIENTEDGE, WC_COMBOBOXW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL, Rect1.right, Rect1.top, RemoteWidth - Rect1.right, CalcPixelY(200), hWndTbarRemote, (HMENU)COMBO_REMOTE, GetFtpInst(), nullptr);
-
-		if(hWndDirRemote != NULL)
-		{
-			/* エディットコントロールを探す */
-			hWndDirRemoteEdit = GetWindow(hWndDirRemote, GW_CHILD);
-			if(hWndDirRemoteEdit != NULL)
-				HistEditBoxProcPtr = (WNDPROC)SetWindowLongPtrW(hWndDirRemoteEdit, GWLP_WNDPROC, (LONG_PTR)HistEditBoxWndProc);
-
-			SendMessageW(hWndDirRemote, WM_SETFONT, (WPARAM)DlgFont, MAKELPARAM(TRUE, 0));
-			SendMessageW(hWndDirRemote, CB_LIMITTEXT, FMAX_PATH, 0);
-			SendMessageW(hWndDirRemote, CB_SETCURSEL, 0, 0);
-		}
-	}
-
-	Sts = FFFTP_SUCCESS;
-	if((hWndTbarMain == NULL) ||
-	   (hWndTbarLocal == NULL) ||
-	   (hWndTbarRemote == NULL) ||
-	   (hWndDirLocal == NULL) ||
-	   (hWndDirRemote == NULL))
-	{
-		Sts = FFFTP_FAIL;
-	}
-	return(Sts);
+	return true;
 }
 
 
-
-
-
-static LRESULT CALLBACK HistEditBoxWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	char Tmp[FMAX_PATH+1];
-
-	switch (message)
-	{
-		case WM_CHAR :
-			if(wParam == 0x0D)		/* リターンキーが押された */
-			{
-				if(hWnd == hWndDirLocalEdit)
-				{
-					strncpy_s(Tmp, FMAX_PATH+1, u8(GetText(hWndDirLocalEdit)).c_str(), _TRUNCATE);
-					DoLocalCWD(Tmp);
-					GetLocalDirForWnd();
-				}
-				else
-				{
-					// 同時接続対応
-					CancelFlg = NO;
-					strncpy_s(Tmp, FMAX_PATH+1, u8(GetText(hWndDirRemoteEdit)).c_str(), _TRUNCATE);
-					if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
-					{
-						if(DoCWD(Tmp, YES, NO, YES) < FTP_RETRY)
-							GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
-					}
-				}
-			}
-			else if(wParam == 0x09)		/* TABキーが押された */
-			{
-				if(hWnd == hWndDirLocalEdit)
-				{
-					SetFocus(GetLocalHwnd());
-				}
-				else
-				{
-					SetFocus(GetRemoteHwnd());
-				}
-			}
-			else
-				return CallWindowProcW(HistEditBoxProcPtr, hWnd, message, wParam, lParam);
-			break;
-
-		default :
-			return CallWindowProcW(HistEditBoxProcPtr, hWnd, message, wParam, lParam);
-	}
-	return(0L);
-}
-
-
-
-
-/*----- ツールバーを削除 ------------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DeleteToolBarWindow(void)
-{
-//	if(DlgFont != NULL)
-//		DeleteObject(DlgFont);
-
-	if(hWndTbarMain != NULL)
+// ツールバーを削除
+void DeleteToolBarWindow() {
+	if (hWndTbarMain != NULL)
 		DestroyWindow(hWndTbarMain);
-	if(hWndTbarLocal != NULL)
+	if (hWndTbarLocal != NULL)
 		DestroyWindow(hWndTbarLocal);
-	if(hWndTbarRemote != NULL)
+	if (hWndTbarRemote != NULL)
 		DestroyWindow(hWndTbarRemote);
-	if(hWndDirLocal != NULL)
+	if (hWndDirLocal != NULL)
 		DestroyWindow(hWndDirLocal);
-	if(hWndDirRemote != NULL)
+	if (hWndDirRemote != NULL)
 		DestroyWindow(hWndDirRemote);
-	return;
 }
 
 
-/*----- メインのツールバーのウインドウハンドルを返す --------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetMainTbarWnd(void)
-{
-	return(hWndTbarMain);
+// メインのツールバーのウインドウハンドルを返す
+HWND GetMainTbarWnd() {
+	return hWndTbarMain;
 }
 
 
-/*----- ローカル側のヒストリウインドウのウインドウハンドルを返す --------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetLocalHistHwnd(void)
-{
-	return(hWndDirLocal);
+// ローカル側のヒストリウインドウのウインドウハンドルを返す
+HWND GetLocalHistHwnd() {
+	return hWndDirLocal;
 }
 
 
-/*----- ホスト側のヒストリウインドウのウインドウハンドルを返す ----------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetRemoteHistHwnd(void)
-{
-	return(hWndDirRemote);
+// ホスト側のヒストリウインドウのウインドウハンドルを返す
+HWND GetRemoteHistHwnd() {
+	return hWndDirRemote;
 }
 
 
-/*----- ローカル側のヒストリエディットのウインドウハンドルを返す --------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetLocalHistEditHwnd(void)
-{
-	return(hWndDirLocalEdit);
+// ローカル側のヒストリエディットのウインドウハンドルを返す
+HWND GetLocalHistEditHwnd() {
+	return hWndDirLocalEdit;
 }
 
 
-/*----- ホスト側のヒストリエディットのウインドウハンドルを返す ----------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetRemoteHistEditHwnd(void)
-{
-	return(hWndDirRemoteEdit);
+// ホスト側のヒストリエディットのウインドウハンドルを返す
+HWND GetRemoteHistEditHwnd() {
+	return hWndDirRemoteEdit;
 }
 
 
-/*----- ローカル側のツールバーのウインドウハンドルを返す ----------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetLocalTbarWnd(void)
-{
-	return(hWndTbarLocal);
+// ローカル側のツールバーのウインドウハンドルを返す
+HWND GetLocalTbarWnd() {
+	return hWndTbarLocal;
 }
 
 
-/*----- ホスト側のツールバーのウインドウハンドルを返す ------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetRemoteTbarWnd(void)
-{
-	return(hWndTbarRemote);
+// ホスト側のツールバーのウインドウハンドルを返す
+HWND GetRemoteTbarWnd() {
+	return hWndTbarRemote;
 }
 
 
-/*----- HideUI の状態を返す ---------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int HideUI の状態
-*----------------------------------------------------------------------------*/
+// ツールボタン／メニューのハイド処理
+void MakeButtonsFocus() {
+	if (HideUI == 0) {
+		auto focus = GetFocus();
+		auto connected = AskConnecting() == YES;
+		auto selected = 0 < GetSelectedCount(focus == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL);
+		auto transferable = connected && selected;
+		auto operatable = focus == GetLocalHwnd() || connected;
+		auto menu = GetMenu(GetMainHwnd());
 
-int GetHideUI(void)
-{
-	// デッドロック対策
-//	return(HideUI);
-	return (HideUI > 0 ? YES : NO);
-}
-
-
-/*----- ツールボタン／メニューのハイド処理 ------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void MakeButtonsFocus(void)
-{
-	HWND hWndFocus;
-	HWND hWndMain;
-	int Count;
-	int Win;
-
-	// デッドロック対策
-//	if(HideUI == NO)
-	if(HideUI == 0)
-	{
-		hWndMain = GetMainHwnd();
-		hWndFocus = GetFocus();
-		Win = WIN_LOCAL;
-		if(hWndFocus == GetRemoteHwnd())
-			Win = WIN_REMOTE;
-
-		Count = GetSelectedCount(Win);
-
-		if(AskConnecting() == YES)
-		{
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_ADD, MF_ENABLED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_ADD_LOCAL, MF_ENABLED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_ADD_BOTH, MF_ENABLED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_EDIT, MF_ENABLED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DIRINFO, MF_ENABLED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_MIRROR_UPLOAD, MF_ENABLED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_MIRROR_DOWNLOAD, MF_ENABLED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_NAME, MF_ENABLED);
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MIRROR_UPLOAD, MAKELONG(TRUE, 0));
+		for (auto menuId : { MENU_BMARK_ADD, MENU_BMARK_ADD_LOCAL, MENU_BMARK_ADD_BOTH, MENU_BMARK_EDIT, MENU_DIRINFO, MENU_MIRROR_UPLOAD, MENU_MIRROR_DOWNLOAD, MENU_DOWNLOAD_NAME })
+			EnableMenuItem(menu, menuId, connected ? MF_ENABLED : MF_GRAYED);
+		SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MIRROR_UPLOAD, MAKELPARAM(connected, 0));
+		if (focus == GetLocalHwnd()) {
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELPARAM(transferable, 0));
+			EnableMenuItem(menu, MENU_UPLOAD, transferable ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(menu, MENU_UPLOAD_AS, transferable ? MF_ENABLED : MF_GRAYED);
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELPARAM(false, 0));
+			EnableMenuItem(menu, MENU_SOMECMD, MF_GRAYED);
+			EnableMenuItem(menu, MENU_DOWNLOAD, MF_GRAYED);
+			EnableMenuItem(menu, MENU_DOWNLOAD_AS, MF_GRAYED);
+			EnableMenuItem(menu, MENU_DOWNLOAD_AS_FILE, MF_GRAYED);
+		} else if (focus == GetRemoteHwnd()) {
+			EnableMenuItem(menu, MENU_SOMECMD, connected ? MF_ENABLED : MF_GRAYED);
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELPARAM(transferable, 0));
+			EnableMenuItem(menu, MENU_DOWNLOAD, transferable ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(menu, MENU_DOWNLOAD_AS, transferable ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(menu, MENU_DOWNLOAD_AS_FILE, transferable ? MF_ENABLED : MF_GRAYED);
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELPARAM(false, 0));
+			EnableMenuItem(menu, MENU_UPLOAD, MF_GRAYED);
+			EnableMenuItem(menu, MENU_UPLOAD_AS, MF_GRAYED);
 		}
-		else
-		{
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_ADD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_ADD_LOCAL, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_ADD_BOTH, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_BMARK_EDIT, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DIRINFO, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_MIRROR_UPLOAD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_MIRROR_DOWNLOAD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_NAME, MF_GRAYED);
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MIRROR_UPLOAD, MAKELONG(FALSE, 0));
-		}
-
-		if(hWndFocus == GetLocalHwnd())
-		{
-			if((AskConnecting() == YES) && (Count > 0))
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(TRUE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD, MF_ENABLED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD_AS, MF_ENABLED);
+		if (focus == GetLocalHwnd() || focus == GetRemoteHwnd()) {
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DELETE, MAKELPARAM(selected, 0));
+			EnableMenuItem(menu, MENU_DELETE, selected ? MF_ENABLED : MF_GRAYED);
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_RENAME, MAKELPARAM(selected, 0));
+			EnableMenuItem(menu, MENU_RENAME, selected ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(menu, MENU_CHMOD, selected ? MF_ENABLED : MF_GRAYED);
+			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MKDIR, MAKELPARAM(operatable, 0));
+			EnableMenuItem(menu, MENU_MKDIR, operatable ? MF_ENABLED : MF_GRAYED);
+			EnableMenuItem(menu, MENU_FILESIZE, operatable ? MF_ENABLED : MF_GRAYED);
+		} else {
+			for (auto menuId : { MENU_UPLOAD, MENU_DOWNLOAD, MENU_DELETE, MENU_RENAME, MENU_MKDIR }) {
+				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, menuId, MAKELPARAM(false, 0));
+				EnableMenuItem(menu, menuId, MF_GRAYED);
 			}
-			else
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(FALSE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD, MF_GRAYED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD_AS, MF_GRAYED);
-			}
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(FALSE, 0));
-			EnableMenuItem(GetMenu(hWndMain), MENU_SOMECMD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS_FILE, MF_GRAYED);
-		}
-
-		if(hWndFocus == GetRemoteHwnd())
-		{
-			if(AskConnecting() == YES)
-			{
-				EnableMenuItem(GetMenu(hWndMain), MENU_SOMECMD, MF_ENABLED);
-			}
-			else
-			{
-				EnableMenuItem(GetMenu(hWndMain), MENU_SOMECMD, MF_GRAYED);
-			}
-
-			if((AskConnecting() == YES) && (Count > 0))
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(TRUE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD, MF_ENABLED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS, MF_ENABLED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS_FILE, MF_ENABLED);
-			}
-			else
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(FALSE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD, MF_GRAYED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS, MF_GRAYED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS_FILE, MF_GRAYED);
-			}
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(FALSE, 0));
-			EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD_AS, MF_GRAYED);
-		}
-
-		if((hWndFocus == GetLocalHwnd()) || (hWndFocus == GetRemoteHwnd()))
-		{
-			if(Count > 0)
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DELETE, MAKELONG(TRUE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_DELETE, MF_ENABLED);
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_RENAME, MAKELONG(TRUE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_RENAME, MF_ENABLED);
-
-				EnableMenuItem(GetMenu(hWndMain), MENU_CHMOD, MF_ENABLED);
-
-			}
-			else
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DELETE, MAKELONG(FALSE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_DELETE, MF_GRAYED);
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_RENAME, MAKELONG(FALSE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_RENAME, MF_GRAYED);
-
-				EnableMenuItem(GetMenu(hWndMain), MENU_CHMOD, MF_GRAYED);
-			}
-
-			if((hWndFocus == GetLocalHwnd()) || (AskConnecting() == YES))
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MKDIR, MAKELONG(TRUE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_MKDIR, MF_ENABLED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_FILESIZE, MF_ENABLED);
-			}
-			else
-			{
-				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MKDIR, MAKELONG(FALSE, 0));
-				EnableMenuItem(GetMenu(hWndMain), MENU_MKDIR, MF_GRAYED);
-				EnableMenuItem(GetMenu(hWndMain), MENU_FILESIZE, MF_GRAYED);
-			}
-		}
-		else
-		{
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_UPLOAD, MAKELONG(FALSE, 0));
-			EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_UPLOAD_AS, MF_GRAYED);
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DOWNLOAD, MAKELONG(FALSE, 0));
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_DOWNLOAD_AS_FILE, MF_GRAYED);
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_DELETE, MAKELONG(FALSE, 0));
-			EnableMenuItem(GetMenu(hWndMain), MENU_DELETE, MF_GRAYED);
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_RENAME, MAKELONG(FALSE, 0));
-			EnableMenuItem(GetMenu(hWndMain), MENU_RENAME, MF_GRAYED);
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_MKDIR, MAKELONG(FALSE, 0));
-			EnableMenuItem(GetMenu(hWndMain), MENU_MKDIR, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_CHMOD, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_FILESIZE, MF_GRAYED);
-			EnableMenuItem(GetMenu(hWndMain), MENU_SOMECMD, MF_GRAYED);
+			for (auto menuId : { MENU_UPLOAD_AS, MENU_DOWNLOAD_AS, MENU_DOWNLOAD_AS_FILE, MENU_CHMOD, MENU_FILESIZE, MENU_SOMECMD })
+				EnableMenuItem(menu, menuId, MF_GRAYED);
 		}
 	}
-	return;
 }
 
 
-/*----- ユーザの操作を禁止する ------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
+static void EnableMenu(HWND main, bool enabled) {
+	auto menu = GetMenu(main);
+	for (int i = 0, count = GetMenuItemCount(menu); i < count; i++)
+		EnableMenuItem(menu, i, MF_BYPOSITION | (enabled ? MF_ENABLED : MF_GRAYED));
+	DrawMenuBar(main);
+}
 
-void DisableUserOpe(void)
-{
-	int i;
 
-	// デッドロック対策
-//	HideUI = YES;
+static void EnableToolbar(HWND toolbar, const TBBUTTON* buttons, int size, bool enabled) {
+	for (int i = 0; i < size; i++)
+		if ((buttons[i].fsState & TBSTATE_ENABLED) && buttons[i].idCommand != MENU_ABORT)
+			SendMessageW(toolbar, TB_ENABLEBUTTON, buttons[i].idCommand, MAKELPARAM(enabled, 0));
+}
+
+
+// ユーザの操作を禁止する
+void DisableUserOpe() {
 	HideUI++;
-
-	for(i = 0; i < sizeof(HideMenus) / sizeof(int); i++)
-	{
-		EnableMenuItem(GetMenu(GetMainHwnd()), HideMenus[i], MF_GRAYED);
-		SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(FALSE, 0));
-		SendMessageW(hWndTbarLocal, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(FALSE, 0));
-		SendMessageW(hWndTbarRemote, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(FALSE, 0));
-	}
-
-	EnableWindow(hWndDirLocal, FALSE);
-	EnableWindow(hWndDirRemote, FALSE);
-
-	return;
+	EnableMenu(GetMainHwnd(), false);
+	EnableToolbar(hWndTbarMain, mainButtons, size_as<int>(mainButtons), false);
+	EnableToolbar(hWndTbarLocal, localButtons, size_as<int>(localButtons), false);
+	EnableToolbar(hWndTbarRemote, remoteButtons, size_as<int>(remoteButtons), false);
+	EnableWindow(hWndDirLocal, false);
+	EnableWindow(hWndDirRemote, false);
 }
 
 
-/*----- ユーザの操作を許可する ------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void EnableUserOpe(void)
-{
-	int i;
-
-	// デッドロック対策
-//	if(HideUI == YES)
-	if(HideUI > 0)
+// ユーザの操作を許可する
+void EnableUserOpe() {
+	if (0 < HideUI)
 		HideUI--;
-	if(HideUI == 0)
-	{
-		for(i = 0; i < sizeof(HideMenus) / sizeof(int); i++)
-		{
-			EnableMenuItem(GetMenu(GetMainHwnd()), HideMenus[i], MF_ENABLED);
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(TRUE, 0));
-			SendMessageW(hWndTbarLocal, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(TRUE, 0));
-			SendMessageW(hWndTbarRemote, TB_ENABLEBUTTON, HideMenus[i], MAKELONG(TRUE, 0));
-		}
-		EnableWindow(hWndDirLocal, TRUE);
-		EnableWindow(hWndDirRemote, TRUE);
+	if (HideUI == 0) {
+		EnableMenu(GetMainHwnd(), true);
+		EnableToolbar(hWndTbarMain, mainButtons, size_as<int>(mainButtons), true);
+		EnableToolbar(hWndTbarLocal, localButtons, size_as<int>(localButtons), true);
+		EnableToolbar(hWndTbarRemote, remoteButtons, size_as<int>(remoteButtons), true);
+		EnableWindow(hWndDirLocal, true);
+		EnableWindow(hWndDirRemote, true);
 
 		// 選択不可な漢字コードのボタンが表示されるバグを修正
 		HideHostKanjiButton();
 		HideLocalKanjiButton();
 
-		// バグ修正
-//		HideUI = NO;
-
-		// バグ修正
-		SetFocus(NULL);
+		SetFocus(0);
 		SetFocus(GetMainHwnd());
 
 		MakeButtonsFocus();
 	}
-	return;
 }
 
 
-/*----- ユーザの操作が禁止されているかどうかを返す ----------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int ステータス
-*			YES=禁止されている/NO
-*----------------------------------------------------------------------------*/
-
-int AskUserOpeDisabled(void)
-{
-	// デッドロック対策
-//	return(HideUI);
-	return (HideUI > 0 ? YES : NO);
+// ユーザの操作が禁止されているかどうかを返す
+bool AskUserOpeDisabled() {
+	return 0 < HideUI;
 }
 
 
@@ -826,96 +434,39 @@ int AskUserOpeDisabled(void)
 *			転送モード
 *===================================================*/
 
-/*----- 転送モードを設定する --------------------------------------------------
-*
-*	Parameter
-*		int Mode : 転送モード (TYPE_xx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetTransferTypeImm(int Mode)
-{
+// 転送モードを設定する
+void SetTransferTypeImm(int Mode) {
 	TmpTransMode = Mode;
 	HideHostKanjiButton();
 	HideLocalKanjiButton();
-	return;
 }
 
 
-/*----- メニューにより転送モードを設定する ------------------------------------
-*
-*	Parameter
-*		int Type : 転送モード (MENU_xxxx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
+constexpr struct { int menu, code; } transfermap[]{
+	{ MENU_TEXT, TYPE_A },
+	{ MENU_BINARY, TYPE_I },
+};
 
-void SetTransferType(int Type)
-{
-	switch(Type)
-	{
-		case MENU_TEXT :
-			TmpTransMode = TYPE_A;
-			break;
 
-		case MENU_BINARY :
-			TmpTransMode = TYPE_I;
-			break;
-
-		default :
-			TmpTransMode = TYPE_X;
-			break;
-	}
+// メニューにより転送モードを設定する
+void SetTransferType(int Type) {
+	auto const it = std::find_if(std::begin(transfermap), std::end(transfermap), [Type](auto const& item) { return item.menu == Type; });
+	TmpTransMode = it != std::end(transfermap) ? it->code : TYPE_X;
 	HideHostKanjiButton();
 	HideLocalKanjiButton();
-	return;
 }
 
 
-/*----- 転送モードにしたがってボタンを表示する --------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispTransferType(void)
-{
-	switch(TmpTransMode)
-	{
-		case TYPE_A :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_TEXT, MAKELONG(TRUE, 0));
-			break;
-
-		case TYPE_I :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_BINARY, MAKELONG(TRUE, 0));
-			break;
-
-		default :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_AUTO, MAKELONG(TRUE, 0));
-			break;
-	}
-	return;
+// 転送モードにしたがってボタンを表示する
+void DispTransferType() {
+	auto const it = std::find_if(std::begin(transfermap), std::end(transfermap), [](auto const& item) { return item.code == TmpTransMode; });
+	SendMessageW(hWndTbarMain, TB_CHECKBUTTON, it != std::end(transfermap) ? it->menu : MENU_AUTO, MAKELPARAM(true, 0));
 }
 
 
-/*----- 設定上の転送モードを返す ----------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int 転送モード (TYPE_xx)
-*----------------------------------------------------------------------------*/
-
-int AskTransferType(void)
-{
-	return(TmpTransMode);
+// 設定上の転送モードを返す
+int AskTransferType() {
+	return TmpTransMode;
 }
 
 
@@ -933,22 +484,9 @@ int AskTransferTypeAssoc(char* Fname, int Type) {
 }
 
 
-/*----- 転送モードを保存する --------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		現在の転送モードがレジストリに保存される
-*----------------------------------------------------------------------------*/
-
-void SaveTransferType(void)
-{
+// 現在の転送モードがレジストリに保存される
+void SaveTransferType() {
 	TransMode = TmpTransMode;
-	return;
 }
 
 
@@ -956,298 +494,127 @@ void SaveTransferType(void)
 *			漢字モード
 *===================================================*/
 
-/*----- ホストの漢字モードをセットする ----------------------------------------
-*
-*	Parameter
-*		int Mode : 漢字モード (KANJI_xxxx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetHostKanjiCodeImm(int Mode)
-{
+// ホストの漢字モードをセットする
+void SetHostKanjiCodeImm(int Mode) {
 	TmpHostKanjiCode = Mode;
 	DispHostKanjiCode();
 	HideHostKanjiButton();
-	return;
 }
 
 
-/*----- メニューによりホストの漢字モードを設定する -----------------------------
-*
-*	Parameter
-*		int Type : 漢字モード (MENU_xxxx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
+constexpr struct { int remoteMenu, localMenu, code; } kanjimap[]{
+	{ MENU_KNJ_SJIS,    MENU_L_KNJ_SJIS,    KANJI_SJIS },
+	{ MENU_KNJ_EUC,     MENU_L_KNJ_EUC,     KANJI_EUC },
+	{ MENU_KNJ_JIS,     MENU_L_KNJ_JIS,     KANJI_JIS },
+	{ MENU_KNJ_UTF8N,   MENU_L_KNJ_UTF8N,   KANJI_UTF8N },
+	{ MENU_KNJ_UTF8BOM, MENU_L_KNJ_UTF8BOM, KANJI_UTF8BOM },
+};
 
-void SetHostKanjiCode(int Type)
-{
-	switch(Type)
-	{
-		// UTF-8対応
-		case MENU_KNJ_SJIS :
-			TmpHostKanjiCode = KANJI_SJIS;
-			break;
 
-		case MENU_KNJ_EUC :
-			TmpHostKanjiCode = KANJI_EUC;
-			break;
-
-		case MENU_KNJ_JIS :
-			TmpHostKanjiCode = KANJI_JIS;
-			break;
-
-		case MENU_KNJ_UTF8N :
-			TmpHostKanjiCode = KANJI_UTF8N;
-			break;
-
-		case MENU_KNJ_UTF8BOM :
-			TmpHostKanjiCode = KANJI_UTF8BOM;
-			break;
-
-		default :
-			TmpHostKanjiCode = KANJI_NOCNV;
-			break;
-	}
+// メニューによりホストの漢字モードを設定する
+void SetHostKanjiCode(int Type) {
+	auto const it = std::find_if(std::begin(kanjimap), std::end(kanjimap), [Type](auto const& item) { return item.remoteMenu == Type; });
+	TmpHostKanjiCode = it != std::end(kanjimap) ? it->code : KANJI_NOCNV;
 	DispHostKanjiCode();
 	HideHostKanjiButton();
-	return;
 }
 
 
-/*----- ホストの漢字モードにしたがってボタンを表示する ------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispHostKanjiCode(void)
-{
-	switch(TmpHostKanjiCode)
-	{
-		// UTF-8対応
-		case KANJI_SJIS :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_SJIS, MAKELONG(TRUE, 0));
-			break;
-
-		case KANJI_EUC :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_EUC, MAKELONG(TRUE, 0));
-			break;
-
-		case KANJI_JIS :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_JIS, MAKELONG(TRUE, 0));
-			break;
-
-		case KANJI_UTF8N :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_UTF8N, MAKELONG(TRUE, 0));
-			break;
-
-		case KANJI_UTF8BOM :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
-			break;
-
-		default :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KNJ_NONE, MAKELONG(TRUE, 0));
-			break;
-	}
-	return;
+// ホストの漢字モードにしたがってボタンを表示する
+void DispHostKanjiCode() {
+	auto const it = std::find_if(std::begin(kanjimap), std::end(kanjimap), [](auto const& item) { return item.code == TmpHostKanjiCode; });
+	SendMessageW(hWndTbarMain, TB_CHECKBUTTON, it != std::end(kanjimap) ? it->remoteMenu : MENU_KNJ_NONE, MAKELPARAM(true, 0));
 }
 
 
-/*----- ホストの漢字モードを返す ----------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int 漢字モード (KANJI_xxxx)
-*----------------------------------------------------------------------------*/
-
-int AskHostKanjiCode(void)
-{
-	return(TmpHostKanjiCode);
+// ホストの漢字モードを返す
+int AskHostKanjiCode() {
+	return TmpHostKanjiCode;
 }
 
 
-/*----- 漢字モードボタンのハイド処理を行う ------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
+// 漢字モードボタンのハイド処理を行う
+void HideHostKanjiButton() {
+	auto ascii = TmpTransMode != TYPE_I;
+	for (auto menuId : { MENU_KNJ_SJIS, MENU_KNJ_EUC, MENU_KNJ_JIS, MENU_KNJ_UTF8N, MENU_KNJ_UTF8BOM, MENU_KNJ_NONE })
+		SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, menuId, MAKELPARAM(ascii, 0));
 
-void HideHostKanjiButton(void)
-{
-	switch(TmpTransMode)
-	{
-		// UTF-8対応
-		case TYPE_I : 
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_SJIS, MAKELONG(FALSE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_EUC, MAKELONG(FALSE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_JIS, MAKELONG(FALSE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_UTF8N, MAKELONG(FALSE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_UTF8BOM, MAKELONG(FALSE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_NONE, MAKELONG(FALSE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
-			break;
-
-		default :
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_SJIS, MAKELONG(TRUE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_EUC, MAKELONG(TRUE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_JIS, MAKELONG(TRUE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_UTF8N, MAKELONG(TRUE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KNJ_NONE, MAKELONG(TRUE, 0));
-			// 現在カナ変換はShift_JIS、JIS、EUC間でのみ機能する
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
-			switch(TmpHostKanjiCode)
-			{
+	// 現在カナ変換はShift_JIS、JIS、EUC間でのみ機能する
+	SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELPARAM(false, 0));
+	if (ascii)
+		switch (TmpHostKanjiCode) {
+		case KANJI_SJIS:
+		case KANJI_JIS:
+		case KANJI_EUC:
+			switch (TmpLocalKanjiCode) {
 			case KANJI_SJIS:
 			case KANJI_JIS:
 			case KANJI_EUC:
-				switch(TmpLocalKanjiCode)
-				{
-				case KANJI_SJIS:
-				case KANJI_JIS:
-				case KANJI_EUC:
-					SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
-					break;
-				}
+				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
 				break;
 			}
-	}
-	return;
+			break;
+		}
 }
 
 
 // ローカルの漢字コード
 // テキストモード転送時に使用
 // ホスト側が無変換の時はローカルも無変換
-
-void SetLocalKanjiCodeImm(int Mode)
-{
+void SetLocalKanjiCodeImm(int Mode) {
 	TmpLocalKanjiCode = Mode;
 	DispLocalKanjiCode();
 	HideLocalKanjiButton();
-	return;
 }
 
-void SetLocalKanjiCode(int Type)
-{
-	switch(Type)
-	{
-		// UTF-8対応
-		case MENU_L_KNJ_SJIS :
-			TmpLocalKanjiCode = KANJI_SJIS;
-			break;
 
-		case MENU_L_KNJ_EUC :
-			TmpLocalKanjiCode = KANJI_EUC;
-			break;
-
-		case MENU_L_KNJ_JIS :
-			TmpLocalKanjiCode = KANJI_JIS;
-			break;
-
-		case MENU_L_KNJ_UTF8N :
-			TmpLocalKanjiCode = KANJI_UTF8N;
-			break;
-
-		case MENU_L_KNJ_UTF8BOM :
-			TmpLocalKanjiCode = KANJI_UTF8BOM;
-			break;
-	}
+void SetLocalKanjiCode(int Type) {
+	auto const it = std::find_if(std::begin(kanjimap), std::end(kanjimap), [Type](auto const& item) { return item.localMenu == Type; });
+	assert(it != std::end(kanjimap));
+	TmpLocalKanjiCode = it->code;
 	DispLocalKanjiCode();
 	HideLocalKanjiButton();
-	return;
 }
 
-void DispLocalKanjiCode(void)
-{
-	switch(TmpLocalKanjiCode)
-	{
-		// UTF-8対応
-		case KANJI_SJIS :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_SJIS, MAKELONG(TRUE, 0));
-			break;
 
-		case KANJI_EUC :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_EUC, MAKELONG(TRUE, 0));
-			break;
-
-		case KANJI_JIS :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_JIS, MAKELONG(TRUE, 0));
-			break;
-
-		case KANJI_UTF8N :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(TRUE, 0));
-			break;
-
-		case KANJI_UTF8BOM :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_L_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
-			break;
-	}
-	return;
+void DispLocalKanjiCode() {
+	auto const it = std::find_if(std::begin(kanjimap), std::end(kanjimap), [](auto const& item) { return item.code == TmpLocalKanjiCode; });
+	assert(it != std::end(kanjimap));
+	SendMessageW(hWndTbarMain, TB_CHECKBUTTON, it->localMenu, MAKELPARAM(true, 0));
 }
 
-int AskLocalKanjiCode(void)
-{
-	return(TmpLocalKanjiCode);
+
+int AskLocalKanjiCode() {
+	return TmpLocalKanjiCode;
 }
 
-void HideLocalKanjiButton(void)
-{
-	switch(TmpTransMode)
-	{
-		// UTF-8対応
-		case TYPE_I : 
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_SJIS, MAKELONG(FALSE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_EUC, MAKELONG(FALSE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_JIS, MAKELONG(FALSE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(FALSE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8BOM, MAKELONG(FALSE, 0));
-			break;
 
-		default :
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_SJIS, MAKELONG(TRUE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_EUC, MAKELONG(TRUE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_JIS, MAKELONG(TRUE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8N, MAKELONG(TRUE, 0));
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_L_KNJ_UTF8BOM, MAKELONG(TRUE, 0));
-			// 現在カナ変換はShift_JIS、JIS、EUC間でのみ機能する
-			SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
-			switch(TmpHostKanjiCode)
-			{
+void HideLocalKanjiButton() {
+	auto ascii = TmpTransMode != TYPE_I;
+	for (auto menuId : { MENU_L_KNJ_SJIS, MENU_L_KNJ_EUC, MENU_L_KNJ_JIS, MENU_L_KNJ_UTF8N, MENU_L_KNJ_UTF8BOM })
+		SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, menuId, MAKELPARAM(ascii, 0));
+	if (ascii) {
+		// 現在カナ変換はShift_JIS、JIS、EUC間でのみ機能する
+		SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELPARAM(false, 0));
+		switch (TmpHostKanjiCode) {
+		case KANJI_SJIS:
+		case KANJI_JIS:
+		case KANJI_EUC:
+			switch (TmpLocalKanjiCode) {
 			case KANJI_SJIS:
 			case KANJI_JIS:
 			case KANJI_EUC:
-				switch(TmpLocalKanjiCode)
-				{
-				case KANJI_SJIS:
-				case KANJI_JIS:
-				case KANJI_EUC:
-					SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
-					break;
-				}
+				SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, MENU_KANACNV, MAKELPARAM(true, 0));
 				break;
 			}
 			break;
+		}
 	}
-	return;
 }
 
-void SaveLocalKanjiCode(void)
-{
+
+void SaveLocalKanjiCode() {
 	LocalKanjiCode = TmpLocalKanjiCode;
-	return;
 }
 
 
@@ -1255,71 +622,28 @@ void SaveLocalKanjiCode(void)
 *			半角変換モード
 *===================================================*/
 
-/*----- ホストの半角変換モードを設定する --------------------------------------
-*
-*	Parameter
-*		int Mode : 半角変換モード(YES/NO)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetHostKanaCnvImm(int Mode)
-{
+// ホストの半角変換モードを設定する
+void SetHostKanaCnvImm(int Mode) {
 	TmpHostKanaCnv = Mode;
 	DispHostKanaCnv();
-	return;
 }
 
 
-/*----- ホストの半角変換モードを反転する --------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetHostKanaCnv(void)
-{
-	TmpHostKanaCnv ^= 1;
-	DispHostKanaCnv();
-	return;
+// ホストの半角変換モードを反転する
+void SetHostKanaCnv() {
+	SetHostKanaCnvImm(TmpHostKanaCnv ^ 1);
 }
 
 
-/*----- ホストの半角変換モードにしたがってボタンを表示する --------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispHostKanaCnv(void)
-{
-	if(TmpHostKanaCnv != 0)
-		SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KANACNV, MAKELONG(TRUE, 0));
-	else
-		SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KANACNV, MAKELONG(FALSE, 0));
-	return;
+// ホストの半角変換モードにしたがってボタンを表示する
+void DispHostKanaCnv() {
+	SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KANACNV, MAKELONG(TmpHostKanaCnv != 0, 0));
 }
 
 
-/*----- ホストの半角変換モードを返す ------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int 半角変換モード
-*----------------------------------------------------------------------------*/
-
-int AskHostKanaCnv(void)
-{
-	return(TmpHostKanaCnv);
+// ホストの半角変換モードを返す
+int AskHostKanaCnv() {
+	return TmpHostKanaCnv;
 }
 
 
@@ -1327,80 +651,32 @@ int AskHostKanaCnv(void)
 *			ソート方法
 *===================================================*/
 
-/*----- ソート方法をセットする ------------------------------------------------
-*
-*	Parameter
-*		int LFsort : ローカル側のファイルのソート方法 (SORT_xxx)
-*		int LDsort : ローカル側のディレクトリのソート方法 (SORT_xxx)
-*		int RFsort : ホスト側のファイルのソート方法 (SORT_xxx)
-*		int RDsort : ホスト側のディレクトリのソート方法 (SORT_xxx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetSortTypeImm(int LFsort, int LDsort, int RFsort, int RDsort)
-{
+// ソート方法をセットする
+//   LFsort : ローカル側のファイルのソート方法 (SORT_xxx)
+//   LDsort : ローカル側のディレクトリのソート方法 (SORT_xxx)
+//   RFsort : ホスト側のファイルのソート方法 (SORT_xxx)
+//   RDsort : ホスト側のディレクトリのソート方法 (SORT_xxx)
+void SetSortTypeImm(int LFsort, int LDsort, int RFsort, int RDsort) {
 	TmpLocalFileSort = LFsort;
 	TmpLocalDirSort = LDsort;
 	TmpRemoteFileSort = RFsort;
 	TmpRemoteDirSort = RDsort;
-	return;
 }
 
 
-/*----- リストビューのタブクリックによるソート方法のセット --------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号
-*		int Tab : カラム番号
-*
-*	Return Value
-*		int ソート方法 (SORT_xxx)
-*----------------------------------------------------------------------------*/
-
-void SetSortTypeByColumn(int Win, int Tab)
-{
-	if(Win == WIN_LOCAL)
-	{
-		if((TmpLocalFileSort & SORT_MASK_ORD) == Tab)
-			TmpLocalFileSort ^= SORT_GET_ORD;
-		else
-			TmpLocalFileSort = Tab;
-
-		if((Tab == SORT_NAME) || (Tab == SORT_DATE))
-			TmpLocalDirSort = TmpLocalFileSort;
-		else
-			TmpLocalDirSort = SORT_NAME;
+// リストビューのタブクリックによるソート方法のセット
+void SetSortTypeByColumn(int Win, int Tab) {
+	if (Win == WIN_LOCAL) {
+		TmpLocalFileSort = (TmpLocalFileSort & SORT_MASK_ORD) == Tab ? TmpLocalFileSort ^ SORT_GET_ORD : Tab;
+		TmpLocalDirSort = Tab == SORT_NAME || Tab == SORT_DATE ? TmpLocalFileSort : SORT_NAME;
+	} else if (Tab != 4) {
+		TmpRemoteFileSort = (TmpRemoteFileSort & SORT_MASK_ORD) == Tab ? TmpRemoteFileSort ^ SORT_GET_ORD : Tab;
+		TmpRemoteDirSort = Tab == SORT_NAME || Tab == SORT_DATE ? TmpRemoteFileSort : SORT_NAME;
 	}
-	else
-	{
-		if(Tab != 4)
-		{
-			if((TmpRemoteFileSort & SORT_MASK_ORD) == Tab)
-				TmpRemoteFileSort ^= SORT_GET_ORD;
-			else
-				TmpRemoteFileSort = Tab;
-
-			if((Tab == SORT_NAME) || (Tab == SORT_DATE))
-				TmpRemoteDirSort = TmpRemoteFileSort;
-			else
-				TmpRemoteDirSort = SORT_NAME;
-		}
-	}
-	return;
 }
 
 
-/*----- ソート方法を返す ------------------------------------------------------
-*
-*	Parameter
-*		int Name : どの部分か (ITEM_xxx)
-*
-*	Return Value
-*		int ソート方法 (SORT_xxx)
-*----------------------------------------------------------------------------*/
-
+// ソート方法を返す
 int AskSortType(int Name) {
 	switch (Name) {
 	case ITEM_LFILE:
@@ -1416,71 +692,29 @@ int AskSortType(int Name) {
 }
 
 
-/*----- ホストごとにソートを保存するかどうかをセットする-----------------------
-*
-*	Parameter
-*		int Sw : スイッチ (YES/NO)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetSaveSortToHost(int Sw)
-{
+// ホストごとにソートを保存するかどうかをセットする
+void SetSaveSortToHost(int Sw) {
 	SortSave = Sw;
-	return;
 }
 
 
-/*----- ホストごとにソートを保存するかどうかを返す ----------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int スイッチ (YES/NO)
-*----------------------------------------------------------------------------*/
-
-int AskSaveSortToHost(void)
-{
-	return(SortSave);
+// ホストごとにソートを保存するかどうかを返す
+int AskSaveSortToHost() {
+	return SortSave;
 }
-
 
 
 /*===================================================
 *			リストモード
 *===================================================*/
 
-/*----- リストモードにしたがってボタンを表示する ------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispListType(void)
-{
-	HWND hWndMain;
-
-	hWndMain = GetMainHwnd();
-	switch(ListType)
-	{
-		case LVS_LIST :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_LIST, MAKELONG(TRUE, 0));
-			CheckMenuItem(GetMenu(hWndMain), MENU_LIST, MF_CHECKED);
-			CheckMenuItem(GetMenu(hWndMain), MENU_REPORT, MF_UNCHECKED);
-			break;
-
-		default :
-			SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_REPORT, MAKELONG(TRUE, 0));
-			CheckMenuItem(GetMenu(hWndMain), MENU_REPORT, MF_CHECKED);
-			CheckMenuItem(GetMenu(hWndMain), MENU_LIST, MF_UNCHECKED);
-			break;
-	}
-	return;
+// リストモードにしたがってボタンを表示する
+void DispListType() {
+	auto list = ListType == LVS_LIST;
+	auto menu = GetMenu(GetMainHwnd());
+	SendMessageW(hWndTbarMain, TB_CHECKBUTTON, list ? MENU_LIST : MENU_REPORT, MAKELPARAM(true, 0));
+	CheckMenuItem(menu, MENU_LIST, list ? MF_CHECKED : MF_UNCHECKED);
+	CheckMenuItem(menu, MENU_REPORT, list ? MF_UNCHECKED : MF_CHECKED);
 }
 
 
@@ -1488,77 +722,30 @@ void DispListType(void)
 *			フォルダ同時移動モード
 *===================================================*/
 
-/*----- 転送モードを設定する --------------------------------------------------
-*
-*	Parameter
-*		int Mode : 転送モード (TYPE_xx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetSyncMoveMode(int Mode)
-{
+// 転送モードを設定する
+void SetSyncMoveMode(int Mode) {
 	SyncMove = Mode;
 	DispSyncMoveMode();
-	return;
 }
 
 
-/*----- フォルダ同時移動モードを切り替える ------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void ToggleSyncMoveMode(void)
-{
-	SyncMove ^= 1;
-	DispSyncMoveMode();
-	return;
+// フォルダ同時移動モードを切り替える
+void ToggleSyncMoveMode() {
+	SetSyncMoveMode(SyncMove ^ 1);
 }
 
 
-/*----- フォルダ同時移動を行うかどうかをによってメニュー／ボタンを表示 --------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispSyncMoveMode(void)
-{
-	if(SyncMove != 0)
-	{
-		SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_SYNC, MAKELONG(TRUE, 0));
-		CheckMenuItem(GetMenu(GetMainHwnd()), MENU_SYNC, MF_CHECKED);
-	}
-	else
-	{
-		SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_SYNC, MAKELONG(FALSE, 0));
-		CheckMenuItem(GetMenu(GetMainHwnd()), MENU_SYNC, MF_UNCHECKED);
-	}
-	return;
+// フォルダ同時移動を行うかどうかをによってメニュー／ボタンを表示
+void DispSyncMoveMode() {
+	auto sync = SyncMove != 0;
+	SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_SYNC, MAKELPARAM(sync, 0));
+	CheckMenuItem(GetMenu(GetMainHwnd()), MENU_SYNC, sync ? MF_CHECKED : MF_UNCHECKED);
 }
 
 
-/*----- フォルダ同時移動モードを返す ------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int 半角変換モード
-*----------------------------------------------------------------------------*/
-
-int AskSyncMoveMode(void)
-{
-	return(SyncMove);
+// フォルダ同時移動モードを返す
+int AskSyncMoveMode() {
+	return SyncMove;
 }
 
 
@@ -1566,94 +753,43 @@ int AskSyncMoveMode(void)
 *			ディレクトリヒストリ
 *===================================================*/
 
-/*----- ホスト側のヒストリ一覧ウインドウに登録 --------------------------------
-*
-*	Parameter
-*		char *Path : パス
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetRemoteDirHist(char *Path)
-{
-	LONG_PTR i;
-
-	if((i = SendMessageW(hWndDirRemote, CB_FINDSTRINGEXACT, 0, (LPARAM)u8(Path).c_str())) != CB_ERR)
-		SendMessageW(hWndDirRemote, CB_DELETESTRING, i, 0);
-
-	SendMessageW(hWndDirRemote, CB_ADDSTRING, 0, (LPARAM)u8(Path).c_str());
-	i = SendMessageW(hWndDirRemote, CB_GETCOUNT, 0, 0);
-	SendMessageW(hWndDirRemote, CB_SETCURSEL, i-1, 0);
-
-	strcpy(RemoteCurDir, Path);
-	return;
+// ホスト側のヒストリ一覧ウインドウに登録
+void SetRemoteDirHist(std::wstring const& path) {
+	auto index = SendMessageW(hWndDirRemote, CB_FINDSTRINGEXACT, 0, (LPARAM)path.c_str());
+	if (index != CB_ERR)
+		SendMessageW(hWndDirRemote, CB_DELETESTRING, index, 0);
+	index = SendMessageW(hWndDirRemote, CB_ADDSTRING, 0, (LPARAM)path.c_str());
+	SendMessageW(hWndDirRemote, CB_SETCURSEL, index, 0);
+	RemoteCurDir = path;
 }
 
 
-/*----- ローカル側のヒストリ一覧ウインドウに登録 -------------------------------
-*
-*	Parameter
-*		char *Path : パス
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetLocalDirHist(const char *Path)
-{
-	int i;
-
-	if((i = (int)SendMessageW(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)u8(Path).c_str())) == CB_ERR)
-		SendMessageW(hWndDirLocal, CB_ADDSTRING, 0, (LPARAM)u8(Path).c_str());
-	i = (int)SendMessageW(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)u8(Path).c_str());
-	SendMessageW(hWndDirLocal, CB_SETCURSEL, i, 0);
-
-	strcpy(LocalCurDir, Path);
-	return;
+// ローカル側のヒストリ一覧ウインドウに登録
+void SetLocalDirHist(fs::path const& path) {
+	auto index = SendMessageW(hWndDirLocal, CB_FINDSTRINGEXACT, 0, (LPARAM)path.c_str());
+	if (index == CB_ERR)
+		index = SendMessageW(hWndDirLocal, CB_ADDSTRING, 0, (LPARAM)path.c_str());
+	SendMessageW(hWndDirLocal, CB_SETCURSEL, index, 0);
+	LocalCurDir = path;
 }
 
 
-/*----- ローカルのカレントディレクトリを返す ----------------------------------
-*
-*	Parameter
-*		char *Buf : カレントディレクトリ名を返すバッファ
-*		int Max : バッファのサイズ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void AskLocalCurDir(char *Buf, size_t Max)
-{
-	memset(Buf, 0, Max);
-	strncpy(Buf, LocalCurDir, Max-1);
-	return;
+// ローカルのカレントディレクトリを返す
+fs::path const& AskLocalCurDir() {
+	return LocalCurDir;
 }
 
 
-/*----- ホストのカレントディレクトリを返す ------------------------------------
-*
-*	Parameter
-*		char *Buf : カレントディレクトリ名を返すバッファ
-*		int Max : バッファのサイズ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void AskRemoteCurDir(char *Buf, size_t Max)
-{
-	memset(Buf, 0, Max);
-	strncpy(Buf, RemoteCurDir, Max-1);
-	return;
+// ホストのカレントディレクトリを返す
+std::wstring const& AskRemoteCurDir() {
+	return RemoteCurDir;
 }
 
 
 // カレントディレクトリを設定する
 void SetCurrentDirAsDirHist() {
 	std::error_code ec;
-	fs::current_path(fs::u8path(LocalCurDir), ec);
+	fs::current_path(LocalCurDir, ec);
 }
 
 
@@ -1661,21 +797,9 @@ void SetCurrentDirAsDirHist() {
 *			メニュー
 *===================================================*/
 
-/*----- ドットファイルを表示するかどうかをメニューに表示する ------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DispDotFileMode(void)
-{
-	CheckMenuItem(GetMenu(GetMainHwnd()), MENU_DOTFILE, MF_UNCHECKED);
-	if(DotFile == YES)
-		CheckMenuItem(GetMenu(GetMainHwnd()), MENU_DOTFILE, MF_CHECKED);
-	return;
+// ドットファイルを表示するかどうかをメニューに表示する
+void DispDotFileMode() {
+	CheckMenuItem(GetMenu(GetMainHwnd()), MENU_DOTFILE, DotFile == YES ? MF_CHECKED : MF_UNCHECKED);
 }
 
 
@@ -1746,58 +870,3 @@ void ShowPopupMenu(int Win, int Pos) {
 	TrackPopupMenu(submenu, TPM_LEFTBUTTON | TPM_RIGHTBUTTON, point.x, point.y, 0, GetMainHwnd(), NULL);
 	DestroyMenu(menu);
 }
-
-
-/* 2007/09/21 sunasunamix  ここから *********************/
-
-/*----- CreateToolbarEx のマウスクリック関連を無視する(TbarMain用) -----------
-*       (サブクラス化を行うためのウインドウプロシージャ)
-*----------------------------------------------------------------------------*/
-static LRESULT CALLBACK CountermeasureTbarMainProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam)
-{
-	switch (uMessage) {
-	case WM_DESTROY :
-		SetWindowLongPtrW(hWnd,GWLP_WNDPROC,(LONG_PTR)pOldTbarMainProc);
-		break;
-	case WM_RBUTTONDBLCLK :
-	case WM_RBUTTONDOWN :
-	case WM_RBUTTONUP :
-		return TRUE;
-	}
-	return CallWindowProcW(pOldTbarMainProc, hWnd, uMessage, wParam, lParam);
-}
-
-/*----- CreateToolbarEx のマウスクリック関連を無視する(TbarLocal用) ----------
-*       (サブクラス化を行うためのウインドウプロシージャ)
-*----------------------------------------------------------------------------*/
-static LRESULT CALLBACK CountermeasureTbarLocalProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam)
-{
-	switch (uMessage) {
-	case WM_DESTROY :
-		SetWindowLongPtrW(hWnd,GWLP_WNDPROC,(LONG_PTR)pOldTbarLocalProc);
-		break;
-	case WM_RBUTTONDBLCLK :
-	case WM_RBUTTONDOWN :
-	case WM_RBUTTONUP :
-		return TRUE;
-	}
-	return CallWindowProcW(pOldTbarLocalProc, hWnd, uMessage, wParam, lParam);
-}
-
-/*----- CreateToolbarEx のマウスクリック関連を無視する(TbarRemote用) ---------
-*       (サブクラス化を行うためのウインドウプロシージャ)
-*----------------------------------------------------------------------------*/
-static LRESULT CALLBACK CountermeasureTbarRemoteProc(HWND hWnd,UINT uMessage,WPARAM wParam,LPARAM lParam)
-{
-	switch (uMessage) {
-	case WM_DESTROY :
-		SetWindowLongPtrW(hWnd,GWLP_WNDPROC,(LONG_PTR)pOldTbarRemoteProc);
-		break;
-	case WM_RBUTTONDBLCLK :
-	case WM_RBUTTONDOWN :
-	case WM_RBUTTONUP :
-		return TRUE;
-	}
-	return CallWindowProcW(pOldTbarRemoteProc, hWnd, uMessage, wParam, lParam);
-}
-/********************************************* ここまで */

@@ -78,7 +78,7 @@ static int PwdCommandType;
 *		int 応答コードの１桁目
 *----------------------------------------------------------------------------*/
 
-int DoCWD(char *Path, int Disp, int ForceGet, int ErrorBell)
+int DoCWD(const char *Path, int Disp, int ForceGet, int ErrorBell)
 {
 	int Sts;
 	char Buf[FMAX_PATH+1];
@@ -117,7 +117,7 @@ int DoCWD(char *Path, int Disp, int ForceGet, int ErrorBell)
 					strcpy(Buf, Path);
 				else
 				{
-					AskRemoteCurDir(Buf, FMAX_PATH);
+					strcpy(Buf, u8(AskRemoteCurDir()).c_str());
 					if(strlen(Buf) == 0)
 						strcpy(Buf, "/");
 
@@ -146,7 +146,7 @@ int DoCWD(char *Path, int Disp, int ForceGet, int ErrorBell)
 					}
 				}
 			}
-			SetRemoteDirHist(Buf);
+			SetRemoteDirHist(u8(Buf));
 		}
 	}
 	return(Sts/100);
@@ -728,7 +728,7 @@ void SwitchOSSProc(void)
 	}
 	/* Current Dir 再取得 */
 	if (DoPWD(Buf) == FTP_COMPLETE)
-		SetRemoteDirHist(Buf);
+		SetRemoteDirHist(u8(Buf));
 	/* ファイルリスト再読み込み */
 	PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(REFRESH_REMOTE, 0), 0);
 

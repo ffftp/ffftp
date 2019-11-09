@@ -325,7 +325,7 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 				continue;
 			/* ディレクトリ名の表示コンボボックスでBSやRETが効くように */
 			/* コンボボックス内ではアクセラレータを無効にする */
-			if (msg.hwnd == GetLocalHistEditHwnd() || msg.hwnd == GetRemoteHistEditHwnd() || hHelpWin && GetAncestor(msg.hwnd, GA_ROOT) == hHelpWin || GetHideUI() == YES || TranslateAcceleratorW(GetMainHwnd(), Accel, &msg) == 0) {
+			if (msg.hwnd == GetLocalHistEditHwnd() || msg.hwnd == GetRemoteHistEditHwnd() || hHelpWin && GetAncestor(msg.hwnd, GA_ROOT) == hHelpWin || AskUserOpeDisabled() || TranslateAcceleratorW(GetMainHwnd(), Accel, &msg) == 0) {
 				TranslateMessage(&msg);
 				DispatchMessageW(&msg);
 			}
@@ -581,7 +581,7 @@ static bool MakeAllWindows(int cmdShow) {
 
 	CalcWinSize();
 
-	if (MakeToolBarWindow() == FFFTP_FAIL)
+	if (!MakeToolBarWindow())
 		return false;
 
 	if (MakeListWin() == FFFTP_FAIL)
@@ -703,7 +703,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 			case 1:
 				if(WaitForSingleObject(ChangeNotification, 0) == WAIT_OBJECT_0)
 				{
-					if(AskUserOpeDisabled() == NO)
+					if (!AskUserOpeDisabled())
 					{
 						FindNextChangeNotification(ChangeNotification);
 						if(AutoRefreshFileList == YES)
@@ -899,8 +899,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_REMOTE_UPDIR :
-					// デッドロック対策
-					if(AskUserOpeDisabled() == YES)
+					if (AskUserOpeDisabled())
 						break;
 					SuppressRefresh = 1;
 					SetCurrentDirAsDirHist();
@@ -909,8 +908,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_LOCAL_UPDIR :
-					// デッドロック対策
-					if(AskUserOpeDisabled() == YES)
+					if (AskUserOpeDisabled())
 						break;
 					SetCurrentDirAsDirHist();
 					ChangeDir(WIN_LOCAL, "..");
@@ -1112,8 +1110,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_REFRESH :
-					// デッドロック対策
-					if(AskUserOpeDisabled() == YES)
+					if (AskUserOpeDisabled())
 						break;
 					// 同時接続対応
 					CancelFlg = NO;
@@ -1137,15 +1134,13 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case REFRESH_LOCAL :
-					// デッドロック対策
-					if(AskUserOpeDisabled() == YES)
+					if (AskUserOpeDisabled())
 						break;
 					GetLocalDirForWnd();
 					break;
 
 				case REFRESH_REMOTE :
-					// デッドロック対策
-					if(AskUserOpeDisabled() == YES)
+					if (AskUserOpeDisabled())
 						break;
 					// 同時接続対応
 					CancelFlg = NO;
@@ -1213,8 +1208,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_DOTFILE :
-					// デッドロック対策
-					if(AskUserOpeDisabled() == YES)
+					if (AskUserOpeDisabled())
 						break;
 					// 同時接続対応
 					CancelFlg = NO;
@@ -1754,7 +1748,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 	char Tmp[FMAX_PATH+1];
 	int UseDiffViewer;
 
-	if(AskUserOpeDisabled() == NO)
+	if (!AskUserOpeDisabled())
 	{
 		SetCurrentDirAsDirHist();
 		if(GetSelectedCount(Win) == 1)
@@ -1772,10 +1766,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 					{
 						if((DclickOpen == YES) || (Mode == YES))
 						{
-							AskLocalCurDir(Local, FMAX_PATH);
-							ReplaceAll(Local, '/', '\\');
-							SetYenTail(Local);
-							strcat(Local, Tmp);
+							strcpy(Local, (AskLocalCurDir() / fs::u8path(Tmp)).u8string().c_str());
 							ExecViewer(Local, App);
 						}
 						else
@@ -1849,10 +1840,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							AddTempFileList(data(remotePath));
 							if(Sts/100 == FTP_COMPLETE) {
 								if (UseDiffViewer == YES) {
-									AskLocalCurDir(Local, FMAX_PATH);
-									ReplaceAll(Local, '/', '\\');
-									SetYenTail(Local);
-									strcat(Local, Tmp);
+									strcpy(Local, (AskLocalCurDir() / fs::u8path(Tmp)).u8string().c_str());
 									ExecViewer2(Local, data(remotePath), App);
 								} else {
 									ExecViewer(data(remotePath), App);
@@ -1889,7 +1877,6 @@ void DoubleClickProc(int Win, int Mode, int App)
 static void ChangeDir(int Win, char *Path)
 {
 	int Sync;
-	char Local[FMAX_PATH+1];
 	char Remote[FMAX_PATH+1];
 
 	// 同時接続対応
@@ -1902,9 +1889,8 @@ static void ChangeDir(int Win, char *Path)
 	{
 		if(strcmp(Path, "..") == 0)
 		{
-			AskLocalCurDir(Local, FMAX_PATH);
-			AskRemoteCurDir(Remote, FMAX_PATH);
-			if(strcmp(GetFileName(Local), GetFileName(Remote)) != 0)
+			strcpy(Remote, u8(AskRemoteCurDir()).c_str());
+			if (AskLocalCurDir().filename() != u8(GetFileName(Remote)))
 				Sync = NO;
 		}
 	}
@@ -2136,9 +2122,7 @@ void ExecViewer(char *Fname, int App) {
 	if (wchar_t result[MAX_PATH]; App == -1 && pFname.has_extension() && FindExecutableW(pFname.c_str(), nullptr, result) > (HINSTANCE)32) {
 		// 拡張子があるので関連付けを実行する
 		DoPrintf("ShellExecute - %s", Fname);
-		char CurDir[FMAX_PATH + 1];
-		AskLocalCurDir(CurDir, FMAX_PATH);
-		ShellExecuteW(0, L"open", pFname.c_str(), nullptr, fs::u8path(CurDir).c_str(), SW_SHOW);
+		ShellExecuteW(0, L"open", pFname.c_str(), nullptr, AskLocalCurDir().c_str(), SW_SHOW);
 	} else if (App == -1 && (GetFileAttributesW(pFname.c_str()) & FILE_ATTRIBUTE_DIRECTORY)) {
 		// ディレクトリなのでフォルダを開く
 		MakeDistinguishableFileName(ComLine, Fname);
@@ -2289,7 +2273,7 @@ int BackgrndMessageProc(void)
 			if((Msg.hwnd == GetLocalHistEditHwnd()) ||
 			   (Msg.hwnd == GetRemoteHistEditHwnd()) ||
 			   ((hHelpWin != NULL) && (Msg.hwnd == hHelpWin)) ||
-			   GetHideUI() == YES ||
+				AskUserOpeDisabled() ||
 			   (TranslateAcceleratorW(GetMainHwnd(), Accel, &Msg) == 0))
 			{
 				if(Msg.message == WM_QUIT)

@@ -1407,7 +1407,7 @@ void doDeleteRemoteFile(void);
 
 /*===== toolmenu.c =====*/
 
-int MakeToolBarWindow();
+bool MakeToolBarWindow();
 void DeleteToolBarWindow(void);
 HWND GetMainTbarWnd(void);
 HWND GetLocalHistHwnd(void);
@@ -1416,11 +1416,10 @@ HWND GetLocalHistEditHwnd(void);
 HWND GetRemoteHistEditHwnd(void);
 HWND GetLocalTbarWnd(void);
 HWND GetRemoteTbarWnd(void);
-int GetHideUI(void);
 void MakeButtonsFocus(void);
 void DisableUserOpe(void);
 void EnableUserOpe(void);
-int AskUserOpeDisabled(void);
+bool AskUserOpeDisabled();
 void SetTransferTypeImm(int Mode);
 void SetTransferType(int Type);
 void DispTransferType(void);
@@ -1453,10 +1452,10 @@ void SetSyncMoveMode(int Mode);
 void ToggleSyncMoveMode(void);
 void DispSyncMoveMode(void);
 int AskSyncMoveMode(void);
-void SetRemoteDirHist(char *Path);
-void SetLocalDirHist(const char *Path);
-void AskLocalCurDir(char *Buf, size_t Max);
-void AskRemoteCurDir(char *Buf, size_t Max);
+void SetRemoteDirHist(std::wstring const&  path);
+void SetLocalDirHist(fs::path const& path);
+fs::path const& AskLocalCurDir();
+std::wstring const& AskRemoteCurDir();
 void SetCurrentDirAsDirHist();
 void DispDotFileMode(void);
 void ShowPopupMenu(int Win, int Pos);
@@ -1491,7 +1490,7 @@ int CopyHostFromList(int Num, HOSTDATA *Set);
 int CopyHostFromListInConnect(int Num, HOSTDATA *Set);
 int SetHostBookMark(int Num, char *Bmask, int Len);
 char *AskHostBookMark(int Num);
-int SetHostDir(int Num, char *LocDir, char *HostDir);
+int SetHostDir(int Num, const char* LocDir, const char* HostDir);
 int SetHostPassword(int Num, char *Pass);
 int SetHostSort(int Num, int LFSort, int LDSort, int RFSort, int RDSort);
 void DecomposeSortType(ulong Sort, int *LFSort, int *LDSort, int *RFSort, int *RDSort);
@@ -1625,7 +1624,7 @@ void DispFileProperty(char *Fname);
 
 /*===== remote.c =====*/
 
-int DoCWD(char *Path, int Disp, int ForceGet, int ErrorBell);
+int DoCWD(const char *Path, int Disp, int ForceGet, int ErrorBell);
 int DoCWDStepByStep(char *Path, char *Cur);
 int DoMKD(char *Path);
 void InitPWDcommand();
@@ -1831,7 +1830,6 @@ void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size);
 #endif
 int CalcPixelX(int x);
 int CalcPixelY(int y);
-HBITMAP ResizeBitmap(HBITMAP hBitmap, int UnitSizeX, int UnitSizeY, int ScaleNumerator, int ScaleDenominator);
 
 /*===== opie.c =====*/
 
