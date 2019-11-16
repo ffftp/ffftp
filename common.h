@@ -1090,40 +1090,25 @@ LIST_UNIX_70
 #define NTYPE_IPV6			2		/* TCP/IPv6 */
 
 
-/*=================================================
-*		ストラクチャ
-*=================================================*/
-
-/*===== ホスト設定データ =====*/
-
-typedef struct {
-	int Level;							/* 設定のレベル */
-										/* 通常はグループのフラグのみが有効 */
-										/* レベル数は設定の登録／呼出時のみで使用 */
-	char HostName[HOST_NAME_LEN+1];		/* 設定名 */
+struct Host {
 	char HostAdrs[HOST_ADRS_LEN+1];		/* ホスト名 */
 	char UserName[USER_NAME_LEN+1];		/* ユーザ名 */
 	char PassWord[PASSWORD_LEN+1];		/* パスワード */
 	char Account[ACCOUNT_LEN+1];		/* アカウント */
 	char LocalInitDir[INIT_DIR_LEN+1];	/* ローカルの開始ディレクトリ */
 	char RemoteInitDir[INIT_DIR_LEN+1];	/* ホストの開始ディレクトリ */
-	char BookMark[BOOKMARK_SIZE];		/* ブックマーク */
 	char ChmodCmd[CHMOD_CMD_LEN+1];		/* 属性変更コマンド */
 	char LsName[NLST_NAME_LEN+1];		/* NLSTに付けるファイル名/オプション*/
 	char InitCmd[INITCMD_LEN+1];		/* ホストの初期化コマンド */
 	int Port;							/* ポート番号 */
-	int Anonymous;						/* Anonymousフラグ */
 	int KanjiCode;						/* ホストの漢字コード (KANJI_xxx) */
 	int KanaCnv;						/* 半角カナを全角に変換(YES/NO) */
 	int NameKanjiCode;					/* ファイル名の漢字コード (KANJI_xxx) */
-	// UTF-8対応
-	int CurNameKanjiCode;				/* 自動判別後のファイル名の漢字コード (KANJI_xxx) */
 	int NameKanaCnv;					/* ファイル名の半角カナを全角に変換(YES/NO) */
 	int Pasv;							/* PASVモード (YES/NO) */
 	int FireWall;						/* FireWallを使う (YES/NO) */
 	int ListCmdOnly;					/* "LIST"コマンドのみ使用する */
 	int UseNLST_R;						/* "NLST -R"コマンドを使用する */
-	int LastDir;						/* 最後にアクセスしたフォルダを保存 */
 	int TimeZone;						/* タイムゾーン (-12～12) */
 	int HostType;						/* ホストのタイプ (HTYPE_xxx) */
 	int SyncMove;						/* フォルダ同時移動 (YES/NO) */
@@ -1134,35 +1119,37 @@ typedef struct {
 	int DialupAlways;					/* 常にこのエントリへ接続するかどうか (YES/NO) */
 	int DialupNotify;					/* 再接続の際に確認する (YES/NO) */
 	char DialEntry[RAS_NAME_LEN+1];		/* ダイアルアップエントリ */
-	// 暗号化通信対応
-	int CryptMode;						/* 暗号化通信モード (CRYPT_xxx) */
 	int UseNoEncryption;				/* 暗号化なしで接続する (YES/NO) */
 	int UseFTPES;						/* FTPESで接続する (YES/NO) */
 	int UseFTPIS;						/* FTPISで接続する (YES/NO) */
 	int UseSFTP;						/* SFTPで接続する (YES/NO) */
 	char PrivateKey[PRIVATE_KEY_LEN+1];	/* テキスト形式の秘密鍵 */
-	// 同時接続対応
 	int MaxThreadCount;					/* 同時接続数 */
 	int ReuseCmdSkt;					/* メインウィンドウのソケットを再利用する (YES/NO) */
-	int NoDisplayUI;					/* UIを表示しない (YES/NO) */
-	// FEAT対応
-	int Feature;						/* 利用可能な機能のフラグ (FEATURE_xxx) */
-	// MLSD対応
 	int UseMLSD;						/* "MLSD"コマンドを使用する */
-	int CurNetType;						/* 接続中のネットワークの種類 (NTYPE_xxx) */
-	// 自動切断対策
 	int NoopInterval;					/* 無意味なコマンドを送信する間隔（秒数、0で無効）*/
-	// 再転送対応
 	int TransferErrorMode;				/* 転送エラー時の処理 (EXIST_xxx) */
 	int TransferErrorNotify;			/* 転送エラー時に確認ダイアログを出すかどうか (YES/NO) */
-	// セッションあたりの転送量制限対策
 	int TransferErrorReconnect;			/* 転送エラー時に再接続する (YES/NO) */
-	// ホスト側の設定ミス対策
 	int NoPasvAdrs;						/* PASVで返されるアドレスを無視する (YES/NO) */
-} HOSTDATA;
+};
 
 
-/*===== ホスト設定リスト =====*/
+struct HOSTDATA : Host {
+	int Level;							/* 設定のレベル */
+										/* 通常はグループのフラグのみが有効 */
+										/* レベル数は設定の登録／呼出時のみで使用 */
+	char HostName[HOST_NAME_LEN+1];		/* 設定名 */
+	char BookMark[BOOKMARK_SIZE];		/* ブックマーク */
+	int Anonymous;						/* Anonymousフラグ */
+	int CurNameKanjiCode;				/* 自動判別後のファイル名の漢字コード (KANJI_xxx) */
+	int LastDir;						/* 最後にアクセスしたフォルダを保存 */
+	int CryptMode;						/* 暗号化通信モード (CRYPT_xxx) */
+	int NoDisplayUI;					/* UIを表示しない (YES/NO) */
+	int Feature;						/* 利用可能な機能のフラグ (FEATURE_xxx) */
+	int CurNetType;						/* 接続中のネットワークの種類 (NTYPE_xxx) */
+};
+
 
 typedef struct hostlistdata {
 	HOSTDATA Set;					/* ホスト設定データ */
@@ -1173,60 +1160,10 @@ typedef struct hostlistdata {
 } HOSTLISTDATA;
 
 
-/*===== 接続ヒストリリスト =====*/
-
-typedef struct historydata {
-	char HostAdrs[HOST_ADRS_LEN+1];		/* ホスト名 */
-	char UserName[USER_NAME_LEN+1];		/* ユーザ名 */
-	char PassWord[PASSWORD_LEN+1];		/* パスワード */
-	char Account[ACCOUNT_LEN+1];		/* アカウント */
-	char LocalInitDir[INIT_DIR_LEN+1];	/* ディレクトリ */
-	char RemoteInitDir[INIT_DIR_LEN+1];	/* ディレクトリ */
-	char ChmodCmd[CHMOD_CMD_LEN+1];		/* 属性変更コマンド */
-	char LsName[NLST_NAME_LEN+1];		/* NLSTに付けるファイル名/オプション*/
-	char InitCmd[INITCMD_LEN+1];		/* ホストの初期化コマンド */
-	int Port;							/* ポート番号 */
-	int KanjiCode;						/* ホストの漢字コード (KANJI_xxx) */
-	int KanaCnv;						/* 半角カナを全角に変換(YES/NO) */
-	int NameKanjiCode;					/* ファイル名の漢字コード (KANJI_xxx) */
-	int NameKanaCnv;					/* ファイル名の半角カナを全角に変換(YES/NO) */
-	int Pasv;							/* PASVモード (YES/NO) */
-	int FireWall;						/* FireWallを使う (YES/NO) */
-	int ListCmdOnly;					/* "LIST"コマンドのみ使用する */
-	int UseNLST_R;						/* "NLST -R"コマンドを使用する */
-	int TimeZone;						/* タイムゾーン (-12～12) */
-	int HostType;						/* ホストのタイプ (HTYPE_xxx) */
-	int SyncMove;						/* フォルダ同時移動 (YES/NO) */
-	int NoFullPath;						/* フルパスでファイルアクセスしない (YES/NO) */
-	ulong Sort;							/* ソート方法 (0x11223344 : 11=LFsort 22=LDsort 33=RFsort 44=RFsort) */
-	int Security;						/* セキュリティ (OTP_xxx , MDx) */
+struct HISTORYDATA : Host {
 	int Type;							/* 転送方法 (TYPE_xx) */
-	int Dialup;							/* ダイアルアップ接続するかどうか (YES/NO) */
-	int DialupAlways;					/* 常にこのエントリへ接続するかどうか (YES/NO) */
-	int DialupNotify;					/* 再接続の際に確認する (YES/NO) */
-	char DialEntry[RAS_NAME_LEN+1];		/* ダイアルアップエントリ */
-	// 暗号化通信対応
-	int UseNoEncryption;				/* 暗号化なしで接続する (YES/NO) */
-	int UseFTPES;						/* FTPESで接続する (YES/NO) */
-	int UseFTPIS;						/* FTPISで接続する (YES/NO) */
-	int UseSFTP;						/* SFTPで接続する (YES/NO) */
-	char PrivateKey[PRIVATE_KEY_LEN+1];	/* テキスト形式の秘密鍵 */
-	// 同時接続対応
-	int MaxThreadCount;					/* 同時接続数 */
-	int ReuseCmdSkt;					/* メインウィンドウのソケットを再利用する (YES/NO) */
-	// MLSD対応
-	int UseMLSD;						/* "MLSD"コマンドを使用する */
-	// 自動切断対策
-	int NoopInterval;					/* NOOPコマンドを送信する間隔（秒数、0で無効）*/
-	// 再転送対応
-	int TransferErrorMode;				/* 転送エラー時の処理 (EXIST_xxx) */
-	int TransferErrorNotify;			/* 転送エラー時に確認ダイアログを出すかどうか (YES/NO) */
-	// セッションあたりの転送量制限対策
-	int TransferErrorReconnect;			/* 転送エラー時に再接続する (YES/NO) */
-	// ホスト側の設定ミス対策
-	int NoPasvAdrs;						/* PASVで返されるアドレスを無視する (YES/NO) */
-	struct historydata *Next;
-} HISTORYDATA;
+	HISTORYDATA* Next;
+};
 
 
 /*===== 転送ファイルリスト =====*/
