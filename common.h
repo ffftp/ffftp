@@ -1162,7 +1162,6 @@ typedef struct hostlistdata {
 
 struct HISTORYDATA : Host {
 	int Type;							/* 転送方法 (TYPE_xx) */
-	HISTORYDATA* Next;
 };
 
 

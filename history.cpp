@@ -41,11 +41,7 @@ static void RemoveAllHistoryFromMenu(void);
 /* 設定値 */
 extern int FileHist;
 extern int PassToHist;
-
-/*===== ローカルなワーク =====*/
-
-static HISTORYDATA *HistoryBase = NULL;
-static int HistoryNum = 0;
+static std::vector<HISTORYDATA> histories;
 
 /* ヒストリのメニュー項目のID */
 static int MenuHistId[HISTORY_MAX] = {
@@ -78,92 +74,24 @@ void AddHostToHistory(HOSTDATA *Host, int TrMode)
 }
 
 
-/*----- ヒストリをヒストリリストの先頭に追加する ------------------------------
-*
-*	Parameter
-*		HISTORYDATA *Hist : ヒストリデータ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void AddHistoryToHistory(HISTORYDATA *Hist)
-{
-	HISTORYDATA *New;
-
+// ヒストリをヒストリリストの先頭に追加する
+void AddHistoryToHistory(HISTORYDATA* Hist) {
 	CheckHistoryNum(1);
-	if(FileHist > HistoryNum)
-	{
-		New = (HISTORYDATA*)malloc(sizeof(HISTORYDATA));
-		if(New != NULL)
-		{
-			memcpy(New, Hist, sizeof(HISTORYDATA));
-			New->Next = HistoryBase;
-			HistoryBase = New;
-			HistoryNum++;
-		}
-	}
-	return;
+	if (size_as<int>(histories) < FileHist)
+		histories.insert(begin(histories), *Hist);
 }
 
 
-/*----- ヒストリの数を返す ----------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int ヒストリの数
-*----------------------------------------------------------------------------*/
-
-int AskHistoryNum(void)
-{
-	return(HistoryNum);
+// ヒストリの数を返す
+int AskHistoryNum() {
+	return size_as<int>(histories);
 }
 
 
-/*----- ヒストリの数をチェックし多すぎたら削除 --------------------------------
-*
-*	Parameter
-*		int Space : 空けておく個数 (0～)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void CheckHistoryNum(int Space)
-{
-	int i;
-	HISTORYDATA *Prev;
-	HISTORYDATA *Pos;
-	HISTORYDATA *Next;
-
-	if(HistoryNum > FileHist-Space)
-	{
-		/* 残すべきヒストリを探す */
-		Pos = HistoryBase;
-		Prev = NULL;
-		for(i = 0; i < FileHist-Space; i++)
-		{
-			Prev = Pos;
-			Pos = Pos->Next;
-		}
-
-		/* いらないヒストリを消す */
-		if(Prev == NULL)
-			HistoryBase = NULL;
-		else
-			Prev->Next = NULL;
-
-		while(Pos != NULL)
-		{
-			Next = Pos->Next;
-			free(Pos);
-			Pos = Next;
-			HistoryNum--;
-		}
-	}
-	return;
+// ヒストリの数をチェックし多すぎたら削除
+void CheckHistoryNum(int Space) {
+	if (auto newsize = (size_t)FileHist - (size_t)Space; newsize < size(histories))
+		histories.resize(newsize);
 }
 
 
@@ -324,29 +252,12 @@ void CopyDefaultHistory(HISTORYDATA *Set)
 }
 
 
-/*----- 全ヒストリをメニューにセット ------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetAllHistoryToMenu(void)
-{
-	int i;
-	HISTORYDATA *Pos;
-
+// 全ヒストリをメニューにセット
+void SetAllHistoryToMenu() {
 	RemoveAllHistoryFromMenu();
-
-	Pos = HistoryBase;
-	for(i = 0; i < HistoryNum; i++)
-	{
-		AddOneFnameToMenu(Pos->HostAdrs, Pos->UserName, Pos->RemoteInitDir, i);
-		Pos = Pos->Next;
-	}
-	return;
+	int i = 0;
+	for (auto history : histories)
+		AddOneFnameToMenu(history.HostAdrs, history.UserName, history.RemoteInitDir, i++);
 }
 
 
@@ -410,35 +321,15 @@ static void RemoveAllHistoryFromMenu(void)
 }
 
 
-/*----- 指定メニューコマンドに対応するヒストリを返す --------------------------
-*
-*	Parameter
-*		int MenuCmd : 取り出すヒストリに割り当てられたメニューコマンド (MENU_xxx)
-*		HISTORYDATA *Buf : ヒストリデータを返すバッファ
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int GetHistoryByCmd(int MenuCmd, HISTORYDATA *Buf)
-{
-	int Sts;
-	int i;
-	HISTORYDATA *Pos;
-
-	Sts = FFFTP_FAIL;
-	Pos = HistoryBase;
-	for(i = 0; i < HistoryNum; i++)
-	{
-		if(MenuHistId[i] == MenuCmd)
-		{
-			memcpy(Buf, Pos, sizeof(HISTORYDATA));
-			Sts = FFFTP_SUCCESS;
+// 指定メニューコマンドに対応するヒストリを返す
+//   MenuCmd : 取り出すヒストリに割り当てられたメニューコマンド (MENU_xxx)
+int GetHistoryByCmd(int MenuCmd, HISTORYDATA* Buf) {
+	for (int i = 0; i < size_as<int>(histories); i++)
+		if (MenuHistId[i] == MenuCmd) {
+			*Buf = histories[i];
+			return FFFTP_SUCCESS;
 		}
-		Pos = Pos->Next;
-	}
-	return(Sts);
+	return FFFTP_FAIL;
 }
 
 
