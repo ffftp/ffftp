@@ -1090,10 +1090,9 @@ LIST_UNIX_70
 #define NTYPE_IPV6			2		/* TCP/IPv6 */
 
 
-struct Host {
+struct HostExeptPassword {
 	char HostAdrs[HOST_ADRS_LEN+1];		/* ホスト名 */
 	char UserName[USER_NAME_LEN+1];		/* ユーザ名 */
-	char PassWord[PASSWORD_LEN+1];		/* パスワード */
 	char Account[ACCOUNT_LEN+1];		/* アカウント */
 	char LocalInitDir[INIT_DIR_LEN+1];	/* ローカルの開始ディレクトリ */
 	char RemoteInitDir[INIT_DIR_LEN+1];	/* ホストの開始ディレクトリ */
@@ -1134,6 +1133,15 @@ struct Host {
 	int NoPasvAdrs;						/* PASVで返されるアドレスを無視する (YES/NO) */
 };
 
+struct Host : HostExeptPassword {
+	char PassWord[PASSWORD_LEN+1];		/* パスワード */
+	Host() = default;
+	Host(Host const&) = default;
+	Host(Host const& that, bool includePassword) : HostExeptPassword{ that } {
+		strcpy(PassWord, includePassword ? that.PassWord : "");
+	}
+};
+
 
 struct HOSTDATA : Host {
 	int Level;							/* 設定のレベル */
@@ -1162,6 +1170,9 @@ typedef struct hostlistdata {
 
 struct HISTORYDATA : Host {
 	int Type;							/* 転送方法 (TYPE_xx) */
+	HISTORYDATA() = default;
+	HISTORYDATA(HISTORYDATA const&) = default;
+	HISTORYDATA(Host const& that, bool includePassword, int type) : Host{ that, includePassword }, Type{ type } {}
 };
 
 

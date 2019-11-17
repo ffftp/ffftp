@@ -29,10 +29,6 @@
 
 #include "common.h"
 
-
-/*===== プロトタイプ =====*/
-
-static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New);
 static void AddOneFnameToMenu(char *Host, char *User, char *Remote, int Num);
 static void RemoveAllHistoryFromMenu(void);
 
@@ -52,25 +48,10 @@ static int MenuHistId[HISTORY_MAX] = {
 };
 
 
-
-/*----- ホスト情報をヒストリリストの先頭に追加する ----------------------------
-*
-*	Parameter
-*		HOSTDATA *Host : ホストデータ
-*		int TrMode : 転送モード
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void AddHostToHistory(HOSTDATA *Host, int TrMode)
-{
-	HISTORYDATA New;
-
-	CopyHostToHistory(Host, &New);
-	New.Type = TrMode;
+// ホスト情報をヒストリリストの先頭に追加する
+void AddHostToHistory(HOSTDATA* Host, int TrMode) {
+	HISTORYDATA New{ *Host, PassToHist == YES, TrMode };
 	AddHistoryToHistory(&New);
-	return;
 }
 
 
@@ -95,160 +76,18 @@ void CheckHistoryNum(int Space) {
 }
 
 
-/*----- ホスト情報をヒストリにセット ------------------------------------------
-*
-*	Parameter
-*		HOSTDATA *Host : ホストデータ
-*		HISTORYDATA *New : ヒストリをセットするワーク
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void CopyHostToHistory(HOSTDATA *Host, HISTORYDATA *New)
-{
-	strcpy(New->HostAdrs, Host->HostAdrs);
-	strcpy(New->UserName, Host->UserName);
-	if(PassToHist == YES)
-		strcpy(New->PassWord, Host->PassWord);
-	else
-		strcpy(New->PassWord, "");
-	strcpy(New->Account, Host->Account);
-	strcpy(New->LocalInitDir, Host->LocalInitDir);
-	strcpy(New->RemoteInitDir, Host->RemoteInitDir);
-	strcpy(New->ChmodCmd, Host->ChmodCmd);
-	strcpy(New->LsName, Host->LsName);
-	strcpy(New->InitCmd, Host->InitCmd);
-	New->Port = Host->Port;
-	New->KanjiCode = Host->KanjiCode;
-	New->KanaCnv = Host->KanaCnv;
-	New->NameKanjiCode = Host->NameKanjiCode;
-	New->NameKanaCnv = Host->NameKanaCnv;
-	New->Pasv = Host->Pasv;
-	New->FireWall = Host->FireWall;
-	New->ListCmdOnly = Host->ListCmdOnly;
-	New->UseNLST_R = Host->UseNLST_R;
-	New->TimeZone = Host->TimeZone;
-	New->HostType = Host->HostType;
-	New->SyncMove = Host->SyncMove;
-	New->NoFullPath = Host->NoFullPath;
-	New->Sort = Host->Sort;
-	New->Security = Host->Security;
-	New->Dialup = Host->Dialup;
-	New->DialupAlways = Host->DialupAlways;
-	New->DialupNotify = Host->DialupNotify;
-	strcpy(New->DialEntry, Host->DialEntry);
-	// 暗号化通信対応
-	New->UseNoEncryption = Host->UseNoEncryption;
-	New->UseFTPES = Host->UseFTPES;
-	New->UseFTPIS = Host->UseFTPIS;
-	New->UseSFTP = Host->UseSFTP;
-	strcpy(New->PrivateKey, Host->PrivateKey);
-	// 同時接続対応
-	New->MaxThreadCount = Host->MaxThreadCount;
-	New->ReuseCmdSkt = Host->ReuseCmdSkt;
-	// MLSD対応
-	New->UseMLSD = Host->UseMLSD;
-	// 自動切断対策
-	New->NoopInterval = Host->NoopInterval;
-	// 再転送対応
-	New->TransferErrorMode = Host->TransferErrorMode;
-	New->TransferErrorNotify = Host->TransferErrorNotify;
-	// セッションあたりの転送量制限対策
-	New->TransferErrorReconnect = Host->TransferErrorReconnect;
-	// ホスト側の設定ミス対策
-	New->NoPasvAdrs = Host->NoPasvAdrs;
-	return;
-}
-
-
-/*----- ヒストリ情報をホスト情報にセット --------------------------------------
-*
-*	Parameter
-*		HISTORYDATA *Hist : ヒストリ
-*		HOSTDATA *Host : ホストデータをセットするワーク
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void CopyHistoryToHost(HISTORYDATA *Hist, HOSTDATA *Host)
-{
+// ヒストリ情報をホスト情報にセット
+void CopyHistoryToHost(HISTORYDATA* Hist, HOSTDATA* Host) {
 	CopyDefaultHost(Host);
-
-	strcpy(Host->HostAdrs, Hist->HostAdrs);
-	strcpy(Host->UserName, Hist->UserName);
-	if(PassToHist == YES)
-		strcpy(Host->PassWord, Hist->PassWord);
-	else
-		strcpy(Host->PassWord, "");
-	strcpy(Host->Account, Hist->Account);
-	strcpy(Host->LocalInitDir, Hist->LocalInitDir);
-	strcpy(Host->RemoteInitDir, Hist->RemoteInitDir);
-	strcpy(Host->ChmodCmd, Hist->ChmodCmd);
-	strcpy(Host->LsName, Hist->LsName);
-	strcpy(Host->InitCmd, Hist->InitCmd);
-	Host->Port = Hist->Port;
-	Host->KanjiCode = Hist->KanjiCode;
-	Host->KanaCnv = Hist->KanaCnv;
-	Host->NameKanjiCode = Hist->NameKanjiCode;
-	Host->NameKanaCnv = Hist->NameKanaCnv;
-	Host->Pasv = Hist->Pasv;
-	Host->FireWall = Hist->FireWall;
-	Host->ListCmdOnly = Hist->ListCmdOnly;
-	Host->UseNLST_R = Hist->UseNLST_R;
-	Host->TimeZone = Hist->TimeZone;
-	Host->HostType = Hist->HostType;
-	Host->SyncMove = Hist->SyncMove;
-	Host->NoFullPath = Hist->NoFullPath;
-	Host->Sort = Hist->Sort;
-	Host->Security = Hist->Security;
-	Host->Dialup = Hist->Dialup;
-	Host->DialupAlways = Hist->DialupAlways;
-	Host->DialupNotify = Hist->DialupNotify;
-	strcpy(Host->DialEntry, Hist->DialEntry);
-	// 暗号化通信対応
-	Host->UseNoEncryption = Hist->UseNoEncryption;
-	Host->UseFTPES = Hist->UseFTPES;
-	Host->UseFTPIS = Hist->UseFTPIS;
-	Host->UseSFTP = Hist->UseSFTP;
-	strcpy(Host->PrivateKey, Hist->PrivateKey);
-	// 同時接続対応
-	Host->MaxThreadCount = Hist->MaxThreadCount;
-	Host->ReuseCmdSkt = Hist->ReuseCmdSkt;
-	// MLSD対応
-	Host->UseMLSD = Hist->UseMLSD;
-	// 自動切断対策
-	Host->NoopInterval = Hist->NoopInterval;
-	// 再転送対応
-	Host->TransferErrorMode = Hist->TransferErrorMode;
-	Host->TransferErrorNotify = Hist->TransferErrorNotify;
-	// セッションあたりの転送量制限対策
-	Host->TransferErrorReconnect = Hist->TransferErrorReconnect;
-	// ホスト側の設定ミス対策
-	Host->NoPasvAdrs = Hist->NoPasvAdrs;
-	return;
+	static_cast<::Host&>(*Host) = ::Host{ *Hist, PassToHist == YES };
 }
 
 
-/*----- ヒストリ情報の初期値を取得 --------------------------------------------
-*
-*	Parameter
-*		HISTORYDATA *Set : ヒストリをセットするワーク
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void CopyDefaultHistory(HISTORYDATA *Set)
-{
+// ヒストリ情報の初期値を取得
+void CopyDefaultHistory(HISTORYDATA* Set) {
 	HOSTDATA Host;
-
-	// ホスト共通設定機能
-//	CopyDefaultHost(&Host);
 	CopyDefaultDefaultHost(&Host);
-	CopyHostToHistory(&Host, Set);
-	return;
+	static_cast<::Host&>(*Set) = ::Host{ Host, PassToHist == YES };
 }
 
 
