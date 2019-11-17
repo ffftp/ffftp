@@ -234,9 +234,8 @@ void QuickConnectProc() {
 			SendDlgItemMessageW(hDlg, QHOST_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
 			SendDlgItemMessageW(hDlg, QHOST_FWALL, BM_SETCHECK, FwallDefault, 0);
 			SendDlgItemMessageW(hDlg, QHOST_PASV, BM_SETCHECK, PasvDefault, 0);
-			for (int i = 0; i < HISTORY_MAX; i++)
-				if (HISTORYDATA Tmp; GetHistoryByNum(i, &Tmp) == FFFTP_SUCCESS)
-					SendDlgItemMessageW(hDlg, QHOST_HOST, CB_ADDSTRING, 0, (LPARAM)u8(Tmp.HostAdrs).c_str());
+			for (auto const& Tmp : GetHistories())
+				SendDlgItemMessageW(hDlg, QHOST_HOST, CB_ADDSTRING, 0, (LPARAM)u8(Tmp.HostAdrs).c_str());
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
@@ -433,14 +432,12 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 
 void HistoryConnectProc(int MenuCmd)
 {
-	HISTORYDATA Hist;
 	int LFSort;
 	int LDSort;
 	int RFSort;
 	int RDSort;
 
-	if(GetHistoryByCmd(MenuCmd, &Hist) == FFFTP_SUCCESS)
-	{
+	if (auto history = GetHistoryByCmd(MenuCmd)) {
 		SaveBookMark();
 		SaveCurrentSetToHost();
 
@@ -451,7 +448,7 @@ void HistoryConnectProc(int MenuCmd)
 		SetTaskMsg("----------------------------");
 
 		InitPWDcommand();
-		CopyHistoryToHost(&Hist, &CurHost);
+		CurHost = *history;
 		// UTF-8対応
 		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
 
@@ -465,7 +462,7 @@ void HistoryConnectProc(int MenuCmd)
 			SetSortTypeImm(LFSort, LDSort, RFSort, RDSort);
 			ReSortDispList(WIN_LOCAL, &CancelFlg);
 
-			SetTransferTypeImm(Hist.Type);
+			SetTransferTypeImm(history->Type);
 			DispTransferType();
 
 			DisableUserOpe();
@@ -913,7 +910,7 @@ static void SaveCurrentSetToHistory(void)
 
 	CurHost.SyncMove = AskSyncMoveMode();
 
-	AddHostToHistory(&CurHost, AskTransferType());
+	AddHostToHistory(CurHost);
 	SetAllHistoryToMenu();
 
 	return;

@@ -1131,10 +1131,8 @@ void CopyDefaultHost(HOSTDATA *Set)
 
 
 // ホスト共通設定機能
-void ResetDefaultHost(void)
-{
-	CopyDefaultDefaultHost(&DefaultHost);
-	return;
+void ResetDefaultHost() {
+	DefaultHost = {};
 }
 
 void SetDefaultHost(HOSTDATA *Set)
@@ -1143,73 +1141,8 @@ void SetDefaultHost(HOSTDATA *Set)
 	return;
 }
 
-void CopyDefaultDefaultHost(HOSTDATA *Set)
-{
-	// 国際化対応
-	TIME_ZONE_INFORMATION tzi;
-	Set->Level = 0;
-	strcpy(Set->HostName, "");
-	strcpy(Set->HostAdrs, "");
-	strcpy(Set->UserName, "");
-	strcpy(Set->PassWord, "");
-	strcpy(Set->Account, "");
-	strcpy(Set->LocalInitDir, DefaultLocalPath);
-	strcpy(Set->RemoteInitDir, "");
-	memcpy(Set->BookMark, "\0\0", 2);
-	strcpy(Set->ChmodCmd, CHMOD_CMD_NOR);
-	strcpy(Set->LsName, LS_FNAME);
-	strcpy(Set->InitCmd, "");
-	Set->Port = PORT_NOR;
-	Set->Anonymous = NO;
-	Set->KanjiCode = KANJI_NOCNV;
-	Set->KanaCnv = YES;
-	Set->NameKanjiCode = KANJI_NOCNV;
-	// UTF-8対応
-	Set->CurNameKanjiCode = KANJI_NOCNV;
-	Set->NameKanaCnv = NO;
-	Set->Pasv = YES;
-	Set->FireWall = NO;
-	Set->ListCmdOnly = YES;
-	Set->UseNLST_R = YES;
-	Set->LastDir = NO;
-	// 国際化対応
-//	Set->TimeZone = 9;				/* GMT+9 (JST) */
-	GetTimeZoneInformation(&tzi);
-	Set->TimeZone = (int)(tzi.Bias / -60);
-	Set->HostType = HTYPE_AUTO;
-	Set->SyncMove = NO;
-	Set->NoFullPath = NO;
-	Set->Sort = SORT_NOTSAVED;
-	Set->Security = SECURITY_AUTO;
-	Set->Dialup = NO;
-	Set->DialupAlways = NO;
-	Set->DialupNotify = YES;
-	strcpy(Set->DialEntry, "");
-	// 暗号化通信対応
-	Set->CryptMode = CRYPT_NONE;
-	Set->UseNoEncryption = YES;
-	Set->UseFTPES = YES;
-	Set->UseFTPIS = YES;
-	Set->UseSFTP = YES;
-	strcpy(Set->PrivateKey, "");
-	// 同時接続対応
-	Set->MaxThreadCount = 1;
-	Set->ReuseCmdSkt = YES;
-	Set->NoDisplayUI = NO;
-	// MLSD対応
-	Set->Feature = 0;
-	Set->UseMLSD = YES;
-	Set->CurNetType = NTYPE_AUTO;
-	// 自動切断対策
-	Set->NoopInterval = 60;
-	// 再転送対応
-	Set->TransferErrorMode = EXIST_OVW;
-	Set->TransferErrorNotify = YES;
-	// セッションあたりの転送量制限対策
-	Set->TransferErrorReconnect = YES;
-	// ホスト側の設定ミス対策
-	Set->NoPasvAdrs = NO;
-	return;
+HostExeptPassword::HostExeptPassword() {
+	strcpy(LocalInitDir, DefaultLocalPath);
 }
 
 /*----- 設定名一覧をウィンドウに送る ------------------------------------------

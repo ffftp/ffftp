@@ -29,8 +29,8 @@
 
 #include "common.h"
 
-extern int FileHist;
-extern int PassToHist;
+int FileHist = 5;
+int PassToHist = YES;
 static std::vector<HISTORYDATA> histories;
 static constexpr std::array MenuHistId{
 	MENU_HIST_1,  MENU_HIST_2,  MENU_HIST_3,  MENU_HIST_4,  MENU_HIST_5,
@@ -41,45 +41,22 @@ static constexpr std::array MenuHistId{
 
 
 // ホスト情報をヒストリリストの先頭に追加する
-void AddHostToHistory(HOSTDATA* Host, int TrMode) {
-	HISTORYDATA New{ *Host, PassToHist == YES, TrMode };
-	AddHistoryToHistory(&New);
+void AddHostToHistory(Host const& host) {
+	AddHistoryToHistory({ host, PassToHist == YES, AskTransferType() });
 }
 
 
 // ヒストリをヒストリリストの先頭に追加する
-void AddHistoryToHistory(HISTORYDATA* Hist) {
-	CheckHistoryNum(1);
-	if (size_as<int>(histories) < FileHist)
-		histories.insert(begin(histories), *Hist);
+void AddHistoryToHistory(HISTORYDATA const& history) {
+	if (size_as<int>(histories) == FileHist)
+		histories.resize((size_t)FileHist - 1);
+	histories.insert(begin(histories), history);
 }
 
 
-// ヒストリの数を返す
-int AskHistoryNum() {
-	return size_as<int>(histories);
-}
-
-
-// ヒストリの数をチェックし多すぎたら削除
-void CheckHistoryNum(int Space) {
-	if (auto newsize = (size_t)FileHist - (size_t)Space; newsize < size(histories))
-		histories.resize(newsize);
-}
-
-
-// ヒストリ情報をホスト情報にセット
-void CopyHistoryToHost(HISTORYDATA* Hist, HOSTDATA* Host) {
-	CopyDefaultHost(Host);
-	static_cast<::Host&>(*Host) = ::Host{ *Hist, PassToHist == YES };
-}
-
-
-// ヒストリ情報の初期値を取得
-void CopyDefaultHistory(HISTORYDATA* Set) {
-	HOSTDATA Host;
-	CopyDefaultDefaultHost(&Host);
-	static_cast<::Host&>(*Set) = ::Host{ Host, PassToHist == YES };
+HOSTDATA::HOSTDATA(struct HISTORYDATA const& history) {
+	CopyDefaultHost(this);
+	static_cast<Host&>(*this) = Host{ history, PassToHist == YES };
 }
 
 
@@ -106,16 +83,14 @@ void SetAllHistoryToMenu() {
 
 // 指定メニューコマンドに対応するヒストリを返す
 //   MenuCmd : 取り出すヒストリに割り当てられたメニューコマンド (MENU_xxx)
-int GetHistoryByCmd(int MenuCmd, HISTORYDATA* Buf) {
-	auto it = std::find(begin(MenuHistId), end(MenuHistId), MenuCmd);
-	return it == end(MenuHistId) ? FFFTP_FAIL : GetHistoryByNum((int)std::distance(begin(MenuHistId), it), Buf);
+std::optional<HISTORYDATA> GetHistoryByCmd(int menuId) {
+	if (auto it = std::find(begin(MenuHistId), end(MenuHistId), menuId); it != end(MenuHistId))
+		if (auto index = (size_t)std::distance(begin(MenuHistId), it); index < size(histories))
+			return histories[index];
+	return {};
 }
 
 
-// 指定番号に対応するヒストリを返す
-int GetHistoryByNum(int Num, HISTORYDATA* Buf) {
-	if (size_as<int>(histories) <= Num)
-		return FFFTP_FAIL;
-	*Buf = histories[Num];
-	return FFFTP_SUCCESS;
+std::vector<HISTORYDATA> const& GetHistories() {
+	return histories;
 }

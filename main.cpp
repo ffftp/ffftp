@@ -174,7 +174,6 @@ int MirrorFnameCnv = NO;
 int SplitVertical = YES;
 int RasClose = NO;
 int RasCloseNotify = YES;
-int FileHist = 5;
 char DefAttrList[DEFATTRLIST_LEN+1] = { "" };
 SIZE HostDlgSize = { -1, -1 };
 SIZE BmarkDlgSize = { -1, -1 };
@@ -182,7 +181,6 @@ SIZE MirrorDlgSize = { -1, -1 };
 int Sizing = SW_RESTORE;
 int SortSave = NO;
 int QuickAnonymous = YES;
-int PassToHist = YES;
 int VaxSemicolon = NO;
 int SendQuit = NO;
 int NoRasControl = NO;
@@ -1024,7 +1022,6 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					}
 					GetLocalDirForWnd();
 					DispTransferType();
-					CheckHistoryNum(0);
 					SetAllHistoryToMenu();
 					break;
 
