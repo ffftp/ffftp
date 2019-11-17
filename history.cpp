@@ -29,22 +29,14 @@
 
 #include "common.h"
 
-static void AddOneFnameToMenu(char *Host, char *User, char *Remote, int Num);
-static void RemoveAllHistoryFromMenu(void);
-
-/*===== 外部参照 =====*/
-
-/* 設定値 */
 extern int FileHist;
 extern int PassToHist;
 static std::vector<HISTORYDATA> histories;
-
-/* ヒストリのメニュー項目のID */
-static int MenuHistId[HISTORY_MAX] = {
+static constexpr std::array MenuHistId{
 	MENU_HIST_1,  MENU_HIST_2,  MENU_HIST_3,  MENU_HIST_4,  MENU_HIST_5,
 	MENU_HIST_6,  MENU_HIST_7,  MENU_HIST_8,  MENU_HIST_9,  MENU_HIST_10,
 	MENU_HIST_11, MENU_HIST_12, MENU_HIST_13, MENU_HIST_14, MENU_HIST_15,
-	MENU_HIST_16, MENU_HIST_17, MENU_HIST_18, MENU_HIST_19, MENU_HIST_20
+	MENU_HIST_16, MENU_HIST_17, MENU_HIST_18, MENU_HIST_19, MENU_HIST_20,
 };
 
 
@@ -93,99 +85,37 @@ void CopyDefaultHistory(HISTORYDATA* Set) {
 
 // 全ヒストリをメニューにセット
 void SetAllHistoryToMenu() {
-	RemoveAllHistoryFromMenu();
+	auto menu = GetSubMenu(GetMenu(GetMainHwnd()), 0);
+	for (int i = DEF_FMENU_ITEMS, count = GetMenuItemCount(menu); i < count; i++)
+		DeleteMenu(menu, DEF_FMENU_ITEMS, MF_BYPOSITION);
+	AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
 	int i = 0;
-	for (auto history : histories)
-		AddOneFnameToMenu(history.HostAdrs, history.UserName, history.RemoteInitDir, i++);
-}
-
-
-/*----- ヒストリをメニューに追加 ----------------------------------------------
-*
-*	Parameter
-*		char *Host : ホスト名
-*		char *User : ユーザ名
-*		char *Remote : ホストのフォルダ
-*		int Num : 番号
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void AddOneFnameToMenu(char *Host, char *User, char *Remote, int Num)
-{
-	HMENU hMenu;
-	char Tmp[HOST_ADRS_LEN+USER_NAME_LEN+INIT_DIR_LEN+7+1];
-
-	hMenu = GetSubMenu(GetMenu(GetMainHwnd()), 0);
-
-	if(Num == 0)
-		AppendMenuW(hMenu, MF_SEPARATOR, 0, NULL);
-
-	if(Num < 9)
-		sprintf(Tmp, "&%d %s (%s) %s", Num+1, Host, User, Remote);
-	else if(Num == 9)
-		sprintf(Tmp, "&0 %s (%s) %s", Host, User, Remote);
-	else
-		sprintf(Tmp, "&* %s (%s) %s", Host, User, Remote);
-
-	AppendMenuW(hMenu, MF_STRING, MenuHistId[Num], u8(Tmp).c_str());
-
-	return;
-}
-
-
-/*----- 全ヒストリをメニューから削除 ------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void RemoveAllHistoryFromMenu(void)
-{
-	HMENU hMenu;
-	int Cnt;
-	int i;
-
-	hMenu = GetSubMenu(GetMenu(GetMainHwnd()), 0);
-	Cnt = GetMenuItemCount(hMenu);
-	for(i = DEF_FMENU_ITEMS; i < Cnt; i++)
-	{
-		DeleteMenu(hMenu, DEF_FMENU_ITEMS, MF_BYPOSITION);
+	for (auto history : histories) {
+		char buffer[HOST_ADRS_LEN + USER_NAME_LEN + INIT_DIR_LEN + 7 + 1];
+		if (i < 9)
+			sprintf(buffer, "&%d %s (%s) %s", i + 1, history.HostAdrs, history.UserName, history.RemoteInitDir);
+		else if (i == 9)
+			sprintf(buffer, "&0 %s (%s) %s", history.HostAdrs, history.UserName, history.RemoteInitDir);
+		else
+			sprintf(buffer, "&* %s (%s) %s", history.HostAdrs, history.UserName, history.RemoteInitDir);
+		AppendMenuW(menu, MF_STRING, MenuHistId[i], u8(buffer).c_str());
+		i++;
 	}
-	return;
 }
 
 
 // 指定メニューコマンドに対応するヒストリを返す
 //   MenuCmd : 取り出すヒストリに割り当てられたメニューコマンド (MENU_xxx)
 int GetHistoryByCmd(int MenuCmd, HISTORYDATA* Buf) {
-	for (int i = 0; i < size_as<int>(histories); i++)
-		if (MenuHistId[i] == MenuCmd) {
-			*Buf = histories[i];
-			return FFFTP_SUCCESS;
-		}
-	return FFFTP_FAIL;
+	auto it = std::find(begin(MenuHistId), end(MenuHistId), MenuCmd);
+	return it == end(MenuHistId) ? FFFTP_FAIL : GetHistoryByNum((int)std::distance(begin(MenuHistId), it), Buf);
 }
 
 
-/*----- 指定番号に対応するヒストリを返す --------------------------------------
-*
-*	Parameter
-*		int Num : 番号(0～)
-*		HISTORYDATA *Buf : ヒストリデータを返すバッファ
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int GetHistoryByNum(int Num, HISTORYDATA *Buf)
-{
-	return(GetHistoryByCmd(MenuHistId[Num], Buf));
+// 指定番号に対応するヒストリを返す
+int GetHistoryByNum(int Num, HISTORYDATA* Buf) {
+	if (size_as<int>(histories) <= Num)
+		return FFFTP_FAIL;
+	*Buf = histories[Num];
+	return FFFTP_SUCCESS;
 }
-
-
