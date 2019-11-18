@@ -386,10 +386,6 @@ void SaveRegistry(void)
 	char Buf[FMAX_PATH+1];
 	int i;
 	int n;
-	HOSTDATA DefaultHost;
-	HOSTDATA Host;
-	HISTORYDATA Hist;
-	HISTORYDATA DefaultHist;
 	
 	if( GetMasterPasswordStatus() == PASSWORD_UNMATCH ){
 		/* 2010.01.30 genta: マスターパスワードが不一致の場合は不用意に上書きしない */
@@ -562,68 +558,66 @@ void SaveRegistry(void)
 				hKey4->DeleteValue("Hist");
 
 				/* ヒストリの設定を保存 */
-				CopyDefaultHistory(&DefaultHist);
+				HISTORYDATA DefaultHist;
 				n = 0;
-				for(i = AskHistoryNum(); i > 0; i--)
-				{
-					if(GetHistoryByNum(i-1, &Hist) == FFFTP_SUCCESS)
+				auto& histories = GetHistories();
+				for (auto it = rbegin(histories); it != rend(histories); it++) {
+					auto& Hist = *it;
+					sprintf(Str, "History%d", n);
+					if(auto hKey5 = hKey4->CreateSubKey(Str))
 					{
-						sprintf(Str, "History%d", n);
-						if(auto hKey5 = hKey4->CreateSubKey(Str))
-						{
-							hKey5->SaveStr("HostAdrs", Hist.HostAdrs, DefaultHist.HostAdrs);
-							hKey5->SaveStr("UserName", Hist.UserName, DefaultHist.UserName);
-							hKey5->SaveStr("Account", Hist.Account, DefaultHist.Account);
-							hKey5->WriteStringToReg("LocalDir", Hist.LocalInitDir);
-							hKey5->SaveStr("RemoteDir", Hist.RemoteInitDir, DefaultHist.RemoteInitDir);
-							hKey5->SaveStr("Chmod", Hist.ChmodCmd, DefaultHist.ChmodCmd);
-							hKey5->SaveStr("Nlst", Hist.LsName, DefaultHist.LsName);
-							hKey5->SaveStr("Init", Hist.InitCmd, DefaultHist.InitCmd);
-							EncodePassword(Hist.PassWord, Str);
-							hKey5->SaveStr("Password", Str, DefaultHist.PassWord);
-							hKey5->SaveIntNum("Port", Hist.Port, DefaultHist.Port);
-							hKey5->SaveIntNum("Kanji", Hist.KanjiCode, DefaultHist.KanjiCode);
-							hKey5->SaveIntNum("KanaCnv", Hist.KanaCnv, DefaultHist.KanaCnv);
-							hKey5->SaveIntNum("NameKanji", Hist.NameKanjiCode, DefaultHist.NameKanjiCode);
-							hKey5->SaveIntNum("NameKana", Hist.NameKanaCnv, DefaultHist.NameKanaCnv);
-							hKey5->SaveIntNum("Pasv", Hist.Pasv, DefaultHist.Pasv);
-							hKey5->SaveIntNum("Fwall", Hist.FireWall, DefaultHist.FireWall);
-							hKey5->SaveIntNum("List", Hist.ListCmdOnly, DefaultHist.ListCmdOnly);
-							hKey5->SaveIntNum("NLST-R", Hist.UseNLST_R, DefaultHist.UseNLST_R);
-							hKey5->SaveIntNum("Tzone", Hist.TimeZone, DefaultHist.TimeZone);
-							hKey5->SaveIntNum("Type", Hist.HostType, DefaultHist.HostType);
-							hKey5->SaveIntNum("Sync", Hist.SyncMove, DefaultHist.SyncMove);
-							hKey5->SaveIntNum("Fpath", Hist.NoFullPath, DefaultHist.NoFullPath);
-							hKey5->WriteBinaryToReg("Sort", &Hist.Sort, sizeof(Hist.Sort));
-							hKey5->SaveIntNum("Secu", Hist.Security, DefaultHist.Security);
-							hKey5->WriteIntValueToReg("TrType", Hist.Type);
-							hKey5->SaveIntNum("Dial", Hist.Dialup, DefaultHist.Dialup);
-							hKey5->SaveIntNum("UseIt", Hist.DialupAlways, DefaultHist.DialupAlways);
-							hKey5->SaveIntNum("Notify", Hist.DialupNotify, DefaultHist.DialupNotify);
-							hKey5->SaveStr("DialTo", Hist.DialEntry, DefaultHist.DialEntry);
-							// 暗号化通信対応
-							hKey5->SaveIntNum("NoEncryption", Hist.UseNoEncryption, DefaultHist.UseNoEncryption);
-							hKey5->SaveIntNum("FTPES", Hist.UseFTPES, DefaultHist.UseFTPES);
-							hKey5->SaveIntNum("FTPIS", Hist.UseFTPIS, DefaultHist.UseFTPIS);
-							hKey5->SaveIntNum("SFTP", Hist.UseSFTP, DefaultHist.UseSFTP);
-							EncodePassword(Hist.PrivateKey, Str);
-							hKey5->SaveStr("PKey", Str, DefaultHist.PrivateKey);
-							// 同時接続対応
-							hKey5->SaveIntNum("ThreadCount", Hist.MaxThreadCount, DefaultHist.MaxThreadCount);
-							hKey5->SaveIntNum("ReuseCmdSkt", Hist.ReuseCmdSkt, DefaultHist.ReuseCmdSkt);
-							// MLSD対応
-							hKey5->SaveIntNum("MLSD", Hist.UseMLSD, DefaultHist.UseMLSD);
-							// 自動切断対策
-							hKey5->SaveIntNum("Noop", Hist.NoopInterval, DefaultHist.NoopInterval);
-							// 再転送対応
-							hKey5->SaveIntNum("ErrMode", Hist.TransferErrorMode, DefaultHist.TransferErrorMode);
-							hKey5->SaveIntNum("ErrNotify", Hist.TransferErrorNotify, DefaultHist.TransferErrorNotify);
-							// セッションあたりの転送量制限対策
-							hKey5->SaveIntNum("ErrReconnect", Hist.TransferErrorReconnect, DefaultHist.TransferErrorReconnect);
-							// ホスト側の設定ミス対策
-							hKey5->SaveIntNum("NoPasvAdrs", Hist.NoPasvAdrs, DefaultHist.NoPasvAdrs);
-							n++;
-						}
+						hKey5->SaveStr("HostAdrs", Hist.HostAdrs, DefaultHist.HostAdrs);
+						hKey5->SaveStr("UserName", Hist.UserName, DefaultHist.UserName);
+						hKey5->SaveStr("Account", Hist.Account, DefaultHist.Account);
+						hKey5->WriteStringToReg("LocalDir", Hist.LocalInitDir);
+						hKey5->SaveStr("RemoteDir", Hist.RemoteInitDir, DefaultHist.RemoteInitDir);
+						hKey5->SaveStr("Chmod", Hist.ChmodCmd, DefaultHist.ChmodCmd);
+						hKey5->SaveStr("Nlst", Hist.LsName, DefaultHist.LsName);
+						hKey5->SaveStr("Init", Hist.InitCmd, DefaultHist.InitCmd);
+						EncodePassword(Hist.PassWord, Str);
+						hKey5->SaveStr("Password", Str, DefaultHist.PassWord);
+						hKey5->SaveIntNum("Port", Hist.Port, DefaultHist.Port);
+						hKey5->SaveIntNum("Kanji", Hist.KanjiCode, DefaultHist.KanjiCode);
+						hKey5->SaveIntNum("KanaCnv", Hist.KanaCnv, DefaultHist.KanaCnv);
+						hKey5->SaveIntNum("NameKanji", Hist.NameKanjiCode, DefaultHist.NameKanjiCode);
+						hKey5->SaveIntNum("NameKana", Hist.NameKanaCnv, DefaultHist.NameKanaCnv);
+						hKey5->SaveIntNum("Pasv", Hist.Pasv, DefaultHist.Pasv);
+						hKey5->SaveIntNum("Fwall", Hist.FireWall, DefaultHist.FireWall);
+						hKey5->SaveIntNum("List", Hist.ListCmdOnly, DefaultHist.ListCmdOnly);
+						hKey5->SaveIntNum("NLST-R", Hist.UseNLST_R, DefaultHist.UseNLST_R);
+						hKey5->SaveIntNum("Tzone", Hist.TimeZone, DefaultHist.TimeZone);
+						hKey5->SaveIntNum("Type", Hist.HostType, DefaultHist.HostType);
+						hKey5->SaveIntNum("Sync", Hist.SyncMove, DefaultHist.SyncMove);
+						hKey5->SaveIntNum("Fpath", Hist.NoFullPath, DefaultHist.NoFullPath);
+						hKey5->WriteBinaryToReg("Sort", &Hist.Sort, sizeof(Hist.Sort));
+						hKey5->SaveIntNum("Secu", Hist.Security, DefaultHist.Security);
+						hKey5->WriteIntValueToReg("TrType", Hist.Type);
+						hKey5->SaveIntNum("Dial", Hist.Dialup, DefaultHist.Dialup);
+						hKey5->SaveIntNum("UseIt", Hist.DialupAlways, DefaultHist.DialupAlways);
+						hKey5->SaveIntNum("Notify", Hist.DialupNotify, DefaultHist.DialupNotify);
+						hKey5->SaveStr("DialTo", Hist.DialEntry, DefaultHist.DialEntry);
+						// 暗号化通信対応
+						hKey5->SaveIntNum("NoEncryption", Hist.UseNoEncryption, DefaultHist.UseNoEncryption);
+						hKey5->SaveIntNum("FTPES", Hist.UseFTPES, DefaultHist.UseFTPES);
+						hKey5->SaveIntNum("FTPIS", Hist.UseFTPIS, DefaultHist.UseFTPIS);
+						hKey5->SaveIntNum("SFTP", Hist.UseSFTP, DefaultHist.UseSFTP);
+						EncodePassword(Hist.PrivateKey, Str);
+						hKey5->SaveStr("PKey", Str, DefaultHist.PrivateKey);
+						// 同時接続対応
+						hKey5->SaveIntNum("ThreadCount", Hist.MaxThreadCount, DefaultHist.MaxThreadCount);
+						hKey5->SaveIntNum("ReuseCmdSkt", Hist.ReuseCmdSkt, DefaultHist.ReuseCmdSkt);
+						// MLSD対応
+						hKey5->SaveIntNum("MLSD", Hist.UseMLSD, DefaultHist.UseMLSD);
+						// 自動切断対策
+						hKey5->SaveIntNum("Noop", Hist.NoopInterval, DefaultHist.NoopInterval);
+						// 再転送対応
+						hKey5->SaveIntNum("ErrMode", Hist.TransferErrorMode, DefaultHist.TransferErrorMode);
+						hKey5->SaveIntNum("ErrNotify", Hist.TransferErrorNotify, DefaultHist.TransferErrorNotify);
+						// セッションあたりの転送量制限対策
+						hKey5->SaveIntNum("ErrReconnect", Hist.TransferErrorReconnect, DefaultHist.TransferErrorReconnect);
+						// ホスト側の設定ミス対策
+						hKey5->SaveIntNum("NoPasvAdrs", Hist.NoPasvAdrs, DefaultHist.NoPasvAdrs);
+						n++;
 					}
 				}
 				hKey4->WriteIntValueToReg("SavedHist", n);
@@ -637,9 +631,10 @@ void SaveRegistry(void)
 				}
 
 				// ホスト共通設定機能
+				HOSTDATA DefaultHost;
 				if(auto hKey5 = hKey4->CreateSubKey("DefaultHost"))
 				{
-					CopyDefaultDefaultHost(&DefaultHost);
+					HOSTDATA Host;
 					CopyDefaultHost(&Host);
 					hKey5->WriteIntValueToReg("Set", Host.Level);
 					hKey5->SaveStr("HostName", Host.HostName, DefaultHost.HostName);
@@ -697,8 +692,7 @@ void SaveRegistry(void)
 				/* ホストの設定を保存 */
 				CopyDefaultHost(&DefaultHost);
 				i = 0;
-				while(CopyHostFromList(i, &Host) == FFFTP_SUCCESS)
-				{
+				for (HOSTDATA Host; CopyHostFromList(i, &Host) == FFFTP_SUCCESS; i++) {
 					sprintf(Str, "Host%d", i);
 					if(auto hKey5 = hKey4->CreateSubKey(Str))
 					{
@@ -768,7 +762,6 @@ void SaveRegistry(void)
 							hKey5->SaveIntNum("NoPasvAdrs", Host.NoPasvAdrs, DefaultHost.NoPasvAdrs);
 						}
 					}
-					i++;
 				}
 				hKey4->WriteIntValueToReg("SetNum", i);
 
@@ -861,8 +854,6 @@ int LoadRegistry(void)
 	char Buf2[FMAX_PATH+1];
 	char *Pos;
 	char *Pos2;
-	HOSTDATA Host;
-	HISTORYDATA Hist;
 	int Sts;
 	int Version;
 
@@ -1083,7 +1074,7 @@ int LoadRegistry(void)
 				sprintf(Str, "History%d", i);
 				if(auto hKey5 = hKey4->OpenSubKey(Str))
 				{
-					CopyDefaultHistory(&Hist);
+					HISTORYDATA Hist;
 
 					hKey5->ReadStringFromReg("HostAdrs", Hist.HostAdrs, HOST_ADRS_LEN+1);
 					hKey5->ReadStringFromReg("UserName", Hist.UserName, USER_NAME_LEN+1);
@@ -1139,14 +1130,14 @@ int LoadRegistry(void)
 					// ホスト側の設定ミス対策
 					hKey5->ReadIntValueFromReg("NoPasvAdrs", &Hist.NoPasvAdrs);
 
-					AddHistoryToHistory(&Hist);
+					AddHistoryToHistory(Hist);
 				}
 			}
 
 			// ホスト共通設定機能
+			HOSTDATA Host;
 			if(auto hKey5 = hKey4->OpenSubKey("DefaultHost"))
 			{
-				CopyDefaultDefaultHost(&Host);
 				hKey5->ReadIntValueFromReg("Set", &Host.Level);
 				hKey5->ReadStringFromReg("HostName", Host.HostName, HOST_NAME_LEN+1);
 				hKey5->ReadStringFromReg("HostAdrs", Host.HostAdrs, HOST_ADRS_LEN+1);
