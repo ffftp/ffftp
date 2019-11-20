@@ -2868,9 +2868,9 @@ void ReformVMSDirName(char *DirName, int Flg)
 // ファイル名に使えない文字がないかチェックし名前を変更する
 //   Fnameを直接書きかえる
 static int RenameUnuseableName(char* Fname) {
-	static std::regex re{ R"([:*?<>|"\\])" };
+	static boost::regex re{ R"([:*?<>|"\\])" };
 	for (;;) {
-		if (!std::regex_search(Fname, re))
+		if (!boost::regex_search(Fname, re))
 			return FFFTP_SUCCESS;
 		if (!InputDialog(forcerename_dlg, GetMainHwnd(), NULL, Fname, FMAX_PATH + 1))
 			return FFFTP_FAIL;

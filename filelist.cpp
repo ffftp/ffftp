@@ -1196,11 +1196,11 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 		if (!Dialog(GetFtpInst(), Win == WIN_LOCAL ? sel_local_dlg : sel_remote_dlg, hWnd, Select{}))
 			return;
 		try {
-			std::variant<std::wstring, std::wregex> pattern;
+			std::variant<std::wstring, boost::wregex> pattern;
 			if (FindMode == 0)
 				pattern = u8(FindStr);
 			else
-				pattern = std::wregex{ u8(FindStr), std::regex_constants::icase };
+				pattern = boost::wregex{ u8(FindStr), boost::regex_constants::icase };
 			int CsrPos = -1;
 			for (int i = 0, Num = GetItemCount(Win); i < Num; i++) {
 				char Name[FMAX_PATH + 1];
@@ -1212,8 +1212,8 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 						using t = std::decay_t<decltype(pattern)>;
 						if constexpr (std::is_same_v<t, std::wstring>)
 							return CheckFname(wName, pattern);
-						else if constexpr (std::is_same_v<t, std::wregex>)
-							return std::regex_match(wName, pattern);
+						else if constexpr (std::is_same_v<t, boost::wregex>)
+							return boost::regex_match(wName, pattern);
 						else
 							static_assert(false_v<t>, "not supported variant type.");
 					}, pattern);
@@ -1243,7 +1243,7 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 				SendMessageW(hWnd, LVM_ENSUREVISIBLE, CsrPos, (LPARAM)TRUE);
 			}
 		}
-		catch (std::regex_error&) {}
+		catch (boost::regex_error&) {}
 		return;
 	}
 	if (Type == SELECT_LIST) {
@@ -1260,7 +1260,7 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 
 // ファイル一覧ウインドウのファイルを検索する
 void FindFileInList(HWND hWnd, int Type) {
-	static std::variant<std::wstring, std::wregex> pattern;
+	static std::variant<std::wstring, boost::wregex> pattern;
 	int Win = hWnd == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL;
 	switch (Type) {
 	case FIND_FIRST:
@@ -1270,9 +1270,9 @@ void FindFileInList(HWND hWnd, int Type) {
 			if (FindMode == 0)
 				pattern = u8(FindStr);
 			else
-				pattern = std::wregex{ u8(FindStr), std::regex_constants::icase };
+				pattern = boost::wregex{ u8(FindStr), boost::regex_constants::icase };
 		}
-		catch (std::regex_error&) {
+		catch (boost::regex_error&) {
 			return;
 		}
 		[[fallthrough]];
@@ -1284,8 +1284,8 @@ void FindFileInList(HWND hWnd, int Type) {
 				using t = std::decay_t<decltype(pattern)>;
 				if constexpr (std::is_same_v<t, std::wstring>)
 					return CheckFname(wName, pattern);
-				else if constexpr (std::is_same_v<t, std::wregex>)
-					return std::regex_match(wName, pattern);
+				else if constexpr (std::is_same_v<t, boost::wregex>)
+					return boost::regex_match(wName, pattern);
 				else
 					static_assert(false_v<t>, "not supported variant type.");
 			}, pattern);
@@ -4337,8 +4337,8 @@ static void GetMonth(char *Str, WORD *Month, WORD *Day)
 				//     JIS X 0213:2004  ESC $ ( Q
 				//     ASCII            ESC ( B
 				//     JIS C 6220-1976  ESC ( J
-				static std::regex re{ R"(^(?:\xE6\x9C\x88|\x8C\x8E|\xB7\xEE|\xD4\xC2|\x1B\$(?:[@B]|\([OQ])\x37\x6E\x1B\([BJ]))" };
-				if (std::cmatch m; std::regex_search(Pos, m, re)) {
+				static boost::regex re{ R"(^(?:\xE6\x9C\x88|\x8C\x8E|\xB7\xEE|\xD4\xC2|\x1B\$(?:[@B]|\([OQ])\x37\x6E\x1B\([BJ]))" };
+				if (boost::cmatch m; boost::regex_search(Pos, m, re)) {
 					Pos += m.length();
 					*Month = atoi(Str);
 					if((*Month < 1) || (*Month > 12))
@@ -4476,8 +4476,8 @@ static int GetHourAndMinute(char *Str, WORD *Hour, WORD *Minute)
 						//     JIS X 0213:2004  ESC $ ( Q
 						//     ASCII            ESC ( B
 						//     JIS C 6220-1976  ESC ( J
-						static std::regex re{ R"(^(?:\xE6\x99\x82|\x8E\x9E|\xBB\xFE|\x95\x72|\x1B\$(?:[@B]|\([OQ])\x3B\x7E\x1B\([BJ]))" };
-						if (std::cmatch m; std::regex_search(Pos, m, re)) {
+						static boost::regex re{ R"(^(?:\xE6\x99\x82|\x8E\x9E|\xBB\xFE|\x95\x72|\x1B\$(?:[@B]|\([OQ])\x3B\x7E\x1B\([BJ]))" };
+						if (boost::cmatch m; boost::regex_search(Pos, m, re)) {
 							Pos += m.length();
 							if(*Pos != NUL)
 							{
@@ -4580,11 +4580,11 @@ int Assume1900or2000(int Year)
 
 // フィルタに指定されたファイル名かどうかを返す
 static int AskFilterStr(const char *Fname, int Type) {
-	static std::wregex re{ L";" };
+	static boost::wregex re{ L";" };
 	if (Type != NODE_FILE || strlen(FilterStr) == 0)
 		return YES;
 	auto const wFname = u8(Fname), wFilterStr = u8(FilterStr);
-	for (std::wsregex_token_iterator it{ begin(wFilterStr), end(wFilterStr), re, -1 }, end; it != end; ++it)
+	for (boost::wsregex_token_iterator it{ begin(wFilterStr), end(wFilterStr), re, -1 }, end; it != end; ++it)
 		if (it->matched && CheckFname(wFname, *it))
 			return YES;
 	return NO;

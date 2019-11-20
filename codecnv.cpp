@@ -4,9 +4,9 @@
 
 // 改行コードをCRLFに変換
 std::string ToCRLF(std::string_view source) {
-	static std::regex re{ R"(\r\n|[\r\n])" };
+	static boost::regex re{ R"(\r\n|[\r\n])" };
 	std::string result;
-	std::regex_replace(back_inserter(result), begin(source), end(source), re, "\r\n");
+	boost::regex_replace(back_inserter(result), begin(source), end(source), re, "\r\n");
 	return result;
 }
 
@@ -39,7 +39,7 @@ static auto convert(std::string_view input, DWORD incp, DWORD outcp, void (*upda
 
 
 void CodeDetector::Test(std::string_view str) {
-	static std::regex reJISor8BIT{ R"(\x1B(\$[B@]|\([BHIJ]|\$\([DOPQ])|[\x80-\xFF])" },
+	static boost::regex reJISor8BIT{ R"(\x1B(\$[B@]|\([BHIJ]|\$\([DOPQ])|[\x80-\xFF])" },
 		// Shift-JIS
 		// JIS X 0208  1～8、16～47、48～84  81-84,88-9F,E0-EA
 		// NEC特殊文字                       87
@@ -67,20 +67,20 @@ void CodeDetector::Test(std::string_view str) {
 		// これらの正規表現はutil/hfs+.cppで生成した。 Unicode 12.0
 		reNFC{ R"(\xc3[\x80-\x85\x87-\x8f\x91-\x96\x99-\x9d\xa0-\xa5\xa7-\xaf\xb1-\xb6\xb9-\xbd\xbf]|\xc4[\x80-\x8f\x92-\xa5\xa8-\xb0\xb4-\xb7\xb9-\xbe]|\xc5[\x83-\x88\x8c-\x91\x94-\xa5\xa8-\xbe]|\xc6[\xa0\xa1\xaf\xb0]|\xc7[\x8d-\x9c\x9e-\xa3\xa6-\xb0\xb4\xb5\xb8-\xbf]|\xc8[\x80-\x9b\x9e\x9f\xa6-\xb3]|\xcd[\x80\x81\x83\x84\xb4\xbe]|\xce[\x85-\x8a\x8c\x8e-\x90\xaa-\xb0]|\xcf[\x8a-\x8e\x93\x94]|\xd0[\x80\x81\x83\x87\x8c-\x8e\x99\xb9]|\xd1[\x90\x91\x93\x97\x9c-\x9e\xb6\xb7]|\xd3[\x81\x82\x90-\x93\x96\x97\x9a-\x9f\xa2-\xa7\xaa-\xb5\xb8\xb9]|\xd8[\xa2-\xa6]|\xdb[\x80\x82\x93]|\xe0(?:\xa4[\xa9\xb1\xb4]|\xa5[\x98-\x9f]|\xa7[\x8b\x8c\x9c\x9d\x9f]|\xa8[\xb3\xb6]|\xa9[\x99-\x9b\x9e]|\xad[\x88\x8b\x8c\x9c\x9d]|\xae\x94|[\xaf\xb5][\x8a-\x8c]|\xb1\x88|\xb3[\x80\x87\x88\x8a\x8b]|\xb7[\x9a\x9c-\x9e]|\xbd[\x83\x8d\x92\x97\x9c\xa9\xb3\xb5\xb6\xb8]|\xbe[\x81\x93\x9d\xa2\xa7\xac\xb9])|\xe1(?:\x80\xa6|\xac[\x86\x88\x8a\x8c\x8e\x92\xbb\xbd]|\xad[\x80\x81\x83]|[\xb8\xb9][\x80-\xbf]|\xba[\x80-\x99\x9b\xa0-\xbf]|\xbb[\x80-\xb9]|\xbc[\x80-\x95\x98-\x9d\xa0-\xbf]|\xbd[\x80-\x85\x88-\x8d\x90-\x97\x99\x9b\x9d\x9f-\xbd]|\xbe[\x80-\xb4\xb6-\xbc\xbe]|\xbf[\x81-\x84\x86-\x93\x96-\x9b\x9d-\xaf\xb2-\xb4\xb6-\xbd])|\xe3(?:\x81[\x8c\x8e\x90\x92\x94\x96\x98\x9a\x9c\x9e\xa0\xa2\xa5\xa7\xa9\xb0\xb1\xb3\xb4\xb6\xb7\xb9\xba\xbc\xbd]|\x82[\x94\x9e\xac\xae\xb0\xb2\xb4\xb6\xb8\xba\xbc\xbe]|\x83[\x80\x82\x85\x87\x89\x90\x91\x93\x94\x96\x97\x99\x9a\x9c\x9d\xb4\xb7-\xba\xbe])|\xef(?:\xac[\x9d\x9f\xaa-\xb6\xb8-\xbc\xbe]|\xad[\x80\x81\x83\x84\x86-\x8e])|\xf0(?:\x91(?:\x82[\x9a\x9c\xab]|\x84[\xae\xaf]|\x8d[\x8b\x8c]|\x92[\xbb\xbc\xbe]|\x96[\xba\xbb])|\x9d(?:\x85[\x9e-\xa4]|\x86[\xbb-\xbf]|\x87\x80)))" },
 		reNFD{ R"(\xcc[\x80-\x84\x86-\x8c\x8f\x91\x93\x94\x9b\xa3-\xa8\xad\xae\xb0\xb1]|\xcd[\x82\x85]|\xd6[\xb4\xb7-\xb9\xbc\xbf]|\xd7[\x81\x82]|\xd9[\x93-\x95]|\xe0(?:[\xa4\xa8]\xbc|[\xa6\xac][\xbc\xbe]|[\xa7\xaf\xb5]\x97|\xad[\x96\x97]|[\xae\xb4]\xbe|\xb1\x96|\xb3[\x82\x95\x96]|\xb7[\x8a\x8f\x9f]|\xbd[\xb2\xb4]|\xbe[\x80\xb5\xb7])|\xe1(?:\x80\xae|\xac\xb5)|\xe3\x82[\x99\x9a]|\xf0(?:\x91(?:\x82\xba|\x84\xa7|\x8c\xbe|\x8d\x97|\x92[\xb0\xba\xbd]|\x96\xaf)|\x9d\x85[\xa5\xae-\xb2]))" };
-	if (std::match_results<std::string_view::const_iterator> m; std::regex_search(begin(str), end(str), m, reJISor8BIT)) {
+	if (boost::match_results<std::string_view::const_iterator> m; boost::regex_search(begin(str), end(str), m, reJISor8BIT)) {
 		if (m[1].matched)
 			jis += 2;
 		else {
-			if (std::match_results<std::string_view::const_iterator> m; std::regex_match(begin(str), end(str), m, reSJIS))
+			if (boost::match_results<std::string_view::const_iterator> m; boost::regex_match(begin(str), end(str), m, reSJIS))
 				sjis += m[1].matched ? 1 : 2;
-			if (std::match_results<std::string_view::const_iterator> m; std::regex_match(begin(str), end(str), m, reEUC))
+			if (boost::match_results<std::string_view::const_iterator> m; boost::regex_match(begin(str), end(str), m, reEUC))
 				euc += m[1].matched ? 1 : 2;
-			if (std::match_results<std::string_view::const_iterator> m; std::regex_match(begin(str), end(str), m, reUTF8)) {
+			if (boost::match_results<std::string_view::const_iterator> m; boost::regex_match(begin(str), end(str), m, reUTF8)) {
 				utf8 += m[1].matched || m[2].matched ? 1 : 2;
 				if (!nfc && !nfd) {
-					if (std::regex_search(begin(str), end(str), reNFC))
+					if (boost::regex_search(begin(str), end(str), reNFC))
 						nfc = true;
-					else if (std::regex_search(begin(str), end(str), reNFD))
+					else if (boost::regex_search(begin(str), end(str), reNFD))
 						nfd = true;
 				}
 			}
@@ -90,12 +90,12 @@ void CodeDetector::Test(std::string_view str) {
 
 
 static void fullwidth(std::wstring& str) {
-	static std::wregex re{ LR"([\uFF61-\uFF9F]+)" };
+	static boost::wregex re{ LR"([\uFF61-\uFF9F]+)" };
 	str = replace<wchar_t>(str, re, [](auto const& m) { return NormalizeString(NormalizationKC, { m[0].first, (size_t)m.length() }); });
 }
 
 
-static auto tohex(std::cmatch const& m) {
+static auto tohex(boost::cmatch const& m) {
 	static char hex[] = "0123456789abcdef";
 	std::string converted;
 	for (auto it = m[0].first; it != m[0].second; ++it) {
@@ -114,9 +114,9 @@ std::string CodeConverter::Convert(std::string_view input) {
 	rest += input;
 	switch (incode) {
 	case KANJI_SJIS: {
-		static std::regex re{ R"(^(?:[\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]|[\x00-\xFF](?!$))*)" };
-		std::smatch m;
-		std::regex_search(rest, m, re);
+		static boost::regex re{ R"(^(?:[\x00-\x7F\xA1-\xDF]|[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]|[\x00-\xFF](?!$))*)" };
+		boost::smatch m;
+		boost::regex_search(rest, m, re);
 		auto source = m.str();
 		rest = m.suffix();
 		switch (outcode) {
@@ -139,8 +139,8 @@ std::string CodeConverter::Convert(std::string_view input) {
 	}
 	case KANJI_JIS: {
 		// 0 : entire, 1 : kanji range, 2 : latest escape sequence
-		static std::regex re{ R"(^([\x00-\xFF]*(\x1B\([BHIJ]|\x1B\$(?:[@B]|\([DOPQ]))(?:[\x00-\xFF]{2})*))" };
-		if (std::smatch m; std::regex_search(rest, m, re)) {
+		static boost::regex re{ R"(^([\x00-\xFF]*(\x1B\([BHIJ]|\x1B\$(?:[@B]|\([DOPQ]))(?:[\x00-\xFF]{2})*))" };
+		if (boost::smatch m; boost::regex_search(rest, m, re)) {
 			auto isKanji = *(m[2].first + 1) == '$';
 			auto source = isKanji ? m[1].str() : rest;
 			rest = isKanji ? m[2].str() + m.suffix().str() : m[2];
@@ -172,9 +172,9 @@ std::string CodeConverter::Convert(std::string_view input) {
 		break;
 	}
 	case KANJI_EUC: {
-		static std::regex re{ R"(^(?:[\x00-\x7F]|\x8E[\xA1-\xDF]|\x8F?[\xA1-\xFE][\xA1-\xFE]|[\x00-\xFF](?!$))*)" };
-		std::smatch m;
-		std::regex_search(rest, m, re);
+		static boost::regex re{ R"(^(?:[\x00-\x7F]|\x8E[\xA1-\xDF]|\x8F?[\xA1-\xFE][\xA1-\xFE]|[\x00-\xFF](?!$))*)" };
+		boost::smatch m;
+		boost::regex_search(rest, m, re);
 		auto source = m.str();
 		rest = m.suffix();
 		switch (outcode) {
@@ -206,9 +206,9 @@ std::string CodeConverter::Convert(std::string_view input) {
 		}
 		[[fallthrough]];
 	case KANJI_UTF8N: {
-		static std::regex re{ R"(^[\x00-\xFF]*(?:[\x00-\x7F]|(?:[\xC0-\xDF]|(?:[\xE0-\xEF]|[\xF0-\xF4][\x80-\xBF])[\x80-\xBF])[\x80-\xBF]))" };
-		std::smatch m;
-		std::regex_search(rest, m, re);
+		static boost::regex re{ R"(^[\x00-\xFF]*(?:[\x00-\x7F]|(?:[\xC0-\xDF]|(?:[\xE0-\xEF]|[\xF0-\xF4][\x80-\xBF])[\x80-\xBF])[\x80-\xBF]))" };
+		boost::smatch m;
+		boost::regex_search(rest, m, re);
 		auto source = m.str();
 		rest = m.suffix();
 		switch (outcode) {
@@ -244,7 +244,7 @@ std::string ConvertFrom(std::string_view str, int kanji) {
 		return convert(str, 51932, CP_UTF8, [](auto) {});
 	case KANJI_SMB_HEX:
 	case KANJI_SMB_CAP: {
-		static std::regex re{ R"(:([0-9A-Fa-f]{2}))" };
+		static boost::regex re{ R"(:([0-9A-Fa-f]{2}))" };
 		auto decoded = replace(str, re, [](auto const& m) {
 			char ch;
 			std::from_chars(m[1].first, m[1].second, ch, 16);
@@ -271,12 +271,12 @@ std::string ConvertTo(std::string_view str, int kanji, int kana) {
 		return convert(str, CP_UTF8, 51932, kana ? fullwidth : [](auto) {});
 	case KANJI_SMB_HEX: {
 		auto sjis = convert(str, CP_UTF8, 932, [](auto) {});
-		static std::regex re{ R"((?:[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]|[\xA1-\xDF])+)" };
+		static boost::regex re{ R"((?:[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]|[\xA1-\xDF])+)" };
 		return replace<char>(sjis, re, tohex);
 	}
 	case KANJI_SMB_CAP: {
 		auto sjis = convert(str, CP_UTF8, 932, [](auto) {});
-		static std::regex re{ R"([\x80-\xFF]+)" };
+		static boost::regex re{ R"([\x80-\xFF]+)" };
 		return replace<char>(sjis, re, tohex);
 	}
 	case KANJI_UTF8HFSX:
@@ -286,7 +286,7 @@ std::string ConvertTo(std::string_view str, int kanji, int kana) {
 			// U+02000–U+02FFF       2000-2FFF
 			// U+0F900–U+0FAFF       F900-FAFF
 			// U+2F800–U+2FAFF  D87E DC00-DEFF
-			static std::wregex re{ LR"((.*?)((?:[\u2000-\u2FFF\uF900-\uFAFF]|\uD87E[\uDC00-\uDEFF])+|$))" };
+			static boost::wregex re{ LR"((.*?)((?:[\u2000-\u2FFF\uF900-\uFAFF]|\uD87E[\uDC00-\uDEFF])+|$))" };
 			str = replace<wchar_t>(str, re, [](auto const& m) { return NormalizeString(NormalizationD, { m[1].first, (size_t)m.length(1) }).append(m[2].first, m[2].second); });
 		});
 	case KANJI_UTF8N:

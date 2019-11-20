@@ -22,6 +22,8 @@
     <ProjectGuid>{5D9496DB-45AF-4389-8FEE-27C9A2FA207A}</ProjectGuid>
     <RootNamespace>ffftp</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <VcpkgTriplet Condition="'$(Platform)'=='Win32'">x86-windows-static</VcpkgTriplet>
+    <VcpkgTriplet Condition="'$(Platform)'=='x64'">x64-windows-static</VcpkgTriplet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -311,4 +313,7 @@
   <Import Project="$(MSBuildThisFileDirectory)MuiResourceCompile.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <PropertyGroup>
+    <CAExcludePath>$(VcpkgRoot)include;$(CAExcludePath)</CAExcludePath>
+  </PropertyGroup>
 </Project>

@@ -39,8 +39,8 @@ struct Bookmark {
 	Bookmark() = default;
 	Bookmark(std::wstring const& line) : line{ line } {
 		// 旧フォーマットはプレフィックスが付いていない
-		static std::wregex re{ LR"(^(?:W (.*?) <> (.*)|L (.*)|(?:H )?(.*))$)" };
-		if (std::wsmatch m; std::regex_search(line, m, re)) {
+		static boost::wregex re{ LR"(^(?:W (.*?) <> (.*)|L (.*)|(?:H )?(.*))$)" };
+		if (boost::wsmatch m; boost::regex_search(line, m, re)) {
 			local = m[1].matched ? m[1] : m[3];
 			remote = m[2].matched ? m[2] : m[4];
 		} else

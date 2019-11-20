@@ -2702,8 +2702,8 @@ static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max)
 		// RFC1123 4.1.2.6  PASV Command: RFC-959 Section 4.1.2
 		// Therefore, a User-FTP program that interprets the PASV reply must scan the reply for the first digit of the host and port numbers.
 		// コンマではなくドットを返すホストがある
-		static std::regex re{ R"((\d+[,.]\d+[,.]\d+[,.]\d+)[,.](\d+)[,.](\d+))" };
-		if (std::cmatch m; std::regex_search(Str, m, re)) {
+		static boost::regex re{ R"((\d+[,.]\d+[,.]\d+[,.]\d+)[,.](\d+)[,.](\d+))" };
+		if (boost::cmatch m; boost::regex_search(Str, m, re)) {
 			int p1, p2;
 			std::from_chars(m[2].first, m[2].second, p1);
 			std::from_chars(m[3].first, m[3].second, p2);
@@ -2722,8 +2722,8 @@ static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max)
 		// RFC2428 3.  The EPSV Command
 		// The text returned in response to the EPSV command MUST be:
 		// <text indicating server is entering extended passive mode> (<d><d><d><tcp-port><d>)
-		static std::regex re{ R"(\(([\x21-\xFE])\1\1(\d+)\1\))" };
-		if (std::cmatch m; std::regex_search(Str, m, re))
+		static boost::regex re{ R"(\(([\x21-\xFE])\1\1(\d+)\1\))" };
+		if (boost::cmatch m; boost::regex_search(Str, m, re))
 			std::from_chars(m[2].first, m[2].second, *Port);
 		else
 			return FFFTP_FAIL;
@@ -2831,8 +2831,8 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt) {
 // ダウンロード時の不正なパスをチェック
 //   YES=不正なパス/NO=問題ないパス
 int CheckPathViolation(TRANSPACKET* packet) {
-	static std::wregex re{ LR"((?:^|[/\\])\.\.[/\\])" };
-	if (auto const name = u8(packet->RemoteFile); std::regex_search(name, re)) {
+	static boost::wregex re{ LR"((?:^|[/\\])\.\.[/\\])" };
+	if (auto const name = u8(packet->RemoteFile); boost::regex_search(name, re)) {
 		auto const format = GetString(IDS_INVALID_PATH);
 		auto const length = _scwprintf(format.c_str(), name.c_str());
 		std::wstring message(length, L'\0');

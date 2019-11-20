@@ -44,13 +44,13 @@
 #include <mutex>
 #include <numeric>
 #include <optional>
-#include <regex>
 #include <sstream>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <variant>
 #include <vector>
+#include <boost/regex.hpp>
 #include <cassert>
 #include <cwctype>
 #include <crtdbg.h>
@@ -1905,10 +1905,10 @@ static auto lc(std::wstring_view source) {
 	return result;
 }
 template<class Char, class Evaluator>
-static inline auto replace(std::basic_string_view<Char> input, std::basic_regex<Char> const& pattern, Evaluator&& evaluator) {
+static inline auto replace(std::basic_string_view<Char> input, boost::basic_regex<Char> const& pattern, Evaluator&& evaluator) {
 	std::basic_string<Char> replaced;
 	auto last = data(input);
-	for (std::regex_iterator<const Char*> it{ data(input), data(input) + size(input), pattern }, end; it != end; ++it) {
+	for (boost::regex_iterator<const Char*> it{ data(input), data(input) + size(input), pattern }, end; it != end; ++it) {
 		replaced.append(last, (*it)[0].first);
 		replaced += evaluator(*it);
 		last = (*it)[0].second;

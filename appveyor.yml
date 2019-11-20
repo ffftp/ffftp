@@ -1,7 +1,25 @@
 version: 1.0.{build}
 image: Visual Studio 2019
+cache: C:/Tools/vcpkg/installed
+environment:
+  VCPKG_DEFAULT_TRIPLET: ${PLATFORM}-windows-static
+install:
+  - vcpkg integrate install
+  - vcpkg install boost-regex
+platform:
+  - Win32
+  - x64
+configuration:
+  - Debug
+  - Release
 build:
-  project: buildall.proj
+  project: ffftp.vcxproj
   verbosity: minimal
 test: off
 deploy: off
+for:
+  - matrix:
+      only:
+        - platform: Win32
+    environment:
+      VCPKG_DEFAULT_TRIPLET: x86-windows-static
