@@ -42,14 +42,15 @@ static std::mutex mutex;
 static std::wstring queued;
 
 static VOID CALLBACK Writer(HWND hwnd, UINT, UINT_PTR, DWORD) {
-	std::unique_lock lock{ mutex };
-	if (empty(queued))
+	std::wstring local;
+	std::unique_lock{ mutex }, std::swap(local, queued);
+	if (empty(local))
 		return;
 	if (auto length = GetWindowTextLengthW(hwnd); RemoveOldLog == YES) {
-		if (TASK_BUFSIZE <= size_as<int>(queued))
+		if (TASK_BUFSIZE <= size_as<int>(local))
 			SendMessageW(hwnd, EM_SETSEL, 0, -1);
 		else {
-			for (; TASK_BUFSIZE <= length + size_as<int>(queued); length = GetWindowTextLengthW(hwnd)) {
+			for (; TASK_BUFSIZE <= length + size_as<int>(local); length = GetWindowTextLengthW(hwnd)) {
 				SendMessageW(hwnd, EM_SETSEL, 0, SendMessageW(hwnd, EM_LINEINDEX, 1, 0));
 				SendMessageW(hwnd, EM_REPLACESEL, false, (LPARAM)L"");
 			}
@@ -57,8 +58,7 @@ static VOID CALLBACK Writer(HWND hwnd, UINT, UINT_PTR, DWORD) {
 		}
 	} else
 		SendMessageW(hwnd, EM_SETSEL, length, length);
-	SendMessageW(hwnd, EM_REPLACESEL, false, (LPARAM)queued.c_str());
-	queued.clear();
+	SendMessageW(hwnd, EM_REPLACESEL, false, (LPARAM)local.c_str());
 }
 
 // タスクウインドウを作成する
