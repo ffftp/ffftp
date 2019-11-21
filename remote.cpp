@@ -889,8 +889,8 @@ static std::tuple<int, std::string> ReadOneLine(SOCKET cSkt, int* CancelCheckWor
 		std::from_chars(data(line), data(line) + 3, replyCode);
 
 	/* 末尾の CR,LF,スペースを取り除く */
-	static std::regex re{ R"([\r\n ]+$)" };
-	line = std::regex_replace(line, re, "");
+	static boost::regex re{ R"([\r\n ]+$)" };
+	line = boost::regex_replace(line, re, "");
 	return { replyCode, std::move(line) };
 }
 

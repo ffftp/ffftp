@@ -1715,7 +1715,7 @@ struct IniConfig : Config {
 		return false;
 	}
 	bool ReadValue(std::string_view name, std::string& value) const override {
-		static std::regex re{ R"(\\([0-9A-F]{2})|\\\\)" };
+		static boost::regex re{ R"(\\([0-9A-F]{2})|\\\\)" };
 		if (auto const p = Scan(name)) {
 			value = replace({ p }, re, [](auto const& m) { return m[1].matched ? std::stoi(m[1], nullptr, 16) : '\\'; });
 			if (IniKanjiCode == KANJI_SJIS)
@@ -2001,7 +2001,7 @@ int ReadSettingsVersion() {
 
 // FileZilla XML形式エクスポート対応
 void SaveSettingsToFileZillaXml() {
-	static std::wregex unix{ LR"([^/]+)" }, dos{ LR"([^/\\]+)" };
+	static boost::wregex unix{ LR"([^/]+)" }, dos{ LR"([^/\\]+)" };
 	if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FileZilla.xml", L"xml", { FileType::Xml,FileType::All }); !std::empty(path)) {
 		if (ComPtr<IStream> stream; SHCreateStreamOnFileEx(path.c_str(), STGM_WRITE | STGM_CREATE, FILE_ATTRIBUTE_NORMAL, 0, nullptr, &stream) == S_OK)
 			if (ComPtr<IXmlWriter> writer; CreateXmlWriter(IID_PPV_ARGS(&writer), nullptr) == S_OK) {
@@ -2060,10 +2060,10 @@ void SaveSettingsToFileZillaXml() {
 						writer->WriteElementString(nullptr, L"Name", nullptr, u8(host.HostName).c_str());
 						writer->WriteElementString(nullptr, L"LocalDir", nullptr, u8(host.LocalInitDir).c_str());
 						auto remoteDir = u8(host.RemoteInitDir);
-						for (auto& [ch, prefix, re] : std::initializer_list<std::tuple<wchar_t, std::wstring_view, std::wregex>>{ { L'/', L"1 0"sv, unix }, { L'\\', L"8 0"sv, dos } })
+						for (auto& [ch, prefix, re] : std::initializer_list<std::tuple<wchar_t, std::wstring_view, boost::wregex>>{ { L'/', L"1 0"sv, unix }, { L'\\', L"8 0"sv, dos } })
 							if (remoteDir.find(ch) != std::wstring::npos) {
 								std::wstring encoded{ prefix };
-								for (std::wcregex_iterator it{ data(remoteDir), data(remoteDir) + size(remoteDir), re }, end; it != end; ++it) {
+								for (boost::wcregex_iterator it{ data(remoteDir), data(remoteDir) + size(remoteDir), re }, end; it != end; ++it) {
 									encoded += L' ';
 									encoded += std::to_wstring(it->length(0));
 									encoded += L' ';
