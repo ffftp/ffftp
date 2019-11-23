@@ -9,6 +9,7 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v1
-    - run: vcpkg install boost-regex:$("${{matrix.platform}}" -replace "Win32", "x86")-windows-static
     - run: echo "::add-path::C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin"
-    - run: MSBuild ffftp.sln /p:Platform=${{matrix.platform}};Configuration=${{matrix.configuration}}
+    - run: |
+        vcpkg install boost-regex:$("${{matrix.platform}}" -replace "Win32", "x86")-windows-static
+        MSBuild ffftp.sln "/p:Platform=${{matrix.platform}};Configuration=${{matrix.configuration}}"
