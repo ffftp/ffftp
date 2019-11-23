@@ -7,15 +7,15 @@ jobs:
         platform: [Win32, x64]
         configuration: [Debug, Release]
     runs-on: windows-latest
-    env:
-      PATH: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin;${{env.PATH}}'
     steps:
     - uses: actions/cache@v1
       with:
         key: vcpkg-${{matrix.platform}}
         path: ${{env.VCPKG_INSTALLATION_ROOT}}/installed
     - uses: actions/checkout@v1
-    - run: |
+    - env:
+        PATH: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin;${{env.PATH}}'
+      run: |
         vcpkg integrate install
         vcpkg install boost-regex:$("${{matrix.platform}}" -replace "Win32", "x86")-windows-static
         MSBuild ffftp.sln "/p:Platform=${{matrix.platform}};Configuration=${{matrix.configuration}}"
