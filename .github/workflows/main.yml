@@ -61,13 +61,13 @@ jobs:
         tag_name: ${{github.ref}}
         release_name: ffftp ${{github.ref}}
         draft: true
-    - name: Save release url
+    - name: Save url
       run: echo "${{steps.release.outputs.upload_url}}" > url.txt
-    - name: Upload release url
+    - name: Upload url
       uses: actions/upload-artifact@v1
       with:
         name: url
-        path: url/url.txt
+        path: url.txt
   upload-release:
     needs:
       - build
