@@ -7,13 +7,8 @@ jobs:
       matrix:
         platform: [Win32, x64]
         configuration: [Debug, Release]
-    env:
-      VCPKG_DEFAULT_TRIPLET: ${{(matrix.platform}}-windows-static
     steps:
     - uses: actions/checkout@v1
-    - if: ${{matrix.platform}} == Win32
-      env:
-        VCPKG_DEFAULT_TRIPLET: x86-windows-static
     - run: |
-        vcpkg install boost-regex
+        vcpkg install boost-regex:$("${{matrix.platform}}" -replace "Win32", "x86")
         msbuild ffftp.sln /p:Platform=${{matrix.platform}};Configuration=${{matrix.configuration}}
