@@ -2,13 +2,13 @@ name: CI
 on: push
 jobs:
   build:
-    runs-on: windows-latest
     strategy:
       matrix:
         platform: [Win32, x64]
         configuration: [Debug, Release]
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v1
-    - run: |
-        vcpkg install boost-regex:$("${{matrix.platform}}" -replace "Win32", "x86")-windows-static
-        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" ffftp.sln /p:Platform=${{matrix.platform}};Configuration=${{matrix.configuration}}
+    - run: vcpkg install boost-regex:$("${{matrix.platform}}" -replace "Win32", "x86")-windows-static
+    - run: echo "::add-path::C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin"
+    - run: MSBuild ffftp.sln /p:Platform=${{matrix.platform}};Configuration=${{matrix.configuration}}
