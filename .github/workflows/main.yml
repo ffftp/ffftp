@@ -8,10 +8,12 @@ jobs:
         configuration: [Debug, Release]
     runs-on: windows-latest
     steps:
+    - id: cache
+      run: echo "::set-output name=dir::$env:VCPKG_INSTALLATION_ROOT"
     - uses: actions/cache@v1
       with:
         key: vcpkg-${{matrix.platform}}
-        path: ${{env.VCPKG_INSTALLATION_ROOT}}/installed
+        path: ${{steps.cache.outputs.dir}}/installed
     - uses: actions/checkout@v1
     - run: |
         $env:Path += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin"
