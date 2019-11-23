@@ -4,19 +4,71 @@ jobs:
   build:
     strategy:
       matrix:
-        platform: [Win32, x64]
-        configuration: [Debug, Release]
+        platform:
+        - x86
+        - x64
+        configuration:
+        - Debug
+        - Release
     runs-on: windows-latest
     steps:
-    - id: cache
+    - name: Get vcpkg dir
+      id: cache
       run: echo "::set-output name=dir::$env:VCPKG_INSTALLATION_ROOT"
-    - uses: actions/cache@v1
+    - name: Enable cache
+      uses: actions/cache@v1
       with:
         key: vcpkg-${{matrix.platform}}
         path: ${{steps.cache.outputs.dir}}/installed
-    - uses: actions/checkout@v1
-    - run: |
+    - name: Checkout code
+      uses: actions/checkout@v1
+    - name: Build
+      run: |
         $env:Path += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin"
         vcpkg integrate install
-        vcpkg install boost-regex:$("${{matrix.platform}}" -replace "Win32", "x86")-windows-static
-        MSBuild ffftp.sln "/p:Platform=${{matrix.platform}};Configuration=${{matrix.configuration}}"
+        vcpkg install boost-regex:${{matrix.platform}}-windows-static
+        MSBuild ffftp.sln "/p:Platform=$("${{matrix.platform}}" -replace "x86", "Win32");Configuration=${{matrix.configuration}}"
+    - name: Upload artifacts (msi)
+      if: matrix.configuration == 'Release'
+      uses: actions/upload-artifact@v1
+      with:
+        name: ${{matrix.platform}}-msi
+        path: ${{matrix.configuration}}/ffftp-${{matrix.platform}}.msi
+    - name: Upload artifacts (zip)
+      if: matrix.configuration == 'Release'
+      uses: actions/upload-artifact@v1
+      with:
+        name: ${{matrix.platform}}-zip
+        path: ${{matrix.configuration}}/ffftp-${{matrix.platform}}.zip
+    - name: Upload artifacts (pdb)
+      if: matrix.configuration == 'Release'
+      uses: actions/upload-artifact@v1
+      with:
+        name: ${{matrix.platform}}-pdb
+        path: ${{matrix.configuration}}/${{matrix.platform}}/ffftp.pdb
+  release:
+    needs: build
+    if: startsWith(github.ref, refs/tags/)
+    runs-on: windows-latest
+    steps:
+    - name: Create release
+      id: release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      with:
+        tag_name: ${{github.ref}}
+        release_name: ffftp ${{github.ref}}
+        draft: true
+    - name: Download x64 msi
+      uses: actions/download-artifact@v1
+      with:
+        name: x64-msi
+    - name: Upload x64 msi
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      with:
+        upload_url: ${{steps.release.outputs.upload_url}}
+        asset_path: x64-msi
+        asset_name: ffftp-x64.msi
