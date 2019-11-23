@@ -71,4 +71,70 @@ jobs:
       with:
         upload_url: ${{steps.release.outputs.upload_url}}
         asset_path: x64-msi
-        asset_name: ffftp-x64.msi
+        asset_name: ffftp-${{github.ref}}-x64.msi
+        asset_content_type: application/octet-stream
+    - name: Download x64 zip
+      uses: actions/download-artifact@v1
+      with:
+        name: x64-zip
+    - name: Upload x64 zip
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      with:
+        upload_url: ${{steps.release.outputs.upload_url}}
+        asset_path: x64-zip
+        asset_name: ffftp-${{github.ref}}-x64.zip
+        asset_content_type: application/octet-stream
+    - name: Download x64 pdb
+      uses: actions/download-artifact@v1
+      with:
+        name: x64-pdb
+    - name: Upload x64 pdb
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      with:
+        upload_url: ${{steps.release.outputs.upload_url}}
+        asset_path: x64-pdb
+        asset_name: ffftp-${{github.ref}}-x64.pdb
+        asset_content_type: application/octet-stream
+    - name: Download x86 msi
+      uses: actions/download-artifact@v1
+      with:
+        name: x86-msi
+    - name: Upload x86 msi
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      with:
+        upload_url: ${{steps.release.outputs.upload_url}}
+        asset_path: x86-msi
+        asset_name: ffftp-${{github.ref}}-x86.msi
+        asset_content_type: application/octet-stream
+    - name: Download x86 zip
+      uses: actions/download-artifact@v1
+      with:
+        name: x86-zip
+    - name: Upload x86 zip
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      with:
+        upload_url: ${{steps.release.outputs.upload_url}}
+        asset_path: x86-zip
+        asset_name: ffftp-${{github.ref}}-x86.zip
+        asset_content_type: application/octet-stream
+    - name: Download x86 pdb
+      uses: actions/download-artifact@v1
+      with:
+        name: x86-pdb
+    - name: Upload x86 pdb
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      with:
+        upload_url: ${{steps.release.outputs.upload_url}}
+        asset_path: x86-pdb
+        asset_name: ffftp-${{github.ref}}-x86.pdb
+        asset_content_type: application/octet-stream
