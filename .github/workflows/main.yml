@@ -48,7 +48,7 @@ jobs:
         path: ${{matrix.configuration}}/${{matrix.platform}}/ffftp.pdb
   release:
     needs: build
-    if: startsWith(github.ref, refs/tags/)
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: windows-latest
     steps:
     - name: Create release
