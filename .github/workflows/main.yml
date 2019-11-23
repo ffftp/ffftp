@@ -50,8 +50,6 @@ jobs:
     needs: build
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: windows-latest
-    env:
-      TAG_NAME: ${{}}
     steps:
     - name: Get tag name
       id: tag
