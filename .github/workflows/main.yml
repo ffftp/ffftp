@@ -16,7 +16,7 @@ jobs:
       id: cache
       run: echo "::set-output name=dir::$env:VCPKG_INSTALLATION_ROOT"
     - name: Enable cache
-      uses: actions/cache@v1
+      uses: actions/cache@v1.0.3
       with:
         key: vcpkg-${{matrix.platform}}
         path: ${{steps.cache.outputs.dir}}/installed
@@ -65,7 +65,7 @@ jobs:
       with:
         name: x64-msi
     - name: Upload x64 msi
-      uses: actions/upload-release-asset@v1
+      uses: actions/upload-release-asset@v1.0.1
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
       with:
