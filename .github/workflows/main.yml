@@ -46,7 +46,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: ${{matrix.platform}}-pdb
-        path: ${{matrix.configuration}}/ffftp-${{matrix.platform}}.zip
+        path: ${{matrix.configuration}}/ffftp-${{matrix.platform}}.pdb
   create-release:
     needs: build
     if: startsWith(github.ref, 'refs/tags/')
