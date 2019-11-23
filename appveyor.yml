@@ -2,7 +2,7 @@ version: 1.0.{build}
 image: Visual Studio 2019
 cache: C:/Tools/vcpkg/installed
 environment:
-  VCPKG_DEFAULT_TRIPLET: ${PLATFORM}-windows-static
+  VCPKG_DEFAULT_TRIPLET: $(platform)-windows-static
 install:
   - vcpkg integrate install
   - vcpkg install boost-regex
@@ -13,9 +13,16 @@ configuration:
   - Debug
   - Release
 build:
-  project: ffftp.vcxproj
+  project: ffftp.sln
   verbosity: minimal
 test: off
+artifacts:
+  - path: $(configuration)\ffftp-*.*
+    name: binary
+    type: file
+  - path: $(configuration)\*\ffftp.pdb
+    name: pdb
+    type: file
 deploy: off
 for:
   - matrix:
