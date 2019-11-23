@@ -27,20 +27,20 @@ jobs:
         $env:Path += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin"
         vcpkg integrate install
         vcpkg install boost-regex:${{matrix.platform}}-windows-static
-        MSBuild ffftp.sln "/p:Platform=$("${{matrix.platform}}" -replace "x86", "Win32");Configuration=${{matrix.configuration}}"
-    - name: Upload artifacts (msi)
+        MSBuild ffftp.sln /p:Platform=$('${{matrix.platform}}' -replace 'x86', 'Win32') /p:Configuration=${{matrix.configuration}}
+    - name: Upload msi
       if: matrix.configuration == 'Release'
       uses: actions/upload-artifact@v1
       with:
         name: ${{matrix.platform}}-msi
         path: ${{matrix.configuration}}/ffftp-${{matrix.platform}}.msi
-    - name: Upload artifacts (zip)
+    - name: Upload zip
       if: matrix.configuration == 'Release'
       uses: actions/upload-artifact@v1
       with:
         name: ${{matrix.platform}}-zip
         path: ${{matrix.configuration}}/ffftp-${{matrix.platform}}.zip
-    - name: Upload artifacts (pdb)
+    - name: Upload pdb
       if: matrix.configuration == 'Release'
       uses: actions/upload-artifact@v1
       with:
@@ -53,15 +53,15 @@ jobs:
     steps:
     - name: Get tag name
       id: tag
-      run: echo "::set-output name=$('${{github.ref}}' -replace 'refs/tags/', '')"
+      run: echo "::set-output name=name::$('${{github.ref}}' -replace 'refs/tags/', '')"
     - name: Create release
       id: release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
       with:
-        tag_name: ${{steps.tag.name}}
-        release_name: ffftp ${{steps.tag.name}}
+        tag_name: ${{steps.tag.outputs.name}}
+        release_name: ffftp ${{steps.tag.outputs.name}}
         draft: true
     - name: Download x64 msi
       uses: actions/download-artifact@v1
@@ -74,7 +74,7 @@ jobs:
       with:
         upload_url: ${{steps.release.outputs.upload_url}}
         asset_path: x64-msi
-        asset_name: ffftp-${{steps.tag.name}}-x64.msi
+        asset_name: ffftp-${{steps.tag.outputs.name}}-x64.msi
         asset_content_type: application/octet-stream
     - name: Download x64 zip
       uses: actions/download-artifact@v1
@@ -87,7 +87,7 @@ jobs:
       with:
         upload_url: ${{steps.release.outputs.upload_url}}
         asset_path: x64-zip
-        asset_name: ffftp-${{steps.tag.name}}-x64.zip
+        asset_name: ffftp-${{steps.tag.outputs.name}}-x64.zip
         asset_content_type: application/octet-stream
     - name: Download x64 pdb
       uses: actions/download-artifact@v1
@@ -100,7 +100,7 @@ jobs:
       with:
         upload_url: ${{steps.release.outputs.upload_url}}
         asset_path: x64-pdb
-        asset_name: ffftp-${{steps.tag.name}}-x64.pdb
+        asset_name: ffftp-${{steps.tag.outputs.name}}-x64.pdb
         asset_content_type: application/octet-stream
     - name: Download x86 msi
       uses: actions/download-artifact@v1
@@ -113,7 +113,7 @@ jobs:
       with:
         upload_url: ${{steps.release.outputs.upload_url}}
         asset_path: x86-msi
-        asset_name: ffftp-${{steps.tag.name}}-x86.msi
+        asset_name: ffftp-${{steps.tag.outputs.name}}-x86.msi
         asset_content_type: application/octet-stream
     - name: Download x86 zip
       uses: actions/download-artifact@v1
@@ -126,7 +126,7 @@ jobs:
       with:
         upload_url: ${{steps.release.outputs.upload_url}}
         asset_path: x86-zip
-        asset_name: ffftp-${{steps.tag.name}}-x86.zip
+        asset_name: ffftp-${{steps.tag.outputs.name}}-x86.zip
         asset_content_type: application/octet-stream
     - name: Download x86 pdb
       uses: actions/download-artifact@v1
@@ -139,5 +139,5 @@ jobs:
       with:
         upload_url: ${{steps.release.outputs.upload_url}}
         asset_path: x86-pdb
-        asset_name: ffftp-${{steps.tag.name}}-x86.pdb
+        asset_name: ffftp-${{steps.tag.outputs.name}}-x86.pdb
         asset_content_type: application/octet-stream
