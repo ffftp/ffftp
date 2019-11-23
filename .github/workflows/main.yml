@@ -28,7 +28,7 @@ jobs:
         vcpkg integrate install
         vcpkg install boost-regex:${{matrix.platform}}-windows-static
         MSBuild ffftp.sln /p:Platform=$('${{matrix.platform}}' -replace 'x86', 'Win32') /p:Configuration=${{matrix.configuration}}
-		mv ${{matrix.configuration}}\${{matrix.platform}}\ffftp.pdb ${{matrix.configuration}}\ffftp-${{matrix.platform}}.pdb
+        mv ${{matrix.configuration}}\${{matrix.platform}}\ffftp.pdb ${{matrix.configuration}}\ffftp-${{matrix.platform}}.pdb
     - name: Upload msi
       if: matrix.configuration == 'Release'
       uses: actions/upload-artifact@v1
@@ -78,10 +78,10 @@ jobs:
         platform:
         - x86
         - x64
-		extension:
-		- msi
-		- zip
-		- pdb
+        extension:
+        - msi
+        - zip
+        - pdb
     runs-on: windows-latest
     steps:
     - name: Get tag name
