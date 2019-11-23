@@ -10,5 +10,5 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: |
-        vcpkg install boost-regex:$("${{matrix.platform}}" -replace "Win32", "x86")
+        vcpkg install boost-regex:$("${{matrix.platform}}" -replace "Win32", "x86")-windows-static
         msbuild ffftp.sln /p:Platform=${{matrix.platform}};Configuration=${{matrix.configuration}}
