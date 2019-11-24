@@ -1,0 +1,56 @@
+name: CD
+on:
+  release:
+    type: created
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform:
+        - x86
+        - x64
+    runs-on: windows-latest
+    steps:
+    - name: Get vcpkg dir
+      id: cache
+      run: echo "::set-output name=dir::$env:VCPKG_INSTALLATION_ROOT"
+    - name: Enable cache
+      uses: actions/cache@v1.0.3
+      with:
+        key: vcpkg-${{matrix.platform}}
+        path: ${{steps.cache.outputs.dir}}\installed
+    - name: Checkout code
+      uses: actions/checkout@v1
+    - name: Build
+      run: |
+        $env:Path += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin"
+        vcpkg integrate install
+        vcpkg install boost-regex:${{matrix.platform}}-windows-static
+        MSBuild ffftp.sln /p:Platform=$('${{matrix.platform}}' -replace 'x86', 'Win32') /p:Configuration=Release
+    - name: Upload msi
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      with:
+        upload_url: ${{github.event.release.upload_url}}
+        asset_path: Release/ffftp-${{matrix.platform}}.msi
+        asset_name: ffftp-${{github.event.release.tag_name}}-${{matrix.platform}}.msi
+        asset_content_type: application/octet-stream
+    - name: Upload zip
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      with:
+        upload_url: ${{github.event.release.upload_url}}
+        asset_path: Release/ffftp-${{matrix.platform}}.zip
+        asset_name: ffftp-${{github.event.release.tag_name}}-${{matrix.platform}}.zip
+        asset_content_type: application/zip
+    - name: Upload pdb
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      with:
+        upload_url: ${{github.event.release.upload_url}}
+        asset_path: Release/${{matrix.platform}}/ffftp.pdb
+        asset_name: ffftp-${{github.event.release.tag_name}}-${{matrix.platform}}.pdb
+        asset_content_type: application/octet-stream
