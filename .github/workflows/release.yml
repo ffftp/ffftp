@@ -1,7 +1,8 @@
 name: CD
 on:
   release:
-    types: created
+    types:
+    - created
 jobs:
   build:
     strategy:
