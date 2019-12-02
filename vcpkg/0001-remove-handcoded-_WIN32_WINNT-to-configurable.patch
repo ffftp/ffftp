@@ -1,0 +1,25 @@
+From 06199410c0bbb84b941a2cfa141e35fba171681f Mon Sep 17 00:00:00 2001
+From: Kurata Sayuri <haxe_haxe@hotmail.com>
+Date: Sun, 1 Dec 2019 07:07:04 +0900
+Subject: [PATCH] remove handcoded _WIN32_WINNT to configurable.
+
+---
+ ports/boost-modular-build-helper/boost-modular-build.cmake | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/ports/boost-modular-build-helper/boost-modular-build.cmake b/ports/boost-modular-build-helper/boost-modular-build.cmake
+index 600062e26..79a77469e 100644
+--- a/ports/boost-modular-build-helper/boost-modular-build.cmake
++++ b/ports/boost-modular-build-helper/boost-modular-build.cmake
+@@ -254,8 +254,6 @@ function(boost_modular_build)
+         string(REPLACE "\\" "/" PLATFORM_WINMD_DIR ${PLATFORM_WINMD_DIR}) # escape backslashes
+ 
+         set(TOOLSET_OPTIONS "${TOOLSET_OPTIONS} <cflags>-Zl <compileflags>\"/AI${PLATFORM_WINMD_DIR}\" <linkflags>WindowsApp.lib <cxxflags>/ZW <compileflags>-DVirtualAlloc=VirtualAllocFromApp <compileflags>-D_WIN32_WINNT=0x0A00")
+-    else()
+-        set(TOOLSET_OPTIONS "${TOOLSET_OPTIONS} <compileflags>-D_WIN32_WINNT=0x0602")
+     endif()
+ 
+     configure_file(${_bm_DIR}/user-config.jam ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/user-config.jam @ONLY)
+-- 
+2.17.1.windows.2
+

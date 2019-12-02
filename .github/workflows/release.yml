@@ -13,20 +13,21 @@ jobs:
     runs-on: windows-latest
     steps:
     - name: Get vcpkg dir
-      id: cache
+      id: vcpkg
       run: echo "::set-output name=dir::$env:VCPKG_INSTALLATION_ROOT"
     - name: Enable cache
       uses: actions/cache@v1.0.3
       with:
         key: vcpkg-${{matrix.platform}}
-        path: ${{steps.cache.outputs.dir}}\installed
+        path: ${{steps.vcpkg.outputs.dir}}\installed
     - name: Checkout code
       uses: actions/checkout@v1
     - name: Build
       run: |
         $env:Path += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin"
+        git -C ${{steps.vcpkg.outputs.dir}} apply --whitespace=fix (gi vcpkg\*.patch)
         vcpkg integrate install
-        vcpkg install boost-regex:${{matrix.platform}}-windows-static
+        vcpkg --overlay-triplets=vcpkg/triplets install boost-regex:${{matrix.platform}}-windows-ffftp
         MSBuild ffftp.sln /p:Platform=$('${{matrix.platform}}' -replace 'x86', 'Win32') /p:Configuration=Release
     - name: Upload msi
       uses: actions/upload-release-asset@v1.0.1
