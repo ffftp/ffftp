@@ -2041,23 +2041,6 @@ struct ProcessInformation : PROCESS_INFORMATION {
 	}
 };
 template<class Fn>
-static inline bool FindFile(fs::path const& fileName, Fn&& fn) {
-	auto result = false;
-	WIN32_FIND_DATAW data;
-	if (auto handle = FindFirstFileW(fileName.c_str(), &data); handle != INVALID_HANDLE_VALUE) {
-		result = true;
-		do {
-			if (DispIgnoreHide == YES && (data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN))
-				continue;
-			if (std::wstring_view filename{ data.cFileName }; filename == L"."sv || filename == L".."sv)
-				continue;
-			result = fn(data);
-		} while (result && FindNextFileW(handle, &data));
-		FindClose(handle);
-	}
-	return result;
-}
-template<class Fn>
 static inline void GetDrives(Fn&& fn) {
 	auto drives = GetLogicalDrives();
 	DWORD nodrives = 0;

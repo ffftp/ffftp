@@ -53,7 +53,7 @@ static int MakeRemoteTree2(char *Path, char *Cur, std::vector<FILELIST>& Base, i
 static void CopyTmpListToFileList(std::vector<FILELIST>& Base, std::vector<FILELIST> const& List);
 static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLine(int Num);
 static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir);
-static int MakeLocalTree(const char *Path, std::vector<FILELIST>& Base);
+static bool MakeLocalTree(const char *Path, std::vector<FILELIST>& Base);
 static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base);
 static int AnalyzeFileInfo(char *Str);
 static int CheckUnixType(char *Str, char *Tmp, int Add1, int Add2, int Day);
@@ -130,6 +130,26 @@ static std::vector<FILELIST> remoteFileListBase;
 static std::vector<FILELIST> remoteFileListBaseNoExpand;
 static fs::path remoteFileDir;
 
+template<class Fn>
+static inline bool FindFile(fs::path const& fileName, Fn&& fn) {
+	auto result = false;
+	WIN32_FIND_DATAW data;
+	if (auto handle = FindFirstFileW(fileName.c_str(), &data); handle != INVALID_HANDLE_VALUE) {
+		result = true;
+		do {
+			if (DispIgnoreHide == YES && (data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN))
+				continue;
+			if (std::wstring_view filename{ data.cFileName }; filename == L"."sv || filename == L".."sv)
+				continue;
+			result = fn(data);
+		} while (result && FindNextFileW(handle, &data));
+		FindClose(handle);
+	} else {
+		auto lastError = GetLastError();
+		SetTaskMsg("FindFile failed (%s): 0x%08X, %s", fileName.u8string().c_str(), lastError, u8(GetErrorMessage(lastError)).c_str());
+	}
+	return result;
+}
 
 // ファイルリストウインドウを作成する
 int MakeListWin()
@@ -1742,7 +1762,7 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 							// ファイル一覧バグ修正
 //								MakeLocalTree(Name, Base);
 							{
-								if(MakeLocalTree(Name, Base) == FFFTP_FAIL)
+								if(!MakeLocalTree(Name, Base))
 									Sts = FFFTP_FAIL;
 							}
 							else
@@ -2105,40 +2125,39 @@ static int MakeDirPath(char *Str, int ListType, char *Path, char *Dir)
 
 
 // ローカル側のサブディレクトリ以下のファイルをリストに登録する
-static int MakeLocalTree(const char *Path, std::vector<FILELIST>& Base) {
+static bool MakeLocalTree(const char* Path, std::vector<FILELIST>& Base) {
 	auto const path = fs::u8path(Path);
-	auto const src = path / L"*";
-	FindFile(src, [&path, &Base](WIN32_FIND_DATAW const& data) {
-		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) || AskFilterStr(u8(data.cFileName).c_str(), NODE_FILE) != YES)
-			return true;
-		FILELIST Pkt{};
-		auto const src = (path / data.cFileName).u8string();
-		strcpy(Pkt.File, src.c_str());
-		ReplaceAll(Pkt.File, '\\', '/');
-		Pkt.Node = NODE_FILE;
-		Pkt.Size = LONGLONG(data.nFileSizeHigh) << 32 | data.nFileSizeLow;
-		if (SYSTEMTIME TmpStime; FileTimeToSystemTime(&data.ftLastWriteTime, &TmpStime)) {
-			if (DispTimeSeconds == NO)
-				TmpStime.wSecond = 0;
-			TmpStime.wMilliseconds = 0;
-			SystemTimeToFileTime(&TmpStime, &Pkt.Time);
+	std::vector<WIN32_FIND_DATAW> items;
+	if (!FindFile(path / L"*", [&items](auto const& item) { items.push_back(item); return true; }))
+		return false;
+	for (auto const& data : items)
+		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 && AskFilterStr(u8(data.cFileName).c_str(), NODE_FILE) == YES) {
+			FILELIST Pkt{};
+			auto const src = (path / data.cFileName).u8string();
+			strcpy(Pkt.File, src.c_str());
+			ReplaceAll(Pkt.File, '\\', '/');
+			Pkt.Node = NODE_FILE;
+			Pkt.Size = LONGLONG(data.nFileSizeHigh) << 32 | data.nFileSizeLow;
+			if (SYSTEMTIME TmpStime; FileTimeToSystemTime(&data.ftLastWriteTime, &TmpStime)) {
+				if (DispTimeSeconds == NO)
+					TmpStime.wSecond = 0;
+				TmpStime.wMilliseconds = 0;
+				SystemTimeToFileTime(&TmpStime, &Pkt.Time);
+			}
+			AddFileList(Pkt, Base);
 		}
-		AddFileList(Pkt, Base);
-		return true;
-	});
-
-	auto result = FindFile(src, [&path, &Base](WIN32_FIND_DATAW const& data) {
-		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
-			return true;
-		FILELIST Pkt{};
-		auto const src = (path / data.cFileName).u8string();
-		strcpy(Pkt.File, src.c_str());
-		ReplaceAll(Pkt.File, '\\', '/');
-		Pkt.Node = NODE_DIR;
-		AddFileList(Pkt, Base);
-		return MakeLocalTree(src.c_str(), Base) == FFFTP_SUCCESS;
-	});
-	return result ? FFFTP_SUCCESS : FFFTP_FAIL;
+	for (auto const& data : items)
+		if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+			FILELIST Pkt{};
+			auto const src = (path / data.cFileName).u8string();
+			strcpy(Pkt.File, src.c_str());
+			ReplaceAll(Pkt.File, '\\', '/');
+			Pkt.Node = NODE_DIR;
+			AddFileList(Pkt, Base);
+			if (!MakeLocalTree(src.c_str(), Base))
+				return false;
+		}
+	return true;
 }
 
 
