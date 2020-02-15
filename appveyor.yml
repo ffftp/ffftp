@@ -3,7 +3,7 @@ image: Visual Studio 2019
 cache: C:/Tools/vcpkg/installed
 install:
   - ps: |
-      git -C C:\Tools\vcpkg apply --whitespace=fix (gi vcpkg\*.patch)
+      git -C C:\Tools\vcpkg pull
       vcpkg integrate install
       vcpkg --overlay-triplets=vcpkg/triplets install boost-regex:$($env:PLATFORM -replace "Win32", "x86")-windows-ffftp
 platform:
