@@ -25,7 +25,7 @@ jobs:
     - name: Build
       run: |
         $env:Path += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin"
-        git -C ${{steps.vcpkg.outputs.dir}} apply --whitespace=fix (gi vcpkg\*.patch)
+        git -C ${{steps.vcpkg.outputs.dir}} pull
         vcpkg integrate install
         vcpkg --overlay-triplets=vcpkg/triplets install boost-regex:${{matrix.platform}}-windows-ffftp
         MSBuild ffftp.sln /p:Platform=$('${{matrix.platform}}' -replace 'x86', 'Win32') /p:Configuration=${{matrix.configuration}}
