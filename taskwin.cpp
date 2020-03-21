@@ -43,7 +43,11 @@ static std::wstring queued;
 
 static VOID CALLBACK Writer(HWND hwnd, UINT, UINT_PTR, DWORD) {
 	std::wstring local;
-	std::unique_lock{ mutex }, std::swap(local, queued);
+	{
+		std::unique_lock{ mutex };
+		_ReadWriteBarrier();
+		std::swap(local, queued);
+	}
 	if (empty(local))
 		return;
 	if (auto length = GetWindowTextLengthW(hwnd); RemoveOldLog == YES) {
@@ -100,6 +104,7 @@ void SetTaskMsg(_In_z_ _Printf_format_string_ const char* format, ...) {
 		strcat(buffer, "\r\n");
 		auto wbuffer = u8(buffer);
 		std::unique_lock{ mutex };
+		_ReadWriteBarrier();
 		queued += wbuffer;
 	}
 }
