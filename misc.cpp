@@ -502,30 +502,30 @@ void MakeSizeString(double Size, char *Buf) {
 void DispStaticText(HWND hWnd, char *Str) {
 	RECT rect;
 	GetClientRect(hWnd, &rect);
-	auto width = rect.right - rect.left;
+	auto font = (HFONT)SendMessageW(hWnd, WM_GETFONT, 0, 0);
 
 	auto dc = GetDC(hWnd);
-	auto wStr = u8(Str);
-	auto p = wStr.data();
+	auto previous = SelectObject(dc, font);
+	auto wstr = u8(Str);
+	std::wstring_view view = wstr;
 	for (;;) {
-		int len = (int)wcslen(p);
-		if (len <= 4)
+		if (size(view) <= 4)
 			break;
 		SIZE size;
-		GetTextExtentPoint32W(dc, p, len, &size);
+		GetTextExtentPoint32W(dc, data(view), size_as<int>(view), &size);
 		if (size.cx <= rect.right)
 			break;
-		p += 4;
-		auto q = wcschr(p, L'\\');
-		if (q == NULL)
-			q = wcschr(p, L'/');
-		if (q == NULL)
-			q = p + 4;
-		p = q - 3;
-		std::fill_n(p, 3, L'.');
+		if (auto pos = view.find(L'\\', 4); pos != std::wstring_view::npos)
+			view.remove_prefix(pos - 3);
+		else if (pos = view.find(L'/', 4); pos != std::wstring_view::npos)
+			view.remove_prefix(pos - 3);
+		else
+			view.remove_prefix(1);
+		std::fill_n(const_cast<wchar_t*>(data(view)), 3, L'.');		// viewはwstrを指しているため書き換え可能
 	}
+	SelectObject(dc, previous);
 	ReleaseDC(hWnd, dc);
-	SetText(hWnd, p);
+	SetText(hWnd, data(view));
 }
 
 
