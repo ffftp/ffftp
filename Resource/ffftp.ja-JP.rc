@@ -2437,8 +2437,6 @@ BEGIN
     IDS_MSGJPN114           "アップロードを中止しました."
     IDS_MSGJPN115           "アップロードは正常終了しました. (%d Sec. %d B/S)."
     IDS_MSGJPN116           "アップロードは正常終了しました."
-    IDS_MSGJPN117           "完了"
-    IDS_MSGJPN118           "中止"
     IDS_MSGJPN119           "バイナリ"
     IDS_MSGJPN120           "アスキー"
     IDS_MSGJPN121           "無変換"
@@ -2676,6 +2674,8 @@ BEGIN
     IDS_NEED_EXSITING_WINSCP_INI 
                             "この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください."
     IDS_INVALID_PATH        "%s は不正なファイル名です.\r\nこのファイルはダウンロードされません."
+    IDS_FINISHED            "完了"
+    IDS_CANCELLED           "中止"
 END
 
 #endif    // Japanese (Japan) resources

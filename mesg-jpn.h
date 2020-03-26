@@ -88,8 +88,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN114 (std::data(msgs[10000+114])) /* アップロードを中止しました. */
 #define MSGJPN115 (std::data(msgs[10000+115])) /* アップロードは正常終了しました. (%d Sec. %d B/S). */
 #define MSGJPN116 (std::data(msgs[10000+116])) /* アップロードは正常終了しました. */
-#define MSGJPN117 (std::data(msgs[10000+117])) /* 完了 */
-#define MSGJPN118 (std::data(msgs[10000+118])) /* 中止 */
 #define MSGJPN133 (std::data(msgs[10000+133])) /* GMT%+02d:00 (日本) */
 #define MSGJPN145 (std::data(msgs[10000+145])) /* フォルダを変更できません. */
 #define MSGJPN146 (std::data(msgs[10000+146])) /* フォルダを作成できません. */

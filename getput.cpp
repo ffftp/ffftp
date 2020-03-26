@@ -2531,92 +2531,62 @@ static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 }
 
 
-/*----- 転送ステータスを表示 --------------------------------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		int End : 転送が完了したかどうか (YES/NO)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt)
-{
-	time_t TotalLap;
-	int Per;
-	LONGLONG Bps;
-	LONGLONG Transed;
-	char Tmp[80];
-	char Str[80];
-	char *Pos;
-
-	if(hWnd != NULL)
+// 転送ステータスを表示
+static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET* Pkt) {
+	if (!hWnd)
+		return;
 	{
-		strncpy_s(Str, 79, u8(GetText(hWnd)).c_str(), _TRUNCATE);
-		if((Pos = strchr(Str, ')')) != NULL)
-			Pos ++;
-		else
-			Pos = Str;
-		sprintf(Tmp, "(%d)%s", AskTransferFileNum(), Pos);
-		SetText(hWnd, u8(Tmp));
-
-		if(Pkt->Abort == ABORT_NONE)
-		{
-			if(End == NO)
-			{
-				// 同時接続対応
-//				TotalLap = time(NULL) - TimeStart + 1;
-				TotalLap = time(NULL) - TimeStart[Pkt->ThreadCount] + 1;
-
-				Bps = 0;
-				if(TotalLap != 0)
-					// 同時接続対応
-//					Bps = AllTransSizeNow / TotalLap;
-					Bps = AllTransSizeNow[Pkt->ThreadCount] / TotalLap;
-				Transed = Pkt->Size - Pkt->ExistSize;
-
-				if(Pkt->Size <= 0)
-					sprintf(Tmp, "%lld ", Pkt->ExistSize);
-				else if(Pkt->Size < 1024)
-					sprintf(Tmp, "%s / %s ", MakeNumString(Pkt->ExistSize).c_str(), MakeNumString(Pkt->Size).c_str());
-				else
-					sprintf(Tmp, "%sk / %sk ", MakeNumString(Pkt->ExistSize/1024).c_str(), MakeNumString(Pkt->Size/1024).c_str());
-				strcpy(Str, Tmp);
-
-				if(Bps == 0)
-					sprintf(Tmp, "( 0 B/S )");
-				else if(Bps < 1000)
-					sprintf(Tmp, "( %s B/S )", MakeNumString(Bps).c_str());
-				else
-					sprintf(Tmp, "( %s.%02d KB/S )", MakeNumString(Bps/1000).c_str(), (int)((Bps%1000)/10));
-				strcat(Str, Tmp);
-
-				if((Bps > 0) && (Pkt->Size > 0) && (Transed >= 0))
-				{
-					sprintf(Tmp, "  %d:%02d", (int)((Transed/Bps)/60), (int)((Transed/Bps)%60));
-					strcat(Str, Tmp);
-				}
-				else
-					strcat(Str, "  ??:??");
-			}
-			else
-				strcpy(Str, MSGJPN117);
-		}
-		else
-			strcpy(Str, MSGJPN118);
-
-		SetText(hWnd, TRANS_STATUS, u8(Str));
-
-		if(Pkt->Size <= 0)
-			Per = 0;
-		else if(Pkt->Size < 1024*1024)
-			Per = (int)(Pkt->ExistSize * 100 / Pkt->Size);
-		else
-			Per = (int)((Pkt->ExistSize/1024) * 100 / (Pkt->Size/1024));
-		SendDlgItemMessageW(hWnd, TRANS_TIME_BAR, PBM_SETPOS, Per, 0);
+		static boost::wregex re{ LR"(^(?:\(\d+\))?)" };
+		auto title = GetText(hWnd);
+		title = boost::regex_replace(title, re, L'(' + std::to_wstring(AskTransferFileNum()) + L')');
+		SetText(hWnd, title);
 	}
-	return;
+	{
+		std::wstring status;
+		if (Pkt->Abort != ABORT_NONE)
+			status = GetString(IDS_CANCELLED);
+		else if (End != NO)
+			status = GetString(IDS_FINISHED);
+		else {
+			std::wstringstream ss;
+			ss.imbue(std::locale{ "" });
+			ss << std::fixed << std::setprecision(1);
+
+			if (Pkt->Size <= 0)
+				ss << Pkt->ExistSize << L"B ";
+			else if (Pkt->Size < 1024)
+				ss << Pkt->ExistSize << L"B / " << Pkt->Size << L"B ";
+			else if (Pkt->Size < 1024 * 1024)
+				ss << Pkt->ExistSize / 1024. << L"KB / " << Pkt->Size / 1024. << L"KB ";
+			else if (Pkt->Size < 1024 * 1024 * 1024)
+				ss << Pkt->ExistSize / 1024 / 1024. << L"MB / " << Pkt->Size / 1024 / 1024. << L"MB ";
+			else
+				ss << Pkt->ExistSize / 1024 / 1024 / 1024. << L"GB / " << Pkt->Size / 1024 / 1024 / 1024. << L"GB ";
+
+			auto TotalLap = time(nullptr) - TimeStart[Pkt->ThreadCount] + 1;
+			auto Bps = TotalLap != 0 ? AllTransSizeNow[Pkt->ThreadCount] / TotalLap : 0;
+			if (Bps < 1024)
+				ss << L"( " << Bps << L"B/s )";
+			else if (Bps < 1024 * 1024)
+				ss << L"( " << Bps / 1024. << L"KB/s )";
+			else if (Bps < 1024 * 1024 * 1024)
+				ss << L"( " << Bps / 1024 / 1024. << L"MB/s )";
+			else
+				ss << L"( " << Bps / 1024 / 1024 / 1024. << L"GB/s )";
+
+			if (auto Transed = Pkt->Size - Pkt->ExistSize; 0 < Bps && 0 < Pkt->Size && 0 <= Transed)
+				ss << L"  " << Transed / Bps / 60 << L':' << std::setfill(L'0') << std::setw(2) << Transed / Bps % 60;
+			else
+				ss << L"  ??:??";
+
+			status = ss.str();
+		}
+		SetText(hWnd, TRANS_STATUS, status);
+	}
+	{
+		int percent = Pkt->Size <= 0 ? 0 : Pkt->Size < std::numeric_limits<decltype(Pkt->Size)>::max() / 100 ? (int)(Pkt->ExistSize * 100 / Pkt->Size) : (int)((Pkt->ExistSize / 1024) * 100 / (Pkt->Size / 1024));
+		SendDlgItemMessageW(hWnd, TRANS_TIME_BAR, PBM_SETPOS, percent, 0);
+	}
 }
 
 
