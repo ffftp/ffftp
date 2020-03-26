@@ -149,6 +149,8 @@
 #define IDS_FAIL_TO_EXPORT              230
 #define IDS_NEED_EXSITING_WINSCP_INI    231
 #define IDS_INVALID_PATH                232
+#define IDS_FINISHED                    233
+#define IDS_CANCELLED                   234
 #define TRANS_TIME_BAR                  1002
 #define TRANS_TEXT                      1003
 #define TRANS_REMOTE                    1003
@@ -592,8 +594,6 @@
 #define IDS_MSGJPN114                   10114
 #define IDS_MSGJPN115                   10115
 #define IDS_MSGJPN116                   10116
-#define IDS_MSGJPN117                   10117
-#define IDS_MSGJPN118                   10118
 #define IDS_MSGJPN119                   10119
 #define IDS_MSGJPN120                   10120
 #define IDS_MSGJPN121                   10121

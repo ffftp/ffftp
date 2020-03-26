@@ -2475,8 +2475,6 @@ BEGIN
     IDS_MSGJPN114           "Upload cancelled."
     IDS_MSGJPN115           "Upload successful. (%d Sec. %d B/S)."
     IDS_MSGJPN116           "Upload successfil."
-    IDS_MSGJPN117           "Finished"
-    IDS_MSGJPN118           "Cancelled"
     IDS_MSGJPN119           "BINARY"
     IDS_MSGJPN120           "ASCII"
     IDS_MSGJPN121           "NONE"
@@ -2715,6 +2713,8 @@ BEGIN
     IDS_NEED_EXSITING_WINSCP_INI 
                             "The all settings will be lost after loading an INI file newly created with this feature into WinSCP.\nPlease choose an existing WinSCP.ini if you already use WinSCP and want to migrate hosts settings only."
     IDS_INVALID_PATH        "%s is invalid path.\r\nFFFTP doesn't download this file."
+    IDS_FINISHED            "Finished"
+    IDS_CANCELLED           "Cancelled"
 END
 
 #endif    // English (United States) resources
