@@ -43,7 +43,7 @@ int DoLocalCWD(const char *Path) {
 
 
 // ローカル側のディレクトリ作成
-void DoLocalMKD(char *Path) {
+void DoLocalMKD(const char* Path) {
 	SetTaskMsg(">>MKDIR %s", Path);
 	if (std::error_code ec; !fs::create_directory(fs::u8path(Path), ec))
 		SetTaskMsg(MSGJPN146);
@@ -57,7 +57,7 @@ void DoLocalPWD(char *Buf) {
 
 
 // ローカル側のディレクトリ削除
-void DoLocalRMD(char *Path) {
+void DoLocalRMD(const char* Path) {
 	SetTaskMsg(">>RMDIR %s", Path);
 	if (MoveFileToTrashCan(Path) != 0)
 		SetTaskMsg(MSGJPN148);
@@ -65,7 +65,7 @@ void DoLocalRMD(char *Path) {
 
 
 // ローカル側のファイル削除
-void DoLocalDELE(char *Path) {
+void DoLocalDELE(const char* Path) {
 	SetTaskMsg(">>DEL %s", Path);
 	if (MoveFileToTrashCan(Path) != 0)
 		SetTaskMsg(MSGJPN150);
@@ -83,7 +83,7 @@ void DoLocalRENAME(const char *Src, const char *Dst) {
 
 
 // ファイルのプロパティを表示する
-void DispFileProperty(char *Fname) {
+void DispFileProperty(const char* Fname) {
 	char Fname2[FMAX_PATH + 1];
 	MakeDistinguishableFileName(Fname2, Fname);
 	auto wFname2 = u8(Fname2);

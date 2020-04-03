@@ -1570,39 +1570,33 @@ void ReconnectProc(void);
 /*===== local.c =====*/
 
 int DoLocalCWD(const char *Path);
-void DoLocalMKD(char *Path);
+void DoLocalMKD(const char* Path);
 void DoLocalPWD(char *Buf);
-void DoLocalRMD(char *Path);
-void DoLocalDELE(char *Path);
+void DoLocalRMD(const char* Path);
+void DoLocalDELE(const char* Path);
 void DoLocalRENAME(const char *Src, const char *Dst);
-void DispFileProperty(char *Fname);
+void DispFileProperty(const char* Fname);
 
 /*===== remote.c =====*/
 
 int DoCWD(const char *Path, int Disp, int ForceGet, int ErrorBell);
-int DoCWDStepByStep(char *Path, char *Cur);
-int DoMKD(char *Path);
+int DoCWDStepByStep(const char* Path, const char* Cur);
+int DoMKD(const char* Path);
 void InitPWDcommand();
-int DoRMD(char *Path);
-int DoDELE(char *Path);
+int DoRMD(const char* Path);
+int DoDELE(const char* Path);
 int DoRENAME(const char *Src, const char *Dst);
 int DoCHMOD(const char *Path, const char *Mode);
-// 同時接続対応
-//int DoSIZE(char *Path, LONGLONG *Size);
-int DoSIZE(SOCKET cSkt, char *Path, LONGLONG *Size, int *CancelCheckWork);
-// 同時接続対応
-//int DoMDTM(char *Path, FILETIME *Time);
-int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork);
+int DoSIZE(SOCKET cSkt, const char* Path, LONGLONG *Size, int *CancelCheckWork);
+int DoMDTM(SOCKET cSkt, const char* Path, FILETIME *Time, int *CancelCheckWork);
 // ホスト側の日時設定
-int DoMFMT(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork);
-// 同時接続対応
-//int DoQUOTE(char *CmdStr);
-int DoQUOTE(SOCKET cSkt, char *CmdStr, int *CancelCheckWork);
+int DoMFMT(SOCKET cSkt, const char* Path, FILETIME *Time, int *CancelCheckWork);
+int DoQUOTE(SOCKET cSkt, const char* CmdStr, int *CancelCheckWork);
 SOCKET DoClose(SOCKET Sock);
 // 同時接続対応
 //int DoQUIT(SOCKET ctrl_skt);
 int DoQUIT(SOCKET ctrl_skt, int *CancelCheckWork);
-int DoDirListCmdSkt(char *AddOpt, char *Path, int Num, int *CancelCheckWork);
+int DoDirListCmdSkt(const char* AddOpt, const char* Path, int Num, int *CancelCheckWork);
 #if defined(HAVE_TANDEM)
 void SwitchOSSProc(void);
 #endif
@@ -1610,7 +1604,7 @@ void SwitchOSSProc(void);
 int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const char* fmt, ...);
 int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char *Tmp);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
-void ReportWSError(char *Msg, UINT Error);
+void ReportWSError(const char* Msg, UINT Error);
 
 /*===== getput.c =====*/
 
@@ -1747,27 +1741,26 @@ void RemoveYenTail(char *Str);
 void SetSlashTail(char *Str);
 void ReplaceAll(char *Str, char Src, char Dst);
 int IsDigitSym(int Ch, int Sym);
-int StrAllSameChar(char *Str, char Ch);
+int StrAllSameChar(const char* Str, char Ch);
 void RemoveTailingSpaces(char *Str);
-char *stristr(char *s1, char *s2);
-char *GetNextField(char *Str);
-int GetOneField(char *Str, char *Buf, int Max);
+const char* stristr(const char* s1, const char* s2);
+static inline char* stristr(char* s1, const char* s2) { return const_cast<char*>(stristr(static_cast<const char*>(s1), s2)); }
+const char* GetNextField(const char* Str);
+int GetOneField(const char* Str, char *Buf, int Max);
 void RemoveComma(char *Str);
-char *GetFileName(char *Path);
-char *GetFileExt(char *Path);
-void RemoveFileName(char *Path, char *Buf);
+const char* GetFileName(const char* Path);
+const char* GetFileExt(const char* Path);
+void RemoveFileName(const char* Path, char *Buf);
 void GetUpperDir(char *Path);
 void GetUpperDirEraseTopSlash(char *Path);
-int AskDirLevel(char *Path);
+int AskDirLevel(const char* Path);
 void MakeSizeString(double Size, char *Buf);
-void DispStaticText(HWND hWnd, char *Str);
+void DispStaticText(HWND hWnd, const char* Str);
 int StrMultiLen(const char *Str);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
 int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char *Pass, int *Port);
 int TimeString2FileTime(const char *Time, FILETIME *Buf);
-// タイムスタンプのバグ修正
-//void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist);
-void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist, int ShowSeconds);
+void FileTime2TimeString(const FILETIME *Time, char *Buf, int Mode, int InfoExist, int ShowSeconds);
 void SpecificLocalFileTime2FileTime(FILETIME *Time, int TimeZone);
 int AttrString2Value(const char *Str);
 // ファイルの属性を数字で表示
@@ -1779,7 +1772,7 @@ int SelectDir(HWND hWnd, char *Buf, size_t MaxLen);
 int MoveFileToTrashCan(const char *Path);
 std::string MakeNumString(LONGLONG Num);
 // 異なるファイルが表示されるバグ修正
-char* MakeDistinguishableFileName(char* Out, char* In);
+char* MakeDistinguishableFileName(char* Out, const char* In);
 #if defined(HAVE_TANDEM)
 void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size);
 #endif

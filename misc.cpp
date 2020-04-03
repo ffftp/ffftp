@@ -131,7 +131,7 @@ int IsDigitSym(int Ch, int Sym)
 *			YES/NO
 *----------------------------------------------------------------------------*/
 
-int StrAllSameChar(char *Str, char Ch)
+int StrAllSameChar(const char* Str, char Ch)
 {
 	int Ret;
 
@@ -184,9 +184,9 @@ void RemoveTailingSpaces(char *Str)
 *			NULL=見つからなかった
 *----------------------------------------------------------------------------*/
 
-char *stristr(char *s1, char *s2)
+const char* stristr(const char* s1, const char* s2)
 {
-	char *Ret;
+	const char* Ret;
 
 	Ret = NULL;
 	while(*s1 != NUL)
@@ -213,7 +213,7 @@ char *stristr(char *s1, char *s2)
 *			NULL=見つからなかった
 *----------------------------------------------------------------------------*/
 
-char *GetNextField(char *Str)
+const char* GetNextField(const char* Str)
 {
 	if((Str = strchr(Str, ' ')) != NULL)
 	{
@@ -243,10 +243,10 @@ char *GetNextField(char *Str)
 *			FFFTP_SUCCESS/FFFTP_FAIL=長さが長すぎる
 *----------------------------------------------------------------------------*/
 
-int GetOneField(char *Str, char *Buf, int Max)
+int GetOneField(const char* Str, char *Buf, int Max)
 {
 	int Sts;
-	char *Pos;
+	const char* Pos;
 
 	Sts = FFFTP_FAIL;
 	if((Pos = strchr(Str, ' ')) == NULL)
@@ -310,9 +310,9 @@ void RemoveComma(char *Str)
 *		ディレクトリの区切り記号は "\" と "/" の両方が有効
 *----------------------------------------------------------------------------*/
 
-char *GetFileName(char *Path)
+const char* GetFileName(const char* Path)
 {
-	char *Pos;
+	const char* Pos;
 
 	if((Pos = strchr(Path, ':')) != NULL)
 		Path = Pos + 1;
@@ -341,9 +341,9 @@ char *GetFileName(char *Path)
 *		char *拡張子の先頭
 *----------------------------------------------------------------------------*/
 
-char *GetFileExt(char *Path)
+const char* GetFileExt(const char* Path)
 {
-	char *Ret;
+	const char* Ret;
 
 	Ret = Path + strlen(Path);
 	if((strcmp(Path, ".") != 0) &&
@@ -372,7 +372,7 @@ char *GetFileExt(char *Path)
 *		ディレクトリの区切り記号は "\" と "/" の両方が有効
 *----------------------------------------------------------------------------*/
 
-void RemoveFileName(char *Path, char *Buf)
+void RemoveFileName(const char* Path, char *Buf)
 {
 	char *Pos;
 
@@ -465,9 +465,9 @@ void GetUpperDirEraseTopSlash(char *Path)
 *		単に '\' と '/'の数を返すだけ
 *----------------------------------------------------------------------------*/
 
-int AskDirLevel(char *Path)
+int AskDirLevel(const char* Path)
 {
-	char *Pos;
+	const char* Pos;
 	int Level;
 
 	Level = 0;
@@ -499,7 +499,7 @@ void MakeSizeString(double Size, char *Buf) {
 
 
 // StaticTextの領域に収まるようにパス名を整形して表示
-void DispStaticText(HWND hWnd, char *Str) {
+void DispStaticText(HWND hWnd, const char* Str) {
 	RECT rect;
 	GetClientRect(hWnd, &rect);
 	auto font = (HFONT)SendMessageW(hWnd, WM_GETFONT, 0, 0);
@@ -757,10 +757,7 @@ int TimeString2FileTime(const char *Time, FILETIME *Buf)
 *	Return Value
 *		なし
 *----------------------------------------------------------------------------*/
-
-// タイムスタンプのバグ修正
-//void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist)
-void FileTime2TimeString(FILETIME *Time, char *Buf, int Mode, int InfoExist, int ShowSeconds)
+void FileTime2TimeString(const FILETIME *Time, char *Buf, int Mode, int InfoExist, int ShowSeconds)
 {
 	SYSTEMTIME sTime;
 	FILETIME fTime;
@@ -1105,7 +1102,7 @@ std::string MakeNumString(LONGLONG Num) {
 // ShellExecute等で使用されるファイル名を修正
 // UNCでない場合に末尾の半角スペースは無視されるため拡張子が補完されなくなるまで半角スペースを追加
 // 現在UNC対応の予定は無い
-char* MakeDistinguishableFileName(char* Out, char* In) {
+char* MakeDistinguishableFileName(char* Out, const char* In) {
 	if (strlen(GetFileExt(GetFileName(In))) > 0)
 		strcpy(Out, In);
 	else {
