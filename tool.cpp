@@ -48,7 +48,7 @@ void OtpCalcTool() {
 				char Pass[PASSWORD_LEN + 1];
 				strncpy_s(Tmp, 41, u8(GetText(hDlg, OTPCALC_KEY)).c_str(), _TRUNCATE);
 				strncpy_s(Pass, PASSWORD_LEN + 1, u8(GetText(hDlg, OTPCALC_PASS)).c_str(), _TRUNCATE);
-				auto Pos = Tmp;
+				const char* Pos = Tmp;
 				while (*Pos == ' ')
 					Pos++;
 				if (IsDigit(*Pos)) {

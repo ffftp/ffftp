@@ -1715,7 +1715,7 @@ static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, 
 static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 {
 	int Sts;
-	char *Pos;
+	const char* Pos;
 	int Seq;
 	char Seed[MAX_SEED_LEN+1];
 	int i;

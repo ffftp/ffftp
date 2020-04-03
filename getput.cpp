@@ -81,7 +81,7 @@ static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt);
 static void DispTransFileInfo(TRANSPACKET *Pkt, char *Title, int SkipButton, int Info);
 static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max);
-static int IsSpecialDevice(char *Fname);
+static int IsSpecialDevice(const char* Fname);
 static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET *Pkt);
 #define SetErrorMsg(...) do { char* errMsg = GetErrMsg(); if (strlen(errMsg) == 0) sprintf(errMsg, __VA_ARGS__); } while(0)
 // 同時接続対応
@@ -2723,7 +2723,7 @@ static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max)
 *		int ステータス (YES/NO)
 *----------------------------------------------------------------------------*/
 
-static int IsSpecialDevice(char *Fname)
+static int IsSpecialDevice(const char* Fname)
 {
 	int Sts;
 

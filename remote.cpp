@@ -39,7 +39,7 @@
 
 static int DoPWD(char *Buf);
 static std::tuple<int, std::string> ReadOneLine(SOCKET cSkt, int* CancelCheckWork);
-static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, int *CancelCheckWork);
+static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Path, int Num, int *CancelCheckWork);
 static void ChangeSepaLocal2Remote(char *Fname);
 static void ChangeSepaRemote2Local(char *Fname);
 #define CommandProcCmd(REPLY, CANCELCHECKWORK, ...) (AskTransferNow() == YES && (SktShareProh(), 0), command(AskCmdCtrlSkt(), REPLY, CANCELCHECKWORK, __VA_ARGS__))
@@ -169,7 +169,7 @@ int DoCWD(const char *Path, int Disp, int ForceGet, int ErrorBell)
 *		ディレクトリ変更が失敗したら、カレントディレクトリに戻しておく
 *----------------------------------------------------------------------------*/
 
-int DoCWDStepByStep(char *Path, char *Cur)
+int DoCWDStepByStep(const char* Path, const char* Cur)
 {
 	int Sts;
 	char *Set;
@@ -275,7 +275,7 @@ void InitPWDcommand()
 *		int 応答コードの１桁目
 *----------------------------------------------------------------------------*/
 
-int DoMKD(char *Path)
+int DoMKD(const char* Path)
 {
 	int Sts;
 
@@ -306,7 +306,7 @@ int DoMKD(char *Path)
 *		int 応答コードの１桁目
 *----------------------------------------------------------------------------*/
 
-int DoRMD(char *Path)
+int DoRMD(const char* Path)
 {
 	int Sts;
 
@@ -337,7 +337,7 @@ int DoRMD(char *Path)
 *		int 応答コードの１桁目
 *----------------------------------------------------------------------------*/
 
-int DoDELE(char *Path)
+int DoDELE(const char* Path)
 {
 	int Sts;
 
@@ -438,10 +438,7 @@ int DoCHMOD(const char *Path, const char *Mode)
 *		★★転送ソケットを使用する★★
 *		サイズが選られない時は Size = -1 を返す
 *----------------------------------------------------------------------------*/
-
-// 同時接続対応
-//int DoSIZE(char *Path, LONGLONG *Size)
-int DoSIZE(SOCKET cSkt, char *Path, LONGLONG *Size, int *CancelCheckWork)
+int DoSIZE(SOCKET cSkt, const char* Path, LONGLONG *Size, int *CancelCheckWork)
 {
 	int Sts;
 	char Tmp[1024];
@@ -471,10 +468,7 @@ int DoSIZE(SOCKET cSkt, char *Path, LONGLONG *Size, int *CancelCheckWork)
 *		★★転送ソケットを使用する★★
 *		日付が選られない時は Time = 0 を返す
 *----------------------------------------------------------------------------*/
-
-// 同時接続対応
-//int DoMDTM(char *Path, FILETIME *Time)
-int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork)
+int DoMDTM(SOCKET cSkt, const char* Path, FILETIME *Time, int *CancelCheckWork)
 {
 	int Sts;
 	char Tmp[1024];
@@ -507,7 +501,7 @@ int DoMDTM(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork)
 
 
 // ホスト側の日時設定
-int DoMFMT(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork)
+int DoMFMT(SOCKET cSkt, const char* Path, FILETIME *Time, int *CancelCheckWork)
 {
 	int Sts;
 	char Tmp[1024];
@@ -530,10 +524,7 @@ int DoMFMT(SOCKET cSkt, char *Path, FILETIME *Time, int *CancelCheckWork)
 *	Return Value
 *		int 応答コードの１桁目
 *----------------------------------------------------------------------------*/
-
-// 同時接続対応
-//int DoQUOTE(char *CmdStr)
-int DoQUOTE(SOCKET cSkt, char *CmdStr, int *CancelCheckWork)
+int DoQUOTE(SOCKET cSkt, const char* CmdStr, int *CancelCheckWork)
 {
 	int Sts;
 
@@ -612,7 +603,7 @@ int DoQUIT(SOCKET ctrl_skt, int *CancelCheckWork)
 *		int 応答コードの１桁目
 *----------------------------------------------------------------------------*/
 
-int DoDirListCmdSkt(char *AddOpt, char *Path, int Num, int *CancelCheckWork)
+int DoDirListCmdSkt(const char* AddOpt, const char* Path, int Num, int *CancelCheckWork)
 {
 	int Sts;
 
@@ -644,7 +635,7 @@ int DoDirListCmdSkt(char *AddOpt, char *Path, int Num, int *CancelCheckWork)
 *		int 応答コード
 *----------------------------------------------------------------------------*/
 
-static int DoDirList(HWND hWnd, SOCKET cSkt, char *AddOpt, char *Path, int Num, int *CancelCheckWork)
+static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Path, int Num, int *CancelCheckWork)
 {
 	int Sts;
 	if(AskListCmdMode() == NO)
@@ -968,7 +959,7 @@ int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
 
 
 // デバッグコンソールにエラーを表示
-void ReportWSError(char* Msg, UINT Error) {
+void ReportWSError(const char* Msg, UINT Error) {
 	DoPrintf("[[%s : %s]]", Msg, u8(GetErrorMessage(Error)).c_str());
 }
 
