@@ -283,7 +283,7 @@ END
 about_dlg DIALOGEX 0, 0, 343, 267
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "FFFTPについて"
-FONT 9, "MS Shell Dlg", 0, 0, 0x0
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,145,246,50,14
     ICON            ffftp,-1,7,4,20,20
@@ -295,9 +295,9 @@ BEGIN
     CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,143,305,60
 END
 
-transfer_dlg DIALOG 0, 0, 199, 91
+transfer_dlg DIALOGEX 0, 0, 199, 91
 STYLE DS_SETFONT | DS_MODALFRAME | WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "このファイルを中止",IDCANCEL,7,73,74,14
     PUSHBUTTON      "次以降中止",TRANS_STOP_NEXT,93,73,46,14
@@ -315,9 +315,9 @@ BEGIN
     LTEXT           "",TRANS_KANJI,136,31,56,8
 END
 
-rename_dlg DIALOG 0, 0, 187, 69
+rename_dlg DIALOGEX 0, 0, 187, 69
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        RENAME_NEW,7,34,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,9,51,50,14
@@ -327,9 +327,9 @@ BEGIN
     LTEXT           "の新しい名前を入力してください。",-1,15,20,133,8
 END
 
-delete_dlg DIALOG 0, 0, 209, 55
+delete_dlg DIALOGEX 0, 0, 209, 55
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "はい(&Y)",IDOK,7,37,45,14
     PUSHBUTTON      "いいえ(&N)",DELETE_NO,57,37,44,14
@@ -339,10 +339,10 @@ BEGIN
     LTEXT           "を削除しますか？",-1,17,21,167,8
 END
 
-hostlist_dlg DIALOG 0, 0, 232, 136
+hostlist_dlg DIALOGEX 0, 0, 232, 136
 STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "ホスト一覧"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     CONTROL         "Tree1",HOST_LIST,"SysTreeView32",TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS | TVS_FULLROWSELECT | WS_BORDER | WS_TABSTOP,7,6,152,105
     DEFPUSHBUTTON   "接続(&S)",IDOK,27,118,50,14
@@ -359,10 +359,10 @@ BEGIN
     PUSHBUTTON      "ヘルプ",9,165,118,60,14
 END
 
-hset_main_dlg DIALOG 0, 0, 207, 155
+hset_main_dlg DIALOGEX 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "基本"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "ホストの設定名(&T)",-1,7,7,94,8
     EDITTEXT        HSET_HOST,7,17,94,12,ES_AUTOHSCROLL
@@ -382,10 +382,10 @@ BEGIN
     CONTROL         "最後にアクセスしたフォルダを次回の初期フォルダとする(&F)",HSET_LASTDIR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,193,10
 END
 
-FILEOPENORD_1 DIALOG 109, 35, 165, 134
+FILEOPENORD_1 DIALOGEX 109, 35, 165, 134
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Open"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "フォルダ(&D):",-1,7,6,92,9
     LISTBOX         lst2,7,32,92,68,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -403,20 +403,20 @@ BEGIN
     LTEXT           "",stc1,9,18,88,8
 END
 
-opt_user_dlg DIALOG 0, 0, 211, 155
+opt_user_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "ユーザー"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "メールアドレス(&M)",-1,7,7,59,8
     EDITTEXT        USER_ADRS,7,18,196,12,ES_AUTOHSCROLL
     LTEXT           "メールアドレスはanonymous FTPのパスワードとして使用されます。",-1,28,36,169,18,SS_SUNKEN
 END
 
-opt_tool_dlg DIALOG 0, 0, 211, 155
+opt_tool_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "ツール"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "ビューア1(&1)",-1,7,7,39,8
     EDITTEXT        TOOL_EDITOR1,7,18,183,12,ES_AUTOHSCROLL
@@ -431,10 +431,10 @@ BEGIN
     LTEXT           "ビューア2、3はマウス右ボタンクリックで使用できます。",-1,14,124,184,8
 END
 
-chmod_dlg DIALOG 0, 0, 171, 109
+chmod_dlg DIALOGEX 0, 0, 171, 109
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "属性の変更"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "現在の属性",-1,77,74,47,8
     EDITTEXT        PERM_NOW,124,72,25,12,ES_AUTOHSCROLL | ES_NUMBER
@@ -456,10 +456,10 @@ BEGIN
     PUSHBUTTON      "ヘルプ",9,116,92,48,14
 END
 
-sort_dlg DIALOG 0, 0, 187, 197
+sort_dlg DIALOGEX 0, 0, 187, 197
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "ソート"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     GROUPBOX        "ローカル",-1,7,7,81,150
     GROUPBOX        "ファイル名(&1)",-1,10,17,74,80,WS_GROUP
@@ -489,9 +489,9 @@ BEGIN
     PUSHBUTTON      "ヘルプ",9,127,179,50,14
 END
 
-mkdir_dlg DIALOG 0, 0, 187, 58
+mkdir_dlg DIALOGEX 0, 0, 187, 58
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        INP_INPSTR,7,21,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,36,40,50,14
@@ -499,10 +499,10 @@ BEGIN
     LTEXT           "作成するフォルダの名前を入力してください。",-1,7,7,160,8
 END
 
-opt_misc_dlg DIALOG 0, 0, 211, 155
+opt_misc_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "その他"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     CONTROL         "ウインドウ位置を保存する(&W)",MISC_WINPOS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
     CONTROL         "設定をレジストリでなくINIファイルに保存する (&I)",MISC_REGTYPE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,95,173,10
@@ -510,10 +510,10 @@ BEGIN
     CONTROL         "デバッグ",MISC_DEBUG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,164,127,40,10
 END
 
-hostname_dlg DIALOG 0, 0, 187, 93
+hostname_dlg DIALOGEX 0, 0, 187, 93
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "接続先"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "ホスト名（アドレス）またはURL(&H)",-1,7,6,130,8
     COMBOBOX        QHOST_HOST,7,16,173,86,CBS_DROPDOWN | CBS_AUTOHSCROLL | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
@@ -527,10 +527,10 @@ BEGIN
     PUSHBUTTON      "キャンセル",IDCANCEL,101,75,50,14
 END
 
-passwd_dlg DIALOG 0, 0, 187, 43
+passwd_dlg DIALOGEX 0, 0, 187, 43
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "パスワード/パスフレーズ"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_PASSWORD | ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,36,25,50,14
@@ -540,7 +540,7 @@ END
 newmasterpasswd_dlg DIALOGEX 0, 0, 187, 43
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "新しいマスターパスワードを2回入れてください"
-FONT 9, "MS Shell Dlg", 0, 0, 0x0
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_PASSWORD | ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,16,25,50,14
@@ -548,10 +548,10 @@ BEGIN
     PUSHBUTTON      "ヘルプ",IDHELP,120,25,50,14
 END
 
-username_dlg DIALOG 0, 0, 187, 58
+username_dlg DIALOGEX 0, 0, 187, 58
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "ユーザー名"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
     CONTROL         "Anonymous(&A)",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,25,73,10
@@ -559,40 +559,40 @@ BEGIN
     PUSHBUTTON      "キャンセル",IDCANCEL,101,40,50,14
 END
 
-chdir_dlg DIALOG 0, 0, 187, 43
+chdir_dlg DIALOGEX 0, 0, 187, 43
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "フォルダ"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,36,25,50,14
     PUSHBUTTON      "キャンセル",IDCANCEL,101,25,50,14
 END
 
-exit_dlg DIALOG 0, 0, 143, 64
+exit_dlg DIALOGEX 0, 0, 143, 64
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "FFFTPの終了"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "キャンセル",IDCANCEL,16,46,50,14
     PUSHBUTTON      "強制終了",IDOK,76,46,50,14
     LTEXT           "ファイル転送中です。\n\nファイル転送が終了してから、FFFTPを終了させてください。",-1,7,7,129,33
 END
 
-forcepasschange_dlg DIALOG 0, 0, 211, 64
+forcepasschange_dlg DIALOGEX 0, 0, 211, 64
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "マスターパスワード強制変更の確認"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "起動時にマスターパスワードの妥当性を確認できませんでした。強制的に再設定すると登録されているFTPパスワードは無効になります。\r\nマスターパスワードを強制的に変更しますか？",-1,7,7,196,36
     DEFPUSHBUTTON   "はい",IDOK,48,42,50,14
     PUSHBUTTON      "いいえ",IDCANCEL,112,42,50,14
 END
 
-opt_trmode2_dlg DIALOG 0, 0, 211, 155
+opt_trmode2_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "転送2"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     GROUPBOX        "ファイル名の変更",-1,7,7,196,69
     CONTROL         "ファイル名を全て小文字にして転送(&L)",TRMODE2_LOWER,"Button",BS_AUTORADIOBUTTON | WS_GROUP,13,18,143,10
@@ -611,7 +611,7 @@ END
 opt_notify_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "操作"
-FONT 9, "MS Shell Dlg", 0, 0, 0x0
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     GROUPBOX        "同じ名前のファイルがある時",-1,7,7,196,66,WS_GROUP
     GROUPBOX        "ダウンロード時",-1,11,20,188,23,WS_GROUP
@@ -629,10 +629,10 @@ BEGIN
     CONTROL         "使用しない(&K)",NOTIFY_M_DISABLE,"Button",BS_AUTORADIOBUTTON,142,118,56,10
 END
 
-bmark_dlg DIALOG 0, 0, 222, 109
+bmark_dlg DIALOGEX 0, 0, 222, 109
 STYLE DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "ブックマーク"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LISTBOX         BMARK_LIST,7,7,152,75,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     DEFPUSHBUTTON   "閉じる(&O)",IDOK,91,90,50,14
@@ -646,10 +646,10 @@ BEGIN
     PUSHBUTTON      "ヘルプ",9,165,90,50,14
 END
 
-opt_fire_dlg DIALOG 0, 0, 211, 155
+opt_fire_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "FireWall"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "FireWallのタイプ(&T)",-1,7,7,90,8
     COMBOBOX        FIRE_TYPE,7,16,197,104,CBS_DROPDOWNLIST | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
@@ -672,10 +672,10 @@ BEGIN
     CONTROL         "FireWallユーザー名/パスワードを保存しない(&N)",FIRE_SHARED,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,135,197,10
 END
 
-hset_adv_dlg DIALOG 0, 0, 207, 155
+hset_adv_dlg DIALOGEX 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "拡張"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     CONTROL         "FireWallを使う(&F)",HSET_FIREWALL,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,92,10
     CONTROL         "PASVモードを使う(&V)",HSET_PASV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,22,92,10
@@ -693,19 +693,19 @@ BEGIN
     EDITTEXT        HSET_INITCMD,103,76,92,30,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN
 END
 
-diskfull_dlg DIALOG 0, 0, 159, 42
+diskfull_dlg DIALOGEX 0, 0, 159, 42
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "FFFTP: エラー"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "このファイルを中止",IDOK,7,24,82,14
     PUSHBUTTON      "全て中止",IDCANCEL,102,24,50,14
     CTEXT           "ディスクがいっぱいです。",-1,7,6,145,10
 END
 
-find_dlg DIALOG 0, 0, 187, 56
+find_dlg DIALOGEX 0, 0, 187, 56
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
     CONTROL         "正規表現(&R)",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,24,121,10
@@ -713,10 +713,10 @@ BEGIN
     PUSHBUTTON      "キャンセル",IDCANCEL,101,38,50,14
 END
 
-opt_sound_dlg DIALOG 0, 0, 211, 155
+opt_sound_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "サウンド"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     CONTROL         "接続時にWaveファイルを鳴らす(&C)",SOUND_CONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,9,196,10
     EDITTEXT        SOUND_CONNECT_WAV,31,22,116,12,ES_AUTOHSCROLL
@@ -732,10 +732,10 @@ BEGIN
     PUSHBUTTON      "テスト",SOUND_ERROR_TEST,166,88,37,13
 END
 
-downerr_dlg DIALOG 0, 0, 223, 103
+downerr_dlg DIALOGEX 0, 0, 223, 103
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
 CAPTION "FFFTP: エラー"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     CONTROL         "後で上書き(&O)",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,46,99,10
     CONTROL         "後でリジューム(&R)",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,58,99,10
@@ -749,10 +749,10 @@ BEGIN
     EDITTEXT        UPDOWN_ERR_MSG,7,28,209,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER,WS_EX_STATICEDGE
 END
 
-uperr_dlg DIALOG 0, 0, 223, 103
+uperr_dlg DIALOGEX 0, 0, 223, 103
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
 CAPTION "FFFTP: エラー"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     CONTROL         "後で上書き(&O)",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,46,99,10
     CONTROL         "後でリジューム(&R)",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,58,99,10
@@ -769,7 +769,7 @@ END
 hset_code_dlg DIALOGEX 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "文字コード"
-FONT 9, "MS Shell Dlg", 0, 0, 0x0
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     GROUPBOX        "ホストの漢字コード(&K)",-1,7,7,98,106,WS_GROUP
     CONTROL         "無変換",HSET_NO_CNV,"Button",BS_AUTORADIOBUTTON | WS_GROUP,12,21,81,10
@@ -791,10 +791,10 @@ BEGIN
     CONTROL         "半角カナを全角に変換",HSET_FN_HANCNV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,114,119,81,10
 END
 
-opt_trmode1_dlg DIALOG 0, 0, 211, 155
+opt_trmode1_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "転送1"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     GROUPBOX        "転送モード",-1,7,7,93,56
     CONTROL         "常にアスキーモード(&A)",TRMODE_ASCII,"Button",BS_AUTORADIOBUTTON | WS_GROUP,13,19,85,10
@@ -812,10 +812,10 @@ BEGIN
     CONTROL         "ファイル一覧の取得に失敗した場合に転送を中止(&L)",TRMODE_LISTERROR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,136,196,10
 END
 
-up_exist_dlg DIALOG 0, 0, 223, 131
+up_exist_dlg DIALOGEX 0, 0, 223, 131
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
 CAPTION "アップロードの確認"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     CONTROL         "上書き(&O)",UP_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,38,99,10
     CONTROL         "新しければ上書き(&T)",UP_EXIST_NEW,"Button",BS_AUTORADIOBUTTON,7,50,99,10
@@ -832,10 +832,10 @@ BEGIN
     EDITTEXT        UP_EXIST_NAME,7,20,209,12,ES_AUTOHSCROLL
 END
 
-reginit_dlg DIALOG 0, 0, 155, 87
+reginit_dlg DIALOGEX 0, 0, 155, 87
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "全設定の消去"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "いいえ",IDCANCEL,41,49,71,31
     PUSHBUTTON      "消去",IDOK,125,66,23,14,NOT WS_TABSTOP
@@ -844,9 +844,9 @@ BEGIN
     ICON            notify,-1,7,7,18,21
 END
 
-updown_as_dlg DIALOG 0, 0, 187, 69
+updown_as_dlg DIALOGEX 0, 0, 187, 69
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        UPDOWNAS_NEW,7,34,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,35,51,50,14
@@ -855,10 +855,10 @@ BEGIN
     LTEXT           "の名前を変更してください。",-1,15,20,133,8
 END
 
-re_passwd_dlg DIALOG 0, 0, 187, 62
+re_passwd_dlg DIALOGEX 0, 0, 187, 62
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "パスワード"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        INP_INPSTR,7,27,173,12,ES_PASSWORD | ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,36,44,50,14
@@ -866,20 +866,20 @@ BEGIN
     LTEXT           "ログインできません。\n正しいパスワードを入力してください。",-1,7,7,173,19
 END
 
-savepass_dlg DIALOG 0, 0, 146, 50
+savepass_dlg DIALOGEX 0, 0, 146, 50
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "パスワードの保存"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "正しいパスワードをホストの設定に保存しますか？",-1,7,7,132,17
     DEFPUSHBUTTON   "はい",IDOK,17,29,50,14
     PUSHBUTTON      "いいえ",IDCANCEL,78,29,50,14
 END
 
-sel_local_dlg DIALOG 0, 0, 187, 106
+sel_local_dlg DIALOGEX 0, 0, 187, 106
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "選択（ローカル）"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "選択するファイル(&F)",-1,7,7,109,8
     EDITTEXT        SEL_FNAME,7,17,173,12,ES_AUTOHSCROLL
@@ -892,10 +892,10 @@ BEGIN
     PUSHBUTTON      "ヘルプ",9,126,88,50,14
 END
 
-sel_remote_dlg DIALOG 0, 0, 187, 106
+sel_remote_dlg DIALOGEX 0, 0, 187, 106
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "選択（ホスト）"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "選択するファイル(&F)",-1,7,7,109,8
     EDITTEXT        SEL_FNAME,7,17,173,12,ES_AUTOHSCROLL
@@ -908,10 +908,10 @@ BEGIN
     PUSHBUTTON      "ヘルプ",9,126,88,50,14
 END
 
-mirror_up_dlg DIALOG 0, 0, 195, 135
+mirror_up_dlg DIALOGEX 0, 0, 195, 135
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "ミラーリングアップロード"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "処理内容表示",MIRRORUP_DISP,51,114,50,14
     PUSHBUTTON      "開始(&S)",IDOK,7,114,41,14
@@ -924,20 +924,20 @@ BEGIN
     ICON            notify,-1,12,46,20,20
 END
 
-account_dlg DIALOG 0, 0, 187, 42
+account_dlg DIALOGEX 0, 0, 187, 42
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "アカウント"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,36,24,50,14
     PUSHBUTTON      "キャンセル",IDCANCEL,101,24,50,14
 END
 
-opt_mirror_dlg DIALOG 0, 0, 211, 155
+opt_mirror_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "ミラーリング"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     GROUPBOX        "転送しないファイル名(&F)",-1,7,7,95,80,WS_GROUP
     LISTBOX         MIRROR_NOTRN_LIST,12,20,50,63,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
@@ -956,10 +956,10 @@ BEGIN
     CONTROL         "ミラーリングでファイル内容を転送しない(&F)",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,139,174,10
 END
 
-somecmd_dlg DIALOG 0, 0, 187, 61
+somecmd_dlg DIALOGEX 0, 0, 187, 61
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "任意のコマンド"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,10,43,50,14
@@ -968,20 +968,20 @@ BEGIN
     LTEXT           "ファイルの転送を必要とするコマンドは指定できません。",-1,7,24,173,15
 END
 
-downname_dlg DIALOG 0, 0, 187, 42
+downname_dlg DIALOGEX 0, 0, 187, 42
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "ダウンロードするファイル"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        INP_INPSTR,7,6,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,36,24,50,14
     PUSHBUTTON      "キャンセル",IDCANCEL,101,24,50,14
 END
 
-opt_connect_dlg DIALOG 0, 0, 211, 155
+opt_connect_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "接続/切断"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     CONTROL         "起動時に接続ダイアログを表示する(&C)",CONNECT_CONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
     CONTROL         "接続ダイアログでホストの設定も行う(&O)",CONNECT_OLDDLG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,20,173,10
@@ -999,20 +999,20 @@ BEGIN
     CONTROL         "非PASVモード時にUPnPの制御を試行する(&U)",CONNECT_UPNP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,136,173,10
 END
 
-rasnotify_dlg DIALOG 0, 0, 158, 46
+rasnotify_dlg DIALOGEX 0, 0, 158, 46
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "FFFTP"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "はい",IDOK,23,25,50,14
     PUSHBUTTON      "いいえ",IDCANCEL,86,25,50,14
     CTEXT           "ダイアルアップ接続を切断しますか？",-1,7,7,144,8
 END
 
-filesize_dlg DIALOG 0, 0, 131, 76
+filesize_dlg DIALOGEX 0, 0, 131, 76
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "ファイル容量"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,42,55,50,14
     CTEXT           "",FSIZE_SIZE,7,18,117,8
@@ -1020,22 +1020,22 @@ BEGIN
     LTEXT           "サブフォルダ以下のファイルの容量を含みます。",-1,7,30,117,19,SS_SUNKEN
 END
 
-filesize_notify_dlg DIALOG 0, 0, 155, 70
+filesize_notify_dlg DIALOGEX 0, 0, 155, 70
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "ファイル容量"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,23,49,50,14
     PUSHBUTTON      "キャンセル",IDCANCEL,82,49,50,14
     CONTROL         "選択したファイルだけ計算する(&S)",FSNOTIFY_SEL_ONLY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,33,141,10
     CTEXT           "",FSNOTIFY_TITLE,7,7,142,8
-    CTEXT           "（計算に時間がかかる場合があります）",FSNOTIFY_TITLE,7,19,141,8
+    CTEXT           "（計算に時間がかかる場合があります）",-1,7,19,141,8
 END
 
-hset_adv2_dlg DIALOG 0, 0, 207, 155
+hset_adv2_dlg DIALOGEX 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "高度"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     CONTROL         "LISTコマンドでファイル一覧を取得(&L)",HSET_LISTCMD,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,131,10
     CONTROL         "可能であればMLSDコマンドで一覧を取得(&M)",HSET_MLSDCMD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
@@ -1051,20 +1051,20 @@ BEGIN
     PUSHBUTTON      "標準",HSET_LS_FNAME_NOR,70,133,25,13
 END
 
-cwderr_dlg DIALOG 0, 0, 154, 69
+cwderr_dlg DIALOGEX 0, 0, 154, 69
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "エラー"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "中止",IDCANCEL,51,48,50,14
     LTEXT           "サブディレクトリへ移動できないため、処理が続行できません。",-1,7,7,140,18
     CTEXT           "処理を中止します。",-1,7,31,140,8
 END
 
-opt_trmode3_dlg DIALOG 0, 0, 211, 155
+opt_trmode3_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "転送3"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     GROUPBOX        "アップロードするファイルの属性(&P)",-1,7,7,124,95
     CONTROL         "List1",TRMODE3_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,13,20,78,77
@@ -1075,10 +1075,10 @@ BEGIN
     EDITTEXT        TRMODE3_FOLDER_ATTR,37,123,29,12,ES_AUTOHSCROLL | ES_NUMBER
 END
 
-def_attr_dlg DIALOG 0, 0, 123, 69
+def_attr_dlg DIALOGEX 0, 0, 123, 69
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "デフォルト属性の設定"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "ファイル名(&F)",-1,7,7,49,8
     EDITTEXT        DEFATTR_FNAME,7,18,47,12,ES_AUTOHSCROLL
@@ -1091,28 +1091,28 @@ BEGIN
     PUSHBUTTON      "キャンセル",IDCANCEL,66,48,50,14
 END
 
-fname_in_dlg DIALOG 0, 0, 86, 44
+fname_in_dlg DIALOGEX 0, 0, 86, 44
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,72,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,7,26,33,14
     PUSHBUTTON      "キャンセル",IDCANCEL,46,26,33,14
 END
 
-otp_notify_dlg DIALOG 0, 0, 141, 60
+otp_notify_dlg DIALOGEX 0, 0, 141, 60
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "ワンタイムパスワード"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,45,39,50,14
     LTEXT           "ワンタイムパスワードのシーケンス番号が10以下になりました。\nシーケンスを更新してください。",-1,7,7,127,24
 END
 
-otp_calc_dlg DIALOG 0, 0, 187, 104
+otp_calc_dlg DIALOGEX 0, 0, 187, 104
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "ワンタイムパスワードの計算"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "チャレンジ(&C)",-1,7,10,52,8
     EDITTEXT        OTPCALC_KEY,61,7,119,12,ES_AUTOHSCROLL
@@ -1132,7 +1132,7 @@ END
 mirror_notify_dlg DIALOGEX 0, 0, 174, 171
 STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "ミラーリングアップロード"
-FONT 9, "MS Shell Dlg", 0, 0, 0x0
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "次のファイルを転送/削除します。",-1,7,6,160,8
     LISTBOX         MIRROR_LIST,7,16,160,78,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
@@ -1147,10 +1147,10 @@ BEGIN
     LTEXT           "",MIRROR_DELNUM,7,137,160,8
 END
 
-mirrordown_notify_dlg DIALOG 0, 0, 174, 171
+mirrordown_notify_dlg DIALOGEX 0, 0, 174, 171
 STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "ミラーリングダウンロード"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "次のファイルを転送/削除します。",-1,7,6,160,8
     LISTBOX         MIRROR_LIST,7,16,160,78,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
@@ -1165,10 +1165,10 @@ BEGIN
     LTEXT           "",MIRROR_DELNUM,7,137,160,8
 END
 
-mirror_down_dlg DIALOG 0, 0, 195, 155
+mirror_down_dlg DIALOGEX 0, 0, 195, 155
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "ミラーリングダウンロード"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "処理内容表示へ進む(&S)",MIRRORUP_DISP,7,134,85,14
     PUSHBUTTON      "キャンセル",IDCANCEL,97,134,50,14
@@ -1181,10 +1181,10 @@ BEGIN
     ICON            notify,-1,12,34,20,20
 END
 
-chdir_br_dlg DIALOG 0, 0, 187, 43
+chdir_br_dlg DIALOGEX 0, 0, 187, 43
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "フォルダ"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        INP_INPSTR,7,8,159,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",INP_BROWSE,167,7,13,14
@@ -1192,10 +1192,10 @@ BEGIN
     PUSHBUTTON      "キャンセル",IDCANCEL,101,25,50,14
 END
 
-filter_dlg DIALOG 0, 0, 187, 79
+filter_dlg DIALOGEX 0, 0, 187, 79
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "フィルタ"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        FILTER_STR,7,8,147,12,ES_AUTOHSCROLL
     LTEXT           "複数のフィルタを指定するときはセミコロンで区切ってください。（→ *.txt;*.log）\nフィルタの設定はファイルの転送にも影響します。",-1,13,29,167,27
@@ -1205,40 +1205,40 @@ BEGIN
     PUSHBUTTON      "ヘルプ",9,139,61,41,14
 END
 
-group_dlg DIALOG 0, 0, 187, 42
+group_dlg DIALOGEX 0, 0, 187, 42
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "グループ名"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,36,24,50,14
     PUSHBUTTON      "キャンセル",IDCANCEL,101,24,50,14
 END
 
-hostdel_dlg DIALOG 0, 0, 134, 39
+hostdel_dlg DIALOGEX 0, 0, 134, 39
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "ホストの削除"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "はい(&Y)",IDOK,11,21,50,14
     PUSHBUTTON      "いいえ(&N)",IDCANCEL,73,21,50,14
     LTEXT           "ホストの設定を削除しますか？",-1,7,6,120,10
 END
 
-groupdel_dlg DIALOG 0, 0, 135, 47
+groupdel_dlg DIALOGEX 0, 0, 135, 47
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "グループの削除"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "はい(&Y)",IDOK,11,29,50,14
     PUSHBUTTON      "いいえ(&N)",IDCANCEL,73,29,50,14
     LTEXT           "グループとグループ内の全てのホストの設定を削除しますか？",-1,7,6,121,18
 END
 
-hostconnect_dlg DIALOG 0, 0, 166, 106
+hostconnect_dlg DIALOGEX 0, 0, 166, 106
 STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "ホスト一覧"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     CONTROL         "Tree1",HOST_LIST,"SysTreeView32",TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS | TVS_FULLROWSELECT | WS_BORDER | WS_TABSTOP,7,6,152,75
     DEFPUSHBUTTON   "接続(&S)",IDOK,20,88,50,14
@@ -1253,10 +1253,10 @@ BEGIN
     PUSHBUTTON      "↓",HOST_DOWN,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
 END
 
-noresume_dlg DIALOG 0, 0, 191, 47
+noresume_dlg DIALOGEX 0, 0, 191, 47
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
 CAPTION "FFFTP: エラー"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "はい",IDOK,7,29,45,14
     PUSHBUTTON      "このファイルを中止",IDCANCEL,56,29,78,14
@@ -1264,10 +1264,10 @@ BEGIN
     LTEXT           "このホストはリジュームをサポートしていません。\n上書きしますか？",-1,7,4,177,17
 END
 
-forcerename_dlg DIALOG 0, 0, 187, 67
+forcerename_dlg DIALOGEX 0, 0, 187, 67
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "ダウンロード"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        INP_INPSTR,7,29,173,12,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,31,49,50,14
@@ -1275,10 +1275,10 @@ BEGIN
     LTEXT           "ファイル、フォルダ名に使えない文字があります。\n名前を変更してください。",IDC_STATIC,7,7,173,16
 END
 
-hset_dialup_dlg DIALOG 0, 0, 207, 155
+hset_dialup_dlg DIALOGEX 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "ダイアルアップ"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     CONTROL         "ダイアルアップで接続する(&D)",HSET_DIALUP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,110,10
     LTEXT           "接続する電話帳エントリ(&E)",-1,19,23,97,8
@@ -1287,10 +1287,10 @@ BEGIN
     CONTROL         "接続しなおす際に確認する(&N)",HSET_DIALNOTIFY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,31,67,116,10
 END
 
-rasreconnect_dlg DIALOG 0, 0, 159, 67
+rasreconnect_dlg DIALOGEX 0, 0, 159, 67
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "FFFTP"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "はい",IDOK,16,46,50,14
     PUSHBUTTON      "現在の接続を保持",IDCANCEL,76,46,66,14
@@ -1298,10 +1298,10 @@ BEGIN
     CTEXT           "よろしいですか？",-1,7,30,145,8
 END
 
-opt_disp1_dlg DIALOG 0, 0, 211, 155
+opt_disp1_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "表示1"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "変更(&F)",DISP_FONT_BR,167,7,36,14,WS_GROUP
     LTEXT           "",-1,7,8,159,14,SS_NOPREFIX | SS_SUNKEN
@@ -1315,10 +1315,10 @@ BEGIN
     LTEXT           "タイムスタンプの秒単位を表示するようにすると、ミラーリングアップロード等における更新日時の比較で秒単位を無視しないようになります。",-1,29,121,167,27,SS_SUNKEN
 END
 
-bmark_edit_dlg DIALOG 0, 0, 187, 83
+bmark_edit_dlg DIALOGEX 0, 0, 187, 83
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "ブックマーク"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "ローカル側のフォルダ名(&L)",-1,7,7,173,8
     EDITTEXT        BEDIT_LOCAL,7,17,173,12,ES_AUTOHSCROLL
@@ -1328,10 +1328,10 @@ BEGIN
     PUSHBUTTON      "キャンセル",IDCANCEL,101,65,50,14
 END
 
-down_exist_dlg DIALOG 0, 0, 223, 120
+down_exist_dlg DIALOGEX 0, 0, 223, 120
 STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
 CAPTION "ダウンロードの確認"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     CONTROL         "上書き(&O)",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,39,99,10
     CONTROL         "新しければ上書き(&T)",DOWN_EXIST_NEW,"Button",BS_AUTORADIOBUTTON,7,51,99,10
@@ -1350,7 +1350,7 @@ END
 move_notify_dlg DIALOGEX 0, 0, 201, 82
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "ファイルやフォルダの移動"
-FONT 9, "MS Shell Dlg", 400, 0, 0x80
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "はい",IDOK,44,61,50,14
     PUSHBUTTON      "いいえ",IDCANCEL,107,61,50,14
@@ -1363,7 +1363,7 @@ END
 masterpasswd_dlg DIALOGEX 65535, 65535, 187, 56
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
 CAPTION "FFFTP"
-FONT 9, "MS Shell Dlg", 0, 0, 0x0
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "設定されているマスターパスワードを入力してください",-1,7,7,153,8
     EDITTEXT        INP_INPSTR,7,19,173,12,ES_PASSWORD | ES_AUTOHSCROLL
@@ -1372,20 +1372,20 @@ BEGIN
     PUSHBUTTON      "ヘルプ",IDHELP,122,36,50,14
 END
 
-hset_crypt_dlg DIALOG 0, 0, 207, 155
+hset_crypt_dlg DIALOGEX 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "暗号化"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     CONTROL         "暗号化なしで接続を許可(&A)",HSET_NO_ENCRYPTION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,148,10
     CONTROL         "FTPS (Explicit)で接続(&E)",HSET_FTPES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
     CONTROL         "FTPS (Implicit)で接続(&I)",HSET_FTPIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
 END
 
-hset_adv3_dlg DIALOG 0, 0, 207, 155
+hset_adv3_dlg DIALOGEX 0, 0, 207, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "特殊機能"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "最大同時接続数(&M)",-1,7,10,64,8
     EDITTEXT        HSET_THREAD_COUNT,72,8,17,12,ES_AUTOHSCROLL | ES_NUMBER
@@ -1402,20 +1402,20 @@ BEGIN
     CONTROL         "転送エラー後に再接続(&R)",HSET_ERROR_RECONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,84,85,102,10
 END
 
-savecrypt_dlg DIALOG 0, 0, 146, 62
+savecrypt_dlg DIALOGEX 0, 0, 146, 62
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
 CAPTION "暗号化の状態の保存"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "現在の暗号化の状態を保存しますか？\r\n「はい」を選択すると次回から他の暗号化方式を試行しなくなります。",-1,7,7,132,29
     DEFPUSHBUTTON   "はい",IDOK,17,41,50,14
     PUSHBUTTON      "いいえ",IDCANCEL,78,41,50,14
 END
 
-updatesslroot_dlg DIALOG 0, 0, 211, 64
+updatesslroot_dlg DIALOGEX 0, 0, 211, 64
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
 CAPTION "SSLルート証明書を更新"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "SSLルート証明書の変更が検出されました。手動で証明書を更新していない場合、マルウェアなどにより改竄された可能性があります。\r\n変更された証明書を使用しますか。",-1,7,7,196,36
     DEFPUSHBUTTON   "いいえ",IDCANCEL,112,42,50,14
@@ -1424,7 +1424,7 @@ END
 
 updown_as_with_ext_dlg DIALOGEX 0, 0, 187, 89
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
-FONT 9, "MS Shell Dlg", 0, 0, 0x0
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     EDITTEXT        UPDOWNAS_NEW,7,34,173,12,ES_AUTOHSCROLL
     LTEXT           "",UPDOWNAS_TEXT,7,7,173,8,SS_NOPREFIX
@@ -1435,20 +1435,20 @@ BEGIN
     PUSHBUTTON      "中止(&S)",UPDOWNAS_STOP,101,66,50,14
 END
 
-ini_from_reg_dlg DIALOG 0, 0, 211, 64
+ini_from_reg_dlg DIALOGEX 0, 0, 211, 64
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
 CAPTION "レジストリの設定のインポート"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "INIファイルを使用するように設定されていますが、INIファイルではなくレジストリに設定が存在することを検出しました。\r\nレジストリの設定をインポートしますか。",-1,7,7,196,36
     DEFPUSHBUTTON   "はい",IDOK,48,42,50,14
     PUSHBUTTON      "いいえ",IDCANCEL,112,42,50,14
 END
 
-opt_trmode4_dlg DIALOG 0, 0, 211, 155
+opt_trmode4_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "転送4"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     GROUPBOX        "ローカルの漢字コード(&L)",-1,7,7,98,82,WS_GROUP
     CONTROL         "Shift_JIS",TRMODE4_SJIS_CNV,"Button",BS_AUTORADIOBUTTON | WS_GROUP,12,21,81,10
@@ -1460,10 +1460,10 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,96,196,10
 END
 
-opt_disp2_dlg DIALOG 0, 0, 211, 155
+opt_disp2_dlg DIALOGEX 0, 0, 211, 155
 STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
 CAPTION "表示2"
-FONT 9, "MS Shell Dlg"
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     CONTROL         "ファイルの属性を数字で表示する(&P)",DISP2_PERMIT_NUM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,196,10
     CONTROL         "ファイル一覧を自動で更新する(&R)",DISP2_AUTO_REFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,196,10
@@ -1473,7 +1473,7 @@ END
 corruptsettings_dlg DIALOGEX 0, 0, 232, 64
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
 CAPTION "設定が破損しています"
-FONT 9, "MS Shell Dlg", 0, 0, 0x0
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "暗号化された設定の破損または改竄が検出されました。\r\n読み込むと異常停止や設定の消失などの不具合が発生する可能性があります。",-1,7,7,217,36
     DEFPUSHBUTTON   "終了",IDCANCEL,8,42,50,14
@@ -1485,7 +1485,7 @@ END
 certerr_dlg DIALOGEX 0, 0, 187, 42
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
 CAPTION "保護されていません"
-FONT 9, "MS Shell Dlg", 0, 0, 0x0
+FONT 9, "MS Shell Dlg 2", 0, 0, 0x1
 BEGIN
     LTEXT           "このサイトへの接続は保護されていません。続行しますか？",IDC_STATIC,7,7,173,8
     PUSHBUTTON      "&Yes",IDYES,7,21,50,14
