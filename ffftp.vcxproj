@@ -126,6 +126,7 @@
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
+      <PreprocessorDefinitions>_WIN32_WINNT=_WIN32_WINNT_WINXP</PreprocessorDefinitions>
     </MuiResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -154,6 +155,7 @@
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
+      <PreprocessorDefinitions>_WIN32_WINNT=_WIN32_WINNT_WINBLUE</PreprocessorDefinitions>
     </MuiResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -187,6 +189,7 @@
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
+      <PreprocessorDefinitions>_WIN32_WINNT=_WIN32_WINNT_WINXP</PreprocessorDefinitions>
     </MuiResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -217,6 +220,7 @@
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
+      <PreprocessorDefinitions>_WIN32_WINNT=_WIN32_WINNT_WINBLUE</PreprocessorDefinitions>
     </MuiResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
