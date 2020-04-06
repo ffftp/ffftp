@@ -1761,7 +1761,7 @@ struct Feature {
 
 // ホスト設定のプロパティシート
 static bool DispHostSetDlg(HWND hDlg) {
-	auto result = PropSheet<General, Advanced, KanjiCode, Dialup, Special, Encryption, Feature>(hDlg, GetFtpInst(), IDS_HOSTSETTING, PSH_NOAPPLYNOW);
+	auto result = PropSheet<General, Advanced, KanjiCode, Dialup, Special, Encryption, Feature>(hDlg, GetFtpInst(), IDS_HOSTSETTING, PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP);
 	return 1 <= result;
 }
 
