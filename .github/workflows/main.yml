@@ -16,12 +16,12 @@ jobs:
       id: vcpkg
       run: echo "::set-output name=dir::$env:VCPKG_INSTALLATION_ROOT"
     - name: Enable cache
-      uses: actions/cache@v1.0.3
+      uses: actions/cache@v1
       with:
         key: vcpkg-${{matrix.platform}}
         path: ${{steps.vcpkg.outputs.dir}}\installed
     - name: Checkout code
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
     - name: Build
       run: |
         $env:Path += ";C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin"
