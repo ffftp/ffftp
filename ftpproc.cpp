@@ -34,12 +34,12 @@
 
 static int CheckRemoteFile(TRANSPACKET *Pkt, std::vector<FILELIST> const& ListList);
 static void DispMirrorFiles(std::vector<FILELIST> const& Local, std::vector<FILELIST> const& Remote);
-static void MirrorDeleteAllLocalDir(std::vector<FILELIST> const& Local, TRANSPACKET *Pkt, TRANSPACKET **Base);
+static void MirrorDeleteAllLocalDir(std::vector<FILELIST> const& Local, TRANSPACKET& item, std::forward_list<TRANSPACKET>& list);
 static int CheckLocalFile(TRANSPACKET *Pkt);
 static void RemoveAfterSemicolon(char *Path);
-static void MirrorDeleteAllDir(std::vector<FILELIST> const& Remote, TRANSPACKET *Pkt, TRANSPACKET **Base);
+static void MirrorDeleteAllDir(std::vector<FILELIST> const& Remote, TRANSPACKET& item, std::forward_list<TRANSPACKET>& list);
 static int MirrorNotify(bool upload);
-static void CountMirrorFiles(HWND hDlg, TRANSPACKET *Pkt);
+static void CountMirrorFiles(HWND hDlg, std::forward_list<TRANSPACKET> const& list);
 static int AskMirrorNoTrn(char *Fname, int Mode);
 static int AskUploadFileAttr(char *Fname);
 static bool UpDownAsDialog(int win);
@@ -381,27 +381,27 @@ void InputDownloadProc() {
 struct MirrorList {
 	using result_t = bool;
 	Resizable<Controls<MIRROR_DEL, MIRROR_SIZEGRIP>, Controls<IDOK, IDCANCEL, IDHELP, MIRROR_DEL, MIRROR_COPYNUM, MIRROR_MAKENUM, MIRROR_DELNUM, MIRROR_SIZEGRIP, MIRROR_NO_TRANSFER>, Controls<MIRROR_LIST>> resizable{ MirrorDlgSize };
-	TRANSPACKET** Base;
-	MirrorList(TRANSPACKET** Base) : Base{ Base } {}
+	std::forward_list<TRANSPACKET>& list;
+	MirrorList(std::forward_list<TRANSPACKET>& list) : list{ list } {}
 	INT_PTR OnInit(HWND hDlg) {
-		for (auto Pos = *Base; Pos; Pos = Pos->Next) {
+		for (auto const& item : list) {
 			char Tmp[FMAX_PATH + 1 + 6] = "";
-			if (strncmp(Pos->Cmd, "R-DELE", 6) == 0 || strncmp(Pos->Cmd, "R-RMD", 5) == 0)
-				sprintf(Tmp, MSGJPN052, Pos->RemoteFile);
-			else if (strncmp(Pos->Cmd, "R-MKD", 5) == 0)
-				sprintf(Tmp, MSGJPN053, Pos->RemoteFile);
-			else if (strncmp(Pos->Cmd, "STOR", 4) == 0)
-				sprintf(Tmp, MSGJPN054, Pos->RemoteFile);
-			else if (strncmp(Pos->Cmd, "L-DELE", 6) == 0 || strncmp(Pos->Cmd, "L-RMD", 5) == 0)
-				sprintf(Tmp, MSGJPN055, Pos->LocalFile);
-			else if (strncmp(Pos->Cmd, "L-MKD", 5) == 0)
-				sprintf(Tmp, MSGJPN056, Pos->LocalFile);
-			else if (strncmp(Pos->Cmd, "RETR", 4) == 0)
-				sprintf(Tmp, MSGJPN057, Pos->LocalFile);
+			if (strncmp(item.Cmd, "R-DELE", 6) == 0 || strncmp(item.Cmd, "R-RMD", 5) == 0)
+				sprintf(Tmp, MSGJPN052, item.RemoteFile);
+			else if (strncmp(item.Cmd, "R-MKD", 5) == 0)
+				sprintf(Tmp, MSGJPN053, item.RemoteFile);
+			else if (strncmp(item.Cmd, "STOR", 4) == 0)
+				sprintf(Tmp, MSGJPN054, item.RemoteFile);
+			else if (strncmp(item.Cmd, "L-DELE", 6) == 0 || strncmp(item.Cmd, "L-RMD", 5) == 0)
+				sprintf(Tmp, MSGJPN055, item.LocalFile);
+			else if (strncmp(item.Cmd, "L-MKD", 5) == 0)
+				sprintf(Tmp, MSGJPN056, item.LocalFile);
+			else if (strncmp(item.Cmd, "RETR", 4) == 0)
+				sprintf(Tmp, MSGJPN057, item.LocalFile);
 			if (strlen(Tmp) > 0)
 				SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)u8(Tmp).c_str());
 		}
-		CountMirrorFiles(hDlg, *Base);
+		CountMirrorFiles(hDlg, list);
 		EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), FALSE);
 		SendDlgItemMessageW(hDlg, MIRROR_NO_TRANSFER, BM_SETCHECK, MirrorNoTransferContents, 0);
 		return TRUE;
@@ -416,11 +416,11 @@ struct MirrorList {
 			std::vector<int> List((size_t)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0));
 			auto Num = (int)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELITEMS, size_as<WPARAM>(List), (LPARAM)data(List));
 			for (Num--; Num >= 0; Num--)
-				if (RemoveTmpTransFileListItem(Base, List[Num]) == FFFTP_SUCCESS)
+				if (RemoveTmpTransFileListItem(list, List[Num]) == FFFTP_SUCCESS)
 					SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_DELETESTRING, List[Num], 0);
 				else
 					MessageBeep(-1);
-			CountMirrorFiles(hDlg, *Base);
+			CountMirrorFiles(hDlg, list);
 			break;
 		}
 		case MIRROR_LIST:
@@ -428,9 +428,9 @@ struct MirrorList {
 				EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), 0 < SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0));
 			break;
 		case MIRROR_NO_TRANSFER:
-			for (auto Pos = *Base; Pos; Pos = Pos->Next)
-				if (strncmp(Pos->Cmd, "STOR", 4) == 0 || strncmp(Pos->Cmd, "RETR", 4) == 0)
-					Pos->NoTransfer = (int)SendDlgItemMessageW(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
+			for (auto& item : list)
+				if (strncmp(item.Cmd, "STOR", 4) == 0 || strncmp(item.Cmd, "RETR", 4) == 0)
+					item.NoTransfer = (int)SendDlgItemMessageW(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
 			break;
 		case IDHELP:
 			ShowHelp(IDH_HELP_TOPIC_0000012);
@@ -451,7 +451,6 @@ struct MirrorList {
 void MirrorDownloadProc(int Notify)
 {
 	TRANSPACKET Pkt;
-	TRANSPACKET *Base;
 	char Name[FMAX_PATH+1];
 	char *Cat;
 	int Level;
@@ -466,7 +465,7 @@ void MirrorDownloadProc(int Notify)
 	{
 		DisableUserOpe();
 
-		Base = NULL;
+		std::forward_list<TRANSPACKET> list;
 
 		Notify = Notify == YES ? MirrorNotify(false) : YES;
 
@@ -553,9 +552,9 @@ void MirrorDownloadProc(int Notify)
 					strcpy(Pkt.LocalFile, (AskLocalCurDir() / fs::u8path(f.File)).u8string().c_str());
 					strcpy(Pkt.RemoteFile, "");
 					strcpy(Pkt.Cmd, "L-DELE ");
-					AddTmpTransFileList(&Pkt, &Base);
+					AddTmpTransFileList(Pkt, list);
 				}
-			MirrorDeleteAllLocalDir(LocalListBase, &Pkt, &Base);
+			MirrorDeleteAllLocalDir(LocalListBase, Pkt, list);
 
 
 			for (auto const& f : RemoteListBase)
@@ -574,7 +573,7 @@ void MirrorDownloadProc(int Notify)
 					if (f.Node == NODE_DIR) {
 						strcpy(Pkt.RemoteFile, "");
 						strcpy(Pkt.Cmd, "L-MKD ");
-						AddTmpTransFileList(&Pkt, &Base);
+						AddTmpTransFileList(Pkt, list);
 					} else if (f.Node == NODE_FILE) {
 						strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 						SetSlashTail(Pkt.RemoteFile);
@@ -592,11 +591,11 @@ void MirrorDownloadProc(int Notify)
 						Pkt.Mode = EXIST_OVW;
 						// ミラーリング設定追加
 						Pkt.NoTransfer = MirrorNoTransferContents;
-						AddTmpTransFileList(&Pkt, &Base);
+						AddTmpTransFileList(Pkt, list);
 					}
 				}
 
-			if ((AbortOnListError == NO || ListSts == FFFTP_SUCCESS) && (Notify == YES || Dialog(GetFtpInst(), mirrordown_notify_dlg, GetMainHwnd(), MirrorList{ &Base })))
+			if ((AbortOnListError == NO || ListSts == FFFTP_SUCCESS) && (Notify == YES || Dialog(GetFtpInst(), mirrordown_notify_dlg, GetMainHwnd(), MirrorList{ list })))
 			{
 				if(AskNoFullPathMode() == YES)
 				{
@@ -604,7 +603,7 @@ void MirrorDownloadProc(int Notify)
 					strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 					AddTransFileList(&Pkt);
 				}
-				AppendTransFileList(Base);
+				AppendTransFileList(std::move(list));
 
 				if(AskNoFullPathMode() == YES)
 				{
@@ -617,8 +616,6 @@ void MirrorDownloadProc(int Notify)
 //				strcpy(Pkt.Cmd, "GOQUIT");
 //				AddTransFileList(&Pkt);
 			}
-			else
-				EraseTmpTransFileList(&Base);
 
 			// バグ対策
 			AddNullTransFileList();
@@ -673,24 +670,14 @@ static void DispMirrorFiles(std::vector<FILELIST> const& Local, std::vector<FILE
 }
 
 
-/*----- ミラーリング時のローカル側のフォルダ削除 ------------------------------
-*
-*	Parameter
-*		FILELIST *Local : ファイルリスト
-*		TRANSPACKET *Pkt : 
-*		TRANSPACKET **Base : 
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void MirrorDeleteAllLocalDir(std::vector<FILELIST> const& Local, TRANSPACKET *Pkt, TRANSPACKET **Base) {
+// ミラーリング時のローカル側のフォルダ削除
+static void MirrorDeleteAllLocalDir(std::vector<FILELIST> const& Local, TRANSPACKET& item, std::forward_list<TRANSPACKET>& list) {
 	for (auto it = rbegin(Local); it != rend(Local); ++it)
 		if (it->Node == NODE_DIR && it->Attr == YES) {
-			strcpy(Pkt->LocalFile, (AskLocalCurDir() / fs::u8path(it->File)).u8string().c_str());
-			strcpy(Pkt->RemoteFile, "");
-			strcpy(Pkt->Cmd, "L-RMD ");
-			AddTmpTransFileList(Pkt, Base);
+			strcpy(item.LocalFile, (AskLocalCurDir() / fs::u8path(it->File)).u8string().c_str());
+			strcpy(item.RemoteFile, "");
+			strcpy(item.Cmd, "L-RMD ");
+			AddTmpTransFileList(item, list);
 		}
 }
 
@@ -1276,7 +1263,6 @@ void UploadDragProc(WPARAM wParam)
 void MirrorUploadProc(int Notify)
 {
 	TRANSPACKET Pkt;
-	TRANSPACKET *Base;
 	char Name[FMAX_PATH+1];
 	char *Cat;
 	int Level;
@@ -1294,7 +1280,7 @@ void MirrorUploadProc(int Notify)
 	{
 		DisableUserOpe();
 
-		Base = NULL;
+		std::forward_list<TRANSPACKET> list;
 
 		Notify = Notify == YES ? MirrorNotify(true) : YES;
 
@@ -1411,9 +1397,9 @@ void MirrorUploadProc(int Notify)
 					ReplaceAll(Pkt.RemoteFile, '\\', '/');
 					strcpy(Pkt.LocalFile, "");
 					strcpy(Pkt.Cmd, "R-DELE ");
-					AddTmpTransFileList(&Pkt, &Base);
+					AddTmpTransFileList(Pkt, list);
 				}
-			MirrorDeleteAllDir(RemoteListBase, &Pkt, &Base);
+			MirrorDeleteAllDir(RemoteListBase, Pkt, list);
 
 			for (auto const& f : LocalListBase) {
 				if (f.Attr == YES) {
@@ -1430,7 +1416,7 @@ void MirrorUploadProc(int Notify)
 					if (f.Node == NODE_DIR) {
 						strcpy(Pkt.LocalFile, "");
 						strcpy(Pkt.Cmd, "R-MKD ");
-						AddTmpTransFileList(&Pkt, &Base);
+						AddTmpTransFileList(Pkt, list);
 					} else if (f.Node == NODE_FILE) {
 						strcpy(Pkt.LocalFile, (AskLocalCurDir() / fs::u8path(f.File)).u8string().c_str());
 
@@ -1450,12 +1436,12 @@ void MirrorUploadProc(int Notify)
 						Pkt.Mode = EXIST_OVW;
 						// ミラーリング設定追加
 						Pkt.NoTransfer = MirrorNoTransferContents;
-						AddTmpTransFileList(&Pkt, &Base);
+						AddTmpTransFileList(Pkt, list);
 					}
 				}
 			}
 
-			if ((AbortOnListError == NO || ListSts == FFFTP_SUCCESS) && (Notify == YES || Dialog(GetFtpInst(), mirror_notify_dlg, GetMainHwnd(), MirrorList{ &Base })))
+			if ((AbortOnListError == NO || ListSts == FFFTP_SUCCESS) && (Notify == YES || Dialog(GetFtpInst(), mirror_notify_dlg, GetMainHwnd(), MirrorList{ list })))
 			{
 				if(AskNoFullPathMode() == YES)
 				{
@@ -1463,7 +1449,7 @@ void MirrorUploadProc(int Notify)
 					strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 					AddTransFileList(&Pkt);
 				}
-				AppendTransFileList(Base);
+				AppendTransFileList(std::move(list));
 
 				if(AskNoFullPathMode() == YES)
 				{
@@ -1476,8 +1462,6 @@ void MirrorUploadProc(int Notify)
 //				strcpy(Pkt.Cmd, "GOQUIT");
 //				AddTransFileList(&Pkt);
 			}
-			else
-				EraseTmpTransFileList(&Base);
 
 			// バグ対策
 			AddNullTransFileList();
@@ -1491,27 +1475,17 @@ void MirrorUploadProc(int Notify)
 }
 
 
-/*----- ミラーリング時のホスト側のフォルダ削除 --------------------------------
-*
-*	Parameter
-*		FILELIST *Base : ファイルリスト
-*		TRANSPACKET *Pkt : 
-*		TRANSPACKET **Base : 
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void MirrorDeleteAllDir(std::vector<FILELIST> const& Remote, TRANSPACKET *Pkt, TRANSPACKET **Base) {
+// ミラーリング時のホスト側のフォルダ削除
+static void MirrorDeleteAllDir(std::vector<FILELIST> const& Remote, TRANSPACKET& item, std::forward_list<TRANSPACKET>& list) {
 	for (auto it = rbegin(Remote); it != rend(Remote); ++it)
 		if (it->Node == NODE_DIR && it->Attr == YES) {
-			strcpy(Pkt->RemoteFile, u8(AskRemoteCurDir()).c_str());
-			SetSlashTail(Pkt->RemoteFile);
-			strcat(Pkt->RemoteFile, it->File);
-			ReplaceAll(Pkt->RemoteFile, '\\', '/');
-			strcpy(Pkt->LocalFile, "");
-			strcpy(Pkt->Cmd, "R-RMD ");
-			AddTmpTransFileList(Pkt, Base);
+			strcpy(item.RemoteFile, u8(AskRemoteCurDir()).c_str());
+			SetSlashTail(item.RemoteFile);
+			strcat(item.RemoteFile, it->File);
+			ReplaceAll(item.RemoteFile, '\\', '/');
+			strcpy(item.LocalFile, "");
+			strcpy(item.Cmd, "R-RMD ");
+			AddTmpTransFileList(item, list);
 		}
 }
 
@@ -1542,46 +1516,17 @@ static int MirrorNotify(bool upload) {
 }
 
 
-/*----- ミラーリングで転送／削除するファイルの数を数えダイアログに表示---------
-*
-*	Parameter
-*		HWND hWnd : 
-*		TRANSPACKET *Pkt : 
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void CountMirrorFiles(HWND hDlg, TRANSPACKET *Pkt)
-{
+// ミラーリングで転送／削除するファイルの数を数えダイアログに表示
+static void CountMirrorFiles(HWND hDlg, std::forward_list<TRANSPACKET> const& list) {
 	char Tmp[80];
-	int Del;
-	int Make;
-	int Copy;
-
-	Del = 0;
-	Make = 0;
-	Copy = 0;
-	while(Pkt != NULL)
-	{
-		if((strncmp(Pkt->Cmd, "R-DELE", 6) == 0) ||
-		   (strncmp(Pkt->Cmd, "R-RMD", 5) == 0) ||
-		   (strncmp(Pkt->Cmd, "L-DELE", 6) == 0) ||
-		   (strncmp(Pkt->Cmd, "L-RMD", 5) == 0))
-		{
-			Del += 1;
-		}
-		else if((strncmp(Pkt->Cmd, "R-MKD", 5) == 0) ||
-				(strncmp(Pkt->Cmd, "L-MKD", 5) == 0))
-		{
-			Make += 1;
-		}
-		else if((strncmp(Pkt->Cmd, "STOR", 4) == 0) ||
-				(strncmp(Pkt->Cmd, "RETR", 4) == 0))
-		{
-			Copy += 1;
-		}
-		Pkt = Pkt->Next;
+	int Del = 0, Make = 0, Copy = 0;
+	for (auto const& item : list) {
+		if (strncmp(item.Cmd, "R-DELE", 6) == 0 || strncmp(item.Cmd, "R-RMD", 5) == 0 || strncmp(item.Cmd, "L-DELE", 6) == 0 || strncmp(item.Cmd, "L-RMD", 5) == 0)
+			Del++;
+		else if (strncmp(item.Cmd, "R-MKD", 5) == 0 || strncmp(item.Cmd, "L-MKD", 5) == 0)
+			Make++;
+		else if (strncmp(item.Cmd, "STOR", 4) == 0 || strncmp(item.Cmd, "RETR", 4) == 0)
+			Copy++;
 	}
 
 	if(Copy != 0)

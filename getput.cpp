@@ -60,8 +60,9 @@
 
 /*===== プロトタイプ =====*/
 
-static void DispTransPacket(TRANSPACKET *Pkt);
-static void EraseTransFileList(void);
+static void DispTransPacket(const TRANSPACKET *Pkt);
+static inline void DispTransPacket(std::forward_list<TRANSPACKET>::const_iterator it) { DispTransPacket(&*it); }
+static void EraseTransFileList();
 static unsigned __stdcall TransferThread(void *Dummy);
 static int MakeNonFullPath(TRANSPACKET *Pkt, char *CurDir, char *Tmp);
 static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
@@ -98,9 +99,8 @@ static HANDLE hRunMutex;				/* 転送スレッド実行ミューテックス */
 static HANDLE hListAccMutex;			/* 転送ファイルアクセス用ミューテックス */
 
 static int TransFiles = 0;				/* 転送待ちファイル数 */
-static TRANSPACKET *TransPacketBase = NULL;	/* 転送ファイルリスト */
-// 同時接続対応
-static TRANSPACKET *NextTransPacketBase = NULL;
+static std::forward_list<TRANSPACKET> TransPacketBase;	/* 転送ファイルリスト */
+static auto NextTransPacketBase = end(TransPacketBase);
 
 // 同時接続対応
 //static int Canceled;		/* 中止フラグ YES/NO */
@@ -247,7 +247,7 @@ void CloseTransferThread(void)
 void AbortAllTransfer()
 {
 	int i;
-	while(TransPacketBase != NULL)
+	while(!empty(TransPacketBase))
 	{
 		for(i = 0; i < MAX_DATA_CONNECTION; i++)
 			Canceled[i] = YES;
@@ -259,111 +259,23 @@ void AbortAllTransfer()
 	ClearAll = NO;
 }
 
-/*----- 転送するファイル情報をリストに追加する --------------------------------
-*
-*	Parameter
-*		TRANSPACKET *Pkt : 転送ファイル情報
-*		TRANSPACKET **Base : リストの先頭
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
 
-int AddTmpTransFileList(TRANSPACKET *Pkt, TRANSPACKET **Base)
-{
-	TRANSPACKET *Pos;
-	TRANSPACKET *Prev;
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	if((Pos = (TRANSPACKET*)malloc(sizeof(TRANSPACKET))) != NULL)
-	{
-		memcpy(Pos, Pkt, sizeof(TRANSPACKET));
-		Pos->Next = NULL;
-
-		if(*Base == NULL)
-			*Base = Pos;
-		else
-		{
-			Prev = *Base;
-			while(Prev->Next != NULL)
-				Prev = Prev->Next;
-			Prev->Next = Pos;
-		}
-		Sts = FFFTP_SUCCESS;
-	}
-	return(Sts);
+// 転送するファイル情報をリストに追加する
+int AddTmpTransFileList(TRANSPACKET const& item, std::forward_list<TRANSPACKET>& list) {
+	auto it = before_end(list);
+	list.insert_after(it, item);
+	return FFFTP_SUCCESS;
 }
 
 
-/*----- 転送するファイル情報リストをクリアする --------------------------------
-*
-*	Parameter
-*		TRANSPACKET **Base : リストの先頭
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void EraseTmpTransFileList(TRANSPACKET **Base)
-{
-	TRANSPACKET *Pos;
-	TRANSPACKET *Next;
-
-	Pos = *Base;
-	while(Pos != NULL)
-	{
-		Next = Pos->Next;
-		free(Pos);
-		Pos = Next;
-	}
-	*Base = NULL;
-	return;
-}
-
-
-/*----- 転送するファイル情報リストから１つの情報を取り除く --------------------
-*
-*	Parameter
-*		TRANSPACKET *Pkt : 転送ファイル情報
-*		TRANSPACKET **Base : リストの先頭
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int RemoveTmpTransFileListItem(TRANSPACKET **Base, int Num)
-{
-	TRANSPACKET *Pos;
-	TRANSPACKET *Prev;
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	Pos = *Base;
-	if(Num == 0)
-	{
-		*Base = Pos->Next;
-		free(Pos);
-		Sts = FFFTP_SUCCESS;
-	}
-	else
-	{
-		while(Pos != NULL)
-		{
-			Prev = Pos;
-			Pos = Pos->Next;
-			if(--Num == 0)
-			{
-				Prev->Next = Pos->Next;
-				free(Pos);
-				Sts = FFFTP_SUCCESS;
-				break;
-			}
+// 転送するファイル情報リストから１つの情報を取り除く
+int RemoveTmpTransFileListItem(std::forward_list<TRANSPACKET>& list, int Num) {
+	for (auto it = list.before_begin(); it != end(list); ++it)
+		if (Num-- == 0) {
+			list.erase_after(it);
+			return FFFTP_SUCCESS;
 		}
-	}
-	return(Sts);
+	return FFFTP_FAIL;
 }
 
 
@@ -378,9 +290,6 @@ int RemoveTmpTransFileListItem(TRANSPACKET **Base, int Num)
 
 void AddTransFileList(TRANSPACKET *Pkt)
 {
-	// 同時接続対応
-	TRANSPACKET *Pos;
-
 	DispTransPacket(Pkt);
 
 	// 同時接続対応
@@ -392,15 +301,7 @@ void AddTransFileList(TRANSPACKET *Pkt)
 		Sleep(1);
 	}
 
-	// 同時接続対応
-	Pos = TransPacketBase;
-	if(Pos != NULL)
-	{
-		while(Pos->Next != NULL)
-			Pos = Pos->Next;
-	}
-	if(AddTmpTransFileList(Pkt, &TransPacketBase) == FFFTP_SUCCESS)
-	{
+	if (AddTmpTransFileList(*Pkt, TransPacketBase) == FFFTP_SUCCESS) {
 		if((strncmp(Pkt->Cmd, "RETR", 4) == 0) ||
 		   (strncmp(Pkt->Cmd, "STOR", 4) == 0))
 		{
@@ -411,14 +312,8 @@ void AddTransFileList(TRANSPACKET *Pkt)
 			PostMessageW(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 		}
 	}
-	// 同時接続対応
-	if(NextTransPacketBase == NULL)
-	{
-		if(Pos)
-			NextTransPacketBase = Pos->Next;
-		else
-			NextTransPacketBase = TransPacketBase;
-	}
+	if (NextTransPacketBase == end(TransPacketBase))
+		NextTransPacketBase = before_end(TransPacketBase);
 	ReleaseMutex(hListAccMutex);
 	// 同時接続対応
 	WaitForMainThread = NO;
@@ -436,25 +331,9 @@ void AddNullTransFileList()
 	AddTransFileList(&Pkt);
 }
 
-/*----- 転送ファイル情報を転送ファイルリストに追加する ------------------------
-*
-*	Parameter
-*		TRANSPACKET *Pkt : 転送ファイル情報
-*		TRANSPACKET **Base : リストの先頭
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		Pkt自体をリストに連結する
-*----------------------------------------------------------------------------*/
 
-void AppendTransFileList(TRANSPACKET *Pkt)
-{
-	TRANSPACKET *Pos;
-
-	// 同時接続対応
-//	WaitForSingleObject(hListAccMutex, INFINITE);
+// 転送ファイル情報を転送ファイルリストに追加する
+void AppendTransFileList(std::forward_list<TRANSPACKET>&& list) {
 	while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
 	{
 		WaitForMainThread = YES;
@@ -462,20 +341,12 @@ void AppendTransFileList(TRANSPACKET *Pkt)
 		Sleep(1);
 	}
 
-	if(TransPacketBase == NULL)
-		TransPacketBase = Pkt;
-	else
-	{
-		Pos = TransPacketBase;
-		while(Pos->Next != NULL)
-			Pos = Pos->Next;
-		Pos->Next = Pkt;
-	}
-	// 同時接続対応
-	if(NextTransPacketBase == NULL)
+	auto Pkt = before_end(TransPacketBase);
+	TransPacketBase.splice_after(Pkt++, list);
+	if (NextTransPacketBase == end(TransPacketBase))
 		NextTransPacketBase = Pkt;
 
-	while(Pkt != NULL)
+	while(Pkt != end(TransPacketBase))
 	{
 		DispTransPacket(Pkt);
 
@@ -488,7 +359,7 @@ void AppendTransFileList(TRANSPACKET *Pkt)
 			TransferSizeTotal += Pkt->Size;
 			PostMessageW(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 		}
-		Pkt = Pkt->Next;
+		++Pkt;
 	}
 
 	ReleaseMutex(hListAccMutex);
@@ -498,16 +369,8 @@ void AppendTransFileList(TRANSPACKET *Pkt)
 }
 
 
-/*----- 転送ファイル情報を表示する --------------------------------------------
-*
-*	Parameter
-*		TRANSPACKET *Pkt : 転送ファイル情報
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void DispTransPacket(TRANSPACKET *Pkt)
+// 転送ファイル情報を表示する
+static void DispTransPacket(const TRANSPACKET *Pkt)
 {
 	if((strncmp(Pkt->Cmd, "RETR", 4) == 0) || (strncmp(Pkt->Cmd, "STOR", 4) == 0))
 		DoPrintf("TransList Cmd=%s : %s : %s", Pkt->Cmd, Pkt->RemoteFile, Pkt->LocalFile);
@@ -528,72 +391,32 @@ static void DispTransPacket(TRANSPACKET *Pkt)
 }
 
 
-/*----- 転送ファイルリストをクリアする ----------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void EraseTransFileList(void)
-{
-	TRANSPACKET *New;
-	TRANSPACKET *Next;
-	TRANSPACKET *NotDel;
-//	TRANSPACKET Pkt;
-
-	NotDel = NULL;
-
-	// 同時接続対応
-//	WaitForSingleObject(hListAccMutex, INFINITE);
-	while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
-	{
+// 転送ファイルリストをクリアする
+static void EraseTransFileList() {
+	auto NotDel = end(TransPacketBase);
+	while (WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT) {
 		WaitForMainThread = YES;
 		BackgrndMessageProc();
 		Sleep(1);
 	}
-	New = TransPacketBase;
-	while(New != NULL)
-	{
+	for (auto New = begin(TransPacketBase); New != end(TransPacketBase); ++New) {
 		/* 最後の"BACKCUR"は必要なので消さない */
-		if(strcmp(New->Cmd, "BACKCUR") == 0)
-		{
-			if(NotDel != NULL)
-				// 同時接続対応
-//				free(NotDel);
+		if (strcmp(New->Cmd, "BACKCUR") == 0) {
+			if (NotDel != end(TransPacketBase))
 				strcpy(NotDel->Cmd, "");
 			NotDel = New;
-			New = New->Next;
-			// 同時接続対応
-//			NotDel->Next = NULL;
-		}
-		else
-		{
-			Next = New->Next;
-			// 同時接続対応
-//			free(New);
+		} else
 			strcpy(New->Cmd, "");
-			New = Next;
-		}
 	}
-	TransPacketBase = NotDel;
-	// 同時接続対応
+	// FIXME: TransPacketBaseをここで変更すべきではないはず
+	// TransPacketBase.erase_after(TransPacketBase.before_begin(), NotDel);
 	NextTransPacketBase = NotDel;
 	TransFiles = 0;
-	// タスクバー進捗表示
 	TransferSizeLeft = 0;
 	TransferSizeTotal = 0;
 	PostMessageW(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 	ReleaseMutex(hListAccMutex);
-	// 同時接続対応
 	WaitForMainThread = NO;
-
-	// 同時接続対応
-//	strcpy(Pkt.Cmd, "GOQUIT");
-//	AddTransFileList(&Pkt);
-	return;
 }
 
 
@@ -624,7 +447,7 @@ void KeepTransferDialog(int Sw)
 
 int AskTransferNow(void)
 {
-	return(TransPacketBase != NULL ? YES : NO);
+	return !empty(TransPacketBase) ? YES : NO;
 }
 
 
@@ -690,7 +513,6 @@ void InitTransCurDir(void)
 
 static unsigned __stdcall TransferThread(void *Dummy)
 {
-	TRANSPACKET *Pos;
 	HWND hWndTrans;
 	char Tmp[FMAX_PATH+1];
 	int CwdSts;
@@ -720,7 +542,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 	LastError = NO;
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
 
-	while((TransPacketBase != NULL) ||
+	while(!empty(TransPacketBase) ||
 		  (WaitForSingleObject(hRunMutex, 200) == WAIT_TIMEOUT))
 	{
 		if(fTransferThreadExit == TRUE)
@@ -745,12 +567,9 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //		Canceled = NO;
 		Canceled[ThreadCount] = NO;
 
-		while(TransPacketBase != NULL && strcmp(TransPacketBase->Cmd, "") == 0)
-		{
-			Pos = TransPacketBase;
-			TransPacketBase = TransPacketBase->Next;
-			free(Pos);
-			if(TransPacketBase == NULL)
+		while (!empty(TransPacketBase) && strcmp(TransPacketBase.front().Cmd, "") == 0) {
+			TransPacketBase.pop_front();
+			if (empty(TransPacketBase))
 				GoExit = YES;
 		}
 		if(AskReuseCmdSkt() == YES && ThreadCount == 0)
@@ -787,7 +606,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					Sleep(1);
 				}
 			}
-			if(TransPacketBase && AskConnecting() == YES && ThreadCount < AskMaxThreadCount())
+			if(!empty(TransPacketBase) && AskConnecting() == YES && ThreadCount < AskMaxThreadCount())
 			{
 				ReleaseMutex(hListAccMutex);
 				if(TrnSkt == INVALID_SOCKET)
@@ -838,11 +657,8 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			}
 		}
 		LastError = NO;
-//		if(TransPacketBase != NULL)
-		if(TrnSkt != INVALID_SOCKET && NextTransPacketBase != NULL)
-		{
-			Pos = NextTransPacketBase;
-			NextTransPacketBase = NextTransPacketBase->Next;
+		if (TrnSkt != INVALID_SOCKET && NextTransPacketBase != end(TransPacketBase)) {
+			auto Pos = NextTransPacketBase++;
 			// ディレクトリ操作は非同期で行わない
 //			ReleaseMutex(hListAccMutex);
 			if(hWndTrans == NULL)
@@ -882,7 +698,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			}
 
 			if(hWndTrans != NULL)
-				SendMessageW(hWndTrans, WM_SET_PACKET, 0, (LPARAM)Pos);
+				SendMessageW(hWndTrans, WM_SET_PACKET, 0, (LPARAM)&*Pos);
 
 			// 中断後に受信バッファに応答が残っていると次のコマンドの応答が正しく処理できない
 			RemoveReceivedData(TrnSkt);
@@ -895,11 +711,11 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //				ReleaseMutex(hListAccMutex);
 				/* 不正なパスを検出 */
 //				if(CheckPathViolation(TransPacketBase) == NO)
-				if(CheckPathViolation(Pos) == NO)
+				if(CheckPathViolation(&*Pos) == NO)
 				{
 					/* フルパスを使わないための処理 */
 //					if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == FFFTP_SUCCESS)
-					if(MakeNonFullPath(Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
+					if(MakeNonFullPath(&*Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
 					{
 //						if(strncmp(TransPacketBase->Cmd, "RETR-S", 6) == 0)
 						if(strncmp(Pos->Cmd, "RETR-S", 6) == 0)
@@ -921,7 +737,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						// ミラーリング設定追加
 						if(Pos->NoTransfer == NO)
 						{
-							Sts = DoDownload(TrnSkt, Pos, NO, &Canceled[Pos->ThreadCount]) / 100;
+							Sts = DoDownload(TrnSkt, &*Pos, NO, &Canceled[Pos->ThreadCount]) / 100;
 							if(Sts != FTP_COMPLETE)
 								LastError = YES;
 							// ゾーンID設定追加
@@ -947,7 +763,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //				ReleaseMutex(hListAccMutex);
 				/* フルパスを使わないための処理 */
 //				if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == FFFTP_SUCCESS)
-				if(MakeNonFullPath(Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
+				if(MakeNonFullPath(&*Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
 				{
 					Up = YES;
 //					if(DoUpload(AskTrnCtrlSkt(), TransPacketBase) == 429)
@@ -957,7 +773,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					// ミラーリング設定追加
 					if(Pos->NoTransfer == NO)
 					{
-						Sts = DoUpload(TrnSkt, Pos) / 100;
+						Sts = DoUpload(TrnSkt, &*Pos) / 100;
 						if(Sts != FTP_COMPLETE)
 							LastError = YES;
 					}
@@ -978,7 +794,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			else if(strncmp(Pos->Cmd, "MKD", 3) == 0)
 			{
 //				DispTransFileInfo(TransPacketBase, MSGJPN078, FALSE, YES);
-				DispTransFileInfo(Pos, MSGJPN078, FALSE, YES);
+				DispTransFileInfo(&*Pos, MSGJPN078, FALSE, YES);
 
 //				if(strlen(TransPacketBase->RemoteFile) > 0)
 				if(strlen(Pos->RemoteFile) > 0)
@@ -1021,11 +837,11 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			else if(strncmp(Pos->Cmd, "R-MKD", 5) == 0)
 			{
 //				DispTransFileInfo(TransPacketBase, MSGJPN079, FALSE, YES);
-				DispTransFileInfo(Pos, MSGJPN079, FALSE, YES);
+				DispTransFileInfo(&*Pos, MSGJPN079, FALSE, YES);
 
 				/* フルパスを使わないための処理 */
 //				if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == FFFTP_SUCCESS)
-				if(MakeNonFullPath(Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
+				if(MakeNonFullPath(&*Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
 				{
 					Up = YES;
 //					CommandProcTrn(NULL, "%s%s", TransPacketBase->Cmd+2, TransPacketBase->RemoteFile);
@@ -1041,15 +857,15 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			else if(strncmp(Pos->Cmd, "R-RMD", 5) == 0)
 			{
 //				DispTransFileInfo(TransPacketBase, MSGJPN080, FALSE, YES);
-				DispTransFileInfo(Pos, MSGJPN080, FALSE, YES);
+				DispTransFileInfo(&*Pos, MSGJPN080, FALSE, YES);
 
 //				DelNotify = MirrorDelNotify(WIN_REMOTE, DelNotify, TransPacketBase);
-				DelNotify = MirrorDelNotify(WIN_REMOTE, DelNotify, Pos);
+				DelNotify = MirrorDelNotify(WIN_REMOTE, DelNotify, &*Pos);
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
 				{
 					/* フルパスを使わないための処理 */
 //					if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == FFFTP_SUCCESS)
-					if(MakeNonFullPath(Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
+					if(MakeNonFullPath(&*Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
 					{
 						Up = YES;
 //						CommandProcTrn(NULL, "%s%s", TransPacketBase->Cmd+2, TransPacketBase->RemoteFile);
@@ -1063,15 +879,15 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			else if(strncmp(Pos->Cmd, "R-DELE", 6) == 0)
 			{
 //				DispTransFileInfo(TransPacketBase, MSGJPN081, FALSE, YES);
-				DispTransFileInfo(Pos, MSGJPN081, FALSE, YES);
+				DispTransFileInfo(&*Pos, MSGJPN081, FALSE, YES);
 
 //				DelNotify = MirrorDelNotify(WIN_REMOTE, DelNotify, TransPacketBase);
-				DelNotify = MirrorDelNotify(WIN_REMOTE, DelNotify, Pos);
+				DelNotify = MirrorDelNotify(WIN_REMOTE, DelNotify, &*Pos);
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
 				{
 					/* フルパスを使わないための処理 */
 //					if(MakeNonFullPath(TransPacketBase, CurDir, Tmp) == FFFTP_SUCCESS)
-					if(MakeNonFullPath(Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
+					if(MakeNonFullPath(&*Pos, CurDir[Pos->ThreadCount], Tmp) == FFFTP_SUCCESS)
 					{
 						Up = YES;
 //						CommandProcTrn(NULL, "%s%s", TransPacketBase->Cmd+2, TransPacketBase->RemoteFile);
@@ -1085,7 +901,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			else if(strncmp(Pos->Cmd, "L-MKD", 5) == 0)
 			{
 //				DispTransFileInfo(TransPacketBase, MSGJPN082, FALSE, YES);
-				DispTransFileInfo(Pos, MSGJPN082, FALSE, YES);
+				DispTransFileInfo(&*Pos, MSGJPN082, FALSE, YES);
 
 				Down = YES;
 //				DoLocalMKD(TransPacketBase->LocalFile);
@@ -1097,10 +913,10 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			else if(strncmp(Pos->Cmd, "L-RMD", 5) == 0)
 			{
 //				DispTransFileInfo(TransPacketBase, MSGJPN083, FALSE, YES);
-				DispTransFileInfo(Pos, MSGJPN083, FALSE, YES);
+				DispTransFileInfo(&*Pos, MSGJPN083, FALSE, YES);
 
 //				DelNotify = MirrorDelNotify(WIN_LOCAL, DelNotify, TransPacketBase);
-				DelNotify = MirrorDelNotify(WIN_LOCAL, DelNotify, Pos);
+				DelNotify = MirrorDelNotify(WIN_LOCAL, DelNotify, &*Pos);
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
 				{
 					Down = YES;
@@ -1114,10 +930,10 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			else if(strncmp(Pos->Cmd, "L-DELE", 6) == 0)
 			{
 //				DispTransFileInfo(TransPacketBase, MSGJPN084, FALSE, YES);
-				DispTransFileInfo(Pos, MSGJPN084, FALSE, YES);
+				DispTransFileInfo(&*Pos, MSGJPN084, FALSE, YES);
 
 //				DelNotify = MirrorDelNotify(WIN_LOCAL, DelNotify, TransPacketBase);
-				DelNotify = MirrorDelNotify(WIN_LOCAL, DelNotify, Pos);
+				DelNotify = MirrorDelNotify(WIN_LOCAL, DelNotify, &*Pos);
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
 				{
 					Down = YES;
@@ -1196,9 +1012,9 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				{
 					for(i = 0; i < MAX_DATA_CONNECTION; i++)
 						Canceled[i] = YES;
-					if(Pos != NULL)
+					if (Pos != end(TransPacketBase))
 						strcpy(Pos->Cmd, "");
-					Pos = NULL;
+					Pos = end(TransPacketBase);
 					EraseTransFileList();
 					GoExit = YES;
 				}
@@ -1238,12 +1054,12 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			}
 			if(hWndTrans != NULL)
 				SendMessageW(hWndTrans, WM_SET_PACKET, 0, 0);
-			if(Pos != NULL)
+			if (Pos != end(TransPacketBase))
 				strcpy(Pos->Cmd, "");
 			LastUsed = timeGetTime();
 		}
 //		else
-		else if(TransPacketBase == NULL)
+		else if (empty(TransPacketBase))
 		{
 			ClearAll = NO;
 			DelNotify = NO;

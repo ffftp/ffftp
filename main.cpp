@@ -1821,7 +1821,6 @@ void DoubleClickProc(int Win, int Mode, int App)
 							MainTransPkt.NoTransfer = NO;
 							MainTransPkt.ExistSize = 0;
 							MainTransPkt.hWndTrans = NULL;
-							MainTransPkt.Next = NULL;
 
 							/* 不正なパスを検出 */
 							int Sts = 0;
