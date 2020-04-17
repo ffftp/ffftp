@@ -1821,14 +1821,13 @@ void DoubleClickProc(int Win, int Mode, int App)
 							MainTransPkt.NoTransfer = NO;
 							MainTransPkt.ExistSize = 0;
 							MainTransPkt.hWndTrans = NULL;
-							MainTransPkt.Next = NULL;
 
 							/* 不正なパスを検出 */
 							int Sts = 0;
 							DisableUserOpe();
-							if (CheckPathViolation(&MainTransPkt) == NO) {
+							if (CheckPathViolation(MainTransPkt) == NO) {
 								CancelFlg = NO;
-								Sts = DoDownload(AskCmdCtrlSkt(), &MainTransPkt, NO, &CancelFlg);
+								Sts = DoDownload(AskCmdCtrlSkt(), MainTransPkt, NO, &CancelFlg);
 								if (MarkAsInternet == YES && IsZoneIDLoaded() == YES)
 									MarkFileAsDownloadedFromInternet(data(remotePath));
 							}

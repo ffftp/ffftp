@@ -37,6 +37,7 @@
 #include <charconv>
 #include <chrono>
 #include <filesystem>
+#include <forward_list>
 #include <fstream>
 #include <future>
 #include <iterator>
@@ -1185,9 +1186,7 @@ struct HISTORYDATA : Host {
 };
 
 
-/*===== 転送ファイルリスト =====*/
-
-typedef struct transpacket {
+struct TRANSPACKET {
 	SOCKET ctrl_skt;				/* Socket */
 	char Cmd[40];					/* STOR/RETR/MKD */
 	char RemoteFile[FMAX_PATH+1];	/* ホスト側のファイル名（フルパス） */
@@ -1201,7 +1200,6 @@ typedef struct transpacket {
 	FILETIME Time;					/* ファイルの時間(UTC) */
 	int Attr;						/* ファイルの属性 */
 	int KanjiCode;					/* 漢字コード (KANJI_xxx) */
-	// UTF-8対応
 	int KanjiCodeDesired;			/* ローカルの漢字コード (KANJI_xxx) */
 	int KanaCnv;					/* 半角カナを全角に変換(YES/NO) */
 	int Mode;						/* 転送モード (EXIST_xxx) */
@@ -1213,12 +1211,9 @@ typedef struct transpacket {
 #endif
 	HWND hWndTrans;					/* 転送中ダイアログのウインドウハンドル */
 	int Abort;						/* 転送中止フラグ (ABORT_xxx) */
-	// ミラーリング設定追加
 	int NoTransfer;
-	// 同時接続対応
 	int ThreadCount;
-	struct transpacket *Next;
-} TRANSPACKET;
+};
 
 
 /*===== ファイルリスト =====*/
@@ -1612,21 +1607,20 @@ int MakeTransferThread(void);
 void CloseTransferThread(void);
 // 同時接続対応
 void AbortAllTransfer();
-int AddTmpTransFileList(TRANSPACKET *Pkt, TRANSPACKET **Base);
-void EraseTmpTransFileList(TRANSPACKET **Base);
-int RemoveTmpTransFileListItem(TRANSPACKET **Base, int Num);
+int AddTmpTransFileList(TRANSPACKET const& item, std::forward_list<TRANSPACKET>& list);
+int RemoveTmpTransFileListItem(std::forward_list<TRANSPACKET>& list, int Num);
 
 void AddTransFileList(TRANSPACKET *Pkt);
 // バグ対策
 void AddNullTransFileList();
-void AppendTransFileList(TRANSPACKET *Pkt);
+void AppendTransFileList(std::forward_list<TRANSPACKET>&& list);
 void KeepTransferDialog(int Sw);
 int AskTransferNow(void);
 int AskTransferFileNum(void);
 void GoForwardTransWindow(void);
 void InitTransCurDir(void);
-int DoDownload(SOCKET cSkt, TRANSPACKET *Pkt, int DirList, int *CancelCheckWork);
-int CheckPathViolation(TRANSPACKET *packet);
+int DoDownload(SOCKET cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork);
+int CheckPathViolation(TRANSPACKET const& item);
 // タスクバー進捗表示
 LONGLONG AskTransferSizeLeft(void);
 LONGLONG AskTransferSizeTotal(void);
@@ -1845,6 +1839,12 @@ constexpr auto data_as(Source const& source) {
 template<class Size, class Source>
 constexpr auto size_as(Source const& source) {
 	return static_cast<Size>(std::size(source));
+}
+template<class T, class Allocator>
+constexpr auto before_end(std::forward_list<T, Allocator>& list) {
+	for (auto it = list.before_begin();;)
+		if (auto prev = it++; it == end(list))
+			return prev;
 }
 template<class DstChar, class SrcChar, class Fn>
 static inline auto convert(Fn&& fn, std::basic_string_view<SrcChar> src) {

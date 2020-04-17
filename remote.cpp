@@ -684,9 +684,8 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Pat
 	MainTransPkt.NoTransfer = NO;
 	MainTransPkt.ExistSize = 0;
 	MainTransPkt.hWndTrans = hWnd;
-	MainTransPkt.Next = NULL;
 
-	Sts = DoDownload(cSkt, &MainTransPkt, YES, CancelCheckWork);
+	Sts = DoDownload(cSkt, MainTransPkt, YES, CancelCheckWork);
 
 //#pragma aaa
 //DoPrintf("===== DoDirList Done.");
