@@ -29,18 +29,43 @@
 
 #include "common.h"
 
+struct HOSTLISTDATA : HOSTDATA, std::enable_shared_from_this<HOSTLISTDATA> {
+	std::shared_ptr<HOSTLISTDATA> Next;
+	std::shared_ptr<HOSTLISTDATA> Prev;
+	std::shared_ptr<HOSTLISTDATA> Child;
+	std::shared_ptr<HOSTLISTDATA> Parent;
+	HOSTLISTDATA(HOSTDATA const& Set) : HOSTDATA{ Set } {}
 
-/*===== プロトタイプ =====*/
+	// 次の設定番号のノードを返す
+	//   empty=次はない
+	std::shared_ptr<HOSTLISTDATA> GetNext() {
+		auto p = shared_from_this();
+		if (p->Child)
+			return p->Child;
+		if (p->Next)
+			return p->Next;
+		while (p = p->Parent)
+			if (p->Next)
+				return p->Next;
+		return {};
+	}
 
-static HOSTLISTDATA *GetNextNode(HOSTLISTDATA *Pos);
-static int GetNodeLevel(int Num);
-static int GetNodeLevelByData(HOSTLISTDATA *Data);
-static int GetNodeNumByData(HOSTLISTDATA *Data);
-static HOSTLISTDATA *GetNodeByNum(int Num);
-static int SetNodeLevelAll(void);
+	// ノードのレベル数を返す
+	int GetLevel() {
+		int level = 0;
+		for (auto p = shared_from_this(); p->Parent; p = p->Parent)
+			level++;
+		return level;
+	}
+};
+
+static int GetLevel(int Num);
+static int GetNum(std::shared_ptr<HOSTLISTDATA> Data);
+static std::shared_ptr<HOSTLISTDATA> GetNode(int Num);
+static void SetNodeLevelAll();
 static int UpdateHostToList(int Num, HOSTDATA *Set);
 static int DelHostFromList(int Num);
-static int DeleteChildAndNext(HOSTLISTDATA *Pos);
+static void DeleteChildAndNext(std::shared_ptr<HOSTLISTDATA> Pos);
 static void SendAllHostNames(HWND hWnd, int Cur);
 static int IsNodeGroup(int Num);
 static bool DispHostSetDlg(HWND hDlg);
@@ -55,11 +80,11 @@ extern int NoRasControl;
 
 /*===== ローカルなワーク =====*/
 
-static int Hosts = 0;						/* ホスト数 */
-static int ConnectingHost;					/* 接続中のホスト */
-static int CurrentHost;						/* カーソル位置のホスト */
-static HOSTLISTDATA *HostListTop = NULL;	/* ホスト一覧データ */
-static HOSTDATA TmpHost;					/* ホスト情報コピー用 */
+static int Hosts = 0;								/* ホスト数 */
+static int ConnectingHost;							/* 接続中のホスト */
+static int CurrentHost;								/* カーソル位置のホスト */
+static std::shared_ptr<HOSTLISTDATA> HostListTop;	/* ホスト一覧データ */
+static HOSTDATA TmpHost;							/* ホスト情報コピー用 */
 
 // ホスト共通設定機能
 HOSTDATA DefaultHost;
@@ -113,7 +138,7 @@ struct HostList {
 				if (auto hItem = (HTREEITEM)SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) {
 					TVITEMW Item{ TVIF_PARAM, hItem };
 					SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
-					TmpHost.Level = GetNodeLevel((int)Item.lParam);
+					TmpHost.Level = GetLevel((int)Item.lParam);
 					Level1 = (int)Item.lParam + 1;
 					CurrentHost = Level1;
 				} else {
@@ -130,7 +155,7 @@ struct HostList {
 				if (auto hItem = (HTREEITEM)SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) {
 					TVITEMW Item{ TVIF_PARAM, hItem };
 					SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
-					TmpHost.Level = GetNodeLevel((int)Item.lParam) | SET_LEVEL_GROUP;
+					TmpHost.Level = GetLevel((int)Item.lParam) | SET_LEVEL_GROUP;
 					Level1 = (int)Item.lParam + 1;
 					CurrentHost = Level1;
 				} else {
@@ -187,18 +212,11 @@ struct HostList {
 				CurrentHost = (int)Item.lParam;
 
 				if (CurrentHost > 0) {
-					int Level1, Level2;
-					auto Data1 = HostListTop;
-					for (Level1 = CurrentHost; Level1 > 0; Level1--)
-						Data1 = GetNextNode(Data1);
-					Level1 = GetNodeLevel(CurrentHost);
-
-					auto Data2 = HostListTop;
-					for (Level2 = CurrentHost - 1; Level2 > 0; Level2--)
-						Data2 = GetNextNode(Data2);
-					Level2 = GetNodeLevel(CurrentHost - 1);
-
-					if (Level1 == Level2 && (Data2->Set.Level & SET_LEVEL_GROUP)) {
+					auto Data1 = GetNode(CurrentHost);
+					int Level1 = Data1->GetLevel();
+					auto Data2 = GetNode(CurrentHost - 1);
+					int Level2 = Data2->GetLevel();
+					if (Level1 == Level2 && (Data2->Level & SET_LEVEL_GROUP)) {
 						//Data2のchildへ
 						if (Data1->Next != NULL)
 							Data1->Next->Prev = Data1->Prev;
@@ -256,7 +274,7 @@ struct HostList {
 							HostListTop = Data1;
 					}
 
-					CurrentHost = GetNodeNumByData(Data1);
+					CurrentHost = GetNum(Data1);
 					SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
 				}
 			}
@@ -267,25 +285,19 @@ struct HostList {
 				SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
 				CurrentHost = (int)Item.lParam;
 
-				int Level1, Level2;
-				auto Data1 = HostListTop;
-				for (Level1 = CurrentHost; Level1 > 0; Level1--)
-					Data1 = GetNextNode(Data1);
-				Level1 = GetNodeLevel(CurrentHost);
-
-				HOSTLISTDATA* Data2 = NULL;
-				Level2 = SET_LEVEL_SAME;
+				auto Data1 = GetNode(CurrentHost);
+				int Level1 = Data1->GetLevel();
+				std::shared_ptr<HOSTLISTDATA> Data2;
+				int Level2 = SET_LEVEL_SAME;
 				if (CurrentHost < Hosts - 1) {
-					Data2 = HostListTop;
-					for (Level2 = CurrentHost + 1; Level2 > 0; Level2--)
-						Data2 = GetNextNode(Data2);
-					Level2 = GetNodeLevel(CurrentHost + 1);
+					Data2 = GetNode(CurrentHost + 1);
+					Level2 = Data2->GetLevel();
 
 					if (Level1 < Level2) {
 						if (Data1->Next != NULL) {
 							//Data2 = Data1のNext
 							Data2 = Data1->Next;
-							Level2 = GetNodeLevelByData(Data2);
+							Level2 = Data2->GetLevel();
 						} else if (Data1->Parent != NULL) {
 							Data2 = NULL;
 							Level2 = SET_LEVEL_SAME;
@@ -321,7 +333,7 @@ struct HostList {
 						HostListTop = Data2;
 				} else if (Level1 == Level2) {
 					__assume(Data2);
-					if (Data2->Set.Level & SET_LEVEL_GROUP) {
+					if (Data2->Level & SET_LEVEL_GROUP) {
 						//Data2のChildへ
 						if (Data1->Next != NULL)
 							Data1->Next->Prev = Data1->Prev;
@@ -363,7 +375,7 @@ struct HostList {
 					}
 				}
 
-				CurrentHost = GetNodeNumByData(Data1);
+				CurrentHost = GetNum(Data1);
 				SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
 			}
 			break;
@@ -416,613 +428,242 @@ int SelectHost(int Type) {
 }
 
 
-/*----- 次の設定番号のノードを返す --------------------------------------------
-*
-*	Parameter
-*		HOSTLISTDATA *Pos : ノードデータ
-*
-*	Return Value
-*		HOSTLISTDATA *次のノード
-*			NULL=次はない
-*----------------------------------------------------------------------------*/
+// ノードのレベル数を返す
+//   -1=設定がない
+static int GetLevel(int Num) {
+	if (Num < 0 || Hosts <= Num)
+		return -1;
+	return GetNode(Num)->GetLevel();
+}
 
-static HOSTLISTDATA *GetNextNode(HOSTLISTDATA *Pos)
-{
-	HOSTLISTDATA *Ret;
 
-	Ret = NULL;
-	if(Pos->Child != NULL)
-		Ret = Pos->Child;
-	else
-	{
-		if(Pos->Next != NULL)
-			Ret = Pos->Next;
-		else
-		{
-			while(Pos->Parent != NULL)
-			{
-				Pos = Pos->Parent;
-				if(Pos->Next != NULL)
-				{
-					Ret = Pos->Next;
-					break;
-				}
-			}
+// ノードの設定番号を返す
+static int GetNum(std::shared_ptr<HOSTLISTDATA> Data) {
+	int num = 0;
+	for (auto Pos = HostListTop; Pos != Data; Pos = Pos->GetNext())
+		num++;
+	return num;
+}
+
+
+// 指定番号のノードを返す
+static std::shared_ptr<HOSTLISTDATA> GetNode(int Num) {
+	auto Pos = HostListTop;
+	while (0 < Num--)
+		Pos = Pos->GetNext();
+	return Pos;
+}
+
+
+// 設定値リストの各ノードのレベル番号をセット
+static void SetNodeLevelAll() {
+	auto Pos = HostListTop;
+	for (int i = 0; i < Hosts; i++) {
+		Pos->Level = Pos->Level & ~SET_LEVEL_MASK | Pos->GetLevel();
+		Pos = Pos->GetNext();
+	}
+}
+
+
+// 設定値リストに追加
+//   HOSTDATA *Set : 追加する設定値
+//   int Pos : 追加する位置 (0～ : -1=最後)
+//   int Level : レベル数 (SET_LEVEL_SAME=追加位置のものと同レベル)
+int AddHostToList(HOSTDATA* Set, int Pos, int Level) {
+	if (Pos == -1)
+		Pos = Hosts;
+	if (Pos < 0 || Hosts < Pos)
+		return FFFTP_FAIL;
+	Level &= SET_LEVEL_MASK;
+
+	auto New = std::make_shared<HOSTLISTDATA>(*Set);
+	if (Pos == 0) {
+		if (HostListTop)
+			New->Next = HostListTop;
+		HostListTop = New;
+	} else {
+		auto Last = GetNode(Pos - 1);
+		int Cur = Last->GetLevel();
+		if (Cur < Level && Level != SET_LEVEL_SAME) {
+			New->Next = Last->Child;
+			New->Parent = Last;
+			Last->Child = New;
+		} else {
+			if (0 <= Level && Level < SET_LEVEL_SAME)
+				while (Level < Cur--)
+					Last = Last->Parent;
+			New->Prev = Last;
+			New->Next = Last->Next;
+			New->Parent = Last->Parent;
+			Last->Next = New;
 		}
+		if (New->Next)
+			New->Next->Prev = New;
 	}
-	return(Ret);
+	Hosts++;
+	return FFFTP_SUCCESS;
 }
 
 
-/*----- ノードのレベル数を返す（設定番号指定） --------------------------------
-*
-*	Parameter
-*		int Num : 設定値号番号
-*
-*	Return Value
-*		int レベル数 (-1=設定がない）
-*----------------------------------------------------------------------------*/
+// 設定値リストを更新する
+static int UpdateHostToList(int Num, HOSTDATA* Set) {
+	if (Num < 0 || Hosts <= Num)
+		return FFFTP_FAIL;
+	auto Pos = GetNode(Num);
+	*Pos = *Set;
+	return FFFTP_SUCCESS;
+}
 
-static int GetNodeLevel(int Num)
-{
-	int Ret;
-	HOSTLISTDATA *Pos;
 
-	Ret = -1;
-	if((Num >= 0) && (Num < Hosts))
-	{
-		Pos = GetNodeByNum(Num);
-		Ret = 0;
-		while(Pos->Parent != NULL)
-		{
-			Pos = Pos->Parent;
-			Ret++;
-		}
+// 設定値リストから削除
+static int DelHostFromList(int Num) {
+	if (Num < 0 || Hosts <= Num)
+		return FFFTP_FAIL;
+	auto Pos = GetNode(Num);
+	DeleteChildAndNext(Pos);
+	if (Num == 0)
+		HostListTop = Pos->Next;
+	else {
+		if (Pos->Next)
+			Pos->Next->Prev = Pos->Prev;
+		if (Pos->Prev)
+			Pos->Prev->Next = Pos->Next;
+		if (Pos->Parent && Pos->Parent->Child == Pos)
+			Pos->Parent->Child = Pos->Next;
 	}
-	return(Ret);
+	//free(Pos);
+	Hosts--;
+	return FFFTP_SUCCESS;
 }
 
 
-/*----- ノードのレベル数を返す（ノードデータ指定）-----------------------------
-*
-*	Parameter
-*		HOSTLISTDATA *Data : 設定値
-*
-*	Return Value
-*		int レベル数
-*----------------------------------------------------------------------------*/
-
-static int GetNodeLevelByData(HOSTLISTDATA *Data)
-{
-	int Ret;
-
-	Ret = 0;
-	while(Data->Parent != NULL)
-	{
-		Data = Data->Parent;
-		Ret++;
-	}
-	return(Ret);
-}
-
-
-/*----- ノードの設定番号を返す ------------------------------------------------
-*
-*	Parameter
-*		HOSTLISTDATA *Data : 設定値
-*
-*	Return Value
-*		int 設定番号
-*----------------------------------------------------------------------------*/
-
-static int GetNodeNumByData(HOSTLISTDATA *Data)
-{
-	int Ret;
-	HOSTLISTDATA *Pos;
-
-	Ret = 0;
-	Pos = HostListTop;
-	while(Pos != Data)
-	{
-		Pos = GetNextNode(Pos);
-		Ret++;
-	}
-	return(Ret);
-}
-
-
-/*----- 指定番号のノードを返す ------------------------------------------------
-*
-*	Parameter
-*		int Num : 設定番号
-*
-*	Return Value
-*		HOSTLISTDATA * : 設定値
-*----------------------------------------------------------------------------*/
-
-static HOSTLISTDATA *GetNodeByNum(int Num)
-{
-	HOSTLISTDATA *Pos;
-
-	Pos = HostListTop;
-	for(; Num > 0; Num--)
-		Pos = GetNextNode(Pos);
-
-	return(Pos);
-}
-
-
-/*----- 設定値リストの各ノードのレベル番号をセット ----------------------------
-*
-*	Parameter
-*		int Num : 設定番号
-*
-*	Return Value
-*		HOSTLISTDATA * : 設定値
-*----------------------------------------------------------------------------*/
-
-static int SetNodeLevelAll(void)
-{
-	HOSTLISTDATA *Pos;
-	int i;
-
-	Pos = HostListTop;
-	for(i = 0; i < Hosts; i++)
-	{
-		Pos->Set.Level &= ~SET_LEVEL_MASK;
-		Pos->Set.Level |= GetNodeLevelByData(Pos);
-		Pos = GetNextNode(Pos);
-	}
-	return(FFFTP_SUCCESS);
-}
-
-
-/*----- 設定値リストに追加 ----------------------------------------------------
-*
-*	Parameter
-*		HOSTDATA *Set : 追加する設定値
-*		int Pos : 追加する位置 (0～ : -1=最後)
-*		int Level : レベル数 (SET_LEVEL_SAME=追加位置のものと同レベル)
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int AddHostToList(HOSTDATA *Set, int Pos, int Level)
-{
-	int Sts;
-	HOSTLISTDATA *New;
-	HOSTLISTDATA *Last;
-	int Cur;
-
-	Sts = FFFTP_FAIL;
-	if((Pos >= -1) && (Pos <= Hosts))
-	{
-		if(Pos == -1)
-			Pos = Hosts;
-		Level &= SET_LEVEL_MASK;
-
-		if((New = (HOSTLISTDATA*)malloc(sizeof(HOSTLISTDATA))) != NULL)
-		{
-			memcpy(&New->Set, Set, sizeof(HOSTDATA));
-			New->Next = NULL;
-			New->Prev = NULL;
-			New->Child = NULL;
-			New->Parent = NULL;
-
-			if(HostListTop == NULL)
-			{
-				if(Pos == 0)
-					HostListTop = New;
-			}
-			else
-			{
-				if(Pos == 0)
-				{
-					New->Next = HostListTop;
-					HostListTop = New;
-				}
-				else
-				{
-					Cur = GetNodeLevel(Pos-1);
-					Last = HostListTop;
-					for(Pos--; Pos > 0; Pos--)
-						Last = GetNextNode(Last);
-					if((Level != SET_LEVEL_SAME) && (Level > Cur))
-					{
-						New->Next = Last->Child;
-						New->Parent = Last;
-						Last->Child = New;
-						if(New->Next != NULL)
-							New->Next->Prev = New;
-					}
-					else
-					{
-						if((Level >= 0) && (Level < SET_LEVEL_SAME))
-						{
-							for(; Level < Cur; Cur--)
-								Last = Last->Parent;
-						}
-						New->Prev = Last;
-						New->Next = Last->Next;
-						New->Parent = Last->Parent;
-						Last->Next = New;
-						if(New->Next != NULL)
-							New->Next->Prev = New;
-					}
-				}
-			}
-			Hosts++;
-			Sts = FFFTP_SUCCESS;
-		}
-	}
-	return(Sts);
-}
-
-
-/*----- 設定値リストを更新する ------------------------------------------------
-*
-*	Parameter
-*		int Num : 設定値号番号
-*		HOSTDATA *Set : 設定値をコピーするワーク
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int UpdateHostToList(int Num, HOSTDATA *Set)
-{
-	int Sts;
-	HOSTLISTDATA *Pos;
-
-	Sts = FFFTP_FAIL;
-	if((Num >= 0) && (Num < Hosts))
-	{
-		Pos = GetNodeByNum(Num);
-		memcpy(&Pos->Set, Set, sizeof(HOSTDATA));
-		Sts = FFFTP_SUCCESS;
-	}
-	return(Sts);
-}
-
-
-/*----- 設定値リストから削除 --------------------------------------------------
-*
-*	Parameter
-*		int Num : 削除する番号
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int DelHostFromList(int Num)
-{
-	int Sts;
-	HOSTLISTDATA *Pos;
-
-	Sts = FFFTP_FAIL;
-	if((Num >= 0) && (Num < Hosts))
-	{
-		if(Num == 0)
-		{
-			Pos = HostListTop;
-			if(Pos->Child != NULL)
-				DeleteChildAndNext(Pos->Child);
-			HostListTop = Pos->Next;
-		}
-		else
-		{
-			Pos = GetNodeByNum(Num);
-			if(Pos->Child != NULL)
-				DeleteChildAndNext(Pos->Child);
-
-			if(Pos->Next != NULL)
-				Pos->Next->Prev = Pos->Prev;
-			if(Pos->Prev != NULL)
-				Pos->Prev->Next = Pos->Next;
-			if((Pos->Parent != NULL) && (Pos->Parent->Child == Pos))
-				Pos->Parent->Child = Pos->Next;
-		}
-		free(Pos);
-		Hosts--;
-		Sts = FFFTP_SUCCESS;
-	}
-	return(Sts);
-}
-
-
-/*----- 設定値リストからノードデータを削除 ------------------------------------
-*
-*	Parameter
-*		HOSTLISTDATA *Pos : 削除するノード
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*
-*	Note
-*		Pos->Next, Pos->Childの全てのノードを削除する
-*----------------------------------------------------------------------------*/
-
-static int DeleteChildAndNext(HOSTLISTDATA *Pos)
-{
-	HOSTLISTDATA *Next;
-
-	while(Pos != NULL)
-	{
-		if(Pos->Child != NULL)
-			DeleteChildAndNext(Pos->Child);
-
-		Next = Pos->Next;
-		free(Pos);
+// 設定値リストからノードデータを削除
+//   Pos->Next, Pos->Childの全てのノードを削除する
+static void DeleteChildAndNext(std::shared_ptr<HOSTLISTDATA> Pos) {
+	if (!Pos->Child)
+		return;
+	Pos = Pos->Child;
+	while (Pos) {
+		DeleteChildAndNext(Pos);
+		auto Next = Pos->Next;
+		//free(Pos);
 		Hosts--;
 		Pos = Next;
 	}
-	return(FFFTP_SUCCESS);
 }
 
 
-/*----- 設定値リストから設定値を取り出す --------------------------------------
-*
-*	Parameter
-*		int Num : 設定値号番号
-*		HOSTDATA *Set : 設定値をコピーするワーク
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*
-*	Note
-*		現在ホストに接続中の時は、CopyHostFromListInConnect() を使う事
-*----------------------------------------------------------------------------*/
-
-int CopyHostFromList(int Num, HOSTDATA *Set)
-{
-	int Sts;
-	HOSTLISTDATA *Pos;
-
-	Sts = FFFTP_FAIL;
-	if((Num >= 0) && (Num < Hosts))
-	{
-		Pos = GetNodeByNum(Num);
-		memcpy(Set, &Pos->Set, sizeof(HOSTDATA));
-		Sts = FFFTP_SUCCESS;
-	}
-	return(Sts);
+// 設定値リストから設定値を取り出す
+//   現在ホストに接続中の時は、CopyHostFromListInConnect() を使う事
+int CopyHostFromList(int Num, HOSTDATA* Set) {
+	if (Num < 0 || Hosts <= Num)
+		return FFFTP_FAIL;
+	auto Pos = GetNode(Num);
+	*Set = *Pos;
+	return FFFTP_SUCCESS;
 }
 
 
-/*----- 設定値リストから設定値を取り出す --------------------------------------
-*
-*	Parameter
-*		int Num : 設定値号番号
-*		HOSTDATA *Set : 設定値をコピーするワーク
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*
-*	Note
-*		現在ホストに接続中の時に使う
-*----------------------------------------------------------------------------*/
-
-int CopyHostFromListInConnect(int Num, HOSTDATA *Set)
-{
-	int Sts;
-	HOSTLISTDATA *Pos;
-
-	Sts = FFFTP_FAIL;
-	if((Num >= 0) && (Num < Hosts))
-	{
-		Pos = GetNodeByNum(Num);
-		strcpy(Set->ChmodCmd, Pos->Set.ChmodCmd);
-		Set->Port = Pos->Set.Port;
-		Set->Anonymous = Pos->Set.Anonymous;
-		Set->KanjiCode = Pos->Set.KanjiCode;
-		Set->KanaCnv = Pos->Set.KanaCnv;
-		Set->NameKanjiCode = Pos->Set.NameKanjiCode;
-		Set->NameKanaCnv = Pos->Set.NameKanaCnv;
-		Set->Pasv = Pos->Set.Pasv;
-		Set->FireWall = Pos->Set.FireWall;
-		Set->ListCmdOnly = Pos->Set.ListCmdOnly;
-		Set->UseNLST_R = Pos->Set.UseNLST_R;
-		Set->LastDir = Pos->Set.LastDir;
-		Set->TimeZone = Pos->Set.TimeZone;
-		// 暗号化通信対応
-		Set->UseNoEncryption = Pos->Set.UseNoEncryption;
-		Set->UseFTPES = Pos->Set.UseFTPES;
-		Set->UseFTPIS = Pos->Set.UseFTPIS;
-		Set->UseSFTP = Pos->Set.UseSFTP;
-		strcpy(Set->PrivateKey, Pos->Set.PrivateKey);
-		// 同時接続対応
-		Set->MaxThreadCount = Pos->Set.MaxThreadCount;
-		Set->ReuseCmdSkt = Pos->Set.ReuseCmdSkt;
-		// MLSD対応
-		Set->UseMLSD = Pos->Set.UseMLSD;
-		// 自動切断対策
-		Set->NoopInterval = Pos->Set.NoopInterval;
-		// 再転送対応
-		Set->TransferErrorMode = Pos->Set.TransferErrorMode;
-		Set->TransferErrorNotify = Pos->Set.TransferErrorNotify;
-		// セッションあたりの転送量制限対策
-		Set->TransferErrorReconnect = Pos->Set.TransferErrorReconnect;
-		// ホスト側の設定ミス対策
-		Set->NoPasvAdrs = Pos->Set.NoPasvAdrs;
-		Sts = FFFTP_SUCCESS;
-	}
-	return(Sts);
+// 設定値リストから設定値を取り出す
+//   現在ホストに接続中の時に使う
+int CopyHostFromListInConnect(int Num, HOSTDATA* Set) {
+	if (Num < 0 || Hosts <= Num)
+		return FFFTP_FAIL;
+	auto Pos = GetNode(Num);
+	strcpy(Set->ChmodCmd, Pos->ChmodCmd);
+	Set->Port = Pos->Port;
+	Set->Anonymous = Pos->Anonymous;
+	Set->KanjiCode = Pos->KanjiCode;
+	Set->KanaCnv = Pos->KanaCnv;
+	Set->NameKanjiCode = Pos->NameKanjiCode;
+	Set->NameKanaCnv = Pos->NameKanaCnv;
+	Set->Pasv = Pos->Pasv;
+	Set->FireWall = Pos->FireWall;
+	Set->ListCmdOnly = Pos->ListCmdOnly;
+	Set->UseNLST_R = Pos->UseNLST_R;
+	Set->LastDir = Pos->LastDir;
+	Set->TimeZone = Pos->TimeZone;
+	Set->UseNoEncryption = Pos->UseNoEncryption;
+	Set->UseFTPES = Pos->UseFTPES;
+	Set->UseFTPIS = Pos->UseFTPIS;
+	Set->UseSFTP = Pos->UseSFTP;
+	strcpy(Set->PrivateKey, Pos->PrivateKey);
+	Set->MaxThreadCount = Pos->MaxThreadCount;
+	Set->ReuseCmdSkt = Pos->ReuseCmdSkt;
+	Set->UseMLSD = Pos->UseMLSD;
+	Set->NoopInterval = Pos->NoopInterval;
+	Set->TransferErrorMode = Pos->TransferErrorMode;
+	Set->TransferErrorNotify = Pos->TransferErrorNotify;
+	Set->TransferErrorReconnect = Pos->TransferErrorReconnect;
+	Set->NoPasvAdrs = Pos->NoPasvAdrs;
+	return FFFTP_SUCCESS;
 }
 
 
-/*----- 設定値リストのブックマークを更新 --------------------------------------
-*
-*	Parameter
-*		int Num : 設定値号番号
-*		char *Bmask : ブックマーク文字列
-*		int Len : ブックマーク文字列の長さ
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int SetHostBookMark(int Num, char *Bmask, int Len)
-{
-	int Sts;
-	HOSTLISTDATA *Pos;
-
-	Sts = FFFTP_FAIL;
-	if((Num >= 0) && (Num < Hosts))
-	{
-		Pos = GetNodeByNum(Num);
-		memcpy(Pos->Set.BookMark, Bmask, Len);
-		Sts = FFFTP_SUCCESS;
-	}
-	return(Sts);
+// 設定値リストのブックマークを更新
+int SetHostBookMark(int Num, char* Bmask, int Len) {
+	if (Num < 0 || Hosts <= Num)
+		return FFFTP_FAIL;
+	auto Pos = GetNode(Num);
+	memcpy(Pos->BookMark, Bmask, Len);
+	return FFFTP_SUCCESS;
 }
 
 
-/*----- 設定値リストのブックマーク文字列を返す --------------------------------
-*
-*	Parameter
-*		int Num : 設定値号番号
-*
-*	Return Value
-*		char *ブックマーク文字列
-*----------------------------------------------------------------------------*/
-
-char *AskHostBookMark(int Num)
-{
-	char *Ret;
-	HOSTLISTDATA *Pos;
-
-	Ret = NULL;
-	if((Num >= 0) && (Num < Hosts))
-	{
-		Pos = GetNodeByNum(Num);
-		Ret = Pos->Set.BookMark;
-	}
-	return(Ret);
+// 設定値リストのブックマーク文字列を返す
+char* AskHostBookMark(int Num) {
+	if (Num < 0 || Hosts <= Num)
+		return nullptr;
+	auto Pos = GetNode(Num);
+	return Pos->BookMark;
 }
 
 
-/*----- 設定値リストのディレクトリを更新 --------------------------------------
-*
-*	Parameter
-*		int Num : 設定値号番号
-*		char *LocDir : ローカルのディレクトリ
-*		char *HostDir : ホストのディレクトリ
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int SetHostDir(int Num, const char* LocDir, const char* HostDir)
-{
-	int Sts;
-	HOSTLISTDATA *Pos;
-
-	Sts = FFFTP_FAIL;
-	if((Num >= 0) && (Num < Hosts))
-	{
-		Pos = GetNodeByNum(Num);
-		strcpy(Pos->Set.LocalInitDir, LocDir);
-		strcpy(Pos->Set.RemoteInitDir, HostDir);
-		Sts = FFFTP_SUCCESS;
-	}
-	return(Sts);
+// 設定値リストのディレクトリを更新
+int SetHostDir(int Num, const char* LocDir, const char* HostDir) {
+	if (Num < 0 || Hosts <= Num)
+		return FFFTP_FAIL;
+	auto Pos = GetNode(Num);
+	strcpy(Pos->LocalInitDir, LocDir);
+	strcpy(Pos->RemoteInitDir, HostDir);
+	return FFFTP_SUCCESS;
 }
 
 
-/*----- 設定値リストのパスワードを更新 ----------------------------------------
-*
-*	Parameter
-*		int Num : 設定値号番号
-*		char *Pass : パスワード
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int SetHostPassword(int Num, char *Pass)
-{
-	int Sts;
-	HOSTLISTDATA *Pos;
-
-	Sts = FFFTP_FAIL;
-	if((Num >= 0) && (Num < Hosts))
-	{
-		Pos = GetNodeByNum(Num);
-		strcpy(Pos->Set.PassWord, Pass);
-		Sts = FFFTP_SUCCESS;
-	}
-	return(Sts);
+// 設定値リストのパスワードを更新
+int SetHostPassword(int Num, char* Pass) {
+	if (Num < 0 || Hosts <= Num)
+		return FFFTP_FAIL;
+	auto Pos = GetNode(Num);
+	strcpy(Pos->PassWord, Pass);
+	return FFFTP_SUCCESS;
 }
 
 
-/*----- 指定の設定名を持つ設定の番号を返す ------------------------------------
-*
-*	Parameter
-*		char *Name : 設定名
-*
-*	Return Value
-*		int 設定番号 (0～)
-*			-1=見つからない
-*----------------------------------------------------------------------------*/
-
-int SearchHostName(char *Name)
-{
-	int Ret;
-	int i;
-	HOSTLISTDATA *Pos;
-
-	Ret = -1;
-	Pos = HostListTop;
-	for(i = 0; i < Hosts; i++)
-	{
-		if(strcmp(Name, Pos->Set.HostName) == 0)
-		{
-			Ret = i;
-			break;
-		}
-		Pos = GetNextNode(Pos);
+// 指定の設定名を持つ設定の番号を返す
+//   -1=見つからない
+int SearchHostName(char* Name) {
+	auto Pos = HostListTop;
+	for (int i = 0; i < Hosts; i++) {
+		if (strcmp(Name, Pos->HostName) == 0)
+			return i;
+		Pos = Pos->GetNext();
 	}
-	return(Ret);
+	return -1;
 }
 
 
-/*----- 設定値リストのソート方法を更新 ----------------------------------------
-*
-*	Parameter
-*		int Num : 設定値号番号
-*		int LFSort : ローカルのファイルのソート方法
-*		int LDSort : ローカルのフォルダのソート方法
-*		int RFSort : リモートのファイルのソート方法
-*		int RDSort : リモートのフォルダのソート方法
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int SetHostSort(int Num, int LFSort, int LDSort, int RFSort, int RDSort)
-{
-	int Sts;
-	HOSTLISTDATA *Pos;
-
-	Sts = FFFTP_FAIL;
-	if((Num >= 0) && (Num < Hosts))
-	{
-		Pos = GetNodeByNum(Num);
-		Pos->Set.Sort = LFSort * 0x1000000 | LDSort * 0x10000 | RFSort * 0x100 | RDSort;
-		Sts = FFFTP_SUCCESS;
-	}
-	return(Sts);
+// 設定値リストのソート方法を更新
+//   int LFSort : ローカルのファイルのソート方法
+//   int LDSort : ローカルのフォルダのソート方法
+//   int RFSort : リモートのファイルのソート方法
+//   int RDSort : リモートのフォルダのソート方法
+int SetHostSort(int Num, int LFSort, int LDSort, int RFSort, int RDSort) {
+	if (Num < 0 || Hosts <= Num)
+		return FFFTP_FAIL;
+	auto Pos = GetNode(Num);
+	Pos->Sort = LFSort * 0x1000000 | LDSort * 0x10000 | RFSort * 0x100 | RDSort;
+	return FFFTP_SUCCESS;
 }
 
 
@@ -1049,84 +690,21 @@ void DecomposeSortType(ulong Sort, int *LFSort, int *LDSort, int *RFSort, int *R
 }
 
 
-/*----- 現在接続中の設定番号を返す --------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int 設定番号
-*----------------------------------------------------------------------------*/
-
-int AskCurrentHost(void)
-{
-	return(ConnectingHost);
+// 現在接続中の設定番号を返す
+int AskCurrentHost() {
+	return ConnectingHost;
 }
 
 
-/*----- 現在接続中の設定番号をセットする --------------------------------------
-*
-*	Parameter
-*		int Num : 設定番号
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetCurrentHost(int Num)
-{
+// 現在接続中の設定番号をセットする
+void SetCurrentHost(int Num) {
 	ConnectingHost = Num;
-	return;
 }
 
 
-/*----- デフォルト設定値を取り出す --------------------------------------------
-*
-*	Parameter
-*		HOSTDATA *Set : 設定値をコピーするワーク
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void CopyDefaultHost(HOSTDATA *Set)
-{
-	// ホスト共通設定機能
-//	Set->Level = 0;
-//	strcpy(Set->HostName, "");
-//	strcpy(Set->HostAdrs, "");
-//	strcpy(Set->UserName, "");
-//	strcpy(Set->PassWord, "");
-//	strcpy(Set->Account, "");
-//	strcpy(Set->LocalInitDir, DefaultLocalPath);
-//	strcpy(Set->RemoteInitDir, "");
-//	memcpy(Set->BookMark, "\0\0", 2);
-//	strcpy(Set->ChmodCmd, CHMOD_CMD_NOR);
-//	strcpy(Set->LsName, LS_FNAME);
-//	strcpy(Set->InitCmd, "");
-//	Set->Port = PORT_NOR;
-//	Set->Anonymous = NO;
-//	Set->KanjiCode = KANJI_NOCNV;
-//	Set->KanaCnv = YES;
-//	Set->NameKanjiCode = KANJI_NOCNV;
-//	Set->NameKanaCnv = NO;
-//	Set->Pasv = YES;
-//	Set->FireWall = NO;
-//	Set->ListCmdOnly = YES;
-//	Set->UseNLST_R = YES;
-//	Set->LastDir = NO;
-//	Set->TimeZone = 9;				/* GMT+9 (JST) */
-//	Set->HostType = HTYPE_AUTO;
-//	Set->SyncMove = NO;
-//	Set->NoFullPath = NO;
-//	Set->Sort = SORT_NOTSAVED;
-//	Set->Security = SECURITY_AUTO;
-//	Set->Dialup = NO;
-//	Set->DialupAlways = NO;
-//	Set->DialupNotify = YES;
-//	strcpy(Set->DialEntry, "");
-	memcpy(Set, &DefaultHost, sizeof(HOSTDATA));
-	return;
+// デフォルト設定値を取り出す
+void CopyDefaultHost(HOSTDATA* Set) {
+	*Set = DefaultHost;
 }
 
 
@@ -1145,95 +723,47 @@ HostExeptPassword::HostExeptPassword() {
 	strcpy(LocalInitDir, DefaultLocalPath);
 }
 
-/*----- 設定名一覧をウィンドウに送る ------------------------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		int Cur : 
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
 
-static void SendAllHostNames(HWND hWnd, int Cur)
-{
-	int i;
-	HOSTLISTDATA *Pos;
-	HTREEITEM hItem;
-	HTREEITEM hItemCur;
-	HTREEITEM *Level;
-	int CurLevel;
+// 設定名一覧をウィンドウに送る
+static void SendAllHostNames(HWND hWnd, int Cur) {
+	HTREEITEM hItemCur = NULL;
+	SendMessageW(hWnd, WM_SETREDRAW, false, 0);				// ちらつき防止
+	SendMessageW(hWnd, TVM_DELETEITEM, 0, (LPARAM)TVI_ROOT);
 
-	hItemCur = NULL;
-
-	/* ちらつくので再描画禁止 */
-	SendMessageW(hWnd, WM_SETREDRAW, false, 0);
-
-	SendMessageW(hWnd, TVM_DELETEITEM, 0, (LPARAM)TVI_ROOT);		/* 全てを削除 */
-
-	if((Level = (HTREEITEM*)malloc(sizeof(HTREEITEM*) * Hosts + 1)) != NULL)
-	{
-		Pos = HostListTop;
-		for(i = 0; i < Hosts; i++)
-		{
-			CurLevel = GetNodeLevel(i);
-			auto whost = u8(Pos->Set.HostName);
-			TVINSERTSTRUCTW is{
-				.hParent = CurLevel == 0 ? TVI_ROOT : Level[CurLevel - 1],
-				.hInsertAfter = TVI_LAST,
-				.item = { .mask = TVIF_TEXT | TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM, .pszText = data(whost), .cChildren = 1, .lParam = i },
-			};
-			if (!(Pos->Set.Level & SET_LEVEL_GROUP))
-				is.item.iImage = is.item.iSelectedImage = 2;
-			hItem = (HTREEITEM)SendMessageW(hWnd, TVM_INSERTITEMW, 0, (LPARAM)&is);
-
-			if(Pos->Set.Level & SET_LEVEL_GROUP)
-				Level[CurLevel] = hItem;
-
-			if(i == Cur)
-			{
-				hItemCur = hItem;
-			}
-			Pos = GetNextNode(Pos);
-		}
-		free(Level);
+	std::vector<HTREEITEM> Level(Hosts);
+	auto Pos = HostListTop;
+	for (int i = 0; i < Hosts; i++) {
+		size_t CurLevel = Pos->GetLevel();
+		auto whost = u8(Pos->HostName);
+		TVINSERTSTRUCTW is{
+			.hParent = CurLevel == 0 ? TVI_ROOT : Level[CurLevel - 1],
+			.hInsertAfter = TVI_LAST,
+			.item = { .mask = TVIF_TEXT | TVIF_CHILDREN | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM, .pszText = data(whost), .cChildren = 1, .lParam = i },
+		};
+		if (!(Pos->Level & SET_LEVEL_GROUP))
+			is.item.iImage = is.item.iSelectedImage = 2;
+		auto hItem = (HTREEITEM)SendMessageW(hWnd, TVM_INSERTITEMW, 0, (LPARAM)&is);
+		if (Pos->Level & SET_LEVEL_GROUP)
+			Level[CurLevel] = hItem;
+		if (i == Cur)
+			hItemCur = hItem;
+		Pos = Pos->GetNext();
 	}
 
-	/* 再描画 */
-	SendMessageW(hWnd, WM_SETREDRAW, true, 0);
-
-	if(hItemCur != NULL)
-	{
+	SendMessageW(hWnd, WM_SETREDRAW, true, 0);				// 描画再開
+	if (hItemCur != NULL)
 		SendMessageW(hWnd, TVM_SELECTITEM, TVGN_CARET, (LPARAM)hItemCur);
-	}
 	UpdateWindow(hWnd);
-
-	return;
 }
 
 
-/*----- 設定値がグループかどうかを返す ----------------------------------------
-*
-*	Parameter
-*		int Num : 設定値号番号
-*
-*	Return Value
-*		int グループかどうか
-*			YES/NO/-1=設定値がない
-*----------------------------------------------------------------------------*/
-
-static int IsNodeGroup(int Num)
-{
-	int Ret;
-	HOSTLISTDATA *Pos;
-
-	Ret = -1;
-	if((Num >= 0) && (Num < Hosts))
-	{
-		Pos = GetNodeByNum(Num);
-		Ret = (Pos->Set.Level & SET_LEVEL_GROUP) ? YES : NO;
-	}
-	return(Ret);
+// 設定値がグループかどうかを返す
+//   -1=設定値がない
+static int IsNodeGroup(int Num) {
+	if (Num < 0 || Hosts <= Num)
+		return -1;
+	auto Pos = GetNode(Num);
+	return (Pos->Level & SET_LEVEL_GROUP) ? YES : NO;
 }
 
 
@@ -1767,21 +1297,13 @@ static bool DispHostSetDlg(HWND hDlg) {
 
 // 暗号化通信対応
 // ホストの暗号化設定を更新
-int SetHostEncryption(int Num, int UseNoEncryption, int UseFTPES, int UseFTPIS, int UseSFTP)
-{
-	int Sts;
-	HOSTLISTDATA *Pos;
-
-	Sts = FFFTP_FAIL;
-	if((Num >= 0) && (Num < Hosts))
-	{
-		Pos = GetNodeByNum(Num);
-		Pos->Set.UseNoEncryption = UseNoEncryption;
-		Pos->Set.UseFTPES = UseFTPES;
-		Pos->Set.UseFTPIS = UseFTPIS;
-		Pos->Set.UseSFTP = UseSFTP;
-		Sts = FFFTP_SUCCESS;
-	}
-	return(Sts);
+int SetHostEncryption(int Num, int UseNoEncryption, int UseFTPES, int UseFTPIS, int UseSFTP) {
+	if (Num < 0 || Hosts <= Num)
+		return FFFTP_FAIL;
+	auto Pos = GetNode(Num);
+	Pos->UseNoEncryption = UseNoEncryption;
+	Pos->UseFTPES = UseFTPES;
+	Pos->UseFTPIS = UseFTPIS;
+	Pos->UseSFTP = UseSFTP;
+	return FFFTP_SUCCESS;
 }
-
