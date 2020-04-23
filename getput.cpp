@@ -1005,9 +1005,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 							TransferSizeTotal = 0;
 						PostMessageW(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 					}
-//					Pos = TransPacketBase;
-//					TransPacketBase = TransPacketBase->Next;
-//					free(Pos);
 				}
 //				ClearAll = NO;
 				ReleaseMutex(hListAccMutex);
