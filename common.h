@@ -1169,15 +1169,6 @@ struct HOSTDATA : Host {
 };
 
 
-typedef struct hostlistdata {
-	HOSTDATA Set;					/* ホスト設定データ */
-	struct hostlistdata *Next;
-	struct hostlistdata *Prev;
-	struct hostlistdata *Child;
-	struct hostlistdata *Parent;
-} HOSTLISTDATA;
-
-
 struct HISTORYDATA : Host {
 	int Type;							/* 転送方法 (TYPE_xx) */
 	HISTORYDATA() : Type{ 0 } {}
