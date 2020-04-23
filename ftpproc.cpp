@@ -2329,13 +2329,7 @@ void ChangeDirDropFileProc(WPARAM wParam)
 
 void ChmodProc(void)
 {
-	int ChmodFlg;
-	char *Buf;
-	char *BufTmp;
-	int BufLen;
-
-	// 同時接続対応
-	CancelFlg = NO;
+	int ChmodFlg = NO;
 
 	if(GetFocus() == GetRemoteHwnd())
 	{
@@ -2368,24 +2362,8 @@ void ChmodProc(void)
 		DisableUserOpe();
 		std::vector<FILELIST> FileListBase;
 		MakeSelectedFileList(WIN_LOCAL, NO, NO, FileListBase, &CancelFlg);
-		if(!empty(FileListBase))
-		{
-			if((Buf = (char*)malloc(1)) != NULL)
-			{
-				*Buf = NUL;
-				BufLen = 0;
-				for (auto const& f : FileListBase)
-					if ((BufTmp = (char*)realloc(Buf, BufLen + strlen(f.File) + 2)) != NULL) {
-						Buf = BufTmp;
-						strcpy(Buf + BufLen, f.File);
-						BufLen += (int)strlen(f.File) + 1;
-					}
-
-				memset(Buf+BufLen, NUL, 1);
-				DispFileProperty(Buf);
-				free(Buf);
-			}
-		}
+		if (!empty(FileListBase))
+			DispFileProperty(FileListBase[0].File);
 		EnableUserOpe();
 	}
 	return;

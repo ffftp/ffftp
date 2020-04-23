@@ -130,7 +130,6 @@ static void DecodePassword(char *Str, char *Buf);
 static void DecodePasswordOriginal(char *Str, char *Buf);
 static void DecodePassword2(char *Str, char *Buf, const char *Key);
 static void DecodePassword3(char *Str, char *Buf);
-static bool CreateAesKey(unsigned char *AesKey);
 
 static std::unique_ptr<Config> OpenReg(int type);
 static std::unique_ptr<Config> CreateReg(int type);
@@ -280,6 +279,26 @@ static void sha_memory(const char* mem, DWORD length, uint32_t* buffer) {
 	for (int i = 0; i < 5; i++)
 		buffer[i] = _byteswap_ulong(buffer[i]);
 }
+
+// PLAINTEXTKEYBLOB structure https://msdn.microsoft.com/en-us/library/jj650836(v=vs.85).aspx
+struct _PLAINTEXTKEYBLOB {
+	BLOBHEADER hdr = { PLAINTEXTKEYBLOB, CUR_BLOB_VERSION, 0, CALG_AES_256 };
+	DWORD dwKeySize = 32;
+	BYTE rgbKeyData[32] = {};
+	_PLAINTEXTKEYBLOB() {
+		// AES用固定長キーを作成
+		// SHA-1をもちいて32Byte鍵を生成する
+		auto AesKey = rgbKeyData;
+		uint32_t results[10];
+		auto HashKey = SecretKey + ">g^r=@N7=//z<[`:"s;
+		sha_memory(HashKey.c_str(), size_as<DWORD>(HashKey), results);
+		HashKey = SecretKey + "VG77dO1#EyC]$|C@"s;
+		sha_memory(HashKey.c_str(), size_as<DWORD>(HashKey), results + 5);
+		for (int index = 0; index < 8; index++)
+			for (int offset = 0; offset < 32; offset += 8)
+				*AesKey++ = (results[index] >> offset) & 0xff;
+	}
+};
 
 
 /*----- マスタパスワードの設定 ----------------------------------------------
@@ -1439,26 +1458,20 @@ static void EncodePassword(std::string_view const& Str, char *Buf) {
 				}
 				*p++ = ':';
 
-				// PLAINTEXTKEYBLOB structure https://msdn.microsoft.com/en-us/library/jj650836(v=vs.85).aspx
-				struct _PLAINTEXTKEYBLOB {
-					BLOBHEADER hdr;
-					DWORD dwKeySize;
-					BYTE rgbKeyData[32];
-				} keyBlob{ { PLAINTEXTKEYBLOB, CUR_BLOB_VERSION, 0, CALG_AES_256 }, 32 };
-				if (CreateAesKey(keyBlob.rgbKeyData))
-					if (HCRYPTKEY hkey; CryptImportKey(HCryptProv, reinterpret_cast<const BYTE*>(&keyBlob), DWORD(sizeof keyBlob), 0, 0, &hkey)) {
-						if (DWORD mode = CRYPT_MODE_CBC; CryptSetKeyParam(hkey, KP_MODE, reinterpret_cast<const BYTE*>(&mode), 0))
-							if (CryptSetKeyParam(hkey, KP_IV, iv, 0))
-								if (CryptEncrypt(hkey, 0, false, 0, data(buffer), &paddedLength, paddedLength)) {
-									for (auto const& item : buffer) {
-										sprintf(p, "%02x", item);
-										p += 2;
-									}
-									*p = NUL;
-									result = true;
+				_PLAINTEXTKEYBLOB keyBlob;
+				if (HCRYPTKEY hkey; CryptImportKey(HCryptProv, reinterpret_cast<const BYTE*>(&keyBlob), DWORD(sizeof keyBlob), 0, 0, &hkey)) {
+					if (DWORD mode = CRYPT_MODE_CBC; CryptSetKeyParam(hkey, KP_MODE, reinterpret_cast<const BYTE*>(&mode), 0))
+						if (CryptSetKeyParam(hkey, KP_IV, iv, 0))
+							if (CryptEncrypt(hkey, 0, false, 0, data(buffer), &paddedLength, paddedLength)) {
+								for (auto const& item : buffer) {
+									sprintf(p, "%02x", item);
+									p += 2;
 								}
-						CryptDestroyKey(hkey);
-					}
+								*p = NUL;
+								result = true;
+							}
+					CryptDestroyKey(hkey);
+				}
 			}
 	}
 	catch (std::bad_alloc&) {}
@@ -1609,65 +1622,22 @@ static void DecodePassword3(char *Str, char *Buf) {
 				Str += 2;
 			}
 			if (*Str++ == ':') {
-				// PLAINTEXTKEYBLOB structure https://msdn.microsoft.com/en-us/library/jj650836(v=vs.85).aspx
-				struct _PLAINTEXTKEYBLOB {
-					BLOBHEADER hdr;
-					DWORD dwKeySize;
-					BYTE rgbKeyData[32];
-				} keyBlob{ { PLAINTEXTKEYBLOB, CUR_BLOB_VERSION, 0, CALG_AES_256 }, 32 };
-				if (CreateAesKey(keyBlob.rgbKeyData)) {
-					for (DWORD i = 0; i < encodedLength; i++) {
-						std::from_chars(Str, Str + 2, buffer[i], 16);
-						Str += 2;
-					}
-					if (HCRYPTKEY hkey; CryptImportKey(HCryptProv, reinterpret_cast<const BYTE*>(&keyBlob), sizeof keyBlob, 0, 0, &hkey)) {
-						if (DWORD mode = CRYPT_MODE_CBC; CryptSetKeyParam(hkey, KP_MODE, reinterpret_cast<const BYTE*>(&mode), 0))
-							if (CryptSetKeyParam(hkey, KP_IV, iv, 0))
-								if (CryptDecrypt(hkey, 0, false, 0, data(buffer), &encodedLength))
-									strcpy(Buf, reinterpret_cast<const char*>(data(buffer)));
-						CryptDestroyKey(hkey);
-					}
+				for (DWORD i = 0; i < encodedLength; i++) {
+					std::from_chars(Str, Str + 2, buffer[i], 16);
+					Str += 2;
+				}
+				_PLAINTEXTKEYBLOB keyBlob;
+				if (HCRYPTKEY hkey; CryptImportKey(HCryptProv, reinterpret_cast<const BYTE*>(&keyBlob), sizeof keyBlob, 0, 0, &hkey)) {
+					if (DWORD mode = CRYPT_MODE_CBC; CryptSetKeyParam(hkey, KP_MODE, reinterpret_cast<const BYTE*>(&mode), 0))
+						if (CryptSetKeyParam(hkey, KP_IV, iv, 0))
+							if (CryptDecrypt(hkey, 0, false, 0, data(buffer), &encodedLength))
+								strcpy(Buf, reinterpret_cast<const char*>(data(buffer)));
+					CryptDestroyKey(hkey);
 				}
 			}
 		}
 	}
 	catch (std::bad_alloc&) {}
-}
-
-// AES用固定長キーを作成
-// SHA-1をもちいて32Byte鍵を生成する
-static bool CreateAesKey(unsigned char *AesKey) {
-	char* HashKey;
-	uint32_t HashKeyLen;
-	uint32_t results[10];
-	int ByteOffset;
-	int KeyIndex;
-	int ResIndex;
-
-	HashKeyLen = (uint32_t)strlen(SecretKey) + 16;
-	if((HashKey = (char*)malloc((size_t)HashKeyLen + 1)) == NULL){
-		return false;
-	}
-
-	strcpy(HashKey, SecretKey);
-	strcat(HashKey, ">g^r=@N7=//z<[`:");
-	sha_memory(HashKey, HashKeyLen, results);
-
-	strcpy(HashKey, SecretKey);
-	strcat(HashKey, "VG77dO1#EyC]$|C@");
-	sha_memory(HashKey, HashKeyLen, results + 5);
-
-	KeyIndex = 0;
-	ResIndex = 0;
-	while (ResIndex < 8) {
-		for (ByteOffset = 0; ByteOffset < 4; ByteOffset++) {
-			AesKey[KeyIndex++] = (results[ResIndex] >> ByteOffset * 8) & 0xff;
-		}
-		ResIndex++;
-	}
-	free(HashKey);
-
-	return true;
 }
 
 
