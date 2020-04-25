@@ -324,8 +324,7 @@ void AddTransFileList(TRANSPACKET *Pkt)
 // バグ対策
 void AddNullTransFileList()
 {
-	TRANSPACKET Pkt;
-	memset(&Pkt, 0, sizeof(TRANSPACKET));
+	TRANSPACKET Pkt{};
 	strcpy(Pkt.Cmd, "NULL");
 	AddTransFileList(&Pkt);
 }
@@ -553,7 +552,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			BackgrndMessageProc();
 			Sleep(1);
 		}
-//		memset(ErrMsg, NUL, ERR_MSG_LEN+7);
 		memset(GetErrMsg(), NUL, ERR_MSG_LEN+7);
 
 //		Canceled = NO;

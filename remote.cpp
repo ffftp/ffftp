@@ -174,11 +174,10 @@ int DoCWDStepByStep(const char* Path, const char* Cur)
 	int Sts;
 	char *Set;
 	char *Set2;
-	char Tmp[FMAX_PATH+2];
 
 	Sts = FTP_COMPLETE;
 
-	memset(Tmp, NUL, FMAX_PATH+2);
+	char Tmp[FMAX_PATH + 2] = {};
 	strcpy(Tmp, Path);
 	Set = Tmp;
 	while(*Set != NUL)

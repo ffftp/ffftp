@@ -2508,7 +2508,6 @@ static int GetAttrFromDialog(HWND hDlg)
 
 void SomeCmdProc(void)
 {
-	char Cmd[81];
 
 	// 同時接続対応
 	CancelFlg = NO;
@@ -2520,7 +2519,7 @@ void SomeCmdProc(void)
 			DisableUserOpe();
 			std::vector<FILELIST> FileListBase;
 			MakeSelectedFileList(WIN_REMOTE, NO, NO, FileListBase, &CancelFlg);
-			memset(Cmd, NUL, 81);
+			char Cmd[81] = {};
 			if (!empty(FileListBase))
 				strncpy(Cmd, FileListBase[0].File, 80);
 			if (InputDialog(somecmd_dlg, GetMainHwnd(), NULL, Cmd, 81, nullptr, IDH_HELP_TOPIC_0000023))
