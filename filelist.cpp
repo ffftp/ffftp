@@ -705,42 +705,29 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 
 		case WM_DRAGOVER:
 			{
-				LVHITTESTINFO hi;
-				int Node, index;
-				static int prev_index = -1;
-
 				// 同一ウィンドウ内でのD&Dはリモート側のみ
 				if (Win != WIN_REMOTE)
 					break;
-
-				if(MoveMode == MOVE_DISABLE)
+				if (MoveMode == MOVE_DISABLE)
 					break;
-
-				memset(&hi, 0, sizeof(hi));
 
 				GetCursorPos(&Point);
 				hWndPnt = WindowFromPoint(Point);
 				ScreenToClient(hWnd, &Point);
 
-				hi.pt = Point;
-
 				// 以前の選択を消す
+				static int prev_index = -1;
 				ListView_SetItemState(hWnd, prev_index, 0, LVIS_DROPHILITED);
 				RemoteDropFileIndex = -1;
 
-				if ((hWndPnt == hWndListRemote) && (ListView_HitTest(hWnd, &hi) != -1)) {
-					if (hi.flags == LVHT_ONITEMLABEL) { // The position is over a list-view item's text.
-					
-						index = hi.iItem;
-						prev_index = index;
-						Node = GetNodeType(Win, index);
-						if (Node == NODE_DIR) {
-							ListView_SetItemState(hWnd, index, LVIS_DROPHILITED, LVIS_DROPHILITED);
-							RemoteDropFileIndex = index;
+				if (hWndPnt == hWndListRemote)
+					if (LVHITTESTINFO hi{ Point }; ListView_HitTest(hWnd, &hi) != -1 && hi.flags == LVHT_ONITEMLABEL) { // The position is over a list-view item's text.
+						prev_index = hi.iItem;
+						if (GetNodeType(Win, hi.iItem) == NODE_DIR) {
+							ListView_SetItemState(hWnd, hi.iItem, LVIS_DROPHILITED, LVIS_DROPHILITED);
+							RemoteDropFileIndex = hi.iItem;
 						}
 					}
-				} 
-
 			}
 			break;
 
@@ -1682,7 +1669,6 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 	int Pos;
 	char Name[FMAX_PATH+1];
 	char Cur[FMAX_PATH+1];
-	FILELIST Pkt;
 	int Node;
 	int Ignore;
 
@@ -1699,9 +1685,7 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 			if((Node == NODE_FILE) ||
 			   ((Expand == NO) && (Node == NODE_DIR)))
 			{
-				// 変数が未初期化のバグ修正
-				memset(&Pkt, 0, sizeof(FILELIST));
-
+				FILELIST Pkt{};
 				Pkt.InfoExist = 0;
 				GetNodeName(Win, Pos, Pkt.File, FMAX_PATH);
 				if(GetNodeSize(Win, Pos, &Pkt.Size) == YES)
@@ -1732,9 +1716,7 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 			{
 				if(GetNodeType(Win, Pos) == NODE_DIR)
 				{
-					// 変数が未初期化のバグ修正
-					memset(&Pkt, 0, sizeof(FILELIST));
-
+					FILELIST Pkt{};
 					GetNodeName(Win, Pos, Name, FMAX_PATH);
 					strcpy(Pkt.File, Name);
 					ReplaceAll(Pkt.File, '\\', '/');
@@ -1752,9 +1734,6 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 							Pkt.Node = NODE_FILE;
 						else
 							Pkt.Node = NODE_DIR;
-						Pkt.Attr = 0;
-						Pkt.Size = 0;
-						memset(&Pkt.Time, 0, sizeof(FILETIME));
 						AddFileList(Pkt, Base);
 
 						if(GetImageIndex(Win, Pos) != 4) { // symlink
@@ -1952,9 +1931,6 @@ static int MakeRemoteTree2(char *Path, char *Cur, std::vector<FILELIST>& Base, i
 						Pkt.Node = NODE_FILE;
 					else
 						Pkt.Node = NODE_DIR;
-					Pkt.Size = 0;
-					Pkt.Attr = 0;
-					memset(&Pkt.Time, 0, sizeof(FILETIME));
 					AddFileList(Pkt, Base);
 
 					if (Pkt.Link == NO && MakeRemoteTree2(const_cast<char*>(f.File), Cur, Base, CancelCheckWork) == FFFTP_FAIL)

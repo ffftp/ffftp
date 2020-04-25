@@ -854,65 +854,15 @@ void SpecificLocalFileTime2FileTime(FILETIME *Time, int TimeZone)
 *		int 値
 *----------------------------------------------------------------------------*/
 
-int AttrString2Value(const char *Str)
-{
-	int Ret;
-	char Tmp[10];
-
-	Ret = 0;
-	memset(Tmp, 0, 10);
-	// ファイルの属性を数字で表示
-//	strncpy(Tmp, Str, 9);
-//
-//	if(Tmp[0] != '-')
-//		Ret |= 0x400;
-//	if(Tmp[1] != '-')
-//		Ret |= 0x200;
-//	if(Tmp[2] != '-')
-//		Ret |= 0x100;
-//
-//	if(Tmp[3] != '-')
-//		Ret |= 0x40;
-//	if(Tmp[4] != '-')
-//		Ret |= 0x20;
-//	if(Tmp[5] != '-')
-//		Ret |= 0x10;
-//
-//	if(Tmp[6] != '-')
-//		Ret |= 0x4;
-//	if(Tmp[7] != '-')
-//		Ret |= 0x2;
-//	if(Tmp[8] != '-')
-//		Ret |= 0x1;
-	if(strlen(Str) >= 9)
-	{
-		strncpy(Tmp, Str, 9);
-
-		if(Tmp[0] != '-')
-			Ret |= 0x400;
-		if(Tmp[1] != '-')
-			Ret |= 0x200;
-		if(Tmp[2] != '-')
-			Ret |= 0x100;
-
-		if(Tmp[3] != '-')
-			Ret |= 0x40;
-		if(Tmp[4] != '-')
-			Ret |= 0x20;
-		if(Tmp[5] != '-')
-			Ret |= 0x10;
-
-		if(Tmp[6] != '-')
-			Ret |= 0x4;
-		if(Tmp[7] != '-')
-			Ret |= 0x2;
-		if(Tmp[8] != '-')
-			Ret |= 0x1;
-	}
-	else if(strlen(Str) >= 3)
-		std::from_chars(Str, Str + 3, Ret, 16);
-
-	return(Ret);
+int AttrString2Value(const char* Str) {
+	int num = 0;
+	if (strlen(Str) >= 9) {
+		for (auto bit : { 0x400, 0x200, 0x100, 0x40, 0x20, 0x10, 0x4, 0x2, 0x1 })
+			if (*Str++ != '-')
+				num |= bit;
+	} else if (strlen(Str) >= 3)
+		std::from_chars(Str, Str + 3, num, 16);
+	return num;
 }
 
 

@@ -713,10 +713,8 @@ void ResetDefaultHost() {
 	DefaultHost = {};
 }
 
-void SetDefaultHost(HOSTDATA *Set)
-{
-	memcpy(&DefaultHost, Set, sizeof(HOSTDATA));
-	return;
+void SetDefaultHost(HOSTDATA* Set) {
+	DefaultHost = *Set;
 }
 
 HostExeptPassword::HostExeptPassword() {
