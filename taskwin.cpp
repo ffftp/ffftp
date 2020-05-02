@@ -38,16 +38,12 @@ extern HFONT ListFont;
 extern int DebugConsole;
 extern int RemoveOldLog;
 static HWND hWndTask = NULL;
-static std::mutex mutex;
-static std::wstring queued;
+static Concurrency::concurrent_queue<std::wstring> queue;
 
 static VOID CALLBACK Writer(HWND hwnd, UINT, UINT_PTR, DWORD) {
 	std::wstring local;
-	{
-		std::unique_lock{ mutex };
-		_ReadWriteBarrier();
-		std::swap(local, queued);
-	}
+	for (std::wstring temp; queue.try_pop(temp);)
+		local += temp;
 	if (empty(local))
 		return;
 	if (auto length = GetWindowTextLengthW(hwnd); RemoveOldLog == YES) {
@@ -102,10 +98,7 @@ void SetTaskMsg(_In_z_ _Printf_format_string_ const char* format, ...) {
 	va_end(args);
 	if (0 < result) {
 		strcat(buffer, "\r\n");
-		auto wbuffer = u8(buffer);
-		std::unique_lock{ mutex };
-		_ReadWriteBarrier();
-		queued += wbuffer;
+		queue.push(u8(buffer));
 	}
 }
 
