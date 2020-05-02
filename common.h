@@ -124,22 +124,9 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 #define NUL				'\0'
 
-#define LOW8(x)			((x) & 0xFF)
-#define HIGH8(x)		(((x) >> 8) & 0xFF)
-#define LOW32(x)		((x) & 0xFFFFFFFF)
-#define HIGH32(x)		(((x) >> 32) & 0xFFFFFFFF)
-#define N2INT(h,l)		((int)(((uchar)(h) << 4) + (uchar)(l)))
-
 #define IsDigit(n)		(isascii(n) && isdigit(n))
 #define IsAlpha(n)		(isascii(n) && isalpha(n))
 
-#define uchar			unsigned char
-#define ushort			unsigned short
-#define ulong			unsigned long
-
-// 警告の回避
-//#define FAIL			0
-//#define SUCCESS			1
 #define FFFTP_FAIL			0
 #define FFFTP_SUCCESS			1
 
@@ -157,20 +144,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define VER_STR					"4.5 32bit"
 #endif
 #define VER_NUM					2000		/* 設定バージョン */
-
-/*===== 通信関係 ======*/
-
-#define TCP_PORT		6
-
-/*===== ウインドウサイズ ======*/
-
-#define TOOLWIN_HEIGHT	28		/* ツールバーの高さ */
-
-/*===== 特殊なキャッシュデータ番号 =====*/
-/* （ファイル一覧取得で使用するローカルファイル名 _ffftp.??? の番号部分） */
-
-#define CACHE_FILE_TMP1	999		/* ホストのファイルツリー取得用 */
-#define CACHE_FILE_TMP2	998		/* アップロード中のホストのファイル一覧取得用 */
 
 /*===== ユーザ定義コマンド =====*/
 
@@ -199,14 +172,11 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 /*===== バッファサイズ =====*/
 
-#define BUFSIZE			4096	/* ファイル転送バッファのサイズ(4k以上) */
-
 #define HOST_NAME_LEN	40		/* 一覧に表示するホストの名前 */
 #define HOST_ADRS_LEN	80		/* ホスト名 */
 #define USER_NAME_LEN	80		/* ユーザ名 */
 #define PASSWORD_LEN	80		/* パスワード */
 #define ACCOUNT_LEN		80		/* アカウント */
-#define HOST_TYPE_LEN	1		/* ホストの種類 */
 #define INIT_DIR_LEN	(FMAX_PATH-40)	/* 初期ディレクトリ */
 #define USER_MAIL_LEN	80		/* ユーザのメールアドレス */
 								/*   PASSWORD_LEN と同じにすること */
@@ -231,7 +201,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 /*===== 初期値 =====*/
 
 #define CHMOD_CMD_NOR	"SITE CHMOD"	/* 属性変更コマンド */
-#define PORT_NOR		21				/* ポート番号 */
 #define LS_FNAME		"-alL"			/* NLSTに付けるもの */
 #if defined(HAVE_TANDEM)
 #define DEF_PRIEXT		4				/* Primary Extents の初期値 */
@@ -304,7 +273,7 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define SORT_MASK_ORD	0x7F	/* ｘｘ順を取り出すマスク */
 #define SORT_GET_ORD	0x80	/* 昇順／降順を取り出すマスク */
 
-#define SORT_NOTSAVED	((ulong)0xFFFFFFFF)	/* ホスト毎のセーブ方法を保存していない時の値 */
+#define SORT_NOTSAVED	0xFFFF'FFFFu	/* ホスト毎のセーブ方法を保存していない時の値 */
 
 /*===== ソートする場所 =====*/
 
@@ -404,43 +373,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define HTYPE_TANDEM	8		/* HP NonStop Server */
 #endif
 
-/*===== コマンドラインオプション =====*/
-
-//#define OPT_MIRROR		0x0001	/* ミラーリングアップロードを行う */
-//#define OPT_FORCE		0x0002	/* ミラーリング開始の確認をしない */
-//#define OPT_QUIT		0x0004	/* 終了後プログラム終了 */
-//#define OPT_EUC			0x0008	/* 漢字コードはEUC */
-//#define OPT_JIS			0x0010	/* 漢字コードはJIS */
-//#define OPT_ASCII		0x0020	/* アスキー転送モード */
-//#define OPT_BINARY		0x0040	/* バイナリ転送モード */
-//#define OPT_AUTO		0x0080	/* 自動判別 */
-//#define OPT_KANA		0x0100	/* 半角かなをそのまま通す */
-//#define OPT_EUC_NAME	0x0200	/* ファイル名はEUC */
-//#define OPT_JIS_NAME	0x0400	/* ファイル名はJIS */
-//#define OPT_MIRRORDOWN	0x0800	/* ミラーリングダウンロードを行う */
-//#define OPT_SAVEOFF		0x1000	/* 設定の保存を中止する */
-//#define OPT_SAVEON		0x2000	/* 設定の保存を再開する */
-#define OPT_MIRROR		0x00000001	/* ミラーリングアップロードを行う */
-#define OPT_FORCE		0x00000002	/* ミラーリング開始の確認をしない */
-#define OPT_QUIT		0x00000004	/* 終了後プログラム終了 */
-#define OPT_EUC			0x00000008	/* 漢字コードはEUC */
-#define OPT_JIS			0x00000010	/* 漢字コードはJIS */
-#define OPT_ASCII		0x00000020	/* アスキー転送モード */
-#define OPT_BINARY		0x00000040	/* バイナリ転送モード */
-#define OPT_AUTO		0x00000080	/* 自動判別 */
-#define OPT_KANA		0x00000100	/* 半角かなをそのまま通す */
-#define OPT_EUC_NAME	0x00000200	/* ファイル名はEUC */
-#define OPT_JIS_NAME	0x00000400	/* ファイル名はJIS */
-#define OPT_MIRRORDOWN	0x00000800	/* ミラーリングダウンロードを行う */
-#define OPT_SAVEOFF		0x00001000	/* 設定の保存を中止する */
-#define OPT_SAVEON		0x00002000	/* 設定の保存を再開する */
-// UTF-8対応
-#define OPT_SJIS		0x00004000	/* 漢字コードはShift_JIS */
-#define OPT_UTF8N		0x00008000	/* 漢字コードはUTF-8 */
-#define OPT_UTF8BOM		0x00010000	/* 漢字コードはUTF-8 BOM */
-#define OPT_SJIS_NAME	0x00020000	/* ファイル名はShift_JIS */
-#define OPT_UTF8N_NAME	0x00040000	/* ファイル名はUTF-8 */
-
 /*===== ホストのヒストリ =====*/
 
 #define	HISTORY_MAX		20		/* ファイルのヒストリの最大個数 */
@@ -482,10 +414,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define RDIR_NONE		0		/* 再帰検索なし */
 #define RDIR_NLST		1		/* NLST -R */
 #define RDIR_CWD		2		/* CWDで移動 */
-
-/*===== VAX VMS 関係 =====*/
-
-#define BLOCK_SIZE		512		/* 1ブロックのバイト数 */
 
 /*===== 設定のレベル =====*/
 
@@ -554,7 +482,7 @@ struct HostExeptPassword {
 	char ChmodCmd[CHMOD_CMD_LEN + 1] = CHMOD_CMD_NOR;	/* 属性変更コマンド */
 	char LsName[NLST_NAME_LEN + 1] = LS_FNAME;			/* NLSTに付けるファイル名/オプション*/
 	char InitCmd[INITCMD_LEN + 1] = "";					/* ホストの初期化コマンド */
-	int Port = PORT_NOR;								/* ポート番号 */
+	int Port = IPPORT_FTP;								/* ポート番号 */
 	int KanjiCode = KANJI_NOCNV;						/* ホストの漢字コード (KANJI_xxx) */
 	int KanaCnv = YES;									/* 半角カナを全角に変換(YES/NO) */
 	int NameKanjiCode = KANJI_NOCNV;					/* ファイル名の漢字コード (KANJI_xxx) */
@@ -567,7 +495,7 @@ struct HostExeptPassword {
 	int HostType = HTYPE_AUTO;							/* ホストのタイプ (HTYPE_xxx) */
 	int SyncMove = NO;									/* フォルダ同時移動 (YES/NO) */
 	int NoFullPath = NO;								/* フルパスでファイルアクセスしない (YES/NO) */
-	ulong Sort = SORT_NOTSAVED;							/* ソート方法 (0x11223344 : 11=LFsort 22=LDsort 33=RFsort 44=RFsort) */
+	uint32_t Sort = SORT_NOTSAVED;						/* ソート方法 (0x11223344 : 11=LFsort 22=LDsort 33=RFsort 44=RFsort) */
 	int Security = SECURITY_AUTO;						/* セキュリティ (SECURITY_xxx , MDx) */
 	int Dialup = NO;									/* ダイアルアップ接続するかどうか (YES/NO) */
 	int DialupAlways = NO;								/* 常にこのエントリへ接続するかどうか (YES/NO) */
@@ -884,7 +812,7 @@ char *AskHostBookMark(int Num);
 int SetHostDir(int Num, const char* LocDir, const char* HostDir);
 int SetHostPassword(int Num, char *Pass);
 int SetHostSort(int Num, int LFSort, int LDSort, int RFSort, int RDSort);
-void DecomposeSortType(ulong Sort, int *LFSort, int *LDSort, int *RFSort, int *RDSort);
+void DecomposeSortType(uint32_t Sort, int *LFSort, int *LDSort, int *RFSort, int *RDSort);
 int AskCurrentHost(void);
 void SetCurrentHost(int Num);
 void CopyDefaultHost(HOSTDATA *Set);

@@ -3871,7 +3871,7 @@ static int ResolveFileInfo(char *Str, int ListType, char *Fname, LONGLONG *Size,
 
 			/* サイズ */
 			FindField(Str, Buf, 1, NO);
-			*Size = _atoi64(Buf) * BLOCK_SIZE;
+			*Size = _atoi64(Buf) * 512/* 1ブロックのバイト数 */;
 
 			/* 時刻／日付 */
 			FindField(Str, Buf, 2, NO);

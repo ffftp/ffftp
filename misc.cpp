@@ -620,7 +620,7 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 	memset(File, NUL, FMAX_PATH+1);
 	memset(User, NUL, USER_NAME_LEN+1);
 	memset(Pass, NUL, PASSWORD_LEN+1);
-	*Port = PORT_NOR;
+	*Port = IPPORT_FTP;
 
 	ReplaceAll(unc, '\\', '/');
 

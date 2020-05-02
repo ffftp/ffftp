@@ -670,7 +670,7 @@ int SetHostSort(int Num, int LFSort, int LDSort, int RFSort, int RDSort) {
 /*----- 登録されているソート方法を分解する ------------------------------------
 *
 *	Parameter
-*		ulong Sort : ソート方法 
+*		uint32_t Sort : ソート方法 
 *		int *LFSort : ローカルのファイルのソート方法を格納するワーク
 *		int *LDSort : ローカルのフォルダのソート方法を格納するワーク
 *		int *RFSort : リモートのファイルのソート方法を格納するワーク
@@ -680,7 +680,7 @@ int SetHostSort(int Num, int LFSort, int LDSort, int RFSort, int RDSort) {
 *		なし
 *----------------------------------------------------------------------------*/
 
-void DecomposeSortType(ulong Sort, int *LFSort, int *LDSort, int *RFSort, int *RDSort)
+void DecomposeSortType(uint32_t Sort, int *LFSort, int *LDSort, int *RFSort, int *RDSort)
 {
 	*LFSort = (int)((Sort / 0x1000000) & 0xFF);
 	*LDSort = (int)((Sort / 0x10000) & 0xFF);
@@ -975,7 +975,7 @@ struct Advanced {
 		switch (id) {
 		case HSET_PORT_NOR: {
 			char Tmp[20];
-			sprintf(Tmp, "%d", PORT_NOR);
+			sprintf(Tmp, "%d", IPPORT_FTP);
 			SetText(hDlg, HSET_PORT, u8(Tmp));
 			break;
 		}
