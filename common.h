@@ -51,6 +51,7 @@
 #include <type_traits>
 #include <variant>
 #include <vector>
+#include <concurrent_queue.h>
 #include <boost/regex.hpp>
 #include <cassert>
 #include <cwctype>
