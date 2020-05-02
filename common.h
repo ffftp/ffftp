@@ -124,22 +124,9 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 #define NUL				'\0'
 
-#define LOW8(x)			((x) & 0xFF)
-#define HIGH8(x)		(((x) >> 8) & 0xFF)
-#define LOW32(x)		((x) & 0xFFFFFFFF)
-#define HIGH32(x)		(((x) >> 32) & 0xFFFFFFFF)
-#define N2INT(h,l)		((int)(((uchar)(h) << 4) + (uchar)(l)))
-
 #define IsDigit(n)		(isascii(n) && isdigit(n))
 #define IsAlpha(n)		(isascii(n) && isalpha(n))
 
-#define uchar			unsigned char
-#define ushort			unsigned short
-#define ulong			unsigned long
-
-// 警告の回避
-//#define FAIL			0
-//#define SUCCESS			1
 #define FFFTP_FAIL			0
 #define FFFTP_SUCCESS			1
 
@@ -157,20 +144,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define VER_STR					"4.5 32bit"
 #endif
 #define VER_NUM					2000		/* 設定バージョン */
-
-/*===== 通信関係 ======*/
-
-#define TCP_PORT		6
-
-/*===== ウインドウサイズ ======*/
-
-#define TOOLWIN_HEIGHT	28		/* ツールバーの高さ */
-
-/*===== 特殊なキャッシュデータ番号 =====*/
-/* （ファイル一覧取得で使用するローカルファイル名 _ffftp.??? の番号部分） */
-
-#define CACHE_FILE_TMP1	999		/* ホストのファイルツリー取得用 */
-#define CACHE_FILE_TMP2	998		/* アップロード中のホストのファイル一覧取得用 */
 
 /*===== ユーザ定義コマンド =====*/
 
@@ -199,14 +172,11 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 /*===== バッファサイズ =====*/
 
-#define BUFSIZE			4096	/* ファイル転送バッファのサイズ(4k以上) */
-
 #define HOST_NAME_LEN	40		/* 一覧に表示するホストの名前 */
 #define HOST_ADRS_LEN	80		/* ホスト名 */
 #define USER_NAME_LEN	80		/* ユーザ名 */
 #define PASSWORD_LEN	80		/* パスワード */
 #define ACCOUNT_LEN		80		/* アカウント */
-#define HOST_TYPE_LEN	1		/* ホストの種類 */
 #define INIT_DIR_LEN	(FMAX_PATH-40)	/* 初期ディレクトリ */
 #define USER_MAIL_LEN	80		/* ユーザのメールアドレス */
 								/*   PASSWORD_LEN と同じにすること */
@@ -231,7 +201,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 /*===== 初期値 =====*/
 
 #define CHMOD_CMD_NOR	"SITE CHMOD"	/* 属性変更コマンド */
-#define PORT_NOR		21				/* ポート番号 */
 #define LS_FNAME		"-alL"			/* NLSTに付けるもの */
 #if defined(HAVE_TANDEM)
 #define DEF_PRIEXT		4				/* Primary Extents の初期値 */
@@ -304,7 +273,7 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define SORT_MASK_ORD	0x7F	/* ｘｘ順を取り出すマスク */
 #define SORT_GET_ORD	0x80	/* 昇順／降順を取り出すマスク */
 
-#define SORT_NOTSAVED	((ulong)0xFFFFFFFF)	/* ホスト毎のセーブ方法を保存していない時の値 */
+#define SORT_NOTSAVED	0xFFFF'FFFFu	/* ホスト毎のセーブ方法を保存していない時の値 */
 
 /*===== ソートする場所 =====*/
 
@@ -336,474 +305,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define FNAME_NOCNV		0		/* 変換しない */
 #define FNAME_LOWER		1		/* 小文字に変換 */
 #define FNAME_UPPER		2		/* 大文字に変換 */
-
-/*===== ファイル一覧の形式 =====*/
-
-#define LIST_UNKNOWN	(-1)	/* 不明 */
-
-#define LIST_UNIX_10	0		/* UNIX 10 */
-#define LIST_UNIX_11	1		/* UNIX 11 */
-#define LIST_UNIX_12	2		/* UNIX 12 */
-#define LIST_UNIX_13	3		/* UNIX 13 */
-#define LIST_UNIX_14	4		/* UNIX 14 */
-#define LIST_UNIX_15	5		/* UNIX 15 */
-#define LIST_UNIX_20	6		/* UNIX 20 */
-#define LIST_UNIX_21	7		/* UNIX 21 */
-#define LIST_UNIX_22	8		/* UNIX 22 */
-#define LIST_UNIX_23	9		/* UNIX 23 */
-#define LIST_UNIX_24	10		/* UNIX 24 */
-#define LIST_UNIX_25	11		/* UNIX 25 */
-#define LIST_UNIX_50	12		/* UNIX 50 */
-#define LIST_UNIX_51	13		/* UNIX 51 */
-#define LIST_UNIX_54	14		/* UNIX 54 */
-#define LIST_UNIX_60	15		/* UNIX 60 */
-#define LIST_UNIX_61	16		/* UNIX 61 */
-#define LIST_UNIX_62	17		/* UNIX 62 */
-#define LIST_UNIX_63	18		/* UNIX 63 */
-#define LIST_UNIX_64	19		/* UNIX 64 */
-#define LIST_UNIX_65	20		/* UNIX 65 */
-#define LIST_DOS_1		21		/* MS-DOS 1 */
-#define LIST_DOS_2		22		/* MS-DOS 2 */
-#define LIST_DOS_3		23		/* MS-DOS 3 */
-#define LIST_DOS_4		24		/* MS-DOS 4 */
-#define LIST_ACOS		25		/* ACOS */
-#define LIST_AS400		26		/* AS/400 */
-#define LIST_M1800		27		/* Fujitu M1800 (OS IV/MSP E20) */
-#define LIST_CHAMELEON	28		/* Win3.1用 Chameleon FTP server */
-#define LIST_GP6000		29		/* Fujitu GP6000 Model 900 */
-#define LIST_OS2		30		/* OS/2 */
-#define LIST_VMS		31		/* VAX VMS */
-#define LIST_OS7_1		32		/* Toshiba OS7 */
-#define LIST_OS7_2		33		/* Toshiba OS7 */
-#define LIST_IRMX		34		/* IRMX */
-#define LIST_ACOS_4		35		/* ACOS-4 */
-#define LIST_STRATUS	36		/* Stratus */
-#define LIST_ALLIED		37		/* allied telesis (DOS) */
-#define LIST_OS9		38		/* OS/9 */
-#define LIST_IBM		39		/* IBM host */
-#define LIST_AGILENT	40		/* Agilent logic analyzer */
-#define LIST_SHIBASOKU	41		/* Shibasoku LSI test system */
-#define LIST_UNIX_70	42		/* UNIX 70 */
-#define LIST_UNIX_71	43		/* UNIX 71 */
-#define LIST_UNIX_72	44		/* UNIX 72 */
-#define LIST_UNIX_73	45		/* UNIX 73 */
-#define LIST_UNIX_74	46		/* UNIX 74 */
-#define LIST_UNIX_75	47		/* UNIX 75 */
-// linux-ftpd
-#define LIST_UNIX_16	48		/* UNIX 16 */
-// MLSD対応
-#define LIST_MLSD		49
-#if defined(HAVE_TANDEM)
-#define LIST_TANDEM		50		/* HP NonStop Server */
-#endif
-// uClinux
-#define LIST_UNIX_17	51		/* UNIX 17 */
-// Windows Server 2008 R2
-#define LIST_DOS_5		52		/* MS-DOS 5 */
-
-#define LIST_MELCOM		0x100	/* MELCOM80 */
-
-#define LIST_MASKFLG	0xFF
-
-/* ファイル一覧情報例 ---------------
-
-*LIST_UNIX_10
-	0          1   2     3      4    5    6   7         8
-	-------------------------------------------------------
-	drwxr-xr-x 15  owner group  1024 Nov  6   14:21     Linux/
-	-rwxrwx---  5  owner group    12 Nov  6   1996      test.txt
-	drwxr-xr-x 15  owner group  1024 11月 6日 14:21     Linux/
-	drwxr-xr-x 15  owner group  1024 11月 6日 14時21分  Linux/
-	-rwxrwx---  5  owner group    12 11月 6日 1996年    test.txt
-	drwxrwxr-x 6   root  sys     512  1月 26  03:10     adm		(月はGBコードで0xD4C2)
-
-*LIST_UNIX_11
-	0          1   2     3      4    5        6         7
-	-------------------------------------------------------
-	drwxr-xr-x 15  owner group  1024 11月12日 14時21分  Linux/
-	-rwxrwx---  5  owner group    12 11月12日 1996年    test.txt
-
-*LIST_UNIX_12
-	0              1     2      3    4    5   6         7
-	-------------------------------------------------------
-	drwxr-xr-x123  owner group  1024 Nov  6   14:21     Linux/
-	-rwxrwx---132  owner group    12 Nov  6   1996      test.txt
-	drwxr-xr-x123  owner group  1024 11月 6日 14:21     Linux/
-	drwxr-xr-x123  owner group  1024 11月 6日 14時21分  Linux/
-	-rwxrwx---132  owner group    12 11月 6日 1996年    test.txt
-
-*LIST_UNIX_13
-	0              1     2      3    4        5         6
-	-------------------------------------------------------
-	drwxr-xr-x123  owner group  1024 11月12日 14時21分  Linux/
-	-rwxrwx---132  owner group    12 11月12日 1996年    test.txt
-
-*LIST_UNIX_14
-	0          1   2     3      4    5    6   7         8
-	-------------------------------------------------------
-	drwxr-xr-x 15  owner group  512  2001 6月 18        audit	(月はGBコードで0xD4C2)
-
-*LIST_UNIX_15
-	0              1     2      3    4    5   6         7
-	-------------------------------------------------------
-	drwxr-xr-x15   owner group  512  2001 6月 18        audit	(月はGBコードで0xD4C2)
-
-
-
-
-
-*LIST_UNIX_20
-	0          1   2            3    4    5   6         7
-	-------------------------------------------------------
-	drwxr-xr-x 15  owner        1024 Nov  6   14:21     Linux/
-	-rwxrwx---  5  owner          12 Nov  6   1996      test.txt
-	drwxr-xr-x 15  owner        1024 11月 6日 14:21     Linux/
-	drwxr-xr-x 15  owner        1024 11月 6日 14時21分  Linux/
-	-rwxrwx---  5  owner          12 11月 6日 1996年    test.txt
-
-*LIST_UNIX_21
-	0          1   2            3    4        5         6
-	-------------------------------------------------------
-	drwxr-xr-x 15  owner        1024 11月12日 14時21分  Linux/
-	-rwxrwx---  5  owner          12 11月12日 1996年    test.txt
-
-*LIST_UNIX_22
-	0              1            2    3    4   5         6
-	-------------------------------------------------------
-	drwxr-xr-x123  owner        1024 Nov  6   14:21     Linux/
-	-rwxrwx---132  owner          12 Nov  6   1996      test.txt
-	drwxr-xr-x123  owner        1024 11月 6日 14:21     Linux/
-	drwxr-xr-x123  owner        1024 11月 6日 14時21分  Linux/
-	-rwxrwx---132  owner          12 11月 6日 1996年    test.txt
-
-*LIST_UNIX_23
-	0              1            2    3        4         5
-	-------------------------------------------------------
-	drwxr-xr-x123  owner        1024 11月12日 14時21分  Linux/
-	-rwxrwx---132  owner          12 11月12日 1996年    test.txt
-
-*LIST_UNIX_24
-	0          1   2            3    4    5   6         7
-	-------------------------------------------------------
-	drwxr-xr-x 15  owner        512  2001 6月 18        audit	(月はGBコードで0xD4C2)
-
-*LIST_UNIX_25
-	0              1            2    3    4   5         6
-	-------------------------------------------------------
-	drwxr-xr-x15   owner        512  2001 6月 18        audit	(月はGBコードで0xD4C2)
-
-
-
-
-
-
-
-*LIST_UNIX_50
-	0              1            2    3    4   5         6
-	-------------------------------------------------------
-	drwxr-xr-x     owner        1024 Nov  6   14:21     Linux/
-	-rwxrwx---     owner          12 Nov  6   1996      test.txt
-	drwxr-xr-x     owner        1024 11月 6日 14:21     Linux/
-	drwxr-xr-x     owner        1024 11月 6日 14時21分  Linux/
-	-rwxrwx---     owner          12 11月 6日 1996年    test.txt
-
-*LIST_UNIX_51
-	0              1            2    3        4         5
-	-------------------------------------------------------
-	drwxr-xr-x     owner        1024 11月12日 14時21分  Linux/
-	-rwxrwx---     owner          12 11月12日 1996年    test.txt
-
-	0          1   2        3        4        5
-	-------------------------------------------------------
-	-rwxrwxrwx SEQ 36203776 01/07/07 12:38:28 ADRS001                         
-	-rwxrwxrwx SEQ 70172160 01/07/07 13:59:58 ADRS002                         
-
-*LIST_UNIX_54
-	0              1            2    3    4   5         6
-	-------------------------------------------------------
-	drwxr-xr-x     owner        512  2001 6月 18        audit	(月はGBコードで0xD4C2)
-
-
-
-
-
-
-
-*LIST_UNIX_60
-	0          1    2     3 4     5 6    7    8  9     10
-	-------------------------------------------------------
-	drwxr-xr-x 123  owner m group g 1024 Nov  6  14:21 Linux/
-	-rwxrwx--- 132  owner m group g   12 Nov  6  1996  test.txt
-
-*LIST_UNIX_61
-	0          1    2     3 4     5 6    7         8     9
-	-------------------------------------------------------
-	drwxr-xr-x 123  owner m group g 1024 11月12日  14:21 Linux/
-	-rwxrwx--- 132  owner m group g   12 11月12日  1996  test.txt
-
-*LIST_UNIX_62
-	0              1     2 3     4 5    6    7  8     9
-	-------------------------------------------------------
-	drwxr-xr-x123  owner m group g 1024 Nov  6  14:21 Linux/
-	-rwxrwx---132  owner m group g   12 Nov  6  1996  test.txt
-
-*LIST_UNIX_63
-	0              1     2 3     4 5    6         7     8
-	-------------------------------------------------------
-	drwxr-xr-x123  owner m group g 1024 11月12日  14:21 Linux/
-	-rwxrwx---132  owner m group g   12 11月12日  1996  test.txt
-
-*LIST_UNIX_64
-	0          1   2     3 4     5  6    7    8   9    10
-	-------------------------------------------------------
-	drwxr-xr-x 15  owner m group g  512  2001 6月 18   audit	(月はGBコードで0xD4C2)
-
-*LIST_UNIX_65
-	0              1     2 3     4  5    6    7   8    9
-	-------------------------------------------------------
-	drwxr-xr-x15   owner m group g  512  2001 6月 18   audit	(月はGBコードで0xD4C2)
-
-
-
-
-LIST_UNIX_70
-	0          1    2       3     4 5    6    7  8     9
-	-------------------------------------------------------
-	drwxr-xr-x 123  owner   group g 1024 Nov  6  14:21 Linux/
-	-rwxrwx--- 132  owner   group g   12 Nov  6  1996  test.txt
-
-*LIST_UNIX_71
-	0          1    2       3     4 5    6         7     8
-	-------------------------------------------------------
-	drwxr-xr-x 123  owner   group g 1024 11月12日  14:21 Linux/
-	-rwxrwx--- 132  owner   group g   12 11月12日  1996  test.txt
-
-*LIST_UNIX_72
-	0              1       2     3 4    5    6  7     8
-	-------------------------------------------------------
-	drwxr-xr-x123  owner   group g 1024 Nov  6  14:21 Linux/
-	-rwxrwx---132  owner   group g   12 Nov  6  1996  test.txt
-
-*LIST_UNIX_73
-	0              1       2     3 4    5         6     7
-	-------------------------------------------------------
-	drwxr-xr-x123  owner   group g 1024 11月12日  14:21 Linux/
-	-rwxrwx---132  owner   group g   12 11月12日  1996  test.txt
-
-*LIST_UNIX_74
-	0          1   2       3     4  5    6    7   8    9
-	-------------------------------------------------------
-	drwxr-xr-x 15  owner   group g  512  2001 6月 18   audit	(月はGBコードで0xD4C2)
-
-*LIST_UNIX_75
-	0              1       2     3  4    5    6   7    8
-	-------------------------------------------------------
-	drwxr-xr-x15   owner   group g  512  2001 6月 18   audit	(月はGBコードで0xD4C2)
-
-
-
-
-
-
-*unix系で以下のような日付
-	0              1            2    3   4    5         6
-	-------------------------------------------------------
-	drwxr-xr-x123  owner        1024 11/ 6    14:21     Linux/
-	-rwxrwx---132  owner          12 11/13    1996      test.txt
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-*LIST_DOS_1
-	0         1          2       3
-	-------------------------------------------------------
-	97-10-14  03:34p     <DIR>   Linux
-	97-10-14  03:34p        12   test.txt
-	100-10-14 03:34p        12   test.txt
-
-*LIST_DOS_2
-	0         1          2       3
-	-------------------------------------------------------
-	10-14-97  03:34p     <DIR>   Linux
-	10-14-97  03:34p        12   test.txt
-	10-14-100 03:34p        12   test.txt
-
-*LIST_DOS_3
-	0             1      2         3       4
-	-------------------------------------------------------
-	Linux         <DIR>  10-14-97  03:34    
-	test.txt         12  10-14-97  14:34   A
-	test.txt         12  10-14-100 14:34   A
-
-*LIST_DOS_4
-	0          1            2        3
-	-------------------------------------------------------
-	1998/07/30 15:39:02     <DIR>    Linux
-	1998/07/30 15:42:19     11623    test.txt
-
-*LIST_ACOS
-	0
-	-------------------------------------------------------
-	test.txt
-	ディレクトリなし、
-
-*LIST_AS400
-	0           1     2        3        4        5
-	-------------------------------------------------------
-	QSYS        18944 96/09/20 00:35:10 *DIR     QOpenSys/
-	QDOC        26624 70/01/01 00:00:00 *FLR     QDLS/
-	QSYS            0 98/09/27 10:00:04 *LIB     QSYS.LIB/
-	QSECOFR         0 98/05/15 16:01:15 *STMF    WWWTEST.BAK
-
-*LIST_M1800
-	0     1     2       3       4     5         6 (ファイル名の後ろにスペースあり）
-	-------------------------------------------------------
-	drwx  F        400     400  PO    93.10.27  COMMON.PDL.EXCEL/       
-	-rw-  F      10000   10000  DA    97.03.04  DTSLOG1.FNA             
-	-rw-  F      10000  ******  DA    97.03.04  DTSBRB.FNA              
-	drwx  U     ******    6144  PO    96.12.15  IS01.TISPLOAD/          
-	-rw-  ****  ******  ******  VSAM  **.**.**  HICS.CMDSEQ             
-
-*LIST_CHAMELEON
-	0            1        2    3 4    5     6
-	-------------------------------------------------------
-	Linux        <DIR>    Nov  6 1997 14:21 drw-
-	test.txt           12 Nov  6 1886 14:21 -rwa
-
-*LIST_GP6000
-	0          1        2        3        4        5    6
-	-------------------------------------------------------
-	drwxrwxrwx 98.10.21 14:38:46 SYSG03   XSYSOPR  2048 atlib
-	-rwxrwxrwx 97.10.30 11:06:04 XSYSMNGR XSYSOPR  2048 blib
-
-*LIST_OS2
-	   0        1          2          3      4
-	-------------------------------------------------------
-	   345      A          12-02-98   10:59  VirtualDevice.java
-	     0           DIR   12-09-98   09:43  ディレクトリ
-	     0           DIR   12-09-100  09:43  ディレクトリ
-
-*LIST_MELCOM
-	0 1           2   3          4  5    6  7    8
-	---------------------------------------------------------------
-	- RW-RW-RW-   1   TERA       50 DEC  1  1997 AAAJ          B(B)
-	- RW-RW-RW-   1   TERA        1 AUG  7  1998 12345678901234B(B)
-	d RWXRWXRWX   2   TERA       64 NOV 13  1997 Q2000         -
-
-*LIST_VMS
-	0                  1         2           3         4
-	---------------------------------------------------------------
-	CIM_ALL.MEM;5        2/4     21-APR-1998 11:01:17  [CIM,MIZOTE]
-	(RWED,RWED,RE,)
-	MAIL.DIR;1         104/248   18-SEP-2001 16:19:39  [CIM,MIZOTE]
-	(RWE,RWE,,)
-		※VMSの場合一覧が複数行に別れる場合がある
-
-*LIST_OS7_1
-	0                       1        2        3
-	---------------------------------------------------------------
-	drwxrwxrwx              99/05/13 11:38:34 APL
-*LIST_OS7_2
-	0          1      2     3        4        5
-	---------------------------------------------------------------
-	-rwxrwxrwx SEQ    17408 96/12/06 10:11:27 INIT_CONFIG
-
-*LIST_IRMX
-	0          1   2     3  4       5       6 7 8         9  10  11
-	---------------------------------------------------------------
-	world      DR  DLAC  1    416   1,024   1 WORLD       05 FEB 98
-	world      DR        1    416   1,024   1 WORLD       05 FEB 98
-	name.f38       DRAU  5  4,692   1,024   1 # 0         24 MAR 99
-	name.f38             5  4,692   1,024   1 # 0         24 MAR 99
-
-*LIST_STRATUS
-	 0      1  2         3        4         5
-	---------------------------------------------------------------
-	Files: 15  Blocks: 29
-	 w      1  seq       99-06-15 13:11:39  member_srv.error
-	Dirs: 74
-	 m      3  98-12-25 16:14:58  amano
-
-*LIST_ALLIED
-	 0             1        2   3   4  5        6
-	---------------------------------------------------------------
-	     41622     IO.SYS   Tue Dec 20 06:20:00 1994
-	<dir>             DOS   Wed Nov 24 09:35:48 1999
-
-*LIST_OS9
-	 0       1        2     3            4      5      6
-	---------------------------------------------------------------
-	 0.0     01/02/13 0945  d-----wr     3C0    148724 W_017
-	 0.0     01/02/13 0945  ------wr     C20     48828 W_017.CLG
-
-*LIST_IBM
-	 0      1      2           3  4    5      6   7      8   9
-	---------------------------------------------------------------
-	 JXSIB1 3390   2000/12/27  1  810  FB     240 24000  PO  DIRNAME
-	 JXSW01 3390   2000/12/27  1    5  VBA    240  3120  PS  FILENAME
-
-*LIST_AGILENT
-	 0             1    2    3      4     5
-	---------------------------------------------------------------
-	 drwxrwxrwx    1    1    1      1024  system
-	 -rw-rw-rw-    1    1    1      1792  abc.aaa
-
-*LIST_SHIBASOKU
-	 0        1            2          3                 4
-	---------------------------------------------------------------
-	   512    Jan-30-2002  14:52:04   DIRNAME           <DIR>
-	 61191    Aug-30-2002  17:30:38   FILENAME.C        
-
-
-// linux-ftpd
-*LIST_UNIX_16
-	0          1   2     3      4    5          6     7
-	-------------------------------------------------------
-	合計 12345
-	drwxr-x--- 2 root root      4096 2011-12-06 23:39 .
-	drwxr-x--- 3 root root      4096 2011-12-06 23:39 ..
-	-rw-r----- 1 root root       251 2011-12-06 23:39 .hoge
-
-// uClinux
-*LIST_UNIX_17
-	0          1 2 3 4   5
-	-------------------------------------------------------
-	-rw-r--r-- 1 0 0 100 services
-	lrwxrwxrwx 1 0 0 20 resolv.conf -> /var/run/resolv.conf
-	drwxr-sr-x 1 0 0 0 rc.d
-	-rw-r--r-- 1 0 0 290 rc
-	-rw-r--r-- 1 0 0 34 passwd
-	lrwxrwxrwx 1 0 0 18 inittab -> ../var/tmp/inittab
-
-// Windows Server 2008 R2
-*LIST_DOS_5
-	0          1       2     3
-	-------------------------------------------------------
-	02-05-2013 09:45AM <DIR> TEST
-	01-28-2013 03:54PM 2847 DATA.TXT
-
-*LIST_TANDEM
-	 0             1               2    3         4        5       6
-	---------------------------------------------------------------
-	File         Code             EOF  Last Modification    Owner  RWEP
-	EMSACSTM      101             146  18-Sep-00 09:03:37 170,175 "nunu"
-	TACLCSTM   O  101             101  4-Mar-01  23:50:06 255,255 "oooo"
-
-------------------------------------*/
 
 /*===== 接続ウインドウの形式 =====*/
 
@@ -872,43 +373,6 @@ LIST_UNIX_70
 #define HTYPE_TANDEM	8		/* HP NonStop Server */
 #endif
 
-/*===== コマンドラインオプション =====*/
-
-//#define OPT_MIRROR		0x0001	/* ミラーリングアップロードを行う */
-//#define OPT_FORCE		0x0002	/* ミラーリング開始の確認をしない */
-//#define OPT_QUIT		0x0004	/* 終了後プログラム終了 */
-//#define OPT_EUC			0x0008	/* 漢字コードはEUC */
-//#define OPT_JIS			0x0010	/* 漢字コードはJIS */
-//#define OPT_ASCII		0x0020	/* アスキー転送モード */
-//#define OPT_BINARY		0x0040	/* バイナリ転送モード */
-//#define OPT_AUTO		0x0080	/* 自動判別 */
-//#define OPT_KANA		0x0100	/* 半角かなをそのまま通す */
-//#define OPT_EUC_NAME	0x0200	/* ファイル名はEUC */
-//#define OPT_JIS_NAME	0x0400	/* ファイル名はJIS */
-//#define OPT_MIRRORDOWN	0x0800	/* ミラーリングダウンロードを行う */
-//#define OPT_SAVEOFF		0x1000	/* 設定の保存を中止する */
-//#define OPT_SAVEON		0x2000	/* 設定の保存を再開する */
-#define OPT_MIRROR		0x00000001	/* ミラーリングアップロードを行う */
-#define OPT_FORCE		0x00000002	/* ミラーリング開始の確認をしない */
-#define OPT_QUIT		0x00000004	/* 終了後プログラム終了 */
-#define OPT_EUC			0x00000008	/* 漢字コードはEUC */
-#define OPT_JIS			0x00000010	/* 漢字コードはJIS */
-#define OPT_ASCII		0x00000020	/* アスキー転送モード */
-#define OPT_BINARY		0x00000040	/* バイナリ転送モード */
-#define OPT_AUTO		0x00000080	/* 自動判別 */
-#define OPT_KANA		0x00000100	/* 半角かなをそのまま通す */
-#define OPT_EUC_NAME	0x00000200	/* ファイル名はEUC */
-#define OPT_JIS_NAME	0x00000400	/* ファイル名はJIS */
-#define OPT_MIRRORDOWN	0x00000800	/* ミラーリングダウンロードを行う */
-#define OPT_SAVEOFF		0x00001000	/* 設定の保存を中止する */
-#define OPT_SAVEON		0x00002000	/* 設定の保存を再開する */
-// UTF-8対応
-#define OPT_SJIS		0x00004000	/* 漢字コードはShift_JIS */
-#define OPT_UTF8N		0x00008000	/* 漢字コードはUTF-8 */
-#define OPT_UTF8BOM		0x00010000	/* 漢字コードはUTF-8 BOM */
-#define OPT_SJIS_NAME	0x00020000	/* ファイル名はShift_JIS */
-#define OPT_UTF8N_NAME	0x00040000	/* ファイル名はUTF-8 */
-
 /*===== ホストのヒストリ =====*/
 
 #define	HISTORY_MAX		20		/* ファイルのヒストリの最大個数 */
@@ -950,10 +414,6 @@ LIST_UNIX_70
 #define RDIR_NONE		0		/* 再帰検索なし */
 #define RDIR_NLST		1		/* NLST -R */
 #define RDIR_CWD		2		/* CWDで移動 */
-
-/*===== VAX VMS 関係 =====*/
-
-#define BLOCK_SIZE		512		/* 1ブロックのバイト数 */
 
 /*===== 設定のレベル =====*/
 
@@ -1022,7 +482,7 @@ struct HostExeptPassword {
 	char ChmodCmd[CHMOD_CMD_LEN + 1] = CHMOD_CMD_NOR;	/* 属性変更コマンド */
 	char LsName[NLST_NAME_LEN + 1] = LS_FNAME;			/* NLSTに付けるファイル名/オプション*/
 	char InitCmd[INITCMD_LEN + 1] = "";					/* ホストの初期化コマンド */
-	int Port = PORT_NOR;								/* ポート番号 */
+	int Port = IPPORT_FTP;								/* ポート番号 */
 	int KanjiCode = KANJI_NOCNV;						/* ホストの漢字コード (KANJI_xxx) */
 	int KanaCnv = YES;									/* 半角カナを全角に変換(YES/NO) */
 	int NameKanjiCode = KANJI_NOCNV;					/* ファイル名の漢字コード (KANJI_xxx) */
@@ -1035,7 +495,7 @@ struct HostExeptPassword {
 	int HostType = HTYPE_AUTO;							/* ホストのタイプ (HTYPE_xxx) */
 	int SyncMove = NO;									/* フォルダ同時移動 (YES/NO) */
 	int NoFullPath = NO;								/* フルパスでファイルアクセスしない (YES/NO) */
-	ulong Sort = SORT_NOTSAVED;							/* ソート方法 (0x11223344 : 11=LFsort 22=LDsort 33=RFsort 44=RFsort) */
+	uint32_t Sort = SORT_NOTSAVED;						/* ソート方法 (0x11223344 : 11=LFsort 22=LDsort 33=RFsort 44=RFsort) */
 	int Security = SECURITY_AUTO;						/* セキュリティ (SECURITY_xxx , MDx) */
 	int Dialup = NO;									/* ダイアルアップ接続するかどうか (YES/NO) */
 	int DialupAlways = NO;								/* 常にこのエントリへ接続するかどうか (YES/NO) */
@@ -1352,7 +812,7 @@ char *AskHostBookMark(int Num);
 int SetHostDir(int Num, const char* LocDir, const char* HostDir);
 int SetHostPassword(int Num, char *Pass);
 int SetHostSort(int Num, int LFSort, int LDSort, int RFSort, int RDSort);
-void DecomposeSortType(ulong Sort, int *LFSort, int *LDSort, int *RFSort, int *RDSort);
+void DecomposeSortType(uint32_t Sort, int *LFSort, int *LDSort, int *RFSort, int *RDSort);
 int AskCurrentHost(void);
 void SetCurrentHost(int Num);
 void CopyDefaultHost(HOSTDATA *Set);

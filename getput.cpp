@@ -41,7 +41,6 @@
 #define SET_BUFFER_SIZE
 
 /* Add by H.Shirouzu at 2002/10/02 */
-#undef BUFSIZE
 #define BUFSIZE			(32 * 1024)
 #define SOCKBUF_SIZE	(256 * 1024)
 /* End */

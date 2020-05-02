@@ -46,6 +46,28 @@
 #define RESIZE_HPOS		0		/* ローカル－ホスト間の区切り位置変更 */
 #define RESIZE_VPOS		1		/* リスト－タスク間の区切り位置の変更 */
 
+/*===== コマンドラインオプション =====*/
+
+#define OPT_MIRROR		0x00000001	/* ミラーリングアップロードを行う */
+#define OPT_FORCE		0x00000002	/* ミラーリング開始の確認をしない */
+#define OPT_QUIT		0x00000004	/* 終了後プログラム終了 */
+#define OPT_EUC			0x00000008	/* 漢字コードはEUC */
+#define OPT_JIS			0x00000010	/* 漢字コードはJIS */
+#define OPT_ASCII		0x00000020	/* アスキー転送モード */
+#define OPT_BINARY		0x00000040	/* バイナリ転送モード */
+#define OPT_AUTO		0x00000080	/* 自動判別 */
+#define OPT_KANA		0x00000100	/* 半角かなをそのまま通す */
+#define OPT_EUC_NAME	0x00000200	/* ファイル名はEUC */
+#define OPT_JIS_NAME	0x00000400	/* ファイル名はJIS */
+#define OPT_MIRRORDOWN	0x00000800	/* ミラーリングダウンロードを行う */
+#define OPT_SAVEOFF		0x00001000	/* 設定の保存を中止する */
+#define OPT_SAVEON		0x00002000	/* 設定の保存を再開する */
+#define OPT_SJIS		0x00004000	/* 漢字コードはShift_JIS */
+#define OPT_UTF8N		0x00008000	/* 漢字コードはUTF-8 */
+#define OPT_UTF8BOM		0x00010000	/* 漢字コードはUTF-8 BOM */
+#define OPT_SJIS_NAME	0x00020000	/* ファイル名はShift_JIS */
+#define OPT_UTF8N_NAME	0x00040000	/* ファイル名はUTF-8 */
+
 
 /*===== プロトタイプ =====*/
 
@@ -160,7 +182,7 @@ int RegType = REGTYPE_REG;
 char FwallHost[HOST_ADRS_LEN+1] = { "" };
 char FwallUser[USER_NAME_LEN+1] = { "" };
 char FwallPass[PASSWORD_LEN+1] = { "" };
-int FwallPort = PORT_NOR;
+int FwallPort = IPPORT_FTP;
 int FwallType = 1;
 int FwallDefault = NO;
 int FwallSecurity = SECURITY_AUTO;
@@ -2000,9 +2022,6 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 
 	if((Resizing == RESIZE_OFF) && (Keys == 0))
 	{
-		// 高DPI対応
-//		if((x >= LocalWidth) && (x <= LocalWidth + SepaWidth) &&
-//		   (y > TOOLWIN_HEIGHT) && (y < (TOOLWIN_HEIGHT * 2 + ListHeight)))
 		if((x >= LocalWidth) && (x <= LocalWidth + SepaWidth) &&
 		   (y > AskToolWinHeight()) && (y < (AskToolWinHeight() * 2 + ListHeight)))
 		{
@@ -2013,8 +2032,6 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 			Resizing = RESIZE_PREPARE;
 			ResizePos = RESIZE_HPOS;
 		}
-		// 高DPI対応
-//		else if((y >= TOOLWIN_HEIGHT*2+ListHeight) && (y <= TOOLWIN_HEIGHT*2+ListHeight+SepaWidth))
 		else if((y >= AskToolWinHeight()*2+ListHeight) && (y <= AskToolWinHeight()*2+ListHeight+SepaWidth))
 		{
 			/* 境界位置変更用カーソルに変更 */
@@ -2035,20 +2052,12 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 			GetClientRect(GetSbarWnd(), &Rect1);
 			Rect.left += GetSystemMetrics(SM_CXFRAME);
 			Rect.right -= GetSystemMetrics(SM_CXFRAME);
-			// 高DPI対応
-//			Rect.top += TOOLWIN_HEIGHT*2 + GetSystemMetrics(SM_CYMENU) + GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYFRAME);
 			Rect.top += AskToolWinHeight()*2 + GetSystemMetrics(SM_CYMENU) + GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYFRAME);
 			Rect.bottom -= GetSystemMetrics(SM_CYFRAME) + Rect1.bottom;
 			ClipCursor(&Rect);
 		}
 		else
 		{
-			// 高DPI対応
-//			if(((ResizePos == RESIZE_HPOS) &&
-//				((x < LocalWidth) || (x > LocalWidth + SepaWidth) ||
-//				 (y <= TOOLWIN_HEIGHT) || (y >= (TOOLWIN_HEIGHT * 2 + ListHeight)))) ||
-//			   ((ResizePos == RESIZE_VPOS) &&
-//				((y < TOOLWIN_HEIGHT*2+ListHeight) || (y > TOOLWIN_HEIGHT*2+ListHeight+SepaWidth))))
 			if(((ResizePos == RESIZE_HPOS) &&
 				((x < LocalWidth) || (x > LocalWidth + SepaWidth) ||
 				 (y <= AskToolWinHeight()) || (y >= (AskToolWinHeight() * 2 + ListHeight)))) ||

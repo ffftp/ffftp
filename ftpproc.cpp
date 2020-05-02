@@ -2605,7 +2605,7 @@ void CopyURLtoClipBoard() {
 	if (empty(FileListBase))
 		return;
 	auto baseAddress = L"ftp://"s + u8(AskHostAdrs());
-	if (auto port = AskHostPort(); port != PORT_NOR)
+	if (auto port = AskHostPort(); port != IPPORT_FTP)
 		baseAddress.append(L":").append(std::to_wstring(port));
 	{
 		char dir[FMAX_PATH + 1];

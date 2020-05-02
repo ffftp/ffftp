@@ -1457,7 +1457,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 							if(FwallLower == YES)
 								Flg++;
 
-							if(HostPort == PORT_NOR)
+							if(HostPort == IPPORT_FTP)
 								// 同時接続対応
 //								Sts = command(ContSock, NULL, &CancelFlg, "%s %s", SiteTbl[Flg], Host) / 100;
 								Sts = command(ContSock, NULL, CancelCheckWork, "%s %s", SiteTbl[Flg], Host) / 100;
@@ -1486,7 +1486,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 
 								if((Fwall == FWALL_FU_FP_USER) || (Fwall == FWALL_USER))
 								{
-									if(HostPort == PORT_NOR)
+									if(HostPort == IPPORT_FTP)
 										sprintf(Buf, "%s%c%s", User, FwallDelimiter, Host);
 									else
 										sprintf(Buf, "%s%c%s %d", User, FwallDelimiter, Host, HostPort);
@@ -2071,7 +2071,7 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork) {
 		saConnect = std::get<sockaddr_storage>(target);
 	}
 
-	auto s = do_socket(saConnect.ss_family, SOCK_STREAM, TCP_PORT);
+	auto s = do_socket(saConnect.ss_family, SOCK_STREAM, IPPROTO_TCP);
 	if (s == INVALID_SOCKET) {
 		SetTaskMsg(MSGJPN027);
 		return INVALID_SOCKET;

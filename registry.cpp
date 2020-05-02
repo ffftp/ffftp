@@ -145,7 +145,7 @@ static int SecretKeyLength;
 static int IsMasterPasswordError = PASSWORD_OK;
 
 static int IsRndSourceInit = 0;
-static ulong RndSource[9];
+static uint32_t RndSource[9];
 
 // UTF-8対応
 static int IniKanjiCode = KANJI_NOCNV;
@@ -1815,7 +1815,7 @@ static std::unique_ptr<Config> CreateReg(int type) {
 int CheckPasswordValidity( char* Password, int length, const char* HashStr, int StretchCount )
 {
 	char Buf[MAX_PASSWORD_LEN + 32];
-	ulong hash1[5];
+	uint32_t hash1[5];
 	uint32_t hash2[5];
 	
 	int i, j;
@@ -1830,7 +1830,7 @@ int CheckPasswordValidity( char* Password, int length, const char* HashStr, int 
 
 	/* Hashをデコードする*/
 	for( i = 0; i < 5; i++ ){
-		ulong decode = 0;
+		uint32_t decode = 0;
 		for( j = 0; j < 8; j++ ){
 			if( *p < 0x40 || 0x40 + 15 < *p ){
 				return BAD_PASSWORD_HASH;
@@ -1883,7 +1883,7 @@ void CreatePasswordHash( char* Password, int length, char* HashStr, int StretchC
 	}
 
 	for( i = 0; i < 5; i++ ){
-		ulong rest = hash[i];
+		uint32_t rest = hash[i];
 		for( j = 0; j < 8; j++ ){
 			*p++ = (unsigned char)((rest & 0xf0000000) >> 28) + '@';
 			rest <<= 4;

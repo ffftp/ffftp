@@ -35,7 +35,7 @@
 /*===== プロトタイプ =====*/
 
 static char *btoe(char *c, char *buf);
-static ulong extract(char *s, int start, int length);
+static uint32_t extract(char *s, int start, int length);
 
 
 /*===== ローカルなワーク =====*/
@@ -370,9 +370,9 @@ static char *btoe(char *c, char *buf)
 
 
 
-static ulong extract(char *s, int start, int length)
+static uint32_t extract(char *s, int start, int length)
 {
-	ulong x;
+	uint32_t x;
 	unsigned char cl;
 	unsigned char cc;
 	unsigned char cr;
@@ -380,7 +380,7 @@ static ulong extract(char *s, int start, int length)
 	cl = s[start / 8];
 	cc = s[start / 8 + 1];
 	cr = s[start / 8 + 2];
-	x = ((ulong) (cl << 8 | cc) << 8 | cr);
+	x = ((uint32_t) (cl << 8 | cc) << 8 | cr);
 	x = x >> (24 - (length + (start % 8)));
 	x = (x & (0xffff >> (16 - length)));
 
