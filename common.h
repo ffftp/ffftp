@@ -1018,7 +1018,7 @@ public:
 			{ euc, KANJI_EUC },
 			{ jis, KANJI_JIS },
 			}, [](auto const& l, auto const& r) { return std::get<0>(l) < std::get<0>(r); });
-		return id == KANJI_UTF8N && nfc ? KANJI_UTF8HFSX : id;
+		return id == KANJI_UTF8N && nfd ? KANJI_UTF8HFSX : id;
 	}
 };
 
