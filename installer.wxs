@@ -5,7 +5,7 @@
   <?else?>
   <?define ProgramFilesFolder = "ProgramFilesFolder" ?>
   <?endif ?>
-  <Product Id="*" Language="1033" Manufacturer="KURATA Sayuri" Name="ffftp" UpgradeCode="{E49AC23D-CF13-4928-86DB-8B87D66C4AB3}" Version="!(bind.fileVersion.ffftp.exe)">
+  <Product Id="*" Language="1033" Manufacturer="Kurata Sayuri" Name="ffftp" UpgradeCode="{E49AC23D-CF13-4928-86DB-8B87D66C4AB3}" Version="!(bind.fileVersion.ffftp.exe)">
     <Package Compressed="yes" InstallerVersion="200" InstallScope="perMachine" />
     <MajorUpgrade DowngradeErrorMessage="A later version of [ProductName] is already installed. Setup will now exit." />
     <Media Id="1" Cabinet="ffftp.cab" EmbedCab="yes" />

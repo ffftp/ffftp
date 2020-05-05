@@ -1,5 +1,5 @@
 ============================================================
-【ソフト名】　FTPクライアント FFFTP Ver 4.5
+【ソフト名】　FTPクライアント FFFTP Ver 4.6
 【動作環境】　Windows 10, 8.1, 8, 7, Vista, XP
 【サポート】　https://github.com/ffftp/ffftp
 ============================================================
@@ -27,16 +27,13 @@ FFFTP Ver.1.96d+009以降を最初に起動した時、接続メニューの設定→
 マスターパスワードの入力が求められますので、入力してください。
 
 
-Ver 4.5での変更点
+Ver 4.6での変更点
 ----------------
 
-- Windows 7のサポート終了に伴い、64bit版の動作環境をWindows 8.1以降に変更しました。32bit版は引き続きWindows XP SP3以降です。 #174
-- ダイアログの表示に使用するフォントを改善しました。 #180
-- ファイル転送ダイアログの表示を改善しました。 #177
-- ファイル一覧を取得できない特殊なディレクトリに遭遇した際、エラーメッセージを表示するように改善しました。 #166, #170
-- vcpkgのバグを修正しました。 #168, #169, #172
-- ログウィンドウの表示更新の際、メモリアクセス違反が発生する問題を修正しました。 #175
-- プロジェクトファイルを整理しました。 #173
+- ファイルの送受信中に突然停止してしまう問題を修正しました。 #182, #188
+- HFS+の扱いが誤っている問題を修正しました。 #191
+- malloc / freeを排除し、全ての構造体をSTLで処理するように改善しました。 #183, #184, #185, #187
+- マクロ定義を削減しました。 #190
 
 
 Ver 1.96d以前へ戻す場合
@@ -121,7 +118,7 @@ ffftp.ja.txt ----- このファイル
 
 Copyright(C) 1997-2010, Sota & cooperators. All rights reserved.
 Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
-Copyright (C) 2018-2019, KURATA Sayuri.
+Copyright (C) 2018-2020, Kurata Sayuri.
 
 Redistribution and use in source and binary forms, with or without 
 modification, are permitted provided that the following conditions 
@@ -148,7 +145,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Copyright(C) 1997-2010 Sota & ご協力いただいた方々. All rights reserved.
 Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
-Copyright (C) 2018-2019, 倉田佐祐理.
+Copyright (C) 2018-2020, 倉田佐祐理.
 
 ソースコード形式でもバイナリ形式でも、変更の有無に関わらず、以下の条件を
 満たす場合に、再配布および使用を許可します。
