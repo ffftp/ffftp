@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.4.6 (FTP Client software)
+[Software Name]  FFFTP Ver.4.7 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018-2020, Kurata Sayuri.
@@ -29,13 +29,10 @@ following menu.
 File -> Settings -> Change Master password
 
 
-Changes at 4.6
+Changes at 4.7
 --------------
 
-- Fix crash bug when upload / download. #182, #188
-- Fix arround hfs+. #191
-- Remove all malloc / free, use stl containers. #183, #184, #185, #187
-- Reduce macros. #190
+- Fix crash when host setting modified. #193
 
 
 Outline
