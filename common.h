@@ -139,9 +139,9 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 /*===== バージョン ======*/
 
 #ifdef _WIN64
-#define VER_STR					"4.5 64bit"
+#define VER_STR					"4.7 64bit"
 #else
-#define VER_STR					"4.5 32bit"
+#define VER_STR					"4.7 32bit"
 #endif
 #define VER_NUM					2000		/* 設定バージョン */
 
@@ -1018,7 +1018,7 @@ public:
 			{ euc, KANJI_EUC },
 			{ jis, KANJI_JIS },
 			}, [](auto const& l, auto const& r) { return std::get<0>(l) < std::get<0>(r); });
-		return id == KANJI_UTF8N && nfc ? KANJI_UTF8HFSX : id;
+		return id == KANJI_UTF8N && nfd ? KANJI_UTF8HFSX : id;
 	}
 };
 

@@ -1,4 +1,4 @@
-﻿// Copyright(C) 2019 Kurata Sayuri. All rights reserved.
+﻿// Copyright(C) 2019-2020 Kurata Sayuri. All rights reserved.
 #include "common.h"
 
 
