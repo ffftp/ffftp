@@ -510,7 +510,7 @@ static int UpdateHostToList(int Num, HOSTDATA* Set) {
 	if (Num < 0 || Hosts <= Num)
 		return FFFTP_FAIL;
 	auto Pos = GetNode(Num);
-	*Pos = *Set;
+	static_cast<HOSTDATA&>(*Pos) = *Set;
 	return FFFTP_SUCCESS;
 }
 
