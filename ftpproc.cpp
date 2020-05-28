@@ -60,7 +60,6 @@ extern int MirrorFnameCnv;
 extern char DefAttrList[DEFATTRLIST_LEN+1];
 extern SIZE MirrorDlgSize;
 extern int VaxSemicolon;
-extern int DebugConsole;
 extern int CancelFlg;
 // ディレクトリ自動作成
 extern int MakeAllDir;

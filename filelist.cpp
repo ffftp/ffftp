@@ -2354,6 +2354,14 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 		return {};
 	std::vector<std::variant<FILELIST, std::string>> lines;
 	for (std::string line; getline(is, line);) {
+		if (DebugConsole == YES) {
+			static const boost::regex re{ R"([^\x20-\x7E]|%)" };
+			DoPrintf("%s", replace<char>(line, re, [](auto& m) {
+				char percent[4];
+				sprintf(percent, "%%%02X", *m[0].begin());
+				return std::string(percent);
+			}).c_str());
+		}
 		line.erase(std::remove(begin(line), end(line), '\r'), end(line));
 		std::replace(begin(line), end(line), '\b', ' ');
 		if (auto result = Parse(line))

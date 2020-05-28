@@ -1185,6 +1185,7 @@ int CheckClosedAndReconnect(void);
 int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
 
 
+extern int DebugConsole;
 extern int DispIgnoreHide;
 extern HCRYPTPROV HCryptProv;
 
