@@ -597,15 +597,12 @@ typedef struct filelist {
 	char InfoExist = 0;						/* ファイル一覧に存在した情報のフラグ (FINFO_xxx) */
 	int ImageId = 0;						/* アイコン画像番号 */
 	filelist() = default;
-	filelist(const char* file, char node) : Node{ node } {
-		strcpy(File, file);
+	filelist(std::string_view file, char node) : Node{ node } {
+		strncpy(File, file.data(), file.size());
 	}
-	filelist(const char* file, char node, char link, LONGLONG size, int attr, FILETIME time, char infoExist) : Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, InfoExist{ infoExist } {
-		strcpy(File, file);
-	}
-	filelist(const char* file, char node, char link, LONGLONG size, int attr, FILETIME time, const char* owner, char infoExist) : Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, InfoExist{ infoExist } {
-		strcpy(File, file);
-		strcpy(Owner, owner);
+	filelist(std::string_view file, char node, char link, int64_t size, int attr, FILETIME time, std::string_view owner, char infoExist) : Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, InfoExist{ infoExist } {
+		strncpy(File, file.data(), file.size());
+		strncpy(Owner, owner.data(), owner.size());
 	}
 } FILELIST;
 
@@ -719,7 +716,6 @@ const FILELIST* SearchFileList(const char* Fname, std::vector<FILELIST> const& B
 static inline FILELIST* SearchFileList(const char* Fname, std::vector<FILELIST>& Base, int Caps) {
 	return const_cast<FILELIST*>(SearchFileList(Fname, static_cast<std::vector<FILELIST> const&>(Base), Caps));
 }
-int Assume1900or2000(int Year);
 void SetFilter(int *CancelCheckWork);
 void doDeleteRemoteFile(void);
 
@@ -1102,14 +1098,11 @@ void SetYenTail(char *Str);
 void RemoveYenTail(char *Str);
 void SetSlashTail(char *Str);
 void ReplaceAll(char *Str, char Src, char Dst);
-int IsDigitSym(int Ch, int Sym);
-int StrAllSameChar(const char* Str, char Ch);
 void RemoveTailingSpaces(char *Str);
 const char* stristr(const char* s1, const char* s2);
 static inline char* stristr(char* s1, const char* s2) { return const_cast<char*>(stristr(static_cast<const char*>(s1), s2)); }
 const char* GetNextField(const char* Str);
 int GetOneField(const char* Str, char *Buf, int Max);
-void RemoveComma(char *Str);
 const char* GetFileName(const char* Path);
 const char* GetFileExt(const char* Path);
 void RemoveFileName(const char* Path, char *Buf);
@@ -1123,7 +1116,6 @@ void RectClientToScreen(HWND hWnd, RECT *Rect);
 int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char *Pass, int *Port);
 int TimeString2FileTime(const char *Time, FILETIME *Buf);
 void FileTime2TimeString(const FILETIME *Time, char *Buf, int Mode, int InfoExist, int ShowSeconds);
-void SpecificLocalFileTime2FileTime(FILETIME *Time, int TimeZone);
 int AttrString2Value(const char *Str);
 // ファイルの属性を数字で表示
 //void AttrValue2String(int Attr, char *Buf);
@@ -1260,10 +1252,17 @@ static auto ieq(std::wstring const& left, std::wstring const& right) {
 static auto ieq(std::wstring_view left, std::wstring_view right) {
 	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::towupper(l) == std::towupper(r); });
 }
-static auto lc(std::wstring_view source) {
-	std::wstring result{ source };
-	_wcslwr(data(result));
-	return result;
+static inline auto lc(std::string&& str) {
+	_strlwr(data(str));
+	return str;
+}
+static inline auto lc(std::wstring&& str) {
+	_wcslwr(data(str));
+	return str;
+}
+template<class String>
+static inline auto lc(String const& src) {
+	return lc(std::basic_string(std::begin(src), std::end(src)));
 }
 template<class Char, class Evaluator>
 static inline auto replace(std::basic_string_view<Char> input, boost::basic_regex<Char> const& pattern, Evaluator&& evaluator) {
