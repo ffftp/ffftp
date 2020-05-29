@@ -35,8 +35,8 @@ extern int SepaWidth;
 extern int ListHeight;
 extern int TaskHeight;
 extern HFONT ListFont;
-extern int DebugConsole;
 extern int RemoveOldLog;
+int DebugConsole = NO;
 static HWND hWndTask = NULL;
 static Concurrency::concurrent_queue<std::wstring> queue;
 

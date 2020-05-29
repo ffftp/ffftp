@@ -96,59 +96,6 @@ void ReplaceAll(char* Str, char Src, char Dst) {
 }
 
 
-/*----- 数字もしくは特定の１文字かチェック ------------------------------------
-*
-*	Parameter
-*		int Ch : チェックする文字
-*		int Sym : 記号
-*
-*	Return Value
-*		int ステータス
-*			0=数字でも特定の記号でもない
-*----------------------------------------------------------------------------*/
-
-int IsDigitSym(int Ch, int Sym)
-{
-	int Ret;
-
-	if((Ret = IsDigit(Ch)) == 0)
-	{
-		if((Sym != NUL) && (Sym == Ch))
-			Ret = 1;
-	}
-	return(Ret);
-}
-
-
-/*----- 文字列が全て同じ文字かチェック ----------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*		int Ch : 文字
-*
-*	Return Value
-*		int ステータス
-*			YES/NO
-*----------------------------------------------------------------------------*/
-
-int StrAllSameChar(const char* Str, char Ch)
-{
-	int Ret;
-
-	Ret = YES;
-	while(*Str != NUL)
-	{
-		if(*Str != Ch)
-		{
-			Ret = NO;
-			break;
-		}
-		Str++;
-	}
-	return(Ret);
-}
-
-
 /*----- 文字列の末尾のスペースを削除 ------------------------------------------
 *
 *	Parameter
@@ -267,34 +214,6 @@ int GetOneField(const char* Str, char *Buf, int Max)
 		}
 	}
 	return(Sts);
-}
-
-
-/*----- カンマを取り除く ------------------------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void RemoveComma(char *Str)
-{
-	char *Put;
-
-	Put = Str;
-	while(*Str != NUL)
-	{
-		if(*Str != ',')
-		{
-			*Put = *Str;
-			Put++;
-		}
-		Str++;
-	}
-	*Put = NUL;
-	return;
 }
 
 
@@ -815,32 +734,6 @@ void FileTime2TimeString(const FILETIME *Time, char *Buf, int Mode, int InfoExis
 //		if (!strftime((char *)str, 100, "%c",  (const struct tm *)thetime))
 //			SetTaskMsg("strftime が失敗しました!\n");
 	}
-	return;
-}
-
-
-/*----- ファイルタイムを指定タイムゾーンのローカルタイムからGMTに変換 ---------
-*
-*	Parameter
-*		FILETIME *Time : ファイルタイム
-*		int TimeZone : タイムゾーン
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SpecificLocalFileTime2FileTime(FILETIME *Time, int TimeZone)
-{
-	unsigned __int64 Tmp64;
-
-	Tmp64 = (unsigned __int64)Time->dwLowDateTime +
-			((unsigned __int64)Time->dwHighDateTime << 32);
-
-	Tmp64 -= (__int64)TimeZone * (__int64)36000000000;
-
-	Time->dwHighDateTime = (DWORD)(Tmp64 >> 32);
-	Time->dwLowDateTime = (DWORD)(Tmp64 & 0xFFFFFFFF);
-
 	return;
 }
 

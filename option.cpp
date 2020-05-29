@@ -57,7 +57,6 @@ void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize);
 extern char UserMailAdrs[USER_MAIL_LEN+1];
 extern char ViewerName[VIEWERS][FMAX_PATH+1];
 extern int ConnectOnStart;
-extern int DebugConsole;
 extern int SaveWinPos;
 extern char AsciiExt[ASCII_EXT_LEN+1];
 extern int RecvMode;

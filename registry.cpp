@@ -172,7 +172,6 @@ extern int RemoteFileSort;
 extern int RemoteDirSort;
 extern int TransMode;
 extern int ConnectOnStart;
-extern int DebugConsole;
 extern int SaveWinPos;
 extern char AsciiExt[ASCII_EXT_LEN+1];
 extern int RecvMode;
