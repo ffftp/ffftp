@@ -20,6 +20,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\filelist.txt" />
+    <CopyFileToFolders Include="..\filelist.txt" />
   </ItemGroup>
 </Project>
