@@ -27,9 +27,9 @@ jobs:
         $VS = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
         vcpkg integrate install
         vcpkg --overlay-triplets=vcpkg/triplets install boost-regex:${{matrix.platform}}-windows-ffftp
-        "$VS\MSBuild\Current\Bin\MSBuild.exe" ffftp.sln /p:Platform=$('${{matrix.platform}}' -replace 'x86', 'Win32') /p:Configuration=${{matrix.configuration}}
+        & "$VS\MSBuild\Current\Bin\MSBuild.exe" ffftp.sln /p:Platform=$('${{matrix.platform}}' -replace 'x86', 'Win32') /p:Configuration=${{matrix.configuration}}
         mv ${{matrix.configuration}}\${{matrix.platform}}\ffftp.pdb ${{matrix.configuration}}\ffftp-${{matrix.platform}}.pdb
-        "$VS\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" test\${{matrix.configuration}}\${{matrix.platform}}\test.dll
+        & "$VS\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" test\${{matrix.configuration}}\${{matrix.platform}}\test.dll
     - name: Upload msi
       if: matrix.configuration == 'Release'
       uses: actions/upload-artifact@v1
