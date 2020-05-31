@@ -2358,7 +2358,7 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 			static const boost::regex re{ R"([^\x20-\x7E]|%)" };
 			DoPrintf("%s", replace<char>(line, re, [](auto& m) {
 				char percent[4];
-				sprintf(percent, "%%%02X", *m[0].begin());
+				sprintf(percent, "%%%02X", static_cast<unsigned char>(*m[0].begin()));
 				return std::string(percent);
 			}).c_str());
 		}
