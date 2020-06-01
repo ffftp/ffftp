@@ -34,7 +34,7 @@ struct HOSTLISTDATA : HOSTDATA, std::enable_shared_from_this<HOSTLISTDATA> {
 	std::shared_ptr<HOSTLISTDATA> Prev;
 	std::shared_ptr<HOSTLISTDATA> Child;
 	std::shared_ptr<HOSTLISTDATA> Parent;
-	HOSTLISTDATA(HOSTDATA const& Set) : HOSTDATA{ Set } {}
+	explicit HOSTLISTDATA(HOSTDATA const& Set) : HOSTDATA{ Set } {}
 
 	// 次の設定番号のノードを返す
 	//   empty=次はない
