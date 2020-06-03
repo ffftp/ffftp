@@ -1189,6 +1189,18 @@ extern int DebugConsole;
 extern int DispIgnoreHide;
 extern HCRYPTPROV HCryptProv;
 
+template<class Char> struct Traits;
+template<>
+struct Traits<char> {
+	static int vscprintf(const char* format, va_list arg) { return _vscprintf_p(format, arg); }
+	static int vsprintf(char* buffer, size_t size, const char* format, va_list arg) { return _vsprintf_p(buffer, size, format, arg); }
+};
+template<>
+struct Traits<wchar_t> {
+	static int vscprintf(const wchar_t* format, va_list arg) { return _vscwprintf_p(format, arg); }
+	static int vsprintf(wchar_t* buffer, size_t size, const wchar_t* format, va_list arg) { return _vswprintf_p(buffer, size, format, arg); }
+};
+
 template<class Target, class Source>
 constexpr auto data_as(Source& source) {
 	return reinterpret_cast<Target*>(std::data(source));
@@ -1276,6 +1288,21 @@ static inline auto replace(std::basic_string_view<Char> input, boost::basic_rege
 	}
 	replaced.append(last, data(input) + size(input));
 	return replaced;
+}
+template<class Char>
+static inline auto strprintf(_In_z_ _Printf_format_string_ const Char* format, ...) {
+	va_list arg1;
+	va_start(arg1, format);
+	int len = Traits<Char>::vscprintf(format, arg1);
+	va_end(arg1);
+	assert(0 < len);
+	va_list arg2;
+	va_start(arg2, format);
+	std::basic_string<Char> buffer(len, Char{});
+	len = Traits<Char>::vsprintf(data(buffer), (size_t)len + 1, format, arg2);
+	va_end(arg2);
+	assert(len == size(buffer));
+	return buffer;
 }
 template<int captionId = IDS_APP>
 static inline auto Message(HWND owner, int textId, DWORD style) {
