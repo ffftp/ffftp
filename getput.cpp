@@ -1027,7 +1027,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 
 			if(GoExit == YES)
 			{
-				SoundPlay(SND_TRANS);
+				Sound::Transferred.Play();
 				if(AskAutoExit() == NO)
 				{
 					if(Down == YES)
@@ -1635,7 +1635,7 @@ static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt) {
 			}
 		}
 	};
-	SoundPlay(SND_ERROR);
+	Sound::Error.Play();
 	return Dialog(GetFtpInst(), ResID, Pkt->hWndTrans, Data{ Pkt });
 }
 

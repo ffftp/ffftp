@@ -183,7 +183,6 @@ extern int SaveTimeStamp;
 extern int FindMode;
 extern int DotFile;
 extern int DclickOpen;
-extern SOUNDFILE Sound[SOUND_TYPES];
 extern int FnameCnv;
 extern int ConnectAndSet;
 extern int TimeOut;
@@ -553,13 +552,6 @@ void SaveRegistry(void)
 				hKey4->WriteIntValueToReg("FwallRes", FwallResolve);
 				hKey4->WriteIntValueToReg("FwallLow", FwallLower);
 				hKey4->WriteIntValueToReg("FwallDel", FwallDelimiter);
-
-				hKey4->WriteIntValueToReg("SndConSw", Sound[SND_CONNECT].On);
-				hKey4->WriteIntValueToReg("SndTrnSw", Sound[SND_TRANS].On);
-				hKey4->WriteIntValueToReg("SndErrSw", Sound[SND_ERROR].On);
-				hKey4->WriteStringToReg("SndCon", Sound[SND_CONNECT].Fname);
-				hKey4->WriteStringToReg("SndTrn", Sound[SND_TRANS].Fname);
-				hKey4->WriteStringToReg("SndErr", Sound[SND_ERROR].Fname);
 
 				hKey4->WriteMultiStringToReg("DefAttr", DefAttrList);
 
@@ -1063,13 +1055,6 @@ int LoadRegistry(void)
 			hKey4->ReadIntValueFromReg("FwallLow", &FwallLower);
 			hKey4->ReadIntValueFromReg("FwallDel", &FwallDelimiter);
 
-			hKey4->ReadIntValueFromReg("SndConSw", &Sound[SND_CONNECT].On);
-			hKey4->ReadIntValueFromReg("SndTrnSw", &Sound[SND_TRANS].On);
-			hKey4->ReadIntValueFromReg("SndErrSw", &Sound[SND_ERROR].On);
-			hKey4->ReadStringFromReg("SndCon", Sound[SND_CONNECT].Fname, FMAX_PATH+1);
-			hKey4->ReadStringFromReg("SndTrn", Sound[SND_TRANS].Fname, FMAX_PATH+1);
-			hKey4->ReadStringFromReg("SndErr", Sound[SND_ERROR].Fname, FMAX_PATH+1);
-
 			hKey4->ReadMultiStringFromReg("DefAttr", DefAttrList, DEFATTRLIST_LEN+1);
 
 			hKey4->ReadBinaryFromReg("Hdlg", &HostDlgSize, sizeof(SIZE));
@@ -1372,11 +1357,10 @@ void ClearIni() {
 void SaveSettingsToFile() {
 	if (RegType == REGTYPE_REG) {
 		if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FFFTP.reg", L"reg", { FileType::Reg, FileType::All }); !std::empty(path)) {
-			wchar_t commandLine[FMAX_PATH * 2];
-			_snwprintf(commandLine, std::size(commandLine), LR"("%s\reg.exe" EXPORT HKCU\Software\sota\FFFTP "%s")", systemDirectory().c_str(), path.c_str());
+			auto commandLine = strprintf(LR"("%s" EXPORT HKCU\Software\sota\FFFTP "%s")", (systemDirectory() / L"reg.exe"sv).c_str(), path.c_str());
 			fs::remove(path);
 			STARTUPINFOW si{ sizeof(STARTUPINFOW) };
-			if (ProcessInformation pi; !CreateProcessW(nullptr, commandLine, nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory().c_str(), &si, &pi))
+			if (ProcessInformation pi; !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory().c_str(), &si, &pi))
 				Message(IDS_FAIL_TO_EXEC_REDEDIT, MB_OK | MB_ICONERROR);
 		}
 	} else {
@@ -1390,10 +1374,9 @@ void SaveSettingsToFile() {
 int LoadSettingsFromFile() {
 	if (auto const path = SelectFile(true, GetMainHwnd(), IDS_LOAD_SETTING, L"", L"", { FileType::Reg, FileType::Ini, FileType::All }); !std::empty(path)) {
 		if (ieq(path.extension(), L".reg"s)) {
-			wchar_t commandLine[FMAX_PATH * 2];
-			_snwprintf(commandLine, std::size(commandLine), LR"("%s\reg.exe" IMPORT "%s")", systemDirectory().c_str(), path.c_str());
+			auto commandLine = strprintf(LR"("%s" IMPORT "%s")", (systemDirectory() / L"reg.exe"sv).c_str(), path.c_str());
 			STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, STARTF_USESHOWWINDOW, SW_HIDE };
-			if (ProcessInformation pi; CreateProcessW(nullptr, commandLine, nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory().c_str(), &si, &pi))
+			if (ProcessInformation pi; CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory().c_str(), &si, &pi))
 				return YES;
 			Message(IDS_FAIL_TO_EXEC_REDEDIT, MB_OK | MB_ICONERROR);
 		} else if (ieq(path.extension(), L".ini"s)) {

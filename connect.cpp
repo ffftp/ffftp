@@ -184,7 +184,7 @@ void ConnectProc(int Type, int Num)
 				strcpy(TitleUserName, CurHost.UserName);
 				DispWindowTitle();
 				UpdateStatusBar();
-				SoundPlay(SND_CONNECT);
+				Sound::Connected.Play();
 
 				SendInitCommand(CmdCtrlSocket, CurHost.InitCmd, &CancelFlg);
 
@@ -200,7 +200,7 @@ void ConnectProc(int Type, int Num)
 				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 			}
 			else
-				SoundPlay(SND_ERROR);
+				Sound::Error.Play();
 
 			EnableUserOpe();
 		}
@@ -299,7 +299,7 @@ void QuickConnectProc() {
 				strcpy(TitleUserName, CurHost.UserName);
 				DispWindowTitle();
 				UpdateStatusBar();
-				SoundPlay(SND_CONNECT);
+				Sound::Connected.Play();
 
 				InitTransCurDir();
 				DoCWD(CurHost.RemoteInitDir, YES, YES, YES);
@@ -310,7 +310,7 @@ void QuickConnectProc() {
 				if (strlen(File) > 0)
 					DirectDownloadProc(File);
 			} else {
-				SoundPlay(SND_ERROR);
+				Sound::Error.Play();
 				EnableUserOpe();
 			}
 		}
@@ -398,7 +398,7 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 			strcpy(TitleUserName, CurHost.UserName);
 			DispWindowTitle();
 			UpdateStatusBar();
-			SoundPlay(SND_CONNECT);
+			Sound::Connected.Play();
 
 			InitTransCurDir();
 			DoCWD(CurHost.RemoteInitDir, YES, YES, YES);
@@ -413,7 +413,7 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 		}
 		else
 		{
-			SoundPlay(SND_ERROR);
+			Sound::Error.Play();
 			EnableUserOpe();
 		}
 	}
@@ -479,7 +479,7 @@ void HistoryConnectProc(int MenuCmd)
 				strcpy(TitleUserName, CurHost.UserName);
 				DispWindowTitle();
 				UpdateStatusBar();
-				SoundPlay(SND_CONNECT);
+				Sound::Connected.Play();
 
 				SendInitCommand(CmdCtrlSocket, CurHost.InitCmd, &CancelFlg);
 
@@ -492,7 +492,7 @@ void HistoryConnectProc(int MenuCmd)
 				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 			}
 			else
-				SoundPlay(SND_ERROR);
+				Sound::Error.Play();
 
 			EnableUserOpe();
 		}
@@ -500,7 +500,7 @@ void HistoryConnectProc(int MenuCmd)
 			SetTaskMsg(MSGJPN002);
 	}
 	else
-		SoundPlay(SND_ERROR);
+		Sound::Error.Play();
 
 	return;
 }
@@ -990,7 +990,7 @@ int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
 		Sts = FFFTP_SUCCESS;
 	}
 	else
-		SoundPlay(SND_ERROR);
+		Sound::Error.Play();
 
 //	EnableUserOpe();
 	return(Sts);
@@ -1030,7 +1030,7 @@ static int ReConnectSkt(SOCKET *Skt)
 		Sts = FFFTP_SUCCESS;
 	}
 	else
-		SoundPlay(SND_ERROR);
+		Sound::Error.Play();
 
 	EnableUserOpe();
 	return(Sts);

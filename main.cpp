@@ -173,7 +173,6 @@ int FindMode = 0;
 int DotFile = YES;
 int DclickOpen = YES;
 int ConnectAndSet = YES;
-SOUNDFILE Sound[SOUND_TYPES] = { { NO, "" }, { NO, "" }, { NO, "" } };
 int FnameCnv = FNAME_NOCNV;
 int TimeOut = 90;
 int RmEOF = NO;
@@ -230,8 +229,8 @@ int FwallNoSaveUser = NO;
 int MarkAsInternet = YES; 
 
 
-fs::path systemDirectory() {
-	static auto path = [] {
+fs::path const& systemDirectory() {
+	static auto const path = [] {
 		wchar_t directory[FMAX_PATH];
 		auto length = GetSystemDirectoryW(directory, size_as<UINT>(directory));
 		assert(0 < length);
@@ -241,8 +240,8 @@ fs::path systemDirectory() {
 }
 
 
-static auto const& moduleDirectory() {
-	static const auto directory = [] {
+fs::path const& moduleDirectory() {
+	static auto const directory = [] {
 		wchar_t directory[FMAX_PATH];
 		const auto length = GetModuleFileNameW(nullptr, directory, size_as<DWORD>(directory));
 		assert(0 < length);
@@ -275,6 +274,31 @@ static auto const& helpPath() {
 	return path;
 }
 
+Sound Sound::Connected{ L"FFFTP_Connected", L"Connected", IDS_SOUNDCONNECTED };
+Sound Sound::Transferred{ L"FFFTP_Transferred", L"Transferred", IDS_SOUNDTRANSFERRED };
+Sound Sound::Error{ L"FFFTP_Error", L"Error", IDS_SOUNDERROR };
+void Sound::Register() {
+	if (HKEY eventlabels; RegCreateKeyExW(HKEY_CURRENT_USER, LR"(AppEvents\EventLabels)", 0, nullptr, 0, KEY_WRITE, nullptr, &eventlabels, nullptr) == ERROR_SUCCESS) {
+		if (HKEY apps; RegCreateKeyExW(HKEY_CURRENT_USER, LR"(AppEvents\Schemes\Apps\ffftp)", 0, nullptr, 0, KEY_WRITE, nullptr, &apps, nullptr) == ERROR_SUCCESS) {
+			RegSetValueExW(apps, nullptr, 0, REG_SZ, reinterpret_cast<const BYTE*>(L"FFFTP"), 12);
+			for (auto [keyName, name, id] : { Connected, Transferred, Error }) {
+				if (HKEY key; RegCreateKeyExW(eventlabels, keyName, 0, nullptr, 0, KEY_SET_VALUE, nullptr, &key, nullptr) == ERROR_SUCCESS) {
+					RegSetValueExW(key, nullptr, 0, REG_SZ, reinterpret_cast<const BYTE*>(name), ((DWORD)wcslen(name) + 1) * sizeof(wchar_t));
+					auto value = strprintf(L"@%s,%d", (moduleDirectory() / L"ffftp.exe"sv).c_str(), -id);
+					RegSetValueExW(key, L"DispFileName", 0, REG_SZ, reinterpret_cast<const BYTE*>(value.c_str()), (size_as<DWORD>(value) + 1) * sizeof(wchar_t));
+				}
+				if (HKEY key; RegCreateKeyExW(apps, keyName, 0, nullptr, 0, KEY_WRITE, nullptr, &key, nullptr) == ERROR_SUCCESS) {
+					if (HKEY _current; RegCreateKeyExW(key, L".current", 0, nullptr, 0, KEY_WRITE, nullptr, &_current, nullptr) == ERROR_SUCCESS)
+						RegCloseKey(_current);
+					RegCloseKey(key);
+				}
+			}
+			RegCloseKey(apps);
+		}
+		RegCloseKey(eventlabels);
+	}
+}
+
 
 // メインルーチン
 int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in LPWSTR lpCmdLine, __in int nShowCmd) {
@@ -298,6 +322,8 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 					msgs.emplace(id, u8(buffer, length));
 		return true;
 	}, 0);
+
+	Sound::Register();
 
 	// マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 #ifdef DISABLE_MULTI_CPUS
@@ -2216,13 +2242,6 @@ static void AboutDialog(HWND hWnd) {
 		}
 	};
 	Dialog(GetFtpInst(), about_dlg, hWnd, About{});
-}
-
-
-// サウンドを鳴らす
-void SoundPlay(int Num) {
-	if (Sound[Num].On == YES)
-		sndPlaySoundW(u8(Sound[Num].Fname).c_str(), SND_ASYNC | SND_NODEFAULT);
 }
 
 
