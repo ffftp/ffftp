@@ -317,6 +317,6 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <PropertyGroup>
-    <CAExcludePath>$(VcpkgRoot)include;$(CAExcludePath)</CAExcludePath>
+    <CAExcludePath>$(VcpkgCurrentInstalledDir)include;$(CAExcludePath)</CAExcludePath>
   </PropertyGroup>
 </Project>
