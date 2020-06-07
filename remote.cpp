@@ -102,7 +102,7 @@ int DoCWD(const char *Path, int Disp, int ForceGet, int ErrorBell)
 	}
 
 	if((Sts/100 >= FTP_CONTINUE) && (ErrorBell == YES))
-		SoundPlay(SND_ERROR);
+		Sound::Error.Play();
 
 	if((Sts/100 == FTP_COMPLETE) ||
 	   (ForceGet == YES))
@@ -283,7 +283,7 @@ int DoMKD(const char* Path)
 	Sts = CommandProcCmd(NULL, &CancelFlg, "MKD %s", Path);
 
 	if(Sts/100 >= FTP_CONTINUE)
-		SoundPlay(SND_ERROR);
+		Sound::Error.Play();
 
 	// 自動切断対策
 	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
@@ -314,7 +314,7 @@ int DoRMD(const char* Path)
 	Sts = CommandProcCmd(NULL, &CancelFlg, "RMD %s", Path);
 
 	if(Sts/100 >= FTP_CONTINUE)
-		SoundPlay(SND_ERROR);
+		Sound::Error.Play();
 
 	// 自動切断対策
 	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
@@ -345,7 +345,7 @@ int DoDELE(const char* Path)
 	Sts = CommandProcCmd(NULL, &CancelFlg, "DELE %s", Path);
 
 	if(Sts/100 >= FTP_CONTINUE)
-		SoundPlay(SND_ERROR);
+		Sound::Error.Play();
 
 	// 自動切断対策
 	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
@@ -381,7 +381,7 @@ int DoRENAME(const char *Src, const char *Dst)
 		Sts = command(AskCmdCtrlSkt(), NULL, &CancelFlg, "RNTO %s", Dst);
 
 	if(Sts/100 >= FTP_CONTINUE)
-		SoundPlay(SND_ERROR);
+		Sound::Error.Play();
 
 	// 自動切断対策
 	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
@@ -411,7 +411,7 @@ int DoCHMOD(const char *Path, const char *Mode)
 	Sts = CommandProcCmd(NULL, &CancelFlg, "%s %s %s", AskHostChmodCmd().c_str(), Mode, Path);
 
 	if(Sts/100 >= FTP_CONTINUE)
-		SoundPlay(SND_ERROR);
+		Sound::Error.Play();
 
 	// 自動切断対策
 	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
@@ -531,7 +531,7 @@ int DoQUOTE(SOCKET cSkt, const char* CmdStr, int *CancelCheckWork)
 	Sts = CommandProcTrn(cSkt, NULL, CancelCheckWork, "%s", CmdStr);
 
 	if(Sts/100 >= FTP_CONTINUE)
-		SoundPlay(SND_ERROR);
+		Sound::Error.Play();
 
 	return(Sts/100);
 }
@@ -615,7 +615,7 @@ int DoDirListCmdSkt(const char* AddOpt, const char* Path, int Num, int *CancelCh
 		Sts = DoDirList(NULL, AskCmdCtrlSkt(), AddOpt, Path, Num, CancelCheckWork);
 
 		if(Sts/100 >= FTP_CONTINUE)
-			SoundPlay(SND_ERROR);
+			Sound::Error.Play();
 //	}
 	return(Sts/100);
 }

@@ -55,7 +55,6 @@
 #define hset_adv_dlg                    132
 #define diskfull_dlg                    133
 #define find_dlg                        134
-#define opt_sound_dlg                   136
 #define downerr_dlg                     137
 #define uperr_dlg                       138
 #define hset_code_dlg                   139
@@ -123,13 +122,11 @@
 #define IDS_NOTSECURE                   204
 #define IDS_FILETYPE_ALL                205
 #define IDS_FILETYPE_EXECUTABLE         206
-#define IDS_FILETYPE_AUDIO              207
 #define IDS_FILETYPE_REG                208
 #define IDS_FILETYPE_INI                209
 #define IDS_FILETYPE_XML                210
 #define IDS_OPEN_WSFTPINI               211
 #define IDS_SELECT_VIEWER               212
-#define IDS_SELECT_AUDIOFILE            213
 #define IDS_SAVE_SETTING                214
 #define IDS_LOAD_SETTING                215
 #define IDS_OPTION                      216
@@ -195,8 +192,6 @@
 #define INP_ANONYMOUS                   1011
 #define TRMODE_TIME                     1011
 #define FIRE_USEIT                      1011
-#define SOUND_CONOK                     1011
-#define SOUND_CONNECT                   1011
 #define HSET_HANCNV                     1011
 #define MIRROR_LOW                      1011
 #define CONNECT_CONNECT                 1011
@@ -229,8 +224,6 @@
 #define PERM_G_READ                     1013
 #define SORT_RFILE_REV                  1013
 #define HSET_LISTCMD                    1013
-#define SOUND_CONNG                     1013
-#define SOUND_TRANS                     1013
 #define MISC_OLDDLG                     1013
 #define SEL_NONEW                       1013
 #define CONNECT_OLDDLG                  1013
@@ -243,8 +236,6 @@
 #define PERM_G_WRITE                    1014
 #define SORT_RDIR_REV                   1014
 #define HSET_REMOTE_CUR                 1014
-#define SOUND_TRNOK                     1014
-#define SOUND_ERROR                     1014
 #define MISC_REGTYPE                    1014
 #define CONNECT_RASCLOSE                1014
 #define FIRE_LOWER                      1014
@@ -253,7 +244,6 @@
 #define DISP_SECOND                     1014
 #define TOOL_EDITOR_BR                  1015
 #define PERM_A_READ                     1015
-#define SOUND_TRNNG                     1015
 #define TOOL_EDITOR1_BR                 1015
 #define CONNECT_CLOSE_NOTIFY            1015
 #define DISP2_PERMIT_NUM                1015
@@ -310,32 +300,11 @@
 #define TRMODE_LOCAL_BR                 1076
 #define TRMODE2_LOCAL_BR                1076
 #define HSET_PORT                       1078
-#define SOUND_CONOK_WAV                 1081
-#define SOUND_CONNECT_WAV               1081
-#define SOUND_CONNG_WAV                 1082
-#define SOUND_TRANS_WAV                 1082
-#define SOUND_TRNOK_WAV                 1083
-#define SOUND_ERROR_WAV                 1083
-#define SOUND_TRNNG_WAV                 1084
-#define SOUND_CONOK_BR                  1085
-#define SOUND_CONNECT_BR                1085
-#define SOUND_CONNG_BR                  1086
-#define SOUND_TRANS_BR                  1086
-#define SOUND_TRNOK_BR                  1087
-#define SOUND_ERROR_BR                  1087
 #define stc1                            0x0440
-#define SOUND_TRNNG_BR                  1088
 #define stc2                            0x0441
-#define SOUND_CONOK_TEST                1089
-#define SOUND_CONNECT_TEST              1089
 #define stc3                            0x0442
-#define SOUND_CONNG_TEST                1090
-#define SOUND_TRANS_TEST                1090
 #define stc4                            0x0443
-#define SOUND_TRNOK_TEST                1091
-#define SOUND_ERROR_TEST                1091
 #define HSET_CHMOD_CMD                  1091
-#define SOUND_TRNNG_TEST                1092
 #define HSET_CHMOD_NOR                  1092
 #define HSET_PORT_NOR                   1093
 #define TRMODE_EXT_LIST                 1093
@@ -426,6 +395,7 @@
 #define HSET_NO_PASV_ADRS               1230
 #define TRMODE4_MARK_INTERNET           1231
 #define IDC_SHOWCERT                    1232
+#define IDC_OPENSOUNDS                  1233
 #define NOTIFY_M_NODLG                  0x1000
 #define NOTIFY_M_DLG                    0x1001
 #define NOTIFY_M_DISABLE                0x1002
@@ -486,6 +456,9 @@
 #define NOTIFY_U_DLG                    0x1E01
 #define NOTIFY_DOWNLOAD                 0x1F00
 #define NOTIFY_OPEN                     0x1F01
+#define IDS_SOUNDCONNECTED              9000
+#define IDS_SOUNDTRANSFERRED            9001
+#define IDS_SOUNDERROR                  9002
 #define IDS_MSGJPN001                   10001
 #define IDS_MSGJPN002                   10002
 #define IDS_MSGJPN003                   10003
@@ -916,7 +889,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        200
 #define _APS_NEXT_COMMAND_VALUE         40183
-#define _APS_NEXT_CONTROL_VALUE         1233
+#define _APS_NEXT_CONTROL_VALUE         1234
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

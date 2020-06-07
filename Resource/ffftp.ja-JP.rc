@@ -518,6 +518,7 @@ BEGIN
     CONTROL         "設定をレジストリでなくINIファイルに保存する (&I)",MISC_REGTYPE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,95,173,10
     CONTROL         "マスターパスワードで全設定を暗号化する (&E)",MISC_ENCRYPT_SETTINGS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,111,173,10
     CONTROL         "デバッグ",MISC_DEBUG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,164,127,40,10
+    PUSHBUTTON      "サウンドを開く",IDC_OPENSOUNDS,7,26,67,14
 END
 
 hostname_dlg DIALOGEX 0, 0, 187, 93
@@ -721,25 +722,6 @@ BEGIN
     CONTROL         "正規表現(&R)",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,24,121,10
     DEFPUSHBUTTON   "OK",IDOK,36,38,50,14
     PUSHBUTTON      "キャンセル",IDCANCEL,101,38,50,14
-END
-
-opt_sound_dlg DIALOGEX 0, 0, 211, 155
-STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "サウンド"
-FONT 9, DIALOGFONT, 0, 0, 0x1
-BEGIN
-    CONTROL         "接続時にWaveファイルを鳴らす(&C)",SOUND_CONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,9,196,10
-    EDITTEXT        SOUND_CONNECT_WAV,31,22,116,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "...",SOUND_CONNECT_BR,148,21,13,13
-    PUSHBUTTON      "テスト",SOUND_CONNECT_TEST,166,21,37,13
-    CONTROL         "転送終了時にWaveファイルを鳴らす(&T)",SOUND_TRANS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,196,10
-    EDITTEXT        SOUND_TRANS_WAV,31,55,116,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "...",SOUND_TRANS_BR,148,55,13,13
-    PUSHBUTTON      "テスト",SOUND_TRANS_TEST,166,55,37,13
-    CONTROL         "エラーの時Waveファイルを鳴らす(&E)",SOUND_ERROR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,75,196,10
-    EDITTEXT        SOUND_ERROR_WAV,31,88,116,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "...",SOUND_ERROR_BR,148,88,13,13
-    PUSHBUTTON      "テスト",SOUND_ERROR_TEST,166,88,37,13
 END
 
 downerr_dlg DIALOGEX 0, 0, 223, 103
@@ -1718,14 +1700,6 @@ BEGIN
         BOTTOMMARGIN, 52
     END
 
-    opt_sound_dlg, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 204
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 148
-    END
-
     downerr_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -2647,7 +2621,6 @@ BEGIN
     IDS_NOTSECURE           "保護されていません"
     IDS_FILETYPE_ALL        "すべてのファイル\t*.*\t"
     IDS_FILETYPE_EXECUTABLE "実行可能ファイル (*.exe;*.com;*.bat)\t*.exe;*.com;*.bat\t"
-    IDS_FILETYPE_AUDIO      "オーディオ ファイル (*.wav)\t*.wav\t"
 END
 
 STRINGTABLE
@@ -2657,7 +2630,6 @@ BEGIN
     IDS_FILETYPE_XML        "XML ファイル (*.xml)\t*.xml\t"
     IDS_OPEN_WSFTPINI       "WS_FTP.INIを開く"
     IDS_SELECT_VIEWER       "ビューアーを選択する"
-    IDS_SELECT_AUDIOFILE    "オーディオファイルを選択する"
     IDS_SAVE_SETTING        "設定を保存する"
     IDS_LOAD_SETTING        "設定を読み込む"
     IDS_OPTION              "オプション"
@@ -2686,6 +2658,13 @@ BEGIN
     IDS_INVALID_PATH        "%s は不正なファイル名です.\r\nこのファイルはダウンロードされません."
     IDS_FINISHED            "完了"
     IDS_CANCELLED           "中止"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_SOUNDCONNECTED      "接続時"
+    IDS_SOUNDTRANSFERRED    "転送完了時"
+    IDS_SOUNDERROR          "エラー時"
 END
 
 #endif    // Japanese (Japan) resources

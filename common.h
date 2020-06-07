@@ -83,6 +83,7 @@
 #include <ShlObj.h>
 #include <Shlwapi.h>
 #include <ShObjIdl.h>
+#include <versionhelpers.h>
 #include <WinCrypt.h>
 #include <WS2tcpip.h>
 #include "wrl/client.h"
@@ -113,13 +114,12 @@ constexpr bool false_v = false;
 enum class FileType : UINT {
 	All = IDS_FILETYPE_ALL,
 	Executable = IDS_FILETYPE_EXECUTABLE,
-	Audio = IDS_FILETYPE_AUDIO,
 	Reg = IDS_FILETYPE_REG,
 	Ini = IDS_FILETYPE_INI,
 	Xml = IDS_FILETYPE_XML,
 };
 
-constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType::Audio, FileType::Reg, FileType::Ini, FileType::Xml, };
+constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType::Reg, FileType::Ini, FileType::Xml, };
 
 
 #define NUL				'\0'
@@ -334,14 +334,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 // UTF-8対応
 #define KANJI_AUTO		-1
-
-/*===== サウンド =====*/
-
-#define SND_CONNECT		0		/* 接続時のサウンド */
-#define SND_TRANS		1		/* 転送終了時のサウンド */
-#define SND_ERROR		2		/* エラー時のサウンド */
-
-#define SOUND_TYPES		3		/* サウンドの種類 */
 
 /*===== ビューワ =====*/
 
@@ -607,13 +599,18 @@ typedef struct filelist {
 } FILELIST;
 
 
-/*===== サウンドファイル =====*/
-
-typedef struct {
-	int On;						/* ON/OFFスイッチ */
-	char Fname[FMAX_PATH+1];		/* ファイル名 */
-} SOUNDFILE;
-
+class Sound {
+	const wchar_t* keyName;
+	const wchar_t* name;
+	int id;
+	Sound(const wchar_t* keyName, const wchar_t* name, int id) : keyName{ keyName }, name{ name }, id{ id } {}
+public:
+	static Sound Connected;
+	static Sound Transferred;
+	static Sound Error;
+	void Play(){ PlaySoundW(keyName, 0, SND_ASYNC | SND_NODEFAULT | SND_APPLICATION); }
+	static void Register();
+};
 
 // UPnP対応
 typedef struct
@@ -646,7 +643,8 @@ typedef struct
 
 /*===== main.c =====*/
 
-fs::path systemDirectory();
+fs::path const& systemDirectory();
+fs::path const& moduleDirectory();
 fs::path const& tempDirectory();
 void DispWindowTitle();
 HWND GetMainHwnd(void);
