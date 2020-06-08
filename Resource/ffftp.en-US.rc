@@ -521,6 +521,7 @@ BEGIN
     CONTROL         "&Encrypt all settings with Master Password",MISC_ENCRYPT_SETTINGS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,173,10
     CONTROL         "Debug",MISC_DEBUG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,168,124,40,10
+    PUSHBUTTON      "Open Sounds",IDC_OPENSOUNDS,7,26,67,14
 END
 
 hostname_dlg DIALOGEX 0, 0, 187, 93
@@ -727,27 +728,6 @@ BEGIN
     CONTROL         "Regular Expression",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,24,121,10
     DEFPUSHBUTTON   "OK",IDOK,36,38,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,101,38,50,14
-END
-
-opt_sound_dlg DIALOGEX 0, 0, 211, 155
-STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
-CAPTION "Sounds"
-FONT 9, DIALOGFONT, 0, 0, 0x1
-BEGIN
-    CONTROL         "Play *.wav file at successful &connection",SOUND_CONNECT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,9,196,10
-    EDITTEXT        SOUND_CONNECT_WAV,31,22,116,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "...",SOUND_CONNECT_BR,148,21,13,13
-    PUSHBUTTON      "Test",SOUND_CONNECT_TEST,166,21,37,13
-    CONTROL         "Play *.wav file when &transfer is complete",SOUND_TRANS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,196,10
-    EDITTEXT        SOUND_TRANS_WAV,31,55,116,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "...",SOUND_TRANS_BR,148,55,13,13
-    PUSHBUTTON      "Test",SOUND_TRANS_TEST,166,55,37,13
-    CONTROL         "Play *.wav file at &error",SOUND_ERROR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,75,196,10
-    EDITTEXT        SOUND_ERROR_WAV,31,88,116,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "...",SOUND_ERROR_BR,148,88,13,13
-    PUSHBUTTON      "Test",SOUND_ERROR_TEST,166,88,37,13
 END
 
 downerr_dlg DIALOGEX 0, 0, 223, 103
@@ -1759,14 +1739,6 @@ BEGIN
         BOTTOMMARGIN, 52
     END
 
-    opt_sound_dlg, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 204
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 148
-    END
-
     downerr_dlg, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -2685,7 +2657,6 @@ BEGIN
     IDS_NOTSECURE           "Not Secure"
     IDS_FILETYPE_ALL        "All Files\t*.*\t"
     IDS_FILETYPE_EXECUTABLE "Executable Files (*.exe;*.com;*.bat)\t*.exe;*.com;*.bat\t"
-    IDS_FILETYPE_AUDIO      "Audio Files (*.wav)\t*.wav\t"
 END
 
 STRINGTABLE
@@ -2695,7 +2666,6 @@ BEGIN
     IDS_FILETYPE_XML        "XML Files (*.xml)\t*.xml\t"
     IDS_OPEN_WSFTPINI       "Open WS_FTP.INI"
     IDS_SELECT_VIEWER       "Select Viewer"
-    IDS_SELECT_AUDIOFILE    "Select Audio File"
     IDS_SAVE_SETTING        "Save Settings"
     IDS_LOAD_SETTING        "Load Settings"
     IDS_OPTION              "Option"
@@ -2725,6 +2695,13 @@ BEGIN
     IDS_INVALID_PATH        "%s is invalid path.\r\nFFFTP doesn't download this file."
     IDS_FINISHED            "Finished"
     IDS_CANCELLED           "Cancelled"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_SOUNDCONNECTED      "Connected"
+    IDS_SOUNDTRANSFERRED    "Transferred"
+    IDS_SOUNDERROR          "Error"
 END
 
 #endif    // English (United States) resources

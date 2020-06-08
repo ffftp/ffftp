@@ -768,7 +768,7 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 
 			if(ExistNotify == YES)
 			{
-				SoundPlay(SND_ERROR);
+				Sound::Error.Play();
 				Ret = Dialog(GetFtpInst(), down_exist_dlg, GetMainHwnd(), DownExistDialog{ Pkt }) ? ExistMode : EXIST_ABORT;
 			}
 			else
@@ -1640,7 +1640,7 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, std::vector<FILELIST> const& ListLi
 
 			if(ExistNotify == YES)
 			{
-				SoundPlay(SND_ERROR);
+				Sound::Error.Play();
 				Ret = Dialog(GetFtpInst(), up_exist_dlg, GetMainHwnd(), UpExistDialog{ Pkt }) ? UpExistMode : EXIST_ABORT;
 			}
 			else

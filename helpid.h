@@ -45,7 +45,6 @@
 #define	IDH_HELP_TOPIC_0000048	48	/* 接続/切断 */
 #define	IDH_HELP_TOPIC_0000049	49	/* FireWall */
 #define	IDH_HELP_TOPIC_0000050	50	/* ツール */
-#define	IDH_HELP_TOPIC_0000051	51	/* サウンド */
 #define	IDH_HELP_TOPIC_0000052	52	/* その他 */
 #define	IDH_HELP_TOPIC_0000054	54	/* JIS漢字コードについて */
 #define	IDH_HELP_TOPIC_0000055	55	/* 漢字のファイル名について */

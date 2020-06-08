@@ -76,7 +76,6 @@ extern int PasvDefault;
 extern char DefaultLocalPath[FMAX_PATH+1];
 extern int SaveTimeStamp;
 extern int DclickOpen;
-extern SOUNDFILE Sound[SOUND_TYPES];
 extern int FnameCnv;
 extern int ConnectAndSet;
 extern int TimeOut;
@@ -716,70 +715,6 @@ struct Tool {
 	}
 };
 
-struct Sounds {
-	static constexpr WORD dialogId = opt_sound_dlg;
-	static constexpr DWORD flag = PSP_HASHELP;
-	static INT_PTR OnInit(HWND hDlg) {
-		SendDlgItemMessageW(hDlg, SOUND_CONNECT, BM_SETCHECK, Sound[SND_CONNECT].On, 0);
-		SendDlgItemMessageW(hDlg, SOUND_TRANS, BM_SETCHECK, Sound[SND_TRANS].On, 0);
-		SendDlgItemMessageW(hDlg, SOUND_ERROR, BM_SETCHECK, Sound[SND_ERROR].On, 0);
-
-		SendDlgItemMessageW(hDlg, SOUND_CONNECT_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
-		SendDlgItemMessageW(hDlg, SOUND_TRANS_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
-		SendDlgItemMessageW(hDlg, SOUND_ERROR_WAV, EM_LIMITTEXT, (WPARAM)FMAX_PATH, 0);
-		SetText(hDlg, SOUND_CONNECT_WAV, u8(Sound[SND_CONNECT].Fname));
-		SetText(hDlg, SOUND_TRANS_WAV, u8(Sound[SND_TRANS].Fname));
-		SetText(hDlg, SOUND_ERROR_WAV, u8(Sound[SND_ERROR].Fname));
-		return TRUE;
-	}
-	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
-		switch (nmh->code) {
-		case PSN_APPLY:
-			Sound[SND_CONNECT].On = (int)SendDlgItemMessageW(hDlg, SOUND_CONNECT, BM_GETCHECK, 0, 0);
-			Sound[SND_TRANS].On = (int)SendDlgItemMessageW(hDlg, SOUND_TRANS, BM_GETCHECK, 0, 0);
-			Sound[SND_ERROR].On = (int)SendDlgItemMessageW(hDlg, SOUND_ERROR, BM_GETCHECK, 0, 0);
-			strncpy_s(Sound[SND_CONNECT].Fname, FMAX_PATH + 1, u8(GetText(hDlg, SOUND_CONNECT_WAV)).c_str(), _TRUNCATE);
-			strncpy_s(Sound[SND_TRANS].Fname, FMAX_PATH + 1, u8(GetText(hDlg, SOUND_TRANS_WAV)).c_str(), _TRUNCATE);
-			strncpy_s(Sound[SND_ERROR].Fname, FMAX_PATH + 1, u8(GetText(hDlg, SOUND_ERROR_WAV)).c_str(), _TRUNCATE);
-			return PSNRET_NOERROR;
-		case PSN_HELP:
-			ShowHelp(IDH_HELP_TOPIC_0000051);
-			break;
-		}
-		return 0;
-	}
-	static void OnCommand(HWND hDlg, WORD id) {
-		switch (id) {
-		case SOUND_CONNECT_BR:
-		case SOUND_TRANS_BR:
-		case SOUND_ERROR_BR:
-			if (auto const path = SelectFile(true, hDlg, IDS_SELECT_AUDIOFILE, L"", nullptr, { FileType::Audio, FileType::All }); !std::empty(path)) {
-				switch (id) {
-				case SOUND_CONNECT_BR:
-					SetText(hDlg, SOUND_CONNECT_WAV, path);
-					break;
-				case SOUND_TRANS_BR:
-					SetText(hDlg, SOUND_TRANS_WAV, path);
-					break;
-				case SOUND_ERROR_BR:
-					SetText(hDlg, SOUND_ERROR_WAV, path);
-					break;
-				}
-			}
-			break;
-		case SOUND_CONNECT_TEST:
-			sndPlaySoundW(GetText(hDlg, SOUND_CONNECT_WAV).c_str(), SND_ASYNC | SND_NODEFAULT);
-			break;
-		case SOUND_TRANS_TEST:
-			sndPlaySoundW(GetText(hDlg, SOUND_TRANS_WAV).c_str(), SND_ASYNC | SND_NODEFAULT);
-			break;
-		case SOUND_ERROR_TEST:
-			sndPlaySoundW(GetText(hDlg, SOUND_ERROR_WAV).c_str(), SND_ASYNC | SND_NODEFAULT);
-			break;
-		}
-	}
-};
-
 struct Other {
 	static constexpr WORD dialogId = opt_misc_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
@@ -807,11 +742,26 @@ struct Other {
 		}
 		return 0;
 	}
+	static void OnCommand(HWND hDlg, WORD id) {
+		switch (id) {
+		case IDC_OPENSOUNDS:
+		{
+			// Executing Control Panel Items <https://docs.microsoft.com/en-us/windows/win32/shell/executing-control-panel-items>
+			int index = 2;
+#if _WIN32_WINNT < _WIN32_WINNT_VISTA
+			if (!IsWindowsVistaOrGreater())
+				index = 1;
+#endif
+			WinExec(strprintf("%s mmsys.cpl,,%d", (systemDirectory() / L"control.exe").string().c_str(), index).c_str(), SW_NORMAL);
+			break;
+		}
+		}
+	}
 };
 
 // オプションのプロパティシート
 void SetOption() {
-	PropSheet<User, Transfer1, Transfer2, Transfer3, Transfer4, Mirroring, Operation, View1, View2, Connecting, Firewall, Tool, Sounds, Other>(GetMainHwnd(), GetFtpInst(), IDS_OPTION, PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP);
+	PropSheet<User, Transfer1, Transfer2, Transfer3, Transfer4, Mirroring, Operation, View1, View2, Connecting, Firewall, Tool, Other>(GetMainHwnd(), GetFtpInst(), IDS_OPTION, PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP);
 }
 
 
