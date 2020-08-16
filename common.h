@@ -33,6 +33,7 @@
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #define _WINNLS_									// avoid include winnls.h
+#include "xp_mutex.h"								// include "xp_mutex.h" instead of <mutex>.
 #include <algorithm>
 #include <array>
 #include <charconv>
@@ -43,7 +44,6 @@
 #include <future>
 #include <iterator>
 #include <map>
-#include <mutex>
 #include <numeric>
 #include <optional>
 #include <sstream>
