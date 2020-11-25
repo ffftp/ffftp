@@ -406,8 +406,8 @@ int isDirectory(char *fn)
 // テンポラリのファイルおよびフォルダを削除する。
 void doDeleteRemoteFile(void)
 {
-	if (!empty(remoteFileListBase)) {
-		 fs::remove_all(remoteFileDir, std::error_code{});
+	if (std::error_code ec; !empty(remoteFileListBase)) {
+		fs::remove_all(remoteFileDir, ec);
 		remoteFileListBase.clear();
 	}
 
@@ -1999,7 +1999,7 @@ namespace re {
 
 template<class SubMatch, class StringView = std::basic_string_view<SubMatch::value_type>>
 static inline StringView sv(SubMatch const& sm) {
-	return { &*sm.begin(), static_cast<StringView::size_type>(sm.length()) };
+	return { &*sm.begin(), static_cast<typename StringView::size_type>(sm.length()) };
 }
 
 template<class Int>

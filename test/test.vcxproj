@@ -105,7 +105,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/Zc:char8_t- %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:char8_t- /Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
       <EnablePREfast>true</EnablePREfast>
     </ClCompile>
     <Link>
@@ -123,7 +123,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/Zc:char8_t- %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:char8_t- /Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
       <EnablePREfast>true</EnablePREfast>
@@ -144,7 +144,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/Zc:char8_t- %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:char8_t- /Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
       <EnablePREfast>true</EnablePREfast>
@@ -167,7 +167,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/Zc:char8_t- %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:char8_t- /Zc:strictStrings- %(AdditionalOptions)</AdditionalOptions>
       <EnablePREfast>true</EnablePREfast>
     </ClCompile>
     <Link>
