@@ -1,13 +1,19 @@
+#include <filesystem>
 #include <fstream>
 #include <regex>
+#include <set>
 #include <string>
 #include <string_view>
 #include <tuple>
 #include <boost/regex.hpp>
-#include "../filelist.h"
+#include <Windows.h>
+#include <ImageHlp.h>
 #include "CppUnitTest.h"
-
+#pragma comment(lib,"ImageHlp.lib")
+using namespace std::string_literals;
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+
+#include "../filelist.h"
 
 namespace test {
 TEST_CLASS(ffftp) {
@@ -53,6 +59,50 @@ public:
 				Assert::AreEqual(line[0] == ch, std::regex_search(input, stl), message.c_str());
 			}
 		}
+	}
+
+	template<class Fn>
+	void load(std::filesystem::path const& imageName, USHORT directoryEntry, Fn&& fn) {
+		LOADED_IMAGE li;
+		auto result = MapAndLoad(imageName.string().c_str(), nullptr, &li, false, true);
+		Assert::IsTrue(result && li.FileHeader->FileHeader.Machine == IMAGE_FILE_MACHINE_I386);
+		ULONG size;
+		PIMAGE_SECTION_HEADER section;
+		auto data = ImageDirectoryEntryToDataEx(li.MappedAddress, false, directoryEntry, &size, &section);
+		Assert::IsTrue(data && section);
+		fn(data, li.MappedAddress + section->PointerToRawData - section->VirtualAddress);
+		UnMapAndLoad(&li);
+	}
+	TEST_METHOD(LinkXP) {
+#if 0
+		{
+			std::ofstream f{ "xpexports.txt" };
+			for (auto it : std::filesystem::directory_iterator{ LR"(xp)" })
+				load(it, IMAGE_DIRECTORY_ENTRY_EXPORT, [&f](const void* data, PUCHAR rva2va) {
+					auto directory = reinterpret_cast<const IMAGE_EXPORT_DIRECTORY*>(data);
+					auto names = reinterpret_cast<DWORD*>(rva2va + directory->AddressOfNames);
+					for (DWORD i = 0; i < directory->NumberOfNames; ++i)
+						f << reinterpret_cast<const char*>(rva2va + directory->Name) << ':' << reinterpret_cast<const char*>(rva2va + names[i]) << std::endl;
+				});
+		}
+#endif
+#if _WIN32_WINNT < _WIN32_WINNT_VISTA
+		load(L"../../.." / std::filesystem::relative(L".", L"../..") / L"ffftp.exe", IMAGE_DIRECTORY_ENTRY_IMPORT, [](const void* data, PUCHAR rva2va) {
+			std::set<std::string> exports;
+			std::ifstream f{ "xpexports.txt" };
+			for (std::string line; getline(f, line);)
+				exports.insert(line);
+			for (auto descriptor = reinterpret_cast<const IMAGE_IMPORT_DESCRIPTOR*>(data); descriptor->Characteristics; descriptor++) {
+				auto dll = reinterpret_cast<const char*>(rva2va + descriptor->Name) + ":"s;
+				for (auto nameTable = reinterpret_cast<const IMAGE_THUNK_DATA32*>(rva2va + descriptor->OriginalFirstThunk); nameTable->u1.AddressOfData; nameTable++)
+					if (!IMAGE_SNAP_BY_ORDINAL32(nameTable->u1.Ordinal)) {
+						auto func = dll + reinterpret_cast<const IMAGE_IMPORT_BY_NAME*>(rva2va + nameTable->u1.AddressOfData)->Name;
+						if (exports.find(func) == exports.end())
+							Assert::Fail(ToString(func).c_str());
+					}
+			}
+		});
+#endif
 	}
 };
 }

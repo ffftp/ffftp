@@ -183,6 +183,9 @@
   <ItemGroup>
     <CopyFileToFolders Include="..\filelist.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="xpexports.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

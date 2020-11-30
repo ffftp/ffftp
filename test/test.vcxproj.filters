@@ -22,4 +22,7 @@
   <ItemGroup>
     <CopyFileToFolders Include="..\filelist.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="xpexports.txt" />
+  </ItemGroup>
 </Project>
