@@ -32,12 +32,6 @@
 #include <delayimp.h>
 #include <HtmlHelp.h>
 #pragma comment(lib, "HtmlHelp.lib")
-#if _WIN32_WINNT < _WIN32_WINNT_VISTA
-#include <muiload.h>
-#pragma comment(lib, "muiload.lib")
-#pragma comment(lib, "legacy_stdio_definitions.lib")
-#endif
-
 
 #define RESIZE_OFF		0		/* ウインドウの区切り位置変更していない */
 #define RESIZE_ON		1		/* ウインドウの区切り位置変更中 */
@@ -141,7 +135,6 @@ static int ToolWinHeight;
 static HWND hHelpWin = NULL;
 std::map<int, std::string> msgs;
 HCRYPTPROV HCryptProv;
-bool SupportIdn;
 
 /* 設定値 */
 int WinPosX = CW_USEDEFAULT;
@@ -302,18 +295,7 @@ void Sound::Register() {
 
 // メインルーチン
 int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in LPWSTR lpCmdLine, __in int nShowCmd) {
-#if _WIN32_WINNT < _WIN32_WINNT_VISTA
-	{
-		wchar_t moduleFileName[FMAX_PATH];
-		GetModuleFileNameW(nullptr, moduleFileName, FMAX_PATH);
-		auto const fileName = fs::path{ moduleFileName }.filename();
-		hInstFtp = LoadMUILibraryW(fileName.c_str(), MUI_LANGUAGE_NAME, GetUserDefaultUILanguage());
-		if (hInstFtp == NULL)
-			hInstFtp = LoadMUILibraryW(fileName.c_str(), MUI_LANGUAGE_NAME, LANG_NEUTRAL);
-	}
-#else
 	hInstFtp = hInstance;
-#endif
 	EnumResourceNames(GetFtpInst(), RT_STRING, [](auto hModule, auto lpType, auto lpName, auto lParam) -> BOOL {
 		wchar_t buffer[1024];
 		if (IS_INTRESOURCE(lpName))
@@ -339,18 +321,6 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 	LoadUPnP();
 	LoadTaskbarList3();
 	LoadZoneID();
-
-#if _WIN32_WINNT < _WIN32_WINNT_VISTA
-	// Vista以降およびIE7以降で導入済みとなる
-	SupportIdn = [] {
-		if (auto module = LoadLibraryW((systemDirectory() / L"Normaliz.dll"sv).c_str()); !module)
-			return false;
-		__HrLoadAllImportsForDll("Normaliz.dll");
-		return true;
-	}();
-#else
-	SupportIdn = true;
-#endif
 
 	if (!CryptAcquireContextW(&HCryptProv, nullptr, nullptr, PROV_RSA_AES, CRYPT_VERIFYCONTEXT)) {
 		Message(IDS_ERR_CRYPTO, MB_OK | MB_ICONERROR);

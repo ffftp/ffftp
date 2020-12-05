@@ -992,8 +992,6 @@ struct KanjiCode {
 		KanjiButton::Set(hDlg, TmpHost.KanjiCode);
 		SendDlgItemMessageW(hDlg, HSET_HANCNV, BM_SETCHECK, TmpHost.KanaCnv, 0);
 		NameKanjiButton::Set(hDlg, TmpHost.NameKanjiCode);
-		if (!SupportIdn)
-			EnableWindow(GetDlgItem(hDlg, HSET_FN_UTF8HFSX_CNV), FALSE);
 		SendDlgItemMessageW(hDlg, HSET_FN_HANCNV, BM_SETCHECK, TmpHost.NameKanaCnv, 0);
 		return TRUE;
 	}
