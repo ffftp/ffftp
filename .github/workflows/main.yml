@@ -16,15 +16,11 @@ jobs:
         - Release
     runs-on: windows-latest
     steps:
-    - name: Get vcpkg dir
-      id: vcpkg
-      run: echo "::set-output name=dir::$env:VCPKG_INSTALLATION_ROOT"
     - name: Enable cache
-      if: github.event_name != 'release'
       uses: actions/cache@v2
       with:
-        key: vcpkg-${{matrix.platform}}
-        path: ${{steps.vcpkg.outputs.dir}}\installed
+        key: vcpkg-cache
+        path: ~/AppData/Local/vcpkg/archives
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Build
