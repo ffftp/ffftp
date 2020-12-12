@@ -1,5 +1,9 @@
-name: CI
-on: push
+name: main
+on:
+  push:
+  release:
+    types:
+    - published
 jobs:
   build:
     strategy:
@@ -16,7 +20,8 @@ jobs:
       id: vcpkg
       run: echo "::set-output name=dir::$env:VCPKG_INSTALLATION_ROOT"
     - name: Enable cache
-      uses: actions/cache@v1
+      if: github.event_name != 'release'
+      uses: actions/cache@v2
       with:
         key: vcpkg-${{matrix.platform}}
         path: ${{steps.vcpkg.outputs.dir}}\installed
@@ -28,23 +33,41 @@ jobs:
         vcpkg integrate install
         vcpkg --overlay-triplets=vcpkg/triplets install boost-regex:${{matrix.platform}}-windows-ffftp
         & "$VS\MSBuild\Current\Bin\MSBuild.exe" ffftp.sln /p:Platform=$('${{matrix.platform}}' -replace 'x86', 'Win32') /p:Configuration=${{matrix.configuration}}
-        mv ${{matrix.configuration}}\${{matrix.platform}}\ffftp.pdb ${{matrix.configuration}}\ffftp-${{matrix.platform}}.pdb
         & "$VS\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" test\${{matrix.configuration}}\${{matrix.platform}}\test.dll
-    - name: Upload msi
-      if: matrix.configuration == 'Release'
-      uses: actions/upload-artifact@v1
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
       with:
-        name: ${{matrix.platform}}-msi
-        path: ${{matrix.configuration}}/ffftp-${{matrix.platform}}.msi
-    - name: Upload zip
-      if: matrix.configuration == 'Release'
-      uses: actions/upload-artifact@v1
+        name: ${{matrix.platform}}-${{matrix.configuration}}
+        path: |
+          ${{matrix.configuration}}/${{matrix.platform}}/ffftp.exe
+          ${{matrix.configuration}}/${{matrix.platform}}/ffftp.pdb
+    - name: Upload release asset (msi)
+      if: github.event_name == 'release' && matrix.configuration == 'Release'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
       with:
-        name: ${{matrix.platform}}-zip
-        path: ${{matrix.configuration}}/ffftp-${{matrix.platform}}.zip
-    - name: Upload pdb
-      if: matrix.configuration == 'Release'
-      uses: actions/upload-artifact@v1
+        upload_url: ${{github.event.release.upload_url}}
+        asset_path: ${{matrix.configuration}}/ffftp-${{matrix.platform}}.msi
+        asset_name: ffftp-${{github.event.release.tag_name}}-${{matrix.platform}}.msi
+        asset_content_type: application/octet-stream
+    - name: Upload release asset (zip)
+      if: github.event_name == 'release' && matrix.configuration == 'Release'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
       with:
-        name: ${{matrix.platform}}-pdb
-        path: ${{matrix.configuration}}/ffftp-${{matrix.platform}}.pdb
+        upload_url: ${{github.event.release.upload_url}}
+        asset_path: ${{matrix.configuration}}/ffftp-${{matrix.platform}}.zip
+        asset_name: ffftp-${{github.event.release.tag_name}}-${{matrix.platform}}.zip
+        asset_content_type: application/zip
+    - name: Upload release asset (pdb)
+      if: github.event_name == 'release' && matrix.configuration == 'Release'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      with:
+        upload_url: ${{github.event.release.upload_url}}
+        asset_path: ${{matrix.configuration}}/${{matrix.platform}}/ffftp.pdb
+        asset_name: ffftp-${{github.event.release.tag_name}}-${{matrix.platform}}.pdb
+        asset_content_type: application/octet-stream
