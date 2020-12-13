@@ -19,14 +19,14 @@ jobs:
     - name: Enable cache
       uses: actions/cache@v2
       with:
-        key: vcpkg-${{matrix.platform}}
+        key: vcpkg-vc1426-${{matrix.platform}}
         path: ~/AppData/Local/vcpkg/archives
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Build
       run: |
         $VS = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
-        Start-Process "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList $('modify --installPath "{0}" --quiet --add Microsoft.VisualStudio.Component.VC.14.26.x86.x64' -f $VS) -Wait -PassThru
+        Start-Process "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList $('modify --installPath "{0}" --quiet --add Microsoft.VisualStudio.Component.VC.14.26.x86.x64' -f $VS) -Wait
         Copy-Item -Force "$VS\VC\Auxiliary\Build\14.26\Microsoft.VCToolsVersion.14.26.props" "$VS\VC\Auxiliary\Build\Microsoft.VCToolsVersion.v142.default.props"
         vcpkg integrate install
         vcpkg --overlay-triplets=vcpkg/triplets install boost-regex:${{matrix.platform}}-windows-ffftp
