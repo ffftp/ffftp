@@ -26,7 +26,7 @@ jobs:
     - name: Build
       run: |
         $VS = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
-        & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "$VS" --quiet --add Microsoft.VisualStudio.Component.VC.14.26.x86.x64
+        Start-Process "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList $('modify --installPath "{0}" --quiet --add Microsoft.VisualStudio.Component.VC.14.26.x86.x64' -f $VS) -Wait -PassThru
         Copy-Item -Force "$VS\VC\Auxiliary\Build\14.26\Microsoft.VCToolsVersion.14.26.props" "$VS\VC\Auxiliary\Build\Microsoft.VCToolsVersion.v142.default.props"
         vcpkg integrate install
         vcpkg --overlay-triplets=vcpkg/triplets install boost-regex:${{matrix.platform}}-windows-ffftp
