@@ -19,7 +19,7 @@ jobs:
     - name: Enable cache
       uses: actions/cache@v2
       with:
-        key: vcpkg-cache
+        key: vcpkg-${{matrix.platform}}
         path: ~/AppData/Local/vcpkg/archives
     - name: Checkout code
       uses: actions/checkout@v2
