@@ -26,7 +26,9 @@ jobs:
     - name: Build
       run: |
         $VS = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
-        Start-Process "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList $('modify --installPath "{0}" --quiet --add Microsoft.VisualStudio.Component.VC.14.26.x86.x64 --remove Microsoft.VisualStudio.Component.VC.Tools.x86.x64' -f $VS) -NoNewWindow -Wait
+        Set-ItemProperty "$VS\VC\Tools\MSVC\*" -Name Attributes -Value Hidden
+        Start-Process "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList $('modify --installPath "{0}" --quiet --add Microsoft.VisualStudio.Component.VC.14.26.x86.x64' -f $VS) -NoNewWindow -Wait
+        Copy-Item -Force "$VS\VC\Auxiliary\Build\14.26\Microsoft.VCToolsVersion.14.26.props" "$VS\VC\Auxiliary\Build\Microsoft.VCToolsVersion.v142.default.props"
         vcpkg integrate install
         vcpkg --overlay-triplets=vcpkg/triplets install boost-regex:${{matrix.platform}}-windows-ffftp
         & "$VS\MSBuild\Current\Bin\MSBuild.exe" ffftp.sln /p:Platform=$('${{matrix.platform}}' -replace 'x86', 'Win32') /p:Configuration=${{matrix.configuration}}
