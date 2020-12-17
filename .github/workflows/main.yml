@@ -16,6 +16,9 @@ jobs:
         - Release
     runs-on: windows-latest
     steps:
+    - name: Get vcpkg dir
+      id: vcpkg
+      run: echo "::set-output name=dir::$env:VCPKG_INSTALLATION_ROOT"
     - name: Enable cache
       uses: actions/cache@v2
       with:
@@ -35,8 +38,8 @@ jobs:
       with:
         name: ${{matrix.platform}}-${{matrix.configuration}}
         path: |
-          ${{matrix.configuration}}/${{matrix.platform}}/ffftp.exe
-          ${{matrix.configuration}}/${{matrix.platform}}/ffftp.pdb
+          ${{steps.vcpkg.outputs.dir}}/buildtrees
+          ${{matrix.configuration}}/${{matrix.platform}}
     - name: Upload release asset (msi)
       if: github.event_name == 'release' && matrix.configuration == 'Release'
       uses: actions/upload-release-asset@v1
