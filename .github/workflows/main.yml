@@ -33,13 +33,16 @@ jobs:
         vcpkg --overlay-triplets=vcpkg/triplets install boost-regex:${{matrix.platform}}-windows-ffftp
         & "$VS\MSBuild\Current\Bin\MSBuild.exe" ffftp.sln /p:Platform=$('${{matrix.platform}}' -replace 'x86', 'Win32') /p:Configuration=${{matrix.configuration}}
         & "$VS\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" test\${{matrix.configuration}}\${{matrix.platform}}\test.dll
-    - name: Upload artifacts
+    - name: Upload artifacts (buildtrees)
       uses: actions/upload-artifact@v2
       with:
-        name: ${{matrix.platform}}-${{matrix.configuration}}
-        path: |
-          ${{steps.vcpkg.outputs.dir}}/buildtrees
-          ${{matrix.configuration}}/${{matrix.platform}}
+        name: ${{matrix.platform}}-${{matrix.configuration}}-buildtrees
+        path: ${{steps.vcpkg.outputs.dir}}/buildtrees
+    - name: Upload artifacts (ffftp)
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{matrix.platform}}-${{matrix.configuration}}-ffftp
+        path: ${{matrix.configuration}}/${{matrix.platform}}
     - name: Upload release asset (msi)
       if: github.event_name == 'release' && matrix.configuration == 'Release'
       uses: actions/upload-release-asset@v1
