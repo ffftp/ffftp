@@ -327,7 +327,7 @@ static void doTransferRemoteFile(void)
 	MakeSelectedFileList(WIN_REMOTE, NO, NO, FileListBaseNoExpand, &CancelFlg);
 
 	// set temporary folder
-	auto& LocDir = AskLocalCurDir();
+	auto LocDir = AskLocalCurDir();
 
 	auto tmp = tempDirectory() / L"file";
 	if (auto const created = !fs::create_directory(tmp); !created) {
