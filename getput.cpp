@@ -339,7 +339,8 @@ void AppendTransFileList(std::forward_list<TRANSPACKET>&& list) {
 	}
 
 	auto Pkt = before_end(TransPacketBase);
-	TransPacketBase.splice_after(Pkt++, list);
+	TransPacketBase.splice_after(Pkt, list);
+	++Pkt;
 	if (NextTransPacketBase == end(TransPacketBase))
 		NextTransPacketBase = Pkt;
 
