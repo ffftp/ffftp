@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.4.7 (FTP Client software)
+[Software Name]  FFFTP Ver.4.8 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018-2020, Kurata Sayuri.
@@ -29,10 +29,17 @@ following menu.
 File -> Settings -> Change Master password
 
 
-Changes at 4.7
+Changes at 4.8
 --------------
 
-- Fix crash when host setting modified. #193
+- fixed bug of mirroring upload. #209
+- fixed directory changed by d&d. #216
+- reimplement using regex for file list. #197
+- use sound of control panel. #202
+- support of Visual Studio 2019 16.8 / 16.9. #211
+- master branch for vista or later, and xp branch for xp.
+- xp branch use Visual Studio 2019 16.6.
+- xp branch is bug fix only.
 
 
 Outline
