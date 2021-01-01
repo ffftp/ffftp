@@ -3,7 +3,7 @@
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018-2021, Kurata Sayuri.
-[Environment]    Windows 10, 8.1, 8, 7, Vista, XP
+[Environment]    Windows 10, 8.1, 8, 7, Vista
 ============================================================
 
 About INI File
@@ -47,9 +47,8 @@ Environment
 - x64 edtion
   Windows 8.1 or later
 - x86 edtion
-  Windows XP SP3 or later
-  To use IDN; Internationalized Domain Name, you need to install Internet
-  Explorer 7 or later.
+  Windows Vista or later
+
 
 Files
 -----
