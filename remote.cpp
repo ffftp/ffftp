@@ -750,40 +750,41 @@ int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_forma
 		strcpy(Reply, "");
 	if (SendData(cSkt, Cmd, (int)strlen(Cmd), 0, CancelCheckWork) != FFFTP_SUCCESS)
 		return 429;
-	return ReadReplyMessage(cSkt, Reply, 1024, CancelCheckWork);
+	auto [code, text] = ReadReplyMessage(cSkt, CancelCheckWork);
+	if (Reply)
+		strncpy_s(Reply, 1024, text.c_str(), _TRUNCATE);
+	return code;
 }
 
 
 // 応答メッセージを受け取る
-int ReadReplyMessage(SOCKET cSkt, char* Buf, int Max, int* CancelCheckWork) {
-	if (Buf != NULL)
-		memset(Buf, NUL, Max);
-	Max--;
-	if (cSkt == INVALID_SOCKET)
-		return 0;
-	for (int FirstCode = 0, Lines = 0;; Lines++) {
-		auto [code, line] = ReadOneLine(cSkt, CancelCheckWork);
-		line = ConvertFrom(line, AskHostNameKanji());
-		SetTaskMsg("%s", line.c_str());
+std::tuple<int, std::string> ReadReplyMessage(SOCKET cSkt, int* CancelCheckWork) {
+	int firstCode = 0;
+	std::string text;
+	if (cSkt != INVALID_SOCKET)
+		for (int Lines = 0;; Lines++) {
+			auto [code, line] = ReadOneLine(cSkt, CancelCheckWork);
+			line = ConvertFrom(line, AskHostNameKanji());
+			SetTaskMsg("%s", line.c_str());
 
-		if (Buf != NULL) {
 			// ２行目以降の応答コードは消す
 			if (Lines > 0)
 				for (int i = 0; i < size_as<int>(line) && IsDigit(line[i]); i++)
 					line[i] = ' ';
-			strncat(Buf, line.c_str(), Max);
-			Max = std::max(0, Max - size_as<int>(line));
-		}
+			text += line;
 
-		if (code == 421 || code == 429)
-			return code;
-		if (100 <= code && code < 600) {
-			if (FirstCode == 0)
-				FirstCode = code;
-			if (FirstCode == code && (size(line) <= 3 || line[3] != '-'))
-				return code;
+			if (code == 421 || code == 429) {
+				firstCode = code;
+				break;
+			}
+			if (100 <= code && code < 600) {
+				if (firstCode == 0)
+					firstCode = code;
+				if (firstCode == code && (size(line) <= 3 || line[3] != '-'))
+					break;
+			}
 		}
-	}
+	return { firstCode, text };
 }
 
 

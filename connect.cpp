@@ -1318,7 +1318,6 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 	int Flg;
 	int Anony;
 	SOCKET ContSock;
-	char Buf[1024];
 	char Reply[1024];
 	int Continue;
 	int ReInPass;
@@ -1370,14 +1369,11 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 				setsockopt(ContSock, SOL_SOCKET, SO_SNDBUF, (char*)&BufferSize, sizeof(int));
 				setsockopt(ContSock, SOL_SOCKET, SO_RCVBUF, (char*)&BufferSize, sizeof(int));
 #endif
-				// FTPIS対応
-//				while((Sts = ReadReplyMessage(ContSock, Buf, 1024, &CancelFlg, TmpBuf) / 100) == FTP_PRELIM)
-//					;
 				if(CryptMode == CRYPT_FTPIS)
 				{
 					if(AttachSSL(ContSock, INVALID_SOCKET, CancelCheckWork, Host))
 					{
-						while((Sts = ReadReplyMessage(ContSock, Buf, 1024, CancelCheckWork) / 100) == FTP_PRELIM)
+						while((Sts = std::get<0>(ReadReplyMessage(ContSock, CancelCheckWork)) / 100) == FTP_PRELIM)
 							;
 					}
 					else
@@ -1385,7 +1381,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 				}
 				else
 				{
-					while((Sts = ReadReplyMessage(ContSock, Buf, 1024, CancelCheckWork) / 100) == FTP_PRELIM)
+					while((Sts = std::get<0>(ReadReplyMessage(ContSock, CancelCheckWork)) / 100) == FTP_PRELIM)
 						;
 				}
 
@@ -1483,6 +1479,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 									strcpy(Pass, UserMailAdrs);
 								}
 
+								char Buf[1024];
 								if((Fwall == FWALL_FU_FP_USER) || (Fwall == FWALL_USER))
 								{
 									if(HostPort == IPPORT_FTP)

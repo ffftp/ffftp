@@ -957,7 +957,7 @@ void SwitchOSSProc(void);
 #endif
 #define CommandProcTrn(CSKT, REPLY, CANCELCHECKWORK, ...) (command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
 int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const char* fmt, ...);
-int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork);
+std::tuple<int, std::string> ReadReplyMessage(SOCKET cSkt, int *CancelCheckWork);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
 void ReportWSError(const char* Msg, UINT Error);
 
