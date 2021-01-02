@@ -193,8 +193,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 #define FMAX_PATH		1024
 
-#define ONELINE_BUF_SIZE	(10*1024)
-
 // 暗号化通信対応
 #define PRIVATE_KEY_LEN 4096
 
@@ -959,7 +957,7 @@ void SwitchOSSProc(void);
 #endif
 #define CommandProcTrn(CSKT, REPLY, CANCELCHECKWORK, ...) (command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
 int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const char* fmt, ...);
-int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char *Tmp);
+int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
 void ReportWSError(const char* Msg, UINT Error);
 

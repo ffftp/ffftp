@@ -1325,7 +1325,6 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 	char *Tmp;
 	int HostPort;
 	static const char *SiteTbl[4] = { "SITE", "site", "OPEN", "open" };
-	char TmpBuf[ONELINE_BUF_SIZE];
 	struct linger LingerOpt;
 	struct tcp_keepalive KeepAlive;
 	DWORD dwTmp;
@@ -1378,7 +1377,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 				{
 					if(AttachSSL(ContSock, INVALID_SOCKET, CancelCheckWork, Host))
 					{
-						while((Sts = ReadReplyMessage(ContSock, Buf, 1024, CancelCheckWork, TmpBuf) / 100) == FTP_PRELIM)
+						while((Sts = ReadReplyMessage(ContSock, Buf, 1024, CancelCheckWork) / 100) == FTP_PRELIM)
 							;
 					}
 					else
@@ -1386,7 +1385,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 				}
 				else
 				{
-					while((Sts = ReadReplyMessage(ContSock, Buf, 1024, CancelCheckWork, TmpBuf) / 100) == FTP_PRELIM)
+					while((Sts = ReadReplyMessage(ContSock, Buf, 1024, CancelCheckWork) / 100) == FTP_PRELIM)
 						;
 				}
 

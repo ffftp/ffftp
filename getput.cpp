@@ -1494,8 +1494,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		command(Pkt->ctrl_skt, NULL, CancelCheckWork, "ABOR");
 	}
 
-	char tmp[ONELINE_BUF_SIZE];
-	auto code = ReadReplyMessage(Pkt->ctrl_skt, buf, 1024, CancelCheckWork, tmp);
+	auto code = ReadReplyMessage(Pkt->ctrl_skt, buf, 1024, CancelCheckWork);
 	if (Pkt->Abort == ABORT_DISKFULL) {
 		SetErrorMsg(MSGJPN096);
 		SetTaskMsg(MSGJPN096);
@@ -2090,8 +2089,7 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 	if (shutdown(dSkt, 1) != 0)
 		ReportWSError("shutdown", WSAGetLastError());
 
-	char tmp[ONELINE_BUF_SIZE];
-	auto code = ReadReplyMessage(Pkt->ctrl_skt, buf, 1024, &Canceled[Pkt->ThreadCount], tmp);
+	auto code = ReadReplyMessage(Pkt->ctrl_skt, buf, 1024, &Canceled[Pkt->ThreadCount]);
 	if (code / 100 >= FTP_RETRY)
 		SetErrorMsg(buf);
 	if (Pkt->Abort != ABORT_NONE)
