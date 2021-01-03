@@ -750,90 +750,41 @@ int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_forma
 		strcpy(Reply, "");
 	if (SendData(cSkt, Cmd, (int)strlen(Cmd), 0, CancelCheckWork) != FFFTP_SUCCESS)
 		return 429;
-	char TmpBuf[ONELINE_BUF_SIZE];
-	return ReadReplyMessage(cSkt, Reply, 1024, CancelCheckWork, TmpBuf);
+	auto [code, text] = ReadReplyMessage(cSkt, CancelCheckWork);
+	if (Reply)
+		strncpy_s(Reply, 1024, text.c_str(), _TRUNCATE);
+	return code;
 }
 
 
-/*----- 応答メッセージを受け取る ----------------------------------------------
-*
-*	Parameter
-*		SOCKET cSkt : コントロールソケット
-*		char *Buf : メッセージを受け取るバッファ (NULL=コピーしない)
-*		int Max : バッファのサイズ
-*		int *CancelCheckWork :
-*		char *Tmp : テンポラリワーク
-*
-*	Return Value
-*		int 応答コード
-*----------------------------------------------------------------------------*/
+// 応答メッセージを受け取る
+std::tuple<int, std::string> ReadReplyMessage(SOCKET cSkt, int* CancelCheckWork) {
+	int firstCode = 0;
+	std::string text;
+	if (cSkt != INVALID_SOCKET)
+		for (int Lines = 0;; Lines++) {
+			auto [code, line] = ReadOneLine(cSkt, CancelCheckWork);
+			line = ConvertFrom(line, AskHostNameKanji());
+			SetTaskMsg("%s", line.c_str());
 
-int ReadReplyMessage(SOCKET cSkt, char *Buf, int Max, int *CancelCheckWork, char *Tmp)
-{
-	int iRetCode;
-	int iContinue;
-	int FirstCode;
-	int Lines;
-	int i;
+			// ２行目以降の応答コードは消す
+			if (Lines > 0)
+				for (int i = 0; i < size_as<int>(line) && IsDigit(line[i]); i++)
+					line[i] = ' ';
+			text += line;
 
-	if(Buf != NULL)
-		memset(Buf, NUL, Max);
-	Max--;
-
-	FirstCode = 0;
-	if(cSkt != INVALID_SOCKET)
-	{
-		Lines = 0;
-		do
-		{
-			iContinue = NO;
-			std::string line;
-			std::tie(iRetCode, line) = ReadOneLine(cSkt, CancelCheckWork);
-
-			strncpy(Tmp, ConvertFrom(line, AskHostNameKanji()).c_str(), ONELINE_BUF_SIZE);
-			SetTaskMsg("%s", Tmp);
-
-			if(Buf != NULL)
-			{
-				// ２行目以降の応答コードは消す
-				if(Lines > 0)
-				{
-					for(i = 0; ; i++)
-					{
-						if(IsDigit(Tmp[i]) == 0)
-							break;
-						Tmp[i] = ' ';
-					}
-				}
-				strncat(Buf, Tmp, Max);
-				Max = std::max(0, Max-(int)strlen(Tmp));
-
-//				strncpy(Buf, Tmp, Max);
+			if (code == 421 || code == 429) {
+				firstCode = code;
+				break;
 			}
-
-			if((iRetCode != 421) && (iRetCode != 429))
-			{
-				if((FirstCode == 0) &&
-				   (iRetCode >= 100) && (iRetCode <= 599))
-				{
-					FirstCode = iRetCode;
-				}
-
-				if((iRetCode < 100) || (iRetCode > 599) ||
-				   (*(Tmp + 3) == '-') ||
-				   ((FirstCode > 0) && (iRetCode != FirstCode)))
-				{
-					iContinue = YES;
-				}
+			if (100 <= code && code < 600) {
+				if (firstCode == 0)
+					firstCode = code;
+				if (firstCode == code && (size(line) <= 3 || line[3] != '-'))
+					break;
 			}
-			else
-				FirstCode = iRetCode;
-
-			Lines++;
 		}
-		while(iContinue == YES);
-	}
-	return(FirstCode);
+	return { firstCode, text };
 }
 
 
