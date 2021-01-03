@@ -1414,7 +1414,6 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 			break;
 #endif
 
-	char buf[BUFSIZE];
 	Pkt->Abort = ABORT_NONE;
 	if (auto attr = GetFileAttributesW(fs::u8path(Pkt->LocalFile).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_READONLY))
 		if (Message<IDS_MSGJPN086>(IDS_REMOVE_READONLY, MB_YESNO) == IDYES)
@@ -1434,6 +1433,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		/*===== ファイルを受信するループ =====*/
 		int read = 0;
 		while (Pkt->Abort == ABORT_NONE && ForceAbort == NO) {
+			char buf[BUFSIZE];
 			if (int timeout; (read = do_recv(dSkt, buf, BUFSIZE, 0, &timeout, CancelCheckWork)) <= 0) {
 				if (timeout == YES) {
 					SetErrorMsg(MSGJPN094);
@@ -1494,14 +1494,13 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		command(Pkt->ctrl_skt, NULL, CancelCheckWork, "ABOR");
 	}
 
-	char tmp[ONELINE_BUF_SIZE];
-	auto code = ReadReplyMessage(Pkt->ctrl_skt, buf, 1024, CancelCheckWork, tmp);
+	auto [code, text] = ReadReplyMessage(Pkt->ctrl_skt, CancelCheckWork);
 	if (Pkt->Abort == ABORT_DISKFULL) {
 		SetErrorMsg(MSGJPN096);
 		SetTaskMsg(MSGJPN096);
 	}
 	if (code / 100 >= FTP_RETRY)
-		SetErrorMsg(buf);
+		SetErrorMsg(text.c_str());
 	if (Pkt->Abort != ABORT_NONE)
 		code = 500;
 	return code;
@@ -2038,7 +2037,6 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 			break;
 #endif
 
-	char buf[BUFSIZE];
 	Pkt->Abort = ABORT_NONE;
 	if (std::ifstream is{ fs::u8path(Pkt->LocalFile), std::ios::binary }) {
 		if (Pkt->hWndTrans != NULL) {
@@ -2054,6 +2052,7 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 
 		/*===== ファイルを送信するループ =====*/
 		auto eof = false;
+		char buf[BUFSIZE];
 		for (std::streamsize read; Pkt->Abort == ABORT_NONE && ForceAbort == NO && !eof && (read = is.read(buf, std::size(buf)).gcount()) != 0;) {
 			/* EOF除去 */
 			if (RmEOF == YES && Pkt->Type == TYPE_A)
@@ -2090,10 +2089,9 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 	if (shutdown(dSkt, 1) != 0)
 		ReportWSError("shutdown", WSAGetLastError());
 
-	char tmp[ONELINE_BUF_SIZE];
-	auto code = ReadReplyMessage(Pkt->ctrl_skt, buf, 1024, &Canceled[Pkt->ThreadCount], tmp);
+	auto [code, text] = ReadReplyMessage(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount]);
 	if (code / 100 >= FTP_RETRY)
-		SetErrorMsg(buf);
+		SetErrorMsg(text.c_str());
 	if (Pkt->Abort != ABORT_NONE)
 		code = 500;
 	return code;
