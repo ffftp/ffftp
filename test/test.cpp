@@ -22,6 +22,7 @@ public:
 		std::tuple<char, std::string_view, boost::regex, std::regex> const patterns[] = {
 			compile('m', filelistparser::mlsd),
 			compile('u', filelistparser::unix),
+			compile('l', filelistparser::linux),
 			compile('M', filelistparser::melcom80),
 			compile('a', filelistparser::agilent),
 			compile('d', filelistparser::dos),
