@@ -1978,6 +1978,7 @@ namespace re {
 	}
 	static auto const mlsd      = compile(filelistparser::mlsd);
 	static auto const unix      = compile(filelistparser::unix);
+	static auto const linux     = compile(filelistparser::linux);
 	static auto const dos       = compile(filelistparser::dos);
 	static auto const melcom80  = compile(filelistparser::melcom80);
 	static auto const agilent   = compile(filelistparser::agilent);
@@ -2097,35 +2098,35 @@ static std::optional<FILELIST> ParseUnix(boost::smatch const& m) {
 	auto fixtimezone = false;
 	char infoExist = FINFO_SIZE | FINFO_ATTR | FINFO_DATE;
 	if (m[5].matched) {
-		systemTime.wYear = parse<WORD>(m[5]);
-		systemTime.wMonth = parsemonth(m[6]);
-		systemTime.wDay = parse<WORD>(m[7]);
-		if (m[8].matched) {
-			infoExist |= FINFO_TIME;
-			systemTime.wHour = parse<WORD>(m[8]);
-			systemTime.wMinute = parse<WORD>(m[9]);
-			fixtimezone = true;
-		}
-	} else {
-		systemTime.wMonth = parsemonth(m[10]);
-		systemTime.wDay = parse<WORD>(m[11]);
-		if (m[12].matched) {
-			systemTime.wYear = parse<WORD>(m[12]);
+		systemTime.wMonth = parsemonth(m[5]);
+		systemTime.wDay = parse<WORD>(m[6]);
+		if (m[7].matched) {
+			systemTime.wYear = parse<WORD>(m[7]);
 		} else {
 			infoExist |= FINFO_TIME;
 			SYSTEMTIME utcnow, localnow;
 			GetSystemTime(&utcnow);
 			TIME_ZONE_INFORMATION tz{ AskHostTimeZone() * -60 };
 			SystemTimeToTzSpecificLocalTime(&tz, &utcnow, &localnow);
-			systemTime.wHour = parse<WORD>(m[13]);
-			systemTime.wMinute = parse<WORD>(m[14]);
+			systemTime.wHour = parse<WORD>(m[8]);
+			systemTime.wMinute = parse<WORD>(m[9]);
 			auto serialize = [](SYSTEMTIME const& st) { return (uint64_t)st.wMonth << 48 | (uint64_t)st.wDay << 32 | (uint64_t)st.wHour << 16 | st.wMinute; };
 			systemTime.wYear = serialize(localnow) < serialize(systemTime) ? localnow.wYear - 1 : localnow.wYear;
 			fixtimezone = true;
 		}
+	} else {
+		systemTime.wYear = parse<WORD>(m[10]);
+		systemTime.wMonth = parsemonth(m[11]);
+		systemTime.wDay = parse<WORD>(m[12]);
 	}
 	auto ch = *m[1].begin();
-	return { { sv(m[15]), ch == 'd' || ch == 'l' ? NODE_DIR : NODE_FILE, ch == 'l' ? YES : NO, parse<int64_t>(m[4]), parseattr(m[2]), tofiletime(systemTime, fixtimezone), sv(m[3]), infoExist } };
+	return { { sv(m[13]), ch == 'd' || ch == 'l' ? NODE_DIR : NODE_FILE, ch == 'l' ? YES : NO, parse<int64_t>(m[4]), parseattr(m[2]), tofiletime(systemTime, fixtimezone), sv(m[3]), infoExist } };
+}
+
+static std::optional<FILELIST> ParseLinux(boost::smatch const& m) {
+	SYSTEMTIME systemTime{ .wYear = parseyear(m[5]), .wMonth = parse<WORD>(m[6]), .wDay = parse<WORD>(m[7]), .wHour = parse<WORD>(m[8]), .wMinute = parse<WORD>(m[9]) };
+	auto ch = *m[1].begin();
+	return { { sv(m[10]), ch == 'd' || ch == 'l' ? NODE_DIR : NODE_FILE, ch == 'l' ? YES : NO, parse<int64_t>(m[4]), parseattr(m[2]), tofiletime(systemTime, true), sv(m[3]), FINFO_SIZE | FINFO_ATTR | FINFO_DATE | FINFO_TIME } };
 }
 
 static std::optional<FILELIST> ParseMelcom80(boost::smatch const& m) {
@@ -2306,6 +2307,8 @@ static std::optional<FILELIST> Parse(std::string const& line) {
 		return ParseMlsd(m);
 	if (boost::regex_search(line, m, re::unix))
 		return ParseUnix(m);
+	if (boost::regex_search(line, m, re::linux))
+		return ParseLinux(m);
 	if (boost::regex_search(line, m, re::dos))
 		return ParseDos(m);
 	if (boost::regex_search(line, m, re::melcom80))

@@ -28,6 +28,7 @@ public:
 		std::tuple<char, std::string_view, boost::regex, std::regex> const patterns[] = {
 			compile('m', filelistparser::mlsd),
 			compile('u', filelistparser::unix),
+			compile('l', filelistparser::linux),
 			compile('M', filelistparser::melcom80),
 			compile('a', filelistparser::agilent),
 			compile('d', filelistparser::dos),
@@ -55,8 +56,19 @@ public:
 			auto const input = line.substr(2);
 			for (auto const [ch, pattern, boost, stl] : patterns) {
 				auto message = ToString("expect: "s + line[0] + ", actual: " + ch + ", <<" + input + ">>");
-				Assert::AreEqual(line[0] == ch, boost::regex_search(input, boost), message.c_str());
-				Assert::AreEqual(line[0] == ch, std::regex_search(input, stl), message.c_str());
+				boost::smatch bm;
+				std::smatch sm;
+				Assert::AreEqual(line[0] == ch, boost::regex_search(input, bm, boost), message.c_str());
+				Assert::AreEqual(line[0] == ch, std::regex_search(input, sm, stl), message.c_str());
+				if (line[0] == ch) {
+					auto match = line + '\t';
+					for (int i = 1; i < static_cast<int>(bm.size()); i++)
+						if (bm[i].matched)
+							match += " [" + bm[i].str() + "]";
+						else
+							match += " ()";
+					Logger::WriteMessage((match + '\n').c_str());
+				}
 			}
 		}
 	}

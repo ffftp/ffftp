@@ -189,14 +189,43 @@ u	drwxr-xr-x15   owner   group g  512  2001 6åé 18   audit
 u	drwxr-xr-x123  owner        1024 11/ 6    14:21     Linux/
 u	-rwxrwx---132  owner          12 11/13    1996      test.txt
 
+// https://github.com/ffftp/ffftp/issues/223
+	0          1 2        3     4    5   6  7     8
+	-------------------------------------------------------
+u	drwxr-xr-x 7 syouwaky 10014 4096 Oct 14 06:48 .
+u	drwxr-xr-x 7 syouwaky 10014 4096 Oct 14 06:48 ..
+u	-rw-r--r-- 1 syouwaky 10014 5472 Nov 24 2018 access_20181124.html
+u	-rw-r--r-- 1 syouwaky 10014 5589 Jul 16 18:05 access.html
+u	-rw-r--r-- 1 syouwaky 10014 18299 Mar 11 2019 apple-touch-icon.png
+u	-rw-r--r-- 1 syouwaky 10014 4587 Mar 11 2019 cal_20190311.html
+u	-rw-r--r-- 1 syouwaky 10014 4742 Jan 7 2020 cal.html
+u	-rw-r--r-- 1 syouwaky 10014 3753 Oct 26 2017 contact.html
+u	-rw-r--r-- 1 syouwaky 10014 67646 Mar 11 2019 favicon.ico
+u	-rw-r--r-- 1 syouwaky 10014 53 Dec 13 2014 googlec280c74000c4f070.html
+u	-rw-r--r-- 1 syouwaky 10014 760 Oct 26 2017 .htaccess
+u	drwxr-xr-x 2 syouwaky 10014 4096 Apr 7 2012 i
+u	drwxr-xr-x 3 syouwaky 10014 4096 Aug 3 12:45 img
+u	-rw-r--r-- 1 syouwaky 10014 12003 Aug 3 13:01 index.html
+u	-rw-r--r-- 1 syouwaky 10014 3114 Oct 20 2017 link.html
+u	-rw-r--r-- 1 syouwaky 10014 3427 May 13 2013 menu.html
+u	drwxr-xr-x 2 syouwaky 10014 4096 Nov 4 2016 old
+u	drwxr-xr-x 2 syouwaky 10014 4096 Oct 6 2017 resource
+u	-rw-r--r-- 1 syouwaky 10014 11106 Oct 26 2017 service.html
+u	-rw-r--r-- 1 syouwaky 10014 3688 May 26 2013 sitemap.html
+u	-rw-r--r-- 1 syouwaky 10014 1607 Nov 3 2017 sitemap_pc.xml
+u	-rw-r--r-- 1 syouwaky 10014 2735 Dec 5 2018 sitemap.xml
+u	drwxr-xr-x 4 syouwaky 10014 4096 Oct 14 06:48 sp
+u	-rw-r--r-- 1 syouwaky 10014 5166 Oct 20 2017 style.css
+
+
 // linux-ftpd
 *LIST_UNIX_16
 	0          1   2     3      4    5          6     7
 	-------------------------------------------------------
 @	çáåv 12345
-u	drwxr-x--- 2 root root      4096 2011-12-06 23:39 .
-u	drwxr-x--- 3 root root      4096 2011-12-06 23:39 ..
-u	-rw-r----- 1 root root       251 2011-12-06 23:39 .hoge
+l	drwxr-x--- 2 root root      4096 2011-12-06 23:39 .
+l	drwxr-x--- 3 root root      4096 2011-12-06 23:39 ..
+l	-rw-r----- 1 root root       251 2011-12-06 23:39 .hoge
 
 *LIST_MELCOM
 	0 1           2   3          4  5    6  7    8
