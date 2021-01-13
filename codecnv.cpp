@@ -256,7 +256,7 @@ std::string ConvertFrom(std::string_view str, int kanji) {
 		return convert(str, CP_UTF8, CP_UTF8, [](auto& str) { str = NormalizeString(NormalizationC, str); });
 	case KANJI_UTF8N:
 	default:
-		return std::string(str);
+		return convert(str, CP_UTF8, CP_UTF8, [](auto) {});
 	}
 }
 
