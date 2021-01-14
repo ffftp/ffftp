@@ -30,7 +30,7 @@ jobs:
       run: |
         $VS = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
         Set-ItemProperty "$VS\VC\Tools\MSVC\*" -Name Attributes -Value Hidden
-        Start-Process "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList $('update --installPath "{0}" --quiet -f $VS) -NoNewWindow -Wait
+        Start-Process "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList $('update --installPath "{0}" --quiet' -f $VS) -NoNewWindow -Wait
         Start-Process "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList $('modify --installPath "{0}" --quiet --add Microsoft.VisualStudio.Component.VC.14.26.x86.x64' -f $VS) -NoNewWindow -Wait
         Get-Item $env:TEMP\dd_* | Where-Object LastWriteTime (Get-Date).AddHours(-1) -GT | Get-Content
         Copy-Item -Force "$VS\VC\Auxiliary\Build\14.26\Microsoft.VCToolsVersion.14.26.props" "$VS\VC\Auxiliary\Build\Microsoft.VCToolsVersion.v142.default.props"
