@@ -42,8 +42,10 @@ static Concurrency::concurrent_queue<std::wstring> queue;
 
 static VOID CALLBACK Writer(HWND hwnd, UINT, UINT_PTR, DWORD) {
 	std::wstring local;
-	for (std::wstring temp; queue.try_pop(temp);)
+	for (std::wstring temp; queue.try_pop(temp);) {
 		local += temp;
+		local += L"\r\n"sv;
+	}
 	if (empty(local))
 		return;
 	if (auto length = GetWindowTextLengthW(hwnd); RemoveOldLog == YES) {
@@ -96,10 +98,8 @@ void SetTaskMsg(_In_z_ _Printf_format_string_ const char* format, ...) {
 	va_start(args, format);
 	int result = vsprintf(buffer, format, args);
 	va_end(args);
-	if (0 < result) {
-		strcat(buffer, "\r\n");
+	if (0 < result)
 		queue.push(u8(buffer));
-	}
 }
 
 
