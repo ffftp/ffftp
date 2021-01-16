@@ -1922,7 +1922,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork
 		static_assert(sizeof reply == 8);
 		#pragma pack(pop)
 		if (!SocksRecv(s, reply, CancelCheckWork) || reply.VN != 0 || reply.CD != 90) {
-			DoPrintf(MSGJPN035);
+			SetTaskMsg(MSGJPN035);
 			return {};
 		}
 		// from "SOCKS: A protocol for TCP proxy across firewalls"
