@@ -96,10 +96,10 @@ void SetTaskMsg(_In_z_ _Printf_format_string_ const char* format, ...) {
 	char buffer[10240 + 3];
 	va_list args;
 	va_start(args, format);
-	int result = vsprintf(buffer, format, args);
+	int result = vsprintf_s(buffer, format, args);
 	va_end(args);
 	if (0 < result)
-		queue.push(u8(buffer));
+		queue.push(u8(buffer, result));
 }
 
 
@@ -115,6 +115,16 @@ void DispTaskMsg() {
 	ExecViewer(data(path), 0);
 }
 
+
+void SetTaskMsg(UINT id, ...) {
+	wchar_t buffer[10240];
+	va_list args;
+	va_start(args, id);
+	int result = vswprintf_s(buffer, GetString(id).c_str(), args);
+	va_end(args);
+	if (0 < result)
+		queue.push({ buffer, static_cast<size_t>(result) });
+}
 
 // デバッグコンソールにメッセージを表示する
 void DoPrintf(_In_z_ _Printf_format_string_ const char* format, ...) {
