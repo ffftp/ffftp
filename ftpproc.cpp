@@ -646,7 +646,7 @@ static void DispMirrorFiles(std::vector<FILELIST> const& Local, std::vector<FILE
 
 	if(DebugConsole == YES)
 	{
-		DoPrintf("---- MIRROR FILE LIST ----");
+		DoPrintf(L"---- MIRROR FILE LIST ----");
 		for (auto const& f : Local) {
 			FileTimeToLocalFileTime(&f.Time, &fTime);
 			if (FileTimeToSystemTime(&fTime, &sTime))
@@ -663,7 +663,7 @@ static void DispMirrorFiles(std::vector<FILELIST> const& Local, std::vector<FILE
 				strcpy(Date, "");
 			DoPrintf("REMOTE : %s %s [%s] %s", f.Attr == 1 ? "YES" : "NO ", f.Node == NODE_DIR ? "DIR " : "FILE", Date, f.File);
 		}
-		DoPrintf("---- END ----");
+		DoPrintf(L"---- END ----");
 	}
 	return;
 }

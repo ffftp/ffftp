@@ -1238,7 +1238,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 						iRetCode = 500;
 					}
 					else
-						DoPrintf("Skt=%zu : accept from %s", data_socket, u8(AddressPortToString(&sa, salen)).c_str());
+						DoPrintf(L"Skt=%zu : accept from %s", data_socket, AddressPortToString(&sa, salen).c_str());
 				}
 
 				if(data_socket != INVALID_SOCKET)
@@ -1842,7 +1842,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 					iRetCode = 500;
 				}
 				else
-					DoPrintf("Skt=%zu : accept from %s", data_socket, u8(AddressPortToString(&sa, salen)).c_str());
+					DoPrintf(L"Skt=%zu : accept from %s", data_socket, AddressPortToString(&sa, salen).c_str());
 			}
 
 			if(data_socket != INVALID_SOCKET)

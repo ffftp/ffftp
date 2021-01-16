@@ -2496,7 +2496,7 @@ static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base) {
 	DoPrintf("FileList : NODE=%d : %s", Pkt.Node, Pkt.File);
 	/* リストの重複を取り除く */
 	if (std::any_of(begin(Base), end(Base), [name = Pkt.File](auto const& f) { return strcmp(name, f.File) == 0; })) {
-		DoPrintf(" --> Duplicate!!");
+		DoPrintf(L" --> Duplicate!!");
 		return;
 	}
 	Base.emplace_back(Pkt);

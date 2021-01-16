@@ -1555,7 +1555,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 												if (HostData->NoDisplayUI == NO && InputDialog(re_passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1))
 													Continue = YES;
 												else
-													DoPrintf("No password specified.");
+													DoPrintf(L"No password specified.");
 												ReInPass = YES;
 											}
 											else if(Sts == FTP_CONTINUE)
@@ -1567,13 +1567,13 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 													Sts = command(ContSock, NULL, CancelCheckWork, "ACCT %s", Acct) / 100;
 												}
 												else
-													DoPrintf("No account specified");
+													DoPrintf(L"No account specified");
 											}
 										}
 										else
 										{
 											Sts = FTP_ERROR;
-											DoPrintf("No password specified.");
+											DoPrintf(L"No password specified.");
 										}
 									}
 									// FTPES対応
@@ -1585,7 +1585,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 							else
 							{
 								Sts = FTP_ERROR;
-								DoPrintf("No user name specified");
+								DoPrintf(L"No user name specified");
 							}
 
 							if(Sts != FTP_COMPLETE)
@@ -1743,7 +1743,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 	if((Type == MD4) || (Type == MD5) || (Type == SHA1))
 	{
 		/* シーケンス番号を見つけるループ */
-		DoPrintf("Analyze OTP");
+		DoPrintf(L"Analyze OTP");
 		DoPrintf("%s", Pos);
 		Sts = FFFTP_FAIL;
 		while((Pos = GetNextField(Pos)) != NULL)
@@ -1751,7 +1751,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 			if(IsDigit(*Pos))
 			{
 				Seq = atoi(Pos);
-				DoPrintf("Sequence=%d", Seq);
+				DoPrintf(L"Sequence=%d", Seq);
 
 				/* Seed */
 				if((Pos = GetNextField(Pos)) != NULL)
@@ -1788,7 +1788,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 	else
 	{
 		strcpy(Reply, Pass);
-		DoPrintf("No OTP used.");
+		DoPrintf(L"No OTP used.");
 	}
 	return(Sts);
 }
@@ -1877,10 +1877,10 @@ static bool Socks5Authenticate(SOCKET s, int* CancelCheckWork) {
 		return false;
 	}
 	if (reply.METHOD == NO_AUTHENTICATION_REQUIRED)
-		DoPrintf("SOCKS5 No Authentication");
+		DoPrintf(L"SOCKS5 No Authentication");
 	else if (reply.METHOD == USERNAME_PASSWORD) {
 		// RFC 1929 Username/Password Authentication for SOCKS V5
-		DoPrintf("SOCKS5 User/Pass Authentication");
+		DoPrintf(L"SOCKS5 User/Pass Authentication");
 		auto ulen = (uint8_t)strlen(FwallUser);
 		auto plen = (uint8_t)strlen(FwallPass);
 		buffer = { 1 };												// VER
@@ -2107,7 +2107,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 		return INVALID_SOCKET;
 	}
 	if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
-		DoPrintf("Use SOCKS BIND");
+		DoPrintf(L"Use SOCKS BIND");
 		// Control接続と同じアドレスに接続する
 		salen = sizeof saListen;
 		if (getpeername(ctrl_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
@@ -2127,7 +2127,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 			return INVALID_SOCKET;
 		}
 	} else {
-		DoPrintf("Use normal BIND");
+		DoPrintf(L"Use normal BIND");
 		// Control接続と同じアドレス（ただしport=0）でlistenする
 		if (saListen.ss_family == AF_INET)
 			reinterpret_cast<sockaddr_in&>(saListen).sin_port = 0;

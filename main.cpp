@@ -516,7 +516,7 @@ static int InitApp(int cmdShow)
 
 				if(MakeTransferThread() == FFFTP_SUCCESS)
 				{
-					DoPrintf("DEBUG MESSAGE ON ! ##");
+					DoPrintf(L"DEBUG MESSAGE ON ! ##");
 
 					DispWindowTitle();
 					UpdateStatusBar();
@@ -528,7 +528,7 @@ static int InitApp(int cmdShow)
 					if(ForceIni)
 						SetTaskMsg("%s%s", MSGJPN283, IniPath.u8string().c_str());
 
-					DoPrintf("Help=%s", helpPath().u8string().c_str());
+					DoPrintf(L"Help=%s", helpPath().c_str());
 
 					DragAcceptFiles(GetRemoteHwnd(), TRUE);
 					DragAcceptFiles(GetLocalHwnd(), TRUE);
@@ -2121,18 +2121,18 @@ void ExecViewer(char *Fname, int App) {
 	auto pFname = fs::u8path(Fname);
 	if (wchar_t result[MAX_PATH]; App == -1 && pFname.has_extension() && FindExecutableW(pFname.c_str(), nullptr, result) > (HINSTANCE)32) {
 		// 拡張子があるので関連付けを実行する
-		DoPrintf("ShellExecute - %s", Fname);
+		DoPrintf(L"ShellExecute - %s", pFname.c_str());
 		ShellExecuteW(0, L"open", pFname.c_str(), nullptr, AskLocalCurDir().c_str(), SW_SHOW);
 	} else if (App == -1 && (GetFileAttributesW(pFname.c_str()) & FILE_ATTRIBUTE_DIRECTORY)) {
 		// ディレクトリなのでフォルダを開く
 		MakeDistinguishableFileName(ComLine, Fname);
-		DoPrintf("ShellExecute - %s", Fname);
+		DoPrintf(L"ShellExecute - %s", pFname.c_str());
 		ShellExecuteW(0, L"open", u8(ComLine).c_str(), nullptr, pFname.c_str(), SW_SHOW);
 	} else {
 		sprintf(ComLine, "%s \"%s\"", ViewerName[App == -1 ? 0 : App], Fname);
-		DoPrintf("CreateProcess - %s", ComLine);
-		STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
 		auto wComLine = u8(ComLine);
+		DoPrintf(L"CreateProcess - %s", wComLine.c_str());
+		STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
 		if (ProcessInformation pi; !CreateProcessW(nullptr, data(wComLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
 			SetTaskMsg(MSGJPN182, GetLastError());
 			SetTaskMsg(">>%s", ComLine);
@@ -2167,11 +2167,11 @@ void ExecViewer2(char *Fname1, char *Fname2, int App)
 		sprintf(ComLine, "%s %s %s", AssocProg, Fname1, Fname2);
 	else
 		sprintf(ComLine, "%s \"%s\" \"%s\"", AssocProg, Fname1, Fname2);
+	auto wComLine = u8(ComLine);
 
-	DoPrintf("FindExecutable - %s", ComLine);
+	DoPrintf(L"FindExecutable - %s", wComLine.c_str());
 
 	STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
-	auto wComLine = u8(ComLine);
 	if (ProcessInformation pi; !CreateProcessW(nullptr, data(wComLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
 		SetTaskMsg(MSGJPN182, GetLastError());
 		SetTaskMsg(">>%s", ComLine);

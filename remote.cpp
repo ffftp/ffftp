@@ -556,11 +556,11 @@ SOCKET DoClose(SOCKET Sock)
 //			WSACancelBlockingCall();
 //		}
 		do_closesocket(Sock);
-		DoPrintf("Skt=%zu : Socket closed.", Sock);
+		DoPrintf(L"Skt=%zu : Socket closed.", Sock);
 		Sock = INVALID_SOCKET;
 	}
 	if(Sock != INVALID_SOCKET)
-		DoPrintf("Skt=%zu : Failed to close socket.", Sock);
+		DoPrintf(L"Skt=%zu : Failed to close socket.", Sock);
 
 	return(Sock);
 }
