@@ -777,6 +777,7 @@ HWND GetTaskWnd(void);
 void SetTaskMsg(_In_z_ _Printf_format_string_ const char* format, ...);
 void DispTaskMsg(void);
 void DoPrintf(_In_z_ _Printf_format_string_ const char* format, ...);
+void DoPrintf(_In_z_ _Printf_format_string_ const wchar_t* format, ...);
 
 /*===== hostman.c =====*/
 
