@@ -550,11 +550,6 @@ SOCKET DoClose(SOCKET Sock)
 {
 	if(Sock != INVALID_SOCKET)
 	{
-//		if(WSAIsBlocking())
-//		{
-//			DoPrintf("Skt=%u : Cancelled blocking call", Sock);
-//			WSACancelBlockingCall();
-//		}
 		do_closesocket(Sock);
 		DoPrintf(L"Skt=%zu : Socket closed.", Sock);
 		Sock = INVALID_SOCKET;
@@ -685,10 +680,6 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Pat
 	MainTransPkt.hWndTrans = hWnd;
 
 	Sts = DoDownload(cSkt, MainTransPkt, YES, CancelCheckWork);
-
-//#pragma aaa
-//DoPrintf("===== DoDirList Done.");
-
 	return(Sts);
 }
 

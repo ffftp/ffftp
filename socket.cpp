@@ -625,9 +625,6 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 	int CancelCheckWork;
 	int Error;
 
-#if DBG_MSG
-	DoPrintf("# Start accept (S=%x)", s);
-#endif
 	CancelCheckWork = NO;
 	Ret2 = INVALID_SOCKET;
 	Error = 0;
@@ -651,10 +648,6 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 			Ret2 = accept(s, addr, addrlen);
 			if(Ret2 != INVALID_SOCKET)
 			{
-#if DBG_MSG
-				DoPrintf("## do_sccept (S=%x)", Ret2);
-				DoPrintf("## Async set: FD_CONNECT|FD_CLOSE|FD_ACCEPT|FD_READ|FD_WRITE");
-#endif
 				RegisterAsyncTable(Ret2);
 				// 高速化のためFD_READとFD_WRITEを使用しない
 //				if(WSAAsyncSelect(Ret2, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT | FD_READ | FD_WRITE) == SOCKET_ERROR)
@@ -672,10 +665,6 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 		}
 		while(Error == WSAEWOULDBLOCK);
 	}
-
-#if DBG_MSG
-	DoPrintf("# Exit accept");
-#endif
 	return(Ret2);
 #else
 	return(accept(s, addr, addrlen));
