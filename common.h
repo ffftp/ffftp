@@ -945,7 +945,7 @@ void SwitchOSSProc(void);
 int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const char* fmt, ...);
 std::tuple<int, std::string> ReadReplyMessage(SOCKET cSkt, int *CancelCheckWork);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
-void ReportWSError(const char* Msg, UINT Error);
+void ReportWSError(const wchar_t* functionName);
 
 /*===== getput.c =====*/
 

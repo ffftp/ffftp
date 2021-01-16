@@ -898,12 +898,6 @@ int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
 }
 
 
-// デバッグコンソールにエラーを表示
-void ReportWSError(const char* Msg, UINT Error) {
-	DoPrintf("[[%s : %s]]", Msg, u8(GetErrorMessage(Error)).c_str());
-}
-
-
 /*----- パスの区切り文字をホストに合わせて変更する ----------------------------
 *
 *	Parameter

@@ -150,3 +150,12 @@ void DoPrintf(_In_z_ _Printf_format_string_ const wchar_t* format, ...) {
 	if (0 < result)
 		queue.push({ reinterpret_cast<const wchar_t*>(&buffer), static_cast<size_t>(result) + 3 });
 }
+
+
+// デバッグコンソールにエラーを表示
+void ReportWSError(const wchar_t* functionName) {
+	auto lastError = WSAGetLastError();
+	if (DebugConsole != YES)
+		return;
+	DoPrintf(L"[[%s : %s]]", functionName, GetErrorMessage(lastError).c_str());
+}

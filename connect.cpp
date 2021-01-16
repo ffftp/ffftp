@@ -1389,14 +1389,14 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 				{
 					Flg = 1;
 					if(setsockopt(ContSock, SOL_SOCKET, SO_OOBINLINE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
-						ReportWSError("setsockopt", WSAGetLastError());
+						ReportWSError(L"setsockopt");
 					// データ転送用ソケットのTCP遅延転送が無効されているので念のため
 					if(setsockopt(ContSock, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
-						ReportWSError("setsockopt", WSAGetLastError());
+						ReportWSError(L"setsockopt");
 //#pragma aaa
 					Flg = 1;
 					if(setsockopt(ContSock, SOL_SOCKET, SO_KEEPALIVE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
-						ReportWSError("setsockopt", WSAGetLastError());
+						ReportWSError(L"setsockopt");
 					// 切断対策
 					if(TimeOut > 0)
 					{
@@ -1404,12 +1404,12 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 						KeepAlive.keepalivetime = TimeOut * 1000;
 						KeepAlive.keepaliveinterval = 1000;
 						if(WSAIoctl(ContSock, SIO_KEEPALIVE_VALS, &KeepAlive, sizeof(struct tcp_keepalive), NULL, 0, &dwTmp, NULL, NULL) == SOCKET_ERROR)
-							ReportWSError("WSAIoctl", WSAGetLastError());
+							ReportWSError(L"WSAIoctl");
 					}
 					LingerOpt.l_onoff = 1;
 					LingerOpt.l_linger = 90;
 					if(setsockopt(ContSock, SOL_SOCKET, SO_LINGER, (LPSTR)&LingerOpt, sizeof(LingerOpt)) == SOCKET_ERROR)
-						ReportWSError("setsockopt", WSAGetLastError());
+						ReportWSError(L"setsockopt");
 ///////
 
 
@@ -2098,12 +2098,12 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 	sockaddr_storage saListen;
 	int salen = sizeof saListen;
 	if (getsockname(ctrl_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
-		ReportWSError("getsockname", WSAGetLastError());
+		ReportWSError(L"getsockname");
 		return INVALID_SOCKET;
 	}
 	auto listen_skt = do_socket(saListen.ss_family, SOCK_STREAM, IPPROTO_TCP);
 	if (listen_skt == INVALID_SOCKET) {
-		ReportWSError("socket create", WSAGetLastError());
+		ReportWSError(L"socket create");
 		return INVALID_SOCKET;
 	}
 	if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
@@ -2111,7 +2111,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 		// Control接続と同じアドレスに接続する
 		salen = sizeof saListen;
 		if (getpeername(ctrl_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
-			ReportWSError("getpeername", WSAGetLastError());
+			ReportWSError(L"getpeername");
 			return INVALID_SOCKET;
 		}
 		if (do_connect(listen_skt, reinterpret_cast<const sockaddr*>(&saListen), salen, CancelCheckWork) == SOCKET_ERROR) {
@@ -2134,20 +2134,20 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 		else
 			reinterpret_cast<sockaddr_in6&>(saListen).sin6_port = 0;
 		if (bind(listen_skt, reinterpret_cast<const sockaddr*>(&saListen), salen) == SOCKET_ERROR) {
-			ReportWSError("bind", WSAGetLastError());
+			ReportWSError(L"bind");
 			do_closesocket(listen_skt);
 			SetTaskMsg(MSGJPN027);
 			return INVALID_SOCKET;
 		}
 		salen = sizeof saListen;
 		if (getsockname(listen_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
-			ReportWSError("getsockname", WSAGetLastError());
+			ReportWSError(L"getsockname");
 			do_closesocket(listen_skt);
 			SetTaskMsg(MSGJPN027);
 			return INVALID_SOCKET;
 		}
 		if (do_listen(listen_skt, 1) != 0) {
-			ReportWSError("listen", WSAGetLastError());
+			ReportWSError(L"listen");
 			do_closesocket(listen_skt);
 			SetTaskMsg(MSGJPN027);
 			return INVALID_SOCKET;

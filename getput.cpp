@@ -1222,7 +1222,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					data_socket = do_accept(listen_socket, reinterpret_cast<sockaddr*>(&sa), &salen);
 
 					if(shutdown(listen_socket, 1) != 0)
-						ReportWSError("shutdown listen", WSAGetLastError());
+						ReportWSError(L"shutdown listen");
 					// UPnP対応
 					if(IsUPnPLoaded() == YES)
 					{
@@ -1234,7 +1234,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					if(data_socket == INVALID_SOCKET)
 					{
 						SetErrorMsg(MSGJPN280);
-						ReportWSError("accept", WSAGetLastError());
+						ReportWSError(L"accept");
 						iRetCode = 500;
 					}
 					else
@@ -1334,7 +1334,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 				// 変数が未初期化のバグ修正
 				Flg = 1;
 				if(setsockopt(data_socket, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
-					ReportWSError("setsockopt", WSAGetLastError());
+					ReportWSError(L"setsockopt");
 
 				if(SetDownloadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &CreateMode, CancelCheckWork) == YES)
 				{
@@ -1475,7 +1475,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		}
 
 		if (read == SOCKET_ERROR)
-			ReportWSError("recv", WSAGetLastError());
+			ReportWSError(L"recv");
 	} else {
 		SetErrorMsg(MSGJPN095, Pkt->LocalFile);
 		SetTaskMsg(MSGJPN095, Pkt->LocalFile);
@@ -1483,7 +1483,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 	}
 
 	if (shutdown(dSkt, 1) != 0)
-		ReportWSError("shutdown", WSAGetLastError());
+		ReportWSError(L"shutdown");
 	LastDataConnectionTime = time(NULL);
 	DoClose(dSkt);
 
@@ -1826,7 +1826,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 				data_socket = do_accept(listen_socket, reinterpret_cast<sockaddr*>(&sa), &salen);
 
 				if(shutdown(listen_socket, 1) != 0)
-					ReportWSError("shutdown listen", WSAGetLastError());
+					ReportWSError(L"shutdown listen");
 				// UPnP対応
 				if(IsUPnPLoaded() == YES)
 				{
@@ -1838,7 +1838,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 				if(data_socket == INVALID_SOCKET)
 				{
 					SetErrorMsg(MSGJPN280);
-					ReportWSError("accept", WSAGetLastError());
+					ReportWSError(L"accept");
 					iRetCode = 500;
 				}
 				else
@@ -1939,7 +1939,7 @@ static int UploadPassive(TRANSPACKET *Pkt)
 				// 変数が未初期化のバグ修正
 				Flg = 1;
 				if(setsockopt(data_socket, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
-					ReportWSError("setsockopt", WSAGetLastError());
+					ReportWSError(L"setsockopt");
 
 				SetUploadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &Resume);
 				if(Resume == NO)
@@ -2087,7 +2087,7 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 
 	LastDataConnectionTime = time(NULL);
 	if (shutdown(dSkt, 1) != 0)
-		ReportWSError("shutdown", WSAGetLastError());
+		ReportWSError(L"shutdown");
 
 	auto [code, text] = ReadReplyMessage(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount]);
 	if (code / 100 >= FTP_RETRY)
