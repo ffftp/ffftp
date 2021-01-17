@@ -50,7 +50,7 @@ static auto GetConnections() {
 static void DisconnectAll(std::vector<RASCONNW> const& connections) {
 	if (empty(connections))
 		return;
-	SetTaskMsg(MSGJPN220);
+	SetTaskMsg(IDS_MSGJPN220);
 	for (auto const& connection : connections) {
 		RasHangUpW(connection.hrasconn);
 		for (RASCONNSTATUSW status{ sizeof(RASCONNSTATUSW) }; RasGetConnectStatusW(connection.hrasconn, &status) != ERROR_INVALID_HANDLE;)
@@ -100,7 +100,7 @@ bool ConnectRas(bool dialup, bool explicitly, bool confirm, std::wstring const& 
 	}
 
 	/* 接続する */
-	SetTaskMsg(MSGJPN221);
+	SetTaskMsg(IDS_MSGJPN221);
 	RASDIALDLG info{ sizeof(RASDIALDLG), GetMainHwnd() };
 	return RasDialDlgW(nullptr, const_cast<LPWSTR>(name.c_str()), nullptr, &info);
 }

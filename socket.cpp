@@ -733,7 +733,7 @@ int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork
 		if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
 			return FFFTP_FAIL;
 		if (endTime && *endTime < std::chrono::steady_clock::now()) {
-			SetTaskMsg(MSGJPN241);
+			SetTaskMsg(IDS_MSGJPN241);
 			*CancelCheckWork = YES;
 			return FFFTP_FAIL;
 		}

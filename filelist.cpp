@@ -891,7 +891,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 				// 先頭のアイテムを選択
 				ListView_SetItemState(GetRemoteHwnd(), 0, LVIS_FOCUSED, LVIS_FOCUSED);
 			} else {
-				SetTaskMsg(MSGJPN048);
+				SetTaskMsg(IDS_MSGJPN048);
 				SendMessageW(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
 			}
 		} else {
@@ -900,7 +900,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 			 * ようにする(VIEWはクリアして良い) */
 			if (AskHostType() != HTYPE_VMS)
 #endif
-				SetTaskMsg(MSGJPN049);
+				SetTaskMsg(IDS_MSGJPN049);
 			SendMessageW(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
 		}
 		EnableUserOpe();

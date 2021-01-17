@@ -205,7 +205,7 @@ void ConnectProc(int Type, int Num)
 			EnableUserOpe();
 		}
 		else
-			SetTaskMsg(MSGJPN001);
+			SetTaskMsg(IDS_MSGJPN001);
 	}
 	return;
 }
@@ -497,7 +497,7 @@ void HistoryConnectProc(int MenuCmd)
 			EnableUserOpe();
 		}
 		else
-			SetTaskMsg(MSGJPN002);
+			SetTaskMsg(IDS_MSGJPN002);
 	}
 	else
 		Sound::Error.Play();
@@ -958,7 +958,7 @@ int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
 
 	Sts = FFFTP_FAIL;
 
-	SetTaskMsg(MSGJPN003);
+	SetTaskMsg(IDS_MSGJPN003);
 
 //	DisableUserOpe();
 	/* 現在のソケットは切断 */
@@ -1013,7 +1013,7 @@ static int ReConnectSkt(SOCKET *Skt)
 
 	Sts = FFFTP_FAIL;
 
-	SetTaskMsg(MSGJPN003);
+	SetTaskMsg(IDS_MSGJPN003);
 
 	DisableUserOpe();
 	/* 現在のソケットは切断 */
@@ -1156,7 +1156,7 @@ void DisconnectProc(void)
 		SaveCurrentSetToHistory();
 
 		EraseRemoteDirForWnd();
-		SetTaskMsg(MSGJPN004);
+		SetTaskMsg(IDS_MSGJPN004);
 	}
 
 	TrnCtrlSocket = INVALID_SOCKET;
@@ -1189,7 +1189,7 @@ void DisconnectSet(void)
 	DispWindowTitle();
 	UpdateStatusBar();
 	MakeButtonsFocus();
-	SetTaskMsg(MSGJPN005);
+	SetTaskMsg(IDS_MSGJPN005);
 	return;
 }
 
@@ -1438,7 +1438,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 					}
 					if((Sts != FTP_COMPLETE) && (Sts != FTP_CONTINUE))
 					{
-						SetTaskMsg(MSGJPN006);
+						SetTaskMsg(IDS_MSGJPN006);
 						DoClose(ContSock);
 						ContSock = INVALID_SOCKET;
 					}
@@ -1464,7 +1464,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 
 						if((Sts != FTP_COMPLETE) && (Sts != FTP_CONTINUE))
 						{
-							SetTaskMsg(MSGJPN007, Host);
+							SetTaskMsg(IDS_MSGJPN007, u8(Host).c_str());
 							DoClose(ContSock);
 							ContSock = INVALID_SOCKET;
 						}
@@ -1590,7 +1590,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 
 							if(Sts != FTP_COMPLETE)
 							{
-								SetTaskMsg(MSGJPN008);
+								SetTaskMsg(IDS_MSGJPN008);
 								DoClose(ContSock);
 								ContSock = INVALID_SOCKET;
 							}
@@ -1604,8 +1604,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 				}
 				else
 				{
-//#pragma aaa
-					SetTaskMsg(MSGJPN009/*"接続できません(1) %x", ContSock*/);
+					SetTaskMsg(IDS_MSGJPN009);
 					DoClose(ContSock);
 					ContSock = INVALID_SOCKET;
 				}
@@ -1616,9 +1615,9 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 
 			if(((Fwall >= FWALL_FU_FP_SITE) && (Fwall <= FWALL_OPEN)) ||
 			   (Fwall == FWALL_FU_FP))
-				SetTaskMsg(MSGJPN010);
+				SetTaskMsg(IDS_MSGJPN010);
 			else
-				SetTaskMsg(MSGJPN011);
+				SetTaskMsg(IDS_MSGJPN011);
 		}
 
 #if 0
@@ -1672,19 +1671,19 @@ static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, 
 	*CancelCheckWork = NO;
 	if(*CancelCheckWork == NO && ContSock == INVALID_SOCKET && HostData->UseFTPIS == YES)
 	{
-		SetTaskMsg(MSGJPN316);
+		SetTaskMsg(IDS_MSGJPN316);
 		if((ContSock = DoConnectCrypt(CRYPT_FTPIS, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security, CancelCheckWork)) != INVALID_SOCKET)
 			HostData->CryptMode = CRYPT_FTPIS;
 	}
 	if(*CancelCheckWork == NO && ContSock == INVALID_SOCKET && HostData->UseFTPES == YES)
 	{
-		SetTaskMsg(MSGJPN315);
+		SetTaskMsg(IDS_MSGJPN315);
 		if((ContSock = DoConnectCrypt(CRYPT_FTPES, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security, CancelCheckWork)) != INVALID_SOCKET)
 			HostData->CryptMode = CRYPT_FTPES;
 	}
 	if(*CancelCheckWork == NO && ContSock == INVALID_SOCKET && HostData->UseNoEncryption == YES)
 	{
-		SetTaskMsg(MSGJPN314);
+		SetTaskMsg(IDS_MSGJPN314);
 		if((ContSock = DoConnectCrypt(CRYPT_NONE, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security, CancelCheckWork)) != INVALID_SOCKET)
 			HostData->CryptMode = CRYPT_NONE;
 	}
@@ -1724,17 +1723,17 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 		if((Pos = stristr(Reply, "otp-md5")) != NULL)
 		{
 			Type = MD5;
-			SetTaskMsg(MSGJPN012);
+			SetTaskMsg(IDS_MSGJPN012);
 		}
 		else if((Pos = stristr(Reply, "otp-sha1")) != NULL)
 		{
 			Type = SHA1;
-			SetTaskMsg(MSGJPN013);
+			SetTaskMsg(IDS_MSGJPN013);
 		}
 		else if(((Pos = stristr(Reply, "otp-md4")) != NULL) || ((Pos = stristr(Reply, "s/key")) != NULL))
 		{
 			Type = MD4;
-			SetTaskMsg(MSGJPN014);
+			SetTaskMsg(IDS_MSGJPN014);
 		}
 	}
 	else
@@ -1783,7 +1782,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 		}
 
 		if(Sts == FFFTP_FAIL)
-			SetTaskMsg(MSGJPN015);
+			SetTaskMsg(IDS_MSGJPN015);
 	}
 	else
 	{
@@ -1841,7 +1840,7 @@ enum class SocksCommand : uint8_t {
 
 static bool SocksSend(SOCKET s, std::vector<uint8_t> const& buffer, int* CancelCheckWork) {
 	if (SendData(s, reinterpret_cast<const char*>(data(buffer)), size_as<int>(buffer), 0, CancelCheckWork) != FFFTP_SUCCESS) {
-		SetTaskMsg(MSGJPN033, *reinterpret_cast<const short*>(&buffer[0]));
+		SetTaskMsg(IDS_MSGJPN033, *reinterpret_cast<const short*>(&buffer[0]));
 		return false;
 	}
 	return true;
@@ -1873,7 +1872,7 @@ static bool Socks5Authenticate(SOCKET s, int* CancelCheckWork) {
 	static_assert(sizeof reply == 2);
 	#pragma pack(pop)
 	if (!SocksSend(s, buffer, CancelCheckWork) || !SocksRecv(s, reply, CancelCheckWork)) {
-		SetTaskMsg(MSGJPN036);
+		SetTaskMsg(IDS_MSGJPN036);
 		return false;
 	}
 	if (reply.METHOD == NO_AUTHENTICATION_REQUIRED)
@@ -1896,11 +1895,11 @@ static bool Socks5Authenticate(SOCKET s, int* CancelCheckWork) {
 		static_assert(sizeof reply == 2);
 		#pragma pack(pop)
 		if (!SocksSend(s, buffer, CancelCheckWork) || !SocksRecv(s, reply, CancelCheckWork) || reply.STATUS != 0) {
-			SetTaskMsg(MSGJPN037);
+			SetTaskMsg(IDS_MSGJPN037);
 			return false;
 		}
 	} else {
-		SetTaskMsg(MSGJPN036);
+		SetTaskMsg(IDS_MSGJPN036);
 		return false;
 	}
 	return true;
@@ -1922,7 +1921,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork
 		static_assert(sizeof reply == 8);
 		#pragma pack(pop)
 		if (!SocksRecv(s, reply, CancelCheckWork) || reply.VN != 0 || reply.CD != 90) {
-			SetTaskMsg(MSGJPN035);
+			SetTaskMsg(IDS_MSGJPN035);
 			return {};
 		}
 		// from "SOCKS: A protocol for TCP proxy across firewalls"
@@ -1973,7 +1972,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork
 			}
 		}
 	}
-	SetTaskMsg(MSGJPN034);
+	SetTaskMsg(IDS_MSGJPN034);
 	return {};
 }
 
@@ -2032,36 +2031,38 @@ static std::optional<sockaddr_storage> SocksRequest(SOCKET s, SocksCommand cmd, 
 
 SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork) {
 	std::variant<sockaddr_storage, std::tuple<std::string, int>> target;
+	auto wHost = u8(host);
 	int Fwall = AskHostFireWall() == YES ? FwallType : FWALL_NONE;
-	if (auto ai = getaddrinfo(u8(host), port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC)) {
+	if (auto ai = getaddrinfo(wHost, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC)) {
 		// ホスト名がIPアドレスだった
-		SetTaskMsg(MSGJPN017, PreMsg, host, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str());
+		SetTaskMsg(IDS_MSGJPN017, u8(PreMsg).c_str(), wHost.c_str(), AddressPortToString(ai->ai_addr, ai->ai_addrlen).c_str());
 		memcpy(&std::get<sockaddr_storage>(target), ai->ai_addr, ai->ai_addrlen);
 	} else if ((Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) && FwallResolve == YES) {
 		// SOCKS5で名前解決する
 		target = std::tuple{ std::string(host), port };
-	} else if (ai = getaddrinfo(u8(host), port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC, CancelCheckWork)) {
+	} else if (ai = getaddrinfo(wHost, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC, CancelCheckWork)) {
 		// 名前解決に成功
-		SetTaskMsg(MSGJPN017, PreMsg, host, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str());
+		SetTaskMsg(IDS_MSGJPN017, u8(PreMsg).c_str(), wHost.c_str(), AddressPortToString(ai->ai_addr, ai->ai_addrlen).c_str());
 		memcpy(&std::get<sockaddr_storage>(target), ai->ai_addr, ai->ai_addrlen);
 	} else {
 		// 名前解決に失敗
-		SetTaskMsg(MSGJPN019, host);
+		SetTaskMsg(IDS_MSGJPN019, wHost.c_str());
 		return INVALID_SOCKET;
 	}
 
 	sockaddr_storage saConnect;
 	if (Fwall == FWALL_SOCKS4 || Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
 		// connectで接続する先はSOCKSサーバ
-		auto ai = getaddrinfo(u8(FwallHost), FwallPort);
+		auto wFwallHost = u8(FwallHost);
+		auto ai = getaddrinfo(wFwallHost, FwallPort);
 		if (!ai)
-			ai = getaddrinfo(u8(FwallHost), FwallPort, AF_UNSPEC, CancelCheckWork);
+			ai = getaddrinfo(wFwallHost, FwallPort, AF_UNSPEC, CancelCheckWork);
 		if (!ai) {
-			SetTaskMsg(MSGJPN021, FwallHost);
+			SetTaskMsg(IDS_MSGJPN021, wFwallHost.c_str());
 			return INVALID_SOCKET;
 		}
 		memcpy(&saConnect, ai->ai_addr, ai->ai_addrlen);
-		SetTaskMsg(MSGJPN022, u8(AddressPortToString(ai->ai_addr, ai->ai_addrlen)).c_str());
+		SetTaskMsg(IDS_MSGJPN022, AddressPortToString(ai->ai_addr, ai->ai_addrlen).c_str());
 	} else {
 		// connectで接続するのは接続先のホスト
 		saConnect = std::get<sockaddr_storage>(target);
@@ -2069,26 +2070,26 @@ SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork) {
 
 	auto s = do_socket(saConnect.ss_family, SOCK_STREAM, IPPROTO_TCP);
 	if (s == INVALID_SOCKET) {
-		SetTaskMsg(MSGJPN027);
+		SetTaskMsg(IDS_MSGJPN027);
 		return INVALID_SOCKET;
 	}
 	SetAsyncTableData(s, target);
 	if (do_connect(s, reinterpret_cast<const sockaddr*>(&saConnect), sizeof saConnect, CancelCheckWork) == SOCKET_ERROR) {
-		SetTaskMsg(MSGJPN026);
+		SetTaskMsg(IDS_MSGJPN026);
 		DoClose(s);
 		return INVALID_SOCKET;
 	}
 	if (Fwall == FWALL_SOCKS4 || Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
 		auto result = SocksRequest(s, SocksCommand::Connect, target, CancelCheckWork);
 		if (!result) {
-			SetTaskMsg(MSGJPN023, -1);
+			SetTaskMsg(IDS_MSGJPN023);
 			DoClose(s);
 			return INVALID_SOCKET;
 		}
 		CurHost.CurNetType = result->ss_family == AF_INET ? NTYPE_IPV4 : NTYPE_IPV6;
 	} else
 		CurHost.CurNetType = saConnect.ss_family == AF_INET ? NTYPE_IPV4 : NTYPE_IPV6;
-	SetTaskMsg(MSGJPN025);
+	SetTaskMsg(IDS_MSGJPN025);
 	return s;
 }
 
@@ -2122,7 +2123,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 		if (auto result = SocksRequest(listen_skt, SocksCommand::Bind, target, CancelCheckWork)) {
 			saListen = *result;
 		} else {
-			SetTaskMsg(MSGJPN023, -1);
+			SetTaskMsg(IDS_MSGJPN023);
 			DoClose(listen_skt);
 			return INVALID_SOCKET;
 		}
@@ -2136,20 +2137,20 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 		if (bind(listen_skt, reinterpret_cast<const sockaddr*>(&saListen), salen) == SOCKET_ERROR) {
 			ReportWSError(L"bind");
 			do_closesocket(listen_skt);
-			SetTaskMsg(MSGJPN027);
+			SetTaskMsg(IDS_MSGJPN027);
 			return INVALID_SOCKET;
 		}
 		salen = sizeof saListen;
 		if (getsockname(listen_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
 			ReportWSError(L"getsockname");
 			do_closesocket(listen_skt);
-			SetTaskMsg(MSGJPN027);
+			SetTaskMsg(IDS_MSGJPN027);
 			return INVALID_SOCKET;
 		}
 		if (do_listen(listen_skt, 1) != 0) {
 			ReportWSError(L"listen");
 			do_closesocket(listen_skt);
-			SetTaskMsg(MSGJPN027);
+			SetTaskMsg(IDS_MSGJPN027);
 			return INVALID_SOCKET;
 		}
 		// TODO: IPv6にUPnP NATは無意味なのでは？
@@ -2174,7 +2175,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 		status = command(ctrl_skt, NULL, CancelCheckWork, "EPRT |2|%s|%d|", a.c_str(), ntohs(p));
 	}
 	if (status / 100 != FTP_COMPLETE) {
-		SetTaskMsg(MSGJPN031, saListen.ss_family == AF_INET ? "PORT" : "EPRT");
+		SetTaskMsg(IDS_MSGJPN031, saListen.ss_family == AF_INET ? L"PORT" : L"EPRT");
 		if (IsUPnPLoaded() == YES)
 			if (int port; GetAsyncTableDataMapPort(listen_skt, &port) == YES)
 				RemovePortMapping(port);

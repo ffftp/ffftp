@@ -2344,7 +2344,7 @@ BEGIN
     IDS_MSGJPN019           "Host %s not found."
     IDS_MSGJPN021           "SOCKS server %s not found."
     IDS_MSGJPN022           "Connecting to SOCKS server %s."
-    IDS_MSGJPN023           "Cannnot connect to SOCKS server. (Err=%d)"
+    IDS_MSGJPN023           "Cannnot connect to SOCKS server."
     IDS_MSGJPN025           "Connected."
     IDS_MSGJPN026           "Cannnot connected."
     IDS_MSGJPN027           "Cannnot create socket."
@@ -2587,7 +2587,7 @@ BEGIN
     IDS_MSGJPN280           "Cannnot get Data Socket"
     IDS_MSGJPN281           "Cannnot connect with PASV mode"
     IDS_MSGJPN282           "INI filename is not specified"
-    IDS_MSGJPN283           "INI file: "
+    IDS_MSGJPN283           "INI file: %s"
 END
 
 STRINGTABLE
