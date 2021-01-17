@@ -1080,12 +1080,6 @@ void SktShareProh(void)
 {
 	if(CmdCtrlSocket == TrnCtrlSocket)
 	{
-
-//SetTaskMsg("############### SktShareProh");
-
-		// 同時接続対応
-//		CmdCtrlSocket = INVALID_SOCKET;
-//		ReConnectSkt(&CmdCtrlSocket);
 		if(CurHost.ReuseCmdSkt == YES)
 		{
 			CurHost.ReuseCmdSkt = NO;
@@ -1132,10 +1126,6 @@ int AskShareProh(void)
 
 void DisconnectProc(void)
 {
-
-//SetTaskMsg("############### Disconnect Cmd=%x, Trn=%x", CmdCtrlSocket,TrnCtrlSocket);
-
-	// 同時接続対応
 	AbortAllTransfer();
 
 	if((CmdCtrlSocket != INVALID_SOCKET) && (CmdCtrlSocket != TrnCtrlSocket))

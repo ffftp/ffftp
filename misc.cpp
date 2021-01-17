@@ -729,12 +729,6 @@ void FileTime2TimeString(const FILETIME *Time, char *Buf, int Mode, int InfoExis
 		else
 			Buf[0] = NUL;
 	}
-	else
-	{
-//		if (!strftime((char *)str, 100, "%c",  (const struct tm *)thetime))
-//			SetTaskMsg("strftime が失敗しました!\n");
-	}
-	return;
 }
 
 
