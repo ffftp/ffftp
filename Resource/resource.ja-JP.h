@@ -528,12 +528,8 @@
 #define IDS_MSGJPN076                   10076
 #define IDS_MSGJPN077                   10077
 #define IDS_MSGJPN078                   10078
-#define IDS_MSGJPN079                   10079
 #define IDS_MSGJPN080                   10080
 #define IDS_MSGJPN081                   10081
-#define IDS_MSGJPN082                   10082
-#define IDS_MSGJPN083                   10083
-#define IDS_MSGJPN084                   10084
 #define IDS_MSGJPN085                   10085
 #define IDS_MSGJPN086                   10086
 #define IDS_MSGJPN087                   10087

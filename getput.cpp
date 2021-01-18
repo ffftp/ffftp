@@ -78,7 +78,7 @@ static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
 static int SetUploadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode);
 static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
 static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt);
-static void DispTransFileInfo(TRANSPACKET const& item, char *Title, int SkipButton, int Info);
+static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipButton, int Info);
 static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max);
 static int IsSpecialDevice(const char* Fname);
 static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item);
@@ -772,7 +772,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //			else if(strncmp(TransPacketBase->Cmd, "MKD", 3) == 0)
 			else if(strncmp(Pos->Cmd, "MKD", 3) == 0)
 			{
-				DispTransFileInfo(*Pos, MSGJPN078, FALSE, YES);
+				DispTransFileInfo(*Pos, IDS_MSGJPN078, FALSE, YES);
 
 //				if(strlen(TransPacketBase->RemoteFile) > 0)
 				if(strlen(Pos->RemoteFile) > 0)
@@ -814,7 +814,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //			else if(strncmp(TransPacketBase->Cmd, "R-MKD", 5) == 0)
 			else if(strncmp(Pos->Cmd, "R-MKD", 5) == 0)
 			{
-				DispTransFileInfo(*Pos, MSGJPN079, FALSE, YES);
+				DispTransFileInfo(*Pos, IDS_MSGJPN078, FALSE, YES);
 
 				/* フルパスを使わないための処理 */
 				if(MakeNonFullPath(*Pos, CurDir[Pos->ThreadCount]) == FFFTP_SUCCESS)
@@ -832,7 +832,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //			else if(strncmp(TransPacketBase->Cmd, "R-RMD", 5) == 0)
 			else if(strncmp(Pos->Cmd, "R-RMD", 5) == 0)
 			{
-				DispTransFileInfo(*Pos, MSGJPN080, FALSE, YES);
+				DispTransFileInfo(*Pos, IDS_MSGJPN080, FALSE, YES);
 
 				DelNotify = MirrorDelNotify(WIN_REMOTE, DelNotify, *Pos);
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
@@ -851,7 +851,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //			else if(strncmp(TransPacketBase->Cmd, "R-DELE", 6) == 0)
 			else if(strncmp(Pos->Cmd, "R-DELE", 6) == 0)
 			{
-				DispTransFileInfo(*Pos, MSGJPN081, FALSE, YES);
+				DispTransFileInfo(*Pos, IDS_MSGJPN081, FALSE, YES);
 
 				DelNotify = MirrorDelNotify(WIN_REMOTE, DelNotify, *Pos);
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
@@ -870,7 +870,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //			else if(strncmp(TransPacketBase->Cmd, "L-MKD", 5) == 0)
 			else if(strncmp(Pos->Cmd, "L-MKD", 5) == 0)
 			{
-				DispTransFileInfo(*Pos, MSGJPN082, FALSE, YES);
+				DispTransFileInfo(*Pos, IDS_MSGJPN078, FALSE, YES);
 
 				Down = YES;
 //				DoLocalMKD(TransPacketBase->LocalFile);
@@ -881,7 +881,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //			else if(strncmp(TransPacketBase->Cmd, "L-RMD", 5) == 0)
 			else if(strncmp(Pos->Cmd, "L-RMD", 5) == 0)
 			{
-				DispTransFileInfo(*Pos, MSGJPN083, FALSE, YES);
+				DispTransFileInfo(*Pos, IDS_MSGJPN080, FALSE, YES);
 
 				DelNotify = MirrorDelNotify(WIN_LOCAL, DelNotify, *Pos);
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
@@ -896,7 +896,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //			else if(strncmp(TransPacketBase->Cmd, "L-DELE", 6) == 0)
 			else if(strncmp(Pos->Cmd, "L-DELE", 6) == 0)
 			{
-				DispTransFileInfo(*Pos, MSGJPN084, FALSE, YES);
+				DispTransFileInfo(*Pos, IDS_MSGJPN081, FALSE, YES);
 
 				DelNotify = MirrorDelNotify(WIN_LOCAL, DelNotify, *Pos);
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
@@ -1151,9 +1151,9 @@ int DoDownload(SOCKET cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork
 				AllTransSizeNow[item.ThreadCount] = 0;
 
 				if(DirList == NO)
-					DispTransFileInfo(item, MSGJPN086, TRUE, YES);
+					DispTransFileInfo(item, IDS_MSGJPN086, TRUE, YES);
 				else
-					DispTransFileInfo(item, MSGJPN087, FALSE, NO);
+					DispTransFileInfo(item, IDS_MSGJPN087, FALSE, NO);
 			}
 
 			if(BackgrndMessageProc() == NO)
@@ -1173,7 +1173,7 @@ int DoDownload(SOCKET cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork
 	}
 	else
 	{
-		DispTransFileInfo(item, MSGJPN088, TRUE, YES);
+		DispTransFileInfo(item, IDS_MSGJPN088, TRUE, YES);
 		SetTaskMsg(IDS_MSGJPN089, u8(item.RemoteFile).c_str());
 		iRetCode = 200;
 	}
@@ -1717,7 +1717,7 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET& item)
 					strcpy(item.Cmd, "STOU ");
 
 				if(item.hWndTrans != NULL)
-					DispTransFileInfo(item, MSGJPN104, TRUE, YES);
+					DispTransFileInfo(item, IDS_MSGJPN104, TRUE, YES);
 
 				if(BackgrndMessageProc() == NO)
 				{
@@ -1747,7 +1747,7 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET& item)
 	}
 	else
 	{
-		DispTransFileInfo(item, MSGJPN106, TRUE, YES);
+		DispTransFileInfo(item, IDS_MSGJPN106, TRUE, YES);
 		SetTaskMsg(IDS_MSGJPN107, u8(item.LocalFile).c_str());
 		iRetCode = 200;
 	}
@@ -2348,14 +2348,11 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET* Pkt) {
 *		なし
 *----------------------------------------------------------------------------*/
 
-static void DispTransFileInfo(TRANSPACKET const& item, char* Title, int SkipButton, int Info) {
-	char Tmp[40];
-
+static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipButton, int Info) {
 	if (item.hWndTrans != NULL) {
 		EnableWindow(GetDlgItem(item.hWndTrans, IDCANCEL), SkipButton);
 
-		sprintf(Tmp, "(%d)%s", AskTransferFileNum(), Title);
-		SetText(item.hWndTrans, u8(Tmp));
+		SetText(item.hWndTrans, strprintf(L"(%d)%s", AskTransferFileNum(), GetString(titleId).c_str()));
 		SetText(item.hWndTrans, TRANS_STATUS, L"");
 
 		SendDlgItemMessageW(item.hWndTrans, TRANS_TIME_BAR, PBM_SETRANGE, 0, MAKELPARAM(0, 100));

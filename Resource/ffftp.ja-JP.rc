@@ -2370,16 +2370,12 @@ BEGIN
     IDS_MSGJPN076           "ローカル側のファイル容量"
     IDS_MSGJPN077           "ホスト側のファイル容量"
     IDS_MSGJPN078           "フォルダ作成"
-    IDS_MSGJPN079           "フォルダ作成"
 END
 
 STRINGTABLE
 BEGIN
     IDS_MSGJPN080           "フォルダ削除"
     IDS_MSGJPN081           "ファイル削除"
-    IDS_MSGJPN082           "フォルダ作成"
-    IDS_MSGJPN083           "フォルダ削除"
-    IDS_MSGJPN084           "ファイル削除"
     IDS_MSGJPN085           "%sという名前のファイルはダウンロードできません."
     IDS_MSGJPN086           "ダウンロード"
     IDS_MSGJPN087           "ファイル一覧取得"

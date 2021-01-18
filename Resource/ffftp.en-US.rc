@@ -2406,16 +2406,12 @@ BEGIN
     IDS_MSGJPN076           "Local file size"
     IDS_MSGJPN077           "Host file size"
     IDS_MSGJPN078           "New Folder"
-    IDS_MSGJPN079           "New Folder"
 END
 
 STRINGTABLE
 BEGIN
     IDS_MSGJPN080           "Delete Folder"
     IDS_MSGJPN081           "Delete File"
-    IDS_MSGJPN082           "New Folder"
-    IDS_MSGJPN083           "Delete Folder"
-    IDS_MSGJPN084           "Delete File"
     IDS_MSGJPN085           "Cannnot download named %s."
     IDS_MSGJPN086           "Download"
     IDS_MSGJPN087           "File List"
