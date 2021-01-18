@@ -223,7 +223,7 @@ struct Transfer1 {
 			EnableWindow(GetDlgItem(hDlg, TRMODE_DEL), TRUE);
 			break;
 		case TRMODE_ADD:
-			if (char Tmp[FMAX_PATH + 1] = ""; InputDialog(fname_in_dlg, hDlg, MSGJPN199, Tmp, FMAX_PATH))
+			if (char Tmp[FMAX_PATH + 1] = ""; InputDialog(fname_in_dlg, hDlg, IDS_MSGJPN199, Tmp, FMAX_PATH))
 				AddTextToListBox(hDlg, Tmp, TRMODE_EXT_LIST, ASCII_EXT_LEN + 1);
 			break;
 		case TRMODE_DEL:
@@ -407,11 +407,11 @@ struct Mirroring {
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
 		case MIRROR_NOTRN_ADD:
-			if (char Tmp[FMAX_PATH + 1] = ""; InputDialog(fname_in_dlg, hDlg, MSGJPN202, Tmp, FMAX_PATH))
+			if (char Tmp[FMAX_PATH + 1] = ""; InputDialog(fname_in_dlg, hDlg, IDS_MSGJPN199, Tmp, FMAX_PATH))
 				AddTextToListBox(hDlg, Tmp, MIRROR_NOTRN_LIST, MIRROR_LEN + 1);
 			break;
 		case MIRROR_NODEL_ADD:
-			if (char Tmp[FMAX_PATH + 1] = ""; InputDialog(fname_in_dlg, hDlg, MSGJPN203, Tmp, FMAX_PATH))
+			if (char Tmp[FMAX_PATH + 1] = ""; InputDialog(fname_in_dlg, hDlg, IDS_MSGJPN199, Tmp, FMAX_PATH))
 				AddTextToListBox(hDlg, Tmp, MIRROR_NODEL_LIST, MIRROR_LEN + 1);
 			break;
 		case MIRROR_NOTRN_DEL:

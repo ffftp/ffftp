@@ -151,7 +151,7 @@ struct HostList {
 			break;
 		case HOST_FOLDER:
 			CopyDefaultHost(&TmpHost);
-			if (int Level1 = -1; InputDialog(group_dlg, hDlg, NULL, TmpHost.HostName, HOST_NAME_LEN + 1)) {
+			if (int Level1 = -1; InputDialog(group_dlg, hDlg, 0, TmpHost.HostName, HOST_NAME_LEN + 1)) {
 				if (auto hItem = (HTREEITEM)SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) {
 					TVITEMW Item{ TVIF_PARAM, hItem };
 					SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
@@ -173,7 +173,7 @@ struct HostList {
 				CurrentHost = (int)Item.lParam;
 				CopyHostFromList(CurrentHost, &TmpHost);
 				int Level1 = IsNodeGroup(CurrentHost);
-				if (Level1 == NO && DispHostSetDlg(hDlg) || Level1 == YES && InputDialog(group_dlg, hDlg, NULL, TmpHost.HostName, HOST_NAME_LEN + 1)) {
+				if (Level1 == NO && DispHostSetDlg(hDlg) || Level1 == YES && InputDialog(group_dlg, hDlg, 0, TmpHost.HostName, HOST_NAME_LEN + 1)) {
 					UpdateHostToList(CurrentHost, &TmpHost);
 					SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
 				}

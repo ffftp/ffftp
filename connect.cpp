@@ -1461,7 +1461,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 						else
 						{
 							Anony = NO;
-							if (strlen(User) != 0 || HostData->NoDisplayUI == NO && InputDialog(username_dlg, GetMainHwnd(), NULL, User, USER_NAME_LEN+1, &Anony))
+							if (strlen(User) != 0 || HostData->NoDisplayUI == NO && InputDialog(username_dlg, GetMainHwnd(), 0, User, USER_NAME_LEN+1, &Anony))
 							{
 								if(Anony == YES)
 								{
@@ -1528,7 +1528,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 //									if((Sts = command(ContSock, Reply, &CancelFlg, "USER %s", Buf) / 100) == FTP_CONTINUE)
 									if((Sts = command(ContSock, Reply, CancelCheckWork, "USER %s", Buf) / 100) == FTP_CONTINUE)
 									{
-										if (strlen(Pass) != 0 || HostData->NoDisplayUI == NO && InputDialog(passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1))
+										if (strlen(Pass) != 0 || HostData->NoDisplayUI == NO && InputDialog(passwd_dlg, GetMainHwnd(), 0, Pass, PASSWORD_LEN+1))
 										{
 											CheckOneTimePassword(Pass, Reply, Security);
 
@@ -1542,7 +1542,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 											if(Sts == FTP_ERROR)
 											{
 												strcpy(Pass, "");
-												if (HostData->NoDisplayUI == NO && InputDialog(re_passwd_dlg, GetMainHwnd(), NULL, Pass, PASSWORD_LEN+1))
+												if (HostData->NoDisplayUI == NO && InputDialog(re_passwd_dlg, GetMainHwnd(), 0, Pass, PASSWORD_LEN+1))
 													Continue = YES;
 												else
 													DoPrintf(L"No password specified.");
@@ -1550,7 +1550,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 											}
 											else if(Sts == FTP_CONTINUE)
 											{
-												if (strlen(Acct) != 0 || HostData->NoDisplayUI == NO && InputDialog(account_dlg, GetMainHwnd(), NULL, Acct, ACCOUNT_LEN+1))
+												if (strlen(Acct) != 0 || HostData->NoDisplayUI == NO && InputDialog(account_dlg, GetMainHwnd(), 0, Acct, ACCOUNT_LEN+1))
 												{
 													// 同時接続対応
 //													Sts = command(ContSock, NULL, &CancelFlg, "ACCT %s", Acct) / 100;

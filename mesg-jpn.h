@@ -1,7 +1,5 @@
 ﻿#pragma once
 extern std::map<int, std::string> msgs;
-#define MSGJPN050 (std::data(msgs[10000+50])) /* 検索（ローカル） */
-#define MSGJPN051 (std::data(msgs[10000+51])) /* 検索（ホスト） */
 #define MSGJPN052 (std::data(msgs[10000+52])) /* 削除: %s */
 #define MSGJPN053 (std::data(msgs[10000+53])) /* 作成: %s */
 #define MSGJPN054 (std::data(msgs[10000+54])) /* 転送: %s */
@@ -14,10 +12,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN061 (std::data(msgs[10000+61])) /* 作成するフォルダはありません. */
 #define MSGJPN062 (std::data(msgs[10000+62])) /* %d個のファイル/フォルダを削除します. */
 #define MSGJPN063 (std::data(msgs[10000+63])) /* 削除するファイル/フォルダはありません. */
-#define MSGJPN070 (std::data(msgs[10000+70])) /* フォルダ作成（ローカル） */
-#define MSGJPN071 (std::data(msgs[10000+71])) /* フォルダ作成（ホスト） */
-#define MSGJPN072 (std::data(msgs[10000+72])) /* フォルダ変更（ローカル） */
-#define MSGJPN073 (std::data(msgs[10000+73])) /* フォルダ変更（ホスト） */
 #define MSGJPN078 (std::data(msgs[10000+78])) /* フォルダ作成 */
 #define MSGJPN079 (std::data(msgs[10000+79])) /* フォルダ作成 */
 #define MSGJPN080 (std::data(msgs[10000+80])) /* フォルダ削除 */
@@ -43,9 +37,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN147 (std::data(msgs[10000+147])) /* フォルダを削除できません. */
 #define MSGJPN149 (std::data(msgs[10000+149])) /* ファイルを削除できません. */
 #define MSGJPN185 (std::data(msgs[10000+185])) /* フォルダを選択してください */
-#define MSGJPN199 (std::data(msgs[10000+199])) /* ファイル名 */
-#define MSGJPN202 (std::data(msgs[10000+202])) /* ファイル名 */
-#define MSGJPN203 (std::data(msgs[10000+203])) /* ファイル名 */
 #define MSGJPN239 (std::data(msgs[10000+239])) /* # このファイルは編集しないでください.\n */
 #define MSGJPN247 (std::data(msgs[10000+247])) /* 選択%d個（%s） */
 #define MSGJPN248 (std::data(msgs[10000+248])) /* ローカル空 %s */

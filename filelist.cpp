@@ -1256,7 +1256,7 @@ void FindFileInList(HWND hWnd, int Type) {
 	int Win = hWnd == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL;
 	switch (Type) {
 	case FIND_FIRST:
-		if (!InputDialog(find_dlg, hWnd, Win == WIN_LOCAL ? MSGJPN050 : MSGJPN051, FindStr, 40 + 1, &FindMode))
+		if (!InputDialog(find_dlg, hWnd, Win == WIN_LOCAL ? IDS_MSGJPN050 : IDS_MSGJPN051, FindStr, 40 + 1, &FindMode))
 			return;
 		try {
 			if (FindMode == 0)

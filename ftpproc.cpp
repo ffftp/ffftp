@@ -373,7 +373,7 @@ void DirectDownloadProc(char *Fname)
 
 // 入力されたファイル名のファイルを一つダウンロードする
 void InputDownloadProc() {
-	if (char Path[FMAX_PATH + 1] = ""; InputDialog(downname_dlg, GetMainHwnd(), NULL, Path, FMAX_PATH))
+	if (char Path[FMAX_PATH + 1] = ""; InputDialog(downname_dlg, GetMainHwnd(), 0, Path, FMAX_PATH))
 		DirectDownloadProc(Path);
 }
 
@@ -2128,24 +2128,9 @@ void MoveRemoteFileProc(int drop_index)
 
 void MkdirProc(void)
 {
-	int Win;
-	char *Title;
-
-	// 同時接続対応
 	CancelFlg = NO;
-
-	if(GetFocus() == GetLocalHwnd())
-	{
-		Win = WIN_LOCAL;
-		Title = MSGJPN070;
-	}
-	else
-	{
-		Win = WIN_REMOTE;
-		Title = MSGJPN071;
-	}
-
-	if (char Path[FMAX_PATH + 1] = ""; InputDialog(mkdir_dlg, GetMainHwnd(), Title, Path, FMAX_PATH + 1) && strlen(Path) != 0)
+	auto [Win, titleId] = GetFocus() == GetLocalHwnd() ? std::tuple{ WIN_LOCAL, IDS_MSGJPN070 } : std::tuple{ WIN_REMOTE, IDS_MSGJPN071 };
+	if (char Path[FMAX_PATH + 1] = ""; InputDialog(mkdir_dlg, GetMainHwnd(), titleId, Path, FMAX_PATH + 1) && strlen(Path) != 0)
 	{
 		if(Win == WIN_LOCAL)
 		{
@@ -2252,16 +2237,9 @@ void ChangeDirDirectProc(int Win)
 {
 	bool result = false;
 	char Path[FMAX_PATH+1];
-	char *Title;
 
 	// 同時接続対応
 	CancelFlg = NO;
-
-	if(Win == WIN_LOCAL)
-		Title = MSGJPN072;
-	else
-		Title = MSGJPN073;
-
 	strcpy(Path, "");
 	if(Win == WIN_LOCAL)
 	{
@@ -2269,7 +2247,7 @@ void ChangeDirDirectProc(int Win)
 			result = true;
 	}
 	else
-		result = InputDialog(chdir_dlg, GetMainHwnd(), Title, Path, FMAX_PATH+1);
+		result = InputDialog(chdir_dlg, GetMainHwnd(), IDS_MSGJPN073, Path, FMAX_PATH+1);
 
 	if(result && strlen(Path) != 0)
 	{
@@ -2521,7 +2499,7 @@ void SomeCmdProc(void)
 			char Cmd[81] = {};
 			if (!empty(FileListBase))
 				strncpy(Cmd, FileListBase[0].File, 80);
-			if (InputDialog(somecmd_dlg, GetMainHwnd(), NULL, Cmd, 81, nullptr, IDH_HELP_TOPIC_0000023))
+			if (InputDialog(somecmd_dlg, GetMainHwnd(), 0, Cmd, 81, nullptr, IDH_HELP_TOPIC_0000023))
 				DoQUOTE(AskCmdCtrlSkt(), Cmd, &CancelFlg);
 			EnableUserOpe();
 		}
@@ -2793,7 +2771,7 @@ static int RenameUnuseableName(char* Fname) {
 	for (;;) {
 		if (!boost::regex_search(Fname, re))
 			return FFFTP_SUCCESS;
-		if (!InputDialog(forcerename_dlg, GetMainHwnd(), NULL, Fname, FMAX_PATH + 1))
+		if (!InputDialog(forcerename_dlg, GetMainHwnd(), 0, Fname, FMAX_PATH + 1))
 			return FFFTP_FAIL;
 	}
 }

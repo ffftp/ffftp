@@ -2332,12 +2332,12 @@ int EnterMasterPasswordAndSet(bool newpassword, HWND hWnd)
 	char *p;
 
 	buf[0] = NUL;
-	if (InputDialog(newpassword ? newmasterpasswd_dlg : masterpasswd_dlg, hWnd, NULL, buf, MAX_PASSWORD_LEN + 1, nullptr, IDH_HELP_TOPIC_0000064)){
+	if (InputDialog(newpassword ? newmasterpasswd_dlg : masterpasswd_dlg, hWnd, 0, buf, MAX_PASSWORD_LEN + 1, nullptr, IDH_HELP_TOPIC_0000064)){
 		// パスワードの入力欄を非表示
 		if (newpassword)
 		{
 			buf1[0] = NUL;
-			if (!InputDialog(newmasterpasswd_dlg, hWnd, NULL, buf1, MAX_PASSWORD_LEN + 1, nullptr, IDH_HELP_TOPIC_0000064)){
+			if (!InputDialog(newmasterpasswd_dlg, hWnd, 0, buf1, MAX_PASSWORD_LEN + 1, nullptr, IDH_HELP_TOPIC_0000064)){
 				return 0;
 			}
 			if(strcmp(buf, buf1) != 0)
