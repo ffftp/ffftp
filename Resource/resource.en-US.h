@@ -505,9 +505,6 @@
 #define IDS_MSGJPN052                   10052
 #define IDS_MSGJPN053                   10053
 #define IDS_MSGJPN054                   10054
-#define IDS_MSGJPN055                   10055
-#define IDS_MSGJPN056                   10056
-#define IDS_MSGJPN057                   10057
 #define IDS_MSGJPN058                   10058
 #define IDS_MSGJPN059                   10059
 #define IDS_MSGJPN060                   10060

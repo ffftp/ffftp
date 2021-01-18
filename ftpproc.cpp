@@ -384,21 +384,21 @@ struct MirrorList {
 	MirrorList(std::forward_list<TRANSPACKET>& list) : list{ list } {}
 	INT_PTR OnInit(HWND hDlg) {
 		for (auto const& item : list) {
-			char Tmp[FMAX_PATH + 1 + 6] = "";
+			std::wstring line;
 			if (strncmp(item.Cmd, "R-DELE", 6) == 0 || strncmp(item.Cmd, "R-RMD", 5) == 0)
-				sprintf(Tmp, MSGJPN052, item.RemoteFile);
+				line = strprintf(GetString(IDS_MSGJPN052).c_str(), u8(item.RemoteFile).c_str());
 			else if (strncmp(item.Cmd, "R-MKD", 5) == 0)
-				sprintf(Tmp, MSGJPN053, item.RemoteFile);
+				line = strprintf(GetString(IDS_MSGJPN053).c_str(), u8(item.RemoteFile).c_str());
 			else if (strncmp(item.Cmd, "STOR", 4) == 0)
-				sprintf(Tmp, MSGJPN054, item.RemoteFile);
+				line = strprintf(GetString(IDS_MSGJPN054).c_str(), u8(item.RemoteFile).c_str());
 			else if (strncmp(item.Cmd, "L-DELE", 6) == 0 || strncmp(item.Cmd, "L-RMD", 5) == 0)
-				sprintf(Tmp, MSGJPN055, item.LocalFile);
+				line = strprintf(GetString(IDS_MSGJPN052).c_str(), u8(item.LocalFile).c_str());
 			else if (strncmp(item.Cmd, "L-MKD", 5) == 0)
-				sprintf(Tmp, MSGJPN056, item.LocalFile);
+				line = strprintf(GetString(IDS_MSGJPN053).c_str(), u8(item.LocalFile).c_str());
 			else if (strncmp(item.Cmd, "RETR", 4) == 0)
-				sprintf(Tmp, MSGJPN057, item.LocalFile);
-			if (strlen(Tmp) > 0)
-				SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)u8(Tmp).c_str());
+				line = strprintf(GetString(IDS_MSGJPN054).c_str(), u8(item.LocalFile).c_str());
+			if (!empty(line))
+				SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)line.c_str());
 		}
 		CountMirrorFiles(hDlg, list);
 		EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), FALSE);
@@ -1517,7 +1517,6 @@ static int MirrorNotify(bool upload) {
 
 // ミラーリングで転送／削除するファイルの数を数えダイアログに表示
 static void CountMirrorFiles(HWND hDlg, std::forward_list<TRANSPACKET> const& list) {
-	char Tmp[80];
 	int Del = 0, Make = 0, Copy = 0;
 	for (auto const& item : list) {
 		if (strncmp(item.Cmd, "R-DELE", 6) == 0 || strncmp(item.Cmd, "R-RMD", 5) == 0 || strncmp(item.Cmd, "L-DELE", 6) == 0 || strncmp(item.Cmd, "L-RMD", 5) == 0)
@@ -1527,26 +1526,9 @@ static void CountMirrorFiles(HWND hDlg, std::forward_list<TRANSPACKET> const& li
 		else if (strncmp(item.Cmd, "STOR", 4) == 0 || strncmp(item.Cmd, "RETR", 4) == 0)
 			Copy++;
 	}
-
-	if(Copy != 0)
-		sprintf(Tmp, MSGJPN058, Copy);
-	else
-		sprintf(Tmp, MSGJPN059);
-	SetText(hDlg, MIRROR_COPYNUM, u8(Tmp));
-
-	if(Make != 0)
-		sprintf(Tmp, MSGJPN060, Make);
-	else
-		sprintf(Tmp, MSGJPN061);
-	SetText(hDlg, MIRROR_MAKENUM, u8(Tmp));
-
-	if(Del != 0)
-		sprintf(Tmp, MSGJPN062, Del);
-	else
-		sprintf(Tmp, MSGJPN063);
-	SetText(hDlg, MIRROR_DELNUM, u8(Tmp));
-
-	return;
+	SetText(hDlg, MIRROR_COPYNUM, Copy != 0 ? strprintf(GetString(IDS_MSGJPN058).c_str(), Copy) : GetString(IDS_MSGJPN059));
+	SetText(hDlg, MIRROR_MAKENUM, Make != 0 ? strprintf(GetString(IDS_MSGJPN060).c_str(), Make) : GetString(IDS_MSGJPN061));
+	SetText(hDlg, MIRROR_DELNUM, Del != 0 ? strprintf(GetString(IDS_MSGJPN062).c_str(), Del) : GetString(IDS_MSGJPN063));
 }
 
 

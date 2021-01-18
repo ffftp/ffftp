@@ -1,23 +1,9 @@
 ﻿#pragma once
 extern std::map<int, std::string> msgs;
-#define MSGJPN052 (std::data(msgs[10000+52])) /* 削除: %s */
-#define MSGJPN053 (std::data(msgs[10000+53])) /* 作成: %s */
-#define MSGJPN054 (std::data(msgs[10000+54])) /* 転送: %s */
-#define MSGJPN055 (std::data(msgs[10000+55])) /* 削除: %s */
-#define MSGJPN056 (std::data(msgs[10000+56])) /* 作成: %s */
-#define MSGJPN057 (std::data(msgs[10000+57])) /* 転送: %s */
-#define MSGJPN058 (std::data(msgs[10000+58])) /* %d個のファイルを転送します. */
-#define MSGJPN059 (std::data(msgs[10000+59])) /* 転送するファイルはありません. */
-#define MSGJPN060 (std::data(msgs[10000+60])) /* %d個のフォルダを作成します. */
-#define MSGJPN061 (std::data(msgs[10000+61])) /* 作成するフォルダはありません. */
-#define MSGJPN062 (std::data(msgs[10000+62])) /* %d個のファイル/フォルダを削除します. */
-#define MSGJPN063 (std::data(msgs[10000+63])) /* 削除するファイル/フォルダはありません. */
 #define MSGJPN081 (std::data(msgs[10000+81])) /* ファイル削除 */
 #define MSGJPN098 (std::data(msgs[10000+98])) /* ファイル一覧 */
 #define MSGJPN147 (std::data(msgs[10000+147])) /* フォルダを削除できません. */
 #define MSGJPN149 (std::data(msgs[10000+149])) /* ファイルを削除できません. */
-#define MSGJPN185 (std::data(msgs[10000+185])) /* フォルダを選択してください */
-#define MSGJPN239 (std::data(msgs[10000+239])) /* # このファイルは編集しないでください.\n */
 #define MSGJPN278 (std::data(msgs[10000+278])) /* 理由: %s */
 #define MSGJPN317 (std::data(msgs[10000+317])) /* SSH FTP (SFTP)を使用します. */
 #define MSGJPN321 (std::data(msgs[10000+321])) /* プロセスの保護に必要な関数を取得できませんでした. */
