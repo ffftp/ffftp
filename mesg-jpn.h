@@ -18,9 +18,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN149 (std::data(msgs[10000+149])) /* ファイルを削除できません. */
 #define MSGJPN185 (std::data(msgs[10000+185])) /* フォルダを選択してください */
 #define MSGJPN239 (std::data(msgs[10000+239])) /* # このファイルは編集しないでください.\n */
-#define MSGJPN251 (std::data(msgs[10000+251])) /* Err: シード文字列 */
-#define MSGJPN252 (std::data(msgs[10000+252])) /* Err: シード文字列 */
-#define MSGJPN253 (std::data(msgs[10000+253])) /* Err: シーケンス番号 */
 #define MSGJPN278 (std::data(msgs[10000+278])) /* 理由: %s */
 #define MSGJPN317 (std::data(msgs[10000+317])) /* SSH FTP (SFTP)を使用します. */
 #define MSGJPN321 (std::data(msgs[10000+321])) /* プロセスの保護に必要な関数を取得できませんでした. */

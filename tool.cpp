@@ -44,26 +44,20 @@ void OtpCalcTool() {
 		void OnCommand(HWND hDlg, WORD id) {
 			switch (id) {
 			case IDOK: {
-				char Tmp[41];
-				char Pass[PASSWORD_LEN + 1];
-				strncpy_s(Tmp, 41, u8(GetText(hDlg, OTPCALC_KEY)).c_str(), _TRUNCATE);
-				strncpy_s(Pass, PASSWORD_LEN + 1, u8(GetText(hDlg, OTPCALC_PASS)).c_str(), _TRUNCATE);
-				const char* Pos = Tmp;
-				while (*Pos == ' ')
-					Pos++;
-				if (IsDigit(*Pos)) {
-					auto Seq = atoi(Pos);
-					/* Seed */
-					if ((Pos = GetNextField(Pos)) != NULL) {
-						if (char Seed[MAX_SEED_LEN + 1]; GetOneField(Pos, Seed, MAX_SEED_LEN) == FFFTP_SUCCESS)
-							Make6WordPass(Seq, Seed, Pass, AlgoButton::Get(hDlg), Tmp);
-						else
-							strcpy(Tmp, MSGJPN251);
+				static boost::wregex re{ LR"(^ *(\d+)(?=[^ ]* +([^ ]+)))" };
+				auto const key = GetText(hDlg, OTPCALC_KEY);
+				if (boost::wsmatch m; boost::regex_search(key, m, re)) {
+					if (m[2].matched) {
+						auto seq = std::stoi(m[1]);
+						auto seed = u8(m[2].str());
+						auto pass = u8(GetText(hDlg, OTPCALC_PASS));
+						char Tmp[41];
+						Make6WordPass(seq, seed, pass, AlgoButton::Get(hDlg), Tmp);
+						SetText(hDlg, OTPCALC_RES, u8(Tmp));
 					} else
-						strcpy(Tmp, MSGJPN252);
+						SetText(hDlg, OTPCALC_RES, GetString(IDS_MSGJPN251));
 				} else
-					strcpy(Tmp, MSGJPN253);
-				SetText(hDlg, OTPCALC_RES, u8(Tmp));
+					SetText(hDlg, OTPCALC_RES, GetString(IDS_MSGJPN253));
 				break;
 			}
 			case IDCANCEL:

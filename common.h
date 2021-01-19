@@ -1118,7 +1118,7 @@ int CalcPixelY(int y);
 
 /*===== opie.c =====*/
 
-int Make6WordPass(int seq, char *seed, char *pass, int type, char *buf);
+int Make6WordPass(int seq, std::string_view seed, std::string_view pass, int type, char *buf);
 
 /*===== tool.c =====*/
 

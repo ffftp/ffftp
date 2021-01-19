@@ -647,7 +647,6 @@
 #define IDS_MSGJPN249                   10249
 #define IDS_MSGJPN250                   10250
 #define IDS_MSGJPN251                   10251
-#define IDS_MSGJPN252                   10252
 #define IDS_MSGJPN253                   10253
 #define IDS_MSGJPN278                   10278
 #define IDS_MSGJPN279                   10279

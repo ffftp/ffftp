@@ -2569,7 +2569,6 @@ BEGIN
     IDS_MSGJPN249           "Files in queue: %d"
     IDS_MSGJPN250           "Receiving %s"
     IDS_MSGJPN251           "Err: Seed"
-    IDS_MSGJPN252           "Err: Seed"
     IDS_MSGJPN253           "Err: Sequence#"
 END
 
