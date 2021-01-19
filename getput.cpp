@@ -82,9 +82,6 @@ static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipBut
 static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max);
 static int IsSpecialDevice(const char* Fname);
 static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item);
-#define SetErrorMsg(...) do { char* errMsg = GetErrMsg(); if (strlen(errMsg) == 0) sprintf(errMsg, __VA_ARGS__); } while(0)
-// 同時接続対応
-static char* GetErrMsg();
 
 /*===== ローカルなワーク =====*/
 
@@ -120,11 +117,7 @@ static int MoveToForeground = NO;		/* ウインドウを前面に移動するか
 // 同時接続対応
 //static char CurDir[FMAX_PATH+1] = { "" };
 static char CurDir[MAX_DATA_CONNECTION][FMAX_PATH+1];
-// 同時接続対応
-//static char ErrMsg[ERR_MSG_LEN+7];
-static char ErrMsg[MAX_DATA_CONNECTION+1][ERR_MSG_LEN+7];
-static DWORD ErrMsgThreadId[MAX_DATA_CONNECTION+1];
-static HANDLE hErrMsgMutex;
+static thread_local std::wstring ErrMsg;
 
 // 同時接続対応
 static int WaitForMainThread = NO;
@@ -155,6 +148,12 @@ extern time_t LastDataConnectionTime;
 extern int MarkAsInternet;
 
 
+static void SetErrorMsg(std::wstring&& msg) {
+	if (empty(ErrMsg))
+		ErrMsg = msg;
+}
+
+
 /*----- ファイル転送スレッドを起動する ----------------------------------------
 *
 *	Parameter
@@ -171,8 +170,6 @@ int MakeTransferThread(void)
 
 	hListAccMutex = CreateMutexW( NULL, FALSE, NULL );
 	hRunMutex = CreateMutexW( NULL, TRUE, NULL );
-	// 同時接続対応
-	hErrMsgMutex = CreateMutexW( NULL, FALSE, NULL );
 
 	ClearAll = NO;
 	ForceAbort = NO;
@@ -235,9 +232,6 @@ void CloseTransferThread(void)
 
 	CloseHandle( hListAccMutex );
 	CloseHandle( hRunMutex );
-	// 同時接続対応
-	CloseHandle( hErrMsgMutex );
-	return;
 }
 
 
@@ -552,7 +546,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			BackgrndMessageProc();
 			Sleep(1);
 		}
-		memset(GetErrMsg(), NUL, ERR_MSG_LEN+7);
+		ErrMsg.clear();
 
 //		Canceled = NO;
 		Canceled[ThreadCount] = NO;
@@ -1167,7 +1161,7 @@ int DoDownload(SOCKET cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork
 				iRetCode = 500;
 		}
 		else
-			SetErrorMsg(Reply);
+			SetErrorMsg(u8(Reply));
 		// エラーによってはダイアログが表示されない場合があるバグ対策
 		DispDownloadFinishMsg(&item, iRetCode);
 	}
@@ -1233,7 +1227,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 
 					if(data_socket == INVALID_SOCKET)
 					{
-						SetErrorMsg(MSGJPN280);
+						SetErrorMsg(GetString(IDS_MSGJPN280));
 						ReportWSError(L"accept");
 						iRetCode = 500;
 					}
@@ -1261,7 +1255,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 			}
 			else
 			{
-				SetErrorMsg(Reply);
+				SetErrorMsg(u8(Reply));
 				SetTaskMsg(IDS_MSGJPN090);
 				// UPnP対応
 				if(IsUPnPLoaded() == YES)
@@ -1290,7 +1284,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	else
 	{
 		iRetCode = 500;
-		SetErrorMsg(MSGJPN279);
+		SetErrorMsg(GetString(IDS_MSGJPN279));
 	}
 	// エラーによってはダイアログが表示されない場合があるバグ対策
 //	DispDownloadFinishMsg(Pkt, iRetCode);
@@ -1359,7 +1353,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					}
 					else
 					{
-						SetErrorMsg(Reply);
+						SetErrorMsg(u8(Reply));
 						SetTaskMsg(IDS_MSGJPN092);
 						data_socket = DoClose(data_socket);
 						iRetCode = 500;
@@ -1373,13 +1367,13 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 		}
 		else
 		{
-			SetErrorMsg(MSGJPN093);
+			SetErrorMsg(GetString(IDS_MSGJPN093));
 			SetTaskMsg(IDS_MSGJPN093);
 			iRetCode = 500;
 		}
 	}
 	else
-		SetErrorMsg(Buf);
+		SetErrorMsg(u8(Buf));
 
 	// エラーによってはダイアログが表示されない場合があるバグ対策
 //	DispDownloadFinishMsg(Pkt, iRetCode);
@@ -1436,7 +1430,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 			char buf[BUFSIZE];
 			if (int timeout; (read = do_recv(dSkt, buf, BUFSIZE, 0, &timeout, CancelCheckWork)) <= 0) {
 				if (timeout == YES) {
-					SetErrorMsg(MSGJPN094);
+					SetErrorMsg(GetString(IDS_MSGJPN094));
 					SetTaskMsg(IDS_MSGJPN094);
 					if (Pkt->hWndTrans != NULL)
 						ClearAll = YES;
@@ -1477,7 +1471,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		if (read == SOCKET_ERROR)
 			ReportWSError(L"recv");
 	} else {
-		SetErrorMsg(MSGJPN095, Pkt->LocalFile);
+		SetErrorMsg(strprintf(GetString(IDS_MSGJPN095).c_str(), u8(Pkt->LocalFile).c_str()));
 		SetTaskMsg(IDS_MSGJPN095, u8(Pkt->LocalFile).c_str());
 		Pkt->Abort = ABORT_ERROR;
 	}
@@ -1496,11 +1490,11 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 
 	auto [code, text] = ReadReplyMessage(Pkt->ctrl_skt, CancelCheckWork);
 	if (Pkt->Abort == ABORT_DISKFULL) {
-		SetErrorMsg(MSGJPN096);
+		SetErrorMsg(GetString(IDS_MSGJPN096));
 		SetTaskMsg(IDS_MSGJPN096);
 	}
 	if (code / 100 >= FTP_RETRY)
-		SetErrorMsg(text.c_str());
+		SetErrorMsg(u8(text));
 	if (Pkt->Abort != ABORT_NONE)
 		code = 500;
 	return code;
@@ -1605,7 +1599,7 @@ static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt) {
 		Data(TRANSPACKET* Pkt) : Pkt{ Pkt } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SetText(hDlg, UPDOWN_ERR_FNAME, u8(Pkt->RemoteFile));
-			SetText(hDlg, UPDOWN_ERR_MSG, u8(GetErrMsg()));
+			SetText(hDlg, UPDOWN_ERR_MSG, ErrMsg);
 			if (Pkt->Type == TYPE_A || Pkt->ExistSize <= 0)
 				EnableWindow(GetDlgItem(hDlg, DOWN_EXIST_RESUME), FALSE);
 			DownExistButton::Set(hDlg, TransferErrorMode);
@@ -1730,7 +1724,7 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET& item)
 					iRetCode = 500;
 			}
 			else
-				SetErrorMsg(Reply);
+				SetErrorMsg(u8(Reply));
 
 			/* 属性変更 */
 			if((item.Attr != -1) && ((iRetCode/100) == FTP_COMPLETE))
@@ -1738,7 +1732,7 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET& item)
 		}
 		else
 		{
-			SetErrorMsg(MSGJPN105, item.LocalFile);
+			SetErrorMsg(strprintf(GetString(IDS_MSGJPN105).c_str(), u8(item.LocalFile).c_str()));
 			SetTaskMsg(IDS_MSGJPN105, u8(item.LocalFile).c_str());
 			iRetCode = 500;
 			item.Abort = ABORT_ERROR;
@@ -1828,7 +1822,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 
 				if(data_socket == INVALID_SOCKET)
 				{
-					SetErrorMsg(MSGJPN280);
+					SetErrorMsg(GetString(IDS_MSGJPN280));
 					ReportWSError(L"accept");
 					iRetCode = 500;
 				}
@@ -1856,7 +1850,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 		}
 		else
 		{
-			SetErrorMsg(Reply);
+			SetErrorMsg(u8(Reply));
 			SetTaskMsg(IDS_MSGJPN108);
 			// UPnP対応
 			if(IsUPnPLoaded() == YES)
@@ -1870,7 +1864,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 	}
 	else
 	{
-		SetErrorMsg(MSGJPN279);
+		SetErrorMsg(GetString(IDS_MSGJPN279));
 		iRetCode = 500;
 	}
 	// エラーによってはダイアログが表示されない場合があるバグ対策
@@ -1975,7 +1969,7 @@ static int UploadPassive(TRANSPACKET *Pkt)
 				}
 				else
 				{
-					SetErrorMsg(Reply);
+					SetErrorMsg(u8(Reply));
 					SetTaskMsg(IDS_MSGJPN110);
 					data_socket = DoClose(data_socket);
 					iRetCode = 500;
@@ -1983,19 +1977,19 @@ static int UploadPassive(TRANSPACKET *Pkt)
 			}
 			else
 			{
-				SetErrorMsg(MSGJPN281);
+				SetErrorMsg(GetString(IDS_MSGJPN281));
 				iRetCode = 500;
 			}
 		}
 		else
 		{
-			SetErrorMsg(Buf);
+			SetErrorMsg(u8(Buf));
 			SetTaskMsg(IDS_MSGJPN111);
 			iRetCode = 500;
 		}
 	}
 	else
-		SetErrorMsg(Buf);
+		SetErrorMsg(u8(Buf));
 
 	// エラーによってはダイアログが表示されない場合があるバグ対策
 //	DispUploadFinishMsg(Pkt, iRetCode);
@@ -2071,7 +2065,7 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 			TimeStart[Pkt->ThreadCount] = time(NULL) - TimeStart[Pkt->ThreadCount] + 1;
 		}
 	} else {
-		SetErrorMsg(MSGJPN112, Pkt->LocalFile);
+		SetErrorMsg(strprintf(GetString(IDS_MSGJPN112).c_str(), u8(Pkt->LocalFile).c_str()));
 		SetTaskMsg(IDS_MSGJPN112, u8(Pkt->LocalFile).c_str());
 		Pkt->Abort = ABORT_ERROR;
 	}
@@ -2082,7 +2076,7 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 
 	auto [code, text] = ReadReplyMessage(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount]);
 	if (code / 100 >= FTP_RETRY)
-		SetErrorMsg(text.c_str());
+		SetErrorMsg(u8(text));
 	if (Pkt->Abort != ABORT_NONE)
 		code = 500;
 	return code;
@@ -2549,43 +2543,6 @@ int CheckPathViolation(TRANSPACKET const& item) {
 	return NO;
 }
 
-
-// 同時接続対応
-static char* GetErrMsg()
-{
-	char* r;
-	DWORD ThreadId;
-	int i;
-	r = NULL;
-	WaitForSingleObject(hErrMsgMutex, INFINITE);
-	ThreadId = GetCurrentThreadId();
-	i = 0;
-	while(i < MAX_DATA_CONNECTION + 1)
-	{
-		if(ErrMsgThreadId[i] == ThreadId)
-		{
-			r = ErrMsg[i];
-			break;
-		}
-		i++;
-	}
-	if(!r)
-	{
-		i = 0;
-		while(i < MAX_DATA_CONNECTION + 1)
-		{
-			if(ErrMsgThreadId[i] == 0)
-			{
-				ErrMsgThreadId[i] = ThreadId;
-				r = ErrMsg[i];
-				break;
-			}
-			i++;
-		}
-	}
-	ReleaseMutex(hErrMsgMutex);
-	return r;
-}
 
 // タスクバー進捗表示
 LONGLONG AskTransferSizeLeft(void)

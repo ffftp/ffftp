@@ -14,14 +14,8 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN063 (std::data(msgs[10000+63])) /* 削除するファイル/フォルダはありません. */
 #define MSGJPN081 (std::data(msgs[10000+81])) /* ファイル削除 */
 #define MSGJPN091 (std::data(msgs[10000+91])) /* ダウンロードのために */
-#define MSGJPN093 (std::data(msgs[10000+93])) /* アドレスが取得できません. */
-#define MSGJPN094 (std::data(msgs[10000+94])) /* 受信はタイムアウトで失敗しました. */
-#define MSGJPN095 (std::data(msgs[10000+95])) /* ファイル %s が作成できません. */
-#define MSGJPN096 (std::data(msgs[10000+96])) /* ディスクがいっぱいで書き込めません. */
 #define MSGJPN098 (std::data(msgs[10000+98])) /* ファイル一覧 */
-#define MSGJPN105 (std::data(msgs[10000+105])) /* ファイル %s が読み出せません. */
 #define MSGJPN109 (std::data(msgs[10000+109])) /* アップロードのために */
-#define MSGJPN112 (std::data(msgs[10000+112])) /* ファイル %s がオープンできません. */
 #define MSGJPN133 (std::data(msgs[10000+133])) /* GMT%+02d:00 (日本) */
 #define MSGJPN147 (std::data(msgs[10000+147])) /* フォルダを削除できません. */
 #define MSGJPN149 (std::data(msgs[10000+149])) /* ファイルを削除できません. */
@@ -35,9 +29,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN252 (std::data(msgs[10000+252])) /* Err: シード文字列 */
 #define MSGJPN253 (std::data(msgs[10000+253])) /* Err: シーケンス番号 */
 #define MSGJPN278 (std::data(msgs[10000+278])) /* 理由: %s */
-#define MSGJPN279 (std::data(msgs[10000+279])) /* Listenソケットが取得できません */
-#define MSGJPN280 (std::data(msgs[10000+280])) /* Dataソケットが取得できません */
-#define MSGJPN281 (std::data(msgs[10000+281])) /* PASVモードで接続できません */
 #define MSGJPN317 (std::data(msgs[10000+317])) /* SSH FTP (SFTP)を使用します. */
 #define MSGJPN321 (std::data(msgs[10000+321])) /* プロセスの保護に必要な関数を取得できませんでした. */
 #define MSGJPN322 (std::data(msgs[10000+322])) /* デバッガが検出されました. */
