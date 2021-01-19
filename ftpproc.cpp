@@ -2534,11 +2534,11 @@ void CalcFileSizeProc() {
 	struct Size {
 		using result_t = int;
 		int win;
-		const char* size;
-		Size(int win, const char* size) : win{ win }, size{ size } {}
+		double size;
+		Size(int win, double size) : win{ win }, size{ size } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SetText(hDlg, FSIZE_TITLE, GetString(win == WIN_LOCAL ? IDS_MSGJPN076 : IDS_MSGJPN077));
-			SetText(hDlg, FSIZE_SIZE, u8(size));
+			SetText(hDlg, FSIZE_SIZE, MakeSizeString(size));
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
@@ -2560,9 +2560,7 @@ void CalcFileSizeProc() {
 			for (auto const& f : ListBase)
 				if (f.Node != NODE_DIR)
 					total += f.Size;
-			char size[FMAX_PATH + 1];
-			MakeSizeString(total, size);
-			Dialog(GetFtpInst(), filesize_dlg, GetMainHwnd(), Size{ Win, size });
+			Dialog(GetFtpInst(), filesize_dlg, GetMainHwnd(), Size{ Win, total });
 		}
 }
 

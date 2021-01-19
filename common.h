@@ -1092,7 +1092,7 @@ void RemoveFileName(const char* Path, char *Buf);
 void GetUpperDir(char *Path);
 void GetUpperDirEraseTopSlash(char *Path);
 int AskDirLevel(const char* Path);
-void MakeSizeString(double Size, char *Buf);
+std::wstring MakeSizeString(double size);
 void DispStaticText(HWND hWnd, const char* Str);
 int StrMultiLen(const char *Str);
 void RectClientToScreen(HWND hWnd, RECT *Rect);

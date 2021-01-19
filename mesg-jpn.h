@@ -18,10 +18,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN149 (std::data(msgs[10000+149])) /* ファイルを削除できません. */
 #define MSGJPN185 (std::data(msgs[10000+185])) /* フォルダを選択してください */
 #define MSGJPN239 (std::data(msgs[10000+239])) /* # このファイルは編集しないでください.\n */
-#define MSGJPN247 (std::data(msgs[10000+247])) /* 選択%d個（%s） */
-#define MSGJPN248 (std::data(msgs[10000+248])) /* ローカル空 %s */
-#define MSGJPN249 (std::data(msgs[10000+249])) /* 転送待ちファイル%d個 */
-#define MSGJPN250 (std::data(msgs[10000+250])) /* 受信中 %s */
 #define MSGJPN251 (std::data(msgs[10000+251])) /* Err: シード文字列 */
 #define MSGJPN252 (std::data(msgs[10000+252])) /* Err: シード文字列 */
 #define MSGJPN253 (std::data(msgs[10000+253])) /* Err: シーケンス番号 */

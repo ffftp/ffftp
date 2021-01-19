@@ -75,42 +75,32 @@ void DispCurrentWindow(int Win) {
 // 選択されているファイル数とサイズを表示
 void DispSelectedSpace() {
 	auto Win = GetFocus() == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL;
-	char size[50];
-	MakeSizeString(GetSelectedTotalSize(Win), size);
-	char text[50];
-	sprintf(text, MSGJPN247, GetSelectedCount(Win), size);
-	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(2, 0), (LPARAM)u8(text).c_str());
+	auto const size = MakeSizeString(GetSelectedTotalSize(Win));
+	auto const text = strprintf(GetString(IDS_MSGJPN247).c_str(), GetSelectedCount(Win), size.c_str());
+	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(2, 0), (LPARAM)text.c_str());
 }
 
 
 // ローカル側の空き容量を表示
 void DispLocalFreeSpace(char *Path) {
-	char size[40] = "??";
-	if (ULARGE_INTEGER a; GetDiskFreeSpaceExW(fs::u8path(Path).c_str(), &a, nullptr, nullptr) != 0)
-		MakeSizeString((double)a.QuadPart, size);
-	char text[40];
-	sprintf(text, MSGJPN248, size);
-	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(3, 0), (LPARAM)u8(text).c_str());
+	ULARGE_INTEGER a;
+	auto const size = GetDiskFreeSpaceExW(fs::u8path(Path).c_str(), &a, nullptr, nullptr) != 0 ? MakeSizeString((double)a.QuadPart) : L"??"s;
+	auto const text = strprintf(GetString(IDS_MSGJPN248).c_str(), size.c_str());
+	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(3, 0), (LPARAM)text.c_str());
 }
 
 
 // 転送するファイルの数を表示
 void DispTransferFiles() {
-	char text[50];
-	sprintf(text, MSGJPN249, AskTransferFileNum());
-	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(4, 0), (LPARAM)u8(text).c_str());
+	auto const text = strprintf(GetString(IDS_MSGJPN249).c_str(), AskTransferFileNum());
+	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(4, 0), (LPARAM)text.c_str());
 }
 
 
 // 受信中のバイト数を表示
 void DispDownloadSize(LONGLONG Size) {
-	char text[50]{};
-	if (0 <= Size) {
-		char Tmp[50];
-		MakeSizeString((double)Size, Tmp);
-		sprintf(text, MSGJPN250, Tmp);
-	}
-	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(5, 0), (LPARAM)u8(text).c_str());
+	auto const text = 0 <= Size ? strprintf(GetString(IDS_MSGJPN250).c_str(), MakeSizeString((double)Size).c_str()) : L""s;
+	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(5, 0), (LPARAM)text.c_str());
 }
 
 bool NotifyStatusBar(const NMHDR* hdr) {

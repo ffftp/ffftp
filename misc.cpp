@@ -401,19 +401,23 @@ int AskDirLevel(const char* Path)
 
 
 // ファイルサイズを文字列に変換する
-void MakeSizeString(double Size, char *Buf) {
-	if (Size < 1024)
-		sprintf(Buf, "%.0lfB", Size);
-	else if (Size /= 1024; Size < 1024)
-		sprintf(Buf, "%.2lfKB", Size);
-	else if (Size /= 1024; Size < 1024)
-		sprintf(Buf, "%.2lfMB", Size);
-	else if (Size /= 1024; Size < 1024)
-		sprintf(Buf, "%.2lfGB", Size);
-	else if (Size /= 1024; Size < 1024)
-		sprintf(Buf, "%.2lfTB", Size);
-	else
-		sprintf(Buf, "%.2lfPB", Size / 1024);
+std::wstring MakeSizeString(double size) {
+	if (size < 1024)
+		return strprintf(L"%.0lfB", size);
+	size /= 1024;
+	if (size < 1024)
+		return strprintf(L"%.2lfKB", size);
+	size /= 1024;
+	if (size < 1024)
+		return strprintf(L"%.2lfMB", size);
+	size /= 1024;
+	if (size < 1024)
+		return strprintf(L"%.2lfGB", size);
+	size /= 1024;
+	if (size < 1024)
+		return strprintf(L"%.2lfTB", size);
+	size /= 1024;
+	return strprintf(L"%.2lfPB", size);
 }
 
 
