@@ -1349,9 +1349,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 
 		if(strlen(Tmp) != 0)
 		{
-			// 同時接続対応
-//			if((ContSock = connectsock(Tmp, Port, "", &CancelFlg)) != INVALID_SOCKET)
-			if((ContSock = connectsock(Tmp, Port, "", CancelCheckWork)) != INVALID_SOCKET)
+			if((ContSock = connectsock(Tmp, Port, 0, CancelCheckWork)) != INVALID_SOCKET)
 			{
 				// バッファを無効
 #ifdef DISABLE_CONTROL_NETWORK_BUFFERS
@@ -2019,20 +2017,20 @@ static std::optional<sockaddr_storage> SocksRequest(SOCKET s, SocksCommand cmd, 
 }
 
 
-SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork) {
+SOCKET connectsock(char *host, int port, UINT prefixId, int *CancelCheckWork) {
 	std::variant<sockaddr_storage, std::tuple<std::string, int>> target;
 	auto wHost = u8(host);
 	int Fwall = AskHostFireWall() == YES ? FwallType : FWALL_NONE;
 	if (auto ai = getaddrinfo(wHost, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC)) {
 		// ホスト名がIPアドレスだった
-		SetTaskMsg(IDS_MSGJPN017, u8(PreMsg).c_str(), wHost.c_str(), AddressPortToString(ai->ai_addr, ai->ai_addrlen).c_str());
+		SetTaskMsg(IDS_MSGJPN017, prefixId ? GetString(prefixId).c_str() : L"", wHost.c_str(), AddressPortToString(ai->ai_addr, ai->ai_addrlen).c_str());
 		memcpy(&std::get<sockaddr_storage>(target), ai->ai_addr, ai->ai_addrlen);
 	} else if ((Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) && FwallResolve == YES) {
 		// SOCKS5で名前解決する
 		target = std::tuple{ std::string(host), port };
 	} else if (ai = getaddrinfo(wHost, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC, CancelCheckWork)) {
 		// 名前解決に成功
-		SetTaskMsg(IDS_MSGJPN017, u8(PreMsg).c_str(), wHost.c_str(), AddressPortToString(ai->ai_addr, ai->ai_addrlen).c_str());
+		SetTaskMsg(IDS_MSGJPN017, prefixId ? GetString(prefixId).c_str() : L"", wHost.c_str(), AddressPortToString(ai->ai_addr, ai->ai_addrlen).c_str());
 		memcpy(&std::get<sockaddr_storage>(target), ai->ai_addr, ai->ai_addrlen);
 	} else {
 		// 名前解決に失敗
