@@ -1513,16 +1513,11 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 
 static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 {
-	char Fname[FMAX_PATH+1];
-
-	// 同時接続対応
 	ReleaseMutex(hListAccMutex);
 	if(ForceAbort == NO)
 	{
 		if((iRetCode/100) >= FTP_CONTINUE)
 		{
-			strcpy(Fname, Pkt->RemoteFile);
-
 #if defined(HAVE_OPENVMS)
 			/* OpenVMSの場合、空ディレクトリへ移動すると550 File not foundになって
 			 * エラーダイアログやエラーメッセージが出るので何もしない */
@@ -1539,10 +1534,7 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 			// MLSD対応
 //			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0))
 			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0) || (strncmp(Pkt->Cmd, "MLSD", 4) == 0))
-			{
 				SetTaskMsg(IDS_MSGJPN097);
-				strcpy(Fname, MSGJPN098);
-			}
 			else if((Pkt->hWndTrans != NULL) && (TimeStart[Pkt->ThreadCount] != 0))
 				SetTaskMsg(IDS_MSGJPN099, TimeStart[Pkt->ThreadCount], Pkt->ExistSize/TimeStart[Pkt->ThreadCount]);
 			else
@@ -1550,11 +1542,6 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 
 			if(Pkt->Abort != ABORT_USER)
 			{
-				// 全て中止を選択後にダイアログが表示されるバグ対策
-//				if(DispUpDownErrDialog(downerr_dlg, Pkt->hWndTrans, Fname) == NO)
-				// 再転送対応
-//				if(Canceled[Pkt->ThreadCount] == NO && ClearAll == NO && DispUpDownErrDialog(downerr_dlg, Pkt->hWndTrans, Fname) == NO)
-//					ClearAll = YES;
 				if(Canceled[Pkt->ThreadCount] == NO && ClearAll == NO)
 				{
 					if(strncmp(Pkt->Cmd, "RETR", 4) == 0 || strncmp(Pkt->Cmd, "STOR", 4) == 0)

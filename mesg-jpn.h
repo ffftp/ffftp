@@ -1,7 +1,6 @@
 ﻿#pragma once
 extern std::map<int, std::string> msgs;
 #define MSGJPN081 (std::data(msgs[10000+81])) /* ファイル削除 */
-#define MSGJPN098 (std::data(msgs[10000+98])) /* ファイル一覧 */
 #define MSGJPN147 (std::data(msgs[10000+147])) /* フォルダを削除できません. */
 #define MSGJPN149 (std::data(msgs[10000+149])) /* ファイルを削除できません. */
 #define MSGJPN278 (std::data(msgs[10000+278])) /* 理由: %s */
