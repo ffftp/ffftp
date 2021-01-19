@@ -935,13 +935,8 @@ struct Advanced {
 		SendDlgItemMessageW(hDlg, HSET_FIREWALL, BM_SETCHECK, TmpHost.FireWall, 0);
 		SendDlgItemMessageW(hDlg, HSET_SYNCMOVE, BM_SETCHECK, TmpHost.SyncMove, 0);
 		for (int i = -12; i <= 12; i++) {
-			if (i == 0)
-				sprintf(Tmp, "GMT");
-			else if (i == 9)
-				sprintf(Tmp, MSGJPN133, i);
-			else
-				sprintf(Tmp, "GMT%+02d:00", i);
-			SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_ADDSTRING, 0, (LPARAM)u8(Tmp).c_str());
+			auto tz = i == 0 ? L"GMT"s : i == 9 ? GetString(IDS_MSGJPN133) : strprintf(L"GMT%+02d:00", i);
+			SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_ADDSTRING, 0, (LPARAM)tz.c_str());
 		}
 		SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_SETCURSEL, (UINT_PTR)TmpHost.TimeZone + 12, 0);
 

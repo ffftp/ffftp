@@ -14,7 +14,6 @@ extern std::map<int, std::string> msgs;
 #define MSGJPN063 (std::data(msgs[10000+63])) /* 削除するファイル/フォルダはありません. */
 #define MSGJPN081 (std::data(msgs[10000+81])) /* ファイル削除 */
 #define MSGJPN098 (std::data(msgs[10000+98])) /* ファイル一覧 */
-#define MSGJPN133 (std::data(msgs[10000+133])) /* GMT%+02d:00 (日本) */
 #define MSGJPN147 (std::data(msgs[10000+147])) /* フォルダを削除できません. */
 #define MSGJPN149 (std::data(msgs[10000+149])) /* ファイルを削除できません. */
 #define MSGJPN185 (std::data(msgs[10000+185])) /* フォルダを選択してください */

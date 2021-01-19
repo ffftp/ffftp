@@ -2427,7 +2427,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN133           "GMT%+02d:00 (日本)"
+    IDS_MSGJPN133           "GMT+09:00 (日本)"
     IDS_MSGJPN134           "使用しない"
     IDS_MSGJPN135           "自動認識"
     IDS_MSGJPN136           "OTP MD4, S/KEY"

@@ -2463,7 +2463,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN133           "GMT%+02d:00"
+    IDS_MSGJPN133           "GMT+09:00"
     IDS_MSGJPN134           "None"
     IDS_MSGJPN135           "Auto"
     IDS_MSGJPN136           "OTP MD4, S/KEY"
