@@ -133,7 +133,6 @@ static int ToolWinHeight;
 /*===== グローバルなワーク =====*/
 
 static HWND hHelpWin = NULL;
-std::map<int, std::string> msgs;
 HCRYPTPROV HCryptProv;
 
 /* 設定値 */
@@ -296,14 +295,6 @@ void Sound::Register() {
 // メインルーチン
 int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, __in LPWSTR lpCmdLine, __in int nShowCmd) {
 	hInstFtp = hInstance;
-	EnumResourceNames(GetFtpInst(), RT_STRING, [](auto hModule, auto lpType, auto lpName, auto lParam) -> BOOL {
-		wchar_t buffer[1024];
-		if (IS_INTRESOURCE(lpName))
-			for (int id = (PtrToInt(lpName) - 1) * 16, end = id + 16; id < end; id++)
-				if (auto length = LoadStringW(hModule, id, buffer, size_as<int>(buffer)); 0 < length)
-					msgs.emplace(id, u8(buffer, length));
-		return true;
-	}, 0);
 
 	Sound::Register();
 

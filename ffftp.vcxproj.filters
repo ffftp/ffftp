@@ -109,9 +109,6 @@
     <ClInclude Include="OleDragDrop.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mesg-jpn.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="helpid.h">
       <Filter>Header Files</Filter>
     </ClInclude>

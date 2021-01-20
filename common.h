@@ -83,7 +83,6 @@
 #include "dialog.h"
 #include "helpid.h"
 #include "Resource/resource.ja-JP.h"
-#include "mesg-jpn.h"
 #pragma comment(lib, "Comctl32.lib")
 #pragma comment(lib, "normaliz.lib")
 #pragma comment(lib, "Shlwapi.lib")

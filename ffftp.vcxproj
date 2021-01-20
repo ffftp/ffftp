@@ -249,7 +249,6 @@
     <ClInclude Include="dialog.h" />
     <ClInclude Include="filelist.h" />
     <ClInclude Include="helpid.h" />
-    <ClInclude Include="mesg-jpn.h" />
     <ClInclude Include="OleDragDrop.h" />
     <ClInclude Include="Resource\resource.en-US.h" />
     <ClInclude Include="Resource\resource.ja-JP.h" />
