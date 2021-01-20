@@ -2442,9 +2442,7 @@ BEGIN
     IDS_MSGJPN144           "Stratus"
     IDS_MSGJPN145           "フォルダを変更できません."
     IDS_MSGJPN146           "フォルダを作成できません."
-    IDS_MSGJPN147           "フォルダを削除できません."
     IDS_MSGJPN148           "フォルダを削除できません."
-    IDS_MSGJPN149           "ファイルを削除できません."
     IDS_MSGJPN150           "ファイルを削除できません."
     IDS_MSGJPN151           "ファイル名変更ができません."
     IDS_MSGJPN154           "接続"
@@ -2535,7 +2533,6 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN278           "理由: %s"
     IDS_MSGJPN279           "Listenソケットが取得できません"
     IDS_MSGJPN280           "Dataソケットが取得できません"
     IDS_MSGJPN281           "PASVモードで接続できません"
@@ -2568,15 +2565,10 @@ BEGIN
     IDS_MSGJPN314           "通信は暗号化されていません.\r\n第三者にパスワードおよび内容を傍受される可能性があります."
     IDS_MSGJPN315           "FTP over Explicit SSL/TLS (FTPES)を使用します."
     IDS_MSGJPN316           "FTP over Implicit SSL/TLS (FTPIS)を使用します."
-    IDS_MSGJPN317           "SSH FTP (SFTP)を使用します."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN321           "プロセスの保護に必要な関数を取得できませんでした."
-    IDS_MSGJPN322           "デバッガが検出されました."
-    IDS_MSGJPN323           "信頼できないDLLをアンロードできませんでした."
-    IDS_MSGJPN324           "プロセスの保護に必要な関数をフックできませんでした."
     IDS_MSGJPN329           "UTF-8 BOM"
     IDS_MSGJPN330           "ホストの漢字コードはUTF-8 BOM"
     IDS_MSGJPN331           "ローカルの漢字コードはUTF-8 BOM"
@@ -2588,12 +2580,6 @@ BEGIN
     IDS_MSGJPN336           "全て後で上書き"
     IDS_MSGJPN337           "全て後でリジューム"
     IDS_MSGJPN338           "全てスキップ"
-END
-
-STRINGTABLE
-BEGIN
-    IDS_MSGJPN358           "ソフトウェアの更新が完了しました.\n以前のバージョンのバックアップコピーは以下の場所にあります.\n%s"
-    IDS_MSGJPN359           "この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください."
 END
 
 STRINGTABLE

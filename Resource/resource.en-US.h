@@ -580,9 +580,7 @@
 #define IDS_MSGJPN144                   10144
 #define IDS_MSGJPN145                   10145
 #define IDS_MSGJPN146                   10146
-#define IDS_MSGJPN147                   10147
 #define IDS_MSGJPN148                   10148
-#define IDS_MSGJPN149                   10149
 #define IDS_MSGJPN150                   10150
 #define IDS_MSGJPN151                   10151
 #define IDS_MSGJPN154                   10154
@@ -645,7 +643,6 @@
 #define IDS_MSGJPN250                   10250
 #define IDS_MSGJPN251                   10251
 #define IDS_MSGJPN253                   10253
-#define IDS_MSGJPN278                   10278
 #define IDS_MSGJPN279                   10279
 #define IDS_MSGJPN280                   10280
 #define IDS_MSGJPN281                   10281
@@ -670,11 +667,6 @@
 #define IDS_MSGJPN314                   10314
 #define IDS_MSGJPN315                   10315
 #define IDS_MSGJPN316                   10316
-#define IDS_MSGJPN317                   10317
-#define IDS_MSGJPN321                   10321
-#define IDS_MSGJPN322                   10322
-#define IDS_MSGJPN323                   10323
-#define IDS_MSGJPN324                   10324
 #define IDS_MSGJPN329                   10329
 #define IDS_MSGJPN330                   10330
 #define IDS_MSGJPN331                   10331
@@ -682,8 +674,6 @@
 #define IDS_MSGJPN336                   10336
 #define IDS_MSGJPN337                   10337
 #define IDS_MSGJPN338                   10338
-#define IDS_MSGJPN358                   10358
-#define IDS_MSGJPN359                   10359
 #define IDS_MSGJPN2000                  12000
 #define MENU_END                        40001
 #define MENU_EXIT                       40001

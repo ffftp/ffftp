@@ -2478,9 +2478,7 @@ BEGIN
     IDS_MSGJPN144           "Stratus"
     IDS_MSGJPN145           "Cannnot change folder."
     IDS_MSGJPN146           "Cannnot create folder."
-    IDS_MSGJPN147           "Cannnot delete folder."
     IDS_MSGJPN148           "Cannnot delete folder."
-    IDS_MSGJPN149           "Cannnot delete file."
     IDS_MSGJPN150           "Cannnot delete file."
     IDS_MSGJPN151           "Cannnot rename file."
     IDS_MSGJPN154           "Connect"
@@ -2571,7 +2569,6 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN278           "Reason: %s"
     IDS_MSGJPN279           "Cannnot get Listen Socket"
     IDS_MSGJPN280           "Cannnot get Data Socket"
     IDS_MSGJPN281           "Cannnot connect with PASV mode"
@@ -2604,15 +2601,10 @@ BEGIN
     IDS_MSGJPN314           "Communication is not encrypted.\r\nPassword and other data may be intercepted by a third party."
     IDS_MSGJPN315           "Using FTP over Explicit SSL/TLS (FTPES)."
     IDS_MSGJPN316           "Using FTP over Implicit SSL/TLS (FTPIS)."
-    IDS_MSGJPN317           "Using SSH FTP (SFTP)."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN321           "Failed to get required functions to protect the process."
-    IDS_MSGJPN322           "Debugger was detected."
-    IDS_MSGJPN323           "Failed to unload untrustworthy DLLs."
-    IDS_MSGJPN324           "Failed to hook required functions to protect the process."
     IDS_MSGJPN329           "UTF-8 BOM"
     IDS_MSGJPN330           "UTF-8 BOM Kanji Code"
     IDS_MSGJPN331           "UTF-8 BOM Kanji Code (Local)"
@@ -2624,12 +2616,6 @@ BEGIN
     IDS_MSGJPN336           "Overwrite all later"
     IDS_MSGJPN337           "Resume all later"
     IDS_MSGJPN338           "Skip all"
-END
-
-STRINGTABLE
-BEGIN
-    IDS_MSGJPN358           "Software update has been completed.\nA backup copy of the previous version is in the following location.\n%s"
-    IDS_MSGJPN359           "Failed to update the software.\nPlease get the latest version from our web site and update it manually."
 END
 
 STRINGTABLE
