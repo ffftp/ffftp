@@ -88,7 +88,7 @@
 #include <WS2tcpip.h>
 #include "wrl/client.h"
 #include "wrl/implements.h"
-#include <comutil.h>
+#include <comdef.h>
 #include "config.h"
 #include "dialog.h"
 #include "helpid.h"
@@ -103,7 +103,6 @@
 #pragma comment(lib, "Shlwapi.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Ws2_32.lib")
-#pragma comment(lib, "comsuppw.lib")
 namespace fs = std::filesystem;
 using namespace std::literals;
 template<class T>
