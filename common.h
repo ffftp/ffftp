@@ -32,7 +32,6 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
-#define _WINNLS_									// avoid include winnls.h
 #include <algorithm>
 #include <array>
 #include <charconv>
@@ -63,14 +62,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <Windows.h>
-#pragma push_macro("WINVER")
-#undef _WINNLS_
-#if WINVER < 0x0600
-#undef WINVER
-#define WINVER 0x0600			// fake WINVER to load Windows API Normalization Functions.
-#endif
-#include <WinNls.h>
-#pragma pop_macro("WINVER")
 #include <ObjBase.h>			// for COM interface, define `interface` macro.
 #include <windowsx.h>
 #include <winsock2.h>
@@ -83,23 +74,18 @@
 #include <ShlObj.h>
 #include <Shlwapi.h>
 #include <ShObjIdl.h>
-#include <versionhelpers.h>
 #include <WinCrypt.h>
 #include <WS2tcpip.h>
-#include "wrl/client.h"
-#include "wrl/implements.h"
+#include <wrl/client.h>
+#include <wrl/implements.h>
 #include <comdef.h>
 #include "config.h"
 #include "dialog.h"
 #include "helpid.h"
 #include "Resource/resource.ja-JP.h"
 #include "mesg-jpn.h"
-// IdnToAscii()、NormalizeString()共にVistaからNormaliz.dllからKERNEL32.dllに移されている。
-// この影響かのためかNormalizeString()だけはkernel32.libにも登録されている（多分バグ）。
-// このため、XP向けに正しくリンクするためにはリンカー引数でkernel32.libよりも前にnormaliz.libを置く必要がある。
-// #pragma comment(lib, "normaliz.lib") ではこれを実現できないため、リンクオプションで設定する。
-// 逆にIdnToAscii()はkernel32.libに登録されていないため、Vista以降をターゲットとする場合でもnormaliz.libは必要となる。
 #pragma comment(lib, "Comctl32.lib")
+#pragma comment(lib, "normaliz.lib")
 #pragma comment(lib, "Shlwapi.lib")
 #pragma comment(lib, "Winmm.lib")
 #pragma comment(lib, "Ws2_32.lib")
@@ -1362,14 +1348,13 @@ static inline auto AddressToString(sockaddr_storage const& sa) {
 		return AddressPortToString(&local);
 	}
 }
-extern bool SupportIdn;
 static inline auto IdnToAscii(std::wstring const& unicode) {
-	if (!SupportIdn || empty(unicode))
+	if (empty(unicode))
 		return unicode;
 	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) { return IdnToAscii(0, src, srclen, dst, dstlen); }, unicode);
 }
 static inline auto NormalizeString(NORM_FORM form, std::wstring_view src) {
-	if (!SupportIdn || empty(src))
+	if (empty(src))
 		return std::wstring{ src };
 	return convert<wchar_t>([form](auto src, auto srclen, auto dst, auto dstlen) { return NormalizeString(form, src, srclen, dst, dstlen); }, src);
 }

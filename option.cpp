@@ -747,12 +747,7 @@ struct Other {
 		case IDC_OPENSOUNDS:
 		{
 			// Executing Control Panel Items <https://docs.microsoft.com/en-us/windows/win32/shell/executing-control-panel-items>
-			int index = 2;
-#if _WIN32_WINNT < _WIN32_WINNT_VISTA
-			if (!IsWindowsVistaOrGreater())
-				index = 1;
-#endif
-			WinExec(strprintf("%s mmsys.cpl,,%d", (systemDirectory() / L"control.exe").string().c_str(), index).c_str(), SW_NORMAL);
+			WinExec(strprintf("%s mmsys.cpl,,2", (systemDirectory() / L"control.exe").string().c_str()).c_str(), SW_NORMAL);
 			break;
 		}
 		}
