@@ -31,14 +31,14 @@
 
 
 // ローカル側のディレクトリ変更
-int DoLocalCWD(const char *Path) {
-	SetTaskMsg(">>CD %s", Path);
+bool DoLocalCWD(fs::path const& path) {
+	SetTaskMsg(">>CD %s", path.u8string().c_str());
 	std::error_code ec;
-	fs::current_path(fs::u8path(Path), ec);
+	fs::current_path(path, ec);
 	if (!ec)
-		return FFFTP_SUCCESS;
+		return true;
 	SetTaskMsg(IDS_MSGJPN145);
-	return FFFTP_FAIL;
+	return false;
 }
 
 

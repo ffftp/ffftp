@@ -2145,22 +2145,21 @@ void MkdirProc(void)
 *		なし
 *----------------------------------------------------------------------------*/
 void ChangeDirComboProc(HWND hWnd) {
-	char Tmp[FMAX_PATH+1];
 	CancelFlg = NO;
 	if (auto i = (int)SendMessageW(hWnd, CB_GETCURSEL, 0, 0); i != CB_ERR) {
 		auto length = SendMessageW(hWnd, CB_GETLBTEXTLEN, i, 0);
 		std::wstring text(length, L'\0');
 		length = SendMessageW(hWnd, CB_GETLBTEXT, i, (LPARAM)data(text));
-		strncpy_s(Tmp, u8(text.c_str(), length).c_str(), _TRUNCATE);
+		text.resize(length);
 		if (hWnd == GetLocalHistHwnd()) {
 			DisableUserOpe();
-			DoLocalCWD(Tmp);
+			DoLocalCWD(text);
 			GetLocalDirForWnd();
 			EnableUserOpe();
 		} else {
 			if (CheckClosedAndReconnect() == FFFTP_SUCCESS) {
 				DisableUserOpe();
-				if(DoCWD(Tmp, YES, NO, YES) < FTP_RETRY)
+				if(DoCWD(u8(text).c_str(), YES, NO, YES) < FTP_RETRY)
 					GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 				EnableUserOpe();
 			}
@@ -2187,7 +2186,7 @@ void ChangeDirBmarkProc(int MarkID)
 	if(!empty(local))
 	{
 		DisableUserOpe();
-		if(DoLocalCWD(u8(local).data()) == FFFTP_SUCCESS)
+		if (DoLocalCWD(local))
 			GetLocalDirForWnd();
 		EnableUserOpe();
 	}
@@ -2236,7 +2235,7 @@ void ChangeDirDirectProc(int Win)
 		if(Win == WIN_LOCAL)
 		{
 			DisableUserOpe();
-			DoLocalCWD(Path);
+			DoLocalCWD(fs::u8path(Path));
 			GetLocalDirForWnd();
 			EnableUserOpe();
 		}
@@ -2270,7 +2269,7 @@ void ChangeDirDropFileProc(WPARAM wParam)
 
 	DisableUserOpe();
 	MakeDroppedDir(wParam, Path);
-	DoLocalCWD(Path);
+	DoLocalCWD(fs::u8path(Path));
 	GetLocalDirForWnd();
 	EnableUserOpe();
 	return;

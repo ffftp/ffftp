@@ -910,7 +910,7 @@ void ReconnectProc(void);
 
 /*===== local.c =====*/
 
-int DoLocalCWD(const char *Path);
+bool DoLocalCWD(fs::path const& path);
 void DoLocalMKD(const char* Path);
 void DoLocalPWD(char *Buf);
 void DoLocalRMD(const char* Path);
