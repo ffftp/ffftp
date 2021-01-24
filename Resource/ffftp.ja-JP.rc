@@ -2308,7 +2308,7 @@ BEGIN
     IDS_MSGJPN019           "ホスト %s が見つかりません."
     IDS_MSGJPN021           "SOCKSサーバー %s が見つかりません."
     IDS_MSGJPN022           "SOCKSサーバー %s に接続しています."
-    IDS_MSGJPN023           "SOCKSサーバーに接続できません. (Err=%d)"
+    IDS_MSGJPN023           "SOCKSサーバーに接続できません."
     IDS_MSGJPN025           "接続しました."
     IDS_MSGJPN026           "接続できません."
     IDS_MSGJPN027           "ソケットが作成できません."
@@ -2551,7 +2551,7 @@ BEGIN
     IDS_MSGJPN280           "Dataソケットが取得できません"
     IDS_MSGJPN281           "PASVモードで接続できません"
     IDS_MSGJPN282           "INIファイル名が指定されていません"
-    IDS_MSGJPN283           "INIファイル指定: "
+    IDS_MSGJPN283           "INIファイル指定: %s"
 END
 
 STRINGTABLE

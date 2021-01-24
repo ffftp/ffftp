@@ -776,7 +776,9 @@ void DeleteTaskWindow(void);
 HWND GetTaskWnd(void);
 void SetTaskMsg(_In_z_ _Printf_format_string_ const char* format, ...);
 void DispTaskMsg(void);
+void SetTaskMsg(UINT id, ...);
 void DoPrintf(_In_z_ _Printf_format_string_ const char* format, ...);
+void DoPrintf(_In_z_ _Printf_format_string_ const wchar_t* format, ...);
 
 /*===== hostman.c =====*/
 
@@ -944,7 +946,7 @@ void SwitchOSSProc(void);
 int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const char* fmt, ...);
 std::tuple<int, std::string> ReadReplyMessage(SOCKET cSkt, int *CancelCheckWork);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
-void ReportWSError(const char* Msg, UINT Error);
+void ReportWSError(const wchar_t* functionName);
 
 /*===== getput.c =====*/
 
@@ -988,7 +990,7 @@ class CodeDetector {
 public:
 	void Test(std::string_view str);
 	int result() const {
-		DoPrintf("CodeDetector::result(): utf8 %d, sjis %d, euc %d, jis %d, nfc %d, nfd %d", utf8, sjis, euc, jis, int(nfc), int(nfd));
+		DoPrintf(L"CodeDetector::result(): utf8 %d, sjis %d, euc %d, jis %d, nfc %d, nfd %d", utf8, sjis, euc, jis, int(nfc), int(nfd));
 		auto [_, id] = std::max<std::tuple<int, int>>({
 			{ utf8, KANJI_UTF8N },
 			{ sjis, KANJI_SJIS },

@@ -516,7 +516,7 @@ static int InitApp(int cmdShow)
 
 				if(MakeTransferThread() == FFFTP_SUCCESS)
 				{
-					DoPrintf("DEBUG MESSAGE ON ! ##");
+					DoPrintf(L"DEBUG MESSAGE ON ! ##");
 
 					DispWindowTitle();
 					UpdateStatusBar();
@@ -526,9 +526,9 @@ static int InitApp(int cmdShow)
 					);
 
 					if(ForceIni)
-						SetTaskMsg("%s%s", MSGJPN283, IniPath.u8string().c_str());
+						SetTaskMsg(IDS_MSGJPN283, IniPath.c_str());
 
-					DoPrintf("Help=%s", helpPath().u8string().c_str());
+					DoPrintf(L"Help=%s", helpPath().c_str());
 
 					DragAcceptFiles(GetRemoteHwnd(), TRUE);
 					DragAcceptFiles(GetLocalHwnd(), TRUE);
@@ -543,16 +543,16 @@ static int InitApp(int cmdShow)
 
 					/* セキュリティ警告文の表示 */
 					if( useDefautPassword ){
-						SetTaskMsg(MSGJPN300);
+						SetTaskMsg(IDS_MSGJPN300);
 					}
 					
 					/* パスワード不一致警告文の表示 */
 					switch( GetMasterPasswordStatus() ){
 					case PASSWORD_UNMATCH:
-						SetTaskMsg(MSGJPN301);
+						SetTaskMsg(IDS_MSGJPN301);
 						break;
 					case BAD_PASSWORD_HASH:
-						SetTaskMsg(MSGJPN302);
+						SetTaskMsg(IDS_MSGJPN302);
 						break;
 					default:
 						break;
@@ -1272,7 +1272,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						if (!Dialog(GetFtpInst(), forcepasschange_dlg, hWnd))
 							break;
 						if(EnterMasterPasswordAndSet(true, hWnd) != 0)
-							SetTaskMsg(MSGJPN303);
+							SetTaskMsg(IDS_MSGJPN303);
 					}
 					else if(GetMasterPasswordStatus() == PASSWORD_OK)
 					{
@@ -1286,7 +1286,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						}
 						if(GetMasterPasswordStatus() == PASSWORD_OK && EnterMasterPasswordAndSet(true, hWnd) != 0)
 						{
-							SetTaskMsg(MSGJPN303);
+							SetTaskMsg(IDS_MSGJPN303);
 							SaveRegistry();
 						}
 						else
@@ -1625,11 +1625,11 @@ static void StartupProc(std::vector<std::wstring_view> const& args) {
 		} else if (!empty(hostname) && empty(unc)) {
 			auto u8hostname = u8(hostname);
 			if (int AutoConnect = SearchHostName(data(u8hostname)); AutoConnect == -1)
-				__pragma(warning(suppress:4474)) SetTaskMsg(MSGJPN177, u8hostname.c_str());
+				SetTaskMsg(IDS_MSGJPN177, hostname.c_str());
 			else
 				PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_CONNECT_NUM, opt), (LPARAM)AutoConnect);
 		} else {
-			SetTaskMsg(MSGJPN179);
+			SetTaskMsg(IDS_MSGJPN179);
 		}
 	}
 }
@@ -1666,24 +1666,25 @@ static std::optional<int> AnalyzeComLine(std::vector<std::wstring_view> const& a
 				option |= mapit->second;
 			} else if (key == L"-n"sv || key == L"--ini"sv) {
 				if (++it == end(args)) {
-					SetTaskMsg(MSGJPN282);
+					SetTaskMsg(IDS_MSGJPN282);
 					return {};
 				}
 			} else if (key == L"-z"sv || key == L"--mpasswd"sv) {
 				if (++it == end(args)) {
-					SetTaskMsg(MSGJPN299);
+					SetTaskMsg(IDS_MSGJPN299);
 					return {};
 				}
 			} else if (key == L"-s"sv || key == L"--set"sv) {
 				if (++it == end(args)) {
-					SetTaskMsg(MSGJPN178);
+					SetTaskMsg(IDS_MSGJPN178);
 					return {};
 				}
 				hostname = *it;
 			} else if (key == L"-h"sv || key == L"--help"sv) {
 				ShowHelp(IDH_HELP_TOPIC_0000024);
 			} else {
-				__pragma(warning(suppress:4474)) SetTaskMsg(MSGJPN180, u8(*it).c_str());
+				// argsはargvを指しておりnull terminatedである。
+				SetTaskMsg(IDS_MSGJPN180, it->data());
 				return {};
 			}
 		} else
@@ -2121,20 +2122,20 @@ void ExecViewer(char *Fname, int App) {
 	auto pFname = fs::u8path(Fname);
 	if (wchar_t result[MAX_PATH]; App == -1 && pFname.has_extension() && FindExecutableW(pFname.c_str(), nullptr, result) > (HINSTANCE)32) {
 		// 拡張子があるので関連付けを実行する
-		DoPrintf("ShellExecute - %s", Fname);
+		DoPrintf(L"ShellExecute - %s", pFname.c_str());
 		ShellExecuteW(0, L"open", pFname.c_str(), nullptr, AskLocalCurDir().c_str(), SW_SHOW);
 	} else if (App == -1 && (GetFileAttributesW(pFname.c_str()) & FILE_ATTRIBUTE_DIRECTORY)) {
 		// ディレクトリなのでフォルダを開く
 		MakeDistinguishableFileName(ComLine, Fname);
-		DoPrintf("ShellExecute - %s", Fname);
+		DoPrintf(L"ShellExecute - %s", pFname.c_str());
 		ShellExecuteW(0, L"open", u8(ComLine).c_str(), nullptr, pFname.c_str(), SW_SHOW);
 	} else {
 		sprintf(ComLine, "%s \"%s\"", ViewerName[App == -1 ? 0 : App], Fname);
-		DoPrintf("CreateProcess - %s", ComLine);
-		STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
 		auto wComLine = u8(ComLine);
+		DoPrintf(L"CreateProcess - %s", wComLine.c_str());
+		STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
 		if (ProcessInformation pi; !CreateProcessW(nullptr, data(wComLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
-			SetTaskMsg(MSGJPN182, GetLastError());
+			SetTaskMsg(IDS_MSGJPN182, GetLastError());
 			SetTaskMsg(">>%s", ComLine);
 		}
 	}
@@ -2167,13 +2168,13 @@ void ExecViewer2(char *Fname1, char *Fname2, int App)
 		sprintf(ComLine, "%s %s %s", AssocProg, Fname1, Fname2);
 	else
 		sprintf(ComLine, "%s \"%s\" \"%s\"", AssocProg, Fname1, Fname2);
+	auto wComLine = u8(ComLine);
 
-	DoPrintf("FindExecutable - %s", ComLine);
+	DoPrintf(L"FindExecutable - %s", wComLine.c_str());
 
 	STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
-	auto wComLine = u8(ComLine);
 	if (ProcessInformation pi; !CreateProcessW(nullptr, data(wComLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
-		SetTaskMsg(MSGJPN182, GetLastError());
+		SetTaskMsg(IDS_MSGJPN182, GetLastError());
 		SetTaskMsg(">>%s", ComLine);
 	}
 }

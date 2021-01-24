@@ -1134,7 +1134,7 @@ int DoDownload(SOCKET cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork
 	if(IsSpecialDevice(GetFileName(item.LocalFile)) == YES)
 	{
 		iRetCode = 500;
-		SetTaskMsg(MSGJPN085, GetFileName(item.LocalFile));
+		SetTaskMsg(IDS_MSGJPN085, u8(GetFileName(item.LocalFile)).c_str());
 	}
 	else if(item.Mode != EXIST_IGNORE)
 	{
@@ -1174,7 +1174,7 @@ int DoDownload(SOCKET cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork
 	else
 	{
 		DispTransFileInfo(item, MSGJPN088, TRUE, YES);
-		SetTaskMsg(MSGJPN089, item.RemoteFile);
+		SetTaskMsg(IDS_MSGJPN089, u8(item.RemoteFile).c_str());
 		iRetCode = 200;
 	}
 	return(iRetCode);
@@ -1222,7 +1222,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					data_socket = do_accept(listen_socket, reinterpret_cast<sockaddr*>(&sa), &salen);
 
 					if(shutdown(listen_socket, 1) != 0)
-						ReportWSError("shutdown listen", WSAGetLastError());
+						ReportWSError(L"shutdown listen");
 					// UPnP対応
 					if(IsUPnPLoaded() == YES)
 					{
@@ -1234,11 +1234,11 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					if(data_socket == INVALID_SOCKET)
 					{
 						SetErrorMsg(MSGJPN280);
-						ReportWSError("accept", WSAGetLastError());
+						ReportWSError(L"accept");
 						iRetCode = 500;
 					}
 					else
-						DoPrintf("Skt=%zu : accept from %s", data_socket, u8(AddressPortToString(&sa, salen)).c_str());
+						DoPrintf(L"Skt=%zu : accept from %s", data_socket, AddressPortToString(&sa, salen).c_str());
 				}
 
 				if(data_socket != INVALID_SOCKET)
@@ -1262,7 +1262,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 			else
 			{
 				SetErrorMsg(Reply);
-				SetTaskMsg(MSGJPN090);
+				SetTaskMsg(IDS_MSGJPN090);
 				// UPnP対応
 				if(IsUPnPLoaded() == YES)
 				{
@@ -1334,7 +1334,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 				// 変数が未初期化のバグ修正
 				Flg = 1;
 				if(setsockopt(data_socket, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
-					ReportWSError("setsockopt", WSAGetLastError());
+					ReportWSError(L"setsockopt");
 
 				if(SetDownloadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &CreateMode, CancelCheckWork) == YES)
 				{
@@ -1360,7 +1360,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					else
 					{
 						SetErrorMsg(Reply);
-						SetTaskMsg(MSGJPN092);
+						SetTaskMsg(IDS_MSGJPN092);
 						data_socket = DoClose(data_socket);
 						iRetCode = 500;
 					}
@@ -1374,7 +1374,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 		else
 		{
 			SetErrorMsg(MSGJPN093);
-			SetTaskMsg(MSGJPN093);
+			SetTaskMsg(IDS_MSGJPN093);
 			iRetCode = 500;
 		}
 	}
@@ -1437,7 +1437,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 			if (int timeout; (read = do_recv(dSkt, buf, BUFSIZE, 0, &timeout, CancelCheckWork)) <= 0) {
 				if (timeout == YES) {
 					SetErrorMsg(MSGJPN094);
-					SetTaskMsg(MSGJPN094);
+					SetTaskMsg(IDS_MSGJPN094);
 					if (Pkt->hWndTrans != NULL)
 						ClearAll = YES;
 					if (Pkt->Abort == ABORT_NONE)
@@ -1475,15 +1475,15 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		}
 
 		if (read == SOCKET_ERROR)
-			ReportWSError("recv", WSAGetLastError());
+			ReportWSError(L"recv");
 	} else {
 		SetErrorMsg(MSGJPN095, Pkt->LocalFile);
-		SetTaskMsg(MSGJPN095, Pkt->LocalFile);
+		SetTaskMsg(IDS_MSGJPN095, u8(Pkt->LocalFile).c_str());
 		Pkt->Abort = ABORT_ERROR;
 	}
 
 	if (shutdown(dSkt, 1) != 0)
-		ReportWSError("shutdown", WSAGetLastError());
+		ReportWSError(L"shutdown");
 	LastDataConnectionTime = time(NULL);
 	DoClose(dSkt);
 
@@ -1497,7 +1497,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 	auto [code, text] = ReadReplyMessage(Pkt->ctrl_skt, CancelCheckWork);
 	if (Pkt->Abort == ABORT_DISKFULL) {
 		SetErrorMsg(MSGJPN096);
-		SetTaskMsg(MSGJPN096);
+		SetTaskMsg(IDS_MSGJPN096);
 	}
 	if (code / 100 >= FTP_RETRY)
 		SetErrorMsg(text.c_str());
@@ -1546,16 +1546,13 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 //			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0))
 			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0) || (strncmp(Pkt->Cmd, "MLSD", 4) == 0))
 			{
-				SetTaskMsg(MSGJPN097);
+				SetTaskMsg(IDS_MSGJPN097);
 				strcpy(Fname, MSGJPN098);
 			}
-			// 同時接続対応
-//			else if((Pkt->hWndTrans != NULL) && (TimeStart != 0))
-//				SetTaskMsg(MSGJPN099, TimeStart, Pkt->ExistSize/TimeStart);
 			else if((Pkt->hWndTrans != NULL) && (TimeStart[Pkt->ThreadCount] != 0))
-				SetTaskMsg(MSGJPN099, TimeStart[Pkt->ThreadCount], Pkt->ExistSize/TimeStart[Pkt->ThreadCount]);
+				SetTaskMsg(IDS_MSGJPN099, TimeStart[Pkt->ThreadCount], Pkt->ExistSize/TimeStart[Pkt->ThreadCount]);
 			else
-				SetTaskMsg(MSGJPN100);
+				SetTaskMsg(IDS_MSGJPN100);
 
 			if(Pkt->Abort != ABORT_USER)
 			{
@@ -1588,17 +1585,11 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 			// MLSD対応
 //			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0))
 			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0) || (strncmp(Pkt->Cmd, "MLSD", 4) == 0))
-				SetTaskMsg(MSGJPN101, Pkt->ExistSize);
-			// 同時接続対応
-//			else if((Pkt->hWndTrans != NULL) && (TimeStart != 0))
-//				SetTaskMsg(MSGJPN102, TimeStart, Pkt->ExistSize/TimeStart);
+				SetTaskMsg(IDS_MSGJPN101, Pkt->ExistSize);
 			else if((Pkt->hWndTrans != NULL) && (TimeStart[Pkt->ThreadCount] != 0))
-				// "0 B/S"と表示されるバグを修正
-				// 原因は%dにあたる部分に64ビット値が渡されているため
-//				SetTaskMsg(MSGJPN102, TimeStart[Pkt->ThreadCount], Pkt->ExistSize/TimeStart[Pkt->ThreadCount]);
-				SetTaskMsg(MSGJPN102, (LONG)TimeStart[Pkt->ThreadCount], (LONG)(Pkt->ExistSize/TimeStart[Pkt->ThreadCount]));
+				SetTaskMsg(IDS_MSGJPN102, (LONG)TimeStart[Pkt->ThreadCount], (LONG)(Pkt->ExistSize/TimeStart[Pkt->ThreadCount]));
 			else
-				SetTaskMsg(MSGJPN103, Pkt->ExistSize);
+				SetTaskMsg(IDS_MSGJPN103, Pkt->ExistSize);
 		}
 	}
 	return;
@@ -1748,7 +1739,7 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET& item)
 		else
 		{
 			SetErrorMsg(MSGJPN105, item.LocalFile);
-			SetTaskMsg(MSGJPN105, item.LocalFile);
+			SetTaskMsg(IDS_MSGJPN105, u8(item.LocalFile).c_str());
 			iRetCode = 500;
 			item.Abort = ABORT_ERROR;
 		}
@@ -1757,7 +1748,7 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET& item)
 	else
 	{
 		DispTransFileInfo(item, MSGJPN106, TRUE, YES);
-		SetTaskMsg(MSGJPN107, item.LocalFile);
+		SetTaskMsg(IDS_MSGJPN107, u8(item.LocalFile).c_str());
 		iRetCode = 200;
 	}
 	return(iRetCode);
@@ -1826,7 +1817,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 				data_socket = do_accept(listen_socket, reinterpret_cast<sockaddr*>(&sa), &salen);
 
 				if(shutdown(listen_socket, 1) != 0)
-					ReportWSError("shutdown listen", WSAGetLastError());
+					ReportWSError(L"shutdown listen");
 				// UPnP対応
 				if(IsUPnPLoaded() == YES)
 				{
@@ -1838,11 +1829,11 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 				if(data_socket == INVALID_SOCKET)
 				{
 					SetErrorMsg(MSGJPN280);
-					ReportWSError("accept", WSAGetLastError());
+					ReportWSError(L"accept");
 					iRetCode = 500;
 				}
 				else
-					DoPrintf("Skt=%zu : accept from %s", data_socket, u8(AddressPortToString(&sa, salen)).c_str());
+					DoPrintf(L"Skt=%zu : accept from %s", data_socket, AddressPortToString(&sa, salen).c_str());
 			}
 
 			if(data_socket != INVALID_SOCKET)
@@ -1866,7 +1857,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 		else
 		{
 			SetErrorMsg(Reply);
-			SetTaskMsg(MSGJPN108);
+			SetTaskMsg(IDS_MSGJPN108);
 			// UPnP対応
 			if(IsUPnPLoaded() == YES)
 			{
@@ -1939,7 +1930,7 @@ static int UploadPassive(TRANSPACKET *Pkt)
 				// 変数が未初期化のバグ修正
 				Flg = 1;
 				if(setsockopt(data_socket, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
-					ReportWSError("setsockopt", WSAGetLastError());
+					ReportWSError(L"setsockopt");
 
 				SetUploadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &Resume);
 				if(Resume == NO)
@@ -1985,7 +1976,7 @@ static int UploadPassive(TRANSPACKET *Pkt)
 				else
 				{
 					SetErrorMsg(Reply);
-					SetTaskMsg(MSGJPN110);
+					SetTaskMsg(IDS_MSGJPN110);
 					data_socket = DoClose(data_socket);
 					iRetCode = 500;
 				}
@@ -1999,7 +1990,7 @@ static int UploadPassive(TRANSPACKET *Pkt)
 		else
 		{
 			SetErrorMsg(Buf);
-			SetTaskMsg(MSGJPN111);
+			SetTaskMsg(IDS_MSGJPN111);
 			iRetCode = 500;
 		}
 	}
@@ -2081,13 +2072,13 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 		}
 	} else {
 		SetErrorMsg(MSGJPN112, Pkt->LocalFile);
-		SetTaskMsg(MSGJPN112, Pkt->LocalFile);
+		SetTaskMsg(IDS_MSGJPN112, u8(Pkt->LocalFile).c_str());
 		Pkt->Abort = ABORT_ERROR;
 	}
 
 	LastDataConnectionTime = time(NULL);
 	if (shutdown(dSkt, 1) != 0)
-		ReportWSError("shutdown", WSAGetLastError());
+		ReportWSError(L"shutdown");
 
 	auto [code, text] = ReadReplyMessage(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount]);
 	if (code / 100 >= FTP_RETRY)
@@ -2127,13 +2118,10 @@ static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 	{
 		if((iRetCode/100) >= FTP_CONTINUE)
 		{
-			// 同時接続対応
-//			if((Pkt->hWndTrans != NULL) && (TimeStart != 0))
-//				SetTaskMsg(MSGJPN113, TimeStart, Pkt->ExistSize/TimeStart);
 			if((Pkt->hWndTrans != NULL) && (TimeStart[Pkt->ThreadCount] != 0))
-				SetTaskMsg(MSGJPN113, TimeStart[Pkt->ThreadCount], Pkt->ExistSize/TimeStart[Pkt->ThreadCount]);
+				SetTaskMsg(IDS_MSGJPN113, TimeStart[Pkt->ThreadCount], Pkt->ExistSize/TimeStart[Pkt->ThreadCount]);
 			else
-				SetTaskMsg(MSGJPN114);
+				SetTaskMsg(IDS_MSGJPN114);
 
 			if(Pkt->Abort != ABORT_USER)
 			{
@@ -2163,16 +2151,10 @@ static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 		}
 		else
 		{
-			// 同時接続対応
-//			if((Pkt->hWndTrans != NULL) && (TimeStart != 0))
-//				SetTaskMsg(MSGJPN115, TimeStart, Pkt->ExistSize/TimeStart);
 			if((Pkt->hWndTrans != NULL) && (TimeStart[Pkt->ThreadCount] != 0))
-				// "0 B/S"と表示されるバグを修正
-				// 原因は%dにあたる部分に64ビット値が渡されているため
-//				SetTaskMsg(MSGJPN115, TimeStart[Pkt->ThreadCount], Pkt->ExistSize/TimeStart[Pkt->ThreadCount]);
-				SetTaskMsg(MSGJPN115, (LONG)TimeStart[Pkt->ThreadCount], (LONG)(Pkt->ExistSize/TimeStart[Pkt->ThreadCount]));
+				SetTaskMsg(IDS_MSGJPN115, (LONG)TimeStart[Pkt->ThreadCount], (LONG)(Pkt->ExistSize/TimeStart[Pkt->ThreadCount]));
 			else
-				SetTaskMsg(MSGJPN116);
+				SetTaskMsg(IDS_MSGJPN116);
 		}
 	}
 	return;

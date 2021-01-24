@@ -336,7 +336,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName)
 			for (;;) {
 				char buffer[8192];
 				if (auto read = recv(s, buffer, size_as<int>(buffer), 0); read == 0) {
-					DoPrintf("AttachSSL recv: connection closed.");
+					DoPrintf(L"AttachSSL recv: connection closed.");
 					return FALSE;
 				} else if (0 < read) {
 					_RPTWN(_CRT_WARN, L"AttachSSL recv: %d bytes.\n", read);
@@ -344,7 +344,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName)
 					break;
 				}
 				if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
-					DoPrintf("AttachSSL recv error: %d.", lastError);
+					DoPrintf(L"AttachSSL recv error: %d.", lastError);
 					return FALSE;
 				}
 				Sleep(0);
@@ -353,7 +353,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName)
 			ss = InitializeSecurityContextW(&credential, &context, node, contextReq, 0, 0, &inDesc, 0, nullptr, &outDesc, &attr, nullptr);
 		}
 		if (FAILED(ss) && ss != SEC_E_INCOMPLETE_MESSAGE) {
-			DoPrintf("AttachSSL InitializeSecurityContext error: %08x.", ss);
+			DoPrintf(L"AttachSSL InitializeSecurityContext error: %08x.", ss);
 			return FALSE;
 		}
 		_RPTWN(_CRT_WARN, L"AttachSSL InitializeSecurityContext result: %08x, inBuffer: %d/%d, %d/%d/%p, outBuffer: %d/%d, %d/%d, attr: %08x.\n",
@@ -374,7 +374,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName)
 	} while (ss == SEC_I_CONTINUE_NEEDED);
 
 	if (ss = QueryContextAttributesW(&context, SECPKG_ATTR_STREAM_SIZES, &streamSizes); ss != SEC_E_OK) {
-		DoPrintf("AttachSSL QueryContextAttributes(SECPKG_ATTR_STREAM_SIZES) error: %08x.", ss);
+		DoPrintf(L"AttachSSL QueryContextAttributes(SECPKG_ATTR_STREAM_SIZES) error: %08x.", ss);
 		return FALSE;
 	}
 
@@ -554,7 +554,7 @@ int GetAsyncTableDataMapPort(SOCKET s, int* Port) {
 SOCKET do_socket(int af, int type, int protocol) {
 	auto s = socket(af, type, protocol);
 	if (s == INVALID_SOCKET) {
-		DoPrintf("socket: socket failed: 0x%08X", WSAGetLastError());
+		DoPrintf(L"socket: socket failed: 0x%08X", WSAGetLastError());
 		return INVALID_SOCKET;
 	}
 	RegisterAsyncTable(s);
@@ -580,20 +580,20 @@ int do_closesocket(SOCKET s) {
 
 int do_connect(SOCKET s, const sockaddr* name, int namelen, int* CancelCheckWork) {
 	if (WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) != 0) {
-		DoPrintf("connect: WSAAsyncSelect failed: 0x%08X", WSAGetLastError());
+		DoPrintf(L"connect: WSAAsyncSelect failed: 0x%08X", WSAGetLastError());
 		return SOCKET_ERROR;
 	}
 	if (connect(s, name, namelen) == 0)
 		return 0;
 	if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
-		DoPrintf("connect: connect failed: 0x%08X", WSAGetLastError());
+		DoPrintf(L"connect: connect failed: 0x%08X", WSAGetLastError());
 		return SOCKET_ERROR;
 	}
 	while (*CancelCheckWork != YES) {
 		if (int error = 0; AskAsyncDone(s, &error, FD_CONNECT) == YES && error != WSAEWOULDBLOCK) {
 			if (error == 0)
 				return 0;
-			DoPrintf("connect: select error: 0x%08X", error);
+			DoPrintf(L"connect: select error: 0x%08X", error);
 			return SOCKET_ERROR;
 		}
 		Sleep(1);
@@ -606,11 +606,11 @@ int do_connect(SOCKET s, const sockaddr* name, int namelen, int* CancelCheckWork
 
 int do_listen(SOCKET s, int backlog) {
 	if (WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CLOSE | FD_ACCEPT) != 0) {
-		DoPrintf("listen: WSAAsyncSelect failed: 0x%08X", WSAGetLastError());
+		DoPrintf(L"listen: WSAAsyncSelect failed: 0x%08X", WSAGetLastError());
 		return SOCKET_ERROR;
 	}
 	if (listen(s, backlog) != 0) {
-		DoPrintf("listen: listen failed: 0x%08X", WSAGetLastError());
+		DoPrintf(L"listen: listen failed: 0x%08X", WSAGetLastError());
 		return SOCKET_ERROR;
 	}
 	return 0;
@@ -625,9 +625,6 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 	int CancelCheckWork;
 	int Error;
 
-#if DBG_MSG
-	DoPrintf("# Start accept (S=%x)", s);
-#endif
 	CancelCheckWork = NO;
 	Ret2 = INVALID_SOCKET;
 	Error = 0;
@@ -651,10 +648,6 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 			Ret2 = accept(s, addr, addrlen);
 			if(Ret2 != INVALID_SOCKET)
 			{
-#if DBG_MSG
-				DoPrintf("## do_sccept (S=%x)", Ret2);
-				DoPrintf("## Async set: FD_CONNECT|FD_CLOSE|FD_ACCEPT|FD_READ|FD_WRITE");
-#endif
 				RegisterAsyncTable(Ret2);
 				// 高速化のためFD_READとFD_WRITEを使用しない
 //				if(WSAAsyncSelect(Ret2, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT | FD_READ | FD_WRITE) == SOCKET_ERROR)
@@ -672,10 +665,6 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 		}
 		while(Error == WSAEWOULDBLOCK);
 	}
-
-#if DBG_MSG
-	DoPrintf("# Exit accept");
-#endif
 	return(Ret2);
 #else
 	return(accept(s, addr, addrlen));
@@ -697,7 +686,7 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 		if (BackgrndMessageProc() == YES)
 			return SOCKET_ERROR;
 		if (endTime && *endTime < std::chrono::steady_clock::now()) {
-			DoPrintf("do_recv timed out");
+			DoPrintf(L"do_recv timed out");
 			*TimeOutErr = YES;
 			*CancelCheckWork = YES;
 			return SOCKET_ERROR;
@@ -719,7 +708,7 @@ int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork
 	std::string_view buffer{ buf, size_t(len) };
 	if (auto context = getContext(s)) {
 		if (work = context->Encrypt(buffer); empty(work)) {
-			DoPrintf("send: EncryptMessage failed.");
+			DoPrintf(L"send: EncryptMessage failed.");
 			return FFFTP_FAIL;
 		}
 		buffer = { data(work), size(work) };
@@ -734,17 +723,17 @@ int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork
 		if (0 < sent)
 			buffer = buffer.substr(sent);
 		else if (sent == 0) {
-			DoPrintf("send: connection closed.");
+			DoPrintf(L"send: connection closed.");
 			return FFFTP_FAIL;
 		} else if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
-			DoPrintf("send: send failed: 0x%08X", lastError);
+			DoPrintf(L"send: send failed: 0x%08X", lastError);
 			return FFFTP_FAIL;
 		}
 		Sleep(1);
 		if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
 			return FFFTP_FAIL;
 		if (endTime && *endTime < std::chrono::steady_clock::now()) {
-			SetTaskMsg(MSGJPN241);
+			SetTaskMsg(IDS_MSGJPN241);
 			*CancelCheckWork = YES;
 			return FFFTP_FAIL;
 		}
@@ -845,9 +834,6 @@ int CheckClosedAndReconnect(void)
 {
 	int Error;
 	int Sts;
-
-//SetTaskMsg("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-
 	Sts = FFFTP_SUCCESS;
 	if(AskAsyncDone(AskCmdCtrlSkt(), &Error, FD_CLOSE) == YES)
 	{
@@ -863,9 +849,6 @@ int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
 {
 	int Error;
 	int Sts;
-
-//SetTaskMsg("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-
 	Sts = FFFTP_SUCCESS;
 	if(AskAsyncDone(*Skt, &Error, FD_CLOSE) == YES)
 	{

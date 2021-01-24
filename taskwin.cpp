@@ -42,8 +42,10 @@ static Concurrency::concurrent_queue<std::wstring> queue;
 
 static VOID CALLBACK Writer(HWND hwnd, UINT, UINT_PTR, DWORD) {
 	std::wstring local;
-	for (std::wstring temp; queue.try_pop(temp);)
+	for (std::wstring temp; queue.try_pop(temp);) {
 		local += temp;
+		local += L"\r\n"sv;
+	}
 	if (empty(local))
 		return;
 	if (auto length = GetWindowTextLengthW(hwnd); RemoveOldLog == YES) {
@@ -94,12 +96,10 @@ void SetTaskMsg(_In_z_ _Printf_format_string_ const char* format, ...) {
 	char buffer[10240 + 3];
 	va_list args;
 	va_start(args, format);
-	int result = vsprintf(buffer, format, args);
+	int result = vsprintf_s(buffer, format, args);
 	va_end(args);
-	if (0 < result) {
-		strcat(buffer, "\r\n");
-		queue.push(u8(buffer));
-	}
+	if (0 < result)
+		queue.push(u8(buffer, result));
 }
 
 
@@ -116,15 +116,56 @@ void DispTaskMsg() {
 }
 
 
+void SetTaskMsg(UINT id, ...) {
+	wchar_t buffer[10240];
+	va_list args;
+	va_start(args, id);
+	int result = vswprintf_s(buffer, GetString(id).c_str(), args);
+	va_end(args);
+	if (0 < result)
+		queue.push({ buffer, static_cast<size_t>(result) });
+}
+
 // デバッグコンソールにメッセージを表示する
 void DoPrintf(_In_z_ _Printf_format_string_ const char* format, ...) {
 	if (DebugConsole != YES)
 		return;
-	char buffer[10240];
+	struct {
+		char prefix[3];
+		char message[10240];
+	} buffer = { { '#', '#', ' ' } };
+	static_assert(std::is_same_v<decltype(buffer.prefix[0]), decltype(buffer.message[0])>);
+	static_assert(sizeof buffer == std::size(buffer.prefix) * sizeof buffer.prefix[0] + std::size(buffer.message) * sizeof buffer.message[0]);
 	va_list args;
 	va_start(args, format);
-	int result = vsprintf(buffer, format, args);
+	int result = vsprintf_s(buffer.message, format, args);
 	va_end(args);
 	if (0 < result)
-		SetTaskMsg("## %s", buffer);
+		queue.push(u8(buffer.prefix, static_cast<size_t>(result) + 3));
+}
+
+void DoPrintf(_In_z_ _Printf_format_string_ const wchar_t* format, ...) {
+	if (DebugConsole != YES)
+		return;
+	struct {
+		wchar_t prefix[3];
+		wchar_t message[10240];
+	} buffer = { { L'#', L'#', L' ' } };
+	static_assert(std::is_same_v<decltype(buffer.prefix[0]), decltype(buffer.message[0])>);
+	static_assert(sizeof buffer == std::size(buffer.prefix) * sizeof buffer.prefix[0] + std::size(buffer.message) * sizeof buffer.message[0]);
+	va_list args;
+	va_start(args, format);
+	int result = vswprintf_s(buffer.message, format, args);
+	va_end(args);
+	if (0 < result)
+		queue.push({ reinterpret_cast<const wchar_t*>(&buffer), static_cast<size_t>(result) + 3 });
+}
+
+
+// デバッグコンソールにエラーを表示
+void ReportWSError(const wchar_t* functionName) {
+	auto lastError = WSAGetLastError();
+	if (DebugConsole != YES)
+		return;
+	DoPrintf(L"[[%s : %s]]", functionName, GetErrorMessage(lastError).c_str());
 }

@@ -37,7 +37,7 @@ int DoLocalCWD(const char *Path) {
 	fs::current_path(fs::u8path(Path), ec);
 	if (!ec)
 		return FFFTP_SUCCESS;
-	SetTaskMsg(MSGJPN145);
+	SetTaskMsg(IDS_MSGJPN145);
 	return FFFTP_FAIL;
 }
 
@@ -46,7 +46,7 @@ int DoLocalCWD(const char *Path) {
 void DoLocalMKD(const char* Path) {
 	SetTaskMsg(">>MKDIR %s", Path);
 	if (std::error_code ec; !fs::create_directory(fs::u8path(Path), ec))
-		SetTaskMsg(MSGJPN146);
+		SetTaskMsg(IDS_MSGJPN146);
 }
 
 
@@ -60,7 +60,7 @@ void DoLocalPWD(char *Buf) {
 void DoLocalRMD(const char* Path) {
 	SetTaskMsg(">>RMDIR %s", Path);
 	if (MoveFileToTrashCan(Path) != 0)
-		SetTaskMsg(MSGJPN148);
+		SetTaskMsg(IDS_MSGJPN148);
 }
 
 
@@ -68,7 +68,7 @@ void DoLocalRMD(const char* Path) {
 void DoLocalDELE(const char* Path) {
 	SetTaskMsg(">>DEL %s", Path);
 	if (MoveFileToTrashCan(Path) != 0)
-		SetTaskMsg(MSGJPN150);
+		SetTaskMsg(IDS_MSGJPN150);
 }
 
 
@@ -78,7 +78,7 @@ void DoLocalRENAME(const char *Src, const char *Dst) {
 	std::error_code ec;
 	fs::rename(fs::u8path(Src), fs::u8path(Dst), ec);
 	if (ec)
-		SetTaskMsg(MSGJPN151);
+		SetTaskMsg(IDS_MSGJPN151);
 }
 
 

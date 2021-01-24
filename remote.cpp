@@ -550,17 +550,12 @@ SOCKET DoClose(SOCKET Sock)
 {
 	if(Sock != INVALID_SOCKET)
 	{
-//		if(WSAIsBlocking())
-//		{
-//			DoPrintf("Skt=%u : Cancelled blocking call", Sock);
-//			WSACancelBlockingCall();
-//		}
 		do_closesocket(Sock);
-		DoPrintf("Skt=%zu : Socket closed.", Sock);
+		DoPrintf(L"Skt=%zu : Socket closed.", Sock);
 		Sock = INVALID_SOCKET;
 	}
 	if(Sock != INVALID_SOCKET)
-		DoPrintf("Skt=%zu : Failed to close socket.", Sock);
+		DoPrintf(L"Skt=%zu : Failed to close socket.", Sock);
 
 	return(Sock);
 }
@@ -685,10 +680,6 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Pat
 	MainTransPkt.hWndTrans = hWnd;
 
 	Sts = DoDownload(cSkt, MainTransPkt, YES, CancelCheckWork);
-
-//#pragma aaa
-//DoPrintf("===== DoDirList Done.");
-
 	return(Sts);
 }
 
@@ -800,7 +791,7 @@ static std::tuple<int, std::string> ReadOneLine(SOCKET cSkt, int* CancelCheckWor
 		/* LFまでを受信するために、最初はPEEKで受信 */
 		if ((read = do_recv(cSkt, buffer, size_as<int>(buffer), MSG_PEEK, &TimeOutErr, CancelCheckWork)) <= 0) {
 			if (TimeOutErr == YES) {
-				SetTaskMsg(MSGJPN242);
+				SetTaskMsg(IDS_MSGJPN242);
 				read = -2;
 			} else if (read == SOCKET_ERROR)
 				read = -1;
@@ -864,33 +855,10 @@ int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
 		Sts = FFFTP_SUCCESS;
 		while(Size > 0)
 		{
-//			FD_ZERO(&ReadFds);
-//			FD_SET(cSkt, &ReadFds);
-//			ToutPtr = NULL;
-//			if(TimeOut != 0)
-//			{
-//				Tout.tv_sec = TimeOut;
-//				Tout.tv_usec = 0;
-//				ToutPtr = &Tout;
-//			}
-//			i = select(0, &ReadFds, NULL, NULL, ToutPtr);
-//			if(i == SOCKET_ERROR)
-//			{
-//				ReportWSError("select", WSAGetLastError());
-//				Sts = FFFTP_FAIL;
-//				break;
-//			}
-//			else if(i == 0)
-//			{
-//				SetTaskMsg(MSGJPN243);
-//				Sts = FFFTP_FAIL;
-//				break;
-//			}
-
 			if((SizeOnce = do_recv(cSkt, Buf, Size, 0, &TimeOutErr, CancelCheckWork)) <= 0)
 			{
 				if(TimeOutErr == YES)
-					SetTaskMsg(MSGJPN243);
+					SetTaskMsg(IDS_MSGJPN243);
 				Sts = FFFTP_FAIL;
 				break;
 			}
@@ -901,15 +869,9 @@ int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
 	}
 
 	if(Sts == FFFTP_FAIL)
-		SetTaskMsg(MSGJPN244);
+		SetTaskMsg(IDS_MSGJPN244);
 
 	return(Sts);
-}
-
-
-// デバッグコンソールにエラーを表示
-void ReportWSError(const char* Msg, UINT Error) {
-	DoPrintf("[[%s : %s]]", Msg, u8(GetErrorMessage(Error)).c_str());
 }
 
 
