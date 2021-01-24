@@ -83,7 +83,6 @@
 #include "dialog.h"
 #include "helpid.h"
 #include "Resource/resource.ja-JP.h"
-#include "mesg-jpn.h"
 #pragma comment(lib, "Comctl32.lib")
 #pragma comment(lib, "normaliz.lib")
 #pragma comment(lib, "Shlwapi.lib")
@@ -841,7 +840,7 @@ int SetOSS(int wkOss);
 int AskOSS(void);
 #endif
 std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork);
-SOCKET connectsock(char *host, int port, char *PreMsg, int *CancelCheckWork);
+SOCKET connectsock(char *host, int port, UINT prefixId, int *CancelCheckWork);
 SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
 int AskUseNoEncryption(void);
@@ -1092,7 +1091,7 @@ void RemoveFileName(const char* Path, char *Buf);
 void GetUpperDir(char *Path);
 void GetUpperDirEraseTopSlash(char *Path);
 int AskDirLevel(const char* Path);
-void MakeSizeString(double Size, char *Buf);
+std::wstring MakeSizeString(double size);
 void DispStaticText(HWND hWnd, const char* Str);
 int StrMultiLen(const char *Str);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
@@ -1118,7 +1117,7 @@ int CalcPixelY(int y);
 
 /*===== opie.c =====*/
 
-int Make6WordPass(int seq, char *seed, char *pass, int type, char *buf);
+int Make6WordPass(int seq, std::string_view seed, std::string_view pass, int type, char *buf);
 
 /*===== tool.c =====*/
 
@@ -1360,18 +1359,18 @@ static inline auto NormalizeString(NORM_FORM form, std::wstring_view src) {
 		return std::wstring{ src };
 	return convert<wchar_t>([form](auto src, auto srclen, auto dst, auto dstlen) { return NormalizeString(form, src, srclen, dst, dstlen); }, src);
 }
-static inline auto InputDialog(int dialogId, HWND parent, char *Title, char *Buf, size_t maxlength = 0, int* flag = nullptr, int helpTopicId = IDH_HELP_TOPIC_0000001) {
+static inline auto InputDialog(int dialogId, HWND parent, UINT titleId, char *Buf, size_t maxlength = 0, int* flag = nullptr, int helpTopicId = IDH_HELP_TOPIC_0000001) {
 	struct Data {
 		using result_t = bool;
-		char* Title;
+		UINT titleId;
 		char* Buf;
 		size_t maxlength;
 		int* flag;
 		int helpTopicId;
-		Data(char* Title, char* Buf, size_t maxlength, int* flag, int helpTopicId) : Title{ Title }, Buf{ Buf }, maxlength{ maxlength }, flag{ flag }, helpTopicId{ helpTopicId } {}
+		Data(UINT titleId, char* Buf, size_t maxlength, int* flag, int helpTopicId) : titleId{ titleId }, Buf{ Buf }, maxlength{ maxlength }, flag{ flag }, helpTopicId{ helpTopicId } {}
 		INT_PTR OnInit(HWND hDlg) {
-			if (Title)
-				SetText(hDlg, u8(Title));
+			if (titleId != 0)
+				SetText(hDlg, GetString(titleId));
 			SendDlgItemMessageW(hDlg, INP_INPSTR, EM_LIMITTEXT, maxlength - 1, 0);
 			SetText(hDlg, INP_INPSTR, u8(Buf));
 			if (flag)
@@ -1399,7 +1398,7 @@ static inline auto InputDialog(int dialogId, HWND parent, char *Title, char *Buf
 			}
 		}
 	};
-	return Dialog(GetFtpInst(), dialogId, parent, Data{ Title, Buf, maxlength, flag, helpTopicId });
+	return Dialog(GetFtpInst(), dialogId, parent, Data{ titleId, Buf, maxlength, flag, helpTopicId });
 }
 struct ProcessInformation : PROCESS_INFORMATION {
 	ProcessInformation() : PROCESS_INFORMATION{ INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE } {}

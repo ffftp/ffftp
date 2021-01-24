@@ -373,7 +373,7 @@ void DirectDownloadProc(char *Fname)
 
 // 入力されたファイル名のファイルを一つダウンロードする
 void InputDownloadProc() {
-	if (char Path[FMAX_PATH + 1] = ""; InputDialog(downname_dlg, GetMainHwnd(), NULL, Path, FMAX_PATH))
+	if (char Path[FMAX_PATH + 1] = ""; InputDialog(downname_dlg, GetMainHwnd(), 0, Path, FMAX_PATH))
 		DirectDownloadProc(Path);
 }
 
@@ -384,21 +384,21 @@ struct MirrorList {
 	MirrorList(std::forward_list<TRANSPACKET>& list) : list{ list } {}
 	INT_PTR OnInit(HWND hDlg) {
 		for (auto const& item : list) {
-			char Tmp[FMAX_PATH + 1 + 6] = "";
+			std::wstring line;
 			if (strncmp(item.Cmd, "R-DELE", 6) == 0 || strncmp(item.Cmd, "R-RMD", 5) == 0)
-				sprintf(Tmp, MSGJPN052, item.RemoteFile);
+				line = strprintf(GetString(IDS_MSGJPN052).c_str(), u8(item.RemoteFile).c_str());
 			else if (strncmp(item.Cmd, "R-MKD", 5) == 0)
-				sprintf(Tmp, MSGJPN053, item.RemoteFile);
+				line = strprintf(GetString(IDS_MSGJPN053).c_str(), u8(item.RemoteFile).c_str());
 			else if (strncmp(item.Cmd, "STOR", 4) == 0)
-				sprintf(Tmp, MSGJPN054, item.RemoteFile);
+				line = strprintf(GetString(IDS_MSGJPN054).c_str(), u8(item.RemoteFile).c_str());
 			else if (strncmp(item.Cmd, "L-DELE", 6) == 0 || strncmp(item.Cmd, "L-RMD", 5) == 0)
-				sprintf(Tmp, MSGJPN055, item.LocalFile);
+				line = strprintf(GetString(IDS_MSGJPN052).c_str(), u8(item.LocalFile).c_str());
 			else if (strncmp(item.Cmd, "L-MKD", 5) == 0)
-				sprintf(Tmp, MSGJPN056, item.LocalFile);
+				line = strprintf(GetString(IDS_MSGJPN053).c_str(), u8(item.LocalFile).c_str());
 			else if (strncmp(item.Cmd, "RETR", 4) == 0)
-				sprintf(Tmp, MSGJPN057, item.LocalFile);
-			if (strlen(Tmp) > 0)
-				SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)u8(Tmp).c_str());
+				line = strprintf(GetString(IDS_MSGJPN054).c_str(), u8(item.LocalFile).c_str());
+			if (!empty(line))
+				SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)line.c_str());
 		}
 		CountMirrorFiles(hDlg, list);
 		EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), FALSE);
@@ -1517,7 +1517,6 @@ static int MirrorNotify(bool upload) {
 
 // ミラーリングで転送／削除するファイルの数を数えダイアログに表示
 static void CountMirrorFiles(HWND hDlg, std::forward_list<TRANSPACKET> const& list) {
-	char Tmp[80];
 	int Del = 0, Make = 0, Copy = 0;
 	for (auto const& item : list) {
 		if (strncmp(item.Cmd, "R-DELE", 6) == 0 || strncmp(item.Cmd, "R-RMD", 5) == 0 || strncmp(item.Cmd, "L-DELE", 6) == 0 || strncmp(item.Cmd, "L-RMD", 5) == 0)
@@ -1527,26 +1526,9 @@ static void CountMirrorFiles(HWND hDlg, std::forward_list<TRANSPACKET> const& li
 		else if (strncmp(item.Cmd, "STOR", 4) == 0 || strncmp(item.Cmd, "RETR", 4) == 0)
 			Copy++;
 	}
-
-	if(Copy != 0)
-		sprintf(Tmp, MSGJPN058, Copy);
-	else
-		sprintf(Tmp, MSGJPN059);
-	SetText(hDlg, MIRROR_COPYNUM, u8(Tmp));
-
-	if(Make != 0)
-		sprintf(Tmp, MSGJPN060, Make);
-	else
-		sprintf(Tmp, MSGJPN061);
-	SetText(hDlg, MIRROR_MAKENUM, u8(Tmp));
-
-	if(Del != 0)
-		sprintf(Tmp, MSGJPN062, Del);
-	else
-		sprintf(Tmp, MSGJPN063);
-	SetText(hDlg, MIRROR_DELNUM, u8(Tmp));
-
-	return;
+	SetText(hDlg, MIRROR_COPYNUM, Copy != 0 ? strprintf(GetString(IDS_MSGJPN058).c_str(), Copy) : GetString(IDS_MSGJPN059));
+	SetText(hDlg, MIRROR_MAKENUM, Make != 0 ? strprintf(GetString(IDS_MSGJPN060).c_str(), Make) : GetString(IDS_MSGJPN061));
+	SetText(hDlg, MIRROR_DELNUM, Del != 0 ? strprintf(GetString(IDS_MSGJPN062).c_str(), Del) : GetString(IDS_MSGJPN063));
 }
 
 
@@ -2128,24 +2110,9 @@ void MoveRemoteFileProc(int drop_index)
 
 void MkdirProc(void)
 {
-	int Win;
-	char *Title;
-
-	// 同時接続対応
 	CancelFlg = NO;
-
-	if(GetFocus() == GetLocalHwnd())
-	{
-		Win = WIN_LOCAL;
-		Title = MSGJPN070;
-	}
-	else
-	{
-		Win = WIN_REMOTE;
-		Title = MSGJPN071;
-	}
-
-	if (char Path[FMAX_PATH + 1] = ""; InputDialog(mkdir_dlg, GetMainHwnd(), Title, Path, FMAX_PATH + 1) && strlen(Path) != 0)
+	auto [Win, titleId] = GetFocus() == GetLocalHwnd() ? std::tuple{ WIN_LOCAL, IDS_MSGJPN070 } : std::tuple{ WIN_REMOTE, IDS_MSGJPN071 };
+	if (char Path[FMAX_PATH + 1] = ""; InputDialog(mkdir_dlg, GetMainHwnd(), titleId, Path, FMAX_PATH + 1) && strlen(Path) != 0)
 	{
 		if(Win == WIN_LOCAL)
 		{
@@ -2252,16 +2219,9 @@ void ChangeDirDirectProc(int Win)
 {
 	bool result = false;
 	char Path[FMAX_PATH+1];
-	char *Title;
 
 	// 同時接続対応
 	CancelFlg = NO;
-
-	if(Win == WIN_LOCAL)
-		Title = MSGJPN072;
-	else
-		Title = MSGJPN073;
-
 	strcpy(Path, "");
 	if(Win == WIN_LOCAL)
 	{
@@ -2269,7 +2229,7 @@ void ChangeDirDirectProc(int Win)
 			result = true;
 	}
 	else
-		result = InputDialog(chdir_dlg, GetMainHwnd(), Title, Path, FMAX_PATH+1);
+		result = InputDialog(chdir_dlg, GetMainHwnd(), IDS_MSGJPN073, Path, FMAX_PATH+1);
 
 	if(result && strlen(Path) != 0)
 	{
@@ -2521,7 +2481,7 @@ void SomeCmdProc(void)
 			char Cmd[81] = {};
 			if (!empty(FileListBase))
 				strncpy(Cmd, FileListBase[0].File, 80);
-			if (InputDialog(somecmd_dlg, GetMainHwnd(), NULL, Cmd, 81, nullptr, IDH_HELP_TOPIC_0000023))
+			if (InputDialog(somecmd_dlg, GetMainHwnd(), 0, Cmd, 81, nullptr, IDH_HELP_TOPIC_0000023))
 				DoQUOTE(AskCmdCtrlSkt(), Cmd, &CancelFlg);
 			EnableUserOpe();
 		}
@@ -2556,11 +2516,11 @@ void CalcFileSizeProc() {
 	struct Size {
 		using result_t = int;
 		int win;
-		const char* size;
-		Size(int win, const char* size) : win{ win }, size{ size } {}
+		double size;
+		Size(int win, double size) : win{ win }, size{ size } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SetText(hDlg, FSIZE_TITLE, GetString(win == WIN_LOCAL ? IDS_MSGJPN076 : IDS_MSGJPN077));
-			SetText(hDlg, FSIZE_SIZE, u8(size));
+			SetText(hDlg, FSIZE_SIZE, MakeSizeString(size));
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
@@ -2582,9 +2542,7 @@ void CalcFileSizeProc() {
 			for (auto const& f : ListBase)
 				if (f.Node != NODE_DIR)
 					total += f.Size;
-			char size[FMAX_PATH + 1];
-			MakeSizeString(total, size);
-			Dialog(GetFtpInst(), filesize_dlg, GetMainHwnd(), Size{ Win, size });
+			Dialog(GetFtpInst(), filesize_dlg, GetMainHwnd(), Size{ Win, total });
 		}
 }
 
@@ -2793,7 +2751,7 @@ static int RenameUnuseableName(char* Fname) {
 	for (;;) {
 		if (!boost::regex_search(Fname, re))
 			return FFFTP_SUCCESS;
-		if (!InputDialog(forcerename_dlg, GetMainHwnd(), NULL, Fname, FMAX_PATH + 1))
+		if (!InputDialog(forcerename_dlg, GetMainHwnd(), 0, Fname, FMAX_PATH + 1))
 			return FFFTP_FAIL;
 	}
 }

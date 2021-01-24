@@ -1637,7 +1637,7 @@ struct IniConfig : Config {
 				Message(IDS_CANT_SAVE_TO_INI, MB_OK | MB_ICONERROR);
 				return;
 			}
-			of << MSGJPN239;
+			of << u8(GetString(IDS_MSGJPN239));
 			for (auto const& [key, lines] : *map) {
 				of << "\n[" << key << "]\n";
 				for (auto const& line : lines)

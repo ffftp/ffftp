@@ -151,7 +151,7 @@ struct HostList {
 			break;
 		case HOST_FOLDER:
 			CopyDefaultHost(&TmpHost);
-			if (int Level1 = -1; InputDialog(group_dlg, hDlg, NULL, TmpHost.HostName, HOST_NAME_LEN + 1)) {
+			if (int Level1 = -1; InputDialog(group_dlg, hDlg, 0, TmpHost.HostName, HOST_NAME_LEN + 1)) {
 				if (auto hItem = (HTREEITEM)SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) {
 					TVITEMW Item{ TVIF_PARAM, hItem };
 					SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
@@ -173,7 +173,7 @@ struct HostList {
 				CurrentHost = (int)Item.lParam;
 				CopyHostFromList(CurrentHost, &TmpHost);
 				int Level1 = IsNodeGroup(CurrentHost);
-				if (Level1 == NO && DispHostSetDlg(hDlg) || Level1 == YES && InputDialog(group_dlg, hDlg, NULL, TmpHost.HostName, HOST_NAME_LEN + 1)) {
+				if (Level1 == NO && DispHostSetDlg(hDlg) || Level1 == YES && InputDialog(group_dlg, hDlg, 0, TmpHost.HostName, HOST_NAME_LEN + 1)) {
 					UpdateHostToList(CurrentHost, &TmpHost);
 					SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
 				}
@@ -935,13 +935,8 @@ struct Advanced {
 		SendDlgItemMessageW(hDlg, HSET_FIREWALL, BM_SETCHECK, TmpHost.FireWall, 0);
 		SendDlgItemMessageW(hDlg, HSET_SYNCMOVE, BM_SETCHECK, TmpHost.SyncMove, 0);
 		for (int i = -12; i <= 12; i++) {
-			if (i == 0)
-				sprintf(Tmp, "GMT");
-			else if (i == 9)
-				sprintf(Tmp, MSGJPN133, i);
-			else
-				sprintf(Tmp, "GMT%+02d:00", i);
-			SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_ADDSTRING, 0, (LPARAM)u8(Tmp).c_str());
+			auto tz = i == 0 ? L"GMT"s : i == 9 ? GetString(IDS_MSGJPN133) : strprintf(L"GMT%+02d:00", i);
+			SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_ADDSTRING, 0, (LPARAM)tz.c_str());
 		}
 		SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_SETCURSEL, (UINT_PTR)TmpHost.TimeZone + 12, 0);
 

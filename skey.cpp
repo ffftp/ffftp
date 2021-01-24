@@ -327,7 +327,7 @@ static void secure_hash(char *x, ALG_ID algid) {
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-int Make6WordPass(int seq, char *seed, char *pass, int type, char *buf) {
+int Make6WordPass(int seq, std::string_view seed, std::string_view pass, int type, char *buf) {
 	int Sts = FFFTP_FAIL;
 	char key[8];
 	ALG_ID algid = type == MD4 ? CALG_MD4 : type == MD5 ? CALG_MD5 : CALG_SHA1;
