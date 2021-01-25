@@ -51,8 +51,8 @@ void DoLocalMKD(fs::path const& path) {
 
 
 // ローカル側のカレントディレクトリ取得
-void DoLocalPWD(char *Buf) {
-	strcpy(Buf, fs::current_path().u8string().c_str());
+fs::path DoLocalPWD() {
+	return fs::current_path();
 }
 
 

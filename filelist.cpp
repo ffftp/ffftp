@@ -955,7 +955,7 @@ void GetLocalDirForWnd(void)
 	char Scan[FMAX_PATH+1];
 	std::vector<FILELIST> files;
 
-	DoLocalPWD(Scan);
+	strcpy(Scan, DoLocalPWD().u8string().c_str());
 	SetLocalDirHist(fs::u8path(Scan));
 	DispLocalFreeSpace(Scan);
 

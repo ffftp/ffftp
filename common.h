@@ -912,7 +912,7 @@ void ReconnectProc(void);
 
 bool DoLocalCWD(fs::path const& path);
 void DoLocalMKD(fs::path const& path);
-void DoLocalPWD(char *Buf);
+fs::path DoLocalPWD();
 void DoLocalRMD(fs::path const& path);
 void DoLocalDELE(fs::path const& path);
 void DoLocalRENAME(fs::path const& src, fs::path const& dst);
