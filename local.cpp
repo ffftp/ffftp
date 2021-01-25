@@ -43,9 +43,9 @@ bool DoLocalCWD(fs::path const& path) {
 
 
 // ローカル側のディレクトリ作成
-void DoLocalMKD(const char* Path) {
-	SetTaskMsg(">>MKDIR %s", Path);
-	if (std::error_code ec; !fs::create_directory(fs::u8path(Path), ec))
+void DoLocalMKD(fs::path const& path) {
+	SetTaskMsg(">>MKDIR %s", path.u8string().c_str());
+	if (std::error_code ec; !fs::create_directory(path, ec))
 		SetTaskMsg(IDS_MSGJPN146);
 }
 

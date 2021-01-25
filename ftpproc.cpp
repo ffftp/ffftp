@@ -2117,7 +2117,7 @@ void MkdirProc(void)
 		if(Win == WIN_LOCAL)
 		{
 			DisableUserOpe();
-			DoLocalMKD(Path);
+			DoLocalMKD(fs::u8path(Path));
 			GetLocalDirForWnd();
 			EnableUserOpe();
 		}

@@ -799,8 +799,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				else if(strlen(Pos->LocalFile) > 0)
 				{
 					Down = YES;
-//					DoLocalMKD(TransPacketBase->LocalFile);
-					DoLocalMKD(Pos->LocalFile);
+					DoLocalMKD(fs::u8path(Pos->LocalFile));
 				}
 				ReleaseMutex(hListAccMutex);
 			}
@@ -867,8 +866,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				DispTransFileInfo(*Pos, IDS_MSGJPN078, FALSE, YES);
 
 				Down = YES;
-//				DoLocalMKD(TransPacketBase->LocalFile);
-				DoLocalMKD(Pos->LocalFile);
+				DoLocalMKD(fs::u8path(Pos->LocalFile));
 				ReleaseMutex(hListAccMutex);
 			}
 			/* ディレクトリ削除（常にローカル側） */
