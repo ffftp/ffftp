@@ -81,10 +81,10 @@ void DoLocalDELE(fs::path const& path) {
 
 
 // ローカル側のファイル名変更
-void DoLocalRENAME(const char *Src, const char *Dst) {
-	SetTaskMsg(">>REN %s %s", Src, Dst);
+void DoLocalRENAME(fs::path const& src, fs::path const& dst) {
+	SetTaskMsg(">>REN %s %s", src.u8string().c_str(), dst.u8string().c_str());
 	std::error_code ec;
-	fs::rename(fs::u8path(Src), fs::u8path(Dst), ec);
+	fs::rename(src, dst, ec);
 	if (ec)
 		SetTaskMsg(IDS_MSGJPN151);
 }

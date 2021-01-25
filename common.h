@@ -915,7 +915,7 @@ void DoLocalMKD(fs::path const& path);
 void DoLocalPWD(char *Buf);
 void DoLocalRMD(fs::path const& path);
 void DoLocalDELE(fs::path const& path);
-void DoLocalRENAME(const char *Src, const char *Dst);
+void DoLocalRENAME(fs::path const& src, fs::path const& dst);
 void DispFileProperty(const char* Fname);
 
 /*===== remote.c =====*/

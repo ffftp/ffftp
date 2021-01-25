@@ -1948,7 +1948,7 @@ void RenameProc(void)
 				if ((Sts == YES) && (strlen(TmpString) != 0)) {
 					strcpy(New, TmpString);
 					if (Win == WIN_LOCAL)
-						DoLocalRENAME(f.File, New);
+						DoLocalRENAME(fs::u8path(f.File), fs::u8path(New));
 					else
 						DoRENAME(f.File, New);
 					RenFlg = YES;
@@ -2071,7 +2071,7 @@ void MoveRemoteFileProc(int drop_index)
 					strncat_s(New, sizeof(New), f.File, _TRUNCATE);
 
 					if (Win == WIN_LOCAL)
-						DoLocalRENAME(Old, New);
+						DoLocalRENAME(fs::u8path(Old), fs::u8path(New));
 					else
 						DoRENAME(Old, New);
 					RenFlg = YES;
