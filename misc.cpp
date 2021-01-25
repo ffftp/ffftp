@@ -923,15 +923,6 @@ int SelectDir(HWND hWnd, char *Buf, size_t MaxLen) {
 }
 
 
-// ファイルをゴミ箱に削除
-int MoveFileToTrashCan(const char *Path) {
-	auto wPath = u8(Path);
-	wPath += L'\0';			// for PCZZSTR
-	SHFILEOPSTRUCTW op{ 0, FO_DELETE, wPath.c_str(), nullptr, FOF_SILENT | FOF_NOCONFIRMATION | FOF_ALLOWUNDO | FOF_NOERRORUI };
-	return SHFileOperationW(&op);
-}
-
-
 std::string MakeNumString(LONGLONG Num) {
 	std::stringstream ss;
 	ss.imbue(std::locale{ "" });

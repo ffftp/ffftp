@@ -1847,9 +1847,9 @@ static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, char 
 		if(Win == WIN_LOCAL)
 		{
 			if(Dt.Node == NODE_FILE)
-				DoLocalDELE(Path);
+				DoLocalDELE(fs::u8path(Path));
 			else
-				DoLocalRMD(Path);
+				DoLocalRMD(fs::u8path(Path));
 			*Flg = YES;
 		}
 		else

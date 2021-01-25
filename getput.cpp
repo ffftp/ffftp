@@ -879,8 +879,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
 				{
 					Down = YES;
-//					DoLocalRMD(TransPacketBase->LocalFile);
-					DoLocalRMD(Pos->LocalFile);
+					DoLocalRMD(fs::u8path(Pos->LocalFile));
 				}
 				ReleaseMutex(hListAccMutex);
 			}
@@ -894,8 +893,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
 				{
 					Down = YES;
-//					DoLocalDELE(TransPacketBase->LocalFile);
-					DoLocalDELE(Pos->LocalFile);
+					DoLocalDELE(fs::u8path(Pos->LocalFile));
 				}
 				ReleaseMutex(hListAccMutex);
 			}

@@ -56,18 +56,26 @@ void DoLocalPWD(char *Buf) {
 }
 
 
+// ファイルをゴミ箱に削除
+static bool MoveFileToTrashCan(fs::path const& path) {
+	auto zzpath = path.native() + L'\0';			// for PCZZSTR
+	SHFILEOPSTRUCTW op{ 0, FO_DELETE, zzpath.c_str(), nullptr, FOF_SILENT | FOF_NOCONFIRMATION | FOF_ALLOWUNDO | FOF_NOERRORUI };
+	return SHFileOperationW(&op) == 0;
+}
+
+
 // ローカル側のディレクトリ削除
-void DoLocalRMD(const char* Path) {
-	SetTaskMsg(">>RMDIR %s", Path);
-	if (MoveFileToTrashCan(Path) != 0)
+void DoLocalRMD(fs::path const& path) {
+	SetTaskMsg(">>RMDIR %s", path.u8string().c_str());
+	if (!MoveFileToTrashCan(path))
 		SetTaskMsg(IDS_MSGJPN148);
 }
 
 
 // ローカル側のファイル削除
-void DoLocalDELE(const char* Path) {
-	SetTaskMsg(">>DEL %s", Path);
-	if (MoveFileToTrashCan(Path) != 0)
+void DoLocalDELE(fs::path const& path) {
+	SetTaskMsg(">>DEL %s", path.u8string().c_str());
+	if (!MoveFileToTrashCan(path))
 		SetTaskMsg(IDS_MSGJPN150);
 }
 
