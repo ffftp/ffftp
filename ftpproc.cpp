@@ -2276,6 +2276,31 @@ void ChangeDirDropFileProc(WPARAM wParam)
 }
 
 
+// ShellExecute等で使用されるファイル名を修正
+// UNCでない場合に末尾の半角スペースは無視されるため拡張子が補完されなくなるまで半角スペースを追加
+// 現在UNC対応の予定は無い
+fs::path MakeDistinguishableFileName(fs::path&& path) {
+	if (path.has_extension())
+		return path;
+	auto const filename = path.filename().native();
+	auto current = path.native();
+	WIN32_FIND_DATAW data;
+	for (HANDLE handle; (handle = FindFirstFileW((current + L".*"sv).c_str(), &data)) != INVALID_HANDLE_VALUE; current += L' ') {
+		bool invalid = false;
+		do {
+			if (data.cFileName != filename) {
+				invalid = true;
+				break;
+			}
+		} while (FindNextFileW(handle, &data));
+		FindClose(handle);
+		if (!invalid)
+			break;
+	}
+	return current;
+}
+
+
 /*----- ファイルの属性変更 ----------------------------------------------------
 *
 *	Parameter
@@ -2320,8 +2345,12 @@ void ChmodProc(void)
 		DisableUserOpe();
 		std::vector<FILELIST> FileListBase;
 		MakeSelectedFileList(WIN_LOCAL, NO, NO, FileListBase, &CancelFlg);
-		if (!empty(FileListBase))
-			DispFileProperty(FileListBase[0].File);
+		if (!empty(FileListBase)) {
+			// ファイルのプロパティを表示する
+			auto path = MakeDistinguishableFileName(fs::u8path(FileListBase[0].File));
+			SHELLEXECUTEINFOW info{ sizeof(SHELLEXECUTEINFOW), SEE_MASK_INVOKEIDLIST, 0, L"Properties", path.c_str(), nullptr, nullptr, SW_NORMAL };
+			ShellExecuteExW(&info);
+		}
 		EnableUserOpe();
 	}
 	return;

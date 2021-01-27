@@ -931,33 +931,6 @@ std::string MakeNumString(LONGLONG Num) {
 }
 
 
-// ShellExecute等で使用されるファイル名を修正
-// UNCでない場合に末尾の半角スペースは無視されるため拡張子が補完されなくなるまで半角スペースを追加
-// 現在UNC対応の予定は無い
-char* MakeDistinguishableFileName(char* Out, const char* In) {
-	if (strlen(GetFileExt(GetFileName(In))) > 0)
-		strcpy(Out, In);
-	else {
-		auto const Fname = u8(GetFileName(In));
-		auto current = u8(In);
-		WIN32_FIND_DATAW data;
-		for (HANDLE handle; (handle = FindFirstFileW((current + L".*"sv).c_str(), &data)) != INVALID_HANDLE_VALUE; current += L' ') {
-			bool invalid = false;
-			do {
-				if (data.cFileName != Fname) {
-					invalid = true;
-					break;
-				}
-			} while (FindNextFileW(handle, &data));
-			FindClose(handle);
-			if (!invalid)
-				break;
-		}
-		strcpy(Out, u8(current).c_str());
-	}
-	return Out;
-}
-
 #if defined(HAVE_TANDEM)
 /*----- ファイルサイズからEXTENTサイズの計算を行う ----------------------------
 *

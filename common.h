@@ -916,7 +916,6 @@ fs::path DoLocalPWD();
 void DoLocalRMD(fs::path const& path);
 void DoLocalDELE(fs::path const& path);
 void DoLocalRENAME(fs::path const& src, fs::path const& dst);
-void DispFileProperty(const char* Fname);
 
 /*===== remote.c =====*/
 
@@ -1106,8 +1105,7 @@ void FormatIniString(char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 int SelectDir(HWND hWnd, char *Buf, size_t MaxLen);
 std::string MakeNumString(LONGLONG Num);
-// 異なるファイルが表示されるバグ修正
-char* MakeDistinguishableFileName(char* Out, const char* In);
+fs::path MakeDistinguishableFileName(fs::path&& path);
 #if defined(HAVE_TANDEM)
 void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size);
 #endif

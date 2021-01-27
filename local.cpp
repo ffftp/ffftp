@@ -88,13 +88,3 @@ void DoLocalRENAME(fs::path const& src, fs::path const& dst) {
 	if (ec)
 		SetTaskMsg(IDS_MSGJPN151);
 }
-
-
-// ファイルのプロパティを表示する
-void DispFileProperty(const char* Fname) {
-	char Fname2[FMAX_PATH + 1];
-	MakeDistinguishableFileName(Fname2, Fname);
-	auto wFname2 = u8(Fname2);
-	SHELLEXECUTEINFOW info{ sizeof(SHELLEXECUTEINFOW), SEE_MASK_INVOKEIDLIST, 0, L"Properties", wFname2.c_str(), nullptr, nullptr, SW_NORMAL };
-	ShellExecuteExW(&info);
-}

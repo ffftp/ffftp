@@ -2109,7 +2109,6 @@ void ExecViewer(char *Fname, int App) {
 	/* FindExecutable()は関連付けられたプログラムのパス名にスペースが	*/
 	/* 含まれている時、間違ったパス名を返す事がある。					*/
 	/* そこで、関連付けられたプログラムの起動はShellExecute()を使う。	*/
-	char ComLine[FMAX_PATH * 2 + 3 + 1];
 	auto pFname = fs::u8path(Fname);
 	if (wchar_t result[MAX_PATH]; App == -1 && pFname.has_extension() && FindExecutableW(pFname.c_str(), nullptr, result) > (HINSTANCE)32) {
 		// 拡張子があるので関連付けを実行する
@@ -2117,10 +2116,11 @@ void ExecViewer(char *Fname, int App) {
 		ShellExecuteW(0, L"open", pFname.c_str(), nullptr, AskLocalCurDir().c_str(), SW_SHOW);
 	} else if (App == -1 && (GetFileAttributesW(pFname.c_str()) & FILE_ATTRIBUTE_DIRECTORY)) {
 		// ディレクトリなのでフォルダを開く
-		MakeDistinguishableFileName(ComLine, Fname);
+		auto wComLine = MakeDistinguishableFileName(fs::path{ pFname });
 		DoPrintf(L"ShellExecute - %s", pFname.c_str());
-		ShellExecuteW(0, L"open", u8(ComLine).c_str(), nullptr, pFname.c_str(), SW_SHOW);
+		ShellExecuteW(0, L"open", wComLine.c_str(), nullptr, pFname.c_str(), SW_SHOW);
 	} else {
+		char ComLine[FMAX_PATH * 2 + 3 + 1];
 		sprintf(ComLine, "%s \"%s\"", ViewerName[App == -1 ? 0 : App], Fname);
 		auto wComLine = u8(ComLine);
 		DoPrintf(L"CreateProcess - %s", wComLine.c_str());
