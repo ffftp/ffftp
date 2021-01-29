@@ -190,7 +190,7 @@ void ConnectProc(int Type, int Num)
 
 				if(strlen(CurHost.LocalInitDir) > 0)
 				{
-					DoLocalCWD(CurHost.LocalInitDir);
+					DoLocalCWD(fs::u8path(CurHost.LocalInitDir));
 					GetLocalDirForWnd();
 				}
 				InitTransCurDir();
@@ -483,7 +483,7 @@ void HistoryConnectProc(int MenuCmd)
 
 				SendInitCommand(CmdCtrlSocket, CurHost.InitCmd, &CancelFlg);
 
-				DoLocalCWD(CurHost.LocalInitDir);
+				DoLocalCWD(fs::u8path(CurHost.LocalInitDir));
 				GetLocalDirForWnd();
 
 				InitTransCurDir();

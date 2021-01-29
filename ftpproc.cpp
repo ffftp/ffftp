@@ -1847,9 +1847,9 @@ static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, char 
 		if(Win == WIN_LOCAL)
 		{
 			if(Dt.Node == NODE_FILE)
-				DoLocalDELE(Path);
+				DoLocalDELE(fs::u8path(Path));
 			else
-				DoLocalRMD(Path);
+				DoLocalRMD(fs::u8path(Path));
 			*Flg = YES;
 		}
 		else
@@ -1948,7 +1948,7 @@ void RenameProc(void)
 				if ((Sts == YES) && (strlen(TmpString) != 0)) {
 					strcpy(New, TmpString);
 					if (Win == WIN_LOCAL)
-						DoLocalRENAME(f.File, New);
+						DoLocalRENAME(fs::u8path(f.File), fs::u8path(New));
 					else
 						DoRENAME(f.File, New);
 					RenFlg = YES;
@@ -2071,7 +2071,7 @@ void MoveRemoteFileProc(int drop_index)
 					strncat_s(New, sizeof(New), f.File, _TRUNCATE);
 
 					if (Win == WIN_LOCAL)
-						DoLocalRENAME(Old, New);
+						DoLocalRENAME(fs::u8path(Old), fs::u8path(New));
 					else
 						DoRENAME(Old, New);
 					RenFlg = YES;
@@ -2117,7 +2117,7 @@ void MkdirProc(void)
 		if(Win == WIN_LOCAL)
 		{
 			DisableUserOpe();
-			DoLocalMKD(Path);
+			DoLocalMKD(fs::u8path(Path));
 			GetLocalDirForWnd();
 			EnableUserOpe();
 		}
@@ -2145,22 +2145,21 @@ void MkdirProc(void)
 *		なし
 *----------------------------------------------------------------------------*/
 void ChangeDirComboProc(HWND hWnd) {
-	char Tmp[FMAX_PATH+1];
 	CancelFlg = NO;
 	if (auto i = (int)SendMessageW(hWnd, CB_GETCURSEL, 0, 0); i != CB_ERR) {
 		auto length = SendMessageW(hWnd, CB_GETLBTEXTLEN, i, 0);
 		std::wstring text(length, L'\0');
 		length = SendMessageW(hWnd, CB_GETLBTEXT, i, (LPARAM)data(text));
-		strncpy_s(Tmp, u8(text.c_str(), length).c_str(), _TRUNCATE);
+		text.resize(length);
 		if (hWnd == GetLocalHistHwnd()) {
 			DisableUserOpe();
-			DoLocalCWD(Tmp);
+			DoLocalCWD(text);
 			GetLocalDirForWnd();
 			EnableUserOpe();
 		} else {
 			if (CheckClosedAndReconnect() == FFFTP_SUCCESS) {
 				DisableUserOpe();
-				if(DoCWD(Tmp, YES, NO, YES) < FTP_RETRY)
+				if(DoCWD(u8(text).c_str(), YES, NO, YES) < FTP_RETRY)
 					GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 				EnableUserOpe();
 			}
@@ -2187,7 +2186,7 @@ void ChangeDirBmarkProc(int MarkID)
 	if(!empty(local))
 	{
 		DisableUserOpe();
-		if(DoLocalCWD(u8(local).data()) == FFFTP_SUCCESS)
+		if (DoLocalCWD(local))
 			GetLocalDirForWnd();
 		EnableUserOpe();
 	}
@@ -2236,7 +2235,7 @@ void ChangeDirDirectProc(int Win)
 		if(Win == WIN_LOCAL)
 		{
 			DisableUserOpe();
-			DoLocalCWD(Path);
+			DoLocalCWD(fs::u8path(Path));
 			GetLocalDirForWnd();
 			EnableUserOpe();
 		}
@@ -2270,10 +2269,35 @@ void ChangeDirDropFileProc(WPARAM wParam)
 
 	DisableUserOpe();
 	MakeDroppedDir(wParam, Path);
-	DoLocalCWD(Path);
+	DoLocalCWD(fs::u8path(Path));
 	GetLocalDirForWnd();
 	EnableUserOpe();
 	return;
+}
+
+
+// ShellExecute等で使用されるファイル名を修正
+// UNCでない場合に末尾の半角スペースは無視されるため拡張子が補完されなくなるまで半角スペースを追加
+// 現在UNC対応の予定は無い
+fs::path MakeDistinguishableFileName(fs::path&& path) {
+	if (path.has_extension())
+		return path;
+	auto const filename = path.filename().native();
+	auto current = path.native();
+	WIN32_FIND_DATAW data;
+	for (HANDLE handle; (handle = FindFirstFileW((current + L".*"sv).c_str(), &data)) != INVALID_HANDLE_VALUE; current += L' ') {
+		bool invalid = false;
+		do {
+			if (data.cFileName != filename) {
+				invalid = true;
+				break;
+			}
+		} while (FindNextFileW(handle, &data));
+		FindClose(handle);
+		if (!invalid)
+			break;
+	}
+	return current;
 }
 
 
@@ -2321,8 +2345,12 @@ void ChmodProc(void)
 		DisableUserOpe();
 		std::vector<FILELIST> FileListBase;
 		MakeSelectedFileList(WIN_LOCAL, NO, NO, FileListBase, &CancelFlg);
-		if (!empty(FileListBase))
-			DispFileProperty(FileListBase[0].File);
+		if (!empty(FileListBase)) {
+			// ファイルのプロパティを表示する
+			auto path = MakeDistinguishableFileName(fs::u8path(FileListBase[0].File));
+			SHELLEXECUTEINFOW info{ sizeof(SHELLEXECUTEINFOW), SEE_MASK_INVOKEIDLIST, 0, L"Properties", path.c_str(), nullptr, nullptr, SW_NORMAL };
+			ShellExecuteExW(&info);
+		}
 		EnableUserOpe();
 	}
 	return;
