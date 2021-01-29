@@ -900,7 +900,7 @@ int ProcForNonFullpath(SOCKET cSkt, char *Path, char *CurDir, HWND hWnd, int *Ca
 void ReformToVMSstyleDirName(char *Path);
 void ReformToVMSstylePathName(char *Path);
 #if defined(HAVE_OPENVMS)
-void ReformVMSDirName(char *DirName, int Flg);
+std::string ReformVMSDirName(std::string&& dirName);
 #endif
 // 自動切断対策
 void NoopProc(int Force);

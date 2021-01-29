@@ -1823,6 +1823,19 @@ void MakeDroppedDir(WPARAM wParam, char* Cur) {
 }
 
 
+#if defined(HAVE_OPENVMS)
+// VMSの"HOGE.DIR;?"というディレクトリ名から"HOGE"を取り出す
+std::string ReformVMSDirName(std::string&& dirName) {
+	static boost::regex re{ R"(\.DIR[^.]*$)" };
+	/* ';'がない場合はVMS形式じゃなさそうなので何もしない */
+	/* ".DIR"があったらつぶす */
+	if (boost::smatch m; dirName.find(';') != std::string::npos && boost::regex_search(dirName, m, re))
+		dirName.erase(m[0].first, end(dirName));
+	return dirName;
+}
+#endif
+
+
 /*----- ホスト側のサブディレクトリ以下のファイルをリストに登録する（１）-------
 *
 *	Parameter
@@ -1887,7 +1900,7 @@ static int MakeRemoteTree2(char *Path, char *Cur, std::vector<FILELIST>& Base, i
 	{
 #if defined(HAVE_OPENVMS)
 		/* OpenVMSの場合、ディレクトリ移動時は"HOGE.DIR;1"を"HOGE"にする */
-		ReformVMSDirName(Path, TRUE);
+		strcpy(Path, ReformVMSDirName(Path).c_str());
 #endif
 		Sts = DoCWDStepByStep(Path, Cur);
 	}
