@@ -2739,39 +2739,6 @@ void ReformToVMSstylePathName(char *Path)
 }
 
 
-#if defined(HAVE_OPENVMS)
-/*----- VMSの"HOGE.DIR;?"というディレクトリ名から"HOGE"を取り出す ---------------
-*
-*	Parameter
-*		char *DirName : "HOGE.DIR;?"形式のディレクトリ名
-*		int Flg       : ";"のチェックをする(TRUE)かしない(FALSE)か
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		DirNameを直接書きかえる
-*----------------------------------------------------------------------------*/
-
-void ReformVMSDirName(char *DirName, int Flg)
-{
-	char *p;
-
-	if (Flg == TRUE) {
-		/* ';'がない場合はVMS形式じゃなさそうなので何もしない */
-		if ((p = strrchr(DirName, ';')) == NULL)
-			return;
-	}
-
-	/* ".DIR"があったらつぶす */
-	if ((p = strrchr(DirName, '.'))) {
-		if (memcmp(p + 1, "DIR", 3) == 0)
-			*p = '\0';
-	}
-}
-#endif
-
-
 // ファイル名に使えない文字がないかチェックし名前を変更する
 //   Fnameを直接書きかえる
 static int RenameUnuseableName(char* Fname) {

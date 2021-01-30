@@ -691,7 +691,7 @@ double GetSelectedTotalSize(int Win);
 int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Base, int *CancelCheckWork);
 void MakeDroppedFileList(WPARAM wParam, char *Cur, std::vector<FILELIST>& Base);
 void MakeDroppedDir(WPARAM wParam, char *Cur);
-void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, std::vector<FILELIST>& Base);
+void AddRemoteTreeToFileList(int Num, const char *Path, int IncDir, std::vector<FILELIST>& Base);
 const FILELIST* SearchFileList(const char* Fname, std::vector<FILELIST> const& Base, int Caps);
 static inline FILELIST* SearchFileList(const char* Fname, std::vector<FILELIST>& Base, int Caps) {
 	return const_cast<FILELIST*>(SearchFileList(Fname, static_cast<std::vector<FILELIST> const&>(Base), Caps));
@@ -900,7 +900,7 @@ int ProcForNonFullpath(SOCKET cSkt, char *Path, char *CurDir, HWND hWnd, int *Ca
 void ReformToVMSstyleDirName(char *Path);
 void ReformToVMSstylePathName(char *Path);
 #if defined(HAVE_OPENVMS)
-void ReformVMSDirName(char *DirName, int Flg);
+std::string ReformVMSDirName(std::string&& dirName);
 #endif
 // 自動切断対策
 void NoopProc(int Force);

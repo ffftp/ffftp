@@ -49,8 +49,8 @@ protected:
 public:
 	Config(Config const&) = delete;
 	virtual ~Config() = default;
-	virtual std::unique_ptr<Config> OpenSubKey(char* Name) = 0;
-	virtual std::unique_ptr<Config> CreateSubKey(char* Name) = 0;
+	virtual std::unique_ptr<Config> OpenSubKey(const char* Name) = 0;
+	virtual std::unique_ptr<Config> CreateSubKey(const char* Name) = 0;
 	int ReadIntValueFromReg(std::string_view name, int* value) const {
 		if (ReadInt(name, *value)) {
 			Xor(name, value, sizeof(int), false);
@@ -862,8 +862,8 @@ int LoadRegistry(void)
 	char Buf[FMAX_PATH+1];
 	// 全設定暗号化対応
 	char Buf2[FMAX_PATH+1];
-	char *Pos;
-	char *Pos2;
+	const char *Pos;
+	const char *Pos2;
 	int Sts;
 	int Version;
 
@@ -1645,12 +1645,12 @@ struct IniConfig : Config {
 			}
 		}
 	}
-	std::unique_ptr<Config> OpenSubKey(char* Name) override {
+	std::unique_ptr<Config> OpenSubKey(const char* Name) override {
 		if (auto const keyName = KeyName + '\\' + Name; map->contains(keyName))
 			return std::make_unique<IniConfig>(keyName, *this);
 		return {};
 	}
-	std::unique_ptr<Config> CreateSubKey(char* Name) override {
+	std::unique_ptr<Config> CreateSubKey(const char* Name) override {
 		return std::make_unique<IniConfig>(KeyName + '\\' + Name, *this);
 	}
 	const char* Scan(std::string_view name) const {
@@ -1701,12 +1701,12 @@ struct RegConfig : Config {
 	~RegConfig() override {
 		RegCloseKey(hKey);
 	}
-	std::unique_ptr<Config> OpenSubKey(char* Name) override {
+	std::unique_ptr<Config> OpenSubKey(const char* Name) override {
 		if (HKEY key; RegOpenKeyExW(hKey, u8(Name).c_str(), 0, KEY_READ, &key) == ERROR_SUCCESS)
 			return std::make_unique<RegConfig>(KeyName + '\\' + Name, key);
 		return {};
 	}
-	std::unique_ptr<Config> CreateSubKey(char* Name) override {
+	std::unique_ptr<Config> CreateSubKey(const char* Name) override {
 		if (HKEY key; RegCreateKeyExW(hKey, u8(Name).c_str(), 0, nullptr, 0, KEY_SET_VALUE, nullptr, &key, nullptr) == ERROR_SUCCESS)
 			return std::make_unique<RegConfig>(KeyName + '\\' + Name, key);
 		return {};
