@@ -72,7 +72,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 static void StartupProc(std::vector<std::wstring_view> const& args);
 static std::optional<int> AnalyzeComLine(std::vector<std::wstring_view> const& args, std::wstring& hostname, std::wstring& unc);
 static void ExitProc(HWND hWnd);
-static void ChangeDir(int Win, char *Path);
+static void ChangeDir(int Win, const char *Path);
 static void ResizeWindowProc(void);
 static void CalcWinSize(void);
 static void CheckResizeFrame(WPARAM Keys, int x, int y);
@@ -1879,7 +1879,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 *		フォルダ同時移動の処理も行う
 *----------------------------------------------------------------------------*/
 
-static void ChangeDir(int Win, char *Path)
+static void ChangeDir(int Win, const char *Path)
 {
 	int Sync;
 	char Remote[FMAX_PATH+1];

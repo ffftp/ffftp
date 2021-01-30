@@ -52,7 +52,7 @@ static int MakeRemoteTree1(char *Path, char *Cur, std::vector<FILELIST>& Base, i
 static int MakeRemoteTree2(char *Path, char *Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
 static void CopyTmpListToFileList(std::vector<FILELIST>& Base, std::vector<FILELIST> const& List);
 static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLine(int Num);
-static int MakeDirPath(char *Str, char *Path, char *Dir);
+static int MakeDirPath(const char *Str, const char *Path, char *Dir);
 static bool MakeLocalTree(const char *Path, std::vector<FILELIST>& Base);
 static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base);
 static int AskFilterStr(const char *Fname, int Type);
@@ -1962,7 +1962,7 @@ static void CopyTmpListToFileList(std::vector<FILELIST>& Base, std::vector<FILEL
 
 
 // ホスト側のファイル情報をファイルリストに登録
-void AddRemoteTreeToFileList(int Num, char *Path, int IncDir, std::vector<FILELIST>& Base) {
+void AddRemoteTreeToFileList(int Num, const char *Path, int IncDir, std::vector<FILELIST>& Base) {
 	char Dir[FMAX_PATH+1];
 	strcpy(Dir, Path);
 	if (auto lines = GetListLine(Num))
@@ -2424,7 +2424,7 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 *			FFFTP_SUCCESS/FFFTP_FAIL=ディレクトリ情報でない
 *----------------------------------------------------------------------------*/
 
-static int MakeDirPath(char *Str, char *Path, char *Dir)
+static int MakeDirPath(const char *Str, const char *Path, char *Dir)
 {
 	int Sts;
 

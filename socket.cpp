@@ -167,7 +167,7 @@ BOOL LoadSSL() {
 	//   有効になっているプロトコルを調べ、SSL 2.0が無効かつTLS 1.2が無効な場合は開き直す。
 	//   排他となるプロトコルがあるため、有効になっているプロトコルのうちSSL 3.0以降とTLS 1.2を指定してオープンする。
 	static_assert((SP_PROT_TLS1_1PLUS_CLIENT & ~(SP_PROT_TLS1_1_CLIENT | SP_PROT_TLS1_2_CLIENT | SP_PROT_TLS1_3_CLIENT)) == 0, "new tls version detected.");
-	if (auto ss = AcquireCredentialsHandleW(nullptr, UNISP_NAME_W, SECPKG_CRED_OUTBOUND, nullptr, nullptr, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
+	if (auto ss = AcquireCredentialsHandleW(nullptr, const_cast<wchar_t*>(UNISP_NAME_W), SECPKG_CRED_OUTBOUND, nullptr, nullptr, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
 		_RPTWN(_CRT_WARN, L"AcquireCredentialsHandle error: %08X.\n", ss);
 		return FALSE;
 	}
@@ -180,7 +180,7 @@ BOOL LoadSSL() {
 		FreeCredentialsHandle(&credential);
 		SCHANNEL_CRED sc{ SCHANNEL_CRED_VERSION };
 		sc.grbitEnabledProtocols = sp.grbitProtocol & (SP_PROT_SSL3_CLIENT | SP_PROT_TLS1_0_CLIENT | SP_PROT_TLS1_1_CLIENT | SP_PROT_TLS1_2_CLIENT | SP_PROT_TLS1_3_CLIENT) | SP_PROT_TLS1_2_CLIENT;
-		if (auto ss = AcquireCredentialsHandleW(nullptr, UNISP_NAME_W, SECPKG_CRED_OUTBOUND, nullptr, &sc, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
+		if (auto ss = AcquireCredentialsHandleW(nullptr, const_cast<wchar_t*>(UNISP_NAME_W), SECPKG_CRED_OUTBOUND, nullptr, &sc, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
 			_RPTWN(_CRT_WARN, L"AcquireCredentialsHandle error: %08X.\n", ss);
 			return FALSE;
 		}
