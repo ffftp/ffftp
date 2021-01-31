@@ -262,7 +262,7 @@ void DownloadProc(int ChName, int ForceFile, int All)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void DirectDownloadProc(char *Fname)
+void DirectDownloadProc(const char* Fname)
 {
 	TRANSPACKET Pkt;
 	// ディレクトリ自動作成
@@ -370,12 +370,6 @@ void DirectDownloadProc(char *Fname)
 	return;
 }
 
-
-// 入力されたファイル名のファイルを一つダウンロードする
-void InputDownloadProc() {
-	if (char Path[FMAX_PATH + 1] = ""; InputDialog(downname_dlg, GetMainHwnd(), 0, Path, FMAX_PATH))
-		DirectDownloadProc(Path);
-}
 
 struct MirrorList {
 	using result_t = bool;
@@ -2112,12 +2106,12 @@ void MkdirProc(void)
 {
 	CancelFlg = NO;
 	auto [Win, titleId] = GetFocus() == GetLocalHwnd() ? std::tuple{ WIN_LOCAL, IDS_MSGJPN070 } : std::tuple{ WIN_REMOTE, IDS_MSGJPN071 };
-	if (char Path[FMAX_PATH + 1] = ""; InputDialog(mkdir_dlg, GetMainHwnd(), titleId, Path, FMAX_PATH + 1) && strlen(Path) != 0)
+	if (std::wstring path; InputDialog(mkdir_dlg, GetMainHwnd(), titleId, path, FMAX_PATH + 1) && !empty(path))
 	{
 		if(Win == WIN_LOCAL)
 		{
 			DisableUserOpe();
-			DoLocalMKD(fs::u8path(Path));
+			DoLocalMKD(path);
 			GetLocalDirForWnd();
 			EnableUserOpe();
 		}
@@ -2126,7 +2120,7 @@ void MkdirProc(void)
 			if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 			{
 				DisableUserOpe();
-				DoMKD(Path);
+				DoMKD(u8(path).c_str());
 				GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
 				EnableUserOpe();
 			}
@@ -2228,7 +2222,10 @@ void ChangeDirDirectProc(int Win)
 			result = true;
 	}
 	else
-		result = InputDialog(chdir_dlg, GetMainHwnd(), IDS_MSGJPN073, Path, FMAX_PATH+1);
+		if (std::wstring wPath; InputDialog(chdir_dlg, GetMainHwnd(), IDS_MSGJPN073, wPath, FMAX_PATH + 1)) {
+			strcpy(Path, u8(wPath).c_str());
+			result = true;
+		}
 
 	if(result && strlen(Path) != 0)
 	{
@@ -2506,11 +2503,9 @@ void SomeCmdProc(void)
 			DisableUserOpe();
 			std::vector<FILELIST> FileListBase;
 			MakeSelectedFileList(WIN_REMOTE, NO, NO, FileListBase, &CancelFlg);
-			char Cmd[81] = {};
-			if (!empty(FileListBase))
-				strncpy(Cmd, FileListBase[0].File, 80);
-			if (InputDialog(somecmd_dlg, GetMainHwnd(), 0, Cmd, 81, nullptr, IDH_HELP_TOPIC_0000023))
-				DoQUOTE(AskCmdCtrlSkt(), Cmd, &CancelFlg);
+			auto cmd = empty(FileListBase) ? L""s : u8(FileListBase[0].File);
+			if (InputDialog(somecmd_dlg, GetMainHwnd(), 0, cmd, 81, nullptr, IDH_HELP_TOPIC_0000023))
+				DoQUOTE(AskCmdCtrlSkt(), u8(cmd).c_str(), &CancelFlg);
 			EnableUserOpe();
 		}
 	}
@@ -2743,10 +2738,12 @@ void ReformToVMSstylePathName(char *Path)
 //   Fnameを直接書きかえる
 static int RenameUnuseableName(char* Fname) {
 	static boost::regex re{ R"([:*?<>|"\\])" };
-	for (;;) {
+	for (auto wFname = u8(Fname);;) {
 		if (!boost::regex_search(Fname, re))
 			return FFFTP_SUCCESS;
-		if (!InputDialog(forcerename_dlg, GetMainHwnd(), 0, Fname, FMAX_PATH + 1))
+		auto result = InputDialog(forcerename_dlg, GetMainHwnd(), 0, wFname, FMAX_PATH + 1);
+		strcpy(Fname, u8(wFname).c_str());
+		if (!result)
 			return FFFTP_FAIL;
 	}
 }

@@ -874,8 +874,7 @@ fs::path MakeCacheFileName(int Num);
 /*===== ftpproc.c =====*/
 
 void DownloadProc(int ChName, int ForceFile, int All);
-void DirectDownloadProc(char *Fname);
-void InputDownloadProc(void);
+void DirectDownloadProc(const char* Fname);
 void MirrorDownloadProc(int Notify);
 void UploadListProc(int ChName, int All);
 void UploadDragProc(WPARAM wParam);
@@ -1022,7 +1021,6 @@ int SortSetting(void);
 int GetDecimalText(HWND hDlg, int Ctrl);
 void SetDecimalText(HWND hDlg, int Ctrl, int Num);
 void CheckRange2(int *Cur, int Max, int Min);
-void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize);
 void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text);
 void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize);
 
@@ -1356,20 +1354,20 @@ static inline auto NormalizeString(NORM_FORM form, std::wstring_view src) {
 		return std::wstring{ src };
 	return convert<wchar_t>([form](auto src, auto srclen, auto dst, auto dstlen) { return NormalizeString(form, src, srclen, dst, dstlen); }, src);
 }
-static inline auto InputDialog(int dialogId, HWND parent, UINT titleId, char *Buf, size_t maxlength = 0, int* flag = nullptr, int helpTopicId = IDH_HELP_TOPIC_0000001) {
+static inline auto InputDialog(int dialogId, HWND parent, UINT titleId, std::wstring& text, size_t maxlength = 0, int* flag = nullptr, int helpTopicId = IDH_HELP_TOPIC_0000001) {
 	struct Data {
 		using result_t = bool;
 		UINT titleId;
-		char* Buf;
+		std::wstring& text;
 		size_t maxlength;
 		int* flag;
 		int helpTopicId;
-		Data(UINT titleId, char* Buf, size_t maxlength, int* flag, int helpTopicId) : titleId{ titleId }, Buf{ Buf }, maxlength{ maxlength }, flag{ flag }, helpTopicId{ helpTopicId } {}
+		Data(UINT titleId, std::wstring& text, size_t maxlength, int* flag, int helpTopicId) : titleId{ titleId }, text{ text }, maxlength{ maxlength }, flag{ flag }, helpTopicId{ helpTopicId } {}
 		INT_PTR OnInit(HWND hDlg) {
 			if (titleId != 0)
 				SetText(hDlg, GetString(titleId));
 			SendDlgItemMessageW(hDlg, INP_INPSTR, EM_LIMITTEXT, maxlength - 1, 0);
-			SetText(hDlg, INP_INPSTR, u8(Buf));
+			SetText(hDlg, INP_INPSTR, text);
 			if (flag)
 				SendDlgItemMessageW(hDlg, INP_ANONYMOUS, BM_SETCHECK, *flag, 0);
 			return TRUE;
@@ -1377,7 +1375,7 @@ static inline auto InputDialog(int dialogId, HWND parent, UINT titleId, char *Bu
 		void OnCommand(HWND hDlg, WORD id) {
 			switch (id) {
 			case IDOK:
-				strncpy(Buf, u8(GetText(hDlg, INP_INPSTR)).c_str(), maxlength - 1);
+				text = GetText(hDlg, INP_INPSTR);
 				if (flag)
 					*flag = (int)SendDlgItemMessageW(hDlg, INP_ANONYMOUS, BM_GETCHECK, 0, 0);
 				EndDialog(hDlg, true);
@@ -1395,7 +1393,7 @@ static inline auto InputDialog(int dialogId, HWND parent, UINT titleId, char *Bu
 			}
 		}
 	};
-	return Dialog(GetFtpInst(), dialogId, parent, Data{ titleId, Buf, maxlength, flag, helpTopicId });
+	return Dialog(GetFtpInst(), dialogId, parent, Data{ titleId, text, maxlength, flag, helpTopicId });
 }
 struct ProcessInformation : PROCESS_INFORMATION {
 	ProcessInformation() : PROCESS_INFORMATION{ INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE } {}

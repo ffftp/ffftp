@@ -1459,7 +1459,13 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 						else
 						{
 							Anony = NO;
-							if (strlen(User) != 0 || HostData->NoDisplayUI == NO && InputDialog(username_dlg, GetMainHwnd(), 0, User, USER_NAME_LEN+1, &Anony))
+							auto hasUser = strlen(User) != 0;
+							if (!hasUser && HostData->NoDisplayUI == NO)
+								if (std::wstring wUser; InputDialog(username_dlg, GetMainHwnd(), 0, wUser, USER_NAME_LEN + 1, &Anony)) {
+									strcpy(User, u8(wUser).c_str());
+									hasUser = true;
+								}
+							if (hasUser)
 							{
 								if(Anony == YES)
 								{
@@ -1526,7 +1532,13 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 //									if((Sts = command(ContSock, Reply, &CancelFlg, "USER %s", Buf) / 100) == FTP_CONTINUE)
 									if((Sts = command(ContSock, Reply, CancelCheckWork, "USER %s", Buf) / 100) == FTP_CONTINUE)
 									{
-										if (strlen(Pass) != 0 || HostData->NoDisplayUI == NO && InputDialog(passwd_dlg, GetMainHwnd(), 0, Pass, PASSWORD_LEN+1))
+										auto hasPassword = strlen(Pass) != 0;
+										if (!hasPassword && HostData->NoDisplayUI == NO)
+											if (std::wstring wPass; InputDialog(passwd_dlg, GetMainHwnd(), 0, wPass, PASSWORD_LEN + 1)) {
+												strcpy(Pass, u8(wPass).c_str());
+												hasPassword = true;
+											}
+										if (hasPassword)
 										{
 											CheckOneTimePassword(Pass, Reply, Security);
 
@@ -1539,16 +1551,24 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 											Sts = command(ContSock, NULL, CancelCheckWork, "PASS %s", Reply) / 100;
 											if(Sts == FTP_ERROR)
 											{
-												strcpy(Pass, "");
-												if (HostData->NoDisplayUI == NO && InputDialog(re_passwd_dlg, GetMainHwnd(), 0, Pass, PASSWORD_LEN+1))
+												if (std::wstring wPass; HostData->NoDisplayUI == NO && InputDialog(re_passwd_dlg, GetMainHwnd(), 0, wPass, PASSWORD_LEN + 1)) {
+													strcpy(Pass, u8(wPass).c_str());
 													Continue = YES;
-												else
+												} else {
+													strcpy(Pass, "");
 													DoPrintf(L"No password specified.");
+												}
 												ReInPass = YES;
 											}
 											else if(Sts == FTP_CONTINUE)
 											{
-												if (strlen(Acct) != 0 || HostData->NoDisplayUI == NO && InputDialog(account_dlg, GetMainHwnd(), 0, Acct, ACCOUNT_LEN+1))
+												auto hasAcct = strlen(Acct) != 0;
+												if (!hasAcct && HostData->NoDisplayUI == NO)
+													if (std::wstring wAcct; InputDialog(account_dlg, GetMainHwnd(), 0, wAcct, ACCOUNT_LEN + 1)) {
+														strcpy(Acct, u8(wAcct).c_str());
+														hasAcct = true;
+													}
+												if (hasAcct)
 												{
 													// 同時接続対応
 //													Sts = command(ContSock, NULL, &CancelFlg, "ACCT %s", Acct) / 100;
