@@ -47,7 +47,7 @@ static void DeleteAllDir(std::vector<FILELIST> const& Dt, int Win, int *Sw, int 
 static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, char *CurDir);
 static void SetAttrToDialog(HWND hWnd, int Attr);
 static int GetAttrFromDialog(HWND hDlg);
-static int RenameUnuseableName(char *Fname);
+static std::wstring RenameUnuseableName(std::wstring&& filename);
 
 /* 設定値 */
 extern int FnameCnv;
@@ -167,13 +167,14 @@ void DownloadProc(int ChName, int ForceFile, int All)
 				else if (FnameCnv == FNAME_UPPER)
 					_strupr(TmpString);
 				RemoveAfterSemicolon(TmpString);
-				if (RenameUnuseableName(TmpString) == FFFTP_FAIL)
-					break;
 			} else {
-				if (!UpDownAsDialog(WIN_REMOTE) || RenameUnuseableName(TmpString) == FFFTP_FAIL)
+				if (!UpDownAsDialog(WIN_REMOTE))
 					break;
 			}
-			strcat(Pkt.LocalFile, TmpString);
+			if (auto const filename = RenameUnuseableName(u8(TmpString)); empty(filename))
+				break;
+			else
+				strcat(Pkt.LocalFile, u8(filename).c_str());
 			ReplaceAll(Pkt.LocalFile, '/', '\\');
 
 			if (ForceFile == NO && f.Node == NODE_DIR) {
@@ -296,9 +297,9 @@ void DirectDownloadProc(const char* Fname)
 				_strupr(TmpString);
 			RemoveAfterSemicolon(TmpString);
 
-			if(RenameUnuseableName(TmpString) == FFFTP_SUCCESS)
+			if (auto const filename = RenameUnuseableName(u8(TmpString)); !empty(filename))
 			{
-				strcat(Pkt.LocalFile, TmpString);
+				strcat(Pkt.LocalFile, u8(filename).c_str());
 				ReplaceAll(Pkt.LocalFile, '/', '\\');
 
 				if(AskHostType() == HTYPE_ACOS)
@@ -2704,16 +2705,12 @@ void ReformToVMSstylePathName(char *Path)
 
 
 // ファイル名に使えない文字がないかチェックし名前を変更する
-//   Fnameを直接書きかえる
-static int RenameUnuseableName(char* Fname) {
-	static boost::regex re{ R"([:*?<>|"\\])" };
-	for (auto wFname = u8(Fname);;) {
-		if (!boost::regex_search(Fname, re))
-			return FFFTP_SUCCESS;
-		auto result = InputDialog(forcerename_dlg, GetMainHwnd(), 0, wFname, FMAX_PATH + 1);
-		strcpy(Fname, u8(wFname).c_str());
-		if (!result)
-			return FFFTP_FAIL;
+static std::wstring RenameUnuseableName(std::wstring&& filename) {
+	for (;;) {
+		if (filename.find_first_of(LR"(:*?<>|"\)"sv) == std::wstring::npos)
+			return filename;
+		if (!InputDialog(forcerename_dlg, GetMainHwnd(), 0, filename, FMAX_PATH + 1))
+			return {};
 	}
 }
 
