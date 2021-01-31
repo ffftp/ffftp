@@ -1101,7 +1101,7 @@ int AttrString2Value(const char *Str);
 void AttrValue2String(int Attr, char *Buf, int ShowNumber);
 void FormatIniString(char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
-int SelectDir(HWND hWnd, char *Buf, size_t MaxLen);
+fs::path SelectDir(HWND hWnd);
 std::string MakeNumString(LONGLONG Num);
 fs::path MakeDistinguishableFileName(fs::path&& path);
 #if defined(HAVE_TANDEM)
@@ -1387,8 +1387,8 @@ static inline auto InputDialog(int dialogId, HWND parent, UINT titleId, std::wst
 				ShowHelp(helpTopicId);
 				break;
 			case INP_BROWSE:
-				if (char Tmp[FMAX_PATH + 1]; SelectDir(hDlg, Tmp, FMAX_PATH) == TRUE)
-					SetText(hDlg, INP_INPSTR, u8(Tmp));
+				if (auto path = SelectDir(hDlg); !path.empty())
+					SetText(hDlg, INP_INPSTR, path);
 				break;
 			}
 		}

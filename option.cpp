@@ -267,8 +267,8 @@ struct Transfer2 {
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
 		case TRMODE2_LOCAL_BR:
-			if (char Tmp[FMAX_PATH + 1]; SelectDir(hDlg, Tmp, FMAX_PATH) == TRUE)
-				SetText(hDlg, TRMODE2_LOCAL, u8(Tmp));
+			if (auto path = SelectDir(hDlg); !path.empty())
+				SetText(hDlg, TRMODE2_LOCAL, path);
 			break;
 		}
 	}

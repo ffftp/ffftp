@@ -906,8 +906,8 @@ struct General {
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
 		case HSET_LOCAL_BR:
-			if (SelectDir(hDlg, TmpHost.LocalInitDir, INIT_DIR_LEN) == TRUE)
-				SetText(hDlg, HSET_LOCAL, u8(TmpHost.LocalInitDir));
+			if (auto path = SelectDir(hDlg); !path.empty())
+				SetText(hDlg, HSET_LOCAL, path);
 			break;
 		case HSET_REMOTE_CUR:
 			SetText(hDlg, HSET_REMOTE, AskRemoteCurDir());

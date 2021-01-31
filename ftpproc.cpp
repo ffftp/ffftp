@@ -2199,55 +2199,24 @@ void ChangeDirBmarkProc(int MarkID)
 }
 
 
-/*----- ディレクトリ名を入力してディレクトリの移動 ----------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void ChangeDirDirectProc(int Win)
-{
-	bool result = false;
-	char Path[FMAX_PATH+1];
-
-	// 同時接続対応
+// ディレクトリ名を入力してディレクトリの移動
+void ChangeDirDirectProc(int Win) {
 	CancelFlg = NO;
-	strcpy(Path, "");
-	if(Win == WIN_LOCAL)
-	{
-		if(SelectDir(GetMainHwnd(), Path, FMAX_PATH) == TRUE)
-			result = true;
-	}
-	else
-		if (std::wstring wPath; InputDialog(chdir_dlg, GetMainHwnd(), IDS_MSGJPN073, wPath, FMAX_PATH + 1)) {
-			strcpy(Path, u8(wPath).c_str());
-			result = true;
-		}
-
-	if(result && strlen(Path) != 0)
-	{
-		if(Win == WIN_LOCAL)
-		{
+	if (Win == WIN_LOCAL) {
+		if (auto const path = SelectDir(GetMainHwnd()); !path.empty()) {
 			DisableUserOpe();
-			DoLocalCWD(fs::u8path(Path));
+			DoLocalCWD(path);
 			GetLocalDirForWnd();
 			EnableUserOpe();
 		}
-		else
-		{
-			if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
-			{
-				DisableUserOpe();
-				if(DoCWD(Path, YES, NO, YES) < FTP_RETRY)
-					GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
-				EnableUserOpe();
-			}
+	} else {
+		if (std::wstring path; InputDialog(chdir_dlg, GetMainHwnd(), IDS_MSGJPN073, path, FMAX_PATH + 1) && !path.empty() && CheckClosedAndReconnect() == FFFTP_SUCCESS) {
+			DisableUserOpe();
+			if (DoCWD(u8(path).c_str(), YES, NO, YES) < FTP_RETRY)
+				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
+			EnableUserOpe();
 		}
 	}
-	return;
 }
 
 
