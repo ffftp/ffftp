@@ -894,32 +894,20 @@ fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFi
 }
 
 
-/*----- ディレクトリを選択 ----------------------------------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		char *Buf : ディレクトリ名を返すバッファ（初期ディレクトリ名）
-*		int MaxLen : バッファのサイズ
-*
-*	Return Value
-*		int ステータス
-*			TRUE/FALSE=取消
-*----------------------------------------------------------------------------*/
-
-int SelectDir(HWND hWnd, char *Buf, size_t MaxLen) {
-	int result = FALSE;
+// ディレクトリを選択
+fs::path SelectDir(HWND hWnd) {
+	fs::path path;
 	auto const cwd = fs::current_path();
-	wchar_t buffer[FMAX_PATH + 1];
 	auto const title = GetString(IDS_MSGJPN185);
-	BROWSEINFOW bi{ hWnd, nullptr, buffer, title.c_str(), BIF_RETURNONLYFSDIRS };
+	BROWSEINFOW bi{ hWnd, nullptr, nullptr, title.c_str(), BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE };
 	if (auto idlist = SHBrowseForFolderW(&bi)) {
-		SHGetPathFromIDListW(idlist, buffer);
-		strncpy(Buf, u8(buffer).c_str(), MaxLen - 1);
-		result = TRUE;
+		wchar_t buffer[FMAX_PATH + 1];
+		SHGetPathFromIDListEx(idlist, buffer, size_as<DWORD>(buffer), GPFIDL_DEFAULT);
+		path = buffer;
 		CoTaskMemFree(idlist);
 	}
 	fs::current_path(cwd);
-	return result;
+	return path;
 }
 
 

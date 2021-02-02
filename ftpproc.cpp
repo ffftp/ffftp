@@ -47,7 +47,7 @@ static void DeleteAllDir(std::vector<FILELIST> const& Dt, int Win, int *Sw, int 
 static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, char *CurDir);
 static void SetAttrToDialog(HWND hWnd, int Attr);
 static int GetAttrFromDialog(HWND hDlg);
-static int RenameUnuseableName(char *Fname);
+static std::wstring RenameUnuseableName(std::wstring&& filename);
 
 /* 設定値 */
 extern int FnameCnv;
@@ -167,13 +167,14 @@ void DownloadProc(int ChName, int ForceFile, int All)
 				else if (FnameCnv == FNAME_UPPER)
 					_strupr(TmpString);
 				RemoveAfterSemicolon(TmpString);
-				if (RenameUnuseableName(TmpString) == FFFTP_FAIL)
-					break;
 			} else {
-				if (!UpDownAsDialog(WIN_REMOTE) || RenameUnuseableName(TmpString) == FFFTP_FAIL)
+				if (!UpDownAsDialog(WIN_REMOTE))
 					break;
 			}
-			strcat(Pkt.LocalFile, TmpString);
+			if (auto const filename = RenameUnuseableName(u8(TmpString)); empty(filename))
+				break;
+			else
+				strcat(Pkt.LocalFile, u8(filename).c_str());
 			ReplaceAll(Pkt.LocalFile, '/', '\\');
 
 			if (ForceFile == NO && f.Node == NODE_DIR) {
@@ -262,7 +263,7 @@ void DownloadProc(int ChName, int ForceFile, int All)
 *		なし
 *----------------------------------------------------------------------------*/
 
-void DirectDownloadProc(char *Fname)
+void DirectDownloadProc(const char* Fname)
 {
 	TRANSPACKET Pkt;
 	// ディレクトリ自動作成
@@ -296,9 +297,9 @@ void DirectDownloadProc(char *Fname)
 				_strupr(TmpString);
 			RemoveAfterSemicolon(TmpString);
 
-			if(RenameUnuseableName(TmpString) == FFFTP_SUCCESS)
+			if (auto const filename = RenameUnuseableName(u8(TmpString)); !empty(filename))
 			{
-				strcat(Pkt.LocalFile, TmpString);
+				strcat(Pkt.LocalFile, u8(filename).c_str());
 				ReplaceAll(Pkt.LocalFile, '/', '\\');
 
 				if(AskHostType() == HTYPE_ACOS)
@@ -370,12 +371,6 @@ void DirectDownloadProc(char *Fname)
 	return;
 }
 
-
-// 入力されたファイル名のファイルを一つダウンロードする
-void InputDownloadProc() {
-	if (char Path[FMAX_PATH + 1] = ""; InputDialog(downname_dlg, GetMainHwnd(), 0, Path, FMAX_PATH))
-		DirectDownloadProc(Path);
-}
 
 struct MirrorList {
 	using result_t = bool;
@@ -2112,12 +2107,12 @@ void MkdirProc(void)
 {
 	CancelFlg = NO;
 	auto [Win, titleId] = GetFocus() == GetLocalHwnd() ? std::tuple{ WIN_LOCAL, IDS_MSGJPN070 } : std::tuple{ WIN_REMOTE, IDS_MSGJPN071 };
-	if (char Path[FMAX_PATH + 1] = ""; InputDialog(mkdir_dlg, GetMainHwnd(), titleId, Path, FMAX_PATH + 1) && strlen(Path) != 0)
+	if (std::wstring path; InputDialog(mkdir_dlg, GetMainHwnd(), titleId, path, FMAX_PATH + 1) && !empty(path))
 	{
 		if(Win == WIN_LOCAL)
 		{
 			DisableUserOpe();
-			DoLocalMKD(fs::u8path(Path));
+			DoLocalMKD(path);
 			GetLocalDirForWnd();
 			EnableUserOpe();
 		}
@@ -2126,7 +2121,7 @@ void MkdirProc(void)
 			if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 			{
 				DisableUserOpe();
-				DoMKD(Path);
+				DoMKD(u8(path).c_str());
 				GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
 				EnableUserOpe();
 			}
@@ -2205,52 +2200,24 @@ void ChangeDirBmarkProc(int MarkID)
 }
 
 
-/*----- ディレクトリ名を入力してディレクトリの移動 ----------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void ChangeDirDirectProc(int Win)
-{
-	bool result = false;
-	char Path[FMAX_PATH+1];
-
-	// 同時接続対応
+// ディレクトリ名を入力してディレクトリの移動
+void ChangeDirDirectProc(int Win) {
 	CancelFlg = NO;
-	strcpy(Path, "");
-	if(Win == WIN_LOCAL)
-	{
-		if(SelectDir(GetMainHwnd(), Path, FMAX_PATH) == TRUE)
-			result = true;
-	}
-	else
-		result = InputDialog(chdir_dlg, GetMainHwnd(), IDS_MSGJPN073, Path, FMAX_PATH+1);
-
-	if(result && strlen(Path) != 0)
-	{
-		if(Win == WIN_LOCAL)
-		{
+	if (Win == WIN_LOCAL) {
+		if (auto const path = SelectDir(GetMainHwnd()); !path.empty()) {
 			DisableUserOpe();
-			DoLocalCWD(fs::u8path(Path));
+			DoLocalCWD(path);
 			GetLocalDirForWnd();
 			EnableUserOpe();
 		}
-		else
-		{
-			if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
-			{
-				DisableUserOpe();
-				if(DoCWD(Path, YES, NO, YES) < FTP_RETRY)
-					GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
-				EnableUserOpe();
-			}
+	} else {
+		if (std::wstring path; InputDialog(chdir_dlg, GetMainHwnd(), IDS_MSGJPN073, path, FMAX_PATH + 1) && !path.empty() && CheckClosedAndReconnect() == FFFTP_SUCCESS) {
+			DisableUserOpe();
+			if (DoCWD(u8(path).c_str(), YES, NO, YES) < FTP_RETRY)
+				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
+			EnableUserOpe();
 		}
 	}
-	return;
 }
 
 
@@ -2506,11 +2473,9 @@ void SomeCmdProc(void)
 			DisableUserOpe();
 			std::vector<FILELIST> FileListBase;
 			MakeSelectedFileList(WIN_REMOTE, NO, NO, FileListBase, &CancelFlg);
-			char Cmd[81] = {};
-			if (!empty(FileListBase))
-				strncpy(Cmd, FileListBase[0].File, 80);
-			if (InputDialog(somecmd_dlg, GetMainHwnd(), 0, Cmd, 81, nullptr, IDH_HELP_TOPIC_0000023))
-				DoQUOTE(AskCmdCtrlSkt(), Cmd, &CancelFlg);
+			auto cmd = empty(FileListBase) ? L""s : u8(FileListBase[0].File);
+			if (InputDialog(somecmd_dlg, GetMainHwnd(), 0, cmd, 81, nullptr, IDH_HELP_TOPIC_0000023))
+				DoQUOTE(AskCmdCtrlSkt(), u8(cmd).c_str(), &CancelFlg);
 			EnableUserOpe();
 		}
 	}
@@ -2740,14 +2705,12 @@ void ReformToVMSstylePathName(char *Path)
 
 
 // ファイル名に使えない文字がないかチェックし名前を変更する
-//   Fnameを直接書きかえる
-static int RenameUnuseableName(char* Fname) {
-	static boost::regex re{ R"([:*?<>|"\\])" };
+static std::wstring RenameUnuseableName(std::wstring&& filename) {
 	for (;;) {
-		if (!boost::regex_search(Fname, re))
-			return FFFTP_SUCCESS;
-		if (!InputDialog(forcerename_dlg, GetMainHwnd(), 0, Fname, FMAX_PATH + 1))
-			return FFFTP_FAIL;
+		if (filename.find_first_of(LR"(:*?<>|"\)"sv) == std::wstring::npos)
+			return filename;
+		if (!InputDialog(forcerename_dlg, GetMainHwnd(), 0, filename, FMAX_PATH + 1))
+			return {};
 	}
 }
 

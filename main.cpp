@@ -954,7 +954,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 
 				case MENU_DOWNLOAD_NAME :
 					SetCurrentDirAsDirHist();
-					InputDownloadProc();
+					if (std::wstring path; InputDialog(downname_dlg, GetMainHwnd(), 0, path, FMAX_PATH))
+						DirectDownloadProc(u8(path).c_str());
 					break;
 
 				case MENU_UPLOAD :
@@ -2307,54 +2308,36 @@ int AskAutoExit(void)
 	return(AutoExit);
 }
 
-/*----- ユーザにパスワードを入力させ，それを設定する -----------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int : 0/ユーザキャンセル, 1/設定した, 2/デフォルト設定
-*----------------------------------------------------------------------------*/
-int EnterMasterPasswordAndSet(bool newpassword, HWND hWnd)
-{
-	char buf[MAX_PASSWORD_LEN + 1];
-	// パスワードの入力欄を非表示
-	// 非表示にしたため新しいパスワードを2回入力させる
-	char buf1[MAX_PASSWORD_LEN + 1];
-	char *p;
-
-	buf[0] = NUL;
-	if (InputDialog(newpassword ? newmasterpasswd_dlg : masterpasswd_dlg, hWnd, 0, buf, MAX_PASSWORD_LEN + 1, nullptr, IDH_HELP_TOPIC_0000064)){
-		// パスワードの入力欄を非表示
-		if (newpassword)
-		{
-			buf1[0] = NUL;
-			if (!InputDialog(newmasterpasswd_dlg, hWnd, 0, buf1, MAX_PASSWORD_LEN + 1, nullptr, IDH_HELP_TOPIC_0000064)){
-				return 0;
-			}
-			if(strcmp(buf, buf1) != 0)
-			{
-				Message(hWnd, IDS_PASSWORD_ISNOT_IDENTICAL, MB_OK | MB_ICONERROR);
-				return 0;
-			}
-		}
-		/* 末尾の空白を削除 */
-		RemoveTailingSpaces(buf);
-		/* 先頭の空白を削除 */
-		for( p = buf; *p == ' '; p++ )
-			;
-		
-		if( p[0] != NUL ){
-			SetMasterPassword( p );
-			return 1;
-		}
-		else {
-			/* 空の場合はデフォルト値を設定 */
-			SetMasterPassword( NULL );
-			return 2;
+// ユーザにパスワードを入力させ，それを設定する
+//   0/ユーザキャンセル, 1/設定した, 2/デフォルト設定
+int EnterMasterPasswordAndSet(bool newpassword, HWND hWnd) {
+	std::wstring pass1;
+	if (!InputDialog(newpassword ? newmasterpasswd_dlg : masterpasswd_dlg, hWnd, 0, pass1, MAX_PASSWORD_LEN + 1, nullptr, IDH_HELP_TOPIC_0000064))
+		return 0;
+	if (newpassword) {
+		// 新しいパスワードを2回入力させる
+		if (std::wstring pass2; !InputDialog(newmasterpasswd_dlg, hWnd, 0, pass2, MAX_PASSWORD_LEN + 1, nullptr, IDH_HELP_TOPIC_0000064))
+			return 0;
+		else if (pass1 != pass2) {
+			Message(hWnd, IDS_PASSWORD_ISNOT_IDENTICAL, MB_OK | MB_ICONERROR);
+			return 0;
 		}
 	}
-	return 0;
+
+	/* 末尾の空白を削除 */
+	if (auto pos = pass1.find_last_not_of(L' '); pos != std::wstring::npos && pos + 1 != size(pass1))
+		pass1.erase(pos + 1);
+	/* 先頭の空白を削除 */
+	if (auto pos = pass1.find_first_not_of(L' '); pos != std::wstring::npos && pos != 0)
+		pass1.erase(0, pos);
+
+	if (empty(pass1)) {
+		/* 空の場合はデフォルト値を設定 */
+		SetMasterPassword(nullptr);
+		return 2;
+	}
+	SetMasterPassword(u8(pass1).c_str());
+	return 1;
 }
 
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策

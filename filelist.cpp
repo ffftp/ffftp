@@ -101,7 +101,7 @@ static HIMAGELIST ListImg = NULL;
 // ファイルアイコン表示対応
 static HIMAGELIST ListImgFileIcon = NULL;
 
-static char FindStr[40+1] = { "*" };		/* 検索文字列 */
+static auto FindStr = L"*"s;		/* 検索文字列 */
 
 static int Dragging = NO;
 // 特定の操作を行うと異常終了するバグ修正
@@ -1148,7 +1148,7 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 		using result_t = bool;
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, SEL_FNAME, EM_LIMITTEXT, 40, 0);
-			SetText(hDlg, SEL_FNAME, u8(FindStr));
+			SetText(hDlg, SEL_FNAME, FindStr);
 			SendDlgItemMessageW(hDlg, SEL_REGEXP, BM_SETCHECK, FindMode, 0);
 			SendDlgItemMessageW(hDlg, SEL_NOOLD, BM_SETCHECK, IgnoreOld ? BST_CHECKED : BST_UNCHECKED, 0);
 			SendDlgItemMessageW(hDlg, SEL_NONEW, BM_SETCHECK, IgnoreNew ? BST_CHECKED : BST_UNCHECKED, 0);
@@ -1158,7 +1158,7 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 		void OnCommand(HWND hDlg, WORD id) {
 			switch (id) {
 			case IDOK:
-				strcpy(FindStr, u8(GetText(hDlg, SEL_FNAME)).c_str());
+				FindStr = GetText(hDlg, SEL_FNAME);
 				FindMode = (int)SendDlgItemMessageW(hDlg, SEL_REGEXP, BM_GETCHECK, 0, 0);
 				IgnoreOld = SendDlgItemMessageW(hDlg, SEL_NOOLD, BM_GETCHECK, 0, 0) == BST_CHECKED;
 				IgnoreNew = SendDlgItemMessageW(hDlg, SEL_NONEW, BM_GETCHECK, 0, 0) == BST_CHECKED;
@@ -1190,9 +1190,9 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 		try {
 			std::variant<std::wstring, boost::wregex> pattern;
 			if (FindMode == 0)
-				pattern = u8(FindStr);
+				pattern = FindStr;
 			else
-				pattern = boost::wregex{ u8(FindStr), boost::regex_constants::icase };
+				pattern = boost::wregex{ FindStr, boost::regex_constants::icase };
 			int CsrPos = -1;
 			for (int i = 0, Num = GetItemCount(Win); i < Num; i++) {
 				char Name[FMAX_PATH + 1];
@@ -1260,9 +1260,9 @@ void FindFileInList(HWND hWnd, int Type) {
 			return;
 		try {
 			if (FindMode == 0)
-				pattern = u8(FindStr);
+				pattern = FindStr;
 			else
-				pattern = boost::wregex{ u8(FindStr), boost::regex_constants::icase };
+				pattern = boost::wregex{ FindStr, boost::regex_constants::icase };
 		}
 		catch (boost::regex_error&) {
 			return;

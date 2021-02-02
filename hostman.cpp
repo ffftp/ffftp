@@ -151,7 +151,9 @@ struct HostList {
 			break;
 		case HOST_FOLDER:
 			CopyDefaultHost(&TmpHost);
-			if (int Level1 = -1; InputDialog(group_dlg, hDlg, 0, TmpHost.HostName, HOST_NAME_LEN + 1)) {
+			if (std::wstring wHostName; InputDialog(group_dlg, hDlg, 0, wHostName, HOST_NAME_LEN + 1)) {
+				strcpy(TmpHost.HostName, u8(wHostName).c_str());
+				int Level1 = -1;
 				if (auto hItem = (HTREEITEM)SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETNEXTITEM, TVGN_CARET, 0)) {
 					TVITEMW Item{ TVIF_PARAM, hItem };
 					SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
@@ -173,7 +175,13 @@ struct HostList {
 				CurrentHost = (int)Item.lParam;
 				CopyHostFromList(CurrentHost, &TmpHost);
 				int Level1 = IsNodeGroup(CurrentHost);
-				if (Level1 == NO && DispHostSetDlg(hDlg) || Level1 == YES && InputDialog(group_dlg, hDlg, 0, TmpHost.HostName, HOST_NAME_LEN + 1)) {
+				auto set = Level1 == NO && DispHostSetDlg(hDlg);
+				if (!set && Level1 == YES)
+					if (auto wHostName = u8(TmpHost.HostName); InputDialog(group_dlg, hDlg, 0, wHostName, HOST_NAME_LEN + 1)) {
+						strcpy(TmpHost.HostName, u8(wHostName).c_str());
+						set = true;
+					}
+				if (set) {
 					UpdateHostToList(CurrentHost, &TmpHost);
 					SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
 				}
@@ -898,8 +906,8 @@ struct General {
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
 		case HSET_LOCAL_BR:
-			if (SelectDir(hDlg, TmpHost.LocalInitDir, INIT_DIR_LEN) == TRUE)
-				SetText(hDlg, HSET_LOCAL, u8(TmpHost.LocalInitDir));
+			if (auto path = SelectDir(hDlg); !path.empty())
+				SetText(hDlg, HSET_LOCAL, path);
 			break;
 		case HSET_REMOTE_CUR:
 			SetText(hDlg, HSET_REMOTE, AskRemoteCurDir());

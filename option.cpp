@@ -48,7 +48,7 @@ static void GetFnameAttrFromListView(HWND hDlg, char *Buf);
 int GetDecimalText(HWND hDlg, int Ctrl);
 void SetDecimalText(HWND hDlg, int Ctrl, int Num);
 void CheckRange2(int *Cur, int Max, int Min);
-void AddTextToListBox(HWND hDlg, char *Str, int CtrlList, int BufSize);
+static void AddTextToListBox(HWND hDlg, std::wstring const& text, int CtrlList, int BufSize);
 void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text);
 void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize);
 
@@ -223,8 +223,8 @@ struct Transfer1 {
 			EnableWindow(GetDlgItem(hDlg, TRMODE_DEL), TRUE);
 			break;
 		case TRMODE_ADD:
-			if (char Tmp[FMAX_PATH + 1] = ""; InputDialog(fname_in_dlg, hDlg, IDS_MSGJPN199, Tmp, FMAX_PATH))
-				AddTextToListBox(hDlg, Tmp, TRMODE_EXT_LIST, ASCII_EXT_LEN + 1);
+			if (std::wstring text; InputDialog(fname_in_dlg, hDlg, IDS_MSGJPN199, text, FMAX_PATH))
+				AddTextToListBox(hDlg, text, TRMODE_EXT_LIST, ASCII_EXT_LEN + 1);
 			break;
 		case TRMODE_DEL:
 			if (auto Num = (int)SendDlgItemMessageW(hDlg, TRMODE_EXT_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
@@ -267,8 +267,8 @@ struct Transfer2 {
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
 		case TRMODE2_LOCAL_BR:
-			if (char Tmp[FMAX_PATH + 1]; SelectDir(hDlg, Tmp, FMAX_PATH) == TRUE)
-				SetText(hDlg, TRMODE2_LOCAL, u8(Tmp));
+			if (auto path = SelectDir(hDlg); !path.empty())
+				SetText(hDlg, TRMODE2_LOCAL, path);
 			break;
 		}
 	}
@@ -407,12 +407,12 @@ struct Mirroring {
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
 		case MIRROR_NOTRN_ADD:
-			if (char Tmp[FMAX_PATH + 1] = ""; InputDialog(fname_in_dlg, hDlg, IDS_MSGJPN199, Tmp, FMAX_PATH))
-				AddTextToListBox(hDlg, Tmp, MIRROR_NOTRN_LIST, MIRROR_LEN + 1);
+			if (std::wstring text; InputDialog(fname_in_dlg, hDlg, IDS_MSGJPN199, text, FMAX_PATH))
+				AddTextToListBox(hDlg, text, MIRROR_NOTRN_LIST, MIRROR_LEN + 1);
 			break;
 		case MIRROR_NODEL_ADD:
-			if (char Tmp[FMAX_PATH + 1] = ""; InputDialog(fname_in_dlg, hDlg, IDS_MSGJPN199, Tmp, FMAX_PATH))
-				AddTextToListBox(hDlg, Tmp, MIRROR_NODEL_LIST, MIRROR_LEN + 1);
+			if (std::wstring text; InputDialog(fname_in_dlg, hDlg, IDS_MSGJPN199, text, FMAX_PATH))
+				AddTextToListBox(hDlg, text, MIRROR_NODEL_LIST, MIRROR_LEN + 1);
 			break;
 		case MIRROR_NOTRN_DEL:
 			if (auto Num = (int)SendDlgItemMessageW(hDlg, MIRROR_NOTRN_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
@@ -927,25 +927,14 @@ void CheckRange2(int *Cur, int Max, int Min)
 }
 
 
-/*----- 文字列をリストボックスに追加 ------------------------------------------
-*
-*	Parameter
-*		HWND hDlg : ダイアログボックスのウインドウハンドル
-*		char *Str : 文字列
-*		int CtrlList : リストボックスのID
-*		int BufSize : バッファサイズ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-void AddTextToListBox(HWND hDlg, char* Str, int CtrlList, int BufSize) {
-	if (int Len = (int)strlen(Str); Len > 0) {
-		Len += 1 + size_as<int>(u8(GetMultiTextFromList(hDlg, CtrlList)));
-		if (Len > (BufSize - 1))
-			MessageBeep(-1);
-		else
-			SendDlgItemMessageW(hDlg, CtrlList, LB_ADDSTRING, 0, (LPARAM)u8(Str).c_str());
-	}
+// 文字列をリストボックスに追加
+static void AddTextToListBox(HWND hDlg, std::wstring const& text, int CtrlList, int BufSize) {
+	if (empty(text))
+		return;
+	if (BufSize - 1 < size_as<int>(u8(text)) + 1 + size_as<int>(u8(GetMultiTextFromList(hDlg, CtrlList))))
+		MessageBeep(-1);
+	else
+		SendDlgItemMessageW(hDlg, CtrlList, LB_ADDSTRING, 0, (LPARAM)text.c_str());
 }
 
 
