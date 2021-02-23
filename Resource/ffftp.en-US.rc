@@ -2626,7 +2626,6 @@ END
 STRINGTABLE
 BEGIN
     IDS_APP                 "FFFTP"
-    IDS_ERR_CRYPTO          "Crypto library initialize failed.\nExit application."
     IDS_ERR_SSL             "SSL initialize failed.\nExit application."
     IDS_SECURE              "Secure"
     IDS_NOTSECURE           "Not Secure"

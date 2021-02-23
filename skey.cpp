@@ -273,44 +273,22 @@ static const char Wp[2048][5] = {
 };
 
 
-static bool keycrunch(char* result, std::string_view const& seed, std::string_view const& passwd, ALG_ID algid) {
-	auto ret = false;
-	if (HCRYPTHASH hash; CryptCreateHash(HCryptProv, algid, 0, 0, &hash)) {
-		if (CryptHashData(hash, data_as<BYTE>(seed), size_as<DWORD>(seed), 0))
-			if (CryptHashData(hash, data_as<BYTE>(passwd), size_as<DWORD>(passwd), 0)) {
-				uint32_t hashVal[5];
-				DWORD hashlen = 20;
-				if (CryptGetHashParam(hash, HP_HASHVAL, reinterpret_cast<BYTE*>(hashVal), &hashlen, 0)) {
-					hashVal[0] ^= hashVal[2];
-					hashVal[1] ^= hashVal[3];
-					if (hashlen == 20)
-						hashVal[0] ^= hashVal[4];
-					/* Only works on byte-addressed little-endian machines!! */
-					memcpy(result, hashVal, 8);
-					ret = true;
-				}
-			}
-		CryptDestroyHash(hash);
-	}
-	return ret;
-}
-
-static void secure_hash(char *x, ALG_ID algid) {
-	if (HCRYPTHASH hash; CryptCreateHash(HCryptProv, algid, 0, 0, &hash)) {
-		if (CryptHashData(hash, reinterpret_cast<const BYTE*>(x), 8, 0)) {
-			uint32_t hashVal[5];
-			DWORD hashlen = 20;
-			if (CryptGetHashParam(hash, HP_HASHVAL, reinterpret_cast<BYTE*>(hashVal), &hashlen, 0)) {
-				hashVal[0] ^= hashVal[2];
-				hashVal[1] ^= hashVal[3];
-				if (hashlen == 20)
-					hashVal[0] ^= hashVal[4];
-				/* Only works on byte-addressed little-endian machines!! */
-				memcpy(x, hashVal, 8);
+template<class... Range>
+static std::optional<std::array<char, 8>> hash_ranges(BCRYPT_ALG_HANDLE alg, std::vector<UCHAR>& obj, std::vector<UCHAR>& hash, Range&&... range) {
+	if (HashData(alg, obj, hash, std::forward<Range>(range)...)) {
+		auto p = data_as<uint32_t>(hash);
+		p[0] ^= p[2];
+		p[1] ^= p[3];
+		if (size(hash) == 20) {
+			p[0] ^= p[4];
+			if constexpr (std::endian::native == std::endian::little) {
+				p[0] = _byteswap_ulong(p[0]);
+				p[1] = _byteswap_ulong(p[1]);
 			}
 		}
-		CryptDestroyHash(hash);
+		return *data_as<std::array<char, 8>>(hash);
 	}
+	return {};
 }
 
 /*----- ６ワードパスワードを作成する ------------------------------------------
@@ -327,17 +305,19 @@ static void secure_hash(char *x, ALG_ID algid) {
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-int Make6WordPass(int seq, std::string_view seed, std::string_view pass, int type, char *buf) {
-	int Sts = FFFTP_FAIL;
-	char key[8];
-	ALG_ID algid = type == MD4 ? CALG_MD4 : type == MD5 ? CALG_MD5 : CALG_SHA1;
-	if (keycrunch(key, seed, pass, algid)) {
-		for (int i = 0; i < seq; i++)
-			secure_hash(key, algid);
-		btoe(key, buf);
-		Sts = FFFTP_SUCCESS;
-	}
-	return Sts;
+int Make6WordPass(int seq, std::string_view seed, std::string_view pass, int type, char* buf) {
+	auto algid = type == MD4 ? BCRYPT_MD4_ALGORITHM : type == MD5 ? BCRYPT_MD5_ALGORITHM : BCRYPT_SHA1_ALGORITHM;
+	auto result = HashOpen(algid, [seq, seed, pass, buf](auto alg, auto obj, auto hash) {
+		if (auto key = hash_ranges(alg, obj, hash, seed, pass)) {
+			for (int i = 0; i < seq; i++)
+				if (!(key = hash_ranges(alg, obj, hash, *key)))
+					return false;
+			btoe(key->data(), buf);
+			return true;
+		}
+		return false;
+	});
+	return result ? FFFTP_SUCCESS : FFFTP_FAIL;
 }
 
 

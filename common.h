@@ -32,8 +32,10 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
+#define UMDF_USING_NTSTATUS
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <charconv>
 #include <chrono>
 #include <filesystem>
@@ -45,6 +47,7 @@
 #include <mutex>
 #include <numeric>
 #include <optional>
+#include <span>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -63,6 +66,7 @@
 #include <time.h>
 #include <Windows.h>
 #include <ObjBase.h>			// for COM interface, define `interface` macro.
+#include <bcrypt.h>
 #include <windowsx.h>
 #include <winsock2.h>
 #include <CommCtrl.h>
@@ -70,11 +74,11 @@
 #include <MLang.h>
 #include <MMSystem.h>
 #include <mstcpip.h>
+#include <ntstatus.h>
 #include <shellapi.h>
 #include <ShlObj.h>
 #include <Shlwapi.h>
 #include <ShObjIdl.h>
-#include <WinCrypt.h>
 #include <WS2tcpip.h>
 #include <wrl/client.h>
 #include <wrl/implements.h>
@@ -83,6 +87,7 @@
 #include "dialog.h"
 #include "helpid.h"
 #include "Resource/resource.ja-JP.h"
+#pragma comment(lib, "bcrypt.lib")
 #pragma comment(lib, "Comctl32.lib")
 #pragma comment(lib, "normaliz.lib")
 #pragma comment(lib, "Shlwapi.lib")
@@ -1164,7 +1169,6 @@ int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
 
 extern int DebugConsole;
 extern int DispIgnoreHide;
-extern HCRYPTPROV HCryptProv;
 
 template<class Char> struct Traits;
 template<>
@@ -1422,4 +1426,47 @@ static auto GetErrorMessage(int lastError) {
 	std::wstring message(buffer, buffer + length);
 	LocalFree(buffer);
 	return std::move(message);
+}
+
+template<class Fn>
+static inline std::invoke_result_t<Fn, BCRYPT_ALG_HANDLE> BCrypt(LPCWSTR algid, Fn&& fn) {
+	BCRYPT_ALG_HANDLE alg;
+	if (auto status = BCryptOpenAlgorithmProvider(&alg, algid, nullptr, 0); status != STATUS_SUCCESS) {
+		DoPrintf(L"BCryptOpenAlgorithmProvider(%s) failed: 0x%08X.", algid, status);
+		return {};
+	}
+	auto result = std::invoke(std::forward<Fn>(fn), alg);
+	BCryptCloseAlgorithmProvider(alg, 0);
+	return result;
+}
+template<class Fn>
+static inline auto HashOpen(LPCWSTR algid, Fn&& fn) {
+	return BCrypt(algid, [fn](BCRYPT_ALG_HANDLE alg) -> std::invoke_result_t<Fn, BCRYPT_ALG_HANDLE, std::vector<UCHAR>&&, std::vector<UCHAR>&&> {
+		DWORD objlen, hashlen, resultlen;
+		if (auto status = BCryptGetProperty(alg, BCRYPT_OBJECT_LENGTH, reinterpret_cast<PUCHAR>(&objlen), sizeof objlen, &resultlen, 0); status != STATUS_SUCCESS || resultlen != sizeof objlen) {
+			DoPrintf(L"BCryptGetProperty(%s) failed: 0x%08X or invalid length: %d.", BCRYPT_OBJECT_LENGTH, status, resultlen);
+			return {};
+		}
+		if (auto status = BCryptGetProperty(alg, BCRYPT_HASH_LENGTH, reinterpret_cast<PUCHAR>(&hashlen), sizeof hashlen, &resultlen, 0); status != STATUS_SUCCESS || resultlen != sizeof hashlen) {
+			DoPrintf(L"BCryptGetProperty(%s) failed: 0x%08X or invalid length: %d.", BCRYPT_HASH_LENGTH, status, resultlen);
+			return {};
+		}
+		return std::invoke(fn, alg, std::vector<UCHAR>(objlen), std::vector<UCHAR>(hashlen));
+	});
+}
+template<class... Ranges>
+static inline auto HashData(BCRYPT_ALG_HANDLE alg, std::vector<UCHAR>& obj, std::vector<UCHAR>& hash, Ranges const&... ranges) {
+	NTSTATUS status;
+	if (BCRYPT_HASH_HANDLE handle; (status = BCryptCreateHash(alg, &handle, data(obj), size_as<ULONG>(obj), nullptr, 0, 0)) == STATUS_SUCCESS) {
+		for (auto bytes : { std::as_bytes(std::span{ ranges }.subspan(0))... })
+			if ((status = BCryptHashData(handle, const_cast<PUCHAR>(data_as<const UCHAR>(bytes)), size_as<ULONG>(bytes), 0)) != STATUS_SUCCESS) {
+				DoPrintf(L"BCryptHashData() failed: 0x%08X.", status);
+				break;
+			}
+		if (status == STATUS_SUCCESS && (status = BCryptFinishHash(handle, data(hash), size_as<DWORD>(hash), 0)) != STATUS_SUCCESS)
+			DoPrintf(L"BCryptFinishHash() failed: 0x%08X.", status);
+		BCryptDestroyHash(handle);
+	} else
+		DoPrintf(L"BCryptCreateHash() failed: 0x%08X.", status);
+	return status == STATUS_SUCCESS;
 }

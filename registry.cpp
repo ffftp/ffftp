@@ -259,15 +259,14 @@ extern int MarkAsInternet;
 
 
 static void sha1(_In_reads_bytes_(datalen) const void* data, DWORD datalen, _Out_writes_bytes_(20) BYTE* buffer) {
-	HCRYPTHASH hash;
-	auto result = CryptCreateHash(HCryptProv, CALG_SHA1, 0, 0, &hash);
-	assert(result);
-	result = CryptHashData(hash, reinterpret_cast<const BYTE*>(data), datalen, 0);
-	assert(result);
-	DWORD hashlen = 20;
-	result = CryptGetHashParam(hash, HP_HASHVAL, buffer, &hashlen, 0);
-	assert(result && hashlen == 20);
-	result = CryptDestroyHash(hash);
+	assert(datalen != 0);
+	auto result = HashOpen(BCRYPT_SHA1_ALGORITHM, [data, datalen, buffer](auto alg, auto obj, auto hash) {
+		assert(hash.size() == 20);
+		if (!HashData(alg, obj, hash, std::string_view{ reinterpret_cast<const char*>(data), static_cast<size_t>(datalen) }))
+			return false;
+		memcpy(buffer, hash.data(), hash.size());
+		return true;
+	});
 	assert(result);
 }
 
@@ -277,26 +276,6 @@ static void sha_memory(const char* mem, DWORD length, uint32_t* buffer) {
 	for (int i = 0; i < 5; i++)
 		buffer[i] = _byteswap_ulong(buffer[i]);
 }
-
-// PLAINTEXTKEYBLOB structure https://msdn.microsoft.com/en-us/library/jj650836(v=vs.85).aspx
-struct _PLAINTEXTKEYBLOB {
-	BLOBHEADER hdr = { PLAINTEXTKEYBLOB, CUR_BLOB_VERSION, 0, CALG_AES_256 };
-	DWORD dwKeySize = 32;
-	BYTE rgbKeyData[32] = {};
-	_PLAINTEXTKEYBLOB() {
-		// AES用固定長キーを作成
-		// SHA-1をもちいて32Byte鍵を生成する
-		auto AesKey = rgbKeyData;
-		uint32_t results[10];
-		auto HashKey = SecretKey + ">g^r=@N7=//z<[`:"s;
-		sha_memory(HashKey.c_str(), size_as<DWORD>(HashKey), results);
-		HashKey = SecretKey + "VG77dO1#EyC]$|C@"s;
-		sha_memory(HashKey.c_str(), size_as<DWORD>(HashKey), results + 5);
-		for (int index = 0; index < 8; index++)
-			for (int offset = 0; offset < 32; offset += 8)
-				*AesKey++ = (results[index] >> offset) & 0xff;
-	}
-};
 
 
 /*----- マスタパスワードの設定 ----------------------------------------------
@@ -1417,21 +1396,59 @@ static std::optional<LOGFONTW> RestoreFontData(const wchar_t* str) {
 	return logfont;
 }
 
+static auto AesData(std::span<UCHAR, 16> iv, std::vector<UCHAR>& text, bool encrypt) {
+	return BCrypt(BCRYPT_AES_ALGORITHM, [&iv, &text, encrypt](BCRYPT_ALG_HANDLE alg) {
+		auto result = false;
+		NTSTATUS status;
+		if (DWORD objlen, resultlen; (status = BCryptGetProperty(alg, BCRYPT_OBJECT_LENGTH, reinterpret_cast<PUCHAR>(&objlen), sizeof objlen, &resultlen, 0)) == STATUS_SUCCESS && resultlen == sizeof objlen) {
+			if ((status = BCryptSetProperty(alg, BCRYPT_CHAINING_MODE, const_cast<PUCHAR>(reinterpret_cast<const UCHAR*>(BCRYPT_CHAIN_MODE_CBC)), sizeof BCRYPT_CHAIN_MODE_CBC, 0)) == STATUS_SUCCESS) {
+				std::vector<UCHAR> obj(objlen);
+				struct {
+					BCRYPT_KEY_DATA_BLOB_HEADER header{ BCRYPT_KEY_DATA_BLOB_MAGIC, BCRYPT_KEY_DATA_BLOB_VERSION1, sizeof data };
+					BYTE data[32]{};
+				} blob;
+				// AES用固定長キーを作成
+				// SHA-1をもちいて32Byte鍵を生成する
+				auto AesKey = blob.data;
+				uint32_t results[10];
+				auto HashKey = SecretKey + ">g^r=@N7=//z<[`:"s;
+				sha_memory(HashKey.c_str(), size_as<DWORD>(HashKey), results);
+				HashKey = SecretKey + "VG77dO1#EyC]$|C@"s;
+				sha_memory(HashKey.c_str(), size_as<DWORD>(HashKey), results + 5);
+				for (int index = 0; index < 8; index++)
+					for (int offset = 0; offset < 32; offset += 8)
+						*AesKey++ = (results[index] >> offset) & 0xff;
+				if (BCRYPT_KEY_HANDLE key; (status = BCryptImportKey(alg, 0, BCRYPT_KEY_DATA_BLOB, &key, data(obj), size_as<ULONG>(obj), reinterpret_cast<PUCHAR>(&blob), sizeof blob, 0)) == STATUS_SUCCESS) {
+					if ((status = (encrypt ? BCryptEncrypt : BCryptDecrypt)(key, data(text), size_as<ULONG>(text), nullptr, data(iv), size_as<ULONG>(iv), data(text), size_as<ULONG>(text), &resultlen, 0)) == STATUS_SUCCESS && resultlen == size_as<ULONG>(text))
+						result = true;
+					else
+						DoPrintf(L"%s() failed: 0x%08X or bad length: %d.", encrypt ? L"BCryptEncrypt" : L"BCryptDecrypt", status, resultlen);
+					BCryptDestroyKey(key);
+				} else
+					DoPrintf(L"BCryptImportKey() failed: 0x%08X.", status);
+			} else
+				DoPrintf(L"BCryptSetProperty(%s) failed: 0x%08X.", BCRYPT_CHAINING_MODE, status);
+		} else
+			DoPrintf(L"BCryptGetProperty(%s) failed: 0x%08X or invalid length: %d.", BCRYPT_OBJECT_LENGTH, status, resultlen);
+		return result;
+	});
+}
+
 // パスワードを暗号化する(AES)
-static void EncodePassword(std::string_view const& Str, char *Buf) {
-	auto result = false;
-	try {
+static void EncodePassword(std::string_view const& Str, char* Buf) {
+	auto result = BCrypt(BCRYPT_RNG_ALGORITHM, [Str, Buf](BCRYPT_ALG_HANDLE alg) {
+		auto result = false;
 		auto p = Buf;
 		auto length = size_as<DWORD>(Str);
 		auto paddedLength = (length + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE * AES_BLOCK_SIZE;
 		paddedLength = std::max(paddedLength, DWORD(AES_BLOCK_SIZE * 2));	/* 最低長を32文字とする */
 		std::vector<BYTE> buffer(paddedLength, 0);
 		std::copy(begin(Str), end(Str), begin(buffer));
-
 		/* PAD部分を乱数で埋める StrPad[StrLen](が有効な場合) は NUL */
-		if (paddedLength <= length + 1 || CryptGenRandom(HCryptProv, paddedLength - length - 1, &buffer[(size_t)length + 1]))
+		NTSTATUS status = STATUS_SUCCESS;
+		if (paddedLength <= length + 1 || (status = BCryptGenRandom(alg, &buffer[(size_t)length + 1], paddedLength - length - 1, 0)) == STATUS_SUCCESS) {
 			// IVの初期化
-			if (unsigned char iv[AES_BLOCK_SIZE]; CryptGenRandom(HCryptProv, size_as<DWORD>(iv), iv)) {
+			if (std::array<UCHAR, 16> iv; (status = BCryptGenRandom(alg, data(iv), size_as<DWORD>(iv), 0)) == STATUS_SUCCESS) {
 				*p++ = '0';
 				*p++ = 'C';
 				for (auto const& item : iv) {
@@ -1440,23 +1457,20 @@ static void EncodePassword(std::string_view const& Str, char *Buf) {
 				}
 				*p++ = ':';
 
-				_PLAINTEXTKEYBLOB keyBlob;
-				if (HCRYPTKEY hkey; CryptImportKey(HCryptProv, reinterpret_cast<const BYTE*>(&keyBlob), DWORD(sizeof keyBlob), 0, 0, &hkey)) {
-					if (DWORD mode = CRYPT_MODE_CBC; CryptSetKeyParam(hkey, KP_MODE, reinterpret_cast<const BYTE*>(&mode), 0))
-						if (CryptSetKeyParam(hkey, KP_IV, iv, 0))
-							if (CryptEncrypt(hkey, 0, false, 0, data(buffer), &paddedLength, paddedLength)) {
-								for (auto const& item : buffer) {
-									sprintf(p, "%02x", item);
-									p += 2;
-								}
-								*p = NUL;
-								result = true;
-							}
-					CryptDestroyKey(hkey);
+				if (AesData(iv, buffer, true)) {
+					for (auto const& item : buffer) {
+						sprintf(p, "%02x", item);
+						p += 2;
+					}
+					*p = NUL;
+					result = true;
 				}
-			}
-	}
-	catch (std::bad_alloc&) {}
+			} else
+				DoPrintf(L"BCryptGenRandom() failed: 0x%08X.", status);
+		} else
+			DoPrintf(L"BCryptGenRandom() failed: 0x%08X.", status);
+		return result;
+	});
 	if (!result)
 		Buf[0] = NUL;
 }
@@ -1592,34 +1606,26 @@ static void DecodePassword2(char *Str, char *Buf, const char* Key)
 *		なし
 *----------------------------------------------------------------------------*/
 
-static void DecodePassword3(char *Str, char *Buf) {
-	try {
-		Buf[0] = NUL;
-		if (auto length = DWORD(strlen(Str)); AES_BLOCK_SIZE * 2 + 1 < length) {
-			DWORD encodedLength = (length - 1) / 2 - AES_BLOCK_SIZE;
-			std::vector<unsigned char> buffer((size_t)encodedLength + 1, 0);	// NUL終端用に１バイト追加
-			unsigned char iv[AES_BLOCK_SIZE];
-			for (auto& item : iv) {
-				std::from_chars(Str, Str + 2, item, 16);
-				Str += 2;
-			}
-			if (*Str++ == ':') {
-				for (DWORD i = 0; i < encodedLength; i++) {
-					std::from_chars(Str, Str + 2, buffer[i], 16);
-					Str += 2;
-				}
-				_PLAINTEXTKEYBLOB keyBlob;
-				if (HCRYPTKEY hkey; CryptImportKey(HCryptProv, reinterpret_cast<const BYTE*>(&keyBlob), sizeof keyBlob, 0, 0, &hkey)) {
-					if (DWORD mode = CRYPT_MODE_CBC; CryptSetKeyParam(hkey, KP_MODE, reinterpret_cast<const BYTE*>(&mode), 0))
-						if (CryptSetKeyParam(hkey, KP_IV, iv, 0))
-							if (CryptDecrypt(hkey, 0, false, 0, data(buffer), &encodedLength))
-								strcpy(Buf, reinterpret_cast<const char*>(data(buffer)));
-					CryptDestroyKey(hkey);
-				}
-			}
+static void DecodePassword3(char* Str, char* Buf) {
+	Buf[0] = NUL;
+	if (auto length = DWORD(strlen(Str)); AES_BLOCK_SIZE * 2 + 1 < length && Str[AES_BLOCK_SIZE * 2] == ':') {
+		DWORD encodedLength = (length - 1) / 2 - AES_BLOCK_SIZE;
+		std::array<UCHAR, 16> iv;
+		for (auto& item : iv) {
+			std::from_chars(Str, Str + 2, item, 16);
+			Str += 2;
+		}
+		Str++;
+		std::vector<UCHAR> buffer(static_cast<size_t>(encodedLength), 0);
+		for (auto& item : buffer) {
+			std::from_chars(Str, Str + 2, item, 16);
+			Str += 2;
+		}
+		if (AesData(iv, buffer, false)) {
+			buffer.push_back(0);	// NUL終端用に１バイト追加
+			strcpy(Buf, data_as<char>(buffer));
 		}
 	}
-	catch (std::bad_alloc&) {}
 }
 
 

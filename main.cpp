@@ -133,7 +133,6 @@ static int ToolWinHeight;
 /*===== グローバルなワーク =====*/
 
 static HWND hHelpWin = NULL;
-HCRYPTPROV HCryptProv;
 
 /* 設定値 */
 int WinPosX = CW_USEDEFAULT;
@@ -313,11 +312,6 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 	LoadTaskbarList3();
 	LoadZoneID();
 
-	if (!CryptAcquireContextW(&HCryptProv, nullptr, nullptr, PROV_RSA_AES, CRYPT_VERIFYCONTEXT)) {
-		Message(IDS_ERR_CRYPTO, MB_OK | MB_ICONERROR);
-		return 0;
-	}
-
 	if (!LoadSSL()) {
 		Message(IDS_ERR_SSL, MB_OK | MB_ICONERROR);
 		return 0;
@@ -340,7 +334,6 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 	}
 	UnregisterClassW(FtpClass, GetFtpInst());
 	FreeSSL();
-	CryptReleaseContext(HCryptProv, 0);
 	FreeZoneID();
 	FreeTaskbarList3();
 	FreeUPnP();
