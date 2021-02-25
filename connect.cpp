@@ -1774,7 +1774,7 @@ static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
 						if(strlen(Seed) > 0)
 						{
 							DoPrintf("Seed=%s", Seed);
-							Make6WordPass(Seq, Seed, Pass, Type, Reply);
+							strcpy(Reply, Make6WordPass(Seq, Seed, Pass, Type).c_str());
 							DoPrintf("Response=%s", Reply);
 
 							/* シーケンス番号のチェックと警告 */

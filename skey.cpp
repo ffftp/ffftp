@@ -31,15 +31,6 @@
 
 #include "common.h"
 
-
-/*===== プロトタイプ =====*/
-
-static char *btoe(char *c, char *buf);
-static uint32_t extract(char *s, int start, int length);
-
-
-/*===== ローカルなワーク =====*/
-
 /* Dictionary for integer-word translations */
 static const char Wp[2048][5] = {
 	"A",    "ABE",  "ACE",  "ACT",  "AD",   "ADA",  "ADD",  "AGO",  "AID",
@@ -272,9 +263,8 @@ static const char Wp[2048][5] = {
 	"YEAH", "YEAR", "YELL", "YOGA", "YOKE"
 };
 
-
 template<class... Range>
-static std::optional<std::array<char, 8>> hash_ranges(BCRYPT_ALG_HANDLE alg, std::vector<UCHAR>& obj, std::vector<UCHAR>& hash, Range&&... range) {
+static std::optional<std::array<unsigned char, 8>> hash_ranges(BCRYPT_ALG_HANDLE alg, std::vector<UCHAR>& obj, std::vector<UCHAR>& hash, Range&&... range) {
 	if (HashData(alg, obj, hash, std::forward<Range>(range)...)) {
 		auto p = data_as<uint32_t>(hash);
 		p[0] ^= p[2];
@@ -286,85 +276,33 @@ static std::optional<std::array<char, 8>> hash_ranges(BCRYPT_ALG_HANDLE alg, std
 				p[1] = _byteswap_ulong(p[1]);
 			}
 		}
-		return *data_as<std::array<char, 8>>(hash);
+		return *data_as<std::array<unsigned char, 8>>(hash);
 	}
 	return {};
 }
 
-/*----- ６ワードパスワードを作成する ------------------------------------------
-*
-*	Parameter
-*		int seq : シーケンス番号
-*		char *seed : シード
-*		char *pass : パスフレーズ
-*		int type : タイプ (MDx)
-*		char *buf : ６ワードパスワードを返すバッファ
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int Make6WordPass(int seq, std::string_view seed, std::string_view pass, int type, char* buf) {
+// ６ワードパスワードを作成する
+std::string Make6WordPass(int seq, std::string_view seed, std::string_view pass, int type) {
 	auto algid = type == MD4 ? BCRYPT_MD4_ALGORITHM : type == MD5 ? BCRYPT_MD5_ALGORITHM : BCRYPT_SHA1_ALGORITHM;
-	auto result = HashOpen(algid, [seq, seed, pass, buf](auto alg, auto obj, auto hash) {
+	return HashOpen(algid, [seq, seed, pass](auto alg, auto obj, auto hash) {
 		if (auto key = hash_ranges(alg, obj, hash, seed, pass)) {
 			for (int i = 0; i < seq; i++)
 				if (!(key = hash_ranges(alg, obj, hash, *key)))
-					return false;
-			btoe(key->data(), buf);
-			return true;
+					return ""s;
+			auto value = *data_as<uint64_t>(*key);
+			if constexpr (std::endian::native == std::endian::little)
+				value = _byteswap_uint64(value);
+			uint64_t parity = 0;
+			for (int i = 0; i < 64; i += 2)
+				parity += value >> i;
+			auto c0 = value >> 53 & 0x7FF;
+			auto c1 = value >> 42 & 0x7FF;
+			auto c2 = value >> 31 & 0x7FF;
+			auto c3 = value >> 20 & 0x7FF;
+			auto c4 = value >> 9 & 0x7FF;
+			auto c5 = (value << 2 | parity & 3) & 0x7FF;
+			return strprintf("%s %s %s %s %s %s", Wp[c0], Wp[c1], Wp[c2], Wp[c3], Wp[c4], Wp[c5]);
 		}
-		return false;
+		return ""s;
 	});
-	return result ? FFFTP_SUCCESS : FFFTP_FAIL;
 }
-
-
-static char *btoe(char *c, char *buf)
-{
-	char cp[9];
-	int p, i;
-
-	memcpy(cp, c, 8);
-	/* compute parity */
-	for(p = 0, i = 0; i < 64; i += 2)
-	p += extract(cp, i, 2);
-	cp[8] = (char)p << 6;
-
-	buf[0] = '\0';
-	strncat(buf, Wp[extract(cp,  0, 11)], 4);
-	strcat (buf," ");
-	strncat(buf, Wp[extract(cp, 11, 11)], 4);
-	strcat (buf," ");
-	strncat(buf, Wp[extract(cp, 22, 11)], 4);
-	strcat (buf," ");
-	strncat(buf, Wp[extract(cp, 33, 11)], 4);
-	strcat (buf," ");
-	strncat(buf, Wp[extract(cp, 44, 11)], 4);
-	strcat (buf," ");
-	strncat(buf, Wp[extract(cp, 55, 11)], 4);
-
-	return (buf);
-}
-
-
-
-static uint32_t extract(char *s, int start, int length)
-{
-	uint32_t x;
-	unsigned char cl;
-	unsigned char cc;
-	unsigned char cr;
-
-	cl = s[start / 8];
-	cc = s[start / 8 + 1];
-	cr = s[start / 8 + 2];
-	x = ((uint32_t) (cl << 8 | cc) << 8 | cr);
-	x = x >> (24 - (length + (start % 8)));
-	x = (x & (0xffff >> (16 - length)));
-
-	return (x);
-}
-
-
