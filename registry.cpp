@@ -133,8 +133,8 @@ static void DecodePassword3(char *Str, char *Buf);
 
 static std::unique_ptr<Config> OpenReg(int type);
 static std::unique_ptr<Config> CreateReg(int type);
-int CheckPasswordValidity( char* Password, int length, const char* HashStr, int StretchCount );
-void CreatePasswordHash( char* Password, int length, char* HashStr, int StretchCount );
+static int CheckPasswordValidity(const char* HashStr, int StretchCount);
+static void CreatePasswordHash(char* HashStr, int StretchCount);
 void SetHashSalt( DWORD salt );
 // 全設定暗号化対応
 void SetHashSalt1(void* Salt, int Length);
@@ -258,26 +258,6 @@ extern int FwallNoSaveUser;
 extern int MarkAsInternet;
 
 
-static void sha1(_In_reads_bytes_(datalen) const void* data, DWORD datalen, _Out_writes_bytes_(20) BYTE* buffer) {
-	assert(datalen != 0);
-	auto result = HashOpen(BCRYPT_SHA1_ALGORITHM, [data, datalen, buffer](auto alg, auto obj, auto hash) {
-		assert(hash.size() == 20);
-		if (!HashData(alg, obj, hash, std::string_view{ reinterpret_cast<const char*>(data), static_cast<size_t>(datalen) }))
-			return false;
-		memcpy(buffer, hash.data(), hash.size());
-		return true;
-	});
-	assert(result);
-}
-
-static void sha_memory(const char* mem, DWORD length, uint32_t* buffer) {
-	// ビット反転の必要がある
-	sha1(mem, length, reinterpret_cast<BYTE*>(buffer));
-	for (int i = 0; i < 5; i++)
-		buffer[i] = _byteswap_ulong(buffer[i]);
-}
-
-
 /*----- マスタパスワードの設定 ----------------------------------------------
 *
 *	Parameter
@@ -350,7 +330,7 @@ int ValidateMasterPassword(void)
 			else
 				SetHashSalt1(NULL, 0);
 			hKey3->ReadIntValueFromReg("CredentialStretch", &stretch);
-			IsMasterPasswordError = CheckPasswordValidity(SecretKey, SecretKeyLength, checkbuf, stretch);
+			IsMasterPasswordError = CheckPasswordValidity(checkbuf, stretch);
 		}
 		else if(hKey3->ReadStringFromReg("CredentialCheck", checkbuf, sizeof(checkbuf)) == FFFTP_SUCCESS)
 		{
@@ -358,7 +338,7 @@ int ValidateMasterPassword(void)
 				SetHashSalt(salt);
 			else
 				SetHashSalt1(NULL, 0);
-			IsMasterPasswordError = CheckPasswordValidity(SecretKey, SecretKeyLength, checkbuf, 0);
+			IsMasterPasswordError = CheckPasswordValidity(checkbuf, 0);
 		}
 		return YES;
 	}
@@ -415,14 +395,14 @@ void SaveRegistry(void)
 			SetHashSalt1(&salt1, 16);
 			hKey3->WriteBinaryToReg("CredentialSalt1", &salt1, sizeof(salt1));
 			hKey3->WriteIntValueToReg("CredentialStretch", 65535);
-			CreatePasswordHash(SecretKey, SecretKeyLength, buf, 65535);
+			CreatePasswordHash(buf, 65535);
 			hKey3->WriteStringToReg("CredentialCheck1", buf);
 		}
 		else
 		{
 			SetHashSalt( salt );
 			hKey3->WriteIntValueToReg("CredentialSalt", salt);
-			CreatePasswordHash(SecretKey, SecretKeyLength, buf, 0);
+			CreatePasswordHash(buf, 0);
 			hKey3->WriteStringToReg("CredentialCheck", buf);
 		}
 
@@ -1403,21 +1383,25 @@ static auto AesData(std::span<UCHAR, 16> iv, std::vector<UCHAR>& text, bool encr
 		if (DWORD objlen, resultlen; (status = BCryptGetProperty(alg, BCRYPT_OBJECT_LENGTH, reinterpret_cast<PUCHAR>(&objlen), sizeof objlen, &resultlen, 0)) == STATUS_SUCCESS && resultlen == sizeof objlen) {
 			if ((status = BCryptSetProperty(alg, BCRYPT_CHAINING_MODE, const_cast<PUCHAR>(reinterpret_cast<const UCHAR*>(BCRYPT_CHAIN_MODE_CBC)), sizeof BCRYPT_CHAIN_MODE_CBC, 0)) == STATUS_SUCCESS) {
 				std::vector<UCHAR> obj(objlen);
-				struct {
-					BCRYPT_KEY_DATA_BLOB_HEADER header{ BCRYPT_KEY_DATA_BLOB_MAGIC, BCRYPT_KEY_DATA_BLOB_VERSION1, sizeof data };
-					BYTE data[32]{};
-				} blob;
 				// AES用固定長キーを作成
 				// SHA-1をもちいて32Byte鍵を生成する
-				auto AesKey = blob.data;
-				uint32_t results[10];
-				auto HashKey = SecretKey + ">g^r=@N7=//z<[`:"s;
-				sha_memory(HashKey.c_str(), size_as<DWORD>(HashKey), results);
-				HashKey = SecretKey + "VG77dO1#EyC]$|C@"s;
-				sha_memory(HashKey.c_str(), size_as<DWORD>(HashKey), results + 5);
-				for (int index = 0; index < 8; index++)
-					for (int offset = 0; offset < 32; offset += 8)
-						*AesKey++ = (results[index] >> offset) & 0xff;
+				auto blob = HashOpen(BCRYPT_SHA1_ALGORITHM, [](auto alg, auto obj, auto hash) {
+					assert(hash.size() == 20);
+					struct {
+						BCRYPT_KEY_DATA_BLOB_HEADER header = { BCRYPT_KEY_DATA_BLOB_MAGIC, BCRYPT_KEY_DATA_BLOB_VERSION1, 32/*うしろ8バイトは使用しない*/ };
+						uint32_t data[10] = {};
+					} blob;
+					auto result = HashData(alg, obj, hash, std::string_view{ SecretKey }, ">g^r=@N7=//z<[`:"sv);
+					assert(result);
+					memcpy(blob.data, hash.data(), hash.size());
+					result = HashData(alg, obj, hash, std::string_view{ SecretKey }, "VG77dO1#EyC]$|C@"sv);
+					assert(result);
+					memcpy(blob.data + 5, hash.data(), hash.size());
+					// ビット反転の必要がある
+					for (auto& x : blob.data)
+						x = _byteswap_ulong(x);
+					return blob;
+				});
 				if (BCRYPT_KEY_HANDLE key; (status = BCryptImportKey(alg, 0, BCRYPT_KEY_DATA_BLOB, &key, data(obj), size_as<ULONG>(obj), reinterpret_cast<PUCHAR>(&blob), sizeof blob, 0)) == STATUS_SUCCESS) {
 					if ((status = (encrypt ? BCryptEncrypt : BCryptDecrypt)(key, data(text), size_as<ULONG>(text), nullptr, data(iv), size_as<ULONG>(iv), data(text), size_as<ULONG>(text), &resultlen, 0)) == STATUS_SUCCESS && resultlen == size_as<ULONG>(text))
 						result = true;
@@ -1799,85 +1783,53 @@ static std::unique_ptr<Config> CreateReg(int type) {
 }
 
 
-// パスワードの妥当性を確認する
-int CheckPasswordValidity( char* Password, int length, const char* HashStr, int StretchCount )
-{
-	char Buf[MAX_PASSWORD_LEN + 32];
-	uint32_t hash1[5];
-	uint32_t hash2[5];
-	
-	int i, j;
-	
-	const char* p = HashStr;
-	
-	/* 空文字列は一致したことにする */
-	if( HashStr[0] == NUL )	return PASSWORD_OK;
-
-	/* Hashをチェックするする*/
-	if( strlen(HashStr) != 40 )	return BAD_PASSWORD_HASH;
-
-	/* Hashをデコードする*/
-	for( i = 0; i < 5; i++ ){
-		uint32_t decode = 0;
-		for( j = 0; j < 8; j++ ){
-			if( *p < 0x40 || 0x40 + 15 < *p ){
-				return BAD_PASSWORD_HASH;
-			}
-			decode = (decode << 4 ) + (*p - 0x40);
-			++p;
+static auto HashPassword(int stretchCount) {
+	return HashOpen(BCRYPT_SHA1_ALGORITHM, [stretchCount](auto alg, auto obj, auto hash) {
+		assert(hash.size() == 20);
+		std::string_view password{ SecretKey, (size_t)SecretKeyLength };
+		auto result = HashData(alg, obj, hash, password);
+		assert(result);
+		for (int j = 0; j < 5; j++)
+			data_as<uint32_t>(hash)[j] = _byteswap_ulong(data_as<uint32_t>(hash)[j]);
+		for (int i = 0; i < stretchCount; i++) {
+			result = HashData(alg, obj, hash, hash, password);
+			assert(result);
+			for (int j = 0; j < 5; j++)
+				data_as<uint32_t>(hash)[j] = _byteswap_ulong(data_as<uint32_t>(hash)[j]);
 		}
-		hash1[i] = decode;
-	}
-	
-	/* Password をハッシュする */
-	sha_memory( Password, length, hash2 );
-	for(i = 0; i < StretchCount; i++)
-	{
-		memcpy(&Buf[0], &hash2, 20);
-		memcpy(&Buf[20], Password, length);
-		sha_memory(Buf, 20 + length, hash2);
-	}
-	
-	if( memcmp( (char*)hash1, (char*)hash2, sizeof( hash1 )) == 0 ){
-		return PASSWORD_OK;
-	}
-	return PASSWORD_UNMATCH;
+		return *data_as<std::array<uint32_t, 5>>(hash);
+	});
 }
 
-/*----------- パスワードの妥当性チェックのための文字列を作成する ------------
-*
-*	Parameter
-*		char *Password: パスワード文字列
-*		char *Str: SHA-1ハッシュ文字列格納場所 (41bytes以上)
-*
-*	Return Value
-*		None
-*----------------------------------------------------------------------------*/
-// 全設定暗号化対応
-//void CreatePasswordHash( char* Password, int length, char* HashStr )
-void CreatePasswordHash( char* Password, int length, char* HashStr, int StretchCount )
-{
-	char Buf[MAX_PASSWORD_LEN + 32];
-	uint32_t hash[5];
-	int i, j;
-	unsigned char *p = (unsigned char *)HashStr;
+// パスワードの妥当性を確認する
+static int CheckPasswordValidity(const char* HashStr, int StretchCount) {
+	std::string_view HashSv{ HashStr };
+	/* 空文字列は一致したことにする */
+	if (empty(HashSv))
+		return PASSWORD_OK;
+	if (size(HashSv) != 40)
+		return BAD_PASSWORD_HASH;
 
-	sha_memory( Password, length, hash );
-	for(i = 0; i < StretchCount; i++)
-	{
-		memcpy(&Buf[0], &hash, 20);
-		memcpy(&Buf[20], Password, length);
-		sha_memory(Buf, 20 + length, hash);
-	}
-
-	for( i = 0; i < 5; i++ ){
-		uint32_t rest = hash[i];
-		for( j = 0; j < 8; j++ ){
-			*p++ = (unsigned char)((rest & 0xf0000000) >> 28) + '@';
-			rest <<= 4;
+	/* Hashをデコードする*/
+	std::array<uint32_t, 5> hash1 = {};
+	for (auto& decode : hash1)
+		for (int j = 0; j < 8; j++) {
+			if (*HashStr < 0x40 || 0x40 + 15 < *HashStr)
+				return BAD_PASSWORD_HASH;
+			decode = decode << 4 | *HashStr++ & 0x0F;
 		}
-	}
-	*p = NUL;
+
+	/* Password をハッシュする */
+	auto hash2 = HashPassword(StretchCount);
+	return hash1 == hash2 ? PASSWORD_OK : PASSWORD_UNMATCH;
+}
+
+// パスワードの妥当性チェックのための文字列を作成する
+static void CreatePasswordHash(char* HashStr, int StretchCount) {
+	for (auto rest : HashPassword(StretchCount))
+		for (int j = 0; j < 8; j++)
+			*HashStr++ = 0x40 | (rest = _rotl(rest, 4)) & 0x0F;
+	*HashStr = '\0';
 }
 
 void SetHashSalt( DWORD salt )
@@ -1912,29 +1864,34 @@ void SetHashSalt1(void* Salt, int Length)
 void Config::Xor(std::string_view name, void* bin, DWORD len, bool preserveZero) const {
 	if (EncryptSettings != YES)
 		return;
-	auto const salt = KeyName + '\\' + name;
-	BYTE mask[20];
-	auto p = reinterpret_cast<BYTE*>(bin);
-	for (DWORD i = 0; i < len; i++) {
-		if (i % 20 == 0) {
-			BYTE buffer[FMAX_PATH * 2 + 1];
-			for (DWORD nonce = i, j = 0; j < 16; j++)
-				reinterpret_cast<DWORD*>(buffer)[j] = nonce = _byteswap_ulong(~nonce * 1566083941);
-			memcpy(buffer + 64, data(salt), size(salt));
-			memcpy(buffer + 64 + size(salt), SecretKey, SecretKeyLength);
-			sha1(buffer, 64 + size_as<DWORD>(salt) + SecretKeyLength, buffer);
-			for (int j = 0; j < 20; j++)
-				buffer[j] ^= 0x36;
-			for (int j = 20; j < 64; j++)
-				buffer[j] = 0x36;
-			sha1(buffer, 64, buffer + 64);
-			for (int j = 0; j < 64; j++)
-				buffer[j] ^= 0x6a;
-			sha1(buffer, 84, mask);
+	auto result = HashOpen(BCRYPT_SHA1_ALGORITHM, [bin, len, preserveZero, salt = KeyName + '\\' + name](auto alg, auto obj, auto hash) {
+		assert(hash.size() == 20);
+		auto p = reinterpret_cast<BYTE*>(bin);
+		for (DWORD i = 0; i < len; i++) {
+			if (i % 20 == 0) {
+				std::array<DWORD, 16> buffer;
+				for (DWORD nonce = i; auto & x : buffer)
+					x = nonce = _byteswap_ulong(~nonce * 1566083941);
+				if (!HashData(alg, obj, hash, buffer, salt, std::span{ SecretKey, (size_t)SecretKeyLength }))
+					return false;
+				memcpy(data(buffer), hash.data(), hash.size());
+				for (int j = 0; j < 5; j++)
+					buffer[j] ^= 0x36363636;
+				for (int j = 5; j < 16; j++)
+					buffer[j] = 0x36363636;
+				if (!HashData(alg, obj, hash, buffer))
+					return false;
+				for (auto& x : buffer)
+					x ^= 0x6A6A6A6A;
+				if (!HashData(alg, obj, hash, buffer, hash))
+					return false;
+			}
+			if (!preserveZero || p[i] != 0 && p[i] != hash[i % 20])
+				p[i] ^= hash[i % 20];
 		}
-		if (!preserveZero || p[i] != 0 && p[i] != mask[i % 20])
-			p[i] ^= mask[i % 20];
-	}
+		return true;
+	});
+	assert(result);
 }
 
 // ポータブル版判定
