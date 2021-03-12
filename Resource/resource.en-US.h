@@ -116,7 +116,6 @@
 #define corruptsettings_dlg             198
 #define certerr_dlg                     199
 #define IDS_APP                         200
-#define IDS_ERR_CRYPTO                  201
 #define IDS_ERR_SSL                     202
 #define IDS_SECURE                      203
 #define IDS_NOTSECURE                   204

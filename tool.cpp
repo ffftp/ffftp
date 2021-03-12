@@ -51,9 +51,8 @@ void OtpCalcTool() {
 						auto seq = std::stoi(m[1]);
 						auto seed = u8(m[2].str());
 						auto pass = u8(GetText(hDlg, OTPCALC_PASS));
-						char Tmp[41];
-						Make6WordPass(seq, seed, pass, AlgoButton::Get(hDlg), Tmp);
-						SetText(hDlg, OTPCALC_RES, u8(Tmp));
+						auto result = Make6WordPass(seq, seed, pass, AlgoButton::Get(hDlg));
+						SetText(hDlg, OTPCALC_RES, u8(result));
 					} else
 						SetText(hDlg, OTPCALC_RES, GetString(IDS_MSGJPN251));
 				} else

@@ -2590,7 +2590,6 @@ END
 STRINGTABLE
 BEGIN
     IDS_APP                 "FFFTP"
-    IDS_ERR_CRYPTO          "暗号ライブラリの初期化に失敗しました.\nアプリケーションを終了します."
     IDS_ERR_SSL             "SSLの初期化に失敗しました.\nアプリケーションを終了します."
     IDS_SECURE              "保護されています"
     IDS_NOTSECURE           "保護されていません"
