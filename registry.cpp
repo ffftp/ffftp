@@ -84,8 +84,26 @@ public:
 		}
 		return FFFTP_FAIL;
 	}
+	std::vector<std::wstring> ReadStrings(std::string_view name) const {
+		std::vector<std::wstring> result;
+		if (std::string value; ReadValue(name, value) && !empty(value) && value[0] != '\0') {
+			Xor(name, data(value), size_as<DWORD>(value), true);
+			for (size_t first = 0, last; last = value.find('\0', first), last != std::string::npos && last != first + 1; first = last + 1)
+				result.push_back(u8({ &value[first], &value[last] }));
+		}
+		return result;
+	}
 	void WriteMultiStringToReg(std::string_view name, const char* str) {
 		std::string value{ str, str + StrMultiLen(str) };
+		Xor(name, data(value), size_as<DWORD>(value), true);
+		WriteValue(name, value, REG_MULTI_SZ);
+	}
+	void WriteStrings(std::string_view name, std::vector<std::wstring> const& strings) {
+		std::string value;
+		for (auto const& string : strings) {
+			value += u8(string);
+			value += '\0';
+		}
 		Xor(name, data(value), size_as<DWORD>(value), true);
 		WriteValue(name, value, REG_MULTI_SZ);
 	}
