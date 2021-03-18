@@ -452,37 +452,6 @@ void DispStaticText(HWND hWnd, const char* Str) {
 }
 
 
-/*----- 文字列アレイの長さを求める --------------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列アレイ (末尾はNUL２つ)
-*
-*	Return Value
-*		int 長さ
-*
-*	Note
-*		終端の2つのNULのうちの最後の物は数えない
-*			StrMultiLen("") = 0
-*			StrMultiLen("abc\0xyz\0") = 8
-*			StrMultiLen("abc") = 終端が２つのNULでないので求められない
-*----------------------------------------------------------------------------*/
-
-int StrMultiLen(const char *Str)
-{
-	int Len;
-	int Tmp;
-
-	Len = 0;
-	while(*Str != NUL)
-	{
-		Tmp = (int)strlen(Str) + 1;
-		Str += Tmp;
-		Len += Tmp;
-	}
-	return(Len);
-}
-
-
 /*----- RECTをクライアント座標からスクリーン座標に変換 ------------------------
 *
 *	Parameter
