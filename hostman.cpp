@@ -193,7 +193,7 @@ struct HostList {
 				SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
 				CurrentHost = (int)Item.lParam;
 				CopyHostFromList(CurrentHost, &TmpHost);
-				strcpy(TmpHost.BookMark, "\0");
+				TmpHost.BookMark = {};
 				CurrentHost++;
 				AddHostToList(&TmpHost, CurrentHost, SET_LEVEL_SAME);
 				SendAllHostNames(GetDlgItem(hDlg, HOST_LIST), CurrentHost);
@@ -609,19 +609,19 @@ int CopyHostFromListInConnect(int Num, HOSTDATA* Set) {
 
 
 // 設定値リストのブックマークを更新
-int SetHostBookMark(int Num, char* Bmask, int Len) {
+int SetHostBookMark(int Num, std::vector<std::wstring>&& bookmark) {
 	if (Num < 0 || Hosts <= Num)
 		return FFFTP_FAIL;
 	auto Pos = GetNode(Num);
-	memcpy(Pos->BookMark, Bmask, Len);
+	Pos->BookMark = std::move(bookmark);
 	return FFFTP_SUCCESS;
 }
 
 
 // 設定値リストのブックマーク文字列を返す
-char* AskHostBookMark(int Num) {
+std::optional<std::vector<std::wstring>> AskHostBookMark(int Num) {
 	if (Num < 0 || Hosts <= Num)
-		return nullptr;
+		return {};
 	auto Pos = GetNode(Num);
 	return Pos->BookMark;
 }

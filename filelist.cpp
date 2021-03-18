@@ -2011,11 +2011,6 @@ namespace re {
 	static auto const tandem    = compile(filelistparser::tandem);
 }
 
-template<class SubMatch, class StringView = std::basic_string_view<SubMatch::value_type>>
-static inline StringView sv(SubMatch const& sm) {
-	return { &*sm.begin(), static_cast<typename StringView::size_type>(sm.length()) };
-}
-
 template<class Int>
 static inline Int parse(std::string_view sv) {
 	Int value = 0;

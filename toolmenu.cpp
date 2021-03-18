@@ -33,7 +33,7 @@ extern int SepaWidth;
 extern int RemoteWidth;
 extern int CancelFlg;
 extern int DotFile;
-extern char AsciiExt[ASCII_EXT_LEN+1];
+std::vector<std::wstring> AsciiExt = { L"*.txt"s, L"*.html"s, L"*.htm"s, L"*.cgi"s, L"*.pl"s, L"*.js"s, L"*.vbs"s, L"*.css"s, L"*.rss"s, L"*.rdf"s, L"*.xml"s, L"*.xhtml"s, L"*.xht"s, L"*.shtml"s, L"*.shtm"s, L"*.sh"s, L"*.py"s, L"*.rb"s, L"*.properties"s, L"*.sql"s, L"*.asp"s, L"*.aspx"s, L"*.php"s, L"*.htaccess"s };
 extern int TransMode;
 extern int ListType;
 extern int LocalWidth;
@@ -474,12 +474,10 @@ int AskTransferType() {
 int AskTransferTypeAssoc(char* Fname, int Type) {
 	if (Type != TYPE_X)
 		return Type;
-	if (0 < StrMultiLen(AsciiExt)) {
-		auto wName = u8(GetFileName(Fname));
-		for (char* Pos = AsciiExt; *Pos != NUL; Pos += strlen(Pos) + 1)
-			if (CheckFname(wName, u8(Pos)))
+	if (!empty(AsciiExt))
+		for (auto const wName = u8(GetFileName(Fname)); auto const& pattern : AsciiExt)
+			if (CheckFname(wName, pattern))
 				return TYPE_A;
-	}
 	return TYPE_I;
 }
 

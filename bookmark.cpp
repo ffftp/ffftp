@@ -87,16 +87,10 @@ std::tuple<std::wstring, std::wstring> AskBookMarkText(size_t MarkID) {
 void SaveBookMark() {
 	if (AskConnecting() == YES)
 		if (auto CurHost = AskCurrentHost(); CurHost != HOSTNUM_NOENTRY) {
-			auto u8total = "\0"s;
-			if (!empty(bookmarks)) {
-				auto total = L""s;
-				for (auto const& bookmark : bookmarks) {
-					total += bookmark.line;
-					total += L'\0';
-				}
-				u8total = u8(total);
-			}
-			SetHostBookMark(CurHost, data(u8total), size_as<int>(u8total) + 1);
+			std::vector<std::wstring> temp;
+			for (auto const& bookmark : bookmarks)
+				temp.push_back(bookmark.line);
+			SetHostBookMark(CurHost, std::move(temp));
 		}
 }
 
@@ -104,10 +98,10 @@ void SaveBookMark() {
 void LoadBookMark() {
 	if (AskConnecting() == YES)
 		if (auto CurHost = AskCurrentHost(); CurHost != HOSTNUM_NOENTRY)
-			if (auto p = AskHostBookMark(CurHost)) {
+			if (auto temp = AskHostBookMark(CurHost)) {
 				ClearBookMark();
-				for (; *p; p += strlen(p) + 1)
-					AddBookMark(u8(p));
+				for(auto const& bookmark : *temp)
+					AddBookMark(bookmark);
 			}
 }
 
