@@ -75,17 +75,25 @@ public:
 		Xor(name, data(value), size_as<DWORD>(value), true);
 		WriteValue(name, value, REG_SZ);
 	}
-	int ReadMultiStringFromReg(std::string_view name, _Out_writes_z_(size) char* buffer, DWORD size) const {
+	std::optional<std::vector<std::wstring>> ReadStrings(std::string_view name) const {
 		if (std::string value; ReadValue(name, value)) {
-			Xor(name, data(value), size_as<DWORD>(value), true);
-			auto p = std::copy_n(begin(value), std::min(value.size(), (size_t)size - 1), buffer);
-			*p = '\0';
-			return FFFTP_SUCCESS;
+			std::vector<std::wstring> result;
+			if (!empty(value) && value[0] != '\0') {
+				Xor(name, data(value), size_as<DWORD>(value), true);
+				static boost::regex re{ R"([^\0]+)" };
+				for (boost::sregex_iterator it{ value.begin(), value.end(), re }, end; it != end; ++it)
+					result.push_back(u8(sv((*it)[0])));
+			}
+			return result;
 		}
-		return FFFTP_FAIL;
+		return {};
 	}
-	void WriteMultiStringToReg(std::string_view name, const char* str) {
-		std::string value{ str, str + StrMultiLen(str) };
+	void WriteStrings(std::string_view name, std::vector<std::wstring> const& strings) {
+		std::string value;
+		for (auto const& string : strings) {
+			value += u8(string);
+			value += '\0';
+		}
 		Xor(name, data(value), size_as<DWORD>(value), true);
 		WriteValue(name, value, REG_MULTI_SZ);
 	}
@@ -173,7 +181,7 @@ extern int RemoteDirSort;
 extern int TransMode;
 extern int ConnectOnStart;
 extern int SaveWinPos;
-extern char AsciiExt[ASCII_EXT_LEN+1];
+extern std::vector<std::wstring> AsciiExt;
 extern int RecvMode;
 extern int SendMode;
 extern int MoveMode;
@@ -199,14 +207,14 @@ extern int FwallResolve;
 extern int FwallLower;
 extern int FwallDelimiter;
 extern int PasvDefault;
-extern char MirrorNoTrn[MIRROR_LEN+1];
-extern char MirrorNoDel[MIRROR_LEN+1];
+extern std::vector<std::wstring> MirrorNoTrn;
+extern std::vector<std::wstring> MirrorNoDel;
 extern int MirrorFnameCnv;
 //extern int MirrorFolderCnv;
 extern int RasClose;
 extern int RasCloseNotify;
 extern int FileHist;
-extern char DefAttrList[DEFATTRLIST_LEN+1];
+extern std::vector<std::wstring> DefAttrList;
 extern SIZE HostDlgSize;
 extern SIZE BmarkDlgSize;
 extern SIZE MirrorDlgSize;
@@ -476,12 +484,12 @@ void SaveRegistry(void)
 				hKey4->WriteIntValueToReg("RegExp", FindMode);
 				hKey4->WriteIntValueToReg("Reg", RegType);
 
-				hKey4->WriteMultiStringToReg("AsciiFile", AsciiExt);
+				hKey4->WriteStrings("AsciiFile"sv, AsciiExt);
 				hKey4->WriteIntValueToReg("LowUp", FnameCnv);
 				hKey4->WriteIntValueToReg("Tout", TimeOut);
 
-				hKey4->WriteMultiStringToReg("NoTrn", MirrorNoTrn);
-				hKey4->WriteMultiStringToReg("NoDel", MirrorNoDel);
+				hKey4->WriteStrings("NoTrn"sv, MirrorNoTrn);
+				hKey4->WriteStrings("NoDel"sv, MirrorNoDel);
 				hKey4->WriteIntValueToReg("MirFile", MirrorFnameCnv);
 				hKey4->WriteIntValueToReg("MirUNot", MirUpDelNotify);
 				hKey4->WriteIntValueToReg("MirDNot", MirDownDelNotify);
@@ -512,7 +520,7 @@ void SaveRegistry(void)
 				hKey4->WriteIntValueToReg("FwallLow", FwallLower);
 				hKey4->WriteIntValueToReg("FwallDel", FwallDelimiter);
 
-				hKey4->WriteMultiStringToReg("DefAttr", DefAttrList);
+				hKey4->WriteStrings("DefAttr"sv, DefAttrList);
 
 				hKey4->WriteBinaryToReg("Hdlg", &HostDlgSize, sizeof(SIZE));
 				hKey4->WriteBinaryToReg("Bdlg", &BmarkDlgSize, sizeof(SIZE));
@@ -637,7 +645,7 @@ void SaveRegistry(void)
 					hKey5->SaveIntNum("Fpath", Host.NoFullPath, DefaultHost.NoFullPath);
 					hKey5->WriteBinaryToReg("Sort", &Host.Sort, sizeof(Host.Sort));
 					hKey5->SaveIntNum("Secu", Host.Security, DefaultHost.Security);
-					hKey5->WriteMultiStringToReg("Bmarks", Host.BookMark);
+					hKey5->WriteStrings("Bmarks"sv, Host.BookMark);
 					hKey5->SaveIntNum("Dial", Host.Dialup, DefaultHost.Dialup);
 					hKey5->SaveIntNum("UseIt", Host.DialupAlways, DefaultHost.DialupAlways);
 					hKey5->SaveIntNum("Notify", Host.DialupNotify, DefaultHost.DialupNotify);
@@ -702,7 +710,7 @@ void SaveRegistry(void)
 							hKey5->WriteBinaryToReg("Sort", &Host.Sort, sizeof(Host.Sort));
 							hKey5->SaveIntNum("Secu", Host.Security, DefaultHost.Security);
 
-							hKey5->WriteMultiStringToReg("Bmarks", Host.BookMark);
+							hKey5->WriteStrings("Bmarks"sv, Host.BookMark);
 
 							hKey5->SaveIntNum("Dial", Host.Dialup, DefaultHost.Dialup);
 							hKey5->SaveIntNum("UseIt", Host.DialupAlways, DefaultHost.DialupAlways);
@@ -816,13 +824,10 @@ int LoadRegistry(void)
 	int i;
 	int Sets;
 	// 暗号化通信対応
-//	char Str[256];	/* ASCII_EXT_LENより大きい事 */
 	char Str[PRIVATE_KEY_LEN*4+1];
 	char Buf[FMAX_PATH+1];
 	// 全設定暗号化対応
 	char Buf2[FMAX_PATH+1];
-	const char *Pos;
-	const char *Pos2;
 	int Sts;
 	int Version;
 
@@ -937,56 +942,30 @@ int LoadRegistry(void)
 			hKey4->ReadIntValueFromReg("RegExp", &FindMode);
 			hKey4->ReadIntValueFromReg("Reg", &RegType);
 
-			if(hKey4->ReadMultiStringFromReg("AsciiFile", AsciiExt, ASCII_EXT_LEN+1) == FFFTP_FAIL)
-			{
+			if (auto result = hKey4->ReadStrings("AsciiFile"sv))
+				AsciiExt = *result;
+			else if (hKey4->ReadStringFromReg("Ascii", Str, size_as<DWORD>(Str)) == FFFTP_SUCCESS) {
 				/* 旧ASCIIモードの拡張子の設定を新しいものに変換 */
-				Str[0] = NUL;
-				if(hKey4->ReadStringFromReg("Ascii", Str, ASCII_EXT_LEN+1) == FFFTP_SUCCESS)
-					memset(AsciiExt, NUL, ASCII_EXT_LEN+1);
-				Pos = Str;
-				while(*Pos != NUL)
-				{
-					if((Pos2 = strchr(Pos, ';')) == NULL)
-						Pos2 = strchr(Pos, NUL);
-					if((Pos2 - Pos) > 0)
-					{
-						if((StrMultiLen(AsciiExt) + (Pos2 - Pos) + 2) >= ASCII_EXT_LEN)
-							break;
-						strcpy(AsciiExt + StrMultiLen(AsciiExt), "*.");
-						strncpy(AsciiExt + StrMultiLen(AsciiExt) - 1, Pos, (Pos2 - Pos));
-					}
-					Pos = Pos2;
-					if(*Pos == ';')
-						Pos++;
-				}
+				static boost::wregex re{ LR"([^;]+)" };
+				AsciiExt.clear();
+				auto wStr = u8(Str);
+				for (boost::wsregex_iterator it{ wStr.begin(), wStr.end(), re }, end; it != end; ++it)
+					AsciiExt.push_back(L"*."sv + it->str());
 			}
-			// アスキーモード判別の改良
-			if(Version < 1986)
-			{
-				Pos = "*.js\0*.vbs\0*.css\0*.rss\0*.rdf\0*.xml\0*.xhtml\0*.xht\0*.shtml\0*.shtm\0*.sh\0*.py\0*.rb\0*.properties\0*.sql\0*.asp\0*.aspx\0*.php\0*.htaccess\0";
-				while(*Pos != NUL)
-				{
-					Pos2 = AsciiExt;
-					while(*Pos2 != NUL)
-					{
-						if(_stricmp(Pos2, Pos) == 0)
-							break;
-						Pos2 = strchr(Pos2, NUL) + 1;
-					}
-					if(*Pos2 == NUL)
-					{
-						if((StrMultiLen(AsciiExt) + strlen(Pos) + 2) < ASCII_EXT_LEN)
-							strncpy(AsciiExt + StrMultiLen(AsciiExt), Pos, strlen(Pos) + 2);
-					}
-					Pos = strchr(Pos, NUL) + 1;
-				}
+			if (Version < 1986) {
+				// アスキーモード判別の改良
+				for (auto item : { L"*.js"sv, L"*.vbs"sv, L"*.css"sv, L"*.rss"sv, L"*.rdf"sv, L"*.xml"sv, L"*.xhtml"sv, L"*.xht"sv, L"*.shtml"sv, L"*.shtm"sv, L"*.sh"sv, L"*.py"sv, L"*.rb"sv, L"*.properties"sv, L"*.sql"sv, L"*.asp"sv, L"*.aspx"sv, L"*.php"sv, L"*.htaccess"sv })
+					if (std::ranges::find(AsciiExt, item) == AsciiExt.end())
+						AsciiExt.emplace_back(item);
 			}
 
 			hKey4->ReadIntValueFromReg("LowUp", &FnameCnv);
 			hKey4->ReadIntValueFromReg("Tout", &TimeOut);
 
-			hKey4->ReadMultiStringFromReg("NoTrn", MirrorNoTrn, MIRROR_LEN+1);
-			hKey4->ReadMultiStringFromReg("NoDel", MirrorNoDel, MIRROR_LEN+1);
+			if (auto result = hKey4->ReadStrings("NoTrn"sv))
+				MirrorNoTrn = *result;
+			if (auto result = hKey4->ReadStrings("NoDel"sv))
+				MirrorNoDel = *result;
 			hKey4->ReadIntValueFromReg("MirFile", &MirrorFnameCnv);
 			hKey4->ReadIntValueFromReg("MirUNot", &MirUpDelNotify);
 			hKey4->ReadIntValueFromReg("MirDNot", &MirDownDelNotify);
@@ -1014,7 +993,8 @@ int LoadRegistry(void)
 			hKey4->ReadIntValueFromReg("FwallLow", &FwallLower);
 			hKey4->ReadIntValueFromReg("FwallDel", &FwallDelimiter);
 
-			hKey4->ReadMultiStringFromReg("DefAttr", DefAttrList, DEFATTRLIST_LEN+1);
+			if (auto result = hKey4->ReadStrings("DefAttr"sv))
+				DefAttrList = *result;
 
 			hKey4->ReadBinaryFromReg("Hdlg", &HostDlgSize, sizeof(SIZE));
 			hKey4->ReadBinaryFromReg("Bdlg", &BmarkDlgSize, sizeof(SIZE));
@@ -1135,7 +1115,8 @@ int LoadRegistry(void)
 				}
 				else
 					strcpy(Host.PassWord, UserMailAdrs);
-				hKey5->ReadMultiStringFromReg("Bmarks", Host.BookMark, BOOKMARK_SIZE);
+				if (auto result = hKey5->ReadStrings("Bmarks"sv))
+					Host.BookMark = *result;
 				hKey5->ReadIntValueFromReg("Dial", &Host.Dialup);
 				hKey5->ReadIntValueFromReg("UseIt", &Host.DialupAlways);
 				hKey5->ReadIntValueFromReg("Notify", &Host.DialupNotify);
@@ -1223,7 +1204,8 @@ int LoadRegistry(void)
 					else
 						strcpy(Host.PassWord, UserMailAdrs);
 
-					hKey5->ReadMultiStringFromReg("Bmarks", Host.BookMark, BOOKMARK_SIZE);
+					if (auto result = hKey5->ReadStrings("Bmarks"sv))
+						Host.BookMark = *result;
 
 					hKey5->ReadIntValueFromReg("Dial", &Host.Dialup);
 					hKey5->ReadIntValueFromReg("UseIt", &Host.DialupAlways);

@@ -30,27 +30,26 @@
 #include "common.h"
 
 
-static auto GetMultiTextFromList(HWND hdlg, int id) {
-	std::wstring lines;
-	std::wstring line;
-	for (int i = 0, count = (int)SendDlgItemMessageW(hdlg, id, LB_GETCOUNT, 0, 0); i < count; i++) {
+static auto GetStrings(HWND hdlg, int id) {
+	std::vector<std::wstring> strings;
+	auto count = (int)SendDlgItemMessageW(hdlg, id, LB_GETCOUNT, 0, 0);
+	strings.reserve(count);
+	std::wstring string;
+	for (int i = 0; i < count; i++) {
 		auto length = SendDlgItemMessageW(hdlg, id, LB_GETTEXTLEN, i, 0);
-		line.resize(length);
-		length = SendDlgItemMessageW(hdlg, id, LB_GETTEXT, i, (LPARAM)data(line));
-		lines.append(begin(line), begin(line) + length);
-		lines += L'\0';
+		string.resize(length);
+		length = SendDlgItemMessageW(hdlg, id, LB_GETTEXT, i, (LPARAM)data(string));
+		strings.emplace_back(data(string), length);
 	}
-	lines += L'\0';
-	return lines;
+	return strings;
 }
-static void AddFnameAttrToListView(HWND hDlg, char *Fname, char *Attr);
-static void GetFnameAttrFromListView(HWND hDlg, char *Buf);
+static void SetStrings(HWND hdlg, int id, std::vector<std::wstring> const& strings) {
+	for (auto const& string : strings)
+		SendDlgItemMessageW(hdlg, id, LB_ADDSTRING, 0, (LPARAM)string.c_str());
+}
 int GetDecimalText(HWND hDlg, int Ctrl);
 void SetDecimalText(HWND hDlg, int Ctrl, int Num);
 void CheckRange2(int *Cur, int Max, int Min);
-static void AddTextToListBox(HWND hDlg, std::wstring const& text, int CtrlList, int BufSize);
-void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text);
-void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize);
 
 
 /* 設定値 */
@@ -58,7 +57,7 @@ extern char UserMailAdrs[USER_MAIL_LEN+1];
 extern char ViewerName[VIEWERS][FMAX_PATH+1];
 extern int ConnectOnStart;
 extern int SaveWinPos;
-extern char AsciiExt[ASCII_EXT_LEN+1];
+extern std::vector<std::wstring> AsciiExt;
 extern int RecvMode;
 extern int SendMode;
 extern int MoveMode;
@@ -81,13 +80,13 @@ extern int ConnectAndSet;
 extern int TimeOut;
 extern int RmEOF;
 extern int RegType;
-extern char MirrorNoTrn[MIRROR_LEN+1];
-extern char MirrorNoDel[MIRROR_LEN+1];
+extern std::vector<std::wstring> MirrorNoTrn;
+extern std::vector<std::wstring> MirrorNoDel;
 extern int MirrorFnameCnv;
 extern int RasClose;
 extern int RasCloseNotify;
 extern int FileHist;
-extern char DefAttrList[DEFATTRLIST_LEN+1];
+extern std::vector<std::wstring> DefAttrList;
 extern int QuickAnonymous;
 extern int PassToHist;
 extern int VaxSemicolon;
@@ -181,7 +180,7 @@ struct Transfer1 {
 	static constexpr DWORD flag = PSP_HASHELP;
 	using ModeButton = RadioButton<TRMODE_AUTO, TRMODE_ASCII, TRMODE_BIN>;
 	static INT_PTR OnInit(HWND hDlg) {
-		SetMultiTextToList(hDlg, TRMODE_EXT_LIST, AsciiExt);
+		SetStrings(hDlg, TRMODE_EXT_LIST, AsciiExt);
 		ModeButton::Set(hDlg, AskTransferType());
 		SendDlgItemMessageW(hDlg, TRMODE_TIME, BM_SETCHECK, SaveTimeStamp, 0);
 		SendDlgItemMessageW(hDlg, TRMODE_EOF, BM_SETCHECK, RmEOF, 0);
@@ -196,7 +195,7 @@ struct Transfer1 {
 		case PSN_APPLY:
 			SetTransferTypeImm(ModeButton::Get(hDlg));
 			SaveTransferType();
-			GetMultiTextFromList(hDlg, TRMODE_EXT_LIST, AsciiExt, ASCII_EXT_LEN + 1);
+			AsciiExt = GetStrings(hDlg, TRMODE_EXT_LIST);
 			SaveTimeStamp = (int)SendDlgItemMessageW(hDlg, TRMODE_TIME, BM_GETCHECK, 0, 0);
 			RmEOF = (int)SendDlgItemMessageW(hDlg, TRMODE_EOF, BM_GETCHECK, 0, 0);
 			VaxSemicolon = (int)SendDlgItemMessageW(hDlg, TRMODE_SEMICOLON, BM_GETCHECK, 0, 0);
@@ -224,7 +223,7 @@ struct Transfer1 {
 			break;
 		case TRMODE_ADD:
 			if (std::wstring text; InputDialog(fname_in_dlg, hDlg, IDS_MSGJPN199, text, FMAX_PATH))
-				AddTextToListBox(hDlg, text, TRMODE_EXT_LIST, ASCII_EXT_LEN + 1);
+				SendDlgItemMessageW(hDlg, TRMODE_EXT_LIST, LB_ADDSTRING, 0, (LPARAM)text.c_str());
 			break;
 		case TRMODE_DEL:
 			if (auto Num = (int)SendDlgItemMessageW(hDlg, TRMODE_EXT_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
@@ -277,6 +276,15 @@ struct Transfer2 {
 struct Transfer3 {
 	static constexpr WORD dialogId = opt_trmode3_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
+	static void AddRow(HWND hDlg, std::wstring const& name, std::wstring const& attr) {
+		if (empty(name) || empty(attr))
+			return;
+		LVITEMW item;
+		item = { .mask = LVIF_TEXT, .iItem = std::numeric_limits<int>::max(), .pszText = const_cast<LPWSTR>(name.c_str()) };
+		auto index = (int)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_INSERTITEMW, 0, (LPARAM)&item);
+		item = { .mask = LVIF_TEXT, .iItem = index, .iSubItem = 1, .pszText = const_cast<LPWSTR>(name.c_str()) };
+		SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_SETITEMW, 0, (LPARAM)&item);
+	}
 	static INT_PTR OnInit(HWND hDlg) {
 		SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 
@@ -294,13 +302,8 @@ struct Transfer3 {
 			SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_INSERTCOLUMNW, i++, (LPARAM)&column);
 		}
 
-		auto Fname = DefAttrList;
-		while (*Fname != NUL) {
-			auto Attr = strchr(Fname, NUL) + 1;
-			if (*Attr != NUL)
-				AddFnameAttrToListView(hDlg, Fname, Attr);
-			Fname = strchr(Attr, NUL) + 1;
-		}
+		for (size_t i = 0; i < size(DefAttrList); i += 2)
+			AddRow(hDlg, DefAttrList[i], DefAttrList[i + 1]);
 
 		SendDlgItemMessageW(hDlg, TRMODE3_FOLDER, BM_SETCHECK, FolderAttr, 0);
 		if (FolderAttr == NO)
@@ -315,7 +318,19 @@ struct Transfer3 {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY: {
-			GetFnameAttrFromListView(hDlg, DefAttrList);
+			DefAttrList.clear();
+			auto count = (int)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETITEMCOUNT, 0, 0);
+			DefAttrList.reserve((size_t)count * 2);
+			for (int i = 0; i < count; i++) {
+				LVITEMW item;
+				wchar_t buffer[260 + 1];
+				item = { .mask = LVIF_TEXT, .iItem = i, .iSubItem = 0, .pszText = buffer, .cchTextMax = size_as<int>(buffer) };
+				SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETITEMW, 0, (LPARAM)&item);
+				DefAttrList.emplace_back(item.pszText);
+				item = { .mask = LVIF_TEXT, .iItem = i, .iSubItem = 1, .pszText = buffer, .cchTextMax = size_as<int>(buffer) };
+				SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETITEMW, 0, (LPARAM)&item);
+				DefAttrList.emplace_back(item.pszText);
+			}
 			FolderAttrNum = GetDecimalText(hDlg, TRMODE3_FOLDER_ATTR);
 			FolderAttr = (int)SendDlgItemMessageW(hDlg, TRMODE3_FOLDER, BM_GETCHECK, 0, 0);
 			return PSNRET_NOERROR;
@@ -329,8 +344,8 @@ struct Transfer3 {
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
 		case TRMODE3_ADD:
-			if (DefAttr data; Dialog(GetFtpInst(), def_attr_dlg, hDlg, data) && !empty(data.filename) && !empty(data.attr))
-				AddFnameAttrToListView(hDlg, const_cast<char*>(u8(data.filename).c_str()), const_cast<char*>(u8(data.attr).c_str()));
+			if (DefAttr data; Dialog(GetFtpInst(), def_attr_dlg, hDlg, data))
+				AddRow(hDlg, data.filename, data.attr);
 			break;
 		case TRMODE3_DEL:
 			if (auto Tmp = (long)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETNEXTITEM, -1, LVNI_ALL | LVNI_SELECTED); Tmp != -1)
@@ -380,8 +395,8 @@ struct Mirroring {
 	static constexpr WORD dialogId = opt_mirror_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
-		SetMultiTextToList(hDlg, MIRROR_NOTRN_LIST, MirrorNoTrn);
-		SetMultiTextToList(hDlg, MIRROR_NODEL_LIST, MirrorNoDel);
+		SetStrings(hDlg, MIRROR_NOTRN_LIST, MirrorNoTrn);
+		SetStrings(hDlg, MIRROR_NODEL_LIST, MirrorNoDel);
 		SendDlgItemMessageW(hDlg, MIRROR_LOW, BM_SETCHECK, MirrorFnameCnv, 0);
 		SendDlgItemMessageW(hDlg, MIRROR_UPDEL_NOTIFY, BM_SETCHECK, MirUpDelNotify, 0);
 		SendDlgItemMessageW(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_SETCHECK, MirDownDelNotify, 0);
@@ -391,8 +406,8 @@ struct Mirroring {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			GetMultiTextFromList(hDlg, MIRROR_NOTRN_LIST, MirrorNoTrn, MIRROR_LEN + 1);
-			GetMultiTextFromList(hDlg, MIRROR_NODEL_LIST, MirrorNoDel, MIRROR_LEN + 1);
+			MirrorNoTrn = GetStrings(hDlg, MIRROR_NOTRN_LIST);
+			MirrorNoDel = GetStrings(hDlg, MIRROR_NODEL_LIST);
 			MirrorFnameCnv = (int)SendDlgItemMessageW(hDlg, MIRROR_LOW, BM_GETCHECK, 0, 0);
 			MirUpDelNotify = (int)SendDlgItemMessageW(hDlg, MIRROR_UPDEL_NOTIFY, BM_GETCHECK, 0, 0);
 			MirDownDelNotify = (int)SendDlgItemMessageW(hDlg, MIRROR_DOWNDEL_NOTIFY, BM_GETCHECK, 0, 0);
@@ -408,11 +423,11 @@ struct Mirroring {
 		switch (id) {
 		case MIRROR_NOTRN_ADD:
 			if (std::wstring text; InputDialog(fname_in_dlg, hDlg, IDS_MSGJPN199, text, FMAX_PATH))
-				AddTextToListBox(hDlg, text, MIRROR_NOTRN_LIST, MIRROR_LEN + 1);
+				SendDlgItemMessageW(hDlg, MIRROR_NOTRN_LIST, LB_ADDSTRING, 0, (LPARAM)text.c_str());
 			break;
 		case MIRROR_NODEL_ADD:
 			if (std::wstring text; InputDialog(fname_in_dlg, hDlg, IDS_MSGJPN199, text, FMAX_PATH))
-				AddTextToListBox(hDlg, text, MIRROR_NODEL_LIST, MIRROR_LEN + 1);
+				SendDlgItemMessageW(hDlg, MIRROR_NODEL_LIST, LB_ADDSTRING, 0, (LPARAM)text.c_str());
 			break;
 		case MIRROR_NOTRN_DEL:
 			if (auto Num = (int)SendDlgItemMessageW(hDlg, MIRROR_NOTRN_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
@@ -760,64 +775,6 @@ void SetOption() {
 }
 
 
-/*----- ファイル名と属性をリストビューに追加 ----------------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		char *Fname : ファイル名
-*		char *Attr : 属性
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void AddFnameAttrToListView(HWND hDlg, char* Fname, char* Attr) {
-	char Buf[DEFATTRLIST_LEN + 1];
-	GetFnameAttrFromListView(hDlg, Buf);
-	if (StrMultiLen(Buf) + strlen(Fname) + strlen(Attr) + 2 <= DEFATTRLIST_LEN) {
-		auto wFname = u8(Fname);
-		LVITEMW item = { .mask = LVIF_TEXT, .iItem = std::numeric_limits<int>::max(), .pszText = data(wFname) };
-		auto index = (int)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_INSERTITEMW, 0, (LPARAM)&item);
-		auto wAttr = u8(Attr);
-		item = { .mask = LVIF_TEXT, .iItem = index, .iSubItem = 1, .pszText = data(wAttr) };
-		SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_SETITEMW, 0, (LPARAM)&item);
-	} else
-		MessageBeep(-1);
-}
-
-
-/*----- リストビューの内容をマルチ文字列にする --------------------------------
-*
-*	Parameter
-*		HWND hDlg : ダイアログボックスのウインドウハンドル
-*		int CtrlList : リストボックスのID
-*		char *Buf : 文字列をセットするバッファ
-*		int BufSize : バッファのサイズ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void GetFnameAttrFromListView(HWND hDlg, char* Buf) {
-	std::wstring lines;
-	wchar_t buffer[260 + 1];
-	LVITEMW item;
-	for (int i = 0, count = (int)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETITEMCOUNT, 0, 0); i < count; i++) {
-		item = { .mask = LVIF_TEXT, .iItem = i, .iSubItem = 0, .pszText = buffer, .cchTextMax = size_as<int>(buffer) };
-		SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETITEMW, 0, (LPARAM)&item);
-		lines += buffer;
-		lines += L'\0';
-		item = { .mask = LVIF_TEXT, .iItem = i, .iSubItem = 1, .pszText = buffer, .cchTextMax = size_as<int>(buffer) };
-		SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETITEMW, 0, (LPARAM)&item);
-		lines += buffer;
-		lines += L'\0';
-	}
-	lines += L'\0';
-	auto u8lines = u8(lines);
-	std::copy(begin(u8lines), end(u8lines), Buf);
-}
-
-
 // ソート設定
 int SortSetting() {
 	struct Data {
@@ -924,60 +881,4 @@ void CheckRange2(int *Cur, int Max, int Min)
 	if(*Cur > Max)
 		*Cur = Max;
 	return;
-}
-
-
-// 文字列をリストボックスに追加
-static void AddTextToListBox(HWND hDlg, std::wstring const& text, int CtrlList, int BufSize) {
-	if (empty(text))
-		return;
-	if (BufSize - 1 < size_as<int>(u8(text)) + 1 + size_as<int>(u8(GetMultiTextFromList(hDlg, CtrlList))))
-		MessageBeep(-1);
-	else
-		SendDlgItemMessageW(hDlg, CtrlList, LB_ADDSTRING, 0, (LPARAM)text.c_str());
-}
-
-
-/*----- マルチ文字列をリストボックスにセット ----------------------------------
-*
-*	Parameter
-*		HWND hDlg : ダイアログボックスのウインドウハンドル
-*		int CtrlList : リストボックスのID
-*		char *Text : 文字列
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-// hostman.cで使用
-//static void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text)
-void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text)
-{
-	char *Pos;
-
-	Pos = Text;
-	while(*Pos != NUL)
-	{
-		SendDlgItemMessageW(hDlg, CtrlList, LB_ADDSTRING, 0, (LPARAM)u8(Pos).c_str());
-		Pos += strlen(Pos) + 1;
-	}
-	return;
-}
-
-
-/*----- リストボックスの内容をマルチ文字列にする ------------------------------
-*
-*	Parameter
-*		HWND hDlg : ダイアログボックスのウインドウハンドル
-*		int CtrlList : リストボックスのID
-*		char *Buf : 文字列をセットするバッファ
-*		int BufSize : バッファのサイズ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-void GetMultiTextFromList(HWND hDlg, int CtrlList, char* Buf, int BufSize) {
-	auto u8lines = u8(GetMultiTextFromList(hDlg, CtrlList));
-	memset(Buf, 0, BufSize);
-	memcpy(Buf, u8lines.c_str(), std::min(size(u8lines), (size_t)BufSize));
 }

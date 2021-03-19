@@ -169,13 +169,10 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define INIT_DIR_LEN	(FMAX_PATH-40)	/* 初期ディレクトリ */
 #define USER_MAIL_LEN	80		/* ユーザのメールアドレス */
 								/*   PASSWORD_LEN と同じにすること */
-#define ASCII_EXT_LEN	400		/* アスキーモード転送のファイル名列 */
 #define FILTER_EXT_LEN	400		/* フィルタのファイル名列 */
 #define BOOKMARK_SIZE	2048	/* ブックマーク */
 #define CHMOD_CMD_LEN	40		/* 属性変更コマンド */
-#define MIRROR_LEN		400		/* ミラーリングの設定用 */
 #define NLST_NAME_LEN	40		/* NLSTに付けるファイル名／オプション */
-#define DEFATTRLIST_LEN	800		/* 属性リストの長さ */
 #define INITCMD_LEN		256		/* 初期化コマンド */
 #define OWNER_NAME_LEN	40		/* オーナ名 */
 #define RAS_NAME_LEN	256		/* RASのエントリ名の長さ */
@@ -512,7 +509,7 @@ struct HOSTDATA : Host {
 											/* 通常はグループのフラグのみが有効 */
 											/* レベル数は設定の登録／呼出時のみで使用 */
 	char HostName[HOST_NAME_LEN+1] = "";	/* 設定名 */
-	char BookMark[BOOKMARK_SIZE] = "";		/* ブックマーク */
+	std::vector<std::wstring> BookMark;		/* ブックマーク */
 	int Anonymous = NO;						/* Anonymousフラグ */
 	int CurNameKanjiCode = KANJI_NOCNV;		/* 自動判別後のファイル名の漢字コード (KANJI_xxx) */
 	int LastDir = NO;						/* 最後にアクセスしたフォルダを保存 */
@@ -790,8 +787,8 @@ int SelectHost(int Type);
 int AddHostToList(HOSTDATA *Set, int Pos, int Level);
 int CopyHostFromList(int Num, HOSTDATA *Set);
 int CopyHostFromListInConnect(int Num, HOSTDATA *Set);
-int SetHostBookMark(int Num, char *Bmask, int Len);
-char *AskHostBookMark(int Num);
+int SetHostBookMark(int Num, std::vector<std::wstring>&& bookmark);
+std::optional<std::vector<std::wstring>> AskHostBookMark(int Num);
 int SetHostDir(int Num, const char* LocDir, const char* HostDir);
 int SetHostPassword(int Num, char *Pass);
 int SetHostSort(int Num, int LFSort, int LDSort, int RFSort, int RDSort);
@@ -1026,8 +1023,6 @@ int SortSetting(void);
 int GetDecimalText(HWND hDlg, int Ctrl);
 void SetDecimalText(HWND hDlg, int Ctrl, int Num);
 void CheckRange2(int *Cur, int Max, int Min);
-void SetMultiTextToList(HWND hDlg, int CtrlList, char *Text);
-void GetMultiTextFromList(HWND hDlg, int CtrlList, char *Buf, int BufSize);
 
 /*===== bookmark.c =====*/
 
@@ -1095,7 +1090,6 @@ void GetUpperDirEraseTopSlash(char *Path);
 int AskDirLevel(const char* Path);
 std::wstring MakeSizeString(double size);
 void DispStaticText(HWND hWnd, const char* Str);
-int StrMultiLen(const char *Str);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
 int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char *Pass, int *Port);
 int TimeString2FileTime(const char *Time, FILETIME *Buf);
@@ -1229,6 +1223,9 @@ static inline auto operator+(std::basic_string_view<Char, Traits> const& left, s
 	auto it = std::copy(begin(left), end(left), begin(result));
 	std::copy(begin(right), end(right), it);
 	return result;
+}
+static inline auto sv(auto const& sm) {
+	return std::basic_string_view{ sm.first, sm.second };
 }
 static inline auto u8(std::string_view utf8) {
 	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) { return MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, src, srclen, dst, dstlen); }, utf8);

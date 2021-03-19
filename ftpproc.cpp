@@ -54,10 +54,10 @@ extern int FnameCnv;
 extern int RecvMode;
 extern int SendMode;
 extern int MoveMode;
-extern char MirrorNoTrn[MIRROR_LEN+1];
-extern char MirrorNoDel[MIRROR_LEN+1];
+std::vector<std::wstring> MirrorNoTrn = { L"*.bak"s };
+std::vector<std::wstring> MirrorNoDel;
 extern int MirrorFnameCnv;
-extern char DefAttrList[DEFATTRLIST_LEN+1];
+std::vector<std::wstring> DefAttrList;
 extern SIZE MirrorDlgSize;
 extern int VaxSemicolon;
 extern int CancelFlg;
@@ -1530,23 +1530,20 @@ static void CountMirrorFiles(HWND hDlg, std::forward_list<TRANSPACKET> const& li
 // ミラーリングで転送／削除しないファイルかどうかを返す
 // Mode : 0=転送しないファイル, 1=削除しないファイル
 static int AskMirrorNoTrn(char *Fname, int Mode) {
-	if (auto Tbl = Mode == 1 ? MirrorNoDel : MirrorNoTrn; 0 < StrMultiLen(Tbl))
-		for (auto wFname = u8(GetFileName(Fname)); *Tbl != NUL; Tbl += strlen(Tbl) + 1)
-			if (CheckFname(wFname, u8(Tbl)))
+	if (auto const& patterns = Mode == 1 ? MirrorNoDel : MirrorNoTrn; !empty(patterns))
+		for (auto const wFname = u8(GetFileName(Fname)); auto const& pattern : patterns)
+			if (CheckFname(wFname, pattern))
 				return YES;
 	return NO;
 }
 
 
 // アップロードするファイルの属性を返す
-static int AskUploadFileAttr(char *Fname) {
-	auto wFname = u8(GetFileName(Fname));
-	for (char* Tbl = DefAttrList; *Tbl != NUL; Tbl += strlen(Tbl) + 1) {
-		auto match = CheckFname(wFname, u8(Tbl));
-		Tbl += strlen(Tbl) + 1;
-		if (match && *Tbl != NUL)
-			return std::strtol(Tbl, nullptr, 16);
-	}
+static int AskUploadFileAttr(char* Fname) {
+	auto const wFname = u8(GetFileName(Fname));
+	for (size_t i = 0; i < size(DefAttrList); i += 2)
+		if (CheckFname(wFname, DefAttrList[i]))
+			return std::stol(DefAttrList[i + 1], nullptr, 16);
 	return -1;
 }
 
