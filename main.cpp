@@ -1222,7 +1222,6 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_REGSAVE :
-					GetListTabWidth();
 					SaveRegistry();
 					SaveSettingsToFile();
 					break;
@@ -1706,7 +1705,6 @@ static void ExitProc(HWND hWnd)
 
 	if(SaveExit == YES)
 	{
-		GetListTabWidth();
 		SaveRegistry();
 		// ポータブル版判定
 		if(RegType == REGTYPE_REG)
