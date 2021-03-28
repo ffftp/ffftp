@@ -677,7 +677,6 @@ int MakeListWin();
 void DeleteListWin(void);
 HWND GetLocalHwnd(void);
 HWND GetRemoteHwnd(void);
-void GetListTabWidth(void);
 void SetListViewType(void);
 void GetRemoteDirForWnd(int Mode, int *CancelCheckWork);
 void GetLocalDirForWnd(void);
