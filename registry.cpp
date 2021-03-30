@@ -168,7 +168,9 @@ extern int WinWidth;
 extern int WinHeight;
 extern int LocalWidth;
 extern int TaskHeight;
+extern int LocalTabWidthDefault[4];
 extern int LocalTabWidth[4];
+extern int RemoteTabWidthDefault[6];
 extern int RemoteTabWidth[6];
 extern char UserMailAdrs[USER_MAIL_LEN+1];
 extern char ViewerName[VIEWERS][FMAX_PATH+1];
@@ -898,7 +900,11 @@ int LoadRegistry(void)
 			/* ↓旧バージョンのバグ対策 */
 			TaskHeight = std::max(0, TaskHeight);
 			hKey4->ReadBinaryFromReg("LocalColm", &LocalTabWidth, sizeof(LocalTabWidth));
+			if (std::all_of(std::begin(LocalTabWidth), std::end(LocalTabWidth), [](auto width) { return width <= 0; }))
+				std::copy(std::begin(LocalTabWidthDefault), std::end(LocalTabWidthDefault), std::begin(LocalTabWidth));
 			hKey4->ReadBinaryFromReg("RemoteColm", &RemoteTabWidth, sizeof(RemoteTabWidth));
+			if (std::all_of(std::begin(RemoteTabWidth), std::end(RemoteTabWidth), [](auto width) { return width <= 0; }))
+				std::copy(std::begin(RemoteTabWidthDefault), std::end(RemoteTabWidthDefault), std::begin(RemoteTabWidth));
 			hKey4->ReadIntValueFromReg("SwCmd", &Sizing);
 
 			hKey4->ReadStringFromReg("UserMail", UserMailAdrs, USER_MAIL_LEN+1);
