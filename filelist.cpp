@@ -809,29 +809,19 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			}
 			break;
 
+		case WM_NOTIFY:
+			switch (auto hdr = reinterpret_cast<NMHDR*>(lParam); hdr->code) {
+			case HDN_ITEMCHANGEDW:
+				if (auto header = reinterpret_cast<NMHEADERW*>(lParam); header->pitem && (header->pitem->mask & HDI_WIDTH))
+					(hWnd == hWndListLocal ? LocalTabWidth : RemoteTabWidth)[header->iItem] = header->pitem->cxy;
+				break;
+			}
+			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
+
 		default :
 			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
 	}
 	return(0L);
-}
-
-
-/*----- ファイルリストのタブ幅を取得する --------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-void GetListTabWidth(void) {
-	int i;
-	i = 0;
-	for (auto& width : LocalTabWidth)
-		width = (int)SendMessageW(hWndListLocal, LVM_GETCOLUMNWIDTH, i++, 0);
-	i = 0;
-	for (auto& width : RemoteTabWidth)
-		width = (int)SendMessageW(hWndListRemote, LVM_GETCOLUMNWIDTH, i++, 0);
 }
 
 

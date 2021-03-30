@@ -141,8 +141,10 @@ int WinWidth = 790;
 int WinHeight = 513;
 int LocalWidth = 389;
 int TaskHeight = 100;
-int LocalTabWidth[4] = { 150, 120, 60, 37 };
-int RemoteTabWidth[6] = { 150, 120, 60, 37, 60, 60 };
+int LocalTabWidthDefault[4] = { 150, 120, 60, 37 };
+int LocalTabWidth[4];
+int RemoteTabWidthDefault[6] = { 150, 120, 60, 37, 60, 60 };
+int RemoteTabWidth[6];
 char UserMailAdrs[USER_MAIL_LEN+1] = { "who@example.com" };
 char ViewerName[VIEWERS][FMAX_PATH+1] = { { "notepad" }, { "" }, { "" } };
 HFONT ListFont = NULL;
@@ -348,8 +350,6 @@ static int InitApp(int cmdShow)
 	int masterpass;
 	// ポータブル版判定
 	int ImportPortable;
-	// 高DPI対応
-	int i;
 
 	sts = FFFTP_FAIL;
 	
@@ -366,10 +366,12 @@ static int InitApp(int cmdShow)
 		WinHeight = CalcPixelY(WinHeight);
 		LocalWidth = CalcPixelX(LocalWidth);
 		TaskHeight = CalcPixelY(TaskHeight);
-		for(i = 0; i < sizeof(LocalTabWidth) / sizeof(int); i++)
-			LocalTabWidth[i] = CalcPixelX(LocalTabWidth[i]);
-		for(i = 0; i < sizeof(RemoteTabWidth) / sizeof(int); i++)
-			RemoteTabWidth[i] = CalcPixelX(RemoteTabWidth[i]);
+		for (auto& width : LocalTabWidthDefault)
+			width = CalcPixelX(width);
+		std::copy(std::begin(LocalTabWidthDefault), std::end(LocalTabWidthDefault), std::begin(LocalTabWidth));
+		for (auto& width : RemoteTabWidthDefault)
+			width = CalcPixelX(width);
+		std::copy(std::begin(RemoteTabWidthDefault), std::end(RemoteTabWidthDefault), std::begin(RemoteTabWidth));
 
 		std::vector<std::wstring_view> args{ __wargv + 1, __wargv + __argc };
 		if (auto it = std::find_if(begin(args), end(args), [](auto const& arg) { return ieq(arg, L"-n"sv) || ieq(arg, L"--ini"sv); }); it != end(args) && ++it != end(args)) {
@@ -1222,7 +1224,6 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_REGSAVE :
-					GetListTabWidth();
 					SaveRegistry();
 					SaveSettingsToFile();
 					break;
@@ -1706,7 +1707,6 @@ static void ExitProc(HWND hWnd)
 
 	if(SaveExit == YES)
 	{
-		GetListTabWidth();
 		SaveRegistry();
 		// ポータブル版判定
 		if(RegType == REGTYPE_REG)
