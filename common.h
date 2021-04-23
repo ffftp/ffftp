@@ -53,7 +53,6 @@
 #include <variant>
 #include <vector>
 #include <concurrent_queue.h>
-#include <boost/regex.hpp>
 #include <cassert>
 #include <cwctype>
 #include <crtdbg.h>
@@ -71,6 +70,7 @@
 #endif
 #include <WinNls.h>
 #pragma pop_macro("WINVER")
+#include <boost/regex.hpp>		// requires WinNls.
 #include <ObjBase.h>			// for COM interface, define `interface` macro.
 #include <windowsx.h>
 #include <winsock2.h>
