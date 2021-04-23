@@ -16,33 +16,18 @@ jobs:
         - Release
     runs-on: windows-latest
     steps:
-    - name: Get vcpkg dir
-      id: vcpkg
-      run: echo "::set-output name=dir::$env:VCPKG_INSTALLATION_ROOT"
-    - name: Enable cache
-      uses: actions/cache@v2
-      with:
-        key: vcpkg-1426-${{matrix.platform}}
-        path: ~/AppData/Local/vcpkg/archives
     - name: Checkout code
       uses: actions/checkout@v2
+      with:
+        submodules: true
     - name: Build
       run: |
         $VS = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
-        Set-ItemProperty "$VS\VC\Tools\MSVC\*" -Name Attributes -Value Hidden
         Start-Process "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList $('update --installPath "{0}" --quiet' -f $VS) -NoNewWindow -Wait
         Start-Process "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList $('modify --installPath "{0}" --quiet --add Microsoft.VisualStudio.Component.VC.14.26.x86.x64' -f $VS) -NoNewWindow -Wait
         Get-Item $env:TEMP\dd_* | Where-Object LastWriteTime (Get-Date).AddHours(-1) -GT | Get-Content
-        Copy-Item -Force "$VS\VC\Auxiliary\Build\14.26\Microsoft.VCToolsVersion.14.26.props" "$VS\VC\Auxiliary\Build\Microsoft.VCToolsVersion.v142.default.props"
-        vcpkg integrate install
-        vcpkg --overlay-triplets=vcpkg/triplets install boost-regex:${{matrix.platform}}-windows-ffftp
         & "$VS\MSBuild\Current\Bin\MSBuild.exe" ffftp.sln /p:Platform=$('${{matrix.platform}}' -replace 'x86', 'Win32') /p:Configuration=${{matrix.configuration}}
         & "$VS\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" test\${{matrix.configuration}}\${{matrix.platform}}\test.dll
-    - name: Upload artifacts (buildtrees)
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{matrix.platform}}-${{matrix.configuration}}-buildtrees
-        path: ${{steps.vcpkg.outputs.dir}}/buildtrees
     - name: Upload artifacts (ffftp)
       uses: actions/upload-artifact@v2
       with:
