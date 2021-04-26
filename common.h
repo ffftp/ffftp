@@ -1163,18 +1163,6 @@ int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
 extern int DebugConsole;
 extern int DispIgnoreHide;
 
-template<class Char> struct Traits;
-template<>
-struct Traits<char> {
-	static int vscprintf(const char* format, va_list arg) { return _vscprintf_p(format, arg); }
-	static int vsprintf(char* buffer, size_t size, const char* format, va_list arg) { return _vsprintf_p(buffer, size, format, arg); }
-};
-template<>
-struct Traits<wchar_t> {
-	static int vscprintf(const wchar_t* format, va_list arg) { return _vscwprintf_p(format, arg); }
-	static int vsprintf(wchar_t* buffer, size_t size, const wchar_t* format, va_list arg) { return _vswprintf_p(buffer, size, format, arg); }
-};
-
 template<class Target, class Source>
 constexpr auto data_as(Source& source) {
 	return reinterpret_cast<Target*>(std::data(source));
@@ -1209,19 +1197,18 @@ template<class DstChar, class Fn>
 static inline auto convert(Fn&& fn, std::wstring_view src) {
 	return convert<DstChar, wchar_t>(std::forward<Fn>(fn), src);
 }
-template<class Char, class Traits, class Alloc>
-static inline auto operator+(std::basic_string<Char, Traits, Alloc> const& left, std::basic_string_view<Char, Traits> const& right) {
-	std::basic_string<Char, Traits, Alloc> result(size(left) + size(right), Char(0));
-	auto it = std::copy(begin(left), end(left), begin(result));
-	std::copy(begin(right), end(right), it);
+template<class Char, class... Str>
+static inline auto concat(std::basic_string_view<Char> first, Str&&... rest) {
+	std::basic_string<Char> result;
+	result.reserve((std::size(first) + ... + std::size(rest)));
+	((result += first) += ... += rest);
 	return result;
 }
-template<class Char, class Traits, class Alloc>
-static inline auto operator+(std::basic_string_view<Char, Traits> const& left, std::basic_string<Char, Traits, Alloc> const& right) {
-	std::basic_string<Char, Traits, Alloc> result(size(left) + size(right), Char(0));
-	auto it = std::copy(begin(left), end(left), begin(result));
-	std::copy(begin(right), end(right), it);
-	return result;
+static inline auto operator+(std::string_view left, std::string_view right) {
+	return concat(left, right);
+}
+static inline auto operator+(std::wstring_view left, std::wstring_view right) {
+	return concat(left, right);
 }
 static inline auto sv(auto const& sm) {
 	return std::basic_string_view{ sm.first, sm.second };
@@ -1266,20 +1253,30 @@ static inline auto replace(std::basic_string_view<Char> input, boost::basic_rege
 	replaced.append(last, data(input) + size(input));
 	return replaced;
 }
-template<class Char>
-static inline auto strprintf(_In_z_ _Printf_format_string_ const Char* format, ...) {
-	va_list arg1;
-	va_start(arg1, format);
-	int len = Traits<Char>::vscprintf(format, arg1);
-	va_end(arg1);
-	assert(0 < len);
-	va_list arg2;
-	va_start(arg2, format);
-	std::basic_string<Char> buffer(len, Char{});
-	len = Traits<Char>::vsprintf(data(buffer), (size_t)len + 1, format, arg2);
-	va_end(arg2);
-	assert(len == size(buffer));
-	return buffer;
+namespace detail {
+	static inline int vscprintf(char const* const format, va_list args) { return _vscprintf_p(format, args); }
+	static inline int vscprintf(wchar_t const* const format, va_list args) { return _vscwprintf_p(format, args); }
+	static inline int vsprintf(_Out_writes_(size) _Post_z_ char* const buffer, size_t const size, char const* const format, va_list args) { return _vsprintf_p(buffer, size, format, args); }
+	static inline int vsprintf(_Out_writes_(size) _Post_z_ wchar_t* const buffer, size_t const size, wchar_t const* const format, va_list args) { return _vswprintf_p(buffer, size, format, args); }
+	template<class Char>
+	static inline auto vstrprintf(int capacity, Char const* const format, va_list args) {
+		if (capacity == -1)
+			capacity = vscprintf(format, args);
+		assert(0 < capacity);
+		std::basic_string buffer(capacity, Char{});
+		int length = vsprintf(data(buffer), (size_t)capacity + 1, format, args);
+		assert(length <= capacity);
+		buffer.resize(length);
+		return buffer;
+	}
+}
+template<int capacity = -1, class Char>
+static inline auto strprintf(_In_z_ _Printf_format_string_ Char const* const format, ...) {
+	va_list args;
+	va_start(args, format);
+	auto result = detail::vstrprintf(capacity, format, args);
+	va_end(args);
+	return result;
 }
 template<int captionId = IDS_APP>
 static inline auto Message(HWND owner, int textId, DWORD style) {
