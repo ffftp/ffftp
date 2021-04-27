@@ -217,6 +217,13 @@ u	-rw-r--r-- 1 syouwaky 10014 2735 Dec 5 2018 sitemap.xml
 u	drwxr-xr-x 4 syouwaky 10014 4096 Oct 14 06:48 sp
 u	-rw-r--r-- 1 syouwaky 10014 5166 Oct 20 2017 style.css
 
+// https://github.com/ffftp/ffftp/issues/258
+	0           1 2   3  4   5  6     7
+	-----------------------------------------------
+u	-rw-r-----. 1 grp 36 Apr 20 19:13 newfile.txt
+u	-rw-rw----. 1 grp  0 Apr 20 19:07 testfile1.txt
+u	-rw-rw----. 1 grp  0 Apr 20 19:08 testfile2.txt
+
 
 // linux-ftpd
 *LIST_UNIX_16
