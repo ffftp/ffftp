@@ -2015,7 +2015,7 @@ void SaveSettingsToWinSCPIni() {
 			std::vector<std::string> names;
 			HOSTDATA Host;
 			for (int i = 0; CopyHostFromList(i, &Host) == FFFTP_SUCCESS; i++) {
-				assert((Host.Level & SET_LEVEL_MASK) <= size(names));
+				assert((Host.Level & SET_LEVEL_MASK) <= size_as<int>(names));
 				names.resize(Host.Level & SET_LEVEL_MASK);
 				if (Host.Level & SET_LEVEL_GROUP) {
 					names.push_back(Host.HostName);
