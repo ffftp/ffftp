@@ -796,40 +796,6 @@ void AttrValue2String(int Attr, char *Buf, int ShowNumber)
 	return;
 }
 
-
-/*----- INIファイル文字列を整形 -----------------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void FormatIniString(char *Str)
-{
-	char *Put;
-
-	Put = Str;
-	while(*Str != NUL)
-	{
-		if((*Str != ' ') && (*Str != '\t') && (*Str != '\n'))
-			*Put++ = *Str;
-		if(*Str++ == '=')
-			break;
-	}
-
-	while(*Str != NUL)
-	{
-		if((*Str != '\"') && (*Str != '\n'))
-			*Put++ = *Str;
-		Str++;
-	}
-	*Put = NUL;
-
-	return;
-}
-
 static auto GetFilterString(std::initializer_list<FileType> fileTypes) {
 	static auto const map = [] {
 		std::map<FileType, std::wstring> map;
