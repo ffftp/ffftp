@@ -97,16 +97,16 @@ public:
 		Xor(name, data(value), size_as<DWORD>(value), true);
 		WriteValue(name, value, REG_MULTI_SZ);
 	}
-	int ReadBinaryFromReg(std::string_view name, _Out_writes_(size) void* buffer, DWORD size) const {
+	bool ReadBinary(std::string_view name, auto& object) const {
 		if (std::string value; ReadValue(name, value)) {
 			Xor(name, data(value), size_as<DWORD>(value), false);
-			std::copy_n(begin(value), std::min(value.size(), (size_t)size), reinterpret_cast<char*>(buffer));
-			return FFFTP_SUCCESS;
+			std::copy_n(begin(value), std::min(size(value), sizeof object), reinterpret_cast<char*>(std::addressof(object)));
+			return true;
 		}
-		return FFFTP_FAIL;
+		return false;
 	}
-	void WriteBinaryToReg(std::string_view name, const void* bin, int len) {
-		std::string value{ reinterpret_cast<const char*>(bin), reinterpret_cast<const char*>(bin) + len };
+	void WriteBinary(std::string_view name, auto const& object) {
+		std::string value(reinterpret_cast<const char*>(std::addressof(object)), sizeof object);
 		Xor(name, data(value), size_as<DWORD>(value), false);
 		WriteValue(name, value, REG_BINARY);
 	}
@@ -335,7 +335,7 @@ int ValidateMasterPassword(void)
 
 		if(hKey3->ReadStringFromReg("CredentialCheck1", checkbuf, sizeof(checkbuf)) == FFFTP_SUCCESS)
 		{
-			if(hKey3->ReadBinaryFromReg("CredentialSalt1", &salt1, sizeof(salt1)) == FFFTP_SUCCESS)
+			if(hKey3->ReadBinary("CredentialSalt1"sv, salt1))
 				SetHashSalt1(&salt1, 16);
 			else
 				SetHashSalt1(NULL, 0);
@@ -401,7 +401,7 @@ void SaveRegistry(void)
 			memcpy(&salt1[8], &ft[2].dwLowDateTime, 4);
 			memcpy(&salt1[12], &ft[3].dwLowDateTime, 4);
 			SetHashSalt1(&salt1, 16);
-			hKey3->WriteBinaryToReg("CredentialSalt1", &salt1, sizeof(salt1));
+			hKey3->WriteBinary("CredentialSalt1"sv, salt1);
 			hKey3->WriteIntValueToReg("CredentialStretch", 65535);
 			CreatePasswordHash(buf, 65535);
 			hKey3->WriteStringToReg("CredentialCheck1", buf);
@@ -439,8 +439,8 @@ void SaveRegistry(void)
 				hKey4->WriteIntValueToReg("WinHeight", WinHeight);
 				hKey4->WriteIntValueToReg("LocalWidth", LocalWidth);
 				hKey4->WriteIntValueToReg("TaskHeight", TaskHeight);
-				hKey4->WriteBinaryToReg("LocalColm", LocalTabWidth, sizeof(LocalTabWidth));
-				hKey4->WriteBinaryToReg("RemoteColm", RemoteTabWidth, sizeof(RemoteTabWidth));
+				hKey4->WriteBinary("LocalColm"sv, LocalTabWidth);
+				hKey4->WriteBinary("RemoteColm"sv, RemoteTabWidth);
 				hKey4->WriteIntValueToReg("SwCmd", Sizing);
 
 				hKey4->WriteStringToReg("UserMail", UserMailAdrs);
@@ -522,9 +522,9 @@ void SaveRegistry(void)
 
 				hKey4->WriteStrings("DefAttr"sv, DefAttrList);
 
-				hKey4->WriteBinaryToReg("Hdlg", &HostDlgSize, sizeof(SIZE));
-				hKey4->WriteBinaryToReg("Bdlg", &BmarkDlgSize, sizeof(SIZE));
-				hKey4->WriteBinaryToReg("Mdlg", &MirrorDlgSize, sizeof(SIZE));
+				hKey4->WriteBinary("Hdlg"sv, HostDlgSize);
+				hKey4->WriteBinary("Bdlg"sv, BmarkDlgSize);
+				hKey4->WriteBinary("Mdlg"sv, MirrorDlgSize);
 
 				hKey4->WriteIntValueToReg("FAttrSw", FolderAttr);
 				hKey4->WriteIntValueToReg("FAttr", FolderAttrNum);
@@ -566,7 +566,7 @@ void SaveRegistry(void)
 						hKey5->SaveIntNum("Type", Hist.HostType, DefaultHist.HostType);
 						hKey5->SaveIntNum("Sync", Hist.SyncMove, DefaultHist.SyncMove);
 						hKey5->SaveIntNum("Fpath", Hist.NoFullPath, DefaultHist.NoFullPath);
-						hKey5->WriteBinaryToReg("Sort", &Hist.Sort, sizeof(Hist.Sort));
+						hKey5->WriteBinary("Sort"sv, Hist.Sort);
 						hKey5->SaveIntNum("Secu", Hist.Security, DefaultHist.Security);
 						hKey5->WriteIntValueToReg("TrType", Hist.Type);
 						hKey5->SaveIntNum("Dial", Hist.Dialup, DefaultHist.Dialup);
@@ -641,7 +641,7 @@ void SaveRegistry(void)
 					hKey5->SaveIntNum("Type", Host.HostType, DefaultHost.HostType);
 					hKey5->SaveIntNum("Sync", Host.SyncMove, DefaultHost.SyncMove);
 					hKey5->SaveIntNum("Fpath", Host.NoFullPath, DefaultHost.NoFullPath);
-					hKey5->WriteBinaryToReg("Sort", &Host.Sort, sizeof(Host.Sort));
+					hKey5->WriteBinary("Sort"sv, Host.Sort);
 					hKey5->SaveIntNum("Secu", Host.Security, DefaultHost.Security);
 					hKey5->WriteStrings("Bmarks"sv, Host.BookMark);
 					hKey5->SaveIntNum("Dial", Host.Dialup, DefaultHost.Dialup);
@@ -703,7 +703,7 @@ void SaveRegistry(void)
 							hKey5->SaveIntNum("Type", Host.HostType, DefaultHost.HostType);
 							hKey5->SaveIntNum("Sync", Host.SyncMove, DefaultHost.SyncMove);
 							hKey5->SaveIntNum("Fpath", Host.NoFullPath, DefaultHost.NoFullPath);
-							hKey5->WriteBinaryToReg("Sort", &Host.Sort, sizeof(Host.Sort));
+							hKey5->WriteBinary("Sort"sv, Host.Sort);
 							hKey5->SaveIntNum("Secu", Host.Security, DefaultHost.Security);
 
 							hKey5->WriteStrings("Bmarks"sv, Host.BookMark);
@@ -890,10 +890,10 @@ int LoadRegistry(void)
 			hKey4->ReadIntValueFromReg("TaskHeight", &TaskHeight);
 			/* ↓旧バージョンのバグ対策 */
 			TaskHeight = std::max(0, TaskHeight);
-			hKey4->ReadBinaryFromReg("LocalColm", &LocalTabWidth, sizeof(LocalTabWidth));
+			hKey4->ReadBinary("LocalColm"sv, LocalTabWidth);
 			if (std::all_of(std::begin(LocalTabWidth), std::end(LocalTabWidth), [](auto width) { return width <= 0; }))
 				std::copy(std::begin(LocalTabWidthDefault), std::end(LocalTabWidthDefault), std::begin(LocalTabWidth));
-			hKey4->ReadBinaryFromReg("RemoteColm", &RemoteTabWidth, sizeof(RemoteTabWidth));
+			hKey4->ReadBinary("RemoteColm"sv, RemoteTabWidth);
 			if (std::all_of(std::begin(RemoteTabWidth), std::end(RemoteTabWidth), [](auto width) { return width <= 0; }))
 				std::copy(std::begin(RemoteTabWidthDefault), std::end(RemoteTabWidthDefault), std::begin(RemoteTabWidth));
 			hKey4->ReadIntValueFromReg("SwCmd", &Sizing);
@@ -993,9 +993,9 @@ int LoadRegistry(void)
 			if (auto result = hKey4->ReadStrings("DefAttr"sv))
 				DefAttrList = *result;
 
-			hKey4->ReadBinaryFromReg("Hdlg", &HostDlgSize, sizeof(SIZE));
-			hKey4->ReadBinaryFromReg("Bdlg", &BmarkDlgSize, sizeof(SIZE));
-			hKey4->ReadBinaryFromReg("Mdlg", &MirrorDlgSize, sizeof(SIZE));
+			hKey4->ReadBinary("Hdlg"sv, HostDlgSize);
+			hKey4->ReadBinary("Bdlg"sv, BmarkDlgSize);
+			hKey4->ReadBinary("Mdlg"sv, MirrorDlgSize);
 
 			hKey4->ReadIntValueFromReg("FAttrSw", &FolderAttr);
 			hKey4->ReadIntValueFromReg("FAttr", &FolderAttrNum);
@@ -1036,7 +1036,7 @@ int LoadRegistry(void)
 					hKey5->ReadIntValueFromReg("Type", &Hist.HostType);
 					hKey5->ReadIntValueFromReg("Sync", &Hist.SyncMove);
 					hKey5->ReadIntValueFromReg("Fpath", &Hist.NoFullPath);
-					hKey5->ReadBinaryFromReg("Sort", &Hist.Sort, sizeof(Hist.Sort));
+					hKey5->ReadBinary("Sort"sv, Hist.Sort);
 					hKey5->ReadIntValueFromReg("Secu", &Hist.Security);
 					hKey5->ReadIntValueFromReg("TrType", &Hist.Type);
 					strcpy(Str, "");
@@ -1099,7 +1099,7 @@ int LoadRegistry(void)
 				hKey5->ReadIntValueFromReg("Type", &Host.HostType);
 				hKey5->ReadIntValueFromReg("Sync", &Host.SyncMove);
 				hKey5->ReadIntValueFromReg("Fpath", &Host.NoFullPath);
-				hKey5->ReadBinaryFromReg("Sort", &Host.Sort, sizeof(Host.Sort));
+				hKey5->ReadBinary("Sort"sv, Host.Sort);
 				hKey5->ReadIntValueFromReg("Secu", &Host.Security);
 				if(Host.Anonymous != YES)
 				{
@@ -1184,7 +1184,7 @@ int LoadRegistry(void)
 					hKey5->ReadIntValueFromReg("Type", &Host.HostType);
 					hKey5->ReadIntValueFromReg("Sync", &Host.SyncMove);
 					hKey5->ReadIntValueFromReg("Fpath", &Host.NoFullPath);
-					hKey5->ReadBinaryFromReg("Sort", &Host.Sort, sizeof(Host.Sort));
+					hKey5->ReadBinary("Sort"sv, Host.Sort);
 					hKey5->ReadIntValueFromReg("Secu", &Host.Security);
 					if(Host.Anonymous != YES)
 					{
