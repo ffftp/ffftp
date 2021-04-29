@@ -39,6 +39,17 @@ static inline auto a2w(std::string_view text) {
 
 class Config {
 	void Xor(std::string_view name, void* bin, DWORD len, bool preserveZero) const;
+	std::optional<std::string> ReadStringCore(std::string_view name) const {
+		if (std::string value; ReadValue(name, value)) {
+			Xor(name, data(value), size_as<DWORD>(value), true);
+			return std::move(value);
+		}
+		return {};
+	}
+	void WriteStringCore(std::string_view name, std::string&& value) {
+		Xor(name, data(value), size_as<DWORD>(value), true);
+		WriteValue(name, value, REG_SZ);
+	}
 protected:
 	const std::string KeyName;
 	Config(std::string const& keyName) : KeyName{ keyName } {}
@@ -63,17 +74,35 @@ public:
 		WriteInt(name, value);
 	}
 	int ReadStringFromReg(std::string_view name, _Out_writes_z_(size) char* buffer, DWORD size) const {
-		if (std::string value; ReadValue(name, value)) {
-			Xor(name, data(value), size_as<DWORD>(value), true);
-			strncpy_s(buffer, size, value.c_str(), _TRUNCATE);
+		if (auto const value = ReadStringCore(name)) {
+			strncpy_s(buffer, size, value->c_str(), _TRUNCATE);
 			return FFFTP_SUCCESS;
 		}
 		return FFFTP_FAIL;
 	}
+	std::optional<std::wstring> ReadString(std::string_view name) const {
+		if (auto const value = ReadStringCore(name))
+			return u8(*value);
+		return {};
+	}
+	bool ReadString(std::string_view name, std::wstring& str) const {
+		if(auto value = ReadString(name)) {
+			value->swap(str);
+			return true;
+		}
+		return false;
+	}
 	void WriteStringToReg(std::string_view name, std::string_view str) {
-		std::string value{ str };
-		Xor(name, data(value), size_as<DWORD>(value), true);
-		WriteValue(name, value, REG_SZ);
+		WriteStringCore(name, std::string{ str });
+	}
+	void WriteString(std::string_view name, std::wstring_view str) {
+		WriteStringCore(name, u8(str));
+	}
+	void WriteString(std::string_view name, std::wstring_view str, std::wstring_view defaultStr) {
+		if (str == defaultStr)
+			DeleteValue(name);
+		else
+			WriteString(name, str);
 	}
 	std::optional<std::vector<std::wstring>> ReadStrings(std::string_view name) const {
 		if (std::string value; ReadValue(name, value)) {
@@ -941,12 +970,11 @@ int LoadRegistry(void)
 
 			if (auto result = hKey4->ReadStrings("AsciiFile"sv))
 				AsciiExt = *result;
-			else if (hKey4->ReadStringFromReg("Ascii", Str, size_as<DWORD>(Str)) == FFFTP_SUCCESS) {
+			else if (auto str = hKey4->ReadString("Ascii"sv)) {
 				/* 旧ASCIIモードの拡張子の設定を新しいものに変換 */
 				static boost::wregex re{ LR"([^;]+)" };
 				AsciiExt.clear();
-				auto wStr = u8(Str);
-				for (boost::wsregex_iterator it{ wStr.begin(), wStr.end(), re }, end; it != end; ++it)
+				for (boost::wsregex_iterator it{ str->begin(), str->end(), re }, end; it != end; ++it)
 					AsciiExt.push_back(L"*."sv + it->str());
 			}
 			if (Version < 1986) {
@@ -967,8 +995,8 @@ int LoadRegistry(void)
 			hKey4->ReadIntValueFromReg("MirUNot", &MirUpDelNotify);
 			hKey4->ReadIntValueFromReg("MirDNot", &MirDownDelNotify);
 
-			if (hKey4->ReadStringFromReg("ListFont", Str, 256) == FFFTP_SUCCESS) {
-				if (auto logfont = RestoreFontData(u8(Str).c_str())) {
+			if (auto str = hKey4->ReadString("ListFont"sv)) {
+				if (auto logfont = RestoreFontData(str->c_str())) {
 					ListLogFont = *logfont;
 					ListFont = CreateFontIndirectW(&ListLogFont);
 				} else
