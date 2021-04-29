@@ -1097,7 +1097,6 @@ int AttrString2Value(const char *Str);
 // ファイルの属性を数字で表示
 //void AttrValue2String(int Attr, char *Buf);
 void AttrValue2String(int Attr, char *Buf, int ShowNumber);
-void FormatIniString(char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 fs::path SelectDir(HWND hWnd);
 std::string MakeNumString(LONGLONG Num);
@@ -1223,8 +1222,8 @@ template<class Char>
 static inline auto u8(const Char* str, size_t len) {
 	return u8(std::basic_string_view<Char>{ str, len });
 }
-static auto ieq(std::wstring const& left, std::wstring const& right) {
-	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::towupper(l) == std::towupper(r); });
+static auto ieq(std::string_view left, std::string_view right) {
+	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::toupper(l) == std::toupper(r); });
 }
 static auto ieq(std::wstring_view left, std::wstring_view right) {
 	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::towupper(l) == std::towupper(r); });

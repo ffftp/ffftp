@@ -1320,13 +1320,13 @@ void SaveSettingsToFile() {
 // 設定をファイルから復元
 int LoadSettingsFromFile() {
 	if (auto const path = SelectFile(true, GetMainHwnd(), IDS_LOAD_SETTING, L"", L"", { FileType::Reg, FileType::Ini, FileType::All }); !std::empty(path)) {
-		if (ieq(path.extension(), L".reg"s)) {
+		if (ieq(path.extension().native(), L".reg"s)) {
 			auto commandLine = strprintf(LR"("%s" IMPORT "%s")", (systemDirectory() / L"reg.exe"sv).c_str(), path.c_str());
 			STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, STARTF_USESHOWWINDOW, SW_HIDE };
 			if (ProcessInformation pi; CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory().c_str(), &si, &pi))
 				return YES;
 			Message(IDS_FAIL_TO_EXEC_REDEDIT, MB_OK | MB_ICONERROR);
-		} else if (ieq(path.extension(), L".ini"s)) {
+		} else if (ieq(path.extension().native(), L".ini"s)) {
 			CopyFileW(path.c_str(), AskIniFilePath().c_str(), FALSE);
 			return YES;
 		} else

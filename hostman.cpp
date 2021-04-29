@@ -773,85 +773,47 @@ static int IsNodeGroup(int Num) {
 }
 
 
-/*----- WS_FTP.INIからのインポート --------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void ImportFromWSFTP(void)
-{
-	FILE *Strm;
-	HOSTDATA Host;
-	int InHost;
-
-	if (auto const path = SelectFile(true, GetMainHwnd(), IDS_OPEN_WSFTPINI, L"WS_FTP.INI", nullptr, { FileType::Ini, FileType::All }); !std::empty(path))
-	{
-		if((Strm = _wfopen(path.c_str(), L"rt")) != NULL)
-		{
-			char Buf[FMAX_PATH + 1];
-			InHost = NO;
-			while(fgets(Buf, FMAX_PATH, Strm) != NULL)
-			{
-				if(Buf[0] == '[')
-				{
-					if(InHost == YES)
-					{
-						AddHostToList(&Host, -1, 0);
-						InHost = NO;
+// WS_FTP.INIからのインポート
+void ImportFromWSFTP() {
+	if (auto const path = SelectFile(true, GetMainHwnd(), IDS_OPEN_WSFTPINI, L"WS_FTP.INI", nullptr, { FileType::Ini, FileType::All }); !path.empty())
+		if (std::ifstream fs{ path }) {
+			HOSTDATA host;
+			auto hasHost = false;
+			for (std::string line; getline(fs, line);) {
+				if (line[0] == '[') {
+					if (hasHost) {
+						AddHostToList(&host, -1, 0);
+						hasHost = false;
 					}
-					if(_stricmp(Buf, "[_config_]\n") != 0)
-					{
-						CopyDefaultHost(&Host);
-
-						*(Buf + strlen(Buf) - 2) = NUL;
-						memset(Host.HostName, NUL, HOST_NAME_LEN+1);
-						strncpy(Host.HostName, Buf+1, HOST_NAME_LEN);
-						InHost = YES;
+					if (!ieq(line, "[_config_]"sv)) {
+						CopyDefaultHost(&host);
+						strncpy_s(host.HostName, &line[1], size(line) - 2);
+						hasHost = true;
 					}
-				}
-				else if(InHost == YES)
-				{
-					FormatIniString(Buf);
-
-					if(_strnicmp(Buf, "HOST=", 5) == 0)
-					{
-						memset(Host.HostAdrs, NUL, HOST_ADRS_LEN+1);
-						strncpy(Host.HostAdrs, Buf+5, HOST_ADRS_LEN);
-					}
-					else if(_strnicmp(Buf, "UID=", 4) == 0)
-					{
-						memset(Host.UserName, NUL, USER_NAME_LEN+1);
-						strncpy(Host.UserName, Buf+4, USER_NAME_LEN);
-						if(strcmp(Host.UserName, "anonymous") == 0)
-							strcpy(Host.PassWord, UserMailAdrs);
-					}
-					else if(_strnicmp(Buf, "LOCDIR=", 7) == 0)
-					{
-						memset(Host.LocalInitDir, NUL, INIT_DIR_LEN+1);
-						strncpy(Host.LocalInitDir, Buf+7, INIT_DIR_LEN);
-					}
-					else if(_strnicmp(Buf, "DIR=", 4) == 0)
-					{
-						memset(Host.RemoteInitDir, NUL, INIT_DIR_LEN+1);
-						strncpy(Host.RemoteInitDir, Buf+4, INIT_DIR_LEN);
-					}
-					else if(_strnicmp(Buf, "PASVMODE=", 9) == 0)
-						Host.Pasv = (atoi(Buf+9) == 0) ? 0 : 1;
-					else if(_strnicmp(Buf, "FIREWALL=", 9) == 0)
-						Host.FireWall = (atoi(Buf+9) == 0) ? 0 : 1;
+				} else if (auto pos = line.find('='); hasHost && pos != std::string::npos) {
+					auto name = lc(line.substr(0, pos));
+					name.erase(std::remove_if(begin(name), end(name), [](auto ch) { return ch == ' ' || ch == '\t' || ch == '\n'; }), end(name));
+					auto value = line.substr(pos + 1);
+					value.erase(std::remove_if(begin(value), end(value), [](char ch) { return ch == '"' || ch == '\n'; }), end(value));
+					if (name == "host"sv)
+						strncpy_s(host.HostAdrs, data(value), size(value));
+					else if (name == "uid"sv) {
+						strncpy_s(host.UserName, data(value), size(value));
+						if (value == "anonymous"sv)
+							strcpy_s(host.PassWord, UserMailAdrs);
+					} else if (name == "locdir"sv)
+						strncpy_s(host.LocalInitDir, data(value), size(value));
+					else if (name == "dir"sv)
+						strncpy(host.RemoteInitDir, data(value), size(value));
+					else if (name == "pasvmode"sv)
+						host.Pasv = stoi(value) == 0 ? 0 : 1;
+					else if (name == "firewall"sv)
+						host.FireWall = stoi(value) == 0 ? 0 : 1;
 				}
 			}
-
-			if(InHost == YES)
-				AddHostToList(&Host, -1, 0);
-			fclose(Strm);
+			if (hasHost)
+				AddHostToList(&host, -1, 0);
 		}
-	}
-	return;
 }
 
 
