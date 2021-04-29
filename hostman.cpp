@@ -595,7 +595,6 @@ int CopyHostFromListInConnect(int Num, HOSTDATA* Set) {
 	Set->UseFTPES = Pos->UseFTPES;
 	Set->UseFTPIS = Pos->UseFTPIS;
 	Set->UseSFTP = Pos->UseSFTP;
-	strcpy(Set->PrivateKey, Pos->PrivateKey);
 	Set->MaxThreadCount = Pos->MaxThreadCount;
 	Set->ReuseCmdSkt = Pos->ReuseCmdSkt;
 	Set->UseMLSD = Pos->UseMLSD;

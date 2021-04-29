@@ -179,9 +179,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 #define FMAX_PATH		1024
 
-// 暗号化通信対応
-#define PRIVATE_KEY_LEN 4096
-
 /*===== 初期値 =====*/
 
 #define CHMOD_CMD_NOR	"SITE CHMOD"	/* 属性変更コマンド */
@@ -481,7 +478,6 @@ struct HostExeptPassword {
 	int UseFTPES = YES;									/* FTPESで接続する (YES/NO) */
 	int UseFTPIS = YES;									/* FTPISで接続する (YES/NO) */
 	int UseSFTP = YES;									/* SFTPで接続する (YES/NO) */
-	char PrivateKey[PRIVATE_KEY_LEN + 1] = "";			/* テキスト形式の秘密鍵 */
 	int MaxThreadCount = 1;								/* 同時接続数 */
 	int ReuseCmdSkt = YES;								/* メインウィンドウのソケットを再利用する (YES/NO) */
 	int UseMLSD = YES;									/* "MLSD"コマンドを使用する */
@@ -848,7 +844,6 @@ int AskUseNoEncryption(void);
 int AskUseFTPES(void);
 int AskUseFTPIS(void);
 int AskUseSFTP(void);
-char *AskPrivateKey(void);
 // 同時接続対応
 int AskMaxThreadCount(void);
 int AskReuseCmdSkt(void);

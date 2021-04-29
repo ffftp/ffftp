@@ -2230,11 +2230,6 @@ int AskUseSFTP(void)
 	return(CurHost.UseSFTP);
 }
 
-char *AskPrivateKey(void)
-{
-	return(CurHost.PrivateKey);
-}
-
 // 同時接続対応
 int AskMaxThreadCount(void)
 {

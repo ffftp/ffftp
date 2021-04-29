@@ -366,9 +366,7 @@ int ValidateMasterPassword(void)
 
 void SaveRegistry(void)
 {
-	// 暗号化通信対応
-//	char Str[FMAX_PATH+1];
-	char Str[PRIVATE_KEY_LEN*4+1];
+	char Str[FMAX_PATH+1];
 	char Buf[FMAX_PATH+1];
 	int i;
 	int n;
@@ -580,8 +578,6 @@ void SaveRegistry(void)
 						hKey5->SaveIntNum("FTPES", Hist.UseFTPES, DefaultHist.UseFTPES);
 						hKey5->SaveIntNum("FTPIS", Hist.UseFTPIS, DefaultHist.UseFTPIS);
 						hKey5->SaveIntNum("SFTP", Hist.UseSFTP, DefaultHist.UseSFTP);
-						EncodePassword(Hist.PrivateKey, Str);
-						hKey5->SaveStr("PKey", Str, DefaultHist.PrivateKey);
 						// 同時接続対応
 						hKey5->SaveIntNum("ThreadCount", Hist.MaxThreadCount, DefaultHist.MaxThreadCount);
 						hKey5->SaveIntNum("ReuseCmdSkt", Hist.ReuseCmdSkt, DefaultHist.ReuseCmdSkt);
@@ -656,8 +652,6 @@ void SaveRegistry(void)
 					hKey5->SaveIntNum("FTPES", Host.UseFTPES, DefaultHost.UseFTPES);
 					hKey5->SaveIntNum("FTPIS", Host.UseFTPIS, DefaultHost.UseFTPIS);
 					hKey5->SaveIntNum("SFTP", Host.UseSFTP, DefaultHost.UseSFTP);
-					EncodePassword(Host.PrivateKey, Str);
-					hKey5->SaveStr("PKey", Str, DefaultHost.PrivateKey);
 					hKey5->SaveIntNum("ThreadCount", Host.MaxThreadCount, DefaultHost.MaxThreadCount);
 					hKey5->SaveIntNum("ReuseCmdSkt", Host.ReuseCmdSkt, DefaultHost.ReuseCmdSkt);
 					hKey5->SaveIntNum("MLSD", Host.UseMLSD, DefaultHost.UseMLSD);
@@ -723,8 +717,6 @@ void SaveRegistry(void)
 							hKey5->SaveIntNum("FTPES", Host.UseFTPES, DefaultHost.UseFTPES);
 							hKey5->SaveIntNum("FTPIS", Host.UseFTPIS, DefaultHost.UseFTPIS);
 							hKey5->SaveIntNum("SFTP", Host.UseSFTP, DefaultHost.UseSFTP);
-							EncodePassword(Host.PrivateKey, Str);
-							hKey5->SaveStr("PKey", Str, DefaultHost.PrivateKey);
 							// 同時接続対応
 							hKey5->SaveIntNum("ThreadCount", Host.MaxThreadCount, DefaultHost.MaxThreadCount);
 							hKey5->SaveIntNum("ReuseCmdSkt", Host.ReuseCmdSkt, DefaultHost.ReuseCmdSkt);
@@ -825,8 +817,7 @@ int LoadRegistry(void)
 	std::unique_ptr<Config> hKey3;
 	int i;
 	int Sets;
-	// 暗号化通信対応
-	char Str[PRIVATE_KEY_LEN*4+1];
+	char Str[FMAX_PATH+1];
 	char Buf[FMAX_PATH+1];
 	// 全設定暗号化対応
 	char Buf2[FMAX_PATH+1];
@@ -1060,9 +1051,6 @@ int LoadRegistry(void)
 					hKey5->ReadIntValueFromReg("FTPES", &Hist.UseFTPES);
 					hKey5->ReadIntValueFromReg("FTPIS", &Hist.UseFTPIS);
 					hKey5->ReadIntValueFromReg("SFTP", &Hist.UseSFTP);
-					strcpy(Str, "");
-					hKey5->ReadStringFromReg("PKey", Str, PRIVATE_KEY_LEN*4+1);
-					DecodePassword(Str, Hist.PrivateKey);
 					// 同時接続対応
 					hKey5->ReadIntValueFromReg("ThreadCount", &Hist.MaxThreadCount);
 					hKey5->ReadIntValueFromReg("ReuseCmdSkt", &Hist.ReuseCmdSkt);
@@ -1131,9 +1119,6 @@ int LoadRegistry(void)
 				hKey5->ReadIntValueFromReg("FTPES", &Host.UseFTPES);
 				hKey5->ReadIntValueFromReg("FTPIS", &Host.UseFTPIS);
 				hKey5->ReadIntValueFromReg("SFTP", &Host.UseSFTP);
-				strcpy(Str, "");
-				hKey5->ReadStringFromReg("PKey", Str, PRIVATE_KEY_LEN*4+1);
-				DecodePassword(Str, Host.PrivateKey);
 				hKey5->ReadIntValueFromReg("ThreadCount", &Host.MaxThreadCount);
 				hKey5->ReadIntValueFromReg("ReuseCmdSkt", &Host.ReuseCmdSkt);
 				hKey5->ReadIntValueFromReg("MLSD", &Host.UseMLSD);
@@ -1222,9 +1207,6 @@ int LoadRegistry(void)
 					hKey5->ReadIntValueFromReg("FTPES", &Host.UseFTPES);
 					hKey5->ReadIntValueFromReg("FTPIS", &Host.UseFTPIS);
 					hKey5->ReadIntValueFromReg("SFTP", &Host.UseSFTP);
-					strcpy(Str, "");
-					hKey5->ReadStringFromReg("PKey", Str, PRIVATE_KEY_LEN*4+1);
-					DecodePassword(Str, Host.PrivateKey);
 					// 同時接続対応
 					hKey5->ReadIntValueFromReg("ThreadCount", &Host.MaxThreadCount);
 					hKey5->ReadIntValueFromReg("ReuseCmdSkt", &Host.ReuseCmdSkt);
