@@ -177,12 +177,36 @@ public:
 		else
 			WriteStringToReg(name, str);
 	}
+	bool ReadFont(std::string_view name, HFONT& hfont, LOGFONTW& logfont) {
+		if (auto const value = ReadString(name)) {
+			int offset;
+			auto read = swscanf(value->c_str(), L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
+				&logfont.lfHeight, &logfont.lfWidth, &logfont.lfEscapement, &logfont.lfOrientation, &logfont.lfWeight,
+				&logfont.lfItalic, &logfont.lfUnderline, &logfont.lfStrikeOut, &logfont.lfCharSet,
+				&logfont.lfOutPrecision, &logfont.lfClipPrecision, &logfont.lfQuality, &logfont.lfPitchAndFamily, &offset
+			);
+			if (read == 13) {
+				wcscpy(logfont.lfFaceName, value->c_str() + offset);
+				hfont = CreateFontIndirectW(&logfont);
+				return true;
+			}
+		}
+		logfont = {};
+		return false;
+	}
+	void WriteFont(std::string_view name, HFONT hfont, LOGFONTW const& logfont) {
+		std::wstring value;
+		if (hfont)
+			value = strprintf(L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %s",
+				logfont.lfHeight, logfont.lfWidth, logfont.lfEscapement, logfont.lfOrientation, logfont.lfWeight,
+				logfont.lfItalic, logfont.lfUnderline, logfont.lfStrikeOut, logfont.lfCharSet,
+				logfont.lfOutPrecision, logfont.lfClipPrecision, logfont.lfQuality, logfont.lfPitchAndFamily, logfont.lfFaceName
+			);
+		WriteString(name, value);
+	}
 	void ReadHost(Host& host, int version, bool readPassword);
 	void WriteHost(Host const& host, Host const& defaultHost, bool writePassword);
 };
-
-static std::wstring MakeFontData(HFONT hfont, LOGFONTW const& logFont);
-static std::optional<LOGFONTW> RestoreFontData(const wchar_t* str);
 
 static std::unique_ptr<Config> OpenReg(int type);
 static std::unique_ptr<Config> CreateReg(int type);
@@ -634,8 +658,7 @@ void SaveRegistry(void)
 				hKey4->WriteIntValueToReg("MirUNot", MirUpDelNotify);
 				hKey4->WriteIntValueToReg("MirDNot", MirDownDelNotify);
 
-				strcpy(Str, u8(MakeFontData(ListFont, ListLogFont)).c_str());
-				hKey4->WriteStringToReg("ListFont", Str);
+				hKey4->WriteFont("ListFont"sv, ListFont, ListLogFont);
 				hKey4->WriteIntValueToReg("ListHide", DispIgnoreHide);
 				hKey4->WriteIntValueToReg("ListDrv", DispDrives);
 
@@ -948,13 +971,7 @@ int LoadRegistry(void)
 			hKey4->ReadIntValueFromReg("MirUNot", &MirUpDelNotify);
 			hKey4->ReadIntValueFromReg("MirDNot", &MirDownDelNotify);
 
-			if (auto str = hKey4->ReadString("ListFont"sv)) {
-				if (auto logfont = RestoreFontData(str->c_str())) {
-					ListLogFont = *logfont;
-					ListFont = CreateFontIndirectW(&ListLogFont);
-				} else
-					ListLogFont = {};
-			}
+			hKey4->ReadFont("ListFont"sv, ListFont, ListLogFont);
 			hKey4->ReadIntValueFromReg("ListHide", &DispIgnoreHide);
 			hKey4->ReadIntValueFromReg("ListDrv", &DispDrives);
 
@@ -1130,34 +1147,6 @@ int LoadSettingsFromFile() {
 	return NO;
 }
 
-
-// LOGFONTデータを文字列に変換する
-static std::wstring MakeFontData(HFONT hfont, LOGFONTW const& logfont) {
-	if (!hfont)
-		return {};
-	wchar_t buffer[1024];
-	swprintf(buffer, std::size(buffer), L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %s",
-		logfont.lfHeight, logfont.lfWidth, logfont.lfEscapement, logfont.lfOrientation, logfont.lfWeight,
-		logfont.lfItalic, logfont.lfUnderline, logfont.lfStrikeOut, logfont.lfCharSet,
-		logfont.lfOutPrecision, logfont.lfClipPrecision, logfont.lfQuality, logfont.lfPitchAndFamily, logfont.lfFaceName
-	);
-	return buffer;
-}
-
-
-// 文字列をLOGFONTデータに変換する
-static std::optional<LOGFONTW> RestoreFontData(const wchar_t* str) {
-	LOGFONTW logfont;
-	int offset;
-	__pragma(warning(suppress:6328)) auto read = swscanf(str, L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
-		&logfont.lfHeight, &logfont.lfWidth, &logfont.lfEscapement, &logfont.lfOrientation, &logfont.lfWeight,
-		&logfont.lfItalic, &logfont.lfUnderline, &logfont.lfStrikeOut, &logfont.lfCharSet,
-		&logfont.lfOutPrecision, &logfont.lfClipPrecision, &logfont.lfQuality, &logfont.lfPitchAndFamily, &offset);
-	if (read != 13)
-		return {};
-	wcscpy(logfont.lfFaceName, str + offset);
-	return logfont;
-}
 
 static auto AesData(std::span<UCHAR> iv, std::span<UCHAR> text, bool encrypt) {
 	return BCrypt(BCRYPT_AES_ALGORITHM, [iv, text, encrypt](BCRYPT_ALG_HANDLE alg) {
