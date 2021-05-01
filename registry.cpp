@@ -30,7 +30,6 @@
 #include "common.h"
 #include <xmllite.h>
 #pragma comment(lib, "xmllite.lib")
-const int AES_BLOCK_SIZE = 16;
 static int EncryptSettings = NO;
 
 static inline auto a2w(std::string_view text) {
@@ -50,6 +49,8 @@ class Config {
 		Xor(name, data(value), size_as<DWORD>(value), true);
 		WriteValue(name, value, REG_SZ);
 	}
+	std::optional<std::string> ReadPasswordCore(std::string_view name) const;
+	void WritePasswordCore(std::string_view name, std::string_view plain);
 protected:
 	const std::string KeyName;
 	Config(std::string const& keyName) : KeyName{ keyName } {}
@@ -103,6 +104,26 @@ public:
 			DeleteValue(name);
 		else
 			WriteString(name, str);
+	}
+	bool ReadPassword(std::string_view name, _Out_writes_z_(size) char* buffer, DWORD size) const {
+		if (auto const value = ReadPasswordCore(name)) {
+			strncpy_s(buffer, size, value->c_str(), _TRUNCATE);
+			return true;
+		}
+		return false;
+	}
+	bool ReadPassword(std::string_view name, std::wstring& password) const {
+		if (auto const value = ReadPasswordCore(name)) {
+			password = u8(*value);
+			return true;
+		}
+		return false;
+	}
+	void WritePassword(std::string_view name, std::string_view password) {
+		WritePasswordCore(name, password);
+	}
+	void WritePassword(std::string_view name, std::wstring_view password) {
+		WritePasswordCore(name, u8(password));
 	}
 	std::optional<std::vector<std::wstring>> ReadStrings(std::string_view name) const {
 		if (std::string value; ReadValue(name, value)) {
@@ -162,13 +183,6 @@ public:
 
 static std::wstring MakeFontData(HFONT hfont, LOGFONTW const& logFont);
 static std::optional<LOGFONTW> RestoreFontData(const wchar_t* str);
-
-static void EncodePassword(std::string_view const& Str, char *Buf);
-
-static void DecodePassword(char *Str, char *Buf);
-static void DecodePasswordOriginal(char *Str, char *Buf);
-static void DecodePassword2(char *Str, char *Buf, const char *Key);
-static void DecodePassword3(char *Str, char *Buf);
 
 static std::unique_ptr<Config> OpenReg(int type);
 static std::unique_ptr<Config> CreateReg(int type);
@@ -413,11 +427,9 @@ void Config::ReadHost(Host& host, int version, bool readPassword) {
 	ReadIntValueFromReg("Fpath", &host.NoFullPath);
 	ReadBinary("Sort"sv, host.Sort);
 	ReadIntValueFromReg("Secu", &host.Security);
-	if (readPassword) {
-		char Str[FMAX_PATH + 1] = "";
-		ReadStringFromReg("Password", Str, 255);
-		DecodePassword(Str, host.PassWord);
-	} else
+	if (readPassword)
+		ReadPassword("Password"sv, host.PassWord, sizeof host.PassWord);
+	else
 		strcpy(host.PassWord, UserMailAdrs);
 	ReadIntValueFromReg("Dial", &host.Dialup);
 	ReadIntValueFromReg("UseIt", &host.DialupAlways);
@@ -449,12 +461,10 @@ void Config::WriteHost(Host const& host, Host const& defaultHost, bool writePass
 	SaveStr("Chmod", host.ChmodCmd, defaultHost.ChmodCmd);
 	SaveStr("Nlst", host.LsName, defaultHost.LsName);
 	SaveStr("Init", host.InitCmd, defaultHost.InitCmd);
-	char Str[FMAX_PATH + 1];
 	if (writePassword)
-		EncodePassword(host.PassWord, Str);
+		WritePassword("Password"sv, host.PassWord);
 	else
-		strcpy(Str, defaultHost.PassWord);
-	SaveStr("Password", Str, defaultHost.PassWord);
+		DeleteValue("Password"sv);
 	SaveIntNum("Port", host.Port, defaultHost.Port);
 	SaveIntNum("Kanji", host.KanjiCode, defaultHost.KanjiCode);
 	SaveIntNum("KanaCnv", host.KanaCnv, defaultHost.KanaCnv);
@@ -500,7 +510,6 @@ void Config::WriteHost(Host const& host, Host const& defaultHost, bool writePass
 void SaveRegistry(void)
 {
 	char Str[FMAX_PATH+1];
-	char Buf[FMAX_PATH+1];
 	int i;
 	int n;
 	
@@ -549,9 +558,7 @@ void SaveRegistry(void)
 
 		// 全設定暗号化対応
 		hKey3->WriteIntValueToReg("EncryptAll", EncryptAllSettings);
-		sprintf(Buf, "%d", EncryptAllSettings);
-		EncodePassword(Buf, Str);
-		hKey3->WriteStringToReg("EncryptAllDetector", Str);
+		hKey3->WritePassword("EncryptAllDetector", std::to_wstring(EncryptAllSettings));
 		EncryptSettings = EncryptAllSettings;
 
 		// 全設定暗号化対応
@@ -633,17 +640,8 @@ void SaveRegistry(void)
 				hKey4->WriteIntValueToReg("ListDrv", DispDrives);
 
 				hKey4->WriteStringToReg("FwallHost", FwallHost);
-				if(FwallNoSaveUser == YES)
-				{
-					hKey4->WriteStringToReg("FwallUser", "");
-					EncodePassword("", Str);
-				}
-				else
-				{
-					hKey4->WriteStringToReg("FwallUser", FwallUser);
-					EncodePassword(FwallPass, Str);
-				}
-				hKey4->WriteStringToReg("FwallPass", Str);
+				hKey4->WriteStringToReg("FwallUser", FwallNoSaveUser == YES ? "" : FwallUser);
+				hKey4->WritePassword("FwallPass"sv, FwallNoSaveUser == YES ? ""sv : FwallPass);
 				hKey4->WriteIntValueToReg("FwallPort", FwallPort);
 				hKey4->WriteIntValueToReg("FwallType", FwallType);
 				hKey4->WriteIntValueToReg("FwallDef", FwallDefault);
@@ -807,9 +805,6 @@ int LoadRegistry(void)
 	int i;
 	int Sets;
 	char Str[FMAX_PATH+1];
-	char Buf[FMAX_PATH+1];
-	// 全設定暗号化対応
-	char Buf2[FMAX_PATH+1];
 	int Sts;
 	int Version;
 
@@ -834,12 +829,10 @@ int LoadRegistry(void)
 			if(GetMasterPasswordStatus() == PASSWORD_OK)
 			{
 				hKey3->ReadIntValueFromReg("EncryptAll", &EncryptAllSettings);
-				sprintf(Buf, "%d", EncryptAllSettings);
-				hKey3->ReadStringFromReg("EncryptAllDetector", Str, 255);
-				DecodePassword(Str, Buf2);
+				std::wstring encryptAllDetector;
+				hKey3->ReadPassword("EncryptAllDetector"sv, encryptAllDetector);
 				EncryptSettings = EncryptAllSettings;
-				if(strcmp(Buf, Buf2) != 0)
-				{
+				if (std::to_wstring(EncryptAllSettings) != encryptAllDetector) {
 					switch (Dialog(GetFtpInst(), corruptsettings_dlg, GetMainHwnd(), Data{}))
 					{
 					case IDCANCEL:
@@ -967,8 +960,7 @@ int LoadRegistry(void)
 
 			hKey4->ReadStringFromReg("FwallHost", FwallHost, HOST_ADRS_LEN+1);
 			hKey4->ReadStringFromReg("FwallUser", FwallUser, USER_NAME_LEN+1);
-			hKey4->ReadStringFromReg("FwallPass", Str, 255);
-			DecodePassword(Str, FwallPass);
+			hKey4->ReadPassword("FwallPass"sv, FwallPass, sizeof FwallPass);
 			hKey4->ReadIntValueFromReg("FwallPort", &FwallPort);
 			hKey4->ReadIntValueFromReg("FwallType", &FwallType);
 			hKey4->ReadIntValueFromReg("FwallDef", &FwallDefault);
@@ -1167,8 +1159,8 @@ static std::optional<LOGFONTW> RestoreFontData(const wchar_t* str) {
 	return logfont;
 }
 
-static auto AesData(std::span<UCHAR, 16> iv, std::vector<UCHAR>& text, bool encrypt) {
-	return BCrypt(BCRYPT_AES_ALGORITHM, [&iv, &text, encrypt](BCRYPT_ALG_HANDLE alg) {
+static auto AesData(std::span<UCHAR> iv, std::span<UCHAR> text, bool encrypt) {
+	return BCrypt(BCRYPT_AES_ALGORITHM, [iv, text, encrypt](BCRYPT_ALG_HANDLE alg) {
 		auto result = false;
 		NTSTATUS status;
 		if (DWORD objlen, resultlen; (status = BCryptGetProperty(alg, BCRYPT_OBJECT_LENGTH, reinterpret_cast<PUCHAR>(&objlen), sizeof objlen, &resultlen, 0)) == STATUS_SUCCESS && resultlen == sizeof objlen) {
@@ -1209,198 +1201,83 @@ static auto AesData(std::span<UCHAR, 16> iv, std::vector<UCHAR>& text, bool encr
 	});
 }
 
-// パスワードを暗号化する(AES)
-static void EncodePassword(std::string_view const& Str, char* Buf) {
-	auto result = BCrypt(BCRYPT_RNG_ALGORITHM, [Str, Buf](BCRYPT_ALG_HANDLE alg) {
-		auto result = false;
-		auto p = Buf;
-		auto length = size_as<DWORD>(Str);
-		auto paddedLength = (length + AES_BLOCK_SIZE - 1) / AES_BLOCK_SIZE * AES_BLOCK_SIZE;
-		paddedLength = std::max(paddedLength, DWORD(AES_BLOCK_SIZE * 2));	/* 最低長を32文字とする */
-		std::vector<BYTE> buffer(paddedLength, 0);
-		std::copy(begin(Str), end(Str), begin(buffer));
-		/* PAD部分を乱数で埋める StrPad[StrLen](が有効な場合) は NUL */
-		NTSTATUS status = STATUS_SUCCESS;
-		if (paddedLength <= length + 1 || (status = BCryptGenRandom(alg, &buffer[(size_t)length + 1], paddedLength - length - 1, 0)) == STATUS_SUCCESS) {
-			// IVの初期化
-			if (std::array<UCHAR, 16> iv; (status = BCryptGenRandom(alg, data(iv), size_as<DWORD>(iv), 0)) == STATUS_SUCCESS) {
-				*p++ = '0';
-				*p++ = 'C';
-				for (auto const& item : iv) {
-					sprintf(p, "%02x", item);
-					p += 2;
-				}
-				*p++ = ':';
+// パスワードの暗号化を解く(オリジナルアルゴリズム)
+static std::optional<std::string> DecodePasswordOriginal(std::string_view encrypted) {
+	std::string plain;
+	for (size_t i = 0; i < size(encrypted); i += encrypted[i] & 0x01 ? 3 : 2)
+		plain += (char)_rotr8(encrypted[i] & 0x0F | encrypted[i + 1] << 4, encrypted[i] >> 4 & 0x03);
+	return plain;
+}
 
-				if (AesData(iv, buffer, true)) {
-					for (auto const& item : buffer) {
-						sprintf(p, "%02x", item);
-						p += 2;
-					}
-					*p = NUL;
-					result = true;
-				}
-			} else
-				DoPrintf(L"BCryptGenRandom() failed: 0x%08X.", status);
+// パスワードの暗号化を解く(オリジナルアルゴリズム＾Key)
+static std::optional<std::string> DecodePassword2(std::string_view encrypted) {
+	std::string plain;
+	auto kit = (unsigned char*)SecretKey, kend = kit + strlen(SecretKey);
+	for (size_t i = 0; i < size(encrypted); i += encrypted[i] & 0x01 ? 3 : 2){
+		plain += (char)(_rotr8(encrypted[i] & 0x0F | encrypted[i + 1] << 4, encrypted[i] >> 4 & 0x03) ^ *kit);
+		if (++kit == kend)
+			kit = (unsigned char*)SecretKey;
+	}
+	return plain;
+}
+
+constexpr ULONG AesBlockSize = 16;
+static_assert(std::popcount(AesBlockSize) == 1);
+
+// パスワードの暗号化を解く(AES)
+static std::optional<std::string> DecodePassword3(std::string_view encrypted) {
+	if (AesBlockSize * 2 + 1 < size_as<ULONG>(encrypted) && encrypted[AesBlockSize * 2] == ':') {
+		auto encodedLength = (size_as<ULONG>(encrypted) - 1) / 2 - AesBlockSize;
+		std::array<UCHAR, AesBlockSize> iv;
+		for (size_t i = 0; i < size(iv); i++)
+			std::from_chars(&encrypted[i * 2], &encrypted[i * 2 + 2], iv[i], 16);
+		std::string plain(encodedLength, '\0');
+		for (size_t i = 0; i < encodedLength; i++)
+			std::from_chars(&encrypted[size(iv) * 2 + 1 + i * 2], &encrypted[size(iv) * 2 + 1 + i * 2 + 2], reinterpret_cast<unsigned char&>(plain[i]), 16);
+		if (AesData(iv, { data_as<UCHAR>(plain), size(plain) }, false)) {
+			if (auto const pos = plain.find('\0'); pos != std::string::npos)
+				plain.resize(pos);
+			return std::move(plain);
+		}
+	}
+	return {};
+}
+
+std::optional<std::string> Config::ReadPasswordCore(std::string_view name) const {
+	if (auto const value = ReadStringCore(name); value && !value->empty()) {
+		if (0x40 <= value->at(0) && value->at(0) < 0x80)
+			return DecodePasswordOriginal(*value);
+		if (value->starts_with("0A"sv))
+			return DecodePasswordOriginal(value->substr(2));
+		if (value->starts_with("0B"sv))
+			return DecodePassword2(value->substr(2));
+		if (value->starts_with("0C"sv))
+			return DecodePassword3(value->substr(2));
+	}
+	return {};
+}
+
+void Config::WritePasswordCore(std::string_view name, std::string_view plain) {
+	BCrypt(BCRYPT_RNG_ALGORITHM, [this, name, plain](BCRYPT_ALG_HANDLE alg) {
+		auto length = size_as<ULONG>(plain);
+		auto paddedLength = std::max(length + AesBlockSize - 1 & ~(AesBlockSize - 1), AesBlockSize * 2);	/* 最低長を32文字とする */
+		std::vector<UCHAR> buffer((size_t)paddedLength + AesBlockSize, 0);
+		std::copy(begin(plain), end(plain), begin(buffer));
+		/* PADとIV部分を乱数で埋める StrPad[StrLen](が有効な場合) は NUL */
+		if (auto status = BCryptGenRandom(alg, &buffer[(size_t)length + 1], size_as<ULONG>(buffer) - length - 1, 0); status == STATUS_SUCCESS) {
+			auto encrypted = "0C"s;
+			for (auto i = paddedLength; i < size_as<ULONG>(buffer); i++)
+				encrypted += strprintf<2>("%02x", buffer[i]);
+			encrypted += ':';
+			if (AesData({ &buffer[paddedLength], AesBlockSize }, { &buffer[0], paddedLength }, true)) {
+				for (auto i = 0u; i < paddedLength; i++)
+					encrypted += strprintf<2>("%02x", buffer[i]);
+				WriteStringToReg(name, encrypted);
+			}
 		} else
 			DoPrintf(L"BCryptGenRandom() failed: 0x%08X.", status);
-		return result;
+		return 0;
 	});
-	if (!result)
-		Buf[0] = NUL;
-}
-
-
-/*----- パスワードの暗号化を解く ----------------------------------------------
-*
-*	Parameter
-*		char *Str : 暗号化したパスワード
-*		char *Buf : パスワードを格納するバッファ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void DecodePassword(char *Str, char *Buf)
-{
-	unsigned char *Get;
-	unsigned char *Put;
-
-	Get = (unsigned char *)Str;
-	Put = (unsigned char *)Buf;
-	
-	if( *Get == NUL ){
-		*Put = NUL;
-	}
-	else if( 0x40 <= *Get && *Get < 0x80 ){
-		/* Original algorithm */
-		DecodePasswordOriginal( Str, Buf );
-	}
-	else if( strncmp( (const char*)Get, "0A", 2 ) == 0 ){
-		DecodePasswordOriginal( Str + 2, Buf );
-	}
-	else if( strncmp( (const char*)Get, "0B", 2 ) == 0 ){
-		DecodePassword2( Str + 2, Buf, SecretKey );
-	}
-	else if( strncmp( (const char*)Get, "0C", 2 ) == 0 ){
-		DecodePassword3( Str + 2, Buf );
-	}
-	else {
-		//	unknown encoding
-		*Put = NUL;
-		return;
-	}
-}
-
-/*----- パスワードの暗号化を解く(オリジナルアルゴリズム) -------------------
-*
-*	Parameter
-*		char *Str : 暗号化したパスワード
-*		char *Buf : パスワードを格納するバッファ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-static void DecodePasswordOriginal(char *Str, char *Buf)
-{
-	unsigned char *Get;
-	unsigned char *Put;
-	int Rnd;
-	int Ch;
-
-	Get = (unsigned char *)Str;
-	Put = (unsigned char *)Buf;
-
-	while(*Get != NUL)
-	{
-		Rnd = ((unsigned int)*Get >> 4) & 0x3;
-		Ch = (*Get & 0xF) | ((*(Get+1) & 0xF) << 4);
-		Ch <<= 8;
-		if((*Get & 0x1) != 0)
-			Get++;
-		Get += 2;
-		Ch >>= Rnd;
-		Ch = (Ch & 0xFF) | ((Ch >> 8) & 0xFF);
-		*Put++ = Ch;
-	}
-	*Put = NUL;
-	return;
-}
-
-/*----- パスワードの暗号化を解く(オリジナルアルゴリズム＾Key) -------------------
-*
-*	Parameter
-*		char *Str : 暗号化したパスワード
-*		char *Buf : パスワードを格納するバッファ
-*		const char *Key : 暗号化キー
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-static void DecodePassword2(char *Str, char *Buf, const char* Key)
-{
-	int Rnd;
-	int Ch;
-	unsigned char *Get = (unsigned char *)Str;
-	unsigned char *Put = (unsigned char *)Buf;
-
-	/* 2010.01.31 genta Key */
-	unsigned char *KeyHead = (unsigned char *)Key;
-	unsigned char *KeyEnd = KeyHead + strlen((const char*)KeyHead);
-	unsigned char *KeyCurrent = KeyHead;
-
-	while(*Get != NUL)
-	{
-		Rnd = ((unsigned int)*Get >> 4) & 0x3;
-		Ch = (*Get & 0xF) | ((*(Get+1) & 0xF) << 4);
-		Ch <<= 8;
-		if((*Get & 0x1) != 0)
-			Get++;
-		Get += 2;
-		Ch >>= Rnd;
-		Ch = (Ch & 0xFF) | ((Ch >> 8) & 0xFF);
-		*Put++ = Ch ^ *KeyCurrent;
-		
-		/* 2010.01.31 genta Key */
-		if( ++KeyCurrent == KeyEnd ){
-			KeyCurrent = KeyHead;
-		}
-	}
-	*Put = NUL;
-	return;
-}
-
-/*----- パスワードの暗号化を解く(AES) ---------------------------------------
-*
-*	Parameter
-*		char *Str : 暗号化したパスワード
-*		char *Buf : パスワードを格納するバッファ
-*		const char *Key : 暗号化キー
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void DecodePassword3(char* Str, char* Buf) {
-	Buf[0] = NUL;
-	if (auto length = DWORD(strlen(Str)); AES_BLOCK_SIZE * 2 + 1 < length && Str[AES_BLOCK_SIZE * 2] == ':') {
-		DWORD encodedLength = (length - 1) / 2 - AES_BLOCK_SIZE;
-		std::array<UCHAR, 16> iv;
-		for (auto& item : iv) {
-			std::from_chars(Str, Str + 2, item, 16);
-			Str += 2;
-		}
-		Str++;
-		std::vector<UCHAR> buffer(static_cast<size_t>(encodedLength), 0);
-		for (auto& item : buffer) {
-			std::from_chars(Str, Str + 2, item, 16);
-			Str += 2;
-		}
-		if (AesData(iv, buffer, false)) {
-			buffer.push_back(0);	// NUL終端用に１バイト追加
-			strcpy(Buf, data_as<char>(buffer));
-		}
-	}
 }
 
 
