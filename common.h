@@ -1029,8 +1029,8 @@ void EditBookMark();
 
 /*===== registry.c =====*/
 
-void SaveRegistry(void);
-int LoadRegistry(void);
+void SaveRegistry();
+bool LoadRegistry();
 void ClearRegistry();
 // ポータブル版判定
 void ClearIni(void);
