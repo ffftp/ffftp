@@ -74,7 +74,6 @@ extern int CancelFlg;
 extern int LocalWidth;
 extern int LocalTabWidth[4];
 extern int RemoteTabWidth[6];
-extern char UserMailAdrs[USER_MAIL_LEN+1];
 extern HFONT ListFont;
 extern int ListType;
 extern int FindMode;

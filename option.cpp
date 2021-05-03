@@ -53,7 +53,7 @@ void CheckRange2(int *Cur, int Max, int Min);
 
 
 /* 設定値 */
-extern char UserMailAdrs[USER_MAIL_LEN+1];
+extern std::wstring UserMailAdrs;
 extern std::wstring ViewerName[VIEWERS];
 extern int ConnectOnStart;
 extern int SaveWinPos;
@@ -159,13 +159,13 @@ struct User {
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
 		SendDlgItemMessageW(hDlg, USER_ADRS, EM_LIMITTEXT, PASSWORD_LEN, 0);
-		SetText(hDlg, USER_ADRS, u8(UserMailAdrs));
+		SetText(hDlg, USER_ADRS, UserMailAdrs);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			strncpy_s(UserMailAdrs, USER_MAIL_LEN + 1, u8(GetText(hDlg, USER_ADRS)).c_str(), _TRUNCATE);
+			UserMailAdrs = GetText(hDlg, USER_ADRS);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000041);

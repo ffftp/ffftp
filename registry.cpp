@@ -241,7 +241,7 @@ extern int LocalTabWidthDefault[4];
 extern int LocalTabWidth[4];
 extern int RemoteTabWidthDefault[6];
 extern int RemoteTabWidth[6];
-extern char UserMailAdrs[USER_MAIL_LEN+1];
+extern std::wstring UserMailAdrs;
 extern std::wstring ViewerName[VIEWERS];
 extern HFONT ListFont;
 extern LOGFONTW ListLogFont;
@@ -436,7 +436,7 @@ void Config::ReadHost(Host& host, int version, bool readPassword) {
 	if (readPassword)
 		ReadPassword("Password"sv, host.PassWord, sizeof host.PassWord);
 	else
-		strcpy(host.PassWord, UserMailAdrs);
+		strcpy(host.PassWord, u8(UserMailAdrs).c_str());
 	ReadIntValueFromReg("Dial", &host.Dialup);
 	ReadIntValueFromReg("UseIt", &host.DialupAlways);
 	ReadIntValueFromReg("Notify", &host.DialupNotify);
@@ -563,7 +563,7 @@ void SaveRegistry() {
 			hKey4->WriteBinary("RemoteColm"sv, RemoteTabWidth);
 			hKey4->WriteIntValueToReg("SwCmd", Sizing);
 
-			hKey4->WriteStringToReg("UserMail", UserMailAdrs);
+			hKey4->WriteString("UserMail"sv, UserMailAdrs);
 			hKey4->WriteString("Viewer"sv, ViewerName[0]);
 			hKey4->WriteString("Viewer2"sv, ViewerName[1]);
 			hKey4->WriteString("Viewer3"sv, ViewerName[2]);
@@ -789,7 +789,7 @@ bool LoadRegistry() {
 			std::copy(std::begin(RemoteTabWidthDefault), std::end(RemoteTabWidthDefault), std::begin(RemoteTabWidth));
 		hKey4->ReadIntValueFromReg("SwCmd", &Sizing);
 
-		hKey4->ReadStringFromReg("UserMail", UserMailAdrs, USER_MAIL_LEN+1);
+		hKey4->ReadString("UserMail"sv, UserMailAdrs);
 		hKey4->ReadString("Viewer"sv, ViewerName[0]);
 		hKey4->ReadString("Viewer2"sv, ViewerName[1]);
 		hKey4->ReadString("Viewer3"sv, ViewerName[2]);

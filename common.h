@@ -167,8 +167,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define PASSWORD_LEN	80		/* パスワード */
 #define ACCOUNT_LEN		80		/* アカウント */
 #define INIT_DIR_LEN	(FMAX_PATH-40)	/* 初期ディレクトリ */
-#define USER_MAIL_LEN	80		/* ユーザのメールアドレス */
-								/*   PASSWORD_LEN と同じにすること */
 #define FILTER_EXT_LEN	400		/* フィルタのファイル名列 */
 #define BOOKMARK_SIZE	2048	/* ブックマーク */
 #define CHMOD_CMD_LEN	40		/* 属性変更コマンド */

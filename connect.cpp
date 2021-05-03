@@ -52,7 +52,7 @@ extern int CancelFlg;
 extern char TitleUserName[USER_NAME_LEN+1];
 
 /* 設定値 */
-extern char UserMailAdrs[USER_MAIL_LEN+1];
+std::wstring UserMailAdrs = L"who@example.com"s;
 extern char FwallHost[HOST_ADRS_LEN+1];
 extern char FwallUser[USER_NAME_LEN+1];
 extern char FwallPass[PASSWORD_LEN+1];
@@ -225,7 +225,7 @@ void QuickConnectProc() {
 			SendDlgItemMessageW(hDlg, QHOST_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
 			if (QuickAnonymous == YES) {
 				SetText(hDlg, QHOST_USER, L"anonymous");
-				SetText(hDlg, QHOST_PASS, u8(UserMailAdrs));
+				SetText(hDlg, QHOST_PASS, UserMailAdrs);
 			} else {
 				SetText(hDlg, QHOST_USER, L"");
 				SetText(hDlg, QHOST_PASS, L"");
@@ -354,7 +354,7 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 		if(strlen(User) == 0)
 		{
 			strcpy(User, "anonymous");
-			strcpy(Pass, UserMailAdrs);
+			strcpy(Pass, u8(UserMailAdrs).c_str());
 		}
 
 		CopyDefaultHost(&CurHost);
@@ -1469,7 +1469,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 								if(Anony == YES)
 								{
 									strcpy(User, "anonymous");
-									strcpy(Pass, UserMailAdrs);
+									strcpy(Pass, u8(UserMailAdrs).c_str());
 								}
 
 								char Buf[1024];

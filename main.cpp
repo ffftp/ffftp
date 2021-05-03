@@ -145,7 +145,6 @@ int LocalTabWidthDefault[4] = { 150, 120, 60, 37 };
 int LocalTabWidth[4];
 int RemoteTabWidthDefault[6] = { 150, 120, 60, 37, 60, 60 };
 int RemoteTabWidth[6];
-char UserMailAdrs[USER_MAIL_LEN+1] = { "who@example.com" };
 std::wstring ViewerName[VIEWERS] = { L"notepad"s };
 HFONT ListFont = NULL;
 int LocalFileSort = SORT_NAME;

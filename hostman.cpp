@@ -71,7 +71,7 @@ static int IsNodeGroup(int Num);
 static bool DispHostSetDlg(HWND hDlg);
 
 /* 設定値 */
-extern char UserMailAdrs[USER_MAIL_LEN+1];
+extern std::wstring UserMailAdrs;
 extern HFONT ListFont;
 extern std::wstring DefaultLocalPath;
 extern int ConnectAndSet;
@@ -799,7 +799,7 @@ void ImportFromWSFTP() {
 					else if (name == "uid"sv) {
 						strncpy_s(host.UserName, data(value), size(value));
 						if (value == "anonymous"sv)
-							strcpy_s(host.PassWord, UserMailAdrs);
+							strcpy_s(host.PassWord, u8(UserMailAdrs).c_str());
 					} else if (name == "locdir"sv)
 						host.LocalInitDir = u8(value);
 					else if (name == "dir"sv)
@@ -878,7 +878,7 @@ struct General {
 				SetText(hDlg, HSET_USER, L"anonymous");
 				auto wStyle = GetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
 				SetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle & ~ES_PASSWORD);
-				SetText(hDlg, HSET_PASS, u8(UserMailAdrs));
+				SetText(hDlg, HSET_PASS, UserMailAdrs);
 			} else {
 				SetText(hDlg, HSET_USER, L"");
 				auto wStyle = GetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
