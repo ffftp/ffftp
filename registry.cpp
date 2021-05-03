@@ -242,7 +242,7 @@ extern int LocalTabWidth[4];
 extern int RemoteTabWidthDefault[6];
 extern int RemoteTabWidth[6];
 extern char UserMailAdrs[USER_MAIL_LEN+1];
-extern char ViewerName[VIEWERS][FMAX_PATH+1];
+extern std::wstring ViewerName[VIEWERS];
 extern HFONT ListFont;
 extern LOGFONTW ListLogFont;
 extern int LocalFileSort;
@@ -564,9 +564,9 @@ void SaveRegistry() {
 			hKey4->WriteIntValueToReg("SwCmd", Sizing);
 
 			hKey4->WriteStringToReg("UserMail", UserMailAdrs);
-			hKey4->WriteStringToReg("Viewer", ViewerName[0]);
-			hKey4->WriteStringToReg("Viewer2", ViewerName[1]);
-			hKey4->WriteStringToReg("Viewer3", ViewerName[2]);
+			hKey4->WriteString("Viewer"sv, ViewerName[0]);
+			hKey4->WriteString("Viewer2"sv, ViewerName[1]);
+			hKey4->WriteString("Viewer3"sv, ViewerName[2]);
 
 			hKey4->WriteIntValueToReg("TrType", TransMode);
 			hKey4->WriteIntValueToReg("Recv", RecvMode);
@@ -790,9 +790,9 @@ bool LoadRegistry() {
 		hKey4->ReadIntValueFromReg("SwCmd", &Sizing);
 
 		hKey4->ReadStringFromReg("UserMail", UserMailAdrs, USER_MAIL_LEN+1);
-		hKey4->ReadStringFromReg("Viewer", ViewerName[0], FMAX_PATH+1);
-		hKey4->ReadStringFromReg("Viewer2", ViewerName[1], FMAX_PATH+1);
-		hKey4->ReadStringFromReg("Viewer3", ViewerName[2], FMAX_PATH+1);
+		hKey4->ReadString("Viewer"sv, ViewerName[0]);
+		hKey4->ReadString("Viewer2"sv, ViewerName[1]);
+		hKey4->ReadString("Viewer3"sv, ViewerName[2]);
 
 		hKey4->ReadIntValueFromReg("TrType", &TransMode);
 		hKey4->ReadIntValueFromReg("Recv", &RecvMode);

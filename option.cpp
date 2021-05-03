@@ -54,7 +54,7 @@ void CheckRange2(int *Cur, int Max, int Min);
 
 /* 設定値 */
 extern char UserMailAdrs[USER_MAIL_LEN+1];
-extern char ViewerName[VIEWERS][FMAX_PATH+1];
+extern std::wstring ViewerName[VIEWERS];
 extern int ConnectOnStart;
 extern int SaveWinPos;
 extern std::vector<std::wstring> AsciiExt;
@@ -689,17 +689,17 @@ struct Tool {
 		SendDlgItemMessageW(hDlg, TOOL_EDITOR1, EM_LIMITTEXT, FMAX_PATH, 0);
 		SendDlgItemMessageW(hDlg, TOOL_EDITOR2, EM_LIMITTEXT, FMAX_PATH, 0);
 		SendDlgItemMessageW(hDlg, TOOL_EDITOR3, EM_LIMITTEXT, FMAX_PATH, 0);
-		SetText(hDlg, TOOL_EDITOR1, u8(ViewerName[0]));
-		SetText(hDlg, TOOL_EDITOR2, u8(ViewerName[1]));
-		SetText(hDlg, TOOL_EDITOR3, u8(ViewerName[2]));
+		SetText(hDlg, TOOL_EDITOR1, ViewerName[0]);
+		SetText(hDlg, TOOL_EDITOR2, ViewerName[1]);
+		SetText(hDlg, TOOL_EDITOR3, ViewerName[2]);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			strncpy_s(ViewerName[0], FMAX_PATH + 1, u8(GetText(hDlg, TOOL_EDITOR1)).c_str(), _TRUNCATE);
-			strncpy_s(ViewerName[1], FMAX_PATH + 1, u8(GetText(hDlg, TOOL_EDITOR2)).c_str(), _TRUNCATE);
-			strncpy_s(ViewerName[2], FMAX_PATH + 1, u8(GetText(hDlg, TOOL_EDITOR3)).c_str(), _TRUNCATE);
+			ViewerName[0] = GetText(hDlg, TOOL_EDITOR1);
+			ViewerName[1] = GetText(hDlg, TOOL_EDITOR2);
+			ViewerName[2] = GetText(hDlg, TOOL_EDITOR3);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000050);
