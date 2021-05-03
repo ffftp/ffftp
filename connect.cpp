@@ -41,7 +41,7 @@ static int ReConnectSkt(SOCKET *Skt);
 //static SOCKET DoConnect(char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security);
 static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork);
 static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, char *Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork);
-static int CheckOneTimePassword(char *Pass, char *Reply, int Type);
+static int CheckOneTimePassword(const char *Pass, char *Reply, int Type);
 
 /*===== 外部参照 =====*/
 
@@ -53,9 +53,9 @@ extern char TitleUserName[USER_NAME_LEN+1];
 
 /* 設定値 */
 std::wstring UserMailAdrs = L"who@example.com"s;
-extern char FwallHost[HOST_ADRS_LEN+1];
-extern char FwallUser[USER_NAME_LEN+1];
-extern char FwallPass[PASSWORD_LEN+1];
+std::wstring FwallHost;
+std::wstring FwallUser;
+std::wstring FwallPass;
 extern int FwallPort;
 extern int FwallType;
 extern int FwallDefault;
@@ -1310,8 +1310,6 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 	char Reply[1024];
 	int Continue;
 	int ReInPass;
-	char *Tmp;
-	int HostPort;
 	static const char *SiteTbl[4] = { "SITE", "site", "OPEN", "open" };
 	struct linger LingerOpt;
 	struct tcp_keepalive KeepAlive;
@@ -1336,20 +1334,9 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 
 		ContSock = INVALID_SOCKET;
 
-		HostPort = Port;
-		Tmp = Host;
-		if(((Fwall >= FWALL_FU_FP_SITE) && (Fwall <= FWALL_OPEN)) ||
-		   (Fwall == FWALL_SIDEWINDER) ||
-		   (Fwall == FWALL_FU_FP))
-		{
-			Tmp = FwallHost;
-			Port = FwallPort;
-		}
-
-		if(strlen(Tmp) != 0)
-		{
-			if((ContSock = connectsock(Tmp, Port, 0, CancelCheckWork)) != INVALID_SOCKET)
-			{
+		auto [tempHost, tempPort] = FWALL_FU_FP_SITE <= Fwall && Fwall <= FWALL_OPEN || Fwall == FWALL_SIDEWINDER || Fwall == FWALL_FU_FP ? std::tuple{ u8(FwallHost), FwallPort } : std::tuple{ Host, Port };
+		if (!empty(tempHost)) {
+			if ((ContSock = connectsock(tempHost, tempPort, 0, CancelCheckWork)) != INVALID_SOCKET) {
 				// バッファを無効
 #ifdef DISABLE_CONTROL_NETWORK_BUFFERS
 				int BufferSize = 0;
@@ -1407,11 +1394,9 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 					   (Fwall == FWALL_FU_FP_USER) ||
 					   (Fwall == FWALL_FU_FP))
 					{
-						// 同時接続対応
-//						if((Sts = command(ContSock, Reply, &CancelFlg, "USER %s", FwallUser) / 100) == FTP_CONTINUE)
-						if((Sts = command(ContSock, Reply, CancelCheckWork, "USER %s", FwallUser) / 100) == FTP_CONTINUE)
+						if ((Sts = command(ContSock, Reply, CancelCheckWork, "USER %s", u8(FwallUser).c_str()) / 100) == FTP_CONTINUE)
 						{
-							CheckOneTimePassword(FwallPass, Reply, FwallSecurity);
+							CheckOneTimePassword(u8(FwallPass).c_str(), Reply, FwallSecurity);
 							// 同時接続対応
 //							Sts = command(ContSock, NULL, &CancelFlg, "PASS %s", Reply) / 100;
 							Sts = command(ContSock, NULL, CancelCheckWork, "PASS %s", Reply) / 100;
@@ -1419,9 +1404,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 					}
 					else if(Fwall == FWALL_SIDEWINDER)
 					{
-						// 同時接続対応
-//						Sts = command(ContSock, Reply, &CancelFlg, "USER %s:%s%c%s", FwallUser, FwallPass, FwallDelimiter, Host) / 100;
-						Sts = command(ContSock, Reply, CancelCheckWork, "USER %s:%s%c%s", FwallUser, FwallPass, FwallDelimiter, Host) / 100;
+						Sts = command(ContSock, Reply, CancelCheckWork, "USER %s:%s%c%s", u8(FwallUser).c_str(), u8(FwallPass).c_str(), FwallDelimiter, Host) / 100;
 					}
 					if((Sts != FTP_COMPLETE) && (Sts != FTP_CONTINUE))
 					{
@@ -1439,14 +1422,10 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 							if(FwallLower == YES)
 								Flg++;
 
-							if(HostPort == IPPORT_FTP)
-								// 同時接続対応
-//								Sts = command(ContSock, NULL, &CancelFlg, "%s %s", SiteTbl[Flg], Host) / 100;
+							if (Port == IPPORT_FTP)
 								Sts = command(ContSock, NULL, CancelCheckWork, "%s %s", SiteTbl[Flg], Host) / 100;
 							else
-								// 同時接続対応
-//								Sts = command(ContSock, NULL, &CancelFlg, "%s %s %d", SiteTbl[Flg], Host, HostPort) / 100;
-								Sts = command(ContSock, NULL, CancelCheckWork, "%s %s %d", SiteTbl[Flg], Host, HostPort) / 100;
+								Sts = command(ContSock, NULL, CancelCheckWork, "%s %s %d", SiteTbl[Flg], Host, Port) / 100;
 						}
 
 						if((Sts != FTP_COMPLETE) && (Sts != FTP_CONTINUE))
@@ -1475,10 +1454,10 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, char *Host, char
 								char Buf[1024];
 								if((Fwall == FWALL_FU_FP_USER) || (Fwall == FWALL_USER))
 								{
-									if(HostPort == IPPORT_FTP)
+									if (Port == IPPORT_FTP)
 										sprintf(Buf, "%s%c%s", User, FwallDelimiter, Host);
 									else
-										sprintf(Buf, "%s%c%s %d", User, FwallDelimiter, Host, HostPort);
+										sprintf(Buf, "%s%c%s %d", User, FwallDelimiter, Host, Port);
 								}
 								else
 									strcpy(Buf, User);
@@ -1714,7 +1693,7 @@ static SOCKET DoConnect(HOSTDATA* HostData, char *Host, char *User, char *Pass, 
 *		ワンタイムパスワードでない時はPassをそのままReplyにコピー
 *----------------------------------------------------------------------------*/
 
-static int CheckOneTimePassword(char *Pass, char *Reply, int Type)
+static int CheckOneTimePassword(const char *Pass, char *Reply, int Type)
 {
 	int Sts;
 	const char* Pos;
@@ -1887,13 +1866,13 @@ static bool Socks5Authenticate(SOCKET s, int* CancelCheckWork) {
 	else if (reply.METHOD == USERNAME_PASSWORD) {
 		// RFC 1929 Username/Password Authentication for SOCKS V5
 		DoPrintf(L"SOCKS5 User/Pass Authentication");
-		auto ulen = (uint8_t)strlen(FwallUser);
-		auto plen = (uint8_t)strlen(FwallPass);
+		auto const uname = u8(FwallUser);
+		auto const passwd = u8(FwallPass);
 		buffer = { 1 };												// VER
-		buffer.push_back(ulen);										// ULEN
-		buffer.insert(end(buffer), FwallUser, FwallUser + ulen);	// UNAME
-		buffer.push_back(plen);										// PLEN
-		buffer.insert(end(buffer), FwallPass, FwallPass + plen);	// PASSWD
+		buffer.push_back(size_as<uint8_t>(uname));					// ULEN
+		buffer.insert(end(buffer), begin(uname), end(uname));		// UNAME
+		buffer.push_back(size_as<uint8_t>(passwd));					// PLEN
+		buffer.insert(end(buffer), begin(passwd), end(passwd));		// PASSWD
 		#pragma pack(push, 1)
 		struct {
 			uint8_t VER;
@@ -1996,10 +1975,11 @@ static std::optional<sockaddr_storage> SocksRequest(SOCKET s, SocksCommand cmd, 
 		auto ss = std::get_if<sockaddr_storage>(&target);
 		assert(ss && ss->ss_family == AF_INET);
 		auto sin = reinterpret_cast<const sockaddr_in*>(ss);
+		auto const userid = u8(FwallUser);
 		buffer = { 4, static_cast<uint8_t>(cmd) };									// VN, CD
 		append(buffer, sin->sin_port);												// DSTPORT
 		append(buffer, sin->sin_addr);												// DSTIP
-		buffer.insert(end(buffer), FwallUser, FwallUser + strlen(FwallUser) + 1);	// USERID, NULL
+		buffer.insert(end(buffer), data(userid), data(userid) + size(userid) + 1);	// USERID, NULL
 	} else if (FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER) {
 		if (!Socks5Authenticate(s, CancelCheckWork))
 			return {};
@@ -2036,7 +2016,7 @@ static std::optional<sockaddr_storage> SocksRequest(SOCKET s, SocksCommand cmd, 
 }
 
 
-SOCKET connectsock(char *host, int port, UINT prefixId, int *CancelCheckWork) {
+SOCKET connectsock(std::string_view host, int port, UINT prefixId, int *CancelCheckWork) {
 	std::variant<sockaddr_storage, std::tuple<std::string, int>> target;
 	auto wHost = u8(host);
 	int Fwall = AskHostFireWall() == YES ? FwallType : FWALL_NONE;
@@ -2060,12 +2040,11 @@ SOCKET connectsock(char *host, int port, UINT prefixId, int *CancelCheckWork) {
 	sockaddr_storage saConnect;
 	if (Fwall == FWALL_SOCKS4 || Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
 		// connectで接続する先はSOCKSサーバ
-		auto wFwallHost = u8(FwallHost);
-		auto ai = getaddrinfo(wFwallHost, FwallPort);
+		auto ai = getaddrinfo(FwallHost, FwallPort);
 		if (!ai)
-			ai = getaddrinfo(wFwallHost, FwallPort, AF_UNSPEC, CancelCheckWork);
+			ai = getaddrinfo(FwallHost, FwallPort, AF_UNSPEC, CancelCheckWork);
 		if (!ai) {
-			SetTaskMsg(IDS_MSGJPN021, wFwallHost.c_str());
+			SetTaskMsg(IDS_MSGJPN021, FwallHost.c_str());
 			return INVALID_SOCKET;
 		}
 		memcpy(&saConnect, ai->ai_addr, ai->ai_addrlen);

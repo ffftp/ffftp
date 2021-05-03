@@ -61,9 +61,9 @@ extern std::vector<std::wstring> AsciiExt;
 extern int RecvMode;
 extern int SendMode;
 extern int MoveMode;
-extern char FwallHost[HOST_ADRS_LEN+1];
-extern char FwallUser[USER_NAME_LEN+1];
-extern char FwallPass[PASSWORD_LEN+1];
+extern std::wstring FwallHost;
+extern std::wstring FwallUser;
+extern std::wstring FwallPass;
 extern int FwallPort;
 extern int FwallType;
 extern int FwallDefault;
@@ -621,9 +621,9 @@ struct Firewall {
 		SendDlgItemMessageW(hDlg, FIRE_PORT, EM_LIMITTEXT, 5, 0);
 		SendDlgItemMessageW(hDlg, FIRE_DELIMIT, EM_LIMITTEXT, 1, 0);
 
-		SetText(hDlg, FIRE_HOST, u8(FwallHost));
-		SetText(hDlg, FIRE_USER, u8(FwallUser));
-		SetText(hDlg, FIRE_PASS, u8(FwallPass));
+		SetText(hDlg, FIRE_HOST, FwallHost);
+		SetText(hDlg, FIRE_USER, FwallUser);
+		SetText(hDlg, FIRE_PASS, FwallPass);
 		char Tmp[10];
 		sprintf(Tmp, "%d", FwallPort);
 		SetText(hDlg, FIRE_PORT, u8(Tmp));
@@ -647,9 +647,9 @@ struct Firewall {
 		case PSN_APPLY: {
 			auto Type = (int)SendDlgItemMessageW(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0) + 1;
 			FwallType = firewallTypes[Type];
-			strncpy_s(FwallHost, HOST_ADRS_LEN + 1, u8(GetText(hDlg, FIRE_HOST)).c_str(), _TRUNCATE);
-			strncpy_s(FwallUser, USER_NAME_LEN + 1, u8(GetText(hDlg, FIRE_USER)).c_str(), _TRUNCATE);
-			strncpy_s(FwallPass, PASSWORD_LEN, u8(GetText(hDlg, FIRE_PASS)).c_str(), _TRUNCATE);
+			FwallHost = GetText(hDlg, FIRE_HOST);
+			FwallUser = GetText(hDlg, FIRE_USER);
+			FwallPass = GetText(hDlg, FIRE_PASS);
 			FwallPort = GetDecimalText(hDlg, FIRE_PORT);
 			FwallDelimiter = u8(GetText(hDlg, FIRE_DELIMIT))[0];
 			FwallDefault = (int)SendDlgItemMessageW(hDlg, FIRE_USEIT, BM_GETCHECK, 0, 0);

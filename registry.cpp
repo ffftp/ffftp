@@ -267,9 +267,9 @@ extern int ConnectAndSet;
 extern int TimeOut;
 extern int RmEOF;
 extern int RegType;
-extern char FwallHost[HOST_ADRS_LEN+1];
-extern char FwallUser[USER_NAME_LEN+1];
-extern char FwallPass[PASSWORD_LEN+1];
+extern std::wstring FwallHost;
+extern std::wstring FwallUser;
+extern std::wstring FwallPass;
 extern int FwallPort;
 extern int FwallType;
 extern int FwallDefault;
@@ -618,9 +618,9 @@ void SaveRegistry() {
 			hKey4->WriteIntValueToReg("ListHide", DispIgnoreHide);
 			hKey4->WriteIntValueToReg("ListDrv", DispDrives);
 
-			hKey4->WriteStringToReg("FwallHost", FwallHost);
-			hKey4->WriteStringToReg("FwallUser", FwallNoSaveUser == YES ? "" : FwallUser);
-			hKey4->WritePassword("FwallPass"sv, FwallNoSaveUser == YES ? ""sv : FwallPass);
+			hKey4->WriteString("FwallHost"sv, FwallHost);
+			hKey4->WriteString("FwallUser"sv, FwallNoSaveUser == YES ? L""sv : FwallUser);
+			hKey4->WritePassword("FwallPass"sv, FwallNoSaveUser == YES ? L""sv : FwallPass);
 			hKey4->WriteIntValueToReg("FwallPort", FwallPort);
 			hKey4->WriteIntValueToReg("FwallType", FwallType);
 			hKey4->WriteIntValueToReg("FwallDef", FwallDefault);
@@ -858,9 +858,9 @@ bool LoadRegistry() {
 		hKey4->ReadIntValueFromReg("ListHide", &DispIgnoreHide);
 		hKey4->ReadIntValueFromReg("ListDrv", &DispDrives);
 
-		hKey4->ReadStringFromReg("FwallHost", FwallHost, HOST_ADRS_LEN+1);
-		hKey4->ReadStringFromReg("FwallUser", FwallUser, USER_NAME_LEN+1);
-		hKey4->ReadPassword("FwallPass"sv, FwallPass, sizeof FwallPass);
+		hKey4->ReadString("FwallHost"sv, FwallHost);
+		hKey4->ReadString("FwallUser"sv, FwallUser);
+		hKey4->ReadPassword("FwallPass"sv, FwallPass);
 		hKey4->ReadIntValueFromReg("FwallPort", &FwallPort);
 		hKey4->ReadIntValueFromReg("FwallType", &FwallType);
 		hKey4->ReadIntValueFromReg("FwallDef", &FwallDefault);
@@ -1539,9 +1539,9 @@ void SaveSettingsToWinSCPIni() {
 				if (Host.FireWall == YES) {
 					if (auto method = FwallType == FWALL_SOCKS4 ? 1 : FwallType == FWALL_SOCKS5_USER ? 2 : -1; method != -1)
 						f << "ProxyMethod="sv << method << '\n';
-					f << "ProxyHost="sv << escape(FwallHost) << '\n';
+					f << "ProxyHost="sv << escape(u8(FwallHost)) << '\n';
 					f << "ProxyPort="sv << FwallPort << '\n';
-					f << "ProxyUsername="sv << escape(FwallUser) << '\n';
+					f << "ProxyUsername="sv << escape(u8(FwallUser)) << '\n';
 				}
 				if (auto utf = Host.NameKanjiCode == KANJI_SJIS ? 0 : Host.NameKanjiCode == KANJI_UTF8N ? 1 : -1; utf != -1)
 					f << "Utf="sv << utf << '\n';
@@ -1559,7 +1559,7 @@ void SaveSettingsToWinSCPIni() {
 						f << "FtpProxyLogonType="sv << type << '\n';
 				f << "Password="sv << encode(Host.UserName, Host.HostAdrs, Host.PassWord) << '\n';
 				if (Host.FireWall == YES)
-					f << "ProxyPasswordEnc="sv << encode(FwallUser, FwallHost, FwallPass) << '\n';
+					f << "ProxyPasswordEnc="sv << encode(u8(FwallUser), u8(FwallHost), u8(FwallPass)) << '\n';
 				f << '\n';
 			}
 		} else
