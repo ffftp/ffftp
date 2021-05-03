@@ -159,7 +159,7 @@ int RecvMode = TRANS_DLG;
 int SendMode = TRANS_DLG;
 int MoveMode = MOVE_DLG;
 int ListType = LVS_REPORT;
-char DefaultLocalPath[FMAX_PATH+1] = { "" };
+std::wstring DefaultLocalPath;
 int SaveTimeStamp = YES;
 int FindMode = 0;
 int DotFile = YES;
@@ -482,8 +482,8 @@ static int InitApp(int cmdShow)
 			{
 				hWndCurFocus = GetLocalHwnd();
 
-				if (std::error_code ec; strlen(DefaultLocalPath) > 0)
-					fs::current_path(fs::u8path(DefaultLocalPath), ec);
+				if (std::error_code ec; !empty(DefaultLocalPath))
+					fs::current_path(DefaultLocalPath, ec);
 
 				SetSortTypeImm(LocalFileSort, LocalDirSort, RemoteFileSort, RemoteDirSort);
 				SetTransferTypeImm(TransMode);

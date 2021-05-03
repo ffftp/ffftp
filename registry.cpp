@@ -257,7 +257,7 @@ extern int RecvMode;
 extern int SendMode;
 extern int MoveMode;
 extern int ListType;
-extern char DefaultLocalPath[FMAX_PATH+1];
+extern std::wstring DefaultLocalPath;
 extern int SaveTimeStamp;
 extern int FindMode;
 extern int DotFile;
@@ -410,7 +410,7 @@ void Config::ReadHost(Host& host, int version, bool readPassword) {
 	ReadStringFromReg("HostAdrs", host.HostAdrs, HOST_ADRS_LEN + 1);
 	ReadStringFromReg("UserName", host.UserName, USER_NAME_LEN + 1);
 	ReadStringFromReg("Account", host.Account, ACCOUNT_LEN + 1);
-	ReadStringFromReg("LocalDir", host.LocalInitDir, INIT_DIR_LEN + 1);
+	ReadString("LocalDir"sv, host.LocalInitDir);
 	ReadStringFromReg("RemoteDir", host.RemoteInitDir, INIT_DIR_LEN + 1);
 	ReadStringFromReg("Chmod", host.ChmodCmd, CHMOD_CMD_LEN + 1);
 	ReadStringFromReg("Nlst", host.LsName, NLST_NAME_LEN + 1);
@@ -462,7 +462,7 @@ void Config::WriteHost(Host const& host, Host const& defaultHost, bool writePass
 	SaveStr("HostAdrs", host.HostAdrs, defaultHost.HostAdrs);
 	SaveStr("UserName", host.UserName, defaultHost.UserName);
 	SaveStr("Account", host.Account, defaultHost.Account);
-	WriteStringToReg("LocalDir", host.LocalInitDir);
+	WriteString("LocalDir"sv, host.LocalInitDir);
 	SaveStr("RemoteDir", host.RemoteInitDir, defaultHost.RemoteInitDir);
 	SaveStr("Chmod", host.ChmodCmd, defaultHost.ChmodCmd);
 	SaveStr("Nlst", host.LsName, defaultHost.LsName);
@@ -572,7 +572,7 @@ void SaveRegistry() {
 			hKey4->WriteIntValueToReg("Recv", RecvMode);
 			hKey4->WriteIntValueToReg("Send", SendMode);
 			hKey4->WriteIntValueToReg("Move", MoveMode);
-			hKey4->WriteStringToReg("Path", DefaultLocalPath);
+			hKey4->WriteString("Path"sv, DefaultLocalPath);
 			hKey4->WriteIntValueToReg("Time", SaveTimeStamp);
 			hKey4->WriteIntValueToReg("EOF", RmEOF);
 			hKey4->WriteIntValueToReg("Scolon", VaxSemicolon);
@@ -798,7 +798,7 @@ bool LoadRegistry() {
 		hKey4->ReadIntValueFromReg("Recv", &RecvMode);
 		hKey4->ReadIntValueFromReg("Send", &SendMode);
 		hKey4->ReadIntValueFromReg("Move", &MoveMode);
-		hKey4->ReadStringFromReg("Path", DefaultLocalPath, FMAX_PATH+1);
+		hKey4->ReadString("Path"sv, DefaultLocalPath);
 		hKey4->ReadIntValueFromReg("Time", &SaveTimeStamp);
 		hKey4->ReadIntValueFromReg("EOF", &RmEOF);
 		hKey4->ReadIntValueFromReg("Scolon", &VaxSemicolon);
@@ -1462,7 +1462,7 @@ void SaveSettingsToFileZillaXml() {
 						}
 						writer->WriteElementString(nullptr, L"BypassProxy", nullptr, host.FireWall == YES ? L"0" : L"1");
 						writer->WriteElementString(nullptr, L"Name", nullptr, u8(host.HostName).c_str());
-						writer->WriteElementString(nullptr, L"LocalDir", nullptr, u8(host.LocalInitDir).c_str());
+						writer->WriteElementString(nullptr, L"LocalDir", nullptr, host.LocalInitDir.c_str());
 						auto remoteDir = u8(host.RemoteInitDir);
 						for (auto& [ch, prefix, re] : std::initializer_list<std::tuple<wchar_t, std::wstring_view, boost::wregex>>{ { L'/', L"1 0"sv, unix }, { L'\\', L"8 0"sv, dos } })
 							if (remoteDir.find(ch) != std::wstring::npos) {
@@ -1532,7 +1532,7 @@ void SaveSettingsToWinSCPIni() {
 				f << "PortNumber="sv << Host.Port << '\n';
 				f << "UserName="sv << escape(Host.UserName) << '\n';
 				f << "FSProtocol=5\n"sv;
-				f << "LocalDirectory="sv << escape(Host.LocalInitDir) << '\n';
+				f << "LocalDirectory="sv << escape(u8(Host.LocalInitDir)) << '\n';
 				f << "RemoteDirectory="sv << escape(Host.RemoteInitDir) << '\n';
 				f << "SynchronizeBrowsing="sv << (Host.SyncMove == YES ? 1 : 0) << '\n';
 				f << "PostLoginCommands="sv << escape(Host.InitCmd) << '\n';

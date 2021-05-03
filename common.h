@@ -450,7 +450,7 @@ struct HostExeptPassword {
 	char HostAdrs[HOST_ADRS_LEN + 1] = "";				/* ホスト名 */
 	char UserName[USER_NAME_LEN + 1] = "";				/* ユーザ名 */
 	char Account[ACCOUNT_LEN + 1] = "";					/* アカウント */
-	char LocalInitDir[INIT_DIR_LEN + 1];				/* ローカルの開始ディレクトリ */
+	std::wstring LocalInitDir;							/* ローカルの開始ディレクトリ */
 	char RemoteInitDir[INIT_DIR_LEN + 1] = "";			/* ホストの開始ディレクトリ */
 	char ChmodCmd[CHMOD_CMD_LEN + 1] = CHMOD_CMD_NOR;	/* 属性変更コマンド */
 	char LsName[NLST_NAME_LEN + 1] = LS_FNAME;			/* NLSTに付けるファイル名/オプション*/
@@ -486,7 +486,7 @@ struct HostExeptPassword {
 	int TransferErrorNotify = YES;						/* 転送エラー時に確認ダイアログを出すかどうか (YES/NO) */
 	int TransferErrorReconnect = YES;					/* 転送エラー時に再接続する (YES/NO) */
 	int NoPasvAdrs = NO;								/* PASVで返されるアドレスを無視する (YES/NO) */
-	HostExeptPassword();
+	inline HostExeptPassword();
 };
 
 struct Host : HostExeptPassword {

@@ -188,9 +188,8 @@ void ConnectProc(int Type, int Num)
 
 				SendInitCommand(CmdCtrlSocket, CurHost.InitCmd, &CancelFlg);
 
-				if(strlen(CurHost.LocalInitDir) > 0)
-				{
-					DoLocalCWD(fs::u8path(CurHost.LocalInitDir));
+				if (!empty(CurHost.LocalInitDir)) {
+					DoLocalCWD(CurHost.LocalInitDir);
 					GetLocalDirForWnd();
 				}
 				InitTransCurDir();
@@ -483,7 +482,7 @@ void HistoryConnectProc(int MenuCmd)
 
 				SendInitCommand(CmdCtrlSocket, CurHost.InitCmd, &CancelFlg);
 
-				DoLocalCWD(fs::u8path(CurHost.LocalInitDir));
+				DoLocalCWD(CurHost.LocalInitDir);
 				GetLocalDirForWnd();
 
 				InitTransCurDir();
@@ -900,7 +899,7 @@ void SaveCurrentSetToHost(void)
 
 static void SaveCurrentSetToHistory(void)
 {
-	strcpy(CurHost.LocalInitDir, AskLocalCurDir().u8string().c_str());
+	CurHost.LocalInitDir = AskLocalCurDir();
 	strcpy(CurHost.RemoteInitDir, u8(AskRemoteCurDir()).c_str());
 
 	CurHost.Sort = AskSortType(ITEM_LFILE) * 0x1000000 | AskSortType(ITEM_LDIR) * 0x10000 | AskSortType(ITEM_RFILE) * 0x100 | AskSortType(ITEM_RDIR);

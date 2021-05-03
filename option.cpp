@@ -72,7 +72,7 @@ extern int FwallResolve;
 extern int FwallLower;
 extern int FwallDelimiter;
 extern int PasvDefault;
-extern char DefaultLocalPath[FMAX_PATH+1];
+extern std::wstring DefaultLocalPath;
 extern int SaveTimeStamp;
 extern int DclickOpen;
 extern int FnameCnv;
@@ -239,7 +239,7 @@ struct Transfer2 {
 	using CnvButton = RadioButton<TRMODE2_NOCNV, TRMODE2_LOWER, TRMODE2_UPPER>;
 	static INT_PTR OnInit(HWND hDlg) {
 		SendDlgItemMessageW(hDlg, TRMODE2_LOCAL, EM_LIMITTEXT, FMAX_PATH, 0);
-		SetText(hDlg, TRMODE2_LOCAL, u8(DefaultLocalPath));
+		SetText(hDlg, TRMODE2_LOCAL, DefaultLocalPath);
 		CnvButton::Set(hDlg, FnameCnv);
 		SendDlgItemMessageW(hDlg, TRMODE2_TIMEOUT, EM_LIMITTEXT, (WPARAM)5, 0);
 		char Tmp[FMAX_PATH + 1];
@@ -251,7 +251,7 @@ struct Transfer2 {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY: {
-			strncpy_s(DefaultLocalPath, FMAX_PATH + 1, u8(GetText(hDlg, TRMODE2_LOCAL)).c_str(), _TRUNCATE);
+			DefaultLocalPath = GetText(hDlg, TRMODE2_LOCAL);
 			FnameCnv = CnvButton::Get(hDlg);
 			TimeOut = GetDecimalText(hDlg, TRMODE2_TIMEOUT);
 			CheckRange2(&TimeOut, 300, 0);

@@ -73,7 +73,7 @@ static bool DispHostSetDlg(HWND hDlg);
 /* 設定値 */
 extern char UserMailAdrs[USER_MAIL_LEN+1];
 extern HFONT ListFont;
-extern char DefaultLocalPath[FMAX_PATH+1];
+extern std::wstring DefaultLocalPath;
 extern int ConnectAndSet;
 extern SIZE HostDlgSize;
 extern int NoRasControl;
@@ -631,7 +631,7 @@ int SetHostDir(int Num, const char* LocDir, const char* HostDir) {
 	if (Num < 0 || Hosts <= Num)
 		return FFFTP_FAIL;
 	auto Pos = GetNode(Num);
-	strcpy(Pos->LocalInitDir, LocDir);
+	Pos->LocalInitDir = u8(LocDir);
 	strcpy(Pos->RemoteInitDir, HostDir);
 	return FFFTP_SUCCESS;
 }
@@ -725,7 +725,7 @@ void SetDefaultHost(HOSTDATA* Set) {
 }
 
 HostExeptPassword::HostExeptPassword() {
-	strcpy(LocalInitDir, DefaultLocalPath);
+	LocalInitDir = DefaultLocalPath;
 }
 
 
@@ -801,7 +801,7 @@ void ImportFromWSFTP() {
 						if (value == "anonymous"sv)
 							strcpy_s(host.PassWord, UserMailAdrs);
 					} else if (name == "locdir"sv)
-						strncpy_s(host.LocalInitDir, data(value), size(value));
+						host.LocalInitDir = u8(value);
 					else if (name == "dir"sv)
 						strncpy(host.RemoteInitDir, data(value), size(value));
 					else if (name == "pasvmode"sv)
@@ -830,7 +830,7 @@ struct General {
 		SetText(hDlg, HSET_ADRS, u8(TmpHost.HostAdrs));
 		SetText(hDlg, HSET_USER, u8(TmpHost.UserName));
 		SetText(hDlg, HSET_PASS, u8(TmpHost.PassWord));
-		SetText(hDlg, HSET_LOCAL, u8(TmpHost.LocalInitDir));
+		SetText(hDlg, HSET_LOCAL, TmpHost.LocalInitDir);
 		SetText(hDlg, HSET_REMOTE, u8(TmpHost.RemoteInitDir));
 		SendDlgItemMessageW(hDlg, HSET_ANONYMOUS, BM_SETCHECK, TmpHost.Anonymous, 0);
 		SendDlgItemMessageW(hDlg, HSET_LASTDIR, BM_SETCHECK, TmpHost.LastDir, 0);
@@ -846,7 +846,7 @@ struct General {
 			RemoveTailingSpaces(TmpHost.HostAdrs);
 			strncpy_s(TmpHost.UserName, USER_NAME_LEN + 1, u8(GetText(hDlg, HSET_USER)).c_str(), _TRUNCATE);
 			strncpy_s(TmpHost.PassWord, PASSWORD_LEN + 1, u8(GetText(hDlg, HSET_PASS)).c_str(), _TRUNCATE);
-			strncpy_s(TmpHost.LocalInitDir, INIT_DIR_LEN + 1, u8(GetText(hDlg, HSET_LOCAL)).c_str(), _TRUNCATE);
+			TmpHost.LocalInitDir = GetText(hDlg, HSET_LOCAL);
 			strncpy_s(TmpHost.RemoteInitDir, INIT_DIR_LEN + 1, u8(GetText(hDlg, HSET_REMOTE)).c_str(), _TRUNCATE);
 			TmpHost.Anonymous = (int)SendDlgItemMessageW(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0);
 			TmpHost.LastDir = (int)SendDlgItemMessageW(hDlg, HSET_LASTDIR, BM_GETCHECK, 0, 0);
