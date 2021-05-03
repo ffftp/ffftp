@@ -125,18 +125,18 @@ public:
 	void WritePassword(std::string_view name, std::wstring_view password) {
 		WritePasswordCore(name, u8(password));
 	}
-	std::optional<std::vector<std::wstring>> ReadStrings(std::string_view name) const {
+	bool ReadStrings(std::string_view name, std::vector<std::wstring>& strings) const {
 		if (std::string value; ReadValue(name, value)) {
-			std::vector<std::wstring> result;
+			strings.clear();
 			if (!empty(value) && value[0] != '\0') {
 				Xor(name, data(value), size_as<DWORD>(value), true);
 				static boost::regex re{ R"([^\0]+)" };
 				for (boost::sregex_iterator it{ value.begin(), value.end(), re }, end; it != end; ++it)
-					result.push_back(u8(sv((*it)[0])));
+					strings.push_back(u8(sv((*it)[0])));
 			}
-			return result;
+			return true;
 		}
-		return {};
+		return false;
 	}
 	void WriteStrings(std::string_view name, std::vector<std::wstring> const& strings) {
 		std::string value;
@@ -830,15 +830,14 @@ bool LoadRegistry() {
 		hKey4->ReadIntValueFromReg("RegExp", &FindMode);
 		hKey4->ReadIntValueFromReg("Reg", &RegType);
 
-		if (auto result = hKey4->ReadStrings("AsciiFile"sv))
-			AsciiExt = *result;
-		else if (auto str = hKey4->ReadString("Ascii"sv)) {
-			/* 旧ASCIIモードの拡張子の設定を新しいものに変換 */
-			static boost::wregex re{ LR"([^;]+)" };
-			AsciiExt.clear();
-			for (boost::wsregex_iterator it{ str->begin(), str->end(), re }, end; it != end; ++it)
-				AsciiExt.push_back(L"*."sv + it->str());
-		}
+		if (!hKey4->ReadStrings("AsciiFile"sv, AsciiExt))
+			if (auto str = hKey4->ReadString("Ascii"sv)) {
+				/* 旧ASCIIモードの拡張子の設定を新しいものに変換 */
+				static boost::wregex re{ LR"([^;]+)" };
+				AsciiExt.clear();
+				for (boost::wsregex_iterator it{ str->begin(), str->end(), re }, end; it != end; ++it)
+					AsciiExt.push_back(L"*."sv + it->str());
+			}
 		if (Version < 1986) {
 			// アスキーモード判別の改良
 			for (auto item : { L"*.js"sv, L"*.vbs"sv, L"*.css"sv, L"*.rss"sv, L"*.rdf"sv, L"*.xml"sv, L"*.xhtml"sv, L"*.xht"sv, L"*.shtml"sv, L"*.shtm"sv, L"*.sh"sv, L"*.py"sv, L"*.rb"sv, L"*.properties"sv, L"*.sql"sv, L"*.asp"sv, L"*.aspx"sv, L"*.php"sv, L"*.htaccess"sv })
@@ -849,10 +848,8 @@ bool LoadRegistry() {
 		hKey4->ReadIntValueFromReg("LowUp", &FnameCnv);
 		hKey4->ReadIntValueFromReg("Tout", &TimeOut);
 
-		if (auto result = hKey4->ReadStrings("NoTrn"sv))
-			MirrorNoTrn = *result;
-		if (auto result = hKey4->ReadStrings("NoDel"sv))
-			MirrorNoDel = *result;
+		hKey4->ReadStrings("NoTrn"sv, MirrorNoTrn);
+		hKey4->ReadStrings("NoDel"sv, MirrorNoDel);
 		hKey4->ReadIntValueFromReg("MirFile", &MirrorFnameCnv);
 		hKey4->ReadIntValueFromReg("MirUNot", &MirUpDelNotify);
 		hKey4->ReadIntValueFromReg("MirDNot", &MirDownDelNotify);
@@ -873,8 +870,7 @@ bool LoadRegistry() {
 		hKey4->ReadIntValueFromReg("FwallLow", &FwallLower);
 		hKey4->ReadIntValueFromReg("FwallDel", &FwallDelimiter);
 
-		if (auto result = hKey4->ReadStrings("DefAttr"sv))
-			DefAttrList = *result;
+		hKey4->ReadStrings("DefAttr"sv, DefAttrList);
 
 		hKey4->ReadBinary("Hdlg"sv, HostDlgSize);
 		hKey4->ReadBinary("Bdlg"sv, BmarkDlgSize);
@@ -905,8 +901,7 @@ bool LoadRegistry() {
 			hKey5->ReadStringFromReg("HostName", Host.HostName, HOST_NAME_LEN + 1);
 			hKey5->ReadIntValueFromReg("Anonymous", &Host.Anonymous);
 			hKey5->ReadHost(Host, Version, Host.Anonymous != YES);
-			if (auto result = hKey5->ReadStrings("Bmarks"sv))
-				Host.BookMark = *result;
+			hKey5->ReadStrings("Bmarks"sv, Host.BookMark);
 			SetDefaultHost(&Host);
 		}
 
@@ -928,8 +923,7 @@ bool LoadRegistry() {
 				hKey5->ReadIntValueFromReg("Anonymous", &Host.Anonymous);
 				hKey5->ReadHost(Host, Version, Host.Anonymous != YES);
 				hKey5->ReadIntValueFromReg("Last", &Host.LastDir);
-				if (auto result = hKey5->ReadStrings("Bmarks"sv))
-					Host.BookMark = *result;
+				hKey5->ReadStrings("Bmarks"sv, Host.BookMark);
 				AddHostToList(&Host, -1, Host.Level);
 			}
 
