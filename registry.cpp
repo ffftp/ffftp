@@ -49,8 +49,6 @@ class Config {
 		Xor(name, data(value), size_as<DWORD>(value), true);
 		WriteValue(name, value, REG_SZ);
 	}
-	std::optional<std::string> ReadPasswordCore(std::string_view name) const;
-	void WritePasswordCore(std::string_view name, std::string_view plain);
 protected:
 	const std::string KeyName;
 	Config(std::string const& keyName) : KeyName{ keyName } {}
@@ -105,26 +103,8 @@ public:
 		else
 			WriteString(name, str);
 	}
-	bool ReadPassword(std::string_view name, _Out_writes_z_(size) char* buffer, DWORD size) const {
-		if (auto const value = ReadPasswordCore(name)) {
-			strncpy_s(buffer, size, value->c_str(), _TRUNCATE);
-			return true;
-		}
-		return false;
-	}
-	bool ReadPassword(std::string_view name, std::wstring& password) const {
-		if (auto const value = ReadPasswordCore(name)) {
-			password = u8(*value);
-			return true;
-		}
-		return false;
-	}
-	void WritePassword(std::string_view name, std::string_view password) {
-		WritePasswordCore(name, password);
-	}
-	void WritePassword(std::string_view name, std::wstring_view password) {
-		WritePasswordCore(name, u8(password));
-	}
+	bool ReadPassword(std::string_view name, std::wstring& password) const;
+	void WritePassword(std::string_view name, std::wstring_view password);
 	bool ReadStrings(std::string_view name, std::vector<std::wstring>& strings) const {
 		if (std::string value; ReadValue(name, value)) {
 			strings.clear();
@@ -170,12 +150,6 @@ public:
 			DeleteValue(name);
 		else
 			WriteIntValueToReg(name, value);
-	}
-	void SaveStr(std::string_view name, std::string_view str, std::string_view defaultStr) {
-		if (str == defaultStr)
-			DeleteValue(name);
-		else
-			WriteStringToReg(name, str);
 	}
 	bool ReadFont(std::string_view name, HFONT& hfont, LOGFONTW& logfont) {
 		if (auto const value = ReadString(name)) {
@@ -407,14 +381,14 @@ int ValidateMasterPassword(void)
 }
 
 void Config::ReadHost(Host& host, int version, bool readPassword) {
-	ReadStringFromReg("HostAdrs", host.HostAdrs, HOST_ADRS_LEN + 1);
-	ReadStringFromReg("UserName", host.UserName, USER_NAME_LEN + 1);
-	ReadStringFromReg("Account", host.Account, ACCOUNT_LEN + 1);
+	ReadString("HostAdrs"sv, host.HostAdrs);
+	ReadString("UserName"sv, host.UserName);
+	ReadString("Account"sv, host.Account);
 	ReadString("LocalDir"sv, host.LocalInitDir);
-	ReadStringFromReg("RemoteDir", host.RemoteInitDir, INIT_DIR_LEN + 1);
-	ReadStringFromReg("Chmod", host.ChmodCmd, CHMOD_CMD_LEN + 1);
-	ReadStringFromReg("Nlst", host.LsName, NLST_NAME_LEN + 1);
-	ReadStringFromReg("Init", host.InitCmd, INITCMD_LEN + 1);
+	ReadString("RemoteDir"sv, host.RemoteInitDir);
+	ReadString("Chmod"sv, host.ChmodCmd);
+	ReadString("Nlst"sv, host.LsName);
+	ReadString("Init"sv, host.InitCmd);
 	ReadIntValueFromReg("Port", &host.Port);
 	ReadIntValueFromReg("Kanji", &host.KanjiCode);
 	// 1.98b以前のUTF-8はBOMあり
@@ -434,13 +408,13 @@ void Config::ReadHost(Host& host, int version, bool readPassword) {
 	ReadBinary("Sort"sv, host.Sort);
 	ReadIntValueFromReg("Secu", &host.Security);
 	if (readPassword)
-		ReadPassword("Password"sv, host.PassWord, sizeof host.PassWord);
+		ReadPassword("Password"sv, host.PassWord);
 	else
-		strcpy(host.PassWord, u8(UserMailAdrs).c_str());
+		host.PassWord = UserMailAdrs;
 	ReadIntValueFromReg("Dial", &host.Dialup);
 	ReadIntValueFromReg("UseIt", &host.DialupAlways);
 	ReadIntValueFromReg("Notify", &host.DialupNotify);
-	ReadStringFromReg("DialTo", host.DialEntry, RAS_NAME_LEN + 1);
+	ReadString("DialTo"sv, host.DialEntry);
 	ReadIntValueFromReg("NoEncryption", &host.UseNoEncryption);
 	ReadIntValueFromReg("FTPES", &host.UseFTPES);
 	ReadIntValueFromReg("FTPIS", &host.UseFTPIS);
@@ -459,14 +433,14 @@ void Config::ReadHost(Host& host, int version, bool readPassword) {
 }
 
 void Config::WriteHost(Host const& host, Host const& defaultHost, bool writePassword) {
-	SaveStr("HostAdrs", host.HostAdrs, defaultHost.HostAdrs);
-	SaveStr("UserName", host.UserName, defaultHost.UserName);
-	SaveStr("Account", host.Account, defaultHost.Account);
+	WriteString("HostAdrs"sv, host.HostAdrs, defaultHost.HostAdrs);
+	WriteString("UserName"sv, host.UserName, defaultHost.UserName);
+	WriteString("Account"sv, host.Account, defaultHost.Account);
 	WriteString("LocalDir"sv, host.LocalInitDir);
-	SaveStr("RemoteDir", host.RemoteInitDir, defaultHost.RemoteInitDir);
-	SaveStr("Chmod", host.ChmodCmd, defaultHost.ChmodCmd);
-	SaveStr("Nlst", host.LsName, defaultHost.LsName);
-	SaveStr("Init", host.InitCmd, defaultHost.InitCmd);
+	WriteString("RemoteDir"sv, host.RemoteInitDir, defaultHost.RemoteInitDir);
+	WriteString("Chmod"sv, host.ChmodCmd, defaultHost.ChmodCmd);
+	WriteString("Nlst"sv, host.LsName, defaultHost.LsName);
+	WriteString("Init"sv, host.InitCmd, defaultHost.InitCmd);
 	if (writePassword)
 		WritePassword("Password"sv, host.PassWord);
 	else
@@ -489,7 +463,7 @@ void Config::WriteHost(Host const& host, Host const& defaultHost, bool writePass
 	SaveIntNum("Dial", host.Dialup, defaultHost.Dialup);
 	SaveIntNum("UseIt", host.DialupAlways, defaultHost.DialupAlways);
 	SaveIntNum("Notify", host.DialupNotify, defaultHost.DialupNotify);
-	SaveStr("DialTo", host.DialEntry, defaultHost.DialEntry);
+	WriteString("DialTo"sv, host.DialEntry, defaultHost.DialEntry);
 	SaveIntNum("NoEncryption", host.UseNoEncryption, defaultHost.UseNoEncryption);
 	SaveIntNum("FTPES", host.UseFTPES, defaultHost.UseFTPES);
 	SaveIntNum("FTPIS", host.UseFTPIS, defaultHost.UseFTPIS);
@@ -665,7 +639,7 @@ void SaveRegistry() {
 				HOSTDATA Host;
 				CopyDefaultHost(&Host);
 				hKey5->WriteIntValueToReg("Set", Host.Level);
-				hKey5->SaveStr("HostName", Host.HostName, DefaultHost.HostName);
+				hKey5->WriteString("HostName"sv, Host.HostName, DefaultHost.HostName);
 				hKey5->WriteHost(Host, DefaultHost, Host.Anonymous == NO);
 				hKey5->SaveIntNum("Anonymous", Host.Anonymous, DefaultHost.Anonymous);
 				hKey5->SaveIntNum("Last", Host.LastDir, DefaultHost.LastDir);
@@ -678,7 +652,7 @@ void SaveRegistry() {
 			for (HOSTDATA Host; CopyHostFromList(i, &Host) == FFFTP_SUCCESS; i++)
 				if (auto hKey5 = hKey4->CreateSubKey(strprintf("Host%d", i))) {
 					hKey5->WriteIntValueToReg("Set", Host.Level);
-					hKey5->SaveStr("HostName", Host.HostName, DefaultHost.HostName);
+					hKey5->WriteString("HostName"sv, Host.HostName, DefaultHost.HostName);
 					if ((Host.Level & SET_LEVEL_GROUP) == 0) {
 						hKey5->WriteHost(Host, DefaultHost, Host.Anonymous == NO);
 						hKey5->SaveIntNum("Anonymous", Host.Anonymous, DefaultHost.Anonymous);
@@ -898,7 +872,7 @@ bool LoadRegistry() {
 		HOSTDATA Host;
 		if (auto hKey5 = hKey4->OpenSubKey("DefaultHost")) {
 			hKey5->ReadIntValueFromReg("Set", &Host.Level);
-			hKey5->ReadStringFromReg("HostName", Host.HostName, HOST_NAME_LEN + 1);
+			hKey5->ReadString("HostName"sv, Host.HostName);
 			hKey5->ReadIntValueFromReg("Anonymous", &Host.Anonymous);
 			hKey5->ReadHost(Host, Version, Host.Anonymous != YES);
 			hKey5->ReadStrings("Bmarks"sv, Host.BookMark);
@@ -919,7 +893,7 @@ bool LoadRegistry() {
 				if (Version < 1980)
 					Host.NameKanjiCode = KANJI_SJIS;
 				hKey5->ReadIntValueFromReg("Set", &Host.Level);
-				hKey5->ReadStringFromReg("HostName", Host.HostName, HOST_NAME_LEN + 1);
+				hKey5->ReadString("HostName"sv, Host.HostName);
 				hKey5->ReadIntValueFromReg("Anonymous", &Host.Anonymous);
 				hKey5->ReadHost(Host, Version, Host.Anonymous != YES);
 				hKey5->ReadIntValueFromReg("Last", &Host.LastDir);
@@ -1080,22 +1054,23 @@ static std::optional<std::string> DecodePassword3(std::string_view encrypted) {
 	return {};
 }
 
-std::optional<std::string> Config::ReadPasswordCore(std::string_view name) const {
-	if (auto const value = ReadStringCore(name); value && !value->empty()) {
-		if (0x40 <= value->at(0) && value->at(0) < 0x80)
-			return DecodePasswordOriginal(*value);
-		if (value->starts_with("0A"sv))
-			return DecodePasswordOriginal(value->substr(2));
-		if (value->starts_with("0B"sv))
-			return DecodePassword2(value->substr(2));
-		if (value->starts_with("0C"sv))
-			return DecodePassword3(value->substr(2));
+bool Config::ReadPassword(std::string_view name, std::wstring& password) const {
+	if (auto value = ReadStringCore(name); value && !value->empty()) {
+		value = 0x40 <= value->at(0) && value->at(0) < 0x80 ? DecodePasswordOriginal(*value)
+			: value->starts_with("0A"sv) ? DecodePasswordOriginal(value->substr(2))
+			: value->starts_with("0B"sv) ? DecodePassword2(value->substr(2))
+			: value->starts_with("0C"sv) ? DecodePassword3(value->substr(2))
+			: std::nullopt;
+		if (value) {
+			password.assign(u8(*value));
+			return true;
+		}
 	}
-	return {};
+	return false;
 }
 
-void Config::WritePasswordCore(std::string_view name, std::string_view plain) {
-	BCrypt(BCRYPT_RNG_ALGORITHM, [this, name, plain](BCRYPT_ALG_HANDLE alg) {
+void Config::WritePassword(std::string_view name, std::wstring_view password) {
+	BCrypt(BCRYPT_RNG_ALGORITHM, [this, name, plain = u8(password)](BCRYPT_ALG_HANDLE alg) {
 		auto length = size_as<ULONG>(plain);
 		auto paddedLength = std::max(length + AesBlockSize - 1 & ~(AesBlockSize - 1), AesBlockSize * 2);	/* 最低長を32文字とする */
 		std::vector<UCHAR> buffer((size_t)paddedLength + AesBlockSize, 0);
@@ -1424,19 +1399,19 @@ void SaveSettingsToFileZillaXml() {
 					if (host.Level & SET_LEVEL_GROUP) {
 						writer->WriteStartElement(nullptr, L"Folder", nullptr);
 						writer->WriteAttributeString(nullptr, L"expanded", nullptr, L"1");
-						writer->WriteString(u8(host.HostName).c_str());
+						writer->WriteString(host.HostName.c_str());
 						writer->WriteCharEntity(L'\n');
 						level++;
 					} else {
 						writer->WriteStartElement(nullptr, L"Server", nullptr);
-						writer->WriteElementString(nullptr, L"Host", nullptr, u8(host.HostAdrs).c_str());
+						writer->WriteElementString(nullptr, L"Host", nullptr, host.HostAdrs.c_str());
 						writer->WriteElementString(nullptr, L"Port", nullptr, std::to_wstring(host.Port).c_str());
 						writer->WriteElementString(nullptr, L"Protocol", nullptr, host.UseNoEncryption == YES ? L"0" : host.UseFTPES == YES ? L"4" : host.UseFTPIS == YES ? L"3" : L"0");
 						writer->WriteElementString(nullptr, L"Type", nullptr, L"0");
-						writer->WriteElementString(nullptr, L"User", nullptr, u8(host.UserName).c_str());
-						writer->WriteElementString(nullptr, L"Pass", nullptr, u8(host.PassWord).c_str());
-						writer->WriteElementString(nullptr, L"Account", nullptr, u8(host.Account).c_str());
-						writer->WriteElementString(nullptr, L"Logontype", nullptr, host.Anonymous == YES || strlen(host.UserName) == 0 ? L"0" : L"1");
+						writer->WriteElementString(nullptr, L"User", nullptr, host.UserName.c_str());
+						writer->WriteElementString(nullptr, L"Pass", nullptr, host.PassWord.c_str());
+						writer->WriteElementString(nullptr, L"Account", nullptr, host.Account.c_str());
+						writer->WriteElementString(nullptr, L"Logontype", nullptr, host.Anonymous == YES || empty(host.UserName) ? L"0" : L"1");
 						writer->WriteElementString(nullptr, L"TimezoneOffset", nullptr, std::to_wstring(tzi.Bias + host.TimeZone * 60).c_str());
 						writer->WriteElementString(nullptr, L"PasvMode", nullptr, host.Pasv == YES ? L"MODE_PASSIVE" : L"MODE_ACTIVE");
 						writer->WriteElementString(nullptr, L"MaximumMultipleConnections", nullptr, std::to_wstring(host.MaxThreadCount).c_str());
@@ -1461,9 +1436,9 @@ void SaveSettingsToFileZillaXml() {
 							break;
 						}
 						writer->WriteElementString(nullptr, L"BypassProxy", nullptr, host.FireWall == YES ? L"0" : L"1");
-						writer->WriteElementString(nullptr, L"Name", nullptr, u8(host.HostName).c_str());
+						writer->WriteElementString(nullptr, L"Name", nullptr, host.HostName.c_str());
 						writer->WriteElementString(nullptr, L"LocalDir", nullptr, host.LocalInitDir.c_str());
-						auto remoteDir = u8(host.RemoteInitDir);
+						auto remoteDir = host.RemoteInitDir;
 						for (auto& [ch, prefix, re] : std::initializer_list<std::tuple<wchar_t, std::wstring_view, boost::wregex>>{ { L'/', L"1 0"sv, unix }, { L'\\', L"8 0"sv, dos } })
 							if (remoteDir.find(ch) != std::wstring::npos) {
 								std::wstring encoded{ prefix };
@@ -1478,7 +1453,7 @@ void SaveSettingsToFileZillaXml() {
 							}
 						writer->WriteElementString(nullptr, L"RemoteDir", nullptr, remoteDir.c_str());
 						writer->WriteElementString(nullptr, L"SyncBrowsing", nullptr, host.SyncMove == YES ? L"1" : L"0");
-						writer->WriteString(u8(host.HostName).c_str());
+						writer->WriteString(host.HostName.c_str());
 						writer->WriteCharEntity(L'\n');
 						writer->WriteEndElement();	// </Server>
 					}
@@ -1491,7 +1466,8 @@ void SaveSettingsToFileZillaXml() {
 }
 
 void SaveSettingsToWinSCPIni() {
-	auto escape = [](std::string_view str) {
+	auto escape = [](std::wstring_view wstr) {
+		auto const str = u8(wstr);
 		std::string result;
 		if (std::ranges::any_of(str, [](auto ch) { return ch & 0x80; }))
 			result += "%EF%BB%BF"sv;
@@ -1502,8 +1478,8 @@ void SaveSettingsToWinSCPIni() {
 				result += ch;
 		return result;
 	};
-	auto encode = [](std::string_view user, std::string_view host, std::string_view password) {
-		auto str = concat(user, host, password);
+	auto encode = [](std::wstring_view user, std::wstring_view host, std::wstring_view password) {
+		auto str = u8(concat(user, host, password));
 		static_assert((char)~0xA3 == 0x5C);
 		auto result = strprintf<8>("A35C%02hhX5C", size_as<unsigned char>(str) ^ 0x5C);
 		for (auto ch : str)
@@ -1513,7 +1489,7 @@ void SaveSettingsToWinSCPIni() {
 	Message(IDS_NEED_EXSITING_WINSCP_INI, MB_OK);
 	if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"WinSCP.ini", L"ini", { FileType::Ini, FileType::All }); !path.empty()) {
 		if (std::ofstream f{ path, std::ofstream::in | std::ofstream::ate }) {
-			std::vector<std::string> names;
+			std::vector<std::wstring> names;
 			HOSTDATA Host;
 			for (int i = 0; CopyHostFromList(i, &Host) == FFFTP_SUCCESS; i++) {
 				assert((Host.Level & SET_LEVEL_MASK) <= size_as<int>(names));
@@ -1522,26 +1498,26 @@ void SaveSettingsToWinSCPIni() {
 					names.push_back(Host.HostName);
 					continue;
 				}
-				std::string path;
+				std::wstring path;
 				for (auto name : names) {
 					path += name;
-					path += '/';
+					path += L'/';
 				}
 				f << "[Sessions\\"sv << escape(path + Host.HostName) << "]\n"sv;
 				f << "HostName="sv << escape(Host.HostAdrs) << '\n';
 				f << "PortNumber="sv << Host.Port << '\n';
 				f << "UserName="sv << escape(Host.UserName) << '\n';
 				f << "FSProtocol=5\n"sv;
-				f << "LocalDirectory="sv << escape(u8(Host.LocalInitDir)) << '\n';
+				f << "LocalDirectory="sv << escape(Host.LocalInitDir) << '\n';
 				f << "RemoteDirectory="sv << escape(Host.RemoteInitDir) << '\n';
 				f << "SynchronizeBrowsing="sv << (Host.SyncMove == YES ? 1 : 0) << '\n';
 				f << "PostLoginCommands="sv << escape(Host.InitCmd) << '\n';
 				if (Host.FireWall == YES) {
 					if (auto method = FwallType == FWALL_SOCKS4 ? 1 : FwallType == FWALL_SOCKS5_USER ? 2 : -1; method != -1)
 						f << "ProxyMethod="sv << method << '\n';
-					f << "ProxyHost="sv << escape(u8(FwallHost)) << '\n';
+					f << "ProxyHost="sv << escape(FwallHost) << '\n';
 					f << "ProxyPort="sv << FwallPort << '\n';
-					f << "ProxyUsername="sv << escape(u8(FwallUser)) << '\n';
+					f << "ProxyUsername="sv << escape(FwallUser) << '\n';
 				}
 				if (auto utf = Host.NameKanjiCode == KANJI_SJIS ? 0 : Host.NameKanjiCode == KANJI_UTF8N ? 1 : -1; utf != -1)
 					f << "Utf="sv << utf << '\n';
@@ -1559,7 +1535,7 @@ void SaveSettingsToWinSCPIni() {
 						f << "FtpProxyLogonType="sv << type << '\n';
 				f << "Password="sv << encode(Host.UserName, Host.HostAdrs, Host.PassWord) << '\n';
 				if (Host.FireWall == YES)
-					f << "ProxyPasswordEnc="sv << encode(u8(FwallUser), u8(FwallHost), u8(FwallPass)) << '\n';
+					f << "ProxyPasswordEnc="sv << encode(FwallUser, FwallHost, FwallPass) << '\n';
 				f << '\n';
 			}
 		} else

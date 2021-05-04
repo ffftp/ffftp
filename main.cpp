@@ -1601,8 +1601,7 @@ static void StartupProc(std::vector<std::wstring_view> const& args) {
 			auto u8unc = u8(unc);
 			DirectConnectProc(data(u8unc), Kanji, Kana, FnameKanji, TrMode);
 		} else if (!empty(hostname) && empty(unc)) {
-			auto u8hostname = u8(hostname);
-			if (int AutoConnect = SearchHostName(data(u8hostname)); AutoConnect == -1)
+			if (int AutoConnect = SearchHostName(hostname); AutoConnect == -1)
 				SetTaskMsg(IDS_MSGJPN177, hostname.c_str());
 			else
 				PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_CONNECT_NUM, opt), (LPARAM)AutoConnect);
