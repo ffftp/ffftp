@@ -37,7 +37,7 @@ std::vector<std::wstring> AsciiExt = { L"*.txt"s, L"*.html"s, L"*.htm"s, L"*.cgi
 extern int TransMode;
 extern int ListType;
 extern int LocalWidth;
-extern char ViewerName[VIEWERS][FMAX_PATH+1];
+extern std::wstring ViewerName[VIEWERS];
 extern int TransMode;
 extern int SortSave;
 extern int LocalKanjiCode;
@@ -814,10 +814,10 @@ void ShowPopupMenu(int Win, int Pos) {
 	EnableMenuItem(submenu, MENU_OPEN, canOpen ? 0 : MF_GRAYED);
 	constexpr UINT MenuID[VIEWERS] = { MENU_OPEN1, MENU_OPEN2, MENU_OPEN3 };
 	for (int i = VIEWERS - 1; i >= 0; i--) {
-		if (strlen(ViewerName[i]) != 0) {
+		if (!empty(ViewerName[i])) {
 			static auto const format = GetString(IDS_OPEN_WITH);
 			wchar_t text[FMAX_PATH + 1];
-			swprintf_s(text, format.c_str(), fs::u8path(ViewerName[i]).filename().c_str(), i + 1);
+			swprintf_s(text, format.c_str(), fs::path{ ViewerName[i] }.filename().c_str(), i + 1);
 			MENUITEMINFOW mii{ sizeof(MENUITEMINFOW), MIIM_FTYPE | MIIM_STATE | MIIM_ID | MIIM_STRING, MFT_STRING, UINT(canOpen ? 0 : MFS_GRAYED), MenuID[i] };
 			mii.dwTypeData = text;
 			InsertMenuItemW(submenu, 1, true, &mii);

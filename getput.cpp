@@ -1239,7 +1239,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 //					iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 					if(IsSSLAttached(Pkt->ctrl_skt))
 					{
-						if(AttachSSL(data_socket, Pkt->ctrl_skt, CancelCheckWork, NULL))
+						if (AttachSSL(data_socket, Pkt->ctrl_skt, CancelCheckWork, {}))
 							iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 						else
 							iRetCode = 500;
@@ -1338,7 +1338,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 //						iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 						if(IsSSLAttached(Pkt->ctrl_skt))
 						{
-							if(AttachSSL(data_socket, Pkt->ctrl_skt, CancelCheckWork, NULL))
+							if (AttachSSL(data_socket, Pkt->ctrl_skt, CancelCheckWork, {}))
 								iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 							else
 								iRetCode = 500;
@@ -1821,7 +1821,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 //				iRetCode = UploadFile(Pkt, data_socket);
 				if(IsSSLAttached(Pkt->ctrl_skt))
 				{
-					if(AttachSSL(data_socket, Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], NULL))
+					if (AttachSSL(data_socket, Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], {}))
 						iRetCode = UploadFile(Pkt, data_socket);
 					else
 						iRetCode = 500;
@@ -1938,7 +1938,7 @@ static int UploadPassive(TRANSPACKET *Pkt)
 //					iRetCode = UploadFile(Pkt, data_socket);
 					if(IsSSLAttached(Pkt->ctrl_skt))
 					{
-						if(AttachSSL(data_socket, Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], NULL))
+						if (AttachSSL(data_socket, Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], {}))
 							iRetCode = UploadFile(Pkt, data_socket);
 						else
 							iRetCode = 500;

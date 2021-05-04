@@ -307,11 +307,11 @@ static BOOL DetachSSL(SOCKET s) {
 }
 
 // SSLセッションを開始
-BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName) {
+BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, std::wstring_view ServerName) {
 	assert(SecIsValidHandle(&credential));
 	std::wstring wServerName;
-	if (ServerName)
-		wServerName = IdnToAscii(u8(ServerName));
+	if (!empty(ServerName))
+		wServerName = IdnToAscii(ServerName);
 	else if (parent != INVALID_SOCKET)
 		if (auto context = getContext(parent))
 			wServerName = context->host;

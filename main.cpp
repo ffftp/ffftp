@@ -145,8 +145,7 @@ int LocalTabWidthDefault[4] = { 150, 120, 60, 37 };
 int LocalTabWidth[4];
 int RemoteTabWidthDefault[6] = { 150, 120, 60, 37, 60, 60 };
 int RemoteTabWidth[6];
-char UserMailAdrs[USER_MAIL_LEN+1] = { "who@example.com" };
-char ViewerName[VIEWERS][FMAX_PATH+1] = { { "notepad" }, { "" }, { "" } };
+std::wstring ViewerName[VIEWERS] = { L"notepad"s };
 HFONT ListFont = NULL;
 int LocalFileSort = SORT_NAME;
 int LocalDirSort = SORT_NAME;
@@ -159,7 +158,7 @@ int RecvMode = TRANS_DLG;
 int SendMode = TRANS_DLG;
 int MoveMode = MOVE_DLG;
 int ListType = LVS_REPORT;
-char DefaultLocalPath[FMAX_PATH+1] = { "" };
+std::wstring DefaultLocalPath;
 int SaveTimeStamp = YES;
 int FindMode = 0;
 int DotFile = YES;
@@ -169,9 +168,6 @@ int FnameCnv = FNAME_NOCNV;
 int TimeOut = 90;
 int RmEOF = NO;
 int RegType = REGTYPE_REG;
-char FwallHost[HOST_ADRS_LEN+1] = { "" };
-char FwallUser[USER_NAME_LEN+1] = { "" };
-char FwallPass[PASSWORD_LEN+1] = { "" };
 int FwallPort = IPPORT_FTP;
 int FwallType = 1;
 int FwallDefault = NO;
@@ -482,8 +478,8 @@ static int InitApp(int cmdShow)
 			{
 				hWndCurFocus = GetLocalHwnd();
 
-				if (std::error_code ec; strlen(DefaultLocalPath) > 0)
-					fs::current_path(fs::u8path(DefaultLocalPath), ec);
+				if (std::error_code ec; !empty(DefaultLocalPath))
+					fs::current_path(DefaultLocalPath, ec);
 
 				SetSortTypeImm(LocalFileSort, LocalDirSort, RemoteFileSort, RemoteDirSort);
 				SetTransferTypeImm(TransMode);
@@ -1605,8 +1601,7 @@ static void StartupProc(std::vector<std::wstring_view> const& args) {
 			auto u8unc = u8(unc);
 			DirectConnectProc(data(u8unc), Kanji, Kana, FnameKanji, TrMode);
 		} else if (!empty(hostname) && empty(unc)) {
-			auto u8hostname = u8(hostname);
-			if (int AutoConnect = SearchHostName(data(u8hostname)); AutoConnect == -1)
+			if (int AutoConnect = SearchHostName(hostname); AutoConnect == -1)
 				SetTaskMsg(IDS_MSGJPN177, hostname.c_str());
 			else
 				PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_CONNECT_NUM, opt), (LPARAM)AutoConnect);
@@ -1742,7 +1737,6 @@ void DoubleClickProc(int Win, int Mode, int App)
 	int Type;
 	char Local[FMAX_PATH+1];
 	char Tmp[FMAX_PATH+1];
-	int UseDiffViewer;
 
 	if (!AskUserOpeDisabled())
 	{
@@ -1778,14 +1772,11 @@ void DoubleClickProc(int Win, int Mode, int App)
 						if((DclickOpen == YES) || (Mode == YES))
 						{
 							// ビューワ２、３のパスが "d " で始まっていたら差分ビューア使用
-							if ((App == 1 || App == 2) && strncmp(ViewerName[App], "d ", 2) == 0)
-								UseDiffViewer = YES;
-							else
-								UseDiffViewer = NO;
+							auto UseDiffViewer = (App == 1 || App == 2) && ViewerName[App].starts_with(L"d "sv);
 
 							auto remoteDir = tempDirectory() / L"file";
 							fs::create_directory(remoteDir);
-							auto remotePath = (remoteDir / (UseDiffViewer == YES ? L"remote." + u8(Tmp) : u8(Tmp))).u8string();
+							auto remotePath = (remoteDir / (UseDiffViewer ? L"remote." + u8(Tmp) : u8(Tmp))).u8string();
 
 							if(AskTransferNow() == YES)
 								SktShareProh();
@@ -1834,7 +1825,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 
 							AddTempFileList(data(remotePath));
 							if(Sts/100 == FTP_COMPLETE) {
-								if (UseDiffViewer == YES) {
+								if (UseDiffViewer) {
 									strcpy(Local, (AskLocalCurDir() / fs::u8path(Tmp)).u8string().c_str());
 									ExecViewer2(Local, data(remotePath), App);
 								} else {
@@ -2112,7 +2103,7 @@ void ExecViewer(char *Fname, int App) {
 		ShellExecuteW(0, L"open", wComLine.c_str(), nullptr, pFname.c_str(), SW_SHOW);
 	} else {
 		char ComLine[FMAX_PATH * 2 + 3 + 1];
-		sprintf(ComLine, "%s \"%s\"", ViewerName[App == -1 ? 0 : App], Fname);
+		sprintf(ComLine, "%s \"%s\"", u8(ViewerName[App == -1 ? 0 : App]).c_str(), Fname);
 		auto wComLine = u8(ComLine);
 		DoPrintf(L"CreateProcess - %s", wComLine.c_str());
 		STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
@@ -2144,7 +2135,7 @@ void ExecViewer2(char *Fname1, char *Fname2, int App)
 	/* 含まれている時、間違ったパス名を返す事がある。					*/
 	/* そこで、関連付けられたプログラムの起動はShellExecute()を使う。	*/
 
-	strcpy(AssocProg, ViewerName[App] + 2);	/* 先頭の "d " は読み飛ばす */
+	strcpy(AssocProg, u8(ViewerName[App]).c_str() + 2);	/* 先頭の "d " は読み飛ばす */
 
 	if(strchr(Fname1, ' ') == NULL && strchr(Fname2, ' ') == NULL)
 		sprintf(ComLine, "%s %s %s", AssocProg, Fname1, Fname2);

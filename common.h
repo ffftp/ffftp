@@ -167,8 +167,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define PASSWORD_LEN	80		/* パスワード */
 #define ACCOUNT_LEN		80		/* アカウント */
 #define INIT_DIR_LEN	(FMAX_PATH-40)	/* 初期ディレクトリ */
-#define USER_MAIL_LEN	80		/* ユーザのメールアドレス */
-								/*   PASSWORD_LEN と同じにすること */
 #define FILTER_EXT_LEN	400		/* フィルタのファイル名列 */
 #define BOOKMARK_SIZE	2048	/* ブックマーク */
 #define CHMOD_CMD_LEN	40		/* 属性変更コマンド */
@@ -179,13 +177,8 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 #define FMAX_PATH		1024
 
-// 暗号化通信対応
-#define PRIVATE_KEY_LEN 4096
-
 /*===== 初期値 =====*/
 
-#define CHMOD_CMD_NOR	"SITE CHMOD"	/* 属性変更コマンド */
-#define LS_FNAME		"-alL"			/* NLSTに付けるもの */
 #if defined(HAVE_TANDEM)
 #define DEF_PRIEXT		4				/* Primary Extents の初期値 */
 #define DEF_SECEXT		28				/* Secondary Extents の初期値 */
@@ -445,19 +438,21 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 
 struct HostExeptPassword {
+	static inline auto DefaultChmod = L"SITE CHMOD"s;	/* 属性変更コマンド */
+	static inline auto DefaultLsOption = L"-alL"s;		/* NLSTに付けるもの */
 	static inline int DefaultTimeZone = [] {
 		TIME_ZONE_INFORMATION tzi;
 		GetTimeZoneInformation(&tzi);
 		return tzi.Bias / -60;
 	}();
-	char HostAdrs[HOST_ADRS_LEN + 1] = "";				/* ホスト名 */
-	char UserName[USER_NAME_LEN + 1] = "";				/* ユーザ名 */
-	char Account[ACCOUNT_LEN + 1] = "";					/* アカウント */
-	char LocalInitDir[INIT_DIR_LEN + 1];				/* ローカルの開始ディレクトリ */
-	char RemoteInitDir[INIT_DIR_LEN + 1] = "";			/* ホストの開始ディレクトリ */
-	char ChmodCmd[CHMOD_CMD_LEN + 1] = CHMOD_CMD_NOR;	/* 属性変更コマンド */
-	char LsName[NLST_NAME_LEN + 1] = LS_FNAME;			/* NLSTに付けるファイル名/オプション*/
-	char InitCmd[INITCMD_LEN + 1] = "";					/* ホストの初期化コマンド */
+	std::wstring HostAdrs;								/* ホスト名 */
+	std::wstring UserName;								/* ユーザ名 */
+	std::wstring Account;								/* アカウント */
+	std::wstring LocalInitDir;							/* ローカルの開始ディレクトリ */
+	std::wstring RemoteInitDir;							/* ホストの開始ディレクトリ */
+	std::wstring ChmodCmd = DefaultChmod;				/* 属性変更コマンド */
+	std::wstring LsName = DefaultLsOption;				/* NLSTに付けるファイル名/オプション*/
+	std::wstring InitCmd;								/* ホストの初期化コマンド */
 	int Port = IPPORT_FTP;								/* ポート番号 */
 	int KanjiCode = KANJI_NOCNV;						/* ホストの漢字コード (KANJI_xxx) */
 	int KanaCnv = YES;									/* 半角カナを全角に変換(YES/NO) */
@@ -476,12 +471,11 @@ struct HostExeptPassword {
 	int Dialup = NO;									/* ダイアルアップ接続するかどうか (YES/NO) */
 	int DialupAlways = NO;								/* 常にこのエントリへ接続するかどうか (YES/NO) */
 	int DialupNotify = YES;								/* 再接続の際に確認する (YES/NO) */
-	char DialEntry[RAS_NAME_LEN + 1] = "";				/* ダイアルアップエントリ */
+	std::wstring DialEntry;								/* ダイアルアップエントリ */
 	int UseNoEncryption = YES;							/* 暗号化なしで接続する (YES/NO) */
 	int UseFTPES = YES;									/* FTPESで接続する (YES/NO) */
 	int UseFTPIS = YES;									/* FTPISで接続する (YES/NO) */
 	int UseSFTP = YES;									/* SFTPで接続する (YES/NO) */
-	char PrivateKey[PRIVATE_KEY_LEN + 1] = "";			/* テキスト形式の秘密鍵 */
 	int MaxThreadCount = 1;								/* 同時接続数 */
 	int ReuseCmdSkt = YES;								/* メインウィンドウのソケットを再利用する (YES/NO) */
 	int UseMLSD = YES;									/* "MLSD"コマンドを使用する */
@@ -490,17 +484,14 @@ struct HostExeptPassword {
 	int TransferErrorNotify = YES;						/* 転送エラー時に確認ダイアログを出すかどうか (YES/NO) */
 	int TransferErrorReconnect = YES;					/* 転送エラー時に再接続する (YES/NO) */
 	int NoPasvAdrs = NO;								/* PASVで返されるアドレスを無視する (YES/NO) */
-	HostExeptPassword();
+	inline HostExeptPassword();
 };
 
 struct Host : HostExeptPassword {
-	char PassWord[PASSWORD_LEN+1] = "";		/* パスワード */
+	std::wstring PassWord;
 	Host() = default;
 	Host(Host const&) = default;
-	Host(Host const& that, bool includePassword) : HostExeptPassword{ that } {
-		if (includePassword)
-			strcpy(PassWord, that.PassWord);
-	}
+	Host(Host const& that, bool includePassword) : HostExeptPassword{ that }, PassWord{ includePassword ? that.PassWord : L""s } {}
 };
 
 
@@ -508,7 +499,7 @@ struct HOSTDATA : Host {
 	int Level = 0;							/* 設定のレベル */
 											/* 通常はグループのフラグのみが有効 */
 											/* レベル数は設定の登録／呼出時のみで使用 */
-	char HostName[HOST_NAME_LEN+1] = "";	/* 設定名 */
+	std::wstring HostName;					/* 設定名 */
 	std::vector<std::wstring> BookMark;		/* ブックマーク */
 	int Anonymous = NO;						/* Anonymousフラグ */
 	int CurNameKanjiCode = KANJI_NOCNV;		/* 自動判別後のファイル名の漢字コード (KANJI_xxx) */
@@ -788,8 +779,8 @@ int CopyHostFromList(int Num, HOSTDATA *Set);
 int CopyHostFromListInConnect(int Num, HOSTDATA *Set);
 int SetHostBookMark(int Num, std::vector<std::wstring>&& bookmark);
 std::optional<std::vector<std::wstring>> AskHostBookMark(int Num);
-int SetHostDir(int Num, const char* LocDir, const char* HostDir);
-int SetHostPassword(int Num, char *Pass);
+int SetHostDir(int Num, std::wstring_view LocDir, std::wstring_view HostDir);
+int SetHostPassword(int Num, std::wstring const& Pass);
 int SetHostSort(int Num, int LFSort, int LDSort, int RFSort, int RDSort);
 void DecomposeSortType(uint32_t Sort, int *LFSort, int *LDSort, int *RFSort, int *RDSort);
 int AskCurrentHost(void);
@@ -798,7 +789,7 @@ void CopyDefaultHost(HOSTDATA *Set);
 // ホスト共通設定機能
 void ResetDefaultHost(void);
 void SetDefaultHost(HOSTDATA *Set);
-int SearchHostName(char *Name);
+int SearchHostName(std::wstring_view name);
 void ImportFromWSFTP(void);
 // 暗号化通信対応
 int SetHostEncryption(int Num, int UseNoEncryption, int UseFTPES, int UseFTPIS, int UseSFTP);
@@ -809,7 +800,7 @@ void ConnectProc(int Type, int Num);
 void QuickConnectProc(void);
 void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode);
 void HistoryConnectProc(int MenuCmd);
-char *AskHostAdrs(void);
+std::wstring_view AskHostAdrs();
 int AskHostPort(void);
 int AskHostNameKanji(void);
 int AskHostNameKana(void);
@@ -822,7 +813,6 @@ std::string AskHostLsName();
 int AskHostType(void);
 int AskHostFireWall(void);
 int AskNoFullPathMode(void);
-char *AskHostUserName(void);
 void SaveCurrentSetToHost(void);
 int ReConnectCmdSkt(void);
 // int ReConnectTrnSkt(void);
@@ -841,14 +831,13 @@ int SetOSS(int wkOss);
 int AskOSS(void);
 #endif
 std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork);
-SOCKET connectsock(char *host, int port, UINT prefixId, int *CancelCheckWork);
+SOCKET connectsock(std::string_view host, int port, UINT prefixId, int *CancelCheckWork);
 SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
 int AskUseNoEncryption(void);
 int AskUseFTPES(void);
 int AskUseFTPIS(void);
 int AskUseSFTP(void);
-char *AskPrivateKey(void);
 // 同時接続対応
 int AskMaxThreadCount(void);
 int AskReuseCmdSkt(void);
@@ -1034,8 +1023,8 @@ void EditBookMark();
 
 /*===== registry.c =====*/
 
-void SaveRegistry(void);
-int LoadRegistry(void);
+void SaveRegistry();
+bool LoadRegistry();
 void ClearRegistry();
 // ポータブル版判定
 void ClearIni(void);
@@ -1076,21 +1065,19 @@ void SetYenTail(char *Str);
 void RemoveYenTail(char *Str);
 void SetSlashTail(char *Str);
 void ReplaceAll(char *Str, char Src, char Dst);
-void RemoveTailingSpaces(char *Str);
 const char* stristr(const char* s1, const char* s2);
 static inline char* stristr(char* s1, const char* s2) { return const_cast<char*>(stristr(static_cast<const char*>(s1), s2)); }
 const char* GetNextField(const char* Str);
 int GetOneField(const char* Str, char *Buf, int Max);
 const char* GetFileName(const char* Path);
 const char* GetFileExt(const char* Path);
-void RemoveFileName(const char* Path, char *Buf);
 void GetUpperDir(char *Path);
 void GetUpperDirEraseTopSlash(char *Path);
 int AskDirLevel(const char* Path);
 std::wstring MakeSizeString(double size);
 void DispStaticText(HWND hWnd, const char* Str);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
-int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char *Pass, int *Port);
+int SplitUNCpath(char *unc, std::wstring& Host, std::wstring& Path, char *File, std::wstring& User, std::wstring& Pass, int *Port);
 int TimeString2FileTime(const char *Time, FILETIME *Buf);
 void FileTime2TimeString(const FILETIME *Time, char *Buf, int Mode, int InfoExist, int ShowSeconds);
 int AttrString2Value(const char *Str);
@@ -1130,7 +1117,7 @@ std::vector<HISTORYDATA> const& GetHistories();
 BOOL LoadSSL();
 void FreeSSL();
 void ShowCertificate();
-BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, const char* ServerName);
+BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, std::wstring_view ServerName);
 bool IsSecureConnection();
 BOOL IsSSLAttached(SOCKET s);
 int MakeSocketWin();
@@ -1340,9 +1327,9 @@ static inline auto AddressToString(sockaddr_storage const& sa) {
 		return AddressPortToString(&local);
 	}
 }
-static inline auto IdnToAscii(std::wstring const& unicode) {
+static inline auto IdnToAscii(std::wstring_view unicode) {
 	if (empty(unicode))
-		return unicode;
+		return L""s;
 	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) { return IdnToAscii(0, src, srclen, dst, dstlen); }, unicode);
 }
 static inline auto NormalizeString(NORM_FORM form, std::wstring_view src) {

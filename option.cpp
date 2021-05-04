@@ -53,17 +53,17 @@ void CheckRange2(int *Cur, int Max, int Min);
 
 
 /* 設定値 */
-extern char UserMailAdrs[USER_MAIL_LEN+1];
-extern char ViewerName[VIEWERS][FMAX_PATH+1];
+extern std::wstring UserMailAdrs;
+extern std::wstring ViewerName[VIEWERS];
 extern int ConnectOnStart;
 extern int SaveWinPos;
 extern std::vector<std::wstring> AsciiExt;
 extern int RecvMode;
 extern int SendMode;
 extern int MoveMode;
-extern char FwallHost[HOST_ADRS_LEN+1];
-extern char FwallUser[USER_NAME_LEN+1];
-extern char FwallPass[PASSWORD_LEN+1];
+extern std::wstring FwallHost;
+extern std::wstring FwallUser;
+extern std::wstring FwallPass;
 extern int FwallPort;
 extern int FwallType;
 extern int FwallDefault;
@@ -72,7 +72,7 @@ extern int FwallResolve;
 extern int FwallLower;
 extern int FwallDelimiter;
 extern int PasvDefault;
-extern char DefaultLocalPath[FMAX_PATH+1];
+extern std::wstring DefaultLocalPath;
 extern int SaveTimeStamp;
 extern int DclickOpen;
 extern int FnameCnv;
@@ -159,13 +159,13 @@ struct User {
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
 		SendDlgItemMessageW(hDlg, USER_ADRS, EM_LIMITTEXT, PASSWORD_LEN, 0);
-		SetText(hDlg, USER_ADRS, u8(UserMailAdrs));
+		SetText(hDlg, USER_ADRS, UserMailAdrs);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			strncpy_s(UserMailAdrs, USER_MAIL_LEN + 1, u8(GetText(hDlg, USER_ADRS)).c_str(), _TRUNCATE);
+			UserMailAdrs = GetText(hDlg, USER_ADRS);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000041);
@@ -239,7 +239,7 @@ struct Transfer2 {
 	using CnvButton = RadioButton<TRMODE2_NOCNV, TRMODE2_LOWER, TRMODE2_UPPER>;
 	static INT_PTR OnInit(HWND hDlg) {
 		SendDlgItemMessageW(hDlg, TRMODE2_LOCAL, EM_LIMITTEXT, FMAX_PATH, 0);
-		SetText(hDlg, TRMODE2_LOCAL, u8(DefaultLocalPath));
+		SetText(hDlg, TRMODE2_LOCAL, DefaultLocalPath);
 		CnvButton::Set(hDlg, FnameCnv);
 		SendDlgItemMessageW(hDlg, TRMODE2_TIMEOUT, EM_LIMITTEXT, (WPARAM)5, 0);
 		char Tmp[FMAX_PATH + 1];
@@ -251,7 +251,7 @@ struct Transfer2 {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY: {
-			strncpy_s(DefaultLocalPath, FMAX_PATH + 1, u8(GetText(hDlg, TRMODE2_LOCAL)).c_str(), _TRUNCATE);
+			DefaultLocalPath = GetText(hDlg, TRMODE2_LOCAL);
 			FnameCnv = CnvButton::Get(hDlg);
 			TimeOut = GetDecimalText(hDlg, TRMODE2_TIMEOUT);
 			CheckRange2(&TimeOut, 300, 0);
@@ -621,9 +621,9 @@ struct Firewall {
 		SendDlgItemMessageW(hDlg, FIRE_PORT, EM_LIMITTEXT, 5, 0);
 		SendDlgItemMessageW(hDlg, FIRE_DELIMIT, EM_LIMITTEXT, 1, 0);
 
-		SetText(hDlg, FIRE_HOST, u8(FwallHost));
-		SetText(hDlg, FIRE_USER, u8(FwallUser));
-		SetText(hDlg, FIRE_PASS, u8(FwallPass));
+		SetText(hDlg, FIRE_HOST, FwallHost);
+		SetText(hDlg, FIRE_USER, FwallUser);
+		SetText(hDlg, FIRE_PASS, FwallPass);
 		char Tmp[10];
 		sprintf(Tmp, "%d", FwallPort);
 		SetText(hDlg, FIRE_PORT, u8(Tmp));
@@ -647,9 +647,9 @@ struct Firewall {
 		case PSN_APPLY: {
 			auto Type = (int)SendDlgItemMessageW(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0) + 1;
 			FwallType = firewallTypes[Type];
-			strncpy_s(FwallHost, HOST_ADRS_LEN + 1, u8(GetText(hDlg, FIRE_HOST)).c_str(), _TRUNCATE);
-			strncpy_s(FwallUser, USER_NAME_LEN + 1, u8(GetText(hDlg, FIRE_USER)).c_str(), _TRUNCATE);
-			strncpy_s(FwallPass, PASSWORD_LEN, u8(GetText(hDlg, FIRE_PASS)).c_str(), _TRUNCATE);
+			FwallHost = GetText(hDlg, FIRE_HOST);
+			FwallUser = GetText(hDlg, FIRE_USER);
+			FwallPass = GetText(hDlg, FIRE_PASS);
 			FwallPort = GetDecimalText(hDlg, FIRE_PORT);
 			FwallDelimiter = u8(GetText(hDlg, FIRE_DELIMIT))[0];
 			FwallDefault = (int)SendDlgItemMessageW(hDlg, FIRE_USEIT, BM_GETCHECK, 0, 0);
@@ -689,17 +689,17 @@ struct Tool {
 		SendDlgItemMessageW(hDlg, TOOL_EDITOR1, EM_LIMITTEXT, FMAX_PATH, 0);
 		SendDlgItemMessageW(hDlg, TOOL_EDITOR2, EM_LIMITTEXT, FMAX_PATH, 0);
 		SendDlgItemMessageW(hDlg, TOOL_EDITOR3, EM_LIMITTEXT, FMAX_PATH, 0);
-		SetText(hDlg, TOOL_EDITOR1, u8(ViewerName[0]));
-		SetText(hDlg, TOOL_EDITOR2, u8(ViewerName[1]));
-		SetText(hDlg, TOOL_EDITOR3, u8(ViewerName[2]));
+		SetText(hDlg, TOOL_EDITOR1, ViewerName[0]);
+		SetText(hDlg, TOOL_EDITOR2, ViewerName[1]);
+		SetText(hDlg, TOOL_EDITOR3, ViewerName[2]);
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			strncpy_s(ViewerName[0], FMAX_PATH + 1, u8(GetText(hDlg, TOOL_EDITOR1)).c_str(), _TRUNCATE);
-			strncpy_s(ViewerName[1], FMAX_PATH + 1, u8(GetText(hDlg, TOOL_EDITOR2)).c_str(), _TRUNCATE);
-			strncpy_s(ViewerName[2], FMAX_PATH + 1, u8(GetText(hDlg, TOOL_EDITOR3)).c_str(), _TRUNCATE);
+			ViewerName[0] = GetText(hDlg, TOOL_EDITOR1);
+			ViewerName[1] = GetText(hDlg, TOOL_EDITOR2);
+			ViewerName[2] = GetText(hDlg, TOOL_EDITOR3);
 			return PSNRET_NOERROR;
 		case PSN_HELP:
 			ShowHelp(IDH_HELP_TOPIC_0000050);

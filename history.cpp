@@ -68,14 +68,11 @@ void SetAllHistoryToMenu() {
 	AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
 	int i = 0;
 	for (auto history : histories) {
-		char buffer[HOST_ADRS_LEN + USER_NAME_LEN + INIT_DIR_LEN + 7 + 1];
-		if (i < 9)
-			sprintf(buffer, "&%d %s (%s) %s", i + 1, history.HostAdrs, history.UserName, history.RemoteInitDir);
-		else if (i == 9)
-			sprintf(buffer, "&0 %s (%s) %s", history.HostAdrs, history.UserName, history.RemoteInitDir);
-		else
-			sprintf(buffer, "&* %s (%s) %s", history.HostAdrs, history.UserName, history.RemoteInitDir);
-		AppendMenuW(menu, MF_STRING, MenuHistId[i], u8(buffer).c_str());
+		auto const text
+			= i < 9 ? strprintf(L"&%d %s (%s) %s", i + 1, history.HostAdrs.c_str(), history.UserName.c_str(), history.RemoteInitDir.c_str())
+			: i == 9 ? strprintf(L"&0 %s (%s) %s", history.HostAdrs.c_str(), history.UserName.c_str(), history.RemoteInitDir.c_str())
+			: strprintf(L"&* %s (%s) %s", history.HostAdrs.c_str(), history.UserName.c_str(), history.RemoteInitDir.c_str());
+		AppendMenuW(menu, MF_STRING, MenuHistId[i], text.c_str());
 		i++;
 	}
 }

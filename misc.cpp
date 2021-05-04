@@ -96,30 +96,6 @@ void ReplaceAll(char* Str, char Src, char Dst) {
 }
 
 
-/*----- 文字列の末尾のスペースを削除 ------------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void RemoveTailingSpaces(char *Str)
-{
-	char *Pos;
-
-	Pos = Str + strlen(Str);
-	while(--Pos > Str)
-	{
-		if(*Pos != ' ')
-			break;
-		*Pos = NUL;
-	}
-	return;
-}
-
-
 /*----- 大文字／小文字を区別しないstrstr --------------------------------------
 *
 *	Parameter
@@ -278,34 +254,15 @@ const char* GetFileExt(const char* Path)
 }
 
 
-/*----- パス名からファイル名を取り除く ----------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*		char *Buf : ファイル名を除いたパス名のコピー先
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		ディレクトリの区切り記号は "\" と "/" の両方が有効
-*----------------------------------------------------------------------------*/
-
-void RemoveFileName(const char* Path, char *Buf)
-{
-	char *Pos;
-
-	strcpy(Buf, Path);
-
-	if((Pos = strrchr(Buf, '/')) != NULL)
-		*Pos = NUL;
-	else if((Pos = strrchr(Buf, '\\')) != NULL)
-	{
-		if((Pos == Buf) || 
-		   ((Pos != Buf) && (*(Pos - 1) != ':')))
-			*Pos = NUL;
-	}
-	return;
+// パス名からファイル名を取り除く
+//   ディレクトリの区切り記号は "\" と "/" の両方が有効
+static std::string_view RemoveFileName(std::string_view path) {
+	if (auto const p = path.rfind('/'); p != std::string_view::npos)
+		return path.substr(0, p);
+	if (auto const p = path.rfind('\\'); p != std::string_view::npos)
+		if (p == 0 || path[p - 1] != ':')
+			return path.substr(0, p);
+	return path;
 }
 
 
@@ -500,18 +457,17 @@ void RectClientToScreen(HWND hWnd, RECT *Rect)
 *	"\"は全て"/"に置き換える
 *----------------------------------------------------------------------------*/
 
-int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char *Pass, int *Port)
+int SplitUNCpath(char *unc, std::wstring& Host, std::wstring& Path, char *File, std::wstring& User, std::wstring& Pass, int *Port)
 {
-	int Sts;
 	char *Pos1;
 	char *Pos2;
 	char Tmp[FMAX_PATH+1];
 
-	memset(Host, NUL, HOST_ADRS_LEN+1);
-	memset(Path, NUL, FMAX_PATH+1);
+	Host.clear();
+	Path.clear();
 	memset(File, NUL, FMAX_PATH+1);
-	memset(User, NUL, USER_NAME_LEN+1);
-	memset(Pass, NUL, PASSWORD_LEN+1);
+	User.clear();
+	Pass.clear();
 	*Port = IPPORT_FTP;
 
 	ReplaceAll(unc, '\\', '/');
@@ -527,13 +483,11 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 		memcpy(Tmp, Pos1, Pos2-Pos1);
 		Pos1 = Pos2 + 1;
 
-		if((Pos2 = strchr(Tmp, ':')) != NULL)
-		{
-			memcpy(User, Tmp, std::min(Pos2-Tmp, (ptrdiff_t)USER_NAME_LEN));
-			strncpy(Pass, Pos2+1, PASSWORD_LEN);
-		}
-		else
-			strncpy(User, Tmp, USER_NAME_LEN);
+		if ((Pos2 = strchr(Tmp, ':')) != NULL) {
+			User = u8({ Tmp, Pos2 });
+			Pass = u8(Pos2 + 1);
+		} else
+			User = u8(Tmp);
 	}
 
 	// IPv6対応
@@ -542,15 +496,15 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 		Pos1 = Pos2 + 1;
 		if((Pos2 = strchr(Pos2, ']')) != NULL)
 		{
-			memcpy(Host, Pos1, std::min(Pos2-Pos1, (ptrdiff_t)HOST_ADRS_LEN));
+			Host = u8({ Pos1, Pos2 });
 			Pos1 = Pos2 + 1;
 		}
 	}
 
 	if((Pos2 = strchr(Pos1, ':')) != NULL)
 	{
-		if(strlen(Host) == 0)
-			memcpy(Host, Pos1, std::min(Pos2-Pos1, (ptrdiff_t)HOST_ADRS_LEN));
+		if (empty(Host))
+			Host = u8({ Pos1, Pos2 });
 		Pos2++;
 		if(IsDigit(*Pos2))
 		{
@@ -562,27 +516,23 @@ int SplitUNCpath(char *unc, char *Host, char *Path, char *File, char *User, char
 				Pos2++;
 			}
 		}
-		RemoveFileName(Pos2, Path);
+		Path = u8(RemoveFileName(Pos2));
 		strncpy(File, GetFileName(Pos2), FMAX_PATH);
 	}
 	else if((Pos2 = strchr(Pos1, '/')) != NULL)
 	{
-		if(strlen(Host) == 0)
-			memcpy(Host, Pos1, std::min(Pos2-Pos1, (ptrdiff_t)HOST_ADRS_LEN));
-		RemoveFileName(Pos2, Path);
+		if (empty(Host))
+			Host = u8({ Pos1, Pos2 });
+		Path = u8(RemoveFileName(Pos2));
 		strncpy(File, GetFileName(Pos2), FMAX_PATH);
 	}
 	else
 	{
-		if (strlen(Host) == 0)
-			strncpy_s(Host, HOST_ADRS_LEN + 1, Pos1, HOST_ADRS_LEN);
+		if (empty(Host))
+			Host = u8(Pos1);
 	}
 
-	Sts = FFFTP_FAIL;
-	if(strlen(Host) > 0)
-		Sts = FFFTP_SUCCESS;
-
-	return(Sts);
+	return empty(Host) ? FFFTP_FAIL : FFFTP_SUCCESS;
 }
 
 

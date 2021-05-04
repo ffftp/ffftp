@@ -2551,7 +2551,7 @@ void CopyURLtoClipBoard() {
 	MakeSelectedFileList(WIN_REMOTE, NO, NO, FileListBase, &CancelFlg);
 	if (empty(FileListBase))
 		return;
-	auto baseAddress = L"ftp://"s + u8(AskHostAdrs());
+	auto baseAddress = L"ftp://"s + AskHostAdrs();
 	if (auto port = AskHostPort(); port != IPPORT_FTP)
 		baseAddress.append(L":").append(std::to_wstring(port));
 	{
