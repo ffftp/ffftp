@@ -1,113 +1,113 @@
-============================================================
-�y�\�t�g���z�@FTP�N���C�A���g FFFTP Ver 4.9
-�y������z�@Windows 10, 8.1, 8, 7, Vista
-�y�T�|�[�g�z�@https://github.com/ffftp/ffftp
+﻿============================================================
+【ソフト名】　FTPクライアント FFFTP Ver 4.9
+【動作環境】　Windows 10, 8.1, 8, 7, Vista
+【サポート】　https://github.com/ffftp/ffftp
 ============================================================
 
-INI�t�@�C���ɂ���
+INIファイルについて
 --------------------------
 
-Ver.1.98���INI�t�@�C���̕����R�[�h���ύX���ꂽ���߁AVer.1.97b�ȑO��
-�ۑ�����INI�t�@�C�����ǂݍ��߂Ȃ��Ȃ��Ă��܂������AVer.1.98b�ȍ~�ł�
-�Ăѓǂݍ��߂�悤�ɂȂ�܂����B
+Ver.1.98よりINIファイルの文字コードが変更されたため、Ver.1.97b以前で
+保存したINIファイルが読み込めなくなっていましたが、Ver.1.98b以降では
+再び読み込めるようになりました。
 
-�Ȃ�Ver.1.98�ȍ~�ŕۑ����ꂽINI�t�@�C����Ver.1.97b�ȑO�œǂݍ��ނ��Ƃ�
-�o���܂���̂ŁAVer.1.97b�ȑO�֖߂��ꍇ�͐ݒ��INI�t�@�C���ł͂Ȃ�
-���W�X�g���ɕۑ�����悤�ɕύX����K�v������܂��B
+なおVer.1.98以降で保存されたINIファイルはVer.1.97b以前で読み込むことが
+出来ませんので、Ver.1.97b以前へ戻す場合は設定をINIファイルではなく
+レジストリに保存するように変更する必要があります。
 
 
-�}�X�^�[�p�X���[�h�ɂ���
+マスターパスワードについて
 --------------------------
 
-Ver.1.96d+009�ȍ~�Ń}�X�^�[�p�X���[�h�𓱓����܂����B
+Ver.1.96d+009以降でマスターパスワードを導入しました。
 
-FFFTP Ver.1.96d+009�ȍ~���ŏ��ɋN���������A�ڑ����j���[�̐ݒ聨
-�}�X�^�[�p�X���[�h�̐ݒ�Ń}�X�^�[�p�X���[�h��ݒ肵��
-�g�p���Ă��������B�}�X�^�[�p�X���[�h��ݒ肷��ƁAFFFTP�N������
-�}�X�^�[�p�X���[�h�̓��͂����߂��܂��̂ŁA���͂��Ă��������B
+FFFTP Ver.1.96d+009以降を最初に起動した時、接続メニューの設定→
+マスターパスワードの設定でマスターパスワードを設定して
+使用してください。マスターパスワードを設定すると、FFFTP起動時に
+マスターパスワードの入力が求められますので、入力してください。
 
 
-Ver 4.9�ł̕ύX�_
+Ver 4.9での変更点
 ----------------
 
-- �t�@�C���ꗗ�̉�͂Ɏ��s��������C�����܂����B #223, #227, #228
-- �t�@�C�����̕����R�[�h���������Ȃ��ꍇ�ɒ�~��������C�����܂����B #229, #231, #232
-- ���X�|���X�̉�͏��������P���܂����B #224, #225
+- ファイル一覧の解析に失敗する問題を修正しました。 #223, #227, #228
+- ファイル名の文字コードが正しくない場合に停止する問題を修正しました。 #229, #231, #232
+- レスポンスの解析処理を改善しました。 #224, #225
 
 
-Ver 1.96d�ȑO�֖߂��ꍇ
+Ver 1.96d以前へ戻す場合
 -----------------------
 
-���̃o�[�W�������g�p�������Ƃ�1.96d�ȑO�̃o�[�W�����ɖ߂����ꍇ�A
-�z�X�g�̐ݒ�̃p�X���[�h�͓��͂������K�v������܂��B
+このバージョンを使用したあとで1.96d以前のバージョンに戻した場合、
+ホストの設定のパスワードは入力し直す必要があります。
 
 
-FFFTP�̊T�v
+FFFTPの概要
 -----------
 
-GUI������FTP�N���C�A���g�\�t�g�ł��B
+GUIを持つFTPクライアントソフトです。
 
-���t�@�C�����X�g�̕����ƃt�@�C���]�����ʃX���b�h�Ȃ̂ŁA�t�@�C���]����
-�@���Ȃ���V���ȃt�@�C�����삪�ł��܂��B
+☆ファイルリストの部分とファイル転送が別スレッドなので、ファイル転送を
+　しながら新たなファイル操作ができます。
 
-���~���[�����O�A�b�v���[�h�@�\�ɂ��A���[�J���̃t�@�C���\���Ɠ�������
-�@�z�X�g���ɍ�邱�Ƃ��o���܂��B
+☆ミラーリングアップロード機能により、ローカルのファイル構成と同じ物を
+　ホスト側に作ることが出来ます。
 
-�������R�[�h�̕ϊ����ł��܂��B
+☆漢字コードの変換ができます。
 
-�������̃t�@�C�������������Ƃ��ł��܂��B
+☆漢字のファイル名を扱うことができます。
 
-���T�u�f�B���N�g�����܂߂��t�@�C���̓]�����ł��܂��B
+☆サブディレクトリを含めたファイルの転送ができます。
 
-���t�@�C���̓]�����A���ł����f�ł��܂��B
-�@�܂��A�ȑO�_�E�����[�h�𒆒f�����t�@�C�������鎞�A���̑������_�E��
-�@���[�h�ł��܂��B
+☆ファイルの転送を、いつでも中断できます。
+　また、以前ダウンロードを中断したファイルがある時、その続きをダウン
+　ロードできます。
 
-���e��FireWall�ASOCKS�A�����^�C���p�X���[�h�ɑΉ����Ă��܂��B
+☆各種FireWall、SOCKS、ワンタイムパスワードに対応しています。
 
 
-�����
+動作環境
 --------
-�Ex64��
-  Windows 8.1�ȍ~
-�Ex86��
-  Windows Vista�ȍ~
+・x64版
+  Windows 8.1以降
+・x86版
+  Windows Vista以降
 
 
-�t�@�C���\��
+ファイル構成
 ------------
 
-ffftp.exe -------- ���s�t�@�C��
-ffftp.chm -------- �w���v�t�@�C��
-ffftp.ja.txt ----- ���̃t�@�C��
+ffftp.exe -------- 実行ファイル
+ffftp.chm -------- ヘルプファイル
+ffftp.ja.txt ----- このファイル
 
 
-�A���C���X�g�[�����@
+アンインストール方法
 --------------------
 
-��Windows 7�AVista
-�R���g���[���p�l���́u�v���O�����Ƌ@�\�v�ŃA���C���X�g�[�����Ă��������B
+■Windows 7、Vista
+コントロールパネルの「プログラムと機能」でアンインストールしてください。
 
 
-�����p�ɂ�����
+ご利用にあたり
 --------------
 
-�EFFFTP�̓t���[�E�\�t�g�E�G�A�ł��B�l�g�p�A�Ɩ��g�p�̂�����ł��A
-�@�����R�ɂ����p���������B
+・FFFTPはフリー・ソフトウエアです。個人使用、業務使用のいずれでも、
+　ご自由にご利用ください。
 
-�E�\�t�g�E�G�A�͏\���Ƀe�X�g�����Ă��܂����A���g���̃p�\�R������A
-�@�v���O�����̕s��Ȃǂɂ���Ė�肪������ꍇ������܂��B����ɂ��
-�@���Q�������Ă��A���Q�ɑ΂���ۏ؂͏o�����˂܂��̂ŁA���炩���߂�����
-�@���������B
+・ソフトウエアは十分にテストをしていますが、お使いのパソコン環境や、
+　プログラムの不具合などによって問題が生じる場合があります。それにより
+　損害が生じても、損害に対する保証は出来かねますので、あらかじめご了承
+　ください。
 
-�E�ڍׂ̓��C�Z���X���������������B
+・詳細はライセンスをご覧ください。
 
 
-���C�Z���X
+ライセンス
 ----------
 
-�{�\�t�g�E�G�A����т��̃\�[�X�R�[�h�́A�C��BSD���C�Z���X�ɏ]�����̂�
-���܂��B
+本ソフトウエアおよびそのソースコードは、修正BSDライセンスに従うものと
+します。
 
 Copyright(C) 1997-2010, Sota & cooperators. All rights reserved.
 Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
@@ -134,35 +134,35 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-*** �ȉ��͓��{���(�Q�l) ***
+*** 以下は日本語訳(参考) ***
 
-Copyright(C) 1997-2010 Sota & �����͂������������X. All rights reserved.
+Copyright(C) 1997-2010 Sota & ご協力いただいた方々. All rights reserved.
 Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
-Copyright (C) 2018-2021, �q�c���S��.
+Copyright (C) 2018-2021, 倉田佐祐理.
 
-�\�[�X�R�[�h�`���ł��o�C�i���`���ł��A�ύX�̗L���Ɋւ�炸�A�ȉ��̏�����
-�������ꍇ�ɁA�Ĕz�z����юg�p�������܂��B
+ソースコード形式でもバイナリ形式でも、変更の有無に関わらず、以下の条件を
+満たす場合に、再配布および使用を許可します。
 
- 1. �\�[�X�R�[�h�`���ōĔz�z����ꍇ�A��L���쌠�\���A�{��������щ��L
-    �ӔC����K���K���܂߂Ă��������B
- 2. �o�C�i���`���ōĔz�z����ꍇ�A��L���쌠�\���A�{��������щ��L�ӔC
-    ����K����A�z�z���Ƌ��ɒ񋟂���镶�������/�܂��͑��̎����ɕK��
-    �܂߂Ă��������B
+ 1. ソースコード形式で再配布する場合、上記著作権表示、本条件および下記
+    責任限定規定を必ず含めてください。
+ 2. バイナリ形式で再配布する場合、上記著作権表示、本条件および下記責任
+    限定規定を、配布物と共に提供される文書および/または他の資料に必ず
+    含めてください。
 
-�{�\�t�g�E�F�A�́A���쌠�҂ɂ���āu����̂܂܁v�񋟂������̂Ƃ��A 
-�����َ����킸�A���i�Ƃ��Ēʏ���҂����i��������Ă���Ƃ����ۏ؂�A
-����̖ړI�ɓK������Ƃ̕ۏ؂��܂߁A���̕ۏ؂��Ȃ���܂���B
-���R�⑹�Q�����̌����̔@�����킸�A���ӔC�̍������_��A���i�ӔC�A
-�s�@�s�ׁi�ߎ��Ȃǂ��܂ށj�ł��邩���킸�A���ɂ��̂悤�ȑ��Q����������
-�\����m�炳��Ă����Ƃ��Ă��A�{�\�t�g�E�F�A�̎g�p���甭���������ڑ��Q�A
-�Ԑڑ��Q�A�����I�ȑ��Q�A���ʑ��Q�A�����I���Q�܂��͌��ʑ��Q�̂������
-�΂��Ă��i��֕i�܂��̓T�[�r�X�̒��B�A�g�p�@���f�[�^�A���v�̑�����
-�⏞�A�܂��͋Ɩ��̒��f�ɑ΂���⏞���܂߁j�A���쌠�҂͐ӔC��������������
-�܂���B
+本ソフトウェアは、著作権者によって「現状のまま」提供されるものとし、 
+明示黙示を問わず、商品として通常期待される品質を備えているという保証や、
+特定の目的に適合するとの保証を含め、何の保証もなされません。
+事由や損害発生の原因の如何を問わず、且つ責任の根拠が契約、厳格責任、
+不法行為（過失などを含む）であるかを問わず、仮にそのような損害が発生する
+可能性を知らされていたとしても、本ソフトウェアの使用から発生した直接損害、
+間接損害、偶発的な損害、特別損害、懲罰的損害または結果損害のいずれに
+対しても（代替品またはサービスの調達、使用機会やデータ、利益の損失の
+補償、または業務の中断に対する補償を含め）、著作権者は責任をいっさい負い
+ません。
 
-�O�����C�u����
+外部ライブラリ
 --------------
-Boost C++ Library���g�p���Ă��܂�
+Boost C++ Libraryを使用しています
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
