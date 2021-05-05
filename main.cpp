@@ -113,11 +113,8 @@ static int ForceIni = NO;
 TRANSPACKET MainTransPkt;		/* ファイル転送用パケット */
 								/* これを使って転送を行うと、ツールバーの転送 */
 								/* 中止ボタンで中止できる */
-
-char TitleHostName[HOST_ADRS_LEN+1];
-char FilterStr[FILTER_EXT_LEN+1] = { "*" };
-char TitleUserName[USER_NAME_LEN+1];
-
+std::wstring TitleHostName;
+std::wstring FilterStr = L"*"s;
 int CancelFlg;
 
 int SuppressRefresh = 0;
@@ -599,12 +596,10 @@ static bool MakeAllWindows(int cmdShow) {
 
 // ウインドウのタイトルを表示する
 void DispWindowTitle() {
-	char text[HOST_ADRS_LEN + FILTER_EXT_LEN + 20];
-	if (AskConnecting() == YES)
-		sprintf(text, "%s (%s) - FFFTP", TitleHostName, FilterStr);
-	else
-		sprintf(text, "FFFTP (%s)", FilterStr);
-	SetWindowTextW(GetMainHwnd(), u8(text).c_str());
+	auto const text = AskConnecting() == YES
+		? strprintf(L"%s (%s) - FFFTP", TitleHostName.c_str(), FilterStr.c_str())
+		: strprintf(L"FFFTP (%s)", FilterStr.c_str());
+	SetWindowTextW(GetMainHwnd(), text.c_str());
 }
 
 

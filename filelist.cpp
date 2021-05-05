@@ -62,7 +62,7 @@ static int AskFilterStr(const char *Fname, int Type);
 extern int SepaWidth;
 extern int RemoteWidth;
 extern int ListHeight;
-extern char FilterStr[FILTER_EXT_LEN+1];
+extern std::wstring FilterStr;
 // 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
 extern int SuppressRefresh;
 // ローカル側自動更新
@@ -2535,10 +2535,10 @@ const FILELIST* SearchFileList(const char* Fname, std::vector<FILELIST> const& B
 // フィルタに指定されたファイル名かどうかを返す
 static int AskFilterStr(const char *Fname, int Type) {
 	static boost::wregex re{ L";" };
-	if (Type != NODE_FILE || strlen(FilterStr) == 0)
+	if (Type != NODE_FILE || empty(FilterStr) || FilterStr == L"*"sv)
 		return YES;
-	auto const wFname = u8(Fname), wFilterStr = u8(FilterStr);
-	for (boost::wsregex_token_iterator it{ begin(wFilterStr), end(wFilterStr), re, -1 }, end; it != end; ++it)
+	auto const wFname = u8(Fname);
+	for (boost::wsregex_token_iterator it{ begin(FilterStr), end(FilterStr), re, -1 }, end; it != end; ++it)
 		if (it->matched && CheckFname(wFname, *it))
 			return YES;
 	return NO;
@@ -2551,20 +2551,20 @@ void SetFilter(int *CancelCheckWork) {
 		using result_t = bool;
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, FILTER_STR, EM_LIMITTEXT, FILTER_EXT_LEN + 1, 0);
-			SetText(hDlg, FILTER_STR, u8(FilterStr));
+			SetText(hDlg, FILTER_STR, FilterStr);
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
 			switch (id) {
 			case IDOK:
-				strcpy(FilterStr, u8(GetText(hDlg, FILTER_STR)).c_str());
+				FilterStr = GetText(hDlg, FILTER_STR);
 				EndDialog(hDlg, true);
 				break;
 			case IDCANCEL:
 				EndDialog(hDlg, false);
 				break;
 			case FILTER_NOR:
-				strcpy(FilterStr, "*");
+				FilterStr = L"*"s;
 				EndDialog(hDlg, true);
 				break;
 			case IDHELP:

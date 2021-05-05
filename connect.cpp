@@ -41,11 +41,8 @@ static int CheckOneTimePassword(const char *Pass, char *Reply, int Type);
 
 /*===== 外部参照 =====*/
 
-extern char FilterStr[FILTER_EXT_LEN+1];
-extern char TitleHostName[HOST_ADRS_LEN+1];
+extern std::wstring TitleHostName;
 extern int CancelFlg;
-// タイトルバーにユーザー名表示対応
-extern char TitleUserName[USER_NAME_LEN+1];
 
 /* 設定値 */
 std::wstring UserMailAdrs = L"who@example.com"s;
@@ -169,9 +166,7 @@ void ConnectProc(int Type, int Num)
 					break;
 				}
 
-				strcpy(TitleHostName, u8(CurHost.HostName).c_str());
-				// タイトルバーにユーザー名表示対応
-				strcpy(TitleUserName, u8(CurHost.UserName).c_str());
+				TitleHostName = CurHost.HostName;
 				DispWindowTitle();
 				UpdateStatusBar();
 				Sound::Connected.Play();
@@ -280,9 +275,7 @@ void QuickConnectProc() {
 			TrnCtrlSocket = CmdCtrlSocket;
 
 			if (CmdCtrlSocket != INVALID_SOCKET) {
-				strcpy(TitleHostName, u8(CurHost.HostAdrs).c_str());
-				// タイトルバーにユーザー名表示対応
-				strcpy(TitleUserName, u8(CurHost.UserName).c_str());
+				TitleHostName = CurHost.HostAdrs;
 				DispWindowTitle();
 				UpdateStatusBar();
 				Sound::Connected.Play();
@@ -375,9 +368,7 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 
 		if(CmdCtrlSocket != INVALID_SOCKET)
 		{
-			strcpy(TitleHostName, u8(CurHost.HostAdrs).c_str());
-			// タイトルバーにユーザー名表示対応
-			strcpy(TitleUserName, u8(CurHost.UserName).c_str());
+			TitleHostName = CurHost.HostAdrs;
 			DispWindowTitle();
 			UpdateStatusBar();
 			Sound::Connected.Play();
@@ -453,9 +444,7 @@ void HistoryConnectProc(int MenuCmd)
 
 			if(CmdCtrlSocket != INVALID_SOCKET)
 			{
-				strcpy(TitleHostName, u8(CurHost.HostAdrs).c_str());
-				// タイトルバーにユーザー名表示対応
-				strcpy(TitleUserName, u8(CurHost.UserName).c_str());
+				TitleHostName = CurHost.HostAdrs;
 				DispWindowTitle();
 				UpdateStatusBar();
 				Sound::Connected.Play();
