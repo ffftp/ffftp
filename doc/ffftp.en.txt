@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.4.9 (FTP Client software)
+[Software Name]  FFFTP Ver.5.0 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018-2021, Kurata Sayuri.
@@ -29,12 +29,16 @@ following menu.
 File -> Settings -> Change Master password
 
 
-Changes at 4.9
+Changes at 5.0
 --------------
 
-- Fix error of file list parsing. #223, #227, #228
-- Fix stop when file name decoding. #229, #231, #232
-- Improve response parser. #224, #225
+- Windows XP support is dropped. if need, use v4.9.x. #207
+- Change Crypto Library CryptoAPI to CNG. #247
+- Fix invalid column width. #254
+- Support old ftp server with SELinux. #253
+- Use Boost.Regex with standalone mode. #257
+- Use std::wstring instead of utf-8 char*. #264, #252, #234, #244, #246
+- Other refactoring. #128, #218, #261, #263
 
 
 Outline
