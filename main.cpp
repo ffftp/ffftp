@@ -1878,7 +1878,7 @@ static void ChangeDir(int Win, const char *Path)
 
 	if((Win == WIN_LOCAL) || (Sync == YES))
 	{
-		if(DoLocalCWD(Path) == FFFTP_SUCCESS)
+		if (DoLocalCWD(fs::u8path(Path)) == FFFTP_SUCCESS)
 			GetLocalDirForWnd();
 	}
 
