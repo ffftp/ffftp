@@ -1818,7 +1818,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							}
 							EnableUserOpe();
 
-							AddTempFileList(data(remotePath));
+							AddTempFileList(fs::u8path(remotePath));
 							if(Sts/100 == FTP_COMPLETE) {
 								if (UseDiffViewer) {
 									strcpy(Local, (AskLocalCurDir() / fs::u8path(Tmp)).u8string().c_str());
