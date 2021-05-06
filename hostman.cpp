@@ -839,7 +839,7 @@ struct General {
 			TmpHost.HostName = GetText(hDlg, HSET_HOST);
 			TmpHost.HostAdrs = GetText(hDlg, HSET_ADRS);
 			if (auto const p = TmpHost.HostAdrs.find_last_not_of(L' '); p != std::wstring::npos && p + 1 != size(TmpHost.HostAdrs))
-				TmpHost.HostAdrs.resize(p);
+				TmpHost.HostAdrs.erase(p + 1);
 			TmpHost.UserName = GetText(hDlg, HSET_USER);
 			TmpHost.PassWord = GetText(hDlg, HSET_PASS);
 			TmpHost.LocalInitDir = GetText(hDlg, HSET_LOCAL);

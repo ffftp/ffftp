@@ -41,6 +41,8 @@ class Config {
 	std::optional<std::string> ReadStringCore(std::string_view name) const {
 		if (std::string value; ReadValue(name, value)) {
 			Xor(name, data(value), size_as<DWORD>(value), true);
+			if (auto const pos = value.find_last_not_of('\0'); pos != std::string::npos)
+				value.erase(pos + 1);
 			return std::move(value);
 		}
 		return {};
