@@ -1818,7 +1818,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							}
 							EnableUserOpe();
 
-							AddTempFileList(data(remotePath));
+							AddTempFileList(fs::u8path(remotePath));
 							if(Sts/100 == FTP_COMPLETE) {
 								if (UseDiffViewer) {
 									strcpy(Local, (AskLocalCurDir() / fs::u8path(Tmp)).u8string().c_str());
@@ -1878,7 +1878,7 @@ static void ChangeDir(int Win, const char *Path)
 
 	if((Win == WIN_LOCAL) || (Sync == YES))
 	{
-		if(DoLocalCWD(Path) == FFFTP_SUCCESS)
+		if (DoLocalCWD(fs::u8path(Path)) == FFFTP_SUCCESS)
 			GetLocalDirForWnd();
 	}
 

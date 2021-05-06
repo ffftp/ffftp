@@ -173,7 +173,7 @@ static LRESULT CALLBACK HistoryEdit(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 		switch (wParam) {
 		case 0x0D:			/* リターンキーが押された */
 			if (isLocal) {
-				DoLocalCWD(u8(GetText(hWnd)).c_str());
+				DoLocalCWD(GetText(hWnd));
 				GetLocalDirForWnd();
 			} else {
 				CancelFlg = NO;
