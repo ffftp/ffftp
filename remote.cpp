@@ -40,7 +40,6 @@
 static int DoPWD(char *Buf);
 static std::tuple<int, std::string> ReadOneLine(SOCKET cSkt, int* CancelCheckWork);
 static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Path, int Num, int *CancelCheckWork);
-static void ChangeSepaLocal2Remote(char *Fname);
 static void ChangeSepaRemote2Local(char *Fname);
 #define CommandProcCmd(REPLY, CANCELCHECKWORK, ...) (AskTransferNow() == YES && (SktShareProh(), 0), command(AskCmdCtrlSkt(), REPLY, CANCELCHECKWORK, __VA_ARGS__))
 
@@ -719,27 +718,22 @@ void SwitchOSSProc(void)
 
 // コマンドを送りリプライを待つ
 // ホストのファイル名の漢字コードに応じて、ここで漢字コードの変換を行なう
-int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const char* fmt, ...) {
-	if (cSkt == INVALID_SOCKET)
-		return 429;
-	char Cmd[FMAX_PATH * 2];
-	va_list Args;
-	va_start(Args, fmt);
-	vsprintf(Cmd, fmt, Args);
-	va_end(Args);
-	if (strncmp(Cmd, "PASS ", 5) == 0)
+int detail::command(SOCKET cSkt, char* Reply, int* CancelCheckWork, std::wstring&& cmd) {
+	if (cmd.starts_with(L"PASS "sv))
 		SetTaskMsg(">PASS [xxxxxx]");
-	else if (strncmp(Cmd, "USER ", 5) == 0 || strncmp(Cmd, "OPEN ", 5) == 0)
-		SetTaskMsg(">%s", Cmd);
 	else {
-		ChangeSepaLocal2Remote(Cmd);
-		SetTaskMsg(">%s", Cmd);
+		if (!cmd.starts_with(L"USER "sv) && !cmd.starts_with(L"OPEN "sv)) {
+			// パスの区切り文字をホストに合わせて変更する
+			if (AskHostType() == HTYPE_STRATUS)
+				std::ranges::replace(cmd, L'/', L'>');
+		}
+		SetTaskMsg(">%s", u8(cmd).c_str());
 	}
-	strncpy(Cmd, ConvertTo(u8(Cmd), AskHostNameKanji(), AskHostNameKana()).c_str(), FMAX_PATH * 2);
-	strcat(Cmd, "\x0D\x0A");
+	auto native = ConvertTo(cmd, AskHostNameKanji(), AskHostNameKana());
+	native += "\r\n"sv;
 	if (Reply != NULL)
 		strcpy(Reply, "");
-	if (SendData(cSkt, Cmd, (int)strlen(Cmd), 0, CancelCheckWork) != FFFTP_SUCCESS)
+	if (SendData(cSkt, data(native), size_as<int>(native), 0, CancelCheckWork) != FFFTP_SUCCESS)
 		return 429;
 	auto [code, text] = ReadReplyMessage(cSkt, CancelCheckWork);
 	if (Reply)
@@ -872,24 +866,6 @@ int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
 		SetTaskMsg(IDS_MSGJPN244);
 
 	return(Sts);
-}
-
-
-/*----- パスの区切り文字をホストに合わせて変更する ----------------------------
-*
-*	Parameter
-*		char *Fname : ファイル名
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-static void ChangeSepaLocal2Remote(char *Fname)
-{
-	if(AskHostType() == HTYPE_STRATUS)
-	{
-		ReplaceAll(Fname, '/', '>');
-	}
-	return;
 }
 
 
