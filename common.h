@@ -1000,8 +1000,8 @@ public:
 };
 
 std::string ToCRLF(std::string_view source);
-std::string ConvertFrom(std::string_view str, int kanji);
-std::string ConvertTo(std::string_view str, int kanji, int kana);
+std::wstring ConvertFrom(std::string_view str, int kanji);
+std::string ConvertTo(std::wstring_view str, int kanji, int kana);
 
 /*===== option.c =====*/
 

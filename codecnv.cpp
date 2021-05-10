@@ -11,30 +11,37 @@ std::string ToCRLF(std::string_view source) {
 }
 
 
-static auto convert(std::string_view input, DWORD incp, DWORD outcp, void (*update)(std::wstring&)) {
-	static auto mlang = LoadLibraryW(L"mlang.dll");
+static auto mlang = LoadLibraryW(L"mlang.dll");
+static auto convert(std::string_view input, DWORD incp) {
 	static auto convertINetMultiByteToUnicode = reinterpret_cast<decltype(&ConvertINetMultiByteToUnicode)>(GetProcAddress(mlang, "ConvertINetMultiByteToUnicode"));
-	static auto convertINetUnicodeToMultiByte = reinterpret_cast<decltype(&ConvertINetUnicodeToMultiByte)>(GetProcAddress(mlang, "ConvertINetUnicodeToMultiByte"));
-	static DWORD mb2u = 0, u2mb = 0;
-	static INT scale = 2;
-	std::wstring wstr;
-	for (;; ++scale) {
-		auto inlen = size_as<INT>(input), wlen = inlen * scale;
-		wstr.resize(wlen);
-		if (auto hr = convertINetMultiByteToUnicode(&mb2u, incp, data(input), &inlen, data(wstr), &wlen); hr == S_OK && inlen == size_as<INT>(input)) {
-			wstr.resize(wlen);
-			break;
-		}
-	}
-	update(wstr);
-	for (std::string output;; ++scale) {
-		auto wlen = size_as<INT>(wstr), outlen = wlen * scale;
+	static DWORD mode = 0;
+	static INT scale = 1;
+	for (std::wstring output;; ++scale) {
+		auto inlen = size_as<INT>(input), outlen = inlen * scale;
 		output.resize(outlen);
-		if (auto hr = convertINetUnicodeToMultiByte(&u2mb, outcp, data(wstr), &wlen, data(output), &outlen); hr == S_OK && wlen == size_as<INT>(wstr)) {
+		if (auto hr = convertINetMultiByteToUnicode(&mode, incp, data(input), &inlen, data(output), &outlen); hr == S_OK && inlen == size_as<INT>(input)) {
 			output.resize(outlen);
 			return output;
 		}
 	}
+}
+static auto convert(std::wstring_view input, DWORD outcp) {
+	static auto convertINetUnicodeToMultiByte = reinterpret_cast<decltype(&ConvertINetUnicodeToMultiByte)>(GetProcAddress(mlang, "ConvertINetUnicodeToMultiByte"));
+	static DWORD mode = 0;
+	static INT scale = 2;
+	for (std::string output;; ++scale) {
+		auto inlen = size_as<INT>(input), outlen = inlen * scale;
+		output.resize(outlen);
+		if (auto hr = convertINetUnicodeToMultiByte(&mode, outcp, data(input), &inlen, data(output), &outlen); hr == S_OK && inlen == size_as<INT>(input)) {
+			output.resize(outlen);
+			return output;
+		}
+	}
+}
+static auto convert(std::string_view input, DWORD incp, DWORD outcp, void (*update)(std::wstring&)) {
+	auto wstr = convert(input, incp);
+	update(wstr);
+	return convert(wstr, outcp);
 }
 
 
@@ -234,14 +241,14 @@ std::string CodeConverter::Convert(std::string_view input) {
 }
 
 
-std::string ConvertFrom(std::string_view str, int kanji) {
+std::wstring ConvertFrom(std::string_view str, int kanji) {
 	switch (kanji) {
 	case KANJI_SJIS:
-		return convert(str, 932, CP_UTF8, [](auto) {});
+		return convert(str, 932);
 	case KANJI_JIS:
-		return convert(str, 50221, CP_UTF8, [](auto) {});
+		return convert(str, 50221);
 	case KANJI_EUC:
-		return convert(str, 51932, CP_UTF8, [](auto) {});
+		return convert(str, 51932);
 	case KANJI_SMB_HEX:
 	case KANJI_SMB_CAP: {
 		static boost::regex re{ R"(:([0-9A-Fa-f]{2}))" };
@@ -250,47 +257,57 @@ std::string ConvertFrom(std::string_view str, int kanji) {
 			std::from_chars(m[1].first, m[1].second, ch, 16);
 			return ch;
 		});
-		return convert(decoded, 932, CP_UTF8, [](auto) {});
+		return convert(decoded, 932);
 	}
 	case KANJI_UTF8HFSX:
-		return convert(str, CP_UTF8, CP_UTF8, [](auto& str) { str = NormalizeString(NormalizationC, str); });
+		return NormalizeString(NormalizationC, convert(str, CP_UTF8));
 	case KANJI_UTF8N:
 	default:
-		return convert(str, CP_UTF8, CP_UTF8, [](auto) {});
+		return convert(str, CP_UTF8);
 	}
 }
 
 
-std::string ConvertTo(std::string_view str, int kanji, int kana) {
+std::string ConvertTo(std::wstring_view str, int kanji, int kana) {
 	switch (kanji) {
 	case KANJI_SJIS:
-		return convert(str, CP_UTF8, 932, [](auto) {});
+		return convert(str, 932);
 	case KANJI_JIS:
-		return convert(str, CP_UTF8, 50221, kana ? fullwidth : [](auto) {});
+		if (kana) {
+			std::wstring temp{ str };
+			fullwidth(temp);
+			return convert(temp, 50221);
+		}
+		return convert(str, 50221);
 	case KANJI_EUC:
-		return convert(str, CP_UTF8, 51932, kana ? fullwidth : [](auto) {});
+		if (kana) {
+			std::wstring temp{ str };
+			fullwidth(temp);
+			return convert(temp, 51932);
+		}
+		return convert(str, 51932);
 	case KANJI_SMB_HEX: {
-		auto sjis = convert(str, CP_UTF8, 932, [](auto) {});
+		auto sjis = convert(str, 932);
 		static boost::regex re{ R"((?:[\x81-\x9F\xE0-\xFC][\x40-\x7E\x80-\xFC]|[\xA1-\xDF])+)" };
 		return replace<char>(sjis, re, tohex);
 	}
 	case KANJI_SMB_CAP: {
-		auto sjis = convert(str, CP_UTF8, 932, [](auto) {});
+		auto sjis = convert(str, 932);
 		static boost::regex re{ R"([\x80-\xFF]+)" };
 		return replace<char>(sjis, re, tohex);
 	}
-	case KANJI_UTF8HFSX:
+	case KANJI_UTF8HFSX: {
 		// TODO: fullwidth
-		return convert(str, CP_UTF8, CP_UTF8, [](auto& str) {
-			// HFS+のNFD対象外の範囲
-			// U+02000–U+02FFF       2000-2FFF
-			// U+0F900–U+0FAFF       F900-FAFF
-			// U+2F800–U+2FAFF  D87E DC00-DEFF
-			static boost::wregex re{ LR"((.*?)((?:[\u2000-\u2FFF\uF900-\uFAFF]|\uD87E[\uDC00-\uDEFF])+|$))" };
-			str = replace<wchar_t>(str, re, [](auto const& m) { return NormalizeString(NormalizationD, { m[1].first, (size_t)m.length(1) }).append(m[2].first, m[2].second); });
-		});
+		// HFS+のNFD対象外の範囲
+		// U+02000–U+02FFF       2000-2FFF
+		// U+0F900–U+0FAFF       F900-FAFF
+		// U+2F800–U+2FAFF  D87E DC00-DEFF
+		static boost::wregex re{ LR"((.*?)((?:[\u2000-\u2FFF\uF900-\uFAFF]|\uD87E[\uDC00-\uDEFF])+|$))" };
+		auto const temp = replace<wchar_t>(str, re, [](auto const& m) { return NormalizeString(NormalizationD, sv(m[1])).append(sv(m[2])); });
+		return convert(temp, CP_UTF8);
+	}
 	case KANJI_UTF8N:
 	default:
-		return std::string(str);
+		return convert(str, CP_UTF8);
 	}
 }
