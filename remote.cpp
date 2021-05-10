@@ -735,7 +735,7 @@ int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_forma
 		ChangeSepaLocal2Remote(Cmd);
 		SetTaskMsg(">%s", Cmd);
 	}
-	strncpy(Cmd, ConvertTo(Cmd, AskHostNameKanji(), AskHostNameKana()).c_str(), FMAX_PATH * 2);
+	strncpy(Cmd, ConvertTo(u8(Cmd), AskHostNameKanji(), AskHostNameKana()).c_str(), FMAX_PATH * 2);
 	strcat(Cmd, "\x0D\x0A");
 	if (Reply != NULL)
 		strcpy(Reply, "");
@@ -755,7 +755,7 @@ std::tuple<int, std::string> ReadReplyMessage(SOCKET cSkt, int* CancelCheckWork)
 	if (cSkt != INVALID_SOCKET)
 		for (int Lines = 0;; Lines++) {
 			auto [code, line] = ReadOneLine(cSkt, CancelCheckWork);
-			line = ConvertFrom(line, AskHostNameKanji());
+			line = u8(ConvertFrom(line, AskHostNameKanji()));
 			SetTaskMsg("%s", line.c_str());
 
 			// ２行目以降の応答コードは消す

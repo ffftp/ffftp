@@ -2387,9 +2387,9 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 					auto file = ConvertFrom(arg.File, CurHost.CurNameKanjiCode);
 					if (auto last = file.back(); last == '/' || last == '\\')
 						file.resize(file.size() - 1);
-					if (empty(file) || file == "."sv || file == ".."sv)
+					if (empty(file) || file == L"."sv || file == L".."sv)
 						arg.Node = NODE_NONE;
-					strcpy(arg.File, file.c_str());
+					strcpy(arg.File, u8(file).c_str());
 				}
 		}, line);
 	return lines;
