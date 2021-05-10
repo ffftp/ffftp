@@ -929,8 +929,9 @@ int DoDirListCmdSkt(const char* AddOpt, const char* Path, int Num, int *CancelCh
 #if defined(HAVE_TANDEM)
 void SwitchOSSProc(void);
 #endif
-#define CommandProcTrn(CSKT, REPLY, CANCELCHECKWORK, ...) (command(CSKT, REPLY, CANCELCHECKWORK, __VA_ARGS__))
-int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const char* fmt, ...);
+namespace detail {
+	int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, std::wstring&& cmd);
+}
 std::tuple<int, std::string> ReadReplyMessage(SOCKET cSkt, int *CancelCheckWork);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
 void ReportWSError(const wchar_t* functionName);
@@ -1448,4 +1449,23 @@ static inline auto HashData(BCRYPT_ALG_HANDLE alg, std::vector<UCHAR>& obj, std:
 	} else
 		DoPrintf(L"BCryptCreateHash() failed: 0x%08X.", status);
 	return status == STATUS_SUCCESS;
+}
+
+static inline int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, std::wstring_view cmd) {
+	return cSkt == INVALID_SOCKET ? 429 : detail::command(cSkt, Reply, CancelCheckWork, std::wstring{ cmd });
+}
+static inline int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, std::string_view cmd) {
+	return cSkt == INVALID_SOCKET ? 429 : detail::command(cSkt, Reply, CancelCheckWork, u8(cmd));
+}
+template<class... Args>
+static inline int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const wchar_t* fmt, Args... args) {
+	return cSkt == INVALID_SOCKET ? 429 : detail::command(cSkt, Reply, CancelCheckWork, strprintf(fmt, std::forward<Args>(args)...));
+}
+template<class... Args>
+static inline int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const char* fmt, Args... args) {
+	return cSkt == INVALID_SOCKET ? 429 : detail::command(cSkt, Reply, CancelCheckWork, u8(strprintf(fmt, std::forward<Args>(args)...)));
+}
+template<class Char, class... Args>
+static inline int CommandProcTrn(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const Char* fmt, Args... args) {
+	return command(cSkt, Reply, CancelCheckWork, fmt, std::forward<Args>(args)...);
 }
