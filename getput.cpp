@@ -80,7 +80,7 @@ static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt);
 static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipButton, int Info);
 static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max);
-static int IsSpecialDevice(const char* Fname);
+static bool IsSpecialDevice(std::wstring_view filename);
 static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item);
 
 /*===== ローカルなワーク =====*/
@@ -364,13 +364,13 @@ void AppendTransFileList(std::forward_list<TRANSPACKET>&& list) {
 // 転送ファイル情報を表示する
 static void DispTransPacket(TRANSPACKET const& item) {
 	if (strncmp(item.Cmd, "RETR", 4) == 0 || strncmp(item.Cmd, "STOR", 4) == 0)
-		DoPrintf("TransList Cmd=%s : %s : %s", item.Cmd, item.RemoteFile, item.LocalFile);
+		DoPrintf("TransList Cmd=%s : %s : %s", item.Cmd, item.RemoteFile, item.Local.u8string().c_str());
 	else if (strncmp(item.Cmd, "R-", 2) == 0)
 		DoPrintf("TransList Cmd=%s : %s", item.Cmd, item.RemoteFile);
 	else if (strncmp(item.Cmd, "L-", 2) == 0)
-		DoPrintf("TransList Cmd=%s : %s", item.Cmd, item.LocalFile);
+		DoPrintf("TransList Cmd=%s : %s", item.Cmd, item.Local.u8string().c_str());
 	else if (strncmp(item.Cmd, "MKD", 3) == 0)
-		DoPrintf("TransList Cmd=%s : %s", item.Cmd, 0 < strlen(item.LocalFile) ? item.LocalFile : item.RemoteFile);
+		DoPrintf("TransList Cmd=%s : %s", item.Cmd, !item.Local.empty() ? item.Local.u8string().c_str() : item.RemoteFile);
 	else
 		DoPrintf("TransList Cmd=%s", item.Cmd);
 }
@@ -717,11 +717,11 @@ static unsigned __stdcall TransferThread(void *Dummy)
 								LastError = YES;
 							// ゾーンID設定追加
 							if(MarkAsInternet == YES && IsZoneIDLoaded() == YES)
-								MarkFileAsDownloadedFromInternet(u8(Pos->LocalFile).c_str());
+								MarkFileAsDownloadedFromInternet(Pos->Local.c_str());
 						}
 
 						if (SaveTimeStamp == YES && (Pos->Time.dwLowDateTime != 0 || Pos->Time.dwHighDateTime != 0))
-							if (auto handle = CreateFileW(fs::u8path(Pos->LocalFile).c_str(), FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, 0); handle != INVALID_HANDLE_VALUE) {
+							if (auto handle = CreateFileW(Pos->Local.c_str(), FILE_WRITE_ATTRIBUTES, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, 0); handle != INVALID_HANDLE_VALUE) {
 								SetFileTime(handle, &Pos->Time, &Pos->Time, &Pos->Time);
 								CloseHandle(handle);
 							}
@@ -791,12 +791,9 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					if(FolderAttr)
 						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s %03d %s", AskHostChmodCmd().c_str(), FolderAttrNum, Tmp);
 					}
-				}
-//				else if(strlen(TransPacketBase->LocalFile) > 0)
-				else if(strlen(Pos->LocalFile) > 0)
-				{
+				} else if (!Pos->Local.empty()) {
 					Down = YES;
-					DoLocalMKD(fs::u8path(Pos->LocalFile));
+					DoLocalMKD(Pos->Local);
 				}
 				ReleaseMutex(hListAccMutex);
 			}
@@ -863,7 +860,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				DispTransFileInfo(*Pos, IDS_MSGJPN078, FALSE, YES);
 
 				Down = YES;
-				DoLocalMKD(fs::u8path(Pos->LocalFile));
+				DoLocalMKD(Pos->Local);
 				ReleaseMutex(hListAccMutex);
 			}
 			/* ディレクトリ削除（常にローカル側） */
@@ -876,7 +873,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
 				{
 					Down = YES;
-					DoLocalRMD(fs::u8path(Pos->LocalFile));
+					DoLocalRMD(Pos->Local);
 				}
 				ReleaseMutex(hListAccMutex);
 			}
@@ -890,7 +887,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				if((DelNotify == YES) || (DelNotify == YES_ALL))
 				{
 					Down = YES;
-					DoLocalDELE(fs::u8path(Pos->LocalFile));
+					DoLocalDELE(Pos->Local);
 				}
 				ReleaseMutex(hListAccMutex);
 			}
@@ -1118,10 +1115,9 @@ int DoDownload(SOCKET cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork
 	char Reply[ERR_MSG_LEN+7];
 
 	item.ctrl_skt = cSkt;
-	if(IsSpecialDevice(GetFileName(item.LocalFile)) == YES)
-	{
+	if (IsSpecialDevice(GetFileName(item.Local.native()))) {
 		iRetCode = 500;
-		SetTaskMsg(IDS_MSGJPN085, u8(GetFileName(item.LocalFile)).c_str());
+		SetTaskMsg(IDS_MSGJPN085, std::wstring{ GetFileName(item.Local.native()) }.c_str());
 	}
 	else if(item.Mode != EXIST_IGNORE)
 	{
@@ -1402,12 +1398,12 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 #endif
 
 	Pkt->Abort = ABORT_NONE;
-	if (auto attr = GetFileAttributesW(fs::u8path(Pkt->LocalFile).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_READONLY))
+	if (auto attr = GetFileAttributesW(Pkt->Local.c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_READONLY))
 		if (Message<IDS_MSGJPN086>(IDS_REMOVE_READONLY, MB_YESNO) == IDYES)
-			SetFileAttributesW(fs::u8path(Pkt->LocalFile).c_str(), attr & ~FILE_ATTRIBUTE_READONLY);
+			SetFileAttributesW(Pkt->Local.c_str(), attr & ~FILE_ATTRIBUTE_READONLY);
 
 	auto opened = false;
-	if (std::ofstream os{ fs::u8path(Pkt->LocalFile), std::ios::binary | (CreateMode == OPEN_ALWAYS ? std::ios::ate : std::ios::trunc) }) {
+	if (std::ofstream os{ Pkt->Local, std::ios::binary | (CreateMode == OPEN_ALWAYS ? std::ios::ate : std::ios::trunc) }) {
 		opened = true;
 
 		if (Pkt->hWndTrans != NULL) {
@@ -1464,8 +1460,8 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		if (read == SOCKET_ERROR)
 			ReportWSError(L"recv");
 	} else {
-		SetErrorMsg(strprintf(GetString(IDS_MSGJPN095).c_str(), u8(Pkt->LocalFile).c_str()));
-		SetTaskMsg(IDS_MSGJPN095, u8(Pkt->LocalFile).c_str());
+		SetErrorMsg(strprintf(GetString(IDS_MSGJPN095).c_str(), Pkt->Local.c_str()));
+		SetTaskMsg(IDS_MSGJPN095, Pkt->Local.c_str());
 		Pkt->Abort = ABORT_ERROR;
 	}
 
@@ -1680,7 +1676,7 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET& item)
 
 	if(item.Mode != EXIST_IGNORE)
 	{
-		if (std::wifstream{ fs::u8path(item.LocalFile) }) {
+		if (std::wifstream{ item.Local }) {
 			if(item.Type == TYPE_I)
 				item.KanjiCode = KANJI_NOCNV;
 
@@ -1712,8 +1708,8 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET& item)
 		}
 		else
 		{
-			SetErrorMsg(strprintf(GetString(IDS_MSGJPN105).c_str(), u8(item.LocalFile).c_str()));
-			SetTaskMsg(IDS_MSGJPN105, u8(item.LocalFile).c_str());
+			SetErrorMsg(strprintf(GetString(IDS_MSGJPN105).c_str(), item.Local.c_str()));
+			SetTaskMsg(IDS_MSGJPN105, item.Local.c_str());
 			iRetCode = 500;
 			item.Abort = ABORT_ERROR;
 		}
@@ -1722,7 +1718,7 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET& item)
 	else
 	{
 		DispTransFileInfo(item, IDS_MSGJPN106, TRUE, YES);
-		SetTaskMsg(IDS_MSGJPN107, u8(item.LocalFile).c_str());
+		SetTaskMsg(IDS_MSGJPN107, item.Local.c_str());
 		iRetCode = 200;
 	}
 	return(iRetCode);
@@ -2001,7 +1997,7 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 #endif
 
 	Pkt->Abort = ABORT_NONE;
-	if (std::ifstream is{ fs::u8path(Pkt->LocalFile), std::ios::binary }) {
+	if (std::ifstream is{ Pkt->Local, std::ios::binary }) {
 		if (Pkt->hWndTrans != NULL) {
 			Pkt->Size = is.seekg(0, std::ios::end).tellg();
 			is.seekg(Pkt->ExistSize, std::ios::beg);
@@ -2043,8 +2039,8 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 			TimeStart[Pkt->ThreadCount] = time(NULL) - TimeStart[Pkt->ThreadCount] + 1;
 		}
 	} else {
-		SetErrorMsg(strprintf(GetString(IDS_MSGJPN112).c_str(), u8(Pkt->LocalFile).c_str()));
-		SetTaskMsg(IDS_MSGJPN112, u8(Pkt->LocalFile).c_str());
+		SetErrorMsg(strprintf(GetString(IDS_MSGJPN112).c_str(), Pkt->Local.c_str()));
+		SetTaskMsg(IDS_MSGJPN112, Pkt->Local.c_str());
 		Pkt->Abort = ABORT_ERROR;
 	}
 
@@ -2097,11 +2093,6 @@ static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 
 			if(Pkt->Abort != ABORT_USER)
 			{
-				// 全て中止を選択後にダイアログが表示されるバグ対策
-//				if(DispUpDownErrDialog(uperr_dlg, Pkt->hWndTrans, Pkt->LocalFile) == NO)
-				// 再転送対応
-//				if(Canceled[Pkt->ThreadCount] == NO && ClearAll == NO && DispUpDownErrDialog(uperr_dlg, Pkt->hWndTrans, Pkt->LocalFile) == NO)
-//					ClearAll = YES;
 				if(Canceled[Pkt->ThreadCount] == NO && ClearAll == NO)
 				{
 					if(strncmp(Pkt->Cmd, "RETR", 4) == 0 || strncmp(Pkt->Cmd, "STOR", 4) == 0)
@@ -2333,7 +2324,7 @@ static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipBut
 
 		if (Info == YES) {
 			DispStaticText(GetDlgItem(item.hWndTrans, TRANS_REMOTE), u8(item.RemoteFile));
-			DispStaticText(GetDlgItem(item.hWndTrans, TRANS_LOCAL), u8(item.LocalFile));
+			DispStaticText(GetDlgItem(item.hWndTrans, TRANS_LOCAL), item.Local);
 
 			if (item.Type == TYPE_I)
 				SetText(item.hWndTrans, TRANS_MODE, GetString(IDS_MSGJPN119));
@@ -2422,44 +2413,10 @@ static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max)
 }
 
 
-/*----- Windowsのスペシャルデバイスかどうかを返す -----------------------------
-*
-*	Parameter
-*		char *Fname : ファイル名
-*
-*	Return Value
-*		int ステータス (YES/NO)
-*----------------------------------------------------------------------------*/
-
-static int IsSpecialDevice(const char* Fname)
-{
-	int Sts;
-
-	Sts = NO;
-	// 比較が不完全なバグ修正
-//	if((_stricmp(Fname, "CON") == 0) ||
-//	   (_stricmp(Fname, "PRN") == 0) ||
-//	   (_stricmp(Fname, "AUX") == 0) ||
-//	   (_strnicmp(Fname, "CON.", 4) == 0) ||
-//	   (_strnicmp(Fname, "PRN.", 4) == 0) ||
-//	   (_strnicmp(Fname, "AUX.", 4) == 0))
-//	{
-//		Sts = YES;
-//	}
-	if(_strnicmp(Fname, "AUX", 3) == 0|| _strnicmp(Fname, "CON", 3) == 0 || _strnicmp(Fname, "NUL", 3) == 0 || _strnicmp(Fname, "PRN", 3) == 0)
-	{
-		if(*(Fname + 3) == '\0' || *(Fname + 3) == '.')
-			Sts = YES;
-	}
-	else if(_strnicmp(Fname, "COM", 3) == 0 || _strnicmp(Fname, "LPT", 3) == 0)
-	{
-		if(isdigit(*(Fname + 3)) != 0)
-		{
-			if(*(Fname + 4) == '\0' || *(Fname + 4) == '.')
-				Sts = YES;
-		}
-	}
-	return(Sts);
+// Windowsのスペシャルデバイスかどうかを返す
+static bool IsSpecialDevice(std::wstring_view filename) {
+	static boost::wregex re{ LR"(^(?:AUX|CON|NUL|PRN|COM[0-9]|LPT[0-9])(?:\.|$))", boost::regex_constants::icase };
+	return boost::regex_search(begin(filename), end(filename), re);
 }
 
 
@@ -2473,7 +2430,7 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item) {
 		INT_PTR OnInit(HWND hDlg) {
 			if (Cur == WIN_LOCAL) {
 				SetText(hDlg, GetString(IDS_MSGJPN124));
-				SetText(hDlg, DELETE_TEXT, u8(item.LocalFile));
+				SetText(hDlg, DELETE_TEXT, item.Local);
 			} else {
 				SetText(hDlg, GetString(IDS_MSGJPN125));
 				SetText(hDlg, DELETE_TEXT, u8(item.RemoteFile));

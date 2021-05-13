@@ -472,7 +472,7 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Pat
 		strcat(MainTransPkt.Cmd, " ");
 
 	strcpy(MainTransPkt.RemoteFile, Path);
-	strcpy(MainTransPkt.LocalFile, MakeCacheFileName(Num).u8string().c_str());
+	MainTransPkt.Local = MakeCacheFileName(Num);
 	MainTransPkt.Type = TYPE_A;
 	MainTransPkt.Size = -1;
 	/* ファイルリストの中の漢字のファイル名は、別途	*/

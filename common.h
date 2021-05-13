@@ -522,32 +522,32 @@ struct HISTORYDATA : Host {
 
 
 struct TRANSPACKET {
-	SOCKET ctrl_skt;				/* Socket */
-	char Cmd[40];					/* STOR/RETR/MKD */
-	char RemoteFile[FMAX_PATH+1];	/* ホスト側のファイル名（フルパス） */
-									/* VMSの時は ddd[xxx.yyy]/yyy/zzz のように */
-									/* なってるので注意 */
-	char LocalFile[FMAX_PATH+1];	/* ローカル側のファイル名（フルパス） */
-	int Type;						/* 転送方法 (TYPE_xx) */
-	LONGLONG Size;					/* ファイルのサイズ */
-	LONGLONG ExistSize;				/* すでに存在するファイルのサイズ */
-									/* 転送中は、転送したファイルのサイズを格納する */
-	FILETIME Time;					/* ファイルの時間(UTC) */
-	int Attr;						/* ファイルの属性 */
-	int KanjiCode;					/* 漢字コード (KANJI_xxx) */
-	int KanjiCodeDesired;			/* ローカルの漢字コード (KANJI_xxx) */
-	int KanaCnv;					/* 半角カナを全角に変換(YES/NO) */
-	int Mode;						/* 転送モード (EXIST_xxx) */
+	SOCKET ctrl_skt = INVALID_SOCKET;	/* Socket */
+	char Cmd[40] = {};					/* STOR/RETR/MKD */
+	char RemoteFile[FMAX_PATH+1] = {};	/* ホスト側のファイル名（フルパス） */
+										/* VMSの時は ddd[xxx.yyy]/yyy/zzz のように */
+										/* なってるので注意 */
+	fs::path Local;						/* ローカル側のファイル名（フルパス） */
+	int Type = 0;						/* 転送方法 (TYPE_xx) */
+	LONGLONG Size = 0;					/* ファイルのサイズ */
+	LONGLONG ExistSize = 0;				/* すでに存在するファイルのサイズ */
+										/* 転送中は、転送したファイルのサイズを格納する */
+	FILETIME Time = {};					/* ファイルの時間(UTC) */
+	int Attr = 0;						/* ファイルの属性 */
+	int KanjiCode = 0;					/* 漢字コード (KANJI_xxx) */
+	int KanjiCodeDesired = 0;			/* ローカルの漢字コード (KANJI_xxx) */
+	int KanaCnv = 0;					/* 半角カナを全角に変換(YES/NO) */
+	int Mode = 0;						/* 転送モード (EXIST_xxx) */
 #if defined(HAVE_TANDEM)
-	int FileCode;					/* ファイルコード */
-	int PriExt;						/* Primary Extents */
-	int SecExt;						/* Secondary Extents */
-	int MaxExt;						/* Max Extents */
+	int FileCode = 0;					/* ファイルコード */
+	int PriExt = 0;						/* Primary Extents */
+	int SecExt = 0;						/* Secondary Extents */
+	int MaxExt = 0;						/* Max Extents */
 #endif
-	HWND hWndTrans;					/* 転送中ダイアログのウインドウハンドル */
-	int Abort;						/* 転送中止フラグ (ABORT_xxx) */
-	int NoTransfer;
-	int ThreadCount;
+	HWND hWndTrans = nullptr;			/* 転送中ダイアログのウインドウハンドル */
+	int Abort = 0;						/* 転送中止フラグ (ABORT_xxx) */
+	int NoTransfer = 0;
+	int ThreadCount = 0;
 };
 
 

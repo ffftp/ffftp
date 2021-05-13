@@ -1795,7 +1795,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							{
 								strcpy(MainTransPkt.RemoteFile, Tmp);
 							}
-							strcpy(MainTransPkt.LocalFile, data(remotePath));
+							MainTransPkt.Local = fs::u8path(remotePath);
 							MainTransPkt.Type = AskTransferTypeAssoc(u8(MainTransPkt.RemoteFile), AskTransferType());
 							MainTransPkt.Size = 1;
 							MainTransPkt.KanjiCode = AskHostKanjiCode();
