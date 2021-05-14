@@ -294,9 +294,7 @@ void AddTransFileList(TRANSPACKET *Pkt)
 	}
 
 	if (AddTmpTransFileList(*Pkt, TransPacketBase) == FFFTP_SUCCESS) {
-		if((strncmp(Pkt->Cmd, "RETR", 4) == 0) ||
-		   (strncmp(Pkt->Cmd, "STOR", 4) == 0))
-		{
+		if (Pkt->Command.starts_with(L"RETR"sv) || Pkt->Command.starts_with(L"STOR"sv)) {
 			TransFiles++;
 			// タスクバー進捗表示
 			TransferSizeLeft += Pkt->Size;
@@ -318,7 +316,7 @@ void AddTransFileList(TRANSPACKET *Pkt)
 void AddNullTransFileList()
 {
 	TRANSPACKET Pkt{};
-	strcpy(Pkt.Cmd, "NULL");
+	Pkt.Command = L"NULL"s;
 	AddTransFileList(&Pkt);
 }
 
@@ -342,9 +340,7 @@ void AppendTransFileList(std::forward_list<TRANSPACKET>&& list) {
 	{
 		DispTransPacket(*Pkt);
 
-		if((strncmp(Pkt->Cmd, "RETR", 4) == 0) ||
-		   (strncmp(Pkt->Cmd, "STOR", 4) == 0))
-		{
+		if (Pkt->Command.starts_with(L"RETR"sv) || Pkt->Command.starts_with(L"STOR"sv)) {
 			TransFiles++;
 			// タスクバー進捗表示
 			TransferSizeLeft += Pkt->Size;
@@ -363,16 +359,16 @@ void AppendTransFileList(std::forward_list<TRANSPACKET>&& list) {
 
 // 転送ファイル情報を表示する
 static void DispTransPacket(TRANSPACKET const& item) {
-	if (strncmp(item.Cmd, "RETR", 4) == 0 || strncmp(item.Cmd, "STOR", 4) == 0)
-		DoPrintf("TransList Cmd=%s : %s : %s", item.Cmd, item.RemoteFile, item.Local.u8string().c_str());
-	else if (strncmp(item.Cmd, "R-", 2) == 0)
-		DoPrintf("TransList Cmd=%s : %s", item.Cmd, item.RemoteFile);
-	else if (strncmp(item.Cmd, "L-", 2) == 0)
-		DoPrintf("TransList Cmd=%s : %s", item.Cmd, item.Local.u8string().c_str());
-	else if (strncmp(item.Cmd, "MKD", 3) == 0)
-		DoPrintf("TransList Cmd=%s : %s", item.Cmd, !item.Local.empty() ? item.Local.u8string().c_str() : item.RemoteFile);
+	if (item.Command.starts_with(L"RETR"sv) || item.Command.starts_with(L"STOR"sv))
+		DoPrintf("TransList Cmd=%s : %s : %s", u8(item.Command).c_str(), item.RemoteFile, item.Local.u8string().c_str());
+	else if (item.Command.starts_with(L"R-"sv))
+		DoPrintf("TransList Cmd=%s : %s", u8(item.Command).c_str(), item.RemoteFile);
+	else if (item.Command.starts_with(L"L-"sv))
+		DoPrintf("TransList Cmd=%s : %s", u8(item.Command).c_str(), item.Local.u8string().c_str());
+	else if (item.Command.starts_with(L"MKD"sv))
+		DoPrintf("TransList Cmd=%s : %s", u8(item.Command).c_str(), !item.Local.empty() ? item.Local.u8string().c_str() : item.RemoteFile);
 	else
-		DoPrintf("TransList Cmd=%s", item.Cmd);
+		DoPrintf("TransList Cmd=%s", u8(item.Command).c_str());
 }
 
 
@@ -386,12 +382,12 @@ static void EraseTransFileList() {
 	}
 	for (auto New = begin(TransPacketBase); New != end(TransPacketBase); ++New) {
 		/* 最後の"BACKCUR"は必要なので消さない */
-		if (strcmp(New->Cmd, "BACKCUR") == 0) {
+		if (New->Command == L"BACKCUR"sv) {
 			if (NotDel != end(TransPacketBase))
-				strcpy(NotDel->Cmd, "");
+				NotDel->Command.clear();
 			NotDel = New;
 		} else
-			strcpy(New->Cmd, "");
+			New->Command.clear();
 	}
 	// FIXME: TransPacketBaseをここで変更すべきではないはず
 	// TransPacketBase.erase_after(TransPacketBase.before_begin(), NotDel);
@@ -551,7 +547,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //		Canceled = NO;
 		Canceled[ThreadCount] = NO;
 
-		while (!empty(TransPacketBase) && strcmp(TransPacketBase.front().Cmd, "") == 0) {
+		while (!empty(TransPacketBase) && empty(TransPacketBase.front().Command)) {
 			TransPacketBase.pop_front();
 			if (empty(TransPacketBase))
 				GoExit = YES;
@@ -647,17 +643,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //			ReleaseMutex(hListAccMutex);
 			if(hWndTrans == NULL)
 			{
-//				if((strncmp(TransPacketBase->Cmd, "RETR", 4) == 0) ||
-//				   (strncmp(TransPacketBase->Cmd, "STOR", 4) == 0) ||
-//				   (strncmp(TransPacketBase->Cmd, "MKD", 3) == 0) ||
-//				   (strncmp(TransPacketBase->Cmd, "L-", 2) == 0) ||
-//				   (strncmp(TransPacketBase->Cmd, "R-", 2) == 0))
-				if((strncmp(Pos->Cmd, "RETR", 4) == 0) ||
-				   (strncmp(Pos->Cmd, "STOR", 4) == 0) ||
-				   (strncmp(Pos->Cmd, "MKD", 3) == 0) ||
-				   (strncmp(Pos->Cmd, "L-", 2) == 0) ||
-				   (strncmp(Pos->Cmd, "R-", 2) == 0))
-				{
+				if (Pos->Command.starts_with(L"RETR"sv) || Pos->Command.starts_with(L"STOR"sv) || Pos->Command.starts_with(L"MKD"sv) || Pos->Command.starts_with(L"L-"sv) || Pos->Command.starts_with(L"R-"sv)) {
 					hWndTrans = CreateDialogW(GetFtpInst(), MAKEINTRESOURCEW(transfer_dlg), HWND_DESKTOP, (DLGPROC)TransDlgProc);
 					if(MoveToForeground == YES)
 						SetForegroundWindow(hWndTrans);
@@ -688,8 +674,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			RemoveReceivedData(TrnSkt);
 
 			/* ダウンロード */
-//			if(strncmp(TransPacketBase->Cmd, "RETR", 4) == 0)
-			if(strncmp(Pos->Cmd, "RETR", 4) == 0)
+			if(Pos->Command.starts_with(L"RETR"sv))
 			{
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 //				ReleaseMutex(hListAccMutex);
@@ -699,13 +684,12 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					/* フルパスを使わないための処理 */
 					if(MakeNonFullPath(*Pos, CurDir[Pos->ThreadCount]) == FFFTP_SUCCESS)
 					{
-//						if(strncmp(TransPacketBase->Cmd, "RETR-S", 6) == 0)
-						if(strncmp(Pos->Cmd, "RETR-S", 6) == 0)
+						if(Pos->Command.starts_with(L"RETR-S"sv))
 						{
 							/* サイズと日付を取得 */
 							DoSIZE(TrnSkt, u8(Pos->RemoteFile), &Pos->Size, &Canceled[Pos->ThreadCount]);
 							DoMDTM(TrnSkt, u8(Pos->RemoteFile), &Pos->Time, &Canceled[Pos->ThreadCount]);
-							strcpy(Pos->Cmd, "RETR ");
+							Pos->Command = L"RETR "s;
 						}
 
 						Down = YES;
@@ -731,8 +715,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				ReleaseMutex(hListAccMutex);
 			}
 			/* アップロード */
-//			else if(strncmp(TransPacketBase->Cmd, "STOR", 4) == 0)
-			else if(strncmp(Pos->Cmd, "STOR", 4) == 0)
+			else if(Pos->Command.starts_with(L"STOR"sv))
 			{
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 //				ReleaseMutex(hListAccMutex);
@@ -760,8 +743,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				ReleaseMutex(hListAccMutex);
 			}
 			/* フォルダ作成（ローカルまたはホスト） */
-//			else if(strncmp(TransPacketBase->Cmd, "MKD", 3) == 0)
-			else if(strncmp(Pos->Cmd, "MKD", 3) == 0)
+			else if(Pos->Command.starts_with(L"MKD"sv))
 			{
 				DispTransFileInfo(*Pos, IDS_MSGJPN078, FALSE, YES);
 
@@ -798,8 +780,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				ReleaseMutex(hListAccMutex);
 			}
 			/* ディレクトリ作成（常にホスト側） */
-//			else if(strncmp(TransPacketBase->Cmd, "R-MKD", 5) == 0)
-			else if(strncmp(Pos->Cmd, "R-MKD", 5) == 0)
+			else if(Pos->Command.starts_with(L"R-MKD"sv))
 			{
 				DispTransFileInfo(*Pos, IDS_MSGJPN078, FALSE, YES);
 
@@ -807,8 +788,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				if(MakeNonFullPath(*Pos, CurDir[Pos->ThreadCount]) == FFFTP_SUCCESS)
 				{
 					Up = YES;
-//					CommandProcTrn(NULL, "%s%s", TransPacketBase->Cmd+2, TransPacketBase->RemoteFile);
-					CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s%s", Pos->Cmd+2, Pos->RemoteFile);
+					CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s%s", u8(Pos->Command).c_str()+2, Pos->RemoteFile);
 
 					if(FolderAttr)
 						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s %03d %s", AskHostChmodCmd().c_str(), FolderAttrNum, Pos->RemoteFile);
@@ -816,8 +796,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				ReleaseMutex(hListAccMutex);
 			}
 			/* ディレクトリ削除（常にホスト側） */
-//			else if(strncmp(TransPacketBase->Cmd, "R-RMD", 5) == 0)
-			else if(strncmp(Pos->Cmd, "R-RMD", 5) == 0)
+			else if(Pos->Command.starts_with(L"R-RMD"sv))
 			{
 				DispTransFileInfo(*Pos, IDS_MSGJPN080, FALSE, YES);
 
@@ -828,15 +807,13 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					if(MakeNonFullPath(*Pos, CurDir[Pos->ThreadCount]) == FFFTP_SUCCESS)
 					{
 						Up = YES;
-//						CommandProcTrn(NULL, "%s%s", TransPacketBase->Cmd+2, TransPacketBase->RemoteFile);
-						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s%s", Pos->Cmd+2, Pos->RemoteFile);
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s%s", u8(Pos->Command).c_str()+2, Pos->RemoteFile);
 					}
 				}
 				ReleaseMutex(hListAccMutex);
 			}
 			/* ファイル削除（常にホスト側） */
-//			else if(strncmp(TransPacketBase->Cmd, "R-DELE", 6) == 0)
-			else if(strncmp(Pos->Cmd, "R-DELE", 6) == 0)
+			else if(Pos->Command.starts_with(L"R-DELE"sv))
 			{
 				DispTransFileInfo(*Pos, IDS_MSGJPN081, FALSE, YES);
 
@@ -847,15 +824,13 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					if(MakeNonFullPath(*Pos, CurDir[Pos->ThreadCount]) == FFFTP_SUCCESS)
 					{
 						Up = YES;
-//						CommandProcTrn(NULL, "%s%s", TransPacketBase->Cmd+2, TransPacketBase->RemoteFile);
-						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s%s", Pos->Cmd+2, Pos->RemoteFile);
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s%s", u8(Pos->Command).c_str()+2, Pos->RemoteFile);
 					}
 				}
 				ReleaseMutex(hListAccMutex);
 			}
 			/* ディレクトリ作成（常にローカル側） */
-//			else if(strncmp(TransPacketBase->Cmd, "L-MKD", 5) == 0)
-			else if(strncmp(Pos->Cmd, "L-MKD", 5) == 0)
+			else if(Pos->Command.starts_with(L"L-MKD"sv))
 			{
 				DispTransFileInfo(*Pos, IDS_MSGJPN078, FALSE, YES);
 
@@ -864,8 +839,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				ReleaseMutex(hListAccMutex);
 			}
 			/* ディレクトリ削除（常にローカル側） */
-//			else if(strncmp(TransPacketBase->Cmd, "L-RMD", 5) == 0)
-			else if(strncmp(Pos->Cmd, "L-RMD", 5) == 0)
+			else if(Pos->Command.starts_with(L"L-RMD"sv))
 			{
 				DispTransFileInfo(*Pos, IDS_MSGJPN080, FALSE, YES);
 
@@ -878,8 +852,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				ReleaseMutex(hListAccMutex);
 			}
 			/* ファイル削除（常にローカル側） */
-//			else if(strncmp(TransPacketBase->Cmd, "L-DELE", 6) == 0)
-			else if(strncmp(Pos->Cmd, "L-DELE", 6) == 0)
+			else if(Pos->Command.starts_with(L"L-DELE"sv))
 			{
 				DispTransFileInfo(*Pos, IDS_MSGJPN081, FALSE, YES);
 
@@ -892,8 +865,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				ReleaseMutex(hListAccMutex);
 			}
 			/* カレントディレクトリを設定 */
-//			else if(strcmp(TransPacketBase->Cmd, "SETCUR") == 0)
-			else if(strcmp(Pos->Cmd, "SETCUR") == 0)
+			else if(Pos->Command == L"SETCUR"sv)
 			{
 //				if(AskShareProh() == YES)
 				if(AskReuseCmdSkt() == NO || AskShareProh() == YES)
@@ -914,8 +886,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				ReleaseMutex(hListAccMutex);
 			}
 			/* カレントディレクトリを戻す */
-//			else if(strcmp(TransPacketBase->Cmd, "BACKCUR") == 0)
-			else if(strcmp(Pos->Cmd, "BACKCUR") == 0)
+			else if(Pos->Command == L"BACKCUR"sv)
 			{
 //				if(AskShareProh() == NO)
 				if(AskReuseCmdSkt() == YES && AskShareProh() == NO)
@@ -929,15 +900,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				}
 				ReleaseMutex(hListAccMutex);
 			}
-			/* 自動終了のための通知 */
-//			else if(strcmp(TransPacketBase->Cmd, "GOQUIT") == 0)
-//			else if(strcmp(Pos->Cmd, "GOQUIT") == 0)
-//			{
-//				ReleaseMutex(hListAccMutex);
-//				GoExit = YES;
-//			}
-			// バグ対策
-			else if(strcmp(Pos->Cmd, "NULL") == 0)
+			else if(Pos->Command == L"NULL"sv)
 			{
 				Sleep(0);
 				Sleep(100);
@@ -962,19 +925,14 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					for(i = 0; i < MAX_DATA_CONNECTION; i++)
 						Canceled[i] = YES;
 					if (Pos != end(TransPacketBase))
-						strcpy(Pos->Cmd, "");
+						Pos->Command.clear();
 					Pos = end(TransPacketBase);
 					EraseTransFileList();
 					GoExit = YES;
 				}
 				else
 				{
-//					if((strncmp(TransPacketBase->Cmd, "RETR", 4) == 0) ||
-//					   (strncmp(TransPacketBase->Cmd, "STOR", 4) == 0))
-					if((strncmp(Pos->Cmd, "RETR", 4) == 0) ||
-					   (strncmp(Pos->Cmd, "STOR", 4) == 0) ||
-					   (strncmp(Pos->Cmd, "STOU", 4) == 0))
-					{
+					if (Pos->Command.starts_with(L"RETR"sv) || Pos->Command.starts_with(L"STOR"sv) || Pos->Command.starts_with(L"STOU"sv)) {
 //						TransFiles--;
 						if(TransFiles > 0)
 							TransFiles--;
@@ -1001,7 +959,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			if(hWndTrans != NULL)
 				SendMessageW(hWndTrans, WM_SET_PACKET, 0, 0);
 			if (Pos != end(TransPacketBase))
-				strcpy(Pos->Cmd, "");
+				Pos->Command.clear();
 			LastUsed = timeGetTime();
 		}
 //		else
@@ -1190,7 +1148,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	{
 		if(SetDownloadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &CreateMode, CancelCheckWork) == YES)
 		{
-			sprintf(Buf, "%s%s", Pkt->Cmd, Pkt->RemoteFile);
+			sprintf(Buf, "%s%s", u8(Pkt->Command).c_str(), Pkt->RemoteFile);
 			iRetCode = command(Pkt->ctrl_skt, Reply, CancelCheckWork, "%s", Buf);
 			if(iRetCode/100 == FTP_PRELIM)
 			{
@@ -1321,7 +1279,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 
 				if(SetDownloadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &CreateMode, CancelCheckWork) == YES)
 				{
-					sprintf(Buf, "%s%s", Pkt->Cmd, Pkt->RemoteFile);
+					sprintf(Buf, "%s%s", u8(Pkt->Command).c_str(), Pkt->RemoteFile);
 					iRetCode = command(Pkt->ctrl_skt, Reply, CancelCheckWork, "%s", Buf);
 					if(iRetCode/100 == FTP_PRELIM)
 					{
@@ -1520,9 +1478,7 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 				return;
 #endif
 
-			// MLSD対応
-//			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0))
-			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0) || (strncmp(Pkt->Cmd, "MLSD", 4) == 0))
+			if (Pkt->Command.starts_with(L"NLST"sv) || Pkt->Command.starts_with(L"LIST"sv) || Pkt->Command.starts_with(L"MLSD"sv))
 				SetTaskMsg(IDS_MSGJPN097);
 			else if((Pkt->hWndTrans != NULL) && (TimeStart[Pkt->ThreadCount] != 0))
 				SetTaskMsg(IDS_MSGJPN099, TimeStart[Pkt->ThreadCount], Pkt->ExistSize/TimeStart[Pkt->ThreadCount]);
@@ -1533,7 +1489,7 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 			{
 				if(Canceled[Pkt->ThreadCount] == NO && ClearAll == NO)
 				{
-					if(strncmp(Pkt->Cmd, "RETR", 4) == 0 || strncmp(Pkt->Cmd, "STOR", 4) == 0)
+					if(Pkt->Command.starts_with(L"RETR"sv) || Pkt->Command.starts_with(L"STOR"sv))
 					{
 						// タスクバー進捗表示
 						TransferErrorDisplay++;
@@ -1552,9 +1508,7 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 		}
 		else
 		{
-			// MLSD対応
-//			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0))
-			if((strncmp(Pkt->Cmd, "NLST", 4) == 0) || (strncmp(Pkt->Cmd, "LIST", 4) == 0) || (strncmp(Pkt->Cmd, "MLSD", 4) == 0))
+			if (Pkt->Command.starts_with(L"NLST"sv) || Pkt->Command.starts_with(L"LIST"sv) || Pkt->Command.starts_with(L"MLSD"sv))
 				SetTaskMsg(IDS_MSGJPN101, Pkt->ExistSize);
 			else if((Pkt->hWndTrans != NULL) && (TimeStart[Pkt->ThreadCount] != 0))
 				SetTaskMsg(IDS_MSGJPN102, (LONG)TimeStart[Pkt->ThreadCount], (LONG)(Pkt->ExistSize/TimeStart[Pkt->ThreadCount]));
@@ -1684,7 +1638,7 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET& item)
 			if(iRetCode/100 < FTP_RETRY)
 			{
 				if(item.Mode == EXIST_UNIQUE)
-					strcpy(item.Cmd, "STOU ");
+					item.Command = L"STOU "s;
 
 				if(item.hWndTrans != NULL)
 					DispTransFileInfo(item, IDS_MSGJPN104, TRUE, YES);
@@ -1757,13 +1711,13 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 			if(AskHostType() == HTYPE_TANDEM && AskOSS() == NO && Pkt->Type != TYPE_A) {
 				if( Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT) {
 					// EXTENTがデフォルトのときはコードのみ
-					sprintf(Buf, "%s%s,%d", Pkt->Cmd, Pkt->RemoteFile, Pkt->FileCode);
+					sprintf(Buf, "%s%s,%d", u8(Pkt->Command).c_str(), Pkt->RemoteFile, Pkt->FileCode);
 				} else {
-					sprintf(Buf, "%s%s,%d,%d,%d,%d", Pkt->Cmd, Pkt->RemoteFile, Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
+					sprintf(Buf, "%s%s,%d,%d,%d,%d", u8(Pkt->Command).c_str(), Pkt->RemoteFile, Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
 				}
 			} else
 #endif
-			sprintf(Buf, "%s%s", Pkt->Cmd, Pkt->RemoteFile);
+			sprintf(Buf, "%s%s", u8(Pkt->Command).c_str(), Pkt->RemoteFile);
 		else
 			sprintf(Buf, "%s%s", "APPE ", Pkt->RemoteFile);
 
@@ -1906,13 +1860,13 @@ static int UploadPassive(TRANSPACKET *Pkt)
 					if(AskHostType() == HTYPE_TANDEM && AskOSS() == NO && Pkt->Type != TYPE_A) {
 						if( Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT) {
 							// EXTENTがデフォルトのときはコードのみ
-							sprintf(Buf, "%s%s,%d", Pkt->Cmd, Pkt->RemoteFile, Pkt->FileCode);
+							sprintf(Buf, "%s%s,%d", u8(Pkt->Command).c_str(), Pkt->RemoteFile, Pkt->FileCode);
 						} else {
-							sprintf(Buf, "%s%s,%d,%d,%d,%d", Pkt->Cmd, Pkt->RemoteFile, Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
+							sprintf(Buf, "%s%s,%d,%d,%d,%d", u8(Pkt->Command).c_str(), Pkt->RemoteFile, Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
 						}
 					} else
 #endif
-					sprintf(Buf, "%s%s", Pkt->Cmd, Pkt->RemoteFile);
+					sprintf(Buf, "%s%s", u8(Pkt->Command).c_str(), Pkt->RemoteFile);
 				else
 					sprintf(Buf, "%s%s", "APPE ", Pkt->RemoteFile);
 
@@ -2095,7 +2049,7 @@ static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 			{
 				if(Canceled[Pkt->ThreadCount] == NO && ClearAll == NO)
 				{
-					if(strncmp(Pkt->Cmd, "RETR", 4) == 0 || strncmp(Pkt->Cmd, "STOR", 4) == 0)
+					if(Pkt->Command.starts_with(L"RETR"sv) || Pkt->Command.starts_with(L"STOR"sv))
 					{
 						// タスクバー進捗表示
 						TransferErrorDisplay++;

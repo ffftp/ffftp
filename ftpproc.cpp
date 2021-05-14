@@ -109,7 +109,7 @@ void MakeDirFromLocalPath(fs::path const& LocalFile, fs::path const& Old) {
 				_wcsupr(data(name));
 			path /= name;
 			Pkt.Local = path;
-			strcpy(Pkt.Cmd, "MKD ");
+			Pkt.Command = L"MKD "s;
 			strcpy(Pkt.RemoteFile, "");
 			AddTransFileList(&Pkt);
 		}
@@ -136,7 +136,7 @@ void DownloadProc(int ChName, int ForceFile, int All)
 
 		if(AskNoFullPathMode() == YES)
 		{
-			strcpy(Pkt.Cmd, "SETCUR");
+			Pkt.Command = L"SETCUR"s;
 			strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 			AddTransFileList(&Pkt);
 		}
@@ -163,7 +163,7 @@ void DownloadProc(int ChName, int ForceFile, int All)
 				Pkt.Local /= filename;
 
 			if (ForceFile == NO && f.Node == NODE_DIR) {
-				strcpy(Pkt.Cmd, "MKD ");
+				Pkt.Command = L"MKD "s;
 				strcpy(Pkt.RemoteFile, "");
 				AddTransFileList(&Pkt);
 			} else if (f.Node == NODE_FILE || ForceFile == YES && f.Node == NODE_DIR) {
@@ -183,7 +183,7 @@ void DownloadProc(int ChName, int ForceFile, int All)
 					ReplaceAll(Pkt.RemoteFile, '\\', '/');
 				}
 
-				strcpy(Pkt.Cmd, "RETR ");
+				Pkt.Command = L"RETR "s;
 #if defined(HAVE_TANDEM)
 				if (AskHostType() == HTYPE_TANDEM) {
 					if (AskTransferType() != TYPE_X) {
@@ -221,7 +221,7 @@ void DownloadProc(int ChName, int ForceFile, int All)
 
 		if(AskNoFullPathMode() == YES)
 		{
-			strcpy(Pkt.Cmd, "BACKCUR");
+			Pkt.Command = L"BACKCUR"s;
 			strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 			AddTransFileList(&Pkt);
 		}
@@ -263,7 +263,7 @@ void DirectDownloadProc(const char* Fname)
 
 		if(AskNoFullPathMode() == YES)
 		{
-			strcpy(Pkt.Cmd, "SETCUR");
+			Pkt.Command = L"SETCUR"s;
 			strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 			AddTransFileList(&Pkt);
 		}
@@ -303,7 +303,7 @@ void DirectDownloadProc(const char* Fname)
 					ReplaceAll(Pkt.RemoteFile, '\\', '/');
 				}
 
-				strcpy(Pkt.Cmd, "RETR-S ");
+				Pkt.Command = L"RETR-S "s;
 				Pkt.Type = AskTransferTypeAssoc(u8(Pkt.RemoteFile), AskTransferType());
 
 				/* サイズと日付は転送側スレッドで取得し、セットする */
@@ -330,14 +330,10 @@ void DirectDownloadProc(const char* Fname)
 
 		if(AskNoFullPathMode() == YES)
 		{
-			strcpy(Pkt.Cmd, "BACKCUR");
+			Pkt.Command = L"BACKCUR"s;
 			strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 			AddTransFileList(&Pkt);
 		}
-
-		// 同時接続対応
-//		strcpy(Pkt.Cmd, "GOQUIT");
-//		AddTransFileList(&Pkt);
 
 		// バグ対策
 		AddNullTransFileList();
@@ -359,17 +355,17 @@ struct MirrorList {
 	INT_PTR OnInit(HWND hDlg) {
 		for (auto const& item : list) {
 			std::wstring line;
-			if (strncmp(item.Cmd, "R-DELE", 6) == 0 || strncmp(item.Cmd, "R-RMD", 5) == 0)
+			if (item.Command.starts_with(L"R-DELE"sv) || item.Command.starts_with(L"R-RMD"sv))
 				line = strprintf(GetString(IDS_MSGJPN052).c_str(), u8(item.RemoteFile).c_str());
-			else if (strncmp(item.Cmd, "R-MKD", 5) == 0)
+			else if (item.Command.starts_with(L"R-MKD"sv))
 				line = strprintf(GetString(IDS_MSGJPN053).c_str(), u8(item.RemoteFile).c_str());
-			else if (strncmp(item.Cmd, "STOR", 4) == 0)
+			else if (item.Command.starts_with(L"STOR"sv))
 				line = strprintf(GetString(IDS_MSGJPN054).c_str(), u8(item.RemoteFile).c_str());
-			else if (strncmp(item.Cmd, "L-DELE", 6) == 0 || strncmp(item.Cmd, "L-RMD", 5) == 0)
+			else if (item.Command.starts_with(L"L-DELE"sv) || item.Command.starts_with(L"L-RMD"sv))
 				line = strprintf(GetString(IDS_MSGJPN052).c_str(), item.Local.c_str());
-			else if (strncmp(item.Cmd, "L-MKD", 5) == 0)
+			else if (item.Command.starts_with(L"L-MKD"sv))
 				line = strprintf(GetString(IDS_MSGJPN053).c_str(), item.Local.c_str());
-			else if (strncmp(item.Cmd, "RETR", 4) == 0)
+			else if (item.Command.starts_with(L"RETR"sv))
 				line = strprintf(GetString(IDS_MSGJPN054).c_str(), item.Local.c_str());
 			if (!empty(line))
 				SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)line.c_str());
@@ -402,7 +398,7 @@ struct MirrorList {
 			break;
 		case MIRROR_NO_TRANSFER:
 			for (auto& item : list)
-				if (strncmp(item.Cmd, "STOR", 4) == 0 || strncmp(item.Cmd, "RETR", 4) == 0)
+				if (item.Command.starts_with(L"STOR"sv) || item.Command.starts_with(L"RETR"sv))
 					item.NoTransfer = (int)SendDlgItemMessageW(hDlg, MIRROR_NO_TRANSFER, BM_GETCHECK, 0, 0);
 			break;
 		case IDHELP:
@@ -523,7 +519,7 @@ void MirrorDownloadProc(int Notify)
 				if (f.Attr == YES && f.Node == NODE_FILE) {
 					Pkt.Local = AskLocalCurDir() / fs::u8path(f.File);
 					strcpy(Pkt.RemoteFile, "");
-					strcpy(Pkt.Cmd, "L-DELE ");
+					Pkt.Command = L"L-DELE "s;
 					AddTmpTransFileList(Pkt, list);
 				}
 			MirrorDeleteAllLocalDir(LocalListBase, Pkt, list);
@@ -539,7 +535,7 @@ void MirrorDownloadProc(int Notify)
 
 					if (f.Node == NODE_DIR) {
 						strcpy(Pkt.RemoteFile, "");
-						strcpy(Pkt.Cmd, "L-MKD ");
+						Pkt.Command = L"L-MKD "s;
 						AddTmpTransFileList(Pkt, list);
 					} else if (f.Node == NODE_FILE) {
 						strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
@@ -547,7 +543,7 @@ void MirrorDownloadProc(int Notify)
 						strcat(Pkt.RemoteFile, f.File);
 						ReplaceAll(Pkt.RemoteFile, '\\', '/');
 
-						strcpy(Pkt.Cmd, "RETR ");
+						Pkt.Command = L"RETR "s;
 						Pkt.Type = AskTransferTypeAssoc(u8(Pkt.RemoteFile), AskTransferType());
 						Pkt.Size = f.Size;
 						Pkt.Time = f.Time;
@@ -566,7 +562,7 @@ void MirrorDownloadProc(int Notify)
 			{
 				if(AskNoFullPathMode() == YES)
 				{
-					strcpy(Pkt.Cmd, "SETCUR");
+					Pkt.Command = L"SETCUR"s;
 					strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 					AddTransFileList(&Pkt);
 				}
@@ -574,14 +570,10 @@ void MirrorDownloadProc(int Notify)
 
 				if(AskNoFullPathMode() == YES)
 				{
-					strcpy(Pkt.Cmd, "BACKCUR");
+					Pkt.Command = L"BACKCUR"s;
 					strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 					AddTransFileList(&Pkt);
 				}
-
-				// 同時接続対応
-//				strcpy(Pkt.Cmd, "GOQUIT");
-//				AddTransFileList(&Pkt);
 			}
 
 			// バグ対策
@@ -643,7 +635,7 @@ static void MirrorDeleteAllLocalDir(std::vector<FILELIST> const& Local, TRANSPAC
 		if (it->Node == NODE_DIR && it->Attr == YES) {
 			item.Local = AskLocalCurDir() / fs::u8path(it->File);
 			strcpy(item.RemoteFile, "");
-			strcpy(item.Cmd, "L-RMD ");
+			item.Command = L"L-RMD "s;
 			AddTmpTransFileList(item, list);
 		}
 }
@@ -830,12 +822,12 @@ int MakeDirFromRemotePath(char* RemoteFile, char* Old, int FirstAdd)
 
 			if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
 			{
-				strcpy(Pkt1.Cmd, "SETCUR");
+				Pkt1.Command = L"SETCUR"s;
 				strcpy(Pkt1.RemoteFile, u8(AskRemoteCurDir()).c_str());
 				AddTransFileList(&Pkt1);
 			}
 			FirstAdd = NO;
-			strcpy(Pkt.Cmd, "MKD ");
+			Pkt.Command = L"MKD "s;
 			Pkt.Local.clear();
 			AddTransFileList(&Pkt);
 
@@ -986,12 +978,12 @@ void UploadListProc(int ChName, int All)
 					// フォルダを作成
 					if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
 					{
-						strcpy(Pkt1.Cmd, "SETCUR");
+						Pkt1.Command = L"SETCUR"s;
 						strcpy(Pkt1.RemoteFile, u8(AskRemoteCurDir()).c_str());
 						AddTransFileList(&Pkt1);
 					}
 					FirstAdd = NO;
-					strcpy(Pkt.Cmd, "MKD ");
+					Pkt.Command = L"MKD "s;
 					Pkt.Local.clear();
 					AddTransFileList(&Pkt);
 				}
@@ -1001,7 +993,7 @@ void UploadListProc(int ChName, int All)
 				// ファイルの場合
 				Pkt.Local = AskLocalCurDir() / fs::u8path(f.File);
 
-				strcpy(Pkt.Cmd, "STOR ");
+				Pkt.Command = L"STOR "s;
 				Pkt.Type = AskTransferTypeAssoc(Pkt.Local.native(), AskTransferType());
 				Pkt.Size = f.Size;
 				Pkt.Time = f.Time;
@@ -1032,7 +1024,7 @@ void UploadListProc(int ChName, int All)
 					}
 					if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
 					{
-						strcpy(Pkt1.Cmd, "SETCUR");
+						Pkt1.Command = L"SETCUR"s;
 						strcpy(Pkt1.RemoteFile, u8(AskRemoteCurDir()).c_str());
 						AddTransFileList(&Pkt1);
 					}
@@ -1044,7 +1036,7 @@ void UploadListProc(int ChName, int All)
 
 		if((FirstAdd == NO) && (AskNoFullPathMode() == YES))
 		{
-			strcpy(Pkt.Cmd, "BACKCUR");
+			Pkt.Command = L"BACKCUR"s;
 			strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 			AddTransFileList(&Pkt);
 		}
@@ -1146,12 +1138,12 @@ void UploadDragProc(WPARAM wParam)
 				{
 					if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
 					{
-						strcpy(Pkt1.Cmd, "SETCUR");
+						Pkt1.Command = L"SETCUR"s;
 						strcpy(Pkt1.RemoteFile, u8(AskRemoteCurDir()).c_str());
 						AddTransFileList(&Pkt1);
 					}
 					FirstAdd = NO;
-					strcpy(Pkt.Cmd, "MKD ");
+					Pkt.Command = L"MKD "s;
 					Pkt.Local.clear();
 					AddTransFileList(&Pkt);
 				}
@@ -1161,7 +1153,7 @@ void UploadDragProc(WPARAM wParam)
 				// ファイルの場合
 				Pkt.Local = fs::u8path(Cur) / fs::u8path(f.File);
 
-				strcpy(Pkt.Cmd, "STOR ");
+				Pkt.Command = L"STOR "s;
 				Pkt.Type = AskTransferTypeAssoc(Pkt.Local.native(), AskTransferType());
 				Pkt.Size = f.Size;
 				Pkt.Time = f.Time;
@@ -1193,7 +1185,7 @@ void UploadDragProc(WPARAM wParam)
 					}
 					if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
 					{
-						strcpy(Pkt1.Cmd, "SETCUR");
+						Pkt1.Command = L"SETCUR"s;
 						strcpy(Pkt1.RemoteFile, u8(AskRemoteCurDir()).c_str());
 						AddTransFileList(&Pkt1);
 					}
@@ -1205,7 +1197,7 @@ void UploadDragProc(WPARAM wParam)
 
 		if((FirstAdd == NO) && (AskNoFullPathMode() == YES))
 		{
-			strcpy(Pkt.Cmd, "BACKCUR");
+			Pkt.Command = L"BACKCUR"s;
 			strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 			AddTransFileList(&Pkt);
 		}
@@ -1366,7 +1358,7 @@ void MirrorUploadProc(int Notify)
 					strcat(Pkt.RemoteFile, f.File);
 					ReplaceAll(Pkt.RemoteFile, '\\', '/');
 					Pkt.Local.clear();
-					strcpy(Pkt.Cmd, "R-DELE ");
+					Pkt.Command = L"R-DELE "s;
 					AddTmpTransFileList(Pkt, list);
 				}
 			MirrorDeleteAllDir(RemoteListBase, Pkt, list);
@@ -1385,12 +1377,12 @@ void MirrorUploadProc(int Notify)
 
 					if (f.Node == NODE_DIR) {
 						Pkt.Local.clear();
-						strcpy(Pkt.Cmd, "R-MKD ");
+						Pkt.Command = L"R-MKD "s;
 						AddTmpTransFileList(Pkt, list);
 					} else if (f.Node == NODE_FILE) {
 						Pkt.Local = AskLocalCurDir() / fs::u8path(f.File);
 
-						strcpy(Pkt.Cmd, "STOR ");
+						Pkt.Command = L"STOR "s;
 						Pkt.Type = AskTransferTypeAssoc(Pkt.Local.native(), AskTransferType());
 						Pkt.Size = f.Size;
 						Pkt.Time = f.Time;
@@ -1415,7 +1407,7 @@ void MirrorUploadProc(int Notify)
 			{
 				if(AskNoFullPathMode() == YES)
 				{
-					strcpy(Pkt.Cmd, "SETCUR");
+					Pkt.Command = L"SETCUR"s;
 					strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 					AddTransFileList(&Pkt);
 				}
@@ -1423,14 +1415,10 @@ void MirrorUploadProc(int Notify)
 
 				if(AskNoFullPathMode() == YES)
 				{
-					strcpy(Pkt.Cmd, "BACKCUR");
+					Pkt.Command = L"BACKCUR"s;
 					strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
 					AddTransFileList(&Pkt);
 				}
-
-				// 同時接続対応
-//				strcpy(Pkt.Cmd, "GOQUIT");
-//				AddTransFileList(&Pkt);
 			}
 
 			// バグ対策
@@ -1454,7 +1442,7 @@ static void MirrorDeleteAllDir(std::vector<FILELIST> const& Remote, TRANSPACKET&
 			strcat(item.RemoteFile, it->File);
 			ReplaceAll(item.RemoteFile, '\\', '/');
 			item.Local.clear();
-			strcpy(item.Cmd, "R-RMD ");
+			item.Command = L"R-RMD "s;
 			AddTmpTransFileList(item, list);
 		}
 }
@@ -1490,11 +1478,11 @@ static int MirrorNotify(bool upload) {
 static void CountMirrorFiles(HWND hDlg, std::forward_list<TRANSPACKET> const& list) {
 	int Del = 0, Make = 0, Copy = 0;
 	for (auto const& item : list) {
-		if (strncmp(item.Cmd, "R-DELE", 6) == 0 || strncmp(item.Cmd, "R-RMD", 5) == 0 || strncmp(item.Cmd, "L-DELE", 6) == 0 || strncmp(item.Cmd, "L-RMD", 5) == 0)
+		if (item.Command.starts_with(L"R-DELE"sv) || item.Command.starts_with(L"R-RMD"sv) || item.Command.starts_with(L"L-DELE"sv) || item.Command.starts_with(L"L-RMD"sv))
 			Del++;
-		else if (strncmp(item.Cmd, "R-MKD", 5) == 0 || strncmp(item.Cmd, "L-MKD", 5) == 0)
+		else if (item.Command.starts_with(L"R-MKD"sv) || item.Command.starts_with(L"L-MKD"sv))
 			Make++;
-		else if (strncmp(item.Cmd, "STOR", 4) == 0 || strncmp(item.Cmd, "RETR", 4) == 0)
+		else if (item.Command.starts_with(L"STOR"sv) || item.Command.starts_with(L"RETR"sv))
 			Copy++;
 	}
 	SetText(hDlg, MIRROR_COPYNUM, Copy != 0 ? strprintf(GetString(IDS_MSGJPN058).c_str(), Copy) : GetString(IDS_MSGJPN059));

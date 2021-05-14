@@ -440,36 +440,34 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Pat
 	int Sts;
 	if(AskListCmdMode() == NO)
 	{
-		strcpy(MainTransPkt.Cmd, "NLST");
+		MainTransPkt.Command = L"NLST"s;
 		if(!empty(AskHostLsName()))
 		{
-			strcat(MainTransPkt.Cmd, " ");
+			MainTransPkt.Command += L' ';
 			if((AskHostType() == HTYPE_ACOS) || (AskHostType() == HTYPE_ACOS_4))
-				strcat(MainTransPkt.Cmd, "'");
-			strcat(MainTransPkt.Cmd, AskHostLsName().c_str());
+				MainTransPkt.Command += L'\'';
+			MainTransPkt.Command += u8(AskHostLsName());
 			if((AskHostType() == HTYPE_ACOS) || (AskHostType() == HTYPE_ACOS_4))
-				strcat(MainTransPkt.Cmd, "'");
+				MainTransPkt.Command += L'\'';
 		}
 		if(strlen(AddOpt) > 0)
-			strcat(MainTransPkt.Cmd, AddOpt);
+			MainTransPkt.Command += u8(AddOpt);
 	}
 	else
 	{
-		// MLSD対応
-//		strcpy(MainTransPkt.Cmd, "LIST");
 		if(AskUseMLSD() && (AskHostFeature() & FEATURE_MLSD))
-			strcpy(MainTransPkt.Cmd, "MLSD");
+			MainTransPkt.Command = L"MLSD"s;
 		else
-			strcpy(MainTransPkt.Cmd, "LIST");
+			MainTransPkt.Command = L"LIST"s;
 		if(strlen(AddOpt) > 0)
 		{
-			strcat(MainTransPkt.Cmd, " -");
-			strcat(MainTransPkt.Cmd, AddOpt);
+			MainTransPkt.Command += L" -"sv;
+			MainTransPkt.Command += u8(AddOpt);
 		}
 	}
 
 	if(strlen(Path) > 0)
-		strcat(MainTransPkt.Cmd, " ");
+		MainTransPkt.Command += L' ';
 
 	strcpy(MainTransPkt.RemoteFile, Path);
 	MainTransPkt.Local = MakeCacheFileName(Num);

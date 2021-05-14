@@ -1777,7 +1777,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 								SktShareProh();
 
 	//						MainTransPkt.ctrl_skt = AskCmdCtrlSkt();
-							strcpy(MainTransPkt.Cmd, "RETR ");
+							MainTransPkt.Command = L"RETR "s;
 							if(AskHostType() == HTYPE_ACOS)
 							{
 								strcpy(MainTransPkt.RemoteFile, "'");

@@ -523,7 +523,7 @@ struct HISTORYDATA : Host {
 
 struct TRANSPACKET {
 	SOCKET ctrl_skt = INVALID_SOCKET;	/* Socket */
-	char Cmd[40] = {};					/* STOR/RETR/MKD */
+	std::wstring Command;				/* STOR/RETR/MKD */
 	char RemoteFile[FMAX_PATH+1] = {};	/* ホスト側のファイル名（フルパス） */
 										/* VMSの時は ddd[xxx.yyy]/yyy/zzz のように */
 										/* なってるので注意 */
