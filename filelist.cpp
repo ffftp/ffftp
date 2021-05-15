@@ -1042,7 +1042,7 @@ static void AddListView(HWND hWnd, int Pos, char* Name, int Type, LONGLONG Size,
 	if (Pos == -1)
 		Pos = std::numeric_limits<int>::max();
 	auto wName = u8(Name);
-	if (Type == NODE_FILE && AskTransferTypeAssoc(Name, TYPE_X) == TYPE_I)
+	if (Type == NODE_FILE && AskTransferTypeAssoc(wName, TYPE_X) == TYPE_I)
 		Type = 3;
 	item = { .mask = LVIF_TEXT | LVIF_IMAGE, .iItem = Pos, .pszText = data(wName), .iImage = DispFileIcon == YES && hWnd == GetLocalHwnd() ? ImageId + 5 : Link == NO ? Type : 4 };
 	Pos = (int)SendMessageW(hWnd, LVM_INSERTITEMW, 0, (LPARAM)&item);

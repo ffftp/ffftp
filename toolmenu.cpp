@@ -471,12 +471,12 @@ int AskTransferType() {
 
 
 // 実際の転送モードを返す
-int AskTransferTypeAssoc(char* Fname, int Type) {
+int AskTransferTypeAssoc(std::wstring_view path, int Type) {
 	if (Type != TYPE_X)
 		return Type;
 	if (!empty(AsciiExt))
-		for (auto const wName = u8(GetFileName(Fname)); auto const& pattern : AsciiExt)
-			if (CheckFname(wName, pattern))
+		for (std::wstring file{ GetFileName(path) }; auto const& spec : AsciiExt)
+			if (CheckFname(file, spec))
 				return TYPE_A;
 	return TYPE_I;
 }

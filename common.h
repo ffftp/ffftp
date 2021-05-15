@@ -711,7 +711,7 @@ void SetTransferTypeImm(int Mode);
 void SetTransferType(int Type);
 void DispTransferType(void);
 int AskTransferType(void);
-int AskTransferTypeAssoc(char *Fname, int Type);
+int AskTransferTypeAssoc(std::wstring_view path, int Type);
 void SaveTransferType(void);
 void SetHostKanjiCodeImm(int Mode);
 void SetHostKanjiCode(int Type);

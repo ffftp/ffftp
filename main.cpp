@@ -1796,7 +1796,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 								strcpy(MainTransPkt.RemoteFile, Tmp);
 							}
 							strcpy(MainTransPkt.LocalFile, data(remotePath));
-							MainTransPkt.Type = AskTransferTypeAssoc(MainTransPkt.RemoteFile, AskTransferType());
+							MainTransPkt.Type = AskTransferTypeAssoc(u8(MainTransPkt.RemoteFile), AskTransferType());
 							MainTransPkt.Size = 1;
 							MainTransPkt.KanjiCode = AskHostKanjiCode();
 							MainTransPkt.KanjiCodeDesired = AskLocalKanjiCode();

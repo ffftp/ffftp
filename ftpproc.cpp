@@ -212,7 +212,7 @@ void DownloadProc(int ChName, int ForceFile, int All)
 					}
 				} else
 #endif
-					Pkt.Type = AskTransferTypeAssoc(Pkt.RemoteFile, AskTransferType());
+					Pkt.Type = AskTransferTypeAssoc(u8(Pkt.RemoteFile), AskTransferType());
 				Pkt.Size = f.Size;
 				Pkt.Time = f.Time;
 				Pkt.KanjiCode = AskHostKanjiCode();
@@ -324,7 +324,7 @@ void DirectDownloadProc(const char* Fname)
 				}
 
 				strcpy(Pkt.Cmd, "RETR-S ");
-				Pkt.Type = AskTransferTypeAssoc(Pkt.RemoteFile, AskTransferType());
+				Pkt.Type = AskTransferTypeAssoc(u8(Pkt.RemoteFile), AskTransferType());
 
 				/* サイズと日付は転送側スレッドで取得し、セットする */
 
@@ -575,7 +575,7 @@ void MirrorDownloadProc(int Notify)
 						ReplaceAll(Pkt.RemoteFile, '\\', '/');
 
 						strcpy(Pkt.Cmd, "RETR ");
-						Pkt.Type = AskTransferTypeAssoc(Pkt.RemoteFile, AskTransferType());
+						Pkt.Type = AskTransferTypeAssoc(u8(Pkt.RemoteFile), AskTransferType());
 						Pkt.Size = f.Size;
 						Pkt.Time = f.Time;
 						Pkt.KanjiCode = AskHostKanjiCode();
@@ -1023,7 +1023,7 @@ void UploadListProc(int ChName, int All)
 				strcpy(Pkt.LocalFile, (AskLocalCurDir() / fs::u8path(f.File)).u8string().c_str());
 
 				strcpy(Pkt.Cmd, "STOR ");
-				Pkt.Type = AskTransferTypeAssoc(Pkt.LocalFile, AskTransferType());
+				Pkt.Type = AskTransferTypeAssoc(u8(Pkt.LocalFile), AskTransferType());
 				Pkt.Size = f.Size;
 				Pkt.Time = f.Time;
 				Pkt.Attr = AskUploadFileAttr(Pkt.RemoteFile);
@@ -1186,7 +1186,7 @@ void UploadDragProc(WPARAM wParam)
 				ReplaceAll(Pkt.LocalFile, '/', '\\');
 
 				strcpy(Pkt.Cmd, "STOR ");
-				Pkt.Type = AskTransferTypeAssoc(Pkt.LocalFile, AskTransferType());
+				Pkt.Type = AskTransferTypeAssoc(u8(Pkt.LocalFile), AskTransferType());
 				Pkt.Size = f.Size;
 				Pkt.Time = f.Time;
 				Pkt.Attr = AskUploadFileAttr(Pkt.RemoteFile);
@@ -1415,7 +1415,7 @@ void MirrorUploadProc(int Notify)
 						strcpy(Pkt.LocalFile, (AskLocalCurDir() / fs::u8path(f.File)).u8string().c_str());
 
 						strcpy(Pkt.Cmd, "STOR ");
-						Pkt.Type = AskTransferTypeAssoc(Pkt.LocalFile, AskTransferType());
+						Pkt.Type = AskTransferTypeAssoc(u8(Pkt.LocalFile), AskTransferType());
 						Pkt.Size = f.Size;
 						Pkt.Time = f.Time;
 						Pkt.Attr = AskUploadFileAttr(Pkt.RemoteFile);
