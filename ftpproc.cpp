@@ -41,7 +41,7 @@ static void MirrorDeleteAllDir(std::vector<FILELIST> const& Remote, TRANSPACKET&
 static int MirrorNotify(bool upload);
 static void CountMirrorFiles(HWND hDlg, std::forward_list<TRANSPACKET> const& list);
 static int AskMirrorNoTrn(char *Fname, int Mode);
-static int AskUploadFileAttr(char *Fname);
+static int AskUploadFileAttr(std::wstring const& path);
 static bool UpDownAsDialog(int win);
 static void DeleteAllDir(std::vector<FILELIST> const& Dt, int Win, int *Sw, int *Flg, char *CurDir);
 static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, char *CurDir);
@@ -1026,7 +1026,7 @@ void UploadListProc(int ChName, int All)
 				Pkt.Type = AskTransferTypeAssoc(u8(Pkt.LocalFile), AskTransferType());
 				Pkt.Size = f.Size;
 				Pkt.Time = f.Time;
-				Pkt.Attr = AskUploadFileAttr(Pkt.RemoteFile);
+				Pkt.Attr = AskUploadFileAttr(u8(Pkt.RemoteFile));
 				Pkt.KanjiCode = AskHostKanjiCode();
 				// UTF-8対応
 				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
@@ -1189,7 +1189,7 @@ void UploadDragProc(WPARAM wParam)
 				Pkt.Type = AskTransferTypeAssoc(u8(Pkt.LocalFile), AskTransferType());
 				Pkt.Size = f.Size;
 				Pkt.Time = f.Time;
-				Pkt.Attr = AskUploadFileAttr(Pkt.RemoteFile);
+				Pkt.Attr = AskUploadFileAttr(u8(Pkt.RemoteFile));
 				Pkt.KanjiCode = AskHostKanjiCode();
 				// UTF-8対応
 				Pkt.KanjiCodeDesired = AskLocalKanjiCode();
@@ -1418,7 +1418,7 @@ void MirrorUploadProc(int Notify)
 						Pkt.Type = AskTransferTypeAssoc(u8(Pkt.LocalFile), AskTransferType());
 						Pkt.Size = f.Size;
 						Pkt.Time = f.Time;
-						Pkt.Attr = AskUploadFileAttr(Pkt.RemoteFile);
+						Pkt.Attr = AskUploadFileAttr(u8(Pkt.RemoteFile));
 						Pkt.KanjiCode = AskHostKanjiCode();
 						// UTF-8対応
 						Pkt.KanjiCodeDesired = AskLocalKanjiCode();
@@ -1539,10 +1539,10 @@ static int AskMirrorNoTrn(char *Fname, int Mode) {
 
 
 // アップロードするファイルの属性を返す
-static int AskUploadFileAttr(char* Fname) {
-	auto const wFname = u8(GetFileName(Fname));
+static int AskUploadFileAttr(std::wstring const& path) {
+	std::wstring const file{ GetFileName(path) };
 	for (size_t i = 0; i < size(DefAttrList); i += 2)
-		if (CheckFname(wFname, DefAttrList[i]))
+		if (CheckFname(file, DefAttrList[i]))
 			return std::stol(DefAttrList[i + 1], nullptr, 16);
 	return -1;
 }
