@@ -77,81 +77,31 @@ static int PwdCommandType;
 *		int 応答コードの１桁目
 *----------------------------------------------------------------------------*/
 
-int DoCWD(const char *Path, int Disp, int ForceGet, int ErrorBell)
-{
-	int Sts;
-	char Buf[FMAX_PATH+1];
-
-	Sts = FTP_COMPLETE * 100;
-
-	if(strcmp(Path, "..") == 0)
-		// 同時接続対応
-//		Sts = CommandProcCmd(NULL, "CDUP");
-		Sts = CommandProcCmd(NULL, &CancelFlg, "CDUP");
-	else if(strcmp(Path, "") != 0)
-	{
-		if((AskHostType() != HTYPE_VMS) || (strchr(Path, '[') != NULL))
-			// 同時接続対応
-//			Sts = CommandProcCmd(NULL, "CWD %s", Path);
-			Sts = CommandProcCmd(NULL, &CancelFlg, "CWD %s", Path);
-		else
-			// 同時接続対応
-//			Sts = CommandProcCmd(NULL, "CWD [.%s]", Path);	/* VMS用 */
-			Sts = CommandProcCmd(NULL, &CancelFlg, "CWD [.%s]", Path);	/* VMS用 */
-	}
-
-	if((Sts/100 >= FTP_CONTINUE) && (ErrorBell == YES))
+int DoCWD(std::wstring const& Path, int Disp, int ForceGet, int ErrorBell) {
+	int Sts
+		= Path == L""sv ? FTP_COMPLETE * 100
+		: Path == L".."sv ? CommandProcCmd(NULL, &CancelFlg, L"CDUP"sv)
+		: AskHostType() != HTYPE_VMS || Path.starts_with(L'[') ? CommandProcCmd(NULL, &CancelFlg, L"CWD %s", Path.c_str())
+		: CommandProcCmd(NULL, &CancelFlg, L"CWD [.%s]", Path.c_str());	/* VMS用 */
+	if (Sts / 100 >= FTP_CONTINUE && ErrorBell == YES)
 		Sound::Error.Play();
-
-	if((Sts/100 == FTP_COMPLETE) ||
-	   (ForceGet == YES))
-	{
-		if(Disp == YES)
-		{
-			if(DoPWD(Buf) != FTP_COMPLETE)
-			{
-				/*===== PWDが使えなかった場合 =====*/
-
-				if(*Path == '/')
-					strcpy(Buf, Path);
-				else
-				{
-					strcpy(Buf, u8(AskRemoteCurDir()).c_str());
-					if(strlen(Buf) == 0)
-						strcpy(Buf, "/");
-
-					while(*Path != NUL)
-					{
-						if(strcmp(Path, ".") == 0)
-							Path++;
-						else if(strncmp(Path, "./", 2) == 0)
-							Path += 2;
-						else if(strcmp(Path, "..") == 0)
-						{
-							GetUpperDir(Buf);
-							Path += 2;
-						}
-						else if(strncmp(Path, "../", 2) == 0)
-						{
-							GetUpperDir(Buf);
-							Path += 3;
-						}
-						else
-						{
-							SetSlashTail(Buf);
-							strcat(Buf, Path);
-							break;
-						}
-					}
-				}
-			}
-			SetRemoteDirHist(u8(Buf));
+	if ((Sts / 100 == FTP_COMPLETE || ForceGet == YES) && Disp == YES) {
+		std::wstring cwd;
+		if (char buf[FMAX_PATH + 1]; DoPWD(buf) == FTP_COMPLETE)
+			cwd = u8(buf);
+		/*===== PWDが使えなかった場合 =====*/
+		else if (Path.starts_with(L'/'))
+			cwd = Path;
+		else {
+			cwd = AskRemoteCurDir();
+			if (empty(cwd))
+				cwd = L'/';
+			cwd = (fs::path{ cwd } / Path).lexically_normal().generic_wstring();
 		}
+		SetRemoteDirHist(cwd);
 	}
-	return(Sts/100);
+	return Sts / 100;
 }
-
-
 
 
 /*----- リモート側のカレントディレクトリ変更（その２）-------------------------
@@ -168,32 +118,15 @@ int DoCWD(const char *Path, int Disp, int ForceGet, int ErrorBell)
 *		ディレクトリ変更が失敗したら、カレントディレクトリに戻しておく
 *----------------------------------------------------------------------------*/
 
-int DoCWDStepByStep(const char* Path, const char* Cur)
-{
-	int Sts;
-	char *Set;
-	char *Set2;
-
-	Sts = FTP_COMPLETE;
-
-	char Tmp[FMAX_PATH + 2] = {};
-	strcpy(Tmp, Path);
-	Set = Tmp;
-	while(*Set != NUL)
-	{
-		if((Set2 = strchr(Set, '/')) != NULL)
-			*Set2 = NUL;
-		if((Sts = DoCWD(Set, NO, NO, NO)) != FTP_COMPLETE)
+int DoCWDStepByStep(std::wstring const& Path, std::wstring const& Cur) {
+	static boost::wregex re{ L"[^/]+" };
+	int Sts = FTP_COMPLETE;
+	for (boost::wsregex_iterator it{ begin(Path), end(Path), re }, end; it != end; ++it)
+		if ((Sts = DoCWD(it->str(), NO, NO, NO)) != FTP_COMPLETE)
 			break;
-		if(Set2 == NULL)
-			break;
-		Set = Set2 + 1;
-	}
-
-	if(Sts != FTP_COMPLETE)
+	if (Sts != FTP_COMPLETE)
 		DoCWD(Cur, NO, NO, NO);
-
-	return(Sts);
+	return Sts;
 }
 
 

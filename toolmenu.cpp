@@ -177,7 +177,7 @@ static LRESULT CALLBACK HistoryEdit(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 				GetLocalDirForWnd();
 			} else {
 				CancelFlg = NO;
-				if (CheckClosedAndReconnect() == FFFTP_SUCCESS && DoCWD(u8(GetText(hWnd)).c_str(), YES, NO, YES) < FTP_RETRY)
+				if (CheckClosedAndReconnect() == FFFTP_SUCCESS && DoCWD(GetText(hWnd), YES, NO, YES) < FTP_RETRY)
 					GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 			}
 			return 0;

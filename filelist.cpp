@@ -1843,11 +1843,11 @@ static int MakeRemoteTree1(char *Path, char *Cur, std::vector<FILELIST>& Base, i
 
 	// ファイル一覧バグ修正
 	Ret = FFFTP_FAIL;
-	if(DoCWD(Path, NO, NO, NO) == FTP_COMPLETE)
+	if(DoCWD(u8(Path), NO, NO, NO) == FTP_COMPLETE)
 	{
 		/* サブフォルダも含めたリストを取得 */
 		Sts = DoDirListCmdSkt("R", "", 999, CancelCheckWork);	/* NLST -alLR*/
-		DoCWD(Cur, NO, NO, NO);
+		DoCWD(u8(Cur), NO, NO, NO);
 
 		if(Sts == FTP_COMPLETE)
 		{
@@ -1882,20 +1882,20 @@ static int MakeRemoteTree2(char *Path, char *Cur, std::vector<FILELIST>& Base, i
 	/* VAX VMS は CWD xxx/yyy という指定ができないので	*/
 	/* CWD xxx, Cwd yyy と複数に分ける					*/
 	if(AskHostType() != HTYPE_VMS)
-		Sts = DoCWD(Path, NO, NO, NO);
+		Sts = DoCWD(u8(Path), NO, NO, NO);
 	else
 	{
 #if defined(HAVE_OPENVMS)
 		/* OpenVMSの場合、ディレクトリ移動時は"HOGE.DIR;1"を"HOGE"にする */
 		strcpy(Path, ReformVMSDirName(Path).c_str());
 #endif
-		Sts = DoCWDStepByStep(Path, Cur);
+		Sts = DoCWDStepByStep(u8(Path), u8(Cur));
 	}
 
 	if(Sts == FTP_COMPLETE)
 	{
 		Sts = DoDirListCmdSkt("", "", 999, CancelCheckWork);		/* NLST -alL*/
-		DoCWD(Cur, NO, NO, NO);
+		DoCWD(u8(Cur), NO, NO, NO);
 
 		if(Sts == FTP_COMPLETE)
 		{

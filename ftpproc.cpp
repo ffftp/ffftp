@@ -996,11 +996,11 @@ void UploadListProc(int ChName, int All)
 				RemoteList.clear();
 
 				strcpy(Tmp, u8(AskRemoteCurDir()).c_str());
-				if(DoCWD(Pkt.RemoteFile, NO, NO, NO) == FTP_COMPLETE)
+				if(DoCWD(u8(Pkt.RemoteFile), NO, NO, NO) == FTP_COMPLETE)
 				{
 					if(DoDirListCmdSkt("", "", 998, &CancelFlg) == FTP_COMPLETE)
 						AddRemoteTreeToFileList(998, "", RDIR_NONE, RemoteList);
-					DoCWD(Tmp, NO, NO, NO);
+					DoCWD(u8(Tmp), NO, NO, NO);
 				}
 				else
 				{
@@ -1157,11 +1157,11 @@ void UploadDragProc(WPARAM wParam)
 				RemoteList.clear();
 
 				strcpy(Tmp, u8(AskRemoteCurDir()).c_str());
-				if(DoCWD(Pkt.RemoteFile, NO, NO, NO) == FTP_COMPLETE)
+				if(DoCWD(u8(Pkt.RemoteFile), NO, NO, NO) == FTP_COMPLETE)
 				{
 					if(DoDirListCmdSkt("", "", 998, &CancelFlg) == FTP_COMPLETE)
 						AddRemoteTreeToFileList(998, "", RDIR_NONE, RemoteList);
-					DoCWD(Tmp, NO, NO, NO);
+					DoCWD(u8(Tmp), NO, NO, NO);
 				}
 				else
 				{
@@ -1730,7 +1730,7 @@ void DeleteProc(void)
 		{
 			strcpy(Tmp, u8(AskRemoteCurDir()).c_str());
 			if(strcmp(Tmp, CurDir) != 0)
-				DoCWD(Tmp, NO, NO, NO);
+				DoCWD(u8(Tmp), NO, NO, NO);
 		}
 
 		if(DelFlg == YES)
@@ -2080,7 +2080,7 @@ void MoveRemoteFileProc(int drop_index)
 				strncpy_s(New, sizeof(New), HostDir, _TRUNCATE);
 				strncat_s(New, sizeof(New), "/", _TRUNCATE);
 				strncat_s(New, sizeof(New), Pkt.File, _TRUNCATE);
-				DoCWD(New, YES, YES, YES);
+				DoCWD(u8(New), YES, YES, YES);
 				GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
 			}
 		}
@@ -2151,7 +2151,7 @@ void ChangeDirComboProc(HWND hWnd) {
 		} else {
 			if (CheckClosedAndReconnect() == FFFTP_SUCCESS) {
 				DisableUserOpe();
-				if(DoCWD(u8(text).c_str(), YES, NO, YES) < FTP_RETRY)
+				if(DoCWD(text, YES, NO, YES) < FTP_RETRY)
 					GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 				EnableUserOpe();
 			}
@@ -2188,7 +2188,7 @@ void ChangeDirBmarkProc(int MarkID)
 		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 		{
 			DisableUserOpe();
-			if(DoCWD(u8(remote).data(), YES, NO, YES) < FTP_RETRY)
+			if(DoCWD(remote, YES, NO, YES) < FTP_RETRY)
 				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 			EnableUserOpe();
 		}
@@ -2210,7 +2210,7 @@ void ChangeDirDirectProc(int Win) {
 	} else {
 		if (std::wstring path; InputDialog(chdir_dlg, GetMainHwnd(), IDS_MSGJPN073, path, FMAX_PATH + 1) && !path.empty() && CheckClosedAndReconnect() == FFFTP_SUCCESS) {
 			DisableUserOpe();
-			if (DoCWD(u8(path).c_str(), YES, NO, YES) < FTP_RETRY)
+			if (DoCWD(path, YES, NO, YES) < FTP_RETRY)
 				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 			EnableUserOpe();
 		}

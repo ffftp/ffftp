@@ -178,7 +178,7 @@ void ConnectProc(int Type, int Num)
 					GetLocalDirForWnd();
 				}
 				InitTransCurDir();
-				DoCWD(u8(CurHost.RemoteInitDir).c_str(), YES, YES, YES);
+				DoCWD(CurHost.RemoteInitDir, YES, YES, YES);
 
 				LoadBookMark();
 				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
@@ -281,7 +281,7 @@ void QuickConnectProc() {
 				Sound::Connected.Play();
 
 				InitTransCurDir();
-				DoCWD(u8(CurHost.RemoteInitDir).c_str(), YES, YES, YES);
+				DoCWD(CurHost.RemoteInitDir, YES, YES, YES);
 
 				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 				EnableUserOpe();
@@ -374,7 +374,7 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 			Sound::Connected.Play();
 
 			InitTransCurDir();
-			DoCWD(u8(CurHost.RemoteInitDir).c_str(), YES, YES, YES);
+			DoCWD(CurHost.RemoteInitDir, YES, YES, YES);
 
 			GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 			EnableUserOpe();
@@ -455,7 +455,7 @@ void HistoryConnectProc(int MenuCmd)
 				GetLocalDirForWnd();
 
 				InitTransCurDir();
-				DoCWD(u8(CurHost.RemoteInitDir).c_str(), YES, YES, YES);
+				DoCWD(CurHost.RemoteInitDir, YES, YES, YES);
 
 				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 			}
@@ -899,8 +899,6 @@ int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
 	if((*Skt = DoConnect(&HostData, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, CancelCheckWork)) != INVALID_SOCKET)
 	{
 		SendInitCommand(*Skt, CurHost.InitCmd, CancelCheckWork);
-//		AskRemoteCurDir(Path, FMAX_PATH);
-//		DoCWD(Path, YES, YES, YES);
 		Sts = FFFTP_SUCCESS;
 	}
 	else
@@ -937,7 +935,7 @@ static int ReConnectSkt(SOCKET *Skt)
 	if((*Skt = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg)) != INVALID_SOCKET)
 	{
 		SendInitCommand(*Skt, CurHost.InitCmd, &CancelFlg);
-		DoCWD(u8(AskRemoteCurDir()).c_str(), YES, YES, YES);
+		DoCWD(AskRemoteCurDir(), YES, YES, YES);
 		Sts = FFFTP_SUCCESS;
 	}
 	else

@@ -1892,7 +1892,7 @@ static void ChangeDir(int Win, const char *Path)
 			if (AskHostType() == HTYPE_VMS)
 				path = ReformVMSDirName(std::move(path));
 #endif
-			if(DoCWD(path.c_str(), YES, NO, YES) < FTP_RETRY)
+			if(DoCWD(u8(path), YES, NO, YES) < FTP_RETRY)
 				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 		}
 	}

@@ -908,8 +908,8 @@ void DoLocalRENAME(fs::path const& src, fs::path const& dst);
 
 /*===== remote.c =====*/
 
-int DoCWD(const char *Path, int Disp, int ForceGet, int ErrorBell);
-int DoCWDStepByStep(const char* Path, const char* Cur);
+int DoCWD(std::wstring const& Path, int Disp, int ForceGet, int ErrorBell);
+int DoCWDStepByStep(std::wstring const& Path, std::wstring const& Cur);
 int DoMKD(const char* Path);
 void InitPWDcommand();
 int DoRMD(const char* Path);
