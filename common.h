@@ -916,8 +916,8 @@ int DoRMD(std::wstring const& path);
 int DoDELE(std::wstring const& path);
 int DoRENAME(std::wstring const& from, std::wstring const& to);
 int DoCHMOD(std::wstring const& path, std::wstring const& mode);
-int DoSIZE(SOCKET cSkt, const char* Path, LONGLONG *Size, int *CancelCheckWork);
-int DoMDTM(SOCKET cSkt, const char* Path, FILETIME *Time, int *CancelCheckWork);
+int DoSIZE(SOCKET cSkt, std::wstring const& Path, LONGLONG *Size, int *CancelCheckWork);
+int DoMDTM(SOCKET cSkt, std::wstring const& Path, FILETIME *Time, int *CancelCheckWork);
 // ホスト側の日時設定
 int DoMFMT(SOCKET cSkt, const char* Path, FILETIME *Time, int *CancelCheckWork);
 int DoQUOTE(SOCKET cSkt, const char* CmdStr, int *CancelCheckWork);

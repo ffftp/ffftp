@@ -277,20 +277,13 @@ int DoCHMOD(std::wstring const& path, std::wstring const& mode) {
 *		★★転送ソケットを使用する★★
 *		サイズが選られない時は Size = -1 を返す
 *----------------------------------------------------------------------------*/
-int DoSIZE(SOCKET cSkt, const char* Path, LONGLONG *Size, int *CancelCheckWork)
-{
-	int Sts;
+int DoSIZE(SOCKET cSkt, std::wstring const& Path, LONGLONG* Size, int* CancelCheckWork) {
 	char Tmp[1024];
-
-	// 同時接続対応
-//	Sts = CommandProcTrn(Tmp, "SIZE %s", Path);
-	Sts = CommandProcTrn(cSkt, Tmp, CancelCheckWork, "SIZE %s", Path);
-
+	int Sts = CommandProcTrn(cSkt, Tmp, CancelCheckWork, L"SIZE %s", Path.c_str());
 	*Size = -1;
-	if((Sts/100 == FTP_COMPLETE) && (strlen(Tmp) > 4) && IsDigit(Tmp[4]))
-		*Size = _atoi64(&Tmp[4]);
-
-	return(Sts/100);
+	if (Sts / 100 == FTP_COMPLETE && strlen(Tmp) > 4 && IsDigit(Tmp[4]))
+		*Size = _atoi64(Tmp + 4);
+	return Sts / 100;
 }
 
 
@@ -307,35 +300,14 @@ int DoSIZE(SOCKET cSkt, const char* Path, LONGLONG *Size, int *CancelCheckWork)
 *		★★転送ソケットを使用する★★
 *		日付が選られない時は Time = 0 を返す
 *----------------------------------------------------------------------------*/
-int DoMDTM(SOCKET cSkt, const char* Path, FILETIME *Time, int *CancelCheckWork)
-{
-	int Sts;
+int DoMDTM(SOCKET cSkt, std::wstring const& Path, FILETIME* Time, int* CancelCheckWork) {
+	*Time = {};
 	char Tmp[1024];
-	SYSTEMTIME sTime;
-
-	Time->dwLowDateTime = 0;
-	Time->dwHighDateTime = 0;
-
-	// 同時接続対応
-	// ホスト側の日時取得
-//	Sts = CommandProcTrn(Tmp, "MDTM %s", Path);
-	Sts = 500;
-	if(AskHostFeature() & FEATURE_MDTM)
-		Sts = CommandProcTrn(cSkt, Tmp, CancelCheckWork, "MDTM %s", Path);
-	if(Sts/100 == FTP_COMPLETE)
-	{
-		sTime.wMilliseconds = 0;
-		if(sscanf(Tmp+4, "%04hu%02hu%02hu%02hu%02hu%02hu",
-			&sTime.wYear, &sTime.wMonth, &sTime.wDay,
-			&sTime.wHour, &sTime.wMinute, &sTime.wSecond) == 6)
-		{
-			SystemTimeToFileTime(&sTime, Time);
-			// 時刻はGMT
-//			SpecificLocalFileTime2FileTime(Time, AskHostTimeZone());
-
-		}
-	}
-	return(Sts/100);
+	int Sts = AskHostFeature() & FEATURE_MDTM ? CommandProcTrn(cSkt, Tmp, CancelCheckWork, L"MDTM %s", Path.c_str()) : 500;
+	if (Sts / 100 == FTP_COMPLETE)
+		if (SYSTEMTIME st{}; sscanf(Tmp + 4, "%04hu%02hu%02hu%02hu%02hu%02hu", &st.wYear, &st.wMonth, &st.wDay, &st.wHour, &st.wMinute, &st.wSecond) == 6)
+			SystemTimeToFileTime(&st, Time);
+	return Sts / 100;
 }
 
 

@@ -703,11 +703,8 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						if(strncmp(Pos->Cmd, "RETR-S", 6) == 0)
 						{
 							/* サイズと日付を取得 */
-//							DoSIZE(TransPacketBase->RemoteFile, &TransPacketBase->Size);
-//							DoMDTM(TransPacketBase->RemoteFile, &TransPacketBase->Time);
-//							strcpy(TransPacketBase->Cmd, "RETR ");
-							DoSIZE(TrnSkt, Pos->RemoteFile, &Pos->Size, &Canceled[Pos->ThreadCount]);
-							DoMDTM(TrnSkt, Pos->RemoteFile, &Pos->Time, &Canceled[Pos->ThreadCount]);
+							DoSIZE(TrnSkt, u8(Pos->RemoteFile), &Pos->Size, &Canceled[Pos->ThreadCount]);
+							DoMDTM(TrnSkt, u8(Pos->RemoteFile), &Pos->Time, &Canceled[Pos->ThreadCount]);
 							strcpy(Pos->Cmd, "RETR ");
 						}
 
