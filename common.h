@@ -918,8 +918,7 @@ int DoRENAME(std::wstring const& from, std::wstring const& to);
 int DoCHMOD(std::wstring const& path, std::wstring const& mode);
 int DoSIZE(SOCKET cSkt, std::wstring const& Path, LONGLONG *Size, int *CancelCheckWork);
 int DoMDTM(SOCKET cSkt, std::wstring const& Path, FILETIME *Time, int *CancelCheckWork);
-// ホスト側の日時設定
-int DoMFMT(SOCKET cSkt, const char* Path, FILETIME *Time, int *CancelCheckWork);
+int DoMFMT(SOCKET cSkt, std::wstring const&, FILETIME *Time, int *CancelCheckWork);
 int DoQUOTE(SOCKET cSkt, const char* CmdStr, int *CancelCheckWork);
 SOCKET DoClose(SOCKET Sock);
 // 同時接続対応

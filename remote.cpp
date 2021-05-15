@@ -312,18 +312,12 @@ int DoMDTM(SOCKET cSkt, std::wstring const& Path, FILETIME* Time, int* CancelChe
 
 
 // ホスト側の日時設定
-int DoMFMT(SOCKET cSkt, const char* Path, FILETIME *Time, int *CancelCheckWork)
-{
-	int Sts;
+int DoMFMT(SOCKET cSkt, std::wstring const& Path, FILETIME* Time, int* CancelCheckWork) {
 	char Tmp[1024];
-	SYSTEMTIME sTime;
-
-	FileTimeToSystemTime(Time, &sTime);
-
-	Sts = 500;
-	if(AskHostFeature() & FEATURE_MFMT)
-		Sts = CommandProcTrn(cSkt, Tmp, CancelCheckWork, "MFMT %04hu%02hu%02hu%02hu%02hu%02hu %s", sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond, Path);
-	return(Sts/100);
+	SYSTEMTIME st;
+	FileTimeToSystemTime(Time, &st);
+	int Sts = AskHostFeature() & FEATURE_MFMT ? CommandProcTrn(cSkt, Tmp, CancelCheckWork, L"MFMT %04hu%02hu%02hu%02hu%02hu%02hu %s", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, Path.c_str()) : 500;
+	return Sts / 100;
 }
 
 

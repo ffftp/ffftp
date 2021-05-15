@@ -753,7 +753,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					if((SaveTimeStamp == YES) &&
 					   ((Pos->Time.dwLowDateTime != 0) || (Pos->Time.dwHighDateTime != 0)))
 					{
-						DoMFMT(TrnSkt, Pos->RemoteFile, &Pos->Time, &Canceled[Pos->ThreadCount]);
+						DoMFMT(TrnSkt, u8(Pos->RemoteFile), &Pos->Time, &Canceled[Pos->ThreadCount]);
 					}
 				}
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
