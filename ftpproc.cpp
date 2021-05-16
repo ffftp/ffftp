@@ -2600,6 +2600,47 @@ int ProcForNonFullpath(SOCKET cSkt, char *Path, char *CurDir, HWND hWnd, int *Ca
 	}
 	return(Sts);
 }
+int ProcForNonFullpath(SOCKET cSkt, std::wstring& Path, std::wstring& CurDir, HWND hWnd, int* CancelCheckWork) {
+	int Sts = FFFTP_SUCCESS;
+	if (AskNoFullPathMode() == YES) {
+		auto Tmp = Path;
+		if (AskHostType() == HTYPE_VMS) {
+			// ddd:[xxx.yyy]          --> 
+			// ddd:[xxx.yyy]/rrr      --> ddd:[xxx.yyy]
+			// ddd:[xxx.yyy]/rrr/ppp  --> ddd:[xxx.yyy.rrr]
+			static boost::wregex re{ LR"(^([^\[]*)\[([^\]]*)\](.*)[/\\][^/\\]*$)" };
+			if (boost::wsmatch m; boost::regex_search(Tmp, m, re)) {
+				auto relative = m.str(3);
+				std::ranges::replace(relative, L'/', L'.');
+				Tmp = strprintf(L"%s[%s%s]", m.str(1).c_str(), m.str(2).c_str(), relative.c_str());
+			} else
+				Tmp.clear();
+		} else if (AskHostType() == HTYPE_STRATUS) {
+			// "/pub"   --> ""
+			// "C:\DOS" -- > "C:"
+			auto const pos = Tmp.find_last_of(L"/\\"sv);
+			Tmp.resize(pos != std::wstring::npos ? pos : 0);
+		} else {
+			// "/pub"   --> "/"
+			// "C:\DOS" -- > "C:\"
+			if (auto const root = Tmp.find_first_of(L"/\\"sv); root != std::wstring::npos) {
+				auto const pos = Tmp.find_last_of(L"/\\"sv, root + 1);
+				Tmp.resize(pos != std::wstring::npos ? pos : root + 1);
+			}
+		}
+
+		if (Tmp != CurDir) {
+			int Cmd = CommandProcTrn(cSkt, NULL, CancelCheckWork, L"CWD %s", Tmp.c_str());
+			if (Cmd / 100 != FTP_COMPLETE) {
+				DispCWDerror(hWnd);
+				Sts = FFFTP_FAIL;
+			} else
+				CurDir = Tmp;
+		}
+		Path = GetFileName(Path);
+	}
+	return Sts;
+}
 
 
 /*----- ディレクトリ名をVAX VMSスタイルに変換する -----------------------------

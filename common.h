@@ -883,10 +883,9 @@ void SomeCmdProc(void);
 void CalcFileSizeProc(void);
 void DispCWDerror(HWND hWnd);
 void CopyURLtoClipBoard(void);
-// 同時接続対応
-//int ProcForNonFullpath(char *Path, char *CurDir, HWND hWnd, int Type);
 int ProcForNonFullpath(SOCKET cSkt, char *Path, char *CurDir, HWND hWnd, int *CancelCheckWork);
-void ReformToVMSstyleDirName(char *Path);
+int ProcForNonFullpath(SOCKET cSkt, std::wstring& Path, std::wstring& CurDir, HWND hWnd, int* CancelCheckWork);
+void ReformToVMSstyleDirName(char* Path);
 void ReformToVMSstylePathName(char *Path);
 #if defined(HAVE_OPENVMS)
 std::string ReformVMSDirName(std::string&& dirName);
