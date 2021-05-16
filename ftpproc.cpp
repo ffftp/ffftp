@@ -777,65 +777,43 @@ static int CheckLocalFile(TRANSPACKET *Pkt)
 
 // ディレクトリ自動作成
 // リモート側のパスから必要なディレクトリを作成
-int MakeDirFromRemotePath(char* RemoteFile, char* Old, int FirstAdd)
-{
+int MakeDirFromRemotePath(fs::path const& RemoteFile, fs::path const& Old, int FirstAdd) {
+	fs::path path;
+	auto rit = RemoteFile.begin(), rend = RemoteFile.end();
+	for (auto oit = Old.begin(), oend = Old.end(); rit != rend && oit != oend && *rit == *oit; ++rit, ++oit)
+		path /= *rit;
+	if (rit == rend)
+		return NO;
 	TRANSPACKET Pkt;
-	TRANSPACKET Pkt1;
-	char* pDelimiter;
-	char* pNext;
-	char* Cat;
-	size_t Len;
-	int Make;
-	pDelimiter = RemoteFile;
-	Make = NO;
-	while(pNext = strchr(pDelimiter, '/'))
-	{
-		Len = pNext - RemoteFile;
-		strncpy(Pkt.RemoteFile, RemoteFile, Len);
-		Pkt.RemoteFile[Len] = '\0';
-		if(strncmp(RemoteFile, Old, Len + 1) != 0)
-		{
-			Cat = Pkt.RemoteFile + (pDelimiter - RemoteFile);
-			if(FnameCnv == FNAME_LOWER)
-				_strlwr(Cat);
-			else if(FnameCnv == FNAME_UPPER)
-				_strupr(Cat);
-#if defined(HAVE_TANDEM)
-			Pkt.FileCode = 0;
-			Pkt.PriExt = DEF_PRIEXT;
-			Pkt.SecExt = DEF_SECEXT;
-			Pkt.MaxExt = DEF_MAXEXT;
-#endif
-			ReplaceAll(Pkt.RemoteFile, '\\', '/');
-
-			if(AskHostType() == HTYPE_ACOS)
-			{
-				strcpy(Pkt.RemoteFile, "'");
-				strcat(Pkt.RemoteFile, AskHostLsName().c_str());
-				strcat(Pkt.RemoteFile, "(");
-				strcat(Pkt.RemoteFile, Cat);
-				strcat(Pkt.RemoteFile, ")");
-				strcat(Pkt.RemoteFile, "'");
-			}
-			else if(AskHostType() == HTYPE_ACOS_4)
-				strcpy(Pkt.RemoteFile, Cat);
-
-			if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
-			{
-				Pkt1.Command = L"SETCUR"s;
-				strcpy(Pkt1.RemoteFile, u8(AskRemoteCurDir()).c_str());
-				AddTransFileList(&Pkt1);
-			}
-			FirstAdd = NO;
-			Pkt.Command = L"MKD "s;
-			Pkt.Local.clear();
-			AddTransFileList(&Pkt);
-
-			Make = YES;
-		}
-		pDelimiter = pNext + 1;
+	if (FirstAdd == YES && AskNoFullPathMode() == YES) {
+		Pkt.Command = L"SETCUR"s;
+		strcpy(Pkt.RemoteFile, u8(AskRemoteCurDir()).c_str());
+		AddTransFileList(&Pkt);
 	}
-	return Make;
+	do {
+		auto name = rit->native();
+		if (FnameCnv == FNAME_LOWER)
+			_wcslwr(data(name));
+		else if (FnameCnv == FNAME_UPPER)
+			_wcsupr(data(name));
+		path /= name;
+#if defined(HAVE_TANDEM)
+		Pkt.FileCode = 0;
+		Pkt.PriExt = DEF_PRIEXT;
+		Pkt.SecExt = DEF_SECEXT;
+		Pkt.MaxExt = DEF_MAXEXT;
+#endif
+		if (AskHostType() == HTYPE_ACOS)
+			sprintf(Pkt.RemoteFile, "'%s(%s)'", AskHostLsName().c_str(), u8(name).c_str());
+		else if (AskHostType() == HTYPE_ACOS_4)
+			strcpy(Pkt.RemoteFile, u8(name).c_str());
+		else
+			strcpy(Pkt.RemoteFile, path.generic_u8string().c_str());
+		Pkt.Command = L"MKD "s;
+		Pkt.Local.clear();
+		AddTransFileList(&Pkt);
+	} while (++rit != rend);
+	return YES;
 }
 
 void UploadListProc(int ChName, int All)
@@ -1019,7 +997,7 @@ void UploadListProc(int ChName, int All)
 					// ディレクトリ自動作成
 					if(MakeAllDir == YES)
 					{
-						if(MakeDirFromRemotePath(Pkt.RemoteFile, Tmp, FirstAdd) == YES)
+						if(MakeDirFromRemotePath(fs::u8path(Pkt.RemoteFile), fs::u8path(Tmp), FirstAdd) == YES)
 							FirstAdd = NO;
 					}
 					if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
@@ -1180,7 +1158,7 @@ void UploadDragProc(WPARAM wParam)
 					// ディレクトリ自動作成
 					if(MakeAllDir == YES)
 					{
-						if(MakeDirFromRemotePath(Pkt.RemoteFile, Tmp, FirstAdd) == YES)
+						if(MakeDirFromRemotePath(fs::u8path(Pkt.RemoteFile), fs::u8path(Tmp), FirstAdd) == YES)
 							FirstAdd = NO;
 					}
 					if((FirstAdd == YES) && (AskNoFullPathMode() == YES))
