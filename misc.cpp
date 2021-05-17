@@ -71,6 +71,18 @@ void SetSlashTail(char* Str) {
 		if (Str[strlen(Str) - 1] != '/')
 			strcat(Str, "/");
 }
+// 文字列の最後に "/" を付ける
+//   Tandem では / の代わりに . を追加
+std::wstring SetSlashTail(std::wstring&& path) {
+	wchar_t separator = L'/';
+#if defined(HAVE_TANDEM)
+	if (AskHostType() == HTYPE_TANDEM)
+		separator = L'.';
+#endif
+	if (!path.ends_with(separator))
+		path += separator;
+	return path;
+}
 
 
 /*----- 文字列内の特定の文字を全て置き換える ----------------------------------
@@ -93,6 +105,20 @@ void ReplaceAll(char* Str, char Src, char Dst) {
 #endif
 	for (char* Pos; (Pos = strchr(Str, Src)) != NULL;)
 		*Pos = Dst;
+}
+// 文字列内の特定の文字を全て置き換える
+//   Tandem ではノード名の変換を行わないため、最初の1文字が \ でもそのままにする
+//   置換対象fromが \ 以外ならstd::replaceでよい
+std::wstring ReplaceAll(std::wstring&& str, wchar_t from, wchar_t to) {
+	if (!empty(str)) {
+		auto it = begin(str);
+#if defined(HAVE_TANDEM)
+		if (AskRealHostType() == HTYPE_TANDEM)
+			++it;
+#endif
+		std::replace(it, end(str), from, to);
+	}
+	return str;
 }
 
 
@@ -224,6 +250,21 @@ const char* GetFileName(const char* Path)
 		Path = Pos + 1;
 #endif
 	return(Path);
+}
+// パス名の中のファイル名の先頭を返す
+//   ディレクトリの区切り記号は "\" と "/" の両方が有効
+//   Tandem は . がデリミッタとなる
+std::wstring_view GetFileName(std::wstring_view path) {
+	if (auto pos = path.find_first_of(L':'); pos != std::wstring_view::npos)
+		path = path.substr(pos + 1);
+	auto delimiter = L"\\/"sv;
+#if defined(HAVE_TANDEM)
+	if (AskHostType() == HTYPE_TANDEM)
+		delimiter = L"\\/."sv;
+#endif
+	if (auto pos = path.find_last_of(delimiter); pos != std::wstring_view::npos)
+		path = path.substr(pos + 1);
+	return path;
 }
 
 
