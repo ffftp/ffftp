@@ -2335,8 +2335,8 @@ static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipBut
 		SendDlgItemMessageW(item.hWndTrans, TRANS_TIME_BAR, PBM_SETPOS, 0, 0);
 
 		if (Info == YES) {
-			DispStaticText(GetDlgItem(item.hWndTrans, TRANS_REMOTE), item.RemoteFile);
-			DispStaticText(GetDlgItem(item.hWndTrans, TRANS_LOCAL), item.LocalFile);
+			DispStaticText(GetDlgItem(item.hWndTrans, TRANS_REMOTE), u8(item.RemoteFile));
+			DispStaticText(GetDlgItem(item.hWndTrans, TRANS_LOCAL), u8(item.LocalFile));
 
 			if (item.Type == TYPE_I)
 				SetText(item.hWndTrans, TRANS_MODE, GetString(IDS_MSGJPN119));

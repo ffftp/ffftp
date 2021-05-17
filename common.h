@@ -1079,7 +1079,7 @@ void GetUpperDir(char *Path);
 void GetUpperDirEraseTopSlash(char *Path);
 int AskDirLevel(const char* Path);
 std::wstring MakeSizeString(double size);
-void DispStaticText(HWND hWnd, const char* Str);
+void DispStaticText(HWND hWnd, std::wstring text);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
 int SplitUNCpath(char *unc, std::wstring& Host, std::wstring& Path, char *File, std::wstring& User, std::wstring& Pass, int *Port);
 int TimeString2FileTime(const char *Time, FILETIME *Buf);

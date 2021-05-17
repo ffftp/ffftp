@@ -420,33 +420,24 @@ std::wstring MakeSizeString(double size) {
 
 
 // StaticTextの領域に収まるようにパス名を整形して表示
-void DispStaticText(HWND hWnd, const char* Str) {
+void DispStaticText(HWND hWnd, std::wstring text) {
 	RECT rect;
 	GetClientRect(hWnd, &rect);
 	auto font = (HFONT)SendMessageW(hWnd, WM_GETFONT, 0, 0);
-
 	auto dc = GetDC(hWnd);
 	auto previous = SelectObject(dc, font);
-	auto wstr = u8(Str);
-	std::wstring_view view = wstr;
 	for (;;) {
-		if (size(view) <= 4)
+		if (size(text) <= 4)
 			break;
-		SIZE size;
-		GetTextExtentPoint32W(dc, data(view), size_as<int>(view), &size);
-		if (size.cx <= rect.right)
+		if (SIZE size; GetTextExtentPoint32W(dc, data(text), size_as<int>(text), &size) && size.cx <= rect.right)
 			break;
-		if (auto pos = view.find(L'\\', 4); pos != std::wstring_view::npos)
-			view.remove_prefix(pos - 3);
-		else if (pos = view.find(L'/', 4); pos != std::wstring_view::npos)
-			view.remove_prefix(pos - 3);
-		else
-			view.remove_prefix(1);
-		std::fill_n(const_cast<wchar_t*>(data(view)), 3, L'.');		// viewはwstrを指しているため書き換え可能
+		auto const pos = text.find_first_of(L"\\/"sv, 4);
+		text.erase(0, pos != std::wstring::npos ? pos - 3 : 1);
+		std::fill_n(begin(text), 3, L'.');
 	}
 	SelectObject(dc, previous);
 	ReleaseDC(hWnd, dc);
-	SetText(hWnd, data(view));
+	SetText(hWnd, text);
 }
 
 
