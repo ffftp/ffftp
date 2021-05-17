@@ -609,7 +609,7 @@ typedef struct
 {
 	int r;
 	HANDLE h;
-	char* Fname;
+	const wchar_t* Fname;
 } MARKFILEASDOWNLOADEDFROMINTERNETDATA;
 
 /*=================================================
@@ -964,7 +964,7 @@ int AskTransferErrorDisplay(void);
 int LoadZoneID();
 void FreeZoneID();
 int IsZoneIDLoaded();
-int MarkFileAsDownloadedFromInternet(char* Fname);
+int MarkFileAsDownloadedFromInternet(const wchar_t* Fname);
 
 /*===== codecnv.c =====*/
 

@@ -720,7 +720,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 								LastError = YES;
 							// ゾーンID設定追加
 							if(MarkAsInternet == YES && IsZoneIDLoaded() == YES)
-								MarkFileAsDownloadedFromInternet(Pos->LocalFile);
+								MarkFileAsDownloadedFromInternet(u8(Pos->LocalFile).c_str());
 						}
 
 						if (SaveTimeStamp == YES && (Pos->Time.dwLowDateTime != 0 || Pos->Time.dwHighDateTime != 0))
@@ -2565,11 +2565,11 @@ int IsZoneIDLoaded() {
 	return zoneIdentifier && persistFile ? YES : NO;
 }
 
-int MarkFileAsDownloadedFromInternet(char* Fname) {
+int MarkFileAsDownloadedFromInternet(const wchar_t* Fname) {
 	MARKFILEASDOWNLOADEDFROMINTERNETDATA Data;
 	int result = FFFTP_FAIL;
 	if (IsMainThread()) {
-		if (persistFile->Save(_bstr_t{ u8(Fname).c_str() }, FALSE) == S_OK)
+		if (persistFile->Save(_bstr_t{ Fname }, FALSE) == S_OK)
 			return FFFTP_SUCCESS;
 	} else {
 		if (Data.h = CreateEventW(NULL, TRUE, FALSE, NULL)) {

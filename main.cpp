@@ -1814,7 +1814,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 								CancelFlg = NO;
 								Sts = DoDownload(AskCmdCtrlSkt(), MainTransPkt, NO, &CancelFlg);
 								if (MarkAsInternet == YES && IsZoneIDLoaded() == YES)
-									MarkFileAsDownloadedFromInternet(data(remotePath));
+									MarkFileAsDownloadedFromInternet(u8(remotePath).c_str());
 							}
 							EnableUserOpe();
 
