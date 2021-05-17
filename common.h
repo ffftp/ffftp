@@ -659,7 +659,7 @@ void SetListViewType(void);
 void GetRemoteDirForWnd(int Mode, int *CancelCheckWork);
 void GetLocalDirForWnd(void);
 void ReSortDispList(int Win, int *CancelCheckWork);
-bool CheckFname(std::wstring str, std::wstring const& regexp);
+bool CheckFname(std::wstring const& file, std::wstring const& spec);
 void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base);
 void FindFileInList(HWND hWnd, int Type);
 int GetCurrentItem(int Win);

@@ -1119,12 +1119,10 @@ void ReSortDispList(int Win, int *CancelCheckWork)
 
 
 // ワイルドカードにマッチするかどうかを返す
-bool CheckFname(std::wstring str, std::wstring const& regexp) {
-	// VAX VMSの時は ; 以降は無視する
-	if (AskHostType() == HTYPE_VMS)
-		if (auto pos = str.find(L';'); pos != std::wstring::npos)
-			str.resize(pos);
-	return PathMatchSpecW(str.c_str(), regexp.c_str());
+//   VAX VMSの時は ; 以降は無視する
+bool CheckFname(std::wstring const& file, std::wstring const& spec) {
+	auto const pos = AskHostType() == HTYPE_VMS ? file.find(L';') : std::wstring::npos;
+	return PathMatchSpecW((pos == std::wstring::npos ? file : file.substr(0, pos)).c_str(), spec.c_str());
 }
 
 
