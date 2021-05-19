@@ -1942,7 +1942,7 @@ void RenameProc(void)
 					if (Win == WIN_LOCAL)
 						DoLocalRENAME(fs::u8path(f.File), fs::u8path(New));
 					else
-						DoRENAME(f.File, New);
+						DoRENAME(u8(f.File), u8(New));
 					RenFlg = YES;
 				}
 			}
@@ -2065,7 +2065,7 @@ void MoveRemoteFileProc(int drop_index)
 					if (Win == WIN_LOCAL)
 						DoLocalRENAME(fs::u8path(Old), fs::u8path(New));
 					else
-						DoRENAME(Old, New);
+						DoRENAME(u8(Old), u8(New));
 					RenFlg = YES;
 				}
 			}
@@ -2294,7 +2294,7 @@ void ChmodProc(void)
 					ChmodFlg = NO;
 					for (auto const& f : FileListBase)
 						if (f.Node == NODE_FILE || f.Node == NODE_DIR) {
-							DoCHMOD(f.File, u8(*newattr).c_str());
+							DoCHMOD(u8(f.File), *newattr);
 							ChmodFlg = YES;
 						}
 					if(ChmodFlg == YES)

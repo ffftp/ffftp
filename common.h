@@ -914,8 +914,8 @@ int DoMKD(std::wstring const& Path);
 void InitPWDcommand();
 int DoRMD(std::wstring const& path);
 int DoDELE(std::wstring const& path);
-int DoRENAME(const char *Src, const char *Dst);
-int DoCHMOD(const char *Path, const char *Mode);
+int DoRENAME(std::wstring const& from, std::wstring const& to);
+int DoCHMOD(std::wstring const& path, std::wstring const& mode);
 int DoSIZE(SOCKET cSkt, const char* Path, LONGLONG *Size, int *CancelCheckWork);
 int DoMDTM(SOCKET cSkt, const char* Path, FILETIME *Time, int *CancelCheckWork);
 // ホスト側の日時設定

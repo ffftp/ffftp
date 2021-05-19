@@ -236,69 +236,31 @@ int DoDELE(std::wstring const& path) {
 }
 
 
-/*----- リモート側のファイル名変更 --------------------------------------------
-*
-*	Parameter
-*		char *Src : 元ファイル名
-*		char *Dst : 変更後のファイル名
-*
-*	Return Value
-*		int 応答コードの１桁目
-*----------------------------------------------------------------------------*/
-
-int DoRENAME(const char *Src, const char *Dst)
-{
-	int Sts;
-
-	// 同時接続対応
-//	Sts = CommandProcCmd(NULL, "RNFR %s", Src);
-	Sts = CommandProcCmd(NULL, &CancelFlg, "RNFR %s", Src);
-	if(Sts == 350)
-		// 同時接続対応
-//		Sts = command(AskCmdCtrlSkt(), NULL, &CheckCancelFlg, "RNTO %s", Dst);
-		Sts = command(AskCmdCtrlSkt(), NULL, &CancelFlg, "RNTO %s", Dst);
-
-	if(Sts/100 >= FTP_CONTINUE)
+// リモート側のファイル名変更
+int DoRENAME(std::wstring const& from, std::wstring const& to) {
+	int Sts = CommandProcCmd(NULL, &CancelFlg, L"RNFR %s", from.c_str());
+	if (Sts == 350)
+		Sts = command(AskCmdCtrlSkt(), NULL, &CancelFlg, L"RNTO %s", to.c_str());
+	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
-
-	// 自動切断対策
-	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
-	{
+	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
 		NoopProc(YES);
 		LastDataConnectionTime = time(NULL);
 	}
-
-	return(Sts/100);
+	return Sts / 100;
 }
 
 
-/*----- リモート側のファイルの属性変更 ----------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*		char *Mode : モード文字列
-*
-*	Return Value
-*		int 応答コードの１桁目
-*----------------------------------------------------------------------------*/
-
-int DoCHMOD(const char *Path, const char *Mode)
-{
-	int Sts;
-
-	Sts = CommandProcCmd(NULL, &CancelFlg, "%s %s %s", AskHostChmodCmd().c_str(), Mode, Path);
-
-	if(Sts/100 >= FTP_CONTINUE)
+// リモート側のファイルの属性変更
+int DoCHMOD(std::wstring const& path, std::wstring const& mode) {
+	int Sts = CommandProcCmd(NULL, &CancelFlg, L"%s %s %s", u8(AskHostChmodCmd()).c_str(), mode.c_str(), path.c_str());
+	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
-
-	// 自動切断対策
-	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
-	{
+	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
 		NoopProc(YES);
 		LastDataConnectionTime = time(NULL);
 	}
-
-	return(Sts/100);
+	return Sts / 100;
 }
 
 
