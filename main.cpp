@@ -1886,13 +1886,13 @@ static void ChangeDir(int Win, const char *Path)
 	{
 		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 		{
-			std::string path = Path;
+			auto path = u8(Path);
 #if defined(HAVE_OPENVMS)
 			/* OpenVMSの場合、".DIR;?"を取る */
 			if (AskHostType() == HTYPE_VMS)
 				path = ReformVMSDirName(std::move(path));
 #endif
-			if(DoCWD(u8(path), YES, NO, YES) < FTP_RETRY)
+			if(DoCWD(path, YES, NO, YES) < FTP_RETRY)
 				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 		}
 	}

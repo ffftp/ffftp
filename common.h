@@ -551,28 +551,28 @@ struct TRANSPACKET {
 };
 
 
+/*===== ファイルリスト =====*/
+
 struct FILELIST {
-	char File[FMAX_PATH + 1] = {};			/* ファイル名 */
-	char Node = 0;							/* 種類 (NODE_xxx) */
-	char Link = 0;							/* リンクファイルかどうか (YES/NO) */
-	LONGLONG Size = 0;						/* ファイルサイズ */
-	int Attr = 0;							/* 属性 */
-	FILETIME Time = {};						/* 時間(UTC) */
-	char Owner[OWNER_NAME_LEN + 1] = {};	/* オーナ名 */
-	char InfoExist = 0;						/* ファイル一覧に存在した情報のフラグ (FINFO_xxx) */
-	int ImageId = 0;						/* アイコン画像番号 */
+	std::string Original;
+	std::wstring Name;
+	char Node = 0;			/* 種類 (NODE_xxx) */
+	char Link = 0;			/* リンクファイルかどうか (YES/NO) */
+	LONGLONG Size = 0;		/* ファイルサイズ */
+	int Attr = 0;			/* 属性 */
+	FILETIME Time = {};		/* 時間(UTC) */
+	std::wstring Owner;		/* オーナ名 */
+	char InfoExist = 0;		/* ファイル一覧に存在した情報のフラグ (FINFO_xxx) */
+	int ImageId = 0;		/* アイコン画像番号 */
 	FILELIST() = default;
-	FILELIST(std::string_view file, char node) : Node{ node } {
-		strncpy(File, file.data(), file.size());
-	}
-	FILELIST(std::string_view file, char node, char link, int64_t size, int attr, FILETIME time, std::string_view owner, char infoExist) : Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, InfoExist{ infoExist } {
-		strncpy(File, file.data(), file.size());
-		strncpy(Owner, owner.data(), owner.size());
-	}
+	FILELIST(std::wstring_view name, char node) : Name{ name }, Node{ node } {}
+	FILELIST(std::string_view original, char node) : Original{ original }, Node{ node } {}
+	FILELIST(std::wstring_view name, char node, char link, int64_t size, int attr, FILETIME time, char infoExist) : Name{ name }, Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, InfoExist{ infoExist } {}
+	inline FILELIST(std::string_view original, char node, char link, int64_t size, int attr, FILETIME time, std::string_view owner, char infoExist);
 	// ディレクトリの階層数を返す
 	//  単に '\' と '/'の数を返すだけ
 	int DirLevel() const {
-		return (int)std::ranges::count_if(std::string_view{ File }, [](auto ch) { return ch == '/' || ch == '\\'; });
+		return (int)std::ranges::count_if(Name, [](auto ch) { return ch == L'/' || ch == L'\\'; });
 	}
 };
 
@@ -686,9 +686,9 @@ double GetSelectedTotalSize(int Win);
 int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Base, int *CancelCheckWork);
 void MakeDroppedFileList(WPARAM wParam, char *Cur, std::vector<FILELIST>& Base);
 void MakeDroppedDir(WPARAM wParam, char *Cur);
-void AddRemoteTreeToFileList(int Num, const char *Path, int IncDir, std::vector<FILELIST>& Base);
-const FILELIST* SearchFileList(const char* Fname, std::vector<FILELIST> const& Base, int Caps);
-static inline FILELIST* SearchFileList(const char* Fname, std::vector<FILELIST>& Base, int Caps) {
+void AddRemoteTreeToFileList(int Num, std::wstring const& Path, int IncDir, std::vector<FILELIST>& Base);
+const FILELIST* SearchFileList(std::wstring_view Fname, std::vector<FILELIST> const& Base, int Caps);
+static inline FILELIST* SearchFileList(std::wstring_view Fname, std::vector<FILELIST>& Base, int Caps) {
 	return const_cast<FILELIST*>(SearchFileList(Fname, static_cast<std::vector<FILELIST> const&>(Base), Caps));
 }
 void SetFilter(int *CancelCheckWork);
@@ -891,7 +891,7 @@ int ProcForNonFullpath(SOCKET cSkt, std::wstring& Path, std::wstring& CurDir, HW
 void ReformToVMSstyleDirName(char* Path);
 void ReformToVMSstylePathName(char *Path);
 #if defined(HAVE_OPENVMS)
-std::string ReformVMSDirName(std::string&& dirName);
+std::wstring ReformVMSDirName(std::wstring&& dirName);
 #endif
 // 自動切断対策
 void NoopProc(int Force);
@@ -1478,3 +1478,4 @@ template<class Char, class... Args>
 static inline int CommandProcTrn(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const Char* fmt, Args... args) {
 	return command(cSkt, Reply, CancelCheckWork, fmt, std::forward<Args>(args)...);
 }
+FILELIST::FILELIST(std::string_view original, char node, char link, int64_t size, int attr, FILETIME time, std::string_view owner, char infoExist) : Original{ original }, Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, Owner{ u8(owner) }, InfoExist{ infoExist } {}

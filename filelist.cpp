@@ -44,16 +44,14 @@ static LRESULT CALLBACK LocalWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files);
-// ファイルアイコン表示対応
-//static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist);
-static void AddListView(HWND hWnd, int Pos, char *Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, char *Owner, int Link, int InfoExist, int ImageId);
+static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, std::wstring const& Owner, int Link, int InfoExist, int ImageId);
 static int GetImageIndex(int Win, int Pos);
-static int MakeRemoteTree1(char *Path, char *Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
-static int MakeRemoteTree2(char *Path, char *Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
+static int MakeRemoteTree1(std::wstring const& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
+static int MakeRemoteTree2(std::wstring& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
 static void CopyTmpListToFileList(std::vector<FILELIST>& Base, std::vector<FILELIST> const& List);
 static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLine(int Num);
 static int MakeDirPath(const char *Str, const char *Path, char *Dir);
-static bool MakeLocalTree(const char *Path, std::vector<FILELIST>& Base);
+static bool MakeLocalTree(fs::path const& path, std::vector<FILELIST>& Base);
 static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base);
 static int AskFilterStr(std::wstring const& file, int Type);
 
@@ -332,7 +330,7 @@ static void doTransferRemoteFile(void)
 	if (auto const created = !fs::create_directory(tmp); !created) {
 		// 既存のファイルを削除する
 		for (auto const& f : FileListBase)
-			fs::remove(tmp / fs::u8path(f.File));
+			fs::remove(tmp / f.Name);
 	}
 
 	// 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
@@ -674,7 +672,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					/* NTの場合はUNICODEになるようにする */
 					std::vector<fs::path> filenames;
 					for (auto const& f : FileListBaseNoExpand)
-						filenames.emplace_back(PathDir / fs::u8path(f.File));
+						filenames.emplace_back(PathDir / f.Name);
 					*(HANDLE*)lParam = CreateDropFileMem(filenames);
 					return TRUE;
 				}
@@ -869,12 +867,9 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 		if (Mode == CACHE_LASTREAD || DoDirListCmdSkt("", "", 0, CancelCheckWork) == FTP_COMPLETE) {
 			if (auto lines = GetListLine(0)) {
 				std::vector<FILELIST> files;
-				for (auto& line : *lines)
-					std::visit([&files](auto&& arg) {
-						if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>)
-							if (arg.Node != NODE_NONE && AskFilterStr(u8(arg.File), arg.Node) == YES && (DotFile == YES || arg.File[0] != '.'))
-								files.emplace_back(arg);
-					}, line);
+				for (auto const& line : *lines)
+					if (auto p = std::get_if<FILELIST>(&line); p && p->Node != NODE_NONE && AskFilterStr(p->Name, p->Node) == YES && (DotFile == YES || p->Name[0] != '.'))
+						files.emplace_back(*p);
 				DispFileList2View(GetRemoteHwnd(), files);
 
 				// 先頭のアイテムを選択
@@ -916,7 +911,7 @@ void RefreshIconImageList(std::vector<FILELIST>& files)
 		int ImageId = 0;
 		for (auto& file : files) {
 			file.ImageId = -1;
-			auto fullpath = fs::u8path(file.File);
+			fs::path fullpath{ file.Name };
 			if (file.Node != NODE_DRIVE)
 				fullpath = fs::current_path() / fullpath;
 			if (SHFILEINFOW fi; __pragma(warning(suppress:6001)) SHGetFileInfoW(fullpath.c_str(), 0, &fi, sizeof(SHFILEINFOW), SHGFI_SMALLICON | SHGFI_ICON)) {
@@ -958,15 +953,15 @@ void GetLocalDirForWnd(void)
 		if (DotFile != YES && data.cFileName[0] == L'.')
 			return true;
 		if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			files.emplace_back(u8(data.cFileName), NODE_DIR, NO, (int64_t)data.nFileSizeHigh << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, ""sv, FINFO_ALL);
+			files.emplace_back(data.cFileName, NODE_DIR, NO, (int64_t)data.nFileSizeHigh << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, FINFO_ALL);
 		else if (AskFilterStr(data.cFileName, NODE_FILE) == YES)
-			files.emplace_back(u8(data.cFileName), NODE_FILE, NO, (int64_t)data.nFileSizeHigh << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, ""sv, FINFO_ALL);
+			files.emplace_back(data.cFileName, NODE_FILE, NO, (int64_t)data.nFileSizeHigh << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, FINFO_ALL);
 		return true;
 	});
 
 	/* ドライブ */
 	if (DispDrives)
-		GetDrives([&files](const wchar_t drive[]) { files.emplace_back(u8(drive), NODE_DRIVE, NO, 0, 0, FILETIME{}, ""sv, FINFO_ALL); });
+		GetDrives([&files](const wchar_t drive[]) { files.emplace_back(drive, NODE_DRIVE, NO, 0, 0, FILETIME{}, FINFO_ALL); });
 
 	// ファイルアイコン表示対応
 	RefreshIconImageList(files);
@@ -987,7 +982,7 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 		auto Sort = AskSortType(hWnd == GetRemoteHwnd() ? l.Node == NODE_DIR ? ITEM_RDIR : ITEM_RFILE : l.Node == NODE_DIR ? ITEM_LDIR : ITEM_LFILE);
 		auto test = [ascent = (Sort & SORT_GET_ORD) == SORT_ASCENT](auto r) { return ascent ? r < 0 : r > 0; };
 		LONGLONG Cmp = 0;
-		auto lf = fs::u8path(l.File), rf = fs::u8path(r.File);
+		fs::path lf{ l.Name }, rf{ r.Name };
 		if ((Sort & SORT_MASK_ORD) == SORT_EXT && test(Cmp = _wcsicmp(lf.extension().c_str(), rf.extension().c_str())))
 			return true;
 #if defined(HAVE_TANDEM)
@@ -1008,7 +1003,7 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 	SendMessageW(hWnd, LVM_DELETEALLITEMS, 0, 0);
 
 	for (auto& file : files)
-		AddListView(hWnd, -1, file.File, file.Node, file.Size, &file.Time, file.Attr, file.Owner, file.Link, file.InfoExist, file.ImageId);
+		AddListView(hWnd, -1, file.Name, file.Node, file.Size, &file.Time, file.Attr, file.Owner, file.Link, file.InfoExist, file.ImageId);
 
 	SendMessageW(hWnd, WM_SETREDRAW, true, 0);
 	UpdateWindow(hWnd);
@@ -1043,17 +1038,16 @@ static std::wstring GetFileExt(std::wstring const& path) {
 *	Return Value
 *		なし
 *----------------------------------------------------------------------------*/
-static void AddListView(HWND hWnd, int Pos, char* Name, int Type, LONGLONG Size, FILETIME* Time, int Attr, char* Owner, int Link, int InfoExist, int ImageId) {
+static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, LONGLONG Size, FILETIME* Time, int Attr, std::wstring const& Owner, int Link, int InfoExist, int ImageId) {
 	LVITEMW item;
 	char Tmp[20];
 
 	/* アイコン/ファイル名 */
 	if (Pos == -1)
 		Pos = std::numeric_limits<int>::max();
-	auto wName = u8(Name);
-	if (Type == NODE_FILE && AskTransferTypeAssoc(wName, TYPE_X) == TYPE_I)
+	if (Type == NODE_FILE && AskTransferTypeAssoc(Name, TYPE_X) == TYPE_I)
 		Type = 3;
-	item = { .mask = LVIF_TEXT | LVIF_IMAGE, .iItem = Pos, .pszText = data(wName), .iImage = DispFileIcon == YES && hWnd == GetLocalHwnd() ? ImageId + 5 : Link == NO ? Type : 4 };
+	item = { .mask = LVIF_TEXT | LVIF_IMAGE, .iItem = Pos, .pszText = const_cast<LPWSTR>(Name.c_str()), .iImage = DispFileIcon == YES && hWnd == GetLocalHwnd() ? ImageId + 5 : Link == NO ? Type : 4 };
 	Pos = (int)SendMessageW(hWnd, LVM_INSERTITEMW, 0, (LPARAM)&item);
 
 	/* 日付/時刻 */
@@ -1082,7 +1076,7 @@ static void AddListView(HWND hWnd, int Pos, char* Name, int Type, LONGLONG Size,
 		extension = std::to_wstring(Attr);
 	else
 #endif
-		extension = GetFileExt(wName);
+		extension = GetFileExt(Name);
 	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 3, .pszText = const_cast<LPWSTR>(extension.c_str()) };
 	SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
@@ -1101,8 +1095,7 @@ static void AddListView(HWND hWnd, int Pos, char* Name, int Type, LONGLONG Size,
 		SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 		/* オーナ名 */
-		auto wOwner = u8(Owner);
-		item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 5, .pszText = data(wOwner) };
+		item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 5, .pszText = const_cast<LPWSTR>(Owner.c_str()) };
 		SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 	}
 }
@@ -1236,9 +1229,8 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 	}
 	if (Type == SELECT_LIST) {
 		for (int i = 0, Num = GetItemCount(Win); i < Num; i++) {
-			char Name[FMAX_PATH + 1];
-			GetNodeName(Win, i, Name, FMAX_PATH);
-			LVITEMW item{ 0, 0, 0, SearchFileList(Name, Base, COMP_STRICT) != NULL ? LVIS_SELECTED : 0u, LVIS_SELECTED };
+			auto const name = GetNodeName(Win, i);
+			LVITEMW item{ 0, 0, 0, SearchFileList(name, Base, COMP_STRICT) != NULL ? LVIS_SELECTED : 0u, LVIS_SELECTED };
 			SendMessageW(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&item);
 		}
 		return;
@@ -1648,8 +1640,6 @@ double GetSelectedTotalSize(int Win)
 int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Base, int *CancelCheckWork) {
 	int Sts;
 	int Pos;
-	char Name[FMAX_PATH+1];
-	char Cur[FMAX_PATH+1];
 	int Node;
 	int Ignore;
 
@@ -1668,7 +1658,7 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 			{
 				FILELIST Pkt{};
 				Pkt.InfoExist = 0;
-				GetNodeName(Win, Pos, Pkt.File, FMAX_PATH);
+				Pkt.Name = GetNodeName(Win, Pos);
 				if(GetNodeSize(Win, Pos, &Pkt.Size) == YES)
 					Pkt.InfoExist |= FINFO_SIZE;
 				if(GetNodeAttr(Win, Pos, &Pkt.Attr) == YES)
@@ -1679,7 +1669,7 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 
 				Ignore = NO;
 				if((DispIgnoreHide == YES) && (Win == WIN_LOCAL))
-					if (auto attr = GetFileAttributesW((AskLocalCurDir() / fs::u8path(Pkt.File)).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_HIDDEN))
+					if (auto attr = GetFileAttributesW((AskLocalCurDir() / Pkt.Name).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_HIDDEN))
 						Ignore = YES;
 
 				if(Ignore == NO)
@@ -1698,14 +1688,13 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 				if(GetNodeType(Win, Pos) == NODE_DIR)
 				{
 					FILELIST Pkt{};
-					GetNodeName(Win, Pos, Name, FMAX_PATH);
-					strcpy(Pkt.File, Name);
-					ReplaceAll(Pkt.File, '\\', '/');
+					auto name = GetNodeName(Win, Pos);
+					Pkt.Name = ReplaceAll(std::wstring{ name }, L'\\', L'/');
 //8/26
 
 					Ignore = NO;
 					if((DispIgnoreHide == YES) && (Win == WIN_LOCAL))
-						if (auto attr = GetFileAttributesW((AskLocalCurDir() / fs::u8path(Pkt.File)).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_HIDDEN))
+						if (auto attr = GetFileAttributesW((AskLocalCurDir() / Pkt.Name).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_HIDDEN))
 							Ignore = YES;
 
 					if(Ignore == NO)
@@ -1719,29 +1708,23 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 
 						if(GetImageIndex(Win, Pos) != 4) { // symlink
 							if(Win == WIN_LOCAL)
-							// ファイル一覧バグ修正
-//								MakeLocalTree(Name, Base);
 							{
-								if(!MakeLocalTree(Name, Base))
+								if(!MakeLocalTree(name, Base))
 									Sts = FFFTP_FAIL;
 							}
 							else
 							{
-								strcpy(Cur, u8(AskRemoteCurDir()).c_str());
+								auto const Cur = AskRemoteCurDir();
 
 								if((AskListCmdMode() == NO) &&
 								   (AskUseNLST_R() == YES))
-								// ファイル一覧バグ修正
-//									MakeRemoteTree1(Name, Cur, Base, CancelCheckWork);
 								{
-									if(MakeRemoteTree1(Name, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
+									if(MakeRemoteTree1(name, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
 										Sts = FFFTP_FAIL;
 								}
 								else
-								// ファイル一覧バグ修正
-//									MakeRemoteTree2(Name, Cur, Base, CancelCheckWork);
 								{
-									if(MakeRemoteTree2(Name, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
+									if(MakeRemoteTree2(name, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
 										Sts = FFFTP_FAIL;
 								}
 							}
@@ -1784,7 +1767,7 @@ void MakeDroppedFileList(WPARAM wParam, char* Cur, std::vector<FILELIST>& Base) 
 		else {
 			FILELIST Pkt{};
 			Pkt.Node = NODE_FILE;
-			strcpy(Pkt.File, path.filename().u8string().c_str());
+			Pkt.Name = path.filename();
 			if (SYSTEMTIME TmpStime; FileTimeToSystemTime(&attr.ftLastWriteTime, &TmpStime)) {
 				if (DispTimeSeconds == NO)
 					TmpStime.wSecond = 0;
@@ -1805,9 +1788,9 @@ void MakeDroppedFileList(WPARAM wParam, char* Cur, std::vector<FILELIST>& Base) 
 	for (auto const& path : directories) {
 		FILELIST Pkt{};
 		Pkt.Node = NODE_DIR;
-		strcpy(Pkt.File, path.filename().u8string().c_str());
+		Pkt.Name = path.filename();
 		AddFileList(Pkt, Base);
-		MakeLocalTree(Pkt.File, Base);
+		MakeLocalTree(Pkt.Name, Base);
 	}
 	fs::current_path(saved);
 }
@@ -1821,11 +1804,11 @@ void MakeDroppedDir(WPARAM wParam, char* Cur) {
 
 #if defined(HAVE_OPENVMS)
 // VMSの"HOGE.DIR;?"というディレクトリ名から"HOGE"を取り出す
-std::string ReformVMSDirName(std::string&& dirName) {
-	static boost::regex re{ R"(\.DIR[^.]*$)" };
+std::wstring ReformVMSDirName(std::wstring&& dirName) {
+	static boost::wregex re{ LR"(\.DIR[^.]*$)" };
 	/* ';'がない場合はVMS形式じゃなさそうなので何もしない */
 	/* ".DIR"があったらつぶす */
-	if (boost::smatch m; dirName.find(';') != std::string::npos && boost::regex_search(dirName, m, re))
+	if (boost::wsmatch m; dirName.find(L';') != std::wstring::npos && boost::regex_search(dirName, m, re))
 		dirName.erase(m[0].first, end(dirName));
 	return dirName;
 }
@@ -1846,17 +1829,17 @@ std::string ReformVMSDirName(std::string&& dirName) {
 *		NLST -alLR を使う
 *----------------------------------------------------------------------------*/
 
-static int MakeRemoteTree1(char *Path, char *Cur, std::vector<FILELIST>& Base, int *CancelCheckWork) {
+static int MakeRemoteTree1(std::wstring const& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork) {
 	int Ret;
 	int Sts;
 
 	// ファイル一覧バグ修正
 	Ret = FFFTP_FAIL;
-	if(DoCWD(u8(Path), NO, NO, NO) == FTP_COMPLETE)
+	if(DoCWD(Path, NO, NO, NO) == FTP_COMPLETE)
 	{
 		/* サブフォルダも含めたリストを取得 */
 		Sts = DoDirListCmdSkt("R", "", 999, CancelCheckWork);	/* NLST -alLR*/
-		DoCWD(u8(Cur), NO, NO, NO);
+		DoCWD(Cur, NO, NO, NO);
 
 		if(Sts == FTP_COMPLETE)
 		{
@@ -1882,7 +1865,7 @@ static int MakeRemoteTree1(char *Path, char *Cur, std::vector<FILELIST>& Base, i
 *		各フォルダに移動してリストを取得
 *----------------------------------------------------------------------------*/
 
-static int MakeRemoteTree2(char *Path, char *Cur, std::vector<FILELIST>& Base, int *CancelCheckWork) {
+static int MakeRemoteTree2(std::wstring& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork) {
 	int Ret;
 	int Sts;
 
@@ -1891,20 +1874,20 @@ static int MakeRemoteTree2(char *Path, char *Cur, std::vector<FILELIST>& Base, i
 	/* VAX VMS は CWD xxx/yyy という指定ができないので	*/
 	/* CWD xxx, Cwd yyy と複数に分ける					*/
 	if(AskHostType() != HTYPE_VMS)
-		Sts = DoCWD(u8(Path), NO, NO, NO);
+		Sts = DoCWD(Path, NO, NO, NO);
 	else
 	{
 #if defined(HAVE_OPENVMS)
 		/* OpenVMSの場合、ディレクトリ移動時は"HOGE.DIR;1"を"HOGE"にする */
-		strcpy(Path, ReformVMSDirName(Path).c_str());
+		Path = ReformVMSDirName(std::move(Path));
 #endif
-		Sts = DoCWDStepByStep(u8(Path), u8(Cur));
+		Sts = DoCWDStepByStep(Path, Cur);
 	}
 
 	if(Sts == FTP_COMPLETE)
 	{
 		Sts = DoDirListCmdSkt("", "", 999, CancelCheckWork);		/* NLST -alL*/
-		DoCWD(u8(Cur), NO, NO, NO);
+		DoCWD(Cur, NO, NO, NO);
 
 		if(Sts == FTP_COMPLETE)
 		{
@@ -1915,11 +1898,11 @@ static int MakeRemoteTree2(char *Path, char *Cur, std::vector<FILELIST>& Base, i
 			// ファイル一覧バグ修正
 			Ret = FFFTP_SUCCESS;
 
-			for (auto const& f : CurList)
+			for (auto& f : CurList)
 				if (f.Node == NODE_DIR) {
 					FILELIST Pkt{};
 					/* まずディレクトリ名をセット */
-					strcpy(Pkt.File, f.File);
+					Pkt.Name = f.Name;
 					Pkt.Link = f.Link;
 					if (Pkt.Link == YES)
 						Pkt.Node = NODE_FILE;
@@ -1927,7 +1910,7 @@ static int MakeRemoteTree2(char *Path, char *Cur, std::vector<FILELIST>& Base, i
 						Pkt.Node = NODE_DIR;
 					AddFileList(Pkt, Base);
 
-					if (Pkt.Link == NO && MakeRemoteTree2(const_cast<char*>(f.File), Cur, Base, CancelCheckWork) == FFFTP_FAIL)
+					if (Pkt.Link == NO && MakeRemoteTree2(f.Name, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
 						Ret = FFFTP_FAIL;
 				}
 		}
@@ -1958,26 +1941,29 @@ static void CopyTmpListToFileList(std::vector<FILELIST>& Base, std::vector<FILEL
 
 
 // ホスト側のファイル情報をファイルリストに登録
-void AddRemoteTreeToFileList(int Num, const char *Path, int IncDir, std::vector<FILELIST>& Base) {
-	char Dir[FMAX_PATH+1];
-	strcpy(Dir, Path);
+void AddRemoteTreeToFileList(int Num, std::wstring const& Path, int IncDir, std::vector<FILELIST>& Base) {
+	auto Dir = Path;
 	if (auto lines = GetListLine(Num))
-		for (auto& line : *lines)
-			std::visit([&Path, IncDir, &Base, &Dir](auto&& arg) {
-				if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>) {
-					if (AskFilterStr(u8(arg.File), arg.Node) == YES && (arg.Node == NODE_FILE || IncDir == RDIR_CWD && arg.Node == NODE_DIR)) {
-						FILELIST Pkt{ Dir, arg.Node, arg.Link, arg.Size, arg.Attr, arg.Time, ""sv, arg.InfoExist };
-						if (0 < strlen(Pkt.File))
-							SetSlashTail(Pkt.File);
-						strcat(Pkt.File, arg.File);
-						AddFileList(Pkt, Base);
+		for (auto const& line : *lines)
+			if (auto p = std::get_if<std::string>(&line)) {
+				if (p->ends_with(':')) {		/* 最後が : ならサブディレクトリ */
+					if (*p != ".:"sv) {
+						std::string_view str{ *p };
+						if (str.starts_with("./"sv) || str.starts_with(".\\"sv))
+							str = str.substr(2);
+						if (1 < size(str))
+							Dir = ReplaceAll(SetSlashTail(std::wstring{ Path }) + ConvertFrom(str, CurHost.CurNameKanjiCode), L'\\', L'/');
 					}
-				} else {
-					static_assert(std::is_same_v<std::decay_t<decltype(arg)>, std::string>);
-					if (MakeDirPath(data(arg), Path, Dir) == FFFTP_SUCCESS && IncDir == RDIR_NLST)
+					if (IncDir == RDIR_NLST)
 						AddFileList({ Dir, NODE_DIR }, Base);
 				}
-			}, line);
+			} else {
+				if (auto& item = std::get<FILELIST>(line); AskFilterStr(item.Name, item.Node) == YES && (item.Node == NODE_FILE || IncDir == RDIR_CWD && item.Node == NODE_DIR)) {
+					FILELIST Pkt{ Dir, item.Node, item.Link, item.Size, item.Attr, item.Time, item.InfoExist };
+					Pkt.Name = (empty(Pkt.Name) ? L""s : SetSlashTail(std::move(Pkt.Name))) + item.Name;
+					AddFileList(Pkt, Base);
+				}
+			}
 }
 
 namespace re {
@@ -2372,95 +2358,41 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 		line.erase(std::remove(begin(line), end(line), '\r'), end(line));
 		std::replace(begin(line), end(line), '\b', ' ');
 		if (auto result = Parse(line))
-			lines.push_back(*result);
+			lines.emplace_back(std::move(result).value());
 		else
-			lines.push_back(line);
+			lines.emplace_back(std::move(line));
 	}
 	if (CurHost.NameKanjiCode == KANJI_AUTO) {
 		CodeDetector cd;
-		for (auto& line : lines)
-			std::visit([&cd](auto&& arg) {
-				if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>)
-					if (arg.Node != NODE_NONE && 0 < strlen(arg.File))
-						cd.Test(arg.File);
-			}, line);
+		for (auto const& line : lines)
+			if (auto p = std::get_if<FILELIST>(&line); p && p->Node != NODE_NONE && !empty(p->Original))
+				cd.Test(p->Original);
 		CurHost.CurNameKanjiCode = cd.result();
 	} else
 		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
-	for (auto& line : lines)
-		std::visit([](auto&& arg) {
-			if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>)
-				if (arg.Node != NODE_NONE && 0 < strlen(arg.File)) {
-					auto file = ConvertFrom(arg.File, CurHost.CurNameKanjiCode);
-					if (auto last = file.back(); last == '/' || last == '\\')
-						file.resize(file.size() - 1);
-					if (empty(file) || file == L"."sv || file == L".."sv)
-						arg.Node = NODE_NONE;
-					strcpy(arg.File, u8(file).c_str());
-				}
-		}, line);
+	for (auto& line : lines) {
+		if (auto p = std::get_if<FILELIST>(&line); p && p->Node != NODE_NONE && !empty(p->Original)) {
+			auto file = ConvertFrom(p->Original, CurHost.CurNameKanjiCode);
+			if (auto last = file.back(); last == '/' || last == '\\')
+				file.resize(file.size() - 1);
+			if (empty(file) || file == L"."sv || file == L".."sv)
+				p->Node = NODE_NONE;
+			p->Name = file;
+		}
+	}
 	return lines;
 }
 
 
-/*----- サブディレクトリ情報の解析 --------------------------------------------
-*
-*	Parameter
-*		char *Str : ファイル情報（１行）
-*		char *Path : 先頭からのパス名
-*		char *Dir : ディレクトリ名
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL=ディレクトリ情報でない
-*----------------------------------------------------------------------------*/
-
-static int MakeDirPath(const char *Str, const char *Path, char *Dir)
-{
-	int Sts;
-
-	Sts = FFFTP_FAIL;
-	if(*(Str + strlen(Str) - 1) == ':')		/* 最後が : ならサブディレクトリ */
-	{
-		if(strcmp(Str, ".:") != 0)
-		{
-			if((strncmp(Str, "./", 2) == 0) ||
-				(strncmp(Str, ".\\", 2) == 0))
-			{
-				Str += 2;
-			}
-
-			if(strlen(Str) > 1)
-			{
-				strcpy(Dir, Path);
-				SetSlashTail(Dir);
-				strcat(Dir, Str);
-				*(Dir + strlen(Dir) - 1) = NUL;
-
-				// 文字化け対策
-//				ChangeFnameRemote2Local(Dir, FMAX_PATH);
-
-				ReplaceAll(Dir, '\\', '/');
-			}
-		}
-		Sts = FFFTP_SUCCESS;
-	}
-	return(Sts);
-}
-
-
 // ローカル側のサブディレクトリ以下のファイルをリストに登録する
-static bool MakeLocalTree(const char* Path, std::vector<FILELIST>& Base) {
-	auto const path = fs::u8path(Path);
+static bool MakeLocalTree(fs::path const& path, std::vector<FILELIST>& Base) {
 	std::vector<WIN32_FIND_DATAW> items;
 	if (!FindFile(path / L"*", [&items](auto const& item) { items.push_back(item); return true; }))
 		return false;
 	for (auto const& data : items)
 		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 && AskFilterStr(data.cFileName, NODE_FILE) == YES) {
 			FILELIST Pkt{};
-			auto const src = (path / data.cFileName).u8string();
-			strcpy(Pkt.File, src.c_str());
-			ReplaceAll(Pkt.File, '\\', '/');
+			Pkt.Name = (path / data.cFileName).generic_wstring();
 			Pkt.Node = NODE_FILE;
 			Pkt.Size = LONGLONG(data.nFileSizeHigh) << 32 | data.nFileSizeLow;
 			if (SYSTEMTIME TmpStime; FileTimeToSystemTime(&data.ftLastWriteTime, &TmpStime)) {
@@ -2474,12 +2406,11 @@ static bool MakeLocalTree(const char* Path, std::vector<FILELIST>& Base) {
 	for (auto const& data : items)
 		if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
 			FILELIST Pkt{};
-			auto const src = (path / data.cFileName).u8string();
-			strcpy(Pkt.File, src.c_str());
-			ReplaceAll(Pkt.File, '\\', '/');
+			auto const src = path / data.cFileName;
+			Pkt.Name = src.generic_wstring();
 			Pkt.Node = NODE_DIR;
 			AddFileList(Pkt, Base);
-			if (!MakeLocalTree(src.c_str(), Base))
+			if (!MakeLocalTree(src, Base))
 				return false;
 		}
 	return true;
@@ -2497,9 +2428,9 @@ static bool MakeLocalTree(const char* Path, std::vector<FILELIST>& Base) {
 *----------------------------------------------------------------------------*/
 
 static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base) {
-	DoPrintf("FileList : NODE=%d : %s", Pkt.Node, Pkt.File);
+	DoPrintf(L"FileList : NODE=%d : %s", Pkt.Node, Pkt.Name.c_str());
 	/* リストの重複を取り除く */
-	if (std::any_of(begin(Base), end(Base), [name = Pkt.File](auto const& f) { return strcmp(name, f.File) == 0; })) {
+	if (std::ranges::any_of(Base, [&Pkt](auto const& f) { return Pkt.Name == f.Name; })) {
 		DoPrintf(L" --> Duplicate!!");
 		return;
 	}
@@ -2519,22 +2450,10 @@ static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base) {
 *			NULL=見つからない
 *----------------------------------------------------------------------------*/
 
-const FILELIST* SearchFileList(const char* Fname, std::vector<FILELIST> const& Base, int Caps) {
+const FILELIST* SearchFileList(std::wstring_view Fname, std::vector<FILELIST> const& Base, int Caps) {
 	for (auto p = data(Base), end = data(Base) + size(Base); p != end; ++p)
-		if (Caps == COMP_STRICT) {
-			if (strcmp(Fname, p->File) == 0)
-				return p;
-		} else {
-			if (_stricmp(Fname, p->File) == 0) {
-				if (Caps == COMP_IGNORE)
-					return p;
-				char Tmp[FMAX_PATH + 1];
-				strcpy(Tmp, p->File);
-				_strlwr(Tmp);
-				if (strcmp(Tmp, p->File) == 0)
-					return p;
-			}
-		}
+		if (Caps == COMP_STRICT ? Fname == p->Name : ieq(Fname, p->Name) && (Caps == COMP_IGNORE || lc(p->Name) == p->Name))
+			return p;
 	return nullptr;
 }
 
