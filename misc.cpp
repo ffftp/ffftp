@@ -370,34 +370,6 @@ void GetUpperDirEraseTopSlash(char *Path)
 }
 
 
-/*----- ディレクトリの階層数を返す --------------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		単に '\' と '/'の数を返すだけ
-*----------------------------------------------------------------------------*/
-
-int AskDirLevel(const char* Path)
-{
-	const char* Pos;
-	int Level;
-
-	Level = 0;
-	while(((Pos = strchr(Path, '/')) != NULL) ||
-		  ((Pos = strchr(Path, '\\')) != NULL))
-	{
-		Path = Pos + 1;
-		Level++;
-	}
-	return(Level);
-}
-
-
 // ファイルサイズを文字列に変換する
 std::wstring MakeSizeString(double size) {
 	if (size < 1024)

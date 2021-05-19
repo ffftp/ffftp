@@ -458,10 +458,10 @@ void MirrorDownloadProc(int Notify)
 					LocalPos->Attr = NO;	/* LocalPos->Attrは削除するかどうかのフラグに使用 (YES/NO) */
 
 					if (LocalPos->Node == NODE_DIR) {
-						Level = AskDirLevel(LocalPos->File);
+						Level = LocalPos->DirLevel();
 						++LocalPos;
 						while (LocalPos != end(LocalListBase)) {
-							if (LocalPos->Node == NODE_DIR && AskDirLevel(LocalPos->File) <= Level)
+							if (LocalPos->Node == NODE_DIR && LocalPos->DirLevel() <= Level)
 								break;
 							LocalPos->Attr = NO;
 							++LocalPos;
@@ -499,10 +499,10 @@ void MirrorDownloadProc(int Notify)
 						++RemotePos;
 					} else {
 						RemotePos->Attr = NO;
-						Level = AskDirLevel(RemotePos->File);
+						Level = RemotePos->DirLevel();
 						++RemotePos;
 						while (RemotePos != end(RemoteListBase)) {
-							if (RemotePos->Node == NODE_DIR && AskDirLevel(RemotePos->File) <= Level)
+							if (RemotePos->Node == NODE_DIR && RemotePos->DirLevel() <= Level)
 								break;
 							RemotePos->Attr = NO;
 							++RemotePos;
@@ -1245,10 +1245,10 @@ void MirrorUploadProc(int Notify)
 					RemotePos->Attr = NO;	/* RemotePos->Attrは削除するかどうかのフラグに使用 (YES/NO) */
 
 					if (RemotePos->Node == NODE_DIR) {
-						Level = AskDirLevel(RemotePos->File);
+						Level = RemotePos->DirLevel();
 						++RemotePos;
 						while (RemotePos != end(RemoteListBase)) {
-							if (RemotePos->Node == NODE_DIR && AskDirLevel(RemotePos->File) <= Level)
+							if (RemotePos->Node == NODE_DIR && RemotePos->DirLevel() <= Level)
 								break;
 							RemotePos->Attr = NO;
 							++RemotePos;
@@ -1313,10 +1313,10 @@ void MirrorUploadProc(int Notify)
 						++LocalPos;
 					} else {
 						LocalPos->Attr = NO;
-						Level = AskDirLevel(LocalPos->File);
+						Level = LocalPos->DirLevel();
 						++LocalPos;
 						while (LocalPos != end(LocalListBase)) {
-							if (LocalPos->Node == NODE_DIR && AskDirLevel(LocalPos->File) <= Level)
+							if (LocalPos->Node == NODE_DIR && LocalPos->DirLevel() <= Level)
 								break;
 							LocalPos->Attr = NO;
 							++LocalPos;

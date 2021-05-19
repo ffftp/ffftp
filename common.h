@@ -569,6 +569,11 @@ struct FILELIST {
 		strncpy(File, file.data(), file.size());
 		strncpy(Owner, owner.data(), owner.size());
 	}
+	// ディレクトリの階層数を返す
+	//  単に '\' と '/'の数を返すだけ
+	int DirLevel() const {
+		return (int)std::ranges::count_if(std::string_view{ File }, [](auto ch) { return ch == '/' || ch == '\\'; });
+	}
 };
 
 
@@ -1073,7 +1078,6 @@ std::wstring_view GetFileName(std::wstring_view path);
 const char* GetFileExt(const char* Path);
 void GetUpperDir(char *Path);
 void GetUpperDirEraseTopSlash(char *Path);
-int AskDirLevel(const char* Path);
 std::wstring MakeSizeString(double size);
 void DispStaticText(HWND hWnd, std::wstring text);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
