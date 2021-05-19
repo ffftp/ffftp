@@ -551,9 +551,7 @@ struct TRANSPACKET {
 };
 
 
-/*===== ファイルリスト =====*/
-
-typedef struct filelist {
+struct FILELIST {
 	char File[FMAX_PATH + 1] = {};			/* ファイル名 */
 	char Node = 0;							/* 種類 (NODE_xxx) */
 	char Link = 0;							/* リンクファイルかどうか (YES/NO) */
@@ -563,15 +561,15 @@ typedef struct filelist {
 	char Owner[OWNER_NAME_LEN + 1] = {};	/* オーナ名 */
 	char InfoExist = 0;						/* ファイル一覧に存在した情報のフラグ (FINFO_xxx) */
 	int ImageId = 0;						/* アイコン画像番号 */
-	filelist() = default;
-	filelist(std::string_view file, char node) : Node{ node } {
+	FILELIST() = default;
+	FILELIST(std::string_view file, char node) : Node{ node } {
 		strncpy(File, file.data(), file.size());
 	}
-	filelist(std::string_view file, char node, char link, int64_t size, int attr, FILETIME time, std::string_view owner, char infoExist) : Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, InfoExist{ infoExist } {
+	FILELIST(std::string_view file, char node, char link, int64_t size, int attr, FILETIME time, std::string_view owner, char infoExist) : Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, InfoExist{ infoExist } {
 		strncpy(File, file.data(), file.size());
 		strncpy(Owner, owner.data(), owner.size());
 	}
-} FILELIST;
+};
 
 
 class Sound {
