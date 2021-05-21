@@ -1017,6 +1017,15 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 }
 
 
+// パス名の中の拡張子の先頭を返す
+static std::wstring GetFileExt(std::wstring const& path) {
+	if (path != L"."sv && path != L".."sv)
+		if (auto const pos = path.rfind(L'.'); pos != std::wstring::npos)
+			return path.substr(pos + 1);
+	return {};
+}
+
+
 /*----- ファイル一覧ウインドウ（リストビュー）に追加 --------------------------
 *
 *	Parameter
@@ -1067,14 +1076,14 @@ static void AddListView(HWND hWnd, int Pos, char* Name, int Type, LONGLONG Size,
 	SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 	/* 拡張子 */
+	std::wstring extension;
 #if defined(HAVE_TANDEM)
 	if (AskHostType() == HTYPE_TANDEM)
-		_itoa_s(Attr, Tmp, sizeof(Tmp), 10);
+		extension = std::to_wstring(Attr);
 	else
 #endif
-		strncpy_s(Tmp, GetFileExt(Name), _TRUNCATE);
-	auto wExt = u8(Tmp);
-	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 3, .pszText = data(wExt) };
+		extension = GetFileExt(wName);
+	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 3, .pszText = const_cast<LPWSTR>(extension.c_str()) };
 	SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 	if (hWnd == GetRemoteHwnd()) {

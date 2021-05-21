@@ -1075,7 +1075,6 @@ const char* GetNextField(const char* Str);
 int GetOneField(const char* Str, char *Buf, int Max);
 const char* GetFileName(const char* Path);
 std::wstring_view GetFileName(std::wstring_view path);
-const char* GetFileExt(const char* Path);
 void GetUpperDir(char *Path);
 void GetUpperDirEraseTopSlash(char *Path);
 std::wstring MakeSizeString(double size);

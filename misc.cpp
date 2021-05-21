@@ -268,33 +268,6 @@ std::wstring_view GetFileName(std::wstring_view path) {
 }
 
 
-/*----- パス名の中の拡張子の先頭を返す ----------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		char *拡張子の先頭
-*----------------------------------------------------------------------------*/
-
-const char* GetFileExt(const char* Path)
-{
-	const char* Ret;
-
-	Ret = Path + strlen(Path);
-	if((strcmp(Path, ".") != 0) &&
-	   (strcmp(Path, "..") != 0))
-	{
-		while((Path = strchr(Path, '.')) != NULL)
-		{
-			Path++;
-			Ret = Path;
-		}
-	}
-	return(Ret);
-}
-
-
 // パス名からファイル名を取り除く
 //   ディレクトリの区切り記号は "\" と "/" の両方が有効
 static std::string_view RemoveFileName(std::string_view path) {
