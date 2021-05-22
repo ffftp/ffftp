@@ -1855,9 +1855,9 @@ static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, char 
 			if(*Sw != NO_ALL)
 			{
 				if(Dt.Node == NODE_FILE)
-					DoDELE(Path);
+					DoDELE(u8(Path));
 				else
-					DoRMD(Path);
+					DoRMD(u8(Path));
 				*Flg = YES;
 			}
 		}

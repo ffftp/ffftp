@@ -210,65 +210,29 @@ int DoMKD(std::wstring const& Path) {
 }
 
 
-/*----- リモート側のディレクトリ削除 ------------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		int 応答コードの１桁目
-*----------------------------------------------------------------------------*/
-
-int DoRMD(const char* Path)
-{
-	int Sts;
-
-	// 同時接続対応
-//	Sts = CommandProcCmd(NULL, "RMD %s", Path);
-	Sts = CommandProcCmd(NULL, &CancelFlg, "RMD %s", Path);
-
-	if(Sts/100 >= FTP_CONTINUE)
+// リモート側のディレクトリ削除
+int DoRMD(std::wstring const& path) {
+	int Sts = CommandProcCmd(NULL, &CancelFlg, L"RMD %s", path.c_str());
+	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
-
-	// 自動切断対策
-	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
-	{
+	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
 		NoopProc(YES);
 		LastDataConnectionTime = time(NULL);
 	}
-
-	return(Sts/100);
+	return Sts / 100;
 }
 
 
-/*----- リモート側のファイル削除 ----------------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		int 応答コードの１桁目
-*----------------------------------------------------------------------------*/
-
-int DoDELE(const char* Path)
-{
-	int Sts;
-
-	// 同時接続対応
-//	Sts = CommandProcCmd(NULL, "DELE %s", Path);
-	Sts = CommandProcCmd(NULL, &CancelFlg, "DELE %s", Path);
-
-	if(Sts/100 >= FTP_CONTINUE)
+// リモート側のファイル削除
+int DoDELE(std::wstring const& path) {
+	int Sts = CommandProcCmd(NULL, &CancelFlg, L"DELE %s", path.c_str());
+	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
-
-	// 自動切断対策
-	if(CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
-	{
+	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
 		NoopProc(YES);
 		LastDataConnectionTime = time(NULL);
 	}
-
-	return(Sts/100);
+	return Sts / 100;
 }
 
 
