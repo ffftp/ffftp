@@ -2118,7 +2118,7 @@ void MkdirProc(void)
 			if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
 			{
 				DisableUserOpe();
-				DoMKD(u8(path).c_str());
+				DoMKD(path);
 				GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
 				EnableUserOpe();
 			}

@@ -910,7 +910,7 @@ void DoLocalRENAME(fs::path const& src, fs::path const& dst);
 
 int DoCWD(std::wstring const& Path, int Disp, int ForceGet, int ErrorBell);
 int DoCWDStepByStep(std::wstring const& Path, std::wstring const& Cur);
-int DoMKD(const char* Path);
+int DoMKD(std::wstring const& Path);
 void InitPWDcommand();
 int DoRMD(const char* Path);
 int DoDELE(const char* Path);
