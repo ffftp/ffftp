@@ -55,7 +55,7 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 static int MakeDirPath(const char *Str, const char *Path, char *Dir);
 static bool MakeLocalTree(const char *Path, std::vector<FILELIST>& Base);
 static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base);
-static int AskFilterStr(const char *Fname, int Type);
+static int AskFilterStr(std::wstring const& file, int Type);
 
 /*===== 外部参照 =====*/
 
@@ -872,7 +872,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 				for (auto& line : *lines)
 					std::visit([&files](auto&& arg) {
 						if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>)
-							if (arg.Node != NODE_NONE && AskFilterStr(arg.File, arg.Node) == YES && (DotFile == YES || arg.File[0] != '.'))
+							if (arg.Node != NODE_NONE && AskFilterStr(u8(arg.File), arg.Node) == YES && (DotFile == YES || arg.File[0] != '.'))
 								files.emplace_back(arg);
 					}, line);
 				DispFileList2View(GetRemoteHwnd(), files);
@@ -959,7 +959,7 @@ void GetLocalDirForWnd(void)
 			return true;
 		if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			files.emplace_back(u8(data.cFileName), NODE_DIR, NO, (int64_t)data.nFileSizeHigh << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, ""sv, FINFO_ALL);
-		else if (AskFilterStr(u8(data.cFileName).c_str(), NODE_FILE) == YES)
+		else if (AskFilterStr(data.cFileName, NODE_FILE) == YES)
 			files.emplace_back(u8(data.cFileName), NODE_FILE, NO, (int64_t)data.nFileSizeHigh << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, ""sv, FINFO_ALL);
 		return true;
 	});
@@ -1965,7 +1965,7 @@ void AddRemoteTreeToFileList(int Num, const char *Path, int IncDir, std::vector<
 		for (auto& line : *lines)
 			std::visit([&Path, IncDir, &Base, &Dir](auto&& arg) {
 				if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, FILELIST>) {
-					if (AskFilterStr(arg.File, arg.Node) == YES && (arg.Node == NODE_FILE || IncDir == RDIR_CWD && arg.Node == NODE_DIR)) {
+					if (AskFilterStr(u8(arg.File), arg.Node) == YES && (arg.Node == NODE_FILE || IncDir == RDIR_CWD && arg.Node == NODE_DIR)) {
 						FILELIST Pkt{ Dir, arg.Node, arg.Link, arg.Size, arg.Attr, arg.Time, ""sv, arg.InfoExist };
 						if (0 < strlen(Pkt.File))
 							SetSlashTail(Pkt.File);
@@ -2456,7 +2456,7 @@ static bool MakeLocalTree(const char* Path, std::vector<FILELIST>& Base) {
 	if (!FindFile(path / L"*", [&items](auto const& item) { items.push_back(item); return true; }))
 		return false;
 	for (auto const& data : items)
-		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 && AskFilterStr(u8(data.cFileName).c_str(), NODE_FILE) == YES) {
+		if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0 && AskFilterStr(data.cFileName, NODE_FILE) == YES) {
 			FILELIST Pkt{};
 			auto const src = (path / data.cFileName).u8string();
 			strcpy(Pkt.File, src.c_str());
@@ -2540,13 +2540,12 @@ const FILELIST* SearchFileList(const char* Fname, std::vector<FILELIST> const& B
 
 
 // フィルタに指定されたファイル名かどうかを返す
-static int AskFilterStr(const char *Fname, int Type) {
+static int AskFilterStr(std::wstring const& file, int Type) {
 	static boost::wregex re{ L";" };
 	if (Type != NODE_FILE || empty(FilterStr) || FilterStr == L"*"sv)
 		return YES;
-	auto const wFname = u8(Fname);
 	for (boost::wsregex_token_iterator it{ begin(FilterStr), end(FilterStr), re, -1 }, end; it != end; ++it)
-		if (it->matched && CheckFname(wFname, *it))
+		if (it->matched && CheckFname(file, *it))
 			return YES;
 	return NO;
 }
