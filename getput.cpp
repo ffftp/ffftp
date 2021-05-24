@@ -62,7 +62,7 @@
 static void DispTransPacket(TRANSPACKET const& item);
 static void EraseTransFileList();
 static unsigned __stdcall TransferThread(void *Dummy);
-static int MakeNonFullPath(TRANSPACKET& item, char *CurDir);
+static int MakeNonFullPath(TRANSPACKET& item, std::wstring& CurDir);
 static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
 static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
 static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *CancelCheckWork);
@@ -113,10 +113,7 @@ static time_t TimeStart[MAX_DATA_CONNECTION];	/* 転送開始時間 */
 
 static int KeepDlg = NO;	/* 転送中ダイアログを消さないかどうか (YES/NO) */
 static int MoveToForeground = NO;		/* ウインドウを前面に移動するかどうか (YES/NO) */
-
-// 同時接続対応
-//static char CurDir[FMAX_PATH+1] = { "" };
-static char CurDir[MAX_DATA_CONNECTION][FMAX_PATH+1];
+static std::wstring CurDir[MAX_DATA_CONNECTION];
 static thread_local std::wstring ErrMsg;
 
 // 同時接続対応
@@ -360,15 +357,15 @@ void AppendTransFileList(std::forward_list<TRANSPACKET>&& list) {
 // 転送ファイル情報を表示する
 static void DispTransPacket(TRANSPACKET const& item) {
 	if (item.Command.starts_with(L"RETR"sv) || item.Command.starts_with(L"STOR"sv))
-		DoPrintf("TransList Cmd=%s : %s : %s", u8(item.Command).c_str(), item.RemoteFile, item.Local.u8string().c_str());
+		DoPrintf(L"TransList Cmd=%s : %s : %s", item.Command.c_str(), item.Remote.c_str(), item.Local.c_str());
 	else if (item.Command.starts_with(L"R-"sv))
-		DoPrintf("TransList Cmd=%s : %s", u8(item.Command).c_str(), item.RemoteFile);
+		DoPrintf(L"TransList Cmd=%s : %s", item.Command.c_str(), item.Remote.c_str());
 	else if (item.Command.starts_with(L"L-"sv))
-		DoPrintf("TransList Cmd=%s : %s", u8(item.Command).c_str(), item.Local.u8string().c_str());
+		DoPrintf(L"TransList Cmd=%s : %s", item.Command.c_str(), item.Local.c_str());
 	else if (item.Command.starts_with(L"MKD"sv))
-		DoPrintf("TransList Cmd=%s : %s", u8(item.Command).c_str(), !item.Local.empty() ? item.Local.u8string().c_str() : item.RemoteFile);
+		DoPrintf(L"TransList Cmd=%s : %s", item.Command.c_str(), !item.Local.empty() ? item.Local.c_str() : item.Remote.c_str());
 	else
-		DoPrintf("TransList Cmd=%s", u8(item.Command).c_str());
+		DoPrintf(L"TransList Cmd=%s", item.Command.c_str());
 }
 
 
@@ -463,23 +460,10 @@ void GoForwardTransWindow(void)
 }
 
 
-/*----- 転送ソケットのカレントディレクトリ情報を初期化 ------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void InitTransCurDir(void)
-{
-	// 同時接続対応
-//	strcpy(CurDir, "");
-	int i;
-	for(i = 0; i < MAX_DATA_CONNECTION; i++)
-		strcpy(CurDir[i], "");
-	return;
+// 転送ソケットのカレントディレクトリ情報を初期化
+void InitTransCurDir() {
+	for (auto& dir : CurDir)
+		dir.clear();
 }
 
 
@@ -495,7 +479,6 @@ void InitTransCurDir(void)
 static unsigned __stdcall TransferThread(void *Dummy)
 {
 	HWND hWndTrans;
-	char Tmp[FMAX_PATH+1];
 	int CwdSts;
 	int GoExit;
 //	int Down;
@@ -687,8 +670,8 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						if(Pos->Command.starts_with(L"RETR-S"sv))
 						{
 							/* サイズと日付を取得 */
-							DoSIZE(TrnSkt, u8(Pos->RemoteFile), &Pos->Size, &Canceled[Pos->ThreadCount]);
-							DoMDTM(TrnSkt, u8(Pos->RemoteFile), &Pos->Time, &Canceled[Pos->ThreadCount]);
+							DoSIZE(TrnSkt, Pos->Remote, &Pos->Size, &Canceled[Pos->ThreadCount]);
+							DoMDTM(TrnSkt, Pos->Remote, &Pos->Time, &Canceled[Pos->ThreadCount]);
 							Pos->Command = L"RETR "s;
 						}
 
@@ -736,7 +719,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					if((SaveTimeStamp == YES) &&
 					   ((Pos->Time.dwLowDateTime != 0) || (Pos->Time.dwHighDateTime != 0)))
 					{
-						DoMFMT(TrnSkt, u8(Pos->RemoteFile), &Pos->Time, &Canceled[Pos->ThreadCount]);
+						DoMFMT(TrnSkt, Pos->Remote, &Pos->Time, &Canceled[Pos->ThreadCount]);
 					}
 				}
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
@@ -747,17 +730,12 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			{
 				DispTransFileInfo(*Pos, IDS_MSGJPN078, FALSE, YES);
 
-//				if(strlen(TransPacketBase->RemoteFile) > 0)
-				if(strlen(Pos->RemoteFile) > 0)
-				{
+				if (!empty(Pos->Remote)) {
 					/* フルパスを使わないための処理 */
 					CwdSts = FTP_COMPLETE;
 
-//					strcpy(Tmp, TransPacketBase->RemoteFile);
-					strcpy(Tmp, Pos->RemoteFile);
-//					if(ProcForNonFullpath(Tmp, CurDir, hWndTrans, 1) == FFFTP_FAIL)
-					if(ProcForNonFullpath(TrnSkt, Tmp, CurDir[Pos->ThreadCount], hWndTrans, &Canceled[Pos->ThreadCount]) == FFFTP_FAIL)
-					{
+					auto dir = Pos->Remote;
+					if (ProcForNonFullpath(TrnSkt, dir, CurDir[Pos->ThreadCount], hWndTrans, &Canceled[Pos->ThreadCount]) == FFFTP_FAIL) {
 						ClearAll = YES;
 						CwdSts = FTP_ERROR;
 					}
@@ -765,13 +743,12 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					if(CwdSts == FTP_COMPLETE)
 					{
 						Up = YES;
-//						CommandProcTrn(NULL, "MKD %s", Tmp);
-						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "MKD %s", Tmp);
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], L"MKD %s", dir.c_str());
 						/* すでにフォルダがある場合もあるので、 */
 						/* ここではエラーチェックはしない */
 
 					if(FolderAttr)
-						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s %03d %s", AskHostChmodCmd().c_str(), FolderAttrNum, Tmp);
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], L"%s %03d %s", u8(AskHostChmodCmd()).c_str(), FolderAttrNum, dir.c_str());
 					}
 				} else if (!Pos->Local.empty()) {
 					Down = YES;
@@ -788,10 +765,10 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				if(MakeNonFullPath(*Pos, CurDir[Pos->ThreadCount]) == FFFTP_SUCCESS)
 				{
 					Up = YES;
-					CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s%s", u8(Pos->Command).c_str()+2, Pos->RemoteFile);
+					CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], L"%s%s", Pos->Command.c_str()+2, Pos->Remote.c_str());
 
 					if(FolderAttr)
-						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s %03d %s", AskHostChmodCmd().c_str(), FolderAttrNum, Pos->RemoteFile);
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], L"%s %03d %s", u8(AskHostChmodCmd()).c_str(), FolderAttrNum, Pos->Remote.c_str());
 				}
 				ReleaseMutex(hListAccMutex);
 			}
@@ -807,7 +784,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					if(MakeNonFullPath(*Pos, CurDir[Pos->ThreadCount]) == FFFTP_SUCCESS)
 					{
 						Up = YES;
-						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s%s", u8(Pos->Command).c_str()+2, Pos->RemoteFile);
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], L"%s%s", Pos->Command.c_str()+2, Pos->Remote.c_str());
 					}
 				}
 				ReleaseMutex(hListAccMutex);
@@ -824,7 +801,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					if(MakeNonFullPath(*Pos, CurDir[Pos->ThreadCount]) == FFFTP_SUCCESS)
 					{
 						Up = YES;
-						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "%s%s", u8(Pos->Command).c_str()+2, Pos->RemoteFile);
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], L"%s%s", Pos->Command.c_str()+2, Pos->Remote.c_str());
 					}
 				}
 				ReleaseMutex(hListAccMutex);
@@ -870,19 +847,14 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //				if(AskShareProh() == YES)
 				if(AskReuseCmdSkt() == NO || AskShareProh() == YES)
 				{
-//					if(strcmp(CurDir, TransPacketBase->RemoteFile) != 0)
-					if(strcmp(CurDir[Pos->ThreadCount], Pos->RemoteFile) != 0)
-					{
-//						if(CommandProcTrn(NULL, "CWD %s", TransPacketBase->RemoteFile)/100 != FTP_COMPLETE)
-						if(CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "CWD %s", Pos->RemoteFile)/100 != FTP_COMPLETE)
-						{
+					if (CurDir[Pos->ThreadCount] != Pos->Remote) {
+						if (CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], L"CWD %s", Pos->Remote.c_str()) / 100 != FTP_COMPLETE) {
 							DispCWDerror(hWndTrans);
 							ClearAll = YES;
 						}
 					}
 				}
-//				strcpy(CurDir, TransPacketBase->RemoteFile);
-				strcpy(CurDir[Pos->ThreadCount], Pos->RemoteFile);
+				CurDir[Pos->ThreadCount] = Pos->Remote;
 				ReleaseMutex(hListAccMutex);
 			}
 			/* カレントディレクトリを戻す */
@@ -891,12 +863,9 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //				if(AskShareProh() == NO)
 				if(AskReuseCmdSkt() == YES && AskShareProh() == NO)
 				{
-//					if(strcmp(CurDir, TransPacketBase->RemoteFile) != 0)
-//						CommandProcTrn(NULL, "CWD %s", TransPacketBase->RemoteFile);
-//					strcpy(CurDir, TransPacketBase->RemoteFile);
-					if(strcmp(CurDir[Pos->ThreadCount], Pos->RemoteFile) != 0)
-						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], "CWD %s", Pos->RemoteFile);
-					strcpy(CurDir[Pos->ThreadCount], Pos->RemoteFile);
+					if (CurDir[Pos->ThreadCount] != Pos->Remote)
+						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], L"CWD %s", Pos->Remote.c_str());
+					CurDir[Pos->ThreadCount] = Pos->Remote;
 				}
 				ReleaseMutex(hListAccMutex);
 			}
@@ -1041,11 +1010,11 @@ static unsigned __stdcall TransferThread(void *Dummy)
 *	Note
 *		フルパスを使わない時は、
 *			このモジュール内で CWD を行ない、
-*			Pkt->RemoteFile にファイル名のみ残す。（パス名は消す）
+*			Pkt->Remote にファイル名のみ残す。（パス名は消す）
 *----------------------------------------------------------------------------*/
 
-static int MakeNonFullPath(TRANSPACKET& item, char* Cur) {
-	auto result = ProcForNonFullpath(item.ctrl_skt, item.RemoteFile, Cur, item.hWndTrans, &Canceled[item.ThreadCount]);
+static int MakeNonFullPath(TRANSPACKET& item, std::wstring& Cur) {
+	auto result = ProcForNonFullpath(item.ctrl_skt, item.Remote, Cur, item.hWndTrans, &Canceled[item.ThreadCount]);
 	if (result == FFFTP_FAIL)
 		ClearAll = YES;
 	return result;
@@ -1115,7 +1084,7 @@ int DoDownload(SOCKET cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork
 	else
 	{
 		DispTransFileInfo(item, IDS_MSGJPN088, TRUE, YES);
-		SetTaskMsg(IDS_MSGJPN089, u8(item.RemoteFile).c_str());
+		SetTaskMsg(IDS_MSGJPN089, item.Remote.c_str());
 		iRetCode = 200;
 	}
 	return(iRetCode);
@@ -1136,9 +1105,6 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	int iRetCode;
 	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
 	SOCKET listen_socket = INVALID_SOCKET; // data listen socket
-	// 念のため
-//	char Buf[1024];
-	char Buf[FMAX_PATH+1024];
 	int CreateMode;
 	// UPnP対応
 	int Port;
@@ -1148,8 +1114,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	{
 		if(SetDownloadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &CreateMode, CancelCheckWork) == YES)
 		{
-			sprintf(Buf, "%s%s", u8(Pkt->Command).c_str(), Pkt->RemoteFile);
-			iRetCode = command(Pkt->ctrl_skt, Reply, CancelCheckWork, "%s", Buf);
+			iRetCode = command(Pkt->ctrl_skt, Reply, CancelCheckWork, L"%s%s", Pkt->Command.c_str(), Pkt->Remote.c_str());
 			if(iRetCode/100 == FTP_PRELIM)
 			{
 				if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
@@ -1279,8 +1244,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 
 				if(SetDownloadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &CreateMode, CancelCheckWork) == YES)
 				{
-					sprintf(Buf, "%s%s", u8(Pkt->Command).c_str(), Pkt->RemoteFile);
-					iRetCode = command(Pkt->ctrl_skt, Reply, CancelCheckWork, "%s", Buf);
+					iRetCode = command(Pkt->ctrl_skt, Reply, CancelCheckWork, L"%s%s", Pkt->Command.c_str(), Pkt->Remote.c_str());
 					if(iRetCode/100 == FTP_PRELIM)
 					{
 						// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
@@ -1528,7 +1492,7 @@ static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt) {
 		TRANSPACKET* Pkt;
 		Data(TRANSPACKET* Pkt) : Pkt{ Pkt } {}
 		INT_PTR OnInit(HWND hDlg) {
-			SetText(hDlg, UPDOWN_ERR_FNAME, u8(Pkt->RemoteFile));
+			SetText(hDlg, UPDOWN_ERR_FNAME, Pkt->Remote);
 			SetText(hDlg, UPDOWN_ERR_MSG, ErrMsg);
 			if (Pkt->Type == TYPE_A || Pkt->ExistSize <= 0)
 				EnableWindow(GetDlgItem(hDlg, DOWN_EXIST_RESUME), FALSE);
@@ -1658,7 +1622,7 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET& item)
 
 			/* 属性変更 */
 			if((item.Attr != -1) && ((iRetCode/100) == FTP_COMPLETE))
-				command(item.ctrl_skt, Reply, &Canceled[item.ThreadCount], "%s %03X %s", AskHostChmodCmd().c_str(), item.Attr, item.RemoteFile);
+				command(item.ctrl_skt, Reply, &Canceled[item.ThreadCount], L"%s %03X %s", u8(AskHostChmodCmd()).c_str(), item.Attr, item.Remote.c_str());
 		}
 		else
 		{
@@ -1693,10 +1657,6 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 	int iRetCode;
 	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
 	SOCKET listen_socket = INVALID_SOCKET; // data listen socket
-	// 念のため
-//	char Buf[1024];
-	char Buf[FMAX_PATH+1024];
-	// UPnP対応
 	int Port;
 	int Resume;
 	char Reply[ERR_MSG_LEN+7];
@@ -1706,24 +1666,20 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 	if((listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount])) != INVALID_SOCKET)
 	{
 		SetUploadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &Resume);
-		if(Resume == NO)
+		std::wstring cmd;
+		if (Resume == NO) {
 #if defined(HAVE_TANDEM)
-			if(AskHostType() == HTYPE_TANDEM && AskOSS() == NO && Pkt->Type != TYPE_A) {
-				if( Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT) {
-					// EXTENTがデフォルトのときはコードのみ
-					sprintf(Buf, "%s%s,%d", u8(Pkt->Command).c_str(), Pkt->RemoteFile, Pkt->FileCode);
-				} else {
-					sprintf(Buf, "%s%s,%d,%d,%d,%d", u8(Pkt->Command).c_str(), Pkt->RemoteFile, Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
-				}
-			} else
+			if (AskHostType() == HTYPE_TANDEM && AskOSS() == NO && Pkt->Type != TYPE_A)
+				cmd = Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT
+					? strprintf(L"%s%s,%d", Pkt->Command.c_str(), Pkt->Remote.c_str(), Pkt->FileCode)		// EXTENTがデフォルトのときはコードのみ
+					: strprintf(L"%s%s,%d,%d,%d,%d", Pkt->Command.c_str(), Pkt->Remote.c_str(), Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
+			else
 #endif
-			sprintf(Buf, "%s%s", u8(Pkt->Command).c_str(), Pkt->RemoteFile);
-		else
-			sprintf(Buf, "%s%s", "APPE ", Pkt->RemoteFile);
+				cmd = strprintf(L"%s%s", Pkt->Command.c_str(), Pkt->Remote.c_str());
+		} else
+			cmd = strprintf(L"APPE %s", Pkt->Remote.c_str());
 
-		// 同時接続対応
-//		iRetCode = command(Pkt->ctrl_skt, Reply, &Canceled, "%s", Buf);
-		iRetCode = command(Pkt->ctrl_skt, Reply, &Canceled[Pkt->ThreadCount], "%s", Buf);
+		iRetCode = command(Pkt->ctrl_skt, Reply, &Canceled[Pkt->ThreadCount], cmd);
 		if((iRetCode/100) == FTP_PRELIM)
 		{
 			// STOUの応答を処理
@@ -1828,19 +1784,7 @@ static int UploadPassive(TRANSPACKET *Pkt)
 	int Resume;
 	char Reply[ERR_MSG_LEN+7];
 
-	// 同時接続対応
-//	iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled, "PASV");
-	// IPv6対応
-//	iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled[Pkt->ThreadCount], "PASV");
-	switch(AskCurNetType())
-	{
-	case NTYPE_IPV4:
-		iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled[Pkt->ThreadCount], "PASV");
-		break;
-	case NTYPE_IPV6:
-		iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled[Pkt->ThreadCount], "EPSV");
-		break;
-	}
+	iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled[Pkt->ThreadCount], AskCurNetType() == NTYPE_IPV4 ? L"PASV" : L"EPSV");
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
 		// IPv6対応
@@ -1855,24 +1799,19 @@ static int UploadPassive(TRANSPACKET *Pkt)
 					ReportWSError(L"setsockopt");
 
 				SetUploadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &Resume);
-				if(Resume == NO)
+				std::wstring cmd;
+				if (Resume == NO) {
 #if defined(HAVE_TANDEM)
-					if(AskHostType() == HTYPE_TANDEM && AskOSS() == NO && Pkt->Type != TYPE_A) {
-						if( Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT) {
-							// EXTENTがデフォルトのときはコードのみ
-							sprintf(Buf, "%s%s,%d", u8(Pkt->Command).c_str(), Pkt->RemoteFile, Pkt->FileCode);
-						} else {
-							sprintf(Buf, "%s%s,%d,%d,%d,%d", u8(Pkt->Command).c_str(), Pkt->RemoteFile, Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
-						}
+					if (AskHostType() == HTYPE_TANDEM && AskOSS() == NO && Pkt->Type != TYPE_A) {
+						cmd = Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT
+							? strprintf(L"%s%s,%d", Pkt->Command.c_str(), Pkt->Remote.c_str(), Pkt->FileCode)		// EXTENTがデフォルトのときはコードのみ
+							: strprintf(L"%s%s,%d,%d,%d,%d", Pkt->Command.c_str(), Pkt->Remote.c_str(), Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
 					} else
 #endif
-					sprintf(Buf, "%s%s", u8(Pkt->Command).c_str(), Pkt->RemoteFile);
-				else
-					sprintf(Buf, "%s%s", "APPE ", Pkt->RemoteFile);
-
-				// 同時接続対応
-//				iRetCode = command(Pkt->ctrl_skt, Reply, &Canceled, "%s", Buf);
-				iRetCode = command(Pkt->ctrl_skt, Reply, &Canceled[Pkt->ThreadCount], "%s", Buf);
+						cmd = strprintf(L"%s%s", Pkt->Command.c_str(), Pkt->Remote.c_str());
+				} else
+					cmd = strprintf(L"APPE %s", Pkt->Remote.c_str());
+				iRetCode = command(Pkt->ctrl_skt, Reply, &Canceled[Pkt->ThreadCount], cmd);
 				if(iRetCode/100 == FTP_PRELIM)
 				{
 					// STOUの応答を処理
@@ -2277,7 +2216,7 @@ static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipBut
 		SendDlgItemMessageW(item.hWndTrans, TRANS_TIME_BAR, PBM_SETPOS, 0, 0);
 
 		if (Info == YES) {
-			DispStaticText(GetDlgItem(item.hWndTrans, TRANS_REMOTE), u8(item.RemoteFile));
+			DispStaticText(GetDlgItem(item.hWndTrans, TRANS_REMOTE), item.Remote);
 			DispStaticText(GetDlgItem(item.hWndTrans, TRANS_LOCAL), item.Local);
 
 			if (item.Type == TYPE_I)
@@ -2387,7 +2326,7 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item) {
 				SetText(hDlg, DELETE_TEXT, item.Local);
 			} else {
 				SetText(hDlg, GetString(IDS_MSGJPN125));
-				SetText(hDlg, DELETE_TEXT, u8(item.RemoteFile));
+				SetText(hDlg, DELETE_TEXT, item.Remote);
 			}
 			return TRUE;
 		}
@@ -2421,11 +2360,8 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item) {
 //   YES=不正なパス/NO=問題ないパス
 int CheckPathViolation(TRANSPACKET const& item) {
 	static boost::wregex re{ LR"((?:^|[/\\])\.\.[/\\])" };
-	if (auto const name = u8(item.RemoteFile); boost::regex_search(name, re)) {
-		auto const format = GetString(IDS_INVALID_PATH);
-		auto const length = _scwprintf(format.c_str(), name.c_str());
-		std::wstring message(length, L'\0');
-		swprintf(data(message), length, format.c_str(), name.c_str());
+	if (boost::regex_search(item.Remote, re)) {
+		auto const message = strprintf(GetString(IDS_INVALID_PATH).c_str(), item.Remote.c_str());
 		MessageBoxW(GetMainHwnd(), message.c_str(), GetString(IDS_MSGJPN086).c_str(), MB_OK);
 		return YES;
 	}

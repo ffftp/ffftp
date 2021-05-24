@@ -469,7 +469,7 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Pat
 	if(strlen(Path) > 0)
 		MainTransPkt.Command += L' ';
 
-	strcpy(MainTransPkt.RemoteFile, Path);
+	MainTransPkt.Remote = u8(Path);
 	MainTransPkt.Local = MakeCacheFileName(Num);
 	MainTransPkt.Type = TYPE_A;
 	MainTransPkt.Size = -1;

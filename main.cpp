@@ -1778,25 +1778,9 @@ void DoubleClickProc(int Win, int Mode, int App)
 
 	//						MainTransPkt.ctrl_skt = AskCmdCtrlSkt();
 							MainTransPkt.Command = L"RETR "s;
-							if(AskHostType() == HTYPE_ACOS)
-							{
-								strcpy(MainTransPkt.RemoteFile, "'");
-								strcat(MainTransPkt.RemoteFile, AskHostLsName().c_str());
-								strcat(MainTransPkt.RemoteFile, "(");
-								strcat(MainTransPkt.RemoteFile, Tmp);
-								strcat(MainTransPkt.RemoteFile, ")");
-								strcat(MainTransPkt.RemoteFile, "'");
-							}
-							else if(AskHostType() == HTYPE_ACOS_4)
-							{
-								strcpy(MainTransPkt.RemoteFile, Tmp);
-							}
-							else
-							{
-								strcpy(MainTransPkt.RemoteFile, Tmp);
-							}
+							MainTransPkt.Remote = AskHostType() == HTYPE_ACOS ? strprintf(L"'%s(%s)'", u8(AskHostLsName()).c_str(), u8(Tmp).c_str()) : u8(Tmp);
 							MainTransPkt.Local = fs::u8path(remotePath);
-							MainTransPkt.Type = AskTransferTypeAssoc(u8(MainTransPkt.RemoteFile), AskTransferType());
+							MainTransPkt.Type = AskTransferTypeAssoc(MainTransPkt.Remote, AskTransferType());
 							MainTransPkt.Size = 1;
 							MainTransPkt.KanjiCode = AskHostKanjiCode();
 							MainTransPkt.KanjiCodeDesired = AskLocalKanjiCode();
