@@ -39,6 +39,7 @@
 #include <charconv>
 #include <chrono>
 #include <filesystem>
+#include <format>
 #include <forward_list>
 #include <fstream>
 #include <future>
