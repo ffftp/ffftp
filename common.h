@@ -861,9 +861,10 @@ int AskErrorReconnect(void);
 // ホスト側の設定ミス対策
 int AskNoPasvAdrs(void);
 
-/*===== cache.c =====*/
-
-fs::path MakeCacheFileName(int Num);
+// キャッシュのファイル名を作成する
+static inline fs::path MakeCacheFileName(int num) {
+	return tempDirectory() / std::format(L"_ffftp.{:03d}"sv, num);
+}
 
 /*===== ftpproc.c =====*/
 

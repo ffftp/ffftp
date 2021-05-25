@@ -217,7 +217,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bookmark.cpp" />
-    <ClCompile Include="cache.cpp" />
     <ClCompile Include="codecnv.cpp" />
     <ClCompile Include="connect.cpp" />
     <ClCompile Include="filelist.cpp" />
