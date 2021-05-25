@@ -1228,6 +1228,13 @@ template<class String>
 static inline auto lc(String const& src) {
 	return lc(std::basic_string(std::begin(src), std::end(src)));
 }
+static inline auto uc(std::wstring&& str) {
+	_wcsupr(data(str));
+	return str;
+}
+static inline auto uc(std::wstring_view sv) {
+	return uc(std::wstring{ sv });
+}
 template<class Char, class Evaluator>
 static inline auto replace(std::basic_string_view<Char> input, boost::basic_regex<Char> const& pattern, Evaluator&& evaluator) {
 	std::basic_string<Char> replaced;
