@@ -1084,7 +1084,6 @@ void DispStaticText(HWND hWnd, std::wstring text);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
 int SplitUNCpath(char *unc, std::wstring& Host, std::wstring& Path, char *File, std::wstring& User, std::wstring& Pass, int *Port);
 int TimeString2FileTime(const char *Time, FILETIME *Buf);
-void FileTime2TimeString(const FILETIME *Time, char *Buf, int Mode, int InfoExist, int ShowSeconds);
 int AttrString2Value(const char *Str);
 // ファイルの属性を数字で表示
 //void AttrValue2String(int Attr, char *Buf);

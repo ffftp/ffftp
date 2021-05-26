@@ -1011,6 +1011,24 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 	DispSelectedSpace();
 }
 
+// FILETIME(UTC)を日付文字列(JST)に変換
+static auto FileTimeToString(FILETIME ft, int InfoExist) {
+	std::wstring str;
+	if ((ft.dwLowDateTime != 0 || ft.dwHighDateTime != 0) && (InfoExist & (FINFO_DATE | FINFO_TIME)) != 0) {
+		FileTimeToLocalFileTime(&ft, &ft);
+		if (SYSTEMTIME st; FileTimeToSystemTime(&ft, &st)) {
+			if (InfoExist & FINFO_DATE)
+				std::format_to(std::back_inserter(str), L"{:04d}/{:02d}/{:02d} "sv, st.wYear, st.wMonth, st.wDay);
+			else
+				str += L"           "sv;
+			if (InfoExist & FINFO_TIME)
+				std::format_to(std::back_inserter(str), DispTimeSeconds == YES ? L"{:02d}:{:02d}:{:02d}"sv : L"{:02d}:{:02d}"sv, st.wHour, st.wMinute, st.wSecond);
+			else
+				str += DispTimeSeconds == YES ? L"        "sv : L"     "sv;
+		}
+	}
+	return str;
+}
 
 // パス名の中の拡張子の先頭を返す
 static std::wstring GetFileExt(std::wstring const& path) {
@@ -1040,6 +1058,7 @@ static std::wstring GetFileExt(std::wstring const& path) {
 *----------------------------------------------------------------------------*/
 static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, LONGLONG Size, FILETIME* Time, int Attr, std::wstring const& Owner, int Link, int InfoExist, int ImageId) {
 	LVITEMW item;
+	std::wstring text;
 	char Tmp[20];
 
 	/* アイコン/ファイル名 */
@@ -1051,9 +1070,8 @@ static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, 
 	Pos = (int)SendMessageW(hWnd, LVM_INSERTITEMW, 0, (LPARAM)&item);
 
 	/* 日付/時刻 */
-	FileTime2TimeString(Time, Tmp, DISPFORM_LEGACY, InfoExist, DispTimeSeconds);
-	auto wTime = u8(Tmp);
-	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 1, .pszText = data(wTime) };
+	text = FileTimeToString(*Time, InfoExist);
+	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 1, .pszText = const_cast<LPWSTR>(text.c_str()) };
 	SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 	/* サイズ */
