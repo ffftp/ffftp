@@ -706,14 +706,6 @@ fs::path SelectDir(HWND hWnd) {
 }
 
 
-std::string MakeNumString(LONGLONG Num) {
-	std::stringstream ss;
-	ss.imbue(std::locale{ "" });
-	ss << std::fixed << Num;
-	return ss.str();
-}
-
-
 #if defined(HAVE_TANDEM)
 /*----- ファイルサイズからEXTENTサイズの計算を行う ----------------------------
 *

@@ -1090,7 +1090,6 @@ int AttrString2Value(const char *Str);
 void AttrValue2String(int Attr, char *Buf, int ShowNumber);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 fs::path SelectDir(HWND hWnd);
-std::string MakeNumString(LONGLONG Num);
 fs::path MakeDistinguishableFileName(fs::path&& path);
 #if defined(HAVE_TANDEM)
 void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size);

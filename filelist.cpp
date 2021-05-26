@@ -1057,6 +1057,7 @@ static std::wstring GetFileExt(std::wstring const& path) {
 *		なし
 *----------------------------------------------------------------------------*/
 static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, LONGLONG Size, FILETIME* Time, int Attr, std::wstring const& Owner, int Link, int InfoExist, int ImageId) {
+	static const std::locale default_locale{ ""s };
 	LVITEMW item;
 	std::wstring text;
 	char Tmp[20];
@@ -1075,16 +1076,11 @@ static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, 
 	SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 	/* サイズ */
-	if (Type == NODE_DIR)
-		strcpy(Tmp, "<DIR>");
-	else if (Type == NODE_DRIVE)
-		strcpy(Tmp, "<DRIVE>");
-	else if (Size >= 0)
-		strcpy(Tmp, MakeNumString(Size).c_str());
-	else
-		strcpy(Tmp, "");
-	auto wSize = u8(Tmp);
-	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 2, .pszText = data(wSize) };
+	text = Type == NODE_DIR ? L"<DIR>"s
+		: Type == NODE_DRIVE ? L"<DRIVE>"s
+		: 0 <= Size ? std::format(default_locale, L"{:Ld}"sv, Size)
+		: L""s;
+	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 2, .pszText = const_cast<LPWSTR>(text.c_str()) };
 	SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 	/* 拡張子 */
