@@ -1038,6 +1038,17 @@ static std::wstring GetFileExt(std::wstring const& path) {
 	return {};
 }
 
+// 属性の値を文字列に変換
+static std::wstring AttrValue2String(int Attr) {
+	if (DispPermissionsNumber == YES)
+		return std::format(L"{:03x}"sv, Attr);
+	auto str = L"rwxrwxrwx"s;
+	constexpr int masks[] = { 0x400, 0x200, 0x100, 0x40, 0x20, 0x10, 0x4, 0x2, 0x1 };
+	for (size_t i = 0; i < std::size(masks); i++)
+		if ((Attr & masks[i]) == 0)
+			str[i] = L'-';
+	return str;
+}
 
 /*----- ファイル一覧ウインドウ（リストビュー）に追加 --------------------------
 *
@@ -1060,7 +1071,6 @@ static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, 
 	static const std::locale default_locale{ ""s };
 	LVITEMW item;
 	std::wstring text;
-	char Tmp[20];
 
 	/* アイコン/ファイル名 */
 	if (Pos == -1)
@@ -1101,11 +1111,10 @@ static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, 
 #else
 		if (InfoExist & FINFO_ATTR)
 #endif
-			AttrValue2String(Attr, Tmp, DispPermissionsNumber);
+			text = AttrValue2String(Attr);
 		else
-			strcpy(Tmp, "");
-		auto wAttr = u8(Tmp);
-		item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 4, .pszText = data(wAttr) };
+			text = L""s;
+		item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 4, .pszText = const_cast<LPWSTR>(text.c_str()) };
 		SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 		/* オーナ名 */
