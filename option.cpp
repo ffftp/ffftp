@@ -48,7 +48,6 @@ static void SetStrings(HWND hdlg, int id, std::vector<std::wstring> const& strin
 		SendDlgItemMessageW(hdlg, id, LB_ADDSTRING, 0, (LPARAM)string.c_str());
 }
 int GetDecimalText(HWND hDlg, int Ctrl);
-void SetDecimalText(HWND hDlg, int Ctrl, int Num);
 void CheckRange2(int *Cur, int Max, int Min);
 
 
@@ -242,9 +241,7 @@ struct Transfer2 {
 		SetText(hDlg, TRMODE2_LOCAL, DefaultLocalPath);
 		CnvButton::Set(hDlg, FnameCnv);
 		SendDlgItemMessageW(hDlg, TRMODE2_TIMEOUT, EM_LIMITTEXT, (WPARAM)5, 0);
-		char Tmp[FMAX_PATH + 1];
-		sprintf(Tmp, "%d", TimeOut);
-		SetText(hDlg, TRMODE2_TIMEOUT, u8(Tmp));
+		SetText(hDlg, TRMODE2_TIMEOUT, std::to_wstring(TimeOut));
 		SendDlgItemMessageW(hDlg, TRMODE2_TIMEOUT_SPN, UDM_SETRANGE, 0, MAKELONG(300, 0));
 		return TRUE;
 	}
@@ -310,9 +307,7 @@ struct Transfer3 {
 			EnableWindow(GetDlgItem(hDlg, TRMODE3_FOLDER_ATTR), FALSE);
 
 		SendDlgItemMessageW(hDlg, TRMODE3_FOLDER_ATTR, EM_LIMITTEXT, (WPARAM)5, 0);
-		char TmpStr[10];
-		sprintf(TmpStr, "%03d", FolderAttrNum);
-		SetText(hDlg, TRMODE3_FOLDER_ATTR, u8(TmpStr));
+		SetText(hDlg, TRMODE3_FOLDER_ATTR, std::format(L"{:03d}"sv, FolderAttrNum));
 		return TRUE;
 	}
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
@@ -552,7 +547,7 @@ struct Connecting {
 		if (RasClose == NO || NoRasControl != NO)
 			EnableWindow(GetDlgItem(hDlg, CONNECT_CLOSE_NOTIFY), FALSE);
 		SendDlgItemMessageW(hDlg, CONNECT_HIST, EM_LIMITTEXT, (WPARAM)2, 0);
-		SetDecimalText(hDlg, CONNECT_HIST, FileHist);
+		SetText(hDlg, CONNECT_HIST, std::to_wstring(FileHist));
 		SendDlgItemMessageW(hDlg, CONNECT_HIST_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(HISTORY_MAX, 0));
 		SendDlgItemMessageW(hDlg, CONNECT_QUICK_ANONY, BM_SETCHECK, QuickAnonymous, 0);
 		SendDlgItemMessageW(hDlg, CONNECT_HIST_PASS, BM_SETCHECK, PassToHist, 0);
@@ -624,11 +619,8 @@ struct Firewall {
 		SetText(hDlg, FIRE_HOST, FwallHost);
 		SetText(hDlg, FIRE_USER, FwallUser);
 		SetText(hDlg, FIRE_PASS, FwallPass);
-		char Tmp[10];
-		sprintf(Tmp, "%d", FwallPort);
-		SetText(hDlg, FIRE_PORT, u8(Tmp));
-		sprintf(Tmp, "%c", FwallDelimiter);
-		SetText(hDlg, FIRE_DELIMIT, u8(Tmp));
+		SetText(hDlg, FIRE_PORT,std::to_wstring(FwallPort));
+		SetText(hDlg, FIRE_DELIMIT, std::wstring{ (wchar_t)FwallDelimiter });
 
 		SendDlgItemMessageW(hDlg, FIRE_USEIT, BM_SETCHECK, FwallDefault, 0);
 		SendDlgItemMessageW(hDlg, FIRE_PASV, BM_SETCHECK, PasvDefault, 0);
@@ -832,29 +824,6 @@ int SortSetting() {
 int GetDecimalText(HWND hDlg, int Ctrl) {
 	auto const text = GetText(hDlg, Ctrl);
 	return !empty(text) && std::iswdigit(text[0]) ? stoi(text) : 0;
-}
-
-
-/*----- ダイアログのコントロールに１０進数をセット ----------------------------
-*
-*	Parameter
-*		HWND hDlg : ウインドウハンドル
-*		int Ctrl : コントロールのID
-*		int Num : 数値
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-// hostman.cで使用
-//static void SetDecimalText(HWND hDlg, int Ctrl, int Num)
-void SetDecimalText(HWND hDlg, int Ctrl, int Num)
-{
-	char Tmp[40];
-
-	sprintf(Tmp, "%d", Num);
-	SetText(hDlg, Ctrl, u8(Tmp));
-	return;
 }
 
 

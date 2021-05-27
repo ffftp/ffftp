@@ -888,9 +888,7 @@ struct Advanced {
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
 		SendDlgItemMessageW(hDlg, HSET_PORT, EM_LIMITTEXT, 5, 0);
-		char Tmp[20];
-		sprintf(Tmp, "%d", TmpHost.Port);
-		SetText(hDlg, HSET_PORT, u8(Tmp));
+		SetText(hDlg, HSET_PORT, std::to_wstring(TmpHost.Port));
 		SendDlgItemMessageW(hDlg, HSET_ACCOUNT, EM_LIMITTEXT, ACCOUNT_LEN, 0);
 		SetText(hDlg, HSET_ACCOUNT, TmpHost.Account);
 		SendDlgItemMessageW(hDlg, HSET_PASV, BM_SETCHECK, TmpHost.Pasv, 0);
@@ -930,12 +928,9 @@ struct Advanced {
 	}
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
-		case HSET_PORT_NOR: {
-			char Tmp[20];
-			sprintf(Tmp, "%d", IPPORT_FTP);
-			SetText(hDlg, HSET_PORT, u8(Tmp));
+		case HSET_PORT_NOR:
+			SetText(hDlg, HSET_PORT, std::to_wstring(IPPORT_FTP));
 			break;
-		}
 		}
 	}
 };
@@ -1183,11 +1178,11 @@ struct Feature {
 	static constexpr DWORD flag = PSP_HASHELP;
 	static INT_PTR OnInit(HWND hDlg) {
 		SendDlgItemMessageW(hDlg, HSET_THREAD_COUNT, EM_LIMITTEXT, (WPARAM)1, 0);
-		SetDecimalText(hDlg, HSET_THREAD_COUNT, TmpHost.MaxThreadCount);
+		SetText(hDlg, HSET_THREAD_COUNT, std::to_wstring(TmpHost.MaxThreadCount));
 		SendDlgItemMessageW(hDlg, HSET_THREAD_COUNT_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(MAX_DATA_CONNECTION, 1));
 		SendDlgItemMessageW(hDlg, HSET_REUSE_SOCKET, BM_SETCHECK, TmpHost.ReuseCmdSkt, 0);
 		SendDlgItemMessageW(hDlg, HSET_NOOP_INTERVAL, EM_LIMITTEXT, (WPARAM)3, 0);
-		SetDecimalText(hDlg, HSET_NOOP_INTERVAL, TmpHost.NoopInterval);
+		SetText(hDlg, HSET_NOOP_INTERVAL, std::to_wstring(TmpHost.NoopInterval));
 		SendDlgItemMessageW(hDlg, HSET_NOOP_INTERVAL_SPN, UDM_SETRANGE, 0, (LPARAM)MAKELONG(300, 0));
 		for (auto resourceId : { IDS_MSGJPN335, IDS_MSGJPN336, IDS_MSGJPN337, IDS_MSGJPN338 })
 			SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_ADDSTRING, 0, (LPARAM)GetString(resourceId).c_str());

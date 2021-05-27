@@ -1013,7 +1013,6 @@ void SetOption();
 int SortSetting(void);
 // hostman.cで使用
 int GetDecimalText(HWND hDlg, int Ctrl);
-void SetDecimalText(HWND hDlg, int Ctrl, int Num);
 void CheckRange2(int *Cur, int Max, int Min);
 
 /*===== bookmark.c =====*/
