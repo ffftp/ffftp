@@ -1489,4 +1489,8 @@ template<class Char, class... Args>
 static inline int CommandProcTrn(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const Char* fmt, Args... args) {
 	return command(cSkt, Reply, CancelCheckWork, fmt, std::forward<Args>(args)...);
 }
+template<class... Args>
+static inline int Command(SOCKET socket, char* reply, int* CancelCheckWork, std::wstring_view format, const Args&... args) {
+	return socket == INVALID_SOCKET ? 429 : detail::command(socket, reply, CancelCheckWork, std::format(format, args...));
+}
 FILELIST::FILELIST(std::string_view original, char node, char link, int64_t size, int attr, FILETIME time, std::string_view owner, char infoExist) : Original{ original }, Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, Owner{ u8(owner) }, InfoExist{ infoExist } {}
