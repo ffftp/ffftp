@@ -674,7 +674,6 @@ int GetNextSelected(int Win, int Pos, int All);
 std::wstring GetHotSelected(int Win);
 void SetHotSelected(int Win, std::wstring const& name);
 std::wstring GetNodeName(int Win, int Pos);
-void GetNodeName(int Win, int Pos, char *Buf, int Max);
 int GetNodeTime(int Win, int Pos, FILETIME *Buf);
 int GetNodeSize(int Win, int Pos, LONGLONG *Buf);
 int GetNodeAttr(int Win, int Pos, int *Buf);

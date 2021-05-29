@@ -1265,14 +1265,12 @@ void FindFileInList(HWND hWnd, int Type) {
 		[[fallthrough]];
 	case FIND_NEXT:
 		for (int i = GetCurrentItem(Win) + 1, Num = GetItemCount(Win); i < Num; i++) {
-			char Name[FMAX_PATH + 1];
-			GetNodeName(Win, i, Name, FMAX_PATH);
-			auto match = std::visit([wName = u8(Name)](auto&& pattern) {
+			auto match = std::visit([name = GetNodeName(Win, i)](auto&& pattern) {
 				using t = std::decay_t<decltype(pattern)>;
 				if constexpr (std::is_same_v<t, std::wstring>)
-					return CheckFname(wName, pattern);
+					return CheckFname(name, pattern);
 				else if constexpr (std::is_same_v<t, boost::wregex>)
-					return boost::regex_match(wName, pattern);
+					return boost::regex_match(name, pattern);
 				else
 					static_assert(false_v<t>, "not supported variant type.");
 			}, pattern);
@@ -1410,22 +1408,6 @@ static std::wstring GetItemText(int Win, int index, int subitem) {
 // 指定位置のアイテムの名前を返す
 std::wstring GetNodeName(int Win, int Pos) {
 	return GetItemText(Win, Pos, 0);
-}
-
-/*----- 指定位置のアイテムの名前を返す ----------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int Pos : 位置
-*		char *Buf : 名前を返すバッファ
-*		int Max : バッファのサイズ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void GetNodeName(int Win, int Pos, char* Buf, int Max) {
-	strncpy_s(Buf, Max, u8(GetNodeName(Win, Pos)).c_str(), _TRUNCATE);
 }
 
 
