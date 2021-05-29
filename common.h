@@ -885,7 +885,7 @@ static inline fs::path MakeCacheFileName(int num) {
 /*===== ftpproc.c =====*/
 
 void DownloadProc(int ChName, int ForceFile, int All);
-void DirectDownloadProc(const char* Fname);
+void DirectDownloadProc(std::wstring_view Fname);
 void MirrorDownloadProc(int Notify);
 void UploadListProc(int ChName, int All);
 void UploadDragProc(WPARAM wParam);
@@ -904,10 +904,7 @@ void SomeCmdProc(void);
 void CalcFileSizeProc(void);
 void DispCWDerror(HWND hWnd);
 void CopyURLtoClipBoard(void);
-int ProcForNonFullpath(SOCKET cSkt, char *Path, char *CurDir, HWND hWnd, int *CancelCheckWork);
 int ProcForNonFullpath(SOCKET cSkt, std::wstring& Path, std::wstring& CurDir, HWND hWnd, int* CancelCheckWork);
-void ReformToVMSstyleDirName(char* Path);
-void ReformToVMSstylePathName(char *Path);
 #if defined(HAVE_OPENVMS)
 std::wstring ReformVMSDirName(std::wstring&& dirName);
 #endif
@@ -1091,12 +1088,10 @@ const char* GetNextField(const char* Str);
 int GetOneField(const char* Str, char *Buf, int Max);
 const char* GetFileName(const char* Path);
 std::wstring_view GetFileName(std::wstring_view path);
-void GetUpperDir(char *Path);
-void GetUpperDirEraseTopSlash(char *Path);
 std::wstring MakeSizeString(double size);
 void DispStaticText(HWND hWnd, std::wstring text);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
-int SplitUNCpath(char *unc, std::wstring& Host, std::wstring& Path, char *File, std::wstring& User, std::wstring& Pass, int *Port);
+int SplitUNCpath(char *unc, std::wstring& Host, std::wstring& Path, std::wstring& File, std::wstring& User, std::wstring& Pass, int *Port);
 int TimeString2FileTime(const char *Time, FILETIME *Buf);
 int AttrString2Value(const char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);

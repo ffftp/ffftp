@@ -239,7 +239,6 @@ void QuickConnectProc() {
 		}
 	};
 	char Tmp[FMAX_PATH+1 + USER_NAME_LEN+1 + PASSWORD_LEN+1 + 2];
-	char File[FMAX_PATH+1];
 
 	SaveBookMark();
 	SaveCurrentSetToHost();
@@ -255,6 +254,7 @@ void QuickConnectProc() {
 		CopyDefaultHost(&CurHost);
 		// UTF-8対応
 		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
+		std::wstring File;
 		if (strcpy(Tmp, u8(qc.hostname).c_str()); SplitUNCpath(Tmp, CurHost.HostAdrs, CurHost.RemoteInitDir, File, CurHost.UserName, CurHost.PassWord, &CurHost.Port) == FFFTP_SUCCESS) {
 			if (empty(CurHost.UserName)) {
 				CurHost.UserName = qc.username;
@@ -286,7 +286,7 @@ void QuickConnectProc() {
 				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 				EnableUserOpe();
 
-				if (strlen(File) > 0)
+				if (!empty(File))
 					DirectDownloadProc(File);
 			} else {
 				Sound::Error.Play();
@@ -314,7 +314,7 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 {
 	std::wstring Host;
 	std::wstring Path;
-	char File[FMAX_PATH+1];
+	std::wstring File;
 	std::wstring User;
 	std::wstring Pass;
 	int Port;
@@ -379,7 +379,7 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 			GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 			EnableUserOpe();
 
-			if(strlen(File) > 0)
+			if (!empty(File))
 				DirectDownloadProc(File);
 			else
 				ResetAutoExitFlg();

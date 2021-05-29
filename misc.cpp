@@ -280,69 +280,6 @@ static std::string_view RemoveFileName(std::string_view path) {
 }
 
 
-/*----- 上位ディレクトリのパス名を取得 ----------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		ディレクトリの区切り記号は "\" と "/" の両方が有効
-*		最初の "\"や"/"は残す
-*			例） "/pub"   --> "/"
-*			例） "C:\DOS" --> "C:\"
-*----------------------------------------------------------------------------*/
-
-void GetUpperDir(char *Path)
-{
-	char *Top;
-	char *Pos;
-
-	if(((Top = strchr(Path, '/')) != NULL) ||
-	   ((Top = strchr(Path, '\\')) != NULL))
-	{
-		Top++;
-		if(((Pos = strrchr(Top, '/')) != NULL) ||
-		   ((Pos = strrchr(Top, '\\')) != NULL))
-			*Pos = NUL;
-		else
-			*Top = NUL;
-	}
-	return;
-}
-
-
-/*----- 上位ディレクトリのパス名を取得 ----------------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		ディレクトリの区切り記号は "\" と "/" の両方が有効
-*		最初の "\"や"/"も消す
-*			例） "/pub"   --> ""
-*			例） "C:\DOS" --> "C:"
-*----------------------------------------------------------------------------*/
-
-void GetUpperDirEraseTopSlash(char *Path)
-{
-	char *Pos;
-
-	if(((Pos = strrchr(Path, '/')) != NULL) ||
-	   ((Pos = strrchr(Path, '\\')) != NULL))
-		*Pos = NUL;
-	else
-		*Path = NUL;
-
-	return;
-}
-
-
 // ファイルサイズを文字列に変換する
 std::wstring MakeSizeString(double size) {
 	if (size < 1024)
@@ -434,7 +371,7 @@ void RectClientToScreen(HWND hWnd, RECT *Rect)
 *	"\"は全て"/"に置き換える
 *----------------------------------------------------------------------------*/
 
-int SplitUNCpath(char *unc, std::wstring& Host, std::wstring& Path, char *File, std::wstring& User, std::wstring& Pass, int *Port)
+int SplitUNCpath(char *unc, std::wstring& Host, std::wstring& Path, std::wstring& File, std::wstring& User, std::wstring& Pass, int *Port)
 {
 	char *Pos1;
 	char *Pos2;
@@ -442,7 +379,7 @@ int SplitUNCpath(char *unc, std::wstring& Host, std::wstring& Path, char *File, 
 
 	Host.clear();
 	Path.clear();
-	memset(File, NUL, FMAX_PATH+1);
+	File.clear();
 	User.clear();
 	Pass.clear();
 	*Port = IPPORT_FTP;
@@ -494,14 +431,14 @@ int SplitUNCpath(char *unc, std::wstring& Host, std::wstring& Path, char *File, 
 			}
 		}
 		Path = u8(RemoveFileName(Pos2));
-		strncpy(File, GetFileName(Pos2), FMAX_PATH);
+		File = u8(GetFileName(Pos2));
 	}
 	else if((Pos2 = strchr(Pos1, '/')) != NULL)
 	{
 		if (empty(Host))
 			Host = u8({ Pos1, Pos2 });
 		Path = u8(RemoveFileName(Pos2));
-		strncpy(File, GetFileName(Pos2), FMAX_PATH);
+		File = u8(GetFileName(Pos2));
 	}
 	else
 	{

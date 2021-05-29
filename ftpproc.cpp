@@ -36,7 +36,6 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, std::vector<FILELIST> const& ListLi
 static void DispMirrorFiles(std::vector<FILELIST> const& Local, std::vector<FILELIST> const& Remote);
 static void MirrorDeleteAllLocalDir(std::vector<FILELIST> const& Local, TRANSPACKET& item, std::forward_list<TRANSPACKET>& list);
 static int CheckLocalFile(TRANSPACKET *Pkt);
-static void RemoveAfterSemicolon(char *Path);
 static std::wstring RemoveAfterSemicolon(std::wstring&& path);
 static void MirrorDeleteAllDir(std::vector<FILELIST> const& Remote, TRANSPACKET& item, std::forward_list<TRANSPACKET>& list);
 static int MirrorNotify(bool upload);
@@ -44,10 +43,12 @@ static void CountMirrorFiles(HWND hDlg, std::forward_list<TRANSPACKET> const& li
 static int AskMirrorNoTrn(std::wstring_view path, int Mode);
 static int AskUploadFileAttr(std::wstring const& path);
 static bool UpDownAsDialog(std::wstring& name, int win);
-static void DeleteAllDir(std::vector<FILELIST> const& Dt, int Win, int *Sw, int *Flg, char *CurDir);
-static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, char *CurDir);
+static void DeleteAllDir(std::vector<FILELIST> const& Dt, int Win, int *Sw, int *Flg, std::wstring& CurDir);
+static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, std::wstring& CurDir);
 static void SetAttrToDialog(HWND hWnd, int Attr);
 static int GetAttrFromDialog(HWND hDlg);
+static std::wstring ReformToVMSstyleDirName(std::wstring&& path);
+static std::wstring ReformToVMSstylePathName(std::wstring_view path);
 static std::wstring RenameUnuseableName(std::wstring&& filename);
 
 /* 設定値 */
@@ -70,11 +71,6 @@ extern int AbortOnListError;
 extern int MirrorNoTransferContents;
 // タイムスタンプのバグ修正
 extern int DispTimeSeconds;
-
-/*===== ローカルなワーク =====*/
-
-static char TmpString[FMAX_PATH+80];		/* テンポラリ */
-
 int UpExistMode = EXIST_OVW;		/* アップロードで同じ名前のファイルがある時の扱い方 EXIST_xxx */
 int ExistMode = EXIST_OVW;		/* 同じ名前のファイルがある時の扱い方 EXIST_xxx */
 static int ExistNotify;		/* 確認ダイアログを出すかどうか YES/NO */
@@ -227,17 +223,8 @@ void DownloadProc(int ChName, int ForceFile, int All)
 }
 
 
-/*----- 指定されたファイルを一つダウンロードする ------------------------------
-*
-*	Parameter
-*		char *Fname : ファイル名
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DirectDownloadProc(const char* Fname)
-{
+// 指定されたファイルを一つダウンロードする
+void DirectDownloadProc(std::wstring_view Fname) {
 	TRANSPACKET Pkt;
 
 	// 同時接続対応
@@ -257,24 +244,19 @@ void DirectDownloadProc(const char* Fname)
 			AddTransFileList(&Pkt);
 		}
 
-		if(strlen(Fname) > 0)
-		{
+		if (!empty(Fname)) {
 			Pkt.Local = AskLocalCurDir();
-			strcpy(TmpString, Fname);
-			if(FnameCnv == FNAME_LOWER)
-				_strlwr(TmpString);
-			else if(FnameCnv == FNAME_UPPER)
-				_strupr(TmpString);
-			RemoveAfterSemicolon(TmpString);
-
-			if (auto const filename = RenameUnuseableName(u8(TmpString)); !empty(filename))
+			auto TmpString = std::wstring{ Fname };
+			TmpString = FnameCnv == FNAME_LOWER ? lc(std::move(TmpString)) : FnameCnv == FNAME_UPPER ? uc(std::move(TmpString)) : TmpString;
+			TmpString = RemoveAfterSemicolon(std::move(TmpString));
+			if (auto const filename = RenameUnuseableName(std::move(TmpString)); !empty(filename))
 			{
 				Pkt.Local /= filename;
 
 				Pkt.Remote
-					= AskHostType() == HTYPE_ACOS ? strprintf(L"'%s(%s)'", u8(AskHostLsName()).c_str(), u8(Fname).c_str())
-					: AskHostType() == HTYPE_ACOS_4 ? u8(Fname)
-					: ReplaceAll(SetSlashTail(std::wstring{ AskRemoteCurDir() }) + u8(Fname), L'\\', L'/');
+					= AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, u8(AskHostLsName()), Fname)
+					: AskHostType() == HTYPE_ACOS_4 ? std::wstring{ Fname }
+					: ReplaceAll(SetSlashTail(std::wstring{ AskRemoteCurDir() }) + Fname, L'\\', L'/');
 
 				Pkt.Command = L"RETR-S "s;
 				Pkt.Type = AskTransferTypeAssoc(Pkt.Remote, AskTransferType());
@@ -1509,8 +1491,6 @@ void DeleteProc(void)
 	int Win;
 	int DelFlg;
 	int Sts;
-	char CurDir[FMAX_PATH+1];
-	char Tmp[FMAX_PATH+1];
 
 	// 同時接続対応
 	CancelFlg = NO;
@@ -1530,7 +1510,7 @@ void DeleteProc(void)
 	{
 		// デッドロック対策
 		DisableUserOpe();
-		strcpy(CurDir, u8(AskRemoteCurDir()).c_str());
+		auto CurDir = AskRemoteCurDir();
 		std::vector<FILELIST> FileListBase;
 		if(Win == WIN_LOCAL)
 			MakeSelectedFileList(Win, NO, NO, FileListBase, &CancelFlg);
@@ -1551,11 +1531,8 @@ void DeleteProc(void)
 			DeleteAllDir(FileListBase, Win, &Sts, &DelFlg, CurDir);
 
 		if(Win == WIN_REMOTE)
-		{
-			strcpy(Tmp, u8(AskRemoteCurDir()).c_str());
-			if(strcmp(Tmp, CurDir) != 0)
-				DoCWD(u8(Tmp), NO, NO, NO);
-		}
+			if (auto const Tmp = AskRemoteCurDir(); Tmp != CurDir)
+				DoCWD(Tmp, NO, NO, NO);
 
 		if(DelFlg == YES)
 		{
@@ -1572,20 +1549,8 @@ void DeleteProc(void)
 }
 
 
-/*----- サブディレクトリ以下を全て削除する ------------------------------------
-*
-*	Parameter
-*		FILELIST *Dt : 削除するファイルのリスト
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int *Sw : 操作方法 (YES/NO/YES_ALL/NO_ALL)
-*		int *Flg : ファイルを削除したかどうかのフラグ (YES/NO)
-*		char *CurDir : カレントディレクトリ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void DeleteAllDir(std::vector<FILELIST> const& Dt, int Win, int *Sw, int *Flg, char *CurDir) {
+// サブディレクトリ以下を全て削除する
+static void DeleteAllDir(std::vector<FILELIST> const& Dt, int Win, int *Sw, int *Flg, std::wstring& CurDir) {
 	for (auto it = rbegin(Dt); it != rend(Dt); ++it)
 		if (it->Node == NODE_DIR) {
 			DelNotifyAndDo(*it, Win, Sw, Flg, CurDir);
@@ -1595,27 +1560,15 @@ static void DeleteAllDir(std::vector<FILELIST> const& Dt, int Win, int *Sw, int 
 }
 
 
-/*----- 削除するかどうかの確認と削除実行 --------------------------------------
-*
-*	Parameter
-*		FILELIST *Dt : 削除するファイルのリスト
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int *Sw : 操作方法 (YES/NO/YES_ALL/NO_ALL)
-*		int *Flg : ファイルを削除したかどうかのフラグ (YES/NO)
-*		char *CurDir : カレントディレクトリ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, char *CurDir) {
+// 削除するかどうかの確認と削除実行
+static void DelNotifyAndDo(FILELIST const& Dt, int Win, int* Sw, int* Flg, std::wstring& CurDir) {
 	struct DeleteDialog {
 		using result_t = int;
+		std::wstring const& path;
 		int win;
-		DeleteDialog(int win) : win{ win } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SetText(hDlg, GetString(win == WIN_LOCAL ? IDS_MSGJPN066 : IDS_MSGJPN067));
-			SetText(hDlg, DELETE_TEXT, u8(TmpString));
+			SetText(hDlg, DELETE_TEXT, path);
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
@@ -1635,56 +1588,34 @@ static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, char 
 			}
 		}
 	};
-	char Path[FMAX_PATH+1];
 
-	if(Win == WIN_LOCAL)
-		strcpy(Path, (AskLocalCurDir() / Dt.Name).u8string().c_str());
-	else
-	{
-		strcpy(Path, u8(AskRemoteCurDir()).c_str());
-		SetSlashTail(Path);
-		strcat(Path, u8(Dt.Name).c_str());
-		ReplaceAll(Path, '\\', '/');
+	auto path = Win == WIN_LOCAL ? (AskLocalCurDir() / Dt.Name).native() : ReplaceAll(SetSlashTail(std::wstring{ AskRemoteCurDir() }) + Dt.Name, L'\\', L'/');
+	if (*Sw != YES_ALL) {
+		auto path2 = path;
+		if (Win == WIN_REMOTE && AskHostType() == HTYPE_VMS)
+			path2 = ReformToVMSstylePathName(path2);
+		*Sw = Dialog(GetFtpInst(), delete_dlg, GetMainHwnd(), DeleteDialog{ path2, Win });
 	}
-
-	if(*Sw != YES_ALL)
-	{
-		sprintf(TmpString, "%s", Path);
-
-		if(Win == WIN_REMOTE && AskHostType() == HTYPE_VMS)
-			ReformToVMSstylePathName(TmpString);
-		*Sw = Dialog(GetFtpInst(), delete_dlg, GetMainHwnd(), DeleteDialog{ Win });
-	}
-
-	if((*Sw == YES) || (*Sw == YES_ALL))
-	{
-		if(Win == WIN_LOCAL)
-		{
-			if(Dt.Node == NODE_FILE)
-				DoLocalDELE(fs::u8path(Path));
+	if (*Sw == YES || *Sw == YES_ALL) {
+		if (Win == WIN_LOCAL) {
+			if (Dt.Node == NODE_FILE)
+				DoLocalDELE(path);
 			else
-				DoLocalRMD(fs::u8path(Path));
+				DoLocalRMD(path);
 			*Flg = YES;
-		}
-		else
-		{
+		} else {
 			/* フルパスを使わない時のための処理 */
-			// 同時接続対応
-//			if(ProcForNonFullpath(Path, CurDir, GetMainHwnd(), 0) == FFFTP_FAIL)
-			if(ProcForNonFullpath(AskCmdCtrlSkt(), Path, CurDir, GetMainHwnd(), &CancelFlg) == FFFTP_FAIL)
+			if (ProcForNonFullpath(AskCmdCtrlSkt(), path, CurDir, GetMainHwnd(), &CancelFlg) == FFFTP_FAIL)
 				*Sw = NO_ALL;
-
-			if(*Sw != NO_ALL)
-			{
-				if(Dt.Node == NODE_FILE)
-					DoDELE(u8(Path));
+			if (*Sw != NO_ALL) {
+				if (Dt.Node == NODE_FILE)
+					DoDELE(path);
 				else
-					DoRMD(u8(Path));
+					DoRMD(path);
 				*Flg = YES;
 			}
 		}
 	}
-	return;
 }
 
 
@@ -2336,14 +2267,12 @@ void CopyURLtoClipBoard() {
 	if (auto port = AskHostPort(); port != IPPORT_FTP)
 		baseAddress.append(L":").append(std::to_wstring(port));
 	{
-		char dir[FMAX_PATH + 1];
-		strcpy(dir, u8(AskRemoteCurDir()).c_str());
-		SetSlashTail(dir);
+		auto dir = SetSlashTail(std::wstring{ AskRemoteCurDir() });
 		if (AskHostType() == HTYPE_VMS) {
-			baseAddress += L"/"sv;
-			ReformToVMSstylePathName(dir);
+			baseAddress += L'/';
+			dir = ReformToVMSstylePathName(dir);
 		}
-		baseAddress += u8(dir);
+		baseAddress += dir;
 	}
 	std::wstring text;
 	for (auto const& f : FileListBase)
@@ -2361,165 +2290,69 @@ void CopyURLtoClipBoard() {
 }
 
 
-/*----- フルパスを使わないファイルアクセスの準備 ------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*		char *CurDir : カレントディレクトリ
-*		HWND hWnd : エラーウインドウを表示する際の親ウインドウ
-*		int Type : 使用するソケットの種類
-*			0=コマンドソケット, 1=転送ソケット
-*
-*	Return Value
-*		int ステータス(FFFTP_SUCCESS/FFFTP_FAIL)
-*
-*	Note
-*		フルパスを使わない時は、
-*			このモジュール内で CWD を行ない、
-*			Path にファイル名のみ残す。（パス名は消す）
-*----------------------------------------------------------------------------*/
-
-// 同時接続対応
-//int ProcForNonFullpath(char *Path, char *CurDir, HWND hWnd, int Type)
-int ProcForNonFullpath(SOCKET cSkt, char *Path, char *CurDir, HWND hWnd, int *CancelCheckWork)
-{
-	int Sts;
-	int Cmd;
-	char Tmp[FMAX_PATH+1];
-
-	Sts = FFFTP_SUCCESS;
-	if(AskNoFullPathMode() == YES)
-	{
-		strcpy(Tmp, Path);
-		if(AskHostType() == HTYPE_VMS)
-		{
-			GetUpperDirEraseTopSlash(Tmp);
-			ReformToVMSstyleDirName(Tmp);
-		}
-		else if(AskHostType() == HTYPE_STRATUS)
-			GetUpperDirEraseTopSlash(Tmp);
-		else
-			GetUpperDir(Tmp);
-
-		if(strcmp(Tmp, CurDir) != 0)
-		{
-			Cmd = CommandProcTrn(cSkt, NULL, CancelCheckWork, "CWD %s", Tmp);
-
-			if(Cmd/100 != FTP_COMPLETE)
-			{
-				DispCWDerror(hWnd);
-				Sts = FFFTP_FAIL;
-			}
-			else
-				strcpy(CurDir, Tmp);
-		}
-		strcpy(Path, GetFileName(Path));
-	}
-	return(Sts);
+// 上位ディレクトリのパス名を取得
+//   ディレクトリの区切り記号は "\" と "/" の両方が有効
+//   最初の "\"や"/"も消す
+//   "/pub"   --> ""
+//   "C:\DOS" --> "C:"
+static std::wstring_view GetUpperDirEraseTopSlash(std::wstring_view path) {
+	auto const pos = path.find_first_of(L"/\\"sv);
+	return path.substr(0, pos != std::wstring_view::npos ? pos : 0);
 }
+
+
+// 上位ディレクトリのパス名を取得
+//    ディレクトリの区切り記号は "\" と "/" の両方が有効
+//    最初の "\"や"/"は残す
+//    "/pub"   --> "/"
+//    "C:\DOS" --> "C:\"
+static std::wstring_view GetUpperDir(std::wstring_view path) {
+	auto const first = path.find_first_of(L"/\\"sv);
+	if (first == std::wstring_view::npos)
+		return path;
+	auto const last = path.find_last_of(L"/\\"sv);
+	return path.substr(0, first == last ? first + 1 : last);
+}
+
+
+// フルパスを使わないファイルアクセスの準備
+//   フルパスを使わない時は、このモジュール内で CWD を行ない、Path にファイル名のみ残す。（パス名は消す）
 int ProcForNonFullpath(SOCKET cSkt, std::wstring& Path, std::wstring& CurDir, HWND hWnd, int* CancelCheckWork) {
 	int Sts = FFFTP_SUCCESS;
 	if (AskNoFullPathMode() == YES) {
-		auto Tmp = Path;
-		if (AskHostType() == HTYPE_VMS) {
-			// ddd:[xxx.yyy]          --> 
-			// ddd:[xxx.yyy]/rrr      --> ddd:[xxx.yyy]
-			// ddd:[xxx.yyy]/rrr/ppp  --> ddd:[xxx.yyy.rrr]
-			static boost::wregex re{ LR"(^([^\[]*)\[([^\]]*)\](.*)[/\\][^/\\]*$)" };
-			if (boost::wsmatch m; boost::regex_search(Tmp, m, re)) {
-				auto relative = m.str(3);
-				std::ranges::replace(relative, L'/', L'.');
-				Tmp = strprintf(L"%s[%s%s]", m.str(1).c_str(), m.str(2).c_str(), relative.c_str());
-			} else
-				Tmp.clear();
-		} else if (AskHostType() == HTYPE_STRATUS) {
-			// "/pub"   --> ""
-			// "C:\DOS" -- > "C:"
-			auto const pos = Tmp.find_last_of(L"/\\"sv);
-			Tmp.resize(pos != std::wstring::npos ? pos : 0);
-		} else {
-			// "/pub"   --> "/"
-			// "C:\DOS" -- > "C:\"
-			if (auto const root = Tmp.find_first_of(L"/\\"sv); root != std::wstring::npos) {
-				auto const pos = Tmp.find_last_of(L"/\\"sv, root + 1);
-				Tmp.resize(pos != std::wstring::npos ? pos : root + 1);
-			}
-		}
-
+		auto const Tmp = AskHostType() == HTYPE_VMS ? ReformToVMSstyleDirName(std::wstring{ GetUpperDirEraseTopSlash(Path) }) : AskHostType() == HTYPE_STRATUS ? std::wstring{ GetUpperDirEraseTopSlash(Path) } : std::wstring{ GetUpperDir(Path) };
 		if (Tmp != CurDir) {
 			int Cmd = CommandProcTrn(cSkt, NULL, CancelCheckWork, L"CWD %s", Tmp.c_str());
 			if (Cmd / 100 != FTP_COMPLETE) {
 				DispCWDerror(hWnd);
 				Sts = FFFTP_FAIL;
 			} else
-				CurDir = Tmp;
+				CurDir = std::move(Tmp);
 		}
-		Path = GetFileName(Path);
+		Path = GetFileName(std::move(Path));
 	}
 	return Sts;
 }
 
 
-/*----- ディレクトリ名をVAX VMSスタイルに変換する -----------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		ddd:[xxx.yyy]/rrr/ppp  --> ddd:[xxx.yyy.rrr.ppp]
-*----------------------------------------------------------------------------*/
-
-void ReformToVMSstyleDirName(char *Path)
-{
-	char *Pos;
-	char *Btm;
-
-	if((Btm = strchr(Path, ']')) != NULL)
-	{
-		Pos = Btm;
-		while((Pos = strchr(Pos, '/')) != NULL)
-			*Pos = '.';
-
-		memmove(Btm, Btm+1, strlen(Btm+1)+1);
-		Pos = strchr(Path, NUL);
-		if(*(Pos-1) == '.')
-		{
-			Pos--;
-			*Pos = NUL;
-		}
-		strcpy(Pos, "]");
+// ディレクトリ名をVAX VMSスタイルに変換する
+//   ddd:[xxx.yyy]/rrr/ppp  --> ddd:[xxx.yyy.rrr.ppp]
+static std::wstring ReformToVMSstyleDirName(std::wstring&& path) {
+	if (auto btm = path.find(L']'); btm != std::wstring::npos) {
+		std::replace(begin(path) + btm, end(path), L'/', L'.');
+		path.erase(begin(path) + btm);
+		if (path.ends_with(L'.'))
+			path.resize(size(path) - 1);
+		path += L']';
 	}
-	return;
+	return path;
 }
 
 
-/*----- ファイル名をVAX VMSスタイルに変換する ---------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		ddd:[xxx.yyy]/rrr/ppp  --> ddd:[xxx.yyy.rrr]ppp
-*----------------------------------------------------------------------------*/
-
-void ReformToVMSstylePathName(char *Path)
-{
-	char Fname[FMAX_PATH+1];
-
-	strcpy(Fname, GetFileName(Path));
-
-	GetUpperDirEraseTopSlash(Path);
-	ReformToVMSstyleDirName(Path);
-
-	strcat(Path, Fname);
-
-	return;
+// ファイル名をVAX VMSスタイルに変換する
+//   ddd:[xxx.yyy]/rrr/ppp  --> ddd:[xxx.yyy.rrr]ppp
+static std::wstring ReformToVMSstylePathName(std::wstring_view path) {
+	return ReformToVMSstyleDirName(std::wstring{ GetUpperDirEraseTopSlash(path) }) + GetFileName(path);
 }
 
 

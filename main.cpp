@@ -937,7 +937,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				case MENU_DOWNLOAD_NAME :
 					SetCurrentDirAsDirHist();
 					if (std::wstring path; InputDialog(downname_dlg, GetMainHwnd(), 0, path, FMAX_PATH))
-						DirectDownloadProc(u8(path).c_str());
+						DirectDownloadProc(path);
 					break;
 
 				case MENU_UPLOAD :
