@@ -110,9 +110,8 @@ void DispTaskMsg() {
 		fs::remove(temp);
 		return;
 	}
-	auto path = temp.u8string();
 	AddTempFileList(temp);
-	ExecViewer(data(path), 0);
+	ExecViewer(temp, 0);
 }
 
 

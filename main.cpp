@@ -1730,7 +1730,6 @@ void DoubleClickProc(int Win, int Mode, int App)
 {
 	int Pos;
 	int Type;
-	char Local[FMAX_PATH+1];
 
 	if (!AskUserOpeDisabled())
 	{
@@ -1749,10 +1748,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 					if((App != -1) || (Type == NODE_FILE) || (Mode == YES))
 					{
 						if((DclickOpen == YES) || (Mode == YES))
-						{
-							strcpy(Local, (AskLocalCurDir() / Tmp).u8string().c_str());
-							ExecViewer(Local, App);
-						}
+							ExecViewer(AskLocalCurDir() / Tmp, App);
 						else
 							PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
 					}
@@ -1770,7 +1766,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 
 							auto remoteDir = tempDirectory() / L"file";
 							fs::create_directory(remoteDir);
-							auto remotePath = (remoteDir / (UseDiffViewer ? L"remote." + Tmp : Tmp)).u8string();
+							auto remotePath = remoteDir / (UseDiffViewer ? L"remote." + Tmp : Tmp);
 
 							if(AskTransferNow() == YES)
 								SktShareProh();
@@ -1778,7 +1774,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 	//						MainTransPkt.ctrl_skt = AskCmdCtrlSkt();
 							MainTransPkt.Command = L"RETR "s;
 							MainTransPkt.Remote = AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, u8(AskHostLsName()), Tmp) : Tmp;
-							MainTransPkt.Local = fs::u8path(remotePath);
+							MainTransPkt.Local = remotePath;
 							MainTransPkt.Type = AskTransferTypeAssoc(MainTransPkt.Remote, AskTransferType());
 							MainTransPkt.Size = 1;
 							MainTransPkt.KanjiCode = AskHostKanjiCode();
@@ -1797,17 +1793,16 @@ void DoubleClickProc(int Win, int Mode, int App)
 								CancelFlg = NO;
 								Sts = DoDownload(AskCmdCtrlSkt(), MainTransPkt, NO, &CancelFlg);
 								if (MarkAsInternet == YES && IsZoneIDLoaded() == YES)
-									MarkFileAsDownloadedFromInternet(u8(remotePath).c_str());
+									MarkFileAsDownloadedFromInternet(remotePath.c_str());
 							}
 							EnableUserOpe();
 
-							AddTempFileList(fs::u8path(remotePath));
+							AddTempFileList(remotePath);
 							if(Sts/100 == FTP_COMPLETE) {
 								if (UseDiffViewer) {
-									strcpy(Local, (AskLocalCurDir() / Tmp).u8string().c_str());
-									ExecViewer2(Local, data(remotePath), App);
+									ExecViewer2(AskLocalCurDir() / Tmp, remotePath, App);
 								} else {
-									ExecViewer(data(remotePath), App);
+									ExecViewer(remotePath, App);
 								}
 							}
 						}
@@ -2012,88 +2007,51 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 }
 
 
-/*----- ファイル一覧情報をビューワで表示 --------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void DispDirInfo(void)
-{
-	char Buf[FMAX_PATH+1];
-
-	strcpy(Buf, MakeCacheFileName(0).u8string().c_str());
-	ExecViewer(Buf, 0);
-	return;
+// ファイル一覧情報をビューワで表示
+static void DispDirInfo() {
+	ExecViewer(MakeCacheFileName(0), 0);
 }
 
 
 // ビューワを起動
-void ExecViewer(char *Fname, int App) {
+void ExecViewer(fs::path const& path, int App) {
 	/* FindExecutable()は関連付けられたプログラムのパス名にスペースが	*/
 	/* 含まれている時、間違ったパス名を返す事がある。					*/
 	/* そこで、関連付けられたプログラムの起動はShellExecute()を使う。	*/
-	auto pFname = fs::u8path(Fname);
-	if (wchar_t result[MAX_PATH]; App == -1 && pFname.has_extension() && FindExecutableW(pFname.c_str(), nullptr, result) > (HINSTANCE)32) {
+	if (wchar_t result[MAX_PATH]; App == -1 && path.has_extension() && FindExecutableW(path.c_str(), nullptr, result) > (HINSTANCE)32) {
 		// 拡張子があるので関連付けを実行する
-		DoPrintf(L"ShellExecute - %s", pFname.c_str());
-		ShellExecuteW(0, L"open", pFname.c_str(), nullptr, AskLocalCurDir().c_str(), SW_SHOW);
-	} else if (App == -1 && (GetFileAttributesW(pFname.c_str()) & FILE_ATTRIBUTE_DIRECTORY)) {
+		Debug(L"ShellExecute - {}"sv, path.native());
+		ShellExecuteW(0, L"open", path.c_str(), nullptr, AskLocalCurDir().c_str(), SW_SHOW);
+	} else if (App == -1 && (GetFileAttributesW(path.c_str()) & FILE_ATTRIBUTE_DIRECTORY)) {
 		// ディレクトリなのでフォルダを開く
-		auto wComLine = MakeDistinguishableFileName(fs::path{ pFname });
-		DoPrintf(L"ShellExecute - %s", pFname.c_str());
-		ShellExecuteW(0, L"open", wComLine.c_str(), nullptr, pFname.c_str(), SW_SHOW);
+		auto wComLine = MakeDistinguishableFileName(fs::path{ path });
+		Debug(L"ShellExecute - {}"sv, path.native());
+		ShellExecuteW(0, L"open", wComLine.c_str(), nullptr, path.c_str(), SW_SHOW);
 	} else {
-		char ComLine[FMAX_PATH * 2 + 3 + 1];
-		sprintf(ComLine, "%s \"%s\"", u8(ViewerName[App == -1 ? 0 : App]).c_str(), Fname);
-		auto wComLine = u8(ComLine);
-		DoPrintf(L"CreateProcess - %s", wComLine.c_str());
+		auto commandLine = std::format(LR"({} "{}")"sv, ViewerName[App == -1 ? 0 : App], path.native());
+		Debug(L"CreateProcess - {}"sv, commandLine);
 		STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
-		if (ProcessInformation pi; !CreateProcessW(nullptr, data(wComLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
+		if (ProcessInformation pi; !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
 			SetTaskMsg(IDS_MSGJPN182, GetLastError());
-			SetTaskMsg(">>%s", ComLine);
+			SetTaskMsg(">>%s", u8(commandLine).c_str());
 		}
 	}
 }
 
 
-/*----- 差分表示ビューワを起動 ------------------------------------------------
-*
-*	Parameter
-*		char Fname1 : ファイル名
-*		char Fname2 : ファイル名2
-*		int App : アプリケーション番号（2 or 3）
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void ExecViewer2(char *Fname1, char *Fname2, int App)
-{
-	char AssocProg[FMAX_PATH+1];
-	char ComLine[FMAX_PATH*2+3+1];
-
+// 差分表示ビューワを起動
+void ExecViewer2(fs::path const& path1, fs::path const& path2, int App) {
 	/* FindExecutable()は関連付けられたプログラムのパス名にスペースが	*/
 	/* 含まれている時、間違ったパス名を返す事がある。					*/
 	/* そこで、関連付けられたプログラムの起動はShellExecute()を使う。	*/
-
-	strcpy(AssocProg, u8(ViewerName[App]).c_str() + 2);	/* 先頭の "d " は読み飛ばす */
-
-	if(strchr(Fname1, ' ') == NULL && strchr(Fname2, ' ') == NULL)
-		sprintf(ComLine, "%s %s %s", AssocProg, Fname1, Fname2);
-	else
-		sprintf(ComLine, "%s \"%s\" \"%s\"", AssocProg, Fname1, Fname2);
-	auto wComLine = u8(ComLine);
-
-	DoPrintf(L"FindExecutable - %s", wComLine.c_str());
-
+	auto format = path1.native().find(L' ') == std::wstring::npos && path2.native().find(L' ') == std::wstring::npos ? LR"({} {} {})"sv : LR"({} "{}" "{}")"sv;
+	auto const executable = std::wstring_view{ ViewerName[App] }.substr(2);		/* 先頭の "d " は読み飛ばす */
+	auto commandLine = std::format(format, executable, path1.native(), path2.native());
+	Debug(L"FindExecutable - {}"sv, commandLine);
 	STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
-	if (ProcessInformation pi; !CreateProcessW(nullptr, data(wComLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
+	if (ProcessInformation pi; !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
 		SetTaskMsg(IDS_MSGJPN182, GetLastError());
-		SetTaskMsg(">>%s", ComLine);
+		SetTaskMsg(">>%s", u8(commandLine).c_str());
 	}
 }
 
