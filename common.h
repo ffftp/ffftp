@@ -674,7 +674,6 @@ int GetNextSelected(int Win, int Pos, int All);
 // ローカル側自動更新
 int GetHotSelected(int Win, char *Fname);
 int SetHotSelected(int Win, char *Fname);
-int FindNameNode(int Win, char *Name);
 std::wstring GetNodeName(int Win, int Pos);
 void GetNodeName(int Win, int Pos, char *Buf, int Max);
 int GetNodeTime(int Win, int Pos, FILETIME *Buf);

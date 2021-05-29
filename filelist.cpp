@@ -45,6 +45,7 @@ static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files);
 static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, std::wstring const& Owner, int Link, int InfoExist, int ImageId);
+static int FindNameNode(int Win, std::wstring const& name);
 static int GetImageIndex(int Win, int Pos);
 static int MakeRemoteTree1(std::wstring const& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
 static int MakeRemoteTree2(std::wstring& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
@@ -1191,17 +1192,16 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 				pattern = boost::wregex{ FindStr, boost::regex_constants::icase };
 			int CsrPos = -1;
 			for (int i = 0, Num = GetItemCount(Win); i < Num; i++) {
-				char Name[FMAX_PATH + 1];
-				GetNodeName(Win, i, Name, FMAX_PATH);
-				int Find = FindNameNode(WinDst, Name);
+				auto const name = GetNodeName(Win, i);
+				int Find = FindNameNode(WinDst, name);
 				UINT state = 0;
 				if (GetNodeType(Win, i) != NODE_DRIVE) {
-					auto matched = std::visit([wName = u8(Name)](auto&& pattern) {
+					auto matched = std::visit([&name](auto&& pattern) {
 						using t = std::decay_t<decltype(pattern)>;
 						if constexpr (std::is_same_v<t, std::wstring>)
-							return CheckFname(wName, pattern);
+							return CheckFname(name, pattern);
 						else if constexpr (std::is_same_v<t, boost::wregex>)
-							return boost::regex_match(wName, pattern);
+							return boost::regex_match(name, pattern);
 						else
 							static_assert(false_v<t>, "not supported variant type.");
 					}, pattern);
@@ -1401,20 +1401,11 @@ int SetHotSelected(int Win, char* Fname) {
 	return Pos;
 }
 
-/*----- 指定された名前のアイテムを探す ----------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		char *Name : 名前
-*
-*	Return Value
-*		int アイテム番号
-*			-1=見つからなかった
-*----------------------------------------------------------------------------*/
 
-int FindNameNode(int Win, char* Name) {
-	auto wName = u8(Name);
-	LVFINDINFOW fi{ LVFI_STRING, wName.c_str() };
+// 指定された名前のアイテムを探す
+//   -1=見つからなかった
+static int FindNameNode(int Win, std::wstring const& name) {
+	LVFINDINFOW fi{ LVFI_STRING, name.c_str() };
 	return (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_FINDITEMW, -1, (LPARAM)&fi);
 }
 
