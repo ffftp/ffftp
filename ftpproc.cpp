@@ -566,30 +566,7 @@ static void MirrorDeleteAllLocalDir(std::vector<FILELIST> const& Local, TRANSPAC
 }
 
 
-/*----- ファイル名のセミコロン以降を取り除く ----------------------------------
-*
-*	Parameter
-*		char *Path : ファイル名
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		Pathの内容が書き換えられる
-*		オプション設定によって処理を切替える
-*----------------------------------------------------------------------------*/
-
-static void RemoveAfterSemicolon(char *Path)
-{
-	char *Pos;
-
-	if(VaxSemicolon == YES)
-	{
-		if((Pos = strchr(Path, ';')) != NULL)
-			*Pos = NUL;
-	}
-	return;
-}
+// ファイル名のセミコロン以降を取り除く
 static std::wstring RemoveAfterSemicolon(std::wstring&& path) {
 	if (VaxSemicolon == YES)
 		if (auto const pos = path.find(';'); pos != std::wstring::npos)

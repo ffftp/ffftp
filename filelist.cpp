@@ -50,7 +50,6 @@ static int MakeRemoteTree1(std::wstring const& Path, std::wstring const& Cur, st
 static int MakeRemoteTree2(std::wstring& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
 static void CopyTmpListToFileList(std::vector<FILELIST>& Base, std::vector<FILELIST> const& List);
 static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLine(int Num);
-static int MakeDirPath(const char *Str, const char *Path, char *Dir);
 static bool MakeLocalTree(fs::path const& path, std::vector<FILELIST>& Base);
 static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base);
 static int AskFilterStr(std::wstring const& file, int Type);
@@ -387,18 +386,6 @@ static void doTransferRemoteFile(void)
 	remoteFileDir = std::move(tmp);
 }
 
-
-int isDirectory(char *fn)
-{
-	struct _stat buf;
-
-	if (_stat(fn, &buf) == 0) {
-		if (buf.st_mode & _S_IFDIR) { // is directory
-			return 1;
-		}
-	}
-	return 0;
-}
 
 // テンポラリのファイルおよびフォルダを削除する。
 void doDeleteRemoteFile(void)
@@ -1569,27 +1556,6 @@ static int GetImageIndex(int Win, int Pos) {
 	LVITEMW item{ .mask = LVIF_IMAGE, .iItem = Pos, .iSubItem = 0 };
 	SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETITEMW, 0, (LPARAM)&item);
 	return item.iImage;
-}
-
-
-/*----- 指定位置のアイテムのオーナ名を返す ------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int Pos : 位置
-*		char *Buf : オーナ名を返すバッファ
-*		int Max : バッファのサイズ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void GetNodeOwner(int Win, int Pos, char* Buf, int Max) {
-	if (Win == WIN_REMOTE) {
-		auto owner = GetItemText(WIN_REMOTE, Pos, 5);
-		strncpy_s(Buf, Max, u8(owner).c_str(), _TRUNCATE);
-	} else
-		strcpy(Buf, "");
 }
 
 

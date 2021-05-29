@@ -30,47 +30,6 @@
 #include "common.h"
 
 
-/*----- 文字列の最後に "\" を付ける -------------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		オリジナルの文字列 char *Str が変更されます。
-*----------------------------------------------------------------------------*/
-
-void SetYenTail(char* Str) {
-	if (Str[strlen(Str) - 1] != '\\')
-		strcat(Str, "\\");
-}
-
-
-/*----- 文字列の最後に "/" を付ける -------------------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		オリジナルの文字列 char *Str が変更されます。
-*----------------------------------------------------------------------------*/
-
-void SetSlashTail(char* Str) {
-#if defined(HAVE_TANDEM)
-	/* Tandem では / の代わりに . を追加 */
-	if (AskHostType() == HTYPE_TANDEM) {
-		if (Str[strlen(Str) - 1] != '.')
-			strcat(Str, ".");
-	} else
-#endif
-		if (Str[strlen(Str) - 1] != '/')
-			strcat(Str, "/");
-}
 // 文字列の最後に "/" を付ける
 //   Tandem では / の代わりに . を追加
 std::wstring SetSlashTail(std::wstring&& path) {

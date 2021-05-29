@@ -681,7 +681,6 @@ int GetNodeTime(int Win, int Pos, FILETIME *Buf);
 int GetNodeSize(int Win, int Pos, LONGLONG *Buf);
 int GetNodeAttr(int Win, int Pos, int *Buf);
 int GetNodeType(int Win, int Pos);
-void GetNodeOwner(int Win, int Pos, char *Buf, int Max);
 void EraseRemoteDirForWnd(void);
 double GetSelectedTotalSize(int Win);
 int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Base, int *CancelCheckWork);
@@ -1076,9 +1075,6 @@ bool ConnectRas(bool dialup, bool explicitly, bool confirm, std::wstring const& 
 
 /*===== misc.c =====*/
 
-void SetYenTail(char *Str);
-void RemoveYenTail(char *Str);
-void SetSlashTail(char *Str);
 std::wstring SetSlashTail(std::wstring&& path);
 void ReplaceAll(char *Str, char Src, char Dst);
 std::wstring ReplaceAll(std::wstring&& str, wchar_t from, wchar_t to);
