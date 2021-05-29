@@ -1816,7 +1816,6 @@ void MoveRemoteFileProc(int drop_index)
 
 	int Win;
 	FILELIST Pkt;
-	char HostDir[FMAX_PATH+1];
 	int RenFlg;
 	int Sts;
 
@@ -1828,7 +1827,7 @@ void MoveRemoteFileProc(int drop_index)
 		return;
 	}
 
-	strcpy(HostDir, u8(AskRemoteCurDir()).c_str());
+	auto const HostDir = AskRemoteCurDir();
 
 	// ドロップ先のフォルダ名を得る
 	Pkt.Name = 0 <= drop_index ? GetNodeName(WIN_REMOTE, drop_index) : L".."s;
@@ -1860,8 +1859,8 @@ void MoveRemoteFileProc(int drop_index)
 		for (auto const& f : FileListBase)
 			if (f.Node == NODE_FILE || f.Node == NODE_DIR) {
 				if (!empty(f.Name)) {
-					auto const from = strprintf(L"%s/%s", u8(HostDir).c_str(), f.Name.c_str());
-					auto const to = strprintf(L"%s/%s/%s", u8(HostDir).c_str(), Pkt.Name.c_str(), f.Name.c_str());
+					auto const from = std::format(L"{}/{}"sv, HostDir, f.Name);
+					auto const to = std::format(L"{}/{}/{}"sv, HostDir, Pkt.Name, f.Name);
 					if (Win == WIN_LOCAL)
 						DoLocalRENAME(from, to);
 					else
@@ -1876,7 +1875,7 @@ void MoveRemoteFileProc(int drop_index)
 				GetLocalDirForWnd();
 			} else {
 				GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
-				auto const dir = strprintf(L"%s/%s", u8(HostDir).c_str(), Pkt.Name.c_str());
+				auto const dir = std::format(L"{}/{}"sv, HostDir, Pkt.Name);
 				DoCWD(dir, YES, YES, YES);
 				GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
 			}
