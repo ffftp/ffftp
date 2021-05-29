@@ -1821,8 +1821,8 @@ std::tuple<fs::path, std::vector<FILELIST>> MakeDroppedFileList(WPARAM wParam) {
 
 
 // Drag&Dropされたファイルがあるフォルダを取得する
-void MakeDroppedDir(WPARAM wParam, char* Cur) {
-	strncpy(Cur, DragFile((HDROP)wParam, 0).parent_path().u8string().c_str(), FMAX_PATH);
+fs::path MakeDroppedDir(WPARAM wParam) {
+	return DragFile((HDROP)wParam, 0).parent_path();
 }
 
 

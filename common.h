@@ -686,7 +686,7 @@ void EraseRemoteDirForWnd(void);
 double GetSelectedTotalSize(int Win);
 int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Base, int *CancelCheckWork);
 std::tuple<fs::path, std::vector<FILELIST>> MakeDroppedFileList(WPARAM wParam);
-void MakeDroppedDir(WPARAM wParam, char *Cur);
+fs::path MakeDroppedDir(WPARAM wParam);
 void AddRemoteTreeToFileList(int Num, std::wstring const& Path, int IncDir, std::vector<FILELIST>& Base);
 const FILELIST* SearchFileList(std::wstring_view Fname, std::vector<FILELIST> const& Base, int Caps);
 static inline FILELIST* SearchFileList(std::wstring_view Fname, std::vector<FILELIST>& Base, int Caps) {

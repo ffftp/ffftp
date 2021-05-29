@@ -2012,25 +2012,12 @@ void ChangeDirDirectProc(int Win) {
 }
 
 
-/*----- Dropされたファイルによるディレクトリの移動 ----------------------------
-*
-*	Parameter
-*		WPARAM wParam : ドロップされたファイルの情報
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void ChangeDirDropFileProc(WPARAM wParam)
-{
-	char Path[FMAX_PATH+1];
-
+// Dropされたファイルによるディレクトリの移動
+void ChangeDirDropFileProc(WPARAM wParam) {
 	DisableUserOpe();
-	MakeDroppedDir(wParam, Path);
-	DoLocalCWD(fs::u8path(Path));
+	DoLocalCWD(MakeDroppedDir(wParam));
 	GetLocalDirForWnd();
 	EnableUserOpe();
-	return;
 }
 
 
