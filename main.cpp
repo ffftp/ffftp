@@ -72,7 +72,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 static void StartupProc(std::vector<std::wstring_view> const& args);
 static std::optional<int> AnalyzeComLine(std::vector<std::wstring_view> const& args, std::wstring& hostname, std::wstring& unc);
 static void ExitProc(HWND hWnd);
-static void ChangeDir(int Win, const char *Path);
+static void ChangeDir(int Win, std::wstring_view dir);
 static void ResizeWindowProc(void);
 static void CalcWinSize(void);
 static void CheckResizeFrame(WPARAM Keys, int x, int y);
@@ -891,7 +891,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						break;
 					SuppressRefresh = 1;
 					SetCurrentDirAsDirHist();
-					ChangeDir(WIN_REMOTE, "..");
+					ChangeDir(WIN_REMOTE, L".."sv);
 					SuppressRefresh = 0;
 					break;
 
@@ -899,7 +899,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					if (AskUserOpeDisabled())
 						break;
 					SetCurrentDirAsDirHist();
-					ChangeDir(WIN_LOCAL, "..");
+					ChangeDir(WIN_LOCAL, L".."sv);
 					break;
 
 				case MENU_REMOTE_CHDIR :
@@ -1731,7 +1731,6 @@ void DoubleClickProc(int Win, int Mode, int App)
 	int Pos;
 	int Type;
 	char Local[FMAX_PATH+1];
-	char Tmp[FMAX_PATH+1];
 
 	if (!AskUserOpeDisabled())
 	{
@@ -1740,7 +1739,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 		{
 			if((Pos = GetFirstSelected(Win, NO)) != -1)
 			{
-				GetNodeName(Win, Pos, Tmp, FMAX_PATH);
+				auto Tmp = GetNodeName(Win, Pos);
 				Type = GetNodeType(Win, Pos);
 
 				if(Win == WIN_LOCAL)
@@ -1751,7 +1750,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 					{
 						if((DclickOpen == YES) || (Mode == YES))
 						{
-							strcpy(Local, (AskLocalCurDir() / fs::u8path(Tmp)).u8string().c_str());
+							strcpy(Local, (AskLocalCurDir() / Tmp).u8string().c_str());
 							ExecViewer(Local, App);
 						}
 						else
@@ -1771,14 +1770,14 @@ void DoubleClickProc(int Win, int Mode, int App)
 
 							auto remoteDir = tempDirectory() / L"file";
 							fs::create_directory(remoteDir);
-							auto remotePath = (remoteDir / (UseDiffViewer ? L"remote." + u8(Tmp) : u8(Tmp))).u8string();
+							auto remotePath = (remoteDir / (UseDiffViewer ? L"remote." + Tmp : Tmp)).u8string();
 
 							if(AskTransferNow() == YES)
 								SktShareProh();
 
 	//						MainTransPkt.ctrl_skt = AskCmdCtrlSkt();
 							MainTransPkt.Command = L"RETR "s;
-							MainTransPkt.Remote = AskHostType() == HTYPE_ACOS ? strprintf(L"'%s(%s)'", u8(AskHostLsName()).c_str(), u8(Tmp).c_str()) : u8(Tmp);
+							MainTransPkt.Remote = AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, u8(AskHostLsName()), Tmp) : Tmp;
 							MainTransPkt.Local = fs::u8path(remotePath);
 							MainTransPkt.Type = AskTransferTypeAssoc(MainTransPkt.Remote, AskTransferType());
 							MainTransPkt.Size = 1;
@@ -1805,7 +1804,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 							AddTempFileList(fs::u8path(remotePath));
 							if(Sts/100 == FTP_COMPLETE) {
 								if (UseDiffViewer) {
-									strcpy(Local, (AskLocalCurDir() / fs::u8path(Tmp)).u8string().c_str());
+									strcpy(Local, (AskLocalCurDir() / Tmp).u8string().c_str());
 									ExecViewer2(Local, data(remotePath), App);
 								} else {
 									ExecViewer(data(remotePath), App);
@@ -1826,63 +1825,30 @@ void DoubleClickProc(int Win, int Mode, int App)
 }
 
 
-/*----- フォルダの移動 --------------------------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		char *Path : 移動先のパス名
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		フォルダ同時移動の処理も行う
-*----------------------------------------------------------------------------*/
-
-static void ChangeDir(int Win, const char *Path)
-{
-	int Sync;
-	char Remote[FMAX_PATH+1];
-
-	// 同時接続対応
+// フォルダの移動
+static void ChangeDir(int Win, std::wstring_view dir) {
 	CancelFlg = NO;
-
-	// デッドロック対策
 	DisableUserOpe();
-	Sync = AskSyncMoveMode();
-	if(Sync == YES)
-	{
-		if(strcmp(Path, "..") == 0)
-		{
-			strcpy(Remote, u8(AskRemoteCurDir()).c_str());
-			if (AskLocalCurDir().filename() != u8(GetFileName(Remote)))
-				Sync = NO;
-		}
-	}
-
-	if((Win == WIN_LOCAL) || (Sync == YES))
-	{
-		if (DoLocalCWD(fs::u8path(Path)) == FFFTP_SUCCESS)
+	int Sync = AskSyncMoveMode();
+	if (Sync == YES && dir == L".."sv && AskLocalCurDir().filename() != GetFileName(AskRemoteCurDir()))
+		Sync = NO;
+	if (Win == WIN_LOCAL || Sync == YES) {
+		if (DoLocalCWD(dir) == FFFTP_SUCCESS)
 			GetLocalDirForWnd();
 	}
-
-	if((Win == WIN_REMOTE) || (Sync == YES))
-	{
-		if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
-		{
-			auto path = u8(Path);
+	if (Win == WIN_REMOTE || Sync == YES) {
+		if (CheckClosedAndReconnect() == FFFTP_SUCCESS) {
+			std::wstring path{ dir };
 #if defined(HAVE_OPENVMS)
 			/* OpenVMSの場合、".DIR;?"を取る */
 			if (AskHostType() == HTYPE_VMS)
 				path = ReformVMSDirName(std::move(path));
 #endif
-			if(DoCWD(path, YES, NO, YES) < FTP_RETRY)
+			if (DoCWD(path, YES, NO, YES) < FTP_RETRY)
 				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 		}
 	}
-	// デッドロック対策
 	EnableUserOpe();
-	return;
 }
 
 
