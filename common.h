@@ -758,7 +758,7 @@ HWND GetSbarWnd(void);
 void UpdateStatusBar();
 void DispCurrentWindow(int Win);
 void DispSelectedSpace(void);
-void DispLocalFreeSpace(char *Path);
+void DispLocalFreeSpace(fs::path const& directory);
 void DispTransferFiles(void);
 void DispDownloadSize(LONGLONG Size);
 bool NotifyStatusBar(const NMHDR* hdr);

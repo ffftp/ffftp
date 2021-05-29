@@ -82,9 +82,9 @@ void DispSelectedSpace() {
 
 
 // ローカル側の空き容量を表示
-void DispLocalFreeSpace(char *Path) {
+void DispLocalFreeSpace(fs::path const& directory) {
 	ULARGE_INTEGER a;
-	auto const size = GetDiskFreeSpaceExW(fs::u8path(Path).c_str(), &a, nullptr, nullptr) != 0 ? MakeSizeString((double)a.QuadPart) : L"??"s;
+	auto const size = GetDiskFreeSpaceExW(directory.c_str(), &a, nullptr, nullptr) != 0 ? MakeSizeString((double)a.QuadPart) : L"??"s;
 	auto const text = strprintf(GetString(IDS_MSGJPN248).c_str(), size.c_str());
 	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(3, 0), (LPARAM)text.c_str());
 }
