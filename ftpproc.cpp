@@ -864,13 +864,12 @@ void UploadListProc(int ChName, int All)
 				// 同名ファイルチェック用
 				RemoteList.clear();
 
-				char Tmp[FMAX_PATH + 1];
-				strcpy(Tmp, u8(AskRemoteCurDir()).c_str());
+				auto const Tmp = AskRemoteCurDir();
 				if(DoCWD(Pkt.Remote, NO, NO, NO) == FTP_COMPLETE)
 				{
 					if(DoDirListCmdSkt("", "", 998, &CancelFlg) == FTP_COMPLETE)
 						AddRemoteTreeToFileList(998, {}, RDIR_NONE, RemoteList);
-					DoCWD(u8(Tmp), NO, NO, NO);
+					DoCWD(Tmp, NO, NO, NO);
 				}
 				else
 				{
@@ -1010,13 +1009,12 @@ void UploadDragProc(WPARAM wParam)
 				// 同名ファイルチェック用
 				RemoteList.clear();
 
-				char Tmp[FMAX_PATH + 1];
-				strcpy(Tmp, u8(AskRemoteCurDir()).c_str());
+				auto const Tmp = AskRemoteCurDir();
 				if(DoCWD(Pkt.Remote, NO, NO, NO) == FTP_COMPLETE)
 				{
 					if(DoDirListCmdSkt("", "", 998, &CancelFlg) == FTP_COMPLETE)
 						AddRemoteTreeToFileList(998, {}, RDIR_NONE, RemoteList);
-					DoCWD(u8(Tmp), NO, NO, NO);
+					DoCWD(Tmp, NO, NO, NO);
 				}
 				else
 				{
