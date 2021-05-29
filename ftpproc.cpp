@@ -963,7 +963,6 @@ void UploadDragProc(WPARAM wParam)
 	TRANSPACKET Pkt;
 	TRANSPACKET Pkt1;
 	int FirstAdd;
-	char Cur[FMAX_PATH+1];
 
 	// 同時接続対応
 	CancelFlg = NO;
@@ -973,8 +972,7 @@ void UploadDragProc(WPARAM wParam)
 		DisableUserOpe();
 
 		// ローカル側で選ばれているファイルをFileListBaseに登録
-		std::vector<FILELIST> FileListBase;
-		MakeDroppedFileList(wParam, Cur, FileListBase);
+		auto [cur, files] = MakeDroppedFileList(wParam);
 
 		// 現在ホスト側のファイル一覧に表示されているものをRemoteListに登録
 		// 同名ファイルチェック用
@@ -984,7 +982,7 @@ void UploadDragProc(WPARAM wParam)
 		FirstAdd = YES;
 		ExistNotify = YES;
 
-		for (auto const& f : FileListBase) {
+		for (auto const& f : files) {
 			auto Cat = f.Name;
 			if(FnameCnv == FNAME_LOWER)
 				Cat = lc(std::move(Cat));
@@ -1033,7 +1031,7 @@ void UploadDragProc(WPARAM wParam)
 			else if(f.Node == NODE_FILE)
 			{
 				// ファイルの場合
-				Pkt.Local = fs::u8path(Cur) / f.Name;
+				Pkt.Local = cur / f.Name;
 
 				Pkt.Command = L"STOR "s;
 				Pkt.Type = AskTransferTypeAssoc(Pkt.Local.native(), AskTransferType());

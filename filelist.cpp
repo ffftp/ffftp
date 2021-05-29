@@ -1772,13 +1772,12 @@ static inline fs::path DragFile(HDROP hdrop, UINT index) {
 	return std::move(buffer);
 }
 
+
 // Drag&Dropされたファイルをリストに登録する
-void MakeDroppedFileList(WPARAM wParam, char* Cur, std::vector<FILELIST>& Base) {
+std::tuple<fs::path, std::vector<FILELIST>> MakeDroppedFileList(WPARAM wParam) {
 	int count = DragQueryFileW((HDROP)wParam, 0xFFFFFFFF, NULL, 0);
-
 	auto const baseDirectory = DragFile((HDROP)wParam, 0).parent_path();
-	strncpy(Cur, baseDirectory.u8string().c_str(), FMAX_PATH);
-
+	std::vector<FILELIST> files;
 	std::vector<fs::path> directories;
 	for (int i = 0; i < count; i++) {
 		auto const path = DragFile((HDROP)wParam, i);
@@ -1801,7 +1800,7 @@ void MakeDroppedFileList(WPARAM wParam, char* Cur, std::vector<FILELIST>& Base) 
 			Pkt.Size = LONGLONG(attr.nFileSizeHigh) << 32 | attr.nFileSizeLow;
 			Pkt.InfoExist = FINFO_TIME | FINFO_DATE | FINFO_SIZE;
 #endif
-			AddFileList(Pkt, Base);
+			AddFileList(Pkt, files);
 		}
 	}
 
@@ -1812,10 +1811,12 @@ void MakeDroppedFileList(WPARAM wParam, char* Cur, std::vector<FILELIST>& Base) 
 		FILELIST Pkt{};
 		Pkt.Node = NODE_DIR;
 		Pkt.Name = path.filename();
-		AddFileList(Pkt, Base);
-		MakeLocalTree(Pkt.Name, Base);
+		AddFileList(Pkt, files);
+		MakeLocalTree(Pkt.Name, files);
 	}
 	fs::current_path(saved);
+
+	return { std::move(baseDirectory), std::move(files) };
 }
 
 
