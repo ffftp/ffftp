@@ -696,15 +696,14 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						FindNextChangeNotification(ChangeNotification);
 						if(AutoRefreshFileList == YES)
 						{
-							char Name[FMAX_PATH+1];
 							int Pos;
 							std::vector<FILELIST> Base;
 							MakeSelectedFileList(WIN_LOCAL, NO, NO, Base, &CancelFlg);
-							GetHotSelected(WIN_LOCAL, Name);
+							auto const name = GetHotSelected(WIN_LOCAL);
 							Pos = (int)SendMessageW(GetLocalHwnd(), LVM_GETTOPINDEX, 0, 0);
 							GetLocalDirForWnd();
 							SelectFileInList(GetLocalHwnd(), SELECT_LIST, Base);
-							SetHotSelected(WIN_LOCAL, Name);
+							SetHotSelected(WIN_LOCAL, name);
 							SendMessageW(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)(SendMessageW(GetLocalHwnd(), LVM_GETITEMCOUNT, 0, 0) - 1), true);
 							SendMessageW(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)Pos, true);
 						}

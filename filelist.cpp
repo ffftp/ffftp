@@ -1378,27 +1378,17 @@ int GetNextSelected(int Win, int Pos, int All) {
 }
 
 
-// ローカル側自動更新
-int GetHotSelected(int Win, char* Fname) {
-	auto Pos = (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, -1, LVNI_FOCUSED);
-	if (Pos != -1)
-		GetNodeName(Win, Pos, Fname, FMAX_PATH);
-	return Pos;
+std::wstring GetHotSelected(int Win) {
+	auto index = (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, -1, LVNI_FOCUSED);
+	return index != -1 ? GetNodeName(Win, index) : L""s;
 }
 
-int SetHotSelected(int Win, char* Fname) {
-	auto wFname = u8(Fname);
-	auto hWnd = Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd();
-	int Pos = -1;
-	for (int i = 0, Num = GetItemCount(Win); i < Num; i++) {
-		LVITEMW item{ .stateMask = LVIS_FOCUSED };
-		if (wFname == GetNodeName(Win, i)) {
-			Pos = i;
-			item.state = LVIS_FOCUSED;
-		}
-		SendMessageW(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&item);
+
+void SetHotSelected(int Win, std::wstring const& name) {
+	if (auto index = FindNameNode(Win, name); index != -1) {
+		LVITEMW item{ .state = LVIS_FOCUSED, .stateMask = LVIS_FOCUSED };
+		SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_SETITEMSTATE, index, (LPARAM)&item);
 	}
-	return Pos;
 }
 
 
