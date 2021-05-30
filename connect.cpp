@@ -695,11 +695,11 @@ int AskPasvMode(void)
 }
 
 
-std::string AskHostLsName() {
+std::wstring AskHostLsName() {
 	HOSTDATA TmpHost = CurHost;
 	if (AskCurrentHost() != HOSTNUM_NOENTRY)
 		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
-	return u8(TmpHost.LsName);
+	return TmpHost.LsName;
 }
 
 

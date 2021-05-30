@@ -824,7 +824,7 @@ int AskUseNLST_R(void);
 std::wstring AskHostChmodCmd();
 int AskHostTimeZone(void);
 int AskPasvMode(void);
-std::string AskHostLsName();
+std::wstring AskHostLsName();
 int AskHostType(void);
 int AskHostFireWall(void);
 int AskNoFullPathMode(void);

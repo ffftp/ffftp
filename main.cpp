@@ -1772,7 +1772,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 
 	//						MainTransPkt.ctrl_skt = AskCmdCtrlSkt();
 							MainTransPkt.Command = L"RETR "s;
-							MainTransPkt.Remote = AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, u8(AskHostLsName()), Tmp) : Tmp;
+							MainTransPkt.Remote = AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, AskHostLsName(), Tmp) : Tmp;
 							MainTransPkt.Local = remotePath;
 							MainTransPkt.Type = AskTransferTypeAssoc(MainTransPkt.Remote, AskTransferType());
 							MainTransPkt.Size = 1;

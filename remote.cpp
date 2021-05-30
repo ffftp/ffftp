@@ -448,7 +448,7 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Pat
 			MainTransPkt.Command += L' ';
 			if((AskHostType() == HTYPE_ACOS) || (AskHostType() == HTYPE_ACOS_4))
 				MainTransPkt.Command += L'\'';
-			MainTransPkt.Command += u8(AskHostLsName());
+			MainTransPkt.Command += AskHostLsName();
 			if((AskHostType() == HTYPE_ACOS) || (AskHostType() == HTYPE_ACOS_4))
 				MainTransPkt.Command += L'\'';
 		}

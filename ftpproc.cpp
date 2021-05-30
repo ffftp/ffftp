@@ -164,7 +164,7 @@ void DownloadProc(int ChName, int ForceFile, int All)
 				AddTransFileList(&Pkt);
 			} else if (f.Node == NODE_FILE || ForceFile == YES && f.Node == NODE_DIR) {
 				Pkt.Remote
-					= AskHostType() == HTYPE_ACOS ? strprintf(L"'%s(%s)'", u8(AskHostLsName()).c_str(), f.Name.c_str())
+					= AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, AskHostLsName(), f.Name)
 					: AskHostType() == HTYPE_ACOS_4 ? f.Name
 					: ReplaceAll(SetSlashTail(std::wstring{ AskRemoteCurDir() }) + f.Name, L'\\', L'/');
 
@@ -254,7 +254,7 @@ void DirectDownloadProc(std::wstring_view Fname) {
 				Pkt.Local /= filename;
 
 				Pkt.Remote
-					= AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, u8(AskHostLsName()), Fname)
+					= AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, AskHostLsName(), Fname)
 					: AskHostType() == HTYPE_ACOS_4 ? std::wstring{ Fname }
 					: ReplaceAll(SetSlashTail(std::wstring{ AskRemoteCurDir() }) + Fname, L'\\', L'/');
 
@@ -705,7 +705,7 @@ int MakeDirFromRemotePath(fs::path const& RemoteFile, fs::path const& Old, int F
 		Pkt.SecExt = DEF_SECEXT;
 		Pkt.MaxExt = DEF_MAXEXT;
 #endif
-		Pkt.Remote = AskHostType() == HTYPE_ACOS ? strprintf(L"'%s(%s)'", u8(AskHostLsName()).c_str(), name.c_str()) : AskHostType() == HTYPE_ACOS_4 ? name : path.generic_wstring();
+		Pkt.Remote = AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, AskHostLsName(), name) : AskHostType() == HTYPE_ACOS_4 ? name : path.generic_wstring();
 		Pkt.Command = L"MKD "s;
 		Pkt.Local.clear();
 		AddTransFileList(&Pkt);
@@ -811,7 +811,7 @@ void UploadListProc(int ChName, int All)
 			Pkt.Remote = ReplaceAll(std::move(Pkt.Remote), L'\\', L'/');
 
 			if (AskHostType() == HTYPE_ACOS)
-				Pkt.Remote = strprintf(L"'%s(%s)'", u8(AskHostLsName()).c_str(), Pkt.Remote.c_str() + offset);
+				Pkt.Remote = std::format(L"'{}({})'"sv, AskHostLsName(), std::wstring_view{ Pkt.Remote }.substr(offset));
 			else if (AskHostType() == HTYPE_ACOS_4)
 				Pkt.Remote = Pkt.Remote.substr(offset);
 
@@ -948,7 +948,7 @@ void UploadDragProc(WPARAM wParam)
 			else if(FnameCnv == FNAME_UPPER)
 				Cat = uc(std::move(Cat));
 			Pkt.Remote
-				= AskHostType() == HTYPE_ACOS ? strprintf(L"'%s(%s)'", u8(AskHostLsName()).c_str(), Cat.c_str())
+				= AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, AskHostLsName(), Cat)
 				: AskHostType() == HTYPE_ACOS_4 ? std::move(Cat)
 				: ReplaceAll(SetSlashTail(std::wstring{ AskRemoteCurDir() }) + Cat, L'\\', L'/');
 #if defined(HAVE_TANDEM)
