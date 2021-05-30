@@ -748,7 +748,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						/* ここではエラーチェックはしない */
 
 					if(FolderAttr)
-						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], L"%s %03d %s", u8(AskHostChmodCmd()).c_str(), FolderAttrNum, dir.c_str());
+						Command(TrnSkt, NULL, &Canceled[Pos->ThreadCount], L"{} {:03d} {}"sv, AskHostChmodCmd(), FolderAttrNum, dir);
 					}
 				} else if (!Pos->Local.empty()) {
 					Down = YES;
@@ -768,7 +768,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], L"%s%s", Pos->Command.c_str()+2, Pos->Remote.c_str());
 
 					if(FolderAttr)
-						CommandProcTrn(TrnSkt, NULL, &Canceled[Pos->ThreadCount], L"%s %03d %s", u8(AskHostChmodCmd()).c_str(), FolderAttrNum, Pos->Remote.c_str());
+						Command(TrnSkt, NULL, &Canceled[Pos->ThreadCount], L"{} {:03d} {}"sv, AskHostChmodCmd(), FolderAttrNum, Pos->Remote);
 				}
 				ReleaseMutex(hListAccMutex);
 			}
@@ -1622,7 +1622,7 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET& item)
 
 			/* 属性変更 */
 			if((item.Attr != -1) && ((iRetCode/100) == FTP_COMPLETE))
-				command(item.ctrl_skt, Reply, &Canceled[item.ThreadCount], L"%s %03X %s", u8(AskHostChmodCmd()).c_str(), item.Attr, item.Remote.c_str());
+				Command(item.ctrl_skt, Reply, &Canceled[item.ThreadCount], L"{} {:03X} {}"sv, AskHostChmodCmd(), item.Attr, item.Remote);
 		}
 		else
 		{

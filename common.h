@@ -821,7 +821,7 @@ int AskHostNameKanji(void);
 int AskHostNameKana(void);
 int AskListCmdMode(void);
 int AskUseNLST_R(void);
-std::string AskHostChmodCmd();
+std::wstring AskHostChmodCmd();
 int AskHostTimeZone(void);
 int AskPasvMode(void);
 std::string AskHostLsName();

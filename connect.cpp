@@ -646,11 +646,11 @@ int AskUseNLST_R(void)
 }
 
 
-std::string AskHostChmodCmd() {
+std::wstring AskHostChmodCmd() {
 	HOSTDATA TmpHost = CurHost;
 	if (AskCurrentHost() != HOSTNUM_NOENTRY)
 		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
-	return u8(TmpHost.ChmodCmd);
+	return TmpHost.ChmodCmd;
 }
 
 

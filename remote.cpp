@@ -253,7 +253,9 @@ int DoRENAME(std::wstring const& from, std::wstring const& to) {
 
 // リモート側のファイルの属性変更
 int DoCHMOD(std::wstring const& path, std::wstring const& mode) {
-	int Sts = CommandProcCmd(NULL, &CancelFlg, L"%s %s %s", u8(AskHostChmodCmd()).c_str(), mode.c_str(), path.c_str());
+	if (AskTransferNow() == YES)
+		SktShareProh();
+	int Sts = Command(AskCmdCtrlSkt(), NULL, &CancelFlg, L"{} {} {}"sv, AskHostChmodCmd(), mode, path);
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
