@@ -46,6 +46,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files);
 static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, std::wstring const& Owner, int Link, int InfoExist, int ImageId);
 static int FindNameNode(int Win, std::wstring const& name);
+static bool GetNodeTime(int Win, int Pos, FILETIME& ft);
 static int GetImageIndex(int Win, int Pos);
 static int MakeRemoteTree1(std::wstring const& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
 static int MakeRemoteTree2(std::wstring& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
@@ -1212,8 +1213,8 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 								state = 0;
 							else {
 								FILETIME Time1, Time2;
-								GetNodeTime(Win, i, &Time1);
-								GetNodeTime(WinDst, Find, &Time2);
+								GetNodeTime(Win, i, Time1);
+								GetNodeTime(WinDst, Find, Time2);
 								if (IgnoreNew && CompareFileTime(&Time1, &Time2) > 0 || IgnoreOld && CompareFileTime(&Time1, &Time2) < 0)
 									state = 0;
 							}
@@ -1411,21 +1412,27 @@ std::wstring GetNodeName(int Win, int Pos) {
 }
 
 
-/*----- 指定位置のアイテムの日付を返す ----------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int Pos : 位置
-*		FILETIME *Buf : 日付を返すバッファ
-*
-*	Return Value
-*		int ステータス
-*			YES/NO=日付情報がなかった
-*----------------------------------------------------------------------------*/
-
-int GetNodeTime(int Win, int Pos, FILETIME* Buf) {
-	auto time = GetItemText(Win, Pos, 1);
-	return TimeString2FileTime(u8(time).c_str(), Buf);
+// 指定位置のアイテムのUTC日付を返す
+static bool GetNodeTime(int Win, int Pos, FILETIME& ft) {
+	// 0123456789012345678
+	// 2021/05/30 10:10:10
+	// 時刻は0始まりでない場合があり、数値確認は12文字目で行う。
+	// 秒が含まれない場合があり、長さは16文字以上とする。
+	if (auto const text = GetItemText(Win, Pos, 1); 16 <= size(text) && iswdigit(text[0]) && iswdigit(text[5]) && iswdigit(text[8]) && iswdigit(text[12]) && iswdigit(text[14])) {
+		SYSTEMTIME st{
+			.wYear = WORD(_wtoi(&text[0])),
+			.wMonth = WORD(_wtoi(&text[5])),
+			.wDay = WORD(_wtoi(&text[8])),
+			.wHour = WORD(_wtoi(&text[11])),
+			.wMinute = WORD(_wtoi(&text[14])),
+			.wSecond = WORD(19 <= size(text) ? _wtoi(&text[17]) : 0),
+		};
+		FILETIME lt;
+		SystemTimeToFileTime(&st, &lt);
+		LocalFileTimeToFileTime(&lt, &ft);
+		return true;
+	}
+	return false;
 }
 
 
@@ -1612,7 +1619,7 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 					Pkt.InfoExist |= FINFO_SIZE;
 				if(GetNodeAttr(Win, Pos, &Pkt.Attr) == YES)
 					Pkt.InfoExist |= FINFO_ATTR;
-				if(GetNodeTime(Win, Pos, &Pkt.Time) == YES)
+				if (GetNodeTime(Win, Pos, Pkt.Time))
 					Pkt.InfoExist |= (FINFO_TIME | FINFO_DATE);
 				Pkt.Node = Node;
 

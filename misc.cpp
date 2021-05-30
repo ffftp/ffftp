@@ -409,58 +409,6 @@ int SplitUNCpath(char *unc, std::wstring& Host, std::wstring& Path, std::wstring
 }
 
 
-/*----- 日付文字列(JST)をFILETIME(UTC)に変換 ----------------------------------
-*
-*	Parameter
-*		char *Time : 日付文字列 ("yyyy/mm/dd hh:mm")
-*		FILETIME *Buf : ファイルタイムを返すワーク
-*
-*	Return Value
-*		int ステータス
-*			YES/NO=日付情報がなかった
-*----------------------------------------------------------------------------*/
-
-int TimeString2FileTime(const char *Time, FILETIME *Buf)
-{
-	SYSTEMTIME sTime;
-	FILETIME fTime;
-	int Ret;
-
-	Ret = NO;
-	Buf->dwLowDateTime = 0;
-	Buf->dwHighDateTime = 0;
-
-	if(strlen(Time) >= 16)
-	{
-		if(IsDigit(Time[0]) && IsDigit(Time[5]) && IsDigit(Time[8]) && 
-		   IsDigit(Time[12]) && IsDigit(Time[14]))
-		{
-			Ret = YES;
-		}
-
-		sTime.wYear = atoi(Time);
-		sTime.wMonth = atoi(Time + 5);
-		sTime.wDay = atoi(Time + 8);
-		if(Time[11] != ' ')
-			sTime.wHour = atoi(Time + 11);
-		else
-			sTime.wHour = atoi(Time + 12);
-		sTime.wMinute = atoi(Time + 14);
-		// タイムスタンプのバグ修正
-//		sTime.wSecond = 0;
-		if(strlen(Time) >= 19)
-			sTime.wSecond = atoi(Time + 17);
-		else
-			sTime.wSecond = 0;
-		sTime.wMilliseconds = 0;
-
-		SystemTimeToFileTime(&sTime, &fTime);
-		LocalFileTimeToFileTime(&fTime, Buf);
-	}
-	return(Ret);
-}
-
-
 /*----- 属性文字列を値に変換 --------------------------------------------------
 *
 *	Parameter
