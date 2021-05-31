@@ -1128,7 +1128,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					data_socket = do_accept(listen_socket, reinterpret_cast<sockaddr*>(&sa), &salen);
 
 					if(shutdown(listen_socket, 1) != 0)
-						ReportWSError(L"shutdown listen");
+						WSAError(L"shutdown listen"sv);
 					// UPnP対応
 					if(IsUPnPLoaded() == YES)
 					{
@@ -1140,7 +1140,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					if(data_socket == INVALID_SOCKET)
 					{
 						SetErrorMsg(GetString(IDS_MSGJPN280));
-						ReportWSError(L"accept");
+						WSAError(L"accept"sv);
 						iRetCode = 500;
 					}
 					else
@@ -1240,7 +1240,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 				// 変数が未初期化のバグ修正
 				Flg = 1;
 				if(setsockopt(data_socket, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
-					ReportWSError(L"setsockopt");
+					WSAError(L"setsockopt"sv);
 
 				if(SetDownloadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &CreateMode, CancelCheckWork) == YES)
 				{
@@ -1380,7 +1380,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		}
 
 		if (read == SOCKET_ERROR)
-			ReportWSError(L"recv");
+			WSAError(L"recv"sv);
 	} else {
 		SetErrorMsg(strprintf(GetString(IDS_MSGJPN095).c_str(), Pkt->Local.c_str()));
 		SetTaskMsg(IDS_MSGJPN095, Pkt->Local.c_str());
@@ -1388,7 +1388,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 	}
 
 	if (shutdown(dSkt, 1) != 0)
-		ReportWSError(L"shutdown");
+		WSAError(L"shutdown"sv);
 	LastDataConnectionTime = time(NULL);
 	DoClose(dSkt);
 
@@ -1697,7 +1697,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 				data_socket = do_accept(listen_socket, reinterpret_cast<sockaddr*>(&sa), &salen);
 
 				if(shutdown(listen_socket, 1) != 0)
-					ReportWSError(L"shutdown listen");
+					WSAError(L"shutdown listen"sv);
 				// UPnP対応
 				if(IsUPnPLoaded() == YES)
 				{
@@ -1709,7 +1709,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 				if(data_socket == INVALID_SOCKET)
 				{
 					SetErrorMsg(GetString(IDS_MSGJPN280));
-					ReportWSError(L"accept");
+					WSAError(L"accept"sv);
 					iRetCode = 500;
 				}
 				else
@@ -1796,7 +1796,7 @@ static int UploadPassive(TRANSPACKET *Pkt)
 				// 変数が未初期化のバグ修正
 				Flg = 1;
 				if(setsockopt(data_socket, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
-					ReportWSError(L"setsockopt");
+					WSAError(L"setsockopt"sv);
 
 				SetUploadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &Resume);
 				std::wstring cmd;
@@ -1939,7 +1939,7 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 
 	LastDataConnectionTime = time(NULL);
 	if (shutdown(dSkt, 1) != 0)
-		ReportWSError(L"shutdown");
+		WSAError(L"shutdown"sv);
 
 	auto [code, text] = ReadReplyMessage(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount]);
 	if (code / 100 >= FTP_RETRY)

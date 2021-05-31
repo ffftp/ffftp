@@ -1011,6 +1011,24 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 	DispSelectedSpace();
 }
 
+// FILETIME(UTC)を日付文字列(JST)に変換
+static auto FileTimeToString(FILETIME ft, int InfoExist) {
+	std::wstring str;
+	if ((ft.dwLowDateTime != 0 || ft.dwHighDateTime != 0) && (InfoExist & (FINFO_DATE | FINFO_TIME)) != 0) {
+		FileTimeToLocalFileTime(&ft, &ft);
+		if (SYSTEMTIME st; FileTimeToSystemTime(&ft, &st)) {
+			if (InfoExist & FINFO_DATE)
+				std::format_to(std::back_inserter(str), L"{:04d}/{:02d}/{:02d} "sv, st.wYear, st.wMonth, st.wDay);
+			else
+				str += L"           "sv;
+			if (InfoExist & FINFO_TIME)
+				std::format_to(std::back_inserter(str), DispTimeSeconds == YES ? L"{:02d}:{:02d}:{:02d}"sv : L"{:02d}:{:02d}"sv, st.wHour, st.wMinute, st.wSecond);
+			else
+				str += DispTimeSeconds == YES ? L"        "sv : L"     "sv;
+		}
+	}
+	return str;
+}
 
 // パス名の中の拡張子の先頭を返す
 static std::wstring GetFileExt(std::wstring const& path) {
@@ -1020,6 +1038,17 @@ static std::wstring GetFileExt(std::wstring const& path) {
 	return {};
 }
 
+// 属性の値を文字列に変換
+static std::wstring AttrValue2String(int Attr) {
+	if (DispPermissionsNumber == YES)
+		return std::format(L"{:03x}"sv, Attr);
+	auto str = L"rwxrwxrwx"s;
+	constexpr int masks[] = { 0x400, 0x200, 0x100, 0x40, 0x20, 0x10, 0x4, 0x2, 0x1 };
+	for (size_t i = 0; i < std::size(masks); i++)
+		if ((Attr & masks[i]) == 0)
+			str[i] = L'-';
+	return str;
+}
 
 /*----- ファイル一覧ウインドウ（リストビュー）に追加 --------------------------
 *
@@ -1039,8 +1068,9 @@ static std::wstring GetFileExt(std::wstring const& path) {
 *		なし
 *----------------------------------------------------------------------------*/
 static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, LONGLONG Size, FILETIME* Time, int Attr, std::wstring const& Owner, int Link, int InfoExist, int ImageId) {
+	static const std::locale default_locale{ ""s };
 	LVITEMW item;
-	char Tmp[20];
+	std::wstring text;
 
 	/* アイコン/ファイル名 */
 	if (Pos == -1)
@@ -1051,22 +1081,16 @@ static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, 
 	Pos = (int)SendMessageW(hWnd, LVM_INSERTITEMW, 0, (LPARAM)&item);
 
 	/* 日付/時刻 */
-	FileTime2TimeString(Time, Tmp, DISPFORM_LEGACY, InfoExist, DispTimeSeconds);
-	auto wTime = u8(Tmp);
-	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 1, .pszText = data(wTime) };
+	text = FileTimeToString(*Time, InfoExist);
+	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 1, .pszText = const_cast<LPWSTR>(text.c_str()) };
 	SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 	/* サイズ */
-	if (Type == NODE_DIR)
-		strcpy(Tmp, "<DIR>");
-	else if (Type == NODE_DRIVE)
-		strcpy(Tmp, "<DRIVE>");
-	else if (Size >= 0)
-		strcpy(Tmp, MakeNumString(Size).c_str());
-	else
-		strcpy(Tmp, "");
-	auto wSize = u8(Tmp);
-	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 2, .pszText = data(wSize) };
+	text = Type == NODE_DIR ? L"<DIR>"s
+		: Type == NODE_DRIVE ? L"<DRIVE>"s
+		: 0 <= Size ? std::format(default_locale, L"{:Ld}"sv, Size)
+		: L""s;
+	item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 2, .pszText = const_cast<LPWSTR>(text.c_str()) };
 	SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 	/* 拡張子 */
@@ -1087,11 +1111,10 @@ static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, 
 #else
 		if (InfoExist & FINFO_ATTR)
 #endif
-			AttrValue2String(Attr, Tmp, DispPermissionsNumber);
+			text = AttrValue2String(Attr);
 		else
-			strcpy(Tmp, "");
-		auto wAttr = u8(Tmp);
-		item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 4, .pszText = data(wAttr) };
+			text = L""s;
+		item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 4, .pszText = const_cast<LPWSTR>(text.c_str()) };
 		SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 
 		/* オーナ名 */

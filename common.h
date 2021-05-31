@@ -39,6 +39,7 @@
 #include <charconv>
 #include <chrono>
 #include <filesystem>
+#include <format>
 #include <forward_list>
 #include <fstream>
 #include <future>
@@ -773,6 +774,22 @@ void DispTaskMsg(void);
 void SetTaskMsg(UINT id, ...);
 void DoPrintf(_In_z_ _Printf_format_string_ const char* format, ...);
 void DoPrintf(_In_z_ _Printf_format_string_ const wchar_t* format, ...);
+namespace detail {
+	void Notice(UINT id, std::wformat_args args);
+	void Debug(std::wstring_view format, std::wformat_args args);
+}
+// メッセージを表示する
+template<class... Args>
+static inline void Notice(UINT id, const Args&... args) {
+	detail::Notice(id, std::make_wformat_args(args...));
+}
+// デバッグメッセージを表示する
+template<class... Args>
+static inline void Debug(std::wstring_view format, const Args&... args) {
+	detail::Debug(format, std::make_wformat_args(args...));
+}
+void Error(std::wstring_view functionName, int lastError = GetLastError());
+static inline void WSAError(std::wstring_view functionName, int lastError = WSAGetLastError()) { Error(functionName, lastError); }
 
 /*===== hostman.c =====*/
 
@@ -860,9 +877,10 @@ int AskErrorReconnect(void);
 // ホスト側の設定ミス対策
 int AskNoPasvAdrs(void);
 
-/*===== cache.c =====*/
-
-fs::path MakeCacheFileName(int Num);
+// キャッシュのファイル名を作成する
+static inline fs::path MakeCacheFileName(int num) {
+	return tempDirectory() / std::format(L"_ffftp.{:03d}"sv, num);
+}
 
 /*===== ftpproc.c =====*/
 
@@ -935,7 +953,6 @@ namespace detail {
 }
 std::tuple<int, std::string> ReadReplyMessage(SOCKET cSkt, int *CancelCheckWork);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
-void ReportWSError(const wchar_t* functionName);
 
 /*===== getput.c =====*/
 
@@ -979,7 +996,7 @@ class CodeDetector {
 public:
 	void Test(std::string_view str);
 	int result() const {
-		DoPrintf(L"CodeDetector::result(): utf8 %d, sjis %d, euc %d, jis %d, nfc %d, nfd %d", utf8, sjis, euc, jis, int(nfc), int(nfd));
+		Debug(L"CodeDetector::result(): utf8 {}, sjis {}, euc {}, jis {}, nfc {}, nfd {}"sv, utf8, sjis, euc, jis, nfc, nfd);
 		auto [_, id] = std::max<std::tuple<int, int>>({
 			{ utf8, KANJI_UTF8N },
 			{ sjis, KANJI_SJIS },
@@ -1011,7 +1028,6 @@ void SetOption();
 int SortSetting(void);
 // hostman.cで使用
 int GetDecimalText(HWND hDlg, int Ctrl);
-void SetDecimalText(HWND hDlg, int Ctrl, int Num);
 void CheckRange2(int *Cur, int Max, int Min);
 
 /*===== bookmark.c =====*/
@@ -1082,14 +1098,9 @@ void DispStaticText(HWND hWnd, std::wstring text);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
 int SplitUNCpath(char *unc, std::wstring& Host, std::wstring& Path, char *File, std::wstring& User, std::wstring& Pass, int *Port);
 int TimeString2FileTime(const char *Time, FILETIME *Buf);
-void FileTime2TimeString(const FILETIME *Time, char *Buf, int Mode, int InfoExist, int ShowSeconds);
 int AttrString2Value(const char *Str);
-// ファイルの属性を数字で表示
-//void AttrValue2String(int Attr, char *Buf);
-void AttrValue2String(int Attr, char *Buf, int ShowNumber);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 fs::path SelectDir(HWND hWnd);
-std::string MakeNumString(LONGLONG Num);
 fs::path MakeDistinguishableFileName(fs::path&& path);
 #if defined(HAVE_TANDEM)
 void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size);
@@ -1421,7 +1432,7 @@ template<class Fn>
 static inline std::invoke_result_t<Fn, BCRYPT_ALG_HANDLE> BCrypt(LPCWSTR algid, Fn&& fn) {
 	BCRYPT_ALG_HANDLE alg;
 	if (auto status = BCryptOpenAlgorithmProvider(&alg, algid, nullptr, 0); status != STATUS_SUCCESS) {
-		DoPrintf(L"BCryptOpenAlgorithmProvider(%s) failed: 0x%08X.", algid, status);
+		Debug(L"BCryptOpenAlgorithmProvider({}) failed: 0x{:08X}."sv, algid, status);
 		return {};
 	}
 	auto result = std::invoke(std::forward<Fn>(fn), alg);
@@ -1433,11 +1444,11 @@ static inline auto HashOpen(LPCWSTR algid, Fn&& fn) {
 	return BCrypt(algid, [fn](BCRYPT_ALG_HANDLE alg) -> std::invoke_result_t<Fn, BCRYPT_ALG_HANDLE, std::vector<UCHAR>&&, std::vector<UCHAR>&&> {
 		DWORD objlen, hashlen, resultlen;
 		if (auto status = BCryptGetProperty(alg, BCRYPT_OBJECT_LENGTH, reinterpret_cast<PUCHAR>(&objlen), sizeof objlen, &resultlen, 0); status != STATUS_SUCCESS || resultlen != sizeof objlen) {
-			DoPrintf(L"BCryptGetProperty(%s) failed: 0x%08X or invalid length: %d.", BCRYPT_OBJECT_LENGTH, status, resultlen);
+			Debug(L"BCryptGetProperty({}) failed: 0x{:08X} or invalid length: {}."sv, BCRYPT_OBJECT_LENGTH, status, resultlen);
 			return {};
 		}
 		if (auto status = BCryptGetProperty(alg, BCRYPT_HASH_LENGTH, reinterpret_cast<PUCHAR>(&hashlen), sizeof hashlen, &resultlen, 0); status != STATUS_SUCCESS || resultlen != sizeof hashlen) {
-			DoPrintf(L"BCryptGetProperty(%s) failed: 0x%08X or invalid length: %d.", BCRYPT_HASH_LENGTH, status, resultlen);
+			Debug(L"BCryptGetProperty({}) failed: 0x{:08X} or invalid length: {}."sv, BCRYPT_HASH_LENGTH, status, resultlen);
 			return {};
 		}
 		return std::invoke(fn, alg, std::vector<UCHAR>(objlen), std::vector<UCHAR>(hashlen));
@@ -1449,14 +1460,14 @@ static inline auto HashData(BCRYPT_ALG_HANDLE alg, std::vector<UCHAR>& obj, std:
 	if (BCRYPT_HASH_HANDLE handle; (status = BCryptCreateHash(alg, &handle, data(obj), size_as<ULONG>(obj), nullptr, 0, 0)) == STATUS_SUCCESS) {
 		for (auto bytes : { std::as_bytes(std::span{ ranges }.subspan(0))... })
 			if ((status = BCryptHashData(handle, const_cast<PUCHAR>(data_as<const UCHAR>(bytes)), size_as<ULONG>(bytes), 0)) != STATUS_SUCCESS) {
-				DoPrintf(L"BCryptHashData() failed: 0x%08X.", status);
+				Debug(L"{}() failed: 0x{:08X}."sv, L"BCryptHashData"sv, status);
 				break;
 			}
 		if (status == STATUS_SUCCESS && (status = BCryptFinishHash(handle, data(hash), size_as<DWORD>(hash), 0)) != STATUS_SUCCESS)
-			DoPrintf(L"BCryptFinishHash() failed: 0x%08X.", status);
+			Debug(L"{}() failed: 0x{:08X}."sv, L"BCryptFinishHash"sv, status);
 		BCryptDestroyHash(handle);
 	} else
-		DoPrintf(L"BCryptCreateHash() failed: 0x%08X.", status);
+		Debug(L"{}() failed: 0x{:08X}."sv, L"BCryptCreateHash"sv, status);
 	return status == STATUS_SUCCESS;
 }
 
@@ -1477,5 +1488,9 @@ static inline int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_
 template<class Char, class... Args>
 static inline int CommandProcTrn(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const Char* fmt, Args... args) {
 	return command(cSkt, Reply, CancelCheckWork, fmt, std::forward<Args>(args)...);
+}
+template<class... Args>
+static inline int Command(SOCKET socket, char* reply, int* CancelCheckWork, std::wstring_view format, const Args&... args) {
+	return socket == INVALID_SOCKET ? 429 : detail::command(socket, reply, CancelCheckWork, std::format(format, args...));
 }
 FILELIST::FILELIST(std::string_view original, char node, char link, int64_t size, int attr, FILETIME time, std::string_view owner, char infoExist) : Original{ original }, Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, Owner{ u8(owner) }, InfoExist{ infoExist } {}

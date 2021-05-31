@@ -24,9 +24,6 @@
     <ClCompile Include="bookmark.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cache.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="codecnv.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

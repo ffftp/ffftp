@@ -161,11 +161,21 @@ void DoPrintf(_In_z_ _Printf_format_string_ const wchar_t* format, ...) {
 		queue.push({ reinterpret_cast<const wchar_t*>(&buffer), static_cast<size_t>(result) + 3 });
 }
 
+void detail::Notice(UINT id, std::wformat_args args) {
+	auto const format = GetString(id);
+	auto message = std::vformat(format, args);
+	queue.push(std::move(message));
+}
 
-// デバッグコンソールにエラーを表示
-void ReportWSError(const wchar_t* functionName) {
-	auto lastError = WSAGetLastError();
+void detail::Debug(std::wstring_view format, std::wformat_args args) {
 	if (DebugConsole != YES)
 		return;
-	DoPrintf(L"[[%s : %s]]", functionName, GetErrorMessage(lastError).c_str());
+	auto message = std::vformat(format, args);
+	message.insert(0, L"## "sv);
+	queue.push(std::move(message));
+}
+
+void Error(std::wstring_view functionName, int lastError) {
+	if (DebugConsole == YES)
+		Debug(L"{}() failed: {}"sv, functionName, GetErrorMessage(lastError));
 }

@@ -565,73 +565,6 @@ int TimeString2FileTime(const char *Time, FILETIME *Buf)
 }
 
 
-/*----- FILETIME(UTC)を日付文字列(JST)に変換 ----------------------------------
-*
-*	Parameter
-*		FILETIME *Time : ファイルタイム
-*		char *Buf : 日付文字列を返すワーク
-*		int Mode : モード (DISPFORM_xxx)
-*		int InfoExist : 情報があるかどうか (FINFO_xxx)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-void FileTime2TimeString(const FILETIME *Time, char *Buf, int Mode, int InfoExist, int ShowSeconds)
-{
-	SYSTEMTIME sTime;
-	FILETIME fTime;
-
-	if(Mode == DISPFORM_LEGACY)
-	{
-		if((Time->dwLowDateTime == 0) && (Time->dwHighDateTime == 0))
-			InfoExist = 0;
-
-		// タイムスタンプのバグ修正
-//		/* "yyyy/mm/dd hh:mm" */
-		/* "yyyy/mm/dd hh:mm:ss" */
-		FileTimeToLocalFileTime(Time, &fTime);
-		// タイムスタンプのバグ修正
-//		FileTimeToSystemTime(&fTime, &sTime);
-		if(!FileTimeToSystemTime(&fTime, &sTime))
-			InfoExist = 0;
-
-		// タイムスタンプのバグ修正
-//		if(InfoExist & FINFO_DATE)
-//			sprintf(Buf, "%04d/%02d/%02d ", sTime.wYear, sTime.wMonth, sTime.wDay);
-//		else
-//			sprintf(Buf, "           ");
-//
-//		if(InfoExist & FINFO_TIME)
-//			sprintf(Buf+11, "%2d:%02d", sTime.wHour, sTime.wMinute);
-//		else
-//			sprintf(Buf+11, "     ");
-		if(InfoExist & (FINFO_DATE | FINFO_TIME))
-		{
-			if(InfoExist & FINFO_DATE)
-				sprintf(Buf, "%04d/%02d/%02d ", sTime.wYear, sTime.wMonth, sTime.wDay);
-			else
-				sprintf(Buf, "           ");
-			if(ShowSeconds == YES)
-			{
-				if(InfoExist & FINFO_TIME)
-					sprintf(Buf+11, "%2d:%02d:%02d", sTime.wHour, sTime.wMinute, sTime.wSecond);
-				else
-					sprintf(Buf+11, "        ");
-			}
-			else
-			{
-				if(InfoExist & FINFO_TIME)
-					sprintf(Buf+11, "%2d:%02d", sTime.wHour, sTime.wMinute);
-				else
-					sprintf(Buf+11, "     ");
-			}
-		}
-		else
-			Buf[0] = NUL;
-	}
-}
-
-
 /*----- 属性文字列を値に変換 --------------------------------------------------
 *
 *	Parameter
@@ -652,76 +585,6 @@ int AttrString2Value(const char* Str) {
 	return num;
 }
 
-
-/*----- 属性の値を文字列に変換 ------------------------------------------------
-*
-*	Parameter
-*		int Attr : 属性の値
-*		char *Buf : 属性文字列をセットするバッファ ("rwxrwxrwx")
-*
-*	Return Value
-*		int 値
-*----------------------------------------------------------------------------*/
-
-// ファイルの属性を数字で表示
-//void AttrValue2String(int Attr, char *Buf)
-void AttrValue2String(int Attr, char *Buf, int ShowNumber)
-{
-	// ファイルの属性を数字で表示
-//	strcpy(Buf, "---------");
-//
-//	if(Attr & 0x400)
-//		Buf[0] = 'r';
-//	if(Attr & 0x200)
-//		Buf[1] = 'w';
-//	if(Attr & 0x100)
-//		Buf[2] = 'x';
-//
-//	if(Attr & 0x40)
-//		Buf[3] = 'r';
-//	if(Attr & 0x20)
-//		Buf[4] = 'w';
-//	if(Attr & 0x10)
-//		Buf[5] = 'x';
-//
-//	if(Attr & 0x4)
-//		Buf[6] = 'r';
-//	if(Attr & 0x2)
-//		Buf[7] = 'w';
-//	if(Attr & 0x1)
-//		Buf[8] = 'x';
-	if(ShowNumber == YES)
-	{
-		sprintf(Buf, "%03x", Attr);
-	}
-	else
-	{
-		strcpy(Buf, "---------");
-
-		if(Attr & 0x400)
-			Buf[0] = 'r';
-		if(Attr & 0x200)
-			Buf[1] = 'w';
-		if(Attr & 0x100)
-			Buf[2] = 'x';
-
-		if(Attr & 0x40)
-			Buf[3] = 'r';
-		if(Attr & 0x20)
-			Buf[4] = 'w';
-		if(Attr & 0x10)
-			Buf[5] = 'x';
-
-		if(Attr & 0x4)
-			Buf[6] = 'r';
-		if(Attr & 0x2)
-			Buf[7] = 'w';
-		if(Attr & 0x1)
-			Buf[8] = 'x';
-	}
-
-	return;
-}
 
 static auto GetFilterString(std::initializer_list<FileType> fileTypes) {
 	static auto const map = [] {
@@ -770,14 +633,6 @@ fs::path SelectDir(HWND hWnd) {
 	}
 	fs::current_path(cwd);
 	return path;
-}
-
-
-std::string MakeNumString(LONGLONG Num) {
-	std::stringstream ss;
-	ss.imbue(std::locale{ "" });
-	ss << std::fixed << Num;
-	return ss.str();
 }
 
 
