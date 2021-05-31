@@ -1074,10 +1074,6 @@ bool ConnectRas(bool dialup, bool explicitly, bool confirm, std::wstring const& 
 std::wstring SetSlashTail(std::wstring&& path);
 void ReplaceAll(char *Str, char Src, char Dst);
 std::wstring ReplaceAll(std::wstring&& str, wchar_t from, wchar_t to);
-const char* stristr(const char* s1, const char* s2);
-static inline char* stristr(char* s1, const char* s2) { return const_cast<char*>(stristr(static_cast<const char*>(s1), s2)); }
-const char* GetNextField(const char* Str);
-int GetOneField(const char* Str, char *Buf, int Max);
 const char* GetFileName(const char* Path);
 std::wstring_view GetFileName(std::wstring_view path);
 std::wstring MakeSizeString(double size);

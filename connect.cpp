@@ -1556,105 +1556,54 @@ static SOCKET DoConnect(HOSTDATA* HostData, std::wstring const& Host, std::wstri
 }
 
 
-/*----- ワンタイムパスワードのチェック ----------------------------------------
-*
-*	Parameter
-*		chat *Pass : パスワード／パスフレーズ
-*		char *Reply : USERコマンドを送ったあとのリプライ文字列
-*						／PASSコマンドで送るパスワードを返すバッファ
-*		int Type : タイプ (SECURITY_xxx, MDx)
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*
-*	Note
-*		ワンタイムパスワードでない時はPassをそのままReplyにコピー
-*----------------------------------------------------------------------------*/
+// ワンタイムパスワードのチェック
+//   Reply : USERコマンドを送ったあとのリプライ文字列／PASSコマンドで送るパスワードを返すバッファ
+//   ワンタイムパスワードでない時はPassをそのままReplyにコピー
+static int CheckOneTimePassword(const char* Pass, char* Reply, int Type) {
+	DoPrintf("OTP: %s", Reply);
 
-static int CheckOneTimePassword(const char *Pass, char *Reply, int Type)
-{
-	int Sts;
-	const char* Pos;
-	int Seq;
-	char Seed[MAX_SEED_LEN+1];
-	int i;
-
-	Sts = FFFTP_SUCCESS;
-	Pos = NULL;
-
-	if(Type == SECURITY_AUTO)
-	{
-		if((Pos = stristr(Reply, "otp-md5")) != NULL)
-		{
-			Type = MD5;
-			SetTaskMsg(IDS_MSGJPN012);
-		}
-		else if((Pos = stristr(Reply, "otp-sha1")) != NULL)
-		{
-			Type = SHA1;
-			SetTaskMsg(IDS_MSGJPN013);
-		}
-		else if(((Pos = stristr(Reply, "otp-md4")) != NULL) || ((Pos = stristr(Reply, "s/key")) != NULL))
-		{
-			Type = MD4;
-			SetTaskMsg(IDS_MSGJPN014);
-		}
-	}
-	else
-		Pos = GetNextField(Reply);
-
-	if((Type == MD4) || (Type == MD5) || (Type == SHA1))
-	{
-		/* シーケンス番号を見つけるループ */
-		DoPrintf(L"Analyze OTP");
-		DoPrintf("%s", Pos);
-		Sts = FFFTP_FAIL;
-		while((Pos = GetNextField(Pos)) != NULL)
-		{
-			if(IsDigit(*Pos))
-			{
-				Seq = atoi(Pos);
-				DoPrintf(L"Sequence=%d", Seq);
-
-				/* Seed */
-				if((Pos = GetNextField(Pos)) != NULL)
-				{
-					if(GetOneField(Pos, Seed, MAX_SEED_LEN) == FFFTP_SUCCESS)
-					{
-						/* Seedは英数字のみ有効とする */
-						for(i = (int)strlen(Seed)-1; i >= 0; i--)
-						{
-							if((IsAlpha(Seed[i]) == 0) && (IsDigit(Seed[i]) == 0))
-								Seed[i] = NUL;
-						}
-						if(strlen(Seed) > 0)
-						{
-							DoPrintf("Seed=%s", Seed);
-							strcpy(Reply, Make6WordPass(Seq, Seed, Pass, Type).c_str());
-							DoPrintf("Response=%s", Reply);
-
-							/* シーケンス番号のチェックと警告 */
-							if(Seq <= 10)
-								Dialog(GetFtpInst(), otp_notify_dlg, GetMainHwnd());
-
-							Sts = FFFTP_SUCCESS;
-						}
-					}
-				}
-				break;
+	const char* Pos = Reply;
+	if (Type == SECURITY_AUTO) {
+		static boost::regex re{ R"((otp-md5)|(otp-sha1)|otp-md4|s/key)", boost::regex_constants::icase };
+		if (boost::cmatch m; boost::regex_search(Pos, m, re)) {
+			if (m[1].matched) {
+				Type = MD5;
+				SetTaskMsg(IDS_MSGJPN012);
+			} else if (m[2].matched) {
+				Type = SHA1;
+				SetTaskMsg(IDS_MSGJPN013);
+			} else {
+				Type = MD4;
+				SetTaskMsg(IDS_MSGJPN014);
 			}
+			Pos = m[0].first;
 		}
+	} else {
+		while (*Pos != ' ')
+			Pos++;
+		while (*Pos == ' ')
+			Pos++;
+	}
 
-		if(Sts == FFFTP_FAIL)
-			SetTaskMsg(IDS_MSGJPN015);
-	}
-	else
-	{
-		strcpy(Reply, Pass);
+	if (Type != MD4 && Type != MD5 && Type != SHA1) {
 		DoPrintf(L"No OTP used.");
+		strcpy(Reply, Pass);
+		return FFFTP_SUCCESS;
 	}
-	return(Sts);
+
+	static boost::regex re{ R"( +(\d+)[^ ]* +([A-Za-z0-9]*))" };
+	if (boost::cmatch m; boost::regex_search(Pos, m, re) && 0 < m[2].length()) {
+		auto Seq = std::stoi(m[1]);
+		auto Seed = sv(m[2]);
+		strcpy(Reply, Make6WordPass(Seq, Seed, Pass, Type).c_str());
+		DoPrintf("OPT Reponse=%s", Reply);
+		/* シーケンス番号のチェックと警告 */
+		if (Seq <= 10)
+			Dialog(GetFtpInst(), otp_notify_dlg, GetMainHwnd());
+		return FFFTP_SUCCESS;
+	}
+	SetTaskMsg(IDS_MSGJPN015);
+	return FFFTP_FAIL;
 }
 
 
