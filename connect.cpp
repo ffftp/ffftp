@@ -76,6 +76,27 @@ static int Oss = NO;  /* OSS ファイルシステムへアクセスしている
 #endif
 
 
+// ＵＮＣ文字列を分解する
+//   "\"は全て"/"に置き換える
+static bool SplitUNCpath(std::wstring&& unc, std::wstring& Host, std::wstring& Path, std::wstring& File, std::wstring& User, std::wstring& Pass, int& Port) {
+	static boost::wregex re{ LR"(^(?:([^:@]*)(?::([^@]*))?@)?(?:\[([^\]]*)\]|([^:/]*))(?::([0-9]*))?(.*?)([^/]*)$)" };
+	unc = ReplaceAll(std::move(unc), L'\\', L'/');
+	if (auto const pos = unc.find(L"//"sv); pos != std::wstring::npos)
+		unc.erase(0, pos + 2);
+	if (boost::wsmatch m; boost::regex_search(unc, m, re)) {
+		User = m[1];
+		Pass = m[2].matched ? m[2] : L""s;
+		Host = m[m[3].matched ? 3 : 4];
+		Port = m[5].matched ? std::stoi(m[5]) : IPPORT_FTP;
+		Path = m[6];
+		File = m[7];
+		return true;
+	}
+	Host = Path = File = User = Pass = L""s;
+	Port = IPPORT_FTP;
+	return false;
+}
+
 
 /*----- ホスト一覧を使ってホストへ接続 ----------------------------------------
 *
@@ -238,7 +259,6 @@ void QuickConnectProc() {
 			}
 		}
 	};
-	char Tmp[FMAX_PATH+1 + USER_NAME_LEN+1 + PASSWORD_LEN+1 + 2];
 
 	SaveBookMark();
 	SaveCurrentSetToHost();
@@ -255,7 +275,7 @@ void QuickConnectProc() {
 		// UTF-8対応
 		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
 		std::wstring File;
-		if (strcpy(Tmp, u8(qc.hostname).c_str()); SplitUNCpath(Tmp, CurHost.HostAdrs, CurHost.RemoteInitDir, File, CurHost.UserName, CurHost.PassWord, &CurHost.Port) == FFFTP_SUCCESS) {
+		if (SplitUNCpath(std::move(qc.hostname), CurHost.HostAdrs, CurHost.RemoteInitDir, File, CurHost.UserName, CurHost.PassWord, CurHost.Port)) {
 			if (empty(CurHost.UserName)) {
 				CurHost.UserName = qc.username;
 				CurHost.PassWord = qc.password;
@@ -310,7 +330,7 @@ void QuickConnectProc() {
 *		なし
 *----------------------------------------------------------------------------*/
 
-void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
+void DirectConnectProc(std::wstring&& unc, int Kanji, int Kana, int Fkanji, int TrMode)
 {
 	std::wstring Host;
 	std::wstring Path;
@@ -329,8 +349,7 @@ void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode)
 	SetTaskMsg("----------------------------");
 
 	InitPWDcommand();
-	if(SplitUNCpath(unc, Host, Path, File, User, Pass, &Port) == FFFTP_SUCCESS)
-	{
+	if (SplitUNCpath(std::move(unc), Host, Path, File, User, Pass, Port)) {
 		if (empty(User)) {
 			User = L"anonymous"s;
 			Pass = UserMailAdrs;

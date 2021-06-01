@@ -813,7 +813,7 @@ int SetHostEncryption(int Num, int UseNoEncryption, int UseFTPES, int UseFTPIS, 
 
 void ConnectProc(int Type, int Num);
 void QuickConnectProc(void);
-void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode);
+void DirectConnectProc(std::wstring&& unc, int Kanji, int Kana, int Fkanji, int TrMode);
 void HistoryConnectProc(int MenuCmd);
 std::wstring_view AskHostAdrs();
 int AskHostPort(void);
@@ -1074,12 +1074,10 @@ bool ConnectRas(bool dialup, bool explicitly, bool confirm, std::wstring const& 
 std::wstring SetSlashTail(std::wstring&& path);
 void ReplaceAll(char *Str, char Src, char Dst);
 std::wstring ReplaceAll(std::wstring&& str, wchar_t from, wchar_t to);
-const char* GetFileName(const char* Path);
 std::wstring_view GetFileName(std::wstring_view path);
 std::wstring MakeSizeString(double size);
 void DispStaticText(HWND hWnd, std::wstring text);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
-int SplitUNCpath(char *unc, std::wstring& Host, std::wstring& Path, std::wstring& File, std::wstring& User, std::wstring& Pass, int *Port);
 int AttrString2Value(const char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 fs::path SelectDir(HWND hWnd);
