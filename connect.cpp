@@ -1815,7 +1815,7 @@ static void append(std::vector<uint8_t>& buffer, T const& data) {
 	buffer.insert(end(buffer), reinterpret_cast<const uint8_t*>(&data), reinterpret_cast<const uint8_t*>(&data + 1));
 }
 
-static std::optional<sockaddr_storage> SocksRequest(SOCKET s, SocksCommand cmd, std::variant<sockaddr_storage, std::tuple<std::string, int>> const& target, int* CancelCheckWork) {
+static std::optional<sockaddr_storage> SocksRequest(SOCKET s, SocksCommand cmd, std::variant<sockaddr_storage, std::tuple<std::wstring, int>> const& target, int* CancelCheckWork) {
 	assert(AskHostFireWall() == YES);
 	std::vector<uint8_t> buffer;
 	if (FwallType == FWALL_SOCKS4) {
@@ -1831,31 +1831,28 @@ static std::optional<sockaddr_storage> SocksRequest(SOCKET s, SocksCommand cmd, 
 		if (!Socks5Authenticate(s, CancelCheckWork))
 			return {};
 		buffer = { 5, static_cast<uint8_t>(cmd), 0 };								// VER, CMD, RSV
-		std::visit([&buffer](auto const& addr) {
-			using type = std::decay_t<decltype(addr)>;
-			if constexpr (std::is_same_v<type, sockaddr_storage>) {
-				if (addr.ss_family == AF_INET) {
-					auto const& sin = reinterpret_cast<sockaddr_in const&>(addr);
-					buffer.push_back(1);											// ATYP
-					append(buffer, sin.sin_addr);									// DST.ADDR
-					append(buffer, sin.sin_port);									// DST.PORT
-				} else {
-					assert(addr.ss_family == AF_INET6);
-					auto const& sin6 = reinterpret_cast<sockaddr_in6 const&>(addr);
-					buffer.push_back(4);											// ATYP
-					append(buffer, sin6.sin6_addr);									// DST.ADDR
-					append(buffer, sin6.sin6_port);									// DST.PORT
-				}
-			} else if constexpr (std::is_same_v<type, std::tuple<std::string, int>>) {
-				auto [host, hport] = addr;
-				auto nsport = htons(hport);
-				buffer.push_back(3);												// ATYP
-				buffer.push_back(size_as<uint8_t>(host));							// DST.ADDR
-				buffer.insert(end(buffer), begin(host), end(host));					// DST.ADDR
-				append(buffer, nsport);												// DST.PORT
-			} else
-				static_assert(false_v<type>);
-		}, target);
+		if (target.index() == 0) {
+			if (auto const addr = std::get<0>(target); addr.ss_family == AF_INET) {
+				auto const& sin = reinterpret_cast<sockaddr_in const&>(addr);
+				buffer.push_back(1);												// ATYP
+				append(buffer, sin.sin_addr);										// DST.ADDR
+				append(buffer, sin.sin_port);										// DST.PORT
+			} else {
+				assert(addr.ss_family == AF_INET6);
+				auto const& sin6 = reinterpret_cast<sockaddr_in6 const&>(addr);
+				buffer.push_back(4);												// ATYP
+				append(buffer, sin6.sin6_addr);										// DST.ADDR
+				append(buffer, sin6.sin6_port);										// DST.PORT
+			}
+		} else {
+			auto [host, hport] = std::get<1>(target);
+			auto u8host = u8(host);
+			auto nsport = htons(hport);
+			buffer.push_back(3);													// ATYP
+			buffer.push_back(size_as<uint8_t>(u8host));								// DST.ADDR
+			buffer.insert(end(buffer), begin(u8host), end(u8host));					// DST.ADDR
+			append(buffer, nsport);													// DST.PORT
+		}
 	}
 	if (!SocksSend(s, buffer, CancelCheckWork))
 		return {};
@@ -1864,7 +1861,7 @@ static std::optional<sockaddr_storage> SocksRequest(SOCKET s, SocksCommand cmd, 
 
 
 SOCKET connectsock(std::string_view host, int port, UINT prefixId, int *CancelCheckWork) {
-	std::variant<sockaddr_storage, std::tuple<std::string, int>> target;
+	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
 	auto wHost = u8(host);
 	int Fwall = AskHostFireWall() == YES ? FwallType : FWALL_NONE;
 	if (auto ai = getaddrinfo(wHost, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC)) {
@@ -1873,7 +1870,7 @@ SOCKET connectsock(std::string_view host, int port, UINT prefixId, int *CancelCh
 		memcpy(&std::get<sockaddr_storage>(target), ai->ai_addr, ai->ai_addrlen);
 	} else if ((Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) && FwallResolve == YES) {
 		// SOCKS5で名前解決する
-		target = std::tuple{ std::string(host), port };
+		target = std::tuple{ std::move(wHost), port };
 	} else if (ai = getaddrinfo(wHost, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC, CancelCheckWork)) {
 		// 名前解決に成功
 		SetTaskMsg(IDS_MSGJPN017, prefixId ? GetString(prefixId).c_str() : L"", wHost.c_str(), AddressPortToString(ai->ai_addr, ai->ai_addrlen).c_str());
@@ -1951,7 +1948,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 		if (do_connect(listen_skt, reinterpret_cast<const sockaddr*>(&saListen), salen, CancelCheckWork) == SOCKET_ERROR) {
 			return INVALID_SOCKET;
 		}
-		std::variant<sockaddr_storage, std::tuple<std::string, int>> target;
+		std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
 		GetAsyncTableData(ctrl_skt, target);
 		if (auto result = SocksRequest(listen_skt, SocksCommand::Bind, target, CancelCheckWork)) {
 			saListen = *result;

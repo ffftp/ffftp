@@ -2290,18 +2290,14 @@ static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max)
 		else
 			return FFFTP_FAIL;
 	}
-	std::variant<sockaddr_storage, std::tuple<std::string, int>> target;
+	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
 	GetAsyncTableData(Skt, target);
-	std::visit([Adrs](auto addr) {
-		using type = std::decay_t<decltype(addr)>;
-		if constexpr (std::is_same_v<type, sockaddr_storage>) {
-			strcpy(Adrs, u8(AddressToString(addr)).c_str());
-		} else if constexpr (std::is_same_v<type, std::tuple<std::string, int>>) {
-			auto [host, port] = addr;
-			strcpy(Adrs, host.c_str());
-		} else
-			static_assert(false_v<type>);
-	}, target);
+	if (target.index() == 0) {
+		strcpy(Adrs, u8(AddressToString(std::get<0>(target))).c_str());
+	} else {
+		auto [host, port] = std::get<1>(target);
+		strcpy(Adrs, u8(host).c_str());
+	}
 	return FFFTP_SUCCESS;
 }
 
