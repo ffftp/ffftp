@@ -1235,7 +1235,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 //		if(GetAdrsAndPort(Buf, Adrs, &Port, 19) == FFFTP_SUCCESS)
 		if(GetAdrsAndPort(Pkt->ctrl_skt, Buf, Adrs, &Port, 39) == FFFTP_SUCCESS)
 		{
-			if((data_socket = connectsock(Adrs, Port, IDS_MSGJPN091, CancelCheckWork)) != INVALID_SOCKET)
+			if((data_socket = connectsock(u8(Adrs), Port, IDS_MSGJPN091, CancelCheckWork)) != INVALID_SOCKET)
 			{
 				// 変数が未初期化のバグ修正
 				Flg = 1;
@@ -1791,7 +1791,7 @@ static int UploadPassive(TRANSPACKET *Pkt)
 //		if(GetAdrsAndPort(Buf, Adrs, &Port, 19) == FFFTP_SUCCESS)
 		if(GetAdrsAndPort(Pkt->ctrl_skt, Buf, Adrs, &Port, 39) == FFFTP_SUCCESS)
 		{
-			if((data_socket = connectsock(Adrs, Port, IDS_MSGJPN109, &Canceled[Pkt->ThreadCount])) != INVALID_SOCKET)
+			if((data_socket = connectsock(u8(Adrs), Port, IDS_MSGJPN109, &Canceled[Pkt->ThreadCount])) != INVALID_SOCKET)
 			{
 				// 変数が未初期化のバグ修正
 				Flg = 1;

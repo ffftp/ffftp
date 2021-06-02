@@ -1260,7 +1260,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 
 		auto [tempHost, tempPort] = FWALL_FU_FP_SITE <= Fwall && Fwall <= FWALL_OPEN || Fwall == FWALL_SIDEWINDER || Fwall == FWALL_FU_FP ? std::tuple{ FwallHost, FwallPort } : std::tuple{ Host, Port };
 		if (!empty(tempHost)) {
-			if ((ContSock = connectsock(u8(tempHost), tempPort, 0, CancelCheckWork)) != INVALID_SOCKET) {
+			if ((ContSock = connectsock(std::move(tempHost), tempPort, 0, CancelCheckWork)) != INVALID_SOCKET) {
 				// バッファを無効
 #ifdef DISABLE_CONTROL_NETWORK_BUFFERS
 				int BufferSize = 0;
@@ -1860,24 +1860,23 @@ static std::optional<sockaddr_storage> SocksRequest(SOCKET s, SocksCommand cmd, 
 }
 
 
-SOCKET connectsock(std::string_view host, int port, UINT prefixId, int *CancelCheckWork) {
+SOCKET connectsock(std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork) {
 	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
-	auto wHost = u8(host);
 	int Fwall = AskHostFireWall() == YES ? FwallType : FWALL_NONE;
-	if (auto ai = getaddrinfo(wHost, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC)) {
+	if (auto ai = getaddrinfo(host, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC)) {
 		// ホスト名がIPアドレスだった
-		SetTaskMsg(IDS_MSGJPN017, prefixId ? GetString(prefixId).c_str() : L"", wHost.c_str(), AddressPortToString(ai->ai_addr, ai->ai_addrlen).c_str());
+		SetTaskMsg(IDS_MSGJPN017, prefixId ? GetString(prefixId).c_str() : L"", host.c_str(), AddressPortToString(ai->ai_addr, ai->ai_addrlen).c_str());
 		memcpy(&std::get<sockaddr_storage>(target), ai->ai_addr, ai->ai_addrlen);
 	} else if ((Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) && FwallResolve == YES) {
 		// SOCKS5で名前解決する
-		target = std::tuple{ std::move(wHost), port };
-	} else if (ai = getaddrinfo(wHost, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC, CancelCheckWork)) {
+		target = std::tuple{ std::move(host), port };
+	} else if (ai = getaddrinfo(host, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC, CancelCheckWork)) {
 		// 名前解決に成功
-		SetTaskMsg(IDS_MSGJPN017, prefixId ? GetString(prefixId).c_str() : L"", wHost.c_str(), AddressPortToString(ai->ai_addr, ai->ai_addrlen).c_str());
+		SetTaskMsg(IDS_MSGJPN017, prefixId ? GetString(prefixId).c_str() : L"", host.c_str(), AddressPortToString(ai->ai_addr, ai->ai_addrlen).c_str());
 		memcpy(&std::get<sockaddr_storage>(target), ai->ai_addr, ai->ai_addrlen);
 	} else {
 		// 名前解決に失敗
-		SetTaskMsg(IDS_MSGJPN019, wHost.c_str());
+		SetTaskMsg(IDS_MSGJPN019, host.c_str());
 		return INVALID_SOCKET;
 	}
 
