@@ -38,7 +38,7 @@
 /*===== プロトタイプ =====*/
 
 static int DoPWD(char *Buf);
-static std::tuple<int, std::string> ReadOneLine(SOCKET cSkt, int* CancelCheckWork);
+static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWork);
 static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Path, int Num, int *CancelCheckWork);
 static void ChangeSepaRemote2Local(char *Fname);
 #define CommandProcCmd(REPLY, CANCELCHECKWORK, ...) (AskTransferNow() == YES && (SktShareProh(), 0), command(AskCmdCtrlSkt(), REPLY, CANCELCHECKWORK, __VA_ARGS__))
@@ -555,8 +555,8 @@ std::tuple<int, std::string> ReadReplyMessage(SOCKET cSkt, int* CancelCheckWork)
 	std::string text;
 	if (cSkt != INVALID_SOCKET)
 		for (int Lines = 0;; Lines++) {
-			auto [code, line] = ReadOneLine(cSkt, CancelCheckWork);
-			line = u8(ConvertFrom(line, AskHostNameKanji()));
+			auto [code, wline] = ReadOneLine(cSkt, CancelCheckWork);
+			auto line = u8(wline);
 			SetTaskMsg("%s", line.c_str());
 
 			// ２行目以降の応答コードは消す
@@ -581,13 +581,14 @@ std::tuple<int, std::string> ReadReplyMessage(SOCKET cSkt, int* CancelCheckWork)
 
 
 // １行分のデータを受け取る
-static std::tuple<int, std::string> ReadOneLine(SOCKET cSkt, int* CancelCheckWork) {
+static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWork) {
 	if (cSkt == INVALID_SOCKET)
 		return { 0, {} };
 
-	int read;
 	std::string line;
-	for (char buffer[1024];;) {
+	int read;
+	char buffer[1024];
+	do {
 		int TimeOutErr;
 		/* LFまでを受信するために、最初はPEEKで受信 */
 		if ((read = do_recv(cSkt, buffer, size_as<int>(buffer), MSG_PEEK, &TimeOutErr, CancelCheckWork)) <= 0) {
@@ -606,10 +607,7 @@ static std::tuple<int, std::string> ReadOneLine(SOCKET cSkt, int* CancelCheckWor
 		if ((read = do_recv(cSkt, buffer, read, 0, &TimeOutErr, CancelCheckWork)) <= 0)
 			break;
 		line.append(buffer, buffer + read);
-		/* データがLFで終わっていたら１行終わり */
-		if (line.back() == '\n')
-			break;
-	}
+	} while (!line.ends_with('\n'));
 	if (read <= 0) {
 		if (read == -2 || AskTransferNow() == YES)
 			cSkt = DoClose(cSkt);
@@ -621,9 +619,9 @@ static std::tuple<int, std::string> ReadOneLine(SOCKET cSkt, int* CancelCheckWor
 		std::from_chars(data(line), data(line) + 3, replyCode);
 
 	/* 末尾の CR,LF,スペースを取り除く */
-	static boost::regex re{ R"([\r\n ]+$)" };
-	line = boost::regex_replace(line, re, "");
-	return { replyCode, std::move(line) };
+	if (auto const pos = line.find_last_not_of("\r\n "sv); pos != std::string::npos)
+		line.resize(pos + 1);
+	return { replyCode, ConvertFrom(line, AskHostNameKanji()) };
 }
 
 
