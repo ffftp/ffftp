@@ -544,25 +544,24 @@ int detail::command(SOCKET cSkt, char* Reply, int* CancelCheckWork, std::wstring
 		return 429;
 	auto [code, text] = ReadReplyMessage(cSkt, CancelCheckWork);
 	if (Reply)
-		strncpy_s(Reply, 1024, text.c_str(), _TRUNCATE);
+		strncpy_s(Reply, 1024, u8(text).c_str(), _TRUNCATE);
 	return code;
 }
 
 
 // 応答メッセージを受け取る
-std::tuple<int, std::string> ReadReplyMessage(SOCKET cSkt, int* CancelCheckWork) {
+std::tuple<int, std::wstring> ReadReplyMessage(SOCKET cSkt, int* CancelCheckWork) {
 	int firstCode = 0;
-	std::string text;
+	std::wstring text;
 	if (cSkt != INVALID_SOCKET)
 		for (int Lines = 0;; Lines++) {
-			auto [code, wline] = ReadOneLine(cSkt, CancelCheckWork);
-			auto line = u8(wline);
-			SetTaskMsg("%s", line.c_str());
+			auto [code, line] = ReadOneLine(cSkt, CancelCheckWork);
+			SetTaskMsg("%s", u8(line).c_str());
 
 			// ２行目以降の応答コードは消す
 			if (Lines > 0)
 				for (int i = 0; i < size_as<int>(line) && IsDigit(line[i]); i++)
-					line[i] = ' ';
+					line[i] = L' ';
 			text += line;
 
 			if (code == 421 || code == 429) {
@@ -572,11 +571,11 @@ std::tuple<int, std::string> ReadReplyMessage(SOCKET cSkt, int* CancelCheckWork)
 			if (100 <= code && code < 600) {
 				if (firstCode == 0)
 					firstCode = code;
-				if (firstCode == code && (size(line) <= 3 || line[3] != '-'))
+				if (firstCode == code && (size(line) <= 3 || line[3] != L'-'))
 					break;
 			}
 		}
-	return { firstCode, text };
+	return { firstCode, std::move(text) };
 }
 
 

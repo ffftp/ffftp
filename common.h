@@ -943,7 +943,7 @@ void SwitchOSSProc(void);
 namespace detail {
 	int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, std::wstring&& cmd);
 }
-std::tuple<int, std::string> ReadReplyMessage(SOCKET cSkt, int *CancelCheckWork);
+std::tuple<int, std::wstring> ReadReplyMessage(SOCKET cSkt, int *CancelCheckWork);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
 
 /*===== getput.c =====*/

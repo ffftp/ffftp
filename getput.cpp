@@ -1405,7 +1405,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		SetTaskMsg(IDS_MSGJPN096);
 	}
 	if (code / 100 >= FTP_RETRY)
-		SetErrorMsg(u8(text));
+		SetErrorMsg(std::move(text));
 	if (Pkt->Abort != ABORT_NONE)
 		code = 500;
 	return code;
@@ -1943,7 +1943,7 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 
 	auto [code, text] = ReadReplyMessage(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount]);
 	if (code / 100 >= FTP_RETRY)
-		SetErrorMsg(u8(text));
+		SetErrorMsg(std::move(text));
 	if (Pkt->Abort != ABORT_NONE)
 		code = 500;
 	return code;
