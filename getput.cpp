@@ -79,7 +79,7 @@ static int SetUploadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *M
 static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
 static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt);
 static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipButton, int Info);
-static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max);
+static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(SOCKET socket, std::wstring const& reply);
 static bool IsSpecialDevice(std::wstring_view filename);
 static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item);
 
@@ -1221,22 +1221,14 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 //	char Buf[1024];
 	char Buf[FMAX_PATH+1024];
 	int CreateMode;
-	// IPv6対応
-//	char Adrs[20];
-	char Adrs[40];
-	int Port;
 	int Flg;
 	char Reply[ERR_MSG_LEN+7];
 
 	int iRetCode = command(Pkt->ctrl_skt, Buf, CancelCheckWork, AskCurNetType() == NTYPE_IPV6 ? "EPSV" : "PASV");
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
-		// IPv6対応
-//		if(GetAdrsAndPort(Buf, Adrs, &Port, 19) == FFFTP_SUCCESS)
-		if(GetAdrsAndPort(Pkt->ctrl_skt, Buf, Adrs, &Port, 39) == FFFTP_SUCCESS)
-		{
-			if((data_socket = connectsock(u8(Adrs), Port, IDS_MSGJPN091, CancelCheckWork)) != INVALID_SOCKET)
-			{
+		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, u8(Buf))) {
+			if (auto [host, port] = *target; (data_socket = connectsock(std::move(host), port, IDS_MSGJPN091, CancelCheckWork)) != INVALID_SOCKET) {
 				// 変数が未初期化のバグ修正
 				Flg = 1;
 				if(setsockopt(data_socket, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
@@ -1776,10 +1768,6 @@ static int UploadPassive(TRANSPACKET *Pkt)
 	// 念のため
 //	char Buf[1024];
 	char Buf[FMAX_PATH+1024];
-	// IPv6対応
-//	char Adrs[20];
-	char Adrs[40];
-	int Port;
 	int Flg;
 	int Resume;
 	char Reply[ERR_MSG_LEN+7];
@@ -1787,12 +1775,8 @@ static int UploadPassive(TRANSPACKET *Pkt)
 	iRetCode = command(Pkt->ctrl_skt, Buf, &Canceled[Pkt->ThreadCount], AskCurNetType() == NTYPE_IPV4 ? L"PASV" : L"EPSV");
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
-		// IPv6対応
-//		if(GetAdrsAndPort(Buf, Adrs, &Port, 19) == FFFTP_SUCCESS)
-		if(GetAdrsAndPort(Pkt->ctrl_skt, Buf, Adrs, &Port, 39) == FFFTP_SUCCESS)
-		{
-			if((data_socket = connectsock(u8(Adrs), Port, IDS_MSGJPN109, &Canceled[Pkt->ThreadCount])) != INVALID_SOCKET)
-			{
+		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, u8(Buf))) {
+			if (auto [host, port] = *target; (data_socket = connectsock(std::move(host), port, IDS_MSGJPN109, &Canceled[Pkt->ThreadCount])) != INVALID_SOCKET) {
 				// 変数が未初期化のバグ修正
 				Flg = 1;
 				if(setsockopt(data_socket, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
@@ -2246,59 +2230,38 @@ static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipBut
 }
 
 
-/*----- PASVコマンドの戻り値からアドレスとポート番号を抽出 --------------------
-*
-*	Parameter
-*		char *Str : PASVコマンドのリプライ
-*		char *Adrs : アドレスのコピー先 ("www.xxx.yyy.zzz")
-*		int *Port : ポート番号をセットするワーク
-*		int Max : アドレス文字列の最大長
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int GetAdrsAndPort(SOCKET Skt, char *Str, char *Adrs, int *Port, int Max) {
+// PASVコマンドの戻り値からアドレスとポート番号を抽出
+static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(SOCKET socket, std::wstring const& reply) {
+	std::wstring addr;
+	int port;
 	if (AskCurNetType() == NTYPE_IPV4) {
 		// RFC1123 4.1.2.6  PASV Command: RFC-959 Section 4.1.2
 		// Therefore, a User-FTP program that interprets the PASV reply must scan the reply for the first digit of the host and port numbers.
 		// コンマではなくドットを返すホストがある
-		static boost::regex re{ R"((\d+[,.]\d+[,.]\d+[,.]\d+)[,.](\d+)[,.](\d+))" };
-		if (boost::cmatch m; boost::regex_search(Str, m, re)) {
-			int p1, p2;
-			std::from_chars(m[2].first, m[2].second, p1);
-			std::from_chars(m[3].first, m[3].second, p2);
-			*Port = p1 << 8 | p2;
-
-			// ホスト側の設定ミス対策
+		static boost::wregex re{ LR"((\d+[,.]\d+[,.]\d+[,.]\d+)[,.](\d+)[,.](\d+))" };
+		if (boost::wsmatch m; boost::regex_search(reply, m, re)) {
+			port = std::stoi(m[2]) << 8 | std::stoi(m[3]);
 			if (AskNoPasvAdrs() == NO) {
-				auto addr = m[1].str();
-				std::replace(begin(addr), end(addr), ',', '.');
-				strcpy(Adrs, addr.c_str());
-				return FFFTP_SUCCESS;
+				addr = m[1];
+				std::ranges::replace(addr, L',', L'.');
+				return { { addr, port } };
 			}
 		} else
-			return FFFTP_FAIL;
+			return {};
 	} else {
 		// RFC2428 3.  The EPSV Command
 		// The text returned in response to the EPSV command MUST be:
 		// <text indicating server is entering extended passive mode> (<d><d><d><tcp-port><d>)
-		static boost::regex re{ R"(\(([\x21-\xFE])\1\1(\d+)\1\))" };
-		if (boost::cmatch m; boost::regex_search(Str, m, re))
-			std::from_chars(m[2].first, m[2].second, *Port);
-		else
-			return FFFTP_FAIL;
+		static boost::wregex re{ LR"(\(([\x21-\xFE])\1\1(\d+)\1\))" };
+		if (boost::wsmatch m; boost::regex_search(reply, m, re)) {
+			port = std::stoi(m[2]);
+		} else
+			return {};
 	}
 	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
-	GetAsyncTableData(Skt, target);
-	if (target.index() == 0) {
-		strcpy(Adrs, u8(AddressToString(std::get<0>(target))).c_str());
-	} else {
-		auto [host, port] = std::get<1>(target);
-		strcpy(Adrs, u8(host).c_str());
-	}
-	return FFFTP_SUCCESS;
+	GetAsyncTableData(socket, target);
+	addr = target.index() == 0 ? AddressToString(std::get<0>(target)) : std::get<0>(std::get<1>(target));
+	return { { addr, port } };
 }
 
 
