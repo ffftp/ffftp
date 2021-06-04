@@ -37,7 +37,7 @@ static void AskUseFireWall(std::wstring_view Host, int *Fire, int *Pasv, int *Li
 static void SaveCurrentSetToHistory(void);
 static int ReConnectSkt(SOCKET *Skt);
 static SOCKET DoConnect(HOSTDATA* HostData, std::wstring const& Host, std::wstring& User, std::wstring& Pass, std::wstring& Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork);
-static int CheckOneTimePassword(const char *Pass, char *Reply, int Type);
+static std::wstring CheckOneTimePassword(std::wstring&& pass, std::wstring const& reply, int Type);
 
 /*===== 外部参照 =====*/
 
@@ -1320,10 +1320,8 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 					{
 						if ((Sts = command(ContSock, Reply, CancelCheckWork, "USER %s", u8(FwallUser).c_str()) / 100) == FTP_CONTINUE)
 						{
-							CheckOneTimePassword(u8(FwallPass).c_str(), Reply, FwallSecurity);
-							// 同時接続対応
-//							Sts = command(ContSock, NULL, &CancelFlg, "PASS %s", Reply) / 100;
-							Sts = command(ContSock, NULL, CancelCheckWork, "PASS %s", Reply) / 100;
+							auto const pass = CheckOneTimePassword(std::wstring{ FwallPass }, u8(Reply), FwallSecurity);
+							Sts = command(ContSock, NULL, CancelCheckWork, L"PASS %s", pass.c_str()) / 100;
 						}
 					}
 					else if(Fwall == FWALL_SIDEWINDER)
@@ -1432,15 +1430,12 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 										if (empty(Pass) && HostData->NoDisplayUI == NO)
 											InputDialog(passwd_dlg, GetMainHwnd(), 0, Pass, PASSWORD_LEN + 1);
 										if (!empty(Pass)) {
-											CheckOneTimePassword(u8(Pass).c_str(), Reply, Security);
+											auto pass = CheckOneTimePassword(std::wstring{ Pass }, u8(Reply), Security);
 
 											/* パスワードがスペース1個の時はパスワードの実体なしとする */
-											if(strcmp(Reply, " ") == 0)
-												strcpy(Reply, "");
-
-											// 同時接続対応
-//											Sts = command(ContSock, NULL, &CancelFlg, "PASS %s", Reply) / 100;
-											Sts = command(ContSock, NULL, CancelCheckWork, "PASS %s", Reply) / 100;
+											if (pass == L" "sv)
+												pass = L""s;
+											Sts = command(ContSock, NULL, CancelCheckWork, L"PASS %s", pass.c_str()) / 100;
 											if(Sts == FTP_ERROR)
 											{
 												if (HostData->NoDisplayUI == NO && InputDialog(re_passwd_dlg, GetMainHwnd(), 0, Pass, PASSWORD_LEN + 1))
@@ -1578,13 +1573,13 @@ static SOCKET DoConnect(HOSTDATA* HostData, std::wstring const& Host, std::wstri
 // ワンタイムパスワードのチェック
 //   Reply : USERコマンドを送ったあとのリプライ文字列／PASSコマンドで送るパスワードを返すバッファ
 //   ワンタイムパスワードでない時はPassをそのままReplyにコピー
-static int CheckOneTimePassword(const char* Pass, char* Reply, int Type) {
-	DoPrintf("OTP: %s", Reply);
+static std::wstring CheckOneTimePassword(std::wstring&& pass, std::wstring const& reply, int Type) {
+	Debug(L"OTP: {}"sv, reply);
 
-	const char* Pos = Reply;
+	auto pos = begin(reply);
 	if (Type == SECURITY_AUTO) {
-		static boost::regex re{ R"((otp-md5)|(otp-sha1)|otp-md4|s/key)", boost::regex_constants::icase };
-		if (boost::cmatch m; boost::regex_search(Pos, m, re)) {
+		static boost::wregex re{ LR"((otp-md5)|(otp-sha1)|otp-md4|s/key)", boost::regex_constants::icase };
+		if (boost::wsmatch m; boost::regex_search(reply, m, re)) {
 			if (m[1].matched) {
 				Type = MD5;
 				SetTaskMsg(IDS_MSGJPN012);
@@ -1595,34 +1590,32 @@ static int CheckOneTimePassword(const char* Pass, char* Reply, int Type) {
 				Type = MD4;
 				SetTaskMsg(IDS_MSGJPN014);
 			}
-			Pos = m[0].first;
+			pos = m[0].first;
 		}
 	} else {
-		while (*Pos != ' ')
-			Pos++;
-		while (*Pos == ' ')
-			Pos++;
+		static boost::wregex re{ LR"([^ ]* +)" };
+		if (boost::wsmatch m; boost::regex_search(reply, m, re))
+			pos = m[0].second;
 	}
 
 	if (Type != MD4 && Type != MD5 && Type != SHA1) {
-		DoPrintf(L"No OTP used.");
-		strcpy(Reply, Pass);
-		return FFFTP_SUCCESS;
+		Debug(L"No OTP used.");
+		return std::move(pass);
 	}
 
-	static boost::regex re{ R"( +(\d+)[^ ]* +([A-Za-z0-9]*))" };
-	if (boost::cmatch m; boost::regex_search(Pos, m, re) && 0 < m[2].length()) {
-		auto Seq = std::stoi(m[1]);
-		auto Seed = sv(m[2]);
-		strcpy(Reply, Make6WordPass(Seq, Seed, Pass, Type).c_str());
-		DoPrintf("OPT Reponse=%s", Reply);
+	static boost::wregex re{ LR"( +(\d+)[^ ]* +([A-Za-z0-9]*))" };
+	if (boost::wsmatch m; boost::regex_search(pos, end(reply), m, re) && 0 < m[2].length()) {
+		auto seq = std::stoi(m[1]);
+		auto seed = u8(sv(m[2]));
+		pass =  u8(Make6WordPass(seq, seed, u8(pass), Type));
+		Debug(L"OPT Reponse={}"sv, pass);
 		/* シーケンス番号のチェックと警告 */
-		if (Seq <= 10)
+		if (seq <= 10)
 			Dialog(GetFtpInst(), otp_notify_dlg, GetMainHwnd());
-		return FFFTP_SUCCESS;
+		return std::move(pass);
 	}
 	SetTaskMsg(IDS_MSGJPN015);
-	return FFFTP_FAIL;
+	return L""s;
 }
 
 
