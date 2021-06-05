@@ -37,10 +37,9 @@
 
 /*===== プロトタイプ =====*/
 
-static int DoPWD(char *Buf);
+static std::optional<std::wstring> DoPWD();
 static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWork);
 static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Path, int Num, int *CancelCheckWork);
-static void ChangeSepaRemote2Local(char *Fname);
 #define CommandProcCmd(REPLY, CANCELCHECKWORK, ...) (AskTransferNow() == YES && (SktShareProh(), 0), command(AskCmdCtrlSkt(), REPLY, CANCELCHECKWORK, __VA_ARGS__))
 
 /*===== 外部参照 =====*/
@@ -87,8 +86,8 @@ int DoCWD(std::wstring const& Path, int Disp, int ForceGet, int ErrorBell) {
 		Sound::Error.Play();
 	if ((Sts / 100 == FTP_COMPLETE || ForceGet == YES) && Disp == YES) {
 		std::wstring cwd;
-		if (char buf[FMAX_PATH + 1]; DoPWD(buf) == FTP_COMPLETE)
-			cwd = u8(buf);
+		if (auto result = DoPWD())
+			cwd = *std::move(result);
 		/*===== PWDが使えなかった場合 =====*/
 		else if (Path.starts_with(L'/'))
 			cwd = Path;
@@ -130,55 +129,29 @@ int DoCWDStepByStep(std::wstring const& Path, std::wstring const& Cur) {
 }
 
 
-/*----- リモート側のカレントディレクトリ取得 ----------------------------------
-*
-*	Parameter
-*		char *Buf : パス名を返すバッファ
-*
-*	Return Value
-*		int 応答コードの１桁目
-*----------------------------------------------------------------------------*/
-
-static int DoPWD(char *Buf)
-{
-	char *Pos;
-	char Tmp[1024] = "";
+// リモート側のカレントディレクトリ取得
+static std::optional<std::wstring> DoPWD() {
 	int Sts = 0;
-
-	if(PwdCommandType == PWD_XPWD)
-	{
-		// 同時接続対応
-//		Sts = CommandProcCmd(Tmp, "XPWD");
+	char Tmp[1024] = "";
+	if (PwdCommandType == PWD_XPWD) {
 		Sts = CommandProcCmd(Tmp, &CancelFlg, "XPWD");
-		if(Sts/100 != FTP_COMPLETE)
+		if (Sts / 100 != FTP_COMPLETE)
 			PwdCommandType = PWD_PWD;
 	}
-	if(PwdCommandType == PWD_PWD)
-		// 同時接続対応
-//		Sts = CommandProcCmd(Tmp, "PWD");
+	if (PwdCommandType == PWD_PWD)
 		Sts = CommandProcCmd(Tmp, &CancelFlg, "PWD");
-
-	if(Sts/100 == FTP_COMPLETE)
-	{
-		if((Pos = strchr(Tmp, '"')) != NULL)
-		{
-			memmove(Tmp, Pos+1, strlen(Pos+1)+1);
-			if((Pos = strchr(Tmp, '"')) != NULL)
-				*Pos = NUL;
-		}
-		else
-			memmove(Tmp, Tmp+4, strlen(Tmp+4)+1);
-
-		if(strlen(Tmp) < FMAX_PATH)
-		{
-			strcpy(Buf, Tmp);
-			ReplaceAll(Buf, '\\', '/');
-			ChangeSepaRemote2Local(Buf);
-		}
-		else
-			Sts = FTP_ERROR*100;
-	}
-	return(Sts/100);
+	if (Sts / 100 != FTP_COMPLETE)
+		return {};
+	auto text = u8(Tmp);
+	static boost::wregex re{ LR"("([^"]*))" };
+	if (boost::wsmatch m; boost::regex_search(text, m, re))
+		text = m[1];
+	else
+		text.erase(0, 4);
+	text = ReplaceAll(std::move(text), L'\\', L'/');
+	if (AskHostType() == HTYPE_STRATUS)
+		std::ranges::replace(text, L'>', L'/');
+	return text;
 }
 
 
@@ -502,8 +475,6 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Pat
 
 void SwitchOSSProc(void)
 {
-	char Buf[MAX_PATH+1];
-
 	/* DoPWD でノード名の \ を保存するために OSSフラグも変更する */
 	if(AskOSS() == YES) {
 		DoQUOTE(AskCmdCtrlSkt(), "GUARDIAN", &CancelFlg);
@@ -513,8 +484,8 @@ void SwitchOSSProc(void)
 		SetOSS(YES);
 	}
 	/* Current Dir 再取得 */
-	if (DoPWD(Buf) == FTP_COMPLETE)
-		SetRemoteDirHist(u8(Buf));
+	if (auto result = DoPWD())
+		SetRemoteDirHist(*result);
 	/* ファイルリスト再読み込み */
 	PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(REFRESH_REMOTE, 0), 0);
 
@@ -671,28 +642,3 @@ int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
 
 	return(Sts);
 }
-
-
-/*----- パスの区切り文字をローカルに合わせて変更する --------------------------
-*
-*	Parameter
-*		char *Fname : ファイル名
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-static void ChangeSepaRemote2Local(char *Fname)
-{
-	if(AskHostType() == HTYPE_STRATUS)
-	{
-		ReplaceAll(Fname, '>', '/');
-	}
-	return;
-}
-
-
-
-
-
-
-
