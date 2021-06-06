@@ -2299,8 +2299,7 @@ int ProcForNonFullpath(SOCKET cSkt, std::wstring& Path, std::wstring& CurDir, HW
 	if (AskNoFullPathMode() == YES) {
 		auto const Tmp = AskHostType() == HTYPE_VMS ? ReformToVMSstyleDirName(std::wstring{ GetUpperDirEraseTopSlash(Path) }) : AskHostType() == HTYPE_STRATUS ? std::wstring{ GetUpperDirEraseTopSlash(Path) } : std::wstring{ GetUpperDir(Path) };
 		if (Tmp != CurDir) {
-			int Cmd = CommandProcTrn(cSkt, NULL, CancelCheckWork, L"CWD %s", Tmp.c_str());
-			if (Cmd / 100 != FTP_COMPLETE) {
+			if (int code = std::get<0>(Command(cSkt, CancelCheckWork, L"CWD {}"sv, Tmp)); code / 100 != FTP_COMPLETE) {
 				DispCWDerror(hWnd);
 				Sts = FFFTP_FAIL;
 			} else

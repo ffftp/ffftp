@@ -941,7 +941,11 @@ int DoDirListCmdSkt(const char* AddOpt, const char* Path, int Num, int *CancelCh
 void SwitchOSSProc(void);
 #endif
 namespace detail {
-	int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, std::wstring&& cmd);
+	std::tuple<int, std::wstring> command(SOCKET cSkt, int* CancelCheckWork, std::wstring&& cmd);
+}
+template<class... Args>
+static inline std::tuple<int, std::wstring> Command(SOCKET socket, int* CancelCheckWork, std::wstring_view format, const Args&... args) {
+	return socket == INVALID_SOCKET ? std::tuple{ 429, L""s } : detail::command(socket, CancelCheckWork, std::format(format, args...));
 }
 std::tuple<int, std::wstring> ReadReplyMessage(SOCKET cSkt, int *CancelCheckWork);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
@@ -1451,26 +1455,4 @@ static inline auto HashData(BCRYPT_ALG_HANDLE alg, std::vector<UCHAR>& obj, std:
 	return status == STATUS_SUCCESS;
 }
 
-static inline int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, std::wstring_view cmd) {
-	return cSkt == INVALID_SOCKET ? 429 : detail::command(cSkt, Reply, CancelCheckWork, std::wstring{ cmd });
-}
-static inline int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, std::string_view cmd) {
-	return cSkt == INVALID_SOCKET ? 429 : detail::command(cSkt, Reply, CancelCheckWork, u8(cmd));
-}
-template<class... Args>
-static inline int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const wchar_t* fmt, Args... args) {
-	return cSkt == INVALID_SOCKET ? 429 : detail::command(cSkt, Reply, CancelCheckWork, strprintf(fmt, std::forward<Args>(args)...));
-}
-template<class... Args>
-static inline int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const char* fmt, Args... args) {
-	return cSkt == INVALID_SOCKET ? 429 : detail::command(cSkt, Reply, CancelCheckWork, u8(strprintf(fmt, std::forward<Args>(args)...)));
-}
-template<class Char, class... Args>
-static inline int CommandProcTrn(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const Char* fmt, Args... args) {
-	return command(cSkt, Reply, CancelCheckWork, fmt, std::forward<Args>(args)...);
-}
-template<class... Args>
-static inline int Command(SOCKET socket, char* reply, int* CancelCheckWork, std::wstring_view format, const Args&... args) {
-	return socket == INVALID_SOCKET ? 429 : detail::command(socket, reply, CancelCheckWork, std::format(format, args...));
-}
 FILELIST::FILELIST(std::string_view original, char node, char link, int64_t size, int attr, FILETIME time, std::string_view owner, char infoExist) : Original{ original }, Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, Owner{ u8(owner) }, InfoExist{ infoExist } {}

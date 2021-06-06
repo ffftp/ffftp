@@ -40,9 +40,6 @@
 static std::optional<std::wstring> DoPWD();
 static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWork);
 static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Path, int Num, int *CancelCheckWork);
-#define CommandProcCmd(REPLY, CANCELCHECKWORK, ...) (AskTransferNow() == YES && (SktShareProh(), 0), command(AskCmdCtrlSkt(), REPLY, CANCELCHECKWORK, __VA_ARGS__))
-
-/*===== 外部参照 =====*/
 
 extern TRANSPACKET MainTransPkt;
 
@@ -59,29 +56,12 @@ extern time_t LastDataConnectionTime;
 
 static int PwdCommandType;
 
-// 同時接続対応
-//static int CheckCancelFlg = NO;
 
-
-
-/*----- リモート側のカレントディレクトリ変更 ----------------------------------
-*
-*	Parameter
-*		char *Path : パス名
-*		int Disp : ディレクトリリストにパス名を表示するかどうか(YES/NO)
-*		int ForceGet : 失敗してもカレントディレクトリを取得する
-*		int ErrorBell : エラー事の音を鳴らすかどうか(YES/NO)
-*
-*	Return Value
-*		int 応答コードの１桁目
-*----------------------------------------------------------------------------*/
-
+// リモート側のカレントディレクトリ変更
 int DoCWD(std::wstring const& Path, int Disp, int ForceGet, int ErrorBell) {
-	int Sts
-		= Path == L""sv ? FTP_COMPLETE * 100
-		: Path == L".."sv ? CommandProcCmd(NULL, &CancelFlg, L"CDUP"sv)
-		: AskHostType() != HTYPE_VMS || Path.starts_with(L'[') ? CommandProcCmd(NULL, &CancelFlg, L"CWD %s", Path.c_str())
-		: CommandProcCmd(NULL, &CancelFlg, L"CWD [.%s]", Path.c_str());	/* VMS用 */
+	if (AskTransferNow() == YES)
+		SktShareProh();
+	auto Sts = Path == L""sv ? FTP_COMPLETE * 100 : std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, Path == L".."sv ? L"CDUP"sv : AskHostType() != HTYPE_VMS || Path.find(L'[') != std::wstring::npos ? L"CWD {}"sv : L"CWD [.{}]"sv, Path));
 	if (Sts / 100 >= FTP_CONTINUE && ErrorBell == YES)
 		Sound::Error.Play();
 	if ((Sts / 100 == FTP_COMPLETE || ForceGet == YES) && Disp == YES) {
@@ -131,18 +111,19 @@ int DoCWDStepByStep(std::wstring const& Path, std::wstring const& Cur) {
 
 // リモート側のカレントディレクトリ取得
 static std::optional<std::wstring> DoPWD() {
-	int Sts = 0;
-	char Tmp[1024] = "";
+	if (AskTransferNow() == YES)
+		SktShareProh();
+	int code = 0;
+	std::wstring text;
 	if (PwdCommandType == PWD_XPWD) {
-		Sts = CommandProcCmd(Tmp, &CancelFlg, "XPWD");
-		if (Sts / 100 != FTP_COMPLETE)
+		std::tie(code, text) = Command(AskCmdCtrlSkt(), &CancelFlg, L"XPWD"sv);
+		if (code / 100 != FTP_COMPLETE)
 			PwdCommandType = PWD_PWD;
 	}
 	if (PwdCommandType == PWD_PWD)
-		Sts = CommandProcCmd(Tmp, &CancelFlg, "PWD");
-	if (Sts / 100 != FTP_COMPLETE)
+		std::tie(code, text) = Command(AskCmdCtrlSkt(), &CancelFlg, L"PWD"sv);
+	if (code / 100 != FTP_COMPLETE)
 		return {};
-	auto text = u8(Tmp);
 	static boost::wregex re{ LR"("([^"]*))" };
 	if (boost::wsmatch m; boost::regex_search(text, m, re))
 		text = m[1];
@@ -172,7 +153,9 @@ void InitPWDcommand()
 
 // リモート側のディレクトリ作成
 int DoMKD(std::wstring const& Path) {
-	int Sts = CommandProcCmd(NULL, &CancelFlg, L"MKD %s", Path.c_str());
+	if (AskTransferNow() == YES)
+		SktShareProh();
+	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"MKD {}"sv, Path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
@@ -185,7 +168,9 @@ int DoMKD(std::wstring const& Path) {
 
 // リモート側のディレクトリ削除
 int DoRMD(std::wstring const& path) {
-	int Sts = CommandProcCmd(NULL, &CancelFlg, L"RMD %s", path.c_str());
+	if (AskTransferNow() == YES)
+		SktShareProh();
+	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"RMD {}"sv, path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
@@ -198,7 +183,9 @@ int DoRMD(std::wstring const& path) {
 
 // リモート側のファイル削除
 int DoDELE(std::wstring const& path) {
-	int Sts = CommandProcCmd(NULL, &CancelFlg, L"DELE %s", path.c_str());
+	if (AskTransferNow() == YES)
+		SktShareProh();
+	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"DELE {}"sv, path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
@@ -211,9 +198,11 @@ int DoDELE(std::wstring const& path) {
 
 // リモート側のファイル名変更
 int DoRENAME(std::wstring const& from, std::wstring const& to) {
-	int Sts = CommandProcCmd(NULL, &CancelFlg, L"RNFR %s", from.c_str());
+	if (AskTransferNow() == YES)
+		SktShareProh();
+	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"RNFR {}"sv, from));
 	if (Sts == 350)
-		Sts = command(AskCmdCtrlSkt(), NULL, &CancelFlg, L"RNTO %s", to.c_str());
+		Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"RNTO {}"sv, to));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
@@ -228,7 +217,7 @@ int DoRENAME(std::wstring const& from, std::wstring const& to) {
 int DoCHMOD(std::wstring const& path, std::wstring const& mode) {
 	if (AskTransferNow() == YES)
 		SktShareProh();
-	int Sts = Command(AskCmdCtrlSkt(), NULL, &CancelFlg, L"{} {} {}"sv, AskHostChmodCmd(), mode, path);
+	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"{} {} {}"sv, AskHostChmodCmd(), mode, path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
@@ -239,66 +228,43 @@ int DoCHMOD(std::wstring const& path, std::wstring const& mode) {
 }
 
 
-/*----- リモート側のファイルのサイズを取得（転送ソケット使用）-----------------
-*
-*	Parameter
-*		char *Path : パス名
-*		LONGLONG *Size : ファイルのサイズを返すワーク
-*
-*	Return Value
-*		int 応答コードの１桁目
-*
-*	Note
-*		★★転送ソケットを使用する★★
-*		サイズが選られない時は Size = -1 を返す
-*----------------------------------------------------------------------------*/
+// リモート側のファイルのサイズを取得
+//   転送ソケットを使用する
 int DoSIZE(SOCKET cSkt, std::wstring const& Path, LONGLONG* Size, int* CancelCheckWork) {
-	char Tmp[1024];
-	int Sts = CommandProcTrn(cSkt, Tmp, CancelCheckWork, L"SIZE %s", Path.c_str());
-	*Size = -1;
-	if (Sts / 100 == FTP_COMPLETE && strlen(Tmp) > 4 && IsDigit(Tmp[4]))
-		*Size = _atoi64(Tmp + 4);
-	return Sts / 100;
+	auto [code, text] = Command(cSkt, CancelCheckWork, L"SIZE {}"sv, Path);
+	*Size = code / 100 == FTP_COMPLETE && 4 < size(text) && iswdigit(text[4]) ? _wtoll(&text[4]) : -1;
+	return code / 100;
 }
 
 
-/*----- リモート側のファイルの日付を取得（転送ソケット使用）-------------------
-*
-*	Parameter
-*		char *Path : パス名
-*		FILETIME *Time : 日付を返すワーク
-*
-*	Return Value
-*		int 応答コードの１桁目
-*
-*	Note
-*		★★転送ソケットを使用する★★
-*		日付が選られない時は Time = 0 を返す
-*----------------------------------------------------------------------------*/
+// リモート側のファイルの日付を取得
+//   転送ソケットを使用する
 int DoMDTM(SOCKET cSkt, std::wstring const& Path, FILETIME* Time, int* CancelCheckWork) {
 	*Time = {};
-	char Tmp[1024];
-	int Sts = AskHostFeature() & FEATURE_MDTM ? CommandProcTrn(cSkt, Tmp, CancelCheckWork, L"MDTM %s", Path.c_str()) : 500;
-	if (Sts / 100 == FTP_COMPLETE)
-		if (SYSTEMTIME st{}; sscanf(Tmp + 4, "%04hu%02hu%02hu%02hu%02hu%02hu", &st.wYear, &st.wMonth, &st.wDay, &st.wHour, &st.wMinute, &st.wSecond) == 6)
-			SystemTimeToFileTime(&st, Time);
-	return Sts / 100;
+	int code = 500;
+	if (AskHostFeature() & FEATURE_MDTM) {
+		std::wstring text;
+		std::tie(code, text) = Command(cSkt, CancelCheckWork, L"MDTM {}"sv, Path);
+		if (code / 100 == FTP_COMPLETE)
+			if (SYSTEMTIME st{}; swscanf(&text[4], L"%04hu%02hu%02hu%02hu%02hu%02hu", &st.wYear, &st.wMonth, &st.wDay, &st.wHour, &st.wMinute, &st.wSecond) == 6)
+				SystemTimeToFileTime(&st, Time);
+	}
+	return code / 100;
 }
 
 
 // ホスト側の日時設定
 int DoMFMT(SOCKET cSkt, std::wstring const& Path, FILETIME* Time, int* CancelCheckWork) {
-	char Tmp[1024];
 	SYSTEMTIME st;
 	FileTimeToSystemTime(Time, &st);
-	int Sts = AskHostFeature() & FEATURE_MFMT ? CommandProcTrn(cSkt, Tmp, CancelCheckWork, L"MFMT %04hu%02hu%02hu%02hu%02hu%02hu %s", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, Path.c_str()) : 500;
+	int Sts = AskHostFeature() & FEATURE_MFMT ? std::get<0>(Command(cSkt, CancelCheckWork, L"MFMT {:04d}{:02d}{:02d}{:02d}{:02d}{:02d} {}"sv, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, Path)) : 500;
 	return Sts / 100;
 }
 
 
 // リモート側のコマンドを実行
 int DoQUOTE(SOCKET cSkt, std::wstring_view CmdStr, int* CancelCheckWork) {
-	int code = Command(cSkt, NULL, CancelCheckWork, L"{}"sv, CmdStr);
+	int code = std::get<0>(Command(cSkt, CancelCheckWork, L"{}"sv, CmdStr));
 	if (code / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	return code / 100;
@@ -346,9 +312,7 @@ int DoQUIT(SOCKET ctrl_skt, int *CancelCheckWork)
 
 	Ret = FTP_COMPLETE;
 	if(SendQuit == YES)
-		// 同時接続対応
-//		Ret = command(ctrl_skt, NULL, &CheckCancelFlg, "QUIT") / 100;
-		Ret = command(ctrl_skt, NULL, CancelCheckWork, "QUIT") / 100;
+		Ret = std::get<0>(Command(ctrl_skt, CancelCheckWork, L"QUIT"sv)) / 100;
 
 	return(Ret);
 }
@@ -483,7 +447,7 @@ void SwitchOSSProc(void)
 
 // コマンドを送りリプライを待つ
 // ホストのファイル名の漢字コードに応じて、ここで漢字コードの変換を行なう
-int detail::command(SOCKET cSkt, char* Reply, int* CancelCheckWork, std::wstring&& cmd) {
+std::tuple<int, std::wstring> detail::command(SOCKET cSkt, int* CancelCheckWork, std::wstring&& cmd) {
 	if (cmd.starts_with(L"PASS "sv))
 		SetTaskMsg(">PASS [xxxxxx]");
 	else {
@@ -496,14 +460,9 @@ int detail::command(SOCKET cSkt, char* Reply, int* CancelCheckWork, std::wstring
 	}
 	auto native = ConvertTo(cmd, AskHostNameKanji(), AskHostNameKana());
 	native += "\r\n"sv;
-	if (Reply != NULL)
-		strcpy(Reply, "");
 	if (SendData(cSkt, data(native), size_as<int>(native), 0, CancelCheckWork) != FFFTP_SUCCESS)
-		return 429;
-	auto [code, text] = ReadReplyMessage(cSkt, CancelCheckWork);
-	if (Reply)
-		strncpy_s(Reply, 1024, u8(text).c_str(), _TRUNCATE);
-	return code;
+		return { 429, {} };
+	return ReadReplyMessage(cSkt, CancelCheckWork);
 }
 
 
