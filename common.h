@@ -144,16 +144,8 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 #define WM_REFRESH_LOCAL_FLG	(WM_USER+7)
 #define WM_REFRESH_REMOTE_FLG	(WM_USER+8)
-
-// UPnP対応
-#define WM_ADDPORTMAPPING	(WM_USER+9)
-#define WM_REMOVEPORTMAPPING	(WM_USER+10)
-
-// 同時接続対応
 #define WM_RECONNECTSOCKET	(WM_USER+11)
-
-// ゾーンID設定追加
-#define WM_MARKFILEASDOWNLOADEDFROMINTERNET	(WM_USER+12)
+#define WM_MAINTHREADRUNNER	(WM_USER+13)
 
 /*===== ホスト番号 =====*/
 /* ホスト番号は 0～ の値を取る */
@@ -591,30 +583,15 @@ public:
 	static void Register();
 };
 
-// UPnP対応
-typedef struct
-{
-	int r;
-	HANDLE h;
-	const char* Adrs;
-	int Port;
-	char* ExtAdrs;
-} ADDPORTMAPPINGDATA;
 
-typedef struct
-{
-	int r;
-	HANDLE h;
-	int Port;
-} REMOVEPORTMAPPINGDATA;
+class MainThreadRunner {
+protected:
+	~MainThreadRunner() = default;
+	virtual int DoWork() = 0;
+public:
+	int Run();
+};
 
-// ゾーンID設定追加
-typedef struct
-{
-	int r;
-	HANDLE h;
-	const wchar_t* Fname;
-} MARKFILEASDOWNLOADEDFROMINTERNETDATA;
 
 /*=================================================
 *		プロトタイプ
@@ -978,7 +955,7 @@ int AskTransferErrorDisplay(void);
 int LoadZoneID();
 void FreeZoneID();
 int IsZoneIDLoaded();
-int MarkFileAsDownloadedFromInternet(const wchar_t* Fname);
+bool MarkFileAsDownloadedFromInternet(fs::path const& path);
 
 /*===== codecnv.c =====*/
 
@@ -1137,8 +1114,8 @@ void RemoveReceivedData(SOCKET s);
 int LoadUPnP();
 void FreeUPnP();
 int IsUPnPLoaded();
-int AddPortMapping(const char* Adrs, int Port, char* ExtAdrs);
-int RemovePortMapping(int Port);
+std::optional<std::wstring> AddPortMapping(std::wstring const& internalAddress, int port);
+bool RemovePortMapping(int port);
 int CheckClosedAndReconnect(void);
 // 同時接続対応
 int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);

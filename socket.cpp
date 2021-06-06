@@ -778,46 +778,39 @@ int IsUPnPLoaded() {
 	return upnpNAT && staticPortMappingCollection ? YES : NO;
 }
 
-int AddPortMapping(const char* Adrs, int Port, char* ExtAdrs) {
+
+std::optional<std::wstring> AddPortMapping(std::wstring const& internalAddress, int port) {
 	static _bstr_t TCP{ L"TCP" };
 	static _bstr_t FFFTP{ L"FFFTP" };
-	int result = FFFTP_FAIL;
-	if (IsMainThread()) {
-		if (ComPtr<IStaticPortMapping> staticPortMapping; staticPortMappingCollection->Add(Port, TCP, Port, _bstr_t{ Adrs }, VARIANT_TRUE, FFFTP, &staticPortMapping) == S_OK)
-			if (_bstr_t buffer; staticPortMapping->get_ExternalIPAddress(buffer.GetAddress()) == S_OK) {
-				strcpy(ExtAdrs, buffer);
-				return FFFTP_SUCCESS;
-			}
-	} else {
-		if (ADDPORTMAPPINGDATA Data; Data.h = CreateEventW(NULL, TRUE, FALSE, NULL)) {
-			Data.Adrs = Adrs;
-			Data.Port = Port;
-			Data.ExtAdrs = ExtAdrs;
-			if (PostMessageW(GetMainHwnd(), WM_ADDPORTMAPPING, 0, (LPARAM)&Data))
-				if (WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
-					result = Data.r;
-			CloseHandle(Data.h);
+	struct Data : public MainThreadRunner {
+		long port;
+		std::wstring const& internalAddress;
+		_bstr_t externalAddress;
+		Data(std::wstring const& internalAddress, long port) : port{ port }, internalAddress{ internalAddress } {}
+		int DoWork() override {
+			ComPtr<IStaticPortMapping> staticPortMapping;
+			auto result = staticPortMappingCollection->Add(port, TCP, port, _bstr_t{ internalAddress.c_str() }, VARIANT_TRUE, FFFTP, &staticPortMapping);
+			if (result == S_OK)
+				result = staticPortMapping->get_ExternalIPAddress(externalAddress.GetAddress());
+			return result;
 		}
-	}
-	return result;
+	} data{ internalAddress, port };
+	if (auto result = (HRESULT)data.Run(); result == S_OK)
+		return { { (const wchar_t*)data.externalAddress, data.externalAddress.length() } };
+	return {};
 }
 
-int RemovePortMapping(int Port) {
+bool RemovePortMapping(int port) {
 	static _bstr_t TCP{ L"TCP" };
-	int result = FFFTP_FAIL;
-	if (IsMainThread()) {
-		if (staticPortMappingCollection->Remove(Port, TCP) == S_OK)
-			return FFFTP_SUCCESS;
-	} else {
-		if (REMOVEPORTMAPPINGDATA Data; Data.h = CreateEventW(NULL, TRUE, FALSE, NULL)) {
-			Data.Port = Port;
-			if (PostMessageW(GetMainHwnd(), WM_REMOVEPORTMAPPING, 0, (LPARAM)&Data))
-				if (WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
-					result = Data.r;
-			CloseHandle(Data.h);
+	struct Data : public MainThreadRunner {
+		long port;
+		Data(long port) : port{ port } {}
+		int DoWork() override {
+			return staticPortMappingCollection->Remove(port, TCP);
 		}
-	}
-	return result;
+	} data{ port };
+	auto result = (HRESULT)data.Run();
+	return result == S_OK;
 }
 
 

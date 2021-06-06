@@ -1517,27 +1517,13 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				PostMessageW(hWnd,  WM_COMMAND, MAKEWPARAM(REFRESH_REMOTE, 0), 0);
 			break;
 
-		// UPnP対応
-		case WM_ADDPORTMAPPING :
-			((ADDPORTMAPPINGDATA*)lParam)->r = AddPortMapping(((ADDPORTMAPPINGDATA*)lParam)->Adrs, ((ADDPORTMAPPINGDATA*)lParam)->Port, ((ADDPORTMAPPINGDATA*)lParam)->ExtAdrs);
-			SetEvent(((ADDPORTMAPPINGDATA*)lParam)->h);
-			break;
-
-		case WM_REMOVEPORTMAPPING :
-			((REMOVEPORTMAPPINGDATA*)lParam)->r = RemovePortMapping(((REMOVEPORTMAPPINGDATA*)lParam)->Port);
-			SetEvent(((REMOVEPORTMAPPINGDATA*)lParam)->h);
-			break;
-
 		// 同時接続対応
 		case WM_RECONNECTSOCKET :
 			ReconnectProc();
 			break;
 
-		// ゾーンID設定追加
-		case WM_MARKFILEASDOWNLOADEDFROMINTERNET :
-			((MARKFILEASDOWNLOADEDFROMINTERNETDATA*)lParam)->r = MarkFileAsDownloadedFromInternet(((MARKFILEASDOWNLOADEDFROMINTERNETDATA*)lParam)->Fname);
-			SetEvent(((MARKFILEASDOWNLOADEDFROMINTERNETDATA*)lParam)->h);
-			break;
+		case WM_MAINTHREADRUNNER:
+			return reinterpret_cast<MainThreadRunner*>(lParam)->Run();
 
 		case WM_PAINT :
 			BeginPaint(hWnd, (LPPAINTSTRUCT) &ps);
@@ -1791,7 +1777,7 @@ void DoubleClickProc(int Win, int Mode, int App)
 								CancelFlg = NO;
 								Sts = DoDownload(AskCmdCtrlSkt(), MainTransPkt, NO, &CancelFlg);
 								if (MarkAsInternet == YES && IsZoneIDLoaded() == YES)
-									MarkFileAsDownloadedFromInternet(remotePath.c_str());
+									MarkFileAsDownloadedFromInternet(remotePath);
 							}
 							EnableUserOpe();
 
@@ -2270,4 +2256,8 @@ void UpdateTaskbarProgress() {
 int AskToolWinHeight(void)
 {
 	return(ToolWinHeight);
+}
+
+int MainThreadRunner::Run() {
+	return IsMainThread() ? DoWork() : (int)SendMessageW(GetMainHwnd(), WM_MAINTHREADRUNNER, 0, (LPARAM)this);
 }

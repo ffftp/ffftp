@@ -1928,8 +1928,8 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 		if (IsUPnPLoaded() == YES && UPnPEnabled == YES) {
 			auto port = ntohs(saListen.ss_family == AF_INET ? reinterpret_cast<sockaddr_in const&>(saListen).sin_port : reinterpret_cast<sockaddr_in6 const&>(saListen).sin6_port);
 			// TODO: UPnP NATで外部アドレスだけ参照しているが、外部ポートが内部ポートと異なる可能性が十分にあるのでは？
-			if (char ExtAdrs[40]; AddPortMapping(u8(AddressToString(saListen)).c_str(), port, ExtAdrs) == FFFTP_SUCCESS)
-				if (auto ai = getaddrinfo(u8(ExtAdrs), port)) {
+			if (auto const ExtAdrs = AddPortMapping(AddressToString(saListen), port))
+				if (auto ai = getaddrinfo(*ExtAdrs, port)) {
 					memcpy(&saListen, ai->ai_addr, ai->ai_addrlen);
 					SetAsyncTableDataMapPort(listen_skt, port);
 				}

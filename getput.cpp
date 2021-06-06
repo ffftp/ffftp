@@ -684,7 +684,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 								LastError = YES;
 							// ゾーンID設定追加
 							if(MarkAsInternet == YES && IsZoneIDLoaded() == YES)
-								MarkFileAsDownloadedFromInternet(Pos->Local.c_str());
+								MarkFileAsDownloadedFromInternet(Pos->Local);
 						}
 
 						if (SaveTimeStamp == YES && (Pos->Time.dwLowDateTime != 0 || Pos->Time.dwHighDateTime != 0))
@@ -2357,20 +2357,14 @@ int IsZoneIDLoaded() {
 	return zoneIdentifier && persistFile ? YES : NO;
 }
 
-int MarkFileAsDownloadedFromInternet(const wchar_t* Fname) {
-	MARKFILEASDOWNLOADEDFROMINTERNETDATA Data;
-	int result = FFFTP_FAIL;
-	if (IsMainThread()) {
-		if (persistFile->Save(_bstr_t{ Fname }, FALSE) == S_OK)
-			return FFFTP_SUCCESS;
-	} else {
-		if (Data.h = CreateEventW(NULL, TRUE, FALSE, NULL)) {
-			Data.Fname = Fname;
-			if (PostMessageW(GetMainHwnd(), WM_MARKFILEASDOWNLOADEDFROMINTERNET, 0, (LPARAM)&Data))
-				if (WaitForSingleObject(Data.h, INFINITE) == WAIT_OBJECT_0)
-					result = Data.r;
-			CloseHandle(Data.h);
+bool MarkFileAsDownloadedFromInternet(fs::path const& path) {
+	struct Data : public MainThreadRunner {
+		fs::path const& path;
+		Data(fs::path const& path) : path{ path } {}
+		int DoWork() override {
+			return persistFile->Save(_bstr_t{ path.c_str() }, FALSE);
 		}
-	}
-	return result;
+	} data{ path };
+	auto result = (HRESULT)data.Run();
+	return result == S_OK;
 }
