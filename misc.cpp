@@ -183,27 +183,6 @@ void RectClientToScreen(HWND hWnd, RECT *Rect)
 }
 
 
-/*----- 属性文字列を値に変換 --------------------------------------------------
-*
-*	Parameter
-*		char *Str : 属性文字列 ("rwxrwxrwx")
-*
-*	Return Value
-*		int 値
-*----------------------------------------------------------------------------*/
-
-int AttrString2Value(const char* Str) {
-	int num = 0;
-	if (strlen(Str) >= 9) {
-		for (auto bit : { 0x400, 0x200, 0x100, 0x40, 0x20, 0x10, 0x4, 0x2, 0x1 })
-			if (*Str++ != '-')
-				num |= bit;
-	} else if (strlen(Str) >= 3)
-		std::from_chars(Str, Str + 3, num, 16);
-	return num;
-}
-
-
 static auto GetFilterString(std::initializer_list<FileType> fileTypes) {
 	static auto const map = [] {
 		std::map<FileType, std::wstring> map;

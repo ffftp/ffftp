@@ -1460,31 +1460,28 @@ int GetNodeSize(int Win, int Pos, LONGLONG* Buf) {
 }
 
 
-/*----- 指定位置のアイテムの属性を返す ----------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int Pos : 位置
-*		int *Buf : 属性を返すワーク
-*
-*	Return Value
-*		int ステータス
-*			YES/NO=サイズ情報がなかった
-*----------------------------------------------------------------------------*/
-
+// 指定位置のアイテムの属性を返す
 int GetNodeAttr(int Win, int Pos, int* Buf) {
 	if (Win == WIN_REMOTE) {
-		auto subitem =
+		auto subitem = 4;
 #if defined(HAVE_TANDEM)
-			AskHostType() == HTYPE_TANDEM ? 3 :
+		if (AskHostType() == HTYPE_TANDEM)
+			subitem = 3;
 #endif
-			4;
-		if (auto attr = GetItemText(WIN_REMOTE, Pos, subitem); !empty(attr)) {
-			*Buf =
+		if (auto const attr = GetItemText(WIN_REMOTE, Pos, subitem); !empty(attr)) {
 #if defined(HAVE_TANDEM)
-				AskHostType() == HTYPE_TANDEM ? (std::iswdigit(attr[0]) ? stoi(attr) : 0) :
+			if (AskHostType() == HTYPE_TANDEM)
+				*Buf = std::iswdigit(attr[0]) ? stoi(attr) : 0;
+			else
 #endif
-				AttrString2Value(u8(attr).c_str());
+			if (9 <= size(attr)) {
+				auto value = 0;
+				for (auto it = begin(attr); auto bit : { 0x400, 0x200, 0x100, 0x40, 0x20, 0x10, 0x4, 0x2, 0x1 })
+					if (*it++ != L'-')
+						value |= bit;
+				*Buf = value;
+			} else if (3 <= size(attr))
+				*Buf = std::stoi(attr, nullptr, 16);
 			return YES;
 		}
 	}

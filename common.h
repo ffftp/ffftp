@@ -1059,7 +1059,6 @@ std::wstring_view GetFileName(std::wstring_view path);
 std::wstring MakeSizeString(double size);
 void DispStaticText(HWND hWnd, std::wstring text);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
-int AttrString2Value(const char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 fs::path SelectDir(HWND hWnd);
 fs::path MakeDistinguishableFileName(fs::path&& path);
