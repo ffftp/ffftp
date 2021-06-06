@@ -498,10 +498,9 @@ void HistoryConnectProc(int MenuCmd)
 //     cmd1\0
 //     cmd1\r\ncmd2\r\n\0
 static int SendInitCommand(SOCKET Socket, std::wstring_view Cmd, int* CancelCheckWork) {
-	static boost::regex re{ R"([^\r\n]+)" };
-	auto const u8cmd = u8(Cmd);
-	for (boost::sregex_iterator it{ u8cmd.begin(), u8cmd.end(), re }, end; it != end; ++it)
-		DoQUOTE(Socket, it->str().c_str(), CancelCheckWork);
+	static boost::wregex re{ LR"([^\r\n]+)" };
+	for (boost::regex_iterator<std::wstring_view::const_iterator> it{ begin(Cmd), end(Cmd), re }, end; it != end; ++it)
+		DoQUOTE(Socket, sv((*it)[0]), CancelCheckWork);
 	return 0;
 }
 

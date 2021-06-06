@@ -931,7 +931,7 @@ int DoCHMOD(std::wstring const& path, std::wstring const& mode);
 int DoSIZE(SOCKET cSkt, std::wstring const& Path, LONGLONG *Size, int *CancelCheckWork);
 int DoMDTM(SOCKET cSkt, std::wstring const& Path, FILETIME *Time, int *CancelCheckWork);
 int DoMFMT(SOCKET cSkt, std::wstring const&, FILETIME *Time, int *CancelCheckWork);
-int DoQUOTE(SOCKET cSkt, const char* CmdStr, int *CancelCheckWork);
+int DoQUOTE(SOCKET cSkt, std::wstring_view CmdStr, int* CancelCheckWork);
 SOCKET DoClose(SOCKET Sock);
 // 同時接続対応
 //int DoQUIT(SOCKET ctrl_skt);

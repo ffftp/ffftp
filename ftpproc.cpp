@@ -2161,7 +2161,7 @@ void SomeCmdProc(void)
 			MakeSelectedFileList(WIN_REMOTE, NO, NO, FileListBase, &CancelFlg);
 			auto cmd = empty(FileListBase) ? L""s : FileListBase[0].Name;
 			if (InputDialog(somecmd_dlg, GetMainHwnd(), 0, cmd, 81, nullptr, IDH_HELP_TOPIC_0000023))
-				DoQUOTE(AskCmdCtrlSkt(), u8(cmd).c_str(), &CancelFlg);
+				DoQUOTE(AskCmdCtrlSkt(), cmd, &CancelFlg);
 			EnableUserOpe();
 		}
 	}

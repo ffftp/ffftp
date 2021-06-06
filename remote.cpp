@@ -296,25 +296,12 @@ int DoMFMT(SOCKET cSkt, std::wstring const& Path, FILETIME* Time, int* CancelChe
 }
 
 
-/*----- リモート側のコマンドを実行 --------------------------------------------
-*
-*	Parameter
-*		char *CmdStr : コマンド文字列
-*
-*	Return Value
-*		int 応答コードの１桁目
-*----------------------------------------------------------------------------*/
-int DoQUOTE(SOCKET cSkt, const char* CmdStr, int *CancelCheckWork)
-{
-	int Sts;
-
-//	Sts = CommandProcCmd(NULL, "%s", CmdStr);
-	Sts = CommandProcTrn(cSkt, NULL, CancelCheckWork, "%s", CmdStr);
-
-	if(Sts/100 >= FTP_CONTINUE)
+// リモート側のコマンドを実行
+int DoQUOTE(SOCKET cSkt, std::wstring_view CmdStr, int* CancelCheckWork) {
+	int code = Command(cSkt, NULL, CancelCheckWork, L"{}"sv, CmdStr);
+	if (code / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
-
-	return(Sts/100);
+	return code / 100;
 }
 
 
@@ -477,10 +464,10 @@ void SwitchOSSProc(void)
 {
 	/* DoPWD でノード名の \ を保存するために OSSフラグも変更する */
 	if(AskOSS() == YES) {
-		DoQUOTE(AskCmdCtrlSkt(), "GUARDIAN", &CancelFlg);
+		DoQUOTE(AskCmdCtrlSkt(), L"GUARDIAN"s, &CancelFlg);
 		SetOSS(NO);
 	} else {
-		DoQUOTE(AskCmdCtrlSkt(), "OSS", &CancelFlg);
+		DoQUOTE(AskCmdCtrlSkt(), L"OSS"s, &CancelFlg);
 		SetOSS(YES);
 	}
 	/* Current Dir 再取得 */
