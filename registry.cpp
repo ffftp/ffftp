@@ -295,33 +295,18 @@ extern int FwallNoSaveUser;
 extern int MarkAsInternet;
 
 
-/*----- マスタパスワードの設定 ----------------------------------------------
-*
-*	Parameter
-*		const char* Password : マスターパスワード
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-void SetMasterPassword( const char* Password )
-{
-	ZeroMemory( SecretKey, MAX_PASSWORD_LEN + 12 );
-	if( Password != NULL ){
-		strncpy_s(SecretKey, Password, MAX_PASSWORD_LEN);
-	}
-	else {
-		strcpy( SecretKey, DEFAULT_PASSWORD );
-	}
-	SecretKeyLength = (int)strlen( SecretKey );
-	
+// マスタパスワードの設定
+void SetMasterPassword(std::wstring_view password) {
+	ZeroMemory(SecretKey, MAX_PASSWORD_LEN + 12);
+	strncpy_s(SecretKey, empty(password) ? DEFAULT_PASSWORD : u8(password).c_str(), MAX_PASSWORD_LEN);
+	SecretKeyLength = (int)strlen(SecretKey);
+
 	/* 未検証なので，初期状態はOKにする (強制再設定→保存にを可能にする)*/
 	IsMasterPasswordError = PASSWORD_OK;
 }
 
-// セキュリティ強化
-void GetMasterPassword(char* Password)
-{
-	strcpy(Password, SecretKey);
+std::wstring GetMasterPassword() {
+	return u8(SecretKey);
 }
 
 /*----- マスタパスワードの状態取得 ----------------------------------------------

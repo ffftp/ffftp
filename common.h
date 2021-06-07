@@ -1019,9 +1019,8 @@ bool LoadRegistry();
 void ClearRegistry();
 // ポータブル版判定
 void ClearIni(void);
-void SetMasterPassword( const char* );
-// セキュリティ強化
-void GetMasterPassword(char*);
+void SetMasterPassword(std::wstring_view password = {});
+std::wstring GetMasterPassword();
 int GetMasterPasswordStatus(void);
 int ValidateMasterPassword(void);
 void SaveSettingsToFile(void);

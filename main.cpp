@@ -417,12 +417,12 @@ static int InitApp(int cmdShow)
 		*/
 		if(auto it = std::find_if(begin(args), end(args), [](auto const& arg) { return ieq(arg, L"-z"sv) || ieq(arg, L"--mpasswd"sv); }); it != end(args) && ++it != end(args))
 		{
-			SetMasterPassword(u8(*it).c_str());
+			SetMasterPassword(*it);
 			useDefautPassword = 0;
 		}
 		else {
 			/* パスワード指定無し */
-			SetMasterPassword( NULL );
+			SetMasterPassword();
 			/* この場では表示できないのでフラグだけ立てておく*/
 			useDefautPassword = 2;
 		}
@@ -1248,9 +1248,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					}
 					else if(GetMasterPasswordStatus() == PASSWORD_OK)
 					{
-						char Password[MAX_PASSWORD_LEN + 1];
-						GetMasterPassword(Password);
-						SetMasterPassword(NULL);
+						auto const password = GetMasterPassword();
+						SetMasterPassword();
 						while(ValidateMasterPassword() == YES && GetMasterPasswordStatus() == PASSWORD_UNMATCH)
 						{
 							if(EnterMasterPasswordAndSet(false, hWnd) == 0)
@@ -1263,7 +1262,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						}
 						else
 						{
-							SetMasterPassword(Password);
+							SetMasterPassword(password);
 							ValidateMasterPassword();
 						}
 					}
@@ -1320,9 +1319,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					// 平文で出力するためマスターパスワードを再確認
 					if(GetMasterPasswordStatus() == PASSWORD_OK)
 					{
-						char Password[MAX_PASSWORD_LEN + 1];
-						GetMasterPassword(Password);
-						SetMasterPassword(NULL);
+						auto const password = GetMasterPassword();
+						SetMasterPassword();
 						while(ValidateMasterPassword() == YES && GetMasterPasswordStatus() == PASSWORD_UNMATCH)
 						{
 							if(EnterMasterPasswordAndSet(false, hWnd) == 0)
@@ -1332,7 +1330,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 							SaveSettingsToFileZillaXml();
 						else
 						{
-							SetMasterPassword(Password);
+							SetMasterPassword(password);
 							ValidateMasterPassword();
 						}
 					}
@@ -1343,9 +1341,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					// 平文で出力するためマスターパスワードを再確認
 					if(GetMasterPasswordStatus() == PASSWORD_OK)
 					{
-						char Password[MAX_PASSWORD_LEN + 1];
-						GetMasterPassword(Password);
-						SetMasterPassword(NULL);
+						auto const password = GetMasterPassword();
+						SetMasterPassword();
 						while(ValidateMasterPassword() == YES && GetMasterPasswordStatus() == PASSWORD_UNMATCH)
 						{
 							if(EnterMasterPasswordAndSet(false, hWnd) == 0)
@@ -1355,7 +1352,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 							SaveSettingsToWinSCPIni();
 						else
 						{
-							SetMasterPassword(Password);
+							SetMasterPassword(password);
 							ValidateMasterPassword();
 						}
 					}
@@ -2200,10 +2197,10 @@ int EnterMasterPasswordAndSet(bool newpassword, HWND hWnd) {
 
 	if (empty(pass1)) {
 		/* 空の場合はデフォルト値を設定 */
-		SetMasterPassword(nullptr);
+		SetMasterPassword();
 		return 2;
 	}
-	SetMasterPassword(u8(pass1).c_str());
+	SetMasterPassword(pass1);
 	return 1;
 }
 
