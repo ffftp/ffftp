@@ -357,15 +357,15 @@ void AppendTransFileList(std::forward_list<TRANSPACKET>&& list) {
 // 転送ファイル情報を表示する
 static void DispTransPacket(TRANSPACKET const& item) {
 	if (item.Command.starts_with(L"RETR"sv) || item.Command.starts_with(L"STOR"sv))
-		DoPrintf(L"TransList Cmd=%s : %s : %s", item.Command.c_str(), item.Remote.c_str(), item.Local.c_str());
+		Debug(L"TransList Cmd={} : {} : {}"sv, item.Command, item.Remote, item.Local.native());
 	else if (item.Command.starts_with(L"R-"sv))
-		DoPrintf(L"TransList Cmd=%s : %s", item.Command.c_str(), item.Remote.c_str());
+		Debug(L"TransList Cmd={} : {}"sv, item.Command, item.Remote);
 	else if (item.Command.starts_with(L"L-"sv))
-		DoPrintf(L"TransList Cmd=%s : %s", item.Command.c_str(), item.Local.c_str());
+		Debug(L"TransList Cmd={} : {}"sv, item.Command, item.Local.native());
 	else if (item.Command.starts_with(L"MKD"sv))
-		DoPrintf(L"TransList Cmd=%s : %s", item.Command.c_str(), !item.Local.empty() ? item.Local.c_str() : item.Remote.c_str());
+		Debug(L"TransList Cmd={} : {}"sv, item.Command, item.Local.empty() ? item.Remote : item.Local.native());
 	else
-		DoPrintf(L"TransList Cmd=%s", item.Command.c_str());
+		Debug(L"TransList Cmd={}"sv, item.Command);
 }
 
 
@@ -1144,7 +1144,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 						iRetCode = 500;
 					}
 					else
-						DoPrintf(L"Skt=%zu : accept from %s", data_socket, AddressPortToString(&sa, salen).c_str());
+						Debug(L"Skt={} : accept from {}"sv, data_socket, AddressPortToString(&sa, salen));
 				}
 
 				if(data_socket != INVALID_SOCKET)
@@ -1699,7 +1699,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 					iRetCode = 500;
 				}
 				else
-					DoPrintf(L"Skt=%zu : accept from %s", data_socket, AddressPortToString(&sa, salen).c_str());
+					Debug(L"Skt={} : accept from {}"sv, data_socket, AddressPortToString(&sa, salen));
 			}
 
 			if(data_socket != INVALID_SOCKET)

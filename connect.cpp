@@ -1403,7 +1403,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 													Continue = YES;
 												else {
 													Pass.clear();
-													DoPrintf(L"No password specified.");
+													Debug(L"No password specified."sv);
 												}
 												ReInPass = YES;
 											}
@@ -1414,13 +1414,13 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 												if (!empty(Acct))
 													Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"ACCT {}", Acct)) / 100;
 												else
-													DoPrintf(L"No account specified");
+													Debug(L"No account specified."sv);
 											}
 										}
 										else
 										{
 											Sts = FTP_ERROR;
-											DoPrintf(L"No password specified.");
+											Debug(L"No password specified."sv);
 										}
 									}
 									// FTPES対応
@@ -1432,7 +1432,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 							else
 							{
 								Sts = FTP_ERROR;
-								DoPrintf(L"No user name specified");
+								Debug(L"No user name specified."sv);
 							}
 
 							if(Sts != FTP_COMPLETE)
@@ -1651,10 +1651,10 @@ static bool Socks5Authenticate(SOCKET s, int* CancelCheckWork) {
 		return false;
 	}
 	if (reply.METHOD == NO_AUTHENTICATION_REQUIRED)
-		DoPrintf(L"SOCKS5 No Authentication");
+		Debug(L"SOCKS5 No Authentication."sv);
 	else if (reply.METHOD == USERNAME_PASSWORD) {
 		// RFC 1929 Username/Password Authentication for SOCKS V5
-		DoPrintf(L"SOCKS5 User/Pass Authentication");
+		Debug(L"SOCKS5 User/Pass Authentication."sv);
 		auto const uname = u8(FwallUser);
 		auto const passwd = u8(FwallPass);
 		buffer = { 1 };												// VER
@@ -1879,7 +1879,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 		return INVALID_SOCKET;
 	}
 	if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
-		DoPrintf(L"Use SOCKS BIND");
+		Debug(L"Use SOCKS BIND."sv);
 		// Control接続と同じアドレスに接続する
 		salen = sizeof saListen;
 		if (getpeername(ctrl_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
@@ -1899,7 +1899,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 			return INVALID_SOCKET;
 		}
 	} else {
-		DoPrintf(L"Use normal BIND");
+		Debug(L"Use normal BIND."sv);
 		// Control接続と同じアドレス（ただしport=0）でlistenする
 		if (saListen.ss_family == AF_INET)
 			reinterpret_cast<sockaddr_in&>(saListen).sin_port = 0;

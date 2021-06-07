@@ -489,7 +489,7 @@ void SaveRegistry() {
 	auto result = BCrypt(BCRYPT_RNG_ALGORITHM, [&arr = u.salt1](BCRYPT_ALG_HANDLE alg) {
 		auto const status = BCryptGenRandom(alg, arr, size_as<ULONG>(arr), 0);
 		if (status != STATUS_SUCCESS)
-			DoPrintf(L"BCryptGenRandom() failed: 0x%08X.", status);
+			Debug(L"BCryptGenRandom() failed: 0x{:08X}.", status);
 		return status == STATUS_SUCCESS;
 	});
 	if (!result)
@@ -986,14 +986,14 @@ static auto AesData(std::span<UCHAR> iv, std::span<UCHAR> text, bool encrypt) {
 					if ((status = (encrypt ? BCryptEncrypt : BCryptDecrypt)(key, data(text), size_as<ULONG>(text), nullptr, data(iv), size_as<ULONG>(iv), data(text), size_as<ULONG>(text), &resultlen, 0)) == STATUS_SUCCESS && resultlen == size_as<ULONG>(text))
 						result = true;
 					else
-						DoPrintf(L"%s() failed: 0x%08X or bad length: %d.", encrypt ? L"BCryptEncrypt" : L"BCryptDecrypt", status, resultlen);
+						Debug(L"{}() failed: 0x{:08X} or bad length: {}."sv, encrypt ? L"BCryptEncrypt"sv : L"BCryptDecrypt"sv, status, resultlen);
 					BCryptDestroyKey(key);
 				} else
-					DoPrintf(L"BCryptImportKey() failed: 0x%08X.", status);
+					Debug(L"BCryptImportKey() failed: 0x{:08X}."sv, status);
 			} else
-				DoPrintf(L"BCryptSetProperty(%s) failed: 0x%08X.", BCRYPT_CHAINING_MODE, status);
+				Debug(L"BCryptSetProperty({}) failed: 0x{:08X}."sv, BCRYPT_CHAINING_MODE, status);
 		} else
-			DoPrintf(L"BCryptGetProperty(%s) failed: 0x%08X or invalid length: %d.", BCRYPT_OBJECT_LENGTH, status, resultlen);
+			Debug(L"BCryptGetProperty({}) failed: 0x{:08X} or invalid length: {}."sv, BCRYPT_OBJECT_LENGTH, status, resultlen);
 		return result;
 	});
 }
@@ -1074,7 +1074,7 @@ void Config::WritePassword(std::string_view name, std::wstring_view password) {
 				WriteStringToReg(name, encrypted);
 			}
 		} else
-			DoPrintf(L"BCryptGenRandom() failed: 0x%08X.", status);
+			Debug(L"BCryptGenRandom() failed: 0x{:08X}."sv, status);
 		return 0;
 	});
 }

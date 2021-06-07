@@ -744,8 +744,6 @@ HWND GetTaskWnd(void);
 void SetTaskMsg(_In_z_ _Printf_format_string_ const char* format, ...);
 void DispTaskMsg(void);
 void SetTaskMsg(UINT id, ...);
-void DoPrintf(_In_z_ _Printf_format_string_ const char* format, ...);
-void DoPrintf(_In_z_ _Printf_format_string_ const wchar_t* format, ...);
 namespace detail {
 	void Notice(UINT id, std::wformat_args args);
 	void Debug(std::wstring_view format, std::wformat_args args);

@@ -2302,12 +2302,13 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 	std::vector<std::variant<FILELIST, std::string>> lines;
 	for (std::string line; getline(is, line);) {
 		if (DebugConsole == YES) {
-			static const boost::regex re{ R"([^\x20-\x7E]|%)" };
-			DoPrintf("%s", replace<char>(line, re, [](auto& m) {
-				char percent[4];
-				sprintf(percent, "%%%02X", static_cast<unsigned char>(*m[0].begin()));
-				return std::string(percent);
-			}).c_str());
+			std::wstring wline;
+			for (auto ch : line)
+				if ('\x20' <= ch && ch != '%' && ch <= '\x7E')
+					wline += (wchar_t)ch;
+				else
+					wline += std::format(L"%{:02X}"sv, (unsigned)ch);
+			Debug(L"{}"sv, wline);
 		}
 		line.erase(std::remove(begin(line), end(line), '\r'), end(line));
 		std::replace(begin(line), end(line), '\b', ' ');
@@ -2382,10 +2383,10 @@ static bool MakeLocalTree(fs::path const& path, std::vector<FILELIST>& Base) {
 *----------------------------------------------------------------------------*/
 
 static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base) {
-	DoPrintf(L"FileList : NODE=%d : %s", Pkt.Node, Pkt.Name.c_str());
+	Debug(L"FileList: NODE={}: {}."sv, Pkt.Node, Pkt.Name);
 	/* リストの重複を取り除く */
 	if (std::ranges::any_of(Base, [&Pkt](auto const& f) { return Pkt.Name == f.Name; })) {
-		DoPrintf(L" --> Duplicate!!");
+		Debug(L" --> Duplicate!!"sv);
 		return;
 	}
 	Base.emplace_back(Pkt);

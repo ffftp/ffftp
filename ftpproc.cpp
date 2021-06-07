@@ -539,18 +539,18 @@ static void DispMirrorFiles(std::vector<FILELIST> const& Local, std::vector<FILE
 		return;
 	FILETIME ft;
 	SYSTEMTIME st;
-	DoPrintf(L"---- MIRROR FILE LIST ----");
+	Debug(L"---- MIRROR FILE LIST ----"sv);
 	for (auto const& f : Local) {
 		FileTimeToLocalFileTime(&f.Time, &ft);
 		auto const date = FileTimeToSystemTime(&ft, &st) ? strprintf(L"%04d/%02d/%02d %02d:%02d:%02d.%04d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds) : L""s;
-		DoPrintf(L"LOCAL  : %s %s [%s] %s", f.Attr == 1 ? L"YES" : L"NO ", f.Node == NODE_DIR ? L"DIR " : L"FILE", date.c_str(), f.Name.c_str());
+		Debug(L"LOCAL  : {} {} [{}] {}"sv, f.Attr == 1 ? L"YES"sv : L"NO "sv, f.Node == NODE_DIR ? L"DIR "sv : L"FILE"sv, date, f.Name);
 	}
 	for (auto const& f : Remote) {
 		FileTimeToLocalFileTime(&f.Time, &ft);
 		auto const date = FileTimeToSystemTime(&ft, &st) ? strprintf(L"%04d/%02d/%02d %02d:%02d:%02d.%04d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds) : L""s;
-		DoPrintf(L"REMOTE : %s %s [%s] %s", f.Attr == 1 ? L"YES" : L"NO ", f.Node == NODE_DIR ? L"DIR " : L"FILE", date.c_str(), f.Name.c_str());
+		Debug(L"REMOTE : {} {} [{}] {}"sv, f.Attr == 1 ? L"YES"sv : L"NO "sv, f.Node == NODE_DIR ? L"DIR "sv : L"FILE"sv, date, f.Name);
 	}
-	DoPrintf(L"---- END ----");
+	Debug(L"---- END ----"sv);
 }
 
 

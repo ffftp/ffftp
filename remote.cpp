@@ -284,11 +284,11 @@ SOCKET DoClose(SOCKET Sock)
 	if(Sock != INVALID_SOCKET)
 	{
 		do_closesocket(Sock);
-		DoPrintf(L"Skt=%zu : Socket closed.", Sock);
+		Debug(L"Skt={} : Socket closed."sv, Sock);
 		Sock = INVALID_SOCKET;
 	}
 	if(Sock != INVALID_SOCKET)
-		DoPrintf(L"Skt=%zu : Failed to close socket.", Sock);
+		Debug(L"Skt={} : Failed to close socket."sv, Sock);
 
 	return(Sock);
 }

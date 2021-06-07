@@ -491,7 +491,7 @@ static int InitApp(int cmdShow)
 
 				if(MakeTransferThread() == FFFTP_SUCCESS)
 				{
-					DoPrintf(L"DEBUG MESSAGE ON ! ##");
+					Debug(L"DEBUG MESSAGE ON ! ##"sv);
 
 					DispWindowTitle();
 					UpdateStatusBar();
@@ -503,7 +503,7 @@ static int InitApp(int cmdShow)
 					if(ForceIni)
 						SetTaskMsg(IDS_MSGJPN283, IniPath.c_str());
 
-					DoPrintf(L"Help=%s", helpPath().c_str());
+					Debug(L"Help={}", helpPath().native());
 
 					DragAcceptFiles(GetRemoteHwnd(), TRUE);
 					DragAcceptFiles(GetLocalHwnd(), TRUE);
