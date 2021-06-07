@@ -1053,7 +1053,6 @@ bool ConnectRas(bool dialup, bool explicitly, bool confirm, std::wstring const& 
 /*===== misc.c =====*/
 
 std::wstring SetSlashTail(std::wstring&& path);
-void ReplaceAll(char *Str, char Src, char Dst);
 std::wstring ReplaceAll(std::wstring&& str, wchar_t from, wchar_t to);
 std::wstring_view GetFileName(std::wstring_view path);
 std::wstring MakeSizeString(double size);

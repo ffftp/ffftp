@@ -44,27 +44,6 @@ std::wstring SetSlashTail(std::wstring&& path) {
 }
 
 
-/*----- 文字列内の特定の文字を全て置き換える ----------------------------------
-*
-*	Parameter
-*		char *Str : 文字列
-*		char Src : 検索文字
-*		char Dst : 置換文字
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void ReplaceAll(char* Str, char Src, char Dst) {
-#if defined(HAVE_TANDEM)
-	/* Tandem ではノード名の変換を行わない */
-	/* 最初の1文字が \ でもそのままにする */
-	if (AskRealHostType() == HTYPE_TANDEM && strlen(Str) > 0)
-		Str++;
-#endif
-	for (char* Pos; (Pos = strchr(Str, Src)) != NULL;)
-		*Pos = Dst;
-}
 // 文字列内の特定の文字を全て置き換える
 //   Tandem ではノード名の変換を行わないため、最初の1文字が \ でもそのままにする
 //   置換対象fromが \ 以外ならstd::replaceでよい
