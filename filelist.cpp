@@ -853,7 +853,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 	if (AskConnecting() == YES) {
 		DisableUserOpe();
 		SetRemoteDirHist(AskRemoteCurDir());
-		if (Mode == CACHE_LASTREAD || DoDirListCmdSkt("", "", 0, CancelCheckWork) == FTP_COMPLETE) {
+		if (Mode == CACHE_LASTREAD || DoDirList(L""sv, 0, CancelCheckWork) == FTP_COMPLETE) {
 			if (auto lines = GetListLine(0)) {
 				std::vector<FILELIST> files;
 				for (auto const& line : *lines)
@@ -1792,7 +1792,7 @@ static int MakeRemoteTree1(std::wstring const& Path, std::wstring const& Cur, st
 	if(DoCWD(Path, NO, NO, NO) == FTP_COMPLETE)
 	{
 		/* サブフォルダも含めたリストを取得 */
-		Sts = DoDirListCmdSkt("R", "", 999, CancelCheckWork);	/* NLST -alLR*/
+		Sts = DoDirList(L"R"sv, 999, CancelCheckWork);	/* NLST -alLR*/
 		DoCWD(Cur, NO, NO, NO);
 
 		if(Sts == FTP_COMPLETE)
@@ -1840,7 +1840,7 @@ static int MakeRemoteTree2(std::wstring& Path, std::wstring const& Cur, std::vec
 
 	if(Sts == FTP_COMPLETE)
 	{
-		Sts = DoDirListCmdSkt("", "", 999, CancelCheckWork);		/* NLST -alL*/
+		Sts = DoDirList(L""sv, 999, CancelCheckWork);		/* NLST -alL*/
 		DoCWD(Cur, NO, NO, NO);
 
 		if(Sts == FTP_COMPLETE)

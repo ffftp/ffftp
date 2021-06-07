@@ -913,7 +913,7 @@ SOCKET DoClose(SOCKET Sock);
 // 同時接続対応
 //int DoQUIT(SOCKET ctrl_skt);
 int DoQUIT(SOCKET ctrl_skt, int *CancelCheckWork);
-int DoDirListCmdSkt(const char* AddOpt, const char* Path, int Num, int *CancelCheckWork);
+int DoDirList(std::wstring_view AddOpt, int Num, int* CancelCheckWork);
 #if defined(HAVE_TANDEM)
 void SwitchOSSProc(void);
 #endif

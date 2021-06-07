@@ -39,7 +39,6 @@
 
 static std::optional<std::wstring> DoPWD();
 static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWork);
-static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Path, int Num, int *CancelCheckWork);
 
 extern TRANSPACKET MainTransPkt;
 
@@ -318,84 +317,25 @@ int DoQUIT(SOCKET ctrl_skt, int *CancelCheckWork)
 }
 
 
-/*----- リモート側のディレクトリリストを取得（コマンドコントロールソケットを使用)
-*
-*	Parameter
-*		char *AddOpt : 追加のオプション
-*		char *Path : パス名
-*		int Num : ファイル名番号
-*
-*	Return Value
-*		int 応答コードの１桁目
-*----------------------------------------------------------------------------*/
-
-int DoDirListCmdSkt(const char* AddOpt, const char* Path, int Num, int *CancelCheckWork)
-{
-	int Sts;
-
-	if(AskTransferNow() == YES)
+// リモート側のディレクトリリストを取得
+//   コマンドコントロールソケットを使用
+int DoDirList(std::wstring_view AddOpt, int Num, int* CancelCheckWork) {
+	if (AskTransferNow() == YES)
 		SktShareProh();
 
-//	if((Sts = DoDirList(NULL, AskCmdCtrlSkt(), AddOpt, Path, Num)) == 429)
-//	{
-//		ReConnectCmdSkt();
-		Sts = DoDirList(NULL, AskCmdCtrlSkt(), AddOpt, Path, Num, CancelCheckWork);
-
-		if(Sts/100 >= FTP_CONTINUE)
-			Sound::Error.Play();
-//	}
-	return(Sts/100);
-}
-
-
-/*----- リモート側のディレクトリリストを取得 ----------------------------------
-*
-*	Parameter
-*		HWND hWnd : 転送中ダイアログのウインドウハンドル
-*		SOCKET cSkt : コントロールソケット
-*		char *AddOpt : 追加のオプション
-*		char *Path : パス名 (""=カレントディレクトリ)
-*		int Num : ファイル名番号
-*
-*	Return Value
-*		int 応答コード
-*----------------------------------------------------------------------------*/
-
-static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Path, int Num, int *CancelCheckWork)
-{
-	int Sts;
-	if(AskListCmdMode() == NO)
-	{
+	if (AskListCmdMode() == NO) {
 		MainTransPkt.Command = L"NLST"s;
-		if(!empty(AskHostLsName()))
-		{
-			MainTransPkt.Command += L' ';
-			if((AskHostType() == HTYPE_ACOS) || (AskHostType() == HTYPE_ACOS_4))
-				MainTransPkt.Command += L'\'';
-			MainTransPkt.Command += AskHostLsName();
-			if((AskHostType() == HTYPE_ACOS) || (AskHostType() == HTYPE_ACOS_4))
-				MainTransPkt.Command += L'\'';
-		}
-		if(strlen(AddOpt) > 0)
-			MainTransPkt.Command += u8(AddOpt);
-	}
-	else
-	{
-		if(AskUseMLSD() && (AskHostFeature() & FEATURE_MLSD))
-			MainTransPkt.Command = L"MLSD"s;
-		else
-			MainTransPkt.Command = L"LIST"s;
-		if(strlen(AddOpt) > 0)
-		{
-			MainTransPkt.Command += L" -"sv;
-			MainTransPkt.Command += u8(AddOpt);
-		}
+		if (!empty(AskHostLsName()))
+			MainTransPkt.Command += std::format(AskHostType() == HTYPE_ACOS || AskHostType() == HTYPE_ACOS_4? L" '{}'"sv : L" {}"sv, AskHostLsName());
+		if (!empty(AddOpt))
+			MainTransPkt.Command += AddOpt;
+	} else {
+		MainTransPkt.Command = AskUseMLSD() && (AskHostFeature() & FEATURE_MLSD) ? L"MLSD"s : L"LIST"s;
+		if (!empty(AddOpt))
+			MainTransPkt.Command += std::format(L" -{}"sv, AddOpt);
 	}
 
-	if(strlen(Path) > 0)
-		MainTransPkt.Command += L' ';
-
-	MainTransPkt.Remote = u8(Path);
+	MainTransPkt.Remote = L""s;
 	MainTransPkt.Local = MakeCacheFileName(Num);
 	MainTransPkt.Type = TYPE_A;
 	MainTransPkt.Size = -1;
@@ -407,10 +347,11 @@ static int DoDirList(HWND hWnd, SOCKET cSkt, const char* AddOpt, const char* Pat
 	// ミラーリング設定追加
 	MainTransPkt.NoTransfer = NO;
 	MainTransPkt.ExistSize = 0;
-	MainTransPkt.hWndTrans = hWnd;
-
-	Sts = DoDownload(cSkt, MainTransPkt, YES, CancelCheckWork);
-	return(Sts);
+	MainTransPkt.hWndTrans = {};
+	auto code = DoDownload(AskCmdCtrlSkt(), MainTransPkt, YES, CancelCheckWork);
+	if (code / 100 >= FTP_CONTINUE)
+		Sound::Error.Play();
+	return code / 100;
 }
 
 

@@ -826,7 +826,7 @@ void UploadListProc(int ChName, int All)
 				auto const Tmp = AskRemoteCurDir();
 				if(DoCWD(Pkt.Remote, NO, NO, NO) == FTP_COMPLETE)
 				{
-					if(DoDirListCmdSkt("", "", 998, &CancelFlg) == FTP_COMPLETE)
+					if(DoDirList(L""sv, 998, &CancelFlg) == FTP_COMPLETE)
 						AddRemoteTreeToFileList(998, {}, RDIR_NONE, RemoteList);
 					DoCWD(Tmp, NO, NO, NO);
 				}
@@ -969,7 +969,7 @@ void UploadDragProc(WPARAM wParam)
 				auto const Tmp = AskRemoteCurDir();
 				if(DoCWD(Pkt.Remote, NO, NO, NO) == FTP_COMPLETE)
 				{
-					if(DoDirListCmdSkt("", "", 998, &CancelFlg) == FTP_COMPLETE)
+					if(DoDirList(L""sv, 998, &CancelFlg) == FTP_COMPLETE)
 						AddRemoteTreeToFileList(998, {}, RDIR_NONE, RemoteList);
 					DoCWD(Tmp, NO, NO, NO);
 				}
@@ -2354,7 +2354,7 @@ void NoopProc(int Force)
 			if(Force == NO)
 				CancelFlg = NO;
 			DisableUserOpe();
-			DoDirListCmdSkt("", "", 999, &CancelFlg);
+			DoDirList(L""sv, 999, &CancelFlg);
 			EnableUserOpe();
 		}
 	}
