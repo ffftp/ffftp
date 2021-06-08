@@ -264,11 +264,7 @@
     <Image Include="Resource\toolbar1.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resource\cursor1.cur" />
-    <None Include="Resource\cursor2.cur" />
-    <None Include="Resource\drag_csr.cur" />
     <None Include="Resource\ffftp.rcconfig" />
-    <None Include="Resource\nodrop_c.cur" />
     <None Include="Resource\ffftp.exe.manifest" />
   </ItemGroup>
   <ItemGroup>

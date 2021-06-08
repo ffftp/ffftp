@@ -467,8 +467,6 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 	POINT Point;
 	HWND hWndPnt;
 	HWND hWndParent;
-	static HCURSOR hCsrDrg;
-	static HCURSOR hCsrNoDrg;
 	static POINT DragPoint;
 	static HWND hWndDragStart;
 	static int RemoteDropFileIndex = -1;
@@ -557,8 +555,6 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 			{
 				Dragging = NO;
 				ReleaseCapture();
-				hCsrDrg = LoadCursor(NULL, IDC_ARROW);
-				SetCursor(hCsrDrg);
 
 				Point.x = (long)(short)LOWORD(lParam);
 				Point.y = (long)(short)HIWORD(lParam);
@@ -641,8 +637,6 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 					if (!empty(pf)) {
 						Dragging = NO;
 						ReleaseCapture();
-						hCsrDrg = LoadCursor(NULL, IDC_ARROW);
-						SetCursor(hCsrDrg);
 						// ドロップ先が他プロセスかつカーソルが自プロセスのドロップ可能なウィンドウ上にある場合の対策
 						EnableWindow(GetMainHwnd(), FALSE);
 					}
@@ -736,25 +730,9 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 				{
 					SetCapture(hWnd);
 					Dragging = YES;
-					hCsrDrg = LoadCursor(GetFtpInst(), MAKEINTRESOURCE(drag_csr));
-					hCsrNoDrg = LoadCursor(GetFtpInst(), MAKEINTRESOURCE(nodrop_csr));
-					SetCursor(hCsrDrg);
 				}
 				else if(Dragging == YES)
 				{
-					Point.x = (long)(short)LOWORD(lParam);
-					Point.y = (long)(short)HIWORD(lParam);
-					ClientToScreen(hWnd, &Point);
-					hWndPnt = WindowFromPoint(Point);
-					if((hWndPnt == hWndListRemote) || (hWndPnt == hWndListLocal))
-						SetCursor(hCsrDrg);
-					else {
-						// マウスポインタの×表示をやめる (yutaka)
-#if 0
-						SetCursor(hCsrNoDrg);
-#endif
-					}
-
 					// OLE D&Dの開始を指示する
 					PostMessageW(hWnd, WM_DRAGDROP, MAKEWPARAM(wParam, lParam), 0);
 

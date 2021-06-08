@@ -3,14 +3,12 @@
   <resources>
     <win32Resources fileType="Application">
       <neutralResources>
-        <resourceType typeNameId="#1"/>
         <resourceType typeNameId="#2"/>
         <resourceType typeNameId="#3"/>
         <resourceType typeNameId="#9"/>
         <resourceType typeNameId="RT_MANIFEST"/>
       </neutralResources>
       <localizedResources>
-        <resourceType typeNameId="#1"/>
         <resourceType typeNameId="#2"/>
         <resourceType typeNameId="#3"/>
         <resourceType typeNameId="#9"/>

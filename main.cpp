@@ -94,7 +94,6 @@ static HACCEL Accel;
 
 static int Resizing = RESIZE_OFF;
 static int ResizePos;
-static HCURSOR hCursor;
 
 int ClientWidth;
 static int ClientHeight;
@@ -1907,6 +1906,9 @@ static void CalcWinSize(void)
 
 static void CheckResizeFrame(WPARAM Keys, int x, int y)
 {
+	static auto sizewe = LoadCursorW(0, IDC_SIZEWE);
+	static auto sizens = LoadCursorW(0, IDC_SIZENS);
+	static auto arrow = LoadCursorW(0, IDC_ARROW);
 	RECT Rect;
 	RECT Rect1;
 
@@ -1917,8 +1919,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 		{
 			/* 境界位置変更用カーソルに変更 */
 			SetCapture(GetMainHwnd());
-			hCursor = LoadCursor(GetFtpInst(), MAKEINTRESOURCE(resize_lr_csr));
-			SetCursor(hCursor);
+			SetCursor(sizewe);
 			Resizing = RESIZE_PREPARE;
 			ResizePos = RESIZE_HPOS;
 		}
@@ -1926,8 +1927,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 		{
 			/* 境界位置変更用カーソルに変更 */
 			SetCapture(GetMainHwnd());
-			hCursor = LoadCursor(GetFtpInst(), MAKEINTRESOURCE(resize_ud_csr));
-			SetCursor(hCursor);
+			SetCursor(sizens);
 			Resizing = RESIZE_PREPARE;
 			ResizePos = RESIZE_VPOS;
 		}
@@ -1956,8 +1956,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 			{
 				/* 元のカーソルに戻す */
 				ReleaseCapture();
-				hCursor = LoadCursor(NULL, IDC_ARROW);
-				SetCursor(hCursor);
+				SetCursor(arrow);
 				Resizing = RESIZE_OFF;
 			}
 		}
@@ -1979,8 +1978,7 @@ static void CheckResizeFrame(WPARAM Keys, int x, int y)
 			/* 境界位置変更終了 */
 			ReleaseCapture();
 			ClipCursor(NULL);
-			hCursor = LoadCursor(NULL, IDC_ARROW);
-			SetCursor(hCursor);
+			SetCursor(arrow);
 			Resizing = RESIZE_OFF;
 		}
 	}
