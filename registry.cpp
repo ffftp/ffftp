@@ -295,33 +295,18 @@ extern int FwallNoSaveUser;
 extern int MarkAsInternet;
 
 
-/*----- マスタパスワードの設定 ----------------------------------------------
-*
-*	Parameter
-*		const char* Password : マスターパスワード
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-void SetMasterPassword( const char* Password )
-{
-	ZeroMemory( SecretKey, MAX_PASSWORD_LEN + 12 );
-	if( Password != NULL ){
-		strncpy_s(SecretKey, Password, MAX_PASSWORD_LEN);
-	}
-	else {
-		strcpy( SecretKey, DEFAULT_PASSWORD );
-	}
-	SecretKeyLength = (int)strlen( SecretKey );
-	
+// マスタパスワードの設定
+void SetMasterPassword(std::wstring_view password) {
+	ZeroMemory(SecretKey, MAX_PASSWORD_LEN + 12);
+	strncpy_s(SecretKey, empty(password) ? DEFAULT_PASSWORD : u8(password).c_str(), MAX_PASSWORD_LEN);
+	SecretKeyLength = (int)strlen(SecretKey);
+
 	/* 未検証なので，初期状態はOKにする (強制再設定→保存にを可能にする)*/
 	IsMasterPasswordError = PASSWORD_OK;
 }
 
-// セキュリティ強化
-void GetMasterPassword(char* Password)
-{
-	strcpy(Password, SecretKey);
+std::wstring GetMasterPassword() {
+	return u8(SecretKey);
 }
 
 /*----- マスタパスワードの状態取得 ----------------------------------------------
@@ -504,7 +489,7 @@ void SaveRegistry() {
 	auto result = BCrypt(BCRYPT_RNG_ALGORITHM, [&arr = u.salt1](BCRYPT_ALG_HANDLE alg) {
 		auto const status = BCryptGenRandom(alg, arr, size_as<ULONG>(arr), 0);
 		if (status != STATUS_SUCCESS)
-			DoPrintf(L"BCryptGenRandom() failed: 0x%08X.", status);
+			Debug(L"BCryptGenRandom() failed: 0x{:08X}.", status);
 		return status == STATUS_SUCCESS;
 	});
 	if (!result)
@@ -1001,14 +986,14 @@ static auto AesData(std::span<UCHAR> iv, std::span<UCHAR> text, bool encrypt) {
 					if ((status = (encrypt ? BCryptEncrypt : BCryptDecrypt)(key, data(text), size_as<ULONG>(text), nullptr, data(iv), size_as<ULONG>(iv), data(text), size_as<ULONG>(text), &resultlen, 0)) == STATUS_SUCCESS && resultlen == size_as<ULONG>(text))
 						result = true;
 					else
-						DoPrintf(L"%s() failed: 0x%08X or bad length: %d.", encrypt ? L"BCryptEncrypt" : L"BCryptDecrypt", status, resultlen);
+						Debug(L"{}() failed: 0x{:08X} or bad length: {}."sv, encrypt ? L"BCryptEncrypt"sv : L"BCryptDecrypt"sv, status, resultlen);
 					BCryptDestroyKey(key);
 				} else
-					DoPrintf(L"BCryptImportKey() failed: 0x%08X.", status);
+					Debug(L"BCryptImportKey() failed: 0x{:08X}."sv, status);
 			} else
-				DoPrintf(L"BCryptSetProperty(%s) failed: 0x%08X.", BCRYPT_CHAINING_MODE, status);
+				Debug(L"BCryptSetProperty({}) failed: 0x{:08X}."sv, BCRYPT_CHAINING_MODE, status);
 		} else
-			DoPrintf(L"BCryptGetProperty(%s) failed: 0x%08X or invalid length: %d.", BCRYPT_OBJECT_LENGTH, status, resultlen);
+			Debug(L"BCryptGetProperty({}) failed: 0x{:08X} or invalid length: {}."sv, BCRYPT_OBJECT_LENGTH, status, resultlen);
 		return result;
 	});
 }
@@ -1089,7 +1074,7 @@ void Config::WritePassword(std::string_view name, std::wstring_view password) {
 				WriteStringToReg(name, encrypted);
 			}
 		} else
-			DoPrintf(L"BCryptGenRandom() failed: 0x%08X.", status);
+			Debug(L"BCryptGenRandom() failed: 0x{:08X}."sv, status);
 		return 0;
 	});
 }

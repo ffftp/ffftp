@@ -144,16 +144,8 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 #define WM_REFRESH_LOCAL_FLG	(WM_USER+7)
 #define WM_REFRESH_REMOTE_FLG	(WM_USER+8)
-
-// UPnP対応
-#define WM_ADDPORTMAPPING	(WM_USER+9)
-#define WM_REMOVEPORTMAPPING	(WM_USER+10)
-
-// 同時接続対応
 #define WM_RECONNECTSOCKET	(WM_USER+11)
-
-// ゾーンID設定追加
-#define WM_MARKFILEASDOWNLOADEDFROMINTERNET	(WM_USER+12)
+#define WM_MAINTHREADRUNNER	(WM_USER+13)
 
 /*===== ホスト番号 =====*/
 /* ホスト番号は 0～ の値を取る */
@@ -591,30 +583,15 @@ public:
 	static void Register();
 };
 
-// UPnP対応
-typedef struct
-{
-	int r;
-	HANDLE h;
-	const char* Adrs;
-	int Port;
-	char* ExtAdrs;
-} ADDPORTMAPPINGDATA;
 
-typedef struct
-{
-	int r;
-	HANDLE h;
-	int Port;
-} REMOVEPORTMAPPINGDATA;
+class MainThreadRunner {
+protected:
+	~MainThreadRunner() = default;
+	virtual int DoWork() = 0;
+public:
+	int Run();
+};
 
-// ゾーンID設定追加
-typedef struct
-{
-	int r;
-	HANDLE h;
-	const wchar_t* Fname;
-} MARKFILEASDOWNLOADEDFROMINTERNETDATA;
 
 /*=================================================
 *		プロトタイプ
@@ -631,8 +608,8 @@ HWND GetFocusHwnd(void);
 void SetFocusHwnd(HWND hWnd);
 HINSTANCE GetFtpInst(void);
 void DoubleClickProc(int Win, int Mode, int App);
-void ExecViewer(char *Fname, int App);
-void ExecViewer2(char *Fname1, char *Fname2, int App);
+void ExecViewer(fs::path const& path, int App);
+void ExecViewer2(fs::path const& path1, fs::path const& path2, int App);
 void AddTempFileList(fs::path const& file);
 void SoundPlay(int Num);
 void ShowHelp(DWORD_PTR helpTopicId);
@@ -671,22 +648,17 @@ int GetItemCount(int Win);
 int GetSelectedCount(int Win);
 int GetFirstSelected(int Win, int All);
 int GetNextSelected(int Win, int Pos, int All);
-// ローカル側自動更新
-int GetHotSelected(int Win, char *Fname);
-int SetHotSelected(int Win, char *Fname);
-int FindNameNode(int Win, char *Name);
+std::wstring GetHotSelected(int Win);
+void SetHotSelected(int Win, std::wstring const& name);
 std::wstring GetNodeName(int Win, int Pos);
-void GetNodeName(int Win, int Pos, char *Buf, int Max);
-int GetNodeTime(int Win, int Pos, FILETIME *Buf);
 int GetNodeSize(int Win, int Pos, LONGLONG *Buf);
 int GetNodeAttr(int Win, int Pos, int *Buf);
 int GetNodeType(int Win, int Pos);
-void GetNodeOwner(int Win, int Pos, char *Buf, int Max);
 void EraseRemoteDirForWnd(void);
 double GetSelectedTotalSize(int Win);
 int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Base, int *CancelCheckWork);
-void MakeDroppedFileList(WPARAM wParam, char *Cur, std::vector<FILELIST>& Base);
-void MakeDroppedDir(WPARAM wParam, char *Cur);
+std::tuple<fs::path, std::vector<FILELIST>> MakeDroppedFileList(WPARAM wParam);
+fs::path MakeDroppedDir(WPARAM wParam);
 void AddRemoteTreeToFileList(int Num, std::wstring const& Path, int IncDir, std::vector<FILELIST>& Base);
 const FILELIST* SearchFileList(std::wstring_view Fname, std::vector<FILELIST> const& Base, int Caps);
 static inline FILELIST* SearchFileList(std::wstring_view Fname, std::vector<FILELIST>& Base, int Caps) {
@@ -759,7 +731,7 @@ HWND GetSbarWnd(void);
 void UpdateStatusBar();
 void DispCurrentWindow(int Win);
 void DispSelectedSpace(void);
-void DispLocalFreeSpace(char *Path);
+void DispLocalFreeSpace(fs::path const& directory);
 void DispTransferFiles(void);
 void DispDownloadSize(LONGLONG Size);
 bool NotifyStatusBar(const NMHDR* hdr);
@@ -772,8 +744,6 @@ HWND GetTaskWnd(void);
 void SetTaskMsg(_In_z_ _Printf_format_string_ const char* format, ...);
 void DispTaskMsg(void);
 void SetTaskMsg(UINT id, ...);
-void DoPrintf(_In_z_ _Printf_format_string_ const char* format, ...);
-void DoPrintf(_In_z_ _Printf_format_string_ const wchar_t* format, ...);
 namespace detail {
 	void Notice(UINT id, std::wformat_args args);
 	void Debug(std::wstring_view format, std::wformat_args args);
@@ -818,7 +788,7 @@ int SetHostEncryption(int Num, int UseNoEncryption, int UseFTPES, int UseFTPIS, 
 
 void ConnectProc(int Type, int Num);
 void QuickConnectProc(void);
-void DirectConnectProc(char *unc, int Kanji, int Kana, int Fkanji, int TrMode);
+void DirectConnectProc(std::wstring&& unc, int Kanji, int Kana, int Fkanji, int TrMode);
 void HistoryConnectProc(int MenuCmd);
 std::wstring_view AskHostAdrs();
 int AskHostPort(void);
@@ -826,10 +796,10 @@ int AskHostNameKanji(void);
 int AskHostNameKana(void);
 int AskListCmdMode(void);
 int AskUseNLST_R(void);
-std::string AskHostChmodCmd();
+std::wstring AskHostChmodCmd();
 int AskHostTimeZone(void);
 int AskPasvMode(void);
-std::string AskHostLsName();
+std::wstring AskHostLsName();
 int AskHostType(void);
 int AskHostFireWall(void);
 int AskNoFullPathMode(void);
@@ -851,7 +821,7 @@ int SetOSS(int wkOss);
 int AskOSS(void);
 #endif
 std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork);
-SOCKET connectsock(std::string_view host, int port, UINT prefixId, int *CancelCheckWork);
+SOCKET connectsock(std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork);
 SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
 int AskUseNoEncryption(void);
@@ -885,7 +855,7 @@ static inline fs::path MakeCacheFileName(int num) {
 /*===== ftpproc.c =====*/
 
 void DownloadProc(int ChName, int ForceFile, int All);
-void DirectDownloadProc(const char* Fname);
+void DirectDownloadProc(std::wstring_view Fname);
 void MirrorDownloadProc(int Notify);
 void UploadListProc(int ChName, int All);
 void UploadDragProc(WPARAM wParam);
@@ -904,10 +874,7 @@ void SomeCmdProc(void);
 void CalcFileSizeProc(void);
 void DispCWDerror(HWND hWnd);
 void CopyURLtoClipBoard(void);
-int ProcForNonFullpath(SOCKET cSkt, char *Path, char *CurDir, HWND hWnd, int *CancelCheckWork);
 int ProcForNonFullpath(SOCKET cSkt, std::wstring& Path, std::wstring& CurDir, HWND hWnd, int* CancelCheckWork);
-void ReformToVMSstyleDirName(char* Path);
-void ReformToVMSstylePathName(char *Path);
 #if defined(HAVE_OPENVMS)
 std::wstring ReformVMSDirName(std::wstring&& dirName);
 #endif
@@ -939,19 +906,23 @@ int DoCHMOD(std::wstring const& path, std::wstring const& mode);
 int DoSIZE(SOCKET cSkt, std::wstring const& Path, LONGLONG *Size, int *CancelCheckWork);
 int DoMDTM(SOCKET cSkt, std::wstring const& Path, FILETIME *Time, int *CancelCheckWork);
 int DoMFMT(SOCKET cSkt, std::wstring const&, FILETIME *Time, int *CancelCheckWork);
-int DoQUOTE(SOCKET cSkt, const char* CmdStr, int *CancelCheckWork);
+int DoQUOTE(SOCKET cSkt, std::wstring_view CmdStr, int* CancelCheckWork);
 SOCKET DoClose(SOCKET Sock);
 // 同時接続対応
 //int DoQUIT(SOCKET ctrl_skt);
 int DoQUIT(SOCKET ctrl_skt, int *CancelCheckWork);
-int DoDirListCmdSkt(const char* AddOpt, const char* Path, int Num, int *CancelCheckWork);
+int DoDirList(std::wstring_view AddOpt, int Num, int* CancelCheckWork);
 #if defined(HAVE_TANDEM)
 void SwitchOSSProc(void);
 #endif
 namespace detail {
-	int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, std::wstring&& cmd);
+	std::tuple<int, std::wstring> command(SOCKET cSkt, int* CancelCheckWork, std::wstring&& cmd);
 }
-std::tuple<int, std::string> ReadReplyMessage(SOCKET cSkt, int *CancelCheckWork);
+template<class... Args>
+static inline std::tuple<int, std::wstring> Command(SOCKET socket, int* CancelCheckWork, std::wstring_view format, const Args&... args) {
+	return socket == INVALID_SOCKET ? std::tuple{ 429, L""s } : detail::command(socket, CancelCheckWork, std::format(format, args...));
+}
+std::tuple<int, std::wstring> ReadReplyMessage(SOCKET cSkt, int *CancelCheckWork);
 int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
 
 /*===== getput.c =====*/
@@ -982,7 +953,7 @@ int AskTransferErrorDisplay(void);
 int LoadZoneID();
 void FreeZoneID();
 int IsZoneIDLoaded();
-int MarkFileAsDownloadedFromInternet(const wchar_t* Fname);
+bool MarkFileAsDownloadedFromInternet(fs::path const& path);
 
 /*===== codecnv.c =====*/
 
@@ -1046,9 +1017,8 @@ bool LoadRegistry();
 void ClearRegistry();
 // ポータブル版判定
 void ClearIni(void);
-void SetMasterPassword( const char* );
-// セキュリティ強化
-void GetMasterPassword(char*);
+void SetMasterPassword(std::wstring_view password = {});
+std::wstring GetMasterPassword();
 int GetMasterPasswordStatus(void);
 int ValidateMasterPassword(void);
 void SaveSettingsToFile(void);
@@ -1079,26 +1049,12 @@ bool ConnectRas(bool dialup, bool explicitly, bool confirm, std::wstring const& 
 
 /*===== misc.c =====*/
 
-void SetYenTail(char *Str);
-void RemoveYenTail(char *Str);
-void SetSlashTail(char *Str);
 std::wstring SetSlashTail(std::wstring&& path);
-void ReplaceAll(char *Str, char Src, char Dst);
 std::wstring ReplaceAll(std::wstring&& str, wchar_t from, wchar_t to);
-const char* stristr(const char* s1, const char* s2);
-static inline char* stristr(char* s1, const char* s2) { return const_cast<char*>(stristr(static_cast<const char*>(s1), s2)); }
-const char* GetNextField(const char* Str);
-int GetOneField(const char* Str, char *Buf, int Max);
-const char* GetFileName(const char* Path);
 std::wstring_view GetFileName(std::wstring_view path);
-void GetUpperDir(char *Path);
-void GetUpperDirEraseTopSlash(char *Path);
 std::wstring MakeSizeString(double size);
 void DispStaticText(HWND hWnd, std::wstring text);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
-int SplitUNCpath(char *unc, std::wstring& Host, std::wstring& Path, char *File, std::wstring& User, std::wstring& Pass, int *Port);
-int TimeString2FileTime(const char *Time, FILETIME *Buf);
-int AttrString2Value(const char *Str);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 fs::path SelectDir(HWND hWnd);
 fs::path MakeDistinguishableFileName(fs::path&& path);
@@ -1136,9 +1092,9 @@ bool IsSecureConnection();
 BOOL IsSSLAttached(SOCKET s);
 int MakeSocketWin();
 void DeleteSocketWin(void);
-void SetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::string, int>> const& target);
+void SetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::wstring, int>> const& target);
 void SetAsyncTableDataMapPort(SOCKET s, int Port);
-int GetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::string, int>>& target);
+int GetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::wstring, int>>& target);
 int GetAsyncTableDataMapPort(SOCKET s, int* Port);
 SOCKET do_socket(int af, int type, int protocol);
 int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCheckWork);
@@ -1153,8 +1109,8 @@ void RemoveReceivedData(SOCKET s);
 int LoadUPnP();
 void FreeUPnP();
 int IsUPnPLoaded();
-int AddPortMapping(const char* Adrs, int Port, char* ExtAdrs);
-int RemovePortMapping(int Port);
+std::optional<std::wstring> AddPortMapping(std::wstring const& internalAddress, int port);
+bool RemovePortMapping(int port);
 int CheckClosedAndReconnect(void);
 // 同時接続対応
 int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
@@ -1471,26 +1427,4 @@ static inline auto HashData(BCRYPT_ALG_HANDLE alg, std::vector<UCHAR>& obj, std:
 	return status == STATUS_SUCCESS;
 }
 
-static inline int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, std::wstring_view cmd) {
-	return cSkt == INVALID_SOCKET ? 429 : detail::command(cSkt, Reply, CancelCheckWork, std::wstring{ cmd });
-}
-static inline int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, std::string_view cmd) {
-	return cSkt == INVALID_SOCKET ? 429 : detail::command(cSkt, Reply, CancelCheckWork, u8(cmd));
-}
-template<class... Args>
-static inline int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const wchar_t* fmt, Args... args) {
-	return cSkt == INVALID_SOCKET ? 429 : detail::command(cSkt, Reply, CancelCheckWork, strprintf(fmt, std::forward<Args>(args)...));
-}
-template<class... Args>
-static inline int command(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const char* fmt, Args... args) {
-	return cSkt == INVALID_SOCKET ? 429 : detail::command(cSkt, Reply, CancelCheckWork, u8(strprintf(fmt, std::forward<Args>(args)...)));
-}
-template<class Char, class... Args>
-static inline int CommandProcTrn(SOCKET cSkt, char* Reply, int* CancelCheckWork, _In_z_ _Printf_format_string_ const Char* fmt, Args... args) {
-	return command(cSkt, Reply, CancelCheckWork, fmt, std::forward<Args>(args)...);
-}
-template<class... Args>
-static inline int Command(SOCKET socket, char* reply, int* CancelCheckWork, std::wstring_view format, const Args&... args) {
-	return socket == INVALID_SOCKET ? 429 : detail::command(socket, reply, CancelCheckWork, std::format(format, args...));
-}
 FILELIST::FILELIST(std::string_view original, char node, char link, int64_t size, int attr, FILETIME time, std::string_view owner, char infoExist) : Original{ original }, Node{ node }, Link{ link }, Size{ size }, Attr{ attr }, Time{ time }, Owner{ u8(owner) }, InfoExist{ infoExist } {}

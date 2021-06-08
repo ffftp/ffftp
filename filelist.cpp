@@ -45,12 +45,13 @@ static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files);
 static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, std::wstring const& Owner, int Link, int InfoExist, int ImageId);
+static int FindNameNode(int Win, std::wstring const& name);
+static bool GetNodeTime(int Win, int Pos, FILETIME& ft);
 static int GetImageIndex(int Win, int Pos);
 static int MakeRemoteTree1(std::wstring const& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
 static int MakeRemoteTree2(std::wstring& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
 static void CopyTmpListToFileList(std::vector<FILELIST>& Base, std::vector<FILELIST> const& List);
 static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLine(int Num);
-static int MakeDirPath(const char *Str, const char *Path, char *Dir);
 static bool MakeLocalTree(fs::path const& path, std::vector<FILELIST>& Base);
 static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base);
 static int AskFilterStr(std::wstring const& file, int Type);
@@ -387,18 +388,6 @@ static void doTransferRemoteFile(void)
 	remoteFileDir = std::move(tmp);
 }
 
-
-int isDirectory(char *fn)
-{
-	struct _stat buf;
-
-	if (_stat(fn, &buf) == 0) {
-		if (buf.st_mode & _S_IFDIR) { // is directory
-			return 1;
-		}
-	}
-	return 0;
-}
 
 // テンポラリのファイルおよびフォルダを削除する。
 void doDeleteRemoteFile(void)
@@ -864,7 +853,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 	if (AskConnecting() == YES) {
 		DisableUserOpe();
 		SetRemoteDirHist(AskRemoteCurDir());
-		if (Mode == CACHE_LASTREAD || DoDirListCmdSkt("", "", 0, CancelCheckWork) == FTP_COMPLETE) {
+		if (Mode == CACHE_LASTREAD || DoDirList(L""sv, 0, CancelCheckWork) == FTP_COMPLETE) {
 			if (auto lines = GetListLine(0)) {
 				std::vector<FILELIST> files;
 				for (auto const& line : *lines)
@@ -934,22 +923,19 @@ void RefreshIconImageList(std::vector<FILELIST>& files)
 	}
 }
 
-void GetLocalDirForWnd(void)
-{
-	char Scan[FMAX_PATH+1];
+void GetLocalDirForWnd() {
 	std::vector<FILELIST> files;
-
-	strcpy(Scan, DoLocalPWD().u8string().c_str());
-	SetLocalDirHist(fs::u8path(Scan));
-	DispLocalFreeSpace(Scan);
+	auto const cwd = DoLocalPWD();
+	SetLocalDirHist(cwd);
+	DispLocalFreeSpace(cwd);
 
 	// ローカル側自動更新
 	if(ChangeNotification != INVALID_HANDLE_VALUE)
 		FindCloseChangeNotification(ChangeNotification);
-	ChangeNotification = FindFirstChangeNotificationW(fs::u8path(Scan).c_str(), FALSE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE);
+	ChangeNotification = FindFirstChangeNotificationW(cwd.c_str(), FALSE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE);
 
 	/* ディレクトリ／ファイル */
-	FindFile(fs::u8path(Scan) / L"*", [&files](WIN32_FIND_DATAW const& data) {
+	FindFile(cwd / L"*", [&files](WIN32_FIND_DATAW const& data) {
 		if (DotFile != YES && data.cFileName[0] == L'.')
 			return true;
 		if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -1207,17 +1193,16 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 				pattern = boost::wregex{ FindStr, boost::regex_constants::icase };
 			int CsrPos = -1;
 			for (int i = 0, Num = GetItemCount(Win); i < Num; i++) {
-				char Name[FMAX_PATH + 1];
-				GetNodeName(Win, i, Name, FMAX_PATH);
-				int Find = FindNameNode(WinDst, Name);
+				auto const name = GetNodeName(Win, i);
+				int Find = FindNameNode(WinDst, name);
 				UINT state = 0;
 				if (GetNodeType(Win, i) != NODE_DRIVE) {
-					auto matched = std::visit([wName = u8(Name)](auto&& pattern) {
+					auto matched = std::visit([&name](auto&& pattern) {
 						using t = std::decay_t<decltype(pattern)>;
 						if constexpr (std::is_same_v<t, std::wstring>)
-							return CheckFname(wName, pattern);
+							return CheckFname(name, pattern);
 						else if constexpr (std::is_same_v<t, boost::wregex>)
-							return boost::regex_match(wName, pattern);
+							return boost::regex_match(name, pattern);
 						else
 							static_assert(false_v<t>, "not supported variant type.");
 					}, pattern);
@@ -1228,8 +1213,8 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 								state = 0;
 							else {
 								FILETIME Time1, Time2;
-								GetNodeTime(Win, i, &Time1);
-								GetNodeTime(WinDst, Find, &Time2);
+								GetNodeTime(Win, i, Time1);
+								GetNodeTime(WinDst, Find, Time2);
 								if (IgnoreNew && CompareFileTime(&Time1, &Time2) > 0 || IgnoreOld && CompareFileTime(&Time1, &Time2) < 0)
 									state = 0;
 							}
@@ -1281,14 +1266,12 @@ void FindFileInList(HWND hWnd, int Type) {
 		[[fallthrough]];
 	case FIND_NEXT:
 		for (int i = GetCurrentItem(Win) + 1, Num = GetItemCount(Win); i < Num; i++) {
-			char Name[FMAX_PATH + 1];
-			GetNodeName(Win, i, Name, FMAX_PATH);
-			auto match = std::visit([wName = u8(Name)](auto&& pattern) {
+			auto match = std::visit([name = GetNodeName(Win, i)](auto&& pattern) {
 				using t = std::decay_t<decltype(pattern)>;
 				if constexpr (std::is_same_v<t, std::wstring>)
-					return CheckFname(wName, pattern);
+					return CheckFname(name, pattern);
 				else if constexpr (std::is_same_v<t, boost::wregex>)
-					return boost::regex_match(wName, pattern);
+					return boost::regex_match(name, pattern);
 				else
 					static_assert(false_v<t>, "not supported variant type.");
 			}, pattern);
@@ -1394,43 +1377,24 @@ int GetNextSelected(int Win, int Pos, int All) {
 }
 
 
-// ローカル側自動更新
-int GetHotSelected(int Win, char* Fname) {
-	auto Pos = (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, -1, LVNI_FOCUSED);
-	if (Pos != -1)
-		GetNodeName(Win, Pos, Fname, FMAX_PATH);
-	return Pos;
+std::wstring GetHotSelected(int Win) {
+	auto index = (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, -1, LVNI_FOCUSED);
+	return index != -1 ? GetNodeName(Win, index) : L""s;
 }
 
-int SetHotSelected(int Win, char* Fname) {
-	auto wFname = u8(Fname);
-	auto hWnd = Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd();
-	int Pos = -1;
-	for (int i = 0, Num = GetItemCount(Win); i < Num; i++) {
-		LVITEMW item{ .stateMask = LVIS_FOCUSED };
-		if (wFname == GetNodeName(Win, i)) {
-			Pos = i;
-			item.state = LVIS_FOCUSED;
-		}
-		SendMessageW(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&item);
+
+void SetHotSelected(int Win, std::wstring const& name) {
+	if (auto index = FindNameNode(Win, name); index != -1) {
+		LVITEMW item{ .state = LVIS_FOCUSED, .stateMask = LVIS_FOCUSED };
+		SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_SETITEMSTATE, index, (LPARAM)&item);
 	}
-	return Pos;
 }
 
-/*----- 指定された名前のアイテムを探す ----------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		char *Name : 名前
-*
-*	Return Value
-*		int アイテム番号
-*			-1=見つからなかった
-*----------------------------------------------------------------------------*/
 
-int FindNameNode(int Win, char* Name) {
-	auto wName = u8(Name);
-	LVFINDINFOW fi{ LVFI_STRING, wName.c_str() };
+// 指定された名前のアイテムを探す
+//   -1=見つからなかった
+static int FindNameNode(int Win, std::wstring const& name) {
+	LVFINDINFOW fi{ LVFI_STRING, name.c_str() };
 	return (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_FINDITEMW, -1, (LPARAM)&fi);
 }
 
@@ -1447,38 +1411,28 @@ std::wstring GetNodeName(int Win, int Pos) {
 	return GetItemText(Win, Pos, 0);
 }
 
-/*----- 指定位置のアイテムの名前を返す ----------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int Pos : 位置
-*		char *Buf : 名前を返すバッファ
-*		int Max : バッファのサイズ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
 
-void GetNodeName(int Win, int Pos, char* Buf, int Max) {
-	strncpy_s(Buf, Max, u8(GetNodeName(Win, Pos)).c_str(), _TRUNCATE);
-}
-
-
-/*----- 指定位置のアイテムの日付を返す ----------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int Pos : 位置
-*		FILETIME *Buf : 日付を返すバッファ
-*
-*	Return Value
-*		int ステータス
-*			YES/NO=日付情報がなかった
-*----------------------------------------------------------------------------*/
-
-int GetNodeTime(int Win, int Pos, FILETIME* Buf) {
-	auto time = GetItemText(Win, Pos, 1);
-	return TimeString2FileTime(u8(time).c_str(), Buf);
+// 指定位置のアイテムのUTC日付を返す
+static bool GetNodeTime(int Win, int Pos, FILETIME& ft) {
+	// 0123456789012345678
+	// 2021/05/30 10:10:10
+	// 時刻は0始まりでない場合があり、数値確認は12文字目で行う。
+	// 秒が含まれない場合があり、長さは16文字以上とする。
+	if (auto const text = GetItemText(Win, Pos, 1); 16 <= size(text) && iswdigit(text[0]) && iswdigit(text[5]) && iswdigit(text[8]) && iswdigit(text[12]) && iswdigit(text[14])) {
+		SYSTEMTIME st{
+			.wYear = WORD(_wtoi(&text[0])),
+			.wMonth = WORD(_wtoi(&text[5])),
+			.wDay = WORD(_wtoi(&text[8])),
+			.wHour = WORD(_wtoi(&text[11])),
+			.wMinute = WORD(_wtoi(&text[14])),
+			.wSecond = WORD(19 <= size(text) ? _wtoi(&text[17]) : 0),
+		};
+		FILETIME lt;
+		SystemTimeToFileTime(&st, &lt);
+		LocalFileTimeToFileTime(&lt, &ft);
+		return true;
+	}
+	return false;
 }
 
 
@@ -1506,31 +1460,28 @@ int GetNodeSize(int Win, int Pos, LONGLONG* Buf) {
 }
 
 
-/*----- 指定位置のアイテムの属性を返す ----------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int Pos : 位置
-*		int *Buf : 属性を返すワーク
-*
-*	Return Value
-*		int ステータス
-*			YES/NO=サイズ情報がなかった
-*----------------------------------------------------------------------------*/
-
+// 指定位置のアイテムの属性を返す
 int GetNodeAttr(int Win, int Pos, int* Buf) {
 	if (Win == WIN_REMOTE) {
-		auto subitem =
+		auto subitem = 4;
 #if defined(HAVE_TANDEM)
-			AskHostType() == HTYPE_TANDEM ? 3 :
+		if (AskHostType() == HTYPE_TANDEM)
+			subitem = 3;
 #endif
-			4;
-		if (auto attr = GetItemText(WIN_REMOTE, Pos, subitem); !empty(attr)) {
-			*Buf =
+		if (auto const attr = GetItemText(WIN_REMOTE, Pos, subitem); !empty(attr)) {
 #if defined(HAVE_TANDEM)
-				AskHostType() == HTYPE_TANDEM ? (std::iswdigit(attr[0]) ? stoi(attr) : 0) :
+			if (AskHostType() == HTYPE_TANDEM)
+				*Buf = std::iswdigit(attr[0]) ? stoi(attr) : 0;
+			else
 #endif
-				AttrString2Value(u8(attr).c_str());
+			if (9 <= size(attr)) {
+				auto value = 0;
+				for (auto it = begin(attr); auto bit : { 0x400, 0x200, 0x100, 0x40, 0x20, 0x10, 0x4, 0x2, 0x1 })
+					if (*it++ != L'-')
+						value |= bit;
+				*Buf = value;
+			} else if (3 <= size(attr))
+				*Buf = std::stoi(attr, nullptr, 16);
 			return YES;
 		}
 	}
@@ -1569,27 +1520,6 @@ static int GetImageIndex(int Win, int Pos) {
 	LVITEMW item{ .mask = LVIF_IMAGE, .iItem = Pos, .iSubItem = 0 };
 	SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETITEMW, 0, (LPARAM)&item);
 	return item.iImage;
-}
-
-
-/*----- 指定位置のアイテムのオーナ名を返す ------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int Pos : 位置
-*		char *Buf : オーナ名を返すバッファ
-*		int Max : バッファのサイズ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void GetNodeOwner(int Win, int Pos, char* Buf, int Max) {
-	if (Win == WIN_REMOTE) {
-		auto owner = GetItemText(WIN_REMOTE, Pos, 5);
-		strncpy_s(Buf, Max, u8(owner).c_str(), _TRUNCATE);
-	} else
-		strcpy(Buf, "");
 }
 
 
@@ -1686,7 +1616,7 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 					Pkt.InfoExist |= FINFO_SIZE;
 				if(GetNodeAttr(Win, Pos, &Pkt.Attr) == YES)
 					Pkt.InfoExist |= FINFO_ATTR;
-				if(GetNodeTime(Win, Pos, &Pkt.Time) == YES)
+				if (GetNodeTime(Win, Pos, Pkt.Time))
 					Pkt.InfoExist |= (FINFO_TIME | FINFO_DATE);
 				Pkt.Node = Node;
 
@@ -1772,13 +1702,12 @@ static inline fs::path DragFile(HDROP hdrop, UINT index) {
 	return std::move(buffer);
 }
 
+
 // Drag&Dropされたファイルをリストに登録する
-void MakeDroppedFileList(WPARAM wParam, char* Cur, std::vector<FILELIST>& Base) {
+std::tuple<fs::path, std::vector<FILELIST>> MakeDroppedFileList(WPARAM wParam) {
 	int count = DragQueryFileW((HDROP)wParam, 0xFFFFFFFF, NULL, 0);
-
 	auto const baseDirectory = DragFile((HDROP)wParam, 0).parent_path();
-	strncpy(Cur, baseDirectory.u8string().c_str(), FMAX_PATH);
-
+	std::vector<FILELIST> files;
 	std::vector<fs::path> directories;
 	for (int i = 0; i < count; i++) {
 		auto const path = DragFile((HDROP)wParam, i);
@@ -1801,7 +1730,7 @@ void MakeDroppedFileList(WPARAM wParam, char* Cur, std::vector<FILELIST>& Base) 
 			Pkt.Size = LONGLONG(attr.nFileSizeHigh) << 32 | attr.nFileSizeLow;
 			Pkt.InfoExist = FINFO_TIME | FINFO_DATE | FINFO_SIZE;
 #endif
-			AddFileList(Pkt, Base);
+			AddFileList(Pkt, files);
 		}
 	}
 
@@ -1812,16 +1741,18 @@ void MakeDroppedFileList(WPARAM wParam, char* Cur, std::vector<FILELIST>& Base) 
 		FILELIST Pkt{};
 		Pkt.Node = NODE_DIR;
 		Pkt.Name = path.filename();
-		AddFileList(Pkt, Base);
-		MakeLocalTree(Pkt.Name, Base);
+		AddFileList(Pkt, files);
+		MakeLocalTree(Pkt.Name, files);
 	}
 	fs::current_path(saved);
+
+	return { std::move(baseDirectory), std::move(files) };
 }
 
 
 // Drag&Dropされたファイルがあるフォルダを取得する
-void MakeDroppedDir(WPARAM wParam, char* Cur) {
-	strncpy(Cur, DragFile((HDROP)wParam, 0).parent_path().u8string().c_str(), FMAX_PATH);
+fs::path MakeDroppedDir(WPARAM wParam) {
+	return DragFile((HDROP)wParam, 0).parent_path();
 }
 
 
@@ -1861,7 +1792,7 @@ static int MakeRemoteTree1(std::wstring const& Path, std::wstring const& Cur, st
 	if(DoCWD(Path, NO, NO, NO) == FTP_COMPLETE)
 	{
 		/* サブフォルダも含めたリストを取得 */
-		Sts = DoDirListCmdSkt("R", "", 999, CancelCheckWork);	/* NLST -alLR*/
+		Sts = DoDirList(L"R"sv, 999, CancelCheckWork);	/* NLST -alLR*/
 		DoCWD(Cur, NO, NO, NO);
 
 		if(Sts == FTP_COMPLETE)
@@ -1909,7 +1840,7 @@ static int MakeRemoteTree2(std::wstring& Path, std::wstring const& Cur, std::vec
 
 	if(Sts == FTP_COMPLETE)
 	{
-		Sts = DoDirListCmdSkt("", "", 999, CancelCheckWork);		/* NLST -alL*/
+		Sts = DoDirList(L""sv, 999, CancelCheckWork);		/* NLST -alL*/
 		DoCWD(Cur, NO, NO, NO);
 
 		if(Sts == FTP_COMPLETE)
@@ -2371,12 +2302,13 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 	std::vector<std::variant<FILELIST, std::string>> lines;
 	for (std::string line; getline(is, line);) {
 		if (DebugConsole == YES) {
-			static const boost::regex re{ R"([^\x20-\x7E]|%)" };
-			DoPrintf("%s", replace<char>(line, re, [](auto& m) {
-				char percent[4];
-				sprintf(percent, "%%%02X", static_cast<unsigned char>(*m[0].begin()));
-				return std::string(percent);
-			}).c_str());
+			std::wstring wline;
+			for (auto ch : line)
+				if ('\x20' <= ch && ch != '%' && ch <= '\x7E')
+					wline += (wchar_t)ch;
+				else
+					wline += std::format(L"%{:02X}"sv, (unsigned)ch);
+			Debug(L"{}"sv, wline);
 		}
 		line.erase(std::remove(begin(line), end(line), '\r'), end(line));
 		std::replace(begin(line), end(line), '\b', ' ');
@@ -2451,10 +2383,10 @@ static bool MakeLocalTree(fs::path const& path, std::vector<FILELIST>& Base) {
 *----------------------------------------------------------------------------*/
 
 static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base) {
-	DoPrintf(L"FileList : NODE=%d : %s", Pkt.Node, Pkt.Name.c_str());
+	Debug(L"FileList: NODE={}: {}."sv, Pkt.Node, Pkt.Name);
 	/* リストの重複を取り除く */
 	if (std::ranges::any_of(Base, [&Pkt](auto const& f) { return Pkt.Name == f.Name; })) {
-		DoPrintf(L" --> Duplicate!!");
+		Debug(L" --> Duplicate!!"sv);
 		return;
 	}
 	Base.emplace_back(Pkt);

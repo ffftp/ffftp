@@ -110,9 +110,8 @@ void DispTaskMsg() {
 		fs::remove(temp);
 		return;
 	}
-	auto path = temp.u8string();
 	AddTempFileList(temp);
-	ExecViewer(data(path), 0);
+	ExecViewer(temp, 0);
 }
 
 
@@ -124,41 +123,6 @@ void SetTaskMsg(UINT id, ...) {
 	va_end(args);
 	if (0 < result)
 		queue.push({ buffer, static_cast<size_t>(result) });
-}
-
-// デバッグコンソールにメッセージを表示する
-void DoPrintf(_In_z_ _Printf_format_string_ const char* format, ...) {
-	if (DebugConsole != YES)
-		return;
-	struct {
-		char prefix[3];
-		char message[10240];
-	} buffer = { { '#', '#', ' ' } };
-	static_assert(std::is_same_v<decltype(buffer.prefix[0]), decltype(buffer.message[0])>);
-	static_assert(sizeof buffer == std::size(buffer.prefix) * sizeof buffer.prefix[0] + std::size(buffer.message) * sizeof buffer.message[0]);
-	va_list args;
-	va_start(args, format);
-	int result = vsprintf_s(buffer.message, format, args);
-	va_end(args);
-	if (0 < result)
-		queue.push(u8(buffer.prefix, static_cast<size_t>(result) + 3));
-}
-
-void DoPrintf(_In_z_ _Printf_format_string_ const wchar_t* format, ...) {
-	if (DebugConsole != YES)
-		return;
-	struct {
-		wchar_t prefix[3];
-		wchar_t message[10240];
-	} buffer = { { L'#', L'#', L' ' } };
-	static_assert(std::is_same_v<decltype(buffer.prefix[0]), decltype(buffer.message[0])>);
-	static_assert(sizeof buffer == std::size(buffer.prefix) * sizeof buffer.prefix[0] + std::size(buffer.message) * sizeof buffer.message[0]);
-	va_list args;
-	va_start(args, format);
-	int result = vswprintf_s(buffer.message, format, args);
-	va_end(args);
-	if (0 < result)
-		queue.push({ reinterpret_cast<const wchar_t*>(&buffer), static_cast<size_t>(result) + 3 });
 }
 
 void detail::Notice(UINT id, std::wformat_args args) {
