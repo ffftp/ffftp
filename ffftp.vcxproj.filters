@@ -143,18 +143,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resource\cursor1.cur">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Resource\cursor2.cur">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Resource\drag_csr.cur">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Resource\nodrop_c.cur">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="Resource\ffftp.exe.manifest">
       <Filter>Resource Files</Filter>
     </None>

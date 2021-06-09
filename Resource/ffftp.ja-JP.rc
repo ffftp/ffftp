@@ -2145,20 +2145,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Cursor
-//
-
-resize_lr_csr           CURSOR                  "cursor1.cur"
-
-resize_ud_csr           CURSOR                  "cursor2.cur"
-
-drag_csr                CURSOR                  "drag_csr.cur"
-
-nodrop_csr              CURSOR                  "nodrop_c.cur"
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Version
 //
 

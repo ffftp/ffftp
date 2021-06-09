@@ -12,8 +12,6 @@
 #define main_toolbar_bmp                103
 #define about_dlg                       104
 #define remote_toolbar_bmp              104
-#define drag_csr                        105
-#define nodrop_csr                      106
 #define dummy_menu                      107
 #define popup_menu                      108
 #define dirattr_bmp                     109
@@ -26,11 +24,9 @@
 #define hostset_dlg                     113
 #define hset_main_dlg                   113
 #define FILEOPENORD_1                   114
-#define resize_lr_csr                   115
 #define IDD_DIALOG1                     115
 #define user_dlg                        115
 #define opt_user_dlg                    115
-#define resize_ud_csr                   116
 #define tool_dlg                        116
 #define opt_tool_dlg                    116
 #define permit_dlg                      117
