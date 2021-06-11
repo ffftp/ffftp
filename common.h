@@ -600,7 +600,6 @@ public:
 /*===== main.c =====*/
 
 fs::path const& systemDirectory();
-fs::path const& moduleDirectory();
 fs::path const& tempDirectory();
 void DispWindowTitle();
 HWND GetMainHwnd(void);

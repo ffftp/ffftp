@@ -211,32 +211,30 @@ int MarkAsInternet = YES;
 
 
 fs::path const& systemDirectory() {
-	static auto const path = [] {
-		wchar_t directory[FMAX_PATH];
-		auto length = GetSystemDirectoryW(directory, size_as<UINT>(directory));
+	static auto const directory = [] {
+		wchar_t directory[32768];
+		auto const length = GetSystemDirectoryW(directory, size_as<UINT>(directory));
 		assert(0 < length);
 		return fs::path{ directory, directory + length };
-	}();
-	return path;
-}
-
-
-fs::path const& moduleDirectory() {
-	static auto const directory = [] {
-		wchar_t directory[FMAX_PATH];
-		const auto length = GetModuleFileNameW(nullptr, directory, size_as<DWORD>(directory));
-		assert(0 < length);
-		return fs::path{ directory, directory + length }.remove_filename();
 	}();
 	return directory;
 }
 
 
+static auto const& moduleFileName() {
+	static auto const filename = [] {
+		wchar_t filename[32768];
+		auto const length = GetModuleFileNameW(0, filename, size_as<DWORD>(filename));
+		assert(0 < length);
+		return fs::path{ filename, filename + length };
+	}();
+	return filename;
+}
+
+
 fs::path const& tempDirectory() {
-	static const auto directory = [] {
-		wchar_t subdir[16];
-		swprintf(subdir, std::size(subdir), L"ffftp%08x", GetCurrentProcessId());
-		const auto path = fs::temp_directory_path() / subdir;
+	static auto const directory = [] {
+		auto const path = fs::temp_directory_path() / std::format(L"ffftp{:08x}"sv, GetCurrentProcessId());
 		fs::create_directory(path);
 		return path;
 	}();
@@ -245,13 +243,13 @@ fs::path const& tempDirectory() {
 
 
 static auto isPortable() {
-	static const auto isPortable = fs::is_regular_file(moduleDirectory() / L"portable");
+	static auto const isPortable = fs::is_regular_file(fs::path{ moduleFileName() }.replace_filename(L"portable"sv));
 	return isPortable;
 }
 
 
 static auto const& helpPath() {
-	static const auto path = moduleDirectory() / L"ffftp.chm";
+	static auto const path = fs::path{ moduleFileName() }.replace_extension(L".chm"sv);
 	return path;
 }
 
@@ -265,7 +263,7 @@ void Sound::Register() {
 			for (auto [keyName, name, id] : { Connected, Transferred, Error }) {
 				if (HKEY key; RegCreateKeyExW(eventlabels, keyName, 0, nullptr, 0, KEY_SET_VALUE, nullptr, &key, nullptr) == ERROR_SUCCESS) {
 					RegSetValueExW(key, nullptr, 0, REG_SZ, reinterpret_cast<const BYTE*>(name), ((DWORD)wcslen(name) + 1) * sizeof(wchar_t));
-					auto value = strprintf(L"@%s,%d", (moduleDirectory() / L"ffftp.exe"sv).c_str(), -id);
+					auto const value = std::format(L"@{},{}"sv, moduleFileName().native(), -id);
 					RegSetValueExW(key, L"DispFileName", 0, REG_SZ, reinterpret_cast<const BYTE*>(value.c_str()), (size_as<DWORD>(value) + 1) * sizeof(wchar_t));
 				}
 				if (HKEY key; RegCreateKeyExW(apps, keyName, 0, nullptr, 0, KEY_WRITE, nullptr, &key, nullptr) == ERROR_SUCCESS) {
@@ -371,7 +369,7 @@ static int InitApp(int cmdShow)
 			RegType = REGTYPE_INI;
 			IniPath = *it;
 		} else
-			IniPath = moduleDirectory() / L"ffftp.ini"sv;
+			IniPath = fs::path{ moduleFileName() }.replace_extension(L".ini"sv);
 		ImportPortable = NO;
 		if (isPortable()) {
 			ForceIni = YES;
