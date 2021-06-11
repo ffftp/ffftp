@@ -32,6 +32,7 @@
 #include <delayimp.h>
 #include <HtmlHelp.h>
 #pragma comment(lib, "HtmlHelp.lib")
+#pragma comment(lib, "Version.Lib")
 
 #define RESIZE_OFF		0		/* ウインドウの区切り位置変更していない */
 #define RESIZE_ON		1		/* ウインドウの区切り位置変更中 */
@@ -239,6 +240,23 @@ fs::path const& tempDirectory() {
 		return path;
 	}();
 	return directory;
+}
+
+
+static auto version() {
+	auto const size = GetFileVersionInfoSizeW(moduleFileName().c_str(), 0);
+	assert(0 < size);
+	std::vector<char> buffer(size);
+	auto result = GetFileVersionInfoW(moduleFileName().c_str(), 0, size, data(buffer));
+	assert(result);
+	LPVOID block;
+	UINT len;
+	result = VerQueryValueW(data(buffer), L"\\", &block, &len);
+	assert(result && sizeof(VS_FIXEDFILEINFO) <= len);
+	auto const ms = reinterpret_cast<VS_FIXEDFILEINFO*>(block)->dwProductVersionMS, ls = reinterpret_cast<VS_FIXEDFILEINFO*>(block)->dwProductVersionLS;
+	auto const major = HIWORD(ms), minor = LOWORD(ms), patch = HIWORD(ls), build = LOWORD(ls);
+	auto const format = build != 0 ? L"{}.{}.{}.{}"sv : patch != 0 ? L"{}.{}.{}"sv : L"{}.{}"sv;
+	return std::format(format, major, minor, patch, build);
 }
 
 
