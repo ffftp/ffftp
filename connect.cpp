@@ -127,7 +127,7 @@ void ConnectProc(int Type, int Num)
 		if(CmdCtrlSocket != INVALID_SOCKET)
 			DisconnectProc();
 
-		SetTaskMsg("----------------------------");
+		Notice(IDS_SEPARATOR);
 
 		InitPWDcommand();
 		CopyHostFromList(AskCurrentHost(), &CurHost);
@@ -268,7 +268,7 @@ void QuickConnectProc() {
 		if (CmdCtrlSocket != INVALID_SOCKET)
 			DisconnectProc();
 
-		SetTaskMsg("----------------------------");
+		Notice(IDS_SEPARATOR);
 
 		InitPWDcommand();
 		CopyDefaultHost(&CurHost);
@@ -346,7 +346,7 @@ void DirectConnectProc(std::wstring&& unc, int Kanji, int Kana, int Fkanji, int 
 	if(CmdCtrlSocket != INVALID_SOCKET)
 		DisconnectProc();
 
-	SetTaskMsg("----------------------------");
+	Notice(IDS_SEPARATOR);
 
 	InitPWDcommand();
 	if (SplitUNCpath(std::move(unc), Host, Path, File, User, Pass, Port)) {
@@ -437,7 +437,7 @@ void HistoryConnectProc(int MenuCmd)
 		if(CmdCtrlSocket != INVALID_SOCKET)
 			DisconnectProc();
 
-		SetTaskMsg("----------------------------");
+		Notice(IDS_SEPARATOR);
 
 		InitPWDcommand();
 		CurHost = *history;

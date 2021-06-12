@@ -510,10 +510,7 @@ static int InitApp(int cmdShow)
 
 					DispWindowTitle();
 					UpdateStatusBar();
-					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.\r\n"
-						"Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).\r\n"
-						"Copyright (C) 2018-2021, Kurata Sayuri."
-					);
+					Notice(IDS_COPYRIGHT, version(), sizeof(void*) == 4 ? L"32bit"sv : L"64bit"sv);
 
 					if(ForceIni)
 						SetTaskMsg(IDS_MSGJPN283, IniPath.c_str());
@@ -2028,7 +2025,7 @@ void ExecViewer(fs::path const& path, int App) {
 		STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
 		if (ProcessInformation pi; !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
 			SetTaskMsg(IDS_MSGJPN182, GetLastError());
-			SetTaskMsg(">>%s", u8(commandLine).c_str());
+			Notice(IDS_LOCALCMD, commandLine);
 		}
 	}
 }
@@ -2046,7 +2043,7 @@ void ExecViewer2(fs::path const& path1, fs::path const& path2, int App) {
 	STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
 	if (ProcessInformation pi; !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
 		SetTaskMsg(IDS_MSGJPN182, GetLastError());
-		SetTaskMsg(">>%s", u8(commandLine).c_str());
+		Notice(IDS_LOCALCMD, commandLine);
 	}
 }
 

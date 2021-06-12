@@ -143,6 +143,12 @@
 #define IDS_INVALID_PATH                232
 #define IDS_FINISHED                    233
 #define IDS_CANCELLED                   234
+#define IDS_COPYRIGHT                   235
+#define IDS_LOCALCMD                    236
+#define IDS_REMOTECMD                   237
+#define IDS_SEPARATOR                   238
+#define IDS_CERTERROR                   239
+#define IDS_REPLY                       240
 #define TRANS_TIME_BAR                  1002
 #define TRANS_TEXT                      1003
 #define TRANS_REMOTE                    1003

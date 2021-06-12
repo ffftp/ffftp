@@ -91,18 +91,6 @@ HWND GetTaskWnd() {
 }
 
 
-// タスクメッセージを表示する
-void SetTaskMsg(_In_z_ _Printf_format_string_ const char* format, ...) {
-	char buffer[10240 + 3];
-	va_list args;
-	va_start(args, format);
-	int result = vsprintf_s(buffer, format, args);
-	va_end(args);
-	if (0 < result)
-		queue.push(u8(buffer, result));
-}
-
-
 // タスク内容をビューワで表示
 void DispTaskMsg() {
 	auto temp = tempDirectory() / L"_ffftp.tsk";

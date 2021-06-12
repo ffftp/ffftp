@@ -126,13 +126,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define YES_ALL			3
 #define YES_LIST		4
 
-/*===== バージョン ======*/
-
-#ifdef _WIN64
-#define VER_STR					"5.1 64bit"
-#else
-#define VER_STR					"5.1 32bit"
-#endif
 #define VER_NUM					2000		/* 設定バージョン */
 
 /*===== ユーザ定義コマンド =====*/
@@ -740,7 +733,6 @@ bool NotifyStatusBar(const NMHDR* hdr);
 int MakeTaskWindow();
 void DeleteTaskWindow(void);
 HWND GetTaskWnd(void);
-void SetTaskMsg(_In_z_ _Printf_format_string_ const char* format, ...);
 void DispTaskMsg(void);
 void SetTaskMsg(UINT id, ...);
 namespace detail {

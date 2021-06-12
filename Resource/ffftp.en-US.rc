@@ -2655,6 +2655,16 @@ BEGIN
     IDS_INVALID_PATH        "%s is invalid path.\r\nFFFTP doesn't download this file."
     IDS_FINISHED            "Finished"
     IDS_CANCELLED           "Cancelled"
+    IDS_COPYRIGHT           "FFFTP Ver.{} {} Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).\r\nCopyright (C) 2018-2021, Kurata Sayuri."
+    IDS_LOCALCMD            ">>{}"
+    IDS_REMOTECMD           ">{}"
+    IDS_SEPARATOR           "----------------------------"
+    IDS_CERTERROR           "Certificate validation error: 0x{:08X}: {}"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_REPLY               "{}"
 END
 
 STRINGTABLE
