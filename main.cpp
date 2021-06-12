@@ -32,6 +32,7 @@
 #include <delayimp.h>
 #include <HtmlHelp.h>
 #pragma comment(lib, "HtmlHelp.lib")
+#pragma comment(lib, "Version.Lib")
 
 #define RESIZE_OFF		0		/* ウインドウの区切り位置変更していない */
 #define RESIZE_ON		1		/* ウインドウの区切り位置変更中 */
@@ -211,32 +212,30 @@ int MarkAsInternet = YES;
 
 
 fs::path const& systemDirectory() {
-	static auto const path = [] {
-		wchar_t directory[FMAX_PATH];
-		auto length = GetSystemDirectoryW(directory, size_as<UINT>(directory));
+	static auto const directory = [] {
+		wchar_t directory[32768];
+		auto const length = GetSystemDirectoryW(directory, size_as<UINT>(directory));
 		assert(0 < length);
 		return fs::path{ directory, directory + length };
-	}();
-	return path;
-}
-
-
-fs::path const& moduleDirectory() {
-	static auto const directory = [] {
-		wchar_t directory[FMAX_PATH];
-		const auto length = GetModuleFileNameW(nullptr, directory, size_as<DWORD>(directory));
-		assert(0 < length);
-		return fs::path{ directory, directory + length }.remove_filename();
 	}();
 	return directory;
 }
 
 
+static auto const& moduleFileName() {
+	static auto const filename = [] {
+		wchar_t filename[32768];
+		auto const length = GetModuleFileNameW(0, filename, size_as<DWORD>(filename));
+		assert(0 < length);
+		return fs::path{ filename, filename + length };
+	}();
+	return filename;
+}
+
+
 fs::path const& tempDirectory() {
-	static const auto directory = [] {
-		wchar_t subdir[16];
-		swprintf(subdir, std::size(subdir), L"ffftp%08x", GetCurrentProcessId());
-		const auto path = fs::temp_directory_path() / subdir;
+	static auto const directory = [] {
+		auto const path = fs::temp_directory_path() / std::format(L"ffftp{:08x}"sv, GetCurrentProcessId());
 		fs::create_directory(path);
 		return path;
 	}();
@@ -244,14 +243,31 @@ fs::path const& tempDirectory() {
 }
 
 
+static auto version() {
+	auto const size = GetFileVersionInfoSizeW(moduleFileName().c_str(), 0);
+	assert(0 < size);
+	std::vector<char> buffer(size);
+	auto result = GetFileVersionInfoW(moduleFileName().c_str(), 0, size, data(buffer));
+	assert(result);
+	LPVOID block;
+	UINT len;
+	result = VerQueryValueW(data(buffer), L"\\", &block, &len);
+	assert(result && sizeof(VS_FIXEDFILEINFO) <= len);
+	auto const ms = reinterpret_cast<VS_FIXEDFILEINFO*>(block)->dwProductVersionMS, ls = reinterpret_cast<VS_FIXEDFILEINFO*>(block)->dwProductVersionLS;
+	auto const major = HIWORD(ms), minor = LOWORD(ms), patch = HIWORD(ls), build = LOWORD(ls);
+	auto const format = build != 0 ? L"{}.{}.{}.{}"sv : patch != 0 ? L"{}.{}.{}"sv : L"{}.{}"sv;
+	return std::format(format, major, minor, patch, build);
+}
+
+
 static auto isPortable() {
-	static const auto isPortable = fs::is_regular_file(moduleDirectory() / L"portable");
+	static auto const isPortable = fs::is_regular_file(fs::path{ moduleFileName() }.replace_filename(L"portable"sv));
 	return isPortable;
 }
 
 
 static auto const& helpPath() {
-	static const auto path = moduleDirectory() / L"ffftp.chm";
+	static auto const path = fs::path{ moduleFileName() }.replace_extension(L".chm"sv);
 	return path;
 }
 
@@ -265,7 +281,7 @@ void Sound::Register() {
 			for (auto [keyName, name, id] : { Connected, Transferred, Error }) {
 				if (HKEY key; RegCreateKeyExW(eventlabels, keyName, 0, nullptr, 0, KEY_SET_VALUE, nullptr, &key, nullptr) == ERROR_SUCCESS) {
 					RegSetValueExW(key, nullptr, 0, REG_SZ, reinterpret_cast<const BYTE*>(name), ((DWORD)wcslen(name) + 1) * sizeof(wchar_t));
-					auto value = strprintf(L"@%s,%d", (moduleDirectory() / L"ffftp.exe"sv).c_str(), -id);
+					auto const value = std::format(L"@{},{}"sv, moduleFileName().native(), -id);
 					RegSetValueExW(key, L"DispFileName", 0, REG_SZ, reinterpret_cast<const BYTE*>(value.c_str()), (size_as<DWORD>(value) + 1) * sizeof(wchar_t));
 				}
 				if (HKEY key; RegCreateKeyExW(apps, keyName, 0, nullptr, 0, KEY_WRITE, nullptr, &key, nullptr) == ERROR_SUCCESS) {
@@ -371,7 +387,7 @@ static int InitApp(int cmdShow)
 			RegType = REGTYPE_INI;
 			IniPath = *it;
 		} else
-			IniPath = moduleDirectory() / L"ffftp.ini"sv;
+			IniPath = fs::path{ moduleFileName() }.replace_extension(L".ini"sv);
 		ImportPortable = NO;
 		if (isPortable()) {
 			ForceIni = YES;
@@ -494,10 +510,7 @@ static int InitApp(int cmdShow)
 
 					DispWindowTitle();
 					UpdateStatusBar();
-					SetTaskMsg("FFFTP Ver." VER_STR " Copyright(C) 1997-2010 Sota & cooperators.\r\n"
-						"Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).\r\n"
-						"Copyright (C) 2018-2021, Kurata Sayuri."
-					);
+					Notice(IDS_COPYRIGHT, version(), sizeof(void*) == 4 ? L"32bit"sv : L"64bit"sv);
 
 					if(ForceIni)
 						SetTaskMsg(IDS_MSGJPN283, IniPath.c_str());
@@ -2012,7 +2025,7 @@ void ExecViewer(fs::path const& path, int App) {
 		STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
 		if (ProcessInformation pi; !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
 			SetTaskMsg(IDS_MSGJPN182, GetLastError());
-			SetTaskMsg(">>%s", u8(commandLine).c_str());
+			Notice(IDS_LOCALCMD, commandLine);
 		}
 	}
 }
@@ -2030,7 +2043,7 @@ void ExecViewer2(fs::path const& path1, fs::path const& path2, int App) {
 	STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
 	if (ProcessInformation pi; !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
 		SetTaskMsg(IDS_MSGJPN182, GetLastError());
-		SetTaskMsg(">>%s", u8(commandLine).c_str());
+		Notice(IDS_LOCALCMD, commandLine);
 	}
 }
 

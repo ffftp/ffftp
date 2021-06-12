@@ -127,10 +127,8 @@ static inline bool FindFile(fs::path const& fileName, Fn&& fn) {
 			result = fn(data);
 		} while (result && FindNextFileW(handle, &data));
 		FindClose(handle);
-	} else {
-		auto lastError = GetLastError();
-		SetTaskMsg("FindFile failed (%s): 0x%08X, %s", fileName.u8string().c_str(), lastError, u8(GetErrorMessage(lastError)).c_str());
-	}
+	} else
+		Error(L"FindFirstFileW"sv);
 	return result;
 }
 

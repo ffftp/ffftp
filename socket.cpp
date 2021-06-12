@@ -281,7 +281,7 @@ static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName
 		return CertResult::Failed;
 	if (policyStatus.dwError == 0)
 		return CertResult::Secure;
-	SetTaskMsg("Certificate validation error: %08X.", policyStatus.dwError);
+	Notice(IDS_CERTERROR, policyStatus.dwError, GetErrorMessage(policyStatus.dwError));
 
 	// thumbprint比較
 	static std::vector<std::array<unsigned char, 20>> acceptedThumbprints;

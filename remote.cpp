@@ -390,14 +390,14 @@ void SwitchOSSProc(void)
 // ホストのファイル名の漢字コードに応じて、ここで漢字コードの変換を行なう
 std::tuple<int, std::wstring> detail::command(SOCKET cSkt, int* CancelCheckWork, std::wstring&& cmd) {
 	if (cmd.starts_with(L"PASS "sv))
-		SetTaskMsg(">PASS [xxxxxx]");
+		::Notice(IDS_REMOTECMD, L"PASS [xxxxxx]"sv);
 	else {
 		if (!cmd.starts_with(L"USER "sv) && !cmd.starts_with(L"OPEN "sv)) {
 			// パスの区切り文字をホストに合わせて変更する
 			if (AskHostType() == HTYPE_STRATUS)
 				std::ranges::replace(cmd, L'/', L'>');
 		}
-		SetTaskMsg(">%s", u8(cmd).c_str());
+		::Notice(IDS_REMOTECMD, cmd);
 	}
 	auto native = ConvertTo(cmd, AskHostNameKanji(), AskHostNameKana());
 	native += "\r\n"sv;
@@ -414,7 +414,7 @@ std::tuple<int, std::wstring> ReadReplyMessage(SOCKET cSkt, int* CancelCheckWork
 	if (cSkt != INVALID_SOCKET)
 		for (int Lines = 0;; Lines++) {
 			auto [code, line] = ReadOneLine(cSkt, CancelCheckWork);
-			SetTaskMsg("%s", u8(line).c_str());
+			Notice(IDS_REPLY, line);
 
 			// ２行目以降の応答コードは消す
 			if (Lines > 0)

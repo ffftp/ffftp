@@ -32,7 +32,7 @@
 
 // ローカル側のディレクトリ変更
 bool DoLocalCWD(fs::path const& path) {
-	SetTaskMsg(">>CD %s", path.u8string().c_str());
+	Notice(IDS_LOCALCMD, std::format(L"CD {}"sv, path.native()));
 	std::error_code ec;
 	fs::current_path(path, ec);
 	if (!ec)
@@ -44,7 +44,7 @@ bool DoLocalCWD(fs::path const& path) {
 
 // ローカル側のディレクトリ作成
 void DoLocalMKD(fs::path const& path) {
-	SetTaskMsg(">>MKDIR %s", path.u8string().c_str());
+	Notice(IDS_LOCALCMD, std::format(L"MKDIR {}"sv, path.native()));
 	if (std::error_code ec; !fs::create_directory(path, ec))
 		SetTaskMsg(IDS_MSGJPN146);
 }
@@ -66,7 +66,7 @@ static bool MoveFileToTrashCan(fs::path const& path) {
 
 // ローカル側のディレクトリ削除
 void DoLocalRMD(fs::path const& path) {
-	SetTaskMsg(">>RMDIR %s", path.u8string().c_str());
+	Notice(IDS_LOCALCMD, std::format(L"RMDIR {}"sv, path.native()));
 	if (!MoveFileToTrashCan(path))
 		SetTaskMsg(IDS_MSGJPN148);
 }
@@ -74,7 +74,7 @@ void DoLocalRMD(fs::path const& path) {
 
 // ローカル側のファイル削除
 void DoLocalDELE(fs::path const& path) {
-	SetTaskMsg(">>DEL %s", path.u8string().c_str());
+	Notice(IDS_LOCALCMD, std::format(L"DEL {}"sv, path.native()));
 	if (!MoveFileToTrashCan(path))
 		SetTaskMsg(IDS_MSGJPN150);
 }
@@ -82,7 +82,7 @@ void DoLocalDELE(fs::path const& path) {
 
 // ローカル側のファイル名変更
 void DoLocalRENAME(fs::path const& src, fs::path const& dst) {
-	SetTaskMsg(">>REN %s %s", src.u8string().c_str(), dst.u8string().c_str());
+	Notice(IDS_LOCALCMD, std::format(L"REN {} {}"sv, src.native(), dst.native()));
 	std::error_code ec;
 	fs::rename(src, dst, ec);
 	if (ec)
