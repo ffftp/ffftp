@@ -1,0 +1,2654 @@
+// Microsoft Visual C++ generated resource script.
+//
+#pragma code_page(65001)
+
+#include "resource.ja-JP.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+#include <sdkddkver.h>
+#if _WIN32_WINNT_VISTA <= _WIN32_WINNT
+#define DIALOGFONT "Segoe UI"
+#else
+#define DIALOGFONT "MS Shell Dlg 2"
+#endif
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Japanese (Japan) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.ja-JP.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "#include <sdkddkver.h>\r\n"
+    "#if _WIN32_WINNT_VISTA <= _WIN32_WINNT\r\n"
+    "#define DIALOGFONT ""Segoe UI""\r\n"
+    "#else\r\n"
+    "#define DIALOGFONT ""MS Shell Dlg 2""\r\n"
+    "#endif\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// RT_MANIFEST
+//
+
+1                       RT_MANIFEST             "ffftp.exe.manifest"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+ffftp                   ICON                    "icon1.ico"
+
+notify                  ICON                    "icon2.ico"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+main_toolbar_bmp        BITMAP                  "toolbar1.bmp"
+
+remote_toolbar_bmp      BITMAP                  "main_too.bmp"
+
+dirattr_bmp             BITMAP                  "list_bmp.bmp"
+
+hlist_bmp               BITMAP                  "bitmap1.bmp"
+
+dirattr16_bmp           BITMAP                  "list_16.bmp"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+main_menu MENU
+BEGIN
+    POPUP "连接(&F)"
+    BEGIN
+        MENUITEM "连接(&C)...\tCtrl+C",           MENU_CONNECT
+        MENUITEM "快速连接(&Q)...\tCtrl+Q",       MENU_QUICK
+        MENUITEM "断开(&R)",                      MENU_DISCONNECT
+        MENUITEM SEPARATOR
+        MENUITEM "主机设定(&H)...",               MENU_SET_CONNECT
+        POPUP "设置(&S)"
+        BEGIN
+            MENUITEM "WS_FTP导入配置(&W)...",     MENU_IMPORT_WS
+            MENUITEM "将设置保存到文件(&S)...",           MENU_REGSAVE
+            MENUITEM "从文件恢复设置(&L)...",          MENU_REGLOAD
+            MENUITEM "更改主密码(&M)...",         MENU_CHANGEPASSWD
+            MENUITEM "FileZilla XML导出设置...",  MENU_EXPORT_FILEZILLA_XML
+            MENUITEM "WinSCP INI导出设置...",     MENU_EXPORT_WINSCP_INI
+            MENUITEM SEPARATOR
+            MENUITEM "删除全部设置...",                   MENU_REGINIT
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "结束(&X)",                      MENU_EXIT
+    END
+    POPUP "命令(&C)"
+    BEGIN
+        MENUITEM "下载(&D)\tCtrl+D",          MENU_DOWNLOAD
+        MENUITEM "上传(&U)\tCtrl+U",          MENU_UPLOAD
+        MENUITEM "重命名并下载(&O)...",         MENU_DOWNLOAD_AS
+        MENUITEM "重命名并上传(&P)...",         MENU_UPLOAD_AS
+        MENUITEM "按名称下载(&G)...",        MENU_DOWNLOAD_NAME
+        MENUITEM "作为文件下载(&F)",           MENU_DOWNLOAD_AS_FILE
+        MENUITEM SEPARATOR
+        MENUITEM "镜像上传(&M)...\tCtrl+Shift+U", MENU_MIRROR_UPLOAD
+        MENUITEM "文件容量计算(&Z)...",             MENU_FILESIZE
+        MENUITEM "镜像下载(&L)...\tCtrl+Shift+D", MENU_MIRROR_DOWNLOAD
+        MENUITEM SEPARATOR
+        MENUITEM "删除(&R)...\tDel",              MENU_DELETE
+        MENUITEM "重命名(&N)...\tCtrl+N",         MENU_RENAME
+        MENUITEM "属性更改(&A)...\tCtrl+T",         MENU_CHMOD
+        MENUITEM "文件夹创建(&K)...\tCtrl+K",       MENU_MKDIR
+        MENUITEM "任意命令(&C)...",              MENU_SOMECMD
+        MENUITEM SEPARATOR
+        MENUITEM "同时移动文件夹(&S)",                MENU_SYNC
+    END
+    POPUP "书签(&B)"
+    BEGIN
+        MENUITEM "添加-主机端(&H)",               MENU_BMARK_ADD
+        MENUITEM "添加-本地端(&L)",              MENU_BMARK_ADD_LOCAL
+        MENUITEM "添加-两者(&B)",                   MENU_BMARK_ADD_BOTH
+        MENUITEM "编辑(&E)...\tCtrl+B",           MENU_BMARK_EDIT
+        MENUITEM SEPARATOR
+    END
+    POPUP "显示(&V)"
+    BEGIN
+        MENUITEM "过滤器(&L)...\tCtrl+Y",         MENU_FILTER
+        MENUITEM SEPARATOR
+        MENUITEM "查找(&F)...\tCtrl+F",           MENU_FIND
+        MENUITEM "查找下一个(&N)\tF3",                MENU_FINDNEXT
+        MENUITEM SEPARATOR
+        MENUITEM "选择(U)...\tCtrl+S",            MENU_SELECT
+        MENUITEM "全部选择/取消选择(&A)\tCtrl+A",          MENU_SELECT_ALL
+        MENUITEM SEPARATOR
+        POPUP "形式(&T)"
+        BEGIN
+            MENUITEM "列表(&L)",                      MENU_LIST
+            MENUITEM "细节(&D)",                      MENU_REPORT
+        END
+        MENUITEM "分类(&S)...",                  MENU_SORT
+        MENUITEM "显示以.开头的文件(&D)",            MENU_DOTFILE
+        MENUITEM SEPARATOR
+        MENUITEM "在查看器中显示文件列表(&I)",          MENU_DIRINFO
+        MENUITEM "在查看器中查看活动(&W)",            MENU_TASKINFO
+        MENUITEM SEPARATOR
+        MENUITEM "更新为最新信息(&R)\tF5",            MENU_REFRESH
+    END
+    POPUP "工具(&T)"
+    BEGIN
+        MENUITEM "一次性密码计算(&O)...",         MENU_OTPCALC
+        MENUITEM "为Windows防火墙配置有状态的FTP筛选器(&F)...", MENU_FW_FTP_FILTER
+    END
+    POPUP "选项(&O)"
+    BEGIN
+        MENUITEM "首选项(&S)...",                 MENU_OPTION
+    END
+    POPUP "帮助(&H)"
+    BEGIN
+        MENUITEM "目录(&C)\tF1",                  MENU_HELP
+        MENUITEM "打开网站(&W)",               MENU_HELP_TROUBLE
+        MENUITEM SEPARATOR
+        MENUITEM "关于FFFTP(&A)...",            MENU_ABOUT
+    END
+END
+
+dummy_menu MENU
+BEGIN
+    POPUP "dummy"
+    BEGIN
+        MENUITEM "上へ(remote)",                  MENU_REMOTE_UPDIR
+        MENUITEM "上へ(local)",                   MENU_LOCAL_UPDIR
+        MENUITEM "上へ(共通)",                      MENU_UPDIR
+        MENUITEM "COMBO_LOCAL",                 COMBO_LOCAL
+        MENUITEM "COMBO REMOTE",                COMBO_REMOTE
+        MENUITEM "Text Mode",                   MENU_TEXT
+        MENUITEM "Binary Mode",                 MENU_BINARY
+        MENUITEM "Auto Mode",                   MENU_AUTO
+        MENUITEM "刷新(local)",                  REFRESH_LOCAL
+        MENUITEM "刷新(remote)",                 REFRESH_REMOTE
+        MENUITEM "CHDIR(remote)",               MENU_REMOTE_CHDIR
+        MENUITEM "CHDIR(local)",                MENU_LOCAL_CHDIR
+        MENUITEM "KANJI EUC",                   MENU_KNJ_EUC
+        MENUITEM "KANJI JIS",                   MENU_KNJ_JIS
+        MENUITEM "KANJI NONE",                  MENU_KNJ_NONE
+        MENUITEM "双击",                     MENU_DCLICK
+        MENUITEM "半角假名转换",                      MENU_KANACNV
+        MENUITEM "開く1",                         MENU_OPEN1
+        MENUITEM "開く2",                         MENU_OPEN2
+        MENUITEM "開く3",                         MENU_OPEN3
+        MENUITEM "连接（指定编号）",                    MENU_CONNECT_NUM
+        MENUITEM "历史记录1",                       MENU_HIST_1
+        MENUITEM "历史记录2",                       MENU_HIST_2
+        MENUITEM "历史记录3",                       MENU_HIST_3
+        MENUITEM "历史记录4",                       MENU_HIST_4
+        MENUITEM "历史记录5",                       MENU_HIST_5
+        MENUITEM "历史记录6",                       MENU_HIST_6
+        MENUITEM "历史记录7",                       MENU_HIST_7
+        MENUITEM "历史记录8",                       MENU_HIST_8
+        MENUITEM "历史记录9",                       MENU_HIST_9
+        MENUITEM "历史记录10",                      MENU_HIST_10
+        MENUITEM "历史记录11",                      MENU_HIST_11
+        MENUITEM "历史记录12",                      MENU_HIST_12
+        MENUITEM "历史记录13",                      MENU_HIST_13
+        MENUITEM "历史记录14",                      MENU_HIST_14
+        MENUITEM "历史记录15",                      MENU_HIST_15
+        MENUITEM "历史记录16",                      MENU_HIST_16
+        MENUITEM "历史记录17",                      MENU_HIST_17
+        MENUITEM "历史记录18",                      MENU_HIST_18
+        MENUITEM "历史记录19",                      MENU_HIST_19
+        MENUITEM "历史记录20",                      MENU_HIST_20
+        MENUITEM "自动退出",                        MENU_AUTO_EXIT
+        MENUITEM "中止",                          MENU_ABORT
+        MENUITEM "复制URL到剪贴板",                MENU_URL_COPY
+        MENUITEM "全部下载",                   MENU_DOWNLOAD_ALL
+        MENUITEM "全部上传",                   MENU_UPLOAD_ALL
+        MENUITEM "OSS<->GUARDIAN 转换",         MENU_SWITCH_OSS
+        MENUITEM "上移一个文件夹",                 MENU_REMOTE_MOVE_UPDIR
+    END
+END
+
+popup_menu MENU
+BEGIN
+    POPUP "local"
+    BEGIN
+        MENUITEM "打开(&O)",                      MENU_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "上传(&U)",                  MENU_UPLOAD
+        MENUITEM "重命名并上传(&P)...",         MENU_UPLOAD_AS
+        MENUITEM "全部上传",                   MENU_UPLOAD_ALL
+        MENUITEM "删除(&R)",                      MENU_DELETE
+        MENUITEM "重命名(&N)... ",                MENU_RENAME
+        MENUITEM "文件夹创建(&K)...",               MENU_MKDIR
+        MENUITEM SEPARATOR
+        MENUITEM "文件容量计算(&Z)",                MENU_FILESIZE
+        MENUITEM SEPARATOR
+        MENUITEM "更新为最新信息(&F)",                REFRESH_LOCAL
+    END
+    POPUP "remote"
+    BEGIN
+        MENUITEM "打开(&O)",                      MENU_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "下载(&D)",                  MENU_DOWNLOAD
+        MENUITEM "重命名并下载(&W)...",         MENU_DOWNLOAD_AS
+        MENUITEM "作为文件下载(&I)",           MENU_DOWNLOAD_AS_FILE
+        MENUITEM "全部下载",                   MENU_DOWNLOAD_ALL
+        MENUITEM "删除(&R)",                      MENU_DELETE
+        MENUITEM "重命名(&N)...",                 MENU_RENAME
+        MENUITEM "属性更改(&A)...",                 MENU_CHMOD
+        MENUITEM "文件夹创建(&K)...",               MENU_MKDIR
+        MENUITEM "将URL复制到剪贴板(&C)",         MENU_URL_COPY
+        MENUITEM "OSS<->GUARDIAN 转换(&O)",     MENU_SWITCH_OSS
+        MENUITEM "上移一个文件夹(&P)...",          MENU_REMOTE_MOVE_UPDIR
+        MENUITEM SEPARATOR
+        MENUITEM "文件容量计算(&Z)",                MENU_FILESIZE
+        MENUITEM SEPARATOR
+        MENUITEM "更新为最新信息(&F)",                REFRESH_REMOTE
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+about_dlg DIALOGEX 0, 0, 343, 267
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "关于FFFTP"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,145,246,50,14
+    ICON            ffftp,-1,7,4,20,20
+    CTEXT           "FFFTP Ver 5.1",-1,113,11,90,8
+    CTEXT           "FFFTP是免费的\n汉化：the100s5",-1,7,220,305,8
+    CTEXT           "Copyright(C) 1997-2010 Sota & 合作伙伴",-1,7,25,305,8,SS_NOPREFIX
+    CTEXT           "Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato)\nCopyright (C) 2018-2021, 倉田佐祐理",-1,7,37,305,32,SS_NOPREFIX
+    EDITTEXT        ABOUT_URL,7,76,305,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
+    CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,143,305,60
+END
+
+transfer_dlg DIALOGEX 0, 0, 199, 91
+STYLE DS_SETFONT | DS_MODALFRAME | WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "中止此文件",IDCANCEL,7,73,74,14
+    PUSHBUTTON      "停止",TRANS_STOP_NEXT,93,73,46,14
+    PUSHBUTTON      "全部中止",TRANS_STOP_ALL,150,73,42,14
+    LTEXT           "主机:",-1,7,5,40,8
+    LTEXT           "",TRANS_REMOTE,45,5,147,8,SS_NOPREFIX
+    LTEXT           "本地:",-1,7,18,40,8
+    LTEXT           "",TRANS_LOCAL,45,18,147,8,SS_NOPREFIX
+    LTEXT           "状况:",-1,7,44,40,8
+    LTEXT           "",TRANS_STATUS,45,44,147,8
+    CONTROL         "Progress1",TRANS_TIME_BAR,"msctls_progress32",0x0,7,58,185,9
+    LTEXT           "传输模式:",-1,7,31,40,8
+    LTEXT           "",TRANS_MODE,45,31,48,8
+    LTEXT           "代码转换:",-1,98,31,39,8
+    LTEXT           "",TRANS_KANJI,136,31,56,8
+END
+
+rename_dlg DIALOGEX 0, 0, 187, 69
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        RENAME_NEW,7,34,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,9,51,50,14
+    PUSHBUTTON      "取消",IDCANCEL,68,51,50,14
+    PUSHBUTTON      "中止(&S)",RENAME_STOP,128,51,50,14
+    LTEXT           "",RENAME_TEXT,7,7,173,8,SS_NOPREFIX
+    LTEXT           "请输入的新名称。",-1,15,20,133,8
+END
+
+delete_dlg DIALOGEX 0, 0, 209, 55
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "是的(&Y)",IDOK,7,37,45,14
+    PUSHBUTTON      "没有(&N)",DELETE_NO,57,37,44,14
+    PUSHBUTTON      "全部删除(&A)",DELETE_ALL,107,37,45,14
+    PUSHBUTTON      "中止(&S)",IDCANCEL,157,37,45,14
+    LTEXT           "",DELETE_TEXT,7,7,195,8,SS_NOPREFIX
+    LTEXT           "是否确实要删除？",-1,17,21,167,8
+END
+
+hostlist_dlg DIALOGEX 0, 0, 232, 136
+STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "主机列表"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    CONTROL         "Tree1",HOST_LIST,"SysTreeView32",TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS | TVS_FULLROWSELECT | WS_BORDER | WS_TABSTOP,7,6,152,105
+    DEFPUSHBUTTON   "连接(&S)",IDOK,27,118,50,14
+    PUSHBUTTON      "关闭(&O)",IDCANCEL,91,118,50,14
+    PUSHBUTTON      "新主机(&N)...",HOST_NEW,165,6,60,14
+    PUSHBUTTON      "新建组(&G)...",HOST_FOLDER,165,22,60,14
+    PUSHBUTTON      "更改配置(&M)...",HOST_SET,165,38,60,14
+    PUSHBUTTON      "复制(&C)",HOST_COPY,165,54,60,14
+    PUSHBUTTON      "删除(&D)...",HOST_DEL,165,70,60,14
+    PUSHBUTTON      "↑",HOST_UP,165,86,14,14
+    PUSHBUTTON      "↓",HOST_DOWN,184,86,14,14
+    PUSHBUTTON      "默认设置(&F)...",HOST_SET_DEFAULT,165,102,60,14
+    SCROLLBAR       HOST_SIZEGRIP,222,122,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
+    PUSHBUTTON      "帮助",9,165,118,60,14
+END
+
+hset_main_dlg DIALOGEX 0, 0, 207, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "基本"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "配置名(&T)",-1,7,7,94,8
+    EDITTEXT        HSET_HOST,7,17,94,12,ES_AUTOHSCROLL
+    LTEXT           "主机名（地址）(&N)",-1,107,7,73,8
+    EDITTEXT        HSET_ADRS,106,17,94,12,ES_AUTOHSCROLL
+    LTEXT           "用户名(&U)",-1,7,35,60,8
+    EDITTEXT        HSET_USER,7,45,66,12,ES_AUTOHSCROLL
+    LTEXT           "密码/密码短语(&P)",-1,79,35,94,8
+    EDITTEXT        HSET_PASS,79,45,64,12,ES_PASSWORD | ES_AUTOHSCROLL
+    CONTROL         "an&onymous",HSET_ANONYMOUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,150,47,50,10
+    LTEXT           "初始本地文件夹(&L)",-1,7,63,89,8
+    EDITTEXT        HSET_LOCAL,7,73,137,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",HSET_LOCAL_BR,145,73,12,14
+    LTEXT           "主机初始文件夹(&R)",-1,7,91,94,8
+    EDITTEXT        HSET_REMOTE,7,101,137,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "当前文件夹",HSET_REMOTE_CUR,145,101,55,14
+    CONTROL         "将上次访问的文件夹作为下次的初始文件夹(&F)",HSET_LASTDIR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,193,10
+END
+
+FILEOPENORD_1 DIALOGEX 109, 35, 165, 134
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Open"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "文件夹(&D):",-1,7,6,92,9
+    LISTBOX         lst2,7,32,92,68,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "磁盘(&V):",stc4,7,104,92,9
+    COMBOBOX        cmb2,7,114,92,68,CBS_DROPDOWNLIST | CBS_OWNERDRAWFIXED | CBS_AUTOHSCROLL | CBS_SORT | CBS_HASSTRINGS | WS_BORDER | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,105,6,50,14,WS_GROUP
+    PUSHBUTTON      "取消",IDCANCEL,105,24,50,14,WS_GROUP
+    PUSHBUTTON      "&Help",psh15,105,46,50,14,WS_GROUP
+    CONTROL         "&Read Only",chx1,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,105,68,50,12
+    LISTBOX         lst1,102,99,20,20,LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_DISABLENOSCROLL | NOT WS_VISIBLE | WS_VSCROLL
+    LTEXT           "File &Name:",stc3,121,83,12,10,NOT WS_VISIBLE
+    EDITTEXT        edt1,104,83,12,12,ES_AUTOHSCROLL | ES_OEMCONVERT | NOT WS_VISIBLE | NOT WS_TABSTOP
+    LTEXT           "List Files of &Type:",stc2,127,99,12,9,NOT WS_VISIBLE
+    COMBOBOX        cmb1,107,115,16,36,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | NOT WS_VISIBLE | WS_BORDER | WS_VSCROLL
+    LTEXT           "",stc1,9,18,88,8
+END
+
+opt_user_dlg DIALOGEX 0, 0, 211, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "用户"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "电子邮件(&M)",-1,7,7,59,8
+    EDITTEXT        USER_ADRS,7,18,196,12,ES_AUTOHSCROLL
+    LTEXT           "电子邮件地址将用作匿名FTP的密码。",-1,28,36,169,18,SS_SUNKEN
+END
+
+opt_tool_dlg DIALOGEX 0, 0, 211, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "工具"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "查看器1(&1)",-1,7,7,39,8
+    EDITTEXT        TOOL_EDITOR1,7,18,183,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",TOOL_EDITOR1_BR,191,18,12,13
+    LTEXT           "查看器2(&2)",-1,7,63,39,8
+    EDITTEXT        TOOL_EDITOR2,7,74,183,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",TOOL_EDITOR2_BR,191,74,12,13
+    LTEXT           "查看器3(&3)",-1,7,93,39,8
+    EDITTEXT        TOOL_EDITOR3,7,104,183,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",TOOL_EDITOR3_BR,191,104,12,13
+    LTEXT           "ビューア1は、アプリケーションに関連づけられていないファイルを「開く」で開くときにも使用します。\nまた、「ファイル一覧情報の詳細表示」でも使用します。",-1,19,33,184,27,SS_SUNKEN
+    LTEXT           "通过鼠标右键单击可使用查看器2和3。",-1,14,124,184,8
+END
+
+chmod_dlg DIALOGEX 0, 0, 171, 109
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "修改属性"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "当前属性",-1,77,74,47,8
+    EDITTEXT        PERM_NOW,124,72,25,12,ES_AUTOHSCROLL | ES_NUMBER
+    GROUPBOX        "所有者",-1,7,7,48,58
+    CONTROL         "呼叫",PERM_O_READ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,21,30,10
+    CONTROL         "写入",PERM_O_WRITE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,35,30,10
+    CONTROL         "执行",PERM_O_EXEC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,50,30,10
+    GROUPBOX        "组",-1,61,7,48,58
+    CONTROL         "呼叫",PERM_G_READ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,71,21,30,10
+    CONTROL         "写入",PERM_G_WRITE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,71,35,30,10
+    CONTROL         "执行",PERM_G_EXEC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,71,49,30,10
+    GROUPBOX        "其他",-1,116,8,48,58
+    CONTROL         "呼叫",PERM_A_READ,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,126,22,30,10
+    CONTROL         "写入",PERM_A_WRITE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,126,36,30,10
+    CONTROL         "执行",PERM_A_EXEC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,126,51,30,10
+    CONTROL         "",-1,"Static",SS_BLACKFRAME,73,69,90,18
+    DEFPUSHBUTTON   "OK",IDOK,7,92,48,14
+    PUSHBUTTON      "取消",IDCANCEL,61,92,48,14
+    PUSHBUTTON      "帮助",9,116,92,48,14
+END
+
+sort_dlg DIALOGEX 0, 0, 187, 197
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "分类"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    GROUPBOX        "本地",-1,7,7,81,150
+    GROUPBOX        "文件名(&1)",-1,10,17,74,80,WS_GROUP
+    CONTROL         "按文件名排序",SORT_LFILE_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,15,30,66,10
+    CONTROL         "按扩展",SORT_LFILE_EXT,"Button",BS_AUTORADIOBUTTON,15,42,66,10
+    CONTROL         "按大小",SORT_LFILE_SIZE,"Button",BS_AUTORADIOBUTTON,15,55,66,10
+    CONTROL         "按日期",SORT_LFILE_DATE,"Button",BS_AUTORADIOBUTTON,15,68,66,10
+    CONTROL         "逆序",SORT_LFILE_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,81,66,10
+    GROUPBOX        "文件夹名称(&2)",-1,10,100,74,52,WS_GROUP
+    CONTROL         "按文件名排序",SORT_LDIR_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,15,112,66,10
+    CONTROL         "按日期",SORT_LDIR_DATE,"Button",BS_AUTORADIOBUTTON,15,124,66,10
+    CONTROL         "逆序",SORT_LDIR_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,15,137,66,10
+    GROUPBOX        "主机",-1,98,7,82,150
+    GROUPBOX        "文件名(&3)",-1,102,17,74,80,WS_GROUP
+    CONTROL         "按文件名排序",SORT_RFILE_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,107,30,66,10
+    CONTROL         "按扩展",SORT_RFILE_EXT,"Button",BS_AUTORADIOBUTTON,107,42,66,10
+    CONTROL         "按大小",SORT_RFILE_SIZE,"Button",BS_AUTORADIOBUTTON,107,55,66,10
+    CONTROL         "按日期",SORT_RFILE_DATE,"Button",BS_AUTORADIOBUTTON,107,68,66,10
+    CONTROL         "逆序",SORT_RFILE_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,107,81,66,10
+    GROUPBOX        "文件夹名称(&4)",-1,102,100,74,52,WS_GROUP
+    CONTROL         "按文件名排序",SORT_RDIR_NAME,"Button",BS_AUTORADIOBUTTON | WS_GROUP,107,112,66,10
+    CONTROL         "按日期",SORT_RDIR_DATE,"Button",BS_AUTORADIOBUTTON,107,124,66,10
+    CONTROL         "逆序",SORT_RDIR_REV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,107,137,66,10
+    CONTROL         "存储每个主机的排序方法(&S)",SORT_SAVEHOST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,164,156,10
+    DEFPUSHBUTTON   "OK",IDOK,11,179,50,14
+    PUSHBUTTON      "取消",IDCANCEL,69,179,50,14
+    PUSHBUTTON      "帮助",9,127,179,50,14
+END
+
+mkdir_dlg DIALOGEX 0, 0, 187, 58
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        INP_INPSTR,7,21,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,40,50,14
+    PUSHBUTTON      "取消",IDCANCEL,102,40,50,14
+    LTEXT           "请输入要创建的文件夹的名称。",-1,7,7,160,8
+END
+
+opt_misc_dlg DIALOGEX 0, 0, 211, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "其他"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    CONTROL         "保存窗口位置(&W)",MISC_WINPOS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
+    CONTROL         "将设置保存到INI文件而不是注册表中 (&I)",MISC_REGTYPE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,95,173,10
+    CONTROL         "使用主密码加密所有设置 (&E)",MISC_ENCRYPT_SETTINGS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,111,173,10
+    CONTROL         "调试",MISC_DEBUG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,164,127,40,10
+    PUSHBUTTON      "打开声音",IDC_OPENSOUNDS,7,26,67,14
+END
+
+hostname_dlg DIALOGEX 0, 0, 187, 93
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "连接目标"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "主机名（地址）或URL(&H)",-1,7,6,130,8
+    COMBOBOX        QHOST_HOST,7,16,173,86,CBS_DROPDOWN | CBS_AUTOHSCROLL | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "用户名(&U)",-1,7,34,57,8
+    EDITTEXT        QHOST_USER,7,44,80,12,ES_AUTOHSCROLL
+    LTEXT           "密码/密码短语(&P)",-1,99,34,87,8
+    EDITTEXT        QHOST_PASS,99,44,80,12,ES_PASSWORD | ES_AUTOHSCROLL
+    CONTROL         "使用FireWall(&F)",QHOST_FWALL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,61,75,10
+    CONTROL         "使用PASV模式(&V)",QHOST_PASV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,84,61,83,10
+    DEFPUSHBUTTON   "OK",IDOK,36,75,50,14
+    PUSHBUTTON      "取消",IDCANCEL,101,75,50,14
+END
+
+passwd_dlg DIALOGEX 0, 0, 187, 43
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "密码/密码短语"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_PASSWORD | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,25,50,14
+    PUSHBUTTON      "取消",IDCANCEL,101,25,50,14
+END
+
+newmasterpasswd_dlg DIALOGEX 0, 0, 187, 43
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "请输入新的主密码两次"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_PASSWORD | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,16,25,50,14
+    PUSHBUTTON      "取消",IDCANCEL,68,25,50,14
+    PUSHBUTTON      "帮助",IDHELP,120,25,50,14
+END
+
+username_dlg DIALOGEX 0, 0, 187, 58
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "用户名"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
+    CONTROL         "Anonymous(&A)",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,25,73,10
+    DEFPUSHBUTTON   "OK",IDOK,36,40,50,14
+    PUSHBUTTON      "取消",IDCANCEL,101,40,50,14
+END
+
+chdir_dlg DIALOGEX 0, 0, 187, 43
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "文件夹"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,25,50,14
+    PUSHBUTTON      "取消",IDCANCEL,101,25,50,14
+END
+
+exit_dlg DIALOGEX 0, 0, 143, 64
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "结束FFFTP"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "取消",IDCANCEL,16,46,50,14
+    PUSHBUTTON      "强制终止",IDOK,76,46,50,14
+    LTEXT           "正在传输文件。\n\n请在文件传输完成后退出FFFTP。",-1,7,7,129,33
+END
+
+forcepasschange_dlg DIALOGEX 0, 0, 211, 64
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "确认主密码强制更改"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "启动时无法验证主密码。 强制重置将禁用已注册的FTP密码。\r\n强制更改主密码？",-1,7,7,196,36
+    DEFPUSHBUTTON   "是的",IDOK,48,42,50,14
+    PUSHBUTTON      "没有",IDCANCEL,112,42,50,14
+END
+
+opt_trmode2_dlg DIALOGEX 0, 0, 211, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "传送2"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    GROUPBOX        "重命名文件",-1,7,7,196,69
+    CONTROL         "以小写形式传输文件名(&L)",TRMODE2_LOWER,"Button",BS_AUTORADIOBUTTON | WS_GROUP,13,18,143,10
+    CONTROL         "以大写字母传输文件名(&U)",TRMODE2_UPPER,"Button",BS_AUTORADIOBUTTON,13,30,143,10
+    CONTROL         "按原样传输文件名(&N)",TRMODE2_NOCNV,"Button",BS_AUTORADIOBUTTON,13,42,143,10
+    LTEXT           "网络超时时间(&T)",-1,7,80,131,8
+    EDITTEXT        TRMODE2_TIMEOUT,7,90,26,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",TRMODE2_TIMEOUT_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,33,90,9,14
+    LTEXT           "（0～300秒; 0=无超时）",-1,45,94,107,8
+    LTEXT           "默认本地文件夹(&D)",-1,7,108,196,8
+    EDITTEXT        TRMODE2_LOCAL,7,118,182,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",TRMODE2_LOCAL_BR,190,118,13,13
+    LTEXT           "镜像上传时的设置为、「镜像」列表中的“输入字段”。",-1,18,56,181,17,SS_SUNKEN
+END
+
+opt_notify_dlg DIALOGEX 0, 0, 211, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "操作"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    GROUPBOX        "如果存在同名文件",-1,7,7,196,66,WS_GROUP
+    GROUPBOX        "下载时",-1,11,20,188,23,WS_GROUP
+    CONTROL         "覆盖(&O)",NOTIFY_D_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,30,50,10
+    CONTROL         "显示确认对话框(&D)",NOTIFY_D_DLG,"Button",BS_AUTORADIOBUTTON,80,30,94,10
+    GROUPBOX        "上载时",-1,11,46,188,23,WS_GROUP
+    CONTROL         "覆盖(&W)",NOTIFY_U_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,56,48,10
+    CONTROL         "显示确认对话框(&U)",NOTIFY_U_DLG,"Button",BS_AUTORADIOBUTTON,80,56,106,10
+    GROUPBOX        "双击鼠标的行为",-1,7,77,196,24,WS_GROUP
+    CONTROL         "打开(&P)",NOTIFY_OPEN,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,87,53,10
+    CONTROL         "下载(&L)",NOTIFY_DOWNLOAD,"Button",BS_AUTORADIOBUTTON,80,87,102,10
+    GROUPBOX        "主机内文件移动功能",-1,8,106,196,26,WS_GROUP
+    CONTROL         "未确认(&N)",NOTIFY_M_NODLG,"Button",BS_AUTORADIOBUTTON | WS_GROUP,19,118,56,10
+    CONTROL         "已确认(&Y)",NOTIFY_M_DLG,"Button",BS_AUTORADIOBUTTON,80,118,56,10
+    CONTROL         "不使用(&K)",NOTIFY_M_DISABLE,"Button",BS_AUTORADIOBUTTON,142,118,56,10
+END
+
+bmark_dlg DIALOGEX 0, 0, 222, 109
+STYLE DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "书签"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LISTBOX         BMARK_LIST,7,7,152,75,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "关闭(&O)",IDOK,91,90,50,14
+    PUSHBUTTON      "前往(&J)",BMARK_JUMP,27,90,50,14
+    PUSHBUTTON      "新建(&N)...",BMARK_NEW,165,7,50,14
+    PUSHBUTTON      "更改(&M)...",BMARK_SET,165,26,50,14
+    PUSHBUTTON      "删除(&D)",BMARK_DEL,165,45,50,14
+    PUSHBUTTON      "↑",BMARK_UP,165,65,15,14
+    PUSHBUTTON      "↓",BMARK_DOWN,184,65,15,14
+    SCROLLBAR       BMARK_SIZEGRIP,212,96,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
+    PUSHBUTTON      "帮助",9,165,90,50,14
+END
+
+opt_fire_dlg DIALOGEX 0, 0, 211, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "防火墙"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "FireWall类型(&T)",-1,7,7,90,8
+    COMBOBOX        FIRE_TYPE,7,16,197,104,CBS_DROPDOWNLIST | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "FireWall主机(&H)",-1,7,32,80,8
+    EDITTEXT        FIRE_HOST,7,41,150,12,ES_AUTOHSCROLL
+    LTEXT           "端口(&O)",-1,168,32,36,8
+    EDITTEXT        FIRE_PORT,169,41,35,12,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "FireWall用户名(&U)",-1,7,56,76,8
+    EDITTEXT        FIRE_USER,7,65,68,12,ES_AUTOHSCROLL
+    LTEXT           "FireWall密码(&P)",-1,89,56,76,8
+    EDITTEXT        FIRE_PASS,89,65,68,12,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "修改@(&D)",-1,168,55,41,8
+    EDITTEXT        FIRE_DELIMIT,169,65,35,12,ES_AUTOHSCROLL
+    LTEXT           "安全性(&Q)",-1,7,80,63,8
+    COMBOBOX        FIRE_SECURITY,7,89,57,75,CBS_DROPDOWNLIST | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "让SOCKS服务器查找主机(&R)",FIRE_RESOLV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,71,83,139,10
+    CONTROL         "将OPEN/SITE命令转换为小写(&L)",FIRE_LOWER,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,71,96,139,10
+    CONTROL         "未在主机列表中注册的主机使用FireWall连接(&E)",FIRE_USEIT,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,109,197,10
+    CONTROL         "未在主机列表中注册的主机使用PASV模式(&V)",FIRE_PASV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,122,197,10
+    CONTROL         "不保存FireWall用户名/密码(&N)",FIRE_SHARED,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,135,197,10
+END
+
+hset_adv_dlg DIALOGEX 0, 0, 207, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "扩展"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    CONTROL         "使用FireWall(&F)",HSET_FIREWALL,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,92,10
+    CONTROL         "使用PASV模式(&V)",HSET_PASV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,22,92,10
+    CONTROL         "使用并发文件夹移动(&S)",HSET_SYNCMOVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,37,93,10
+    LTEXT           "端口号(&X)",-1,7,56,54,8
+    EDITTEXT        HSET_PORT,7,66,22,12,ES_AUTOHSCROLL | ES_NUMBER
+    PUSHBUTTON      "标准",HSET_PORT_NOR,30,66,25,13
+    LTEXT           "帐户(&C)",-1,7,87,65,8
+    EDITTEXT        HSET_ACCOUNT,7,97,62,12,ES_AUTOHSCROLL
+    LTEXT           "主机时区(&T)",-1,103,7,81,8
+    COMBOBOX        HSET_TIMEZONE,103,17,71,102,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "安全性(&Q)",-1,103,35,72,8
+    COMBOBOX        HSET_SECURITY,103,45,71,75,CBS_DROPDOWNLIST | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "连接时发送到主机的命令(&I)",-1,103,65,97,8
+    EDITTEXT        HSET_INITCMD,103,76,92,30,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN
+END
+
+diskfull_dlg DIALOGEX 0, 0, 159, 42
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "FFFTP: 错误"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "中止此文件",IDOK,7,24,82,14
+    PUSHBUTTON      "全部中止",IDCANCEL,102,24,50,14
+    CTEXT           "磁盘已满。",-1,7,6,145,10
+END
+
+find_dlg DIALOGEX 0, 0, 187, 56
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
+    CONTROL         "正则表达式(&R)",INP_ANONYMOUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,24,121,10
+    DEFPUSHBUTTON   "OK",IDOK,36,38,50,14
+    PUSHBUTTON      "取消",IDCANCEL,101,38,50,14
+END
+
+downerr_dlg DIALOGEX 0, 0, 223, 103
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
+CAPTION "FFFTP: 错误"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    CONTROL         "稍后覆盖(&O)",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,46,99,10
+    CONTROL         "稍后恢复(&R)",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,58,99,10
+    CONTROL         "不下载(&N)",DOWN_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,70,99,10
+    DEFPUSHBUTTON   "OK",IDOK,8,85,50,14,WS_GROUP
+    PUSHBUTTON      "全部是(&A)",IDOK_ALL,63,85,50,14
+    PUSHBUTTON      "全部中止(&S)",IDCANCEL,118,85,50,14
+    PUSHBUTTON      "帮助",9,173,85,41,14
+    LTEXT           "がダウンロードできませんでした。",-1,7,16,184,10
+    LTEXT           "",UPDOWN_ERR_FNAME,7,4,184,8,SS_NOPREFIX
+    EDITTEXT        UPDOWN_ERR_MSG,7,28,209,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER,WS_EX_STATICEDGE
+END
+
+uperr_dlg DIALOGEX 0, 0, 223, 103
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
+CAPTION "FFFTP: 错误"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    CONTROL         "稍后覆盖(&O)",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,46,99,10
+    CONTROL         "稍后恢复(&R)",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,58,99,10
+    CONTROL         "不上载(&N)",DOWN_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,70,99,10
+    DEFPUSHBUTTON   "OK",IDOK,8,85,50,14,WS_GROUP
+    PUSHBUTTON      "全部是(&A)",IDOK_ALL,63,85,50,14
+    PUSHBUTTON      "全部中止(&S)",IDCANCEL,118,85,50,14
+    PUSHBUTTON      "帮助",9,173,85,41,14
+    LTEXT           "がアップロードできませんでした。",-1,7,16,184,10
+    LTEXT           "",UPDOWN_ERR_FNAME,7,4,184,8,SS_NOPREFIX
+    EDITTEXT        UPDOWN_ERR_MSG,7,28,209,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER,WS_EX_STATICEDGE
+END
+
+hset_code_dlg DIALOGEX 0, 0, 207, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "字符代码"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    GROUPBOX        "主机汉字代码(&K)",-1,7,7,98,106,WS_GROUP
+    CONTROL         "不变换",HSET_NO_CNV,"Button",BS_AUTORADIOBUTTON | WS_GROUP,12,21,81,10
+    CONTROL         "Shift_JIS",HSET_SJIS_CNV,"Button",BS_AUTORADIOBUTTON,12,33,81,10
+    CONTROL         "JIS",HSET_JIS_CNV,"Button",BS_AUTORADIOBUTTON,12,45,41,10
+    CONTROL         "EUC",HSET_EUC_CNV,"Button",BS_AUTORADIOBUTTON,12,57,41,10
+    CONTROL         "UTF-8",HSET_UTF8N_CNV,"Button",BS_AUTORADIOBUTTON,12,69,41,10
+    CONTROL         "UTF-8 BOM",HSET_UTF8BOM_CNV,"Button",BS_AUTORADIOBUTTON,12,81,81,10
+    CONTROL         "将半角假名转换为全角假名",HSET_HANCNV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,12,98,87,10
+    GROUPBOX        "文件名的汉字代码(&N)",-1,110,7,90,127,WS_GROUP
+    CONTROL         "自動",HSET_FN_AUTO_CNV,"Button",BS_AUTORADIOBUTTON | WS_GROUP,114,21,65,10
+    CONTROL         "Shift_JIS",HSET_FN_SJIS_CNV,"Button",BS_AUTORADIOBUTTON,114,33,81,10
+    CONTROL         "JIS",HSET_FN_JIS_CNV,"Button",BS_AUTORADIOBUTTON,114,45,81,10
+    CONTROL         "EUC",HSET_FN_EUC_CNV,"Button",BS_AUTORADIOBUTTON,114,57,81,10
+    CONTROL         "Samba-HEX",HSET_FN_SMH_CNV,"Button",BS_AUTORADIOBUTTON,114,69,81,10
+    CONTROL         "Samba-CAP",HSET_FN_SMC_CNV,"Button",BS_AUTORADIOBUTTON,114,81,81,10
+    CONTROL         "UTF-8",HSET_FN_UTF8N_CNV,"Button",BS_AUTORADIOBUTTON,114,93,81,10
+    CONTROL         "UTF-8 HFS+",HSET_FN_UTF8HFSX_CNV,"Button",BS_AUTORADIOBUTTON,114,105,81,10
+    CONTROL         "将半角假名转换为全角假名",HSET_FN_HANCNV,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,114,119,81,10
+END
+
+opt_trmode1_dlg DIALOGEX 0, 0, 211, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "传送1"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    GROUPBOX        "传输模式",-1,7,7,93,56
+    CONTROL         "总是ASCII模式(&A)",TRMODE_ASCII,"Button",BS_AUTORADIOBUTTON | WS_GROUP,13,19,85,10
+    CONTROL         "总是二进制模式(&B)",TRMODE_BIN,"Button",BS_AUTORADIOBUTTON,13,33,84,10
+    CONTROL         "按文件名切换(&X)",TRMODE_AUTO,"Button",BS_AUTORADIOBUTTON,13,47,81,10
+    LTEXT           "→",-1,98,49,8,8
+    GROUPBOX        "ASCII模式文件名(&F)",-1,104,7,99,70,WS_GROUP
+    LISTBOX         TRMODE_EXT_LIST,109,19,53,53,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "添加(&I)...",TRMODE_ADD,167,19,31,14
+    PUSHBUTTON      "删除",TRMODE_DEL,167,38,31,14
+    CONTROL         "在ASCII模式下上载时、删除EOF(Ctrl-Z)(&Z)",TRMODE_EOF,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,80,196,10
+    CONTROL         "保留上传/下载文件的时间戳(&T)",TRMODE_TIME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,94,196,10
+    CONTROL         "下载时删除文件名中的分号之后的部分(&S)",TRMODE_SEMICOLON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,196,10
+    CONTROL         "重命名文件时创建目录(&D)",TRMODE_MAKEDIR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,196,10
+    CONTROL         "如果无法获取文件列表，则停止传输(&L)",TRMODE_LISTERROR,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,136,196,10
+END
+
+up_exist_dlg DIALOGEX 0, 0, 223, 131
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
+CAPTION "确认上载"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    CONTROL         "覆盖(&O)",UP_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,38,99,10
+    CONTROL         "如果是新的，则覆盖(&T)",UP_EXIST_NEW,"Button",BS_AUTORADIOBUTTON,7,50,99,10
+    CONTROL         "如果较大，则覆盖(&L)",UP_EXIST_LARGE,"Button",BS_AUTORADIOBUTTON,7,62,99,10
+    CONTROL         "恢复(&R)",UP_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,74,99,10
+    CONTROL         "主机命名(&M)",UP_EXIST_UNIQUE,"Button",BS_AUTORADIOBUTTON,7,86,99,10
+    CONTROL         "不上载(&N)",UP_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,98,99,10
+    LTEXT           "如果您使用不同的名称上传，请更改名称并按“覆盖”。",-1,113,39,103,41
+    DEFPUSHBUTTON   "OK",IDOK,8,113,50,14,WS_GROUP
+    PUSHBUTTON      "全部是(&A)",IDOK_ALL,63,113,50,14
+    PUSHBUTTON      "全部中止(&S)",IDCANCEL,118,113,50,14
+    PUSHBUTTON      "帮助",9,173,113,41,14
+    LTEXT           "主机上存在同名文件",-1,7,7,184,8
+    EDITTEXT        UP_EXIST_NAME,7,20,209,12,ES_AUTOHSCROLL
+END
+
+reginit_dlg DIALOGEX 0, 0, 155, 87
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "清除所有设置"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "没有",IDCANCEL,41,49,71,31
+    PUSHBUTTON      "消除",IDOK,125,66,23,14,NOT WS_TABSTOP
+    LTEXT           "清除FFFTP相关的所有配置信息，包括主机设置，然后退出。",-1,28,7,120,24
+    CTEXT           "清除设置？",-1,7,33,141,8
+    ICON            notify,-1,7,7,18,21
+END
+
+updown_as_dlg DIALOGEX 0, 0, 187, 69
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        UPDOWNAS_NEW,7,34,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,35,51,50,14
+    PUSHBUTTON      "中止(&S)",UPDOWNAS_STOP,101,51,50,14
+    LTEXT           "",UPDOWNAS_TEXT,7,7,173,8,SS_NOPREFIX
+    LTEXT           "请重命名。",-1,15,20,133,8
+END
+
+re_passwd_dlg DIALOGEX 0, 0, 187, 62
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "密码"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        INP_INPSTR,7,27,173,12,ES_PASSWORD | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,44,50,14
+    PUSHBUTTON      "取消",IDCANCEL,101,44,50,14
+    LTEXT           "无法登录。\n请输入正确的密码。",-1,7,7,173,19
+END
+
+savepass_dlg DIALOGEX 0, 0, 146, 50
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "保存密码"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "是否要将正确的密码保存到主机设置？",-1,7,7,132,17
+    DEFPUSHBUTTON   "是的",IDOK,17,29,50,14
+    PUSHBUTTON      "没有",IDCANCEL,78,29,50,14
+END
+
+sel_local_dlg DIALOGEX 0, 0, 187, 106
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "选择（本地）"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "要选择的文件(&F)",-1,7,7,109,8
+    EDITTEXT        SEL_FNAME,7,17,173,12,ES_AUTOHSCROLL
+    CONTROL         "正则表达式(&R)",SEL_REGEXP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,34,160,10
+    CONTROL         "主机排除新文件(&N)",SEL_NOOLD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,47,160,10
+    CONTROL         "排除主机上较旧的文件(&O)",SEL_NONEW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,60,160,10
+    CONTROL         "排除主机上已存在的文件(&X)",SEL_NOEXIST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,73,160,10
+    DEFPUSHBUTTON   "OK",IDOK,10,88,50,14
+    PUSHBUTTON      "取消",IDCANCEL,68,88,50,14
+    PUSHBUTTON      "帮助",9,126,88,50,14
+END
+
+sel_remote_dlg DIALOGEX 0, 0, 187, 106
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "选择（主机）"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "要选择的文件(&F)",-1,7,7,109,8
+    EDITTEXT        SEL_FNAME,7,17,173,12,ES_AUTOHSCROLL
+    CONTROL         "正则表达式(&R)",SEL_REGEXP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,34,160,10
+    CONTROL         "本地排除新文件(&N)",SEL_NOOLD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,47,160,10
+    CONTROL         "排除本地较旧的文件(&O)",SEL_NONEW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,60,160,10
+    CONTROL         "排除本地已存在的文件(&X)",SEL_NOEXIST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,73,160,10
+    DEFPUSHBUTTON   "OK",IDOK,10,88,50,14
+    PUSHBUTTON      "取消",IDCANCEL,68,88,50,14
+    PUSHBUTTON      "帮助",9,126,88,50,14
+END
+
+mirror_up_dlg DIALOGEX 0, 0, 195, 135
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "镜像上传"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "查看活动内容",MIRRORUP_DISP,51,114,50,14
+    PUSHBUTTON      "開始(&S)",IDOK,7,114,41,14
+    PUSHBUTTON      "取消",IDCANCEL,104,114,45,14
+    PUSHBUTTON      "帮助",9,152,114,33,14
+    LTEXT           "",-1,7,20,181,76,SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "镜像上载执行以下操作。\n\n  ●本地端-复制到主机端\n\n  ●删除主机端文件\n\n按“显示处理”显示要复制/删除的文件列表。",-1,35,26,146,66
+    CTEXT           "开始镜像上载。",-1,7,7,181,8
+    LTEXT           "↑请确认上述内容",-1,17,102,100,8
+    ICON            notify,-1,12,46,20,20
+END
+
+account_dlg DIALOGEX 0, 0, 187, 42
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "帐户"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,24,50,14
+    PUSHBUTTON      "取消",IDCANCEL,101,24,50,14
+END
+
+opt_mirror_dlg DIALOGEX 0, 0, 211, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "镜像"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    GROUPBOX        "不传输的文件名(&F)",-1,7,7,95,80,WS_GROUP
+    LISTBOX         MIRROR_NOTRN_LIST,12,20,50,63,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "添加(&I)...",MIRROR_NOTRN_ADD,66,20,31,14
+    PUSHBUTTON      "删除",MIRROR_NOTRN_DEL,66,37,31,14
+    LTEXT           "还可以指定文件夹名称",-1,65,56,33,26,SS_SUNKEN
+    GROUPBOX        "不删除的文件名(&R)",-1,108,7,95,80,WS_GROUP
+    LISTBOX         MIRROR_NODEL_LIST,113,20,50,63,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "添加(&A)...",MIRROR_NODEL_ADD,167,20,31,14
+    PUSHBUTTON      "删除",MIRROR_NODEL_DEL,167,37,31,14
+    LTEXT           "还可以指定文件夹名称",-1,166,56,33,25,SS_SUNKEN
+    CONTROL         "以小写形式传输文件名(&L)",MIRROR_LOW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,97,174,10
+    CONTROL         "镜像上载删除文件前确认(&U)",MIRROR_UPDEL_NOTIFY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,111,174,10
+    CONTROL         "删除镜像下载中的文件前确认(&D)",MIRROR_DOWNDEL_NOTIFY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,125,174,10
+    CONTROL         "不通过镜像传输文件内容(&F)",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,139,174,10
+END
+
+somecmd_dlg DIALOGEX 0, 0, 187, 61
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "任意命令"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,10,43,50,14
+    PUSHBUTTON      "取消",IDCANCEL,68,43,50,14
+    PUSHBUTTON      "帮助",9,126,43,50,14
+    LTEXT           "不能指定需要传输文件的命令。",-1,7,24,173,15
+END
+
+downname_dlg DIALOGEX 0, 0, 187, 42
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "要下载的文件"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        INP_INPSTR,7,6,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,24,50,14
+    PUSHBUTTON      "取消",IDCANCEL,101,24,50,14
+END
+
+opt_connect_dlg DIALOGEX 0, 0, 211, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "连接/断开"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    CONTROL         "启动时显示连接对话框(&C)",CONNECT_CONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,173,10
+    CONTROL         "在连接对话框中配置主机(&O)",CONNECT_OLDDLG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,20,173,10
+    CONTROL         "程序结束时拨号(RAS)切断(&D)",CONNECT_RASCLOSE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,33,196,10
+    CONTROL         "拨号(RAS)确认断开连接(&N)",CONNECT_CLOSE_NOTIFY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,27,48,161,10
+    LTEXT           "已连接主机的历史记录数(&H)",-1,7,65,91,8
+    EDITTEXT        CONNECT_HIST,99,63,17,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",CONNECT_HIST_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,116,62,9,14
+    LTEXT           "(0～20)",-1,129,65,31,8
+    CONTROL         "同时在连接历史记录中记住密码(&P)",CONNECT_HIST_PASS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,80,129,10
+    CONTROL         "以匿名FTP快速连接(&A)",CONNECT_QUICK_ANONY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,94,196,10
+    CONTROL         "断开连接时发送QUIT命令(&Q)",CONNECT_SENDQUIT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,108,173,10
+    CONTROL         "无RAS控制(&R)",CONNECT_NORAS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,173,10
+    CONTROL         "尝试在非PASV模式下控制UPnP(&U)",CONNECT_UPNP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,136,173,10
+END
+
+rasnotify_dlg DIALOGEX 0, 0, 158, 46
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "FFFTP"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "是的",IDOK,23,25,50,14
+    PUSHBUTTON      "没有",IDCANCEL,86,25,50,14
+    CTEXT           "是否要断开连接？",-1,7,7,144,8
+END
+
+filesize_dlg DIALOGEX 0, 0, 131, 76
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "文件容量"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,42,55,50,14
+    CTEXT           "",FSIZE_SIZE,7,18,117,8
+    CTEXT           "",FSIZE_TITLE,7,7,117,8
+    LTEXT           "包含小于或等于子文件夹的文件容量。",-1,7,30,117,19,SS_SUNKEN
+END
+
+filesize_notify_dlg DIALOGEX 0, 0, 155, 70
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "文件容量"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,23,49,50,14
+    PUSHBUTTON      "取消",IDCANCEL,82,49,50,14
+    CONTROL         "仅计算选定文件(&S)",FSNOTIFY_SEL_ONLY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,33,141,10
+    CTEXT           "",FSNOTIFY_TITLE,7,7,142,8
+    CTEXT           "（计算可能需要一些时间）",-1,7,19,141,8
+END
+
+hset_adv2_dlg DIALOGEX 0, 0, 207, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "高度"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    CONTROL         "使用LIST命令获取文件列表(&L)",HSET_LISTCMD,"Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,7,7,131,10
+    CONTROL         "如果可能，使用MLSD命令获取列表(&M)",HSET_MLSDCMD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
+    CONTROL         "NLST -R 快速递归搜索(&N)",HSET_NLST_R,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
+    CONTROL         "不以完整路径访问文件(&F)",HSET_FULLPATH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,49,148,10
+    LTEXT           "属性更改命令(&A)",-1,7,65,83,8
+    EDITTEXT        HSET_CHMOD_CMD,7,75,62,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "标准",HSET_CHMOD_NOR,70,75,25,13
+    LTEXT           "主机类型(&H)",-1,7,94,69,8
+    COMBOBOX        HSET_HOSTTYPE,7,104,71,75,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "NLST文件名/选项",-1,7,123,89,8
+    EDITTEXT        HSET_LS_FNAME,7,133,62,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "标准",HSET_LS_FNAME_NOR,70,133,25,13
+END
+
+cwderr_dlg DIALOGEX 0, 0, 154, 69
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "错误"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "中止",IDCANCEL,51,48,50,14
+    LTEXT           "无法继续，因为无法导航到子目录。",-1,7,7,140,18
+    CTEXT           "中止该操作。",-1,7,31,140,8
+END
+
+opt_trmode3_dlg DIALOGEX 0, 0, 211, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "转发3"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    GROUPBOX        "要上载的文件的属性(&P)",-1,7,7,124,95
+    CONTROL         "List1",TRMODE3_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_NOSORTHEADER | WS_BORDER | WS_TABSTOP,13,20,78,77
+    PUSHBUTTON      "添加(&A)...",TRMODE3_ADD,95,20,31,14
+    PUSHBUTTON      "删除",TRMODE3_DEL,95,38,31,14
+    CONTROL         "指定上载时创建的文件夹的属性(&F)",TRMODE3_FOLDER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,109,182,10
+    LTEXT           "属性",-1,18,125,18,8
+    EDITTEXT        TRMODE3_FOLDER_ATTR,37,123,29,12,ES_AUTOHSCROLL | ES_NUMBER
+END
+
+def_attr_dlg DIALOGEX 0, 0, 123, 69
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "设置默认属性"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "文件名(&F)",-1,7,7,49,8
+    EDITTEXT        DEFATTR_FNAME,7,18,47,12,ES_AUTOHSCROLL
+    LTEXT           "→",-1,58,20,8,8
+    LTEXT           "属性(&A)",-1,71,7,40,8
+    EDITTEXT        DEFATTR_ATTR,71,18,31,12,ES_AUTOHSCROLL | ES_NUMBER
+    PUSHBUTTON      "...",DEFATTR_ATTR_BR,102,18,13,12
+    LTEXT           "(例: 644)",-1,72,35,28,8
+    DEFPUSHBUTTON   "OK",IDOK,7,48,50,14
+    PUSHBUTTON      "取消",IDCANCEL,66,48,50,14
+END
+
+fname_in_dlg DIALOGEX 0, 0, 86, 44
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,72,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,7,26,33,14
+    PUSHBUTTON      "取消",IDCANCEL,46,26,33,14
+END
+
+otp_notify_dlg DIALOGEX 0, 0, 141, 60
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "一次性密码"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,45,39,50,14
+    LTEXT           "一次性密码的序列号现在小于或等于10。\n更新序列。",-1,7,7,127,24
+END
+
+otp_calc_dlg DIALOGEX 0, 0, 187, 104
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "一次性密码计算"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "挑战(&C)",-1,7,10,52,8
+    EDITTEXT        OTPCALC_KEY,61,7,119,12,ES_AUTOHSCROLL
+    LTEXT           "密码短语(&P)",-1,7,26,52,8
+    EDITTEXT        OTPCALC_PASS,61,23,119,12,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "响应(&R)",-1,7,42,52,8
+    EDITTEXT        OTPCALC_RES,61,39,119,12,ES_AUTOHSCROLL | ES_READONLY
+    GROUPBOX        "算法",-1,42,54,138,23
+    CONTROL         "MD&4, S/KEY",OTPCALC_MD4,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,49,64,52,10
+    CONTROL         "MD&5",OTPCALC_MD5,"Button",BS_AUTORADIOBUTTON,107,64,29,10
+    CONTROL         "SHA-&1",OTPCALC_SHA1,"Button",BS_AUTORADIOBUTTON,140,64,36,10
+    DEFPUSHBUTTON   "计算",IDOK,10,83,50,14,WS_GROUP
+    PUSHBUTTON      "结束",IDCANCEL,68,83,50,14
+    PUSHBUTTON      "帮助",9,126,83,50,14
+END
+
+mirror_notify_dlg DIALOGEX 0, 0, 174, 171
+STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "镜像上传"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "传输以下文件/删除。",-1,7,6,160,8
+    LISTBOX         MIRROR_LIST,7,16,160,78,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "不传输文件内容(&F)",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,98,10
+    DEFPUSHBUTTON   "执行",IDOK,7,153,50,14
+    PUSHBUTTON      "取消",IDCANCEL,62,153,50,14
+    SCROLLBAR       MIRROR_SIZEGRIP,164,158,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
+    PUSHBUTTON      "帮助",9,117,153,50,14
+    PUSHBUTTON      "从列表中删除",MIRROR_DEL,111,96,56,14,NOT WS_TABSTOP
+    LTEXT           "",MIRROR_COPYNUM,7,115,160,8
+    LTEXT           "",MIRROR_MAKENUM,7,126,160,8
+    LTEXT           "",MIRROR_DELNUM,7,137,160,8
+END
+
+mirrordown_notify_dlg DIALOGEX 0, 0, 174, 171
+STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "镜像下载"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "传输/删除以下文件。",-1,7,6,160,8
+    LISTBOX         MIRROR_LIST,7,16,160,78,LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "不传输文件内容(&F)",MIRROR_NO_TRANSFER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,98,10
+    DEFPUSHBUTTON   "执行",IDOK,7,153,50,14
+    PUSHBUTTON      "取消",IDCANCEL,62,153,50,14
+    SCROLLBAR       MIRROR_SIZEGRIP,164,158,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
+    PUSHBUTTON      "帮助",9,117,153,50,14
+    PUSHBUTTON      "从列表中删除",MIRROR_DEL,111,96,56,14,NOT WS_TABSTOP
+    LTEXT           "",MIRROR_COPYNUM,7,115,160,8
+    LTEXT           "",MIRROR_MAKENUM,7,126,160,8
+    LTEXT           "",MIRROR_DELNUM,7,137,160,8
+END
+
+mirror_down_dlg DIALOGEX 0, 0, 195, 155
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "镜像下载"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "转至“活动视图”(&S)",MIRRORUP_DISP,7,134,85,14
+    PUSHBUTTON      "取消",IDCANCEL,97,134,50,14
+    PUSHBUTTON      "帮助",9,152,134,36,14
+    LTEXT           "",-1,7,19,181,78,SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "镜像下载执行以下操作。\n\n  ●主机端-复制到本地端\n\n  ●删除本地文件\n\n包括删除本地文件。\n请注意。",-1,35,26,146,64
+    CTEXT           "开始镜像下载。",-1,7,7,181,8
+    CTEXT           "★★ 下载 ★★",-1,7,105,181,8
+    LTEXT           "↑请确认上述内容",-1,22,121,94,8
+    ICON            notify,-1,12,34,20,20
+END
+
+chdir_br_dlg DIALOGEX 0, 0, 187, 43
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "文件夹"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        INP_INPSTR,7,8,159,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",INP_BROWSE,167,7,13,14
+    DEFPUSHBUTTON   "OK",IDOK,36,25,50,14
+    PUSHBUTTON      "取消",IDCANCEL,101,25,50,14
+END
+
+filter_dlg DIALOGEX 0, 0, 187, 79
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "过滤器"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        FILTER_STR,7,8,147,12,ES_AUTOHSCROLL
+    LTEXT           "使用分号分隔多个筛选器。（→ *.txt;*.log）\n过滤器设置也会影响文件传输。",-1,13,29,167,27
+    DEFPUSHBUTTON   "OK",IDOK,7,61,41,14
+    PUSHBUTTON      "全表示",FILTER_NOR,51,61,41,14
+    PUSHBUTTON      "取消",IDCANCEL,95,61,41,14
+    PUSHBUTTON      "帮助",9,139,61,41,14
+END
+
+group_dlg DIALOGEX 0, 0, 187, 42
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "组名"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        INP_INPSTR,7,7,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,24,50,14
+    PUSHBUTTON      "取消",IDCANCEL,101,24,50,14
+END
+
+hostdel_dlg DIALOGEX 0, 0, 134, 39
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "删除主机"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "是的(&Y)",IDOK,11,21,50,14
+    PUSHBUTTON      "没有(&N)",IDCANCEL,73,21,50,14
+    LTEXT           "是否删除主机设置？",-1,7,6,120,10
+END
+
+groupdel_dlg DIALOGEX 0, 0, 135, 47
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "删除组"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "是的(&Y)",IDOK,11,29,50,14
+    PUSHBUTTON      "没有(&N)",IDCANCEL,73,29,50,14
+    LTEXT           "删除组和组中所有主机的设置？",-1,7,6,121,18
+END
+
+hostconnect_dlg DIALOGEX 0, 0, 166, 106
+STYLE DS_LOCALEDIT | DS_SETFONT | WS_POPUP | WS_CLIPCHILDREN | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "主机列表"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    CONTROL         "Tree1",HOST_LIST,"SysTreeView32",TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_SHOWSELALWAYS | TVS_FULLROWSELECT | WS_BORDER | WS_TABSTOP,7,6,152,75
+    DEFPUSHBUTTON   "连接(&S)",IDOK,20,88,50,14
+    PUSHBUTTON      "关闭(&O)",IDCANCEL,96,88,50,14
+    SCROLLBAR       HOST_SIZEGRIP,156,92,10,13,SBS_BOTTOMALIGN | SBS_VERT | SBS_SIZEGRIP
+    PUSHBUTTON      "新主机(&N)...",HOST_NEW,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "新建组(&G)...",HOST_FOLDER,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "更改配置(&M)...",HOST_SET,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "复制(&C)",HOST_COPY,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "删除(&D)...",HOST_DEL,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "↑",HOST_UP,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "↓",HOST_DOWN,153,88,6,14,NOT WS_VISIBLE | WS_DISABLED
+END
+
+noresume_dlg DIALOGEX 0, 0, 191, 47
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
+CAPTION "FFFTP: 错误"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "是的",IDOK,7,29,45,14
+    PUSHBUTTON      "中止此文件",IDCANCEL,56,29,78,14
+    PUSHBUTTON      "全部中止",RESUME_CANCEL_ALL,140,29,45,14
+    LTEXT           "此主机不支持恢复。\n是否覆盖？",-1,7,4,177,17
+END
+
+forcerename_dlg DIALOGEX 0, 0, 187, 67
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "下载"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        INP_INPSTR,7,29,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,31,49,50,14
+    PUSHBUTTON      "中止",IDCANCEL,104,49,50,14
+    LTEXT           "文件和文件夹名称中的某些字符不可用。\n请更改名称。",IDC_STATIC,7,7,173,16
+END
+
+hset_dialup_dlg DIALOGEX 0, 0, 207, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "拨号"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    CONTROL         "拨号连接(&D)",HSET_DIALUP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,110,10
+    LTEXT           "要连接的电话簿条目(&E)",-1,19,23,97,8
+    COMBOBOX        HSET_DIALENTRY,19,33,181,101,CBS_DROPDOWNLIST | CBS_SORT | CBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "连接到另一个条目时重新连接到上面(&A)",HSET_DIALUSETHIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,19,53,181,10
+    CONTROL         "重新连接时确认(&N)",HSET_DIALNOTIFY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,31,67,116,10
+END
+
+rasreconnect_dlg DIALOGEX 0, 0, 159, 67
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "FFFTP"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "是的",IDOK,16,46,50,14
+    PUSHBUTTON      "保持当前连接",IDCANCEL,76,46,66,14
+    LTEXT           "断开当前连接的拨号,更改拨号连接。",-1,7,7,145,16
+    CTEXT           "可以吗？",-1,7,30,145,8
+END
+
+opt_disp1_dlg DIALOGEX 0, 0, 211, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "视图1"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "更改(&F)",DISP_FONT_BR,167,7,36,14,WS_GROUP
+    LTEXT           "",-1,7,8,159,14,SS_NOPREFIX | SS_SUNKEN
+    LTEXT           "字体:",-1,9,11,29,8
+    LTEXT           "",DISP_FONT,40,11,123,8
+    CONTROL         "隐藏具有隐藏属性的文件和文件夹(&H)",DISP_HIDE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,30,172,10
+    LTEXT           "如果不显示具有隐藏属性的文件，则镜像上载也不会上载具有隐藏属性的文件。",-1,29,44,167,27,SS_SUNKEN
+    CONTROL         "在本地文件列表中显示驱动器盘符(&D)",DISP_DRIVE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,79,172,10
+    CONTROL         "在本地文件列表中显示图标(&I)",DISP_ICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,93,172,10
+    CONTROL         "显示文件时间戳的秒数(&S)",DISP_SECOND,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,107,172,10
+    LTEXT           "如果显示以秒为单位的时间戳，则在镜像上载等的更新日期和时间比较中不会忽略以秒为单位的时间戳。",-1,29,121,167,27,SS_SUNKEN
+END
+
+bmark_edit_dlg DIALOGEX 0, 0, 187, 83
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "书签"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "本地文件夹名称(&L)",-1,7,7,173,8
+    EDITTEXT        BEDIT_LOCAL,7,17,173,12,ES_AUTOHSCROLL
+    LTEXT           "主机端文件夹(&H)",-1,7,37,173,8
+    EDITTEXT        BEDIT_REMOTE,7,47,173,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,36,65,50,14
+    PUSHBUTTON      "取消",IDCANCEL,101,65,50,14
+END
+
+down_exist_dlg DIALOGEX 0, 0, 223, 120
+STYLE DS_SETFONT | DS_MODALFRAME | DS_SETFOREGROUND | WS_POPUP | WS_CAPTION
+CAPTION "确认下载"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    CONTROL         "覆盖(&O)",DOWN_EXIST_OVW,"Button",BS_AUTORADIOBUTTON | WS_GROUP,7,39,99,10
+    CONTROL         "如果是新的，则覆盖(&T)",DOWN_EXIST_NEW,"Button",BS_AUTORADIOBUTTON,7,51,99,10
+    CONTROL         "如果较大，则覆盖(&L)",DOWN_EXIST_LARGE,"Button",BS_AUTORADIOBUTTON,7,63,99,10
+    CONTROL         "恢复(&R)",DOWN_EXIST_RESUME,"Button",BS_AUTORADIOBUTTON,7,75,99,10
+    CONTROL         "不下载(&N)",DOWN_EXIST_IGNORE,"Button",BS_AUTORADIOBUTTON,7,87,99,10
+    LTEXT           "如果您使用不同的名称下载，请更改名称并按“覆盖”。",-1,113,40,103,39
+    DEFPUSHBUTTON   "OK",IDOK,8,102,50,14,WS_GROUP
+    PUSHBUTTON      "全部是(&A)",IDOK_ALL,63,102,50,14
+    PUSHBUTTON      "全部中止(&S)",IDCANCEL,118,102,50,14
+    PUSHBUTTON      "帮助",9,173,102,41,14
+    LTEXT           "本地端存在同名文件",-1,7,7,184,8
+    EDITTEXT        DOWN_EXIST_NAME,7,20,209,12,ES_AUTOHSCROLL
+END
+
+move_notify_dlg DIALOGEX 0, 0, 201, 82
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "移动文件或文件夹"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "是的",IDOK,44,61,50,14
+    PUSHBUTTON      "没有",IDCANCEL,107,61,50,14
+    LTEXT           "将选定的文件或文件夹",-1,7,7,88,8
+    LTEXT           "静态",COMMON_TEXT,7,20,187,8
+    LTEXT           "导航到文件夹？",-1,7,33,80,8
+    LTEXT           "（不是复制，而是移动。）",-1,7,47,112,8
+END
+
+masterpasswd_dlg DIALOGEX 65535, 65535, 187, 56
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "FFFTP"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "请输入已配置的主密码",-1,7,7,153,8
+    EDITTEXT        INP_INPSTR,7,19,173,12,ES_PASSWORD | ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,14,36,50,14
+    PUSHBUTTON      "取消",IDCANCEL,68,36,50,14
+    PUSHBUTTON      "帮助",IDHELP,122,36,50,14
+END
+
+hset_crypt_dlg DIALOGEX 0, 0, 207, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "加密"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    CONTROL         "允许不加密的连接(&A)",HSET_NO_ENCRYPTION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,148,10
+    CONTROL         "通过FTPS（Explicit）连接(&E)",HSET_FTPES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,148,10
+    CONTROL         "通过FTPS（Implicit）连接(&I)",HSET_FTPIS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,148,10
+END
+
+hset_adv3_dlg DIALOGEX 0, 0, 207, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "特殊功能"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "最大并发连数(&M)",-1,7,10,64,8
+    EDITTEXT        HSET_THREAD_COUNT,72,8,17,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",HSET_THREAD_COUNT_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,89,7,9,14
+    LTEXT           "(1～4)",-1,102,10,31,8
+    CONTROL         "重用主窗口套接字(&S)",HSET_REUSE_SOCKET,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,27,148,10
+    CONTROL         "忽略PASV返回的地址(&A)",HSET_NO_PASV_ADRS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,41,148,10
+    LTEXT           "连接维护命令周期(&K)",-1,7,58,84,8
+    EDITTEXT        HSET_NOOP_INTERVAL,92,56,17,12,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Spin1",HSET_NOOP_INTERVAL_SPN,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS,109,55,9,14
+    LTEXT           "(0～300秒; 0=无效)",-1,122,58,76,8
+    LTEXT           "传输错误处理(&E)",-1,7,75,81,8
+    COMBOBOX        HSET_ERROR_MODE,7,85,71,75,CBS_DROPDOWNLIST | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "传输错误后重新连接(&R)",HSET_ERROR_RECONNECT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,84,85,102,10
+END
+
+savecrypt_dlg DIALOGEX 0, 0, 146, 62
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "保存加密状态"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "是否保存当前加密状态？\r\n「是的」，则不再尝试其他加密方法。",-1,7,7,132,29
+    DEFPUSHBUTTON   "是的",IDOK,17,41,50,14
+    PUSHBUTTON      "没有",IDCANCEL,78,41,50,14
+END
+
+updatesslroot_dlg DIALOGEX 0, 0, 211, 64
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "更新SSL根证书"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "检测到SSL根证书更改。 如果您没有手动更新证书，则可能已被恶意软件或其他工具篡改。\r\n是否要使用已修改的证书？",-1,7,7,196,36
+    DEFPUSHBUTTON   "没有",IDCANCEL,112,42,50,14
+    PUSHBUTTON      "是的",IDOK,48,42,50,14
+END
+
+updown_as_with_ext_dlg DIALOGEX 0, 0, 187, 89
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    EDITTEXT        UPDOWNAS_NEW,7,34,173,12,ES_AUTOHSCROLL
+    LTEXT           "",UPDOWNAS_TEXT,7,7,173,8,SS_NOPREFIX
+    LTEXT           "请更改名称。",-1,15,20,133,8
+    LTEXT           "文卷代码",-1,10,51,44,8
+    EDITTEXT        UPDOWNAS_FILECODE,55,49,21,12,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
+    DEFPUSHBUTTON   "OK",IDOK,35,66,50,14
+    PUSHBUTTON      "中止(&S)",UPDOWNAS_STOP,101,66,50,14
+END
+
+ini_from_reg_dlg DIALOGEX 0, 0, 211, 64
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "导入注册表设置"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "您已配置为使用INI文件，但在注册表中（而不是在INI文件中）检测到设置。\r\n是否要导入注册表设置？",-1,7,7,196,36
+    DEFPUSHBUTTON   "是的",IDOK,48,42,50,14
+    PUSHBUTTON      "没有",IDCANCEL,112,42,50,14
+END
+
+opt_trmode4_dlg DIALOGEX 0, 0, 211, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "传送4"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    GROUPBOX        "本地汉字代码(&L)",-1,7,7,98,82,WS_GROUP
+    CONTROL         "Shift_JIS",TRMODE4_SJIS_CNV,"Button",BS_AUTORADIOBUTTON | WS_GROUP,12,21,81,10
+    CONTROL         "JIS",TRMODE4_JIS_CNV,"Button",BS_AUTORADIOBUTTON,12,33,41,10
+    CONTROL         "EUC",TRMODE4_EUC_CNV,"Button",BS_AUTORADIOBUTTON,12,45,41,10
+    CONTROL         "UTF-8",TRMODE4_UTF8N_CNV,"Button",BS_AUTORADIOBUTTON,12,57,41,10
+    CONTROL         "UTF-8 BOM",TRMODE4_UTF8BOM_CNV,"Button",BS_AUTORADIOBUTTON,12,69,81,10
+    CONTROL         "将信息作为从Internet获取的信息添加到文件(&I)",TRMODE4_MARK_INTERNET,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,96,196,10
+END
+
+opt_disp2_dlg DIALOGEX 0, 0, 211, 155
+STYLE DS_SETFONT | WS_CHILD | WS_DISABLED | WS_CAPTION
+CAPTION "视图2"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    CONTROL         "将文件属性显示为数字(&P)",DISP2_PERMIT_NUM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,196,10
+    CONTROL         "自动更新文件列表(&R)",DISP2_AUTO_REFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,21,196,10
+    CONTROL         "不显示旧处理(&L)",DISP2_REMOVE_OLD_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,196,10
+END
+
+corruptsettings_dlg DIALOGEX 0, 0, 232, 64
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "设置已损坏"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "检测到加密配置损坏或篡改。\r\n加载可能会导致异常停止或设置丢失等问题。",-1,7,7,217,36
+    DEFPUSHBUTTON   "结束",IDCANCEL,8,42,50,14
+    PUSHBUTTON      "全部清除",IDABORT,63,42,50,14
+    PUSHBUTTON      "只读",IDRETRY,118,42,50,14
+    PUSHBUTTON      "忽略",IDIGNORE,173,42,50,14
+END
+
+certerr_dlg DIALOGEX 0, 0, 187, 42
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION
+CAPTION "未保护"
+FONT 9, DIALOGFONT, 0, 0, 0x1
+BEGIN
+    LTEXT           "到此站点的连接不受保护。 是否要继续？",IDC_STATIC,7,7,173,8
+    PUSHBUTTON      "&Yes",IDYES,7,21,50,14
+    PUSHBUTTON      "&No",IDNO,64,21,50,14
+    PUSHBUTTON      "显示证书...",IDC_SHOWCERT,121,21,59,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    about_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 336
+        TOPMARGIN, 4
+    END
+
+    transfer_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 192
+        TOPMARGIN, 5
+        BOTTOMMARGIN, 87
+    END
+
+    rename_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 65
+    END
+
+    delete_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 202
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 51
+    END
+
+    hostlist_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 225
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 132
+    END
+
+    hset_main_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    opt_user_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    opt_tool_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    chmod_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 164
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 106
+    END
+
+    sort_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 193
+    END
+
+    mkdir_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 54
+    END
+
+    opt_misc_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    hostname_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 89
+    END
+
+    passwd_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 39
+    END
+
+    newmasterpasswd_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 39
+    END
+
+    username_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 54
+    END
+
+    chdir_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 39
+    END
+
+    exit_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 136
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 60
+    END
+
+    forcepasschange_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 57
+    END
+
+    opt_trmode2_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    opt_notify_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    bmark_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 215
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 104
+    END
+
+    opt_fire_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    hset_adv_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    diskfull_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 152
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 38
+    END
+
+    find_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 52
+    END
+
+    downerr_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 216
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 99
+    END
+
+    uperr_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 216
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 99
+    END
+
+    hset_code_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    opt_trmode1_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    up_exist_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 216
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 127
+    END
+
+    reginit_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 148
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 80
+    END
+
+    updown_as_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 65
+    END
+
+    re_passwd_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 58
+    END
+
+    savepass_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 139
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 43
+    END
+
+    sel_local_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 102
+    END
+
+    sel_remote_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 102
+    END
+
+    mirror_up_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 188
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 128
+    END
+
+    account_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 38
+    END
+
+    opt_mirror_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    somecmd_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 57
+    END
+
+    downname_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 38
+    END
+
+    opt_connect_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    rasnotify_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 151
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 39
+    END
+
+    filesize_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 124
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 69
+    END
+
+    filesize_notify_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 148
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 63
+    END
+
+    hset_adv2_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    cwderr_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 147
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 62
+    END
+
+    opt_trmode3_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    def_attr_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 116
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 62
+    END
+
+    fname_in_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 79
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 40
+    END
+
+    otp_notify_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 134
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 53
+    END
+
+    otp_calc_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 97
+    END
+
+    mirror_notify_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 167
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 167
+    END
+
+    mirrordown_notify_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 167
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 167
+    END
+
+    mirror_down_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 188
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    chdir_br_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 39
+    END
+
+    filter_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 75
+    END
+
+    group_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 38
+    END
+
+    hostdel_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 127
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 35
+    END
+
+    groupdel_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 128
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 43
+    END
+
+    hostconnect_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 159
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 102
+    END
+
+    noresume_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 184
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 43
+    END
+
+    forcerename_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 63
+    END
+
+    hset_dialup_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    rasreconnect_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 152
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 60
+    END
+
+    opt_disp1_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    bmark_edit_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 79
+    END
+
+    down_exist_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 216
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 116
+    END
+
+    move_notify_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 194
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 75
+    END
+
+    masterpasswd_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 50
+    END
+
+    hset_crypt_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    hset_adv3_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    savecrypt_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 139
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    updatesslroot_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 57
+    END
+
+    updown_as_with_ext_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 82
+    END
+
+    ini_from_reg_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 57
+    END
+
+    opt_trmode4_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    opt_disp2_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 204
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 148
+    END
+
+    corruptsettings_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 225
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 57
+    END
+
+    certerr_dlg, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 180
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 35
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 5,1,0,0
+ PRODUCTVERSION 5,1,0,0
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080004b0"
+        BEGIN
+            VALUE "Comments", "这是免费软件。"
+            VALUE "CompanyName", "Sota, FFFTP Project"
+            VALUE "FileDescription", "FFFTP"
+            VALUE "FileVersion", "5.1.0.0"
+            VALUE "InternalName", "FFFTP"
+            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato).\r\nCopyright (C) 2018-2021, 倉田佐祐理."
+            VALUE "OriginalFilename", "FFFTP.exe"
+            VALUE "ProductName", "FFFTP"
+            VALUE "ProductVersion", "5.1.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x800, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+ffftp_accel ACCELERATORS
+BEGIN
+    VK_APPS,        MENU_APPKEY,            VIRTKEY, NOINVERT
+    "B",            MENU_BMARK_EDIT,        VIRTKEY, CONTROL, NOINVERT
+    "T",            MENU_CHMOD,             VIRTKEY, CONTROL, NOINVERT
+    VK_RETURN,      MENU_CHMOD,             VIRTKEY, ALT, NOINVERT
+    "C",            MENU_CONNECT,           VIRTKEY, CONTROL, NOINVERT
+    VK_RETURN,      MENU_DCLICK,            VIRTKEY, NOINVERT
+    VK_DELETE,      MENU_DELETE,            VIRTKEY, NOINVERT
+    "D",            MENU_DOWNLOAD,          VIRTKEY, CONTROL, NOINVERT
+    "Y",            MENU_FILTER,            VIRTKEY, CONTROL, NOINVERT
+    "F",            MENU_FIND,              VIRTKEY, CONTROL, NOINVERT
+    VK_F3,          MENU_FINDNEXT,          VIRTKEY, NOINVERT
+    VK_F1,          MENU_HELP,              VIRTKEY, NOINVERT
+    "D",            MENU_MIRROR_DOWNLOAD,   VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "U",            MENU_MIRROR_UPLOAD,     VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "K",            MENU_MKDIR,             VIRTKEY, CONTROL, NOINVERT
+    "Q",            MENU_QUICK,             VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          MENU_REFRESH,           VIRTKEY, NOINVERT
+    "N",            MENU_RENAME,            VIRTKEY, CONTROL, NOINVERT
+    VK_F2,          MENU_RENAME,            VIRTKEY, NOINVERT
+    "S",            MENU_SELECT,            VIRTKEY, CONTROL, NOINVERT
+    "A",            MENU_SELECT_ALL,        VIRTKEY, CONTROL, NOINVERT
+    VK_BACK,        MENU_UPDIR,             VIRTKEY, NOINVERT
+    "U",            MENU_UPLOAD,            VIRTKEY, CONTROL, NOINVERT
+    "M",            MENU_XFRMODE,           VIRTKEY, CONTROL, NOINVERT
+    VK_F10,         MENU_APPKEY,            VIRTKEY, SHIFT, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+main_toolbar_bmp TOOLBAR 16, 16
+BEGIN
+    BUTTON      ID_BUTTON40084
+    BUTTON      ID_BUTTON40085
+    BUTTON      ID_BUTTON40086
+    BUTTON      ID_BUTTON40087
+    BUTTON      ID_BUTTON40088
+    BUTTON      ID_BUTTON40089
+    BUTTON      ID_BUTTON40090
+    BUTTON      ID_BUTTON40091
+    BUTTON      ID_BUTTON40092
+    BUTTON      ID_BUTTON40093
+    BUTTON      ID_BUTTON40094
+    BUTTON      ID_BUTTON40095
+    BUTTON      ID_BUTTON40096
+    BUTTON      ID_BUTTON40097
+    BUTTON      ID_BUTTON40098
+    BUTTON      ID_BUTTON40099
+    BUTTON      ID_BUTTON40100
+    BUTTON      ID_BUTTON40101
+    BUTTON      ID_BUTTON40102
+    BUTTON      ID_BUTTON40103
+    BUTTON      ID_BUTTON40104
+    BUTTON      ID_BUTTON40105
+    BUTTON      ID_BUTTON40106
+    BUTTON      ID_BUTTON40107
+    BUTTON      ID_BUTTON40122
+    BUTTON      ID_BUTTON40125
+    BUTTON      ID_BUTTON40156
+    BUTTON      ID_BUTTON40173
+    BUTTON      ID_BUTTON40174
+    BUTTON      ID_BUTTON40175
+END
+
+remote_toolbar_bmp TOOLBAR 16, 16
+BEGIN
+    BUTTON      ID_BUTTON40108
+    BUTTON      ID_BUTTON40109
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN001           "连接已中止."
+    IDS_MSGJPN002           "连接已中止."
+    IDS_MSGJPN003           "\r\n重新连接。\r\n"
+    IDS_MSGJPN004           "已断开连接"
+    IDS_MSGJPN005           "连接已断开."
+    IDS_MSGJPN006           "无法登录FireWall."
+    IDS_MSGJPN007           "无法连接到主机%s。"
+    IDS_MSGJPN008           "无法登录."
+    IDS_MSGJPN009           "无法连接."
+    IDS_MSGJPN010           "未设置FireWall主机名."
+    IDS_MSGJPN011           "缺少主机名."
+    IDS_MSGJPN012           "使用MD5."
+    IDS_MSGJPN013           "使用SHA-1."
+    IDS_MSGJPN014           "使用MD4（S/KEY）."
+    IDS_MSGJPN015           "无法处理一次性密码"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN017           "正在连接到%s主机%s（%s）."
+    IDS_MSGJPN019           "找不到主机%s."
+    IDS_MSGJPN021           "找不到SOCKS服务器%s。"
+    IDS_MSGJPN022           "正在连接到SOCKS服务器%s。"
+    IDS_MSGJPN023           "无法连接到SOCKS服务器."
+    IDS_MSGJPN025           "已连接。"
+    IDS_MSGJPN026           "无法连接."
+    IDS_MSGJPN027           "无法创建套接字."
+    IDS_MSGJPN031           "%s命令未被接受."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN033           "无法发送SOCKS命令 (Cmd = %04X)"
+    IDS_MSGJPN034           "无法接收对SOCKS5命令的回复"
+    IDS_MSGJPN035           "无法接收对SOCKS4命令的回复"
+    IDS_MSGJPN036           "SOCKS服务器验证方法不同."
+    IDS_MSGJPN037           "未通过SOCKS服务器验证."
+    IDS_MSGJPN038           "名称"
+    IDS_MSGJPN039           "日期"
+    IDS_MSGJPN040           "大小"
+    IDS_MSGJPN041           "类型"
+    IDS_MSGJPN042           "名称"
+    IDS_MSGJPN043           "日期"
+    IDS_MSGJPN044           "大小"
+    IDS_MSGJPN045           "类型"
+    IDS_MSGJPN046           "属性"
+    IDS_MSGJPN047           "所有者"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN048           "无法读取临时文件."
+    IDS_MSGJPN049           "无法获取文件列表."
+    IDS_MSGJPN050           "搜索（本地）"
+    IDS_MSGJPN051           "搜索（主机）"
+    IDS_MSGJPN052           "删除: %s"
+    IDS_MSGJPN053           "创建: %s"
+    IDS_MSGJPN054           "传送: %s"
+    IDS_MSGJPN058           "正在传输%d个文件。"
+    IDS_MSGJPN059           "没有要传输的文件。"
+    IDS_MSGJPN060           "创建%d个文件夹。"
+    IDS_MSGJPN061           "没有要创建的文件夹。"
+    IDS_MSGJPN062           "删除%d个文件/文件夹。"
+    IDS_MSGJPN063           "没有要删除的文件/文件夹。"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN064           "重命名并上载"
+    IDS_MSGJPN065           "重命名并下载"
+    IDS_MSGJPN066           "删除（本地）"
+    IDS_MSGJPN067           "删除（主机）"
+    IDS_MSGJPN068           "重命名（本地）"
+    IDS_MSGJPN069           "重命名（主机）"
+    IDS_MSGJPN070           "文件夹创建（本地）"
+    IDS_MSGJPN071           "文件夹创建（主机）"
+    IDS_MSGJPN073           "文件夹更改（主机）"
+    IDS_MSGJPN074           "计算本地端的文件容量。"
+    IDS_MSGJPN075           "计算主机端的文件容量。"
+    IDS_MSGJPN076           "本地文件容量"
+    IDS_MSGJPN077           "主机端文件容量"
+    IDS_MSGJPN078           "文件夹创建"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN080           "删除文件夹"
+    IDS_MSGJPN081           "文件删除"
+    IDS_MSGJPN085           "无法下载名为%s的文件。"
+    IDS_MSGJPN086           "下载"
+    IDS_MSGJPN087           "文件列表检索"
+    IDS_MSGJPN088           "跳过"
+    IDS_MSGJPN089           "正在跳过文件%s。"
+    IDS_MSGJPN090           "不接受命令."
+    IDS_MSGJPN091           "为了下载"
+    IDS_MSGJPN092           "不接受命令."
+    IDS_MSGJPN093           "无法获取地址."
+    IDS_MSGJPN094           "接收失败，超时."
+    IDS_MSGJPN095           "无法创建文件%s。"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN096           "磁盘已满，无法写入."
+    IDS_MSGJPN097           "文件列表检索中止."
+    IDS_MSGJPN098           "文件列表"
+    IDS_MSGJPN099           "下载已中止. (%lld Sec. %lld B/S)."
+    IDS_MSGJPN100           "下载已中止."
+    IDS_MSGJPN101           "文件列表检索成功. (%lld Bytes)"
+    IDS_MSGJPN102           "下载成功. (%d Sec. %d B/S)."
+    IDS_MSGJPN103           "下载成功. (%lld Bytes)"
+    IDS_MSGJPN104           "上传"
+    IDS_MSGJPN105           "无法读取文件%s."
+    IDS_MSGJPN106           "跳"
+    IDS_MSGJPN107           "正在跳过文件%s."
+    IDS_MSGJPN108           "不接受命令."
+    IDS_MSGJPN109           "上传"
+    IDS_MSGJPN110           "不接受命令."
+    IDS_MSGJPN111           "无法获取地址."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN112           "无法打开文件%s。"
+    IDS_MSGJPN113           "上载中止. (%lld Sec. %lld B/S)."
+    IDS_MSGJPN114           "上载中止."
+    IDS_MSGJPN115           "上载成功. (%d Sec. %d B/S)."
+    IDS_MSGJPN116           "上载成功."
+    IDS_MSGJPN119           "二进制"
+    IDS_MSGJPN120           "阿斯基"
+    IDS_MSGJPN121           "不变换"
+    IDS_MSGJPN122           "JIS"
+    IDS_MSGJPN123           "EUC"
+    IDS_MSGJPN124           "删除（本地）"
+    IDS_MSGJPN125           "删除（主机）"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN133           "GMT+09:00 (日本)"
+    IDS_MSGJPN134           "不使用"
+    IDS_MSGJPN135           "自动识别"
+    IDS_MSGJPN136           "OTP MD4, S/KEY"
+    IDS_MSGJPN137           "OTP MD5"
+    IDS_MSGJPN138           "OTP SHA-1"
+    IDS_MSGJPN139           "自动识别"
+    IDS_MSGJPN140           "ACOS"
+    IDS_MSGJPN141           "VAX VMS"
+    IDS_MSGJPN142           "IRMX"
+    IDS_MSGJPN143           "ACOS-4"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN144           "Stratus"
+    IDS_MSGJPN145           "无法修改文件夹."
+    IDS_MSGJPN146           "无法创建文件夹."
+    IDS_MSGJPN148           "无法删除文件夹."
+    IDS_MSGJPN150           "无法删除文件."
+    IDS_MSGJPN151           "无法重命名文件."
+    IDS_MSGJPN154           "连接"
+    IDS_MSGJPN155           "快速连接"
+    IDS_MSGJPN156           "断开"
+    IDS_MSGJPN157           "下载"
+    IDS_MSGJPN158           "上传"
+    IDS_MSGJPN159           "镜像上传"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN160           "删除"
+    IDS_MSGJPN161           "重命名"
+    IDS_MSGJPN162           "文件夹创建"
+    IDS_MSGJPN163           "上移一个文件夹"
+    IDS_MSGJPN164           "移动文件夹"
+    IDS_MSGJPN165           "ASCII传输模式"
+    IDS_MSGJPN166           "二进制传输模式"
+    IDS_MSGJPN167           "按文件名切换传输模式"
+    IDS_MSGJPN168           "刷新视图"
+    IDS_MSGJPN169           "列表"
+    IDS_MSGJPN170           "细节"
+    IDS_MSGJPN171           "主机的汉字代码是EUC"
+    IDS_MSGJPN172           "主机的汉字代码为JIS"
+    IDS_MSGJPN173           "无汉字转换"
+    IDS_MSGJPN174           "将半角假名转换为全角假名"
+    IDS_MSGJPN175           "同时移动文件夹"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN176           "停止接收"
+    IDS_MSGJPN177           "没有配置名称“%s”。"
+    IDS_MSGJPN178           "未指定配置名称."
+    IDS_MSGJPN179           "同时指定了主机名和配置名."
+    IDS_MSGJPN180           "选项“%s”不正确."
+    IDS_MSGJPN182           "无法启动查看器. (ERROR=%d)"
+    IDS_MSGJPN185           "请选择文件夹"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN199           "文件名"
+    IDS_MSGJPN200           "文件名"
+    IDS_MSGJPN201           "属性"
+    IDS_MSGJPN204           "FW用户名-FW密码-SITE主机名"
+    IDS_MSGJPN205           "FW用户名-FW密码-USER用户名@主机名"
+    IDS_MSGJPN206           "FW用户名-FW密码"
+    IDS_MSGJPN207           "USER用户名@主机名"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN208           "OPEN主机名"
+    IDS_MSGJPN209           "SOCKS4"
+    IDS_MSGJPN210           "SOCKS5（未经验证）"
+    IDS_MSGJPN211           "SOCKS5（用户名，密码验证）"
+    IDS_MSGJPN212           "不使用"
+    IDS_MSGJPN213           "自动识别"
+    IDS_MSGJPN214           "OTP MD4,S/KEY"
+    IDS_MSGJPN215           "OTP MD5"
+    IDS_MSGJPN216           "OTP SHA-1"
+    IDS_MSGJPN220           "正在断开拨号连接."
+    IDS_MSGJPN221           "正在拨号连接."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN239           "# 请勿编辑此文件。\n"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN241           "发送失败，超时。"
+    IDS_MSGJPN242           "接收失败，超时。"
+    IDS_MSGJPN243           "接收失败，超时。"
+    IDS_MSGJPN244           "接收固定长度失败"
+    IDS_MSGJPN245           "本地"
+    IDS_MSGJPN246           "主机"
+    IDS_MSGJPN247           "选择%d（%s）"
+    IDS_MSGJPN248           "本地空%s"
+    IDS_MSGJPN249           "等待传输的文件%d个"
+    IDS_MSGJPN250           "正在接收%s"
+    IDS_MSGJPN251           "Err: シード文字列"
+    IDS_MSGJPN253           "Err: 序列号"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN279           "Listen无法获取套接字"
+    IDS_MSGJPN280           "Data无法获取套接字"
+    IDS_MSGJPN281           "无法在PASV模式下连接"
+    IDS_MSGJPN282           "未指定INI文件名"
+    IDS_MSGJPN283           "INI文件规范:%s"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN289           "Agilent Logic分析器"
+    IDS_MSGJPN294           "USER FW用户名:FW密码@主机名"
+    IDS_MSGJPN295           "シバソク WL"
+    IDS_MSGJPN299           "未在命令行中指定主密码"
+    IDS_MSGJPN300           "使用默认主密码.\r\n建议您设置唯一的主密码，以防止恶意软件攻击"
+    IDS_MSGJPN301           "主密码与您的设置不匹配。为了安全起见，我们不会保存您的设置."
+    IDS_MSGJPN302           "无法验证主密码的有效性，因为验证数据已损坏."
+    IDS_MSGJPN303           "主密码已更改"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN305           "Shift_JIS"
+    IDS_MSGJPN306           "UTF-8"
+    IDS_MSGJPN307           "主机的汉字代码Shift_JIS"
+    IDS_MSGJPN308           "主机的汉字代码UTF-8"
+    IDS_MSGJPN309           "本地汉字代码Shift_JIS"
+    IDS_MSGJPN310           "本地汉字代码EUC"
+    IDS_MSGJPN311           "本地汉字代码JIS"
+    IDS_MSGJPN312           "本地汉字代码UTF-8"
+    IDS_MSGJPN314           "通信未加密.\r\n密码和内容可能被第三方截取."
+    IDS_MSGJPN315           "FTP over Explicit SSL/TLS (FTPES)使用."
+    IDS_MSGJPN316           "FTP over Implicit SSL/TLS (FTPIS)使用."
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN329           "UTF-8 BOM"
+    IDS_MSGJPN330           "主机的汉字代码UTF-8 BOM"
+    IDS_MSGJPN331           "本地汉字代码UTF-8 BOM"
+    IDS_MSGJPN335           "每次都问"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN336           "稍后覆盖全部"
+    IDS_MSGJPN337           "一切稍后再恢复"
+    IDS_MSGJPN338           "全部跳过"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MSGJPN2000          "NonStop Server"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_APP                 "FFFTP"
+    IDS_ERR_SSL             "SSL初始化失败.\n退出应用程序."
+    IDS_SECURE              "受保护"
+    IDS_NOTSECURE           "未保护"
+    IDS_FILETYPE_ALL        "所有文件\t*.*\t"
+    IDS_FILETYPE_EXECUTABLE "可执行文件 (*.exe;*.com;*.bat)\t*.exe;*.com;*.bat\t"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_FILETYPE_REG        "注册表文件 (*.reg)\t*.reg\t"
+    IDS_FILETYPE_INI        "INI 文件 (*.ini)\t*.ini\t"
+    IDS_FILETYPE_XML        "XML 文件 (*.xml)\t*.xml\t"
+    IDS_OPEN_WSFTPINI       "打开WS_FTP.INI"
+    IDS_SELECT_VIEWER       "选择查看器"
+    IDS_SAVE_SETTING        "保存配置"
+    IDS_LOAD_SETTING        "加载配置"
+    IDS_OPTION              "选项"
+    IDS_HOSTSETTING         "主机设定"
+    IDS_OPEN_WITH           "打开%s(&%d)"
+    IDS_CANT_SAVE_TO_INI    "无法将设置保存到INI文件"
+    IDS_FAIL_TO_EXEC_REDEDIT "无法启动注册表编辑器"
+    IDS_NEED_RESTART        "从文件恢复设置的步骤,重新启动FFFTP."
+    IDS_MUST_BE_REG_OR_INI  "配置文件必须具有.reg或.ini扩展名。"
+    IDS_REMOVE_READONLY     "这是只读文件。是否要删除只读属性？"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_FAIL_TO_INIT_OLE    "OLE初始化失败."
+    IDS_MASTER_PASSWORD_INCORRECT 
+                            "指定的主密码与注册的密码不匹配.\r\n是否再次输入？\r\n如果选择“否”，则记住的FTP密码不可用."
+    IDS_PASSWORD_ISNOT_IDENTICAL "新主密码不匹配."
+    IDS_MANAGE_STATEFUL_FTP "启用或禁用Windows防火墙的有状态FTP筛选器.\n这仅适用于Windows Vista或更高版本。\n启用或禁用可以改善通信状态。\n选择“是”启用或“否”禁用。"
+    IDS_FAIL_TO_MANAGE_STATEFUL_FTP "ステートフルFTPフィルタを設定できませんでした."
+    IDS_FOUND_NEW_VERSION_INI 
+                            "检测到新版本的配置.\n在此版本中，某些设置可能无法正确加载，或者覆盖此版本中的设置可能会改变。\n选择“是”覆盖并保存此版本的设置。\n选择“否”将设置保存到INI文件，而不是注册表。\n选择“取消”以读取只读设置。"
+    IDS_FAIL_TO_EXPORT      "无法导出配置.\n更改保存位置或格式."
+    IDS_NEED_EXSITING_WINSCP_INI 
+                            "如果WinSCP加载使用此功能新建的INI文件，则所有设置都将丢失.\n如果您已经使用了WinSCP并且只想迁移主机设置，请选择现有的WinSCP.ini。"
+    IDS_INVALID_PATH        "%s是无效的文件名。\r\n此文件将不会下载."
+    IDS_FINISHED            "完成"
+    IDS_CANCELLED           "中止"
+    IDS_COPYRIGHT           "FFFTP Ver.{} {} Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).\r\nCopyright (C) 2018-2021, Kurata Sayuri."
+    IDS_LOCALCMD            ">>{}"
+    IDS_REMOTECMD           ">{}"
+    IDS_SEPARATOR           "----------------------------"
+    IDS_CERTERROR           "证书验证错误: 0x{:08X}: {}"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_REPLY               "{}"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_SOUNDCONNECTED      "连接时"
+    IDS_SOUNDTRANSFERRED    "传输完成时"
+    IDS_SOUNDERROR          "错误时间"
+END
+
+#endif    // Japanese (Japan) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
