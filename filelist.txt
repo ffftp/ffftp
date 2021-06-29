@@ -278,6 +278,16 @@ d	10-14-97  03:34p     <DIR>   Linux
 d	10-14-97  03:34p        12   test.txt
 d	10-14-100 03:34p        12   test.txt
 
+// https://github.com/ffftp/ffftp/issues/289#issuecomment-870108325
+	0         1             2              3
+	-------------------------------------------------------
+d	06-27-21  10:57AM       <DIR>          inetpub
+d	07-16-16  10:23PM       <DIR>          PerfLogs
+d	11-08-17  07:26PM       <DIR>          Program Files
+d	07-16-16  10:23PM       <DIR>          Program Files (x86)
+d	11-08-17  06:48PM       <DIR>          Users
+d	06-27-21  10:57AM       <DIR>          Windows
+
 // Windows Server 2008 R2
 *LIST_DOS_5
 	0          1       2     3
