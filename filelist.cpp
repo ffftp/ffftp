@@ -2140,13 +2140,13 @@ static std::optional<FILELIST> ParseAgilent(boost::smatch const& m) {
 static std::optional<FILELIST> ParseDos(boost::smatch const& m) {
 	SYSTEMTIME systemTime{ .wHour = parse<WORD>(m[9]), .wMinute = parse<WORD>(m[10]) };
 	if (m[1].matched) {
-		systemTime.wYear = parseyear(m[1]);
-		systemTime.wMonth = parse<WORD>(m[3]);
-		systemTime.wDay = parse<WORD>(m[4]);
+		systemTime.wYear = parseyear(m[4]);
+		systemTime.wMonth = parse<WORD>(m[1]);
+		systemTime.wDay = parse<WORD>(m[3]);
 	} else {
-		systemTime.wYear = parseyear(m[8]);
-		systemTime.wMonth = parse<WORD>(m[5]);
-		systemTime.wDay = parse<WORD>(m[7]);
+		systemTime.wYear = parseyear(m[5]);
+		systemTime.wMonth = parse<WORD>(m[7]);
+		systemTime.wDay = parse<WORD>(m[8]);
 	}
 	if (m[11].matched)
 		systemTime.wSecond = parse<WORD>(m[11]);
