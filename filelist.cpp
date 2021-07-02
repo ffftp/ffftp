@@ -94,6 +94,7 @@ static HWND hWndListRemote = NULL;
 
 static WNDPROC LocalProcPtr;
 static WNDPROC RemoteProcPtr;
+static std::vector<FILELIST> localFileList, remoteFileList;
 
 static HIMAGELIST ListImg = NULL;
 // ファイルアイコン表示対応
@@ -831,11 +832,11 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 		SetRemoteDirHist(AskRemoteCurDir());
 		if (Mode == CACHE_LASTREAD || DoDirList(L""sv, 0, CancelCheckWork) == FTP_COMPLETE) {
 			if (auto lines = GetListLine(0)) {
-				std::vector<FILELIST> files;
+				remoteFileList.clear();
 				for (auto const& line : *lines)
 					if (auto p = std::get_if<FILELIST>(&line); p && p->Node != NODE_NONE && AskFilterStr(p->Name, p->Node) == YES && (DotFile == YES || p->Name[0] != '.'))
-						files.emplace_back(*p);
-				DispFileList2View(GetRemoteHwnd(), files);
+						remoteFileList.emplace_back(*p);
+				DispFileList2View(GetRemoteHwnd(), remoteFileList);
 
 				// 先頭のアイテムを選択
 				ListView_SetItemState(GetRemoteHwnd(), 0, LVIS_FOCUSED, LVIS_FOCUSED);
@@ -900,7 +901,6 @@ void RefreshIconImageList(std::vector<FILELIST>& files)
 }
 
 void GetLocalDirForWnd() {
-	std::vector<FILELIST> files;
 	auto const cwd = DoLocalPWD();
 	SetLocalDirHist(cwd);
 	DispLocalFreeSpace(cwd);
@@ -911,23 +911,24 @@ void GetLocalDirForWnd() {
 	ChangeNotification = FindFirstChangeNotificationW(cwd.c_str(), FALSE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE);
 
 	/* ディレクトリ／ファイル */
-	FindFile(cwd / L"*", [&files](WIN32_FIND_DATAW const& data) {
+	localFileList.clear();
+	FindFile(cwd / L"*", [](WIN32_FIND_DATAW const& data) {
 		if (DotFile != YES && data.cFileName[0] == L'.')
 			return true;
 		if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			files.emplace_back(data.cFileName, NODE_DIR, NO, (int64_t)data.nFileSizeHigh << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, FINFO_ALL);
+			localFileList.emplace_back(data.cFileName, NODE_DIR, NO, (int64_t)data.nFileSizeHigh << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, FINFO_ALL);
 		else if (AskFilterStr(data.cFileName, NODE_FILE) == YES)
-			files.emplace_back(data.cFileName, NODE_FILE, NO, (int64_t)data.nFileSizeHigh << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, FINFO_ALL);
+			localFileList.emplace_back(data.cFileName, NODE_FILE, NO, (int64_t)data.nFileSizeHigh << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, FINFO_ALL);
 		return true;
 	});
 
 	/* ドライブ */
 	if (DispDrives)
-		GetDrives([&files](const wchar_t drive[]) { files.emplace_back(drive, NODE_DRIVE, NO, 0, 0, FILETIME{}, FINFO_ALL); });
+		GetDrives([](const wchar_t drive[]) { localFileList.emplace_back(drive, NODE_DRIVE, NO, 0, 0, FILETIME{}, FINFO_ALL); });
 
 	// ファイルアイコン表示対応
-	RefreshIconImageList(files);
-	DispFileList2View(GetLocalHwnd(), files);
+	RefreshIconImageList(localFileList);
+	DispFileList2View(GetLocalHwnd(), localFileList);
 
 	// 先頭のアイテムを選択
 	ListView_SetItemState(GetLocalHwnd(), 0, LVIS_FOCUSED, LVIS_FOCUSED);
