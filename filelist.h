@@ -1,9 +1,8 @@
 // Copyright(C) 2020,2021 Kurata Sayuri. All rights reserved.
 #pragma once
+#include <format>
 #include <string_view>
 #include <tuple>
-#include <assert.h>
-#include <stdio.h>
 
 inline namespace {
 	using namespace std::literals;
@@ -18,19 +17,16 @@ inline namespace {
 			R"(((?:(?:^|;)[^ ;=]+=[^ ;]+)+)(?:;? |;(?=[^ ]+$))(.+)$)"sv, false
 		};
 		static inline const auto unix = [] {
-			static char pattern[1024];
-			auto len = _sprintf_p(
-				pattern, std::size(pattern),
+			static auto const pattern = std::format(
 				// 1. ファイル種別、2. パーミッション、ACL、(リンク)、3. Owner、スキップ、4. サイズ、(5. 月、6. 日、(7. 年|8. 時、9. 分)|10. 年、11. 月、12. 日(?!年)(?!時、 分))、13. ファイル名
-				R"(^ *([-+dfl])([^ ]{9})[.+]?(?:[0-9]+| +[0-9]+|) +([^ ]+) +.*?([0-9]+) +(?:(%2$s)[^ 0-9]* *(%3$s)[^ 0-9]* +(?:(%1$s)[^ 0-9]*|(%4$s)[^ 0-9]+(%5$s)[^ 0-9]*)|(%1$s)[^ 0-9]* +(%2$s)[^ 0-9]* +(%3$s)[^ 0-9]*(?! +%1$s[^ 0-9]* )(?! +%4$s[^ 0-9]+%5$s[^ 0-9]* )) +([^ ].*)$)",
-				"(?:1[6-9][0-9]{2}|[2-9][0-9]{3})",										// %1$s. Year
-				"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|0?[1-9]|1[0-2])",	// %2$s. Month
-				"(?:0?[1-9]|[12][0-9]|3[01])",											// %3$s. Day
-				"(?:[01]?[0-9]|2[0-3])",												// %4$s. Hour
-				"(?:[0-5]?[0-9])"														// %5$s. Minute
+				R"(^ *([-+dfl])([^ ]{{9}})[.+]?(?:[0-9]+| +[0-9]+|) +([^ ]+) +.*?([0-9]+) +(?:({1})[^ 0-9]* *({2})[^ 0-9]* +(?:({0})[^ 0-9]*|({3})[^ 0-9]+({4})[^ 0-9]*)|({0})[^ 0-9]* +({1})[^ 0-9]* +({2})[^ 0-9]*(?! +{0}[^ 0-9]* )(?! +{3}[^ 0-9]+{4}[^ 0-9]* )) +([^ ].*)$)"sv,
+				"(?:1[6-9][0-9]{2}|[2-9][0-9]{3})"sv,									// 0: Year
+				"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|0?[1-9]|1[0-2])"sv,	// 1: Month
+				"(?:0?[1-9]|[12][0-9]|3[01])"sv,										// 2: Day
+				"(?:[01]?[0-9]|2[0-3])"sv,												// 3: Hour
+				"(?:[0-5]?[0-9])"sv														// 4: Minute
 			);
-			assert(0 < len);
-			return std::tuple{ std::string_view{ pattern, (size_t)len }, true };
+			return std::tuple{ std::string_view{ pattern }, true };
 		}();
 		constexpr static std::tuple linux = {
 			// 1. ファイル種別、2. パーミッション、リンク、3. Owner、Group、4. サイズ、5. 年、6. 月、7. 日、8. 時、9. 分、10. ファイル名
@@ -45,20 +41,17 @@ inline namespace {
 			R"(^ *([-+dfl])([^ ]{9}) +[0-9]+ +([0-9]+) +[0-9]+ +([0-9]+) +(.+)$)"sv, false
 		};
 		static inline const auto dos = [] {
-			static char pattern[512];
-			auto len = _sprintf_p(
-				pattern, std::size(pattern),
+			static auto const pattern = std::format(
 				// (1. 月、2. 区切り、3. 日、\2、4. 年 | 5. 年、6. 区切り、7. 月、\6、8. 日) 、9. 時、10. 分、(11. 秒)?、12. AMPM、13. サイズ、14. ファイル名
-				R"(^ *(?:%2$s(-|/)%3$s\2%1$s|%1$s(-|/)%2$s\6%3$s) +%4$s:%5$s(?::%6$s)?([AaPp])?[^ ]* +(<DIR>|[0-9]+) +(.*)$)",
-				"((?:|1[6-9]?|[2-9][0-9])[0-9]{2})",	// %1$s. Year
-				"(0?[1-9]|1[0-2])",						// %2$s. Month
-				"(0?[1-9]|[12][0-9]|3[01])",			// %3$s. Day
-				"([01]?[0-9]|2[0-3])",					// %4$s. Hour
-				"([0-5]?[0-9])",						// %5$s. Minute
-				"([0-5]?[0-9])"							// %6$s. Second
+				R"(^ *(?:{1}(-|/){2}\2{0}|{0}(-|/){1}\6{2}) +{3}:{4}(?::{5})?([AaPp])?[^ ]* +(<DIR>|[0-9]+) +(.*)$)"sv,
+				"((?:|1[6-9]?|[2-9][0-9])[0-9]{2})"sv,	// 0: Year
+				"(0?[1-9]|1[0-2])"sv,					// 1: Month
+				"(0?[1-9]|[12][0-9]|3[01])"sv,			// 2: Day
+				"([01]?[0-9]|2[0-3])"sv,				// 3: Hour
+				"([0-5]?[0-9])"sv,						// 4: Minute
+				"([0-5]?[0-9])"sv						// 5: Second
 			);
-			assert(0 < len);
-			return std::tuple{ std::string_view{ pattern, (size_t)len }, false };
+			return std::tuple{ std::string_view{ pattern }, false };
 		}();
 		constexpr static std::tuple chameleon = {
 			// 1. ファイル名、2. サイズ、3. 月、4. 日、5. 年、6. 時、7. 分、ファイル種別
