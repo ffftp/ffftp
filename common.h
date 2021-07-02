@@ -635,6 +635,7 @@ void ReSortDispList(int Win, int *CancelCheckWork);
 bool CheckFname(std::wstring const& file, std::wstring const& spec);
 void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base);
 void FindFileInList(HWND hWnd, int Type);
+FILELIST const& GetItem(int Win, int Pos);
 int GetCurrentItem(int Win);
 int GetItemCount(int Win);
 int GetSelectedCount(int Win);

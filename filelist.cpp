@@ -965,8 +965,8 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 	SendMessageW(hWnd, WM_SETREDRAW, false, 0);
 	SendMessageW(hWnd, LVM_DELETEALLITEMS, 0, 0);
 
-	for (auto& file : files)
-		AddListView(hWnd, -1, file.Name, file.Node, file.Size, &file.Time, file.Attr, file.Owner, file.Link, file.InfoExist, file.ImageId);
+	for (int index = 0; auto& file : files)
+		AddListView(hWnd, index++, file.Name, file.Node, file.Size, &file.Time, file.Attr, file.Owner, file.Link, file.InfoExist, file.ImageId);
 
 	SendMessageW(hWnd, WM_SETREDRAW, true, 0);
 	UpdateWindow(hWnd);
@@ -1036,12 +1036,10 @@ static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, 
 	std::wstring text;
 
 	/* アイコン/ファイル名 */
-	if (Pos == -1)
-		Pos = std::numeric_limits<int>::max();
 	if (Type == NODE_FILE && AskTransferTypeAssoc(Name, TYPE_X) == TYPE_I)
 		Type = 3;
-	item = { .mask = LVIF_TEXT | LVIF_IMAGE, .iItem = Pos, .pszText = const_cast<LPWSTR>(Name.c_str()), .iImage = DispFileIcon == YES && hWnd == GetLocalHwnd() ? ImageId + 5 : Link == NO ? Type : 4 };
-	Pos = (int)SendMessageW(hWnd, LVM_INSERTITEMW, 0, (LPARAM)&item);
+	item = { .mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM, .iItem = Pos, .pszText = const_cast<LPWSTR>(Name.c_str()), .iImage = DispFileIcon == YES && hWnd == GetLocalHwnd() ? ImageId + 5 : Link == NO ? Type : 4, .lParam = Pos };
+	SendMessageW(hWnd, LVM_INSERTITEMW, 0, (LPARAM)&item);
 
 	/* 日付/時刻 */
 	text = FileTimeToString(*Time, InfoExist);
@@ -1261,6 +1259,14 @@ void FindFileInList(HWND hWnd, int Type) {
 		}
 		break;
 	}
+}
+
+
+// 指定位置のアイテムを返す
+FILELIST const& GetItem(int Win, int Pos) {
+	LVITEMW item{ LVIF_PARAM, Pos, 0 };
+	SendMessageW(Win == WIN_LOCAL ? hWndListLocal : hWndListRemote, LVM_GETITEMW, 0, (LPARAM)&item);
+	return (Win == WIN_LOCAL ? localFileList : remoteFileList)[item.lParam];
 }
 
 
