@@ -1736,7 +1736,7 @@ void MoveRemoteFileProc(int drop_index)
 	auto const HostDir = AskRemoteCurDir();
 
 	// ドロップ先のフォルダ名を得る
-	Pkt.Name = 0 <= drop_index ? GetNodeName(WIN_REMOTE, drop_index) : L".."s;
+	Pkt.Name = 0 <= drop_index ? GetItem(WIN_REMOTE, drop_index).Name : L".."s;
 	if (MoveMode == MOVE_DLG && !Dialog(GetFtpInst(), move_notify_dlg, GetRemoteHwnd(), Data{ Pkt.Name }))
 		return;
 

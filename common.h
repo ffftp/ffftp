@@ -643,7 +643,6 @@ int GetFirstSelected(int Win, int All);
 int GetNextSelected(int Win, int Pos, int All);
 std::wstring GetHotSelected(int Win);
 void SetHotSelected(int Win, std::wstring const& name);
-std::wstring GetNodeName(int Win, int Pos);
 void EraseRemoteDirForWnd(void);
 double GetSelectedTotalSize(int Win);
 int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Base, int *CancelCheckWork);

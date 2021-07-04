@@ -1201,9 +1201,9 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 	}
 	if (Type == SELECT_LIST) {
 		for (int i = 0, Num = GetItemCount(Win); i < Num; i++) {
-			auto const name = GetNodeName(Win, i);
-			LVITEMW item{ 0, 0, 0, SearchFileList(name, Base, COMP_STRICT) != NULL ? LVIS_SELECTED : 0u, LVIS_SELECTED };
-			SendMessageW(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&item);
+			auto const& item = GetItem(Win, i);
+			LVITEMW li{ 0, 0, 0, SearchFileList(item.Name, Base, COMP_STRICT) != NULL ? LVIS_SELECTED : 0u, LVIS_SELECTED };
+			SendMessageW(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&li);
 		}
 		return;
 	}
@@ -1230,7 +1230,7 @@ void FindFileInList(HWND hWnd, int Type) {
 		[[fallthrough]];
 	case FIND_NEXT:
 		for (int i = GetCurrentItem(Win) + 1, Num = GetItemCount(Win); i < Num; i++) {
-			auto match = std::visit([name = GetNodeName(Win, i)](auto&& pattern) {
+			auto match = std::visit([name = GetItem(Win, i).Name](auto&& pattern) {
 				using t = std::decay_t<decltype(pattern)>;
 				if constexpr (std::is_same_v<t, std::wstring>)
 					return CheckFname(name, pattern);
@@ -1351,7 +1351,7 @@ int GetNextSelected(int Win, int Pos, int All) {
 
 std::wstring GetHotSelected(int Win) {
 	auto index = (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, -1, LVNI_FOCUSED);
-	return index != -1 ? GetNodeName(Win, index) : L""s;
+	return index != -1 ? GetItem(Win, index).Name : L""s;
 }
 
 
@@ -1368,19 +1368,6 @@ void SetHotSelected(int Win, std::wstring const& name) {
 static int FindNameNode(int Win, std::wstring const& name) {
 	LVFINDINFOW fi{ LVFI_STRING, name.c_str() };
 	return (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_FINDITEMW, -1, (LPARAM)&fi);
-}
-
-
-static std::wstring GetItemText(int Win, int index, int subitem) {
-	wchar_t buffer[260 + 1];
-	LVITEMW item{ .iSubItem = subitem, .pszText = buffer, .cchTextMax = size_as<int>(buffer) };
-	auto length = SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETITEMTEXTW, index, (LPARAM)&item);
-	return { buffer, (size_t)length };
-}
-
-// 指定位置のアイテムの名前を返す
-std::wstring GetNodeName(int Win, int Pos) {
-	return GetItemText(Win, Pos, 0);
 }
 
 
