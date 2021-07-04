@@ -706,19 +706,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					if (!AskUserOpeDisabled())
 					{
 						FindNextChangeNotification(ChangeNotification);
-						if(AutoRefreshFileList == YES)
-						{
-							int Pos;
-							std::vector<FILELIST> Base;
-							MakeSelectedFileList(WIN_LOCAL, NO, NO, Base, &CancelFlg);
-							auto const name = GetHotSelected(WIN_LOCAL);
-							Pos = (int)SendMessageW(GetLocalHwnd(), LVM_GETTOPINDEX, 0, 0);
-							GetLocalDirForWnd();
-							SelectFileInList(GetLocalHwnd(), SELECT_LIST, Base);
-							SetHotSelected(WIN_LOCAL, name);
-							SendMessageW(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)(SendMessageW(GetLocalHwnd(), LVM_GETITEMCOUNT, 0, 0) - 1), true);
-							SendMessageW(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)Pos, true);
-						}
+						if (AutoRefreshFileList == YES)
+							RefreshLocal();
 					}
 				}
 				if(CancelFlg == YES)

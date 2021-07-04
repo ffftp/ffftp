@@ -45,7 +45,6 @@ static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files);
 static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, std::wstring const& Owner, int Link, int InfoExist, int ImageId);
-static int FindNameNode(int Win, std::wstring const& name);
 static int GetImageIndex(int Win, int Pos);
 static int MakeRemoteTree1(std::wstring const& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
 static int MakeRemoteTree2(std::wstring& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
@@ -1084,6 +1083,31 @@ static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, 
 }
 
 
+void RefreshLocal() {
+	std::vector<std::tuple<std::wstring, UINT>> states;
+	for (int pos = -1; (pos = (int)SendMessageW(hWndListLocal, LVM_GETNEXTITEM, pos, LVNI_SELECTED)) != -1;) {
+		LVITEMW li{ .mask = LVIF_PARAM | LVIF_STATE, .iItem = pos, .stateMask = LVIS_SELECTED };
+		SendMessageW(hWndListLocal, LVM_GETITEMW, 0, (LPARAM)&li);
+		states.emplace_back(localFileList[li.lParam].Name, li.state);
+	}
+	if (auto pos = (int)SendMessageW(hWndListLocal, LVM_GETNEXTITEM, -1, LVNI_FOCUSED); pos != -1)
+		states.emplace_back(GetItem(WIN_LOCAL, pos).Name, LVIS_FOCUSED);
+	auto topPos = (int)SendMessageW(hWndListLocal, LVM_GETTOPINDEX, 0, 0);
+
+	GetLocalDirForWnd();
+
+	for (auto [name, state] : states)
+		if (auto it = std::ranges::find(localFileList, name, &FILELIST::Name); it != end(localFileList)) {
+			LVFINDINFOW lf{ .flags = LVFI_PARAM, .lParam = std::distance(begin(localFileList), it) };
+			auto pos = (int)SendMessageW(hWndListLocal, LVM_FINDITEMW, -1, (LPARAM)&lf);
+			LVITEMW li{ .mask = LVIF_STATE, .iItem = pos, .state = state, .stateMask = state };
+			SendMessageW(hWndListLocal, LVM_SETITEMW, 0, (LPARAM)&li);
+		}
+	SendMessageW(hWndListLocal, LVM_ENSUREVISIBLE, (WPARAM)(size(localFileList) - 1), true);
+	SendMessageW(hWndListLocal, LVM_ENSUREVISIBLE, (WPARAM)topPos, true);
+}
+
+
 /*----- ファイル名一覧ウインドウをソートし直す --------------------------------
 *
 *	Parameter
@@ -1346,28 +1370,6 @@ int GetFirstSelected(int Win, int All) {
 
 int GetNextSelected(int Win, int Pos, int All) {
 	return (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, Pos, All == YES ? LVNI_ALL : LVNI_SELECTED);
-}
-
-
-std::wstring GetHotSelected(int Win) {
-	auto index = (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, -1, LVNI_FOCUSED);
-	return index != -1 ? GetItem(Win, index).Name : L""s;
-}
-
-
-void SetHotSelected(int Win, std::wstring const& name) {
-	if (auto index = FindNameNode(Win, name); index != -1) {
-		LVITEMW item{ .state = LVIS_FOCUSED, .stateMask = LVIS_FOCUSED };
-		SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_SETITEMSTATE, index, (LPARAM)&item);
-	}
-}
-
-
-// 指定された名前のアイテムを探す
-//   -1=見つからなかった
-static int FindNameNode(int Win, std::wstring const& name) {
-	LVFINDINFOW fi{ LVFI_STRING, name.c_str() };
-	return (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_FINDITEMW, -1, (LPARAM)&fi);
 }
 
 
