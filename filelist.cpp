@@ -1384,30 +1384,6 @@ std::wstring GetNodeName(int Win, int Pos) {
 }
 
 
-/*----- 指定位置のアイテムのサイズを返す --------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int Pos : 位置
-*		int *Buf : サイズを返すワーク
-*
-*	Return Value
-*		int ステータス
-*			YES/NO=サイズ情報がなかった
-*----------------------------------------------------------------------------*/
-
-int GetNodeSize(int Win, int Pos, LONGLONG* Buf) {
-	if (auto size = GetItemText(Win, Pos, 2); !empty(size)) {
-		size.erase(std::remove(begin(size), end(size), L','), end(size));
-		*Buf = !empty(size) && std::iswdigit(size[0]) ? stoll(size) : 0;
-		return YES;
-	} else {
-		*Buf = -1;
-		return NO;
-	}
-}
-
-
 /*----- 指定位置のアイテムのイメージ番号を返す ----------------------------------------
 *
 *	Parameter
@@ -1442,34 +1418,13 @@ void EraseRemoteDirForWnd(void)
 }
 
 
-/*----- 選択されているファイルの総サイズを返す --------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*
-*	Return Value
-*		double サイズ
-*----------------------------------------------------------------------------*/
-
-double GetSelectedTotalSize(int Win)
-{
-	double Ret;
-	LONGLONG Size;
-	int Pos;
-
-	Ret = 0;
-	if(GetSelectedCount(Win) > 0)
-	{
-		Pos = GetFirstSelected(Win, NO);
-		while(Pos != -1)
-		{
-			GetNodeSize(Win, Pos, &Size);
-			if(Size >= 0)
-				Ret += Size;
-			Pos = GetNextSelected(Win, Pos, NO);
-		}
-	}
-	return(Ret);
+// 選択されているファイルの総サイズを返す
+double GetSelectedTotalSize(int Win) {
+	long long total = 0;
+	for (int Pos = GetFirstSelected(Win, NO); Pos != -1; Pos = GetNextSelected(Win, Pos, NO))
+		if (auto const& item = GetItem(Win, Pos); 0 < item.Size)
+			total += item.Size;
+	return double(total);
 }
 
 
