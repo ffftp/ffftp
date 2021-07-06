@@ -45,7 +45,6 @@ static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files);
 static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, std::wstring const& Owner, int Link, int InfoExist, int ImageId);
-static int GetImageIndex(int Win, int Pos);
 static int MakeRemoteTree1(std::wstring const& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
 static int MakeRemoteTree2(std::wstring& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
 static void CopyTmpListToFileList(std::vector<FILELIST>& Base, std::vector<FILELIST> const& List);
@@ -1373,23 +1372,6 @@ int GetNextSelected(int Win, int Pos, int All) {
 }
 
 
-/*----- 指定位置のアイテムのイメージ番号を返す ----------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int Pos : 位置
-*
-*	Return Value
-*		int イメージ番号
-*			4 Symlink
-*----------------------------------------------------------------------------*/
-static int GetImageIndex(int Win, int Pos) {
-	LVITEMW item{ .mask = LVIF_IMAGE, .iItem = Pos, .iSubItem = 0 };
-	SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETITEMW, 0, (LPARAM)&item);
-	return item.iImage;
-}
-
-
 /*----- ホスト側のファイル一覧ウインドウをクリア ------------------------------
 *
 *	Parameter
@@ -1443,9 +1425,9 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 					if (DispIgnoreHide == YES && Win == WIN_LOCAL)
 						if (auto attr = GetFileAttributesW((AskLocalCurDir() / Pkt.Name).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_HIDDEN))
 							continue;
-					Pkt.Node = GetImageIndex(Win, Pos) == 4 ? NODE_FILE : NODE_DIR;
+					Pkt.Node = item.Link == YES ? NODE_FILE : NODE_DIR;
 					AddFileList(Pkt, Base);
-					if (GetImageIndex(Win, Pos) != 4) { // symlink
+					if (item.Link == NO) {
 						if (Win == WIN_LOCAL) {
 							if (!MakeLocalTree(item.Name, Base))
 								Sts = FFFTP_FAIL;
