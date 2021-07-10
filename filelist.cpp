@@ -1981,12 +1981,13 @@ static inline std::string_view stripSymlink(std::string_view name) {
 
 static std::optional<FILELIST> ParseMlsd(boost::smatch const& m) {
 	char type = NODE_NONE;
+	char link = NO;
 	int64_t size = 0;
 	int attr = 0;
 	FILETIME fileTime{};
 	std::string_view owner;
 	char infoExist = 0;
-	static const boost::regex re{ R"(([^;=]+)=(([^;=]+)(?:=[^;]*)?))" };
+	static const boost::regex re{ R"(([^;=]+)=([^;]*))" };
 	for (boost::sregex_iterator it{ m[1].begin(), m[1].end(), re }, end; it != end; ++it) {
 		auto factname = lc((*it)[1]);
 		auto value = sv((*it)[2]);
@@ -1995,7 +1996,10 @@ static std::optional<FILELIST> ParseMlsd(boost::smatch const& m) {
 				type = NODE_DIR;
 			else if (lcvalue == "file"sv)
 				type = NODE_FILE;
-			// TODO: OS.unix=symlink、OS.unix=slinkの判定を行っているがバグっていて成功しない
+			else if (lcvalue == "os.unix=symlink"sv || lcvalue.starts_with("os.unix=slink:"sv)) {
+				type = NODE_DIR;
+				link = YES;
+			}
 		} else if (factname == "modify"sv) {
 			infoExist |= FINFO_DATE | FINFO_TIME;
 			SYSTEMTIME systemTime{};
@@ -2015,7 +2019,7 @@ static std::optional<FILELIST> ParseMlsd(boost::smatch const& m) {
 		} else if (factname == "unix.owner"sv)
 			owner = value;
 	}
-	return { { sv(m[2]), type, NO, size, attr, fileTime, owner, infoExist } };
+	return { { sv(m[2]), type, link, size, attr, fileTime, owner, infoExist } };
 }
 
 static std::optional<FILELIST> ParseUnix(boost::smatch const& m) {
