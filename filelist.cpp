@@ -1974,6 +1974,11 @@ static inline FILETIME tofiletime(SYSTEMTIME const& systemTime, bool fix = false
 	return fileTime;
 }
 
+static inline std::string_view stripSymlink(std::string_view name) {
+	auto const pos = name.find(" -> "sv);
+	return pos == std::string_view::npos ? name : name.substr(0, pos);
+}
+
 static std::optional<FILELIST> ParseMlsd(boost::smatch const& m) {
 	char type = NODE_NONE;
 	int64_t size = 0;
@@ -2040,13 +2045,13 @@ static std::optional<FILELIST> ParseUnix(boost::smatch const& m) {
 		systemTime.wDay = parse<WORD>(m[12]);
 	}
 	auto ch = *m[1].begin();
-	return { { sv(m[13]), ch == 'd' || ch == 'l' ? NODE_DIR : NODE_FILE, ch == 'l' ? YES : NO, parse<int64_t>(m[4]), parseattr(m[2]), tofiletime(systemTime, fixtimezone), sv(m[3]), infoExist } };
+	return { { stripSymlink(sv(m[13])), ch == 'd' || ch == 'l' ? NODE_DIR : NODE_FILE, ch == 'l' ? YES : NO, parse<int64_t>(m[4]), parseattr(m[2]), tofiletime(systemTime, fixtimezone), sv(m[3]), infoExist } };
 }
 
 static std::optional<FILELIST> ParseLinux(boost::smatch const& m) {
 	SYSTEMTIME systemTime{ .wYear = parseyear(m[5]), .wMonth = parse<WORD>(m[6]), .wDay = parse<WORD>(m[7]), .wHour = parse<WORD>(m[8]), .wMinute = parse<WORD>(m[9]) };
 	auto ch = *m[1].begin();
-	return { { sv(m[10]), ch == 'd' || ch == 'l' ? NODE_DIR : NODE_FILE, ch == 'l' ? YES : NO, parse<int64_t>(m[4]), parseattr(m[2]), tofiletime(systemTime, true), sv(m[3]), FINFO_SIZE | FINFO_ATTR | FINFO_DATE | FINFO_TIME } };
+	return { { stripSymlink(sv(m[10])), ch == 'd' || ch == 'l' ? NODE_DIR : NODE_FILE, ch == 'l' ? YES : NO, parse<int64_t>(m[4]), parseattr(m[2]), tofiletime(systemTime, true), sv(m[3]), FINFO_SIZE | FINFO_ATTR | FINFO_DATE | FINFO_TIME } };
 }
 
 static std::optional<FILELIST> ParseMelcom80(boost::smatch const& m) {
@@ -2064,7 +2069,7 @@ static std::optional<FILELIST> ParseMelcom80(boost::smatch const& m) {
 
 static std::optional<FILELIST> ParseAgilent(boost::smatch const& m) {
 	auto ch = *m[1].begin();
-	return { { sv(m[5]), ch == 'd' || ch == 'l' ? NODE_DIR : NODE_FILE, ch == 'l' ? YES : NO, parse<int64_t>(m[4]), parseattr(m[2]), {}, sv(m[3]), FINFO_SIZE | FINFO_ATTR } };
+	return { { stripSymlink(sv(m[5])), ch == 'd' || ch == 'l' ? NODE_DIR : NODE_FILE, ch == 'l' ? YES : NO, parse<int64_t>(m[4]), parseattr(m[2]), {}, sv(m[3]), FINFO_SIZE | FINFO_ATTR } };
 }
 
 static std::optional<FILELIST> ParseDos(boost::smatch const& m) {
