@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.5.1 (FTP Client software)
+[Software Name]  FFFTP Ver.5.2 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018-2021, Kurata Sayuri.
@@ -29,12 +29,14 @@ following menu.
 File -> Settings -> Change Master password
 
 
-Changes at 5.1
+Changes at 5.2
 --------------
 
-- Fix bug of cannot open non-ascii folder. #270
-- Fix bug of settings string have training nul. #268
-- Title bar use unicode for performance. #269
+- Use mm/dd/yy instead of yy/mm/dd. #289
+- Support symlink. #295
+- Change strings from UTF-8 char to std::wstring. #10
+- Use std::format() of C++20. #278
+- Use standard cursor instead of custom cursor. #282
 
 
 Outline
