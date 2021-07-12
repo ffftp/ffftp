@@ -706,19 +706,8 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					if (!AskUserOpeDisabled())
 					{
 						FindNextChangeNotification(ChangeNotification);
-						if(AutoRefreshFileList == YES)
-						{
-							int Pos;
-							std::vector<FILELIST> Base;
-							MakeSelectedFileList(WIN_LOCAL, NO, NO, Base, &CancelFlg);
-							auto const name = GetHotSelected(WIN_LOCAL);
-							Pos = (int)SendMessageW(GetLocalHwnd(), LVM_GETTOPINDEX, 0, 0);
-							GetLocalDirForWnd();
-							SelectFileInList(GetLocalHwnd(), SELECT_LIST, Base);
-							SetHotSelected(WIN_LOCAL, name);
-							SendMessageW(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)(SendMessageW(GetLocalHwnd(), LVM_GETITEMCOUNT, 0, 0) - 1), true);
-							SendMessageW(GetLocalHwnd(), LVM_ENSUREVISIBLE, (WPARAM)Pos, true);
-						}
+						if (AutoRefreshFileList == YES)
+							RefreshLocal();
 					}
 				}
 				if(CancelFlg == YES)
@@ -1708,108 +1697,76 @@ static void ExitProc(HWND hWnd)
 }
 
 
-/*----- ファイル名をダブルクリックしたときの処理 ------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int Mode : 常に「開く」動作をするかどうか (YES/NO)
-*		int App : アプリケーション番号（-1=関連づけ優先）
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DoubleClickProc(int Win, int Mode, int App)
-{
-	int Pos;
-	int Type;
-
-	if (!AskUserOpeDisabled())
-	{
+// ファイル名をダブルクリックしたときの処理
+//   Win : ウインドウ番号 (WIN_xxx)
+//   Mode : 常に「開く」動作をするかどうか (YES/NO)
+//   App : アプリケーション番号（-1=関連づけ優先）
+void DoubleClickProc(int Win, int Mode, int App) {
+	if (!AskUserOpeDisabled()) {
 		SetCurrentDirAsDirHist();
-		if(GetSelectedCount(Win) == 1)
-		{
-			if((Pos = GetFirstSelected(Win, NO)) != -1)
-			{
-				auto Tmp = GetNodeName(Win, Pos);
-				Type = GetNodeType(Win, Pos);
-
-				if(Win == WIN_LOCAL)
-				{
-					// ローカルフォルダを開く
-//					if((App != -1) || (Type == NODE_FILE))
-					if((App != -1) || (Type == NODE_FILE) || (Mode == YES))
-					{
-						if((DclickOpen == YES) || (Mode == YES))
-							ExecViewer(AskLocalCurDir() / Tmp, App);
-						else
-							PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
-					}
+		if (int Pos; GetSelectedCount(Win) == 1 && (Pos = GetFirstSelected(Win, NO)) != -1) {
+			auto const& item = GetItem(Win, Pos);
+			if (Win == WIN_LOCAL) {
+				if (App != -1 || item.Node == NODE_FILE || Mode == YES) {
+					if (DclickOpen == YES || Mode == YES)
+						ExecViewer(AskLocalCurDir() / item.Name, App);
 					else
-						ChangeDir(WIN_LOCAL, Tmp);
-				}
-				else if(CheckClosedAndReconnect() == FFFTP_SUCCESS)
-				{
-					if((App != -1) || (Type == NODE_FILE))
-					{
-						if((DclickOpen == YES) || (Mode == YES))
-						{
-							// ビューワ２、３のパスが "d " で始まっていたら差分ビューア使用
-							auto UseDiffViewer = (App == 1 || App == 2) && ViewerName[App].starts_with(L"d "sv);
+						PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
+				} else
+					ChangeDir(WIN_LOCAL, item.Name);
+			} else if (CheckClosedAndReconnect() == FFFTP_SUCCESS) {
+				if (App != -1 || item.Node == NODE_FILE) {
+					if (DclickOpen == YES || Mode == YES) {
+						// ビューワ２、３のパスが "d " で始まっていたら差分ビューア使用
+						auto UseDiffViewer = (App == 1 || App == 2) && ViewerName[App].starts_with(L"d "sv);
 
-							auto remoteDir = tempDirectory() / L"file";
-							fs::create_directory(remoteDir);
-							auto remotePath = remoteDir / (UseDiffViewer ? L"remote." + Tmp : Tmp);
+						auto remoteDir = tempDirectory() / L"file";
+						fs::create_directory(remoteDir);
+						auto remotePath = remoteDir / (UseDiffViewer ? L"remote." + item.Name : item.Name);
 
-							if(AskTransferNow() == YES)
-								SktShareProh();
+						if (AskTransferNow() == YES)
+							SktShareProh();
 
-	//						MainTransPkt.ctrl_skt = AskCmdCtrlSkt();
-							MainTransPkt.Command = L"RETR "s;
-							MainTransPkt.Remote = AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, AskHostLsName(), Tmp) : Tmp;
-							MainTransPkt.Local = remotePath;
-							MainTransPkt.Type = AskTransferTypeAssoc(MainTransPkt.Remote, AskTransferType());
-							MainTransPkt.Size = 1;
-							MainTransPkt.KanjiCode = AskHostKanjiCode();
-							MainTransPkt.KanjiCodeDesired = AskLocalKanjiCode();
-							MainTransPkt.KanaCnv = AskHostKanaCnv();
-							MainTransPkt.Mode = EXIST_OVW;
-							// ミラーリング設定追加
-							MainTransPkt.NoTransfer = NO;
-							MainTransPkt.ExistSize = 0;
-							MainTransPkt.hWndTrans = NULL;
+						MainTransPkt.Command = L"RETR "s;
+						MainTransPkt.Remote = AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, AskHostLsName(), item.Name) : item.Name;
+						MainTransPkt.Local = remotePath;
+						MainTransPkt.Type = AskTransferTypeAssoc(MainTransPkt.Remote, AskTransferType());
+						MainTransPkt.Size = 1;
+						MainTransPkt.KanjiCode = AskHostKanjiCode();
+						MainTransPkt.KanjiCodeDesired = AskLocalKanjiCode();
+						MainTransPkt.KanaCnv = AskHostKanaCnv();
+						MainTransPkt.Mode = EXIST_OVW;
+						// ミラーリング設定追加
+						MainTransPkt.NoTransfer = NO;
+						MainTransPkt.ExistSize = 0;
+						MainTransPkt.hWndTrans = NULL;
 
-							/* 不正なパスを検出 */
-							int Sts = 0;
-							DisableUserOpe();
-							if (CheckPathViolation(MainTransPkt) == NO) {
-								CancelFlg = NO;
-								Sts = DoDownload(AskCmdCtrlSkt(), MainTransPkt, NO, &CancelFlg);
-								if (MarkAsInternet == YES && IsZoneIDLoaded() == YES)
-									MarkFileAsDownloadedFromInternet(remotePath);
-							}
-							EnableUserOpe();
-
-							AddTempFileList(remotePath);
-							if(Sts/100 == FTP_COMPLETE) {
-								if (UseDiffViewer) {
-									ExecViewer2(AskLocalCurDir() / Tmp, remotePath, App);
-								} else {
-									ExecViewer(remotePath, App);
-								}
-							}
+						/* 不正なパスを検出 */
+						int Sts = 0;
+						DisableUserOpe();
+						if (CheckPathViolation(MainTransPkt) == NO) {
+							CancelFlg = NO;
+							Sts = DoDownload(AskCmdCtrlSkt(), MainTransPkt, NO, &CancelFlg);
+							if (MarkAsInternet == YES && IsZoneIDLoaded() == YES)
+								MarkFileAsDownloadedFromInternet(remotePath);
 						}
-						else
-							PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
-					}
-					else
-						ChangeDir(WIN_REMOTE, Tmp);
-				}
+						EnableUserOpe();
+
+						AddTempFileList(remotePath);
+						if (Sts / 100 == FTP_COMPLETE) {
+							if (UseDiffViewer)
+								ExecViewer2(AskLocalCurDir() / item.Name, remotePath, App);
+							else
+								ExecViewer(remotePath, App);
+						}
+					} else
+						PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
+				} else
+					ChangeDir(WIN_REMOTE, item.Name);
 			}
 		}
 		MakeButtonsFocus();
 	}
-	return;
 }
 
 

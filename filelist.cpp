@@ -45,9 +45,6 @@ static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files);
 static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, std::wstring const& Owner, int Link, int InfoExist, int ImageId);
-static int FindNameNode(int Win, std::wstring const& name);
-static bool GetNodeTime(int Win, int Pos, FILETIME& ft);
-static int GetImageIndex(int Win, int Pos);
 static int MakeRemoteTree1(std::wstring const& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
 static int MakeRemoteTree2(std::wstring& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
 static void CopyTmpListToFileList(std::vector<FILELIST>& Base, std::vector<FILELIST> const& List);
@@ -94,6 +91,7 @@ static HWND hWndListRemote = NULL;
 
 static WNDPROC LocalProcPtr;
 static WNDPROC RemoteProcPtr;
+static std::vector<FILELIST> localFileList, remoteFileList;
 
 static HIMAGELIST ListImg = NULL;
 // ファイルアイコン表示対応
@@ -686,7 +684,7 @@ static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPA
 				if (hWndPnt == hWndListRemote)
 					if (LVHITTESTINFO hi{ Point }; ListView_HitTest(hWnd, &hi) != -1 && hi.flags == LVHT_ONITEMLABEL) { // The position is over a list-view item's text.
 						prev_index = hi.iItem;
-						if (GetNodeType(Win, hi.iItem) == NODE_DIR) {
+						if (GetItem(Win, hi.iItem).Node == NODE_DIR) {
 							ListView_SetItemState(hWnd, hi.iItem, LVIS_DROPHILITED, LVIS_DROPHILITED);
 							RemoteDropFileIndex = hi.iItem;
 						}
@@ -831,11 +829,11 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 		SetRemoteDirHist(AskRemoteCurDir());
 		if (Mode == CACHE_LASTREAD || DoDirList(L""sv, 0, CancelCheckWork) == FTP_COMPLETE) {
 			if (auto lines = GetListLine(0)) {
-				std::vector<FILELIST> files;
+				remoteFileList.clear();
 				for (auto const& line : *lines)
 					if (auto p = std::get_if<FILELIST>(&line); p && p->Node != NODE_NONE && AskFilterStr(p->Name, p->Node) == YES && (DotFile == YES || p->Name[0] != '.'))
-						files.emplace_back(*p);
-				DispFileList2View(GetRemoteHwnd(), files);
+						remoteFileList.emplace_back(*p);
+				DispFileList2View(GetRemoteHwnd(), remoteFileList);
 
 				// 先頭のアイテムを選択
 				ListView_SetItemState(GetRemoteHwnd(), 0, LVIS_FOCUSED, LVIS_FOCUSED);
@@ -900,7 +898,6 @@ void RefreshIconImageList(std::vector<FILELIST>& files)
 }
 
 void GetLocalDirForWnd() {
-	std::vector<FILELIST> files;
 	auto const cwd = DoLocalPWD();
 	SetLocalDirHist(cwd);
 	DispLocalFreeSpace(cwd);
@@ -911,23 +908,24 @@ void GetLocalDirForWnd() {
 	ChangeNotification = FindFirstChangeNotificationW(cwd.c_str(), FALSE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_ATTRIBUTES | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE);
 
 	/* ディレクトリ／ファイル */
-	FindFile(cwd / L"*", [&files](WIN32_FIND_DATAW const& data) {
+	localFileList.clear();
+	FindFile(cwd / L"*", [](WIN32_FIND_DATAW const& data) {
 		if (DotFile != YES && data.cFileName[0] == L'.')
 			return true;
 		if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			files.emplace_back(data.cFileName, NODE_DIR, NO, (int64_t)data.nFileSizeHigh << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, FINFO_ALL);
+			localFileList.emplace_back(data.cFileName, NODE_DIR, NO, (int64_t)data.nFileSizeHigh << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, FINFO_ALL);
 		else if (AskFilterStr(data.cFileName, NODE_FILE) == YES)
-			files.emplace_back(data.cFileName, NODE_FILE, NO, (int64_t)data.nFileSizeHigh << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, FINFO_ALL);
+			localFileList.emplace_back(data.cFileName, NODE_FILE, NO, (int64_t)data.nFileSizeHigh << 32 | data.nFileSizeLow, 0, data.ftLastWriteTime, FINFO_ALL);
 		return true;
 	});
 
 	/* ドライブ */
 	if (DispDrives)
-		GetDrives([&files](const wchar_t drive[]) { files.emplace_back(drive, NODE_DRIVE, NO, 0, 0, FILETIME{}, FINFO_ALL); });
+		GetDrives([](const wchar_t drive[]) { localFileList.emplace_back(drive, NODE_DRIVE, NO, 0, 0, FILETIME{}, FINFO_ALL); });
 
 	// ファイルアイコン表示対応
-	RefreshIconImageList(files);
-	DispFileList2View(GetLocalHwnd(), files);
+	RefreshIconImageList(localFileList);
+	DispFileList2View(GetLocalHwnd(), localFileList);
 
 	// 先頭のアイテムを選択
 	ListView_SetItemState(GetLocalHwnd(), 0, LVIS_FOCUSED, LVIS_FOCUSED);
@@ -964,8 +962,8 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 	SendMessageW(hWnd, WM_SETREDRAW, false, 0);
 	SendMessageW(hWnd, LVM_DELETEALLITEMS, 0, 0);
 
-	for (auto& file : files)
-		AddListView(hWnd, -1, file.Name, file.Node, file.Size, &file.Time, file.Attr, file.Owner, file.Link, file.InfoExist, file.ImageId);
+	for (int index = 0; auto& file : files)
+		AddListView(hWnd, index++, file.Name, file.Node, file.Size, &file.Time, file.Attr, file.Owner, file.Link, file.InfoExist, file.ImageId);
 
 	SendMessageW(hWnd, WM_SETREDRAW, true, 0);
 	UpdateWindow(hWnd);
@@ -1035,12 +1033,10 @@ static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, 
 	std::wstring text;
 
 	/* アイコン/ファイル名 */
-	if (Pos == -1)
-		Pos = std::numeric_limits<int>::max();
 	if (Type == NODE_FILE && AskTransferTypeAssoc(Name, TYPE_X) == TYPE_I)
 		Type = 3;
-	item = { .mask = LVIF_TEXT | LVIF_IMAGE, .iItem = Pos, .pszText = const_cast<LPWSTR>(Name.c_str()), .iImage = DispFileIcon == YES && hWnd == GetLocalHwnd() ? ImageId + 5 : Link == NO ? Type : 4 };
-	Pos = (int)SendMessageW(hWnd, LVM_INSERTITEMW, 0, (LPARAM)&item);
+	item = { .mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM, .iItem = Pos, .pszText = const_cast<LPWSTR>(Name.c_str()), .iImage = DispFileIcon == YES && hWnd == GetLocalHwnd() ? ImageId + 5 : Link == NO ? Type : 4, .lParam = Pos };
+	SendMessageW(hWnd, LVM_INSERTITEMW, 0, (LPARAM)&item);
 
 	/* 日付/時刻 */
 	text = FileTimeToString(*Time, InfoExist);
@@ -1083,6 +1079,31 @@ static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, 
 		item = { .mask = LVIF_TEXT, .iItem = Pos, .iSubItem = 5, .pszText = const_cast<LPWSTR>(Owner.c_str()) };
 		SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)&item);
 	}
+}
+
+
+void RefreshLocal() {
+	std::vector<std::tuple<std::wstring, UINT>> states;
+	for (int pos = -1; (pos = (int)SendMessageW(hWndListLocal, LVM_GETNEXTITEM, pos, LVNI_SELECTED)) != -1;) {
+		LVITEMW li{ .mask = LVIF_PARAM | LVIF_STATE, .iItem = pos, .stateMask = LVIS_SELECTED };
+		SendMessageW(hWndListLocal, LVM_GETITEMW, 0, (LPARAM)&li);
+		states.emplace_back(localFileList[li.lParam].Name, li.state);
+	}
+	if (auto pos = (int)SendMessageW(hWndListLocal, LVM_GETNEXTITEM, -1, LVNI_FOCUSED); pos != -1)
+		states.emplace_back(GetItem(WIN_LOCAL, pos).Name, LVIS_FOCUSED);
+	auto topPos = (int)SendMessageW(hWndListLocal, LVM_GETTOPINDEX, 0, 0);
+
+	GetLocalDirForWnd();
+
+	for (auto [name, state] : states)
+		if (auto it = std::ranges::find(localFileList, name, &FILELIST::Name); it != end(localFileList)) {
+			LVFINDINFOW lf{ .flags = LVFI_PARAM, .lParam = std::distance(begin(localFileList), it) };
+			auto pos = (int)SendMessageW(hWndListLocal, LVM_FINDITEMW, -1, (LPARAM)&lf);
+			LVITEMW li{ .mask = LVIF_STATE, .iItem = pos, .state = state, .stateMask = state };
+			SendMessageW(hWndListLocal, LVM_SETITEMW, 0, (LPARAM)&li);
+		}
+	SendMessageW(hWndListLocal, LVM_ENSUREVISIBLE, (WPARAM)(size(localFileList) - 1), true);
+	SendMessageW(hWndListLocal, LVM_ENSUREVISIBLE, (WPARAM)topPos, true);
 }
 
 
@@ -1154,7 +1175,7 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 	if (Type == SELECT_ALL) {
 		LVITEMW item{ 0, 0, 0, GetSelectedCount(Win) <= 1 ? LVIS_SELECTED : 0u, LVIS_SELECTED };
 		for (int i = 0, Num = GetItemCount(Win); i < Num; i++)
-			if (GetNodeType(Win, i) != NODE_DRIVE)
+			if (GetItem(Win, i).Node != NODE_DRIVE)
 				SendMessageW(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&item);
 		return;
 	}
@@ -1168,12 +1189,11 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 			else
 				pattern = boost::wregex{ FindStr, boost::regex_constants::icase };
 			int CsrPos = -1;
+			auto const& thatFileList = WinDst == WIN_LOCAL ? localFileList : remoteFileList;
 			for (int i = 0, Num = GetItemCount(Win); i < Num; i++) {
-				auto const name = GetNodeName(Win, i);
-				int Find = FindNameNode(WinDst, name);
 				UINT state = 0;
-				if (GetNodeType(Win, i) != NODE_DRIVE) {
-					auto matched = std::visit([&name](auto&& pattern) {
+				if (auto const& thisItem = GetItem(Win, i); thisItem.Node != NODE_DRIVE) {
+					auto matched = std::visit([name = thisItem.Name](auto&& pattern) {
 						using t = std::decay_t<decltype(pattern)>;
 						if constexpr (std::is_same_v<t, std::wstring>)
 							return CheckFname(name, pattern);
@@ -1183,18 +1203,9 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 							static_assert(false_v<t>, "not supported variant type.");
 					}, pattern);
 					if (matched) {
-						state = LVIS_SELECTED;
-						if (Find >= 0) {
-							if (IgnoreExist)
-								state = 0;
-							else {
-								FILETIME Time1, Time2;
-								GetNodeTime(Win, i, Time1);
-								GetNodeTime(WinDst, Find, Time2);
-								if (IgnoreNew && CompareFileTime(&Time1, &Time2) > 0 || IgnoreOld && CompareFileTime(&Time1, &Time2) < 0)
-									state = 0;
-							}
-						}
+						auto thatIt = std::ranges::find(thatFileList, thisItem.Name, &FILELIST::Name);
+						if (!(thatIt != end(thatFileList) && (IgnoreExist || IgnoreNew && CompareFileTime(&thisItem.Time, &thatIt->Time) > 0 || IgnoreOld && CompareFileTime(&thisItem.Time, &thatIt->Time) < 0)))
+							state = LVIS_SELECTED;
 					}
 					if (state != 0 && CsrPos == -1)
 						CsrPos = i;
@@ -1213,9 +1224,9 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 	}
 	if (Type == SELECT_LIST) {
 		for (int i = 0, Num = GetItemCount(Win); i < Num; i++) {
-			auto const name = GetNodeName(Win, i);
-			LVITEMW item{ 0, 0, 0, SearchFileList(name, Base, COMP_STRICT) != NULL ? LVIS_SELECTED : 0u, LVIS_SELECTED };
-			SendMessageW(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&item);
+			auto const& item = GetItem(Win, i);
+			LVITEMW li{ 0, 0, 0, SearchFileList(item.Name, Base, COMP_STRICT) != NULL ? LVIS_SELECTED : 0u, LVIS_SELECTED };
+			SendMessageW(hWnd, LVM_SETITEMSTATE, i, (LPARAM)&li);
 		}
 		return;
 	}
@@ -1242,7 +1253,7 @@ void FindFileInList(HWND hWnd, int Type) {
 		[[fallthrough]];
 	case FIND_NEXT:
 		for (int i = GetCurrentItem(Win) + 1, Num = GetItemCount(Win); i < Num; i++) {
-			auto match = std::visit([name = GetNodeName(Win, i)](auto&& pattern) {
+			auto match = std::visit([name = GetItem(Win, i).Name](auto&& pattern) {
 				using t = std::decay_t<decltype(pattern)>;
 				if constexpr (std::is_same_v<t, std::wstring>)
 					return CheckFname(name, pattern);
@@ -1260,6 +1271,14 @@ void FindFileInList(HWND hWnd, int Type) {
 		}
 		break;
 	}
+}
+
+
+// 指定位置のアイテムを返す
+FILELIST const& GetItem(int Win, int Pos) {
+	LVITEMW item{ LVIF_PARAM, Pos, 0 };
+	SendMessageW(Win == WIN_LOCAL ? hWndListLocal : hWndListRemote, LVM_GETITEMW, 0, (LPARAM)&item);
+	return (Win == WIN_LOCAL ? localFileList : remoteFileList)[item.lParam];
 }
 
 
@@ -1353,152 +1372,6 @@ int GetNextSelected(int Win, int Pos, int All) {
 }
 
 
-std::wstring GetHotSelected(int Win) {
-	auto index = (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, -1, LVNI_FOCUSED);
-	return index != -1 ? GetNodeName(Win, index) : L""s;
-}
-
-
-void SetHotSelected(int Win, std::wstring const& name) {
-	if (auto index = FindNameNode(Win, name); index != -1) {
-		LVITEMW item{ .state = LVIS_FOCUSED, .stateMask = LVIS_FOCUSED };
-		SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_SETITEMSTATE, index, (LPARAM)&item);
-	}
-}
-
-
-// 指定された名前のアイテムを探す
-//   -1=見つからなかった
-static int FindNameNode(int Win, std::wstring const& name) {
-	LVFINDINFOW fi{ LVFI_STRING, name.c_str() };
-	return (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_FINDITEMW, -1, (LPARAM)&fi);
-}
-
-
-static std::wstring GetItemText(int Win, int index, int subitem) {
-	wchar_t buffer[260 + 1];
-	LVITEMW item{ .iSubItem = subitem, .pszText = buffer, .cchTextMax = size_as<int>(buffer) };
-	auto length = SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETITEMTEXTW, index, (LPARAM)&item);
-	return { buffer, (size_t)length };
-}
-
-// 指定位置のアイテムの名前を返す
-std::wstring GetNodeName(int Win, int Pos) {
-	return GetItemText(Win, Pos, 0);
-}
-
-
-// 指定位置のアイテムのUTC日付を返す
-static bool GetNodeTime(int Win, int Pos, FILETIME& ft) {
-	// 0123456789012345678
-	// 2021/05/30 10:10:10
-	// 時刻は0始まりでない場合があり、数値確認は12文字目で行う。
-	// 秒が含まれない場合があり、長さは16文字以上とする。
-	if (auto const text = GetItemText(Win, Pos, 1); 16 <= size(text) && iswdigit(text[0]) && iswdigit(text[5]) && iswdigit(text[8]) && iswdigit(text[12]) && iswdigit(text[14])) {
-		SYSTEMTIME st{
-			.wYear = WORD(_wtoi(&text[0])),
-			.wMonth = WORD(_wtoi(&text[5])),
-			.wDay = WORD(_wtoi(&text[8])),
-			.wHour = WORD(_wtoi(&text[11])),
-			.wMinute = WORD(_wtoi(&text[14])),
-			.wSecond = WORD(19 <= size(text) ? _wtoi(&text[17]) : 0),
-		};
-		FILETIME lt;
-		SystemTimeToFileTime(&st, &lt);
-		LocalFileTimeToFileTime(&lt, &ft);
-		return true;
-	}
-	return false;
-}
-
-
-/*----- 指定位置のアイテムのサイズを返す --------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int Pos : 位置
-*		int *Buf : サイズを返すワーク
-*
-*	Return Value
-*		int ステータス
-*			YES/NO=サイズ情報がなかった
-*----------------------------------------------------------------------------*/
-
-int GetNodeSize(int Win, int Pos, LONGLONG* Buf) {
-	if (auto size = GetItemText(Win, Pos, 2); !empty(size)) {
-		size.erase(std::remove(begin(size), end(size), L','), end(size));
-		*Buf = !empty(size) && std::iswdigit(size[0]) ? stoll(size) : 0;
-		return YES;
-	} else {
-		*Buf = -1;
-		return NO;
-	}
-}
-
-
-// 指定位置のアイテムの属性を返す
-int GetNodeAttr(int Win, int Pos, int* Buf) {
-	if (Win == WIN_REMOTE) {
-		auto subitem = 4;
-#if defined(HAVE_TANDEM)
-		if (AskHostType() == HTYPE_TANDEM)
-			subitem = 3;
-#endif
-		if (auto const attr = GetItemText(WIN_REMOTE, Pos, subitem); !empty(attr)) {
-#if defined(HAVE_TANDEM)
-			if (AskHostType() == HTYPE_TANDEM)
-				*Buf = std::iswdigit(attr[0]) ? stoi(attr) : 0;
-			else
-#endif
-			if (9 <= size(attr)) {
-				auto value = 0;
-				for (auto it = begin(attr); auto bit : { 0x400, 0x200, 0x100, 0x40, 0x20, 0x10, 0x4, 0x2, 0x1 })
-					if (*it++ != L'-')
-						value |= bit;
-				*Buf = value;
-			} else if (3 <= size(attr))
-				*Buf = std::stoi(attr, nullptr, 16);
-			return YES;
-		}
-	}
-	*Buf = 0;
-	return NO;
-}
-
-
-/*----- 指定位置のアイテムのタイプを返す --------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int Pos : 位置
-*
-*	Return Value
-*		int タイプ (NODE_xxx)
-*----------------------------------------------------------------------------*/
-
-int GetNodeType(int Win, int Pos) {
-	auto type = GetItemText(Win, Pos, 2);
-	return type == L"<DIR>"sv ? NODE_DIR : type == L"<DRIVE>"sv ? NODE_DRIVE : NODE_FILE;
-}
-
-
-/*----- 指定位置のアイテムのイメージ番号を返す ----------------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int Pos : 位置
-*
-*	Return Value
-*		int イメージ番号
-*			4 Symlink
-*----------------------------------------------------------------------------*/
-static int GetImageIndex(int Win, int Pos) {
-	LVITEMW item{ .mask = LVIF_IMAGE, .iItem = Pos, .iSubItem = 0 };
-	SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETITEMW, 0, (LPARAM)&item);
-	return item.iImage;
-}
-
-
 /*----- ホスト側のファイル一覧ウインドウをクリア ------------------------------
 *
 *	Parameter
@@ -1516,157 +1389,64 @@ void EraseRemoteDirForWnd(void)
 }
 
 
-/*----- 選択されているファイルの総サイズを返す --------------------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*
-*	Return Value
-*		double サイズ
-*----------------------------------------------------------------------------*/
-
-double GetSelectedTotalSize(int Win)
-{
-	double Ret;
-	LONGLONG Size;
-	int Pos;
-
-	Ret = 0;
-	if(GetSelectedCount(Win) > 0)
-	{
-		Pos = GetFirstSelected(Win, NO);
-		while(Pos != -1)
-		{
-			GetNodeSize(Win, Pos, &Size);
-			if(Size >= 0)
-				Ret += Size;
-			Pos = GetNextSelected(Win, Pos, NO);
-		}
-	}
-	return(Ret);
+// 選択されているファイルの総サイズを返す
+double GetSelectedTotalSize(int Win) {
+	long long total = 0;
+	for (int Pos = GetFirstSelected(Win, NO); Pos != -1; Pos = GetNextSelected(Win, Pos, NO))
+		if (auto const& item = GetItem(Win, Pos); 0 < item.Size)
+			total += item.Size;
+	return double(total);
 }
 
 
-
-/*===================================================================
-
-===================================================================*/
-
-
-
-/*----- ファイル一覧で選ばれているファイルをリストに登録する ------------------
-*
-*	Parameter
-*		int Win : ウインドウ番号 (WIN_xxx)
-*		int Expand : サブディレクトリを展開する (YES/NO)
-*		int All : 選ばれていないものもすべて登録する (YES/NO)
-*		FILELIST **Base : ファイルリストの先頭
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Base, int *CancelCheckWork) {
-	int Sts;
-	int Pos;
-	int Node;
-	int Ignore;
-
-	// ファイル一覧バグ修正
-	Sts = FFFTP_SUCCESS;
-	if((All == YES) || (GetSelectedCount(Win) > 0))
-	{
+// ファイル一覧で選ばれているファイルをリストに登録する
+//   Win : ウインドウ番号 (WIN_xxx)
+//   Expand : サブディレクトリを展開する (YES/NO)
+//   All : 選ばれていないものもすべて登録する (YES/NO)
+//   Base : ファイルリスト
+int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Base, int* CancelCheckWork) {
+	int Sts = FFFTP_SUCCESS;
+	if (All == YES || 0 < GetSelectedCount(Win)) {
 		/*===== カレントディレクトリのファイル =====*/
-
-		Pos = GetFirstSelected(Win, All);
-		while(Pos != -1)
-		{
-			Node = GetNodeType(Win, Pos);
-			if((Node == NODE_FILE) ||
-			   ((Expand == NO) && (Node == NODE_DIR)))
-			{
-				FILELIST Pkt{};
-				Pkt.InfoExist = 0;
-				Pkt.Name = GetNodeName(Win, Pos);
-				if(GetNodeSize(Win, Pos, &Pkt.Size) == YES)
-					Pkt.InfoExist |= FINFO_SIZE;
-				if(GetNodeAttr(Win, Pos, &Pkt.Attr) == YES)
-					Pkt.InfoExist |= FINFO_ATTR;
-				if (GetNodeTime(Win, Pos, Pkt.Time))
-					Pkt.InfoExist |= (FINFO_TIME | FINFO_DATE);
-				Pkt.Node = Node;
-
-				Ignore = NO;
-				if((DispIgnoreHide == YES) && (Win == WIN_LOCAL))
-					if (auto attr = GetFileAttributesW((AskLocalCurDir() / Pkt.Name).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_HIDDEN))
-						Ignore = YES;
-
-				if(Ignore == NO)
-					AddFileList(Pkt, Base);
+		for (int Pos = GetFirstSelected(Win, All); Pos != -1; Pos = GetNextSelected(Win, Pos, All))
+			if (auto const& item = GetItem(Win, Pos); item.Node == NODE_FILE || Expand == NO && item.Node == NODE_DIR) {
+				if (DispIgnoreHide == YES && Win == WIN_LOCAL)
+					if (auto attr = GetFileAttributesW((AskLocalCurDir() / item.Name).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_HIDDEN))
+						continue;
+				AddFileList(item, Base);
 			}
-			Pos = GetNextSelected(Win, Pos, All);
-		}
 
-		if(Expand == YES)
-		{
+		if (Expand == YES) {
 			/*===== ディレクトリツリー =====*/
-
-			Pos = GetFirstSelected(Win, All);
-			while(Pos != -1)
-			{
-				if(GetNodeType(Win, Pos) == NODE_DIR)
-				{
+			for (int Pos = GetFirstSelected(Win, All); Pos != -1; Pos = GetNextSelected(Win, Pos, All)) {
+				if (auto const& item = GetItem(Win, Pos); item.Node == NODE_DIR) {
 					FILELIST Pkt{};
-					auto name = GetNodeName(Win, Pos);
-					Pkt.Name = ReplaceAll(std::wstring{ name }, L'\\', L'/');
-//8/26
-
-					Ignore = NO;
-					if((DispIgnoreHide == YES) && (Win == WIN_LOCAL))
+					Pkt.Name = ReplaceAll(std::wstring{ item.Name }, L'\\', L'/');
+					if (DispIgnoreHide == YES && Win == WIN_LOCAL)
 						if (auto attr = GetFileAttributesW((AskLocalCurDir() / Pkt.Name).c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_HIDDEN))
-							Ignore = YES;
-
-					if(Ignore == NO)
-					{
-//						Pkt.Node = NODE_DIR;
-						if(GetImageIndex(Win, Pos) == 4) // symlink
-							Pkt.Node = NODE_FILE;
-						else
-							Pkt.Node = NODE_DIR;
-						AddFileList(Pkt, Base);
-
-						if(GetImageIndex(Win, Pos) != 4) { // symlink
-							if(Win == WIN_LOCAL)
-							{
-								if(!MakeLocalTree(name, Base))
+							continue;
+					Pkt.Node = item.Link == YES ? NODE_FILE : NODE_DIR;
+					AddFileList(Pkt, Base);
+					if (item.Link == NO) {
+						if (Win == WIN_LOCAL) {
+							if (!MakeLocalTree(item.Name, Base))
+								Sts = FFFTP_FAIL;
+						} else {
+							auto const Cur = AskRemoteCurDir();
+							if (AskListCmdMode() == NO && AskUseNLST_R() == YES) {
+								if (MakeRemoteTree1(item.Name, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
 									Sts = FFFTP_FAIL;
-							}
-							else
-							{
-								auto const Cur = AskRemoteCurDir();
-
-								if((AskListCmdMode() == NO) &&
-								   (AskUseNLST_R() == YES))
-								{
-									if(MakeRemoteTree1(name, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
-										Sts = FFFTP_FAIL;
-								}
-								else
-								{
-									if(MakeRemoteTree2(name, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
-										Sts = FFFTP_FAIL;
-								}
+							} else {
+								if (auto name = item.Name; MakeRemoteTree2(name, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
+									Sts = FFFTP_FAIL;
 							}
 						}
 					}
 				}
-				Pos = GetNextSelected(Win, Pos, All);
 			}
 		}
 	}
-	// ファイル一覧バグ修正
-//	return;
-	return(Sts);
+	return Sts;
 }
 
 
