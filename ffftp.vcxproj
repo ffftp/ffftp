@@ -249,7 +249,6 @@
     <ClCompile Include="socket.cpp" />
     <ClCompile Include="statuswin.cpp" />
     <ClCompile Include="taskwin.cpp" />
-    <ClCompile Include="tool.cpp" />
     <ClCompile Include="toolmenu.cpp" />
   </ItemGroup>
   <ItemGroup>

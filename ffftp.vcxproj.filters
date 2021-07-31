@@ -66,9 +66,6 @@
     <ClCompile Include="toolmenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="tool.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="taskwin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
