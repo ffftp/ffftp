@@ -97,7 +97,8 @@ void CodeDetector::Test(std::string_view str) {
 
 
 static void fullwidth(std::wstring& str) {
-	static boost::wregex re{ LR"([\uFF61-\uFF9F]+)" };
+	// 半角カタカナ ｡ \uFF61 ～ ﾟ \uFF9F
+	static boost::wregex re{ LR"([｡-ﾟ]+)" };
 	str = replace<wchar_t>(str, re, [](auto const& m) { return NormalizeString(NormalizationKC, { m[0].first, (size_t)m.length() }); });
 }
 
@@ -302,7 +303,7 @@ std::string ConvertTo(std::wstring_view str, int kanji, int kana) {
 		// U+02000–U+02FFF       2000-2FFF
 		// U+0F900–U+0FAFF       F900-FAFF
 		// U+2F800–U+2FAFF  D87E DC00-DEFF
-		static boost::wregex re{ LR"((.*?)((?:[\u2000-\u2FFF\uF900-\uFAFF]|\uD87E[\uDC00-\uDEFF])+|$))" };
+		static boost::wregex re{ LR"((.*?)((?:[\x{2000}-\x{2FFF}\x{F900}-\x{FAFF}]|\x{D87E}[\x{DC00}-\x{DEFF}])+|$))" };
 		auto const temp = replace<wchar_t>(str, re, [](auto const& m) { return NormalizeString(NormalizationD, sv(m[1])).append(sv(m[2])); });
 		return convert(temp, CP_UTF8);
 	}
