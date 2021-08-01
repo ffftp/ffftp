@@ -1055,12 +1055,6 @@ int CalcPixelY(int y);
 
 std::string Make6WordPass(int seq, std::string_view seed, std::string_view pass, int type);
 
-/*===== tool.c =====*/
-
-void OtpCalcTool(void);
-// FTPS対応
-void TurnStatefulFTPFilter();
-
 /*===== history.c =====*/
 
 void AddHostToHistory(Host const& host);

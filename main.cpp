@@ -666,6 +666,54 @@ HINSTANCE GetFtpInst() {
 }
 
 
+static void OtpCalcTool() {
+	struct Data {
+		using result_t = int;
+		using AlgoButton = RadioButton<OTPCALC_MD4, OTPCALC_MD5, OTPCALC_SHA1>;
+		INT_PTR OnInit(HWND hDlg) {
+			SendDlgItemMessageW(hDlg, OTPCALC_KEY, EM_LIMITTEXT, 40, 0);
+			SendDlgItemMessageW(hDlg, OTPCALC_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
+			AlgoButton::Set(hDlg, MD4);
+			return(TRUE);
+		}
+		void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK:
+			{
+				static boost::wregex re{ LR"(^ *(\d+)(?=[^ ]* +([^ ]+)))" };
+				auto const key = GetText(hDlg, OTPCALC_KEY);
+				if (boost::wsmatch m; boost::regex_search(key, m, re)) {
+					if (m[2].matched) {
+						auto seq = std::stoi(m[1]);
+						auto seed = u8(m[2].str());
+						auto pass = u8(GetText(hDlg, OTPCALC_PASS));
+						auto result = Make6WordPass(seq, seed, pass, AlgoButton::Get(hDlg));
+						SetText(hDlg, OTPCALC_RES, u8(result));
+					} else
+						SetText(hDlg, OTPCALC_RES, GetString(IDS_MSGJPN251));
+				} else
+					SetText(hDlg, OTPCALC_RES, GetString(IDS_MSGJPN253));
+				break;
+			}
+			case IDCANCEL:
+				EndDialog(hDlg, NO);
+				break;
+			case IDHELP:
+				ShowHelp(IDH_HELP_TOPIC_0000037);
+				break;
+			}
+		}
+	};
+	Dialog(GetFtpInst(), otp_calc_dlg, GetMainHwnd(), Data{});
+}
+
+static void TurnStatefulFTPFilter() {
+	if (auto ID = Message(IDS_MANAGE_STATEFUL_FTP, MB_YESNOCANCEL); ID == IDYES || ID == IDNO)
+		if (PtrToInt(ShellExecuteW(NULL, L"runas", L"netsh", ID == IDYES ? L"advfirewall set global statefulftp enable" : L"advfirewall set global statefulftp disable", systemDirectory().c_str(), SW_SHOW)) <= 32)
+			Message(IDS_FAIL_TO_MANAGE_STATEFUL_FTP, MB_OK | MB_ICONERROR);
+}
+
+
 /*----- メインウインドウのメッセージ処理 --------------------------------------
 *
 *	Parameter
