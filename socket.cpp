@@ -554,7 +554,7 @@ int GetAsyncTableDataMapPort(SOCKET s, int* Port) {
 SOCKET do_socket(int af, int type, int protocol) {
 	auto s = socket(af, type, protocol);
 	if (s == INVALID_SOCKET) {
-		Debug(L"socket: socket failed: 0x{:08X}."sv, WSAGetLastError());
+		WSAError(L"socket()"sv);
 		return INVALID_SOCKET;
 	}
 	RegisterAsyncTable(s);

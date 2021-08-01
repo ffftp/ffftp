@@ -129,5 +129,5 @@ void detail::Debug(std::wstring_view format, std::wformat_args args) {
 
 void Error(std::wstring_view functionName, int lastError) {
 	if (DebugConsole == YES)
-		Debug(L"{}() failed: {}"sv, functionName, GetErrorMessage(lastError));
+		Debug(L"{} failed(0x{:08X}): {}"sv, functionName, unsigned(lastError), GetErrorMessage(lastError));
 }
