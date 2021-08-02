@@ -344,7 +344,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, std::wstring_view Serve
 					break;
 				}
 				if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
-					Debug(L"AttachSSL recv error: {}."sv, lastError);
+					Error(L"AttachSSL: recv()"sv, lastError);
 					return FALSE;
 				}
 				Sleep(0);
@@ -420,9 +420,9 @@ static int FTPS_recv(SOCKET s, char* buf, int len, int flags) {
 			context->readRaw.resize(offset);
 #ifdef _DEBUG
 			if (read == 0)
-				_RPTW0(_CRT_WARN, L"FTPS_recv recv: connection closed.\n");
+				Debug(L"FTPS_recv: recv(): connection closed."sv);
 			else if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK)
-				_RPTWN(_CRT_WARN, L"FTPS_recv recv error: %d.\n", lastError);
+				Error(L"FTPS_recv: recv()"sv, lastError);
 #endif
 			return read;
 		}
@@ -580,20 +580,20 @@ int do_closesocket(SOCKET s) {
 
 int do_connect(SOCKET s, const sockaddr* name, int namelen, int* CancelCheckWork) {
 	if (WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) != 0) {
-		Debug(L"connect: WSAAsyncSelect failed: 0x{:08X}."sv, WSAGetLastError());
+		WSAError(L"do_connect: WSAAsyncSelect()"sv);
 		return SOCKET_ERROR;
 	}
 	if (connect(s, name, namelen) == 0)
 		return 0;
 	if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
-		Debug(L"connect: connect failed: 0x{:08X}."sv, WSAGetLastError());
+		Error(L"do_connect: connect()"sv, lastError);
 		return SOCKET_ERROR;
 	}
 	while (*CancelCheckWork != YES) {
 		if (int error = 0; AskAsyncDone(s, &error, FD_CONNECT) == YES && error != WSAEWOULDBLOCK) {
 			if (error == 0)
 				return 0;
-			Debug(L"connect: select error: 0x{:08X}."sv, error);
+			Error(L"do_connect: select()"sv, error);
 			return SOCKET_ERROR;
 		}
 		Sleep(1);
@@ -606,11 +606,11 @@ int do_connect(SOCKET s, const sockaddr* name, int namelen, int* CancelCheckWork
 
 int do_listen(SOCKET s, int backlog) {
 	if (WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CLOSE | FD_ACCEPT) != 0) {
-		Debug(L"listen: WSAAsyncSelect failed: 0x{:08X}."sv, WSAGetLastError());
+		WSAError(L"do_listen: WSAAsyncSelect()"sv);
 		return SOCKET_ERROR;
 	}
 	if (listen(s, backlog) != 0) {
-		Debug(L"listen: listen failed: 0x{:08X}."sv, WSAGetLastError());
+		WSAError(L"do_listen: listen()"sv);
 		return SOCKET_ERROR;
 	}
 	return 0;
@@ -708,7 +708,7 @@ int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork
 	std::string_view buffer{ buf, size_t(len) };
 	if (auto context = getContext(s)) {
 		if (work = context->Encrypt(buffer); empty(work)) {
-			Debug(L"send: EncryptMessage failed."sv);
+			Debug(L"SendData: EncryptMessage failed."sv);
 			return FFFTP_FAIL;
 		}
 		buffer = { data(work), size(work) };
@@ -723,10 +723,10 @@ int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork
 		if (0 < sent)
 			buffer = buffer.substr(sent);
 		else if (sent == 0) {
-			Debug(L"send: connection closed."sv);
+			Debug(L"SendData: send(): connection closed."sv);
 			return FFFTP_FAIL;
 		} else if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
-			Debug(L"send: send failed: 0x{:08X}."sv, lastError);
+			Error(L"SendData: send()"sv, lastError);
 			return FFFTP_FAIL;
 		}
 		Sleep(1);
