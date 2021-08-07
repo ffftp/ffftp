@@ -540,16 +540,11 @@ static void DispMirrorFiles(std::vector<FILELIST> const& Local, std::vector<FILE
 	FILETIME ft;
 	SYSTEMTIME st;
 	Debug(L"---- MIRROR FILE LIST ----"sv);
-	for (auto const& f : Local) {
-		FileTimeToLocalFileTime(&f.Time, &ft);
-		auto const date = FileTimeToSystemTime(&ft, &st) ? strprintf(L"%04d/%02d/%02d %02d:%02d:%02d.%04d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds) : L""s;
-		Debug(L"LOCAL  : {} {} [{}] {}"sv, f.Attr == 1 ? L"YES"sv : L"NO "sv, f.Node == NODE_DIR ? L"DIR "sv : L"FILE"sv, date, f.Name);
-	}
-	for (auto const& f : Remote) {
-		FileTimeToLocalFileTime(&f.Time, &ft);
-		auto const date = FileTimeToSystemTime(&ft, &st) ? strprintf(L"%04d/%02d/%02d %02d:%02d:%02d.%04d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds) : L""s;
-		Debug(L"REMOTE : {} {} [{}] {}"sv, f.Attr == 1 ? L"YES"sv : L"NO "sv, f.Node == NODE_DIR ? L"DIR "sv : L"FILE"sv, date, f.Name);
-	}
+	for (auto& [type, list] : { std::tuple{ L"LOCAL"sv, Local }, std::tuple{ L"REMOTE"sv, Remote } })
+		for (auto const& f : list) {
+			auto const date = FileTimeToLocalFileTime(&f.Time, &ft) && FileTimeToSystemTime(&ft, &st) ? std::format(L"{:04}/{:02}/{:02} {:02}:{:02}:{:02}.{:03}"sv, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds) : L""s;
+			Debug(L"{:6} : {:3} {:4} [{}] {}"sv, type, f.Attr == 1 ? L"YES"sv : L"NO"sv, f.Node == NODE_DIR ? L"DIR"sv : L"FILE"sv, date, f.Name);
+		}
 	Debug(L"---- END ----"sv);
 }
 
