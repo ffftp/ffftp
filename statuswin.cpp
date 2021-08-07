@@ -84,7 +84,7 @@ void DispSelectedSpace() {
 // ローカル側の空き容量を表示
 void DispLocalFreeSpace(fs::path const& directory) {
 	ULARGE_INTEGER a;
-	auto const size = GetDiskFreeSpaceExW(directory.c_str(), &a, nullptr, nullptr) != 0 ? MakeSizeString((double)a.QuadPart) : L"??"s;
+	auto const size = GetDiskFreeSpaceExW(directory.c_str(), &a, nullptr, nullptr) != 0 ? MakeSizeString(a.QuadPart) : L"??"s;
 	auto const text = strprintf(GetString(IDS_MSGJPN248).c_str(), size.c_str());
 	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(3, 0), (LPARAM)text.c_str());
 }
@@ -99,7 +99,7 @@ void DispTransferFiles() {
 
 // 受信中のバイト数を表示
 void DispDownloadSize(LONGLONG Size) {
-	auto const text = 0 <= Size ? strprintf(GetString(IDS_MSGJPN250).c_str(), MakeSizeString((double)Size).c_str()) : L""s;
+	auto const text = 0 <= Size ? strprintf(GetString(IDS_MSGJPN250).c_str(), MakeSizeString(Size).c_str()) : L""s;
 	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(5, 0), (LPARAM)text.c_str());
 }
 

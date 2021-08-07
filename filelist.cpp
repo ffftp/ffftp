@@ -1390,12 +1390,12 @@ void EraseRemoteDirForWnd(void)
 
 
 // 選択されているファイルの総サイズを返す
-double GetSelectedTotalSize(int Win) {
-	long long total = 0;
+uintmax_t GetSelectedTotalSize(int Win) {
+	uintmax_t total = 0;
 	for (int Pos = GetFirstSelected(Win, NO); Pos != -1; Pos = GetNextSelected(Win, Pos, NO))
 		if (auto const& item = GetItem(Win, Pos); 0 < item.Size)
 			total += item.Size;
-	return double(total);
+	return total;
 }
 
 

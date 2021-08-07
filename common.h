@@ -643,7 +643,7 @@ int GetSelectedCount(int Win);
 int GetFirstSelected(int Win, int All);
 int GetNextSelected(int Win, int Pos, int All);
 void EraseRemoteDirForWnd(void);
-double GetSelectedTotalSize(int Win);
+uintmax_t GetSelectedTotalSize(int Win);
 int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Base, int *CancelCheckWork);
 std::tuple<fs::path, std::vector<FILELIST>> MakeDroppedFileList(WPARAM wParam);
 fs::path MakeDroppedDir(WPARAM wParam);
@@ -1039,7 +1039,12 @@ bool ConnectRas(bool dialup, bool explicitly, bool confirm, std::wstring const& 
 std::wstring SetSlashTail(std::wstring&& path);
 std::wstring ReplaceAll(std::wstring&& str, wchar_t from, wchar_t to);
 std::wstring_view GetFileName(std::wstring_view path);
-std::wstring MakeSizeString(double size);
+static std::wstring MakeSizeString(uintmax_t size) {
+	auto i = (63 - std::countl_zero(size)) / 10;
+	if (i-- == 0)
+		return std::format(L"{}B"sv, size);
+	return std::format(L"{:0.1f}{}B"sv, (size >> 10 * i) / 1024., L"KMGTPE"[i]);
+}
 void DispStaticText(HWND hWnd, std::wstring text);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);

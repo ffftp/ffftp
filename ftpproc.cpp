@@ -2195,8 +2195,8 @@ void CalcFileSizeProc() {
 	struct Size {
 		using result_t = int;
 		int win;
-		double size;
-		Size(int win, double size) : win{ win }, size{ size } {}
+		uintmax_t size;
+		Size(int win, uintmax_t size) : win{ win }, size{ size } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SetText(hDlg, FSIZE_TITLE, GetString(win == WIN_LOCAL ? IDS_MSGJPN076 : IDS_MSGJPN077));
 			SetText(hDlg, FSIZE_SIZE, MakeSizeString(size));
@@ -2217,7 +2217,7 @@ void CalcFileSizeProc() {
 		if (Win == WIN_LOCAL || CheckClosedAndReconnect() == FFFTP_SUCCESS) {
 			std::vector<FILELIST> ListBase;
 			MakeSelectedFileList(Win, YES, All, ListBase, &CancelFlg);
-			double total = 0;
+			uintmax_t total = 0;
 			for (auto const& f : ListBase)
 				if (f.Node != NODE_DIR)
 					total += f.Size;
