@@ -2303,7 +2303,7 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item) {
 int CheckPathViolation(TRANSPACKET const& item) {
 	static boost::wregex re{ LR"((?:^|[/\\])\.\.[/\\])" };
 	if (boost::regex_search(item.Remote, re)) {
-		auto const message = strprintf(GetString(IDS_INVALID_PATH).c_str(), item.Remote.c_str());
+		auto const message = std::vformat(GetString(IDS_INVALID_PATH), std::make_wformat_args(item.Remote));
 		MessageBoxW(GetMainHwnd(), message.c_str(), GetString(IDS_MSGJPN086).c_str(), MB_OK);
 		return YES;
 	}

@@ -309,21 +309,21 @@ struct MirrorList {
 	MirrorList(std::forward_list<TRANSPACKET>& list) : list{ list } {}
 	INT_PTR OnInit(HWND hDlg) {
 		for (auto const& item : list) {
-			std::wstring line;
+			std::tuple<int, std::wstring_view> data;
 			if (item.Command.starts_with(L"R-DELE"sv) || item.Command.starts_with(L"R-RMD"sv))
-				line = strprintf(GetString(IDS_MSGJPN052).c_str(), item.Remote.c_str());
+				data = { IDS_MSGJPN052, item.Remote };
 			else if (item.Command.starts_with(L"R-MKD"sv))
-				line = strprintf(GetString(IDS_MSGJPN053).c_str(), item.Remote.c_str());
+				data = { IDS_MSGJPN053, item.Remote };
 			else if (item.Command.starts_with(L"STOR"sv))
-				line = strprintf(GetString(IDS_MSGJPN054).c_str(), item.Remote.c_str());
+				data = { IDS_MSGJPN054, item.Remote };
 			else if (item.Command.starts_with(L"L-DELE"sv) || item.Command.starts_with(L"L-RMD"sv))
-				line = strprintf(GetString(IDS_MSGJPN052).c_str(), item.Local.c_str());
+				data = { IDS_MSGJPN052, item.Local.native() };
 			else if (item.Command.starts_with(L"L-MKD"sv))
-				line = strprintf(GetString(IDS_MSGJPN053).c_str(), item.Local.c_str());
+				data = { IDS_MSGJPN053, item.Local.native() };
 			else if (item.Command.starts_with(L"RETR"sv))
-				line = strprintf(GetString(IDS_MSGJPN054).c_str(), item.Local.c_str());
-			if (!empty(line))
-				SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)line.c_str());
+				data = { IDS_MSGJPN054, item.Local.native() };
+			if (auto [id, str] = data; id != 0)
+				SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)std::format(L"{}: {}"sv, GetString(id), str).c_str());
 		}
 		CountMirrorFiles(hDlg, list);
 		EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), FALSE);
@@ -1298,9 +1298,9 @@ static void CountMirrorFiles(HWND hDlg, std::forward_list<TRANSPACKET> const& li
 		else if (item.Command.starts_with(L"STOR"sv) || item.Command.starts_with(L"RETR"sv))
 			Copy++;
 	}
-	SetText(hDlg, MIRROR_COPYNUM, Copy != 0 ? strprintf(GetString(IDS_MSGJPN058).c_str(), Copy) : GetString(IDS_MSGJPN059));
-	SetText(hDlg, MIRROR_MAKENUM, Make != 0 ? strprintf(GetString(IDS_MSGJPN060).c_str(), Make) : GetString(IDS_MSGJPN061));
-	SetText(hDlg, MIRROR_DELNUM, Del != 0 ? strprintf(GetString(IDS_MSGJPN062).c_str(), Del) : GetString(IDS_MSGJPN063));
+	SetText(hDlg, MIRROR_COPYNUM, Copy != 0 ? std::vformat(GetString(IDS_MSGJPN058), std::make_wformat_args(Copy)) : GetString(IDS_MSGJPN059));
+	SetText(hDlg, MIRROR_MAKENUM, Make != 0 ? std::vformat(GetString(IDS_MSGJPN060), std::make_wformat_args(Make)) : GetString(IDS_MSGJPN061));
+	SetText(hDlg, MIRROR_DELNUM, Del != 0 ? std::vformat(GetString(IDS_MSGJPN062), std::make_wformat_args(Del)) : GetString(IDS_MSGJPN063));
 }
 
 
