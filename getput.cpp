@@ -1651,21 +1651,18 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 	if((listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount])) != INVALID_SOCKET)
 	{
 		SetUploadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &Resume);
-		std::wstring cmd;
+		auto cmd = L"APPE "sv;
+		std::wstring extra;
 		if (Resume == NO) {
+			cmd = Pkt->Command;
 #if defined(HAVE_TANDEM)
 			if (AskHostType() == HTYPE_TANDEM && AskOSS() == NO && Pkt->Type != TYPE_A)
-				cmd = Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT
-					? strprintf(L"%s%s,%d", Pkt->Command.c_str(), Pkt->Remote.c_str(), Pkt->FileCode)		// EXTENTがデフォルトのときはコードのみ
-					: strprintf(L"%s%s,%d,%d,%d,%d", Pkt->Command.c_str(), Pkt->Remote.c_str(), Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
-			else
+				extra = std::format(Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT ? L",{}"sv : L",{},{},{},{}"sv, Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
 #endif
-				cmd = strprintf(L"%s%s", Pkt->Command.c_str(), Pkt->Remote.c_str());
-		} else
-			cmd = strprintf(L"APPE %s", Pkt->Remote.c_str());
+		}
 
 		std::wstring text;
-		std::tie(iRetCode, text) = Command(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], L"{}"sv, cmd);
+		std::tie(iRetCode, text) = Command(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], L"{}{}{}"sv, cmd, Pkt->Remote, extra);
 		if((iRetCode/100) == FTP_PRELIM)
 		{
 			// STOUの応答を処理
@@ -1772,19 +1769,16 @@ static int UploadPassive(TRANSPACKET *Pkt)
 					WSAError(L"setsockopt"sv);
 
 				SetUploadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &Resume);
-				std::wstring cmd;
+				auto cmd = L"APPE "sv;
+				std::wstring extra;
 				if (Resume == NO) {
+					cmd = Pkt->Command;
 #if defined(HAVE_TANDEM)
-					if (AskHostType() == HTYPE_TANDEM && AskOSS() == NO && Pkt->Type != TYPE_A) {
-						cmd = Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT
-							? strprintf(L"%s%s,%d", Pkt->Command.c_str(), Pkt->Remote.c_str(), Pkt->FileCode)		// EXTENTがデフォルトのときはコードのみ
-							: strprintf(L"%s%s,%d,%d,%d,%d", Pkt->Command.c_str(), Pkt->Remote.c_str(), Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
-					} else
+					if (AskHostType() == HTYPE_TANDEM && AskOSS() == NO && Pkt->Type != TYPE_A)
+						extra = std::format(Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT ? L",{}"sv : L",{},{},{},{}"sv, Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
 #endif
-						cmd = strprintf(L"%s%s", Pkt->Command.c_str(), Pkt->Remote.c_str());
-				} else
-					cmd = strprintf(L"APPE %s", Pkt->Remote.c_str());
-				std::tie(iRetCode, text) = Command(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], L"{}"sv, cmd);
+				}
+				std::tie(iRetCode, text) = Command(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], L"{}{}{}"sv, cmd, Pkt->Remote, extra);
 				if(iRetCode/100 == FTP_PRELIM)
 				{
 					// STOUの応答を処理
