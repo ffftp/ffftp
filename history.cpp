@@ -66,14 +66,9 @@ void SetAllHistoryToMenu() {
 	for (int i = DEF_FMENU_ITEMS, count = GetMenuItemCount(menu); i < count; i++)
 		DeleteMenu(menu, DEF_FMENU_ITEMS, MF_BYPOSITION);
 	AppendMenuW(menu, MF_SEPARATOR, 0, NULL);
-	int i = 0;
-	for (auto history : histories) {
-		auto const text
-			= i < 9 ? strprintf(L"&%d %s (%s) %s", i + 1, history.HostAdrs.c_str(), history.UserName.c_str(), history.RemoteInitDir.c_str())
-			: i == 9 ? strprintf(L"&0 %s (%s) %s", history.HostAdrs.c_str(), history.UserName.c_str(), history.RemoteInitDir.c_str())
-			: strprintf(L"&* %s (%s) %s", history.HostAdrs.c_str(), history.UserName.c_str(), history.RemoteInitDir.c_str());
-		AppendMenuW(menu, MF_STRING, MenuHistId[i], text.c_str());
-		i++;
+	for (int i = 0; auto const& history : histories) {
+		auto const text = std::format(L"&{} {} ({}) {}"sv, i < 9 ? wchar_t(L'0' + i + 1) : i == 9 ? L'0' : L'*', history.HostAdrs, history.UserName, history.RemoteInitDir);
+		AppendMenuW(menu, MF_STRING, MenuHistId[i++], text.c_str());
 	}
 }
 
