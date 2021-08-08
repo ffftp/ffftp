@@ -608,9 +608,7 @@ static bool MakeAllWindows(int cmdShow) {
 
 // ウインドウのタイトルを表示する
 void DispWindowTitle() {
-	auto const text = AskConnecting() == YES
-		? strprintf(L"%s (%s) - FFFTP", TitleHostName.c_str(), FilterStr.c_str())
-		: strprintf(L"FFFTP (%s)", FilterStr.c_str());
+	auto const text = std::format(AskConnecting() == YES ? L"{0} ({1}) - FFFTP"sv : L"FFFTP ({1})"sv, TitleHostName, FilterStr);
 	SetWindowTextW(GetMainHwnd(), text.c_str());
 }
 

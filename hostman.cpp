@@ -895,7 +895,7 @@ struct Advanced {
 		SendDlgItemMessageW(hDlg, HSET_FIREWALL, BM_SETCHECK, TmpHost.FireWall, 0);
 		SendDlgItemMessageW(hDlg, HSET_SYNCMOVE, BM_SETCHECK, TmpHost.SyncMove, 0);
 		for (int i = -12; i <= 12; i++) {
-			auto tz = i == 0 ? L"GMT"s : i == 9 ? GetString(IDS_MSGJPN133) : strprintf(L"GMT%+02d:00", i);
+			auto tz = i == 0 ? L"GMT"s : i == 9 ? GetString(IDS_MSGJPN133) : std::format(L"GMT{:+03}:00"sv, i);
 			SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_ADDSTRING, 0, (LPARAM)tz.c_str());
 		}
 		SendDlgItemMessageW(hDlg, HSET_TIMEZONE, CB_SETCURSEL, (UINT_PTR)TmpHost.TimeZone + 12, 0);

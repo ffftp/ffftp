@@ -2175,7 +2175,7 @@ static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipBut
 	if (item.hWndTrans != NULL) {
 		EnableWindow(GetDlgItem(item.hWndTrans, IDCANCEL), SkipButton);
 
-		SetText(item.hWndTrans, strprintf(L"(%d)%s", AskTransferFileNum(), GetString(titleId).c_str()));
+		SetText(item.hWndTrans, std::format(L"({}){}"sv, AskTransferFileNum(), GetString(titleId)));
 		SetText(item.hWndTrans, TRANS_STATUS, L"");
 
 		SendDlgItemMessageW(item.hWndTrans, TRANS_TIME_BAR, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
