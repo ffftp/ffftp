@@ -1201,31 +1201,6 @@ static inline auto replace(std::basic_string_view<Char> input, boost::basic_rege
 	replaced.append(last, data(input) + size(input));
 	return replaced;
 }
-namespace detail {
-	static inline int vscprintf(char const* const format, va_list args) { return _vscprintf_p(format, args); }
-	static inline int vscprintf(wchar_t const* const format, va_list args) { return _vscwprintf_p(format, args); }
-	static inline int vsprintf(_Out_writes_(size) _Post_z_ char* const buffer, size_t const size, char const* const format, va_list args) { return _vsprintf_p(buffer, size, format, args); }
-	static inline int vsprintf(_Out_writes_(size) _Post_z_ wchar_t* const buffer, size_t const size, wchar_t const* const format, va_list args) { return _vswprintf_p(buffer, size, format, args); }
-	template<class Char>
-	static inline auto vstrprintf(int capacity, Char const* const format, va_list args) {
-		if (capacity == -1)
-			capacity = vscprintf(format, args);
-		assert(0 < capacity);
-		std::basic_string buffer(capacity, Char{});
-		int length = vsprintf(data(buffer), (size_t)capacity + 1, format, args);
-		assert(length <= capacity);
-		buffer.resize(length);
-		return buffer;
-	}
-}
-template<int capacity = -1, class Char>
-static inline auto strprintf(_In_z_ _Printf_format_string_ Char const* const format, ...) {
-	va_list args;
-	va_start(args, format);
-	auto result = detail::vstrprintf(capacity, format, args);
-	va_end(args);
-	return result;
-}
 template<int captionId = IDS_APP>
 static inline auto Message(HWND owner, int textId, DWORD style) {
 	MSGBOXPARAMSW msgBoxParams{ sizeof MSGBOXPARAMSW, owner, GetFtpInst(), MAKEINTRESOURCEW(textId), MAKEINTRESOURCEW(captionId), style, nullptr, 0, nullptr, LANG_NEUTRAL };
