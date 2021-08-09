@@ -126,7 +126,7 @@ static inline bool FindFile(fs::path const& fileName, Fn&& fn) {
 		} while (result && FindNextFileW(handle, &data));
 		FindClose(handle);
 	} else
-		Error(L"FindFirstFileW"sv);
+		Error(L"FindFirstFileW()"sv);
 	return result;
 }
 
