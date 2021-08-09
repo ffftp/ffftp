@@ -1143,11 +1143,8 @@ struct IniConfig : Config {
 				if (*it == '\\')
 					line += '\\';
 				line += *it;
-			} else {
-				char buffer[4];
-				sprintf(buffer, "\\%02X", (unsigned char)*it);
-				line += buffer;
-			}
+			} else
+				line += std::format("\\{:02X}"sv, (unsigned char)*it);
 		(*map)[KeyName].push_back(std::move(line));
 	}
 };

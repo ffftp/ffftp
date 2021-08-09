@@ -2630,7 +2630,7 @@ BEGIN
     IDS_LOAD_SETTING        "Load Settings"
     IDS_OPTION              "Option"
     IDS_HOSTSETTING         "Host Setting"
-    IDS_OPEN_WITH           "Open with %s (&%d)"
+    IDS_OPEN_WITH           "Open with {0} (&{1})"
     IDS_CANT_SAVE_TO_INI    "Cannnot save to INI file"
     IDS_FAIL_TO_EXEC_REDEDIT "Failed to execute Registory Editor."
     IDS_NEED_RESTART        "Restart FFFTP to take effect."

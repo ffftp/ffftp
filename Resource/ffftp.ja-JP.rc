@@ -2594,7 +2594,7 @@ BEGIN
     IDS_LOAD_SETTING        "設定を読み込む"
     IDS_OPTION              "オプション"
     IDS_HOSTSETTING         "ホストの設定"
-    IDS_OPEN_WITH           "%sで開く(&%d)"
+    IDS_OPEN_WITH           "{0}で開く(&{1})"
     IDS_CANT_SAVE_TO_INI    "INIファイルに設定が保存できません"
     IDS_FAIL_TO_EXEC_REDEDIT "レジストリエディタが起動できませんでした"
     IDS_NEED_RESTART        "設定をファイルから復元するためには,FFFTPを再起動してください."

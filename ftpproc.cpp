@@ -1971,9 +1971,7 @@ void ChmodProc(void)
 			MakeSelectedFileList(WIN_REMOTE, NO, NO, FileListBase, &CancelFlg);
 			if(!empty(FileListBase))
 			{
-				wchar_t attr[5];
-				swprintf(attr, std::size(attr), L"%03X", FileListBase[0].Attr);
-				if(auto newattr = ChmodDialog(attr))
+				if(auto newattr = ChmodDialog(std::format(L"{:03X}"sv, FileListBase[0].Attr)))
 				{
 					ChmodFlg = NO;
 					for (auto const& f : FileListBase)
@@ -2034,13 +2032,9 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 			case PERM_G_EXEC:
 			case PERM_A_READ:
 			case PERM_A_WRITE:
-			case PERM_A_EXEC: {
-				auto Tmp = GetAttrFromDialog(hDlg);
-				wchar_t buffer[5];
-				swprintf(buffer, std::size(buffer), L"%03X", Tmp);
-				SetText(hDlg, PERM_NOW, buffer);
+			case PERM_A_EXEC:
+				SetText(hDlg, PERM_NOW, std::format(L"{:03X}"sv, GetAttrFromDialog(hDlg)));
 				break;
-			}
 			case IDHELP:
 				ShowHelp(IDH_HELP_TOPIC_0000017);
 				break;
