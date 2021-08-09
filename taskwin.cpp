@@ -103,16 +103,6 @@ void DispTaskMsg() {
 }
 
 
-void SetTaskMsg(UINT id, ...) {
-	wchar_t buffer[10240];
-	va_list args;
-	va_start(args, id);
-	int result = vswprintf_s(buffer, GetString(id).c_str(), args);
-	va_end(args);
-	if (0 < result)
-		queue.push({ buffer, static_cast<size_t>(result) });
-}
-
 void detail::Notice(UINT id, std::wformat_args args) {
 	auto const format = GetString(id);
 	auto message = std::vformat(format, args);

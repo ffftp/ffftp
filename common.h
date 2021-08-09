@@ -730,7 +730,6 @@ int MakeTaskWindow();
 void DeleteTaskWindow(void);
 HWND GetTaskWnd(void);
 void DispTaskMsg(void);
-void SetTaskMsg(UINT id, ...);
 namespace detail {
 	void Notice(UINT id, std::wformat_args args);
 	void Debug(std::wstring_view format, std::wformat_args args);

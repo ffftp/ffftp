@@ -2313,7 +2313,7 @@ BEGIN
     IDS_MSGJPN004           "Disconnect."
     IDS_MSGJPN005           "Connection was killed."
     IDS_MSGJPN006           "Cannnot login to Firewall."
-    IDS_MSGJPN007           "Cannnot connect to host %s."
+    IDS_MSGJPN007           "Cannnot connect to host {}."
     IDS_MSGJPN008           "Cannnot login."
     IDS_MSGJPN009           "Cannnot connect."
     IDS_MSGJPN010           "Firewall host not specified."
@@ -2326,20 +2326,20 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN017           "Connecting %sto host %s (%s)."
-    IDS_MSGJPN019           "Host %s not found."
-    IDS_MSGJPN021           "SOCKS server %s not found."
-    IDS_MSGJPN022           "Connecting to SOCKS server %s."
+    IDS_MSGJPN017           "Connecting {0}to host {1} ({2})."
+    IDS_MSGJPN019           "Host {} not found."
+    IDS_MSGJPN021           "SOCKS server {} not found."
+    IDS_MSGJPN022           "Connecting to SOCKS server {}."
     IDS_MSGJPN023           "Cannnot connect to SOCKS server."
     IDS_MSGJPN025           "Connected."
     IDS_MSGJPN026           "Cannnot connected."
     IDS_MSGJPN027           "Cannnot create socket."
-    IDS_MSGJPN031           "%s command not accepted."
+    IDS_MSGJPN031           "{} command not accepted."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN033           "Cannnot send SOCKS command. (Cmd = %04X)"
+    IDS_MSGJPN033           "Cannnot send SOCKS command. (Cmd = {:04X})"
     IDS_MSGJPN034           "Cannnot receive SOCKS5 reply."
     IDS_MSGJPN035           "Cannnot receive SOCKS4 reply."
     IDS_MSGJPN036           "SOCKS certification method not match."
@@ -2395,17 +2395,17 @@ STRINGTABLE
 BEGIN
     IDS_MSGJPN080           "Delete Folder"
     IDS_MSGJPN081           "Delete File"
-    IDS_MSGJPN085           "Cannnot download named %s."
+    IDS_MSGJPN085           "Cannnot download named {}."
     IDS_MSGJPN086           "Download"
     IDS_MSGJPN087           "File List"
     IDS_MSGJPN088           "Skip"
-    IDS_MSGJPN089           "Skip file %s."
+    IDS_MSGJPN089           "Skip file {}."
     IDS_MSGJPN090           "Command not accepted."
     IDS_MSGJPN091           "for download "
     IDS_MSGJPN092           "Command not accepted."
     IDS_MSGJPN093           "Cannnot get address."
     IDS_MSGJPN094           "Time out error."
-    IDS_MSGJPN095           "Cannnot create file %s."
+    IDS_MSGJPN095           "Cannnot create file {}."
 END
 
 STRINGTABLE
@@ -2413,15 +2413,15 @@ BEGIN
     IDS_MSGJPN096           "Disk full"
     IDS_MSGJPN097           "Cancel to getting file list"
     IDS_MSGJPN098           "File List"
-    IDS_MSGJPN099           "Download cancelled. (%lld Sec. %lld B/S)."
+    IDS_MSGJPN099           "Download cancelled. ({} Sec. {} B/S)."
     IDS_MSGJPN100           "Download cancelled."
-    IDS_MSGJPN101           "Download file list successful. (%lld Bytes)"
-    IDS_MSGJPN102           "Download successful. (%d Sec. %d B/S)."
-    IDS_MSGJPN103           "Download successful. (%lld Bytes)"
+    IDS_MSGJPN101           "Download file list successful. ({} Bytes)"
+    IDS_MSGJPN102           "Download successful. ({} Sec. {} B/S)."
+    IDS_MSGJPN103           "Download successful. ({} Bytes)"
     IDS_MSGJPN104           "Upload"
-    IDS_MSGJPN105           "Cannnot read file %s."
+    IDS_MSGJPN105           "Cannnot read file {}."
     IDS_MSGJPN106           "Skip"
-    IDS_MSGJPN107           "File %s is skipped."
+    IDS_MSGJPN107           "File {} is skipped."
     IDS_MSGJPN108           "Command not accepted."
     IDS_MSGJPN109           "for upload "
     IDS_MSGJPN110           "Command not accepted."
@@ -2430,11 +2430,11 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN112           "Cannnot open file %s."
-    IDS_MSGJPN113           "Upload cancelled. (%lld Sec. %lld B/S)."
+    IDS_MSGJPN112           "Cannnot open file {}."
+    IDS_MSGJPN113           "Upload cancelled. ({} Sec. {} B/S)."
     IDS_MSGJPN114           "Upload cancelled."
-    IDS_MSGJPN115           "Upload successful. (%d Sec. %d B/S)."
-    IDS_MSGJPN116           "Upload successfil."
+    IDS_MSGJPN115           "Upload successful. ({} Sec. {} B/S)."
+    IDS_MSGJPN116           "Upload successful."
     IDS_MSGJPN119           "BINARY"
     IDS_MSGJPN120           "ASCII"
     IDS_MSGJPN121           "NONE"
@@ -2498,11 +2498,11 @@ END
 STRINGTABLE
 BEGIN
     IDS_MSGJPN176           "Stop"
-    IDS_MSGJPN177           "Host profile '%s' not found."
+    IDS_MSGJPN177           "Host profile '{}' not found."
     IDS_MSGJPN178           "Host profile not specified."
     IDS_MSGJPN179           "Host name is only used as an alternative to profile name."
-    IDS_MSGJPN180           "Wrong Option '%s'."
-    IDS_MSGJPN182           "Failed to open viewer. (ERROR=%d)"
+    IDS_MSGJPN180           "Wrong Option '{}'."
+    IDS_MSGJPN182           "Failed to open viewer. (ERROR={})"
     IDS_MSGJPN185           "Select folder."
 END
 
@@ -2559,7 +2559,7 @@ BEGIN
     IDS_MSGJPN280           "Cannnot get Data Socket"
     IDS_MSGJPN281           "Cannnot connect with PASV mode"
     IDS_MSGJPN282           "INI filename is not specified"
-    IDS_MSGJPN283           "INI file: %s"
+    IDS_MSGJPN283           "INI file: {}"
 END
 
 STRINGTABLE

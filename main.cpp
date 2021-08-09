@@ -513,7 +513,7 @@ static int InitApp(int cmdShow)
 					Notice(IDS_COPYRIGHT, version(), sizeof(void*) == 4 ? L"32bit"sv : L"64bit"sv);
 
 					if(ForceIni)
-						SetTaskMsg(IDS_MSGJPN283, IniPath.c_str());
+						Notice(IDS_MSGJPN283, IniPath.native());
 
 					Debug(L"Help={}", helpPath().native());
 
@@ -530,16 +530,16 @@ static int InitApp(int cmdShow)
 
 					/* セキュリティ警告文の表示 */
 					if( useDefautPassword ){
-						SetTaskMsg(IDS_MSGJPN300);
+						Notice(IDS_MSGJPN300);
 					}
 					
 					/* パスワード不一致警告文の表示 */
 					switch( GetMasterPasswordStatus() ){
 					case PASSWORD_UNMATCH:
-						SetTaskMsg(IDS_MSGJPN301);
+						Notice(IDS_MSGJPN301);
 						break;
 					case BAD_PASSWORD_HASH:
-						SetTaskMsg(IDS_MSGJPN302);
+						Notice(IDS_MSGJPN302);
 						break;
 					default:
 						break;
@@ -1291,7 +1291,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						if (!Dialog(GetFtpInst(), forcepasschange_dlg, hWnd))
 							break;
 						if(EnterMasterPasswordAndSet(true, hWnd) != 0)
-							SetTaskMsg(IDS_MSGJPN303);
+							Notice(IDS_MSGJPN303);
 					}
 					else if(GetMasterPasswordStatus() == PASSWORD_OK)
 					{
@@ -1304,7 +1304,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						}
 						if(GetMasterPasswordStatus() == PASSWORD_OK && EnterMasterPasswordAndSet(true, hWnd) != 0)
 						{
-							SetTaskMsg(IDS_MSGJPN303);
+							Notice(IDS_MSGJPN303);
 							SaveRegistry();
 						}
 						else
@@ -1625,11 +1625,11 @@ static void StartupProc(std::vector<std::wstring_view> const& args) {
 			DirectConnectProc(std::move(unc), Kanji, Kana, FnameKanji, TrMode);
 		} else if (!empty(hostname) && empty(unc)) {
 			if (int AutoConnect = SearchHostName(hostname); AutoConnect == -1)
-				SetTaskMsg(IDS_MSGJPN177, hostname.c_str());
+				Notice(IDS_MSGJPN177, hostname);
 			else
 				PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_CONNECT_NUM, opt), (LPARAM)AutoConnect);
 		} else {
-			SetTaskMsg(IDS_MSGJPN179);
+			Notice(IDS_MSGJPN179);
 		}
 	}
 }
@@ -1666,25 +1666,24 @@ static std::optional<int> AnalyzeComLine(std::vector<std::wstring_view> const& a
 				option |= mapit->second;
 			} else if (key == L"-n"sv || key == L"--ini"sv) {
 				if (++it == end(args)) {
-					SetTaskMsg(IDS_MSGJPN282);
+					Notice(IDS_MSGJPN282);
 					return {};
 				}
 			} else if (key == L"-z"sv || key == L"--mpasswd"sv) {
 				if (++it == end(args)) {
-					SetTaskMsg(IDS_MSGJPN299);
+					Notice(IDS_MSGJPN299);
 					return {};
 				}
 			} else if (key == L"-s"sv || key == L"--set"sv) {
 				if (++it == end(args)) {
-					SetTaskMsg(IDS_MSGJPN178);
+					Notice(IDS_MSGJPN178);
 					return {};
 				}
 				hostname = *it;
 			} else if (key == L"-h"sv || key == L"--help"sv) {
 				ShowHelp(IDH_HELP_TOPIC_0000024);
 			} else {
-				// argsはargvを指しておりnull terminatedである。
-				SetTaskMsg(IDS_MSGJPN180, it->data());
+				Notice(IDS_MSGJPN180, *it);
 				return {};
 			}
 		} else
@@ -2027,7 +2026,7 @@ void ExecViewer(fs::path const& path, int App) {
 		Debug(L"CreateProcess - {}"sv, commandLine);
 		STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
 		if (ProcessInformation pi; !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
-			SetTaskMsg(IDS_MSGJPN182, GetLastError());
+			Notice(IDS_MSGJPN182, GetLastError());
 			Notice(IDS_LOCALCMD, commandLine);
 		}
 	}
@@ -2045,7 +2044,7 @@ void ExecViewer2(fs::path const& path1, fs::path const& path2, int App) {
 	Debug(L"FindExecutable - {}"sv, commandLine);
 	STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
 	if (ProcessInformation pi; !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
-		SetTaskMsg(IDS_MSGJPN182, GetLastError());
+		Notice(IDS_MSGJPN182, GetLastError());
 		Notice(IDS_LOCALCMD, commandLine);
 	}
 }

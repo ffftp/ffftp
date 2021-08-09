@@ -450,7 +450,7 @@ static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWo
 		/* LFまでを受信するために、最初はPEEKで受信 */
 		if ((read = do_recv(cSkt, buffer, size_as<int>(buffer), MSG_PEEK, &TimeOutErr, CancelCheckWork)) <= 0) {
 			if (TimeOutErr == YES) {
-				SetTaskMsg(IDS_MSGJPN242);
+				Notice(IDS_MSGJPN242);
 				read = -2;
 			} else if (read == SOCKET_ERROR)
 				read = -1;
@@ -514,7 +514,7 @@ int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
 			if((SizeOnce = do_recv(cSkt, Buf, Size, 0, &TimeOutErr, CancelCheckWork)) <= 0)
 			{
 				if(TimeOutErr == YES)
-					SetTaskMsg(IDS_MSGJPN243);
+					Notice(IDS_MSGJPN243);
 				Sts = FFFTP_FAIL;
 				break;
 			}
@@ -525,7 +525,7 @@ int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
 	}
 
 	if(Sts == FFFTP_FAIL)
-		SetTaskMsg(IDS_MSGJPN244);
+		Notice(IDS_MSGJPN244);
 
 	return(Sts);
 }
