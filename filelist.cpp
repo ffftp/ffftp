@@ -838,7 +838,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 				// 先頭のアイテムを選択
 				ListView_SetItemState(GetRemoteHwnd(), 0, LVIS_FOCUSED, LVIS_FOCUSED);
 			} else {
-				SetTaskMsg(IDS_MSGJPN048);
+				Notice(IDS_MSGJPN048);
 				SendMessageW(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
 			}
 		} else {
@@ -847,7 +847,7 @@ void GetRemoteDirForWnd(int Mode, int *CancelCheckWork) {
 			 * ようにする(VIEWはクリアして良い) */
 			if (AskHostType() != HTYPE_VMS)
 #endif
-				SetTaskMsg(IDS_MSGJPN049);
+				Notice(IDS_MSGJPN049);
 			SendMessageW(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
 		}
 		EnableUserOpe();
@@ -1390,12 +1390,12 @@ void EraseRemoteDirForWnd(void)
 
 
 // 選択されているファイルの総サイズを返す
-double GetSelectedTotalSize(int Win) {
-	long long total = 0;
+uintmax_t GetSelectedTotalSize(int Win) {
+	uintmax_t total = 0;
 	for (int Pos = GetFirstSelected(Win, NO); Pos != -1; Pos = GetNextSelected(Win, Pos, NO))
 		if (auto const& item = GetItem(Win, Pos); 0 < item.Size)
 			total += item.Size;
-	return double(total);
+	return total;
 }
 
 

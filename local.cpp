@@ -37,7 +37,7 @@ bool DoLocalCWD(fs::path const& path) {
 	fs::current_path(path, ec);
 	if (!ec)
 		return true;
-	SetTaskMsg(IDS_MSGJPN145);
+	Notice(IDS_MSGJPN145);
 	return false;
 }
 
@@ -46,7 +46,7 @@ bool DoLocalCWD(fs::path const& path) {
 void DoLocalMKD(fs::path const& path) {
 	Notice(IDS_LOCALCMD, std::format(L"MKDIR {}"sv, path.native()));
 	if (std::error_code ec; !fs::create_directory(path, ec))
-		SetTaskMsg(IDS_MSGJPN146);
+		Notice(IDS_MSGJPN146);
 }
 
 
@@ -68,7 +68,7 @@ static bool MoveFileToTrashCan(fs::path const& path) {
 void DoLocalRMD(fs::path const& path) {
 	Notice(IDS_LOCALCMD, std::format(L"RMDIR {}"sv, path.native()));
 	if (!MoveFileToTrashCan(path))
-		SetTaskMsg(IDS_MSGJPN148);
+		Notice(IDS_MSGJPN148);
 }
 
 
@@ -76,7 +76,7 @@ void DoLocalRMD(fs::path const& path) {
 void DoLocalDELE(fs::path const& path) {
 	Notice(IDS_LOCALCMD, std::format(L"DEL {}"sv, path.native()));
 	if (!MoveFileToTrashCan(path))
-		SetTaskMsg(IDS_MSGJPN150);
+		Notice(IDS_MSGJPN150);
 }
 
 
@@ -86,5 +86,5 @@ void DoLocalRENAME(fs::path const& src, fs::path const& dst) {
 	std::error_code ec;
 	fs::rename(src, dst, ec);
 	if (ec)
-		SetTaskMsg(IDS_MSGJPN151);
+		Notice(IDS_MSGJPN151);
 }

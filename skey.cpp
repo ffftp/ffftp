@@ -301,7 +301,7 @@ std::string Make6WordPass(int seq, std::string_view seed, std::string_view pass,
 			auto c3 = value >> 20 & 0x7FF;
 			auto c4 = value >> 9 & 0x7FF;
 			auto c5 = (value << 2 | parity & 3) & 0x7FF;
-			return strprintf("%s %s %s %s %s %s", Wp[c0], Wp[c1], Wp[c2], Wp[c3], Wp[c4], Wp[c5]);
+			return std::format("{} {} {} {} {} {}"sv, Wp[c0], Wp[c1], Wp[c2], Wp[c3], Wp[c4], Wp[c5]);
 		}
 		return ""s;
 	});

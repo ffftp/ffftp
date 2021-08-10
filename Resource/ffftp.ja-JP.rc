@@ -2277,7 +2277,7 @@ BEGIN
     IDS_MSGJPN004           "切断しました"
     IDS_MSGJPN005           "接続が切断されました."
     IDS_MSGJPN006           "FireWallにログインできません."
-    IDS_MSGJPN007           "ホスト %s に接続できません."
+    IDS_MSGJPN007           "ホスト {} に接続できません."
     IDS_MSGJPN008           "ログインできません."
     IDS_MSGJPN009           "接続できません."
     IDS_MSGJPN010           "FireWallのホスト名が設定されていません."
@@ -2290,20 +2290,20 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN017           "%sホスト %s (%s) に接続しています."
-    IDS_MSGJPN019           "ホスト %s が見つかりません."
-    IDS_MSGJPN021           "SOCKSサーバー %s が見つかりません."
-    IDS_MSGJPN022           "SOCKSサーバー %s に接続しています."
+    IDS_MSGJPN017           "{0}ホスト {1} ({2}) に接続しています."
+    IDS_MSGJPN019           "ホスト {} が見つかりません."
+    IDS_MSGJPN021           "SOCKSサーバー {} が見つかりません."
+    IDS_MSGJPN022           "SOCKSサーバー {} に接続しています."
     IDS_MSGJPN023           "SOCKSサーバーに接続できません."
     IDS_MSGJPN025           "接続しました."
     IDS_MSGJPN026           "接続できません."
     IDS_MSGJPN027           "ソケットが作成できません."
-    IDS_MSGJPN031           "%sコマンドが受け付けられません."
+    IDS_MSGJPN031           "{} コマンドが受け付けられません."
 END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN033           "SOCKSのコマンドが送れませんでした (Cmd = %04X)"
+    IDS_MSGJPN033           "SOCKSのコマンドが送れませんでした (Cmd = {:04X})"
     IDS_MSGJPN034           "SOCKS5のコマンドに対するリプライが受信できませんでした"
     IDS_MSGJPN035           "SOCKS4のコマンドに対するリプライが受信できませんでした"
     IDS_MSGJPN036           "SOCKSサーバーの認証方式が異なります."
@@ -2326,14 +2326,14 @@ BEGIN
     IDS_MSGJPN049           "ファイル一覧の取得に失敗しました."
     IDS_MSGJPN050           "検索（ローカル）"
     IDS_MSGJPN051           "検索（ホスト）"
-    IDS_MSGJPN052           "削除: %s"
-    IDS_MSGJPN053           "作成: %s"
-    IDS_MSGJPN054           "転送: %s"
-    IDS_MSGJPN058           "%d個のファイルを転送します."
+    IDS_MSGJPN052           "削除"
+    IDS_MSGJPN053           "作成"
+    IDS_MSGJPN054           "転送"
+    IDS_MSGJPN058           "{}個のファイルを転送します."
     IDS_MSGJPN059           "転送するファイルはありません."
-    IDS_MSGJPN060           "%d個のフォルダを作成します."
+    IDS_MSGJPN060           "{}個のフォルダを作成します."
     IDS_MSGJPN061           "作成するフォルダはありません."
-    IDS_MSGJPN062           "%d個のファイル/フォルダを削除します."
+    IDS_MSGJPN062           "{}個のファイル/フォルダを削除します."
     IDS_MSGJPN063           "削除するファイル/フォルダはありません."
 END
 
@@ -2359,17 +2359,17 @@ STRINGTABLE
 BEGIN
     IDS_MSGJPN080           "フォルダ削除"
     IDS_MSGJPN081           "ファイル削除"
-    IDS_MSGJPN085           "%sという名前のファイルはダウンロードできません."
+    IDS_MSGJPN085           "{} という名前のファイルはダウンロードできません."
     IDS_MSGJPN086           "ダウンロード"
     IDS_MSGJPN087           "ファイル一覧取得"
     IDS_MSGJPN088           "スキップ"
-    IDS_MSGJPN089           "ファイル %s はスキップします."
+    IDS_MSGJPN089           "ファイル {} はスキップします."
     IDS_MSGJPN090           "コマンドが受け付けられません."
     IDS_MSGJPN091           "ダウンロードのために"
     IDS_MSGJPN092           "コマンドが受け付けられません."
     IDS_MSGJPN093           "アドレスが取得できません."
     IDS_MSGJPN094           "受信はタイムアウトで失敗しました."
-    IDS_MSGJPN095           "ファイル %s が作成できません."
+    IDS_MSGJPN095           "ファイル {} が作成できません."
 END
 
 STRINGTABLE
@@ -2377,15 +2377,15 @@ BEGIN
     IDS_MSGJPN096           "ディスクがいっぱいで書き込めません."
     IDS_MSGJPN097           "ファイル一覧の取得を中止しました."
     IDS_MSGJPN098           "ファイル一覧"
-    IDS_MSGJPN099           "ダウンロードを中止しました. (%lld Sec. %lld B/S)."
+    IDS_MSGJPN099           "ダウンロードを中止しました. ({} Sec. {} B/S)."
     IDS_MSGJPN100           "ダウンロードを中止しました."
-    IDS_MSGJPN101           "ファイル一覧の取得は正常終了しました. (%lld Bytes)"
-    IDS_MSGJPN102           "ダウンロードは正常終了しました. (%d Sec. %d B/S)."
-    IDS_MSGJPN103           "ダウンロードは正常終了しました. (%lld Bytes)"
+    IDS_MSGJPN101           "ファイル一覧の取得は正常終了しました. ({} Bytes)"
+    IDS_MSGJPN102           "ダウンロードは正常終了しました. ({} Sec. {} B/S)."
+    IDS_MSGJPN103           "ダウンロードは正常終了しました. ({} Bytes)"
     IDS_MSGJPN104           "アップロード"
-    IDS_MSGJPN105           "ファイル %s が読み出せません."
+    IDS_MSGJPN105           "ファイル {} が読み出せません."
     IDS_MSGJPN106           "スキップ"
-    IDS_MSGJPN107           "ファイル %s はスキップします."
+    IDS_MSGJPN107           "ファイル {} はスキップします."
     IDS_MSGJPN108           "コマンドが受け付けられません."
     IDS_MSGJPN109           "アップロードのために"
     IDS_MSGJPN110           "コマンドが受け付けられません."
@@ -2394,10 +2394,10 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN112           "ファイル %s がオープンできません."
-    IDS_MSGJPN113           "アップロードを中止しました. (%lld Sec. %lld B/S)."
+    IDS_MSGJPN112           "ファイル {} がオープンできません."
+    IDS_MSGJPN113           "アップロードを中止しました. ({} Sec. {} B/S)."
     IDS_MSGJPN114           "アップロードを中止しました."
-    IDS_MSGJPN115           "アップロードは正常終了しました. (%d Sec. %d B/S)."
+    IDS_MSGJPN115           "アップロードは正常終了しました. ({} Sec. {} B/S)."
     IDS_MSGJPN116           "アップロードは正常終了しました."
     IDS_MSGJPN119           "バイナリ"
     IDS_MSGJPN120           "アスキー"
@@ -2462,11 +2462,11 @@ END
 STRINGTABLE
 BEGIN
     IDS_MSGJPN176           "受信中止"
-    IDS_MSGJPN177           "設定名「%s」はありません."
+    IDS_MSGJPN177           "設定名「{}」はありません."
     IDS_MSGJPN178           "設定名が指定されていません."
     IDS_MSGJPN179           "ホスト名と設定名の両方が指定されています."
-    IDS_MSGJPN180           "オプション「%s」が間違っています."
-    IDS_MSGJPN182           "ビューアの起動に失敗しました. (ERROR=%d)"
+    IDS_MSGJPN180           "オプション「{}」が間違っています."
+    IDS_MSGJPN182           "ビューアの起動に失敗しました. (ERROR={})"
     IDS_MSGJPN185           "フォルダを選択してください"
 END
 
@@ -2509,10 +2509,10 @@ BEGIN
     IDS_MSGJPN244           "固定長の受信が失敗しました"
     IDS_MSGJPN245           "ローカル"
     IDS_MSGJPN246           "ホスト"
-    IDS_MSGJPN247           "選択%d個（%s）"
-    IDS_MSGJPN248           "ローカル空 %s"
-    IDS_MSGJPN249           "転送待ちファイル%d個"
-    IDS_MSGJPN250           "受信中 %s"
+    IDS_MSGJPN247           "選択: {0}個 ({1})"
+    IDS_MSGJPN248           "ローカル空: {}"
+    IDS_MSGJPN249           "転送待ちファイル: {}個"
+    IDS_MSGJPN250           "受信中: {}"
     IDS_MSGJPN251           "Err: シード文字列"
     IDS_MSGJPN253           "Err: シーケンス番号"
 END
@@ -2523,7 +2523,7 @@ BEGIN
     IDS_MSGJPN280           "Dataソケットが取得できません"
     IDS_MSGJPN281           "PASVモードで接続できません"
     IDS_MSGJPN282           "INIファイル名が指定されていません"
-    IDS_MSGJPN283           "INIファイル指定: %s"
+    IDS_MSGJPN283           "INIファイル指定: {}"
 END
 
 STRINGTABLE
@@ -2594,7 +2594,7 @@ BEGIN
     IDS_LOAD_SETTING        "設定を読み込む"
     IDS_OPTION              "オプション"
     IDS_HOSTSETTING         "ホストの設定"
-    IDS_OPEN_WITH           "%sで開く(&%d)"
+    IDS_OPEN_WITH           "{0}で開く(&{1})"
     IDS_CANT_SAVE_TO_INI    "INIファイルに設定が保存できません"
     IDS_FAIL_TO_EXEC_REDEDIT "レジストリエディタが起動できませんでした"
     IDS_NEED_RESTART        "設定をファイルから復元するためには,FFFTPを再起動してください."
@@ -2615,7 +2615,7 @@ BEGIN
     IDS_FAIL_TO_EXPORT      "設定のエクスポートに失敗しました.\n保存する場所や形式を変更してください."
     IDS_NEED_EXSITING_WINSCP_INI 
                             "この機能で新規作成したINIファイルをWinSCPで読み込むと全ての設定が失われます.\nすでにWinSCPをお使いでありホストの設定のみ移行したい場合は既存のWinSCP.iniを選択してください."
-    IDS_INVALID_PATH        "%s は不正なファイル名です.\r\nこのファイルはダウンロードされません."
+    IDS_INVALID_PATH        "{} は不正なファイル名です.\r\nこのファイルはダウンロードされません."
     IDS_FINISHED            "完了"
     IDS_CANCELLED           "中止"
     IDS_COPYRIGHT           "FFFTP Ver.{} {} Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).\r\nCopyright (C) 2018-2021, Kurata Sayuri."

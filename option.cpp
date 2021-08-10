@@ -754,7 +754,7 @@ struct Other {
 		case IDC_OPENSOUNDS:
 		{
 			// Executing Control Panel Items <https://docs.microsoft.com/en-us/windows/win32/shell/executing-control-panel-items>
-			WinExec(strprintf("%s mmsys.cpl,,2", (systemDirectory() / L"control.exe").string().c_str()).c_str(), SW_NORMAL);
+			WinExec(std::format("{} mmsys.cpl,,2"sv, (systemDirectory() / L"control.exe").string()).c_str(), SW_NORMAL);
 			break;
 		}
 		}

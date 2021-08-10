@@ -74,32 +74,34 @@ void DispCurrentWindow(int Win) {
 
 // 選択されているファイル数とサイズを表示
 void DispSelectedSpace() {
+	static auto const format = GetString(IDS_MSGJPN247);
 	auto Win = GetFocus() == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL;
-	auto const size = MakeSizeString(GetSelectedTotalSize(Win));
-	auto const text = strprintf(GetString(IDS_MSGJPN247).c_str(), GetSelectedCount(Win), size.c_str());
+	auto const text = std::vformat(format, std::make_wformat_args(GetSelectedCount(Win), MakeSizeString(GetSelectedTotalSize(Win))));
 	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(2, 0), (LPARAM)text.c_str());
 }
 
 
 // ローカル側の空き容量を表示
 void DispLocalFreeSpace(fs::path const& directory) {
+	static auto const format = GetString(IDS_MSGJPN248);
 	ULARGE_INTEGER a;
-	auto const size = GetDiskFreeSpaceExW(directory.c_str(), &a, nullptr, nullptr) != 0 ? MakeSizeString((double)a.QuadPart) : L"??"s;
-	auto const text = strprintf(GetString(IDS_MSGJPN248).c_str(), size.c_str());
+	auto const text = std::vformat(format, std::make_wformat_args(GetDiskFreeSpaceExW(directory.c_str(), &a, nullptr, nullptr) != 0 ? MakeSizeString(a.QuadPart) : L"??"s));
 	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(3, 0), (LPARAM)text.c_str());
 }
 
 
 // 転送するファイルの数を表示
 void DispTransferFiles() {
-	auto const text = strprintf(GetString(IDS_MSGJPN249).c_str(), AskTransferFileNum());
+	static auto const format = GetString(IDS_MSGJPN249);
+	auto const text = std::vformat(format, std::make_wformat_args(AskTransferFileNum()));
 	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(4, 0), (LPARAM)text.c_str());
 }
 
 
 // 受信中のバイト数を表示
 void DispDownloadSize(LONGLONG Size) {
-	auto const text = 0 <= Size ? strprintf(GetString(IDS_MSGJPN250).c_str(), MakeSizeString((double)Size).c_str()) : L""s;
+	static auto const format = GetString(IDS_MSGJPN250);
+	auto const text = 0 <= Size ? std::vformat(format, std::make_wformat_args(MakeSizeString(Size))) : L""s;
 	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(5, 0), (LPARAM)text.c_str());
 }
 

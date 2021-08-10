@@ -89,27 +89,6 @@ static std::string_view RemoveFileName(std::string_view path) {
 }
 
 
-// ファイルサイズを文字列に変換する
-std::wstring MakeSizeString(double size) {
-	if (size < 1024)
-		return strprintf(L"%.0lfB", size);
-	size /= 1024;
-	if (size < 1024)
-		return strprintf(L"%.2lfKB", size);
-	size /= 1024;
-	if (size < 1024)
-		return strprintf(L"%.2lfMB", size);
-	size /= 1024;
-	if (size < 1024)
-		return strprintf(L"%.2lfGB", size);
-	size /= 1024;
-	if (size < 1024)
-		return strprintf(L"%.2lfTB", size);
-	size /= 1024;
-	return strprintf(L"%.2lfPB", size);
-}
-
-
 // StaticTextの領域に収まるようにパス名を整形して表示
 void DispStaticText(HWND hWnd, std::wstring text) {
 	RECT rect;

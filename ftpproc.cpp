@@ -309,21 +309,21 @@ struct MirrorList {
 	MirrorList(std::forward_list<TRANSPACKET>& list) : list{ list } {}
 	INT_PTR OnInit(HWND hDlg) {
 		for (auto const& item : list) {
-			std::wstring line;
+			std::tuple<int, std::wstring_view> data;
 			if (item.Command.starts_with(L"R-DELE"sv) || item.Command.starts_with(L"R-RMD"sv))
-				line = strprintf(GetString(IDS_MSGJPN052).c_str(), item.Remote.c_str());
+				data = { IDS_MSGJPN052, item.Remote };
 			else if (item.Command.starts_with(L"R-MKD"sv))
-				line = strprintf(GetString(IDS_MSGJPN053).c_str(), item.Remote.c_str());
+				data = { IDS_MSGJPN053, item.Remote };
 			else if (item.Command.starts_with(L"STOR"sv))
-				line = strprintf(GetString(IDS_MSGJPN054).c_str(), item.Remote.c_str());
+				data = { IDS_MSGJPN054, item.Remote };
 			else if (item.Command.starts_with(L"L-DELE"sv) || item.Command.starts_with(L"L-RMD"sv))
-				line = strprintf(GetString(IDS_MSGJPN052).c_str(), item.Local.c_str());
+				data = { IDS_MSGJPN052, item.Local.native() };
 			else if (item.Command.starts_with(L"L-MKD"sv))
-				line = strprintf(GetString(IDS_MSGJPN053).c_str(), item.Local.c_str());
+				data = { IDS_MSGJPN053, item.Local.native() };
 			else if (item.Command.starts_with(L"RETR"sv))
-				line = strprintf(GetString(IDS_MSGJPN054).c_str(), item.Local.c_str());
-			if (!empty(line))
-				SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)line.c_str());
+				data = { IDS_MSGJPN054, item.Local.native() };
+			if (auto [id, str] = data; id != 0)
+				SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_ADDSTRING, 0, (LPARAM)std::format(L"{}: {}"sv, GetString(id), str).c_str());
 		}
 		CountMirrorFiles(hDlg, list);
 		EnableWindow(GetDlgItem(hDlg, MIRROR_DEL), FALSE);
@@ -540,16 +540,11 @@ static void DispMirrorFiles(std::vector<FILELIST> const& Local, std::vector<FILE
 	FILETIME ft;
 	SYSTEMTIME st;
 	Debug(L"---- MIRROR FILE LIST ----"sv);
-	for (auto const& f : Local) {
-		FileTimeToLocalFileTime(&f.Time, &ft);
-		auto const date = FileTimeToSystemTime(&ft, &st) ? strprintf(L"%04d/%02d/%02d %02d:%02d:%02d.%04d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds) : L""s;
-		Debug(L"LOCAL  : {} {} [{}] {}"sv, f.Attr == 1 ? L"YES"sv : L"NO "sv, f.Node == NODE_DIR ? L"DIR "sv : L"FILE"sv, date, f.Name);
-	}
-	for (auto const& f : Remote) {
-		FileTimeToLocalFileTime(&f.Time, &ft);
-		auto const date = FileTimeToSystemTime(&ft, &st) ? strprintf(L"%04d/%02d/%02d %02d:%02d:%02d.%04d", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds) : L""s;
-		Debug(L"REMOTE : {} {} [{}] {}"sv, f.Attr == 1 ? L"YES"sv : L"NO "sv, f.Node == NODE_DIR ? L"DIR "sv : L"FILE"sv, date, f.Name);
-	}
+	for (auto& [type, list] : { std::tuple{ L"LOCAL"sv, Local }, std::tuple{ L"REMOTE"sv, Remote } })
+		for (auto const& f : list) {
+			auto const date = FileTimeToLocalFileTime(&f.Time, &ft) && FileTimeToSystemTime(&ft, &st) ? std::format(L"{:04}/{:02}/{:02} {:02}:{:02}:{:02}.{:03}"sv, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds) : L""s;
+			Debug(L"{:6} : {:3} {:4} [{}] {}"sv, type, f.Attr == 1 ? L"YES"sv : L"NO"sv, f.Node == NODE_DIR ? L"DIR"sv : L"FILE"sv, date, f.Name);
+		}
 	Debug(L"---- END ----"sv);
 }
 
@@ -1303,9 +1298,9 @@ static void CountMirrorFiles(HWND hDlg, std::forward_list<TRANSPACKET> const& li
 		else if (item.Command.starts_with(L"STOR"sv) || item.Command.starts_with(L"RETR"sv))
 			Copy++;
 	}
-	SetText(hDlg, MIRROR_COPYNUM, Copy != 0 ? strprintf(GetString(IDS_MSGJPN058).c_str(), Copy) : GetString(IDS_MSGJPN059));
-	SetText(hDlg, MIRROR_MAKENUM, Make != 0 ? strprintf(GetString(IDS_MSGJPN060).c_str(), Make) : GetString(IDS_MSGJPN061));
-	SetText(hDlg, MIRROR_DELNUM, Del != 0 ? strprintf(GetString(IDS_MSGJPN062).c_str(), Del) : GetString(IDS_MSGJPN063));
+	SetText(hDlg, MIRROR_COPYNUM, Copy != 0 ? std::vformat(GetString(IDS_MSGJPN058), std::make_wformat_args(Copy)) : GetString(IDS_MSGJPN059));
+	SetText(hDlg, MIRROR_MAKENUM, Make != 0 ? std::vformat(GetString(IDS_MSGJPN060), std::make_wformat_args(Make)) : GetString(IDS_MSGJPN061));
+	SetText(hDlg, MIRROR_DELNUM, Del != 0 ? std::vformat(GetString(IDS_MSGJPN062), std::make_wformat_args(Del)) : GetString(IDS_MSGJPN063));
 }
 
 
@@ -1976,9 +1971,7 @@ void ChmodProc(void)
 			MakeSelectedFileList(WIN_REMOTE, NO, NO, FileListBase, &CancelFlg);
 			if(!empty(FileListBase))
 			{
-				wchar_t attr[5];
-				swprintf(attr, std::size(attr), L"%03X", FileListBase[0].Attr);
-				if(auto newattr = ChmodDialog(attr))
+				if(auto newattr = ChmodDialog(std::format(L"{:03X}"sv, FileListBase[0].Attr)))
 				{
 					ChmodFlg = NO;
 					for (auto const& f : FileListBase)
@@ -2039,13 +2032,9 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 			case PERM_G_EXEC:
 			case PERM_A_READ:
 			case PERM_A_WRITE:
-			case PERM_A_EXEC: {
-				auto Tmp = GetAttrFromDialog(hDlg);
-				wchar_t buffer[5];
-				swprintf(buffer, std::size(buffer), L"%03X", Tmp);
-				SetText(hDlg, PERM_NOW, buffer);
+			case PERM_A_EXEC:
+				SetText(hDlg, PERM_NOW, std::format(L"{:03X}"sv, GetAttrFromDialog(hDlg)));
 				break;
-			}
 			case IDHELP:
 				ShowHelp(IDH_HELP_TOPIC_0000017);
 				break;
@@ -2195,8 +2184,8 @@ void CalcFileSizeProc() {
 	struct Size {
 		using result_t = int;
 		int win;
-		double size;
-		Size(int win, double size) : win{ win }, size{ size } {}
+		uintmax_t size;
+		Size(int win, uintmax_t size) : win{ win }, size{ size } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SetText(hDlg, FSIZE_TITLE, GetString(win == WIN_LOCAL ? IDS_MSGJPN076 : IDS_MSGJPN077));
 			SetText(hDlg, FSIZE_SIZE, MakeSizeString(size));
@@ -2217,7 +2206,7 @@ void CalcFileSizeProc() {
 		if (Win == WIN_LOCAL || CheckClosedAndReconnect() == FFFTP_SUCCESS) {
 			std::vector<FILELIST> ListBase;
 			MakeSelectedFileList(Win, YES, All, ListBase, &CancelFlg);
-			double total = 0;
+			uintmax_t total = 0;
 			for (auto const& f : ListBase)
 				if (f.Node != NODE_DIR)
 					total += f.Size;

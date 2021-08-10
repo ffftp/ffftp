@@ -643,7 +643,7 @@ int GetSelectedCount(int Win);
 int GetFirstSelected(int Win, int All);
 int GetNextSelected(int Win, int Pos, int All);
 void EraseRemoteDirForWnd(void);
-double GetSelectedTotalSize(int Win);
+uintmax_t GetSelectedTotalSize(int Win);
 int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Base, int *CancelCheckWork);
 std::tuple<fs::path, std::vector<FILELIST>> MakeDroppedFileList(WPARAM wParam);
 fs::path MakeDroppedDir(WPARAM wParam);
@@ -730,7 +730,6 @@ int MakeTaskWindow();
 void DeleteTaskWindow(void);
 HWND GetTaskWnd(void);
 void DispTaskMsg(void);
-void SetTaskMsg(UINT id, ...);
 namespace detail {
 	void Notice(UINT id, std::wformat_args args);
 	void Debug(std::wstring_view format, std::wformat_args args);
@@ -1039,7 +1038,12 @@ bool ConnectRas(bool dialup, bool explicitly, bool confirm, std::wstring const& 
 std::wstring SetSlashTail(std::wstring&& path);
 std::wstring ReplaceAll(std::wstring&& str, wchar_t from, wchar_t to);
 std::wstring_view GetFileName(std::wstring_view path);
-std::wstring MakeSizeString(double size);
+static std::wstring MakeSizeString(uintmax_t size) {
+	auto i = (63 - std::countl_zero(size)) / 10;
+	if (i-- == 0)
+		return std::format(L"{}B"sv, size);
+	return std::format(L"{:0.1f}{}B"sv, (size >> 10 * i) / 1024., L"KMGTPE"[i]);
+}
 void DispStaticText(HWND hWnd, std::wstring text);
 void RectClientToScreen(HWND hWnd, RECT *Rect);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
@@ -1196,31 +1200,6 @@ static inline auto replace(std::basic_string_view<Char> input, boost::basic_rege
 	}
 	replaced.append(last, data(input) + size(input));
 	return replaced;
-}
-namespace detail {
-	static inline int vscprintf(char const* const format, va_list args) { return _vscprintf_p(format, args); }
-	static inline int vscprintf(wchar_t const* const format, va_list args) { return _vscwprintf_p(format, args); }
-	static inline int vsprintf(_Out_writes_(size) _Post_z_ char* const buffer, size_t const size, char const* const format, va_list args) { return _vsprintf_p(buffer, size, format, args); }
-	static inline int vsprintf(_Out_writes_(size) _Post_z_ wchar_t* const buffer, size_t const size, wchar_t const* const format, va_list args) { return _vswprintf_p(buffer, size, format, args); }
-	template<class Char>
-	static inline auto vstrprintf(int capacity, Char const* const format, va_list args) {
-		if (capacity == -1)
-			capacity = vscprintf(format, args);
-		assert(0 < capacity);
-		std::basic_string buffer(capacity, Char{});
-		int length = vsprintf(data(buffer), (size_t)capacity + 1, format, args);
-		assert(length <= capacity);
-		buffer.resize(length);
-		return buffer;
-	}
-}
-template<int capacity = -1, class Char>
-static inline auto strprintf(_In_z_ _Printf_format_string_ Char const* const format, ...) {
-	va_list args;
-	va_start(args, format);
-	auto result = detail::vstrprintf(capacity, format, args);
-	va_end(args);
-	return result;
 }
 template<int captionId = IDS_APP>
 static inline auto Message(HWND owner, int textId, DWORD style) {

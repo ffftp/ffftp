@@ -173,7 +173,7 @@ public:
 	void WriteFont(std::string_view name, HFONT hfont, LOGFONTW const& logfont) {
 		std::wstring value;
 		if (hfont)
-			value = strprintf(L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %s",
+			value = std::format(L"{} {} {} {} {} {} {} {} {} {} {} {} {} {}"sv,
 				logfont.lfHeight, logfont.lfWidth, logfont.lfEscapement, logfont.lfOrientation, logfont.lfWeight,
 				logfont.lfItalic, logfont.lfUnderline, logfont.lfStrikeOut, logfont.lfCharSet,
 				logfont.lfOutPrecision, logfont.lfClipPrecision, logfont.lfQuality, logfont.lfPitchAndFamily, logfont.lfFaceName
@@ -609,7 +609,7 @@ void SaveRegistry() {
 			HISTORYDATA DefaultHist;
 			int i = 0;
 			for (auto const& history : GetHistories())
-				if (auto hKey5 = hKey4->CreateSubKey(strprintf("History%d", i))) {
+				if (auto hKey5 = hKey4->CreateSubKey(std::format("History{}"sv, i))) {
 					hKey5->WriteHost(history, DefaultHist, true);
 					hKey5->WriteIntValueToReg("TrType", history.Type);
 					i++;
@@ -617,7 +617,7 @@ void SaveRegistry() {
 			hKey4->WriteIntValueToReg("SavedHist", i);
 
 			/* 余分なヒストリがあったら削除 */
-			while (hKey4->DeleteSubKey(strprintf("History%d", i)))
+			while (hKey4->DeleteSubKey(std::format("History{}"sv, i)))
 				i++;
 
 			// ホスト共通設定機能
@@ -637,7 +637,7 @@ void SaveRegistry() {
 			CopyDefaultHost(&DefaultHost);
 			i = 0;
 			for (HOSTDATA Host; CopyHostFromList(i, &Host) == FFFTP_SUCCESS; i++)
-				if (auto hKey5 = hKey4->CreateSubKey(strprintf("Host%d", i))) {
+				if (auto hKey5 = hKey4->CreateSubKey(std::format("Host{}"sv, i))) {
 					hKey5->WriteIntValueToReg("Set", Host.Level);
 					hKey5->WriteString("HostName"sv, Host.HostName, DefaultHost.HostName);
 					if ((Host.Level & SET_LEVEL_GROUP) == 0) {
@@ -650,7 +650,7 @@ void SaveRegistry() {
 			hKey4->WriteIntValueToReg("SetNum", i);
 
 			/* 余分なホストの設定があったら削除 */
-			while (hKey4->DeleteSubKey(strprintf("Host%d", i)))
+			while (hKey4->DeleteSubKey(std::format("Host{}"sv, i)))
 				i++;
 
 			if ((i = AskCurrentHost()) == HOSTNUM_NOENTRY)
@@ -848,7 +848,7 @@ bool LoadRegistry() {
 		int Sets = 0;
 		hKey4->ReadIntValueFromReg("SavedHist", &Sets);
 		for (int i = 0; i < Sets; i++)
-			if (auto hKey5 = hKey4->OpenSubKey(strprintf("History%d", i))) {
+			if (auto hKey5 = hKey4->OpenSubKey(std::format("History{}"sv, i))) {
 				HISTORYDATA Hist;
 				hKey5->ReadHost(Hist, Version, true);
 				hKey5->ReadIntValueFromReg("TrType", &Hist.Type);
@@ -870,7 +870,7 @@ bool LoadRegistry() {
 		Sets = 0;
 		hKey4->ReadIntValueFromReg("SetNum", &Sets);
 		for (int i = 0; i < Sets; i++)
-			if (auto hKey5 = hKey4->OpenSubKey(strprintf("Host%d", i))) {
+			if (auto hKey5 = hKey4->OpenSubKey(std::format("Host{}"sv, i))) {
 				CopyDefaultHost(&Host);
 				if (Version < 1921) {
 					Host.Pasv = NO;
@@ -924,7 +924,7 @@ void ClearIni() {
 void SaveSettingsToFile() {
 	if (RegType == REGTYPE_REG) {
 		if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"FFFTP.reg", L"reg", { FileType::Reg, FileType::All }); !std::empty(path)) {
-			auto commandLine = strprintf(LR"("%s" EXPORT HKCU\Software\sota\FFFTP "%s")", (systemDirectory() / L"reg.exe"sv).c_str(), path.c_str());
+			auto commandLine = std::format(LR"("{}" EXPORT HKCU\Software\sota\FFFTP "{}")"sv, (systemDirectory() / L"reg.exe"sv).native(), path.native());
 			fs::remove(path);
 			STARTUPINFOW si{ sizeof(STARTUPINFOW) };
 			if (ProcessInformation pi; !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory().c_str(), &si, &pi))
@@ -941,7 +941,7 @@ void SaveSettingsToFile() {
 int LoadSettingsFromFile() {
 	if (auto const path = SelectFile(true, GetMainHwnd(), IDS_LOAD_SETTING, L"", L"", { FileType::Reg, FileType::Ini, FileType::All }); !std::empty(path)) {
 		if (ieq(path.extension().native(), L".reg"s)) {
-			auto commandLine = strprintf(LR"("%s" IMPORT "%s")", (systemDirectory() / L"reg.exe"sv).c_str(), path.c_str());
+			auto commandLine = std::format(LR"("{}" IMPORT "{}")"sv, (systemDirectory() / L"reg.exe"sv).native(), path.native());
 			STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, STARTF_USESHOWWINDOW, SW_HIDE };
 			if (ProcessInformation pi; CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory().c_str(), &si, &pi))
 				return YES;
@@ -1066,11 +1066,11 @@ void Config::WritePassword(std::string_view name, std::wstring_view password) {
 		if (auto status = BCryptGenRandom(alg, &buffer[(size_t)length + 1], size_as<ULONG>(buffer) - length - 1, 0); status == STATUS_SUCCESS) {
 			auto encrypted = "0C"s;
 			for (auto i = paddedLength; i < size_as<ULONG>(buffer); i++)
-				encrypted += strprintf<2>("%02x", buffer[i]);
+				encrypted += std::format("{:02x}"sv, buffer[i]);
 			encrypted += ':';
 			if (AesData({ &buffer[paddedLength], AesBlockSize }, { &buffer[0], paddedLength }, true)) {
 				for (auto i = 0u; i < paddedLength; i++)
-					encrypted += strprintf<2>("%02x", buffer[i]);
+					encrypted += std::format("{:02x}"sv, buffer[i]);
 				WriteStringToReg(name, encrypted);
 			}
 		} else
@@ -1143,11 +1143,8 @@ struct IniConfig : Config {
 				if (*it == '\\')
 					line += '\\';
 				line += *it;
-			} else {
-				char buffer[4];
-				sprintf(buffer, "\\%02X", (unsigned char)*it);
-				line += buffer;
-			}
+			} else
+				line += std::format("\\{:02X}"sv, (unsigned char)*it);
 		(*map)[KeyName].push_back(std::move(line));
 	}
 };
@@ -1460,7 +1457,7 @@ void SaveSettingsToWinSCPIni() {
 			result += "%EF%BB%BF"sv;
 		for (auto ch : str)
 			if ((ch & 0x80) || "\t\n\r %*?\\"sv.find(ch) != std::string_view::npos)
-				result += strprintf<3>("%%%02hhX", ch);
+				result += std::format("%{:02X}"sv, ch);
 			else
 				result += ch;
 		return result;
@@ -1468,9 +1465,9 @@ void SaveSettingsToWinSCPIni() {
 	auto encode = [](std::wstring_view user, std::wstring_view host, std::wstring_view password) {
 		auto str = u8(concat(user, host, password));
 		static_assert((char)~0xA3 == 0x5C);
-		auto result = strprintf<8>("A35C%02hhX5C", size_as<unsigned char>(str) ^ 0x5C);
+		auto result = std::format("A35C{:02X}5C"sv, size_as<unsigned char>(str) ^ 0x5C);
 		for (auto ch : str)
-			result += strprintf<2>("%02hhX", ch ^ 0x5C);
+			result += std::format("{:02X}"sv, ch ^ 0x5C);
 		return result;
 	};
 	Message(IDS_NEED_EXSITING_WINSCP_INI, MB_OK);
