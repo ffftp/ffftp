@@ -928,7 +928,7 @@ void SaveSettingsToFile() {
 			auto commandLine = std::format(LR"("{}" EXPORT HKCU\Software\sota\FFFTP "{}")"sv, (systemDirectory() / L"reg.exe"sv).native(), path.native());
 			fs::remove(path);
 			STARTUPINFOW si{ sizeof(STARTUPINFOW) };
-			if (ProcessInformation pi; !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory().c_str(), &si, &pi))
+			if (ProcessInformation pi; __pragma(warning(suppress:6335)) !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory().c_str(), &si, &pi))
 				Message(IDS_FAIL_TO_EXEC_REDEDIT, MB_OK | MB_ICONERROR);
 		}
 	} else {
@@ -944,7 +944,7 @@ int LoadSettingsFromFile() {
 		if (ieq(path.extension().native(), L".reg"s)) {
 			auto commandLine = std::format(LR"("{}" IMPORT "{}")"sv, (systemDirectory() / L"reg.exe"sv).native(), path.native());
 			STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, STARTF_USESHOWWINDOW, SW_HIDE };
-			if (ProcessInformation pi; CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory().c_str(), &si, &pi))
+			if (ProcessInformation pi; __pragma(warning(suppress:6335)) CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, CREATE_NO_WINDOW, nullptr, systemDirectory().c_str(), &si, &pi))
 				return YES;
 			Message(IDS_FAIL_TO_EXEC_REDEDIT, MB_OK | MB_ICONERROR);
 		} else if (ieq(path.extension().native(), L".ini"s)) {

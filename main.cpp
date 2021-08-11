@@ -2027,7 +2027,7 @@ void ExecViewer(fs::path const& path, int App) {
 		auto commandLine = std::format(LR"({} "{}")"sv, ViewerName[App == -1 ? 0 : App], path.native());
 		Debug(L"CreateProcess - {}"sv, commandLine);
 		STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
-		if (ProcessInformation pi; !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
+		if (ProcessInformation pi; __pragma(warning(suppress:6335)) !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
 			Notice(IDS_MSGJPN182, GetLastError());
 			Notice(IDS_LOCALCMD, commandLine);
 		}
@@ -2045,7 +2045,7 @@ void ExecViewer2(fs::path const& path1, fs::path const& path2, int App) {
 	auto commandLine = std::format(format, executable, path1.native(), path2.native());
 	Debug(L"FindExecutable - {}"sv, commandLine);
 	STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
-	if (ProcessInformation pi; !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
+	if (ProcessInformation pi; __pragma(warning(suppress:6335)) !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {
 		Notice(IDS_MSGJPN182, GetLastError());
 		Notice(IDS_LOCALCMD, commandLine);
 	}
@@ -2231,7 +2231,7 @@ void Restart() {
 	STARTUPINFOW si;
 	GetStartupInfoW(&si);
 	ProcessInformation pi;
-	CreateProcessW(nullptr, GetCommandLineW(), nullptr, nullptr, false, 0, nullptr, nullptr, &si, &pi);
+	__pragma(warning(suppress:6335)) CreateProcessW(nullptr, GetCommandLineW(), nullptr, nullptr, false, 0, nullptr, nullptr, &si, &pi);
 }
 
 void Terminate()
