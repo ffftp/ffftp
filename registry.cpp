@@ -79,6 +79,7 @@ public:
 			strncpy_s(buffer, size, value->c_str(), _TRUNCATE);
 			return FFFTP_SUCCESS;
 		}
+		buffer[0] = 0;
 		return FFFTP_FAIL;
 	}
 	std::optional<std::wstring> ReadString(std::string_view name) const {
