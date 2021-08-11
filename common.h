@@ -422,6 +422,13 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define NTYPE_IPV6			2		/* TCP/IPv6 */
 
 
+struct SocketContext {
+	SOCKET handle;
+	static std::shared_ptr<SocketContext> Create(int af, int type, int protocol);
+	constexpr bool operator==(SocketContext const& other) { return handle == other.handle; }
+};
+
+
 struct HostExeptPassword {
 	static inline auto DefaultChmod = L"SITE CHMOD"s;	/* 属性変更コマンド */
 	static inline auto DefaultLsOption = L"-alL"s;		/* NLSTに付けるもの */
@@ -790,11 +797,9 @@ int AskHostFireWall(void);
 int AskNoFullPathMode(void);
 void SaveCurrentSetToHost(void);
 int ReConnectCmdSkt(void);
-// int ReConnectTrnSkt(void);
-// 同時接続対応
-int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
+int ReConnectTrnSkt(std::shared_ptr<SocketContext>& Skt, int *CancelCheckWork);
 SOCKET AskCmdCtrlSkt(void);
-SOCKET AskTrnCtrlSkt(void);
+std::shared_ptr<SocketContext> AskTrnCtrlSkt();
 void SktShareProh(void);
 int AskShareProh(void);
 void DisconnectProc(void);
@@ -806,8 +811,8 @@ int SetOSS(int wkOss);
 int AskOSS(void);
 #endif
 std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork);
-SOCKET connectsock(std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork);
-SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork);
+std::shared_ptr<SocketContext> connectsock(std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork);
+std::shared_ptr<SocketContext> GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
 int AskUseNoEncryption(void);
 int AskUseFTPES(void);
@@ -892,7 +897,7 @@ int DoSIZE(SOCKET cSkt, std::wstring const& Path, LONGLONG *Size, int *CancelChe
 int DoMDTM(SOCKET cSkt, std::wstring const& Path, FILETIME *Time, int *CancelCheckWork);
 int DoMFMT(SOCKET cSkt, std::wstring const&, FILETIME *Time, int *CancelCheckWork);
 int DoQUOTE(SOCKET cSkt, std::wstring_view CmdStr, int* CancelCheckWork);
-SOCKET DoClose(SOCKET Sock);
+void DoClose(SOCKET Sock);
 // 同時接続対応
 //int DoQUIT(SOCKET ctrl_skt);
 int DoQUIT(SOCKET ctrl_skt, int *CancelCheckWork);
@@ -1080,11 +1085,10 @@ void SetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::
 void SetAsyncTableDataMapPort(SOCKET s, int Port);
 int GetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::wstring, int>>& target);
 int GetAsyncTableDataMapPort(SOCKET s, int* Port);
-SOCKET do_socket(int af, int type, int protocol);
 int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCheckWork);
 int do_closesocket(SOCKET s);
 int do_listen(SOCKET s,	int backlog);
-SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen);
+std::shared_ptr<SocketContext> do_accept(SOCKET s, struct sockaddr *addr, int *addrlen);
 int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOut, int *CancelCheckWork);
 int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork);
 // 同時接続対応
@@ -1097,7 +1101,7 @@ std::optional<std::wstring> AddPortMapping(std::wstring const& internalAddress, 
 bool RemovePortMapping(int port);
 int CheckClosedAndReconnect(void);
 // 同時接続対応
-int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
+int CheckClosedAndReconnectTrnSkt(std::shared_ptr<SocketContext>& Skt, int *CancelCheckWork);
 
 
 extern int DebugConsole;

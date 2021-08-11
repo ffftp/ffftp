@@ -487,10 +487,10 @@ static unsigned __stdcall TransferThread(void *Dummy)
 	static int Up;
 	int DelNotify;
 	int ThreadCount;
-	SOCKET TrnSkt;
+	std::shared_ptr<SocketContext> TrnSkt;
 	RECT WndRect;
 	int i;
-	DWORD LastUsed;
+	DWORD LastUsed = timeGetTime();
 	int LastError;
 	int Sts;
 
@@ -502,7 +502,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 	// 同時接続対応
 	// ソケットは各転送スレッドが管理
 	ThreadCount = PtrToInt(Dummy);
-	TrnSkt = INVALID_SOCKET;
 	LastError = NO;
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
 
@@ -539,12 +538,11 @@ static unsigned __stdcall TransferThread(void *Dummy)
 		{
 			TrnSkt = AskTrnCtrlSkt();
 			// セッションあたりの転送量制限対策
-			if(TrnSkt != INVALID_SOCKET && AskErrorReconnect() == YES && LastError == YES)
-			{
+			if (TrnSkt && AskErrorReconnect() == YES && LastError == YES) {
 				ReleaseMutex(hListAccMutex);
 				PostMessageW(GetMainHwnd(), WM_RECONNECTSOCKET, 0, 0);
 				Sleep(100);
-				TrnSkt = INVALID_SOCKET;
+				TrnSkt.reset();
 //				WaitForSingleObject(hListAccMutex, INFINITE);
 				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
 				{
@@ -556,12 +554,11 @@ static unsigned __stdcall TransferThread(void *Dummy)
 		else
 		{
 			// セッションあたりの転送量制限対策
-			if(TrnSkt != INVALID_SOCKET && AskErrorReconnect() == YES && LastError == YES)
-			{
+			if (TrnSkt && AskErrorReconnect() == YES && LastError == YES) {
 				ReleaseMutex(hListAccMutex);
-				DoQUIT(TrnSkt, &Canceled[ThreadCount]);
-				DoClose(TrnSkt);
-				TrnSkt = INVALID_SOCKET;
+				DoQUIT(TrnSkt->handle, &Canceled[ThreadCount]);
+				DoClose(TrnSkt->handle);
+				TrnSkt.reset();
 //				WaitForSingleObject(hListAccMutex, INFINITE);
 				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
 				{
@@ -572,12 +569,12 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			if(!empty(TransPacketBase) && AskConnecting() == YES && ThreadCount < AskMaxThreadCount())
 			{
 				ReleaseMutex(hListAccMutex);
-				if(TrnSkt == INVALID_SOCKET)
-					ReConnectTrnSkt(&TrnSkt, &Canceled[ThreadCount]);
+				if (!TrnSkt)
+					ReConnectTrnSkt(TrnSkt, &Canceled[ThreadCount]);
 				else
-					CheckClosedAndReconnectTrnSkt(&TrnSkt, &Canceled[ThreadCount]);
+					CheckClosedAndReconnectTrnSkt(TrnSkt, &Canceled[ThreadCount]);
 				// 同時ログイン数制限対策
-				if(TrnSkt == INVALID_SOCKET)
+				if (!TrnSkt)
 				{
 					// 同時ログイン数制限に引っかかった可能性あり
 					// 負荷を下げるために約10秒間待機
@@ -599,16 +596,15 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			}
 			else
 			{
-				if(TrnSkt != INVALID_SOCKET)
-				{
+				if (TrnSkt) {
 					// 同時ログイン数制限対策
 					// 60秒間使用されなければログアウト
 					if(timeGetTime() - LastUsed > 60000 || AskConnecting() == NO || ThreadCount >= AskMaxThreadCount())
 					{
 						ReleaseMutex(hListAccMutex);
-						DoQUIT(TrnSkt, &Canceled[ThreadCount]);
-						DoClose(TrnSkt);
-						TrnSkt = INVALID_SOCKET;
+						DoQUIT(TrnSkt->handle, &Canceled[ThreadCount]);
+						DoClose(TrnSkt->handle);
+						TrnSkt.reset();
 //						WaitForSingleObject(hListAccMutex, INFINITE);
 						while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
 						{
@@ -620,7 +616,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			}
 		}
 		LastError = NO;
-		if (TrnSkt != INVALID_SOCKET && NextTransPacketBase != end(TransPacketBase)) {
+		if (TrnSkt && NextTransPacketBase != end(TransPacketBase)) {
 			auto Pos = NextTransPacketBase++;
 			// ディレクトリ操作は非同期で行わない
 //			ReleaseMutex(hListAccMutex);
@@ -637,7 +633,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			}
 //			TransPacketBase->hWndTrans = hWndTrans;
 			Pos->hWndTrans = hWndTrans;
-			Pos->ctrl_skt = TrnSkt;
+			Pos->ctrl_skt = TrnSkt->handle;
 			Pos->Abort = ABORT_NONE;
 			Pos->ThreadCount = ThreadCount;
 
@@ -654,7 +650,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				SendMessageW(hWndTrans, WM_SET_PACKET, 0, (LPARAM)&*Pos);
 
 			// 中断後に受信バッファに応答が残っていると次のコマンドの応答が正しく処理できない
-			RemoveReceivedData(TrnSkt);
+			RemoveReceivedData(TrnSkt->handle);
 
 			/* ダウンロード */
 			if(Pos->Command.starts_with(L"RETR"sv))
@@ -670,8 +666,8 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						if(Pos->Command.starts_with(L"RETR-S"sv))
 						{
 							/* サイズと日付を取得 */
-							DoSIZE(TrnSkt, Pos->Remote, &Pos->Size, &Canceled[Pos->ThreadCount]);
-							DoMDTM(TrnSkt, Pos->Remote, &Pos->Time, &Canceled[Pos->ThreadCount]);
+							DoSIZE(TrnSkt->handle, Pos->Remote, &Pos->Size, &Canceled[Pos->ThreadCount]);
+							DoMDTM(TrnSkt->handle, Pos->Remote, &Pos->Time, &Canceled[Pos->ThreadCount]);
 							Pos->Command = L"RETR "s;
 						}
 
@@ -679,7 +675,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						// ミラーリング設定追加
 						if(Pos->NoTransfer == NO)
 						{
-							Sts = DoDownload(TrnSkt, *Pos, NO, &Canceled[Pos->ThreadCount]) / 100;
+							Sts = DoDownload(TrnSkt->handle, *Pos, NO, &Canceled[Pos->ThreadCount]) / 100;
 							if(Sts != FTP_COMPLETE)
 								LastError = YES;
 							// ゾーンID設定追加
@@ -709,7 +705,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					// ミラーリング設定追加
 					if(Pos->NoTransfer == NO)
 					{
-						Sts = DoUpload(TrnSkt, *Pos) / 100;
+						Sts = DoUpload(TrnSkt->handle, *Pos) / 100;
 						if(Sts != FTP_COMPLETE)
 							LastError = YES;
 					}
@@ -719,7 +715,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					if((SaveTimeStamp == YES) &&
 					   ((Pos->Time.dwLowDateTime != 0) || (Pos->Time.dwHighDateTime != 0)))
 					{
-						DoMFMT(TrnSkt, Pos->Remote, &Pos->Time, &Canceled[Pos->ThreadCount]);
+						DoMFMT(TrnSkt->handle, Pos->Remote, &Pos->Time, &Canceled[Pos->ThreadCount]);
 					}
 				}
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
@@ -735,7 +731,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					CwdSts = FTP_COMPLETE;
 
 					auto dir = Pos->Remote;
-					if (ProcForNonFullpath(TrnSkt, dir, CurDir[Pos->ThreadCount], hWndTrans, &Canceled[Pos->ThreadCount]) == FFFTP_FAIL) {
+					if (ProcForNonFullpath(TrnSkt->handle, dir, CurDir[Pos->ThreadCount], hWndTrans, &Canceled[Pos->ThreadCount]) == FFFTP_FAIL) {
 						ClearAll = YES;
 						CwdSts = FTP_ERROR;
 					}
@@ -743,12 +739,12 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					if(CwdSts == FTP_COMPLETE)
 					{
 						Up = YES;
-						Command(TrnSkt, &Canceled[Pos->ThreadCount], L"MKD {}"sv, dir);
+						Command(TrnSkt->handle, &Canceled[Pos->ThreadCount], L"MKD {}"sv, dir);
 						/* すでにフォルダがある場合もあるので、 */
 						/* ここではエラーチェックはしない */
 
 					if(FolderAttr)
-						Command(TrnSkt, &Canceled[Pos->ThreadCount], L"{} {:03d} {}"sv, AskHostChmodCmd(), FolderAttrNum, dir);
+						Command(TrnSkt->handle, &Canceled[Pos->ThreadCount], L"{} {:03d} {}"sv, AskHostChmodCmd(), FolderAttrNum, dir);
 					}
 				} else if (!Pos->Local.empty()) {
 					Down = YES;
@@ -765,10 +761,10 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				if(MakeNonFullPath(*Pos, CurDir[Pos->ThreadCount]) == FFFTP_SUCCESS)
 				{
 					Up = YES;
-					Command(TrnSkt, &Canceled[Pos->ThreadCount], L"{}{}"sv, std::wstring_view{ Pos->Command }.substr(2), Pos->Remote);
+					Command(TrnSkt->handle, &Canceled[Pos->ThreadCount], L"{}{}"sv, std::wstring_view{ Pos->Command }.substr(2), Pos->Remote);
 
 					if(FolderAttr)
-						Command(TrnSkt, &Canceled[Pos->ThreadCount], L"{} {:03d} {}"sv, AskHostChmodCmd(), FolderAttrNum, Pos->Remote);
+						Command(TrnSkt->handle, &Canceled[Pos->ThreadCount], L"{} {:03d} {}"sv, AskHostChmodCmd(), FolderAttrNum, Pos->Remote);
 				}
 				ReleaseMutex(hListAccMutex);
 			}
@@ -784,7 +780,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					if(MakeNonFullPath(*Pos, CurDir[Pos->ThreadCount]) == FFFTP_SUCCESS)
 					{
 						Up = YES;
-						Command(TrnSkt, &Canceled[Pos->ThreadCount], L"{}{}"sv, std::wstring_view{ Pos->Command }.substr(2), Pos->Remote);
+						Command(TrnSkt->handle, &Canceled[Pos->ThreadCount], L"{}{}"sv, std::wstring_view{ Pos->Command }.substr(2), Pos->Remote);
 					}
 				}
 				ReleaseMutex(hListAccMutex);
@@ -801,7 +797,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					if(MakeNonFullPath(*Pos, CurDir[Pos->ThreadCount]) == FFFTP_SUCCESS)
 					{
 						Up = YES;
-						Command(TrnSkt, &Canceled[Pos->ThreadCount], L"{}{}"sv, std::wstring_view{ Pos->Command }.substr(2), Pos->Remote);
+						Command(TrnSkt->handle, &Canceled[Pos->ThreadCount], L"{}{}"sv, std::wstring_view{ Pos->Command }.substr(2), Pos->Remote);
 					}
 				}
 				ReleaseMutex(hListAccMutex);
@@ -848,7 +844,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				if(AskReuseCmdSkt() == NO || AskShareProh() == YES)
 				{
 					if (CurDir[Pos->ThreadCount] != Pos->Remote) {
-						if (std::get<0>(Command(TrnSkt, &Canceled[Pos->ThreadCount], L"CWD {}"sv, Pos->Remote)) / 100 != FTP_COMPLETE) {
+						if (std::get<0>(Command(TrnSkt->handle, &Canceled[Pos->ThreadCount], L"CWD {}"sv, Pos->Remote)) / 100 != FTP_COMPLETE) {
 							DispCWDerror(hWndTrans);
 							ClearAll = YES;
 						}
@@ -864,7 +860,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				if(AskReuseCmdSkt() == YES && AskShareProh() == NO)
 				{
 					if (CurDir[Pos->ThreadCount] != Pos->Remote)
-						Command(TrnSkt, &Canceled[Pos->ThreadCount], L"CWD {}"sv, Pos->Remote);
+						Command(TrnSkt->handle, &Canceled[Pos->ThreadCount], L"CWD {}"sv, Pos->Remote);
 					CurDir[Pos->ThreadCount] = Pos->Remote;
 				}
 				ReleaseMutex(hListAccMutex);
@@ -987,10 +983,9 @@ static unsigned __stdcall TransferThread(void *Dummy)
 	}
 	if(AskReuseCmdSkt() == NO || ThreadCount > 0)
 	{
-		if(TrnSkt != INVALID_SOCKET)
-		{
-			SendData(TrnSkt, "QUIT\r\n", 6, 0, &Canceled[ThreadCount]);
-			DoClose(TrnSkt);
+		if (TrnSkt) {
+			SendData(TrnSkt->handle, "QUIT\r\n", 6, 0, &Canceled[ThreadCount]);
+			DoClose(TrnSkt->handle);
 		}
 	}
 	return 0;
@@ -1103,14 +1098,13 @@ int DoDownload(SOCKET cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork
 static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 {
 	int iRetCode;
-	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
-	SOCKET listen_socket = INVALID_SOCKET; // data listen socket
+	std::shared_ptr<SocketContext> data_socket;   // data channel socket
+	std::shared_ptr<SocketContext> listen_socket; // data listen socket
 	int CreateMode;
 	// UPnP対応
 	int Port;
 
-	if((listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, CancelCheckWork)) != INVALID_SOCKET)
-	{
+	if (listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, CancelCheckWork)) {
 		if(SetDownloadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &CreateMode, CancelCheckWork) == YES)
 		{
 			std::wstring text;
@@ -1118,51 +1112,49 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 			if(iRetCode/100 == FTP_PRELIM)
 			{
 				if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
-					if (!SocksReceiveReply(listen_socket, CancelCheckWork))
+					if (!SocksReceiveReply(listen_socket->handle, CancelCheckWork))
 						data_socket = listen_socket;
-					else
-						listen_socket = DoClose(listen_socket);
+					else {
+						DoClose(listen_socket->handle);
+						listen_socket.reset();
+					}
 				} else {
 					sockaddr_storage sa;
 					int salen = sizeof(sockaddr_storage);
-					data_socket = do_accept(listen_socket, reinterpret_cast<sockaddr*>(&sa), &salen);
+					data_socket = do_accept(listen_socket->handle, reinterpret_cast<sockaddr*>(&sa), &salen);
 
-					if(shutdown(listen_socket, 1) != 0)
+					if(shutdown(listen_socket->handle, 1) != 0)
 						WSAError(L"shutdown(listen)"sv);
 					// UPnP対応
 					if(IsUPnPLoaded() == YES)
 					{
-						if(GetAsyncTableDataMapPort(listen_socket, &Port) == YES)
+						if(GetAsyncTableDataMapPort(listen_socket->handle, &Port) == YES)
 							RemovePortMapping(Port);
 					}
-					listen_socket = DoClose(listen_socket);
+					DoClose(listen_socket->handle);
+					listen_socket.reset();
 
-					if(data_socket == INVALID_SOCKET)
-					{
+					if (!data_socket) {
 						SetErrorMsg(GetString(IDS_MSGJPN280));
 						WSAError(L"accept()"sv);
 						iRetCode = 500;
 					}
 					else
-						Debug(L"Skt={} : accept from {}"sv, data_socket, AddressPortToString(&sa, salen));
+						Debug(L"Skt={} : accept from {}"sv, data_socket->handle, AddressPortToString(&sa, salen));
 				}
 
-				if(data_socket != INVALID_SOCKET)
-				{
+				if (data_socket) {
 					// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 					ReleaseMutex(hListAccMutex);
-					// FTPS対応
-//					iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 					if(IsSSLAttached(Pkt->ctrl_skt))
 					{
-						if (AttachSSL(data_socket, Pkt->ctrl_skt, CancelCheckWork, {}))
-							iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+						if (AttachSSL(data_socket->handle, Pkt->ctrl_skt, CancelCheckWork, {}))
+							iRetCode = DownloadFile(Pkt, data_socket->handle, CreateMode, CancelCheckWork);
 						else
 							iRetCode = 500;
 					}
 					else
-						iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
-//					data_socket = DoClose(data_socket);
+						iRetCode = DownloadFile(Pkt, data_socket->handle, CreateMode, CancelCheckWork);
 				}
 			}
 			else
@@ -1172,10 +1164,11 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 				// UPnP対応
 				if(IsUPnPLoaded() == YES)
 				{
-					if(GetAsyncTableDataMapPort(listen_socket, &Port) == YES)
+					if(GetAsyncTableDataMapPort(listen_socket->handle, &Port) == YES)
 						RemovePortMapping(Port);
 				}
-				listen_socket = DoClose(listen_socket);
+				DoClose(listen_socket->handle);
+				listen_socket.reset();
 				iRetCode = 500;
 			}
 		}
@@ -1186,10 +1179,11 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 			// UPnP対応
 			if(IsUPnPLoaded() == YES)
 			{
-				if(GetAsyncTableDataMapPort(listen_socket, &Port) == YES)
+				if(GetAsyncTableDataMapPort(listen_socket->handle, &Port) == YES)
 					RemovePortMapping(Port);
 			}
-			listen_socket = DoClose(listen_socket);
+			DoClose(listen_socket->handle);
+			listen_socket.reset();
 			iRetCode = 500;
 		}
 	}
@@ -1216,7 +1210,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 
 static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 {
-	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
+	std::shared_ptr<SocketContext> data_socket;   // data channel socket
 	int CreateMode;
 	int Flg;
 
@@ -1224,10 +1218,10 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
 		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, text)) {
-			if (auto [host, port] = *target; (data_socket = connectsock(std::move(host), port, IDS_MSGJPN091, CancelCheckWork)) != INVALID_SOCKET) {
+			if (auto [host, port] = *target; data_socket = connectsock(std::move(host), port, IDS_MSGJPN091, CancelCheckWork)) {
 				// 変数が未初期化のバグ修正
 				Flg = 1;
-				if(setsockopt(data_socket, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
+				if(setsockopt(data_socket->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					WSAError(L"setsockopt(IPPROTO_TCP, TCP_NODELAY)"sv);
 
 				if(SetDownloadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &CreateMode, CancelCheckWork) == YES)
@@ -1241,20 +1235,20 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 //						iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 						if(IsSSLAttached(Pkt->ctrl_skt))
 						{
-							if (AttachSSL(data_socket, Pkt->ctrl_skt, CancelCheckWork, {}))
-								iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+							if (AttachSSL(data_socket->handle, Pkt->ctrl_skt, CancelCheckWork, {}))
+								iRetCode = DownloadFile(Pkt, data_socket->handle, CreateMode, CancelCheckWork);
 							else
 								iRetCode = 500;
 						}
 						else
-							iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
-//						data_socket = DoClose(data_socket);
+							iRetCode = DownloadFile(Pkt, data_socket->handle, CreateMode, CancelCheckWork);
 					}
 					else
 					{
 						SetErrorMsg(std::move(text));
 						Notice(IDS_MSGJPN092);
-						data_socket = DoClose(data_socket);
+						DoClose(data_socket->handle);
+						data_socket.reset();
 						iRetCode = 500;
 					}
 				}
@@ -1641,15 +1635,12 @@ static int DoUpload(SOCKET cSkt, TRANSPACKET& item)
 static int UploadNonPassive(TRANSPACKET *Pkt)
 {
 	int iRetCode;
-	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
-	SOCKET listen_socket = INVALID_SOCKET; // data listen socket
+	std::shared_ptr<SocketContext> data_socket;   // data channel socket
+	std::shared_ptr<SocketContext> listen_socket; // data listen socket
 	int Port;
 	int Resume;
 
-	// 同時接続対応
-//	if((listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, &Canceled)) != INVALID_SOCKET)
-	if((listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount])) != INVALID_SOCKET)
-	{
+	if (listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount])) {
 		SetUploadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &Resume);
 		auto cmd = L"APPE "sv;
 		std::wstring extra;
@@ -1670,51 +1661,53 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 			if(Pkt->Mode == EXIST_UNIQUE)
 				Pkt->Attr = -1;
 			if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
-				if (SocksReceiveReply(listen_socket, &Canceled[Pkt->ThreadCount]))
+				if (SocksReceiveReply(listen_socket->handle, &Canceled[Pkt->ThreadCount]))
 					data_socket = listen_socket;
-				else
-					listen_socket = DoClose(listen_socket);
+				else {
+					DoClose(listen_socket->handle);
+					listen_socket.reset();
+				}
 			} else {
 				sockaddr_storage sa;
 				int salen = sizeof(sockaddr_storage);
-				data_socket = do_accept(listen_socket, reinterpret_cast<sockaddr*>(&sa), &salen);
+				data_socket = do_accept(listen_socket->handle, reinterpret_cast<sockaddr*>(&sa), &salen);
 
-				if(shutdown(listen_socket, 1) != 0)
+				if(shutdown(listen_socket->handle, 1) != 0)
 					WSAError(L"shutdown(listen)"sv);
 				// UPnP対応
 				if(IsUPnPLoaded() == YES)
 				{
-					if(GetAsyncTableDataMapPort(listen_socket, &Port) == YES)
+					if(GetAsyncTableDataMapPort(listen_socket->handle, &Port) == YES)
 						RemovePortMapping(Port);
 				}
-				listen_socket = DoClose(listen_socket);
+				DoClose(listen_socket->handle);
+				listen_socket.reset();
 
-				if(data_socket == INVALID_SOCKET)
-				{
+				if (!data_socket) {
 					SetErrorMsg(GetString(IDS_MSGJPN280));
 					WSAError(L"accept()"sv);
 					iRetCode = 500;
 				}
 				else
-					Debug(L"Skt={} : accept from {}"sv, data_socket, AddressPortToString(&sa, salen));
+					Debug(L"Skt={} : accept from {}"sv, data_socket->handle, AddressPortToString(&sa, salen));
 			}
 
-			if(data_socket != INVALID_SOCKET)
-			{
+			if (data_socket) {
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 				ReleaseMutex(hListAccMutex);
 				// FTPS対応
 //				iRetCode = UploadFile(Pkt, data_socket);
 				if(IsSSLAttached(Pkt->ctrl_skt))
 				{
-					if (AttachSSL(data_socket, Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], {}))
-						iRetCode = UploadFile(Pkt, data_socket);
+					if (AttachSSL(data_socket->handle, Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], {}))
+						iRetCode = UploadFile(Pkt, data_socket->handle);
 					else
 						iRetCode = 500;
 				}
 				else
-					iRetCode = UploadFile(Pkt, data_socket);
-				data_socket = DoClose(data_socket);
+					iRetCode = UploadFile(Pkt, data_socket->handle);
+				DoClose(data_socket->handle);
+				data_socket.reset();
 			}
 		}
 		else
@@ -1724,10 +1717,11 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 			// UPnP対応
 			if(IsUPnPLoaded() == YES)
 			{
-				if(GetAsyncTableDataMapPort(listen_socket, &Port) == YES)
+				if(GetAsyncTableDataMapPort(listen_socket->handle, &Port) == YES)
 					RemovePortMapping(Port);
 			}
-			listen_socket = DoClose(listen_socket);
+			DoClose(listen_socket->handle);
+			listen_socket.reset();
 			iRetCode = 500;
 		}
 	}
@@ -1754,7 +1748,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 
 static int UploadPassive(TRANSPACKET *Pkt)
 {
-	SOCKET data_socket = INVALID_SOCKET;   // data channel socket
+	std::shared_ptr<SocketContext> data_socket;   // data channel socket
 	int Flg;
 	int Resume;
 
@@ -1762,10 +1756,10 @@ static int UploadPassive(TRANSPACKET *Pkt)
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
 		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, text)) {
-			if (auto [host, port] = *target; (data_socket = connectsock(std::move(host), port, IDS_MSGJPN109, &Canceled[Pkt->ThreadCount])) != INVALID_SOCKET) {
+			if (auto [host, port] = *target; data_socket = connectsock(std::move(host), port, IDS_MSGJPN109, &Canceled[Pkt->ThreadCount])) {
 				// 変数が未初期化のバグ修正
 				Flg = 1;
-				if(setsockopt(data_socket, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
+				if(setsockopt(data_socket->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					WSAError(L"setsockopt(IPPROTO_TCP, TCP_NODELAY)"sv);
 
 				SetUploadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &Resume);
@@ -1791,21 +1785,23 @@ static int UploadPassive(TRANSPACKET *Pkt)
 //					iRetCode = UploadFile(Pkt, data_socket);
 					if(IsSSLAttached(Pkt->ctrl_skt))
 					{
-						if (AttachSSL(data_socket, Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], {}))
-							iRetCode = UploadFile(Pkt, data_socket);
+						if (AttachSSL(data_socket->handle, Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], {}))
+							iRetCode = UploadFile(Pkt, data_socket->handle);
 						else
 							iRetCode = 500;
 					}
 					else
-						iRetCode = UploadFile(Pkt, data_socket);
+						iRetCode = UploadFile(Pkt, data_socket->handle);
 
-					data_socket = DoClose(data_socket);
+					DoClose(data_socket->handle);
+					data_socket.reset();
 				}
 				else
 				{
 					SetErrorMsg(std::move(text));
 					Notice(IDS_MSGJPN110);
-					data_socket = DoClose(data_socket);
+					DoClose(data_socket->handle);
+					data_socket.reset();
 					iRetCode = 500;
 				}
 			}

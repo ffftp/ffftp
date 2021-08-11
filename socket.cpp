@@ -551,14 +551,14 @@ int GetAsyncTableDataMapPort(SOCKET s, int* Port) {
 }
 
 
-SOCKET do_socket(int af, int type, int protocol) {
+std::shared_ptr<SocketContext> SocketContext::Create(int af, int type, int protocol) {
 	auto s = socket(af, type, protocol);
 	if (s == INVALID_SOCKET) {
 		WSAError(L"socket()"sv);
-		return INVALID_SOCKET;
+		return {};
 	}
 	RegisterAsyncTable(s);
-	return s;
+	return std::make_shared<SocketContext>(s);
 }
 
 
@@ -618,9 +618,7 @@ int do_listen(SOCKET s, int backlog) {
 
 
 
-SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
-{
-#if USE_THIS
+std::shared_ptr<SocketContext> do_accept(SOCKET s, struct sockaddr *addr, int *addrlen) {
 	SOCKET Ret2;
 	int CancelCheckWork;
 	int Error;
@@ -665,10 +663,7 @@ SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen)
 		}
 		while(Error == WSAEWOULDBLOCK);
 	}
-	return(Ret2);
-#else
-	return(accept(s, addr, addrlen));
-#endif
+	return Ret2 != INVALID_SOCKET ? std::make_shared<SocketContext>(Ret2) : std::shared_ptr<SocketContext>{};
 }
 
 
@@ -838,12 +833,12 @@ int CheckClosedAndReconnect(void)
 
 
 // 同時接続対応
-int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
+int CheckClosedAndReconnectTrnSkt(std::shared_ptr<SocketContext>& Skt, int *CancelCheckWork)
 {
 	int Error;
 	int Sts;
 	Sts = FFFTP_SUCCESS;
-	if(AskAsyncDone(*Skt, &Error, FD_CLOSE) == YES)
+	if(AskAsyncDone(Skt->handle, &Error, FD_CLOSE) == YES)
 	{
 		Sts = ReConnectTrnSkt(Skt, CancelCheckWork);
 	}

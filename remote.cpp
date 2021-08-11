@@ -270,27 +270,12 @@ int DoQUOTE(SOCKET cSkt, std::wstring_view CmdStr, int* CancelCheckWork) {
 }
 
 
-/*----- ソケットを閉じる ------------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		SOCKET 閉じた後のソケット
-*----------------------------------------------------------------------------*/
-
-SOCKET DoClose(SOCKET Sock)
-{
-	if(Sock != INVALID_SOCKET)
-	{
+// ソケットを閉じる
+void DoClose(SOCKET Sock) {
+	if (Sock != INVALID_SOCKET) {
 		do_closesocket(Sock);
 		Debug(L"Skt={} : Socket closed."sv, Sock);
-		Sock = INVALID_SOCKET;
 	}
-	if(Sock != INVALID_SOCKET)
-		Debug(L"Skt={} : Failed to close socket."sv, Sock);
-
-	return(Sock);
 }
 
 
@@ -466,8 +451,10 @@ static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWo
 		line.append(buffer, buffer + read);
 	} while (!line.ends_with('\n'));
 	if (read <= 0) {
-		if (read == -2 || AskTransferNow() == YES)
-			cSkt = DoClose(cSkt);
+		if (read == -2 || AskTransferNow() == YES) {
+			DoClose(cSkt);
+			cSkt = INVALID_SOCKET;
+		}
 		return { 429, {} };
 	}
 
