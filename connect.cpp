@@ -1774,7 +1774,7 @@ static std::optional<sockaddr_storage> SocksRequest(SOCKET s, SocksCommand cmd, 
 			return {};
 		buffer = { 5, static_cast<uint8_t>(cmd), 0 };								// VER, CMD, RSV
 		if (target.index() == 0) {
-			if (auto const addr = std::get<0>(target); addr.ss_family == AF_INET) {
+			if (auto const& addr = std::get<0>(target); addr.ss_family == AF_INET) {
 				auto const& sin = reinterpret_cast<sockaddr_in const&>(addr);
 				buffer.push_back(1);												// ATYP
 				append(buffer, sin.sin_addr);										// DST.ADDR
