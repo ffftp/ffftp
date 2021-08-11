@@ -1348,7 +1348,7 @@ static inline std::invoke_result_t<Fn, BCRYPT_ALG_HANDLE> BCrypt(LPCWSTR algid, 
 	BCRYPT_ALG_HANDLE alg;
 	if (auto status = BCryptOpenAlgorithmProvider(&alg, algid, nullptr, 0); status != STATUS_SUCCESS) {
 		Debug(L"BCryptOpenAlgorithmProvider({}) failed: 0x{:08X}."sv, algid, status);
-		return {};
+		__pragma(warning(suppress:26444)) return {};
 	}
 	auto result = std::invoke(std::forward<Fn>(fn), alg);
 	BCryptCloseAlgorithmProvider(alg, 0);
