@@ -2066,8 +2066,7 @@ static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM 
 					ClearAll = YES;
 					for(i = 0; i < MAX_DATA_CONNECTION; i++)
 						Canceled[i] = YES;
-					/* ここに break はない */
-
+					[[fallthrough]];
 				case IDCANCEL :
 					if(!(Pkt = (TRANSPACKET*)GetWindowLongPtrW(hDlg, GWLP_USERDATA)))
 						break;
