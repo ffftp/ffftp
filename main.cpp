@@ -212,22 +212,24 @@ int MarkAsInternet = YES;
 
 
 fs::path const& systemDirectory() {
-	static auto const directory = [] {
-		wchar_t directory[32768];
-		auto const length = GetSystemDirectoryW(directory, size_as<UINT>(directory));
+	static fs::path const directory = [] {
+		std::wstring directory(32768, L'\0');
+		auto const length = GetSystemDirectoryW(data(directory), size_as<UINT>(directory));
 		assert(0 < length);
-		return fs::path{ directory, directory + length };
+		directory.resize(length);
+		return directory;
 	}();
 	return directory;
 }
 
 
 static auto const& moduleFileName() {
-	static auto const filename = [] {
-		wchar_t filename[32768];
-		auto const length = GetModuleFileNameW(0, filename, size_as<DWORD>(filename));
+	static fs::path const filename = [] {
+		std::wstring filename(32768, L'\0');
+		auto const length = GetModuleFileNameW(0, data(filename), size_as<DWORD>(filename));
 		assert(0 < length);
-		return fs::path{ filename, filename + length };
+		filename.resize(length);
+		return filename;
 	}();
 	return filename;
 }

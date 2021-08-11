@@ -1324,10 +1324,10 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		CodeConverter cc{ Pkt->KanjiCode, Pkt->KanjiCodeDesired, Pkt->KanaCnv != NO };
 
 		/*===== ファイルを受信するループ =====*/
+		std::vector<char> buf(BUFSIZE);
 		int read = 0;
 		while (Pkt->Abort == ABORT_NONE && ForceAbort == NO) {
-			char buf[BUFSIZE];
-			if (int timeout; (read = do_recv(dSkt, buf, BUFSIZE, 0, &timeout, CancelCheckWork)) <= 0) {
+			if (int timeout; (read = do_recv(dSkt, data(buf), BUFSIZE, 0, &timeout, CancelCheckWork)) <= 0) {
 				if (timeout == YES) {
 					SetErrorMsg(GetString(IDS_MSGJPN094));
 					Notice(IDS_MSGJPN094);
@@ -1342,7 +1342,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 				break;
 			}
 
-			if (auto converted = cc.Convert({ buf, (size_t)read }); !os.write(data(converted), size(converted)))
+			if (auto converted = cc.Convert({ data(buf), (size_t)read }); !os.write(data(converted), size(converted)))
 				Pkt->Abort = ABORT_DISKFULL;
 
 			Pkt->ExistSize += read;
@@ -1871,16 +1871,16 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 
 		/*===== ファイルを送信するループ =====*/
 		auto eof = false;
-		char buf[BUFSIZE];
-		for (std::streamsize read; Pkt->Abort == ABORT_NONE && ForceAbort == NO && !eof && (read = is.read(buf, std::size(buf)).gcount()) != 0;) {
+		std::vector<char> buf(BUFSIZE);
+		for (std::streamsize read; Pkt->Abort == ABORT_NONE && ForceAbort == NO && !eof && (read = is.read(data(buf), size(buf)).gcount()) != 0;) {
 			/* EOF除去 */
 			if (RmEOF == YES && Pkt->Type == TYPE_A)
-				if (auto pos = std::find(buf, buf + read, '\x1A'); pos != buf + read) {
+				if (auto pos = std::find(data(buf), data(buf) + read, '\x1A'); pos != data(buf) + read) {
 					eof = true;
-					read = pos - buf;
+					read = pos - data(buf);
 				}
 
-			auto converted = cc.Convert({ buf, (std::string_view::size_type)read });
+			auto converted = cc.Convert({ data(buf), (std::string_view::size_type)read });
 			if (TermCodeConvAndSend(dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
 				Pkt->Abort = ABORT_ERROR;
 
