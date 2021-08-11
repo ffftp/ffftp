@@ -1462,7 +1462,7 @@ static inline fs::path DragFile(HDROP hdrop, UINT index) {
 // Drag&Dropされたファイルをリストに登録する
 std::tuple<fs::path, std::vector<FILELIST>> MakeDroppedFileList(WPARAM wParam) {
 	int count = DragQueryFileW((HDROP)wParam, 0xFFFFFFFF, NULL, 0);
-	auto const baseDirectory = DragFile((HDROP)wParam, 0).parent_path();
+	auto baseDirectory = DragFile((HDROP)wParam, 0).parent_path();
 	std::vector<FILELIST> files;
 	std::vector<fs::path> directories;
 	for (int i = 0; i < count; i++) {

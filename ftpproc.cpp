@@ -2286,7 +2286,7 @@ static std::wstring_view GetUpperDir(std::wstring_view path) {
 int ProcForNonFullpath(SOCKET cSkt, std::wstring& Path, std::wstring& CurDir, HWND hWnd, int* CancelCheckWork) {
 	int Sts = FFFTP_SUCCESS;
 	if (AskNoFullPathMode() == YES) {
-		auto const Tmp = AskHostType() == HTYPE_VMS ? ReformToVMSstyleDirName(std::wstring{ GetUpperDirEraseTopSlash(Path) }) : AskHostType() == HTYPE_STRATUS ? std::wstring{ GetUpperDirEraseTopSlash(Path) } : std::wstring{ GetUpperDir(Path) };
+		auto Tmp = AskHostType() == HTYPE_VMS ? ReformToVMSstyleDirName(std::wstring{ GetUpperDirEraseTopSlash(Path) }) : AskHostType() == HTYPE_STRATUS ? std::wstring{ GetUpperDirEraseTopSlash(Path) } : std::wstring{ GetUpperDir(Path) };
 		if (Tmp != CurDir) {
 			if (int code = std::get<0>(Command(cSkt, CancelCheckWork, L"CWD {}"sv, Tmp)); code / 100 != FTP_COMPLETE) {
 				DispCWDerror(hWnd);

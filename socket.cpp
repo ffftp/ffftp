@@ -77,7 +77,7 @@ template<class T>
 static T CreateInvalidateHandle() {
 	T handle;
 	SecInvalidateHandle(&handle);
-	return std::move(handle);
+	return handle;
 }
 
 struct Context {
@@ -146,7 +146,7 @@ struct Context {
 			result.resize(offset + buffer[0].cbBuffer + buffer[1].cbBuffer + buffer[2].cbBuffer);
 			plain = plain.substr(dataLength);
 		}
-		return std::move(result);
+		return result;
 	}
 };
 
