@@ -55,8 +55,6 @@ struct AsyncSignal {
 
 static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static int AskAsyncDone(SOCKET s, int *Error, int Mask);
-static void RegisterAsyncTable(SOCKET s);
-static void UnregisterAsyncTable(SOCKET s);
 
 
 /*===== 外部参照 =====*/
@@ -506,32 +504,27 @@ static int AskAsyncDone(SOCKET s, int *Error, int Mask) {
 }
 
 
-static void RegisterAsyncTable(SOCKET s) {
-	std::lock_guard lock{ SignalMutex };
-	Signal[s] = {};
-}
-
-
-static void UnregisterAsyncTable(SOCKET s) {
-	std::lock_guard lock{ SignalMutex };
-	Signal.erase(s);
-}
-
-
 std::shared_ptr<SocketContext> SocketContext::Create(int af, int type, int protocol) {
 	auto s = socket(af, type, protocol);
 	if (s == INVALID_SOCKET) {
 		WSAError(L"socket()"sv);
 		return {};
 	}
-	RegisterAsyncTable(s);
 	return std::make_shared<SocketContext>(s);
+}
+
+SocketContext::SocketContext(SOCKET s) : handle{ s } {
+	std::lock_guard lock{ SignalMutex };
+	Signal[handle] = {};
 }
 
 
 int SocketContext::Close() {
 	WSAAsyncSelect(handle, hWndSocket, WM_ASYNC_SOCKET, 0);
-	UnregisterAsyncTable(handle);
+	{
+		std::lock_guard lock{ SignalMutex };
+		Signal.erase(handle);
+	}
 	DetachSSL(handle);
 	if (int result = closesocket(handle); result != SOCKET_ERROR)
 		return result;
@@ -602,7 +595,6 @@ std::shared_ptr<SocketContext> SocketContext::Accept(_Out_writes_bytes_opt_(*add
 			s = accept(handle, addr, addrlen);
 			if (s != INVALID_SOCKET) {
 				auto sc = std::make_shared<SocketContext>(s);
-				RegisterAsyncTable(sc->handle);
 				if (WSAAsyncSelect(sc->handle, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) != SOCKET_ERROR)
 					return sc;
 				sc->Close();

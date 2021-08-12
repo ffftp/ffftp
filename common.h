@@ -426,7 +426,7 @@ struct SocketContext {
 	SOCKET const handle;
 	int mapPort = 0;
 	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
-	SocketContext(SOCKET s) : handle{ s } {}
+	SocketContext(SOCKET s);
 	SocketContext(SocketContext const&) = delete;
 	constexpr bool operator==(SocketContext const& other) { return handle == other.handle; }
 	static std::shared_ptr<SocketContext> Create(int af, int type, int protocol);
