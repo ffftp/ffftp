@@ -79,7 +79,7 @@ static int SetUploadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *M
 static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
 static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt);
 static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipButton, int Info);
-static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(SOCKET socket, std::wstring const& reply);
+static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(std::shared_ptr<SocketContext> socket, std::wstring const& reply);
 static bool IsSpecialDevice(std::wstring_view filename);
 static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item);
 
@@ -731,7 +731,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					CwdSts = FTP_COMPLETE;
 
 					auto dir = Pos->Remote;
-					if (ProcForNonFullpath(TrnSkt->handle, dir, CurDir[Pos->ThreadCount], hWndTrans, &Canceled[Pos->ThreadCount]) == FFFTP_FAIL) {
+					if (ProcForNonFullpath(TrnSkt, dir, CurDir[Pos->ThreadCount], hWndTrans, &Canceled[Pos->ThreadCount]) == FFFTP_FAIL) {
 						ClearAll = YES;
 						CwdSts = FTP_ERROR;
 					}
@@ -1009,7 +1009,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 *----------------------------------------------------------------------------*/
 
 static int MakeNonFullPath(TRANSPACKET& item, std::wstring& Cur) {
-	auto result = ProcForNonFullpath(item.ctrl_skt->handle, item.Remote, Cur, item.hWndTrans, &Canceled[item.ThreadCount]);
+	auto result = ProcForNonFullpath(item.ctrl_skt, item.Remote, Cur, item.hWndTrans, &Canceled[item.ThreadCount]);
 	if (result == FFFTP_FAIL)
 		ClearAll = YES;
 	return result;
@@ -1206,7 +1206,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	auto [iRetCode, text] = Command(Pkt->ctrl_skt->handle, CancelCheckWork, AskCurNetType() == NTYPE_IPV6 ? L"EPSV"sv : L"PASV"sv);
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
-		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt->handle, text)) {
+		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, text)) {
 			if (auto [host, port] = *target; data_socket = connectsock(std::move(host), port, IDS_MSGJPN091, CancelCheckWork)) {
 				// 変数が未初期化のバグ修正
 				Flg = 1;
@@ -1733,7 +1733,7 @@ static int UploadPassive(TRANSPACKET *Pkt)
 	auto [iRetCode, text] = Command(Pkt->ctrl_skt->handle, &Canceled[Pkt->ThreadCount], AskCurNetType() == NTYPE_IPV4 ? L"PASV"sv : L"EPSV"sv);
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
-		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt->handle, text)) {
+		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, text)) {
 			if (auto [host, port] = *target; data_socket = connectsock(std::move(host), port, IDS_MSGJPN109, &Canceled[Pkt->ThreadCount])) {
 				// 変数が未初期化のバグ修正
 				Flg = 1;
@@ -2185,7 +2185,7 @@ static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipBut
 
 
 // PASVコマンドの戻り値からアドレスとポート番号を抽出
-static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(SOCKET socket, std::wstring const& reply) {
+static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(std::shared_ptr<SocketContext> socket, std::wstring const& reply) {
 	std::wstring addr;
 	int port;
 	if (AskCurNetType() == NTYPE_IPV4) {
@@ -2213,7 +2213,7 @@ static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(SOCKET socket
 			return {};
 	}
 	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
-	GetAsyncTableData(socket, target);
+	GetAsyncTableData(socket->handle, target);
 	addr = target.index() == 0 ? AddressToString(std::get<0>(target)) : std::get<0>(std::get<1>(target));
 	return { { addr, port } };
 }

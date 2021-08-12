@@ -1577,7 +1577,7 @@ static void DelNotifyAndDo(FILELIST const& Dt, int Win, int* Sw, int* Flg, std::
 			*Flg = YES;
 		} else {
 			/* フルパスを使わない時のための処理 */
-			if (ProcForNonFullpath(AskCmdCtrlSkt()->handle, path, CurDir, GetMainHwnd(), &CancelFlg) == FFFTP_FAIL)
+			if (ProcForNonFullpath(AskCmdCtrlSkt(), path, CurDir, GetMainHwnd(), &CancelFlg) == FFFTP_FAIL)
 				*Sw = NO_ALL;
 			if (*Sw != NO_ALL) {
 				if (Dt.Node == NODE_FILE)
@@ -2283,12 +2283,12 @@ static std::wstring_view GetUpperDir(std::wstring_view path) {
 
 // フルパスを使わないファイルアクセスの準備
 //   フルパスを使わない時は、このモジュール内で CWD を行ない、Path にファイル名のみ残す。（パス名は消す）
-int ProcForNonFullpath(SOCKET cSkt, std::wstring& Path, std::wstring& CurDir, HWND hWnd, int* CancelCheckWork) {
+int ProcForNonFullpath(std::shared_ptr<SocketContext> cSkt, std::wstring& Path, std::wstring& CurDir, HWND hWnd, int* CancelCheckWork) {
 	int Sts = FFFTP_SUCCESS;
 	if (AskNoFullPathMode() == YES) {
 		auto Tmp = AskHostType() == HTYPE_VMS ? ReformToVMSstyleDirName(std::wstring{ GetUpperDirEraseTopSlash(Path) }) : AskHostType() == HTYPE_STRATUS ? std::wstring{ GetUpperDirEraseTopSlash(Path) } : std::wstring{ GetUpperDir(Path) };
 		if (Tmp != CurDir) {
-			if (int code = std::get<0>(Command(cSkt, CancelCheckWork, L"CWD {}"sv, Tmp)); code / 100 != FTP_COMPLETE) {
+			if (int code = std::get<0>(Command(cSkt->handle, CancelCheckWork, L"CWD {}"sv, Tmp)); code / 100 != FTP_COMPLETE) {
 				DispCWDerror(hWnd);
 				Sts = FFFTP_FAIL;
 			} else

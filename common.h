@@ -868,7 +868,7 @@ void SomeCmdProc(void);
 void CalcFileSizeProc(void);
 void DispCWDerror(HWND hWnd);
 void CopyURLtoClipBoard(void);
-int ProcForNonFullpath(SOCKET cSkt, std::wstring& Path, std::wstring& CurDir, HWND hWnd, int* CancelCheckWork);
+int ProcForNonFullpath(std::shared_ptr<SocketContext> cSkt, std::wstring& Path, std::wstring& CurDir, HWND hWnd, int* CancelCheckWork);
 #if defined(HAVE_OPENVMS)
 std::wstring ReformVMSDirName(std::wstring&& dirName);
 #endif
