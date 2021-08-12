@@ -814,9 +814,9 @@ int AskRealHostType(void);
 int SetOSS(int wkOss);
 int AskOSS(void);
 #endif
-std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork);
+std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext> s, int* CancelCheckWork);
 std::shared_ptr<SocketContext> connectsock(std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork);
-std::shared_ptr<SocketContext> GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork);
+std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext> ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
 int AskUseNoEncryption(void);
 int AskUseFTPES(void);

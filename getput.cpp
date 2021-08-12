@@ -1102,7 +1102,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	std::shared_ptr<SocketContext> listen_socket; // data listen socket
 	int CreateMode;
 
-	if (listen_socket = GetFTPListenSocket(Pkt->ctrl_skt->handle, CancelCheckWork)) {
+	if (listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, CancelCheckWork)) {
 		if(SetDownloadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &CreateMode, CancelCheckWork) == YES)
 		{
 			std::wstring text;
@@ -1110,7 +1110,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 			if(iRetCode/100 == FTP_PRELIM)
 			{
 				if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
-					if (!SocksReceiveReply(listen_socket->handle, CancelCheckWork))
+					if (!SocksReceiveReply(listen_socket, CancelCheckWork))
 						data_socket = listen_socket;
 					else {
 						DoClose(listen_socket->handle);
@@ -1626,7 +1626,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 	std::shared_ptr<SocketContext> listen_socket; // data listen socket
 	int Resume;
 
-	if (listen_socket = GetFTPListenSocket(Pkt->ctrl_skt->handle, &Canceled[Pkt->ThreadCount])) {
+	if (listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount])) {
 		SetUploadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &Resume);
 		auto cmd = L"APPE "sv;
 		std::wstring extra;
@@ -1647,7 +1647,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 			if(Pkt->Mode == EXIST_UNIQUE)
 				Pkt->Attr = -1;
 			if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
-				if (SocksReceiveReply(listen_socket->handle, &Canceled[Pkt->ThreadCount]))
+				if (SocksReceiveReply(listen_socket, &Canceled[Pkt->ThreadCount]))
 					data_socket = listen_socket;
 				else {
 					DoClose(listen_socket->handle);

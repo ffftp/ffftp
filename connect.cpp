@@ -1520,8 +1520,8 @@ enum class SocksCommand : uint8_t {
 };
 
 
-static bool SocksSend(SOCKET s, std::vector<uint8_t> const& buffer, int* CancelCheckWork) {
-	if (SendData(s, reinterpret_cast<const char*>(data(buffer)), size_as<int>(buffer), 0, CancelCheckWork) != FFFTP_SUCCESS) {
+static bool SocksSend(std::shared_ptr<SocketContext> s, std::vector<uint8_t> const& buffer, int* CancelCheckWork) {
+	if (SendData(s->handle, reinterpret_cast<const char*>(data(buffer)), size_as<int>(buffer), 0, CancelCheckWork) != FFFTP_SUCCESS) {
 		Notice(IDS_MSGJPN033, *reinterpret_cast<const unsigned short*>(&buffer[0]));
 		return false;
 	}
@@ -1530,13 +1530,13 @@ static bool SocksSend(SOCKET s, std::vector<uint8_t> const& buffer, int* CancelC
 
 
 template<class T>
-static inline bool SocksRecv(SOCKET s, T& buffer, int* CancelCheckWork) {
-	return ReadNchar(s, reinterpret_cast<char*>(&buffer), sizeof(T), CancelCheckWork) == FFFTP_SUCCESS;
+static inline bool SocksRecv(std::shared_ptr<SocketContext> s, T& buffer, int* CancelCheckWork) {
+	return ReadNchar(s->handle, reinterpret_cast<char*>(&buffer), sizeof(T), CancelCheckWork) == FFFTP_SUCCESS;
 }
 
 
 // SOCKS5の認証を行う
-static bool Socks5Authenticate(SOCKET s, int* CancelCheckWork) {
+static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelCheckWork) {
 	// RFC 1928 SOCKS Protocol Version 5
 	constexpr uint8_t NO_AUTHENTICATION_REQUIRED = 0;
 	constexpr uint8_t USERNAME_PASSWORD = 2;
@@ -1589,7 +1589,7 @@ static bool Socks5Authenticate(SOCKET s, int* CancelCheckWork) {
 
 
 // SOCKSのコマンドに対するリプライパケットを受信する
-std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork) {
+std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext> s, int* CancelCheckWork) {
 	assert(AskHostFireWall() == YES);
 	sockaddr_storage ss;
 	if (FwallType == FWALL_SOCKS4) {
@@ -1610,7 +1610,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork
 		// If the DSTIP in the reply is 0 (the value of constant INADDR_ANY), then the client should replace it by the IP address of the SOCKS server to which the cleint is connected.
 		if (reply.DSTIP.s_addr == 0) {
 			int namelen = sizeof ss;
-			getpeername(s, reinterpret_cast<sockaddr*>(&ss), &namelen);
+			getpeername(s->handle, reinterpret_cast<sockaddr*>(&ss), &namelen);
 			assert(ss.ss_family == AF_INET && namelen == sizeof(sockaddr_in));
 			reinterpret_cast<sockaddr_in&>(ss).sin_port = reply.DSTPORT;
 		} else
@@ -1664,7 +1664,7 @@ static void append(std::vector<uint8_t>& buffer, T const& data) {
 	buffer.insert(end(buffer), reinterpret_cast<const uint8_t*>(&data), reinterpret_cast<const uint8_t*>(&data + 1));
 }
 
-static std::optional<sockaddr_storage> SocksRequest(SOCKET s, SocksCommand cmd, std::variant<sockaddr_storage, std::tuple<std::wstring, int>> const& target, int* CancelCheckWork) {
+static std::optional<sockaddr_storage> SocksRequest(std::shared_ptr<SocketContext> s, SocksCommand cmd, std::variant<sockaddr_storage, std::tuple<std::wstring, int>> const& target, int* CancelCheckWork) {
 	assert(AskHostFireWall() == YES);
 	std::vector<uint8_t> buffer;
 	if (FwallType == FWALL_SOCKS4) {
@@ -1758,7 +1758,7 @@ std::shared_ptr<SocketContext> connectsock(std::wstring&& host, int port, UINT p
 		return {};
 	}
 	if (Fwall == FWALL_SOCKS4 || Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
-		auto result = SocksRequest(s->handle, SocksCommand::Connect, target, CancelCheckWork);
+		auto result = SocksRequest(s, SocksCommand::Connect, target, CancelCheckWork);
 		if (!result) {
 			Notice(IDS_MSGJPN023);
 			DoClose(s->handle);
@@ -1773,10 +1773,10 @@ std::shared_ptr<SocketContext> connectsock(std::wstring&& host, int port, UINT p
 
 
 // リッスンソケットを取得
-std::shared_ptr<SocketContext> GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
+std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext> ctrl_skt, int *CancelCheckWork) {
 	sockaddr_storage saListen;
 	int salen = sizeof saListen;
-	if (getsockname(ctrl_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
+	if (getsockname(ctrl_skt->handle, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
 		WSAError(L"getsockname()"sv);
 		return {};
 	}
@@ -1787,7 +1787,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCh
 		Debug(L"Use SOCKS BIND."sv);
 		// Control接続と同じアドレスに接続する
 		salen = sizeof saListen;
-		if (getpeername(ctrl_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
+		if (getpeername(ctrl_skt->handle, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
 			WSAError(L"getpeername()"sv);
 			return {};
 		}
@@ -1795,8 +1795,8 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCh
 			return {};
 		}
 		std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
-		GetAsyncTableData(ctrl_skt, target);
-		if (auto result = SocksRequest(listen_skt->handle, SocksCommand::Bind, target, CancelCheckWork)) {
+		GetAsyncTableData(ctrl_skt->handle, target);
+		if (auto result = SocksRequest(listen_skt, SocksCommand::Bind, target, CancelCheckWork)) {
 			saListen = *result;
 		} else {
 			Notice(IDS_MSGJPN023);
@@ -1844,11 +1844,11 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCh
 	if (saListen.ss_family == AF_INET) {
 		auto const& sin = reinterpret_cast<sockaddr_in const&>(saListen);
 		auto a = reinterpret_cast<const uint8_t*>(&sin.sin_addr), p = reinterpret_cast<const uint8_t*>(&sin.sin_port);
-		status = std::get<0>(Command(ctrl_skt, CancelCheckWork, L"PORT {},{},{},{},{},{}"sv, a[0], a[1], a[2], a[3], p[0], p[1]));
+		status = std::get<0>(Command(ctrl_skt->handle, CancelCheckWork, L"PORT {},{},{},{},{},{}"sv, a[0], a[1], a[2], a[3], p[0], p[1]));
 	} else {
 		auto a = AddressToString(saListen);
 		auto p = reinterpret_cast<sockaddr_in6 const&>(saListen).sin6_port;
-		status = std::get<0>(Command(ctrl_skt, CancelCheckWork, L"EPRT |2|{}|{}|"sv, a, ntohs(p)));
+		status = std::get<0>(Command(ctrl_skt->handle, CancelCheckWork, L"EPRT |2|{}|{}|"sv, a, ntohs(p)));
 	}
 	if (status / 100 != FTP_COMPLETE) {
 		Notice(IDS_MSGJPN031, saListen.ss_family == AF_INET ? L"PORT"sv : L"EPRT"sv);
