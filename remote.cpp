@@ -229,8 +229,8 @@ int DoCHMOD(std::wstring const& path, std::wstring const& mode) {
 
 // リモート側のファイルのサイズを取得
 //   転送ソケットを使用する
-int DoSIZE(SOCKET cSkt, std::wstring const& Path, LONGLONG* Size, int* CancelCheckWork) {
-	auto [code, text] = Command(cSkt, CancelCheckWork, L"SIZE {}"sv, Path);
+int DoSIZE(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, LONGLONG* Size, int* CancelCheckWork) {
+	auto [code, text] = Command(cSkt->handle, CancelCheckWork, L"SIZE {}"sv, Path);
 	*Size = code / 100 == FTP_COMPLETE && 4 < size(text) && iswdigit(text[4]) ? _wtoll(&text[4]) : -1;
 	return code / 100;
 }
@@ -238,12 +238,12 @@ int DoSIZE(SOCKET cSkt, std::wstring const& Path, LONGLONG* Size, int* CancelChe
 
 // リモート側のファイルの日付を取得
 //   転送ソケットを使用する
-int DoMDTM(SOCKET cSkt, std::wstring const& Path, FILETIME* Time, int* CancelCheckWork) {
+int DoMDTM(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETIME* Time, int* CancelCheckWork) {
 	*Time = {};
 	int code = 500;
 	if (AskHostFeature() & FEATURE_MDTM) {
 		std::wstring text;
-		std::tie(code, text) = Command(cSkt, CancelCheckWork, L"MDTM {}"sv, Path);
+		std::tie(code, text) = Command(cSkt->handle, CancelCheckWork, L"MDTM {}"sv, Path);
 		if (code / 100 == FTP_COMPLETE)
 			if (SYSTEMTIME st{}; swscanf(&text[4], L"%04hu%02hu%02hu%02hu%02hu%02hu", &st.wYear, &st.wMonth, &st.wDay, &st.wHour, &st.wMinute, &st.wSecond) == 6)
 				SystemTimeToFileTime(&st, Time);
@@ -253,17 +253,17 @@ int DoMDTM(SOCKET cSkt, std::wstring const& Path, FILETIME* Time, int* CancelChe
 
 
 // ホスト側の日時設定
-int DoMFMT(SOCKET cSkt, std::wstring const& Path, FILETIME* Time, int* CancelCheckWork) {
+int DoMFMT(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETIME* Time, int* CancelCheckWork) {
 	SYSTEMTIME st;
 	FileTimeToSystemTime(Time, &st);
-	int Sts = AskHostFeature() & FEATURE_MFMT ? std::get<0>(Command(cSkt, CancelCheckWork, L"MFMT {:04d}{:02d}{:02d}{:02d}{:02d}{:02d} {}"sv, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, Path)) : 500;
+	int Sts = AskHostFeature() & FEATURE_MFMT ? std::get<0>(Command(cSkt->handle, CancelCheckWork, L"MFMT {:04d}{:02d}{:02d}{:02d}{:02d}{:02d} {}"sv, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, Path)) : 500;
 	return Sts / 100;
 }
 
 
 // リモート側のコマンドを実行
-int DoQUOTE(SOCKET cSkt, std::wstring_view CmdStr, int* CancelCheckWork) {
-	int code = std::get<0>(Command(cSkt, CancelCheckWork, L"{}"sv, CmdStr));
+int DoQUOTE(std::shared_ptr<SocketContext> cSkt, std::wstring_view CmdStr, int* CancelCheckWork) {
+	int code = std::get<0>(Command(cSkt->handle, CancelCheckWork, L"{}"sv, CmdStr));
 	if (code / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	return code / 100;
@@ -279,26 +279,12 @@ void DoClose(SOCKET Sock) {
 }
 
 
-/*----- ホストからログアウトする ----------------------------------------------
-*
-*	Parameter
-*		kSOCKET ctrl_skt : ソケット
-*
-*	Return Value
-*		int 応答コードの１桁目
-*----------------------------------------------------------------------------*/
-
-// 同時接続対応
-//int DoQUIT(SOCKET ctrl_skt)
-int DoQUIT(SOCKET ctrl_skt, int *CancelCheckWork)
-{
-	int Ret;
-
-	Ret = FTP_COMPLETE;
-	if(SendQuit == YES)
-		Ret = std::get<0>(Command(ctrl_skt, CancelCheckWork, L"QUIT"sv)) / 100;
-
-	return(Ret);
+// ホストからログアウトする
+int DoQUIT(std::shared_ptr<SocketContext> ctrl_skt, int* CancelCheckWork) {
+	int Ret = FTP_COMPLETE;
+	if (SendQuit == YES)
+		Ret = std::get<0>(Command(ctrl_skt->handle, CancelCheckWork, L"QUIT"sv)) / 100;
+	return Ret;
 }
 
 
@@ -354,10 +340,10 @@ void SwitchOSSProc(void)
 {
 	/* DoPWD でノード名の \ を保存するために OSSフラグも変更する */
 	if(AskOSS() == YES) {
-		DoQUOTE(AskCmdCtrlSkt()->handle, L"GUARDIAN"s, &CancelFlg);
+		DoQUOTE(AskCmdCtrlSkt(), L"GUARDIAN"s, &CancelFlg);
 		SetOSS(NO);
 	} else {
-		DoQUOTE(AskCmdCtrlSkt()->handle, L"OSS"s, &CancelFlg);
+		DoQUOTE(AskCmdCtrlSkt(), L"OSS"s, &CancelFlg);
 		SetOSS(YES);
 	}
 	/* Current Dir 再取得 */

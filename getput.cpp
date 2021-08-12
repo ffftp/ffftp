@@ -556,7 +556,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			// セッションあたりの転送量制限対策
 			if (TrnSkt && AskErrorReconnect() == YES && LastError == YES) {
 				ReleaseMutex(hListAccMutex);
-				DoQUIT(TrnSkt->handle, &Canceled[ThreadCount]);
+				DoQUIT(TrnSkt, &Canceled[ThreadCount]);
 				DoClose(TrnSkt->handle);
 				TrnSkt.reset();
 //				WaitForSingleObject(hListAccMutex, INFINITE);
@@ -602,7 +602,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					if(timeGetTime() - LastUsed > 60000 || AskConnecting() == NO || ThreadCount >= AskMaxThreadCount())
 					{
 						ReleaseMutex(hListAccMutex);
-						DoQUIT(TrnSkt->handle, &Canceled[ThreadCount]);
+						DoQUIT(TrnSkt, &Canceled[ThreadCount]);
 						DoClose(TrnSkt->handle);
 						TrnSkt.reset();
 //						WaitForSingleObject(hListAccMutex, INFINITE);
@@ -666,8 +666,8 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						if(Pos->Command.starts_with(L"RETR-S"sv))
 						{
 							/* サイズと日付を取得 */
-							DoSIZE(TrnSkt->handle, Pos->Remote, &Pos->Size, &Canceled[Pos->ThreadCount]);
-							DoMDTM(TrnSkt->handle, Pos->Remote, &Pos->Time, &Canceled[Pos->ThreadCount]);
+							DoSIZE(TrnSkt, Pos->Remote, &Pos->Size, &Canceled[Pos->ThreadCount]);
+							DoMDTM(TrnSkt, Pos->Remote, &Pos->Time, &Canceled[Pos->ThreadCount]);
 							Pos->Command = L"RETR "s;
 						}
 
@@ -715,7 +715,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					if((SaveTimeStamp == YES) &&
 					   ((Pos->Time.dwLowDateTime != 0) || (Pos->Time.dwHighDateTime != 0)))
 					{
-						DoMFMT(TrnSkt->handle, Pos->Remote, &Pos->Time, &Canceled[Pos->ThreadCount]);
+						DoMFMT(TrnSkt, Pos->Remote, &Pos->Time, &Canceled[Pos->ThreadCount]);
 					}
 				}
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため

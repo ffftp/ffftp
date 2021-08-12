@@ -32,7 +32,7 @@
 
 /*===== プロトタイプ =====*/
 
-static int SendInitCommand(SOCKET Socket, std::wstring_view Cmd, int *CancelCheckWork);
+static int SendInitCommand(std::shared_ptr<SocketContext> Socket, std::wstring_view Cmd, int *CancelCheckWork);
 static void AskUseFireWall(std::wstring_view Host, int *Fire, int *Pasv, int *List);
 static void SaveCurrentSetToHistory(void);
 static int ReConnectSkt(std::shared_ptr<SocketContext>& Skt);
@@ -191,7 +191,7 @@ void ConnectProc(int Type, int Num)
 				UpdateStatusBar();
 				Sound::Connected.Play();
 
-				SendInitCommand(CmdCtrlSocket->handle, CurHost.InitCmd, &CancelFlg);
+				SendInitCommand(CmdCtrlSocket, CurHost.InitCmd, &CancelFlg);
 
 				if (!empty(CurHost.LocalInitDir)) {
 					DoLocalCWD(CurHost.LocalInitDir);
@@ -465,7 +465,7 @@ void HistoryConnectProc(int MenuCmd)
 				UpdateStatusBar();
 				Sound::Connected.Play();
 
-				SendInitCommand(CmdCtrlSocket->handle, CurHost.InitCmd, &CancelFlg);
+				SendInitCommand(CmdCtrlSocket, CurHost.InitCmd, &CancelFlg);
 
 				DoLocalCWD(CurHost.LocalInitDir);
 				GetLocalDirForWnd();
@@ -494,7 +494,7 @@ void HistoryConnectProc(int MenuCmd)
 //   初期化コマンドは以下のようなフォーマットであること
 //     cmd1\0
 //     cmd1\r\ncmd2\r\n\0
-static int SendInitCommand(SOCKET Socket, std::wstring_view Cmd, int* CancelCheckWork) {
+static int SendInitCommand(std::shared_ptr<SocketContext> Socket, std::wstring_view Cmd, int* CancelCheckWork) {
 	static boost::wregex re{ LR"([^\r\n]+)" };
 	for (boost::regex_iterator<std::wstring_view::const_iterator> it{ begin(Cmd), end(Cmd), re }, end; it != end; ++it)
 		DoQUOTE(Socket, sv((*it)[0]), CancelCheckWork);
@@ -896,7 +896,7 @@ int ReConnectTrnSkt(std::shared_ptr<SocketContext>& Skt, int *CancelCheckWork) {
 	// 同時接続対応
 	HostData.NoDisplayUI = YES;
 	if (Skt = DoConnect(&HostData, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, CancelCheckWork)) {
-		SendInitCommand(Skt->handle, CurHost.InitCmd, CancelCheckWork);
+		SendInitCommand(Skt, CurHost.InitCmd, CancelCheckWork);
 		Sts = FFFTP_SUCCESS;
 	}
 	else
@@ -921,7 +921,7 @@ static int ReConnectSkt(std::shared_ptr<SocketContext>& Skt) {
 		do_closesocket(Skt->handle);
 	/* 再接続 */
 	if (Skt = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg)) {
-		SendInitCommand(Skt->handle, CurHost.InitCmd, &CancelFlg);
+		SendInitCommand(Skt, CurHost.InitCmd, &CancelFlg);
 		DoCWD(AskRemoteCurDir(), YES, YES, YES);
 		Sts = FFFTP_SUCCESS;
 	}
@@ -990,12 +990,12 @@ void DisconnectProc(void)
 	AbortAllTransfer();
 
 	if (CmdCtrlSocket && CmdCtrlSocket != TrnCtrlSocket) {
-		DoQUIT(CmdCtrlSocket->handle, &CancelFlg);
+		DoQUIT(CmdCtrlSocket, &CancelFlg);
 		DoClose(CmdCtrlSocket->handle);
 	}
 
 	if (TrnCtrlSocket) {
-		DoQUIT(TrnCtrlSocket->handle, &CancelFlg);
+		DoQUIT(TrnCtrlSocket, &CancelFlg);
 		DoClose(TrnCtrlSocket->handle);
 
 		SaveCurrentSetToHistory();

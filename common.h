@@ -897,14 +897,12 @@ int DoRMD(std::wstring const& path);
 int DoDELE(std::wstring const& path);
 int DoRENAME(std::wstring const& from, std::wstring const& to);
 int DoCHMOD(std::wstring const& path, std::wstring const& mode);
-int DoSIZE(SOCKET cSkt, std::wstring const& Path, LONGLONG *Size, int *CancelCheckWork);
-int DoMDTM(SOCKET cSkt, std::wstring const& Path, FILETIME *Time, int *CancelCheckWork);
-int DoMFMT(SOCKET cSkt, std::wstring const&, FILETIME *Time, int *CancelCheckWork);
-int DoQUOTE(SOCKET cSkt, std::wstring_view CmdStr, int* CancelCheckWork);
+int DoSIZE(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, LONGLONG *Size, int *CancelCheckWork);
+int DoMDTM(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETIME *Time, int *CancelCheckWork);
+int DoMFMT(std::shared_ptr<SocketContext> cSkt, std::wstring const&, FILETIME *Time, int *CancelCheckWork);
+int DoQUOTE(std::shared_ptr<SocketContext> cSkt, std::wstring_view CmdStr, int* CancelCheckWork);
 void DoClose(SOCKET Sock);
-// 同時接続対応
-//int DoQUIT(SOCKET ctrl_skt);
-int DoQUIT(SOCKET ctrl_skt, int *CancelCheckWork);
+int DoQUIT(std::shared_ptr<SocketContext> ctrl_skt, int *CancelCheckWork);
 int DoDirList(std::wstring_view AddOpt, int Num, int* CancelCheckWork);
 #if defined(HAVE_TANDEM)
 void SwitchOSSProc(void);
