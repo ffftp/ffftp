@@ -529,14 +529,14 @@ std::shared_ptr<SocketContext> SocketContext::Create(int af, int type, int proto
 }
 
 
-int do_closesocket(SOCKET s) {
-	WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, 0);
-	UnregisterAsyncTable(s);
-	DetachSSL(s);
-	if (int result = closesocket(s); result != SOCKET_ERROR)
+int SocketContext::Close() {
+	WSAAsyncSelect(handle, hWndSocket, WM_ASYNC_SOCKET, 0);
+	UnregisterAsyncTable(handle);
+	DetachSSL(handle);
+	if (int result = closesocket(handle); result != SOCKET_ERROR)
 		return result;
 	for (;;) {
-		if (int error = 0; AskAsyncDone(s, &error, FD_CLOSE) == YES)
+		if (int error = 0; AskAsyncDone(handle, &error, FD_CLOSE) == YES)
 			return error == 0 ? 0 : SOCKET_ERROR;
 		Sleep(1);
 		if (BackgrndMessageProc() == YES)
@@ -601,11 +601,11 @@ std::shared_ptr<SocketContext> SocketContext::Accept(_Out_writes_bytes_opt_(*add
 		do {
 			s = accept(handle, addr, addrlen);
 			if (s != INVALID_SOCKET) {
-				RegisterAsyncTable(s);
-				if (WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) == SOCKET_ERROR) {
-					do_closesocket(s);
-					s = INVALID_SOCKET;
-				}
+				auto sc = std::make_shared<SocketContext>(s);
+				RegisterAsyncTable(sc->handle);
+				if (WSAAsyncSelect(sc->handle, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) != SOCKET_ERROR)
+					return sc;
+				sc->Close();
 				break;
 			}
 			Error = WSAGetLastError();
@@ -614,7 +614,7 @@ std::shared_ptr<SocketContext> SocketContext::Accept(_Out_writes_bytes_opt_(*add
 				break;
 		} while (Error == WSAEWOULDBLOCK);
 	}
-	return s != INVALID_SOCKET ? std::make_shared<SocketContext>(s) : std::shared_ptr<SocketContext>{};
+	return {};
 }
 
 

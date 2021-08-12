@@ -431,6 +431,7 @@ struct SocketContext {
 	constexpr bool operator==(SocketContext const& other) { return handle == other.handle; }
 	static std::shared_ptr<SocketContext> Create(int af, int type, int protocol);
 	std::shared_ptr<SocketContext> Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen);
+	int Close();
 };
 
 
@@ -1085,7 +1086,6 @@ BOOL IsSSLAttached(SOCKET s);
 int MakeSocketWin();
 void DeleteSocketWin(void);
 int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCheckWork);
-int do_closesocket(SOCKET s);
 int do_listen(SOCKET s,	int backlog);
 int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOut, int *CancelCheckWork);
 int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork);

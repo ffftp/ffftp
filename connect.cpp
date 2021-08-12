@@ -879,7 +879,7 @@ int ReConnectTrnSkt(std::shared_ptr<SocketContext>& Skt, int *CancelCheckWork) {
 //	DisableUserOpe();
 	/* 現在のソケットは切断 */
 	if (Skt)
-		do_closesocket(Skt->handle);
+		Skt->Close();
 	/* 再接続 */
 	// 暗号化通信対応
 	HostData = CurHost;
@@ -918,7 +918,7 @@ static int ReConnectSkt(std::shared_ptr<SocketContext>& Skt) {
 	DisableUserOpe();
 	/* 現在のソケットは切断 */
 	if (Skt)
-		do_closesocket(Skt->handle);
+		Skt->Close();
 	/* 再接続 */
 	if (Skt = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg)) {
 		SendInitCommand(Skt, CurHost.InitCmd, &CancelFlg);
@@ -1810,20 +1810,20 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 			reinterpret_cast<sockaddr_in6&>(saListen).sin6_port = 0;
 		if (bind(listen_skt->handle, reinterpret_cast<const sockaddr*>(&saListen), salen) == SOCKET_ERROR) {
 			WSAError(L"bind()"sv);
-			do_closesocket(listen_skt->handle);
+			listen_skt->Close();
 			Notice(IDS_MSGJPN027);
 			return {};
 		}
 		salen = sizeof saListen;
 		if (getsockname(listen_skt->handle, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
 			WSAError(L"getsockname()"sv);
-			do_closesocket(listen_skt->handle);
+			listen_skt->Close();
 			Notice(IDS_MSGJPN027);
 			return {};
 		}
 		if (do_listen(listen_skt->handle, 1) != 0) {
 			WSAError(L"listen()"sv);
-			do_closesocket(listen_skt->handle);
+			listen_skt->Close();
 			Notice(IDS_MSGJPN027);
 			return {};
 		}
@@ -1852,7 +1852,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 		Notice(IDS_MSGJPN031, saListen.ss_family == AF_INET ? L"PORT"sv : L"EPRT"sv);
 		if (IsUPnPLoaded() == YES)
 			RemovePortMapping(listen_skt->mapPort);
-		do_closesocket(listen_skt->handle);
+		listen_skt->Close();
 		return {};
 	}
 	return listen_skt;

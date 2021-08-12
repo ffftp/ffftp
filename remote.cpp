@@ -273,7 +273,7 @@ int DoQUOTE(std::shared_ptr<SocketContext> cSkt, std::wstring_view CmdStr, int* 
 // ソケットを閉じる
 void DoClose(std::shared_ptr<SocketContext> Sock) {
 	if (Sock) {
-		do_closesocket(Sock->handle);
+		Sock->Close();
 		Debug(L"Skt={} : Socket closed."sv, Sock->handle);
 	}
 }
