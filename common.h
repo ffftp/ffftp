@@ -935,7 +935,7 @@ int AskTransferNow(void);
 int AskTransferFileNum(void);
 void GoForwardTransWindow(void);
 void InitTransCurDir(void);
-int DoDownload(SOCKET cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork);
+int DoDownload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork);
 int CheckPathViolation(TRANSPACKET const& item);
 // タスクバー進捗表示
 LONGLONG AskTransferSizeLeft(void);

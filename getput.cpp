@@ -65,15 +65,15 @@ static unsigned __stdcall TransferThread(void *Dummy);
 static int MakeNonFullPath(TRANSPACKET& item, std::wstring& CurDir);
 static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
 static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
-static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *CancelCheckWork);
+static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int CreateMode, int *CancelCheckWork);
 static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
 static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt);
 static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode, int *CancelCheckWork);
-static int DoUpload(SOCKET cSkt, TRANSPACKET& item);
+static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item);
 static int UploadNonPassive(TRANSPACKET *Pkt);
 static int UploadPassive(TRANSPACKET *Pkt);
-static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt);
-static int TermCodeConvAndSend(SOCKET Skt, char *Data, int Size, int Ascii, int *CancelCheckWork);
+static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt);
+static int TermCodeConvAndSend(std::shared_ptr<SocketContext> Skt, char *Data, int Size, int Ascii, int *CancelCheckWork);
 static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
 static int SetUploadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode);
 static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
@@ -675,7 +675,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						// ミラーリング設定追加
 						if(Pos->NoTransfer == NO)
 						{
-							Sts = DoDownload(TrnSkt->handle, *Pos, NO, &Canceled[Pos->ThreadCount]) / 100;
+							Sts = DoDownload(TrnSkt, *Pos, NO, &Canceled[Pos->ThreadCount]) / 100;
 							if(Sts != FTP_COMPLETE)
 								LastError = YES;
 							// ゾーンID設定追加
@@ -705,7 +705,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					// ミラーリング設定追加
 					if(Pos->NoTransfer == NO)
 					{
-						Sts = DoUpload(TrnSkt->handle, *Pos) / 100;
+						Sts = DoUpload(TrnSkt, *Pos) / 100;
 						if(Sts != FTP_COMPLETE)
 							LastError = YES;
 					}
@@ -1031,11 +1031,11 @@ static int MakeNonFullPath(TRANSPACKET& item, std::wstring& Cur) {
 *		からも呼ばれる。メインのスレッドから呼ばれる時は Pkt->hWndTrans == NULL。
 *----------------------------------------------------------------------------*/
 
-int DoDownload(SOCKET cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork)
+int DoDownload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork)
 {
 	int iRetCode;
 
-	item.ctrl_skt = cSkt;
+	item.ctrl_skt = cSkt->handle;
 	if (IsSpecialDevice(GetFileName(item.Local.native()))) {
 		iRetCode = 500;
 		Notice(IDS_MSGJPN085, GetFileName(item.Local.native()));
@@ -1144,12 +1144,12 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					if(IsSSLAttached(Pkt->ctrl_skt))
 					{
 						if (AttachSSL(data_socket->handle, Pkt->ctrl_skt, CancelCheckWork, {}))
-							iRetCode = DownloadFile(Pkt, data_socket->handle, CreateMode, CancelCheckWork);
+							iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 						else
 							iRetCode = 500;
 					}
 					else
-						iRetCode = DownloadFile(Pkt, data_socket->handle, CreateMode, CancelCheckWork);
+						iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 				}
 			}
 			else
@@ -1220,17 +1220,15 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					{
 						// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 						ReleaseMutex(hListAccMutex);
-						// FTPS対応
-//						iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 						if(IsSSLAttached(Pkt->ctrl_skt))
 						{
 							if (AttachSSL(data_socket->handle, Pkt->ctrl_skt, CancelCheckWork, {}))
-								iRetCode = DownloadFile(Pkt, data_socket->handle, CreateMode, CancelCheckWork);
+								iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 							else
 								iRetCode = 500;
 						}
 						else
-							iRetCode = DownloadFile(Pkt, data_socket->handle, CreateMode, CancelCheckWork);
+							iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 					}
 					else
 					{
@@ -1280,13 +1278,13 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 *			ダイアログを出さない場合、このルーチンからDispDownloadSize()を呼ぶ
 *----------------------------------------------------------------------------*/
 
-static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *CancelCheckWork) {
+static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int CreateMode, int *CancelCheckWork) {
 #ifdef DISABLE_TRANSFER_NETWORK_BUFFERS
 	int buf_size = 0;
 	setsockopt(dSkt, SOL_SOCKET, SO_RCVBUF, (char*)&buf_size, sizeof(buf_size));
 #elif defined(SET_BUFFER_SIZE)
 	for (int buf_size = SOCKBUF_SIZE; buf_size > 0; buf_size /= 2)
-		if (setsockopt(dSkt, SOL_SOCKET, SO_RCVBUF, (char*)&buf_size, sizeof(buf_size)) == 0)
+		if (setsockopt(dSkt->handle, SOL_SOCKET, SO_RCVBUF, (char*)&buf_size, sizeof(buf_size)) == 0)
 			break;
 #endif
 
@@ -1310,7 +1308,7 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		std::vector<char> buf(BUFSIZE);
 		int read = 0;
 		while (Pkt->Abort == ABORT_NONE && ForceAbort == NO) {
-			if (int timeout; (read = do_recv(dSkt, data(buf), BUFSIZE, 0, &timeout, CancelCheckWork)) <= 0) {
+			if (int timeout; (read = do_recv(dSkt->handle, data(buf), BUFSIZE, 0, &timeout, CancelCheckWork)) <= 0) {
 				if (timeout == YES) {
 					SetErrorMsg(GetString(IDS_MSGJPN094));
 					Notice(IDS_MSGJPN094);
@@ -1358,10 +1356,10 @@ static int DownloadFile(TRANSPACKET *Pkt, SOCKET dSkt, int CreateMode, int *Canc
 		Pkt->Abort = ABORT_ERROR;
 	}
 
-	if (shutdown(dSkt, 1) != 0)
+	if (shutdown(dSkt->handle, 1) != 0)
 		WSAError(L"shutdown()"sv);
 	LastDataConnectionTime = time(NULL);
-	DoClose(dSkt);
+	DoClose(dSkt->handle);
 
 	/* Abortをホストに伝える */
 	if (ForceAbort == NO && Pkt->Abort != ABORT_NONE && opened) {
@@ -1554,11 +1552,11 @@ static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int 
 *		int 応答コード
 *----------------------------------------------------------------------------*/
 
-static int DoUpload(SOCKET cSkt, TRANSPACKET& item)
+static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item)
 {
 	int iRetCode;
 
-	item.ctrl_skt = cSkt;
+	item.ctrl_skt = cSkt->handle;
 
 	if(item.Mode != EXIST_IGNORE)
 	{
@@ -1680,17 +1678,15 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 			if (data_socket) {
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 				ReleaseMutex(hListAccMutex);
-				// FTPS対応
-//				iRetCode = UploadFile(Pkt, data_socket);
 				if(IsSSLAttached(Pkt->ctrl_skt))
 				{
 					if (AttachSSL(data_socket->handle, Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], {}))
-						iRetCode = UploadFile(Pkt, data_socket->handle);
+						iRetCode = UploadFile(Pkt, data_socket);
 					else
 						iRetCode = 500;
 				}
 				else
-					iRetCode = UploadFile(Pkt, data_socket->handle);
+					iRetCode = UploadFile(Pkt, data_socket);
 				DoClose(data_socket->handle);
 				data_socket.reset();
 			}
@@ -1763,17 +1759,15 @@ static int UploadPassive(TRANSPACKET *Pkt)
 						Pkt->Attr = -1;
 					// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 					ReleaseMutex(hListAccMutex);
-					// FTPS対応
-//					iRetCode = UploadFile(Pkt, data_socket);
 					if(IsSSLAttached(Pkt->ctrl_skt))
 					{
 						if (AttachSSL(data_socket->handle, Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], {}))
-							iRetCode = UploadFile(Pkt, data_socket->handle);
+							iRetCode = UploadFile(Pkt, data_socket);
 						else
 							iRetCode = 500;
 					}
 					else
-						iRetCode = UploadFile(Pkt, data_socket->handle);
+						iRetCode = UploadFile(Pkt, data_socket);
 
 					DoClose(data_socket->handle);
 					data_socket.reset();
@@ -1824,13 +1818,13 @@ static int UploadPassive(TRANSPACKET *Pkt)
 *		転送ダイアログを出さないでアップロードすることはない
 *----------------------------------------------------------------------------*/
 
-static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
+static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt) {
 #ifdef DISABLE_TRANSFER_NETWORK_BUFFERS
 	int buf_size = 0;
 	setsockopt(dSkt, SOL_SOCKET, SO_SNDBUF, (char*)&buf_size, sizeof(buf_size));
 #elif defined(SET_BUFFER_SIZE)
 	for (int buf_size = SOCKBUF_SIZE; buf_size > 0; buf_size /= 2)
-		if (setsockopt(dSkt, SOL_SOCKET, SO_SNDBUF, (char*)&buf_size, sizeof(buf_size)) == 0)
+		if (setsockopt(dSkt->handle, SOL_SOCKET, SO_SNDBUF, (char*)&buf_size, sizeof(buf_size)) == 0)
 			break;
 #endif
 
@@ -1883,7 +1877,7 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 	}
 
 	LastDataConnectionTime = time(NULL);
-	if (shutdown(dSkt, 1) != 0)
+	if (shutdown(dSkt->handle, 1) != 0)
 		WSAError(L"shutdown()"sv);
 
 	auto [code, text] = ReadReplyMessage(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount]);
@@ -1896,13 +1890,13 @@ static int UploadFile(TRANSPACKET *Pkt, SOCKET dSkt) {
 
 
 // バッファの内容を改行コード変換して送信
-static int TermCodeConvAndSend(SOCKET Skt, char *Data, int Size, int Ascii, int *CancelCheckWork) {
+static int TermCodeConvAndSend(std::shared_ptr<SocketContext> Skt, char *Data, int Size, int Ascii, int *CancelCheckWork) {
 	// CR-LF以外の改行コードを変換しないモードはここへ追加
 	if (Ascii == TYPE_A) {
 		auto encoded = ToCRLF({ Data, (size_t)Size });
-		return SendData(Skt, data(encoded), size_as<int>(encoded), 0, CancelCheckWork);
+		return SendData(Skt->handle, data(encoded), size_as<int>(encoded), 0, CancelCheckWork);
 	}
-	return SendData(Skt, Data, Size, 0, CancelCheckWork);
+	return SendData(Skt->handle, Data, Size, 0, CancelCheckWork);
 }
 
 
