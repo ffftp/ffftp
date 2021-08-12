@@ -1121,7 +1121,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 				} else {
 					sockaddr_storage sa;
 					int salen = sizeof(sockaddr_storage);
-					data_socket = do_accept(listen_socket->handle, reinterpret_cast<sockaddr*>(&sa), &salen);
+					data_socket = listen_socket->Accept(reinterpret_cast<sockaddr*>(&sa), &salen);
 
 					if(shutdown(listen_socket->handle, 1) != 0)
 						WSAError(L"shutdown(listen)"sv);
@@ -1670,7 +1670,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 			} else {
 				sockaddr_storage sa;
 				int salen = sizeof(sockaddr_storage);
-				data_socket = do_accept(listen_socket->handle, reinterpret_cast<sockaddr*>(&sa), &salen);
+				data_socket = listen_socket->Accept(reinterpret_cast<sockaddr*>(&sa), &salen);
 
 				if(shutdown(listen_socket->handle, 1) != 0)
 					WSAError(L"shutdown(listen)"sv);

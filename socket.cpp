@@ -617,53 +617,37 @@ int do_listen(SOCKET s, int backlog) {
 }
 
 
-
-std::shared_ptr<SocketContext> do_accept(SOCKET s, struct sockaddr *addr, int *addrlen) {
-	SOCKET Ret2;
-	int CancelCheckWork;
-	int Error;
-
-	CancelCheckWork = NO;
-	Ret2 = INVALID_SOCKET;
-	Error = 0;
-
-	while((CancelCheckWork == NO) && (AskAsyncDone(s, &Error, FD_ACCEPT) != YES))
-	{
-		if(AskAsyncDone(s, &Error, FD_CLOSE) == YES)
-		{
+std::shared_ptr<SocketContext> SocketContext::Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen) {
+	int CancelCheckWork = NO;
+	SOCKET s = INVALID_SOCKET;
+	int Error = 0;
+	while (CancelCheckWork == NO && AskAsyncDone(handle, &Error, FD_ACCEPT) != YES) {
+		if (AskAsyncDone(handle, &Error, FD_CLOSE) == YES) {
 			Error = 1;
 			break;
 		}
 		Sleep(1);
-		if(BackgrndMessageProc() == YES)
+		if (BackgrndMessageProc() == YES)
 			CancelCheckWork = YES;
 	}
-
-	if((CancelCheckWork == NO) && (Error == 0))
-	{
-		do
-		{
-			Ret2 = accept(s, addr, addrlen);
-			if(Ret2 != INVALID_SOCKET)
-			{
-				RegisterAsyncTable(Ret2);
-				// 高速化のためFD_READとFD_WRITEを使用しない
-//				if(WSAAsyncSelect(Ret2, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT | FD_READ | FD_WRITE) == SOCKET_ERROR)
-				if(WSAAsyncSelect(Ret2, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) == SOCKET_ERROR)
-				{
-					do_closesocket(Ret2);
-					Ret2 = INVALID_SOCKET;
+	if (CancelCheckWork == NO && Error == 0) {
+		do {
+			s = accept(handle, addr, addrlen);
+			if (s != INVALID_SOCKET) {
+				RegisterAsyncTable(s);
+				if (WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) == SOCKET_ERROR) {
+					do_closesocket(s);
+					s = INVALID_SOCKET;
 				}
 				break;
 			}
 			Error = WSAGetLastError();
 			Sleep(1);
-			if(BackgrndMessageProc() == YES)
+			if (BackgrndMessageProc() == YES)
 				break;
-		}
-		while(Error == WSAEWOULDBLOCK);
+		} while (Error == WSAEWOULDBLOCK);
 	}
-	return Ret2 != INVALID_SOCKET ? std::make_shared<SocketContext>(Ret2) : std::shared_ptr<SocketContext>{};
+	return s != INVALID_SOCKET ? std::make_shared<SocketContext>(s) : std::shared_ptr<SocketContext>{};
 }
 
 

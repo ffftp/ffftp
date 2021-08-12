@@ -423,9 +423,12 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 
 struct SocketContext {
-	SOCKET handle;
-	static std::shared_ptr<SocketContext> Create(int af, int type, int protocol);
+	SOCKET const handle;
+	SocketContext(SOCKET s) : handle{ s } {}
+	SocketContext(SocketContext const&) = delete;
 	constexpr bool operator==(SocketContext const& other) { return handle == other.handle; }
+	static std::shared_ptr<SocketContext> Create(int af, int type, int protocol);
+	std::shared_ptr<SocketContext> Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen);
 };
 
 
@@ -1088,7 +1091,6 @@ int GetAsyncTableDataMapPort(SOCKET s, int* Port);
 int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCheckWork);
 int do_closesocket(SOCKET s);
 int do_listen(SOCKET s,	int backlog);
-std::shared_ptr<SocketContext> do_accept(SOCKET s, struct sockaddr *addr, int *addrlen);
 int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOut, int *CancelCheckWork);
 int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork);
 // 同時接続対応
