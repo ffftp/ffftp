@@ -1101,8 +1101,6 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	std::shared_ptr<SocketContext> data_socket;   // data channel socket
 	std::shared_ptr<SocketContext> listen_socket; // data listen socket
 	int CreateMode;
-	// UPnP対応
-	int Port;
 
 	if (listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, CancelCheckWork)) {
 		if(SetDownloadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &CreateMode, CancelCheckWork) == YES)
@@ -1127,10 +1125,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 						WSAError(L"shutdown(listen)"sv);
 					// UPnP対応
 					if(IsUPnPLoaded() == YES)
-					{
-						if(GetAsyncTableDataMapPort(listen_socket->handle, &Port) == YES)
-							RemovePortMapping(Port);
-					}
+						RemovePortMapping(listen_socket->mapPort);
 					DoClose(listen_socket->handle);
 					listen_socket.reset();
 
@@ -1163,10 +1158,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 				Notice(IDS_MSGJPN090);
 				// UPnP対応
 				if(IsUPnPLoaded() == YES)
-				{
-					if(GetAsyncTableDataMapPort(listen_socket->handle, &Port) == YES)
-						RemovePortMapping(Port);
-				}
+					RemovePortMapping(listen_socket->mapPort);
 				DoClose(listen_socket->handle);
 				listen_socket.reset();
 				iRetCode = 500;
@@ -1178,10 +1170,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 		{
 			// UPnP対応
 			if(IsUPnPLoaded() == YES)
-			{
-				if(GetAsyncTableDataMapPort(listen_socket->handle, &Port) == YES)
-					RemovePortMapping(Port);
-			}
+				RemovePortMapping(listen_socket->mapPort);
 			DoClose(listen_socket->handle);
 			listen_socket.reset();
 			iRetCode = 500;
@@ -1637,7 +1626,6 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 	int iRetCode;
 	std::shared_ptr<SocketContext> data_socket;   // data channel socket
 	std::shared_ptr<SocketContext> listen_socket; // data listen socket
-	int Port;
 	int Resume;
 
 	if (listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount])) {
@@ -1676,10 +1664,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 					WSAError(L"shutdown(listen)"sv);
 				// UPnP対応
 				if(IsUPnPLoaded() == YES)
-				{
-					if(GetAsyncTableDataMapPort(listen_socket->handle, &Port) == YES)
-						RemovePortMapping(Port);
-				}
+					RemovePortMapping(listen_socket->mapPort);
 				DoClose(listen_socket->handle);
 				listen_socket.reset();
 
@@ -1716,10 +1701,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 			Notice(IDS_MSGJPN108);
 			// UPnP対応
 			if(IsUPnPLoaded() == YES)
-			{
-				if(GetAsyncTableDataMapPort(listen_socket->handle, &Port) == YES)
-					RemovePortMapping(Port);
-			}
+				RemovePortMapping(listen_socket->mapPort);
 			DoClose(listen_socket->handle);
 			listen_socket.reset();
 			iRetCode = 500;

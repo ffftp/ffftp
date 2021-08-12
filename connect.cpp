@@ -1836,7 +1836,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCh
 			if (auto const ExtAdrs = AddPortMapping(AddressToString(saListen), port))
 				if (auto ai = getaddrinfo(*ExtAdrs, port)) {
 					memcpy(&saListen, ai->ai_addr, ai->ai_addrlen);
-					SetAsyncTableDataMapPort(listen_skt->handle, port);
+					listen_skt->mapPort = port;
 				}
 		}
 	}
@@ -1853,8 +1853,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCh
 	if (status / 100 != FTP_COMPLETE) {
 		Notice(IDS_MSGJPN031, saListen.ss_family == AF_INET ? L"PORT"sv : L"EPRT"sv);
 		if (IsUPnPLoaded() == YES)
-			if (int port; GetAsyncTableDataMapPort(listen_skt->handle, &port) == YES)
-				RemovePortMapping(port);
+			RemovePortMapping(listen_skt->mapPort);
 		do_closesocket(listen_skt->handle);
 		return {};
 	}
