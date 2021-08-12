@@ -48,7 +48,6 @@
 struct AsyncSignal {
 	int Event = 0;
 	int Error = 0;
-	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> Target;
 };
 
 
@@ -516,22 +515,6 @@ static void RegisterAsyncTable(SOCKET s) {
 static void UnregisterAsyncTable(SOCKET s) {
 	std::lock_guard lock{ SignalMutex };
 	Signal.erase(s);
-}
-
-
-void SetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::wstring, int>> const& target) {
-	std::lock_guard lock{ SignalMutex };
-	if (auto it = Signal.find(s); it != end(Signal))
-		it->second.Target = target;
-}
-
-int GetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::wstring, int>>& target) {
-	std::lock_guard lock{ SignalMutex };
-	if (auto it = Signal.find(s); it != end(Signal)) {
-		target = it->second.Target;
-		return YES;
-	}
-	return NO;
 }
 
 

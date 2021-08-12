@@ -2212,9 +2212,7 @@ static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(std::shared_p
 		} else
 			return {};
 	}
-	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
-	GetAsyncTableData(socket->handle, target);
-	addr = target.index() == 0 ? AddressToString(std::get<0>(target)) : std::get<0>(std::get<1>(target));
+	addr = socket->target.index() == 0 ? AddressToString(std::get<0>(socket->target)) : std::get<0>(std::get<1>(socket->target));
 	return { { addr, port } };
 }
 

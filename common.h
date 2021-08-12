@@ -425,6 +425,7 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 struct SocketContext {
 	SOCKET const handle;
 	int mapPort = 0;
+	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
 	SocketContext(SOCKET s) : handle{ s } {}
 	SocketContext(SocketContext const&) = delete;
 	constexpr bool operator==(SocketContext const& other) { return handle == other.handle; }
@@ -1083,8 +1084,6 @@ bool IsSecureConnection();
 BOOL IsSSLAttached(SOCKET s);
 int MakeSocketWin();
 void DeleteSocketWin(void);
-void SetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::wstring, int>> const& target);
-int GetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::wstring, int>>& target);
 int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCheckWork);
 int do_closesocket(SOCKET s);
 int do_listen(SOCKET s,	int backlog);

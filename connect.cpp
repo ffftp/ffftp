@@ -1751,7 +1751,7 @@ std::shared_ptr<SocketContext> connectsock(std::wstring&& host, int port, UINT p
 		Notice(IDS_MSGJPN027);
 		return {};
 	}
-	SetAsyncTableData(s->handle, target);
+	s->target = target;
 	if (do_connect(s->handle, reinterpret_cast<const sockaddr*>(&saConnect), sizeof saConnect, CancelCheckWork) == SOCKET_ERROR) {
 		Notice(IDS_MSGJPN026);
 		DoClose(s);
@@ -1794,9 +1794,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 		if (do_connect(listen_skt->handle, reinterpret_cast<const sockaddr*>(&saListen), salen, CancelCheckWork) == SOCKET_ERROR) {
 			return {};
 		}
-		std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
-		GetAsyncTableData(ctrl_skt->handle, target);
-		if (auto result = SocksRequest(listen_skt, SocksCommand::Bind, target, CancelCheckWork)) {
+		if (auto result = SocksRequest(listen_skt, SocksCommand::Bind, ctrl_skt->target, CancelCheckWork)) {
 			saListen = *result;
 		} else {
 			Notice(IDS_MSGJPN023);
