@@ -901,21 +901,21 @@ int DoSIZE(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, LONGLO
 int DoMDTM(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETIME *Time, int *CancelCheckWork);
 int DoMFMT(std::shared_ptr<SocketContext> cSkt, std::wstring const&, FILETIME *Time, int *CancelCheckWork);
 int DoQUOTE(std::shared_ptr<SocketContext> cSkt, std::wstring_view CmdStr, int* CancelCheckWork);
-void DoClose(SOCKET Sock);
+void DoClose(std::shared_ptr<SocketContext> Sock);
 int DoQUIT(std::shared_ptr<SocketContext> ctrl_skt, int *CancelCheckWork);
 int DoDirList(std::wstring_view AddOpt, int Num, int* CancelCheckWork);
 #if defined(HAVE_TANDEM)
 void SwitchOSSProc(void);
 #endif
 namespace detail {
-	std::tuple<int, std::wstring> command(SOCKET cSkt, int* CancelCheckWork, std::wstring&& cmd);
+	std::tuple<int, std::wstring> command(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork, std::wstring&& cmd);
 }
 template<class... Args>
-static inline std::tuple<int, std::wstring> Command(SOCKET socket, int* CancelCheckWork, std::wstring_view format, const Args&... args) {
-	return socket == INVALID_SOCKET ? std::tuple{ 429, L""s } : detail::command(socket, CancelCheckWork, std::format(format, args...));
+static inline std::tuple<int, std::wstring> Command(std::shared_ptr<SocketContext> socket, int* CancelCheckWork, std::wstring_view format, const Args&... args) {
+	return !socket ? std::tuple{ 429, L""s } : detail::command(socket, CancelCheckWork, std::format(format, args...));
 }
-std::tuple<int, std::wstring> ReadReplyMessage(SOCKET cSkt, int *CancelCheckWork);
-int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
+std::tuple<int, std::wstring> ReadReplyMessage(std::shared_ptr<SocketContext> cSkt, int *CancelCheckWork);
+int ReadNchar(std::shared_ptr<SocketContext> cSkt, char *Buf, int Size, int *CancelCheckWork);
 
 /*===== getput.c =====*/
 

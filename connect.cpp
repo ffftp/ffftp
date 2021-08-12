@@ -991,12 +991,12 @@ void DisconnectProc(void)
 
 	if (CmdCtrlSocket && CmdCtrlSocket != TrnCtrlSocket) {
 		DoQUIT(CmdCtrlSocket, &CancelFlg);
-		DoClose(CmdCtrlSocket->handle);
+		DoClose(CmdCtrlSocket);
 	}
 
 	if (TrnCtrlSocket) {
 		DoQUIT(TrnCtrlSocket, &CancelFlg);
-		DoClose(TrnCtrlSocket->handle);
+		DoClose(TrnCtrlSocket);
 
 		SaveCurrentSetToHistory();
 
@@ -1177,7 +1177,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 				{
 					if(AttachSSL(ContSock->handle, INVALID_SOCKET, CancelCheckWork, Host))
 					{
-						while((Sts = std::get<0>(ReadReplyMessage(ContSock->handle, CancelCheckWork)) / 100) == FTP_PRELIM)
+						while((Sts = std::get<0>(ReadReplyMessage(ContSock, CancelCheckWork)) / 100) == FTP_PRELIM)
 							;
 					}
 					else
@@ -1185,7 +1185,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 				}
 				else
 				{
-					while((Sts = std::get<0>(ReadReplyMessage(ContSock->handle, CancelCheckWork)) / 100) == FTP_PRELIM)
+					while((Sts = std::get<0>(ReadReplyMessage(ContSock, CancelCheckWork)) / 100) == FTP_PRELIM)
 						;
 				}
 
@@ -1224,19 +1224,19 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 					   (Fwall == FWALL_FU_FP_USER) ||
 					   (Fwall == FWALL_FU_FP))
 					{
-						if (auto [code, text] = Command(ContSock->handle, CancelCheckWork, L"USER {}"sv, FwallUser); (Sts = code / 100) == FTP_CONTINUE) {
+						if (auto [code, text] = Command(ContSock, CancelCheckWork, L"USER {}"sv, FwallUser); (Sts = code / 100) == FTP_CONTINUE) {
 							auto const pass = CheckOneTimePassword(std::wstring{ FwallPass }, text, FwallSecurity);
-							Sts = std::get<0>(Command(ContSock->handle, CancelCheckWork, L"PASS {}"sv, pass)) / 100;
+							Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"PASS {}"sv, pass)) / 100;
 						}
 					}
 					else if(Fwall == FWALL_SIDEWINDER)
 					{
-						Sts = std::get<0>(Command(ContSock->handle, CancelCheckWork, L"USER {}:{}{}{}"sv, FwallUser, FwallPass, (wchar_t)FwallDelimiter, Host)) / 100;
+						Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"USER {}:{}{}{}"sv, FwallUser, FwallPass, (wchar_t)FwallDelimiter, Host)) / 100;
 					}
 					if((Sts != FTP_COMPLETE) && (Sts != FTP_CONTINUE))
 					{
 						Notice(IDS_MSGJPN006);
-						DoClose(ContSock->handle);
+						DoClose(ContSock);
 						ContSock.reset();
 					}
 					else
@@ -1245,13 +1245,13 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 						{
 							int index = (Fwall == FWALL_OPEN ? 2 : 0) | (FwallLower == YES ? 1 : 0);
 							auto format = Port == IPPORT_FTP ? L"{} {}"sv : L"{} {} {}"sv;
-							Sts = std::get<0>(Command(ContSock->handle, CancelCheckWork, format, SiteTbl[index], Host)) / 100;
+							Sts = std::get<0>(Command(ContSock, CancelCheckWork, format, SiteTbl[index], Host)) / 100;
 						}
 
 						if((Sts != FTP_COMPLETE) && (Sts != FTP_CONTINUE))
 						{
 							Notice(IDS_MSGJPN007, Host);
-							DoClose(ContSock->handle);
+							DoClose(ContSock);
 							ContSock.reset();
 						}
 						else
@@ -1270,21 +1270,21 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 
 								// FTPES対応
 								if (CryptMode == CRYPT_FTPES) {
-									if ((Sts = std::get<0>(Command(ContSock->handle, CancelCheckWork, L"AUTH TLS"sv))) != 234 && (Sts = std::get<0>(Command(ContSock->handle, CancelCheckWork, L"AUTH SSL"sv))) != 234)
+									if ((Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"AUTH TLS"sv))) != 234 && (Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"AUTH SSL"sv))) != 234)
 										Sts = FTP_ERROR;
 									else if (!AttachSSL(ContSock->handle, INVALID_SOCKET, CancelCheckWork, Host))
 										Sts = FTP_ERROR;
-									else if ((Sts = std::get<0>(Command(ContSock->handle, CancelCheckWork, L"PBSZ 0"sv))) != 200)
+									else if ((Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"PBSZ 0"sv))) != 200)
 										Sts = FTP_ERROR;
-									else if ((Sts = std::get<0>(Command(ContSock->handle, CancelCheckWork, L"PROT P"sv))) != 200)
+									else if ((Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"PROT P"sv))) != 200)
 										Sts = FTP_ERROR;
 								}
 
 								// FTPIS対応
 								if (CryptMode == CRYPT_FTPIS) {
 									// "PBSZ 0"と"PROT P"は黙示的に設定されているはずだが念のため
-									if ((Sts = std::get<0>(Command(ContSock->handle, CancelCheckWork, L"PBSZ 0"sv))) == 200)
-										Sts = std::get<0>(Command(ContSock->handle, CancelCheckWork, L"PROT P"sv));
+									if ((Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"PBSZ 0"sv))) == 200)
+										Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"PROT P"sv));
 								}
 
 								ReInPass = NO;
@@ -1294,7 +1294,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 									if(Sts == FTP_ERROR)
 										break;
 									Continue = NO;
-									if (auto [code, text] = Command(ContSock->handle, CancelCheckWork, L"USER {}"sv, user); (Sts = code / 100) == FTP_CONTINUE)
+									if (auto [code, text] = Command(ContSock, CancelCheckWork, L"USER {}"sv, user); (Sts = code / 100) == FTP_CONTINUE)
 									{
 										if (empty(Pass) && HostData->NoDisplayUI == NO)
 											InputDialog(passwd_dlg, GetMainHwnd(), 0, Pass, PASSWORD_LEN + 1);
@@ -1304,7 +1304,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 											/* パスワードがスペース1個の時はパスワードの実体なしとする */
 											if (pass == L" "sv)
 												pass = L""s;
-											Sts = std::get<0>(Command(ContSock->handle, CancelCheckWork, L"PASS {}"sv, pass)) / 100;
+											Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"PASS {}"sv, pass)) / 100;
 											if(Sts == FTP_ERROR)
 											{
 												if (HostData->NoDisplayUI == NO && InputDialog(re_passwd_dlg, GetMainHwnd(), 0, Pass, PASSWORD_LEN + 1))
@@ -1320,7 +1320,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 												if (empty(Acct) && HostData->NoDisplayUI == NO)
 													InputDialog(account_dlg, GetMainHwnd(), 0, Acct, ACCOUNT_LEN + 1);
 												if (!empty(Acct))
-													Sts = std::get<0>(Command(ContSock->handle, CancelCheckWork, L"ACCT {}", Acct)) / 100;
+													Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"ACCT {}", Acct)) / 100;
 												else
 													Debug(L"No account specified."sv);
 											}
@@ -1346,7 +1346,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 							if(Sts != FTP_COMPLETE)
 							{
 								Notice(IDS_MSGJPN008);
-								DoClose(ContSock->handle);
+								DoClose(ContSock);
 								ContSock.reset();
 							}
 							else if((SavePass == YES) && (ReInPass == YES))
@@ -1360,7 +1360,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 				else
 				{
 				Notice(IDS_MSGJPN009);
-					DoClose(ContSock->handle);
+					DoClose(ContSock);
 					ContSock.reset();
 				}
 			}
@@ -1383,7 +1383,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 		// FEAT対応
 		// ホストの機能を確認
 		if (ContSock) {
-			if (auto [code, text] = Command(ContSock->handle, CancelCheckWork, L"FEAT"sv); code == 211) {
+			if (auto [code, text] = Command(ContSock, CancelCheckWork, L"FEAT"sv); code == 211) {
 				// 改行文字はReadReplyMessageで消去されるため区切り文字に空白を使用
 				if (text.find(L" UTF8 "sv) != std::wstring::npos)
 					HostData->Feature |= FEATURE_UTF8;
@@ -1397,7 +1397,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 					HostData->Feature |= FEATURE_MFMT;
 			}
 			if (HostData->CurNameKanjiCode == KANJI_AUTO && (HostData->Feature & FEATURE_UTF8))
-				Command(ContSock->handle, CancelCheckWork, L"OPTS UTF8 ON"sv);
+				Command(ContSock, CancelCheckWork, L"OPTS UTF8 ON"sv);
 		}
 	}
 
@@ -1531,7 +1531,7 @@ static bool SocksSend(std::shared_ptr<SocketContext> s, std::vector<uint8_t> con
 
 template<class T>
 static inline bool SocksRecv(std::shared_ptr<SocketContext> s, T& buffer, int* CancelCheckWork) {
-	return ReadNchar(s->handle, reinterpret_cast<char*>(&buffer), sizeof(T), CancelCheckWork) == FFFTP_SUCCESS;
+	return ReadNchar(s, reinterpret_cast<char*>(&buffer), sizeof(T), CancelCheckWork) == FFFTP_SUCCESS;
 }
 
 
@@ -1754,14 +1754,14 @@ std::shared_ptr<SocketContext> connectsock(std::wstring&& host, int port, UINT p
 	SetAsyncTableData(s->handle, target);
 	if (do_connect(s->handle, reinterpret_cast<const sockaddr*>(&saConnect), sizeof saConnect, CancelCheckWork) == SOCKET_ERROR) {
 		Notice(IDS_MSGJPN026);
-		DoClose(s->handle);
+		DoClose(s);
 		return {};
 	}
 	if (Fwall == FWALL_SOCKS4 || Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
 		auto result = SocksRequest(s, SocksCommand::Connect, target, CancelCheckWork);
 		if (!result) {
 			Notice(IDS_MSGJPN023);
-			DoClose(s->handle);
+			DoClose(s);
 			return {};
 		}
 		CurHost.CurNetType = result->ss_family == AF_INET ? NTYPE_IPV4 : NTYPE_IPV6;
@@ -1800,7 +1800,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 			saListen = *result;
 		} else {
 			Notice(IDS_MSGJPN023);
-			DoClose(listen_skt->handle);
+			DoClose(listen_skt);
 			return {};
 		}
 	} else {
@@ -1844,11 +1844,11 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 	if (saListen.ss_family == AF_INET) {
 		auto const& sin = reinterpret_cast<sockaddr_in const&>(saListen);
 		auto a = reinterpret_cast<const uint8_t*>(&sin.sin_addr), p = reinterpret_cast<const uint8_t*>(&sin.sin_port);
-		status = std::get<0>(Command(ctrl_skt->handle, CancelCheckWork, L"PORT {},{},{},{},{},{}"sv, a[0], a[1], a[2], a[3], p[0], p[1]));
+		status = std::get<0>(Command(ctrl_skt, CancelCheckWork, L"PORT {},{},{},{},{},{}"sv, a[0], a[1], a[2], a[3], p[0], p[1]));
 	} else {
 		auto a = AddressToString(saListen);
 		auto p = reinterpret_cast<sockaddr_in6 const&>(saListen).sin6_port;
-		status = std::get<0>(Command(ctrl_skt->handle, CancelCheckWork, L"EPRT |2|{}|{}|"sv, a, ntohs(p)));
+		status = std::get<0>(Command(ctrl_skt, CancelCheckWork, L"EPRT |2|{}|{}|"sv, a, ntohs(p)));
 	}
 	if (status / 100 != FTP_COMPLETE) {
 		Notice(IDS_MSGJPN031, saListen.ss_family == AF_INET ? L"PORT"sv : L"EPRT"sv);

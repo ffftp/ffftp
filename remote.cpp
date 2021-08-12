@@ -38,7 +38,7 @@
 /*===== プロトタイプ =====*/
 
 static std::optional<std::wstring> DoPWD();
-static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWork);
+static std::tuple<int, std::wstring> ReadOneLine(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork);
 
 extern TRANSPACKET MainTransPkt;
 
@@ -60,7 +60,7 @@ static int PwdCommandType;
 int DoCWD(std::wstring const& Path, int Disp, int ForceGet, int ErrorBell) {
 	if (AskTransferNow() == YES)
 		SktShareProh();
-	auto Sts = Path == L""sv ? FTP_COMPLETE * 100 : std::get<0>(Command(AskCmdCtrlSkt()->handle, &CancelFlg, Path == L".."sv ? L"CDUP"sv : AskHostType() != HTYPE_VMS || Path.find(L'[') != std::wstring::npos ? L"CWD {}"sv : L"CWD [.{}]"sv, Path));
+	auto Sts = Path == L""sv ? FTP_COMPLETE * 100 : std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, Path == L".."sv ? L"CDUP"sv : AskHostType() != HTYPE_VMS || Path.find(L'[') != std::wstring::npos ? L"CWD {}"sv : L"CWD [.{}]"sv, Path));
 	if (Sts / 100 >= FTP_CONTINUE && ErrorBell == YES)
 		Sound::Error.Play();
 	if ((Sts / 100 == FTP_COMPLETE || ForceGet == YES) && Disp == YES) {
@@ -115,12 +115,12 @@ static std::optional<std::wstring> DoPWD() {
 	int code = 0;
 	std::wstring text;
 	if (PwdCommandType == PWD_XPWD) {
-		std::tie(code, text) = Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"XPWD"sv);
+		std::tie(code, text) = Command(AskCmdCtrlSkt(), &CancelFlg, L"XPWD"sv);
 		if (code / 100 != FTP_COMPLETE)
 			PwdCommandType = PWD_PWD;
 	}
 	if (PwdCommandType == PWD_PWD)
-		std::tie(code, text) = Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"PWD"sv);
+		std::tie(code, text) = Command(AskCmdCtrlSkt(), &CancelFlg, L"PWD"sv);
 	if (code / 100 != FTP_COMPLETE)
 		return {};
 	static boost::wregex re{ LR"("([^"]*))" };
@@ -154,7 +154,7 @@ void InitPWDcommand()
 int DoMKD(std::wstring const& Path) {
 	if (AskTransferNow() == YES)
 		SktShareProh();
-	int Sts = std::get<0>(Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"MKD {}"sv, Path));
+	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"MKD {}"sv, Path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
@@ -169,7 +169,7 @@ int DoMKD(std::wstring const& Path) {
 int DoRMD(std::wstring const& path) {
 	if (AskTransferNow() == YES)
 		SktShareProh();
-	int Sts = std::get<0>(Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"RMD {}"sv, path));
+	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"RMD {}"sv, path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
@@ -184,7 +184,7 @@ int DoRMD(std::wstring const& path) {
 int DoDELE(std::wstring const& path) {
 	if (AskTransferNow() == YES)
 		SktShareProh();
-	int Sts = std::get<0>(Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"DELE {}"sv, path));
+	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"DELE {}"sv, path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
@@ -199,9 +199,9 @@ int DoDELE(std::wstring const& path) {
 int DoRENAME(std::wstring const& from, std::wstring const& to) {
 	if (AskTransferNow() == YES)
 		SktShareProh();
-	int Sts = std::get<0>(Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"RNFR {}"sv, from));
+	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"RNFR {}"sv, from));
 	if (Sts == 350)
-		Sts = std::get<0>(Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"RNTO {}"sv, to));
+		Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"RNTO {}"sv, to));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
@@ -216,7 +216,7 @@ int DoRENAME(std::wstring const& from, std::wstring const& to) {
 int DoCHMOD(std::wstring const& path, std::wstring const& mode) {
 	if (AskTransferNow() == YES)
 		SktShareProh();
-	int Sts = std::get<0>(Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"{} {} {}"sv, AskHostChmodCmd(), mode, path));
+	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"{} {} {}"sv, AskHostChmodCmd(), mode, path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
@@ -230,7 +230,7 @@ int DoCHMOD(std::wstring const& path, std::wstring const& mode) {
 // リモート側のファイルのサイズを取得
 //   転送ソケットを使用する
 int DoSIZE(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, LONGLONG* Size, int* CancelCheckWork) {
-	auto [code, text] = Command(cSkt->handle, CancelCheckWork, L"SIZE {}"sv, Path);
+	auto [code, text] = Command(cSkt, CancelCheckWork, L"SIZE {}"sv, Path);
 	*Size = code / 100 == FTP_COMPLETE && 4 < size(text) && iswdigit(text[4]) ? _wtoll(&text[4]) : -1;
 	return code / 100;
 }
@@ -243,7 +243,7 @@ int DoMDTM(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETI
 	int code = 500;
 	if (AskHostFeature() & FEATURE_MDTM) {
 		std::wstring text;
-		std::tie(code, text) = Command(cSkt->handle, CancelCheckWork, L"MDTM {}"sv, Path);
+		std::tie(code, text) = Command(cSkt, CancelCheckWork, L"MDTM {}"sv, Path);
 		if (code / 100 == FTP_COMPLETE)
 			if (SYSTEMTIME st{}; swscanf(&text[4], L"%04hu%02hu%02hu%02hu%02hu%02hu", &st.wYear, &st.wMonth, &st.wDay, &st.wHour, &st.wMinute, &st.wSecond) == 6)
 				SystemTimeToFileTime(&st, Time);
@@ -256,14 +256,14 @@ int DoMDTM(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETI
 int DoMFMT(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETIME* Time, int* CancelCheckWork) {
 	SYSTEMTIME st;
 	FileTimeToSystemTime(Time, &st);
-	int Sts = AskHostFeature() & FEATURE_MFMT ? std::get<0>(Command(cSkt->handle, CancelCheckWork, L"MFMT {:04d}{:02d}{:02d}{:02d}{:02d}{:02d} {}"sv, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, Path)) : 500;
+	int Sts = AskHostFeature() & FEATURE_MFMT ? std::get<0>(Command(cSkt, CancelCheckWork, L"MFMT {:04d}{:02d}{:02d}{:02d}{:02d}{:02d} {}"sv, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, Path)) : 500;
 	return Sts / 100;
 }
 
 
 // リモート側のコマンドを実行
 int DoQUOTE(std::shared_ptr<SocketContext> cSkt, std::wstring_view CmdStr, int* CancelCheckWork) {
-	int code = std::get<0>(Command(cSkt->handle, CancelCheckWork, L"{}"sv, CmdStr));
+	int code = std::get<0>(Command(cSkt, CancelCheckWork, L"{}"sv, CmdStr));
 	if (code / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	return code / 100;
@@ -271,10 +271,10 @@ int DoQUOTE(std::shared_ptr<SocketContext> cSkt, std::wstring_view CmdStr, int* 
 
 
 // ソケットを閉じる
-void DoClose(SOCKET Sock) {
-	if (Sock != INVALID_SOCKET) {
-		do_closesocket(Sock);
-		Debug(L"Skt={} : Socket closed."sv, Sock);
+void DoClose(std::shared_ptr<SocketContext> Sock) {
+	if (Sock) {
+		do_closesocket(Sock->handle);
+		Debug(L"Skt={} : Socket closed."sv, Sock->handle);
 	}
 }
 
@@ -283,7 +283,7 @@ void DoClose(SOCKET Sock) {
 int DoQUIT(std::shared_ptr<SocketContext> ctrl_skt, int* CancelCheckWork) {
 	int Ret = FTP_COMPLETE;
 	if (SendQuit == YES)
-		Ret = std::get<0>(Command(ctrl_skt->handle, CancelCheckWork, L"QUIT"sv)) / 100;
+		Ret = std::get<0>(Command(ctrl_skt, CancelCheckWork, L"QUIT"sv)) / 100;
 	return Ret;
 }
 
@@ -359,7 +359,7 @@ void SwitchOSSProc(void)
 
 // コマンドを送りリプライを待つ
 // ホストのファイル名の漢字コードに応じて、ここで漢字コードの変換を行なう
-std::tuple<int, std::wstring> detail::command(SOCKET cSkt, int* CancelCheckWork, std::wstring&& cmd) {
+std::tuple<int, std::wstring> detail::command(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork, std::wstring&& cmd) {
 	if (cmd.starts_with(L"PASS "sv))
 		::Notice(IDS_REMOTECMD, L"PASS [xxxxxx]"sv);
 	else {
@@ -372,17 +372,17 @@ std::tuple<int, std::wstring> detail::command(SOCKET cSkt, int* CancelCheckWork,
 	}
 	auto native = ConvertTo(cmd, AskHostNameKanji(), AskHostNameKana());
 	native += "\r\n"sv;
-	if (SendData(cSkt, data(native), size_as<int>(native), 0, CancelCheckWork) != FFFTP_SUCCESS)
+	if (SendData(cSkt->handle, data(native), size_as<int>(native), 0, CancelCheckWork) != FFFTP_SUCCESS)
 		return { 429, {} };
 	return ReadReplyMessage(cSkt, CancelCheckWork);
 }
 
 
 // 応答メッセージを受け取る
-std::tuple<int, std::wstring> ReadReplyMessage(SOCKET cSkt, int* CancelCheckWork) {
+std::tuple<int, std::wstring> ReadReplyMessage(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork) {
 	int firstCode = 0;
 	std::wstring text;
-	if (cSkt != INVALID_SOCKET)
+	if (cSkt)
 		for (int Lines = 0;; Lines++) {
 			auto [code, line] = ReadOneLine(cSkt, CancelCheckWork);
 			Notice(IDS_REPLY, line);
@@ -409,8 +409,8 @@ std::tuple<int, std::wstring> ReadReplyMessage(SOCKET cSkt, int* CancelCheckWork
 
 
 // １行分のデータを受け取る
-static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWork) {
-	if (cSkt == INVALID_SOCKET)
+static std::tuple<int, std::wstring> ReadOneLine(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork) {
+	if (!cSkt)
 		return { 0, {} };
 
 	std::string line;
@@ -419,7 +419,7 @@ static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWo
 	do {
 		int TimeOutErr;
 		/* LFまでを受信するために、最初はPEEKで受信 */
-		if ((read = do_recv(cSkt, buffer, size_as<int>(buffer), MSG_PEEK, &TimeOutErr, CancelCheckWork)) <= 0) {
+		if ((read = do_recv(cSkt->handle, buffer, size_as<int>(buffer), MSG_PEEK, &TimeOutErr, CancelCheckWork)) <= 0) {
 			if (TimeOutErr == YES) {
 				Notice(IDS_MSGJPN242);
 				read = -2;
@@ -432,15 +432,13 @@ static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWo
 		if (auto lf = std::find(buffer, buffer + read, '\n'); lf != buffer + read)
 			read = (int)(lf - buffer + 1);
 		/* 本受信 */
-		if ((read = do_recv(cSkt, buffer, read, 0, &TimeOutErr, CancelCheckWork)) <= 0)
+		if ((read = do_recv(cSkt->handle, buffer, read, 0, &TimeOutErr, CancelCheckWork)) <= 0)
 			break;
 		line.append(buffer, buffer + read);
 	} while (!line.ends_with('\n'));
 	if (read <= 0) {
-		if (read == -2 || AskTransferNow() == YES) {
+		if (read == -2 || AskTransferNow() == YES)
 			DoClose(cSkt);
-			cSkt = INVALID_SOCKET;
-		}
 		return { 429, {} };
 	}
 
@@ -468,7 +466,7 @@ static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWo
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
+int ReadNchar(std::shared_ptr<SocketContext> cSkt, char *Buf, int Size, int *CancelCheckWork)
 {
 //	struct timeval Tout;
 //	struct timeval *ToutPtr;
@@ -479,12 +477,11 @@ int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
 	int TimeOutErr;
 
 	Sts = FFFTP_FAIL;
-	if(cSkt != INVALID_SOCKET)
-	{
+	if (cSkt) {
 		Sts = FFFTP_SUCCESS;
 		while(Size > 0)
 		{
-			if((SizeOnce = do_recv(cSkt, Buf, Size, 0, &TimeOutErr, CancelCheckWork)) <= 0)
+			if((SizeOnce = do_recv(cSkt->handle, Buf, Size, 0, &TimeOutErr, CancelCheckWork)) <= 0)
 			{
 				if(TimeOutErr == YES)
 					Notice(IDS_MSGJPN243);
