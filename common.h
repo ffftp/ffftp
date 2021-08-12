@@ -801,7 +801,7 @@ int AskNoFullPathMode(void);
 void SaveCurrentSetToHost(void);
 int ReConnectCmdSkt(void);
 int ReConnectTrnSkt(std::shared_ptr<SocketContext>& Skt, int *CancelCheckWork);
-SOCKET AskCmdCtrlSkt(void);
+std::shared_ptr<SocketContext> AskCmdCtrlSkt();
 std::shared_ptr<SocketContext> AskTrnCtrlSkt();
 void SktShareProh(void);
 int AskShareProh(void);

@@ -934,8 +934,8 @@ static int ReConnectSkt(std::shared_ptr<SocketContext>& Skt) {
 
 
 // コマンドコントロールソケットを返す
-SOCKET AskCmdCtrlSkt() {
-	return CmdCtrlSocket->handle;
+std::shared_ptr<SocketContext> AskCmdCtrlSkt() {
+	return CmdCtrlSocket;
 }
 
 

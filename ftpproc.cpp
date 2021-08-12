@@ -1577,7 +1577,7 @@ static void DelNotifyAndDo(FILELIST const& Dt, int Win, int* Sw, int* Flg, std::
 			*Flg = YES;
 		} else {
 			/* フルパスを使わない時のための処理 */
-			if (ProcForNonFullpath(AskCmdCtrlSkt(), path, CurDir, GetMainHwnd(), &CancelFlg) == FFFTP_FAIL)
+			if (ProcForNonFullpath(AskCmdCtrlSkt()->handle, path, CurDir, GetMainHwnd(), &CancelFlg) == FFFTP_FAIL)
 				*Sw = NO_ALL;
 			if (*Sw != NO_ALL) {
 				if (Dt.Node == NODE_FILE)
@@ -2150,7 +2150,7 @@ void SomeCmdProc(void)
 			MakeSelectedFileList(WIN_REMOTE, NO, NO, FileListBase, &CancelFlg);
 			auto cmd = empty(FileListBase) ? L""s : FileListBase[0].Name;
 			if (InputDialog(somecmd_dlg, GetMainHwnd(), 0, cmd, 81, nullptr, IDH_HELP_TOPIC_0000023))
-				DoQUOTE(AskCmdCtrlSkt(), cmd, &CancelFlg);
+				DoQUOTE(AskCmdCtrlSkt()->handle, cmd, &CancelFlg);
 			EnableUserOpe();
 		}
 	}
@@ -2365,7 +2365,7 @@ void AbortRecoveryProc(void)
 				EnableUserOpe();
 			}
 			else
-				RemoveReceivedData(AskCmdCtrlSkt());
+				RemoveReceivedData(AskCmdCtrlSkt()->handle);
 		}
 	}
 	return;

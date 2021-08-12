@@ -229,7 +229,7 @@ auto getCertContext(CtxtHandle& context) {
 }
 
 void ShowCertificate() {
-	if (auto context = getContext(AskCmdCtrlSkt()))
+	if (auto context = getContext(AskCmdCtrlSkt()->handle))
 		if (auto certContext = getCertContext(context->context)) {
 			CRYPTUI_VIEWCERTIFICATE_STRUCTW certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCTW, 0, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext.get() };
 			__pragma(warning(suppress:6387)) CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
@@ -396,7 +396,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, std::wstring_view Serve
 }
 
 bool IsSecureConnection() {
-	auto context = getContext(AskCmdCtrlSkt());
+	auto context = getContext(AskCmdCtrlSkt()->handle);
 	return context && context->secure;
 }
 
@@ -807,7 +807,7 @@ int CheckClosedAndReconnect(void)
 	int Error;
 	int Sts;
 	Sts = FFFTP_SUCCESS;
-	if(AskAsyncDone(AskCmdCtrlSkt(), &Error, FD_CLOSE) == YES)
+	if(AskAsyncDone(AskCmdCtrlSkt()->handle, &Error, FD_CLOSE) == YES)
 	{
 		Sts = ReConnectCmdSkt();
 	}

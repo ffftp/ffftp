@@ -1793,7 +1793,7 @@ void DoubleClickProc(int Win, int Mode, int App) {
 						DisableUserOpe();
 						if (CheckPathViolation(MainTransPkt) == NO) {
 							CancelFlg = NO;
-							Sts = DoDownload(AskCmdCtrlSkt(), MainTransPkt, NO, &CancelFlg);
+							Sts = DoDownload(AskCmdCtrlSkt()->handle, MainTransPkt, NO, &CancelFlg);
 							if (MarkAsInternet == YES && IsZoneIDLoaded() == YES)
 								MarkFileAsDownloadedFromInternet(remotePath);
 						}

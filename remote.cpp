@@ -60,7 +60,7 @@ static int PwdCommandType;
 int DoCWD(std::wstring const& Path, int Disp, int ForceGet, int ErrorBell) {
 	if (AskTransferNow() == YES)
 		SktShareProh();
-	auto Sts = Path == L""sv ? FTP_COMPLETE * 100 : std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, Path == L".."sv ? L"CDUP"sv : AskHostType() != HTYPE_VMS || Path.find(L'[') != std::wstring::npos ? L"CWD {}"sv : L"CWD [.{}]"sv, Path));
+	auto Sts = Path == L""sv ? FTP_COMPLETE * 100 : std::get<0>(Command(AskCmdCtrlSkt()->handle, &CancelFlg, Path == L".."sv ? L"CDUP"sv : AskHostType() != HTYPE_VMS || Path.find(L'[') != std::wstring::npos ? L"CWD {}"sv : L"CWD [.{}]"sv, Path));
 	if (Sts / 100 >= FTP_CONTINUE && ErrorBell == YES)
 		Sound::Error.Play();
 	if ((Sts / 100 == FTP_COMPLETE || ForceGet == YES) && Disp == YES) {
@@ -115,12 +115,12 @@ static std::optional<std::wstring> DoPWD() {
 	int code = 0;
 	std::wstring text;
 	if (PwdCommandType == PWD_XPWD) {
-		std::tie(code, text) = Command(AskCmdCtrlSkt(), &CancelFlg, L"XPWD"sv);
+		std::tie(code, text) = Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"XPWD"sv);
 		if (code / 100 != FTP_COMPLETE)
 			PwdCommandType = PWD_PWD;
 	}
 	if (PwdCommandType == PWD_PWD)
-		std::tie(code, text) = Command(AskCmdCtrlSkt(), &CancelFlg, L"PWD"sv);
+		std::tie(code, text) = Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"PWD"sv);
 	if (code / 100 != FTP_COMPLETE)
 		return {};
 	static boost::wregex re{ LR"("([^"]*))" };
@@ -154,7 +154,7 @@ void InitPWDcommand()
 int DoMKD(std::wstring const& Path) {
 	if (AskTransferNow() == YES)
 		SktShareProh();
-	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"MKD {}"sv, Path));
+	int Sts = std::get<0>(Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"MKD {}"sv, Path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
@@ -169,7 +169,7 @@ int DoMKD(std::wstring const& Path) {
 int DoRMD(std::wstring const& path) {
 	if (AskTransferNow() == YES)
 		SktShareProh();
-	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"RMD {}"sv, path));
+	int Sts = std::get<0>(Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"RMD {}"sv, path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
@@ -184,7 +184,7 @@ int DoRMD(std::wstring const& path) {
 int DoDELE(std::wstring const& path) {
 	if (AskTransferNow() == YES)
 		SktShareProh();
-	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"DELE {}"sv, path));
+	int Sts = std::get<0>(Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"DELE {}"sv, path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
@@ -199,9 +199,9 @@ int DoDELE(std::wstring const& path) {
 int DoRENAME(std::wstring const& from, std::wstring const& to) {
 	if (AskTransferNow() == YES)
 		SktShareProh();
-	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"RNFR {}"sv, from));
+	int Sts = std::get<0>(Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"RNFR {}"sv, from));
 	if (Sts == 350)
-		Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"RNTO {}"sv, to));
+		Sts = std::get<0>(Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"RNTO {}"sv, to));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
@@ -216,7 +216,7 @@ int DoRENAME(std::wstring const& from, std::wstring const& to) {
 int DoCHMOD(std::wstring const& path, std::wstring const& mode) {
 	if (AskTransferNow() == YES)
 		SktShareProh();
-	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"{} {} {}"sv, AskHostChmodCmd(), mode, path));
+	int Sts = std::get<0>(Command(AskCmdCtrlSkt()->handle, &CancelFlg, L"{} {} {}"sv, AskHostChmodCmd(), mode, path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
@@ -333,7 +333,7 @@ int DoDirList(std::wstring_view AddOpt, int Num, int* CancelCheckWork) {
 	MainTransPkt.NoTransfer = NO;
 	MainTransPkt.ExistSize = 0;
 	MainTransPkt.hWndTrans = {};
-	auto code = DoDownload(AskCmdCtrlSkt(), MainTransPkt, YES, CancelCheckWork);
+	auto code = DoDownload(AskCmdCtrlSkt()->handle, MainTransPkt, YES, CancelCheckWork);
 	if (code / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	return code / 100;
@@ -354,10 +354,10 @@ void SwitchOSSProc(void)
 {
 	/* DoPWD でノード名の \ を保存するために OSSフラグも変更する */
 	if(AskOSS() == YES) {
-		DoQUOTE(AskCmdCtrlSkt(), L"GUARDIAN"s, &CancelFlg);
+		DoQUOTE(AskCmdCtrlSkt()->handle, L"GUARDIAN"s, &CancelFlg);
 		SetOSS(NO);
 	} else {
-		DoQUOTE(AskCmdCtrlSkt(), L"OSS"s, &CancelFlg);
+		DoQUOTE(AskCmdCtrlSkt()->handle, L"OSS"s, &CancelFlg);
 		SetOSS(YES);
 	}
 	/* Current Dir 再取得 */
