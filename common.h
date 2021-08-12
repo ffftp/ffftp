@@ -518,7 +518,7 @@ struct HISTORYDATA : Host {
 
 
 struct TRANSPACKET {
-	SOCKET ctrl_skt = INVALID_SOCKET;	/* Socket */
+	std::shared_ptr<SocketContext> ctrl_skt;	/* Socket */
 	std::wstring Command;				/* STOR/RETR/MKD */
 	std::wstring Remote;				/* ホスト側のファイル名（フルパス） */
 										/* VMSの時は ddd[xxx.yyy]/yyy/zzz のように */
