@@ -30,6 +30,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define NOMINMAX
+#define SECURITY_WIN32
 #define WIN32_LEAN_AND_MEAN
 #define UMDF_USING_NTSTATUS
 #include <algorithm>
@@ -71,10 +72,14 @@
 #include <winsock2.h>
 #include <CommCtrl.h>
 #include <commdlg.h>
+#include <cryptuiapi.h>
 #include <MLang.h>
 #include <MMSystem.h>
 #include <mstcpip.h>
+#include <natupnp.h>
 #include <ntstatus.h>
+#include <schannel.h>
+#include <security.h>
 #include <shellapi.h>
 #include <ShlObj.h>
 #include <Shlwapi.h>
@@ -421,17 +426,38 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define NTYPE_IPV4			1		/* TCP/IPv4 */
 #define NTYPE_IPV6			2		/* TCP/IPv6 */
 
+struct SslContext {
+	std::wstring host;
+	CtxtHandle context;
+	const bool secure;
+	SecPkgContext_StreamSizes streamSizes;
+	std::vector<char> readRaw;
+	std::vector<char> readPlain;
+	SECURITY_STATUS readStatus = SEC_E_OK;
+	SslContext(std::wstring const& host, CtxtHandle context, bool secure, SecPkgContext_StreamSizes streamSizes, std::vector<char> extra);
+	SslContext(SslContext const&) = delete;
+	~SslContext() {
+		DeleteSecurityContext(&context);
+	}
+	void Decypt();
+	std::vector<char> Encrypt(std::string_view plain);
+};
 
 struct SocketContext {
 	SOCKET const handle;
 	int mapPort = 0;
 	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
+	std::optional<SslContext> sslContext;
 	SocketContext(SOCKET s);
 	SocketContext(SocketContext const&) = delete;
 	constexpr bool operator==(SocketContext const& other) { return handle == other.handle; }
 	static std::shared_ptr<SocketContext> Create(int af, int type, int protocol);
 	std::shared_ptr<SocketContext> Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen);
 	int Close();
+	BOOL AttachSSL(std::shared_ptr<SocketContext> parent, BOOL* pbAborted, std::wstring_view ServerName);
+	constexpr bool IsSSLAttached() {
+		return sslContext.has_value();
+	}
 };
 
 
@@ -1080,17 +1106,15 @@ std::vector<HISTORYDATA> const& GetHistories();
 BOOL LoadSSL();
 void FreeSSL();
 void ShowCertificate();
-BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, std::wstring_view ServerName);
 bool IsSecureConnection();
-BOOL IsSSLAttached(SOCKET s);
 int MakeSocketWin();
 void DeleteSocketWin(void);
 int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCheckWork);
 int do_listen(SOCKET s,	int backlog);
-int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOut, int *CancelCheckWork);
-int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork);
+int do_recv(std::shared_ptr<SocketContext> s, char *buf, int len, int flags, int *TimeOut, int *CancelCheckWork);
+int SendData(std::shared_ptr<SocketContext> s, const char* buf, int len, int flags, int* CancelCheckWork);
 // 同時接続対応
-void RemoveReceivedData(SOCKET s);
+void RemoveReceivedData(std::shared_ptr<SocketContext> s);
 // UPnP対応
 int LoadUPnP();
 void FreeUPnP();

@@ -28,14 +28,6 @@
 /============================================================================*/
 
 #include "common.h"
-#define SECURITY_WIN32
-#include <cryptuiapi.h>
-#include <natupnp.h>
-#include <schannel.h>
-#include <security.h>
-#ifndef SP_PROT_TLS1_3_CLIENT
-#define SP_PROT_TLS1_3_CLIENT 0x00002000
-#endif
 #pragma comment(lib, "Crypt32.lib")
 #pragma comment(lib, "Cryptui.lib")
 #pragma comment(lib, "Secur32.lib")
@@ -76,79 +68,66 @@ static T CreateInvalidateHandle() {
 	return handle;
 }
 
-struct Context {
-	std::wstring host;
-	CtxtHandle context;
-	const bool secure;
-	SecPkgContext_StreamSizes streamSizes;
-	std::vector<char> readRaw;
-	std::vector<char> readPlain;
-	SECURITY_STATUS readStatus = SEC_E_OK;
-	Context(std::wstring const& host, CtxtHandle context, bool secure, SecPkgContext_StreamSizes streamSizes, std::vector<char> extra) : host{ host }, context{ context }, secure{ secure }, streamSizes { streamSizes }, readRaw{ extra } {
-		if (!empty(readRaw))
-			Decypt();
-	}
-	Context(Context const&) = delete;
-	~Context() {
-		DeleteSecurityContext(&context);
-	}
-	void Decypt() {
-		for (;;) {
-			SecBuffer buffer[]{
-				{ size_as<unsigned long>(readRaw), SECBUFFER_DATA, data(readRaw) },
-				{ 0, SECBUFFER_EMPTY, nullptr },
-				{ 0, SECBUFFER_EMPTY, nullptr },
-				{ 0, SECBUFFER_EMPTY, nullptr },
-			};
-			SecBufferDesc desc{ SECBUFFER_VERSION, size_as<unsigned long>(buffer), buffer };
-			if (readStatus = DecryptMessage(&context, &desc, 0, nullptr); readStatus == SEC_I_CONTEXT_EXPIRED) {
+SslContext::SslContext(std::wstring const& host, CtxtHandle context, bool secure, SecPkgContext_StreamSizes streamSizes, std::vector<char> extra) : host{ host }, context{ context }, secure{ secure }, streamSizes{ streamSizes }, readRaw{ extra } {
+	if (!empty(readRaw))
+		Decypt();
+}
+
+void SslContext::Decypt() {
+	for (;;) {
+		SecBuffer buffer[]{
+			{ size_as<unsigned long>(readRaw), SECBUFFER_DATA, data(readRaw) },
+			{ 0, SECBUFFER_EMPTY, nullptr },
+			{ 0, SECBUFFER_EMPTY, nullptr },
+			{ 0, SECBUFFER_EMPTY, nullptr },
+		};
+		SecBufferDesc desc{ SECBUFFER_VERSION, size_as<unsigned long>(buffer), buffer };
+		if (readStatus = DecryptMessage(&context, &desc, 0, nullptr); readStatus == SEC_I_CONTEXT_EXPIRED) {
+			readRaw.clear();
+			break;
+		} else if (readStatus == SEC_E_OK) {
+			assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[1].BufferType == SECBUFFER_DATA && buffer[2].BufferType == SECBUFFER_STREAM_TRAILER);
+			readPlain.insert(end(readPlain), reinterpret_cast<const char*>(buffer[1].pvBuffer), reinterpret_cast<const char*>(buffer[1].pvBuffer) + buffer[1].cbBuffer);
+			if (buffer[3].BufferType != SECBUFFER_EXTRA) {
 				readRaw.clear();
 				break;
-			} else if (readStatus == SEC_E_OK) {
-				assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[1].BufferType == SECBUFFER_DATA && buffer[2].BufferType == SECBUFFER_STREAM_TRAILER);
-				readPlain.insert(end(readPlain), reinterpret_cast<const char*>(buffer[1].pvBuffer), reinterpret_cast<const char*>(buffer[1].pvBuffer) + buffer[1].cbBuffer);
-				if (buffer[3].BufferType != SECBUFFER_EXTRA) {
-					readRaw.clear();
-					break;
-				}
-				readRaw = std::vector<char>(reinterpret_cast<const char*>(buffer[3].pvBuffer), reinterpret_cast<const char*>(buffer[3].pvBuffer) + buffer[3].cbBuffer);
-			} else {
-				_RPTWN(_CRT_WARN, L"DecryptMessage error: %08X.\n", readStatus);
-				break;
 			}
+			readRaw = std::vector<char>(reinterpret_cast<const char*>(buffer[3].pvBuffer), reinterpret_cast<const char*>(buffer[3].pvBuffer) + buffer[3].cbBuffer);
+		} else {
+			_RPTWN(_CRT_WARN, L"DecryptMessage error: %08X.\n", readStatus);
+			break;
 		}
 	}
-	std::vector<char> Encrypt(std::string_view plain) {
-		std::vector<char> result;
-		while (!empty(plain)) {
-			auto dataLength = std::min(size_as<unsigned long>(plain), streamSizes.cbMaximumMessage);
-			auto offset = size(result);
-			result.resize(offset + streamSizes.cbHeader + dataLength + streamSizes.cbTrailer);
-			std::copy_n(begin(plain), dataLength, begin(result) + offset + streamSizes.cbHeader);
-			SecBuffer buffer[]{
-				{ streamSizes.cbHeader,  SECBUFFER_STREAM_HEADER,  data(result) + offset },
-				{ dataLength,            SECBUFFER_DATA,           data(result) + offset + streamSizes.cbHeader },
-				{ streamSizes.cbTrailer, SECBUFFER_STREAM_TRAILER, data(result) + offset + streamSizes.cbHeader + dataLength },
-				{ 0, SECBUFFER_EMPTY, nullptr },
-			};
-			SecBufferDesc desc{ SECBUFFER_VERSION, size_as<unsigned long>(buffer), buffer };
-			if (auto ss = EncryptMessage(&context, 0, &desc, 0); ss != SEC_E_OK) {
-				_RPTWN(_CRT_WARN, L"FTPS_send EncryptMessage error: %08x.\n", ss);
-				return {};
-			}
-			assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[0].cbBuffer == streamSizes.cbHeader);
-			assert(buffer[1].BufferType == SECBUFFER_DATA && buffer[1].cbBuffer == dataLength);
-			assert(buffer[2].BufferType == SECBUFFER_STREAM_TRAILER && buffer[2].cbBuffer <= streamSizes.cbTrailer);
-			result.resize(offset + buffer[0].cbBuffer + buffer[1].cbBuffer + buffer[2].cbBuffer);
-			plain = plain.substr(dataLength);
+}
+
+std::vector<char> SslContext::Encrypt(std::string_view plain) {
+	std::vector<char> result;
+	while (!empty(plain)) {
+		auto dataLength = std::min(size_as<unsigned long>(plain), streamSizes.cbMaximumMessage);
+		auto offset = size(result);
+		result.resize(offset + streamSizes.cbHeader + dataLength + streamSizes.cbTrailer);
+		std::copy_n(begin(plain), dataLength, begin(result) + offset + streamSizes.cbHeader);
+		SecBuffer buffer[]{
+			{ streamSizes.cbHeader,  SECBUFFER_STREAM_HEADER,  data(result) + offset },
+			{ dataLength,            SECBUFFER_DATA,           data(result) + offset + streamSizes.cbHeader },
+			{ streamSizes.cbTrailer, SECBUFFER_STREAM_TRAILER, data(result) + offset + streamSizes.cbHeader + dataLength },
+			{ 0, SECBUFFER_EMPTY, nullptr },
+		};
+		SecBufferDesc desc{ SECBUFFER_VERSION, size_as<unsigned long>(buffer), buffer };
+		if (auto ss = EncryptMessage(&context, 0, &desc, 0); ss != SEC_E_OK) {
+			_RPTWN(_CRT_WARN, L"FTPS_send EncryptMessage error: %08x.\n", ss);
+			return {};
 		}
-		return result;
+		assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[0].cbBuffer == streamSizes.cbHeader);
+		assert(buffer[1].BufferType == SECBUFFER_DATA && buffer[1].cbBuffer == dataLength);
+		assert(buffer[2].BufferType == SECBUFFER_STREAM_TRAILER && buffer[2].cbBuffer <= streamSizes.cbTrailer);
+		result.resize(offset + buffer[0].cbBuffer + buffer[1].cbBuffer + buffer[2].cbBuffer);
+		plain = plain.substr(dataLength);
 	}
-};
+	return result;
+}
 
 static CredHandle credential = CreateInvalidateHandle<CredHandle>();
-static std::mutex context_mutex;
-static std::map<SOCKET, Context> contexts;
 
 BOOL LoadSSL() {
 	// 目的：
@@ -186,17 +165,7 @@ BOOL LoadSSL() {
 
 void FreeSSL() {
 	assert(SecIsValidHandle(&credential));
-	std::lock_guard<std::mutex> lock_guard{ context_mutex };
-	contexts.clear();
 	FreeCredentialsHandle(&credential);
-}
-
-static Context* getContext(SOCKET s) {
-	assert(SecIsValidHandle(&credential));
-	std::lock_guard<std::mutex> lock_guard{ context_mutex };
-	if (auto it = contexts.find(s); it != contexts.end())
-		return &it->second;
-	return nullptr;
 }
 
 namespace std {
@@ -225,8 +194,8 @@ auto getCertContext(CtxtHandle& context) {
 }
 
 void ShowCertificate() {
-	if (auto context = getContext(AskCmdCtrlSkt()->handle))
-		if (auto certContext = getCertContext(context->context)) {
+	if (auto& ssl = AskCmdCtrlSkt()->sslContext)
+		if (auto certContext = getCertContext(ssl->context)) {
 			CRYPTUI_VIEWCERTIFICATE_STRUCTW certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCTW, 0, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext.get() };
 			__pragma(warning(suppress:6387)) CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
 		}
@@ -295,22 +264,15 @@ static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName
 	return CertResult::Declined;
 }
 
-// SSLセッションを終了
-static BOOL DetachSSL(SOCKET s) {
-	std::lock_guard<std::mutex> lock_guard{ context_mutex };
-	contexts.erase(s);
-	return true;
-}
-
 // SSLセッションを開始
-BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, std::wstring_view ServerName) {
+BOOL SocketContext::AttachSSL(std::shared_ptr<SocketContext> parent, BOOL* pbAborted, std::wstring_view ServerName) {
 	assert(SecIsValidHandle(&credential));
 	std::wstring wServerName;
 	if (!empty(ServerName))
 		wServerName = IdnToAscii(ServerName);
-	else if (parent != INVALID_SOCKET)
-		if (auto context = getContext(parent))
-			wServerName = context->host;
+	else if (parent)
+		if (auto const& parentSsl = parent->sslContext)
+			wServerName = parentSsl->host;
 	auto node = empty(wServerName) ? nullptr : data(wServerName);
 
 	CtxtHandle context;
@@ -331,7 +293,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, std::wstring_view Serve
 		} else {
 			for (;;) {
 				char buffer[8192];
-				if (auto read = recv(s, buffer, size_as<int>(buffer), 0); read == 0) {
+				if (auto read = recv(handle, buffer, size_as<int>(buffer), 0); read == 0) {
 					Debug(L"AttachSSL recv: connection closed."sv);
 					return FALSE;
 				} else if (0 < read) {
@@ -355,7 +317,7 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, std::wstring_view Serve
 		_RPTWN(_CRT_WARN, L"AttachSSL InitializeSecurityContext result: %08x, inBuffer: %d/%d, %d/%d/%p, outBuffer: %d/%d, %d/%d, attr: %08x.\n",
 			ss, inBuffer[0].BufferType, inBuffer[0].cbBuffer, inBuffer[1].BufferType, inBuffer[1].cbBuffer, inBuffer[1].pvBuffer, outBuffer[0].BufferType, outBuffer[0].cbBuffer, outBuffer[1].BufferType, outBuffer[1].cbBuffer, attr);
 		if (outBuffer[0].BufferType == SECBUFFER_TOKEN && outBuffer[0].cbBuffer != 0) {
-			auto written = send(s, reinterpret_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
+			auto written = send(handle, reinterpret_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
 			assert(written == outBuffer[0].cbBuffer);
 			_RPTWN(_CRT_WARN, L"AttachSSL send: %d bytes.\n", written);
 			FreeContextBuffer(outBuffer[0].pvBuffer);
@@ -385,33 +347,28 @@ BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, std::wstring_view Serve
 	default:
 		return FALSE;
 	}
-	std::lock_guard<std::mutex> lock_guard{ context_mutex };
-	contexts.emplace(std::piecewise_construct, std::forward_as_tuple(s), std::forward_as_tuple(wServerName, context, secure, streamSizes, extra));
+	sslContext.emplace(wServerName, context, secure, streamSizes, extra);
 	_RPTW0(_CRT_WARN, L"AttachSSL success.\n");
 	return TRUE;
 }
 
 bool IsSecureConnection() {
-	auto context = getContext(AskCmdCtrlSkt()->handle);
-	return context && context->secure;
+	if (auto const& socket = AskCmdCtrlSkt())
+		if (auto const& ssl = socket->sslContext)
+			return ssl->secure;
+	return false;
 }
 
-// SSLとしてマークされているか確認
-// マークされていればTRUEを返す
-BOOL IsSSLAttached(SOCKET s) {
-	return getContext(s) != nullptr;
-}
-
-static int FTPS_recv(SOCKET s, char* buf, int len, int flags) {
+static int FTPS_recv(std::shared_ptr<SocketContext> s, char* buf, int len, int flags) {
 	assert(flags == 0 || flags == MSG_PEEK);
-	auto context = getContext(s);
+	auto& context = s->sslContext;
 	if (!context)
-		return recv(s, buf, len, flags);
+		return recv(s->handle, buf, len, flags);
 
 	if (empty(context->readPlain) && context->readStatus != SEC_I_CONTEXT_EXPIRED) {
 		auto offset = size_as<int>(context->readRaw);
 		context->readRaw.resize((size_t)context->streamSizes.cbHeader + context->streamSizes.cbMaximumMessage + context->streamSizes.cbTrailer);
-		auto read = recv(s, data(context->readRaw) + offset, size_as<int>(context->readRaw) - offset, 0);
+		auto read = recv(s->handle, data(context->readRaw) + offset, size_as<int>(context->readRaw) - offset, 0);
 		if (read <= 0) {
 			context->readRaw.resize(offset);
 #ifdef _DEBUG
@@ -525,7 +482,7 @@ int SocketContext::Close() {
 		std::lock_guard lock{ SignalMutex };
 		Signal.erase(handle);
 	}
-	DetachSSL(handle);
+	sslContext.reset();
 	if (int result = closesocket(handle); result != SOCKET_ERROR)
 		return result;
 	for (;;) {
@@ -610,7 +567,7 @@ std::shared_ptr<SocketContext> SocketContext::Accept(_Out_writes_bytes_opt_(*add
 }
 
 
-int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *CancelCheckWork) {
+int do_recv(std::shared_ptr<SocketContext> s, char *buf, int len, int flags, int *TimeOutErr, int *CancelCheckWork) {
 	if (*CancelCheckWork != NO)
 		return SOCKET_ERROR;
 	auto endTime = TimeOut != 0 ? std::make_optional(std::chrono::steady_clock::now() + std::chrono::seconds(TimeOut)) : std::nullopt;
@@ -635,8 +592,8 @@ int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOutErr, int *Cance
 }
 
 
-int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork) {
-	if (s == INVALID_SOCKET)
+int SendData(std::shared_ptr<SocketContext> s, const char* buf, int len, int flags, int* CancelCheckWork) {
+	if (!s)
 		return FFFTP_FAIL;
 	if (len <= 0)
 		return FFFTP_SUCCESS;
@@ -644,7 +601,7 @@ int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork
 	// バッファの構築、SSLの場合には暗号化を行う
 	std::vector<char> work;
 	std::string_view buffer{ buf, size_t(len) };
-	if (auto context = getContext(s)) {
+	if (auto& context = s->sslContext) {
 		if (work = context->Encrypt(buffer); empty(work)) {
 			Debug(L"SendData: EncryptMessage failed."sv);
 			return FFFTP_FAIL;
@@ -657,7 +614,7 @@ int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork
 		return FFFTP_FAIL;
 	auto endTime = TimeOut != 0 ? std::optional{ std::chrono::steady_clock::now() + std::chrono::seconds(TimeOut) } : std::nullopt;
 	do {
-		auto sent = send(s, data(buffer), size_as<int>(buffer), flags);
+		auto sent = send(s->handle, data(buffer), size_as<int>(buffer), flags);
 		if (0 < sent)
 			buffer = buffer.substr(sent);
 		else if (sent == 0) {
@@ -681,7 +638,7 @@ int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork
 
 
 // 同時接続対応
-void RemoveReceivedData(SOCKET s)
+void RemoveReceivedData(std::shared_ptr<SocketContext> s)
 {
 	char buf[1024];
 	int len;

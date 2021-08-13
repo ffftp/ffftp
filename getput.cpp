@@ -650,7 +650,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				SendMessageW(hWndTrans, WM_SET_PACKET, 0, (LPARAM)&*Pos);
 
 			// 中断後に受信バッファに応答が残っていると次のコマンドの応答が正しく処理できない
-			RemoveReceivedData(TrnSkt->handle);
+			RemoveReceivedData(TrnSkt);
 
 			/* ダウンロード */
 			if(Pos->Command.starts_with(L"RETR"sv))
@@ -984,7 +984,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 	if(AskReuseCmdSkt() == NO || ThreadCount > 0)
 	{
 		if (TrnSkt) {
-			SendData(TrnSkt->handle, "QUIT\r\n", 6, 0, &Canceled[ThreadCount]);
+			SendData(TrnSkt, "QUIT\r\n", 6, 0, &Canceled[ThreadCount]);
 			DoClose(TrnSkt);
 		}
 	}
@@ -1141,9 +1141,8 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 				if (data_socket) {
 					// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 					ReleaseMutex(hListAccMutex);
-					if(IsSSLAttached(Pkt->ctrl_skt->handle))
-					{
-						if (AttachSSL(data_socket->handle, Pkt->ctrl_skt->handle, CancelCheckWork, {}))
+					if (Pkt->ctrl_skt->IsSSLAttached()) {
+						if (data_socket->AttachSSL(Pkt->ctrl_skt, CancelCheckWork, {}))
 							iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 						else
 							iRetCode = 500;
@@ -1220,9 +1219,8 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					{
 						// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 						ReleaseMutex(hListAccMutex);
-						if(IsSSLAttached(Pkt->ctrl_skt->handle))
-						{
-							if (AttachSSL(data_socket->handle, Pkt->ctrl_skt->handle, CancelCheckWork, {}))
+						if (Pkt->ctrl_skt->IsSSLAttached()) {
+							if (data_socket->AttachSSL(Pkt->ctrl_skt, CancelCheckWork, {}))
 								iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 							else
 								iRetCode = 500;
@@ -1308,7 +1306,7 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 		std::vector<char> buf(BUFSIZE);
 		int read = 0;
 		while (Pkt->Abort == ABORT_NONE && ForceAbort == NO) {
-			if (int timeout; (read = do_recv(dSkt->handle, data(buf), BUFSIZE, 0, &timeout, CancelCheckWork)) <= 0) {
+			if (int timeout; (read = do_recv(dSkt, data(buf), BUFSIZE, 0, &timeout, CancelCheckWork)) <= 0) {
 				if (timeout == YES) {
 					SetErrorMsg(GetString(IDS_MSGJPN094));
 					Notice(IDS_MSGJPN094);
@@ -1363,8 +1361,8 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 
 	/* Abortをホストに伝える */
 	if (ForceAbort == NO && Pkt->Abort != ABORT_NONE && opened) {
-		SendData(Pkt->ctrl_skt->handle, "\xFF\xF4\xFF", 3, MSG_OOB, CancelCheckWork);	/* MSG_OOBに注意 */
-		SendData(Pkt->ctrl_skt->handle, "\xF2", 1, 0, CancelCheckWork);
+		SendData(Pkt->ctrl_skt, "\xFF\xF4\xFF", 3, MSG_OOB, CancelCheckWork);	/* MSG_OOBに注意 */
+		SendData(Pkt->ctrl_skt, "\xF2", 1, 0, CancelCheckWork);
 		Command(Pkt->ctrl_skt, CancelCheckWork, L"ABOR"sv);
 	}
 
@@ -1678,9 +1676,8 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 			if (data_socket) {
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 				ReleaseMutex(hListAccMutex);
-				if(IsSSLAttached(Pkt->ctrl_skt->handle))
-				{
-					if (AttachSSL(data_socket->handle, Pkt->ctrl_skt->handle, &Canceled[Pkt->ThreadCount], {}))
+				if (Pkt->ctrl_skt->IsSSLAttached()) {
+					if (data_socket->AttachSSL(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], {}))
 						iRetCode = UploadFile(Pkt, data_socket);
 					else
 						iRetCode = 500;
@@ -1759,9 +1756,8 @@ static int UploadPassive(TRANSPACKET *Pkt)
 						Pkt->Attr = -1;
 					// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 					ReleaseMutex(hListAccMutex);
-					if(IsSSLAttached(Pkt->ctrl_skt->handle))
-					{
-						if (AttachSSL(data_socket->handle, Pkt->ctrl_skt->handle, &Canceled[Pkt->ThreadCount], {}))
+					if (Pkt->ctrl_skt->IsSSLAttached()) {
+						if (data_socket->AttachSSL(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], {}))
 							iRetCode = UploadFile(Pkt, data_socket);
 						else
 							iRetCode = 500;
@@ -1894,9 +1890,9 @@ static int TermCodeConvAndSend(std::shared_ptr<SocketContext> Skt, char *Data, i
 	// CR-LF以外の改行コードを変換しないモードはここへ追加
 	if (Ascii == TYPE_A) {
 		auto encoded = ToCRLF({ Data, (size_t)Size });
-		return SendData(Skt->handle, data(encoded), size_as<int>(encoded), 0, CancelCheckWork);
+		return SendData(Skt, data(encoded), size_as<int>(encoded), 0, CancelCheckWork);
 	}
-	return SendData(Skt->handle, Data, Size, 0, CancelCheckWork);
+	return SendData(Skt, Data, Size, 0, CancelCheckWork);
 }
 
 

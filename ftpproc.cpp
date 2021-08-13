@@ -2365,7 +2365,7 @@ void AbortRecoveryProc(void)
 				EnableUserOpe();
 			}
 			else
-				RemoveReceivedData(AskCmdCtrlSkt()->handle);
+				RemoveReceivedData(AskCmdCtrlSkt());
 		}
 	}
 	return;
