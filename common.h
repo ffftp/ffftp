@@ -456,13 +456,17 @@ struct SocketContext {
 	static std::shared_ptr<SocketContext> Create(int af, int type, int protocol);
 	std::shared_ptr<SocketContext> Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen);
 	int Close();
-	BOOL AttachSSL(std::shared_ptr<SocketContext> parent, BOOL* pbAborted, std::wstring_view ServerName);
+	BOOL AttachSSL(SocketContext* parent, BOOL* pbAborted, std::wstring_view ServerName);
 	constexpr bool IsSSLAttached() {
 		return sslContext.has_value();
 	}
 	bool GetEvent(int mask);
 	int Connect(const sockaddr* name, int namelen, int* CancelCheckWork);
 	int Listen(int backlog);
+	int RecvInternal(char* buf, int len, int flags);
+	int Recv(char* buf, int len, int flags, int* TimeOutErr, int* CancelCheckWork);
+	void RemoveReceivedData();
+	int Send(const char* buf, int len, int flags, int* CancelCheckWork);
 };
 
 
@@ -1114,10 +1118,6 @@ void ShowCertificate();
 bool IsSecureConnection();
 int MakeSocketWin();
 void DeleteSocketWin(void);
-int do_recv(std::shared_ptr<SocketContext> s, char *buf, int len, int flags, int *TimeOut, int *CancelCheckWork);
-int SendData(std::shared_ptr<SocketContext> s, const char* buf, int len, int flags, int* CancelCheckWork);
-// 同時接続対応
-void RemoveReceivedData(std::shared_ptr<SocketContext> s);
 // UPnP対応
 int LoadUPnP();
 void FreeUPnP();

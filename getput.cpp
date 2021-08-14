@@ -650,7 +650,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				SendMessageW(hWndTrans, WM_SET_PACKET, 0, (LPARAM)&*Pos);
 
 			// 中断後に受信バッファに応答が残っていると次のコマンドの応答が正しく処理できない
-			RemoveReceivedData(TrnSkt);
+			TrnSkt->RemoveReceivedData();
 
 			/* ダウンロード */
 			if(Pos->Command.starts_with(L"RETR"sv))
@@ -984,7 +984,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 	if(AskReuseCmdSkt() == NO || ThreadCount > 0)
 	{
 		if (TrnSkt) {
-			SendData(TrnSkt, "QUIT\r\n", 6, 0, &Canceled[ThreadCount]);
+			TrnSkt->Send("QUIT\r\n", 6, 0, &Canceled[ThreadCount]);
 			DoClose(TrnSkt);
 		}
 	}
@@ -1142,7 +1142,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 					ReleaseMutex(hListAccMutex);
 					if (Pkt->ctrl_skt->IsSSLAttached()) {
-						if (data_socket->AttachSSL(Pkt->ctrl_skt, CancelCheckWork, {}))
+						if (data_socket->AttachSSL(Pkt->ctrl_skt.get(), CancelCheckWork, {}))
 							iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 						else
 							iRetCode = 500;
@@ -1220,7 +1220,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 						// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 						ReleaseMutex(hListAccMutex);
 						if (Pkt->ctrl_skt->IsSSLAttached()) {
-							if (data_socket->AttachSSL(Pkt->ctrl_skt, CancelCheckWork, {}))
+							if (data_socket->AttachSSL(Pkt->ctrl_skt.get(), CancelCheckWork, {}))
 								iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 							else
 								iRetCode = 500;
@@ -1277,6 +1277,8 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 *----------------------------------------------------------------------------*/
 
 static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int CreateMode, int *CancelCheckWork) {
+	assert(dSkt);
+	assert(Pkt->ctrl_skt);
 #ifdef DISABLE_TRANSFER_NETWORK_BUFFERS
 	int buf_size = 0;
 	setsockopt(dSkt, SOL_SOCKET, SO_RCVBUF, (char*)&buf_size, sizeof(buf_size));
@@ -1306,7 +1308,7 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 		std::vector<char> buf(BUFSIZE);
 		int read = 0;
 		while (Pkt->Abort == ABORT_NONE && ForceAbort == NO) {
-			if (int timeout; (read = do_recv(dSkt, data(buf), BUFSIZE, 0, &timeout, CancelCheckWork)) <= 0) {
+			if (int timeout; (read = dSkt->Recv(data(buf), BUFSIZE, 0, &timeout, CancelCheckWork)) <= 0) {
 				if (timeout == YES) {
 					SetErrorMsg(GetString(IDS_MSGJPN094));
 					Notice(IDS_MSGJPN094);
@@ -1361,8 +1363,8 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 
 	/* Abortをホストに伝える */
 	if (ForceAbort == NO && Pkt->Abort != ABORT_NONE && opened) {
-		SendData(Pkt->ctrl_skt, "\xFF\xF4\xFF", 3, MSG_OOB, CancelCheckWork);	/* MSG_OOBに注意 */
-		SendData(Pkt->ctrl_skt, "\xF2", 1, 0, CancelCheckWork);
+		Pkt->ctrl_skt->Send("\xFF\xF4\xFF", 3, MSG_OOB, CancelCheckWork);	/* MSG_OOBに注意 */
+		Pkt->ctrl_skt->Send("\xF2", 1, 0, CancelCheckWork);
 		Command(Pkt->ctrl_skt, CancelCheckWork, L"ABOR"sv);
 	}
 
@@ -1677,7 +1679,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 				ReleaseMutex(hListAccMutex);
 				if (Pkt->ctrl_skt->IsSSLAttached()) {
-					if (data_socket->AttachSSL(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], {}))
+					if (data_socket->AttachSSL(Pkt->ctrl_skt.get(), &Canceled[Pkt->ThreadCount], {}))
 						iRetCode = UploadFile(Pkt, data_socket);
 					else
 						iRetCode = 500;
@@ -1757,7 +1759,7 @@ static int UploadPassive(TRANSPACKET *Pkt)
 					// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 					ReleaseMutex(hListAccMutex);
 					if (Pkt->ctrl_skt->IsSSLAttached()) {
-						if (data_socket->AttachSSL(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], {}))
+						if (data_socket->AttachSSL(Pkt->ctrl_skt.get(), &Canceled[Pkt->ThreadCount], {}))
 							iRetCode = UploadFile(Pkt, data_socket);
 						else
 							iRetCode = 500;
@@ -1887,12 +1889,13 @@ static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt) {
 
 // バッファの内容を改行コード変換して送信
 static int TermCodeConvAndSend(std::shared_ptr<SocketContext> Skt, char *Data, int Size, int Ascii, int *CancelCheckWork) {
+	assert(Skt);
 	// CR-LF以外の改行コードを変換しないモードはここへ追加
 	if (Ascii == TYPE_A) {
 		auto encoded = ToCRLF({ Data, (size_t)Size });
-		return SendData(Skt, data(encoded), size_as<int>(encoded), 0, CancelCheckWork);
+		return Skt->Send(data(encoded), size_as<int>(encoded), 0, CancelCheckWork);
 	}
-	return SendData(Skt, Data, Size, 0, CancelCheckWork);
+	return Skt->Send(Data, Size, 0, CancelCheckWork);
 }
 
 

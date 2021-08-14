@@ -360,6 +360,7 @@ void SwitchOSSProc(void)
 // コマンドを送りリプライを待つ
 // ホストのファイル名の漢字コードに応じて、ここで漢字コードの変換を行なう
 std::tuple<int, std::wstring> detail::command(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork, std::wstring&& cmd) {
+	assert(cSkt);
 	if (cmd.starts_with(L"PASS "sv))
 		::Notice(IDS_REMOTECMD, L"PASS [xxxxxx]"sv);
 	else {
@@ -372,7 +373,7 @@ std::tuple<int, std::wstring> detail::command(std::shared_ptr<SocketContext> cSk
 	}
 	auto native = ConvertTo(cmd, AskHostNameKanji(), AskHostNameKana());
 	native += "\r\n"sv;
-	if (SendData(cSkt, data(native), size_as<int>(native), 0, CancelCheckWork) != FFFTP_SUCCESS)
+	if (cSkt->Send(data(native), size_as<int>(native), 0, CancelCheckWork) != FFFTP_SUCCESS)
 		return { 429, {} };
 	return ReadReplyMessage(cSkt, CancelCheckWork);
 }
@@ -419,7 +420,7 @@ static std::tuple<int, std::wstring> ReadOneLine(std::shared_ptr<SocketContext> 
 	do {
 		int TimeOutErr;
 		/* LFまでを受信するために、最初はPEEKで受信 */
-		if ((read = do_recv(cSkt, buffer, size_as<int>(buffer), MSG_PEEK, &TimeOutErr, CancelCheckWork)) <= 0) {
+		if ((read = cSkt->Recv(buffer, size_as<int>(buffer), MSG_PEEK, &TimeOutErr, CancelCheckWork)) <= 0) {
 			if (TimeOutErr == YES) {
 				Notice(IDS_MSGJPN242);
 				read = -2;
@@ -432,7 +433,7 @@ static std::tuple<int, std::wstring> ReadOneLine(std::shared_ptr<SocketContext> 
 		if (auto lf = std::find(buffer, buffer + read, '\n'); lf != buffer + read)
 			read = (int)(lf - buffer + 1);
 		/* 本受信 */
-		if ((read = do_recv(cSkt, buffer, read, 0, &TimeOutErr, CancelCheckWork)) <= 0)
+		if ((read = cSkt->Recv(buffer, read, 0, &TimeOutErr, CancelCheckWork)) <= 0)
 			break;
 		line.append(buffer, buffer + read);
 	} while (!line.ends_with('\n'));
@@ -481,7 +482,7 @@ int ReadNchar(std::shared_ptr<SocketContext> cSkt, char *Buf, int Size, int *Can
 		Sts = FFFTP_SUCCESS;
 		while(Size > 0)
 		{
-			if((SizeOnce = do_recv(cSkt, Buf, Size, 0, &TimeOutErr, CancelCheckWork)) <= 0)
+			if((SizeOnce = cSkt->Recv(Buf, Size, 0, &TimeOutErr, CancelCheckWork)) <= 0)
 			{
 				if(TimeOutErr == YES)
 					Notice(IDS_MSGJPN243);

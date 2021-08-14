@@ -2364,8 +2364,10 @@ void AbortRecoveryProc(void)
 				GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
 				EnableUserOpe();
 			}
-			else
-				RemoveReceivedData(AskCmdCtrlSkt());
+			else {
+				if (auto sc = AskCmdCtrlSkt())
+					sc->RemoveReceivedData();
+			}
 		}
 	}
 	return;

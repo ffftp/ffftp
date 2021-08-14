@@ -1175,7 +1175,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 #endif
 				if(CryptMode == CRYPT_FTPIS)
 				{
-					if (ContSock->AttachSSL({}, CancelCheckWork, Host)) {
+					if (ContSock->AttachSSL(nullptr, CancelCheckWork, Host)) {
 						while((Sts = std::get<0>(ReadReplyMessage(ContSock, CancelCheckWork)) / 100) == FTP_PRELIM)
 							;
 					}
@@ -1271,7 +1271,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 								if (CryptMode == CRYPT_FTPES) {
 									if ((Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"AUTH TLS"sv))) != 234 && (Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"AUTH SSL"sv))) != 234)
 										Sts = FTP_ERROR;
-									else if (!ContSock->AttachSSL({}, CancelCheckWork, Host))
+									else if (!ContSock->AttachSSL(nullptr, CancelCheckWork, Host))
 										Sts = FTP_ERROR;
 									else if ((Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"PBSZ 0"sv))) != 200)
 										Sts = FTP_ERROR;
@@ -1520,7 +1520,8 @@ enum class SocksCommand : uint8_t {
 
 
 static bool SocksSend(std::shared_ptr<SocketContext> s, std::vector<uint8_t> const& buffer, int* CancelCheckWork) {
-	if (SendData(s, reinterpret_cast<const char*>(data(buffer)), size_as<int>(buffer), 0, CancelCheckWork) != FFFTP_SUCCESS) {
+	assert(s);
+	if (s->Send(reinterpret_cast<const char*>(data(buffer)), size_as<int>(buffer), 0, CancelCheckWork) != FFFTP_SUCCESS) {
 		Notice(IDS_MSGJPN033, *reinterpret_cast<const unsigned short*>(&buffer[0]));
 		return false;
 	}

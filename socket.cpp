@@ -251,7 +251,7 @@ static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName
 }
 
 // SSLセッションを開始
-BOOL SocketContext::AttachSSL(std::shared_ptr<SocketContext> parent, BOOL* pbAborted, std::wstring_view ServerName) {
+BOOL SocketContext::AttachSSL(SocketContext* parent, BOOL* pbAborted, std::wstring_view ServerName) {
 	assert(SecIsValidHandle(&credential));
 	std::wstring wServerName;
 	if (!empty(ServerName))
@@ -345,18 +345,18 @@ bool IsSecureConnection() {
 	return false;
 }
 
-static int FTPS_recv(std::shared_ptr<SocketContext> s, char* buf, int len, int flags) {
-	assert(flags == 0 || flags == MSG_PEEK);
-	auto& context = s->sslContext;
-	if (!context)
-		return recv(s->handle, buf, len, flags);
 
-	if (empty(context->readPlain) && context->readStatus != SEC_I_CONTEXT_EXPIRED) {
-		auto offset = size_as<int>(context->readRaw);
-		context->readRaw.resize((size_t)context->streamSizes.cbHeader + context->streamSizes.cbMaximumMessage + context->streamSizes.cbTrailer);
-		auto read = recv(s->handle, data(context->readRaw) + offset, size_as<int>(context->readRaw) - offset, 0);
+int SocketContext::RecvInternal(char* buf, int len, int flags) {
+	assert(flags == 0 || flags == MSG_PEEK);
+	if (!sslContext)
+		return recv(handle, buf, len, flags);
+
+	if (empty(sslContext->readPlain) && sslContext->readStatus != SEC_I_CONTEXT_EXPIRED) {
+		auto offset = size_as<int>(sslContext->readRaw);
+		sslContext->readRaw.resize((size_t)sslContext->streamSizes.cbHeader + sslContext->streamSizes.cbMaximumMessage + sslContext->streamSizes.cbTrailer);
+		auto read = recv(handle, data(sslContext->readRaw) + offset, size_as<int>(sslContext->readRaw) - offset, 0);
 		if (read <= 0) {
-			context->readRaw.resize(offset);
+			sslContext->readRaw.resize(offset);
 #ifdef _DEBUG
 			if (read == 0)
 				Debug(L"FTPS_recv: recv(): connection closed."sv);
@@ -366,12 +366,12 @@ static int FTPS_recv(std::shared_ptr<SocketContext> s, char* buf, int len, int f
 			return read;
 		}
 		_RPTWN(_CRT_WARN, L"FTPS_recv recv: %d bytes.\n", read);
-		context->readRaw.resize((size_t)offset + read);
-		context->Decypt();
+		sslContext->readRaw.resize((size_t)offset + read);
+		sslContext->Decypt();
 	}
 
-	if (empty(context->readPlain))
-		switch (context->readStatus) {
+	if (empty(sslContext->readPlain))
+		switch (sslContext->readStatus) {
 		case SEC_I_CONTEXT_EXPIRED:
 			return 0;
 		case SEC_E_INCOMPLETE_MESSAGE:
@@ -380,13 +380,13 @@ static int FTPS_recv(std::shared_ptr<SocketContext> s, char* buf, int len, int f
 			WSASetLastError(WSAEWOULDBLOCK);
 			return SOCKET_ERROR;
 		default:
-			_RPTWN(_CRT_WARN, L"FTPS_recv readStatus: %08X.\n", context->readStatus);
+			_RPTWN(_CRT_WARN, L"FTPS_recv readStatus: %08X.\n", sslContext->readStatus);
 			return SOCKET_ERROR;
 		}
-	len = std::min(len, size_as<int>(context->readPlain));
-	std::copy_n(begin(context->readPlain), len, buf);
+	len = std::min(len, size_as<int>(sslContext->readPlain));
+	std::copy_n(begin(sslContext->readPlain), len, buf);
 	if ((flags & MSG_PEEK) == 0)
-		context->readPlain.erase(begin(context->readPlain), begin(context->readPlain) + len);
+		sslContext->readPlain.erase(begin(sslContext->readPlain), begin(sslContext->readPlain) + len);
 	_RPTWN(_CRT_WARN, L"FTPS_recv read: %d bytes.\n", len);
 	return len;
 }
@@ -537,13 +537,13 @@ std::shared_ptr<SocketContext> SocketContext::Accept(_Out_writes_bytes_opt_(*add
 }
 
 
-int do_recv(std::shared_ptr<SocketContext> s, char *buf, int len, int flags, int *TimeOutErr, int *CancelCheckWork) {
+int SocketContext::Recv(char* buf, int len, int flags, int* TimeOutErr, int* CancelCheckWork) {
 	if (*CancelCheckWork != NO)
 		return SOCKET_ERROR;
 	auto endTime = TimeOut != 0 ? std::make_optional(std::chrono::steady_clock::now() + std::chrono::seconds(TimeOut)) : std::nullopt;
 	*TimeOutErr = NO;
 	for (;;) {
-		if (auto read = FTPS_recv(s, buf, len, flags); read != SOCKET_ERROR)
+		if (auto read = RecvInternal(buf, len, flags); read != SOCKET_ERROR)
 			return read;
 		if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK)
 			return SOCKET_ERROR;
@@ -562,17 +562,15 @@ int do_recv(std::shared_ptr<SocketContext> s, char *buf, int len, int flags, int
 }
 
 
-int SendData(std::shared_ptr<SocketContext> s, const char* buf, int len, int flags, int* CancelCheckWork) {
-	if (!s)
-		return FFFTP_FAIL;
+int SocketContext::Send(const char* buf, int len, int flags, int* CancelCheckWork) {
 	if (len <= 0)
 		return FFFTP_SUCCESS;
 
 	// バッファの構築、SSLの場合には暗号化を行う
 	std::vector<char> work;
 	std::string_view buffer{ buf, size_t(len) };
-	if (auto& context = s->sslContext) {
-		if (work = context->Encrypt(buffer); empty(work)) {
+	if (sslContext) {
+		if (work = sslContext->Encrypt(buffer); empty(work)) {
 			Debug(L"SendData: EncryptMessage failed."sv);
 			return FFFTP_FAIL;
 		}
@@ -584,7 +582,7 @@ int SendData(std::shared_ptr<SocketContext> s, const char* buf, int len, int fla
 		return FFFTP_FAIL;
 	auto endTime = TimeOut != 0 ? std::optional{ std::chrono::steady_clock::now() + std::chrono::seconds(TimeOut) } : std::nullopt;
 	do {
-		auto sent = send(s->handle, data(buffer), size_as<int>(buffer), flags);
+		auto sent = send(handle, data(buffer), size_as<int>(buffer), flags);
 		if (0 < sent)
 			buffer = buffer.substr(sent);
 		else if (sent == 0) {
@@ -607,17 +605,13 @@ int SendData(std::shared_ptr<SocketContext> s, const char* buf, int len, int fla
 }
 
 
-// 同時接続対応
-void RemoveReceivedData(std::shared_ptr<SocketContext> s)
-{
+void SocketContext::RemoveReceivedData() {
 	char buf[1024];
 	int len;
-//	int Error;
-	while((len = FTPS_recv(s, buf, sizeof(buf), MSG_PEEK)) > 0)
-	{
-		FTPS_recv(s, buf, len, 0);
-	}
+	while ((len = RecvInternal(buf, sizeof(buf), MSG_PEEK)) > 0)
+		RecvInternal(buf, len, 0);
 }
+
 
 // UPnP対応
 static ComPtr<IUPnPNAT> upnpNAT;
