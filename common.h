@@ -462,6 +462,7 @@ struct SocketContext {
 	}
 	bool GetEvent(int mask);
 	int Connect(const sockaddr* name, int namelen, int* CancelCheckWork);
+	int Listen(int backlog);
 };
 
 
@@ -1113,7 +1114,6 @@ void ShowCertificate();
 bool IsSecureConnection();
 int MakeSocketWin();
 void DeleteSocketWin(void);
-int do_listen(SOCKET s,	int backlog);
 int do_recv(std::shared_ptr<SocketContext> s, char *buf, int len, int flags, int *TimeOut, int *CancelCheckWork);
 int SendData(std::shared_ptr<SocketContext> s, const char* buf, int len, int flags, int* CancelCheckWork);
 // 同時接続対応

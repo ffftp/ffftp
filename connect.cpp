@@ -1820,7 +1820,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 			Notice(IDS_MSGJPN027);
 			return {};
 		}
-		if (do_listen(listen_skt->handle, 1) != 0) {
+		if (listen_skt->Listen(1) != 0) {
 			WSAError(L"listen()"sv);
 			listen_skt->Close();
 			Notice(IDS_MSGJPN027);

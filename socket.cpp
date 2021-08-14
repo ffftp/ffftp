@@ -494,12 +494,12 @@ int SocketContext::Connect(const sockaddr* name, int namelen, int* CancelCheckWo
 }
 
 
-int do_listen(SOCKET s, int backlog) {
-	if (WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CLOSE | FD_ACCEPT) != 0) {
+int SocketContext::Listen(int backlog) {
+	if (WSAAsyncSelect(handle, hWndSocket, WM_ASYNC_SOCKET, FD_CLOSE | FD_ACCEPT) != 0) {
 		WSAError(L"do_listen: WSAAsyncSelect()"sv);
 		return SOCKET_ERROR;
 	}
-	if (listen(s, backlog) != 0) {
+	if (listen(handle, backlog) != 0) {
 		WSAError(L"do_listen: listen()"sv);
 		return SOCKET_ERROR;
 	}
