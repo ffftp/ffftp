@@ -445,6 +445,8 @@ struct SslContext {
 
 struct SocketContext {
 	SOCKET const handle;
+	int event = 0;
+	int error = 0;
 	int mapPort = 0;
 	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
 	std::optional<SslContext> sslContext;
@@ -458,6 +460,8 @@ struct SocketContext {
 	constexpr bool IsSSLAttached() {
 		return sslContext.has_value();
 	}
+	bool GetEvent(int mask);
+	int Connect(const sockaddr* name, int namelen, int* CancelCheckWork);
 };
 
 
@@ -1109,7 +1113,6 @@ void ShowCertificate();
 bool IsSecureConnection();
 int MakeSocketWin();
 void DeleteSocketWin(void);
-int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCheckWork);
 int do_listen(SOCKET s,	int backlog);
 int do_recv(std::shared_ptr<SocketContext> s, char *buf, int len, int flags, int *TimeOut, int *CancelCheckWork);
 int SendData(std::shared_ptr<SocketContext> s, const char* buf, int len, int flags, int* CancelCheckWork);

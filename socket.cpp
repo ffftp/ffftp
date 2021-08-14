@@ -36,29 +36,15 @@
 #define USE_THIS	1
 #define DBG_MSG		0
 
-
-struct AsyncSignal {
-	int Event = 0;
-	int Error = 0;
-};
-
-
-/*===== プロトタイプ =====*/
-
 static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-static int AskAsyncDone(SOCKET s, int *Error, int Mask);
-
-
-/*===== 外部参照 =====*/
-
 extern int TimeOut;
 
 
 /*===== ローカルなワーク =====*/
 
 static HWND hWndSocket;
-static std::map<SOCKET, AsyncSignal> Signal;
-static std::mutex SignalMutex;
+static std::map<SOCKET, SocketContext*> map;
+static std::mutex mapMutex;
 
 
 template<class T>
@@ -411,7 +397,8 @@ int MakeSocketWin() {
 	WNDCLASSEXW wcx{ sizeof(WNDCLASSEXW), 0, SocketWndProc, 0, 0, GetFtpInst(), nullptr, nullptr, CreateSolidBrush(GetSysColor(COLOR_INFOBK)), nullptr, className, };
 	RegisterClassExW(&wcx);
 	if (hWndSocket = CreateWindowExW(0, className, nullptr, WS_BORDER | WS_POPUP, 0, 0, 0, 0, GetMainHwnd(), nullptr, GetFtpInst(), nullptr)) {
-		Signal.clear();
+		std::lock_guard lock{ mapMutex };
+		map.clear();
 		return FFFTP_SUCCESS;
 	}
 	return FFFTP_FAIL;
@@ -426,10 +413,10 @@ void DeleteSocketWin() {
 
 static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	if (message == WM_ASYNC_SOCKET) {
-		std::lock_guard lock{ SignalMutex };
-		if (auto it = Signal.find(wParam); it != end(Signal)) {
-			it->second.Error = WSAGETSELECTERROR(lParam);
-			it->second.Event |= WSAGETSELECTEVENT(lParam);
+		std::lock_guard lock{ mapMutex };
+		if (auto it = map.find(wParam); it != end(map)) {
+			it->second->error = WSAGETSELECTERROR(lParam);
+			it->second->event |= WSAGETSELECTEVENT(lParam);
 		}
 		return 0;
 	}
@@ -437,27 +424,11 @@ static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LP
 }
 
 
-static int AskAsyncDone(SOCKET s, int *Error, int Mask) {
-	*Error = 0;
-	std::lock_guard lock{ SignalMutex };
-	if (auto it = Signal.find(s); it != end(Signal)) {
-		if (*Error = it->second.Error)
-			return YES;
-		if (it->second.Event & Mask) {
-			if (Mask & FD_ACCEPT)
-				it->second.Event &= ~FD_ACCEPT;
-			else if (Mask & FD_READ)
-				it->second.Event &= ~FD_READ;
-			else if (Mask & FD_WRITE)
-				it->second.Event &= ~FD_WRITE;
-			return YES;
-		}
-		return NO;
-	}
-	if (Mask & FD_CLOSE)
-		return YES;
-	MessageBoxW(GetMainHwnd(), L"AskAsyncDone called with unregisterd socket.", L"FFFTP inner error", MB_OK);
-	exit(1);
+bool SocketContext::GetEvent(int mask) {
+	if ((event & mask) == 0)
+		return false;
+	event &= ~(mask & (FD_ACCEPT | FD_READ | FD_WRITE));
+	return true;
 }
 
 
@@ -471,23 +442,25 @@ std::shared_ptr<SocketContext> SocketContext::Create(int af, int type, int proto
 }
 
 SocketContext::SocketContext(SOCKET s) : handle{ s } {
-	std::lock_guard lock{ SignalMutex };
-	Signal[handle] = {};
+	std::lock_guard lock{ mapMutex };
+	map[handle] = this;
 }
 
 
 int SocketContext::Close() {
 	WSAAsyncSelect(handle, hWndSocket, WM_ASYNC_SOCKET, 0);
 	{
-		std::lock_guard lock{ SignalMutex };
-		Signal.erase(handle);
+		std::lock_guard lock{ mapMutex };
+		map.erase(handle);
 	}
 	sslContext.reset();
 	if (int result = closesocket(handle); result != SOCKET_ERROR)
 		return result;
 	for (;;) {
-		if (int error = 0; AskAsyncDone(handle, &error, FD_CLOSE) == YES)
-			return error == 0 ? 0 : SOCKET_ERROR;
+		if (error != 0)
+			return SOCKET_ERROR;
+		if (GetEvent(FD_CLOSE))
+			return 0;
 		Sleep(1);
 		if (BackgrndMessageProc() == YES)
 			return SOCKET_ERROR;
@@ -495,21 +468,21 @@ int SocketContext::Close() {
 }
 
 
-int do_connect(SOCKET s, const sockaddr* name, int namelen, int* CancelCheckWork) {
-	if (WSAAsyncSelect(s, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) != 0) {
+int SocketContext::Connect(const sockaddr* name, int namelen, int* CancelCheckWork) {
+	if (WSAAsyncSelect(handle, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) != 0) {
 		WSAError(L"do_connect: WSAAsyncSelect()"sv);
 		return SOCKET_ERROR;
 	}
-	if (connect(s, name, namelen) == 0)
+	if (connect(handle, name, namelen) == 0)
 		return 0;
 	if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
 		Error(L"do_connect: connect()"sv, lastError);
 		return SOCKET_ERROR;
 	}
 	while (*CancelCheckWork != YES) {
-		if (int error = 0; AskAsyncDone(s, &error, FD_CONNECT) == YES && error != WSAEWOULDBLOCK) {
-			if (error == 0)
-				return 0;
+		if (error == 0 && GetEvent(FD_CONNECT))
+			return 0;
+		if (error != 0 && error != WSAEWOULDBLOCK) {
 			Error(L"do_connect: select()"sv, error);
 			return SOCKET_ERROR;
 		}
@@ -535,21 +508,18 @@ int do_listen(SOCKET s, int backlog) {
 
 
 std::shared_ptr<SocketContext> SocketContext::Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen) {
-	int CancelCheckWork = NO;
-	SOCKET s = INVALID_SOCKET;
-	int Error = 0;
-	while (CancelCheckWork == NO && AskAsyncDone(handle, &Error, FD_ACCEPT) != YES) {
-		if (AskAsyncDone(handle, &Error, FD_CLOSE) == YES) {
-			Error = 1;
+	for (;;) {
+		if (error != 0 || GetEvent(FD_CLOSE))
+			return {};
+		if (GetEvent(FD_ACCEPT))
 			break;
-		}
 		Sleep(1);
 		if (BackgrndMessageProc() == YES)
-			CancelCheckWork = YES;
+			return {};
 	}
-	if (CancelCheckWork == NO && Error == 0) {
+	if (error == 0) {
 		do {
-			s = accept(handle, addr, addrlen);
+			auto s = accept(handle, addr, addrlen);
 			if (s != INVALID_SOCKET) {
 				auto sc = std::make_shared<SocketContext>(s);
 				if (WSAAsyncSelect(sc->handle, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) != SOCKET_ERROR)
@@ -557,11 +527,11 @@ std::shared_ptr<SocketContext> SocketContext::Accept(_Out_writes_bytes_opt_(*add
 				sc->Close();
 				break;
 			}
-			Error = WSAGetLastError();
+			error = WSAGetLastError();
 			Sleep(1);
 			if (BackgrndMessageProc() == YES)
 				break;
-		} while (Error == WSAEWOULDBLOCK);
+		} while (error == WSAEWOULDBLOCK);
 	}
 	return {};
 }
@@ -645,7 +615,6 @@ void RemoveReceivedData(std::shared_ptr<SocketContext> s)
 //	int Error;
 	while((len = FTPS_recv(s, buf, sizeof(buf), MSG_PEEK)) > 0)
 	{
-//		AskAsyncDone(s, &Error, FD_READ);
 		FTPS_recv(s, buf, len, 0);
 	}
 }
@@ -709,39 +678,15 @@ bool RemovePortMapping(int port) {
 }
 
 
-/*----- 
-*
-*	Parameter
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int CheckClosedAndReconnect(void)
-{
-	int Error;
-	int Sts;
-	Sts = FFFTP_SUCCESS;
-	if(AskAsyncDone(AskCmdCtrlSkt()->handle, &Error, FD_CLOSE) == YES)
-	{
-		Sts = ReConnectCmdSkt();
-	}
-	return(Sts);
+int CheckClosedAndReconnect() {
+	if (auto const& sc = AskCmdCtrlSkt(); !sc || sc->error != 0 || sc->GetEvent(FD_CLOSE))
+		return ReConnectCmdSkt();
+	return FFFTP_SUCCESS;
 }
 
 
-
-// 同時接続対応
-int CheckClosedAndReconnectTrnSkt(std::shared_ptr<SocketContext>& Skt, int *CancelCheckWork)
-{
-	int Error;
-	int Sts;
-	Sts = FFFTP_SUCCESS;
-	if(AskAsyncDone(Skt->handle, &Error, FD_CLOSE) == YES)
-	{
-		Sts = ReConnectTrnSkt(Skt, CancelCheckWork);
-	}
-	return(Sts);
+int CheckClosedAndReconnectTrnSkt(std::shared_ptr<SocketContext>& Skt, int* CancelCheckWork) {
+	if (!Skt || Skt->error != 0 || Skt->GetEvent(FD_CLOSE))
+		return ReConnectTrnSkt(Skt, CancelCheckWork);
+	return FFFTP_SUCCESS;
 }
-
