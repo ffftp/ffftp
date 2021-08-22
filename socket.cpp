@@ -277,21 +277,16 @@ BOOL SocketContext::AttachSSL(SocketContext* parent, BOOL* pbAborted, std::wstri
 			first = false;
 			__pragma(warning(suppress:6001)) ss = InitializeSecurityContextW(&credential, nullptr, node, contextReq, 0, 0, nullptr, 0, &context, &outDesc, &attr, nullptr);
 		} else {
-			for (;;) {
-				char buffer[8192];
-				if (auto read = recv(handle, buffer, size_as<int>(buffer), 0); read == 0) {
-					Debug(L"AttachSSL recv: connection closed."sv);
-					return FALSE;
-				} else if (0 < read) {
-					_RPTWN(_CRT_WARN, L"AttachSSL recv: %d bytes.\n", read);
-					extra.insert(end(extra), buffer, buffer + read);
-					break;
-				}
-				if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
-					Error(L"AttachSSL: recv()"sv, lastError);
-					return FALSE;
-				}
-				Sleep(0);
+			char buffer[8192];
+			if (auto read = recv(handle, buffer, size_as<int>(buffer), 0); read == 0) {
+				Debug(L"AttachSSL recv: connection closed."sv);
+				return FALSE;
+			} else if (0 < read) {
+				_RPTWN(_CRT_WARN, L"AttachSSL recv: %d bytes.\n", read);
+				extra.insert(end(extra), buffer, buffer + read);
+			} else if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
+				Error(L"AttachSSL: recv()"sv, lastError);
+				return FALSE;
 			}
 			inBuffer[0] = { size_as<unsigned long>(extra), SECBUFFER_TOKEN, data(extra) };
 			ss = InitializeSecurityContextW(&credential, &context, node, contextReq, 0, 0, &inDesc, 0, nullptr, &outDesc, &attr, nullptr);
@@ -315,6 +310,7 @@ BOOL SocketContext::AttachSSL(SocketContext* parent, BOOL* pbAborted, std::wstri
 			extra.erase(begin(extra), end(extra) - inBuffer[1].cbBuffer);
 		else
 			extra.clear();
+		Sleep(0);
 	} while (ss == SEC_I_CONTINUE_NEEDED);
 
 	if (ss = QueryContextAttributesW(&context, SECPKG_ATTR_STREAM_SIZES, &streamSizes); ss != SEC_E_OK) {
