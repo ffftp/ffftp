@@ -54,7 +54,7 @@ static T CreateInvalidateHandle() {
 	return handle;
 }
 
-SslContext::SslContext(std::wstring const& host, CtxtHandle context, bool secure, SecPkgContext_StreamSizes streamSizes, std::vector<char> extra) : host{ host }, context{ context }, secure{ secure }, streamSizes{ streamSizes }, readRaw{ extra } {
+SslContext::SslContext(CtxtHandle context, bool secure, SecPkgContext_StreamSizes streamSizes, std::vector<char> extra) : context{ context }, secure{ secure }, streamSizes{ streamSizes }, readRaw{ extra } {
 	if (!empty(readRaw))
 		Decypt();
 }
@@ -251,16 +251,8 @@ static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName
 }
 
 // SSLセッションを開始
-BOOL SocketContext::AttachSSL(SocketContext* parent, BOOL* pbAborted, std::wstring_view ServerName) {
+BOOL SocketContext::AttachSSL(BOOL* pbAborted) {
 	assert(SecIsValidHandle(&credential));
-	std::wstring wServerName;
-	if (!empty(ServerName))
-		wServerName = IdnToAscii(ServerName);
-	else if (parent)
-		if (auto const& parentSsl = parent->sslContext)
-			wServerName = parentSsl->host;
-	auto node = empty(wServerName) ? nullptr : data(wServerName);
-
 	CtxtHandle context;
 	SecPkgContext_StreamSizes streamSizes;
 	std::vector<char> extra;
@@ -275,7 +267,7 @@ BOOL SocketContext::AttachSSL(SocketContext* parent, BOOL* pbAborted, std::wstri
 		unsigned long attr = 0;
 		if (first) {
 			first = false;
-			__pragma(warning(suppress:6001)) ss = InitializeSecurityContextW(&credential, nullptr, node, contextReq, 0, 0, nullptr, 0, &context, &outDesc, &attr, nullptr);
+			__pragma(warning(suppress:6001)) ss = InitializeSecurityContextW(&credential, nullptr, const_cast<SEC_WCHAR*>(punyTarget.c_str()), contextReq, 0, 0, nullptr, 0, &context, &outDesc, &attr, nullptr);
 		} else {
 			char buffer[8192];
 			if (auto read = recv(handle, buffer, size_as<int>(buffer), 0); read == 0) {
@@ -289,7 +281,7 @@ BOOL SocketContext::AttachSSL(SocketContext* parent, BOOL* pbAborted, std::wstri
 				return FALSE;
 			}
 			inBuffer[0] = { size_as<unsigned long>(extra), SECBUFFER_TOKEN, data(extra) };
-			ss = InitializeSecurityContextW(&credential, &context, node, contextReq, 0, 0, &inDesc, 0, nullptr, &outDesc, &attr, nullptr);
+			ss = InitializeSecurityContextW(&credential, &context, const_cast<SEC_WCHAR*>(punyTarget.c_str()), contextReq, 0, 0, &inDesc, 0, nullptr, &outDesc, &attr, nullptr);
 		}
 		if (FAILED(ss) && ss != SEC_E_INCOMPLETE_MESSAGE) {
 			Debug(L"AttachSSL InitializeSecurityContext error: 0x{:08X}."sv, ss);
@@ -319,7 +311,7 @@ BOOL SocketContext::AttachSSL(SocketContext* parent, BOOL* pbAborted, std::wstri
 	}
 
 	bool secure;
-	switch (ConfirmSSLCertificate(context, node, pbAborted)) {
+	switch (ConfirmSSLCertificate(context, const_cast<wchar_t*>(punyTarget.c_str()), pbAborted)) {
 	case CertResult::Secure:
 		secure = true;
 		break;
@@ -329,7 +321,7 @@ BOOL SocketContext::AttachSSL(SocketContext* parent, BOOL* pbAborted, std::wstri
 	default:
 		return FALSE;
 	}
-	sslContext.emplace(wServerName, context, secure, streamSizes, extra);
+	sslContext.emplace(context, secure, streamSizes, extra);
 	_RPTW0(_CRT_WARN, L"AttachSSL success.\n");
 	return TRUE;
 }
@@ -428,16 +420,23 @@ bool SocketContext::GetEvent(int mask) {
 }
 
 
-std::shared_ptr<SocketContext> SocketContext::Create(int af, int type, int protocol) {
-	auto s = socket(af, type, protocol);
+std::shared_ptr<SocketContext> SocketContext::Create(int af, std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget) {
+	auto s = socket(af, SOCK_STREAM, IPPROTO_TCP);
 	if (s == INVALID_SOCKET) {
 		WSAError(L"socket()"sv);
 		return {};
 	}
-	return std::make_shared<SocketContext>(s);
+	if (originalTarget.index() == 0) {
+		auto target = std::get<0>(originalTarget);
+		return std::make_shared<SocketContext>(s, std::wstring{ target }, IdnToAscii(target));
+	} else {
+		SocketContext const& target = std::get<1>(originalTarget);
+		return std::make_shared<SocketContext>(s, target.originalTarget, target.punyTarget);
+	}
 }
 
-SocketContext::SocketContext(SOCKET s) : handle{ s } {
+
+SocketContext::SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget) : handle{ s }, originalTarget{ originalTarget }, punyTarget{ punyTarget } {
 	std::lock_guard lock{ mapMutex };
 	map[handle] = this;
 }
@@ -517,7 +516,7 @@ std::shared_ptr<SocketContext> SocketContext::Accept(_Out_writes_bytes_opt_(*add
 		do {
 			auto s = accept(handle, addr, addrlen);
 			if (s != INVALID_SOCKET) {
-				auto sc = std::make_shared<SocketContext>(s);
+				auto sc = std::make_shared<SocketContext>(s, originalTarget, punyTarget);
 				if (WSAAsyncSelect(sc->handle, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) != SOCKET_ERROR)
 					return sc;
 				sc->Close();

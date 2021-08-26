@@ -1166,7 +1166,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 
 		auto [tempHost, tempPort] = FWALL_FU_FP_SITE <= Fwall && Fwall <= FWALL_OPEN || Fwall == FWALL_SIDEWINDER || Fwall == FWALL_FU_FP ? std::tuple{ FwallHost, FwallPort } : std::tuple{ Host, Port };
 		if (!empty(tempHost)) {
-			if (ContSock = connectsock(std::move(tempHost), tempPort, 0, CancelCheckWork)) {
+			if (ContSock = connectsock(Host, std::move(tempHost), tempPort, 0, CancelCheckWork)) {
 				// バッファを無効
 #ifdef DISABLE_CONTROL_NETWORK_BUFFERS
 				int BufferSize = 0;
@@ -1175,7 +1175,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 #endif
 				if(CryptMode == CRYPT_FTPIS)
 				{
-					if (ContSock->AttachSSL(nullptr, CancelCheckWork, Host)) {
+					if (ContSock->AttachSSL(CancelCheckWork)) {
 						while((Sts = std::get<0>(ReadReplyMessage(ContSock, CancelCheckWork)) / 100) == FTP_PRELIM)
 							;
 					}
@@ -1271,7 +1271,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 								if (CryptMode == CRYPT_FTPES) {
 									if ((Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"AUTH TLS"sv))) != 234 && (Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"AUTH SSL"sv))) != 234)
 										Sts = FTP_ERROR;
-									else if (!ContSock->AttachSSL(nullptr, CancelCheckWork, Host))
+									else if (!ContSock->AttachSSL(CancelCheckWork))
 										Sts = FTP_ERROR;
 									else if ((Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"PBSZ 0"sv))) != 200)
 										Sts = FTP_ERROR;
@@ -1709,7 +1709,7 @@ static std::optional<sockaddr_storage> SocksRequest(std::shared_ptr<SocketContex
 }
 
 
-std::shared_ptr<SocketContext> connectsock(std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork) {
+std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget, std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork) {
 	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
 	int Fwall = AskHostFireWall() == YES ? FwallType : FWALL_NONE;
 	if (auto ai = getaddrinfo(host, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC)) {
@@ -1746,7 +1746,7 @@ std::shared_ptr<SocketContext> connectsock(std::wstring&& host, int port, UINT p
 		saConnect = std::get<sockaddr_storage>(target);
 	}
 
-	auto s = SocketContext::Create(saConnect.ss_family, SOCK_STREAM, IPPROTO_TCP);
+	auto s = SocketContext::Create(saConnect.ss_family, originalTarget);
 	if (!s) {
 		Notice(IDS_MSGJPN027);
 		return {};
@@ -1780,7 +1780,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 		WSAError(L"getsockname()"sv);
 		return {};
 	}
-	auto listen_skt = SocketContext::Create(saListen.ss_family, SOCK_STREAM, IPPROTO_TCP);
+	auto listen_skt = SocketContext::Create(saListen.ss_family, *ctrl_skt);
 	if (!listen_skt)
 		return {};
 	if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {

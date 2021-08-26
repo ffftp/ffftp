@@ -427,14 +427,13 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define NTYPE_IPV6			2		/* TCP/IPv6 */
 
 struct SslContext {
-	std::wstring host;
 	CtxtHandle context;
 	const bool secure;
 	SecPkgContext_StreamSizes streamSizes;
 	std::vector<char> readRaw;
 	std::vector<char> readPlain;
 	SECURITY_STATUS readStatus = SEC_E_OK;
-	SslContext(std::wstring const& host, CtxtHandle context, bool secure, SecPkgContext_StreamSizes streamSizes, std::vector<char> extra);
+	SslContext(CtxtHandle context, bool secure, SecPkgContext_StreamSizes streamSizes, std::vector<char> extra);
 	SslContext(SslContext const&) = delete;
 	~SslContext() {
 		DeleteSecurityContext(&context);
@@ -445,18 +444,21 @@ struct SslContext {
 
 struct SocketContext {
 	SOCKET const handle;
+	std::wstring const originalTarget;
+	std::wstring const punyTarget;
 	int event = 0;
 	int error = 0;
 	int mapPort = 0;
 	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
 	std::optional<SslContext> sslContext;
-	SocketContext(SOCKET s);
+
+	inline SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget);
 	SocketContext(SocketContext const&) = delete;
 	constexpr bool operator==(SocketContext const& other) { return handle == other.handle; }
-	static std::shared_ptr<SocketContext> Create(int af, int type, int protocol);
+	static std::shared_ptr<SocketContext> Create(int af, std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget);
 	std::shared_ptr<SocketContext> Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen);
 	int Close();
-	BOOL AttachSSL(SocketContext* parent, BOOL* pbAborted, std::wstring_view ServerName);
+	BOOL AttachSSL(BOOL* pbAborted);
 	constexpr bool IsSSLAttached() {
 		return sslContext.has_value();
 	}
@@ -852,7 +854,7 @@ int SetOSS(int wkOss);
 int AskOSS(void);
 #endif
 std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext> s, int* CancelCheckWork);
-std::shared_ptr<SocketContext> connectsock(std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork);
+std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget, std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork);
 std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext> ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
 int AskUseNoEncryption(void);

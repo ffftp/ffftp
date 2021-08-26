@@ -1142,7 +1142,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 					ReleaseMutex(hListAccMutex);
 					if (Pkt->ctrl_skt->IsSSLAttached()) {
-						if (data_socket->AttachSSL(Pkt->ctrl_skt.get(), CancelCheckWork, {}))
+						if (data_socket->AttachSSL(CancelCheckWork))
 							iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 						else
 							iRetCode = 500;
@@ -1206,7 +1206,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
 		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, text)) {
-			if (auto [host, port] = *target; data_socket = connectsock(std::move(host), port, IDS_MSGJPN091, CancelCheckWork)) {
+			if (auto [host, port] = *target; data_socket = connectsock(*Pkt->ctrl_skt, std::move(host), port, IDS_MSGJPN091, CancelCheckWork)) {
 				// 変数が未初期化のバグ修正
 				Flg = 1;
 				if(setsockopt(data_socket->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
@@ -1220,7 +1220,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 						// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 						ReleaseMutex(hListAccMutex);
 						if (Pkt->ctrl_skt->IsSSLAttached()) {
-							if (data_socket->AttachSSL(Pkt->ctrl_skt.get(), CancelCheckWork, {}))
+							if (data_socket->AttachSSL(CancelCheckWork))
 								iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 							else
 								iRetCode = 500;
@@ -1679,7 +1679,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 				ReleaseMutex(hListAccMutex);
 				if (Pkt->ctrl_skt->IsSSLAttached()) {
-					if (data_socket->AttachSSL(Pkt->ctrl_skt.get(), &Canceled[Pkt->ThreadCount], {}))
+					if (data_socket->AttachSSL(&Canceled[Pkt->ThreadCount]))
 						iRetCode = UploadFile(Pkt, data_socket);
 					else
 						iRetCode = 500;
@@ -1733,7 +1733,7 @@ static int UploadPassive(TRANSPACKET *Pkt)
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
 		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, text)) {
-			if (auto [host, port] = *target; data_socket = connectsock(std::move(host), port, IDS_MSGJPN109, &Canceled[Pkt->ThreadCount])) {
+			if (auto [host, port] = *target; data_socket = connectsock(*Pkt->ctrl_skt, std::move(host), port, IDS_MSGJPN109, &Canceled[Pkt->ThreadCount])) {
 				// 変数が未初期化のバグ修正
 				Flg = 1;
 				if(setsockopt(data_socket->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
@@ -1759,7 +1759,7 @@ static int UploadPassive(TRANSPACKET *Pkt)
 					// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
 					ReleaseMutex(hListAccMutex);
 					if (Pkt->ctrl_skt->IsSSLAttached()) {
-						if (data_socket->AttachSSL(Pkt->ctrl_skt.get(), &Canceled[Pkt->ThreadCount], {}))
+						if (data_socket->AttachSSL(&Canceled[Pkt->ThreadCount]))
 							iRetCode = UploadFile(Pkt, data_socket);
 						else
 							iRetCode = 500;
