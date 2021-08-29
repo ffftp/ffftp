@@ -426,21 +426,12 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define NTYPE_IPV4			1		/* TCP/IPv4 */
 #define NTYPE_IPV6			2		/* TCP/IPv6 */
 
-struct SslContext {
-	CtxtHandle context;
-	const bool secure;
-	SecPkgContext_StreamSizes streamSizes;
-	std::vector<char> readRaw;
-	std::vector<char> readPlain;
-	SECURITY_STATUS readStatus = SEC_E_OK;
-	SslContext(CtxtHandle context, bool secure, SecPkgContext_StreamSizes streamSizes, std::vector<char> extra);
-	SslContext(SslContext const&) = delete;
-	~SslContext() {
-		DeleteSecurityContext(&context);
-	}
-	void Decypt();
-	std::vector<char> Encrypt(std::string_view plain);
-};
+template<class T>
+constexpr T CreateInvalidateHandle() {
+	T handle;
+	SecInvalidateHandle(&handle);
+	return handle;
+}
 
 struct SocketContext {
 	SOCKET const handle;
@@ -450,18 +441,28 @@ struct SocketContext {
 	int error = 0;
 	int mapPort = 0;
 	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
-	std::optional<SslContext> sslContext;
+	CtxtHandle sslContext = CreateInvalidateHandle<CtxtHandle>();
+	bool sslSecure = false;
+	SecPkgContext_StreamSizes sslStreamSizes = {};
+	std::vector<char> readRaw;
+	std::vector<char> readPlain;
+	SECURITY_STATUS sslReadStatus = SEC_E_OK;
 
 	inline SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget);
 	SocketContext(SocketContext const&) = delete;
-	constexpr bool operator==(SocketContext const& other) { return handle == other.handle; }
+	~SocketContext() {
+		if (SecIsValidHandle(&sslContext))
+			DeleteSecurityContext(&sslContext);
+	}
 	static std::shared_ptr<SocketContext> Create(int af, std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget);
 	std::shared_ptr<SocketContext> Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen);
 	int Close();
 	BOOL AttachSSL(BOOL* pbAborted);
 	constexpr bool IsSSLAttached() {
-		return sslContext.has_value();
+		return SecIsValidHandle(&sslContext);
 	}
+	void Decypt();
+	std::vector<char> Encrypt(std::string_view plain);
 	bool GetEvent(int mask);
 	int Connect(const sockaddr* name, int namelen, int* CancelCheckWork);
 	int Listen(int backlog);
