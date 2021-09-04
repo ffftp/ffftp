@@ -30,6 +30,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define NOMINMAX
+#define SECURITY_WIN32
 #define WIN32_LEAN_AND_MEAN
 #define UMDF_USING_NTSTATUS
 #include <algorithm>
@@ -71,10 +72,14 @@
 #include <winsock2.h>
 #include <CommCtrl.h>
 #include <commdlg.h>
+#include <cryptuiapi.h>
 #include <MLang.h>
 #include <MMSystem.h>
 #include <mstcpip.h>
+#include <natupnp.h>
 #include <ntstatus.h>
+#include <schannel.h>
+#include <security.h>
 #include <shellapi.h>
 #include <ShlObj.h>
 #include <Shlwapi.h>
@@ -421,6 +426,53 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define NTYPE_IPV4			1		/* TCP/IPv4 */
 #define NTYPE_IPV6			2		/* TCP/IPv6 */
 
+template<class T>
+constexpr T CreateInvalidateHandle() {
+	T handle;
+	SecInvalidateHandle(&handle);
+	return handle;
+}
+
+struct SocketContext {
+	SOCKET const handle;
+	std::wstring const originalTarget;
+	std::wstring const punyTarget;
+	int event = 0;
+	int error = 0;
+	int mapPort = 0;
+	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
+	CtxtHandle sslContext = CreateInvalidateHandle<CtxtHandle>();
+	bool sslSecure = false;
+	SecPkgContext_StreamSizes sslStreamSizes = {};
+	std::vector<char> readRaw;
+	std::vector<char> readPlain;
+	bool sslNeedRenegotiate = false;
+	SECURITY_STATUS sslReadStatus = SEC_E_OK;
+
+	inline SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget);
+	SocketContext(SocketContext const&) = delete;
+	~SocketContext() {
+		if (SecIsValidHandle(&sslContext))
+			DeleteSecurityContext(&sslContext);
+	}
+	static std::shared_ptr<SocketContext> Create(int af, std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget);
+	std::shared_ptr<SocketContext> Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen);
+	int Close();
+	BOOL AttachSSL(BOOL* pbAborted);
+	constexpr bool IsSSLAttached() {
+		return SecIsValidHandle(&sslContext);
+	}
+	void Decypt();
+	std::vector<char> Encrypt(std::string_view plain);
+	bool GetEvent(int mask);
+	int Connect(const sockaddr* name, int namelen, int* CancelCheckWork);
+	int Listen(int backlog);
+	int RecvInternal(char* buf, int len, int flags);
+	int Recv(char* buf, int len, int flags, int* TimeOutErr, int* CancelCheckWork);
+	void RemoveReceivedData();
+	int Send(const char* buf, int len, int flags, int* CancelCheckWork);
+};
+
 
 struct HostExeptPassword {
 	static inline auto DefaultChmod = L"SITE CHMOD"s;	/* 属性変更コマンド */
@@ -507,7 +559,7 @@ struct HISTORYDATA : Host {
 
 
 struct TRANSPACKET {
-	SOCKET ctrl_skt = INVALID_SOCKET;	/* Socket */
+	std::shared_ptr<SocketContext> ctrl_skt;	/* Socket */
 	std::wstring Command;				/* STOR/RETR/MKD */
 	std::wstring Remote;				/* ホスト側のファイル名（フルパス） */
 										/* VMSの時は ddd[xxx.yyy]/yyy/zzz のように */
@@ -790,11 +842,9 @@ int AskHostFireWall(void);
 int AskNoFullPathMode(void);
 void SaveCurrentSetToHost(void);
 int ReConnectCmdSkt(void);
-// int ReConnectTrnSkt(void);
-// 同時接続対応
-int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
-SOCKET AskCmdCtrlSkt(void);
-SOCKET AskTrnCtrlSkt(void);
+int ReConnectTrnSkt(std::shared_ptr<SocketContext>& Skt, int *CancelCheckWork);
+std::shared_ptr<SocketContext> AskCmdCtrlSkt();
+std::shared_ptr<SocketContext> AskTrnCtrlSkt();
 void SktShareProh(void);
 int AskShareProh(void);
 void DisconnectProc(void);
@@ -805,9 +855,9 @@ int AskRealHostType(void);
 int SetOSS(int wkOss);
 int AskOSS(void);
 #endif
-std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork);
-SOCKET connectsock(std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork);
-SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork);
+std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext> s, int* CancelCheckWork);
+std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget, std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork);
+std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext> ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
 int AskUseNoEncryption(void);
 int AskUseFTPES(void);
@@ -859,7 +909,7 @@ void SomeCmdProc(void);
 void CalcFileSizeProc(void);
 void DispCWDerror(HWND hWnd);
 void CopyURLtoClipBoard(void);
-int ProcForNonFullpath(SOCKET cSkt, std::wstring& Path, std::wstring& CurDir, HWND hWnd, int* CancelCheckWork);
+int ProcForNonFullpath(std::shared_ptr<SocketContext> cSkt, std::wstring& Path, std::wstring& CurDir, HWND hWnd, int* CancelCheckWork);
 #if defined(HAVE_OPENVMS)
 std::wstring ReformVMSDirName(std::wstring&& dirName);
 #endif
@@ -888,27 +938,25 @@ int DoRMD(std::wstring const& path);
 int DoDELE(std::wstring const& path);
 int DoRENAME(std::wstring const& from, std::wstring const& to);
 int DoCHMOD(std::wstring const& path, std::wstring const& mode);
-int DoSIZE(SOCKET cSkt, std::wstring const& Path, LONGLONG *Size, int *CancelCheckWork);
-int DoMDTM(SOCKET cSkt, std::wstring const& Path, FILETIME *Time, int *CancelCheckWork);
-int DoMFMT(SOCKET cSkt, std::wstring const&, FILETIME *Time, int *CancelCheckWork);
-int DoQUOTE(SOCKET cSkt, std::wstring_view CmdStr, int* CancelCheckWork);
-SOCKET DoClose(SOCKET Sock);
-// 同時接続対応
-//int DoQUIT(SOCKET ctrl_skt);
-int DoQUIT(SOCKET ctrl_skt, int *CancelCheckWork);
+int DoSIZE(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, LONGLONG *Size, int *CancelCheckWork);
+int DoMDTM(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETIME *Time, int *CancelCheckWork);
+int DoMFMT(std::shared_ptr<SocketContext> cSkt, std::wstring const&, FILETIME *Time, int *CancelCheckWork);
+int DoQUOTE(std::shared_ptr<SocketContext> cSkt, std::wstring_view CmdStr, int* CancelCheckWork);
+void DoClose(std::shared_ptr<SocketContext> Sock);
+int DoQUIT(std::shared_ptr<SocketContext> ctrl_skt, int *CancelCheckWork);
 int DoDirList(std::wstring_view AddOpt, int Num, int* CancelCheckWork);
 #if defined(HAVE_TANDEM)
 void SwitchOSSProc(void);
 #endif
 namespace detail {
-	std::tuple<int, std::wstring> command(SOCKET cSkt, int* CancelCheckWork, std::wstring&& cmd);
+	std::tuple<int, std::wstring> command(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork, std::wstring&& cmd);
 }
 template<class... Args>
-static inline std::tuple<int, std::wstring> Command(SOCKET socket, int* CancelCheckWork, std::wstring_view format, const Args&... args) {
-	return socket == INVALID_SOCKET ? std::tuple{ 429, L""s } : detail::command(socket, CancelCheckWork, std::format(format, args...));
+static inline std::tuple<int, std::wstring> Command(std::shared_ptr<SocketContext> socket, int* CancelCheckWork, std::wstring_view format, const Args&... args) {
+	return !socket ? std::tuple{ 429, L""s } : detail::command(socket, CancelCheckWork, std::format(format, args...));
 }
-std::tuple<int, std::wstring> ReadReplyMessage(SOCKET cSkt, int *CancelCheckWork);
-int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork);
+std::tuple<int, std::wstring> ReadReplyMessage(std::shared_ptr<SocketContext> cSkt, int *CancelCheckWork);
+int ReadNchar(std::shared_ptr<SocketContext> cSkt, char *Buf, int Size, int *CancelCheckWork);
 
 /*===== getput.c =====*/
 
@@ -928,7 +976,7 @@ int AskTransferNow(void);
 int AskTransferFileNum(void);
 void GoForwardTransWindow(void);
 void InitTransCurDir(void);
-int DoDownload(SOCKET cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork);
+int DoDownload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork);
 int CheckPathViolation(TRANSPACKET const& item);
 // タスクバー進捗表示
 LONGLONG AskTransferSizeLeft(void);
@@ -1071,24 +1119,9 @@ std::vector<HISTORYDATA> const& GetHistories();
 BOOL LoadSSL();
 void FreeSSL();
 void ShowCertificate();
-BOOL AttachSSL(SOCKET s, SOCKET parent, BOOL* pbAborted, std::wstring_view ServerName);
 bool IsSecureConnection();
-BOOL IsSSLAttached(SOCKET s);
 int MakeSocketWin();
 void DeleteSocketWin(void);
-void SetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::wstring, int>> const& target);
-void SetAsyncTableDataMapPort(SOCKET s, int Port);
-int GetAsyncTableData(SOCKET s, std::variant<sockaddr_storage, std::tuple<std::wstring, int>>& target);
-int GetAsyncTableDataMapPort(SOCKET s, int* Port);
-SOCKET do_socket(int af, int type, int protocol);
-int do_connect(SOCKET s, const struct sockaddr *name, int namelen, int *CancelCheckWork);
-int do_closesocket(SOCKET s);
-int do_listen(SOCKET s,	int backlog);
-SOCKET do_accept(SOCKET s, struct sockaddr *addr, int *addrlen);
-int do_recv(SOCKET s, char *buf, int len, int flags, int *TimeOut, int *CancelCheckWork);
-int SendData(SOCKET s, const char* buf, int len, int flags, int* CancelCheckWork);
-// 同時接続対応
-void RemoveReceivedData(SOCKET s);
 // UPnP対応
 int LoadUPnP();
 void FreeUPnP();
@@ -1097,7 +1130,7 @@ std::optional<std::wstring> AddPortMapping(std::wstring const& internalAddress, 
 bool RemovePortMapping(int port);
 int CheckClosedAndReconnect(void);
 // 同時接続対応
-int CheckClosedAndReconnectTrnSkt(SOCKET *Skt, int *CancelCheckWork);
+int CheckClosedAndReconnectTrnSkt(std::shared_ptr<SocketContext>& Skt, int *CancelCheckWork);
 
 
 extern int DebugConsole;

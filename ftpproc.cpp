@@ -2283,7 +2283,7 @@ static std::wstring_view GetUpperDir(std::wstring_view path) {
 
 // フルパスを使わないファイルアクセスの準備
 //   フルパスを使わない時は、このモジュール内で CWD を行ない、Path にファイル名のみ残す。（パス名は消す）
-int ProcForNonFullpath(SOCKET cSkt, std::wstring& Path, std::wstring& CurDir, HWND hWnd, int* CancelCheckWork) {
+int ProcForNonFullpath(std::shared_ptr<SocketContext> cSkt, std::wstring& Path, std::wstring& CurDir, HWND hWnd, int* CancelCheckWork) {
 	int Sts = FFFTP_SUCCESS;
 	if (AskNoFullPathMode() == YES) {
 		auto Tmp = AskHostType() == HTYPE_VMS ? ReformToVMSstyleDirName(std::wstring{ GetUpperDirEraseTopSlash(Path) }) : AskHostType() == HTYPE_STRATUS ? std::wstring{ GetUpperDirEraseTopSlash(Path) } : std::wstring{ GetUpperDir(Path) };
@@ -2364,8 +2364,10 @@ void AbortRecoveryProc(void)
 				GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);
 				EnableUserOpe();
 			}
-			else
-				RemoveReceivedData(AskCmdCtrlSkt());
+			else {
+				if (auto sc = AskCmdCtrlSkt())
+					sc->RemoveReceivedData();
+			}
 		}
 	}
 	return;

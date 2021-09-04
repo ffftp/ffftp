@@ -38,7 +38,7 @@
 /*===== プロトタイプ =====*/
 
 static std::optional<std::wstring> DoPWD();
-static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWork);
+static std::tuple<int, std::wstring> ReadOneLine(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork);
 
 extern TRANSPACKET MainTransPkt;
 
@@ -229,7 +229,7 @@ int DoCHMOD(std::wstring const& path, std::wstring const& mode) {
 
 // リモート側のファイルのサイズを取得
 //   転送ソケットを使用する
-int DoSIZE(SOCKET cSkt, std::wstring const& Path, LONGLONG* Size, int* CancelCheckWork) {
+int DoSIZE(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, LONGLONG* Size, int* CancelCheckWork) {
 	auto [code, text] = Command(cSkt, CancelCheckWork, L"SIZE {}"sv, Path);
 	*Size = code / 100 == FTP_COMPLETE && 4 < size(text) && iswdigit(text[4]) ? _wtoll(&text[4]) : -1;
 	return code / 100;
@@ -238,7 +238,7 @@ int DoSIZE(SOCKET cSkt, std::wstring const& Path, LONGLONG* Size, int* CancelChe
 
 // リモート側のファイルの日付を取得
 //   転送ソケットを使用する
-int DoMDTM(SOCKET cSkt, std::wstring const& Path, FILETIME* Time, int* CancelCheckWork) {
+int DoMDTM(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETIME* Time, int* CancelCheckWork) {
 	*Time = {};
 	int code = 500;
 	if (AskHostFeature() & FEATURE_MDTM) {
@@ -253,7 +253,7 @@ int DoMDTM(SOCKET cSkt, std::wstring const& Path, FILETIME* Time, int* CancelChe
 
 
 // ホスト側の日時設定
-int DoMFMT(SOCKET cSkt, std::wstring const& Path, FILETIME* Time, int* CancelCheckWork) {
+int DoMFMT(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETIME* Time, int* CancelCheckWork) {
 	SYSTEMTIME st;
 	FileTimeToSystemTime(Time, &st);
 	int Sts = AskHostFeature() & FEATURE_MFMT ? std::get<0>(Command(cSkt, CancelCheckWork, L"MFMT {:04d}{:02d}{:02d}{:02d}{:02d}{:02d} {}"sv, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, Path)) : 500;
@@ -262,7 +262,7 @@ int DoMFMT(SOCKET cSkt, std::wstring const& Path, FILETIME* Time, int* CancelChe
 
 
 // リモート側のコマンドを実行
-int DoQUOTE(SOCKET cSkt, std::wstring_view CmdStr, int* CancelCheckWork) {
+int DoQUOTE(std::shared_ptr<SocketContext> cSkt, std::wstring_view CmdStr, int* CancelCheckWork) {
 	int code = std::get<0>(Command(cSkt, CancelCheckWork, L"{}"sv, CmdStr));
 	if (code / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
@@ -270,50 +270,21 @@ int DoQUOTE(SOCKET cSkt, std::wstring_view CmdStr, int* CancelCheckWork) {
 }
 
 
-/*----- ソケットを閉じる ------------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		SOCKET 閉じた後のソケット
-*----------------------------------------------------------------------------*/
-
-SOCKET DoClose(SOCKET Sock)
-{
-	if(Sock != INVALID_SOCKET)
-	{
-		do_closesocket(Sock);
-		Debug(L"Skt={} : Socket closed."sv, Sock);
-		Sock = INVALID_SOCKET;
+// ソケットを閉じる
+void DoClose(std::shared_ptr<SocketContext> Sock) {
+	if (Sock) {
+		Sock->Close();
+		Debug(L"Skt={} : Socket closed."sv, Sock->handle);
 	}
-	if(Sock != INVALID_SOCKET)
-		Debug(L"Skt={} : Failed to close socket."sv, Sock);
-
-	return(Sock);
 }
 
 
-/*----- ホストからログアウトする ----------------------------------------------
-*
-*	Parameter
-*		kSOCKET ctrl_skt : ソケット
-*
-*	Return Value
-*		int 応答コードの１桁目
-*----------------------------------------------------------------------------*/
-
-// 同時接続対応
-//int DoQUIT(SOCKET ctrl_skt)
-int DoQUIT(SOCKET ctrl_skt, int *CancelCheckWork)
-{
-	int Ret;
-
-	Ret = FTP_COMPLETE;
-	if(SendQuit == YES)
+// ホストからログアウトする
+int DoQUIT(std::shared_ptr<SocketContext> ctrl_skt, int* CancelCheckWork) {
+	int Ret = FTP_COMPLETE;
+	if (SendQuit == YES)
 		Ret = std::get<0>(Command(ctrl_skt, CancelCheckWork, L"QUIT"sv)) / 100;
-
-	return(Ret);
+	return Ret;
 }
 
 
@@ -388,7 +359,8 @@ void SwitchOSSProc(void)
 
 // コマンドを送りリプライを待つ
 // ホストのファイル名の漢字コードに応じて、ここで漢字コードの変換を行なう
-std::tuple<int, std::wstring> detail::command(SOCKET cSkt, int* CancelCheckWork, std::wstring&& cmd) {
+std::tuple<int, std::wstring> detail::command(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork, std::wstring&& cmd) {
+	assert(cSkt);
 	if (cmd.starts_with(L"PASS "sv))
 		::Notice(IDS_REMOTECMD, L"PASS [xxxxxx]"sv);
 	else {
@@ -401,17 +373,17 @@ std::tuple<int, std::wstring> detail::command(SOCKET cSkt, int* CancelCheckWork,
 	}
 	auto native = ConvertTo(cmd, AskHostNameKanji(), AskHostNameKana());
 	native += "\r\n"sv;
-	if (SendData(cSkt, data(native), size_as<int>(native), 0, CancelCheckWork) != FFFTP_SUCCESS)
+	if (cSkt->Send(data(native), size_as<int>(native), 0, CancelCheckWork) != FFFTP_SUCCESS)
 		return { 429, {} };
 	return ReadReplyMessage(cSkt, CancelCheckWork);
 }
 
 
 // 応答メッセージを受け取る
-std::tuple<int, std::wstring> ReadReplyMessage(SOCKET cSkt, int* CancelCheckWork) {
+std::tuple<int, std::wstring> ReadReplyMessage(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork) {
 	int firstCode = 0;
 	std::wstring text;
-	if (cSkt != INVALID_SOCKET)
+	if (cSkt)
 		for (int Lines = 0;; Lines++) {
 			auto [code, line] = ReadOneLine(cSkt, CancelCheckWork);
 			Notice(IDS_REPLY, line);
@@ -438,8 +410,8 @@ std::tuple<int, std::wstring> ReadReplyMessage(SOCKET cSkt, int* CancelCheckWork
 
 
 // １行分のデータを受け取る
-static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWork) {
-	if (cSkt == INVALID_SOCKET)
+static std::tuple<int, std::wstring> ReadOneLine(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork) {
+	if (!cSkt)
 		return { 0, {} };
 
 	std::string line;
@@ -448,7 +420,7 @@ static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWo
 	do {
 		int TimeOutErr;
 		/* LFまでを受信するために、最初はPEEKで受信 */
-		if ((read = do_recv(cSkt, buffer, size_as<int>(buffer), MSG_PEEK, &TimeOutErr, CancelCheckWork)) <= 0) {
+		if ((read = cSkt->Recv(buffer, size_as<int>(buffer), MSG_PEEK, &TimeOutErr, CancelCheckWork)) <= 0) {
 			if (TimeOutErr == YES) {
 				Notice(IDS_MSGJPN242);
 				read = -2;
@@ -461,13 +433,13 @@ static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWo
 		if (auto lf = std::find(buffer, buffer + read, '\n'); lf != buffer + read)
 			read = (int)(lf - buffer + 1);
 		/* 本受信 */
-		if ((read = do_recv(cSkt, buffer, read, 0, &TimeOutErr, CancelCheckWork)) <= 0)
+		if ((read = cSkt->Recv(buffer, read, 0, &TimeOutErr, CancelCheckWork)) <= 0)
 			break;
 		line.append(buffer, buffer + read);
 	} while (!line.ends_with('\n'));
 	if (read <= 0) {
 		if (read == -2 || AskTransferNow() == YES)
-			cSkt = DoClose(cSkt);
+			DoClose(cSkt);
 		return { 429, {} };
 	}
 
@@ -495,7 +467,7 @@ static std::tuple<int, std::wstring> ReadOneLine(SOCKET cSkt, int* CancelCheckWo
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
+int ReadNchar(std::shared_ptr<SocketContext> cSkt, char *Buf, int Size, int *CancelCheckWork)
 {
 //	struct timeval Tout;
 //	struct timeval *ToutPtr;
@@ -506,12 +478,11 @@ int ReadNchar(SOCKET cSkt, char *Buf, int Size, int *CancelCheckWork)
 	int TimeOutErr;
 
 	Sts = FFFTP_FAIL;
-	if(cSkt != INVALID_SOCKET)
-	{
+	if (cSkt) {
 		Sts = FFFTP_SUCCESS;
 		while(Size > 0)
 		{
-			if((SizeOnce = do_recv(cSkt, Buf, Size, 0, &TimeOutErr, CancelCheckWork)) <= 0)
+			if((SizeOnce = cSkt->Recv(Buf, Size, 0, &TimeOutErr, CancelCheckWork)) <= 0)
 			{
 				if(TimeOutErr == YES)
 					Notice(IDS_MSGJPN243);

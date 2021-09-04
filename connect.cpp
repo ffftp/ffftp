@@ -32,11 +32,11 @@
 
 /*===== プロトタイプ =====*/
 
-static int SendInitCommand(SOCKET Socket, std::wstring_view Cmd, int *CancelCheckWork);
+static int SendInitCommand(std::shared_ptr<SocketContext> Socket, std::wstring_view Cmd, int *CancelCheckWork);
 static void AskUseFireWall(std::wstring_view Host, int *Fire, int *Pasv, int *List);
 static void SaveCurrentSetToHistory(void);
-static int ReConnectSkt(SOCKET *Skt);
-static SOCKET DoConnect(HOSTDATA* HostData, std::wstring const& Host, std::wstring& User, std::wstring& Pass, std::wstring& Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork);
+static int ReConnectSkt(std::shared_ptr<SocketContext>& Skt);
+static std::shared_ptr<SocketContext> DoConnect(HOSTDATA* HostData, std::wstring const& Host, std::wstring& User, std::wstring& Pass, std::wstring& Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork);
 static std::wstring CheckOneTimePassword(std::wstring&& pass, std::wstring const& reply, int Type);
 
 /*===== 外部参照 =====*/
@@ -67,8 +67,8 @@ extern int UPnPEnabled;
 
 static int Anonymous;
 static int TryConnect = NO;
-static SOCKET CmdCtrlSocket = INVALID_SOCKET;
-static SOCKET TrnCtrlSocket = INVALID_SOCKET;
+static std::shared_ptr<SocketContext> CmdCtrlSocket;
+static std::shared_ptr<SocketContext> TrnCtrlSocket;
 HOSTDATA CurHost;
 
 #if defined(HAVE_TANDEM)
@@ -124,7 +124,7 @@ void ConnectProc(int Type, int Num)
 			SetCurrentHost(Num);
 
 		/* 接続中なら切断する */
-		if(CmdCtrlSocket != INVALID_SOCKET)
+		if (CmdCtrlSocket)
 			DisconnectProc();
 
 		Notice(IDS_SEPARATOR);
@@ -152,8 +152,7 @@ void ConnectProc(int Type, int Num)
 			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, Save, CurHost.Security, &CancelFlg);
 			TrnCtrlSocket = CmdCtrlSocket;
 
-			if(CmdCtrlSocket != INVALID_SOCKET)
-			{
+			if (CmdCtrlSocket) {
 				// 暗号化通信対応
 				switch(CurHost.CryptMode)
 				{
@@ -265,7 +264,7 @@ void QuickConnectProc() {
 
 	if (QuickCon qc; Dialog(GetFtpInst(), hostname_dlg, GetMainHwnd(), qc)) {
 		/* 接続中なら切断する */
-		if (CmdCtrlSocket != INVALID_SOCKET)
+		if (CmdCtrlSocket)
 			DisconnectProc();
 
 		Notice(IDS_SEPARATOR);
@@ -294,7 +293,7 @@ void QuickConnectProc() {
 			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg);
 			TrnCtrlSocket = CmdCtrlSocket;
 
-			if (CmdCtrlSocket != INVALID_SOCKET) {
+			if (CmdCtrlSocket) {
 				TitleHostName = CurHost.HostAdrs;
 				DispWindowTitle();
 				UpdateStatusBar();
@@ -343,7 +342,7 @@ void DirectConnectProc(std::wstring&& unc, int Kanji, int Kana, int Fkanji, int 
 	SaveCurrentSetToHost();
 
 	/* 接続中なら切断する */
-	if(CmdCtrlSocket != INVALID_SOCKET)
+	if (CmdCtrlSocket)
 		DisconnectProc();
 
 	Notice(IDS_SEPARATOR);
@@ -385,8 +384,7 @@ void DirectConnectProc(std::wstring&& unc, int Kanji, int Kana, int Fkanji, int 
 		CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg);
 		TrnCtrlSocket = CmdCtrlSocket;
 
-		if(CmdCtrlSocket != INVALID_SOCKET)
-		{
+		if (CmdCtrlSocket) {
 			TitleHostName = CurHost.HostAdrs;
 			DispWindowTitle();
 			UpdateStatusBar();
@@ -434,7 +432,7 @@ void HistoryConnectProc(int MenuCmd)
 		SaveCurrentSetToHost();
 
 		/* 接続中なら切断する */
-		if(CmdCtrlSocket != INVALID_SOCKET)
+		if (CmdCtrlSocket)
 			DisconnectProc();
 
 		Notice(IDS_SEPARATOR);
@@ -461,8 +459,7 @@ void HistoryConnectProc(int MenuCmd)
 			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg);
 			TrnCtrlSocket = CmdCtrlSocket;
 
-			if(CmdCtrlSocket != INVALID_SOCKET)
-			{
+			if (CmdCtrlSocket) {
 				TitleHostName = CurHost.HostAdrs;
 				DispWindowTitle();
 				UpdateStatusBar();
@@ -497,7 +494,7 @@ void HistoryConnectProc(int MenuCmd)
 //   初期化コマンドは以下のようなフォーマットであること
 //     cmd1\0
 //     cmd1\r\ncmd2\r\n\0
-static int SendInitCommand(SOCKET Socket, std::wstring_view Cmd, int* CancelCheckWork) {
+static int SendInitCommand(std::shared_ptr<SocketContext> Socket, std::wstring_view Cmd, int* CancelCheckWork) {
 	static boost::wregex re{ LR"([^\r\n]+)" };
 	for (boost::regex_iterator<std::wstring_view::const_iterator> it{ begin(Cmd), end(Cmd), re }, end; it != end; ++it)
 		DoQUOTE(Socket, sv((*it)[0]), CancelCheckWork);
@@ -807,8 +804,7 @@ void SaveCurrentSetToHost(void)
 	HOSTDATA TmpHost;
 	TmpHost = CurHost;
 
-	if(TrnCtrlSocket != INVALID_SOCKET)
-	{
+	if (TrnCtrlSocket) {
 		if((Host = AskCurrentHost()) != HOSTNUM_NOENTRY)
 		{
 			// 同時接続対応
@@ -860,32 +856,17 @@ int ReConnectCmdSkt() {
 		result = FFFTP_SUCCESS;
 	} else {
 		if (CmdCtrlSocket == TrnCtrlSocket)
-			TrnCtrlSocket = INVALID_SOCKET;
-		result = ReConnectSkt(&CmdCtrlSocket);
+			TrnCtrlSocket.reset();
+		result = ReConnectSkt(CmdCtrlSocket);
 	}
-	if (TrnCtrlSocket == INVALID_SOCKET)
+	if (!TrnCtrlSocket)
 		TrnCtrlSocket = CmdCtrlSocket;
 	return result;
 }
 
 
-/*----- 転送コントロールソケットの再接続 --------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-//int ReConnectTrnSkt(void)
-//{
-//	return(ReConnectSkt(&TrnCtrlSocket));
-//}
-// 同時接続対応
-int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
-{
+// 転送コントロールソケットの再接続
+int ReConnectTrnSkt(std::shared_ptr<SocketContext>& Skt, int *CancelCheckWork) {
 //	char Path[FMAX_PATH+1];
 	int Sts;
 	// 暗号化通信対応
@@ -897,8 +878,8 @@ int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
 
 //	DisableUserOpe();
 	/* 現在のソケットは切断 */
-	if(*Skt != INVALID_SOCKET)
-		do_closesocket(*Skt);
+	if (Skt)
+		Skt->Close();
 	/* 再接続 */
 	// 暗号化通信対応
 	HostData = CurHost;
@@ -914,9 +895,8 @@ int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
 	HostData.CurNameKanjiCode = HostData.NameKanjiCode;
 	// 同時接続対応
 	HostData.NoDisplayUI = YES;
-	if((*Skt = DoConnect(&HostData, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, CancelCheckWork)) != INVALID_SOCKET)
-	{
-		SendInitCommand(*Skt, CurHost.InitCmd, CancelCheckWork);
+	if (Skt = DoConnect(&HostData, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, CancelCheckWork)) {
+		SendInitCommand(Skt, CurHost.InitCmd, CancelCheckWork);
 		Sts = FFFTP_SUCCESS;
 	}
 	else
@@ -927,18 +907,8 @@ int ReConnectTrnSkt(SOCKET *Skt, int *CancelCheckWork)
 }
 
 
-/*----- 回線の再接続 ----------------------------------------------------------
-*
-*	Parameter
-*		SOCKET *Skt : 接続したソケットを返すワーク
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-static int ReConnectSkt(SOCKET *Skt)
-{
+// 回線の再接続
+static int ReConnectSkt(std::shared_ptr<SocketContext>& Skt) {
 	int Sts;
 
 	Sts = FFFTP_FAIL;
@@ -947,12 +917,11 @@ static int ReConnectSkt(SOCKET *Skt)
 
 	DisableUserOpe();
 	/* 現在のソケットは切断 */
-	if(*Skt != INVALID_SOCKET)
-		do_closesocket(*Skt);
+	if (Skt)
+		Skt->Close();
 	/* 再接続 */
-	if((*Skt = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg)) != INVALID_SOCKET)
-	{
-		SendInitCommand(*Skt, CurHost.InitCmd, &CancelFlg);
+	if (Skt = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg)) {
+		SendInitCommand(Skt, CurHost.InitCmd, &CancelFlg);
 		DoCWD(AskRemoteCurDir(), YES, YES, YES);
 		Sts = FFFTP_SUCCESS;
 	}
@@ -964,33 +933,15 @@ static int ReConnectSkt(SOCKET *Skt)
 }
 
 
-/*----- コマンドコントロールソケットを返す ------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		SOCKET コマンドコントロールソケット
-*----------------------------------------------------------------------------*/
-
-SOCKET AskCmdCtrlSkt(void)
-{
-	return(CmdCtrlSocket);
+// コマンドコントロールソケットを返す
+std::shared_ptr<SocketContext> AskCmdCtrlSkt() {
+	return CmdCtrlSocket;
 }
 
 
-/*----- 転送コントロールソケットを返す ----------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		SOCKET 転送コントロールソケット
-*----------------------------------------------------------------------------*/
-
-SOCKET AskTrnCtrlSkt(void)
-{
-	return(TrnCtrlSocket);
+// 転送コントロールソケットを返す
+std::shared_ptr<SocketContext> AskTrnCtrlSkt() {
+	return TrnCtrlSocket;
 }
 
 
@@ -1010,35 +961,18 @@ void SktShareProh(void)
 		if(CurHost.ReuseCmdSkt == YES)
 		{
 			CurHost.ReuseCmdSkt = NO;
-			CmdCtrlSocket = INVALID_SOCKET;
-			ReConnectSkt(&CmdCtrlSocket);
+			CmdCtrlSocket.reset();
+			ReConnectSkt(CmdCtrlSocket);
 		}
 	}
 	return;
 }
 
 
-/*----- コマンド／転送コントロールソケットの共有が解除されているかチェック ----
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int ステータス
-*			YES=共有解除/NO=共有
-*----------------------------------------------------------------------------*/
-
-int AskShareProh(void)
-{
-	int Sts;
-
-	Sts = YES;
-	// 同時接続対応
-//	if(CmdCtrlSocket == TrnCtrlSocket)
-	if(CmdCtrlSocket == TrnCtrlSocket || TrnCtrlSocket == INVALID_SOCKET)
-		Sts = NO;
-
-	return(Sts);
+// コマンド／転送コントロールソケットの共有が解除されているかチェック
+//   YES=共有解除/NO=共有
+int AskShareProh() {
+	return CmdCtrlSocket == TrnCtrlSocket || !TrnCtrlSocket ? NO : YES;
 }
 
 
@@ -1055,18 +989,12 @@ void DisconnectProc(void)
 {
 	AbortAllTransfer();
 
-	if((CmdCtrlSocket != INVALID_SOCKET) && (CmdCtrlSocket != TrnCtrlSocket))
-	{
-		// 同時接続対応
-//		DoQUIT(CmdCtrlSocket);
+	if (CmdCtrlSocket && CmdCtrlSocket != TrnCtrlSocket) {
 		DoQUIT(CmdCtrlSocket, &CancelFlg);
 		DoClose(CmdCtrlSocket);
 	}
 
-	if(TrnCtrlSocket != INVALID_SOCKET)
-	{
-		// 同時接続対応
-//		DoQUIT(TrnCtrlSocket);
+	if (TrnCtrlSocket) {
 		DoQUIT(TrnCtrlSocket, &CancelFlg);
 		DoClose(TrnCtrlSocket);
 
@@ -1076,8 +1004,8 @@ void DisconnectProc(void)
 		Notice(IDS_MSGJPN004);
 	}
 
-	TrnCtrlSocket = INVALID_SOCKET;
-	CmdCtrlSocket = INVALID_SOCKET;
+	TrnCtrlSocket.reset();
+	CmdCtrlSocket.reset();
 
 	DispWindowTitle();
 	UpdateStatusBar();
@@ -1099,8 +1027,8 @@ void DisconnectProc(void)
 
 void DisconnectSet(void)
 {
-	CmdCtrlSocket = INVALID_SOCKET;
-	TrnCtrlSocket = INVALID_SOCKET;
+	CmdCtrlSocket.reset();
+	TrnCtrlSocket.reset();
 
 	EraseRemoteDirForWnd();
 	DispWindowTitle();
@@ -1111,24 +1039,9 @@ void DisconnectSet(void)
 }
 
 
-/*----- ホストに接続中かどうかを返す ------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int ステータス (YES/NO)
-*----------------------------------------------------------------------------*/
-
-int AskConnecting(void)
-{
-	int Sts;
-
-	Sts = NO;
-	if(TrnCtrlSocket != INVALID_SOCKET)
-		Sts = YES;
-
-	return(Sts);
+// ホストに接続中かどうかを返す
+int AskConnecting() {
+	return TrnCtrlSocket ? YES : NO;
 }
 
 
@@ -1224,21 +1137,18 @@ int AskOSS(void)
 *----------------------------------------------------------------------------*/
 
 // 暗号化通信対応
-static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring const& Host, std::wstring& User, std::wstring& Pass, std::wstring& Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork)
+static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring const& Host, std::wstring& User, std::wstring& Pass, std::wstring& Acct, int Port, int Fwall, int SavePass, int Security, int *CancelCheckWork)
 {
 	int Sts;
 	int Flg;
 	int Anony;
-	SOCKET ContSock;
+	std::shared_ptr<SocketContext> ContSock;
 	int Continue;
 	int ReInPass;
 	constexpr std::wstring_view SiteTbl[] = { L"SITE"sv, L"site"sv, L"OPEN"sv, L"open"sv };
 	struct linger LingerOpt;
 	struct tcp_keepalive KeepAlive;
 	DWORD dwTmp;
-
-	// 暗号化通信対応
-	ContSock = INVALID_SOCKET;
 
 	if(CryptMode == CRYPT_NONE || CryptMode == CRYPT_FTPES || CryptMode == CRYPT_FTPIS)
 	{
@@ -1254,21 +1164,18 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 //		WSASetBlockingHook(BlkHookFnc);
 #endif
 
-		ContSock = INVALID_SOCKET;
-
 		auto [tempHost, tempPort] = FWALL_FU_FP_SITE <= Fwall && Fwall <= FWALL_OPEN || Fwall == FWALL_SIDEWINDER || Fwall == FWALL_FU_FP ? std::tuple{ FwallHost, FwallPort } : std::tuple{ Host, Port };
 		if (!empty(tempHost)) {
-			if ((ContSock = connectsock(std::move(tempHost), tempPort, 0, CancelCheckWork)) != INVALID_SOCKET) {
+			if (ContSock = connectsock(Host, std::move(tempHost), tempPort, 0, CancelCheckWork)) {
 				// バッファを無効
 #ifdef DISABLE_CONTROL_NETWORK_BUFFERS
 				int BufferSize = 0;
-				setsockopt(ContSock, SOL_SOCKET, SO_SNDBUF, (char*)&BufferSize, sizeof(int));
-				setsockopt(ContSock, SOL_SOCKET, SO_RCVBUF, (char*)&BufferSize, sizeof(int));
+				setsockopt(ContSock->handle, SOL_SOCKET, SO_SNDBUF, (char*)&BufferSize, sizeof(int));
+				setsockopt(ContSock->handle, SOL_SOCKET, SO_RCVBUF, (char*)&BufferSize, sizeof(int));
 #endif
 				if(CryptMode == CRYPT_FTPIS)
 				{
-					if(AttachSSL(ContSock, INVALID_SOCKET, CancelCheckWork, Host))
-					{
+					if (ContSock->AttachSSL(CancelCheckWork)) {
 						while((Sts = std::get<0>(ReadReplyMessage(ContSock, CancelCheckWork)) / 100) == FTP_PRELIM)
 							;
 					}
@@ -1284,14 +1191,14 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 				if(Sts == FTP_COMPLETE)
 				{
 					Flg = 1;
-					if(setsockopt(ContSock, SOL_SOCKET, SO_OOBINLINE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
+					if(setsockopt(ContSock->handle, SOL_SOCKET, SO_OOBINLINE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 						WSAError(L"setsockopt(SOL_SOCKET, SO_OOBINLINE)"sv);
 					// データ転送用ソケットのTCP遅延転送が無効されているので念のため
-					if(setsockopt(ContSock, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
+					if(setsockopt(ContSock->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 						WSAError(L"setsockopt(IPPROTO_TCP, TCP_NODELAY)"sv);
 //#pragma aaa
 					Flg = 1;
-					if(setsockopt(ContSock, SOL_SOCKET, SO_KEEPALIVE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
+					if(setsockopt(ContSock->handle, SOL_SOCKET, SO_KEEPALIVE, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 						WSAError(L"setsockopt(SOL_SOCKET, SO_KEEPALIVE)"sv);
 					// 切断対策
 					if(TimeOut > 0)
@@ -1299,12 +1206,12 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 						KeepAlive.onoff = 1;
 						KeepAlive.keepalivetime = TimeOut * 1000;
 						KeepAlive.keepaliveinterval = 1000;
-						if(WSAIoctl(ContSock, SIO_KEEPALIVE_VALS, &KeepAlive, sizeof(struct tcp_keepalive), NULL, 0, &dwTmp, NULL, NULL) == SOCKET_ERROR)
+						if(WSAIoctl(ContSock->handle, SIO_KEEPALIVE_VALS, &KeepAlive, sizeof(struct tcp_keepalive), NULL, 0, &dwTmp, NULL, NULL) == SOCKET_ERROR)
 							WSAError(L"WSAIoctl(SIO_KEEPALIVE_VALS)"sv);
 					}
 					LingerOpt.l_onoff = 1;
 					LingerOpt.l_linger = 90;
-					if(setsockopt(ContSock, SOL_SOCKET, SO_LINGER, (LPSTR)&LingerOpt, sizeof(LingerOpt)) == SOCKET_ERROR)
+					if(setsockopt(ContSock->handle, SOL_SOCKET, SO_LINGER, (LPSTR)&LingerOpt, sizeof(LingerOpt)) == SOCKET_ERROR)
 						WSAError(L"setsockopt(SOL_SOCKET, SO_LINGER)"sv);
 ///////
 
@@ -1329,7 +1236,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 					{
 						Notice(IDS_MSGJPN006);
 						DoClose(ContSock);
-						ContSock = INVALID_SOCKET;
+						ContSock.reset();
 					}
 					else
 					{
@@ -1344,7 +1251,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 						{
 							Notice(IDS_MSGJPN007, Host);
 							DoClose(ContSock);
-							ContSock = INVALID_SOCKET;
+							ContSock.reset();
 						}
 						else
 						{
@@ -1364,7 +1271,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 								if (CryptMode == CRYPT_FTPES) {
 									if ((Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"AUTH TLS"sv))) != 234 && (Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"AUTH SSL"sv))) != 234)
 										Sts = FTP_ERROR;
-									else if (!AttachSSL(ContSock, INVALID_SOCKET, CancelCheckWork, Host))
+									else if (!ContSock->AttachSSL(CancelCheckWork))
 										Sts = FTP_ERROR;
 									else if ((Sts = std::get<0>(Command(ContSock, CancelCheckWork, L"PBSZ 0"sv))) != 200)
 										Sts = FTP_ERROR;
@@ -1439,7 +1346,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 							{
 								Notice(IDS_MSGJPN008);
 								DoClose(ContSock);
-								ContSock = INVALID_SOCKET;
+								ContSock.reset();
 							}
 							else if((SavePass == YES) && (ReInPass == YES))
 							{
@@ -1453,7 +1360,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 				{
 				Notice(IDS_MSGJPN009);
 					DoClose(ContSock);
-					ContSock = INVALID_SOCKET;
+					ContSock.reset();
 				}
 			}
 		}
@@ -1474,8 +1381,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 
 		// FEAT対応
 		// ホストの機能を確認
-		if(ContSock != INVALID_SOCKET)
-		{
+		if (ContSock) {
 			if (auto [code, text] = Command(ContSock, CancelCheckWork, L"FEAT"sv); code == 211) {
 				// 改行文字はReadReplyMessageで消去されるため区切り文字に空白を使用
 				if (text.find(L" UTF8 "sv) != std::wstring::npos)
@@ -1497,7 +1403,7 @@ static SOCKET DoConnectCrypt(int CryptMode, HOSTDATA* HostData, std::wstring con
 	return(ContSock);
 }
 
-static SOCKET DoConnect(HOSTDATA* HostData, std::wstring const& Host, std::wstring& User, std::wstring& Pass, std::wstring& Acct, int Port, int Fwall, int SavePass, int Security, int* CancelCheckWork) {
+static std::shared_ptr<SocketContext> DoConnect(HOSTDATA* HostData, std::wstring const& Host, std::wstring& User, std::wstring& Pass, std::wstring& Acct, int Port, int Fwall, int SavePass, int Security, int* CancelCheckWork) {
 	constexpr struct {
 		int HOSTDATA::* ptr;
 		int msgid;
@@ -1507,12 +1413,12 @@ static SOCKET DoConnect(HOSTDATA* HostData, std::wstring const& Host, std::wstri
 		{ &HOSTDATA::UseFTPES, IDS_MSGJPN315, CRYPT_FTPES },
 		{ &HOSTDATA::UseNoEncryption, IDS_MSGJPN314, CRYPT_NONE },
 	};
-	SOCKET ContSock = INVALID_SOCKET;
+	std::shared_ptr<SocketContext> ContSock;
 	*CancelCheckWork = NO;
 	for (auto [ptr, msgid, cryptMode] : pattern)
-		if (*CancelCheckWork == NO && ContSock == INVALID_SOCKET && HostData->*ptr == YES) {
+		if (*CancelCheckWork == NO && !ContSock && HostData->*ptr == YES) {
 			Notice(msgid);
-			if ((ContSock = DoConnectCrypt(cryptMode, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security, CancelCheckWork)) != INVALID_SOCKET)
+			if (ContSock = DoConnectCrypt(cryptMode, HostData, Host, User, Pass, Acct, Port, Fwall, SavePass, Security, CancelCheckWork))
 				HostData->CryptMode = cryptMode;
 		}
 	return ContSock;
@@ -1613,8 +1519,9 @@ enum class SocksCommand : uint8_t {
 };
 
 
-static bool SocksSend(SOCKET s, std::vector<uint8_t> const& buffer, int* CancelCheckWork) {
-	if (SendData(s, reinterpret_cast<const char*>(data(buffer)), size_as<int>(buffer), 0, CancelCheckWork) != FFFTP_SUCCESS) {
+static bool SocksSend(std::shared_ptr<SocketContext> s, std::vector<uint8_t> const& buffer, int* CancelCheckWork) {
+	assert(s);
+	if (s->Send(reinterpret_cast<const char*>(data(buffer)), size_as<int>(buffer), 0, CancelCheckWork) != FFFTP_SUCCESS) {
 		Notice(IDS_MSGJPN033, *reinterpret_cast<const unsigned short*>(&buffer[0]));
 		return false;
 	}
@@ -1623,13 +1530,13 @@ static bool SocksSend(SOCKET s, std::vector<uint8_t> const& buffer, int* CancelC
 
 
 template<class T>
-static inline bool SocksRecv(SOCKET s, T& buffer, int* CancelCheckWork) {
+static inline bool SocksRecv(std::shared_ptr<SocketContext> s, T& buffer, int* CancelCheckWork) {
 	return ReadNchar(s, reinterpret_cast<char*>(&buffer), sizeof(T), CancelCheckWork) == FFFTP_SUCCESS;
 }
 
 
 // SOCKS5の認証を行う
-static bool Socks5Authenticate(SOCKET s, int* CancelCheckWork) {
+static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelCheckWork) {
 	// RFC 1928 SOCKS Protocol Version 5
 	constexpr uint8_t NO_AUTHENTICATION_REQUIRED = 0;
 	constexpr uint8_t USERNAME_PASSWORD = 2;
@@ -1682,7 +1589,7 @@ static bool Socks5Authenticate(SOCKET s, int* CancelCheckWork) {
 
 
 // SOCKSのコマンドに対するリプライパケットを受信する
-std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork) {
+std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext> s, int* CancelCheckWork) {
 	assert(AskHostFireWall() == YES);
 	sockaddr_storage ss;
 	if (FwallType == FWALL_SOCKS4) {
@@ -1703,7 +1610,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(SOCKET s, int* CancelCheckWork
 		// If the DSTIP in the reply is 0 (the value of constant INADDR_ANY), then the client should replace it by the IP address of the SOCKS server to which the cleint is connected.
 		if (reply.DSTIP.s_addr == 0) {
 			int namelen = sizeof ss;
-			getpeername(s, reinterpret_cast<sockaddr*>(&ss), &namelen);
+			getpeername(s->handle, reinterpret_cast<sockaddr*>(&ss), &namelen);
 			assert(ss.ss_family == AF_INET && namelen == sizeof(sockaddr_in));
 			reinterpret_cast<sockaddr_in&>(ss).sin_port = reply.DSTPORT;
 		} else
@@ -1757,7 +1664,7 @@ static void append(std::vector<uint8_t>& buffer, T const& data) {
 	buffer.insert(end(buffer), reinterpret_cast<const uint8_t*>(&data), reinterpret_cast<const uint8_t*>(&data + 1));
 }
 
-static std::optional<sockaddr_storage> SocksRequest(SOCKET s, SocksCommand cmd, std::variant<sockaddr_storage, std::tuple<std::wstring, int>> const& target, int* CancelCheckWork) {
+static std::optional<sockaddr_storage> SocksRequest(std::shared_ptr<SocketContext> s, SocksCommand cmd, std::variant<sockaddr_storage, std::tuple<std::wstring, int>> const& target, int* CancelCheckWork) {
 	assert(AskHostFireWall() == YES);
 	std::vector<uint8_t> buffer;
 	if (FwallType == FWALL_SOCKS4) {
@@ -1802,7 +1709,7 @@ static std::optional<sockaddr_storage> SocksRequest(SOCKET s, SocksCommand cmd, 
 }
 
 
-SOCKET connectsock(std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork) {
+std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget, std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork) {
 	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
 	int Fwall = AskHostFireWall() == YES ? FwallType : FWALL_NONE;
 	if (auto ai = getaddrinfo(host, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC)) {
@@ -1819,7 +1726,7 @@ SOCKET connectsock(std::wstring&& host, int port, UINT prefixId, int *CancelChec
 	} else {
 		// 名前解決に失敗
 		Notice(IDS_MSGJPN019, host);
-		return INVALID_SOCKET;
+		return {};
 	}
 
 	sockaddr_storage saConnect;
@@ -1830,7 +1737,7 @@ SOCKET connectsock(std::wstring&& host, int port, UINT prefixId, int *CancelChec
 			ai = getaddrinfo(FwallHost, FwallPort, AF_UNSPEC, CancelCheckWork);
 		if (!ai) {
 			Notice(IDS_MSGJPN021, FwallHost);
-			return INVALID_SOCKET;
+			return {};
 		}
 		memcpy(&saConnect, ai->ai_addr, ai->ai_addrlen);
 		Notice(IDS_MSGJPN022, AddressPortToString(ai->ai_addr, ai->ai_addrlen));
@@ -1839,23 +1746,23 @@ SOCKET connectsock(std::wstring&& host, int port, UINT prefixId, int *CancelChec
 		saConnect = std::get<sockaddr_storage>(target);
 	}
 
-	auto s = do_socket(saConnect.ss_family, SOCK_STREAM, IPPROTO_TCP);
-	if (s == INVALID_SOCKET) {
+	auto s = SocketContext::Create(saConnect.ss_family, originalTarget);
+	if (!s) {
 		Notice(IDS_MSGJPN027);
-		return INVALID_SOCKET;
+		return {};
 	}
-	SetAsyncTableData(s, target);
-	if (do_connect(s, reinterpret_cast<const sockaddr*>(&saConnect), sizeof saConnect, CancelCheckWork) == SOCKET_ERROR) {
+	s->target = target;
+	if (s->Connect(reinterpret_cast<const sockaddr*>(&saConnect), sizeof saConnect, CancelCheckWork) == SOCKET_ERROR) {
 		Notice(IDS_MSGJPN026);
 		DoClose(s);
-		return INVALID_SOCKET;
+		return {};
 	}
 	if (Fwall == FWALL_SOCKS4 || Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
 		auto result = SocksRequest(s, SocksCommand::Connect, target, CancelCheckWork);
 		if (!result) {
 			Notice(IDS_MSGJPN023);
 			DoClose(s);
-			return INVALID_SOCKET;
+			return {};
 		}
 		CurHost.CurNetType = result->ss_family == AF_INET ? NTYPE_IPV4 : NTYPE_IPV6;
 	} else
@@ -1866,35 +1773,33 @@ SOCKET connectsock(std::wstring&& host, int port, UINT prefixId, int *CancelChec
 
 
 // リッスンソケットを取得
-SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
+std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext> ctrl_skt, int *CancelCheckWork) {
 	sockaddr_storage saListen;
 	int salen = sizeof saListen;
-	if (getsockname(ctrl_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
+	if (getsockname(ctrl_skt->handle, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
 		WSAError(L"getsockname()"sv);
-		return INVALID_SOCKET;
+		return {};
 	}
-	auto listen_skt = do_socket(saListen.ss_family, SOCK_STREAM, IPPROTO_TCP);
-	if (listen_skt == INVALID_SOCKET)
-		return INVALID_SOCKET;
+	auto listen_skt = SocketContext::Create(saListen.ss_family, *ctrl_skt);
+	if (!listen_skt)
+		return {};
 	if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
 		Debug(L"Use SOCKS BIND."sv);
 		// Control接続と同じアドレスに接続する
 		salen = sizeof saListen;
-		if (getpeername(ctrl_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
+		if (getpeername(ctrl_skt->handle, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
 			WSAError(L"getpeername()"sv);
-			return INVALID_SOCKET;
+			return {};
 		}
-		if (do_connect(listen_skt, reinterpret_cast<const sockaddr*>(&saListen), salen, CancelCheckWork) == SOCKET_ERROR) {
-			return INVALID_SOCKET;
+		if (listen_skt->Connect(reinterpret_cast<const sockaddr*>(&saListen), salen, CancelCheckWork) == SOCKET_ERROR) {
+			return {};
 		}
-		std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
-		GetAsyncTableData(ctrl_skt, target);
-		if (auto result = SocksRequest(listen_skt, SocksCommand::Bind, target, CancelCheckWork)) {
+		if (auto result = SocksRequest(listen_skt, SocksCommand::Bind, ctrl_skt->target, CancelCheckWork)) {
 			saListen = *result;
 		} else {
 			Notice(IDS_MSGJPN023);
 			DoClose(listen_skt);
-			return INVALID_SOCKET;
+			return {};
 		}
 	} else {
 		Debug(L"Use normal BIND."sv);
@@ -1903,24 +1808,24 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 			reinterpret_cast<sockaddr_in&>(saListen).sin_port = 0;
 		else
 			reinterpret_cast<sockaddr_in6&>(saListen).sin6_port = 0;
-		if (bind(listen_skt, reinterpret_cast<const sockaddr*>(&saListen), salen) == SOCKET_ERROR) {
+		if (bind(listen_skt->handle, reinterpret_cast<const sockaddr*>(&saListen), salen) == SOCKET_ERROR) {
 			WSAError(L"bind()"sv);
-			do_closesocket(listen_skt);
+			listen_skt->Close();
 			Notice(IDS_MSGJPN027);
-			return INVALID_SOCKET;
+			return {};
 		}
 		salen = sizeof saListen;
-		if (getsockname(listen_skt, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
+		if (getsockname(listen_skt->handle, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
 			WSAError(L"getsockname()"sv);
-			do_closesocket(listen_skt);
+			listen_skt->Close();
 			Notice(IDS_MSGJPN027);
-			return INVALID_SOCKET;
+			return {};
 		}
-		if (do_listen(listen_skt, 1) != 0) {
+		if (listen_skt->Listen(1) != 0) {
 			WSAError(L"listen()"sv);
-			do_closesocket(listen_skt);
+			listen_skt->Close();
 			Notice(IDS_MSGJPN027);
-			return INVALID_SOCKET;
+			return {};
 		}
 		// TODO: IPv6にUPnP NATは無意味なのでは？
 		if (IsUPnPLoaded() == YES && UPnPEnabled == YES) {
@@ -1929,7 +1834,7 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 			if (auto const ExtAdrs = AddPortMapping(AddressToString(saListen), port))
 				if (auto ai = getaddrinfo(*ExtAdrs, port)) {
 					memcpy(&saListen, ai->ai_addr, ai->ai_addrlen);
-					SetAsyncTableDataMapPort(listen_skt, port);
+					listen_skt->mapPort = port;
 				}
 		}
 	}
@@ -1946,10 +1851,9 @@ SOCKET GetFTPListenSocket(SOCKET ctrl_skt, int *CancelCheckWork) {
 	if (status / 100 != FTP_COMPLETE) {
 		Notice(IDS_MSGJPN031, saListen.ss_family == AF_INET ? L"PORT"sv : L"EPRT"sv);
 		if (IsUPnPLoaded() == YES)
-			if (int port; GetAsyncTableDataMapPort(listen_skt, &port) == YES)
-				RemovePortMapping(port);
-		do_closesocket(listen_skt);
-		return INVALID_SOCKET;
+			RemovePortMapping(listen_skt->mapPort);
+		listen_skt->Close();
+		return {};
 	}
 	return listen_skt;
 }
