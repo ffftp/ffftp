@@ -446,6 +446,7 @@ struct SocketContext {
 	SecPkgContext_StreamSizes sslStreamSizes = {};
 	std::vector<char> readRaw;
 	std::vector<char> readPlain;
+	bool sslNeedRenegotiate = false;
 	SECURITY_STATUS sslReadStatus = SEC_E_OK;
 
 	inline SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget);
