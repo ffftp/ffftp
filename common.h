@@ -448,6 +448,7 @@ struct SocketContext {
 	std::vector<char> readPlain;
 	bool sslNeedRenegotiate = false;
 	SECURITY_STATUS sslReadStatus = SEC_E_OK;
+	int recvStatus = WSAEWOULDBLOCK;
 
 	inline SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget);
 	SocketContext(SocketContext const&) = delete;
@@ -462,14 +463,14 @@ struct SocketContext {
 	constexpr bool IsSSLAttached() {
 		return SecIsValidHandle(&sslContext);
 	}
-	void Decypt();
 	std::vector<char> Encrypt(std::string_view plain);
 	bool GetEvent(int mask);
 	int Connect(const sockaddr* name, int namelen, int* CancelCheckWork);
 	int Listen(int backlog);
-	int RecvInternal(char* buf, int len, int flags);
-	int Recv(char* buf, int len, int flags, int* TimeOutErr, int* CancelCheckWork);
-	void RemoveReceivedData();
+	int FetchAll();
+	std::variant<std::string, int> ReadLine();
+	std::variant<std::vector<char>, int> ReadBytes(int len);
+	void ClearReadBuffer();
 	int Send(const char* buf, int len, int flags, int* CancelCheckWork);
 };
 

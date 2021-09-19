@@ -2366,7 +2366,7 @@ void AbortRecoveryProc(void)
 			}
 			else {
 				if (auto sc = AskCmdCtrlSkt())
-					sc->RemoveReceivedData();
+					sc->ClearReadBuffer();
 			}
 		}
 	}

@@ -650,7 +650,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				SendMessageW(hWndTrans, WM_SET_PACKET, 0, (LPARAM)&*Pos);
 
 			// 中断後に受信バッファに応答が残っていると次のコマンドの応答が正しく処理できない
-			TrnSkt->RemoveReceivedData();
+			TrnSkt->ClearReadBuffer();
 
 			/* ダウンロード */
 			if(Pos->Command.starts_with(L"RETR"sv))
@@ -1305,36 +1305,24 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 		CodeConverter cc{ Pkt->KanjiCode, Pkt->KanjiCodeDesired, Pkt->KanaCnv != NO };
 
 		/*===== ファイルを受信するループ =====*/
-		std::vector<char> buf(BUFSIZE);
-		int read = 0;
 		while (Pkt->Abort == ABORT_NONE && ForceAbort == NO) {
-			if (int timeout; (read = dSkt->Recv(data(buf), BUFSIZE, 0, &timeout, CancelCheckWork)) <= 0) {
-				if (timeout == YES) {
-					SetErrorMsg(GetString(IDS_MSGJPN094));
-					Notice(IDS_MSGJPN094);
-					if (Pkt->hWndTrans != NULL)
-						ClearAll = YES;
-					if (Pkt->Abort == ABORT_NONE)
-						Pkt->Abort = ABORT_ERROR;
-				} else if (read == SOCKET_ERROR) {
-					if (Pkt->Abort == ABORT_NONE)
-						Pkt->Abort = ABORT_ERROR;
+			auto result = dSkt->ReadBytes(BUFSIZE);
+			if (auto ptr = std::get_if<0>(&result)) {
+				if (auto converted = cc.Convert({ data(*ptr), size(*ptr) }); !os.write(data(converted), size(converted)))
+					Pkt->Abort = ABORT_DISKFULL;
+				Pkt->ExistSize += size_as<LONGLONG>(*ptr);
+				if (Pkt->hWndTrans != NULL)
+					AllTransSizeNow[Pkt->ThreadCount] += size_as<LONGLONG>(*ptr);
+				else {
+					/* 転送ダイアログを出さない時の経過表示 */
+					DispDownloadSize(Pkt->ExistSize);
 				}
+			} else if (auto status = std::get<1>(result); status != WSAEWOULDBLOCK) {
+				if (status != 0 && Pkt->Abort == ABORT_NONE)
+					Pkt->Abort = ABORT_ERROR;
 				break;
 			}
-
-			if (auto converted = cc.Convert({ data(buf), (size_t)read }); !os.write(data(converted), size(converted)))
-				Pkt->Abort = ABORT_DISKFULL;
-
-			Pkt->ExistSize += read;
-			if (Pkt->hWndTrans != NULL)
-				AllTransSizeNow[Pkt->ThreadCount] += read;
-			else {
-				/* 転送ダイアログを出さない時の経過表示 */
-				DispDownloadSize(Pkt->ExistSize);
-			}
-
-			if (BackgrndMessageProc() == YES)
+			if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
 				ForceAbort = YES;
 		}
 
@@ -1347,9 +1335,6 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 			/* 転送ダイアログを出さない時の経過表示を消す */
 			DispDownloadSize(-1);
 		}
-
-		if (read == SOCKET_ERROR)
-			WSAError(L"recv()"sv);
 	} else {
 		SetErrorMsg(std::vformat(GetString(IDS_MSGJPN095), std::make_wformat_args(Pkt->Local.native())));
 		Notice(IDS_MSGJPN095, Pkt->Local.native());
