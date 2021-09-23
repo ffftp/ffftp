@@ -1458,7 +1458,7 @@ void SaveSettingsToWinSCPIni() {
 			result += "%EF%BB%BF"sv;
 		for (auto ch : str)
 			if ((ch & 0x80) || "\t\n\r %*?\\"sv.find(ch) != std::string_view::npos)
-				result += std::format("%{:02X}"sv, ch);
+				result += std::format("%{:02X}"sv, (unsigned char)ch);
 			else
 				result += ch;
 		return result;
@@ -1467,7 +1467,7 @@ void SaveSettingsToWinSCPIni() {
 		auto str = u8(concat(user, host, password));
 		static_assert((char)~0xA3 == 0x5C);
 		auto result = std::format("A35C{:02X}5C"sv, size_as<unsigned char>(str) ^ 0x5C);
-		for (auto ch : str)
+		for (unsigned char ch : str)
 			result += std::format("{:02X}"sv, ch ^ 0x5C);
 		return result;
 	};

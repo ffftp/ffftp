@@ -2072,7 +2072,7 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 				if ('\x20' <= ch && ch != '%' && ch <= '\x7E')
 					wline += (wchar_t)ch;
 				else
-					wline += std::format(L"%{:02X}"sv, (unsigned)ch);
+					wline += std::format(L"%{:02X}"sv, (unsigned char)ch);
 			Debug(L"{}"sv, wline);
 		}
 		line.erase(std::remove(begin(line), end(line), '\r'), end(line));
