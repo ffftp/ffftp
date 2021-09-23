@@ -221,7 +221,7 @@ BOOL SocketContext::AttachSSL(BOOL* pbAborted) {
 	SecBufferDesc outDesc{ SECBUFFER_VERSION, size_as<unsigned long>(outBuffer), outBuffer };
 	unsigned long attr = 0;
 	sslReadStatus = InitializeSecurityContextW(&credential, nullptr, const_cast<SEC_WCHAR*>(punyTarget.c_str()), contextReq, 0, 0, nullptr, 0, &sslContext, &outDesc, &attr, nullptr);
-	_RPTWN(_CRT_WARN, L"InitializeSecurityContextW(): in=%d, %08X, out: %d/%d/%p, %d/%d/%p, attr=%X.\n", size_as<int>(readRaw), sslReadStatus,
+	_RPTWN(_CRT_WARN, L"SC{%zu}: InitializeSecurityContextW(%d): %08X, out=%d/%d/%p, %d/%d/%p, attr=%X.\n", handle, size_as<int>(readRaw), sslReadStatus,
 		outBuffer[0].BufferType, outBuffer[0].cbBuffer, outBuffer[0].pvBuffer, outBuffer[1].BufferType, outBuffer[1].cbBuffer, outBuffer[1].pvBuffer,
 		attr
 	);
@@ -229,19 +229,25 @@ BOOL SocketContext::AttachSSL(BOOL* pbAborted) {
 		return FALSE;
 	assert(outBuffer[0].BufferType == SECBUFFER_TOKEN && outBuffer[0].cbBuffer != 0 && outBuffer[0].pvBuffer != nullptr);
 	auto written = send(handle, reinterpret_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
+	_RPTWN(_CRT_WARN, L"SC{%zu}: send(): %d.\n", handle, written);
 	assert(written == outBuffer[0].cbBuffer);
-	_RPTWN(_CRT_WARN, L"send: %d bytes.\n", written);
 	__pragma(warning(suppress:6387)) FreeContextBuffer(outBuffer[0].pvBuffer);
 
 	sslNeedRenegotiate = true;
 
 	for (;;) {
-		FetchAll();
+		auto result = AsyncFetch();
+		if (result != 0 && result != WSA_IO_PENDING)
+			return FALSE;
+		for (;;) {
+			auto result = SleepEx(0, true);
+			if (result == WAIT_IO_COMPLETION)
+				break;
+			assert(result == 0);
+		}
 		if (sslReadStatus == SEC_E_OK)
 			break;
-		if (sslReadStatus == SEC_E_INCOMPLETE_MESSAGE || sslReadStatus == SEC_I_CONTINUE_NEEDED)
-			Sleep(0);
-		else
+		if (sslReadStatus != SEC_E_INCOMPLETE_MESSAGE && sslReadStatus != SEC_I_CONTINUE_NEEDED)
 			return FALSE;
 	}
 
@@ -260,7 +266,7 @@ BOOL SocketContext::AttachSSL(BOOL* pbAborted) {
 	default:
 		return FALSE;
 	}
-	_RPTW0(_CRT_WARN, L"AttachSSL(): success.\n");
+	_RPTWN(_CRT_WARN, L"SC{%zu}: ssl attached.\n", handle);
 	return TRUE;
 }
 
@@ -326,7 +332,7 @@ std::shared_ptr<SocketContext> SocketContext::Create(int af, std::variant<std::w
 }
 
 
-SocketContext::SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget) : handle{ s }, originalTarget{ originalTarget }, punyTarget{ punyTarget } {
+SocketContext::SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget) : WSAOVERLAPPED{}, handle { s }, originalTarget{ originalTarget }, punyTarget{ punyTarget } {
 	std::lock_guard lock{ mapMutex };
 	map[handle] = this;
 }
@@ -421,132 +427,161 @@ std::shared_ptr<SocketContext> SocketContext::Accept(_Out_writes_bytes_opt_(*add
 }
 
 
-// ノンブロッキングIOで読み込めるだけ読み込む。読み込み後のステータスを返す。
-//   0 .. これ以上読み込めない。
-//   WSAEWOULDBLOCK .. 受信待ち。
-//   other .. エラー。
-int SocketContext::FetchAll() {
-	static int recvlen = 8192;
-	if (recvStatus == WSAEWOULDBLOCK) {
-		for (;;) {
-			auto offset = size_as<int>(readRaw);
-			readRaw.resize((size_t)offset + recvlen);
-			readRaw.resize(readRaw.capacity());
-			auto len = recv(handle, data(readRaw) + offset, size_as<int>(readRaw) - offset, 0);
-			if (len <= 0)
-				recvStatus = len == 0 ? 0 : WSAGetLastError();
-			_RPTWN(_CRT_WARN, L"recv(): %d.\n", 0 <= len ? len : recvStatus);
-			readRaw.resize((size_t)offset + (len <= 0 ? 0 : len));
-			if (len == 0)
-				break;
-			if (len < 0) {
-				if (recvStatus != WSAEWOULDBLOCK)
-					Error(L"recv()", recvStatus);
-				break;
-			}
-			if (recvlen <= len)
-				recvlen *= 2;
-		}
+// AsyncFetchで使用されるコールバック。
+void SocketContext::OnComplete(DWORD error, DWORD transferred, DWORD flags) {
+	_RPTWN(_CRT_WARN, L"SC{%zu}: OnComplete(): error=%u, transferred=%u, flags=%u.\n", handle, error, transferred, flags);
+	readRaw.resize((size_t)readRawSize + transferred);
+	if (transferred == 0) {
+		recvStatus = error == 0 ? ERROR_HANDLE_EOF : error;
+		return;
 	}
 	if (!IsSSLAttached()) {
 		readPlain.insert(end(readPlain), begin(readRaw), end(readRaw));
 		readRaw.clear();
-	} else {
-		while (!empty(readRaw)) {
-			if (sslNeedRenegotiate) {
-				SecBuffer inBuffer[]{ { size_as<unsigned long>(readRaw), SECBUFFER_TOKEN, data(readRaw) }, { 0, SECBUFFER_EMPTY, nullptr } };
-				SecBuffer outBuffer[]{ { 0, SECBUFFER_EMPTY, nullptr }, { 0, SECBUFFER_EMPTY, nullptr } };
-				SecBufferDesc inDesc{ SECBUFFER_VERSION, size_as<unsigned long>(inBuffer), inBuffer };
-				SecBufferDesc outDesc{ SECBUFFER_VERSION, size_as<unsigned long>(outBuffer), outBuffer };
-				unsigned long attr = 0;
-				sslReadStatus = InitializeSecurityContextW(&credential, &sslContext, const_cast<SEC_WCHAR*>(punyTarget.c_str()), contextReq, 0, 0, &inDesc, 0, nullptr, &outDesc, &attr, nullptr);
-				_RPTWN(_CRT_WARN, L"InitializeSecurityContextW(): in=%d, %08X, in: %d/%d/%p, %d/%d/%p, out: %d/%d/%p, %d/%d/%p, attr=%X.\n", size_as<int>(readRaw), sslReadStatus,
-					inBuffer[0].BufferType, inBuffer[0].cbBuffer, inBuffer[0].pvBuffer, inBuffer[1].BufferType, inBuffer[1].cbBuffer, inBuffer[1].pvBuffer,
-					outBuffer[0].BufferType, outBuffer[0].cbBuffer, outBuffer[0].pvBuffer, outBuffer[1].BufferType, outBuffer[1].cbBuffer, outBuffer[1].pvBuffer,
-					attr
-				);
-				if (sslReadStatus == SEC_E_OK || sslReadStatus == SEC_I_CONTINUE_NEEDED) {
-					if (outBuffer[0].BufferType == SECBUFFER_TOKEN && outBuffer[0].cbBuffer != 0) {
-						// TODO: 送信バッファが埋まっている場合に失敗する
-						auto written = send(handle, reinterpret_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
-						_RPTWN(_CRT_WARN, L"send(): %d.\n", written);
-						assert(written == outBuffer[0].cbBuffer);
-						FreeContextBuffer(outBuffer[0].pvBuffer);
-					}
-					readRaw.erase(begin(readRaw), end(readRaw) - (inBuffer[1].BufferType == SECBUFFER_EXTRA ? inBuffer[1].cbBuffer : 0));
-					if (sslReadStatus == SEC_E_OK)
-						sslNeedRenegotiate = false;
-				} else if (sslReadStatus == SEC_E_INCOMPLETE_MESSAGE) {
-					break;
-				} else {
-					Error(L"InitializeSecurityContextW()"sv, sslReadStatus);
-					return sslReadStatus;
+		return;
+	}
+	while (!empty(readRaw)) {
+		if (sslNeedRenegotiate) {
+			SecBuffer inBuffer[]{ { size_as<unsigned long>(readRaw), SECBUFFER_TOKEN, data(readRaw) }, { 0, SECBUFFER_EMPTY, nullptr } };
+			SecBuffer outBuffer[]{ { 0, SECBUFFER_EMPTY, nullptr }, { 0, SECBUFFER_EMPTY, nullptr } };
+			SecBufferDesc inDesc{ SECBUFFER_VERSION, size_as<unsigned long>(inBuffer), inBuffer };
+			SecBufferDesc outDesc{ SECBUFFER_VERSION, size_as<unsigned long>(outBuffer), outBuffer };
+			unsigned long attr = 0;
+			sslReadStatus = InitializeSecurityContextW(&credential, &sslContext, const_cast<SEC_WCHAR*>(punyTarget.c_str()), contextReq, 0, 0, &inDesc, 0, nullptr, &outDesc, &attr, nullptr);
+			_RPTWN(_CRT_WARN, L"SC{%zu}: InitializeSecurityContextW(%d): %08X, in=%d/%d/%p, %d/%d/%p, out=%d/%d/%p, %d/%d/%p, attr=%X.\n", handle, size_as<int>(readRaw), sslReadStatus,
+				inBuffer[0].BufferType, inBuffer[0].cbBuffer, inBuffer[0].pvBuffer, inBuffer[1].BufferType, inBuffer[1].cbBuffer, inBuffer[1].pvBuffer,
+				outBuffer[0].BufferType, outBuffer[0].cbBuffer, outBuffer[0].pvBuffer, outBuffer[1].BufferType, outBuffer[1].cbBuffer, outBuffer[1].pvBuffer,
+				attr
+			);
+			if (sslReadStatus == SEC_E_OK || sslReadStatus == SEC_I_CONTINUE_NEEDED) {
+				if (outBuffer[0].BufferType == SECBUFFER_TOKEN && outBuffer[0].cbBuffer != 0) {
+					// TODO: 送信バッファが埋まっている場合に失敗する
+					auto written = send(handle, reinterpret_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
+					_RPTWN(_CRT_WARN, L"SC{%zu}: send(): %d.\n", handle, written);
+					assert(written == outBuffer[0].cbBuffer);
+					FreeContextBuffer(outBuffer[0].pvBuffer);
 				}
+				readRaw.erase(begin(readRaw), end(readRaw) - (inBuffer[1].BufferType == SECBUFFER_EXTRA ? inBuffer[1].cbBuffer : 0));
+				if (sslReadStatus == SEC_E_OK)
+					sslNeedRenegotiate = false;
+			} else if (sslReadStatus == SEC_E_INCOMPLETE_MESSAGE) {
+				break;
 			} else {
-				SecBuffer buffer[]{
-					{ size_as<unsigned long>(readRaw), SECBUFFER_DATA, data(readRaw) },
-					{ 0, SECBUFFER_EMPTY, nullptr },
-					{ 0, SECBUFFER_EMPTY, nullptr },
-					{ 0, SECBUFFER_EMPTY, nullptr },
-				};
-				SecBufferDesc desc{ SECBUFFER_VERSION, size_as<unsigned long>(buffer), buffer };
-				sslReadStatus = DecryptMessage(&sslContext, &desc, 0, nullptr);
-				_RPTWN(_CRT_WARN, L"DecryptMessage(): in=%d, %08X, %d/%d/%p, %d/%d/%p, %d/%d/%p, %d/%d/%p.\n", size_as<int>(readRaw), sslReadStatus,
-					buffer[0].BufferType, buffer[0].cbBuffer, buffer[0].pvBuffer, buffer[1].BufferType, buffer[1].cbBuffer, buffer[1].pvBuffer,
-					buffer[2].BufferType, buffer[2].cbBuffer, buffer[2].pvBuffer, buffer[3].BufferType, buffer[3].cbBuffer, buffer[3].pvBuffer
-				);
-				if (sslReadStatus == SEC_E_OK) {
-					assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[1].BufferType == SECBUFFER_DATA && buffer[2].BufferType == SECBUFFER_STREAM_TRAILER);
-					readPlain.insert(end(readPlain), reinterpret_cast<const char*>(buffer[1].pvBuffer), reinterpret_cast<const char*>(buffer[1].pvBuffer) + buffer[1].cbBuffer);
-					readRaw.erase(begin(readRaw), end(readRaw) - (buffer[3].BufferType == SECBUFFER_EXTRA ? buffer[3].cbBuffer : 0));
-				} else if(sslReadStatus == SEC_I_CONTEXT_EXPIRED){
-					assert(buffer[0].BufferType == SECBUFFER_DATA && buffer[0].cbBuffer == size_as<unsigned long>(readRaw));
-					readRaw.clear();
-					return 0;
-				} else if (sslReadStatus == SEC_E_INCOMPLETE_MESSAGE) {
-					break;
-				} else if (sslReadStatus == SEC_I_RENEGOTIATE) {
-					assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[1].BufferType == SECBUFFER_DATA && buffer[1].cbBuffer == 0 && buffer[2].BufferType == SECBUFFER_STREAM_TRAILER && buffer[3].BufferType == SECBUFFER_EXTRA);
-					readRaw.erase(begin(readRaw), end(readRaw) - buffer[3].cbBuffer);
-					sslNeedRenegotiate = true;
-				} else {
-					Error(L"DecryptMessage()"sv, sslReadStatus);
-					return sslReadStatus;
-				}
+				Error(L"InitializeSecurityContextW()"sv, sslReadStatus);
+				return;
+			}
+		} else {
+			SecBuffer buffer[]{
+				{ size_as<unsigned long>(readRaw), SECBUFFER_DATA, data(readRaw) },
+				{ 0, SECBUFFER_EMPTY, nullptr },
+				{ 0, SECBUFFER_EMPTY, nullptr },
+				{ 0, SECBUFFER_EMPTY, nullptr },
+			};
+			SecBufferDesc desc{ SECBUFFER_VERSION, size_as<unsigned long>(buffer), buffer };
+			sslReadStatus = DecryptMessage(&sslContext, &desc, 0, nullptr);
+			_RPTWN(_CRT_WARN, L"SC{%zu}: DecryptMessage(%d): %08X, buf=%d/%d/%p, %d/%d/%p, %d/%d/%p, %d/%d/%p.\n", handle, size_as<int>(readRaw), sslReadStatus,
+				buffer[0].BufferType, buffer[0].cbBuffer, buffer[0].pvBuffer, buffer[1].BufferType, buffer[1].cbBuffer, buffer[1].pvBuffer,
+				buffer[2].BufferType, buffer[2].cbBuffer, buffer[2].pvBuffer, buffer[3].BufferType, buffer[3].cbBuffer, buffer[3].pvBuffer
+			);
+			if (sslReadStatus == SEC_E_OK) {
+				assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[1].BufferType == SECBUFFER_DATA && buffer[2].BufferType == SECBUFFER_STREAM_TRAILER);
+				readPlain.insert(end(readPlain), reinterpret_cast<const char*>(buffer[1].pvBuffer), reinterpret_cast<const char*>(buffer[1].pvBuffer) + buffer[1].cbBuffer);
+				readRaw.erase(begin(readRaw), end(readRaw) - (buffer[3].BufferType == SECBUFFER_EXTRA ? buffer[3].cbBuffer : 0));
+			} else if (sslReadStatus == SEC_I_CONTEXT_EXPIRED) {
+				assert(buffer[0].BufferType == SECBUFFER_DATA && buffer[0].cbBuffer == size_as<unsigned long>(readRaw));
+				readRaw.clear();
+				return;
+			} else if (sslReadStatus == SEC_E_INCOMPLETE_MESSAGE) {
+				break;
+			} else if (sslReadStatus == SEC_I_RENEGOTIATE) {
+				assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[1].BufferType == SECBUFFER_DATA && buffer[1].cbBuffer == 0 && buffer[2].BufferType == SECBUFFER_STREAM_TRAILER && buffer[3].BufferType == SECBUFFER_EXTRA);
+				readRaw.erase(begin(readRaw), end(readRaw) - buffer[3].cbBuffer);
+				sslNeedRenegotiate = true;
+			} else {
+				Error(L"DecryptMessage()"sv, sslReadStatus);
+				return;
 			}
 		}
 	}
+}
+
+
+// 非同期読み込みを開始する。Alertable I/Oを使用しているので、呼び出し元はAPC queueを実行すること。
+//   0 ................ 成功。既に完了している。
+//   WSA_IO_PENDING ... 成功。非同期実行が開始された。
+//   other ............ 失敗。
+int SocketContext::AsyncFetch() {
+	readRawSize = size_as<ULONG>(readRaw);
+	readRaw.resize((size_t)readRawSize + recvlen);
+	readRaw.resize(readRaw.capacity());
+	WSABUF buf{ size_as<ULONG>(readRaw) - readRawSize, data(readRaw) + readRawSize };
+	DWORD flag = 0;
+	auto result = WSARecv(handle, &buf, 1, nullptr, &flag, this, [](DWORD error, DWORD transferred, LPWSAOVERLAPPED overlapped, DWORD flags) { static_cast<SocketContext*>(overlapped)->OnComplete(error, transferred, flags); });
+	recvStatus = result == 0 ? 0 : WSAGetLastError();
+	_RPTWN(_CRT_WARN, L"SC{%zu}: WSARecv(): %d, %d.\n", handle, result, recvStatus);
+	if (recvStatus != 0 && recvStatus != WSA_IO_PENDING)
+		readRaw.resize(readRawSize);
 	return recvStatus;
 }
 
 
+// 現在の読み込みステータス。SSLとrecvを踏まえて決定される。
+//   0 .................. まだ読めそう。
+//   ERROR_HANDLE_EOF ... 終端に達したため、これ以上読めない。
+//   other .............. SSLステータスもしくはrecvステータス。
+int SocketContext::GetReadStatus() {
+	switch (sslReadStatus) {
+	case SEC_I_CONTEXT_EXPIRED:
+		return ERROR_HANDLE_EOF;
+	case SEC_E_OK:
+	case SEC_E_INCOMPLETE_MESSAGE:
+	case SEC_I_RENEGOTIATE:
+	case SEC_I_CONTINUE_NEEDED:
+		return recvStatus == WSA_IO_PENDING ? 0 : recvStatus;
+	default:
+		return sslReadStatus;
+	}
+}
+
+
+// １行読み込み。
+//   std::string ... 読み込んだ１行
+//   int ........... 現在の読み込みステータス。
 std::variant<std::string, int> SocketContext::ReadLine() {
-	auto canRead = FetchAll();
-	if (auto it = std::find(begin(readPlain), end(readPlain), '\n'); it != end(readPlain)) {
+	if (auto it = std::ranges::find(readPlain, '\n'); it != end(readPlain)) {
 		++it;
 		std::string result(begin(readPlain), it);
 		readPlain.erase(begin(readPlain), it);
 		return std::move(result);
 	}
-	return canRead;
+	return GetReadStatus();
 }
 
 
+// 指定バイト読み込み。
+//   std::vector ... 読み込んだバイト列。
+//   int ........... 現在の読み込みステータス。
 std::variant<std::vector<char>, int> SocketContext::ReadBytes(int len) {
-	auto canRead = FetchAll();
-	if (!empty(readPlain)) {
-		if (size_as<int>(readPlain) < len)
-			len = size_as<int>(readPlain);
+	if (len <= size_as<int>(readPlain)) {
 		std::vector<char> result(begin(readPlain), begin(readPlain) + len);
 		readPlain.erase(begin(readPlain), begin(readPlain) + len);
 		return std::move(result);
 	}
-	return canRead;
+	return GetReadStatus();
+}
+
+
+// 全読み込み。
+//   std::vector ... 読み込み済みのデータ。
+//   int ........... 現在の読み込みステータス。
+std::variant<std::vector<char>, int> SocketContext::ReadAll() {
+	if (!empty(readPlain))
+		return std::exchange(readPlain, {});
+	return GetReadStatus();
 }
 
 
 void SocketContext::ClearReadBuffer() {
-	FetchAll();
 	assert(empty(readRaw));
 	readPlain.clear();
 }

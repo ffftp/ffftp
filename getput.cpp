@@ -1306,7 +1306,7 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 
 		/*===== ファイルを受信するループ =====*/
 		while (Pkt->Abort == ABORT_NONE && ForceAbort == NO) {
-			auto result = dSkt->ReadBytes(BUFSIZE);
+			auto result = dSkt->ReadAll();
 			if (auto ptr = std::get_if<0>(&result)) {
 				if (auto converted = cc.Convert({ data(*ptr), size(*ptr) }); !os.write(data(converted), size(converted)))
 					Pkt->Abort = ABORT_DISKFULL;
@@ -1317,14 +1317,26 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 					/* 転送ダイアログを出さない時の経過表示 */
 					DispDownloadSize(Pkt->ExistSize);
 				}
-			} else if (auto status = std::get<1>(result); status != WSAEWOULDBLOCK) {
-				if (status != 0 && Pkt->Abort == ABORT_NONE)
+			} else if (auto status = std::get<1>(result); status != 0) {
+				if (status != ERROR_HANDLE_EOF && Pkt->Abort == ABORT_NONE)
 					Pkt->Abort = ABORT_ERROR;
 				break;
 			}
-			if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
-				ForceAbort = YES;
+			if (auto result = dSkt->AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
+				break;
+			for (;;) {
+				// TODO: timeout
+				auto result = SleepEx(0, true);
+				if (result == WAIT_IO_COMPLETION)
+					break;
+				assert(result == 0);
+				if (BackgrndMessageProc() == YES || *CancelCheckWork == YES) {
+					ForceAbort = YES;
+					goto error;
+				}
+			}
 		}
+		error:
 
 		/* グラフ表示を更新 */
 		if (Pkt->hWndTrans != NULL) {

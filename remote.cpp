@@ -421,12 +421,19 @@ static std::tuple<int, std::wstring> ReadOneLine(std::shared_ptr<SocketContext> 
 			line = std::move(*ptr);
 			break;
 		}
-		if (std::get<1>(result) != WSAEWOULDBLOCK)
+		if (std::get<1>(result) != 0)
 			return { 429, {} };
-		// TODO: timeout
-		Sleep(1);
-		if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
+		if (auto result = cSkt->AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
 			return { 429, {} };
+		for (;;) {
+			// TODO: timeout
+			auto result = SleepEx(0, true);
+			if (result == WAIT_IO_COMPLETION)
+				break;
+			assert(result == 0);
+			if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
+				return { 429, {} };
+		}
 	}
 
 	int replyCode = 0;
@@ -459,20 +466,23 @@ int ReadNchar(std::shared_ptr<SocketContext> cSkt, char* Buf, int Size, int* Can
 			auto result = cSkt->ReadBytes(Size);
 			if (auto ptr = std::get_if<0>(&result)) {
 				std::ranges::copy(*ptr, Buf);
-				Buf += size(*ptr);
-				Size -= size_as<int>(*ptr);
-				if (Size == 0)
-					return FFFTP_SUCCESS;
-			} else if (std::get<1>(result) != WSAEWOULDBLOCK) {
+				return FFFTP_SUCCESS;
+			} else if (std::get<1>(result) != 0)
 				break;
-			} else {
+			if (auto result = cSkt->AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
+				break;
+			for (;;) {
 				// TODO: timeout
-				Sleep(1);
-				if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
+				auto result = SleepEx(0, true);
+				if (result == WAIT_IO_COMPLETION)
 					break;
+				assert(result == 0);
+				if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
+					goto error;
 			}
 		}
 	}
+	error:
 	Notice(IDS_MSGJPN244);
 	return FFFTP_FAIL;
 }

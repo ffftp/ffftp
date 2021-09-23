@@ -433,7 +433,8 @@ constexpr T CreateInvalidateHandle() {
 	return handle;
 }
 
-struct SocketContext {
+struct SocketContext : public WSAOVERLAPPED {
+	static inline int recvlen = 8192;
 	SOCKET const handle;
 	std::wstring const originalTarget;
 	std::wstring const punyTarget;
@@ -448,7 +449,8 @@ struct SocketContext {
 	std::vector<char> readPlain;
 	bool sslNeedRenegotiate = false;
 	SECURITY_STATUS sslReadStatus = SEC_E_OK;
-	int recvStatus = WSAEWOULDBLOCK;
+	int recvStatus = 0;
+	ULONG readRawSize = 0;
 
 	inline SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget);
 	SocketContext(SocketContext const&) = delete;
@@ -467,9 +469,12 @@ struct SocketContext {
 	bool GetEvent(int mask);
 	int Connect(const sockaddr* name, int namelen, int* CancelCheckWork);
 	int Listen(int backlog);
-	int FetchAll();
+	void OnComplete(DWORD error, DWORD transferred, DWORD flags);
+	int AsyncFetch();
+	int GetReadStatus();
 	std::variant<std::string, int> ReadLine();
 	std::variant<std::vector<char>, int> ReadBytes(int len);
+	std::variant<std::vector<char>, int> ReadAll();
 	void ClearReadBuffer();
 	int Send(const char* buf, int len, int flags, int* CancelCheckWork);
 };
