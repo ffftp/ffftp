@@ -49,65 +49,6 @@ static constexpr unsigned long contextReq = ISC_REQ_STREAM | ISC_REQ_SEQUENCE_DE
 static CredHandle credential = CreateInvalidateHandle<CredHandle>();
 
 
-void SocketContext::Decypt() {
-	while (!empty(readRaw)) {
-		if (sslNeedRenegotiate) {
-			SecBuffer inBuffer[]{ { size_as<unsigned long>(readRaw), SECBUFFER_TOKEN, data(readRaw) }, { 0, SECBUFFER_EMPTY, nullptr } };
-			SecBuffer outBuffer[]{ { 0, SECBUFFER_EMPTY, nullptr }, { 0, SECBUFFER_EMPTY, nullptr } };
-			SecBufferDesc inDesc{ SECBUFFER_VERSION, size_as<unsigned long>(inBuffer), inBuffer };
-			SecBufferDesc outDesc{ SECBUFFER_VERSION, size_as<unsigned long>(outBuffer), outBuffer };
-			unsigned long attr = 0;
-			sslReadStatus = InitializeSecurityContextW(&credential, &sslContext, const_cast<SEC_WCHAR*>(punyTarget.c_str()), contextReq, 0, 0, &inDesc, 0, nullptr, &outDesc, &attr, nullptr);
-			_RPTWN(_CRT_WARN, L"Decypt(): InitializeSecurityContextW(): in=%d, 0x%08X, in: %d/%d/%p, %d/%d/%p, out: %d/%d/%p, %d/%d/%p, attr=%X.\n", size_as<int>(readRaw), sslReadStatus,
-				inBuffer[0].BufferType, inBuffer[0].cbBuffer, inBuffer[0].pvBuffer, inBuffer[1].BufferType, inBuffer[1].cbBuffer, inBuffer[1].pvBuffer,
-				outBuffer[0].BufferType, outBuffer[0].cbBuffer, outBuffer[0].pvBuffer, outBuffer[1].BufferType, outBuffer[1].cbBuffer, outBuffer[1].pvBuffer,
-				attr
-			);
-			if (outBuffer[0].BufferType == SECBUFFER_TOKEN && outBuffer[0].cbBuffer != 0) {
-				auto written = send(handle, reinterpret_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
-				_RPTWN(_CRT_WARN, L"Decypt(): send: %d bytes.\n", written);
-				assert(written == outBuffer[0].cbBuffer);
-				FreeContextBuffer(outBuffer[0].pvBuffer);
-			}
-			if (sslReadStatus == SEC_E_OK || sslReadStatus == SEC_I_CONTINUE_NEEDED) {
-				readRaw.erase(begin(readRaw), end(readRaw) - (inBuffer[1].BufferType == SECBUFFER_EXTRA ? inBuffer[1].cbBuffer : 0));
-				if (sslReadStatus == SEC_E_OK)
-					sslNeedRenegotiate = false;
-			} else {
-				if (sslReadStatus != SEC_E_INCOMPLETE_MESSAGE)
-					Error(L"Decypt(): InitializeSecurityContextW()"sv, sslReadStatus);
-				return;
-			}
-		} else {
-			SecBuffer buffer[]{
-				{ size_as<unsigned long>(readRaw), SECBUFFER_DATA, data(readRaw) },
-				{ 0, SECBUFFER_EMPTY, nullptr },
-				{ 0, SECBUFFER_EMPTY, nullptr },
-				{ 0, SECBUFFER_EMPTY, nullptr },
-			};
-			SecBufferDesc desc{ SECBUFFER_VERSION, size_as<unsigned long>(buffer), buffer };
-			sslReadStatus = DecryptMessage(&sslContext, &desc, 0, nullptr);
-			_RPTWN(_CRT_WARN, L"DecryptMessage(): in=%d, %08X, %d/%d/%p, %d/%d/%p, %d/%d/%p, %d/%d/%p.\n", size_as<int>(readRaw), sslReadStatus,
-				buffer[0].BufferType, buffer[0].cbBuffer, buffer[0].pvBuffer, buffer[1].BufferType, buffer[1].cbBuffer, buffer[1].pvBuffer,
-				buffer[2].BufferType, buffer[2].cbBuffer, buffer[2].pvBuffer, buffer[3].BufferType, buffer[3].cbBuffer, buffer[3].pvBuffer
-			);
-			if (sslReadStatus == SEC_E_OK) {
-				assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[1].BufferType == SECBUFFER_DATA && buffer[2].BufferType == SECBUFFER_STREAM_TRAILER);
-				readPlain.insert(end(readPlain), reinterpret_cast<const char*>(buffer[1].pvBuffer), reinterpret_cast<const char*>(buffer[1].pvBuffer) + buffer[1].cbBuffer);
-				readRaw.erase(begin(readRaw), end(readRaw) - (buffer[3].BufferType == SECBUFFER_EXTRA ? buffer[3].cbBuffer : 0));
-			} else if (sslReadStatus == SEC_I_RENEGOTIATE) {
-				assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[1].BufferType == SECBUFFER_DATA && buffer[1].cbBuffer == 0 && buffer[2].BufferType == SECBUFFER_STREAM_TRAILER && buffer[3].BufferType == SECBUFFER_EXTRA);
-				readRaw.erase(begin(readRaw), end(readRaw) - buffer[3].cbBuffer);
-				sslNeedRenegotiate = true;
-			} else {
-				if (sslReadStatus != SEC_E_INCOMPLETE_MESSAGE)
-					Error(L"Decypt(): DecryptMessage()"sv, sslReadStatus);
-				return;
-			}
-		}
-	}
-}
-
 std::vector<char> SocketContext::Encrypt(std::string_view plain) {
 	std::vector<char> result;
 	while (!empty(plain)) {
@@ -275,59 +216,43 @@ static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName
 // SSLセッションを開始
 BOOL SocketContext::AttachSSL(BOOL* pbAborted) {
 	assert(SecIsValidHandle(&credential));
-	auto first = true;
-	SECURITY_STATUS ss = SEC_I_CONTINUE_NEEDED;
-	do {
-		SecBuffer inBuffer[]{ { 0, SECBUFFER_EMPTY, nullptr }, { 0, SECBUFFER_EMPTY, nullptr } };
-		SecBuffer outBuffer[]{ { 0, SECBUFFER_EMPTY, nullptr }, { 0, SECBUFFER_EMPTY, nullptr } };
-		SecBufferDesc inDesc{ SECBUFFER_VERSION, size_as<unsigned long>(inBuffer), inBuffer };
-		SecBufferDesc outDesc{ SECBUFFER_VERSION, size_as<unsigned long>(outBuffer), outBuffer };
-		unsigned long attr = 0;
-		if (first) {
-			first = false;
-			__pragma(warning(suppress:6001)) ss = InitializeSecurityContextW(&credential, nullptr, const_cast<SEC_WCHAR*>(punyTarget.c_str()), contextReq, 0, 0, nullptr, 0, &sslContext, &outDesc, &attr, nullptr);
-		} else {
-			char buffer[8192];
-			if (auto read = recv(handle, buffer, size_as<int>(buffer), 0); read == 0) {
-				Debug(L"AttachSSL(): recv: connection closed."sv);
-				return FALSE;
-			} else if (0 < read) {
-				_RPTWN(_CRT_WARN, L"AttachSSL recv: %d bytes.\n", read);
-				readRaw.insert(end(readRaw), buffer, buffer + read);
-			} else if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
-				Error(L"AttachSSL(): recv()"sv, lastError);
-				return FALSE;
-			}
-			inBuffer[0] = { size_as<unsigned long>(readRaw), SECBUFFER_TOKEN, data(readRaw) };
-			ss = InitializeSecurityContextW(&credential, &sslContext, const_cast<SEC_WCHAR*>(punyTarget.c_str()), contextReq, 0, 0, &inDesc, 0, nullptr, &outDesc, &attr, nullptr);
-		}
-		_RPTWN(_CRT_WARN, L"AttachSSL(): InitializeSecurityContextW(): in=%d, 0x%08X, in: %d/%d/%p, %d/%d/%p, out: %d/%d/%p, %d/%d/%p, attr=%X.\n", size_as<int>(readRaw), ss,
-			inBuffer[0].BufferType, inBuffer[0].cbBuffer, inBuffer[0].pvBuffer, inBuffer[1].BufferType, inBuffer[1].cbBuffer, inBuffer[1].pvBuffer,
-			outBuffer[0].BufferType, outBuffer[0].cbBuffer, outBuffer[0].pvBuffer, outBuffer[1].BufferType, outBuffer[1].cbBuffer, outBuffer[1].pvBuffer,
-			attr
-		);
-		if (FAILED(ss) && ss != SEC_E_INCOMPLETE_MESSAGE) {
-			Error(L"AttachSSL(): InitializeSecurityContext()"sv, ss);
-			return FALSE;
-		}
-		if (outBuffer[0].BufferType == SECBUFFER_TOKEN && outBuffer[0].cbBuffer != 0) {
-			auto written = send(handle, reinterpret_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
-			assert(written == outBuffer[0].cbBuffer);
-			_RPTWN(_CRT_WARN, L"AttachSSL(): send: %d bytes.\n", written);
-			FreeContextBuffer(outBuffer[0].pvBuffer);
-		}
-		if (ss == SEC_E_INCOMPLETE_MESSAGE)
-			ss = SEC_I_CONTINUE_NEEDED;
-		else if (inBuffer[1].BufferType == SECBUFFER_EXTRA)
-			// inBuffer[1].pvBufferはnullptrの場合があるためinBuffer[1].cbBufferのみを使用する
-			readRaw.erase(begin(readRaw), end(readRaw) - inBuffer[1].cbBuffer);
-		else
-			readRaw.clear();
-		Sleep(0);
-	} while (ss == SEC_I_CONTINUE_NEEDED);
 
-	if (ss = QueryContextAttributesW(&sslContext, SECPKG_ATTR_STREAM_SIZES, &sslStreamSizes); ss != SEC_E_OK) {
-		Error(L"AttachSSL(): QueryContextAttributes(SECPKG_ATTR_STREAM_SIZES)"sv, ss);
+	SecBuffer outBuffer[]{ { 0, SECBUFFER_EMPTY, nullptr }, { 0, SECBUFFER_EMPTY, nullptr } };
+	SecBufferDesc outDesc{ SECBUFFER_VERSION, size_as<unsigned long>(outBuffer), outBuffer };
+	unsigned long attr = 0;
+	sslReadStatus = InitializeSecurityContextW(&credential, nullptr, const_cast<SEC_WCHAR*>(punyTarget.c_str()), contextReq, 0, 0, nullptr, 0, &sslContext, &outDesc, &attr, nullptr);
+	_RPTWN(_CRT_WARN, L"SC{%zu}: InitializeSecurityContextW(%d): %08X, out=%d/%d/%p, %d/%d/%p, attr=%X.\n", handle, size_as<int>(readRaw), sslReadStatus,
+		outBuffer[0].BufferType, outBuffer[0].cbBuffer, outBuffer[0].pvBuffer, outBuffer[1].BufferType, outBuffer[1].cbBuffer, outBuffer[1].pvBuffer,
+		attr
+	);
+	if (sslReadStatus != SEC_I_CONTINUE_NEEDED)
+		return FALSE;
+	assert(outBuffer[0].BufferType == SECBUFFER_TOKEN && outBuffer[0].cbBuffer != 0 && outBuffer[0].pvBuffer != nullptr);
+	auto written = send(handle, reinterpret_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
+	_RPTWN(_CRT_WARN, L"SC{%zu}: send(): %d.\n", handle, written);
+	assert(written == outBuffer[0].cbBuffer);
+	__pragma(warning(suppress:6387)) FreeContextBuffer(outBuffer[0].pvBuffer);
+
+	sslNeedRenegotiate = true;
+
+	for (;;) {
+		auto result = AsyncFetch();
+		if (result != 0 && result != WSA_IO_PENDING)
+			return FALSE;
+		for (;;) {
+			auto result = SleepEx(0, true);
+			if (result == WAIT_IO_COMPLETION)
+				break;
+			assert(result == 0);
+		}
+		if (sslReadStatus == SEC_E_OK)
+			break;
+		if (sslReadStatus != SEC_E_INCOMPLETE_MESSAGE && sslReadStatus != SEC_I_CONTINUE_NEEDED)
+			return FALSE;
+	}
+
+	if ((sslReadStatus = QueryContextAttributesW(&sslContext, SECPKG_ATTR_STREAM_SIZES, &sslStreamSizes)) != SEC_E_OK) {
+		Error(L"QueryContextAttributes(SECPKG_ATTR_STREAM_SIZES)"sv, sslReadStatus);
 		return FALSE;
 	}
 
@@ -341,64 +266,13 @@ BOOL SocketContext::AttachSSL(BOOL* pbAborted) {
 	default:
 		return FALSE;
 	}
-	if (!empty(readRaw))
-		Decypt();
-	_RPTW0(_CRT_WARN, L"AttachSSL(): success.\n");
+	_RPTWN(_CRT_WARN, L"SC{%zu}: ssl attached.\n", handle);
 	return TRUE;
 }
 
 bool IsSecureConnection() {
-	if (auto const& sc = AskCmdCtrlSkt(); sc && sc->IsSSLAttached())
-		return sc->sslSecure;
-	return false;
-}
-
-
-int SocketContext::RecvInternal(char* buf, int len, int flags) {
-	assert(flags == 0 || flags == MSG_PEEK);
-	if (!IsSSLAttached())
-		return recv(handle, buf, len, flags);
-
-	if (empty(readPlain) && sslReadStatus != SEC_I_CONTEXT_EXPIRED) {
-		auto offset = size_as<int>(readRaw);
-		readRaw.resize((size_t)sslStreamSizes.cbHeader + sslStreamSizes.cbMaximumMessage + sslStreamSizes.cbTrailer);
-		auto read = recv(handle, data(readRaw) + offset, size_as<int>(readRaw) - offset, 0);
-		if (read <= 0) {
-			readRaw.resize(offset);
-#ifdef _DEBUG
-			if (read == 0)
-				Debug(L"FTPS_recv: recv(): connection closed."sv);
-			else if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK)
-				Error(L"FTPS_recv: recv()"sv, lastError);
-#endif
-			return read;
-		}
-		_RPTWN(_CRT_WARN, L"FTPS_recv recv: %d bytes.\n", read);
-		readRaw.resize((size_t)offset + read);
-		Decypt();
-	}
-
-	if (empty(readPlain))
-		switch (sslReadStatus) {
-		case SEC_I_CONTEXT_EXPIRED:
-			return 0;
-		case SEC_E_OK:
-		case SEC_I_CONTINUE_NEEDED:
-		case SEC_E_INCOMPLETE_MESSAGE:
-			// recvできたデータが少なすぎてフレームの解析・デコードができず、復号データが得られないというエラー。
-			// ブロッキングが発生するというエラーに書き換える。
-			WSASetLastError(WSAEWOULDBLOCK);
-			return SOCKET_ERROR;
-		default:
-			_RPTWN(_CRT_WARN, L"FTPS_recv readStatus: %08X.\n", sslReadStatus);
-			return SOCKET_ERROR;
-		}
-	len = std::min(len, size_as<int>(readPlain));
-	std::copy_n(begin(readPlain), len, buf);
-	if ((flags & MSG_PEEK) == 0)
-		readPlain.erase(begin(readPlain), begin(readPlain) + len);
-	_RPTWN(_CRT_WARN, L"FTPS_recv read: %d bytes.\n", len);
-	return len;
+	auto const& sc = AskCmdCtrlSkt();
+	return sc && sc->IsSSLAttached() && sc->sslSecure;
 }
 
 
@@ -458,7 +332,7 @@ std::shared_ptr<SocketContext> SocketContext::Create(int af, std::variant<std::w
 }
 
 
-SocketContext::SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget) : handle{ s }, originalTarget{ originalTarget }, punyTarget{ punyTarget } {
+SocketContext::SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget) : WSAOVERLAPPED{}, handle { s }, originalTarget{ originalTarget }, punyTarget{ punyTarget } {
 	std::lock_guard lock{ mapMutex };
 	map[handle] = this;
 }
@@ -553,28 +427,163 @@ std::shared_ptr<SocketContext> SocketContext::Accept(_Out_writes_bytes_opt_(*add
 }
 
 
-int SocketContext::Recv(char* buf, int len, int flags, int* TimeOutErr, int* CancelCheckWork) {
-	if (*CancelCheckWork != NO)
-		return SOCKET_ERROR;
-	auto endTime = TimeOut != 0 ? std::make_optional(std::chrono::steady_clock::now() + std::chrono::seconds(TimeOut)) : std::nullopt;
-	*TimeOutErr = NO;
-	for (;;) {
-		if (auto read = RecvInternal(buf, len, flags); read != SOCKET_ERROR)
-			return read;
-		if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK)
-			return SOCKET_ERROR;
-		Sleep(1);
-		if (BackgrndMessageProc() == YES)
-			return SOCKET_ERROR;
-		if (endTime && *endTime < std::chrono::steady_clock::now()) {
-			Debug(L"do_recv timed out."sv);
-			*TimeOutErr = YES;
-			*CancelCheckWork = YES;
-			return SOCKET_ERROR;
-		}
-		if (*CancelCheckWork == YES)
-			return SOCKET_ERROR;
+// AsyncFetchで使用されるコールバック。
+void SocketContext::OnComplete(DWORD error, DWORD transferred, DWORD flags) {
+	_RPTWN(_CRT_WARN, L"SC{%zu}: OnComplete(): error=%u, transferred=%u, flags=%u.\n", handle, error, transferred, flags);
+	readRaw.resize((size_t)readRawSize + transferred);
+	if (transferred == 0) {
+		recvStatus = error == 0 ? ERROR_HANDLE_EOF : error;
+		return;
 	}
+	if (!IsSSLAttached()) {
+		readPlain.insert(end(readPlain), begin(readRaw), end(readRaw));
+		readRaw.clear();
+		return;
+	}
+	while (!empty(readRaw)) {
+		if (sslNeedRenegotiate) {
+			SecBuffer inBuffer[]{ { size_as<unsigned long>(readRaw), SECBUFFER_TOKEN, data(readRaw) }, { 0, SECBUFFER_EMPTY, nullptr } };
+			SecBuffer outBuffer[]{ { 0, SECBUFFER_EMPTY, nullptr }, { 0, SECBUFFER_EMPTY, nullptr } };
+			SecBufferDesc inDesc{ SECBUFFER_VERSION, size_as<unsigned long>(inBuffer), inBuffer };
+			SecBufferDesc outDesc{ SECBUFFER_VERSION, size_as<unsigned long>(outBuffer), outBuffer };
+			unsigned long attr = 0;
+			sslReadStatus = InitializeSecurityContextW(&credential, &sslContext, const_cast<SEC_WCHAR*>(punyTarget.c_str()), contextReq, 0, 0, &inDesc, 0, nullptr, &outDesc, &attr, nullptr);
+			_RPTWN(_CRT_WARN, L"SC{%zu}: InitializeSecurityContextW(%d): %08X, in=%d/%d/%p, %d/%d/%p, out=%d/%d/%p, %d/%d/%p, attr=%X.\n", handle, size_as<int>(readRaw), sslReadStatus,
+				inBuffer[0].BufferType, inBuffer[0].cbBuffer, inBuffer[0].pvBuffer, inBuffer[1].BufferType, inBuffer[1].cbBuffer, inBuffer[1].pvBuffer,
+				outBuffer[0].BufferType, outBuffer[0].cbBuffer, outBuffer[0].pvBuffer, outBuffer[1].BufferType, outBuffer[1].cbBuffer, outBuffer[1].pvBuffer,
+				attr
+			);
+			if (sslReadStatus == SEC_E_OK || sslReadStatus == SEC_I_CONTINUE_NEEDED) {
+				if (outBuffer[0].BufferType == SECBUFFER_TOKEN && outBuffer[0].cbBuffer != 0) {
+					// TODO: 送信バッファが埋まっている場合に失敗する
+					auto written = send(handle, reinterpret_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
+					_RPTWN(_CRT_WARN, L"SC{%zu}: send(): %d.\n", handle, written);
+					assert(written == outBuffer[0].cbBuffer);
+					FreeContextBuffer(outBuffer[0].pvBuffer);
+				}
+				readRaw.erase(begin(readRaw), end(readRaw) - (inBuffer[1].BufferType == SECBUFFER_EXTRA ? inBuffer[1].cbBuffer : 0));
+				if (sslReadStatus == SEC_E_OK)
+					sslNeedRenegotiate = false;
+			} else if (sslReadStatus == SEC_E_INCOMPLETE_MESSAGE) {
+				break;
+			} else {
+				Error(L"InitializeSecurityContextW()"sv, sslReadStatus);
+				return;
+			}
+		} else {
+			SecBuffer buffer[]{
+				{ size_as<unsigned long>(readRaw), SECBUFFER_DATA, data(readRaw) },
+				{ 0, SECBUFFER_EMPTY, nullptr },
+				{ 0, SECBUFFER_EMPTY, nullptr },
+				{ 0, SECBUFFER_EMPTY, nullptr },
+			};
+			SecBufferDesc desc{ SECBUFFER_VERSION, size_as<unsigned long>(buffer), buffer };
+			sslReadStatus = DecryptMessage(&sslContext, &desc, 0, nullptr);
+			_RPTWN(_CRT_WARN, L"SC{%zu}: DecryptMessage(%d): %08X, buf=%d/%d/%p, %d/%d/%p, %d/%d/%p, %d/%d/%p.\n", handle, size_as<int>(readRaw), sslReadStatus,
+				buffer[0].BufferType, buffer[0].cbBuffer, buffer[0].pvBuffer, buffer[1].BufferType, buffer[1].cbBuffer, buffer[1].pvBuffer,
+				buffer[2].BufferType, buffer[2].cbBuffer, buffer[2].pvBuffer, buffer[3].BufferType, buffer[3].cbBuffer, buffer[3].pvBuffer
+			);
+			if (sslReadStatus == SEC_E_OK) {
+				assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[1].BufferType == SECBUFFER_DATA && buffer[2].BufferType == SECBUFFER_STREAM_TRAILER);
+				readPlain.insert(end(readPlain), reinterpret_cast<const char*>(buffer[1].pvBuffer), reinterpret_cast<const char*>(buffer[1].pvBuffer) + buffer[1].cbBuffer);
+				readRaw.erase(begin(readRaw), end(readRaw) - (buffer[3].BufferType == SECBUFFER_EXTRA ? buffer[3].cbBuffer : 0));
+			} else if (sslReadStatus == SEC_I_CONTEXT_EXPIRED) {
+				assert(buffer[0].BufferType == SECBUFFER_DATA && buffer[0].cbBuffer == size_as<unsigned long>(readRaw));
+				readRaw.clear();
+				return;
+			} else if (sslReadStatus == SEC_E_INCOMPLETE_MESSAGE) {
+				break;
+			} else if (sslReadStatus == SEC_I_RENEGOTIATE) {
+				assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[1].BufferType == SECBUFFER_DATA && buffer[1].cbBuffer == 0 && buffer[2].BufferType == SECBUFFER_STREAM_TRAILER && buffer[3].BufferType == SECBUFFER_EXTRA);
+				readRaw.erase(begin(readRaw), end(readRaw) - buffer[3].cbBuffer);
+				sslNeedRenegotiate = true;
+			} else {
+				Error(L"DecryptMessage()"sv, sslReadStatus);
+				return;
+			}
+		}
+	}
+}
+
+
+// 非同期読み込みを開始する。Alertable I/Oを使用しているので、呼び出し元はAPC queueを実行すること。
+//   0 ................ 成功。既に完了している。
+//   WSA_IO_PENDING ... 成功。非同期実行が開始された。
+//   other ............ 失敗。
+int SocketContext::AsyncFetch() {
+	readRawSize = size_as<ULONG>(readRaw);
+	readRaw.resize((size_t)readRawSize + recvlen);
+	readRaw.resize(readRaw.capacity());
+	WSABUF buf{ size_as<ULONG>(readRaw) - readRawSize, data(readRaw) + readRawSize };
+	DWORD flag = 0;
+	auto result = WSARecv(handle, &buf, 1, nullptr, &flag, this, [](DWORD error, DWORD transferred, LPWSAOVERLAPPED overlapped, DWORD flags) { static_cast<SocketContext*>(overlapped)->OnComplete(error, transferred, flags); });
+	recvStatus = result == 0 ? 0 : WSAGetLastError();
+	_RPTWN(_CRT_WARN, L"SC{%zu}: WSARecv(): %d, %d.\n", handle, result, recvStatus);
+	if (recvStatus != 0 && recvStatus != WSA_IO_PENDING)
+		readRaw.resize(readRawSize);
+	return recvStatus;
+}
+
+
+// 現在の読み込みステータス。SSLとrecvを踏まえて決定される。
+//   0 .................. まだ読めそう。
+//   ERROR_HANDLE_EOF ... 終端に達したため、これ以上読めない。
+//   other .............. SSLステータスもしくはrecvステータス。
+int SocketContext::GetReadStatus() {
+	switch (sslReadStatus) {
+	case SEC_I_CONTEXT_EXPIRED:
+		return ERROR_HANDLE_EOF;
+	case SEC_E_OK:
+	case SEC_E_INCOMPLETE_MESSAGE:
+	case SEC_I_RENEGOTIATE:
+	case SEC_I_CONTINUE_NEEDED:
+		return recvStatus == WSA_IO_PENDING ? 0 : recvStatus;
+	default:
+		return sslReadStatus;
+	}
+}
+
+
+// １行読み込み。
+//   std::string ... 読み込んだ１行
+//   int ........... 現在の読み込みステータス。
+std::variant<std::string, int> SocketContext::ReadLine() {
+	if (auto it = std::ranges::find(readPlain, '\n'); it != end(readPlain)) {
+		++it;
+		std::string result(begin(readPlain), it);
+		readPlain.erase(begin(readPlain), it);
+		return std::move(result);
+	}
+	return GetReadStatus();
+}
+
+
+// 指定バイト読み込み。
+//   std::vector ... 読み込んだバイト列。
+//   int ........... 現在の読み込みステータス。
+std::variant<std::vector<char>, int> SocketContext::ReadBytes(int len) {
+	if (len <= size_as<int>(readPlain)) {
+		std::vector<char> result(begin(readPlain), begin(readPlain) + len);
+		readPlain.erase(begin(readPlain), begin(readPlain) + len);
+		return std::move(result);
+	}
+	return GetReadStatus();
+}
+
+
+// 全読み込み。
+//   std::vector ... 読み込み済みのデータ。
+//   int ........... 現在の読み込みステータス。
+std::variant<std::vector<char>, int> SocketContext::ReadAll() {
+	if (!empty(readPlain))
+		return std::exchange(readPlain, {});
+	return GetReadStatus();
+}
+
+
+void SocketContext::ClearReadBuffer() {
+	assert(empty(readRaw));
+	readPlain.clear();
 }
 
 
@@ -618,14 +627,6 @@ int SocketContext::Send(const char* buf, int len, int flags, int* CancelCheckWor
 		}
 	} while (!empty(buffer));
 	return FFFTP_SUCCESS;
-}
-
-
-void SocketContext::RemoveReceivedData() {
-	char buf[1024];
-	int len;
-	while ((len = RecvInternal(buf, sizeof(buf), MSG_PEEK)) > 0)
-		RecvInternal(buf, len, 0);
 }
 
 

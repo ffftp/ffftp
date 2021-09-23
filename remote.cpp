@@ -415,32 +415,25 @@ static std::tuple<int, std::wstring> ReadOneLine(std::shared_ptr<SocketContext> 
 		return { 0, {} };
 
 	std::string line;
-	int read;
-	char buffer[1024];
-	do {
-		int TimeOutErr;
-		/* LFまでを受信するために、最初はPEEKで受信 */
-		if ((read = cSkt->Recv(buffer, size_as<int>(buffer), MSG_PEEK, &TimeOutErr, CancelCheckWork)) <= 0) {
-			if (TimeOutErr == YES) {
-				Notice(IDS_MSGJPN242);
-				read = -2;
-			} else if (read == SOCKET_ERROR)
-				read = -1;
+	for (;;) {
+		auto result = cSkt->ReadLine();
+		if (auto ptr = std::get_if<0>(&result)) {
+			line = std::move(*ptr);
 			break;
 		}
-		/* LFを探して、あったらそこまでの長さをセット */
-		assert(std::find(buffer, buffer + read, '\0') == buffer + read);
-		if (auto lf = std::find(buffer, buffer + read, '\n'); lf != buffer + read)
-			read = (int)(lf - buffer + 1);
-		/* 本受信 */
-		if ((read = cSkt->Recv(buffer, read, 0, &TimeOutErr, CancelCheckWork)) <= 0)
-			break;
-		line.append(buffer, buffer + read);
-	} while (!line.ends_with('\n'));
-	if (read <= 0) {
-		if (read == -2 || AskTransferNow() == YES)
-			DoClose(cSkt);
-		return { 429, {} };
+		if (std::get<1>(result) != 0)
+			return { 429, {} };
+		if (auto result = cSkt->AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
+			return { 429, {} };
+		for (;;) {
+			// TODO: timeout
+			auto result = SleepEx(0, true);
+			if (result == WAIT_IO_COMPLETION)
+				break;
+			assert(result == 0);
+			if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
+				return { 429, {} };
+		}
 	}
 
 	int replyCode = 0;
@@ -467,36 +460,29 @@ static std::tuple<int, std::wstring> ReadOneLine(std::shared_ptr<SocketContext> 
 *			FFFTP_SUCCESS/FFFTP_FAIL
 *----------------------------------------------------------------------------*/
 
-int ReadNchar(std::shared_ptr<SocketContext> cSkt, char *Buf, int Size, int *CancelCheckWork)
-{
-//	struct timeval Tout;
-//	struct timeval *ToutPtr;
-//	fd_set ReadFds;
-//	int i;
-	int SizeOnce;
-	int Sts;
-	int TimeOutErr;
-
-	Sts = FFFTP_FAIL;
+int ReadNchar(std::shared_ptr<SocketContext> cSkt, char* Buf, int Size, int* CancelCheckWork) {
 	if (cSkt) {
-		Sts = FFFTP_SUCCESS;
-		while(Size > 0)
-		{
-			if((SizeOnce = cSkt->Recv(Buf, Size, 0, &TimeOutErr, CancelCheckWork)) <= 0)
-			{
-				if(TimeOutErr == YES)
-					Notice(IDS_MSGJPN243);
-				Sts = FFFTP_FAIL;
+		for (;;) {
+			auto result = cSkt->ReadBytes(Size);
+			if (auto ptr = std::get_if<0>(&result)) {
+				std::ranges::copy(*ptr, Buf);
+				return FFFTP_SUCCESS;
+			} else if (std::get<1>(result) != 0)
 				break;
+			if (auto result = cSkt->AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
+				break;
+			for (;;) {
+				// TODO: timeout
+				auto result = SleepEx(0, true);
+				if (result == WAIT_IO_COMPLETION)
+					break;
+				assert(result == 0);
+				if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
+					goto error;
 			}
-
-			Buf += SizeOnce;
-			Size -= SizeOnce;
 		}
 	}
-
-	if(Sts == FFFTP_FAIL)
-		Notice(IDS_MSGJPN244);
-
-	return(Sts);
+	error:
+	Notice(IDS_MSGJPN244);
+	return FFFTP_FAIL;
 }
