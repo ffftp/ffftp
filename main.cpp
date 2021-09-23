@@ -73,7 +73,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 static void StartupProc(std::vector<std::wstring_view> const& args);
 static std::optional<int> AnalyzeComLine(std::vector<std::wstring_view> const& args, std::wstring& hostname, std::wstring& unc);
 static void ExitProc(HWND hWnd);
-static void ChangeDir(int Win, std::wstring_view dir);
+static void ChangeDir(int Win, std::wstring dir);
 static void ResizeWindowProc(void);
 static void CalcWinSize(void);
 static void CheckResizeFrame(WPARAM Keys, int x, int y);
@@ -939,7 +939,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						break;
 					SuppressRefresh = 1;
 					SetCurrentDirAsDirHist();
-					ChangeDir(WIN_REMOTE, L".."sv);
+					ChangeDir(WIN_REMOTE, L".."s);
 					SuppressRefresh = 0;
 					break;
 
@@ -947,7 +947,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					if (AskUserOpeDisabled())
 						break;
 					SetCurrentDirAsDirHist();
-					ChangeDir(WIN_LOCAL, L".."sv);
+					ChangeDir(WIN_LOCAL, L".."s);
 					break;
 
 				case MENU_REMOTE_CHDIR :
@@ -1818,7 +1818,7 @@ void DoubleClickProc(int Win, int Mode, int App) {
 
 
 // フォルダの移動
-static void ChangeDir(int Win, std::wstring_view dir) {
+static void ChangeDir(int Win, std::wstring dir) {
 	CancelFlg = NO;
 	DisableUserOpe();
 	int Sync = AskSyncMoveMode();
@@ -1830,13 +1830,12 @@ static void ChangeDir(int Win, std::wstring_view dir) {
 	}
 	if (Win == WIN_REMOTE || Sync == YES) {
 		if (CheckClosedAndReconnect() == FFFTP_SUCCESS) {
-			std::wstring path{ dir };
 #if defined(HAVE_OPENVMS)
 			/* OpenVMSの場合、".DIR;?"を取る */
 			if (AskHostType() == HTYPE_VMS)
-				path = ReformVMSDirName(std::move(path));
+				dir = ReformVMSDirName(std::move(dir));
 #endif
-			if (DoCWD(path, YES, NO, YES) < FTP_RETRY)
+			if (DoCWD(dir, YES, NO, YES) < FTP_RETRY)
 				GetRemoteDirForWnd(CACHE_NORMAL, &CancelFlg);
 		}
 	}
