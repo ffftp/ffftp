@@ -472,8 +472,13 @@ struct SocketContext : public WSAOVERLAPPED {
 	void OnComplete(DWORD error, DWORD transferred, DWORD flags);
 	int AsyncFetch();
 	int GetReadStatus();
-	std::variant<std::string, int> ReadLine();
-	std::variant<std::vector<char>, int> ReadBytes(int len);
+	std::tuple<int, std::wstring> ReadReply(int* CancelCheckWork);
+	bool ReadSpan(std::span<char>& span, int* CancelCheckWork);
+	template<class Data>
+	bool ReadData(Data& data, int* CancelCheckWork) {
+		std::span span{ reinterpret_cast<char*>(&data), sizeof data };
+		return ReadSpan(span, CancelCheckWork);
+	}
 	std::variant<std::vector<char>, int> ReadAll();
 	void ClearReadBuffer();
 	int Send(const char* buf, int len, int flags, int* CancelCheckWork);
@@ -961,8 +966,6 @@ template<class... Args>
 static inline std::tuple<int, std::wstring> Command(std::shared_ptr<SocketContext> socket, int* CancelCheckWork, std::wstring_view format, const Args&... args) {
 	return !socket ? std::tuple{ 429, L""s } : detail::command(socket, CancelCheckWork, std::format(format, args...));
 }
-std::tuple<int, std::wstring> ReadReplyMessage(std::shared_ptr<SocketContext> cSkt, int *CancelCheckWork);
-int ReadNchar(std::shared_ptr<SocketContext> cSkt, char *Buf, int Size, int *CancelCheckWork);
 
 /*===== getput.c =====*/
 

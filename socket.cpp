@@ -544,30 +544,58 @@ int SocketContext::GetReadStatus() {
 }
 
 
-// １行読み込み。
-//   std::string ... 読み込んだ１行
-//   int ........... 現在の読み込みステータス。
-std::variant<std::string, int> SocketContext::ReadLine() {
-	if (auto it = std::ranges::find(readPlain, '\n'); it != end(readPlain)) {
-		++it;
-		std::string result(begin(readPlain), it);
-		readPlain.erase(begin(readPlain), it);
-		return std::move(result);
+std::tuple<int, std::wstring> SocketContext::ReadReply(int* CancelCheckWork) {
+	static boost::regex re1{ R"(^[0-9]{3}[- ])" }, re2{ R"(^([0-9]{3})(?:-(?:[^\n]*\n)+?\1)? [^\n]*\n)" };
+	static boost::wregex re3{ LR"((.*?)[ \r]*\n)" }, re4{ LR"([ \r]*\n[0-9]*)" };
+	for (;;) {
+		if (4 <= size(readPlain) && !boost::regex_search(begin(readPlain), end(readPlain), re1))
+			goto error;
+		if (boost::match_results<decltype(readPlain)::iterator> m; boost::regex_search(begin(readPlain), end(readPlain), m, re2)) {
+			auto code = std::stoi(m[1]);
+			auto text = ConvertFrom(sv(m[0]), AskHostNameKanji());
+			readPlain.erase(m[0].first, m[0].second);
+			for (boost::wsregex_iterator it{ begin(text), end(text), re3 }, end; it != end; ++it)
+				Notice(IDS_REPLY, sv((*it)[1]));
+			text = boost::regex_replace(text, re4, L" ");
+			return { code, std::move(text) };
+		}
+		if (auto result = AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
+			goto error;
+		for (;;) {
+			// TODO: timeout
+			auto result = SleepEx(0, true);
+			if (result == WAIT_IO_COMPLETION)
+				break;
+			assert(result == 0);
+			if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
+				goto error;
+		}
 	}
-	return GetReadStatus();
+error:
+	return { 429, {} };
 }
 
 
-// 指定バイト読み込み。
-//   std::vector ... 読み込んだバイト列。
-//   int ........... 現在の読み込みステータス。
-std::variant<std::vector<char>, int> SocketContext::ReadBytes(int len) {
-	if (len <= size_as<int>(readPlain)) {
-		std::vector<char> result(begin(readPlain), begin(readPlain) + len);
-		readPlain.erase(begin(readPlain), begin(readPlain) + len);
-		return std::move(result);
+bool SocketContext::ReadSpan(std::span<char>& span, int* CancelCheckWork) {
+	while (size(readPlain) < size(span)) {
+		if (auto result = AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
+			goto error;
+		for (;;) {
+			// TODO: timeout
+			auto result = SleepEx(0, true);
+			if (result == WAIT_IO_COMPLETION)
+				break;
+			assert(result == 0);
+			if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
+				goto error;
+		}
 	}
-	return GetReadStatus();
+	std::copy(begin(readPlain), begin(readPlain) + size(span), begin(span));
+	readPlain.erase(begin(readPlain), begin(readPlain) + size(span));
+	return true;
+error:
+	Notice(IDS_MSGJPN244);
+	return false;
 }
 
 

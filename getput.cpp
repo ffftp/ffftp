@@ -1365,7 +1365,7 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 		Command(Pkt->ctrl_skt, CancelCheckWork, L"ABOR"sv);
 	}
 
-	auto [code, text] = ReadReplyMessage(Pkt->ctrl_skt, CancelCheckWork);
+	auto [code, text] = Pkt->ctrl_skt->ReadReply(CancelCheckWork);
 	if (Pkt->Abort == ABORT_DISKFULL) {
 		SetErrorMsg(GetString(IDS_MSGJPN096));
 		Notice(IDS_MSGJPN096);
@@ -1875,7 +1875,7 @@ static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt) {
 	if (shutdown(dSkt->handle, 1) != 0)
 		WSAError(L"shutdown()"sv);
 
-	auto [code, text] = ReadReplyMessage(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount]);
+	auto [code, text] = Pkt->ctrl_skt->ReadReply(&Canceled[Pkt->ThreadCount]);
 	if (code / 100 >= FTP_RETRY)
 		SetErrorMsg(std::move(text));
 	if (Pkt->Abort != ABORT_NONE)

@@ -38,7 +38,6 @@
 /*===== プロトタイプ =====*/
 
 static std::optional<std::wstring> DoPWD();
-static std::tuple<int, std::wstring> ReadOneLine(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork);
 
 extern TRANSPACKET MainTransPkt;
 
@@ -375,114 +374,5 @@ std::tuple<int, std::wstring> detail::command(std::shared_ptr<SocketContext> cSk
 	native += "\r\n"sv;
 	if (cSkt->Send(data(native), size_as<int>(native), 0, CancelCheckWork) != FFFTP_SUCCESS)
 		return { 429, {} };
-	return ReadReplyMessage(cSkt, CancelCheckWork);
-}
-
-
-// 応答メッセージを受け取る
-std::tuple<int, std::wstring> ReadReplyMessage(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork) {
-	int firstCode = 0;
-	std::wstring text;
-	if (cSkt)
-		for (int Lines = 0;; Lines++) {
-			auto [code, line] = ReadOneLine(cSkt, CancelCheckWork);
-			Notice(IDS_REPLY, line);
-
-			// ２行目以降の応答コードは消す
-			if (Lines > 0)
-				for (int i = 0; i < size_as<int>(line) && IsDigit(line[i]); i++)
-					line[i] = L' ';
-			text += line;
-
-			if (code == 421 || code == 429) {
-				firstCode = code;
-				break;
-			}
-			if (100 <= code && code < 600) {
-				if (firstCode == 0)
-					firstCode = code;
-				if (firstCode == code && (size(line) <= 3 || line[3] != L'-'))
-					break;
-			}
-		}
-	return { firstCode, std::move(text) };
-}
-
-
-// １行分のデータを受け取る
-static std::tuple<int, std::wstring> ReadOneLine(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork) {
-	if (!cSkt)
-		return { 0, {} };
-
-	std::string line;
-	for (;;) {
-		auto result = cSkt->ReadLine();
-		if (auto ptr = std::get_if<0>(&result)) {
-			line = std::move(*ptr);
-			break;
-		}
-		if (std::get<1>(result) != 0)
-			return { 429, {} };
-		if (auto result = cSkt->AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
-			return { 429, {} };
-		for (;;) {
-			// TODO: timeout
-			auto result = SleepEx(0, true);
-			if (result == WAIT_IO_COMPLETION)
-				break;
-			assert(result == 0);
-			if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
-				return { 429, {} };
-		}
-	}
-
-	int replyCode = 0;
-	if (IsDigit(line[0]) && IsDigit(line[1]) && IsDigit(line[2]))
-		std::from_chars(data(line), data(line) + 3, replyCode);
-
-	/* 末尾の CR,LF,スペースを取り除く */
-	if (auto const pos = line.find_last_not_of("\r\n "sv); pos != std::string::npos)
-		line.resize(pos + 1);
-	return { replyCode, ConvertFrom(line, AskHostNameKanji()) };
-}
-
-
-/*----- 固定長データを受け取る ------------------------------------------------
-*
-*	Parameter
-*		SOCKET cSkt : コントロールソケット
-*		char *Buf : メッセージを受け取るバッファ
-*		int Size : バイト数
-*		int *CancelCheckWork : 
-*
-*	Return Value
-*		int ステータス
-*			FFFTP_SUCCESS/FFFTP_FAIL
-*----------------------------------------------------------------------------*/
-
-int ReadNchar(std::shared_ptr<SocketContext> cSkt, char* Buf, int Size, int* CancelCheckWork) {
-	if (cSkt) {
-		for (;;) {
-			auto result = cSkt->ReadBytes(Size);
-			if (auto ptr = std::get_if<0>(&result)) {
-				std::ranges::copy(*ptr, Buf);
-				return FFFTP_SUCCESS;
-			} else if (std::get<1>(result) != 0)
-				break;
-			if (auto result = cSkt->AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
-				break;
-			for (;;) {
-				// TODO: timeout
-				auto result = SleepEx(0, true);
-				if (result == WAIT_IO_COMPLETION)
-					break;
-				assert(result == 0);
-				if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
-					goto error;
-			}
-		}
-	}
-	error:
-	Notice(IDS_MSGJPN244);
-	return FFFTP_FAIL;
+	return cSkt->ReadReply(CancelCheckWork);
 }

@@ -1176,7 +1176,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 				if(CryptMode == CRYPT_FTPIS)
 				{
 					if (ContSock->AttachSSL(CancelCheckWork)) {
-						while((Sts = std::get<0>(ReadReplyMessage(ContSock, CancelCheckWork)) / 100) == FTP_PRELIM)
+						while((Sts = std::get<0>(ContSock->ReadReply(CancelCheckWork)) / 100) == FTP_PRELIM)
 							;
 					}
 					else
@@ -1184,7 +1184,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 				}
 				else
 				{
-					while((Sts = std::get<0>(ReadReplyMessage(ContSock, CancelCheckWork)) / 100) == FTP_PRELIM)
+					while((Sts = std::get<0>(ContSock->ReadReply(CancelCheckWork)) / 100) == FTP_PRELIM)
 						;
 				}
 
@@ -1383,7 +1383,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 		// ホストの機能を確認
 		if (ContSock) {
 			if (auto [code, text] = Command(ContSock, CancelCheckWork, L"FEAT"sv); code == 211) {
-				// 改行文字はReadReplyMessageで消去されるため区切り文字に空白を使用
+				// 改行文字はReadReplyで消去されるため区切り文字に空白を使用
 				if (text.find(L" UTF8 "sv) != std::wstring::npos)
 					HostData->Feature |= FEATURE_UTF8;
 				if (text.find(L" MLST "sv) != std::wstring::npos || text.find(L" MLSD "sv) != std::wstring::npos)
@@ -1529,18 +1529,13 @@ static bool SocksSend(std::shared_ptr<SocketContext> s, std::vector<uint8_t> con
 }
 
 
-template<class T>
-static inline bool SocksRecv(std::shared_ptr<SocketContext> s, T& buffer, int* CancelCheckWork) {
-	return ReadNchar(s, reinterpret_cast<char*>(&buffer), sizeof(T), CancelCheckWork) == FFFTP_SUCCESS;
-}
-
-
 // SOCKS5の認証を行う
 static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelCheckWork) {
 	// RFC 1928 SOCKS Protocol Version 5
 	constexpr uint8_t NO_AUTHENTICATION_REQUIRED = 0;
 	constexpr uint8_t USERNAME_PASSWORD = 2;
 
+	assert(s);
 	std::vector<uint8_t> buffer;
 	if (FwallType == FWALL_SOCKS5_NOAUTH)
 		buffer = { 5, 1, NO_AUTHENTICATION_REQUIRED };						// VER, NMETHODS, METHODS
@@ -1553,7 +1548,7 @@ static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelChec
 	} reply;
 	static_assert(sizeof reply == 2);
 	#pragma pack(pop)
-	if (!SocksSend(s, buffer, CancelCheckWork) || !SocksRecv(s, reply, CancelCheckWork)) {
+	if (!SocksSend(s, buffer, CancelCheckWork) || !s->ReadData(reply, CancelCheckWork)) {
 		Notice(IDS_MSGJPN036);
 		return false;
 	}
@@ -1576,7 +1571,7 @@ static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelChec
 		} reply;
 		static_assert(sizeof reply == 2);
 		#pragma pack(pop)
-		if (!SocksSend(s, buffer, CancelCheckWork) || !SocksRecv(s, reply, CancelCheckWork) || reply.STATUS != 0) {
+		if (!SocksSend(s, buffer, CancelCheckWork) || !s->ReadData(reply, CancelCheckWork) || reply.STATUS != 0) {
 			Notice(IDS_MSGJPN037);
 			return false;
 		}
@@ -1591,6 +1586,7 @@ static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelChec
 // SOCKSのコマンドに対するリプライパケットを受信する
 std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext> s, int* CancelCheckWork) {
 	assert(AskHostFireWall() == YES);
+	assert(s);
 	sockaddr_storage ss;
 	if (FwallType == FWALL_SOCKS4) {
 		#pragma pack(push, 1)
@@ -1602,7 +1598,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 		} reply;
 		static_assert(sizeof reply == 8);
 		#pragma pack(pop)
-		if (!SocksRecv(s, reply, CancelCheckWork) || reply.VN != 0 || reply.CD != 90) {
+		if (!s->ReadData(reply, CancelCheckWork) || reply.VN != 0 || reply.CD != 90) {
 			Notice(IDS_MSGJPN035);
 			return {};
 		}
@@ -1626,7 +1622,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 		} reply;
 		static_assert(sizeof reply == 4);
 		#pragma pack(pop)
-		if (SocksRecv(s, reply, CancelCheckWork) && reply.VER == 5 && reply.REP == 0) {
+		if (s->ReadData(reply, CancelCheckWork) && reply.VER == 5 && reply.REP == 0) {
 			if (reply.ATYP == 1) {
 				#pragma pack(push, 1)
 				struct {
@@ -1635,7 +1631,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 				} reply;
 				static_assert(sizeof reply == 6);
 				#pragma pack(pop)
-				if (SocksRecv(s, reply, CancelCheckWork)) {
+				if (s->ReadData(reply, CancelCheckWork)) {
 					reinterpret_cast<sockaddr_in&>(ss) = { AF_INET, reply.BND_PORT, reply.BND_ADDR };
 					return ss;
 				}
@@ -1647,7 +1643,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 				} reply;
 				static_assert(sizeof reply == 18);
 				#pragma pack(pop)
-				if (SocksRecv(s, reply, CancelCheckWork)) {
+				if (s->ReadData(reply, CancelCheckWork)) {
 					reinterpret_cast<sockaddr_in6&>(ss) = { AF_INET6, reply.BND_PORT, 0, reply.BND_ADDR };
 					return ss;
 				}
