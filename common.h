@@ -479,7 +479,7 @@ struct SocketContext : public WSAOVERLAPPED {
 		std::span span{ reinterpret_cast<char*>(&data), sizeof data };
 		return ReadSpan(span, CancelCheckWork);
 	}
-	std::variant<std::vector<char>, int> ReadAll();
+	int ReadAll(int* CancelCheckWork, std::function<bool(std::vector<char> const&)> callback);
 	void ClearReadBuffer();
 	int Send(const char* buf, int len, int flags, int* CancelCheckWork);
 };

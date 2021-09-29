@@ -213,6 +213,31 @@ static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName
 	return CertResult::Declined;
 }
 
+
+template<class Test>
+static inline std::invoke_result_t<Test> Wait(SocketContext& sc, int* CancelCheckWork, Test test) {
+	for (;;) {
+		if (auto result = test())
+			return result;
+		if (auto result = sc.AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
+			return {};
+		for (auto const expiredAt = std::chrono::steady_clock::now() + std::chrono::seconds{ TimeOut }; SleepEx(0, true) != WAIT_IO_COMPLETION;) {
+			if (expiredAt < std::chrono::steady_clock::now()) {
+				sc.recvStatus = WSAETIMEDOUT;
+				goto error;
+			}
+			if (BackgrndMessageProc() == YES || *CancelCheckWork == YES) {
+				sc.recvStatus = ERROR_OPERATION_ABORTED;
+				goto error;
+			}
+		}
+	}
+error:
+	CancelIo((HANDLE)sc.handle);
+	return {};
+}
+
+
 // SSLセッションを開始
 BOOL SocketContext::AttachSSL(BOOL* pbAborted) {
 	assert(SecIsValidHandle(&credential));
@@ -235,21 +260,19 @@ BOOL SocketContext::AttachSSL(BOOL* pbAborted) {
 
 	sslNeedRenegotiate = true;
 
-	for (;;) {
-		auto result = AsyncFetch();
-		if (result != 0 && result != WSA_IO_PENDING)
-			return FALSE;
-		for (;;) {
-			auto result = SleepEx(0, true);
-			if (result == WAIT_IO_COMPLETION)
-				break;
-			assert(result == 0);
+	auto result = Wait(*this, pbAborted, [this]() -> std::optional<bool> {
+		switch (sslReadStatus) {
+		case SEC_E_OK:
+			return true;
+		case SEC_E_INCOMPLETE_MESSAGE:
+		case SEC_I_CONTINUE_NEEDED:
+			return {};
+		default:
+			return false;
 		}
-		if (sslReadStatus == SEC_E_OK)
-			break;
-		if (sslReadStatus != SEC_E_INCOMPLETE_MESSAGE && sslReadStatus != SEC_I_CONTINUE_NEEDED)
-			return FALSE;
-	}
+	});
+	if (!result || !*result)
+		return FALSE;
 
 	if ((sslReadStatus = QueryContextAttributesW(&sslContext, SECPKG_ATTR_STREAM_SIZES, &sslStreamSizes)) != SEC_E_OK) {
 		Error(L"QueryContextAttributes(SECPKG_ATTR_STREAM_SIZES)"sv, sslReadStatus);
@@ -431,8 +454,10 @@ std::shared_ptr<SocketContext> SocketContext::Accept(_Out_writes_bytes_opt_(*add
 void SocketContext::OnComplete(DWORD error, DWORD transferred, DWORD flags) {
 	_RPTWN(_CRT_WARN, L"SC{%zu}: OnComplete(): error=%u, transferred=%u, flags=%u.\n", handle, error, transferred, flags);
 	readRaw.resize((size_t)readRawSize + transferred);
+	recvStatus = error;
 	if (transferred == 0) {
-		recvStatus = error == 0 ? ERROR_HANDLE_EOF : error;
+		if (error == 0)
+			recvStatus = ERROR_HANDLE_EOF;
 		return;
 	}
 	if (!IsSSLAttached()) {
@@ -511,16 +536,18 @@ void SocketContext::OnComplete(DWORD error, DWORD transferred, DWORD flags) {
 //   WSA_IO_PENDING ... 成功。非同期実行が開始された。
 //   other ............ 失敗。
 int SocketContext::AsyncFetch() {
-	readRawSize = size_as<ULONG>(readRaw);
-	readRaw.resize((size_t)readRawSize + recvlen);
-	readRaw.resize(readRaw.capacity());
-	WSABUF buf{ size_as<ULONG>(readRaw) - readRawSize, data(readRaw) + readRawSize };
-	DWORD flag = 0;
-	auto result = WSARecv(handle, &buf, 1, nullptr, &flag, this, [](DWORD error, DWORD transferred, LPWSAOVERLAPPED overlapped, DWORD flags) { static_cast<SocketContext*>(overlapped)->OnComplete(error, transferred, flags); });
-	recvStatus = result == 0 ? 0 : WSAGetLastError();
-	_RPTWN(_CRT_WARN, L"SC{%zu}: WSARecv(): %d, %d.\n", handle, result, recvStatus);
-	if (recvStatus != 0 && recvStatus != WSA_IO_PENDING)
-		readRaw.resize(readRawSize);
+	if (recvStatus == 0) {
+		readRawSize = size_as<ULONG>(readRaw);
+		readRaw.resize((size_t)readRawSize + recvlen);
+		readRaw.resize(readRaw.capacity());
+		WSABUF buf{ size_as<ULONG>(readRaw) - readRawSize, data(readRaw) + readRawSize };
+		DWORD flag = 0;
+		auto result = WSARecv(handle, &buf, 1, nullptr, &flag, this, [](DWORD error, DWORD transferred, LPWSAOVERLAPPED overlapped, DWORD flags) { static_cast<SocketContext*>(overlapped)->OnComplete(error, transferred, flags); });
+		recvStatus = result == 0 ? 0 : WSAGetLastError();
+		_RPTWN(_CRT_WARN, L"SC{%zu}: WSARecv(): %d, %d.\n", handle, result, recvStatus);
+		if (recvStatus != 0 && recvStatus != WSA_IO_PENDING)
+			readRaw.resize(readRawSize);
+	}
 	return recvStatus;
 }
 
@@ -547,9 +574,9 @@ int SocketContext::GetReadStatus() {
 std::tuple<int, std::wstring> SocketContext::ReadReply(int* CancelCheckWork) {
 	static boost::regex re1{ R"(^[0-9]{3}[- ])" }, re2{ R"(^([0-9]{3})(?:-(?:[^\n]*\n)+?\1)? [^\n]*\n)" };
 	static boost::wregex re3{ LR"((.*?)[ \r]*\n)" }, re4{ LR"([ \r]*\n[0-9]*)" };
-	for (;;) {
+	auto result = Wait(*this, CancelCheckWork, [this]() -> std::optional<std::tuple<int, std::wstring>> {
 		if (4 <= size(readPlain) && !boost::regex_search(begin(readPlain), end(readPlain), re1))
-			goto error;
+			return { { 429, {} } };
 		if (boost::match_results<decltype(readPlain)::iterator> m; boost::regex_search(begin(readPlain), end(readPlain), m, re2)) {
 			auto code = std::stoi(m[1]);
 			auto text = ConvertFrom(sv(m[0]), AskHostNameKanji());
@@ -557,54 +584,34 @@ std::tuple<int, std::wstring> SocketContext::ReadReply(int* CancelCheckWork) {
 			for (boost::wsregex_iterator it{ begin(text), end(text), re3 }, end; it != end; ++it)
 				Notice(IDS_REPLY, sv((*it)[1]));
 			text = boost::regex_replace(text, re4, L" ");
-			return { code, std::move(text) };
+			return { { code, std::move(text) } };
 		}
-		if (auto result = AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
-			goto error;
-		for (;;) {
-			// TODO: timeout
-			auto result = SleepEx(0, true);
-			if (result == WAIT_IO_COMPLETION)
-				break;
-			assert(result == 0);
-			if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
-				goto error;
-		}
-	}
-error:
-	return { 429, {} };
+		return {};
+	});
+	return result.value_or(std::tuple{ 429, L""s });
 }
 
 
 bool SocketContext::ReadSpan(std::span<char>& span, int* CancelCheckWork) {
-	while (size(readPlain) < size(span)) {
-		if (auto result = AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
-			goto error;
-		for (;;) {
-			// TODO: timeout
-			auto result = SleepEx(0, true);
-			if (result == WAIT_IO_COMPLETION)
-				break;
-			assert(result == 0);
-			if (BackgrndMessageProc() == YES || *CancelCheckWork == YES)
-				goto error;
-		}
-	}
-	std::copy(begin(readPlain), begin(readPlain) + size(span), begin(span));
-	readPlain.erase(begin(readPlain), begin(readPlain) + size(span));
-	return true;
-error:
-	Notice(IDS_MSGJPN244);
-	return false;
+	auto result = Wait(*this, CancelCheckWork, [this, &span] {
+		if (size(readPlain) < size(span))
+			return false;
+		std::copy(begin(readPlain), begin(readPlain) + size(span), begin(span));
+		readPlain.erase(begin(readPlain), begin(readPlain) + size(span));
+		return true;
+	});
+	if (!result)
+		Notice(IDS_MSGJPN244);
+	return result;
 }
 
 
-// 全読み込み。
-//   std::vector ... 読み込み済みのデータ。
-//   int ........... 現在の読み込みステータス。
-std::variant<std::vector<char>, int> SocketContext::ReadAll() {
-	if (!empty(readPlain))
-		return std::exchange(readPlain, {});
+int SocketContext::ReadAll(int* CancelCheckWork, std::function<bool(std::vector<char> const&)> callback) {
+	Wait(*this, CancelCheckWork, [this, &callback] {
+		auto result = callback(readPlain);
+		readPlain.clear();
+		return result;
+	});
 	return GetReadStatus();
 }
 

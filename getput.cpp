@@ -1303,40 +1303,24 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 		}
 
 		CodeConverter cc{ Pkt->KanjiCode, Pkt->KanjiCodeDesired, Pkt->KanaCnv != NO };
-
-		/*===== ファイルを受信するループ =====*/
-		while (Pkt->Abort == ABORT_NONE && ForceAbort == NO) {
-			auto result = dSkt->ReadAll();
-			if (auto ptr = std::get_if<0>(&result)) {
-				if (auto converted = cc.Convert({ data(*ptr), size(*ptr) }); !os.write(data(converted), size(converted)))
-					Pkt->Abort = ABORT_DISKFULL;
-				Pkt->ExistSize += size_as<LONGLONG>(*ptr);
-				if (Pkt->hWndTrans != NULL)
-					AllTransSizeNow[Pkt->ThreadCount] += size_as<LONGLONG>(*ptr);
-				else {
-					/* 転送ダイアログを出さない時の経過表示 */
-					DispDownloadSize(Pkt->ExistSize);
-				}
-			} else if (auto status = std::get<1>(result); status != 0) {
-				if (status != ERROR_HANDLE_EOF && Pkt->Abort == ABORT_NONE)
-					Pkt->Abort = ABORT_ERROR;
-				break;
+		auto result = dSkt->ReadAll(CancelCheckWork, [&Pkt, &cc, &os](std::vector<char> const& buf) {
+			if (auto converted = cc.Convert({ begin(buf), end(buf) }); !os.write(data(converted), size(converted))) {
+				Pkt->Abort = ABORT_DISKFULL;
+				return true;
 			}
-			if (auto result = dSkt->AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
-				break;
-			for (;;) {
-				// TODO: timeout
-				auto result = SleepEx(0, true);
-				if (result == WAIT_IO_COMPLETION)
-					break;
-				assert(result == 0);
-				if (BackgrndMessageProc() == YES || *CancelCheckWork == YES) {
-					ForceAbort = YES;
-					goto error;
-				}
-			}
+			Pkt->ExistSize += size_as<LONGLONG>(buf);
+			if (Pkt->hWndTrans != NULL)
+				AllTransSizeNow[Pkt->ThreadCount] += size_as<LONGLONG>(buf);
+			else
+				DispDownloadSize(Pkt->ExistSize);	/* 転送ダイアログを出さない時の経過表示 */
+			return false;
+		});
+		if (result != ERROR_HANDLE_EOF) {
+			if (result == ERROR_OPERATION_ABORTED)
+				ForceAbort = YES;
+			if (Pkt->Abort == ABORT_NONE)
+				Pkt->Abort = ABORT_ERROR;
 		}
-		error:
 
 		/* グラフ表示を更新 */
 		if (Pkt->hWndTrans != NULL) {
