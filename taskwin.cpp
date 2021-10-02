@@ -106,6 +106,7 @@ void DispTaskMsg() {
 void detail::Notice(UINT id, std::wformat_args args) {
 	auto const format = GetString(id);
 	auto message = std::vformat(format, args);
+	_RPTWN(_CRT_WARN, L"N: %s\n", message.c_str());
 	queue.push(std::move(message));
 }
 
@@ -113,6 +114,7 @@ void detail::Debug(std::wstring_view format, std::wformat_args args) {
 	if (DebugConsole != YES)
 		return;
 	auto message = std::vformat(format, args);
+	_RPTWN(_CRT_WARN, L"D: %s\n", message.c_str());
 	message.insert(0, L"## "sv);
 	queue.push(std::move(message));
 }
