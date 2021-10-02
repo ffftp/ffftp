@@ -460,7 +460,7 @@ struct SocketContext : public WSAOVERLAPPED {
 	}
 	static std::shared_ptr<SocketContext> Create(int af, std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget);
 	std::shared_ptr<SocketContext> Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen);
-	int Close();
+	void Close();
 	BOOL AttachSSL(BOOL* pbAborted);
 	constexpr bool IsSSLAttached() {
 		return SecIsValidHandle(&sslContext);

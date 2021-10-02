@@ -361,23 +361,14 @@ SocketContext::SocketContext(SOCKET s, std::wstring originalTarget, std::wstring
 }
 
 
-int SocketContext::Close() {
+void SocketContext::Close() {
 	WSAAsyncSelect(handle, hWndSocket, WM_ASYNC_SOCKET, 0);
 	{
 		std::lock_guard lock{ mapMutex };
 		map.erase(handle);
 	}
-	if (int result = closesocket(handle); result != SOCKET_ERROR)
-		return result;
-	for (;;) {
-		if (error != 0)
-			return SOCKET_ERROR;
-		if (GetEvent(FD_CLOSE))
-			return 0;
-		Sleep(1);
-		if (BackgrndMessageProc() == YES)
-			return SOCKET_ERROR;
-	}
+	if (int result = closesocket(handle); result == SOCKET_ERROR)
+		WSAError(L"closesocket()"sv);
 }
 
 
