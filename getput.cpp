@@ -88,9 +88,7 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item);
 // 同時接続対応
 //static HANDLE hTransferThread;
 static HANDLE hTransferThread[MAX_DATA_CONNECTION];
-static int fTransferThreadExit = FALSE;
-
-static HANDLE hRunMutex;				/* 転送スレッド実行ミューテックス */
+static bool fTransferThreadExit = false;
 static int TransFiles = 0;				/* 転送待ちファイル数 */
 static Concurrency::concurrent_queue<TRANSPACKET> TransPacketBase;	/* 転送ファイルリスト */
 
@@ -146,82 +144,34 @@ static void SetErrorMsg(std::wstring&& msg) {
 }
 
 
-/*----- ファイル転送スレッドを起動する ----------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-int MakeTransferThread(void)
-{
-	unsigned int dwID;
-	int i;
-
-	hRunMutex = CreateMutexW( NULL, TRUE, NULL );
-
+// ファイル転送スレッドを起動する
+int MakeTransferThread() {
 	ClearAll = NO;
 	ForceAbort = NO;
-
-	fTransferThreadExit = FALSE;
-	// 同時接続対応
-//	hTransferThread = (HANDLE)_beginthreadex(NULL, 0, TransferThread, 0, 0, &dwID);
-//	if (hTransferThread == NULL)
-//		return(FFFTP_FAIL); /* XXX */
-	for(i = 0; i < MAX_DATA_CONNECTION; i++)
-	{
-		hTransferThread[i] = (HANDLE)_beginthreadex(NULL, 0, TransferThread, IntToPtr(i), 0, &dwID);
-		if(hTransferThread[i] == NULL)
+	fTransferThreadExit = false;
+	for (int i = 0; i < MAX_DATA_CONNECTION; i++) {
+		hTransferThread[i] = (HANDLE)_beginthreadex(nullptr, 0, TransferThread, IntToPtr(i), 0, nullptr);
+		if (hTransferThread[i] == (HANDLE)-1)
 			return FFFTP_FAIL;
 	}
-
-	return(FFFTP_SUCCESS);
+	return FFFTP_SUCCESS;
 }
 
 
-/*----- ファイル転送スレッドを終了する ----------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void CloseTransferThread(void)
-{
-	int i;
-	// 同時接続対応
-//	Canceled = YES;
-	for(i = 0; i < MAX_DATA_CONNECTION; i++)
+// ファイル転送スレッドを終了する
+void CloseTransferThread() {
+	for (int i = 0; i < MAX_DATA_CONNECTION; i++)
 		Canceled[i] = YES;
 	ClearAll = YES;
-	// 同時接続対応
-//	ForceAbort = YES;
 
-	fTransferThreadExit = TRUE;
-	// 同時接続対応
-//	while(WaitForSingleObject(hTransferThread, 10) == WAIT_TIMEOUT)
-//	{
-//		BackgrndMessageProc();
-//		Canceled = YES;
-//	}
-//	CloseHandle(hTransferThread);
-	for(i = 0; i < MAX_DATA_CONNECTION; i++)
-	{
-		while(WaitForSingleObject(hTransferThread[i], 10) == WAIT_TIMEOUT)
-		{
+	fTransferThreadExit = true;
+	for (int i = 0; i < MAX_DATA_CONNECTION; i++) {
+		while (WaitForSingleObject(hTransferThread[i], 10) == WAIT_TIMEOUT) {
 			BackgrndMessageProc();
 			Canceled[i] = YES;
 		}
 		CloseHandle(hTransferThread[i]);
 	}
-
-	ReleaseMutex( hRunMutex );
-
-	CloseHandle( hRunMutex );
 }
 
 
@@ -440,12 +390,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 	LastError = NO;
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
 
-	while(!empty(TransPacketBase) ||
-		  (WaitForSingleObject(hRunMutex, 200) == WAIT_TIMEOUT))
-	{
-		if(fTransferThreadExit == TRUE)
-			break;
-
+	while (!fTransferThreadExit) {
 		ErrMsg.clear();
 
 //		Canceled = NO;
