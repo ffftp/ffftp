@@ -279,7 +279,7 @@ struct Transfer3 {
 		LVITEMW item;
 		item = { .mask = LVIF_TEXT, .iItem = std::numeric_limits<int>::max(), .pszText = const_cast<LPWSTR>(name.c_str()) };
 		auto index = (int)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_INSERTITEMW, 0, (LPARAM)&item);
-		item = { .mask = LVIF_TEXT, .iItem = index, .iSubItem = 1, .pszText = const_cast<LPWSTR>(name.c_str()) };
+		item = { .mask = LVIF_TEXT, .iItem = index, .iSubItem = 1, .pszText = const_cast<LPWSTR>(attr.c_str()) };
 		SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_SETITEMW, 0, (LPARAM)&item);
 	}
 	static INT_PTR OnInit(HWND hDlg) {
