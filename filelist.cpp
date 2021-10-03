@@ -2148,7 +2148,7 @@ static bool MakeLocalTree(fs::path const& path, std::vector<FILELIST>& Base) {
 *----------------------------------------------------------------------------*/
 
 static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base) {
-	Debug(L"FileList: NODE={}: {}."sv, Pkt.Node, Pkt.Name);
+	Debug(L"FileList: NODE={}: {}."sv, (unsigned char)Pkt.Node, Pkt.Name);
 	/* リストの重複を取り除く */
 	if (std::ranges::any_of(Base, [&Pkt](auto const& f) { return Pkt.Name == f.Name; })) {
 		Debug(L" --> Duplicate!!"sv);

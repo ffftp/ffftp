@@ -88,14 +88,9 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item);
 // 同時接続対応
 //static HANDLE hTransferThread;
 static HANDLE hTransferThread[MAX_DATA_CONNECTION];
-static int fTransferThreadExit = FALSE;
-
-static HANDLE hRunMutex;				/* 転送スレッド実行ミューテックス */
-static HANDLE hListAccMutex;			/* 転送ファイルアクセス用ミューテックス */
-
+static bool fTransferThreadExit = false;
 static int TransFiles = 0;				/* 転送待ちファイル数 */
-static std::forward_list<TRANSPACKET> TransPacketBase;	/* 転送ファイルリスト */
-static auto NextTransPacketBase = end(TransPacketBase);
+static Concurrency::concurrent_queue<TRANSPACKET> TransPacketBase;	/* 転送ファイルリスト */
 
 // 同時接続対応
 //static int Canceled;		/* 中止フラグ YES/NO */
@@ -116,8 +111,6 @@ static int MoveToForeground = NO;		/* ウインドウを前面に移動するか
 static std::wstring CurDir[MAX_DATA_CONNECTION];
 static thread_local std::wstring ErrMsg;
 
-// 同時接続対応
-static int WaitForMainThread = NO;
 // 再転送対応
 static int TransferErrorMode = EXIST_OVW;
 static int TransferErrorNotify = NO;
@@ -151,84 +144,34 @@ static void SetErrorMsg(std::wstring&& msg) {
 }
 
 
-/*----- ファイル転送スレッドを起動する ----------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-int MakeTransferThread(void)
-{
-	unsigned int dwID;
-	int i;
-
-	hListAccMutex = CreateMutexW( NULL, FALSE, NULL );
-	hRunMutex = CreateMutexW( NULL, TRUE, NULL );
-
+// ファイル転送スレッドを起動する
+int MakeTransferThread() {
 	ClearAll = NO;
 	ForceAbort = NO;
-
-	fTransferThreadExit = FALSE;
-	// 同時接続対応
-//	hTransferThread = (HANDLE)_beginthreadex(NULL, 0, TransferThread, 0, 0, &dwID);
-//	if (hTransferThread == NULL)
-//		return(FFFTP_FAIL); /* XXX */
-	for(i = 0; i < MAX_DATA_CONNECTION; i++)
-	{
-		hTransferThread[i] = (HANDLE)_beginthreadex(NULL, 0, TransferThread, IntToPtr(i), 0, &dwID);
-		if(hTransferThread[i] == NULL)
+	fTransferThreadExit = false;
+	for (int i = 0; i < MAX_DATA_CONNECTION; i++) {
+		hTransferThread[i] = (HANDLE)_beginthreadex(nullptr, 0, TransferThread, IntToPtr(i), 0, nullptr);
+		if (hTransferThread[i] == (HANDLE)-1)
 			return FFFTP_FAIL;
 	}
-
-	return(FFFTP_SUCCESS);
+	return FFFTP_SUCCESS;
 }
 
 
-/*----- ファイル転送スレッドを終了する ----------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void CloseTransferThread(void)
-{
-	int i;
-	// 同時接続対応
-//	Canceled = YES;
-	for(i = 0; i < MAX_DATA_CONNECTION; i++)
+// ファイル転送スレッドを終了する
+void CloseTransferThread() {
+	for (int i = 0; i < MAX_DATA_CONNECTION; i++)
 		Canceled[i] = YES;
 	ClearAll = YES;
-	// 同時接続対応
-//	ForceAbort = YES;
 
-	fTransferThreadExit = TRUE;
-	// 同時接続対応
-//	while(WaitForSingleObject(hTransferThread, 10) == WAIT_TIMEOUT)
-//	{
-//		BackgrndMessageProc();
-//		Canceled = YES;
-//	}
-//	CloseHandle(hTransferThread);
-	for(i = 0; i < MAX_DATA_CONNECTION; i++)
-	{
-		while(WaitForSingleObject(hTransferThread[i], 10) == WAIT_TIMEOUT)
-		{
+	fTransferThreadExit = true;
+	for (int i = 0; i < MAX_DATA_CONNECTION; i++) {
+		while (WaitForSingleObject(hTransferThread[i], 10) == WAIT_TIMEOUT) {
 			BackgrndMessageProc();
 			Canceled[i] = YES;
 		}
 		CloseHandle(hTransferThread[i]);
 	}
-
-	ReleaseMutex( hRunMutex );
-
-	CloseHandle( hListAccMutex );
-	CloseHandle( hRunMutex );
 }
 
 
@@ -249,25 +192,6 @@ void AbortAllTransfer()
 }
 
 
-// 転送するファイル情報をリストに追加する
-int AddTmpTransFileList(TRANSPACKET const& item, std::forward_list<TRANSPACKET>& list) {
-	auto it = before_end(list);
-	list.insert_after(it, item);
-	return FFFTP_SUCCESS;
-}
-
-
-// 転送するファイル情報リストから１つの情報を取り除く
-int RemoveTmpTransFileListItem(std::forward_list<TRANSPACKET>& list, int Num) {
-	for (auto it = list.before_begin(); it != end(list); ++it)
-		if (Num-- == 0) {
-			list.erase_after(it);
-			return FFFTP_SUCCESS;
-		}
-	return FFFTP_FAIL;
-}
-
-
 /*----- 転送するファイル情報を転送ファイルリストに登録する --------------------
 *
 *	Parameter
@@ -281,31 +205,14 @@ void AddTransFileList(TRANSPACKET *Pkt)
 {
 	DispTransPacket(*Pkt);
 
-	// 同時接続対応
-//	WaitForSingleObject(hListAccMutex, INFINITE);
-	while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
-	{
-		WaitForMainThread = YES;
-		BackgrndMessageProc();
-		Sleep(1);
+	TransPacketBase.push(*Pkt);
+	if (Pkt->Command.starts_with(L"RETR"sv) || Pkt->Command.starts_with(L"STOR"sv)) {
+		TransFiles++;
+		// タスクバー進捗表示
+		TransferSizeLeft += Pkt->Size;
+		TransferSizeTotal += Pkt->Size;
+		PostMessageW(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
 	}
-
-	if (AddTmpTransFileList(*Pkt, TransPacketBase) == FFFTP_SUCCESS) {
-		if (Pkt->Command.starts_with(L"RETR"sv) || Pkt->Command.starts_with(L"STOR"sv)) {
-			TransFiles++;
-			// タスクバー進捗表示
-			TransferSizeLeft += Pkt->Size;
-			TransferSizeTotal += Pkt->Size;
-			PostMessageW(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
-		}
-	}
-	if (NextTransPacketBase == end(TransPacketBase))
-		NextTransPacketBase = before_end(TransPacketBase);
-	ReleaseMutex(hListAccMutex);
-	// 同時接続対応
-	WaitForMainThread = NO;
-
-	return;
 }
 
 
@@ -319,38 +226,9 @@ void AddNullTransFileList()
 
 
 // 転送ファイル情報を転送ファイルリストに追加する
-void AppendTransFileList(std::forward_list<TRANSPACKET>&& list) {
-	while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
-	{
-		WaitForMainThread = YES;
-		BackgrndMessageProc();
-		Sleep(1);
-	}
-
-	auto Pkt = before_end(TransPacketBase);
-	TransPacketBase.splice_after(Pkt, list);
-	++Pkt;
-	if (NextTransPacketBase == end(TransPacketBase))
-		NextTransPacketBase = Pkt;
-
-	while(Pkt != end(TransPacketBase))
-	{
-		DispTransPacket(*Pkt);
-
-		if (Pkt->Command.starts_with(L"RETR"sv) || Pkt->Command.starts_with(L"STOR"sv)) {
-			TransFiles++;
-			// タスクバー進捗表示
-			TransferSizeLeft += Pkt->Size;
-			TransferSizeTotal += Pkt->Size;
-			PostMessageW(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
-		}
-		++Pkt;
-	}
-
-	ReleaseMutex(hListAccMutex);
-	// 同時接続対応
-	WaitForMainThread = NO;
-	return;
+void AppendTransFileList(std::vector<TRANSPACKET>&& list) {
+	for (auto& Pkt : list)
+		AddTransFileList(&Pkt);
 }
 
 
@@ -371,30 +249,18 @@ static void DispTransPacket(TRANSPACKET const& item) {
 
 // 転送ファイルリストをクリアする
 static void EraseTransFileList() {
-	auto NotDel = end(TransPacketBase);
-	while (WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT) {
-		WaitForMainThread = YES;
-		BackgrndMessageProc();
-		Sleep(1);
-	}
-	for (auto New = begin(TransPacketBase); New != end(TransPacketBase); ++New) {
-		/* 最後の"BACKCUR"は必要なので消さない */
-		if (New->Command == L"BACKCUR"sv) {
-			if (NotDel != end(TransPacketBase))
-				NotDel->Command.clear();
-			NotDel = New;
-		} else
-			New->Command.clear();
-	}
-	// FIXME: TransPacketBaseをここで変更すべきではないはず
-	// TransPacketBase.erase_after(TransPacketBase.before_begin(), NotDel);
-	NextTransPacketBase = NotDel;
+	/* 最後の"BACKCUR"は必要なので消さない */
+	// TODO: 一時的に全要素が消えるため、不整合が生じる可能性がある。try_popが速いのでEraseを排除できるのではないか？
+	std::optional<TRANSPACKET> backcur;
+	for (TRANSPACKET pkt; TransPacketBase.try_pop(pkt);)
+		if (pkt.Command == L"BACKCUR"sv)
+			backcur = std::move(pkt);
+	if (backcur)
+		TransPacketBase.push(*std::move(backcur));
 	TransFiles = 0;
 	TransferSizeLeft = 0;
 	TransferSizeTotal = 0;
 	PostMessageW(GetMainHwnd(), WM_CHANGE_COND, 0, 0);
-	ReleaseMutex(hListAccMutex);
-	WaitForMainThread = NO;
 }
 
 
@@ -505,70 +371,34 @@ static unsigned __stdcall TransferThread(void *Dummy)
 	LastError = NO;
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
 
-	while(!empty(TransPacketBase) ||
-		  (WaitForSingleObject(hRunMutex, 200) == WAIT_TIMEOUT))
-	{
-		if(fTransferThreadExit == TRUE)
-			break;
-
-		if(WaitForMainThread == YES)
-		{
-			BackgrndMessageProc();
-			Sleep(100);
-			continue;
-		}
-
-//		WaitForSingleObject(hListAccMutex, INFINITE);
-		while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
-		{
-			BackgrndMessageProc();
-			Sleep(1);
-		}
+	while (!fTransferThreadExit) {
 		ErrMsg.clear();
 
 //		Canceled = NO;
 		Canceled[ThreadCount] = NO;
 
-		while (!empty(TransPacketBase) && empty(TransPacketBase.front().Command)) {
-			TransPacketBase.pop_front();
-			if (empty(TransPacketBase))
-				GoExit = YES;
-		}
+		if (empty(TransPacketBase))
+			GoExit = YES;
 		if(AskReuseCmdSkt() == YES && ThreadCount == 0)
 		{
 			TrnSkt = AskTrnCtrlSkt();
 			// セッションあたりの転送量制限対策
 			if (TrnSkt && AskErrorReconnect() == YES && LastError == YES) {
-				ReleaseMutex(hListAccMutex);
 				PostMessageW(GetMainHwnd(), WM_RECONNECTSOCKET, 0, 0);
 				Sleep(100);
 				TrnSkt.reset();
-//				WaitForSingleObject(hListAccMutex, INFINITE);
-				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
-				{
-					BackgrndMessageProc();
-					Sleep(1);
-				}
 			}
 		}
 		else
 		{
 			// セッションあたりの転送量制限対策
 			if (TrnSkt && AskErrorReconnect() == YES && LastError == YES) {
-				ReleaseMutex(hListAccMutex);
 				DoQUIT(TrnSkt, &Canceled[ThreadCount]);
 				DoClose(TrnSkt);
 				TrnSkt.reset();
-//				WaitForSingleObject(hListAccMutex, INFINITE);
-				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
-				{
-					BackgrndMessageProc();
-					Sleep(1);
-				}
 			}
 			if(!empty(TransPacketBase) && AskConnecting() == YES && ThreadCount < AskMaxThreadCount())
 			{
-				ReleaseMutex(hListAccMutex);
 				if (!TrnSkt)
 					ReConnectTrnSkt(TrnSkt, &Canceled[ThreadCount]);
 				else
@@ -587,12 +417,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					}
 				}
 				LastUsed = timeGetTime();
-//				WaitForSingleObject(hListAccMutex, INFINITE);
-				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
-				{
-					BackgrndMessageProc();
-					Sleep(1);
-				}
 			}
 			else
 			{
@@ -601,25 +425,16 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					// 60秒間使用されなければログアウト
 					if(timeGetTime() - LastUsed > 60000 || AskConnecting() == NO || ThreadCount >= AskMaxThreadCount())
 					{
-						ReleaseMutex(hListAccMutex);
 						DoQUIT(TrnSkt, &Canceled[ThreadCount]);
 						DoClose(TrnSkt);
 						TrnSkt.reset();
-//						WaitForSingleObject(hListAccMutex, INFINITE);
-						while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
-						{
-							BackgrndMessageProc();
-							Sleep(1);
-						}
 					}
 				}
 			}
 		}
 		LastError = NO;
-		if (TrnSkt && NextTransPacketBase != end(TransPacketBase)) {
-			auto Pos = NextTransPacketBase++;
-			// ディレクトリ操作は非同期で行わない
-//			ReleaseMutex(hListAccMutex);
+		if (TRANSPACKET pkt; TrnSkt && TransPacketBase.try_pop(pkt)) {
+			auto Pos = &pkt;
 			if(hWndTrans == NULL)
 			{
 				if (Pos->Command.starts_with(L"RETR"sv) || Pos->Command.starts_with(L"STOR"sv) || Pos->Command.starts_with(L"MKD"sv) || Pos->Command.starts_with(L"L-"sv) || Pos->Command.starts_with(L"R-"sv)) {
@@ -631,7 +446,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					SetWindowPos(hWndTrans, NULL, WndRect.left, WndRect.top + (WndRect.bottom - WndRect.top) * ThreadCount - (WndRect.bottom - WndRect.top) * (AskMaxThreadCount() - 1) / 2, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 				}
 			}
-//			TransPacketBase->hWndTrans = hWndTrans;
 			Pos->hWndTrans = hWndTrans;
 			Pos->ctrl_skt = TrnSkt;
 			Pos->Abort = ABORT_NONE;
@@ -655,8 +469,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			/* ダウンロード */
 			if(Pos->Command.starts_with(L"RETR"sv))
 			{
-				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
-//				ReleaseMutex(hListAccMutex);
 				/* 不正なパスを検出 */
 				if(CheckPathViolation(*Pos) == NO)
 				{
@@ -690,14 +502,10 @@ static unsigned __stdcall TransferThread(void *Dummy)
 							}
 					}
 				}
-				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
-				ReleaseMutex(hListAccMutex);
 			}
 			/* アップロード */
 			else if(Pos->Command.starts_with(L"STOR"sv))
 			{
-				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
-//				ReleaseMutex(hListAccMutex);
 				/* フルパスを使わないための処理 */
 				if(MakeNonFullPath(*Pos, CurDir[Pos->ThreadCount]) == FFFTP_SUCCESS)
 				{
@@ -718,8 +526,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						DoMFMT(TrnSkt, Pos->Remote, &Pos->Time, &Canceled[Pos->ThreadCount]);
 					}
 				}
-				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
-				ReleaseMutex(hListAccMutex);
 			}
 			/* フォルダ作成（ローカルまたはホスト） */
 			else if(Pos->Command.starts_with(L"MKD"sv))
@@ -750,7 +556,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					Down = YES;
 					DoLocalMKD(Pos->Local);
 				}
-				ReleaseMutex(hListAccMutex);
 			}
 			/* ディレクトリ作成（常にホスト側） */
 			else if(Pos->Command.starts_with(L"R-MKD"sv))
@@ -766,7 +571,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					if(FolderAttr)
 						Command(TrnSkt, &Canceled[Pos->ThreadCount], L"{} {:03d} {}"sv, AskHostChmodCmd(), FolderAttrNum, Pos->Remote);
 				}
-				ReleaseMutex(hListAccMutex);
 			}
 			/* ディレクトリ削除（常にホスト側） */
 			else if(Pos->Command.starts_with(L"R-RMD"sv))
@@ -783,7 +587,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						Command(TrnSkt, &Canceled[Pos->ThreadCount], L"{}{}"sv, std::wstring_view{ Pos->Command }.substr(2), Pos->Remote);
 					}
 				}
-				ReleaseMutex(hListAccMutex);
 			}
 			/* ファイル削除（常にホスト側） */
 			else if(Pos->Command.starts_with(L"R-DELE"sv))
@@ -800,7 +603,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						Command(TrnSkt, &Canceled[Pos->ThreadCount], L"{}{}"sv, std::wstring_view{ Pos->Command }.substr(2), Pos->Remote);
 					}
 				}
-				ReleaseMutex(hListAccMutex);
 			}
 			/* ディレクトリ作成（常にローカル側） */
 			else if(Pos->Command.starts_with(L"L-MKD"sv))
@@ -809,7 +611,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 
 				Down = YES;
 				DoLocalMKD(Pos->Local);
-				ReleaseMutex(hListAccMutex);
 			}
 			/* ディレクトリ削除（常にローカル側） */
 			else if(Pos->Command.starts_with(L"L-RMD"sv))
@@ -822,7 +623,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					Down = YES;
 					DoLocalRMD(Pos->Local);
 				}
-				ReleaseMutex(hListAccMutex);
 			}
 			/* ファイル削除（常にローカル側） */
 			else if(Pos->Command.starts_with(L"L-DELE"sv))
@@ -835,7 +635,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					Down = YES;
 					DoLocalDELE(Pos->Local);
 				}
-				ReleaseMutex(hListAccMutex);
 			}
 			/* カレントディレクトリを設定 */
 			else if(Pos->Command == L"SETCUR"sv)
@@ -851,7 +650,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					}
 				}
 				CurDir[Pos->ThreadCount] = Pos->Remote;
-				ReleaseMutex(hListAccMutex);
 			}
 			/* カレントディレクトリを戻す */
 			else if(Pos->Command == L"BACKCUR"sv)
@@ -863,35 +661,22 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						Command(TrnSkt, &Canceled[Pos->ThreadCount], L"CWD {}"sv, Pos->Remote);
 					CurDir[Pos->ThreadCount] = Pos->Remote;
 				}
-				ReleaseMutex(hListAccMutex);
 			}
 			else if(Pos->Command == L"NULL"sv)
 			{
 				Sleep(0);
 				Sleep(100);
-				ReleaseMutex(hListAccMutex);
 			}
-			else
-				ReleaseMutex(hListAccMutex);
 
 			/*===== １つの処理終わり =====*/
 
 			if(ForceAbort == NO)
 			{
-//				WaitForSingleObject(hListAccMutex, INFINITE);
-				while(WaitForSingleObject(hListAccMutex, 0) == WAIT_TIMEOUT)
-				{
-					BackgrndMessageProc();
-					Sleep(1);
-				}
 				if(ClearAll == YES)
 //					EraseTransFileList();
 				{
 					for(i = 0; i < MAX_DATA_CONNECTION; i++)
 						Canceled[i] = YES;
-					if (Pos != end(TransPacketBase))
-						Pos->Command.clear();
-					Pos = end(TransPacketBase);
 					EraseTransFileList();
 					GoExit = YES;
 				}
@@ -912,19 +697,12 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					}
 				}
 //				ClearAll = NO;
-				ReleaseMutex(hListAccMutex);
 
 				if(BackgrndMessageProc() == YES)
-				{
-					WaitForSingleObject(hListAccMutex, INFINITE);
 					EraseTransFileList();
-					ReleaseMutex(hListAccMutex);
-				}
 			}
 			if(hWndTrans != NULL)
 				SendMessageW(hWndTrans, WM_SET_PACKET, 0, 0);
-			if (Pos != end(TransPacketBase))
-				Pos->Command.clear();
 			LastUsed = timeGetTime();
 		}
 //		else
@@ -949,7 +727,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				GoExit = NO;
 			}
 
-			ReleaseMutex(hListAccMutex);
 			if(KeepDlg == NO)
 			{
 				if(hWndTrans != NULL)
@@ -968,7 +745,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 		}
 		else
 		{
-			ReleaseMutex(hListAccMutex);
 			if(hWndTrans != NULL)
 			{
 				DestroyWindow(hWndTrans);
@@ -1139,8 +915,6 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 				}
 
 				if (data_socket) {
-					// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
-					ReleaseMutex(hListAccMutex);
 					if (Pkt->ctrl_skt->IsSSLAttached()) {
 						if (data_socket->AttachSSL(CancelCheckWork))
 							iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
@@ -1217,8 +991,6 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					std::tie(iRetCode, text) = Command(Pkt->ctrl_skt, CancelCheckWork, L"{}{}"sv, Pkt->Command, Pkt->Remote);
 					if(iRetCode/100 == FTP_PRELIM)
 					{
-						// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
-						ReleaseMutex(hListAccMutex);
 						if (Pkt->ctrl_skt->IsSSLAttached()) {
 							if (data_socket->AttachSSL(CancelCheckWork))
 								iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
@@ -1303,40 +1075,24 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 		}
 
 		CodeConverter cc{ Pkt->KanjiCode, Pkt->KanjiCodeDesired, Pkt->KanaCnv != NO };
-
-		/*===== ファイルを受信するループ =====*/
-		while (Pkt->Abort == ABORT_NONE && ForceAbort == NO) {
-			auto result = dSkt->ReadAll();
-			if (auto ptr = std::get_if<0>(&result)) {
-				if (auto converted = cc.Convert({ data(*ptr), size(*ptr) }); !os.write(data(converted), size(converted)))
-					Pkt->Abort = ABORT_DISKFULL;
-				Pkt->ExistSize += size_as<LONGLONG>(*ptr);
-				if (Pkt->hWndTrans != NULL)
-					AllTransSizeNow[Pkt->ThreadCount] += size_as<LONGLONG>(*ptr);
-				else {
-					/* 転送ダイアログを出さない時の経過表示 */
-					DispDownloadSize(Pkt->ExistSize);
-				}
-			} else if (auto status = std::get<1>(result); status != 0) {
-				if (status != ERROR_HANDLE_EOF && Pkt->Abort == ABORT_NONE)
-					Pkt->Abort = ABORT_ERROR;
-				break;
+		auto result = dSkt->ReadAll(CancelCheckWork, [&Pkt, &cc, &os](std::vector<char> const& buf) {
+			if (auto converted = cc.Convert({ begin(buf), end(buf) }); !os.write(data(converted), size(converted))) {
+				Pkt->Abort = ABORT_DISKFULL;
+				return true;
 			}
-			if (auto result = dSkt->AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
-				break;
-			for (;;) {
-				// TODO: timeout
-				auto result = SleepEx(0, true);
-				if (result == WAIT_IO_COMPLETION)
-					break;
-				assert(result == 0);
-				if (BackgrndMessageProc() == YES || *CancelCheckWork == YES) {
-					ForceAbort = YES;
-					goto error;
-				}
-			}
+			Pkt->ExistSize += size_as<LONGLONG>(buf);
+			if (Pkt->hWndTrans != NULL)
+				AllTransSizeNow[Pkt->ThreadCount] += size_as<LONGLONG>(buf);
+			else
+				DispDownloadSize(Pkt->ExistSize);	/* 転送ダイアログを出さない時の経過表示 */
+			return false;
+		});
+		if (result != ERROR_HANDLE_EOF) {
+			if (result == ERROR_OPERATION_ABORTED)
+				ForceAbort = YES;
+			if (Pkt->Abort == ABORT_NONE)
+				Pkt->Abort = ABORT_ERROR;
 		}
-		error:
 
 		/* グラフ表示を更新 */
 		if (Pkt->hWndTrans != NULL) {
@@ -1365,7 +1121,7 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 		Command(Pkt->ctrl_skt, CancelCheckWork, L"ABOR"sv);
 	}
 
-	auto [code, text] = ReadReplyMessage(Pkt->ctrl_skt, CancelCheckWork);
+	auto [code, text] = Pkt->ctrl_skt->ReadReply(CancelCheckWork);
 	if (Pkt->Abort == ABORT_DISKFULL) {
 		SetErrorMsg(GetString(IDS_MSGJPN096));
 		Notice(IDS_MSGJPN096);
@@ -1390,7 +1146,6 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 
 static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 {
-	ReleaseMutex(hListAccMutex);
 	if(ForceAbort == NO)
 	{
 		if((iRetCode/100) >= FTP_CONTINUE)
@@ -1673,8 +1428,6 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 			}
 
 			if (data_socket) {
-				// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
-				ReleaseMutex(hListAccMutex);
 				if (Pkt->ctrl_skt->IsSSLAttached()) {
 					if (data_socket->AttachSSL(&Canceled[Pkt->ThreadCount]))
 						iRetCode = UploadFile(Pkt, data_socket);
@@ -1753,8 +1506,6 @@ static int UploadPassive(TRANSPACKET *Pkt)
 					// 応答の形式に規格が無くファイル名を取得できないため属性変更を無効化
 					if(Pkt->Mode == EXIST_UNIQUE)
 						Pkt->Attr = -1;
-					// 一部TYPE、STOR(RETR)、PORT(PASV)を並列に処理できないホストがあるため
-					ReleaseMutex(hListAccMutex);
 					if (Pkt->ctrl_skt->IsSSLAttached()) {
 						if (data_socket->AttachSSL(&Canceled[Pkt->ThreadCount]))
 							iRetCode = UploadFile(Pkt, data_socket);
@@ -1875,7 +1626,7 @@ static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt) {
 	if (shutdown(dSkt->handle, 1) != 0)
 		WSAError(L"shutdown()"sv);
 
-	auto [code, text] = ReadReplyMessage(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount]);
+	auto [code, text] = Pkt->ctrl_skt->ReadReply(&Canceled[Pkt->ThreadCount]);
 	if (code / 100 >= FTP_RETRY)
 		SetErrorMsg(std::move(text));
 	if (Pkt->Abort != ABORT_NONE)
@@ -1908,8 +1659,6 @@ static int TermCodeConvAndSend(std::shared_ptr<SocketContext> Skt, char *Data, i
 
 static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 {
-	// 同時接続対応
-	ReleaseMutex(hListAccMutex);
 	if(ForceAbort == NO)
 	{
 		if((iRetCode/100) >= FTP_CONTINUE)

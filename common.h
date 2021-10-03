@@ -40,7 +40,6 @@
 #include <chrono>
 #include <filesystem>
 #include <format>
-#include <forward_list>
 #include <fstream>
 #include <future>
 #include <iterator>
@@ -48,6 +47,7 @@
 #include <mutex>
 #include <numeric>
 #include <optional>
+#include <ranges>
 #include <span>
 #include <sstream>
 #include <string>
@@ -460,7 +460,7 @@ struct SocketContext : public WSAOVERLAPPED {
 	}
 	static std::shared_ptr<SocketContext> Create(int af, std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget);
 	std::shared_ptr<SocketContext> Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen);
-	int Close();
+	void Close();
 	BOOL AttachSSL(BOOL* pbAborted);
 	constexpr bool IsSSLAttached() {
 		return SecIsValidHandle(&sslContext);
@@ -472,9 +472,14 @@ struct SocketContext : public WSAOVERLAPPED {
 	void OnComplete(DWORD error, DWORD transferred, DWORD flags);
 	int AsyncFetch();
 	int GetReadStatus();
-	std::variant<std::string, int> ReadLine();
-	std::variant<std::vector<char>, int> ReadBytes(int len);
-	std::variant<std::vector<char>, int> ReadAll();
+	std::tuple<int, std::wstring> ReadReply(int* CancelCheckWork);
+	bool ReadSpan(std::span<char>& span, int* CancelCheckWork);
+	template<class Data>
+	bool ReadData(Data& data, int* CancelCheckWork) {
+		std::span span{ reinterpret_cast<char*>(&data), sizeof data };
+		return ReadSpan(span, CancelCheckWork);
+	}
+	int ReadAll(int* CancelCheckWork, std::function<bool(std::vector<char> const&)> callback);
 	void ClearReadBuffer();
 	int Send(const char* buf, int len, int flags, int* CancelCheckWork);
 };
@@ -961,8 +966,6 @@ template<class... Args>
 static inline std::tuple<int, std::wstring> Command(std::shared_ptr<SocketContext> socket, int* CancelCheckWork, std::wstring_view format, const Args&... args) {
 	return !socket ? std::tuple{ 429, L""s } : detail::command(socket, CancelCheckWork, std::format(format, args...));
 }
-std::tuple<int, std::wstring> ReadReplyMessage(std::shared_ptr<SocketContext> cSkt, int *CancelCheckWork);
-int ReadNchar(std::shared_ptr<SocketContext> cSkt, char *Buf, int Size, int *CancelCheckWork);
 
 /*===== getput.c =====*/
 
@@ -970,13 +973,10 @@ int MakeTransferThread(void);
 void CloseTransferThread(void);
 // 同時接続対応
 void AbortAllTransfer();
-int AddTmpTransFileList(TRANSPACKET const& item, std::forward_list<TRANSPACKET>& list);
-int RemoveTmpTransFileListItem(std::forward_list<TRANSPACKET>& list, int Num);
-
 void AddTransFileList(TRANSPACKET *Pkt);
 // バグ対策
 void AddNullTransFileList();
-void AppendTransFileList(std::forward_list<TRANSPACKET>&& list);
+void AppendTransFileList(std::vector<TRANSPACKET>&& list);
 void KeepTransferDialog(int Sw);
 int AskTransferNow(void);
 int AskTransferFileNum(void);
