@@ -192,25 +192,6 @@ void AbortAllTransfer()
 }
 
 
-// 転送するファイル情報をリストに追加する
-int AddTmpTransFileList(TRANSPACKET const& item, std::forward_list<TRANSPACKET>& list) {
-	auto it = before_end(list);
-	list.insert_after(it, item);
-	return FFFTP_SUCCESS;
-}
-
-
-// 転送するファイル情報リストから１つの情報を取り除く
-int RemoveTmpTransFileListItem(std::forward_list<TRANSPACKET>& list, int Num) {
-	for (auto it = list.before_begin(); it != end(list); ++it)
-		if (Num-- == 0) {
-			list.erase_after(it);
-			return FFFTP_SUCCESS;
-		}
-	return FFFTP_FAIL;
-}
-
-
 /*----- 転送するファイル情報を転送ファイルリストに登録する --------------------
 *
 *	Parameter
@@ -245,7 +226,7 @@ void AddNullTransFileList()
 
 
 // 転送ファイル情報を転送ファイルリストに追加する
-void AppendTransFileList(std::forward_list<TRANSPACKET>&& list) {
+void AppendTransFileList(std::vector<TRANSPACKET>&& list) {
 	for (auto& Pkt : list)
 		AddTransFileList(&Pkt);
 }

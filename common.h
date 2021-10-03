@@ -40,7 +40,6 @@
 #include <chrono>
 #include <filesystem>
 #include <format>
-#include <forward_list>
 #include <fstream>
 #include <future>
 #include <iterator>
@@ -48,6 +47,7 @@
 #include <mutex>
 #include <numeric>
 #include <optional>
+#include <ranges>
 #include <span>
 #include <sstream>
 #include <string>
@@ -973,13 +973,10 @@ int MakeTransferThread(void);
 void CloseTransferThread(void);
 // 同時接続対応
 void AbortAllTransfer();
-int AddTmpTransFileList(TRANSPACKET const& item, std::forward_list<TRANSPACKET>& list);
-int RemoveTmpTransFileListItem(std::forward_list<TRANSPACKET>& list, int Num);
-
 void AddTransFileList(TRANSPACKET *Pkt);
 // バグ対策
 void AddNullTransFileList();
-void AppendTransFileList(std::forward_list<TRANSPACKET>&& list);
+void AppendTransFileList(std::vector<TRANSPACKET>&& list);
 void KeepTransferDialog(int Sw);
 int AskTransferNow(void);
 int AskTransferFileNum(void);

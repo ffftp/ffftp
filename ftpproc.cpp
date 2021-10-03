@@ -34,12 +34,12 @@
 
 static int CheckRemoteFile(TRANSPACKET *Pkt, std::vector<FILELIST> const& ListList);
 static void DispMirrorFiles(std::vector<FILELIST> const& Local, std::vector<FILELIST> const& Remote);
-static void MirrorDeleteAllLocalDir(std::vector<FILELIST> const& Local, TRANSPACKET& item, std::forward_list<TRANSPACKET>& list);
+static void MirrorDeleteAllLocalDir(std::vector<FILELIST> const& Local, TRANSPACKET& item, std::vector<TRANSPACKET>& list);
 static int CheckLocalFile(TRANSPACKET *Pkt);
 static std::wstring RemoveAfterSemicolon(std::wstring&& path);
-static void MirrorDeleteAllDir(std::vector<FILELIST> const& Remote, TRANSPACKET& item, std::forward_list<TRANSPACKET>& list);
+static void MirrorDeleteAllDir(std::vector<FILELIST> const& Remote, TRANSPACKET& item, std::vector<TRANSPACKET>& list);
 static int MirrorNotify(bool upload);
-static void CountMirrorFiles(HWND hDlg, std::forward_list<TRANSPACKET> const& list);
+static void CountMirrorFiles(HWND hDlg, std::vector<TRANSPACKET> const& list);
 static int AskMirrorNoTrn(std::wstring_view path, int Mode);
 static int AskUploadFileAttr(std::wstring const& path);
 static bool UpDownAsDialog(std::wstring& name, int win);
@@ -305,8 +305,8 @@ void DirectDownloadProc(std::wstring_view Fname) {
 struct MirrorList {
 	using result_t = bool;
 	Resizable<Controls<MIRROR_DEL, MIRROR_SIZEGRIP>, Controls<IDOK, IDCANCEL, IDHELP, MIRROR_DEL, MIRROR_COPYNUM, MIRROR_MAKENUM, MIRROR_DELNUM, MIRROR_SIZEGRIP, MIRROR_NO_TRANSFER>, Controls<MIRROR_LIST>> resizable{ MirrorDlgSize };
-	std::forward_list<TRANSPACKET>& list;
-	MirrorList(std::forward_list<TRANSPACKET>& list) : list{ list } {}
+	std::vector<TRANSPACKET>& list;
+	MirrorList(std::vector<TRANSPACKET>& list) : list{ list } {}
 	INT_PTR OnInit(HWND hDlg) {
 		for (auto const& item : list) {
 			std::tuple<int, std::wstring_view> data;
@@ -337,12 +337,14 @@ struct MirrorList {
 			EndDialog(hDlg, id == IDOK);
 			return;
 		case MIRROR_DEL: {
-			std::vector<int> List((size_t)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0));
-			auto Num = (int)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELITEMS, size_as<WPARAM>(List), (LPARAM)data(List));
-			for (Num--; Num >= 0; Num--)
-				if (RemoveTmpTransFileListItem(list, List[Num]) == FFFTP_SUCCESS)
-					SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_DELETESTRING, List[Num], 0);
-				else
+			std::vector<int> indexes((size_t)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0));
+			auto count = (int)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELITEMS, size_as<WPARAM>(indexes), (LPARAM)data(indexes));
+			assert(size_as<int>(indexes) == count);
+			for (int index : indexes | std::ranges::views::reverse)
+				if (index < size_as<int>(indexes)) {
+					list.erase(begin(list) + index);
+					SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_DELETESTRING, index, 0);
+				} else
 					MessageBeep(-1);
 			CountMirrorFiles(hDlg, list);
 			break;
@@ -387,7 +389,7 @@ void MirrorDownloadProc(int Notify)
 	{
 		DisableUserOpe();
 
-		std::forward_list<TRANSPACKET> list;
+		std::vector<TRANSPACKET> list;
 
 		Notify = Notify == YES ? MirrorNotify(false) : YES;
 
@@ -468,7 +470,7 @@ void MirrorDownloadProc(int Notify)
 					Pkt.Local = AskLocalCurDir() / f.Name;
 					Pkt.Remote.clear();
 					Pkt.Command = L"L-DELE "s;
-					AddTmpTransFileList(Pkt, list);
+					list.push_back(Pkt);
 				}
 			MirrorDeleteAllLocalDir(LocalListBase, Pkt, list);
 
@@ -484,7 +486,7 @@ void MirrorDownloadProc(int Notify)
 					if (f.Node == NODE_DIR) {
 						Pkt.Remote.clear();
 						Pkt.Command = L"L-MKD "s;
-						AddTmpTransFileList(Pkt, list);
+						list.push_back(Pkt);
 					} else if (f.Node == NODE_FILE) {
 						Pkt.Remote = ReplaceAll(SetSlashTail(std::wstring{ AskRemoteCurDir() }) + f.Name, L'\\', L'/');
 
@@ -499,7 +501,7 @@ void MirrorDownloadProc(int Notify)
 						Pkt.Mode = EXIST_OVW;
 						// ミラーリング設定追加
 						Pkt.NoTransfer = MirrorNoTransferContents;
-						AddTmpTransFileList(Pkt, list);
+						list.push_back(Pkt);
 					}
 				}
 
@@ -550,13 +552,13 @@ static void DispMirrorFiles(std::vector<FILELIST> const& Local, std::vector<FILE
 
 
 // ミラーリング時のローカル側のフォルダ削除
-static void MirrorDeleteAllLocalDir(std::vector<FILELIST> const& Local, TRANSPACKET& item, std::forward_list<TRANSPACKET>& list) {
+static void MirrorDeleteAllLocalDir(std::vector<FILELIST> const& Local, TRANSPACKET& item, std::vector<TRANSPACKET>& list) {
 	for (auto it = rbegin(Local); it != rend(Local); ++it)
 		if (it->Node == NODE_DIR && it->Attr == YES) {
 			item.Local = AskLocalCurDir() / it->Name;
 			item.Remote.clear();
 			item.Command = L"L-RMD "s;
-			AddTmpTransFileList(item, list);
+			list.push_back(item);
 		}
 }
 
@@ -1074,7 +1076,7 @@ void MirrorUploadProc(int Notify)
 	{
 		DisableUserOpe();
 
-		std::forward_list<TRANSPACKET> list;
+		std::vector<TRANSPACKET> list;
 
 		Notify = Notify == YES ? MirrorNotify(true) : YES;
 
@@ -1182,7 +1184,7 @@ void MirrorUploadProc(int Notify)
 					Pkt.Remote = ReplaceAll(SetSlashTail(std::wstring{ AskRemoteCurDir() }) + f.Name, L'\\', L'/');
 					Pkt.Local.clear();
 					Pkt.Command = L"R-DELE "s;
-					AddTmpTransFileList(Pkt, list);
+					list.push_back(Pkt);
 				}
 			MirrorDeleteAllDir(RemoteListBase, Pkt, list);
 
@@ -1194,7 +1196,7 @@ void MirrorUploadProc(int Notify)
 					if (f.Node == NODE_DIR) {
 						Pkt.Local.clear();
 						Pkt.Command = L"R-MKD "s;
-						AddTmpTransFileList(Pkt, list);
+						list.push_back(Pkt);
 					} else if (f.Node == NODE_FILE) {
 						Pkt.Local = AskLocalCurDir() / f.Name;
 
@@ -1214,7 +1216,7 @@ void MirrorUploadProc(int Notify)
 						Pkt.Mode = EXIST_OVW;
 						// ミラーリング設定追加
 						Pkt.NoTransfer = MirrorNoTransferContents;
-						AddTmpTransFileList(Pkt, list);
+						list.push_back(Pkt);
 					}
 				}
 			}
@@ -1250,13 +1252,13 @@ void MirrorUploadProc(int Notify)
 
 
 // ミラーリング時のホスト側のフォルダ削除
-static void MirrorDeleteAllDir(std::vector<FILELIST> const& Remote, TRANSPACKET& item, std::forward_list<TRANSPACKET>& list) {
+static void MirrorDeleteAllDir(std::vector<FILELIST> const& Remote, TRANSPACKET& item, std::vector<TRANSPACKET>& list) {
 	for (auto it = rbegin(Remote); it != rend(Remote); ++it)
 		if (it->Node == NODE_DIR && it->Attr == YES) {
 			item.Remote = ReplaceAll(SetSlashTail(std::wstring{ AskRemoteCurDir() }) + it->Name, L'\\', L'/');
 			item.Local.clear();
 			item.Command = L"R-RMD "s;
-			AddTmpTransFileList(item, list);
+			list.push_back(item);
 		}
 }
 
@@ -1288,7 +1290,7 @@ static int MirrorNotify(bool upload) {
 
 
 // ミラーリングで転送／削除するファイルの数を数えダイアログに表示
-static void CountMirrorFiles(HWND hDlg, std::forward_list<TRANSPACKET> const& list) {
+static void CountMirrorFiles(HWND hDlg, std::vector<TRANSPACKET> const& list) {
 	int Del = 0, Make = 0, Copy = 0;
 	for (auto const& item : list) {
 		if (item.Command.starts_with(L"R-DELE"sv) || item.Command.starts_with(L"R-RMD"sv) || item.Command.starts_with(L"L-DELE"sv) || item.Command.starts_with(L"L-RMD"sv))
