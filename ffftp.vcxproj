@@ -184,6 +184,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <DelayLoadDLLs>COMDLG32.dll;CRYPTUI.dll;RASAPI32.dll;RASDLG.dll;XmlLite.dll;Normaliz.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
       <MinimumRequiredVersion>6.00</MinimumRequiredVersion>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
@@ -214,6 +215,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <TargetMachine>MachineX64</TargetMachine>
       <DelayLoadDLLs>COMDLG32.dll;CRYPTUI.dll;RASAPI32.dll;RASDLG.dll;XmlLite.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <MuiResourceCompile>
       <RCConfigFileName>Resource\ffftp.rcconfig</RCConfigFileName>
