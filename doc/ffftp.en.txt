@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.5.3 (FTP Client software)
+[Software Name]  FFFTP Ver.5.4 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018-2021, Kurata Sayuri.
@@ -29,16 +29,16 @@ following menu.
 File -> Settings -> Change Master password
 
 
-Changes at 5.3
+Changes at 5.4
 --------------
 
-- Improve performance for file listings. #300
-- Refactoring for sockect operations. #310
-- Temporary support TLS v1.3. #279, #310
-- Refactoring for strings. #305, #306, #307
-- Enable more compiler error checks. #308
-- File clean up. #304
-- Fix halfwidth - fullwidth convertion. #301
+- Improve socket operation and download speed. #314, #319
+- Fix about Synchronize Folder Movement. #313
+- Fix problem of attribute setting. #317
+- Fix filtering mirror files. #318
+- Fix debug message. #315
+- Improve build environment. #321, #324
+
 
 Outline
 -------
