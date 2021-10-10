@@ -122,6 +122,9 @@ static inline bool FindFile(fs::path const& fileName, Fn&& fn) {
 				continue;
 			if (std::wstring_view filename{ data.cFileName }; filename == L"."sv || filename == L".."sv)
 				continue;
+			// TODO: temporary round time, see #318 and #322.
+			auto const rounded = ((uint64_t)data.ftLastWriteTime.dwHighDateTime << 32 | data.ftLastWriteTime.dwLowDateTime) / 10000000 * 10000000;
+			data.ftLastWriteTime = { DWORD(rounded), DWORD(rounded >> 32) };
 			result = fn(data);
 		} while (result && FindNextFileW(handle, &data));
 		FindClose(handle);
