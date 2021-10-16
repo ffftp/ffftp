@@ -523,10 +523,13 @@ void SocketContext::OnComplete(DWORD error, DWORD transferred, DWORD flags) {
 
 
 // 非同期読み込みを開始する。Alertable I/Oを使用しているので、呼び出し元はAPC queueを実行すること。
-//   0 ................ 成功。既に完了している。
-//   WSA_IO_PENDING ... 成功。非同期実行が開始された。
-//   other ............ 失敗。
+//   0 .................. 成功。既に完了している。
+//   WSA_IO_PENDING ..... 成功。非同期実行が開始された。
+//   ERROR_HANDLE_EOF ... 失敗。終端に達したため、これ以上読めない。
+//   other .............. 失敗。
 int SocketContext::AsyncFetch() {
+	if (auto status = GetReadStatus(); status != 0)
+		return status;
 	if (recvStatus == 0) {
 		readRawSize = size_as<ULONG>(readRaw);
 		readRaw.resize((size_t)readRawSize + recvlen);
