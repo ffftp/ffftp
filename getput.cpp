@@ -1590,13 +1590,28 @@ static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt) {
 		/*===== ファイルを送信するループ =====*/
 		auto eof = false;
 		std::vector<char> buf(BUFSIZE);
-		for (std::streamsize read; Pkt->Abort == ABORT_NONE && ForceAbort == NO && !eof && (read = is.read(data(buf), size(buf)).gcount()) != 0;) {
+		std::vector<char> rest;
+		for (std::streamsize read; Pkt->Abort == ABORT_NONE && ForceAbort == NO && !eof && (read = is.read(data(buf), BUFSIZE).gcount()) != 0;) {
 			/* EOF除去 */
 			if (RmEOF == YES && Pkt->Type == TYPE_A)
 				if (auto pos = std::find(data(buf), data(buf) + read, '\x1A'); pos != data(buf) + read) {
 					eof = true;
 					read = pos - data(buf);
 				}
+
+			// 漢字コード変換と改行コード変換が途中で分断されないようにASCIIで区切る。incodeにUTF-16は存在しないので、全てUS-ASCII互換を仮定できる。
+			// TODO: ISO-2022-JPはこの区切り方でも正しくない。
+			if (cc.incode != KANJI_NOCNV || Pkt->Type == TYPE_A) {
+				read += size(rest);
+				buf.insert(begin(buf), begin(rest), end(rest));
+				rest.clear();
+				for (auto i = read; 0 < i; i--)
+					if (auto ch = buf[i - 1]; ch == '\n' || ' ' <= ch && ch <= '~') {
+						rest.assign(begin(buf) + i, end(buf));
+						read = i;
+						break;
+					}
+			}
 
 			auto converted = cc.Convert({ data(buf), (std::string_view::size_type)read });
 			if (TermCodeConvAndSend(dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
@@ -1608,6 +1623,14 @@ static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt) {
 
 			if (BackgrndMessageProc() == YES)
 				ForceAbort = YES;
+		}
+		if (Pkt->Abort == ABORT_NONE && ForceAbort == NO && !eof && !empty(rest)) {
+			auto converted = cc.Convert({ data(rest), size(rest) });
+			if (TermCodeConvAndSend(dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
+				Pkt->Abort = ABORT_ERROR;
+			Pkt->ExistSize += size_as<LONGLONG>(rest);
+			if (Pkt->hWndTrans != NULL)
+				AllTransSizeNow[Pkt->ThreadCount] += size_as<LONGLONG>(rest);
 		}
 
 		/* グラフ表示を更新 */
