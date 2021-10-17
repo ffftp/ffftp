@@ -40,9 +40,7 @@
 
 /*===== プロトタイプ =====*/
 
-static LRESULT CALLBACK LocalWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+static LRESULT CALLBACK FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files);
 static void AddListView(HWND hWnd, int Pos, std::wstring const& Name, int Type, LONGLONG Size, FILETIME *Time, int Attr, std::wstring const& Owner, int Link, int InfoExist, int ImageId);
 static int MakeRemoteTree1(std::wstring const& Path, std::wstring const& Cur, std::vector<FILELIST>& Base, int *CancelCheckWork);
@@ -89,8 +87,7 @@ extern HOSTDATA CurHost;
 static HWND hWndListLocal = NULL;
 static HWND hWndListRemote = NULL;
 
-static WNDPROC LocalProcPtr;
-static WNDPROC RemoteProcPtr;
+static WNDPROC ListViewProc;
 static std::vector<FILELIST> localFileList, remoteFileList;
 
 static HIMAGELIST ListImg = NULL;
@@ -134,80 +131,52 @@ static inline bool FindFile(fs::path const& fileName, Fn&& fn) {
 }
 
 // ファイルリストウインドウを作成する
-int MakeListWin()
-{
-	int Sts;
+int MakeListWin() {
+	WNDCLASSEXW wc{ sizeof(WNDCLASSEXW) };
+	if (!GetClassInfoExW(GetFtpInst(), WC_LISTVIEWW, &wc))
+		return FFFTP_FAIL;
+	ListViewProc = wc.lpfnWndProc;
+	wc.lpfnWndProc = FileListCommonWndProc;
+	wc.lpszClassName = WC_LISTVIEWW L"Ex";
+	if (RegisterClassExW(&wc) == 0)
+		return FFFTP_FAIL;
+	ListImg = ImageList_LoadImageW(GetFtpInst(), MAKEINTRESOURCEW(dirattr_bmp), 16, 9, RGB(255, 0, 0), IMAGE_BITMAP, 0);
 
 	/*===== ローカル側のリストビュー =====*/
-
-	hWndListLocal = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS, 0, AskToolWinHeight() * 2, LocalWidth, ListHeight, GetMainHwnd(), 0, GetFtpInst(), nullptr);
-
-	if(hWndListLocal != NULL)
-	{
-		LocalProcPtr = (WNDPROC)SetWindowLongPtrW(hWndListLocal, GWLP_WNDPROC, (LONG_PTR)LocalWndProc);
-
-		SendMessageW(hWndListLocal, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
-
-		if(ListFont != NULL)
-			SendMessageW(hWndListLocal, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
-
-		ListImg = ImageList_LoadImageW(GetFtpInst(), MAKEINTRESOURCEW(dirattr_bmp), 16, 9, RGB(255,0,0), IMAGE_BITMAP, 0);
-		SendMessageW(hWndListLocal, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
-		ShowWindow(hWndListLocal, SW_SHOW);
-
-		constexpr std::tuple<int, int> columns[] = {
-			{ LVCFMT_LEFT, IDS_MSGJPN038 },
-			{ LVCFMT_LEFT, IDS_MSGJPN039 },
-			{ LVCFMT_RIGHT, IDS_MSGJPN040 },
-			{ LVCFMT_LEFT, IDS_MSGJPN041 },
-		};
-		int i = 0;
-		for (auto [fmt, resourceId] : columns) {
-			auto text = GetString(resourceId);
-			LVCOLUMNW column{ LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM, fmt, LocalTabWidth[i], data(text), 0, i };
-			SendMessageW(hWndListLocal, LVM_INSERTCOLUMNW, i++, (LPARAM)&column);
-		}
+	hWndListLocal = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEWW L"Ex", nullptr, WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_SHOWSELALWAYS, 0, AskToolWinHeight() * 2, LocalWidth, ListHeight, GetMainHwnd(), 0, GetFtpInst(), nullptr);
+	if (!hWndListLocal)
+		return FFFTP_FAIL;
+	constexpr std::tuple<int, int> columnsLocal[] = {
+		{ LVCFMT_LEFT, IDS_MSGJPN038 },
+		{ LVCFMT_LEFT, IDS_MSGJPN039 },
+		{ LVCFMT_RIGHT, IDS_MSGJPN040 },
+		{ LVCFMT_LEFT, IDS_MSGJPN041 },
+	};
+	for (int i = 0; auto [fmt, resourceId] : columnsLocal) {
+		auto text = GetString(resourceId);
+		LVCOLUMNW column{ LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM, fmt, LocalTabWidth[i], data(text), 0, i };
+		SendMessageW(hWndListLocal, LVM_INSERTCOLUMNW, i++, (LPARAM)&column);
 	}
 
 	/*===== ホスト側のリストビュー =====*/
-
-	hWndListRemote = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEWW, nullptr, WS_CHILD | LVS_REPORT | LVS_SHOWSELALWAYS, LocalWidth + SepaWidth, AskToolWinHeight() * 2, RemoteWidth, ListHeight, GetMainHwnd(), 0, GetFtpInst(), nullptr);
-
-	if(hWndListRemote != NULL)
-	{
-		RemoteProcPtr = (WNDPROC)SetWindowLongPtrW(hWndListRemote, GWLP_WNDPROC, (LONG_PTR)RemoteWndProc);
-
-		SendMessageW(hWndListRemote, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
-
-		if(ListFont != NULL)
-			SendMessageW(hWndListRemote, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
-
-		SendMessageW(hWndListRemote, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
-		ShowWindow(hWndListRemote, SW_SHOW);
-
-		constexpr std::tuple<int, int> columns[] = {
-			{ LVCFMT_LEFT, IDS_MSGJPN042 },
-			{ LVCFMT_LEFT, IDS_MSGJPN043 },
-			{ LVCFMT_RIGHT, IDS_MSGJPN044 },
-			{ LVCFMT_LEFT, IDS_MSGJPN045 },
-			{ LVCFMT_LEFT, IDS_MSGJPN046 },
-			{ LVCFMT_LEFT, IDS_MSGJPN047 },
-		};
-		int i = 0;
-		for (auto [fmt, resourceId] : columns) {
-			auto text = GetString(resourceId);
-			LVCOLUMNW column{ LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM, fmt, RemoteTabWidth[i], data(text), 0, i };
-			SendMessageW(hWndListRemote, LVM_INSERTCOLUMNW, i++, (LPARAM)&column);
-		}
+	hWndListRemote = CreateWindowExW(WS_EX_CLIENTEDGE, WC_LISTVIEWW L"Ex", nullptr, WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_SHOWSELALWAYS, LocalWidth + SepaWidth, AskToolWinHeight() * 2, RemoteWidth, ListHeight, GetMainHwnd(), 0, GetFtpInst(), nullptr);
+	if (!hWndListRemote)
+		return FFFTP_FAIL;
+	constexpr std::tuple<int, int> columnsRemote[] = {
+		{ LVCFMT_LEFT, IDS_MSGJPN042 },
+		{ LVCFMT_LEFT, IDS_MSGJPN043 },
+		{ LVCFMT_RIGHT, IDS_MSGJPN044 },
+		{ LVCFMT_LEFT, IDS_MSGJPN045 },
+		{ LVCFMT_LEFT, IDS_MSGJPN046 },
+		{ LVCFMT_LEFT, IDS_MSGJPN047 },
+	};
+	for (int i = 0; auto [fmt, resourceId] : columnsRemote) {
+		auto text = GetString(resourceId);
+		LVCOLUMNW column{ LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM, fmt, RemoteTabWidth[i], data(text), 0, i };
+		SendMessageW(hWndListRemote, LVM_INSERTCOLUMNW, i++, (LPARAM)&column);
 	}
 
-	Sts = FFFTP_SUCCESS;
-	if((hWndListLocal == NULL) ||
-	   (hWndListRemote == NULL))
-	{
-		Sts = FFFTP_FAIL;
-	}
-	return(Sts);
+	return FFFTP_SUCCESS;
 }
 
 
@@ -259,42 +228,6 @@ HWND GetLocalHwnd(void)
 HWND GetRemoteHwnd(void)
 {
 	return(hWndListRemote);
-}
-
-
-/*----- ローカル側のファイルリストウインドウのメッセージ処理 ------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		UINT message  : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		メッセージに対応する戻り値
-*----------------------------------------------------------------------------*/
-
-static LRESULT CALLBACK LocalWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	return(FileListCommonWndProc(hWnd, message, wParam, lParam));
-}
-
-
-/*----- ホスト側のファイルリストウインドウのメッセージ処理 --------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		UINT message  : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		メッセージに対応する戻り値
-*----------------------------------------------------------------------------*/
-
-static LRESULT CALLBACK RemoteWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	return(FileListCommonWndProc(hWnd, message, wParam, lParam));
 }
 
 
@@ -448,380 +381,263 @@ static void doDragDrop(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
-
-/*----- ファイル一覧ウインドウの共通メッセージ処理 ----------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		UINT message  : メッセージ番号
-*		WPARAM wParam : メッセージの WPARAM 引数
-*		LPARAM lParam : メッセージの LPARAM 引数
-*
-*	Return Value
-*		メッセージに対応する戻り値
-*----------------------------------------------------------------------------*/
-
-static LRESULT FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	POINT Point;
-	HWND hWndPnt;
-	HWND hWndParent;
+// ファイル一覧ウインドウの共通メッセージ処理
+static LRESULT CALLBACK FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	static POINT DragPoint;
 	static HWND hWndDragStart;
 	static int RemoteDropFileIndex = -1;
-	int Win;
-	HWND hWndDst;
-	WNDPROC ProcPtr;
-	HWND hWndHistEdit;
-	// 特定の操作を行うと異常終了するバグ修正
 	static int DragFirstTime = NO;
 
-	Win = WIN_LOCAL;
-	hWndDst = hWndListRemote;
-	ProcPtr = LocalProcPtr;
-	hWndHistEdit = GetLocalHistEditHwnd();
-	if(hWnd == hWndListRemote)
-	{
+	int Win = WIN_LOCAL;
+	HWND hWndDst = hWndListRemote;
+	HWND hWndHistEdit = GetLocalHistEditHwnd();
+	if (hWnd == hWndListRemote) {
 		Win = WIN_REMOTE;
 		hWndDst = hWndListLocal;
-		ProcPtr = RemoteProcPtr;
 		hWndHistEdit = GetRemoteHistEditHwnd();
 	}
 
-	switch (message)
-	{
-		case WM_SYSKEYDOWN:
-			if (wParam == 'D') {	// Alt+D
-				SetFocus(hWndHistEdit);
-				break;
-			}
-			EraseListViewTips();
-			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
-
-		case WM_KEYDOWN:
-			if(wParam == 0x09)
-			{
-				SetFocus(hWndDst);
-				break;
-			}
-			EraseListViewTips();
-			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
-
-		case WM_SETFOCUS :
-			SetFocusHwnd(hWnd);
-			MakeButtonsFocus();
-			DispCurrentWindow(Win);
-			DispSelectedSpace();
-			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
-
-		case WM_KILLFOCUS :
-			EraseListViewTips();
-			MakeButtonsFocus();
-			DispCurrentWindow(-1);
-			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
-
-		case WM_DROPFILES :
-			if (!AskUserOpeDisabled())
-				if (Dragging != YES) {		// ドラッグ中は処理しない。ドラッグ後にWM_LBUTTONDOWNが飛んでくるため、そこで処理する。
-					if (hWnd == hWndListRemote) {
-						if (AskConnecting() == YES)
-							UploadDragProc(wParam);
-					} else if (hWnd == hWndListLocal)
-						ChangeDirDropFileProc(wParam);
-				}
-			DragFinish((HDROP)wParam);
+	switch (message) {
+	case WM_CREATE: {
+		auto result = CallWindowProcW(ListViewProc, hWnd, message, wParam, lParam);
+		SendMessageW(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
+		if (ListFont)
+			SendMessageW(hWnd, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
+		SendMessageW(hWnd, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
+		return result;
+	}
+	case WM_SYSKEYDOWN:
+		if (wParam == 'D') {	// Alt+D
+			SetFocus(hWndHistEdit);
 			return 0;
+		}
+		EraseListViewTips();
+		break;
+	case WM_KEYDOWN:
+		if (wParam == 0x09) {
+			SetFocus(hWndDst);
+			return 0;
+		}
+		EraseListViewTips();
+		break;
+	case WM_SETFOCUS:
+		SetFocusHwnd(hWnd);
+		MakeButtonsFocus();
+		DispCurrentWindow(Win);
+		DispSelectedSpace();
+		break;
+	case WM_KILLFOCUS:
+		EraseListViewTips();
+		MakeButtonsFocus();
+		DispCurrentWindow(-1);
+		break;
+	case WM_DROPFILES:
+		if (!AskUserOpeDisabled())
+			if (Dragging != YES) {		// ドラッグ中は処理しない。ドラッグ後にWM_LBUTTONDOWNが飛んでくるため、そこで処理する。
+				if (hWnd == hWndListRemote) {
+					if (AskConnecting() == YES)
+						UploadDragProc(wParam);
+				} else if (hWnd == hWndListLocal)
+					ChangeDirDropFileProc(wParam);
+			}
+		DragFinish((HDROP)wParam);
+		return 0;
+	case WM_LBUTTONDOWN:
+		if (AskUserOpeDisabled())
+			return 0;
+		if (Dragging == YES)
+			return 0;
+		DragFirstTime = NO;
+		GetCursorPos(&DropPoint);
+		EraseListViewTips();
+		SetFocus(hWnd);
+		DragPoint = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+		hWndDragStart = hWnd;
+		break;
+	case WM_LBUTTONUP:
+		if (AskUserOpeDisabled())
+			return 0;
+		if (Dragging == YES) {
+			Dragging = NO;
+			ReleaseCapture();
+			POINT Point = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+			ClientToScreen(hWnd, &Point);
+			auto hWndPnt = WindowFromPoint(Point);
+			if (hWndPnt == hWndDst) {																				// local <-> remote 
+				if (hWndPnt == hWndListRemote)
+					PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
+				else if (hWndPnt == hWndListLocal)
+					PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
+			} else if (hWndDragStart == hWndListRemote && hWndPnt == hWndListRemote && RemoteDropFileIndex != -1) {	// remote <-> remoteの場合は、サーバでのファイルの移動を行う。(2007.9.5 yutaka)
+				ListView_SetItemState(hWnd, RemoteDropFileIndex, 0, LVIS_DROPHILITED);
+				MoveRemoteFileProc(RemoteDropFileIndex);
+			}
+		}
+		break;
+	case WM_DRAGDROP:
+		if (DragFirstTime == NO)
+			doDragDrop(hWnd, message, wParam, lParam);
+		DragFirstTime = YES;
+		return TRUE;
+	case WM_GETDATA:  // ファイルのパスをD&D先のアプリへ返す (yutaka)
+		switch (wParam) {
+		case CF_HDROP: {		/* ファイル */
+			std::vector<FILELIST> FileListBase, FileListBaseNoExpand;
+			fs::path PathDir;
 
-		case WM_LBUTTONDOWN :
-			if (AskUserOpeDisabled())
-				break;
-			if(Dragging == YES)
-				break;
-			DragFirstTime = NO;
+			// 特定の操作を行うと異常終了するバグ修正
 			GetCursorPos(&DropPoint);
-			EraseListViewTips();
-			SetFocus(hWnd);
-			DragPoint.x = LOWORD(lParam);
-			DragPoint.y = HIWORD(lParam);
-			hWndDragStart = hWnd;
-			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
-			break;
+			auto hWndPnt = WindowFromPoint(DropPoint);
+			auto hWndParent = GetParent(hWndPnt);
+			DisableUserOpe();
+			CancelFlg = NO;
 
-		case WM_LBUTTONUP :
-			if (AskUserOpeDisabled())
-				break;
-			if(Dragging == YES)
-			{
+			// ローカル側で選ばれているファイルをFileListBaseに登録
+			if (hWndDragStart == hWndListLocal) {
+				PathDir = AskLocalCurDir();
+				if (hWndPnt != hWndListRemote && hWndPnt != hWndListLocal && hWndParent != hWndListRemote && hWndParent != hWndListLocal)
+					MakeSelectedFileList(WIN_LOCAL, NO, NO, FileListBase, &CancelFlg);
+				FileListBaseNoExpand = FileListBase;
+			} else if (hWndDragStart == hWndListRemote) {
+				if (hWndPnt != hWndListRemote && hWndPnt != hWndListLocal && hWndParent != hWndListRemote && hWndParent != hWndListLocal) {
+					// 選択されているリモートファイルのリストアップ
+					// このタイミングでリモートからローカルの一時フォルダへダウンロードする
+					// (2007.8.31 yutaka)
+					doTransferRemoteFile();
+					PathDir = remoteFileDir;
+					FileListBase = remoteFileListBase;
+					FileListBaseNoExpand = remoteFileListBaseNoExpand;
+				}
+			}
+
+			auto const& pf =
+#if defined(HAVE_TANDEM)
+				empty(FileListBaseNoExpand) ? FileListBase :
+#endif
+				FileListBaseNoExpand;
+			// 特定の操作を行うと異常終了するバグ修正
+			if (!empty(pf)) {
 				Dragging = NO;
 				ReleaseCapture();
+				// ドロップ先が他プロセスかつカーソルが自プロセスのドロップ可能なウィンドウ上にある場合の対策
+				EnableWindow(GetMainHwnd(), FALSE);
+			}
+			EnableUserOpe();
 
-				Point.x = (long)(short)LOWORD(lParam);
-				Point.y = (long)(short)HIWORD(lParam);
-				ClientToScreen(hWnd, &Point);
-				hWndPnt = WindowFromPoint(Point);
-				if(hWndPnt == hWndDst)  // local <-> remote 
-				{
-					if(hWndPnt == hWndListRemote) {
-						PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_UPLOAD, 0), 0);
-					} else if(hWndPnt == hWndListLocal) {
-						PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_DOWNLOAD, 0), 0);
-					}
-				} else { // 同一ウィンドウ内の場合 (yutaka)
-					if (hWndDragStart == hWndListRemote && hWndPnt == hWndListRemote) {
-						// remote <-> remoteの場合は、サーバでのファイルの移動を行う。(2007.9.5 yutaka)
-						if (RemoteDropFileIndex != -1) {
-							ListView_SetItemState(hWnd, RemoteDropFileIndex, 0, LVIS_DROPHILITED);
-							MoveRemoteFileProc(RemoteDropFileIndex);
-						}
+			if (empty(pf)) {
+				// ファイルが未選択の場合は何もしない。(yutaka)
+				*(HANDLE*)lParam = NULL;
+				return FALSE;
+			}
+			// ドロップ先が他プロセスかつカーソルが自プロセスのドロップ可能なウィンドウ上にある場合の対策
+			EnableWindow(GetMainHwnd(), FALSE);
 
-					}
+			/* ドロップファイルリストの作成 */
+			/* ファイル名の配列を作成する */
+			/* NTの場合はUNICODEになるようにする */
+			std::vector<fs::path> filenames;
+			for (auto const& f : FileListBaseNoExpand)
+				filenames.emplace_back(PathDir / f.Name);
+			*(HANDLE*)lParam = CreateDropFileMem(filenames);
+			return TRUE;
+		}
+		}
+		*(HANDLE*)lParam = NULL;
+		return 0;
+	case WM_DRAGOVER: {
+		// 同一ウィンドウ内でのD&Dはリモート側のみ
+		if (Win != WIN_REMOTE)
+			return 0;
+		if (MoveMode == MOVE_DISABLE)
+			return 0;
 
+		POINT Point;
+		GetCursorPos(&Point);
+		auto hWndPnt = WindowFromPoint(Point);
+		ScreenToClient(hWnd, &Point);
+
+		// 以前の選択を消す
+		static int prev_index = -1;
+		ListView_SetItemState(hWnd, prev_index, 0, LVIS_DROPHILITED);
+		RemoteDropFileIndex = -1;
+
+		if (hWndPnt == hWndListRemote)
+			if (LVHITTESTINFO hi{ Point }; ListView_HitTest(hWnd, &hi) != -1 && hi.flags == LVHT_ONITEMLABEL) { // The position is over a list-view item's text.
+				prev_index = hi.iItem;
+				if (GetItem(Win, hi.iItem).Node == NODE_DIR) {
+					ListView_SetItemState(hWnd, hi.iItem, LVIS_DROPHILITED, LVIS_DROPHILITED);
+					RemoteDropFileIndex = hi.iItem;
 				}
 			}
-			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
-
-		case WM_DRAGDROP:  
-			// OLE D&Dを開始する (yutaka)
-			// 特定の操作を行うと異常終了するバグ修正
-//			doDragDrop(hWnd, message, wParam, lParam);
-			if(DragFirstTime == NO)
-				doDragDrop(hWnd, message, wParam, lParam);
-			DragFirstTime = YES;
-			return (TRUE);
-			break;
-
-		case WM_GETDATA:  // ファイルのパスをD&D先のアプリへ返す (yutaka)
-			switch(wParam)
-			{
-			case CF_HDROP:		/* ファイル */
-				{
-					std::vector<FILELIST> FileListBase, FileListBaseNoExpand;
-					fs::path PathDir;
-
-					// 特定の操作を行うと異常終了するバグ修正
-					GetCursorPos(&DropPoint);
-					hWndPnt = WindowFromPoint(DropPoint);
-					hWndParent = GetParent(hWndPnt);
-					DisableUserOpe();
-					CancelFlg = NO;
-
-					// ローカル側で選ばれているファイルをFileListBaseに登録
-					if (hWndDragStart == hWndListLocal) {
-						PathDir = AskLocalCurDir();
-
-						if(hWndPnt != hWndListRemote && hWndPnt != hWndListLocal && hWndParent != hWndListRemote && hWndParent != hWndListLocal)
-							MakeSelectedFileList(WIN_LOCAL, NO, NO, FileListBase, &CancelFlg);			
-						FileListBaseNoExpand = FileListBase;
-
-					} else if (hWndDragStart == hWndListRemote) {
-						if (hWndPnt == hWndListRemote || hWndPnt == hWndListLocal || hWndParent == hWndListRemote || hWndParent == hWndListLocal) {
-						} else {
-							// 選択されているリモートファイルのリストアップ
-							// このタイミングでリモートからローカルの一時フォルダへダウンロードする
-							// (2007.8.31 yutaka)
-							doTransferRemoteFile();
-							PathDir = remoteFileDir;
-							FileListBase = remoteFileListBase;
-							FileListBaseNoExpand = remoteFileListBaseNoExpand;
-						}
-
-					} 
-
-					auto const& pf =
-#if defined(HAVE_TANDEM)
-						empty(FileListBaseNoExpand) ? FileListBase :
-#endif
-						FileListBaseNoExpand;
-					// 特定の操作を行うと異常終了するバグ修正
-					if (!empty(pf)) {
-						Dragging = NO;
-						ReleaseCapture();
-						// ドロップ先が他プロセスかつカーソルが自プロセスのドロップ可能なウィンドウ上にある場合の対策
-						EnableWindow(GetMainHwnd(), FALSE);
-					}
-					EnableUserOpe();
-
-					if (empty(pf)) {
-						// ファイルが未選択の場合は何もしない。(yutaka)
-						*(HANDLE*)lParam = NULL;
-						return FALSE;
-					}
-					// ドロップ先が他プロセスかつカーソルが自プロセスのドロップ可能なウィンドウ上にある場合の対策
-					EnableWindow(GetMainHwnd(), FALSE);
-					
-					/* ドロップファイルリストの作成 */
-					/* ファイル名の配列を作成する */
-					/* NTの場合はUNICODEになるようにする */
-					std::vector<fs::path> filenames;
-					for (auto const& f : FileListBaseNoExpand)
-						filenames.emplace_back(PathDir / f.Name);
-					*(HANDLE*)lParam = CreateDropFileMem(filenames);
-					return TRUE;
-				}
-				break;
-
-			default:
-				*((HANDLE *)lParam) = NULL;
-				break;
-			}
-
-			break;
-
-		case WM_DRAGOVER:
-			{
-				// 同一ウィンドウ内でのD&Dはリモート側のみ
-				if (Win != WIN_REMOTE)
-					break;
-				if (MoveMode == MOVE_DISABLE)
-					break;
-
-				GetCursorPos(&Point);
-				hWndPnt = WindowFromPoint(Point);
-				ScreenToClient(hWnd, &Point);
-
-				// 以前の選択を消す
-				static int prev_index = -1;
-				ListView_SetItemState(hWnd, prev_index, 0, LVIS_DROPHILITED);
-				RemoteDropFileIndex = -1;
-
-				if (hWndPnt == hWndListRemote)
-					if (LVHITTESTINFO hi{ Point }; ListView_HitTest(hWnd, &hi) != -1 && hi.flags == LVHT_ONITEMLABEL) { // The position is over a list-view item's text.
-						prev_index = hi.iItem;
-						if (GetItem(Win, hi.iItem).Node == NODE_DIR) {
-							ListView_SetItemState(hWnd, hi.iItem, LVIS_DROPHILITED, LVIS_DROPHILITED);
-							RemoteDropFileIndex = hi.iItem;
-						}
-					}
-			}
-			break;
-
-		case WM_RBUTTONDOWN :
-			if (AskUserOpeDisabled())
-				break;
-			/* ここでファイルを選ぶ */
-			CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
-
-			EraseListViewTips();
-			SetFocus(hWnd);
-			if(hWnd == hWndListRemote)
-				ShowPopupMenu(WIN_REMOTE, 0);
-			else if(hWnd == hWndListLocal)
-				ShowPopupMenu(WIN_LOCAL, 0);
-			break;
-
-		case WM_LBUTTONDBLCLK :
-			if (AskUserOpeDisabled())
-				break;
-			DoubleClickProc(Win, NO, -1);
-			break;
-
-		case WM_MOUSEMOVE :
-			if (AskUserOpeDisabled())
-				break;
-			if(wParam == MK_LBUTTON)
-			{
-				if((Dragging == NO) && 
-				   (hWnd == hWndDragStart) &&
-				   (AskConnecting() == YES) &&
-				   (SendMessageW(hWnd, LVM_GETSELECTEDCOUNT, 0, 0) > 0) &&
-				   ((abs((short)LOWORD(lParam) - DragPoint.x) > 5) ||
-					(abs((short)HIWORD(lParam) - DragPoint.y) > 5)))
-				{
-					SetCapture(hWnd);
-					Dragging = YES;
-				}
-				else if(Dragging == YES)
-				{
-					// OLE D&Dの開始を指示する
-					PostMessageW(hWnd, WM_DRAGDROP, MAKEWPARAM(wParam, lParam), 0);
-
-				}
-				else
-					return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
-			}
-			else
-			{
-				CheckTipsDisplay(hWnd, lParam);
-				return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
-			}
-			break;
-
-		case WM_MOUSEWHEEL :
-			if (AskUserOpeDisabled())
-				break;
-			if(Dragging == NO)
-			{
-				short zDelta = (short)HIWORD(wParam);
-
-				EraseListViewTips();
-				Point.x = (short)LOWORD(lParam);
-				Point.y = (short)HIWORD(lParam);
-				hWndPnt = WindowFromPoint(Point);
-
-				if((wParam & MAKEWPARAM(MK_SHIFT, 0)) && 
-				   ((hWndPnt == hWndListRemote) ||
-					(hWndPnt == hWndListLocal) || 
-					(hWndPnt == GetTaskWnd())))
-				{
-					PostMessageW(hWndPnt, WM_VSCROLL, zDelta > 0 ? MAKEWPARAM(SB_PAGEUP, 0) : MAKEWPARAM(SB_PAGEDOWN, 0), 0);
-				}
-				else if(hWndPnt == hWnd)
-					return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
-				else if((hWndPnt == hWndDst) || (hWndPnt == GetTaskWnd()))
-					PostMessageW(hWndPnt, message, wParam, lParam);
-			}
-			break;
-
-		case WM_NOTIFY:
-			switch (auto hdr = reinterpret_cast<NMHDR*>(lParam); hdr->code) {
-			case HDN_ITEMCHANGEDW:
-				if (auto header = reinterpret_cast<NMHEADERW*>(lParam); header->pitem && (header->pitem->mask & HDI_WIDTH))
-					(hWnd == hWndListLocal ? LocalTabWidth : RemoteTabWidth)[header->iItem] = header->pitem->cxy;
-				break;
-			}
-			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
-
-		default :
-			return CallWindowProcW(ProcPtr, hWnd, message, wParam, lParam);
+		return 0;
 	}
-	return(0L);
+	case WM_RBUTTONDOWN:
+		if (AskUserOpeDisabled())
+			return 0;
+		/* ここでファイルを選ぶ */
+		CallWindowProcW(ListViewProc, hWnd, message, wParam, lParam);
+
+		EraseListViewTips();
+		SetFocus(hWnd);
+		if (hWnd == hWndListRemote)
+			ShowPopupMenu(WIN_REMOTE, 0);
+		else if (hWnd == hWndListLocal)
+			ShowPopupMenu(WIN_LOCAL, 0);
+		return 0;
+	case WM_LBUTTONDBLCLK:
+		if (AskUserOpeDisabled())
+			return 0;
+		DoubleClickProc(Win, NO, -1);
+		return 0;
+	case WM_MOUSEMOVE:
+		if (AskUserOpeDisabled())
+			return 0;
+		if (wParam == MK_LBUTTON) {
+			if (Dragging == NO && hWnd == hWndDragStart && AskConnecting() == YES && SendMessageW(hWnd, LVM_GETSELECTEDCOUNT, 0, 0) > 0 && (abs(GET_X_LPARAM(lParam) - DragPoint.x) > 5 || abs(GET_Y_LPARAM(lParam) - DragPoint.y) > 5)) {
+				SetCapture(hWnd);
+				Dragging = YES;
+			} else if (Dragging == YES) {
+				// OLE D&Dの開始を指示する
+				PostMessageW(hWnd, WM_DRAGDROP, MAKEWPARAM(wParam, lParam), 0);
+			} else
+				break;
+		} else {
+			CheckTipsDisplay(hWnd, lParam);
+			break;
+		}
+		return 0;
+	case WM_MOUSEWHEEL:
+		if (AskUserOpeDisabled())
+			return 0;
+		if (Dragging == NO) {
+			short zDelta = (short)HIWORD(wParam);
+			EraseListViewTips();
+			auto hWndPnt = WindowFromPoint({ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) });
+			if ((wParam & MAKEWPARAM(MK_SHIFT, 0)) && (hWndPnt == hWndListRemote || hWndPnt == hWndListLocal || hWndPnt == GetTaskWnd()))
+				PostMessageW(hWndPnt, WM_VSCROLL, zDelta > 0 ? MAKEWPARAM(SB_PAGEUP, 0) : MAKEWPARAM(SB_PAGEDOWN, 0), 0);
+			else if (hWndPnt == hWnd)
+				break;
+			else if (hWndPnt == hWndDst || hWndPnt == GetTaskWnd())
+				PostMessageW(hWndPnt, message, wParam, lParam);
+		}
+		return 0;
+	case WM_NOTIFY:
+		switch (auto hdr = reinterpret_cast<NMHDR*>(lParam); hdr->code) {
+		case HDN_ITEMCHANGEDW:
+			if (auto header = reinterpret_cast<NMHEADERW*>(lParam); header->pitem && (header->pitem->mask & HDI_WIDTH))
+				(hWnd == hWndListLocal ? LocalTabWidth : RemoteTabWidth)[header->iItem] = header->pitem->cxy;
+			break;
+		}
+		break;
+	}
+	return CallWindowProcW(ListViewProc, hWnd, message, wParam, lParam);
 }
 
 
-/*----- ファイル一覧方法にしたがってリストビューを設定する --------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetListViewType(void)
-{
-	// 64ビット対応
-//	long lStyle;
-	LONG_PTR lStyle;
-
-	switch(ListType)
-	{
-		case LVS_LIST :
-			lStyle = GetWindowLongPtrW(GetLocalHwnd(), GWL_STYLE);
-			SetWindowLongPtrW(GetLocalHwnd(), GWL_STYLE, lStyle & ~LVS_REPORT | LVS_LIST);
-
-			lStyle = GetWindowLongPtrW(GetRemoteHwnd(), GWL_STYLE);
-			SetWindowLongPtrW(GetRemoteHwnd(), GWL_STYLE, lStyle & ~LVS_REPORT | LVS_LIST);
-			break;
-
-		default :
-			lStyle = GetWindowLongPtrW(GetLocalHwnd(), GWL_STYLE);
-			SetWindowLongPtrW(GetLocalHwnd(), GWL_STYLE, lStyle & ~LVS_LIST | LVS_REPORT);
-
-			lStyle = GetWindowLongPtrW(GetRemoteHwnd(), GWL_STYLE);
-			SetWindowLongPtrW(GetRemoteHwnd(), GWL_STYLE, lStyle & ~LVS_LIST | LVS_REPORT);
-			break;
-	}
-	return;
+// ファイル一覧方法にしたがってリストビューを設定する
+void SetListViewType() {
+	SetWindowLongPtrW(GetLocalHwnd(), GWL_STYLE, GetWindowLongPtrW(GetLocalHwnd(), GWL_STYLE) & ~LVS_TYPEMASK | ListType);
+	SetWindowLongPtrW(GetRemoteHwnd(), GWL_STYLE, GetWindowLongPtrW(GetRemoteHwnd(), GWL_STYLE) & ~LVS_TYPEMASK | ListType);
 }
 
 
