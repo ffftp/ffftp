@@ -1606,8 +1606,8 @@ static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt) {
 				buf.insert(begin(buf), begin(rest), end(rest));
 				rest.clear();
 				for (auto i = read; 0 < i; i--)
-					if (auto ch = buf[i - 1]; ch == '\n' || ' ' <= ch && ch <= '~') {
-						rest.assign(begin(buf) + i, end(buf));
+					if (auto ch = buf[size_t(i) - 1]; ch == '\n' || ' ' <= ch && ch <= '~') {
+						rest.assign(begin(buf) + int(i), end(buf));
 						read = i;
 						break;
 					}
