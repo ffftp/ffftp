@@ -45,8 +45,6 @@ static int AskUploadFileAttr(std::wstring const& path);
 static bool UpDownAsDialog(std::wstring& name, int win);
 static void DeleteAllDir(std::vector<FILELIST> const& Dt, int Win, int *Sw, int *Flg, std::wstring& CurDir);
 static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, std::wstring& CurDir);
-static void SetAttrToDialog(HWND hWnd, int Attr);
-static int GetAttrFromDialog(HWND hDlg);
 static std::wstring ReformToVMSstyleDirName(std::wstring&& path);
 static std::wstring ReformToVMSstylePathName(std::wstring_view path);
 static std::wstring RenameUnuseableName(std::wstring&& filename);
@@ -2007,6 +2005,17 @@ void ChmodProc(void)
 
 // 属性変更ダイアログ
 std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
+	static constexpr std::tuple<int, int> map[] = {
+		{ 0x400, PERM_O_READ },
+		{ 0x200, PERM_O_WRITE },
+		{ 0x100, PERM_O_EXEC },
+		{ 0x040, PERM_G_READ },
+		{ 0x020, PERM_G_WRITE },
+		{ 0x010, PERM_G_EXEC },
+		{ 0x004, PERM_A_READ },
+		{ 0x002, PERM_A_WRITE },
+		{ 0x001, PERM_A_EXEC },
+	};
 	struct Data {
 		using result_t = bool;
 		std::wstring attr;
@@ -2014,7 +2023,10 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, PERM_NOW, EM_LIMITTEXT, 4, 0);
 			SetText(hDlg, PERM_NOW, attr);
-			SetAttrToDialog(hDlg, !empty(attr) && std::iswdigit(attr[0]) ? stoi(attr, nullptr, 16) : 0);
+			if (!empty(attr) && std::iswdigit(attr[0]))
+				for (auto value = stoi(attr, nullptr, 16); auto [bit, id] : map)
+					if (value & bit)
+						SendDlgItemMessageW(hDlg, id, BM_SETCHECK, BST_CHECKED, 0);
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
@@ -2034,9 +2046,14 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 			case PERM_G_EXEC:
 			case PERM_A_READ:
 			case PERM_A_WRITE:
-			case PERM_A_EXEC:
-				SetText(hDlg, PERM_NOW, std::format(L"{:03X}"sv, GetAttrFromDialog(hDlg)));
+			case PERM_A_EXEC: {
+				int value = 0;
+				for (auto [bit, id] : map)
+					if (SendDlgItemMessageW(hDlg, id, BM_GETCHECK, 0, 0) == BST_CHECKED)
+						value |= bit;
+				SetText(hDlg, PERM_NOW, std::format(L"{:03X}"sv, value));
 				break;
+			}
 			case IDHELP:
 				ShowHelp(IDH_HELP_TOPIC_0000017);
 				break;
@@ -2047,85 +2064,6 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 		return data.attr;
 	return {};
 }
-
-
-/*----- 属性をダイアログボックスに設定 ----------------------------------------
-*
-*	Parameter
-*		HWND hWnd : ダイアログボックスのウインドウハンドル
-*		int Attr : 属性
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-static void SetAttrToDialog(HWND hDlg, int Attr)
-{
-	if(Attr & 0x400)
-		SendDlgItemMessageW(hDlg, PERM_O_READ, BM_SETCHECK, 1, 0);
-	if(Attr & 0x200)
-		SendDlgItemMessageW(hDlg, PERM_O_WRITE, BM_SETCHECK, 1, 0);
-	if(Attr & 0x100)
-		SendDlgItemMessageW(hDlg, PERM_O_EXEC, BM_SETCHECK, 1, 0);
-
-	if(Attr & 0x40)
-		SendDlgItemMessageW(hDlg, PERM_G_READ, BM_SETCHECK, 1, 0);
-	if(Attr & 0x20)
-		SendDlgItemMessageW(hDlg, PERM_G_WRITE, BM_SETCHECK, 1, 0);
-	if(Attr & 0x10)
-		SendDlgItemMessageW(hDlg, PERM_G_EXEC, BM_SETCHECK, 1, 0);
-
-	if(Attr & 0x4)
-		SendDlgItemMessageW(hDlg, PERM_A_READ, BM_SETCHECK, 1, 0);
-	if(Attr & 0x2)
-		SendDlgItemMessageW(hDlg, PERM_A_WRITE, BM_SETCHECK, 1, 0);
-	if(Attr & 0x1)
-		SendDlgItemMessageW(hDlg, PERM_A_EXEC, BM_SETCHECK, 1, 0);
-
-	return;
-}
-
-
-/*----- ダイアログボックスの内容から属性を取得 --------------------------------
-*
-*	Parameter
-*		HWND hWnd : ダイアログボックスのウインドウハンドル
-*
-*	Return Value
-*		int 属性
-*----------------------------------------------------------------------------*/
-
-static int GetAttrFromDialog(HWND hDlg)
-{
-	int Ret;
-
-	Ret = 0;
-
-	if(SendDlgItemMessageW(hDlg, PERM_O_READ, BM_GETCHECK, 0, 0) == 1)
-		Ret |= 0x400;
-	if(SendDlgItemMessageW(hDlg, PERM_O_WRITE, BM_GETCHECK, 0, 0) == 1)
-		Ret |= 0x200;
-	if(SendDlgItemMessageW(hDlg, PERM_O_EXEC, BM_GETCHECK, 0, 0) == 1)
-		Ret |= 0x100;
-
-	if(SendDlgItemMessageW(hDlg, PERM_G_READ, BM_GETCHECK, 0, 0) == 1)
-		Ret |= 0x40;
-	if(SendDlgItemMessageW(hDlg, PERM_G_WRITE, BM_GETCHECK, 0, 0) == 1)
-		Ret |= 0x20;
-	if(SendDlgItemMessageW(hDlg, PERM_G_EXEC, BM_GETCHECK, 0, 0) == 1)
-		Ret |= 0x10;
-
-	if(SendDlgItemMessageW(hDlg, PERM_A_READ, BM_GETCHECK, 0, 0) == 1)
-		Ret |= 0x4;
-	if(SendDlgItemMessageW(hDlg, PERM_A_WRITE, BM_GETCHECK, 0, 0) == 1)
-		Ret |= 0x2;
-	if(SendDlgItemMessageW(hDlg, PERM_A_EXEC, BM_GETCHECK, 0, 0) == 1)
-		Ret |= 0x1;
-
-	return(Ret);
-}
-
-
 
 
 /*----- 任意のコマンドを送る --------------------------------------------------
