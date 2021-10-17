@@ -1018,12 +1018,12 @@ public:
 };
 
 class CodeConverter {
-	const int incode;
 	const int outcode;
 	const bool kana;
 	bool first = true;
 	std::string rest;
 public:
+	const int incode;
 	CodeConverter(int incode, int outcode, bool kana) : incode{ outcode == KANJI_NOCNV || incode == outcode && !kana ? KANJI_NOCNV : incode }, outcode{ outcode }, kana{ kana } {}
 	std::string Convert(std::string_view input);
 };
