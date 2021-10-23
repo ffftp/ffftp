@@ -292,8 +292,7 @@ struct Transfer3 {
 			{ Rect.right / 3 * 2, IDS_MSGJPN200 },
 			{ Rect.right / 3 * 1, IDS_MSGJPN201 },
 		};
-		int i = 0;
-		for (auto [cx, resourceId] : columns) {
+		for (int i = 0; auto [cx, resourceId] : columns) {
 			auto text = GetString(resourceId);
 			LVCOLUMNW column{ LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM, 0, cx, data(text), 0, i };
 			SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_INSERTCOLUMNW, i++, (LPARAM)&column);
