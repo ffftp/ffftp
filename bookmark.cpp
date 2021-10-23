@@ -143,13 +143,13 @@ struct Editor {
 struct List {
 	using result_t = LRESULT;
 	Resizable<Controls<BMARK_NEW, BMARK_SET, BMARK_DEL, BMARK_DOWN, BMARK_UP, IDHELP, BMARK_SIZEGRIP>, Controls<IDOK, BMARK_JUMP, BMARK_SIZEGRIP>, Controls<BMARK_LIST>> resizable{ BmarkDlgSize };
-	std::vector<Bookmark> bookmarks;
-	List(std::vector<Bookmark> const& bookmarks) : bookmarks{ bookmarks } {}
+	std::vector<Bookmark> list;
+	List(std::vector<Bookmark> const& list) : list{ list } {}
 	INT_PTR OnInit(HWND hDlg) {
 		auto hList = GetDlgItem(hDlg, BMARK_LIST);
 		if (ListFont != NULL)
 			SendMessageW(hList, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
-		for (auto const& bookmark : bookmarks)
+		for (auto const& bookmark : list)
 			SendMessageW(hList, LB_ADDSTRING, 0, (LPARAM)bookmark.line.c_str());
 		return TRUE;
 	}
@@ -163,8 +163,8 @@ struct List {
 			break;
 		case BMARK_SET:
 			if (auto index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR)
-				if (Editor editor{ bookmarks[index] }; Dialog(GetFtpInst(), bmark_edit_dlg, hDlg, editor)) {
-					bookmarks[index] = editor.bookmark;
+				if (Editor editor{ list[index] }; Dialog(GetFtpInst(), bmark_edit_dlg, hDlg, editor)) {
+					list[index] = editor.bookmark;
 					SendMessageW(hList, LB_DELETESTRING, index, 0);
 					SendMessageW(hList, LB_INSERTSTRING, index, (LPARAM)editor.bookmark.line.c_str());
 					SendMessageW(hList, LB_SETCURSEL, index, 0);
@@ -172,34 +172,34 @@ struct List {
 			break;
 		case BMARK_NEW:
 			if (Editor editor; Dialog(GetFtpInst(), bmark_edit_dlg, hDlg, editor)) {
-				bookmarks.emplace_back(editor.bookmark);
+				list.emplace_back(editor.bookmark);
 				auto index = SendMessageW(hList, LB_ADDSTRING, 0, (LPARAM)editor.bookmark.line.c_str());
 				SendMessageW(hList, LB_SETCURSEL, index, 0);
 			}
 			break;
 		case BMARK_DEL:
 			if (auto index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR) {
-				bookmarks.erase(begin(bookmarks) + index);
+				list.erase(begin(list) + index);
 				SendMessageW(hList, LB_DELETESTRING, index, 0);
-				if (!empty(bookmarks))
-					SendMessageW(hList, LB_SETCURSEL, std::min(index, size_as<LRESULT>(bookmarks) - 1), 0);
+				if (!empty(list))
+					SendMessageW(hList, LB_SETCURSEL, std::min(index, size_as<LRESULT>(list) - 1), 0);
 			}
 			break;
 		case BMARK_UP:
 			if (auto index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR)
 				if (0 < index) {
-					std::swap(bookmarks[index - 1], bookmarks[index]);
+					std::swap(list[index - 1], list[index]);
 					SendMessageW(hList, LB_DELETESTRING, index, 0);
-					SendMessageW(hList, LB_INSERTSTRING, index - 1, (LPARAM)bookmarks[index - 1].line.c_str());
+					SendMessageW(hList, LB_INSERTSTRING, index - 1, (LPARAM)list[index - 1].line.c_str());
 					SendMessageW(hList, LB_SETCURSEL, index - 1, 0);
 				}
 			break;
 		case BMARK_DOWN:
 			if (auto index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR)
-				if (index < size_as<LRESULT>(bookmarks) - 1) {
-					std::swap(bookmarks[index], bookmarks[index + 1]);
+				if (index < size_as<LRESULT>(list) - 1) {
+					std::swap(list[index], list[index + 1]);
 					SendMessageW(hList, LB_DELETESTRING, index, 0);
-					SendMessageW(hList, LB_INSERTSTRING, index + 1, (LPARAM)bookmarks[index + 1].line.c_str());
+					SendMessageW(hList, LB_INSERTSTRING, index + 1, (LPARAM)list[index + 1].line.c_str());
 					SendMessageW(hList, LB_SETCURSEL, index + 1, 0);
 				}
 			break;
@@ -215,7 +215,7 @@ void EditBookMark() {
 	List editor{ bookmarks };
 	auto index = Dialog(GetFtpInst(), bmark_dlg, GetMainHwnd(), editor);
 	ClearBookMark();
-	for (auto const& bookmark : editor.bookmarks)
+	for (auto const& bookmark : editor.list)
 		AddBookMark(bookmark);
 	if (index != LB_ERR)
 		PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_BMARK_TOP + index, 0), 0);

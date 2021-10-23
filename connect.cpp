@@ -1545,16 +1545,16 @@ static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelChec
 	struct {
 		uint8_t VER;
 		uint8_t METHOD;
-	} reply;
-	static_assert(sizeof reply == 2);
+	} reply1;
+	static_assert(sizeof reply1 == 2);
 	#pragma pack(pop)
-	if (!SocksSend(s, buffer, CancelCheckWork) || !s->ReadData(reply, CancelCheckWork)) {
+	if (!SocksSend(s, buffer, CancelCheckWork) || !s->ReadData(reply1, CancelCheckWork)) {
 		Notice(IDS_MSGJPN036);
 		return false;
 	}
-	if (reply.METHOD == NO_AUTHENTICATION_REQUIRED)
+	if (reply1.METHOD == NO_AUTHENTICATION_REQUIRED)
 		Debug(L"SOCKS5 No Authentication."sv);
-	else if (reply.METHOD == USERNAME_PASSWORD) {
+	else if (reply1.METHOD == USERNAME_PASSWORD) {
 		// RFC 1929 Username/Password Authentication for SOCKS V5
 		Debug(L"SOCKS5 User/Pass Authentication."sv);
 		auto const uname = u8(FwallUser);
@@ -1568,10 +1568,10 @@ static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelChec
 		struct {
 			uint8_t VER;
 			uint8_t STATUS;
-		} reply;
-		static_assert(sizeof reply == 2);
+		} reply2;
+		static_assert(sizeof reply2 == 2);
 		#pragma pack(pop)
-		if (!SocksSend(s, buffer, CancelCheckWork) || !s->ReadData(reply, CancelCheckWork) || reply.STATUS != 0) {
+		if (!SocksSend(s, buffer, CancelCheckWork) || !s->ReadData(reply2, CancelCheckWork) || reply2.STATUS != 0) {
 			Notice(IDS_MSGJPN037);
 			return false;
 		}
@@ -1595,22 +1595,22 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 			uint8_t CD;
 			USHORT DSTPORT;
 			IN_ADDR DSTIP;
-		} reply;
-		static_assert(sizeof reply == 8);
+		} reply1;
+		static_assert(sizeof reply1 == 8);
 		#pragma pack(pop)
-		if (!s->ReadData(reply, CancelCheckWork) || reply.VN != 0 || reply.CD != 90) {
+		if (!s->ReadData(reply1, CancelCheckWork) || reply1.VN != 0 || reply1.CD != 90) {
 			Notice(IDS_MSGJPN035);
 			return {};
 		}
 		// from "SOCKS: A protocol for TCP proxy across firewalls"
 		// If the DSTIP in the reply is 0 (the value of constant INADDR_ANY), then the client should replace it by the IP address of the SOCKS server to which the cleint is connected.
-		if (reply.DSTIP.s_addr == 0) {
+		if (reply1.DSTIP.s_addr == 0) {
 			int namelen = sizeof ss;
 			getpeername(s->handle, reinterpret_cast<sockaddr*>(&ss), &namelen);
 			assert(ss.ss_family == AF_INET && namelen == sizeof(sockaddr_in));
-			reinterpret_cast<sockaddr_in&>(ss).sin_port = reply.DSTPORT;
+			reinterpret_cast<sockaddr_in&>(ss).sin_port = reply1.DSTPORT;
 		} else
-			reinterpret_cast<sockaddr_in&>(ss) = { AF_INET, reply.DSTPORT, reply.DSTIP };
+			reinterpret_cast<sockaddr_in&>(ss) = { AF_INET, reply1.DSTPORT, reply1.DSTIP };
 		return ss;
 	} else if (FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER) {
 		#pragma pack(push, 1)
@@ -1619,32 +1619,32 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 			uint8_t REP;
 			uint8_t RSV;
 			uint8_t ATYP;
-		} reply;
-		static_assert(sizeof reply == 4);
+		} reply2;
+		static_assert(sizeof reply2 == 4);
 		#pragma pack(pop)
-		if (s->ReadData(reply, CancelCheckWork) && reply.VER == 5 && reply.REP == 0) {
-			if (reply.ATYP == 1) {
+		if (s->ReadData(reply2, CancelCheckWork) && reply2.VER == 5 && reply2.REP == 0) {
+			if (reply2.ATYP == 1) {
 				#pragma pack(push, 1)
 				struct {
 					IN_ADDR BND_ADDR;
 					USHORT BND_PORT;
-				} reply;
-				static_assert(sizeof reply == 6);
+				} reply3;
+				static_assert(sizeof reply3 == 6);
 				#pragma pack(pop)
-				if (s->ReadData(reply, CancelCheckWork)) {
-					reinterpret_cast<sockaddr_in&>(ss) = { AF_INET, reply.BND_PORT, reply.BND_ADDR };
+				if (s->ReadData(reply3, CancelCheckWork)) {
+					reinterpret_cast<sockaddr_in&>(ss) = { AF_INET, reply3.BND_PORT, reply3.BND_ADDR };
 					return ss;
 				}
-			} else if (reply.ATYP == 4) {
+			} else if (reply2.ATYP == 4) {
 				#pragma pack(push, 1)
 				struct {
 					IN6_ADDR BND_ADDR;
 					USHORT BND_PORT;
-				} reply;
-				static_assert(sizeof reply == 18);
+				} reply4;
+				static_assert(sizeof reply4 == 18);
 				#pragma pack(pop)
-				if (s->ReadData(reply, CancelCheckWork)) {
-					reinterpret_cast<sockaddr_in6&>(ss) = { AF_INET6, reply.BND_PORT, 0, reply.BND_ADDR };
+				if (s->ReadData(reply4, CancelCheckWork)) {
+					reinterpret_cast<sockaddr_in6&>(ss) = { AF_INET6, reply4.BND_PORT, 0, reply4.BND_ADDR };
 					return ss;
 				}
 			}

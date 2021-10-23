@@ -2029,8 +2029,8 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 						SendDlgItemMessageW(hDlg, id, BM_SETCHECK, BST_CHECKED, 0);
 			return TRUE;
 		}
-		void OnCommand(HWND hDlg, WORD id) {
-			switch (id) {
+		void OnCommand(HWND hDlg, WORD cmdId) {
+			switch (cmdId) {
 			case IDOK:
 				attr = GetText(hDlg, PERM_NOW);
 				EndDialog(hDlg, true);

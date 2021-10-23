@@ -1472,8 +1472,8 @@ void SaveSettingsToWinSCPIni() {
 		return result;
 	};
 	Message(IDS_NEED_EXSITING_WINSCP_INI, MB_OK);
-	if (auto const path = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"WinSCP.ini", L"ini", { FileType::Ini, FileType::All }); !path.empty()) {
-		if (std::ofstream f{ path, std::ofstream::in | std::ofstream::ate }) {
+	if (auto const file = SelectFile(false, GetMainHwnd(), IDS_SAVE_SETTING, L"WinSCP.ini", L"ini", { FileType::Ini, FileType::All }); !file.empty()) {
+		if (std::ofstream f{ file, std::ofstream::in | std::ofstream::ate }) {
 			std::vector<std::wstring> names;
 			HOSTDATA Host;
 			for (int i = 0; CopyHostFromList(i, &Host) == FFFTP_SUCCESS; i++) {
