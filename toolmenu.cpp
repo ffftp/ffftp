@@ -117,8 +117,8 @@ static HBITMAP GetImage(int iamgeId) {
 			if (auto src = CreateCompatibleDC(dc)) {
 				if (auto dest = CreateCompatibleDC(dc)) {
 					if (BITMAP bitmap; GetObjectW(original, sizeof(BITMAP), &bitmap) > 0) {
-						auto width = bitmap.bmWidth / 64 * CalcPixelX(16);
-						auto height = bitmap.bmHeight / 64 * CalcPixelY(16);
+						auto width = bitmap.bmWidth / 64 * 16;
+						auto height = bitmap.bmHeight / 64 * 16;
 						if (resized = CreateCompatibleBitmap(dc, width, height)) {
 							auto hSrcOld = SelectObject(src, original);
 							auto hDstOld = SelectObject(dest, resized);
@@ -180,7 +180,7 @@ static auto CreateToolbar(DWORD ws, UINT id, int bitmaps, HBITMAP image, const T
 	if (toolbar) {
 		TBADDBITMAP addbitmap{ 0, (UINT_PTR)image };
 		SendMessageW(toolbar, TB_ADDBITMAP, bitmaps, (LPARAM)&addbitmap);
-		SendMessageW(toolbar, TB_SETBITMAPSIZE, 0, MAKELPARAM(CalcPixelX(16), CalcPixelY(16)));
+		SendMessageW(toolbar, TB_SETBITMAPSIZE, 0, MAKELPARAM(16, 16));
 		SendMessageW(toolbar, TB_BUTTONSTRUCTSIZE, sizeof(TBBUTTON), 0);
 		SendMessageW(toolbar, TB_ADDBUTTONSW, size, (LPARAM)buttons);
 		SetWindowSubclass(toolbar, IgnoreRightClick, 0, 0);
@@ -194,7 +194,7 @@ static std::tuple<HWND, HWND> CreateComboBox(HWND toolbar, DWORD style, int widt
 	style |= WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL;
 	RECT rect;
 	SendMessageW(toolbar, TB_GETITEMRECT, 3, (LPARAM)&rect);
-	auto combobox = CreateWindowExW(WS_EX_CLIENTEDGE, WC_COMBOBOXW, nullptr, style, rect.right, rect.top, width - rect.right, CalcPixelY(200), toolbar, (HMENU)IntToPtr(menuId), GetFtpInst(), nullptr);
+	auto combobox = CreateWindowExW(WS_EX_CLIENTEDGE, WC_COMBOBOXW, nullptr, style, rect.right, rect.top, width - rect.right, 200, toolbar, (HMENU)IntToPtr(menuId), GetFtpInst(), nullptr);
 	HWND edit = 0;
 	if (combobox) {
 		if (COMBOBOXINFO ci{ sizeof(COMBOBOXINFO) }; SendMessageW(combobox, CB_GETCOMBOBOXINFO, 0, (LPARAM)&ci)) {
@@ -228,7 +228,7 @@ bool MakeToolBarWindow() {
 	if (hWndTbarLocal = CreateToolbar(BTNS_GROUP, 2, 2, remoteImage, localButtons, size_as<int>(localButtons), 0, AskToolWinHeight(), LocalWidth, AskToolWinHeight()); !hWndTbarLocal)
 		return false;
 	SendMessageW(hWndTbarLocal, TB_GETITEMRECT, 3, (LPARAM)&rect);
-	auto font = CreateFontW(rect.bottom - rect.top - CalcPixelY(8), 0, 0, 0, 0, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"MS Shell Dlg");
+	auto font = CreateFontW(rect.bottom - rect.top - 8, 0, 0, 0, 0, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, L"MS Shell Dlg");
 	std::tie(hWndDirLocal, hWndDirLocalEdit) = CreateComboBox(hWndTbarLocal, CBS_SORT, LocalWidth, COMBO_LOCAL, true, font);
 	if (hWndDirLocal == NULL)
 		return false;

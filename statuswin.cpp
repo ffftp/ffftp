@@ -37,10 +37,7 @@ int MakeStatusBarWindow() {
 	hWndSbar = CreateWindowExW(0, STATUSCLASSNAMEW, nullptr, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | SBARS_SIZEGRIP, 0, 0, 0, 0, GetMainHwnd(), 0, GetFtpInst(), nullptr);
 	if (!hWndSbar)
 		return FFFTP_FAIL;
-	static int parts[]{ 120, 190, 340, 500, 660, -1 };
-	for (auto& part : parts)
-		if (part != -1)
-			part = CalcPixelX(part);
+	int parts[] = { 120, 190, 340, 500, 660, -1 };
 	SendMessageW(hWndSbar, SB_SETPARTS, size_as<WPARAM>(parts), (LPARAM)parts);
 	return FFFTP_SUCCESS;
 }

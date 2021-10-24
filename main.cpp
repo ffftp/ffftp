@@ -117,7 +117,7 @@ static DWORD dwCookie;
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
 static DWORD MainThreadId;
 HANDLE ChangeNotification = INVALID_HANDLE_VALUE;
-static int ToolWinHeight;
+static int ToolWinHeight = 28;
 static HWND hHelpWin = NULL;
 static int NoopEnable = NO;
 
@@ -286,16 +286,7 @@ static int InitApp(int cmdShow)
 	{
 		Accel = LoadAcceleratorsW(GetFtpInst(), MAKEINTRESOURCEW(ffftp_accel));
 
-		// 高DPI対応
-		WinWidth = CalcPixelX(WinWidth);
-		WinHeight = CalcPixelY(WinHeight);
-		LocalWidth = CalcPixelX(LocalWidth);
-		TaskHeight = CalcPixelY(TaskHeight);
-		for (auto& width : LocalTabWidthDefault)
-			width = CalcPixelX(width);
 		std::copy(std::begin(LocalTabWidthDefault), std::end(LocalTabWidthDefault), std::begin(LocalTabWidth));
-		for (auto& width : RemoteTabWidthDefault)
-			width = CalcPixelX(width);
 		std::copy(std::begin(RemoteTabWidthDefault), std::end(RemoteTabWidthDefault), std::begin(RemoteTabWidth));
 
 		std::vector<std::wstring_view> args{ __wargv + 1, __wargv + __argc };
@@ -477,8 +468,6 @@ static int InitApp(int cmdShow)
 static bool MakeAllWindows(int cmdShow) {
 	WNDCLASSEXW classEx{ sizeof(WNDCLASSEXW), 0, FtpWndProc, 0, 0, GetFtpInst(), LoadIconW(GetFtpInst(), MAKEINTRESOURCEW(ffftp)), 0, GetSysColorBrush(COLOR_3DFACE), MAKEINTRESOURCEW(main_menu), FtpClass };
 	RegisterClassExW(&classEx);
-
-	ToolWinHeight = CalcPixelY(16) + 12;
 
 	if (SaveWinPos == NO) {
 		WinPosX = CW_USEDEFAULT;

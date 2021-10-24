@@ -1176,8 +1176,6 @@ fs::path MakeDistinguishableFileName(fs::path&& path);
 #if defined(HAVE_TANDEM)
 void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size);
 #endif
-int CalcPixelX(int x);
-int CalcPixelY(int y);
 
 /*===== opie.c =====*/
 
