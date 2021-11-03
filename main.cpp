@@ -117,6 +117,8 @@ std::wstring TitleHostName;
 std::wstring FilterStr = L"*"s;
 int CancelFlg;
 
+HANDLE initialized = CreateEventW(nullptr, true, false, nullptr);
+
 int SuppressRefresh = 0;
 
 static DWORD dwCookie;
@@ -811,6 +813,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 								MirrorDownloadProc(YES);
 						}
 					}
+					SetEvent(initialized);
 					break;
 
 				case MENU_SET_CONNECT :
@@ -1608,6 +1611,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 static void StartupProc(std::vector<std::wstring_view> const& args) {
 	std::wstring hostname;
 	std::wstring unc;
+	bool initializeDeferred = false;
 	if (auto result = AnalyzeComLine(args, hostname, unc)) {
 		int opt = *result;
 		int Kanji = opt & OPT_UTF8BOM ? KANJI_UTF8BOM : opt & OPT_UTF8N ? KANJI_UTF8N : opt & OPT_SJIS ? KANJI_SJIS : opt & OPT_JIS ? KANJI_JIS : opt & OPT_EUC ? KANJI_EUC : KANJI_NOCNV;
@@ -1628,12 +1632,16 @@ static void StartupProc(std::vector<std::wstring_view> const& args) {
 		} else if (!empty(hostname) && empty(unc)) {
 			if (int AutoConnect = SearchHostName(hostname); AutoConnect == -1)
 				Notice(IDS_MSGJPN177, hostname);
-			else
+			else {
+				initializeDeferred = true;
 				PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_CONNECT_NUM, opt), (LPARAM)AutoConnect);
+			}
 		} else {
 			Notice(IDS_MSGJPN179);
 		}
 	}
+	if (!initializeDeferred)
+		SetEvent(initialized);
 }
 
 

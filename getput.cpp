@@ -99,6 +99,7 @@ static int ClearAll;		/* 全て中止フラグ YES/NO */
 
 static int ForceAbort;		/* 転送中止フラグ */
 							/* このフラグはスレッドを終了させるときに使う */
+extern HANDLE initialized;
 
 // 同時接続対応
 //static LONGLONG AllTransSizeNow;	/* 今回の転送で転送したサイズ */
@@ -163,8 +164,8 @@ void CloseTransferThread() {
 	for (int i = 0; i < MAX_DATA_CONNECTION; i++)
 		Canceled[i] = YES;
 	ClearAll = YES;
-
 	fTransferThreadExit = true;
+	SetEvent(initialized);
 	for (int i = 0; i < MAX_DATA_CONNECTION; i++) {
 		while (WaitForSingleObject(hTransferThread[i], 10) == WAIT_TIMEOUT) {
 			BackgrndMessageProc();
@@ -370,6 +371,9 @@ static unsigned __stdcall TransferThread(void *Dummy)
 	ThreadCount = PtrToInt(Dummy);
 	LastError = NO;
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
+
+	auto result = WaitForSingleObject(initialized, INFINITE);
+	assert(result == WAIT_OBJECT_0);
 
 	while (!fTransferThreadExit) {
 		ErrMsg.clear();
