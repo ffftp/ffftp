@@ -328,13 +328,6 @@ void Config::WriteHost(Host const& host, Host const& defaultHost, bool writePass
 }
 
 static constexpr std::tuple<std::string_view, std::variant<int*, uint8_t*, std::wstring*, std::vector<std::wstring>*>> settings[] = {
-	{ "WinPosX"sv, &WinPosX },
-	{ "WinPosY"sv, &WinPosY },
-	{ "WinWidth"sv, &WinWidth },
-	{ "WinHeight"sv, &WinHeight },
-	{ "LocalWidth"sv, &LocalWidth },
-	{ "TaskHeight"sv, &TaskHeight },
-	{ "SwCmd"sv, &Sizing },
 	{ "UserMail"sv, &UserMailAdrs },
 	{ "Viewer"sv, &ViewerName[0] },
 	{ "Viewer2"sv, &ViewerName[1] },
@@ -585,16 +578,28 @@ bool LoadRegistry() {
 		for (auto& [name, variant] : settings)
 			std::visit([&hKey4, name](auto&& ptr) { hKey4->ReadValue(name, *ptr); }, variant);
 
-		/* ↓旧バージョンのバグ対策 */
-		LocalWidth = std::max(0, LocalWidth);
-		/* ↓旧バージョンのバグ対策 */
-		TaskHeight = std::max(0, TaskHeight);
-		hKey4->ReadBinary("LocalColm"sv, LocalTabWidth);
-		if (std::all_of(std::begin(LocalTabWidth), std::end(LocalTabWidth), [](auto width) { return width <= 0; }))
-			std::copy(std::begin(LocalTabWidthDefault), std::end(LocalTabWidthDefault), std::begin(LocalTabWidth));
-		hKey4->ReadBinary("RemoteColm"sv, RemoteTabWidth);
-		if (std::all_of(std::begin(RemoteTabWidth), std::end(RemoteTabWidth), [](auto width) { return width <= 0; }))
-			std::copy(std::begin(RemoteTabWidthDefault), std::end(RemoteTabWidthDefault), std::begin(RemoteTabWidth));
+		if (5600 <= Version) {		// HighDPI廃止のため、古いサイズは読み込まない。
+			hKey4->ReadValue("WinPosX"sv, WinPosX);
+			hKey4->ReadValue("WinPosY"sv, WinPosY);
+			hKey4->ReadValue("WinWidth"sv, WinWidth);
+			hKey4->ReadValue("WinHeight"sv, WinHeight);
+			hKey4->ReadValue("LocalWidth"sv, LocalWidth);
+			/* ↓旧バージョンのバグ対策 */
+			LocalWidth = std::max(0, LocalWidth);
+			hKey4->ReadValue("TaskHeight"sv, TaskHeight);
+			/* ↓旧バージョンのバグ対策 */
+			TaskHeight = std::max(0, TaskHeight);
+			hKey4->ReadBinary("LocalColm"sv, LocalTabWidth);
+			if (std::all_of(std::begin(LocalTabWidth), std::end(LocalTabWidth), [](auto width) { return width <= 0; }))
+				std::copy(std::begin(LocalTabWidthDefault), std::end(LocalTabWidthDefault), std::begin(LocalTabWidth));
+			hKey4->ReadBinary("RemoteColm"sv, RemoteTabWidth);
+			if (std::all_of(std::begin(RemoteTabWidth), std::end(RemoteTabWidth), [](auto width) { return width <= 0; }))
+				std::copy(std::begin(RemoteTabWidthDefault), std::end(RemoteTabWidthDefault), std::begin(RemoteTabWidth));
+			hKey4->ReadValue("SwCmd"sv, Sizing);
+			hKey4->ReadBinary("Hdlg"sv, HostDlgSize);
+			hKey4->ReadBinary("Bdlg"sv, BmarkDlgSize);
+			hKey4->ReadBinary("Mdlg"sv, MirrorDlgSize);
+		}
 
 		if (!hKey4->ReadValue("AsciiFile"sv, AsciiExt))
 			if (std::wstring value; hKey4->ReadValue ("Ascii"sv, value)) {
@@ -614,9 +619,6 @@ bool LoadRegistry() {
 		hKey4->ReadFont("ListFont"sv, ListFont, ListLogFont);
 		hKey4->ReadValue("FwallUser"sv, FwallUser);
 		hKey4->ReadPassword("FwallPass"sv, FwallPass);
-		hKey4->ReadBinary("Hdlg"sv, HostDlgSize);
-		hKey4->ReadBinary("Bdlg"sv, BmarkDlgSize);
-		hKey4->ReadBinary("Mdlg"sv, MirrorDlgSize);
 		hKey4->ReadValue("NoSave", SuppressSave);
 
 		/* ヒストリの設定を読み込む */

@@ -159,7 +159,7 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define YES_ALL			3
 #define YES_LIST		4
 
-#define VER_NUM					2000		/* 設定バージョン */
+#define VER_NUM					5600		/* 設定バージョン */
 
 /*===== ユーザ定義コマンド =====*/
 
