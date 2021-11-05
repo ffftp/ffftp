@@ -48,29 +48,6 @@ static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, std::
 static std::wstring ReformToVMSstyleDirName(std::wstring&& path);
 static std::wstring ReformToVMSstylePathName(std::wstring_view path);
 static std::wstring RenameUnuseableName(std::wstring&& filename);
-
-/* 設定値 */
-extern int FnameCnv;
-extern int RecvMode;
-extern int SendMode;
-extern int MoveMode;
-std::vector<std::wstring> MirrorNoTrn = { L"*.bak"s };
-std::vector<std::wstring> MirrorNoDel;
-extern int MirrorFnameCnv;
-std::vector<std::wstring> DefAttrList;
-extern SIZE MirrorDlgSize;
-extern int VaxSemicolon;
-extern int CancelFlg;
-// ディレクトリ自動作成
-extern int MakeAllDir;
-// ファイル一覧バグ修正
-extern int AbortOnListError;
-// ミラーリング設定追加
-extern int MirrorNoTransferContents;
-// タイムスタンプのバグ修正
-extern int DispTimeSeconds;
-int UpExistMode = EXIST_OVW;		/* アップロードで同じ名前のファイルがある時の扱い方 EXIST_xxx */
-int ExistMode = EXIST_OVW;		/* 同じ名前のファイルがある時の扱い方 EXIST_xxx */
 static int ExistNotify;		/* 確認ダイアログを出すかどうか YES/NO */
 
 

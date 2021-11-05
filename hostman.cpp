@@ -69,17 +69,6 @@ static void DeleteChildAndNext(std::shared_ptr<HOSTLISTDATA> Pos);
 static void SendAllHostNames(HWND hWnd, int Cur);
 static int IsNodeGroup(int Num);
 static bool DispHostSetDlg(HWND hDlg);
-
-/* 設定値 */
-extern std::wstring UserMailAdrs;
-extern HFONT ListFont;
-extern std::wstring DefaultLocalPath;
-extern int ConnectAndSet;
-extern SIZE HostDlgSize;
-extern int NoRasControl;
-
-/*===== ローカルなワーク =====*/
-
 static int Hosts = 0;								/* ホスト数 */
 static int ConnectingHost;							/* 接続中のホスト */
 static int CurrentHost;								/* カーソル位置のホスト */

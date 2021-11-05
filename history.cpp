@@ -29,8 +29,6 @@
 
 #include "common.h"
 
-int FileHist = 5;
-int PassToHist = YES;
 static std::vector<HISTORYDATA> histories;
 static constexpr std::array MenuHistId{
 	MENU_HIST_1,  MENU_HIST_2,  MENU_HIST_3,  MENU_HIST_4,  MENU_HIST_5,

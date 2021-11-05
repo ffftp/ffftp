@@ -30,13 +30,6 @@
 #include "common.h"
 
 #define TASK_BUFSIZE	(16*1024)
-extern int ClientWidth;
-extern int SepaWidth;
-extern int ListHeight;
-extern int TaskHeight;
-extern HFONT ListFont;
-extern int RemoveOldLog;
-int DebugConsole = NO;
 static HWND hWndTask = NULL;
 static Concurrency::concurrent_queue<std::wstring> queue;
 

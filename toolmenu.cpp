@@ -29,19 +29,6 @@
 
 #include "common.h"
 
-extern int SepaWidth;
-extern int RemoteWidth;
-extern int CancelFlg;
-extern int DotFile;
-std::vector<std::wstring> AsciiExt = { L"*.txt"s, L"*.html"s, L"*.htm"s, L"*.cgi"s, L"*.pl"s, L"*.js"s, L"*.vbs"s, L"*.css"s, L"*.rss"s, L"*.rdf"s, L"*.xml"s, L"*.xhtml"s, L"*.xht"s, L"*.shtml"s, L"*.shtm"s, L"*.sh"s, L"*.py"s, L"*.rb"s, L"*.properties"s, L"*.sql"s, L"*.asp"s, L"*.aspx"s, L"*.php"s, L"*.htaccess"s };
-extern int TransMode;
-extern int ListType;
-extern int LocalWidth;
-extern std::wstring ViewerName[VIEWERS];
-extern int TransMode;
-extern int SortSave;
-extern int LocalKanjiCode;
-
 static HWND hWndTbarMain = NULL;
 static HWND hWndTbarLocal = NULL;
 static HWND hWndTbarRemote = NULL;

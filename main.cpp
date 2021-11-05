@@ -95,13 +95,6 @@ static HACCEL Accel;
 
 static int Resizing = RESIZE_OFF;
 static int ResizePos;
-
-int ClientWidth;
-static int ClientHeight;
-int SepaWidth;
-int RemoteWidth;
-int ListHeight;
-
 static std::vector<fs::path> TempFiles;
 
 static int SaveExit = YES;
@@ -115,8 +108,6 @@ TRANSPACKET MainTransPkt;		/* ファイル転送用パケット */
 								/* 中止ボタンで中止できる */
 std::wstring TitleHostName;
 std::wstring FilterStr = L"*"s;
-int CancelFlg;
-
 HANDLE initialized = CreateEventW(nullptr, true, false, nullptr);
 
 int SuppressRefresh = 0;
@@ -127,90 +118,8 @@ static DWORD dwCookie;
 static DWORD MainThreadId;
 HANDLE ChangeNotification = INVALID_HANDLE_VALUE;
 static int ToolWinHeight;
-
-
-/*===== グローバルなワーク =====*/
-
 static HWND hHelpWin = NULL;
-
-/* 設定値 */
-int WinPosX = CW_USEDEFAULT;
-int WinPosY = 0;
-int WinWidth = 790;
-int WinHeight = 513;
-int LocalWidth = 389;
-int TaskHeight = 100;
-int LocalTabWidthDefault[4] = { 150, 120, 60, 37 };
-int LocalTabWidth[4];
-int RemoteTabWidthDefault[6] = { 150, 120, 60, 37, 60, 60 };
-int RemoteTabWidth[6];
-std::wstring ViewerName[VIEWERS] = { L"notepad"s };
-HFONT ListFont = NULL;
-int LocalFileSort = SORT_NAME;
-int LocalDirSort = SORT_NAME;
-int RemoteFileSort = SORT_NAME;
-int RemoteDirSort = SORT_NAME;
-int TransMode = TYPE_X;
-int ConnectOnStart = YES;
-int SaveWinPos = NO;
-int RecvMode = TRANS_DLG;
-int SendMode = TRANS_DLG;
-int MoveMode = MOVE_DLG;
-int ListType = LVS_REPORT;
-std::wstring DefaultLocalPath;
-int SaveTimeStamp = YES;
-int FindMode = 0;
-int DotFile = YES;
-int DclickOpen = YES;
-int ConnectAndSet = YES;
-int FnameCnv = FNAME_NOCNV;
-int TimeOut = 90;
-int RmEOF = NO;
-int RegType = REGTYPE_REG;
-int FwallPort = IPPORT_FTP;
-int FwallType = 1;
-int FwallDefault = NO;
-int FwallSecurity = SECURITY_AUTO;
-int FwallResolve = NO;
-int FwallLower = NO;
-int FwallDelimiter = '@';
-int PasvDefault = YES;
-int MirrorFnameCnv = NO;
-int SplitVertical = YES;
-int RasClose = NO;
-int RasCloseNotify = YES;
-SIZE HostDlgSize = { -1, -1 };
-SIZE BmarkDlgSize = { -1, -1 };
-SIZE MirrorDlgSize = { -1, -1 };
-int Sizing = SW_RESTORE;
-int SortSave = NO;
-int QuickAnonymous = YES;
-int VaxSemicolon = NO;
-int SendQuit = NO;
-int NoRasControl = NO;
-int SuppressSave = NO;
-int DispIgnoreHide = NO;
-int DispDrives = NO;
-int MirUpDelNotify = YES; 
-int MirDownDelNotify = YES; 
-int FolderAttr = NO;
-int FolderAttrNum = 777;
-int DispFileIcon = NO;
-int DispTimeSeconds = NO;
-int DispPermissionsNumber = NO;
-int MakeAllDir = YES;
-int LocalKanjiCode = KANJI_SJIS;
-int NoopEnable = NO;
-int UPnPEnabled = NO;
-time_t LastDataConnectionTime = 0;
-int EncryptAllSettings = NO;
-int AutoRefreshFileList = YES;
-int RemoveOldLog = NO;
-int ReadOnlySettings = NO;
-int AbortOnListError = YES;
-int MirrorNoTransferContents = NO; 
-int FwallNoSaveUser = NO; 
-int MarkAsInternet = YES; 
+static int NoopEnable = NO;
 
 
 fs::path const& systemDirectory() {
@@ -1905,7 +1814,7 @@ static void CalcWinSize(void)
 	GetClientRect(GetMainHwnd(), &Rect);
 
 	ClientWidth = Rect.right;
-	ClientHeight = Rect.bottom;
+	int ClientHeight = Rect.bottom;
 
 	SepaWidth = 4;
 	LocalWidth = std::clamp(LocalWidth, 0, ClientWidth - SepaWidth);

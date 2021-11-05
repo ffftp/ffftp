@@ -37,11 +37,6 @@
 #define DBG_MSG		0
 
 static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-extern int TimeOut;
-
-
-/*===== ローカルなワーク =====*/
-
 static HWND hWndSocket;
 static std::map<SOCKET, SocketContext*> map;
 static std::mutex mapMutex;
