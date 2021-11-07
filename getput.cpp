@@ -112,6 +112,12 @@ static int MoveToForeground = NO;		/* ウインドウを前面に移動するか
 static std::wstring CurDir[MAX_DATA_CONNECTION];
 static thread_local std::wstring ErrMsg;
 
+// 送受信の完了を検出する。
+// [0..MAX_DATA_CONNECTION-1]： manual reset、各スレッドの状態。開始時にreset、完了したらset
+// [MAX_DATA_CONNECTION]： auto reset、送受信開始時にset
+// これら全てをWaitForMultipleObjectsで待つ。auto resetなので１スレッドだけが送受信完了の通知を受ける。
+static HANDLE completed[MAX_DATA_CONNECTION + 1];
+
 // 再転送対応
 static int TransferErrorMode = EXIST_OVW;
 static int TransferErrorNotify = NO;
@@ -151,10 +157,12 @@ int MakeTransferThread() {
 	ForceAbort = NO;
 	fTransferThreadExit = false;
 	for (int i = 0; i < MAX_DATA_CONNECTION; i++) {
+		completed[i] = CreateEventW(nullptr, true, true, nullptr);
 		hTransferThread[i] = (HANDLE)_beginthreadex(nullptr, 0, TransferThread, IntToPtr(i), 0, nullptr);
 		if (hTransferThread[i] == (HANDLE)-1)
 			return FFFTP_FAIL;
 	}
+	completed[MAX_DATA_CONNECTION] = CreateEventW(nullptr, false, false, nullptr);
 	return FFFTP_SUCCESS;
 }
 
@@ -172,6 +180,7 @@ void CloseTransferThread() {
 			Canceled[i] = YES;
 		}
 		CloseHandle(hTransferThread[i]);
+		CloseHandle(completed[i]);
 	}
 }
 
@@ -207,6 +216,7 @@ void AddTransFileList(TRANSPACKET *Pkt)
 	DispTransPacket(*Pkt);
 
 	TransPacketBase.push(*Pkt);
+	SetEvent(completed[MAX_DATA_CONNECTION]);
 	if (Pkt->Command.starts_with(L"RETR"sv) || Pkt->Command.starts_with(L"STOR"sv)) {
 		TransFiles++;
 		// タスクバー進捗表示
@@ -347,7 +357,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 {
 	HWND hWndTrans;
 	int CwdSts;
-	int GoExit;
 //	int Down;
 //	int Up;
 	static int Down;
@@ -364,7 +373,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 	hWndTrans = NULL;
 	Down = NO;
 	Up = NO;
-	GoExit = NO;
 	DelNotify = NO;
 	// 同時接続対応
 	// ソケットは各転送スレッドが管理
@@ -381,8 +389,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //		Canceled = NO;
 		Canceled[ThreadCount] = NO;
 
-		if (empty(TransPacketBase))
-			GoExit = YES;
 		if(AskReuseCmdSkt() == YES && ThreadCount == 0)
 		{
 			TrnSkt = AskTrnCtrlSkt();
@@ -437,6 +443,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			}
 		}
 		LastError = NO;
+		ResetEvent(completed[ThreadCount]);
 		if (TRANSPACKET pkt; TrnSkt && TransPacketBase.try_pop(pkt)) {
 			auto Pos = &pkt;
 			if(hWndTrans == NULL)
@@ -682,7 +689,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					for(i = 0; i < MAX_DATA_CONNECTION; i++)
 						Canceled[i] = YES;
 					EraseTransFileList();
-					GoExit = YES;
 				}
 				else
 				{
@@ -714,9 +720,10 @@ static unsigned __stdcall TransferThread(void *Dummy)
 		{
 			ClearAll = NO;
 			DelNotify = NO;
-
-			if(GoExit == YES)
-			{
+			SetEvent(completed[ThreadCount]);
+			auto result = WaitForMultipleObjects(size_as<DWORD>(completed), completed, true, 0);
+			_RPTWN(_CRT_WARN, L"ID=%d, result=%08X.\n", ThreadCount, result);
+			if (result == WAIT_OBJECT_0) {
 				Sound::Transferred.Play();
 				if(AskAutoExit() == NO)
 				{
@@ -728,7 +735,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				Down = NO;
 				Up = NO;
 				PostMessageW(GetMainHwnd(), WM_COMMAND, MAKEWPARAM(MENU_AUTO_EXIT, 0), 0);
-				GoExit = NO;
 			}
 
 			if(KeepDlg == NO)
