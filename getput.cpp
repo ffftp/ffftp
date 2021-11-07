@@ -721,9 +721,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			ClearAll = NO;
 			DelNotify = NO;
 			SetEvent(completed[ThreadCount]);
-			auto result = WaitForMultipleObjects(size_as<DWORD>(completed), completed, true, 0);
-			_RPTWN(_CRT_WARN, L"ID=%d, result=%08X.\n", ThreadCount, result);
-			if (result == WAIT_OBJECT_0) {
+			if (WaitForMultipleObjects(size_as<DWORD>(completed), completed, true, 0) == WAIT_OBJECT_0) {
 				Sound::Transferred.Play();
 				if(AskAutoExit() == NO)
 				{
