@@ -42,29 +42,6 @@ static std::wstring CheckOneTimePassword(std::wstring&& pass, std::wstring const
 /*===== 外部参照 =====*/
 
 extern std::wstring TitleHostName;
-extern int CancelFlg;
-
-/* 設定値 */
-std::wstring UserMailAdrs = L"who@example.com"s;
-std::wstring FwallHost;
-std::wstring FwallUser;
-std::wstring FwallPass;
-extern int FwallPort;
-extern int FwallType;
-extern int FwallDefault;
-extern int FwallSecurity;
-extern int FwallResolve;
-extern int FwallLower;
-extern int FwallDelimiter;
-extern int PasvDefault;
-extern int QuickAnonymous;
-// 切断対策
-extern int TimeOut;
-// UPnP対応
-extern int UPnPEnabled;
-
-/*===== ローカルなワーク =====*/
-
 static int Anonymous;
 static int TryConnect = NO;
 static std::shared_ptr<SocketContext> CmdCtrlSocket;

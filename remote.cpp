@@ -40,18 +40,6 @@
 static std::optional<std::wstring> DoPWD();
 
 extern TRANSPACKET MainTransPkt;
-
-/* 設定値 */
-extern int TimeOut;
-extern int SendQuit;
-
-// 同時接続対応
-extern int CancelFlg;
-// 自動切断対策
-extern time_t LastDataConnectionTime;
-
-/*===== ローカルなワーク =====*/
-
 static int PwdCommandType;
 
 

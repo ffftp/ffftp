@@ -29,8 +29,6 @@
 
 #include "common.h"
 
-extern HFONT ListFont;		/* リストボックスのフォント */
-extern SIZE BmarkDlgSize;
 
 struct Bookmark {
 	std::wstring local;

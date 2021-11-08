@@ -50,36 +50,11 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 static bool MakeLocalTree(fs::path const& path, std::vector<FILELIST>& Base);
 static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base);
 static int AskFilterStr(std::wstring const& file, int Type);
-
-/*===== 外部参照 =====*/
-
-extern int SepaWidth;
-extern int RemoteWidth;
-extern int ListHeight;
 extern std::wstring FilterStr;
 // 外部アプリケーションへドロップ後にローカル側のファイル一覧に作業フォルダが表示されるバグ対策
 extern int SuppressRefresh;
 // ローカル側自動更新
 extern HANDLE ChangeNotification;
-// 特定の操作を行うと異常終了するバグ修正
-extern int CancelFlg;
-
-/* 設定値 */
-extern int LocalWidth;
-extern int LocalTabWidth[4];
-extern int RemoteTabWidth[6];
-extern HFONT ListFont;
-extern int ListType;
-extern int FindMode;
-extern int DotFile;
-extern int DispDrives;
-extern int MoveMode;
-// ファイルアイコン表示対応
-extern int DispFileIcon;
-// タイムスタンプのバグ修正
-extern int DispTimeSeconds;
-// ファイルの属性を数字で表示
-extern int DispPermissionsNumber;
 extern HOSTDATA CurHost;
 
 /*===== ローカルなワーク =====*/

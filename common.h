@@ -426,6 +426,105 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define NTYPE_IPV4			1		/* TCP/IPv4 */
 #define NTYPE_IPV6			2		/* TCP/IPv6 */
 
+/* 設定値 */
+inline int WinPosX = CW_USEDEFAULT;
+inline int WinPosY = 0;
+inline int WinWidth = 790;
+inline int WinHeight = 513;
+inline int LocalWidth = 389;
+inline int TaskHeight = 100;
+inline int LocalTabWidthDefault[4] = { 150, 120, 60, 37 };
+inline int LocalTabWidth[4];
+inline int RemoteTabWidthDefault[6] = { 150, 120, 60, 37, 60, 60 };
+inline int RemoteTabWidth[6];
+inline std::wstring UserMailAdrs = L"who@example.com"s;
+inline std::wstring ViewerName[VIEWERS] = { L"notepad"s };
+inline HFONT ListFont = NULL;
+inline LOGFONTW ListLogFont;
+inline int LocalFileSort = SORT_NAME;
+inline int LocalDirSort = SORT_NAME;
+inline int RemoteFileSort = SORT_NAME;
+inline int RemoteDirSort = SORT_NAME;
+inline int TransMode = TYPE_X;
+inline int ConnectOnStart = YES;
+inline int DebugConsole = NO;
+inline int SaveWinPos = NO;
+inline std::vector AsciiExt = { L"*.txt"s, L"*.html"s, L"*.htm"s, L"*.cgi"s, L"*.pl"s, L"*.js"s, L"*.vbs"s, L"*.css"s, L"*.rss"s, L"*.rdf"s, L"*.xml"s, L"*.xhtml"s, L"*.xht"s, L"*.shtml"s, L"*.shtm"s, L"*.sh"s, L"*.py"s, L"*.rb"s, L"*.properties"s, L"*.sql"s, L"*.asp"s, L"*.aspx"s, L"*.php"s, L"*.htaccess"s };
+inline int RecvMode = TRANS_DLG;
+inline int SendMode = TRANS_DLG;
+inline int MoveMode = MOVE_DLG;
+inline int ListType = LVS_REPORT;
+inline std::wstring DefaultLocalPath;
+inline int SaveTimeStamp = YES;
+inline int FindMode = 0;
+inline int DotFile = YES;
+inline int DclickOpen = YES;
+inline int ConnectAndSet = YES;
+inline int FnameCnv = FNAME_NOCNV;
+inline int TimeOut = 90;
+inline int RmEOF = NO;
+inline int RegType = REGTYPE_REG;
+inline std::wstring FwallHost;
+inline std::wstring FwallUser;
+inline std::wstring FwallPass;
+inline int FwallPort = IPPORT_FTP;
+inline int FwallType = 1;
+inline int FwallDefault = NO;
+inline int FwallSecurity = SECURITY_AUTO;
+inline int FwallResolve = NO;
+inline int FwallLower = NO;
+inline int FwallDelimiter = '@';
+inline int PasvDefault = YES;
+inline std::vector<std::wstring> MirrorNoTrn = { L"*.bak"s };
+inline std::vector<std::wstring> MirrorNoDel;
+inline int MirrorFnameCnv = NO;
+inline int RasClose = NO;
+inline int RasCloseNotify = YES;
+inline int FileHist = 5;
+inline std::vector<std::wstring> DefAttrList;
+inline SIZE HostDlgSize = { -1, -1 };
+inline SIZE BmarkDlgSize = { -1, -1 };
+inline SIZE MirrorDlgSize = { -1, -1 };
+inline int Sizing = SW_RESTORE;
+inline int SortSave = NO;
+inline int QuickAnonymous = YES;
+inline int PassToHist = YES;
+inline int VaxSemicolon = NO;
+inline int SendQuit = NO;
+inline int NoRasControl = NO;
+inline int SuppressSave = NO;
+inline int DispIgnoreHide = NO;
+inline int DispDrives = NO;
+inline int MirUpDelNotify = YES;
+inline int MirDownDelNotify = YES;
+inline int FolderAttr = NO;
+inline int FolderAttrNum = 777;
+inline int DispFileIcon = NO;
+inline int DispTimeSeconds = NO;
+inline int DispPermissionsNumber = NO;
+inline int MakeAllDir = YES;
+inline int LocalKanjiCode = KANJI_SJIS;
+inline int UPnPEnabled = NO;
+inline int EncryptAllSettings = NO;
+inline int AutoRefreshFileList = YES;
+inline int RemoveOldLog = NO;
+inline int AbortOnListError = YES;
+inline int MirrorNoTransferContents = NO;
+inline int FwallNoSaveUser = NO;
+inline int MarkAsInternet = YES;
+inline int UpExistMode = EXIST_OVW;		/* アップロードで同じ名前のファイルがある時の扱い方 EXIST_xxx */
+inline int ExistMode = EXIST_OVW;		/* 同じ名前のファイルがある時の扱い方 EXIST_xxx */
+
+// global variables
+inline time_t LastDataConnectionTime = 0;
+inline int ReadOnlySettings = NO;
+inline int ClientWidth;
+inline int SepaWidth;
+inline int RemoteWidth;
+inline int ListHeight;
+inline int CancelFlg;
+
+
 template<class T>
 constexpr T CreateInvalidateHandle() {
 	T handle;
@@ -1138,9 +1237,6 @@ int CheckClosedAndReconnect(void);
 // 同時接続対応
 int CheckClosedAndReconnectTrnSkt(std::shared_ptr<SocketContext>& Skt, int *CancelCheckWork);
 
-
-extern int DebugConsole;
-extern int DispIgnoreHide;
 
 template<class Target, class Source>
 constexpr auto data_as(Source& source) {

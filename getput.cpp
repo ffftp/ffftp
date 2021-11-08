@@ -126,24 +126,6 @@ static LONGLONG TransferSizeLeft = 0;
 static LONGLONG TransferSizeTotal = 0;
 static int TransferErrorDisplay = 0;
 
-/*===== 外部参照 =====*/
-
-/* 設定値 */
-extern int SaveTimeStamp;
-extern int RmEOF;
-// extern int TimeOut;
-extern int FwallType;
-extern int MirUpDelNotify;
-extern int MirDownDelNotify;
-extern int FolderAttr;
-extern int FolderAttrNum;
-// 同時接続対応
-extern int SendQuit;
-// 自動切断対策
-extern time_t LastDataConnectionTime;
-// ゾーンID設定追加
-extern int MarkAsInternet;
-
 
 static void SetErrorMsg(std::wstring&& msg) {
 	if (empty(ErrMsg))
