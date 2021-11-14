@@ -5,7 +5,7 @@
 #include <tuple>
 #include <boost/regex.hpp>
 #include "../filelist.h"
-#include "CppUnitTest.h"
+#include <CppUnitTest.h>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
