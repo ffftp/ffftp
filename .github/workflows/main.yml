@@ -14,17 +14,17 @@ jobs:
         configuration:
         - Debug
         - Release
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
       with:
         submodules: true
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
     - name: Build
       run: |
-        $VS = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
-        & "$VS\MSBuild\Current\Bin\MSBuild.exe" ffftp.sln /p:Platform=$('${{matrix.platform}}' -replace 'x86', 'Win32') /p:Configuration=${{matrix.configuration}}
-        & "$VS\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" test\${{matrix.configuration}}\${{matrix.platform}}\test.dll
+        MSBuild.exe ffftp.sln /p:Platform=$('${{matrix.platform}}' -replace 'x86', 'Win32') /p:Configuration=${{matrix.configuration}}
     - name: Upload artifacts (ffftp)
       uses: actions/upload-artifact@v2
       with:
