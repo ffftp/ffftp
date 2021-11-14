@@ -194,4 +194,7 @@
       <CAExcludePath />
     </PropertyGroup>
   </Target>
+  <Target Name="RunTest" AfterTargets="Link">
+    <Exec Command="&quot;$(VsInstallRoot)\Common7\IDE\Extensions\TestPlatform\vstest.console.exe&quot; &quot;$(TargetPath)&quot;" />
+  </Target>
 </Project>
