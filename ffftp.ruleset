@@ -2,6 +2,9 @@
 <RuleSet Name="ffftp rules" ToolsVersion="16.0">
   <IncludeAll Action="Warning" />
   <Rules AnalyzerId="Microsoft.Analyzers.NativeCodeAnalysis" RuleNamespace="Microsoft.Rules.Native">
+    <!-- Bug of VS2022; https://developercommunity.visualstudio.com/t/Code-Analysis-crash/1559422 -->
+    <Rule Id="C26800" Action="None" />
+
     <Rule Id="C26409" Action="Hidden" />
     <Rule Id="C26410" Action="Hidden" />
     <Rule Id="C26415" Action="Hidden" />

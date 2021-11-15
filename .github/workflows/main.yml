@@ -14,7 +14,7 @@ jobs:
         configuration:
         - Debug
         - Release
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -22,6 +22,8 @@ jobs:
         submodules: true
     - name: Add msbuild to PATH
       uses: microsoft/setup-msbuild@v1.1
+      with:
+        vs-prerelease: true
     - name: Build
       run: |
         MSBuild.exe ffftp.sln /p:Platform=$('${{matrix.platform}}' -replace 'x86', 'Win32') /p:Configuration=${{matrix.configuration}}
