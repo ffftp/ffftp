@@ -2146,9 +2146,8 @@ void CopyURLtoClipBoard() {
 	MakeSelectedFileList(WIN_REMOTE, NO, NO, FileListBase, &CancelFlg);
 	if (empty(FileListBase))
 		return;
-	auto baseAddress = L"ftp://"s + AskHostAdrs();
-	if (auto port = AskHostPort(); port != IPPORT_FTP)
-		baseAddress.append(L":").append(std::to_wstring(port));
+	auto const curHost = GetCurHost();
+	auto baseAddress = std::format(curHost.Port != IPPORT_FTP ? L"ftp://{0}:{1}"sv : L"ftp://{0}"sv, curHost.HostAdrs, curHost.Port);
 	{
 		auto dir = SetSlashTail(std::wstring{ AskRemoteCurDir() });
 		if (AskHostType() == HTYPE_VMS) {
@@ -2255,8 +2254,7 @@ void NoopProc(int Force)
 {
 	if(Force == YES || (AskConnecting() == YES && !AskUserOpeDisabled()))
 	{
-		if(AskReuseCmdSkt() == NO || (AskShareProh() == YES && AskTransferNow() == NO))
-		{
+		if (GetCurHost().ReuseCmdSkt == NO || AskShareProh() == YES && AskTransferNow() == NO) {
 			if(Force == NO)
 				CancelFlg = NO;
 			DisableUserOpe();
@@ -2271,11 +2269,9 @@ void AbortRecoveryProc(void)
 {
 	if(AskConnecting() == YES && !AskUserOpeDisabled())
 	{
-		if(AskReuseCmdSkt() == NO || AskShareProh() == YES || AskTransferNow() == NO)
-		{
+		if (auto const& curHost = GetCurHost(); curHost.ReuseCmdSkt == NO || AskShareProh() == YES || AskTransferNow() == NO) {
 			CancelFlg = NO;
-			if(AskErrorReconnect() == YES)
-			{
+			if (curHost.TransferErrorReconnect == YES) {
 				DisableUserOpe();
 				ReConnectCmdSkt();
 				GetRemoteDirForWnd(CACHE_REFRESH, &CancelFlg);

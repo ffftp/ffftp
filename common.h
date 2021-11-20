@@ -643,18 +643,18 @@ struct Host : HostExeptPassword {
 
 
 struct HOSTDATA : Host {
-	int Level = 0;							/* 設定のレベル */
-											/* 通常はグループのフラグのみが有効 */
-											/* レベル数は設定の登録／呼出時のみで使用 */
-	std::wstring HostName;					/* 設定名 */
-	std::vector<std::wstring> BookMark;		/* ブックマーク */
-	int Anonymous = NO;						/* Anonymousフラグ */
-	int CurNameKanjiCode = KANJI_NOCNV;		/* 自動判別後のファイル名の漢字コード (KANJI_xxx) */
-	int LastDir = NO;						/* 最後にアクセスしたフォルダを保存 */
-	int CryptMode = CRYPT_NONE;				/* 暗号化通信モード (CRYPT_xxx) */
-	int NoDisplayUI = NO;					/* UIを表示しない (YES/NO) */
-	int Feature = 0;						/* 利用可能な機能のフラグ (FEATURE_xxx) */
-	int CurNetType = NTYPE_AUTO;			/* 接続中のネットワークの種類 (NTYPE_xxx) */
+	int Level = 0;									/* 設定のレベル */
+													/* 通常はグループのフラグのみが有効 */
+													/* レベル数は設定の登録／呼出時のみで使用 */
+	std::wstring HostName;							/* 設定名 */
+	std::vector<std::wstring> BookMark;				/* ブックマーク */
+	int Anonymous = NO;								/* Anonymousフラグ */
+	mutable int CurNameKanjiCode = KANJI_NOCNV;		/* 自動判別後のファイル名の漢字コード (KANJI_xxx) */
+	int LastDir = NO;								/* 最後にアクセスしたフォルダを保存 */
+	int CryptMode = CRYPT_NONE;						/* 暗号化通信モード (CRYPT_xxx) */
+	int NoDisplayUI = NO;							/* UIを表示しない (YES/NO) */
+	int Feature = 0;								/* 利用可能な機能のフラグ (FEATURE_xxx) */
+	int CurNetType = NTYPE_AUTO;					/* 接続中のネットワークの種類 (NTYPE_xxx) */
 	HOSTDATA() = default;
 	HOSTDATA(struct HISTORYDATA const& history);
 };
@@ -933,22 +933,18 @@ int SetHostEncryption(int Num, int UseNoEncryption, int UseFTPES, int UseFTPIS, 
 
 /*===== connect.c =====*/
 
+HOSTDATA const& GetCurHost();
 void ConnectProc(int Type, int Num);
 void QuickConnectProc(void);
 void DirectConnectProc(std::wstring&& unc, int Kanji, int Kana, int Fkanji, int TrMode);
 void HistoryConnectProc(int MenuCmd);
-std::wstring_view AskHostAdrs();
-int AskHostPort(void);
-int AskHostNameKanji(void);
 int AskHostNameKana(void);
 int AskListCmdMode(void);
 int AskUseNLST_R(void);
 std::wstring AskHostChmodCmd();
 int AskHostTimeZone(void);
-int AskPasvMode(void);
 std::wstring AskHostLsName();
 int AskHostType(void);
-int AskHostFireWall(void);
 int AskNoFullPathMode(void);
 void SaveCurrentSetToHost(void);
 int ReConnectCmdSkt(void);
@@ -969,28 +965,6 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget, std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork);
 std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext> ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
-int AskUseNoEncryption(void);
-int AskUseFTPES(void);
-int AskUseFTPIS(void);
-int AskUseSFTP(void);
-// 同時接続対応
-int AskMaxThreadCount(void);
-int AskReuseCmdSkt(void);
-// FEAT対応
-int AskHostFeature(void);
-// MLSD対応
-int AskUseMLSD(void);
-// IPv6対応
-int AskCurNetType(void);
-// 自動切断対策
-int AskNoopInterval(void);
-// 再転送対応
-int AskTransferErrorMode(void);
-int AskTransferErrorNotify(void);
-// セッションあたりの転送量制限対策
-int AskErrorReconnect(void);
-// ホスト側の設定ミス対策
-int AskNoPasvAdrs(void);
 
 // キャッシュのファイル名を作成する
 static inline fs::path MakeCacheFileName(int num) {

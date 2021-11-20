@@ -55,7 +55,6 @@ extern std::wstring FilterStr;
 extern int SuppressRefresh;
 // ローカル側自動更新
 extern HANDLE ChangeNotification;
-extern HOSTDATA CurHost;
 
 /*===== ローカルなワーク =====*/
 
@@ -1456,7 +1455,7 @@ void AddRemoteTreeToFileList(int Num, std::wstring const& Path, int IncDir, std:
 						if (str.starts_with("./"sv) || str.starts_with(".\\"sv))
 							str = str.substr(2);
 						if (1 < size(str))
-							Dir = ReplaceAll(SetSlashTail(std::wstring{ Path }) + ConvertFrom(str, CurHost.CurNameKanjiCode), L'\\', L'/');
+							Dir = ReplaceAll(SetSlashTail(std::wstring{ Path }) + ConvertFrom(str, GetCurHost().CurNameKanjiCode), L'\\', L'/');
 					}
 					if (IncDir == RDIR_NLST)
 						AddFileList({ Dir, NODE_DIR }, Base);
@@ -1876,17 +1875,18 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 		else
 			lines.emplace_back(std::move(line));
 	}
-	if (CurHost.NameKanjiCode == KANJI_AUTO) {
+	auto const& curHost = GetCurHost();
+	if (curHost.NameKanjiCode == KANJI_AUTO) {
 		CodeDetector cd;
 		for (auto const& line : lines)
 			if (auto p = std::get_if<FILELIST>(&line); p && p->Node != NODE_NONE && !empty(p->Original))
 				cd.Test(p->Original);
-		CurHost.CurNameKanjiCode = cd.result();
+		curHost.CurNameKanjiCode = cd.result();
 	} else
-		CurHost.CurNameKanjiCode = CurHost.NameKanjiCode;
+		curHost.CurNameKanjiCode = curHost.NameKanjiCode;
 	for (auto& line : lines) {
 		if (auto p = std::get_if<FILELIST>(&line); p && p->Node != NODE_NONE && !empty(p->Original)) {
-			auto file = ConvertFrom(p->Original, CurHost.CurNameKanjiCode);
+			auto file = ConvertFrom(p->Original, curHost.CurNameKanjiCode);
 			if (auto last = file.back(); last == '/' || last == '\\')
 				file.resize(file.size() - 1);
 			if (empty(file) || file == L"."sv || file == L".."sv)
