@@ -38,6 +38,7 @@
 #include <bit>
 #include <charconv>
 #include <chrono>
+#include <concepts>
 #include <filesystem>
 #include <format>
 #include <fstream>
