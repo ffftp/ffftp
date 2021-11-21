@@ -46,11 +46,17 @@ static int Anonymous;
 static int TryConnect = NO;
 static std::shared_ptr<SocketContext> CmdCtrlSocket;
 static std::shared_ptr<SocketContext> TrnCtrlSocket;
-HOSTDATA CurHost;
+static HOSTDATA CurHost;
 
 #if defined(HAVE_TANDEM)
 static int Oss = NO;  /* OSS ファイルシステムへアクセスしている場合は YES */
 #endif
+
+
+// 接続しているホストを返す
+HOSTDATA const& GetCurHost() {
+	return CurHost;
+}
 
 
 // ＵＮＣ文字列を分解する
@@ -516,46 +522,6 @@ static void AskUseFireWall(std::wstring_view Host, int *Fire, int *Pasv, int *Li
 }
 
 
-// 接続しているホストのアドレスを返す
-std::wstring_view AskHostAdrs() {
-	return CurHost.HostAdrs;
-}
-
-
-/*----- 接続しているホストのポートを返す --------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int ホストのポート
-*----------------------------------------------------------------------------*/
-
-int AskHostPort(void)
-{
-	return(CurHost.Port);
-}
-
-/*----- 接続しているホストのファイル名の漢字コードを返す ----------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int 漢字コード (KANJI_xxx)
-*----------------------------------------------------------------------------*/
-
-int AskHostNameKanji(void)
-{
-	// UTF-8対応
-//	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
-//
-//	return(CurHost.NameKanjiCode);
-	return(CurHost.CurNameKanjiCode);
-}
-
-
 /*----- 接続しているホストのファイル名の半角カナ変換フラグを返す --------------
 *
 *	Parameter
@@ -672,21 +638,6 @@ int AskHostTimeZone(void)
 }
 
 
-/*----- 接続しているホストのPASVモードを返す ----------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int PASVモードかどうか (YES/NO)
-*----------------------------------------------------------------------------*/
-
-int AskPasvMode(void)
-{
-	return(CurHost.Pasv);
-}
-
-
 std::wstring AskHostLsName() {
 	HOSTDATA TmpHost = CurHost;
 	if (AskCurrentHost() != HOSTNUM_NOENTRY)
@@ -726,21 +677,6 @@ int AskHostType(void)
 	// 同時接続対応
 //	return(CurHost.HostType);
 	return(TmpHost.HostType);
-}
-
-
-/*----- 接続しているホストはFireWallを使うホストかどうかを返す ----------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int FireWallを使うかどうか (YES/NO)
-*----------------------------------------------------------------------------*/
-
-int AskHostFireWall(void)
-{
-	return(CurHost.FireWall);
 }
 
 
@@ -1562,7 +1498,7 @@ static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelChec
 
 // SOCKSのコマンドに対するリプライパケットを受信する
 std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext> s, int* CancelCheckWork) {
-	assert(AskHostFireWall() == YES);
+	assert(CurHost.FireWall == YES);
 	assert(s);
 	sockaddr_storage ss;
 	if (FwallType == FWALL_SOCKS4) {
@@ -1638,7 +1574,7 @@ static void append(std::vector<uint8_t>& buffer, T const& data) {
 }
 
 static std::optional<sockaddr_storage> SocksRequest(std::shared_ptr<SocketContext> s, SocksCommand cmd, std::variant<sockaddr_storage, std::tuple<std::wstring, int>> const& target, int* CancelCheckWork) {
-	assert(AskHostFireWall() == YES);
+	assert(CurHost.FireWall == YES);
 	std::vector<uint8_t> buffer;
 	if (FwallType == FWALL_SOCKS4) {
 		auto ss = std::get_if<sockaddr_storage>(&target);
@@ -1684,7 +1620,7 @@ static std::optional<sockaddr_storage> SocksRequest(std::shared_ptr<SocketContex
 
 std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget, std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork) {
 	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
-	int Fwall = AskHostFireWall() == YES ? FwallType : FWALL_NONE;
+	int Fwall = CurHost.FireWall == YES ? FwallType : FWALL_NONE;
 	if (auto ai = getaddrinfo(host, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC)) {
 		// ホスト名がIPアドレスだった
 		Notice(IDS_MSGJPN017, prefixId ? GetString(prefixId) : L""s, host, AddressPortToString(ai->ai_addr, ai->ai_addrlen));
@@ -1756,7 +1692,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 	auto listen_skt = SocketContext::Create(saListen.ss_family, *ctrl_skt);
 	if (!listen_skt)
 		return {};
-	if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
+	if (CurHost.FireWall == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
 		Debug(L"Use SOCKS BIND."sv);
 		// Control接続と同じアドレスに接続する
 		salen = sizeof saListen;
@@ -1846,83 +1782,3 @@ int AskTryingConnect(void)
 {
 	return(TryConnect);
 }
-
-
-int AskUseNoEncryption(void)
-{
-	return(CurHost.UseNoEncryption);
-}
-
-int AskUseFTPES(void)
-{
-	return(CurHost.UseFTPES);
-}
-
-int AskUseFTPIS(void)
-{
-	return(CurHost.UseFTPIS);
-}
-
-int AskUseSFTP(void)
-{
-	return(CurHost.UseSFTP);
-}
-
-// 同時接続対応
-int AskMaxThreadCount(void)
-{
-	return(CurHost.MaxThreadCount);
-}
-
-int AskReuseCmdSkt(void)
-{
-	return(CurHost.ReuseCmdSkt);
-}
-
-// FEAT対応
-int AskHostFeature(void)
-{
-	return(CurHost.Feature);
-}
-
-// MLSD対応
-int AskUseMLSD(void)
-{
-	return(CurHost.UseMLSD);
-}
-
-// IPv6対応
-int AskCurNetType(void)
-{
-	return(CurHost.CurNetType);
-}
-
-// 自動切断対策
-int AskNoopInterval(void)
-{
-	return(CurHost.NoopInterval);
-}
-
-// 再転送対応
-int AskTransferErrorMode(void)
-{
-	return(CurHost.TransferErrorMode);
-}
-
-int AskTransferErrorNotify(void)
-{
-	return(CurHost.TransferErrorNotify);
-}
-
-// セッションあたりの転送量制限対策
-int AskErrorReconnect(void)
-{
-	return(CurHost.TransferErrorReconnect);
-}
-
-// ホスト側の設定ミス対策
-int AskNoPasvAdrs(void)
-{
-	return(CurHost.NoPasvAdrs);
-}
-

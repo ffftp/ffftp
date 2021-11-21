@@ -144,7 +144,7 @@ int DoMKD(std::wstring const& Path) {
 	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"MKD {}"sv, Path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
-	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
+	if (auto const& curHost = GetCurHost(); CancelFlg == NO && curHost.NoopInterval > 0 && time(NULL) - LastDataConnectionTime >= curHost.NoopInterval) {
 		NoopProc(YES);
 		LastDataConnectionTime = time(NULL);
 	}
@@ -159,7 +159,7 @@ int DoRMD(std::wstring const& path) {
 	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"RMD {}"sv, path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
-	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
+	if (auto const& curHost = GetCurHost(); CancelFlg == NO && curHost.NoopInterval > 0 && time(NULL) - LastDataConnectionTime >= curHost.NoopInterval) {
 		NoopProc(YES);
 		LastDataConnectionTime = time(NULL);
 	}
@@ -174,7 +174,7 @@ int DoDELE(std::wstring const& path) {
 	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"DELE {}"sv, path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
-	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
+	if (auto const& curHost = GetCurHost(); CancelFlg == NO && curHost.NoopInterval > 0 && time(NULL) - LastDataConnectionTime >= curHost.NoopInterval) {
 		NoopProc(YES);
 		LastDataConnectionTime = time(NULL);
 	}
@@ -191,7 +191,7 @@ int DoRENAME(std::wstring const& from, std::wstring const& to) {
 		Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"RNTO {}"sv, to));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
-	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
+	if (auto const& curHost = GetCurHost(); CancelFlg == NO && curHost.NoopInterval > 0 && time(NULL) - LastDataConnectionTime >= curHost.NoopInterval) {
 		NoopProc(YES);
 		LastDataConnectionTime = time(NULL);
 	}
@@ -206,7 +206,7 @@ int DoCHMOD(std::wstring const& path, std::wstring const& mode) {
 	int Sts = std::get<0>(Command(AskCmdCtrlSkt(), &CancelFlg, L"{} {} {}"sv, AskHostChmodCmd(), mode, path));
 	if (Sts / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
-	if (CancelFlg == NO && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval()) {
+	if (auto const& curHost = GetCurHost(); CancelFlg == NO && curHost.NoopInterval > 0 && time(NULL) - LastDataConnectionTime >= curHost.NoopInterval) {
 		NoopProc(YES);
 		LastDataConnectionTime = time(NULL);
 	}
@@ -228,7 +228,7 @@ int DoSIZE(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, LONGLO
 int DoMDTM(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETIME* Time, int* CancelCheckWork) {
 	*Time = {};
 	int code = 500;
-	if (AskHostFeature() & FEATURE_MDTM) {
+	if (GetCurHost().Feature & FEATURE_MDTM) {
 		std::wstring text;
 		std::tie(code, text) = Command(cSkt, CancelCheckWork, L"MDTM {}"sv, Path);
 		if (code / 100 == FTP_COMPLETE)
@@ -243,7 +243,7 @@ int DoMDTM(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETI
 int DoMFMT(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETIME* Time, int* CancelCheckWork) {
 	SYSTEMTIME st;
 	FileTimeToSystemTime(Time, &st);
-	int Sts = AskHostFeature() & FEATURE_MFMT ? std::get<0>(Command(cSkt, CancelCheckWork, L"MFMT {:04d}{:02d}{:02d}{:02d}{:02d}{:02d} {}"sv, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, Path)) : 500;
+	int Sts = GetCurHost().Feature & FEATURE_MFMT ? std::get<0>(Command(cSkt, CancelCheckWork, L"MFMT {:04d}{:02d}{:02d}{:02d}{:02d}{:02d} {}"sv, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, Path)) : 500;
 	return Sts / 100;
 }
 
@@ -288,7 +288,8 @@ int DoDirList(std::wstring_view AddOpt, int Num, int* CancelCheckWork) {
 		if (!empty(AddOpt))
 			MainTransPkt.Command += AddOpt;
 	} else {
-		MainTransPkt.Command = AskUseMLSD() && (AskHostFeature() & FEATURE_MLSD) ? L"MLSD"s : L"LIST"s;
+		auto const& curHost = GetCurHost();
+		MainTransPkt.Command = curHost.UseMLSD && (curHost.Feature & FEATURE_MLSD) ? L"MLSD"s : L"LIST"s;
 		if (!empty(AddOpt))
 			MainTransPkt.Command += std::format(L" -{}"sv, AddOpt);
 	}
@@ -358,7 +359,7 @@ std::tuple<int, std::wstring> detail::command(std::shared_ptr<SocketContext> cSk
 		}
 		::Notice(IDS_REMOTECMD, cmd);
 	}
-	auto native = ConvertTo(cmd, AskHostNameKanji(), AskHostNameKana());
+	auto native = ConvertTo(cmd, GetCurHost().CurNameKanjiCode, AskHostNameKana());
 	native += "\r\n"sv;
 	if (cSkt->Send(data(native), size_as<int>(native), 0, CancelCheckWork) != FFFTP_SUCCESS)
 		return { 429, {} };

@@ -371,11 +371,10 @@ static unsigned __stdcall TransferThread(void *Dummy)
 //		Canceled = NO;
 		Canceled[ThreadCount] = NO;
 
-		if(AskReuseCmdSkt() == YES && ThreadCount == 0)
-		{
+		if (GetCurHost().ReuseCmdSkt == YES && ThreadCount == 0) {
 			TrnSkt = AskTrnCtrlSkt();
 			// セッションあたりの転送量制限対策
-			if (TrnSkt && AskErrorReconnect() == YES && LastError == YES) {
+			if (TrnSkt && GetCurHost().TransferErrorReconnect == YES && LastError == YES) {
 				PostMessageW(GetMainHwnd(), WM_RECONNECTSOCKET, 0, 0);
 				Sleep(100);
 				TrnSkt.reset();
@@ -384,13 +383,12 @@ static unsigned __stdcall TransferThread(void *Dummy)
 		else
 		{
 			// セッションあたりの転送量制限対策
-			if (TrnSkt && AskErrorReconnect() == YES && LastError == YES) {
+			if (TrnSkt && GetCurHost().TransferErrorReconnect == YES && LastError == YES) {
 				DoQUIT(TrnSkt, &Canceled[ThreadCount]);
 				DoClose(TrnSkt);
 				TrnSkt.reset();
 			}
-			if(!empty(TransPacketBase) && AskConnecting() == YES && ThreadCount < AskMaxThreadCount())
-			{
+			if (!empty(TransPacketBase) && AskConnecting() == YES && ThreadCount < GetCurHost().MaxThreadCount) {
 				if (!TrnSkt)
 					ReConnectTrnSkt(TrnSkt, &Canceled[ThreadCount]);
 				else
@@ -415,8 +413,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				if (TrnSkt) {
 					// 同時ログイン数制限対策
 					// 60秒間使用されなければログアウト
-					if(timeGetTime() - LastUsed > 60000 || AskConnecting() == NO || ThreadCount >= AskMaxThreadCount())
-					{
+					if (timeGetTime() - LastUsed > 60000 || AskConnecting() == NO || ThreadCount >= GetCurHost().MaxThreadCount) {
 						DoQUIT(TrnSkt, &Canceled[ThreadCount]);
 						DoClose(TrnSkt);
 						TrnSkt.reset();
@@ -436,7 +433,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						SetForegroundWindow(hWndTrans);
 					ShowWindow(hWndTrans, SW_SHOWNOACTIVATE);
 					GetWindowRect(hWndTrans, &WndRect);
-					SetWindowPos(hWndTrans, NULL, WndRect.left, WndRect.top + (WndRect.bottom - WndRect.top) * ThreadCount - (WndRect.bottom - WndRect.top) * (AskMaxThreadCount() - 1) / 2, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+					SetWindowPos(hWndTrans, NULL, WndRect.left, WndRect.top + (WndRect.bottom - WndRect.top) * ThreadCount - (WndRect.bottom - WndRect.top) * (GetCurHost().MaxThreadCount - 1) / 2, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 				}
 			}
 			Pos->hWndTrans = hWndTrans;
@@ -632,9 +629,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			/* カレントディレクトリを設定 */
 			else if(Pos->Command == L"SETCUR"sv)
 			{
-//				if(AskShareProh() == YES)
-				if(AskReuseCmdSkt() == NO || AskShareProh() == YES)
-				{
+				if (GetCurHost().ReuseCmdSkt == NO || AskShareProh() == YES) {
 					if (CurDir[Pos->ThreadCount] != Pos->Remote) {
 						if (std::get<0>(Command(TrnSkt, &Canceled[Pos->ThreadCount], L"CWD {}"sv, Pos->Remote)) / 100 != FTP_COMPLETE) {
 							DispCWDerror(hWndTrans);
@@ -647,9 +642,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			/* カレントディレクトリを戻す */
 			else if(Pos->Command == L"BACKCUR"sv)
 			{
-//				if(AskShareProh() == NO)
-				if(AskReuseCmdSkt() == YES && AskShareProh() == NO)
-				{
+				if (GetCurHost().ReuseCmdSkt == YES && AskShareProh() == NO) {
 					if (CurDir[Pos->ThreadCount] != Pos->Remote)
 						Command(TrnSkt, &Canceled[Pos->ThreadCount], L"CWD {}"sv, Pos->Remote);
 					CurDir[Pos->ThreadCount] = Pos->Remote;
@@ -730,8 +723,8 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			Sleep(100);
 
 			// 再転送対応
-			TransferErrorMode = AskTransferErrorMode();
-			TransferErrorNotify = AskTransferErrorNotify();
+			TransferErrorMode = GetCurHost().TransferErrorMode;
+			TransferErrorNotify = GetCurHost().TransferErrorNotify;
 		}
 		else
 		{
@@ -741,14 +734,13 @@ static unsigned __stdcall TransferThread(void *Dummy)
 				hWndTrans = NULL;
 			}
 			BackgrndMessageProc();
-			if(ThreadCount < AskMaxThreadCount())
+			if (ThreadCount < GetCurHost().MaxThreadCount)
 				Sleep(1);
 			else
 				Sleep(100);
 		}
 	}
-	if(AskReuseCmdSkt() == NO || ThreadCount > 0)
-	{
+	if (GetCurHost().ReuseCmdSkt == NO || ThreadCount > 0) {
 		if (TrnSkt) {
 			TrnSkt->Send("QUIT\r\n", 6, 0, &Canceled[ThreadCount]);
 			DoClose(TrnSkt);
@@ -829,7 +821,7 @@ int DoDownload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item, int DirLi
 
 			if(BackgrndMessageProc() == NO)
 			{
-				if(AskPasvMode() != YES)
+				if (GetCurHost().Pasv != YES)
 					iRetCode = DownloadNonPassive(&item, CancelCheckWork);
 				else
 					iRetCode = DownloadPassive(&item, CancelCheckWork);
@@ -875,7 +867,7 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 			std::tie(iRetCode, text) = Command(Pkt->ctrl_skt, CancelCheckWork, L"{}{}"sv, Pkt->Command, Pkt->Remote);
 			if(iRetCode/100 == FTP_PRELIM)
 			{
-				if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
+				if (GetCurHost().FireWall == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
 					if (!SocksReceiveReply(listen_socket, CancelCheckWork))
 						data_socket = listen_socket;
 					else {
@@ -966,7 +958,7 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	int CreateMode;
 	int Flg;
 
-	auto [iRetCode, text] = Command(Pkt->ctrl_skt, CancelCheckWork, AskCurNetType() == NTYPE_IPV6 ? L"EPSV"sv : L"PASV"sv);
+	auto [iRetCode, text] = Command(Pkt->ctrl_skt, CancelCheckWork, GetCurHost().CurNetType == NTYPE_IPV6 ? L"EPSV"sv : L"PASV"sv);
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
 		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, text)) {
@@ -1318,7 +1310,7 @@ static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item)
 
 				if(BackgrndMessageProc() == NO)
 				{
-					if(AskPasvMode() != YES)
+					if (GetCurHost().Pasv != YES)
 						iRetCode = UploadNonPassive(&item);
 					else
 						iRetCode = UploadPassive(&item);
@@ -1388,7 +1380,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 			// 応答の形式に規格が無くファイル名を取得できないため属性変更を無効化
 			if(Pkt->Mode == EXIST_UNIQUE)
 				Pkt->Attr = -1;
-			if (AskHostFireWall() == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
+			if (GetCurHost().FireWall == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
 				if (SocksReceiveReply(listen_socket, &Canceled[Pkt->ThreadCount]))
 					data_socket = listen_socket;
 				else {
@@ -1469,7 +1461,7 @@ static int UploadPassive(TRANSPACKET *Pkt)
 	int Flg;
 	int Resume;
 
-	auto [iRetCode, text] = Command(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], AskCurNetType() == NTYPE_IPV4 ? L"PASV"sv : L"EPSV"sv);
+	auto [iRetCode, text] = Command(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], GetCurHost().CurNetType == NTYPE_IPV4 ? L"PASV"sv : L"EPSV"sv);
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
 		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, text)) {
@@ -1946,14 +1938,14 @@ static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipBut
 static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(std::shared_ptr<SocketContext> socket, std::wstring const& reply) {
 	std::wstring addr;
 	int port;
-	if (AskCurNetType() == NTYPE_IPV4) {
+	if (auto const& curHost = GetCurHost(); curHost.CurNetType == NTYPE_IPV4) {
 		// RFC1123 4.1.2.6  PASV Command: RFC-959 Section 4.1.2
 		// Therefore, a User-FTP program that interprets the PASV reply must scan the reply for the first digit of the host and port numbers.
 		// コンマではなくドットを返すホストがある
 		static boost::wregex re{ LR"((\d+[,.]\d+[,.]\d+[,.]\d+)[,.](\d+)[,.](\d+))" };
 		if (boost::wsmatch m; boost::regex_search(reply, m, re)) {
 			port = std::stoi(m[2]) << 8 | std::stoi(m[3]);
-			if (AskNoPasvAdrs() == NO) {
+			if (curHost.NoPasvAdrs == NO) {
 				addr = m[1];
 				std::ranges::replace(addr, L',', L'.');
 				return { { addr, port } };

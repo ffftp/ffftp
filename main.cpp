@@ -671,8 +671,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 				}
 				if(CancelFlg == YES)
 					AbortRecoveryProc();
-				if(NoopEnable == YES && AskNoopInterval() > 0 && time(NULL) - LastDataConnectionTime >= AskNoopInterval())
-				{
+				if (auto const& curHost = GetCurHost(); NoopEnable == YES && curHost.NoopInterval > 0 && time(NULL) - LastDataConnectionTime >= curHost.NoopInterval) {
 					NoopProc(NO);
 					LastDataConnectionTime = time(NULL);
 				}

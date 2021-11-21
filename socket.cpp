@@ -568,7 +568,7 @@ std::tuple<int, std::wstring> SocketContext::ReadReply(int* CancelCheckWork) {
 			return { { 429, {} } };
 		if (boost::match_results<decltype(readPlain)::iterator> m; boost::regex_search(begin(readPlain), end(readPlain), m, re2)) {
 			auto code = std::stoi(m[1]);
-			auto text = ConvertFrom(sv(m[0]), AskHostNameKanji());
+			auto text = ConvertFrom(sv(m[0]), GetCurHost().CurNameKanjiCode);
 			readPlain.erase(m[0].first, m[0].second);
 			for (boost::wsregex_iterator it{ begin(text), end(text), re3 }, end; it != end; ++it)
 				Notice(IDS_REPLY, sv((*it)[1]));
