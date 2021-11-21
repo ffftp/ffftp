@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.5.5 (FTP Client software)
+[Software Name]  FFFTP Ver.5.5.1 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018-2021, Kurata Sayuri.
@@ -27,6 +27,12 @@ When you use this virsion first, please set Master Password from
 following menu.
 
 File -> Settings -> Change Master password
+
+
+Changes at 5.5.1
+----------------
+
+- Fix uploaded text is broken. #344
 
 
 Changes at 5.5
