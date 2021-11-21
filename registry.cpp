@@ -271,103 +271,151 @@ int ValidateMasterPassword() {
 	return NO;
 }
 
+static constexpr std::tuple<std::string_view, std::variant<int Host::*, std::wstring Host::*>> hostSettings[] = {
+	{ "HostAdrs"sv, &Host::HostAdrs },
+	{ "UserName"sv, &Host::UserName },
+	{ "Account"sv, &Host::Account },
+	{ "RemoteDir"sv, &Host::RemoteInitDir },
+	{ "Chmod"sv, &Host::ChmodCmd },
+	{ "Nlst"sv, &Host::LsName },
+	{ "Init"sv, &Host::InitCmd },
+	{ "Port"sv, &Host::Port },
+	{ "Kanji"sv, &Host::KanjiCode },
+	{ "KanaCnv"sv, &Host::KanaCnv },
+	{ "NameKanji"sv, &Host::NameKanjiCode },
+	{ "NameKana"sv, &Host::NameKanaCnv },
+	{ "Pasv"sv, &Host::Pasv },
+	{ "Fwall"sv, &Host::FireWall },
+	{ "List"sv, &Host::ListCmdOnly },
+	{ "NLST-R"sv, &Host::UseNLST_R },
+	{ "Tzone"sv, &Host::TimeZone },
+	{ "Type"sv, &Host::HostType },
+	{ "Sync"sv, &Host::SyncMove },
+	{ "Fpath"sv, &Host::NoFullPath },
+	{ "Secu"sv, &Host::Security },
+	{ "Dial"sv, &Host::Dialup },
+	{ "UseIt"sv, &Host::DialupAlways },
+	{ "Notify"sv, &Host::DialupNotify },
+	{ "DialTo"sv, &Host::DialEntry },
+	{ "NoEncryption"sv, &Host::UseNoEncryption },
+	{ "FTPES"sv, &Host::UseFTPES },
+	{ "FTPIS"sv, &Host::UseFTPIS },
+	{ "SFTP"sv, &Host::UseSFTP },
+	{ "ThreadCount"sv, &Host::MaxThreadCount },
+	{ "ReuseCmdSkt"sv, &Host::ReuseCmdSkt },
+	{ "MLSD"sv, &Host::UseMLSD },
+	{ "Noop"sv, &Host::NoopInterval },
+	{ "ErrMode"sv, &Host::TransferErrorMode },
+	{ "ErrNotify"sv, &Host::TransferErrorNotify },
+	{ "ErrReconnect"sv, &Host::TransferErrorReconnect },
+	{ "NoPasvAdrs"sv, &Host::NoPasvAdrs },
+};
+
 void Config::ReadHost(Host& host, int version, bool readPassword) {
-	ReadValue("HostAdrs"sv, host.HostAdrs);
-	ReadValue("UserName"sv, host.UserName);
-	ReadValue("Account"sv, host.Account);
-	ReadValue("LocalDir"sv, host.LocalInitDir);
-	ReadValue("RemoteDir"sv, host.RemoteInitDir);
-	ReadValue("Chmod"sv, host.ChmodCmd);
-	ReadValue("Nlst"sv, host.LsName);
-	ReadValue("Init"sv, host.InitCmd);
-	ReadValue("Port", host.Port);
-	ReadValue("Kanji", host.KanjiCode);
+	for (auto& [name, variant] : hostSettings)
+		std::visit([this, name, &host](auto&& ptr) { ReadValue(name, host.*ptr); }, variant);
 	// 1.98b以前のUTF-8はBOMあり
 	if (version < 1983 && host.KanjiCode == KANJI_UTF8N)
 		host.KanjiCode = KANJI_UTF8BOM;
-	ReadValue("KanaCnv", host.KanaCnv);
-	ReadValue("NameKanji", host.NameKanjiCode);
-	ReadValue("NameKana", host.NameKanaCnv);
-	ReadValue("Pasv", host.Pasv);
-	ReadValue("Fwall", host.FireWall);
-	ReadValue("List", host.ListCmdOnly);
-	ReadValue("NLST-R", host.UseNLST_R);
-	ReadValue("Tzone", host.TimeZone);
-	ReadValue("Type", host.HostType);
-	ReadValue("Sync", host.SyncMove);
-	ReadValue("Fpath", host.NoFullPath);
+	ReadValue("LocalDir"sv, host.LocalInitDir);
 	ReadBinary("Sort"sv, host.Sort);
-	ReadValue("Secu", host.Security);
 	if (readPassword)
 		ReadPassword("Password"sv, host.PassWord);
 	else
 		host.PassWord = UserMailAdrs;
-	ReadValue("Dial", host.Dialup);
-	ReadValue("UseIt", host.DialupAlways);
-	ReadValue("Notify", host.DialupNotify);
-	ReadValue("DialTo"sv, host.DialEntry);
-	ReadValue("NoEncryption", host.UseNoEncryption);
-	ReadValue("FTPES", host.UseFTPES);
-	ReadValue("FTPIS", host.UseFTPIS);
-	ReadValue("SFTP", host.UseSFTP);
-	ReadValue("ThreadCount", host.MaxThreadCount);
-	ReadValue("ReuseCmdSkt", host.ReuseCmdSkt);
 	// 1.98d以前で同時接続数が1より大きい場合はソケットの再利用なし
 	if (version < 1985 && 1 < host.MaxThreadCount)
 		host.ReuseCmdSkt = NO;
-	ReadValue("MLSD", host.UseMLSD);
-	ReadValue("Noop", host.NoopInterval);
-	ReadValue("ErrMode", host.TransferErrorMode);
-	ReadValue("ErrNotify", host.TransferErrorNotify);
-	ReadValue("ErrReconnect", host.TransferErrorReconnect);
-	ReadValue("NoPasvAdrs", host.NoPasvAdrs);
 }
 
 void Config::WriteHost(Host const& host, Host const& defaultHost, bool writePassword) {
-	WriteValueIf("HostAdrs"sv, host.HostAdrs, defaultHost.HostAdrs);
-	WriteValueIf("UserName"sv, host.UserName, defaultHost.UserName);
-	WriteValueIf("Account"sv, host.Account, defaultHost.Account);
+	for (auto& [name, variant] : hostSettings)
+		std::visit([this, name, &host, &defaultHost](auto&& ptr) { WriteValueIf(name, host.*ptr, defaultHost.*ptr); }, variant);
 	WriteValue("LocalDir"sv, host.LocalInitDir);
-	WriteValueIf("RemoteDir"sv, host.RemoteInitDir, defaultHost.RemoteInitDir);
-	WriteValueIf("Chmod"sv, host.ChmodCmd, defaultHost.ChmodCmd);
-	WriteValueIf("Nlst"sv, host.LsName, defaultHost.LsName);
-	WriteValueIf("Init"sv, host.InitCmd, defaultHost.InitCmd);
 	if (writePassword)
 		WritePassword("Password"sv, host.PassWord);
 	else
 		DeleteValue("Password"sv);
-	WriteValueIf("Port", host.Port, defaultHost.Port);
-	WriteValueIf("Kanji", host.KanjiCode, defaultHost.KanjiCode);
-	WriteValueIf("KanaCnv", host.KanaCnv, defaultHost.KanaCnv);
-	WriteValueIf("NameKanji", host.NameKanjiCode, defaultHost.NameKanjiCode);
-	WriteValueIf("NameKana", host.NameKanaCnv, defaultHost.NameKanaCnv);
-	WriteValueIf("Pasv", host.Pasv, defaultHost.Pasv);
-	WriteValueIf("Fwall", host.FireWall, defaultHost.FireWall);
-	WriteValueIf("List", host.ListCmdOnly, defaultHost.ListCmdOnly);
-	WriteValueIf("NLST-R", host.UseNLST_R, defaultHost.UseNLST_R);
-	WriteValueIf("Tzone", host.TimeZone, defaultHost.TimeZone);
-	WriteValueIf("Type", host.HostType, defaultHost.HostType);
-	WriteValueIf("Sync", host.SyncMove, defaultHost.SyncMove);
-	WriteValueIf("Fpath", host.NoFullPath, defaultHost.NoFullPath);
 	WriteBinary("Sort"sv, host.Sort);
-	WriteValueIf("Secu", host.Security, defaultHost.Security);
-	WriteValueIf("Dial", host.Dialup, defaultHost.Dialup);
-	WriteValueIf("UseIt", host.DialupAlways, defaultHost.DialupAlways);
-	WriteValueIf("Notify", host.DialupNotify, defaultHost.DialupNotify);
-	WriteValueIf("DialTo"sv, host.DialEntry, defaultHost.DialEntry);
-	WriteValueIf("NoEncryption", host.UseNoEncryption, defaultHost.UseNoEncryption);
-	WriteValueIf("FTPES", host.UseFTPES, defaultHost.UseFTPES);
-	WriteValueIf("FTPIS", host.UseFTPIS, defaultHost.UseFTPIS);
-	WriteValueIf("SFTP", host.UseSFTP, defaultHost.UseSFTP);
-	WriteValueIf("ThreadCount", host.MaxThreadCount, defaultHost.MaxThreadCount);
-	WriteValueIf("ReuseCmdSkt", host.ReuseCmdSkt, defaultHost.ReuseCmdSkt);
-	WriteValueIf("MLSD", host.UseMLSD, defaultHost.UseMLSD);
-	WriteValueIf("Noop", host.NoopInterval, defaultHost.NoopInterval);
-	WriteValueIf("ErrMode", host.TransferErrorMode, defaultHost.TransferErrorMode);
-	WriteValueIf("ErrNotify", host.TransferErrorNotify, defaultHost.TransferErrorNotify);
-	WriteValueIf("ErrReconnect", host.TransferErrorReconnect, defaultHost.TransferErrorReconnect);
-	WriteValueIf("NoPasvAdrs", host.NoPasvAdrs, defaultHost.NoPasvAdrs);
 }
+
+static constexpr std::tuple<std::string_view, std::variant<int*, std::wstring*, std::vector<std::wstring>*>> settings[] = {
+	{ "WinPosX"sv, &WinPosX },
+	{ "WinPosY"sv, &WinPosY },
+	{ "WinWidth"sv, &WinWidth },
+	{ "WinHeight"sv, &WinHeight },
+	{ "LocalWidth"sv, &LocalWidth },
+	{ "TaskHeight"sv, &TaskHeight },
+	{ "SwCmd"sv, &Sizing },
+	{ "UserMail"sv, &UserMailAdrs },
+	{ "Viewer"sv, &ViewerName[0] },
+	{ "Viewer2"sv, &ViewerName[1] },
+	{ "Viewer3"sv, &ViewerName[2] },
+	{ "TrType"sv, &TransMode },
+	{ "Recv"sv, &RecvMode },
+	{ "Send"sv, &SendMode },
+	{ "Move"sv, &MoveMode },
+	{ "Path"sv, &DefaultLocalPath },
+	{ "Time"sv, &SaveTimeStamp },
+	{ "EOF"sv, &RmEOF },
+	{ "Scolon"sv, &VaxSemicolon },
+	{ "RecvEx"sv, &ExistMode },
+	{ "SendEx"sv, &UpExistMode },
+	{ "LFsort"sv, &LocalFileSort },
+	{ "LDsort"sv, &LocalDirSort },
+	{ "RFsort"sv, &RemoteFileSort },
+	{ "RDsort"sv, &RemoteDirSort },
+	{ "SortSave"sv, &SortSave },
+	{ "ListType"sv, &ListType },
+	{ "DotFile"sv, &DotFile },
+	{ "Dclick"sv, &DclickOpen },
+	{ "ConS"sv, &ConnectOnStart },
+	{ "OldDlg"sv, &ConnectAndSet },
+	{ "RasClose"sv, &RasClose },
+	{ "RasNotify"sv, &RasCloseNotify },
+	{ "Qanony"sv, &QuickAnonymous },
+	{ "PassHist"sv, &PassToHist },
+	{ "SendQuit"sv, &SendQuit },
+	{ "NoRas"sv, &NoRasControl },
+	{ "Debug"sv, &DebugConsole },
+	{ "WinPos"sv, &SaveWinPos },
+	{ "RegExp"sv, &FindMode },
+	{ "Reg"sv, &RegType },
+	{ "LowUp"sv, &FnameCnv },
+	{ "Tout"sv, &TimeOut },
+	{ "NoTrn"sv, &MirrorNoTrn },
+	{ "NoDel"sv, &MirrorNoDel },
+	{ "MirFile"sv, &MirrorFnameCnv },
+	{ "MirUNot"sv, &MirUpDelNotify },
+	{ "MirDNot"sv, &MirDownDelNotify },
+	{ "ListHide"sv, &DispIgnoreHide },
+	{ "ListDrv"sv, &DispDrives },
+	{ "FwallHost"sv, &FwallHost },
+	{ "FwallPort"sv, &FwallPort },
+	{ "FwallType"sv, &FwallType },
+	{ "FwallDef"sv, &FwallDefault },
+	{ "FwallSec"sv, &FwallSecurity },
+	{ "PasvDef"sv, &PasvDefault },
+	{ "FwallRes"sv, &FwallResolve },
+	{ "FwallLow"sv, &FwallLower },
+	{ "FwallDel"sv, &FwallDelimiter },
+	{ "DefAttr"sv, &DefAttrList },
+	{ "FAttrSw"sv, &FolderAttr },
+	{ "FAttr"sv, &FolderAttrNum },
+	{ "HistNum"sv, &FileHist },
+	{ "ListIcon"sv, &DispFileIcon },
+	{ "ListSecond"sv, &DispTimeSeconds },
+	{ "ListPermitNum"sv, &DispPermissionsNumber },
+	{ "MakeDir"sv, &MakeAllDir },
+	{ "Kanji"sv, &LocalKanjiCode },
+	{ "UPnP"sv, &UPnPEnabled },
+	{ "ListRefresh"sv, &AutoRefreshFileList },
+	{ "OldLog"sv, &RemoveOldLog },
+	{ "AbortListErr"sv, &AbortOnListError },
+	{ "MirNoTransfer"sv, &MirrorNoTransferContents },
+	{ "FwallShared"sv, &FwallNoSaveUser },
+	{ "MarkDFile"sv, &MarkAsInternet },
+};
 
 // レジストリ／INIファイルに設定値を保存
 void SaveRegistry() {
@@ -416,96 +464,19 @@ void SaveRegistry() {
 	if (auto hKey4 = hKey3->CreateSubKey(EncryptAllSettings == YES ? "EncryptedOptions"sv : "Options"sv)) {
 		hKey4->WriteValue("NoSave", SuppressSave);
 
-		if(SuppressSave != YES)
-		{
-			hKey4->WriteValue("WinPosX", WinPosX);
-			hKey4->WriteValue("WinPosY", WinPosY);
-			hKey4->WriteValue("WinWidth", WinWidth);
-			hKey4->WriteValue("WinHeight", WinHeight);
-			hKey4->WriteValue("LocalWidth", LocalWidth);
-			hKey4->WriteValue("TaskHeight", TaskHeight);
+		if (SuppressSave != YES) {
+			for (auto& [name, variant] : settings)
+				std::visit([&hKey4, name](auto&& ptr) { hKey4->WriteValue(name, *ptr); }, variant);
+
 			hKey4->WriteBinary("LocalColm"sv, LocalTabWidth);
 			hKey4->WriteBinary("RemoteColm"sv, RemoteTabWidth);
-			hKey4->WriteValue("SwCmd", Sizing);
-
-			hKey4->WriteValue("UserMail"sv, UserMailAdrs);
-			hKey4->WriteValue("Viewer"sv, ViewerName[0]);
-			hKey4->WriteValue("Viewer2"sv, ViewerName[1]);
-			hKey4->WriteValue("Viewer3"sv, ViewerName[2]);
-
-			hKey4->WriteValue("TrType", TransMode);
-			hKey4->WriteValue("Recv", RecvMode);
-			hKey4->WriteValue("Send", SendMode);
-			hKey4->WriteValue("Move", MoveMode);
-			hKey4->WriteValue("Path"sv, DefaultLocalPath);
-			hKey4->WriteValue("Time", SaveTimeStamp);
-			hKey4->WriteValue("EOF", RmEOF);
-			hKey4->WriteValue("Scolon", VaxSemicolon);
-
-			hKey4->WriteValue("RecvEx", ExistMode);
-			hKey4->WriteValue("SendEx", UpExistMode);
-
-			hKey4->WriteValue("LFsort", LocalFileSort);
-			hKey4->WriteValue("LDsort", LocalDirSort);
-			hKey4->WriteValue("RFsort", RemoteFileSort);
-			hKey4->WriteValue("RDsort", RemoteDirSort);
-			hKey4->WriteValue("SortSave", SortSave);
-
-			hKey4->WriteValue("ListType", ListType);
-			hKey4->WriteValue("DotFile", DotFile);
-			hKey4->WriteValue("Dclick", DclickOpen);
-
-			hKey4->WriteValue("ConS", ConnectOnStart);
-			hKey4->WriteValue("OldDlg", ConnectAndSet);
-			hKey4->WriteValue("RasClose", RasClose);
-			hKey4->WriteValue("RasNotify", RasCloseNotify);
-			hKey4->WriteValue("Qanony", QuickAnonymous);
-			hKey4->WriteValue("PassHist", PassToHist);
-			hKey4->WriteValue("SendQuit", SendQuit);
-			hKey4->WriteValue("NoRas", NoRasControl);
-
-			hKey4->WriteValue("Debug", DebugConsole);
-			hKey4->WriteValue("WinPos", SaveWinPos);
-			hKey4->WriteValue("RegExp", FindMode);
-			hKey4->WriteValue("Reg", RegType);
-
 			hKey4->WriteValue("AsciiFile"sv, AsciiExt);
-			hKey4->WriteValue("LowUp", FnameCnv);
-			hKey4->WriteValue("Tout", TimeOut);
-
-			hKey4->WriteValue("NoTrn"sv, MirrorNoTrn);
-			hKey4->WriteValue("NoDel"sv, MirrorNoDel);
-			hKey4->WriteValue("MirFile", MirrorFnameCnv);
-			hKey4->WriteValue("MirUNot", MirUpDelNotify);
-			hKey4->WriteValue("MirDNot", MirDownDelNotify);
-
 			hKey4->WriteFont("ListFont"sv, ListFont, ListLogFont);
-			hKey4->WriteValue("ListHide", DispIgnoreHide);
-			hKey4->WriteValue("ListDrv", DispDrives);
-
-			hKey4->WriteValue("FwallHost"sv, FwallHost);
 			hKey4->WriteValue("FwallUser"sv, FwallNoSaveUser == YES ? L""sv : FwallUser);
 			hKey4->WritePassword("FwallPass"sv, FwallNoSaveUser == YES ? L""sv : FwallPass);
-			hKey4->WriteValue("FwallPort", FwallPort);
-			hKey4->WriteValue("FwallType", FwallType);
-			hKey4->WriteValue("FwallDef", FwallDefault);
-			hKey4->WriteValue("FwallSec", FwallSecurity);
-			hKey4->WriteValue("PasvDef", PasvDefault);
-			hKey4->WriteValue("FwallRes", FwallResolve);
-			hKey4->WriteValue("FwallLow", FwallLower);
-			hKey4->WriteValue("FwallDel", FwallDelimiter);
-
-			hKey4->WriteValue("DefAttr"sv, DefAttrList);
-
 			hKey4->WriteBinary("Hdlg"sv, HostDlgSize);
 			hKey4->WriteBinary("Bdlg"sv, BmarkDlgSize);
 			hKey4->WriteBinary("Mdlg"sv, MirrorDlgSize);
-
-			hKey4->WriteValue("FAttrSw", FolderAttr);
-			hKey4->WriteValue("FAttr", FolderAttrNum);
-
-			hKey4->WriteValue("HistNum", FileHist);
-
 			/* Ver1.54a以前の形式のヒストリデータは削除 */
 			hKey4->DeleteValue("Hist");
 
@@ -560,19 +531,6 @@ void SaveRegistry() {
 			if ((i = AskCurrentHost()) == HOSTNUM_NOENTRY)
 				i = 0;
 			hKey4->WriteValue("CurSet", i);
-
-			hKey4->WriteValue("ListIcon", DispFileIcon);
-			hKey4->WriteValue("ListSecond", DispTimeSeconds);
-			hKey4->WriteValue("ListPermitNum", DispPermissionsNumber);
-			hKey4->WriteValue("MakeDir", MakeAllDir);
-			hKey4->WriteValue("Kanji", LocalKanjiCode);
-			hKey4->WriteValue("UPnP", UPnPEnabled);
-			hKey4->WriteValue("ListRefresh", AutoRefreshFileList);
-			hKey4->WriteValue("OldLog", RemoveOldLog);
-			hKey4->WriteValue("AbortListErr", AbortOnListError);
-			hKey4->WriteValue("MirNoTransfer", MirrorNoTransferContents);
-			hKey4->WriteValue("FwallShared", FwallNoSaveUser);
-			hKey4->WriteValue("MarkDFile", MarkAsInternet);
 		}
 	}
 
@@ -636,14 +594,11 @@ bool LoadRegistry() {
 	}
 
 	if (auto hKey4 = hKey3->OpenSubKey(EncryptAllSettings == YES? "EncryptedOptions"sv : "Options"sv)) {
-		hKey4->ReadValue("WinPosX", WinPosX);
-		hKey4->ReadValue("WinPosY", WinPosY);
-		hKey4->ReadValue("WinWidth", WinWidth);
-		hKey4->ReadValue("WinHeight", WinHeight);
-		hKey4->ReadValue("LocalWidth", LocalWidth);
+		for (auto& [name, variant] : settings)
+			std::visit([&hKey4, name](auto&& ptr) { hKey4->ReadValue(name, *ptr); }, variant);
+
 		/* ↓旧バージョンのバグ対策 */
 		LocalWidth = std::max(0, LocalWidth);
-		hKey4->ReadValue("TaskHeight", TaskHeight);
 		/* ↓旧バージョンのバグ対策 */
 		TaskHeight = std::max(0, TaskHeight);
 		hKey4->ReadBinary("LocalColm"sv, LocalTabWidth);
@@ -652,48 +607,6 @@ bool LoadRegistry() {
 		hKey4->ReadBinary("RemoteColm"sv, RemoteTabWidth);
 		if (std::all_of(std::begin(RemoteTabWidth), std::end(RemoteTabWidth), [](auto width) { return width <= 0; }))
 			std::copy(std::begin(RemoteTabWidthDefault), std::end(RemoteTabWidthDefault), std::begin(RemoteTabWidth));
-		hKey4->ReadValue("SwCmd", Sizing);
-
-		hKey4->ReadValue("UserMail"sv, UserMailAdrs);
-		hKey4->ReadValue("Viewer"sv, ViewerName[0]);
-		hKey4->ReadValue("Viewer2"sv, ViewerName[1]);
-		hKey4->ReadValue("Viewer3"sv, ViewerName[2]);
-
-		hKey4->ReadValue("TrType", TransMode);
-		hKey4->ReadValue("Recv", RecvMode);
-		hKey4->ReadValue("Send", SendMode);
-		hKey4->ReadValue("Move", MoveMode);
-		hKey4->ReadValue("Path"sv, DefaultLocalPath);
-		hKey4->ReadValue("Time", SaveTimeStamp);
-		hKey4->ReadValue("EOF", RmEOF);
-		hKey4->ReadValue("Scolon", VaxSemicolon);
-
-		hKey4->ReadValue("RecvEx", ExistMode);
-		hKey4->ReadValue("SendEx", UpExistMode);
-
-		hKey4->ReadValue("LFsort", LocalFileSort);
-		hKey4->ReadValue("LDsort", LocalDirSort);
-		hKey4->ReadValue("RFsort", RemoteFileSort);
-		hKey4->ReadValue("RDsort", RemoteDirSort);
-		hKey4->ReadValue("SortSave", SortSave);
-
-		hKey4->ReadValue("ListType", ListType);
-		hKey4->ReadValue("DotFile", DotFile);
-		hKey4->ReadValue("Dclick", DclickOpen);
-
-		hKey4->ReadValue("ConS", ConnectOnStart);
-		hKey4->ReadValue("OldDlg", ConnectAndSet);
-		hKey4->ReadValue("RasClose", RasClose);
-		hKey4->ReadValue("RasNotify", RasCloseNotify);
-		hKey4->ReadValue("Qanony", QuickAnonymous);
-		hKey4->ReadValue("PassHist", PassToHist);
-		hKey4->ReadValue("SendQuit", SendQuit);
-		hKey4->ReadValue("NoRas", NoRasControl);
-
-		hKey4->ReadValue("Debug", DebugConsole);
-		hKey4->ReadValue("WinPos", SaveWinPos);
-		hKey4->ReadValue("RegExp", FindMode);
-		hKey4->ReadValue("Reg", RegType);
 
 		if (!hKey4->ReadValue("AsciiFile"sv, AsciiExt))
 			if (std::wstring value; hKey4->ReadValue ("Ascii"sv, value)) {
@@ -710,43 +623,13 @@ bool LoadRegistry() {
 					AsciiExt.emplace_back(item);
 		}
 
-		hKey4->ReadValue("LowUp", FnameCnv);
-		hKey4->ReadValue("Tout", TimeOut);
-
-		hKey4->ReadValue("NoTrn"sv, MirrorNoTrn);
-		hKey4->ReadValue("NoDel"sv, MirrorNoDel);
-		hKey4->ReadValue("MirFile", MirrorFnameCnv);
-		hKey4->ReadValue("MirUNot", MirUpDelNotify);
-		hKey4->ReadValue("MirDNot", MirDownDelNotify);
-
 		hKey4->ReadFont("ListFont"sv, ListFont, ListLogFont);
-		hKey4->ReadValue("ListHide", DispIgnoreHide);
-		hKey4->ReadValue("ListDrv", DispDrives);
-
-		hKey4->ReadValue("FwallHost"sv, FwallHost);
 		hKey4->ReadValue("FwallUser"sv, FwallUser);
 		hKey4->ReadPassword("FwallPass"sv, FwallPass);
-		hKey4->ReadValue("FwallPort", FwallPort);
-		hKey4->ReadValue("FwallType", FwallType);
-		hKey4->ReadValue("FwallDef", FwallDefault);
-		hKey4->ReadValue("FwallSec", FwallSecurity);
-		hKey4->ReadValue("PasvDef", PasvDefault);
-		hKey4->ReadValue("FwallRes", FwallResolve);
-		hKey4->ReadValue("FwallLow", FwallLower);
-		hKey4->ReadValue("FwallDel", FwallDelimiter);
-
-		hKey4->ReadValue("DefAttr"sv, DefAttrList);
-
 		hKey4->ReadBinary("Hdlg"sv, HostDlgSize);
 		hKey4->ReadBinary("Bdlg"sv, BmarkDlgSize);
 		hKey4->ReadBinary("Mdlg"sv, MirrorDlgSize);
-
-		hKey4->ReadValue("FAttrSw", FolderAttr);
-		hKey4->ReadValue("FAttr", FolderAttrNum);
-
 		hKey4->ReadValue("NoSave", SuppressSave);
-
-		hKey4->ReadValue("HistNum", FileHist);
 
 		/* ヒストリの設定を読み込む */
 		int Sets = 0;
@@ -794,19 +677,6 @@ bool LoadRegistry() {
 
 		hKey4->ReadValue("CurSet", Sets);
 		SetCurrentHost(Sets);
-
-		hKey4->ReadValue("ListIcon", DispFileIcon);
-		hKey4->ReadValue("ListSecond", DispTimeSeconds);
-		hKey4->ReadValue("ListPermitNum", DispPermissionsNumber);
-		hKey4->ReadValue("MakeDir", MakeAllDir);
-		hKey4->ReadValue("Kanji", LocalKanjiCode);
-		hKey4->ReadValue("UPnP", UPnPEnabled);
-		hKey4->ReadValue("ListRefresh", AutoRefreshFileList);
-		hKey4->ReadValue("OldLog", RemoveOldLog);
-		hKey4->ReadValue("AbortListErr", AbortOnListError);
-		hKey4->ReadValue("MirNoTransfer", MirrorNoTransferContents);
-		hKey4->ReadValue("FwallShared", FwallNoSaveUser);
-		hKey4->ReadValue("MarkDFile", MarkAsInternet);
 	}
 	EncryptSettings = NO;
 	return true;
