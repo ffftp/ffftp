@@ -39,7 +39,7 @@ static inline auto a2w(std::string_view text) {
 class Config {
 	void Xor(std::string_view name, void* bin, DWORD len, bool preserveZero) const;
 	std::optional<std::string> ReadStringCore(std::string_view name) const {
-		if (std::string value; ReadValue(name, value)) {
+		if (std::string value; ReadStringImpl(name, value)) {
 			Xor(name, data(value), size_as<DWORD>(value), true);
 			if (auto const pos = value.find_last_not_of('\0'); pos != std::string::npos)
 				value.erase(pos + 1);
@@ -49,22 +49,22 @@ class Config {
 	}
 	void WriteStringCore(std::string_view name, std::string&& value) {
 		Xor(name, data(value), size_as<DWORD>(value), true);
-		WriteValue(name, value, REG_SZ);
+		WriteStringImpl(name, value, REG_SZ);
 	}
 protected:
 	const std::string KeyName;
 	Config(std::string const& keyName) : KeyName{ keyName } {}
-	virtual bool ReadInt(std::string_view name, int& value) const = 0;
-	virtual bool ReadValue(std::string_view name, std::string& value) const = 0;
-	virtual void WriteInt(std::string_view name, int value) = 0;
-	virtual void WriteValue(std::string_view name, std::string_view value, DWORD type) = 0;
+	virtual bool ReadIntImpl(std::string_view name, int& value) const = 0;
+	virtual bool ReadStringImpl(std::string_view name, std::string& value) const = 0;
+	virtual void WriteIntImpl(std::string_view name, int value) = 0;
+	virtual void WriteStringImpl(std::string_view name, std::string_view value, DWORD type) = 0;
 public:
 	Config(Config const&) = delete;
 	virtual ~Config() = default;
 	virtual std::unique_ptr<Config> OpenSubKey(std::string_view name) = 0;
 	virtual std::unique_ptr<Config> CreateSubKey(std::string_view name) = 0;
 	int ReadIntValueFromReg(std::string_view name, int* value) const {
-		if (ReadInt(name, *value)) {
+		if (ReadIntImpl(name, *value)) {
 			Xor(name, value, sizeof(int), false);
 			return FFFTP_SUCCESS;
 		}
@@ -72,7 +72,7 @@ public:
 	}
 	void WriteIntValueToReg(std::string_view name, int value) {
 		Xor(name, &value, sizeof(int), false);
-		WriteInt(name, value);
+		WriteIntImpl(name, value);
 	}
 	int ReadStringFromReg(std::string_view name, _Out_writes_z_(size) char* buffer, DWORD size) const {
 		if (auto const value = ReadStringCore(name)) {
@@ -109,7 +109,7 @@ public:
 	bool ReadPassword(std::string_view name, std::wstring& password) const;
 	void WritePassword(std::string_view name, std::wstring_view password);
 	bool ReadStrings(std::string_view name, std::vector<std::wstring>& strings) const {
-		if (std::string value; ReadValue(name, value)) {
+		if (std::string value; ReadStringImpl(name, value)) {
 			strings.clear();
 			if (!empty(value) && value[0] != '\0') {
 				Xor(name, data(value), size_as<DWORD>(value), true);
@@ -128,10 +128,10 @@ public:
 			value += '\0';
 		}
 		Xor(name, data(value), size_as<DWORD>(value), true);
-		WriteValue(name, value, REG_MULTI_SZ);
+		WriteStringImpl(name, value, REG_MULTI_SZ);
 	}
 	bool ReadBinary(std::string_view name, auto& object) const {
-		if (std::string value; ReadValue(name, value)) {
+		if (std::string value; ReadStringImpl(name, value)) {
 			Xor(name, data(value), size_as<DWORD>(value), false);
 			std::copy_n(begin(value), std::min(size(value), sizeof object), reinterpret_cast<char*>(std::addressof(object)));
 			return true;
@@ -141,7 +141,7 @@ public:
 	void WriteBinary(std::string_view name, auto const& object) {
 		std::string value(reinterpret_cast<const char*>(std::addressof(object)), sizeof object);
 		Xor(name, data(value), size_as<DWORD>(value), false);
-		WriteValue(name, value, REG_BINARY);
+		WriteStringImpl(name, value, REG_BINARY);
 	}
 	virtual bool DeleteSubKey(std::string_view name) {
 		return false;
@@ -1027,14 +1027,14 @@ struct IniConfig : Config {
 				return data(line) + size(name) + 1;
 		return nullptr;
 	}
-	bool ReadInt(std::string_view name, int& value) const override {
+	bool ReadIntImpl(std::string_view name, int& value) const override {
 		if (auto const p = Scan(name)) {
 			value = atoi(p);
 			return true;
 		}
 		return false;
 	}
-	bool ReadValue(std::string_view name, std::string& value) const override {
+	bool ReadStringImpl(std::string_view name, std::string& value) const override {
 		static boost::regex re{ R"(\\([0-9A-F]{2})|\\\\)" };
 		if (auto const p = Scan(name)) {
 			value = replace({ p }, re, [](auto const& m) { return m[1].matched ? std::stoi(m[1], nullptr, 16) : '\\'; });
@@ -1044,10 +1044,10 @@ struct IniConfig : Config {
 		}
 		return false;
 	}
-	void WriteInt(std::string_view name, int value) override {
+	void WriteIntImpl(std::string_view name, int value) override {
 		(*map)[KeyName].push_back(std::string{ name } + '=' + std::to_string(value));
 	}
-	void WriteValue(std::string_view name, std::string_view value, DWORD) override {
+	void WriteStringImpl(std::string_view name, std::string_view value, DWORD) override {
 		auto line = std::string{ name } +'=';
 		for (auto it = begin(value); it != end(value); ++it)
 			if (0x20 <= *it && *it < 0x7F) {
@@ -1076,11 +1076,11 @@ struct RegConfig : Config {
 			return std::make_unique<RegConfig>(KeyName + '\\' + name, key);
 		return {};
 	}
-	bool ReadInt(std::string_view name, int& value) const override {
+	bool ReadIntImpl(std::string_view name, int& value) const override {
 		DWORD size = sizeof(int);
 		return RegQueryValueExW(hKey, u8(name).c_str(), nullptr, nullptr, reinterpret_cast<BYTE*>(&value), &size) == ERROR_SUCCESS;
 	}
-	bool ReadValue(std::string_view name, std::string& value) const override {
+	bool ReadStringImpl(std::string_view name, std::string& value) const override {
 		auto const wName = u8(name);
 		if (DWORD type, count; RegQueryValueExW(hKey, wName.c_str(), nullptr, &type, nullptr, &count) == ERROR_SUCCESS) {
 			if (type == REG_BINARY) {
@@ -1099,10 +1099,10 @@ struct RegConfig : Config {
 		}
 		return false;
 	}
-	void WriteInt(std::string_view name, int value) override {
+	void WriteIntImpl(std::string_view name, int value) override {
 		RegSetValueExW(hKey, u8(name).c_str(), 0, REG_DWORD, reinterpret_cast<CONST BYTE*>(&value), sizeof(int));
 	}
-	void WriteValue(std::string_view name, std::string_view value, DWORD type) override {
+	void WriteStringImpl(std::string_view name, std::string_view value, DWORD type) override {
 		if (EncryptSettings == YES || type == REG_BINARY)
 			RegSetValueExW(hKey, u8(name).c_str(), 0, REG_BINARY, data_as<const BYTE>(value), type == REG_BINARY ? size_as<DWORD>(value) : size_as<DWORD>(value) + 1);
 		else {
