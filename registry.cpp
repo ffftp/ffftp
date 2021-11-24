@@ -39,7 +39,7 @@ static inline auto a2w(std::string_view text) {
 class Config {
 	void Xor(std::string_view name, void* bin, DWORD len, bool preserveZero) const;
 	std::optional<std::string> ReadStringCore(std::string_view name) const {
-		if (std::string value; ReadValue(name, value)) {
+		if (std::string value; ReadStringImpl(name, value)) {
 			Xor(name, data(value), size_as<DWORD>(value), true);
 			if (auto const pos = value.find_last_not_of('\0'); pos != std::string::npos)
 				value.erase(pos + 1);
@@ -49,67 +49,83 @@ class Config {
 	}
 	void WriteStringCore(std::string_view name, std::string&& value) {
 		Xor(name, data(value), size_as<DWORD>(value), true);
-		WriteValue(name, value, REG_SZ);
+		WriteStringImpl(name, value, REG_SZ);
 	}
 protected:
 	const std::string KeyName;
 	Config(std::string const& keyName) : KeyName{ keyName } {}
-	virtual bool ReadInt(std::string_view name, int& value) const = 0;
-	virtual bool ReadValue(std::string_view name, std::string& value) const = 0;
-	virtual void WriteInt(std::string_view name, int value) = 0;
-	virtual void WriteValue(std::string_view name, std::string_view value, DWORD type) = 0;
+	virtual bool ReadIntImpl(std::string_view name, int& value) const = 0;
+	virtual bool ReadStringImpl(std::string_view name, std::string& value) const = 0;
+	virtual void WriteIntImpl(std::string_view name, int value) = 0;
+	virtual void WriteStringImpl(std::string_view name, std::string_view value, DWORD type) = 0;
 public:
 	Config(Config const&) = delete;
 	virtual ~Config() = default;
 	virtual std::unique_ptr<Config> OpenSubKey(std::string_view name) = 0;
 	virtual std::unique_ptr<Config> CreateSubKey(std::string_view name) = 0;
-	int ReadIntValueFromReg(std::string_view name, int* value) const {
-		if (ReadInt(name, *value)) {
-			Xor(name, value, sizeof(int), false);
-			return FFFTP_SUCCESS;
-		}
-		return FFFTP_FAIL;
-	}
-	void WriteIntValueToReg(std::string_view name, int value) {
-		Xor(name, &value, sizeof(int), false);
-		WriteInt(name, value);
-	}
-	int ReadStringFromReg(std::string_view name, _Out_writes_z_(size) char* buffer, DWORD size) const {
-		if (auto const value = ReadStringCore(name)) {
-			strncpy_s(buffer, size, value->c_str(), _TRUNCATE);
-			return FFFTP_SUCCESS;
-		}
-		buffer[0] = 0;
-		return FFFTP_FAIL;
-	}
-	std::optional<std::wstring> ReadString(std::string_view name) const {
-		if (auto const value = ReadStringCore(name))
-			return u8(*value);
-		return {};
-	}
-	bool ReadString(std::string_view name, std::wstring& str) const {
-		if(auto value = ReadString(name)) {
-			value->swap(str);
+
+	bool ReadValue(std::string_view name, int& value) const {
+		if (ReadIntImpl(name, value)) {
+			Xor(name, &value, sizeof(int), false);
 			return true;
 		}
 		return false;
 	}
-	void WriteStringToReg(std::string_view name, std::string_view str) {
+	template<std::integral Integral>
+	bool ReadValue(std::string_view name, Integral& value) const {
+		static_assert(sizeof(Integral) <= sizeof(int));
+		if (int temp; ReadValue(name, temp)) {
+			value = static_cast<Integral>(temp);
+			return true;
+		}
+		return false;
+	}
+	void WriteValue(std::string_view name, int value) {
+		Xor(name, &value, sizeof(int), false);
+		WriteIntImpl(name, value);
+	}
+	template<std::integral Integral>
+	void WriteValue(std::string_view name, Integral value) {
+		WriteValue(name, static_cast<int>(value));
+	}
+	template<std::integral Integral>
+	void WriteValueIf(std::string_view name, Integral value, Integral defaultValue) {
+		if (value == defaultValue)
+			DeleteValue(name);
+		else
+			WriteValue(name, value);
+	}
+
+	bool ReadValue(std::string_view name, std::string& str) const {
+		if (auto const value = ReadStringCore(name)) {
+			str = *value;
+			return true;
+		}
+		return false;
+	}
+	bool ReadValue(std::string_view name, std::wstring& str) const {
+		if (auto const value = ReadStringCore(name)) {
+			str = u8(*value);
+			return true;
+		}
+		return false;
+	}
+	void WriteValue(std::string_view name, std::string_view str) {
 		WriteStringCore(name, std::string{ str });
 	}
-	void WriteString(std::string_view name, std::wstring_view str) {
+	void WriteValue(std::string_view name, std::wstring_view str) {
 		WriteStringCore(name, u8(str));
 	}
-	void WriteString(std::string_view name, std::wstring_view str, std::wstring_view defaultStr) {
+	void WriteValueIf(std::string_view name, std::wstring_view str, std::wstring_view defaultStr) {
 		if (str == defaultStr)
 			DeleteValue(name);
 		else
-			WriteString(name, str);
+			WriteValue(name, str);
 	}
 	bool ReadPassword(std::string_view name, std::wstring& password) const;
 	void WritePassword(std::string_view name, std::wstring_view password);
-	bool ReadStrings(std::string_view name, std::vector<std::wstring>& strings) const {
-		if (std::string value; ReadValue(name, value)) {
+	bool ReadValue(std::string_view name, std::vector<std::wstring>& strings) const {
+		if (std::string value; ReadStringImpl(name, value)) {
 			strings.clear();
 			if (!empty(value) && value[0] != '\0') {
 				Xor(name, data(value), size_as<DWORD>(value), true);
@@ -121,17 +137,17 @@ public:
 		}
 		return false;
 	}
-	void WriteStrings(std::string_view name, std::vector<std::wstring> const& strings) {
+	void WriteValue(std::string_view name, std::vector<std::wstring> const& strings) {
 		std::string value;
 		for (auto const& string : strings) {
 			value += u8(string);
 			value += '\0';
 		}
 		Xor(name, data(value), size_as<DWORD>(value), true);
-		WriteValue(name, value, REG_MULTI_SZ);
+		WriteStringImpl(name, value, REG_MULTI_SZ);
 	}
 	bool ReadBinary(std::string_view name, auto& object) const {
-		if (std::string value; ReadValue(name, value)) {
+		if (std::string value; ReadStringImpl(name, value)) {
 			Xor(name, data(value), size_as<DWORD>(value), false);
 			std::copy_n(begin(value), std::min(size(value), sizeof object), reinterpret_cast<char*>(std::addressof(object)));
 			return true;
@@ -141,29 +157,23 @@ public:
 	void WriteBinary(std::string_view name, auto const& object) {
 		std::string value(reinterpret_cast<const char*>(std::addressof(object)), sizeof object);
 		Xor(name, data(value), size_as<DWORD>(value), false);
-		WriteValue(name, value, REG_BINARY);
+		WriteStringImpl(name, value, REG_BINARY);
 	}
 	virtual bool DeleteSubKey(std::string_view name) {
 		return false;
 	}
 	virtual void DeleteValue(std::string_view name) {
 	}
-	void SaveIntNum(std::string_view name, int value, int defaultValue) {
-		if (value == defaultValue)
-			DeleteValue(name);
-		else
-			WriteIntValueToReg(name, value);
-	}
 	bool ReadFont(std::string_view name, HFONT& hfont, LOGFONTW& logfont) {
-		if (auto const value = ReadString(name)) {
+		if (std::wstring value; ReadValue(name, value)) {
 			int offset;
-			auto read = swscanf(value->c_str(), L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
+			auto read = swscanf(value.c_str(), L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
 				&logfont.lfHeight, &logfont.lfWidth, &logfont.lfEscapement, &logfont.lfOrientation, &logfont.lfWeight,
 				&logfont.lfItalic, &logfont.lfUnderline, &logfont.lfStrikeOut, &logfont.lfCharSet,
 				&logfont.lfOutPrecision, &logfont.lfClipPrecision, &logfont.lfQuality, &logfont.lfPitchAndFamily, &offset
 			);
 			if (read == 13) {
-				wcscpy(logfont.lfFaceName, value->c_str() + offset);
+				wcscpy(logfont.lfFaceName, value.c_str() + offset);
 				hfont = CreateFontIndirectW(&logfont);
 				return true;
 			}
@@ -179,7 +189,7 @@ public:
 				logfont.lfItalic, logfont.lfUnderline, logfont.lfStrikeOut, logfont.lfCharSet,
 				logfont.lfOutPrecision, logfont.lfClipPrecision, logfont.lfQuality, logfont.lfPitchAndFamily, logfont.lfFaceName
 			);
-		WriteString(name, value);
+		WriteValue(name, value);
 	}
 	void ReadHost(Host& host, int version, bool readPassword);
 	void WriteHost(Host const& host, Host const& defaultHost, bool writePassword);
@@ -187,21 +197,16 @@ public:
 
 static std::unique_ptr<Config> OpenReg(int type);
 static std::unique_ptr<Config> CreateReg(int type);
-static int CheckPasswordValidity(const char* HashStr, int StretchCount);
+static int CheckPasswordValidity(std::string_view HashSv, int StretchCount);
 static std::string CreatePasswordHash(int stretchCount);
-void SetHashSalt( DWORD salt );
-// 全設定暗号化対応
+void SetHashSalt(DWORD salt);
 void SetHashSalt1(void* Salt, int Length);
 
-/* 2010.01.30 genta 追加 */
 static char SecretKey[FMAX_PATH+1];
 static int SecretKeyLength;
 static int IsMasterPasswordError = PASSWORD_OK;
-
 static int IsRndSourceInit = 0;
 static uint32_t RndSource[9];
-
-// UTF-8対応
 static int IniKanjiCode = KANJI_NOCNV;
 static int EncryptSettingsError = NO;
 
@@ -220,54 +225,30 @@ std::wstring GetMasterPassword() {
 	return u8(SecretKey);
 }
 
-/*----- マスタパスワードの状態取得 ----------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		PASSWORD_OK : OK
-*		PASSWORD_UNMATCH : パスワード不一致
-*		BAD_PASSWORD_HASH : パスワード確認失敗
-*----------------------------------------------------------------------------*/
-int GetMasterPasswordStatus(void)
-{
+// マスタパスワードの状態取得
+//   PASSWORD_OK : OK
+//   PASSWORD_UNMATCH : パスワード不一致
+//   BAD_PASSWORD_HASH : パスワード確認失敗
+int GetMasterPasswordStatus() {
 	return IsMasterPasswordError;
 }
 
-/*----- レジストリ／INIファイルのマスターパスワードの検証を行う ------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		
-*----------------------------------------------------------------------------*/
-
-int ValidateMasterPassword(void)
-{
+// レジストリ／INIファイルのマスターパスワードの検証を行う
+int ValidateMasterPassword() {
 	std::unique_ptr<Config> hKey3;
 	if (hKey3 = OpenReg(REGTYPE_INI); !hKey3 && AskForceIni() == NO)
 		hKey3 = OpenReg(REGTYPE_REG);
-	if(hKey3){
-		char checkbuf[48];
-		int salt = 0;
-		// 全設定暗号化対応
-		int stretch = 0;
-		unsigned char salt1[16];
-
-		if(hKey3->ReadStringFromReg("CredentialCheck1", checkbuf, sizeof(checkbuf)) == FFFTP_SUCCESS)
-		{
-			if(hKey3->ReadBinary("CredentialSalt1"sv, salt1))
+	if (hKey3) {
+		if (std::string checkbuf; hKey3->ReadValue("CredentialCheck1"sv, checkbuf)) {
+			if (unsigned char salt1[16]; hKey3->ReadBinary("CredentialSalt1"sv, salt1))
 				SetHashSalt1(&salt1, 16);
 			else
 				SetHashSalt1(NULL, 0);
-			hKey3->ReadIntValueFromReg("CredentialStretch", &stretch);
+			int stretch = 0;
+			hKey3->ReadValue("CredentialStretch", stretch);
 			IsMasterPasswordError = CheckPasswordValidity(checkbuf, stretch);
-		}
-		else if(hKey3->ReadStringFromReg("CredentialCheck", checkbuf, sizeof(checkbuf)) == FFFTP_SUCCESS)
-		{
-			if(hKey3->ReadIntValueFromReg("CredentialSalt", &salt) == FFFTP_SUCCESS)
+		} else if(hKey3->ReadValue("CredentialCheck"sv, checkbuf)) {
+			if (int salt = 0; hKey3->ReadValue("CredentialSalt", salt))
 				SetHashSalt(salt);
 			else
 				SetHashSalt1(NULL, 0);
@@ -278,103 +259,151 @@ int ValidateMasterPassword(void)
 	return NO;
 }
 
+static constexpr std::tuple<std::string_view, std::variant<int Host::*, std::wstring Host::*>> hostSettings[] = {
+	{ "HostAdrs"sv, &Host::HostAdrs },
+	{ "UserName"sv, &Host::UserName },
+	{ "Account"sv, &Host::Account },
+	{ "RemoteDir"sv, &Host::RemoteInitDir },
+	{ "Chmod"sv, &Host::ChmodCmd },
+	{ "Nlst"sv, &Host::LsName },
+	{ "Init"sv, &Host::InitCmd },
+	{ "Port"sv, &Host::Port },
+	{ "Kanji"sv, &Host::KanjiCode },
+	{ "KanaCnv"sv, &Host::KanaCnv },
+	{ "NameKanji"sv, &Host::NameKanjiCode },
+	{ "NameKana"sv, &Host::NameKanaCnv },
+	{ "Pasv"sv, &Host::Pasv },
+	{ "Fwall"sv, &Host::FireWall },
+	{ "List"sv, &Host::ListCmdOnly },
+	{ "NLST-R"sv, &Host::UseNLST_R },
+	{ "Tzone"sv, &Host::TimeZone },
+	{ "Type"sv, &Host::HostType },
+	{ "Sync"sv, &Host::SyncMove },
+	{ "Fpath"sv, &Host::NoFullPath },
+	{ "Secu"sv, &Host::Security },
+	{ "Dial"sv, &Host::Dialup },
+	{ "UseIt"sv, &Host::DialupAlways },
+	{ "Notify"sv, &Host::DialupNotify },
+	{ "DialTo"sv, &Host::DialEntry },
+	{ "NoEncryption"sv, &Host::UseNoEncryption },
+	{ "FTPES"sv, &Host::UseFTPES },
+	{ "FTPIS"sv, &Host::UseFTPIS },
+	{ "SFTP"sv, &Host::UseSFTP },
+	{ "ThreadCount"sv, &Host::MaxThreadCount },
+	{ "ReuseCmdSkt"sv, &Host::ReuseCmdSkt },
+	{ "MLSD"sv, &Host::UseMLSD },
+	{ "Noop"sv, &Host::NoopInterval },
+	{ "ErrMode"sv, &Host::TransferErrorMode },
+	{ "ErrNotify"sv, &Host::TransferErrorNotify },
+	{ "ErrReconnect"sv, &Host::TransferErrorReconnect },
+	{ "NoPasvAdrs"sv, &Host::NoPasvAdrs },
+};
+
 void Config::ReadHost(Host& host, int version, bool readPassword) {
-	ReadString("HostAdrs"sv, host.HostAdrs);
-	ReadString("UserName"sv, host.UserName);
-	ReadString("Account"sv, host.Account);
-	ReadString("LocalDir"sv, host.LocalInitDir);
-	ReadString("RemoteDir"sv, host.RemoteInitDir);
-	ReadString("Chmod"sv, host.ChmodCmd);
-	ReadString("Nlst"sv, host.LsName);
-	ReadString("Init"sv, host.InitCmd);
-	ReadIntValueFromReg("Port", &host.Port);
-	ReadIntValueFromReg("Kanji", &host.KanjiCode);
+	for (auto& [name, variant] : hostSettings)
+		std::visit([this, name, &host](auto&& ptr) { ReadValue(name, host.*ptr); }, variant);
 	// 1.98b以前のUTF-8はBOMあり
 	if (version < 1983 && host.KanjiCode == KANJI_UTF8N)
 		host.KanjiCode = KANJI_UTF8BOM;
-	ReadIntValueFromReg("KanaCnv", &host.KanaCnv);
-	ReadIntValueFromReg("NameKanji", &host.NameKanjiCode);
-	ReadIntValueFromReg("NameKana", &host.NameKanaCnv);
-	ReadIntValueFromReg("Pasv", &host.Pasv);
-	ReadIntValueFromReg("Fwall", &host.FireWall);
-	ReadIntValueFromReg("List", &host.ListCmdOnly);
-	ReadIntValueFromReg("NLST-R", &host.UseNLST_R);
-	ReadIntValueFromReg("Tzone", &host.TimeZone);
-	ReadIntValueFromReg("Type", &host.HostType);
-	ReadIntValueFromReg("Sync", &host.SyncMove);
-	ReadIntValueFromReg("Fpath", &host.NoFullPath);
+	ReadValue("LocalDir"sv, host.LocalInitDir);
 	ReadBinary("Sort"sv, host.Sort);
-	ReadIntValueFromReg("Secu", &host.Security);
 	if (readPassword)
 		ReadPassword("Password"sv, host.PassWord);
 	else
 		host.PassWord = UserMailAdrs;
-	ReadIntValueFromReg("Dial", &host.Dialup);
-	ReadIntValueFromReg("UseIt", &host.DialupAlways);
-	ReadIntValueFromReg("Notify", &host.DialupNotify);
-	ReadString("DialTo"sv, host.DialEntry);
-	ReadIntValueFromReg("NoEncryption", &host.UseNoEncryption);
-	ReadIntValueFromReg("FTPES", &host.UseFTPES);
-	ReadIntValueFromReg("FTPIS", &host.UseFTPIS);
-	ReadIntValueFromReg("SFTP", &host.UseSFTP);
-	ReadIntValueFromReg("ThreadCount", &host.MaxThreadCount);
-	ReadIntValueFromReg("ReuseCmdSkt", &host.ReuseCmdSkt);
 	// 1.98d以前で同時接続数が1より大きい場合はソケットの再利用なし
 	if (version < 1985 && 1 < host.MaxThreadCount)
 		host.ReuseCmdSkt = NO;
-	ReadIntValueFromReg("MLSD", &host.UseMLSD);
-	ReadIntValueFromReg("Noop", &host.NoopInterval);
-	ReadIntValueFromReg("ErrMode", &host.TransferErrorMode);
-	ReadIntValueFromReg("ErrNotify", &host.TransferErrorNotify);
-	ReadIntValueFromReg("ErrReconnect", &host.TransferErrorReconnect);
-	ReadIntValueFromReg("NoPasvAdrs", &host.NoPasvAdrs);
 }
 
 void Config::WriteHost(Host const& host, Host const& defaultHost, bool writePassword) {
-	WriteString("HostAdrs"sv, host.HostAdrs, defaultHost.HostAdrs);
-	WriteString("UserName"sv, host.UserName, defaultHost.UserName);
-	WriteString("Account"sv, host.Account, defaultHost.Account);
-	WriteString("LocalDir"sv, host.LocalInitDir);
-	WriteString("RemoteDir"sv, host.RemoteInitDir, defaultHost.RemoteInitDir);
-	WriteString("Chmod"sv, host.ChmodCmd, defaultHost.ChmodCmd);
-	WriteString("Nlst"sv, host.LsName, defaultHost.LsName);
-	WriteString("Init"sv, host.InitCmd, defaultHost.InitCmd);
+	for (auto& [name, variant] : hostSettings)
+		std::visit([this, name, &host, &defaultHost](auto&& ptr) { WriteValueIf(name, host.*ptr, defaultHost.*ptr); }, variant);
+	WriteValue("LocalDir"sv, host.LocalInitDir);
 	if (writePassword)
 		WritePassword("Password"sv, host.PassWord);
 	else
 		DeleteValue("Password"sv);
-	SaveIntNum("Port", host.Port, defaultHost.Port);
-	SaveIntNum("Kanji", host.KanjiCode, defaultHost.KanjiCode);
-	SaveIntNum("KanaCnv", host.KanaCnv, defaultHost.KanaCnv);
-	SaveIntNum("NameKanji", host.NameKanjiCode, defaultHost.NameKanjiCode);
-	SaveIntNum("NameKana", host.NameKanaCnv, defaultHost.NameKanaCnv);
-	SaveIntNum("Pasv", host.Pasv, defaultHost.Pasv);
-	SaveIntNum("Fwall", host.FireWall, defaultHost.FireWall);
-	SaveIntNum("List", host.ListCmdOnly, defaultHost.ListCmdOnly);
-	SaveIntNum("NLST-R", host.UseNLST_R, defaultHost.UseNLST_R);
-	SaveIntNum("Tzone", host.TimeZone, defaultHost.TimeZone);
-	SaveIntNum("Type", host.HostType, defaultHost.HostType);
-	SaveIntNum("Sync", host.SyncMove, defaultHost.SyncMove);
-	SaveIntNum("Fpath", host.NoFullPath, defaultHost.NoFullPath);
 	WriteBinary("Sort"sv, host.Sort);
-	SaveIntNum("Secu", host.Security, defaultHost.Security);
-	SaveIntNum("Dial", host.Dialup, defaultHost.Dialup);
-	SaveIntNum("UseIt", host.DialupAlways, defaultHost.DialupAlways);
-	SaveIntNum("Notify", host.DialupNotify, defaultHost.DialupNotify);
-	WriteString("DialTo"sv, host.DialEntry, defaultHost.DialEntry);
-	SaveIntNum("NoEncryption", host.UseNoEncryption, defaultHost.UseNoEncryption);
-	SaveIntNum("FTPES", host.UseFTPES, defaultHost.UseFTPES);
-	SaveIntNum("FTPIS", host.UseFTPIS, defaultHost.UseFTPIS);
-	SaveIntNum("SFTP", host.UseSFTP, defaultHost.UseSFTP);
-	SaveIntNum("ThreadCount", host.MaxThreadCount, defaultHost.MaxThreadCount);
-	SaveIntNum("ReuseCmdSkt", host.ReuseCmdSkt, defaultHost.ReuseCmdSkt);
-	SaveIntNum("MLSD", host.UseMLSD, defaultHost.UseMLSD);
-	SaveIntNum("Noop", host.NoopInterval, defaultHost.NoopInterval);
-	SaveIntNum("ErrMode", host.TransferErrorMode, defaultHost.TransferErrorMode);
-	SaveIntNum("ErrNotify", host.TransferErrorNotify, defaultHost.TransferErrorNotify);
-	SaveIntNum("ErrReconnect", host.TransferErrorReconnect, defaultHost.TransferErrorReconnect);
-	SaveIntNum("NoPasvAdrs", host.NoPasvAdrs, defaultHost.NoPasvAdrs);
 }
+
+static constexpr std::tuple<std::string_view, std::variant<int*, std::wstring*, std::vector<std::wstring>*>> settings[] = {
+	{ "WinPosX"sv, &WinPosX },
+	{ "WinPosY"sv, &WinPosY },
+	{ "WinWidth"sv, &WinWidth },
+	{ "WinHeight"sv, &WinHeight },
+	{ "LocalWidth"sv, &LocalWidth },
+	{ "TaskHeight"sv, &TaskHeight },
+	{ "SwCmd"sv, &Sizing },
+	{ "UserMail"sv, &UserMailAdrs },
+	{ "Viewer"sv, &ViewerName[0] },
+	{ "Viewer2"sv, &ViewerName[1] },
+	{ "Viewer3"sv, &ViewerName[2] },
+	{ "TrType"sv, &TransMode },
+	{ "Recv"sv, &RecvMode },
+	{ "Send"sv, &SendMode },
+	{ "Move"sv, &MoveMode },
+	{ "Path"sv, &DefaultLocalPath },
+	{ "Time"sv, &SaveTimeStamp },
+	{ "EOF"sv, &RmEOF },
+	{ "Scolon"sv, &VaxSemicolon },
+	{ "RecvEx"sv, &ExistMode },
+	{ "SendEx"sv, &UpExistMode },
+	{ "LFsort"sv, &LocalFileSort },
+	{ "LDsort"sv, &LocalDirSort },
+	{ "RFsort"sv, &RemoteFileSort },
+	{ "RDsort"sv, &RemoteDirSort },
+	{ "SortSave"sv, &SortSave },
+	{ "ListType"sv, &ListType },
+	{ "DotFile"sv, &DotFile },
+	{ "Dclick"sv, &DclickOpen },
+	{ "ConS"sv, &ConnectOnStart },
+	{ "OldDlg"sv, &ConnectAndSet },
+	{ "RasClose"sv, &RasClose },
+	{ "RasNotify"sv, &RasCloseNotify },
+	{ "Qanony"sv, &QuickAnonymous },
+	{ "PassHist"sv, &PassToHist },
+	{ "SendQuit"sv, &SendQuit },
+	{ "NoRas"sv, &NoRasControl },
+	{ "Debug"sv, &DebugConsole },
+	{ "WinPos"sv, &SaveWinPos },
+	{ "RegExp"sv, &FindMode },
+	{ "Reg"sv, &RegType },
+	{ "LowUp"sv, &FnameCnv },
+	{ "Tout"sv, &TimeOut },
+	{ "NoTrn"sv, &MirrorNoTrn },
+	{ "NoDel"sv, &MirrorNoDel },
+	{ "MirFile"sv, &MirrorFnameCnv },
+	{ "MirUNot"sv, &MirUpDelNotify },
+	{ "MirDNot"sv, &MirDownDelNotify },
+	{ "ListHide"sv, &DispIgnoreHide },
+	{ "ListDrv"sv, &DispDrives },
+	{ "FwallHost"sv, &FwallHost },
+	{ "FwallPort"sv, &FwallPort },
+	{ "FwallType"sv, &FwallType },
+	{ "FwallDef"sv, &FwallDefault },
+	{ "FwallSec"sv, &FwallSecurity },
+	{ "PasvDef"sv, &PasvDefault },
+	{ "FwallRes"sv, &FwallResolve },
+	{ "FwallLow"sv, &FwallLower },
+	{ "FwallDel"sv, &FwallDelimiter },
+	{ "DefAttr"sv, &DefAttrList },
+	{ "FAttrSw"sv, &FolderAttr },
+	{ "FAttr"sv, &FolderAttrNum },
+	{ "HistNum"sv, &FileHist },
+	{ "ListIcon"sv, &DispFileIcon },
+	{ "ListSecond"sv, &DispTimeSeconds },
+	{ "ListPermitNum"sv, &DispPermissionsNumber },
+	{ "MakeDir"sv, &MakeAllDir },
+	{ "Kanji"sv, &LocalKanjiCode },
+	{ "UPnP"sv, &UPnPEnabled },
+	{ "ListRefresh"sv, &AutoRefreshFileList },
+	{ "OldLog"sv, &RemoveOldLog },
+	{ "AbortListErr"sv, &AbortOnListError },
+	{ "MirNoTransfer"sv, &MirrorNoTransferContents },
+	{ "FwallShared"sv, &FwallNoSaveUser },
+	{ "MarkDFile"sv, &MarkAsInternet },
+};
 
 // レジストリ／INIファイルに設定値を保存
 void SaveRegistry() {
@@ -392,7 +421,7 @@ void SaveRegistry() {
 	if (!hKey3)
 		return;
 
-	hKey3->WriteIntValueToReg("Version", VER_NUM);
+	hKey3->WriteValue("Version", VER_NUM);
 	union {
 		unsigned char salt1[16];
 		int salt;
@@ -408,111 +437,34 @@ void SaveRegistry() {
 	if (EncryptAllSettings == YES) {
 		SetHashSalt1(&u.salt1, 16);
 		hKey3->WriteBinary("CredentialSalt1"sv, u.salt1);
-		hKey3->WriteIntValueToReg("CredentialStretch", 65535);
-		hKey3->WriteStringToReg("CredentialCheck1", CreatePasswordHash(65535));
+		hKey3->WriteValue("CredentialStretch", 65535);
+		hKey3->WriteValue("CredentialCheck1", CreatePasswordHash(65535));
 	} else {
 		SetHashSalt(u.salt);
-		hKey3->WriteIntValueToReg("CredentialSalt", u.salt);
-		hKey3->WriteStringToReg("CredentialCheck", CreatePasswordHash(0));
+		hKey3->WriteValue("CredentialSalt", u.salt);
+		hKey3->WriteValue("CredentialCheck", CreatePasswordHash(0));
 	}
 
-	hKey3->WriteIntValueToReg("EncryptAll", EncryptAllSettings);
+	hKey3->WriteValue("EncryptAll", EncryptAllSettings);
 	hKey3->WritePassword("EncryptAllDetector", std::to_wstring(EncryptAllSettings));
 	EncryptSettings = EncryptAllSettings;
 
 	if (auto hKey4 = hKey3->CreateSubKey(EncryptAllSettings == YES ? "EncryptedOptions"sv : "Options"sv)) {
-		hKey4->WriteIntValueToReg("NoSave", SuppressSave);
+		hKey4->WriteValue("NoSave", SuppressSave);
 
-		if(SuppressSave != YES)
-		{
-			hKey4->WriteIntValueToReg("WinPosX", WinPosX);
-			hKey4->WriteIntValueToReg("WinPosY", WinPosY);
-			hKey4->WriteIntValueToReg("WinWidth", WinWidth);
-			hKey4->WriteIntValueToReg("WinHeight", WinHeight);
-			hKey4->WriteIntValueToReg("LocalWidth", LocalWidth);
-			hKey4->WriteIntValueToReg("TaskHeight", TaskHeight);
+		if (SuppressSave != YES) {
+			for (auto& [name, variant] : settings)
+				std::visit([&hKey4, name](auto&& ptr) { hKey4->WriteValue(name, *ptr); }, variant);
+
 			hKey4->WriteBinary("LocalColm"sv, LocalTabWidth);
 			hKey4->WriteBinary("RemoteColm"sv, RemoteTabWidth);
-			hKey4->WriteIntValueToReg("SwCmd", Sizing);
-
-			hKey4->WriteString("UserMail"sv, UserMailAdrs);
-			hKey4->WriteString("Viewer"sv, ViewerName[0]);
-			hKey4->WriteString("Viewer2"sv, ViewerName[1]);
-			hKey4->WriteString("Viewer3"sv, ViewerName[2]);
-
-			hKey4->WriteIntValueToReg("TrType", TransMode);
-			hKey4->WriteIntValueToReg("Recv", RecvMode);
-			hKey4->WriteIntValueToReg("Send", SendMode);
-			hKey4->WriteIntValueToReg("Move", MoveMode);
-			hKey4->WriteString("Path"sv, DefaultLocalPath);
-			hKey4->WriteIntValueToReg("Time", SaveTimeStamp);
-			hKey4->WriteIntValueToReg("EOF", RmEOF);
-			hKey4->WriteIntValueToReg("Scolon", VaxSemicolon);
-
-			hKey4->WriteIntValueToReg("RecvEx", ExistMode);
-			hKey4->WriteIntValueToReg("SendEx", UpExistMode);
-
-			hKey4->WriteIntValueToReg("LFsort", LocalFileSort);
-			hKey4->WriteIntValueToReg("LDsort", LocalDirSort);
-			hKey4->WriteIntValueToReg("RFsort", RemoteFileSort);
-			hKey4->WriteIntValueToReg("RDsort", RemoteDirSort);
-			hKey4->WriteIntValueToReg("SortSave", SortSave);
-
-			hKey4->WriteIntValueToReg("ListType", ListType);
-			hKey4->WriteIntValueToReg("DotFile", DotFile);
-			hKey4->WriteIntValueToReg("Dclick", DclickOpen);
-
-			hKey4->WriteIntValueToReg("ConS", ConnectOnStart);
-			hKey4->WriteIntValueToReg("OldDlg", ConnectAndSet);
-			hKey4->WriteIntValueToReg("RasClose", RasClose);
-			hKey4->WriteIntValueToReg("RasNotify", RasCloseNotify);
-			hKey4->WriteIntValueToReg("Qanony", QuickAnonymous);
-			hKey4->WriteIntValueToReg("PassHist", PassToHist);
-			hKey4->WriteIntValueToReg("SendQuit", SendQuit);
-			hKey4->WriteIntValueToReg("NoRas", NoRasControl);
-
-			hKey4->WriteIntValueToReg("Debug", DebugConsole);
-			hKey4->WriteIntValueToReg("WinPos", SaveWinPos);
-			hKey4->WriteIntValueToReg("RegExp", FindMode);
-			hKey4->WriteIntValueToReg("Reg", RegType);
-
-			hKey4->WriteStrings("AsciiFile"sv, AsciiExt);
-			hKey4->WriteIntValueToReg("LowUp", FnameCnv);
-			hKey4->WriteIntValueToReg("Tout", TimeOut);
-
-			hKey4->WriteStrings("NoTrn"sv, MirrorNoTrn);
-			hKey4->WriteStrings("NoDel"sv, MirrorNoDel);
-			hKey4->WriteIntValueToReg("MirFile", MirrorFnameCnv);
-			hKey4->WriteIntValueToReg("MirUNot", MirUpDelNotify);
-			hKey4->WriteIntValueToReg("MirDNot", MirDownDelNotify);
-
+			hKey4->WriteValue("AsciiFile"sv, AsciiExt);
 			hKey4->WriteFont("ListFont"sv, ListFont, ListLogFont);
-			hKey4->WriteIntValueToReg("ListHide", DispIgnoreHide);
-			hKey4->WriteIntValueToReg("ListDrv", DispDrives);
-
-			hKey4->WriteString("FwallHost"sv, FwallHost);
-			hKey4->WriteString("FwallUser"sv, FwallNoSaveUser == YES ? L""sv : FwallUser);
+			hKey4->WriteValue("FwallUser"sv, FwallNoSaveUser == YES ? L""sv : FwallUser);
 			hKey4->WritePassword("FwallPass"sv, FwallNoSaveUser == YES ? L""sv : FwallPass);
-			hKey4->WriteIntValueToReg("FwallPort", FwallPort);
-			hKey4->WriteIntValueToReg("FwallType", FwallType);
-			hKey4->WriteIntValueToReg("FwallDef", FwallDefault);
-			hKey4->WriteIntValueToReg("FwallSec", FwallSecurity);
-			hKey4->WriteIntValueToReg("PasvDef", PasvDefault);
-			hKey4->WriteIntValueToReg("FwallRes", FwallResolve);
-			hKey4->WriteIntValueToReg("FwallLow", FwallLower);
-			hKey4->WriteIntValueToReg("FwallDel", FwallDelimiter);
-
-			hKey4->WriteStrings("DefAttr"sv, DefAttrList);
-
 			hKey4->WriteBinary("Hdlg"sv, HostDlgSize);
 			hKey4->WriteBinary("Bdlg"sv, BmarkDlgSize);
 			hKey4->WriteBinary("Mdlg"sv, MirrorDlgSize);
-
-			hKey4->WriteIntValueToReg("FAttrSw", FolderAttr);
-			hKey4->WriteIntValueToReg("FAttr", FolderAttrNum);
-
-			hKey4->WriteIntValueToReg("HistNum", FileHist);
-
 			/* Ver1.54a以前の形式のヒストリデータは削除 */
 			hKey4->DeleteValue("Hist");
 
@@ -522,10 +474,10 @@ void SaveRegistry() {
 			for (auto const& history : GetHistories())
 				if (auto hKey5 = hKey4->CreateSubKey(std::format("History{}"sv, i))) {
 					hKey5->WriteHost(history, DefaultHist, true);
-					hKey5->WriteIntValueToReg("TrType", history.Type);
+					hKey5->WriteValue("TrType", history.Type);
 					i++;
 				}
-			hKey4->WriteIntValueToReg("SavedHist", i);
+			hKey4->WriteValue("SavedHist", i);
 
 			/* 余分なヒストリがあったら削除 */
 			while (hKey4->DeleteSubKey(std::format("History{}"sv, i)))
@@ -536,12 +488,12 @@ void SaveRegistry() {
 			if (auto hKey5 = hKey4->CreateSubKey("DefaultHost")) {
 				HOSTDATA Host;
 				CopyDefaultHost(&Host);
-				hKey5->WriteIntValueToReg("Set", Host.Level);
-				hKey5->WriteString("HostName"sv, Host.HostName, DefaultHost.HostName);
+				hKey5->WriteValue("Set", Host.Level);
+				hKey5->WriteValueIf("HostName"sv, Host.HostName, DefaultHost.HostName);
 				hKey5->WriteHost(Host, DefaultHost, Host.Anonymous == NO);
-				hKey5->SaveIntNum("Anonymous", Host.Anonymous, DefaultHost.Anonymous);
-				hKey5->SaveIntNum("Last", Host.LastDir, DefaultHost.LastDir);
-				hKey5->WriteStrings("Bmarks"sv, Host.BookMark);
+				hKey5->WriteValueIf("Anonymous", Host.Anonymous, DefaultHost.Anonymous);
+				hKey5->WriteValueIf("Last", Host.LastDir, DefaultHost.LastDir);
+				hKey5->WriteValue("Bmarks"sv, Host.BookMark);
 			}
 
 			/* ホストの設定を保存 */
@@ -549,16 +501,16 @@ void SaveRegistry() {
 			i = 0;
 			for (HOSTDATA Host; CopyHostFromList(i, &Host) == FFFTP_SUCCESS; i++)
 				if (auto hKey5 = hKey4->CreateSubKey(std::format("Host{}"sv, i))) {
-					hKey5->WriteIntValueToReg("Set", Host.Level);
-					hKey5->WriteString("HostName"sv, Host.HostName, DefaultHost.HostName);
+					hKey5->WriteValue("Set", Host.Level);
+					hKey5->WriteValueIf("HostName"sv, Host.HostName, DefaultHost.HostName);
 					if ((Host.Level & SET_LEVEL_GROUP) == 0) {
 						hKey5->WriteHost(Host, DefaultHost, Host.Anonymous == NO);
-						hKey5->SaveIntNum("Anonymous", Host.Anonymous, DefaultHost.Anonymous);
-						hKey5->SaveIntNum("Last", Host.LastDir, DefaultHost.LastDir);
-						hKey5->WriteStrings("Bmarks"sv, Host.BookMark);
+						hKey5->WriteValueIf("Anonymous", Host.Anonymous, DefaultHost.Anonymous);
+						hKey5->WriteValueIf("Last", Host.LastDir, DefaultHost.LastDir);
+						hKey5->WriteValue("Bmarks"sv, Host.BookMark);
 					}
 				}
-			hKey4->WriteIntValueToReg("SetNum", i);
+			hKey4->WriteValue("SetNum", i);
 
 			/* 余分なホストの設定があったら削除 */
 			while (hKey4->DeleteSubKey(std::format("Host{}"sv, i)))
@@ -566,20 +518,7 @@ void SaveRegistry() {
 
 			if ((i = AskCurrentHost()) == HOSTNUM_NOENTRY)
 				i = 0;
-			hKey4->WriteIntValueToReg("CurSet", i);
-
-			hKey4->WriteIntValueToReg("ListIcon", DispFileIcon);
-			hKey4->WriteIntValueToReg("ListSecond", DispTimeSeconds);
-			hKey4->WriteIntValueToReg("ListPermitNum", DispPermissionsNumber);
-			hKey4->WriteIntValueToReg("MakeDir", MakeAllDir);
-			hKey4->WriteIntValueToReg("Kanji", LocalKanjiCode);
-			hKey4->WriteIntValueToReg("UPnP", UPnPEnabled);
-			hKey4->WriteIntValueToReg("ListRefresh", AutoRefreshFileList);
-			hKey4->WriteIntValueToReg("OldLog", RemoveOldLog);
-			hKey4->WriteIntValueToReg("AbortListErr", AbortOnListError);
-			hKey4->WriteIntValueToReg("MirNoTransfer", MirrorNoTransferContents);
-			hKey4->WriteIntValueToReg("FwallShared", FwallNoSaveUser);
-			hKey4->WriteIntValueToReg("MarkDFile", MarkAsInternet);
+			hKey4->WriteValue("CurSet", i);
 		}
 	}
 
@@ -614,13 +553,13 @@ bool LoadRegistry() {
 		return false;
 
 	int Version;
-	hKey3->ReadIntValueFromReg("Version", &Version);
+	hKey3->ReadValue("Version", Version);
 
 	if (Version < 1980)
 		IniKanjiCode = KANJI_SJIS;
 
 	if (1990 <= Version && GetMasterPasswordStatus() == PASSWORD_OK) {
-		hKey3->ReadIntValueFromReg("EncryptAll", &EncryptAllSettings);
+		hKey3->ReadValue("EncryptAll", EncryptAllSettings);
 		std::wstring encryptAllDetector;
 		hKey3->ReadPassword("EncryptAllDetector"sv, encryptAllDetector);
 		EncryptSettings = EncryptAllSettings;
@@ -643,14 +582,11 @@ bool LoadRegistry() {
 	}
 
 	if (auto hKey4 = hKey3->OpenSubKey(EncryptAllSettings == YES? "EncryptedOptions"sv : "Options"sv)) {
-		hKey4->ReadIntValueFromReg("WinPosX", &WinPosX);
-		hKey4->ReadIntValueFromReg("WinPosY", &WinPosY);
-		hKey4->ReadIntValueFromReg("WinWidth", &WinWidth);
-		hKey4->ReadIntValueFromReg("WinHeight", &WinHeight);
-		hKey4->ReadIntValueFromReg("LocalWidth", &LocalWidth);
+		for (auto& [name, variant] : settings)
+			std::visit([&hKey4, name](auto&& ptr) { hKey4->ReadValue(name, *ptr); }, variant);
+
 		/* ↓旧バージョンのバグ対策 */
 		LocalWidth = std::max(0, LocalWidth);
-		hKey4->ReadIntValueFromReg("TaskHeight", &TaskHeight);
 		/* ↓旧バージョンのバグ対策 */
 		TaskHeight = std::max(0, TaskHeight);
 		hKey4->ReadBinary("LocalColm"sv, LocalTabWidth);
@@ -659,55 +595,13 @@ bool LoadRegistry() {
 		hKey4->ReadBinary("RemoteColm"sv, RemoteTabWidth);
 		if (std::all_of(std::begin(RemoteTabWidth), std::end(RemoteTabWidth), [](auto width) { return width <= 0; }))
 			std::copy(std::begin(RemoteTabWidthDefault), std::end(RemoteTabWidthDefault), std::begin(RemoteTabWidth));
-		hKey4->ReadIntValueFromReg("SwCmd", &Sizing);
 
-		hKey4->ReadString("UserMail"sv, UserMailAdrs);
-		hKey4->ReadString("Viewer"sv, ViewerName[0]);
-		hKey4->ReadString("Viewer2"sv, ViewerName[1]);
-		hKey4->ReadString("Viewer3"sv, ViewerName[2]);
-
-		hKey4->ReadIntValueFromReg("TrType", &TransMode);
-		hKey4->ReadIntValueFromReg("Recv", &RecvMode);
-		hKey4->ReadIntValueFromReg("Send", &SendMode);
-		hKey4->ReadIntValueFromReg("Move", &MoveMode);
-		hKey4->ReadString("Path"sv, DefaultLocalPath);
-		hKey4->ReadIntValueFromReg("Time", &SaveTimeStamp);
-		hKey4->ReadIntValueFromReg("EOF", &RmEOF);
-		hKey4->ReadIntValueFromReg("Scolon", &VaxSemicolon);
-
-		hKey4->ReadIntValueFromReg("RecvEx", &ExistMode);
-		hKey4->ReadIntValueFromReg("SendEx", &UpExistMode);
-
-		hKey4->ReadIntValueFromReg("LFsort", &LocalFileSort);
-		hKey4->ReadIntValueFromReg("LDsort", &LocalDirSort);
-		hKey4->ReadIntValueFromReg("RFsort", &RemoteFileSort);
-		hKey4->ReadIntValueFromReg("RDsort", &RemoteDirSort);
-		hKey4->ReadIntValueFromReg("SortSave", &SortSave);
-
-		hKey4->ReadIntValueFromReg("ListType", &ListType);
-		hKey4->ReadIntValueFromReg("DotFile", &DotFile);
-		hKey4->ReadIntValueFromReg("Dclick", &DclickOpen);
-
-		hKey4->ReadIntValueFromReg("ConS", &ConnectOnStart);
-		hKey4->ReadIntValueFromReg("OldDlg", &ConnectAndSet);
-		hKey4->ReadIntValueFromReg("RasClose", &RasClose);
-		hKey4->ReadIntValueFromReg("RasNotify", &RasCloseNotify);
-		hKey4->ReadIntValueFromReg("Qanony", &QuickAnonymous);
-		hKey4->ReadIntValueFromReg("PassHist", &PassToHist);
-		hKey4->ReadIntValueFromReg("SendQuit", &SendQuit);
-		hKey4->ReadIntValueFromReg("NoRas", &NoRasControl);
-
-		hKey4->ReadIntValueFromReg("Debug", &DebugConsole);
-		hKey4->ReadIntValueFromReg("WinPos", &SaveWinPos);
-		hKey4->ReadIntValueFromReg("RegExp", &FindMode);
-		hKey4->ReadIntValueFromReg("Reg", &RegType);
-
-		if (!hKey4->ReadStrings("AsciiFile"sv, AsciiExt))
-			if (auto str = hKey4->ReadString("Ascii"sv)) {
+		if (!hKey4->ReadValue("AsciiFile"sv, AsciiExt))
+			if (std::wstring value; hKey4->ReadValue ("Ascii"sv, value)) {
 				/* 旧ASCIIモードの拡張子の設定を新しいものに変換 */
 				static boost::wregex re{ LR"([^;]+)" };
 				AsciiExt.clear();
-				for (boost::wsregex_iterator it{ str->begin(), str->end(), re }, end; it != end; ++it)
+				for (boost::wsregex_iterator it{ value.begin(), value.end(), re }, end; it != end; ++it)
 					AsciiExt.push_back(L"*."sv + it->str());
 			}
 		if (Version < 1986) {
@@ -717,69 +611,39 @@ bool LoadRegistry() {
 					AsciiExt.emplace_back(item);
 		}
 
-		hKey4->ReadIntValueFromReg("LowUp", &FnameCnv);
-		hKey4->ReadIntValueFromReg("Tout", &TimeOut);
-
-		hKey4->ReadStrings("NoTrn"sv, MirrorNoTrn);
-		hKey4->ReadStrings("NoDel"sv, MirrorNoDel);
-		hKey4->ReadIntValueFromReg("MirFile", &MirrorFnameCnv);
-		hKey4->ReadIntValueFromReg("MirUNot", &MirUpDelNotify);
-		hKey4->ReadIntValueFromReg("MirDNot", &MirDownDelNotify);
-
 		hKey4->ReadFont("ListFont"sv, ListFont, ListLogFont);
-		hKey4->ReadIntValueFromReg("ListHide", &DispIgnoreHide);
-		hKey4->ReadIntValueFromReg("ListDrv", &DispDrives);
-
-		hKey4->ReadString("FwallHost"sv, FwallHost);
-		hKey4->ReadString("FwallUser"sv, FwallUser);
+		hKey4->ReadValue("FwallUser"sv, FwallUser);
 		hKey4->ReadPassword("FwallPass"sv, FwallPass);
-		hKey4->ReadIntValueFromReg("FwallPort", &FwallPort);
-		hKey4->ReadIntValueFromReg("FwallType", &FwallType);
-		hKey4->ReadIntValueFromReg("FwallDef", &FwallDefault);
-		hKey4->ReadIntValueFromReg("FwallSec", &FwallSecurity);
-		hKey4->ReadIntValueFromReg("PasvDef", &PasvDefault);
-		hKey4->ReadIntValueFromReg("FwallRes", &FwallResolve);
-		hKey4->ReadIntValueFromReg("FwallLow", &FwallLower);
-		hKey4->ReadIntValueFromReg("FwallDel", &FwallDelimiter);
-
-		hKey4->ReadStrings("DefAttr"sv, DefAttrList);
-
 		hKey4->ReadBinary("Hdlg"sv, HostDlgSize);
 		hKey4->ReadBinary("Bdlg"sv, BmarkDlgSize);
 		hKey4->ReadBinary("Mdlg"sv, MirrorDlgSize);
-
-		hKey4->ReadIntValueFromReg("FAttrSw", &FolderAttr);
-		hKey4->ReadIntValueFromReg("FAttr", &FolderAttrNum);
-
-		hKey4->ReadIntValueFromReg("NoSave", &SuppressSave);
-
-		hKey4->ReadIntValueFromReg("HistNum", &FileHist);
+		hKey4->ReadValue("NoSave", SuppressSave);
 
 		/* ヒストリの設定を読み込む */
 		int Sets = 0;
-		hKey4->ReadIntValueFromReg("SavedHist", &Sets);
+		hKey4->ReadValue("SavedHist", Sets);
 		for (int i = 0; i < Sets; i++)
 			if (auto hKey5 = hKey4->OpenSubKey(std::format("History{}"sv, i))) {
 				HISTORYDATA Hist;
 				hKey5->ReadHost(Hist, Version, true);
-				hKey5->ReadIntValueFromReg("TrType", &Hist.Type);
+				hKey5->ReadValue("TrType", Hist.Type);
 				AddHistoryToHistory(Hist);
 			}
 
 		// ホスト共通設定機能
 		HOSTDATA Host;
 		if (auto hKey5 = hKey4->OpenSubKey("DefaultHost")) {
-			hKey5->ReadIntValueFromReg("Set", &Host.Level);
-			hKey5->ReadString("HostName"sv, Host.HostName);
-			hKey5->ReadIntValueFromReg("Anonymous", &Host.Anonymous);
+			hKey5->ReadValue("Set", Host.Level);
+			hKey5->ReadValue("HostName"sv, Host.HostName);
+			hKey5->ReadValue("Anonymous", Host.Anonymous);
 			hKey5->ReadHost(Host, Version, Host.Anonymous != YES);
-			hKey5->ReadStrings("Bmarks"sv, Host.BookMark);
+			hKey5->ReadValue("Bmarks"sv, Host.BookMark);
 			SetDefaultHost(&Host);
 		}
 
 		/* ホストの設定を読み込む */
 		Sets = 0;
-		hKey4->ReadIntValueFromReg("SetNum", &Sets);
+		hKey4->ReadValue("SetNum", Sets);
 		for (int i = 0; i < Sets; i++)
 			if (auto hKey5 = hKey4->OpenSubKey(std::format("Host{}"sv, i))) {
 				CopyDefaultHost(&Host);
@@ -790,30 +654,17 @@ bool LoadRegistry() {
 				// 1.97b以前はデフォルトでShift_JIS
 				if (Version < 1980)
 					Host.NameKanjiCode = KANJI_SJIS;
-				hKey5->ReadIntValueFromReg("Set", &Host.Level);
-				hKey5->ReadString("HostName"sv, Host.HostName);
-				hKey5->ReadIntValueFromReg("Anonymous", &Host.Anonymous);
+				hKey5->ReadValue("Set", Host.Level);
+				hKey5->ReadValue("HostName"sv, Host.HostName);
+				hKey5->ReadValue("Anonymous", Host.Anonymous);
 				hKey5->ReadHost(Host, Version, Host.Anonymous != YES);
-				hKey5->ReadIntValueFromReg("Last", &Host.LastDir);
-				hKey5->ReadStrings("Bmarks"sv, Host.BookMark);
+				hKey5->ReadValue("Last", Host.LastDir);
+				hKey5->ReadValue("Bmarks"sv, Host.BookMark);
 				AddHostToList(&Host, -1, Host.Level);
 			}
 
-		hKey4->ReadIntValueFromReg("CurSet", &Sets);
+		hKey4->ReadValue("CurSet", Sets);
 		SetCurrentHost(Sets);
-
-		hKey4->ReadIntValueFromReg("ListIcon", &DispFileIcon);
-		hKey4->ReadIntValueFromReg("ListSecond", &DispTimeSeconds);
-		hKey4->ReadIntValueFromReg("ListPermitNum", &DispPermissionsNumber);
-		hKey4->ReadIntValueFromReg("MakeDir", &MakeAllDir);
-		hKey4->ReadIntValueFromReg("Kanji", &LocalKanjiCode);
-		hKey4->ReadIntValueFromReg("UPnP", &UPnPEnabled);
-		hKey4->ReadIntValueFromReg("ListRefresh", &AutoRefreshFileList);
-		hKey4->ReadIntValueFromReg("OldLog", &RemoveOldLog);
-		hKey4->ReadIntValueFromReg("AbortListErr", &AbortOnListError);
-		hKey4->ReadIntValueFromReg("MirNoTransfer", &MirrorNoTransferContents);
-		hKey4->ReadIntValueFromReg("FwallShared", &FwallNoSaveUser);
-		hKey4->ReadIntValueFromReg("MarkDFile", &MarkAsInternet);
 	}
 	EncryptSettings = NO;
 	return true;
@@ -982,7 +833,7 @@ void Config::WritePassword(std::string_view name, std::wstring_view password) {
 			if (AesData({ &buffer[paddedLength], AesBlockSize }, { &buffer[0], paddedLength }, true)) {
 				for (auto i = 0u; i < paddedLength; i++)
 					encrypted += std::format("{:02x}"sv, buffer[i]);
-				WriteStringToReg(name, encrypted);
+				WriteValue(name, encrypted);
 			}
 		} else
 			Debug(L"BCryptGenRandom() failed: 0x{:08X}."sv, status);
@@ -1027,14 +878,14 @@ struct IniConfig : Config {
 				return data(line) + size(name) + 1;
 		return nullptr;
 	}
-	bool ReadInt(std::string_view name, int& value) const override {
+	bool ReadIntImpl(std::string_view name, int& value) const override {
 		if (auto const p = Scan(name)) {
 			value = atoi(p);
 			return true;
 		}
 		return false;
 	}
-	bool ReadValue(std::string_view name, std::string& value) const override {
+	bool ReadStringImpl(std::string_view name, std::string& value) const override {
 		static boost::regex re{ R"(\\([0-9A-F]{2})|\\\\)" };
 		if (auto const p = Scan(name)) {
 			value = replace({ p }, re, [](auto const& m) { return m[1].matched ? std::stoi(m[1], nullptr, 16) : '\\'; });
@@ -1044,10 +895,10 @@ struct IniConfig : Config {
 		}
 		return false;
 	}
-	void WriteInt(std::string_view name, int value) override {
+	void WriteIntImpl(std::string_view name, int value) override {
 		(*map)[KeyName].push_back(std::string{ name } + '=' + std::to_string(value));
 	}
-	void WriteValue(std::string_view name, std::string_view value, DWORD) override {
+	void WriteStringImpl(std::string_view name, std::string_view value, DWORD) override {
 		auto line = std::string{ name } +'=';
 		for (auto it = begin(value); it != end(value); ++it)
 			if (0x20 <= *it && *it < 0x7F) {
@@ -1076,11 +927,11 @@ struct RegConfig : Config {
 			return std::make_unique<RegConfig>(KeyName + '\\' + name, key);
 		return {};
 	}
-	bool ReadInt(std::string_view name, int& value) const override {
+	bool ReadIntImpl(std::string_view name, int& value) const override {
 		DWORD size = sizeof(int);
 		return RegQueryValueExW(hKey, u8(name).c_str(), nullptr, nullptr, reinterpret_cast<BYTE*>(&value), &size) == ERROR_SUCCESS;
 	}
-	bool ReadValue(std::string_view name, std::string& value) const override {
+	bool ReadStringImpl(std::string_view name, std::string& value) const override {
 		auto const wName = u8(name);
 		if (DWORD type, count; RegQueryValueExW(hKey, wName.c_str(), nullptr, &type, nullptr, &count) == ERROR_SUCCESS) {
 			if (type == REG_BINARY) {
@@ -1099,10 +950,10 @@ struct RegConfig : Config {
 		}
 		return false;
 	}
-	void WriteInt(std::string_view name, int value) override {
+	void WriteIntImpl(std::string_view name, int value) override {
 		RegSetValueExW(hKey, u8(name).c_str(), 0, REG_DWORD, reinterpret_cast<CONST BYTE*>(&value), sizeof(int));
 	}
-	void WriteValue(std::string_view name, std::string_view value, DWORD type) override {
+	void WriteStringImpl(std::string_view name, std::string_view value, DWORD type) override {
 		if (EncryptSettings == YES || type == REG_BINARY)
 			RegSetValueExW(hKey, u8(name).c_str(), 0, REG_BINARY, data_as<const BYTE>(value), type == REG_BINARY ? size_as<DWORD>(value) : size_as<DWORD>(value) + 1);
 		else {
@@ -1177,8 +1028,7 @@ static auto HashPassword(int stretchCount) {
 }
 
 // パスワードの妥当性を確認する
-static int CheckPasswordValidity(const char* HashStr, int StretchCount) {
-	std::string_view HashSv{ HashStr };
+static int CheckPasswordValidity(std::string_view HashSv, int StretchCount) {
 	/* 空文字列は一致したことにする */
 	if (empty(HashSv))
 		return PASSWORD_OK;
@@ -1187,11 +1037,11 @@ static int CheckPasswordValidity(const char* HashStr, int StretchCount) {
 
 	/* Hashをデコードする*/
 	std::array<uint32_t, 5> hash1 = {};
-	for (auto& decode : hash1)
+	for (auto it = begin(HashSv); auto& decode : hash1)
 		for (int j = 0; j < 8; j++) {
-			if (*HashStr < 0x40 || 0x40 + 15 < *HashStr)
+			if (*it < 0x40 || 0x40 + 15 < *it)
 				return BAD_PASSWORD_HASH;
-			decode = decode << 4 | *HashStr++ & 0x0F;
+			decode = decode << 4 | *it++ & 0x0F;
 		}
 
 	/* Password をハッシュする */
@@ -1269,7 +1119,7 @@ int ReadSettingsVersion() {
 		hKey3 = OpenReg(REGTYPE_REG);
 	int Version = INT_MAX;
 	if (hKey3)
-		hKey3->ReadIntValueFromReg("Version", &Version);
+		hKey3->ReadValue("Version", Version);
 	return Version;
 }
 
