@@ -199,19 +199,14 @@ static std::unique_ptr<Config> OpenReg(int type);
 static std::unique_ptr<Config> CreateReg(int type);
 static int CheckPasswordValidity(std::string_view HashSv, int StretchCount);
 static std::string CreatePasswordHash(int stretchCount);
-void SetHashSalt( DWORD salt );
-// 全設定暗号化対応
+void SetHashSalt(DWORD salt);
 void SetHashSalt1(void* Salt, int Length);
 
-/* 2010.01.30 genta 追加 */
 static char SecretKey[FMAX_PATH+1];
 static int SecretKeyLength;
 static int IsMasterPasswordError = PASSWORD_OK;
-
 static int IsRndSourceInit = 0;
 static uint32_t RndSource[9];
-
-// UTF-8対応
 static int IniKanjiCode = KANJI_NOCNV;
 static int EncryptSettingsError = NO;
 
@@ -230,18 +225,11 @@ std::wstring GetMasterPassword() {
 	return u8(SecretKey);
 }
 
-/*----- マスタパスワードの状態取得 ----------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		PASSWORD_OK : OK
-*		PASSWORD_UNMATCH : パスワード不一致
-*		BAD_PASSWORD_HASH : パスワード確認失敗
-*----------------------------------------------------------------------------*/
-int GetMasterPasswordStatus(void)
-{
+// マスタパスワードの状態取得
+//   PASSWORD_OK : OK
+//   PASSWORD_UNMATCH : パスワード不一致
+//   BAD_PASSWORD_HASH : パスワード確認失敗
+int GetMasterPasswordStatus() {
 	return IsMasterPasswordError;
 }
 
