@@ -510,9 +510,6 @@ static bool MakeAllWindows(int cmdShow) {
 	if (MakeSocketWin() == FFFTP_FAIL)
 		return false;
 
-	if (InitListViewTips() == FFFTP_FAIL)
-		return false;
-
 	SetListViewType();
 
 	return true;
@@ -1256,7 +1253,6 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					break;
 
 				case MENU_APPKEY :
-					EraseListViewTips();
 					if(hWndCurFocus == GetRemoteHwnd())
 						ShowPopupMenu(WIN_REMOTE, 1);
 					else if(hWndCurFocus == GetLocalHwnd())

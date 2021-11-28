@@ -1146,14 +1146,6 @@ void SaveSettingsToFileZillaXml();
 // WinSCP INI形式エクスポート対応
 void SaveSettingsToWinSCPIni();
 
-/*===== lvtips.c =====*/
-
-int InitListViewTips();
-void DeleteListViewTips(void);
-void EraseListViewTips(void);
-HWND GetListViewTipsHwnd(void);
-void CheckTipsDisplay(HWND hWnd, LPARAM lParam);
-
 /*===== ras.c =====*/
 
 void DisconnectRas(bool confirm);

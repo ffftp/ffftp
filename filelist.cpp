@@ -374,7 +374,7 @@ static LRESULT CALLBACK FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wP
 	switch (message) {
 	case WM_CREATE: {
 		auto result = CallWindowProcW(ListViewProc, hWnd, message, wParam, lParam);
-		SendMessageW(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
+		SendMessageW(hWnd, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP, LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP);
 		if (ListFont)
 			SendMessageW(hWnd, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));
 		SendMessageW(hWnd, LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)ListImg);
@@ -385,14 +385,12 @@ static LRESULT CALLBACK FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wP
 			SetFocus(hWndHistEdit);
 			return 0;
 		}
-		EraseListViewTips();
 		break;
 	case WM_KEYDOWN:
 		if (wParam == 0x09) {
 			SetFocus(hWndDst);
 			return 0;
 		}
-		EraseListViewTips();
 		break;
 	case WM_SETFOCUS:
 		SetFocusHwnd(hWnd);
@@ -401,7 +399,6 @@ static LRESULT CALLBACK FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wP
 		DispSelectedSpace();
 		break;
 	case WM_KILLFOCUS:
-		EraseListViewTips();
 		MakeButtonsFocus();
 		DispCurrentWindow(-1);
 		break;
@@ -423,7 +420,6 @@ static LRESULT CALLBACK FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wP
 			return 0;
 		DragFirstTime = NO;
 		GetCursorPos(&DropPoint);
-		EraseListViewTips();
 		SetFocus(hWnd);
 		DragPoint = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
 		hWndDragStart = hWnd;
@@ -551,7 +547,6 @@ static LRESULT CALLBACK FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wP
 		/* ここでファイルを選ぶ */
 		CallWindowProcW(ListViewProc, hWnd, message, wParam, lParam);
 
-		EraseListViewTips();
 		SetFocus(hWnd);
 		if (hWnd == hWndListRemote)
 			ShowPopupMenu(WIN_REMOTE, 0);
@@ -575,17 +570,14 @@ static LRESULT CALLBACK FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wP
 				PostMessageW(hWnd, WM_DRAGDROP, MAKEWPARAM(wParam, lParam), 0);
 			} else
 				break;
-		} else {
-			CheckTipsDisplay(hWnd, lParam);
+		} else
 			break;
-		}
 		return 0;
 	case WM_MOUSEWHEEL:
 		if (AskUserOpeDisabled())
 			return 0;
 		if (Dragging == NO) {
 			short zDelta = (short)HIWORD(wParam);
-			EraseListViewTips();
 			auto hWndPnt = WindowFromPoint({ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) });
 			if ((wParam & MAKEWPARAM(MK_SHIFT, 0)) && (hWndPnt == hWndListRemote || hWndPnt == hWndListLocal || hWndPnt == GetTaskWnd()))
 				PostMessageW(hWndPnt, WM_VSCROLL, zDelta > 0 ? MAKEWPARAM(SB_PAGEUP, 0) : MAKEWPARAM(SB_PAGEDOWN, 0), 0);
