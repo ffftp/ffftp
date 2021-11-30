@@ -724,7 +724,7 @@ static void DispFileList2View(HWND hWnd, std::vector<FILELIST>& files) {
 	std::sort(begin(files), end(files), [hWnd](FILELIST& l, FILELIST& r) {
 		if (l.Node != r.Node)
 			return l.Node < r.Node;
-		auto Sort = AskSortType(hWnd == GetRemoteHwnd() ? l.Node == NODE_DIR ? ITEM_RDIR : ITEM_RFILE : l.Node == NODE_DIR ? ITEM_LDIR : ITEM_LFILE);
+		auto Sort = hWnd == GetRemoteHwnd() ? l.Node == NODE_DIR ? AskSortType().RemoteDirectory : AskSortType().RemoteFile : l.Node == NODE_DIR ? AskSortType().LocalDirectory : AskSortType().LocalFile;
 		auto test = [ascent = (Sort & SORT_GET_ORD) == SORT_ASCENT](auto r) { return ascent ? r < 0 : r > 0; };
 		LONGLONG Cmp = 0;
 		fs::path lf{ l.Name }, rf{ r.Name };

@@ -93,11 +93,6 @@ static bool SplitUNCpath(std::wstring&& unc, std::wstring& Host, std::wstring& P
 
 void ConnectProc(int Type, int Num)
 {
-	int LFSort;
-	int LDSort;
-	int RFSort;
-	int RDSort;
-
 	SaveBookMark();
 	SaveCurrentSetToHost();
 
@@ -122,10 +117,8 @@ void ConnectProc(int Type, int Num)
 			SetHostKanjiCodeImm(CurHost.KanjiCode);
 			SetSyncMoveMode(CurHost.SyncMove);
 
-			if((AskSaveSortToHost() == YES) && (CurHost.Sort != SORT_NOTSAVED))
-			{
-				DecomposeSortType(CurHost.Sort, &LFSort, &LDSort, &RFSort, &RDSort);
-				SetSortTypeImm(LFSort, LDSort, RFSort, RDSort);
+			if (AskSaveSortToHost() == YES && CurHost.Sort != HostSort::NotSaved()) {
+				SetSortTypeImm(CurHost.Sort);
 				ReSortDispList(WIN_LOCAL, &CancelFlg);
 			}
 
@@ -405,11 +398,6 @@ void DirectConnectProc(std::wstring&& unc, int Kanji, int Kana, int Fkanji, int 
 
 void HistoryConnectProc(int MenuCmd)
 {
-	int LFSort;
-	int LDSort;
-	int RFSort;
-	int RDSort;
-
 	if (auto history = GetHistoryByCmd(MenuCmd)) {
 		SaveBookMark();
 		SaveCurrentSetToHost();
@@ -431,8 +419,7 @@ void HistoryConnectProc(int MenuCmd)
 			SetHostKanjiCodeImm(CurHost.KanjiCode);
 			SetSyncMoveMode(CurHost.SyncMove);
 
-			DecomposeSortType(CurHost.Sort, &LFSort, &LDSort, &RFSort, &RDSort);
-			SetSortTypeImm(LFSort, LDSort, RFSort, RDSort);
+			SetSortTypeImm(CurHost.Sort);
 			ReSortDispList(WIN_LOCAL, &CancelFlg);
 
 			SetTransferTypeImm(history->Type);
@@ -726,7 +713,7 @@ void SaveCurrentSetToHost(void)
 			CopyHostFromListInConnect(Host, &TmpHost);
 			if(TmpHost.LastDir == YES)
 				SetHostDir(AskCurrentHost(), AskLocalCurDir().native(), AskRemoteCurDir());
-			SetHostSort(AskCurrentHost(), AskSortType(ITEM_LFILE), AskSortType(ITEM_LDIR), AskSortType(ITEM_RFILE), AskSortType(ITEM_RDIR));
+			SetHostSort(AskCurrentHost(), AskSortType());
 		}
 	}
 	return;
@@ -747,7 +734,7 @@ static void SaveCurrentSetToHistory(void)
 	CurHost.LocalInitDir = AskLocalCurDir();
 	CurHost.RemoteInitDir = AskRemoteCurDir();
 
-	CurHost.Sort = AskSortType(ITEM_LFILE) * 0x1000000 | AskSortType(ITEM_LDIR) * 0x10000 | AskSortType(ITEM_RFILE) * 0x100 | AskSortType(ITEM_RDIR);
+	CurHost.Sort = AskSortType();
 
 	CurHost.KanjiCode = AskHostKanjiCode();
 	CurHost.KanaCnv = AskHostKanaCnv();

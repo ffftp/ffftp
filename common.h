@@ -241,15 +241,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define SORT_MASK_ORD	0x7F	/* ｘｘ順を取り出すマスク */
 #define SORT_GET_ORD	0x80	/* 昇順／降順を取り出すマスク */
 
-#define SORT_NOTSAVED	0xFFFF'FFFFu	/* ホスト毎のセーブ方法を保存していない時の値 */
-
-/*===== ソートする場所 =====*/
-
-#define ITEM_LFILE		0		/* ローカルの名前 */
-#define ITEM_LDIR		1		/* ローカルのディレクトリ */
-#define ITEM_RFILE		2		/* ホストの名前 */
-#define ITEM_RDIR		3		/* ホストのディレクトリ */
-
 /*===== ウインドウ番号 =====*/
 
 #define WIN_LOCAL		0		/* ローカル */
@@ -427,6 +418,17 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 #define NTYPE_IPV4			1		/* TCP/IPv4 */
 #define NTYPE_IPV6			2		/* TCP/IPv6 */
 
+struct HostSort {
+	uint8_t RemoteDirectory;
+	uint8_t RemoteFile;
+	uint8_t LocalDirectory;
+	uint8_t LocalFile;
+	static constexpr HostSort NotSaved() { return { 0xFF, 0xFF, 0xFF, 0xFF }; }	/* ホスト毎のセーブ方法を保存していない時の値 */
+	static constexpr HostSort Default() { return { SORT_NAME, SORT_NAME, SORT_NAME, SORT_NAME }; }
+	constexpr bool operator==(HostSort const&) const = default;
+};
+static_assert(sizeof(HostSort) == 4);
+
 /* 設定値 */
 inline int WinPosX = CW_USEDEFAULT;
 inline int WinPosY = 0;
@@ -442,10 +444,7 @@ inline std::wstring UserMailAdrs = L"who@example.com"s;
 inline std::wstring ViewerName[VIEWERS] = { L"notepad"s };
 inline HFONT ListFont = NULL;
 inline LOGFONTW ListLogFont;
-inline int LocalFileSort = SORT_NAME;
-inline int LocalDirSort = SORT_NAME;
-inline int RemoteFileSort = SORT_NAME;
-inline int RemoteDirSort = SORT_NAME;
+inline HostSort Sort = HostSort::Default();
 inline int TransMode = TYPE_X;
 inline int ConnectOnStart = YES;
 inline int DebugConsole = NO;
@@ -614,7 +613,7 @@ struct HostExeptPassword {
 	int HostType = HTYPE_AUTO;							/* ホストのタイプ (HTYPE_xxx) */
 	int SyncMove = NO;									/* フォルダ同時移動 (YES/NO) */
 	int NoFullPath = NO;								/* フルパスでファイルアクセスしない (YES/NO) */
-	uint32_t Sort = SORT_NOTSAVED;						/* ソート方法 (0x11223344 : 11=LFsort 22=LDsort 33=RFsort 44=RFsort) */
+	HostSort Sort = HostSort::NotSaved();				/* ソート方法 (0x11223344 : 11=LFsort 22=LDsort 33=RFsort 44=RFsort) */
 	int Security = SECURITY_AUTO;						/* セキュリティ (SECURITY_xxx , MDx) */
 	int Dialup = NO;									/* ダイアルアップ接続するかどうか (YES/NO) */
 	int DialupAlways = NO;								/* 常にこのエントリへ接続するかどうか (YES/NO) */
@@ -855,9 +854,9 @@ void SetHostKanaCnvImm(int Mode);
 void SetHostKanaCnv(void);
 void DispHostKanaCnv(void);
 int AskHostKanaCnv(void);
-void SetSortTypeImm(int LFsort, int LDsort, int RFsort, int RDsort);
+void SetSortTypeImm(HostSort const& sort);
 void SetSortTypeByColumn(int Win, int Tab);
-int AskSortType(int Name);
+HostSort const& AskSortType();
 void SetSaveSortToHost(int Sw);
 int AskSaveSortToHost(void);
 void DispListType(void);
@@ -919,8 +918,7 @@ int SetHostBookMark(int Num, std::vector<std::wstring>&& bookmark);
 std::optional<std::vector<std::wstring>> AskHostBookMark(int Num);
 int SetHostDir(int Num, std::wstring_view LocDir, std::wstring_view HostDir);
 int SetHostPassword(int Num, std::wstring const& Pass);
-int SetHostSort(int Num, int LFSort, int LDSort, int RFSort, int RDSort);
-void DecomposeSortType(uint32_t Sort, int *LFSort, int *LDSort, int *RFSort, int *RDSort);
+int SetHostSort(int Num, HostSort const& sort);
 int AskCurrentHost(void);
 void SetCurrentHost(int Num);
 void CopyDefaultHost(HOSTDATA *Set);

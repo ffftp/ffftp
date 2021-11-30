@@ -646,39 +646,12 @@ int SearchHostName(std::wstring_view name) {
 
 
 // 設定値リストのソート方法を更新
-//   int LFSort : ローカルのファイルのソート方法
-//   int LDSort : ローカルのフォルダのソート方法
-//   int RFSort : リモートのファイルのソート方法
-//   int RDSort : リモートのフォルダのソート方法
-int SetHostSort(int Num, int LFSort, int LDSort, int RFSort, int RDSort) {
+int SetHostSort(int Num, HostSort const& sort) {
 	if (Num < 0 || Hosts <= Num)
 		return FFFTP_FAIL;
 	auto Pos = GetNode(Num);
-	Pos->Sort = LFSort * 0x1000000 | LDSort * 0x10000 | RFSort * 0x100 | RDSort;
+	Pos->Sort = sort;
 	return FFFTP_SUCCESS;
-}
-
-
-/*----- 登録されているソート方法を分解する ------------------------------------
-*
-*	Parameter
-*		uint32_t Sort : ソート方法 
-*		int *LFSort : ローカルのファイルのソート方法を格納するワーク
-*		int *LDSort : ローカルのフォルダのソート方法を格納するワーク
-*		int *RFSort : リモートのファイルのソート方法を格納するワーク
-*		int *RDSort : リモートのフォルダのソート方法を格納するワーク
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DecomposeSortType(uint32_t Sort, int *LFSort, int *LDSort, int *RFSort, int *RDSort)
-{
-	*LFSort = (int)((Sort / 0x1000000) & 0xFF);
-	*LDSort = (int)((Sort / 0x10000) & 0xFF);
-	*RFSort = (int)((Sort / 0x100) & 0xFF);
-	*RDSort = (int)(Sort & 0xFF);
-	return;
 }
 
 
