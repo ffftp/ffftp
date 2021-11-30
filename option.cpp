@@ -702,33 +702,34 @@ int SortSetting() {
 		using RsortOrdButton = RadioButton<SORT_RFILE_NAME, SORT_RFILE_EXT, SORT_RFILE_SIZE, SORT_RFILE_DATE>;
 		using RDirsortOrdButton = RadioButton<SORT_RDIR_NAME, SORT_RDIR_DATE>;
 		INT_PTR OnInit(HWND hDlg) {
-			LsortOrdButton::Set(hDlg, AskSortType(ITEM_LFILE) & SORT_MASK_ORD);
-			SendDlgItemMessageW(hDlg, SORT_LFILE_REV, BM_SETCHECK, (AskSortType(ITEM_LFILE) & SORT_GET_ORD) != SORT_ASCENT, 0);
-			LDirsortOrdButton::Set(hDlg, AskSortType(ITEM_LDIR) & SORT_MASK_ORD);
-			SendDlgItemMessageW(hDlg, SORT_LDIR_REV, BM_SETCHECK, (AskSortType(ITEM_LDIR) & SORT_GET_ORD) != SORT_ASCENT, 0);
-			RsortOrdButton::Set(hDlg, AskSortType(ITEM_RFILE) & SORT_MASK_ORD);
-			SendDlgItemMessageW(hDlg, SORT_RFILE_REV, BM_SETCHECK, (AskSortType(ITEM_RFILE) & SORT_GET_ORD) != SORT_ASCENT, 0);
-			RDirsortOrdButton::Set(hDlg, AskSortType(ITEM_RDIR) & SORT_MASK_ORD);
-			SendDlgItemMessageW(hDlg, SORT_RDIR_REV, BM_SETCHECK, (AskSortType(ITEM_RDIR) & SORT_GET_ORD) != SORT_ASCENT, 0);
+			LsortOrdButton::Set(hDlg, AskSortType().LocalFile & SORT_MASK_ORD);
+			SendDlgItemMessageW(hDlg, SORT_LFILE_REV, BM_SETCHECK, (AskSortType().LocalFile & SORT_GET_ORD) != SORT_ASCENT, 0);
+			LDirsortOrdButton::Set(hDlg, AskSortType().LocalDirectory & SORT_MASK_ORD);
+			SendDlgItemMessageW(hDlg, SORT_LDIR_REV, BM_SETCHECK, (AskSortType().LocalDirectory & SORT_GET_ORD) != SORT_ASCENT, 0);
+			RsortOrdButton::Set(hDlg, AskSortType().RemoteFile & SORT_MASK_ORD);
+			SendDlgItemMessageW(hDlg, SORT_RFILE_REV, BM_SETCHECK, (AskSortType().RemoteFile & SORT_GET_ORD) != SORT_ASCENT, 0);
+			RDirsortOrdButton::Set(hDlg, AskSortType().RemoteDirectory & SORT_MASK_ORD);
+			SendDlgItemMessageW(hDlg, SORT_RDIR_REV, BM_SETCHECK, (AskSortType().RemoteDirectory & SORT_GET_ORD) != SORT_ASCENT, 0);
 			SendDlgItemMessageW(hDlg, SORT_SAVEHOST, BM_SETCHECK, AskSaveSortToHost(), 0);
 			return TRUE;
 		}
 		void OnCommand(HWND hDlg, WORD id) {
 			switch (id) {
 			case IDOK: {
-				auto LFsort = LsortOrdButton::Get(hDlg);
+				HostSort sort;
+				sort.LocalFile = LsortOrdButton::Get(hDlg);
 				if (SendDlgItemMessageW(hDlg, SORT_LFILE_REV, BM_GETCHECK, 0, 0) == 1)
-					LFsort |= SORT_DESCENT;
-				auto LDsort = LDirsortOrdButton::Get(hDlg);
+					sort.LocalFile |= SORT_DESCENT;
+				sort.LocalDirectory = LDirsortOrdButton::Get(hDlg);
 				if (SendDlgItemMessageW(hDlg, SORT_LDIR_REV, BM_GETCHECK, 0, 0) == 1)
-					LDsort |= SORT_DESCENT;
-				auto RFsort = RsortOrdButton::Get(hDlg);
+					sort.LocalDirectory |= SORT_DESCENT;
+				sort.RemoteFile = RsortOrdButton::Get(hDlg);
 				if (SendDlgItemMessageW(hDlg, SORT_RFILE_REV, BM_GETCHECK, 0, 0) == 1)
-					RFsort |= SORT_DESCENT;
-				auto RDsort = RDirsortOrdButton::Get(hDlg);
+					sort.RemoteFile |= SORT_DESCENT;
+				sort.RemoteDirectory = RDirsortOrdButton::Get(hDlg);
 				if (SendDlgItemMessageW(hDlg, SORT_RDIR_REV, BM_GETCHECK, 0, 0) == 1)
-					RDsort |= SORT_DESCENT;
-				SetSortTypeImm(LFsort, LDsort, RFsort, RDsort);
+					sort.RemoteDirectory |= SORT_DESCENT;
+				SetSortTypeImm(sort);
 				SetSaveSortToHost((int)SendDlgItemMessageW(hDlg, SORT_SAVEHOST, BM_GETCHECK, 0, 0));
 				EndDialog(hDlg, YES);
 				break;

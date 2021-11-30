@@ -406,7 +406,7 @@ static int InitApp(int cmdShow)
 				if (std::error_code ec; !empty(DefaultLocalPath))
 					fs::current_path(DefaultLocalPath, ec);
 
-				SetSortTypeImm(LocalFileSort, LocalDirSort, RemoteFileSort, RemoteDirSort);
+				SetSortTypeImm(Sort);
 				SetTransferTypeImm(TransMode);
 				DispTransferType();
 				SetHostKanaCnvImm(YES);
@@ -983,10 +983,7 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 					{
 						// 同時接続対応
 						CancelFlg = NO;
-						LocalFileSort = AskSortType(ITEM_LFILE);
-						LocalDirSort = AskSortType(ITEM_LDIR);
-						RemoteFileSort = AskSortType(ITEM_RFILE);
-						RemoteDirSort = AskSortType(ITEM_RDIR);
+						Sort = AskSortType();
 						ReSortDispList(WIN_LOCAL, &CancelFlg);
 						ReSortDispList(WIN_REMOTE, &CancelFlg);
 					}

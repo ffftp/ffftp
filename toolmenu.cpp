@@ -41,10 +41,7 @@ static int TmpHostKanjiCode;
 static int TmpHostKanaCnv;
 // TODO: ローカルの漢字コードをShift_JIS以外にも対応
 static int TmpLocalKanjiCode;
-static int TmpLocalFileSort;
-static int TmpLocalDirSort;
-static int TmpRemoteFileSort;
-static int TmpRemoteDirSort;
+static HostSort TmpSort;
 static int SyncMove = NO;
 static int HideUI = 0;
 static fs::path LocalCurDir;
@@ -637,43 +634,26 @@ int AskHostKanaCnv() {
 *===================================================*/
 
 // ソート方法をセットする
-//   LFsort : ローカル側のファイルのソート方法 (SORT_xxx)
-//   LDsort : ローカル側のディレクトリのソート方法 (SORT_xxx)
-//   RFsort : ホスト側のファイルのソート方法 (SORT_xxx)
-//   RDsort : ホスト側のディレクトリのソート方法 (SORT_xxx)
-void SetSortTypeImm(int LFsort, int LDsort, int RFsort, int RDsort) {
-	TmpLocalFileSort = LFsort;
-	TmpLocalDirSort = LDsort;
-	TmpRemoteFileSort = RFsort;
-	TmpRemoteDirSort = RDsort;
+void SetSortTypeImm(HostSort const& sort) {
+	TmpSort = sort;
 }
 
 
 // リストビューのタブクリックによるソート方法のセット
 void SetSortTypeByColumn(int Win, int Tab) {
 	if (Win == WIN_LOCAL) {
-		TmpLocalFileSort = (TmpLocalFileSort & SORT_MASK_ORD) == Tab ? TmpLocalFileSort ^ SORT_GET_ORD : Tab;
-		TmpLocalDirSort = Tab == SORT_NAME || Tab == SORT_DATE ? TmpLocalFileSort : SORT_NAME;
+		TmpSort.LocalFile = (TmpSort.LocalFile & SORT_MASK_ORD) == Tab ? TmpSort.LocalFile ^ SORT_GET_ORD : Tab;
+		TmpSort.LocalDirectory = Tab == SORT_NAME || Tab == SORT_DATE ? TmpSort.LocalFile : SORT_NAME;
 	} else if (Tab != 4) {
-		TmpRemoteFileSort = (TmpRemoteFileSort & SORT_MASK_ORD) == Tab ? TmpRemoteFileSort ^ SORT_GET_ORD : Tab;
-		TmpRemoteDirSort = Tab == SORT_NAME || Tab == SORT_DATE ? TmpRemoteFileSort : SORT_NAME;
+		TmpSort.RemoteFile = (TmpSort.RemoteFile & SORT_MASK_ORD) == Tab ? TmpSort.RemoteFile ^ SORT_GET_ORD : Tab;
+		TmpSort.RemoteDirectory = Tab == SORT_NAME || Tab == SORT_DATE ? TmpSort.RemoteFile : SORT_NAME;
 	}
 }
 
 
 // ソート方法を返す
-int AskSortType(int Name) {
-	switch (Name) {
-	case ITEM_LFILE:
-		return TmpLocalFileSort;
-	case ITEM_LDIR:
-		return TmpLocalDirSort;
-	case ITEM_RFILE:
-		return TmpRemoteFileSort;
-	case ITEM_RDIR:
-		return TmpRemoteDirSort;
-	}
-	return TmpLocalFileSort;
+HostSort const& AskSortType() {
+	return TmpSort;
 }
 
 

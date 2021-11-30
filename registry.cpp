@@ -327,7 +327,7 @@ void Config::WriteHost(Host const& host, Host const& defaultHost, bool writePass
 	WriteBinary("Sort"sv, host.Sort);
 }
 
-static constexpr std::tuple<std::string_view, std::variant<int*, std::wstring*, std::vector<std::wstring>*>> settings[] = {
+static constexpr std::tuple<std::string_view, std::variant<int*, uint8_t*, std::wstring*, std::vector<std::wstring>*>> settings[] = {
 	{ "WinPosX"sv, &WinPosX },
 	{ "WinPosY"sv, &WinPosY },
 	{ "WinWidth"sv, &WinWidth },
@@ -349,10 +349,10 @@ static constexpr std::tuple<std::string_view, std::variant<int*, std::wstring*, 
 	{ "Scolon"sv, &VaxSemicolon },
 	{ "RecvEx"sv, &ExistMode },
 	{ "SendEx"sv, &UpExistMode },
-	{ "LFsort"sv, &LocalFileSort },
-	{ "LDsort"sv, &LocalDirSort },
-	{ "RFsort"sv, &RemoteFileSort },
-	{ "RDsort"sv, &RemoteDirSort },
+	{ "LFsort"sv, &Sort.LocalFile },
+	{ "LDsort"sv, &Sort.LocalDirectory },
+	{ "RFsort"sv, &Sort.RemoteFile },
+	{ "RDsort"sv, &Sort.RemoteDirectory },
 	{ "SortSave"sv, &SortSave },
 	{ "ListType"sv, &ListType },
 	{ "DotFile"sv, &DotFile },
