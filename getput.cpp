@@ -1294,8 +1294,11 @@ static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item)
 			std::tie(iRetCode, text) = Command(item.ctrl_skt, &Canceled[item.ThreadCount], L"TYPE {}", (wchar_t)item.Type);
 			if(iRetCode/100 < FTP_RETRY)
 			{
-				if(item.Mode == EXIST_UNIQUE)
+				if (item.Mode == EXIST_UNIQUE) {
 					item.Command = L"STOU "s;
+					// 応答の形式に規格が無くファイル名を取得できないため属性変更を無効化
+					item.Attr = -1;
+				}
 
 				if(item.hWndTrans != NULL)
 					DispTransFileInfo(item, IDS_MSGJPN104, TRUE, YES);
@@ -1368,10 +1371,6 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 		std::tie(iRetCode, text) = Command(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], L"{}{}{}"sv, cmd, Pkt->Remote, extra);
 		if((iRetCode/100) == FTP_PRELIM)
 		{
-			// STOUの応答を処理
-			// 応答の形式に規格が無くファイル名を取得できないため属性変更を無効化
-			if(Pkt->Mode == EXIST_UNIQUE)
-				Pkt->Attr = -1;
 			if (GetCurHost().FireWall == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
 				if (SocksReceiveReply(listen_socket, &Canceled[Pkt->ThreadCount]))
 					data_socket = listen_socket;
@@ -1471,10 +1470,6 @@ static int UploadPassive(TRANSPACKET *Pkt)
 				std::tie(iRetCode, text) = Command(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], L"{}{}{}"sv, cmd, Pkt->Remote, extra);
 				if(iRetCode/100 == FTP_PRELIM)
 				{
-					// STOUの応答を処理
-					// 応答の形式に規格が無くファイル名を取得できないため属性変更を無効化
-					if(Pkt->Mode == EXIST_UNIQUE)
-						Pkt->Attr = -1;
 					if (Pkt->ctrl_skt->IsSSLAttached()) {
 						if (data_socket->AttachSSL(&Canceled[Pkt->ThreadCount]))
 							iRetCode = UploadFile(Pkt, data_socket);
