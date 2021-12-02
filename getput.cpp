@@ -891,16 +891,8 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 						Debug(L"Skt={} : accept from {}"sv, data_socket->handle, AddressPortToString(&sa, salen));
 				}
 
-				if (data_socket) {
-					if (Pkt->ctrl_skt->IsSSLAttached()) {
-						if (data_socket->AttachSSL(CancelCheckWork))
-							iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
-						else
-							iRetCode = 500;
-					}
-					else
-						iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
-				}
+				if (data_socket)
+					iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 			}
 			else
 			{
@@ -964,19 +956,9 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 				if(SetDownloadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &CreateMode, CancelCheckWork) == YES)
 				{
 					std::tie(iRetCode, text) = Command(Pkt->ctrl_skt, CancelCheckWork, L"{}{}"sv, Pkt->Command, Pkt->Remote);
-					if(iRetCode/100 == FTP_PRELIM)
-					{
-						if (Pkt->ctrl_skt->IsSSLAttached()) {
-							if (data_socket->AttachSSL(CancelCheckWork))
-								iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
-							else
-								iRetCode = 500;
-						}
-						else
-							iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
-					}
-					else
-					{
+					if (iRetCode/100 == FTP_PRELIM)
+						iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+					else {
 						SetErrorMsg(std::move(text));
 						Notice(IDS_MSGJPN092);
 						data_socket.reset();
@@ -1025,6 +1007,8 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int CreateMode, int *CancelCheckWork) {
 	assert(dSkt);
 	assert(Pkt->ctrl_skt);
+	if (Pkt->ctrl_skt->IsSSLAttached() && !dSkt->AttachSSL(CancelCheckWork))
+		return 500;
 #ifdef DISABLE_TRANSFER_NETWORK_BUFFERS
 	int buf_size = 0;
 	setsockopt(dSkt, SOL_SOCKET, SO_RCVBUF, (char*)&buf_size, sizeof(buf_size));
@@ -1398,14 +1382,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 			}
 
 			if (data_socket) {
-				if (Pkt->ctrl_skt->IsSSLAttached()) {
-					if (data_socket->AttachSSL(&Canceled[Pkt->ThreadCount]))
-						iRetCode = UploadFile(Pkt, data_socket);
-					else
-						iRetCode = 500;
-				}
-				else
-					iRetCode = UploadFile(Pkt, data_socket);
+				iRetCode = UploadFile(Pkt, data_socket);
 				data_socket.reset();
 			}
 		}
@@ -1470,15 +1447,7 @@ static int UploadPassive(TRANSPACKET *Pkt)
 				std::tie(iRetCode, text) = Command(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], L"{}{}{}"sv, cmd, Pkt->Remote, extra);
 				if(iRetCode/100 == FTP_PRELIM)
 				{
-					if (Pkt->ctrl_skt->IsSSLAttached()) {
-						if (data_socket->AttachSSL(&Canceled[Pkt->ThreadCount]))
-							iRetCode = UploadFile(Pkt, data_socket);
-						else
-							iRetCode = 500;
-					}
-					else
-						iRetCode = UploadFile(Pkt, data_socket);
-
+					iRetCode = UploadFile(Pkt, data_socket);
 					data_socket.reset();
 				}
 				else
@@ -1527,6 +1496,8 @@ static int UploadPassive(TRANSPACKET *Pkt)
 *----------------------------------------------------------------------------*/
 
 static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt) {
+	if (Pkt->ctrl_skt->IsSSLAttached() && !dSkt->AttachSSL(&Canceled[Pkt->ThreadCount]))
+		return 500;
 #ifdef DISABLE_TRANSFER_NETWORK_BUFFERS
 	int buf_size = 0;
 	setsockopt(dSkt, SOL_SOCKET, SO_SNDBUF, (char*)&buf_size, sizeof(buf_size));
