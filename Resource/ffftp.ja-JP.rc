@@ -2365,7 +2365,6 @@ BEGIN
     IDS_MSGJPN089           "ファイル {} はスキップします."
     IDS_MSGJPN090           "コマンドが受け付けられません."
     IDS_MSGJPN091           "ダウンロードのために"
-    IDS_MSGJPN092           "コマンドが受け付けられません."
     IDS_MSGJPN093           "アドレスが取得できません."
     IDS_MSGJPN094           "受信はタイムアウトで失敗しました."
     IDS_MSGJPN095           "ファイル {} が作成できません."
@@ -2385,9 +2384,7 @@ BEGIN
     IDS_MSGJPN105           "ファイル {} が読み出せません."
     IDS_MSGJPN106           "スキップ"
     IDS_MSGJPN107           "ファイル {} はスキップします."
-    IDS_MSGJPN108           "コマンドが受け付けられません."
     IDS_MSGJPN109           "アップロードのために"
-    IDS_MSGJPN110           "コマンドが受け付けられません."
     IDS_MSGJPN111           "アドレスが取得できません."
 END
 

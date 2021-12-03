@@ -68,14 +68,12 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
 static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int CreateMode, int *CancelCheckWork);
 static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
 static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt);
-static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode, int *CancelCheckWork);
 static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item);
 static int UploadNonPassive(TRANSPACKET *Pkt);
 static int UploadPassive(TRANSPACKET *Pkt);
 static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt);
 static int TermCodeConvAndSend(std::shared_ptr<SocketContext> Skt, char *Data, int Size, int Ascii, int *CancelCheckWork);
 static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
-static int SetUploadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode);
 static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
 static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt);
 static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipButton, int Info);
@@ -772,6 +770,70 @@ static int MakeNonFullPath(TRANSPACKET& item, std::wstring& Cur) {
 }
 
 
+static int SendDownloadCommand(TRANSPACKET* Pkt, int& CreateMode, int* CancelCheckWork) {
+	struct Data {
+		using result_t = bool;
+		void OnCommand(HWND hDlg, WORD id) {
+			switch (id) {
+			case IDOK:
+				EndDialog(hDlg, true);
+				break;
+			case RESUME_CANCEL_ALL:
+				ClearAll = YES;
+				[[fallthrough]];
+			case IDCANCEL:
+				EndDialog(hDlg, false);
+				break;
+			}
+		}
+	};
+	auto tempSize = std::exchange(Pkt->ExistSize, 0);
+	CreateMode = CREATE_ALWAYS;
+	if (Pkt->Mode == EXIST_RESUME) {
+		if (auto [code, text] = Command(Pkt->ctrl_skt, CancelCheckWork, L"REST {}"sv, tempSize); code / 100 < FTP_RETRY) {
+			/* リジューム */
+			if (Pkt->hWndTrans != NULL)
+				Pkt->ExistSize = tempSize;
+			CreateMode = OPEN_ALWAYS;
+		} else {
+			if (!Dialog(GetFtpInst(), noresume_dlg, Pkt->hWndTrans, Data{})) {
+				Pkt->Abort = ABORT_USER;
+				return 500;
+			}
+		}
+	}
+	auto [code, text] = Command(Pkt->ctrl_skt, CancelCheckWork, L"{}{}"sv, Pkt->Command, Pkt->Remote);
+	if (code / 100 != FTP_PRELIM) {
+		SetErrorMsg(std::move(text));
+		Notice(IDS_MSGJPN090);
+		return 500;
+	}
+	return code;
+}
+
+
+static int SendUploadCommand(TRANSPACKET* Pkt, int& Resume, int* CancelCheckWork) {
+	Resume = Pkt->Mode == EXIST_RESUME && Pkt->hWndTrans != NULL ? YES : NO;
+	auto cmd = L"APPE "sv;
+	std::wstring extra;
+	if (Resume == NO) {
+		cmd = Pkt->Command;
+		Pkt->ExistSize = 0;
+#if defined(HAVE_TANDEM)
+		if (AskHostType() == HTYPE_TANDEM && AskOSS() == NO && Pkt->Type != TYPE_A)
+			extra = std::format(Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT ? L",{}"sv : L",{},{},{},{}"sv, Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
+#endif
+	}
+	auto [code, text] = Command(Pkt->ctrl_skt, CancelCheckWork, L"{}{}{}"sv, cmd, Pkt->Remote, extra);
+	if (code / 100 != FTP_PRELIM) {
+		SetErrorMsg(std::move(text));
+		Notice(IDS_MSGJPN090);
+		return 500;
+	}
+	return code;
+}
+
+
 /*----- ダウンロードを行なう --------------------------------------------------
 *
 *	Parameter
@@ -859,62 +921,40 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 	int CreateMode;
 
 	if (listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, CancelCheckWork)) {
-		if(SetDownloadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &CreateMode, CancelCheckWork) == YES)
-		{
-			std::wstring text;
-			std::tie(iRetCode, text) = Command(Pkt->ctrl_skt, CancelCheckWork, L"{}{}"sv, Pkt->Command, Pkt->Remote);
-			if(iRetCode/100 == FTP_PRELIM)
-			{
-				if (GetCurHost().FireWall == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
-					if (!SocksReceiveReply(listen_socket, CancelCheckWork))
-						data_socket = listen_socket;
-					else
-						listen_socket.reset();
-				} else {
-					sockaddr_storage sa;
-					int salen = sizeof(sockaddr_storage);
-					data_socket = listen_socket->Accept(reinterpret_cast<sockaddr*>(&sa), &salen);
-
-					if(shutdown(listen_socket->handle, 1) != 0)
-						WSAError(L"shutdown(listen)"sv);
-					// UPnP対応
-					if(IsUPnPLoaded() == YES)
-						RemovePortMapping(listen_socket->mapPort);
+		iRetCode = SendDownloadCommand(Pkt, CreateMode, CancelCheckWork);
+		if (iRetCode / 100 == FTP_PRELIM) {
+			if (GetCurHost().FireWall == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
+				if (!SocksReceiveReply(listen_socket, CancelCheckWork))
+					data_socket = listen_socket;
+				else
 					listen_socket.reset();
+			} else {
+				sockaddr_storage sa;
+				int salen = sizeof(sockaddr_storage);
+				data_socket = listen_socket->Accept(reinterpret_cast<sockaddr*>(&sa), &salen);
 
-					if (!data_socket) {
-						SetErrorMsg(GetString(IDS_MSGJPN280));
-						WSAError(L"accept()"sv);
-						iRetCode = 500;
-					}
-					else
-						Debug(L"Skt={} : accept from {}"sv, data_socket->handle, AddressPortToString(&sa, salen));
-				}
-
-				if (data_socket)
-					iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
-			}
-			else
-			{
-				SetErrorMsg(std::move(text));
-				Notice(IDS_MSGJPN090);
+				if(shutdown(listen_socket->handle, 1) != 0)
+					WSAError(L"shutdown(listen)"sv);
 				// UPnP対応
 				if(IsUPnPLoaded() == YES)
 					RemovePortMapping(listen_socket->mapPort);
 				listen_socket.reset();
-				iRetCode = 500;
+
+				if (!data_socket) {
+					SetErrorMsg(GetString(IDS_MSGJPN280));
+					WSAError(L"accept()"sv);
+					iRetCode = 500;
+				}
+				else
+					Debug(L"Skt={} : accept from {}"sv, data_socket->handle, AddressPortToString(&sa, salen));
 			}
+
+			if (data_socket)
+				iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
 		}
-		else
-		// バグ修正
-//			iRetCode = 500;
-		{
-			// UPnP対応
-			if(IsUPnPLoaded() == YES)
-				RemovePortMapping(listen_socket->mapPort);
-			listen_socket.reset();
-			iRetCode = 500;
-		}
+		if(IsUPnPLoaded() == YES)
+			RemovePortMapping(listen_socket->mapPort);
+		listen_socket.reset();
 	}
 	else
 	{
@@ -953,20 +993,10 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 				if(setsockopt(data_socket->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					WSAError(L"setsockopt(IPPROTO_TCP, TCP_NODELAY)"sv);
 
-				if(SetDownloadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &CreateMode, CancelCheckWork) == YES)
-				{
-					std::tie(iRetCode, text) = Command(Pkt->ctrl_skt, CancelCheckWork, L"{}{}"sv, Pkt->Command, Pkt->Remote);
-					if (iRetCode/100 == FTP_PRELIM)
-						iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
-					else {
-						SetErrorMsg(std::move(text));
-						Notice(IDS_MSGJPN092);
-						data_socket.reset();
-						iRetCode = 500;
-					}
-				}
-				else
-					iRetCode = 500;
+				iRetCode = SendDownloadCommand(Pkt, CreateMode, CancelCheckWork);
+				if (iRetCode/100 == FTP_PRELIM)
+					iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
+				data_socket.reset();
 			}
 			else
 				iRetCode = 500;
@@ -1198,60 +1228,6 @@ static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt) {
 }
 
 
-/*----- ダウンロードのリジュームの準備を行う ----------------------------------
-*
-*	Parameter
-*		TRANSPACKET *Pkt : 転送ファイル情報
-*		iont ProcMode : 処理モード(EXIST_xxx)
-*		LONGLONG Size : ロード済みのファイルのサイズ
-*		int *Mode : ファイル作成モード (CREATE_xxxx)
-*
-*	Return Value
-*		int 転送を行うかどうか(YES/NO=このファイルを中止/NO_ALL=全て中止)
-*
-*	Note
-*		Pkt->ExistSizeのセットを行なう
-*----------------------------------------------------------------------------*/
-
-static int SetDownloadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode, int *CancelCheckWork) {
-	struct Data {
-		using result_t = int;
-		void OnCommand(HWND hDlg, WORD id) {
-			switch (id) {
-			case IDOK:
-				EndDialog(hDlg, YES);
-				break;
-			case IDCANCEL:
-				EndDialog(hDlg, NO);
-				break;
-			case RESUME_CANCEL_ALL:
-				EndDialog(hDlg, NO_ALL);
-				break;
-			}
-		}
-	};
-	int Com = YES;
-	Pkt->ExistSize = 0;
-	*Mode = CREATE_ALWAYS;
-	if (ProcMode == EXIST_RESUME) {
-		if (std::get<0>(Command(Pkt->ctrl_skt, CancelCheckWork, L"REST {}"sv, Size)) / 100 < FTP_RETRY) {
-			/* リジューム */
-			if (Pkt->hWndTrans != NULL)
-				Pkt->ExistSize = Size;
-			*Mode = OPEN_ALWAYS;
-		} else {
-			Com = Dialog(GetFtpInst(), noresume_dlg, Pkt->hWndTrans, Data{});
-			if (Com != YES) {
-				if (Com == NO_ALL)		/* 全て中止 */
-					ClearAll = YES;
-				Pkt->Abort = ABORT_USER;
-			}
-		}
-	}
-	return Com;
-}
-
-
 /*----- アップロードを行なう --------------------------------------------------
 *
 *	Parameter
@@ -1340,26 +1316,11 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 	int Resume;
 
 	if (listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount])) {
-		SetUploadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &Resume);
-		auto cmd = L"APPE "sv;
-		std::wstring extra;
-		if (Resume == NO) {
-			cmd = Pkt->Command;
-#if defined(HAVE_TANDEM)
-			if (AskHostType() == HTYPE_TANDEM && AskOSS() == NO && Pkt->Type != TYPE_A)
-				extra = std::format(Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT ? L",{}"sv : L",{},{},{},{}"sv, Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
-#endif
-		}
-
-		std::wstring text;
-		std::tie(iRetCode, text) = Command(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], L"{}{}{}"sv, cmd, Pkt->Remote, extra);
-		if((iRetCode/100) == FTP_PRELIM)
-		{
+		iRetCode = SendUploadCommand(Pkt, Resume, &Canceled[Pkt->ThreadCount]);
+		if (iRetCode / 100 == FTP_PRELIM) {
 			if (GetCurHost().FireWall == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
 				if (SocksReceiveReply(listen_socket, &Canceled[Pkt->ThreadCount]))
 					data_socket = listen_socket;
-				else
-					listen_socket.reset();
 			} else {
 				sockaddr_storage sa;
 				int salen = sizeof(sockaddr_storage);
@@ -1367,10 +1328,6 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 
 				if(shutdown(listen_socket->handle, 1) != 0)
 					WSAError(L"shutdown(listen)"sv);
-				// UPnP対応
-				if(IsUPnPLoaded() == YES)
-					RemovePortMapping(listen_socket->mapPort);
-				listen_socket.reset();
 
 				if (!data_socket) {
 					SetErrorMsg(GetString(IDS_MSGJPN280));
@@ -1381,21 +1338,12 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 					Debug(L"Skt={} : accept from {}"sv, data_socket->handle, AddressPortToString(&sa, salen));
 			}
 
-			if (data_socket) {
+			if (data_socket)
 				iRetCode = UploadFile(Pkt, data_socket);
-				data_socket.reset();
-			}
 		}
-		else
-		{
-			SetErrorMsg(std::move(text));
-			Notice(IDS_MSGJPN108);
-			// UPnP対応
-			if(IsUPnPLoaded() == YES)
-				RemovePortMapping(listen_socket->mapPort);
-			listen_socket.reset();
-			iRetCode = 500;
-		}
+		if(IsUPnPLoaded() == YES)
+			RemovePortMapping(listen_socket->mapPort);
+		listen_socket.reset();
 	}
 	else
 	{
@@ -1434,29 +1382,10 @@ static int UploadPassive(TRANSPACKET *Pkt)
 				if(setsockopt(data_socket->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					WSAError(L"setsockopt(IPPROTO_TCP, TCP_NODELAY)"sv);
 
-				SetUploadResume(Pkt, Pkt->Mode, Pkt->ExistSize, &Resume);
-				auto cmd = L"APPE "sv;
-				std::wstring extra;
-				if (Resume == NO) {
-					cmd = Pkt->Command;
-#if defined(HAVE_TANDEM)
-					if (AskHostType() == HTYPE_TANDEM && AskOSS() == NO && Pkt->Type != TYPE_A)
-						extra = std::format(Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT ? L",{}"sv : L",{},{},{},{}"sv, Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
-#endif
-				}
-				std::tie(iRetCode, text) = Command(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], L"{}{}{}"sv, cmd, Pkt->Remote, extra);
-				if(iRetCode/100 == FTP_PRELIM)
-				{
+				iRetCode = SendUploadCommand(Pkt, Resume, &Canceled[Pkt->ThreadCount]);
+				if (iRetCode / 100 == FTP_PRELIM)
 					iRetCode = UploadFile(Pkt, data_socket);
-					data_socket.reset();
-				}
-				else
-				{
-					SetErrorMsg(std::move(text));
-					Notice(IDS_MSGJPN110);
-					data_socket.reset();
-					iRetCode = 500;
-				}
+				data_socket.reset();
 			}
 			else
 			{
@@ -1654,37 +1583,6 @@ static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 		}
 	}
 	return;
-}
-
-
-/*----- アップロードのリジュームの準備を行う ----------------------------------
-*
-*	Parameter
-*		TRANSPACKET *Pkt : 転送ファイル情報
-*		iont ProcMode : 処理モード(EXIST_xxx)
-*		LONGLONG Size : ホストにあるファイルのサイズ
-*		int *Mode : リジュームを行うかどうか (YES/NO)
-*
-*	Return Value
-*		int ステータス = YES
-*
-*	Note
-*		Pkt->ExistSizeのセットを行なう
-*----------------------------------------------------------------------------*/
-
-static int SetUploadResume(TRANSPACKET *Pkt, int ProcMode, LONGLONG Size, int *Mode)
-{
-	Pkt->ExistSize = 0;
-	*Mode = NO;
-	if(ProcMode == EXIST_RESUME)
-	{
-		if(Pkt->hWndTrans != NULL)
-		{
-			Pkt->ExistSize = Size;
-			*Mode = YES;
-		}
-	}
-	return(YES);
 }
 
 
