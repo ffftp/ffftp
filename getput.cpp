@@ -69,9 +69,9 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
 static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt);
 static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item);
-static int UploadNonPassive(TRANSPACKET *Pkt);
-static int UploadPassive(TRANSPACKET *Pkt);
-static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt);
+static int UploadNonPassive(TRANSPACKET *Pkt, int* CancelCheckWork);
+static int UploadPassive(TRANSPACKET *Pkt, int* CancelCheckWork);
+static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int Resume, int* CancelCheckWork);
 static int TermCodeConvAndSend(std::shared_ptr<SocketContext> Skt, char *Data, int Size, int Ascii, int *CancelCheckWork);
 static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
 static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
@@ -1266,9 +1266,9 @@ static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item)
 				if(BackgrndMessageProc() == NO)
 				{
 					if (GetCurHost().Pasv != YES)
-						iRetCode = UploadNonPassive(&item);
+						iRetCode = UploadNonPassive(&item, &Canceled[item.ThreadCount]);
 					else
-						iRetCode = UploadPassive(&item);
+						iRetCode = UploadPassive(&item, &Canceled[item.ThreadCount]);
 				}
 				else
 					iRetCode = 500;
@@ -1308,18 +1308,18 @@ static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item)
 *		int 応答コード
 *----------------------------------------------------------------------------*/
 
-static int UploadNonPassive(TRANSPACKET *Pkt)
+static int UploadNonPassive(TRANSPACKET *Pkt, int* CancelCheckWork)
 {
 	int iRetCode;
 	std::shared_ptr<SocketContext> data_socket;   // data channel socket
 	std::shared_ptr<SocketContext> listen_socket; // data listen socket
 	int Resume;
 
-	if (listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount])) {
-		iRetCode = SendUploadCommand(Pkt, Resume, &Canceled[Pkt->ThreadCount]);
+	if (listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, CancelCheckWork)) {
+		iRetCode = SendUploadCommand(Pkt, Resume, CancelCheckWork);
 		if (iRetCode / 100 == FTP_PRELIM) {
 			if (GetCurHost().FireWall == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
-				if (SocksReceiveReply(listen_socket, &Canceled[Pkt->ThreadCount]))
+				if (SocksReceiveReply(listen_socket, CancelCheckWork))
 					data_socket = listen_socket;
 			} else {
 				sockaddr_storage sa;
@@ -1339,7 +1339,7 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 			}
 
 			if (data_socket)
-				iRetCode = UploadFile(Pkt, data_socket);
+				iRetCode = UploadFile(Pkt, data_socket, Resume, CancelCheckWork);
 		}
 		if(IsUPnPLoaded() == YES)
 			RemovePortMapping(listen_socket->mapPort);
@@ -1366,25 +1366,25 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 *		int 応答コード
 *----------------------------------------------------------------------------*/
 
-static int UploadPassive(TRANSPACKET *Pkt)
+static int UploadPassive(TRANSPACKET *Pkt, int* CancelCheckWork)
 {
 	std::shared_ptr<SocketContext> data_socket;   // data channel socket
 	int Flg;
 	int Resume;
 
-	auto [iRetCode, text] = Command(Pkt->ctrl_skt, &Canceled[Pkt->ThreadCount], GetCurHost().CurNetType == NTYPE_IPV4 ? L"PASV"sv : L"EPSV"sv);
+	auto [iRetCode, text] = Command(Pkt->ctrl_skt, CancelCheckWork, GetCurHost().CurNetType == NTYPE_IPV4 ? L"PASV"sv : L"EPSV"sv);
 	if(iRetCode/100 == FTP_COMPLETE)
 	{
 		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, text)) {
-			if (auto [host, port] = *target; data_socket = connectsock(*Pkt->ctrl_skt, std::move(host), port, IDS_MSGJPN109, &Canceled[Pkt->ThreadCount])) {
+			if (auto [host, port] = *target; data_socket = connectsock(*Pkt->ctrl_skt, std::move(host), port, IDS_MSGJPN109, CancelCheckWork)) {
 				// 変数が未初期化のバグ修正
 				Flg = 1;
 				if(setsockopt(data_socket->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
 					WSAError(L"setsockopt(IPPROTO_TCP, TCP_NODELAY)"sv);
 
-				iRetCode = SendUploadCommand(Pkt, Resume, &Canceled[Pkt->ThreadCount]);
+				iRetCode = SendUploadCommand(Pkt, Resume, CancelCheckWork);
 				if (iRetCode / 100 == FTP_PRELIM)
-					iRetCode = UploadFile(Pkt, data_socket);
+					iRetCode = UploadFile(Pkt, data_socket, Resume, CancelCheckWork);
 				data_socket.reset();
 			}
 			else
@@ -1424,8 +1424,8 @@ static int UploadPassive(TRANSPACKET *Pkt)
 *		転送ダイアログを出さないでアップロードすることはない
 *----------------------------------------------------------------------------*/
 
-static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt) {
-	if (Pkt->ctrl_skt->IsSSLAttached() && !dSkt->AttachSSL(&Canceled[Pkt->ThreadCount]))
+static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int Resume, int* CancelCheckWork) {
+	if (Pkt->ctrl_skt->IsSSLAttached() && !dSkt->AttachSSL(CancelCheckWork))
 		return 500;
 #ifdef DISABLE_TRANSFER_NETWORK_BUFFERS
 	int buf_size = 0;
@@ -1476,7 +1476,7 @@ static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt) {
 			}
 
 			auto converted = cc.Convert({ data(buf), (std::string_view::size_type)read });
-			if (TermCodeConvAndSend(dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
+			if (TermCodeConvAndSend(dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, CancelCheckWork) == FFFTP_FAIL)
 				Pkt->Abort = ABORT_ERROR;
 
 			Pkt->ExistSize += read;
@@ -1488,7 +1488,7 @@ static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt) {
 		}
 		if (Pkt->Abort == ABORT_NONE && ForceAbort == NO && !eof && !empty(rest)) {
 			auto converted = cc.Convert({ data(rest), size(rest) });
-			if (TermCodeConvAndSend(dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, &Canceled[Pkt->ThreadCount]) == FFFTP_FAIL)
+			if (TermCodeConvAndSend(dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, CancelCheckWork) == FFFTP_FAIL)
 				Pkt->Abort = ABORT_ERROR;
 			Pkt->ExistSize += size_as<LONGLONG>(rest);
 			if (Pkt->hWndTrans != NULL)
@@ -1511,7 +1511,7 @@ static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt) {
 	if (shutdown(dSkt->handle, 1) != 0)
 		WSAError(L"shutdown()"sv);
 
-	auto [code, text] = Pkt->ctrl_skt->ReadReply(&Canceled[Pkt->ThreadCount]);
+	auto [code, text] = Pkt->ctrl_skt->ReadReply(CancelCheckWork);
 	if (code / 100 >= FTP_RETRY)
 		SetErrorMsg(std::move(text));
 	if (Pkt->Abort != ABORT_NONE)
