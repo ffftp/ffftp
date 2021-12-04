@@ -533,7 +533,6 @@
 #define IDS_MSGJPN088                   10088
 #define IDS_MSGJPN089                   10089
 #define IDS_MSGJPN090                   10090
-#define IDS_MSGJPN091                   10091
 #define IDS_MSGJPN093                   10093
 #define IDS_MSGJPN094                   10094
 #define IDS_MSGJPN095                   10095
@@ -549,8 +548,6 @@
 #define IDS_MSGJPN105                   10105
 #define IDS_MSGJPN106                   10106
 #define IDS_MSGJPN107                   10107
-#define IDS_MSGJPN109                   10109
-#define IDS_MSGJPN111                   10111
 #define IDS_MSGJPN112                   10112
 #define IDS_MSGJPN113                   10113
 #define IDS_MSGJPN114                   10114

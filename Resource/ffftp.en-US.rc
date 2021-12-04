@@ -2325,7 +2325,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_MSGJPN017           "Connecting {0}to host {1} ({2})."
+    IDS_MSGJPN017           "Connecting to host {0} ({1})."
     IDS_MSGJPN019           "Host {} not found."
     IDS_MSGJPN021           "SOCKS server {} not found."
     IDS_MSGJPN022           "Connecting to SOCKS server {}."
@@ -2400,7 +2400,6 @@ BEGIN
     IDS_MSGJPN088           "Skip"
     IDS_MSGJPN089           "Skip file {}."
     IDS_MSGJPN090           "Command not accepted."
-    IDS_MSGJPN091           "for download "
     IDS_MSGJPN093           "Cannnot get address."
     IDS_MSGJPN094           "Time out error."
     IDS_MSGJPN095           "Cannnot create file {}."
@@ -2420,8 +2419,6 @@ BEGIN
     IDS_MSGJPN105           "Cannnot read file {}."
     IDS_MSGJPN106           "Skip"
     IDS_MSGJPN107           "File {} is skipped."
-    IDS_MSGJPN109           "for upload "
-    IDS_MSGJPN111           "Cannnot get address."
 END
 
 STRINGTABLE

@@ -63,14 +63,10 @@ static void DispTransPacket(TRANSPACKET const& item);
 static void EraseTransFileList();
 static unsigned __stdcall TransferThread(void *Dummy);
 static int MakeNonFullPath(TRANSPACKET& item, std::wstring& CurDir);
-static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
-static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork);
 static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int CreateMode, int *CancelCheckWork);
 static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
 static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt);
 static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item);
-static int UploadNonPassive(TRANSPACKET *Pkt, int* CancelCheckWork);
-static int UploadPassive(TRANSPACKET *Pkt, int* CancelCheckWork);
 static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int Resume, int* CancelCheckWork);
 static int TermCodeConvAndSend(std::shared_ptr<SocketContext> Skt, char *Data, int Size, int Ascii, int *CancelCheckWork);
 static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
@@ -834,6 +830,67 @@ static int SendUploadCommand(TRANSPACKET* Pkt, int& Resume, int* CancelCheckWork
 }
 
 
+static int TransferActive(TRANSPACKET* Pkt, int (*SendTransferCommand)(TRANSPACKET* Pkt, int& mode, int* CancelCheckWork), int (*TransferFile)(TRANSPACKET* Pkt, std::shared_ptr<SocketContext> dSkt, int mode, int* CancelCheckWork), int* CancelCheckWork) {
+	auto listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, CancelCheckWork);
+	if (!listen_socket) {
+		SetErrorMsg(GetString(IDS_MSGJPN279));
+		return 500;
+	}
+	int mode;
+	int code = SendTransferCommand(Pkt, mode, CancelCheckWork);
+	if (code / 100 == FTP_PRELIM) {
+		std::shared_ptr<SocketContext> data_socket;
+		if (GetCurHost().FireWall == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
+			if (SocksReceiveReply(listen_socket, CancelCheckWork))
+				data_socket = listen_socket;
+		} else {
+			sockaddr_storage sa;
+			int salen = sizeof(sockaddr_storage);
+			data_socket = listen_socket->Accept(reinterpret_cast<sockaddr*>(&sa), &salen);
+			if (shutdown(listen_socket->handle, 1) != 0)
+				WSAError(L"shutdown(listen)"sv);
+			if (!data_socket) {
+				SetErrorMsg(GetString(IDS_MSGJPN280));
+				WSAError(L"accept()"sv);
+				code = 500;
+			} else
+				Debug(L"Skt={} : accept from {}"sv, data_socket->handle, AddressPortToString(&sa, salen));
+		}
+		if (data_socket)
+			code = TransferFile(Pkt, data_socket, mode, CancelCheckWork);
+	}
+	if (IsUPnPLoaded() == YES)
+		RemovePortMapping(listen_socket->mapPort);
+	return code;
+}
+
+
+static int TransferPassive(TRANSPACKET* Pkt, int (*SendTransferCommand)(TRANSPACKET* Pkt, int& mode, int* CancelCheckWork), int (*TransferFile)(TRANSPACKET* Pkt, std::shared_ptr<SocketContext> dSkt, int mode, int* CancelCheckWork), int* CancelCheckWork) {
+	auto [code, text] = Command(Pkt->ctrl_skt, CancelCheckWork, GetCurHost().CurNetType == NTYPE_IPV4 ? L"PASV"sv : L"EPSV"sv);
+	if (code / 100 == FTP_COMPLETE) {
+		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, text)) {
+			if (auto [host, port] = *target; auto data_socket = connectsock(*Pkt->ctrl_skt, std::move(host), port, CancelCheckWork)) {
+				if (BOOL optval = 1; setsockopt(data_socket->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&optval, sizeof(optval)) == SOCKET_ERROR)
+					WSAError(L"setsockopt(IPPROTO_TCP, TCP_NODELAY)"sv);
+				int mode;
+				code = SendTransferCommand(Pkt, mode, CancelCheckWork);
+				if (code / 100 == FTP_PRELIM)
+					code = TransferFile(Pkt, data_socket, mode, CancelCheckWork);
+			} else {
+				SetErrorMsg(GetString(IDS_MSGJPN281));		// ダウンロードにはない
+				return 500;
+			}
+		} else {
+			SetErrorMsg(GetString(IDS_MSGJPN093));
+			Notice(IDS_MSGJPN093);
+			return 500;
+		}
+	} else
+		SetErrorMsg(std::move(text));
+	return code;
+}
+
+
 /*----- ダウンロードを行なう --------------------------------------------------
 *
 *	Parameter
@@ -882,9 +939,9 @@ int DoDownload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item, int DirLi
 			if(BackgrndMessageProc() == NO)
 			{
 				if (GetCurHost().Pasv != YES)
-					iRetCode = DownloadNonPassive(&item, CancelCheckWork);
+					iRetCode = TransferActive(&item, SendDownloadCommand, DownloadFile, CancelCheckWork);
 				else
-					iRetCode = DownloadPassive(&item, CancelCheckWork);
+					iRetCode = TransferPassive(&item, SendDownloadCommand, DownloadFile, CancelCheckWork);
 			}
 			else
 				iRetCode = 500;
@@ -900,120 +957,6 @@ int DoDownload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item, int DirLi
 		Notice(IDS_MSGJPN089, item.Remote);
 		iRetCode = 200;
 	}
-	return(iRetCode);
-}
-
-
-/*----- 通常モードでファイルをダウンロード ------------------------------------
-*
-*	Parameter
-*		TRANSPACKET *Pkt : 転送ファイル情報
-*
-*	Return Value
-*		int 応答コード
-*----------------------------------------------------------------------------*/
-
-static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
-{
-	int iRetCode;
-	std::shared_ptr<SocketContext> data_socket;   // data channel socket
-	std::shared_ptr<SocketContext> listen_socket; // data listen socket
-	int CreateMode;
-
-	if (listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, CancelCheckWork)) {
-		iRetCode = SendDownloadCommand(Pkt, CreateMode, CancelCheckWork);
-		if (iRetCode / 100 == FTP_PRELIM) {
-			if (GetCurHost().FireWall == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
-				if (!SocksReceiveReply(listen_socket, CancelCheckWork))
-					data_socket = listen_socket;
-				else
-					listen_socket.reset();
-			} else {
-				sockaddr_storage sa;
-				int salen = sizeof(sockaddr_storage);
-				data_socket = listen_socket->Accept(reinterpret_cast<sockaddr*>(&sa), &salen);
-
-				if(shutdown(listen_socket->handle, 1) != 0)
-					WSAError(L"shutdown(listen)"sv);
-				// UPnP対応
-				if(IsUPnPLoaded() == YES)
-					RemovePortMapping(listen_socket->mapPort);
-				listen_socket.reset();
-
-				if (!data_socket) {
-					SetErrorMsg(GetString(IDS_MSGJPN280));
-					WSAError(L"accept()"sv);
-					iRetCode = 500;
-				}
-				else
-					Debug(L"Skt={} : accept from {}"sv, data_socket->handle, AddressPortToString(&sa, salen));
-			}
-
-			if (data_socket)
-				iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
-		}
-		if(IsUPnPLoaded() == YES)
-			RemovePortMapping(listen_socket->mapPort);
-		listen_socket.reset();
-	}
-	else
-	{
-		iRetCode = 500;
-		SetErrorMsg(GetString(IDS_MSGJPN279));
-	}
-	// エラーによってはダイアログが表示されない場合があるバグ対策
-//	DispDownloadFinishMsg(Pkt, iRetCode);
-
-	return(iRetCode);
-}
-
-
-/*----- Passiveモードでファイルをダウンロード ---------------------------------
-*
-*	Parameter
-*		TRANSPACKET *Pkt : 転送ファイル情報
-*
-*	Return Value
-*		int 応答コード
-*----------------------------------------------------------------------------*/
-
-static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
-{
-	std::shared_ptr<SocketContext> data_socket;   // data channel socket
-	int CreateMode;
-	int Flg;
-
-	auto [iRetCode, text] = Command(Pkt->ctrl_skt, CancelCheckWork, GetCurHost().CurNetType == NTYPE_IPV6 ? L"EPSV"sv : L"PASV"sv);
-	if(iRetCode/100 == FTP_COMPLETE)
-	{
-		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, text)) {
-			if (auto [host, port] = *target; data_socket = connectsock(*Pkt->ctrl_skt, std::move(host), port, IDS_MSGJPN091, CancelCheckWork)) {
-				// 変数が未初期化のバグ修正
-				Flg = 1;
-				if(setsockopt(data_socket->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
-					WSAError(L"setsockopt(IPPROTO_TCP, TCP_NODELAY)"sv);
-
-				iRetCode = SendDownloadCommand(Pkt, CreateMode, CancelCheckWork);
-				if (iRetCode/100 == FTP_PRELIM)
-					iRetCode = DownloadFile(Pkt, data_socket, CreateMode, CancelCheckWork);
-				data_socket.reset();
-			}
-			else
-				iRetCode = 500;
-		}
-		else
-		{
-			SetErrorMsg(GetString(IDS_MSGJPN093));
-			Notice(IDS_MSGJPN093);
-			iRetCode = 500;
-		}
-	}
-	else
-		SetErrorMsg(std::move(text));
-
-	// エラーによってはダイアログが表示されない場合があるバグ対策
-//	DispDownloadFinishMsg(Pkt, iRetCode);
-
 	return(iRetCode);
 }
 
@@ -1266,9 +1209,9 @@ static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item)
 				if(BackgrndMessageProc() == NO)
 				{
 					if (GetCurHost().Pasv != YES)
-						iRetCode = UploadNonPassive(&item, &Canceled[item.ThreadCount]);
+						iRetCode = TransferActive(&item, SendUploadCommand, UploadFile, &Canceled[item.ThreadCount]);
 					else
-						iRetCode = UploadPassive(&item, &Canceled[item.ThreadCount]);
+						iRetCode = TransferPassive(&item, SendUploadCommand, UploadFile, &Canceled[item.ThreadCount]);
 				}
 				else
 					iRetCode = 500;
@@ -1295,117 +1238,6 @@ static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item)
 		Notice(IDS_MSGJPN107, item.Local.native());
 		iRetCode = 200;
 	}
-	return(iRetCode);
-}
-
-
-/*----- 通常モードでファイルをアップロード ------------------------------------
-*
-*	Parameter
-*		TRANSPACKET *Pkt : 転送ファイル情報
-*
-*	Return Value
-*		int 応答コード
-*----------------------------------------------------------------------------*/
-
-static int UploadNonPassive(TRANSPACKET *Pkt, int* CancelCheckWork)
-{
-	int iRetCode;
-	std::shared_ptr<SocketContext> data_socket;   // data channel socket
-	std::shared_ptr<SocketContext> listen_socket; // data listen socket
-	int Resume;
-
-	if (listen_socket = GetFTPListenSocket(Pkt->ctrl_skt, CancelCheckWork)) {
-		iRetCode = SendUploadCommand(Pkt, Resume, CancelCheckWork);
-		if (iRetCode / 100 == FTP_PRELIM) {
-			if (GetCurHost().FireWall == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
-				if (SocksReceiveReply(listen_socket, CancelCheckWork))
-					data_socket = listen_socket;
-			} else {
-				sockaddr_storage sa;
-				int salen = sizeof(sockaddr_storage);
-				data_socket = listen_socket->Accept(reinterpret_cast<sockaddr*>(&sa), &salen);
-
-				if(shutdown(listen_socket->handle, 1) != 0)
-					WSAError(L"shutdown(listen)"sv);
-
-				if (!data_socket) {
-					SetErrorMsg(GetString(IDS_MSGJPN280));
-					WSAError(L"accept()"sv);
-					iRetCode = 500;
-				}
-				else
-					Debug(L"Skt={} : accept from {}"sv, data_socket->handle, AddressPortToString(&sa, salen));
-			}
-
-			if (data_socket)
-				iRetCode = UploadFile(Pkt, data_socket, Resume, CancelCheckWork);
-		}
-		if(IsUPnPLoaded() == YES)
-			RemovePortMapping(listen_socket->mapPort);
-		listen_socket.reset();
-	}
-	else
-	{
-		SetErrorMsg(GetString(IDS_MSGJPN279));
-		iRetCode = 500;
-	}
-	// エラーによってはダイアログが表示されない場合があるバグ対策
-//	DispUploadFinishMsg(Pkt, iRetCode);
-
-	return(iRetCode);
-}
-
-
-/*----- Passiveモードでファイルをアップロード ---------------------------------
-*
-*	Parameter
-*		TRANSPACKET *Pkt : 転送ファイル情報
-*
-*	Return Value
-*		int 応答コード
-*----------------------------------------------------------------------------*/
-
-static int UploadPassive(TRANSPACKET *Pkt, int* CancelCheckWork)
-{
-	std::shared_ptr<SocketContext> data_socket;   // data channel socket
-	int Flg;
-	int Resume;
-
-	auto [iRetCode, text] = Command(Pkt->ctrl_skt, CancelCheckWork, GetCurHost().CurNetType == NTYPE_IPV4 ? L"PASV"sv : L"EPSV"sv);
-	if(iRetCode/100 == FTP_COMPLETE)
-	{
-		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, text)) {
-			if (auto [host, port] = *target; data_socket = connectsock(*Pkt->ctrl_skt, std::move(host), port, IDS_MSGJPN109, CancelCheckWork)) {
-				// 変数が未初期化のバグ修正
-				Flg = 1;
-				if(setsockopt(data_socket->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&Flg, sizeof(Flg)) == SOCKET_ERROR)
-					WSAError(L"setsockopt(IPPROTO_TCP, TCP_NODELAY)"sv);
-
-				iRetCode = SendUploadCommand(Pkt, Resume, CancelCheckWork);
-				if (iRetCode / 100 == FTP_PRELIM)
-					iRetCode = UploadFile(Pkt, data_socket, Resume, CancelCheckWork);
-				data_socket.reset();
-			}
-			else
-			{
-				SetErrorMsg(GetString(IDS_MSGJPN281));
-				iRetCode = 500;
-			}
-		}
-		else
-		{
-			SetErrorMsg(std::move(text));
-			Notice(IDS_MSGJPN111);
-			iRetCode = 500;
-		}
-	}
-	else
-		SetErrorMsg(std::move(text));
-
-	// エラーによってはダイアログが表示されない場合があるバグ対策
-//	DispUploadFinishMsg(Pkt, iRetCode);
-
 	return(iRetCode);
 }
 
