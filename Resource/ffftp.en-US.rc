@@ -2541,7 +2541,6 @@ STRINGTABLE
 BEGIN
     IDS_MSGJPN241           "Failed transmit cause of timeout"
     IDS_MSGJPN242           "Failed receive cause of timeout"
-    IDS_MSGJPN243           "Failed receive cause of timeout"
     IDS_MSGJPN244           "Receive length error"
     IDS_MSGJPN245           "Local"
     IDS_MSGJPN246           "Host"

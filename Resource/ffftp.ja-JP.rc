@@ -2505,7 +2505,6 @@ STRINGTABLE
 BEGIN
     IDS_MSGJPN241           "送信はタイムアウトで失敗しました."
     IDS_MSGJPN242           "受信はタイムアウトで失敗しました."
-    IDS_MSGJPN243           "受信はタイムアウトで失敗しました."
     IDS_MSGJPN244           "固定長の受信が失敗しました"
     IDS_MSGJPN245           "ローカル"
     IDS_MSGJPN246           "ホスト"
