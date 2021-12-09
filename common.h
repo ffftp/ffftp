@@ -461,7 +461,7 @@ inline int DotFile = YES;
 inline int DclickOpen = YES;
 inline int ConnectAndSet = YES;
 inline int FnameCnv = FNAME_NOCNV;
-inline int TimeOut = 90;
+inline int TimeOut = 90;				// 0～300秒; 0=タイムアウトなし
 inline int RmEOF = NO;
 inline int RegType = REGTYPE_REG;
 inline std::wstring FwallHost;

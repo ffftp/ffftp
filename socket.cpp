@@ -217,7 +217,8 @@ static inline std::invoke_result_t<Test> Wait(SocketContext& sc, int* CancelChec
 		if (auto result = sc.AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
 			return {};
 		for (auto const expiredAt = std::chrono::steady_clock::now() + std::chrono::seconds{ TimeOut }; SleepEx(0, true) != WAIT_IO_COMPLETION;) {
-			if (expiredAt < std::chrono::steady_clock::now()) {
+			if (TimeOut != 0 && expiredAt < std::chrono::steady_clock::now()) {
+				Notice(IDS_MSGJPN242);
 				sc.recvStatus = WSAETIMEDOUT;
 				goto error;
 			}
