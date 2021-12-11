@@ -385,7 +385,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 			// セッションあたりの転送量制限対策
 			if (TrnSkt && GetCurHost().TransferErrorReconnect == YES && LastError == YES) {
 				DoQUIT(TrnSkt, &Canceled[ThreadCount]);
-				DoClose(TrnSkt);
 				TrnSkt.reset();
 			}
 			if (!empty(TransPacketBase) && AskConnecting() == YES && ThreadCount < GetCurHost().MaxThreadCount) {
@@ -415,7 +414,6 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					// 60秒間使用されなければログアウト
 					if (timeGetTime() - LastUsed > 60000 || AskConnecting() == NO || ThreadCount >= GetCurHost().MaxThreadCount) {
 						DoQUIT(TrnSkt, &Canceled[ThreadCount]);
-						DoClose(TrnSkt);
 						TrnSkt.reset();
 					}
 				}
@@ -743,7 +741,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 	if (GetCurHost().ReuseCmdSkt == NO || ThreadCount > 0) {
 		if (TrnSkt) {
 			TrnSkt->Send("QUIT\r\n", 6, 0, &Canceled[ThreadCount]);
-			DoClose(TrnSkt);
+			TrnSkt.reset();
 		}
 	}
 	return 0;
@@ -870,10 +868,8 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 				if (GetCurHost().FireWall == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
 					if (!SocksReceiveReply(listen_socket, CancelCheckWork))
 						data_socket = listen_socket;
-					else {
-						DoClose(listen_socket);
+					else
 						listen_socket.reset();
-					}
 				} else {
 					sockaddr_storage sa;
 					int salen = sizeof(sockaddr_storage);
@@ -884,7 +880,6 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					// UPnP対応
 					if(IsUPnPLoaded() == YES)
 						RemovePortMapping(listen_socket->mapPort);
-					DoClose(listen_socket);
 					listen_socket.reset();
 
 					if (!data_socket) {
@@ -914,7 +909,6 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 				// UPnP対応
 				if(IsUPnPLoaded() == YES)
 					RemovePortMapping(listen_socket->mapPort);
-				DoClose(listen_socket);
 				listen_socket.reset();
 				iRetCode = 500;
 			}
@@ -926,7 +920,6 @@ static int DownloadNonPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 			// UPnP対応
 			if(IsUPnPLoaded() == YES)
 				RemovePortMapping(listen_socket->mapPort);
-			DoClose(listen_socket);
 			listen_socket.reset();
 			iRetCode = 500;
 		}
@@ -986,7 +979,6 @@ static int DownloadPassive(TRANSPACKET *Pkt, int *CancelCheckWork)
 					{
 						SetErrorMsg(std::move(text));
 						Notice(IDS_MSGJPN092);
-						DoClose(data_socket);
 						data_socket.reset();
 						iRetCode = 500;
 					}
@@ -1094,7 +1086,7 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 	if (shutdown(dSkt->handle, 1) != 0)
 		WSAError(L"shutdown()"sv);
 	LastDataConnectionTime = time(NULL);
-	DoClose(dSkt);
+	dSkt.reset();
 
 	/* Abortをホストに伝える */
 	if (ForceAbort == NO && Pkt->Abort != ABORT_NONE && opened) {
@@ -1383,10 +1375,8 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 			if (GetCurHost().FireWall == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
 				if (SocksReceiveReply(listen_socket, &Canceled[Pkt->ThreadCount]))
 					data_socket = listen_socket;
-				else {
-					DoClose(listen_socket);
+				else
 					listen_socket.reset();
-				}
 			} else {
 				sockaddr_storage sa;
 				int salen = sizeof(sockaddr_storage);
@@ -1397,7 +1387,6 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 				// UPnP対応
 				if(IsUPnPLoaded() == YES)
 					RemovePortMapping(listen_socket->mapPort);
-				DoClose(listen_socket);
 				listen_socket.reset();
 
 				if (!data_socket) {
@@ -1418,7 +1407,6 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 				}
 				else
 					iRetCode = UploadFile(Pkt, data_socket);
-				DoClose(data_socket);
 				data_socket.reset();
 			}
 		}
@@ -1429,7 +1417,6 @@ static int UploadNonPassive(TRANSPACKET *Pkt)
 			// UPnP対応
 			if(IsUPnPLoaded() == YES)
 				RemovePortMapping(listen_socket->mapPort);
-			DoClose(listen_socket);
 			listen_socket.reset();
 			iRetCode = 500;
 		}
@@ -1497,14 +1484,12 @@ static int UploadPassive(TRANSPACKET *Pkt)
 					else
 						iRetCode = UploadFile(Pkt, data_socket);
 
-					DoClose(data_socket);
 					data_socket.reset();
 				}
 				else
 				{
 					SetErrorMsg(std::move(text));
 					Notice(IDS_MSGJPN110);
-					DoClose(data_socket);
 					data_socket.reset();
 					iRetCode = 500;
 				}

@@ -549,13 +549,9 @@ struct SocketContext : public WSAOVERLAPPED {
 
 	inline SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget);
 	SocketContext(SocketContext const&) = delete;
-	~SocketContext() {
-		if (SecIsValidHandle(&sslContext))
-			DeleteSecurityContext(&sslContext);
-	}
+	inline ~SocketContext();
 	static std::shared_ptr<SocketContext> Create(int af, std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget);
 	std::shared_ptr<SocketContext> Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen);
-	void Close();
 	BOOL AttachSSL(BOOL* pbAborted);
 	constexpr bool IsSSLAttached() {
 		return SecIsValidHandle(&sslContext);
@@ -1020,7 +1016,6 @@ int DoSIZE(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, LONGLO
 int DoMDTM(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETIME *Time, int *CancelCheckWork);
 int DoMFMT(std::shared_ptr<SocketContext> cSkt, std::wstring const&, FILETIME *Time, int *CancelCheckWork);
 int DoQUOTE(std::shared_ptr<SocketContext> cSkt, std::wstring_view CmdStr, int* CancelCheckWork);
-void DoClose(std::shared_ptr<SocketContext> Sock);
 int DoQUIT(std::shared_ptr<SocketContext> ctrl_skt, int *CancelCheckWork);
 int DoDirList(std::wstring_view AddOpt, int Num, int* CancelCheckWork);
 #if defined(HAVE_TANDEM)

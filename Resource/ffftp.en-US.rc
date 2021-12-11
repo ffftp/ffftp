@@ -2311,7 +2311,6 @@ BEGIN
     IDS_MSGJPN002           "Connection cancelled."
     IDS_MSGJPN003           "\r\nReconnect.\r\n"
     IDS_MSGJPN004           "Disconnect."
-    IDS_MSGJPN005           "Connection was killed."
     IDS_MSGJPN006           "Cannnot login to Firewall."
     IDS_MSGJPN007           "Cannnot connect to host {}."
     IDS_MSGJPN008           "Cannnot login."

@@ -257,15 +257,6 @@ int DoQUOTE(std::shared_ptr<SocketContext> cSkt, std::wstring_view CmdStr, int* 
 }
 
 
-// ソケットを閉じる
-void DoClose(std::shared_ptr<SocketContext> Sock) {
-	if (Sock) {
-		Sock->Close();
-		Debug(L"Skt={} : Socket closed."sv, Sock->handle);
-	}
-}
-
-
 // ホストからログアウトする
 int DoQUIT(std::shared_ptr<SocketContext> ctrl_skt, int* CancelCheckWork) {
 	int Ret = FTP_COMPLETE;

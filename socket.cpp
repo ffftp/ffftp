@@ -306,9 +306,12 @@ std::shared_ptr<SocketContext> SocketContext::Create(int af, std::variant<std::w
 SocketContext::SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget) : WSAOVERLAPPED{}, handle { s }, originalTarget{ originalTarget }, punyTarget{ punyTarget } {}
 
 
-void SocketContext::Close() {
+SocketContext::~SocketContext() {
 	if (int result = closesocket(handle); result == SOCKET_ERROR)
 		WSAError(L"closesocket()"sv);
+	if (SecIsValidHandle(&sslContext))
+		DeleteSecurityContext(&sslContext);
+	Debug(L"Skt={} : Socket closed."sv, handle);
 }
 
 

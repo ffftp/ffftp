@@ -251,6 +251,10 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 		}
 		exitCode = (int)msg.wParam;
 	}
+	// TODO: グローバルに保持されているSocketContextの解放。遅延させると各種エラーが発生するため明示的にここで行う。
+	MainTransPkt.ctrl_skt.reset();
+	DisconnectSet();
+
 	UnregisterClassW(FtpClass, GetFtpInst());
 	FreeSSL();
 	FreeZoneID();
