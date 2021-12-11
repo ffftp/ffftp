@@ -507,9 +507,6 @@ static bool MakeAllWindows(int cmdShow) {
 
 	ShowWindow(GetMainHwnd(), cmdShow != SW_MINIMIZE && cmdShow != SW_SHOWMINIMIZED && cmdShow != SW_SHOWMINNOACTIVE && Sizing == SW_MAXIMIZE ? SW_MAXIMIZE : cmdShow);
 
-	if (MakeSocketWin() == FFFTP_FAIL)
-		return false;
-
 	SetListViewType();
 
 	return true;
