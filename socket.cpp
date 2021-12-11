@@ -32,14 +32,6 @@
 #pragma comment(lib, "Cryptui.lib")
 #pragma comment(lib, "Secur32.lib")
 
-
-#define USE_THIS	1
-#define DBG_MSG		0
-
-static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-static HWND hWndSocket;
-static std::map<SOCKET, SocketContext*> map;
-static std::mutex mapMutex;
 static constexpr unsigned long contextReq = ISC_REQ_STREAM | ISC_REQ_SEQUENCE_DETECT | ISC_REQ_REPLAY_DETECT | ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_EXTENDED_ERROR | ISC_REQ_USE_SUPPLIED_CREDS | ISC_REQ_MANUAL_CRED_VALIDATION;
 static CredHandle credential = CreateInvalidateHandle<CredHandle>();
 
@@ -295,46 +287,6 @@ bool IsSecureConnection() {
 }
 
 
-int MakeSocketWin() {
-	auto const className = L"FFFTPSocketWnd";
-	WNDCLASSEXW wcx{ sizeof(WNDCLASSEXW), 0, SocketWndProc, 0, 0, GetFtpInst(), nullptr, nullptr, CreateSolidBrush(GetSysColor(COLOR_INFOBK)), nullptr, className, };
-	RegisterClassExW(&wcx);
-	if (hWndSocket = CreateWindowExW(0, className, nullptr, WS_BORDER | WS_POPUP, 0, 0, 0, 0, GetMainHwnd(), nullptr, GetFtpInst(), nullptr)) {
-		std::lock_guard lock{ mapMutex };
-		map.clear();
-		return FFFTP_SUCCESS;
-	}
-	return FFFTP_FAIL;
-}
-
-
-void DeleteSocketWin() {
-	if (hWndSocket)
-		DestroyWindow(hWndSocket);
-}
-
-
-static LRESULT CALLBACK SocketWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-	if (message == WM_ASYNC_SOCKET) {
-		std::lock_guard lock{ mapMutex };
-		if (auto it = map.find(wParam); it != end(map)) {
-			it->second->error = WSAGETSELECTERROR(lParam);
-			it->second->event |= WSAGETSELECTEVENT(lParam);
-		}
-		return 0;
-	}
-	return DefWindowProcW(hWnd, message, wParam, lParam);
-}
-
-
-bool SocketContext::GetEvent(int mask) {
-	if ((event & mask) == 0)
-		return false;
-	event &= ~(mask & (FD_ACCEPT | FD_READ | FD_WRITE));
-	return true;
-}
-
-
 std::shared_ptr<SocketContext> SocketContext::Create(int af, std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget) {
 	auto s = socket(af, SOCK_STREAM, IPPROTO_TCP);
 	if (s == INVALID_SOCKET) {
@@ -351,56 +303,74 @@ std::shared_ptr<SocketContext> SocketContext::Create(int af, std::variant<std::w
 }
 
 
-SocketContext::SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget) : WSAOVERLAPPED{}, handle { s }, originalTarget{ originalTarget }, punyTarget{ punyTarget } {
-	std::lock_guard lock{ mapMutex };
-	map[handle] = this;
-}
+SocketContext::SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget) : WSAOVERLAPPED{}, handle { s }, originalTarget{ originalTarget }, punyTarget{ punyTarget } {}
 
 
-void SocketContext::Close() {
-	WSAAsyncSelect(handle, hWndSocket, WM_ASYNC_SOCKET, 0);
-	{
-		std::lock_guard lock{ mapMutex };
-		map.erase(handle);
-	}
+SocketContext::~SocketContext() {
 	if (int result = closesocket(handle); result == SOCKET_ERROR)
 		WSAError(L"closesocket()"sv);
+	if (SecIsValidHandle(&sslContext))
+		DeleteSecurityContext(&sslContext);
+	Debug(L"Skt={} : Socket closed."sv, handle);
 }
 
 
 int SocketContext::Connect(const sockaddr* name, int namelen, int* CancelCheckWork) {
-	if (WSAAsyncSelect(handle, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) != 0) {
-		WSAError(L"do_connect: WSAAsyncSelect()"sv);
+	if ((hEvent = WSACreateEvent()) == WSA_INVALID_EVENT) {
+		WSAError(L"WSACreateEvent()"sv);
 		return SOCKET_ERROR;
 	}
+	auto f1 = gsl::finally([this] { WSACloseEvent(hEvent); });
+	if (WSAEventSelect(handle, hEvent, FD_CONNECT | FD_CLOSE) != 0) {
+		WSAError(L"WSAEventSelect()"sv);
+		return SOCKET_ERROR;
+	}
+	auto f2 = gsl::finally([this] { WSAEventSelect(handle, hEvent, 0); });
 	if (connect(handle, name, namelen) == 0)
 		return 0;
 	if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
-		Error(L"do_connect: connect()"sv, lastError);
+		WSAError(L"connect()"sv, lastError);
 		return SOCKET_ERROR;
 	}
-	while (*CancelCheckWork != YES) {
-		if (error == 0 && GetEvent(FD_CONNECT))
-			return 0;
-		if (error != 0 && error != WSAEWOULDBLOCK) {
-			Error(L"do_connect: select()"sv, error);
+	for (;;) {
+		auto result = WSAWaitForMultipleEvents(1, &hEvent, false, 0, false);
+		if (result == WSA_WAIT_EVENT_0)
+			break;
+		if (result != WSA_WAIT_TIMEOUT) {
+			WSAError(L"WSAWaitForMultipleEvents()"sv);
 			return SOCKET_ERROR;
 		}
 		Sleep(1);
 		if (BackgrndMessageProc() == YES)
 			*CancelCheckWork = YES;
+		if (*CancelCheckWork == YES)
+			return SOCKET_ERROR;
 	}
-	return SOCKET_ERROR;
+	if (WSANETWORKEVENTS networkEvents; WSAEnumNetworkEvents(handle, hEvent, &networkEvents) != 0) {
+		WSAError(L"WSAEnumNetworkEvents()"sv);
+		return SOCKET_ERROR;
+	} else if ((networkEvents.lNetworkEvents & FD_CONNECT) == 0 || networkEvents.iErrorCode[FD_CONNECT_BIT] != 0) {
+		Debug(L"networkEvents: {:08X}, connect: {}, close: {}."sv, (unsigned long)networkEvents.lNetworkEvents, networkEvents.iErrorCode[FD_CONNECT_BIT], networkEvents.iErrorCode[FD_CLOSE_BIT]);
+		return SOCKET_ERROR;
+	}
+	return 0;
 }
 
 
 int SocketContext::Listen(int backlog) {
-	if (WSAAsyncSelect(handle, hWndSocket, WM_ASYNC_SOCKET, FD_CLOSE | FD_ACCEPT) != 0) {
-		WSAError(L"do_listen: WSAAsyncSelect()"sv);
+	if ((hEvent = WSACreateEvent()) == WSA_INVALID_EVENT) {
+		WSAError(L"WSACreateEvent()"sv);
+		return {};
+	}
+	if (WSAEventSelect(handle, hEvent, FD_ACCEPT | FD_CLOSE) != 0) {
+		WSAError(L"WSAEventSelect()"sv);
+		WSACloseEvent(hEvent);
 		return SOCKET_ERROR;
 	}
 	if (listen(handle, backlog) != 0) {
-		WSAError(L"do_listen: listen()"sv);
+		WSAError(L"listen()"sv);
+		WSAEventSelect(handle, hEvent, 0);
+		WSACloseEvent(hEvent);
 		return SOCKET_ERROR;
 	}
 	return 0;
@@ -408,32 +378,32 @@ int SocketContext::Listen(int backlog) {
 
 
 std::shared_ptr<SocketContext> SocketContext::Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen) {
-	for (;;) {
-		if (error != 0 || GetEvent(FD_CLOSE))
-			return {};
-		if (GetEvent(FD_ACCEPT))
+	for (auto f1 = gsl::finally([this] { WSAEventSelect(handle, hEvent, 0); WSACloseEvent(hEvent); });;) {
+		auto result = WSAWaitForMultipleEvents(1, &hEvent, false, 0, false);
+		if (result == WSA_WAIT_EVENT_0) {
+			if (WSANETWORKEVENTS networkEvents; WSAEnumNetworkEvents(handle, hEvent, &networkEvents) != 0) {
+				WSAError(L"WSAEnumNetworkEvents()"sv);
+				return {};
+			} else if ((networkEvents.lNetworkEvents & FD_ACCEPT) == 0 || networkEvents.iErrorCode[FD_ACCEPT_BIT] != 0) {
+				Debug(L"networkEvents: {:08X}, accept: {}, close: {}."sv, (unsigned long)networkEvents.lNetworkEvents, networkEvents.iErrorCode[FD_ACCEPT_BIT], networkEvents.iErrorCode[FD_CLOSE_BIT]);
+				return {};
+			}
 			break;
+		}
+		if (result != WSA_WAIT_TIMEOUT) {
+			WSAError(L"WSAWaitForMultipleEvents()"sv);
+			return {};
+		}
 		Sleep(1);
 		if (BackgrndMessageProc() == YES)
 			return {};
 	}
-	if (error == 0) {
-		do {
-			auto s = accept(handle, addr, addrlen);
-			if (s != INVALID_SOCKET) {
-				auto sc = std::make_shared<SocketContext>(s, originalTarget, punyTarget);
-				if (WSAAsyncSelect(sc->handle, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) != SOCKET_ERROR)
-					return sc;
-				sc->Close();
-				break;
-			}
-			error = WSAGetLastError();
-			Sleep(1);
-			if (BackgrndMessageProc() == YES)
-				break;
-		} while (error == WSAEWOULDBLOCK);
+	auto s = accept(handle, addr, addrlen);
+	if (s == INVALID_SOCKET) {
+		WSAError(L"accept()"sv);
+		return {};
 	}
-	return {};
+	return std::make_shared<SocketContext>(s, originalTarget, punyTarget);
 }
 
 
@@ -715,14 +685,14 @@ bool RemovePortMapping(int port) {
 
 
 int CheckClosedAndReconnect() {
-	if (auto const& sc = AskCmdCtrlSkt(); !sc || sc->error != 0 || sc->GetEvent(FD_CLOSE))
+	if (!AskCmdCtrlSkt())
 		return ReConnectCmdSkt();
 	return FFFTP_SUCCESS;
 }
 
 
 int CheckClosedAndReconnectTrnSkt(std::shared_ptr<SocketContext>& Skt, int* CancelCheckWork) {
-	if (!Skt || Skt->error != 0 || Skt->GetEvent(FD_CLOSE))
+	if (!Skt)
 		return ReConnectTrnSkt(Skt, CancelCheckWork);
 	return FFFTP_SUCCESS;
 }

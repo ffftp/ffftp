@@ -2275,7 +2275,6 @@ BEGIN
     IDS_MSGJPN002           "接続を中止しました."
     IDS_MSGJPN003           "\r\n再接続します.\r\n"
     IDS_MSGJPN004           "切断しました"
-    IDS_MSGJPN005           "接続が切断されました."
     IDS_MSGJPN006           "FireWallにログインできません."
     IDS_MSGJPN007           "ホスト {} に接続できません."
     IDS_MSGJPN008           "ログインできません."

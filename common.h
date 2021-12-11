@@ -28,7 +28,6 @@
 
 #pragma once
 #define _CRT_SECURE_NO_WARNINGS
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #define NOMINMAX
 #define SECURITY_WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -58,6 +57,7 @@
 #include <vector>
 #include <concurrent_queue.h>
 #include <boost/regex.hpp>
+#include <gsl/gsl>
 #include <cassert>
 #include <cwctype>
 #include <crtdbg.h>
@@ -137,8 +137,6 @@ constexpr FileType AllFileTyes[]{ FileType::All, FileType::Executable, FileType:
 
 #define WM_CHANGE_COND	(WM_USER+1)	/* ファイル一覧を変更するコマンド */
 #define WM_SET_PACKET	(WM_USER+2)	/* 現在使用している転送パケットのアドレスを通知 */
-
-#define WM_ASYNC_SOCKET	(WM_USER+5)
 
 #define WM_REFRESH_LOCAL_FLG	(WM_USER+7)
 #define WM_REFRESH_REMOTE_FLG	(WM_USER+8)
@@ -537,8 +535,6 @@ struct SocketContext : public WSAOVERLAPPED {
 	SOCKET const handle;
 	std::wstring const originalTarget;
 	std::wstring const punyTarget;
-	int event = 0;
-	int error = 0;
 	int mapPort = 0;
 	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
 	CtxtHandle sslContext = CreateInvalidateHandle<CtxtHandle>();
@@ -553,19 +549,14 @@ struct SocketContext : public WSAOVERLAPPED {
 
 	inline SocketContext(SOCKET s, std::wstring originalTarget, std::wstring punyTarget);
 	SocketContext(SocketContext const&) = delete;
-	~SocketContext() {
-		if (SecIsValidHandle(&sslContext))
-			DeleteSecurityContext(&sslContext);
-	}
+	inline ~SocketContext();
 	static std::shared_ptr<SocketContext> Create(int af, std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget);
 	std::shared_ptr<SocketContext> Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen);
-	void Close();
 	BOOL AttachSSL(BOOL* pbAborted);
 	constexpr bool IsSSLAttached() {
 		return SecIsValidHandle(&sslContext);
 	}
 	std::vector<char> Encrypt(std::string_view plain);
-	bool GetEvent(int mask);
 	int Connect(const sockaddr* name, int namelen, int* CancelCheckWork);
 	int Listen(int backlog);
 	void OnComplete(DWORD error, DWORD transferred, DWORD flags);
@@ -1025,7 +1016,6 @@ int DoSIZE(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, LONGLO
 int DoMDTM(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETIME *Time, int *CancelCheckWork);
 int DoMFMT(std::shared_ptr<SocketContext> cSkt, std::wstring const&, FILETIME *Time, int *CancelCheckWork);
 int DoQUOTE(std::shared_ptr<SocketContext> cSkt, std::wstring_view CmdStr, int* CancelCheckWork);
-void DoClose(std::shared_ptr<SocketContext> Sock);
 int DoQUIT(std::shared_ptr<SocketContext> ctrl_skt, int *CancelCheckWork);
 int DoDirList(std::wstring_view AddOpt, int Num, int* CancelCheckWork);
 #if defined(HAVE_TANDEM)
@@ -1190,8 +1180,6 @@ BOOL LoadSSL();
 void FreeSSL();
 void ShowCertificate();
 bool IsSecureConnection();
-int MakeSocketWin();
-void DeleteSocketWin(void);
 // UPnP対応
 int LoadUPnP();
 void FreeUPnP();

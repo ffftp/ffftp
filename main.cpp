@@ -251,6 +251,10 @@ int WINAPI wWinMain(__in HINSTANCE hInstance, __in_opt HINSTANCE hPrevInstance, 
 		}
 		exitCode = (int)msg.wParam;
 	}
+	// TODO: グローバルに保持されているSocketContextの解放。遅延させると各種エラーが発生するため明示的にここで行う。
+	MainTransPkt.ctrl_skt.reset();
+	DisconnectSet();
+
 	UnregisterClassW(FtpClass, GetFtpInst());
 	FreeSSL();
 	FreeZoneID();
@@ -506,9 +510,6 @@ static bool MakeAllWindows(int cmdShow) {
 		return false;
 
 	ShowWindow(GetMainHwnd(), cmdShow != SW_MINIMIZE && cmdShow != SW_SHOWMINIMIZED && cmdShow != SW_SHOWMINNOACTIVE && Sizing == SW_MAXIMIZE ? SW_MAXIMIZE : cmdShow);
-
-	if (MakeSocketWin() == FFFTP_FAIL)
-		return false;
 
 	SetListViewType();
 

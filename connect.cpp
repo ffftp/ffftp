@@ -777,11 +777,6 @@ int ReConnectTrnSkt(std::shared_ptr<SocketContext>& Skt, int *CancelCheckWork) {
 	Notice(IDS_MSGJPN003);
 
 //	DisableUserOpe();
-	/* 現在のソケットは切断 */
-	if (Skt)
-		Skt->Close();
-	/* 再接続 */
-	// 暗号化通信対応
 	HostData = CurHost;
 	if(HostData.CryptMode != CRYPT_NONE)
 		HostData.UseNoEncryption = NO;
@@ -816,10 +811,6 @@ static int ReConnectSkt(std::shared_ptr<SocketContext>& Skt) {
 	Notice(IDS_MSGJPN003);
 
 	DisableUserOpe();
-	/* 現在のソケットは切断 */
-	if (Skt)
-		Skt->Close();
-	/* 再接続 */
 	if (Skt = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, NO, CurHost.Security, &CancelFlg)) {
 		SendInitCommand(Skt, CurHost.InitCmd, &CancelFlg);
 		DoCWD(AskRemoteCurDir(), YES, YES, YES);
@@ -891,21 +882,18 @@ void DisconnectProc(void)
 
 	if (CmdCtrlSocket && CmdCtrlSocket != TrnCtrlSocket) {
 		DoQUIT(CmdCtrlSocket, &CancelFlg);
-		DoClose(CmdCtrlSocket);
+		CmdCtrlSocket.reset();
 	}
 
 	if (TrnCtrlSocket) {
 		DoQUIT(TrnCtrlSocket, &CancelFlg);
-		DoClose(TrnCtrlSocket);
+		TrnCtrlSocket.reset();
 
 		SaveCurrentSetToHistory();
 
 		EraseRemoteDirForWnd();
 		Notice(IDS_MSGJPN004);
 	}
-
-	TrnCtrlSocket.reset();
-	CmdCtrlSocket.reset();
 
 	DispWindowTitle();
 	UpdateStatusBar();
@@ -916,26 +904,9 @@ void DisconnectProc(void)
 }
 
 
-/*----- ソケットが強制切断されたときの処理 ------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DisconnectSet(void)
-{
+void DisconnectSet() {
 	CmdCtrlSocket.reset();
 	TrnCtrlSocket.reset();
-
-	EraseRemoteDirForWnd();
-	DispWindowTitle();
-	UpdateStatusBar();
-	MakeButtonsFocus();
-	Notice(IDS_MSGJPN005);
-	return;
 }
 
 
@@ -1135,7 +1106,6 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 					if((Sts != FTP_COMPLETE) && (Sts != FTP_CONTINUE))
 					{
 						Notice(IDS_MSGJPN006);
-						DoClose(ContSock);
 						ContSock.reset();
 					}
 					else
@@ -1150,7 +1120,6 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 						if((Sts != FTP_COMPLETE) && (Sts != FTP_CONTINUE))
 						{
 							Notice(IDS_MSGJPN007, Host);
-							DoClose(ContSock);
 							ContSock.reset();
 						}
 						else
@@ -1245,7 +1214,6 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 							if(Sts != FTP_COMPLETE)
 							{
 								Notice(IDS_MSGJPN008);
-								DoClose(ContSock);
 								ContSock.reset();
 							}
 							else if((SavePass == YES) && (ReInPass == YES))
@@ -1259,7 +1227,6 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 				else
 				{
 				Notice(IDS_MSGJPN009);
-					DoClose(ContSock);
 					ContSock.reset();
 				}
 			}
@@ -1650,14 +1617,12 @@ std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::
 	s->target = target;
 	if (s->Connect(reinterpret_cast<const sockaddr*>(&saConnect), sizeof saConnect, CancelCheckWork) == SOCKET_ERROR) {
 		Notice(IDS_MSGJPN026);
-		DoClose(s);
 		return {};
 	}
 	if (Fwall == FWALL_SOCKS4 || Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
 		auto result = SocksRequest(s, SocksCommand::Connect, target, CancelCheckWork);
 		if (!result) {
 			Notice(IDS_MSGJPN023);
-			DoClose(s);
 			return {};
 		}
 		CurHost.CurNetType = result->ss_family == AF_INET ? NTYPE_IPV4 : NTYPE_IPV6;
@@ -1694,7 +1659,6 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 			saListen = *result;
 		} else {
 			Notice(IDS_MSGJPN023);
-			DoClose(listen_skt);
 			return {};
 		}
 	} else {
@@ -1706,20 +1670,17 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 			reinterpret_cast<sockaddr_in6&>(saListen).sin6_port = 0;
 		if (bind(listen_skt->handle, reinterpret_cast<const sockaddr*>(&saListen), salen) == SOCKET_ERROR) {
 			WSAError(L"bind()"sv);
-			listen_skt->Close();
 			Notice(IDS_MSGJPN027);
 			return {};
 		}
 		salen = sizeof saListen;
 		if (getsockname(listen_skt->handle, reinterpret_cast<sockaddr*>(&saListen), &salen) == SOCKET_ERROR) {
 			WSAError(L"getsockname()"sv);
-			listen_skt->Close();
 			Notice(IDS_MSGJPN027);
 			return {};
 		}
 		if (listen_skt->Listen(1) != 0) {
 			WSAError(L"listen()"sv);
-			listen_skt->Close();
 			Notice(IDS_MSGJPN027);
 			return {};
 		}
@@ -1748,7 +1709,6 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 		Notice(IDS_MSGJPN031, saListen.ss_family == AF_INET ? L"PORT"sv : L"EPRT"sv);
 		if (IsUPnPLoaded() == YES)
 			RemovePortMapping(listen_skt->mapPort);
-		listen_skt->Close();
 		return {};
 	}
 	return listen_skt;

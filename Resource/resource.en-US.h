@@ -464,7 +464,6 @@
 #define IDS_MSGJPN002                   10002
 #define IDS_MSGJPN003                   10003
 #define IDS_MSGJPN004                   10004
-#define IDS_MSGJPN005                   10005
 #define IDS_MSGJPN006                   10006
 #define IDS_MSGJPN007                   10007
 #define IDS_MSGJPN008                   10008
