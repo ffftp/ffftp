@@ -369,28 +369,44 @@ void SocketContext::Close() {
 
 
 int SocketContext::Connect(const sockaddr* name, int namelen, int* CancelCheckWork) {
-	if (WSAAsyncSelect(handle, hWndSocket, WM_ASYNC_SOCKET, FD_CONNECT | FD_CLOSE | FD_ACCEPT) != 0) {
-		WSAError(L"do_connect: WSAAsyncSelect()"sv);
+	if ((hEvent = WSACreateEvent()) == WSA_INVALID_EVENT) {
+		WSAError(L"WSACreateEvent()"sv);
 		return SOCKET_ERROR;
 	}
+	auto f1 = gsl::finally([this] { WSACloseEvent(hEvent); });
+	if (WSAEventSelect(handle, hEvent, FD_CONNECT | FD_CLOSE) != 0) {
+		WSAError(L"WSAEventSelect()"sv);
+		return SOCKET_ERROR;
+	}
+	auto f2 = gsl::finally([this] { WSAEventSelect(handle, hEvent, 0); });
 	if (connect(handle, name, namelen) == 0)
 		return 0;
 	if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
-		Error(L"do_connect: connect()"sv, lastError);
+		WSAError(L"connect()"sv, lastError);
 		return SOCKET_ERROR;
 	}
-	while (*CancelCheckWork != YES) {
-		if (error == 0 && GetEvent(FD_CONNECT))
-			return 0;
-		if (error != 0 && error != WSAEWOULDBLOCK) {
-			Error(L"do_connect: select()"sv, error);
+	for (;;) {
+		auto result = WSAWaitForMultipleEvents(1, &hEvent, false, 0, false);
+		if (result == WSA_WAIT_EVENT_0)
+			break;
+		if (result != WSA_WAIT_TIMEOUT) {
+			WSAError(L"WSAWaitForMultipleEvents()"sv);
 			return SOCKET_ERROR;
 		}
 		Sleep(1);
 		if (BackgrndMessageProc() == YES)
 			*CancelCheckWork = YES;
+		if (*CancelCheckWork == YES)
+			return SOCKET_ERROR;
 	}
-	return SOCKET_ERROR;
+	if (WSANETWORKEVENTS networkEvents; WSAEnumNetworkEvents(handle, hEvent, &networkEvents) != 0) {
+		WSAError(L"WSAEnumNetworkEvents()"sv);
+		return SOCKET_ERROR;
+	} else if ((networkEvents.lNetworkEvents & FD_CONNECT) == 0 || networkEvents.iErrorCode[FD_CONNECT_BIT] != 0) {
+		Debug(L"networkEvents: {:08X}, connect: {}, close: {}."sv, (unsigned long)networkEvents.lNetworkEvents, networkEvents.iErrorCode[FD_CONNECT_BIT], networkEvents.iErrorCode[FD_CLOSE_BIT]);
+		return SOCKET_ERROR;
+	}
+	return 0;
 }
 
 
