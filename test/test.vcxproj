@@ -71,7 +71,7 @@
     <CodeAnalysisRuleSet>../ffftp.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
-    <IncludePath>$(VCInstallDir)UnitTest\include;../boost-regex/include;$(IncludePath)</IncludePath>
+    <IncludePath>$(VCInstallDir)UnitTest\include;../boost-regex/include;../gsl/include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)UnitTest\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -80,7 +80,7 @@
     <CodeAnalysisRuleSet>../ffftp.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
-    <IncludePath>$(VCInstallDir)UnitTest\include;../boost-regex/include;$(IncludePath)</IncludePath>
+    <IncludePath>$(VCInstallDir)UnitTest\include;../boost-regex/include;../gsl/include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)UnitTest\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -89,7 +89,7 @@
     <CodeAnalysisRuleSet>../ffftp.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
-    <IncludePath>$(VCInstallDir)UnitTest\include;../boost-regex/include;$(IncludePath)</IncludePath>
+    <IncludePath>$(VCInstallDir)UnitTest\include;../boost-regex/include;../gsl/include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)UnitTest\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -98,7 +98,7 @@
     <CodeAnalysisRuleSet>../ffftp.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
-    <IncludePath>$(VCInstallDir)UnitTest\include;../boost-regex/include;$(IncludePath)</IncludePath>
+    <IncludePath>$(VCInstallDir)UnitTest\include;../boost-regex/include;../gsl/include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VCInstallDir)UnitTest\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

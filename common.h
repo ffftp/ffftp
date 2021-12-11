@@ -58,6 +58,7 @@
 #include <vector>
 #include <concurrent_queue.h>
 #include <boost/regex.hpp>
+#include <gsl/gsl>
 #include <cassert>
 #include <cwctype>
 #include <crtdbg.h>
