@@ -952,7 +952,7 @@ int SetOSS(int wkOss);
 int AskOSS(void);
 #endif
 std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext> s, int* CancelCheckWork);
-std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget, std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork);
+std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget, std::wstring&& host, int port, int *CancelCheckWork);
 std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext> ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
 

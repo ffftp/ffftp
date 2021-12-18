@@ -1037,7 +1037,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 
 		auto [tempHost, tempPort] = FWALL_FU_FP_SITE <= Fwall && Fwall <= FWALL_OPEN || Fwall == FWALL_SIDEWINDER || Fwall == FWALL_FU_FP ? std::tuple{ FwallHost, FwallPort } : std::tuple{ Host, Port };
 		if (!empty(tempHost)) {
-			if (ContSock = connectsock(Host, std::move(tempHost), tempPort, 0, CancelCheckWork)) {
+			if (ContSock = connectsock(Host, std::move(tempHost), tempPort, CancelCheckWork)) {
 				// バッファを無効
 #ifdef DISABLE_CONTROL_NETWORK_BUFFERS
 				int BufferSize = 0;
@@ -1572,19 +1572,19 @@ static std::optional<sockaddr_storage> SocksRequest(std::shared_ptr<SocketContex
 }
 
 
-std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget, std::wstring&& host, int port, UINT prefixId, int *CancelCheckWork) {
+std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget, std::wstring&& host, int port, int *CancelCheckWork) {
 	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
 	int Fwall = CurHost.FireWall == YES ? FwallType : FWALL_NONE;
 	if (auto ai = getaddrinfo(host, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC)) {
 		// ホスト名がIPアドレスだった
-		Notice(IDS_MSGJPN017, prefixId ? GetString(prefixId) : L""s, host, AddressPortToString(ai->ai_addr, ai->ai_addrlen));
+		Notice(IDS_MSGJPN017, host, AddressPortToString(ai->ai_addr, ai->ai_addrlen));
 		memcpy(&std::get<sockaddr_storage>(target), ai->ai_addr, ai->ai_addrlen);
 	} else if ((Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) && FwallResolve == YES) {
 		// SOCKS5で名前解決する
 		target = std::tuple{ std::move(host), port };
 	} else if (ai = getaddrinfo(host, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC, CancelCheckWork)) {
 		// 名前解決に成功
-		Notice(IDS_MSGJPN017, prefixId ? GetString(prefixId) : L""s, host, AddressPortToString(ai->ai_addr, ai->ai_addrlen));
+		Notice(IDS_MSGJPN017, host, AddressPortToString(ai->ai_addr, ai->ai_addrlen));
 		memcpy(&std::get<sockaddr_storage>(target), ai->ai_addr, ai->ai_addrlen);
 	} else {
 		// 名前解決に失敗
