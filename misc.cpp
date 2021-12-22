@@ -161,7 +161,7 @@ static auto GetFilterString(std::initializer_list<FileType> fileTypes) {
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes) {
 	auto const filter = GetFilterString(fileTypes);
 	wchar_t buffer[FMAX_PATH + 1];
-	wcscpy(buffer, initialFileName);
+	wcscpy_s(buffer, initialFileName);
 	auto const title = GetString(titleId);
 	DWORD flags = (open ? OFN_FILEMUSTEXIST : OFN_EXTENSIONDIFFERENT | OFN_OVERWRITEPROMPT) | OFN_HIDEREADONLY | OFN_PATHMUSTEXIST;
 	OPENFILENAMEW ofn{ sizeof(OPENFILENAMEW), hWnd, 0, filter.c_str(), nullptr, 0, 1, buffer, size_as<DWORD>(buffer), nullptr, 0, nullptr, title.c_str(), flags, 0, 0, extension };

@@ -167,13 +167,13 @@ public:
 	bool ReadFont(std::string_view name, HFONT& hfont, LOGFONTW& logfont) {
 		if (std::wstring value; ReadValue(name, value)) {
 			int offset;
-			auto read = swscanf(value.c_str(), L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
+			auto read = swscanf_s(value.c_str(), L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
 				&logfont.lfHeight, &logfont.lfWidth, &logfont.lfEscapement, &logfont.lfOrientation, &logfont.lfWeight,
 				&logfont.lfItalic, &logfont.lfUnderline, &logfont.lfStrikeOut, &logfont.lfCharSet,
 				&logfont.lfOutPrecision, &logfont.lfClipPrecision, &logfont.lfQuality, &logfont.lfPitchAndFamily, &offset
 			);
 			if (read == 13) {
-				wcscpy(logfont.lfFaceName, value.c_str() + offset);
+				wcscpy_s(logfont.lfFaceName, value.c_str() + offset);
 				hfont = CreateFontIndirectW(&logfont);
 				return true;
 			}

@@ -27,7 +27,6 @@
 /============================================================================*/
 
 #pragma once
-#define _CRT_SECURE_NO_WARNINGS
 #define NOMINMAX
 #define SECURITY_WIN32
 #define WIN32_LEAN_AND_MEAN

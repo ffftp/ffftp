@@ -232,7 +232,7 @@ int DoMDTM(std::shared_ptr<SocketContext> cSkt, std::wstring const& Path, FILETI
 		std::wstring text;
 		std::tie(code, text) = Command(cSkt, CancelCheckWork, L"MDTM {}"sv, Path);
 		if (code / 100 == FTP_COMPLETE)
-			if (SYSTEMTIME st{}; swscanf(&text[4], L"%04hu%02hu%02hu%02hu%02hu%02hu", &st.wYear, &st.wMonth, &st.wDay, &st.wHour, &st.wMinute, &st.wSecond) == 6)
+			if (SYSTEMTIME st{}; swscanf_s(&text[4], L"%04hu%02hu%02hu%02hu%02hu%02hu", &st.wYear, &st.wMonth, &st.wDay, &st.wHour, &st.wMinute, &st.wSecond) == 6)
 				SystemTimeToFileTime(&st, Time);
 	}
 	return code / 100;
