@@ -202,7 +202,7 @@ static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName
 
 template<class Test>
 static inline std::invoke_result_t<Test> Wait(SocketContext& sc, int* CancelCheckWork, Test test) {
-	for (;;) {
+	for (auto f1 = gsl::finally([&sc] { CancelIo((HANDLE)sc.handle); });;) {
 		if (auto result = test())
 			return result;
 		if (auto result = sc.AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
@@ -211,17 +211,14 @@ static inline std::invoke_result_t<Test> Wait(SocketContext& sc, int* CancelChec
 			if (TimeOut != 0 && expiredAt < std::chrono::steady_clock::now()) {
 				Notice(IDS_MSGJPN242);
 				sc.recvStatus = WSAETIMEDOUT;
-				goto error;
+				return {};
 			}
 			if (BackgrndMessageProc() == YES || *CancelCheckWork == YES) {
 				sc.recvStatus = ERROR_OPERATION_ABORTED;
-				goto error;
+				return {};
 			}
 		}
 	}
-error:
-	CancelIo((HANDLE)sc.handle);
-	return {};
 }
 
 
