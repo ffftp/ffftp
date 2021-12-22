@@ -146,8 +146,7 @@ enum class CertResult {
 
 struct CertDialog {
 	using result_t = int;
-	std::unique_ptr<CERT_CONTEXT> const& certContext;
-	CertDialog(std::unique_ptr<CERT_CONTEXT> const& certContext) : certContext{ certContext } {}
+	CERT_CONTEXT* const certContext;
 	void OnCommand(HWND hdlg, WORD commandId) {
 		switch (commandId) {
 		case IDYES:
@@ -155,7 +154,7 @@ struct CertDialog {
 			EndDialog(hdlg, commandId);
 			break;
 		case IDC_SHOWCERT:
-			CRYPTUI_VIEWCERTIFICATE_STRUCTW certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCTW, hdlg, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext.get() };
+			CRYPTUI_VIEWCERTIFICATE_STRUCTW certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCTW, hdlg, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext };
 			__pragma(warning(suppress:6387)) CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
 			break;
 		}
@@ -192,7 +191,7 @@ static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName
 	if (std::find(begin(acceptedThumbprints), end(acceptedThumbprints), thumbprint) != end(acceptedThumbprints))
 		return CertResult::NotSecureAccepted;
 
-	if (Dialog(GetFtpInst(), certerr_dlg, GetMainHwnd(), CertDialog{ certContext }) == IDYES) {
+	if (Dialog(GetFtpInst(), certerr_dlg, GetMainHwnd(), CertDialog{ certContext.get() }) == IDYES) {
 		acceptedThumbprints.push_back(thumbprint);
 		return CertResult::NotSecureAccepted;
 	}
