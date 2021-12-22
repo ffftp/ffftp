@@ -847,7 +847,7 @@ void Config::WritePassword(std::string_view name, std::wstring_view password) {
 struct IniConfig : Config {
 	std::shared_ptr<std::map<std::string, std::vector<std::string>>> map;
 	bool const update;
-	IniConfig(std::string const& keyName, bool update) : Config{ keyName }, map{ new std::map<std::string, std::vector<std::string>>{} }, update{ update } {}
+	IniConfig(std::string const& keyName, bool update) : Config{ keyName }, map{ std::make_shared<std::map<std::string, std::vector<std::string>>>() }, update{ update } {}
 	IniConfig(std::string const& keyName, IniConfig& parent) : Config{ keyName }, map{ parent.map }, update{ false } {}
 	~IniConfig() override {
 		if (update) {
