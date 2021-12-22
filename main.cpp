@@ -1573,7 +1573,7 @@ static std::optional<int> AnalyzeComLine(std::vector<std::wstring_view> const& a
 	int option = 0;
 	for (auto it = begin(args); it != end(args); ++it) {
 		if ((*it)[0] == L'-') {
-			auto key = lc(*it);
+			auto key = lc(std::wstring{ *it });
 			if (auto mapit = map.find(key); mapit != end(map)) {
 				option |= mapit->second;
 			} else if (key == L"-n"sv || key == L"--ini"sv) {

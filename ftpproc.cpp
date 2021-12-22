@@ -446,7 +446,7 @@ void MirrorDownloadProc(int Notify)
 					Pkt.Local = AskLocalCurDir();
 					auto name = f.Name;
 					if (MirrorFnameCnv == YES)
-						name = lc(name);
+						name = lc(std::move(name));
 					Pkt.Local /= RemoveAfterSemicolon(std::move(name));
 
 					if (f.Node == NODE_DIR) {
@@ -1148,7 +1148,7 @@ void MirrorUploadProc(int Notify)
 
 			for (auto const& f : LocalListBase) {
 				if (f.Attr == YES) {
-					auto Cat = MirrorFnameCnv == YES ? lc(f.Name) : f.Name;
+					auto Cat = MirrorFnameCnv == YES ? lc(std::wstring{ f.Name }) : f.Name;
 					Pkt.Remote = ReplaceAll(SetSlashTail(std::wstring{ AskRemoteCurDir() }) + Cat, L'\\', L'/');
 
 					if (f.Node == NODE_DIR) {

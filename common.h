@@ -1258,23 +1258,16 @@ static auto ieq(std::wstring_view left, std::wstring_view right) {
 	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::towupper(l) == std::towupper(r); });
 }
 static inline auto lc(std::string&& str) {
-	_strlwr(data(str));
+	_strlwr_s(data(str), size(str) + 1);
 	return str;
 }
 static inline auto lc(std::wstring&& str) {
-	_wcslwr(data(str));
+	_wcslwr_s(data(str), size(str) + 1);
 	return str;
-}
-template<class String>
-static inline auto lc(String const& src) {
-	return lc(std::basic_string(std::begin(src), std::end(src)));
 }
 static inline auto uc(std::wstring&& str) {
-	_wcsupr(data(str));
+	_wcsupr_s(data(str), size(str) + 1);
 	return str;
-}
-static inline auto uc(std::wstring_view sv) {
-	return uc(std::wstring{ sv });
 }
 template<class Char, class Evaluator>
 static inline auto replace(std::basic_string_view<Char> input, boost::basic_regex<Char> const& pattern, Evaluator&& evaluator) {

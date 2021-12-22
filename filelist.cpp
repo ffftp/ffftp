@@ -1557,7 +1557,7 @@ static std::optional<FILELIST> ParseMlsd(boost::smatch const& m) {
 		auto factname = lc((*it)[1]);
 		auto value = sv((*it)[2]);
 		if (factname == "type"sv) {
-			if (auto lcvalue = lc(value); lcvalue == "dir"sv)
+			if (auto lcvalue = lc(std::string{ value }); lcvalue == "dir"sv)
 				type = NODE_DIR;
 			else if (lcvalue == "file"sv)
 				type = NODE_FILE;
@@ -1958,7 +1958,7 @@ static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base) {
 
 const FILELIST* SearchFileList(std::wstring_view Fname, std::vector<FILELIST> const& Base, int Caps) {
 	for (auto p = data(Base), end = data(Base) + size(Base); p != end; ++p)
-		if (Caps == COMP_STRICT ? Fname == p->Name : ieq(Fname, p->Name) && (Caps == COMP_IGNORE || lc(p->Name) == p->Name))
+		if (Caps == COMP_STRICT ? Fname == p->Name : ieq(Fname, p->Name) && (Caps == COMP_IGNORE || lc(std::wstring{ p->Name }) == p->Name))
 			return p;
 	return nullptr;
 }
