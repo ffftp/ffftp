@@ -237,7 +237,7 @@ BOOL SocketContext::AttachSSL(BOOL* pbAborted) {
 	if (sslReadStatus != SEC_I_CONTINUE_NEEDED)
 		return FALSE;
 	assert(outBuffer[0].BufferType == SECBUFFER_TOKEN && outBuffer[0].cbBuffer != 0 && outBuffer[0].pvBuffer != nullptr);
-	auto written = send(handle, reinterpret_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
+	auto written = send(handle, static_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
 	_RPTWN(_CRT_WARN, L"SC{%zu}: send(): %d.\n", handle, written);
 	assert(written == outBuffer[0].cbBuffer);
 	__pragma(warning(suppress:6387)) FreeContextBuffer(outBuffer[0].pvBuffer);
@@ -434,7 +434,7 @@ void SocketContext::OnComplete(DWORD error, DWORD transferred, DWORD flags) {
 			if (sslReadStatus == SEC_E_OK || sslReadStatus == SEC_I_CONTINUE_NEEDED) {
 				if (outBuffer[0].BufferType == SECBUFFER_TOKEN && outBuffer[0].cbBuffer != 0) {
 					// TODO: 送信バッファが埋まっている場合に失敗する
-					auto written = send(handle, reinterpret_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
+					auto written = send(handle, static_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
 					_RPTWN(_CRT_WARN, L"SC{%zu}: send(): %d.\n", handle, written);
 					assert(written == outBuffer[0].cbBuffer);
 					FreeContextBuffer(outBuffer[0].pvBuffer);
@@ -463,7 +463,7 @@ void SocketContext::OnComplete(DWORD error, DWORD transferred, DWORD flags) {
 			);
 			if (sslReadStatus == SEC_E_OK) {
 				assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[1].BufferType == SECBUFFER_DATA && buffer[2].BufferType == SECBUFFER_STREAM_TRAILER);
-				readPlain.insert(end(readPlain), reinterpret_cast<const char*>(buffer[1].pvBuffer), reinterpret_cast<const char*>(buffer[1].pvBuffer) + buffer[1].cbBuffer);
+				readPlain.insert(end(readPlain), static_cast<const char*>(buffer[1].pvBuffer), static_cast<const char*>(buffer[1].pvBuffer) + buffer[1].cbBuffer);
 				readRaw.erase(begin(readRaw), end(readRaw) - (buffer[3].BufferType == SECBUFFER_EXTRA ? buffer[3].cbBuffer : 0));
 			} else if (sslReadStatus == SEC_I_CONTEXT_EXPIRED) {
 				assert(buffer[0].BufferType == SECBUFFER_DATA && buffer[0].cbBuffer == size_as<unsigned long>(readRaw));

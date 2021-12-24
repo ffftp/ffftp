@@ -1075,7 +1075,7 @@ void Config::Xor(std::string_view name, void* bin, DWORD len, bool preserveZero)
 		return;
 	auto result = HashOpen(BCRYPT_SHA1_ALGORITHM, [bin, len, preserveZero, salt = KeyName + '\\' + name](auto alg, auto obj, auto hash) {
 		assert(hash.size() == 20);
-		auto p = reinterpret_cast<BYTE*>(bin);
+		auto p = static_cast<BYTE*>(bin);
 		for (DWORD i = 0; i < len; i++) {
 			if (i % 20 == 0) {
 				std::array<DWORD, 16> buffer;

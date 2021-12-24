@@ -166,7 +166,7 @@ static auto version() {
 	UINT len;
 	result = VerQueryValueW(data(buffer), L"\\", &block, &len);
 	assert(result && sizeof(VS_FIXEDFILEINFO) <= len);
-	auto const ms = reinterpret_cast<VS_FIXEDFILEINFO*>(block)->dwProductVersionMS, ls = reinterpret_cast<VS_FIXEDFILEINFO*>(block)->dwProductVersionLS;
+	auto const ms = static_cast<VS_FIXEDFILEINFO*>(block)->dwProductVersionMS, ls = static_cast<VS_FIXEDFILEINFO*>(block)->dwProductVersionLS;
 	auto const major = HIWORD(ms), minor = LOWORD(ms), patch = HIWORD(ls), build = LOWORD(ls);
 	auto const format = build != 0 ? L"{}.{}.{}.{}"sv : patch != 0 ? L"{}.{}.{}"sv : L"{}.{}"sv;
 	return std::format(format, major, minor, patch, build);

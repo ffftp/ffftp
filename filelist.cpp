@@ -319,7 +319,7 @@ static HDROP CreateDropFileMem(std::vector<fs::path> const& filenames) {
 	}
 	extra += L'\0';
 	if (auto drop = (HDROP)GlobalAlloc(GHND, sizeof(DROPFILES) + size(extra) * sizeof(wchar_t))) {
-		if (auto dropfiles = reinterpret_cast<DROPFILES*>(GlobalLock(drop))) {
+		if (auto dropfiles = static_cast<DROPFILES*>(GlobalLock(drop))) {
 			*dropfiles = { sizeof(DROPFILES), {}, false, true };
 			std::copy(begin(extra), end(extra), reinterpret_cast<wchar_t*>(dropfiles + 1));
 			GlobalUnlock(drop);

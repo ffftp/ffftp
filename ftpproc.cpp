@@ -2146,7 +2146,7 @@ void CopyURLtoClipBoard() {
 		if (EmptyClipboard())
 			if (auto global = GlobalAlloc(GHND, (size_as<SIZE_T>(text) + 1) * sizeof(wchar_t)); global)
 				if (auto buffer = GlobalLock(global); buffer) {
-					std::copy(begin(text), end(text), reinterpret_cast<wchar_t*>(buffer));
+					std::copy(begin(text), end(text), static_cast<wchar_t*>(buffer));
 					GlobalUnlock(global);
 					SetClipboardData(CF_UNICODETEXT, global);
 				}
