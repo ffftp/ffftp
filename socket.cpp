@@ -77,7 +77,7 @@ BOOL LoadSSL() {
 	//   排他となるプロトコルがあるため、有効になっているプロトコルのうちSSL 3.0以降とTLS 1.2を指定してオープンする。
 	//   セッション再開が必要とされるため、TLS 1.3は明示的には有効化せず、レジストリ指定に従う。
 	static_assert(SP_PROT_TLS1_3PLUS_CLIENT == SP_PROT_TLS1_3_CLIENT, "new tls version detected.");
-	if (auto ss = AcquireCredentialsHandleW(nullptr, const_cast<wchar_t*>(UNISP_NAME_W), SECPKG_CRED_OUTBOUND, nullptr, nullptr, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
+	if (auto ss = AcquireCredentialsHandleW(nullptr, __pragma(warning(suppress:26465)) const_cast<wchar_t*>(UNISP_NAME_W), SECPKG_CRED_OUTBOUND, nullptr, nullptr, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
 		Error(L"AcquireCredentialsHandle()"sv, ss);
 		return FALSE;
 	}
@@ -91,7 +91,7 @@ BOOL LoadSSL() {
 		// pAuthDataはSCHANNEL_CREDからSCH_CREDENTIALSに変更されたが現状維持する。
 		// https://github.com/MicrosoftDocs/win32/commit/e9f333c14bad8fd65d89ccc64d42882bc5fa7d9c
 		SCHANNEL_CRED sc{ .dwVersion = SCHANNEL_CRED_VERSION, .grbitEnabledProtocols = sp.grbitProtocol & SP_PROT_SSL3TLS1_X_CLIENTS | SP_PROT_TLS1_2_CLIENT };
-		if (auto ss = AcquireCredentialsHandleW(nullptr, const_cast<wchar_t*>(UNISP_NAME_W), SECPKG_CRED_OUTBOUND, nullptr, &sc, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
+		if (auto ss = AcquireCredentialsHandleW(nullptr, __pragma(warning(suppress:26465)) const_cast<wchar_t*>(UNISP_NAME_W), SECPKG_CRED_OUTBOUND, nullptr, &sc, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
 			Error(L"AcquireCredentialsHandle()"sv, ss);
 			return FALSE;
 		}
