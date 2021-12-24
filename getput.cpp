@@ -123,7 +123,7 @@ static int TransferErrorDisplay = 0;
 
 static void SetErrorMsg(std::wstring&& msg) {
 	if (empty(ErrMsg))
-		ErrMsg = msg;
+		ErrMsg = std::move(msg);
 }
 
 

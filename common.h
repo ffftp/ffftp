@@ -800,7 +800,7 @@ std::tuple<fs::path, std::vector<FILELIST>> MakeDroppedFileList(WPARAM wParam);
 fs::path MakeDroppedDir(WPARAM wParam);
 void AddRemoteTreeToFileList(int Num, std::wstring const& Path, int IncDir, std::vector<FILELIST>& Base);
 const FILELIST* SearchFileList(std::wstring_view Fname, std::vector<FILELIST> const& Base, int Caps);
-static inline FILELIST* SearchFileList(std::wstring_view Fname, std::vector<FILELIST>& Base, int Caps) {
+static inline FILELIST* SearchFileList(std::wstring_view Fname, __pragma(warning(suppress:26460)) std::vector<FILELIST>& Base, int Caps) {
 	return const_cast<FILELIST*>(SearchFileList(Fname, static_cast<std::vector<FILELIST> const&>(Base), Caps));
 }
 void SetFilter(int *CancelCheckWork);
@@ -1224,8 +1224,8 @@ template<class DstChar, class Fn>
 static inline auto convert(Fn&& fn, std::wstring_view src) {
 	return convert<DstChar, wchar_t>(std::forward<Fn>(fn), src);
 }
-template<class Char, class... Str>
-static inline auto concat(std::basic_string_view<Char> first, Str&&... rest) {
+template<class Char>
+static inline auto concat(std::basic_string_view<Char> first, auto const&... rest) {
 	std::basic_string<Char> result;
 	result.reserve((std::size(first) + ... + std::size(rest)));
 	((result += first) += ... += rest);
