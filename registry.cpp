@@ -75,7 +75,7 @@ public:
 	bool ReadValue(std::string_view name, Integral& value) const {
 		static_assert(sizeof(Integral) <= sizeof(int));
 		if (int temp; ReadValue(name, temp)) {
-			value = static_cast<Integral>(temp);
+			value = gsl::narrow_cast<Integral>(temp);
 			return true;
 		}
 		return false;
