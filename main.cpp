@@ -538,34 +538,9 @@ HWND GetMainHwnd() {
 }
 
 
-/*----- 現在フォーカスがあるウインドウのウインドウハンドルを返す --------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetFocusHwnd(void)
-{
-	return(hWndCurFocus);
-}
-
-
-/*----- 現在フォーカスがあるウインドウのをセットする --------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetFocusHwnd(HWND hWnd)
-{
+// 現在フォーカスがあるウインドウのをセットする
+void SetFocusHwnd(HWND hWnd) {
 	hWndCurFocus = hWnd;
-	return;
 }
 
 

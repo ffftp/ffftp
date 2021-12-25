@@ -747,7 +747,6 @@ fs::path const& systemDirectory();
 fs::path const& tempDirectory();
 void DispWindowTitle();
 HWND GetMainHwnd(void);
-HWND GetFocusHwnd(void);
 void SetFocusHwnd(HWND hWnd);
 HINSTANCE GetFtpInst(void);
 void DoubleClickProc(int Win, int Mode, int App);
