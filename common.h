@@ -1251,10 +1251,10 @@ static inline auto u8(const Char* str, size_t len) {
 	return u8(std::basic_string_view<Char>{ str, len });
 }
 static auto ieq(std::string_view left, std::string_view right) {
-	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::toupper(l) == std::toupper(r); });
+	return size(left) == size(right) && _strnicmp(data(left), data(right), size(left)) == 0;
 }
 static auto ieq(std::wstring_view left, std::wstring_view right) {
-	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::towupper(l) == std::towupper(r); });
+	return size(left) == size(right) && _wcsnicmp(data(left), data(right), size(left)) == 0;
 }
 static inline auto lc(std::string&& str) {
 	_strlwr_s(data(str), size(str) + 1);
