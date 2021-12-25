@@ -1150,7 +1150,6 @@ static std::wstring MakeSizeString(uintmax_t size) {
 	return std::format(L"{:0.1f}{}B"sv, (size >> 10 * i) / 1024., L"KMGTPE"[i]);
 }
 void DispStaticText(HWND hWnd, std::wstring text);
-void RectClientToScreen(HWND hWnd, RECT *Rect);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 fs::path SelectDir(HWND hWnd);
 fs::path MakeDistinguishableFileName(fs::path&& path);

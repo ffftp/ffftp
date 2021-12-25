@@ -111,36 +111,6 @@ void DispStaticText(HWND hWnd, std::wstring text) {
 }
 
 
-/*----- RECTをクライアント座標からスクリーン座標に変換 ------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*		RECT *Rect : RECT
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void RectClientToScreen(HWND hWnd, RECT *Rect)
-{
-	POINT Tmp;
-
-	Tmp.x = Rect->left;
-	Tmp.y = Rect->top;
-	ClientToScreen(hWnd, &Tmp);
-	Rect->left = Tmp.x;
-	Rect->top = Tmp.y;
-
-	Tmp.x = Rect->right;
-	Tmp.y = Rect->bottom;
-	ClientToScreen(hWnd, &Tmp);
-	Rect->right = Tmp.x;
-	Rect->bottom = Tmp.y;
-
-	return;
-}
-
-
 static auto GetFilterString(std::initializer_list<FileType> fileTypes) {
 	static auto const map = [] {
 		std::map<FileType, std::wstring> map;
