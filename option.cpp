@@ -48,7 +48,6 @@ static void SetStrings(HWND hdlg, int id, std::vector<std::wstring> const& strin
 		SendDlgItemMessageW(hdlg, id, LB_ADDSTRING, 0, (LPARAM)string.c_str());
 }
 int GetDecimalText(HWND hDlg, int Ctrl);
-void CheckRange2(int *Cur, int Max, int Min);
 
 
 // ファイル属性設定ウインドウ
@@ -177,8 +176,7 @@ struct Transfer2 {
 		case PSN_APPLY: {
 			DefaultLocalPath = GetText(hDlg, TRMODE2_LOCAL);
 			FnameCnv = CnvButton::Get(hDlg);
-			TimeOut = GetDecimalText(hDlg, TRMODE2_TIMEOUT);
-			CheckRange2(&TimeOut, 300, 0);
+			TimeOut = std::clamp(GetDecimalText(hDlg, TRMODE2_TIMEOUT), 0, 300);
 			return PSNRET_NOERROR;
 		}
 		case PSN_HELP:
@@ -489,8 +487,7 @@ struct Connecting {
 			ConnectAndSet = (int)SendDlgItemMessageW(hDlg, MISC_OLDDLG, BM_GETCHECK, 0, 0);
 			RasClose = (int)SendDlgItemMessageW(hDlg, CONNECT_RASCLOSE, BM_GETCHECK, 0, 0);
 			RasCloseNotify = (int)SendDlgItemMessageW(hDlg, CONNECT_CLOSE_NOTIFY, BM_GETCHECK, 0, 0);
-			FileHist = GetDecimalText(hDlg, CONNECT_HIST);
-			CheckRange2(&FileHist, HISTORY_MAX, 0);
+			FileHist = std::clamp(GetDecimalText(hDlg, CONNECT_HIST), 0, HISTORY_MAX);
 			QuickAnonymous = (int)SendDlgItemMessageW(hDlg, CONNECT_QUICK_ANONY, BM_GETCHECK, 0, 0);
 			PassToHist = (int)SendDlgItemMessageW(hDlg, CONNECT_HIST_PASS, BM_GETCHECK, 0, 0);
 			SendQuit = (int)SendDlgItemMessageW(hDlg, CONNECT_SENDQUIT, BM_GETCHECK, 0, 0);
@@ -751,30 +748,4 @@ int SortSetting() {
 int GetDecimalText(HWND hDlg, int Ctrl) {
 	auto const text = GetText(hDlg, Ctrl);
 	return !empty(text) && std::iswdigit(text[0]) ? stoi(text) : 0;
-}
-
-
-/*----- 設定値の範囲チェック --------------------------------------------------
-*
-*	Parameter
-*		int *Cur : 設定値
-*		int Max : 最大値
-*		int Min : 最小値
-*
-*	Return Value
-*		なし
-*
-*	Parameter change
-*		int *Cur : 設定値
-*----------------------------------------------------------------------------*/
-
-// hostman.cで使用
-//static void CheckRange2(int *Cur, int Max, int Min)
-void CheckRange2(int *Cur, int Max, int Min)
-{
-	if(*Cur < Min)
-		*Cur = Min;
-	if(*Cur > Max)
-		*Cur = Max;
-	return;
 }

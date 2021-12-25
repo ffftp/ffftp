@@ -1165,11 +1165,9 @@ struct Feature {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			TmpHost.MaxThreadCount = GetDecimalText(hDlg, HSET_THREAD_COUNT);
-			CheckRange2(&TmpHost.MaxThreadCount, MAX_DATA_CONNECTION, 1);
+			TmpHost.MaxThreadCount = std::clamp(GetDecimalText(hDlg, HSET_THREAD_COUNT), 1, MAX_DATA_CONNECTION);
 			TmpHost.ReuseCmdSkt = (int)SendDlgItemMessageW(hDlg, HSET_REUSE_SOCKET, BM_GETCHECK, 0, 0);
-			TmpHost.NoopInterval = GetDecimalText(hDlg, HSET_NOOP_INTERVAL);
-			CheckRange2(&TmpHost.NoopInterval, 300, 0);
+			TmpHost.NoopInterval = std::clamp(GetDecimalText(hDlg, HSET_NOOP_INTERVAL), 0, 300);
 			switch (SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_GETCURSEL, 0, 0)) {
 			case 0:
 				TmpHost.TransferErrorMode = EXIST_OVW;
