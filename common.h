@@ -902,7 +902,7 @@ static inline void WSAError(std::wstring_view functionName, int lastError = WSAG
 int SelectHost(int Type);
 int AddHostToList(HOSTDATA *Set, int Pos, int Level);
 int CopyHostFromList(int Num, HOSTDATA *Set);
-int CopyHostFromListInConnect(int Num, HOSTDATA *Set);
+HOSTDATA GetConnectingHost();
 int SetHostBookMark(int Num, std::vector<std::wstring>&& bookmark);
 std::optional<std::vector<std::wstring>> AskHostBookMark(int Num);
 int SetHostDir(int Num, std::wstring_view LocDir, std::wstring_view HostDir);
@@ -926,12 +926,6 @@ void ConnectProc(int Type, int Num);
 void QuickConnectProc(void);
 void DirectConnectProc(std::wstring&& unc, int Kanji, int Kana, int Fkanji, int TrMode);
 void HistoryConnectProc(int MenuCmd);
-int AskHostNameKana(void);
-int AskListCmdMode(void);
-int AskUseNLST_R(void);
-std::wstring AskHostChmodCmd();
-int AskHostTimeZone(void);
-std::wstring AskHostLsName();
 int AskHostType(void);
 int AskNoFullPathMode(void);
 void SaveCurrentSetToHost(void);
@@ -945,7 +939,6 @@ void DisconnectProc(void);
 void DisconnectSet(void);
 int AskConnecting(void);
 #if defined(HAVE_TANDEM)
-int AskRealHostType(void);
 int SetOSS(int wkOss);
 int AskOSS(void);
 #endif

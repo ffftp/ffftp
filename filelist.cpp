@@ -1218,7 +1218,7 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 								Sts = FFFTP_FAIL;
 						} else {
 							auto const Cur = AskRemoteCurDir();
-							if (AskListCmdMode() == NO && AskUseNLST_R() == YES) {
+							if (auto const connectingHost = GetConnectingHost(); connectingHost.ListCmdOnly == NO && connectingHost.UseNLST_R == YES) {
 								if (MakeRemoteTree1(item.Name, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
 									Sts = FFFTP_FAIL;
 							} else {
@@ -1530,7 +1530,7 @@ static int parseattr(boost::ssub_match const& m) {
 static inline FILETIME tofiletime(SYSTEMTIME const& systemTime, bool fix = false) {
 	FILETIME fileTime;
 	if (fix) {
-		TIME_ZONE_INFORMATION tz{ AskHostTimeZone() * -60 };
+		TIME_ZONE_INFORMATION tz{ GetConnectingHost().TimeZone * -60 };
 		SYSTEMTIME fixed;
 		TzSpecificLocalTimeToSystemTime(&tz, &systemTime, &fixed);
 		SystemTimeToFileTime(&fixed, &fileTime);
@@ -1600,7 +1600,7 @@ static std::optional<FILELIST> ParseUnix(boost::smatch const& m) {
 			infoExist |= FINFO_TIME;
 			SYSTEMTIME utcnow, localnow;
 			GetSystemTime(&utcnow);
-			TIME_ZONE_INFORMATION tz{ AskHostTimeZone() * -60 };
+			TIME_ZONE_INFORMATION tz{ GetConnectingHost().TimeZone * -60 };
 			SystemTimeToTzSpecificLocalTime(&tz, &utcnow, &localnow);
 			systemTime.wHour = parse<WORD>(m[8]);
 			systemTime.wMinute = parse<WORD>(m[9]);
@@ -1794,7 +1794,7 @@ static std::optional<FILELIST> Parse(std::string const& line) {
 		return boost::regex_search(line, m, re::shibasoku) ? ParseShibasoku(m) : std::nullopt;
 	}
 #if defined(HAVE_TANDEM)
-	if (AskRealHostType() == HTYPE_TANDEM)
+	if (GetConnectingHost().HostType == HTYPE_TANDEM)
 		SetOSS(YES);
 #endif
 	if (boost::regex_search(line, m, re::mlsd))

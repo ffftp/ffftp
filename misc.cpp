@@ -51,7 +51,7 @@ std::wstring ReplaceAll(std::wstring&& str, wchar_t from, wchar_t to) {
 	if (!empty(str)) {
 		auto it = begin(str);
 #if defined(HAVE_TANDEM)
-		if (AskRealHostType() == HTYPE_TANDEM)
+		if (GetConnectingHost().HostType == HTYPE_TANDEM)
 			++it;
 #endif
 		std::replace(it, end(str), from, to);

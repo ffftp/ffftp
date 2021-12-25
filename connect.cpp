@@ -54,6 +54,7 @@ static int Oss = NO;  /* OSS ファイルシステムへアクセスしている
 
 
 // 接続しているホストを返す
+//   TODO: GetConnectingHost()との違いがよくわからない
 HOSTDATA const& GetCurHost() {
 	return CurHost;
 }
@@ -509,161 +510,16 @@ static void AskUseFireWall(std::wstring_view Host, int *Fire, int *Pasv, int *Li
 }
 
 
-/*----- 接続しているホストのファイル名の半角カナ変換フラグを返す --------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int 半角カナを全角に変換するかどうか (YES/NO)
-*----------------------------------------------------------------------------*/
-
-int AskHostNameKana(void)
-{
-	// 同時接続対応
-	HOSTDATA TmpHost;
-	TmpHost = CurHost;
-
-	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-		// 同時接続対応
-//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
-		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
-
-	// 同時接続対応
-//	return(CurHost.NameKanaCnv);
-	return(TmpHost.NameKanaCnv);
-}
-
-
-/*----- 接続しているホストのLISTコマンドモードを返す --------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int LISTコマンドモード (YES/NO)
-*----------------------------------------------------------------------------*/
-
-int AskListCmdMode(void)
-{
-	// 同時接続対応
-	HOSTDATA TmpHost;
-	TmpHost = CurHost;
-
-	if(CurHost.HostType == HTYPE_VMS)
-		return(YES);
-	else
-	{
-		if(AskCurrentHost() != HOSTNUM_NOENTRY)
-			// 同時接続対応
-//			CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
-			CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
-		// 同時接続対応
-//		return(CurHost.ListCmdOnly);
-		return(TmpHost.ListCmdOnly);
-	}
-}
-
-
-/*----- 接続しているホストでNLST -Rを使うかどうかを返す ------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int NLST -Rを使うかどうか (YES/NO)
-*----------------------------------------------------------------------------*/
-
-int AskUseNLST_R(void)
-{
-	// 同時接続対応
-	HOSTDATA TmpHost;
-	TmpHost = CurHost;
-
-	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-		// 同時接続対応
-//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
-		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
-
-	// 同時接続対応
-//	return(CurHost.UseNLST_R);
-	return(TmpHost.UseNLST_R);
-}
-
-
-std::wstring AskHostChmodCmd() {
-	HOSTDATA TmpHost = CurHost;
-	if (AskCurrentHost() != HOSTNUM_NOENTRY)
-		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
-	return TmpHost.ChmodCmd;
-}
-
-
-/*----- 接続しているホストのタイムゾーンを返す --------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int タイムゾーン
-*----------------------------------------------------------------------------*/
-
-int AskHostTimeZone(void)
-{
-	// 同時接続対応
-	HOSTDATA TmpHost;
-	TmpHost = CurHost;
-
-	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-		// 同時接続対応
-//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
-		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
-
-	// 同時接続対応
-//	return(CurHost.TimeZone);
-	return(TmpHost.TimeZone);
-}
-
-
-std::wstring AskHostLsName() {
-	HOSTDATA TmpHost = CurHost;
-	if (AskCurrentHost() != HOSTNUM_NOENTRY)
-		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
-	return TmpHost.LsName;
-}
-
-
-/*----- 接続しているホストのホストタイプを返す --------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		char *ファイル名／オプション
-*----------------------------------------------------------------------------*/
-
-int AskHostType(void)
-{
-	// 同時接続対応
-	HOSTDATA TmpHost;
-	TmpHost = CurHost;
-
-	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-		// 同時接続対応
-//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
-		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
-
+// 接続しているホストのホストタイプを返す
+int AskHostType() {
 #if defined(HAVE_TANDEM)
 	/* OSS ファイルシステムは UNIX ファイルシステムと同じでいいので AUTO を返す
 	   ただし、Guardian ファイルシステムに戻ったときにおかしくならないように
 	   CurHost.HostType 変数は更新しない */
-	if(CurHost.HostType == HTYPE_TANDEM && Oss == YES)
-		return(HTYPE_AUTO);
+	if (CurHost.HostType == HTYPE_TANDEM && Oss == YES)
+		return HTYPE_AUTO;
 #endif
-
-	// 同時接続対応
-//	return(CurHost.HostType);
-	return(TmpHost.HostType);
+	return GetConnectingHost().HostType;
 }
 
 
@@ -685,38 +541,14 @@ int AskNoFullPathMode(void)
 }
 
 
-/*----- 現在の設定をホストの設定にセットする ----------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*
-*	Note
-*		カレントディレクトリ、ソート方法をホストの設定にセットする
-*----------------------------------------------------------------------------*/
-
-void SaveCurrentSetToHost(void)
-{
-	int Host;
-	// 同時接続対応
-	HOSTDATA TmpHost;
-	TmpHost = CurHost;
-
-	if (TrnCtrlSocket) {
-		if((Host = AskCurrentHost()) != HOSTNUM_NOENTRY)
-		{
-			// 同時接続対応
-//			CopyHostFromListInConnect(Host, &CurHost);
-//			if(CurHost.LastDir == YES)
-			CopyHostFromListInConnect(Host, &TmpHost);
-			if(TmpHost.LastDir == YES)
-				SetHostDir(AskCurrentHost(), AskLocalCurDir().native(), AskRemoteCurDir());
-			SetHostSort(AskCurrentHost(), AskSortType());
-		}
+// 現在の設定をホストの設定にセットする
+//   カレントディレクトリ、ソート方法をホストの設定にセットする
+void SaveCurrentSetToHost() {
+	if (TrnCtrlSocket && AskCurrentHost() != HOSTNUM_NOENTRY) {
+		if (GetConnectingHost().LastDir == YES)
+			SetHostDir(AskCurrentHost(), AskLocalCurDir().native(), AskRemoteCurDir());
+		SetHostSort(AskCurrentHost(), AskSortType());
 	}
-	return;
 }
 
 
@@ -917,31 +749,6 @@ int AskConnecting() {
 
 
 #if defined(HAVE_TANDEM)
-/*----- 接続している本当のホストのホストタイプを返す --------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		char *ファイル名／オプション
-*----------------------------------------------------------------------------*/
-
-int AskRealHostType(void)
-{
-	// 同時接続対応
-	HOSTDATA TmpHost;
-	TmpHost = CurHost;
-
-	if(AskCurrentHost() != HOSTNUM_NOENTRY)
-		// 同時接続対応
-//		CopyHostFromListInConnect(AskCurrentHost(), &CurHost);
-		CopyHostFromListInConnect(AskCurrentHost(), &TmpHost);
-
-	// 同時接続対応
-//	return(CurHost.HostType);
-	return(TmpHost.HostType);
-}
-
 /*----- OSS ファイルシステムにアクセスしているかどうかのフラグを変更する ------
 *
 *	Parameter

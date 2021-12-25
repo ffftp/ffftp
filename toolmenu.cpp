@@ -803,7 +803,7 @@ void ShowPopupMenu(int Win, int Pos) {
 		EnableMenuItem(submenu, MENU_RENAME, selecting && connecting ? 0 : MF_GRAYED);
 #if defined(HAVE_TANDEM)
 		/* HP NonStop Server では CHMOD の仕様が異なるため使用不可 */
-		if (AskRealHostType() == HTYPE_TANDEM)
+		if (GetConnectingHost().HostType == HTYPE_TANDEM)
 			RemoveMenu(submenu, MENU_CHMOD, MF_BYCOMMAND);
 		else
 #endif
@@ -812,7 +812,7 @@ void ShowPopupMenu(int Win, int Pos) {
 		EnableMenuItem(submenu, MENU_URL_COPY, selecting && connecting ? 0 : MF_GRAYED);
 #if defined(HAVE_TANDEM)
 		/* OSS モードのときに表示されるように AskRealHostType() を使用する */
-		if (AskRealHostType() == HTYPE_TANDEM)
+		if (GetConnectingHost().HostType == HTYPE_TANDEM)
 			EnableMenuItem(submenu, MENU_SWITCH_OSS, connecting ? 0 : MF_GRAYED);
 		else
 #endif
