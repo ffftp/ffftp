@@ -75,7 +75,7 @@ public:
 	bool ReadValue(std::string_view name, Integral& value) const {
 		static_assert(sizeof(Integral) <= sizeof(int));
 		if (int temp; ReadValue(name, temp)) {
-			value = static_cast<Integral>(temp);
+			value = gsl::narrow_cast<Integral>(temp);
 			return true;
 		}
 		return false;
@@ -167,13 +167,13 @@ public:
 	bool ReadFont(std::string_view name, HFONT& hfont, LOGFONTW& logfont) {
 		if (std::wstring value; ReadValue(name, value)) {
 			int offset;
-			auto read = swscanf(value.c_str(), L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
+			auto read = swscanf_s(value.c_str(), L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
 				&logfont.lfHeight, &logfont.lfWidth, &logfont.lfEscapement, &logfont.lfOrientation, &logfont.lfWeight,
 				&logfont.lfItalic, &logfont.lfUnderline, &logfont.lfStrikeOut, &logfont.lfCharSet,
 				&logfont.lfOutPrecision, &logfont.lfClipPrecision, &logfont.lfQuality, &logfont.lfPitchAndFamily, &offset
 			);
 			if (read == 13) {
-				wcscpy(logfont.lfFaceName, value.c_str() + offset);
+				wcscpy_s(logfont.lfFaceName, value.c_str() + offset);
 				hfont = CreateFontIndirectW(&logfont);
 				return true;
 			}
@@ -847,7 +847,7 @@ void Config::WritePassword(std::string_view name, std::wstring_view password) {
 struct IniConfig : Config {
 	std::shared_ptr<std::map<std::string, std::vector<std::string>>> map;
 	bool const update;
-	IniConfig(std::string const& keyName, bool update) : Config{ keyName }, map{ new std::map<std::string, std::vector<std::string>>{} }, update{ update } {}
+	IniConfig(std::string const& keyName, bool update) : Config{ keyName }, map{ std::make_shared<std::map<std::string, std::vector<std::string>>>() }, update{ update } {}
 	IniConfig(std::string const& keyName, IniConfig& parent) : Config{ keyName }, map{ parent.map }, update{ false } {}
 	~IniConfig() override {
 		if (update) {
@@ -1075,7 +1075,7 @@ void Config::Xor(std::string_view name, void* bin, DWORD len, bool preserveZero)
 		return;
 	auto result = HashOpen(BCRYPT_SHA1_ALGORITHM, [bin, len, preserveZero, salt = KeyName + '\\' + name](auto alg, auto obj, auto hash) {
 		assert(hash.size() == 20);
-		auto p = reinterpret_cast<BYTE*>(bin);
+		auto p = static_cast<BYTE*>(bin);
 		for (DWORD i = 0; i < len; i++) {
 			if (i % 20 == 0) {
 				std::array<DWORD, 16> buffer;

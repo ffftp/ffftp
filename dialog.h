@@ -120,7 +120,7 @@ namespace detail {
 			}
 			if constexpr (hasResizable<Data>()) {
 				if (uMsg == WM_SIZING) {
-					data->resizable.OnSizing(hwndDlg, reinterpret_cast<RECT*>(lParam), static_cast<int>(wParam));
+					data->resizable.OnSizing(hwndDlg, reinterpret_cast<RECT*>(lParam), int(wParam));
 					return TRUE;
 				}
 				if (uMsg == WM_SIZE) {

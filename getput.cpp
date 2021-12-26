@@ -123,7 +123,7 @@ static int TransferErrorDisplay = 0;
 
 static void SetErrorMsg(std::wstring&& msg) {
 	if (empty(ErrMsg))
-		ErrMsg = msg;
+		ErrMsg = std::move(msg);
 }
 
 
@@ -532,7 +532,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 						/* ここではエラーチェックはしない */
 
 					if(FolderAttr)
-						Command(TrnSkt, &Canceled[Pos->ThreadCount], L"{} {:03d} {}"sv, AskHostChmodCmd(), FolderAttrNum, dir);
+						Command(TrnSkt, &Canceled[Pos->ThreadCount], L"{} {:03d} {}"sv, GetConnectingHost().ChmodCmd, FolderAttrNum, dir);
 					}
 				} else if (!Pos->Local.empty()) {
 					Down = YES;
@@ -551,7 +551,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 					Command(TrnSkt, &Canceled[Pos->ThreadCount], L"{}{}"sv, std::wstring_view{ Pos->Command }.substr(2), Pos->Remote);
 
 					if(FolderAttr)
-						Command(TrnSkt, &Canceled[Pos->ThreadCount], L"{} {:03d} {}"sv, AskHostChmodCmd(), FolderAttrNum, Pos->Remote);
+						Command(TrnSkt, &Canceled[Pos->ThreadCount], L"{} {:03d} {}"sv, GetConnectingHost().ChmodCmd, FolderAttrNum, Pos->Remote);
 				}
 			}
 			/* ディレクトリ削除（常にホスト側） */
@@ -1221,7 +1221,7 @@ static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item)
 
 			/* 属性変更 */
 			if((item.Attr != -1) && ((iRetCode/100) == FTP_COMPLETE))
-				Command(item.ctrl_skt, &Canceled[item.ThreadCount], L"{} {:03X} {}"sv, AskHostChmodCmd(), item.Attr, item.Remote);
+				Command(item.ctrl_skt, &Canceled[item.ThreadCount], L"{} {:03X} {}"sv, GetConnectingHost().ChmodCmd, item.Attr, item.Remote);
 		}
 		else
 		{

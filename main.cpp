@@ -166,7 +166,7 @@ static auto version() {
 	UINT len;
 	result = VerQueryValueW(data(buffer), L"\\", &block, &len);
 	assert(result && sizeof(VS_FIXEDFILEINFO) <= len);
-	auto const ms = reinterpret_cast<VS_FIXEDFILEINFO*>(block)->dwProductVersionMS, ls = reinterpret_cast<VS_FIXEDFILEINFO*>(block)->dwProductVersionLS;
+	auto const ms = static_cast<VS_FIXEDFILEINFO*>(block)->dwProductVersionMS, ls = static_cast<VS_FIXEDFILEINFO*>(block)->dwProductVersionLS;
 	auto const major = HIWORD(ms), minor = LOWORD(ms), patch = HIWORD(ls), build = LOWORD(ls);
 	auto const format = build != 0 ? L"{}.{}.{}.{}"sv : patch != 0 ? L"{}.{}.{}"sv : L"{}.{}"sv;
 	return std::format(format, major, minor, patch, build);
@@ -538,34 +538,9 @@ HWND GetMainHwnd() {
 }
 
 
-/*----- 現在フォーカスがあるウインドウのウインドウハンドルを返す --------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetFocusHwnd(void)
-{
-	return(hWndCurFocus);
-}
-
-
-/*----- 現在フォーカスがあるウインドウのをセットする --------------------------
-*
-*	Parameter
-*		HWND hWnd : ウインドウハンドル
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void SetFocusHwnd(HWND hWnd)
-{
+// 現在フォーカスがあるウインドウのをセットする
+void SetFocusHwnd(HWND hWnd) {
 	hWndCurFocus = hWnd;
-	return;
 }
 
 
@@ -1573,7 +1548,7 @@ static std::optional<int> AnalyzeComLine(std::vector<std::wstring_view> const& a
 	int option = 0;
 	for (auto it = begin(args); it != end(args); ++it) {
 		if ((*it)[0] == L'-') {
-			auto key = lc(*it);
+			auto key = lc(std::wstring{ *it });
 			if (auto mapit = map.find(key); mapit != end(map)) {
 				option |= mapit->second;
 			} else if (key == L"-n"sv || key == L"--ini"sv) {
@@ -1685,7 +1660,7 @@ void DoubleClickProc(int Win, int Mode, int App) {
 							SktShareProh();
 
 						MainTransPkt.Command = L"RETR "s;
-						MainTransPkt.Remote = AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, AskHostLsName(), item.Name) : item.Name;
+						MainTransPkt.Remote = AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, GetConnectingHost().LsName, item.Name) : item.Name;
 						MainTransPkt.Local = remotePath;
 						MainTransPkt.Type = AskTransferTypeAssoc(MainTransPkt.Remote, AskTransferType());
 						MainTransPkt.Size = 1;

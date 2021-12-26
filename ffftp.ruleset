@@ -5,28 +5,20 @@
     <!-- Bug of VS2022; https://developercommunity.visualstudio.com/t/Code-Analysis-crash/1559422 -->
     <Rule Id="C26800" Action="None" />
 
-    <Rule Id="C26409" Action="Hidden" />
-    <Rule Id="C26410" Action="Hidden" />
     <Rule Id="C26415" Action="Hidden" />
     <Rule Id="C26418" Action="Hidden" />
     <Rule Id="C26426" Action="Hidden" />
     <Rule Id="C26429" Action="Hidden" />
     <Rule Id="C26432" Action="Hidden" />
     <Rule Id="C26436" Action="Hidden" />
-    <Rule Id="C26438" Action="Hidden" />
     <Rule Id="C26440" Action="Hidden" />
     <Rule Id="C26445" Action="Hidden" />
     <Rule Id="C26446" Action="Hidden" />
     <Rule Id="C26447" Action="Hidden" />
     <Rule Id="C26455" Action="Hidden" />
-    <Rule Id="C26457" Action="Hidden" />
     <Rule Id="C26459" Action="Hidden" />
-    <Rule Id="C26460" Action="Hidden" />
     <Rule Id="C26461" Action="Hidden" />
     <Rule Id="C26462" Action="Hidden" />
-    <Rule Id="C26465" Action="Hidden" />
-    <Rule Id="C26471" Action="Hidden" />
-    <Rule Id="C26472" Action="Hidden" />
     <Rule Id="C26476" Action="Hidden" />
     <Rule Id="C26481" Action="Hidden" />
     <Rule Id="C26482" Action="Hidden" />
@@ -37,7 +29,6 @@
     <Rule Id="C26493" Action="Hidden" />
     <Rule Id="C26494" Action="Hidden" />
     <Rule Id="C26496" Action="Hidden" />
-    <Rule Id="C26497" Action="Hidden" />
     <Rule Id="C26812" Action="Hidden" />
     <Rule Id="C26818" Action="Hidden" />
     <Rule Id="C26821" Action="Hidden" />

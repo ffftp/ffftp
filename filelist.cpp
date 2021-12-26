@@ -319,7 +319,7 @@ static HDROP CreateDropFileMem(std::vector<fs::path> const& filenames) {
 	}
 	extra += L'\0';
 	if (auto drop = (HDROP)GlobalAlloc(GHND, sizeof(DROPFILES) + size(extra) * sizeof(wchar_t))) {
-		if (auto dropfiles = reinterpret_cast<DROPFILES*>(GlobalLock(drop))) {
+		if (auto dropfiles = static_cast<DROPFILES*>(GlobalLock(drop))) {
 			*dropfiles = { sizeof(DROPFILES), {}, false, true };
 			std::copy(begin(extra), end(extra), reinterpret_cast<wchar_t*>(dropfiles + 1));
 			GlobalUnlock(drop);
@@ -1218,7 +1218,7 @@ int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Ba
 								Sts = FFFTP_FAIL;
 						} else {
 							auto const Cur = AskRemoteCurDir();
-							if (AskListCmdMode() == NO && AskUseNLST_R() == YES) {
+							if (auto const connectingHost = GetConnectingHost(); connectingHost.ListCmdOnly == NO && connectingHost.UseNLST_R == YES) {
 								if (MakeRemoteTree1(item.Name, Cur, Base, CancelCheckWork) == FFFTP_FAIL)
 									Sts = FFFTP_FAIL;
 							} else {
@@ -1530,7 +1530,7 @@ static int parseattr(boost::ssub_match const& m) {
 static inline FILETIME tofiletime(SYSTEMTIME const& systemTime, bool fix = false) {
 	FILETIME fileTime;
 	if (fix) {
-		TIME_ZONE_INFORMATION tz{ AskHostTimeZone() * -60 };
+		TIME_ZONE_INFORMATION tz{ GetConnectingHost().TimeZone * -60 };
 		SYSTEMTIME fixed;
 		TzSpecificLocalTimeToSystemTime(&tz, &systemTime, &fixed);
 		SystemTimeToFileTime(&fixed, &fileTime);
@@ -1557,7 +1557,7 @@ static std::optional<FILELIST> ParseMlsd(boost::smatch const& m) {
 		auto factname = lc((*it)[1]);
 		auto value = sv((*it)[2]);
 		if (factname == "type"sv) {
-			if (auto lcvalue = lc(value); lcvalue == "dir"sv)
+			if (auto lcvalue = lc(std::string{ value }); lcvalue == "dir"sv)
 				type = NODE_DIR;
 			else if (lcvalue == "file"sv)
 				type = NODE_FILE;
@@ -1600,7 +1600,7 @@ static std::optional<FILELIST> ParseUnix(boost::smatch const& m) {
 			infoExist |= FINFO_TIME;
 			SYSTEMTIME utcnow, localnow;
 			GetSystemTime(&utcnow);
-			TIME_ZONE_INFORMATION tz{ AskHostTimeZone() * -60 };
+			TIME_ZONE_INFORMATION tz{ GetConnectingHost().TimeZone * -60 };
 			SystemTimeToTzSpecificLocalTime(&tz, &utcnow, &localnow);
 			systemTime.wHour = parse<WORD>(m[8]);
 			systemTime.wMinute = parse<WORD>(m[9]);
@@ -1794,7 +1794,7 @@ static std::optional<FILELIST> Parse(std::string const& line) {
 		return boost::regex_search(line, m, re::shibasoku) ? ParseShibasoku(m) : std::nullopt;
 	}
 #if defined(HAVE_TANDEM)
-	if (AskRealHostType() == HTYPE_TANDEM)
+	if (GetConnectingHost().HostType == HTYPE_TANDEM)
 		SetOSS(YES);
 #endif
 	if (boost::regex_search(line, m, re::mlsd))
@@ -1958,7 +1958,7 @@ static void AddFileList(FILELIST const& Pkt, std::vector<FILELIST>& Base) {
 
 const FILELIST* SearchFileList(std::wstring_view Fname, std::vector<FILELIST> const& Base, int Caps) {
 	for (auto p = data(Base), end = data(Base) + size(Base); p != end; ++p)
-		if (Caps == COMP_STRICT ? Fname == p->Name : ieq(Fname, p->Name) && (Caps == COMP_IGNORE || lc(p->Name) == p->Name))
+		if (Caps == COMP_STRICT ? Fname == p->Name : ieq(Fname, p->Name) && (Caps == COMP_IGNORE || lc(std::wstring{ p->Name }) == p->Name))
 			return p;
 	return nullptr;
 }

@@ -547,7 +547,7 @@ static void DeleteChildAndNext(std::shared_ptr<HOSTLISTDATA> Pos) {
 
 
 // 設定値リストから設定値を取り出す
-//   現在ホストに接続中の時は、CopyHostFromListInConnect() を使う事
+//   現在ホストに接続中の時は、GetConnectingHost() を使う事
 int CopyHostFromList(int Num, HOSTDATA* Set) {
 	if (Num < 0 || Hosts <= Num)
 		return FFFTP_FAIL;
@@ -557,38 +557,37 @@ int CopyHostFromList(int Num, HOSTDATA* Set) {
 }
 
 
-// 設定値リストから設定値を取り出す
-//   現在ホストに接続中の時に使う
-int CopyHostFromListInConnect(int Num, HOSTDATA* Set) {
-	if (Num < 0 || Hosts <= Num)
-		return FFFTP_FAIL;
-	auto Pos = GetNode(Num);
-	Set->ChmodCmd = Pos->ChmodCmd;
-	Set->Port = Pos->Port;
-	Set->Anonymous = Pos->Anonymous;
-	Set->KanjiCode = Pos->KanjiCode;
-	Set->KanaCnv = Pos->KanaCnv;
-	Set->NameKanjiCode = Pos->NameKanjiCode;
-	Set->NameKanaCnv = Pos->NameKanaCnv;
-	Set->Pasv = Pos->Pasv;
-	Set->FireWall = Pos->FireWall;
-	Set->ListCmdOnly = Pos->ListCmdOnly;
-	Set->UseNLST_R = Pos->UseNLST_R;
-	Set->LastDir = Pos->LastDir;
-	Set->TimeZone = Pos->TimeZone;
-	Set->UseNoEncryption = Pos->UseNoEncryption;
-	Set->UseFTPES = Pos->UseFTPES;
-	Set->UseFTPIS = Pos->UseFTPIS;
-	Set->UseSFTP = Pos->UseSFTP;
-	Set->MaxThreadCount = Pos->MaxThreadCount;
-	Set->ReuseCmdSkt = Pos->ReuseCmdSkt;
-	Set->UseMLSD = Pos->UseMLSD;
-	Set->NoopInterval = Pos->NoopInterval;
-	Set->TransferErrorMode = Pos->TransferErrorMode;
-	Set->TransferErrorNotify = Pos->TransferErrorNotify;
-	Set->TransferErrorReconnect = Pos->TransferErrorReconnect;
-	Set->NoPasvAdrs = Pos->NoPasvAdrs;
-	return FFFTP_SUCCESS;
+HOSTDATA GetConnectingHost() {
+	auto host = GetCurHost();
+	if (0 <= ConnectingHost && ConnectingHost < Hosts) {
+		auto pos = GetNode(ConnectingHost);
+		host.ChmodCmd = pos->ChmodCmd;
+		host.Port = pos->Port;
+		host.Anonymous = pos->Anonymous;
+		host.KanjiCode = pos->KanjiCode;
+		host.KanaCnv = pos->KanaCnv;
+		host.NameKanjiCode = pos->NameKanjiCode;
+		host.NameKanaCnv = pos->NameKanaCnv;
+		host.Pasv = pos->Pasv;
+		host.FireWall = pos->FireWall;
+		host.ListCmdOnly = pos->ListCmdOnly;
+		host.UseNLST_R = pos->UseNLST_R;
+		host.LastDir = pos->LastDir;
+		host.TimeZone = pos->TimeZone;
+		host.UseNoEncryption = pos->UseNoEncryption;
+		host.UseFTPES = pos->UseFTPES;
+		host.UseFTPIS = pos->UseFTPIS;
+		host.UseSFTP = pos->UseSFTP;
+		host.MaxThreadCount = pos->MaxThreadCount;
+		host.ReuseCmdSkt = pos->ReuseCmdSkt;
+		host.UseMLSD = pos->UseMLSD;
+		host.NoopInterval = pos->NoopInterval;
+		host.TransferErrorMode = pos->TransferErrorMode;
+		host.TransferErrorNotify = pos->TransferErrorNotify;
+		host.TransferErrorReconnect = pos->TransferErrorReconnect;
+		host.NoPasvAdrs = pos->NoPasvAdrs;
+	}
+	return host;
 }
 
 
@@ -1165,11 +1164,9 @@ struct Feature {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY:
-			TmpHost.MaxThreadCount = GetDecimalText(hDlg, HSET_THREAD_COUNT);
-			CheckRange2(&TmpHost.MaxThreadCount, MAX_DATA_CONNECTION, 1);
+			TmpHost.MaxThreadCount = std::clamp(GetDecimalText(hDlg, HSET_THREAD_COUNT), 1, MAX_DATA_CONNECTION);
 			TmpHost.ReuseCmdSkt = (int)SendDlgItemMessageW(hDlg, HSET_REUSE_SOCKET, BM_GETCHECK, 0, 0);
-			TmpHost.NoopInterval = GetDecimalText(hDlg, HSET_NOOP_INTERVAL);
-			CheckRange2(&TmpHost.NoopInterval, 300, 0);
+			TmpHost.NoopInterval = std::clamp(GetDecimalText(hDlg, HSET_NOOP_INTERVAL), 0, 300);
 			switch (SendDlgItemMessageW(hDlg, HSET_ERROR_MODE, CB_GETCURSEL, 0, 0)) {
 			case 0:
 				TmpHost.TransferErrorMode = EXIST_OVW;

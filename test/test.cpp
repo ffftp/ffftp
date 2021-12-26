@@ -1,4 +1,5 @@
 #include <fstream>
+#include <ranges>
 #include <regex>
 #include <string>
 #include <string_view>
@@ -56,9 +57,9 @@ public:
 				Assert::AreEqual(line[0] == ch, std::regex_search(input, sm, stl), message.c_str());
 				if (line[0] == ch) {
 					auto match = line + '\t';
-					for (int i = 1; i < static_cast<int>(bm.size()); i++)
-						if (bm[i].matched)
-							match += " [" + bm[i].str() + "]";
+					for (auto const& m : bm | std::ranges::views::drop(1))
+						if (m.matched)
+							match += " [" + m.str() + "]";
 						else
 							match += " ()";
 					Logger::WriteMessage((match + '\n').c_str());

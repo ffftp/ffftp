@@ -77,7 +77,7 @@ BOOL LoadSSL() {
 	//   排他となるプロトコルがあるため、有効になっているプロトコルのうちSSL 3.0以降とTLS 1.2を指定してオープンする。
 	//   セッション再開が必要とされるため、TLS 1.3は明示的には有効化せず、レジストリ指定に従う。
 	static_assert(SP_PROT_TLS1_3PLUS_CLIENT == SP_PROT_TLS1_3_CLIENT, "new tls version detected.");
-	if (auto ss = AcquireCredentialsHandleW(nullptr, const_cast<wchar_t*>(UNISP_NAME_W), SECPKG_CRED_OUTBOUND, nullptr, nullptr, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
+	if (auto ss = AcquireCredentialsHandleW(nullptr, __pragma(warning(suppress:26465)) const_cast<wchar_t*>(UNISP_NAME_W), SECPKG_CRED_OUTBOUND, nullptr, nullptr, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
 		Error(L"AcquireCredentialsHandle()"sv, ss);
 		return FALSE;
 	}
@@ -91,7 +91,7 @@ BOOL LoadSSL() {
 		// pAuthDataはSCHANNEL_CREDからSCH_CREDENTIALSに変更されたが現状維持する。
 		// https://github.com/MicrosoftDocs/win32/commit/e9f333c14bad8fd65d89ccc64d42882bc5fa7d9c
 		SCHANNEL_CRED sc{ .dwVersion = SCHANNEL_CRED_VERSION, .grbitEnabledProtocols = sp.grbitProtocol & SP_PROT_SSL3TLS1_X_CLIENTS | SP_PROT_TLS1_2_CLIENT };
-		if (auto ss = AcquireCredentialsHandleW(nullptr, const_cast<wchar_t*>(UNISP_NAME_W), SECPKG_CRED_OUTBOUND, nullptr, &sc, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
+		if (auto ss = AcquireCredentialsHandleW(nullptr, __pragma(warning(suppress:26465)) const_cast<wchar_t*>(UNISP_NAME_W), SECPKG_CRED_OUTBOUND, nullptr, &sc, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
 			Error(L"AcquireCredentialsHandle()"sv, ss);
 			return FALSE;
 		}
@@ -146,8 +146,7 @@ enum class CertResult {
 
 struct CertDialog {
 	using result_t = int;
-	std::unique_ptr<CERT_CONTEXT> const& certContext;
-	CertDialog(std::unique_ptr<CERT_CONTEXT> const& certContext) : certContext{ certContext } {}
+	CERT_CONTEXT* const certContext;
 	void OnCommand(HWND hdlg, WORD commandId) {
 		switch (commandId) {
 		case IDYES:
@@ -155,7 +154,7 @@ struct CertDialog {
 			EndDialog(hdlg, commandId);
 			break;
 		case IDC_SHOWCERT:
-			CRYPTUI_VIEWCERTIFICATE_STRUCTW certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCTW, hdlg, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext.get() };
+			CRYPTUI_VIEWCERTIFICATE_STRUCTW certViewInfo{ sizeof CRYPTUI_VIEWCERTIFICATE_STRUCTW, hdlg, CRYPTUI_DISABLE_EDITPROPERTIES | CRYPTUI_DISABLE_ADDTOSTORE, nullptr, certContext };
 			__pragma(warning(suppress:6387)) CryptUIDlgViewCertificateW(&certViewInfo, nullptr);
 			break;
 		}
@@ -192,7 +191,7 @@ static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName
 	if (std::find(begin(acceptedThumbprints), end(acceptedThumbprints), thumbprint) != end(acceptedThumbprints))
 		return CertResult::NotSecureAccepted;
 
-	if (Dialog(GetFtpInst(), certerr_dlg, GetMainHwnd(), CertDialog{ certContext }) == IDYES) {
+	if (Dialog(GetFtpInst(), certerr_dlg, GetMainHwnd(), CertDialog{ certContext.get() }) == IDYES) {
 		acceptedThumbprints.push_back(thumbprint);
 		return CertResult::NotSecureAccepted;
 	}
@@ -203,7 +202,7 @@ static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName
 
 template<class Test>
 static inline std::invoke_result_t<Test> Wait(SocketContext& sc, int* CancelCheckWork, Test test) {
-	for (;;) {
+	for (auto f1 = gsl::finally([&sc] { CancelIo((HANDLE)sc.handle); });;) {
 		if (auto result = test())
 			return result;
 		if (auto result = sc.AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
@@ -212,17 +211,14 @@ static inline std::invoke_result_t<Test> Wait(SocketContext& sc, int* CancelChec
 			if (TimeOut != 0 && expiredAt < std::chrono::steady_clock::now()) {
 				Notice(IDS_MSGJPN242);
 				sc.recvStatus = WSAETIMEDOUT;
-				goto error;
+				return {};
 			}
 			if (BackgrndMessageProc() == YES || *CancelCheckWork == YES) {
 				sc.recvStatus = ERROR_OPERATION_ABORTED;
-				goto error;
+				return {};
 			}
 		}
 	}
-error:
-	CancelIo((HANDLE)sc.handle);
-	return {};
 }
 
 
@@ -241,7 +237,7 @@ BOOL SocketContext::AttachSSL(BOOL* pbAborted) {
 	if (sslReadStatus != SEC_I_CONTINUE_NEEDED)
 		return FALSE;
 	assert(outBuffer[0].BufferType == SECBUFFER_TOKEN && outBuffer[0].cbBuffer != 0 && outBuffer[0].pvBuffer != nullptr);
-	auto written = send(handle, reinterpret_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
+	auto written = send(handle, static_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
 	_RPTWN(_CRT_WARN, L"SC{%zu}: send(): %d.\n", handle, written);
 	assert(written == outBuffer[0].cbBuffer);
 	__pragma(warning(suppress:6387)) FreeContextBuffer(outBuffer[0].pvBuffer);
@@ -438,7 +434,7 @@ void SocketContext::OnComplete(DWORD error, DWORD transferred, DWORD flags) {
 			if (sslReadStatus == SEC_E_OK || sslReadStatus == SEC_I_CONTINUE_NEEDED) {
 				if (outBuffer[0].BufferType == SECBUFFER_TOKEN && outBuffer[0].cbBuffer != 0) {
 					// TODO: 送信バッファが埋まっている場合に失敗する
-					auto written = send(handle, reinterpret_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
+					auto written = send(handle, static_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
 					_RPTWN(_CRT_WARN, L"SC{%zu}: send(): %d.\n", handle, written);
 					assert(written == outBuffer[0].cbBuffer);
 					FreeContextBuffer(outBuffer[0].pvBuffer);
@@ -467,7 +463,7 @@ void SocketContext::OnComplete(DWORD error, DWORD transferred, DWORD flags) {
 			);
 			if (sslReadStatus == SEC_E_OK) {
 				assert(buffer[0].BufferType == SECBUFFER_STREAM_HEADER && buffer[1].BufferType == SECBUFFER_DATA && buffer[2].BufferType == SECBUFFER_STREAM_TRAILER);
-				readPlain.insert(end(readPlain), reinterpret_cast<const char*>(buffer[1].pvBuffer), reinterpret_cast<const char*>(buffer[1].pvBuffer) + buffer[1].cbBuffer);
+				readPlain.insert(end(readPlain), static_cast<const char*>(buffer[1].pvBuffer), static_cast<const char*>(buffer[1].pvBuffer) + buffer[1].cbBuffer);
 				readRaw.erase(begin(readRaw), end(readRaw) - (buffer[3].BufferType == SECBUFFER_EXTRA ? buffer[3].cbBuffer : 0));
 			} else if (sslReadStatus == SEC_I_CONTEXT_EXPIRED) {
 				assert(buffer[0].BufferType == SECBUFFER_DATA && buffer[0].cbBuffer == size_as<unsigned long>(readRaw));

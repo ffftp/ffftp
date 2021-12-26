@@ -27,7 +27,6 @@
 /============================================================================*/
 
 #pragma once
-#define _CRT_SECURE_NO_WARNINGS
 #define NOMINMAX
 #define SECURITY_WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -748,14 +747,12 @@ fs::path const& systemDirectory();
 fs::path const& tempDirectory();
 void DispWindowTitle();
 HWND GetMainHwnd(void);
-HWND GetFocusHwnd(void);
 void SetFocusHwnd(HWND hWnd);
 HINSTANCE GetFtpInst(void);
 void DoubleClickProc(int Win, int Mode, int App);
 void ExecViewer(fs::path const& path, int App);
 void ExecViewer2(fs::path const& path1, fs::path const& path2, int App);
 void AddTempFileList(fs::path const& file);
-void SoundPlay(int Num);
 void ShowHelp(DWORD_PTR helpTopicId);
 fs::path const& AskIniFilePath();
 int AskForceIni(void);
@@ -801,7 +798,7 @@ std::tuple<fs::path, std::vector<FILELIST>> MakeDroppedFileList(WPARAM wParam);
 fs::path MakeDroppedDir(WPARAM wParam);
 void AddRemoteTreeToFileList(int Num, std::wstring const& Path, int IncDir, std::vector<FILELIST>& Base);
 const FILELIST* SearchFileList(std::wstring_view Fname, std::vector<FILELIST> const& Base, int Caps);
-static inline FILELIST* SearchFileList(std::wstring_view Fname, std::vector<FILELIST>& Base, int Caps) {
+static inline FILELIST* SearchFileList(std::wstring_view Fname, __pragma(warning(suppress:26460)) std::vector<FILELIST>& Base, int Caps) {
 	return const_cast<FILELIST*>(SearchFileList(Fname, static_cast<std::vector<FILELIST> const&>(Base), Caps));
 }
 void SetFilter(int *CancelCheckWork);
@@ -904,7 +901,7 @@ static inline void WSAError(std::wstring_view functionName, int lastError = WSAG
 int SelectHost(int Type);
 int AddHostToList(HOSTDATA *Set, int Pos, int Level);
 int CopyHostFromList(int Num, HOSTDATA *Set);
-int CopyHostFromListInConnect(int Num, HOSTDATA *Set);
+HOSTDATA GetConnectingHost();
 int SetHostBookMark(int Num, std::vector<std::wstring>&& bookmark);
 std::optional<std::vector<std::wstring>> AskHostBookMark(int Num);
 int SetHostDir(int Num, std::wstring_view LocDir, std::wstring_view HostDir);
@@ -928,12 +925,6 @@ void ConnectProc(int Type, int Num);
 void QuickConnectProc(void);
 void DirectConnectProc(std::wstring&& unc, int Kanji, int Kana, int Fkanji, int TrMode);
 void HistoryConnectProc(int MenuCmd);
-int AskHostNameKana(void);
-int AskListCmdMode(void);
-int AskUseNLST_R(void);
-std::wstring AskHostChmodCmd();
-int AskHostTimeZone(void);
-std::wstring AskHostLsName();
 int AskHostType(void);
 int AskNoFullPathMode(void);
 void SaveCurrentSetToHost(void);
@@ -947,7 +938,6 @@ void DisconnectProc(void);
 void DisconnectSet(void);
 int AskConnecting(void);
 #if defined(HAVE_TANDEM)
-int AskRealHostType(void);
 int SetOSS(int wkOss);
 int AskOSS(void);
 #endif
@@ -1100,7 +1090,6 @@ void SetOption();
 int SortSetting(void);
 // hostman.cで使用
 int GetDecimalText(HWND hDlg, int Ctrl);
-void CheckRange2(int *Cur, int Max, int Min);
 
 /*===== bookmark.c =====*/
 
@@ -1152,7 +1141,6 @@ static std::wstring MakeSizeString(uintmax_t size) {
 	return std::format(L"{:0.1f}{}B"sv, (size >> 10 * i) / 1024., L"KMGTPE"[i]);
 }
 void DispStaticText(HWND hWnd, std::wstring text);
-void RectClientToScreen(HWND hWnd, RECT *Rect);
 fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFileName, const wchar_t* extension, std::initializer_list<FileType> fileTypes);
 fs::path SelectDir(HWND hWnd);
 fs::path MakeDistinguishableFileName(fs::path&& path);
@@ -1201,7 +1189,7 @@ constexpr auto data_as(Source const& source) {
 }
 template<class Size, class Source>
 constexpr auto size_as(Source const& source) {
-	return static_cast<Size>(std::size(source));
+	return gsl::narrow_cast<Size>(std::size(source));
 }
 template<class T, class Allocator>
 constexpr auto before_end(std::forward_list<T, Allocator>& list) {
@@ -1225,8 +1213,8 @@ template<class DstChar, class Fn>
 static inline auto convert(Fn&& fn, std::wstring_view src) {
 	return convert<DstChar, wchar_t>(std::forward<Fn>(fn), src);
 }
-template<class Char, class... Str>
-static inline auto concat(std::basic_string_view<Char> first, Str&&... rest) {
+template<class Char>
+static inline auto concat(std::basic_string_view<Char> first, auto const&... rest) {
 	std::basic_string<Char> result;
 	result.reserve((std::size(first) + ... + std::size(rest)));
 	((result += first) += ... += rest);
@@ -1252,29 +1240,22 @@ static inline auto u8(const Char* str, size_t len) {
 	return u8(std::basic_string_view<Char>{ str, len });
 }
 static auto ieq(std::string_view left, std::string_view right) {
-	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::toupper(l) == std::toupper(r); });
+	return size(left) == size(right) && _strnicmp(data(left), data(right), size(left)) == 0;
 }
 static auto ieq(std::wstring_view left, std::wstring_view right) {
-	return std::equal(begin(left), end(left), begin(right), end(right), [](auto const l, auto const r) { return std::towupper(l) == std::towupper(r); });
+	return size(left) == size(right) && _wcsnicmp(data(left), data(right), size(left)) == 0;
 }
 static inline auto lc(std::string&& str) {
-	_strlwr(data(str));
+	_strlwr_s(data(str), size(str) + 1);
 	return str;
 }
 static inline auto lc(std::wstring&& str) {
-	_wcslwr(data(str));
+	_wcslwr_s(data(str), size(str) + 1);
 	return str;
-}
-template<class String>
-static inline auto lc(String const& src) {
-	return lc(std::basic_string(std::begin(src), std::end(src)));
 }
 static inline auto uc(std::wstring&& str) {
-	_wcsupr(data(str));
+	_wcsupr_s(data(str), size(str) + 1);
 	return str;
-}
-static inline auto uc(std::wstring_view sv) {
-	return uc(std::wstring{ sv });
 }
 template<class Char, class Evaluator>
 static inline auto replace(std::basic_string_view<Char> input, boost::basic_regex<Char> const& pattern, Evaluator&& evaluator) {
@@ -1329,7 +1310,7 @@ static inline void SetText(HWND hdlg, int id, const std::wstring& text) {
 static inline auto AddressPortToString(const SOCKADDR* sa, size_t salen) {
 	std::wstring string(sizeof "[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff%4294967295]:65535" - 1, L'\0');
 	auto length = size_as<DWORD>(string) + 1;
-	auto result = WSAAddressToStringW(const_cast<SOCKADDR*>(sa), static_cast<DWORD>(salen), nullptr, data(string), &length);
+	auto result = WSAAddressToStringW(const_cast<SOCKADDR*>(sa), gsl::narrow_cast<DWORD>(salen), nullptr, data(string), &length);
 	assert(result == 0);
 	string.resize(length - 1);
 	return string;

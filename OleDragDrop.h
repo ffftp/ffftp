@@ -172,7 +172,7 @@ namespace OleDragDrop {
 					return E_INVALIDARG;
 				if (dwDirection != DATADIR_GET)
 					return E_NOTIMPL;
-				return CreateFormatEnumerator(static_cast<UINT>(size(formatEtcs)), data(formatEtcs), ppenumFormatEtc);
+				return CreateFormatEnumerator(UINT(size(formatEtcs)), data(formatEtcs), ppenumFormatEtc);
 			}
 			STDMETHODIMP DAdvise(FORMATETC* pformatetc, DWORD advf, IAdviseSink* pAdvSink, DWORD* pdwConnection) override {
 				return OLE_E_ADVISENOTSUPPORTED;

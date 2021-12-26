@@ -51,6 +51,10 @@ static std::wstring RenameUnuseableName(std::wstring&& filename);
 static int ExistNotify;		/* 確認ダイアログを出すかどうか YES/NO */
 
 
+static inline auto RemoteName(std::wstring&& name) {
+	return FnameCnv == FNAME_LOWER ? lc(std::move(name)) : FnameCnv == FNAME_UPPER ? uc(std::move(name)) : std::move(name);
+}
+
 /*----- ファイル一覧で指定されたファイルをダウンロードする --------------------
 *
 *	Parameter
@@ -73,12 +77,7 @@ void MakeDirFromLocalPath(fs::path const& LocalFile, fs::path const& Old) {
 			path /= current;
 		} else {
 			oit = Old.end();
-			auto name = current.native();
-			if (FnameCnv == FNAME_LOWER)
-				_wcslwr(data(name));
-			else if (FnameCnv == FNAME_UPPER)
-				_wcsupr(data(name));
-			path /= name;
+			path /= RemoteName(current);
 			Pkt.Local = path;
 			Pkt.Command = L"MKD "s;
 			Pkt.Remote.clear();
@@ -118,13 +117,9 @@ void DownloadProc(int ChName, int ForceFile, int All)
 				break;
 			Pkt.Local = AskLocalCurDir();
 			auto name = f.Name;
-			if (ChName == NO || ForceFile == NO && f.Node == NODE_DIR) {
-				if (FnameCnv == FNAME_LOWER)
-					name = lc(std::move(name));
-				else if (FnameCnv == FNAME_UPPER)
-					name = uc(std::move(name));
-				name = RemoveAfterSemicolon(std::move(name));
-			} else {
+			if (ChName == NO || ForceFile == NO && f.Node == NODE_DIR)
+				name = RemoveAfterSemicolon(RemoteName(std::move(name)));
+			else {
 				if (!UpDownAsDialog(name, WIN_REMOTE))
 					break;
 			}
@@ -139,7 +134,7 @@ void DownloadProc(int ChName, int ForceFile, int All)
 				AddTransFileList(&Pkt);
 			} else if (f.Node == NODE_FILE || ForceFile == YES && f.Node == NODE_DIR) {
 				Pkt.Remote
-					= AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, AskHostLsName(), f.Name)
+					= AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, GetConnectingHost().LsName, f.Name)
 					: AskHostType() == HTYPE_ACOS_4 ? f.Name
 					: ReplaceAll(SetSlashTail(std::wstring{ AskRemoteCurDir() }) + f.Name, L'\\', L'/');
 
@@ -221,15 +216,11 @@ void DirectDownloadProc(std::wstring_view Fname) {
 
 		if (!empty(Fname)) {
 			Pkt.Local = AskLocalCurDir();
-			auto TmpString = std::wstring{ Fname };
-			TmpString = FnameCnv == FNAME_LOWER ? lc(std::move(TmpString)) : FnameCnv == FNAME_UPPER ? uc(std::move(TmpString)) : TmpString;
-			TmpString = RemoveAfterSemicolon(std::move(TmpString));
-			if (auto const filename = RenameUnuseableName(std::move(TmpString)); !empty(filename))
-			{
+			if (auto const filename = RenameUnuseableName(RemoveAfterSemicolon(RemoteName(std::wstring{ Fname }))); !empty(filename)) {
 				Pkt.Local /= filename;
 
 				Pkt.Remote
-					= AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, AskHostLsName(), Fname)
+					= AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, GetConnectingHost().LsName, Fname)
 					: AskHostType() == HTYPE_ACOS_4 ? std::wstring{ Fname }
 					: ReplaceAll(SetSlashTail(std::wstring{ AskRemoteCurDir() }) + Fname, L'\\', L'/');
 
@@ -455,7 +446,7 @@ void MirrorDownloadProc(int Notify)
 					Pkt.Local = AskLocalCurDir();
 					auto name = f.Name;
 					if (MirrorFnameCnv == YES)
-						name = lc(name);
+						name = lc(std::move(name));
 					Pkt.Local /= RemoveAfterSemicolon(std::move(name));
 
 					if (f.Node == NODE_DIR) {
@@ -665,11 +656,7 @@ int MakeDirFromRemotePath(fs::path const& RemoteFile, fs::path const& Old, int F
 		AddTransFileList(&Pkt);
 	}
 	do {
-		auto name = rit->native();
-		if (FnameCnv == FNAME_LOWER)
-			_wcslwr(data(name));
-		else if (FnameCnv == FNAME_UPPER)
-			_wcsupr(data(name));
+		auto name = RemoteName(*rit);
 		path /= name;
 #if defined(HAVE_TANDEM)
 		Pkt.FileCode = 0;
@@ -677,7 +664,7 @@ int MakeDirFromRemotePath(fs::path const& RemoteFile, fs::path const& Old, int F
 		Pkt.SecExt = DEF_SECEXT;
 		Pkt.MaxExt = DEF_MAXEXT;
 #endif
-		Pkt.Remote = AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, AskHostLsName(), name) : AskHostType() == HTYPE_ACOS_4 ? name : path.generic_wstring();
+		Pkt.Remote = AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, GetConnectingHost().LsName, name) : AskHostType() == HTYPE_ACOS_4 ? name : path.generic_wstring();
 		Pkt.Command = L"MKD "s;
 		Pkt.Local.clear();
 		AddTransFileList(&Pkt);
@@ -749,7 +736,7 @@ void UploadListProc(int ChName, int All)
 			Pkt.Remote = SetSlashTail(std::wstring{ AskRemoteCurDir() });
 			auto offset = size(Pkt.Remote);
 			if (ChName == NO || f.Node == NODE_DIR) {
-				Pkt.Remote += FnameCnv == FNAME_LOWER ? lc(f.Name) : FnameCnv == FNAME_UPPER ? uc(f.Name) : f.Name;
+				Pkt.Remote += RemoteName(std::wstring{ f.Name });
 #if defined(HAVE_TANDEM)
 				Pkt.FileCode = 0;
 				Pkt.PriExt = DEF_PRIEXT;
@@ -783,7 +770,7 @@ void UploadListProc(int ChName, int All)
 			Pkt.Remote = ReplaceAll(std::move(Pkt.Remote), L'\\', L'/');
 
 			if (AskHostType() == HTYPE_ACOS)
-				Pkt.Remote = std::format(L"'{}({})'"sv, AskHostLsName(), std::wstring_view{ Pkt.Remote }.substr(offset));
+				Pkt.Remote = std::format(L"'{}({})'"sv, GetConnectingHost().LsName, std::wstring_view{ Pkt.Remote }.substr(offset));
 			else if (AskHostType() == HTYPE_ACOS_4)
 				Pkt.Remote = Pkt.Remote.substr(offset);
 
@@ -914,13 +901,9 @@ void UploadDragProc(WPARAM wParam)
 		ExistNotify = YES;
 
 		for (auto const& f : files) {
-			auto Cat = f.Name;
-			if(FnameCnv == FNAME_LOWER)
-				Cat = lc(std::move(Cat));
-			else if(FnameCnv == FNAME_UPPER)
-				Cat = uc(std::move(Cat));
+			auto Cat = RemoteName(std::wstring{ f.Name });
 			Pkt.Remote
-				= AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, AskHostLsName(), Cat)
+				= AskHostType() == HTYPE_ACOS ? std::format(L"'{}({})'"sv, GetConnectingHost().LsName, Cat)
 				: AskHostType() == HTYPE_ACOS_4 ? std::move(Cat)
 				: ReplaceAll(SetSlashTail(std::wstring{ AskRemoteCurDir() }) + Cat, L'\\', L'/');
 #if defined(HAVE_TANDEM)
@@ -1165,7 +1148,7 @@ void MirrorUploadProc(int Notify)
 
 			for (auto const& f : LocalListBase) {
 				if (f.Attr == YES) {
-					auto Cat = MirrorFnameCnv == YES ? lc(f.Name) : f.Name;
+					auto Cat = MirrorFnameCnv == YES ? lc(std::wstring{ f.Name }) : f.Name;
 					Pkt.Remote = ReplaceAll(SetSlashTail(std::wstring{ AskRemoteCurDir() }) + Cat, L'\\', L'/');
 
 					if (f.Node == NODE_DIR) {
@@ -2163,7 +2146,7 @@ void CopyURLtoClipBoard() {
 		if (EmptyClipboard())
 			if (auto global = GlobalAlloc(GHND, (size_as<SIZE_T>(text) + 1) * sizeof(wchar_t)); global)
 				if (auto buffer = GlobalLock(global); buffer) {
-					std::copy(begin(text), end(text), reinterpret_cast<wchar_t*>(buffer));
+					std::copy(begin(text), end(text), static_cast<wchar_t*>(buffer));
 					GlobalUnlock(global);
 					SetClipboardData(CF_UNICODETEXT, global);
 				}
