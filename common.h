@@ -753,7 +753,6 @@ void DoubleClickProc(int Win, int Mode, int App);
 void ExecViewer(fs::path const& path, int App);
 void ExecViewer2(fs::path const& path1, fs::path const& path2, int App);
 void AddTempFileList(fs::path const& file);
-void SoundPlay(int Num);
 void ShowHelp(DWORD_PTR helpTopicId);
 fs::path const& AskIniFilePath();
 int AskForceIni(void);
