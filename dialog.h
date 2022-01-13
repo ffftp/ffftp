@@ -1,4 +1,4 @@
-// Copyright(C) 2018 Kurata Sayuri. All rights reserved.
+// Copyright(C) Kurata Sayuri. All rights reserved.
 #pragma once
 #include <type_traits>
 #include <Windows.h>
