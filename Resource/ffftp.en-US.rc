@@ -300,7 +300,7 @@ BEGIN
     CTEXT           "FFFTP Ver 5.6",-1,110,11,90,8
     CTEXT           "FFFTP is freeware",-1,7,221,301,8
     CTEXT           "Copyright(C) 1997-2010 Sota && cooperators",-1,7,25,301,8
-    CTEXT           "Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato)\nCopyright (C) 2018-2021, Kurata Sayuri",-1,7,37,301,32
+    CTEXT           "Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato)\nCopyright (C) 2018-2022, Kurata Sayuri",-1,7,37,301,32
     EDITTEXT        ABOUT_URL,7,76,301,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     CTEXT           "OLE D&&D by Yutaka Hirata-san, nakka-san\nIn site file mover by Hirata-san\nAny issues by miau-san\nMaster Password by Gengen-san\nAES encryption by Moca-san\n\nI had cooperation of many other one.",-1,7,142,301,59
 END
@@ -2206,7 +2206,7 @@ BEGIN
             VALUE "FileDescription", "FFFTP"
             VALUE "FileVersion", "5.6.0.0"
             VALUE "InternalName", "FFFTP"
-            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & cooperators\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).\r\nCopyright (C) 2018-2021, Kurata Sayuri."
+            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & cooperators\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).\r\nCopyright (C) 2018-2022, Kurata Sayuri."
             VALUE "OriginalFilename", "FFFTP.exe"
             VALUE "ProductName", "FFFTP"
             VALUE "ProductVersion", "5.6.0.0"
@@ -2647,7 +2647,7 @@ BEGIN
     IDS_INVALID_PATH        "{} is invalid path.\r\nFFFTP doesn't download this file."
     IDS_FINISHED            "Finished"
     IDS_CANCELLED           "Cancelled"
-    IDS_COPYRIGHT           "FFFTP Ver.{} {} Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).\r\nCopyright (C) 2018-2021, Kurata Sayuri."
+    IDS_COPYRIGHT           "FFFTP Ver.{} {} Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).\r\nCopyright (C) 2018-2022, Kurata Sayuri."
     IDS_LOCALCMD            ">>{}"
     IDS_REMOTECMD           ">{}"
     IDS_SEPARATOR           "----------------------------"

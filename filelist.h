@@ -1,4 +1,4 @@
-// Copyright(C) 2020,2021 Kurata Sayuri. All rights reserved.
+// Copyright(C) Kurata Sayuri. All rights reserved.
 #pragma once
 #include <format>
 #include <string_view>

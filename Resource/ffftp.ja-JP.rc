@@ -300,7 +300,7 @@ BEGIN
     CTEXT           "FFFTP Ver 5.6",-1,113,11,90,8
     CTEXT           "FFFTPはfreewareです",-1,7,220,305,8
     CTEXT           "Copyright(C) 1997-2010 Sota & ご協力いただいた方々",-1,7,25,305,8,SS_NOPREFIX
-    CTEXT           "Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato)\nCopyright (C) 2018-2021, 倉田佐祐理",-1,7,37,305,32,SS_NOPREFIX
+    CTEXT           "Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato)\nCopyright (C) 2018-2022, 倉田佐祐理",-1,7,37,305,32,SS_NOPREFIX
     EDITTEXT        ABOUT_URL,7,76,305,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
     CTEXT           "OLE D&&D機能 by 平田豊さん、nakkaさん\nホスト内でのファイル移動機能 by 平田豊さん\nいくつかの機能 by miauさん\nマスターパスワード機能 by げんげんさん\nAES暗号化 by Mocaさん\n\n他、多くの方のご協力をいただきました。",-1,7,143,305,60
 END
@@ -2170,7 +2170,7 @@ BEGIN
             VALUE "FileDescription", "FFFTP"
             VALUE "FileVersion", "5.6.0.0"
             VALUE "InternalName", "FFFTP"
-            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato).\r\nCopyright (C) 2018-2021, 倉田佐祐理."
+            VALUE "LegalCopyright", "Copyright (C) 1997-2010 Sota & ご協力いただいた方々\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, うなー, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, ふうせん, potato).\r\nCopyright (C) 2018-2022, 倉田佐祐理."
             VALUE "OriginalFilename", "FFFTP.exe"
             VALUE "ProductName", "FFFTP"
             VALUE "ProductVersion", "5.6.0.0"
@@ -2610,7 +2610,7 @@ BEGIN
     IDS_INVALID_PATH        "{} は不正なファイル名です.\r\nこのファイルはダウンロードされません."
     IDS_FINISHED            "完了"
     IDS_CANCELLED           "中止"
-    IDS_COPYRIGHT           "FFFTP Ver.{} {} Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).\r\nCopyright (C) 2018-2021, Kurata Sayuri."
+    IDS_COPYRIGHT           "FFFTP Ver.{} {} Copyright(C) 1997-2010 Sota & cooperators.\r\nCopyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).\r\nCopyright (C) 2018-2022, Kurata Sayuri."
     IDS_LOCALCMD            ">>{}"
     IDS_REMOTECMD           ">{}"
     IDS_SEPARATOR           "----------------------------"
