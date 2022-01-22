@@ -307,7 +307,7 @@ struct MirrorList {
 			auto count = (int)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELITEMS, size_as<WPARAM>(indexes), (LPARAM)data(indexes));
 			assert(size_as<int>(indexes) == count);
 			for (int index : indexes | std::ranges::views::reverse)
-				if (index < size_as<int>(indexes)) {
+				if (index < size_as<int>(list)) {
 					list.erase(begin(list) + index);
 					SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_DELETESTRING, index, 0);
 				} else
