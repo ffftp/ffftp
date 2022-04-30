@@ -169,7 +169,7 @@ static auto version() {
 	auto const ms = static_cast<VS_FIXEDFILEINFO*>(block)->dwProductVersionMS, ls = static_cast<VS_FIXEDFILEINFO*>(block)->dwProductVersionLS;
 	auto const major = HIWORD(ms), minor = LOWORD(ms), patch = HIWORD(ls), build = LOWORD(ls);
 	auto const format = build != 0 ? L"{}.{}.{}.{}"sv : patch != 0 ? L"{}.{}.{}"sv : L"{}.{}"sv;
-	return std::format(format, major, minor, patch, build);
+	return std::vformat(format, std::make_wformat_args(major, minor, patch, build));
 }
 
 
@@ -508,7 +508,7 @@ static bool MakeAllWindows(int cmdShow) {
 
 // ウインドウのタイトルを表示する
 void DispWindowTitle() {
-	auto const text = std::format(AskConnecting() == YES ? L"{0} ({1}) - FFFTP"sv : L"FFFTP ({1})"sv, TitleHostName, FilterStr);
+	auto const text = std::vformat(AskConnecting() == YES ? L"{0} ({1}) - FFFTP"sv : L"FFFTP ({1})"sv, std::make_wformat_args(TitleHostName, FilterStr));
 	SetWindowTextW(GetMainHwnd(), text.c_str());
 }
 
@@ -1915,7 +1915,7 @@ void ExecViewer2(fs::path const& path1, fs::path const& path2, int App) {
 	/* そこで、関連付けられたプログラムの起動はShellExecute()を使う。	*/
 	auto format = path1.native().find(L' ') == std::wstring::npos && path2.native().find(L' ') == std::wstring::npos ? LR"({} {} {})"sv : LR"({} "{}" "{}")"sv;
 	auto const executable = std::wstring_view{ ViewerName[App] }.substr(2);		/* 先頭の "d " は読み飛ばす */
-	auto commandLine = std::format(format, executable, path1.native(), path2.native());
+	auto commandLine = std::vformat(format, std::make_wformat_args(executable, path1.native(), path2.native()));
 	Debug(L"FindExecutable - {}"sv, commandLine);
 	STARTUPINFOW si{ sizeof(STARTUPINFOW), nullptr, nullptr, nullptr, 0, 0, 0, 0, 0, 0, 0, 0, SW_SHOWNORMAL };
 	if (ProcessInformation pi; __pragma(warning(suppress:6335)) !CreateProcessW(nullptr, data(commandLine), nullptr, nullptr, false, 0, nullptr, systemDirectory().c_str(), &si, &pi)) {

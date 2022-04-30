@@ -817,7 +817,7 @@ static int SendUploadCommand(TRANSPACKET* Pkt, int& Resume, int* CancelCheckWork
 		Pkt->ExistSize = 0;
 #if defined(HAVE_TANDEM)
 		if (AskHostType() == HTYPE_TANDEM && AskOSS() == NO && Pkt->Type != TYPE_A)
-			extra = std::format(Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT ? L",{}"sv : L",{},{},{},{}"sv, Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt);
+			extra = std::vformat(Pkt->PriExt == DEF_PRIEXT && Pkt->SecExt == DEF_SECEXT && Pkt->MaxExt == DEF_MAXEXT ? L",{}"sv : L",{},{},{},{}"sv, std::make_wformat_args(Pkt->FileCode, Pkt->PriExt, Pkt->SecExt, Pkt->MaxExt));
 #endif
 	}
 	auto [code, text] = Command(Pkt->ctrl_skt, CancelCheckWork, L"{}{}{}"sv, cmd, Pkt->Remote, extra);

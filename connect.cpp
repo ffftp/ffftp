@@ -941,7 +941,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 									Pass = UserMailAdrs;
 								}
 
-								auto const user = Fwall != FWALL_FU_FP_USER && Fwall != FWALL_USER ? User : std::format(Port == IPPORT_FTP ? L"{}{}{}"sv : L"{}{}{} {}"sv, User, (wchar_t)FwallDelimiter, Host, Port);
+								auto const user = Fwall != FWALL_FU_FP_USER && Fwall != FWALL_USER ? User : std::vformat(Port == IPPORT_FTP ? L"{}{}{}"sv : L"{}{}{} {}"sv, std::make_wformat_args(User, (wchar_t)FwallDelimiter, Host, Port));
 
 								// FTPES対応
 								if (CryptMode == CRYPT_FTPES) {

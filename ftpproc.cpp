@@ -2130,7 +2130,7 @@ void CopyURLtoClipBoard() {
 	if (empty(FileListBase))
 		return;
 	auto const curHost = GetCurHost();
-	auto baseAddress = std::format(curHost.Port != IPPORT_FTP ? L"ftp://{0}:{1}"sv : L"ftp://{0}"sv, curHost.HostAdrs, curHost.Port);
+	auto baseAddress = std::vformat(curHost.Port != IPPORT_FTP ? L"ftp://{0}:{1}"sv : L"ftp://{0}"sv, std::make_wformat_args(curHost.HostAdrs, curHost.Port));
 	{
 		auto dir = SetSlashTail(std::wstring{ AskRemoteCurDir() });
 		if (AskHostType() == HTYPE_VMS) {

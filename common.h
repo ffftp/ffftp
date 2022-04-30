@@ -1045,7 +1045,7 @@ namespace detail {
 }
 template<class... Args>
 static inline std::tuple<int, std::wstring> Command(std::shared_ptr<SocketContext> socket, int* CancelCheckWork, std::wstring_view format, const Args&... args) {
-	return !socket ? std::tuple{ 429, L""s } : detail::command(socket, CancelCheckWork, std::format(format, args...));
+	return !socket ? std::tuple{ 429, L""s } : detail::command(socket, CancelCheckWork, std::vformat(format, std::make_wformat_args(args...)));
 }
 
 /*===== getput.c =====*/
