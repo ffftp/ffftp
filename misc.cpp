@@ -192,26 +192,3 @@ void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size)
 	}
 }
 #endif
-
-static auto QueryDisplayDPI() {
-	static auto dpi = [] {
-		int x = 0, y = 0;
-		if (auto dc = GetDC(0)) {
-			x = GetDeviceCaps(dc, LOGPIXELSX);
-			y = GetDeviceCaps(dc, LOGPIXELSY);
-			ReleaseDC(0, dc);
-		}
-		return std::tuple<int, int>{ x, y };
-	}();
-	return dpi;
-}
-
-int CalcPixelX(int x) {
-	auto [dpix, _] = QueryDisplayDPI();
-	return (x * dpix + 96 / 2) / 96;
-}
-
-int CalcPixelY(int y) {
-	auto [_, dpiy] = QueryDisplayDPI();
-	return (y * dpiy + 96 / 2) / 96;
-}
