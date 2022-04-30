@@ -1,3 +1,8 @@
+#pragma warning(disable: 26426)		// error C26426 : Global initializer calls a non - constexpr function 'XXX' (i.22).
+#pragma warning(disable: 26445)		// error C26445: Do not assign gsl::span or std::string_view to a reference. They are cheap to construct and are not owners of the underlying data. (gsl.view).
+#pragma warning(disable: 26446)		// error C26446: Prefer to use gsl::at() instead of unchecked subscript operator (bounds.4).
+#pragma warning(disable: 26481)		// error C26481: Don't use pointer arithmetic. Use span instead (bounds.1).
+#pragma warning(disable: 26496)		// error C26496: The variable 'XXX' does not change after construction, mark it as const (con.4).
 #include <fstream>
 #include <ranges>
 #include <regex>
