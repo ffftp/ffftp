@@ -31,6 +31,35 @@
 #define SECURITY_WIN32
 #define WIN32_LEAN_AND_MEAN
 #define UMDF_USING_NTSTATUS
+#pragma warning(disable: 6553)		// error C6553: The annotation for function 'XXX' on _Param_(YYY) does not apply to a value type.
+#pragma warning(disable: 26415)		// error C26415: Smart pointer parameter 'XXX' is used only to access contained pointer. Use T* or T& instead (r.30).
+#pragma warning(disable: 26418)		// error C26418: Shared pointer parameter 'XXX' is not copied or moved. Use T* or T& instead (r.36).
+#pragma warning(disable: 26426)		// error C26426: Global initializer calls a non-constexpr function 'XXX' (i.22).
+#pragma warning(disable: 26429)		// error C26429: Symbol 'XXX' is never tested for nullness, it can be marked as not_null (f.23).
+#pragma warning(disable: 26432)		// error C26432: If you define or delete any default operation in the type 'XXX', define or delete them all (c.21).
+#pragma warning(disable: 26436)		// error C26436: The type 'XXX' with a virtual function needs either public virtual or protected non-virtual destructor (c.35).
+#pragma warning(disable: 26440)		// error C26440: Function 'XXX' can be declared 'noexcept' (f.6).
+#pragma warning(disable: 26445)		// error C26445: Do not assign gsl::span or std::string_view to a reference. They are cheap to construct and are not owners of the underlying data. (gsl.view).
+#pragma warning(disable: 26446)		// error C26446: Prefer to use gsl::at() instead of unchecked subscript operator (bounds.4).
+#pragma warning(disable: 26447)		// error C26447: The function is declared 'noexcept' but calls function 'XXX' which may throw exceptions (f.6).
+#pragma warning(disable: 26455)		// error C26455: Default constructor should not throw. Declare it 'noexcept' (f.6).
+#pragma warning(disable: 26459)		// error C26459: You called an STL function 'XXX' with a raw pointer parameter at position 'YYY' that may be unsafe - this relies on the caller to check that the passed values are correct. Consider wrapping your range in a gsl::span and pass as a span iterator (stl.1).
+#pragma warning(disable: 26461)		// error C26461: The pointer argument 'XXX' for function 'YYY' can be marked as a pointer to const (con.3).
+#pragma warning(disable: 26462)		// error C26462: The value pointed to by 'XXX' is assigned only once, mark it as a pointer to const (con.4).
+#pragma warning(disable: 26476)		// error C26476: Expression/symbol '{0}' uses a naked union 'union ' with multiple type pointers: Use variant instead (type.7).
+#pragma warning(disable: 26481)		// error C26481: Don't use pointer arithmetic. Use span instead (bounds.1).
+#pragma warning(disable: 26482)		// error C26482: Only index into arrays using constant expressions (bounds.2).
+#pragma warning(disable: 26485)		// error C26485: Expression 'XXX': No array to pointer decay (bounds.3).
+#pragma warning(disable: 26490)		// error C26490: Don't use reinterpret_cast (type.1).
+#pragma warning(disable: 26491)		// error C26491: Don't use static_cast downcasts (type.2).
+#pragma warning(disable: 26492)		// error C26492: Don't use const_cast to cast away const or volatile (type.3).
+#pragma warning(disable: 26493)		// error C26493: Don't use C-style casts (type.4).
+#pragma warning(disable: 26494)		// error C26494: Variable 'XXX' is uninitialized. Always initialize an object (type.5).
+#pragma warning(disable: 26496)		// error C26496: The variable 'XXX' does not change after construction, mark it as const (con.4).
+#pragma warning(disable: 26800)		// error C26800: Use of a moved from object: ''XXX'' (lifetime.1).
+#pragma warning(disable: 26812)		// error C26812: The enum type 'XXX' is unscoped. Prefer 'enum class' over 'enum' (Enum.3).
+#pragma warning(disable: 26818)		// error C26818: Switch statement does not cover all cases. Consider adding a 'default' label (es.79).
+#pragma warning(disable: 26821)		// error C26821: For 'XXX', consider using gsl::span instead of std::span to guarantee runtime bounds safety (gsl.view).
 #include <algorithm>
 #include <array>
 #include <bit>
