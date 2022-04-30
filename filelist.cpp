@@ -767,7 +767,7 @@ static auto FileTimeToString(FILETIME ft, int InfoExist) {
 			else
 				str += L"           "sv;
 			if (InfoExist & FINFO_TIME)
-				std::format_to(std::back_inserter(str), DispTimeSeconds == YES ? L"{:02d}:{:02d}:{:02d}"sv : L"{:02d}:{:02d}"sv, st.wHour, st.wMinute, st.wSecond);
+				std::vformat_to(std::back_inserter(str), DispTimeSeconds == YES ? L"{:02d}:{:02d}:{:02d}"sv : L"{:02d}:{:02d}"sv, std::make_wformat_args(st.wHour, st.wMinute, st.wSecond));
 			else
 				str += DispTimeSeconds == YES ? L"        "sv : L"     "sv;
 		}

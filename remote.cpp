@@ -275,7 +275,7 @@ int DoDirList(std::wstring_view AddOpt, int Num, int* CancelCheckWork) {
 	if (auto const connectingHost = GetConnectingHost(); connectingHost.ListCmdOnly == NO) {
 		MainTransPkt.Command = L"NLST"s;
 		if (!empty(connectingHost.LsName))
-			MainTransPkt.Command += std::format(AskHostType() == HTYPE_ACOS || AskHostType() == HTYPE_ACOS_4? L" '{}'"sv : L" {}"sv, connectingHost.LsName);
+			MainTransPkt.Command += std::vformat(AskHostType() == HTYPE_ACOS || AskHostType() == HTYPE_ACOS_4? L" '{}'"sv : L" {}"sv, std::make_wformat_args(connectingHost.LsName));
 		if (!empty(AddOpt))
 			MainTransPkt.Command += AddOpt;
 	} else {
