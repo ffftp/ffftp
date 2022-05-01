@@ -681,7 +681,7 @@ void SetDefaultHost(HOSTDATA* Set) {
 	DefaultHost = *Set;
 }
 
-HostExeptPassword::HostExeptPassword() {
+HostExeptPassword::HostExeptPassword() noexcept {
 	LocalInitDir = DefaultLocalPath;
 }
 

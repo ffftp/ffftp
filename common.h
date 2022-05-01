@@ -42,7 +42,6 @@
 #pragma warning(disable: 26445)		// error C26445: Do not assign gsl::span or std::string_view to a reference. They are cheap to construct and are not owners of the underlying data. (gsl.view).
 #pragma warning(disable: 26446)		// error C26446: Prefer to use gsl::at() instead of unchecked subscript operator (bounds.4).
 #pragma warning(disable: 26447)		// error C26447: The function is declared 'noexcept' but calls function 'XXX' which may throw exceptions (f.6).
-#pragma warning(disable: 26455)		// error C26455: Default constructor should not throw. Declare it 'noexcept' (f.6).
 #pragma warning(disable: 26459)		// error C26459: You called an STL function 'XXX' with a raw pointer parameter at position 'YYY' that may be unsafe - this relies on the caller to check that the passed values are correct. Consider wrapping your range in a gsl::span and pass as a span iterator (stl.1).
 #pragma warning(disable: 26461)		// error C26461: The pointer argument 'XXX' for function 'YYY' can be marked as a pointer to const (con.3).
 #pragma warning(disable: 26462)		// error C26462: The value pointed to by 'XXX' is assigned only once, mark it as a pointer to const (con.4).
@@ -649,7 +648,7 @@ struct HostExeptPassword {
 	int TransferErrorNotify = YES;						/* 転送エラー時に確認ダイアログを出すかどうか (YES/NO) */
 	int TransferErrorReconnect = YES;					/* 転送エラー時に再接続する (YES/NO) */
 	int NoPasvAdrs = NO;								/* PASVで返されるアドレスを無視する (YES/NO) */
-	inline HostExeptPassword();
+	inline HostExeptPassword() noexcept;
 };
 
 struct Host : HostExeptPassword {
@@ -680,7 +679,7 @@ struct HOSTDATA : Host {
 
 struct HISTORYDATA : Host {
 	int Type;							/* 転送方法 (TYPE_xx) */
-	HISTORYDATA() : Type{ 0 } {}
+	HISTORYDATA() noexcept : Type{ 0 } {}
 	HISTORYDATA(HISTORYDATA const&) = default;
 	HISTORYDATA(Host const& that, bool includePassword, int type) : Host{ that, includePassword }, Type{ type } {}
 };
@@ -1410,7 +1409,7 @@ static inline auto InputDialog(int dialogId, HWND parent, UINT titleId, std::wst
 	return Dialog(GetFtpInst(), dialogId, parent, Data{ titleId, text, maxlength, flag, helpTopicId });
 }
 struct ProcessInformation : PROCESS_INFORMATION {
-	ProcessInformation() : PROCESS_INFORMATION{ INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE } {}
+	ProcessInformation() noexcept : PROCESS_INFORMATION{ INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE } {}
 	~ProcessInformation() {
 		if (hThread != INVALID_HANDLE_VALUE)
 			CloseHandle(hThread);
