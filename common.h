@@ -56,7 +56,6 @@
 #pragma warning(disable: 26493)		// error C26493: Don't use C-style casts (type.4).
 #pragma warning(disable: 26494)		// error C26494: Variable 'XXX' is uninitialized. Always initialize an object (type.5).
 #pragma warning(disable: 26496)		// error C26496: The variable 'XXX' does not change after construction, mark it as const (con.4).
-#pragma warning(disable: 26800)		// error C26800: Use of a moved from object: ''XXX'' (lifetime.1).
 #pragma warning(disable: 26812)		// error C26812: The enum type 'XXX' is unscoped. Prefer 'enum class' over 'enum' (Enum.3).
 #pragma warning(disable: 26818)		// error C26818: Switch statement does not cover all cases. Consider adding a 'default' label (es.79).
 #pragma warning(disable: 26821)		// error C26821: For 'XXX', consider using gsl::span instead of std::span to guarantee runtime bounds safety (gsl.view).

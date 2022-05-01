@@ -241,7 +241,7 @@ static void EraseTransFileList() {
 	std::optional<TRANSPACKET> backcur;
 	for (TRANSPACKET pkt; TransPacketBase.try_pop(pkt);)
 		if (pkt.Command == L"BACKCUR"sv)
-			backcur = std::move(pkt);
+			backcur = pkt;
 	if (backcur)
 		TransPacketBase.push(*std::move(backcur));
 	TransFiles = 0;

@@ -1865,7 +1865,7 @@ static std::optional<std::vector<std::variant<FILELIST, std::string>>> GetListLi
 		if (auto result = Parse(line))
 			lines.emplace_back(std::move(result).value());
 		else
-			lines.emplace_back(std::move(line));
+			lines.emplace_back(line);
 	}
 	auto const& curHost = GetCurHost();
 	if (curHost.NameKanjiCode == KANJI_AUTO) {
