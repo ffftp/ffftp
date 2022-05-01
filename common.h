@@ -32,8 +32,6 @@
 #define WIN32_LEAN_AND_MEAN
 #define UMDF_USING_NTSTATUS
 #pragma warning(disable: 6553)		// error C6553: The annotation for function 'XXX' on _Param_(YYY) does not apply to a value type.
-#pragma warning(disable: 26415)		// error C26415: Smart pointer parameter 'XXX' is used only to access contained pointer. Use T* or T& instead (r.30).
-#pragma warning(disable: 26418)		// error C26418: Shared pointer parameter 'XXX' is not copied or moved. Use T* or T& instead (r.36).
 #pragma warning(disable: 26426)		// error C26426: Global initializer calls a non-constexpr function 'XXX' (i.22).
 #pragma warning(disable: 26429)		// error C26429: Symbol 'XXX' is never tested for nullness, it can be marked as not_null (f.23).
 #pragma warning(disable: 26432)		// error C26432: If you define or delete any default operation in the type 'XXX', define or delete them all (c.21).
@@ -968,7 +966,7 @@ int AskConnecting(void);
 int SetOSS(int wkOss);
 int AskOSS(void);
 #endif
-std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext> s, int* CancelCheckWork);
+std::optional<sockaddr_storage> SocksReceiveReply(SocketContext& s, int* CancelCheckWork);
 std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget, std::wstring&& host, int port, int *CancelCheckWork);
 std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext> ctrl_skt, int *CancelCheckWork);
 int AskTryingConnect(void);
@@ -1039,11 +1037,11 @@ int DoDirList(std::wstring_view AddOpt, int Num, int* CancelCheckWork);
 void SwitchOSSProc(void);
 #endif
 namespace detail {
-	std::tuple<int, std::wstring> command(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork, std::wstring&& cmd);
+	std::tuple<int, std::wstring> command(SocketContext& s, int* CancelCheckWork, std::wstring&& cmd);
 }
 template<class... Args>
-static inline std::tuple<int, std::wstring> Command(std::shared_ptr<SocketContext> socket, int* CancelCheckWork, std::wstring_view format, const Args&... args) {
-	return !socket ? std::tuple{ 429, L""s } : detail::command(socket, CancelCheckWork, std::vformat(format, std::make_wformat_args(args...)));
+static inline std::tuple<int, std::wstring> Command(__pragma(warning(suppress: 26415 26418)) std::shared_ptr<SocketContext> socket, int* CancelCheckWork, std::wstring_view format, const Args&... args) {
+	return !socket ? std::tuple{ 429, L""s } : detail::command(*socket, CancelCheckWork, std::vformat(format, std::make_wformat_args(args...)));
 }
 
 /*===== getput.c =====*/

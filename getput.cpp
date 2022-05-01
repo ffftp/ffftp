@@ -68,12 +68,12 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
 static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt);
 static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item);
 static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int Resume, int* CancelCheckWork);
-static int TermCodeConvAndSend(std::shared_ptr<SocketContext> Skt, char *Data, int Size, int Ascii, int *CancelCheckWork);
+static int TermCodeConvAndSend(SocketContext& s, char *Data, int Size, int Ascii, int *CancelCheckWork);
 static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
 static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
 static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt);
 static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipButton, int Info);
-static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(std::shared_ptr<SocketContext> socket, std::wstring const& reply);
+static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(SocketContext& s, std::wstring const& reply);
 static bool IsSpecialDevice(std::wstring_view filename);
 static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item);
 
@@ -841,7 +841,7 @@ static int TransferActive(TRANSPACKET* Pkt, int (*SendTransferCommand)(TRANSPACK
 	if (code / 100 == FTP_PRELIM) {
 		std::shared_ptr<SocketContext> data_socket;
 		if (GetCurHost().FireWall == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
-			if (SocksReceiveReply(listen_socket, CancelCheckWork))
+			if (SocksReceiveReply(*listen_socket, CancelCheckWork))
 				data_socket = listen_socket;
 		} else {
 			sockaddr_storage sa;
@@ -868,7 +868,7 @@ static int TransferActive(TRANSPACKET* Pkt, int (*SendTransferCommand)(TRANSPACK
 static int TransferPassive(TRANSPACKET* Pkt, int (*SendTransferCommand)(TRANSPACKET* Pkt, int& mode, int* CancelCheckWork), int (*TransferFile)(TRANSPACKET* Pkt, std::shared_ptr<SocketContext> dSkt, int mode, int* CancelCheckWork), int* CancelCheckWork) {
 	auto [code, text] = Command(Pkt->ctrl_skt, CancelCheckWork, GetCurHost().CurNetType == NTYPE_IPV4 ? L"PASV"sv : L"EPSV"sv);
 	if (code / 100 == FTP_COMPLETE) {
-		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, text)) {
+		if (auto const target = GetAdrsAndPort(*Pkt->ctrl_skt, text)) {
 			if (auto [host, port] = *target; auto data_socket = connectsock(*Pkt->ctrl_skt, std::move(host), port, CancelCheckWork)) {
 				if (BOOL optval = 1; setsockopt(data_socket->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&optval, sizeof(optval)) == SOCKET_ERROR)
 					WSAError(L"setsockopt(IPPROTO_TCP, TCP_NODELAY)"sv);
@@ -1256,7 +1256,7 @@ static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item)
 *		転送ダイアログを出さないでアップロードすることはない
 *----------------------------------------------------------------------------*/
 
-static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int Resume, int* CancelCheckWork) {
+static int UploadFile(TRANSPACKET *Pkt, __pragma(warning(suppress: 26415 26418)) std::shared_ptr<SocketContext> dSkt, int Resume, int* CancelCheckWork) {
 	if (Pkt->ctrl_skt->IsSSLAttached() && !dSkt->AttachSSL(CancelCheckWork))
 		return 500;
 #ifdef DISABLE_TRANSFER_NETWORK_BUFFERS
@@ -1308,7 +1308,7 @@ static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int
 			}
 
 			auto converted = cc.Convert({ data(buf), (std::string_view::size_type)read });
-			if (TermCodeConvAndSend(dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, CancelCheckWork) == FFFTP_FAIL)
+			if (TermCodeConvAndSend(*dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, CancelCheckWork) == FFFTP_FAIL)
 				Pkt->Abort = ABORT_ERROR;
 
 			Pkt->ExistSize += read;
@@ -1320,7 +1320,7 @@ static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int
 		}
 		if (Pkt->Abort == ABORT_NONE && ForceAbort == NO && !eof && !empty(rest)) {
 			auto converted = cc.Convert({ data(rest), size(rest) });
-			if (TermCodeConvAndSend(dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, CancelCheckWork) == FFFTP_FAIL)
+			if (TermCodeConvAndSend(*dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, CancelCheckWork) == FFFTP_FAIL)
 				Pkt->Abort = ABORT_ERROR;
 			Pkt->ExistSize += size_as<LONGLONG>(rest);
 			if (Pkt->hWndTrans != NULL)
@@ -1353,14 +1353,13 @@ static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int
 
 
 // バッファの内容を改行コード変換して送信
-static int TermCodeConvAndSend(std::shared_ptr<SocketContext> Skt, char *Data, int Size, int Ascii, int *CancelCheckWork) {
-	assert(Skt);
+static int TermCodeConvAndSend(SocketContext& s, char *Data, int Size, int Ascii, int *CancelCheckWork) {
 	// CR-LF以外の改行コードを変換しないモードはここへ追加
 	if (Ascii == TYPE_A) {
 		auto encoded = ToCRLF({ Data, (size_t)Size });
-		return Skt->Send(data(encoded), size_as<int>(encoded), 0, CancelCheckWork);
+		return s.Send(data(encoded), size_as<int>(encoded), 0, CancelCheckWork);
 	}
-	return Skt->Send(Data, Size, 0, CancelCheckWork);
+	return s.Send(Data, Size, 0, CancelCheckWork);
 }
 
 
@@ -1616,7 +1615,7 @@ static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipBut
 
 
 // PASVコマンドの戻り値からアドレスとポート番号を抽出
-static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(std::shared_ptr<SocketContext> socket, std::wstring const& reply) {
+static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(SocketContext& s, std::wstring const& reply) {
 	std::wstring addr;
 	int port;
 	if (auto const& curHost = GetCurHost(); curHost.CurNetType == NTYPE_IPV4) {
@@ -1643,7 +1642,7 @@ static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(std::shared_p
 		} else
 			return {};
 	}
-	addr = socket->target.index() == 0 ? AddressToString(std::get<0>(socket->target)) : std::get<0>(std::get<1>(socket->target));
+	addr = s.target.index() == 0 ? AddressToString(std::get<0>(s.target)) : std::get<0>(std::get<1>(s.target));
 	return { { addr, port } };
 }
 

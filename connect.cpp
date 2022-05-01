@@ -1193,9 +1193,8 @@ enum class SocksCommand : uint8_t {
 };
 
 
-static bool SocksSend(std::shared_ptr<SocketContext> s, std::vector<uint8_t> const& buffer, int* CancelCheckWork) {
-	assert(s);
-	if (s->Send(reinterpret_cast<const char*>(data(buffer)), size_as<int>(buffer), 0, CancelCheckWork) != FFFTP_SUCCESS) {
+static bool SocksSend(SocketContext& s, std::vector<uint8_t> const& buffer, int* CancelCheckWork) {
+	if (s.Send(reinterpret_cast<const char*>(data(buffer)), size_as<int>(buffer), 0, CancelCheckWork) != FFFTP_SUCCESS) {
 		Notice(IDS_MSGJPN033, *reinterpret_cast<const unsigned short*>(&buffer[0]));
 		return false;
 	}
@@ -1204,12 +1203,11 @@ static bool SocksSend(std::shared_ptr<SocketContext> s, std::vector<uint8_t> con
 
 
 // SOCKS5の認証を行う
-static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelCheckWork) {
+static bool Socks5Authenticate(SocketContext& s, int* CancelCheckWork) {
 	// RFC 1928 SOCKS Protocol Version 5
 	constexpr uint8_t NO_AUTHENTICATION_REQUIRED = 0;
 	constexpr uint8_t USERNAME_PASSWORD = 2;
 
-	assert(s);
 	std::vector<uint8_t> buffer;
 	if (FwallType == FWALL_SOCKS5_NOAUTH)
 		buffer = { 5, 1, NO_AUTHENTICATION_REQUIRED };						// VER, NMETHODS, METHODS
@@ -1222,7 +1220,7 @@ static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelChec
 	} reply1;
 	static_assert(sizeof reply1 == 2);
 	#pragma pack(pop)
-	if (!SocksSend(s, buffer, CancelCheckWork) || !s->ReadData(reply1, CancelCheckWork)) {
+	if (!SocksSend(s, buffer, CancelCheckWork) || !s.ReadData(reply1, CancelCheckWork)) {
 		Notice(IDS_MSGJPN036);
 		return false;
 	}
@@ -1245,7 +1243,7 @@ static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelChec
 		} reply2;
 		static_assert(sizeof reply2 == 2);
 		#pragma pack(pop)
-		if (!SocksSend(s, buffer, CancelCheckWork) || !s->ReadData(reply2, CancelCheckWork) || reply2.STATUS != 0) {
+		if (!SocksSend(s, buffer, CancelCheckWork) || !s.ReadData(reply2, CancelCheckWork) || reply2.STATUS != 0) {
 			Notice(IDS_MSGJPN037);
 			return false;
 		}
@@ -1258,9 +1256,8 @@ static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelChec
 
 
 // SOCKSのコマンドに対するリプライパケットを受信する
-std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext> s, int* CancelCheckWork) {
+std::optional<sockaddr_storage> SocksReceiveReply(SocketContext& s, int* CancelCheckWork) {
 	assert(CurHost.FireWall == YES);
-	assert(s);
 	sockaddr_storage ss;
 	if (FwallType == FWALL_SOCKS4) {
 		#pragma pack(push, 1)
@@ -1272,7 +1269,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 		} reply1;
 		static_assert(sizeof reply1 == 8);
 		#pragma pack(pop)
-		if (!s->ReadData(reply1, CancelCheckWork) || reply1.VN != 0 || reply1.CD != 90) {
+		if (!s.ReadData(reply1, CancelCheckWork) || reply1.VN != 0 || reply1.CD != 90) {
 			Notice(IDS_MSGJPN035);
 			return {};
 		}
@@ -1280,7 +1277,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 		// If the DSTIP in the reply is 0 (the value of constant INADDR_ANY), then the client should replace it by the IP address of the SOCKS server to which the cleint is connected.
 		if (reply1.DSTIP.s_addr == 0) {
 			int namelen = sizeof ss;
-			getpeername(s->handle, reinterpret_cast<sockaddr*>(&ss), &namelen);
+			getpeername(s.handle, reinterpret_cast<sockaddr*>(&ss), &namelen);
 			assert(ss.ss_family == AF_INET && namelen == sizeof(sockaddr_in));
 			reinterpret_cast<sockaddr_in&>(ss).sin_port = reply1.DSTPORT;
 		} else
@@ -1296,7 +1293,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 		} reply2;
 		static_assert(sizeof reply2 == 4);
 		#pragma pack(pop)
-		if (s->ReadData(reply2, CancelCheckWork) && reply2.VER == 5 && reply2.REP == 0) {
+		if (s.ReadData(reply2, CancelCheckWork) && reply2.VER == 5 && reply2.REP == 0) {
 			if (reply2.ATYP == 1) {
 				#pragma pack(push, 1)
 				struct {
@@ -1305,7 +1302,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 				} reply3;
 				static_assert(sizeof reply3 == 6);
 				#pragma pack(pop)
-				if (s->ReadData(reply3, CancelCheckWork)) {
+				if (s.ReadData(reply3, CancelCheckWork)) {
 					reinterpret_cast<sockaddr_in&>(ss) = { AF_INET, reply3.BND_PORT, reply3.BND_ADDR };
 					return ss;
 				}
@@ -1317,7 +1314,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 				} reply4;
 				static_assert(sizeof reply4 == 18);
 				#pragma pack(pop)
-				if (s->ReadData(reply4, CancelCheckWork)) {
+				if (s.ReadData(reply4, CancelCheckWork)) {
 					reinterpret_cast<sockaddr_in6&>(ss) = { AF_INET6, reply4.BND_PORT, 0, reply4.BND_ADDR };
 					return ss;
 				}
@@ -1334,7 +1331,7 @@ static void append(std::vector<uint8_t>& buffer, T const& data) {
 	buffer.insert(end(buffer), reinterpret_cast<const uint8_t*>(&data), reinterpret_cast<const uint8_t*>(&data + 1));
 }
 
-static std::optional<sockaddr_storage> SocksRequest(std::shared_ptr<SocketContext> s, SocksCommand cmd, std::variant<sockaddr_storage, std::tuple<std::wstring, int>> const& target, int* CancelCheckWork) {
+static std::optional<sockaddr_storage> SocksRequest(SocketContext& s, SocksCommand cmd, std::variant<sockaddr_storage, std::tuple<std::wstring, int>> const& target, int* CancelCheckWork) {
 	assert(CurHost.FireWall == YES);
 	std::vector<uint8_t> buffer;
 	if (FwallType == FWALL_SOCKS4) {
@@ -1427,7 +1424,7 @@ std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::
 		return {};
 	}
 	if (Fwall == FWALL_SOCKS4 || Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
-		auto result = SocksRequest(s, SocksCommand::Connect, target, CancelCheckWork);
+		auto result = SocksRequest(*s, SocksCommand::Connect, target, CancelCheckWork);
 		if (!result) {
 			Notice(IDS_MSGJPN023);
 			return {};
@@ -1462,7 +1459,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 		if (listen_skt->Connect(reinterpret_cast<const sockaddr*>(&saListen), salen, CancelCheckWork) == SOCKET_ERROR) {
 			return {};
 		}
-		if (auto result = SocksRequest(listen_skt, SocksCommand::Bind, ctrl_skt->target, CancelCheckWork)) {
+		if (auto result = SocksRequest(*listen_skt, SocksCommand::Bind, ctrl_skt->target, CancelCheckWork)) {
 			saListen = *result;
 		} else {
 			Notice(IDS_MSGJPN023);
