@@ -122,17 +122,8 @@ static std::optional<std::wstring> DoPWD() {
 }
 
 
-/*----- PWDコマンドのタイプを初期化する ---------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void InitPWDcommand()
-{
+// PWDコマンドのタイプを初期化する
+void InitPWDcommand() noexcept {
 	PwdCommandType = PWD_XPWD;
 }
 

@@ -36,7 +36,6 @@
 #pragma warning(disable: 26429)		// error C26429: Symbol 'XXX' is never tested for nullness, it can be marked as not_null (f.23).
 #pragma warning(disable: 26432)		// error C26432: If you define or delete any default operation in the type 'XXX', define or delete them all (c.21).
 #pragma warning(disable: 26436)		// error C26436: The type 'XXX' with a virtual function needs either public virtual or protected non-virtual destructor (c.35).
-#pragma warning(disable: 26440)		// error C26440: Function 'XXX' can be declared 'noexcept' (f.6).
 #pragma warning(disable: 26445)		// error C26445: Do not assign gsl::span or std::string_view to a reference. They are cheap to construct and are not owners of the underlying data. (gsl.view).
 #pragma warning(disable: 26446)		// error C26446: Prefer to use gsl::at() instead of unchecked subscript operator (bounds.4).
 #pragma warning(disable: 26447)		// error C26447: The function is declared 'noexcept' but calls function 'XXX' which may throw exceptions (f.6).
@@ -584,7 +583,7 @@ struct SocketContext : public WSAOVERLAPPED {
 	int Listen(int backlog);
 	void OnComplete(DWORD error, DWORD transferred, DWORD flags);
 	int AsyncFetch();
-	int GetReadStatus();
+	int GetReadStatus() noexcept;
 	std::tuple<int, std::wstring> ReadReply(int* CancelCheckWork);
 	bool ReadSpan(std::span<char>& span, int* CancelCheckWork);
 	template<class Data>
@@ -593,7 +592,7 @@ struct SocketContext : public WSAOVERLAPPED {
 		return ReadSpan(span, CancelCheckWork);
 	}
 	int ReadAll(int* CancelCheckWork, std::function<bool(std::vector<char> const&)> callback);
-	void ClearReadBuffer();
+	void ClearReadBuffer() noexcept;
 	int Send(const char* buf, int len, int flags, int* CancelCheckWork);
 };
 
@@ -601,7 +600,7 @@ struct SocketContext : public WSAOVERLAPPED {
 struct HostExeptPassword {
 	static inline auto DefaultChmod = L"SITE CHMOD"s;	/* 属性変更コマンド */
 	static inline auto DefaultLsOption = L"-alL"s;		/* NLSTに付けるもの */
-	static inline int DefaultTimeZone = [] {
+	static inline int DefaultTimeZone = []() noexcept {
 		TIME_ZONE_INFORMATION tzi;
 		GetTimeZoneInformation(&tzi);
 		return tzi.Bias / -60;
@@ -742,12 +741,12 @@ class Sound {
 	const wchar_t* keyName;
 	const wchar_t* name;
 	int id;
-	Sound(const wchar_t* keyName, const wchar_t* name, int id) : keyName{ keyName }, name{ name }, id{ id } {}
+	Sound(const wchar_t* keyName, const wchar_t* name, int id) noexcept : keyName{ keyName }, name{ name }, id{ id } {}
 public:
 	static Sound Connected;
 	static Sound Transferred;
 	static Sound Error;
-	void Play(){ PlaySoundW(keyName, 0, SND_ASYNC | SND_NODEFAULT | SND_APPLICATION); }
+	void Play() noexcept { PlaySoundW(keyName, 0, SND_ASYNC | SND_NODEFAULT | SND_APPLICATION); }
 	static void Register();
 };
 
@@ -770,38 +769,38 @@ public:
 fs::path const& systemDirectory();
 fs::path const& tempDirectory();
 void DispWindowTitle();
-HWND GetMainHwnd(void);
-void SetFocusHwnd(HWND hWnd);
-HINSTANCE GetFtpInst(void);
+HWND GetMainHwnd() noexcept;
+void SetFocusHwnd(HWND hWnd) noexcept;
+HINSTANCE GetFtpInst() noexcept;
 void DoubleClickProc(int Win, int Mode, int App);
 void ExecViewer(fs::path const& path, int App);
 void ExecViewer2(fs::path const& path1, fs::path const& path2, int App);
 void AddTempFileList(fs::path const& file);
 void ShowHelp(DWORD_PTR helpTopicId);
-fs::path const& AskIniFilePath();
-int AskForceIni(void);
-int BackgrndMessageProc(void);
-void ResetAutoExitFlg(void);
-int AskAutoExit(void);
+fs::path const& AskIniFilePath() noexcept;
+int AskForceIni() noexcept;
+int BackgrndMessageProc() noexcept;
+void ResetAutoExitFlg() noexcept;
+int AskAutoExit() noexcept;
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
-BOOL IsMainThread();
-void Restart();
-void Terminate();
+BOOL IsMainThread() noexcept;
+void Restart() noexcept;
+void Terminate() noexcept;
 // タスクバー進捗表示
-int LoadTaskbarList3();
+int LoadTaskbarList3() noexcept;
 void FreeTaskbarList3();
-int IsTaskbarList3Loaded();
+int IsTaskbarList3Loaded() noexcept;
 void UpdateTaskbarProgress();
 // 高DPI対応
-int AskToolWinHeight(void);
+int AskToolWinHeight() noexcept;
 
 /*===== filelist.c =====*/
 
 int MakeListWin();
-void DeleteListWin(void);
-HWND GetLocalHwnd(void);
-HWND GetRemoteHwnd(void);
-void SetListViewType(void);
+void DeleteListWin() noexcept;
+HWND GetLocalHwnd() noexcept;
+HWND GetRemoteHwnd() noexcept;
+void SetListViewType() noexcept;
 void GetRemoteDirForWnd(int Mode, int *CancelCheckWork);
 void GetLocalDirForWnd(void);
 void RefreshLocal();
@@ -809,14 +808,14 @@ void ReSortDispList(int Win, int *CancelCheckWork);
 bool CheckFname(std::wstring const& file, std::wstring const& spec);
 void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base);
 void FindFileInList(HWND hWnd, int Type);
-FILELIST const& GetItem(int Win, int Pos);
-int GetCurrentItem(int Win);
-int GetItemCount(int Win);
-int GetSelectedCount(int Win);
-int GetFirstSelected(int Win, int All);
-int GetNextSelected(int Win, int Pos, int All);
-void EraseRemoteDirForWnd(void);
-uintmax_t GetSelectedTotalSize(int Win);
+FILELIST const& GetItem(int Win, int Pos) noexcept;
+int GetCurrentItem(int Win) noexcept;
+int GetItemCount(int Win) noexcept;
+int GetSelectedCount(int Win) noexcept;
+int GetFirstSelected(int Win, int All) noexcept;
+int GetNextSelected(int Win, int Pos, int All) noexcept;
+void EraseRemoteDirForWnd() noexcept;
+uintmax_t GetSelectedTotalSize(int Win) noexcept;
 int MakeSelectedFileList(int Win, int Expand, int All, std::vector<FILELIST>& Base, int *CancelCheckWork);
 std::tuple<fs::path, std::vector<FILELIST>> MakeDroppedFileList(WPARAM wParam);
 fs::path MakeDroppedDir(WPARAM wParam);
@@ -832,63 +831,63 @@ void doDeleteRemoteFile(void);
 /*===== toolmenu.c =====*/
 
 bool MakeToolBarWindow();
-void DeleteToolBarWindow(void);
-HWND GetMainTbarWnd(void);
-HWND GetLocalHistHwnd(void);
-HWND GetRemoteHistHwnd(void);
-HWND GetLocalHistEditHwnd(void);
-HWND GetRemoteHistEditHwnd(void);
-HWND GetLocalTbarWnd(void);
-HWND GetRemoteTbarWnd(void);
-void MakeButtonsFocus(void);
+void DeleteToolBarWindow() noexcept;
+HWND GetMainTbarWnd() noexcept;
+HWND GetLocalHistHwnd() noexcept;
+HWND GetRemoteHistHwnd() noexcept;
+HWND GetLocalHistEditHwnd() noexcept;
+HWND GetRemoteHistEditHwnd() noexcept;
+HWND GetLocalTbarWnd() noexcept;
+HWND GetRemoteTbarWnd() noexcept;
+void MakeButtonsFocus() noexcept;
 void DisableUserOpe(void);
 void EnableUserOpe(void);
-bool AskUserOpeDisabled();
-void SetTransferTypeImm(int Mode);
+bool AskUserOpeDisabled() noexcept;
+void SetTransferTypeImm(int Mode) noexcept;
 void SetTransferType(int Type);
 void DispTransferType(void);
-int AskTransferType(void);
+int AskTransferType() noexcept;
 int AskTransferTypeAssoc(std::wstring_view path, int Type);
-void SaveTransferType(void);
+void SaveTransferType() noexcept;
 void SetHostKanjiCodeImm(int Mode);
 void SetHostKanjiCode(int Type);
 void DispHostKanjiCode(void);
-int AskHostKanjiCode(void);
-void HideHostKanjiButton(void);
+int AskHostKanjiCode() noexcept;
+void HideHostKanjiButton() noexcept;
 // UTF-8対応
 void SetLocalKanjiCodeImm(int Mode);
 void SetLocalKanjiCode(int Type);
 void DispLocalKanjiCode(void);
-int AskLocalKanjiCode(void);
-void HideLocalKanjiButton(void);
-void SaveLocalKanjiCode(void);
-void SetHostKanaCnvImm(int Mode);
-void SetHostKanaCnv(void);
-void DispHostKanaCnv(void);
-int AskHostKanaCnv(void);
-void SetSortTypeImm(HostSort const& sort);
-void SetSortTypeByColumn(int Win, int Tab);
-HostSort const& AskSortType();
-void SetSaveSortToHost(int Sw);
-int AskSaveSortToHost(void);
-void DispListType(void);
-void SetSyncMoveMode(int Mode);
-void ToggleSyncMoveMode(void);
-void DispSyncMoveMode(void);
-int AskSyncMoveMode(void);
+int AskLocalKanjiCode() noexcept;
+void HideLocalKanjiButton() noexcept;
+void SaveLocalKanjiCode() noexcept;
+void SetHostKanaCnvImm(int Mode) noexcept;
+void SetHostKanaCnv() noexcept;
+void DispHostKanaCnv() noexcept;
+int AskHostKanaCnv() noexcept;
+void SetSortTypeImm(HostSort const& sort) noexcept;
+void SetSortTypeByColumn(int Win, int Tab) noexcept;
+HostSort const& AskSortType() noexcept;
+void SetSaveSortToHost(int Sw) noexcept;
+int AskSaveSortToHost() noexcept;
+void DispListType() noexcept;
+void SetSyncMoveMode(int Mode) noexcept;
+void ToggleSyncMoveMode() noexcept;
+void DispSyncMoveMode() noexcept;
+int AskSyncMoveMode() noexcept;
 void SetRemoteDirHist(std::wstring const&  path);
 void SetLocalDirHist(fs::path const& path);
-fs::path const& AskLocalCurDir();
-std::wstring const& AskRemoteCurDir();
-void SetCurrentDirAsDirHist();
-void DispDotFileMode(void);
+fs::path const& AskLocalCurDir() noexcept;
+std::wstring const& AskRemoteCurDir() noexcept;
+void SetCurrentDirAsDirHist() noexcept;
+void DispDotFileMode() noexcept;
 void ShowPopupMenu(int Win, int Pos);
 
 /*===== statuswin.c =====*/
 
 int MakeStatusBarWindow();
-void DeleteStatusBarWindow(void);
-HWND GetSbarWnd(void);
+void DeleteStatusBarWindow() noexcept;
+HWND GetSbarWnd() noexcept;
 void UpdateStatusBar();
 void DispCurrentWindow(int Win);
 void DispSelectedSpace(void);
@@ -899,9 +898,9 @@ bool NotifyStatusBar(const NMHDR* hdr);
 
 /*===== taskwin.c =====*/
 
-int MakeTaskWindow();
-void DeleteTaskWindow(void);
-HWND GetTaskWnd(void);
+int MakeTaskWindow() noexcept;
+void DeleteTaskWindow() noexcept;
+HWND GetTaskWnd() noexcept;
 void DispTaskMsg(void);
 namespace detail {
 	void Notice(UINT id, std::wformat_args args);
@@ -931,8 +930,8 @@ std::optional<std::vector<std::wstring>> AskHostBookMark(int Num);
 int SetHostDir(int Num, std::wstring_view LocDir, std::wstring_view HostDir);
 int SetHostPassword(int Num, std::wstring const& Pass);
 int SetHostSort(int Num, HostSort const& sort);
-int AskCurrentHost(void);
-void SetCurrentHost(int Num);
+int AskCurrentHost() noexcept;
+void SetCurrentHost(int Num) noexcept;
 void CopyDefaultHost(HOSTDATA *Set);
 // ホスト共通設定機能
 void ResetDefaultHost(void);
@@ -944,31 +943,31 @@ int SetHostEncryption(int Num, int UseNoEncryption, int UseFTPES, int UseFTPIS, 
 
 /*===== connect.c =====*/
 
-HOSTDATA const& GetCurHost();
+HOSTDATA const& GetCurHost() noexcept;
 void ConnectProc(int Type, int Num);
 void QuickConnectProc(void);
 void DirectConnectProc(std::wstring&& unc, int Kanji, int Kana, int Fkanji, int TrMode);
 void HistoryConnectProc(int MenuCmd);
 int AskHostType(void);
-int AskNoFullPathMode(void);
+int AskNoFullPathMode() noexcept;
 void SaveCurrentSetToHost(void);
 int ReConnectCmdSkt(void);
 int ReConnectTrnSkt(std::shared_ptr<SocketContext>& Skt, int *CancelCheckWork);
-std::shared_ptr<SocketContext> AskCmdCtrlSkt();
-std::shared_ptr<SocketContext> AskTrnCtrlSkt();
+std::shared_ptr<SocketContext> AskCmdCtrlSkt() noexcept;
+std::shared_ptr<SocketContext> AskTrnCtrlSkt() noexcept;
 void SktShareProh(void);
-int AskShareProh(void);
+int AskShareProh() noexcept;
 void DisconnectProc(void);
-void DisconnectSet(void);
-int AskConnecting(void);
+void DisconnectSet() noexcept;
+int AskConnecting() noexcept;
 #if defined(HAVE_TANDEM)
 int SetOSS(int wkOss);
-int AskOSS(void);
+int AskOSS() noexcept;
 #endif
 std::optional<sockaddr_storage> SocksReceiveReply(SocketContext& s, int* CancelCheckWork);
 std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget, std::wstring&& host, int port, int *CancelCheckWork);
 std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext> ctrl_skt, int *CancelCheckWork);
-int AskTryingConnect(void);
+int AskTryingConnect() noexcept;
 
 // キャッシュのファイル名を作成する
 static inline fs::path MakeCacheFileName(int num) {
@@ -995,7 +994,7 @@ void ChmodProc(void);
 std::optional<std::wstring> ChmodDialog(std::wstring const& text);
 void SomeCmdProc(void);
 void CalcFileSizeProc(void);
-void DispCWDerror(HWND hWnd);
+void DispCWDerror(HWND hWnd) noexcept;
 void CopyURLtoClipBoard(void);
 int ProcForNonFullpath(std::shared_ptr<SocketContext> cSkt, std::wstring& Path, std::wstring& CurDir, HWND hWnd, int* CancelCheckWork);
 #if defined(HAVE_OPENVMS)
@@ -1021,7 +1020,7 @@ void DoLocalRENAME(fs::path const& src, fs::path const& dst);
 int DoCWD(std::wstring const& Path, int Disp, int ForceGet, int ErrorBell);
 int DoCWDStepByStep(std::wstring const& Path, std::wstring const& Cur);
 int DoMKD(std::wstring const& Path);
-void InitPWDcommand();
+void InitPWDcommand() noexcept;
 int DoRMD(std::wstring const& path);
 int DoDELE(std::wstring const& path);
 int DoRENAME(std::wstring const& from, std::wstring const& to);
@@ -1045,29 +1044,29 @@ static inline std::tuple<int, std::wstring> Command(__pragma(warning(suppress: 2
 
 /*===== getput.c =====*/
 
-int MakeTransferThread(void);
-void CloseTransferThread(void);
+int MakeTransferThread() noexcept;
+void CloseTransferThread() noexcept;
 // 同時接続対応
 void AbortAllTransfer();
 void AddTransFileList(TRANSPACKET *Pkt);
 // バグ対策
 void AddNullTransFileList();
 void AppendTransFileList(std::vector<TRANSPACKET>&& list);
-void KeepTransferDialog(int Sw);
+void KeepTransferDialog(int Sw) noexcept;
 int AskTransferNow(void);
-int AskTransferFileNum(void);
-void GoForwardTransWindow(void);
-void InitTransCurDir(void);
+int AskTransferFileNum() noexcept;
+void GoForwardTransWindow() noexcept;
+void InitTransCurDir() noexcept;
 int DoDownload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item, int DirList, int *CancelCheckWork);
 int CheckPathViolation(TRANSPACKET const& item);
 // タスクバー進捗表示
-LONGLONG AskTransferSizeLeft(void);
-LONGLONG AskTransferSizeTotal(void);
-int AskTransferErrorDisplay(void);
+LONGLONG AskTransferSizeLeft() noexcept;
+LONGLONG AskTransferSizeTotal() noexcept;
+int AskTransferErrorDisplay() noexcept;
 // ゾーンID設定追加
 int LoadZoneID();
 void FreeZoneID();
-int IsZoneIDLoaded();
+int IsZoneIDLoaded() noexcept;
 bool MarkFileAsDownloadedFromInternet(fs::path const& path);
 
 /*===== codecnv.c =====*/
@@ -1100,7 +1099,7 @@ class CodeConverter {
 	std::string rest;
 public:
 	const int incode;
-	CodeConverter(int incode, int outcode, bool kana) : incode{ outcode == KANJI_NOCNV || incode == outcode && !kana ? KANJI_NOCNV : incode }, outcode{ outcode }, kana{ kana } {}
+	CodeConverter(int incode, int outcode, bool kana) noexcept : incode{ outcode == KANJI_NOCNV || incode == outcode && !kana ? KANJI_NOCNV : incode }, outcode{ outcode }, kana{ kana } {}
 	std::string Convert(std::string_view input);
 };
 
@@ -1111,7 +1110,7 @@ std::string ConvertTo(std::wstring_view str, int kanji, int kana);
 /*===== option.c =====*/
 
 void SetOption();
-int SortSetting(void);
+int SortSetting() noexcept;
 // hostman.cで使用
 int GetDecimalText(HWND hDlg, int Ctrl);
 
@@ -1128,12 +1127,12 @@ void EditBookMark();
 
 void SaveRegistry();
 bool LoadRegistry();
-void ClearRegistry();
+void ClearRegistry() noexcept;
 // ポータブル版判定
 void ClearIni(void);
 void SetMasterPassword(std::wstring_view password = {});
 std::wstring GetMasterPassword();
-int GetMasterPasswordStatus(void);
+int GetMasterPasswordStatus() noexcept;
 int ValidateMasterPassword(void);
 void SaveSettingsToFile(void);
 int LoadSettingsFromFile(void);
@@ -1169,7 +1168,7 @@ fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFi
 fs::path SelectDir(HWND hWnd);
 fs::path MakeDistinguishableFileName(fs::path&& path);
 #if defined(HAVE_TANDEM)
-void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size);
+void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size) noexcept;
 #endif
 
 /*===== opie.c =====*/
@@ -1182,18 +1181,18 @@ void AddHostToHistory(Host const& host);
 void AddHistoryToHistory(HISTORYDATA const& history);
 void SetAllHistoryToMenu();
 std::optional<HISTORYDATA> GetHistoryByCmd(int menuId);
-std::vector<HISTORYDATA> const& GetHistories();
+std::vector<HISTORYDATA> const& GetHistories() noexcept;
 
 /*===== socket.c =====*/
 
 BOOL LoadSSL();
-void FreeSSL();
+void FreeSSL() noexcept;
 void ShowCertificate();
 bool IsSecureConnection();
 // UPnP対応
 int LoadUPnP();
 void FreeUPnP();
-int IsUPnPLoaded();
+int IsUPnPLoaded() noexcept;
 std::optional<std::wstring> AddPortMapping(std::wstring const& internalAddress, int port);
 bool RemovePortMapping(int port);
 int CheckClosedAndReconnect(void);
@@ -1248,14 +1247,14 @@ static inline auto operator+(std::string_view left, std::string_view right) {
 static inline auto operator+(std::wstring_view left, std::wstring_view right) {
 	return concat(left, right);
 }
-static inline auto sv(auto const& sm) {
+static inline auto sv(auto const& sm) noexcept {
 	return std::basic_string_view{ sm.first, sm.second };
 }
 static inline auto u8(std::string_view utf8) {
-	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) { return MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, src, srclen, dst, dstlen); }, utf8);
+	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) noexcept { return MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, src, srclen, dst, dstlen); }, utf8);
 }
 static inline auto u8(std::wstring_view wide) {
-	return convert<char>([](auto src, auto srclen, auto dst, auto dstlen) { return WideCharToMultiByte(CP_UTF8, 0, src, srclen, dst, dstlen, nullptr, nullptr); }, wide);
+	return convert<char>([](auto src, auto srclen, auto dst, auto dstlen) noexcept { return WideCharToMultiByte(CP_UTF8, 0, src, srclen, dst, dstlen, nullptr, nullptr); }, wide);
 }
 template<class Char>
 static inline auto u8(const Char* str, size_t len) {
@@ -1292,12 +1291,12 @@ static inline auto replace(std::basic_string_view<Char> input, boost::basic_rege
 	return replaced;
 }
 template<int captionId = IDS_APP>
-static inline auto Message(HWND owner, int textId, DWORD style) {
+static inline auto Message(HWND owner, int textId, DWORD style) noexcept {
 	MSGBOXPARAMSW msgBoxParams{ sizeof MSGBOXPARAMSW, owner, GetFtpInst(), MAKEINTRESOURCEW(textId), MAKEINTRESOURCEW(captionId), style, nullptr, 0, nullptr, LANG_NEUTRAL };
 	return MessageBoxIndirectW(&msgBoxParams);
 }
 template<int captionId = IDS_APP>
-static inline auto Message(int textId, DWORD style) {
+static inline auto Message(int textId, DWORD style) noexcept {
 	return Message<captionId>(GetMainHwnd(), textId, style);
 }
 static auto GetString(UINT id) {
@@ -1317,16 +1316,16 @@ static auto GetText(HWND hwnd) {
 static inline auto GetText(HWND hdlg, int id) {
 	return GetText(GetDlgItem(hdlg, id));
 }
-static inline void SetText(HWND hwnd, const wchar_t* text) {
+static inline void SetText(HWND hwnd, const wchar_t* text) noexcept {
 	SendMessageW(hwnd, WM_SETTEXT, 0, (LPARAM)text);
 }
-static inline void SetText(HWND hdlg, int id, const wchar_t* text) {
+static inline void SetText(HWND hdlg, int id, const wchar_t* text) noexcept {
 	SendDlgItemMessageW(hdlg, id, WM_SETTEXT, 0, (LPARAM)text);
 }
-static inline void SetText(HWND hwnd, const std::wstring& text) {
+static inline void SetText(HWND hwnd, const std::wstring& text) noexcept {
 	SetText(hwnd, text.c_str());
 }
-static inline void SetText(HWND hdlg, int id, const std::wstring& text) {
+static inline void SetText(HWND hdlg, int id, const std::wstring& text) noexcept {
 	SetText(hdlg, id, text.c_str());
 }
 static inline auto AddressPortToString(const SOCKADDR* sa, size_t salen) {
@@ -1357,14 +1356,14 @@ static inline auto AddressToString(sockaddr_storage const& sa) {
 static inline auto IdnToAscii(std::wstring_view unicode) {
 	if (empty(unicode))
 		return L""s;
-	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) { return IdnToAscii(0, src, srclen, dst, dstlen); }, unicode);
+	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) noexcept { return IdnToAscii(0, src, srclen, dst, dstlen); }, unicode);
 }
 static inline auto NormalizeString(NORM_FORM form, std::wstring_view src) {
 	if (empty(src))
 		return std::wstring{ src };
-	return convert<wchar_t>([form](auto src, auto srclen, auto dst, auto dstlen) { return NormalizeString(form, src, srclen, dst, dstlen); }, src);
+	return convert<wchar_t>([form](auto src, auto srclen, auto dst, auto dstlen) noexcept { return NormalizeString(form, src, srclen, dst, dstlen); }, src);
 }
-static inline auto InputDialog(int dialogId, HWND parent, UINT titleId, std::wstring& text, size_t maxlength = 0, int* flag = nullptr, int helpTopicId = IDH_HELP_TOPIC_0000001) {
+static inline auto InputDialog(int dialogId, HWND parent, UINT titleId, std::wstring& text, size_t maxlength = 0, int* flag = nullptr, int helpTopicId = IDH_HELP_TOPIC_0000001) noexcept {
 	struct Data {
 		using result_t = bool;
 		UINT titleId;
@@ -1372,7 +1371,7 @@ static inline auto InputDialog(int dialogId, HWND parent, UINT titleId, std::wst
 		size_t maxlength;
 		int* flag;
 		int helpTopicId;
-		Data(UINT titleId, std::wstring& text, size_t maxlength, int* flag, int helpTopicId) : titleId{ titleId }, text{ text }, maxlength{ maxlength }, flag{ flag }, helpTopicId{ helpTopicId } {}
+		Data(UINT titleId, std::wstring& text, size_t maxlength, int* flag, int helpTopicId) noexcept : titleId{ titleId }, text{ text }, maxlength{ maxlength }, flag{ flag }, helpTopicId{ helpTopicId } {}
 		INT_PTR OnInit(HWND hDlg) {
 			if (titleId != 0)
 				SetText(hDlg, GetString(titleId));

@@ -68,7 +68,7 @@
 
 static int InitApp(int cmdShow);
 static bool MakeAllWindows(int cmdShow);
-static void DeleteAllObject(void);
+static void DeleteAllObject() noexcept;
 static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void StartupProc(std::vector<std::wstring_view> const& args);
 static std::optional<int> AnalyzeComLine(std::vector<std::wstring_view> const& args, std::wstring& hostname, std::wstring& unc);
@@ -79,7 +79,7 @@ static void CalcWinSize(void);
 static void CheckResizeFrame(WPARAM Keys, int x, int y);
 static void DispDirInfo(void);
 static void DeleteAlltempFile();
-static void AboutDialog(HWND hWnd);
+static void AboutDialog(HWND hWnd) noexcept;
 static int EnterMasterPasswordAndSet(bool newpassword, HWND hWnd);
 
 /*===== ローカルなワーク =====*/
@@ -514,7 +514,7 @@ void DispWindowTitle() {
 
 
 // 全てのオブジェクトを削除
-static void DeleteAllObject() {
+static void DeleteAllObject() noexcept {
 	WSACleanup();
 	if (hWndFtp != NULL)
 		DestroyWindow(hWndFtp);
@@ -522,28 +522,28 @@ static void DeleteAllObject() {
 
 
 // メインウインドウのウインドウハンドルを返す
-HWND GetMainHwnd() {
+HWND GetMainHwnd() noexcept {
 	return hWndFtp;
 }
 
 
 // 現在フォーカスがあるウインドウのをセットする
-void SetFocusHwnd(HWND hWnd) {
+void SetFocusHwnd(HWND hWnd) noexcept {
 	hWndCurFocus = hWnd;
 }
 
 
 // プログラムのインスタンスを返す
-HINSTANCE GetFtpInst() {
+HINSTANCE GetFtpInst() noexcept {
 	return hInstFtp;
 }
 
 
-static void OtpCalcTool() {
+static void OtpCalcTool() noexcept {
 	struct Data {
 		using result_t = int;
 		using AlgoButton = RadioButton<OTPCALC_MD4, OTPCALC_MD5, OTPCALC_SHA1>;
-		INT_PTR OnInit(HWND hDlg) {
+		INT_PTR OnInit(HWND hDlg) noexcept {
 			SendDlgItemMessageW(hDlg, OTPCALC_KEY, EM_LIMITTEXT, 40, 0);
 			SendDlgItemMessageW(hDlg, OTPCALC_PASS, EM_LIMITTEXT, PASSWORD_LEN, 0);
 			AlgoButton::Set(hDlg, MD4);
@@ -1940,15 +1940,15 @@ static void DeleteAlltempFile() {
 
 
 // Ａｂｏｕｔダイアログボックス
-static void AboutDialog(HWND hWnd) {
+static void AboutDialog(HWND hWnd) noexcept {
 	struct About {
 		using result_t = int;
-		static INT_PTR OnInit(HWND hDlg) {
+		static INT_PTR OnInit(HWND hDlg) noexcept {
 			SendDlgItemMessageW(hDlg, ABOUT_URL, EM_LIMITTEXT, 256, 0);
 			SetText(hDlg, ABOUT_URL, WebURL);
 			return TRUE;
 		}
-		static void OnCommand(HWND hDlg, WORD id) {
+		static void OnCommand(HWND hDlg, WORD id) noexcept {
 			switch (id) {
 			case IDOK:
 			case IDCANCEL:
@@ -1967,38 +1967,19 @@ void ShowHelp(DWORD_PTR helpTopicId) {
 
 
 // INIファイルのパス名を返す
-fs::path const& AskIniFilePath() {
+fs::path const& AskIniFilePath() noexcept {
 	return IniPath;
 }
 
-/*----- INIファイルのみを使うかどうかを返す -----------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int ステータス : YES/NO
-*----------------------------------------------------------------------------*/
 
-int AskForceIni(void)
-{
-	return(ForceIni);
+// INIファイルのみを使うかどうかを返す
+int AskForceIni() noexcept {
+	return ForceIni;
 }
 
 
-
-
-/*----- メッセージ処理 --------------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int 終了フラグ (YES=WM_CLOSEが来た/NO)
-*----------------------------------------------------------------------------*/
-
-int BackgrndMessageProc(void)
-{
+// メッセージ処理
+int BackgrndMessageProc() noexcept {
 	MSG Msg;
 	int Ret;
 
@@ -2030,34 +2011,15 @@ int BackgrndMessageProc(void)
 }
 
 
-/*----- 自動終了フラグをクリアする --------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void ResetAutoExitFlg(void)
-{
+// 自動終了フラグをクリアする
+void ResetAutoExitFlg() noexcept {
 	AutoExit = NO;
-	return;
 }
 
 
-/*----- 自動終了フラグを返す --------------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int フラグ (YES/NO)
-*----------------------------------------------------------------------------*/
-
-int AskAutoExit(void)
-{
-	return(AutoExit);
+// 自動終了フラグを返す
+int AskAutoExit() noexcept {
+	return AutoExit;
 }
 
 // ユーザにパスワードを入力させ，それを設定する
@@ -2093,29 +2055,27 @@ int EnterMasterPasswordAndSet(bool newpassword, HWND hWnd) {
 }
 
 // マルチコアCPUの特定環境下でファイル通信中にクラッシュするバグ対策
-BOOL IsMainThread()
-{
+BOOL IsMainThread() noexcept {
 	if(GetCurrentThreadId() != MainThreadId)
 		return FALSE;
 	return TRUE;
 }
 
-void Restart() {
+void Restart() noexcept {
 	STARTUPINFOW si;
 	GetStartupInfoW(&si);
 	ProcessInformation pi;
 	__pragma(warning(suppress:6335)) CreateProcessW(nullptr, GetCommandLineW(), nullptr, nullptr, false, 0, nullptr, nullptr, &si, &pi);
 }
 
-void Terminate()
-{
+void Terminate() noexcept {
 	exit(1);
 }
 
 // タスクバー進捗表示
 static ComPtr<ITaskbarList3> taskbarList;
 
-int LoadTaskbarList3() {
+int LoadTaskbarList3() noexcept {
 	if (CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_ALL, IID_PPV_ARGS(&taskbarList)) == S_OK)
 		return FFFTP_SUCCESS;
 	return FFFTP_FAIL;
@@ -2125,7 +2085,7 @@ void FreeTaskbarList3() {
 	taskbarList.Reset();
 }
 
-int IsTaskbarList3Loaded() {
+int IsTaskbarList3Loaded() noexcept {
 	return taskbarList ? YES : NO;
 }
 
@@ -2138,8 +2098,7 @@ void UpdateTaskbarProgress() {
 }
 
 // 高DPI対応
-int AskToolWinHeight(void)
-{
+int AskToolWinHeight() noexcept {
 	return(ToolWinHeight);
 }
 

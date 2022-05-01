@@ -655,13 +655,13 @@ int SetHostSort(int Num, HostSort const& sort) {
 
 
 // 現在接続中の設定番号を返す
-int AskCurrentHost() {
+int AskCurrentHost() noexcept {
 	return ConnectingHost;
 }
 
 
 // 現在接続中の設定番号をセットする
-void SetCurrentHost(int Num) {
+void SetCurrentHost(int Num) noexcept {
 	ConnectingHost = Num;
 }
 
@@ -775,7 +775,7 @@ void ImportFromWSFTP() {
 struct General {
 	static constexpr WORD dialogId = hset_main_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
-	static INT_PTR OnInit(HWND hDlg) {
+	static INT_PTR OnInit(HWND hDlg) noexcept {
 		SendDlgItemMessageW(hDlg, HSET_HOST, EM_LIMITTEXT, HOST_NAME_LEN, 0);
 		SendDlgItemMessageW(hDlg, HSET_ADRS, EM_LIMITTEXT, HOST_ADRS_LEN, 0);
 		SendDlgItemMessageW(hDlg, HSET_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
@@ -901,7 +901,7 @@ struct KanjiCode {
 	static constexpr DWORD flag = PSP_HASHELP;
 	using KanjiButton = RadioButton<HSET_NO_CNV, HSET_SJIS_CNV, HSET_JIS_CNV, HSET_EUC_CNV, HSET_UTF8N_CNV, HSET_UTF8BOM_CNV>;
 	using NameKanjiButton = RadioButton<HSET_FN_AUTO_CNV, HSET_FN_SJIS_CNV, HSET_FN_JIS_CNV, HSET_FN_EUC_CNV, HSET_FN_SMH_CNV, HSET_FN_SMC_CNV, HSET_FN_UTF8N_CNV, HSET_FN_UTF8HFSX_CNV>;
-	static INT_PTR OnInit(HWND hDlg) {
+	static INT_PTR OnInit(HWND hDlg) noexcept {
 		KanjiButton::Set(hDlg, TmpHost.KanjiCode);
 		SendDlgItemMessageW(hDlg, HSET_HANCNV, BM_SETCHECK, TmpHost.KanaCnv, 0);
 		NameKanjiButton::Set(hDlg, TmpHost.NameKanjiCode);
@@ -922,7 +922,7 @@ struct KanjiCode {
 		}
 		return 0;
 	}
-	static void OnCommand(HWND hDlg, WORD id) {
+	static void OnCommand(HWND hDlg, WORD id) noexcept {
 		switch (id) {
 		case HSET_SJIS_CNV:
 		case HSET_JIS_CNV:
@@ -983,7 +983,7 @@ struct Dialup {
 		}
 		return 0;
 	}
-	static void OnCommand(HWND hDlg, WORD id) {
+	static void OnCommand(HWND hDlg, WORD id) noexcept {
 		switch (id) {
 		case HSET_DIALUP:
 			if (SendDlgItemMessageW(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0) == 0) {
@@ -1057,7 +1057,7 @@ struct Special {
 		}
 		return 0;
 	}
-	static void OnCommand(HWND hDlg, WORD id) {
+	static void OnCommand(HWND hDlg, WORD id) noexcept {
 		switch (id) {
 		case HSET_CHMOD_NOR:
 			SetText(hDlg, HSET_CHMOD_CMD, Host::DefaultChmod);
@@ -1113,7 +1113,7 @@ struct Special {
 struct Encryption {
 	static constexpr WORD dialogId = hset_crypt_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
-	static INT_PTR OnInit(HWND hDlg) {
+	static INT_PTR OnInit(HWND hDlg) noexcept {
 		SendDlgItemMessageW(hDlg, HSET_NO_ENCRYPTION, BM_SETCHECK, TmpHost.UseNoEncryption, 0);
 		SendDlgItemMessageW(hDlg, HSET_FTPES, BM_SETCHECK, TmpHost.UseFTPES, 0);
 		SendDlgItemMessageW(hDlg, HSET_FTPIS, BM_SETCHECK, TmpHost.UseFTPIS, 0);

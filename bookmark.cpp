@@ -143,7 +143,7 @@ struct List {
 	Resizable<Controls<BMARK_NEW, BMARK_SET, BMARK_DEL, BMARK_DOWN, BMARK_UP, IDHELP, BMARK_SIZEGRIP>, Controls<IDOK, BMARK_JUMP, BMARK_SIZEGRIP>, Controls<BMARK_LIST>> resizable{ BmarkDlgSize };
 	std::vector<Bookmark> list;
 	List(std::vector<Bookmark> const& list) : list{ list } {}
-	INT_PTR OnInit(HWND hDlg) {
+	INT_PTR OnInit(HWND hDlg) noexcept {
 		auto hList = GetDlgItem(hDlg, BMARK_LIST);
 		if (ListFont != NULL)
 			SendMessageW(hList, WM_SETFONT, (WPARAM)ListFont, MAKELPARAM(TRUE, 0));

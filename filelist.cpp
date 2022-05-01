@@ -154,19 +154,8 @@ int MakeListWin() {
 }
 
 
-/*----- ファイルリストウインドウを削除 ----------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void DeleteListWin(void)
-{
-//	if(ListImg != NULL)
-//		ImageList_Destroy(ListImg);
+// ファイルリストウインドウを削除
+void DeleteListWin() noexcept {
 	if(hWndListLocal != NULL)
 		DestroyWindow(hWndListLocal);
 	if(hWndListRemote != NULL)
@@ -175,32 +164,14 @@ void DeleteListWin(void)
 }
 
 
-/*----- ローカル側のファイルリストのウインドウハンドルを返す ------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetLocalHwnd(void)
-{
-	return(hWndListLocal);
+// ローカル側のファイルリストのウインドウハンドルを返す
+HWND GetLocalHwnd() noexcept {
+	return hWndListLocal;
 }
 
 
-/*----- ホスト側のファイルリストのウインドウハンドルを返す --------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		HWND ウインドウハンドル
-*----------------------------------------------------------------------------*/
-
-HWND GetRemoteHwnd(void)
-{
+// ホスト側のファイルリストのウインドウハンドルを返す
+HWND GetRemoteHwnd() noexcept {
 	return(hWndListRemote);
 }
 
@@ -601,7 +572,7 @@ static LRESULT CALLBACK FileListCommonWndProc(HWND hWnd, UINT message, WPARAM wP
 
 
 // ファイル一覧方法にしたがってリストビューを設定する
-void SetListViewType() {
+void SetListViewType() noexcept {
 	SetWindowLongPtrW(GetLocalHwnd(), GWL_STYLE, GetWindowLongPtrW(GetLocalHwnd(), GWL_STYLE) & ~LVS_TYPEMASK | ListType);
 	SetWindowLongPtrW(GetRemoteHwnd(), GWL_STYLE, GetWindowLongPtrW(GetRemoteHwnd(), GWL_STYLE) & ~LVS_TYPEMASK | ListType);
 }
@@ -926,7 +897,7 @@ void SelectFileInList(HWND hWnd, int Type, std::vector<FILELIST> const& Base) {
 	static bool IgnoreExist = false;
 	struct Select {
 		using result_t = bool;
-		INT_PTR OnInit(HWND hDlg) {
+		INT_PTR OnInit(HWND hDlg) noexcept {
 			SendDlgItemMessageW(hDlg, SEL_FNAME, EM_LIMITTEXT, 40, 0);
 			SetText(hDlg, SEL_FNAME, FindStr);
 			SendDlgItemMessageW(hDlg, SEL_REGEXP, BM_SETCHECK, FindMode, 0);
@@ -1060,39 +1031,22 @@ void FindFileInList(HWND hWnd, int Type) {
 
 
 // 指定位置のアイテムを返す
-FILELIST const& GetItem(int Win, int Pos) {
+FILELIST const& GetItem(int Win, int Pos) noexcept {
 	LVITEMW item{ LVIF_PARAM, Pos, 0 };
 	SendMessageW(Win == WIN_LOCAL ? hWndListLocal : hWndListRemote, LVM_GETITEMW, 0, (LPARAM)&item);
 	return (Win == WIN_LOCAL ? localFileList : remoteFileList)[item.lParam];
 }
 
 
-/*----- カーソル位置のアイテム番号を返す --------------------------------------
-*
-*	Parameter
-*		int Win : ウィンドウ番号 (WIN_xxxx)
-*
-*	Return Value
-*		int アイテム番号
-*----------------------------------------------------------------------------*/
-
-int GetCurrentItem(int Win) {
+// カーソル位置のアイテム番号を返す
+int GetCurrentItem(int Win) noexcept{
 	auto const Ret = (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, -1, LVNI_ALL | LVNI_FOCUSED);
 	return Ret == -1 ? 0 : Ret;
 }
 
 
-/*----- アイテム数を返す ------------------------------------------------------
-*
-*	Parameter
-*		int Win : ウィンドウ番号 (WIN_xxxx)
-*
-*	Return Value
-*		int アイテム数
-*----------------------------------------------------------------------------*/
-
-int GetItemCount(int Win)
-{
+// アイテム数を返す
+int GetItemCount(int Win) noexcept {
 	HWND hWnd;
 
 	hWnd = GetLocalHwnd();
@@ -1103,17 +1057,8 @@ int GetItemCount(int Win)
 }
 
 
-/*----- 選択されているアイテム数を返す ----------------------------------------
-*
-*	Parameter
-*		int Win : ウィンドウ番号 (WIN_xxxx)
-*
-*	Return Value
-*		int 選択されているアイテム数
-*----------------------------------------------------------------------------*/
-
-int GetSelectedCount(int Win)
-{
+// 選択されているアイテム数を返す
+int GetSelectedCount(int Win) noexcept {
 	HWND hWnd;
 
 	hWnd = GetLocalHwnd();
@@ -1135,7 +1080,7 @@ int GetSelectedCount(int Win)
 *			-1 = 選択されていない
 *----------------------------------------------------------------------------*/
 
-int GetFirstSelected(int Win, int All) {
+int GetFirstSelected(int Win, int All) noexcept {
 	return GetNextSelected(Win, -1, All);
 }
 
@@ -1152,30 +1097,20 @@ int GetFirstSelected(int Win, int All) {
 *			-1 = 選択されていない
 *----------------------------------------------------------------------------*/
 
-int GetNextSelected(int Win, int Pos, int All) {
+int GetNextSelected(int Win, int Pos, int All) noexcept {
 	return (int)SendMessageW(Win == WIN_REMOTE ? GetRemoteHwnd() : GetLocalHwnd(), LVM_GETNEXTITEM, Pos, All == YES ? LVNI_ALL : LVNI_SELECTED);
 }
 
 
-/*----- ホスト側のファイル一覧ウインドウをクリア ------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void EraseRemoteDirForWnd(void)
-{
+// ホスト側のファイル一覧ウインドウをクリア
+void EraseRemoteDirForWnd() noexcept {
 	SendMessageW(GetRemoteHwnd(), LVM_DELETEALLITEMS, 0, 0);
 	SendMessageW(GetRemoteHistHwnd(), CB_RESETCONTENT, 0, 0);
-	return;
 }
 
 
 // 選択されているファイルの総サイズを返す
-uintmax_t GetSelectedTotalSize(int Win) {
+uintmax_t GetSelectedTotalSize(int Win) noexcept {
 	uintmax_t total = 0;
 	for (int Pos = GetFirstSelected(Win, NO); Pos != -1; Pos = GetNextSelected(Win, Pos, NO))
 		if (auto const& item = GetItem(Win, Pos); 0 < item.Size)
@@ -1980,7 +1915,7 @@ static int AskFilterStr(std::wstring const& file, int Type) {
 void SetFilter(int *CancelCheckWork) {
 	struct Filter {
 		using result_t = bool;
-		INT_PTR OnInit(HWND hDlg) {
+		INT_PTR OnInit(HWND hDlg) noexcept {
 			SendDlgItemMessageW(hDlg, FILTER_STR, EM_LIMITTEXT, FILTER_EXT_LEN + 1, 0);
 			SetText(hDlg, FILTER_STR, FilterStr);
 			return TRUE;

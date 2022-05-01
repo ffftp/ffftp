@@ -33,7 +33,7 @@
 static int EncryptSettings = NO;
 
 static inline auto a2w(std::string_view text) {
-	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) { return MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, src, srclen, dst, dstlen); }, text);
+	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) noexcept { return MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, src, srclen, dst, dstlen); }, text);
 }
 
 class Config {
@@ -159,10 +159,10 @@ public:
 		Xor(name, data(value), size_as<DWORD>(value), false);
 		WriteStringImpl(name, value, REG_BINARY);
 	}
-	virtual bool DeleteSubKey(std::string_view name) {
+	virtual bool DeleteSubKey(std::string_view name) noexcept(false) {
 		return false;
 	}
-	virtual void DeleteValue(std::string_view name) {
+	virtual void DeleteValue(std::string_view name) noexcept(false) {
 	}
 	bool ReadFont(std::string_view name, HFONT& hfont, LOGFONTW& logfont) {
 		if (std::wstring value; ReadValue(name, value)) {
@@ -199,8 +199,8 @@ static std::unique_ptr<Config> OpenReg(int type);
 static std::unique_ptr<Config> CreateReg(int type);
 static int CheckPasswordValidity(std::string_view HashSv, int StretchCount);
 static std::string CreatePasswordHash(int stretchCount);
-void SetHashSalt(DWORD salt);
-void SetHashSalt1(void* Salt, int Length);
+void SetHashSalt(DWORD salt) noexcept;
+void SetHashSalt1(void* Salt, int Length) noexcept;
 
 static char SecretKey[FMAX_PATH+1];
 static int SecretKeyLength;
@@ -229,7 +229,7 @@ std::wstring GetMasterPassword() {
 //   PASSWORD_OK : OK
 //   PASSWORD_UNMATCH : パスワード不一致
 //   BAD_PASSWORD_HASH : パスワード確認失敗
-int GetMasterPasswordStatus() {
+int GetMasterPasswordStatus() noexcept {
 	return IsMasterPasswordError;
 }
 
@@ -533,7 +533,7 @@ void SaveRegistry() {
 bool LoadRegistry() {
 	struct Data {
 		using result_t = int;
-		static void OnCommand(HWND hDlg, WORD cmd, WORD id) {
+		static void OnCommand(HWND hDlg, WORD cmd, WORD id) noexcept {
 			if (cmd == BN_CLICKED)
 				EndDialog(hDlg, id);
 		}
@@ -674,7 +674,7 @@ bool LoadRegistry() {
 
 
 // レジストリの設定値をクリア
-void ClearRegistry() {
+void ClearRegistry() noexcept {
 	SHDeleteKeyW(HKEY_CURRENT_USER, LR"(Software\Sota\FFFTP)");
 }
 
@@ -1060,13 +1060,13 @@ static std::string CreatePasswordHash(int stretchCount) {
 	return hash;
 }
 
-void SetHashSalt(DWORD salt) {
+void SetHashSalt(DWORD salt) noexcept {
 	if constexpr (std::endian::native == std::endian::little)
 		salt = _byteswap_ulong(salt);
 	SetHashSalt1(&salt, 4);
 }
 
-void SetHashSalt1(void* Salt, int Length) {
+void SetHashSalt1(void* Salt, int Length) noexcept {
 	if (Salt && 0 < Length)
 		memcpy(SecretKey + strlen(SecretKey) + 1, Salt, Length);
 	SecretKeyLength = (int)strlen(SecretKey) + 1 + Length;

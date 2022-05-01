@@ -81,6 +81,6 @@ std::optional<HISTORYDATA> GetHistoryByCmd(int menuId) {
 }
 
 
-std::vector<HISTORYDATA> const& GetHistories() {
+std::vector<HISTORYDATA> const& GetHistories() noexcept {
 	return histories;
 }

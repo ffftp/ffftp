@@ -44,14 +44,14 @@ int MakeStatusBarWindow() {
 
 
 // ステータスウインドウを削除
-void DeleteStatusBarWindow() {
+void DeleteStatusBarWindow() noexcept {
 	if (hWndSbar)
 		DestroyWindow(hWndSbar);
 }
 
 
 // ステータスウインドウのウインドウハンドルを返す
-HWND GetSbarWnd() {
+HWND GetSbarWnd() noexcept {
 	return hWndSbar;
 }
 

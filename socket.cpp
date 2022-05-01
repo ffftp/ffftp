@@ -99,7 +99,7 @@ BOOL LoadSSL() {
 	return TRUE;
 }
 
-void FreeSSL() {
+void FreeSSL() noexcept {
 	assert(SecIsValidHandle(&credential));
 	FreeCredentialsHandle(&credential);
 }
@@ -107,19 +107,19 @@ void FreeSSL() {
 namespace std {
 	template<>
 	struct default_delete<CERT_CONTEXT> {
-		void operator()(CERT_CONTEXT* ptr) {
+		void operator()(CERT_CONTEXT* ptr) noexcept {
 			CertFreeCertificateContext(ptr);
 		}
 	};
 	template<>
 	struct default_delete<const CERT_CHAIN_CONTEXT> {
-		void operator()(const CERT_CHAIN_CONTEXT* ptr) {
+		void operator()(const CERT_CHAIN_CONTEXT* ptr) noexcept {
 			CertFreeCertificateChain(ptr);
 		}
 	};
 }
 
-auto getCertContext(CtxtHandle& context) {
+auto getCertContext(CtxtHandle& context) noexcept {
 	PCERT_CONTEXT certContext = nullptr;
 	[[maybe_unused]] auto const ss = QueryContextAttributesW(&context, SECPKG_ATTR_REMOTE_CERT_CONTEXT, &certContext);
 #ifdef _DEBUG
@@ -147,7 +147,7 @@ enum class CertResult {
 struct CertDialog {
 	using result_t = int;
 	CERT_CONTEXT* const certContext;
-	void OnCommand(HWND hdlg, WORD commandId) {
+	void OnCommand(HWND hdlg, WORD commandId) noexcept {
 		switch (commandId) {
 		case IDYES:
 		case IDNO:
@@ -166,7 +166,7 @@ static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName
 	if (!certContext)
 		return CertResult::Failed;
 
-	auto chainContext = [&certContext]() {
+	auto chainContext = [&certContext]() noexcept {
 		CERT_CHAIN_PARA chainPara{ sizeof(CERT_CHAIN_PARA) };
 		PCCERT_CHAIN_CONTEXT chainContext;
 		auto const result = CertGetCertificateChain(nullptr, certContext.get(), nullptr, nullptr, &chainPara, CERT_CHAIN_REVOCATION_CHECK_CHAIN_EXCLUDE_ROOT, nullptr, &chainContext);
@@ -202,7 +202,7 @@ static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName
 
 template<class Test>
 static inline std::invoke_result_t<Test> Wait(SocketContext& sc, int* CancelCheckWork, Test test) {
-	for (auto f1 = gsl::finally([&sc] { CancelIo((HANDLE)sc.handle); });;) {
+	for (auto f1 = gsl::finally([&sc]() noexcept { CancelIo((HANDLE)sc.handle); });;) {
 		if (auto const result = test())
 			return result;
 		if (auto const result = sc.AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
@@ -316,12 +316,12 @@ int SocketContext::Connect(const sockaddr* name, int namelen, int* CancelCheckWo
 		WSAError(L"WSACreateEvent()"sv);
 		return SOCKET_ERROR;
 	}
-	auto f1 = gsl::finally([this] { WSACloseEvent(hEvent); });
+	auto f1 = gsl::finally([this]() noexcept { WSACloseEvent(hEvent); });
 	if (WSAEventSelect(handle, hEvent, FD_CONNECT | FD_CLOSE) != 0) {
 		WSAError(L"WSAEventSelect()"sv);
 		return SOCKET_ERROR;
 	}
-	auto f2 = gsl::finally([this] { WSAEventSelect(handle, hEvent, 0); });
+	auto f2 = gsl::finally([this]() noexcept { WSAEventSelect(handle, hEvent, 0); });
 	if (connect(handle, name, namelen) == 0)
 		return 0;
 	if (auto const lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
@@ -374,7 +374,7 @@ int SocketContext::Listen(int backlog) {
 
 
 std::shared_ptr<SocketContext> SocketContext::Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen) {
-	for (auto f1 = gsl::finally([this] { WSAEventSelect(handle, hEvent, 0); WSACloseEvent(hEvent); });;) {
+	for (auto f1 = gsl::finally([this]() noexcept { WSAEventSelect(handle, hEvent, 0); WSACloseEvent(hEvent); });;) {
 		auto const result = WSAWaitForMultipleEvents(1, &hEvent, false, 0, false);
 		if (result == WSA_WAIT_EVENT_0) {
 			if (WSANETWORKEVENTS networkEvents; WSAEnumNetworkEvents(handle, hEvent, &networkEvents) != 0) {
@@ -512,7 +512,7 @@ int SocketContext::AsyncFetch() {
 //   0 .................. まだ読めそう。
 //   ERROR_HANDLE_EOF ... 終端に達したため、これ以上読めない。
 //   other .............. SSLステータスもしくはrecvステータス。
-int SocketContext::GetReadStatus() {
+int SocketContext::GetReadStatus() noexcept {
 	switch (sslReadStatus) {
 	case SEC_I_CONTEXT_EXPIRED:
 		return ERROR_HANDLE_EOF;
@@ -572,7 +572,7 @@ int SocketContext::ReadAll(int* CancelCheckWork, std::function<bool(std::vector<
 }
 
 
-void SocketContext::ClearReadBuffer() {
+void SocketContext::ClearReadBuffer() noexcept {
 	assert(empty(readRaw));
 	readPlain.clear();
 }
@@ -640,7 +640,7 @@ void FreeUPnP() {
 	}
 }
 
-int IsUPnPLoaded() {
+int IsUPnPLoaded() noexcept {
 	return upnpNAT && staticPortMappingCollection ? YES : NO;
 }
 
@@ -652,7 +652,7 @@ std::optional<std::wstring> AddPortMapping(std::wstring const& internalAddress, 
 		long port;
 		std::wstring const& internalAddress;
 		_bstr_t externalAddress;
-		Data(std::wstring const& internalAddress, long port) : port{ port }, internalAddress{ internalAddress } {}
+		Data(std::wstring const& internalAddress, long port) noexcept : port{ port }, internalAddress{ internalAddress } {}
 		int DoWork() override {
 			ComPtr<IStaticPortMapping> staticPortMapping;
 			auto result = staticPortMappingCollection->Add(port, TCP, port, _bstr_t{ internalAddress.c_str() }, VARIANT_TRUE, FFFTP, &staticPortMapping);
@@ -670,7 +670,7 @@ bool RemovePortMapping(int port) {
 	static _bstr_t TCP{ L"TCP" };
 	struct Data : public MainThreadRunner {
 		long port;
-		Data(long port) : port{ port } {}
+		Data(long port) noexcept : port{ port } {}
 		int DoWork() override {
 			return staticPortMappingCollection->Remove(port, TCP);
 		}

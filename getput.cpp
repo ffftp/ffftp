@@ -65,7 +65,7 @@ static unsigned __stdcall TransferThread(void *Dummy);
 static int MakeNonFullPath(TRANSPACKET& item, std::wstring& CurDir);
 static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int CreateMode, int *CancelCheckWork);
 static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
-static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt);
+static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt) noexcept;
 static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item);
 static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int Resume, int* CancelCheckWork);
 static int TermCodeConvAndSend(SocketContext& s, char *Data, int Size, int Ascii, int *CancelCheckWork);
@@ -75,7 +75,7 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt);
 static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipButton, int Info);
 static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(SocketContext& s, std::wstring const& reply);
 static bool IsSpecialDevice(std::wstring_view filename);
-static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item);
+static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item) noexcept;
 
 /*===== ローカルなワーク =====*/
 
@@ -128,7 +128,7 @@ static void SetErrorMsg(std::wstring&& msg) {
 
 
 // ファイル転送スレッドを起動する
-int MakeTransferThread() {
+int MakeTransferThread() noexcept {
 	ClearAll = NO;
 	ForceAbort = NO;
 	fTransferThreadExit = false;
@@ -144,7 +144,7 @@ int MakeTransferThread() {
 
 
 // ファイル転送スレッドを終了する
-void CloseTransferThread() {
+void CloseTransferThread() noexcept {
 	for (int i = 0; i < MAX_DATA_CONNECTION; i++)
 		Canceled[i] = YES;
 	ClearAll = YES;
@@ -251,19 +251,9 @@ static void EraseTransFileList() {
 }
 
 
-/*----- 転送中ダイアログを消さないようにするかどうかを設定 --------------------
-*
-*	Parameter
-*		int Sw : 転送中ダイアログを消さないかどうか (YES/NO)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void KeepTransferDialog(int Sw)
-{
+// 転送中ダイアログを消さないようにするかどうかを設定
+void KeepTransferDialog(int Sw) noexcept {
 	KeepDlg = Sw;
-	return;
 }
 
 
@@ -282,39 +272,20 @@ int AskTransferNow(void)
 }
 
 
-/*----- 転送するファイルの数を返す --------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int 転送するファイルの数
-*----------------------------------------------------------------------------*/
-
-int AskTransferFileNum(void)
-{
-	return(TransFiles);
+// 転送するファイルの数を返す
+int AskTransferFileNum() noexcept {
+	return TransFiles;
 }
 
 
-/*----- 転送中ウインドウを前面に出す ------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void GoForwardTransWindow(void)
-{
+// 転送中ウインドウを前面に出す
+void GoForwardTransWindow() noexcept {
 	MoveToForeground = YES;
-	return;
 }
 
 
 // 転送ソケットのカレントディレクトリ情報を初期化
-void InitTransCurDir() {
+void InitTransCurDir() noexcept {
 	for (auto& dir : CurDir)
 		dir.clear();
 }
@@ -769,7 +740,7 @@ static int MakeNonFullPath(TRANSPACKET& item, std::wstring& Cur) {
 static int SendDownloadCommand(TRANSPACKET* Pkt, int& CreateMode, int* CancelCheckWork) {
 	struct Data {
 		using result_t = bool;
-		void OnCommand(HWND hDlg, WORD id) {
+		void OnCommand(HWND hDlg, WORD id) noexcept {
 			switch (id) {
 			case IDOK:
 				EndDialog(hDlg, true);
@@ -1137,13 +1108,13 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 
 
 // ダウンロード／アップロードエラーのダイアログを表示
-static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt) {
+static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt) noexcept {
 	struct Data {
 		using result_t = bool;
 		using DownExistButton = RadioButton<DOWN_EXIST_OVW, DOWN_EXIST_RESUME, DOWN_EXIST_IGNORE>;
 		TRANSPACKET* Pkt;
-		Data(TRANSPACKET* Pkt) : Pkt{ Pkt } {}
-		INT_PTR OnInit(HWND hDlg) {
+		Data(TRANSPACKET* Pkt) noexcept : Pkt{ Pkt } {}
+		INT_PTR OnInit(HWND hDlg) noexcept {
 			SetText(hDlg, UPDOWN_ERR_FNAME, Pkt->Remote);
 			SetText(hDlg, UPDOWN_ERR_MSG, ErrMsg);
 			if (Pkt->Type == TYPE_A || Pkt->ExistSize <= 0)
@@ -1151,7 +1122,7 @@ static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt) {
 			DownExistButton::Set(hDlg, TransferErrorMode);
 			return TRUE;
 		}
-		void OnCommand(HWND hDlg, WORD id) {
+		void OnCommand(HWND hDlg, WORD id) noexcept {
 			switch (id) {
 			case IDOK_ALL:
 				TransferErrorNotify = NO;
@@ -1655,12 +1626,12 @@ static bool IsSpecialDevice(std::wstring_view filename) {
 
 
 // ミラーリングでのファイル削除確認
-static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item) {
+static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item) noexcept {
 	struct Data {
 		using result_t = int;
 		int Cur;
 		TRANSPACKET const& item;
-		Data(int Cur, TRANSPACKET const& item) : Cur{ Cur }, item{ item } {}
+		Data(int Cur, TRANSPACKET const& item) noexcept : Cur{ Cur }, item{ item } {}
 		INT_PTR OnInit(HWND hDlg) {
 			if (Cur == WIN_LOCAL) {
 				SetText(hDlg, GetString(IDS_MSGJPN124));
@@ -1671,7 +1642,7 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item) {
 			}
 			return TRUE;
 		}
-		void OnCommand(HWND hDlg, WORD id) {
+		void OnCommand(HWND hDlg, WORD id) noexcept {
 			switch (id) {
 			case IDOK:
 				EndDialog(hDlg, YES);
@@ -1711,19 +1682,16 @@ int CheckPathViolation(TRANSPACKET const& item) {
 
 
 // タスクバー進捗表示
-LONGLONG AskTransferSizeLeft(void)
-{
-	return(TransferSizeLeft);
+LONGLONG AskTransferSizeLeft() noexcept {
+	return TransferSizeLeft;
 }
 
-LONGLONG AskTransferSizeTotal(void)
-{
-	return(TransferSizeTotal);
+LONGLONG AskTransferSizeTotal() noexcept {
+	return TransferSizeTotal;
 }
 
-int AskTransferErrorDisplay(void)
-{
-	return(TransferErrorDisplay);
+int AskTransferErrorDisplay() noexcept {
+	return TransferErrorDisplay;
 }
 
 // ゾーンID設定
@@ -1746,14 +1714,14 @@ void FreeZoneID() {
 	}
 }
 
-int IsZoneIDLoaded() {
+int IsZoneIDLoaded() noexcept {
 	return zoneIdentifier && persistFile ? YES : NO;
 }
 
 bool MarkFileAsDownloadedFromInternet(fs::path const& path) {
 	struct Data : public MainThreadRunner {
 		fs::path const& path;
-		Data(fs::path const& path) : path{ path } {}
+		Data(fs::path const& path) noexcept : path{ path } {}
 		int DoWork() override {
 			return persistFile->Save(_bstr_t{ path.c_str() }, FALSE);
 		}

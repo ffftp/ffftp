@@ -55,7 +55,7 @@ static int Oss = NO;  /* OSS ファイルシステムへアクセスしている
 
 // 接続しているホストを返す
 //   TODO: GetConnectingHost()との違いがよくわからない
-HOSTDATA const& GetCurHost() {
+HOSTDATA const& GetCurHost() noexcept {
 	return CurHost;
 }
 
@@ -201,7 +201,7 @@ void QuickConnectProc() {
 		std::wstring password;
 		bool firewall = false;
 		bool passive = false;
-		INT_PTR OnInit(HWND hDlg) {
+		INT_PTR OnInit(HWND hDlg) noexcept {
 			SendDlgItemMessageW(hDlg, QHOST_HOST, CB_LIMITTEXT, FMAX_PATH, 0);
 			SetText(hDlg, QHOST_HOST, L"");
 			SendDlgItemMessageW(hDlg, QHOST_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
@@ -523,17 +523,8 @@ int AskHostType() {
 }
 
 
-/*----- 接続しているホストでフルパスでファイルアクセスしないかどうかを返す ----
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int フルパスでアクセスしない (YES=フルパス禁止/NO)
-*----------------------------------------------------------------------------*/
-
-int AskNoFullPathMode(void)
-{
+// 接続しているホストでフルパスでファイルアクセスしないかどうかを返す
+int AskNoFullPathMode() noexcept {
 	if(CurHost.HostType == HTYPE_VMS)
 		return(YES);
 	else
@@ -657,13 +648,13 @@ static int ReConnectSkt(std::shared_ptr<SocketContext>& Skt) {
 
 
 // コマンドコントロールソケットを返す
-std::shared_ptr<SocketContext> AskCmdCtrlSkt() {
+std::shared_ptr<SocketContext> AskCmdCtrlSkt() noexcept {
 	return CmdCtrlSocket;
 }
 
 
 // 転送コントロールソケットを返す
-std::shared_ptr<SocketContext> AskTrnCtrlSkt() {
+std::shared_ptr<SocketContext> AskTrnCtrlSkt() noexcept {
 	return TrnCtrlSocket;
 }
 
@@ -694,7 +685,7 @@ void SktShareProh(void)
 
 // コマンド／転送コントロールソケットの共有が解除されているかチェック
 //   YES=共有解除/NO=共有
-int AskShareProh() {
+int AskShareProh() noexcept {
 	return CmdCtrlSocket == TrnCtrlSocket || !TrnCtrlSocket ? NO : YES;
 }
 
@@ -736,14 +727,14 @@ void DisconnectProc(void)
 }
 
 
-void DisconnectSet() {
+void DisconnectSet() noexcept {
 	CmdCtrlSocket.reset();
 	TrnCtrlSocket.reset();
 }
 
 
 // ホストに接続中かどうかを返す
-int AskConnecting() {
+int AskConnecting() noexcept {
 	return TrnCtrlSocket ? YES : NO;
 }
 
@@ -766,17 +757,8 @@ int SetOSS(int wkOss)
 	return(Oss);
 }
 
-/*----- OSS ファイルシステムにアクセスしているかどうかを返す ------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int ステータス (YES/NO)
-*----------------------------------------------------------------------------*/
-
-int AskOSS(void)
-{
+// OSS ファイルシステムにアクセスしているかどうかを返す
+int AskOSS() noexcept {
 	return(Oss);
 }
 #endif /* HAVE_TANDEM */
@@ -1157,7 +1139,7 @@ namespace std {
 	};
 }
 
-static inline auto getaddrinfo(std::wstring const& host, std::wstring const& port, int family = AF_UNSPEC, int flags = AI_NUMERICHOST | AI_NUMERICSERV) {
+static inline auto getaddrinfo(std::wstring const& host, std::wstring const& port, int family = AF_UNSPEC, int flags = AI_NUMERICHOST | AI_NUMERICSERV) noexcept {
 	if (addrinfoW hint{ flags, family }, *ai; GetAddrInfoW(host.c_str(), port.c_str(), &hint, &ai) == 0) {
 		assert(family == AF_INET || family == AF_INET6 ? ai->ai_family == family : true);
 		assert(ai->ai_family == AF_INET && ai->ai_addrlen == sizeof(sockaddr_in) || ai->ai_family == AF_INET6 && ai->ai_addrlen == sizeof(sockaddr_in6));
@@ -1519,17 +1501,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 }
 
 
-/*----- ホストへ接続処理中かどうかを返す---------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int ステータス
-*			YES/NO
-*----------------------------------------------------------------------------*/
-
-int AskTryingConnect(void)
-{
-	return(TryConnect);
+// ホストへ接続処理中かどうかを返す
+int AskTryingConnect() noexcept {
+	return TryConnect;
 }

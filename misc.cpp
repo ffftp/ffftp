@@ -162,16 +162,8 @@ fs::path SelectDir(HWND hWnd) {
 
 
 #if defined(HAVE_TANDEM)
-/*----- ファイルサイズからEXTENTサイズの計算を行う ----------------------------
-*
-*	Parameter
-*		LONGLONG Size : ファイルサイズ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size)
-{
+// ファイルサイズからEXTENTサイズの計算を行う
+void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size) noexcept {
 	LONGLONG extent;
 
 	/* EXTENTS(4,28) MAXEXTENTS 978 */

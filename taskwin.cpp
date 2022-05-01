@@ -57,7 +57,7 @@ static VOID CALLBACK Writer(HWND hwnd, UINT, UINT_PTR, DWORD) {
 }
 
 // タスクウインドウを作成する
-int MakeTaskWindow() {
+int MakeTaskWindow() noexcept {
 	constexpr DWORD style = WS_CHILD | WS_BORDER | ES_AUTOVSCROLL | WS_VSCROLL | ES_MULTILINE | ES_READONLY | WS_CLIPSIBLINGS;
 	hWndTask = CreateWindowExW(WS_EX_CLIENTEDGE, WC_EDITW, nullptr, style, 0, AskToolWinHeight() * 2 + ListHeight + SepaWidth, ClientWidth, TaskHeight, GetMainHwnd(), 0, GetFtpInst(), nullptr);
 	if (hWndTask == NULL)
@@ -73,13 +73,13 @@ int MakeTaskWindow() {
 
 
 // タスクウインドウを削除
-void DeleteTaskWindow() {
+void DeleteTaskWindow() noexcept {
 	DestroyWindow(hWndTask);
 }
 
 
 // タスクウインドウのウインドウハンドルを返す
-HWND GetTaskWnd() {
+HWND GetTaskWnd() noexcept {
 	return hWndTask;
 }
 
