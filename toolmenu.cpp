@@ -117,8 +117,8 @@ static HBITMAP GetImage(int iamgeId) {
 			if (auto src = CreateCompatibleDC(dc)) {
 				if (auto dest = CreateCompatibleDC(dc)) {
 					if (BITMAP bitmap; GetObjectW(original, sizeof(BITMAP), &bitmap) > 0) {
-						auto width = bitmap.bmWidth / 64 * 16;
-						auto height = bitmap.bmHeight / 64 * 16;
+						auto const width = bitmap.bmWidth / 64 * 16;
+						auto const height = bitmap.bmHeight / 64 * 16;
 						if (resized = CreateCompatibleBitmap(dc, width, height)) {
 							auto hSrcOld = SelectObject(src, original);
 							auto hDstOld = SelectObject(dest, resized);
@@ -308,10 +308,10 @@ HWND GetRemoteTbarWnd() {
 void MakeButtonsFocus() {
 	if (HideUI == 0) {
 		auto focus = GetFocus();
-		auto connected = AskConnecting() == YES;
-		auto selected = 0 < GetSelectedCount(focus == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL);
-		auto transferable = connected && selected;
-		auto operatable = focus == GetLocalHwnd() || connected;
+		auto const connected = AskConnecting() == YES;
+		auto const selected = 0 < GetSelectedCount(focus == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL);
+		auto const transferable = connected && selected;
+		auto const operatable = focus == GetLocalHwnd() || connected;
 		auto menu = GetMenu(GetMainHwnd());
 
 		for (auto menuId : { MENU_BMARK_ADD, MENU_BMARK_ADD_LOCAL, MENU_BMARK_ADD_BOTH, MENU_BMARK_EDIT, MENU_DIRINFO, MENU_MIRROR_UPLOAD, MENU_MIRROR_DOWNLOAD, MENU_DOWNLOAD_NAME })
@@ -359,7 +359,7 @@ void MakeButtonsFocus() {
 
 static void EnableMenu(HWND main, bool enabled) {
 	auto menu = GetMenu(main);
-	for (int i = 0, count = GetMenuItemCount(menu); i < count; i++)
+	for (int const i : std::views::iota(0, GetMenuItemCount(menu)))
 		EnableMenuItem(menu, i, MF_BYPOSITION | (enabled ? MF_ENABLED : MF_GRAYED));
 	DrawMenuBar(main);
 }
@@ -517,7 +517,7 @@ int AskHostKanjiCode() {
 
 // 漢字モードボタンのハイド処理を行う
 void HideHostKanjiButton() {
-	auto ascii = TmpTransMode != TYPE_I;
+	auto const ascii = TmpTransMode != TYPE_I;
 	for (auto menuId : { MENU_KNJ_SJIS, MENU_KNJ_EUC, MENU_KNJ_JIS, MENU_KNJ_UTF8N, MENU_KNJ_UTF8BOM, MENU_KNJ_NONE })
 		SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, menuId, MAKELPARAM(ascii, 0));
 
@@ -572,7 +572,7 @@ int AskLocalKanjiCode() {
 
 
 void HideLocalKanjiButton() {
-	auto ascii = TmpTransMode != TYPE_I;
+	auto const ascii = TmpTransMode != TYPE_I;
 	for (auto menuId : { MENU_L_KNJ_SJIS, MENU_L_KNJ_EUC, MENU_L_KNJ_JIS, MENU_L_KNJ_UTF8N, MENU_L_KNJ_UTF8BOM })
 		SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, menuId, MAKELPARAM(ascii, 0));
 	if (ascii) {
@@ -675,7 +675,7 @@ int AskSaveSortToHost() {
 
 // リストモードにしたがってボタンを表示する
 void DispListType() {
-	auto list = ListType == LVS_LIST;
+	auto const list = ListType == LVS_LIST;
 	auto menu = GetMenu(GetMainHwnd());
 	SendMessageW(hWndTbarMain, TB_CHECKBUTTON, list ? MENU_LIST : MENU_REPORT, MAKELPARAM(true, 0));
 	CheckMenuItem(menu, MENU_LIST, list ? MF_CHECKED : MF_UNCHECKED);
@@ -702,7 +702,7 @@ void ToggleSyncMoveMode() {
 
 // フォルダ同時移動を行うかどうかをによってメニュー／ボタンを表示
 void DispSyncMoveMode() {
-	auto sync = SyncMove != 0;
+	auto const sync = SyncMove != 0;
 	SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_SYNC, MAKELPARAM(sync, 0));
 	CheckMenuItem(GetMenu(GetMainHwnd()), MENU_SYNC, sync ? MF_CHECKED : MF_UNCHECKED);
 }
@@ -772,10 +772,10 @@ void DispDotFileMode() {
 void ShowPopupMenu(int Win, int Pos) {
 	if (HideUI != 0)
 		return;
-	auto selectCount = GetSelectedCount(Win);
-	auto connecting = AskConnecting() == YES;
-	auto selecting = 0 < selectCount;
-	auto canOpen = selectCount == 1 && (Win == WIN_LOCAL || connecting);
+	auto const selectCount = GetSelectedCount(Win);
+	auto const connecting = AskConnecting() == YES;
+	auto const selecting = 0 < selectCount;
+	auto const canOpen = selectCount == 1 && (Win == WIN_LOCAL || connecting);
 	auto menu = LoadMenuW(GetFtpInst(), MAKEINTRESOURCEW(popup_menu));
 	auto submenu = GetSubMenu(menu, Win);
 	EnableMenuItem(submenu, MENU_OPEN, canOpen ? 0 : MF_GRAYED);

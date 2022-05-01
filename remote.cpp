@@ -298,7 +298,7 @@ int DoDirList(std::wstring_view AddOpt, int Num, int* CancelCheckWork) {
 	MainTransPkt.NoTransfer = NO;
 	MainTransPkt.ExistSize = 0;
 	MainTransPkt.hWndTrans = {};
-	auto code = DoDownload(AskCmdCtrlSkt(), MainTransPkt, YES, CancelCheckWork);
+	auto const code = DoDownload(AskCmdCtrlSkt(), MainTransPkt, YES, CancelCheckWork);
 	if (code / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	return code / 100;

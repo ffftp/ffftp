@@ -356,7 +356,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 	LastError = NO;
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
 
-	auto result = WaitForSingleObject(initialized, INFINITE);
+	auto const result = WaitForSingleObject(initialized, INFINITE);
 	assert(result == WAIT_OBJECT_0);
 
 	while (!fTransferThreadExit) {
@@ -759,7 +759,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 *----------------------------------------------------------------------------*/
 
 static int MakeNonFullPath(TRANSPACKET& item, std::wstring& Cur) {
-	auto result = ProcForNonFullpath(item.ctrl_skt, item.Remote, Cur, item.hWndTrans, &Canceled[item.ThreadCount]);
+	auto const result = ProcForNonFullpath(item.ctrl_skt, item.Remote, Cur, item.hWndTrans, &Canceled[item.ThreadCount]);
 	if (result == FFFTP_FAIL)
 		ClearAll = YES;
 	return result;
@@ -870,7 +870,7 @@ static int TransferPassive(TRANSPACKET* Pkt, int (*SendTransferCommand)(TRANSPAC
 	if (code / 100 == FTP_COMPLETE) {
 		if (auto const target = GetAdrsAndPort(*Pkt->ctrl_skt, text)) {
 			if (auto [host, port] = *target; auto data_socket = connectsock(*Pkt->ctrl_skt, std::move(host), port, CancelCheckWork)) {
-				if (BOOL optval = 1; setsockopt(data_socket->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&optval, sizeof(optval)) == SOCKET_ERROR)
+				if (constexpr BOOL optval = 1; setsockopt(data_socket->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&optval, sizeof(optval)) == SOCKET_ERROR)
 					WSAError(L"setsockopt(IPPROTO_TCP, TCP_NODELAY)"sv);
 				int mode;
 				code = SendTransferCommand(Pkt, mode, CancelCheckWork);
@@ -992,7 +992,7 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 #endif
 
 	Pkt->Abort = ABORT_NONE;
-	if (auto attr = GetFileAttributesW(Pkt->Local.c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_READONLY))
+	if (auto const attr = GetFileAttributesW(Pkt->Local.c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_READONLY))
 		if (Message<IDS_MSGJPN086>(IDS_REMOVE_READONLY, MB_YESNO) == IDYES)
 			SetFileAttributesW(Pkt->Local.c_str(), attr & ~FILE_ATTRIBUTE_READONLY);
 
@@ -1006,7 +1006,7 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 		}
 
 		CodeConverter cc{ Pkt->KanjiCode, Pkt->KanjiCodeDesired, Pkt->KanaCnv != NO };
-		auto result = dSkt->ReadAll(CancelCheckWork, [&Pkt, &cc, &os](std::vector<char> const& buf) {
+		auto const result = dSkt->ReadAll(CancelCheckWork, [&Pkt, &cc, &os](std::vector<char> const& buf) {
 			if (auto converted = cc.Convert({ begin(buf), end(buf) }); !os.write(data(converted), size(converted))) {
 				Pkt->Abort = ABORT_DISKFULL;
 				return true;
@@ -1533,8 +1533,8 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET* Pkt) {
 			else
 				ss << Pkt->ExistSize / 1024 / 1024 / 1024. << L"GB / " << Pkt->Size / 1024 / 1024 / 1024. << L"GB ";
 
-			auto TotalLap = time(nullptr) - TimeStart[Pkt->ThreadCount] + 1;
-			auto Bps = TotalLap != 0 ? AllTransSizeNow[Pkt->ThreadCount] / TotalLap : 0;
+			auto const TotalLap = time(nullptr) - TimeStart[Pkt->ThreadCount] + 1;
+			auto const Bps = TotalLap != 0 ? AllTransSizeNow[Pkt->ThreadCount] / TotalLap : 0;
 			if (Bps < 1024)
 				ss << L"( " << Bps << L"B/s )";
 			else if (Bps < 1024 * 1024)
@@ -1544,7 +1544,7 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET* Pkt) {
 			else
 				ss << L"( " << Bps / 1024 / 1024 / 1024. << L"GB/s )";
 
-			if (auto Transed = Pkt->Size - Pkt->ExistSize; 0 < Bps && 0 < Pkt->Size && 0 <= Transed)
+			if (auto const Transed = Pkt->Size - Pkt->ExistSize; 0 < Bps && 0 < Pkt->Size && 0 <= Transed)
 				ss << L"  " << Transed / Bps / 60 << L':' << std::setfill(L'0') << std::setw(2) << Transed / Bps % 60;
 			else
 				ss << L"  ??:??";
@@ -1554,7 +1554,7 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET* Pkt) {
 		SetText(hWnd, TRANS_STATUS, status);
 	}
 	{
-		int percent = Pkt->Size <= 0 ? 0 : Pkt->Size < std::numeric_limits<decltype(Pkt->Size)>::max() / 100 ? (int)(Pkt->ExistSize * 100 / Pkt->Size) : (int)((Pkt->ExistSize / 1024) * 100 / (Pkt->Size / 1024));
+		int const percent = Pkt->Size <= 0 ? 0 : Pkt->Size < std::numeric_limits<decltype(Pkt->Size)>::max() / 100 ? (int)(Pkt->ExistSize * 100 / Pkt->Size) : (int)((Pkt->ExistSize / 1024) * 100 / (Pkt->Size / 1024));
 		SendDlgItemMessageW(hWnd, TRANS_TIME_BAR, PBM_SETPOS, percent, 0);
 	}
 }
@@ -1758,6 +1758,6 @@ bool MarkFileAsDownloadedFromInternet(fs::path const& path) {
 			return persistFile->Save(_bstr_t{ path.c_str() }, FALSE);
 		}
 	} data{ path };
-	auto result = (HRESULT)data.Run();
+	auto const result = (HRESULT)data.Run();
 	return result == S_OK;
 }

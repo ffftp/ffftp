@@ -50,7 +50,7 @@ std::vector<char> SocketContext::Encrypt(std::string_view plain) {
 			{ 0,                        SECBUFFER_EMPTY,          nullptr                                                      },
 		};
 		SecBufferDesc desc{ SECBUFFER_VERSION, size_as<unsigned long>(buffer), buffer };
-		if (auto ss = EncryptMessage(&sslContext, 0, &desc, 0); ss != SEC_E_OK) {
+		if (auto const ss = EncryptMessage(&sslContext, 0, &desc, 0); ss != SEC_E_OK) {
 			_RPTWN(_CRT_WARN, L"FTPS_send EncryptMessage error: %08x.\n", ss);
 			return {};
 		}
@@ -77,12 +77,12 @@ BOOL LoadSSL() {
 	//   排他となるプロトコルがあるため、有効になっているプロトコルのうちSSL 3.0以降とTLS 1.2を指定してオープンする。
 	//   セッション再開が必要とされるため、TLS 1.3は明示的には有効化せず、レジストリ指定に従う。
 	static_assert(SP_PROT_TLS1_3PLUS_CLIENT == SP_PROT_TLS1_3_CLIENT, "new tls version detected.");
-	if (auto ss = AcquireCredentialsHandleW(nullptr, __pragma(warning(suppress:26465)) const_cast<wchar_t*>(UNISP_NAME_W), SECPKG_CRED_OUTBOUND, nullptr, nullptr, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
+	if (auto const ss = AcquireCredentialsHandleW(nullptr, __pragma(warning(suppress:26465)) const_cast<wchar_t*>(UNISP_NAME_W), SECPKG_CRED_OUTBOUND, nullptr, nullptr, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
 		Error(L"AcquireCredentialsHandle()"sv, ss);
 		return FALSE;
 	}
 	SecPkgCred_SupportedProtocols sp;
-	if (__pragma(warning(suppress:6001)) auto ss = QueryCredentialsAttributesW(&credential, SECPKG_ATTR_SUPPORTED_PROTOCOLS, &sp); ss != SEC_E_OK) {
+	if (__pragma(warning(suppress:6001)) auto const ss = QueryCredentialsAttributesW(&credential, SECPKG_ATTR_SUPPORTED_PROTOCOLS, &sp); ss != SEC_E_OK) {
 		Error(L"QueryCredentialsAttributes(SECPKG_ATTR_SUPPORTED_PROTOCOLS)"sv, ss);
 		return FALSE;
 	}
@@ -91,7 +91,7 @@ BOOL LoadSSL() {
 		// pAuthDataはSCHANNEL_CREDからSCH_CREDENTIALSに変更されたが現状維持する。
 		// https://github.com/MicrosoftDocs/win32/commit/e9f333c14bad8fd65d89ccc64d42882bc5fa7d9c
 		SCHANNEL_CRED sc{ .dwVersion = SCHANNEL_CRED_VERSION, .grbitEnabledProtocols = sp.grbitProtocol & SP_PROT_SSL3TLS1_X_CLIENTS | SP_PROT_TLS1_2_CLIENT };
-		if (auto ss = AcquireCredentialsHandleW(nullptr, __pragma(warning(suppress:26465)) const_cast<wchar_t*>(UNISP_NAME_W), SECPKG_CRED_OUTBOUND, nullptr, &sc, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
+		if (auto const ss = AcquireCredentialsHandleW(nullptr, __pragma(warning(suppress:26465)) const_cast<wchar_t*>(UNISP_NAME_W), SECPKG_CRED_OUTBOUND, nullptr, &sc, nullptr, nullptr, &credential, nullptr); ss != SEC_E_OK) {
 			Error(L"AcquireCredentialsHandle()"sv, ss);
 			return FALSE;
 		}
@@ -121,7 +121,7 @@ namespace std {
 
 auto getCertContext(CtxtHandle& context) {
 	PCERT_CONTEXT certContext = nullptr;
-	[[maybe_unused]] auto ss = QueryContextAttributesW(&context, SECPKG_ATTR_REMOTE_CERT_CONTEXT, &certContext);
+	[[maybe_unused]] auto const ss = QueryContextAttributesW(&context, SECPKG_ATTR_REMOTE_CERT_CONTEXT, &certContext);
 #ifdef _DEBUG
 	if (ss != SEC_E_OK)
 		_RPTWN(_CRT_WARN, L"QueryContextAttributes(SECPKG_ATTR_REMOTE_CERT_CONTEXT) error: %08X.\n", ss);
@@ -169,7 +169,7 @@ static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName
 	auto chainContext = [&certContext]() {
 		CERT_CHAIN_PARA chainPara{ sizeof(CERT_CHAIN_PARA) };
 		PCCERT_CHAIN_CONTEXT chainContext;
-		auto result = CertGetCertificateChain(nullptr, certContext.get(), nullptr, nullptr, &chainPara, CERT_CHAIN_REVOCATION_CHECK_CHAIN_EXCLUDE_ROOT, nullptr, &chainContext);
+		auto const result = CertGetCertificateChain(nullptr, certContext.get(), nullptr, nullptr, &chainPara, CERT_CHAIN_REVOCATION_CHECK_CHAIN_EXCLUDE_ROOT, nullptr, &chainContext);
 		return std::unique_ptr<const CERT_CHAIN_CONTEXT>{ result ? chainContext : nullptr };
 	}();
 	if (!chainContext)
@@ -203,9 +203,9 @@ static CertResult ConfirmSSLCertificate(CtxtHandle& context, wchar_t* serverName
 template<class Test>
 static inline std::invoke_result_t<Test> Wait(SocketContext& sc, int* CancelCheckWork, Test test) {
 	for (auto f1 = gsl::finally([&sc] { CancelIo((HANDLE)sc.handle); });;) {
-		if (auto result = test())
+		if (auto const result = test())
 			return result;
-		if (auto result = sc.AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
+		if (auto const result = sc.AsyncFetch(); result != 0 && result != WSA_IO_PENDING)
 			return {};
 		for (auto const expiredAt = std::chrono::steady_clock::now() + std::chrono::seconds{ TimeOut }; SleepEx(0, true) != WAIT_IO_COMPLETION;) {
 			if (TimeOut != 0 && expiredAt < std::chrono::steady_clock::now()) {
@@ -237,7 +237,7 @@ BOOL SocketContext::AttachSSL(BOOL* pbAborted) {
 	if (sslReadStatus != SEC_I_CONTINUE_NEEDED)
 		return FALSE;
 	assert(outBuffer[0].BufferType == SECBUFFER_TOKEN && outBuffer[0].cbBuffer != 0 && outBuffer[0].pvBuffer != nullptr);
-	auto written = send(handle, static_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
+	auto const written = send(handle, static_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
 	_RPTWN(_CRT_WARN, L"SC{%zu}: send(): %d.\n", handle, written);
 	assert(written == outBuffer[0].cbBuffer);
 	__pragma(warning(suppress:6387)) FreeContextBuffer(outBuffer[0].pvBuffer);
@@ -303,7 +303,7 @@ SocketContext::SocketContext(SOCKET s, std::wstring originalTarget, std::wstring
 
 
 SocketContext::~SocketContext() {
-	if (int result = closesocket(handle); result == SOCKET_ERROR)
+	if (int const result = closesocket(handle); result == SOCKET_ERROR)
 		WSAError(L"closesocket()"sv);
 	if (SecIsValidHandle(&sslContext))
 		DeleteSecurityContext(&sslContext);
@@ -324,12 +324,12 @@ int SocketContext::Connect(const sockaddr* name, int namelen, int* CancelCheckWo
 	auto f2 = gsl::finally([this] { WSAEventSelect(handle, hEvent, 0); });
 	if (connect(handle, name, namelen) == 0)
 		return 0;
-	if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
+	if (auto const lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
 		WSAError(L"connect()"sv, lastError);
 		return SOCKET_ERROR;
 	}
 	for (;;) {
-		auto result = WSAWaitForMultipleEvents(1, &hEvent, false, 0, false);
+		auto const result = WSAWaitForMultipleEvents(1, &hEvent, false, 0, false);
 		if (result == WSA_WAIT_EVENT_0)
 			break;
 		if (result != WSA_WAIT_TIMEOUT) {
@@ -375,7 +375,7 @@ int SocketContext::Listen(int backlog) {
 
 std::shared_ptr<SocketContext> SocketContext::Accept(_Out_writes_bytes_opt_(*addrlen) struct sockaddr* addr, _Inout_opt_ int* addrlen) {
 	for (auto f1 = gsl::finally([this] { WSAEventSelect(handle, hEvent, 0); WSACloseEvent(hEvent); });;) {
-		auto result = WSAWaitForMultipleEvents(1, &hEvent, false, 0, false);
+		auto const result = WSAWaitForMultipleEvents(1, &hEvent, false, 0, false);
 		if (result == WSA_WAIT_EVENT_0) {
 			if (WSANETWORKEVENTS networkEvents; WSAEnumNetworkEvents(handle, hEvent, &networkEvents) != 0) {
 				WSAError(L"WSAEnumNetworkEvents()"sv);
@@ -434,7 +434,7 @@ void SocketContext::OnComplete(DWORD error, DWORD transferred, DWORD flags) {
 			if (sslReadStatus == SEC_E_OK || sslReadStatus == SEC_I_CONTINUE_NEEDED) {
 				if (outBuffer[0].BufferType == SECBUFFER_TOKEN && outBuffer[0].cbBuffer != 0) {
 					// TODO: 送信バッファが埋まっている場合に失敗する
-					auto written = send(handle, static_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
+					auto const written = send(handle, static_cast<const char*>(outBuffer[0].pvBuffer), outBuffer[0].cbBuffer, 0);
 					_RPTWN(_CRT_WARN, L"SC{%zu}: send(): %d.\n", handle, written);
 					assert(written == outBuffer[0].cbBuffer);
 					FreeContextBuffer(outBuffer[0].pvBuffer);
@@ -490,7 +490,7 @@ void SocketContext::OnComplete(DWORD error, DWORD transferred, DWORD flags) {
 //   ERROR_HANDLE_EOF ... 失敗。終端に達したため、これ以上読めない。
 //   other .............. 失敗。
 int SocketContext::AsyncFetch() {
-	if (auto status = GetReadStatus(); status != 0)
+	if (auto const status = GetReadStatus(); status != 0)
 		return status;
 	if (recvStatus == 0) {
 		readRawSize = size_as<ULONG>(readRaw);
@@ -498,7 +498,7 @@ int SocketContext::AsyncFetch() {
 		readRaw.resize(readRaw.capacity());
 		WSABUF buf{ size_as<ULONG>(readRaw) - readRawSize, data(readRaw) + readRawSize };
 		DWORD flag = 0;
-		auto result = WSARecv(handle, &buf, 1, nullptr, &flag, this, [](DWORD error, DWORD transferred, LPWSAOVERLAPPED overlapped, DWORD flags) { static_cast<SocketContext*>(overlapped)->OnComplete(error, transferred, flags); });
+		auto const result = WSARecv(handle, &buf, 1, nullptr, &flag, this, [](DWORD error, DWORD transferred, LPWSAOVERLAPPED overlapped, DWORD flags) { static_cast<SocketContext*>(overlapped)->OnComplete(error, transferred, flags); });
 		recvStatus = result == 0 ? 0 : WSAGetLastError();
 		_RPTWN(_CRT_WARN, L"SC{%zu}: WSARecv(): %d, %d.\n", handle, result, recvStatus);
 		if (recvStatus != 0 && recvStatus != WSA_IO_PENDING)
@@ -549,7 +549,7 @@ std::tuple<int, std::wstring> SocketContext::ReadReply(int* CancelCheckWork) {
 
 
 bool SocketContext::ReadSpan(std::span<char>& span, int* CancelCheckWork) {
-	auto result = Wait(*this, CancelCheckWork, [this, &span] {
+	auto const result = Wait(*this, CancelCheckWork, [this, &span] {
 		if (size(readPlain) < size(span))
 			return false;
 		std::copy(begin(readPlain), begin(readPlain) + size(span), begin(span));
@@ -598,13 +598,13 @@ int SocketContext::Send(const char* buf, int len, int flags, int* CancelCheckWor
 		return FFFTP_FAIL;
 	auto endTime = TimeOut != 0 ? std::optional{ std::chrono::steady_clock::now() + std::chrono::seconds(TimeOut) } : std::nullopt;
 	do {
-		auto sent = send(handle, data(buffer), size_as<int>(buffer), flags);
+		auto const sent = send(handle, data(buffer), size_as<int>(buffer), flags);
 		if (0 < sent)
 			buffer = buffer.substr(sent);
 		else if (sent == 0) {
 			Debug(L"SendData: send(): connection closed."sv);
 			return FFFTP_FAIL;
-		} else if (auto lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
+		} else if (auto const lastError = WSAGetLastError(); lastError != WSAEWOULDBLOCK) {
 			Error(L"SendData: send()"sv, lastError);
 			return FFFTP_FAIL;
 		}
@@ -661,7 +661,7 @@ std::optional<std::wstring> AddPortMapping(std::wstring const& internalAddress, 
 			return result;
 		}
 	} data{ internalAddress, port };
-	if (auto result = (HRESULT)data.Run(); result == S_OK)
+	if (auto const result = (HRESULT)data.Run(); result == S_OK)
 		return { { (const wchar_t*)data.externalAddress, data.externalAddress.length() } };
 	return {};
 }
@@ -675,7 +675,7 @@ bool RemovePortMapping(int port) {
 			return staticPortMappingCollection->Remove(port, TCP);
 		}
 	} data{ port };
-	auto result = (HRESULT)data.Run();
+	auto const result = (HRESULT)data.Run();
 	return result == S_OK;
 }
 

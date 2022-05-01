@@ -123,7 +123,7 @@ void ConnectProc(int Type, int Num)
 				ReSortDispList(WIN_LOCAL, &CancelFlg);
 			}
 
-			int Save = empty(CurHost.PassWord) ? NO : YES;
+			int const Save = empty(CurHost.PassWord) ? NO : YES;
 
 			DisableUserOpe();
 			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, Save, CurHost.Security, &CancelFlg);
@@ -847,7 +847,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 			if (ContSock = connectsock(Host, std::move(tempHost), tempPort, CancelCheckWork)) {
 				// バッファを無効
 #ifdef DISABLE_CONTROL_NETWORK_BUFFERS
-				int BufferSize = 0;
+				constexpr int BufferSize = 0;
 				setsockopt(ContSock->handle, SOL_SOCKET, SO_SNDBUF, (char*)&BufferSize, sizeof(int));
 				setsockopt(ContSock->handle, SOL_SOCKET, SO_RCVBUF, (char*)&BufferSize, sizeof(int));
 #endif
@@ -919,8 +919,8 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 					{
 						if((Fwall == FWALL_FU_FP_SITE) || (Fwall == FWALL_OPEN))
 						{
-							int index = (Fwall == FWALL_OPEN ? 2 : 0) | (FwallLower == YES ? 1 : 0);
-							auto format = Port == IPPORT_FTP ? L"{} {}"sv : L"{} {} {}"sv;
+							int const index = (Fwall == FWALL_OPEN ? 2 : 0) | (FwallLower == YES ? 1 : 0);
+							auto const format = Port == IPPORT_FTP ? L"{} {}"sv : L"{} {} {}"sv;
 							Sts = std::get<0>(Command(ContSock, CancelCheckWork, format, SiteTbl[index], Host)) / 100;
 						}
 
@@ -1363,7 +1363,7 @@ static std::optional<sockaddr_storage> SocksRequest(SocketContext& s, SocksComma
 		} else {
 			auto [host, hport] = std::get<1>(target);
 			auto u8host = u8(host);
-			auto nsport = htons(hport);
+			auto const nsport = htons(hport);
 			buffer.push_back(3);													// ATYP
 			buffer.push_back(size_as<uint8_t>(u8host));								// DST.ADDR
 			buffer.insert(end(buffer), begin(u8host), end(u8host));					// DST.ADDR
@@ -1378,7 +1378,7 @@ static std::optional<sockaddr_storage> SocksRequest(SocketContext& s, SocksComma
 
 std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget, std::wstring&& host, int port, int *CancelCheckWork) {
 	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
-	int Fwall = CurHost.FireWall == YES ? FwallType : FWALL_NONE;
+	int const Fwall = CurHost.FireWall == YES ? FwallType : FWALL_NONE;
 	if (auto ai = getaddrinfo(host, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC)) {
 		// ホスト名がIPアドレスだった
 		Notice(IDS_MSGJPN017, host, AddressPortToString(ai->ai_addr, ai->ai_addrlen));
@@ -1490,7 +1490,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 		}
 		// TODO: IPv6にUPnP NATは無意味なのでは？
 		if (IsUPnPLoaded() == YES && UPnPEnabled == YES) {
-			auto port = ntohs(saListen.ss_family == AF_INET ? reinterpret_cast<sockaddr_in const&>(saListen).sin_port : reinterpret_cast<sockaddr_in6 const&>(saListen).sin6_port);
+			auto const port = ntohs(saListen.ss_family == AF_INET ? reinterpret_cast<sockaddr_in const&>(saListen).sin_port : reinterpret_cast<sockaddr_in6 const&>(saListen).sin6_port);
 			// TODO: UPnP NATで外部アドレスだけ参照しているが、外部ポートが内部ポートと異なる可能性が十分にあるのでは？
 			if (auto const ExtAdrs = AddPortMapping(AddressToString(saListen), port))
 				if (auto ai = getaddrinfo(*ExtAdrs, port)) {
@@ -1506,7 +1506,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 		status = std::get<0>(Command(ctrl_skt, CancelCheckWork, L"PORT {},{},{},{},{},{}"sv, a[0], a[1], a[2], a[3], p[0], p[1]));
 	} else {
 		auto a = AddressToString(saListen);
-		auto p = reinterpret_cast<sockaddr_in6 const&>(saListen).sin6_port;
+		auto const p = reinterpret_cast<sockaddr_in6 const&>(saListen).sin6_port;
 		status = std::get<0>(Command(ctrl_skt, CancelCheckWork, L"EPRT |2|{}|{}|"sv, a, ntohs(p)));
 	}
 	if (status / 100 != FTP_COMPLETE) {

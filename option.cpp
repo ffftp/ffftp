@@ -32,7 +32,7 @@
 
 static auto GetStrings(HWND hdlg, int id) {
 	std::vector<std::wstring> strings;
-	auto count = (int)SendDlgItemMessageW(hdlg, id, LB_GETCOUNT, 0, 0);
+	auto const count = (int)SendDlgItemMessageW(hdlg, id, LB_GETCOUNT, 0, 0);
 	strings.reserve(count);
 	std::wstring string;
 	for (int i = 0; i < count; i++) {
@@ -151,7 +151,7 @@ struct Transfer1 {
 				SendDlgItemMessageW(hDlg, TRMODE_EXT_LIST, LB_ADDSTRING, 0, (LPARAM)text.c_str());
 			break;
 		case TRMODE_DEL:
-			if (auto Num = (int)SendDlgItemMessageW(hDlg, TRMODE_EXT_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
+			if (auto const Num = (int)SendDlgItemMessageW(hDlg, TRMODE_EXT_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
 				SendDlgItemMessageW(hDlg, TRMODE_EXT_LIST, LB_DELETESTRING, Num, 0);
 			break;
 		}
@@ -203,7 +203,7 @@ struct Transfer3 {
 			return;
 		LVITEMW item;
 		item = { .mask = LVIF_TEXT, .iItem = std::numeric_limits<int>::max(), .pszText = const_cast<LPWSTR>(name.c_str()) };
-		auto index = (int)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_INSERTITEMW, 0, (LPARAM)&item);
+		auto const index = (int)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_INSERTITEMW, 0, (LPARAM)&item);
 		item = { .mask = LVIF_TEXT, .iItem = index, .iSubItem = 1, .pszText = const_cast<LPWSTR>(attr.c_str()) };
 		SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_SETITEMW, 0, (LPARAM)&item);
 	}
@@ -238,7 +238,7 @@ struct Transfer3 {
 		switch (nmh->code) {
 		case PSN_APPLY: {
 			DefAttrList.clear();
-			auto count = (int)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETITEMCOUNT, 0, 0);
+			auto const count = (int)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETITEMCOUNT, 0, 0);
 			DefAttrList.reserve((size_t)count * 2);
 			for (int i = 0; i < count; i++) {
 				LVITEMW item;
@@ -267,7 +267,7 @@ struct Transfer3 {
 				AddRow(hDlg, data.filename, data.attr);
 			break;
 		case TRMODE3_DEL:
-			if (auto Tmp = (long)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETNEXTITEM, -1, LVNI_ALL | LVNI_SELECTED); Tmp != -1)
+			if (auto const Tmp = (long)SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_GETNEXTITEM, -1, LVNI_ALL | LVNI_SELECTED); Tmp != -1)
 				SendDlgItemMessageW(hDlg, TRMODE3_LIST, LVM_DELETEITEM, Tmp, 0);
 			break;
 		case TRMODE3_FOLDER:
@@ -349,11 +349,11 @@ struct Mirroring {
 				SendDlgItemMessageW(hDlg, MIRROR_NODEL_LIST, LB_ADDSTRING, 0, (LPARAM)text.c_str());
 			break;
 		case MIRROR_NOTRN_DEL:
-			if (auto Num = (int)SendDlgItemMessageW(hDlg, MIRROR_NOTRN_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
+			if (auto const Num = (int)SendDlgItemMessageW(hDlg, MIRROR_NOTRN_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
 				SendDlgItemMessageW(hDlg, MIRROR_NOTRN_LIST, LB_DELETESTRING, Num, 0);
 			break;
 		case MIRROR_NODEL_DEL:
-			if (auto Num = (int)SendDlgItemMessageW(hDlg, MIRROR_NODEL_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
+			if (auto const Num = (int)SendDlgItemMessageW(hDlg, MIRROR_NODEL_LIST, LB_GETCURSEL, 0, 0); Num != LB_ERR)
 				SendDlgItemMessageW(hDlg, MIRROR_NODEL_LIST, LB_DELETESTRING, Num, 0);
 			break;
 		}
@@ -528,7 +528,7 @@ struct Firewall {
 		{ TRUE,  TRUE,  FALSE, FALSE, TRUE,  TRUE  }
 	};
 	static INT_PTR OnInit(HWND hDlg) {
-		UINT_PTR Type = std::distance(std::begin(firewallTypes), std::find(std::begin(firewallTypes), std::end(firewallTypes), FwallType));
+		UINT_PTR const Type = std::distance(std::begin(firewallTypes), std::find(std::begin(firewallTypes), std::end(firewallTypes), FwallType));
 		for (auto resourceId : { IDS_MSGJPN204, IDS_MSGJPN205, IDS_MSGJPN206, IDS_MSGJPN207, IDS_MSGJPN208, IDS_MSGJPN209, IDS_MSGJPN210, IDS_MSGJPN211, IDS_MSGJPN294 })
 			SendDlgItemMessageW(hDlg, FIRE_TYPE, CB_ADDSTRING, 0, (LPARAM)GetString(resourceId).c_str());
 		SendDlgItemMessageW(hDlg, FIRE_TYPE, CB_SETCURSEL, Type - 1, 0);
@@ -560,7 +560,7 @@ struct Firewall {
 	static INT_PTR OnNotify(HWND hDlg, NMHDR* nmh) {
 		switch (nmh->code) {
 		case PSN_APPLY: {
-			auto Type = (int)SendDlgItemMessageW(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0) + 1;
+			auto const Type = (int)SendDlgItemMessageW(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0) + 1;
 			FwallType = firewallTypes[Type];
 			FwallHost = GetText(hDlg, FIRE_HOST);
 			FwallUser = GetText(hDlg, FIRE_USER);
@@ -584,7 +584,7 @@ struct Firewall {
 	static void OnCommand(HWND hDlg, WORD id) {
 		switch (id) {
 		case FIRE_TYPE: {
-			auto Num = (int)SendDlgItemMessageW(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0);
+			auto const Num = (int)SendDlgItemMessageW(hDlg, FIRE_TYPE, CB_GETCURSEL, 0, 0);
 			EnableWindow(GetDlgItem(hDlg, FIRE_USER), HideTbl[Num][0]);
 			EnableWindow(GetDlgItem(hDlg, FIRE_PASS), HideTbl[Num][1]);
 			EnableWindow(GetDlgItem(hDlg, FIRE_SECURITY), HideTbl[Num][2]);

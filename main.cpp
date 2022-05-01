@@ -581,7 +581,7 @@ static void OtpCalcTool() {
 }
 
 static void TurnStatefulFTPFilter() {
-	if (auto ID = Message(IDS_MANAGE_STATEFUL_FTP, MB_YESNOCANCEL); ID == IDYES || ID == IDNO)
+	if (auto const ID = Message(IDS_MANAGE_STATEFUL_FTP, MB_YESNOCANCEL); ID == IDYES || ID == IDNO)
 		if (PtrToInt(ShellExecuteW(NULL, L"runas", L"netsh", ID == IDYES ? L"advfirewall set global statefulftp enable" : L"advfirewall set global statefulftp disable", systemDirectory().c_str(), SW_SHOW)) <= 32)
 			Message(IDS_FAIL_TO_MANAGE_STATEFUL_FTP, MB_OK | MB_ICONERROR);
 }
@@ -1372,10 +1372,10 @@ static LRESULT CALLBACK FtpWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 						// SetTimerによるとnIDEventが一致する既存のタイマーを置き換えるとのこと <https://msdn.microsoft.com/en-us/library/ms644906(v=vs.85).aspx>
 						// この通りであれば問題ない。ただしCWnd::SetTimerによると新たなタイマーが作成される（＝既存のタイマーを置き換えない）とのこと
 						// <https://docs.microsoft.com/ja-jp/cpp/mfc/reference/cwnd-class#settimer>
-						auto id = SetTimer(hWnd, 3, USER_TIMER_MINIMUM, [](auto hWnd, auto, auto, auto) {
+						auto const id = SetTimer(hWnd, 3, USER_TIMER_MINIMUM, [](auto hWnd, auto, auto, auto) {
 							DispSelectedSpace();
 							MakeButtonsFocus();
-							auto result = KillTimer(hWnd, 3);
+							auto const result = KillTimer(hWnd, 3);
 							assert(result);
 						});
 						assert(id == 3);
@@ -1479,11 +1479,11 @@ static void StartupProc(std::vector<std::wstring_view> const& args) {
 	std::wstring unc;
 	bool initializeDeferred = false;
 	if (auto result = AnalyzeComLine(args, hostname, unc)) {
-		int opt = *result;
-		int Kanji = opt & OPT_UTF8BOM ? KANJI_UTF8BOM : opt & OPT_UTF8N ? KANJI_UTF8N : opt & OPT_SJIS ? KANJI_SJIS : opt & OPT_JIS ? KANJI_JIS : opt & OPT_EUC ? KANJI_EUC : KANJI_NOCNV;
-		int Kana = opt & OPT_KANA ? NO : YES;
-		int FnameKanji = opt & OPT_UTF8N_NAME ? KANJI_UTF8N : opt & OPT_SJIS_NAME ? KANJI_SJIS : opt & OPT_JIS_NAME ? KANJI_JIS : opt & OPT_EUC_NAME ? KANJI_EUC : KANJI_NOCNV;
-		int TrMode = opt & OPT_BINARY ? TYPE_I : opt & OPT_ASCII ? TYPE_A : TYPE_DEFAULT;
+		int const opt = *result;
+		int const Kanji = opt & OPT_UTF8BOM ? KANJI_UTF8BOM : opt & OPT_UTF8N ? KANJI_UTF8N : opt & OPT_SJIS ? KANJI_SJIS : opt & OPT_JIS ? KANJI_JIS : opt & OPT_EUC ? KANJI_EUC : KANJI_NOCNV;
+		int const Kana = opt & OPT_KANA ? NO : YES;
+		int const FnameKanji = opt & OPT_UTF8N_NAME ? KANJI_UTF8N : opt & OPT_SJIS_NAME ? KANJI_SJIS : opt & OPT_JIS_NAME ? KANJI_JIS : opt & OPT_EUC_NAME ? KANJI_EUC : KANJI_NOCNV;
+		int const TrMode = opt & OPT_BINARY ? TYPE_I : opt & OPT_ASCII ? TYPE_A : TYPE_DEFAULT;
 		if (opt & OPT_QUIT)
 			AutoExit = YES;
 		if (opt & OPT_SAVEOFF)
@@ -1496,7 +1496,7 @@ static void StartupProc(std::vector<std::wstring_view> const& args) {
 		} else if (empty(hostname) && !empty(unc)) {
 			DirectConnectProc(std::move(unc), Kanji, Kana, FnameKanji, TrMode);
 		} else if (!empty(hostname) && empty(unc)) {
-			if (int AutoConnect = SearchHostName(hostname); AutoConnect == -1)
+			if (int const AutoConnect = SearchHostName(hostname); AutoConnect == -1)
 				Notice(IDS_MSGJPN177, hostname);
 			else {
 				initializeDeferred = true;
@@ -1538,7 +1538,7 @@ static std::optional<int> AnalyzeComLine(std::vector<std::wstring_view> const& a
 	for (auto it = begin(args); it != end(args); ++it) {
 		if ((*it)[0] == L'-') {
 			auto key = lc(std::wstring{ *it });
-			if (auto mapit = map.find(key); mapit != end(map)) {
+			if (auto const mapit = map.find(key); mapit != end(map)) {
 				option |= mapit->second;
 			} else if (key == L"-n"sv || key == L"--ini"sv) {
 				if (++it == end(args)) {
@@ -1639,7 +1639,7 @@ void DoubleClickProc(int Win, int Mode, int App) {
 				if (App != -1 || item.Node == NODE_FILE) {
 					if (DclickOpen == YES || Mode == YES) {
 						// ビューワ２、３のパスが "d " で始まっていたら差分ビューア使用
-						auto UseDiffViewer = (App == 1 || App == 2) && ViewerName[App].starts_with(L"d "sv);
+						auto const UseDiffViewer = (App == 1 || App == 2) && ViewerName[App].starts_with(L"d "sv);
 
 						auto remoteDir = tempDirectory() / L"file";
 						fs::create_directory(remoteDir);
@@ -1771,7 +1771,7 @@ static void CalcWinSize(void)
 	GetClientRect(GetMainHwnd(), &Rect);
 
 	ClientWidth = Rect.right;
-	int ClientHeight = Rect.bottom;
+	int const ClientHeight = Rect.bottom;
 
 	SepaWidth = 4;
 	LocalWidth = std::clamp(LocalWidth, 0, ClientWidth - SepaWidth);
@@ -1913,7 +1913,7 @@ void ExecViewer2(fs::path const& path1, fs::path const& path2, int App) {
 	/* FindExecutable()は関連付けられたプログラムのパス名にスペースが	*/
 	/* 含まれている時、間違ったパス名を返す事がある。					*/
 	/* そこで、関連付けられたプログラムの起動はShellExecute()を使う。	*/
-	auto format = path1.native().find(L' ') == std::wstring::npos && path2.native().find(L' ') == std::wstring::npos ? LR"({} {} {})"sv : LR"({} "{}" "{}")"sv;
+	auto const format = path1.native().find(L' ') == std::wstring::npos && path2.native().find(L' ') == std::wstring::npos ? LR"({} {} {})"sv : LR"({} "{}" "{}")"sv;
 	auto const executable = std::wstring_view{ ViewerName[App] }.substr(2);		/* 先頭の "d " は読み飛ばす */
 	auto commandLine = std::vformat(format, std::make_wformat_args(executable, path1.native(), path2.native()));
 	Debug(L"FindExecutable - {}"sv, commandLine);
@@ -2077,10 +2077,10 @@ int EnterMasterPasswordAndSet(bool newpassword, HWND hWnd) {
 	}
 
 	/* 末尾の空白を削除 */
-	if (auto pos = pass1.find_last_not_of(L' '); pos != std::wstring::npos && pos + 1 != size(pass1))
+	if (auto const pos = pass1.find_last_not_of(L' '); pos != std::wstring::npos && pos + 1 != size(pass1))
 		pass1.erase(pos + 1);
 	/* 先頭の空白を削除 */
-	if (auto pos = pass1.find_first_not_of(L' '); pos != std::wstring::npos && pos != 0)
+	if (auto const pos = pass1.find_first_not_of(L' '); pos != std::wstring::npos && pos != 0)
 		pass1.erase(0, pos);
 
 	if (empty(pass1)) {

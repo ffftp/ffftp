@@ -162,7 +162,7 @@ struct HostList {
 				SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
 				CurrentHost = (int)Item.lParam;
 				CopyHostFromList(CurrentHost, &TmpHost);
-				int Level1 = IsNodeGroup(CurrentHost);
+				int const Level1 = IsNodeGroup(CurrentHost);
 				auto set = Level1 == NO && DispHostSetDlg(hDlg);
 				if (!set && Level1 == YES)
 					set = InputDialog(group_dlg, hDlg, 0, TmpHost.HostName, HOST_NAME_LEN + 1);
@@ -189,7 +189,7 @@ struct HostList {
 				TVITEMW Item{ TVIF_PARAM, hItem };
 				SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
 				CurrentHost = (int)Item.lParam;
-				int Level1 = IsNodeGroup(CurrentHost);
+				int const Level1 = IsNodeGroup(CurrentHost);
 				if (Level1 == YES && Dialog(GetFtpInst(), groupdel_dlg, hDlg) || Level1 == NO && Dialog(GetFtpInst(), hostdel_dlg, hDlg)) {
 					DelHostFromList(CurrentHost);
 					if (CurrentHost >= Hosts)
@@ -206,9 +206,9 @@ struct HostList {
 
 				if (CurrentHost > 0) {
 					auto Data1 = GetNode(CurrentHost);
-					int Level1 = Data1->GetLevel();
+					int const Level1 = Data1->GetLevel();
 					auto Data2 = GetNode(CurrentHost - 1);
-					int Level2 = Data2->GetLevel();
+					int const Level2 = Data2->GetLevel();
 					if (Level1 == Level2 && (Data2->Level & SET_LEVEL_GROUP)) {
 						//Data2のchildへ
 						if (Data1->Next != NULL)
@@ -279,7 +279,7 @@ struct HostList {
 				CurrentHost = (int)Item.lParam;
 
 				auto Data1 = GetNode(CurrentHost);
-				int Level1 = Data1->GetLevel();
+				int const Level1 = Data1->GetLevel();
 				std::shared_ptr<HOSTLISTDATA> Data2;
 				int Level2 = SET_LEVEL_SAME;
 				if (CurrentHost < Hosts - 1) {
@@ -695,7 +695,7 @@ static void SendAllHostNames(HWND hWnd, int Cur) {
 	std::vector<HTREEITEM> Level(Hosts);
 	auto Pos = HostListTop;
 	for (int i = 0; i < Hosts; i++) {
-		size_t CurLevel = Pos->GetLevel();
+		size_t const CurLevel = Pos->GetLevel();
 		TVINSERTSTRUCTW is{
 			.hParent = CurLevel == 0 ? TVI_ROOT : Level[CurLevel - 1],
 			.hInsertAfter = TVI_LAST,
@@ -745,7 +745,7 @@ void ImportFromWSFTP() {
 						host.HostName = u8({ &line[1], size(line) - 2 });
 						hasHost = true;
 					}
-				} else if (auto pos = line.find('='); hasHost && pos != std::string::npos) {
+				} else if (auto const pos = line.find('='); hasHost && pos != std::string::npos) {
 					auto name = lc(line.substr(0, pos));
 					name.erase(std::remove_if(begin(name), end(name), [](auto ch) { return ch == ' ' || ch == '\t' || ch == '\n'; }), end(name));
 					auto value = line.substr(pos + 1);
@@ -830,12 +830,12 @@ struct General {
 		case HSET_ANONYMOUS:
 			if (SendDlgItemMessageW(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0) == 1) {
 				SetText(hDlg, HSET_USER, L"anonymous");
-				auto wStyle = GetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
+				auto const wStyle = GetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
 				SetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle & ~ES_PASSWORD);
 				SetText(hDlg, HSET_PASS, UserMailAdrs);
 			} else {
 				SetText(hDlg, HSET_USER, L"");
-				auto wStyle = GetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
+				auto const wStyle = GetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
 				SetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle | ES_PASSWORD);
 				SetText(hDlg, HSET_PASS, L"");
 			}
@@ -1075,7 +1075,7 @@ struct Special {
 			}
 			break;
 		case HSET_HOSTTYPE:
-			if (auto Num = (int)SendDlgItemMessageW(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0); Num == 2) {
+			if (auto const Num = (int)SendDlgItemMessageW(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0); Num == 2) {
 				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), FALSE);
@@ -1198,7 +1198,7 @@ struct Feature {
 
 // ホスト設定のプロパティシート
 static bool DispHostSetDlg(HWND hDlg) {
-	auto result = PropSheet<General, Advanced, KanjiCode, Dialup, Special, Encryption, Feature>(hDlg, GetFtpInst(), IDS_HOSTSETTING, PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP);
+	auto const result = PropSheet<General, Advanced, KanjiCode, Dialup, Special, Encryption, Feature>(hDlg, GetFtpInst(), IDS_HOSTSETTING, PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP);
 	return 1 <= result;
 }
 

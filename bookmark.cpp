@@ -84,7 +84,7 @@ std::tuple<std::wstring, std::wstring> AskBookMarkText(size_t MarkID) {
 // ブックマークを接続中のホストリストに保存する
 void SaveBookMark() {
 	if (AskConnecting() == YES)
-		if (auto CurHost = AskCurrentHost(); CurHost != HOSTNUM_NOENTRY) {
+		if (auto const CurHost = AskCurrentHost(); CurHost != HOSTNUM_NOENTRY) {
 			std::vector<std::wstring> temp;
 			for (auto const& bookmark : bookmarks)
 				temp.push_back(bookmark.line);
@@ -95,7 +95,7 @@ void SaveBookMark() {
 // ホストリストからブックマークを読み込む
 void LoadBookMark() {
 	if (AskConnecting() == YES)
-		if (auto CurHost = AskCurrentHost(); CurHost != HOSTNUM_NOENTRY)
+		if (auto const CurHost = AskCurrentHost(); CurHost != HOSTNUM_NOENTRY)
 			if (auto temp = AskHostBookMark(CurHost)) {
 				ClearBookMark();
 				for(auto const& bookmark : *temp)
@@ -160,7 +160,7 @@ struct List {
 			EndDialog(hDlg, commandId == BMARK_JUMP ? SendMessageW(hList, LB_GETCURSEL, 0, 0) : LB_ERR);
 			break;
 		case BMARK_SET:
-			if (auto index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR)
+			if (auto const index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR)
 				if (Editor editor{ list[index] }; Dialog(GetFtpInst(), bmark_edit_dlg, hDlg, editor)) {
 					list[index] = editor.bookmark;
 					SendMessageW(hList, LB_DELETESTRING, index, 0);
@@ -171,12 +171,12 @@ struct List {
 		case BMARK_NEW:
 			if (Editor editor; Dialog(GetFtpInst(), bmark_edit_dlg, hDlg, editor)) {
 				list.emplace_back(editor.bookmark);
-				auto index = SendMessageW(hList, LB_ADDSTRING, 0, (LPARAM)editor.bookmark.line.c_str());
+				auto const index = SendMessageW(hList, LB_ADDSTRING, 0, (LPARAM)editor.bookmark.line.c_str());
 				SendMessageW(hList, LB_SETCURSEL, index, 0);
 			}
 			break;
 		case BMARK_DEL:
-			if (auto index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR) {
+			if (auto const index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR) {
 				list.erase(begin(list) + index);
 				SendMessageW(hList, LB_DELETESTRING, index, 0);
 				if (!empty(list))
@@ -184,7 +184,7 @@ struct List {
 			}
 			break;
 		case BMARK_UP:
-			if (auto index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR)
+			if (auto const index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR)
 				if (0 < index) {
 					std::swap(list[index - 1], list[index]);
 					SendMessageW(hList, LB_DELETESTRING, index, 0);
@@ -193,7 +193,7 @@ struct List {
 				}
 			break;
 		case BMARK_DOWN:
-			if (auto index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR)
+			if (auto const index = SendMessageW(hList, LB_GETCURSEL, 0, 0); index != LB_ERR)
 				if (index < size_as<LRESULT>(list) - 1) {
 					std::swap(list[index], list[index + 1]);
 					SendMessageW(hList, LB_DELETESTRING, index, 0);
@@ -211,7 +211,7 @@ struct List {
 // ブックマーク編集ウインドウ
 void EditBookMark() {
 	List editor{ bookmarks };
-	auto index = Dialog(GetFtpInst(), bmark_dlg, GetMainHwnd(), editor);
+	auto const index = Dialog(GetFtpInst(), bmark_dlg, GetMainHwnd(), editor);
 	ClearBookMark();
 	for (auto const& bookmark : editor.list)
 		AddBookMark(bookmark);

@@ -40,7 +40,7 @@ public:
 	Resizable(SIZE& current) : minimum{}, current { current } {}
 	Resizable(SIZE&&) = delete;
 	void OnSize(HWND dialog, LONG cx, LONG cy) {
-		LONG dx = cx - current.cx, dy = cy - current.cy;
+		LONG const dx = cx - current.cx, dy = cy - current.cy;
 		if (dx != 0)
 			(..., OnSizeRight(dialog, anchorRight, dx));
 		if (dy != 0)
@@ -72,7 +72,7 @@ public:
 		if (current.cx == 0 || current.cx == -1)
 			current = minimum;
 		else {
-			auto copied = current;
+			auto const copied = current;
 			current = minimum;
 			SetWindowPos(dialog, 0, 0, 0, copied.cx, copied.cy, SWP_NOMOVE | flags);
 		}
@@ -99,7 +99,7 @@ namespace detail {
 			if (uMsg == WM_INITDIALOG) {
 				auto ptr = reinterpret_cast<Data*>(lParam);
 				SetWindowLongPtrW(hwndDlg, GWLP_USERDATA, lParam);
-				INT_PTR result = TRUE;
+				__pragma(warning(suppress: 26496)) INT_PTR result = TRUE;
 				if constexpr (hasOnInit<Data>())
 					result = ptr->OnInit(hwndDlg);
 				if constexpr (hasResizable<Data>())
@@ -187,7 +187,7 @@ class RadioButton {
 	static constexpr int controls[] = { first, rest... };
 public:
 	static void Set(HWND hDlg, int value) {
-		for (auto id : controls)
+		for (auto const id : controls)
 			if ((char)id == (char)value) {
 				SendDlgItemMessageW(hDlg, id, BM_SETCHECK, BST_CHECKED, 0);
 				SendMessageW(hDlg, WM_COMMAND, MAKEWPARAM(id, 0), 0);
@@ -197,7 +197,7 @@ public:
 		SendMessageW(hDlg, WM_COMMAND, MAKEWPARAM(first, 0), 0);
 	}
 	static auto Get(HWND hDlg) {
-		for (auto id : controls)
+		for (auto const id : controls)
 			if (SendDlgItemMessageW(hDlg, id, BM_GETCHECK, 0, 0) == BST_CHECKED)
 				return (int)(char)id;
 		return (int)(char)first;
@@ -223,7 +223,7 @@ public:
 // TODO: 各ページはinstance化されていないのでstaticメンバーとする制約がある。
 template<class... Page>
 static inline auto PropSheet(HWND parent, HINSTANCE instance, int captionId, DWORD flag) {
-	PROPSHEETPAGEW psp[]{ { sizeof(PROPSHEETPAGEW), Page::flag, instance, MAKEINTRESOURCEW(Page::dialogId), 0, nullptr, detail::Dialog<Page>::Proc }... };
-	PROPSHEETHEADERW psh{ sizeof(PROPSHEETHEADERW), flag | PSH_PROPSHEETPAGE, parent, instance, 0, MAKEINTRESOURCEW(captionId), size_as<UINT>(psp), 0, psp };
+	const PROPSHEETPAGEW psp[]{ { sizeof(PROPSHEETPAGEW), Page::flag, instance, MAKEINTRESOURCEW(Page::dialogId), 0, nullptr, detail::Dialog<Page>::Proc }... };
+	const PROPSHEETHEADERW psh{ sizeof(PROPSHEETHEADERW), flag | PSH_PROPSHEETPAGE, parent, instance, 0, MAKEINTRESOURCEW(captionId), size_as<UINT>(psp), 0, psp };
 	return PropertySheetW(&psh);
 }

@@ -304,9 +304,9 @@ struct MirrorList {
 			return;
 		case MIRROR_DEL: {
 			std::vector<int> indexes((size_t)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0));
-			auto count = (int)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELITEMS, size_as<WPARAM>(indexes), (LPARAM)data(indexes));
+			auto const count = (int)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELITEMS, size_as<WPARAM>(indexes), (LPARAM)data(indexes));
 			assert(size_as<int>(indexes) == count);
-			for (int index : indexes | std::ranges::views::reverse)
+			for (int const index : indexes | std::ranges::views::reverse)
 				if (index < size_as<int>(list)) {
 					list.erase(begin(list) + index);
 					SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_DELETESTRING, index, 0);
@@ -958,7 +958,7 @@ void UploadDragProc(WPARAM wParam)
 				Pkt.KanaCnv = AskHostKanaCnv();
 #if defined(HAVE_TANDEM)
 				if(AskHostType() == HTYPE_TANDEM && AskOSS() == NO) {
-					int a = f.InfoExist && FINFO_SIZE;
+					int const a = f.InfoExist && FINFO_SIZE;
 					CalcExtentSize(&Pkt, f.Size);
 				}
 #endif
@@ -1338,7 +1338,7 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, std::vector<FILELIST> const& ListLi
 	Pkt->ExistSize = 0;
 	if(SendMode != TRANS_OVW)
 	{
-		int Mode =
+		int const Mode =
 #if defined(HAVE_TANDEM)
 			/* HP NonStop Server は大文字小文字の区別なし(すべて大文字) */
 			AskHostType() == HTYPE_TANDEM ? COMP_IGNORE :
@@ -1795,7 +1795,7 @@ void MkdirProc(void)
 *----------------------------------------------------------------------------*/
 void ChangeDirComboProc(HWND hWnd) {
 	CancelFlg = NO;
-	if (auto i = (int)SendMessageW(hWnd, CB_GETCURSEL, 0, 0); i != CB_ERR) {
+	if (auto const i = (int)SendMessageW(hWnd, CB_GETCURSEL, 0, 0); i != CB_ERR) {
 		auto length = SendMessageW(hWnd, CB_GETLBTEXTLEN, i, 0);
 		std::wstring text(length, L'\0');
 		length = SendMessageW(hWnd, CB_GETLBTEXT, i, (LPARAM)data(text));
@@ -1984,7 +1984,7 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 			SendDlgItemMessageW(hDlg, PERM_NOW, EM_LIMITTEXT, 4, 0);
 			SetText(hDlg, PERM_NOW, attr);
 			if (!empty(attr) && std::iswdigit(attr[0]))
-				for (auto value = stoi(attr, nullptr, 16); auto [bit, id] : map)
+				for (auto const value = stoi(attr, nullptr, 16); auto [bit, id] : map)
 					if (value & bit)
 						SendDlgItemMessageW(hDlg, id, BM_SETCHECK, BST_CHECKED, 0);
 			return TRUE;
@@ -2100,9 +2100,9 @@ void CalcFileSizeProc() {
 			}
 		}
 	};
-	int Win = GetFocus() == GetLocalHwnd() ? WIN_LOCAL : WIN_REMOTE;
+	int const Win = GetFocus() == GetLocalHwnd() ? WIN_LOCAL : WIN_REMOTE;
 	CancelFlg = NO;
-	if (auto All = Dialog(GetFtpInst(), filesize_notify_dlg, GetMainHwnd(), SizeNotify{ Win }); All != NO_ALL)
+	if (auto const All = Dialog(GetFtpInst(), filesize_notify_dlg, GetMainHwnd(), SizeNotify{ Win }); All != NO_ALL)
 		if (Win == WIN_LOCAL || CheckClosedAndReconnect() == FFFTP_SUCCESS) {
 			std::vector<FILELIST> ListBase;
 			MakeSelectedFileList(Win, YES, All, ListBase, &CancelFlg);
@@ -2187,7 +2187,7 @@ int ProcForNonFullpath(std::shared_ptr<SocketContext> cSkt, std::wstring& Path, 
 	if (AskNoFullPathMode() == YES) {
 		auto Tmp = AskHostType() == HTYPE_VMS ? ReformToVMSstyleDirName(std::wstring{ GetUpperDirEraseTopSlash(Path) }) : AskHostType() == HTYPE_STRATUS ? std::wstring{ GetUpperDirEraseTopSlash(Path) } : std::wstring{ GetUpperDir(Path) };
 		if (Tmp != CurDir) {
-			if (int code = std::get<0>(Command(cSkt, CancelCheckWork, L"CWD {}"sv, Tmp)); code / 100 != FTP_COMPLETE) {
+			if (int const code = std::get<0>(Command(cSkt, CancelCheckWork, L"CWD {}"sv, Tmp)); code / 100 != FTP_COMPLETE) {
 				DispCWDerror(hWnd);
 				Sts = FFFTP_FAIL;
 			} else
@@ -2202,7 +2202,7 @@ int ProcForNonFullpath(std::shared_ptr<SocketContext> cSkt, std::wstring& Path, 
 // ディレクトリ名をVAX VMSスタイルに変換する
 //   ddd:[xxx.yyy]/rrr/ppp  --> ddd:[xxx.yyy.rrr.ppp]
 static std::wstring ReformToVMSstyleDirName(std::wstring&& path) {
-	if (auto btm = path.find(L']'); btm != std::wstring::npos) {
+	if (auto const btm = path.find(L']'); btm != std::wstring::npos) {
 		std::replace(begin(path) + btm, end(path), L'/', L'.');
 		path.erase(begin(path) + btm);
 		if (path.ends_with(L'.'))

@@ -37,7 +37,7 @@ int MakeStatusBarWindow() {
 	hWndSbar = CreateWindowExW(0, STATUSCLASSNAMEW, nullptr, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | SBARS_SIZEGRIP, 0, 0, 0, 0, GetMainHwnd(), 0, GetFtpInst(), nullptr);
 	if (!hWndSbar)
 		return FFFTP_FAIL;
-	int parts[] = { 120, 190, 340, 500, 660, -1 };
+	int const parts[] = { 120, 190, 340, 500, 660, -1 };
 	SendMessageW(hWndSbar, SB_SETPARTS, size_as<WPARAM>(parts), (LPARAM)parts);
 	return FFFTP_SUCCESS;
 }
@@ -64,7 +64,7 @@ void UpdateStatusBar() {
 
 // カレントウインドウを表示
 void DispCurrentWindow(int Win) {
-	auto resourceId = Win == WIN_LOCAL ? IDS_MSGJPN245 : Win == WIN_REMOTE ? IDS_MSGJPN246 : 0;
+	auto const resourceId = Win == WIN_LOCAL ? IDS_MSGJPN245 : Win == WIN_REMOTE ? IDS_MSGJPN246 : 0;
 	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(1, 0), (LPARAM)(resourceId == 0 ? L"" : GetString(resourceId).c_str()));
 }
 
@@ -72,7 +72,7 @@ void DispCurrentWindow(int Win) {
 // 選択されているファイル数とサイズを表示
 void DispSelectedSpace() {
 	static auto const format = GetString(IDS_MSGJPN247);
-	auto Win = GetFocus() == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL;
+	auto const Win = GetFocus() == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL;
 	auto const text = std::vformat(format, std::make_wformat_args(GetSelectedCount(Win), MakeSizeString(GetSelectedTotalSize(Win))));
 	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(2, 0), (LPARAM)text.c_str());
 }

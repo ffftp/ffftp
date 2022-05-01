@@ -52,7 +52,6 @@
 #pragma warning(disable: 26492)		// error C26492: Don't use const_cast to cast away const or volatile (type.3).
 #pragma warning(disable: 26493)		// error C26493: Don't use C-style casts (type.4).
 #pragma warning(disable: 26494)		// error C26494: Variable 'XXX' is uninitialized. Always initialize an object (type.5).
-#pragma warning(disable: 26496)		// error C26496: The variable 'XXX' does not change after construction, mark it as const (con.4).
 #pragma warning(disable: 26812)		// error C26812: The enum type 'XXX' is unscoped. Prefer 'enum class' over 'enum' (Enum.3).
 #pragma warning(disable: 26818)		// error C26818: Switch statement does not cover all cases. Consider adding a 'default' label (es.79).
 #pragma warning(disable: 26821)		// error C26821: For 'XXX', consider using gsl::span instead of std::span to guarantee runtime bounds safety (gsl.view).
@@ -1222,9 +1221,9 @@ constexpr auto before_end(std::forward_list<T, Allocator>& list) {
 }
 template<class DstChar, class SrcChar, class Fn>
 static inline auto convert(Fn&& fn, std::basic_string_view<SrcChar> src) {
-	auto len1 = fn(data(src), size_as<int>(src), nullptr, 0);
+	auto const len1 = fn(data(src), size_as<int>(src), nullptr, 0);
 	std::basic_string<DstChar> dst(len1, 0);
-	auto len2 = fn(data(src), size_as<int>(src), data(dst), len1);
+	auto const len2 = fn(data(src), size_as<int>(src), data(dst), len1);
 	dst.resize(len2);
 	return dst;
 }
@@ -1303,7 +1302,7 @@ static inline auto Message(int textId, DWORD style) {
 }
 static auto GetString(UINT id) {
 	wchar_t buffer[1024];
-	auto length = LoadStringW(GetFtpInst(), id, buffer, size_as<int>(buffer));
+	auto const length = LoadStringW(GetFtpInst(), id, buffer, size_as<int>(buffer));
 	return std::wstring(buffer, length);
 }
 static auto GetText(HWND hwnd) {
@@ -1333,7 +1332,7 @@ static inline void SetText(HWND hdlg, int id, const std::wstring& text) {
 static inline auto AddressPortToString(const SOCKADDR* sa, size_t salen) {
 	std::wstring string(sizeof "[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff%4294967295]:65535" - 1, L'\0');
 	auto length = size_as<DWORD>(string) + 1;
-	auto result = WSAAddressToStringW(const_cast<SOCKADDR*>(sa), gsl::narrow_cast<DWORD>(salen), nullptr, data(string), &length);
+	auto const result = WSAAddressToStringW(const_cast<SOCKADDR*>(sa), gsl::narrow_cast<DWORD>(salen), nullptr, data(string), &length);
 	assert(result == 0);
 	string.resize(length - 1);
 	return string;
@@ -1417,13 +1416,13 @@ struct ProcessInformation : PROCESS_INFORMATION {
 };
 template<class Fn>
 static inline void GetDrives(Fn&& fn) {
-	auto drives = GetLogicalDrives();
+	auto const drives = GetLogicalDrives();
 	DWORD nodrives = 0;
 	DWORD size = sizeof(DWORD);
 	SHRegGetUSValueW(LR"(Software\Microsoft\Windows\CurrentVersion\Policies\Explorer)", L"NoDrives", nullptr, &nodrives, &size, false, nullptr, 0);
 	for (int i = 0; i < sizeof(DWORD) * 8; i++)
 		if ((drives & 1 << i) != 0 && (nodrives & 1 << i) == 0) {
-			wchar_t drive[] = { wchar_t(L'A' + i), L':', L'\\', 0 };
+			const wchar_t drive[] = { wchar_t(L'A' + i), L':', L'\\', 0 };
 			fn(drive);
 		}
 }
@@ -1438,11 +1437,11 @@ static auto GetErrorMessage(int lastError) {
 template<class Fn>
 static inline std::invoke_result_t<Fn, BCRYPT_ALG_HANDLE> BCrypt(LPCWSTR algid, Fn&& fn) {
 	BCRYPT_ALG_HANDLE alg;
-	if (auto status = BCryptOpenAlgorithmProvider(&alg, algid, nullptr, 0); status != STATUS_SUCCESS) {
+	if (auto const status = BCryptOpenAlgorithmProvider(&alg, algid, nullptr, 0); status != STATUS_SUCCESS) {
 		Debug(L"BCryptOpenAlgorithmProvider({}) failed: 0x{:08X}."sv, algid, status);
 		__pragma(warning(suppress:26444)) return {};
 	}
-	auto result = std::invoke(std::forward<Fn>(fn), alg);
+	auto const result = std::invoke(std::forward<Fn>(fn), alg);
 	BCryptCloseAlgorithmProvider(alg, 0);
 	return result;
 }
@@ -1450,11 +1449,11 @@ template<class Fn>
 static inline auto HashOpen(LPCWSTR algid, Fn&& fn) {
 	return BCrypt(algid, [fn](BCRYPT_ALG_HANDLE alg) -> std::invoke_result_t<Fn, BCRYPT_ALG_HANDLE, std::vector<UCHAR>&&, std::vector<UCHAR>&&> {
 		DWORD objlen, hashlen, resultlen;
-		if (auto status = BCryptGetProperty(alg, BCRYPT_OBJECT_LENGTH, reinterpret_cast<PUCHAR>(&objlen), sizeof objlen, &resultlen, 0); status != STATUS_SUCCESS || resultlen != sizeof objlen) {
+		if (auto const status = BCryptGetProperty(alg, BCRYPT_OBJECT_LENGTH, reinterpret_cast<PUCHAR>(&objlen), sizeof objlen, &resultlen, 0); status != STATUS_SUCCESS || resultlen != sizeof objlen) {
 			Debug(L"BCryptGetProperty({}) failed: 0x{:08X} or invalid length: {}."sv, BCRYPT_OBJECT_LENGTH, status, resultlen);
 			return {};
 		}
-		if (auto status = BCryptGetProperty(alg, BCRYPT_HASH_LENGTH, reinterpret_cast<PUCHAR>(&hashlen), sizeof hashlen, &resultlen, 0); status != STATUS_SUCCESS || resultlen != sizeof hashlen) {
+		if (auto const status = BCryptGetProperty(alg, BCRYPT_HASH_LENGTH, reinterpret_cast<PUCHAR>(&hashlen), sizeof hashlen, &resultlen, 0); status != STATUS_SUCCESS || resultlen != sizeof hashlen) {
 			Debug(L"BCryptGetProperty({}) failed: 0x{:08X} or invalid length: {}."sv, BCRYPT_HASH_LENGTH, status, resultlen);
 			return {};
 		}
