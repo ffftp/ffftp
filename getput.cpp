@@ -65,17 +65,17 @@ static unsigned __stdcall TransferThread(void *Dummy);
 static int MakeNonFullPath(TRANSPACKET& item, std::wstring& CurDir);
 static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int CreateMode, int *CancelCheckWork);
 static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
-static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt);
+static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt) noexcept;
 static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item);
 static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int Resume, int* CancelCheckWork);
-static int TermCodeConvAndSend(std::shared_ptr<SocketContext> Skt, char *Data, int Size, int Ascii, int *CancelCheckWork);
+static int TermCodeConvAndSend(SocketContext& s, char *Data, int Size, int Ascii, int *CancelCheckWork);
 static void DispUploadFinishMsg(TRANSPACKET *Pkt, int iRetCode);
 static LRESULT CALLBACK TransDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam);
 static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET *Pkt);
 static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipButton, int Info);
-static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(std::shared_ptr<SocketContext> socket, std::wstring const& reply);
+static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(SocketContext& s, std::wstring const& reply);
 static bool IsSpecialDevice(std::wstring_view filename);
-static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item);
+static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item) noexcept;
 
 /*===== ローカルなワーク =====*/
 
@@ -128,7 +128,7 @@ static void SetErrorMsg(std::wstring&& msg) {
 
 
 // ファイル転送スレッドを起動する
-int MakeTransferThread() {
+int MakeTransferThread() noexcept {
 	ClearAll = NO;
 	ForceAbort = NO;
 	fTransferThreadExit = false;
@@ -144,7 +144,7 @@ int MakeTransferThread() {
 
 
 // ファイル転送スレッドを終了する
-void CloseTransferThread() {
+void CloseTransferThread() noexcept {
 	for (int i = 0; i < MAX_DATA_CONNECTION; i++)
 		Canceled[i] = YES;
 	ClearAll = YES;
@@ -241,7 +241,7 @@ static void EraseTransFileList() {
 	std::optional<TRANSPACKET> backcur;
 	for (TRANSPACKET pkt; TransPacketBase.try_pop(pkt);)
 		if (pkt.Command == L"BACKCUR"sv)
-			backcur = std::move(pkt);
+			backcur = pkt;
 	if (backcur)
 		TransPacketBase.push(*std::move(backcur));
 	TransFiles = 0;
@@ -251,19 +251,9 @@ static void EraseTransFileList() {
 }
 
 
-/*----- 転送中ダイアログを消さないようにするかどうかを設定 --------------------
-*
-*	Parameter
-*		int Sw : 転送中ダイアログを消さないかどうか (YES/NO)
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void KeepTransferDialog(int Sw)
-{
+// 転送中ダイアログを消さないようにするかどうかを設定
+void KeepTransferDialog(int Sw) noexcept {
 	KeepDlg = Sw;
-	return;
 }
 
 
@@ -282,39 +272,20 @@ int AskTransferNow(void)
 }
 
 
-/*----- 転送するファイルの数を返す --------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int 転送するファイルの数
-*----------------------------------------------------------------------------*/
-
-int AskTransferFileNum(void)
-{
-	return(TransFiles);
+// 転送するファイルの数を返す
+int AskTransferFileNum() noexcept {
+	return TransFiles;
 }
 
 
-/*----- 転送中ウインドウを前面に出す ------------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void GoForwardTransWindow(void)
-{
+// 転送中ウインドウを前面に出す
+void GoForwardTransWindow() noexcept {
 	MoveToForeground = YES;
-	return;
 }
 
 
 // 転送ソケットのカレントディレクトリ情報を初期化
-void InitTransCurDir() {
+void InitTransCurDir() noexcept {
 	for (auto& dir : CurDir)
 		dir.clear();
 }
@@ -356,7 +327,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 	LastError = NO;
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
 
-	auto result = WaitForSingleObject(initialized, INFINITE);
+	auto const result = WaitForSingleObject(initialized, INFINITE);
 	assert(result == WAIT_OBJECT_0);
 
 	while (!fTransferThreadExit) {
@@ -759,7 +730,7 @@ static unsigned __stdcall TransferThread(void *Dummy)
 *----------------------------------------------------------------------------*/
 
 static int MakeNonFullPath(TRANSPACKET& item, std::wstring& Cur) {
-	auto result = ProcForNonFullpath(item.ctrl_skt, item.Remote, Cur, item.hWndTrans, &Canceled[item.ThreadCount]);
+	auto const result = ProcForNonFullpath(item.ctrl_skt, item.Remote, Cur, item.hWndTrans, &Canceled[item.ThreadCount]);
 	if (result == FFFTP_FAIL)
 		ClearAll = YES;
 	return result;
@@ -769,7 +740,7 @@ static int MakeNonFullPath(TRANSPACKET& item, std::wstring& Cur) {
 static int SendDownloadCommand(TRANSPACKET* Pkt, int& CreateMode, int* CancelCheckWork) {
 	struct Data {
 		using result_t = bool;
-		void OnCommand(HWND hDlg, WORD id) {
+		void OnCommand(HWND hDlg, WORD id) noexcept {
 			switch (id) {
 			case IDOK:
 				EndDialog(hDlg, true);
@@ -841,7 +812,7 @@ static int TransferActive(TRANSPACKET* Pkt, int (*SendTransferCommand)(TRANSPACK
 	if (code / 100 == FTP_PRELIM) {
 		std::shared_ptr<SocketContext> data_socket;
 		if (GetCurHost().FireWall == YES && (FwallType == FWALL_SOCKS4 || FwallType == FWALL_SOCKS5_NOAUTH || FwallType == FWALL_SOCKS5_USER)) {
-			if (SocksReceiveReply(listen_socket, CancelCheckWork))
+			if (SocksReceiveReply(*listen_socket, CancelCheckWork))
 				data_socket = listen_socket;
 		} else {
 			sockaddr_storage sa;
@@ -868,9 +839,9 @@ static int TransferActive(TRANSPACKET* Pkt, int (*SendTransferCommand)(TRANSPACK
 static int TransferPassive(TRANSPACKET* Pkt, int (*SendTransferCommand)(TRANSPACKET* Pkt, int& mode, int* CancelCheckWork), int (*TransferFile)(TRANSPACKET* Pkt, std::shared_ptr<SocketContext> dSkt, int mode, int* CancelCheckWork), int* CancelCheckWork) {
 	auto [code, text] = Command(Pkt->ctrl_skt, CancelCheckWork, GetCurHost().CurNetType == NTYPE_IPV4 ? L"PASV"sv : L"EPSV"sv);
 	if (code / 100 == FTP_COMPLETE) {
-		if (auto const target = GetAdrsAndPort(Pkt->ctrl_skt, text)) {
+		if (auto const target = GetAdrsAndPort(*Pkt->ctrl_skt, text)) {
 			if (auto [host, port] = *target; auto data_socket = connectsock(*Pkt->ctrl_skt, std::move(host), port, CancelCheckWork)) {
-				if (BOOL optval = 1; setsockopt(data_socket->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&optval, sizeof(optval)) == SOCKET_ERROR)
+				if (constexpr BOOL optval = 1; setsockopt(data_socket->handle, IPPROTO_TCP, TCP_NODELAY, (LPSTR)&optval, sizeof(optval)) == SOCKET_ERROR)
 					WSAError(L"setsockopt(IPPROTO_TCP, TCP_NODELAY)"sv);
 				int mode;
 				code = SendTransferCommand(Pkt, mode, CancelCheckWork);
@@ -992,7 +963,7 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 #endif
 
 	Pkt->Abort = ABORT_NONE;
-	if (auto attr = GetFileAttributesW(Pkt->Local.c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_READONLY))
+	if (auto const attr = GetFileAttributesW(Pkt->Local.c_str()); attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_READONLY))
 		if (Message<IDS_MSGJPN086>(IDS_REMOVE_READONLY, MB_YESNO) == IDYES)
 			SetFileAttributesW(Pkt->Local.c_str(), attr & ~FILE_ATTRIBUTE_READONLY);
 
@@ -1006,7 +977,7 @@ static int DownloadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, i
 		}
 
 		CodeConverter cc{ Pkt->KanjiCode, Pkt->KanjiCodeDesired, Pkt->KanaCnv != NO };
-		auto result = dSkt->ReadAll(CancelCheckWork, [&Pkt, &cc, &os](std::vector<char> const& buf) {
+		auto const result = dSkt->ReadAll(CancelCheckWork, [&Pkt, &cc, &os](std::vector<char> const& buf) {
 			if (auto converted = cc.Convert({ begin(buf), end(buf) }); !os.write(data(converted), size(converted))) {
 				Pkt->Abort = ABORT_DISKFULL;
 				return true;
@@ -1137,13 +1108,13 @@ static void DispDownloadFinishMsg(TRANSPACKET *Pkt, int iRetCode)
 
 
 // ダウンロード／アップロードエラーのダイアログを表示
-static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt) {
+static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt) noexcept {
 	struct Data {
 		using result_t = bool;
 		using DownExistButton = RadioButton<DOWN_EXIST_OVW, DOWN_EXIST_RESUME, DOWN_EXIST_IGNORE>;
 		TRANSPACKET* Pkt;
-		Data(TRANSPACKET* Pkt) : Pkt{ Pkt } {}
-		INT_PTR OnInit(HWND hDlg) {
+		Data(TRANSPACKET* Pkt) noexcept : Pkt{ Pkt } {}
+		INT_PTR OnInit(HWND hDlg) noexcept {
 			SetText(hDlg, UPDOWN_ERR_FNAME, Pkt->Remote);
 			SetText(hDlg, UPDOWN_ERR_MSG, ErrMsg);
 			if (Pkt->Type == TYPE_A || Pkt->ExistSize <= 0)
@@ -1151,7 +1122,7 @@ static bool DispUpDownErrDialog(int ResID, TRANSPACKET *Pkt) {
 			DownExistButton::Set(hDlg, TransferErrorMode);
 			return TRUE;
 		}
-		void OnCommand(HWND hDlg, WORD id) {
+		void OnCommand(HWND hDlg, WORD id) noexcept {
 			switch (id) {
 			case IDOK_ALL:
 				TransferErrorNotify = NO;
@@ -1256,7 +1227,7 @@ static int DoUpload(std::shared_ptr<SocketContext> cSkt, TRANSPACKET& item)
 *		転送ダイアログを出さないでアップロードすることはない
 *----------------------------------------------------------------------------*/
 
-static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int Resume, int* CancelCheckWork) {
+static int UploadFile(TRANSPACKET *Pkt, __pragma(warning(suppress: 26415 26418)) std::shared_ptr<SocketContext> dSkt, int Resume, int* CancelCheckWork) {
 	if (Pkt->ctrl_skt->IsSSLAttached() && !dSkt->AttachSSL(CancelCheckWork))
 		return 500;
 #ifdef DISABLE_TRANSFER_NETWORK_BUFFERS
@@ -1308,7 +1279,7 @@ static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int
 			}
 
 			auto converted = cc.Convert({ data(buf), (std::string_view::size_type)read });
-			if (TermCodeConvAndSend(dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, CancelCheckWork) == FFFTP_FAIL)
+			if (TermCodeConvAndSend(*dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, CancelCheckWork) == FFFTP_FAIL)
 				Pkt->Abort = ABORT_ERROR;
 
 			Pkt->ExistSize += read;
@@ -1320,7 +1291,7 @@ static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int
 		}
 		if (Pkt->Abort == ABORT_NONE && ForceAbort == NO && !eof && !empty(rest)) {
 			auto converted = cc.Convert({ data(rest), size(rest) });
-			if (TermCodeConvAndSend(dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, CancelCheckWork) == FFFTP_FAIL)
+			if (TermCodeConvAndSend(*dSkt, data(converted), size_as<DWORD>(converted), Pkt->Type, CancelCheckWork) == FFFTP_FAIL)
 				Pkt->Abort = ABORT_ERROR;
 			Pkt->ExistSize += size_as<LONGLONG>(rest);
 			if (Pkt->hWndTrans != NULL)
@@ -1353,14 +1324,13 @@ static int UploadFile(TRANSPACKET *Pkt, std::shared_ptr<SocketContext> dSkt, int
 
 
 // バッファの内容を改行コード変換して送信
-static int TermCodeConvAndSend(std::shared_ptr<SocketContext> Skt, char *Data, int Size, int Ascii, int *CancelCheckWork) {
-	assert(Skt);
+static int TermCodeConvAndSend(SocketContext& s, char *Data, int Size, int Ascii, int *CancelCheckWork) {
 	// CR-LF以外の改行コードを変換しないモードはここへ追加
 	if (Ascii == TYPE_A) {
 		auto encoded = ToCRLF({ Data, (size_t)Size });
-		return Skt->Send(data(encoded), size_as<int>(encoded), 0, CancelCheckWork);
+		return s.Send(data(encoded), size_as<int>(encoded), 0, CancelCheckWork);
 	}
-	return Skt->Send(Data, Size, 0, CancelCheckWork);
+	return s.Send(Data, Size, 0, CancelCheckWork);
 }
 
 
@@ -1534,8 +1504,8 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET* Pkt) {
 			else
 				ss << Pkt->ExistSize / 1024 / 1024 / 1024. << L"GB / " << Pkt->Size / 1024 / 1024 / 1024. << L"GB ";
 
-			auto TotalLap = time(nullptr) - TimeStart[Pkt->ThreadCount] + 1;
-			auto Bps = TotalLap != 0 ? AllTransSizeNow[Pkt->ThreadCount] / TotalLap : 0;
+			auto const TotalLap = time(nullptr) - TimeStart[Pkt->ThreadCount] + 1;
+			auto const Bps = TotalLap != 0 ? AllTransSizeNow[Pkt->ThreadCount] / TotalLap : 0;
 			if (Bps < 1024)
 				ss << L"( " << Bps << L"B/s )";
 			else if (Bps < 1024 * 1024)
@@ -1545,7 +1515,7 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET* Pkt) {
 			else
 				ss << L"( " << Bps / 1024 / 1024 / 1024. << L"GB/s )";
 
-			if (auto Transed = Pkt->Size - Pkt->ExistSize; 0 < Bps && 0 < Pkt->Size && 0 <= Transed)
+			if (auto const Transed = Pkt->Size - Pkt->ExistSize; 0 < Bps && 0 < Pkt->Size && 0 <= Transed)
 				ss << L"  " << Transed / Bps / 60 << L':' << std::setfill(L'0') << std::setw(2) << Transed / Bps % 60;
 			else
 				ss << L"  ??:??";
@@ -1555,7 +1525,7 @@ static void DispTransferStatus(HWND hWnd, int End, TRANSPACKET* Pkt) {
 		SetText(hWnd, TRANS_STATUS, status);
 	}
 	{
-		int percent = Pkt->Size <= 0 ? 0 : Pkt->Size < std::numeric_limits<decltype(Pkt->Size)>::max() / 100 ? (int)(Pkt->ExistSize * 100 / Pkt->Size) : (int)((Pkt->ExistSize / 1024) * 100 / (Pkt->Size / 1024));
+		int const percent = Pkt->Size <= 0 ? 0 : Pkt->Size < std::numeric_limits<decltype(Pkt->Size)>::max() / 100 ? (int)(Pkt->ExistSize * 100 / Pkt->Size) : (int)((Pkt->ExistSize / 1024) * 100 / (Pkt->Size / 1024));
 		SendDlgItemMessageW(hWnd, TRANS_TIME_BAR, PBM_SETPOS, percent, 0);
 	}
 }
@@ -1616,7 +1586,7 @@ static void DispTransFileInfo(TRANSPACKET const& item, UINT titleId, int SkipBut
 
 
 // PASVコマンドの戻り値からアドレスとポート番号を抽出
-static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(std::shared_ptr<SocketContext> socket, std::wstring const& reply) {
+static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(SocketContext& s, std::wstring const& reply) {
 	std::wstring addr;
 	int port;
 	if (auto const& curHost = GetCurHost(); curHost.CurNetType == NTYPE_IPV4) {
@@ -1643,7 +1613,7 @@ static std::optional<std::tuple<std::wstring, int>> GetAdrsAndPort(std::shared_p
 		} else
 			return {};
 	}
-	addr = socket->target.index() == 0 ? AddressToString(std::get<0>(socket->target)) : std::get<0>(std::get<1>(socket->target));
+	addr = s.target.index() == 0 ? AddressToString(std::get<0>(s.target)) : std::get<0>(std::get<1>(s.target));
 	return { { addr, port } };
 }
 
@@ -1656,12 +1626,12 @@ static bool IsSpecialDevice(std::wstring_view filename) {
 
 
 // ミラーリングでのファイル削除確認
-static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item) {
+static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item) noexcept {
 	struct Data {
 		using result_t = int;
 		int Cur;
 		TRANSPACKET const& item;
-		Data(int Cur, TRANSPACKET const& item) : Cur{ Cur }, item{ item } {}
+		Data(int Cur, TRANSPACKET const& item) noexcept : Cur{ Cur }, item{ item } {}
 		INT_PTR OnInit(HWND hDlg) {
 			if (Cur == WIN_LOCAL) {
 				SetText(hDlg, GetString(IDS_MSGJPN124));
@@ -1672,7 +1642,7 @@ static int MirrorDelNotify(int Cur, int Notify, TRANSPACKET const& item) {
 			}
 			return TRUE;
 		}
-		void OnCommand(HWND hDlg, WORD id) {
+		void OnCommand(HWND hDlg, WORD id) noexcept {
 			switch (id) {
 			case IDOK:
 				EndDialog(hDlg, YES);
@@ -1712,19 +1682,16 @@ int CheckPathViolation(TRANSPACKET const& item) {
 
 
 // タスクバー進捗表示
-LONGLONG AskTransferSizeLeft(void)
-{
-	return(TransferSizeLeft);
+LONGLONG AskTransferSizeLeft() noexcept {
+	return TransferSizeLeft;
 }
 
-LONGLONG AskTransferSizeTotal(void)
-{
-	return(TransferSizeTotal);
+LONGLONG AskTransferSizeTotal() noexcept {
+	return TransferSizeTotal;
 }
 
-int AskTransferErrorDisplay(void)
-{
-	return(TransferErrorDisplay);
+int AskTransferErrorDisplay() noexcept {
+	return TransferErrorDisplay;
 }
 
 // ゾーンID設定
@@ -1747,18 +1714,18 @@ void FreeZoneID() {
 	}
 }
 
-int IsZoneIDLoaded() {
+int IsZoneIDLoaded() noexcept {
 	return zoneIdentifier && persistFile ? YES : NO;
 }
 
 bool MarkFileAsDownloadedFromInternet(fs::path const& path) {
 	struct Data : public MainThreadRunner {
 		fs::path const& path;
-		Data(fs::path const& path) : path{ path } {}
+		Data(fs::path const& path) noexcept : path{ path } {}
 		int DoWork() override {
 			return persistFile->Save(_bstr_t{ path.c_str() }, FALSE);
 		}
 	} data{ path };
-	auto result = (HRESULT)data.Run();
+	auto const result = (HRESULT)data.Run();
 	return result == S_OK;
 }

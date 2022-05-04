@@ -60,7 +60,7 @@ namespace OleDragDrop {
 				for (size_t i = 0; i < count; i++)
 					formatEtcs.push_back({ clipFormats[i], nullptr, DVASPECT_CONTENT, -1, Tymed(clipFormats[i]) });
 			}
-			LRESULT SendMessageW(UINT Msg, WPARAM wParam, LPARAM lParam) {
+			LRESULT SendMessageW(UINT Msg, WPARAM wParam, LPARAM lParam) noexcept {
 				return ::SendMessageW(hWnd, Msg, wParam, lParam);
 			}
 		};
@@ -132,7 +132,7 @@ namespace OleDragDrop {
 			}
 
 			// IDataObject
-			STDMETHODIMP GetData(FORMATETC* pformatetcIn, STGMEDIUM* pmedium) override {
+			STDMETHODIMP GetData(FORMATETC* pformatetcIn, STGMEDIUM* pmedium) noexcept override {
 				// マウスのドラッグ中は msgGetData を送らないようにする。(2007.9.3 yutaka)
 				if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000) || (GetAsyncKeyState(VK_RBUTTON) & 0x8000))
 					return DV_E_FORMATETC;
@@ -152,19 +152,19 @@ namespace OleDragDrop {
 					}
 				return DV_E_FORMATETC;
 			}
-			STDMETHODIMP GetDataHere(FORMATETC* pformatetc, STGMEDIUM* pmedium) override {
+			STDMETHODIMP GetDataHere(FORMATETC* pformatetc, STGMEDIUM* pmedium) noexcept override {
 				return E_NOTIMPL;
 			}
-			STDMETHODIMP QueryGetData(FORMATETC* pformatetc) override {
+			STDMETHODIMP QueryGetData(FORMATETC* pformatetc) noexcept override {
 				for (auto const& formatEtc : formatEtcs)
 					if (formatEtc.cfFormat == pformatetc->cfFormat)
 						return S_OK;
 				return DV_E_FORMATETC;
 			}
-			STDMETHODIMP GetCanonicalFormatEtc(FORMATETC* pformatectIn, FORMATETC* pformatetcOut) override {
+			STDMETHODIMP GetCanonicalFormatEtc(FORMATETC* pformatectIn, FORMATETC* pformatetcOut) noexcept override {
 				return E_NOTIMPL;
 			}
-			STDMETHODIMP SetData(FORMATETC* pformatetc, STGMEDIUM* pmedium, BOOL fRelease) override {
+			STDMETHODIMP SetData(FORMATETC* pformatetc, STGMEDIUM* pmedium, BOOL fRelease) noexcept override {
 				return E_NOTIMPL;
 			}
 			STDMETHODIMP EnumFormatEtc(DWORD dwDirection, IEnumFORMATETC** ppenumFormatEtc) override {
@@ -174,24 +174,24 @@ namespace OleDragDrop {
 					return E_NOTIMPL;
 				return CreateFormatEnumerator(UINT(size(formatEtcs)), data(formatEtcs), ppenumFormatEtc);
 			}
-			STDMETHODIMP DAdvise(FORMATETC* pformatetc, DWORD advf, IAdviseSink* pAdvSink, DWORD* pdwConnection) override {
+			STDMETHODIMP DAdvise(FORMATETC* pformatetc, DWORD advf, IAdviseSink* pAdvSink, DWORD* pdwConnection) noexcept override {
 				return OLE_E_ADVISENOTSUPPORTED;
 			}
-			STDMETHODIMP DUnadvise(DWORD dwConnection) override {
+			STDMETHODIMP DUnadvise(DWORD dwConnection) noexcept override {
 				return OLE_E_NOCONNECTION;
 			}
-			STDMETHODIMP EnumDAdvise(IEnumSTATDATA **ppenumAdvise) override {
+			STDMETHODIMP EnumDAdvise(IEnumSTATDATA **ppenumAdvise) noexcept override {
 				return OLE_E_ADVISENOTSUPPORTED;
 			}
 
 			// IDropSource
-			STDMETHODIMP QueryContinueDrag(BOOL fEscapePressed, DWORD grfKeyState) override {
+			STDMETHODIMP QueryContinueDrag(BOOL fEscapePressed, DWORD grfKeyState) noexcept override {
 				if (fEscapePressed)
 					return DRAGDROP_S_CANCEL;
 				SendMessageW(msgDragOver, 0, 0);
 				return grfKeyState & button ? S_OK : DRAGDROP_S_DROP;
 			}
-			STDMETHODIMP GiveFeedback(DWORD dwEffect) override {
+			STDMETHODIMP GiveFeedback(DWORD dwEffect) noexcept override {
 				return DRAGDROP_S_USEDEFAULTCURSORS;
 			}
 		};
@@ -213,7 +213,7 @@ namespace OleDragDrop {
 
 
 	// ドラッグ＆ドロップのターゲットを解除します。
-	static inline void RevokeDragDrop(HWND hWnd) {
+	static inline void RevokeDragDrop(HWND hWnd) noexcept {
 		::RevokeDragDrop(hWnd);
 	}
 

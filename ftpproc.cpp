@@ -35,19 +35,19 @@
 static int CheckRemoteFile(TRANSPACKET *Pkt, std::vector<FILELIST> const& ListList);
 static void DispMirrorFiles(std::vector<FILELIST> const& Local, std::vector<FILELIST> const& Remote);
 static void MirrorDeleteAllLocalDir(std::vector<FILELIST> const& Local, TRANSPACKET& item, std::vector<TRANSPACKET>& list);
-static int CheckLocalFile(TRANSPACKET *Pkt);
+static int CheckLocalFile(TRANSPACKET *Pkt) noexcept;
 static std::wstring RemoveAfterSemicolon(std::wstring&& path);
 static void MirrorDeleteAllDir(std::vector<FILELIST> const& Remote, TRANSPACKET& item, std::vector<TRANSPACKET>& list);
-static int MirrorNotify(bool upload);
+static int MirrorNotify(bool upload) noexcept;
 static void CountMirrorFiles(HWND hDlg, std::vector<TRANSPACKET> const& list);
 static int AskMirrorNoTrn(std::wstring_view path, int Mode);
 static int AskUploadFileAttr(std::wstring const& path);
-static bool UpDownAsDialog(std::wstring& name, int win);
+static bool UpDownAsDialog(std::wstring& name, int win) noexcept;
 static void DeleteAllDir(std::vector<FILELIST> const& Dt, int Win, int *Sw, int *Flg, std::wstring& CurDir);
 static void DelNotifyAndDo(FILELIST const& Dt, int Win, int *Sw, int *Flg, std::wstring& CurDir);
 static std::wstring ReformToVMSstyleDirName(std::wstring&& path);
 static std::wstring ReformToVMSstylePathName(std::wstring_view path);
-static std::wstring RenameUnuseableName(std::wstring&& filename);
+static std::wstring RenameUnuseableName(std::wstring&& filename) noexcept;
 static int ExistNotify;		/* 確認ダイアログを出すかどうか YES/NO */
 
 
@@ -272,7 +272,7 @@ struct MirrorList {
 	using result_t = bool;
 	Resizable<Controls<MIRROR_DEL, MIRROR_SIZEGRIP>, Controls<IDOK, IDCANCEL, IDHELP, MIRROR_DEL, MIRROR_COPYNUM, MIRROR_MAKENUM, MIRROR_DELNUM, MIRROR_SIZEGRIP, MIRROR_NO_TRANSFER>, Controls<MIRROR_LIST>> resizable{ MirrorDlgSize };
 	std::vector<TRANSPACKET>& list;
-	MirrorList(std::vector<TRANSPACKET>& list) : list{ list } {}
+	MirrorList(std::vector<TRANSPACKET>& list) noexcept : list{ list } {}
 	INT_PTR OnInit(HWND hDlg) {
 		for (auto const& item : list) {
 			std::tuple<int, std::wstring_view> data;
@@ -304,9 +304,9 @@ struct MirrorList {
 			return;
 		case MIRROR_DEL: {
 			std::vector<int> indexes((size_t)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELCOUNT, 0, 0));
-			auto count = (int)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELITEMS, size_as<WPARAM>(indexes), (LPARAM)data(indexes));
+			auto const count = (int)SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_GETSELITEMS, size_as<WPARAM>(indexes), (LPARAM)data(indexes));
 			assert(size_as<int>(indexes) == count);
-			for (int index : indexes | std::ranges::views::reverse)
+			for (int const index : indexes | std::ranges::views::reverse)
 				if (index < size_as<int>(list)) {
 					list.erase(begin(list) + index);
 					SendDlgItemMessageW(hDlg, MIRROR_LIST, LB_DELETESTRING, index, 0);
@@ -551,13 +551,12 @@ static std::wstring RemoveAfterSemicolon(std::wstring&& path) {
 *		Pkt.ExistSize, ExistMode、ExistNotify が変更される
 *----------------------------------------------------------------------------*/
 
-static int CheckLocalFile(TRANSPACKET *Pkt)
-{
+static int CheckLocalFile(TRANSPACKET *Pkt) noexcept {
 	struct DownExistDialog {
 		using result_t = bool;
 		using DownExistButton = RadioButton<DOWN_EXIST_OVW, DOWN_EXIST_NEW, DOWN_EXIST_RESUME, DOWN_EXIST_IGNORE, DOWN_EXIST_LARGE>;
 		TRANSPACKET* Pkt;
-		DownExistDialog(TRANSPACKET* Pkt) : Pkt{ Pkt } {}
+		DownExistDialog(TRANSPACKET* Pkt) noexcept : Pkt{ Pkt } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SendDlgItemMessageW(hDlg, DOWN_EXIST_NAME, EM_LIMITTEXT, FMAX_PATH, 0);
 			SetText(hDlg, DOWN_EXIST_NAME, Pkt->Local);
@@ -958,7 +957,7 @@ void UploadDragProc(WPARAM wParam)
 				Pkt.KanaCnv = AskHostKanaCnv();
 #if defined(HAVE_TANDEM)
 				if(AskHostType() == HTYPE_TANDEM && AskOSS() == NO) {
-					int a = f.InfoExist && FINFO_SIZE;
+					int const a = f.InfoExist && FINFO_SIZE;
 					CalcExtentSize(&Pkt, f.Size);
 				}
 #endif
@@ -1222,11 +1221,11 @@ static void MirrorDeleteAllDir(std::vector<FILELIST> const& Remote, TRANSPACKET&
 
 
 // ミラーリングアップロード開始確認ウインドウ
-static int MirrorNotify(bool upload) {
+static int MirrorNotify(bool upload) noexcept {
 	struct Data {
 		using result_t = int;
 		bool upload;
-		Data(bool upload) : upload{ upload } {}
+		Data(bool upload) noexcept : upload{ upload } {}
 		void OnCommand(HWND hDlg, WORD id) {
 			switch (id) {
 			case IDOK:
@@ -1304,8 +1303,8 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, std::vector<FILELIST> const& ListLi
 		using result_t = bool;
 		using UpExistButton = RadioButton<UP_EXIST_OVW, UP_EXIST_NEW, UP_EXIST_RESUME, UP_EXIST_UNIQUE, UP_EXIST_IGNORE, UP_EXIST_LARGE>;
 		TRANSPACKET* Pkt;
-		UpExistDialog(TRANSPACKET* Pkt) : Pkt{ Pkt } {}
-		INT_PTR OnInit(HWND hDlg) {
+		UpExistDialog(TRANSPACKET* Pkt) noexcept : Pkt{ Pkt } {}
+		INT_PTR OnInit(HWND hDlg) noexcept {
 			SendDlgItemMessageW(hDlg, UP_EXIST_NAME, EM_LIMITTEXT, FMAX_PATH, 0);
 			SetText(hDlg, UP_EXIST_NAME, Pkt->Remote);
 			if (Pkt->Type == TYPE_A || Pkt->ExistSize <= 0)
@@ -1338,7 +1337,7 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, std::vector<FILELIST> const& ListLi
 	Pkt->ExistSize = 0;
 	if(SendMode != TRANS_OVW)
 	{
-		int Mode =
+		int const Mode =
 #if defined(HAVE_TANDEM)
 			/* HP NonStop Server は大文字小文字の区別なし(すべて大文字) */
 			AskHostType() == HTYPE_TANDEM ? COMP_IGNORE :
@@ -1380,12 +1379,12 @@ static int CheckRemoteFile(TRANSPACKET *Pkt, std::vector<FILELIST> const& ListLi
 
 
 // アップロード／ダウンロードファイル名入力ダイアログ
-static bool UpDownAsDialog(std::wstring& name, int win) {
+static bool UpDownAsDialog(std::wstring& name, int win) noexcept {
 	struct Data {
 		using result_t = bool;
 		std::wstring& name;
 		int win;
-		Data(std::wstring& name, int win) : name{ name }, win{ win } {}
+		Data(std::wstring& name, int win) noexcept : name{ name }, win{ win } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SetText(hDlg, GetString(win == WIN_LOCAL ? IDS_MSGJPN064 : IDS_MSGJPN065));
 			SendDlgItemMessageW(hDlg, UPDOWNAS_NEW, EM_LIMITTEXT, FMAX_PATH, 0);
@@ -1503,7 +1502,7 @@ static void DelNotifyAndDo(FILELIST const& Dt, int Win, int* Sw, int* Flg, std::
 			SetText(hDlg, DELETE_TEXT, path);
 			return TRUE;
 		}
-		void OnCommand(HWND hDlg, WORD id) {
+		void OnCommand(HWND hDlg, WORD id) noexcept {
 			switch (id) {
 			case IDOK:
 				EndDialog(hDlg, YES);
@@ -1653,12 +1652,12 @@ void MoveRemoteFileProc(int drop_index)
 	struct Data {
 		using result_t = bool;
 		std::wstring const& file;
-		Data(std::wstring const& file) : file{ file } {}
-		INT_PTR OnInit(HWND hDlg) {
+		Data(std::wstring const& file) noexcept : file{ file } {}
+		INT_PTR OnInit(HWND hDlg) noexcept {
 			SetText(hDlg, COMMON_TEXT, file);
 			return TRUE;
 		}
-		static void OnCommand(HWND hDlg, WORD id) {
+		static void OnCommand(HWND hDlg, WORD id) noexcept {
 			switch (id) {
 			case IDOK:
 				EndDialog(hDlg, true);
@@ -1668,7 +1667,7 @@ void MoveRemoteFileProc(int drop_index)
 				break;
 			}
 		}
-		static INT_PTR OnMessage(HWND hDlg, UINT uMsg, WPARAM, LPARAM) {
+		static INT_PTR OnMessage(HWND hDlg, UINT uMsg, WPARAM, LPARAM) noexcept {
 			if (uMsg == WM_SHOWWINDOW)
 				SendDlgItemMessageW(hDlg, COMMON_TEXT, EM_SETSEL, 0, 0);
 			return 0;
@@ -1795,7 +1794,7 @@ void MkdirProc(void)
 *----------------------------------------------------------------------------*/
 void ChangeDirComboProc(HWND hWnd) {
 	CancelFlg = NO;
-	if (auto i = (int)SendMessageW(hWnd, CB_GETCURSEL, 0, 0); i != CB_ERR) {
+	if (auto const i = (int)SendMessageW(hWnd, CB_GETCURSEL, 0, 0); i != CB_ERR) {
 		auto length = SendMessageW(hWnd, CB_GETLBTEXTLEN, i, 0);
 		std::wstring text(length, L'\0');
 		length = SendMessageW(hWnd, CB_GETLBTEXT, i, (LPARAM)data(text));
@@ -1984,7 +1983,7 @@ std::optional<std::wstring> ChmodDialog(std::wstring const& attr) {
 			SendDlgItemMessageW(hDlg, PERM_NOW, EM_LIMITTEXT, 4, 0);
 			SetText(hDlg, PERM_NOW, attr);
 			if (!empty(attr) && std::iswdigit(attr[0]))
-				for (auto value = stoi(attr, nullptr, 16); auto [bit, id] : map)
+				for (auto const value = stoi(attr, nullptr, 16); auto [bit, id] : map)
 					if (value & bit)
 						SendDlgItemMessageW(hDlg, id, BM_SETCHECK, BST_CHECKED, 0);
 			return TRUE;
@@ -2065,12 +2064,12 @@ void CalcFileSizeProc() {
 	struct SizeNotify {
 		using result_t = int;
 		int win;
-		SizeNotify(int win) : win{ win } {}
+		SizeNotify(int win) noexcept : win{ win } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SetText(hDlg, FSNOTIFY_TITLE, GetString(win == WIN_LOCAL ? IDS_MSGJPN074 : IDS_MSGJPN075));
 			return TRUE;
 		}
-		void OnCommand(HWND hDlg, WORD id) {
+		void OnCommand(HWND hDlg, WORD id) noexcept {
 			switch (id) {
 			case IDOK:
 				EndDialog(hDlg, SendDlgItemMessageW(hDlg, FSNOTIFY_SEL_ONLY, BM_GETCHECK, 0, 0) == 1 ? NO : YES);
@@ -2085,13 +2084,13 @@ void CalcFileSizeProc() {
 		using result_t = int;
 		int win;
 		uintmax_t size;
-		Size(int win, uintmax_t size) : win{ win }, size{ size } {}
+		Size(int win, uintmax_t size) noexcept : win{ win }, size{ size } {}
 		INT_PTR OnInit(HWND hDlg) {
 			SetText(hDlg, FSIZE_TITLE, GetString(win == WIN_LOCAL ? IDS_MSGJPN076 : IDS_MSGJPN077));
 			SetText(hDlg, FSIZE_SIZE, MakeSizeString(size));
 			return TRUE;
 		}
-		void OnCommand(HWND hDlg, WORD id) {
+		void OnCommand(HWND hDlg, WORD id) noexcept {
 			switch (id) {
 			case IDOK:
 			case IDCANCEL:
@@ -2100,9 +2099,9 @@ void CalcFileSizeProc() {
 			}
 		}
 	};
-	int Win = GetFocus() == GetLocalHwnd() ? WIN_LOCAL : WIN_REMOTE;
+	int const Win = GetFocus() == GetLocalHwnd() ? WIN_LOCAL : WIN_REMOTE;
 	CancelFlg = NO;
-	if (auto All = Dialog(GetFtpInst(), filesize_notify_dlg, GetMainHwnd(), SizeNotify{ Win }); All != NO_ALL)
+	if (auto const All = Dialog(GetFtpInst(), filesize_notify_dlg, GetMainHwnd(), SizeNotify{ Win }); All != NO_ALL)
 		if (Win == WIN_LOCAL || CheckClosedAndReconnect() == FFFTP_SUCCESS) {
 			std::vector<FILELIST> ListBase;
 			MakeSelectedFileList(Win, YES, All, ListBase, &CancelFlg);
@@ -2116,7 +2115,7 @@ void CalcFileSizeProc() {
 
 
 // ディレクトリ移動失敗時のエラーを表示
-void DispCWDerror(HWND hWnd) {
+void DispCWDerror(HWND hWnd) noexcept {
 	Dialog(GetFtpInst(), cwderr_dlg, hWnd);
 }
 
@@ -2187,7 +2186,7 @@ int ProcForNonFullpath(std::shared_ptr<SocketContext> cSkt, std::wstring& Path, 
 	if (AskNoFullPathMode() == YES) {
 		auto Tmp = AskHostType() == HTYPE_VMS ? ReformToVMSstyleDirName(std::wstring{ GetUpperDirEraseTopSlash(Path) }) : AskHostType() == HTYPE_STRATUS ? std::wstring{ GetUpperDirEraseTopSlash(Path) } : std::wstring{ GetUpperDir(Path) };
 		if (Tmp != CurDir) {
-			if (int code = std::get<0>(Command(cSkt, CancelCheckWork, L"CWD {}"sv, Tmp)); code / 100 != FTP_COMPLETE) {
+			if (int const code = std::get<0>(Command(cSkt, CancelCheckWork, L"CWD {}"sv, Tmp)); code / 100 != FTP_COMPLETE) {
 				DispCWDerror(hWnd);
 				Sts = FFFTP_FAIL;
 			} else
@@ -2202,7 +2201,7 @@ int ProcForNonFullpath(std::shared_ptr<SocketContext> cSkt, std::wstring& Path, 
 // ディレクトリ名をVAX VMSスタイルに変換する
 //   ddd:[xxx.yyy]/rrr/ppp  --> ddd:[xxx.yyy.rrr.ppp]
 static std::wstring ReformToVMSstyleDirName(std::wstring&& path) {
-	if (auto btm = path.find(L']'); btm != std::wstring::npos) {
+	if (auto const btm = path.find(L']'); btm != std::wstring::npos) {
 		std::replace(begin(path) + btm, end(path), L'/', L'.');
 		path.erase(begin(path) + btm);
 		if (path.ends_with(L'.'))
@@ -2221,7 +2220,7 @@ static std::wstring ReformToVMSstylePathName(std::wstring_view path) {
 
 
 // ファイル名に使えない文字がないかチェックし名前を変更する
-static std::wstring RenameUnuseableName(std::wstring&& filename) {
+static std::wstring RenameUnuseableName(std::wstring&& filename) noexcept {
 	for (;;) {
 		if (filename.find_first_of(LR"(:*?<>|"\)"sv) == std::wstring::npos)
 			return filename;

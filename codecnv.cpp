@@ -19,7 +19,7 @@ static auto convert(std::string_view input, DWORD incp) {
 	for (std::wstring output;; ++scale) {
 		auto inlen = size_as<INT>(input), outlen = inlen * scale;
 		output.resize(outlen);
-		if (auto hr = convertINetMultiByteToUnicode(&mode, incp, data(input), &inlen, data(output), &outlen); hr == S_OK && inlen == size_as<INT>(input)) {
+		if (auto const hr = convertINetMultiByteToUnicode(&mode, incp, data(input), &inlen, data(output), &outlen); hr == S_OK && inlen == size_as<INT>(input)) {
 			output.resize(outlen);
 			return output;
 		}
@@ -32,7 +32,7 @@ static auto convert(std::wstring_view input, DWORD outcp) {
 	for (std::string output;; ++scale) {
 		auto inlen = size_as<INT>(input), outlen = inlen * scale;
 		output.resize(outlen);
-		if (auto hr = convertINetUnicodeToMultiByte(&mode, outcp, data(input), &inlen, data(output), &outlen); hr == S_OK && inlen == size_as<INT>(input)) {
+		if (auto const hr = convertINetUnicodeToMultiByte(&mode, outcp, data(input), &inlen, data(output), &outlen); hr == S_OK && inlen == size_as<INT>(input)) {
 			output.resize(outlen);
 			return output;
 		}
@@ -107,7 +107,7 @@ static auto tohex(boost::cmatch const& m) {
 	static char hex[] = "0123456789abcdef";
 	std::string converted;
 	for (auto it = m[0].first; it != m[0].second; ++it) {
-		unsigned char ch = *it;
+		unsigned char const ch = *it;
 		converted += ':';
 		converted += hex[ch >> 4];
 		converted += hex[ch & 15];
@@ -149,7 +149,7 @@ std::string CodeConverter::Convert(std::string_view input) {
 		// 0 : entire, 1 : kanji range, 2 : latest escape sequence
 		static boost::regex re{ R"(^([\x00-\xFF]*(\x1B\([BHIJ]|\x1B\$(?:[@B]|\([DOPQ]))(?:[\x00-\xFF]{2})*))" };
 		if (boost::smatch m; boost::regex_search(rest, m, re)) {
-			auto isKanji = *(m[2].first + 1) == '$';
+			auto const isKanji = *(m[2].first + 1) == '$';
 			auto source = isKanji ? m[1].str() : rest;
 			rest = isKanji ? m[2].str() + m.suffix().str() : m[2];
 			switch (outcode) {

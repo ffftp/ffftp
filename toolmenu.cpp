@@ -110,15 +110,15 @@ static constexpr TBBUTTON remoteButtons[] = {
 };
 
 
-static HBITMAP GetImage(int iamgeId) {
+static HBITMAP GetImage(int iamgeId) noexcept {
 	HBITMAP resized = 0;
 	if (auto original = (HBITMAP)LoadImageW(GetFtpInst(), MAKEINTRESOURCEW(iamgeId), IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS)) {
 		if (auto dc = GetDC(0)) {
 			if (auto src = CreateCompatibleDC(dc)) {
 				if (auto dest = CreateCompatibleDC(dc)) {
 					if (BITMAP bitmap; GetObjectW(original, sizeof(BITMAP), &bitmap) > 0) {
-						auto width = bitmap.bmWidth / 64 * 16;
-						auto height = bitmap.bmHeight / 64 * 16;
+						auto const width = bitmap.bmWidth / 64 * 16;
+						auto const height = bitmap.bmHeight / 64 * 16;
 						if (resized = CreateCompatibleBitmap(dc, width, height)) {
 							auto hSrcOld = SelectObject(src, original);
 							auto hDstOld = SelectObject(dest, resized);
@@ -140,7 +140,7 @@ static HBITMAP GetImage(int iamgeId) {
 }
 
 
-static LRESULT CALLBACK IgnoreRightClick(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR, DWORD_PTR) {
+static LRESULT CALLBACK IgnoreRightClick(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR, DWORD_PTR) noexcept {
 	switch (uMsg) {
 	case WM_RBUTTONDBLCLK:
 	case WM_RBUTTONDOWN:
@@ -174,7 +174,7 @@ static LRESULT CALLBACK HistoryEdit(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 }
 
 
-static auto CreateToolbar(DWORD ws, UINT id, int bitmaps, HBITMAP image, const TBBUTTON* buttons, int size, int x, int y, int width, int height) {
+static auto CreateToolbar(DWORD ws, UINT id, int bitmaps, HBITMAP image, const TBBUTTON* buttons, int size, int x, int y, int width, int height) noexcept {
 	ws |= WS_CHILD | WS_VISIBLE | TBSTYLE_TOOLTIPS | TBSTYLE_FLAT;
 	auto toolbar = CreateWindowExW(0, TOOLBARCLASSNAMEW, nullptr, ws, 0, 0, 0, 0, GetMainHwnd(), (HMENU)UIntToPtr(id), 0, nullptr);
 	if (toolbar) {
@@ -190,7 +190,7 @@ static auto CreateToolbar(DWORD ws, UINT id, int bitmaps, HBITMAP image, const T
 }
 
 
-static std::tuple<HWND, HWND> CreateComboBox(HWND toolbar, DWORD style, int width, int menuId, bool isLocal, HFONT font) {
+static std::tuple<HWND, HWND> CreateComboBox(HWND toolbar, DWORD style, int width, int menuId, bool isLocal, HFONT font) noexcept {
 	style |= WS_CHILD | WS_VISIBLE | WS_BORDER | WS_VSCROLL | CBS_DROPDOWN | CBS_AUTOHSCROLL;
 	RECT rect;
 	SendMessageW(toolbar, TB_GETITEMRECT, 3, (LPARAM)&rect);
@@ -248,7 +248,7 @@ bool MakeToolBarWindow() {
 
 
 // ツールバーを削除
-void DeleteToolBarWindow() {
+void DeleteToolBarWindow() noexcept {
 	if (hWndTbarMain != NULL)
 		DestroyWindow(hWndTbarMain);
 	if (hWndTbarLocal != NULL)
@@ -263,55 +263,55 @@ void DeleteToolBarWindow() {
 
 
 // メインのツールバーのウインドウハンドルを返す
-HWND GetMainTbarWnd() {
+HWND GetMainTbarWnd() noexcept {
 	return hWndTbarMain;
 }
 
 
 // ローカル側のヒストリウインドウのウインドウハンドルを返す
-HWND GetLocalHistHwnd() {
+HWND GetLocalHistHwnd() noexcept {
 	return hWndDirLocal;
 }
 
 
 // ホスト側のヒストリウインドウのウインドウハンドルを返す
-HWND GetRemoteHistHwnd() {
+HWND GetRemoteHistHwnd() noexcept {
 	return hWndDirRemote;
 }
 
 
 // ローカル側のヒストリエディットのウインドウハンドルを返す
-HWND GetLocalHistEditHwnd() {
+HWND GetLocalHistEditHwnd() noexcept {
 	return hWndDirLocalEdit;
 }
 
 
 // ホスト側のヒストリエディットのウインドウハンドルを返す
-HWND GetRemoteHistEditHwnd() {
+HWND GetRemoteHistEditHwnd() noexcept {
 	return hWndDirRemoteEdit;
 }
 
 
 // ローカル側のツールバーのウインドウハンドルを返す
-HWND GetLocalTbarWnd() {
+HWND GetLocalTbarWnd() noexcept {
 	return hWndTbarLocal;
 }
 
 
 // ホスト側のツールバーのウインドウハンドルを返す
-HWND GetRemoteTbarWnd() {
+HWND GetRemoteTbarWnd() noexcept {
 	return hWndTbarRemote;
 }
 
 
 // ツールボタン／メニューのハイド処理
-void MakeButtonsFocus() {
+void MakeButtonsFocus() noexcept {
 	if (HideUI == 0) {
 		auto focus = GetFocus();
-		auto connected = AskConnecting() == YES;
-		auto selected = 0 < GetSelectedCount(focus == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL);
-		auto transferable = connected && selected;
-		auto operatable = focus == GetLocalHwnd() || connected;
+		auto const connected = AskConnecting() == YES;
+		auto const selected = 0 < GetSelectedCount(focus == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL);
+		auto const transferable = connected && selected;
+		auto const operatable = focus == GetLocalHwnd() || connected;
 		auto menu = GetMenu(GetMainHwnd());
 
 		for (auto menuId : { MENU_BMARK_ADD, MENU_BMARK_ADD_LOCAL, MENU_BMARK_ADD_BOTH, MENU_BMARK_EDIT, MENU_DIRINFO, MENU_MIRROR_UPLOAD, MENU_MIRROR_DOWNLOAD, MENU_DOWNLOAD_NAME })
@@ -357,15 +357,15 @@ void MakeButtonsFocus() {
 }
 
 
-static void EnableMenu(HWND main, bool enabled) {
+static void EnableMenu(HWND main, bool enabled) noexcept {
 	auto menu = GetMenu(main);
-	for (int i = 0, count = GetMenuItemCount(menu); i < count; i++)
+	for (int const i : std::views::iota(0, GetMenuItemCount(menu)))
 		EnableMenuItem(menu, i, MF_BYPOSITION | (enabled ? MF_ENABLED : MF_GRAYED));
 	DrawMenuBar(main);
 }
 
 
-static void EnableToolbar(HWND toolbar, const TBBUTTON* buttons, int size, bool enabled) {
+static void EnableToolbar(HWND toolbar, const TBBUTTON* buttons, int size, bool enabled) noexcept {
 	for (int i = 0; i < size; i++)
 		if ((buttons[i].fsState & TBSTATE_ENABLED) && buttons[i].idCommand != MENU_ABORT)
 			SendMessageW(toolbar, TB_ENABLEBUTTON, buttons[i].idCommand, MAKELPARAM(enabled, 0));
@@ -409,7 +409,7 @@ void EnableUserOpe() {
 
 
 // ユーザの操作が禁止されているかどうかを返す
-bool AskUserOpeDisabled() {
+bool AskUserOpeDisabled() noexcept {
 	return 0 < HideUI;
 }
 
@@ -419,7 +419,7 @@ bool AskUserOpeDisabled() {
 *===================================================*/
 
 // 転送モードを設定する
-void SetTransferTypeImm(int Mode) {
+void SetTransferTypeImm(int Mode) noexcept {
 	TmpTransMode = Mode;
 	HideHostKanjiButton();
 	HideLocalKanjiButton();
@@ -449,7 +449,7 @@ void DispTransferType() {
 
 
 // 設定上の転送モードを返す
-int AskTransferType() {
+int AskTransferType() noexcept {
 	return TmpTransMode;
 }
 
@@ -467,7 +467,7 @@ int AskTransferTypeAssoc(std::wstring_view path, int Type) {
 
 
 // 現在の転送モードがレジストリに保存される
-void SaveTransferType() {
+void SaveTransferType() noexcept {
 	TransMode = TmpTransMode;
 }
 
@@ -510,14 +510,14 @@ void DispHostKanjiCode() {
 
 
 // ホストの漢字モードを返す
-int AskHostKanjiCode() {
+int AskHostKanjiCode() noexcept {
 	return TmpHostKanjiCode;
 }
 
 
 // 漢字モードボタンのハイド処理を行う
-void HideHostKanjiButton() {
-	auto ascii = TmpTransMode != TYPE_I;
+void HideHostKanjiButton() noexcept {
+	auto const ascii = TmpTransMode != TYPE_I;
 	for (auto menuId : { MENU_KNJ_SJIS, MENU_KNJ_EUC, MENU_KNJ_JIS, MENU_KNJ_UTF8N, MENU_KNJ_UTF8BOM, MENU_KNJ_NONE })
 		SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, menuId, MAKELPARAM(ascii, 0));
 
@@ -566,13 +566,13 @@ void DispLocalKanjiCode() {
 }
 
 
-int AskLocalKanjiCode() {
+int AskLocalKanjiCode() noexcept {
 	return TmpLocalKanjiCode;
 }
 
 
-void HideLocalKanjiButton() {
-	auto ascii = TmpTransMode != TYPE_I;
+void HideLocalKanjiButton() noexcept {
+	auto const ascii = TmpTransMode != TYPE_I;
 	for (auto menuId : { MENU_L_KNJ_SJIS, MENU_L_KNJ_EUC, MENU_L_KNJ_JIS, MENU_L_KNJ_UTF8N, MENU_L_KNJ_UTF8BOM })
 		SendMessageW(hWndTbarMain, TB_ENABLEBUTTON, menuId, MAKELPARAM(ascii, 0));
 	if (ascii) {
@@ -595,7 +595,7 @@ void HideLocalKanjiButton() {
 }
 
 
-void SaveLocalKanjiCode() {
+void SaveLocalKanjiCode() noexcept {
 	LocalKanjiCode = TmpLocalKanjiCode;
 }
 
@@ -605,26 +605,26 @@ void SaveLocalKanjiCode() {
 *===================================================*/
 
 // ホストの半角変換モードを設定する
-void SetHostKanaCnvImm(int Mode) {
+void SetHostKanaCnvImm(int Mode) noexcept {
 	TmpHostKanaCnv = Mode;
 	DispHostKanaCnv();
 }
 
 
 // ホストの半角変換モードを反転する
-void SetHostKanaCnv() {
+void SetHostKanaCnv() noexcept {
 	SetHostKanaCnvImm(TmpHostKanaCnv ^ 1);
 }
 
 
 // ホストの半角変換モードにしたがってボタンを表示する
-void DispHostKanaCnv() {
+void DispHostKanaCnv() noexcept {
 	SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_KANACNV, MAKELONG(TmpHostKanaCnv != 0, 0));
 }
 
 
 // ホストの半角変換モードを返す
-int AskHostKanaCnv() {
+int AskHostKanaCnv() noexcept {
 	return TmpHostKanaCnv;
 }
 
@@ -634,13 +634,13 @@ int AskHostKanaCnv() {
 *===================================================*/
 
 // ソート方法をセットする
-void SetSortTypeImm(HostSort const& sort) {
+void SetSortTypeImm(HostSort const& sort) noexcept {
 	TmpSort = sort;
 }
 
 
 // リストビューのタブクリックによるソート方法のセット
-void SetSortTypeByColumn(int Win, int Tab) {
+void SetSortTypeByColumn(int Win, int Tab) noexcept {
 	if (Win == WIN_LOCAL) {
 		TmpSort.LocalFile = (TmpSort.LocalFile & SORT_MASK_ORD) == Tab ? TmpSort.LocalFile ^ SORT_GET_ORD : Tab;
 		TmpSort.LocalDirectory = Tab == SORT_NAME || Tab == SORT_DATE ? TmpSort.LocalFile : SORT_NAME;
@@ -652,19 +652,19 @@ void SetSortTypeByColumn(int Win, int Tab) {
 
 
 // ソート方法を返す
-HostSort const& AskSortType() {
+HostSort const& AskSortType() noexcept {
 	return TmpSort;
 }
 
 
 // ホストごとにソートを保存するかどうかをセットする
-void SetSaveSortToHost(int Sw) {
+void SetSaveSortToHost(int Sw) noexcept {
 	SortSave = Sw;
 }
 
 
 // ホストごとにソートを保存するかどうかを返す
-int AskSaveSortToHost() {
+int AskSaveSortToHost() noexcept {
 	return SortSave;
 }
 
@@ -674,8 +674,8 @@ int AskSaveSortToHost() {
 *===================================================*/
 
 // リストモードにしたがってボタンを表示する
-void DispListType() {
-	auto list = ListType == LVS_LIST;
+void DispListType() noexcept {
+	auto const list = ListType == LVS_LIST;
 	auto menu = GetMenu(GetMainHwnd());
 	SendMessageW(hWndTbarMain, TB_CHECKBUTTON, list ? MENU_LIST : MENU_REPORT, MAKELPARAM(true, 0));
 	CheckMenuItem(menu, MENU_LIST, list ? MF_CHECKED : MF_UNCHECKED);
@@ -688,28 +688,28 @@ void DispListType() {
 *===================================================*/
 
 // 転送モードを設定する
-void SetSyncMoveMode(int Mode) {
+void SetSyncMoveMode(int Mode) noexcept {
 	SyncMove = Mode;
 	DispSyncMoveMode();
 }
 
 
 // フォルダ同時移動モードを切り替える
-void ToggleSyncMoveMode() {
+void ToggleSyncMoveMode() noexcept {
 	SetSyncMoveMode(SyncMove ^ 1);
 }
 
 
 // フォルダ同時移動を行うかどうかをによってメニュー／ボタンを表示
-void DispSyncMoveMode() {
-	auto sync = SyncMove != 0;
+void DispSyncMoveMode() noexcept {
+	auto const sync = SyncMove != 0;
 	SendMessageW(hWndTbarMain, TB_CHECKBUTTON, MENU_SYNC, MAKELPARAM(sync, 0));
 	CheckMenuItem(GetMenu(GetMainHwnd()), MENU_SYNC, sync ? MF_CHECKED : MF_UNCHECKED);
 }
 
 
 // フォルダ同時移動モードを返す
-int AskSyncMoveMode() {
+int AskSyncMoveMode() noexcept {
 	return SyncMove;
 }
 
@@ -740,19 +740,19 @@ void SetLocalDirHist(fs::path const& path) {
 
 
 // ローカルのカレントディレクトリを返す
-fs::path const& AskLocalCurDir() {
+fs::path const& AskLocalCurDir() noexcept {
 	return LocalCurDir;
 }
 
 
 // ホストのカレントディレクトリを返す
-std::wstring const& AskRemoteCurDir() {
+std::wstring const& AskRemoteCurDir() noexcept {
 	return RemoteCurDir;
 }
 
 
 // カレントディレクトリを設定する
-void SetCurrentDirAsDirHist() {
+void SetCurrentDirAsDirHist() noexcept {
 	std::error_code ec;
 	fs::current_path(LocalCurDir, ec);
 }
@@ -763,7 +763,7 @@ void SetCurrentDirAsDirHist() {
 *===================================================*/
 
 // ドットファイルを表示するかどうかをメニューに表示する
-void DispDotFileMode() {
+void DispDotFileMode() noexcept {
 	CheckMenuItem(GetMenu(GetMainHwnd()), MENU_DOTFILE, DotFile == YES ? MF_CHECKED : MF_UNCHECKED);
 }
 
@@ -772,10 +772,10 @@ void DispDotFileMode() {
 void ShowPopupMenu(int Win, int Pos) {
 	if (HideUI != 0)
 		return;
-	auto selectCount = GetSelectedCount(Win);
-	auto connecting = AskConnecting() == YES;
-	auto selecting = 0 < selectCount;
-	auto canOpen = selectCount == 1 && (Win == WIN_LOCAL || connecting);
+	auto const selectCount = GetSelectedCount(Win);
+	auto const connecting = AskConnecting() == YES;
+	auto const selecting = 0 < selectCount;
+	auto const canOpen = selectCount == 1 && (Win == WIN_LOCAL || connecting);
 	auto menu = LoadMenuW(GetFtpInst(), MAKEINTRESOURCEW(popup_menu));
 	auto submenu = GetSubMenu(menu, Win);
 	EnableMenuItem(submenu, MENU_OPEN, canOpen ? 0 : MF_GRAYED);

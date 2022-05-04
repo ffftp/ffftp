@@ -55,7 +55,7 @@ static int Oss = NO;  /* OSS ファイルシステムへアクセスしている
 
 // 接続しているホストを返す
 //   TODO: GetConnectingHost()との違いがよくわからない
-HOSTDATA const& GetCurHost() {
+HOSTDATA const& GetCurHost() noexcept {
 	return CurHost;
 }
 
@@ -123,7 +123,7 @@ void ConnectProc(int Type, int Num)
 				ReSortDispList(WIN_LOCAL, &CancelFlg);
 			}
 
-			int Save = empty(CurHost.PassWord) ? NO : YES;
+			int const Save = empty(CurHost.PassWord) ? NO : YES;
 
 			DisableUserOpe();
 			CmdCtrlSocket = DoConnect(&CurHost, CurHost.HostAdrs, CurHost.UserName, CurHost.PassWord, CurHost.Account, CurHost.Port, CurHost.FireWall, Save, CurHost.Security, &CancelFlg);
@@ -201,7 +201,7 @@ void QuickConnectProc() {
 		std::wstring password;
 		bool firewall = false;
 		bool passive = false;
-		INT_PTR OnInit(HWND hDlg) {
+		INT_PTR OnInit(HWND hDlg) noexcept {
 			SendDlgItemMessageW(hDlg, QHOST_HOST, CB_LIMITTEXT, FMAX_PATH, 0);
 			SetText(hDlg, QHOST_HOST, L"");
 			SendDlgItemMessageW(hDlg, QHOST_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
@@ -523,17 +523,8 @@ int AskHostType() {
 }
 
 
-/*----- 接続しているホストでフルパスでファイルアクセスしないかどうかを返す ----
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int フルパスでアクセスしない (YES=フルパス禁止/NO)
-*----------------------------------------------------------------------------*/
-
-int AskNoFullPathMode(void)
-{
+// 接続しているホストでフルパスでファイルアクセスしないかどうかを返す
+int AskNoFullPathMode() noexcept {
 	if(CurHost.HostType == HTYPE_VMS)
 		return(YES);
 	else
@@ -657,13 +648,13 @@ static int ReConnectSkt(std::shared_ptr<SocketContext>& Skt) {
 
 
 // コマンドコントロールソケットを返す
-std::shared_ptr<SocketContext> AskCmdCtrlSkt() {
+std::shared_ptr<SocketContext> AskCmdCtrlSkt() noexcept {
 	return CmdCtrlSocket;
 }
 
 
 // 転送コントロールソケットを返す
-std::shared_ptr<SocketContext> AskTrnCtrlSkt() {
+std::shared_ptr<SocketContext> AskTrnCtrlSkt() noexcept {
 	return TrnCtrlSocket;
 }
 
@@ -694,7 +685,7 @@ void SktShareProh(void)
 
 // コマンド／転送コントロールソケットの共有が解除されているかチェック
 //   YES=共有解除/NO=共有
-int AskShareProh() {
+int AskShareProh() noexcept {
 	return CmdCtrlSocket == TrnCtrlSocket || !TrnCtrlSocket ? NO : YES;
 }
 
@@ -736,14 +727,14 @@ void DisconnectProc(void)
 }
 
 
-void DisconnectSet() {
+void DisconnectSet() noexcept {
 	CmdCtrlSocket.reset();
 	TrnCtrlSocket.reset();
 }
 
 
 // ホストに接続中かどうかを返す
-int AskConnecting() {
+int AskConnecting() noexcept {
 	return TrnCtrlSocket ? YES : NO;
 }
 
@@ -766,17 +757,8 @@ int SetOSS(int wkOss)
 	return(Oss);
 }
 
-/*----- OSS ファイルシステムにアクセスしているかどうかを返す ------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int ステータス (YES/NO)
-*----------------------------------------------------------------------------*/
-
-int AskOSS(void)
-{
+// OSS ファイルシステムにアクセスしているかどうかを返す
+int AskOSS() noexcept {
 	return(Oss);
 }
 #endif /* HAVE_TANDEM */
@@ -847,7 +829,7 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 			if (ContSock = connectsock(Host, std::move(tempHost), tempPort, CancelCheckWork)) {
 				// バッファを無効
 #ifdef DISABLE_CONTROL_NETWORK_BUFFERS
-				int BufferSize = 0;
+				constexpr int BufferSize = 0;
 				setsockopt(ContSock->handle, SOL_SOCKET, SO_SNDBUF, (char*)&BufferSize, sizeof(int));
 				setsockopt(ContSock->handle, SOL_SOCKET, SO_RCVBUF, (char*)&BufferSize, sizeof(int));
 #endif
@@ -919,8 +901,8 @@ static std::shared_ptr<SocketContext> DoConnectCrypt(int CryptMode, HOSTDATA* Ho
 					{
 						if((Fwall == FWALL_FU_FP_SITE) || (Fwall == FWALL_OPEN))
 						{
-							int index = (Fwall == FWALL_OPEN ? 2 : 0) | (FwallLower == YES ? 1 : 0);
-							auto format = Port == IPPORT_FTP ? L"{} {}"sv : L"{} {} {}"sv;
+							int const index = (Fwall == FWALL_OPEN ? 2 : 0) | (FwallLower == YES ? 1 : 0);
+							auto const format = Port == IPPORT_FTP ? L"{} {}"sv : L"{} {} {}"sv;
 							Sts = std::get<0>(Command(ContSock, CancelCheckWork, format, SiteTbl[index], Host)) / 100;
 						}
 
@@ -1157,7 +1139,7 @@ namespace std {
 	};
 }
 
-static inline auto getaddrinfo(std::wstring const& host, std::wstring const& port, int family = AF_UNSPEC, int flags = AI_NUMERICHOST | AI_NUMERICSERV) {
+static inline auto getaddrinfo(std::wstring const& host, std::wstring const& port, int family = AF_UNSPEC, int flags = AI_NUMERICHOST | AI_NUMERICSERV) noexcept {
 	if (addrinfoW hint{ flags, family }, *ai; GetAddrInfoW(host.c_str(), port.c_str(), &hint, &ai) == 0) {
 		assert(family == AF_INET || family == AF_INET6 ? ai->ai_family == family : true);
 		assert(ai->ai_family == AF_INET && ai->ai_addrlen == sizeof(sockaddr_in) || ai->ai_family == AF_INET6 && ai->ai_addrlen == sizeof(sockaddr_in6));
@@ -1193,9 +1175,8 @@ enum class SocksCommand : uint8_t {
 };
 
 
-static bool SocksSend(std::shared_ptr<SocketContext> s, std::vector<uint8_t> const& buffer, int* CancelCheckWork) {
-	assert(s);
-	if (s->Send(reinterpret_cast<const char*>(data(buffer)), size_as<int>(buffer), 0, CancelCheckWork) != FFFTP_SUCCESS) {
+static bool SocksSend(SocketContext& s, std::vector<uint8_t> const& buffer, int* CancelCheckWork) {
+	if (s.Send(reinterpret_cast<const char*>(data(buffer)), size_as<int>(buffer), 0, CancelCheckWork) != FFFTP_SUCCESS) {
 		Notice(IDS_MSGJPN033, *reinterpret_cast<const unsigned short*>(&buffer[0]));
 		return false;
 	}
@@ -1204,12 +1185,11 @@ static bool SocksSend(std::shared_ptr<SocketContext> s, std::vector<uint8_t> con
 
 
 // SOCKS5の認証を行う
-static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelCheckWork) {
+static bool Socks5Authenticate(SocketContext& s, int* CancelCheckWork) {
 	// RFC 1928 SOCKS Protocol Version 5
 	constexpr uint8_t NO_AUTHENTICATION_REQUIRED = 0;
 	constexpr uint8_t USERNAME_PASSWORD = 2;
 
-	assert(s);
 	std::vector<uint8_t> buffer;
 	if (FwallType == FWALL_SOCKS5_NOAUTH)
 		buffer = { 5, 1, NO_AUTHENTICATION_REQUIRED };						// VER, NMETHODS, METHODS
@@ -1222,7 +1202,7 @@ static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelChec
 	} reply1;
 	static_assert(sizeof reply1 == 2);
 	#pragma pack(pop)
-	if (!SocksSend(s, buffer, CancelCheckWork) || !s->ReadData(reply1, CancelCheckWork)) {
+	if (!SocksSend(s, buffer, CancelCheckWork) || !s.ReadData(reply1, CancelCheckWork)) {
 		Notice(IDS_MSGJPN036);
 		return false;
 	}
@@ -1245,7 +1225,7 @@ static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelChec
 		} reply2;
 		static_assert(sizeof reply2 == 2);
 		#pragma pack(pop)
-		if (!SocksSend(s, buffer, CancelCheckWork) || !s->ReadData(reply2, CancelCheckWork) || reply2.STATUS != 0) {
+		if (!SocksSend(s, buffer, CancelCheckWork) || !s.ReadData(reply2, CancelCheckWork) || reply2.STATUS != 0) {
 			Notice(IDS_MSGJPN037);
 			return false;
 		}
@@ -1258,9 +1238,8 @@ static bool Socks5Authenticate(std::shared_ptr<SocketContext> s, int* CancelChec
 
 
 // SOCKSのコマンドに対するリプライパケットを受信する
-std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext> s, int* CancelCheckWork) {
+std::optional<sockaddr_storage> SocksReceiveReply(SocketContext& s, int* CancelCheckWork) {
 	assert(CurHost.FireWall == YES);
-	assert(s);
 	sockaddr_storage ss;
 	if (FwallType == FWALL_SOCKS4) {
 		#pragma pack(push, 1)
@@ -1272,7 +1251,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 		} reply1;
 		static_assert(sizeof reply1 == 8);
 		#pragma pack(pop)
-		if (!s->ReadData(reply1, CancelCheckWork) || reply1.VN != 0 || reply1.CD != 90) {
+		if (!s.ReadData(reply1, CancelCheckWork) || reply1.VN != 0 || reply1.CD != 90) {
 			Notice(IDS_MSGJPN035);
 			return {};
 		}
@@ -1280,7 +1259,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 		// If the DSTIP in the reply is 0 (the value of constant INADDR_ANY), then the client should replace it by the IP address of the SOCKS server to which the cleint is connected.
 		if (reply1.DSTIP.s_addr == 0) {
 			int namelen = sizeof ss;
-			getpeername(s->handle, reinterpret_cast<sockaddr*>(&ss), &namelen);
+			getpeername(s.handle, reinterpret_cast<sockaddr*>(&ss), &namelen);
 			assert(ss.ss_family == AF_INET && namelen == sizeof(sockaddr_in));
 			reinterpret_cast<sockaddr_in&>(ss).sin_port = reply1.DSTPORT;
 		} else
@@ -1296,7 +1275,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 		} reply2;
 		static_assert(sizeof reply2 == 4);
 		#pragma pack(pop)
-		if (s->ReadData(reply2, CancelCheckWork) && reply2.VER == 5 && reply2.REP == 0) {
+		if (s.ReadData(reply2, CancelCheckWork) && reply2.VER == 5 && reply2.REP == 0) {
 			if (reply2.ATYP == 1) {
 				#pragma pack(push, 1)
 				struct {
@@ -1305,7 +1284,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 				} reply3;
 				static_assert(sizeof reply3 == 6);
 				#pragma pack(pop)
-				if (s->ReadData(reply3, CancelCheckWork)) {
+				if (s.ReadData(reply3, CancelCheckWork)) {
 					reinterpret_cast<sockaddr_in&>(ss) = { AF_INET, reply3.BND_PORT, reply3.BND_ADDR };
 					return ss;
 				}
@@ -1317,7 +1296,7 @@ std::optional<sockaddr_storage> SocksReceiveReply(std::shared_ptr<SocketContext>
 				} reply4;
 				static_assert(sizeof reply4 == 18);
 				#pragma pack(pop)
-				if (s->ReadData(reply4, CancelCheckWork)) {
+				if (s.ReadData(reply4, CancelCheckWork)) {
 					reinterpret_cast<sockaddr_in6&>(ss) = { AF_INET6, reply4.BND_PORT, 0, reply4.BND_ADDR };
 					return ss;
 				}
@@ -1334,7 +1313,7 @@ static void append(std::vector<uint8_t>& buffer, T const& data) {
 	buffer.insert(end(buffer), reinterpret_cast<const uint8_t*>(&data), reinterpret_cast<const uint8_t*>(&data + 1));
 }
 
-static std::optional<sockaddr_storage> SocksRequest(std::shared_ptr<SocketContext> s, SocksCommand cmd, std::variant<sockaddr_storage, std::tuple<std::wstring, int>> const& target, int* CancelCheckWork) {
+static std::optional<sockaddr_storage> SocksRequest(SocketContext& s, SocksCommand cmd, std::variant<sockaddr_storage, std::tuple<std::wstring, int>> const& target, int* CancelCheckWork) {
 	assert(CurHost.FireWall == YES);
 	std::vector<uint8_t> buffer;
 	if (FwallType == FWALL_SOCKS4) {
@@ -1366,7 +1345,7 @@ static std::optional<sockaddr_storage> SocksRequest(std::shared_ptr<SocketContex
 		} else {
 			auto [host, hport] = std::get<1>(target);
 			auto u8host = u8(host);
-			auto nsport = htons(hport);
+			auto const nsport = htons(hport);
 			buffer.push_back(3);													// ATYP
 			buffer.push_back(size_as<uint8_t>(u8host));								// DST.ADDR
 			buffer.insert(end(buffer), begin(u8host), end(u8host));					// DST.ADDR
@@ -1381,7 +1360,7 @@ static std::optional<sockaddr_storage> SocksRequest(std::shared_ptr<SocketContex
 
 std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::reference_wrapper<const SocketContext>> originalTarget, std::wstring&& host, int port, int *CancelCheckWork) {
 	std::variant<sockaddr_storage, std::tuple<std::wstring, int>> target;
-	int Fwall = CurHost.FireWall == YES ? FwallType : FWALL_NONE;
+	int const Fwall = CurHost.FireWall == YES ? FwallType : FWALL_NONE;
 	if (auto ai = getaddrinfo(host, port, Fwall == FWALL_SOCKS4 ? AF_INET : AF_UNSPEC)) {
 		// ホスト名がIPアドレスだった
 		Notice(IDS_MSGJPN017, host, AddressPortToString(ai->ai_addr, ai->ai_addrlen));
@@ -1427,7 +1406,7 @@ std::shared_ptr<SocketContext> connectsock(std::variant<std::wstring_view, std::
 		return {};
 	}
 	if (Fwall == FWALL_SOCKS4 || Fwall == FWALL_SOCKS5_NOAUTH || Fwall == FWALL_SOCKS5_USER) {
-		auto result = SocksRequest(s, SocksCommand::Connect, target, CancelCheckWork);
+		auto result = SocksRequest(*s, SocksCommand::Connect, target, CancelCheckWork);
 		if (!result) {
 			Notice(IDS_MSGJPN023);
 			return {};
@@ -1462,7 +1441,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 		if (listen_skt->Connect(reinterpret_cast<const sockaddr*>(&saListen), salen, CancelCheckWork) == SOCKET_ERROR) {
 			return {};
 		}
-		if (auto result = SocksRequest(listen_skt, SocksCommand::Bind, ctrl_skt->target, CancelCheckWork)) {
+		if (auto result = SocksRequest(*listen_skt, SocksCommand::Bind, ctrl_skt->target, CancelCheckWork)) {
 			saListen = *result;
 		} else {
 			Notice(IDS_MSGJPN023);
@@ -1493,7 +1472,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 		}
 		// TODO: IPv6にUPnP NATは無意味なのでは？
 		if (IsUPnPLoaded() == YES && UPnPEnabled == YES) {
-			auto port = ntohs(saListen.ss_family == AF_INET ? reinterpret_cast<sockaddr_in const&>(saListen).sin_port : reinterpret_cast<sockaddr_in6 const&>(saListen).sin6_port);
+			auto const port = ntohs(saListen.ss_family == AF_INET ? reinterpret_cast<sockaddr_in const&>(saListen).sin_port : reinterpret_cast<sockaddr_in6 const&>(saListen).sin6_port);
 			// TODO: UPnP NATで外部アドレスだけ参照しているが、外部ポートが内部ポートと異なる可能性が十分にあるのでは？
 			if (auto const ExtAdrs = AddPortMapping(AddressToString(saListen), port))
 				if (auto ai = getaddrinfo(*ExtAdrs, port)) {
@@ -1509,7 +1488,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 		status = std::get<0>(Command(ctrl_skt, CancelCheckWork, L"PORT {},{},{},{},{},{}"sv, a[0], a[1], a[2], a[3], p[0], p[1]));
 	} else {
 		auto a = AddressToString(saListen);
-		auto p = reinterpret_cast<sockaddr_in6 const&>(saListen).sin6_port;
+		auto const p = reinterpret_cast<sockaddr_in6 const&>(saListen).sin6_port;
 		status = std::get<0>(Command(ctrl_skt, CancelCheckWork, L"EPRT |2|{}|{}|"sv, a, ntohs(p)));
 	}
 	if (status / 100 != FTP_COMPLETE) {
@@ -1522,17 +1501,7 @@ std::shared_ptr<SocketContext> GetFTPListenSocket(std::shared_ptr<SocketContext>
 }
 
 
-/*----- ホストへ接続処理中かどうかを返す---------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		int ステータス
-*			YES/NO
-*----------------------------------------------------------------------------*/
-
-int AskTryingConnect(void)
-{
-	return(TryConnect);
+// ホストへ接続処理中かどうかを返す
+int AskTryingConnect() noexcept {
+	return TryConnect;
 }

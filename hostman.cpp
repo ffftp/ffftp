@@ -162,7 +162,7 @@ struct HostList {
 				SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
 				CurrentHost = (int)Item.lParam;
 				CopyHostFromList(CurrentHost, &TmpHost);
-				int Level1 = IsNodeGroup(CurrentHost);
+				int const Level1 = IsNodeGroup(CurrentHost);
 				auto set = Level1 == NO && DispHostSetDlg(hDlg);
 				if (!set && Level1 == YES)
 					set = InputDialog(group_dlg, hDlg, 0, TmpHost.HostName, HOST_NAME_LEN + 1);
@@ -189,7 +189,7 @@ struct HostList {
 				TVITEMW Item{ TVIF_PARAM, hItem };
 				SendDlgItemMessageW(hDlg, HOST_LIST, TVM_GETITEMW, TVGN_CARET, (LPARAM)&Item);
 				CurrentHost = (int)Item.lParam;
-				int Level1 = IsNodeGroup(CurrentHost);
+				int const Level1 = IsNodeGroup(CurrentHost);
 				if (Level1 == YES && Dialog(GetFtpInst(), groupdel_dlg, hDlg) || Level1 == NO && Dialog(GetFtpInst(), hostdel_dlg, hDlg)) {
 					DelHostFromList(CurrentHost);
 					if (CurrentHost >= Hosts)
@@ -206,9 +206,9 @@ struct HostList {
 
 				if (CurrentHost > 0) {
 					auto Data1 = GetNode(CurrentHost);
-					int Level1 = Data1->GetLevel();
+					int const Level1 = Data1->GetLevel();
 					auto Data2 = GetNode(CurrentHost - 1);
-					int Level2 = Data2->GetLevel();
+					int const Level2 = Data2->GetLevel();
 					if (Level1 == Level2 && (Data2->Level & SET_LEVEL_GROUP)) {
 						//Data2のchildへ
 						if (Data1->Next != NULL)
@@ -279,7 +279,7 @@ struct HostList {
 				CurrentHost = (int)Item.lParam;
 
 				auto Data1 = GetNode(CurrentHost);
-				int Level1 = Data1->GetLevel();
+				int const Level1 = Data1->GetLevel();
 				std::shared_ptr<HOSTLISTDATA> Data2;
 				int Level2 = SET_LEVEL_SAME;
 				if (CurrentHost < Hosts - 1) {
@@ -655,13 +655,13 @@ int SetHostSort(int Num, HostSort const& sort) {
 
 
 // 現在接続中の設定番号を返す
-int AskCurrentHost() {
+int AskCurrentHost() noexcept {
 	return ConnectingHost;
 }
 
 
 // 現在接続中の設定番号をセットする
-void SetCurrentHost(int Num) {
+void SetCurrentHost(int Num) noexcept {
 	ConnectingHost = Num;
 }
 
@@ -681,7 +681,7 @@ void SetDefaultHost(HOSTDATA* Set) {
 	DefaultHost = *Set;
 }
 
-HostExeptPassword::HostExeptPassword() {
+HostExeptPassword::HostExeptPassword() noexcept {
 	LocalInitDir = DefaultLocalPath;
 }
 
@@ -695,7 +695,7 @@ static void SendAllHostNames(HWND hWnd, int Cur) {
 	std::vector<HTREEITEM> Level(Hosts);
 	auto Pos = HostListTop;
 	for (int i = 0; i < Hosts; i++) {
-		size_t CurLevel = Pos->GetLevel();
+		size_t const CurLevel = Pos->GetLevel();
 		TVINSERTSTRUCTW is{
 			.hParent = CurLevel == 0 ? TVI_ROOT : Level[CurLevel - 1],
 			.hInsertAfter = TVI_LAST,
@@ -745,7 +745,7 @@ void ImportFromWSFTP() {
 						host.HostName = u8({ &line[1], size(line) - 2 });
 						hasHost = true;
 					}
-				} else if (auto pos = line.find('='); hasHost && pos != std::string::npos) {
+				} else if (auto const pos = line.find('='); hasHost && pos != std::string::npos) {
 					auto name = lc(line.substr(0, pos));
 					name.erase(std::remove_if(begin(name), end(name), [](auto ch) { return ch == ' ' || ch == '\t' || ch == '\n'; }), end(name));
 					auto value = line.substr(pos + 1);
@@ -775,7 +775,7 @@ void ImportFromWSFTP() {
 struct General {
 	static constexpr WORD dialogId = hset_main_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
-	static INT_PTR OnInit(HWND hDlg) {
+	static INT_PTR OnInit(HWND hDlg) noexcept {
 		SendDlgItemMessageW(hDlg, HSET_HOST, EM_LIMITTEXT, HOST_NAME_LEN, 0);
 		SendDlgItemMessageW(hDlg, HSET_ADRS, EM_LIMITTEXT, HOST_ADRS_LEN, 0);
 		SendDlgItemMessageW(hDlg, HSET_USER, EM_LIMITTEXT, USER_NAME_LEN, 0);
@@ -830,12 +830,12 @@ struct General {
 		case HSET_ANONYMOUS:
 			if (SendDlgItemMessageW(hDlg, HSET_ANONYMOUS, BM_GETCHECK, 0, 0) == 1) {
 				SetText(hDlg, HSET_USER, L"anonymous");
-				auto wStyle = GetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
+				auto const wStyle = GetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
 				SetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle & ~ES_PASSWORD);
 				SetText(hDlg, HSET_PASS, UserMailAdrs);
 			} else {
 				SetText(hDlg, HSET_USER, L"");
-				auto wStyle = GetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
+				auto const wStyle = GetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE);
 				SetWindowLongPtrW(GetDlgItem(hDlg, HSET_PASS), GWL_STYLE, wStyle | ES_PASSWORD);
 				SetText(hDlg, HSET_PASS, L"");
 			}
@@ -901,7 +901,7 @@ struct KanjiCode {
 	static constexpr DWORD flag = PSP_HASHELP;
 	using KanjiButton = RadioButton<HSET_NO_CNV, HSET_SJIS_CNV, HSET_JIS_CNV, HSET_EUC_CNV, HSET_UTF8N_CNV, HSET_UTF8BOM_CNV>;
 	using NameKanjiButton = RadioButton<HSET_FN_AUTO_CNV, HSET_FN_SJIS_CNV, HSET_FN_JIS_CNV, HSET_FN_EUC_CNV, HSET_FN_SMH_CNV, HSET_FN_SMC_CNV, HSET_FN_UTF8N_CNV, HSET_FN_UTF8HFSX_CNV>;
-	static INT_PTR OnInit(HWND hDlg) {
+	static INT_PTR OnInit(HWND hDlg) noexcept {
 		KanjiButton::Set(hDlg, TmpHost.KanjiCode);
 		SendDlgItemMessageW(hDlg, HSET_HANCNV, BM_SETCHECK, TmpHost.KanaCnv, 0);
 		NameKanjiButton::Set(hDlg, TmpHost.NameKanjiCode);
@@ -922,7 +922,7 @@ struct KanjiCode {
 		}
 		return 0;
 	}
-	static void OnCommand(HWND hDlg, WORD id) {
+	static void OnCommand(HWND hDlg, WORD id) noexcept {
 		switch (id) {
 		case HSET_SJIS_CNV:
 		case HSET_JIS_CNV:
@@ -983,7 +983,7 @@ struct Dialup {
 		}
 		return 0;
 	}
-	static void OnCommand(HWND hDlg, WORD id) {
+	static void OnCommand(HWND hDlg, WORD id) noexcept {
 		switch (id) {
 		case HSET_DIALUP:
 			if (SendDlgItemMessageW(hDlg, HSET_DIALUP, BM_GETCHECK, 0, 0) == 0) {
@@ -1057,7 +1057,7 @@ struct Special {
 		}
 		return 0;
 	}
-	static void OnCommand(HWND hDlg, WORD id) {
+	static void OnCommand(HWND hDlg, WORD id) noexcept {
 		switch (id) {
 		case HSET_CHMOD_NOR:
 			SetText(hDlg, HSET_CHMOD_CMD, Host::DefaultChmod);
@@ -1075,7 +1075,7 @@ struct Special {
 			}
 			break;
 		case HSET_HOSTTYPE:
-			if (auto Num = (int)SendDlgItemMessageW(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0); Num == 2) {
+			if (auto const Num = (int)SendDlgItemMessageW(hDlg, HSET_HOSTTYPE, CB_GETCURSEL, 0, 0); Num == 2) {
 				EnableWindow(GetDlgItem(hDlg, HSET_NLST_R), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_LISTCMD), FALSE);
 				EnableWindow(GetDlgItem(hDlg, HSET_FULLPATH), FALSE);
@@ -1113,7 +1113,7 @@ struct Special {
 struct Encryption {
 	static constexpr WORD dialogId = hset_crypt_dlg;
 	static constexpr DWORD flag = PSP_HASHELP;
-	static INT_PTR OnInit(HWND hDlg) {
+	static INT_PTR OnInit(HWND hDlg) noexcept {
 		SendDlgItemMessageW(hDlg, HSET_NO_ENCRYPTION, BM_SETCHECK, TmpHost.UseNoEncryption, 0);
 		SendDlgItemMessageW(hDlg, HSET_FTPES, BM_SETCHECK, TmpHost.UseFTPES, 0);
 		SendDlgItemMessageW(hDlg, HSET_FTPIS, BM_SETCHECK, TmpHost.UseFTPIS, 0);
@@ -1198,7 +1198,7 @@ struct Feature {
 
 // ホスト設定のプロパティシート
 static bool DispHostSetDlg(HWND hDlg) {
-	auto result = PropSheet<General, Advanced, KanjiCode, Dialup, Special, Encryption, Feature>(hDlg, GetFtpInst(), IDS_HOSTSETTING, PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP);
+	auto const result = PropSheet<General, Advanced, KanjiCode, Dialup, Special, Encryption, Feature>(hDlg, GetFtpInst(), IDS_HOSTSETTING, PSH_NOAPPLYNOW | PSH_NOCONTEXTHELP);
 	return 1 <= result;
 }
 

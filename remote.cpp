@@ -122,17 +122,8 @@ static std::optional<std::wstring> DoPWD() {
 }
 
 
-/*----- PWDコマンドのタイプを初期化する ---------------------------------------
-*
-*	Parameter
-*		なし
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-
-void InitPWDcommand()
-{
+// PWDコマンドのタイプを初期化する
+void InitPWDcommand() noexcept {
 	PwdCommandType = PWD_XPWD;
 }
 
@@ -298,7 +289,7 @@ int DoDirList(std::wstring_view AddOpt, int Num, int* CancelCheckWork) {
 	MainTransPkt.NoTransfer = NO;
 	MainTransPkt.ExistSize = 0;
 	MainTransPkt.hWndTrans = {};
-	auto code = DoDownload(AskCmdCtrlSkt(), MainTransPkt, YES, CancelCheckWork);
+	auto const code = DoDownload(AskCmdCtrlSkt(), MainTransPkt, YES, CancelCheckWork);
 	if (code / 100 >= FTP_CONTINUE)
 		Sound::Error.Play();
 	return code / 100;
@@ -338,8 +329,7 @@ void SwitchOSSProc(void)
 
 // コマンドを送りリプライを待つ
 // ホストのファイル名の漢字コードに応じて、ここで漢字コードの変換を行なう
-std::tuple<int, std::wstring> detail::command(std::shared_ptr<SocketContext> cSkt, int* CancelCheckWork, std::wstring&& cmd) {
-	assert(cSkt);
+std::tuple<int, std::wstring> detail::command(SocketContext& s, int* CancelCheckWork, std::wstring&& cmd) {
 	if (cmd.starts_with(L"PASS "sv))
 		::Notice(IDS_REMOTECMD, L"PASS [xxxxxx]"sv);
 	else {
@@ -352,7 +342,7 @@ std::tuple<int, std::wstring> detail::command(std::shared_ptr<SocketContext> cSk
 	}
 	auto native = ConvertTo(cmd, GetCurHost().CurNameKanjiCode, GetConnectingHost().NameKanaCnv);
 	native += "\r\n"sv;
-	if (cSkt->Send(data(native), size_as<int>(native), 0, CancelCheckWork) != FFFTP_SUCCESS)
+	if (s.Send(data(native), size_as<int>(native), 0, CancelCheckWork) != FFFTP_SUCCESS)
 		return { 429, {} };
-	return cSkt->ReadReply(CancelCheckWork);
+	return s.ReadReply(CancelCheckWork);
 }

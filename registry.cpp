@@ -33,7 +33,7 @@
 static int EncryptSettings = NO;
 
 static inline auto a2w(std::string_view text) {
-	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) { return MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, src, srclen, dst, dstlen); }, text);
+	return convert<wchar_t>([](auto src, auto srclen, auto dst, auto dstlen) noexcept { return MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, src, srclen, dst, dstlen); }, text);
 }
 
 class Config {
@@ -159,15 +159,15 @@ public:
 		Xor(name, data(value), size_as<DWORD>(value), false);
 		WriteStringImpl(name, value, REG_BINARY);
 	}
-	virtual bool DeleteSubKey(std::string_view name) {
+	virtual bool DeleteSubKey(std::string_view name) noexcept(false) {
 		return false;
 	}
-	virtual void DeleteValue(std::string_view name) {
+	virtual void DeleteValue(std::string_view name) noexcept(false) {
 	}
 	bool ReadFont(std::string_view name, HFONT& hfont, LOGFONTW& logfont) {
 		if (std::wstring value; ReadValue(name, value)) {
 			int offset;
-			auto read = swscanf_s(value.c_str(), L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
+			auto const read = swscanf_s(value.c_str(), L"%ld %ld %ld %ld %ld %hhu %hhu %hhu %hhu %hhu %hhu %hhu %hhu %n",
 				&logfont.lfHeight, &logfont.lfWidth, &logfont.lfEscapement, &logfont.lfOrientation, &logfont.lfWeight,
 				&logfont.lfItalic, &logfont.lfUnderline, &logfont.lfStrikeOut, &logfont.lfCharSet,
 				&logfont.lfOutPrecision, &logfont.lfClipPrecision, &logfont.lfQuality, &logfont.lfPitchAndFamily, &offset
@@ -199,8 +199,8 @@ static std::unique_ptr<Config> OpenReg(int type);
 static std::unique_ptr<Config> CreateReg(int type);
 static int CheckPasswordValidity(std::string_view HashSv, int StretchCount);
 static std::string CreatePasswordHash(int stretchCount);
-void SetHashSalt(DWORD salt);
-void SetHashSalt1(void* Salt, int Length);
+void SetHashSalt(DWORD salt) noexcept;
+void SetHashSalt1(void* Salt, int Length) noexcept;
 
 static char SecretKey[FMAX_PATH+1];
 static int SecretKeyLength;
@@ -229,7 +229,7 @@ std::wstring GetMasterPassword() {
 //   PASSWORD_OK : OK
 //   PASSWORD_UNMATCH : パスワード不一致
 //   BAD_PASSWORD_HASH : パスワード確認失敗
-int GetMasterPasswordStatus() {
+int GetMasterPasswordStatus() noexcept {
 	return IsMasterPasswordError;
 }
 
@@ -419,7 +419,7 @@ void SaveRegistry() {
 		unsigned char salt1[16];
 		int salt;
 	} u;
-	auto result = BCrypt(BCRYPT_RNG_ALGORITHM, [&arr = u.salt1](BCRYPT_ALG_HANDLE alg) {
+	auto const result = BCrypt(BCRYPT_RNG_ALGORITHM, [&arr = u.salt1](BCRYPT_ALG_HANDLE alg) {
 		auto const status = BCryptGenRandom(alg, arr, size_as<ULONG>(arr), 0);
 		if (status != STATUS_SUCCESS)
 			Debug(L"BCryptGenRandom() failed: 0x{:08X}.", status);
@@ -533,7 +533,7 @@ void SaveRegistry() {
 bool LoadRegistry() {
 	struct Data {
 		using result_t = int;
-		static void OnCommand(HWND hDlg, WORD cmd, WORD id) {
+		static void OnCommand(HWND hDlg, WORD cmd, WORD id) noexcept {
 			if (cmd == BN_CLICKED)
 				EndDialog(hDlg, id);
 		}
@@ -674,7 +674,7 @@ bool LoadRegistry() {
 
 
 // レジストリの設定値をクリア
-void ClearRegistry() {
+void ClearRegistry() noexcept {
 	SHDeleteKeyW(HKEY_CURRENT_USER, LR"(Software\Sota\FFFTP)");
 }
 
@@ -788,7 +788,7 @@ static_assert(std::popcount(AesBlockSize) == 1);
 // パスワードの暗号化を解く(AES)
 static std::optional<std::string> DecodePassword3(std::string_view encrypted) {
 	if (AesBlockSize * 2 + 1 < size_as<ULONG>(encrypted) && encrypted[AesBlockSize * 2] == ':') {
-		auto encodedLength = (size_as<ULONG>(encrypted) - 1) / 2 - AesBlockSize;
+		auto const encodedLength = (size_as<ULONG>(encrypted) - 1) / 2 - AesBlockSize;
 		std::array<UCHAR, AesBlockSize> iv;
 		for (size_t i = 0; i < size(iv); i++)
 			std::from_chars(data(encrypted) + i * 2, data(encrypted) + i * 2 + 2, iv[i], 16);
@@ -827,7 +827,7 @@ void Config::WritePassword(std::string_view name, std::wstring_view password) {
 		std::vector<UCHAR> buffer((size_t)paddedLength + AesBlockSize, 0);
 		std::copy(begin(plain), end(plain), begin(buffer));
 		/* PADとIV部分を乱数で埋める StrPad[StrLen](が有効な場合) は NUL */
-		if (auto status = BCryptGenRandom(alg, &buffer[(size_t)length + 1], size_as<ULONG>(buffer) - length - 1, 0); status == STATUS_SUCCESS) {
+		if (auto const status = BCryptGenRandom(alg, &buffer[(size_t)length + 1], size_as<ULONG>(buffer) - length - 1, 0); status == STATUS_SUCCESS) {
 			auto encrypted = "0C"s;
 			for (auto i = paddedLength; i < size_as<ULONG>(buffer); i++)
 				encrypted += std::format("{:02x}"sv, buffer[i]);
@@ -985,7 +985,7 @@ static std::unique_ptr<Config> OpenReg(int type) {
 				if (empty(line) || line[0] == '#')
 					continue;
 				if (line[0] == '[') {
-					if (auto pos = line.find(']'); pos != std::string::npos)
+					if (auto const pos = line.find(']'); pos != std::string::npos)
 						line.resize(pos);
 					name = line.substr(1);
 				} else
@@ -1014,7 +1014,7 @@ static std::unique_ptr<Config> CreateReg(int type) {
 static auto HashPassword(int stretchCount) {
 	return HashOpen(BCRYPT_SHA1_ALGORITHM, [stretchCount](auto alg, auto obj, auto hash) {
 		assert(hash.size() == 20);
-		std::string_view password{ SecretKey, (size_t)SecretKeyLength };
+		std::string_view const password{ SecretKey, (size_t)SecretKeyLength };
 		auto result = HashData(alg, obj, hash, password);
 		assert(result);
 		for (int j = 0; j < 5; j++)
@@ -1047,7 +1047,7 @@ static int CheckPasswordValidity(std::string_view HashSv, int StretchCount) {
 		}
 
 	/* Password をハッシュする */
-	auto hash2 = HashPassword(StretchCount);
+	auto const hash2 = HashPassword(StretchCount);
 	return hash1 == hash2 ? PASSWORD_OK : PASSWORD_UNMATCH;
 }
 
@@ -1060,13 +1060,13 @@ static std::string CreatePasswordHash(int stretchCount) {
 	return hash;
 }
 
-void SetHashSalt(DWORD salt) {
+void SetHashSalt(DWORD salt) noexcept {
 	if constexpr (std::endian::native == std::endian::little)
 		salt = _byteswap_ulong(salt);
 	SetHashSalt1(&salt, 4);
 }
 
-void SetHashSalt1(void* Salt, int Length) {
+void SetHashSalt1(void* Salt, int Length) noexcept {
 	if (Salt && 0 < Length)
 		memcpy(SecretKey + strlen(SecretKey) + 1, Salt, Length);
 	SecretKeyLength = (int)strlen(SecretKey) + 1 + Length;
@@ -1213,7 +1213,7 @@ void SaveSettingsToFileZillaXml() {
 }
 
 void SaveSettingsToWinSCPIni() {
-	auto escape = [](std::wstring_view wstr) {
+	auto const escape = [](std::wstring_view wstr) {
 		auto const str = u8(wstr);
 		std::string result;
 		if (std::ranges::any_of(str, [](auto ch) { return ch & 0x80; }))
@@ -1225,11 +1225,11 @@ void SaveSettingsToWinSCPIni() {
 				result += ch;
 		return result;
 	};
-	auto encode = [](std::wstring_view user, std::wstring_view host, std::wstring_view password) {
+	auto const encode = [](std::wstring_view user, std::wstring_view host, std::wstring_view password) {
 		auto str = u8(concat(user, host, password));
 		static_assert((char)~0xA3 == 0x5C);
 		auto result = std::format("A35C{:02X}5C"sv, size_as<unsigned char>(str) ^ 0x5C);
-		for (unsigned char ch : str)
+		for (unsigned char const ch : str)
 			result += std::format("{:02X}"sv, ch ^ 0x5C);
 		return result;
 	};
@@ -1260,13 +1260,13 @@ void SaveSettingsToWinSCPIni() {
 				f << "SynchronizeBrowsing="sv << (Host.SyncMove == YES ? 1 : 0) << '\n';
 				f << "PostLoginCommands="sv << escape(Host.InitCmd) << '\n';
 				if (Host.FireWall == YES) {
-					if (auto method = FwallType == FWALL_SOCKS4 ? 1 : FwallType == FWALL_SOCKS5_USER ? 2 : -1; method != -1)
+					if (auto const method = FwallType == FWALL_SOCKS4 ? 1 : FwallType == FWALL_SOCKS5_USER ? 2 : -1; method != -1)
 						f << "ProxyMethod="sv << method << '\n';
 					f << "ProxyHost="sv << escape(FwallHost) << '\n';
 					f << "ProxyPort="sv << FwallPort << '\n';
 					f << "ProxyUsername="sv << escape(FwallUser) << '\n';
 				}
-				if (auto utf = Host.NameKanjiCode == KANJI_SJIS ? 0 : Host.NameKanjiCode == KANJI_UTF8N ? 1 : -1; utf != -1)
+				if (auto const utf = Host.NameKanjiCode == KANJI_SJIS ? 0 : Host.NameKanjiCode == KANJI_UTF8N ? 1 : -1; utf != -1)
 					f << "Utf="sv << utf << '\n';
 				f << "FtpPasvMode="sv << (Host.Pasv == YES ? 1 : 0) << '\n';
 				if (Host.ListCmdOnly == YES && Host.UseMLSD == NO)
@@ -1278,7 +1278,7 @@ void SaveSettingsToWinSCPIni() {
 					f << "FtpPingType=0\n"sv;
 				f << "Ftps="sv << (Host.UseNoEncryption == YES ? 0 : Host.UseFTPES == YES ? 3 : Host.UseFTPIS == YES ? 1 : 0) << '\n';
 				if (Host.FireWall == YES)
-					if (auto type = FwallType == FWALL_FU_FP_SITE ? 1 : FwallType == FWALL_FU_FP_USER ? 2 : FwallType == FWALL_USER ? 5 : FwallType == FWALL_OPEN ? 3 : -1; type != -1)
+					if (auto const type = FwallType == FWALL_FU_FP_SITE ? 1 : FwallType == FWALL_FU_FP_USER ? 2 : FwallType == FWALL_USER ? 5 : FwallType == FWALL_OPEN ? 3 : -1; type != -1)
 						f << "FtpProxyLogonType="sv << type << '\n';
 				f << "Password="sv << encode(Host.UserName, Host.HostAdrs, Host.PassWord) << '\n';
 				if (Host.FireWall == YES)

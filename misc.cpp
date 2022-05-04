@@ -64,14 +64,14 @@ std::wstring ReplaceAll(std::wstring&& str, wchar_t from, wchar_t to) {
 //   ディレクトリの区切り記号は "\" と "/" の両方が有効
 //   Tandem は . がデリミッタとなる
 std::wstring_view GetFileName(std::wstring_view path) {
-	if (auto pos = path.find_first_of(L':'); pos != std::wstring_view::npos)
+	if (auto const pos = path.find_first_of(L':'); pos != std::wstring_view::npos)
 		path = path.substr(pos + 1);
 	auto delimiter = L"\\/"sv;
 #if defined(HAVE_TANDEM)
 	if (AskHostType() == HTYPE_TANDEM)
 		delimiter = L"\\/."sv;
 #endif
-	if (auto pos = path.find_last_of(delimiter); pos != std::wstring_view::npos)
+	if (auto const pos = path.find_last_of(delimiter); pos != std::wstring_view::npos)
 		path = path.substr(pos + 1);
 	return path;
 }
@@ -133,10 +133,10 @@ fs::path SelectFile(bool open, HWND hWnd, UINT titleId, const wchar_t* initialFi
 	wchar_t buffer[FMAX_PATH + 1];
 	wcscpy_s(buffer, initialFileName);
 	auto const title = GetString(titleId);
-	DWORD flags = (open ? OFN_FILEMUSTEXIST : OFN_EXTENSIONDIFFERENT | OFN_OVERWRITEPROMPT) | OFN_HIDEREADONLY | OFN_PATHMUSTEXIST;
+	DWORD const flags = (open ? OFN_FILEMUSTEXIST : OFN_EXTENSIONDIFFERENT | OFN_OVERWRITEPROMPT) | OFN_HIDEREADONLY | OFN_PATHMUSTEXIST;
 	OPENFILENAMEW ofn{ sizeof(OPENFILENAMEW), hWnd, 0, filter.c_str(), nullptr, 0, 1, buffer, size_as<DWORD>(buffer), nullptr, 0, nullptr, title.c_str(), flags, 0, 0, extension };
 	auto const cwd = fs::current_path();
-	int result = (open ? GetOpenFileNameW : GetSaveFileNameW)(&ofn);
+	int const result = (open ? GetOpenFileNameW : GetSaveFileNameW)(&ofn);
 	fs::current_path(cwd);
 	if (!result)
 		return {};
@@ -162,16 +162,8 @@ fs::path SelectDir(HWND hWnd) {
 
 
 #if defined(HAVE_TANDEM)
-/*----- ファイルサイズからEXTENTサイズの計算を行う ----------------------------
-*
-*	Parameter
-*		LONGLONG Size : ファイルサイズ
-*
-*	Return Value
-*		なし
-*----------------------------------------------------------------------------*/
-void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size)
-{
+// ファイルサイズからEXTENTサイズの計算を行う
+void CalcExtentSize(TRANSPACKET *Pkt, LONGLONG Size) noexcept {
 	LONGLONG extent;
 
 	/* EXTENTS(4,28) MAXEXTENTS 978 */
