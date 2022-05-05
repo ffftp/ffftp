@@ -590,7 +590,7 @@ bool LoadRegistry() {
 		for (auto& [name, variant] : settings)
 			std::visit([&hKey4, name](auto&& ptr) { hKey4->ReadValue(name, *ptr); }, variant);
 
-		if (5600 <= Version) {		// HighDPI廃止のため、古いサイズは読み込まない。
+		if (5700 <= Version) {		// HighDPI廃止のため、古いサイズは読み込まない。
 			for (auto& [name, variant] : sizesettings)
 				std::visit([&hKey4, name](auto&& ptr) { hKey4->ReadValue(name, *ptr); }, variant);
 			hKey4->ReadBinary("LocalColm"sv, LocalTabWidth);
