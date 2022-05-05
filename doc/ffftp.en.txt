@@ -1,9 +1,9 @@
 ============================================================
-[Software Name]  FFFTP Ver.5.6 (FTP Client software)
+[Software Name]  FFFTP Ver.5.7 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018-2022, Kurata Sayuri.
-[Environment]    Windows 10, 8.1, 8, 7, Vista
+[Environment]    Windows 11, 10, 8.1, 7, Vista
 ============================================================
 
 About INI File
@@ -29,13 +29,14 @@ following menu.
 File -> Settings -> Change Master password
 
 
-Changes at 5.6
+Changes at 5.7
 --------------
 
-- Fix problem of disconnect soon. #352, #354
-- Use standard tooltip instead of original implemantation. #350
-- Support Unicode 14.0. #349
-- Refactored codes. #347, #348, #351
+- Remove High DPI code, and use GDI Scaling. #371, #375
+- Fix for mirroring upload. #361
+- Update external libraries. #373
+- Improve code analysis. #370, #374
+- refactoring codes. #110, #357, #359, #360, #372
 
 
 Outline
