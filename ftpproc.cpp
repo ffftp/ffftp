@@ -643,12 +643,8 @@ static int CheckLocalFile(TRANSPACKET *Pkt) noexcept {
 // リモート側のパスから必要なディレクトリを作成
 int MakeDirFromRemotePath(fs::path const& RemoteFile, fs::path const& Old, int FirstAdd) {
 	fs::path path;
-
-	fs::path RemotePath = RemoteFile;
-	RemotePath.remove_filename();
-	fs::path OldPath = Old;
-	OldPath.remove_filename();
-
+	auto const RemotePath = RemoteFile.parent_path();
+	auto const OldPath = Old.parent_path();
 	auto rit = RemotePath.begin(), rend = RemotePath.end();
 	for (auto oit = OldPath.begin(), oend = OldPath.end(); rit != rend && oit != oend && *rit == *oit; ++rit, ++oit)
 		path /= *rit;
