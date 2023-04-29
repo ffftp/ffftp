@@ -36,6 +36,7 @@
 #pragma warning(disable: 26429)		// error C26429: Symbol 'XXX' is never tested for nullness, it can be marked as not_null (f.23).
 #pragma warning(disable: 26432)		// error C26432: If you define or delete any default operation in the type 'XXX', define or delete them all (c.21).
 #pragma warning(disable: 26436)		// error C26436: The type 'XXX' with a virtual function needs either public virtual or protected non-virtual destructor (c.35).
+#pragma warning(disable: 26440)		// error C26440: Function 'XXX' can be declared 'noexcept' (f.6).
 #pragma warning(disable: 26445)		// error C26445: Do not assign gsl::span or std::string_view to a reference. They are cheap to construct and are not owners of the underlying data. (gsl.view).
 #pragma warning(disable: 26446)		// error C26446: Prefer to use gsl::at() instead of unchecked subscript operator (bounds.4).
 #pragma warning(disable: 26447)		// error C26447: The function is declared 'noexcept' but calls function 'XXX' which may throw exceptions (f.6).
@@ -51,6 +52,7 @@
 #pragma warning(disable: 26492)		// error C26492: Don't use const_cast to cast away const or volatile (type.3).
 #pragma warning(disable: 26493)		// error C26493: Don't use C-style casts (type.4).
 #pragma warning(disable: 26494)		// error C26494: Variable 'XXX' is uninitialized. Always initialize an object (type.5).
+#pragma warning(disable: 26496)		// error C26496 : The variable 'XXX' does not change after construction, mark it as const (con.4).
 #pragma warning(disable: 26812)		// error C26812: The enum type 'XXX' is unscoped. Prefer 'enum class' over 'enum' (Enum.3).
 #pragma warning(disable: 26818)		// error C26818: Switch statement does not cover all cases. Consider adding a 'default' label (es.79).
 #pragma warning(disable: 26821)		// error C26821: For 'XXX', consider using gsl::span instead of std::span to guarantee runtime bounds safety (gsl.view).
