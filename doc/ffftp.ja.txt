@@ -71,7 +71,7 @@ GUIを持つFTPクライアントソフトです。
 動作環境
 --------
 ・x64版
-  Windows 8.1以降
+  Windows 10以降
 ・x86版
   Windows Vista以降
 
