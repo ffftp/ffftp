@@ -48,9 +48,9 @@ void AddHostToHistory(Host const& host) {
 
 // ヒストリをヒストリリストの先頭に追加する
 void AddHistoryToHistory(HISTORYDATA const& history) {
-	if (size_as<int>(histories) == FileHist)
-		histories.resize((size_t)FileHist - 1);
 	histories.insert(begin(histories), history);
+	if (FileHist < size_as<int>(histories))
+		histories.resize(FileHist);
 }
 
 
