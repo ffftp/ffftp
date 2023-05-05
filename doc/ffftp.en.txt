@@ -1,5 +1,5 @@
 ============================================================
-[Software Name]  FFFTP Ver.5.7 (FTP Client software)
+[Software Name]  FFFTP Ver.5.8 (FTP Client software)
 [Copyright]      Copyright(C) 1997-2010 Sota & cooperators
                  Copyright (C) 2011-2018 FFFTP Project (Hiromichi Matsushima, Suguru Kawamoto, IWAMOTO Kouichi, vitamin0x, unarist, Asami, fortran90, tomo1192, Yuji Tanaka, Moriguchi Hirokazu, Fu-sen, potato).
 				 Copyright (C) 2018- Kurata Sayuri.
@@ -29,14 +29,14 @@ following menu.
 File -> Settings -> Change Master password
 
 
-Changes at 5.7
+Changes at 5.8
 --------------
 
-- Remove High DPI code, and use GDI Scaling. #371, #375
-- Fix for mirroring upload. #361
-- Update external libraries. #373
-- Improve code analysis. #370, #374
-- refactoring codes. #110, #357, #359, #360, #372
+- X64 edition supports Windows 10 or later. #388
+- Support Visual Studio 17.5. #386
+- Update boost-regex version. #392
+- Fix bug of creates directory instead of file. #369
+- Fix crash when max history count set to zero. #382
 
 
 Outline
