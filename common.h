@@ -31,7 +31,6 @@
 #define SECURITY_WIN32
 #define WIN32_LEAN_AND_MEAN
 #define UMDF_USING_NTSTATUS
-#pragma warning(disable: 6553)		// error C6553: The annotation for function 'XXX' on _Param_(YYY) does not apply to a value type.
 #pragma warning(disable: 26426)		// error C26426: Global initializer calls a non-constexpr function 'XXX' (i.22).
 #pragma warning(disable: 26429)		// error C26429: Symbol 'XXX' is never tested for nullness, it can be marked as not_null (f.23).
 #pragma warning(disable: 26432)		// error C26432: If you define or delete any default operation in the type 'XXX', define or delete them all (c.21).
@@ -53,7 +52,6 @@
 #pragma warning(disable: 26493)		// error C26493: Don't use C-style casts (type.4).
 #pragma warning(disable: 26494)		// error C26494: Variable 'XXX' is uninitialized. Always initialize an object (type.5).
 #pragma warning(disable: 26496)		// error C26496 : The variable 'XXX' does not change after construction, mark it as const (con.4).
-#pragma warning(disable: 26812)		// error C26812: The enum type 'XXX' is unscoped. Prefer 'enum class' over 'enum' (Enum.3).
 #pragma warning(disable: 26818)		// error C26818: Switch statement does not cover all cases. Consider adding a 'default' label (es.79).
 #pragma warning(disable: 26821)		// error C26821: For 'XXX', consider using gsl::span instead of std::span to guarantee runtime bounds safety (gsl.view).
 #include <algorithm>
