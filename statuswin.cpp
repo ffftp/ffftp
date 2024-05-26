@@ -73,7 +73,9 @@ void DispCurrentWindow(int Win) {
 void DispSelectedSpace() {
 	static auto const format = GetString(IDS_MSGJPN247);
 	auto const Win = GetFocus() == GetRemoteHwnd() ? WIN_REMOTE : WIN_LOCAL;
-	auto const text = std::vformat(format, std::make_wformat_args(GetSelectedCount(Win), MakeSizeString(GetSelectedTotalSize(Win))));
+	auto const selectedCount = GetSelectedCount(Win);
+	auto const selectedTotalSize = MakeSizeString(GetSelectedTotalSize(Win));
+	auto const text = std::vformat(format, std::make_wformat_args(selectedCount, selectedTotalSize));
 	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(2, 0), (LPARAM)text.c_str());
 }
 
@@ -82,7 +84,8 @@ void DispSelectedSpace() {
 void DispLocalFreeSpace(fs::path const& directory) {
 	static auto const format = GetString(IDS_MSGJPN248);
 	ULARGE_INTEGER a;
-	auto const text = std::vformat(format, std::make_wformat_args(GetDiskFreeSpaceExW(directory.c_str(), &a, nullptr, nullptr) != 0 ? MakeSizeString(a.QuadPart) : L"??"s));
+	auto const diskFreeSpace = GetDiskFreeSpaceExW(directory.c_str(), &a, nullptr, nullptr) != 0 ? MakeSizeString(a.QuadPart) : L"??"s;
+	auto const text = std::vformat(format, std::make_wformat_args(diskFreeSpace));
 	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(3, 0), (LPARAM)text.c_str());
 }
 
@@ -90,7 +93,8 @@ void DispLocalFreeSpace(fs::path const& directory) {
 // 転送するファイルの数を表示
 void DispTransferFiles() {
 	static auto const format = GetString(IDS_MSGJPN249);
-	auto const text = std::vformat(format, std::make_wformat_args(AskTransferFileNum()));
+	auto const transferFileNum = AskTransferFileNum();
+	auto const text = std::vformat(format, std::make_wformat_args(transferFileNum));
 	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(4, 0), (LPARAM)text.c_str());
 }
 
@@ -98,7 +102,8 @@ void DispTransferFiles() {
 // 受信中のバイト数を表示
 void DispDownloadSize(LONGLONG Size) {
 	static auto const format = GetString(IDS_MSGJPN250);
-	auto const text = 0 <= Size ? std::vformat(format, std::make_wformat_args(MakeSizeString(Size))) : L""s;
+	auto const downloadSize = MakeSizeString(Size);
+	auto const text = 0 <= Size ? std::vformat(format, std::make_wformat_args(downloadSize)) : L""s;
 	SendMessageW(hWndSbar, SB_SETTEXTW, MAKEWORD(5, 0), (LPARAM)text.c_str());
 }
 

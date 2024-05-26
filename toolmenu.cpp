@@ -783,7 +783,9 @@ void ShowPopupMenu(int Win, int Pos) {
 	for (int i = VIEWERS - 1; i >= 0; i--) {
 		if (!empty(ViewerName[i])) {
 			static auto const format = GetString(IDS_OPEN_WITH);
-			auto text = std::vformat(format, std::make_wformat_args(fs::path{ ViewerName[i] }.filename().native(), i + 1));
+			auto const filename = fs::path{ ViewerName[i] }.filename().native();
+			auto const index = i + 1;
+			auto text = std::vformat(format, std::make_wformat_args(filename, index));
 			MENUITEMINFOW mii{ .cbSize = sizeof(MENUITEMINFOW), .fMask = MIIM_FTYPE | MIIM_STATE | MIIM_ID | MIIM_STRING, .fType = MFT_STRING, .fState = UINT(canOpen ? 0 : MFS_GRAYED), .wID = MenuID[i], .dwTypeData = data(text) };
 			InsertMenuItemW(submenu, 1, true, &mii);
 		}
